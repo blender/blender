@@ -31,6 +31,8 @@
 #ifndef CERES_INTERNAL_TRUST_REGION_STEP_EVALUATOR_H_
 #define CERES_INTERNAL_TRUST_REGION_STEP_EVALUATOR_H_
 
+#include "ceres/internal/export.h"
+
 namespace ceres {
 namespace internal {
 
@@ -74,7 +76,7 @@ namespace internal {
 //   x = x + delta;
 //   step_evaluator->StepAccepted(cost, model_cost_change);
 // }
-class TrustRegionStepEvaluator {
+class CERES_NO_EXPORT TrustRegionStepEvaluator {
  public:
   // initial_cost is as the name implies the cost of the starting
   // state of the trust region minimizer.

@@ -1458,14 +1458,6 @@ if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
 endif()
 
 #-----------------------------------------------------------------------------
-# Configure Ceres
-
-if(WITH_LIBMV)
-  # We always have C++11 which includes unordered_map.
-  set(CERES_DEFINES "-DCERES_STD_UNORDERED_MAP;-DCERES_USE_CXX_THREADS")
-endif()
-
-#-----------------------------------------------------------------------------
 # Extra limits to number of jobs running in parallel for some kind os tasks.
 # Only supported by Ninja build system currently.
 if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)

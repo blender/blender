@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2017 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,12 @@
 #include "ceres/compressed_row_sparse_matrix.h"
 
 #include <algorithm>
+#include <memory>
 #include <numeric>
 #include <vector>
 
 #include "ceres/crs_matrix.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/random.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "glog/logging.h"
@@ -104,7 +105,7 @@ void TransposeForCompressedRowSparseStructure(const int num_rows,
       const int c = cols[idx];
       const int transpose_idx = transpose_rows[c]++;
       transpose_cols[transpose_idx] = r;
-      if (values != NULL && transpose_values != NULL) {
+      if (values != nullptr && transpose_values != nullptr) {
         transpose_values[transpose_idx] = values[idx];
       }
     }
@@ -174,18 +175,20 @@ CompressedRowSparseMatrix::CompressedRowSparseMatrix(int num_rows,
                  cols_.size() * sizeof(double);  // NOLINT
 }
 
-CompressedRowSparseMatrix* CompressedRowSparseMatrix::FromTripletSparseMatrix(
+std::unique_ptr<CompressedRowSparseMatrix>
+CompressedRowSparseMatrix::FromTripletSparseMatrix(
     const TripletSparseMatrix& input) {
   return CompressedRowSparseMatrix::FromTripletSparseMatrix(input, false);
 }
 
-CompressedRowSparseMatrix*
+std::unique_ptr<CompressedRowSparseMatrix>
 CompressedRowSparseMatrix::FromTripletSparseMatrixTransposed(
     const TripletSparseMatrix& input) {
   return CompressedRowSparseMatrix::FromTripletSparseMatrix(input, true);
 }
 
-CompressedRowSparseMatrix* CompressedRowSparseMatrix::FromTripletSparseMatrix(
+std::unique_ptr<CompressedRowSparseMatrix>
+CompressedRowSparseMatrix::FromTripletSparseMatrix(
     const TripletSparseMatrix& input, bool transpose) {
   int num_rows = input.num_rows();
   int num_cols = input.num_cols();
@@ -214,8 +217,9 @@ CompressedRowSparseMatrix* CompressedRowSparseMatrix::FromTripletSparseMatrix(
               input.num_nonzeros() * sizeof(int) +     // NOLINT
               input.num_nonzeros() * sizeof(double));  // NOLINT
 
-  CompressedRowSparseMatrix* output =
-      new CompressedRowSparseMatrix(num_rows, num_cols, input.num_nonzeros());
+  std::unique_ptr<CompressedRowSparseMatrix> output =
+      std::make_unique<CompressedRowSparseMatrix>(
+          num_rows, num_cols, input.num_nonzeros());
 
   if (num_rows == 0) {
     // No data to copy.
@@ -266,7 +270,7 @@ CompressedRowSparseMatrix::CompressedRowSparseMatrix(const double* diagonal,
   CHECK_EQ(num_nonzeros(), num_rows);
 }
 
-CompressedRowSparseMatrix::~CompressedRowSparseMatrix() {}
+CompressedRowSparseMatrix::~CompressedRowSparseMatrix() = default;
 
 void CompressedRowSparseMatrix::SetZero() {
   std::fill(values_.begin(), values_.end(), 0);
@@ -533,17 +537,19 @@ void CompressedRowSparseMatrix::SetMaxNumNonZeros(int num_nonzeros) {
   values_.resize(num_nonzeros);
 }
 
-CompressedRowSparseMatrix* CompressedRowSparseMatrix::CreateBlockDiagonalMatrix(
+std::unique_ptr<CompressedRowSparseMatrix>
+CompressedRowSparseMatrix::CreateBlockDiagonalMatrix(
     const double* diagonal, const vector<int>& blocks) {
   int num_rows = 0;
   int num_nonzeros = 0;
-  for (int i = 0; i < blocks.size(); ++i) {
-    num_rows += blocks[i];
-    num_nonzeros += blocks[i] * blocks[i];
+  for (int block_size : blocks) {
+    num_rows += block_size;
+    num_nonzeros += block_size * block_size;
   }
 
-  CompressedRowSparseMatrix* matrix =
-      new CompressedRowSparseMatrix(num_rows, num_rows, num_nonzeros);
+  std::unique_ptr<CompressedRowSparseMatrix> matrix =
+      std::make_unique<CompressedRowSparseMatrix>(
+          num_rows, num_rows, num_nonzeros);
 
   int* rows = matrix->mutable_rows();
   int* cols = matrix->mutable_cols();
@@ -552,8 +558,7 @@ CompressedRowSparseMatrix* CompressedRowSparseMatrix::CreateBlockDiagonalMatrix(
 
   int idx_cursor = 0;
   int col_cursor = 0;
-  for (int i = 0; i < blocks.size(); ++i) {
-    const int block_size = blocks[i];
+  for (int block_size : blocks) {
     for (int r = 0; r < block_size; ++r) {
       *(rows++) = idx_cursor;
       values[idx_cursor + r] = diagonal[col_cursor + r];
@@ -573,9 +578,11 @@ CompressedRowSparseMatrix* CompressedRowSparseMatrix::CreateBlockDiagonalMatrix(
   return matrix;
 }
 
-CompressedRowSparseMatrix* CompressedRowSparseMatrix::Transpose() const {
-  CompressedRowSparseMatrix* transpose =
-      new CompressedRowSparseMatrix(num_cols_, num_rows_, num_nonzeros());
+std::unique_ptr<CompressedRowSparseMatrix>
+CompressedRowSparseMatrix::Transpose() const {
+  std::unique_ptr<CompressedRowSparseMatrix> transpose =
+      std::make_unique<CompressedRowSparseMatrix>(
+          num_cols_, num_rows_, num_nonzeros());
 
   switch (storage_type_) {
     case UNSYMMETRIC:
@@ -612,7 +619,8 @@ CompressedRowSparseMatrix* CompressedRowSparseMatrix::Transpose() const {
   return transpose;
 }
 
-CompressedRowSparseMatrix* CompressedRowSparseMatrix::CreateRandomMatrix(
+std::unique_ptr<CompressedRowSparseMatrix>
+CompressedRowSparseMatrix::CreateRandomMatrix(
     CompressedRowSparseMatrix::RandomMatrixOptions options) {
   CHECK_GT(options.num_row_blocks, 0);
   CHECK_GT(options.min_row_block_size, 0);
@@ -714,7 +722,7 @@ CompressedRowSparseMatrix* CompressedRowSparseMatrix::CreateRandomMatrix(
   const int num_rows = std::accumulate(row_blocks.begin(), row_blocks.end(), 0);
   const int num_cols = std::accumulate(col_blocks.begin(), col_blocks.end(), 0);
   const bool kDoNotTranspose = false;
-  CompressedRowSparseMatrix* matrix =
+  std::unique_ptr<CompressedRowSparseMatrix> matrix =
       CompressedRowSparseMatrix::FromTripletSparseMatrix(
           TripletSparseMatrix(
               num_rows, num_cols, tsm_rows, tsm_cols, tsm_values),

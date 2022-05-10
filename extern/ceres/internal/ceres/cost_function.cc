@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,27 +26,14 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: keir@google.com (Keir Mierle)
+// Author: sameeragarwal@google.com (Sameer Agarwal)
+//         keir@google.m (Keir Mierle)
 
-#ifndef CERES_INTERNAL_SPLIT_H_
-#define CERES_INTERNAL_SPLIT_H_
-
-#include <string>
-#include <vector>
-
-#include "ceres/internal/port.h"
+#include "ceres/cost_function.h"
 
 namespace ceres {
-namespace internal {
 
-// Split a string using one or more character delimiters, presented as a
-// nul-terminated c string. Append the components to 'result'. If there are
-// consecutive delimiters, this function skips over all of them.
-void SplitStringUsing(const std::string& full,
-                      const char* delim,
-                      std::vector<std::string>* res);
+CostFunction::CostFunction() : num_residuals_(0) {}
+CostFunction::~CostFunction() = default;
 
-}  // namespace internal
 }  // namespace ceres
-
-#endif  // CERES_INTERNAL_SPLIT_H_

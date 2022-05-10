@@ -78,7 +78,7 @@ template <typename T>
 class ConcurrentQueue {
  public:
   // Defaults the queue to blocking on Wait calls.
-  ConcurrentQueue() : wait_(true) {}
+  ConcurrentQueue() = default;
 
   // Atomically push an element onto the queue.  If a thread was waiting for an
   // element, wake it up.
@@ -149,7 +149,7 @@ class ConcurrentQueue {
   std::queue<T> queue_;
   // If true, signals that callers of Wait will block waiting to pop an
   // element off the queue.
-  bool wait_;
+  bool wait_{true};
 };
 
 }  // namespace internal

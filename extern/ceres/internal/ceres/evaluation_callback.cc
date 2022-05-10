@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,57 +26,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Author: sameeragarwal@google.com (Sameer Agarwal)
+// Author: mierle@gmail.com (Keir Mierle)
 
-#include "ceres/blas.h"
-
-#include "ceres/internal/port.h"
-#include "glog/logging.h"
-
-#ifndef CERES_NO_LAPACK
-extern "C" void dsyrk_(char* uplo,
-                       char* trans,
-                       int* n,
-                       int* k,
-                       double* alpha,
-                       double* a,
-                       int* lda,
-                       double* beta,
-                       double* c,
-                       int* ldc);
-#endif
+#include "ceres/evaluation_callback.h"
 
 namespace ceres {
-namespace internal {
 
-void BLAS::SymmetricRankKUpdate(int num_rows,
-                                int num_cols,
-                                const double* a,
-                                bool transpose,
-                                double alpha,
-                                double beta,
-                                double* c) {
-#ifdef CERES_NO_LAPACK
-  LOG(FATAL) << "Ceres was built without a BLAS library.";
-#else
-  char uplo = 'L';
-  char trans = transpose ? 'T' : 'N';
-  int n = transpose ? num_cols : num_rows;
-  int k = transpose ? num_rows : num_cols;
-  int lda = k;
-  int ldc = n;
-  dsyrk_(&uplo,
-         &trans,
-         &n,
-         &k,
-         &alpha,
-         const_cast<double*>(a),
-         &lda,
-         &beta,
-         c,
-         &ldc);
-#endif
-}
+EvaluationCallback::~EvaluationCallback() = default;
 
-}  // namespace internal
 }  // namespace ceres

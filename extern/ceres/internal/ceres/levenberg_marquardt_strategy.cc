@@ -61,7 +61,7 @@ LevenbergMarquardtStrategy::LevenbergMarquardtStrategy(
   CHECK_GT(max_radius_, 0.0);
 }
 
-LevenbergMarquardtStrategy::~LevenbergMarquardtStrategy() {}
+LevenbergMarquardtStrategy::~LevenbergMarquardtStrategy() = default;
 
 TrustRegionStrategy::Summary LevenbergMarquardtStrategy::ComputeStep(
     const TrustRegionStrategy::PerSolveOptions& per_solve_options,

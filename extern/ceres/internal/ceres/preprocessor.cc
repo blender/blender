@@ -30,6 +30,8 @@
 
 #include "ceres/preprocessor.h"
 
+#include <memory>
+
 #include "ceres/callbacks.h"
 #include "ceres/gradient_checking_cost_function.h"
 #include "ceres/line_search_preprocessor.h"
@@ -41,22 +43,26 @@
 namespace ceres {
 namespace internal {
 
-Preprocessor* Preprocessor::Create(MinimizerType minimizer_type) {
+std::unique_ptr<Preprocessor> Preprocessor::Create(
+    MinimizerType minimizer_type) {
   if (minimizer_type == TRUST_REGION) {
-    return new TrustRegionPreprocessor;
+    return std::make_unique<TrustRegionPreprocessor>();
   }
 
   if (minimizer_type == LINE_SEARCH) {
-    return new LineSearchPreprocessor;
+    return std::make_unique<LineSearchPreprocessor>();
   }
 
   LOG(FATAL) << "Unknown minimizer_type: " << minimizer_type;
-  return NULL;
+  return nullptr;
 }
 
-Preprocessor::~Preprocessor() {}
+Preprocessor::~Preprocessor() = default;
 
 void ChangeNumThreadsIfNeeded(Solver::Options* options) {
+  if (options->num_threads == 1) {
+    return;
+  }
   const int num_threads_available = MaxNumThreadsAvailable();
   if (options->num_threads > num_threads_available) {
     LOG(WARNING) << "Specified options.num_threads: " << options->num_threads
@@ -82,15 +88,15 @@ void SetupCommonMinimizerOptions(PreprocessedProblem* pp) {
   minimizer_options.evaluator = pp->evaluator;
 
   if (options.logging_type != SILENT) {
-    pp->logging_callback.reset(new LoggingCallback(
-        options.minimizer_type, options.minimizer_progress_to_stdout));
+    pp->logging_callback = std::make_unique<LoggingCallback>(
+        options.minimizer_type, options.minimizer_progress_to_stdout);
     minimizer_options.callbacks.insert(minimizer_options.callbacks.begin(),
                                        pp->logging_callback.get());
   }
 
   if (options.update_state_every_iteration) {
-    pp->state_updating_callback.reset(
-        new StateUpdatingCallback(program, reduced_parameters));
+    pp->state_updating_callback =
+        std::make_unique<StateUpdatingCallback>(program, reduced_parameters);
     // This must get pushed to the front of the callbacks so that it
     // is run before any of the user callbacks.
     minimizer_options.callbacks.insert(minimizer_options.callbacks.begin(),

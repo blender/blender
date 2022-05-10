@@ -32,30 +32,34 @@
 #define CERES_INTERNAL_GRADIENT_PROBLEM_EVALUATOR_H_
 
 #include <map>
+#include <memory>
 #include <string>
 
 #include "ceres/evaluator.h"
 #include "ceres/execution_summary.h"
 #include "ceres/gradient_problem.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
+#include "ceres/sparse_matrix.h"
 #include "ceres/wall_time.h"
 
 namespace ceres {
 namespace internal {
 
-class GradientProblemEvaluator : public Evaluator {
+class CERES_NO_EXPORT GradientProblemEvaluator final : public Evaluator {
  public:
   explicit GradientProblemEvaluator(const GradientProblem& problem)
       : problem_(problem) {}
-  virtual ~GradientProblemEvaluator() {}
-  SparseMatrix* CreateJacobian() const final { return nullptr; }
+
+  std::unique_ptr<SparseMatrix> CreateJacobian() const final { return nullptr; }
+
   bool Evaluate(const EvaluateOptions& evaluate_options,
                 const double* state,
                 double* cost,
                 double* residuals,
                 double* gradient,
                 SparseMatrix* jacobian) final {
-    CHECK(jacobian == NULL);
+    CHECK(jacobian == nullptr);
     ScopedExecutionTimer total_timer("Evaluator::Total", &execution_summary_);
     // The reason we use Residual and Jacobian here even when we are
     // only computing the cost and gradient has to do with the fact
@@ -65,7 +69,7 @@ class GradientProblemEvaluator : public Evaluator {
     // to be consistent across the code base for the time accounting
     // to work.
     ScopedExecutionTimer call_type_timer(
-        gradient == NULL ? "Evaluator::Residual" : "Evaluator::Jacobian",
+        gradient == nullptr ? "Evaluator::Residual" : "Evaluator::Jacobian",
         &execution_summary_);
     return problem_.Evaluate(state, cost, gradient);
   }
@@ -95,5 +99,7 @@ class GradientProblemEvaluator : public Evaluator {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_GRADIENT_PROBLEM_EVALUATOR_H_

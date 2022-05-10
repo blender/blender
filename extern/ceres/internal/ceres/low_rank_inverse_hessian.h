@@ -37,6 +37,7 @@
 #include <list>
 
 #include "ceres/internal/eigen.h"
+#include "ceres/internal/export.h"
 #include "ceres/linear_operator.h"
 
 namespace ceres {
@@ -59,7 +60,7 @@ namespace internal {
 // Byrd, R. H.; Nocedal, J.; Schnabel, R. B. (1994).
 // "Representations of Quasi-Newton Matrices and their use in
 // Limited Memory Methods". Mathematical Programming 63 (4):
-class LowRankInverseHessian : public LinearOperator {
+class CERES_NO_EXPORT LowRankInverseHessian final : public LinearOperator {
  public:
   // num_parameters is the row/column size of the Hessian.
   // max_num_corrections is the rank of the Hessian approximation.
@@ -73,7 +74,6 @@ class LowRankInverseHessian : public LinearOperator {
   LowRankInverseHessian(int num_parameters,
                         int max_num_corrections,
                         bool use_approximate_eigenvalue_scaling);
-  virtual ~LowRankInverseHessian() {}
 
   // Update the low rank approximation. delta_x is the change in the
   // domain of Hessian, and delta_gradient is the change in the

@@ -36,6 +36,7 @@
 #include <vector>
 
 #include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 #include "ceres/internal/port.h"
 #include "ceres/iteration_callback.h"
 #include "ceres/types.h"
@@ -305,7 +306,11 @@ class CERES_EXPORT GradientProblemSolver {
     int num_parameters = -1;
 
     // Dimension of the tangent space of the problem.
+    CERES_DEPRECATED_WITH_MSG("Use num_tangent_parameters.")
     int num_local_parameters = -1;
+
+    // Dimension of the tangent space of the problem.
+    int num_tangent_parameters = -1;
 
     // Type of line search direction used.
     LineSearchDirectionType line_search_direction_type = LBFGS;

@@ -42,7 +42,7 @@ namespace internal {
 IterativeRefiner::IterativeRefiner(const int max_num_iterations)
     : max_num_iterations_(max_num_iterations) {}
 
-IterativeRefiner::~IterativeRefiner() {}
+IterativeRefiner::~IterativeRefiner() = default;
 
 void IterativeRefiner::Allocate(int num_cols) {
   residual_.resize(num_cols);

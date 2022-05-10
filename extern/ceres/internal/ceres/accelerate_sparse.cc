@@ -29,11 +29,12 @@
 // Author: alexs.mac@gmail.com (Alex Stewart)
 
 // This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 
 #ifndef CERES_NO_ACCELERATE_SPARSE
 
 #include <algorithm>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -196,17 +197,17 @@ template <typename Scalar>
 LinearSolverTerminationType AppleAccelerateCholesky<Scalar>::Factorize(
     CompressedRowSparseMatrix* lhs, std::string* message) {
   CHECK_EQ(lhs->storage_type(), StorageType());
-  if (lhs == NULL) {
-    *message = "Failure: Input lhs is NULL.";
+  if (lhs == nullptr) {
+    *message = "Failure: Input lhs is nullptr.";
     return LINEAR_SOLVER_FATAL_ERROR;
   }
   typename SparseTypesTrait<Scalar>::SparseMatrix as_lhs =
       as_.CreateSparseMatrixTransposeView(lhs);
 
   if (!symbolic_factor_) {
-    symbolic_factor_.reset(
-        new typename SparseTypesTrait<Scalar>::SymbolicFactorization(
-            as_.AnalyzeCholesky(&as_lhs)));
+    symbolic_factor_ = std::make_unique<
+        typename SparseTypesTrait<Scalar>::SymbolicFactorization>(
+        as_.AnalyzeCholesky(&as_lhs));
     if (symbolic_factor_->status != SparseStatusOK) {
       *message = StringPrintf(
           "Apple Accelerate Failure : Symbolic factorisation failed: %s",
@@ -217,9 +218,9 @@ LinearSolverTerminationType AppleAccelerateCholesky<Scalar>::Factorize(
   }
 
   if (!numeric_factor_) {
-    numeric_factor_.reset(
-        new typename SparseTypesTrait<Scalar>::NumericFactorization(
-            as_.Cholesky(&as_lhs, symbolic_factor_.get())));
+    numeric_factor_ = std::make_unique<
+        typename SparseTypesTrait<Scalar>::NumericFactorization>(
+        as_.Cholesky(&as_lhs, symbolic_factor_.get()));
   } else {
     // Recycle memory from previous numeric factorization.
     as_.Cholesky(&as_lhs, numeric_factor_.get());
@@ -265,7 +266,7 @@ template <typename Scalar>
 void AppleAccelerateCholesky<Scalar>::FreeSymbolicFactorization() {
   if (symbolic_factor_) {
     SparseCleanup(*symbolic_factor_);
-    symbolic_factor_.reset();
+    symbolic_factor_ = nullptr;
   }
 }
 
@@ -273,7 +274,7 @@ template <typename Scalar>
 void AppleAccelerateCholesky<Scalar>::FreeNumericFactorization() {
   if (numeric_factor_) {
     SparseCleanup(*numeric_factor_);
-    numeric_factor_.reset();
+    numeric_factor_ = nullptr;
   }
 }
 

@@ -34,11 +34,12 @@
 #define CERES_INTERNAL_SUITESPARSE_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 
 #ifndef CERES_NO_SUITESPARSE
 
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -70,6 +71,8 @@
 #define SuiteSparse_long UF_long
 #endif
 
+#include "ceres/internal/disable_warnings.h"
+
 namespace ceres {
 namespace internal {
 
@@ -81,7 +84,7 @@ class TripletSparseMatrix;
 // provides the user with a simpler interface. The methods here cannot
 // be static as a cholmod_common object serves as a global variable
 // for all cholmod function calls.
-class SuiteSparse {
+class CERES_NO_EXPORT SuiteSparse {
  public:
   SuiteSparse();
   ~SuiteSparse();
@@ -106,7 +109,7 @@ class SuiteSparse {
   cholmod_dense CreateDenseVectorView(const double* x, int size);
 
   // Given a vector x, build a cholmod_dense vector of size out_size
-  // with the first in_size entries copied from x. If x is NULL, then
+  // with the first in_size entries copied from x. If x is nullptr, then
   // an all zeros vector is returned. Caller owns the result.
   cholmod_dense* CreateDenseVector(const double* x, int in_size, int out_size);
 
@@ -123,7 +126,7 @@ class SuiteSparse {
   // Create and return a matrix m = A * A'. Caller owns the
   // result. The matrix A is not modified.
   cholmod_sparse* AATranspose(cholmod_sparse* A) {
-    cholmod_sparse* m = cholmod_aat(A, NULL, A->nrow, 1, &cc_);
+    cholmod_sparse* m = cholmod_aat(A, nullptr, A->nrow, 1, &cc_);
     m->stype = 1;  // Pay attention to the upper triangular part.
     return m;
   }
@@ -196,7 +199,7 @@ class SuiteSparse {
 
   // Given a Cholesky factorization of a matrix A = LL^T, solve the
   // linear system Ax = b, and return the result. If the Solve fails
-  // NULL is returned. Caller owns the result.
+  // nullptr is returned. Caller owns the result.
   //
   // message contains an explanation of the failures if any.
   cholmod_dense* Solve(cholmod_factor* L,
@@ -288,12 +291,12 @@ class SuiteSparse {
   cholmod_common cc_;
 };
 
-class SuiteSparseCholesky : public SparseCholesky {
+class CERES_NO_EXPORT SuiteSparseCholesky final : public SparseCholesky {
  public:
   static std::unique_ptr<SparseCholesky> Create(OrderingType ordering_type);
 
   // SparseCholesky interface.
-  virtual ~SuiteSparseCholesky();
+  ~SuiteSparseCholesky() override;
   CompressedRowSparseMatrix::StorageType StorageType() const final;
   LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
                                         std::string* message) final;
@@ -302,7 +305,7 @@ class SuiteSparseCholesky : public SparseCholesky {
                                     std::string* message) final;
 
  private:
-  SuiteSparseCholesky(const OrderingType ordering_type);
+  explicit SuiteSparseCholesky(const OrderingType ordering_type);
 
   const OrderingType ordering_type_;
   SuiteSparse ss_;
@@ -312,14 +315,18 @@ class SuiteSparseCholesky : public SparseCholesky {
 }  // namespace internal
 }  // namespace ceres
 
+#include "ceres/internal/reenable_warnings.h"
+
 #else  // CERES_NO_SUITESPARSE
 
 typedef void cholmod_factor;
 
+#include "ceres/internal/disable_warnings.h"
+
 namespace ceres {
 namespace internal {
 
-class SuiteSparse {
+class CERES_NO_EXPORT SuiteSparse {
  public:
   // Defining this static function even when SuiteSparse is not
   // available, allows client code to check for the presence of CAMD
@@ -332,11 +339,13 @@ class SuiteSparse {
     return false;
   }
 
-  void Free(void* arg) {}
+  void Free(void* /*arg*/) {}
 };
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_NO_SUITESPARSE
 

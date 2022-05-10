@@ -36,7 +36,7 @@
 
 #include "ceres/array_utils.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/parameter_block.h"
 #include "ceres/residual_block.h"
 #include "ceres/stringprintf.h"
@@ -56,7 +56,7 @@ void InvalidateEvaluation(const ResidualBlock& block,
 
   InvalidateArray(1, cost);
   InvalidateArray(num_residuals, residuals);
-  if (jacobians != NULL) {
+  if (jacobians != nullptr) {
     for (int i = 0; i < num_parameter_blocks; ++i) {
       const int parameter_block_size = block.parameter_blocks()[i]->Size();
       InvalidateArray(num_residuals * parameter_block_size, jacobians[i]);
@@ -104,9 +104,9 @@ string EvaluationToString(const ResidualBlock& block,
       StringAppendF(&result, "| ");
       for (int k = 0; k < num_residuals; ++k) {
         AppendArrayToString(1,
-                            (jacobians != NULL && jacobians[i] != NULL)
+                            (jacobians != nullptr && jacobians[i] != nullptr)
                                 ? jacobians[i] + k * parameter_block_size + j
-                                : NULL,
+                                : nullptr,
                             &result);
       }
       StringAppendF(&result, "\n");
@@ -129,7 +129,7 @@ bool IsEvaluationValid(const ResidualBlock& block,
     return false;
   }
 
-  if (jacobians != NULL) {
+  if (jacobians != nullptr) {
     for (int i = 0; i < num_parameter_blocks; ++i) {
       const int parameter_block_size = block.parameter_blocks()[i]->Size();
       if (!IsArrayValid(num_residuals * parameter_block_size, jacobians[i])) {

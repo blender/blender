@@ -33,7 +33,7 @@
 namespace ceres {
 namespace internal {
 
-LinearOperator::~LinearOperator() {}
+LinearOperator::~LinearOperator() = default;
 
 }  // namespace internal
 }  // namespace ceres

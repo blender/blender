@@ -32,20 +32,23 @@
 
 #include "ceres/trust_region_strategy.h"
 
+#include <memory>
+
 #include "ceres/dogleg_strategy.h"
 #include "ceres/levenberg_marquardt_strategy.h"
 
 namespace ceres {
 namespace internal {
 
-TrustRegionStrategy::~TrustRegionStrategy() {}
+TrustRegionStrategy::~TrustRegionStrategy() = default;
 
-TrustRegionStrategy* TrustRegionStrategy::Create(const Options& options) {
+std::unique_ptr<TrustRegionStrategy> TrustRegionStrategy::Create(
+    const Options& options) {
   switch (options.trust_region_strategy_type) {
     case LEVENBERG_MARQUARDT:
-      return new LevenbergMarquardtStrategy(options);
+      return std::make_unique<LevenbergMarquardtStrategy>(options);
     case DOGLEG:
-      return new DoglegStrategy(options);
+      return std::make_unique<DoglegStrategy>(options);
     default:
       LOG(FATAL) << "Unknown trust region strategy: "
                  << options.trust_region_strategy_type;
@@ -53,7 +56,7 @@ TrustRegionStrategy* TrustRegionStrategy::Create(const Options& options) {
 
   LOG(FATAL) << "Unknown trust region strategy: "
              << options.trust_region_strategy_type;
-  return NULL;
+  return nullptr;
 }
 
 }  // namespace internal
