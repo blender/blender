@@ -143,7 +143,7 @@ ccl_device_inline float3 shadow_ray_smooth_surface_offset(
   float3 n = N[0] * u + N[1] * v + N[2] * w; /* We get away without normalization */
 
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    object_normal_transform(kg, sd, &n); /* Normal x scale, world space */
+    object_dir_transform(kg, sd, &n); /* Normal x scale, to world space */
   }
 
   /* Parabolic approximation */
