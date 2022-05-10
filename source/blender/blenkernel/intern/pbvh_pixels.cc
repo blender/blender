@@ -26,7 +26,7 @@ namespace blender::bke::pbvh::pixels {
  * During debugging this check could be enabled.
  * It will write to each image pixel that is covered by the PBVH.
  */
-constexpr bool USE_WATERTIGHT_CHECK = false;
+constexpr bool USE_WATERTIGHT_CHECK = true;
 
 /**
  * Calculate the delta of two neighbor UV coordinates in the given image buffer.
@@ -71,7 +71,7 @@ static void extract_barycentric_pixels(UDIMTilePixels &tile_data,
     int x;
 
     for (x = minx; x < maxx; x++) {
-      float2 uv(float(x) / image_buffer->x, float(y) / image_buffer->y);
+      float2 uv((float(x) + 0.5f) / image_buffer->x, (float(y) + 0.5f) / image_buffer->y);
       float3 barycentric_weights;
       barycentric_weights_v2(uvs[0], uvs[1], uvs[2], uv, barycentric_weights);
 
