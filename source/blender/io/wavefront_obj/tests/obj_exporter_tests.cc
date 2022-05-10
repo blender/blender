@@ -11,11 +11,14 @@
 
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"
+#include "BKE_main.h"
 
 #include "BLI_fileops.h"
 #include "BLI_index_range.hh"
 #include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
+
+#include "BLO_readfile.h"
 
 #include "DEG_depsgraph.h"
 
@@ -259,11 +262,12 @@ class obj_exporter_regression_test : public obj_exporter_test {
     std::string tempdir = std::string(BKE_tempdir_base());
     std::string out_file_path = tempdir + BLI_path_basename(golden_obj.c_str());
     strncpy(params.filepath, out_file_path.c_str(), FILE_MAX - 1);
-    params.blen_filepath = blendfile.c_str();
+    params.blen_filepath = bfile->main->filepath;
+    std::string golden_file_path = blender::tests::flags_test_asset_dir() + "/" + golden_obj;
+    BLI_split_dir_part(golden_file_path.c_str(), params.file_base_for_tests, PATH_MAX);
     export_frame(depsgraph, params, out_file_path.c_str());
     std::string output_str = read_temp_file_in_string(out_file_path);
 
-    std::string golden_file_path = blender::tests::flags_test_asset_dir() + "/" + golden_obj;
     std::string golden_str = read_temp_file_in_string(golden_file_path);
     bool are_equal = strings_equal_after_first_lines(output_str, golden_str);
     if (save_failing_test_output && !are_equal) {
@@ -432,16 +436,23 @@ TEST_F(obj_exporter_regression_test, cubes_positioned)
                                _export.params);
 }
 
-/* Note: texture paths in the resulting mtl file currently are always
- * as they are stored in the source .blend file; not relative to where
- * the export is done. When that is properly fixed, the expected .mtl
- * file should be updated. */
-TEST_F(obj_exporter_regression_test, cubes_with_textures)
+TEST_F(obj_exporter_regression_test, cubes_with_textures_strip)
 {
   OBJExportParamsDefault _export;
+  _export.params.path_mode = PATH_REFERENCE_STRIP;
   compare_obj_export_to_golden("io_tests/blend_geometry/cubes_with_textures.blend",
                                "io_tests/obj/cubes_with_textures.obj",
                                "io_tests/obj/cubes_with_textures.mtl",
+                               _export.params);
+}
+
+TEST_F(obj_exporter_regression_test, cubes_with_textures_relative)
+{
+  OBJExportParamsDefault _export;
+  _export.params.path_mode = PATH_REFERENCE_RELATIVE;
+  compare_obj_export_to_golden("io_tests/blend_geometry/cubes_with_textures.blend",
+                               "io_tests/obj/cubes_with_textures_rel.obj",
+                               "io_tests/obj/cubes_with_textures_rel.mtl",
                                _export.params);
 }
 
