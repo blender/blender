@@ -7,7 +7,6 @@ set(INC
   ../blenlib
   ../blentranslation
   ../functions
-  ../guardedalloc
   ../makesdna
   ../makesrna
   ../../../intern/eigen
