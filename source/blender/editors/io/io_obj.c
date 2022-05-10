@@ -29,6 +29,7 @@
 
 #include "DEG_depsgraph.h"
 
+#include "IO_path_util_types.h"
 #include "IO_wavefront_obj.h"
 #include "io_obj.h"
 
@@ -59,6 +60,15 @@ static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
      "Export objects as they appear in the viewport"},
     {0, NULL, 0, NULL, NULL}};
 
+static const EnumPropertyItem io_obj_path_mode[] = {
+    {PATH_REFERENCE_AUTO, "AUTO", 0, "Auto", "Use Relative paths with subdirectories only"},
+    {PATH_REFERENCE_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Always write absolute paths"},
+    {PATH_REFERENCE_RELATIVE, "RELATIVE", 0, "Relative", "Write relative paths where possible"},
+    {PATH_REFERENCE_MATCH, "MATCH", 0, "Match", "Match Absolute/Relative setting with input path"},
+    {PATH_REFERENCE_STRIP, "STRIP", 0, "Strip", "Write filename only"},
+    {PATH_REFERENCE_COPY, "COPY", 0, "Copy", "Copy the file to the destination path"},
+    {0, NULL, 0, NULL, NULL}};
+
 static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -87,6 +97,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   struct OBJExportParams export_params;
+  export_params.file_base_for_tests[0] = '\0';
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.blen_filepath = CTX_data_main(C)->filepath;
   export_params.export_animation = RNA_boolean_get(op->ptr, "export_animation");
@@ -103,6 +114,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   export_params.export_uv = RNA_boolean_get(op->ptr, "export_uv");
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
   export_params.export_materials = RNA_boolean_get(op->ptr, "export_materials");
+  export_params.path_mode = RNA_enum_get(op->ptr, "path_mode");
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
   export_params.export_curves_as_nurbs = RNA_boolean_get(op->ptr, "export_curves_as_nurbs");
 
@@ -119,9 +131,9 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
 
 static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
 {
-
   const bool export_animation = RNA_boolean_get(imfptr, "export_animation");
   const bool export_smooth_groups = RNA_boolean_get(imfptr, "export_smooth_groups");
+  const bool export_materials = RNA_boolean_get(imfptr, "export_materials");
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -150,6 +162,9 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
   uiItemR(sub, imfptr, "apply_modifiers", 0, IFACE_("Apply Modifiers"), ICON_NONE);
   uiItemR(sub, imfptr, "export_eval_mode", 0, IFACE_("Properties"), ICON_NONE);
+  sub = uiLayoutColumn(sub, false);
+  uiLayoutSetEnabled(sub, export_materials);
+  uiItemR(sub, imfptr, "path_mode", 0, IFACE_("Path Mode"), ICON_NONE);
 
   /* Options for what to write. */
   box = uiLayoutBox(layout);
@@ -162,6 +177,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "export_triangulated_mesh", 0, IFACE_("Triangulated Mesh"), ICON_NONE);
   uiItemR(sub, imfptr, "export_curves_as_nurbs", 0, IFACE_("Curves as NURBS"), ICON_NONE);
 
+  /* Grouping options. */
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Grouping"), ICON_GROUP);
   col = uiLayoutColumn(box, false);
@@ -322,6 +338,12 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                   "Export Materials",
                   "Export MTL library. There must be a Principled-BSDF node for image textures to "
                   "be exported to the MTL file");
+  RNA_def_enum(ot->srna,
+               "path_mode",
+               io_obj_path_mode,
+               PATH_REFERENCE_AUTO,
+               "Path Mode",
+               "Method used to reference paths");
   RNA_def_boolean(ot->srna,
                   "export_triangulated_mesh",
                   false,
