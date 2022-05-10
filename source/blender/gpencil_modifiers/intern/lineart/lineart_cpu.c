@@ -2358,18 +2358,21 @@ static void lineart_geometry_load_assign_thread(LineartObjectLoadTaskInfo *olti_
 static bool lineart_geometry_check_visible(double (*model_view_proj)[4],
                                            double shift_x,
                                            double shift_y,
-                                           Object *use_ob)
+                                           Mesh *use_mesh)
 {
-  const BoundBox *bb = BKE_object_boundbox_get(use_ob);
-  if (!bb) {
-    /* For lights and empty stuff there will be no bbox. */
+  if (!use_mesh) {
     return false;
   }
+  float mesh_min[3], mesh_max[3];
+  INIT_MINMAX(mesh_min, mesh_max);
+  BKE_mesh_minmax(use_mesh, mesh_min, mesh_max);
+  BoundBox bb = {0};
+  BKE_boundbox_init_from_minmax(&bb, mesh_min, mesh_max);
 
   double co[8][4];
   double tmp[3];
   for (int i = 0; i < 8; i++) {
-    copy_v3db_v3fl(co[i], bb->vec[i]);
+    copy_v3db_v3fl(co[i], bb.vec[i]);
     copy_v3_v3_db(tmp, co[i]);
     mul_v4_m4v3_db(co[i], model_view_proj, tmp);
     co[i][0] -= shift_x * 2 * co[i][3];
@@ -2481,13 +2484,6 @@ static void lineart_main_load_geometries(
       continue;
     }
 
-    if (!lineart_geometry_check_visible(obi->model_view_proj, rb->shift_x, rb->shift_y, use_ob)) {
-      if (G.debug_value == 4000) {
-        bound_box_discard_count++;
-      }
-      continue;
-    }
-
     if (use_ob->type == OB_MESH) {
       use_mesh = BKE_object_get_evaluated_mesh(use_ob);
     }
@@ -2503,6 +2499,17 @@ static void lineart_main_load_geometries(
 
     /* In case we still can not get any mesh geometry data from the object */
     if (!use_mesh) {
+      continue;
+    }
+
+    if (!lineart_geometry_check_visible(
+            obi->model_view_proj, rb->shift_x, rb->shift_y, use_mesh)) {
+      if (ob->type != OB_MESH) {
+        BKE_id_free(NULL, use_mesh);
+      }
+      if (G.debug_value == 4000) {
+        bound_box_discard_count++;
+      }
       continue;
     }
 
