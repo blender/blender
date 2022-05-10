@@ -164,8 +164,16 @@ void ED_fileselect_window_params_get(const struct wmWindow *win,
                                      int win_size[2],
                                      bool *is_maximized);
 
+/**
+ * Return the File Browser area in which \a file_operator is active.
+ */
 struct ScrArea *ED_fileselect_handler_area_find(const struct wmWindow *win,
                                                 const struct wmOperator *file_operator);
+/**
+ * Check if there is any area in \a win that acts as a modal File Browser (#SpaceFile.op is set)
+ * and return it.
+ */
+struct ScrArea *ED_fileselect_handler_area_find_any_with_op(const struct wmWindow *win);
 
 /* TODO: Maybe we should move this to BLI?
  * On the other hand, it's using defines from space-file area, so not sure... */
