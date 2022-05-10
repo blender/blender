@@ -26,7 +26,7 @@ namespace blender::bke::pbvh::pixels {
  * During debugging this check could be enabled.
  * It will write to each image pixel that is covered by the PBVH.
  */
-constexpr bool USE_WATERTIGHT_CHECK = true;
+constexpr bool USE_WATERTIGHT_CHECK = false;
 
 /**
  * Calculate the delta of two neighbor UV coordinates in the given image buffer.
