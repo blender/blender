@@ -101,6 +101,7 @@ static int wm_operator_call_internal(bContext *C,
 
 static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot);
 static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win);
+static void wm_operator_free_for_fileselect(wmOperator *file_operator);
 
 static void wm_event_state_update_and_click_set_ex(wmEvent *event,
                                                    wmEvent *event_state,
@@ -2031,7 +2032,13 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
         }
 
         WM_cursor_grab_disable(win, NULL);
-        WM_operator_free(handler->op);
+
+        if (handler->is_fileselect) {
+          wm_operator_free_for_fileselect(handler->op);
+        }
+        else {
+          WM_operator_free(handler->op);
+        }
       }
     }
     else if (handler_base->type == WM_HANDLER_TYPE_UI) {
@@ -2468,6 +2475,22 @@ static int wm_handler_operator_call(bContext *C,
   return WM_HANDLER_BREAK;
 }
 
+static void wm_operator_free_for_fileselect(wmOperator *file_operator)
+{
+  LISTBASE_FOREACH (bScreen *, screen, &G_MAIN->screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      if (area->spacetype == SPACE_FILE) {
+        SpaceFile *sfile = area->spacedata.first;
+        if (sfile->op == file_operator) {
+          sfile->op = NULL;
+        }
+      }
+    }
+  }
+
+  WM_operator_free(file_operator);
+}
+
 /**
  * File-select handlers are only in the window queue,
  * so it's safe to switch screens or area types.
@@ -2663,7 +2686,7 @@ static int wm_handler_fileselect_do(bContext *C,
         }
 
         if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
-          WM_operator_free(handler->op);
+          wm_operator_free_for_fileselect(handler->op);
         }
       }
       else {
@@ -2678,8 +2701,7 @@ static int wm_handler_fileselect_do(bContext *C,
             wm->op_undo_depth--;
           }
         }
-
-        WM_operator_free(handler->op);
+        wm_operator_free_for_fileselect(handler->op);
       }
 
       CTX_wm_area_set(C, NULL);
