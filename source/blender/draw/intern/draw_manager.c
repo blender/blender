@@ -529,7 +529,7 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
   dst->view_data_active = dst->vmempool->view_data[view];
   dst->resource_handle = 0;
   dst->pass_handle = 0;
-  dst->primary_view_ct = 0;
+  dst->primary_view_num = 0;
 
   drw_viewport_data_reset(dst->vmempool);
 

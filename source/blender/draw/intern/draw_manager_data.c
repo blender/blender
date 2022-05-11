@@ -937,25 +937,25 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
 }
 
 void DRW_shgroup_call_range(
-    DRWShadingGroup *shgroup, struct Object *ob, GPUBatch *geom, uint v_sta, uint v_ct)
+    DRWShadingGroup *shgroup, struct Object *ob, GPUBatch *geom, uint v_sta, uint v_num)
 {
   BLI_assert(geom != NULL);
   if (G.f & G_FLAG_PICKSEL) {
     drw_command_set_select_id(shgroup, NULL, DST.select_id);
   }
   DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
-  drw_command_draw_range(shgroup, geom, handle, v_sta, v_ct);
+  drw_command_draw_range(shgroup, geom, handle, v_sta, v_num);
 }
 
 void DRW_shgroup_call_instance_range(
-    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_ct)
+    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_num)
 {
   BLI_assert(geom != NULL);
   if (G.f & G_FLAG_PICKSEL) {
     drw_command_set_select_id(shgroup, NULL, DST.select_id);
   }
   DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
-  drw_command_draw_intance_range(shgroup, geom, handle, i_sta, i_ct);
+  drw_command_draw_intance_range(shgroup, geom, handle, i_sta, i_num);
 }
 
 void DRW_shgroup_call_compute(DRWShadingGroup *shgroup,
@@ -1905,8 +1905,8 @@ DRWView *DRW_view_create(const float viewmat[4][4],
 {
   DRWView *view = BLI_memblock_alloc(DST.vmempool->views);
 
-  if (DST.primary_view_ct < MAX_CULLED_VIEWS) {
-    view->culling_mask = 1u << DST.primary_view_ct++;
+  if (DST.primary_view_num < MAX_CULLED_VIEWS) {
+    view->culling_mask = 1u << DST.primary_view_num++;
   }
   else {
     BLI_assert(0);
