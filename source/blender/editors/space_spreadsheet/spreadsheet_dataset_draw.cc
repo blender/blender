@@ -144,7 +144,7 @@ void GeometryDataSetTreeViewItem::build_row(uiLayout &row)
     /* Using the tree row button instead of a separate right aligned button gives padding
      * to the right side of the number, which it didn't have with the button. */
     char element_count[7];
-    BLI_str_format_attribute_domain_size(element_count, *count);
+    BLI_str_format_decimal_unit(element_count, *count);
     UI_but_hint_drawstr_set((uiBut *)this->tree_row_button(), element_count);
   }
 }
