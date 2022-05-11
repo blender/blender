@@ -626,6 +626,7 @@ uint OIDNDenoiser::get_device_type_mask() const
 Device *OIDNDenoiser::ensure_denoiser_device(Progress *progress)
 {
 #ifndef WITH_OPENIMAGEDENOISE
+  (void)progress;
   path_trace_device_->set_error("Build without OpenImageDenoiser");
   return nullptr;
 #else
