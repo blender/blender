@@ -316,7 +316,7 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
       break;
     }
     case BL::Attribute::domain_EDGE: {
-      /* Averge edge attributes at vertices. */
+      /* Average edge attributes at vertices. */
       const size_t num_verts = b_mesh.vertices.length();
       vector<int> count(num_verts, 0);
 
