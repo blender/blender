@@ -20,12 +20,12 @@ static void set_id_in_component(GeometryComponent &component,
                                      ATTR_DOMAIN_INSTANCE :
                                      ATTR_DOMAIN_POINT;
   GeometryComponentFieldContext field_context{component, domain};
-  const int domain_size = component.attribute_domain_size(domain);
-  if (domain_size == 0) {
+  const int domain_num = component.attribute_domain_num(domain);
+  if (domain_num == 0) {
     return;
   }
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
 
   /* Since adding the ID attribute can change the result of the field evaluation (the random value

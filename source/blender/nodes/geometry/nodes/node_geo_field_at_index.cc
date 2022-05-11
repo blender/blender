@@ -91,7 +91,7 @@ class FieldAtIndex final : public GeometryFieldInput {
   {
     const GeometryComponentFieldContext value_field_context{component, value_field_domain_};
     FieldEvaluator value_evaluator{value_field_context,
-                                   component.attribute_domain_size(value_field_domain_)};
+                                   component.attribute_domain_num(value_field_domain_)};
     value_evaluator.add(value_field_);
     value_evaluator.evaluate();
     const GVArray &values = value_evaluator.get_evaluated(0);

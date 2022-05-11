@@ -106,13 +106,13 @@ static float3 get_center(const float3 vec_pos2prev, const FilletData &fd, const 
 /* Calculate the direction vectors from each vertex to their previous vertex. */
 static Array<float3> calculate_directions(const Span<float3> positions)
 {
-  const int size = positions.size();
-  Array<float3> directions(size);
+  const int num = positions.size();
+  Array<float3> directions(num);
 
-  for (const int i : IndexRange(size - 1)) {
+  for (const int i : IndexRange(num - 1)) {
     directions[i] = math::normalize(positions[i + 1] - positions[i]);
   }
-  directions[size - 1] = math::normalize(positions[0] - positions[size - 1]);
+  directions[num - 1] = math::normalize(positions[0] - positions[num - 1]);
 
   return directions;
 }
@@ -120,11 +120,11 @@ static Array<float3> calculate_directions(const Span<float3> positions)
 /* Calculate the axes around which the fillet is built. */
 static Array<float3> calculate_axes(const Span<float3> directions)
 {
-  const int size = directions.size();
-  Array<float3> axes(size);
+  const int num = directions.size();
+  Array<float3> axes(num);
 
-  axes[0] = math::normalize(math::cross(-directions[size - 1], directions[0]));
-  for (const int i : IndexRange(1, size - 1)) {
+  axes[0] = math::normalize(math::cross(-directions[num - 1], directions[0]));
+  for (const int i : IndexRange(1, num - 1)) {
     axes[i] = math::normalize(math::cross(-directions[i - 1], directions[i]));
   }
 
@@ -134,11 +134,11 @@ static Array<float3> calculate_axes(const Span<float3> directions)
 /* Calculate the angle of the arc formed by the fillet. */
 static Array<float> calculate_angles(const Span<float3> directions)
 {
-  const int size = directions.size();
-  Array<float> angles(size);
+  const int num = directions.size();
+  Array<float> angles(num);
 
-  angles[0] = M_PI - angle_v3v3(-directions[size - 1], directions[0]);
-  for (const int i : IndexRange(1, size - 1)) {
+  angles[0] = M_PI - angle_v3v3(-directions[num - 1], directions[0]);
+  for (const int i : IndexRange(1, num - 1)) {
     angles[i] = M_PI - angle_v3v3(-directions[i - 1], directions[i]);
   }
 
@@ -147,18 +147,18 @@ static Array<float> calculate_angles(const Span<float3> directions)
 
 /* Calculate the segment count in each filleted arc. */
 static Array<int> calculate_counts(const FilletParam &fillet_param,
-                                   const int size,
+                                   const int num,
                                    const int spline_offset,
                                    const bool cyclic)
 {
-  Array<int> counts(size, 1);
+  Array<int> counts(num, 1);
   if (fillet_param.mode == GEO_NODE_CURVE_FILLET_POLY) {
-    for (const int i : IndexRange(size)) {
+    for (const int i : IndexRange(num)) {
       counts[i] = fillet_param.counts[spline_offset + i];
     }
   }
   if (!cyclic) {
-    counts[0] = counts[size - 1] = 0;
+    counts[0] = counts[num - 1] = 0;
   }
 
   return counts;
@@ -166,17 +166,17 @@ static Array<int> calculate_counts(const FilletParam &fillet_param,
 
 /* Calculate the radii for the vertices to be filleted. */
 static Array<float> calculate_radii(const FilletParam &fillet_param,
-                                    const int size,
+                                    const int num,
                                     const int spline_offset)
 {
-  Array<float> radii(size, 0.0f);
+  Array<float> radii(num, 0.0f);
   if (fillet_param.limit_radius) {
-    for (const int i : IndexRange(size)) {
+    for (const int i : IndexRange(num)) {
       radii[i] = std::max(fillet_param.radii[spline_offset + i], 0.0f);
     }
   }
   else {
-    for (const int i : IndexRange(size)) {
+    for (const int i : IndexRange(num)) {
       radii[i] = fillet_param.radii[spline_offset + i];
     }
   }
@@ -207,15 +207,15 @@ static FilletData calculate_fillet_data(const Spline &spline,
                                         MutableSpan<int> point_counts,
                                         const int spline_offset)
 {
-  const int size = spline.size();
+  const int num = spline.size();
 
   FilletData fd;
   fd.directions = calculate_directions(spline.positions());
   fd.positions = spline.positions();
   fd.axes = calculate_axes(fd.directions);
   fd.angles = calculate_angles(fd.directions);
-  fd.counts = calculate_counts(fillet_param, size, spline_offset, spline.is_cyclic());
-  fd.radii = calculate_radii(fillet_param, size, spline_offset);
+  fd.counts = calculate_counts(fillet_param, num, spline_offset, spline.is_cyclic());
+  fd.radii = calculate_radii(fillet_param, num, spline_offset);
 
   added_count = calculate_point_counts(point_counts, fd.radii, fd.counts);
 
@@ -229,19 +229,19 @@ static void limit_radii(FilletData &fd, const bool cyclic)
   Span<float> angles(fd.angles);
   Span<float3> positions(fd.positions);
 
-  const int size = radii.size();
-  const int fillet_count = cyclic ? size : size - 2;
+  const int num = radii.size();
+  const int fillet_count = cyclic ? num : num - 2;
   const int start = cyclic ? 0 : 1;
-  Array<float> max_radii(size, FLT_MAX);
+  Array<float> max_radii(num, FLT_MAX);
 
   if (cyclic) {
     /* Calculate lengths between adjacent control points. */
-    const float len_prev = math::distance(positions[0], positions[size - 1]);
+    const float len_prev = math::distance(positions[0], positions[num - 1]);
     const float len_next = math::distance(positions[0], positions[1]);
 
     /* Calculate tangent lengths of fillets in control points. */
     const float tan_len = radii[0] * tan(angles[0] / 2.0f);
-    const float tan_len_prev = radii[size - 1] * tan(angles[size - 1] / 2.0f);
+    const float tan_len_prev = radii[num - 1] * tan(angles[num - 1] / 2.0f);
     const float tan_len_next = radii[1] * tan(angles[1] / 2.0f);
 
     float factor_prev = 1.0f, factor_next = 1.0f;
@@ -255,12 +255,12 @@ static void limit_radii(FilletData &fd, const bool cyclic)
     /* Scale max radii by calculated factors. */
     max_radii[0] = radii[0] * std::min(factor_next, factor_prev);
     max_radii[1] = radii[1] * factor_next;
-    max_radii[size - 1] = radii[size - 1] * factor_prev;
+    max_radii[num - 1] = radii[num - 1] * factor_prev;
   }
 
   /* Initialize max_radii to largest possible radii. */
   float prev_dist = math::distance(positions[1], positions[0]);
-  for (const int i : IndexRange(1, size - 2)) {
+  for (const int i : IndexRange(1, num - 2)) {
     const float temp_dist = math::distance(positions[i], positions[i + 1]);
     max_radii[i] = std::min(prev_dist, temp_dist) / tan(angles[i] / 2.0f);
     prev_dist = temp_dist;
@@ -282,7 +282,7 @@ static void limit_radii(FilletData &fd, const bool cyclic)
   }
 
   /* Assign the max_radii to the fillet data's radii. */
-  for (const int i : IndexRange(size)) {
+  for (const int i : IndexRange(num)) {
     radii[i] = std::min(radii[i], max_radii[i]);
   }
 }
@@ -358,10 +358,10 @@ static void update_bezier_positions(const FilletData &fd,
   Span<float3> positions(fd.positions);
   Span<float3> directions(fd.directions);
 
-  const int size = radii.size();
+  const int num = radii.size();
 
   int i_dst = 0;
-  for (const int i_src : IndexRange(size)) {
+  for (const int i_src : IndexRange(num)) {
     const int count = point_counts[i_src];
 
     /* Skip if the point count for the vertex is 1. */
@@ -385,7 +385,7 @@ static void update_bezier_positions(const FilletData &fd,
 
     /* Position the end points of the arc and their handles. */
     const int end_i = i_dst + count - 1;
-    const float3 prev_dir = i_src == 0 ? -directions[size - 1] : -directions[i_src - 1];
+    const float3 prev_dir = i_src == 0 ? -directions[num - 1] : -directions[i_src - 1];
     const float3 next_dir = directions[i_src];
     dst_spline.positions()[i_dst] = positions[i_src] + displacement * prev_dir;
     dst_spline.positions()[end_i] = positions[i_src] + displacement * next_dir;
@@ -442,10 +442,10 @@ static void update_poly_positions(const FilletData &fd,
   Span<float3> positions(fd.positions);
   Span<float3> directions(fd.directions);
 
-  const int size = radii.size();
+  const int num = radii.size();
 
   int i_dst = 0;
-  for (const int i_src : IndexRange(size)) {
+  for (const int i_src : IndexRange(num)) {
     const int count = point_counts[i_src];
 
     /* Skip if the point count for the vertex is 1. */
@@ -460,7 +460,7 @@ static void update_poly_positions(const FilletData &fd,
 
     /* Position the end points of the arc. */
     const int end_i = i_dst + count - 1;
-    const float3 prev_dir = i_src == 0 ? -directions[size - 1] : -directions[i_src - 1];
+    const float3 prev_dir = i_src == 0 ? -directions[num - 1] : -directions[i_src - 1];
     const float3 next_dir = directions[i_src];
     dst_spline.positions()[i_dst] = positions[i_src] + displacement * prev_dir;
     dst_spline.positions()[end_i] = positions[i_src] + displacement * next_dir;
@@ -487,15 +487,15 @@ static SplinePtr fillet_spline(const Spline &spline,
                                const FilletParam &fillet_param,
                                const int spline_offset)
 {
-  const int size = spline.size();
+  const int num = spline.size();
   const bool cyclic = spline.is_cyclic();
 
-  if (size < 3) {
+  if (num < 3) {
     return spline.copy();
   }
 
   /* Initialize the point_counts with 1s (at least one vertex on dst for each vertex on src). */
-  Array<int> point_counts(size, 1);
+  Array<int> point_counts(num, 1);
 
   int added_count = 0;
   /* Update point_counts array and added_count. */
@@ -505,7 +505,7 @@ static SplinePtr fillet_spline(const Spline &spline,
     limit_radii(fd, cyclic);
   }
 
-  const int total_points = added_count + size;
+  const int total_points = added_count + num;
   const Array<int> dst_to_src = create_dst_to_src_map(point_counts, total_points);
   SplinePtr dst_spline_ptr = spline.copy_only_settings();
   (*dst_spline_ptr).resize(total_points);
@@ -581,8 +581,8 @@ static void calculate_curve_fillet(GeometrySet &geometry_set,
 
   CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
-  fn::FieldEvaluator field_evaluator{field_context, domain_size};
+  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_POINT);
+  fn::FieldEvaluator field_evaluator{field_context, domain_num};
 
   field_evaluator.add(radius_field);
 

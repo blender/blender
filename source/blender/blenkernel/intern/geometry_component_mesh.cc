@@ -169,7 +169,7 @@ VArray<float3> mesh_normals_varray(const MeshComponent &mesh_component,
 /** \name Attribute Access
  * \{ */
 
-int MeshComponent::attribute_domain_size(const AttributeDomain domain) const
+int MeshComponent::attribute_domain_num(const AttributeDomain domain) const
 {
   if (mesh_ == nullptr) {
     return 0;
@@ -839,20 +839,20 @@ static const Mesh *get_mesh_from_component_for_read(const GeometryComponent &com
 namespace blender::bke {
 
 template<typename StructT, typename ElemT, ElemT (*GetFunc)(const StructT &)>
-static GVArray make_derived_read_attribute(const void *data, const int domain_size)
+static GVArray make_derived_read_attribute(const void *data, const int domain_num)
 {
   return VArray<ElemT>::template ForDerivedSpan<StructT, GetFunc>(
-      Span<StructT>((const StructT *)data, domain_size));
+      Span<StructT>((const StructT *)data, domain_num));
 }
 
 template<typename StructT,
          typename ElemT,
          ElemT (*GetFunc)(const StructT &),
          void (*SetFunc)(StructT &, ElemT)>
-static GVMutableArray make_derived_write_attribute(void *data, const int domain_size)
+static GVMutableArray make_derived_write_attribute(void *data, const int domain_num)
 {
   return VMutableArray<ElemT>::template ForDerivedSpan<StructT, GetFunc, SetFunc>(
-      MutableSpan<StructT>((StructT *)data, domain_size));
+      MutableSpan<StructT>((StructT *)data, domain_num));
 }
 
 static float3 get_vertex_position(const MVert &vert)
@@ -1160,7 +1160,7 @@ class NormalAttributeProvider final : public BuiltinAttributeProvider {
 
   bool exists(const GeometryComponent &component) const final
   {
-    return component.attribute_domain_size(ATTR_DOMAIN_FACE) != 0;
+    return component.attribute_domain_num(ATTR_DOMAIN_FACE) != 0;
   }
 };
 

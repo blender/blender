@@ -158,7 +158,7 @@ CurvesGeometry::~CurvesGeometry()
 /** \name Accessors
  * \{ */
 
-static int domain_size(const CurvesGeometry &curves, const AttributeDomain domain)
+static int domain_num(const CurvesGeometry &curves, const AttributeDomain domain)
 {
   return domain == ATTR_DOMAIN_POINT ? curves.points_num() : curves.curves_num();
 }
@@ -180,15 +180,15 @@ static VArray<T> get_varray_attribute(const CurvesGeometry &curves,
                                       const StringRefNull name,
                                       const T default_value)
 {
-  const int size = domain_size(curves, domain);
+  const int num = domain_num(curves, domain);
   const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
   const CustomData &custom_data = domain_custom_data(curves, domain);
 
   const T *data = (const T *)CustomData_get_layer_named(&custom_data, type, name.c_str());
   if (data != nullptr) {
-    return VArray<T>::ForSpan(Span<T>(data, size));
+    return VArray<T>::ForSpan(Span<T>(data, num));
   }
-  return VArray<T>::ForSingle(default_value, size);
+  return VArray<T>::ForSingle(default_value, num);
 }
 
 template<typename T>
@@ -196,7 +196,7 @@ static Span<T> get_span_attribute(const CurvesGeometry &curves,
                                   const AttributeDomain domain,
                                   const StringRefNull name)
 {
-  const int size = domain_size(curves, domain);
+  const int num = domain_num(curves, domain);
   const CustomData &custom_data = domain_custom_data(curves, domain);
   const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
 
@@ -204,7 +204,7 @@ static Span<T> get_span_attribute(const CurvesGeometry &curves,
   if (data == nullptr) {
     return {};
   }
-  return {data, size};
+  return {data, num};
 }
 
 template<typename T>
@@ -213,19 +213,19 @@ static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
                                             const StringRefNull name,
                                             const T default_value = T())
 {
-  const int size = domain_size(curves, domain);
+  const int num = domain_num(curves, domain);
   const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
   CustomData &custom_data = domain_custom_data(curves, domain);
 
   T *data = (T *)CustomData_duplicate_referenced_layer_named(
-      &custom_data, type, name.c_str(), size);
+      &custom_data, type, name.c_str(), num);
   if (data != nullptr) {
-    return {data, size};
+    return {data, num};
   }
   data = (T *)CustomData_add_layer_named(
-      &custom_data, type, CD_CALLOC, nullptr, size, name.c_str());
-  MutableSpan<T> span = {data, size};
-  if (size > 0 && span.first() != default_value) {
+      &custom_data, type, CD_CALLOC, nullptr, num, name.c_str());
+  MutableSpan<T> span = {data, num};
+  if (num > 0 && span.first() != default_value) {
     span.fill(default_value);
   }
   return span;
@@ -444,12 +444,12 @@ MutableSpan<float2> CurvesGeometry::surface_triangle_coords_for_write()
 /** \name Evaluation
  * \{ */
 
-template<typename SizeFn> void build_offsets(MutableSpan<int> offsets, const SizeFn &size_fn)
+template<typename CountFn> void build_offsets(MutableSpan<int> offsets, const CountFn &count_fn)
 {
   int offset = 0;
   for (const int i : offsets.drop_back(1).index_range()) {
     offsets[i] = offset;
-    offset += size_fn(i);
+    offset += count_fn(i);
   }
   offsets.last() = offset;
 }
@@ -472,7 +472,7 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
     const IndexRange points = curves.points_for_curve(curve_index);
     switch (types[curve_index]) {
       case CURVE_TYPE_CATMULL_ROM:
-        return curves::catmull_rom::calculate_evaluated_size(
+        return curves::catmull_rom::calculate_evaluated_num(
             points.size(), cyclic[curve_index], resolution[curve_index]);
       case CURVE_TYPE_POLY:
         return points.size();
@@ -484,11 +484,11 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
                                                     bezier_evaluated_offsets.slice(points));
         return bezier_evaluated_offsets[points.last()];
       case CURVE_TYPE_NURBS:
-        return curves::nurbs::calculate_evaluated_size(points.size(),
-                                                       nurbs_orders[curve_index],
-                                                       cyclic[curve_index],
-                                                       resolution[curve_index],
-                                                       KnotsMode(nurbs_knots_modes[curve_index]));
+        return curves::nurbs::calculate_evaluated_num(points.size(),
+                                                      nurbs_orders[curve_index],
+                                                      cyclic[curve_index],
+                                                      resolution[curve_index],
+                                                      KnotsMode(nurbs_knots_modes[curve_index]));
     }
     BLI_assert_unreachable();
     return 0;
@@ -587,13 +587,13 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
         const bool is_cyclic = cyclic[curve_index];
         const KnotsMode mode = KnotsMode(knots_modes[curve_index]);
 
-        if (!curves::nurbs::check_valid_size_and_order(points.size(), order, is_cyclic, mode)) {
+        if (!curves::nurbs::check_valid_num_and_order(points.size(), order, is_cyclic, mode)) {
           basis_caches[curve_index].invalid = true;
           continue;
         }
 
-        const int knots_size = curves::nurbs::knots_size(points.size(), order, is_cyclic);
-        Array<float> knots(knots_size);
+        const int knots_num = curves::nurbs::knots_num(points.size(), order, is_cyclic);
+        Array<float> knots(knots_num);
         curves::nurbs::calculate_knots(points.size(), mode, order, is_cyclic, knots);
         curves::nurbs::calculate_basis_cache(points.size(),
                                              evaluated_points.size(),
@@ -914,8 +914,8 @@ void CurvesGeometry::ensure_evaluated_lengths() const
   threading::isolate_task([&]() {
     /* Use an extra length value for the final cyclic segment for a consistent size
      * (see comment on #evaluated_length_cache). */
-    const int total_size = this->evaluated_points_num() + this->curves_num();
-    this->runtime->evaluated_length_cache.resize(total_size);
+    const int total_num = this->evaluated_points_num() + this->curves_num();
+    this->runtime->evaluated_length_cache.resize(total_num);
     MutableSpan<float> evaluated_lengths = this->runtime->evaluated_length_cache;
 
     Span<float3> evaluated_positions = this->evaluated_positions();

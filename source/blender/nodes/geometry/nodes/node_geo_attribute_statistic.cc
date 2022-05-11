@@ -197,9 +197,9 @@ static void node_geo_exec(GeoNodeExecParams params)
       for (const GeometryComponent *component : components) {
         if (component->attribute_domain_supported(domain)) {
           GeometryComponentFieldContext field_context{*component, domain};
-          const int domain_size = component->attribute_domain_size(domain);
+          const int domain_num = component->attribute_domain_num(domain);
 
-          fn::FieldEvaluator data_evaluator{field_context, domain_size};
+          fn::FieldEvaluator data_evaluator{field_context, domain_num};
           data_evaluator.add(input_field);
           data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();
@@ -275,9 +275,9 @@ static void node_geo_exec(GeoNodeExecParams params)
       for (const GeometryComponent *component : components) {
         if (component->attribute_domain_supported(domain)) {
           GeometryComponentFieldContext field_context{*component, domain};
-          const int domain_size = component->attribute_domain_size(domain);
+          const int domain_num = component->attribute_domain_num(domain);
 
-          fn::FieldEvaluator data_evaluator{field_context, domain_size};
+          fn::FieldEvaluator data_evaluator{field_context, domain_num};
           data_evaluator.add(input_field);
           data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();

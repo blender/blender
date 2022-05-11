@@ -138,14 +138,14 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
 {
   int span_count = 0;
   int count = 0;
-  int total_size = 0;
+  int total_num = 0;
 
   Span<float3> positions_span;
 
   if (geometry_set.has_mesh()) {
     count++;
     const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>();
-    total_size += component->attribute_domain_size(ATTR_DOMAIN_POINT);
+    total_num += component->attribute_domain_num(ATTR_DOMAIN_POINT);
   }
 
   if (geometry_set.has_pointcloud()) {
@@ -155,7 +155,7 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
         geometry_set.get_component_for_read<PointCloudComponent>();
     VArray<float3> varray = component->attribute_get_for_read<float3>(
         "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-    total_size += varray.size();
+    total_num += varray.size();
     positions_span = varray.get_internal_span();
   }
 
@@ -165,7 +165,7 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
     const Curves &curves_id = *geometry_set.get_curves_for_read();
     const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
     positions_span = curves.evaluated_positions();
-    total_size += positions_span.size();
+    total_num += positions_span.size();
   }
 
   if (count == 0) {
@@ -178,7 +178,7 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
     return hull_from_bullet(nullptr, positions_span);
   }
 
-  Array<float3> positions(total_size);
+  Array<float3> positions(total_num);
   int offset = 0;
 
   if (geometry_set.has_mesh()) {

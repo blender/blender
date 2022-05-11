@@ -374,7 +374,7 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
           }
           /* Convert the attribute on the instances component to the expected attribute type. */
           std::unique_ptr<GArray<>> temporary_array = std::make_unique<GArray<>>(
-              to_type, instances_component.instances_amount());
+              to_type, instances_component.instances_num());
           conversions.convert_to_initialized_n(span, temporary_array->as_mutable_span());
           span = temporary_array->as_span();
           gather_info.r_temporary_arrays.append(std::move(temporary_array));
@@ -1215,13 +1215,13 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
 
   const RealizeCurveTask &last_task = tasks.last();
   const Curves &last_curves = *last_task.curve_info->curves;
-  const int points_size = last_task.start_indices.point + last_curves.geometry.point_num;
-  const int curves_size = last_task.start_indices.curve + last_curves.geometry.curve_num;
+  const int points_num = last_task.start_indices.point + last_curves.geometry.point_num;
+  const int curves_num = last_task.start_indices.curve + last_curves.geometry.curve_num;
 
   /* Allocate new curves data-block. */
-  Curves *dst_curves_id = bke::curves_new_nomain(points_size, curves_size);
+  Curves *dst_curves_id = bke::curves_new_nomain(points_num, curves_num);
   bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
-  dst_curves.offsets_for_write().last() = points_size;
+  dst_curves.offsets_for_write().last() = points_num;
   CurveComponent &dst_component = r_realized_geometry.get_component_for_write<CurveComponent>();
   dst_component.replace(dst_curves_id);
 

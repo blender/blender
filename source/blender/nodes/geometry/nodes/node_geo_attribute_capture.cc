@@ -112,8 +112,8 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
                                           const GField &field)
 {
   GeometryComponentFieldContext field_context{component, domain};
-  const int domain_size = component.attribute_domain_size(domain);
-  const IndexMask mask{IndexMask(domain_size)};
+  const int domain_num = component.attribute_domain_num(domain);
+  const IndexMask mask{IndexMask(domain_num)};
 
   const CustomDataType data_type = bke::cpp_type_to_custom_data_type(field.cpp_type());
   OutputAttribute output_attribute = component.attribute_try_get_for_output_only(

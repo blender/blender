@@ -308,7 +308,7 @@ bool CurveLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
 /** \name Attribute Access Helper Functions
  * \{ */
 
-int CurveComponent::attribute_domain_size(const AttributeDomain domain) const
+int CurveComponent::attribute_domain_num(const AttributeDomain domain) const
 {
   if (curves_ == nullptr) {
     return 0;

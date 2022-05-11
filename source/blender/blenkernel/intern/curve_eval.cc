@@ -117,7 +117,7 @@ float CurveEval::total_length() const
   return length;
 }
 
-int CurveEval::total_control_point_size() const
+int CurveEval::total_control_point_num() const
 {
   int count = 0;
   for (const SplinePtr &spline : this->splines()) {
@@ -144,7 +144,7 @@ blender::Array<int> CurveEval::evaluated_point_offsets() const
   int offset = 0;
   for (const int i : splines_.index_range()) {
     offsets[i] = offset;
-    offset += splines_[i]->evaluated_points_size();
+    offset += splines_[i]->evaluated_points_num();
   }
   offsets.last() = offset;
   return offsets;
@@ -463,7 +463,7 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves)
 
 Curves *curve_eval_to_curves(const CurveEval &curve_eval)
 {
-  Curves *curves = blender::bke::curves_new_nomain(curve_eval.total_control_point_size(),
+  Curves *curves = blender::bke::curves_new_nomain(curve_eval.total_control_point_num(),
                                                    curve_eval.splines().size());
   CurveComponent dst_component;
   dst_component.replace(curves, GeometryOwnershipType::Editable);

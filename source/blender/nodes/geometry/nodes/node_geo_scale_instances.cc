@@ -23,7 +23,7 @@ static void scale_instances(GeoNodeExecParams &params, InstancesComponent &insta
 {
   GeometryComponentFieldContext field_context{instances_component, ATTR_DOMAIN_INSTANCE};
 
-  fn::FieldEvaluator evaluator{field_context, instances_component.instances_amount()};
+  fn::FieldEvaluator evaluator{field_context, instances_component.instances_num()};
   evaluator.set_selection(params.extract_input<Field<bool>>("Selection"));
   evaluator.add(params.extract_input<Field<float3>>("Scale"));
   evaluator.add(params.extract_input<Field<float3>>("Center"));

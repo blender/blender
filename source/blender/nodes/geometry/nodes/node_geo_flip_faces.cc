@@ -22,11 +22,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void mesh_flip_faces(MeshComponent &component, const Field<bool> &selection_field)
 {
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_FACE};
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_FACE);
-  if (domain_size == 0) {
+  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_FACE);
+  if (domain_num == 0) {
     return;
   }
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.add(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_as_mask(0);
