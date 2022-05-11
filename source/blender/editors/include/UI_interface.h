@@ -462,7 +462,7 @@ enum {
 void UI_draw_widget_scroll(struct uiWidgetColors *wcol,
                            const struct rcti *rect,
                            const struct rcti *slider,
-                           int state);
+                           uint64_t state);
 
 /**
  * Shortening string helper.
@@ -887,9 +887,9 @@ uiBut *UI_but_active_drop_name_button(const struct bContext *C);
 bool UI_but_active_drop_name(const struct bContext *C);
 bool UI_but_active_drop_color(struct bContext *C);
 
-void UI_but_flag_enable(uiBut *but, int flag);
-void UI_but_flag_disable(uiBut *but, int flag);
-bool UI_but_flag_is_set(uiBut *but, int flag);
+void UI_but_flag_enable(uiBut *but, uint64_t flag);
+void UI_but_flag_disable(uiBut *but, uint64_t flag);
+bool UI_but_flag_is_set(uiBut *but, uint64_t flag);
 
 void UI_but_drawflag_enable(uiBut *but, int flag);
 void UI_but_drawflag_disable(uiBut *but, int flag);
@@ -1682,7 +1682,7 @@ bool UI_search_item_add(uiSearchItems *items,
                         const char *name,
                         void *poin,
                         int iconid,
-                        int state,
+                        uint64_t state,
                         uint8_t name_prefix_offset);
 
 /**

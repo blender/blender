@@ -87,7 +87,7 @@ struct MenuSearch_Item {
   /** Support a single level sub-menu nesting (for operator buttons that expand). */
   const char *drawstr_submenu;
   int icon;
-  int state;
+  uint64_t state;
 
   MenuSearch_Parent *menu_parent;
   MenuType *mt;
