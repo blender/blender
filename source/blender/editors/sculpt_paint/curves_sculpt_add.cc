@@ -608,9 +608,14 @@ struct AddOperationExecutor {
     attribute_math::DefaultMixer<int> mixer{new_offsets};
     threading::parallel_for(neighbors_per_curve.index_range(), 1024, [&](IndexRange curves_range) {
       for (const int i : curves_range) {
-        for (const NeighborInfo &neighbor : neighbors_per_curve[i]) {
-          const int neighbor_points_num = curves_->points_for_curve(neighbor.index).size();
-          mixer.mix_in(i, neighbor_points_num, neighbor.weight);
+        if (neighbors_per_curve[i].is_empty()) {
+          mixer.mix_in(i, constant_points_per_curve_, 1.0f);
+        }
+        else {
+          for (const NeighborInfo &neighbor : neighbors_per_curve[i]) {
+            const int neighbor_points_num = curves_->points_for_curve(neighbor.index).size();
+            mixer.mix_in(i, neighbor_points_num, neighbor.weight);
+          }
         }
       }
     });
