@@ -1964,7 +1964,7 @@ static void single_objectdata_action_users(
       ID *id_act = (ID *)adt->action;
       if (single_data_needs_duplication(id_act)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-        BKE_animdata_duplicate_id_action(bmain, &ob->id, USER_DUP_ACT | USER_DUP_LINKED_ID);
+        BKE_animdata_duplicate_id_action(bmain, id_obdata, USER_DUP_ACT | USER_DUP_LINKED_ID);
       }
     }
   }
