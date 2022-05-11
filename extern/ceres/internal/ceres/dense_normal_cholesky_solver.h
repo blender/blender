@@ -34,6 +34,11 @@
 #ifndef CERES_INTERNAL_DENSE_NORMAL_CHOLESKY_SOLVER_H_
 #define CERES_INTERNAL_DENSE_NORMAL_CHOLESKY_SOLVER_H_
 
+#include <memory>
+
+#include "ceres/dense_cholesky.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
 
 namespace ceres {
@@ -73,9 +78,10 @@ class DenseSparseMatrix;
 // library. This solver always returns a solution, it is the user's
 // responsibility to judge if the solution is good enough for their
 // purposes.
-class DenseNormalCholeskySolver : public DenseSparseMatrixSolver {
+class CERES_NO_EXPORT DenseNormalCholeskySolver
+    : public DenseSparseMatrixSolver {
  public:
-  explicit DenseNormalCholeskySolver(const LinearSolver::Options& options);
+  explicit DenseNormalCholeskySolver(LinearSolver::Options options);
 
  private:
   LinearSolver::Summary SolveImpl(
@@ -84,22 +90,13 @@ class DenseNormalCholeskySolver : public DenseSparseMatrixSolver {
       const LinearSolver::PerSolveOptions& per_solve_options,
       double* x) final;
 
-  LinearSolver::Summary SolveUsingLAPACK(
-      DenseSparseMatrix* A,
-      const double* b,
-      const LinearSolver::PerSolveOptions& per_solve_options,
-      double* x);
-
-  LinearSolver::Summary SolveUsingEigen(
-      DenseSparseMatrix* A,
-      const double* b,
-      const LinearSolver::PerSolveOptions& per_solve_options,
-      double* x);
-
   const LinearSolver::Options options_;
+  std::unique_ptr<DenseCholesky> cholesky_;
 };
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_DENSE_NORMAL_CHOLESKY_SOLVER_H_

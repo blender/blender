@@ -531,7 +531,7 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
   dst->view_data_active = dst->vmempool->view_data[view];
   dst->resource_handle = 0;
   dst->pass_handle = 0;
-  dst->primary_view_ct = 0;
+  dst->primary_view_num = 0;
 
   drw_viewport_data_reset(dst->vmempool);
 
@@ -1289,7 +1289,7 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 
   const bool gpencil_engine_needed = drw_gpencil_engine_needed(depsgraph, v3d);
 
-  if (G.is_rendering) {
+  if (G.is_rendering && U.experimental.use_draw_manager_acquire_lock) {
     return;
   }
 

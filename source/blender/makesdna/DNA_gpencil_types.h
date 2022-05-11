@@ -245,7 +245,7 @@ typedef struct bGPDstroke_Runtime {
 
   /** Vertex offset in the VBO where this stroke starts. */
   int stroke_start;
-  /** Triangle offset in the ibo where this fill starts. */
+  /** Triangle offset in the IBO where this fill starts. */
   int fill_start;
   /** Curve Handles offset in the IBO where this handle starts. */
   int curve_start;
@@ -814,10 +814,10 @@ typedef enum eGPdata_Flag {
   /* Vertex Paint Mode - Toggle paint mode */
   GP_DATA_STROKE_VERTEXMODE = (1 << 18),
 
-  /* Autolock not active layers */
+  /* Auto-lock not active layers. */
   GP_DATA_AUTOLOCK_LAYERS = (1 << 20),
 
-  /* Enable Bezier Editing Curve (a submode of Edit mode). */
+  /* Enable Bezier Editing Curve (a sub-mode of Edit mode). */
   GP_DATA_CURVE_EDIT_MODE = (1 << 21),
   /* Use adaptive curve resolution */
   GP_DATA_CURVE_ADAPTIVE_RESOLUTION = (1 << 22),

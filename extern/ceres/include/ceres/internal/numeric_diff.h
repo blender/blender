@@ -86,18 +86,18 @@ struct NumericDiff {
         (kParameterBlockSize != ceres::DYNAMIC ? kParameterBlockSize
                                                : parameter_block_size);
 
-    typedef Matrix<double, kNumResiduals, 1> ResidualVector;
-    typedef Matrix<double, kParameterBlockSize, 1> ParameterVector;
+    using ResidualVector = Matrix<double, kNumResiduals, 1>;
+    using ParameterVector = Matrix<double, kParameterBlockSize, 1>;
 
     // The convoluted reasoning for choosing the Row/Column major
     // ordering of the matrix is an artifact of the restrictions in
     // Eigen that prevent it from creating RowMajor matrices with a
     // single column. In these cases, we ask for a ColMajor matrix.
-    typedef Matrix<double,
-                   kNumResiduals,
-                   kParameterBlockSize,
-                   (kParameterBlockSize == 1) ? ColMajor : RowMajor>
-        JacobianMatrix;
+    using JacobianMatrix =
+        Matrix<double,
+               kNumResiduals,
+               kParameterBlockSize,
+               (kParameterBlockSize == 1) ? ColMajor : RowMajor>;
 
     Map<JacobianMatrix> parameter_jacobian(
         jacobian, num_residuals_internal, parameter_block_size_internal);
@@ -121,7 +121,7 @@ struct NumericDiff {
     // thus ridders_relative_initial_step_size is used.
     if (kMethod == RIDDERS) {
       min_step_size =
-          std::max(min_step_size, options.ridders_relative_initial_step_size);
+          (std::max)(min_step_size, options.ridders_relative_initial_step_size);
     }
 
     // For each parameter in the parameter block, use finite differences to
@@ -132,7 +132,7 @@ struct NumericDiff {
                                   num_residuals_internal);
 
     for (int j = 0; j < parameter_block_size_internal; ++j) {
-      const double delta = std::max(min_step_size, step_size(j));
+      const double delta = (std::max)(min_step_size, step_size(j));
 
       if (kMethod == RIDDERS) {
         if (!EvaluateRiddersJacobianColumn(functor,
@@ -184,8 +184,8 @@ struct NumericDiff {
     using Eigen::Map;
     using Eigen::Matrix;
 
-    typedef Matrix<double, kNumResiduals, 1> ResidualVector;
-    typedef Matrix<double, kParameterBlockSize, 1> ParameterVector;
+    using ResidualVector = Matrix<double, kNumResiduals, 1>;
+    using ParameterVector = Matrix<double, kParameterBlockSize, 1>;
 
     Map<const ParameterVector> x(x_ptr, parameter_block_size);
     Map<ParameterVector> x_plus_delta(x_plus_delta_ptr, parameter_block_size);
@@ -260,10 +260,10 @@ struct NumericDiff {
     using Eigen::Map;
     using Eigen::Matrix;
 
-    typedef Matrix<double, kNumResiduals, 1> ResidualVector;
-    typedef Matrix<double, kNumResiduals, Eigen::Dynamic>
-        ResidualCandidateMatrix;
-    typedef Matrix<double, kParameterBlockSize, 1> ParameterVector;
+    using ResidualVector = Matrix<double, kNumResiduals, 1>;
+    using ResidualCandidateMatrix =
+        Matrix<double, kNumResiduals, Eigen::Dynamic>;
+    using ParameterVector = Matrix<double, kParameterBlockSize, 1>;
 
     Map<const ParameterVector> x(x_ptr, parameter_block_size);
     Map<ParameterVector> x_plus_delta(x_plus_delta_ptr, parameter_block_size);
@@ -296,7 +296,7 @@ struct NumericDiff {
     // norm_error is supposed to decrease as the finite difference tableau
     // generation progresses, serving both as an estimate for differentiation
     // error and as a measure of differentiation numerical stability.
-    double norm_error = std::numeric_limits<double>::max();
+    double norm_error = (std::numeric_limits<double>::max)();
 
     // Loop over decreasing step sizes until:
     //  1. Error is smaller than a given value (ridders_epsilon),
@@ -342,7 +342,7 @@ struct NumericDiff {
                              options.ridders_step_shrink_factor;
 
         // Compute the difference between the previous value and the current.
-        double candidate_error = std::max(
+        double candidate_error = (std::max)(
             (current_candidates->col(k) - current_candidates->col(k - 1))
                 .norm(),
             (current_candidates->col(k) - previous_candidates->col(k - 1))

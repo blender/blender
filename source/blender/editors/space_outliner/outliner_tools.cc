@@ -1692,7 +1692,6 @@ enum {
   OL_OP_SELECT = 1,
   OL_OP_DESELECT,
   OL_OP_SELECT_HIERARCHY,
-  OL_OP_REMAP,
   OL_OP_RENAME,
 };
 
@@ -1700,11 +1699,6 @@ static const EnumPropertyItem prop_object_op_types[] = {
     {OL_OP_SELECT, "SELECT", ICON_RESTRICT_SELECT_OFF, "Select", ""},
     {OL_OP_DESELECT, "DESELECT", 0, "Deselect", ""},
     {OL_OP_SELECT_HIERARCHY, "SELECT_HIERARCHY", 0, "Select Hierarchy", ""},
-    {OL_OP_REMAP,
-     "REMAP",
-     0,
-     "Remap Users",
-     "Make all users of selected data-blocks to use instead a new chosen one"},
     {OL_OP_RENAME, "RENAME", 0, "Rename", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
@@ -1758,12 +1752,6 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
         C, op->reports, scene, space_outliner, &space_outliner->tree, object_deselect_fn);
     str = "Deselect Objects";
     selection_changed = true;
-  }
-  else if (event == OL_OP_REMAP) {
-    outliner_do_libdata_operation(
-        C, op->reports, scene, space_outliner, &space_outliner->tree, id_remap_fn, nullptr);
-    /* No undo push here, operator does it itself (since it's a modal one, the op_undo_depth
-     * trick does not work here). */
   }
   else if (event == OL_OP_RENAME) {
     outliner_do_object_operation(
@@ -1973,7 +1961,6 @@ enum eOutlinerIdOpTypes {
   OUTLINER_IDOP_OVERRIDE_LIBRARY_CLEAR_SINGLE,
   OUTLINER_IDOP_SINGLE,
   OUTLINER_IDOP_DELETE,
-  OUTLINER_IDOP_REMAP,
 
   OUTLINER_IDOP_COPY,
   OUTLINER_IDOP_PASTE,
@@ -1991,11 +1978,6 @@ static const EnumPropertyItem prop_id_op_types[] = {
     {OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
     {OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
     {OUTLINER_IDOP_DELETE, "DELETE", ICON_X, "Delete", ""},
-    {OUTLINER_IDOP_REMAP,
-     "REMAP",
-     0,
-     "Remap Users",
-     "Make all users of selected data-blocks to use instead current (clicked) one"},
     {0, "", 0, nullptr, nullptr},
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE,
      "OVERRIDE_LIBRARY_CREATE",
@@ -2414,15 +2396,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       }
       break;
     }
-    case OUTLINER_IDOP_REMAP: {
-      if (idlevel > 0) {
-        outliner_do_libdata_operation(
-            C, op->reports, scene, space_outliner, &space_outliner->tree, id_remap_fn, nullptr);
-        /* No undo push here, operator does it itself (since it's a modal one, the op_undo_depth
-         * trick does not work here). */
-      }
-      break;
-    }
     case OUTLINER_IDOP_COPY: {
       wm->op_undo_depth++;
       WM_operator_name_call(C, "OUTLINER_OT_id_copy", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
@@ -2527,14 +2500,12 @@ void OUTLINER_OT_id_operation(wmOperatorType *ot)
 enum eOutlinerLibOpTypes {
   OL_LIB_INVALID = 0,
 
-  OL_LIB_RENAME,
   OL_LIB_DELETE,
   OL_LIB_RELOCATE,
   OL_LIB_RELOAD,
 };
 
 static const EnumPropertyItem outliner_lib_op_type_items[] = {
-    {OL_LIB_RENAME, "RENAME", 0, "Rename", ""},
     {OL_LIB_DELETE,
      "DELETE",
      ICON_X,
@@ -2566,14 +2537,6 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
 
   eOutlinerLibOpTypes event = (eOutlinerLibOpTypes)RNA_enum_get(op->ptr, "type");
   switch (event) {
-    case OL_LIB_RENAME: {
-      outliner_do_libdata_operation(
-          C, op->reports, scene, space_outliner, &space_outliner->tree, item_rename_fn, nullptr);
-
-      WM_event_add_notifier(C, NC_ID | NA_EDITED, nullptr);
-      ED_undo_push(C, "Rename Library");
-      break;
-    }
     case OL_LIB_DELETE: {
       outliner_do_libdata_operation(
           C, op->reports, scene, space_outliner, &space_outliner->tree, id_delete_fn, nullptr);

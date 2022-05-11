@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #ifndef __MTL_COMMON
 #define __MTL_COMMON
 

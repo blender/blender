@@ -15,8 +15,9 @@ if(WITH_CLANG_TIDY AND NOT MSVC)
   endif()
 
   find_package(ClangTidy REQUIRED)
-  set(CMAKE_C_CLANG_TIDY ${CLANG_TIDY_EXECUTABLE})
-  set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY_EXECUTABLE})
+  set(CMAKE_C_CLANG_TIDY
+    ${CLANG_TIDY_EXECUTABLE};--extra-arg=-Wno-error=unknown-warning-option)
+  set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY_EXECUTABLE};--extra-arg=-Wno-error=unknown-warning-option)
 endif()
 
 add_subdirectory(blender)

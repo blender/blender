@@ -19,9 +19,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void rotate_instances(GeoNodeExecParams &params, InstancesComponent &instances_component)
 {
   GeometryComponentFieldContext field_context{instances_component, ATTR_DOMAIN_INSTANCE};
-  const int domain_size = instances_component.instances_amount();
+  const int domain_num = instances_component.instances_num();
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(params.extract_input<Field<bool>>("Selection"));
   evaluator.add(params.extract_input<Field<float3>>("Rotation"));
   evaluator.add(params.extract_input<Field<float3>>("Pivot Point"));

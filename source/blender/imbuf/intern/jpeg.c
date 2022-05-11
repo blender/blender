@@ -39,7 +39,11 @@ static void skip_input_data(j_decompress_ptr cinfo, long num_bytes);
 static void term_source(j_decompress_ptr cinfo);
 static void memory_source(j_decompress_ptr cinfo, const unsigned char *buffer, size_t size);
 static boolean handle_app1(j_decompress_ptr cinfo);
-static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int flags);
+static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
+                                   int flags,
+                                   int max_size,
+                                   size_t *r_width,
+                                   size_t *r_height);
 
 static const uchar jpeg_default_quality = 75;
 static uchar ibuf_quality;
@@ -246,7 +250,11 @@ static boolean handle_app1(j_decompress_ptr cinfo)
   return true;
 }
 
-static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int flags)
+static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo,
+                                   int flags,
+                                   int max_size,
+                                   size_t *r_width,
+                                   size_t *r_height)
 {
   JSAMPARRAY row_pointer;
   JSAMPLE *buffer = NULL;
@@ -264,15 +272,33 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
   jpeg_save_markers(cinfo, JPEG_COM, 0xffff);
 
   if (jpeg_read_header(cinfo, false) == JPEG_HEADER_OK) {
-    x = cinfo->image_width;
-    y = cinfo->image_height;
     depth = cinfo->num_components;
 
     if (cinfo->jpeg_color_space == JCS_YCCK) {
       cinfo->out_color_space = JCS_CMYK;
     }
 
+    if (r_width) {
+      *r_width = cinfo->image_width;
+    }
+    if (r_height) {
+      *r_height = cinfo->image_height;
+    }
+
+    if (max_size > 0) {
+      /* `libjpeg` can more quickly decompress while scaling down to 1/2, 1/4, 1/8,
+       * while `libjpeg-turbo` can also do 3/8, 5/8, etc. But max is 1/8. */
+      float scale = (float)max_size / MAX2(cinfo->image_width, cinfo->image_height);
+      cinfo->scale_denom = 8;
+      cinfo->scale_num = max_uu(1, min_uu(8, ceill(scale * (float)cinfo->scale_denom)));
+      cinfo->dct_method = JDCT_FASTEST;
+      cinfo->dither_mode = JDITHER_ORDERED;
+    }
+
     jpeg_start_decompress(cinfo);
+
+    x = cinfo->output_width;
+    y = cinfo->output_height;
 
     if (flags & IB_test) {
       jpeg_abort_decompress(cinfo);
@@ -449,10 +475,91 @@ ImBuf *imb_load_jpeg(const unsigned char *buffer,
   jpeg_create_decompress(cinfo);
   memory_source(cinfo, buffer, size);
 
-  ibuf = ibJpegImageFromCinfo(cinfo, flags);
+  ibuf = ibJpegImageFromCinfo(cinfo, flags, -1, NULL, NULL);
 
   return ibuf;
 }
+
+/* Defines for JPEG Header markers and segment size. */
+#define JPEG_MARKER_MSB (0xFF)
+#define JPEG_MARKER_SOI (0xD8)
+#define JPEG_MARKER_APP1 (0xE1)
+#define JPEG_APP1_MAX (1 << 16)
+
+struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
+                                 const int flags,
+                                 const size_t max_thumb_size,
+                                 char colorspace[IM_MAX_SPACE],
+                                 size_t *r_width,
+                                 size_t *r_height)
+{
+  struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
+  struct my_error_mgr jerr;
+  FILE *infile = NULL;
+
+  colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
+
+  cinfo->err = jpeg_std_error(&jerr.pub);
+  jerr.pub.error_exit = jpeg_error;
+
+  /* Establish the setjmp return context for my_error_exit to use. */
+  if (setjmp(jerr.setjmp_buffer)) {
+    /* If we get here, the JPEG code has signaled an error.
+     * We need to clean up the JPEG object, close the input file, and return.
+     */
+    jpeg_destroy_decompress(cinfo);
+    return NULL;
+  }
+
+  if ((infile = BLI_fopen(filepath, "rb")) == NULL) {
+    fprintf(stderr, "can't open %s\n", filepath);
+    return NULL;
+  }
+
+  /* If file contains an embedded thumbnail, let's return that instead. */
+
+  if ((fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_SOI) &&
+      (fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_APP1)) {
+    /* This is a JPEG in EXIF format (SOI + APP1), not JFIF (SOI + APP0). */
+    unsigned int i = JPEG_APP1_MAX;
+    /* All EXIF data is within this 64K header segment. Skip ahead until next SOI for thumbnail. */
+    while (!((fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_SOI)) &&
+           !feof(infile) && i--)
+      ;
+    if (i > 0 && !feof(infile)) {
+      /* We found a JPEG thumbnail inside this image. */
+      ImBuf *ibuf = NULL;
+      uchar *buffer = MEM_callocN(JPEG_APP1_MAX, "thumbbuffer");
+      /* Just put SOI directly in buffer rather than seeking back 2 bytes. */
+      buffer[0] = JPEG_MARKER_MSB;
+      buffer[1] = JPEG_MARKER_SOI;
+      if (fread(buffer + 2, JPEG_APP1_MAX - 2, 1, infile) == 1) {
+        ibuf = imb_load_jpeg(buffer, JPEG_APP1_MAX, flags, colorspace);
+      }
+      MEM_SAFE_FREE(buffer);
+      if (ibuf) {
+        fclose(infile);
+        return ibuf;
+      }
+    }
+  }
+
+  /* No embedded thumbnail found, so let's create a new one. */
+
+  fseek(infile, 0, SEEK_SET);
+  jpeg_create_decompress(cinfo);
+
+  jpeg_stdio_src(cinfo, infile);
+  ImBuf *ibuf = ibJpegImageFromCinfo(cinfo, flags, max_thumb_size, r_width, r_height);
+  fclose(infile);
+
+  return ibuf;
+}
+
+#undef JPEG_MARKER_MSB
+#undef JPEG_MARKER_SOI
+#undef JPEG_MARKER_APP1
+#undef JPEG_APP1_MAX
 
 static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
 {

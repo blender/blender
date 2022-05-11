@@ -160,6 +160,8 @@ void wm_xr_draw_view(const GHOST_XrDrawViewInfo *draw_view, void *customdata)
                                   draw_data->scene,
                                   &settings->shading,
                                   (eDrawType)settings->shading.type,
+                                  settings->object_type_exclude_viewport,
+                                  settings->object_type_exclude_select,
                                   draw_view->width,
                                   draw_view->height,
                                   display_flags,

@@ -82,7 +82,7 @@ class ShaderNodetreeWrap {
   /**
    * Set values of sockets in p-BSDF node of the nodetree.
    */
-  void set_bsdf_socket_values();
+  void set_bsdf_socket_values(Material *mat);
   /**
    * Create image texture, vector and normal mapping nodes from MTL materials and link the
    * nodes to p-BSDF node.

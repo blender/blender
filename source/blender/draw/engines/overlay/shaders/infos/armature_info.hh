@@ -43,8 +43,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_sphere_solid)
     .do_static_compilation(true)
     .vertex_in(0, Type::VEC2, "pos")
     /* Per instance. */
-    .vertex_in(1, Type::MAT4, "inst_obmat")
-    .vertex_in(2, Type::VEC4, "color")
+    .vertex_in(1, Type::VEC4, "color")
+    .vertex_in(2, Type::MAT4, "inst_obmat")
     // .depth_layout(DepthLayout::GREATER) /* TODO */
     .vertex_out(overlay_armature_sphere_solid_iface)
     .vertex_source("armature_sphere_solid_vert.glsl")

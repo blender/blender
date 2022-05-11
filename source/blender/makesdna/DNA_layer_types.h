@@ -125,7 +125,7 @@ typedef struct ViewLayerAOV {
   int type;
 } ViewLayerAOV;
 
-/* Lightgroup Renderpass definition. */
+/** Light-group Render-pass definition. */
 typedef struct ViewLayerLightgroup {
   struct ViewLayerLightgroup *next, *prev;
 

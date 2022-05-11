@@ -328,7 +328,6 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         const float obmat[4][4],
                                         bool do_final,
                                         bool do_uvedit,
-                                        bool use_subsurf_fdots,
                                         const Scene *scene,
                                         const struct ToolSettings *ts,
                                         bool use_hide);

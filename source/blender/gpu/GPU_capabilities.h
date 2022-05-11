@@ -30,6 +30,7 @@ int GPU_max_batch_vertices(void);
 int GPU_max_vertex_attribs(void);
 int GPU_max_varying_floats(void);
 int GPU_max_shader_storage_buffer_bindings(void);
+int GPU_max_compute_shader_storage_blocks(void);
 
 int GPU_extensions_len(void);
 const char *GPU_extension_get(int i);
@@ -40,6 +41,7 @@ bool GPU_mip_render_workaround(void);
 bool GPU_depth_blitting_workaround(void);
 bool GPU_use_main_context_workaround(void);
 bool GPU_use_hq_normals_workaround(void);
+bool GPU_clear_viewport_workaround(void);
 bool GPU_crappy_amd_driver(void);
 
 bool GPU_compute_shader_support(void);

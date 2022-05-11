@@ -142,6 +142,11 @@ bool GPU_use_hq_normals_workaround()
   return GCaps.use_hq_normals_workaround;
 }
 
+bool GPU_clear_viewport_workaround()
+{
+  return GCaps.clear_viewport_workaround;
+}
+
 bool GPU_compute_shader_support()
 {
   return GCaps.compute_shader_support;
@@ -161,6 +166,12 @@ int GPU_max_shader_storage_buffer_bindings()
 {
   return GCaps.max_shader_storage_buffer_bindings;
 }
+
+int GPU_max_compute_shader_storage_blocks()
+{
+  return GCaps.max_compute_shader_storage_blocks;
+}
+
 
 /** \} */
 

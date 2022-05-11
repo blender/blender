@@ -58,14 +58,12 @@
  * --> Most channels are now selection only.
  */
 
-static int mouse_nla_channels(
-    bContext *C, bAnimContext *ac, float x, int channel_index, short selectmode)
+static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, short selectmode)
 {
   ListBase anim_data = {NULL, NULL};
   bAnimListElem *ale;
   int filter;
 
-  View2D *v2d = &ac->region->v2d;
   int notifierFlags = 0;
 
   /* get the channel that was clicked on */
@@ -203,47 +201,8 @@ static int mouse_nla_channels(
     }
     case ANIMTYPE_NLATRACK: {
       NlaTrack *nlt = (NlaTrack *)ale->data;
-      AnimData *adt = ale->adt;
-      short offset;
 
-      /* offset for start of channel (on LHS of channel-list) */
-      if (ale->id) {
-        /* special exception for materials and particles */
-        if (ELEM(GS(ale->id->name), ID_MA, ID_PA)) {
-          offset = 21 + NLACHANNEL_BUTTON_WIDTH;
-        }
-        else {
-          offset = 14;
-        }
-      }
-      else {
-        offset = 0;
-      }
-
-      if (x >= (v2d->cur.xmax - NLACHANNEL_BUTTON_WIDTH)) {
-        /* toggle protection (only if there's a toggle there) */
-        nlt->flag ^= NLATRACK_PROTECTED;
-
-        /* notifier flags - channel was edited */
-        notifierFlags |= (ND_ANIMCHAN | NA_EDITED);
-      }
-      else if (x >= (v2d->cur.xmax - 2 * NLACHANNEL_BUTTON_WIDTH)) {
-        /* toggle mute */
-        nlt->flag ^= NLATRACK_MUTED;
-
-        /* notifier flags - channel was edited */
-        notifierFlags |= (ND_ANIMCHAN | NA_EDITED);
-        ale->update |= ANIM_UPDATE_DEPS;
-      }
-      else if (x <= ((NLACHANNEL_BUTTON_WIDTH * 2) + offset)) {
-        /* toggle 'solo' */
-        BKE_nlatrack_solo_toggle(adt, nlt);
-
-        /* notifier flags - channel was edited */
-        notifierFlags |= (ND_ANIMCHAN | NA_EDITED);
-        ale->update |= ANIM_UPDATE_DEPS;
-      }
-      else if (nlaedit_is_tweakmode_on(ac) == 0) {
+      if (nlaedit_is_tweakmode_on(ac) == 0) {
         /* set selection */
         if (selectmode == SELECT_INVERT) {
           /* inverse selection status of this F-Curve only */
@@ -269,61 +228,40 @@ static int mouse_nla_channels(
     case ANIMTYPE_NLAACTION: {
       AnimData *adt = BKE_animdata_from_id(ale->id);
 
-      /* button region... */
-      if (x >= (v2d->cur.xmax - NLACHANNEL_BUTTON_WIDTH)) {
-        if (nlaedit_is_tweakmode_on(ac) == 0) {
-          /* 'push-down' action - only usable when not in tweak-mode */
-          /* TODO: make this use the operator instead of calling the function directly
-           * however, calling the operator requires that we supply the args,
-           * and that works with proper buttons only */
-          BKE_nla_action_pushdown(adt, ID_IS_OVERRIDE_LIBRARY(ale->id));
-        }
-        else {
-          /* When in tweak-mode, this button becomes the toggle for mapped editing. */
-          adt->flag ^= ADT_NLA_EDIT_NOMAP;
-        }
+      /* NOTE: rest of NLA-Action name doubles for operating on the AnimData block
+       * - this is useful when there's no clear divider, and makes more sense in
+       *   the case of users trying to use this to change actions
+       * - in tweak-mode, clicking here gets us out of tweak-mode, as changing selection
+       *   while in tweak-mode is really evil!
+       * - we disable "solo" flags too, to make it easier to work with stashed actions
+       *   with less trouble
+       */
+      if (nlaedit_is_tweakmode_on(ac)) {
+        /* Exit tweak-mode immediately. */
+        nlaedit_disable_tweakmode(ac, true);
 
         /* changes to NLA-Action occurred */
         notifierFlags |= ND_NLA_ACTCHANGE;
         ale->update |= ANIM_UPDATE_DEPS;
       }
-      /* OR rest of name... */
       else {
-        /* NOTE: rest of NLA-Action name doubles for operating on the AnimData block
-         * - this is useful when there's no clear divider, and makes more sense in
-         *   the case of users trying to use this to change actions
-         * - in tweak-mode, clicking here gets us out of tweak-mode, as changing selection
-         *   while in tweak-mode is really evil!
-         * - we disable "solo" flags too, to make it easier to work with stashed actions
-         *   with less trouble
-         */
-        if (nlaedit_is_tweakmode_on(ac)) {
-          /* Exit tweak-mode immediately. */
-          nlaedit_disable_tweakmode(ac, true);
-
-          /* changes to NLA-Action occurred */
-          notifierFlags |= ND_NLA_ACTCHANGE;
-          ale->update |= ANIM_UPDATE_DEPS;
+        /* select/deselect */
+        if (selectmode == SELECT_INVERT) {
+          /* inverse selection status of this AnimData block only */
+          adt->flag ^= ADT_UI_SELECTED;
         }
         else {
-          /* select/deselect */
-          if (selectmode == SELECT_INVERT) {
-            /* inverse selection status of this AnimData block only */
-            adt->flag ^= ADT_UI_SELECTED;
-          }
-          else {
-            /* select AnimData block by itself */
-            ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
-            adt->flag |= ADT_UI_SELECTED;
-          }
-
-          /* set active? */
-          if (adt->flag & ADT_UI_SELECTED) {
-            adt->flag |= ADT_UI_ACTIVE;
-          }
-
-          notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
+          /* select AnimData block by itself */
+          ANIM_anim_channels_select_set(ac, ACHANNEL_SETFLAG_CLEAR);
+          adt->flag |= ADT_UI_SELECTED;
         }
+
+        /* set active? */
+        if (adt->flag & ADT_UI_SELECTED) {
+          adt->flag |= ADT_UI_ACTIVE;
+        }
+
+        notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
       }
       break;
     }
@@ -386,7 +324,7 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, const wmEv
                                   &channel_index);
 
   /* handle mouse-click in the relevant channel then */
-  notifierFlags = mouse_nla_channels(C, &ac, x, channel_index, selectmode);
+  notifierFlags = mouse_nla_channels(C, &ac, channel_index, selectmode);
 
   /* set notifier that things have changed */
   WM_event_add_notifier(C, NC_ANIMATION | notifierFlags, NULL);

@@ -33,11 +33,13 @@
 
 // This include must come before any #ifndef check on Ceres compile options.
 // clang-format off
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 // clang-format on
 
 #include <memory>
 
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
 #include "glog/logging.h"
 
@@ -67,7 +69,7 @@ namespace internal {
 //  CHECK_EQ(sparse_cholesky->Solve(rhs.data(), solution.data(), &message),
 //           LINEAR_SOLVER_SUCCESS);
 
-class CERES_EXPORT_INTERNAL SparseCholesky {
+class CERES_NO_EXPORT SparseCholesky {
  public:
   static std::unique_ptr<SparseCholesky> Create(
       const LinearSolver::Options& options);
@@ -104,29 +106,28 @@ class CERES_EXPORT_INTERNAL SparseCholesky {
   // Convenience method which combines a call to Factorize and
   // Solve. Solve is only called if Factorize returns
   // LINEAR_SOLVER_SUCCESS.
-  virtual LinearSolverTerminationType FactorAndSolve(
-      CompressedRowSparseMatrix* lhs,
-      const double* rhs,
-      double* solution,
-      std::string* message);
+  LinearSolverTerminationType FactorAndSolve(CompressedRowSparseMatrix* lhs,
+                                             const double* rhs,
+                                             double* solution,
+                                             std::string* message);
 };
 
 class IterativeRefiner;
 
 // Computes an initial solution using the given instance of
 // SparseCholesky, and then refines it using the IterativeRefiner.
-class CERES_EXPORT_INTERNAL RefinedSparseCholesky : public SparseCholesky {
+class CERES_NO_EXPORT RefinedSparseCholesky final : public SparseCholesky {
  public:
   RefinedSparseCholesky(std::unique_ptr<SparseCholesky> sparse_cholesky,
                         std::unique_ptr<IterativeRefiner> iterative_refiner);
-  virtual ~RefinedSparseCholesky();
+  ~RefinedSparseCholesky() override;
 
-  virtual CompressedRowSparseMatrix::StorageType StorageType() const;
-  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
-                                                std::string* message);
-  virtual LinearSolverTerminationType Solve(const double* rhs,
-                                            double* solution,
-                                            std::string* message);
+  CompressedRowSparseMatrix::StorageType StorageType() const override;
+  LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                        std::string* message) override;
+  LinearSolverTerminationType Solve(const double* rhs,
+                                    double* solution,
+                                    std::string* message) override;
 
  private:
   std::unique_ptr<SparseCholesky> sparse_cholesky_;
@@ -136,5 +137,7 @@ class CERES_EXPORT_INTERNAL RefinedSparseCholesky : public SparseCholesky {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_SPARSE_CHOLESKY_H_

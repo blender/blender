@@ -77,7 +77,7 @@ static bool is_subdivision_evaluation_possible_on_gpu(void)
     return false;
   }
 
-  if (GPU_max_shader_storage_buffer_bindings() < MAX_GPU_SUBDIV_SSBOS) {
+  if (GPU_max_compute_shader_storage_blocks() < MAX_GPU_SUBDIV_SSBOS) {
     return false;
   }
 

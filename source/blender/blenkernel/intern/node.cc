@@ -1165,6 +1165,9 @@ static void node_set_typeinfo(const struct bContext *C,
   }
 }
 
+/* Warning: default_value must either be null or match the typeinfo at this point.
+ * This function is called both for initializing new sockets and after loading files.
+ */
 static void node_socket_set_typeinfo(bNodeTree *ntree,
                                      bNodeSocket *sock,
                                      bNodeSocketType *typeinfo)
@@ -3286,9 +3289,9 @@ static bNodeSocket *make_socket_interface(bNodeTree *ntree,
 
   bNodeSocket *sock = MEM_cnew<bNodeSocket>("socket template");
   BLI_strncpy(sock->idname, stype->idname, sizeof(sock->idname));
-  node_socket_set_typeinfo(ntree, sock, stype);
   sock->in_out = in_out;
   sock->type = SOCK_CUSTOM; /* int type undefined by default */
+  node_socket_set_typeinfo(ntree, sock, stype);
 
   /* assign new unique index */
   const int own_index = ntree->cur_index++;
@@ -4499,6 +4502,8 @@ static void registerCompositNodes()
   register_node_type_cmp_premulkey();
   register_node_type_cmp_separate_xyz();
   register_node_type_cmp_combine_xyz();
+  register_node_type_cmp_separate_color();
+  register_node_type_cmp_combine_color();
 
   register_node_type_cmp_diff_matte();
   register_node_type_cmp_distance_matte();
@@ -4571,6 +4576,8 @@ static void registerShaderNodes()
   register_node_type_sh_vect_transform();
   register_node_type_sh_squeeze();
   register_node_type_sh_invert();
+  register_node_type_sh_sepcolor();
+  register_node_type_sh_combcolor();
   register_node_type_sh_seprgb();
   register_node_type_sh_combrgb();
   register_node_type_sh_sephsv();
@@ -4657,6 +4664,8 @@ static void registerTextureNodes()
   register_node_type_tex_distance();
   register_node_type_tex_compose();
   register_node_type_tex_decompose();
+  register_node_type_tex_combine_color();
+  register_node_type_tex_separate_color();
 
   register_node_type_tex_output();
   register_node_type_tex_viewer();
@@ -4817,6 +4826,7 @@ static void registerFunctionNodes()
 {
   register_node_type_fn_align_euler_to_vector();
   register_node_type_fn_boolean_math();
+  register_node_type_fn_combine_color();
   register_node_type_fn_compare();
   register_node_type_fn_float_to_int();
   register_node_type_fn_input_bool();
@@ -4828,6 +4838,7 @@ static void registerFunctionNodes()
   register_node_type_fn_random_value();
   register_node_type_fn_replace_string();
   register_node_type_fn_rotate_euler();
+  register_node_type_fn_separate_color();
   register_node_type_fn_slice_string();
   register_node_type_fn_string_length();
   register_node_type_fn_value_to_string();

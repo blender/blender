@@ -1,8 +1,6 @@
-uniform vec4 pColor;
-uniform float pSize;
-uniform vec3 pPosition;
 
-out vec4 finalColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -11,4 +9,6 @@ void main()
   gl_Position = point_world_to_ndc(pPosition);
   finalColor = pColor;
   gl_PointSize = pSize;
+
+  view_clipping_distances(pPosition);
 }

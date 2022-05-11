@@ -39,15 +39,14 @@
 
 namespace ceres {
 
-using std::make_pair;
 using std::pair;
 using std::vector;
 
 Covariance::Covariance(const Covariance::Options& options) {
-  impl_.reset(new internal::CovarianceImpl(options));
+  impl_ = std::make_unique<internal::CovarianceImpl>(options);
 }
 
-Covariance::~Covariance() {}
+Covariance::~Covariance() = default;
 
 bool Covariance::Compute(
     const vector<pair<const double*, const double*>>& covariance_blocks,

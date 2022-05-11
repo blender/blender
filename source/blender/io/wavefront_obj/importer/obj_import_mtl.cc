@@ -13,13 +13,12 @@
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
-#include "IO_string_utils.hh"
-
 #include "NOD_shader.h"
 
 /* TODO: move eMTLSyntaxElement out of following file into a more neutral place */
 #include "obj_export_io.hh"
 #include "obj_import_mtl.hh"
+#include "obj_import_string_utils.hh"
 
 namespace blender::io::obj {
 
@@ -122,7 +121,7 @@ ShaderNodetreeWrap::ShaderNodetreeWrap(Main *bmain, const MTLMaterial &mtl_mat, 
   bsdf_ = add_node_to_tree(SH_NODE_BSDF_PRINCIPLED);
   shader_output_ = add_node_to_tree(SH_NODE_OUTPUT_MATERIAL);
 
-  set_bsdf_socket_values();
+  set_bsdf_socket_values(mat);
   add_image_textures(bmain, mat);
   link_sockets(bsdf_, "BSDF", shader_output_, "Surface", 4);
 
@@ -188,7 +187,7 @@ void ShaderNodetreeWrap::link_sockets(bNode *from_node,
   nodeAddLink(nodetree_.get(), from_node, from_sock, to_node, to_sock);
 }
 
-void ShaderNodetreeWrap::set_bsdf_socket_values()
+void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
 {
   const int illum = mtl_mat_.illum;
   bool do_highlight = false;
@@ -197,10 +196,10 @@ void ShaderNodetreeWrap::set_bsdf_socket_values()
   bool do_glass = false;
   /* See https://wikipedia.org/wiki/Wavefront_.obj_file for possible values of illum. */
   switch (illum) {
-    case 1: {
+    case -1:
+    case 1:
       /* Base color on, ambient on. */
       break;
-    }
     case 2: {
       /* Highlight on. */
       do_highlight = true;
@@ -257,28 +256,30 @@ void ShaderNodetreeWrap::set_bsdf_socket_values()
    * Principled BSDF: */
   /* Specular: average of Ks components. */
   float specular = (mtl_mat_.Ks[0] + mtl_mat_.Ks[1] + mtl_mat_.Ks[2]) / 3;
+  if (specular < 0.0f) {
+    specular = do_highlight ? 1.0f : 0.0f;
+  }
   /* Roughness: map 0..1000 range to 1..0 and apply non-linearity. */
-  float clamped_ns = std::max(0.0f, std::min(1000.0f, mtl_mat_.Ns));
-  float roughness = 1.0f - sqrt(clamped_ns / 1000.0f);
+  float roughness;
+  if (mtl_mat_.Ns < 0.0f) {
+    roughness = do_highlight ? 0.0f : 1.0f;
+  }
+  else {
+    float clamped_ns = std::max(0.0f, std::min(1000.0f, mtl_mat_.Ns));
+    roughness = 1.0f - sqrt(clamped_ns / 1000.0f);
+  }
   /* Metallic: average of Ka components. */
   float metallic = (mtl_mat_.Ka[0] + mtl_mat_.Ka[1] + mtl_mat_.Ka[2]) / 3;
-  float ior = mtl_mat_.Ni;
-  float alpha = mtl_mat_.d;
-
-  if (specular < 0.0f) {
-    specular = static_cast<float>(do_highlight);
-  }
-  if (mtl_mat_.Ns < 0.0f) {
-    roughness = static_cast<float>(!do_highlight);
-  }
-  if (metallic < 0.0f) {
-    if (do_reflection) {
+  if (do_reflection) {
+    if (metallic < 0.0f) {
       metallic = 1.0f;
     }
   }
   else {
     metallic = 0.0f;
   }
+
+  float ior = mtl_mat_.Ni;
   if (ior < 0) {
     if (do_tranparency) {
       ior = 1.0f;
@@ -287,28 +288,41 @@ void ShaderNodetreeWrap::set_bsdf_socket_values()
       ior = 1.5f;
     }
   }
-  if (alpha < 0) {
-    if (do_tranparency) {
-      alpha = 1.0f;
-    }
+  float alpha = mtl_mat_.d;
+  if (do_tranparency && alpha < 0) {
+    alpha = 1.0f;
   }
-  float3 base_color = {std::max(0.0f, mtl_mat_.Kd[0]),
-                       std::max(0.0f, mtl_mat_.Kd[1]),
-                       std::max(0.0f, mtl_mat_.Kd[2])};
-  float3 emission_color = {std::max(0.0f, mtl_mat_.Ke[0]),
-                           std::max(0.0f, mtl_mat_.Ke[1]),
-                           std::max(0.0f, mtl_mat_.Ke[2])};
 
-  set_property_of_socket(SOCK_RGBA, "Base Color", {base_color, 3}, bsdf_);
-  set_property_of_socket(SOCK_RGBA, "Emission", {emission_color, 3}, bsdf_);
+  float3 base_color = {mtl_mat_.Kd[0], mtl_mat_.Kd[1], mtl_mat_.Kd[2]};
+  if (base_color.x >= 0 && base_color.y >= 0 && base_color.z >= 0) {
+    set_property_of_socket(SOCK_RGBA, "Base Color", {base_color, 3}, bsdf_);
+    /* Viewport shading uses legacy r,g,b base color. */
+    mat->r = base_color.x;
+    mat->g = base_color.y;
+    mat->b = base_color.z;
+  }
+
+  float3 emission_color = {mtl_mat_.Ke[0], mtl_mat_.Ke[1], mtl_mat_.Ke[2]};
+  if (emission_color.x >= 0 && emission_color.y >= 0 && emission_color.z >= 0) {
+    set_property_of_socket(SOCK_RGBA, "Emission", {emission_color, 3}, bsdf_);
+  }
   if (mtl_mat_.texture_maps.contains_as(eMTLSyntaxElement::map_Ke)) {
     set_property_of_socket(SOCK_FLOAT, "Emission Strength", {1.0f}, bsdf_);
   }
   set_property_of_socket(SOCK_FLOAT, "Specular", {specular}, bsdf_);
   set_property_of_socket(SOCK_FLOAT, "Roughness", {roughness}, bsdf_);
+  mat->roughness = roughness;
   set_property_of_socket(SOCK_FLOAT, "Metallic", {metallic}, bsdf_);
-  set_property_of_socket(SOCK_FLOAT, "IOR", {ior}, bsdf_);
-  set_property_of_socket(SOCK_FLOAT, "Alpha", {alpha}, bsdf_);
+  mat->metallic = metallic;
+  if (ior != -1) {
+    set_property_of_socket(SOCK_FLOAT, "IOR", {ior}, bsdf_);
+  }
+  if (alpha != -1) {
+    set_property_of_socket(SOCK_FLOAT, "Alpha", {alpha}, bsdf_);
+  }
+  if (do_tranparency) {
+    mat->blend_method = MA_BM_BLEND;
+  }
 }
 
 void ShaderNodetreeWrap::add_image_textures(Main *bmain, Material *mat)

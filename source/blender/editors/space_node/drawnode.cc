@@ -213,6 +213,11 @@ static void node_buts_math(uiLayout *layout, bContext *UNUSED(C), PointerRNA *pt
   uiItemR(layout, ptr, "use_clamp", DEFAULT_FLAGS, nullptr, ICON_NONE);
 }
 
+static void node_buts_combsep_color(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
+}
+
 NodeResizeDirection node_get_resize_direction(const bNode *node, const int x, const int y)
 {
   if (node->type == NODE_FRAME) {
@@ -480,6 +485,10 @@ static void node_shader_set_butfunc(bNodeType *ntype)
     case SH_NODE_MATH:
       ntype->draw_buttons = node_buts_math;
       break;
+    case SH_NODE_COMBINE_COLOR:
+    case SH_NODE_SEPARATE_COLOR:
+      ntype->draw_buttons = node_buts_combsep_color;
+      break;
     case SH_NODE_TEX_IMAGE:
       ntype->draw_buttons = node_shader_buts_tex_image;
       ntype->draw_buttons_ex = node_shader_buts_tex_image_ex;
@@ -587,6 +596,19 @@ static void node_composit_buts_huecorrect(uiLayout *layout, bContext *UNUSED(C),
 static void node_composit_buts_ycc(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
+}
+
+static void node_composit_buts_combsep_color(uiLayout *layout,
+                                             bContext *UNUSED(C),
+                                             PointerRNA *ptr)
+{
+  bNode *node = (bNode *)ptr->data;
+  NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)node->storage;
+
+  uiItemR(layout, ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
+  if (storage->mode == CMP_NODE_COMBSEP_COLOR_YCC) {
+    uiItemR(layout, ptr, "ycc_mode", DEFAULT_FLAGS, "", ICON_NONE);
+  }
 }
 
 static void node_composit_backdrop_viewer(
@@ -821,8 +843,12 @@ static void node_composit_set_butfunc(bNodeType *ntype)
     case CMP_NODE_HUECORRECT:
       ntype->draw_buttons = node_composit_buts_huecorrect;
       break;
-    case CMP_NODE_COMBYCCA:
-    case CMP_NODE_SEPYCCA:
+    case CMP_NODE_COMBINE_COLOR:
+    case CMP_NODE_SEPARATE_COLOR:
+      ntype->draw_buttons = node_composit_buts_combsep_color;
+      break;
+    case CMP_NODE_COMBYCCA_LEGACY:
+    case CMP_NODE_SEPYCCA_LEGACY:
       ntype->draw_buttons = node_composit_buts_ycc;
       break;
     case CMP_NODE_MASK_BOX:
@@ -975,6 +1001,11 @@ static void node_texture_buts_output(uiLayout *layout, bContext *UNUSED(C), Poin
   uiItemR(layout, ptr, "filepath", DEFAULT_FLAGS, "", ICON_NONE);
 }
 
+static void node_texture_buts_combsep_color(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+  uiItemR(layout, ptr, "mode", DEFAULT_FLAGS, "", ICON_NONE);
+}
+
 /* only once called */
 static void node_texture_set_butfunc(bNodeType *ntype)
 {
@@ -1019,6 +1050,11 @@ static void node_texture_set_butfunc(bNodeType *ntype)
 
       case TEX_NODE_OUTPUT:
         ntype->draw_buttons = node_texture_buts_output;
+        break;
+
+      case TEX_NODE_COMBINE_COLOR:
+      case TEX_NODE_SEPARATE_COLOR:
+        ntype->draw_buttons = node_texture_buts_combsep_color;
         break;
     }
   }

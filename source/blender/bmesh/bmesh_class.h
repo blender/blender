@@ -265,8 +265,20 @@ typedef struct BMFace {
    * (the length of #BMFace.l_first circular linked list).
    */
   int len;
-  float no[3];  /* face normal */
-  short mat_nr; /* material index */
+  /**
+   * Face normal, see #BM_face_calc_normal.
+   */
+  float no[3];
+  /**
+   * Material index, typically >= 0 and < #Mesh.totcol although this isn't enforced
+   * Python for e.g. can set this to any positive value since scripts may create
+   * mesh data first and setup material slots later.
+   *
+   * When using to index into a material array it's range should be checked first,
+   * values exceeding the range should be ignored or treated as zero
+   * (if a material slot needs to be used - when drawing for e.g.)
+   */
+  short mat_nr;
   //  short _pad[3];
 } BMFace;
 

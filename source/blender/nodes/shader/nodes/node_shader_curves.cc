@@ -28,48 +28,34 @@ static int gpu_shader_curve_vec(GPUMaterial *mat,
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {
-  float *array, layer;
-  int size;
+  CurveMapping *curve_mapping = (CurveMapping *)node->storage;
 
-  CurveMapping *cumap = (CurveMapping *)node->storage;
+  BKE_curvemapping_init(curve_mapping);
+  float *band_values;
+  int band_size;
+  BKE_curvemapping_table_RGBA(curve_mapping, &band_values, &band_size);
+  float band_layer;
+  GPUNodeLink *band_texture = GPU_color_band(mat, band_size, band_values, &band_layer);
 
-  BKE_curvemapping_init(cumap);
-  BKE_curvemapping_table_RGBA(cumap, &array, &size);
-  GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
-
-  float ext_xyz[3][4];
-  float range_xyz[3];
-
-  for (int a = 0; a < 3; a++) {
-    const CurveMap *cm = &cumap->cm[a];
-    ext_xyz[a][0] = cm->mintable;
-    ext_xyz[a][2] = cm->maxtable;
-    range_xyz[a] = 1.0f / max_ff(1e-8f, cm->maxtable - cm->mintable);
-    /* Compute extrapolation gradients. */
-    if ((cumap->flag & CUMA_EXTEND_EXTRAPOLATE) != 0) {
-      ext_xyz[a][1] = (cm->ext_in[0] != 0.0f) ? (cm->ext_in[1] / (cm->ext_in[0] * range_xyz[a])) :
-                                                1e8f;
-      ext_xyz[a][3] = (cm->ext_out[0] != 0.0f) ?
-                          (cm->ext_out[1] / (cm->ext_out[0] * range_xyz[a])) :
-                          1e8f;
-    }
-    else {
-      ext_xyz[a][1] = 0.0f;
-      ext_xyz[a][3] = 0.0f;
-    }
-  }
+  float start_slopes[CM_TOT];
+  float end_slopes[CM_TOT];
+  BKE_curvemapping_compute_slopes(curve_mapping, start_slopes, end_slopes);
+  float range_minimums[CM_TOT];
+  BKE_curvemapping_get_range_minimums(curve_mapping, range_minimums);
+  float range_dividers[CM_TOT];
+  BKE_curvemapping_compute_range_dividers(curve_mapping, range_dividers);
 
   return GPU_stack_link(mat,
                         node,
-                        "curves_vec",
+                        "curves_vector_mixed",
                         in,
                         out,
-                        tex,
-                        GPU_constant(&layer),
-                        GPU_uniform(range_xyz),
-                        GPU_uniform(ext_xyz[0]),
-                        GPU_uniform(ext_xyz[1]),
-                        GPU_uniform(ext_xyz[2]));
+                        band_texture,
+                        GPU_constant(&band_layer),
+                        GPU_uniform(range_minimums),
+                        GPU_uniform(range_dividers),
+                        GPU_uniform(start_slopes),
+                        GPU_uniform(end_slopes));
 }
 
 class CurveVecFunction : public fn::MultiFunction {
@@ -157,72 +143,59 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
                                 GPUNodeStack *in,
                                 GPUNodeStack *out)
 {
-  float *array, layer;
-  int size;
-  bool use_opti = true;
+  CurveMapping *curve_mapping = (CurveMapping *)node->storage;
 
-  CurveMapping *cumap = (CurveMapping *)node->storage;
+  BKE_curvemapping_init(curve_mapping);
+  float *band_values;
+  int band_size;
+  BKE_curvemapping_table_RGBA(curve_mapping, &band_values, &band_size);
+  float band_layer;
+  GPUNodeLink *band_texture = GPU_color_band(mat, band_size, band_values, &band_layer);
 
-  BKE_curvemapping_init(cumap);
-  BKE_curvemapping_table_RGBA(cumap, &array, &size);
-  GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
+  float start_slopes[CM_TOT];
+  float end_slopes[CM_TOT];
+  BKE_curvemapping_compute_slopes(curve_mapping, start_slopes, end_slopes);
+  float range_minimums[CM_TOT];
+  BKE_curvemapping_get_range_minimums(curve_mapping, range_minimums);
+  float range_dividers[CM_TOT];
+  BKE_curvemapping_compute_range_dividers(curve_mapping, range_dividers);
 
-  float ext_rgba[4][4];
-  float range_rgba[4];
+  /* Shader nodes don't do white balancing. */
+  float black_level[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  float white_level[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-  for (int a = 0; a < CM_TOT; a++) {
-    const CurveMap *cm = &cumap->cm[a];
-    ext_rgba[a][0] = cm->mintable;
-    ext_rgba[a][2] = cm->maxtable;
-    range_rgba[a] = 1.0f / max_ff(1e-8f, cm->maxtable - cm->mintable);
-    /* Compute extrapolation gradients. */
-    if ((cumap->flag & CUMA_EXTEND_EXTRAPOLATE) != 0) {
-      ext_rgba[a][1] = (cm->ext_in[0] != 0.0f) ?
-                           (cm->ext_in[1] / (cm->ext_in[0] * range_rgba[a])) :
-                           1e8f;
-      ext_rgba[a][3] = (cm->ext_out[0] != 0.0f) ?
-                           (cm->ext_out[1] / (cm->ext_out[0] * range_rgba[a])) :
-                           1e8f;
-    }
-    else {
-      ext_rgba[a][1] = 0.0f;
-      ext_rgba[a][3] = 0.0f;
-    }
-
-    /* Check if rgb comps are just linear. */
-    if (a < 3) {
-      if (range_rgba[a] != 1.0f || ext_rgba[a][1] != 1.0f || ext_rgba[a][2] != 1.0f ||
-          cm->totpoint != 2 || cm->curve[0].x != 0.0f || cm->curve[0].y != 0.0f ||
-          cm->curve[1].x != 1.0f || cm->curve[1].y != 1.0f) {
-        use_opti = false;
-      }
-    }
-  }
-
-  if (use_opti) {
+  /* If the RGB curves do nothing, use a function that skips RGB computations. */
+  if (BKE_curvemapping_is_map_identity(curve_mapping, 0) &&
+      BKE_curvemapping_is_map_identity(curve_mapping, 1) &&
+      BKE_curvemapping_is_map_identity(curve_mapping, 2)) {
     return GPU_stack_link(mat,
                           node,
-                          "curves_rgb_opti",
+                          "curves_combined_only",
                           in,
                           out,
-                          tex,
-                          GPU_constant(&layer),
-                          GPU_uniform(range_rgba),
-                          GPU_uniform(ext_rgba[3]));
+                          GPU_constant(black_level),
+                          GPU_constant(white_level),
+                          band_texture,
+                          GPU_constant(&band_layer),
+                          GPU_uniform(&range_minimums[3]),
+                          GPU_uniform(&range_dividers[3]),
+                          GPU_uniform(&start_slopes[3]),
+                          GPU_uniform(&end_slopes[3]));
   }
 
   return GPU_stack_link(mat,
                         node,
-                        "curves_rgb",
+                        "curves_combined_rgb",
                         in,
                         out,
-                        tex,
-                        GPU_constant(&layer),
-                        GPU_uniform(range_rgba),
-                        GPU_uniform(ext_rgba[0]),
-                        GPU_uniform(ext_rgba[1]),
-                        GPU_uniform(ext_rgba[2]),
-                        GPU_uniform(ext_rgba[3]));
+                        GPU_constant(black_level),
+                        GPU_constant(white_level),
+                        band_texture,
+                        GPU_constant(&band_layer),
+                        GPU_uniform(range_minimums),
+                        GPU_uniform(range_dividers),
+                        GPU_uniform(start_slopes),
+                        GPU_uniform(end_slopes));
 }
 
 class CurveRGBFunction : public fn::MultiFunction {
@@ -316,40 +289,34 @@ static int gpu_shader_curve_float(GPUMaterial *mat,
                                   GPUNodeStack *in,
                                   GPUNodeStack *out)
 {
-  float *array, layer;
-  int size;
+  CurveMapping *curve_mapping = (CurveMapping *)node->storage;
 
-  CurveMapping *cumap = (CurveMapping *)node->storage;
+  BKE_curvemapping_init(curve_mapping);
+  float *band_values;
+  int band_size;
+  BKE_curvemapping_table_RGBA(curve_mapping, &band_values, &band_size);
+  float band_layer;
+  GPUNodeLink *band_texture = GPU_color_band(mat, band_size, band_values, &band_layer);
 
-  BKE_curvemapping_init(cumap);
-  BKE_curvemapping_table_F(cumap, &array, &size);
-  GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
+  float start_slopes[CM_TOT];
+  float end_slopes[CM_TOT];
+  BKE_curvemapping_compute_slopes(curve_mapping, start_slopes, end_slopes);
+  float range_minimums[CM_TOT];
+  BKE_curvemapping_get_range_minimums(curve_mapping, range_minimums);
+  float range_dividers[CM_TOT];
+  BKE_curvemapping_compute_range_dividers(curve_mapping, range_dividers);
 
-  float ext_xyz[4];
-  float range_x;
-
-  const CurveMap *cm = &cumap->cm[0];
-  ext_xyz[0] = cm->mintable;
-  ext_xyz[2] = cm->maxtable;
-  range_x = 1.0f / max_ff(1e-8f, cm->maxtable - cm->mintable);
-  /* Compute extrapolation gradients. */
-  if ((cumap->flag & CUMA_EXTEND_EXTRAPOLATE) != 0) {
-    ext_xyz[1] = (cm->ext_in[0] != 0.0f) ? (cm->ext_in[1] / (cm->ext_in[0] * range_x)) : 1e8f;
-    ext_xyz[3] = (cm->ext_out[0] != 0.0f) ? (cm->ext_out[1] / (cm->ext_out[0] * range_x)) : 1e8f;
-  }
-  else {
-    ext_xyz[1] = 0.0f;
-    ext_xyz[3] = 0.0f;
-  }
   return GPU_stack_link(mat,
                         node,
-                        "curve_float",
+                        "curves_float_mixed",
                         in,
                         out,
-                        tex,
-                        GPU_constant(&layer),
-                        GPU_uniform(&range_x),
-                        GPU_uniform(ext_xyz));
+                        band_texture,
+                        GPU_constant(&band_layer),
+                        GPU_uniform(range_minimums),
+                        GPU_uniform(range_dividers),
+                        GPU_uniform(start_slopes),
+                        GPU_uniform(end_slopes));
 }
 
 class CurveFloatFunction : public fn::MultiFunction {

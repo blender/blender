@@ -37,8 +37,9 @@
 
 #include "ceres/coordinate_descent_minimizer.h"
 #include "ceres/evaluator.h"
+#include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/iteration_callback.h"
 #include "ceres/linear_solver.h"
 #include "ceres/minimizer.h"
@@ -67,10 +68,10 @@ struct PreprocessedProblem;
 //
 // The output of the Preprocessor is stored in a PreprocessedProblem
 // object.
-class CERES_EXPORT_INTERNAL Preprocessor {
+class CERES_NO_EXPORT Preprocessor {
  public:
   // Factory.
-  static Preprocessor* Create(MinimizerType minimizer_type);
+  static std::unique_ptr<Preprocessor> Create(MinimizerType minimizer_type);
   virtual ~Preprocessor();
   virtual bool Preprocess(const Solver::Options& options,
                           ProblemImpl* problem,
@@ -79,8 +80,8 @@ class CERES_EXPORT_INTERNAL Preprocessor {
 
 // A PreprocessedProblem is the result of running the Preprocessor on
 // a Problem and Solver::Options object.
-struct PreprocessedProblem {
-  PreprocessedProblem() : fixed_cost(0.0) {}
+struct CERES_NO_EXPORT PreprocessedProblem {
+  PreprocessedProblem() = default;
 
   std::string error;
   Solver::Options options;
@@ -100,7 +101,7 @@ struct PreprocessedProblem {
 
   std::vector<double*> removed_parameter_blocks;
   Vector reduced_parameters;
-  double fixed_cost;
+  double fixed_cost{0.0};
 };
 
 // Common functions used by various preprocessors.
@@ -108,14 +109,18 @@ struct PreprocessedProblem {
 // If the user has specified a num_threads > the maximum number of threads
 // available from the compiled threading model, bound the number of threads
 // to the maximum.
+CERES_NO_EXPORT
 void ChangeNumThreadsIfNeeded(Solver::Options* options);
 
 // Extract the effective parameter vector from the preprocessed
 // problem and setup bits of the Minimizer::Options object that are
 // common to all Preprocessors.
+CERES_NO_EXPORT
 void SetupCommonMinimizerOptions(PreprocessedProblem* pp);
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_PREPROCESSOR_H_

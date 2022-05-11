@@ -301,11 +301,11 @@ static void attr_create_sculpt_vertex_color(Scene *scene,
 template<typename TypeInCycles, typename GetValueAtIndex>
 static void fill_generic_attribute(BL::Mesh &b_mesh,
                                    TypeInCycles *data,
-                                   const AttributeElement element,
+                                   const BL::Attribute::domain_enum b_domain,
                                    const GetValueAtIndex &get_value_at_index)
 {
-  switch (element) {
-    case ATTR_ELEMENT_CORNER: {
+  switch (b_domain) {
+    case BL::Attribute::domain_CORNER: {
       for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
         const int index = t.index() * 3;
         BL::Array<int, 3> loops = t.loops();
@@ -315,14 +315,37 @@ static void fill_generic_attribute(BL::Mesh &b_mesh,
       }
       break;
     }
-    case ATTR_ELEMENT_VERTEX: {
+    case BL::Attribute::domain_EDGE: {
+      /* Average edge attributes at vertices. */
+      const size_t num_verts = b_mesh.vertices.length();
+      vector<int> count(num_verts, 0);
+
+      for (BL::MeshEdge &e : b_mesh.edges) {
+        BL::Array<int, 2> vertices = e.vertices();
+        TypeInCycles value = get_value_at_index(e.index());
+
+        data[vertices[0]] += value;
+        data[vertices[1]] += value;
+        count[vertices[0]]++;
+        count[vertices[1]]++;
+      }
+
+      for (size_t i = 0; i < num_verts; i++) {
+        if (count[i] > 1) {
+          data[i] /= (float)count[i];
+        }
+      }
+
+      break;
+    }
+    case BL::Attribute::domain_POINT: {
       const int num_verts = b_mesh.vertices.length();
       for (int i = 0; i < num_verts; i++) {
         data[i] = get_value_at_index(i);
       }
       break;
     }
-    case ATTR_ELEMENT_FACE: {
+    case BL::Attribute::domain_FACE: {
       for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
         data[t.index()] = get_value_at_index(t.polygon_index());
       }
@@ -404,6 +427,9 @@ static void attr_create_generic(Scene *scene,
       case BL::Attribute::domain_POINT:
         element = ATTR_ELEMENT_VERTEX;
         break;
+      case BL::Attribute::domain_EDGE:
+        element = ATTR_ELEMENT_VERTEX;
+        break;
       case BL::Attribute::domain_FACE:
         element = ATTR_ELEMENT_FACE;
         break;
@@ -420,15 +446,16 @@ static void attr_create_generic(Scene *scene,
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
         fill_generic_attribute(
-            b_mesh, data, element, [&](int i) { return b_float_attribute.data[i].value(); });
+            b_mesh, data, b_domain, [&](int i) { return b_float_attribute.data[i].value(); });
         break;
       }
       case BL::Attribute::data_type_BOOLEAN: {
         BL::BoolAttribute b_bool_attribute{b_attribute};
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
-        fill_generic_attribute(
-            b_mesh, data, element, [&](int i) { return (float)b_bool_attribute.data[i].value(); });
+        fill_generic_attribute(b_mesh, data, b_domain, [&](int i) {
+          return (float)b_bool_attribute.data[i].value();
+        });
         break;
       }
       case BL::Attribute::data_type_INT: {
@@ -436,14 +463,14 @@ static void attr_create_generic(Scene *scene,
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
         fill_generic_attribute(
-            b_mesh, data, element, [&](int i) { return (float)b_int_attribute.data[i].value(); });
+            b_mesh, data, b_domain, [&](int i) { return (float)b_int_attribute.data[i].value(); });
         break;
       }
       case BL::Attribute::data_type_FLOAT_VECTOR: {
         BL::FloatVectorAttribute b_vector_attribute{b_attribute};
         Attribute *attr = attributes.add(name, TypeVector, element);
         float3 *data = attr->data_float3();
-        fill_generic_attribute(b_mesh, data, element, [&](int i) {
+        fill_generic_attribute(b_mesh, data, b_domain, [&](int i) {
           BL::Array<float, 3> v = b_vector_attribute.data[i].vector();
           return make_float3(v[0], v[1], v[2]);
         });
@@ -453,7 +480,7 @@ static void attr_create_generic(Scene *scene,
         BL::FloatColorAttribute b_color_attribute{b_attribute};
         Attribute *attr = attributes.add(name, TypeRGBA, element);
         float4 *data = attr->data_float4();
-        fill_generic_attribute(b_mesh, data, element, [&](int i) {
+        fill_generic_attribute(b_mesh, data, b_domain, [&](int i) {
           BL::Array<float, 4> v = b_color_attribute.data[i].color();
           return make_float4(v[0], v[1], v[2], v[3]);
         });
@@ -463,7 +490,7 @@ static void attr_create_generic(Scene *scene,
         BL::Float2Attribute b_float2_attribute{b_attribute};
         Attribute *attr = attributes.add(name, TypeFloat2, element);
         float2 *data = attr->data_float2();
-        fill_generic_attribute(b_mesh, data, element, [&](int i) {
+        fill_generic_attribute(b_mesh, data, b_domain, [&](int i) {
           BL::Array<float, 2> v = b_float2_attribute.data[i].vector();
           return make_float2(v[0], v[1]);
         });

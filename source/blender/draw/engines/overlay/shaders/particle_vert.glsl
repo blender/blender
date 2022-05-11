@@ -1,34 +1,21 @@
 
-uniform sampler1D weightTex;
-uniform vec4 color; /* Drawsize packed in alpha */
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-/* ---- Instantiated Attrs ---- */
-in vec3 pos;
-in int vclass;
-
-/* ---- Per instance Attrs ---- */
-in vec3 part_pos;
-in vec4 part_rot;
-in float part_val;
-
-#ifdef USE_DOTS
-out vec4 finalColor;
-#else
-flat out vec4 finalColor;
-#endif
-
+/* TODO(fclem): Share with C code. */
 #define VCLASS_SCREENALIGNED (1 << 9)
 
 #define VCLASS_EMPTY_AXES (1 << 11)
 
 vec3 rotate(vec3 vec, vec4 quat)
 {
-  /* The quaternion representation here stores the w component in the first index */
+  /* The quaternion representation here stores the w component in the first index. */
   return vec + 2.0 * cross(quat.yzw, cross(quat.yzw, vec) + quat.x * vec);
 }
 
 void main()
 {
+  /* Drawsize packed in alpha. */
   float draw_size = color.a;
 
   vec3 world_pos = part_pos;
@@ -52,7 +39,7 @@ void main()
 
   /* Coloring */
   if ((vclass & VCLASS_EMPTY_AXES) != 0) {
-    /* see VBO construction for explanation. */
+    /* See VBO construction for explanation. */
     finalColor = vec4(clamp(pos * 10000.0, 0.0, 1.0), 1.0);
   }
   else if (part_val < 0.0) {
@@ -62,7 +49,5 @@ void main()
     finalColor = vec4(texture(weightTex, part_val).rgb, 1.0);
   }
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(world_pos);
-#endif
+  view_clipping_distances(world_pos);
 }

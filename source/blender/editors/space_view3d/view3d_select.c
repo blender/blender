@@ -126,6 +126,7 @@ void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc, Depsgraph *depsgra
 void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
 {
   vc->obact = obact;
+  /* See public doc-string for rationale on checking the existing values first. */
   if (vc->obedit) {
     BLI_assert(BKE_object_is_in_editmode(obact));
     vc->obedit = obact;
@@ -4602,6 +4603,48 @@ static bool object_circle_select(ViewContext *vc,
 }
 
 /* not a real operator, only for circle test */
+static void view3d_circle_select_recalc(void *user_data)
+{
+  bContext *C = user_data;
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ViewContext vc;
+  ED_view3d_viewcontext_init(C, &vc, depsgraph);
+  em_setup_viewcontext(C, &vc);
+
+  if (vc.obedit) {
+    switch (vc.obedit->type) {
+      case OB_MESH: {
+        FOREACH_OBJECT_IN_MODE_BEGIN (
+            vc.view_layer, vc.v3d, vc.obact->type, vc.obact->mode, ob_iter) {
+          ED_view3d_viewcontext_init_object(&vc, ob_iter);
+          BM_mesh_select_mode_flush_ex(
+              vc.em->bm, vc.em->selectmode, BM_SELECT_LEN_FLUSH_RECALC_ALL);
+        }
+        FOREACH_OBJECT_IN_MODE_END;
+        break;
+      }
+
+      default:
+        break;
+    }
+  }
+}
+
+static int view3d_circle_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  int result = WM_gesture_circle_modal(C, op, event);
+  if (result & OPERATOR_FINISHED) {
+    view3d_circle_select_recalc(C);
+  }
+  return result;
+}
+
+static void view3d_circle_select_cancel(bContext *C, wmOperator *op)
+{
+  WM_gesture_circle_cancel(C, op);
+  view3d_circle_select_recalc(C);
+}
+
 static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -4693,10 +4736,10 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
   ot->idname = "VIEW3D_OT_select_circle";
 
   ot->invoke = WM_gesture_circle_invoke;
-  ot->modal = WM_gesture_circle_modal;
+  ot->modal = view3d_circle_select_modal;
   ot->exec = view3d_circle_select_exec;
   ot->poll = view3d_selectable_data;
-  ot->cancel = WM_gesture_circle_cancel;
+  ot->cancel = view3d_circle_select_cancel;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;

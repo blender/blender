@@ -1,16 +1,4 @@
-#pragma BLENDER_REQUIRE(common_globals_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
-
-uniform float pointSize;
-uniform float outlineWidth;
-uniform vec4 color;
-
-in vec2 au;
-in int flag;
-
-out vec4 fillColor;
-out vec4 outlineColor;
-out vec4 radii;
 
 /* TODO: Theme? */
 const vec4 pinned_col = vec4(1.0, 0.0, 0.0, 1.0);

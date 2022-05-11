@@ -217,16 +217,16 @@ template<typename T> class AccumulateFieldInput final : public GeometryFieldInpu
                                  IndexMask UNUSED(mask)) const final
   {
     const GeometryComponentFieldContext field_context{component, source_domain_};
-    const int domain_size = component.attribute_domain_size(field_context.domain());
+    const int domain_num = component.attribute_domain_num(field_context.domain());
 
-    fn::FieldEvaluator evaluator{field_context, domain_size};
+    fn::FieldEvaluator evaluator{field_context, domain_num};
     evaluator.add(input_);
     evaluator.add(group_index_);
     evaluator.evaluate();
     const VArray<T> &values = evaluator.get_evaluated<T>(0);
     const VArray<int> &group_indices = evaluator.get_evaluated<int>(1);
 
-    Array<T> accumulations_out(domain_size);
+    Array<T> accumulations_out(domain_num);
 
     if (group_indices.is_single()) {
       T accumulation = T();
@@ -303,9 +303,9 @@ template<typename T> class TotalFieldInput final : public GeometryFieldInput {
                                  IndexMask UNUSED(mask)) const final
   {
     const GeometryComponentFieldContext field_context{component, source_domain_};
-    const int domain_size = component.attribute_domain_size(field_context.domain());
+    const int domain_num = component.attribute_domain_num(field_context.domain());
 
-    fn::FieldEvaluator evaluator{field_context, domain_size};
+    fn::FieldEvaluator evaluator{field_context, domain_num};
     evaluator.add(input_);
     evaluator.add(group_index_);
     evaluator.evaluate();
@@ -317,10 +317,10 @@ template<typename T> class TotalFieldInput final : public GeometryFieldInput {
       for (const int i : values.index_range()) {
         accumulation = values[i] + accumulation;
       }
-      return VArray<T>::ForSingle(accumulation, domain_size);
+      return VArray<T>::ForSingle(accumulation, domain_num);
     }
 
-    Array<T> accumulations_out(domain_size);
+    Array<T> accumulations_out(domain_num);
     Map<int, T> accumulations;
     for (const int i : values.index_range()) {
       T &value = accumulations.lookup_or_add_default(group_indices[i]);

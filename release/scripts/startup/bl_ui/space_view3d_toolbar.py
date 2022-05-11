@@ -5,7 +5,7 @@ from bpy.props import EnumProperty
 from bpy.types import Operator
 from bpy.types import Menu, Panel, UIList, WindowManager, SpaceProperties
 from bl_ui.properties_grease_pencil_common import (
-    GreasePencilSculptOptionsPanel,
+    GreasePencilSculptAdvancedPanel,
     GreasePencilDisplayPanel,
     GreasePencilBrushFalloff,
 )
@@ -470,6 +470,10 @@ class VIEW3D_PT_tools_brush_settings_advanced_sculpt(Panel, View3DPaintBrushPane
     def poll(cls, context):
         if context.mode != 'SCULPT':
           return False
+
+        mode = cls.get_brush_mode(context)
+        if mode is None or mode == 'SCULPT_CURVES':
+            return False
 
         return View3DPaintBrushPanel.poll(context)
 
@@ -1570,6 +1574,36 @@ class VIEW3D_PT_sculpt_symmetry_for_topbar(Panel):
 
     draw = VIEW3D_PT_sculpt_symmetry.draw
 
+class VIEW3D_PT_curves_sculpt_symmetry(Panel, View3DPaintPanel):
+    bl_context = ".curves_sculpt"  # dot on purpose (access from topbar)
+    bl_label = "Symmetry"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.object and context.object.type == 'CURVES'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        curves = context.object.data
+
+        row = layout.row(align=True, heading="Mirror")
+        row.prop(curves, "use_mirror_x", text="X", toggle=True)
+        row.prop(curves, "use_mirror_y", text="Y", toggle=True)
+        row.prop(curves, "use_mirror_z", text="Z", toggle=True)
+
+
+class VIEW3D_PT_curves_sculpt_symmetry_for_topbar(Panel):
+    bl_space_type = 'TOPBAR'
+    bl_region_type = 'HEADER'
+    bl_label = "Symmetry"
+
+    draw = VIEW3D_PT_curves_sculpt_symmetry.draw
+
+
 # ********** default tools for weight-paint ****************
 
 
@@ -2430,6 +2464,41 @@ class VIEW3D_PT_tools_grease_pencil_brush_sculpt_falloff(GreasePencilBrushFallof
         return (settings and settings.brush and settings.brush.curve)
 
 
+class VIEW3D_PT_tools_grease_pencil_sculpt_brush_advanced(GreasePencilSculptAdvancedPanel, View3DPanel, Panel):
+    bl_context = ".greasepencil_sculpt"
+    bl_label = "Advanced"
+    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_sculpt_settings'
+    bl_category = "Tool"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        brush = context.tool_settings.gpencil_sculpt_paint.brush
+        if brush is None:
+            return False
+
+        tool = brush.gpencil_sculpt_tool
+        return tool != 'CLONE'
+
+
+class VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover(GreasePencilSculptAdvancedPanel, View3DPanel, Panel):
+    bl_context = ".greasepencil_sculpt"
+    bl_label = "Brush"
+    bl_category = "Tool"
+
+    @classmethod
+    def poll(cls, context):
+        if context.region.type != 'TOOL_HEADER':
+            return False
+
+        brush = context.tool_settings.gpencil_sculpt_paint.brush
+        if brush is None:
+            return False
+
+        tool = brush.gpencil_sculpt_tool
+        return tool != 'CLONE'
+
+
 # Grease Pencil weight painting tools
 class GreasePencilWeightPanel:
     bl_context = ".greasepencil_weight"
@@ -2763,13 +2832,6 @@ class VIEW3D_PT_tools_grease_pencil_brush_mix_palette(View3DPanel, Panel):
             col.template_palette(settings, "palette", color=True)
 
 
-class VIEW3D_PT_tools_grease_pencil_sculpt_options(GreasePencilSculptOptionsPanel, Panel, View3DPanel):
-    bl_context = ".greasepencil_sculpt"
-    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_sculpt_settings'
-    bl_category = "Tool"
-    bl_label = "Sculpt Strokes"
-
-
 # Grease Pencil Brush Appearance (one for each mode)
 class VIEW3D_PT_tools_grease_pencil_paint_appearance(GreasePencilDisplayPanel, Panel, View3DPanel):
     bl_context = ".greasepencil_paint"
@@ -2850,6 +2912,9 @@ classes = (VIEW3D_MT_brush_context_menu,
     VIEW3D_PT_sculpt_options_gravity,
     VIEW3D_PT_sculpt_automasking,
 
+    VIEW3D_PT_curves_sculpt_symmetry,
+    VIEW3D_PT_curves_sculpt_symmetry_for_topbar,
+
     VIEW3D_PT_tools_weightpaint_symmetry,
     VIEW3D_PT_tools_weightpaint_symmetry_for_topbar,
     VIEW3D_PT_tools_weightpaint_options,
@@ -2884,7 +2949,8 @@ classes = (VIEW3D_MT_brush_context_menu,
     VIEW3D_PT_tools_grease_pencil_paint_appearance,
     VIEW3D_PT_tools_grease_pencil_sculpt_select,
     VIEW3D_PT_tools_grease_pencil_sculpt_settings,
-    VIEW3D_PT_tools_grease_pencil_sculpt_options,
+    VIEW3D_PT_tools_grease_pencil_sculpt_brush_advanced,
+    VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover,
     VIEW3D_PT_tools_grease_pencil_sculpt_appearance,
     VIEW3D_PT_tools_grease_pencil_weight_paint_select,
     VIEW3D_PT_tools_grease_pencil_weight_paint_settings,

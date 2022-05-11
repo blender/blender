@@ -90,7 +90,7 @@ static void init_vcol_format(GPUVertFormat *format,
     GPU_vertformat_safe_attr_name(ref.layer->name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     /* VCol layer name. */
-    BLI_snprintf(attr_name, sizeof(attr_name), "c%s", attr_safe_name);
+    BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
     GPU_vertformat_attr_add(format, attr_name, GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
     /* Active layer name. */
@@ -101,16 +101,6 @@ static void init_vcol_format(GPUVertFormat *format,
     /* Active render layer name. */
     if (ref.layer == render) {
       GPU_vertformat_alias_add(format, "c");
-    }
-
-    /* Gather number of auto layers. */
-    /* We only do `vcols` that are not overridden by `uvs`. */
-    bool bad = ref.domain == ATTR_DOMAIN_CORNER;
-    bad = bad && CustomData_get_named_layer_index(cd_ldata, CD_MLOOPUV, ref.layer->name) != -1;
-
-    if (!bad) {
-      BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
-      GPU_vertformat_alias_add(format, attr_name);
     }
   }
 }

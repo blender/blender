@@ -33,7 +33,7 @@ layout(std140) uniform viewBlock
 
 #ifdef USE_GPU_SHADER_CREATE_INFO
 #  ifndef DRW_RESOURCE_CHUNK_LEN
-#    error "Missing draw_view additional create info on shader create info"
+#    error Missing draw_view additional create info on shader create info
 #  endif
 #endif
 

@@ -5316,7 +5316,7 @@ static void ui_item_align(uiLayout *litem, short nr)
   }
 }
 
-static void ui_item_flag(uiLayout *litem, int flag)
+static void ui_item_flag(uiLayout *litem, uint64_t flag)
 {
   LISTBASE_FOREACH_BACKWARD (uiItem *, item, &litem->items) {
     if (item->type == ITEM_BUTTON) {

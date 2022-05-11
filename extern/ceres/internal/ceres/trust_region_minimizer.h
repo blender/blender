@@ -33,8 +33,9 @@
 
 #include <memory>
 
+#include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/minimizer.h"
 #include "ceres/solver.h"
 #include "ceres/sparse_matrix.h"
@@ -48,10 +49,8 @@ namespace internal {
 // Generic trust region minimization algorithm.
 //
 // For example usage, see SolverImpl::Minimize.
-class CERES_EXPORT_INTERNAL TrustRegionMinimizer : public Minimizer {
+class CERES_NO_EXPORT TrustRegionMinimizer final : public Minimizer {
  public:
-  ~TrustRegionMinimizer();
-
   // This method is not thread safe.
   void Minimize(const Minimizer::Options& options,
                 double* parameters,
@@ -163,5 +162,7 @@ class CERES_EXPORT_INTERNAL TrustRegionMinimizer : public Minimizer {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_TRUST_REGION_MINIMIZER_H_

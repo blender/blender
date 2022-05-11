@@ -32,12 +32,13 @@
 #define CERES_INTERNAL_FLOAT_CXSPARSE_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 
 #if !defined(CERES_NO_CXSPARSE)
 
 #include <memory>
 
+#include "ceres/internal/export.h"
 #include "ceres/sparse_cholesky.h"
 
 namespace ceres {
@@ -45,7 +46,7 @@ namespace internal {
 
 // Fake implementation of a single precision Sparse Cholesky using
 // CXSparse.
-class FloatCXSparseCholesky : public SparseCholesky {
+class CERES_NO_EXPORT FloatCXSparseCholesky : public SparseCholesky {
  public:
   static std::unique_ptr<SparseCholesky> Create(OrderingType ordering_type);
 };

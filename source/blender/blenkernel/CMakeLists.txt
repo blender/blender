@@ -126,6 +126,7 @@ set(SRC
   intern/curveprofile.cc
   intern/curves.cc
   intern/curves_geometry.cc
+  intern/curves_utils.cc
   intern/customdata.cc
   intern/customdata_file.c
   intern/data_transfer.c
@@ -209,6 +210,7 @@ set(SRC
   intern/mesh_iterators.c
   intern/mesh_mapping.c
   intern/mesh_merge.c
+  intern/mesh_merge_customdata.cc
   intern/mesh_mirror.c
   intern/mesh_normals.cc
   intern/mesh_remap.c
@@ -251,8 +253,8 @@ set(SRC
   intern/particle_child.c
   intern/particle_distribute.c
   intern/particle_system.c
-  intern/pbvh.cc
   intern/pbvh.c
+  intern/pbvh.cc
   intern/pbvh_bmesh.c
   intern/pbvh_displacement.c
   intern/pbvh_pixels.cc
@@ -367,6 +369,7 @@ set(SRC
   BKE_curveprofile.h
   BKE_curves.h
   BKE_curves.hh
+  BKE_curves_utils.hh
   BKE_customdata.h
   BKE_customdata_file.h
   BKE_curvemapping_cache.h

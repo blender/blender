@@ -36,6 +36,7 @@ struct GPUCapabilities {
   int max_vertex_attribs = 0;
   int max_varying_floats = 0;
   int max_shader_storage_buffer_bindings = 0;
+  int max_compute_shader_storage_blocks = 0;
   int extensions_len = 0;
   const char *(*extension_get)(int);
 
@@ -51,6 +52,7 @@ struct GPUCapabilities {
   bool use_main_context_workaround = false;
   bool broken_amd_driver = false;
   bool use_hq_normals_workaround = false;
+  bool clear_viewport_workaround = false;
   /* Vulkan related workarounds. */
 
   /* Metal related workarounds. */

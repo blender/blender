@@ -40,7 +40,7 @@
 #include <string>
 
 #include "ceres/internal/disable_warnings.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 
@@ -186,6 +186,7 @@ enum SparseLinearAlgebraLibraryType {
 enum DenseLinearAlgebraLibraryType {
   EIGEN,
   LAPACK,
+  CUDA,
 };
 
 // Logging options

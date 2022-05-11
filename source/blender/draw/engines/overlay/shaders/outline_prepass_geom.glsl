@@ -1,30 +1,23 @@
 
-layout(lines_adjacency) in;
-layout(line_strip, max_vertices = 2) out;
-
-in vec3 vPos[];
-in uint objectId_g[];
-
-flat out uint objectId;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void vert_from_gl_in(int v)
 {
   gl_Position = gl_in[v].gl_Position;
-  objectId = objectId_g[v];
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_set_clip_distance(gl_in[v].gl_ClipDistance);
-#endif
+  interp_out.ob_id = interp_in[v].ob_id;
+  view_clipping_distances_set(gl_in[v]);
 }
 
 void main()
 {
   bool is_persp = (ProjectionMatrix[3][3] == 0.0);
 
-  vec3 view_vec = (is_persp) ? normalize(vPos[1]) : vec3(0.0, 0.0, -1.0);
+  vec3 view_vec = (is_persp) ? normalize(vert[1].pos) : vec3(0.0, 0.0, -1.0);
 
-  vec3 v10 = vPos[0] - vPos[1];
-  vec3 v12 = vPos[2] - vPos[1];
-  vec3 v13 = vPos[3] - vPos[1];
+  vec3 v10 = vert[0].pos - vert[1].pos;
+  vec3 v12 = vert[2].pos - vert[1].pos;
+  vec3 v13 = vert[3].pos - vert[1].pos;
 
   vec3 n0 = cross(v12, v10);
   vec3 n3 = cross(v13, v12);

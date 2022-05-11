@@ -51,6 +51,7 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
 
  protected:
   virtual void do_write(HierarchyContext &context) = 0;
+  std::string get_export_file_path() const;
   pxr::UsdTimeCode get_export_time_code() const;
 
   pxr::UsdShadeMaterial ensure_usd_material(const HierarchyContext &context, Material *material);

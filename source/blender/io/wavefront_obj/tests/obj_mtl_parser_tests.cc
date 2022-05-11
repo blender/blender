@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "BKE_appdir.h"
+
 #include "testing/testing.h"
 
 #include "obj_import_file_reader.hh"
@@ -10,10 +12,31 @@ namespace blender::io::obj {
 
 class obj_mtl_parser_test : public testing::Test {
  public:
+  void check_string(const char *text, const MTLMaterial *expect, size_t expect_count)
+  {
+    BKE_tempdir_init(nullptr);
+    std::string tmp_dir = BKE_tempdir_base();
+    std::string tmp_file_name = "mtl_test.mtl";
+    std::string tmp_file_path = tmp_dir + "/" + tmp_file_name;
+    FILE *tmp_file = BLI_fopen(tmp_file_path.c_str(), "wb");
+    fputs(text, tmp_file);
+    fclose(tmp_file);
+
+    check_impl(tmp_file_name, tmp_dir, expect, expect_count);
+
+    BLI_delete(tmp_file_path.c_str(), false, false);
+  }
   void check(const char *file, const MTLMaterial *expect, size_t expect_count)
   {
     std::string obj_dir = blender::tests::flags_test_asset_dir() + "/io_tests/obj/";
-    MTLParser parser(file, obj_dir + "dummy.obj");
+    check_impl(file, obj_dir, expect, expect_count);
+  }
+  void check_impl(StringRefNull mtl_file_path,
+                  StringRefNull file_dir,
+                  const MTLMaterial *expect,
+                  size_t expect_count)
+  {
+    MTLParser parser(mtl_file_path, file_dir + "dummy.obj");
     Map<std::string, std::unique_ptr<MTLMaterial>> materials;
     parser.parse_and_store(materials);
 
@@ -47,6 +70,53 @@ class obj_mtl_parser_test : public testing::Test {
     EXPECT_EQ(materials.size(), expect_count);
   }
 };
+
+TEST_F(obj_mtl_parser_test, string_newlines_whitespace)
+{
+  const char *text =
+      "# a comment\n"
+      "  # indented comment\n"
+      "# comment with CRLF line ending\r\n"
+      "\r\n"
+
+      "newmtl simple\n"
+      "Ka 0.1 0.2 0.3\n"
+      "illum 4\n"
+
+      "newmtl\ttab_indentation\n"
+      "Kd\t \t0.2   0.3\t0.4    \t  \n"
+
+      "newmtl space_after_name \t \n"
+      "Ks 0.4 0.5 0.6\n"
+
+      "newmtl    space_before_name\n"
+
+      "newmtl indented_values\n"
+      "  Ka 0.5 0.6 0.7\n"
+      "\t\t\tKd 0.6 0.7 0.8\n"
+
+      "newmtl crlf_ending\r\n"
+      "Ns 5.0\r\n"
+      "map_Kd    sometex_d.png\r\n"
+      "map_Ks sometex_s_spaces_after_name.png   \t   \r\n";
+  MTLMaterial mat[6];
+  mat[0].name = "simple";
+  mat[0].Ka = {0.1f, 0.2f, 0.3f};
+  mat[0].illum = 4;
+  mat[1].name = "tab_indentation";
+  mat[1].Kd = {0.2f, 0.3f, 0.4f};
+  mat[2].name = "space_after_name";
+  mat[2].Ks = {0.4f, 0.5f, 0.6f};
+  mat[3].name = "space_before_name";
+  mat[4].name = "indented_values";
+  mat[4].Ka = {0.5f, 0.6f, 0.7f};
+  mat[4].Kd = {0.6f, 0.7f, 0.8f};
+  mat[5].name = "crlf_ending";
+  mat[5].Ns = 5.0f;
+  mat[5].tex_map_of_type(eMTLSyntaxElement::map_Kd).image_path = "sometex_d.png";
+  mat[5].tex_map_of_type(eMTLSyntaxElement::map_Ks).image_path = "sometex_s_spaces_after_name.png";
+  check_string(text, mat, ARRAY_SIZE(mat));
+}
 
 TEST_F(obj_mtl_parser_test, cube)
 {

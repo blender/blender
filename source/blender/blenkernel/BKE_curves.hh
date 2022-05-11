@@ -48,6 +48,13 @@ struct BasisCache {
    * In other words, the index of the first control point that influences this evaluated point.
    */
   Vector<int> start_indices;
+
+  /**
+   * The result of #check_valid_num_and_order, to avoid retrieving its inputs later on.
+   * If this is true, the data above will be invalid, and original data should be copied
+   * to the evaluated result.
+   */
+  bool invalid = false;
 };
 
 }  // namespace curves::nurbs
@@ -120,7 +127,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Create curves with the given size. Only the position attribute is created, along with the
    * offsets.
    */
-  CurvesGeometry(int point_size, int curve_size);
+  CurvesGeometry(int point_num, int curve_num);
   CurvesGeometry(const CurvesGeometry &other);
   CurvesGeometry(CurvesGeometry &&other);
   CurvesGeometry &operator=(const CurvesGeometry &other);
@@ -174,11 +181,18 @@ class CurvesGeometry : public ::CurvesGeometry {
   /** Update the cached count of curves of each type, necessary after #curve_types_for_write. */
   void update_curve_types();
 
-  bool has_curve_with_type(const CurveType type) const;
+  bool has_curve_with_type(CurveType type) const;
   /** Return true if all of the curves have the provided type. */
   bool is_single_type(CurveType type) const;
   /** Return the number of curves with each type. */
   const std::array<int, CURVE_TYPES_NUM> &curve_type_counts() const;
+  /**
+   * All of the curve indices for curves with a specific type.
+   */
+  IndexMask indices_for_curve_type(CurveType type, Vector<int64_t> &r_indices) const;
+  IndexMask indices_for_curve_type(CurveType type,
+                                   IndexMask selection,
+                                   Vector<int64_t> &r_indices) const;
 
   Span<float3> positions() const;
   MutableSpan<float3> positions_for_write();
@@ -276,11 +290,6 @@ class CurvesGeometry : public ::CurvesGeometry {
   bool bounds_min_max(float3 &min, float3 &max) const;
 
  private:
-  /**
-   * All of the curve indices for curves with a specific type.
-   */
-  IndexMask indices_for_curve_type(CurveType type, Vector<int64_t> &r_indices) const;
-
   /* --------------------------------------------------------------------
    * Evaluation.
    */
@@ -409,10 +418,10 @@ namespace curves {
  * The number of segments between control points, accounting for the last segment of cyclic
  * curves. The logic is simple, but this function should be used to make intentions clearer.
  */
-inline int curve_segment_size(const int points_num, const bool cyclic)
+inline int curve_segment_num(const int points_num, const bool cyclic)
 {
   BLI_assert(points_num > 0);
-  return cyclic ? points_num : points_num - 1;
+  return (cyclic && points_num > 1) ? points_num : points_num - 1;
 }
 
 inline float2 encode_surface_bary_coord(const float3 &v)
@@ -576,11 +585,11 @@ namespace catmull_rom {
  * \param points_num: The number of points in the curve.
  * \param resolution: The resolution for each segment.
  */
-int calculate_evaluated_size(int points_num, bool cyclic, int resolution);
+int calculate_evaluated_num(int points_num, bool cyclic, int resolution);
 
 /**
  * Evaluate the Catmull Rom curve. The length of the #dst span should be calculated with
- * #calculate_evaluated_size and is expected to divide evenly by the #src span's segment size.
+ * #calculate_evaluated_num and is expected to divide evenly by the #src span's segment size.
  */
 void interpolate_to_evaluated(GSpan src, bool cyclic, int resolution, GMutableSpan dst);
 
@@ -597,7 +606,7 @@ namespace nurbs {
 /**
  * Checks the conditions that a NURBS curve needs to evaluate.
  */
-bool check_valid_size_and_order(int points_num, int8_t order, bool cyclic, KnotsMode knots_mode);
+bool check_valid_num_and_order(int points_num, int8_t order, bool cyclic, KnotsMode knots_mode);
 
 /**
  * Calculate the standard evaluated size for a NURBS curve, using the standard that
@@ -607,7 +616,7 @@ bool check_valid_size_and_order(int points_num, int8_t order, bool cyclic, Knots
  * for predictability and so that cached basis weights of NURBS curves with these properties can be
  * shared.
  */
-int calculate_evaluated_size(
+int calculate_evaluated_num(
     int points_num, int8_t order, bool cyclic, int resolution, KnotsMode knots_mode);
 
 /**
@@ -615,7 +624,7 @@ int calculate_evaluated_size(
  * The knots must be longer for a cyclic curve, for example, in order to provide weights for the
  * last evaluated points that are also influenced by the first control points.
  */
-int knots_size(int points_num, int8_t order, bool cyclic);
+int knots_num(int points_num, int8_t order, bool cyclic);
 
 /**
  * Calculate the knots for a curve given its properties, based on built-in standards defined by
@@ -635,7 +644,7 @@ void calculate_knots(
  * and a weight for each control point.
  */
 void calculate_basis_cache(int points_num,
-                           int evaluated_size,
+                           int evaluated_num,
                            int8_t order,
                            bool cyclic,
                            Span<float> knots,
@@ -662,6 +671,7 @@ void interpolate_to_evaluated(const BasisCache &basis_cache,
 }  // namespace curves
 
 Curves *curves_new_nomain(int points_num, int curves_num);
+Curves *curves_new_nomain(CurvesGeometry curves);
 
 /**
  * Create a new curves data-block containing a single curve with the given length and type.
@@ -676,11 +686,11 @@ std::array<int, CURVE_TYPES_NUM> calculate_type_counts(const VArray<int8_t> &typ
 
 inline int CurvesGeometry::points_num() const
 {
-  return this->point_size;
+  return this->point_num;
 }
 inline int CurvesGeometry::curves_num() const
 {
-  return this->curve_size;
+  return this->curve_num;
 }
 inline IndexRange CurvesGeometry::points_range() const
 {
@@ -710,7 +720,7 @@ inline const std::array<int, CURVE_TYPES_NUM> &CurvesGeometry::curve_type_counts
 inline IndexRange CurvesGeometry::points_for_curve(const int index) const
 {
   /* Offsets are not allocated when there are no curves. */
-  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_num > 0);
   BLI_assert(this->curve_offsets != nullptr);
   const int offset = this->curve_offsets[index];
   const int offset_next = this->curve_offsets[index + 1];
@@ -720,7 +730,7 @@ inline IndexRange CurvesGeometry::points_for_curve(const int index) const
 inline IndexRange CurvesGeometry::points_for_curves(const IndexRange curves) const
 {
   /* Offsets are not allocated when there are no curves. */
-  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_num > 0);
   BLI_assert(this->curve_offsets != nullptr);
   const int offset = this->curve_offsets[curves.start()];
   const int offset_next = this->curve_offsets[curves.one_after_last()];
@@ -742,7 +752,7 @@ inline IndexRange CurvesGeometry::evaluated_points_for_curve(int index) const
 inline IndexRange CurvesGeometry::evaluated_points_for_curves(const IndexRange curves) const
 {
   BLI_assert(!this->runtime->offsets_cache_dirty);
-  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_num > 0);
   const int offset = this->runtime->evaluated_offsets_cache[curves.start()];
   const int offset_next = this->runtime->evaluated_offsets_cache[curves.one_after_last()];
   return {offset, offset_next - offset};
@@ -760,7 +770,7 @@ inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
   BLI_assert(cyclic == this->cyclic()[curve_index]);
   const IndexRange points = this->evaluated_points_for_curve(curve_index);
   const int start = points.start() + curve_index;
-  return {start, points.is_empty() ? 0 : curves::curve_segment_size(points.size(), cyclic)};
+  return {start, curves::curve_segment_num(points.size(), cyclic)};
 }
 
 inline Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,
@@ -775,8 +785,7 @@ inline float CurvesGeometry::evaluated_length_total_for_curve(const int curve_in
                                                               const bool cyclic) const
 {
   const Span<float> lengths = this->evaluated_lengths_for_curve(curve_index, cyclic);
-  /* Check for curves that have no evaluated segments. */
-  return lengths.is_empty() ? 0.0f : lengths.last();
+  return lengths.last();
 }
 
 /** \} */

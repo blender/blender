@@ -64,7 +64,7 @@ std::unique_ptr<ColumnValues> ExtraColumns::get_column_values(
 void GeometryDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
-  if (component_->attribute_domain_size(domain_) == 0) {
+  if (component_->attribute_domain_num(domain_) == 0) {
     return;
   }
 
@@ -110,8 +110,8 @@ void GeometryDataSource::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
-  const int domain_size = component_->attribute_domain_size(domain_);
-  if (domain_size == 0) {
+  const int domain_num = component_->attribute_domain_num(domain_);
+  if (domain_num == 0) {
     return {};
   }
 
@@ -129,7 +129,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       Span<InstanceReference> references = instances.references();
       return std::make_unique<ColumnValues>(
           column_id.name,
-          VArray<InstanceReference>::ForFunc(domain_size,
+          VArray<InstanceReference>::ForFunc(domain_num,
                                              [reference_handles, references](int64_t index) {
                                                return references[reference_handles[index]];
                                              }));
@@ -137,13 +137,13 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     Span<float4x4> transforms = instances.instance_transforms();
     if (STREQ(column_id.name, "Rotation")) {
       return std::make_unique<ColumnValues>(
-          column_id.name, VArray<float3>::ForFunc(domain_size, [transforms](int64_t index) {
+          column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
             return transforms[index].to_euler();
           }));
     }
     if (STREQ(column_id.name, "Scale")) {
       return std::make_unique<ColumnValues>(
-          column_id.name, VArray<float3>::ForFunc(domain_size, [transforms](int64_t index) {
+          column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
             return transforms[index].scale();
           }));
     }
@@ -210,7 +210,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
 
 int GeometryDataSource::tot_rows() const
 {
-  return component_->attribute_domain_size(domain_);
+  return component_->attribute_domain_num(domain_);
 }
 
 /**
@@ -524,17 +524,17 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
           std::make_unique<GeometryComponentCacheKey>(component));
 
   const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
-  const int domain_size = component.attribute_domain_size(domain);
+  const int domain_num = component.attribute_domain_num(domain);
   for (const auto item : fields_to_show.items()) {
     StringRef name = item.key;
     const GField &field = item.value;
 
     /* Use the cached evaluated array if it exists, otherwise evaluate the field now. */
     GArray<> &evaluated_array = cache.arrays.lookup_or_add_cb({domain, field}, [&]() {
-      GArray<> evaluated_array(field.cpp_type(), domain_size);
+      GArray<> evaluated_array(field.cpp_type(), domain_num);
 
       bke::GeometryComponentFieldContext field_context{component, domain};
-      fn::FieldEvaluator field_evaluator{field_context, domain_size};
+      fn::FieldEvaluator field_evaluator{field_context, domain_num};
       field_evaluator.add_with_destination(field, evaluated_array);
       field_evaluator.evaluate();
       return evaluated_array;

@@ -4020,6 +4020,8 @@ static bool acf_nlaaction_setting_valid(bAnimContext *UNUSED(ac),
       else {
         return false;
       }
+    case ACHANNEL_SETTING_SELECT: /* selected */
+      return true;
 
     /* unsupported */
     default:
@@ -4039,6 +4041,9 @@ static int acf_nlaaction_setting_flag(bAnimContext *UNUSED(ac),
     case ACHANNEL_SETTING_PINNED: /* pinned - map/unmap */
       *neg = true;                /* XXX */
       return ADT_NLA_EDIT_NOMAP;
+
+    case ACHANNEL_SETTING_SELECT: /* selected */
+      return ADT_UI_SELECTED;
 
     default: /* unsupported */
       return 0;
@@ -4937,7 +4942,7 @@ static void draw_setting_widget(bAnimContext *ac,
 
     case ACHANNEL_SETTING_ALWAYS_VISIBLE:
       icon = ICON_UNPINNED;
-      tooltip = TIP_("Channels are visible in Graph Editor for editing");
+      tooltip = TIP_("Display channel regardless of object selection");
       break;
 
     case ACHANNEL_SETTING_MOD_OFF: /* modifiers disabled */

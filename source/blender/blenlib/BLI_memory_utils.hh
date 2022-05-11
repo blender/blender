@@ -543,6 +543,18 @@ Container &move_assign_container(Container &dst, Container &&src) noexcept(
   return dst;
 }
 
+/**
+ * Returns true if the value is different and was assigned.
+ */
+template<typename T> inline bool assign_if_different(T &old_value, T new_value)
+{
+  if (old_value != new_value) {
+    old_value = std::move(new_value);
+    return true;
+  }
+  return false;
+}
+
 }  // namespace blender
 
 namespace blender::detail {

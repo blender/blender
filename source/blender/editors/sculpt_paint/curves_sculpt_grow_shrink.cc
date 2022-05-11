@@ -367,6 +367,13 @@ struct CurvesEffectOperationExecutor {
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
 
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+    Vector<float4x4> symmetry_brush_transforms_inv;
+    for (const float4x4 brush_transform : symmetry_brush_transforms) {
+      symmetry_brush_transforms_inv.append(brush_transform.inverted());
+    }
+
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       Influences &local_influences = influences_for_thread.local();
 
@@ -374,55 +381,59 @@ struct CurvesEffectOperationExecutor {
         const IndexRange points = curves_->points_for_curve(curve_i);
         const int tot_segments = points.size() - 1;
         float max_move_distance_cu = 0.0f;
-        for (const int segment_i : IndexRange(tot_segments)) {
-          const float3 &p1_cu = positions_cu[points[segment_i]];
-          const float3 &p2_cu = positions_cu[points[segment_i] + 1];
 
-          float2 p1_re, p2_re;
-          ED_view3d_project_float_v2_m4(region_, p1_cu, p1_re, projection.values);
-          ED_view3d_project_float_v2_m4(region_, p2_cu, p2_re, projection.values);
+        for (const float4x4 &brush_transform_inv : symmetry_brush_transforms_inv) {
+          for (const int segment_i : IndexRange(tot_segments)) {
+            const float3 &p1_cu = brush_transform_inv * positions_cu[points[segment_i]];
+            const float3 &p2_cu = brush_transform_inv * positions_cu[points[segment_i] + 1];
 
-          float2 closest_on_brush_re;
-          float2 closest_on_segment_re;
-          float lambda_on_brush;
-          float lambda_on_segment;
-          const float dist_to_brush_sq_re = closest_seg_seg_v2(closest_on_brush_re,
-                                                               closest_on_segment_re,
-                                                               &lambda_on_brush,
-                                                               &lambda_on_segment,
-                                                               brush_pos_start_re_,
-                                                               brush_pos_end_re_,
-                                                               p1_re,
-                                                               p2_re);
+            float2 p1_re, p2_re;
+            ED_view3d_project_float_v2_m4(region_, p1_cu, p1_re, projection.values);
+            ED_view3d_project_float_v2_m4(region_, p2_cu, p2_re, projection.values);
 
-          if (dist_to_brush_sq_re > brush_radius_sq_re_) {
-            continue;
+            float2 closest_on_brush_re;
+            float2 closest_on_segment_re;
+            float lambda_on_brush;
+            float lambda_on_segment;
+            const float dist_to_brush_sq_re = closest_seg_seg_v2(closest_on_brush_re,
+                                                                 closest_on_segment_re,
+                                                                 &lambda_on_brush,
+                                                                 &lambda_on_segment,
+                                                                 brush_pos_start_re_,
+                                                                 brush_pos_end_re_,
+                                                                 p1_re,
+                                                                 p2_re);
+
+            if (dist_to_brush_sq_re > brush_radius_sq_re_) {
+              continue;
+            }
+
+            const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
+            const float radius_falloff = BKE_brush_curve_strength(
+                brush_, dist_to_brush_re, brush_radius_re_);
+            const float weight = brush_strength_ * radius_falloff;
+
+            const float3 closest_on_segment_cu = math::interpolate(
+                p1_cu, p2_cu, lambda_on_segment);
+
+            float3 brush_start_pos_wo, brush_end_pos_wo;
+            ED_view3d_win_to_3d(v3d_,
+                                region_,
+                                curves_to_world_mat_ * closest_on_segment_cu,
+                                brush_pos_start_re_,
+                                brush_start_pos_wo);
+            ED_view3d_win_to_3d(v3d_,
+                                region_,
+                                curves_to_world_mat_ * closest_on_segment_cu,
+                                brush_pos_end_re_,
+                                brush_end_pos_wo);
+            const float3 brush_start_pos_cu = world_to_curves_mat_ * brush_start_pos_wo;
+            const float3 brush_end_pos_cu = world_to_curves_mat_ * brush_end_pos_wo;
+
+            const float move_distance_cu = weight *
+                                           math::distance(brush_start_pos_cu, brush_end_pos_cu);
+            max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
           }
-
-          const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
-          const float radius_falloff = BKE_brush_curve_strength(
-              brush_, dist_to_brush_re, brush_radius_re_);
-          const float weight = brush_strength_ * radius_falloff;
-
-          const float3 closest_on_segment_cu = math::interpolate(p1_cu, p2_cu, lambda_on_segment);
-
-          float3 brush_start_pos_wo, brush_end_pos_wo;
-          ED_view3d_win_to_3d(v3d_,
-                              region_,
-                              curves_to_world_mat_ * closest_on_segment_cu,
-                              brush_pos_start_re_,
-                              brush_start_pos_wo);
-          ED_view3d_win_to_3d(v3d_,
-                              region_,
-                              curves_to_world_mat_ * closest_on_segment_cu,
-                              brush_pos_end_re_,
-                              brush_end_pos_wo);
-          const float3 brush_start_pos_cu = world_to_curves_mat_ * brush_start_pos_wo;
-          const float3 brush_end_pos_cu = world_to_curves_mat_ * brush_end_pos_wo;
-
-          const float move_distance_cu = weight *
-                                         math::distance(brush_start_pos_cu, brush_end_pos_cu);
-          max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
         }
         if (max_move_distance_cu > 0.0f) {
           local_influences.curve_indices.append(curve_i);
@@ -454,6 +465,10 @@ struct CurvesEffectOperationExecutor {
     const float brush_pos_diff_length_cu = math::length(brush_pos_diff_cu);
     const float brush_radius_cu = self_->brush_3d_.radius_cu;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
+
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       Influences &local_influences = influences_for_thread.local();
 
@@ -461,32 +476,37 @@ struct CurvesEffectOperationExecutor {
         const IndexRange points = curves_->points_for_curve(curve_i);
         const int tot_segments = points.size() - 1;
         float max_move_distance_cu = 0.0f;
-        for (const int segment_i : IndexRange(tot_segments)) {
-          const float3 &p1_cu = positions_cu[points[segment_i]];
-          const float3 &p2_cu = positions_cu[points[segment_i] + 1];
+        for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+          const float3 brush_pos_start_transformed_cu = brush_transform * brush_pos_start_cu;
+          const float3 brush_pos_end_transformed_cu = brush_transform * brush_pos_end_cu;
 
-          float3 closest_on_segment_cu;
-          float3 closest_on_brush_cu;
-          isect_seg_seg_v3(p1_cu,
-                           p2_cu,
-                           brush_pos_start_cu,
-                           brush_pos_end_cu,
-                           closest_on_segment_cu,
-                           closest_on_brush_cu);
+          for (const int segment_i : IndexRange(tot_segments)) {
+            const float3 &p1_cu = positions_cu[points[segment_i]];
+            const float3 &p2_cu = positions_cu[points[segment_i] + 1];
 
-          const float dist_to_brush_sq_cu = math::distance_squared(closest_on_segment_cu,
-                                                                   closest_on_brush_cu);
-          if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
-            continue;
+            float3 closest_on_segment_cu;
+            float3 closest_on_brush_cu;
+            isect_seg_seg_v3(p1_cu,
+                             p2_cu,
+                             brush_pos_start_transformed_cu,
+                             brush_pos_end_transformed_cu,
+                             closest_on_segment_cu,
+                             closest_on_brush_cu);
+
+            const float dist_to_brush_sq_cu = math::distance_squared(closest_on_segment_cu,
+                                                                     closest_on_brush_cu);
+            if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
+              continue;
+            }
+
+            const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
+            const float radius_falloff = BKE_brush_curve_strength(
+                brush_, dist_to_brush_cu, brush_radius_cu);
+            const float weight = brush_strength_ * radius_falloff;
+
+            const float move_distance_cu = weight * brush_pos_diff_length_cu;
+            max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
           }
-
-          const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
-          const float radius_falloff = BKE_brush_curve_strength(
-              brush_, dist_to_brush_cu, brush_radius_cu);
-          const float weight = brush_strength_ * radius_falloff;
-
-          const float move_distance_cu = weight * brush_pos_diff_length_cu;
-          max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
         }
         if (max_move_distance_cu > 0.0f) {
           local_influences.curve_indices.append(curve_i);

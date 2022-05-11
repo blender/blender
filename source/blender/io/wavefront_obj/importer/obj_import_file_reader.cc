@@ -8,9 +8,8 @@
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
 
-#include "IO_string_utils.hh"
-
 #include "obj_import_file_reader.hh"
+#include "obj_import_string_utils.hh"
 
 namespace blender::io::obj {
 
@@ -71,7 +70,7 @@ static void geom_add_vertex(Geometry *geom,
                             GlobalVertices &r_global_vertices)
 {
   float3 vert;
-  parse_floats(line, FLT_MAX, vert, 3);
+  parse_floats(line, 0.0f, vert, 3);
   r_global_vertices.vertices.append(vert);
   geom->vertex_count_++;
 }
@@ -81,7 +80,7 @@ static void geom_add_vertex_normal(Geometry *geom,
                                    GlobalVertices &r_global_vertices)
 {
   float3 normal;
-  parse_floats(line, FLT_MAX, normal, 3);
+  parse_floats(line, 0.0f, normal, 3);
   r_global_vertices.vertex_normals.append(normal);
   geom->has_vertex_normals_ = true;
 }
@@ -89,7 +88,7 @@ static void geom_add_vertex_normal(Geometry *geom,
 static void geom_add_uv_vertex(const StringRef line, GlobalVertices &r_global_vertices)
 {
   float2 uv;
-  parse_floats(line, FLT_MAX, uv, 2);
+  parse_floats(line, 0.0f, uv, 2);
   r_global_vertices.uv_vertices.append(uv);
 }
 
@@ -128,6 +127,7 @@ static void geom_add_polygon(Geometry *geom,
   curr_face.start_index_ = orig_corners_size;
 
   bool face_valid = true;
+  line = drop_whitespace(line);
   while (!line.is_empty() && face_valid) {
     PolyCorner corner;
     bool got_uv = false, got_normal = false;
@@ -310,6 +310,25 @@ OBJParser::~OBJParser()
   }
 }
 
+/* If line starts with keyword followed by whitespace, returns true and drops it from the line. */
+static bool parse_keyword(StringRef &line, StringRef keyword)
+{
+  const size_t keyword_len = keyword.size();
+  if (line.size() < keyword_len + 1) {
+    return false;
+  }
+  if (!line.startswith(keyword)) {
+    return false;
+  }
+  /* Treat any ASCII control character as white-space;
+   * don't use `isspace()` for performance reasons. */
+  if (line[keyword_len] > ' ') {
+    return false;
+  }
+  line = line.drop_prefix(keyword_len + 1);
+  return true;
+}
+
 void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
                       GlobalVertices &r_global_vertices)
 {
@@ -380,28 +399,25 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     StringRef buffer_str{buffer.data(), (int64_t)last_nl};
     while (!buffer_str.is_empty()) {
       StringRef line = read_next_line(buffer_str);
+      line = drop_whitespace(line);
       ++line_number;
       if (line.is_empty()) {
         continue;
       }
       /* Most common things that start with 'v': vertices, normals, UVs. */
       if (line[0] == 'v') {
-        if (line.startswith("v ")) {
-          line = line.drop_prefix(2);
+        if (parse_keyword(line, "v")) {
           geom_add_vertex(curr_geom, line, r_global_vertices);
         }
-        else if (line.startswith("vn ")) {
-          line = line.drop_prefix(3);
+        else if (parse_keyword(line, "vn")) {
           geom_add_vertex_normal(curr_geom, line, r_global_vertices);
         }
-        else if (line.startswith("vt ")) {
-          line = line.drop_prefix(3);
+        else if (parse_keyword(line, "vt")) {
           geom_add_uv_vertex(line, r_global_vertices);
         }
       }
       /* Faces. */
-      else if (line.startswith("f ")) {
-        line = line.drop_prefix(2);
+      else if (parse_keyword(line, "f")) {
         geom_add_polygon(curr_geom,
                          line,
                          r_global_vertices,
@@ -411,23 +427,20 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
                          state_shaded_smooth);
       }
       /* Faces. */
-      else if (line.startswith("l ")) {
-        line = line.drop_prefix(2);
+      else if (parse_keyword(line, "l")) {
         geom_add_edge(curr_geom, line, offsets, r_global_vertices);
       }
       /* Objects. */
-      else if (line.startswith("o ")) {
-        line = line.drop_prefix(2);
+      else if (parse_keyword(line, "o")) {
         state_shaded_smooth = false;
         state_group_name = "";
         state_material_name = "";
         curr_geom = create_geometry(
-            curr_geom, GEOM_MESH, line, r_global_vertices, r_all_geometries, offsets);
+            curr_geom, GEOM_MESH, line.trim(), r_global_vertices, r_all_geometries, offsets);
       }
       /* Groups. */
-      else if (line.startswith("g ")) {
-        line = line.drop_prefix(2);
-        geom_update_group(line, state_group_name);
+      else if (parse_keyword(line, "g")) {
+        geom_update_group(line.trim(), state_group_name);
         int new_index = curr_geom->group_indices_.size();
         state_group_index = curr_geom->group_indices_.lookup_or_add(state_group_name, new_index);
         if (new_index == state_group_index) {
@@ -435,14 +448,12 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
         }
       }
       /* Smoothing groups. */
-      else if (line.startswith("s ")) {
-        line = line.drop_prefix(2);
+      else if (parse_keyword(line, "s")) {
         geom_update_smooth_group(line, state_shaded_smooth);
       }
       /* Materials and their libraries. */
-      else if (line.startswith("usemtl ")) {
-        line = line.drop_prefix(7);
-        state_material_name = line;
+      else if (parse_keyword(line, "usemtl")) {
+        state_material_name = line.trim();
         int new_mat_index = curr_geom->material_indices_.size();
         state_material_index = curr_geom->material_indices_.lookup_or_add(state_material_name,
                                                                           new_mat_index);
@@ -450,37 +461,32 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
           curr_geom->material_order_.append(state_material_name);
         }
       }
-      else if (line.startswith("mtllib ")) {
-        line = line.drop_prefix(7);
-        mtl_libraries_.append(string(line));
+      else if (parse_keyword(line, "mtllib")) {
+        add_mtl_library(line.trim());
       }
       /* Comments. */
       else if (line.startswith("#")) {
         /* Nothing to do. */
       }
       /* Curve related things. */
-      else if (line.startswith("cstype ")) {
-        line = line.drop_prefix(7);
+      else if (parse_keyword(line, "cstype")) {
         curr_geom = geom_set_curve_type(
             curr_geom, line, r_global_vertices, state_group_name, offsets, r_all_geometries);
       }
-      else if (line.startswith("deg ")) {
-        line = line.drop_prefix(4);
+      else if (parse_keyword(line, "deg")) {
         geom_set_curve_degree(curr_geom, line);
       }
-      else if (line.startswith("curv ")) {
-        line = line.drop_prefix(5);
+      else if (parse_keyword(line, "curv")) {
         geom_add_curve_vertex_indices(curr_geom, line, r_global_vertices);
       }
-      else if (line.startswith("parm ")) {
-        line = line.drop_prefix(5);
+      else if (parse_keyword(line, "parm")) {
         geom_add_curve_parameters(curr_geom, line);
       }
       else if (line.startswith("end")) {
         /* End of curve definition, nothing else to do. */
       }
       else {
-        std::cout << "OBJ element not recognised: '" << line << "'" << std::endl;
+        std::cout << "OBJ element not recognized: '" << line << "'" << std::endl;
       }
     }
 
@@ -490,81 +496,70 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     memmove(buffer.data(), buffer.data() + last_nl, left_size);
     buffer_offset = left_size;
   }
+
+  add_default_mtl_library();
 }
 
 static eMTLSyntaxElement mtl_line_start_to_enum(StringRef &line)
 {
-  if (line.startswith("map_Kd")) {
-    line = line.drop_prefix(6);
+  if (parse_keyword(line, "map_Kd")) {
     return eMTLSyntaxElement::map_Kd;
   }
-  if (line.startswith("map_Ks")) {
-    line = line.drop_prefix(6);
+  if (parse_keyword(line, "map_Ks")) {
     return eMTLSyntaxElement::map_Ks;
   }
-  if (line.startswith("map_Ns")) {
-    line = line.drop_prefix(6);
+  if (parse_keyword(line, "map_Ns")) {
     return eMTLSyntaxElement::map_Ns;
   }
-  if (line.startswith("map_d")) {
-    line = line.drop_prefix(5);
+  if (parse_keyword(line, "map_d")) {
     return eMTLSyntaxElement::map_d;
   }
-  if (line.startswith("refl")) {
-    line = line.drop_prefix(4);
+  if (parse_keyword(line, "refl")) {
     return eMTLSyntaxElement::map_refl;
   }
-  if (line.startswith("map_refl")) {
-    line = line.drop_prefix(8);
+  if (parse_keyword(line, "map_refl")) {
     return eMTLSyntaxElement::map_refl;
   }
-  if (line.startswith("map_Ke")) {
-    line = line.drop_prefix(6);
+  if (parse_keyword(line, "map_Ke")) {
     return eMTLSyntaxElement::map_Ke;
   }
-  if (line.startswith("bump")) {
-    line = line.drop_prefix(4);
+  if (parse_keyword(line, "bump")) {
     return eMTLSyntaxElement::map_Bump;
   }
-  if (line.startswith("map_Bump") || line.startswith("map_bump")) {
-    line = line.drop_prefix(8);
+  if (parse_keyword(line, "map_Bump") || parse_keyword(line, "map_bump")) {
     return eMTLSyntaxElement::map_Bump;
   }
   return eMTLSyntaxElement::string;
 }
 
-static const std::pair<const char *, int> unsupported_texture_options[] = {
-    {"-blendu ", 1},
-    {"-blendv ", 1},
-    {"-boost ", 1},
-    {"-cc ", 1},
-    {"-clamp ", 1},
-    {"-imfchan ", 1},
-    {"-mm ", 2},
-    {"-t ", 3},
-    {"-texres ", 1},
+static const std::pair<StringRef, int> unsupported_texture_options[] = {
+    {"-blendu", 1},
+    {"-blendv", 1},
+    {"-boost", 1},
+    {"-cc", 1},
+    {"-clamp", 1},
+    {"-imfchan", 1},
+    {"-mm", 2},
+    {"-t", 3},
+    {"-texres", 1},
 };
 
 static bool parse_texture_option(StringRef &line, MTLMaterial *material, tex_map_XX &tex_map)
 {
   line = drop_whitespace(line);
-  if (line.startswith("-o ")) {
-    line = line.drop_prefix(3);
+  if (parse_keyword(line, "-o")) {
     line = parse_floats(line, 0.0f, tex_map.translation, 3);
     return true;
   }
-  if (line.startswith("-s ")) {
-    line = line.drop_prefix(3);
+  if (parse_keyword(line, "-s")) {
     line = parse_floats(line, 1.0f, tex_map.scale, 3);
     return true;
   }
-  if (line.startswith("-bm ")) {
-    line = line.drop_prefix(4);
-    line = parse_float(line, 0.0f, material->map_Bump_strength);
+  if (parse_keyword(line, "-bm")) {
+    line = parse_float(line, 1.0f, material->map_Bump_strength);
     return true;
   }
-  if (line.startswith("-type ")) {
-    line = line.drop_prefix(6);
+  if (parse_keyword(line, "-type")) {
     line = drop_whitespace(line);
     /* Only sphere is supported. */
     tex_map.projection_type = SHD_PROJ_SPHERE;
@@ -577,9 +572,7 @@ static bool parse_texture_option(StringRef &line, MTLMaterial *material, tex_map
   }
   /* Check for unsupported options and skip them. */
   for (const auto &opt : unsupported_texture_options) {
-    if (line.startswith(opt.first)) {
-      /* Drop the option name. */
-      line = line.drop_known_prefix(opt.first);
+    if (parse_keyword(line, opt.first)) {
       /* Drop the arguments. */
       for (int i = 0; i < opt.second; ++i) {
         line = drop_whitespace(line);
@@ -623,7 +616,36 @@ Span<std::string> OBJParser::mtl_libraries() const
   return mtl_libraries_;
 }
 
-MTLParser::MTLParser(StringRef mtl_library, StringRefNull obj_filepath)
+void OBJParser::add_mtl_library(StringRef path)
+{
+  /* Remove any quotes from start and end (T67266, T97794). */
+  if (path.size() > 2 && path.startswith("\"") && path.endswith("\"")) {
+    path = path.drop_prefix(1).drop_suffix(1);
+  }
+
+  if (!mtl_libraries_.contains(path)) {
+    mtl_libraries_.append(path);
+  }
+}
+
+void OBJParser::add_default_mtl_library()
+{
+  /* Add any existing .mtl file that's with the same base name as the .obj file
+   * into candidate .mtl files to search through. This is not technically following the
+   * spec, but the old python importer was doing it, and there are user files out there
+   * that contain "mtllib bar.mtl" for a foo.obj, and depend on finding materials
+   * from foo.mtl (see T97757). */
+  char mtl_file_path[FILE_MAX];
+  BLI_strncpy(mtl_file_path, import_params_.filepath, sizeof(mtl_file_path));
+  BLI_path_extension_replace(mtl_file_path, sizeof(mtl_file_path), ".mtl");
+  if (BLI_exists(mtl_file_path)) {
+    char mtl_file_base[FILE_MAX];
+    BLI_split_file_part(mtl_file_path, mtl_file_base, sizeof(mtl_file_base));
+    add_mtl_library(mtl_file_base);
+  }
+}
+
+MTLParser::MTLParser(StringRefNull mtl_library, StringRefNull obj_filepath)
 {
   char obj_file_dir[FILE_MAXDIR];
   BLI_split_dir_part(obj_filepath.data(), obj_file_dir, FILE_MAXDIR);
@@ -645,50 +667,47 @@ void MTLParser::parse_and_store(Map<string, std::unique_ptr<MTLMaterial>> &r_mat
   StringRef buffer_str{(const char *)buffer, (int64_t)buffer_len};
   while (!buffer_str.is_empty()) {
     StringRef line = read_next_line(buffer_str);
+    line = drop_whitespace(line);
     if (line.is_empty()) {
       continue;
     }
 
-    if (line.startswith("newmtl ")) {
-      line = line.drop_prefix(7);
-      if (r_materials.remove_as(line)) {
-        std::cerr << "Duplicate material found:'" << line
-                  << "', using the last encountered Material definition." << std::endl;
+    if (parse_keyword(line, "newmtl")) {
+      line = line.trim();
+      if (r_materials.contains(line)) {
+        material = nullptr;
       }
-      material = r_materials.lookup_or_add(string(line), std::make_unique<MTLMaterial>()).get();
+      else {
+        material = r_materials.lookup_or_add(string(line), std::make_unique<MTLMaterial>()).get();
+      }
     }
     else if (material != nullptr) {
-      if (line.startswith("Ns ")) {
-        line = line.drop_prefix(3);
+      if (parse_keyword(line, "Ns")) {
         parse_float(line, 324.0f, material->Ns);
       }
-      else if (line.startswith("Ka ")) {
-        line = line.drop_prefix(3);
+      else if (parse_keyword(line, "Ka")) {
         parse_floats(line, 0.0f, material->Ka, 3);
       }
-      else if (line.startswith("Kd ")) {
-        line = line.drop_prefix(3);
+      else if (parse_keyword(line, "Kd")) {
         parse_floats(line, 0.8f, material->Kd, 3);
       }
-      else if (line.startswith("Ks ")) {
-        line = line.drop_prefix(3);
+      else if (parse_keyword(line, "Ks")) {
         parse_floats(line, 0.5f, material->Ks, 3);
       }
-      else if (line.startswith("Ke ")) {
-        line = line.drop_prefix(3);
+      else if (parse_keyword(line, "Ke")) {
         parse_floats(line, 0.0f, material->Ke, 3);
       }
-      else if (line.startswith("Ni ")) {
-        line = line.drop_prefix(3);
+      else if (parse_keyword(line, "Ni")) {
         parse_float(line, 1.45f, material->Ni);
       }
-      else if (line.startswith("d ")) {
-        line = line.drop_prefix(2);
+      else if (parse_keyword(line, "d")) {
         parse_float(line, 1.0f, material->d);
       }
-      else if (line.startswith("illum ")) {
-        line = line.drop_prefix(6);
-        parse_int(line, 2, material->illum);
+      else if (parse_keyword(line, "illum")) {
+        /* Some files incorrectly use a float (T60135). */
+        float val;
+        parse_float(line, 1.0f, val);
+        material->illum = val;
       }
       else {
         parse_texture_map(line, material, mtl_dir_path_);

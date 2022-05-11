@@ -1,14 +1,3 @@
-
-in vec2 weight_interp; /* (weight, alert) */
-in float color_fac;
-
-out vec4 fragColor;
-
-uniform float opacity = 1.0;
-uniform sampler1D colorramp;
-
-uniform bool drawContours = false;
-
 float contours(float value, float steps, float width_px, float max_rel_width, float gradient)
 {
   /* Minimum visible and minimum full strength line width in screen space for fade out. */

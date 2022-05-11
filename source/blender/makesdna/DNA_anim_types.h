@@ -304,7 +304,7 @@ typedef struct DriverTarget {
   char *rna_path;
 
   /**
-   * Name of the posebone to use
+   * Name of the pose-bone to use
    * (for vars where DTAR_FLAG_STRUCT_REF is used) - `MAX_ID_NAME - 2`.
    */
   char pchan_name[64];
@@ -918,9 +918,9 @@ typedef struct KS_Path {
   /** Index that path affects. */
   int array_index;
 
-  /** (eInsertKeyFlags) settings to supply insertkey() with. */
+  /** (#eInsertKeyFlags) settings to supply insert-key() with. */
   short keyingflag;
-  /** (eInsertKeyFlags) for each flag set, the relevant keyingflag bit overrides the default. */
+  /** (#eInsertKeyFlags) for each flag set, the relevant keying-flag bit overrides the default. */
   short keyingoverride;
 } KS_Path;
 

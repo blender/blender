@@ -12,7 +12,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Shader>(N_("Surface"));
   b.add_input<decl::Shader>(N_("Volume"));
   b.add_input<decl::Vector>(N_("Displacement")).hide_value();
-  b.add_input<decl::Float>(N_("Thickness")).hide_value();
+  b.add_input<decl::Float>(N_("Thickness")).hide_value().unavailable(); /* Not used for now. */
 }
 
 static int node_shader_gpu_output_material(GPUMaterial *mat,

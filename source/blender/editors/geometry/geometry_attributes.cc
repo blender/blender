@@ -18,6 +18,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_object_deform.h"
+#include "BKE_paint.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"
@@ -221,6 +222,9 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
   AttributeDomain domain = (AttributeDomain)RNA_enum_get(op->ptr, "domain");
   CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
 
+  float color[4];
+  RNA_float_get_array(op->ptr, "color", color);
+
   if (layer == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -230,6 +234,8 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
   if (!BKE_id_attributes_render_color_get(id)) {
     BKE_id_attributes_render_color_set(id, layer);
   }
+
+  BKE_object_attributes_active_color_fill(ob, color, false);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -353,6 +359,7 @@ static void geometry_color_attribute_add_ui(bContext *UNUSED(C), wmOperator *op)
   uiItemR(layout, op->ptr, "name", 0, nullptr, ICON_NONE);
   uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
   uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "color", 0, nullptr, ICON_NONE);
 }
 
 void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
@@ -378,27 +385,26 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
       ot->srna, "name", "Color", MAX_NAME, "Name", "Name of new color attribute");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
-  static EnumPropertyItem domains[3] = {{ATTR_DOMAIN_POINT, "POINT", 0, "Vertex", ""},
-                                        {ATTR_DOMAIN_CORNER, "CORNER", 0, "Face Corner", ""},
-                                        {0, nullptr, 0, nullptr, nullptr}};
-
-  static EnumPropertyItem types[3] = {{CD_PROP_COLOR, "COLOR", 0, "Color", ""},
-                                      {CD_PROP_BYTE_COLOR, "BYTE_COLOR", 0, "Byte Color", ""},
-                                      {0, nullptr, 0, nullptr, nullptr}};
-
   prop = RNA_def_enum(ot->srna,
                       "domain",
-                      domains,
+                      rna_enum_color_attribute_domain_items,
                       ATTR_DOMAIN_POINT,
                       "Domain",
                       "Type of element that attribute is stored on");
 
   prop = RNA_def_enum(ot->srna,
                       "data_type",
-                      types,
+                      rna_enum_color_attribute_type_items,
                       CD_PROP_COLOR,
                       "Data Type",
                       "Type of data stored in attribute");
+
+  static float default_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+
+  prop = RNA_def_float_color(
+      ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
+  RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
+  RNA_def_property_float_array_default(prop, default_color);
 }
 
 static int geometry_color_attribute_set_render_exec(bContext *C, wmOperator *op)

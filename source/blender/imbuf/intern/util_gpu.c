@@ -154,7 +154,7 @@ GPUTexture *IMB_touch_gpu_texture(
 
   GPUTexture *tex;
   if (layers > 0) {
-    tex = GPU_texture_create_2d_array(name, w, h, layers, 1, tex_format, NULL);
+    tex = GPU_texture_create_2d_array(name, w, h, layers, 9999, tex_format, NULL);
   }
   else {
     tex = GPU_texture_create_2d(name, w, h, 9999, tex_format, NULL);

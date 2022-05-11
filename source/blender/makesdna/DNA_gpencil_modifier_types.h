@@ -102,7 +102,8 @@ typedef struct NoiseGpencilModifierData {
   /** Noise Frequency scaling */
   float noise_scale;
   float noise_offset;
-  char _pad[4];
+  short noise_mode;
+  char _pad[2];
   /** How many frames before recalculate randoms. */
   int step;
   /** Custom index for passes. */
@@ -126,6 +127,11 @@ typedef enum eNoiseGpencil_Flag {
   GP_NOISE_INVERT_LAYERPASS = (1 << 10),
   GP_NOISE_INVERT_MATERIAL = (1 << 11),
 } eNoiseGpencil_Flag;
+
+typedef enum eNoiseRandomGpencil_Mode {
+  GP_NOISE_RANDOM_STEP = 0,
+  GP_NOISE_RANDOM_KEYFRAME = 1,
+} eNoiseRandomGpencil_Mode;
 
 typedef struct SubdivGpencilModifierData {
   GpencilModifierData modifier;

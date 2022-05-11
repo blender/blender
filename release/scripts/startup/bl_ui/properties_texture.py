@@ -840,7 +840,6 @@ class TEXTURE_PT_colors_ramp(TextureButtonsPanel, TextureColorsPoll, Panel):
         if is_active:
             layout.template_color_ramp(tex, "color_ramp", expand=True)
         else:
-            layout.alignment = 'RIGHT'
             layout.label(text="Enable the Color Ramp first")
 
 

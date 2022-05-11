@@ -92,6 +92,8 @@ typedef enum ShaderNodeType {
   NODE_NORMAL_MAP,
   NODE_INVERT,
   NODE_MIX,
+  NODE_SEPARATE_COLOR,
+  NODE_COMBINE_COLOR,
   NODE_SEPARATE_VECTOR,
   NODE_COMBINE_VECTOR,
   NODE_SEPARATE_HSV,
@@ -486,6 +488,12 @@ typedef enum NodePrincipledHairParametrization {
   NODE_PRINCIPLED_HAIR_DIRECT_ABSORPTION = 2,
   NODE_PRINCIPLED_HAIR_NUM,
 } NodePrincipledHairParametrization;
+
+typedef enum NodeCombSepColorType {
+  NODE_COMBSEP_COLOR_RGB,
+  NODE_COMBSEP_COLOR_HSV,
+  NODE_COMBSEP_COLOR_HSL,
+} NodeCombSepColorType;
 
 /* Closure */
 

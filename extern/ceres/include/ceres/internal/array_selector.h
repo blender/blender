@@ -73,20 +73,22 @@ struct ArraySelector<T,
                      true,
                      fits_on_stack>
     : ceres::internal::FixedArray<T, max_num_elements_on_stack> {
-  ArraySelector(int s)
+  explicit ArraySelector(int s)
       : ceres::internal::FixedArray<T, max_num_elements_on_stack>(s) {}
 };
 
 template <typename T, int num_elements, int max_num_elements_on_stack>
 struct ArraySelector<T, num_elements, max_num_elements_on_stack, false, true>
     : std::array<T, num_elements> {
-  ArraySelector(int s) { CHECK_EQ(s, num_elements); }
+  explicit ArraySelector(int s) { CHECK_EQ(s, num_elements); }
 };
 
 template <typename T, int num_elements, int max_num_elements_on_stack>
 struct ArraySelector<T, num_elements, max_num_elements_on_stack, false, false>
     : std::vector<T> {
-  ArraySelector(int s) : std::vector<T>(s) { CHECK_EQ(s, num_elements); }
+  explicit ArraySelector(int s) : std::vector<T>(s) {
+    CHECK_EQ(s, num_elements);
+  }
 };
 
 }  // namespace internal

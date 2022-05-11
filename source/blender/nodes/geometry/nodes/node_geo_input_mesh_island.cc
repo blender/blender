@@ -101,8 +101,7 @@ class IslandCountFieldInput final : public GeometryFieldInput {
       island_list.add(root);
     }
 
-    return VArray<int>::ForSingle(island_list.size(),
-                                  mesh_component.attribute_domain_size(domain));
+    return VArray<int>::ForSingle(island_list.size(), mesh_component.attribute_domain_num(domain));
   }
 
   uint64_t hash() const override

@@ -4981,7 +4981,7 @@ void CustomData_blend_write_prepare(CustomData *data,
   for (i = 0, j = 0; i < totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];
     /* Layers with this flag set are not written to file. */
-    if ((layer->flag & CD_FLAG_NOCOPY) || layer->anonymous_id != nullptr) {
+    if ((layer->flag & (CD_FLAG_NOCOPY | CD_FLAG_TEMPORARY)) || layer->anonymous_id != nullptr) {
       data->totlayer--;
       // CLOG_WARN(&LOG, "skipping layer %p (%s)", layer, layer->name);
     }

@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 /** \file
  * \ingroup gpu
  */
@@ -561,7 +563,7 @@ void gpu::MTLTexture::update_sub(
         return;
       }
 
-      /* Check Format writeability. */
+      /* Check Format write-ability. */
       if (mtl_format_get_writeable_view_format(destination_format) == MTLPixelFormatInvalid) {
         MTL_LOG_ERROR(
             "[Error]: Updating texture -- destination MTLPixelFormat '%d' does not support write "
@@ -1767,8 +1769,8 @@ void gpu::MTLTexture::ensure_baked()
       /* CUBE TEXTURES */
       case GPU_TEXTURE_CUBE:
       case GPU_TEXTURE_CUBE_ARRAY: {
-        /* Note: For a cubemap 'Texture::d_' refers to total number of faces, not just array slices
-         */
+        /* NOTE: For a cube-map 'Texture::d_' refers to total number of faces,
+         * not just array slices. */
         BLI_assert(this->w_ > 0 && this->h_ > 0);
         this->texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
         this->texture_descriptor_.pixelFormat = mtl_format;

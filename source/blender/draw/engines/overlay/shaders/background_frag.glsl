@@ -1,21 +1,6 @@
 
-uniform sampler2D colorBuffer;
-uniform sampler2D depthBuffer;
 
-uniform int bgType;
-uniform vec4 colorOverride;
-
-in vec4 uvcoordsvar;
-
-out vec4 fragColor;
-
-#define BG_SOLID 0
-#define BG_GRADIENT 1
-#define BG_CHECKER 2
-#define BG_RADIAL 3
-#define BG_SOLID_CHECKER 4
-#define BG_MASK 5
-#define SQRT2 1.4142135623730950488
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
 /* 4x4 bayer matrix prepared for 8bit UNORM precision error. */
 #define P(x) (((x + 0.5) * (1.0 / 16.0) - 0.5) * (1.0 / 255.0))
@@ -69,7 +54,7 @@ void main()
       col_low = pow(colorBackgroundGradient.rgb, vec3(1.0 / 2.2));
 
       vec2 uv_n = uvcoordsvar.xy - 0.5;
-      bg_col = mix(col_high, col_low, length(uv_n) * SQRT2);
+      bg_col = mix(col_high, col_low, length(uv_n) * M_SQRT2);
 
       /* Convert back to linear. */
       bg_col = pow(bg_col, vec3(2.2));

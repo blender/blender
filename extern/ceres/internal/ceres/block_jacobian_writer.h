@@ -38,10 +38,11 @@
 #ifndef CERES_INTERNAL_BLOCK_JACOBIAN_WRITER_H_
 #define CERES_INTERNAL_BLOCK_JACOBIAN_WRITER_H_
 
+#include <memory>
 #include <vector>
 
 #include "ceres/evaluator.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 namespace internal {
@@ -51,7 +52,7 @@ class Program;
 class SparseMatrix;
 
 // TODO(sameeragarwal): This class needs documemtation.
-class BlockJacobianWriter {
+class CERES_NO_EXPORT BlockJacobianWriter {
  public:
   BlockJacobianWriter(const Evaluator::Options& options, Program* program);
 
@@ -59,9 +60,10 @@ class BlockJacobianWriter {
 
   // Create evaluate prepareres that point directly into the final jacobian.
   // This makes the final Write() a nop.
-  BlockEvaluatePreparer* CreateEvaluatePreparers(int num_threads);
+  std::unique_ptr<BlockEvaluatePreparer[]> CreateEvaluatePreparers(
+      int num_threads);
 
-  SparseMatrix* CreateJacobian() const;
+  std::unique_ptr<SparseMatrix> CreateJacobian() const;
 
   void Write(int /* residual_id */,
              int /* residual_offset */,

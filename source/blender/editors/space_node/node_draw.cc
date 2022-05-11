@@ -895,9 +895,9 @@ static void create_inspection_string_for_geometry(const geo_log::GeometryValueLo
         BLI_snprintf(line,
                      sizeof(line),
                      TIP_("\u2022 Mesh: %s vertices, %s edges, %s faces"),
-                     to_string(mesh_info.tot_verts).c_str(),
-                     to_string(mesh_info.tot_edges).c_str(),
-                     to_string(mesh_info.tot_faces).c_str());
+                     to_string(mesh_info.verts_num).c_str(),
+                     to_string(mesh_info.edges_num).c_str(),
+                     to_string(mesh_info.faces_num).c_str());
         ss << line << line_end;
         break;
       }
@@ -908,7 +908,7 @@ static void create_inspection_string_for_geometry(const geo_log::GeometryValueLo
         BLI_snprintf(line,
                      sizeof(line),
                      TIP_("\u2022 Point Cloud: %s points"),
-                     to_string(pointcloud_info.tot_points).c_str());
+                     to_string(pointcloud_info.points_num).c_str());
         ss << line << line_end;
         break;
       }
@@ -918,7 +918,7 @@ static void create_inspection_string_for_geometry(const geo_log::GeometryValueLo
         BLI_snprintf(line,
                      sizeof(line),
                      TIP_("\u2022 Curve: %s splines"),
-                     to_string(curve_info.tot_splines).c_str());
+                     to_string(curve_info.splines_num).c_str());
         ss << line << line_end;
         break;
       }
@@ -928,7 +928,7 @@ static void create_inspection_string_for_geometry(const geo_log::GeometryValueLo
         BLI_snprintf(line,
                      sizeof(line),
                      TIP_("\u2022 Instances: %s"),
-                     to_string(instances_info.tot_instances).c_str());
+                     to_string(instances_info.instances_num).c_str());
         ss << line << line_end;
         break;
       }

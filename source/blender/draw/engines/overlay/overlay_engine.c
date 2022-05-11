@@ -38,8 +38,6 @@ static void OVERLAY_engine_init(void *vedata)
   const Scene *scene = draw_ctx->scene;
   const ToolSettings *ts = scene->toolsettings;
 
-  OVERLAY_shader_library_ensure();
-
   if (!stl->pd) {
     /* Allocate transient pointers. */
     stl->pd = MEM_callocN(sizeof(*stl->pd), __func__);

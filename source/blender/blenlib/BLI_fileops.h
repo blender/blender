@@ -178,7 +178,7 @@ void BLI_filelist_free(struct direntry *filelist, unsigned int nrentries);
  * Convert given entry's size into human-readable strings.
  */
 void BLI_filelist_entry_size_to_string(const struct stat *st,
-                                       uint64_t sz,
+                                       uint64_t st_size_fallback,
                                        bool compact,
                                        char r_size[FILELIST_DIRENTRY_SIZE_LEN]);
 /**

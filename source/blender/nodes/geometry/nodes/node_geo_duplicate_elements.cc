@@ -351,19 +351,19 @@ static void duplicate_curves(GeometrySet &geometry_set,
   Array<int> curve_offsets(selection.size() + 1);
   Array<int> point_offsets(selection.size() + 1);
 
-  int dst_curves_size = 0;
-  int dst_points_size = 0;
+  int dst_curves_num = 0;
+  int dst_points_num = 0;
   for (const int i_curve : selection.index_range()) {
     const int count = std::max(counts[selection[i_curve]], 0);
-    curve_offsets[i_curve] = dst_curves_size;
-    point_offsets[i_curve] = dst_points_size;
-    dst_curves_size += count;
-    dst_points_size += count * curves.points_for_curve(selection[i_curve]).size();
+    curve_offsets[i_curve] = dst_curves_num;
+    point_offsets[i_curve] = dst_points_num;
+    dst_curves_num += count;
+    dst_points_num += count * curves.points_for_curve(selection[i_curve]).size();
   }
-  curve_offsets.last() = dst_curves_size;
-  point_offsets.last() = dst_points_size;
+  curve_offsets.last() = dst_curves_num;
+  point_offsets.last() = dst_points_num;
 
-  Curves *new_curves_id = bke::curves_new_nomain(dst_points_size, dst_curves_size);
+  Curves *new_curves_id = bke::curves_new_nomain(dst_points_num, dst_curves_num);
   bke::CurvesGeometry &new_curves = bke::CurvesGeometry::wrap(new_curves_id->geometry);
   MutableSpan<int> all_dst_offsets = new_curves.offsets_for_write();
 
@@ -379,7 +379,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
       }
     }
   });
-  all_dst_offsets.last() = dst_points_size;
+  all_dst_offsets.last() = dst_points_num;
 
   CurveComponent dst_component;
   dst_component.replace(new_curves_id, GeometryOwnershipType::Editable);
@@ -807,7 +807,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
-  const int dst_size = offsets.last();
+  const int dst_num = offsets.last();
 
   Array<int> point_to_curve_map(src_curves.points_num());
   threading::parallel_for(src_curves.curves_range(), 1024, [&](const IndexRange range) {
@@ -817,13 +817,13 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
     }
   });
 
-  Curves *new_curves_id = bke::curves_new_nomain(dst_size, dst_size);
+  Curves *new_curves_id = bke::curves_new_nomain(dst_num, dst_num);
   bke::CurvesGeometry &new_curves = bke::CurvesGeometry::wrap(new_curves_id->geometry);
   MutableSpan<int> new_curve_offsets = new_curves.offsets_for_write();
   for (const int i : new_curves.curves_range()) {
     new_curve_offsets[i] = i;
   }
-  new_curve_offsets.last() = dst_size;
+  new_curve_offsets.last() = dst_num;
 
   CurveComponent dst_component;
   dst_component.replace(new_curves_id, GeometryOwnershipType::Editable);
@@ -940,10 +940,10 @@ static void duplicate_points_pointcloud(GeometrySet &geometry_set,
 {
   const PointCloudComponent &src_points =
       *geometry_set.get_component_for_read<PointCloudComponent>();
-  const int point_size = src_points.attribute_domain_size(ATTR_DOMAIN_POINT);
+  const int point_num = src_points.attribute_domain_num(ATTR_DOMAIN_POINT);
 
   GeometryComponentFieldContext field_context{src_points, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{field_context, point_size};
+  FieldEvaluator evaluator{field_context, point_num};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -1026,7 +1026,7 @@ static void duplicate_instances(GeometrySet &geometry_set,
       *geometry_set.get_component_for_read<InstancesComponent>();
 
   GeometryComponentFieldContext field_context{src_instances, ATTR_DOMAIN_INSTANCE};
-  FieldEvaluator evaluator{field_context, src_instances.instances_amount()};
+  FieldEvaluator evaluator{field_context, src_instances.instances_num()};
   evaluator.add(count_field);
   evaluator.set_selection(selection_field);
   evaluator.evaluate();

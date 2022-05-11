@@ -115,7 +115,7 @@ static void export_startjob(void *customdata,
     return;
   }
 
-  ABCHierarchyIterator iter(data->depsgraph, abc_archive.get(), data->params);
+  ABCHierarchyIterator iter(data->bmain, data->depsgraph, abc_archive.get(), data->params);
 
   if (export_animation) {
     CLOG_INFO(&LOG, 2, "Exporting animation");

@@ -79,7 +79,7 @@ void InstancesComponent::add_instance(const int instance_handle, const float4x4 
   BLI_assert(instance_handle < references_.size());
   instance_reference_handles_.append(instance_handle);
   instance_transforms_.append(transform);
-  attributes_.reallocate(this->instances_amount());
+  attributes_.reallocate(this->instances_num());
 }
 
 blender::Span<int> InstancesComponent::instance_reference_handles() const
@@ -183,7 +183,7 @@ void InstancesComponent::remove_unused_references()
   using namespace blender;
   using namespace blender::bke;
 
-  const int tot_instances = this->instances_amount();
+  const int tot_instances = this->instances_num();
   const int tot_references_before = references_.size();
 
   if (tot_instances == 0) {
@@ -258,12 +258,12 @@ void InstancesComponent::remove_unused_references()
   });
 }
 
-int InstancesComponent::instances_amount() const
+int InstancesComponent::instances_num() const
 {
   return instance_transforms_.size();
 }
 
-int InstancesComponent::references_amount() const
+int InstancesComponent::references_num() const
 {
   return references_.size();
 }
@@ -358,7 +358,7 @@ blender::Span<int> InstancesComponent::almost_unique_ids() const
     }
   }
   else {
-    almost_unique_ids_.reinitialize(this->instances_amount());
+    almost_unique_ids_.reinitialize(this->instances_num());
     for (const int i : almost_unique_ids_.index_range()) {
       almost_unique_ids_[i] = i;
     }
@@ -366,12 +366,12 @@ blender::Span<int> InstancesComponent::almost_unique_ids() const
   return almost_unique_ids_;
 }
 
-int InstancesComponent::attribute_domain_size(const AttributeDomain domain) const
+int InstancesComponent::attribute_domain_num(const AttributeDomain domain) const
 {
   if (domain != ATTR_DOMAIN_INSTANCE) {
     return 0;
   }
-  return this->instances_amount();
+  return this->instances_num();
 }
 
 blender::bke::CustomDataAttributes &InstancesComponent::attributes()

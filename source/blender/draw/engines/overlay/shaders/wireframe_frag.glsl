@@ -1,16 +1,5 @@
 
-/* Scene Depth texture copy for manual depth test. */
-uniform sampler2D depthTex;
-
-flat in vec2 edgeStart;
-
-#ifndef SELECT_EDGES
-in vec4 finalColor;
-noperspective in vec2 edgePos;
-
-layout(location = 0) out vec4 fragColor;
-layout(location = 1) out vec4 lineOutput;
-#endif
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 void main()
 {
@@ -28,17 +17,18 @@ void main()
   vec2 dir = lineOutput.xy * 2.0 - 1.0;
   bool dir_horiz = abs(dir.x) > abs(dir.y);
 
-  vec2 uv = gl_FragCoord.xy * sizeViewportInv.xy;
+  vec2 uv = gl_FragCoord.xy * drw_view.viewport_size_inverse;
   float depth_occluder = texture(depthTex, uv).r;
   float depth_min = depth_occluder;
+  vec2 texel_uv_size = drw_view.viewport_size_inverse;
 
   if (dir_horiz) {
-    depth_min = min(depth_min, texture(depthTex, uv + vec2(-sizeViewportInv.x, 0.0)).r);
-    depth_min = min(depth_min, texture(depthTex, uv + vec2(sizeViewportInv.x, 0.0)).r);
+    depth_min = min(depth_min, texture(depthTex, uv + vec2(-texel_uv_size.x, 0.0)).r);
+    depth_min = min(depth_min, texture(depthTex, uv + vec2(texel_uv_size.x, 0.0)).r);
   }
   else {
-    depth_min = min(depth_min, texture(depthTex, uv + vec2(0, -sizeViewportInv.y)).r);
-    depth_min = min(depth_min, texture(depthTex, uv + vec2(0, sizeViewportInv.y)).r);
+    depth_min = min(depth_min, texture(depthTex, uv + vec2(0, -texel_uv_size.y)).r);
+    depth_min = min(depth_min, texture(depthTex, uv + vec2(0, texel_uv_size.y)).r);
   }
 
   float delta = abs(depth_occluder - depth_min);

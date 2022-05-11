@@ -120,7 +120,7 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
   Key *key = ((flag & LIB_ID_FREE_NO_MAIN) == 0) ? BKE_key_from_id(id) : NULL;
 
   if ((flag & LIB_ID_FREE_NO_USER_REFCOUNT) == 0) {
-    BKE_libblock_relink_ex(bmain, id, NULL, NULL, 0);
+    BKE_libblock_relink_ex(bmain, id, NULL, NULL, ID_REMAP_SKIP_USER_CLEAR);
   }
 
   if ((flag & LIB_ID_FREE_NO_MAIN) == 0 && key != NULL) {
@@ -264,7 +264,12 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
                                    ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS));
         /* Since we removed ID from Main,
          * we also need to unlink its own other IDs usages ourself. */
-        BKE_libblock_relink_ex(bmain, id, NULL, NULL, ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS);
+        BKE_libblock_relink_ex(
+            bmain,
+            id,
+            NULL,
+            NULL,
+            (ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS | ID_REMAP_SKIP_USER_CLEAR));
       }
     }
 

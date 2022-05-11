@@ -118,7 +118,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool generate_preview_surface = RNA_boolean_get(op->ptr, "generate_preview_surface");
   const bool export_textures = RNA_boolean_get(op->ptr, "export_textures");
   const bool overwrite_textures = RNA_boolean_get(op->ptr, "overwrite_textures");
-  const bool relative_texture_paths = RNA_boolean_get(op->ptr, "relative_texture_paths");
+  const bool relative_paths = RNA_boolean_get(op->ptr, "relative_paths");
 
   struct USDExportParams params = {
       export_animation,
@@ -133,7 +133,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
       generate_preview_surface,
       export_textures,
       overwrite_textures,
-      relative_texture_paths,
+      relative_paths,
   };
 
   bool ok = USD_export(C, filename, &params, as_background_job);
@@ -181,13 +181,27 @@ static void wm_usd_export_draw(bContext *UNUSED(C), wmOperator *op)
   const bool export_tex = RNA_boolean_get(ptr, "export_textures");
   uiLayoutSetActive(row, export_mtl && preview && export_tex);
 
-  row = uiLayoutRow(col, true);
-  uiItemR(row, ptr, "relative_texture_paths", 0, NULL, ICON_NONE);
-  uiLayoutSetActive(row, export_mtl && preview);
+  box = uiLayoutBox(layout);
+  col = uiLayoutColumnWithHeading(box, true, IFACE_("File References"));
+  uiItemR(col, ptr, "relative_paths", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Experimental"), ICON_NONE);
   uiItemR(box, ptr, "use_instancing", 0, NULL, ICON_NONE);
+}
+
+static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
+{
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
+
+  if (!BLI_path_extension_check_n(filepath, ".usd", ".usda", ".usdc", NULL)) {
+    BLI_path_extension_ensure(filepath, FILE_MAX, ".usdc");
+    RNA_string_set(op->ptr, "filepath", filepath);
+    return true;
+  }
+
+  return false;
 }
 
 void WM_OT_usd_export(struct wmOperatorType *ot)
@@ -200,6 +214,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   ot->exec = wm_usd_export_exec;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_export_draw;
+  ot->check = wm_usd_export_check;
 
   ot->flag = OPTYPE_REGISTER; /* No UNDO possible. */
 
@@ -282,10 +297,11 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "Allow overwriting existing texture files when exporting textures");
 
   RNA_def_boolean(ot->srna,
-                  "relative_texture_paths",
+                  "relative_paths",
                   true,
-                  "Relative Texture Paths",
-                  "Make texture asset paths relative to the USD file");
+                  "Relative Paths",
+                  "Use relative paths to reference external files (i.e. textures, volumes) in "
+                  "USD, otherwise use absolute paths");
 }
 
 /* ====== USD Import ====== */

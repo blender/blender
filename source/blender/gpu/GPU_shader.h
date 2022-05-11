@@ -280,6 +280,16 @@ typedef enum eGPUBuiltinShader {
   GPU_SHADER_2D_IMAGE_OVERLAYS_STEREO_MERGE,
   GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR,
   /**
+   * Draw a texture in 3D. Take a 3D position and a 2D texture coordinate for each vertex.
+   *
+   * Exposed via Python-API for add-ons.
+   *
+   * \param image: uniform sampler2D
+   * \param texCoord: in vec2
+   * \param pos: in vec3
+   */
+  GPU_SHADER_3D_IMAGE,
+  /**
    * Draw texture with alpha. Take a 3D position and a 2D texture coordinate for each vertex.
    *
    * \param alpha: uniform float
@@ -338,8 +348,6 @@ typedef enum eGPUBuiltinShader {
   /* lines */
   GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR,
   GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR,
-  /* instance */
-  GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE, /* Uniformly scaled */
   /* grease pencil drawing */
   GPU_SHADER_GPENCIL_STROKE,
   /* specialized for widget drawing */

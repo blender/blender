@@ -152,8 +152,8 @@ static void color_filter_task_cb(void *__restrict userdata,
       }
       case COLOR_FILTER_HUE:
         rgb_to_hsv_v(orig_color, hsv_color);
-        hue = hsv_color[0] + fade;
-        hsv_color[0] = fabs((hsv_color[0] + fade) - hue);
+        hue = hsv_color[0];
+        hsv_color[0] = fmod((hsv_color[0] + fabs(fade)) - hue, 1);
         hsv_to_rgb_v(hsv_color, final_color);
         break;
       case COLOR_FILTER_SATURATION:
@@ -382,8 +382,12 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
 {
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  View3D *v3d = CTX_wm_view3d(C);
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
+  if (v3d->shading.type == OB_SOLID) {
+    v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
+  }
 
   const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, NULL);
   if (use_automasking) {

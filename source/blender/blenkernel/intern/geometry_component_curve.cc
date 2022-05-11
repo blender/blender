@@ -114,7 +114,7 @@ void CurveComponentLegacy::ensure_owns_direct_data()
 /** \name Attribute Access Helper Functions
  * \{ */
 
-int CurveComponentLegacy::attribute_domain_size(const AttributeDomain domain) const
+int CurveComponentLegacy::attribute_domain_num(const AttributeDomain domain) const
 {
   if (curve_ == nullptr) {
     return 0;
@@ -251,8 +251,8 @@ template<typename T> class VArray_For_SplineToPoint final : public VArrayImpl<T>
 
   void materialize(const IndexMask mask, MutableSpan<T> r_span) const final
   {
-    const int total_size = offsets_.last();
-    if (mask.is_range() && mask.as_range() == IndexRange(total_size)) {
+    const int total_num = offsets_.last();
+    if (mask.is_range() && mask.as_range() == IndexRange(total_num)) {
       for (const int spline_index : original_data_.index_range()) {
         const int offset = offsets_[spline_index];
         const int next_offset = offsets_[spline_index + 1];
@@ -273,8 +273,8 @@ template<typename T> class VArray_For_SplineToPoint final : public VArrayImpl<T>
   void materialize_to_uninitialized(const IndexMask mask, MutableSpan<T> r_span) const final
   {
     T *dst = r_span.data();
-    const int total_size = offsets_.last();
-    if (mask.is_range() && mask.as_range() == IndexRange(total_size)) {
+    const int total_num = offsets_.last();
+    if (mask.is_range() && mask.as_range() == IndexRange(total_num)) {
       for (const int spline_index : original_data_.index_range()) {
         const int offset = offsets_[spline_index];
         const int next_offset = offsets_[spline_index + 1];
@@ -415,7 +415,7 @@ class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
 
   bool exists(const GeometryComponent &component) const final
   {
-    return component.attribute_domain_size(ATTR_DOMAIN_CURVE) != 0;
+    return component.attribute_domain_num(ATTR_DOMAIN_CURVE) != 0;
   }
 };
 
@@ -495,8 +495,8 @@ static void point_attribute_materialize(Span<Span<T>> data,
                                         const IndexMask mask,
                                         MutableSpan<T> r_span)
 {
-  const int total_size = offsets.last();
-  if (mask.is_range() && mask.as_range() == IndexRange(total_size)) {
+  const int total_num = offsets.last();
+  if (mask.is_range() && mask.as_range() == IndexRange(total_num)) {
     for (const int spline_index : data.index_range()) {
       const int offset = offsets[spline_index];
       const int next_offset = offsets[spline_index + 1];
@@ -541,8 +541,8 @@ static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
                                                          MutableSpan<T> r_span)
 {
   T *dst = r_span.data();
-  const int total_size = offsets.last();
-  if (mask.is_range() && mask.as_range() == IndexRange(total_size)) {
+  const int total_num = offsets.last();
+  if (mask.is_range() && mask.as_range() == IndexRange(total_num)) {
     for (const int spline_index : data.index_range()) {
       const int offset = offsets[spline_index];
       const int next_offset = offsets[spline_index + 1];
@@ -589,13 +589,13 @@ static GVArray varray_from_initializer(const AttributeInit &initializer,
     case AttributeInit::Type::VArray:
       return static_cast<const AttributeInitVArray &>(initializer).varray;
     case AttributeInit::Type::MoveArray:
-      int total_size = 0;
+      int total_num = 0;
       for (const SplinePtr &spline : splines) {
-        total_size += spline->size();
+        total_num += spline->size();
       }
       return GVArray::ForSpan(GSpan(*bke::custom_data_type_to_cpp_type(data_type),
                                     static_cast<const AttributeInitMove &>(initializer).data,
-                                    total_size));
+                                    total_num));
   }
   BLI_assert_unreachable();
   return {};
@@ -1168,7 +1168,7 @@ class BezierHandleAttributeProvider : public BuiltinAttributeProvider {
     }
 
     return curve->has_spline_with_type(CURVE_TYPE_BEZIER) &&
-           component.attribute_domain_size(ATTR_DOMAIN_POINT) != 0;
+           component.attribute_domain_num(ATTR_DOMAIN_POINT) != 0;
   }
 };
 

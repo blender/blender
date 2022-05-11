@@ -683,7 +683,6 @@ void OVERLAY_edit_curves_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_edit_curves_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_edit_curves_draw(OVERLAY_Data *vedata);
 
-void OVERLAY_shader_library_ensure(void);
 GPUShader *OVERLAY_shader_antialiasing(void);
 GPUShader *OVERLAY_shader_armature_degrees_of_freedom_wire(void);
 GPUShader *OVERLAY_shader_armature_degrees_of_freedom_solid(void);

@@ -16,6 +16,18 @@ void view_clipping_distances(vec3 wpos)
 #  endif
 }
 
+void view_clipping_distances_bypass()
+{
+#  ifdef USE_WORLD_CLIP_PLANES
+  gl_ClipDistance[0] = 1.0;
+  gl_ClipDistance[1] = 1.0;
+  gl_ClipDistance[2] = 1.0;
+  gl_ClipDistance[3] = 1.0;
+  gl_ClipDistance[4] = 1.0;
+  gl_ClipDistance[5] = 1.0;
+#  endif
+}
+
 /* Kept as define for compiler compatibility. */
 #  ifdef USE_WORLD_CLIP_PLANES
 #    define view_clipping_distances_set(c) \

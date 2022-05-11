@@ -50,7 +50,7 @@ static void add_instances_from_component(
     const Map<AttributeIDRef, AttributeKind> &attributes_to_propagate)
 {
   const AttributeDomain domain = ATTR_DOMAIN_POINT;
-  const int domain_size = src_component.attribute_domain_size(domain);
+  const int domain_num = src_component.attribute_domain_num(domain);
 
   VArray<bool> pick_instance;
   VArray<int> indices;
@@ -59,7 +59,7 @@ static void add_instances_from_component(
 
   GeometryComponentFieldContext field_context{src_component, domain};
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
   /* The evaluator could use the component's stable IDs as a destination directly, but only the
    * selected indices should be copied. */
@@ -73,7 +73,7 @@ static void add_instances_from_component(
 
   /* The initial size of the component might be non-zero when this function is called for multiple
    * component types. */
-  const int start_len = dst_component.instances_amount();
+  const int start_len = dst_component.instances_num();
   const int select_len = selection.index_range().size();
   dst_component.resize(start_len + select_len);
 
@@ -119,12 +119,12 @@ static void add_instances_from_component(
       const bool use_individual_instance = pick_instance[i];
       if (use_individual_instance) {
         if (src_instances != nullptr) {
-          const int src_instances_amount = src_instances->instances_amount();
+          const int src_instances_num = src_instances->instances_num();
           const int original_index = indices[i];
           /* Use #mod_i instead of `%` to get the desirable wrap around behavior where -1
            * refers to the last element. */
-          const int index = mod_i(original_index, std::max(src_instances_amount, 1));
-          if (index < src_instances_amount) {
+          const int index = mod_i(original_index, std::max(src_instances_num, 1));
+          if (index < src_instances_num) {
             /* Get the reference to the source instance. */
             const int src_handle = src_instances->instance_reference_handles()[index];
             dst_handle = handle_mapping[src_handle];

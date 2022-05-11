@@ -855,6 +855,12 @@ typedef struct NodeVertexCol {
   char name[64];
 } NodeVertexCol;
 
+typedef struct NodeCMPCombSepColor {
+  /* CMPNodeCombSepColorMode */
+  uint8_t mode;
+  uint8_t ycc_mode;
+} NodeCMPCombSepColor;
+
 /** Defocus blur node. */
 typedef struct NodeDefocus {
   char bktype, _pad0, preview, gamco;
@@ -1485,6 +1491,11 @@ typedef struct NodeFunctionCompare {
   char _pad[1];
 } NodeFunctionCompare;
 
+typedef struct NodeCombSepColor {
+  /* NodeCombSepColorMode */
+  int8_t mode;
+} NodeCombSepColor;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL 0
 #define NODE_SCRIPT_EXTERNAL 1
@@ -1877,6 +1888,16 @@ typedef enum CMPNodeDenoisePrefilter {
   CMP_NODE_DENOISE_PREFILTER_ACCURATE = 2
 } CMPNodeDenoisePrefilter;
 
+/* Color combine/separate modes */
+
+typedef enum CMPNodeCombSepColorMode {
+  CMP_NODE_COMBSEP_COLOR_RGB = 0,
+  CMP_NODE_COMBSEP_COLOR_HSV = 1,
+  CMP_NODE_COMBSEP_COLOR_HSL = 2,
+  CMP_NODE_COMBSEP_COLOR_YCC = 3,
+  CMP_NODE_COMBSEP_COLOR_YUV = 4,
+} CMPNodeCombSepColorMode;
+
 #define CMP_NODE_PLANETRACKDEFORM_MBLUR_SAMPLES_MAX 64
 
 /* Point Density shader node */
@@ -2134,6 +2155,12 @@ typedef enum GeometryNodeScaleElementsMode {
   GEO_NODE_SCALE_ELEMENTS_UNIFORM = 0,
   GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS = 1,
 } GeometryNodeScaleElementsMode;
+
+typedef enum NodeCombSepColorMode {
+  NODE_COMBSEP_COLOR_RGB = 0,
+  NODE_COMBSEP_COLOR_HSV = 1,
+  NODE_COMBSEP_COLOR_HSL = 2,
+} NodeCombSepColorMode;
 
 #ifdef __cplusplus
 }

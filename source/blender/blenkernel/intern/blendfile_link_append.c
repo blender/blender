@@ -1564,7 +1564,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
       }
 
       if (GS(old_id->name) == ID_KE) {
-        /* Shape Keys are handled as part of their owning obdata (see below). This implies thar
+        /* Shape Keys are handled as part of their owning obdata (see below). This implies that
          * there is no way to know when the old pointer gets invalid, so just clear it immediately.
          */
         item->userdata = NULL;

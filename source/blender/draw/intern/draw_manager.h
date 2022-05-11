@@ -617,7 +617,7 @@ typedef struct DRWManager {
   DRWView *view_default;
   DRWView *view_active;
   DRWView *view_previous;
-  uint primary_view_ct;
+  uint primary_view_num;
   /** TODO(@fclem): Remove this. Only here to support
    * shaders without common_view_lib.glsl */
   ViewInfos view_storage_cpy;

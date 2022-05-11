@@ -23,6 +23,7 @@
 #  include "util/md5.h"
 #  include "util/path.h"
 #  include "util/progress.h"
+#  include "util/task.h"
 #  include "util/time.h"
 
 #  undef __KERNEL_CPU__
@@ -215,6 +216,25 @@ static OptixResult optixUtilDenoiserInvokeTiled(OptixDenoiser denoiser,
   }
   return OPTIX_SUCCESS;
 }
+
+#  if OPTIX_ABI_VERSION >= 55
+static void execute_optix_task(TaskPool &pool, OptixTask task, OptixResult &failure_reason)
+{
+  OptixTask additional_tasks[16];
+  unsigned int num_additional_tasks = 0;
+
+  const OptixResult result = optixTaskExecute(task, additional_tasks, 16, &num_additional_tasks);
+  if (result == OPTIX_SUCCESS) {
+    for (unsigned int i = 0; i < num_additional_tasks; ++i) {
+      pool.push(function_bind(
+          &execute_optix_task, std::ref(pool), additional_tasks[i], std::ref(failure_reason)));
+    }
+  }
+  else {
+    failure_reason = result;
+  }
+}
+#  endif
 
 }  // namespace
 
@@ -453,6 +473,23 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       return false;
     }
 
+#  if OPTIX_ABI_VERSION >= 55
+    OptixTask task = nullptr;
+    OptixResult result = optixModuleCreateFromPTXWithTasks(context,
+                                                           &module_options,
+                                                           &pipeline_options,
+                                                           ptx_data.data(),
+                                                           ptx_data.size(),
+                                                           nullptr,
+                                                           nullptr,
+                                                           &optix_module,
+                                                           &task);
+    if (result == OPTIX_SUCCESS) {
+      TaskPool pool;
+      execute_optix_task(pool, task, result);
+      pool.wait_work();
+    }
+#  else
     const OptixResult result = optixModuleCreateFromPTX(context,
                                                         &module_options,
                                                         &pipeline_options,
@@ -461,6 +498,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
                                                         nullptr,
                                                         0,
                                                         &optix_module);
+#  endif
     if (result != OPTIX_SUCCESS) {
       set_error(string_printf("Failed to load OptiX kernel from '%s' (%s)",
                               ptx_filename.c_str(),

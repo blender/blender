@@ -1,13 +1,4 @@
-in vec2 uv_interp;
-
-out vec4 fragColor;
-
-uniform float opacity = 1.0;
-
-uniform sampler2D maskImage;
-uniform bool maskImagePremultiplied;
-uniform vec3 maskColor;
-uniform bool maskInvertStencil;
+#pragma BLENDER_REQUIRE(common_colormanagement_lib.glsl)
 
 void main()
 {

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,13 @@
 #include "ceres/block_random_access_diagonal_matrix.h"
 
 #include <algorithm>
+#include <memory>
 #include <set>
 #include <utility>
 #include <vector>
 
 #include "Eigen/Dense"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/stl_util.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
@@ -57,16 +58,17 @@ BlockRandomAccessDiagonalMatrix::BlockRandomAccessDiagonalMatrix(
   int num_cols = 0;
   int num_nonzeros = 0;
   vector<int> block_positions;
-  for (int i = 0; i < blocks_.size(); ++i) {
+  for (int block_size : blocks_) {
     block_positions.push_back(num_cols);
-    num_cols += blocks_[i];
-    num_nonzeros += blocks_[i] * blocks_[i];
+    num_cols += block_size;
+    num_nonzeros += block_size * block_size;
   }
 
   VLOG(1) << "Matrix Size [" << num_cols << "," << num_cols << "] "
           << num_nonzeros;
 
-  tsm_.reset(new TripletSparseMatrix(num_cols, num_cols, num_nonzeros));
+  tsm_ =
+      std::make_unique<TripletSparseMatrix>(num_cols, num_cols, num_nonzeros);
   tsm_->set_num_nonzeros(num_nonzeros);
   int* rows = tsm_->mutable_rows();
   int* cols = tsm_->mutable_cols();
@@ -99,7 +101,7 @@ CellInfo* BlockRandomAccessDiagonalMatrix::GetCell(int row_block_id,
                                                    int* row_stride,
                                                    int* col_stride) {
   if (row_block_id != col_block_id) {
-    return NULL;
+    return nullptr;
   }
   const int stride = blocks_[row_block_id];
 
@@ -121,8 +123,7 @@ void BlockRandomAccessDiagonalMatrix::SetZero() {
 
 void BlockRandomAccessDiagonalMatrix::Invert() {
   double* values = tsm_->mutable_values();
-  for (int i = 0; i < blocks_.size(); ++i) {
-    const int block_size = blocks_[i];
+  for (int block_size : blocks_) {
     MatrixRef block(values, block_size, block_size);
     block = block.selfadjointView<Eigen::Upper>().llt().solve(
         Matrix::Identity(block_size, block_size));
@@ -135,8 +136,7 @@ void BlockRandomAccessDiagonalMatrix::RightMultiply(const double* x,
   CHECK(x != nullptr);
   CHECK(y != nullptr);
   const double* values = tsm_->values();
-  for (int i = 0; i < blocks_.size(); ++i) {
-    const int block_size = blocks_[i];
+  for (int block_size : blocks_) {
     ConstMatrixRef block(values, block_size, block_size);
     VectorRef(y, block_size).noalias() += block * ConstVectorRef(x, block_size);
     x += block_size;

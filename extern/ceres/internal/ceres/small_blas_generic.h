@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2018 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -100,10 +100,11 @@ static inline void MMM_mat1x4(const int col_a,
 #define CERES_GEMM_OPT_MMM_MAT1X4_MUL \
   av = pa[k];                         \
   pb = b + bi;                        \
-  c0 += av * *pb++;                   \
-  c1 += av * *pb++;                   \
-  c2 += av * *pb++;                   \
-  c3 += av * *pb++;                   \
+  c0 += av * pb[0];                   \
+  c1 += av * pb[1];                   \
+  c2 += av * pb[2];                   \
+  c3 += av * pb[3];                   \
+  pb += 4;                            \
   bi += col_stride_b;                 \
   k++;
 
@@ -167,10 +168,11 @@ static inline void MTM_mat1x4(const int col_a,
 #define CERES_GEMM_OPT_MTM_MAT1X4_MUL \
   av = pa[ai];                        \
   pb = b + bi;                        \
-  c0 += av * *pb++;                   \
-  c1 += av * *pb++;                   \
-  c2 += av * *pb++;                   \
-  c3 += av * *pb++;                   \
+  c0 += av * pb[0];                   \
+  c1 += av * pb[1];                   \
+  c2 += av * pb[2];                   \
+  c3 += av * pb[3];                   \
+  pb += 4;                            \
   ai += col_stride_a;                 \
   bi += col_stride_b;
 

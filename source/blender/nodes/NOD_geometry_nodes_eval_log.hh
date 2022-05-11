@@ -103,16 +103,16 @@ class GeometryValueLog : public ValueLog {
 
  public:
   struct MeshInfo {
-    int tot_verts, tot_edges, tot_faces;
+    int verts_num, edges_num, faces_num;
   };
   struct CurveInfo {
-    int tot_splines;
+    int splines_num;
   };
   struct PointCloudInfo {
-    int tot_points;
+    int points_num;
   };
   struct InstancesInfo {
-    int tot_instances;
+    int instances_num;
   };
 
   std::optional<MeshInfo> mesh_info;

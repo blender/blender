@@ -374,7 +374,7 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
           }
           /* Convert the attribute on the instances component to the expected attribute type. */
           std::unique_ptr<GArray<>> temporary_array = std::make_unique<GArray<>>(
-              to_type, instances_component.instances_amount());
+              to_type, instances_component.instances_num());
           conversions.convert_to_initialized_n(span, temporary_array->as_mutable_span());
           span = temporary_array->as_span();
           gather_info.r_temporary_arrays.append(std::move(temporary_array));
@@ -548,7 +548,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
       case GEO_COMPONENT_TYPE_CURVE: {
         const CurveComponent &curve_component = *static_cast<const CurveComponent *>(component);
         const Curves *curves = curve_component.get_for_read();
-        if (curves != nullptr && curves->geometry.curve_size > 0) {
+        if (curves != nullptr && curves->geometry.curve_num > 0) {
           const int curve_index = gather_info.curves.order.index_of(curves);
           const RealizeCurveInfo &curve_info = gather_info.curves.realize_info[curve_index];
           gather_info.r_tasks.curve_tasks.append({gather_info.r_offsets.curves_offsets,
@@ -556,8 +556,8 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
                                                   base_transform,
                                                   base_instance_context.curves,
                                                   base_instance_context.id});
-          gather_info.r_offsets.curves_offsets.point += curves->geometry.point_size;
-          gather_info.r_offsets.curves_offsets.curve += curves->geometry.curve_size;
+          gather_info.r_offsets.curves_offsets.point += curves->geometry.point_num;
+          gather_info.r_offsets.curves_offsets.curve += curves->geometry.curve_num;
         }
         break;
       }
@@ -1052,7 +1052,7 @@ static void gather_curves_to_realize(const GeometrySet &geometry_set,
                                      VectorSet<const Curves *> &r_curves)
 {
   if (const Curves *curves = geometry_set.get_curves_for_read()) {
-    if (curves->geometry.curve_size != 0) {
+    if (curves->geometry.curve_num != 0) {
       r_curves.add(curves);
     }
   }
@@ -1215,13 +1215,13 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
 
   const RealizeCurveTask &last_task = tasks.last();
   const Curves &last_curves = *last_task.curve_info->curves;
-  const int points_size = last_task.start_indices.point + last_curves.geometry.point_size;
-  const int curves_size = last_task.start_indices.curve + last_curves.geometry.curve_size;
+  const int points_num = last_task.start_indices.point + last_curves.geometry.point_num;
+  const int curves_num = last_task.start_indices.curve + last_curves.geometry.curve_num;
 
   /* Allocate new curves data-block. */
-  Curves *dst_curves_id = bke::curves_new_nomain(points_size, curves_size);
+  Curves *dst_curves_id = bke::curves_new_nomain(points_num, curves_num);
   bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
-  dst_curves.offsets_for_write().last() = points_size;
+  dst_curves.offsets_for_write().last() = points_num;
   CurveComponent &dst_component = r_realized_geometry.get_component_for_write<CurveComponent>();
   dst_component.replace(dst_curves_id);
 

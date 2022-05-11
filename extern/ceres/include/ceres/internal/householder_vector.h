@@ -82,6 +82,14 @@ void ComputeHouseholderVector(const XVectorType& x,
   v->head(v->rows() - 1) /= v_pivot;
 }
 
+template <typename XVectorType, typename Derived>
+typename Derived::PlainObject ApplyHouseholderVector(
+    const XVectorType& y,
+    const Eigen::MatrixBase<Derived>& v,
+    const typename Derived::Scalar& beta) {
+  return (y - v * (beta * (v.transpose() * y)));
+}
+
 }  // namespace internal
 }  // namespace ceres
 

@@ -419,6 +419,13 @@ static void detect_workarounds()
     GCaps.shader_storage_buffer_objects_support = false;
   }
 
+  /* Certain Intel based platforms don't clear the viewport textures. Always clearing leads to
+   * noticeable performance regressions. */
+  if (GPU_type_matches(
+          GPU_DEVICE_INTEL, static_cast<eGPUOSType>(GPU_OS_MAC | GPU_OS_UNIX), GPU_DRIVER_ANY)) {
+    GCaps.clear_viewport_workaround = true;
+  }
+
   /* Metal-related Workarounds. */
 
   /* Minimum Per-Vertex stride is 1 byte for OpenGL. */
@@ -503,6 +510,7 @@ void GLBackend::capabilities_init()
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &GCaps.max_work_group_size[2]);
     glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS,
                   &GCaps.max_shader_storage_buffer_bindings);
+    glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS, &GCaps.max_compute_shader_storage_blocks);
   }
   GCaps.shader_storage_buffer_objects_support = GLEW_ARB_shader_storage_buffer_object;
   /* GL specific capabilities. */

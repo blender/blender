@@ -41,6 +41,8 @@ void ShaderCreateInfo::finalize()
 
   Set<StringRefNull> deps_merged;
 
+  validate_vertex_attributes();
+
   for (auto &info_name : additional_infos_) {
     const ShaderCreateInfo &info = *reinterpret_cast<const ShaderCreateInfo *>(
         gpu_shader_create_info_get(info_name.c_str()));
@@ -54,6 +56,8 @@ void ShaderCreateInfo::finalize()
     fragment_outputs_.extend(info.fragment_outputs_);
     vertex_out_interfaces_.extend(info.vertex_out_interfaces_);
     geometry_out_interfaces_.extend(info.geometry_out_interfaces_);
+
+    validate_vertex_attributes(&info);
 
     push_constants_.extend(info.push_constants_);
     defines_.extend(info.defines_);
@@ -69,7 +73,7 @@ void ShaderCreateInfo::finalize()
       depth_write_ = info.depth_write_;
     }
 
-    validate(info);
+    validate_merge(info);
 
     auto assert_no_overlap = [&](const bool test, const StringRefNull error) {
       if (!test) {
@@ -164,7 +168,7 @@ std::string ShaderCreateInfo::check_error() const
   return error;
 }
 
-void ShaderCreateInfo::validate(const ShaderCreateInfo &other_info)
+void ShaderCreateInfo::validate_merge(const ShaderCreateInfo &other_info)
 {
   if (!auto_resource_location_) {
     /* Check same bind-points usage in OGL. */
@@ -220,8 +224,42 @@ void ShaderCreateInfo::validate(const ShaderCreateInfo &other_info)
       }
     }
   }
-  {
-    /* TODO(@fclem): Push constant validation. */
+}
+
+void ShaderCreateInfo::validate_vertex_attributes(const ShaderCreateInfo *other_info)
+{
+  uint32_t attr_bits = 0;
+  for (auto &attr : vertex_inputs_) {
+    if (attr.index >= 16 || attr.index < 0) {
+      std::cout << name_ << ": \"" << attr.name
+                << "\" : Type::MAT3 unsupported as vertex attribute." << std::endl;
+      BLI_assert(0);
+    }
+    if (attr.index >= 16 || attr.index < 0) {
+      std::cout << name_ << ": Invalid index for attribute \"" << attr.name << "\"" << std::endl;
+      BLI_assert(0);
+    }
+    uint32_t attr_new = 0;
+    if (attr.type == Type::MAT4) {
+      for (int i = 0; i < 4; i++) {
+        attr_new |= 1 << (attr.index + i);
+      }
+    }
+    else {
+      attr_new |= 1 << attr.index;
+    }
+
+    if ((attr_bits & attr_new) != 0) {
+      std::cout << name_ << ": Attribute \"" << attr.name
+                << "\" overlap one or more index from another attribute."
+                   " Note that mat4 takes up 4 indices.";
+      if (other_info) {
+        std::cout << " While merging " << other_info->name_ << std::endl;
+      }
+      std::cout << std::endl;
+      BLI_assert(0);
+    }
+    attr_bits |= attr_new;
   }
 }
 

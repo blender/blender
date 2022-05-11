@@ -708,12 +708,18 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
           case CD_MCOL:
           case CD_PROP_BYTE_COLOR:
           case CD_PROP_COLOR: {
+            /* First check Color attributes, when not found check mesh attributes. Geometry nodes
+             * can generate those layers. */
             int vcol_bit = mesh_cd_calc_gpu_layers_vcol_used(&me_query, cd_vdata, cd_ldata, name);
 
             if (vcol_bit != -1) {
               cd_used.vcol |= 1UL << (uint)vcol_bit;
+              break;
             }
 
+            if (layer != -1 && domain != ATTR_DOMAIN_NUM) {
+              drw_mesh_attributes_add_request(attributes, type, layer, domain);
+            }
             break;
           }
           case CD_PROP_FLOAT3:
@@ -1231,11 +1237,11 @@ static void sculpt_request_active_vcol(MeshBatchCache *cache, Object *object, Me
       &me_query.id, render, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 
   if (active_i >= 0) {
-    cache->cd_used.vcol |= 1UL << (uint)active_i;
+    cache->cd_needed.vcol |= 1UL << (uint)active_i;
   }
 
   if (render_i >= 0) {
-    cache->cd_used.vcol |= 1UL << (uint)render_i;
+    cache->cd_needed.vcol |= 1UL << (uint)render_i;
   }
 }
 
@@ -2128,8 +2134,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
 
   MDEPS_ASSERT_MAP_INDEX(TRIS_PER_MAT_INDEX);
 
-  const bool use_subsurf_fdots = me->runtime.subsurf_face_dot_tags != NULL;
-
   if (do_uvcage) {
     mesh_buffer_cache_create_requested(task_graph,
                                        cache,
@@ -2142,7 +2146,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                        ob->obmat,
                                        false,
                                        true,
-                                       false,
                                        scene,
                                        ts,
                                        true);
@@ -2160,7 +2163,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                        ob->obmat,
                                        false,
                                        false,
-                                       use_subsurf_fdots,
                                        scene,
                                        ts,
                                        true);
@@ -2178,7 +2180,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                            ob->obmat,
                            true,
                            false,
-                           use_subsurf_fdots,
                            ts,
                            use_hide);
   }
@@ -2199,7 +2200,6 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                                      ob->obmat,
                                      true,
                                      false,
-                                     use_subsurf_fdots,
                                      scene,
                                      ts,
                                      use_hide);

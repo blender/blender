@@ -29,7 +29,7 @@
 // Author: alexs.mac@gmail.com (Alex Stewart)
 
 // This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 
 #ifdef CERES_NO_THREADS
 
@@ -47,7 +47,7 @@ void ParallelFor(ContextImpl* context,
                  int num_threads,
                  const std::function<void(int)>& function) {
   CHECK_GT(num_threads, 0);
-  CHECK(context != NULL);
+  CHECK(context != nullptr);
   if (end <= start) {
     return;
   }
@@ -62,7 +62,7 @@ void ParallelFor(ContextImpl* context,
                  int num_threads,
                  const std::function<void(int thread_id, int i)>& function) {
   CHECK_GT(num_threads, 0);
-  CHECK(context != NULL);
+  CHECK(context != nullptr);
   if (end <= start) {
     return;
   }

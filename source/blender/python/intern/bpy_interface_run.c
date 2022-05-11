@@ -128,9 +128,6 @@ static bool python_script_exec(bContext *C,
       Py_DECREF(filepath_dummy_py);
 
       if (PyErr_Occurred()) {
-        if (do_jump) {
-          python_script_error_jump_text(text, filepath_dummy);
-        }
         BPY_text_free_code(text);
       }
     }
@@ -184,6 +181,7 @@ static bool python_script_exec(bContext *C,
   }
 
   if (!py_result) {
+    BPy_errors_to_report(reports);
     if (text) {
       if (do_jump) {
         /* ensure text is valid before use, the script may have freed itself */
@@ -193,7 +191,7 @@ static bool python_script_exec(bContext *C,
         }
       }
     }
-    BPy_errors_to_report(reports);
+    PyErr_Clear();
   }
   else {
     Py_DECREF(py_result);
@@ -275,6 +273,7 @@ static bool bpy_run_string_impl(bContext *C,
     ReportList reports;
     BKE_reports_init(&reports, RPT_STORE);
     BPy_errors_to_report(&reports);
+    PyErr_Clear();
 
     /* Ensure the reports are printed. */
     if (!BKE_reports_print_test(&reports, RPT_ERROR)) {
@@ -336,6 +335,7 @@ static void run_string_handle_error(struct BPy_RunErrInfo *err_info)
   PyObject *py_err_str = err_info->use_single_line_error ? PyC_ExceptionBuffer_Simple() :
                                                            PyC_ExceptionBuffer();
   const char *err_str = py_err_str ? PyUnicode_AsUTF8(py_err_str) : "Unable to extract exception";
+  PyErr_Clear();
 
   if (err_info->reports != NULL) {
     if (err_info->report_prefix) {

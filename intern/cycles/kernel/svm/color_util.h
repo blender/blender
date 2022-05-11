@@ -307,4 +307,30 @@ ccl_device_inline float3 svm_brightness_contrast(float3 color, float brightness,
   return color;
 }
 
+ccl_device float3 svm_combine_color(NodeCombSepColorType type, float3 color)
+{
+  switch (type) {
+    case NODE_COMBSEP_COLOR_HSV:
+      return hsv_to_rgb(color);
+    case NODE_COMBSEP_COLOR_HSL:
+      return hsl_to_rgb(color);
+    case NODE_COMBSEP_COLOR_RGB:
+    default:
+      return color;
+  }
+}
+
+ccl_device float3 svm_separate_color(NodeCombSepColorType type, float3 color)
+{
+  switch (type) {
+    case NODE_COMBSEP_COLOR_HSV:
+      return rgb_to_hsv(color);
+    case NODE_COMBSEP_COLOR_HSL:
+      return rgb_to_hsl(color);
+    case NODE_COMBSEP_COLOR_RGB:
+    default:
+      return color;
+  }
+}
+
 CCL_NAMESPACE_END

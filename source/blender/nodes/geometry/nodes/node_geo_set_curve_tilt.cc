@@ -17,15 +17,15 @@ static void set_tilt_in_component(GeometryComponent &component,
                                   const Field<float> &tilt_field)
 {
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
-  if (domain_size == 0) {
+  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_POINT);
+  if (domain_num == 0) {
     return;
   }
 
   OutputAttribute_Typed<float> tilts = component.attribute_try_get_for_output_only<float>(
       "tilt", ATTR_DOMAIN_POINT);
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(tilt_field, tilts.varray());
   evaluator.evaluate();

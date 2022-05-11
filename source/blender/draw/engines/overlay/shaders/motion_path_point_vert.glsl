@@ -1,20 +1,11 @@
 
-uniform ivec4 mpathPointSettings;
-uniform bool showKeyFrames = true;
-uniform vec3 customColor;
+#pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
+#pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
 #define pointSize mpathPointSettings.x
 #define frameCurrent mpathPointSettings.y
 #define cacheStart mpathPointSettings.z
 #define stepSize mpathPointSettings.w
-
-in vec3 pos;
-in int flag;
-
-#define MOTIONPATH_VERT_SEL (1 << 0)
-#define MOTIONPATH_VERT_KEY (1 << 1)
-
-out vec4 finalColor;
 
 void main()
 {
@@ -52,7 +43,5 @@ void main()
 
   gl_PointSize *= sizePixel;
 
-#ifdef USE_WORLD_CLIP_PLANES
-  world_clip_planes_calc_clip_distance(pos);
-#endif
+  view_clipping_distances(pos);
 }

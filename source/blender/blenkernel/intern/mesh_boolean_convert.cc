@@ -407,17 +407,11 @@ static void copy_poly_attributes(Mesh *dest_mesh,
                                  int index_in_orig_me,
                                  Span<short> material_remap)
 {
-  mp->mat_nr = orig_mp->mat_nr;
-  if (mp->mat_nr >= dest_mesh->totcol) {
-    mp->mat_nr = 0;
+  if (material_remap.size() > 0 && material_remap.index_range().contains(orig_mp->mat_nr)) {
+    mp->mat_nr = material_remap[orig_mp->mat_nr];
   }
   else {
-    if (material_remap.size() > 0) {
-      short mat_nr = material_remap[orig_mp->mat_nr];
-      if (mat_nr >= 0 && mat_nr < dest_mesh->totcol) {
-        mp->mat_nr = mat_nr;
-      }
-    }
+    mp->mat_nr = orig_mp->mat_nr;
   }
 
   mp->flag = orig_mp->flag;

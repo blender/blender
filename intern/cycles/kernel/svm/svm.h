@@ -181,6 +181,7 @@ CCL_NAMESPACE_END
 #include "kernel/svm/noisetex.h"
 #include "kernel/svm/normal.h"
 #include "kernel/svm/ramp.h"
+#include "kernel/svm/sepcomb_color.h"
 #include "kernel/svm/sepcomb_hsv.h"
 #include "kernel/svm/sepcomb_vector.h"
 #include "kernel/svm/sky.h"
@@ -304,22 +305,13 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         }
         break;
       case NODE_SET_DISPLACEMENT:
-        IF_KERNEL_NODES_FEATURE(BUMP)
-        {
-          svm_node_set_displacement(kg, sd, stack, node.y);
-        }
+        svm_node_set_displacement<node_feature_mask>(kg, sd, stack, node.y);
         break;
       case NODE_DISPLACEMENT:
-        IF_KERNEL_NODES_FEATURE(BUMP)
-        {
-          svm_node_displacement(kg, sd, stack, node);
-        }
+        svm_node_displacement<node_feature_mask>(kg, sd, stack, node);
         break;
       case NODE_VECTOR_DISPLACEMENT:
-        IF_KERNEL_NODES_FEATURE(BUMP)
-        {
-          offset = svm_node_vector_displacement(kg, sd, stack, node, offset);
-        }
+        offset = svm_node_vector_displacement<node_feature_mask>(kg, sd, stack, node, offset);
         break;
       case NODE_TEX_IMAGE:
         offset = svm_node_tex_image(kg, sd, stack, node, offset);
@@ -331,10 +323,7 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         offset = svm_node_tex_noise(kg, sd, stack, node.y, node.z, node.w, offset);
         break;
       case NODE_SET_BUMP:
-        IF_KERNEL_NODES_FEATURE(BUMP)
-        {
-          svm_node_set_bump(kg, sd, stack, node);
-        }
+        svm_node_set_bump<node_feature_mask>(kg, sd, stack, node);
         break;
       case NODE_ATTR_BUMP_DX:
         IF_KERNEL_NODES_FEATURE(BUMP)
@@ -519,6 +508,12 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         break;
       case NODE_MIX:
         offset = svm_node_mix(kg, sd, stack, node.y, node.z, node.w, offset);
+        break;
+      case NODE_SEPARATE_COLOR:
+        svm_node_separate_color(kg, sd, stack, node.y, node.z, node.w);
+        break;
+      case NODE_COMBINE_COLOR:
+        svm_node_combine_color(kg, sd, stack, node.y, node.z, node.w);
         break;
       case NODE_SEPARATE_VECTOR:
         svm_node_separate_vector(sd, stack, node.y, node.z, node.w);

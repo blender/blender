@@ -53,7 +53,7 @@ void BlockEvaluatePreparer::Prepare(const ResidualBlock* residual_block,
                                     SparseMatrix* jacobian,
                                     double** jacobians) {
   // If the overall jacobian is not available, use the scratch space.
-  if (jacobian == NULL) {
+  if (jacobian == nullptr) {
     scratch_evaluate_preparer_.Prepare(
         residual_block, residual_block_index, jacobian, jacobians);
     return;
@@ -73,7 +73,7 @@ void BlockEvaluatePreparer::Prepare(const ResidualBlock* residual_block,
       // parameters. Instead, bump the pointer for active parameters only.
       jacobian_block_offset++;
     } else {
-      jacobians[j] = NULL;
+      jacobians[j] = nullptr;
     }
   }
 }

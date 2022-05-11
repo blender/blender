@@ -331,15 +331,8 @@ void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph)
 static char attr_prefix_get(CustomDataType type)
 {
   switch (type) {
-    case CD_MTFACE:
-      return 'u';
     case CD_TANGENT:
       return 't';
-    case CD_MCOL:
-    case CD_PROP_BYTE_COLOR:
-      return 'c';
-    case CD_PROP_COLOR:
-      return 'c';
     case CD_AUTO_FROM_NAME:
       return 'a';
     case CD_HAIRLENGTH:
@@ -372,11 +365,6 @@ static GPUMaterialAttribute *gpu_node_graph_add_attribute(GPUNodeGraph *graph,
                                                           CustomDataType type,
                                                           const char *name)
 {
-  /* Fall back to the UV layer, which matches old behavior. */
-  if (type == CD_AUTO_FROM_NAME && name[0] == '\0') {
-    type = CD_MTFACE;
-  }
-
   /* Find existing attribute. */
   int num_attributes = 0;
   GPUMaterialAttribute *attr = graph->attributes.first;
@@ -623,7 +611,7 @@ bool GPU_link(GPUMaterial *mat, const char *name, ...)
 
   va_start(params, name);
   for (i = 0; i < function->totparam; i++) {
-    if (function->paramqual[i] != FUNCTION_QUAL_IN) {
+    if (function->paramqual[i] == FUNCTION_QUAL_OUT) {
       linkptr = va_arg(params, GPUNodeLink **);
       gpu_node_output(node, function->paramtype[i], linkptr);
     }
@@ -681,7 +669,7 @@ static bool gpu_stack_link_v(GPUMaterial *material,
   }
 
   for (i = 0; i < function->totparam; i++) {
-    if (function->paramqual[i] != FUNCTION_QUAL_IN) {
+    if (function->paramqual[i] == FUNCTION_QUAL_OUT) {
       if (totout == 0) {
         linkptr = va_arg(params, GPUNodeLink **);
         gpu_node_output(node, function->paramtype[i], linkptr);

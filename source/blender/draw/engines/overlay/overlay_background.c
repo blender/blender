@@ -12,13 +12,6 @@
 #include "draw_manager_text.h"
 #include "overlay_private.h"
 
-#define BG_SOLID 0
-#define BG_GRADIENT 1
-#define BG_CHECKER 2
-#define BG_RADIAL 3
-#define BG_SOLID_CHECKER 4
-#define BG_MASK 5
-
 void OVERLAY_background_cache_init(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;

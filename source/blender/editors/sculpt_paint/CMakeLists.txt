@@ -27,8 +27,8 @@ set(INC
 )
 
 set(SRC
-  curves_sculpt_3d_brush.cc
   curves_sculpt_add.cc
+  curves_sculpt_brush.cc
   curves_sculpt_comb.cc
   curves_sculpt_delete.cc
   curves_sculpt_grow_shrink.cc

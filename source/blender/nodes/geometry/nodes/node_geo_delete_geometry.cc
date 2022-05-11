@@ -470,7 +470,7 @@ static void separate_curve_selection(GeometrySet &geometry_set,
   GeometryComponentFieldContext field_context{src_component, selection_domain};
 
   fn::FieldEvaluator selection_evaluator{field_context,
-                                         src_component.attribute_domain_size(selection_domain)};
+                                         src_component.attribute_domain_num(selection_domain)};
   selection_evaluator.add(selection_field);
   selection_evaluator.evaluate();
   const VArray_Span<bool> &selection = selection_evaluator.get_evaluated<bool>(0);
@@ -493,7 +493,7 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
   GeometryComponentFieldContext field_context{src_points, ATTR_DOMAIN_POINT};
 
   fn::FieldEvaluator selection_evaluator{field_context,
-                                         src_points.attribute_domain_size(ATTR_DOMAIN_POINT)};
+                                         src_points.attribute_domain_num(ATTR_DOMAIN_POINT)};
   selection_evaluator.add(selection_field);
   selection_evaluator.evaluate();
   const VArray_Span<bool> &selection = selection_evaluator.get_evaluated<bool>(0);
@@ -526,8 +526,8 @@ static void separate_instance_selection(GeometrySet &geometry_set,
   InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
   GeometryComponentFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
 
-  const int domain_size = instances.attribute_domain_size(ATTR_DOMAIN_INSTANCE);
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  const int domain_num = instances.attribute_domain_num(ATTR_DOMAIN_INSTANCE);
+  fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.add(selection_field);
   evaluator.evaluate();
   const VArray_Span<bool> &selection = evaluator.get_evaluated<bool>(0);
@@ -1238,7 +1238,7 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
   GeometryComponentFieldContext field_context{src_component, selection_domain};
 
   fn::FieldEvaluator selection_evaluator{field_context,
-                                         src_component.attribute_domain_size(selection_domain)};
+                                         src_component.attribute_domain_num(selection_domain)};
   selection_evaluator.add(selection_field);
   selection_evaluator.evaluate();
   const VArray_Span<bool> &selection = selection_evaluator.get_evaluated<bool>(0);

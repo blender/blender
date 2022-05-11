@@ -486,7 +486,7 @@ if((UNIX AND NOT APPLE) OR (CMAKE_GENERATOR MATCHES "^Visual Studio.+"))
 endif()
 
 option(WITH_BOOST "Enable features depending on boost" ON)
-option(WITH_TBB   "Enable features depending on TBB (OpenVDB, OpenImageDenoise, sculpt multithreading)" ON)
+option(WITH_TBB   "Enable multithreading. TBB is also required for features such as Cycles, OpenVDB and USD" ON)
 
 # TBB malloc is only supported on for windows currently
 if(WIN32)
@@ -790,7 +790,9 @@ set_and_warn_dependency(WITH_BOOST WITH_OPENCOLORIO    OFF)
 set_and_warn_dependency(WITH_BOOST WITH_QUADRIFLOW     OFF)
 set_and_warn_dependency(WITH_BOOST WITH_USD            OFF)
 set_and_warn_dependency(WITH_BOOST WITH_ALEMBIC        OFF)
-set_and_warn_dependency(WITH_PUGIXML WITH_CYCLES_OSL   OFF)
+if(WITH_CYCLES)
+  set_and_warn_dependency(WITH_PUGIXML WITH_CYCLES_OSL   OFF)
+endif()
 set_and_warn_dependency(WITH_PUGIXML WITH_OPENIMAGEIO  OFF)
 
 if(WITH_BOOST AND NOT (WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_INTERNATIONAL OR
@@ -1465,14 +1467,6 @@ if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
 endif()
 
 #-----------------------------------------------------------------------------
-# Configure Ceres
-
-if(WITH_LIBMV)
-  # We always have C++11 which includes unordered_map.
-  set(CERES_DEFINES "-DCERES_STD_UNORDERED_MAP;-DCERES_USE_CXX_THREADS")
-endif()
-
-#-----------------------------------------------------------------------------
 # Extra limits to number of jobs running in parallel for some kind os tasks.
 # Only supported by Ninja build system currently.
 if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
@@ -1548,7 +1542,6 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCC)
 
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_CAST_ALIGN -Wcast-align)
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_VLA -Werror=vla)

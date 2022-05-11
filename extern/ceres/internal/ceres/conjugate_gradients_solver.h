@@ -34,7 +34,8 @@
 #ifndef CERES_INTERNAL_CONJUGATE_GRADIENTS_SOLVER_H_
 #define CERES_INTERNAL_CONJUGATE_GRADIENTS_SOLVER_H_
 
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
 
 namespace ceres {
@@ -55,9 +56,9 @@ class LinearOperator;
 // For more details see the documentation for
 // LinearSolver::PerSolveOptions::r_tolerance and
 // LinearSolver::PerSolveOptions::q_tolerance in linear_solver.h.
-class CERES_EXPORT_INTERNAL ConjugateGradientsSolver : public LinearSolver {
+class CERES_NO_EXPORT ConjugateGradientsSolver final : public LinearSolver {
  public:
-  explicit ConjugateGradientsSolver(const LinearSolver::Options& options);
+  explicit ConjugateGradientsSolver(LinearSolver::Options options);
   Summary Solve(LinearOperator* A,
                 const double* b,
                 const LinearSolver::PerSolveOptions& per_solve_options,
@@ -69,5 +70,7 @@ class CERES_EXPORT_INTERNAL ConjugateGradientsSolver : public LinearSolver {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_CONJUGATE_GRADIENTS_SOLVER_H_

@@ -1300,6 +1300,8 @@ def km_uv_editor(params):
          {"properties": [("data_path", 'tool_settings.use_snap_uv')]}),
         ("wm.context_menu_enum", {"type": 'TAB', "value": 'PRESS', "shift": True, "ctrl": True},
          {"properties": [("data_path", 'tool_settings.snap_uv_element')]}),
+        ("wm.context_toggle", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_gizmo')]}),
         *_template_items_context_menu("IMAGE_MT_uvs_context_menu", params.context_menu_event),
     ])
 
@@ -1967,6 +1969,8 @@ def km_image(params):
         ),
         ("image.render_border", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
         ("image.clear_render_border", {"type": 'B', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+        ("wm.context_toggle", {"type": 'ACCENT_GRAVE', "value": 'PRESS', "ctrl": True},
+         {"properties": [("data_path", 'space_data.show_gizmo')]}),
         *_template_items_context_menu("IMAGE_MT_mask_context_menu", params.context_menu_event),
     ])
 
@@ -2019,37 +2023,20 @@ def km_node_editor(params):
         {"items": items},
     )
 
-    def node_select_ops(select_mouse):
-        return [
-            ("node.select", {"type": select_mouse, "value": 'PRESS'},
-             {"properties": [("deselect_all", True)]}),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "ctrl": True}, None),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "alt": True}, None),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "ctrl": True, "alt": True}, None),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "shift": True},
-             {"properties": [("extend", True)]}),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "shift": True, "ctrl": True},
-             {"properties": [("extend", True)]}),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "shift": True, "alt": True},
-             {"properties": [("extend", True)]}),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "shift": True, "ctrl": True, "alt": True},
-             {"properties": [("extend", True)]}),
-        ]
-
-    # Allow node selection with both for RMB select
     if not params.legacy:
+        items.extend(_template_node_select(type=params.select_mouse,
+                     value=params.select_mouse_value, select_passthrough=True))
+        # Allow node selection with both for RMB select.
         if params.select_mouse == 'RIGHTMOUSE':
-            items.extend(node_select_ops('LEFTMOUSE'))
-            items.extend(node_select_ops('RIGHTMOUSE'))
-        else:
-            items.extend(node_select_ops('LEFTMOUSE'))
+            items.extend(_template_node_select(type='LEFTMOUSE', value='PRESS', select_passthrough=True))
     else:
-        items.extend(node_select_ops('RIGHTMOUSE'))
+        items.extend(_template_node_select(
+            type='RIGHTMOUSE', value=params.select_mouse_value, select_passthrough=False))
         items.extend([
             ("node.select", {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": [("deselect_all", False)]}),
             ("node.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-             {"properties": [("extend", True)]}),
+             {"properties": [("toggle", True)]}),
         ])
 
     items.extend([
@@ -3977,6 +3964,8 @@ def km_grease_pencil_stroke_sculpt_mode(params):
         ("gpencil.active_frames_delete_all", {"type": 'DEL', "value": 'PRESS', "shift": True}, None),
         # Active layer
         op_menu("GPENCIL_MT_layer_active", {"type": 'Y', "value": 'PRESS'}),
+        # Active material
+        op_menu("GPENCIL_MT_material_active", {"type": 'U', "value": 'PRESS'}),
         # Merge Layer
         ("gpencil.layer_merge", {"type": 'M', "value": 'PRESS', "shift": True, "ctrl": True}, None),
         # Keyframe menu
@@ -4828,6 +4817,35 @@ def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=Tru
         ("gpencil.select", {"type": type, "value": value, "shift": True, "alt": True},
          {"properties": [("extend", True), ("entire_strokes", True)]}),
     ]
+
+
+def _template_node_select(*, type, value, select_passthrough):
+    items = [
+        ("node.select", {"type": type, "value": value},
+         {"properties": [("deselect_all", True), ("select_passthrough", True)]}),
+        ("node.select", {"type": type, "value": value, "ctrl": True}, None),
+        ("node.select", {"type": type, "value": value, "alt": True}, None),
+        ("node.select", {"type": type, "value": value, "ctrl": True, "alt": True}, None),
+        ("node.select", {"type": type, "value": value, "shift": True},
+         {"properties": [("toggle", True)]}),
+        ("node.select", {"type": type, "value": value, "shift": True, "ctrl": True},
+         {"properties": [("toggle", True)]}),
+        ("node.select", {"type": type, "value": value, "shift": True, "alt": True},
+         {"properties": [("toggle", True)]}),
+        ("node.select", {"type": type, "value": value, "shift": True, "ctrl": True, "alt": True},
+         {"properties": [("toggle", True)]}),
+    ]
+
+    if select_passthrough and (value == 'PRESS'):
+        # Add an additional click item to de-select all other items,
+        # needed so pass-through is able to de-select other items.
+        items.append((
+            "node.select",
+            {"type": type, "value": 'CLICK'},
+            {"properties": [("deselect_all", True)]},
+        ))
+
+    return items
 
 
 def _template_uv_select(*, type, value, select_passthrough, legacy):
@@ -6601,10 +6619,8 @@ def km_node_editor_tool_select(params, *, fallback):
         _fallback_id("Node Tool: Tweak", fallback),
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else [
-                ("node.select", {"type": params.select_mouse, "value": 'PRESS'},
-                 {"properties": [("deselect_all", not params.legacy)]}),
-            ]),
+            *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else
+              _template_node_select(type=params.select_mouse, value='PRESS', select_passthrough=True)),
         ]},
     )
 
@@ -6621,6 +6637,8 @@ def km_node_editor_tool_select_box(params, *, fallback):
                    params.tool_tweak_event),
                 properties=[("tweak", True)],
             )),
+            *([] if (params.select_mouse == 'RIGHTMOUSE') else
+              _template_node_select(type='LEFTMOUSE', value='PRESS', select_passthrough=True)),
         ]},
     )
 

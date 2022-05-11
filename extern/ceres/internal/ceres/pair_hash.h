@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2018 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,12 @@
 #ifndef CERES_INTERNAL_PAIR_HASH_H_
 #define CERES_INTERNAL_PAIR_HASH_H_
 
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <utility>
 
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 namespace internal {

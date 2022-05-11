@@ -1,12 +1,6 @@
-uniform float faceSetsOpacity;
 uniform float faceSetsPatSeed;
 uniform float faceSetsPatScale;
 uniform bool useMoire;
-
-flat in vec3 faceset_color;
-in float mask_color;
-
-out vec4 fragColor;
 
 float tent(float f)
 {

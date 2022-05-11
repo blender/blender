@@ -232,6 +232,7 @@ void IndexBuf::init(uint indices_len, uint32_t *indices, uint min_index, uint ma
   data_ = indices;
   index_start_ = 0;
   index_len_ = indices_len;
+  is_empty_ = min_index > max_index;
 
 #if GPU_TRACK_INDEX_RANGE
   /* Everything remains 32 bit while building to keep things simple.

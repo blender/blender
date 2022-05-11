@@ -13,6 +13,8 @@
 #include "BLI_path_util.h"
 #include "BLI_task.hh"
 
+#include "IO_path_util.hh"
+
 #include "obj_export_mesh.hh"
 #include "obj_export_mtl.hh"
 #include "obj_export_nurbs.hh"
@@ -530,7 +532,11 @@ void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl_material)
 
 void MTLWriter::write_texture_map(
     const MTLMaterial &mtl_material,
-    const Map<const eMTLSyntaxElement, tex_map_XX>::Item &texture_map)
+    const Map<const eMTLSyntaxElement, tex_map_XX>::Item &texture_map,
+    const char *blen_filedir,
+    const char *dest_dir,
+    ePathReferenceMode path_mode,
+    Set<std::pair<std::string, std::string>> &copy_set)
 {
   std::string options;
   /* Option strings should have their own leading spaces. */
@@ -546,7 +552,11 @@ void MTLWriter::write_texture_map(
 
 #define SYNTAX_DISPATCH(eMTLSyntaxElement) \
   if (texture_map.key == eMTLSyntaxElement) { \
-    fmt_handler_.write<eMTLSyntaxElement>(options, texture_map.value.image_path); \
+    std::string path = path_reference( \
+        texture_map.value.image_path.c_str(), blen_filedir, dest_dir, path_mode, &copy_set); \
+    /* Always emit forward slashes for cross-platform compatibility. */ \
+    std::replace(path.begin(), path.end(), '\\', '/'); \
+    fmt_handler_.write<eMTLSyntaxElement>(options, path.c_str()); \
     return; \
   }
 
@@ -561,25 +571,35 @@ void MTLWriter::write_texture_map(
   BLI_assert(!"This map type was not written to the file.");
 }
 
-void MTLWriter::write_materials()
+void MTLWriter::write_materials(const char *blen_filepath,
+                                ePathReferenceMode path_mode,
+                                const char *dest_dir)
 {
   if (mtlmaterials_.size() == 0) {
     return;
   }
+
+  char blen_filedir[PATH_MAX];
+  BLI_split_dir_part(blen_filepath, blen_filedir, PATH_MAX);
+  BLI_path_slash_native(blen_filedir);
+  BLI_path_normalize(nullptr, blen_filedir);
+
   std::sort(mtlmaterials_.begin(),
             mtlmaterials_.end(),
             [](const MTLMaterial &a, const MTLMaterial &b) { return a.name < b.name; });
+  Set<std::pair<std::string, std::string>> copy_set;
   for (const MTLMaterial &mtlmat : mtlmaterials_) {
     fmt_handler_.write<eMTLSyntaxElement::string>("\n");
     fmt_handler_.write<eMTLSyntaxElement::newmtl>(mtlmat.name);
     write_bsdf_properties(mtlmat);
-    for (const Map<const eMTLSyntaxElement, tex_map_XX>::Item &texture_map :
-         mtlmat.texture_maps.items()) {
-      if (!texture_map.value.image_path.empty()) {
-        write_texture_map(mtlmat, texture_map);
+    for (const auto &tex : mtlmat.texture_maps.items()) {
+      if (tex.value.image_path.empty()) {
+        continue;
       }
+      write_texture_map(mtlmat, tex, blen_filedir, dest_dir, path_mode, copy_set);
     }
   }
+  path_reference_copy(copy_set);
 }
 
 Vector<int> MTLWriter::add_materials(const OBJMesh &mesh_to_export)

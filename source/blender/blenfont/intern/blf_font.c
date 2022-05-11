@@ -1374,7 +1374,7 @@ bool blf_font_size(FontBLF *font, float size, unsigned int dpi)
       font->dpi = dpi;
     }
     else {
-      printf("The current font does not support the size, %f and dpi, %u\n", size, dpi);
+      printf("The current font does not support the size, %f and DPI, %u\n", size, dpi);
       return false;
     }
   }

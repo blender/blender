@@ -1026,7 +1026,9 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
         if (bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID ||
             bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID ||
             bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID ||
-            bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID) {
+            bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID ||
+            bsdf->type == CLOSURE_BSDF_REFRACTION_ID ||
+            bsdf->type == CLOSURE_BSDF_SHARP_GLASS_ID) {
           /* Note that CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID and
            * CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID are treated as
            * CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID further below. */
@@ -1038,11 +1040,14 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
           const float eta = (sd_mnee->flag & SD_BACKFACING) ? 1.0f / microfacet_bsdf->ior :
                                                               microfacet_bsdf->ior;
 
-          /* Sample transmissive microfacet bsdf. */
-          float bsdf_u, bsdf_v;
-          path_state_rng_2D(kg, rng_state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
-          float2 h = mnee_sample_bsdf_dh(
-              bsdf->type, microfacet_bsdf->alpha_x, microfacet_bsdf->alpha_y, bsdf_u, bsdf_v);
+          float2 h = zero_float2();
+          if (microfacet_bsdf->alpha_x > 0.f && microfacet_bsdf->alpha_y > 0.f) {
+            /* Sample transmissive microfacet bsdf. */
+            float bsdf_u, bsdf_v;
+            path_state_rng_2D(kg, rng_state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
+            h = mnee_sample_bsdf_dh(
+                bsdf->type, microfacet_bsdf->alpha_x, microfacet_bsdf->alpha_y, bsdf_u, bsdf_v);
+          }
 
           /* Setup differential geometry on vertex. */
           mnee_setup_manifold_vertex(

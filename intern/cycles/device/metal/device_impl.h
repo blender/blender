@@ -28,7 +28,8 @@ class MetalDevice : public Device {
   id<MTLCommandQueue> mtlGeneralCommandQueue = nil;
   id<MTLArgumentEncoder> mtlAncillaryArgEncoder =
       nil; /* encoder used for fetching device pointers from MTLBuffers */
-  string source_used_for_compile[PSO_NUM];
+  string source[PSO_NUM];
+  string source_md5[PSO_NUM];
 
   KernelParamsMetal launch_params = {0};
 
@@ -72,7 +73,6 @@ class MetalDevice : public Device {
   id<MTLBuffer> texture_bindings_3d = nil;
   std::vector<id<MTLTexture>> texture_slot_map;
 
-  MetalDeviceKernels kernels;
   bool use_metalrt = false;
   bool use_function_specialisation = false;
 
@@ -109,6 +109,8 @@ class MetalDevice : public Device {
   virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
 
   virtual void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
+
+  id<MTLLibrary> compile(string const &source);
 
   /* ------------------------------------------------------------------ */
   /* low-level memory management */

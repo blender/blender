@@ -171,14 +171,6 @@ vec2 attr_load_vec2(vec2 attr)
 {
   return vec2(0);
 }
-vec4 attr_load_color(vec4 attr)
-{
-  return vec4(0);
-}
-vec3 attr_load_uv(vec3 attr)
-{
-  return vec3(0);
-}
 
 /* Passthrough. */
 float attr_load_temperature_post(float attr)

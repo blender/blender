@@ -57,8 +57,6 @@ Mesh *create_cylinder_or_cone_mesh(float radius_top,
                                    GeometryNodeMeshCircleFillType fill_type,
                                    ConeAttributeOutputs &attribute_outputs);
 
-Mesh *create_cuboid_mesh(float3 size, int verts_x, int verts_y, int verts_z);
-
 /**
  * Copies the point domain attributes from `in_component` that are in the mask to `out_component`.
  */
@@ -80,15 +78,5 @@ void separate_geometry(GeometrySet &geometry_set,
 
 std::optional<CustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
 std::optional<CustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);
-
-class SplineLengthFieldInput final : public GeometryFieldInput {
- public:
-  SplineLengthFieldInput();
-  GVArray get_varray_for_context(const GeometryComponent &component,
-                                 AttributeDomain domain,
-                                 IndexMask mask) const final;
-  uint64_t hash() const override;
-  bool is_equal_to(const fn::FieldNode &other) const override;
-};
 
 }  // namespace blender::nodes
