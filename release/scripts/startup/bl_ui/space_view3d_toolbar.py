@@ -391,6 +391,11 @@ class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 14
 
+    @classmethod
+    def poll(cls, context):
+        mode = cls.get_brush_mode(context)
+        return mode is not None and mode != 'SCULPT_CURVES'
+
     def draw(self, context):
         layout = self.layout
 
