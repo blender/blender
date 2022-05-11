@@ -4391,7 +4391,8 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         ED_workspace_status_text(C, NULL);
 
         return OPERATOR_CANCELLED;
-      case KNF_MODAL_CONFIRM:
+      case KNF_MODAL_CONFIRM: {
+        const bool changed = (kcd->totkvert != 0);
         /* finish */
         ED_region_tag_redraw(kcd->region);
 
@@ -4400,11 +4401,11 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         ED_workspace_status_text(C, NULL);
 
         /* Cancel to prevent undo push for empty cuts. */
-        if (kcd->totkvert == 0) {
+        if (!changed) {
           return OPERATOR_CANCELLED;
         }
-
         return OPERATOR_FINISHED;
+      }
       case KNF_MODAL_UNDO:
         if (BLI_stack_is_empty(kcd->undostack)) {
           ED_region_tag_redraw(kcd->region);
