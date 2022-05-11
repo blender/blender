@@ -1477,14 +1477,14 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath)
     const int width = fd_data[0];
     const int height = fd_data[1];
     if (BLEN_THUMB_MEMSIZE_IS_VALID(width, height)) {
-      const size_t sz = BLEN_THUMB_MEMSIZE(width, height);
-      data = MEM_mallocN(sz, __func__);
+      const size_t data_size = BLEN_THUMB_MEMSIZE(width, height);
+      data = MEM_mallocN(data_size, __func__);
       if (data) {
-        BLI_assert((sz - sizeof(*data)) ==
+        BLI_assert((data_size - sizeof(*data)) ==
                    (BLEN_THUMB_MEMSIZE_FILE(width, height) - (sizeof(*fd_data) * 2)));
         data->width = width;
         data->height = height;
-        memcpy(data->rect, &fd_data[2], sz - sizeof(*data));
+        memcpy(data->rect, &fd_data[2], data_size - sizeof(*data));
       }
     }
   }
@@ -3857,14 +3857,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       const int width = data[0];
       const int height = data[1];
       if (BLEN_THUMB_MEMSIZE_IS_VALID(width, height)) {
-        const size_t sz = BLEN_THUMB_MEMSIZE(width, height);
-        bfd->main->blen_thumb = MEM_mallocN(sz, __func__);
+        const size_t data_size = BLEN_THUMB_MEMSIZE(width, height);
+        bfd->main->blen_thumb = MEM_mallocN(data_size, __func__);
 
-        BLI_assert((sz - sizeof(*bfd->main->blen_thumb)) ==
+        BLI_assert((data_size - sizeof(*bfd->main->blen_thumb)) ==
                    (BLEN_THUMB_MEMSIZE_FILE(width, height) - (sizeof(*data) * 2)));
         bfd->main->blen_thumb->width = width;
         bfd->main->blen_thumb->height = height;
-        memcpy(bfd->main->blen_thumb->rect, &data[2], sz - sizeof(*bfd->main->blen_thumb));
+        memcpy(bfd->main->blen_thumb->rect, &data[2], data_size - sizeof(*bfd->main->blen_thumb));
       }
     }
   }

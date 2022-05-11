@@ -168,11 +168,11 @@ void draw_keyframe_shape(float x,
 /* Common attributes shared between the draw calls. */
 typedef struct DrawKeylistUIData {
   float alpha;
-  float icon_sz;
-  float half_icon_sz;
-  float smaller_sz;
-  float ipo_sz;
-  float gpencil_sz;
+  float icon_size;
+  float half_icon_size;
+  float smaller_size;
+  float ipo_size;
+  float gpencil_size;
   float screenspace_margin;
   float sel_color[4];
   float unsel_color[4];
@@ -195,11 +195,11 @@ static void draw_keylist_ui_data_init(DrawKeylistUIData *ctx,
   /* TODO: allow this opacity factor to be themed? */
   ctx->alpha = channel_locked ? 0.25f : 1.0f;
 
-  ctx->icon_sz = U.widget_unit * 0.5f * yscale_fac;
-  ctx->half_icon_sz = 0.5f * ctx->icon_sz;
-  ctx->smaller_sz = 0.35f * ctx->icon_sz;
-  ctx->ipo_sz = 0.1f * ctx->icon_sz;
-  ctx->gpencil_sz = ctx->smaller_sz * 0.8f;
+  ctx->icon_size = U.widget_unit * 0.5f * yscale_fac;
+  ctx->half_icon_size = 0.5f * ctx->icon_size;
+  ctx->smaller_size = 0.35f * ctx->icon_size;
+  ctx->ipo_size = 0.1f * ctx->icon_size;
+  ctx->gpencil_size = ctx->smaller_size * 0.8f;
   ctx->screenspace_margin = (0.35f * (float)UI_UNIT_X) / UI_view2d_scale_get_x(v2d);
 
   ctx->show_ipo = (saction_flag & SACTION_SHOW_INTERPOLATION) != 0;
@@ -242,8 +242,8 @@ static void draw_keylist_block_gpencil(const DrawKeylistUIData *ctx,
       &(const rctf){
           .xmin = ab->cfra,
           .xmax = min_ff(ab->next->cfra - (ctx->screenspace_margin * size), ab->next->cfra),
-          .ymin = ypos - ctx->gpencil_sz,
-          .ymax = ypos + ctx->gpencil_sz,
+          .ymin = ypos - ctx->gpencil_size,
+          .ymax = ypos + ctx->gpencil_size,
       },
       true,
       0.25f * (float)UI_UNIT_X,
@@ -259,8 +259,8 @@ static void draw_keylist_block_moving_hold(const DrawKeylistUIData *ctx,
       &(const rctf){
           .xmin = ab->cfra,
           .xmax = ab->next->cfra,
-          .ymin = ypos - ctx->smaller_sz,
-          .ymax = ypos + ctx->smaller_sz,
+          .ymin = ypos - ctx->smaller_size,
+          .ymax = ypos + ctx->smaller_size,
       },
       true,
       3.0f,
@@ -275,8 +275,8 @@ static void draw_keylist_block_standard(const DrawKeylistUIData *ctx,
       &(const rctf){
           .xmin = ab->cfra,
           .xmax = ab->next->cfra,
-          .ymin = ypos - ctx->half_icon_sz,
-          .ymax = ypos + ctx->half_icon_sz,
+          .ymin = ypos - ctx->half_icon_size,
+          .ymax = ypos + ctx->half_icon_size,
       },
       true,
       3.0f,
@@ -291,8 +291,8 @@ static void draw_keylist_block_interpolation_line(const DrawKeylistUIData *ctx,
       &(const rctf){
           .xmin = ab->cfra,
           .xmax = ab->next->cfra,
-          .ymin = ypos - ctx->ipo_sz,
-          .ymax = ypos + ctx->ipo_sz,
+          .ymin = ypos - ctx->ipo_size,
+          .ymax = ypos + ctx->ipo_size,
       },
       true,
       3.0f,
@@ -367,7 +367,7 @@ static void draw_keylist_keys(const DrawKeylistUIData *ctx,
 
       draw_keyframe_shape(ak->cfra,
                           ypos,
-                          ctx->icon_sz,
+                          ctx->icon_size,
                           (ak->sel & SELECT),
                           ak->key_type,
                           KEYFRAME_SHAPE_BOTH,

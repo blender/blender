@@ -490,7 +490,7 @@ static void immEndVertex() /* and move on to the next vertex */
 #endif
 
         uchar *data = imm->vertex_data + a->offset;
-        memcpy(data, data - imm->vertex_format.stride, a->sz);
+        memcpy(data, data - imm->vertex_format.stride, a->size);
         /* TODO: consolidate copy of adjacent attributes */
       }
     }
