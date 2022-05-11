@@ -15,7 +15,7 @@ namespace blender::geometry {
  * samples defined by the count field. Interpolate attributes to the result, with an accuracy that
  * depends on the curve's resolution parameter.
  *
- * \note The values provided by the #count_field are clampled to 1 or greater.
+ * \note The values provided by the #count_field are clamped to 1 or greater.
  */
 Curves *resample_to_count(const CurveComponent &src_component,
                           const fn::Field<bool> &selection_field,

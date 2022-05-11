@@ -234,7 +234,7 @@ struct AddOperationExecutor {
       neighbors_per_curve = this->find_curve_neighbors(added_points);
     }
 
-    /* Resize to add the new curves, building the offests in the array owned by thge curves. */
+    /* Resize to add the new curves, building the offsets in the array owned by the curves. */
     const int tot_added_curves = added_points.bary_coords.size();
     curves_->resize(curves_->points_num(), curves_->curves_num() + tot_added_curves);
     if (interpolate_point_count_) {

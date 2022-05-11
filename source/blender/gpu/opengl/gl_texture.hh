@@ -363,7 +363,7 @@ inline GLenum to_gl_data_format(eGPUTextureFormat format)
 }
 
 /**
- * Assume Unorm / Float target. Used with #glReadPixels.
+ * Assume UNORM/Float target. Used with #glReadPixels.
  */
 inline GLenum channel_len_to_gl(int channel_len)
 {
