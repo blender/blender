@@ -1231,11 +1231,11 @@ static void sculpt_request_active_vcol(MeshBatchCache *cache, Object *object, Me
       &me_query.id, render, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 
   if (active_i >= 0) {
-    cache->cd_used.vcol |= 1UL << (uint)active_i;
+    cache->cd_needed.vcol |= 1UL << (uint)active_i;
   }
 
   if (render_i >= 0) {
-    cache->cd_used.vcol |= 1UL << (uint)render_i;
+    cache->cd_needed.vcol |= 1UL << (uint)render_i;
   }
 }
 
