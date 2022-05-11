@@ -622,7 +622,7 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   if (read_mesh != mesh) {
     /* XXX FIXME: after 2.80; mesh->flag isn't copied by #BKE_mesh_nomain_to_mesh(). */
     /* read_mesh can be freed by BKE_mesh_nomain_to_mesh(), so get the flag before that happens. */
-    short autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
+    uint16_t autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
     BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_EVERYTHING, true);
     mesh->flag |= autosmooth;
   }
