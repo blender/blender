@@ -1809,6 +1809,25 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
     TreeElementOverridesProperty &override_elem = *tree_element_cast<TreeElementOverridesProperty>(
         te);
 
+    if (!override_elem.is_rna_path_valid) {
+      uiBut *but = uiDefBut(block,
+                            UI_BTYPE_LABEL,
+                            0,
+                            override_elem.rna_path.c_str(),
+                            x + pad_x,
+                            te->ys + pad_y,
+                            item_max_width,
+                            item_height,
+                            NULL,
+                            0.0f,
+                            0.0f,
+                            0.0f,
+                            0.0f,
+                            "");
+      UI_but_flag_enable(but, UI_BUT_REDALERT);
+      continue;
+    }
+
     PointerRNA *ptr = &override_elem.override_rna_ptr;
     PropertyRNA *prop = &override_elem.override_rna_prop;
     const PropertyType prop_type = RNA_property_type(prop);
@@ -1936,8 +1955,9 @@ static bool outliner_draw_overrides_warning_buts(uiBlock *block,
         break;
       }
       case TSE_LIBRARY_OVERRIDE: {
-        const bool is_rna_path_valid = (bool)(POINTER_AS_UINT(te->directdata));
-        if (!is_rna_path_valid) {
+        TreeElementOverridesProperty &te_override_prop =
+            *tree_element_cast<TreeElementOverridesProperty>(te);
+        if (!te_override_prop.is_rna_path_valid) {
           item_has_warnings = true;
           if (do_draw) {
             tip = TIP_(
