@@ -1577,6 +1577,19 @@ void BKE_mesh_smooth_flag_set(Mesh *me, const bool use_smooth)
   }
 }
 
+void BKE_mesh_auto_smooth_flag_set(Mesh *me,
+                                   const bool use_auto_smooth,
+                                   const float auto_smooth_angle)
+{
+  if (use_auto_smooth) {
+    me->flag |= ME_AUTOSMOOTH;
+    me->smoothresh = auto_smooth_angle;
+  }
+  else {
+    me->flag &= ~ME_AUTOSMOOTH;
+  }
+}
+
 int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart, uint vert)
 {
   for (int j = 0; j < poly->totloop; j++, loopstart++) {

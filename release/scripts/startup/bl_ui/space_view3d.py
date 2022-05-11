@@ -2346,6 +2346,7 @@ class VIEW3D_MT_object(Menu):
         layout.separator()
 
         layout.operator("object.shade_smooth")
+        layout.operator("object.shade_smooth", text="Shade Auto Smooth").use_auto_smooth = True
         layout.operator("object.shade_flat")
 
         layout.separator()
@@ -2588,7 +2589,8 @@ class VIEW3D_MT_object_context_menu(Menu):
         # Shared among some object types.
         if obj is not None:
             if obj.type in {'MESH', 'CURVE', 'SURFACE'}:
-                layout.operator("object.shade_smooth", text="Shade Smooth")
+                layout.operator("object.shade_smooth")
+                layout.operator("object.shade_smooth", text="Shade Auto Smooth").use_auto_smooth = True
                 layout.operator("object.shade_flat", text="Shade Flat")
 
                 layout.separator()
