@@ -74,7 +74,8 @@ enum {
   UI_SELECT_DRAW = (1 << 5),
   /** Property search filter is active and the button does not match. */
   UI_SEARCH_FILTER_NO_MATCH = (1 << 6),
-  /* WARNING: rest of #uiBut.flag in UI_interface.h */
+
+  /* WARNING: rest of #uiBut.flag in UI_interface.h (starting at `1 << 10`). */
 };
 
 /** #uiBut.dragflag */
