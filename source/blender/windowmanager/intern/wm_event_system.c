@@ -4087,7 +4087,11 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
   /* Close any popups, like when opening a file browser from the splash. */
   UI_popup_handlers_remove_all(C, &root_win->modalhandlers);
 
-  CTX_wm_window_set(C, root_win);
+  /* Setting the context window unsets the context area & screen. Avoid doing that, so operators
+   * calling the file browser can operate in the context the browser was opened in. */
+  if (ctx_win != root_win) {
+    CTX_wm_window_set(C, root_win);
+  }
 
   /* The root window may already have a File Browser open. Cancel it if so, only 1 should be open
    * per window. The root context of this operation is also used for the new operation. */
@@ -4142,7 +4146,9 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 
   WM_event_fileselect_event(wm, op, EVT_FILESELECT_FULL_OPEN);
 
-  CTX_wm_window_set(C, ctx_win);
+  if (ctx_win != root_win) {
+    CTX_wm_window_set(C, ctx_win);
+  }
 }
 
 /** \} */
