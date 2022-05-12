@@ -97,6 +97,8 @@
 #include "RNA_enum_types.h"
 #include "RNA_types.h"
 
+#include "NOD_shader.h"
+
 #include "IMB_colormanagement.h"
 
 //#include "bmesh_tools.h"
@@ -6436,6 +6438,17 @@ static const EnumPropertyItem layer_type_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+static Material *get_or_create_current_material(bContext *C, Object *ob)
+{
+  Material *ma = BKE_object_material_get(ob, ob->actcol);
+  if (!ma) {
+    Main *bmain = CTX_data_main(C);
+    ma = BKE_material_add(bmain, "Material");
+    BKE_object_material_assign(bmain, ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
+  }
+  return ma;
+}
+
 static Image *proj_paint_image_create(wmOperator *op, Main *bmain, bool is_data)
 {
   Image *ima;
@@ -6505,55 +6518,65 @@ static CustomDataLayer *proj_paint_color_attribute_create(wmOperator *op, Object
   return layer;
 }
 
-static void proj_paint_default_color(wmOperator *op, int type, Material *ma)
+/**
+ * Get a default color for the paint slot layer from a material's Principled BSDF.
+ *
+ * \param layer_type: The layer type of the paint slot
+ * \param ma: The material to attempt using as the default color source.
+ *            If this fails or \p ma is null, a default Principled BSDF is used instead.
+ */
+static void default_paint_slot_color_get(int layer_type, Material *ma, float color[4])
 {
-  if (RNA_struct_property_is_set(op->ptr, "color")) {
-    return;
-  }
-
-  bNode *in_node = ntreeFindType(ma->nodetree, SH_NODE_BSDF_PRINCIPLED);
-  if (in_node == NULL) {
-    return;
-  }
-
-  float color[4];
-
-  if (type >= LAYER_BASE_COLOR && type < LAYER_NORMAL) {
-    /* Copy color from node, so result is unchanged after assigning textures. */
-    bNodeSocket *in_sock = nodeFindSocket(in_node, SOCK_IN, layer_type_items[type].name);
-
-    switch (in_sock->type) {
-      case SOCK_FLOAT: {
-        bNodeSocketValueFloat *socket_data = in_sock->default_value;
-        copy_v3_fl(color, socket_data->value);
-        color[3] = 1.0f;
-        break;
+  switch (layer_type) {
+    case LAYER_BASE_COLOR:
+    case LAYER_SPECULAR:
+    case LAYER_ROUGHNESS:
+    case LAYER_METALLIC: {
+      bNodeTree *ntree = NULL;
+      bNode *in_node = ma ? ntreeFindType(ma->nodetree, SH_NODE_BSDF_PRINCIPLED) : NULL;
+      if (!in_node) {
+        /* An existing material or Principled BSDF node could not be found.
+         * Copy default color values from a default Principled BSDF instead. */
+        ntree = ntreeAddTree(NULL, "Temporary Shader Nodetree", ntreeType_Shader->idname);
+        in_node = nodeAddStaticNode(NULL, ntree, SH_NODE_BSDF_PRINCIPLED);
       }
-      case SOCK_VECTOR:
-      case SOCK_RGBA: {
-        bNodeSocketValueRGBA *socket_data = in_sock->default_value;
-        copy_v3_v3(color, socket_data->value);
-        color[3] = 1.0f;
-        break;
+      bNodeSocket *in_sock = nodeFindSocket(in_node, SOCK_IN, layer_type_items[layer_type].name);
+      switch (in_sock->type) {
+        case SOCK_FLOAT: {
+          bNodeSocketValueFloat *socket_data = in_sock->default_value;
+          copy_v3_fl(color, socket_data->value);
+          color[3] = 1.0f;
+          break;
+        }
+        case SOCK_VECTOR:
+        case SOCK_RGBA: {
+          bNodeSocketValueRGBA *socket_data = in_sock->default_value;
+          copy_v3_v3(color, socket_data->value);
+          color[3] = 1.0f;
+          break;
+        }
+        default:
+          BLI_assert_unreachable();
+          rgba_float_args_set(color, 0.0f, 0.0f, 0.0f, 1.0f);
+          break;
       }
-      default: {
-        return;
+      /* Cleanup */
+      if (ntree) {
+        ntreeFreeTree(ntree);
+        MEM_freeN(ntree);
       }
+      return;
     }
+    case LAYER_NORMAL:
+      /* Neutral tangent space normal map. */
+      rgba_float_args_set(color, 0.5f, 0.5f, 1.0f, 1.0f);
+      break;
+    case LAYER_BUMP:
+    case LAYER_DISPLACEMENT:
+      /* Neutral displacement and bump map. */
+      rgba_float_args_set(color, 0.5f, 0.5f, 0.5f, 1.0f);
+      break;
   }
-  else if (type == LAYER_NORMAL) {
-    /* Neutral tangent space normal map. */
-    rgba_float_args_set(color, 0.5f, 0.5f, 1.0f, 1.0f);
-  }
-  else if (ELEM(type, LAYER_BUMP, LAYER_DISPLACEMENT)) {
-    /* Neutral displacement and bump map. */
-    rgba_float_args_set(color, 0.5f, 0.5f, 0.5f, 1.0f);
-  }
-  else {
-    return;
-  }
-
-  RNA_float_set_array(op->ptr, "color", color);
 }
 
 static bool proj_paint_add_slot(bContext *C, wmOperator *op)
@@ -6568,7 +6591,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
     return false;
   }
 
-  ma = BKE_object_material_get(ob, ob->actcol);
+  ma = get_or_create_current_material(C, ob);
 
   if (ma) {
     Main *bmain = CTX_data_main(C);
@@ -6703,25 +6726,8 @@ static int get_texture_layer_type(wmOperator *op, const char *prop_name)
   return type;
 }
 
-static Material *get_or_create_current_material(bContext *C, Object *ob)
-{
-  Material *ma = BKE_object_material_get(ob, ob->actcol);
-  if (!ma) {
-    Main *bmain = CTX_data_main(C);
-    ma = BKE_material_add(bmain, "Material");
-    BKE_object_material_assign(bmain, ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
-  }
-  return ma;
-}
-
 static int texture_paint_add_texture_paint_slot_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = ED_object_active_context(C);
-  Material *ma = get_or_create_current_material(C, ob);
-
-  int type = get_texture_layer_type(op, "type");
-  proj_paint_default_color(op, type, ma);
-
   if (proj_paint_add_slot(C, op)) {
     return OPERATOR_FINISHED;
   }
@@ -6742,16 +6748,20 @@ static int texture_paint_add_texture_paint_slot_invoke(bContext *C,
                                                        wmOperator *op,
                                                        const wmEvent *UNUSED(event))
 {
-  /* Get material and default color to display in the popup. */
   Object *ob = ED_object_active_context(C);
-  Material *ma = get_or_create_current_material(C, ob);
+  Material *ma = BKE_object_material_get(ob, ob->actcol);
 
   int type = get_texture_layer_type(op, "type");
-  proj_paint_default_color(op, type, ma);
 
-  char name[MAX_NAME];
-  get_default_texture_layer_name_for_object(ob, type, (char *)&name, sizeof(name));
-  RNA_string_set(op->ptr, "name", name);
+  /* Set default name. */
+  char imagename[MAX_ID_NAME - 2];
+  get_default_texture_layer_name_for_object(ob, type, (char *)&imagename, sizeof(imagename));
+  RNA_string_set(op->ptr, "name", imagename);
+
+  /* Set default color. Copy the color from nodes, so it matches the existing material. */
+  float color[4];
+  default_paint_slot_color_get(type, ma, color);
+  RNA_float_set_array(op->ptr, "color", color);
 
   return WM_operator_props_dialog_popup(C, op, 300);
 }
