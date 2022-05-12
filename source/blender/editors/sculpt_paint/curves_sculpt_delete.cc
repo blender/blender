@@ -35,6 +35,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "WM_api.h"
+
 /**
  * The code below uses a suffix naming convention to indicate the coordinate space:
  * cu: Local space of the curves object that is being edited.
@@ -137,6 +139,7 @@ struct DeleteOperationExecutor {
     curves_->remove_curves(mask);
 
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
     ED_region_tag_redraw(region_);
   }
 

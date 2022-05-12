@@ -37,6 +37,8 @@
 
 #include "UI_interface.h"
 
+#include "WM_api.h"
+
 /**
  * The code below uses a prefix naming convention to indicate the coordinate space:
  * cu: Local space of the curves object that is being edited.
@@ -186,6 +188,7 @@ struct CombOperationExecutor {
 
     curves_->tag_positions_changed();
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
     ED_region_tag_redraw(region_);
   }
 

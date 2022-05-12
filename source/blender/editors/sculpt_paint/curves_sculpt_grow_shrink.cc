@@ -36,6 +36,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "WM_api.h"
+
 #include "curves_sculpt_intern.hh"
 
 /**
@@ -356,6 +358,7 @@ struct CurvesEffectOperationExecutor {
 
     curves_->tag_positions_changed();
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
     ED_region_tag_redraw(region_);
   }
 
