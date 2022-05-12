@@ -540,111 +540,93 @@ MovieTrackingTrack *tracking_marker_check_slide(
   const float distance_clip_squared = 12.0f * 12.0f;
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *region = CTX_wm_region(C);
-
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  MovieTrackingTrack *track;
-  int width, height;
-  float co[2];
   ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
-  int framenr = ED_space_clip_get_clip_frame_number(sc);
+  const int framenr = ED_space_clip_get_clip_frame_number(sc);
   float global_min_distance_squared = FLT_MAX;
 
-  /* Sliding zone designator which is the closest to the mouse
-   * across all the tracks.
-   */
+  /* Sliding zone designator which is the closest to the mouse across all the tracks. */
   int min_action = -1, min_area = 0, min_corner = -1;
   MovieTrackingTrack *min_track = NULL;
 
+  int width, height;
   ED_space_clip_get_size(sc, &width, &height);
-
   if (width == 0 || height == 0) {
     return NULL;
   }
 
+  float co[2];
   ED_clip_mouse_pos(sc, region, event->mval, co);
 
-  track = tracksbase->first;
-  while (track) {
-    if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-      const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-      /* Sliding zone designator which is the closest to the mouse for
-       * the current tracks.
-       */
-      float min_distance_squared = FLT_MAX;
-      int action = -1, area = 0, corner = -1;
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
+    if (!TRACK_VIEW_SELECTED(sc, track) || (track->flag & TRACK_LOCKED)) {
+      continue;
+    }
 
-      if ((marker->flag & MARKER_DISABLED) == 0) {
-        float distance_squared;
+    const MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+    if (marker->flag & MARKER_DISABLED) {
+      continue;
+    }
 
-        /* We start checking with whether the mouse is close enough
-         * to the pattern offset area.
-         */
-        distance_squared = mouse_to_offset_distance_squared(track, marker, co, width, height);
-        area = TRACK_AREA_POINT;
-        action = SLIDE_ACTION_POS;
+    /* We start checking with whether the mouse is close enough to the pattern offset area. */
+    float distance_squared = mouse_to_offset_distance_squared(track, marker, co, width, height);
 
-        /* NOTE: All checks here are assuming there's no maximum distance
-         * limit, so checks are quite simple here.
-         * Actual distance clipping happens later once all the sliding
-         * zones are checked.
-         */
+    /* Sliding zone designator which is the closest to the mouse for the current tracks.
+     *
+     * NOTE: All checks here are assuming there's no maximum distance limit, so checks are quite
+     * simple here. Actual distance clipping happens later once all the sliding zones are checked.
+     */
+    float min_distance_squared = distance_squared;
+    int area = TRACK_AREA_POINT;
+    int action = SLIDE_ACTION_POS;
+    int corner = -1;
+
+    /* If search area is visible, check how close to its sliding zones mouse is. */
+    if (sc->flag & SC_SHOW_MARKER_SEARCH) {
+      distance_squared = mouse_to_search_corner_distance_squared(marker, co, 1, width, height);
+      if (distance_squared < min_distance_squared) {
+        area = TRACK_AREA_SEARCH;
+        action = SLIDE_ACTION_OFFSET;
         min_distance_squared = distance_squared;
+      }
 
-        /* If search area is visible, check how close to its sliding
-         * zones mouse is.
-         */
-        if (sc->flag & SC_SHOW_MARKER_SEARCH) {
-          distance_squared = mouse_to_search_corner_distance_squared(marker, co, 1, width, height);
-          if (distance_squared < min_distance_squared) {
-            area = TRACK_AREA_SEARCH;
-            action = SLIDE_ACTION_OFFSET;
-            min_distance_squared = distance_squared;
-          }
-
-          distance_squared = mouse_to_search_corner_distance_squared(marker, co, 0, width, height);
-          if (distance_squared < min_distance_squared) {
-            area = TRACK_AREA_SEARCH;
-            action = SLIDE_ACTION_SIZE;
-            min_distance_squared = distance_squared;
-          }
-        }
-
-        /* If pattern area is visible, check which corner is closest to
-         * the mouse.
-         */
-        if (sc->flag & SC_SHOW_MARKER_PATTERN) {
-          int current_corner = -1;
-          distance_squared = mouse_to_closest_pattern_corner_distance_squared(
-              marker, co, width, height, &current_corner);
-          if (distance_squared < min_distance_squared) {
-            area = TRACK_AREA_PAT;
-            action = SLIDE_ACTION_POS;
-            corner = current_corner;
-            min_distance_squared = distance_squared;
-          }
-
-          /* Here we also check whether the mouse is actually closer to
-           * the widget which controls scale and tilt.
-           */
-          distance_squared = mouse_to_tilt_distance_squared(marker, co, width, height);
-          if (distance_squared < min_distance_squared) {
-            area = TRACK_AREA_PAT;
-            action = SLIDE_ACTION_TILT_SIZE;
-            min_distance_squared = distance_squared;
-          }
-        }
-
-        if (min_distance_squared < global_min_distance_squared) {
-          min_area = area;
-          min_action = action;
-          min_corner = corner;
-          min_track = track;
-          global_min_distance_squared = min_distance_squared;
-        }
+      distance_squared = mouse_to_search_corner_distance_squared(marker, co, 0, width, height);
+      if (distance_squared < min_distance_squared) {
+        area = TRACK_AREA_SEARCH;
+        action = SLIDE_ACTION_SIZE;
+        min_distance_squared = distance_squared;
       }
     }
 
-    track = track->next;
+    /* If pattern area is visible, check which corner is closest to the mouse. */
+    if (sc->flag & SC_SHOW_MARKER_PATTERN) {
+      int current_corner = -1;
+      distance_squared = mouse_to_closest_pattern_corner_distance_squared(
+          marker, co, width, height, &current_corner);
+      if (distance_squared < min_distance_squared) {
+        area = TRACK_AREA_PAT;
+        action = SLIDE_ACTION_POS;
+        corner = current_corner;
+        min_distance_squared = distance_squared;
+      }
+
+      /* Here we also check whether the mouse is actually closer to the widget which controls scale
+       * and tilt. */
+      distance_squared = mouse_to_tilt_distance_squared(marker, co, width, height);
+      if (distance_squared < min_distance_squared) {
+        area = TRACK_AREA_PAT;
+        action = SLIDE_ACTION_TILT_SIZE;
+        min_distance_squared = distance_squared;
+      }
+    }
+
+    if (min_distance_squared < global_min_distance_squared) {
+      min_area = area;
+      min_action = action;
+      min_corner = corner;
+      min_track = track;
+      global_min_distance_squared = min_distance_squared;
+    }
   }
 
   if (global_min_distance_squared < distance_clip_squared / sc->zoom) {
@@ -659,6 +641,7 @@ MovieTrackingTrack *tracking_marker_check_slide(
     }
     return min_track;
   }
+
   return NULL;
 }
 
