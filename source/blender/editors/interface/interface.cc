@@ -6263,34 +6263,6 @@ uiBut *uiDefIconBlockBut(uiBlock *block,
   return but;
 }
 
-uiBut *uiDefKeyevtButS(uiBlock *block,
-                       int retval,
-                       const char *str,
-                       int x,
-                       int y,
-                       short width,
-                       short height,
-                       short *spoin,
-                       const char *tip)
-{
-  uiBut *but = ui_def_but(block,
-                          UI_BTYPE_KEY_EVENT | UI_BUT_POIN_SHORT,
-                          retval,
-                          str,
-                          x,
-                          y,
-                          width,
-                          height,
-                          spoin,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0.0,
-                          tip);
-  ui_but_update(but);
-  return but;
-}
-
 uiBut *uiDefSearchBut(uiBlock *block,
                       void *arg,
                       int retval,
