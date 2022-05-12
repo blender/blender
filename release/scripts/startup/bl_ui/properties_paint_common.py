@@ -659,13 +659,9 @@ class UnifiedPaintPanel:
                         #here?
                         box = layout.box()
 
-                        box.template_curve_mapping(mp, "curve", brush=True, use_negative_slope=True)
-
                         col = box.column(align=True)
                         col.use_property_split = True
                         col.use_property_decorate = False
-                        
-                        row = col.row(align=True)
 
                         if mp0.inherit_mode == "ALWAYS" or (mp0.inherit_mode == "USE_CHANNEL" and ch.inherits):
                             path2 = path + ".mappings[\"%s\"].curve" % (mp.type)
@@ -673,13 +669,21 @@ class UnifiedPaintPanel:
                             brushpath = "tool_settings.sculpt.brush.channels[\"%s\"]" % ch.idname
                             path2 = brushpath + ".mappings[\"%s\"].curve" % (mp.type)
 
-                        shapes = ['SMOOTH', 'ROUND', 'ROOT', 'SHARP', 'LINE', 'MAX']
-                        icons = ['SMOOTHCURVE', 'SPHERECURVE', 'ROOTCURVE', 'SHARPCURVE', 'LINCURVE', 'NOCURVE']
 
-                        for i, shape in enumerate(shapes):
-                            props = row.operator("brush.curve_preset_load", icon=icons[i], text="")
-                            props.shape = shape
-                            props.path = path2
+                        col.prop(mp.curve, "curve_preset", text=text)
+
+                        row = col.row(align=True)
+
+                        if not header and mp.curve.curve_preset == "CUSTOM":
+                            template_curve(col, mp.curve, "curve", path2 + ".curve", use_negative_slope=True)
+
+                            shapes = ['SMOOTH', 'ROUND', 'ROOT', 'SHARP', 'LINE', 'MAX']
+                            icons = ['SMOOTHCURVE', 'SPHERECURVE', 'ROOTCURVE', 'SHARPCURVE', 'LINCURVE', 'NOCURVE']
+
+                            for i, shape in enumerate(shapes):
+                                props = row.operator("brush.curve_preset_load", icon=icons[i], text="")
+                                props.shape = shape
+                                props.path = path2 + ".curve"
 
                         col.prop(mp, "factor")
                         col.prop(mp, "blendmode")

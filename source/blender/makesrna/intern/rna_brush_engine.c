@@ -410,7 +410,7 @@ PointerRNA rna_BrushMapping_curve_get(PointerRNA *ptr)
   // make sure we can write to curve
   BKE_brush_mapping_ensure_write(mapping);
 
-  return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, mapping->curve);
+  return rna_pointer_inherit_refine(ptr, &RNA_BrushCurve, &mapping->mapping_curve);
 }
 
 PointerRNA rna_BrushCurve_curve_get(PointerRNA *ptr)
@@ -747,7 +747,7 @@ void RNA_def_brush_mapping(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "curve", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "CurveMapping");
+  RNA_def_property_struct_type(prop, "BrushCurve");
   RNA_def_property_ui_text(prop, "Curve Sensitivity", "Curve used for the sensitivity");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_pointer_funcs(prop, "rna_BrushMapping_curve_get", NULL, NULL, NULL);

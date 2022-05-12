@@ -348,7 +348,7 @@ bool BKE_brush_channelset_set_int(BrushChannelSet *chset, const char *idname, in
 void BKE_brush_channel_set_int(BrushChannel *ch, int val);
 
 /* mapdata may be NULL */
-float BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata);
+int BKE_brush_channel_get_int(BrushChannel *ch, BrushMappingData *mapdata);
 
 /* mapdata may be NULL */
 float BKE_brush_channel_get_float(BrushChannel *ch, BrushMappingData *mapdata);

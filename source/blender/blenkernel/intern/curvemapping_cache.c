@@ -62,7 +62,7 @@ static int curvmapping_curve_count(const CurveMapping *cumap)
   return count;
 }
 
-bool BKE_curvemapping_equals(const CurveMapping *a, const CurveMapping *b)
+ATTR_NO_OPT bool BKE_curvemapping_equals(const CurveMapping *a, const CurveMapping *b)
 {
   int count = curvmapping_curve_count(a);
 
@@ -190,7 +190,7 @@ void BKE_curvemapping_cache_release(CurveMappingCache *cache, CurveMapping *curv
 {
   curve->cache_users--;
 
-  //printf("%s: %d flag: %d\n", __func__, curve->cache_users, curve->flag);
+  // printf("%s: %d flag: %d\n", __func__, curve->cache_users, curve->flag);
 
   if ((curve->flag & CUMA_PART_OF_CACHE) && curve->cache_users <= 0) {
     if (!BLI_ghash_remove(cache->gh, curve, NULL, NULL)) {

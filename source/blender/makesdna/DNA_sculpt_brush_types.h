@@ -31,6 +31,17 @@
 
 struct GHash;
 
+typedef struct BrushCurve {
+  CurveMapping *curve;
+
+  /** curve preset, see eBrushCurvePreset.
+      Note: this differs from BrushMappingDef's preset field
+    */
+  int preset;
+  char preset_slope_negative;
+  char _pad[3];
+} BrushCurve;
+
 /* Input mapping struct.  An input mapping transform
    stroke inputs intos outputs.  Inputs can be device
    events (like pen pressure/tilt) or synethesize
@@ -44,9 +55,11 @@ typedef struct BrushMapping {
      extensively (mostly to cache input mappings and resolve
      channel inheritance), to the point that copying the
      channel curves was a problem.
-     
+
    */
-  CurveMapping *curve;
+
+  CurveMapping *curve; /* Deprecated. */
+  BrushCurve mapping_curve;
 
   float factor;
   int blendmode; /* blendmode, a subset of the MA_BLEND_XXX enums*/
@@ -66,17 +79,6 @@ typedef struct BrushMapping {
   char inherit_mode, _pad[3];
 } BrushMapping;
 
-typedef struct BrushCurve {
-  CurveMapping *curve;
-
-  /** curve preset, see eBrushCurvePreset.
-      Note: this differs from BrushMappingDef's preset field
-    */
-  int preset;
-  char preset_slope_negative;
-  char _pad[3];
-} BrushCurve;
-
 typedef struct BrushChannel {
   struct BrushChannel *next, *prev;
 
@@ -85,9 +87,9 @@ typedef struct BrushChannel {
       the BRUSHSET_XXX macros, SCULPT_get_XXX, etc.  On the C++ side
       BrushChannelSetIF has accessor methods, e.g. BrushChannelSet::radius.
   */
-  char idname[64]; 
-  char name[64];   /** user-friendly name */
-  char *category;  /** category; if NULL, def->category will be used */
+  char idname[64];
+  char name[64];  /** user-friendly name */
+  char *category; /** category; if NULL, def->category will be used */
 
   struct BrushChannelType *def; /* Brush channel definition */
 
@@ -102,12 +104,12 @@ typedef struct BrushChannel {
     type and prevent the creation of group properties
     at the API level though.
   */
-  float fvalue; /** floating point value */
-  int ivalue; /** stores integer, boolean, enum and bitmasks */
+  float fvalue;    /** floating point value */
+  int ivalue;      /** stores integer, boolean, enum and bitmasks */
   float vector[4]; /* stores 3 and 4 component vectors */
   BrushCurve curve;
 
-  BrushMapping mappings[7];  /* dimension should always be BRUSH_MAPPING_MAX */
+  BrushMapping mappings[7]; /* dimension should always be BRUSH_MAPPING_MAX */
 
   short type; /** eBrushChannelType */
   short ui_order;
@@ -163,8 +165,8 @@ typedef enum eBrushMappingType {
 } eBrushMappingType;
 
 BLI_STATIC_ASSERT(offsetof(BrushChannel, type) - offsetof(BrushChannel, mappings) ==
-                  sizeof(BrushMapping) * BRUSH_MAPPING_MAX,
-              "BrushChannel.mappings must == BRUSH_MAPPING_MAX");
+                      sizeof(BrushMapping) * BRUSH_MAPPING_MAX,
+                  "BrushChannel.mappings must == BRUSH_MAPPING_MAX");
 
 // BrushChannel->flag
 typedef enum eBrushChannelFlag {

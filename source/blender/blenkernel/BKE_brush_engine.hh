@@ -296,10 +296,8 @@ template<typename T> class BrushChannelIF {
           inputf = 1.0f - inputf;
         }
 
-        /* ensure curve tables exist */
-        BKE_curvemapping_init(mp->curve);
-
-        double f2 = (float)BKE_curvemapping_evaluateF(mp->curve, 0, inputf);
+        double f2 = BKE_brush_curve_strength_ex(
+            mp->mapping_curve.preset, mp->mapping_curve.curve, inputf, 1.0f);
         f2 = mp->min + (mp->max - mp->min) * f2;
 
         /* make sure to update blend_items in rna_brush_engine.c
