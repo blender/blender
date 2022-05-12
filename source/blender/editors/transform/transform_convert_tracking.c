@@ -720,7 +720,7 @@ void recalcData_tracking(TransInfo *t)
         }
         else if (t->mode == TFM_RESIZE) {
           if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT)) {
-            BKE_tracking_marker_clamp(marker, CLAMP_PAT_DIM);
+            BKE_tracking_marker_clamp(marker, CLAMP_SEARCH_DIM);
           }
           if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH)) {
             BKE_tracking_marker_clamp(marker, CLAMP_SEARCH_DIM);

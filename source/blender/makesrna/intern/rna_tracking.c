@@ -557,7 +557,7 @@ static void rna_tracking_markerPattern_update(Main *UNUSED(bmain),
 {
   MovieTrackingMarker *marker = (MovieTrackingMarker *)ptr->data;
 
-  BKE_tracking_marker_clamp(marker, CLAMP_PAT_DIM);
+  BKE_tracking_marker_clamp(marker, CLAMP_SEARCH_DIM);
 }
 
 static void rna_tracking_markerSearch_update(Main *UNUSED(bmain),

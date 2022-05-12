@@ -33,7 +33,6 @@ struct rcti;
  */
 
 enum {
-  CLAMP_PAT_DIM = 1,
   CLAMP_PAT_POS = 2,
   CLAMP_SEARCH_DIM = 3,
   CLAMP_SEARCH_POS = 4,

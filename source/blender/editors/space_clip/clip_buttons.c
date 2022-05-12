@@ -303,7 +303,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
       cb->marker->pattern_corners[a][1] *= scale_y;
     }
 
-    BKE_tracking_marker_clamp(cb->marker, CLAMP_PAT_DIM);
+    BKE_tracking_marker_clamp(cb->marker, CLAMP_SEARCH_DIM);
 
     ok = true;
   }

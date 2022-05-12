@@ -849,7 +849,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
             }
           }
 
-          BKE_tracking_marker_clamp(data->marker, CLAMP_PAT_DIM);
+          BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_DIM);
         }
         else if (data->action == SLIDE_ACTION_OFFSET) {
           const float d[2] = {dx, dy};
@@ -873,7 +873,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
           /* Currently only patterns are allowed to have such
            * combination of event and data.
            */
-          BKE_tracking_marker_clamp(data->marker, CLAMP_PAT_DIM);
+          BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_DIM);
         }
         else if (data->action == SLIDE_ACTION_TILT_SIZE) {
           const float mouse_delta[2] = {dx, dy};
@@ -917,7 +917,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
             data->corners[a][1] = (vec[1] * cosf(angle) + vec[0] * sinf(angle)) / data->height;
           }
 
-          BKE_tracking_marker_clamp(data->marker, CLAMP_PAT_DIM);
+          BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_DIM);
         }
       }
       else if (data->area == TRACK_AREA_SEARCH) {
