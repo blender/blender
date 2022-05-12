@@ -207,8 +207,8 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
   (
       /* Setup information for all parameters. */
       [&] {
-        using ParamTag = ParamTags;
-        using T = typename ParamTag::base_type;
+        typedef ParamTags ParamTag;
+        typedef typename ParamTag::base_type T;
         [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
         if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
           VArray<T> &varray = *args;
@@ -282,8 +282,8 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
     (
         /* Destruct values that have been materialized before. */
         [&] {
-          using ParamTag = ParamTags;
-          using T = typename ParamTag::base_type;
+          typedef ParamTags ParamTag;
+          typedef typename ParamTag::base_type T;
           [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
           if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
             if (arg_info.mode == ArgMode::Materialized) {
@@ -298,8 +298,8 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
   (
       /* Destruct buffers for single value inputs. */
       [&] {
-        using ParamTag = ParamTags;
-        using T = typename ParamTag::base_type;
+        typedef ParamTags ParamTag;
+        typedef typename ParamTag::base_type T;
         [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
         if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
           if (arg_info.mode == ArgMode::Single) {
@@ -347,8 +347,8 @@ template<typename... ParamTags> class CustomMF : public MultiFunction {
     (
         /* Get all parameters from #params and store them in #retrieved_params. */
         [&]() {
-          using ParamTag = typename TagsSequence::template at_index<I>;
-          using T = typename ParamTag::base_type;
+          typedef typename TagsSequence::template at_index<I> ParamTag;
+          typedef typename ParamTag::base_type T;
 
           if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
             std::get<I>(retrieved_params) = params.readonly_single_input<T>(I);
@@ -402,7 +402,7 @@ template<typename... ParamTags> class CustomMF : public MultiFunction {
     (
         /* Loop over all parameter types and add an entry for each in the signature. */
         [&] {
-          using ParamTag = typename TagsSequence::template at_index<I>;
+          typedef typename TagsSequence::template at_index<I> ParamTag;
           signature.add(ParamTag(), "");
         }(),
         ...);
