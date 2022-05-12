@@ -44,7 +44,7 @@ float *DRW_color_background_blend_get(int theme_id);
 bool DRW_object_is_flat(struct Object *ob, int *r_axis);
 bool DRW_object_axis_orthogonal_to_view(struct Object *ob, int axis);
 
-/* draw_hair.c */
+/* draw_hair.cc */
 
 /**
  * This creates a shading group with display hairs.

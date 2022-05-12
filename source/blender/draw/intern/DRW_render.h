@@ -296,6 +296,8 @@ void DRW_shader_library_free(DRWShaderLibrary *lib);
  * therefore they aren't ordered as a bit mask.
  */
 typedef enum {
+  /** To be used for compute passes. */
+  DRW_STATE_NO_DRAW = 0,
   /** Write mask */
   DRW_STATE_WRITE_DEPTH = (1 << 0),
   DRW_STATE_WRITE_COLOR = (1 << 1),

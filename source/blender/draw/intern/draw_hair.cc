@@ -74,7 +74,7 @@ static GPUShader *hair_refine_shader_get(ParticleRefineShader refinement)
 void DRW_hair_init(void)
 {
 #if defined(USE_TRANSFORM_FEEDBACK) || defined(USE_COMPUTE_SHADERS)
-  g_tf_pass = DRW_pass_create("Update Hair Pass", 0);
+  g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_NO_DRAW);
 #else
   g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_WRITE_COLOR);
 #endif

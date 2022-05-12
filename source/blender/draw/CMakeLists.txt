@@ -85,7 +85,7 @@ set(SRC
   intern/draw_curves.cc
   intern/draw_debug.c
   intern/draw_fluid.c
-  intern/draw_hair.c
+  intern/draw_hair.cc
   intern/draw_instance_data.c
   intern/draw_manager.c
   intern/draw_manager_data.c
