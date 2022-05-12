@@ -504,7 +504,6 @@ static bool image_save_single(ReportList *reports,
         colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, save_as_render, true, imf);
 
         BKE_image_format_to_imbuf(colormanaged_ibuf, imf);
-        IMB_prepare_write_ImBuf(IMB_isfloat(colormanaged_ibuf), colormanaged_ibuf);
 
         /* duplicate buffer to prevent locker issue when using render result */
         ibuf_stereo[i] = IMB_dupImBuf(colormanaged_ibuf);
@@ -924,7 +923,6 @@ bool BKE_image_render_write(ReportList *reports,
         int view_id = BLI_findstringindex(&rr->views, names[i], offsetof(RenderView, name));
         ibuf_arr[i] = RE_render_result_rect_to_ibuf(rr, &image_format, dither, view_id);
         IMB_colormanagement_imbuf_for_write(ibuf_arr[i], true, false, &image_format);
-        IMB_prepare_write_ImBuf(IMB_isfloat(ibuf_arr[i]), ibuf_arr[i]);
       }
 
       ibuf_arr[2] = IMB_stereo3d_ImBuf(&image_format, ibuf_arr[0], ibuf_arr[1]);
