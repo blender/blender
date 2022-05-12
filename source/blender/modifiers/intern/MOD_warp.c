@@ -491,20 +491,20 @@ static void panelRegister(ARegionType *region_type)
 
 static void blendWrite(BlendWriter *writer, const ModifierData *md)
 {
-  const WarpModifierData *tmd = (const WarpModifierData *)md;
+  const WarpModifierData *wmd = (const WarpModifierData *)md;
 
-  if (tmd->curfalloff) {
-    BKE_curvemapping_blend_write(writer, tmd->curfalloff);
+  if (wmd->curfalloff) {
+    BKE_curvemapping_blend_write(writer, wmd->curfalloff);
   }
 }
 
 static void blendRead(BlendDataReader *reader, ModifierData *md)
 {
-  WarpModifierData *tmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = (WarpModifierData *)md;
 
-  BLO_read_data_address(reader, &tmd->curfalloff);
-  if (tmd->curfalloff) {
-    BKE_curvemapping_blend_read(reader, tmd->curfalloff);
+  BLO_read_data_address(reader, &wmd->curfalloff);
+  if (wmd->curfalloff) {
+    BKE_curvemapping_blend_read(reader, wmd->curfalloff);
   }
 }
 
