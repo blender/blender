@@ -727,67 +727,76 @@ bool BKE_tracking_track_has_enabled_marker_at_frame(MovieTrackingTrack *track, i
   return marker && (marker->flag & MARKER_DISABLED) == 0;
 }
 
-void BKE_tracking_track_path_clear(MovieTrackingTrack *track, int ref_frame, int action)
+static void path_clear_remained(MovieTrackingTrack *track, const int ref_frame)
 {
-  int a;
+  for (int a = 1; a < track->markersnr; a++) {
+    if (track->markers[a].framenr > ref_frame) {
+      track->markersnr = a;
+      track->markers = MEM_reallocN(track->markers,
+                                    sizeof(MovieTrackingMarker) * track->markersnr);
 
-  if (action == TRACK_CLEAR_REMAINED) {
-    a = 1;
-
-    while (a < track->markersnr) {
-      if (track->markers[a].framenr > ref_frame) {
-        track->markersnr = a;
-        track->markers = MEM_reallocN(track->markers,
-                                      sizeof(MovieTrackingMarker) * track->markersnr);
-
-        break;
-      }
-
-      a++;
-    }
-
-    if (track->markersnr) {
-      tracking_marker_insert_disabled(track, &track->markers[track->markersnr - 1], false, true);
+      break;
     }
   }
-  else if (action == TRACK_CLEAR_UPTO) {
-    a = track->markersnr - 1;
 
-    while (a >= 0) {
-      if (track->markers[a].framenr <= ref_frame) {
-        memmove(track->markers,
-                track->markers + a,
-                (track->markersnr - a) * sizeof(MovieTrackingMarker));
+  if (track->markersnr) {
+    tracking_marker_insert_disabled(track, &track->markers[track->markersnr - 1], false, true);
+  }
+}
 
-        track->markersnr = track->markersnr - a;
-        track->markers = MEM_reallocN(track->markers,
-                                      sizeof(MovieTrackingMarker) * track->markersnr);
+static void path_clear_up_to(MovieTrackingTrack *track, const int ref_frame)
+{
+  for (int a = track->markersnr - 1; a >= 0; a--) {
+    if (track->markers[a].framenr <= ref_frame) {
+      memmove(track->markers,
+              track->markers + a,
+              (track->markersnr - a) * sizeof(MovieTrackingMarker));
 
-        break;
-      }
+      track->markersnr = track->markersnr - a;
+      track->markers = MEM_reallocN(track->markers,
+                                    sizeof(MovieTrackingMarker) * track->markersnr);
 
-      a--;
-    }
-
-    if (track->markersnr) {
-      tracking_marker_insert_disabled(track, &track->markers[0], true, true);
+      break;
     }
   }
-  else if (action == TRACK_CLEAR_ALL) {
-    MovieTrackingMarker *marker, marker_new;
 
-    marker = BKE_tracking_marker_get(track, ref_frame);
-    marker_new = *marker;
-
-    MEM_freeN(track->markers);
-    track->markers = NULL;
-    track->markersnr = 0;
-
-    BKE_tracking_marker_insert(track, &marker_new);
-
-    tracking_marker_insert_disabled(track, &marker_new, true, true);
-    tracking_marker_insert_disabled(track, &marker_new, false, true);
+  if (track->markersnr) {
+    tracking_marker_insert_disabled(track, &track->markers[0], true, true);
   }
+}
+
+static void path_clear_all(MovieTrackingTrack *track, const int ref_frame)
+{
+  MovieTrackingMarker *marker, marker_new;
+
+  marker = BKE_tracking_marker_get(track, ref_frame);
+  marker_new = *marker;
+
+  MEM_freeN(track->markers);
+  track->markers = NULL;
+  track->markersnr = 0;
+
+  BKE_tracking_marker_insert(track, &marker_new);
+
+  tracking_marker_insert_disabled(track, &marker_new, true, true);
+  tracking_marker_insert_disabled(track, &marker_new, false, true);
+}
+
+void BKE_tracking_track_path_clear(MovieTrackingTrack *track,
+                                   const int ref_frame,
+                                   const eTrackClearAction action)
+{
+  switch (action) {
+    case TRACK_CLEAR_REMAINED:
+      path_clear_remained(track, ref_frame);
+      break;
+    case TRACK_CLEAR_UPTO:
+      path_clear_up_to(track, ref_frame);
+      break;
+    case TRACK_CLEAR_ALL:
+      path_clear_all(track, ref_frame);
+      break;
+  };
 }
 
 void BKE_tracking_tracks_join(MovieTracking *tracking,

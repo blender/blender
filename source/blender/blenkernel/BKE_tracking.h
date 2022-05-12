@@ -33,12 +33,6 @@ struct rcti;
  */
 
 enum {
-  TRACK_CLEAR_UPTO = 0,
-  TRACK_CLEAR_REMAINED = 1,
-  TRACK_CLEAR_ALL = 2,
-};
-
-enum {
   CLAMP_PAT_DIM = 1,
   CLAMP_PAT_POS = 2,
   CLAMP_SEARCH_DIM = 3,
@@ -235,15 +229,21 @@ bool BKE_tracking_track_has_marker_at_frame(struct MovieTrackingTrack *track, in
 bool BKE_tracking_track_has_enabled_marker_at_frame(struct MovieTrackingTrack *track, int framenr);
 
 /**
- * Clear track's path:
- *
- * - If action is #TRACK_CLEAR_REMAINED path from `ref_frame+1` up to end will be clear.
- * - If action is #TRACK_CLEAR_UPTO path from the beginning up to `ref_frame-1` will be clear.
- * - If action is #TRACK_CLEAR_ALL only marker at frame ref_frame will remain.
+ * Clear track's path.
  *
  * \note frame number should be in clip space, not scene space.
  */
-void BKE_tracking_track_path_clear(struct MovieTrackingTrack *track, int ref_frame, int action);
+typedef enum eTrackClearAction {
+  /* Clear path from `ref_frame+1` up to the . */
+  TRACK_CLEAR_UPTO,
+  /* Clear path from the beginning up to `ref_frame-1`. */
+  TRACK_CLEAR_REMAINED,
+  /* Only marker at frame `ref_frame` will remain. */
+  TRACK_CLEAR_ALL,
+} eTrackClearAction;
+void BKE_tracking_track_path_clear(struct MovieTrackingTrack *track,
+                                   int ref_frame,
+                                   eTrackClearAction action);
 
 void BKE_tracking_tracks_join(struct MovieTracking *tracking,
                               struct MovieTrackingTrack *dst_track,

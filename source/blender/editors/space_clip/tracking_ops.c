@@ -1012,9 +1012,9 @@ static int clear_track_path_exec(bContext *C, wmOperator *op)
   MovieClip *clip = ED_space_clip_get_clip(sc);
   MovieTracking *tracking = &clip->tracking;
   ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-  int action = RNA_enum_get(op->ptr, "action");
+  const eTrackClearAction action = RNA_enum_get(op->ptr, "action");
   const bool clear_active = RNA_boolean_get(op->ptr, "clear_active");
-  int framenr = ED_space_clip_get_clip_frame_number(sc);
+  const int framenr = ED_space_clip_get_clip_frame_number(sc);
 
   if (clear_active) {
     MovieTrackingTrack *track = BKE_tracking_track_get_active(tracking);
