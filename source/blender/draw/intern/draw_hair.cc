@@ -141,7 +141,7 @@ static void drw_hair_particle_cache_update_transform_feedback(ParticleHairCache 
 #else
     DRWShadingGroup *tf_shgrp = DRW_shgroup_create(tf_shader, g_tf_pass);
 
-    ParticleRefineCall *pr_call = MEM_mallocN(sizeof(*pr_call), __func__);
+    ParticleRefineCall *pr_call = (ParticleRefineCall *)MEM_mallocN(sizeof(*pr_call), __func__);
     pr_call->next = g_tf_calls;
     pr_call->vbo = cache->final[subdiv].proc_buf;
     pr_call->shgrp = tf_shgrp;
@@ -319,7 +319,8 @@ void DRW_hair_update(void)
    * Do chunks of maximum 2048 * 2048 hair points. */
   int width = 2048;
   int height = min_ii(width, 1 + max_size / width);
-  GPUTexture *tex = DRW_texture_pool_query_2d(width, height, GPU_RGBA32F, (void *)DRW_hair_update);
+  GPUTexture *tex = DRW_texture_pool_query_2d(
+      width, height, GPU_RGBA32F, (DrawEngineType *)DRW_hair_update);
   g_tf_target_height = height;
   g_tf_target_width = width;
 
@@ -330,7 +331,7 @@ void DRW_hair_update(void)
                                     GPU_ATTACHMENT_TEXTURE(tex),
                                 });
 
-  float *data = MEM_mallocN(sizeof(float[4]) * width * height, "tf fallback buffer");
+  float *data = (float *)MEM_mallocN(sizeof(float[4]) * width * height, "tf fallback buffer");
 
   GPU_framebuffer_bind(fb);
   while (g_tf_calls != NULL) {
