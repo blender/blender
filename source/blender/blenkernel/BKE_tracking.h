@@ -29,6 +29,32 @@ struct bGPDlayer;
 struct rcti;
 
 /* --------------------------------------------------------------------
+ * Common types and constants.
+ */
+
+enum {
+  TRACK_CLEAR_UPTO = 0,
+  TRACK_CLEAR_REMAINED = 1,
+  TRACK_CLEAR_ALL = 2,
+};
+
+enum {
+  CLAMP_PAT_DIM = 1,
+  CLAMP_PAT_POS = 2,
+  CLAMP_SEARCH_DIM = 3,
+  CLAMP_SEARCH_POS = 4,
+};
+
+typedef enum eTrackArea {
+  TRACK_AREA_POINT = (1 << 0),
+  TRACK_AREA_PAT = (1 << 1),
+  TRACK_AREA_SEARCH = (1 << 2),
+
+  TRACK_AREA_NONE = 0,
+  TRACK_AREA_ALL = (TRACK_AREA_POINT | TRACK_AREA_PAT | TRACK_AREA_SEARCH),
+} eTrackArea;
+
+/* --------------------------------------------------------------------
  * Common functions.
  */
 
@@ -786,22 +812,6 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
 #define MARKER_VISIBLE(sc, track, marker) \
   (((marker)->flag & MARKER_DISABLED) == 0 || ((sc)->flag & SC_HIDE_DISABLED) == 0 || \
    ((sc)->clip->tracking.act_track == track))
-
-#define TRACK_CLEAR_UPTO 0
-#define TRACK_CLEAR_REMAINED 1
-#define TRACK_CLEAR_ALL 2
-
-#define CLAMP_PAT_DIM 1
-#define CLAMP_PAT_POS 2
-#define CLAMP_SEARCH_DIM 3
-#define CLAMP_SEARCH_POS 4
-
-#define TRACK_AREA_NONE -1
-#define TRACK_AREA_POINT 1
-#define TRACK_AREA_PAT 2
-#define TRACK_AREA_SEARCH 4
-
-#define TRACK_AREA_ALL (TRACK_AREA_POINT | TRACK_AREA_PAT | TRACK_AREA_SEARCH)
 
 #ifdef __cplusplus
 }
