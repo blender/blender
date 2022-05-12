@@ -336,15 +336,18 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
 /** \name Slide Marker Operator
  * \{ */
 
-enum {
-  SLIDE_ACTION_POS = 0,
+typedef enum eSlideAction {
+  SLIDE_ACTION_NONE,
+
+  SLIDE_ACTION_POS,
   SLIDE_ACTION_SIZE,
   SLIDE_ACTION_OFFSET,
   SLIDE_ACTION_TILT_SIZE,
-};
+} eSlideAction;
 
 typedef struct {
-  short area, action;
+  short area;
+  eSlideAction action;
   MovieTrackingTrack *track;
   MovieTrackingMarker *marker;
 
@@ -373,7 +376,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc,
                                                  const wmEvent *event,
                                                  int area,
                                                  int corner,
-                                                 int action,
+                                                 eSlideAction action,
                                                  int width,
                                                  int height)
 {
@@ -392,26 +395,32 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc,
     data->offset = track->offset;
   }
   else if (area == TRACK_AREA_PAT) {
-    if (action == SLIDE_ACTION_SIZE) {
-      data->corners = marker->pattern_corners;
-    }
-    else if (action == SLIDE_ACTION_OFFSET) {
-      data->pos = marker->pos;
-      data->offset = track->offset;
-      data->old_markers = MEM_callocN(sizeof(*data->old_markers) * track->markersnr,
-                                      "slide markers");
-      for (int a = 0; a < track->markersnr; a++) {
-        copy_v2_v2(data->old_markers[a], track->markers[a].pos);
-      }
-    }
-    else if (action == SLIDE_ACTION_POS) {
-      data->corners = marker->pattern_corners;
-      data->pos = marker->pattern_corners[corner];
-      copy_v2_v2(data->spos, data->pos);
-    }
-    else if (action == SLIDE_ACTION_TILT_SIZE) {
-      data->corners = marker->pattern_corners;
-      slide_marker_tilt_slider(marker, data->spos);
+    switch (action) {
+      case SLIDE_ACTION_NONE:
+        BLI_assert_msg(0, "Expected valid action");
+        break;
+
+      case SLIDE_ACTION_SIZE:
+        data->corners = marker->pattern_corners;
+        break;
+      case SLIDE_ACTION_OFFSET:
+        data->pos = marker->pos;
+        data->offset = track->offset;
+        data->old_markers = MEM_callocN(sizeof(*data->old_markers) * track->markersnr,
+                                        "slide markers");
+        for (int a = 0; a < track->markersnr; a++) {
+          copy_v2_v2(data->old_markers[a], track->markers[a].pos);
+        }
+        break;
+      case SLIDE_ACTION_POS:
+        data->corners = marker->pattern_corners;
+        data->pos = marker->pattern_corners[corner];
+        copy_v2_v2(data->spos, data->pos);
+        break;
+      case SLIDE_ACTION_TILT_SIZE:
+        data->corners = marker->pattern_corners;
+        slide_marker_tilt_slider(marker, data->spos);
+        break;
     }
   }
   else if (area == TRACK_AREA_SEARCH) {
@@ -535,7 +544,7 @@ static bool slide_check_corners(float (*corners)[2])
 }
 
 static MovieTrackingTrack *tracking_marker_check_slide(
-    bContext *C, const wmEvent *event, int *r_area, int *r_action, int *r_corner)
+    bContext *C, const wmEvent *event, int *r_area, eSlideAction *r_action, int *r_corner)
 {
   const float distance_clip_squared = 12.0f * 12.0f;
   SpaceClip *sc = CTX_wm_space_clip(C);
@@ -546,7 +555,8 @@ static MovieTrackingTrack *tracking_marker_check_slide(
   float global_min_distance_squared = FLT_MAX;
 
   /* Sliding zone designator which is the closest to the mouse across all the tracks. */
-  int min_action = -1, min_area = 0, min_corner = -1;
+  eSlideAction min_action;
+  int min_area = 0, min_corner = -1;
   MovieTrackingTrack *min_track = NULL;
 
   int width, height;
@@ -661,7 +671,8 @@ static void *slide_marker_customdata(bContext *C, const wmEvent *event)
   float co[2];
   void *customdata = NULL;
   int framenr = ED_space_clip_get_clip_frame_number(sc);
-  int area, action, corner;
+  eSlideAction action;
+  int area, corner;
 
   ED_space_clip_get_size(sc, &width, &height);
 
