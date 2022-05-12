@@ -1118,6 +1118,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     MEM_freeN(vert_loop_map);
   }
 
+  if ((ltmd->flag & MOD_SCREW_NORMAL_CALC)) {
+    BKE_mesh_vertex_normals_clear_dirty(result);
+  }
+
   if ((ltmd->flag & MOD_SCREW_MERGE) && (screw_ofs == 0.0f)) {
     result = mesh_remove_doubles_on_axis(result,
                                          mvert_new,
@@ -1126,10 +1130,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                                          axis_vec,
                                          ob_axis != NULL ? mtx_tx[3] : NULL,
                                          ltmd->merge_dist);
-  }
-
-  if ((ltmd->flag & MOD_SCREW_NORMAL_CALC)) {
-    BKE_mesh_vertex_normals_clear_dirty(result);
   }
 
   return result;
