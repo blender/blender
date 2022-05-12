@@ -6291,36 +6291,6 @@ uiBut *uiDefKeyevtButS(uiBlock *block,
   return but;
 }
 
-uiBut *uiDefHotKeyevtButS(uiBlock *block,
-                          int retval,
-                          const char *str,
-                          int x,
-                          int y,
-                          short width,
-                          short height,
-                          short *keypoin,
-                          const short *modkeypoin,
-                          const char *tip)
-{
-  uiBut *but = ui_def_but(block,
-                          UI_BTYPE_HOTKEY_EVENT | UI_BUT_POIN_SHORT,
-                          retval,
-                          str,
-                          x,
-                          y,
-                          width,
-                          height,
-                          keypoin,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0.0,
-                          tip);
-  but->modifier_key = *modkeypoin;
-  ui_but_update(but);
-  return but;
-}
-
 uiBut *uiDefSearchBut(uiBlock *block,
                       void *arg,
                       int retval,

@@ -1550,21 +1550,6 @@ uiBut *uiDefKeyevtButS(uiBlock *block,
                        const char *tip);
 
 /**
- * Short pointers hard-coded.
- * \param modkeypoin: will be set to #KM_SHIFT, #KM_ALT, #KM_CTRL, #KM_OSKEY bits.
- */
-uiBut *uiDefHotKeyevtButS(uiBlock *block,
-                          int retval,
-                          const char *str,
-                          int x,
-                          int y,
-                          short width,
-                          short height,
-                          short *keypoin,
-                          const short *modkeypoin,
-                          const char *tip);
-
-/**
  * \param arg: A pointer to string/name, use #UI_but_func_search_set() below to make this work.
  * here `a1` and `a2`, if set, control thumbnail preview rows/cols.
  */
