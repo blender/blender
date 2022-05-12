@@ -406,9 +406,8 @@ static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const bool extend = RNA_boolean_get(op->ptr, "extend");
 
   if (!extend) {
-    MovieTrackingTrack *track = tracking_marker_check_slide(C, event, NULL, NULL, NULL);
-
-    if (track) {
+    MovieTrackingTrack *track = tracking_find_track_in_proximity(C, event);
+    if (track != NULL) {
       MovieClip *clip = ED_space_clip_get_clip(sc);
 
       clip->tracking.act_track = track;

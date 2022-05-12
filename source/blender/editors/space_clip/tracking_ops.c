@@ -534,7 +534,7 @@ static bool slide_check_corners(float (*corners)[2])
   return true;
 }
 
-MovieTrackingTrack *tracking_marker_check_slide(
+static MovieTrackingTrack *tracking_marker_check_slide(
     bContext *C, const wmEvent *event, int *r_area, int *r_action, int *r_corner)
 {
   const float distance_clip_squared = 12.0f * 12.0f;
@@ -643,6 +643,12 @@ MovieTrackingTrack *tracking_marker_check_slide(
   }
 
   return NULL;
+}
+
+struct MovieTrackingTrack *tracking_find_track_in_proximity(struct bContext *C,
+                                                            const struct wmEvent *event)
+{
+  return tracking_marker_check_slide(C, event, NULL, NULL, NULL);
 }
 
 static void *slide_marker_customdata(bContext *C, const wmEvent *event)
