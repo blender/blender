@@ -373,10 +373,6 @@ void SCULPT_do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
 
-  /* XXX: this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
-   * initialize before threads so they can do curve mapping. */
-  BKE_curvemapping_init(brush->curve);
-
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {
       .sd = sd,
@@ -2726,7 +2722,7 @@ void SCULPT_do_elastic_deform_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
 /** \name Sculpt Draw Sharp Brush
  * \{ */
 
-ATTR_NO_OPT static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
+static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
                                            const int n,
                                            const TaskParallelTLS *__restrict tls)
 {
@@ -2875,10 +2871,6 @@ void SCULPT_do_draw_sharp_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
   mul_v3_v3fl(offset, effective_normal, ss->cache->radius + ss->cache->radius * plane_offset);
   mul_v3_v3(offset, ss->cache->scale);
   mul_v3_fl(offset, bstrength);
-
-  /* XXX: this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
-   * initialize before threads so they can do curve mapping. */
-  BKE_curvemapping_init(brush->curve);
 
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {
@@ -3690,10 +3682,6 @@ void SCULPT_do_auto_face_set(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
     return;
   }
 
-  /* XXX: this shouldn't be necessary, but sculpting crashes in blender2.8 otherwise
-   * initialize before threads so they can do curve mapping. */
-  BKE_curvemapping_init(brush->curve);
-
   /* Threaded loop over nodes. */
   SculptFaceSetDrawData data = {
       .sd = sd,
@@ -4300,7 +4288,7 @@ static void do_displacement_heal_cb(void *__restrict userdata,
         float mat[3][3], p[3];
 
         BKE_subdiv_ccg_get_tangent_matrix(ss->subdiv_ccg, &coord, mat, p);
-        memcpy((void *)mats[locali], (void*)mat, sizeof(mat));
+        memcpy((void *)mats[locali], (void *)mat, sizeof(mat));
 
         invert_m3(mat);
 

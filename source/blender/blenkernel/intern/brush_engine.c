@@ -127,7 +127,7 @@ void BKE_brush_channel_system_exit()
 }
 
 /* returns true if curve was duplicated or initialized. */
-ATTR_NO_OPT bool BKE_brush_mapping_ensure_write(BrushMapping *mp)
+bool BKE_brush_mapping_ensure_write(BrushMapping *mp)
 {
 
   if (mp->mapping_curve.curve && IS_CACHE_CURVE(mp->mapping_curve.curve)) {
@@ -186,6 +186,10 @@ void BKE_brush_channel_curve_assign(BrushChannel *ch, BrushCurve *curve)
 // returns true if curve was duplicated
 bool BKE_brush_channel_curve_ensure_write(BrushCurve *curve)
 {
+  if (curve->preset != BRUSH_CURVE_CUSTOM) {
+    return false;
+  }
+
   BKE_brush_channel_curvemapping_get(curve, true);
 
   if (IS_CACHE_CURVE(curve->curve)) {
@@ -468,9 +472,7 @@ void BKE_brush_channel_copy_data(BrushChannel *dst,
 
   if (src->curve.curve) {
     if (!IS_CACHE_CURVE(src->curve.curve)) {
-      // dst->curve = GET_CACHE_CURVE(src->curve);
-
-      // hrm, let's not modify src->curve, GET_CACHE_CURVE might free it
+      /* Can't use GET_CACHE_CURVE macro since it will free src->curve.curve. */
       dst->curve.curve = BKE_curvemapping_cache_get(brush_curve_cache, src->curve.curve, false);
     }
     else {
@@ -1075,10 +1077,10 @@ static bool channel_has_mappings(BrushChannel *ch)
 }
 
 /* idx is used by vector channels */
-ATTR_NO_OPT double BKE_brush_channel_eval_mappings(BrushChannel *ch,
-                                                   BrushMappingData *mapdata,
-                                                   double f,
-                                                   int idx)
+double BKE_brush_channel_eval_mappings(BrushChannel *ch,
+                                       BrushMappingData *mapdata,
+                                       double f,
+                                       int idx)
 {
 
   if (idx == 3 && !(ch->flag & BRUSH_CHANNEL_APPLY_MAPPING_TO_ALPHA)) {
@@ -2024,7 +2026,7 @@ void BKE_brush_channelset_foreach_id(void *userdata,
   // for now, do nothing; in the future brush textures (might) have ID references
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
+void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
 {
   BLO_read_list(reader, &chset->channels);
 
@@ -2130,7 +2132,7 @@ ATTR_NO_OPT void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannel
   }
 }
 
-ATTR_NO_OPT void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet *chset)
+void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet *chset)
 {
   /* Instantiate cached curves to ensure they get written
    * (and susequently read) seperately.
@@ -2139,7 +2141,7 @@ ATTR_NO_OPT void BKE_brush_channelset_write(BlendWriter *writer, BrushChannelSet
   LISTBASE_FOREACH (BrushChannel *, ch, &chset->channels) {
     BKE_brush_channel_curve_ensure_write(&ch->curve);
 
-    if (ch->curve.curve) {
+    if (ch->type == BRUSH_CHANNEL_TYPE_CURVE && ch->curve.curve) {
       BKE_curvemapping_blend_write(writer, ch->curve.curve);
     }
 

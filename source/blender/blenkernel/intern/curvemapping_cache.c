@@ -62,7 +62,7 @@ static int curvmapping_curve_count(const CurveMapping *cumap)
   return count;
 }
 
-ATTR_NO_OPT bool BKE_curvemapping_equals(const CurveMapping *a, const CurveMapping *b)
+bool BKE_curvemapping_equals(const CurveMapping *a, const CurveMapping *b)
 {
   int count = curvmapping_curve_count(a);
 
