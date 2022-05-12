@@ -505,10 +505,10 @@ static bool custom_data_match_attribute(const CustomData *custom_data,
   return false;
 }
 
-static uint mesh_cd_calc_gpu_layers_vcol_used(const Mesh *me_query,
-                                              const CustomData *cd_vdata,
-                                              const CustomData *cd_ldata,
-                                              const char name[])
+ATTR_NO_OPT static uint mesh_cd_calc_gpu_layers_vcol_used(const Mesh *me_query,
+                                                          const CustomData *cd_vdata,
+                                                          const CustomData *cd_ldata,
+                                                          const char name[])
 {
   CustomDataLayer *layer = NULL;
   AttributeDomain domain;
@@ -552,11 +552,11 @@ static uint mesh_cd_calc_gpu_layers_vcol_used(const Mesh *me_query,
   return vcol_i;
 }
 
-static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
-                                                   const Mesh *me,
-                                                   struct GPUMaterial **gpumat_array,
-                                                   int gpumat_array_len,
-                                                   DRW_MeshAttributes *attributes)
+ATTR_NO_OPT static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
+                                                               const Mesh *me,
+                                                               struct GPUMaterial **gpumat_array,
+                                                               int gpumat_array_len,
+                                                               DRW_MeshAttributes *attributes)
 {
   const Mesh *me_final = editmesh_final_or_this(object, me);
   const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);

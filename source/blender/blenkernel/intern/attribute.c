@@ -274,7 +274,7 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
   return NULL;
 }
 
-int BKE_id_attributes_length(const ID *id, AttributeDomainMask domain_mask, CustomDataMask mask)
+int BKE_id_attributes_length(const ID *id, AttributeDomainMask domain_mask, CustomDataMask mask, bool skip_temporary)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -285,7 +285,7 @@ int BKE_id_attributes_length(const ID *id, AttributeDomainMask domain_mask, Cust
     CustomData *customdata = info[domain].customdata;
 
     if (customdata && ((1 << (int)domain) & domain_mask)) {
-      length += CustomData_number_of_layers_typemask(customdata, mask);
+      length += CustomData_number_of_layers_typemask(customdata, mask, skip_temporary);
     }
   }
 
@@ -357,7 +357,7 @@ bool BKE_id_attribute_required(ID *id, CustomDataLayer *layer)
 CustomDataLayer *BKE_id_attributes_active_get(ID *id)
 {
   int active_index = *BKE_id_attributes_active_index_p(id);
-  if (active_index > BKE_id_attributes_length(id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL)) {
+  if (active_index > BKE_id_attributes_length(id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL, false)) {
     active_index = 0;
   }
 

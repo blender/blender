@@ -451,14 +451,12 @@ PointerRNA rna_AttributeGroup_color_iterator_get(CollectionPropertyIterator *ite
 
 int rna_AttributeGroup_color_length(PointerRNA *ptr)
 {
-  return BKE_id_attributes_length(ptr->owner_id,
-                                  ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
-                                  CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR);
+  return BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL, true);
 }
 
 ATTR_NO_OPT int rna_AttributeGroup_length(PointerRNA *ptr)
 {
-  return BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
+  return BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL, false);
 }
 
 static int rna_AttributeGroup_active_index_get(PointerRNA *ptr)
@@ -494,7 +492,7 @@ static void rna_AttributeGroup_active_index_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
   *min = 0;
-  *max = BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
+  *max = BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL, false);
 
   *softmin = *min;
   *softmax = *max;
@@ -550,7 +548,7 @@ static void rna_AttributeGroup_active_color_index_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
   *min = 0;
-  *max = BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+  *max = BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL, true);
 
   *softmin = *min;
   *softmax = *max;
@@ -594,7 +592,7 @@ static void rna_AttributeGroup_render_color_index_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
   *min = 0;
-  *max = BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
+  *max = BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL, true);
 
   *softmin = *min;
   *softmax = *max;

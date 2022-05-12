@@ -25,7 +25,7 @@ struct VColRef {
  *                     corresponds to the integer position of the attribute
  *                     within the global color attribute list.
  */
-static blender::Vector<VColRef> get_vcol_refs(const CustomData *cd_vdata,
+ATTR_NO_OPT static blender::Vector<VColRef> get_vcol_refs(const CustomData *cd_vdata,
                                               const CustomData *cd_ldata,
                                               const uint vcol_layers)
 {
@@ -71,7 +71,7 @@ namespace blender::draw {
  * \{ */
 
 /* Initialize the common vertex format for vcol for coarse and subdivided meshes. */
-static void init_vcol_format(GPUVertFormat *format,
+ATTR_NO_OPT static void init_vcol_format(GPUVertFormat *format,
                              const MeshBatchCache *cache,
                              CustomData *cd_vdata,
                              CustomData *cd_ldata,
@@ -122,7 +122,7 @@ using gpuMeshVcol = struct gpuMeshVcol {
   ushort r, g, b, a;
 };
 
-static void extract_vcol_init(const MeshRenderData *mr,
+ATTR_NO_OPT static void extract_vcol_init(const MeshRenderData *mr,
                               struct MeshBatchCache *cache,
                               void *buf,
                               void *UNUSED(tls_data))

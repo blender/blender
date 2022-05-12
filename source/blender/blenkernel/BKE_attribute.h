@@ -74,7 +74,8 @@ bool BKE_id_attribute_rename(struct ID *id,
 
 int BKE_id_attributes_length(const struct ID *id,
                              AttributeDomainMask domain_mask,
-                             CustomDataMask mask);
+                             CustomDataMask mask,
+                             bool skip_temporary);
 
 struct CustomDataLayer *BKE_id_attributes_active_get(struct ID *id);
 void BKE_id_attributes_active_set(struct ID *id, struct CustomDataLayer *layer);

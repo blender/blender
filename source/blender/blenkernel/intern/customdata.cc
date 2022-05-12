@@ -3266,12 +3266,17 @@ int CustomData_number_of_layers(const CustomData *data, int type)
   return number;
 }
 
-int CustomData_number_of_layers_typemask(const CustomData *data, CustomDataMask mask)
+int CustomData_number_of_layers_typemask(const CustomData *data,
+                                         CustomDataMask mask,
+                                         bool skip_temporary)
 {
   int number = 0;
 
   for (int i = 0; i < data->totlayer; i++) {
-    if (mask & CD_TYPE_AS_MASK(data->layers[i].type)) {
+    bool ok = mask & CD_TYPE_AS_MASK(data->layers[i].type);
+    ok = ok && (!skip_temporary || !(data->layers[i].flag & (int)CD_FLAG_TEMPORARY));
+
+    if (ok) {
       number++;
     }
   }
@@ -4094,7 +4099,7 @@ bool CustomData_bmesh_merge(const CustomData *source,
                             const char htype)
 {
 
-  if (CustomData_number_of_layers_typemask(source, mask) == 0) {
+  if (CustomData_number_of_layers_typemask(source, mask, false) == 0) {
     return false;
   }
 
