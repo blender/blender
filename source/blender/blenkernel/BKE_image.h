@@ -454,7 +454,7 @@ bool BKE_image_is_dirty_writable(struct Image *image, bool *r_is_writable);
 int BKE_image_sequence_guess_offset(struct Image *image);
 bool BKE_image_has_anim(struct Image *image);
 bool BKE_image_has_packedfile(const struct Image *image);
-bool BKE_image_has_filepath(struct Image *ima);
+bool BKE_image_has_filepath(const struct Image *ima);
 /**
  * Checks the image buffer changes with time (not keyframed values).
  */

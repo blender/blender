@@ -5124,7 +5124,7 @@ bool BKE_image_has_packedfile(const Image *ima)
   return (BLI_listbase_is_empty(&ima->packedfiles) == false);
 }
 
-bool BKE_image_has_filepath(Image *ima)
+bool BKE_image_has_filepath(const Image *ima)
 {
   /* This could be improved to detect cases like //../../, currently path
    * remapping empty file paths empty. */
