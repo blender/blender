@@ -13,9 +13,11 @@ CCL_NAMESPACE_BEGIN
 
 BlenderImageLoader::BlenderImageLoader(BL::Image b_image,
                                        const int frame,
+                                       const int tile_number,
                                        const bool is_preview_render)
     : b_image(b_image),
       frame(frame),
+      tile_number(tile_number),
       /* Don't free cache for preview render to avoid race condition from T93560, to be fixed
          properly later as we are close to release. */
       free_cache(!is_preview_render && !b_image.has_data())
@@ -66,12 +68,11 @@ bool BlenderImageLoader::load_pixels(const ImageMetaData &metadata,
 {
   const size_t num_pixels = ((size_t)metadata.width) * metadata.height;
   const int channels = metadata.channels;
-  const int tile = 0; /* TODO(lukas): Support tiles here? */
 
   if (b_image.is_float()) {
     /* image data */
     float *image_pixels;
-    image_pixels = image_get_float_pixels_for_frame(b_image, frame, tile);
+    image_pixels = image_get_float_pixels_for_frame(b_image, frame, tile_number);
 
     if (image_pixels && num_pixels * channels == pixels_size) {
       memcpy(pixels, image_pixels, pixels_size * sizeof(float));
@@ -99,7 +100,7 @@ bool BlenderImageLoader::load_pixels(const ImageMetaData &metadata,
     }
   }
   else {
-    unsigned char *image_pixels = image_get_pixels_for_frame(b_image, frame, tile);
+    unsigned char *image_pixels = image_get_pixels_for_frame(b_image, frame, tile_number);
 
     if (image_pixels && num_pixels * channels == pixels_size) {
       memcpy(pixels, image_pixels, pixels_size * sizeof(unsigned char));
@@ -153,7 +154,13 @@ string BlenderImageLoader::name() const
 bool BlenderImageLoader::equals(const ImageLoader &other) const
 {
   const BlenderImageLoader &other_loader = (const BlenderImageLoader &)other;
-  return b_image == other_loader.b_image && frame == other_loader.frame;
+  return b_image == other_loader.b_image && frame == other_loader.frame &&
+         tile_number == other_loader.tile_number;
+}
+
+int BlenderImageLoader::get_tile_number() const
+{
+  return tile_number;
 }
 
 /* Point Density */

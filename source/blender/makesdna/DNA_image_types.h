@@ -64,6 +64,11 @@ typedef struct ImageView {
 typedef struct ImagePackedFile {
   struct ImagePackedFile *next, *prev;
   struct PackedFile *packedfile;
+
+  /* Which view and tile this ImagePackedFile represents. Normal images will use 0 and 1001
+   * respectively when creating their ImagePackedFile. Must be provided for each packed image. */
+  int view;
+  int tile_number;
   /** 1024 = FILE_MAX. */
   char filepath[1024];
 } ImagePackedFile;

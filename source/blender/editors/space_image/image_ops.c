@@ -2316,6 +2316,14 @@ static bool image_has_valid_path(Image *ima)
   return strchr(ima->filepath, '\\') || strchr(ima->filepath, '/');
 }
 
+static bool image_should_pack_during_save_all(const Image *ima)
+{
+  /* Images without a filepath (implied with IMA_SRC_GENERATED) should
+   * be packed during a save_all operation. */
+  return (ima->source == IMA_SRC_GENERATED) ||
+         (ima->source == IMA_SRC_TILED && !BKE_image_has_filepath(ima));
+}
+
 bool ED_image_should_save_modified(const Main *bmain)
 {
   ReportList reports;
@@ -2339,7 +2347,7 @@ int ED_image_save_all_modified_info(const Main *bmain, ReportList *reports)
     bool is_format_writable;
 
     if (image_should_be_saved(ima, &is_format_writable)) {
-      if (BKE_image_has_packedfile(ima) || (ima->source == IMA_SRC_GENERATED)) {
+      if (BKE_image_has_packedfile(ima) || image_should_pack_during_save_all(ima)) {
         if (!ID_IS_LINKED(ima)) {
           num_saveable_images++;
         }
@@ -2396,7 +2404,7 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
     bool is_format_writable;
 
     if (image_should_be_saved(ima, &is_format_writable)) {
-      if (BKE_image_has_packedfile(ima) || (ima->source == IMA_SRC_GENERATED)) {
+      if (BKE_image_has_packedfile(ima) || image_should_pack_during_save_all(ima)) {
         BKE_image_memorypack(ima);
       }
       else if (is_format_writable) {
@@ -3040,9 +3048,8 @@ static bool image_pack_test(bContext *C, wmOperator *op)
     return false;
   }
 
-  if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_TILED)) {
-    BKE_report(
-        op->reports, RPT_ERROR, "Packing movies, image sequences or tiled images not supported");
+  if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+    BKE_report(op->reports, RPT_ERROR, "Packing movies or image sequences not supported");
     return false;
   }
 
@@ -3110,9 +3117,8 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_TILED)) {
-    BKE_report(
-        op->reports, RPT_ERROR, "Unpacking movies, image sequences or tiled images not supported");
+  if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+    BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported");
     return OPERATOR_CANCELLED;
   }
 
@@ -3144,9 +3150,8 @@ static int image_unpack_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
     return OPERATOR_CANCELLED;
   }
 
-  if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_TILED)) {
-    BKE_report(
-        op->reports, RPT_ERROR, "Unpacking movies, image sequences or tiled images not supported");
+  if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+    BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported");
     return OPERATOR_CANCELLED;
   }
 

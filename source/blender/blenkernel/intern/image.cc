@@ -721,6 +721,9 @@ static void copy_image_packedfiles(ListBase *lb_dst, const ListBase *lb_src)
        imapf_src = imapf_src->next) {
     ImagePackedFile *imapf_dst = static_cast<ImagePackedFile *>(
         MEM_mallocN(sizeof(ImagePackedFile), "Image Packed Files (copy)"));
+
+    imapf_dst->view = imapf_src->view;
+    imapf_dst->tile_number = imapf_src->tile_number;
     STRNCPY(imapf_dst->filepath, imapf_src->filepath);
 
     if (imapf_src->packedfile) {
@@ -1197,7 +1200,8 @@ Image *BKE_image_add_from_imbuf(Main *bmain, ImBuf *ibuf, const char *name)
 }
 
 /** Pack image buffer to memory as PNG or EXR. */
-static bool image_memorypack_imbuf(Image *ima, ImBuf *ibuf, const char *filepath)
+static bool image_memorypack_imbuf(
+    Image *ima, ImBuf *ibuf, int view, int tile_number, const char *filepath)
 {
   ibuf->ftype = (ibuf->rect_float) ? IMB_FTYPE_OPENEXR : IMB_FTYPE_PNG;
 
@@ -1219,6 +1223,8 @@ static bool image_memorypack_imbuf(Image *ima, ImBuf *ibuf, const char *filepath
   imapf = static_cast<ImagePackedFile *>(MEM_mallocN(sizeof(ImagePackedFile), "Image PackedFile"));
   STRNCPY(imapf->filepath, filepath);
   imapf->packedfile = pf;
+  imapf->view = view;
+  imapf->tile_number = tile_number;
   BLI_addtail(&ima->packedfiles, imapf);
 
   ibuf->encodedbuffer = nullptr;
@@ -1234,42 +1240,47 @@ bool BKE_image_memorypack(Image *ima)
 
   image_free_packedfiles(ima);
 
-  if (BKE_image_is_multiview(ima)) {
-    /* Store each view as a separate packed files with R_IMF_VIEWS_INDIVIDUAL. */
-    ImageView *iv;
-    int i;
+  const int tot_viewfiles = image_num_viewfiles(ima);
+  const bool is_tiled = (ima->source == IMA_SRC_TILED);
+  const bool is_multiview = BKE_image_is_multiview(ima);
 
-    for (i = 0, iv = static_cast<ImageView *>(ima->views.first); iv;
-         iv = static_cast<ImageView *>(iv->next), i++) {
-      ImBuf *ibuf = image_get_cached_ibuf_for_index_entry(ima, i, 0, nullptr);
+  ImageUser iuser{};
+  BKE_imageuser_default(&iuser);
+  char tiled_filepath[FILE_MAX];
 
+  for (int view = 0; view < tot_viewfiles; view++) {
+    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      int index = (is_multiview || is_tiled) ? view : IMA_NO_INDEX;
+      int entry = is_tiled ? tile->tile_number : 0;
+      ImBuf *ibuf = image_get_cached_ibuf_for_index_entry(ima, index, entry, nullptr);
       if (!ibuf) {
         ok = false;
         break;
       }
 
-      /* if the image was a R_IMF_VIEWS_STEREO_3D we force _L, _R suffices */
-      if (ima->views_format == R_IMF_VIEWS_STEREO_3D) {
-        const char *suffix[2] = {STEREO_LEFT_SUFFIX, STEREO_RIGHT_SUFFIX};
-        BLI_path_suffix(iv->filepath, FILE_MAX, suffix[i], "");
+      const char *filepath = ibuf->name;
+      if (is_tiled) {
+        iuser.tile = tile->tile_number;
+        BKE_image_user_file_path(&iuser, ima, tiled_filepath);
+        filepath = tiled_filepath;
+      }
+      else if (is_multiview) {
+        ImageView *iv = static_cast<ImageView *>(BLI_findlink(&ima->views, view));
+        /* if the image was a R_IMF_VIEWS_STEREO_3D we force _L, _R suffices */
+        if (ima->views_format == R_IMF_VIEWS_STEREO_3D) {
+          const char *suffix[2] = {STEREO_LEFT_SUFFIX, STEREO_RIGHT_SUFFIX};
+          BLI_path_suffix(iv->filepath, FILE_MAX, suffix[view], "");
+        }
+        filepath = iv->filepath;
       }
 
-      ok = ok && image_memorypack_imbuf(ima, ibuf, iv->filepath);
+      ok = ok && image_memorypack_imbuf(ima, ibuf, view, tile->tile_number, filepath);
       IMB_freeImBuf(ibuf);
     }
-
-    ima->views_format = R_IMF_VIEWS_INDIVIDUAL;
   }
-  else {
-    ImBuf *ibuf = image_get_cached_ibuf_for_index_entry(ima, IMA_NO_INDEX, 0, nullptr);
 
-    if (ibuf) {
-      ok = ok && image_memorypack_imbuf(ima, ibuf, ibuf->name);
-      IMB_freeImBuf(ibuf);
-    }
-    else {
-      ok = false;
-    }
+  if (is_multiview) {
+    ima->views_format = R_IMF_VIEWS_INDIVIDUAL;
   }
 
   if (ok && ima->source == IMA_SRC_GENERATED) {
@@ -1284,27 +1295,24 @@ void BKE_image_packfiles(ReportList *reports, Image *ima, const char *basepath)
 {
   const int tot_viewfiles = image_num_viewfiles(ima);
 
-  if (tot_viewfiles == 1) {
-    ImagePackedFile *imapf = static_cast<ImagePackedFile *>(
-        MEM_mallocN(sizeof(ImagePackedFile), "Image packed file"));
-    BLI_addtail(&ima->packedfiles, imapf);
-    imapf->packedfile = BKE_packedfile_new(reports, ima->filepath, basepath);
-    if (imapf->packedfile) {
-      STRNCPY(imapf->filepath, ima->filepath);
-    }
-    else {
-      BLI_freelinkN(&ima->packedfiles, imapf);
-    }
-  }
-  else {
-    for (ImageView *iv = static_cast<ImageView *>(ima->views.first); iv; iv = iv->next) {
+  ImageUser iuser{};
+  BKE_imageuser_default(&iuser);
+  for (int view = 0; view < tot_viewfiles; view++) {
+    iuser.view = view;
+    LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      iuser.tile = tile->tile_number;
+      char filepath[FILE_MAX];
+      BKE_image_user_file_path(&iuser, ima, filepath);
+
       ImagePackedFile *imapf = static_cast<ImagePackedFile *>(
           MEM_mallocN(sizeof(ImagePackedFile), "Image packed file"));
       BLI_addtail(&ima->packedfiles, imapf);
 
-      imapf->packedfile = BKE_packedfile_new(reports, iv->filepath, basepath);
+      imapf->packedfile = BKE_packedfile_new(reports, filepath, basepath);
+      imapf->view = view;
+      imapf->tile_number = tile->tile_number;
       if (imapf->packedfile) {
-        STRNCPY(imapf->filepath, iv->filepath);
+        STRNCPY(imapf->filepath, filepath);
       }
       else {
         BLI_freelinkN(&ima->packedfiles, imapf);
@@ -1323,11 +1331,16 @@ void BKE_image_packfiles_from_mem(ReportList *reports,
   if (tot_viewfiles != 1) {
     BKE_report(reports, RPT_ERROR, "Cannot pack multiview images from raw data currently...");
   }
+  else if (ima->source == IMA_SRC_TILED) {
+    BKE_report(reports, RPT_ERROR, "Cannot pack tiled images from raw data currently...");
+  }
   else {
     ImagePackedFile *imapf = static_cast<ImagePackedFile *>(
         MEM_mallocN(sizeof(ImagePackedFile), __func__));
     BLI_addtail(&ima->packedfiles, imapf);
     imapf->packedfile = BKE_packedfile_new_from_memory(data, data_len);
+    imapf->view = 0;
+    imapf->tile_number = 1001;
     STRNCPY(imapf->filepath, ima->filepath);
   }
 }
@@ -2950,8 +2963,9 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
       /* try to repack file */
       if (BKE_image_has_packedfile(ima)) {
         const int tot_viewfiles = image_num_viewfiles(ima);
+        const int tot_files = tot_viewfiles * BLI_listbase_count(&ima->tiles);
 
-        if (tot_viewfiles != BLI_listbase_count_at_most(&ima->packedfiles, tot_viewfiles + 1)) {
+        if (tot_files != BLI_listbase_count_at_most(&ima->packedfiles, tot_files + 1)) {
           /* in case there are new available files to be loaded */
           image_free_packedfiles(ima);
           BKE_image_packfiles(nullptr, ima, ID_BLEND_PATH(bmain, &ima->id));
@@ -3926,18 +3940,23 @@ static ImBuf *load_image_single(Image *ima,
   int flag = IB_rect | IB_multilayer;
 
   *r_cache_ibuf = true;
+  const int tile_number = image_get_tile_number_from_iuser(ima, iuser);
 
   /* is there a PackedFile with this image ? */
   if (has_packed && !is_sequence) {
-    ImagePackedFile *imapf = static_cast<ImagePackedFile *>(
-        BLI_findlink(&ima->packedfiles, view_id));
-    if (imapf->packedfile) {
-      flag |= imbuf_alpha_flags_for_image(ima);
-      ibuf = IMB_ibImageFromMemory((unsigned char *)imapf->packedfile->data,
-                                   imapf->packedfile->size,
-                                   flag,
-                                   ima->colorspace_settings.name,
-                                   "<packed data>");
+    flag |= imbuf_alpha_flags_for_image(ima);
+
+    LISTBASE_FOREACH (ImagePackedFile *, imapf, &ima->packedfiles) {
+      if (imapf->view == view_id && imapf->tile_number == tile_number) {
+        if (imapf->packedfile) {
+          ibuf = IMB_ibImageFromMemory((unsigned char *)imapf->packedfile->data,
+                                       imapf->packedfile->size,
+                                       flag,
+                                       ima->colorspace_settings.name,
+                                       "<packed data>");
+        }
+        break;
+      }
     }
   }
   else {
@@ -3996,6 +4015,8 @@ static ImBuf *load_image_single(Image *ima,
         BLI_addtail(&ima->packedfiles, imapf);
 
         STRNCPY(imapf->filepath, filepath);
+        imapf->view = view_id;
+        imapf->tile_number = tile_number;
         imapf->packedfile = BKE_packedfile_new(
             nullptr, filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
       }
@@ -5103,7 +5124,7 @@ bool BKE_image_has_packedfile(const Image *ima)
   return (BLI_listbase_is_empty(&ima->packedfiles) == false);
 }
 
-bool BKE_image_has_filepath(Image *ima)
+bool BKE_image_has_filepath(const Image *ima)
 {
   /* This could be improved to detect cases like //../../, currently path
    * remapping empty file paths empty. */

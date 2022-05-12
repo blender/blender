@@ -454,7 +454,7 @@ int rna_AttributeGroup_color_length(PointerRNA *ptr)
   return BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL, true);
 }
 
-ATTR_NO_OPT int rna_AttributeGroup_length(PointerRNA *ptr)
+int rna_AttributeGroup_length(PointerRNA *ptr)
 {
   return BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL, false);
 }
