@@ -60,7 +60,9 @@ static struct {
   ListBase tracks;
 } tracking_clipboard;
 
-/*********************** Common functions *************************/
+/* --------------------------------------------------------------------
+ * Common functions.
+ */
 
 /* Free the whole list of tracks, list's head and tail are set to NULL. */
 static void tracking_tracks_free(ListBase *tracks)
@@ -435,7 +437,9 @@ void BKE_tracking_get_projection_matrix(MovieTracking *tracking,
   }
 }
 
-/*********************** clipboard *************************/
+/* --------------------------------------------------------------------
+ * Clipboard.
+ */
 
 void BKE_tracking_clipboard_free(void)
 {
@@ -496,7 +500,9 @@ void BKE_tracking_clipboard_paste_tracks(MovieTracking *tracking, MovieTrackingO
   }
 }
 
-/*********************** Tracks *************************/
+/* --------------------------------------------------------------------
+ * Tracks.
+ */
 
 MovieTrackingTrack *BKE_tracking_track_add_empty(MovieTracking *tracking, ListBase *tracks_list)
 {
@@ -1276,7 +1282,9 @@ void BKE_tracking_tracks_deselect_all(ListBase *tracksbase)
   }
 }
 
-/*********************** Marker *************************/
+/* --------------------------------------------------------------------
+ * Marker.
+ */
 
 MovieTrackingMarker *BKE_tracking_marker_insert(MovieTrackingTrack *track,
                                                 MovieTrackingMarker *marker)
@@ -1591,7 +1599,9 @@ void BKE_tracking_marker_get_subframe_position(MovieTrackingTrack *track,
   add_v2_v2(pos, track->offset);
 }
 
-/*********************** Plane Track *************************/
+/* --------------------------------------------------------------------
+ * Plane track.
+ */
 
 MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(MovieTracking *tracking,
                                                       ListBase *plane_tracks_base,
@@ -1796,7 +1806,9 @@ void BKE_tracking_plane_tracks_replace_point_track(MovieTracking *tracking,
   }
 }
 
-/*********************** Plane Marker *************************/
+/* --------------------------------------------------------------------
+ * Plane marker.
+ */
 
 MovieTrackingPlaneMarker *BKE_tracking_plane_marker_insert(MovieTrackingPlaneTrack *plane_track,
                                                            MovieTrackingPlaneMarker *plane_marker)
@@ -1974,7 +1986,9 @@ void BKE_tracking_plane_marker_get_subframe_corners(MovieTrackingPlaneTrack *pla
   }
 }
 
-/*********************** Object *************************/
+/* --------------------------------------------------------------------
+ * Object.
+ */
 
 MovieTrackingObject *BKE_tracking_object_add(MovieTracking *tracking, const char *name)
 {
@@ -2119,7 +2133,9 @@ MovieTrackingReconstruction *BKE_tracking_object_get_reconstruction(MovieTrackin
   return &object->reconstruction;
 }
 
-/*********************** Camera *************************/
+/* --------------------------------------------------------------------
+ * Camera.
+ */
 
 static int reconstructed_camera_index_get(MovieTrackingReconstruction *reconstruction,
                                           int framenr,
@@ -2275,7 +2291,9 @@ void BKE_tracking_camera_get_reconstructed_interpolate(MovieTracking *tracking,
   reconstructed_camera_scale_set(object, mat);
 }
 
-/*********************** Distortion/Undistortion *************************/
+/* --------------------------------------------------------------------
+ * (Un)distortion.
+ */
 
 MovieDistortion *BKE_tracking_distortion_new(MovieTracking *tracking,
                                              int calibration_width,
@@ -2588,7 +2606,9 @@ void BKE_tracking_max_distortion_delta_across_bound(MovieTracking *tracking,
   }
 }
 
-/*********************** Image sampling *************************/
+/* --------------------------------------------------------------------
+ * Image sampling.
+ */
 
 static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, bool grayscale)
 {
@@ -2832,7 +2852,9 @@ void BKE_tracking_disable_channels(
   }
 }
 
-/*********************** Dopesheet functions *************************/
+/* --------------------------------------------------------------------
+ * Dopesheet functions.
+ */
 
 /* ** Channels sort comparators ** */
 
