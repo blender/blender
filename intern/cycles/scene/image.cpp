@@ -117,12 +117,12 @@ void ImageHandle::clear()
   manager = NULL;
 }
 
-bool ImageHandle::empty()
+bool ImageHandle::empty() const
 {
   return tile_slots.empty();
 }
 
-int ImageHandle::num_tiles()
+int ImageHandle::num_tiles() const
 {
   return tile_slots.size();
 }
@@ -152,6 +152,35 @@ int ImageHandle::svm_slot(const int tile_index) const
   }
 
   return tile_slots[tile_index];
+}
+
+vector<int4> ImageHandle::get_svm_slots() const
+{
+  const size_t num_nodes = divide_up(tile_slots.size(), 2);
+
+  vector<int4> svm_slots;
+  svm_slots.reserve(num_nodes);
+  for (size_t i = 0; i < num_nodes; i++) {
+    int4 node;
+
+    int slot = tile_slots[2 * i];
+    node.x = manager->images[slot]->loader->get_tile_number();
+    node.y = slot;
+
+    if ((2 * i + 1) < tile_slots.size()) {
+      slot = tile_slots[2 * i + 1];
+      node.z = manager->images[slot]->loader->get_tile_number();
+      node.w = slot;
+    }
+    else {
+      node.z = -1;
+      node.w = -1;
+    }
+
+    svm_slots.push_back(node);
+  }
+
+  return svm_slots;
 }
 
 device_texture *ImageHandle::image_memory(const int tile_index) const
@@ -264,6 +293,11 @@ ImageLoader::ImageLoader()
 ustring ImageLoader::osl_filepath() const
 {
   return ustring();
+}
+
+int ImageLoader::get_tile_number() const
+{
+  return 0;
 }
 
 bool ImageLoader::equals(const ImageLoader *a, const ImageLoader *b)
@@ -393,6 +427,19 @@ ImageHandle ImageManager::add_image(ImageLoader *loader,
 
   ImageHandle handle;
   handle.tile_slots.push_back(slot);
+  handle.manager = this;
+  return handle;
+}
+
+ImageHandle ImageManager::add_image(const vector<ImageLoader *> &loaders,
+                                    const ImageParams &params)
+{
+  ImageHandle handle;
+  for (ImageLoader *loader : loaders) {
+    const int slot = add_image_slot(loader, params, true);
+    handle.tile_slots.push_back(slot);
+  }
+
   handle.manager = this;
   return handle;
 }

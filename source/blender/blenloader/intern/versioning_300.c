@@ -3034,5 +3034,16 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         brush->curves_sculpt_settings->points_per_curve = 8;
       }
     }
+
+    /* UDIM Packing. */
+    if (!DNA_struct_elem_find(fd->filesdna, "ImagePackedFile", "int", "tile_number")) {
+      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+        int view;
+        LISTBASE_FOREACH_INDEX (ImagePackedFile *, imapf, &ima->packedfiles, view) {
+          imapf->view = view;
+          imapf->tile_number = 1001;
+        }
+      }
+    }
   }
 }

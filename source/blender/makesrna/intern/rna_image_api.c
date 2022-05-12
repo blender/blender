@@ -161,9 +161,8 @@ static void rna_Image_unpack(Image *image, Main *bmain, ReportList *reports, int
   if (!BKE_image_has_packedfile(image)) {
     BKE_report(reports, RPT_ERROR, "Image not packed");
   }
-  else if (BKE_image_has_multiple_ibufs(image)) {
-    BKE_report(
-        reports, RPT_ERROR, "Unpacking movies, image sequences or tiled images not supported");
+  else if (ELEM(image->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+    BKE_report(reports, RPT_ERROR, "Unpacking movies or image sequences not supported");
     return;
   }
   else {

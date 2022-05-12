@@ -737,6 +737,16 @@ static void rna_def_image_packed_files(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, NULL, "filepath");
   RNA_def_struct_name_property(srna, prop);
 
+  prop = RNA_def_property(srna, "view", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "view");
+  RNA_def_property_ui_text(prop, "View Index", "");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "tile_number", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, NULL, "tile_number");
+  RNA_def_property_ui_text(prop, "Tile Number", "");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
   RNA_api_image_packed_file(srna);
 }
 
