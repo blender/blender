@@ -849,7 +849,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
             }
           }
 
-          BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_DIM);
+          BKE_tracking_marker_clamp_search_size(data->marker);
         }
         else if (data->action == SLIDE_ACTION_OFFSET) {
           const float d[2] = {dx, dy};
@@ -870,10 +870,8 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
             copy_v2_v2(data->pos, spos);
           }
 
-          /* Currently only patterns are allowed to have such
-           * combination of event and data.
-           */
-          BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_DIM);
+          /* Currently only patterns are allowed to have such combination of event and data. */
+          BKE_tracking_marker_clamp_search_size(data->marker);
         }
         else if (data->action == SLIDE_ACTION_TILT_SIZE) {
           const float mouse_delta[2] = {dx, dy};
@@ -917,7 +915,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
             data->corners[a][1] = (vec[1] * cosf(angle) + vec[0] * sinf(angle)) / data->height;
           }
 
-          BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_DIM);
+          BKE_tracking_marker_clamp_search_size(data->marker);
         }
       }
       else if (data->area == TRACK_AREA_SEARCH) {
@@ -928,7 +926,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
           data->min[1] = data->old_search_min[1] + dy;
           data->max[1] = data->old_search_max[1] - dy;
 
-          BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_DIM);
+          BKE_tracking_marker_clamp_search_size(data->marker);
         }
         else if (data->area == TRACK_AREA_SEARCH) {
           const float d[2] = {dx, dy};
@@ -936,7 +934,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
           add_v2_v2v2(data->max, data->old_search_max, d);
         }
 
-        BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_POS);
+        BKE_tracking_marker_clamp_search_position(data->marker);
       }
 
       data->marker->flag &= ~MARKER_TRACKED;

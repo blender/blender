@@ -1367,53 +1367,52 @@ void BKE_tracking_marker_delete(MovieTrackingTrack *track, int framenr)
   }
 }
 
-void BKE_tracking_marker_clamp(MovieTrackingMarker *marker, int event)
+void BKE_tracking_marker_clamp_pattern_position(MovieTrackingMarker *marker)
 {
   float pat_min[2], pat_max[2];
-
   BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 
-  if (event == CLAMP_PAT_POS) {
-    float dim[2];
-
-    sub_v2_v2v2(dim, pat_max, pat_min);
-
-    for (int a = 0; a < 2; a++) {
-      /* pattern shouldn't be moved outside of search */
-      if (pat_min[a] < marker->search_min[a]) {
-        for (int b = 0; b < 4; b++) {
-          marker->pattern_corners[b][a] += marker->search_min[a] - pat_min[a];
-        }
+  for (int a = 0; a < 2; a++) {
+    if (pat_min[a] < marker->search_min[a]) {
+      for (int b = 0; b < 4; b++) {
+        marker->pattern_corners[b][a] += marker->search_min[a] - pat_min[a];
       }
-      if (pat_max[a] > marker->search_max[a]) {
-        for (int b = 0; b < 4; b++) {
-          marker->pattern_corners[b][a] -= pat_max[a] - marker->search_max[a];
-        }
+    }
+    if (pat_max[a] > marker->search_max[a]) {
+      for (int b = 0; b < 4; b++) {
+        marker->pattern_corners[b][a] -= pat_max[a] - marker->search_max[a];
       }
     }
   }
-  else if (event == CLAMP_SEARCH_DIM) {
-    for (int a = 0; a < 2; a++) {
-      /* search shouldn't be resized smaller than pattern */
-      marker->search_min[a] = min_ff(pat_min[a], marker->search_min[a]);
-      marker->search_max[a] = max_ff(pat_max[a], marker->search_max[a]);
-    }
+}
+
+void BKE_tracking_marker_clamp_search_size(MovieTrackingMarker *marker)
+{
+  float pat_min[2], pat_max[2];
+  BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
+
+  for (int a = 0; a < 2; a++) {
+    marker->search_min[a] = min_ff(pat_min[a], marker->search_min[a]);
+    marker->search_max[a] = max_ff(pat_max[a], marker->search_max[a]);
   }
-  else if (event == CLAMP_SEARCH_POS) {
-    float dim[2];
+}
 
-    sub_v2_v2v2(dim, marker->search_max, marker->search_min);
+void BKE_tracking_marker_clamp_search_position(MovieTrackingMarker *marker)
+{
+  float pat_min[2], pat_max[2];
+  BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 
-    for (int a = 0; a < 2; a++) {
-      /* search shouldn't be moved inside pattern */
-      if (marker->search_min[a] > pat_min[a]) {
-        marker->search_min[a] = pat_min[a];
-        marker->search_max[a] = marker->search_min[a] + dim[a];
-      }
-      if (marker->search_max[a] < pat_max[a]) {
-        marker->search_max[a] = pat_max[a];
-        marker->search_min[a] = marker->search_max[a] - dim[a];
-      }
+  float dim[2];
+  sub_v2_v2v2(dim, marker->search_max, marker->search_min);
+
+  for (int a = 0; a < 2; a++) {
+    if (marker->search_min[a] > pat_min[a]) {
+      marker->search_min[a] = pat_min[a];
+      marker->search_max[a] = marker->search_min[a] + dim[a];
+    }
+    if (marker->search_max[a] < pat_max[a]) {
+      marker->search_max[a] = pat_max[a];
+      marker->search_min[a] = marker->search_max[a] - dim[a];
     }
   }
 }

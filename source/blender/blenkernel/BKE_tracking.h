@@ -32,12 +32,6 @@ struct rcti;
  * Common types and constants.
  */
 
-enum {
-  CLAMP_PAT_POS = 2,
-  CLAMP_SEARCH_DIM = 3,
-  CLAMP_SEARCH_POS = 4,
-};
-
 typedef enum eTrackArea {
   TRACK_AREA_POINT = (1 << 0),
   TRACK_AREA_PAT = (1 << 1),
@@ -292,7 +286,35 @@ struct MovieTrackingMarker *BKE_tracking_marker_insert(struct MovieTrackingTrack
                                                        struct MovieTrackingMarker *marker);
 void BKE_tracking_marker_delete(struct MovieTrackingTrack *track, int framenr);
 
-void BKE_tracking_marker_clamp(struct MovieTrackingMarker *marker, int event);
+/**
+ * If the pattern area is outside of the search area its position will be modified in a way that it
+ * is within the pattern is within the search area.
+ *
+ * If the pattern area is already within the search area nothing happens.
+ *
+ * If the pattern area is bigger than the search area the behavior is undefined.
+ *
+ * Search area is never modified.
+ */
+void BKE_tracking_marker_clamp_pattern_position(struct MovieTrackingMarker *marker);
+
+/**
+ * If the search size is such that pattern area is (partially) outside of the search area make the
+ * search area bigger so that the pattern is within the search area.
+ *
+ * Pattern area is never modified.
+ */
+void BKE_tracking_marker_clamp_search_size(struct MovieTrackingMarker *marker);
+
+/**
+ * If the search position is such that pattern area is (partially) outside of the search area move
+ * the search area so that the pattern is within the search area.
+ *
+ * If the search area is smaller than the pattern the behavior is undefined.
+ *
+ * Pattern area is never modified.
+ */
+void BKE_tracking_marker_clamp_search_position(struct MovieTrackingMarker *marker);
 
 /**
  * Get marker closest to the given frame number.
