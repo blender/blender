@@ -246,7 +246,7 @@ class _draw_tool_settings_context_mode:
             unified_name="use_unified_size",
             text="Radius",
             slider=True,
-            header=True
+            header=True,
         )
 
         # strength, use_strength_pressure
@@ -259,7 +259,7 @@ class _draw_tool_settings_context_mode:
             pressure_name=pressure_name,
             unified_name="use_unified_strength",
             text="Strength",
-            header=True
+            header=True,
         )
 
         # direction
@@ -320,7 +320,7 @@ class _draw_tool_settings_context_mode:
                 "weight",
                 unified_name="use_unified_weight",
                 slider=True,
-                header=True
+                header=True,
             )
 
         UnifiedPaintPanel.prop_unified(
@@ -332,7 +332,7 @@ class _draw_tool_settings_context_mode:
             unified_name="use_unified_size",
             slider=True,
             text="Radius",
-            header=True
+            header=True,
         )
         UnifiedPaintPanel.prop_unified(
             layout,
@@ -341,7 +341,7 @@ class _draw_tool_settings_context_mode:
             "strength",
             pressure_name="use_pressure_strength",
             unified_name="use_unified_strength",
-            header=True
+            header=True,
         )
 
         return True
@@ -490,16 +490,16 @@ class _draw_tool_settings_context_mode:
             return False
 
         UnifiedPaintPanel.prop_unified(
-                layout,
-                context,
-                brush,
-                "size",
-                unified_name="use_unified_size",
-                pressure_name="use_pressure_size",
-                text="Radius",
-                slider=True,
-                header=True
-            )
+            layout,
+            context,
+            brush,
+            "size",
+            unified_name="use_unified_size",
+            pressure_name="use_pressure_size",
+            text="Radius",
+            slider=True,
+            header=True,
+        )
 
         if brush.curves_sculpt_tool not in {'ADD', 'DELETE'}:
             UnifiedPaintPanel.prop_unified(
@@ -509,7 +509,7 @@ class _draw_tool_settings_context_mode:
                 "strength",
                 unified_name="use_unified_strength",
                 pressure_name="use_pressure_strength",
-                header=True
+                header=True,
             )
 
         if brush.curves_sculpt_tool == 'COMB':
@@ -521,7 +521,6 @@ class _draw_tool_settings_context_mode:
             layout.prop(brush.curves_sculpt_settings, "add_amount")
             layout.popover("VIEW3D_PT_curves_sculpt_add_shape", text="Curve Shape")
             layout.prop(brush, "use_frontface", text="Front Faces Only")
-
 
         if brush.curves_sculpt_tool == 'GROW_SHRINK':
             layout.prop(brush, "direction", expand=True, text="")

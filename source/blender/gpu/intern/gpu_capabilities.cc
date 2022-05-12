@@ -172,7 +172,6 @@ int GPU_max_compute_shader_storage_blocks()
   return GCaps.max_compute_shader_storage_blocks;
 }
 
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
