@@ -226,7 +226,8 @@ void EEVEE_motion_blur_hair_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
   }
 
   /* For now we assume hair objects are always moving. */
-  EEVEE_ObjectMotionData *mb_data = EEVEE_motion_blur_object_data_get(&effects->motion_blur, ob);
+  EEVEE_ObjectMotionData *mb_data = EEVEE_motion_blur_object_data_get(
+      &effects->motion_blur, ob, true);
 
   if (mb_data) {
     int mb_step = effects->motion_blur_step;
@@ -283,7 +284,8 @@ void EEVEE_motion_blur_curves_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata)
   }
 
   /* For now we assume curves objects are always moving. */
-  EEVEE_ObjectMotionData *mb_data = EEVEE_motion_blur_object_data_get(&effects->motion_blur, ob);
+  EEVEE_ObjectMotionData *mb_data = EEVEE_motion_blur_object_data_get(
+      &effects->motion_blur, ob, false);
   if (mb_data == NULL) {
     return;
   }
@@ -354,7 +356,8 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
     return;
   }
 
-  EEVEE_ObjectMotionData *mb_data = EEVEE_motion_blur_object_data_get(&effects->motion_blur, ob);
+  EEVEE_ObjectMotionData *mb_data = EEVEE_motion_blur_object_data_get(
+      &effects->motion_blur, ob, false);
 
   if (mb_data) {
     int mb_step = effects->motion_blur_step;
