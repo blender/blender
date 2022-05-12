@@ -405,8 +405,12 @@ static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   float co[2];
   const bool extend = RNA_boolean_get(op->ptr, "extend");
 
+  /* Special code which allows to slide a marker which belongs to currently selected but not yet
+   * active track. If such track is found activate it and return pass-though so that marker slide
+   * operator can be used immediately after.
+   * This logic makes it convenient to slide markers when left mouse selection is used. */
   if (!extend) {
-    MovieTrackingTrack *track = tracking_find_track_in_proximity(C, event);
+    MovieTrackingTrack *track = tracking_find_slidable_track_in_proximity(C, event);
     if (track != NULL) {
       MovieClip *clip = ED_space_clip_get_clip(sc);
 
