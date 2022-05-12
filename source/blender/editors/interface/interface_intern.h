@@ -223,7 +223,6 @@ struct uiBut {
   bool changed;
   /** so buttons can support unit systems which are not RNA */
   uchar unit_type;
-  short modifier_key;
   short iconadd;
 
   /** #UI_BTYPE_BLOCK data */
@@ -374,6 +373,13 @@ typedef struct uiButCurveMapping {
   struct CurveMapping *edit_cumap;
   eButGradientType gradient_type;
 } uiButCurveMapping;
+
+/** Derived struct for #UI_BTYPE_HOTKEY_EVENT. */
+typedef struct uiButHotkeyEvent {
+  uiBut but;
+
+  short modifier_key;
+} uiButHotkeyEvent;
 
 /**
  * Additional, superimposed icon for a button, invoking an operator.

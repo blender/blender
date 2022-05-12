@@ -3832,21 +3832,22 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
     }
     case UI_BTYPE_HOTKEY_EVENT:
       if (but->flag & UI_SELECT) {
+        const uiButHotkeyEvent *hotkey_but = (uiButHotkeyEvent *)but;
 
-        if (but->modifier_key) {
+        if (hotkey_but->modifier_key) {
           char *str = but->drawstr;
           but->drawstr[0] = '\0';
 
-          if (but->modifier_key & KM_SHIFT) {
+          if (hotkey_but->modifier_key & KM_SHIFT) {
             str += BLI_strcpy_rlen(str, "Shift ");
           }
-          if (but->modifier_key & KM_CTRL) {
+          if (hotkey_but->modifier_key & KM_CTRL) {
             str += BLI_strcpy_rlen(str, "Ctrl ");
           }
-          if (but->modifier_key & KM_ALT) {
+          if (hotkey_but->modifier_key & KM_ALT) {
             str += BLI_strcpy_rlen(str, "Alt ");
           }
-          if (but->modifier_key & KM_OSKEY) {
+          if (hotkey_but->modifier_key & KM_OSKEY) {
             str += BLI_strcpy_rlen(str, "Cmd ");
           }
 
@@ -3971,6 +3972,10 @@ static void ui_but_alloc_info(const eButType type,
     case UI_BTYPE_TREEROW:
       alloc_size = sizeof(uiButTreeRow);
       alloc_str = "uiButTreeRow";
+      break;
+    case UI_BTYPE_HOTKEY_EVENT:
+      alloc_size = sizeof(uiButHotkeyEvent);
+      alloc_str = "uiButHotkeyEvent";
       break;
     default:
       alloc_size = sizeof(uiBut);

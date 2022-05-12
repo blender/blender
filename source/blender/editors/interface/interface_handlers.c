@@ -4501,10 +4501,13 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
                                uiHandleButtonData *data,
                                const wmEvent *event)
 {
+  uiButHotkeyEvent *hotkey_but = (uiButHotkeyEvent *)but;
+  BLI_assert(but->type == UI_BTYPE_HOTKEY_EVENT);
+
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && event->val == KM_PRESS) {
       but->drawstr[0] = 0;
-      but->modifier_key = 0;
+      hotkey_but->modifier_key = 0;
       button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
       return WM_UI_HANDLER_BREAK;
     }
@@ -4538,7 +4541,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
     }
 
     /* always set */
-    but->modifier_key = event->modifier;
+    hotkey_but->modifier_key = event->modifier;
 
     ui_but_update(but);
     ED_region_tag_redraw(data->region);
