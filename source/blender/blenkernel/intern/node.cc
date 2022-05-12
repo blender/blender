@@ -1116,7 +1116,7 @@ static void node_init(const struct bContext *C, bNodeTree *ntree, bNode *node)
     PointerRNA ptr;
     RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
 
-    /* XXX Warning: context can be nullptr in case nodes are added in do_versions.
+    /* XXX WARNING: context can be nullptr in case nodes are added in do_versions.
      * Delayed init is not supported for nodes with context-based `initfunc_api` at the moment. */
     BLI_assert(C != nullptr);
     ntype->initfunc_api(C, &ptr);
@@ -1165,7 +1165,7 @@ static void node_set_typeinfo(const struct bContext *C,
   }
 }
 
-/* Warning: default_value must either be null or match the typeinfo at this point.
+/* WARNING: default_value must either be null or match the typeinfo at this point.
  * This function is called both for initializing new sockets and after loading files.
  */
 static void node_socket_set_typeinfo(bNodeTree *ntree,

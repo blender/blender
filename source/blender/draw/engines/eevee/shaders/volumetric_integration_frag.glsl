@@ -70,7 +70,7 @@ void main()
     vec3 Tr = exp(-s_extinction * s_len);
 
     /* integrate along the current step segment */
-    /* Note: Original calculation carries precision issues when compiling for AMD GPUs
+    /* NOTE: Original calculation carries precision issues when compiling for AMD GPUs
      * and running Metal. This version of the equation retains precision well for all
      * macOS HW configurations. */
     Lscat = (Lscat * (1.0f - Tr)) / max(vec3(1e-8), s_extinction);

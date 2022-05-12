@@ -24,7 +24,7 @@ void MTLStateManager::mtl_state_init(void)
 
 MTLStateManager::MTLStateManager(MTLContext *ctx) : StateManager()
 {
-  /* Initialise State. */
+  /* Initialize State. */
   this->context_ = ctx;
   mtl_state_init();
 
@@ -92,10 +92,10 @@ void MTLStateManager::set_state(const GPUState &state)
 
   /* TODO remove (Following GLState). */
   if (changed.polygon_smooth) {
-    /* Note: Unsupported in Metal. */
+    /* NOTE: Unsupported in Metal. */
   }
   if (changed.line_smooth) {
-    /* Note: Unsupported in Metal. */
+    /* NOTE: Unsupported in Metal. */
   }
 
   current_ = state;
@@ -341,7 +341,7 @@ void MTLStateManager::set_clip_distances(const int new_dist_len, const int old_d
 
 void MTLStateManager::set_logic_op(const bool enable)
 {
-  /* Note(Metal): Logic Operations not directly supported. */
+  /* NOTE(Metal): Logic Operations not directly supported. */
 }
 
 void MTLStateManager::set_facing(const bool invert)
@@ -376,9 +376,9 @@ void MTLStateManager::set_backface_culling(const eGPUFaceCullTest test)
 
 void MTLStateManager::set_provoking_vert(const eGPUProvokingVertex vert)
 {
-  /* Note(Metal): Provoking vertex is not a feature in the Metal API.
+  /* NOTE(Metal): Provoking vertex is not a feature in the Metal API.
    * Shaders are handled on a case-by-case basis using a modified vertex shader.
-   * For example, wireframe rendering and edit-mesh shaders utilise an SSBO-based
+   * For example, wireframe rendering and edit-mesh shaders utilize an SSBO-based
    * vertex fetching mechanism which considers the inverse convention for flat
    * shading, to ensure consistent results with OpenGL. */
 }
@@ -439,7 +439,7 @@ void MTLStateManager::set_blend(const eGPUBlend value)
       break;
     }
     case GPU_BLEND_ADDITIVE: {
-      /* Do not let alpha accumulate but premult the source RGB by it. */
+      /* Do not let alpha accumulate but pre-multiply the source RGB by it. */
       src_rgb = MTLBlendFactorSourceAlpha;
       dst_rgb = MTLBlendFactorOne;
       src_alpha = MTLBlendFactorZero;
@@ -530,14 +530,14 @@ void MTLStateManager::set_blend(const eGPUBlend value)
 /** \name Memory barrier
  * \{ */
 
-/* Note(Metal): Granular option for specifying before/after stages for a barrier
+/* NOTE(Metal): Granular option for specifying before/after stages for a barrier
  * Would be a useful feature. */
 /*void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits,
                                     eGPUStageBarrierBits before_stages,
                                     eGPUStageBarrierBits after_stages) */
 void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits)
 {
-  /* Note(Metal): The Metal API implictly tracks dependencies between resources.
+  /* NOTE(Metal): The Metal API implicitly tracks dependencies between resources.
    * Memory barriers and execution barriers (Fences/Events) can be used to coordinate
    * this explicitly, however, in most cases, the driver will be able to
    * resolve these dependencies automatically.
@@ -551,7 +551,7 @@ void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits)
 
     /* Apple Silicon does not support memory barriers.
      * We do not currently need these due to implicit API guarantees.
-     * Note(Metal): MTLFence/MTLEvent may be required to synchronize work if
+     * NOTE(Metal): MTLFence/MTLEvent may be required to synchronize work if
      * untracked resources are ever used. */
     if ([ctx->device hasUnifiedMemory]) {
       return;
@@ -562,7 +562,7 @@ void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits)
     id<MTLRenderCommandEncoder> rec = nil;  // ctx->get_active_render_command_encoder();
     BLI_assert(rec);
 
-    /* Only supporting Metal on 10.15 onwards anyway - Check required for warnings. */
+    /* Only supporting Metal on 10.15 onward anyway - Check required for warnings. */
     if (@available(macOS 10.14, *)) {
       MTLBarrierScope scope = 0;
       if (barrier_bits & GPU_BARRIER_SHADER_IMAGE_ACCESS ||

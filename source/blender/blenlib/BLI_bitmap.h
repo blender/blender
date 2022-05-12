@@ -15,7 +15,7 @@ extern "C" {
 
 typedef unsigned int BLI_bitmap;
 
-/* warning: the bitmap does not keep track of its own size or check
+/* WARNING: the bitmap does not keep track of its own size or check
  * for out-of-bounds access */
 
 /* internal use */

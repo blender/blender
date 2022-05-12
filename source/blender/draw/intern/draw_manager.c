@@ -501,7 +501,7 @@ static DRWData *drw_viewport_data_ensure(GPUViewport *viewport)
  * - size can be NULL to get it from viewport.
  * - if viewport and size are NULL, size is set to (1, 1).
  *
- * Important: drw_manager_init can be called multiple times before drw_manager_exit.
+ * IMPORTANT: #drw_manager_init can be called multiple times before #drw_manager_exit.
  */
 static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int size[2])
 {

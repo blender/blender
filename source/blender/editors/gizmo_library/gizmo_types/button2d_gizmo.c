@@ -74,7 +74,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
   GPU_viewport_size_get_f(viewport);
 
   GPUVertFormat *format = immVertexFormat();
-  /* Note(Metal): Prefer 3D coordinate for 2D rendering when using 3D shader. */
+  /* NOTE(Metal): Prefer 3D coordinate for 2D rendering when using 3D shader. */
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   /* TODO: other draw styles. */

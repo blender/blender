@@ -41,7 +41,7 @@ struct KernelGlobalsCPU;
  * These are stored in a concurrent hash map, because OSL can compile multiple
  * shaders in parallel.
  *
- * Note: The svm_slots array contains a compressed mapping of tile to svm_slot pairs
+ * NOTE: The svm_slots array contains a compressed mapping of tile to svm_slot pairs
  * stored as follows: x:tile_a, y:svm_slot_a, z:tile_b, w:svm_slot_b etc. */
 
 struct OSLTextureHandle : public OIIO::RefCnt {

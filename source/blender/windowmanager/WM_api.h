@@ -1196,7 +1196,7 @@ struct ID *WM_drag_get_local_ID_from_event(const struct wmEvent *event, short id
 bool WM_drag_is_ID_type(const struct wmDrag *drag, int idcode);
 
 /**
- * \note: Does not store \a asset in any way, so it's fine to pass a temporary.
+ * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
 wmDragAsset *WM_drag_create_asset_data(const struct AssetHandle *asset,
                                        struct AssetMetaData *metadata,
@@ -1228,7 +1228,7 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain,
 struct wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const struct wmDrag *drag);
 
 /**
- * \note: Does not store \a asset in any way, so it's fine to pass a temporary.
+ * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
 void WM_drag_add_asset_list_item(wmDrag *drag,
                                  const struct bContext *C,

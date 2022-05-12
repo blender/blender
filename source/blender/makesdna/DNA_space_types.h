@@ -173,7 +173,7 @@ typedef struct SpaceProperties {
 
 /* button defines (deprecated) */
 #ifdef DNA_DEPRECATED_ALLOW
-/* warning: the values of these defines are used in SpaceProperties.tabs[8] */
+/* WARNING: the values of these defines are used in SpaceProperties.tabs[8] */
 /* SpaceProperties.mainb new */
 #  define CONTEXT_SCENE 0
 #  define CONTEXT_OBJECT 1

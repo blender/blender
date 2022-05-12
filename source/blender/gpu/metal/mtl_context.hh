@@ -57,12 +57,12 @@ typedef struct MTLContextDepthStencilState {
   MTLStencilOperation stencil_op_back_depth_fail;
   MTLStencilOperation stencil_op_back_depthstencil_pass;
 
-  /* Framebuffer State -- We need to mark this, incase stencil state remains unchanged,
+  /* Frame-buffer State -- We need to mark this, in case stencil state remains unchanged,
    * but attachment state has changed. */
   bool has_depth_target;
   bool has_stencil_target;
 
-  /* TODO(Metal): Consider optimising this function using memcmp.
+  /* TODO(Metal): Consider optimizing this function using memcmp.
    * Un-used, but differing, stencil state leads to over-generation
    * of state objects when doing trivial compare.  */
   inline bool operator==(const MTLContextDepthStencilState &other) const
@@ -297,7 +297,7 @@ typedef struct MTLContextGlobalShaderPipelineState {
 
   /* Whether the pipeline state has been modified since application.
    * `dirty_flags` is a bitmask of the types of state which have been updated.
-   * This is in order to optimise calls and only re-apply state as needed.
+   * This is in order to optimize calls and only re-apply state as needed.
    * Some state parameters are dynamically applied on the RenderCommandEncoder,
    * others may be encapsulated in GPU-resident state objects such as
    * MTLDepthStencilState or MTLRenderPipelineState. */
@@ -374,7 +374,7 @@ typedef struct MTLTemporaryBufferRange {
 } MTLTemporaryBufferRange;
 
 /** MTLContext -- Core render loop and state management. **/
-/* Note(Metal): Partial MTLContext stub to provide wrapper functionality
+/* NOTE(Metal): Partial MTLContext stub to provide wrapper functionality
  * for work-in-progress MTL* classes. */
 
 class MTLContext : public Context {

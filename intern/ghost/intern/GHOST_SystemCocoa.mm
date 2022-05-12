@@ -967,7 +967,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
   return anyProcessed;
 }
 
-// Note: called from NSApplication delegate
+/* NOTE: called from #NSApplication delegate. */
 GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 {
   for (GHOST_IWindow *iwindow : m_windowManager->getWindows()) {
@@ -1046,7 +1046,7 @@ void GHOST_SystemCocoa::notifyExternalEventProcessed()
   m_outsideLoopEventProcessed = true;
 }
 
-// Note: called from NSWindow delegate
+/* NOTE: called from #NSWindow delegate. */
 GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType,
                                                     GHOST_WindowCocoa *window)
 {
@@ -1108,7 +1108,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType,
   return GHOST_kSuccess;
 }
 
-// Note: called from NSWindow subclass
+/* NOTE: called from #NSWindow subclass. */
 GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType,
                                                       GHOST_TDragnDropTypes draggedObjectType,
                                                       GHOST_WindowCocoa *window,

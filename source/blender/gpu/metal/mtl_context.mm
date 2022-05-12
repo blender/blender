@@ -49,7 +49,7 @@ MTLContext::MTLContext(void *ghost_window)
   /* Init debug. */
   debug::mtl_debug_init();
 
-  /* Initialise Metal modules. */
+  /* Initialize Metal modules. */
   this->state_manager = new MTLStateManager(this);
 
   /* TODO(Metal): Implement. */
@@ -121,7 +121,7 @@ bool MTLContext::is_render_pass_active()
 /* Metal Context Pipeline State. */
 void MTLContext::pipeline_state_init()
 {
-  /*** Initialise state only once. ***/
+  /*** Initialize state only once. ***/
   if (!this->pipeline_state.initialised) {
     this->pipeline_state.initialised = true;
     this->pipeline_state.active_shader = NULL;
@@ -277,7 +277,7 @@ id<MTLSamplerState> MTLContext::get_sampler_from_state(MTLSamplerState sampler_s
 
 id<MTLSamplerState> MTLContext::generate_sampler_from_state(MTLSamplerState sampler_state)
 {
-  /* Check if samper already exists for given state. */
+  /* Check if sampler already exists for given state. */
   id<MTLSamplerState> st = this->sampler_state_cache_[(unsigned int)sampler_state];
   if (st != nil) {
     return st;

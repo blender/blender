@@ -379,7 +379,7 @@ void BKE_image_ensure_tile_token(char *filename);
 /**
  * When provided with an absolute virtual `filepath`, check to see if at least
  * one concrete file exists.
- * Note: This function requires directory traversal and may be inefficient in time-critical,
+ * NOTE: This function requires directory traversal and may be inefficient in time-critical,
  * or iterative, code paths.
  */
 bool BKE_image_tile_filepath_exists(const char *filepath);

@@ -347,7 +347,7 @@ void main()
       line_end = vec2(0.0, 0.5);
       break;
     default:
-      /* Ensure values are assigned to, avoids undefined behaviour for
+      /* Ensure values are assigned to, avoids undefined behavior for
        * divergent control-flow. This can occur if discard is called
        * as discard is not treated as a return in Metal 2.2. So
        * side-effects can still cause problems. */

@@ -1118,7 +1118,7 @@ static void eevee_lightbake_render_grid_sample(void *ved, void *user_data)
   SWAP(GPUTexture *, lbake->grid_prev, lcache->grid_tx.tex);
 
   /* TODO: do this once for the whole bake when we have independent DRWManagers.
-   * Warning: Some of the things above require this. */
+   * WARNING: Some of the things above require this. */
   eevee_lightbake_cache_create(vedata, lbake);
 
   /* Compute sample position */

@@ -463,7 +463,7 @@ template<typename T, typename GetFunc> class VArrayImpl_For_Func final : public 
 };
 
 /**
- * \note: This is `final` so that #may_have_ownership can be implemented reliably.
+ * \note This is `final` so that #may_have_ownership can be implemented reliably.
  */
 template<typename StructT,
          typename ElemT,
@@ -725,7 +725,7 @@ template<typename T> class VArrayCommon {
 
   /**
    * Get the element at a specific index.
-   * \note: This can't return a reference because the value may be computed on the fly. This also
+   * \note This can't return a reference because the value may be computed on the fly. This also
    * implies that one can not use this method for assignments.
    */
   T operator[](const int64_t index) const

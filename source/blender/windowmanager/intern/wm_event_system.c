@@ -5908,7 +5908,7 @@ bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *la
     bool show_text = true;
 
     {
-      /* Warning: O(n^2). */
+      /* WARNING: O(n^2). */
       wmKeyMapItem *kmi = NULL;
       for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
         if (kmi->propvalue == items[i].value) {

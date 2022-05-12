@@ -3628,7 +3628,7 @@ static void psys_cache_edit_paths_iter(void *__restrict iter_data_v,
         BKE_defvert_weight_to_rgb(ca->col, pind.hkey[1]->weight);
       }
       else {
-        /* warning: copied from 'do_particle_interpolation' (without 'mvert' array stepping) */
+        /* WARNING: copied from 'do_particle_interpolation' (without 'mvert' array stepping) */
         float real_t;
         if (result.time < 0.0f) {
           real_t = -result.time;

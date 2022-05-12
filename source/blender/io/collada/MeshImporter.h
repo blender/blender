@@ -142,7 +142,7 @@ class MeshImporter : public MeshImporterBase {
   /**
    * Return the number of faces by summing up
    * the face-counts of the parts.
-   * hint: This is done because `mesh->getFacesCount()` does
+   * HINT: This is done because `mesh->getFacesCount()` does
    * count loose edges as extra faces, which is not what we want here.
    */
   void allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me);
@@ -150,7 +150,7 @@ class MeshImporter : public MeshImporterBase {
   /* TODO: import uv set names */
   /**
    * Read all faces from TRIANGLES, TRIANGLE_FANS, POLYLIST, POLYGON
-   * Important: This function MUST be called before read_lines()
+   * IMPORTANT: This function MUST be called before read_lines()
    * Otherwise we will lose all edges from faces (see read_lines() above)
    *
    * TODO: import uv set names.
@@ -158,7 +158,7 @@ class MeshImporter : public MeshImporterBase {
   void read_polys(COLLADAFW::Mesh *mesh, Mesh *me);
   /**
    * Read all loose edges.
-   * Important: This function assumes that all edges from existing
+   * IMPORTANT: This function assumes that all edges from existing
    * faces have already been generated and added to me->medge
    * So this function MUST be called after read_faces() (see below)
    */

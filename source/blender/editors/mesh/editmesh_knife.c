@@ -198,7 +198,7 @@ typedef struct KnifeObjectInfo {
    * Optionally allocate triangle indices, these are needed for non-interactive knife
    * projection as multiple cuts are made without the BVH being updated.
    * Using these indices the it's possible to access `cagecos` even if the face has been cut
-   * and the loops in `em->looptris` no longer refer to the original triangles, see:
+   * and the loops in `em->looptris` no longer refer to the original triangles, see: T97153.
    */
   const int (*tri_indices)[3];
 

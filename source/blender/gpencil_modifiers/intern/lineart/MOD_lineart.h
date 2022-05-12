@@ -487,7 +487,7 @@ typedef struct LineartBoundingArea {
  * r_aligned: True when 1) a and b is exactly on the same straight line and 2) a and b share a
  * common end-point.
  *
- * Important: if r_aligned is true, r_ratio will be either 0 or 1 depending on which point from
+ * IMPORTANT: if r_aligned is true, r_ratio will be either 0 or 1 depending on which point from
  * segment a is shared with segment b. If it's a1 then r_ratio is 0, else then r_ratio is 1. This
  * extra information is needed for line art occlusion stage to work correctly in such cases.
  */

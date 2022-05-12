@@ -385,7 +385,7 @@ void OBJWriter::write_edges_indices(FormatHandler<eFileType::OBJ> &fh,
                                     const IndexOffsets &offsets,
                                     const OBJMesh &obj_mesh_data) const
 {
-  /* Note: ensure_mesh_edges should be called before. */
+  /* NOTE: ensure_mesh_edges should be called before. */
   const int tot_edges = obj_mesh_data.tot_edges();
   for (int edge_index = 0; edge_index < tot_edges; edge_index++) {
     const std::optional<std::array<int, 2>> vertex_indices =

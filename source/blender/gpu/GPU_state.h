@@ -35,7 +35,8 @@ typedef enum eGPUBarrier {
 
 ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_ELEMENT_ARRAY)
 
-/* Note: For Metal and Vulkan only. TODO(Metal): Update barrier calls to use stage flags. */
+/* NOTE: For Metal and Vulkan only.
+ * TODO(Metal): Update barrier calls to use stage flags. */
 typedef enum eGPUStageBarrierBits {
   GPU_BARRIER_STAGE_VERTEX = (1 << 0),
   GPU_BARRIER_STAGE_FRAGMENT = (1 << 1),

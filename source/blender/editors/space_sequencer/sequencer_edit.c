@@ -2596,7 +2596,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
   }
 
   /* Paste animation.
-   * Note: Only fcurves are copied. Drivers and NLA action strips are not copied.
+   * NOTE: Only fcurves are copied. Drivers and NLA action strips are not copied.
    * First backup original curves from scene and move curves from clipboard into scene. This way,
    * when pasted strips are renamed, pasted fcurves are renamed with them. Finally restore original
    * curves from backup.

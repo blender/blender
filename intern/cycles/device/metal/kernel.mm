@@ -172,7 +172,7 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
     for (auto &pipeline : pipelines[device_kernel]) {
       if (scene_specialized) {
         if (pipeline->source_md5 == device->source_md5[PSO_SPECIALISED]) {
-          /* we already requested a pipeline that is specialised for this kernel data */
+          /* we already requested a pipeline that is specialized for this kernel data */
           metal_printf("Specialized kernel already requested (%s)\n",
                        device_kernel_as_string(device_kernel));
           return;
@@ -445,7 +445,7 @@ void MetalKernelPipeline::compile()
 
     string options;
     if (use_metalrt && kernel_has_intersection(device_kernel)) {
-      /* incorporate any MetalRT specialisations into the archive name */
+      /* incorporate any MetalRT specializations into the archive name */
       options += string_printf(".hair_%d.hair_thick_%d.pointcloud_%d",
                                metalrt_hair ? 1 : 0,
                                metalrt_hair_thick ? 1 : 0,

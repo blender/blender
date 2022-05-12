@@ -120,7 +120,7 @@ static Array<int> calculate_spline_point_offsets(GeoNodeExecParams &params,
 }
 
 /**
- * \note: Relies on the fact that all attributes on point clouds are stored contiguously.
+ * \note Relies on the fact that all attributes on point clouds are stored contiguously.
  */
 static GMutableSpan ensure_point_attribute(PointCloudComponent &points,
                                            const AttributeIDRef &attribute_id,
