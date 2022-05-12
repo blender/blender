@@ -333,6 +333,8 @@ static char attr_prefix_get(CustomDataType type)
   switch (type) {
     case CD_TANGENT:
       return 't';
+    case CD_MCOL:
+      return 'c';
     case CD_AUTO_FROM_NAME:
       return 'a';
     case CD_HAIRLENGTH:
