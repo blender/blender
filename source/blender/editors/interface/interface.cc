@@ -848,7 +848,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
   BLI_assert(oldbut->active);
 
   /* flags from the buttons we want to refresh, may want to add more here... */
-  const uint64_t flag_copy = UI_BUT_REDALERT | UI_HAS_ICON | UI_SELECT_DRAW;
+  const int flag_copy = UI_BUT_REDALERT | UI_HAS_ICON | UI_SELECT_DRAW;
   const int drawflag_copy = 0; /* None currently. */
 
   /* still stuff needs to be copied */
@@ -991,7 +991,7 @@ static bool ui_but_update_from_old_block(const bContext *C,
     found_active = true;
   }
   else {
-    uint64_t flag_copy = UI_BUT_DRAG_MULTI;
+    int flag_copy = UI_BUT_DRAG_MULTI;
 
     /* Stupid special case: The active button may be inside (as in, overlapped on top) a tree-row
      * button which we also want to keep highlighted then. */
@@ -4219,7 +4219,7 @@ static uiBut *ui_def_but(uiBlock *block,
   return but;
 }
 
-void ui_def_but_icon(uiBut *but, const int icon, const uint64_t flag)
+void ui_def_but_icon(uiBut *but, const int icon, const int flag)
 {
   if (icon) {
     ui_icon_ensure_deferred(static_cast<const bContext *>(but->block->evil_C),
@@ -5806,17 +5806,17 @@ void UI_block_flag_disable(uiBlock *block, int flag)
   block->flag &= ~flag;
 }
 
-void UI_but_flag_enable(uiBut *but, uint64_t flag)
+void UI_but_flag_enable(uiBut *but, int flag)
 {
   but->flag |= flag;
 }
 
-void UI_but_flag_disable(uiBut *but, uint64_t flag)
+void UI_but_flag_disable(uiBut *but, int flag)
 {
   but->flag &= ~flag;
 }
 
-bool UI_but_flag_is_set(uiBut *but, uint64_t flag)
+bool UI_but_flag_is_set(uiBut *but, int flag)
 {
   return (but->flag & flag) != 0;
 }

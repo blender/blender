@@ -699,9 +699,7 @@ uiBut *ui_region_find_active_but(ARegion *region)
   return nullptr;
 }
 
-uiBut *ui_region_find_first_but_test_flag(ARegion *region,
-                                          uint64_t flag_include,
-                                          uint64_t flag_exclude)
+uiBut *ui_region_find_first_but_test_flag(ARegion *region, int flag_include, int flag_exclude)
 {
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {

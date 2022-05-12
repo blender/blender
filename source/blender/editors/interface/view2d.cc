@@ -1532,7 +1532,7 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     uiWidgetColors wcol = btheme->tui.wcol_scroll;
     const float alpha_fac = v2d->alpha_hor / 255.0f;
     rcti slider;
-    uint64_t state;
+    int state;
 
     slider.xmin = scrollers.hor_min;
     slider.xmax = scrollers.hor_max;
@@ -1566,7 +1566,7 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
     uiWidgetColors wcol = btheme->tui.wcol_scroll;
     rcti slider;
     const float alpha_fac = v2d->alpha_vert / 255.0f;
-    uint64_t state;
+    int state;
 
     slider.xmin = vert.xmin;
     slider.xmax = vert.xmax;

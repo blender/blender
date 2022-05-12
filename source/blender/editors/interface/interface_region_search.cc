@@ -58,7 +58,7 @@ struct uiSearchItems {
   char **names;
   void **pointers;
   int *icons;
-  uint64_t *states;
+  int *states;
   uint8_t *name_prefix_offsets;
 
   /** Is there any item with an icon? */
@@ -94,7 +94,7 @@ bool UI_search_item_add(uiSearchItems *items,
                         const char *name,
                         void *poin,
                         int iconid,
-                        uint64_t state,
+                        int state,
                         const uint8_t name_prefix_offset)
 {
   /* hijack for autocomplete */
@@ -556,7 +556,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
     if (data->preview) {
       /* draw items */
       for (int a = 0; a < data->items.totitem; a++) {
-        const uint64_t state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
+        const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
 
         /* ensure icon is up-to-date */
         ui_icon_ensure_deferred(C, data->items.icons[a], data->preview);
@@ -590,7 +590,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
       const int search_sep_len = data->sep_string ? strlen(data->sep_string) : 0;
       /* draw items */
       for (int a = 0; a < data->items.totitem; a++) {
-        const uint64_t state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
+        const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
         char *name = data->items.names[a];
         int icon = data->items.icons[a];
         char *name_sep_test = nullptr;
@@ -847,7 +847,7 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   data->items.names = (char **)MEM_callocN(data->items.maxitem * sizeof(void *), __func__);
   data->items.pointers = (void **)MEM_callocN(data->items.maxitem * sizeof(void *), __func__);
   data->items.icons = (int *)MEM_callocN(data->items.maxitem * sizeof(int), __func__);
-  data->items.states = (uint64_t *)MEM_callocN(data->items.maxitem * sizeof(uint64_t), __func__);
+  data->items.states = (int *)MEM_callocN(data->items.maxitem * sizeof(int), __func__);
   data->items.name_prefix_offsets = nullptr; /* Lazy initialized as needed. */
   for (int i = 0; i < data->items.maxitem; i++) {
     data->items.names[i] = (char *)MEM_callocN(data->items.maxstrlen + 1, __func__);
@@ -913,7 +913,7 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
       /* widget itself */
       /* NOTE: i18n messages extracting tool does the same, please keep it in sync. */
       {
-        const uint64_t state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
+        const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
 
         wmOperatorType *ot = static_cast<wmOperatorType *>(data->items.pointers[a]);
         char text_pre[128];

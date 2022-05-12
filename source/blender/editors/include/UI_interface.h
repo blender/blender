@@ -184,50 +184,50 @@ enum {
 
 /** #uiBut.flag general state flags. */
 enum {
-  /* WARNING: the first 10 flags are internal (see #UI_SELECT definition). */
-  UI_BUT_ICON_SUBMENU = 1 << 10,
-  UI_BUT_ICON_PREVIEW = 1 << 11,
+  /* WARNING: the first 7 flags are internal (see #UI_SELECT definition). */
+  UI_BUT_ICON_SUBMENU = 1 << 7,
+  UI_BUT_ICON_PREVIEW = 1 << 8,
 
-  UI_BUT_NODE_LINK = 1 << 12,
-  UI_BUT_NODE_ACTIVE = 1 << 13,
-  UI_BUT_DRAG_LOCK = 1 << 14,
+  UI_BUT_NODE_LINK = 1 << 9,
+  UI_BUT_NODE_ACTIVE = 1 << 10,
+  UI_BUT_DRAG_LOCK = 1 << 11,
   /** Grayed out and un-editable. */
-  UI_BUT_DISABLED = 1 << 15,
+  UI_BUT_DISABLED = 1 << 12,
 
-  UI_BUT_ANIMATED = 1 << 16,
-  UI_BUT_ANIMATED_KEY = 1 << 17,
-  UI_BUT_DRIVEN = 1 << 18,
-  UI_BUT_REDALERT = 1 << 19,
+  UI_BUT_ANIMATED = 1 << 13,
+  UI_BUT_ANIMATED_KEY = 1 << 14,
+  UI_BUT_DRIVEN = 1 << 15,
+  UI_BUT_REDALERT = 1 << 16,
   /** Grayed out but still editable. */
-  UI_BUT_INACTIVE = 1 << 20,
-  UI_BUT_LAST_ACTIVE = 1 << 21,
-  UI_BUT_UNDO = 1 << 22,
-  UI_BUT_IMMEDIATE = 1 << 23,
-  UI_BUT_NO_UTF8 = 1 << 24,
+  UI_BUT_INACTIVE = 1 << 17,
+  UI_BUT_LAST_ACTIVE = 1 << 18,
+  UI_BUT_UNDO = 1 << 19,
+  UI_BUT_IMMEDIATE = 1 << 20,
+  UI_BUT_NO_UTF8 = 1 << 21,
 
   /** For popups, pressing return activates this button, overriding the highlighted button.
    * For non-popups this is just used as a display hint for the user to let them
    * know the action which is activated when pressing return (file selector for eg). */
-  UI_BUT_ACTIVE_DEFAULT = 1 << 25,
+  UI_BUT_ACTIVE_DEFAULT = 1 << 23,
 
   /** This but is "inside" a list item (currently used to change theme colors). */
-  UI_BUT_LIST_ITEM = 1 << 26,
+  UI_BUT_LIST_ITEM = 1 << 24,
   /** edit this button as well as the active button (not just dragging) */
-  UI_BUT_DRAG_MULTI = 1 << 27,
+  UI_BUT_DRAG_MULTI = 1 << 25,
   /** Use for popups to start editing the button on initialization. */
-  UI_BUT_ACTIVATE_ON_INIT = 1 << 28,
+  UI_BUT_ACTIVATE_ON_INIT = 1 << 26,
 
   /** #uiBut.str contains #UI_SEP_CHAR, used for key shortcuts */
-  UI_BUT_HAS_SEP_CHAR = 1 << 29,
+  UI_BUT_HAS_SEP_CHAR = 1 << 27,
   /** Don't run updates while dragging (needed in rare cases). */
-  UI_BUT_UPDATE_DELAY = 1u << 30,
+  UI_BUT_UPDATE_DELAY = 1 << 28,
   /** When widget is in text-edit mode, update value on each char stroke. */
-  UI_BUT_TEXTEDIT_UPDATE = 1ul << 31,
+  UI_BUT_TEXTEDIT_UPDATE = 1 << 29,
   /** Show 'x' icon to clear/unlink value of text or search button. */
-  UI_BUT_VALUE_CLEAR = 1ul << 32,
+  UI_BUT_VALUE_CLEAR = 1 << 30,
 
   /** RNA property of the button is overridden from linked reference data. */
-  UI_BUT_OVERRIDDEN = 1ul << 33,
+  UI_BUT_OVERRIDDEN = 1u << 31u,
 };
 
 /* Default font size for normal text. */
@@ -462,7 +462,7 @@ enum {
 void UI_draw_widget_scroll(struct uiWidgetColors *wcol,
                            const struct rcti *rect,
                            const struct rcti *slider,
-                           uint64_t state);
+                           int state);
 
 /**
  * Shortening string helper.
@@ -887,9 +887,9 @@ uiBut *UI_but_active_drop_name_button(const struct bContext *C);
 bool UI_but_active_drop_name(const struct bContext *C);
 bool UI_but_active_drop_color(struct bContext *C);
 
-void UI_but_flag_enable(uiBut *but, uint64_t flag);
-void UI_but_flag_disable(uiBut *but, uint64_t flag);
-bool UI_but_flag_is_set(uiBut *but, uint64_t flag);
+void UI_but_flag_enable(uiBut *but, int flag);
+void UI_but_flag_disable(uiBut *but, int flag);
+bool UI_but_flag_is_set(uiBut *but, int flag);
 
 void UI_but_drawflag_enable(uiBut *but, int flag);
 void UI_but_drawflag_disable(uiBut *but, int flag);
@@ -1682,7 +1682,7 @@ bool UI_search_item_add(uiSearchItems *items,
                         const char *name,
                         void *poin,
                         int iconid,
-                        uint64_t state,
+                        int state,
                         uint8_t name_prefix_offset);
 
 /**

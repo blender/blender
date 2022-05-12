@@ -74,8 +74,7 @@ enum {
   UI_SELECT_DRAW = (1 << 5),
   /** Property search filter is active and the button does not match. */
   UI_SEARCH_FILTER_NO_MATCH = (1 << 6),
-
-  /* WARNING: rest of #uiBut.flag in UI_interface.h (starting at `1 << 10`). */
+  /* WARNING: rest of #uiBut.flag in UI_interface.h */
 };
 
 /** #uiBut.dragflag */
@@ -148,8 +147,7 @@ struct uiBut {
 
   /** Pointer back to the layout item holding this button. */
   uiLayout *layout;
-  uint64_t flag;
-  int drawflag;
+  int flag, drawflag;
   eButType type;
   eButPointerType pointype;
   short bit, bitnr, retval, strwidth, alignnr;
@@ -711,7 +709,7 @@ extern void ui_but_active_string_clear_and_exit(struct bContext *C, uiBut *but) 
 extern void ui_but_set_string_interactive(struct bContext *C, uiBut *but, const char *value);
 extern uiBut *ui_but_drag_multi_edit_get(uiBut *but);
 
-void ui_def_but_icon(uiBut *but, int icon, uint64_t flag);
+void ui_def_but_icon(uiBut *but, int icon, int flag);
 /**
  * Avoid using this where possible since it's better not to ask for an icon in the first place.
  */
@@ -1218,14 +1216,14 @@ void ui_draw_menu_item(const struct uiFontStyle *fstyle,
                        rcti *rect,
                        const char *name,
                        int iconid,
-                       uint64_t state,
+                       int state,
                        uiMenuItemSeparatorType separator_type,
                        int *r_xmax);
 void ui_draw_preview_item(const struct uiFontStyle *fstyle,
                           rcti *rect,
                           const char *name,
                           int iconid,
-                          uint64_t state,
+                          int state,
                           eFontStyle_Align text_align);
 /**
  * Version of #ui_draw_preview_item() that does not draw the menu background and item text based on
@@ -1426,8 +1424,8 @@ uiBlock *ui_block_find_mouse_over(const struct ARegion *region,
                                   bool only_clip);
 
 uiBut *ui_region_find_first_but_test_flag(struct ARegion *region,
-                                          uint64_t flag_include,
-                                          uint64_t flag_exclude);
+                                          int flag_include,
+                                          int flag_exclude);
 uiBut *ui_region_find_active_but(struct ARegion *region) ATTR_WARN_UNUSED_RESULT;
 bool ui_region_contains_point_px(const struct ARegion *region, const int xy[2])
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
