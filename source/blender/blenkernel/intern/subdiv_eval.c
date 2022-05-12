@@ -23,7 +23,9 @@
 #include "opensubdiv_evaluator_capi.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
-/* ============================  Helper Function ============================ */
+/* --------------------------------------------------------------------
+ * Helper functions.
+ */
 
 static eOpenSubdivEvaluator opensubdiv_evalutor_from_subdiv_evaluator_type(
     eSubdivEvaluatorType evaluator_type)
@@ -40,7 +42,9 @@ static eOpenSubdivEvaluator opensubdiv_evalutor_from_subdiv_evaluator_type(
   return OPENSUBDIV_EVALUATOR_CPU;
 }
 
-/* ======================  Main Subdivision Evaluation ====================== */
+/* --------------------------------------------------------------------
+ * Main subdivision evaluation.
+ */
 
 bool BKE_subdiv_eval_begin(Subdiv *subdiv,
                            eSubdivEvaluatorType evaluator_type,
@@ -226,7 +230,9 @@ void BKE_subdiv_eval_init_displacement(Subdiv *subdiv)
   subdiv->displacement_evaluator->initialize(subdiv->displacement_evaluator);
 }
 
-/* ========================== Single point queries ========================== */
+/* --------------------------------------------------------------------
+ * Single point queries.
+ */
 
 void BKE_subdiv_eval_limit_point(
     Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float r_P[3])
