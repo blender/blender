@@ -95,7 +95,7 @@ set(SRC
   intern/draw_manager_text.c
   intern/draw_manager_texture.c
   intern/draw_select_buffer.c
-  intern/draw_shader.c
+  intern/draw_shader.cc
   intern/draw_texture_pool.cc
   intern/draw_view.c
   intern/draw_view_data.cc

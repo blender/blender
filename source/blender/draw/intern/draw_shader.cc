@@ -16,11 +16,11 @@
 
 #include "draw_shader.h"
 
-extern char datatoc_common_hair_lib_glsl[];
+extern "C" char datatoc_common_hair_lib_glsl[];
 
-extern char datatoc_common_hair_refine_vert_glsl[];
-extern char datatoc_common_hair_refine_comp_glsl[];
-extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
+extern "C" char datatoc_common_hair_refine_vert_glsl[];
+extern "C" char datatoc_common_hair_refine_comp_glsl[];
+extern "C" char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 
 static struct {
   struct GPUShader *hair_refine_sh[PART_REFINE_MAX_SHADER];
@@ -35,22 +35,24 @@ static GPUShader *hair_refine_shader_compute_create(ParticleRefineShader UNUSED(
   return GPU_shader_create_from_info_name("draw_hair_refine_compute");
 }
 
+int ma_variable = 1;
+
 static GPUShader *hair_refine_shader_transform_feedback_create(
     ParticleRefineShader UNUSED(refinement))
 {
   GPUShader *sh = NULL;
 
-  char *shader_src = BLI_string_joinN(datatoc_common_hair_lib_glsl,
-                                      datatoc_common_hair_refine_vert_glsl);
+  std::string shader_src = std::string(datatoc_common_hair_lib_glsl) +
+                           std::string(datatoc_common_hair_refine_vert_glsl);
+
   const char *var_names[1] = {"finalColor"};
-  sh = DRW_shader_create_with_transform_feedback(shader_src,
+  sh = DRW_shader_create_with_transform_feedback(shader_src.c_str(),
                                                  NULL,
                                                  "#define HAIR_PHASE_SUBDIV\n"
                                                  "#define USE_TF\n",
                                                  GPU_SHADER_TFB_POINTS,
                                                  var_names,
                                                  1);
-  MEM_freeN(shader_src);
 
   return sh;
 }

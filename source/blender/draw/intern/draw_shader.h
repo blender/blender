@@ -22,7 +22,7 @@ typedef enum eParticleRefineShaderType {
   PART_REFINE_SHADER_COMPUTE,
 } eParticleRefineShaderType;
 
-/* draw_shader.c */
+/* draw_shader.cc */
 
 struct GPUShader *DRW_shader_hair_refine_get(ParticleRefineShader refinement,
                                              eParticleRefineShaderType sh_type);
