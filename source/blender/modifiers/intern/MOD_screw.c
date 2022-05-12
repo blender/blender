@@ -444,7 +444,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
     /* Tag mvert as not loose. */
     BLI_BITMAP_ENABLE(vert_tag, med_orig->v1);
-    BLI_BITMAP_ENABLE(vert_tag, med_orig->v1);
+    BLI_BITMAP_ENABLE(vert_tag, med_orig->v2);
   }
 
   /* build polygon -> edge map */
