@@ -209,7 +209,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
       [&] {
         using ParamTag = ParamTags;
         using T = typename ParamTag::base_type;
-        ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
+        [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
         if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
           VArray<T> &varray = *args;
           if (varray.is_single()) {
@@ -246,7 +246,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
         [&] {
           using ParamTag = ParamTags;
           using T = typename ParamTag::base_type;
-          ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
+          [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
           if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
             if (arg_info.mode == ArgMode::Single) {
               /* The single value has been filled into a buffer already reused for every chunk. */
@@ -284,7 +284,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
         [&] {
           using ParamTag = ParamTags;
           using T = typename ParamTag::base_type;
-          ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
+          [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
           if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
             if (arg_info.mode == ArgMode::Materialized) {
               T *in_chunk = std::get<I>(buffers_owner).ptr();
@@ -300,7 +300,7 @@ void execute_materialized(TypeSequence<ParamTags...> /* param_tags */,
       [&] {
         using ParamTag = ParamTags;
         using T = typename ParamTag::base_type;
-        ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
+        [[maybe_unused]] ArgInfo<ParamTags> &arg_info = std::get<I>(args_info);
         if constexpr (ParamTag::category == MFParamCategory::SingleInput) {
           if (arg_info.mode == ArgMode::Single) {
             MutableSpan<T> in_chunk = std::get<I>(buffers);
