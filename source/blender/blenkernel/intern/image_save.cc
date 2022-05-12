@@ -85,6 +85,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
   opts->bmain = bmain;
   opts->scene = scene;
+  opts->save_as_render = save_as_render;
 
   BKE_image_format_init(&opts->im_format, false);
 
