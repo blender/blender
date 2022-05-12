@@ -274,7 +274,7 @@ def template_curve(layout, base, propname, full_path, use_negative_slope=None):
 
     for i, shape in enumerate(shapes):
         props = row.operator("brush.curve_preset_load", icon=icons[i], text="")
-        props.invert = use_negative_slope
+        props.invert = not use_negative_slope
         props.shape = shape
         props.path = path
 
@@ -675,15 +675,7 @@ class UnifiedPaintPanel:
                         row = col.row(align=True)
 
                         if not header and mp.curve.curve_preset == "CUSTOM":
-                            template_curve(col, mp.curve, "curve", path2 + ".curve", use_negative_slope=True)
-
-                            shapes = ['SMOOTH', 'ROUND', 'ROOT', 'SHARP', 'LINE', 'MAX']
-                            icons = ['SMOOTHCURVE', 'SPHERECURVE', 'ROOTCURVE', 'SHARPCURVE', 'LINCURVE', 'NOCURVE']
-
-                            for i, shape in enumerate(shapes):
-                                props = row.operator("brush.curve_preset_load", icon=icons[i], text="")
-                                props.shape = shape
-                                props.path = path2 + ".curve"
+                            template_curve(col, mp.curve, "curve", path2 + ".curve", use_negative_slope=False)                            
 
                         col.prop(mp, "factor")
                         col.prop(mp, "blendmode")

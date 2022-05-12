@@ -995,7 +995,7 @@ void BKE_brush_channelset_compat_load(BrushChannelSet *chset, Brush *brush, bool
           BKE_curvemap_reset(ch->curve.curve->cm,
                              &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
                              CURVE_PRESET_LINE,
-                             1);
+                             CURVEMAP_SLOPE_NEGATIVE);
         }
         BKE_curvemapping_init(ch->curve.curve);
       }
@@ -1031,29 +1031,33 @@ void reset_clay_mappings(BrushChannelSet *chset, bool strips)
   BKE_curvemap_reset(curve->cm,
                      &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
                      CURVE_PRESET_LINE,
-                     1);
+                     CURVEMAP_SLOPE_NEGATIVE);
   BKE_curvemapping_init(curve);
 
   CurveMap *cuma = curve->cm;
 
   if (!strips) {  //[[0,0.200], [0.354,0.200], [0.595,0.210], [0.806,0.523], [1,1.000]
 #if 0
-    cuma->curve[0].x = 0.0f;
+    cuma->curve[0].x = 1.0f;
     cuma->curve[0].y = 0.2f;
 
-    BKE_curvemap_insert(cuma, 0.35f, 0.2f);
-    BKE_curvemap_insert(cuma, 0.6f, 0.210f);
-    BKE_curvemap_insert(cuma, 0.8f, 0.525f);
+    cuma->curve[1].x = 0.0f;
+
+    BKE_curvemap_insert(cuma, 1.0f-0.35f, 0.2f);
+    BKE_curvemap_insert(cuma, 1.0f-0.6f, 0.210f);
+    BKE_curvemap_insert(cuma, 1.0f-0.8f, 0.525f);
 
     BKE_curvemapping_changed(curve, true);
 #endif
   }
   else {
     //[[0,0], [0.250,0.050], [0.500,0.125], [0.750,0.422], [1,1]
-    cuma->curve[0].x = 0.0f;
+    cuma->curve[0].x = 1.0f;
     cuma->curve[0].y = 0.55f;
+    cuma->curve[1].x = 0.0f;
+
     BKE_curvemap_insert(cuma, 0.5f, 0.7f);
-    cuma->curve[2].x = 1.0f;
+    cuma->curve[2].x = 0.0f;
     cuma->curve[2].y = 1.0f;
     BKE_curvemapping_changed(curve, true);
   }
@@ -1068,7 +1072,7 @@ void reset_clay_mappings(BrushChannelSet *chset, bool strips)
   BKE_curvemap_reset(curve->cm,
                      &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
                      CURVE_PRESET_LINE,
-                     1);
+                     CURVEMAP_SLOPE_NEGATIVE);
   BKE_curvemapping_init(curve);
 
   cuma = curve->cm;
@@ -1142,7 +1146,7 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       BKE_curvemap_reset(ch->curve.curve->cm,
                          &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
                          CURVE_PRESET_SMOOTH,
-                         1);
+                         CURVEMAP_SLOPE_NEGATIVE);
       BKE_curvemapping_init(ch->curve.curve);
     }
   }
@@ -1719,17 +1723,17 @@ void BKE_brush_mapping_reset(BrushChannel *ch, int tool, int mapping)
     BKE_curvemap_reset(curve->cm,
                        &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
                        mdef->curve,
-                       1);
+                       CURVEMAP_SLOPE_NEGATIVE);
     BKE_curvemapping_init(curve);
 
     CurveMap *cuma = curve->cm;
-    cuma->curve[0].x = 0.0f;
-    cuma->curve[0].y = 0.0f;
+    cuma->curve[0].x = 1.0f;
+    cuma->curve[0].y = 1.0f;
 
-    cuma->curve[1].x = 1.0f;
-    cuma->curve[1].y = 1.0f;
+    cuma->curve[1].x = 0.0f;
+    cuma->curve[1].y = 0.0f;
 
-    BKE_curvemap_insert(cuma, 0.65f, 0.0f);
+    BKE_curvemap_insert(cuma, 0.35f, 0.0f);
     cuma->curve[1].flag |= CUMA_HANDLE_VECTOR;
 
     BKE_curvemapping_changed(curve, true);

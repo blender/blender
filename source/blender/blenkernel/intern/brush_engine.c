@@ -152,7 +152,7 @@ bool BKE_brush_mapping_ensure_write(BrushMapping *mp)
     BKE_curvemap_reset(curve->cm,
                        &(struct rctf){.xmin = 0.0f, .ymin = 0.0f, .xmax = 1.0f, .ymax = 1.0f},
                        CURVE_PRESET_LINE,
-                       CURVEMAP_SLOPE_POSITIVE);
+                       CURVEMAP_SLOPE_NEGATIVE);
 
     BKE_curvemapping_init(curve);
 
@@ -198,43 +198,6 @@ bool BKE_brush_channel_curve_ensure_write(BrushCurve *curve)
   }
 
   return false;
-}
-
-static bool check_corrupted_curve(BrushMapping *dst)
-{
-  CurveMapping *curve = dst->mapping_curve.curve;
-
-  if (!curve) {
-    return false;
-  }
-
-  if (BKE_curvemapping_in_cache(curve)) {
-    return false;
-  }
-
-  const float clip_size_x = BLI_rctf_size_x(&curve->curr);
-  const float clip_size_y = BLI_rctf_size_y(&curve->curr);
-
-  // fix corrupted curve
-  if (clip_size_x == 0.0f || clip_size_y == 0.0f) {
-    for (int i = 0; i < 4; i++) {
-      BKE_curvemapping_free_data(curve);
-
-      memset(&dst->mapping_curve.curve, 0, sizeof(CurveMapping));
-
-      BKE_curvemapping_set_defaults(dst->mapping_curve.curve, 1, 0.0, 0.0, 1.0, 1.0);
-
-      BKE_curvemap_reset(curve->cm + i,
-                         &(struct rctf){.xmin = 0, .ymin = 0.0, .xmax = 1.0, .ymax = 1.0},
-                         CURVE_PRESET_LINE,
-                         1);
-      BKE_curvemapping_init(dst->mapping_curve.curve);
-    }
-
-    return false;
-  }
-
-  return true;
 }
 
 /*
@@ -562,7 +525,7 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
       BKE_curvemap_reset(mp->mapping_curve.curve->cm,
                          &(struct rctf){.xmin = 0.0f, .ymin = 0.0f, .xmax = 1.0f, .ymax = 1.0f},
                          mdef->curve,
-                         CURVEMAP_SLOPE_POSITIVE);
+                         CURVEMAP_SLOPE_NEGATIVE);
 
       BKE_curvemapping_init(mp->mapping_curve.curve);
 
@@ -1133,7 +1096,7 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
       }
 
       double f2 = BKE_brush_curve_strength_ex(
-          mp->mapping_curve.preset, mp->mapping_curve.curve, inputf, 1.0f);
+          mp->mapping_curve.preset, mp->mapping_curve.curve, 1.0f - inputf, 1.0f);
       f2 = mp->min + (mp->max - mp->min) * f2;
 
       /* make sure to update blend_items in rna_brush_engine.c
@@ -2089,6 +2052,16 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
         /* Only convert curve if it's not linear. */
         if (!BKE_curvemapping_equals(mp->curve, &linear_curve)) {
           mp->mapping_curve.preset = BRUSH_CURVE_CUSTOM;
+
+          /* TODO: figure out why BKE_brush_curve_strength_ex inverts custom curves
+           * but not any other preset.
+           */
+          for (int i = 0; i < mp->curve->cm->totpoint; i++) {
+            mp->curve->cm->curve[i].x = 1.0f - mp->curve->cm->curve[i].x;
+          }
+
+          BKE_curvemapping_changed(mp->curve, false);
+
           mp->mapping_curve.curve = GET_CACHE_CURVE(mp->curve);
         }
         else {
