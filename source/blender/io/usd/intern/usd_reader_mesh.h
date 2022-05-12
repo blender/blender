@@ -69,6 +69,7 @@ class USDMeshReader : public USDGeomReader {
   void read_mpolys(Mesh *mesh);
   void read_uvs(Mesh *mesh, double motionSampleTime, bool load_uvs = false);
   void read_colors(Mesh *mesh, double motionSampleTime);
+  void read_colors(Mesh *mesh, pxr::UsdGeomPrimvar &color_primvar, double motionSampleTime);
   void read_vertex_creases(Mesh *mesh, double motionSampleTime);
 
   void read_mesh_sample(ImportSettings *settings,

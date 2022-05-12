@@ -27,6 +27,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "WM_api.h"
+
 #include <pxr/base/vt/array.h>
 #include <pxr/base/vt/types.h>
 #include <pxr/base/vt/value.h>
@@ -438,58 +440,85 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
     return;
   }
 
-  /* Early out if we read the display color before and if this attribute isn't animated. */
-  if (primvar_varying_map_.find(usdtokens::displayColor) != primvar_varying_map_.end() &&
-      !primvar_varying_map_.at(usdtokens::displayColor)) {
+  std::vector<pxr::UsdGeomPrimvar> primvars = mesh_prim_.GetPrimvars();
+
+  /* Convert all color primvars to custom layer data. */
+  for (pxr::UsdGeomPrimvar pv : primvars) {
+
+    pxr::SdfValueTypeName type = pv.GetTypeName();
+
+    if (!ELEM(type,
+              pxr::SdfValueTypeNames->Color3hArray,
+              pxr::SdfValueTypeNames->Color3fArray,
+              pxr::SdfValueTypeNames->Color3dArray)) {
+      continue;
+    }
+
+    pxr::TfToken name = pv.GetPrimvarName();
+
+    /* Skip if we read this primvar before and it isn't animated. */
+    if (primvar_varying_map_.find(name) != primvar_varying_map_.end() &&
+        !primvar_varying_map_.at(name)) {
+        continue;
+    }
+
+    read_colors(mesh, pv, motionSampleTime);
+  }
+}
+
+void USDMeshReader::read_colors(Mesh *mesh,
+                                pxr::UsdGeomPrimvar &color_primvar,
+                                double motionSampleTime)
+{
+  if (!(mesh && color_primvar && color_primvar.HasValue())) {
     return;
   }
 
-  pxr::UsdGeomPrimvar color_primvar = mesh_prim_.GetDisplayColorPrimvar();
-
-  if (!color_primvar.HasValue()) {
-    return;
-  }
-
-  pxr::TfToken interp = color_primvar.GetInterpolation();
-
-  if (interp == pxr::UsdGeomTokens->varying) {
-    std::cerr << "WARNING: Unsupported varying interpolation for display colors\n" << std::endl;
-    return;
-  }
-
-  if (primvar_varying_map_.find(usdtokens::displayColor) == primvar_varying_map_.end()) {
+  if (primvar_varying_map_.find(color_primvar.GetPrimvarName()) == primvar_varying_map_.end()) {
     bool might_be_time_varying = color_primvar.ValueMightBeTimeVarying();
-    primvar_varying_map_.insert(std::make_pair(usdtokens::displayColor, might_be_time_varying));
+    primvar_varying_map_.insert(std::make_pair(color_primvar.GetPrimvarName(), might_be_time_varying));
     if (might_be_time_varying) {
       is_time_varying_ = true;
     }
   }
 
-  pxr::VtArray<pxr::GfVec3f> display_colors;
+  pxr::VtArray<pxr::GfVec3f> usd_colors;
 
-  if (!color_primvar.ComputeFlattened(&display_colors, motionSampleTime)) {
-    std::cerr << "WARNING: Couldn't compute display colors\n" << std::endl;
+  if (!color_primvar.ComputeFlattened(&usd_colors, motionSampleTime)) {
+    WM_reportf(RPT_WARNING,
+               "USD Import: couldn't compute values for color primvar '%s'",
+               color_primvar.GetName().GetText());
     return;
   }
 
-  if ((interp == pxr::UsdGeomTokens->faceVarying && display_colors.size() != mesh->totloop) ||
-      (interp == pxr::UsdGeomTokens->vertex && display_colors.size() != mesh->totvert) ||
-      (interp == pxr::UsdGeomTokens->constant && display_colors.size() != 1) ||
-      (interp == pxr::UsdGeomTokens->uniform && display_colors.size() != mesh->totpoly)) {
-    std::cerr << "WARNING: display colors count mismatch\n" << std::endl;
+  pxr::TfToken interp = color_primvar.GetInterpolation();
+
+  if ((interp == pxr::UsdGeomTokens->faceVarying && usd_colors.size() != mesh->totloop) ||
+      (interp == pxr::UsdGeomTokens->varying && usd_colors.size() != mesh->totloop) ||
+      (interp == pxr::UsdGeomTokens->vertex && usd_colors.size() != mesh->totvert) ||
+      (interp == pxr::UsdGeomTokens->constant && usd_colors.size() != 1) ||
+      (interp == pxr::UsdGeomTokens->uniform && usd_colors.size() != mesh->totpoly)) {
+    WM_reportf(RPT_WARNING,
+               "USD Import: color primvar value '%s' count inconsistent with interpolation type",
+               color_primvar.GetName().GetText());
     return;
   }
 
-  void *cd_ptr = add_customdata_cb(mesh, "displayColor", CD_PROP_BYTE_COLOR);
+  void *cd_ptr = add_customdata_cb(mesh, color_primvar.GetBaseName().GetText(), CD_PROP_BYTE_COLOR);
 
   if (!cd_ptr) {
-    std::cerr << "WARNING: Couldn't add displayColor custom data.\n";
+    WM_reportf(RPT_WARNING,
+               "USD Import: couldn't add color custom data '%s'",
+               color_primvar.GetBaseName().GetText());
     return;
   }
 
   MLoopCol *colors = static_cast<MLoopCol *>(cd_ptr);
 
-  mesh->mloopcol = colors;
+  /* TODO(makowalski): need to assign mesh->mloopcol? */
+  if (!mesh->mloopcol) {
+    mesh->mloopcol = colors;
+  }
 
   MPoly *poly = mesh->mpoly;
 
@@ -503,7 +532,8 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
       if (interp == pxr::UsdGeomTokens->vertex) {
         usd_index = mesh->mloop[loop_index].v;
       }
-      else if (interp == pxr::UsdGeomTokens->faceVarying) {
+      else if (interp == pxr::UsdGeomTokens->faceVarying ||
+               interp == pxr::UsdGeomTokens->varying) {
         usd_index = poly->loopstart;
         if (is_left_handed_) {
           usd_index += poly->totloop - 1 - j;
@@ -517,13 +547,13 @@ void USDMeshReader::read_colors(Mesh *mesh, const double motionSampleTime)
         usd_index = i;
       }
 
-      if (usd_index >= display_colors.size()) {
+      if (usd_index >= usd_colors.size()) {
         continue;
       }
 
-      colors[loop_index].r = unit_float_to_uchar_clamp(display_colors[usd_index][0]);
-      colors[loop_index].g = unit_float_to_uchar_clamp(display_colors[usd_index][1]);
-      colors[loop_index].b = unit_float_to_uchar_clamp(display_colors[usd_index][2]);
+      colors[loop_index].r = unit_float_to_uchar_clamp(usd_colors[usd_index][0]);
+      colors[loop_index].g = unit_float_to_uchar_clamp(usd_colors[usd_index][1]);
+      colors[loop_index].b = unit_float_to_uchar_clamp(usd_colors[usd_index][2]);
       colors[loop_index].a = unit_float_to_uchar_clamp(1.0);
     }
   }
