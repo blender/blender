@@ -587,7 +587,16 @@ static void blendWrite(BlendWriter *writer, const ModifierData *md)
   int size = mmd->dyngridsize;
 
   BLO_write_struct_array(writer, MDefInfluence, mmd->influences_num, mmd->bindinfluences);
-  BLO_write_int32_array(writer, mmd->verts_num + 1, mmd->bindoffsets);
+
+  /* NOTE: `bindoffset` is abusing `verts_num + 1` as its size, this becomes an incorrect value in
+   * case `verts_num == 0`, since `bindoffset` is then NULL, not a size 1 allocated array. */
+  if (mmd->verts_num > 0) {
+    BLO_write_int32_array(writer, mmd->verts_num + 1, mmd->bindoffsets);
+  }
+  else {
+    BLI_assert(mmd->bindoffsets == NULL);
+  }
+
   BLO_write_float3_array(writer, mmd->cage_verts_num, mmd->bindcagecos);
   BLO_write_struct_array(writer, MDefCell, size * size * size, mmd->dyngrid);
   BLO_write_struct_array(writer, MDefInfluence, mmd->influences_num, mmd->dyninfluences);
@@ -599,7 +608,13 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 
   BLO_read_data_address(reader, &mmd->bindinfluences);
-  BLO_read_int32_array(reader, mmd->verts_num + 1, &mmd->bindoffsets);
+
+  /* NOTE: `bindoffset` is abusing `verts_num + 1` as its size, this becomes an incorrect value in
+   * case `verts_num == 0`, since `bindoffset` is then NULL, not a size 1 allocated array. */
+  if (mmd->verts_num > 0) {
+    BLO_read_int32_array(reader, mmd->verts_num + 1, &mmd->bindoffsets);
+  }
+
   BLO_read_float3_array(reader, mmd->cage_verts_num, &mmd->bindcagecos);
   BLO_read_data_address(reader, &mmd->dyngrid);
   BLO_read_data_address(reader, &mmd->dyninfluences);
