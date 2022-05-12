@@ -1683,144 +1683,6 @@ typedef struct ImageSaveData {
   ImageFormatData im_format;
 } ImageSaveData;
 
-static char imtype_best_depth(ImBuf *ibuf, const char imtype)
-{
-  const char depth_ok = BKE_imtype_valid_depths(imtype);
-
-  if (ibuf->rect_float) {
-    if (depth_ok & R_IMF_CHAN_DEPTH_32) {
-      return R_IMF_CHAN_DEPTH_32;
-    }
-    if (depth_ok & R_IMF_CHAN_DEPTH_24) {
-      return R_IMF_CHAN_DEPTH_24;
-    }
-    if (depth_ok & R_IMF_CHAN_DEPTH_16) {
-      return R_IMF_CHAN_DEPTH_16;
-    }
-    if (depth_ok & R_IMF_CHAN_DEPTH_12) {
-      return R_IMF_CHAN_DEPTH_12;
-    }
-    return R_IMF_CHAN_DEPTH_8;
-  }
-
-  if (depth_ok & R_IMF_CHAN_DEPTH_8) {
-    return R_IMF_CHAN_DEPTH_8;
-  }
-  if (depth_ok & R_IMF_CHAN_DEPTH_12) {
-    return R_IMF_CHAN_DEPTH_12;
-  }
-  if (depth_ok & R_IMF_CHAN_DEPTH_16) {
-    return R_IMF_CHAN_DEPTH_16;
-  }
-  if (depth_ok & R_IMF_CHAN_DEPTH_24) {
-    return R_IMF_CHAN_DEPTH_24;
-  }
-  if (depth_ok & R_IMF_CHAN_DEPTH_32) {
-    return R_IMF_CHAN_DEPTH_32;
-  }
-  return R_IMF_CHAN_DEPTH_8; /* fallback, should not get here */
-}
-
-static int image_save_options_init(Main *bmain,
-                                   ImageSaveOptions *opts,
-                                   Image *ima,
-                                   ImageUser *iuser,
-                                   const bool guess_path,
-                                   const bool save_as_render)
-{
-  void *lock;
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
-
-  if (ibuf) {
-    Scene *scene = opts->scene;
-    bool is_depth_set = false;
-
-    if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-      /* imtype */
-      BKE_image_format_init_for_write(&opts->im_format, scene, NULL);
-      is_depth_set = true;
-      if (!BKE_image_is_multiview(ima)) {
-        /* In case multiview is disabled,
-         * render settings would be invalid for render result in this area. */
-        opts->im_format.stereo3d_format = *ima->stereo3d_format;
-        opts->im_format.views_format = ima->views_format;
-      }
-    }
-    else {
-      if (ima->source == IMA_SRC_GENERATED) {
-        opts->im_format.imtype = R_IMF_IMTYPE_PNG;
-        opts->im_format.compress = ibuf->foptions.quality;
-        opts->im_format.planes = ibuf->planes;
-      }
-      else {
-        BKE_image_format_from_imbuf(&opts->im_format, ibuf);
-      }
-
-      /* use the multiview image settings as the default */
-      opts->im_format.stereo3d_format = *ima->stereo3d_format;
-      opts->im_format.views_format = ima->views_format;
-
-      BKE_image_format_color_management_copy_from_scene(&opts->im_format, scene);
-    }
-
-    opts->im_format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
-
-    if (ima->source == IMA_SRC_TILED) {
-      BLI_strncpy(opts->filepath, ima->filepath, sizeof(opts->filepath));
-      BLI_path_abs(opts->filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
-    }
-    else {
-      BLI_strncpy(opts->filepath, ibuf->name, sizeof(opts->filepath));
-    }
-
-    /* sanitize all settings */
-
-    /* unlikely but just in case */
-    if (ELEM(opts->im_format.planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA) == 0) {
-      opts->im_format.planes = R_IMF_PLANES_RGBA;
-    }
-
-    /* depth, account for float buffer and format support */
-    if (is_depth_set == false) {
-      opts->im_format.depth = imtype_best_depth(ibuf, opts->im_format.imtype);
-    }
-
-    /* some formats don't use quality so fallback to scenes quality */
-    if (opts->im_format.quality == 0) {
-      opts->im_format.quality = scene->r.im_format.quality;
-    }
-
-    /* check for empty path */
-    if (guess_path && opts->filepath[0] == 0) {
-      const bool is_prev_save = !STREQ(G.ima, "//");
-      if (save_as_render) {
-        if (is_prev_save) {
-          BLI_strncpy(opts->filepath, G.ima, sizeof(opts->filepath));
-        }
-        else {
-          BLI_strncpy(opts->filepath, "//untitled", sizeof(opts->filepath));
-          BLI_path_abs(opts->filepath, BKE_main_blendfile_path(bmain));
-        }
-      }
-      else {
-        BLI_snprintf(opts->filepath, sizeof(opts->filepath), "//%s", ima->id.name + 2);
-        BLI_path_make_safe(opts->filepath);
-        BLI_path_abs(opts->filepath, is_prev_save ? G.ima : BKE_main_blendfile_path(bmain));
-      }
-
-      /* append UDIM marker if not present */
-      if (ima->source == IMA_SRC_TILED && strstr(opts->filepath, "<UDIM>") == NULL) {
-        int len = strlen(opts->filepath);
-        STR_CONCAT(opts->filepath, len, ".<UDIM>");
-      }
-    }
-  }
-
-  BKE_image_release_ibuf(ima, ibuf, lock);
-
-  return (ibuf != NULL);
-}
-
 static void image_save_options_from_op(Main *bmain,
                                        ImageSaveOptions *opts,
                                        wmOperator *op,
@@ -1903,11 +1765,9 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
     iuser = image_user_from_context(C);
   }
 
-  BKE_image_save_options_init(&opts, bmain, scene);
-
   /* just in case to initialize values,
    * these should be set on invoke or by the caller. */
-  image_save_options_init(bmain, &opts, image, iuser, false, false);
+  BKE_image_save_options_init(&opts, bmain, scene, image, iuser, false, false);
 
   image_save_options_from_op(bmain, &opts, op, imf);
   opts.do_newpath = true;
@@ -1945,9 +1805,7 @@ static int image_save_as_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
     return image_save_as_exec(C, op);
   }
 
-  BKE_image_save_options_init(&opts, bmain, scene);
-
-  if (image_save_options_init(bmain, &opts, ima, iuser, true, save_as_render) == 0) {
+  if (!BKE_image_save_options_init(&opts, bmain, scene, ima, iuser, true, save_as_render)) {
     BKE_image_save_options_free(&opts);
     return OPERATOR_CANCELLED;
   }
@@ -2138,8 +1996,7 @@ static int image_save_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  BKE_image_save_options_init(&opts, bmain, scene);
-  if (image_save_options_init(bmain, &opts, image, iuser, false, false) == 0) {
+  if (!BKE_image_save_options_init(&opts, bmain, scene, image, iuser, false, false)) {
     BKE_image_save_options_free(&opts);
     return OPERATOR_CANCELLED;
   }
@@ -2411,8 +2268,7 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
         if (image_has_valid_path(ima)) {
           ImageSaveOptions opts;
           Scene *scene = CTX_data_scene(C);
-          BKE_image_save_options_init(&opts, bmain, scene);
-          if (image_save_options_init(bmain, &opts, ima, NULL, false, false)) {
+          if (!BKE_image_save_options_init(&opts, bmain, scene, ima, NULL, false, false)) {
             bool saved_successfully = BKE_image_save(reports, bmain, ima, NULL, &opts);
             ok = ok && saved_successfully;
           }

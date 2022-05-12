@@ -23,6 +23,7 @@
 #include "IMB_openexr.h"
 
 #include "BKE_colortools.h"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
@@ -34,7 +35,51 @@
 
 using blender::Vector;
 
-void BKE_image_save_options_init(ImageSaveOptions *opts, Main *bmain, Scene *scene)
+static char imtype_best_depth(ImBuf *ibuf, const char imtype)
+{
+  const char depth_ok = BKE_imtype_valid_depths(imtype);
+
+  if (ibuf->rect_float) {
+    if (depth_ok & R_IMF_CHAN_DEPTH_32) {
+      return R_IMF_CHAN_DEPTH_32;
+    }
+    if (depth_ok & R_IMF_CHAN_DEPTH_24) {
+      return R_IMF_CHAN_DEPTH_24;
+    }
+    if (depth_ok & R_IMF_CHAN_DEPTH_16) {
+      return R_IMF_CHAN_DEPTH_16;
+    }
+    if (depth_ok & R_IMF_CHAN_DEPTH_12) {
+      return R_IMF_CHAN_DEPTH_12;
+    }
+    return R_IMF_CHAN_DEPTH_8;
+  }
+
+  if (depth_ok & R_IMF_CHAN_DEPTH_8) {
+    return R_IMF_CHAN_DEPTH_8;
+  }
+  if (depth_ok & R_IMF_CHAN_DEPTH_12) {
+    return R_IMF_CHAN_DEPTH_12;
+  }
+  if (depth_ok & R_IMF_CHAN_DEPTH_16) {
+    return R_IMF_CHAN_DEPTH_16;
+  }
+  if (depth_ok & R_IMF_CHAN_DEPTH_24) {
+    return R_IMF_CHAN_DEPTH_24;
+  }
+  if (depth_ok & R_IMF_CHAN_DEPTH_32) {
+    return R_IMF_CHAN_DEPTH_32;
+  }
+  return R_IMF_CHAN_DEPTH_8; /* fallback, should not get here */
+}
+
+bool BKE_image_save_options_init(ImageSaveOptions *opts,
+                                 Main *bmain,
+                                 Scene *scene,
+                                 Image *ima,
+                                 ImageUser *iuser,
+                                 const bool guess_path,
+                                 const bool save_as_render)
 {
   memset(opts, 0, sizeof(*opts));
 
@@ -42,6 +87,98 @@ void BKE_image_save_options_init(ImageSaveOptions *opts, Main *bmain, Scene *sce
   opts->scene = scene;
 
   BKE_image_format_init(&opts->im_format, false);
+
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+
+  if (ibuf) {
+    Scene *scene = opts->scene;
+    bool is_depth_set = false;
+
+    if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+      /* imtype */
+      BKE_image_format_init_for_write(&opts->im_format, scene, NULL);
+      is_depth_set = true;
+      if (!BKE_image_is_multiview(ima)) {
+        /* In case multiview is disabled,
+         * render settings would be invalid for render result in this area. */
+        opts->im_format.stereo3d_format = *ima->stereo3d_format;
+        opts->im_format.views_format = ima->views_format;
+      }
+    }
+    else {
+      if (ima->source == IMA_SRC_GENERATED) {
+        opts->im_format.imtype = R_IMF_IMTYPE_PNG;
+        opts->im_format.compress = ibuf->foptions.quality;
+        opts->im_format.planes = ibuf->planes;
+      }
+      else {
+        BKE_image_format_from_imbuf(&opts->im_format, ibuf);
+      }
+
+      /* use the multiview image settings as the default */
+      opts->im_format.stereo3d_format = *ima->stereo3d_format;
+      opts->im_format.views_format = ima->views_format;
+
+      BKE_image_format_color_management_copy_from_scene(&opts->im_format, scene);
+    }
+
+    opts->im_format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
+
+    if (ima->source == IMA_SRC_TILED) {
+      BLI_strncpy(opts->filepath, ima->filepath, sizeof(opts->filepath));
+      BLI_path_abs(opts->filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
+    }
+    else {
+      BLI_strncpy(opts->filepath, ibuf->name, sizeof(opts->filepath));
+    }
+
+    /* sanitize all settings */
+
+    /* unlikely but just in case */
+    if (ELEM(opts->im_format.planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA) == 0) {
+      opts->im_format.planes = R_IMF_PLANES_RGBA;
+    }
+
+    /* depth, account for float buffer and format support */
+    if (is_depth_set == false) {
+      opts->im_format.depth = imtype_best_depth(ibuf, opts->im_format.imtype);
+    }
+
+    /* some formats don't use quality so fallback to scenes quality */
+    if (opts->im_format.quality == 0) {
+      opts->im_format.quality = scene->r.im_format.quality;
+    }
+
+    /* check for empty path */
+    if (guess_path && opts->filepath[0] == 0) {
+      const bool is_prev_save = !STREQ(G.ima, "//");
+      if (save_as_render) {
+        if (is_prev_save) {
+          BLI_strncpy(opts->filepath, G.ima, sizeof(opts->filepath));
+        }
+        else {
+          BLI_strncpy(opts->filepath, "//untitled", sizeof(opts->filepath));
+          BLI_path_abs(opts->filepath, BKE_main_blendfile_path(bmain));
+        }
+      }
+      else {
+        BLI_snprintf(opts->filepath, sizeof(opts->filepath), "//%s", ima->id.name + 2);
+        BLI_path_make_safe(opts->filepath);
+        BLI_path_abs(opts->filepath, is_prev_save ? G.ima : BKE_main_blendfile_path(bmain));
+      }
+
+      /* append UDIM marker if not present */
+      if (ima->source == IMA_SRC_TILED && strstr(opts->filepath, "<UDIM>") == NULL) {
+        int len = strlen(opts->filepath);
+        STR_CONCAT(opts->filepath, len, ".<UDIM>");
+      }
+    }
+  }
+
+  BKE_image_release_ibuf(ima, ibuf, lock);
+
+  return (ibuf != NULL);
 }
 
 void BKE_image_save_options_free(ImageSaveOptions *opts)
