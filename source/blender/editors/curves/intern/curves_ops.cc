@@ -20,6 +20,7 @@
 #include "BKE_layer.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"
@@ -32,9 +33,11 @@
 #include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_prototypes.h"
 
 /**
  * The code below uses a suffix naming convention to indicate the coordinate space:
@@ -315,6 +318,140 @@ static void CURVES_OT_convert_to_particle_system(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 }
 
+namespace convert_from_particle_system {
+
+static bke::CurvesGeometry particles_to_curves(Object &object, ParticleSystem &psys)
+{
+  ParticleSettings &settings = *psys.part;
+  if (psys.part->type != PART_HAIR) {
+    return {};
+  }
+
+  const bool transfer_parents = (settings.draw & PART_DRAW_PARENT) || settings.childtype == 0;
+
+  const Span<ParticleCacheKey *> parents_cache{psys.pathcache, psys.totcached};
+  const Span<ParticleCacheKey *> children_cache{psys.childcache, psys.totchildcache};
+
+  int points_num = 0;
+  Vector<int> curve_offsets;
+  Vector<int> parents_to_transfer;
+  Vector<int> children_to_transfer;
+  if (transfer_parents) {
+    for (const int parent_i : parents_cache.index_range()) {
+      const int segments = parents_cache[parent_i]->segments;
+      if (segments <= 0) {
+        continue;
+      }
+      parents_to_transfer.append(parent_i);
+      curve_offsets.append(points_num);
+      points_num += segments + 1;
+    }
+  }
+  for (const int child_i : children_cache.index_range()) {
+    const int segments = children_cache[child_i]->segments;
+    if (segments <= 0) {
+      continue;
+    }
+    children_to_transfer.append(child_i);
+    curve_offsets.append(points_num);
+    points_num += segments + 1;
+  }
+  const int curves_num = parents_to_transfer.size() + children_to_transfer.size();
+  curve_offsets.append(points_num);
+  BLI_assert(curve_offsets.size() == curves_num + 1);
+  bke::CurvesGeometry curves(points_num, curves_num);
+  curves.offsets_for_write().copy_from(curve_offsets);
+
+  const float4x4 object_to_world_mat = object.obmat;
+  const float4x4 world_to_object_mat = object_to_world_mat.inverted();
+
+  MutableSpan<float3> positions = curves.positions_for_write();
+
+  const auto copy_hair_to_curves = [&](const Span<ParticleCacheKey *> hair_cache,
+                                       const Span<int> indices_to_transfer,
+                                       const int curve_index_offset) {
+    threading::parallel_for(indices_to_transfer.index_range(), 256, [&](const IndexRange range) {
+      for (const int i : range) {
+        const int hair_i = indices_to_transfer[i];
+        const int curve_i = i + curve_index_offset;
+        const IndexRange points = curves.points_for_curve(curve_i);
+        const Span<ParticleCacheKey> keys{hair_cache[hair_i], points.size()};
+        for (const int key_i : keys.index_range()) {
+          const float3 key_pos_wo = keys[key_i].co;
+          positions[points[key_i]] = world_to_object_mat * key_pos_wo;
+        }
+      }
+    });
+  };
+
+  if (transfer_parents) {
+    copy_hair_to_curves(parents_cache, parents_to_transfer, 0);
+  }
+  copy_hair_to_curves(children_cache, children_to_transfer, parents_to_transfer.size());
+
+  curves.update_curve_types();
+  curves.tag_topology_changed();
+  return curves;
+}
+
+static int curves_convert_from_particle_system_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  Main &bmain = *CTX_data_main(C);
+  ViewLayer &view_layer = *CTX_data_view_layer(C);
+  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
+  Object *ob_from_orig = ED_object_active_context(C);
+  ParticleSystem *psys_orig = static_cast<ParticleSystem *>(
+      CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data);
+  if (psys_orig == nullptr) {
+    psys_orig = psys_get_current(ob_from_orig);
+  }
+  if (psys_orig == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+  Object *ob_from_eval = DEG_get_evaluated_object(&depsgraph, ob_from_orig);
+  ParticleSystem *psys_eval = nullptr;
+  LISTBASE_FOREACH (ModifierData *, md, &ob_from_eval->modifiers) {
+    if (md->type != eModifierType_ParticleSystem) {
+      continue;
+    }
+    ParticleSystemModifierData *psmd = reinterpret_cast<ParticleSystemModifierData *>(md);
+    if (!STREQ(psmd->psys->name, psys_orig->name)) {
+      continue;
+    }
+    psys_eval = psmd->psys;
+  }
+
+  Object *ob_new = BKE_object_add(&bmain, &view_layer, OB_CURVES, psys_eval->name);
+  ob_new->dtx |= OB_DRAWBOUNDOX; /* TODO: Remove once there is actual drawing. */
+  Curves *curves_id = static_cast<Curves *>(ob_new->data);
+  BKE_object_apply_mat4(ob_new, ob_from_orig->obmat, true, false);
+  bke::CurvesGeometry::wrap(curves_id->geometry) = particles_to_curves(*ob_from_eval, *psys_eval);
+
+  DEG_relations_tag_update(&bmain);
+  WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool curves_convert_from_particle_system_poll(bContext *C)
+{
+  return ED_object_active_context(C) != nullptr;
+}
+
+}  // namespace convert_from_particle_system
+
+static void CURVES_OT_convert_from_particle_system(wmOperatorType *ot)
+{
+  ot->name = "Convert Particle System to Curves";
+  ot->idname = "CURVES_OT_convert_from_particle_system";
+  ot->description = "Add a new curves object based on the current state of the particle system";
+
+  ot->poll = convert_from_particle_system::curves_convert_from_particle_system_poll;
+  ot->exec = convert_from_particle_system::curves_convert_from_particle_system_exec;
+
+  ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
+}
+
 namespace snap_curves_to_surface {
 
 enum class AttachMode {
@@ -514,5 +651,6 @@ void ED_operatortypes_curves()
 {
   using namespace blender::ed::curves;
   WM_operatortype_append(CURVES_OT_convert_to_particle_system);
+  WM_operatortype_append(CURVES_OT_convert_from_particle_system);
   WM_operatortype_append(CURVES_OT_snap_curves_to_surface);
 }
