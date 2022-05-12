@@ -447,11 +447,6 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->edit_bmesh = me->edit_mesh;
     mr->me = (do_final) ? editmesh_eval_final : editmesh_eval_cage;
 
-    mr->me->attributes_active_index = me->attributes_active_index;
-
-    mr->me->attr_color_active = me->attr_color_active;
-    mr->me->attr_color_render = me->attr_color_render;
-
     mr->edit_data = is_mode_active ? mr->me->runtime.edit_data : NULL;
 
     if (mr->edit_data) {
