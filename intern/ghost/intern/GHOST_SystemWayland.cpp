@@ -761,7 +761,7 @@ static void data_device_selection(void *data,
   input->data_offer_copy_paste = data_offer;
 
   std::string mime_receive;
-  for (const std::string &type : {mime_text_utf8, mime_text_plain}) {
+  for (const std::string type : {mime_text_utf8, mime_text_plain}) {
     if (data_offer->types.count(type)) {
       mime_receive = type;
       break;
