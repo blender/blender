@@ -8712,28 +8712,36 @@ static uiBut *ui_context_button_active(const ARegion *region, bool (*but_check_c
   uiBut *but_found = NULL;
 
   while (region) {
-    uiBut *activebut = NULL;
+    /* Follow this exact priority (from highest to lowest priority):
+     * 1) Active-override button (#UI_BUT_ACTIVE_OVERRIDE).
+     * 2) The real active button.
+     * 3) The previously active button (#UI_BUT_LAST_ACTIVE).
+     */
+    uiBut *active_but_override = NULL;
+    uiBut *active_but_real = NULL;
+    uiBut *active_but_last = NULL;
 
     /* find active button */
     LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
       LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
         if (but->flag & UI_BUT_ACTIVE_OVERRIDE) {
-          activebut = but;
-          break;
+          active_but_override = but;
         }
         if (but->active) {
-          activebut = but;
-          break;
+          active_but_real = but;
         }
         if (but->flag & UI_BUT_LAST_ACTIVE) {
-          activebut = but;
-          break;
+          active_but_last = but;
         }
       }
+    }
 
-      if (activebut) {
-        break;
-      }
+    uiBut *activebut = active_but_override;
+    if (!activebut) {
+      activebut = active_but_real;
+    }
+    if (!activebut) {
+      activebut = active_but_last;
     }
 
     if (activebut && (but_check_cb == NULL || but_check_cb(activebut))) {
