@@ -354,7 +354,6 @@ typedef struct {
   int mval[2];
   int width, height;
   float *min, *max, *pos, (*corners)[2];
-  float spos[2];
 
   bool lock, accurate;
 
@@ -364,10 +363,17 @@ typedef struct {
   float (*old_markers)[2];
 } SlideMarkerData;
 
-static void slide_marker_tilt_slider(const MovieTrackingMarker *marker, float r_slider[2])
+static void slide_marker_tilt_slider_relative(const float pattern_corners[4][2], float r_slider[2])
 {
-  add_v2_v2v2(r_slider, marker->pattern_corners[1], marker->pattern_corners[2]);
-  add_v2_v2(r_slider, marker->pos);
+  add_v2_v2v2(r_slider, pattern_corners[1], pattern_corners[2]);
+}
+
+static void slide_marker_tilt_slider(const float marker_pos[2],
+                                     const float pattern_corners[4][2],
+                                     float r_slider[2])
+{
+  slide_marker_tilt_slider_relative(pattern_corners, r_slider);
+  add_v2_v2(r_slider, marker_pos);
 }
 
 static SlideMarkerData *create_slide_marker_data(SpaceClip *sc,
@@ -397,11 +403,9 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc,
     if (action == SLIDE_ACTION_POS) {
       data->corners = marker->pattern_corners;
       data->pos = marker->pattern_corners[corner];
-      copy_v2_v2(data->spos, data->pos);
     }
     else if (action == SLIDE_ACTION_TILT_SIZE) {
       data->corners = marker->pattern_corners;
-      slide_marker_tilt_slider(marker, data->spos);
     }
   }
   else if (area == TRACK_AREA_SEARCH) {
@@ -486,7 +490,7 @@ static int mouse_to_tilt_distance_squared(const MovieTrackingMarker *marker,
                                           int height)
 {
   float slider[2];
-  slide_marker_tilt_slider(marker, slider);
+  slide_marker_tilt_slider(marker->pos, marker->pattern_corners, slider);
   return mouse_to_slide_zone_distance_squared(co, slider, width, height);
 }
 
@@ -781,61 +785,66 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
 
       if (data->area == TRACK_AREA_POINT) {
-        data->pos[0] = data->old_pos[0] + dx;
-        data->pos[1] = data->old_pos[1] + dy;
+        data->pos[0] += dx;
+        data->pos[1] += dy;
 
         WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
         DEG_id_tag_update(&sc->clip->id, 0);
       }
       else if (data->area == TRACK_AREA_PAT) {
         if (data->action == SLIDE_ACTION_POS) {
-          float spos[2];
+          float prev_pos[2];
+          copy_v2_v2(prev_pos, data->pos);
 
-          copy_v2_v2(spos, data->pos);
-
-          data->pos[0] = data->spos[0] + dx;
-          data->pos[1] = data->spos[1] + dy;
+          data->pos[0] += dx;
+          data->pos[1] += dy;
 
           if (!slide_check_corners(data->corners)) {
-            copy_v2_v2(data->pos, spos);
+            copy_v2_v2(data->pos, prev_pos);
           }
 
-          /* Currently only patterns are allowed to have such combination of event and data. */
+          /* Allow pattern to be arbitrary size and resize search area if needed. */
           BKE_tracking_marker_clamp_search_size(data->marker);
         }
         else if (data->action == SLIDE_ACTION_TILT_SIZE) {
-          const float mouse_delta[2] = {dx, dy};
+          const float delta[2] = {dx, dy};
 
-          /* Vector which connects marker position with tilt/scale sliding area before sliding
-           * began. */
-          float start[2];
-          sub_v2_v2v2(start, data->spos, data->old_pos);
-          start[0] *= data->width;
-          start[1] *= data->height;
+          /* Slider position relative to the marker position using current state of pattern
+           * corners. */
+          float slider[2];
+          slide_marker_tilt_slider_relative(data->corners, slider);
 
-          /* Vector which connects marker position with tilt/scale sliding area with the sliding
-           * delta applied. */
-          float end[2];
-          add_v2_v2v2(end, data->spos, mouse_delta);
-          sub_v2_v2(end, data->old_pos);
-          end[0] *= data->width;
-          end[1] *= data->height;
+          /* Vector which connects marker position with the slider state at the current corners
+           * state.
+           * The coordinate is in the pixel space. */
+          float start_px[2];
+          copy_v2_v2(start_px, slider);
+          start_px[0] *= data->width;
+          start_px[1] *= data->height;
+
+          /* Vector which connects marker position with the slider state with the new mouse delta
+           * taken into account.
+           * The coordinate is in the pixel space. */
+          float end_px[2];
+          add_v2_v2v2(end_px, slider, delta);
+          end_px[0] *= data->width;
+          end_px[1] *= data->height;
 
           float scale = 1.0f;
-          if (len_squared_v2(start) != 0.0f) {
-            scale = len_v2(end) / len_v2(start);
+          if (len_squared_v2(start_px) != 0.0f) {
+            scale = len_v2(end_px) / len_v2(start_px);
 
             if (scale < 0.0f) {
               scale = 0.0;
             }
           }
 
-          const float angle = -angle_signed_v2v2(start, end);
+          const float angle = -angle_signed_v2v2(start_px, end_px);
 
           for (int a = 0; a < 4; a++) {
             float vec[2];
 
-            mul_v2_v2fl(data->corners[a], data->old_corners[a], scale);
+            mul_v2_fl(data->corners[a], scale);
 
             copy_v2_v2(vec, data->corners[a]);
             vec[0] *= data->width;
@@ -850,24 +859,26 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
       else if (data->area == TRACK_AREA_SEARCH) {
         if (data->action == SLIDE_ACTION_SIZE) {
-          data->min[0] = data->old_search_min[0] - dx;
-          data->max[0] = data->old_search_max[0] + dx;
+          data->min[0] -= dx;
+          data->min[1] += dy;
 
-          data->min[1] = data->old_search_min[1] + dy;
-          data->max[1] = data->old_search_max[1] - dy;
+          data->max[0] += dx;
+          data->max[1] -= dy;
 
           BKE_tracking_marker_clamp_search_size(data->marker);
         }
         else if (data->action == SLIDE_ACTION_OFFSET) {
-          const float d[2] = {dx, dy};
-          add_v2_v2v2(data->min, data->old_search_min, d);
-          add_v2_v2v2(data->max, data->old_search_max, d);
+          const float delta[2] = {dx, dy};
+          add_v2_v2(data->min, delta);
+          add_v2_v2(data->max, delta);
 
           BKE_tracking_marker_clamp_search_position(data->marker);
         }
       }
 
       data->marker->flag &= ~MARKER_TRACKED;
+
+      copy_v2_v2_int(data->mval, event->mval);
 
       WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
 
