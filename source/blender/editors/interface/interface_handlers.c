@@ -4352,14 +4352,14 @@ static uiBut *ui_but_list_row_text_activate(bContext *C,
  * \{ */
 
 static uiButExtraOpIcon *ui_but_extra_operator_icon_mouse_over_get(uiBut *but,
-                                                                   uiHandleButtonData *data,
+                                                                   ARegion *region,
                                                                    const wmEvent *event)
 {
   float xmax = but->rect.xmax;
   const float icon_size = 0.8f * BLI_rctf_size_y(&but->rect); /* ICON_SIZE_FROM_BUTRECT */
   int x = event->xy[0], y = event->xy[1];
 
-  ui_window_to_block(data->region, but->block, &x, &y);
+  ui_window_to_block(region, but->block, &x, &y);
   if (!BLI_rctf_isect_pt(&but->rect, x, y)) {
     return NULL;
   }
@@ -4388,7 +4388,7 @@ static bool ui_do_but_extra_operator_icon(bContext *C,
                                           uiHandleButtonData *data,
                                           const wmEvent *event)
 {
-  uiButExtraOpIcon *op_icon = ui_but_extra_operator_icon_mouse_over_get(but, data, event);
+  uiButExtraOpIcon *op_icon = ui_but_extra_operator_icon_mouse_over_get(but, data->region, event);
 
   if (!op_icon) {
     return false;
@@ -4423,7 +4423,7 @@ static void ui_do_but_extra_operator_icons_mousemove(uiBut *but,
     op_icon->highlighted = false;
   }
 
-  uiButExtraOpIcon *hovered = ui_but_extra_operator_icon_mouse_over_get(but, data, event);
+  uiButExtraOpIcon *hovered = ui_but_extra_operator_icon_mouse_over_get(but, data->region, event);
 
   if (hovered) {
     hovered->highlighted = true;
@@ -4662,7 +4662,7 @@ static int ui_do_but_TEX(
         /* pass */
       }
       else {
-        if (!ui_but_extra_operator_icon_mouse_over_get(but, data, event)) {
+        if (!ui_but_extra_operator_icon_mouse_over_get(but, data->region, event)) {
           button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
         }
         return WM_UI_HANDLER_BREAK;
@@ -4788,7 +4788,7 @@ static int ui_do_but_TREEROW(bContext *C,
       switch (event->val) {
         case KM_PRESS:
           /* Extra icons have priority, don't mess with them. */
-          if (ui_but_extra_operator_icon_mouse_over_get(but, data, event)) {
+          if (ui_but_extra_operator_icon_mouse_over_get(but, data->region, event)) {
             return WM_UI_HANDLER_BREAK;
           }
           button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
@@ -8222,7 +8222,7 @@ static ARegion *ui_but_tooltip_init(
   if (but) {
     const wmWindow *win = CTX_wm_window(C);
     uiButExtraOpIcon *extra_icon = ui_but_extra_operator_icon_mouse_over_get(
-        but, but->active, win->eventstate);
+        but, but->active ? but->active->region : region, win->eventstate);
 
     return UI_tooltip_create_from_button_or_extra_icon(C, region, but, extra_icon, is_label);
   }
