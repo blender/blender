@@ -74,6 +74,12 @@ enum {
   UI_SELECT_DRAW = (1 << 5),
   /** Property search filter is active and the button does not match. */
   UI_SEARCH_FILTER_NO_MATCH = (1 << 6),
+
+  /** Temporarily override the active button for lookups in context, regions, etc. (everything
+   * using #ui_context_button_active()). For example, so that operators normally acting on the
+   * active button can be polled on non-active buttons to (e.g. for disabling). */
+  UI_BUT_ACTIVE_OVERRIDE = (1 << 7),
+
   /* WARNING: rest of #uiBut.flag in UI_interface.h */
 };
 

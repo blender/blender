@@ -1861,15 +1861,32 @@ bool ui_but_context_poll_operator_ex(bContext *C,
                                      const wmOperatorCallParams *optype_params)
 {
   bool result;
+  int old_but_flag = 0;
 
-  if (but && but->context) {
-    CTX_store_set(C, but->context);
+  if (but) {
+    old_but_flag = but->flag;
+
+    /* Temporarily make this button override the active one, in case the poll acts on the active
+     * button. */
+    const_cast<uiBut *>(but)->flag |= UI_BUT_ACTIVE_OVERRIDE;
+
+    if (but->context) {
+      CTX_store_set(C, but->context);
+    }
   }
 
   result = WM_operator_poll_context(C, optype_params->optype, optype_params->opcontext);
 
-  if (but && but->context) {
-    CTX_store_set(C, nullptr);
+  if (but) {
+    BLI_assert_msg((but->flag & ~UI_BUT_ACTIVE_OVERRIDE) ==
+                       (old_but_flag & ~UI_BUT_ACTIVE_OVERRIDE),
+                   "Operator polls shouldn't change button flags");
+
+    const_cast<uiBut *>(but)->flag = old_but_flag;
+
+    if (but->context) {
+      CTX_store_set(C, nullptr);
+    }
   }
 
   return result;

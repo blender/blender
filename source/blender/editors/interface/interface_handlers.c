@@ -8717,12 +8717,22 @@ static uiBut *ui_context_button_active(const ARegion *region, bool (*but_check_c
     /* find active button */
     LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
       LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
+        if (but->flag & UI_BUT_ACTIVE_OVERRIDE) {
+          activebut = but;
+          break;
+        }
         if (but->active) {
           activebut = but;
+          break;
         }
-        else if (!activebut && (but->flag & UI_BUT_LAST_ACTIVE)) {
+        if (but->flag & UI_BUT_LAST_ACTIVE) {
           activebut = but;
+          break;
         }
+      }
+
+      if (activebut) {
+        break;
       }
     }
 
