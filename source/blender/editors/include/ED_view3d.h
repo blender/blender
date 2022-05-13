@@ -443,14 +443,14 @@ void pose_foreachScreenBone(struct ViewContext *vc,
 void ED_view3d_project_float_v2_m4(const struct ARegion *region,
                                    const float co[3],
                                    float r_co[2],
-                                   float mat[4][4]);
+                                   const float mat[4][4]);
 /**
  * \note use #ED_view3d_ob_project_mat_get to get projecting mat
  */
 void ED_view3d_project_float_v3_m4(const struct ARegion *region,
                                    const float co[3],
                                    float r_co[3],
-                                   float mat[4][4]);
+                                   const float mat[4][4]);
 
 eV3DProjStatus ED_view3d_project_base(const struct ARegion *region, struct Base *base);
 
