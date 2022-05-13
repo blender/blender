@@ -247,7 +247,7 @@ void *BKE_curves_add(Main *bmain, const char *name)
 BoundBox *BKE_curves_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_CURVES);
-  Curves *curves = static_cast<Curves *>(ob->data);
+  const Curves *curves_id = static_cast<const Curves *>(ob->data);
 
   if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
     return ob->runtime.bb;
@@ -256,11 +256,12 @@ BoundBox *BKE_curves_boundbox_get(Object *ob)
   if (ob->runtime.bb == nullptr) {
     ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
 
-    blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(curves->geometry);
+    const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
+        curves_id->geometry);
 
     float3 min(FLT_MAX);
     float3 max(-FLT_MAX);
-    if (!geometry.bounds_min_max(min, max)) {
+    if (!curves.bounds_min_max(min, max)) {
       min = float3(-1);
       max = float3(1);
     }
@@ -364,19 +365,19 @@ namespace blender::bke {
 
 Curves *curves_new_nomain(const int points_num, const int curves_num)
 {
-  Curves *curves = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
-  CurvesGeometry &geometry = CurvesGeometry::wrap(curves->geometry);
-  geometry.resize(points_num, curves_num);
-  return curves;
+  Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+  curves.resize(points_num, curves_num);
+  return curves_id;
 }
 
 Curves *curves_new_nomain_single(const int points_num, const CurveType type)
 {
-  Curves *curves = curves_new_nomain(points_num, 1);
-  CurvesGeometry &geometry = CurvesGeometry::wrap(curves->geometry);
-  geometry.offsets_for_write().last() = points_num;
-  geometry.fill_curve_types(type);
-  return curves;
+  Curves *curves_id = curves_new_nomain(points_num, 1);
+  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+  curves.offsets_for_write().last() = points_num;
+  curves.fill_curve_types(type);
+  return curves_id;
 }
 
 Curves *curves_new_nomain(CurvesGeometry curves)

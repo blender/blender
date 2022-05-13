@@ -313,13 +313,13 @@ int CurveComponent::attribute_domain_num(const AttributeDomain domain) const
   if (curves_ == nullptr) {
     return 0;
   }
-  const blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
+  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
       curves_->geometry);
   if (domain == ATTR_DOMAIN_POINT) {
-    return geometry.points_num();
+    return curves.points_num();
   }
   if (domain == ATTR_DOMAIN_CURVE) {
-    return geometry.curves_num();
+    return curves.curves_num();
   }
   return 0;
 }

@@ -812,8 +812,8 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   Array<int> point_to_curve_map(src_curves.points_num());
   threading::parallel_for(src_curves.curves_range(), 1024, [&](const IndexRange range) {
     for (const int i_curve : range) {
-      const IndexRange point_range = src_curves.points_for_curve(i_curve);
-      point_to_curve_map.as_mutable_span().slice(point_range).fill(i_curve);
+      const IndexRange points = src_curves.points_for_curve(i_curve);
+      point_to_curve_map.as_mutable_span().slice(points).fill(i_curve);
     }
   });
 

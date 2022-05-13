@@ -163,10 +163,10 @@ struct DeleteOperationExecutor {
 
     threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
       for (const int curve_i : curve_range) {
-        const IndexRange point_range = curves_->points_for_curve(curve_i);
-        for (const int segment_i : IndexRange(point_range.size() - 1)) {
-          const float3 pos1_cu = brush_transform_inv * positions_cu[point_range[segment_i]];
-          const float3 pos2_cu = brush_transform_inv * positions_cu[point_range[segment_i + 1]];
+        const IndexRange points = curves_->points_for_curve(curve_i);
+        for (const int segment_i : IndexRange(points.size() - 1)) {
+          const float3 pos1_cu = brush_transform_inv * positions_cu[points[segment_i]];
+          const float3 pos2_cu = brush_transform_inv * positions_cu[points[segment_i + 1]];
 
           float2 pos1_re, pos2_re;
           ED_view3d_project_float_v2_m4(region_, pos1_cu, pos1_re, projection.values);
