@@ -273,7 +273,18 @@ void ed_tracking_deselect_all_plane_tracks(ListBase *plane_tracks_base)
   }
 }
 
-static int mouse_select(bContext *C, const float co[2], const bool extend, const bool deselect_all)
+static bool select_poll(bContext *C)
+{
+  SpaceClip *sc = CTX_wm_space_clip(C);
+
+  if (sc) {
+    return sc->clip && sc->view == SC_VIEW_CLIP;
+  }
+
+  return false;
+}
+
+static int select_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -281,12 +292,35 @@ static int mouse_select(bContext *C, const float co[2], const bool extend, const
   ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
   ListBase *plane_tracks_base = BKE_tracking_get_active_plane_tracks(tracking);
   MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
-  MovieTrackingTrack *track;
-  MovieTrackingPlaneTrack *plane_track;
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
+
+  float co[2];
+  RNA_float_get_array(op->ptr, "location", co);
+
+  /* Special code which allows to slide a marker which belongs to currently selected but not yet
+   * active track. If such track is found activate it and return pass-though so that marker slide
+   * operator can be used immediately after.
+   * This logic makes it convenient to slide markers when left mouse selection is used. */
+  if (!extend) {
+    MovieTrackingTrack *track = tracking_find_slidable_track_in_proximity(C, co);
+    if (track != NULL) {
+      MovieClip *clip = ED_space_clip_get_clip(sc);
+
+      clip->tracking.act_track = track;
+
+      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+      DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
+
+      return OPERATOR_PASS_THROUGH;
+    }
+  }
+
   float distance_to_track, distance_to_plane_track;
 
-  track = find_nearest_track(sc, tracksbase, co, &distance_to_track);
-  plane_track = find_nearest_plane_track(sc, plane_tracks_base, co, &distance_to_plane_track);
+  MovieTrackingTrack *track = find_nearest_track(sc, tracksbase, co, &distance_to_track);
+  MovieTrackingPlaneTrack *plane_track = find_nearest_plane_track(
+      sc, plane_tracks_base, co, &distance_to_plane_track);
 
   ClipViewLockState lock_state;
   ED_clip_view_lock_state_store(C, &lock_state);
@@ -375,56 +409,13 @@ static int mouse_select(bContext *C, const float co[2], const bool extend, const
   return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
 }
 
-static bool select_poll(bContext *C)
-{
-  SpaceClip *sc = CTX_wm_space_clip(C);
-
-  if (sc) {
-    return sc->clip && sc->view == SC_VIEW_CLIP;
-  }
-
-  return false;
-}
-
-static int select_exec(bContext *C, wmOperator *op)
-{
-  float co[2];
-
-  RNA_float_get_array(op->ptr, "location", co);
-  const bool extend = RNA_boolean_get(op->ptr, "extend");
-  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
-
-  return mouse_select(C, co, extend, deselect_all);
-}
-
 static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *region = CTX_wm_region(C);
 
-  const bool extend = RNA_boolean_get(op->ptr, "extend");
-
   float co[2];
   ED_clip_mouse_pos(sc, region, event->mval, co);
-
-  /* Special code which allows to slide a marker which belongs to currently selected but not yet
-   * active track. If such track is found activate it and return pass-though so that marker slide
-   * operator can be used immediately after.
-   * This logic makes it convenient to slide markers when left mouse selection is used. */
-  if (!extend) {
-    MovieTrackingTrack *track = tracking_find_slidable_track_in_proximity(C, co);
-    if (track != NULL) {
-      MovieClip *clip = ED_space_clip_get_clip(sc);
-
-      clip->tracking.act_track = track;
-
-      WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-      DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
-
-      return OPERATOR_PASS_THROUGH;
-    }
-  }
-
   RNA_float_set_array(op->ptr, "location", co);
 
   return select_exec(C, op);
