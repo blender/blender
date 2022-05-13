@@ -1775,6 +1775,7 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
   if (op->customdata) {
     isd = op->customdata;
     image_save_options_from_op(bmain, &isd->opts, op);
+    BKE_image_save_options_update(&isd->opts, isd->image);
   }
   else {
     isd = image_save_as_init(C, op);
@@ -1794,9 +1795,14 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool image_save_as_check(bContext *UNUSED(C), wmOperator *op)
+static bool image_save_as_check(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   ImageSaveData *isd = op->customdata;
+
+  image_save_options_from_op(bmain, &isd->opts, op);
+  BKE_image_save_options_update(&isd->opts, isd->image);
+
   return WM_operator_filesel_ensure_ext_imtype(op, &isd->opts.im_format);
 }
 
@@ -1839,7 +1845,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
   ImageSaveData *isd = op->customdata;
   PointerRNA imf_ptr;
   const bool is_multiview = RNA_boolean_get(op->ptr, "show_multiview");
-  const bool use_color_management = RNA_boolean_get(op->ptr, "save_as_render");
+  const bool save_as_render = RNA_boolean_get(op->ptr, "save_as_render");
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -1852,7 +1858,14 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 
   /* image template */
   RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &isd->opts.im_format, &imf_ptr);
-  uiTemplateImageSettings(layout, &imf_ptr, use_color_management);
+  uiTemplateImageSettings(layout, &imf_ptr, save_as_render);
+
+  if (!save_as_render) {
+    PointerRNA linear_settings_ptr = RNA_pointer_get(&imf_ptr, "linear_colorspace_settings");
+    uiLayout *col = uiLayoutColumn(layout, true);
+    uiItemS(col);
+    uiItemR(col, &linear_settings_ptr, "name", 0, IFACE_("Color Space"), ICON_NONE);
+  }
 
   /* multiview template */
   if (is_multiview) {

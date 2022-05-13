@@ -2445,67 +2445,76 @@ void IMB_colormanagement_imbuf_make_display_space(
   colormanagement_imbuf_make_display_space(ibuf, view_settings, display_settings, false);
 }
 
+static ImBuf *imbuf_ensure_editable(ImBuf *ibuf, ImBuf *colormanaged_ibuf, bool allocate_result)
+{
+  if (colormanaged_ibuf != ibuf) {
+    /* Is already an editable copy. */
+    return colormanaged_ibuf;
+  }
+
+  if (allocate_result) {
+    /* Copy full image buffer. */
+    colormanaged_ibuf = IMB_dupImBuf(ibuf);
+    IMB_metadata_copy(colormanaged_ibuf, ibuf);
+    return colormanaged_ibuf;
+  }
+  else {
+    /* Render pipeline is constructing image buffer itself,
+     * but it's re-using byte and float buffers from render result make copy of this buffers
+     * here sine this buffers would be transformed to other color space here. */
+    if (ibuf->rect && (ibuf->mall & IB_rect) == 0) {
+      ibuf->rect = MEM_dupallocN(ibuf->rect);
+      ibuf->mall |= IB_rect;
+    }
+
+    if (ibuf->rect_float && (ibuf->mall & IB_rectfloat) == 0) {
+      ibuf->rect_float = MEM_dupallocN(ibuf->rect_float);
+      ibuf->mall |= IB_rectfloat;
+    }
+
+    return ibuf;
+  }
+}
+
 ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
                                            bool save_as_render,
                                            bool allocate_result,
                                            const ImageFormatData *image_format)
 {
   ImBuf *colormanaged_ibuf = ibuf;
-  const bool is_movie = BKE_imtype_is_movie(image_format->imtype);
-  const bool requires_linear_float = BKE_imtype_requires_linear_float(image_format->imtype);
-  const bool do_alpha_under = image_format->planes != R_IMF_PLANES_RGBA;
 
+  /* Update byte buffer if exists but invalid. */
   if (ibuf->rect_float && ibuf->rect &&
       (ibuf->userflags & (IB_DISPLAY_BUFFER_INVALID | IB_RECT_INVALID)) != 0) {
     IMB_rect_from_float(ibuf);
     ibuf->userflags &= ~(IB_RECT_INVALID | IB_DISPLAY_BUFFER_INVALID);
   }
 
-  const bool do_colormanagement_display = save_as_render && (is_movie || !requires_linear_float);
-  const bool do_colormanagement_linear = save_as_render && requires_linear_float &&
-                                         image_format->linear_colorspace_settings.name[0] &&
-                                         !IMB_colormanagement_space_name_is_scene_linear(
-                                             image_format->linear_colorspace_settings.name);
+  /* Detect if we are writing to a file format that needs a linear float buffer. */
+  const bool linear_float_output = BKE_imtype_requires_linear_float(image_format->imtype);
 
-  if (do_colormanagement_display || do_colormanagement_linear || do_alpha_under) {
-    if (allocate_result) {
-      colormanaged_ibuf = IMB_dupImBuf(ibuf);
-    }
-    else {
-      /* Render pipeline is constructing image buffer itself,
-       * but it's re-using byte and float buffers from render result make copy of this buffers
-       * here sine this buffers would be transformed to other color space here.
-       */
+  /* Detect if we are writing output a byte buffer, which we would need to create
+   * with color management conversions applied. This may be for either applying the
+   * display transform for renders, or a user specified color space for the file. */
+  const bool byte_output = BKE_image_format_is_byte(image_format);
 
-      if (ibuf->rect && (ibuf->mall & IB_rect) == 0) {
-        ibuf->rect = MEM_dupallocN(ibuf->rect);
-        ibuf->mall |= IB_rect;
-      }
+  BLI_assert(!(byte_output && linear_float_output));
 
-      if (ibuf->rect_float && (ibuf->mall & IB_rectfloat) == 0) {
-        ibuf->rect_float = MEM_dupallocN(ibuf->rect_float);
-        ibuf->mall |= IB_rectfloat;
-      }
-    }
-  }
-
-  /* If we're saving from RGBA to RGB buffer then it's not
-   * so much useful to just ignore alpha -- it leads to bad
-   * artifacts especially when saving byte images.
+  /* If we're saving from RGBA to RGB buffer then it's not so much useful to just ignore alpha --
+   * it leads to bad artifacts especially when saving byte images.
    *
-   * What we do here is we're overlaying our image on top of
-   * background color (which is currently black).
+   * What we do here is we're overlaying our image on top of background color (which is currently
+   * black). This is quite much the same as what Gimp does and it seems to be what artists expects
+   * from saving.
    *
-   * This is quite much the same as what Gimp does and it
-   * seems to be what artists expects from saving.
-   *
-   * Do a conversion here, so image format writers could
-   * happily assume all the alpha tricks were made already.
-   * helps keep things locally here, not spreading it to
-   * all possible image writers we've got.
+   * Do a conversion here, so image format writers could happily assume all the alpha tricks were
+   * made already. helps keep things locally here, not spreading it to all possible image writers
+   * we've got.
    */
-  if (do_alpha_under) {
+  if (image_format->planes != R_IMF_PLANES_RGBA) {
     float color[3] = {0, 0, 0};
+
+    colormanaged_ibuf = imbuf_ensure_editable(ibuf, colormanaged_ibuf, allocate_result);
 
     if (colormanaged_ibuf->rect_float && colormanaged_ibuf->channels == 4) {
       IMB_alpha_under_color_float(
@@ -2520,67 +2529,93 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,
     }
   }
 
-  if (do_colormanagement_display) {
-    /* Color management with display and view transform. */
-    bool make_byte = false;
+  if (save_as_render && !linear_float_output) {
+    /* Render output: perform conversion to display space using view transform. */
+    colormanaged_ibuf = imbuf_ensure_editable(ibuf, colormanaged_ibuf, allocate_result);
 
-    /* for proper check whether byte buffer is required by a format or not
-     * should be pretty safe since this image buffer is supposed to be used for
-     * saving only and ftype would be overwritten a bit later by BKE_imbuf_write
-     */
-    colormanaged_ibuf->ftype = BKE_imtype_to_ftype(image_format->imtype,
-                                                   &colormanaged_ibuf->foptions);
-
-    /* if file format isn't able to handle float buffer itself,
-     * we need to allocate byte buffer and store color managed
-     * image there
-     */
-    const ImFileType *type = IMB_file_type_from_ibuf(colormanaged_ibuf);
-    if (type != NULL) {
-      if ((type->save != NULL) && (type->flag & IM_FTYPE_FLOAT) == 0) {
-        make_byte = true;
-      }
-    }
-
-    /* perform color space conversions */
     colormanagement_imbuf_make_display_space(colormanaged_ibuf,
                                              &image_format->view_settings,
                                              &image_format->display_settings,
-                                             make_byte);
+                                             byte_output);
 
     if (colormanaged_ibuf->rect_float) {
-      /* float buffer isn't linear anymore,
+      /* Float buffer isn't linear anymore,
        * image format write callback should check for this flag and assume
-       * no space conversion should happen if ibuf->float_colorspace != NULL
-       */
+       * no space conversion should happen if ibuf->float_colorspace != NULL. */
       colormanaged_ibuf->float_colorspace = display_transform_get_colorspace(
           &image_format->view_settings, &image_format->display_settings);
+      if (byte_output) {
+        colormanaged_ibuf->rect_colorspace = colormanaged_ibuf->float_colorspace;
+      }
     }
   }
-  else if (do_colormanagement_linear) {
-    /* Color management transform to another linear color space. */
-    if (!colormanaged_ibuf->rect_float) {
-      IMB_float_from_rect(colormanaged_ibuf);
-      imb_freerectImBuf(colormanaged_ibuf);
+  else {
+    /* Linear render or regular file output: conversion between two color spaces. */
+
+    /* Detect which color space we need to convert between. */
+    const char *from_colorspace = (ibuf->rect_float && !(byte_output && ibuf->rect)) ?
+                                      /* From float buffer. */
+                                      (ibuf->float_colorspace) ? ibuf->float_colorspace->name :
+                                                                 global_role_scene_linear :
+                                      /* From byte buffer. */
+                                      (ibuf->rect_colorspace) ? ibuf->rect_colorspace->name :
+                                                                global_role_default_byte;
+
+    const char *to_colorspace = image_format->linear_colorspace_settings.name;
+
+    /* TODO: can we check with OCIO if color spaces are the same but have different names? */
+    if (to_colorspace[0] == '\0' || STREQ(from_colorspace, to_colorspace)) {
+      /* No conversion needed, but may still need to allocate byte buffer for output. */
+      if (byte_output && !ibuf->rect) {
+        ibuf->rect_colorspace = ibuf->float_colorspace;
+        IMB_rect_from_float(ibuf);
+      }
     }
+    else {
+      /* Color space conversion needed. */
+      colormanaged_ibuf = imbuf_ensure_editable(ibuf, colormanaged_ibuf, allocate_result);
 
-    if (colormanaged_ibuf->rect_float) {
-      const char *from_colorspace = (ibuf->float_colorspace) ? ibuf->float_colorspace->name :
-                                                               global_role_scene_linear;
-      const char *to_colorspace = image_format->linear_colorspace_settings.name;
+      if (byte_output) {
+        colormanaged_ibuf->rect_colorspace = colormanage_colorspace_get_named(to_colorspace);
 
-      IMB_colormanagement_transform(colormanaged_ibuf->rect_float,
-                                    colormanaged_ibuf->x,
-                                    colormanaged_ibuf->y,
-                                    colormanaged_ibuf->channels,
-                                    from_colorspace,
-                                    to_colorspace,
-                                    false);
+        if (colormanaged_ibuf->rect) {
+          /* Byte to byte. */
+          IMB_colormanagement_transform_byte_threaded((unsigned char *)colormanaged_ibuf->rect,
+                                                      colormanaged_ibuf->x,
+                                                      colormanaged_ibuf->y,
+                                                      colormanaged_ibuf->channels,
+                                                      from_colorspace,
+                                                      to_colorspace);
+        }
+        else {
+          /* Float to byte. */
+          IMB_rect_from_float(colormanaged_ibuf);
+        }
+      }
+      else {
+        if (!colormanaged_ibuf->rect_float) {
+          /* Byte to float. */
+          IMB_float_from_rect(colormanaged_ibuf);
+          imb_freerectImBuf(colormanaged_ibuf);
+
+          /* This conversion always goes to scene linear. */
+          from_colorspace = global_role_scene_linear;
+        }
+
+        if (colormanaged_ibuf->rect_float) {
+          /* Float to float. */
+          IMB_colormanagement_transform(colormanaged_ibuf->rect_float,
+                                        colormanaged_ibuf->x,
+                                        colormanaged_ibuf->y,
+                                        colormanaged_ibuf->channels,
+                                        from_colorspace,
+                                        to_colorspace,
+                                        false);
+
+          colormanaged_ibuf->float_colorspace = colormanage_colorspace_get_named(to_colorspace);
+        }
+      }
     }
-  }
-
-  if (colormanaged_ibuf != ibuf) {
-    IMB_metadata_copy(colormanaged_ibuf, ibuf);
   }
 
   return colormanaged_ibuf;

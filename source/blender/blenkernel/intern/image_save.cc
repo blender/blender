@@ -121,7 +121,14 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
       opts->im_format.stereo3d_format = *ima->stereo3d_format;
       opts->im_format.views_format = ima->views_format;
 
+      /* Render output: colorspace from render settings. */
       BKE_image_format_color_management_copy_from_scene(&opts->im_format, scene);
+    }
+
+    /* Default to saving in the same colorspace as the image setting. */
+    if (!save_as_render) {
+      BKE_color_managed_colorspace_settings_copy(&opts->im_format.linear_colorspace_settings,
+                                                 &ima->colorspace_settings);
     }
 
     opts->im_format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
@@ -177,9 +184,55 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
     }
   }
 
+  /* Copy for detecting UI changes. */
+  opts->prev_save_as_render = opts->save_as_render;
+  opts->prev_imtype = opts->im_format.imtype;
+
   BKE_image_release_ibuf(ima, ibuf, lock);
 
   return (ibuf != NULL);
+}
+
+void BKE_image_save_options_update(ImageSaveOptions *opts, Image *image)
+{
+  /* Auto update color space when changing save as render and file type. */
+  if (opts->save_as_render) {
+    if (!opts->prev_save_as_render) {
+      if (ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+        BKE_image_format_init_for_write(&opts->im_format, opts->scene, NULL);
+      }
+      else {
+        BKE_image_format_color_management_copy_from_scene(&opts->im_format, opts->scene);
+      }
+    }
+  }
+  else {
+    if (opts->prev_save_as_render) {
+      /* Copy colorspace from image settings. */
+      BKE_color_managed_colorspace_settings_copy(&opts->im_format.linear_colorspace_settings,
+                                                 &image->colorspace_settings);
+    }
+    else if (opts->im_format.imtype != opts->prev_imtype) {
+      const bool linear_float_output = BKE_imtype_requires_linear_float(opts->im_format.imtype);
+
+      /* TODO: detect if the colorspace is linear, not just equal to scene linear. */
+      const bool is_linear = IMB_colormanagement_space_name_is_scene_linear(
+          opts->im_format.linear_colorspace_settings.name);
+
+      /* If changing to a linear float or byte format, ensure we have a compatible color space. */
+      if (linear_float_output && !is_linear) {
+        STRNCPY(opts->im_format.linear_colorspace_settings.name,
+                IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT));
+      }
+      else if (!linear_float_output && is_linear) {
+        STRNCPY(opts->im_format.linear_colorspace_settings.name,
+                IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
+      }
+    }
+  }
+
+  opts->prev_save_as_render = opts->save_as_render;
+  opts->prev_imtype = opts->im_format.imtype;
 }
 
 void BKE_image_save_options_free(ImageSaveOptions *opts)
@@ -243,12 +296,17 @@ static void image_save_post(ReportList *reports,
     BLI_path_rel(ima->filepath, relbase); /* only after saving */
   }
 
-  ColorManagedColorspaceSettings old_colorspace_settings;
-  BKE_color_managed_colorspace_settings_copy(&old_colorspace_settings, &ima->colorspace_settings);
-  IMB_colormanagement_colorspace_from_ibuf_ftype(&ima->colorspace_settings, ibuf);
-  if (!BKE_color_managed_colorspace_settings_equals(&old_colorspace_settings,
-                                                    &ima->colorspace_settings)) {
-    *r_colorspace_changed = true;
+  /* Update image file color space when saving to another color space. */
+  const bool linear_float_output = BKE_imtype_requires_linear_float(opts->im_format.imtype);
+
+  if (!opts->save_as_render || linear_float_output) {
+    if (opts->im_format.linear_colorspace_settings.name[0] &&
+        !BKE_color_managed_colorspace_settings_equals(
+            &ima->colorspace_settings, &opts->im_format.linear_colorspace_settings)) {
+      BKE_color_managed_colorspace_settings_copy(&ima->colorspace_settings,
+                                                 &opts->im_format.linear_colorspace_settings);
+      *r_colorspace_changed = true;
+    }
   }
 }
 
@@ -314,12 +372,12 @@ static bool image_save_single(ReportList *reports,
 
   /* we need renderresult for exr and rendered multiview */
   rr = BKE_image_acquire_renderresult(opts->scene, ima);
-  bool is_mono = rr ? BLI_listbase_count_at_most(&rr->views, 2) < 2 :
-                      BLI_listbase_count_at_most(&ima->views, 2) < 2;
-  bool is_exr_rr = rr && ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER) &&
-                   RE_HasFloatPixels(rr);
-  bool is_multilayer = is_exr_rr && (imf->imtype == R_IMF_IMTYPE_MULTILAYER);
-  int layer = (iuser && !is_multilayer) ? iuser->layer : -1;
+  const bool is_mono = rr ? BLI_listbase_count_at_most(&rr->views, 2) < 2 :
+                            BLI_listbase_count_at_most(&ima->views, 2) < 2;
+  const bool is_exr_rr = rr && ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER) &&
+                         RE_HasFloatPixels(rr);
+  const bool is_multilayer = is_exr_rr && (imf->imtype == R_IMF_IMTYPE_MULTILAYER);
+  const int layer = (iuser && !is_multilayer) ? iuser->layer : -1;
 
   /* error handling */
   if (rr == nullptr) {
