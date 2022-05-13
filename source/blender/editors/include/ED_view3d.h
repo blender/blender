@@ -700,9 +700,9 @@ void ED_view3d_win_to_vector(const struct ARegion *region, const float mval[2], 
  * \param do_clip_planes: Optionally clip the ray by the view clipping planes.
  * \return success, false if the segment is totally clipped.
  */
-bool ED_view3d_win_to_segment_clipped(struct Depsgraph *depsgraph,
+bool ED_view3d_win_to_segment_clipped(const struct Depsgraph *depsgraph,
                                       const struct ARegion *region,
-                                      struct View3D *v3d,
+                                      const struct View3D *v3d,
                                       const float mval[2],
                                       float r_ray_start[3],
                                       float r_ray_end[3],
@@ -733,7 +733,7 @@ void ED_view3d_dist_range_get(const struct View3D *v3d, float r_dist_range[2]);
 /**
  * \note copies logic of #ED_view3d_viewplane_get(), keep in sync.
  */
-bool ED_view3d_clip_range_get(struct Depsgraph *depsgraph,
+bool ED_view3d_clip_range_get(const struct Depsgraph *depsgraph,
                               const struct View3D *v3d,
                               const struct RegionView3D *rv3d,
                               float *r_clipsta,

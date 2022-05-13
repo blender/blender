@@ -41,9 +41,9 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
                                                         const float3 &ray_start_cu,
                                                         const float3 &ray_end_cu,
                                                         const float brush_radius_re,
-                                                        ARegion &region,
-                                                        RegionView3D &rv3d,
-                                                        Object &object)
+                                                        const ARegion &region,
+                                                        const RegionView3D &rv3d,
+                                                        const Object &object)
 {
   /* This value might have to be adjusted based on user feedback. */
   const float brush_inner_radius_re = std::min<float>(brush_radius_re, (float)UI_UNIT_X / 3.0f);
@@ -146,14 +146,14 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(bContext &C,
                                                     const float2 &brush_pos_re,
                                                     const float brush_radius_re)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
-  ARegion *region = CTX_wm_region(&C);
-  View3D *v3d = CTX_wm_view3d(&C);
-  RegionView3D *rv3d = CTX_wm_region_view3d(&C);
+  const Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
+  const ARegion *region = CTX_wm_region(&C);
+  const View3D *v3d = CTX_wm_view3d(&C);
+  const RegionView3D *rv3d = CTX_wm_region_view3d(&C);
 
-  Curves &curves_id = *static_cast<Curves *>(curves_object.data);
-  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
-  Object *surface_object = curves_id.surface;
+  const Curves &curves_id = *static_cast<Curves *>(curves_object.data);
+  const CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+  const Object *surface_object = curves_id.surface;
 
   float3 center_ray_start_wo, center_ray_end_wo;
   ED_view3d_win_to_segment_clipped(
