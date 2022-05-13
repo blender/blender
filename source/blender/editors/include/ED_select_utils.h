@@ -14,6 +14,7 @@ extern "C" {
 
 struct KDTree_1d;
 struct wmOperator;
+struct wmOperatorType;
 
 enum {
   SEL_TOGGLE = 0,
@@ -96,15 +97,22 @@ struct SelectPick_Params {
 /**
  * Utility to get #eSelectPickMode from booleans for convenience.
  */
-eSelectOp ED_select_op_from_operator(struct wmOperator *op)
+eSelectOp ED_select_op_from_operator(struct PointerRNA *ptr)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Initialize `params` from `op`,
  * these properties are defined by #WM_operator_properties_mouse_select.
  */
-void ED_select_pick_params_from_operator(struct wmOperator *op, struct SelectPick_Params *params)
+void ED_select_pick_params_from_operator(struct PointerRNA *ptr, struct SelectPick_Params *params)
     ATTR_NONNULL(1, 2);
+
+/**
+ * Get-name callback for #wmOperatorType.get_name, this is mainly useful so the selection
+ * action is shown in the status-bar.
+ */
+const char *ED_select_pick_get_name(struct wmOperatorType *ot, PointerRNA *ptr);
+const char *ED_select_circle_get_name(struct wmOperatorType *ot, PointerRNA *ptr);
 
 #ifdef __cplusplus
 }

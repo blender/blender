@@ -664,7 +664,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
   RNA_int_get_array(op->ptr, "location", mval);
 
   struct SelectPick_Params params = {};
-  ED_select_pick_params_from_operator(op, &params);
+  ED_select_pick_params_from_operator(op->ptr, &params);
 
   /* perform the select */
   const bool changed = node_mouse_select(C, op, mval, &params);
@@ -698,6 +698,7 @@ void NODE_OT_select(wmOperatorType *ot)
   ot->exec = node_select_exec;
   ot->invoke = node_select_invoke;
   ot->poll = ED_operator_node_active;
+  ot->get_name = ED_select_pick_get_name;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -887,8 +888,8 @@ void NODE_OT_select_circle(wmOperatorType *ot)
   ot->invoke = WM_gesture_circle_invoke;
   ot->exec = node_circleselect_exec;
   ot->modal = WM_gesture_circle_modal;
-
   ot->poll = ED_operator_node_active;
+  ot->get_name = ED_select_circle_get_name;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

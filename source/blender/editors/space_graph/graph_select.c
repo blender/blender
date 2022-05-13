@@ -1080,6 +1080,7 @@ void GRAPH_OT_select_circle(wmOperatorType *ot)
   ot->exec = graph_circle_select_exec;
   ot->poll = graphop_visible_keyframes_poll;
   ot->cancel = WM_gesture_circle_cancel;
+  ot->get_name = ED_select_pick_get_name;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
