@@ -715,7 +715,7 @@ static bool cloth_from_object(
   int i = 0;
   MVert *mvert = NULL;
   ClothVertex *verts = NULL;
-  float(*shapekey_rest)[3] = NULL;
+  const float(*shapekey_rest)[3] = NULL;
   const float tnull[3] = {0, 0, 0};
 
   /* If we have a clothObject, free it. */

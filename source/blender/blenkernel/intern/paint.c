@@ -2051,7 +2051,7 @@ void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
 
 void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
 {
-  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  const int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
   if (!face_sets) {
     return;
   }
@@ -2066,7 +2066,7 @@ void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
 
 void BKE_sculpt_sync_face_sets_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
 {
-  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  const int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
   if (!face_sets) {
     return;
   }

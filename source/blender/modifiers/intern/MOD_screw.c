@@ -182,7 +182,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER) != 0;
 
-  int *origindex;
   int mpoly_index = 0;
   uint step;
   uint i, j;
@@ -397,7 +396,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, (int)maxPolys);
   }
 
-  origindex = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
+  int *origindex = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
 
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)totvert);
 

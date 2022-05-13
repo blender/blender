@@ -108,7 +108,7 @@ struct EncodePixelsUserData {
   ImageUser *image_user;
   PBVH *pbvh;
   Vector<PBVHNode *> *nodes;
-  MLoopUV *ldata_uv;
+  const MLoopUV *ldata_uv;
 };
 
 static void do_encode_pixels(void *__restrict userdata,
@@ -283,7 +283,8 @@ static void update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
     return;
   }
 
-  MLoopUV *ldata_uv = static_cast<MLoopUV *>(CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
+  const MLoopUV *ldata_uv = static_cast<const MLoopUV *>(
+      CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
   if (ldata_uv == nullptr) {
     return;
   }

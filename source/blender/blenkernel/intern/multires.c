@@ -1021,7 +1021,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   Object *ob;
   Mesh *me;
-  MDisps *mdisps;
+  const MDisps *mdisps;
   MultiresModifierData *mmd;
 
   ob = ccgdm->multires.ob;

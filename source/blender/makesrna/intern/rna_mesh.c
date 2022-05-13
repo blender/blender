@@ -560,7 +560,7 @@ static void rna_MeshVertex_undeformed_co_get(PointerRNA *ptr, float values[3])
 {
   Mesh *me = rna_mesh(ptr);
   MVert *mvert = (MVert *)ptr->data;
-  float(*orco)[3] = CustomData_get_layer(&me->vdata, CD_ORCO);
+  const float(*orco)[3] = CustomData_get_layer(&me->vdata, CD_ORCO);
 
   if (orco) {
     /* orco is normalized to 0..1, we do inverse to match mvert->co */

@@ -492,11 +492,11 @@ static void generate_margin(ImBuf *ibuf,
 
   MPoly *mpoly;
   MLoop *mloop;
-  MLoopUV const *mloopuv;
+  const MLoopUV *mloopuv;
   int totpoly, totloop, totedge;
 
   int tottri;
-  MLoopTri const *looptri;
+  const MLoopTri *looptri;
   MLoopTri *looptri_mem = nullptr;
 
   if (me) {

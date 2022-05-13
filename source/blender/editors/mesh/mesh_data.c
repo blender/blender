@@ -549,9 +549,9 @@ int ED_mesh_sculpt_color_add(
     }
 
     if (CustomData_has_layer(&me->vdata, CD_PROP_COLOR) && do_init) {
-      MPropCol *color_data = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
+      const MPropCol *color_data = CustomData_get_layer(&me->vdata, CD_PROP_COLOR);
       CustomData_add_layer_named(
-          &me->vdata, CD_PROP_COLOR, CD_DUPLICATE, color_data, me->totvert, name);
+          &me->vdata, CD_PROP_COLOR, CD_DUPLICATE, (MPropCol *)color_data, me->totvert, name);
     }
     else {
       CustomData_add_layer_named(&me->vdata, CD_PROP_COLOR, CD_DEFAULT, NULL, me->totvert, name);

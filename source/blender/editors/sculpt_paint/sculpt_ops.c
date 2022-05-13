@@ -639,14 +639,14 @@ static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
   }
   MPropCol *vertcols = CustomData_get_layer_n(&mesh->vdata, CD_PROP_COLOR, MPropCol_layer_n);
 
-  MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
-  MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
+  const MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
+  const MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
 
   for (int i = 0; i < mesh->totpoly; i++) {
-    MPoly *c_poly = &polys[i];
+    const MPoly *c_poly = &polys[i];
     for (int j = 0; j < c_poly->totloop; j++) {
       int loop_index = c_poly->loopstart + j;
-      MLoop *c_loop = &loops[c_poly->loopstart + j];
+      const MLoop *c_loop = &loops[c_poly->loopstart + j];
       float srgb_color[4];
       linearrgb_to_srgb_v4(srgb_color, vertcols[c_loop->v].color);
       loopcols[loop_index].r = (char)(srgb_color[0] * 255);
@@ -719,14 +719,14 @@ static int loop_to_vertex_colors_exec(bContext *C, wmOperator *UNUSED(op))
   }
   MPropCol *vertcols = CustomData_get_layer_n(&mesh->vdata, CD_PROP_COLOR, MPropCol_layer_n);
 
-  MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
-  MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
+  const MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
+  const MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
 
   for (int i = 0; i < mesh->totpoly; i++) {
-    MPoly *c_poly = &polys[i];
+    const MPoly *c_poly = &polys[i];
     for (int j = 0; j < c_poly->totloop; j++) {
       int loop_index = c_poly->loopstart + j;
-      MLoop *c_loop = &loops[c_poly->loopstart + j];
+      const MLoop *c_loop = &loops[c_poly->loopstart + j];
       vertcols[c_loop->v].color[0] = (loopcols[loop_index].r / 255.0f);
       vertcols[c_loop->v].color[1] = (loopcols[loop_index].g / 255.0f);
       vertcols[c_loop->v].color[2] = (loopcols[loop_index].b / 255.0f);

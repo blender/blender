@@ -321,8 +321,9 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
   if (!mesh_final->runtime.deformed_only) {
     /* Will use later to speed up subsurf/evaluated mesh. */
     LinkNode *node, *nodedmelem, **nodearray;
-    int totdmelem, totelem, i, *origindex, *origindex_poly = NULL;
-
+    int totdmelem, totelem, i;
+    const int *origindex;
+    const int *origindex_poly = NULL;
     if (psys->part->from == PART_FROM_VERT) {
       totdmelem = mesh_final->totvert;
 

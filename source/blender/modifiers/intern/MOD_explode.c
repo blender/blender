@@ -124,7 +124,7 @@ static void createFacepa(ExplodeModifierData *emd, ParticleSystemModifierData *p
 
   /* set protected verts */
   if (emd->vgroup) {
-    MDeformVert *dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
+    const MDeformVert *dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
     if (dvert) {
       const int defgrp_index = emd->vgroup - 1;
       for (i = 0; i < totvert; i++, dvert++) {

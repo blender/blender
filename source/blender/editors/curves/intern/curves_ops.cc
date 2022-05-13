@@ -195,7 +195,7 @@ static void try_convert_single_object(Object &curves_ob,
 
   /* Prepare utility data structure to map hair roots to mfaces. */
   const Span<int> mface_to_poly_map{
-      static_cast<int *>(CustomData_get_layer(&surface_me.fdata, CD_ORIGINDEX)),
+      static_cast<const int *>(CustomData_get_layer(&surface_me.fdata, CD_ORIGINDEX)),
       surface_me.totface};
   Array<Vector<int>> poly_to_mface_map(surface_me.totpoly);
   for (const int mface_i : mface_to_poly_map.index_range()) {

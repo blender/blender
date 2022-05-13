@@ -155,7 +155,7 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
                                        float (*r_looptangents)[4],
                                        ReportList *reports)
 {
-  MLoopUV *loopuvs;
+  const MLoopUV *loopuvs;
   float(*loopnors)[3];
 
   /* Check we have valid texture coordinates first! */
@@ -205,10 +205,10 @@ typedef struct {
   const float (*precomputedFaceNormals)[3];
   const float (*precomputedLoopNormals)[3];
   const MLoopTri *looptri;
-  MLoopUV *mloopuv;   /* texture coordinates */
-  const MPoly *mpoly; /* indices */
-  const MLoop *mloop; /* indices */
-  const MVert *mvert; /* vertex coordinates */
+  const MLoopUV *mloopuv; /* texture coordinates */
+  const MPoly *mpoly;     /* indices */
+  const MLoop *mloop;     /* indices */
+  const MVert *mvert;     /* vertex coordinates */
   const float (*vert_normals)[3];
   const float (*orco)[3];
   float (*tangent)[4]; /* destination */

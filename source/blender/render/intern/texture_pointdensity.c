@@ -323,13 +323,12 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
                                              float *data_color)
 {
   const int totvert = mesh->totvert;
-  const MDeformVert *mdef, *dv;
   int mdef_index;
   int i;
 
   BLI_assert(data_color);
 
-  mdef = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
+  const MDeformVert *mdef = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
   if (!mdef) {
     return;
   }
@@ -341,6 +340,7 @@ static void pointdensity_cache_vertex_weight(PointDensity *pd,
     return;
   }
 
+  const MDeformVert *dv;
   for (i = 0, dv = mdef; i < totvert; i++, dv++, data_color += 3) {
     MDeformWeight *dw;
     int j;

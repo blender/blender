@@ -1824,7 +1824,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
                         const float *vert_vel,
                         bool has_velocity,
                         int defgrp_index,
-                        MDeformVert *dvert,
+                        const MDeformVert *dvert,
                         float x,
                         float y,
                         float z)
@@ -2008,7 +2008,7 @@ typedef struct EmitFromDMData {
   const MLoop *mloop;
   const MLoopTri *mlooptri;
   const MLoopUV *mloopuv;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   int defgrp_index;
 
   BVHTreeFromMesh *tree;
@@ -2079,7 +2079,7 @@ static void emit_from_mesh(
     const MLoopTri *mlooptri = NULL;
     const MLoop *mloop = NULL;
     const MLoopUV *mloopuv = NULL;
-    MDeformVert *dvert = NULL;
+    const MDeformVert *dvert = NULL;
     BVHTreeFromMesh tree_data = {NULL};
     int numverts, i;
 
