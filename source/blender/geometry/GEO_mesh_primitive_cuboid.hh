@@ -2,8 +2,9 @@
 
 #pragma once
 
+#include "BLI_math_vec_types.hh"
+
 struct Mesh;
-struct float3;
 namespace blender {
 namespace bke {
 class AttributeIDRef;
