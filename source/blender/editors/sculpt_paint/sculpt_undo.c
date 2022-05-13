@@ -19,6 +19,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -1716,6 +1717,8 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
     unode->orig_co = MEM_malloc_arrayN(allvert, sizeof(float) * 3, "sculpt unode undo coords");
   }
 
+  bool have_grids = BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS;
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, unode->node, vd, PBVH_ITER_ALL) {
     copy_v3_v3(unode->co[vd.i], vd.co);
     if (vd.no) {
@@ -1726,9 +1729,15 @@ static void sculpt_undo_store_coords(Object *ob, SculptUndoNode *unode)
     }
 
     if (ss->deform_modifiers_active) {
-      SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+      if (!have_grids && ss->shapekey_active) {
+        float(*cos)[3] = ss->shapekey_active->data;
 
-      copy_v3_v3(unode->orig_co[vd.i], orig_data.co);
+        copy_v3_v3(unode->orig_co[vd.i], cos[vd.index]);
+      }
+      else {
+        MSculptVert *mv = SCULPT_vertex_get_sculptvert(ss, vd.vertex);
+        copy_v3_v3(unode->orig_co[vd.i], mv->origco);
+      }
     }
   }
   BKE_pbvh_vertex_iter_end;

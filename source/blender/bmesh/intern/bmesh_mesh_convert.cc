@@ -308,8 +308,21 @@ void BM_mesh_bm_from_me(Object *ob,
                         const Mesh *me,
                         const struct BMeshFromMeshParams *params)
 {
-  const bool is_new = !(bm->totvert || (bm->vdata.totlayer || bm->edata.totlayer ||
-                                        bm->pdata.totlayer || bm->ldata.totlayer));
+  static int totlayers = 0;
+
+  for (int i = 0; i < 4; i++) {
+    CustomData *cdata = (&bm->vdata) + i;
+
+    for (int j = 0; j < cdata->totlayer; j++) {
+      if (cdata->layers[j].type == CD_TOOLFLAGS || cdata->layers[j].type == CD_MESH_ID) {
+        continue;
+      }
+
+      totlayers++;
+    }
+  }
+
+  const bool is_new = !(bm->totvert || totlayers);
   KeyBlock *actkey;
   float(*keyco)[3] = nullptr;
 

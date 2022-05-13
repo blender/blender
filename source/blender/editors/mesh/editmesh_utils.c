@@ -27,6 +27,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_report.h"
+#include "BKE_pbvh.h"
 
 #include "DEG_depsgraph.h"
 
@@ -303,6 +304,8 @@ void EDBM_mesh_load_ex(Main *bmain, Object *ob, bool free_data)
   if (UNLIKELY((ob->shapenr == 0) && (me->key && !BLI_listbase_is_empty(&me->key->block)))) {
     bm->shapenr = 1;
   }
+
+  BKE_pbvh_invalidate_cache(ob);
 
   BM_mesh_bm_to_me(bmain,
                    ob,
