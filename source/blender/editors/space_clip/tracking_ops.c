@@ -928,13 +928,13 @@ static int slide_marker_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
           BKE_tracking_marker_clamp_search_size(data->marker);
         }
-        else if (data->area == TRACK_AREA_SEARCH) {
+        else if (data->action == SLIDE_ACTION_OFFSET) {
           const float d[2] = {dx, dy};
           add_v2_v2v2(data->min, data->old_search_min, d);
           add_v2_v2v2(data->max, data->old_search_max, d);
-        }
 
-        BKE_tracking_marker_clamp_search_position(data->marker);
+          BKE_tracking_marker_clamp_search_position(data->marker);
+        }
       }
 
       data->marker->flag &= ~MARKER_TRACKED;
