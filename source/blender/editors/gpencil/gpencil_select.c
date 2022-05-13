@@ -2681,6 +2681,7 @@ void GPENCIL_OT_select(wmOperatorType *ot)
   ot->invoke = gpencil_select_invoke;
   ot->exec = gpencil_select_exec;
   ot->poll = gpencil_select_poll;
+  ot->get_name = ED_select_pick_get_name;
 
   /* flag */
   ot->flag = OPTYPE_UNDO;

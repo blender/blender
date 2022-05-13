@@ -2645,7 +2645,7 @@ static int uv_select_exec(bContext *C, wmOperator *op)
   RNA_float_get_array(op->ptr, "location", co);
 
   struct SelectPick_Params params = {0};
-  ED_select_pick_params_from_operator(op, &params);
+  ED_select_pick_params_from_operator(op->ptr, &params);
 
   const bool changed = uv_mouse_select(C, co, &params);
 
@@ -2680,6 +2680,7 @@ void UV_OT_select(wmOperatorType *ot)
   ot->exec = uv_select_exec;
   ot->invoke = uv_select_invoke;
   ot->poll = ED_operator_uvedit; /* requires space image */
+  ot->get_name = ED_select_pick_get_name;
 
   /* properties */
   PropertyRNA *prop;
@@ -3849,6 +3850,7 @@ void UV_OT_select_circle(wmOperatorType *ot)
   ot->exec = uv_circle_select_exec;
   ot->poll = ED_operator_uvedit_space_image; /* requires space image */
   ot->cancel = WM_gesture_circle_cancel;
+  ot->get_name = ED_select_circle_get_name;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
