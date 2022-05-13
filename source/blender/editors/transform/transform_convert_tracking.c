@@ -621,7 +621,7 @@ static void flushTransTracking(TransInfo *t)
   TransData *td;
   TransData2D *td2d;
   TransDataTracking *tdt;
-  int a;
+  int td_index;
 
   if (t->state == TRANS_CANCEL) {
     cancelTransTracking(t);
@@ -630,8 +630,9 @@ static void flushTransTracking(TransInfo *t)
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
   /* flush to 2d vector from internally used 3d vector */
-  for (a = 0, td = tc->data, td2d = tc->data_2d, tdt = tc->custom.type.data; a < tc->data_len;
-       a++, td2d++, td++, tdt++) {
+  for (td_index = 0, td = tc->data, td2d = tc->data_2d, tdt = tc->custom.type.data;
+       td_index < tc->data_len;
+       td_index++, td2d++, td++, tdt++) {
     if (tdt->mode == transDataTracking_ModeTracks) {
       float loc2d[2];
 
@@ -655,7 +656,7 @@ static void flushTransTracking(TransInfo *t)
             if (!tdt->smarkers) {
               tdt->smarkers = MEM_callocN(sizeof(*tdt->smarkers) * tdt->markersnr,
                                           "flushTransTracking markers");
-              for (a = 0; a < tdt->markersnr; a++) {
+              for (int a = 0; a < tdt->markersnr; a++) {
                 copy_v2_v2(tdt->smarkers[a], tdt->markers[a].pos);
               }
             }
@@ -665,7 +666,7 @@ static void flushTransTracking(TransInfo *t)
 
             sub_v2_v2v2(d2, loc2d, tdt->srelative);
 
-            for (a = 0; a < tdt->markersnr; a++) {
+            for (int a = 0; a < tdt->markersnr; a++) {
               add_v2_v2v2(tdt->markers[a].pos, tdt->smarkers[a], d2);
             }
 
