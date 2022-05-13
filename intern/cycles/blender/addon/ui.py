@@ -1082,8 +1082,18 @@ class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
 
 
 def has_geometry_visibility(ob):
-    return ob and ((ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LIGHT', 'VOLUME', 'POINTCLOUD', 'CURVES'}) or
-                   (ob.instance_type == 'COLLECTION' and ob.instance_collection))
+    return ob and (
+        (ob.type in {
+            'MESH',
+            'CURVE',
+            'SURFACE',
+            'FONT',
+            'META',
+            'LIGHT',
+            'VOLUME',
+            'POINTCLOUD',
+            'CURVES',
+        }) or (ob.instance_type == 'COLLECTION' and ob.instance_collection))
 
 
 class CYCLES_OBJECT_PT_shading(CyclesButtonsPanel, Panel):
