@@ -528,11 +528,10 @@ static bool slide_check_corners(float (*corners)[2])
 }
 
 static MovieTrackingTrack *tracking_marker_check_slide(
-    bContext *C, const wmEvent *event, int *r_area, eSlideAction *r_action, int *r_corner)
+    bContext *C, const float co[2], int *r_area, eSlideAction *r_action, int *r_corner)
 {
   const float distance_clip_squared = 12.0f * 12.0f;
   SpaceClip *sc = CTX_wm_space_clip(C);
-  ARegion *region = CTX_wm_region(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);
   ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
   const int framenr = ED_space_clip_get_clip_frame_number(sc);
@@ -548,9 +547,6 @@ static MovieTrackingTrack *tracking_marker_check_slide(
   if (width == 0 || height == 0) {
     return NULL;
   }
-
-  float co[2];
-  ED_clip_mouse_pos(sc, region, event->mval, co);
 
   LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
     if (!TRACK_VIEW_SELECTED(sc, track) || (track->flag & TRACK_LOCKED)) {
@@ -640,9 +636,9 @@ static MovieTrackingTrack *tracking_marker_check_slide(
 }
 
 struct MovieTrackingTrack *tracking_find_slidable_track_in_proximity(struct bContext *C,
-                                                                     const struct wmEvent *event)
+                                                                     const float co[2])
 {
-  return tracking_marker_check_slide(C, event, NULL, NULL, NULL);
+  return tracking_marker_check_slide(C, co, NULL, NULL, NULL);
 }
 
 static void *slide_marker_customdata(bContext *C, const wmEvent *event)
@@ -666,7 +662,7 @@ static void *slide_marker_customdata(bContext *C, const wmEvent *event)
 
   ED_clip_mouse_pos(sc, region, event->mval, co);
 
-  track = tracking_marker_check_slide(C, event, &area, &action, &corner);
+  track = tracking_marker_check_slide(C, co, &area, &action, &corner);
   if (track != NULL) {
     MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
     customdata = create_slide_marker_data(

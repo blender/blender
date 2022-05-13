@@ -402,15 +402,17 @@ static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   SpaceClip *sc = CTX_wm_space_clip(C);
   ARegion *region = CTX_wm_region(C);
 
-  float co[2];
   const bool extend = RNA_boolean_get(op->ptr, "extend");
+
+  float co[2];
+  ED_clip_mouse_pos(sc, region, event->mval, co);
 
   /* Special code which allows to slide a marker which belongs to currently selected but not yet
    * active track. If such track is found activate it and return pass-though so that marker slide
    * operator can be used immediately after.
    * This logic makes it convenient to slide markers when left mouse selection is used. */
   if (!extend) {
-    MovieTrackingTrack *track = tracking_find_slidable_track_in_proximity(C, event);
+    MovieTrackingTrack *track = tracking_find_slidable_track_in_proximity(C, co);
     if (track != NULL) {
       MovieClip *clip = ED_space_clip_get_clip(sc);
 
@@ -423,7 +425,6 @@ static int select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  ED_clip_mouse_pos(sc, region, event->mval, co);
   RNA_float_set_array(op->ptr, "location", co);
 
   return select_exec(C, op);
