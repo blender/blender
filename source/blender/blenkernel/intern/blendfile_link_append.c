@@ -400,7 +400,9 @@ typedef struct LooseDataInstantiateContext {
 static bool object_in_any_scene(Main *bmain, Object *ob)
 {
   LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
-    if (BKE_scene_object_find(sce, ob)) {
+    /* #BKE_scene_has_object checks bases cache of the scenes' viewlayer, not actual content of
+     * their collections. */
+    if (BKE_collection_has_object_recursive(sce->master_collection, ob)) {
       return true;
     }
   }
