@@ -384,6 +384,12 @@ typedef struct uiHandleButtonData {
 
   /* True when alt is held and the preference for displaying tooltips should be ignored. */
   bool tooltip_force;
+  /**
+   * Behave as if #UI_BUT_DISABLED is set (without drawing grayed out).
+   * Needed so non-interactive labels can be activated for the purpose of showing tool-tips,
+   * without them blocking interaction with nodes, see: T97386.
+   */
+  bool disable_force;
 
   /* auto open */
   bool used_mouse;
@@ -1669,7 +1675,7 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
    */
   if (drag_info->is_xy_lock_init == false) {
     /* first store the buttons original coords */
-    uiBut *but = ui_but_find_mouse_over_ex(region, xy_input, true, NULL, NULL);
+    uiBut *but = ui_but_find_mouse_over_ex(region, xy_input, true, false, NULL, NULL);
 
     if (but) {
       if (but->flag & UI_BUT_DRAG_LOCK) {
@@ -1739,7 +1745,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
   if (done) {
     wmWindow *win = CTX_wm_window(C);
     const ARegion *region = CTX_wm_region(C);
-    uiBut *but = ui_but_find_mouse_over_ex(region, drag_info->xy_init, true, NULL, NULL);
+    uiBut *but = ui_but_find_mouse_over_ex(region, drag_info->xy_init, true, false, NULL, NULL);
 
     if (but) {
       ui_apply_but_undo(but);
@@ -4324,7 +4330,7 @@ static uiBut *ui_but_list_row_text_activate(bContext *C,
                                             uiButtonActivateType activate_type)
 {
   ARegion *region = CTX_wm_region(C);
-  uiBut *labelbut = ui_but_find_mouse_over_ex(region, event->xy, true, NULL, NULL);
+  uiBut *labelbut = ui_but_find_mouse_over_ex(region, event->xy, true, false, NULL, NULL);
 
   if (labelbut && labelbut->type == UI_BTYPE_TEXT && !(labelbut->flag & UI_BUT_DISABLED)) {
     /* exit listrow */
@@ -7899,7 +7905,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
   uiHandleButtonData *data = but->active;
   int retval = WM_UI_HANDLER_CONTINUE;
 
-  const bool is_disabled = but->flag & UI_BUT_DISABLED;
+  const bool is_disabled = but->flag & UI_BUT_DISABLED || data->disable_force;
 
   /* if but->pointype is set, but->poin should be too */
   BLI_assert(!but->pointype || but->poin);
@@ -8947,7 +8953,12 @@ static uiBut *ui_but_find_open_event(ARegion *region, const wmEvent *event)
 static int ui_handle_button_over(bContext *C, const wmEvent *event, ARegion *region)
 {
   if (event->type == MOUSEMOVE) {
-    uiBut *but = ui_but_find_mouse_over(region, event);
+    const bool labeledit = event->modifier & KM_CTRL;
+    /* Allow buttons to be activated to show the tool-tip,
+     * then force-disable them if they're not considered interactive
+     * so they don't swallow events but can still display tips. */
+    const bool for_tooltip = true;
+    uiBut *but = ui_but_find_mouse_over_ex(region, event->xy, labeledit, for_tooltip, NULL, NULL);
     if (but) {
       button_activate_init(C, region, but, BUTTON_ACTIVATE_OVER);
 
@@ -8955,6 +8966,10 @@ static int ui_handle_button_over(bContext *C, const wmEvent *event, ARegion *reg
         /* Display tool-tips if holding Alt on mouse-over when tool-tips are disabled in the
          * preferences. */
         but->active->tooltip_force = true;
+      }
+
+      if (but->active && !ui_but_is_interactive(but, labeledit)) {
+        but->active->disable_force = true;
       }
     }
   }
@@ -9435,7 +9450,7 @@ static bool ui_list_is_hovering_draggable_but(bContext *C,
   int mouse_xy[2];
   WM_event_drag_start_xy(event, mouse_xy);
 
-  const uiBut *hovered_but = ui_but_find_mouse_over_ex(region, mouse_xy, false, NULL, NULL);
+  const uiBut *hovered_but = ui_but_find_mouse_over_ex(region, mouse_xy, false, false, NULL, NULL);
 
   if (list->dyn_data->custom_drag_optype) {
     if (ui_but_context_poll_operator(C, list->dyn_data->custom_drag_optype, hovered_but)) {

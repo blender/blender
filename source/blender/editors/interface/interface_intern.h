@@ -1352,6 +1352,7 @@ bool ui_but_is_toggle(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
  * \note ctrl is kind of a hack currently,
  * so that non-embossed UI_BTYPE_TEXT button behaves as a label when ctrl is not pressed.
  */
+bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool for_tooltip);
 bool ui_but_is_interactive(const uiBut *but, bool labeledit) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_is_popover_once_compat(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_has_array_value(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
@@ -1388,6 +1389,7 @@ typedef bool (*uiButFindPollFn)(const uiBut *but, const void *customdata);
 uiBut *ui_but_find_mouse_over_ex(const struct ARegion *region,
                                  const int xy[2],
                                  bool labeledit,
+                                 bool for_tooltip,
                                  const uiButFindPollFn find_poll,
                                  const void *find_custom_data)
     ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
