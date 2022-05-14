@@ -2556,7 +2556,7 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
   eq_ctx->limit_len_min = pbvh->bm_min_edge_len;
   eq_ctx->limit_len_max = pbvh->bm_max_edge_len;
 
-  edge_queue_init(eq_ctx, use_projected, use_frontface, center, view_normal, radius);
+  edge_queue_init(eq_ctx, use_projected, use_frontface, center, eq_ctx->view_normal, radius);
 
 #ifdef USE_EDGEQUEUE_TAG_VERIFY
   pbvh_bmesh_edge_tag_verify(pbvh);
@@ -2758,7 +2758,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
 
   float oldlimit = pbvh->bm_min_edge_len;
 
-  edge_queue_init(eq_ctx, use_projected, use_frontface, center, view_normal, radius);
+  edge_queue_init(eq_ctx, use_projected, use_frontface, center, eq_ctx->view_normal, radius);
 
   EdgeQueueThreadData *tdata = NULL;
   BLI_array_declare(tdata);
@@ -4582,7 +4582,14 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
   eq_ctx.limit_mid = eq_ctx.limit_max * 0.5f + eq_ctx.limit_min * 0.5f;
 
   eq_ctx.use_view_normal = use_frontface;
-  copy_v3_v3(eq_ctx.view_normal, view_normal);
+  if (view_normal) {
+    copy_v3_v3(eq_ctx.view_normal, view_normal);
+  }
+  else {
+    zero_v3(eq_ctx.view_normal);
+    eq_ctx.view_normal[2] = 1.0f;
+  }
+
 #endif
 
   if (mode & PBVH_LocalSubdivide) {
@@ -4603,7 +4610,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
                               mode & (PBVH_LocalSubdivide | PBVH_LocalCollapse));
   }
   else {
-    edge_queue_init(&eq_ctx, use_projected, use_frontface, center, view_normal, radius);
+    edge_queue_init(&eq_ctx, use_projected, use_frontface, center, eq_ctx.view_normal, radius);
   }
 
 #ifdef SKINNY_EDGE_FIX
@@ -4768,7 +4775,7 @@ bool BKE_pbvh_bmesh_update_topology(PBVH *pbvh,
 
   if (mode & PBVH_Cleanup) {
     modified |= do_cleanup_3_4(
-        &eq_ctx, pbvh, center, view_normal, radius, use_frontface, use_projected);
+        &eq_ctx, pbvh, center, eq_ctx.view_normal, radius, use_frontface, use_projected);
 
     VALIDATE_LOG(pbvh->bm_log);
   }

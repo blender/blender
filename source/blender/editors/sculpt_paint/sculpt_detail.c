@@ -116,6 +116,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
   /* Update topology size. */
   float object_space_constant_detail = 1.0f / (constant_detail * mat4_to_scale(ob->obmat));
   BKE_pbvh_bmesh_detail_size_set(ss->pbvh, object_space_constant_detail, detail_range);
+  BKE_pbvh_set_bm_log(ss->pbvh, ss->bm_log);
 
   bool enable_surface_relax = BRUSHSET_GET_FINAL_INT(
       brush ? brush->channels : NULL, sd->channels, dyntopo_disable_smooth, NULL);
