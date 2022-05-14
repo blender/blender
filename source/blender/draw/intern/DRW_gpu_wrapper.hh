@@ -880,4 +880,56 @@ class Framebuffer : NonCopyable {
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Double & Triple buffering util
+ *
+ * This is not strictly related to a GPU type and could be moved elsewhere.
+ * \{ */
+
+template<typename T, int64_t len> class SwapChain {
+ private:
+  std::array<T, len> chain_;
+  int64_t index_ = 0;
+
+ public:
+  void swap()
+  {
+    index_ = (index_ + 1) % len;
+  }
+
+  T &current()
+  {
+    return chain_[index_];
+  }
+
+  T &previous()
+  {
+    /* Avoid modulo operation with negative numbers. */
+    return chain_[(index_ + len - 1) % len];
+  }
+
+  T &next()
+  {
+    return chain_[(index_ + 1) % len];
+  }
+
+  const T &current() const
+  {
+    return chain_[index_];
+  }
+
+  const T &previous() const
+  {
+    /* Avoid modulo operation with negative numbers. */
+    return chain_[(index_ + len - 1) % len];
+  }
+
+  const T &next() const
+  {
+    return chain_[(index_ + 1) % len];
+  }
+};
+
+/** \} */
+
 }  // namespace blender::draw
