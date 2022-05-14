@@ -297,7 +297,7 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   /* handle shape keys */
   totshape = CustomData_number_of_layers(&result->vdata, CD_SHAPEKEY);
   for (a = 0; a < totshape; a++) {
-    const float(*cos)[3] = CustomData_get_layer_n(&result->vdata, CD_SHAPEKEY, a);
+    float(*cos)[3] = CustomData_get_layer_n(&result->vdata, CD_SHAPEKEY, a);
     for (i = maxVerts; i < result->totvert; i++) {
       mul_m4_v3(mtx, cos[i]);
     }

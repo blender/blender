@@ -139,7 +139,7 @@ const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, Custom
  */
 static void write_uv(const OCompoundProperty &prop,
                      CDStreamConfig &config,
-                     void *data,
+                     const void *data,
                      const char *name)
 {
   std::vector<uint32_t> indices;
@@ -169,12 +169,12 @@ static void write_uv(const OCompoundProperty &prop,
 static void get_cols(const CDStreamConfig &config,
                      std::vector<Imath::C4f> &buffer,
                      std::vector<uint32_t> &uvidx,
-                     void *cd_data)
+                     const void *cd_data)
 {
   const float cscale = 1.0f / 255.0f;
-  MPoly *polys = config.mpoly;
-  MLoop *mloops = config.mloop;
-  MCol *cfaces = static_cast<MCol *>(cd_data);
+  const MPoly *polys = config.mpoly;
+  const MLoop *mloops = config.mloop;
+  const MCol *cfaces = static_cast<const MCol *>(cd_data);
 
   buffer.reserve(config.totvert);
   uvidx.reserve(config.totvert);
@@ -182,9 +182,9 @@ static void get_cols(const CDStreamConfig &config,
   Imath::C4f col;
 
   for (int i = 0; i < config.totpoly; i++) {
-    MPoly *p = &polys[i];
-    MCol *cface = &cfaces[p->loopstart + p->totloop];
-    MLoop *mloop = &mloops[p->loopstart + p->totloop];
+    const MPoly *p = &polys[i];
+    const MCol *cface = &cfaces[p->loopstart + p->totloop];
+    const MLoop *mloop = &mloops[p->loopstart + p->totloop];
 
     for (int j = 0; j < p->totloop; j++) {
       cface--;
@@ -207,7 +207,7 @@ static void get_cols(const CDStreamConfig &config,
  */
 static void write_mcol(const OCompoundProperty &prop,
                        CDStreamConfig &config,
-                       void *data,
+                       const void *data,
                        const char *name)
 {
   std::vector<uint32_t> indices;
