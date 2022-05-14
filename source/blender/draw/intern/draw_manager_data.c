@@ -2081,6 +2081,11 @@ void DRW_view_camtexco_set(DRWView *view, float texco[4])
   copy_v4_v4(view->storage.viewcamtexcofac, texco);
 }
 
+void DRW_view_camtexco_get(const DRWView *view, float r_texco[4])
+{
+  copy_v4_v4(r_texco, view->storage.viewcamtexcofac);
+}
+
 void DRW_view_frustum_corners_get(const DRWView *view, BoundBox *corners)
 {
   memcpy(corners, &view->frustum_corners, sizeof(view->frustum_corners));

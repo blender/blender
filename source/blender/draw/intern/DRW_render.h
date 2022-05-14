@@ -746,6 +746,7 @@ const DRWView *DRW_view_get_active(void);
  */
 void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len);
 void DRW_view_camtexco_set(DRWView *view, float texco[4]);
+void DRW_view_camtexco_get(const DRWView *view, float r_texco[4]);
 
 /* For all getters, if view is NULL, default view is assumed. */
 
