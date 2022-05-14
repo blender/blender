@@ -697,7 +697,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna,
       "convert_uv_to_st",
-      false,
+      true,
       "Convert uv to st",
       "Export the active uv map as USD primvar named 'st'");
 
