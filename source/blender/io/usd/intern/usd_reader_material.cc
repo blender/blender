@@ -392,12 +392,23 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
     bool has_mdl = false;
 #ifdef WITH_PYTHON
     /* Invoke UMM to convert to MDL. */
-    umm_import_mdl_material(mtl, usd_material, true /* Verbose */, &has_mdl);
+    bool mdl_imported = umm_import_mdl_material(mtl, usd_material, true /* Verbose */, &has_mdl);
 #endif
-    if (!has_mdl && usd_preview) {
-      /* The material has no MDL shader, so fall back on importing UsdPreviewSuface. */
-      std::string message = "Material has no MDL shader " + mtl_name +
-                            ", importing USD Preview Surface shaders instead";
+    if (!(has_mdl && mdl_imported) && usd_preview) {
+      /* The material has no MDL shader or we couldn't convert the MDL,
+       * so fall back on importing UsdPreviewSuface. */
+      std::string message;
+
+      if (!has_mdl) {
+        message += "No MDL shader for material ";
+      }
+      else if (!mdl_imported) {
+        message += "Couldn't import MDL shader for material ";
+      }
+
+      message += mtl_name;
+      message += ", importing USD Preview Surface shaders instead";
+
       WM_reportf(RPT_INFO, message.c_str());
       import_usd_preview(mtl, usd_preview);
     }
