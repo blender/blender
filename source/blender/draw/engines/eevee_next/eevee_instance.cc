@@ -41,9 +41,10 @@ void Instance::init(const int2 &output_res,
                     const View3D *v3d_,
                     const RegionView3D *rv3d_)
 {
-  UNUSED_VARS(light_probe_, camera_object_, output_rect);
+  UNUSED_VARS(light_probe_, output_rect);
   render = render_;
   depsgraph = depsgraph_;
+  camera_orig_object = camera_object_;
   render_layer = render_layer_;
   drw_view = drw_view_;
   v3d = v3d_;
@@ -58,9 +59,9 @@ void Instance::update_eval_members()
 {
   scene = DEG_get_evaluated_scene(depsgraph);
   view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  // camera_eval_object = (camera_orig_object) ?
-  //                          DEG_get_evaluated_object(depsgraph, camera_orig_object) :
-  //                          nullptr;
+  camera_eval_object = (camera_orig_object) ?
+                           DEG_get_evaluated_object(depsgraph, camera_orig_object) :
+                           nullptr;
 }
 
 /** \} */

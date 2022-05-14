@@ -19,12 +19,59 @@
 namespace blender::eevee {
 
 using draw::Framebuffer;
+using draw::SwapChain;
 using draw::Texture;
 using draw::TextureFromPool;
 
 #endif
 
 #define UBO_MIN_MAX_SUPPORTED_SIZE 1 << 14
+
+/* -------------------------------------------------------------------- */
+/** \name Camera
+ * \{ */
+
+enum eCameraType : uint32_t {
+  CAMERA_PERSP = 0u,
+  CAMERA_ORTHO = 1u,
+  CAMERA_PANO_EQUIRECT = 2u,
+  CAMERA_PANO_EQUISOLID = 3u,
+  CAMERA_PANO_EQUIDISTANT = 4u,
+  CAMERA_PANO_MIRROR = 5u
+};
+
+static inline bool is_panoramic(eCameraType type)
+{
+  return type > CAMERA_ORTHO;
+}
+
+struct CameraData {
+  /* View Matrices of the camera, not from any view! */
+  float4x4 persmat;
+  float4x4 persinv;
+  float4x4 viewmat;
+  float4x4 viewinv;
+  float4x4 winmat;
+  float4x4 wininv;
+  /** Camera UV scale and bias. Also known as viewcamtexcofac. */
+  float2 uv_scale;
+  float2 uv_bias;
+  /** Panorama parameters. */
+  float2 equirect_scale;
+  float2 equirect_scale_inv;
+  float2 equirect_bias;
+  float fisheye_fov;
+  float fisheye_lens;
+  /** Clipping distances. */
+  float clip_near;
+  float clip_far;
+  /** Film pixel filter radius. */
+  float filter_size;
+  eCameraType type;
+};
+BLI_STATIC_ASSERT_ALIGN(CameraData, 16)
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Ray-Tracing
@@ -82,6 +129,8 @@ float4 utility_tx_sample(sampler2DArray util_tx, float2 uv, float layer)
 /** \} */
 
 #ifdef __cplusplus
+
+using CameraDataBuf = draw::UniformBuffer<CameraData>;
 
 }  // namespace blender::eevee
 #endif
