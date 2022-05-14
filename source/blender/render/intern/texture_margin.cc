@@ -508,11 +508,11 @@ static void generate_margin(ImBuf *ibuf,
     mloop = me->mloop;
 
     if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
-      mloopuv = static_cast<MLoopUV const *>(CustomData_get_layer(&me->ldata, CD_MLOOPUV));
+      mloopuv = static_cast<const MLoopUV *>(CustomData_get_layer(&me->ldata, CD_MLOOPUV));
     }
     else {
       int uv_id = CustomData_get_named_layer(&me->ldata, CD_MLOOPUV, uv_layer);
-      mloopuv = static_cast<MLoopUV const *>(
+      mloopuv = static_cast<const MLoopUV *>(
           CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, uv_id));
     }
 

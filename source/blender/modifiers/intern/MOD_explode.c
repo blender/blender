@@ -911,7 +911,6 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   int totdup = 0, totvert = 0, totface = 0, totpart = 0, delface = 0;
   int i, v, u;
   uint ed_v1, ed_v2, mindex = 0;
-  MTFace *mtface = NULL, *mtf;
 
   totface = mesh->totface;
   totvert = mesh->totvert;
@@ -977,7 +976,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   /* the final duplicated vertices */
   explode = BKE_mesh_new_nomain_from_template(mesh, totdup, 0, totface - delface, 0, 0);
 
-  mtface = CustomData_get_layer_named(&explode->fdata, CD_MTFACE, emd->uvname);
+  MTFace *mtface = CustomData_get_layer_named(&explode->fdata, CD_MTFACE, emd->uvname);
 
   /* getting back to object space */
   invert_m4_m4(imat, ctx->object->obmat);
@@ -1086,7 +1085,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
       /* Clamp to this range to avoid flipping to the other side of the coordinates. */
       CLAMP(age, 0.001f, 0.999f);
 
-      mtf = mtface + u;
+      MTFace *mtf = mtface + u;
 
       mtf->uv[0][0] = mtf->uv[1][0] = mtf->uv[2][0] = mtf->uv[3][0] = age;
       mtf->uv[0][1] = mtf->uv[1][1] = mtf->uv[2][1] = mtf->uv[3][1] = 0.5f;

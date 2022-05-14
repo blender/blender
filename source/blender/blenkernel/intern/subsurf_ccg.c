@@ -259,7 +259,10 @@ static void get_face_uv_map_vert(
   }
 }
 
-static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, MLoopUV *mloopuv)
+static int ss_sync_from_uv(CCGSubSurf *ss,
+                           CCGSubSurf *origss,
+                           DerivedMesh *dm,
+                           const MLoopUV *mloopuv)
 {
   MPoly *mpoly = dm->getPolyArray(dm);
   MLoop *mloop = dm->getLoopArray(dm);
@@ -381,13 +384,9 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result, int n)
 {
-  CCGSubSurf *uvss;
-  CCGFace **faceMap;
-  MTFace *tf;
-  MLoopUV *mluv;
   CCGFaceIterator fi;
   int index, gridSize, gridFaces, /*edgeSize,*/ totface, x, y, S;
-  MLoopUV *dmloopuv = CustomData_get_layer_n(&dm->loopData, CD_MLOOPUV, n);
+  const MLoopUV *dmloopuv = CustomData_get_layer_n(&dm->loopData, CD_MLOOPUV, n);
   /* need to update both CD_MTFACE & CD_MLOOPUV, hrmf, we could get away with
    * just tface except applying the modifier then looses subsurf UV */
   MTFace *tface = CustomData_get_layer_n(&result->faceData, CD_MTFACE, n);
@@ -398,7 +397,7 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
   }
 
   /* create a CCGSubSurf from uv's */
-  uvss = _getSubSurf(NULL, ccgSubSurf_getSubdivisionLevels(ss), 2, CCG_USE_ARENA);
+  CCGSubSurf *uvss = _getSubSurf(NULL, ccgSubSurf_getSubdivisionLevels(ss), 2, CCG_USE_ARENA);
 
   if (!ss_sync_from_uv(uvss, ss, dm, dmloopuv)) {
     ccgSubSurf_free(uvss);
@@ -412,7 +411,7 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
   gridFaces = gridSize - 1;
 
   /* make a map from original faces to CCGFaces */
-  faceMap = MEM_mallocN(totface * sizeof(*faceMap), "facemapuv");
+  CCGFace **faceMap = MEM_mallocN(totface * sizeof(*faceMap), "facemapuv");
   for (ccgSubSurf_initFaceIterator(uvss, &fi); !ccgFaceIterator_isStopped(&fi);
        ccgFaceIterator_next(&fi)) {
     CCGFace *f = ccgFaceIterator_getCurrent(&fi);
@@ -420,8 +419,8 @@ static void set_subsurf_legacy_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *
   }
 
   /* load coordinates from uvss into tface */
-  tf = tface;
-  mluv = mloopuv;
+  MTFace *tf = tface;
+  MLoopUV *mluv = mloopuv;
 
   for (index = 0; index < totface; index++) {
     CCGFace *f = faceMap[index];

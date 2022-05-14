@@ -107,7 +107,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
 
     /* vertex groups */
     MDeformVert *dvert = CustomData_get(vdata, *vertofs, CD_MDEFORMVERT);
-    MDeformVert *dvert_src = CustomData_get(&me->vdata, 0, CD_MDEFORMVERT);
+    const MDeformVert *dvert_src = CustomData_get(&me->vdata, 0, CD_MDEFORMVERT);
 
     /* Remap to correct new vgroup indices, if needed. */
     if (dvert_src) {
@@ -255,7 +255,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
 
     /* Face maps. */
     int *fmap = CustomData_get(pdata, *polyofs, CD_FACEMAP);
-    int *fmap_src = CustomData_get(&me->pdata, 0, CD_FACEMAP);
+    const int *fmap_src = CustomData_get(&me->pdata, 0, CD_FACEMAP);
 
     /* Remap to correct new face-map indices, if needed. */
     if (fmap_src) {

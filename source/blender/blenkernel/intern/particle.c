@@ -3793,7 +3793,7 @@ void psys_get_from_key(ParticleKey *key, float loc[3], float vel[3], float rot[4
   }
 }
 
-static void triatomat(float *v1, float *v2, float *v3, float (*uv)[2], float mat[4][4])
+static void triatomat(float *v1, float *v2, float *v3, const float (*uv)[2], float mat[4][4])
 {
   float det, w1, w2, d1[2], d2[2];
 
@@ -3839,7 +3839,6 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
 {
   float v[3][3];
   MFace *mface;
-  OrigSpaceFace *osface;
   const float(*orcodata)[3];
 
   int i = (ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND)) ? pa->num : pa->num_dmcache;
@@ -3849,7 +3848,7 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
   }
 
   mface = &mesh->mface[i];
-  osface = CustomData_get(&mesh->fdata, i, CD_ORIGSPACE);
+  const OrigSpaceFace *osface = CustomData_get(&mesh->fdata, i, CD_ORIGSPACE);
 
   if (orco && (orcodata = CustomData_get_layer(&mesh->vdata, CD_ORCO))) {
     copy_v3_v3(v[0], orcodata[mface->v1]);
@@ -5036,7 +5035,6 @@ void psys_get_dupli_texture(ParticleSystem *psys,
                             float uv[2],
                             float orco[3])
 {
-  MFace *mface;
   float loc[3];
   int num;
 
@@ -5060,9 +5058,9 @@ void psys_get_dupli_texture(ParticleSystem *psys,
         const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
 
         if (uv_idx >= 0) {
-          MTFace *mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
+          const MTFace *mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
           if (mtface != NULL) {
-            mface = CustomData_get(&psmd->mesh_final->fdata, cpa->num, CD_MFACE);
+            const MFace *mface = CustomData_get(&psmd->mesh_final->fdata, cpa->num, CD_MFACE);
             mtface += cpa->num;
             psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, uv);
           }
@@ -5104,8 +5102,8 @@ void psys_get_dupli_texture(ParticleSystem *psys,
       const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
 
       if (uv_idx >= 0) {
-        MTFace *mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
-        mface = CustomData_get(&psmd->mesh_final->fdata, num, CD_MFACE);
+        const MTFace *mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
+        const MFace *mface = CustomData_get(&psmd->mesh_final->fdata, num, CD_MFACE);
         mtface += num;
         psys_interpolate_uvs(mtface, mface->v4, pa->fuv, uv);
       }

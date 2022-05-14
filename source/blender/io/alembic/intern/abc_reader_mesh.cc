@@ -377,25 +377,22 @@ BLI_INLINE void read_uvs_params(CDStreamConfig &config,
 static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
 {
   CustomDataType cd_data_type = static_cast<CustomDataType>(data_type);
-  void *cd_ptr;
-  CustomData *loopdata;
-  int numloops;
 
   /* unsupported custom data type -- don't do anything. */
   if (!ELEM(cd_data_type, CD_MLOOPUV, CD_PROP_BYTE_COLOR)) {
     return nullptr;
   }
 
-  loopdata = &mesh->ldata;
-  cd_ptr = CustomData_get_layer_named(loopdata, cd_data_type, name);
+  void *cd_ptr = CustomData_get_layer_named(&mesh->ldata, cd_data_type, name);
   if (cd_ptr != nullptr) {
     /* layer already exists, so just return it. */
     return cd_ptr;
   }
 
   /* Create a new layer. */
-  numloops = mesh->totloop;
-  cd_ptr = CustomData_add_layer_named(loopdata, cd_data_type, CD_DEFAULT, nullptr, numloops, name);
+  int numloops = mesh->totloop;
+  cd_ptr = CustomData_add_layer_named(
+      &mesh->ldata, cd_data_type, CD_DEFAULT, nullptr, numloops, name);
   return cd_ptr;
 }
 

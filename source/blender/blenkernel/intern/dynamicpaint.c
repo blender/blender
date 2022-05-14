@@ -1607,7 +1607,6 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
     const MLoop *mloop = mesh->mloop;
     const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
     const int tottri = BKE_mesh_runtime_looptri_len(mesh);
-    const MLoopUV *mloopuv = NULL;
 
     char uvname[MAX_CUSTOMDATA_LAYER_NAME];
 
@@ -1617,7 +1616,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
 
     /* get uv map */
     CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, surface->init_layername, uvname);
-    mloopuv = CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uvname);
+    const MLoopUV *mloopuv = CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uvname);
     if (!mloopuv) {
       return;
     }
@@ -1675,7 +1674,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
     }
     else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
       const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
-      MLoopCol *col = CustomData_get_layer_named(
+      const MLoopCol *col = CustomData_get_layer_named(
           &mesh->ldata, CD_PROP_BYTE_COLOR, surface->init_layername);
       if (!col) {
         return;

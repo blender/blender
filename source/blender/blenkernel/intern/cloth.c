@@ -632,7 +632,7 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, Mesh *mesh)
       verts->flags &= ~(CLOTH_VERT_FLAG_PINNED | CLOTH_VERT_FLAG_NOSELFCOLL |
                         CLOTH_VERT_FLAG_NOOBJCOLL);
 
-      MDeformVert *dvert = CustomData_get(&mesh->vdata, i, CD_MDEFORMVERT);
+      const MDeformVert *dvert = CustomData_get(&mesh->vdata, i, CD_MDEFORMVERT);
       if (dvert) {
         for (int j = 0; j < dvert->totweight; j++) {
           if (dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass - 1)) {

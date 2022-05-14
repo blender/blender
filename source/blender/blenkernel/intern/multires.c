@@ -1403,7 +1403,7 @@ static void multires_apply_smat(struct Depsgraph *UNUSED(depsgraph),
   }
 }
 
-int multires_mdisp_corners(MDisps *s)
+int multires_mdisp_corners(const MDisps *s)
 {
   int lvl = 13;
 

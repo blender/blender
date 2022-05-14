@@ -4084,7 +4084,7 @@ typedef struct {
 
 static void proj_paint_layer_clone_init(ProjPaintState *ps, ProjPaintLayerClone *layer_clone)
 {
-  MLoopUV *mloopuv_clone_base = NULL;
+  const MLoopUV *mloopuv_clone_base = NULL;
 
   /* use clone mtface? */
   if (ps->do_layer_clone) {

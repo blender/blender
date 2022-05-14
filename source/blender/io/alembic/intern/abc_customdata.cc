@@ -48,9 +48,9 @@ static const std::string propNameOriginalCoordinates("Pref");
 static void get_uvs(const CDStreamConfig &config,
                     std::vector<Imath::V2f> &uvs,
                     std::vector<uint32_t> &uvidx,
-                    void *cd_data)
+                    const void *cd_data)
 {
-  MLoopUV *mloopuv_array = static_cast<MLoopUV *>(cd_data);
+  const MLoopUV *mloopuv_array = static_cast<const MLoopUV *>(cd_data);
 
   if (!mloopuv_array) {
     return;
@@ -68,7 +68,7 @@ static void get_uvs(const CDStreamConfig &config,
     /* Iterate in reverse order to match exported polygons. */
     for (int i = 0; i < num_poly; i++) {
       MPoly &current_poly = polygons[i];
-      MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
+      const MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
       for (int j = 0; j < current_poly.totloop; j++, count++) {
         loopuv--;
@@ -87,7 +87,7 @@ static void get_uvs(const CDStreamConfig &config,
     for (int i = 0; i < num_poly; i++) {
       MPoly &current_poly = polygons[i];
       MLoop *looppoly = mloop + current_poly.loopstart + current_poly.totloop;
-      MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
+      const MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
       for (int j = 0; j < current_poly.totloop; j++) {
         looppoly--;
@@ -125,7 +125,7 @@ const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, Custom
     return "";
   }
 
-  void *cd_data = CustomData_get_layer_n(data, CD_MLOOPUV, active_uvlayer);
+  const void *cd_data = CustomData_get_layer_n(data, CD_MLOOPUV, active_uvlayer);
 
   get_uvs(config, sample.uvs, sample.indices, cd_data);
 
@@ -283,7 +283,7 @@ void write_custom_data(const OCompoundProperty &prop,
   const int tot_layers = CustomData_number_of_layers(data, cd_data_type);
 
   for (int i = 0; i < tot_layers; i++) {
-    void *cd_data = CustomData_get_layer_n(data, cd_data_type, i);
+    const void *cd_data = CustomData_get_layer_n(data, cd_data_type, i);
     const char *name = CustomData_get_layer_name(data, cd_data_type, i);
 
     if (cd_data_type == CD_MLOOPUV) {

@@ -626,9 +626,10 @@ static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, CustomData *data, int
 
 static bool rna_MEdge_freestyle_edge_mark_get(PointerRNA *ptr)
 {
-  Mesh *me = rna_mesh(ptr);
-  MEdge *medge = (MEdge *)ptr->data;
-  FreestyleEdge *fed = CustomData_get(&me->edata, (int)(medge - me->medge), CD_FREESTYLE_EDGE);
+  const Mesh *me = rna_mesh(ptr);
+  const MEdge *medge = (MEdge *)ptr->data;
+  const FreestyleEdge *fed = CustomData_get(
+      &me->edata, (int)(medge - me->medge), CD_FREESTYLE_EDGE);
 
   return fed && (fed->flag & FREESTYLE_EDGE_MARK) != 0;
 }
@@ -652,9 +653,10 @@ static void rna_MEdge_freestyle_edge_mark_set(PointerRNA *ptr, bool value)
 
 static bool rna_MPoly_freestyle_face_mark_get(PointerRNA *ptr)
 {
-  Mesh *me = rna_mesh(ptr);
-  MPoly *mpoly = (MPoly *)ptr->data;
-  FreestyleFace *ffa = CustomData_get(&me->pdata, (int)(mpoly - me->mpoly), CD_FREESTYLE_FACE);
+  const Mesh *me = rna_mesh(ptr);
+  const MPoly *mpoly = (MPoly *)ptr->data;
+  const FreestyleFace *ffa = CustomData_get(
+      &me->pdata, (int)(mpoly - me->mpoly), CD_FREESTYLE_FACE);
 
   return ffa && (ffa->flag & FREESTYLE_FACE_MARK) != 0;
 }

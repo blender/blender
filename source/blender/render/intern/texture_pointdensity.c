@@ -271,7 +271,6 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
 {
   const MLoop *mloop = mesh->mloop;
   const int totloop = mesh->totloop;
-  const MLoopCol *mcol;
   char layername[MAX_CUSTOMDATA_LAYER_NAME];
   int i;
 
@@ -282,7 +281,7 @@ static void pointdensity_cache_vertex_color(PointDensity *pd,
   }
   CustomData_validate_layer_name(
       &mesh->ldata, CD_PROP_BYTE_COLOR, pd->vertex_attribute_name, layername);
-  mcol = CustomData_get_layer_named(&mesh->ldata, CD_PROP_BYTE_COLOR, layername);
+  const MLoopCol *mcol = CustomData_get_layer_named(&mesh->ldata, CD_PROP_BYTE_COLOR, layername);
   if (!mcol) {
     return;
   }

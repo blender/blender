@@ -644,7 +644,7 @@ static void bm_corners_to_loops_ex(ID *id,
   MFace *mf = mface + findex;
 
   for (int i = 0; i < numTex; i++) {
-    MTFace *texface = (MTFace *)CustomData_get_n(fdata, CD_MTFACE, findex, i);
+    const MTFace *texface = (const MTFace *)CustomData_get_n(fdata, CD_MTFACE, findex, i);
 
     MLoopUV *mloopuv = (MLoopUV *)CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
     copy_v2_v2(mloopuv->uv, texface->uv[0]);
@@ -662,7 +662,7 @@ static void bm_corners_to_loops_ex(ID *id,
 
   for (int i = 0; i < numCol; i++) {
     MLoopCol *mloopcol = (MLoopCol *)CustomData_get_n(ldata, CD_PROP_BYTE_COLOR, loopstart, i);
-    MCol *mcol = (MCol *)CustomData_get_n(fdata, CD_MCOL, findex, i);
+    const MCol *mcol = (const MCol *)CustomData_get_n(fdata, CD_MCOL, findex, i);
 
     MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[0]);
     mloopcol++;
@@ -678,7 +678,7 @@ static void bm_corners_to_loops_ex(ID *id,
 
   if (CustomData_has_layer(fdata, CD_TESSLOOPNORMAL)) {
     float(*lnors)[3] = (float(*)[3])CustomData_get(ldata, loopstart, CD_NORMAL);
-    short(*tlnors)[3] = (short(*)[3])CustomData_get(fdata, findex, CD_TESSLOOPNORMAL);
+    const short(*tlnors)[3] = (short(*)[3])CustomData_get(fdata, findex, CD_TESSLOOPNORMAL);
     const int max = mf->v4 ? 4 : 3;
 
     for (int i = 0; i < max; i++, lnors++, tlnors++) {
@@ -688,8 +688,8 @@ static void bm_corners_to_loops_ex(ID *id,
 
   if (CustomData_has_layer(fdata, CD_MDISPS)) {
     MDisps *ld = (MDisps *)CustomData_get(ldata, loopstart, CD_MDISPS);
-    MDisps *fd = (MDisps *)CustomData_get(fdata, findex, CD_MDISPS);
-    float(*disps)[3] = fd->disps;
+    const MDisps *fd = (const MDisps *)CustomData_get(fdata, findex, CD_MDISPS);
+    const float(*disps)[3] = fd->disps;
     int tot = mf->v4 ? 4 : 3;
     int corners;
 
