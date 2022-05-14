@@ -85,6 +85,16 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
 {
   BLI_assert(bm->use_toolflags);
 
+  if (!CustomData_has_layer(&bm->vdata, CD_TOOLFLAGS)) {
+    if (bm->vtoolflagpool) {
+      printf("%s: Error: toolflags were deallocated improperly\n", __func__);
+
+      BM_mesh_elem_toolflags_clear(bm);
+
+      bm_alloc_toolflags_cdlayers(bm, true);
+    }
+  }
+
   if (bm->vtoolflagpool && bm->etoolflagpool && bm->ftoolflagpool) {
     return;
   }
