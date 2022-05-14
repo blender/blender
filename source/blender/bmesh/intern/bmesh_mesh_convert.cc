@@ -407,6 +407,10 @@ void BM_mesh_bm_from_me(Object *ob,
       bm_init_idmap_cdlayers(bm);
     }
 
+    if (bm->use_toolflags) {
+      bm_alloc_toolflags_cdlayers(bm, true);
+    }
+
     return; /* Sanity check. */
   }
 

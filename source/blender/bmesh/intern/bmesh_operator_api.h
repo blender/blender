@@ -6,8 +6,8 @@
  * \ingroup bmesh
  */
 
-#include "BLI_ghash.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_ghash.h"
 
 #include "DNA_meshdata_types.h"
 
