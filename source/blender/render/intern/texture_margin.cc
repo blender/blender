@@ -12,6 +12,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_customdata.h"
 #include "BKE_mesh.h"
 
 #include "DNA_mesh_types.h"

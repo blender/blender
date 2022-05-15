@@ -1247,8 +1247,9 @@ static void *ccgDM_get_vert_data_layer(DerivedMesh *dm, int type)
     }
 
     BLI_rw_mutex_lock(&ccgdm->origindex_cache_rwlock, THREAD_LOCK_WRITE);
-    DM_add_vert_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
-    origindex = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
+
+    origindex = CustomData_add_layer(
+        &dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, dm->numVertData);
 
     totorig = ccgSubSurf_getNumVerts(ss);
     totnone = dm->numVertData - totorig;
@@ -1286,8 +1287,8 @@ static void *ccgDM_get_edge_data_layer(DerivedMesh *dm, int type)
       return origindex;
     }
 
-    DM_add_edge_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
-    origindex = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
+    origindex = CustomData_add_layer(
+        &dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, dm->numEdgeData);
 
     totedge = ccgSubSurf_getNumEdges(ss);
     totorig = totedge * (edgeSize - 1);
@@ -1329,8 +1330,8 @@ static void *ccgDM_get_poly_data_layer(DerivedMesh *dm, int type)
       return origindex;
     }
 
-    DM_add_poly_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
-    origindex = DM_get_poly_data_layer(dm, CD_ORIGINDEX);
+    origindex = CustomData_add_layer(
+        &dm->polyData, CD_ORIGINDEX, CD_CALLOC, NULL, dm->numPolyData);
 
     totface = ccgSubSurf_getNumFaces(ss);
 

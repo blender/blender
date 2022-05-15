@@ -10,6 +10,11 @@
 extern "C" {
 #endif
 
+struct MLoop;
+struct MLoopTri;
+struct MPoly;
+struct MVert;
+
 /* Axis-aligned bounding box */
 typedef struct {
   float bmin[3], bmax[3];
@@ -143,10 +148,10 @@ struct PBVH {
 
   /* NOTE: Normals are not `const` because they can be updated for drawing by sculpt code. */
   float (*vert_normals)[3];
-  MVert *verts;
-  const MPoly *mpoly;
-  const MLoop *mloop;
-  const MLoopTri *looptri;
+  struct MVert *verts;
+  const struct MPoly *mpoly;
+  const struct MLoop *mloop;
+  const struct MLoopTri *looptri;
   CustomData *vdata;
   CustomData *ldata;
   CustomData *pdata;
