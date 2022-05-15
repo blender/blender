@@ -923,6 +923,8 @@ PaintStroke *paint_stroke_new(bContext *C,
 
   BKE_paint_set_overlay_override(br->overlay_flags);
 
+  ups->start_pixel_radius = BKE_brush_size_get(CTX_data_scene(C), br);
+
   return stroke;
 }
 

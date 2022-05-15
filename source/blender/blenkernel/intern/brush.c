@@ -2030,7 +2030,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
       /* leave the coordinates relative to the screen */
 
       /* use unadjusted size for tiled mode */
-      invradius = 1.0f / BKE_brush_size_get(scene, br);
+      invradius = 1.0f / ups->start_pixel_radius;
 
       x = point_2d[0];
       y = point_2d[1];
@@ -2143,7 +2143,7 @@ float BKE_brush_sample_masktex(
       /* leave the coordinates relative to the screen */
 
       /* use unadjusted size for tiled mode */
-      invradius = 1.0f / BKE_brush_size_get(scene, br);
+      invradius = 1.0f / ups->start_pixel_radius;
 
       x = point_2d[0];
       y = point_2d[1];
