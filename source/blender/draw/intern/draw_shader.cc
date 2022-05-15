@@ -35,8 +35,6 @@ static GPUShader *hair_refine_shader_compute_create(ParticleRefineShader UNUSED(
   return GPU_shader_create_from_info_name("draw_hair_refine_compute");
 }
 
-int ma_variable = 1;
-
 static GPUShader *hair_refine_shader_transform_feedback_create(
     ParticleRefineShader UNUSED(refinement))
 {
