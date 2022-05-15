@@ -35,7 +35,7 @@
 #  define USE_COMPUTE_SHADERS
 #endif
 
-BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get(void)
+BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get()
 {
 #ifdef USE_COMPUTE_SHADERS
   if (GPU_compute_shader_support() && GPU_shader_storage_buffer_objects_support()) {
@@ -49,21 +49,21 @@ BLI_INLINE eParticleRefineShaderType drw_hair_shader_type_get(void)
 }
 
 #ifndef USE_TRANSFORM_FEEDBACK
-typedef struct ParticleRefineCall {
+struct ParticleRefineCall {
   struct ParticleRefineCall *next;
   GPUVertBuf *vbo;
   DRWShadingGroup *shgrp;
   uint vert_len;
-} ParticleRefineCall;
+};
 
-static ParticleRefineCall *g_tf_calls = NULL;
+static ParticleRefineCall *g_tf_calls = nullptr;
 static int g_tf_id_offset;
 static int g_tf_target_width;
 static int g_tf_target_height;
 #endif
 
-static GPUVertBuf *g_dummy_vbo = NULL;
-static GPUTexture *g_dummy_texture = NULL;
+static GPUVertBuf *g_dummy_vbo = nullptr;
+static GPUTexture *g_dummy_texture = nullptr;
 static DRWPass *g_tf_pass; /* XXX can be a problem with multiple DRWManager in the future */
 
 static GPUShader *hair_refine_shader_get(ParticleRefineShader refinement)
@@ -79,7 +79,7 @@ void DRW_hair_init(void)
   g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_WRITE_COLOR);
 #endif
 
-  if (g_dummy_vbo == NULL) {
+  if (g_dummy_vbo == nullptr) {
     /* initialize vertex format */
     GPUVertFormat format = {0};
     uint dummy_id = GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
@@ -153,7 +153,7 @@ static void drw_hair_particle_cache_update_transform_feedback(ParticleHairCache 
 #endif
 
     drw_hair_particle_cache_shgrp_attach_resources(tf_shgrp, cache, subdiv);
-    DRW_shgroup_call_procedural_points(tf_shgrp, NULL, final_points_len);
+    DRW_shgroup_call_procedural_points(tf_shgrp, nullptr, final_points_len);
   }
 }
 
@@ -188,7 +188,7 @@ GPUVertBuf *DRW_hair_pos_buffer_get(Object *object, ParticleSystem *psys, Modifi
   int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
 
   ParticleHairCache *cache = drw_hair_particle_cache_get(
-      object, psys, md, NULL, subdiv, thickness_res);
+      object, psys, md, nullptr, subdiv, thickness_res);
 
   return cache->final[subdiv].proc_buf;
 }
@@ -201,11 +201,11 @@ void DRW_hair_duplimat_get(Object *object,
   Object *dupli_parent = DRW_object_get_dupli_parent(object);
   DupliObject *dupli_object = DRW_object_get_dupli(object);
 
-  if ((dupli_parent != NULL) && (dupli_object != NULL)) {
+  if ((dupli_parent != nullptr) && (dupli_object != nullptr)) {
     if (dupli_object->type & OB_DUPLICOLLECTION) {
       unit_m4(dupli_mat);
       Collection *collection = dupli_parent->instance_collection;
-      if (collection != NULL) {
+      if (collection != nullptr) {
         sub_v3_v3(dupli_mat[3], collection->instance_offset);
       }
       mul_m4_m4m4(dupli_mat, dupli_parent->obmat, dupli_mat);
@@ -291,7 +291,7 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   return shgrp;
 }
 
-void DRW_hair_update(void)
+void DRW_hair_update()
 {
 #ifndef USE_TRANSFORM_FEEDBACK
   /**
@@ -304,7 +304,7 @@ void DRW_hair_update(void)
    * and the most local workaround that still uses the power of the GPU.
    */
 
-  if (g_tf_calls == NULL) {
+  if (g_tf_calls == nullptr) {
     return;
   }
 
@@ -324,7 +324,7 @@ void DRW_hair_update(void)
   g_tf_target_height = height;
   g_tf_target_width = width;
 
-  GPUFrameBuffer *fb = NULL;
+  GPUFrameBuffer *fb = nullptr;
   GPU_framebuffer_ensure_config(&fb,
                                 {
                                     GPU_ATTACHMENT_NONE,
@@ -334,7 +334,7 @@ void DRW_hair_update(void)
   float *data = (float *)MEM_mallocN(sizeof(float[4]) * width * height, "tf fallback buffer");
 
   GPU_framebuffer_bind(fb);
-  while (g_tf_calls != NULL) {
+  while (g_tf_calls != nullptr) {
     ParticleRefineCall *pr_call = g_tf_calls;
     g_tf_calls = g_tf_calls->next;
 

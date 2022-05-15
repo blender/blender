@@ -709,7 +709,7 @@ void NODE_OT_select(wmOperatorType *ot)
   prop = RNA_def_int_vector(ot->srna,
                             "location",
                             2,
-                            NULL,
+                            nullptr,
                             INT_MIN,
                             INT_MAX,
                             "Location",

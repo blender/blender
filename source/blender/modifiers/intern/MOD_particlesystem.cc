@@ -5,8 +5,8 @@
  * \ingroup modifiers
  */
 
-#include <stddef.h>
-#include <string.h>
+#include <cstddef>
+#include <cstring>
 
 #include "BLI_utildefines.h"
 

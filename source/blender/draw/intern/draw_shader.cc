@@ -24,7 +24,7 @@ extern "C" char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 
 static struct {
   struct GPUShader *hair_refine_sh[PART_REFINE_MAX_SHADER];
-} e_data = {{NULL}};
+} e_data = {{nullptr}};
 
 /* -------------------------------------------------------------------- */
 /** \name Hair refinement
@@ -38,14 +38,14 @@ static GPUShader *hair_refine_shader_compute_create(ParticleRefineShader UNUSED(
 static GPUShader *hair_refine_shader_transform_feedback_create(
     ParticleRefineShader UNUSED(refinement))
 {
-  GPUShader *sh = NULL;
+  GPUShader *sh = nullptr;
 
   std::string shader_src = std::string(datatoc_common_hair_lib_glsl) +
                            std::string(datatoc_common_hair_refine_vert_glsl);
 
   const char *var_names[1] = {"finalColor"};
   sh = DRW_shader_create_with_transform_feedback(shader_src.c_str(),
-                                                 NULL,
+                                                 nullptr,
                                                  "#define HAIR_PHASE_SUBDIV\n"
                                                  "#define USE_TF\n",
                                                  GPU_SHADER_TFB_POINTS,
@@ -64,8 +64,8 @@ static GPUShader *hair_refine_shader_transform_feedback_workaround_create(
 GPUShader *DRW_shader_hair_refine_get(ParticleRefineShader refinement,
                                       eParticleRefineShaderType sh_type)
 {
-  if (e_data.hair_refine_sh[refinement] == NULL) {
-    GPUShader *sh = NULL;
+  if (e_data.hair_refine_sh[refinement] == nullptr) {
+    GPUShader *sh = nullptr;
     switch (sh_type) {
       case PART_REFINE_SHADER_COMPUTE:
         sh = hair_refine_shader_compute_create(refinement);
@@ -88,8 +88,8 @@ GPUShader *DRW_shader_hair_refine_get(ParticleRefineShader refinement,
 GPUShader *DRW_shader_curves_refine_get(CurvesEvalShader type, eParticleRefineShaderType sh_type)
 {
   /* TODO: Implement curves evaluation types (Bezier and Catmull Rom). */
-  if (e_data.hair_refine_sh[type] == NULL) {
-    GPUShader *sh = NULL;
+  if (e_data.hair_refine_sh[type] == nullptr) {
+    GPUShader *sh = nullptr;
     switch (sh_type) {
       case PART_REFINE_SHADER_COMPUTE:
         sh = hair_refine_shader_compute_create(PART_REFINE_CATMULL_ROM);
@@ -111,7 +111,7 @@ GPUShader *DRW_shader_curves_refine_get(CurvesEvalShader type, eParticleRefineSh
 
 /** \} */
 
-void DRW_shaders_free(void)
+void DRW_shaders_free()
 {
   for (int i = 0; i < PART_REFINE_MAX_SHADER; i++) {
     DRW_SHADER_FREE_SAFE(e_data.hair_refine_sh[i]);
