@@ -18,14 +18,19 @@
 #include "BLI_alloca.h"
 #include "BLI_bitmap.h"
 #include "BLI_edgehash.h"
-
+#include "BLI_index_range.hh"
 #include "BLI_math.h"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
 
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
+
+using blender::IndexRange;
+using blender::MutableSpan;
+using blender::Span;
 
 /* -------------------------------------------------------------------- */
 /** \name Polygon Calculations
@@ -1113,58 +1118,49 @@ void BKE_mesh_flush_select_from_polys(Mesh *me)
       me->mvert, me->totvert, me->mloop, me->medge, me->totedge, me->mpoly, me->totpoly);
 }
 
-void BKE_mesh_flush_select_from_verts_ex(const MVert *mvert,
-                                         const int UNUSED(totvert),
-                                         const MLoop *mloop,
-                                         MEdge *medge,
-                                         const int totedge,
-                                         MPoly *mpoly,
-                                         const int totpoly)
+static void mesh_flush_select_from_verts(const Span<MVert> verts,
+                                         const Span<MLoop> loops,
+                                         MutableSpan<MEdge> edges,
+                                         MutableSpan<MPoly> polys)
 {
-  MEdge *med;
-  MPoly *mp;
-
-  /* edges */
-  int i = totedge;
-  for (med = medge; i--; med++) {
-    if ((med->flag & ME_HIDE) == 0) {
-      if ((mvert[med->v1].flag & SELECT) && (mvert[med->v2].flag & SELECT)) {
-        med->flag |= SELECT;
+  for (const int i : edges.index_range()) {
+    if ((edges[i].flag & ME_HIDE) == 0) {
+      MEdge &edge = edges[i];
+      if ((verts[edge.v1].flag & SELECT) && (verts[edge.v2].flag & SELECT)) {
+        edge.flag |= SELECT;
       }
       else {
-        med->flag &= ~SELECT;
+        edge.flag &= ~SELECT;
       }
     }
   }
 
-  /* polys */
-  i = totpoly;
-  for (mp = mpoly; i--; mp++) {
-    if ((mp->flag & ME_HIDE) == 0) {
-      bool ok = true;
-      const MLoop *ml;
-      int j;
-      j = mp->totloop;
-      for (ml = &mloop[mp->loopstart]; j--; ml++) {
-        if ((mvert[ml->v].flag & SELECT) == 0) {
-          ok = false;
-          break;
-        }
+  for (const int i : polys.index_range()) {
+    if (polys[i].flag & ME_HIDE) {
+      continue;
+    }
+    MPoly &poly = polys[i];
+    bool all_verts_selected = true;
+    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+      if (!(verts[loop.v].flag & SELECT)) {
+        all_verts_selected = false;
       }
-
-      if (ok) {
-        mp->flag |= ME_FACE_SEL;
-      }
-      else {
-        mp->flag &= (char)~ME_FACE_SEL;
-      }
+    }
+    if (all_verts_selected) {
+      poly.flag |= ME_FACE_SEL;
+    }
+    else {
+      poly.flag &= (char)~ME_FACE_SEL;
     }
   }
 }
+
 void BKE_mesh_flush_select_from_verts(Mesh *me)
 {
-  BKE_mesh_flush_select_from_verts_ex(
-      me->mvert, me->totvert, me->mloop, me->medge, me->totedge, me->mpoly, me->totpoly);
+  mesh_flush_select_from_verts({me->mvert, me->totvert},
+                               {me->mloop, me->totloop},
+                               {me->medge, me->totedge},
+                               {me->mpoly, me->totpoly});
 }
 
 /** \} */

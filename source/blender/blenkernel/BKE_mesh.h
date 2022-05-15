@@ -932,13 +932,6 @@ void BKE_mesh_flush_select_from_polys_ex(struct MVert *mvert,
                                          const struct MPoly *mpoly,
                                          int totpoly);
 void BKE_mesh_flush_select_from_polys(struct Mesh *me);
-void BKE_mesh_flush_select_from_verts_ex(const struct MVert *mvert,
-                                         int totvert,
-                                         const struct MLoop *mloop,
-                                         struct MEdge *medge,
-                                         int totedge,
-                                         struct MPoly *mpoly,
-                                         int totpoly);
 void BKE_mesh_flush_select_from_verts(struct Mesh *me);
 
 /* spatial evaluation */
