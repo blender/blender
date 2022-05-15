@@ -13,7 +13,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -42,6 +42,8 @@
 #include "ED_view3d.h"
 
 #include "mesh_intern.h" /* own include */
+
+using blender::Array;
 
 static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_tot)
 {
@@ -172,7 +174,7 @@ static void mesh_uv_reset_array(float **fuv, const int len)
 
 static void mesh_uv_reset_bmface(BMFace *f, const int cd_loop_uv_offset)
 {
-  float **fuv = BLI_array_alloca(fuv, f->len);
+  Array<float *, BM_DEFAULT_NGON_STACK_SIZE> fuv(f->len);
   BMIter liter;
   BMLoop *l;
   int i;
@@ -181,18 +183,18 @@ static void mesh_uv_reset_bmface(BMFace *f, const int cd_loop_uv_offset)
     fuv[i] = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset))->uv;
   }
 
-  mesh_uv_reset_array(fuv, f->len);
+  mesh_uv_reset_array(fuv.data(), f->len);
 }
 
 static void mesh_uv_reset_mface(MPoly *mp, MLoopUV *mloopuv)
 {
-  float **fuv = BLI_array_alloca(fuv, mp->totloop);
+  Array<float *, BM_DEFAULT_NGON_STACK_SIZE> fuv(mp->totloop);
 
   for (int i = 0; i < mp->totloop; i++) {
     fuv[i] = mloopuv[mp->loopstart + i].uv;
   }
 
-  mesh_uv_reset_array(fuv, mp->totloop);
+  mesh_uv_reset_array(fuv.data(), mp->totloop);
 }
 
 void ED_mesh_uv_loop_reset_ex(Mesh *me, const int layernum)
