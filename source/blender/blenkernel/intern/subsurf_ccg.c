@@ -882,86 +882,6 @@ static void ccgDM_getFinalVertNo(DerivedMesh *dm, int vertNum, float r_no[3])
   copy_v3_v3(r_no, CCG_elem_no(&key, vd));
 }
 
-void subsurf_copy_grid_hidden(DerivedMesh *dm,
-                              const MPoly *mpoly,
-                              MVert *mvert,
-                              const MDisps *mdisps)
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-  CCGSubSurf *ss = ccgdm->ss;
-  int level = ccgSubSurf_getSubdivisionLevels(ss);
-  int gridSize = ccgSubSurf_getGridSize(ss);
-  int edgeSize = ccgSubSurf_getEdgeSize(ss);
-  int totface = ccgSubSurf_getNumFaces(ss);
-  int i, j, x, y;
-
-  for (i = 0; i < totface; i++) {
-    CCGFace *f = ccgdm->faceMap[i].face;
-
-    for (j = 0; j < mpoly[i].totloop; j++) {
-      const MDisps *md = &mdisps[mpoly[i].loopstart + j];
-      int hidden_gridsize = BKE_ccg_gridsize(md->level);
-      int factor = BKE_ccg_factor(level, md->level);
-      BLI_bitmap *hidden = md->hidden;
-
-      if (!hidden) {
-        continue;
-      }
-
-      for (y = 0; y < gridSize; y++) {
-        for (x = 0; x < gridSize; x++) {
-          int vndx, offset;
-
-          vndx = getFaceIndex(ss, f, j, x, y, edgeSize, gridSize);
-          offset = (y * factor) * hidden_gridsize + (x * factor);
-          if (BLI_BITMAP_TEST(hidden, offset)) {
-            mvert[vndx].flag |= ME_HIDE;
-          }
-        }
-      }
-    }
-  }
-}
-
-void subsurf_copy_grid_paint_mask(DerivedMesh *dm,
-                                  const MPoly *mpoly,
-                                  float *paint_mask,
-                                  const GridPaintMask *grid_paint_mask)
-{
-  CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-  CCGSubSurf *ss = ccgdm->ss;
-  int level = ccgSubSurf_getSubdivisionLevels(ss);
-  int gridSize = ccgSubSurf_getGridSize(ss);
-  int edgeSize = ccgSubSurf_getEdgeSize(ss);
-  int totface = ccgSubSurf_getNumFaces(ss);
-  int i, j, x, y, factor, gpm_gridsize;
-
-  for (i = 0; i < totface; i++) {
-    CCGFace *f = ccgdm->faceMap[i].face;
-    const MPoly *p = &mpoly[i];
-
-    for (j = 0; j < p->totloop; j++) {
-      const GridPaintMask *gpm = &grid_paint_mask[p->loopstart + j];
-      if (!gpm->data) {
-        continue;
-      }
-
-      factor = BKE_ccg_factor(level, gpm->level);
-      gpm_gridsize = BKE_ccg_gridsize(gpm->level);
-
-      for (y = 0; y < gridSize; y++) {
-        for (x = 0; x < gridSize; x++) {
-          int vndx, offset;
-
-          vndx = getFaceIndex(ss, f, j, x, y, edgeSize, gridSize);
-          offset = y * factor * gpm_gridsize + x * factor;
-          paint_mask[vndx] = gpm->data[offset];
-        }
-      }
-    }
-  }
-}
-
 /* utility function */
 BLI_INLINE void ccgDM_to_MVert(MVert *mv, const CCGKey *key, CCGElem *elem)
 {
@@ -2156,14 +2076,4 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*r_positions)[3])
   ccgSubSurf_free(ss);
 
   dm->release(dm);
-}
-
-bool subsurf_has_edges(DerivedMesh *dm)
-{
-  return dm->getNumEdges(dm) != 0;
-}
-
-bool subsurf_has_faces(DerivedMesh *dm)
-{
-  return dm->getNumPolys(dm) != 0;
 }
