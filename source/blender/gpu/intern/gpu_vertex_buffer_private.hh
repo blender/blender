@@ -51,6 +51,7 @@ class VertBuf {
   void resize(uint vert_len);
   void upload();
   virtual void bind_as_ssbo(uint binding) = 0;
+  virtual void bind_as_texture(uint binding) = 0;
 
   virtual void wrap_handle(uint64_t handle) = 0;
 

@@ -623,6 +623,12 @@ void DRW_shgroup_vertex_buffer_ex(DRWShadingGroup *shgroup,
 void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
                                       const char *name,
                                       struct GPUVertBuf **vertex_buffer DRW_DEBUG_FILE_LINE_ARGS);
+void DRW_shgroup_buffer_texture_ex(DRWShadingGroup *shgroup,
+                                   const char *name,
+                                   struct GPUVertBuf *vertex_buffer);
+void DRW_shgroup_buffer_texture_ref_ex(DRWShadingGroup *shgroup,
+                                       const char *name,
+                                       struct GPUVertBuf **vertex_buffer);
 
 #ifdef DRW_UNUSED_RESOURCE_TRACKING
 #  define DRW_shgroup_vertex_buffer(shgroup, name, vert) \

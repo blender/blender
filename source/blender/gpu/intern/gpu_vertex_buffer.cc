@@ -328,6 +328,11 @@ void GPU_vertbuf_bind_as_ssbo(struct GPUVertBuf *verts, int binding)
   unwrap(verts)->bind_as_ssbo(binding);
 }
 
+void GPU_vertbuf_bind_as_texture(struct GPUVertBuf *verts, int binding)
+{
+  unwrap(verts)->bind_as_texture(binding);
+}
+
 void GPU_vertbuf_update_sub(GPUVertBuf *verts, uint start, uint len, const void *data)
 {
   unwrap(verts)->update_sub(start, len, data);

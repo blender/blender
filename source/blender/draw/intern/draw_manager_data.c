@@ -547,6 +547,29 @@ void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
       shgroup, location, DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE_REF, vertex_buffer, 0, 0, 1);
 }
 
+void DRW_shgroup_buffer_texture_ex(DRWShadingGroup *shgroup,
+                                   const char *name,
+                                   GPUVertBuf *vertex_buffer)
+{
+  int location = GPU_shader_get_ssbo(shgroup->shader, name);
+  if (location == -1) {
+    return;
+  }
+  drw_shgroup_uniform_create_ex(
+      shgroup, location, DRW_UNIFORM_VERTEX_BUFFER_AS_TEXTURE, vertex_buffer, 0, 0, 1);
+}
+
+void DRW_shgroup_buffer_texture_ref_ex(DRWShadingGroup *shgroup,
+                                       const char *name,
+                                       GPUVertBuf **vertex_buffer)
+{
+  int location = GPU_shader_get_ssbo(shgroup->shader, name);
+  if (location == -1) {
+    return;
+  }
+  drw_shgroup_uniform_create_ex(
+      shgroup, location, DRW_UNIFORM_VERTEX_BUFFER_AS_TEXTURE_REF, vertex_buffer, 0, 0, 1);
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -624,7 +647,7 @@ static void drw_call_obinfos_init(DRWObjectInfos *ob_infos, Object *ob)
   drw_call_calc_orco(ob, ob_infos->orcotexfac);
   /* Random float value. */
   uint random = (DST.dupli_source) ?
-                     DST.dupli_source->random_id :
+                    DST.dupli_source->random_id :
                      /* TODO(fclem): this is rather costly to do at runtime. Maybe we can
                       * put it in ob->runtime and make depsgraph ensure it is up to date. */
                      BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
