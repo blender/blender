@@ -125,7 +125,6 @@ struct DerivedMesh {
   /* Also called in Editmode */
   int (*getNumVerts)(DerivedMesh *dm);
   int (*getNumEdges)(DerivedMesh *dm);
-  int (*getNumTessFaces)(DerivedMesh *dm);
   int (*getNumLoops)(DerivedMesh *dm);
   int (*getNumPolys)(DerivedMesh *dm);
 

@@ -567,11 +567,8 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
   MEdge *me;
   MLoop *mloop = dm->getLoopArray(dm), *ml;
   MPoly *mpoly = dm->getPolyArray(dm), *mp;
-  // MFace *mf; /* UNUSED */
   int totvert = dm->getNumVerts(dm);
   int totedge = dm->getNumEdges(dm);
-  // int totface = dm->getNumTessFaces(dm); /* UNUSED */
-  // int totpoly = dm->getNumFaces(dm);     /* UNUSED */
   int i, j;
   int *index;
 
@@ -770,11 +767,6 @@ static int ccgDM_getNumPolys(DerivedMesh *dm)
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
 
   return ccgSubSurf_getNumFinalFaces(ccgdm->ss);
-}
-
-static int ccgDM_getNumTessFaces(DerivedMesh *dm)
-{
-  return dm->numTessFaceData;
 }
 
 static int ccgDM_getNumLoops(DerivedMesh *dm)
@@ -1511,10 +1503,7 @@ static void set_default_ccgdm_callbacks(CCGDerivedMesh *ccgdm)
   ccgdm->dm.getNumVerts = ccgDM_getNumVerts;
   ccgdm->dm.getNumEdges = ccgDM_getNumEdges;
   ccgdm->dm.getNumLoops = ccgDM_getNumLoops;
-  /* reuse of ccgDM_getNumTessFaces is intentional here:
-   * subsurf polys are just created from tessfaces */
   ccgdm->dm.getNumPolys = ccgDM_getNumPolys;
-  ccgdm->dm.getNumTessFaces = ccgDM_getNumTessFaces;
 
   ccgdm->dm.getVertCo = ccgDM_getFinalVertCo;
   ccgdm->dm.getVertNo = ccgDM_getFinalVertNo;
