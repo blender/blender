@@ -611,7 +611,16 @@ class SEQUENCER_MT_change(Menu):
         strip = context.active_sequence_strip
 
         layout.operator_context = 'INVOKE_REGION_WIN'
+        if strip and strip.type == 'SCENE':
+            bpy_data_scenes_len = len(bpy.data.scenes)
+            if bpy_data_scenes_len > 10:
+                layout.operator_context = 'INVOKE_DEFAULT'
+                layout.operator("sequencer.change_scene", text="Change Scene...")
+            elif bpy_data_scenes_len > 1:
+                layout.operator_menu_enum("sequencer.change_scene", "scene", text="Change Scene")
+            del bpy_data_scenes_len
 
+        layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator_menu_enum("sequencer.change_effect_input", "swap")
         layout.operator_menu_enum("sequencer.change_effect_type", "type")
         prop = layout.operator("sequencer.change_path", text="Path/Files")

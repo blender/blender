@@ -197,6 +197,7 @@ void SEQUENCER_OT_rendersize(struct wmOperatorType *ot);
 void SEQUENCER_OT_change_effect_input(struct wmOperatorType *ot);
 void SEQUENCER_OT_change_effect_type(struct wmOperatorType *ot);
 void SEQUENCER_OT_change_path(struct wmOperatorType *ot);
+void SEQUENCER_OT_change_scene(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_copy(struct wmOperatorType *ot);
 void SEQUENCER_OT_paste(struct wmOperatorType *ot);

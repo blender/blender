@@ -58,6 +58,7 @@ void sequencer_operatortypes(void)
   WM_operatortype_append(SEQUENCER_OT_change_effect_input);
   WM_operatortype_append(SEQUENCER_OT_change_effect_type);
   WM_operatortype_append(SEQUENCER_OT_change_path);
+  WM_operatortype_append(SEQUENCER_OT_change_scene);
 
   WM_operatortype_append(SEQUENCER_OT_set_range_to_strips);
   WM_operatortype_append(SEQUENCER_OT_strip_transform_clear);

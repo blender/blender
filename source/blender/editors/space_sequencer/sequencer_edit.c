@@ -3040,6 +3040,81 @@ void SEQUENCER_OT_change_path(struct wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Change Strip Scene Operator
+ * \{ */
+
+bool sequencer_strip_change_scene_poll(bContext *C)
+{
+  Editing *ed = SEQ_editing_get(CTX_data_scene(C));
+  if (ed == NULL) {
+    return false;
+  }
+  Sequence *seq = ed->act_seq;
+  return ((seq != NULL) && (seq->type == SEQ_TYPE_SCENE));
+}
+static int sequencer_change_scene_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  Scene *scene_seq = BLI_findlink(&bmain->scenes, RNA_enum_get(op->ptr, "scene"));
+
+  if (scene_seq == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "Scene not found");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Assign new scene. */
+  Sequence *seq = SEQ_select_active_get(scene);
+  if (seq) {
+    seq->scene = scene_seq;
+    /* Do a refresh of the sequencer data. */
+    SEQ_relations_invalidate_cache_raw(scene, seq);
+    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
+    DEG_relations_tag_update(bmain);
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_SCENEBROWSE, scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+
+  return OPERATOR_FINISHED;
+}
+
+static int sequencer_change_scene_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (!RNA_struct_property_is_set(op->ptr, "scene")) {
+    return WM_enum_search_invoke(C, op, event);
+  }
+
+  return sequencer_change_scene_exec(C, op);
+}
+
+void SEQUENCER_OT_change_scene(struct wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* Identifiers. */
+  ot->name = "Change Scene";
+  ot->idname = "SEQUENCER_OT_change_scene";
+  ot->description = "Change Scene assigned to Strip";
+
+  /* Api callbacks. */
+  ot->exec = sequencer_change_scene_exec;
+  ot->invoke = sequencer_change_scene_invoke;
+  ot->poll = sequencer_strip_change_scene_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Properties. */
+  prop = RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+  RNA_def_enum_funcs(prop, RNA_scene_without_active_itemf);
+  RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
+  ot->prop = prop;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Export Subtitles Operator
  * \{ */
 
