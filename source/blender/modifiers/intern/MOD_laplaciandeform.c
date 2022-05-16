@@ -843,13 +843,26 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_LaplacianDeform, panel_draw);
 }
 
-static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
-  LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
+  LaplacianDeformModifierData lmd = *(const LaplacianDeformModifierData *)md;
 
-  BLO_write_struct(writer, LaplacianDeformModifierData, lmd);
+  if (ID_IS_OVERRIDE_LIBRARY(id_owner)) {
+    BLI_assert(!ID_IS_LINKED(id_owner));
+    const bool is_local = (md->flag & eModifierFlag_OverrideLibrary_Local) != 0;
+    if (!is_local) {
+      /* Modifier comming from linked data cannot be bound from an override, so we can remove all
+       * binding data, can save a sgnificant amout of memory. */
+      lmd.verts_num = 0;
+      lmd.vertexco = NULL;
+    }
+  }
 
-  BLO_write_float3_array(writer, lmd->verts_num, lmd->vertexco);
+  BLO_write_struct_at_address(writer, LaplacianDeformModifierData, md, &lmd);
+
+  if (lmd.vertexco != NULL) {
+    BLO_write_float3_array(writer, lmd.verts_num, lmd.vertexco);
+  }
 }
 
 static void blendRead(BlendDataReader *reader, ModifierData *md)
