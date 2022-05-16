@@ -1693,6 +1693,22 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
           continue;
         }
         add_relation(variable_exit_key, driver_key, "RNA Target -> Driver");
+
+        /* The RNA getter for `object.data` can write to the mesh datablock due
+         * to the call to `BKE_mesh_wrapper_ensure_subdivision()`. This relation
+         * ensures it is safe to call when the driver is evaluated.
+         *
+         * For the sake of making the code more generic/defensive, the relation
+         * is added for any geometry type.
+         *
+         * See T96289 for more info. */
+        if (object != nullptr && OB_TYPE_IS_GEOMETRY(object->type)) {
+          StringRef rna_path(dtar->rna_path);
+          if (rna_path == "data" || rna_path.startswith("data.")) {
+            ComponentKey ob_key(target_id, NodeType::GEOMETRY);
+            add_relation(ob_key, driver_key, "ID -> Driver");
+          }
+        }
       }
       else {
         /* If rna_path is nullptr, and DTAR_FLAG_STRUCT_REF isn't set, this
