@@ -102,6 +102,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
   if (ibuf) {
     Scene *scene = opts->scene;
     bool is_depth_set = false;
+    const char *ima_colorspace = ima->colorspace_settings.name;
 
     if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
       /* imtype */
@@ -119,6 +120,9 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
         opts->im_format.imtype = R_IMF_IMTYPE_PNG;
         opts->im_format.compress = ibuf->foptions.quality;
         opts->im_format.planes = ibuf->planes;
+        if (!IMB_colormanagement_space_name_is_data(ima_colorspace)) {
+          ima_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+        }
       }
       else {
         BKE_image_format_from_imbuf(&opts->im_format, ibuf);
@@ -134,8 +138,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
     /* Default to saving in the same colorspace as the image setting. */
     if (!opts->save_as_render) {
-      BKE_color_managed_colorspace_settings_copy(&opts->im_format.linear_colorspace_settings,
-                                                 &ima->colorspace_settings);
+      STRNCPY(opts->im_format.linear_colorspace_settings.name, ima_colorspace);
     }
 
     opts->im_format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
@@ -219,7 +222,9 @@ void BKE_image_save_options_update(ImageSaveOptions *opts, Image *image)
       BKE_color_managed_colorspace_settings_copy(&opts->im_format.linear_colorspace_settings,
                                                  &image->colorspace_settings);
     }
-    else if (opts->im_format.imtype != opts->prev_imtype) {
+    else if (opts->im_format.imtype != opts->prev_imtype &&
+             !IMB_colormanagement_space_name_is_data(
+                 opts->im_format.linear_colorspace_settings.name)) {
       const bool linear_float_output = BKE_imtype_requires_linear_float(opts->im_format.imtype);
 
       /* TODO: detect if the colorspace is linear, not just equal to scene linear. */
