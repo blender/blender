@@ -1734,7 +1734,9 @@ static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
     return NULL;
   }
 
-  RNA_string_set(op->ptr, "filepath", isd->opts.filepath);
+  if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
+    RNA_string_set(op->ptr, "filepath", isd->opts.filepath);
+  }
 
   /* Enable save_copy by default for render results. */
   if (ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE) &&
@@ -1742,7 +1744,9 @@ static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
     RNA_boolean_set(op->ptr, "copy", true);
   }
 
-  RNA_boolean_set(op->ptr, "save_as_render", isd->opts.save_as_render);
+  if (!RNA_struct_property_is_set(op->ptr, "save_as_render")) {
+    RNA_boolean_set(op->ptr, "save_as_render", isd->opts.save_as_render);
+  }
 
   /* Show multiview save options only if image has multiviews. */
   PropertyRNA *prop;
@@ -1774,8 +1778,6 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 
   if (op->customdata) {
     isd = op->customdata;
-    image_save_options_from_op(bmain, &isd->opts, op);
-    BKE_image_save_options_update(&isd->opts, isd->image);
   }
   else {
     isd = image_save_as_init(C, op);
@@ -1783,6 +1785,9 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
       return OPERATOR_CANCELLED;
     }
   }
+
+  image_save_options_from_op(bmain, &isd->opts, op);
+  BKE_image_save_options_update(&isd->opts, isd->image);
 
   save_image_op(bmain, isd->image, isd->iuser, op, &isd->opts);
 
@@ -1911,16 +1916,19 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_boolean(ot->srna,
-                  "save_as_render",
-                  0,
-                  "Save As Render",
-                  "Apply render part of display transform when saving byte image");
-  RNA_def_boolean(ot->srna,
-                  "copy",
-                  0,
-                  "Copy",
-                  "Create a new image file without modifying the current image in blender");
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna,
+                         "save_as_render",
+                         0,
+                         "Save As Render",
+                         "Apply render part of display transform when saving byte image");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "copy",
+                         0,
+                         "Copy",
+                         "Create a new image file without modifying the current image in blender");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   image_operator_prop_allow_tokens(ot);
   WM_operator_properties_filesel(ot,
