@@ -676,15 +676,7 @@ class SEQUENCER_MT_add(Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        bpy_data_scenes_len = len(bpy.data.scenes)
-        if bpy_data_scenes_len > 10:
-            layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("sequencer.scene_strip_add", text="Scene...", icon='SCENE_DATA')
-        elif bpy_data_scenes_len > 1:
-            layout.operator_menu_enum("sequencer.scene_strip_add", "scene", text="Scene", icon='SCENE_DATA')
-        else:
-            layout.menu("SEQUENCER_MT_add_empty", text="Scene", icon='SCENE_DATA')
-        del bpy_data_scenes_len
+        layout.menu("SEQUENCER_MT_add_scene", text="Scene", icon='SCENE_DATA')
 
         bpy_data_movieclips_len = len(bpy.data.movieclips)
         if bpy_data_movieclips_len > 10:
@@ -732,6 +724,34 @@ class SEQUENCER_MT_add(Menu):
         col = layout.column()
         col.operator_menu_enum("sequencer.fades_add", "type", text="Fade", icon='IPO_EASE_IN_OUT')
         col.enabled = selected_sequences_len(context) >= 1
+
+
+class SEQUENCER_MT_add_scene(Menu):
+    bl_label = "Scene"
+    bl_translation_context = i18n_contexts.operator_default
+
+    def draw(self, context):
+
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("sequencer.scene_strip_add_new", text="New Scene", icon="ADD").type='NEW'
+
+        bpy_data_scenes_len = len(bpy.data.scenes)
+        if bpy_data_scenes_len > 10:
+            layout.separator()
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("sequencer.scene_strip_add", text="Scene...", icon='SCENE_DATA')
+        elif bpy_data_scenes_len > 1:
+            layout.separator()
+            scene = context.scene
+            for sc_item in bpy.data.scenes:
+                if sc_item == scene:
+                    continue
+
+                layout.operator_context = 'INVOKE_REGION_WIN'
+                layout.operator("sequencer.scene_strip_add", text=sc_item.name).scene = sc_item.name
+
+        del bpy_data_scenes_len
 
 
 class SEQUENCER_MT_add_empty(Menu):
@@ -2609,6 +2629,7 @@ classes = (
     SEQUENCER_MT_marker,
     SEQUENCER_MT_navigation,
     SEQUENCER_MT_add,
+    SEQUENCER_MT_add_scene,
     SEQUENCER_MT_add_effect,
     SEQUENCER_MT_add_transitions,
     SEQUENCER_MT_add_empty,

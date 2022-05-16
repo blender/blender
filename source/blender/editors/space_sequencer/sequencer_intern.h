@@ -232,6 +232,7 @@ void SEQUENCER_OT_select_grouped(struct wmOperatorType *ot);
 /* sequencer_add.c */
 
 void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot);
+void SEQUENCER_OT_scene_strip_add_new(struct wmOperatorType *ot);
 void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_mask_strip_add(struct wmOperatorType *ot);
