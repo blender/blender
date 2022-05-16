@@ -188,7 +188,7 @@ void clip_draw_sfra_efra(struct View2D *v2d, struct Scene *scene);
 /* tracking_ops.c */
 
 /* Find track which can be slid in a proximity of the given event.
- * Uses the same rules w.r.t distance tolerances for track sliding and selection operators. */
+ * Uses the same distance tolerance rule as the "Slide Marker" operator. */
 struct MovieTrackingTrack *tracking_find_slidable_track_in_proximity(struct bContext *C,
                                                                      const float co[2]);
 
