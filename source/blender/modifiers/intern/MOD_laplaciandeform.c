@@ -843,9 +843,11 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_LaplacianDeform, panel_draw);
 }
 
-static void blendWrite(BlendWriter *writer, const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
 {
   LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
+
+  BLO_write_struct(writer, LaplacianDeformModifierData, lmd);
 
   BLO_write_float3_array(writer, lmd->verts_num, lmd->vertexco);
 }

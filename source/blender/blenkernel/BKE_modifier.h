@@ -364,7 +364,9 @@ typedef struct ModifierTypeInfo {
    * This method should write any additional arrays and referenced structs that should be
    * stored in the file.
    */
-  void (*blendWrite)(struct BlendWriter *writer, const struct ModifierData *md);
+  void (*blendWrite)(struct BlendWriter *writer,
+                     const struct ID *id_owner,
+                     const struct ModifierData *md);
 
   /**
    * Is called when the modifier is read from a file.
@@ -593,7 +595,9 @@ struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(struct Object
 
 void BKE_modifier_check_uuids_unique_and_report(const struct Object *object);
 
-void BKE_modifier_blend_write(struct BlendWriter *writer, struct ListBase *modbase);
+void BKE_modifier_blend_write(struct BlendWriter *writer,
+                              const struct ID *id_owner,
+                              struct ListBase *modbase);
 void BKE_modifier_blend_read_data(struct BlendDataReader *reader,
                                   struct ListBase *lb,
                                   struct Object *ob);

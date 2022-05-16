@@ -581,10 +581,12 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_MeshDeform, panel_draw);
 }
 
-static void blendWrite(BlendWriter *writer, const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
   int size = mmd->dyngridsize;
+
+  BLO_write_struct(writer, MeshDeformModifierData, mmd);
 
   BLO_write_struct_array(writer, MDefInfluence, mmd->influences_num, mmd->bindinfluences);
 

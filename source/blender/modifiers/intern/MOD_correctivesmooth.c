@@ -798,9 +798,11 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_CorrectiveSmooth, panel_draw);
 }
 
-static void blendWrite(BlendWriter *writer, const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
 {
   const CorrectiveSmoothModifierData *csmd = (const CorrectiveSmoothModifierData *)md;
+
+  BLO_write_struct(writer, CorrectiveSmoothModifierData, csmd);
 
   if (csmd->bind_coords) {
     BLO_write_float3_array(writer, csmd->bind_coords_num, (float *)csmd->bind_coords);
