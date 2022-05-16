@@ -39,6 +39,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
+#include "DNA_world_types.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_debug.h"
@@ -2588,12 +2589,36 @@ ViewLayer *BKE_view_layer_find_with_lightgroup(struct Scene *scene,
   return NULL;
 }
 
-void BKE_view_layer_rename_lightgroup(ViewLayer *view_layer,
+void BKE_view_layer_rename_lightgroup(Scene *scene,
+                                      ViewLayer *view_layer,
                                       ViewLayerLightgroup *lightgroup,
                                       const char *name)
 {
+  char old_name[64];
+  BLI_strncpy_utf8(old_name, lightgroup->name, sizeof(old_name));
   BLI_strncpy_utf8(lightgroup->name, name, sizeof(lightgroup->name));
   viewlayer_lightgroup_make_name_unique(view_layer, lightgroup);
+
+  if (scene != NULL) {
+    /* Update objects in the scene to refer to the new name instead. */
+    FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
+      if (!ID_IS_LINKED(ob) && ob->lightgroup != NULL) {
+        LightgroupMembership *lgm = ob->lightgroup;
+        if (STREQ(lgm->name, old_name)) {
+          BLI_strncpy_utf8(lgm->name, lightgroup->name, sizeof(lgm->name));
+        }
+      }
+    }
+    FOREACH_SCENE_OBJECT_END;
+
+    /* Update the scene's world to refer to the new name instead. */
+    if (scene->world != NULL && !ID_IS_LINKED(scene->world) && scene->world->lightgroup != NULL) {
+      LightgroupMembership *lgm = scene->world->lightgroup;
+      if (STREQ(lgm->name, old_name)) {
+        BLI_strncpy_utf8(lgm->name, lightgroup->name, sizeof(lgm->name));
+      }
+    }
+  }
 }
 
 void BKE_lightgroup_membership_get(struct LightgroupMembership *lgm, char *name)

@@ -2501,7 +2501,7 @@ static void rna_ViewLayerLightgroup_name_set(PointerRNA *ptr, const char *value)
   Scene *scene = (Scene *)ptr->owner_id;
   ViewLayer *view_layer = BKE_view_layer_find_with_lightgroup(scene, lightgroup);
 
-  BKE_view_layer_rename_lightgroup(view_layer, lightgroup, value);
+  BKE_view_layer_rename_lightgroup(scene, view_layer, lightgroup, value);
 }
 
 /* Fake value, used internally (not saved to DNA). */
