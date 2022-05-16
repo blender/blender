@@ -360,6 +360,86 @@ static void do_paint_pixels(void *__restrict userdata,
   node_data.flags.dirty |= pixels_updated;
 }
 
+static void undo_region_tiles(
+    ImBuf *ibuf, int x, int y, int w, int h, int *tx, int *ty, int *tw, int *th)
+{
+  int srcx = 0, srcy = 0;
+  IMB_rectclip(ibuf, nullptr, &x, &y, &srcx, &srcy, &w, &h);
+  *tw = ((x + w - 1) >> ED_IMAGE_UNDO_TILE_BITS);
+  *th = ((y + h - 1) >> ED_IMAGE_UNDO_TILE_BITS);
+  *tx = (x >> ED_IMAGE_UNDO_TILE_BITS);
+  *ty = (y >> ED_IMAGE_UNDO_TILE_BITS);
+}
+
+static void push_undo(const NodeData &node_data,
+                      Image &image,
+                      ImageUser &image_user,
+                      const image::ImageTileWrapper &image_tile,
+                      ImBuf &image_buffer,
+                      ImBuf **tmpibuf)
+{
+  for (const UDIMTileUndo &tile_undo : node_data.undo_regions) {
+    if (tile_undo.tile_number != image_tile.get_tile_number()) {
+      continue;
+    }
+    int tilex, tiley, tilew, tileh;
+    ListBase *undo_tiles = ED_image_paint_tile_list_get();
+    undo_region_tiles(&image_buffer,
+                      tile_undo.region.xmin,
+                      tile_undo.region.ymin,
+                      BLI_rcti_size_x(&tile_undo.region),
+                      BLI_rcti_size_y(&tile_undo.region),
+                      &tilex,
+                      &tiley,
+                      &tilew,
+                      &tileh);
+    for (int ty = tiley; ty <= tileh; ty++) {
+      for (int tx = tilex; tx <= tilew; tx++) {
+        ED_image_paint_tile_push(undo_tiles,
+                                 &image,
+                                 &image_buffer,
+                                 tmpibuf,
+                                 &image_user,
+                                 tx,
+                                 ty,
+                                 nullptr,
+                                 nullptr,
+                                 true,
+                                 true);
+      }
+    }
+  }
+}
+
+static void do_push_undo_tile(void *__restrict userdata,
+                              const int n,
+                              const TaskParallelTLS *__restrict UNUSED(tls))
+{
+  TexturePaintingUserData *data = static_cast<TexturePaintingUserData *>(userdata);
+  PBVHNode *node = data->nodes[n];
+
+  NodeData &node_data = BKE_pbvh_pixels_node_data_get(*node);
+  Image *image = data->image_data.image;
+  ImageUser *image_user = data->image_data.image_user;
+
+  ImBuf *tmpibuf = nullptr;
+  ImageUser local_image_user = *image_user;
+  LISTBASE_FOREACH (ImageTile *, tile, &image->tiles) {
+    image::ImageTileWrapper image_tile(tile);
+    local_image_user.tile = image_tile.get_tile_number();
+    ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &local_image_user, nullptr);
+    if (image_buffer == nullptr) {
+      continue;
+    }
+
+    push_undo(node_data, *image, *image_user, image_tile, *image_buffer, &tmpibuf);
+    BKE_image_release_ibuf(image, image_buffer, nullptr);
+  }
+  if (tmpibuf) {
+    IMB_freeImBuf(tmpibuf);
+  }
+}
+
 static void do_mark_dirty_regions(void *__restrict userdata,
                                   const int n,
                                   const TaskParallelTLS *__restrict UNUSED(tls))
@@ -421,6 +501,7 @@ void SCULPT_do_paint_brush_image(
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, do_push_undo_tile, &settings);
   BLI_task_parallel_range(0, totnode, &data, do_paint_pixels, &settings);
 
   TaskParallelSettings settings_flush;

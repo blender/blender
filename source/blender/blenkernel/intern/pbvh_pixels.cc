@@ -308,6 +308,12 @@ static void update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
     apply_watertight_check(pbvh, image, image_user);
   }
 
+  /* Rebuild the undo regions. */
+  for (PBVHNode *node : nodes_to_update) {
+    NodeData *node_data = static_cast<NodeData *>(node->pixels.node_data);
+    node_data->rebuild_undo_regions();
+  }
+
   /* Clear the UpdatePixels flag. */
   for (PBVHNode *node : nodes_to_update) {
     node->flag = static_cast<PBVHNodeFlags>(node->flag & ~PBVH_RebuildPixels);

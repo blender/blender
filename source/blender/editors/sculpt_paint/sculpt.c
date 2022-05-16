@@ -3248,8 +3248,8 @@ static void do_brush_action(Sculpt *sd,
     }
     nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
   }
-
-  if (sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob)) {
+  const bool use_pixels = sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob);
+  if (use_pixels) {
     sculpt_pbvh_update_pixels(paint_mode_settings, ss, ob);
   }
 
@@ -3302,16 +3302,18 @@ static void do_brush_action(Sculpt *sd,
   }
   float location[3];
 
-  SculptThreadedTaskData task_data = {
-      .sd = sd,
-      .ob = ob,
-      .brush = brush,
-      .nodes = nodes,
-  };
+  if (!use_pixels) {
+    SculptThreadedTaskData task_data = {
+        .sd = sd,
+        .ob = ob,
+        .brush = brush,
+        .nodes = nodes,
+    };
 
-  TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
+    TaskParallelSettings settings;
+    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+    BLI_task_parallel_range(0, totnode, &task_data, do_brush_action_task_cb, &settings);
+  }
 
   if (sculpt_brush_needs_normal(ss, brush)) {
     update_sculpt_normal(sd, ob, nodes, totnode);
@@ -5276,6 +5278,7 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     SculptSession *ss = ob->sculpt;
     Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
     Brush *brush = BKE_paint_brush(&sd->paint);
+    ToolSettings *tool_settings = CTX_data_tool_settings(C);
 
     /* NOTE: This should be removed when paint mode is available. Paint mode can force based on the
      * canvas it is painting on. (ref. use_sculpt_texture_paint). */
@@ -5293,7 +5296,15 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
     SculptCursorGeometryInfo sgi;
     SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
 
-    SCULPT_undo_push_begin(ob, sculpt_tool_name(sd));
+    /* Setup the correct undo system. Image painting and sculpting are mutual exclusive.
+     * Color attributes are part of the sculpting undo system. */
+    if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
+        SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
+      ED_image_undo_push_begin(op->type->name, PAINT_MODE_SCULPT);
+    }
+    else {
+      SCULPT_undo_push_begin(ob, sculpt_tool_name(sd));
+    }
 
     return true;
   }
@@ -5420,7 +5431,13 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
   SCULPT_cache_free(ss->cache);
   ss->cache = NULL;
 
-  SCULPT_undo_push_end(ob);
+  if (brush && brush->sculpt_tool == SCULPT_TOOL_PAINT &&
+      SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
+    ED_image_undo_push_end();
+  }
+  else {
+    SCULPT_undo_push_end(ob);
+  }
 
   if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
     SCULPT_flush_update_done(C, ob, SCULPT_UPDATE_MASK);

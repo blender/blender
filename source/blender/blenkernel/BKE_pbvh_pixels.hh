@@ -132,12 +132,22 @@ struct UDIMTilePixels {
   }
 };
 
+struct UDIMTileUndo {
+  short tile_number;
+  rcti region;
+
+  UDIMTileUndo(short tile_number, rcti &region) : tile_number(tile_number), region(region)
+  {
+  }
+};
+
 struct NodeData {
   struct {
     bool dirty : 1;
   } flags;
 
   Vector<UDIMTilePixels> tiles;
+  Vector<UDIMTileUndo> undo_regions;
   Triangles triangles;
 
   NodeData()
@@ -153,6 +163,23 @@ struct NodeData {
       }
     }
     return nullptr;
+  }
+
+  void rebuild_undo_regions()
+  {
+    undo_regions.clear();
+    for (UDIMTilePixels &tile : tiles) {
+      rcti region;
+      BLI_rcti_init_minmax(&region);
+      for (PackedPixelRow &pixel_row : tile.pixel_rows) {
+        BLI_rcti_do_minmax_v(
+            &region, int2(pixel_row.start_image_coordinate.x, pixel_row.start_image_coordinate.y));
+        BLI_rcti_do_minmax_v(&region,
+                             int2(pixel_row.start_image_coordinate.x + pixel_row.num_pixels + 1,
+                                  pixel_row.start_image_coordinate.y + 1));
+      }
+      undo_regions.append(UDIMTileUndo(tile.tile_number, region));
+    }
   }
 
   void mark_region(Image &image, const image::ImageTileWrapper &image_tile, ImBuf &image_buffer)
