@@ -188,6 +188,7 @@ ccl_device_noinline int svm_node_vector_displacement(
   else
   {
     stack_store_float3(stack, displacement_offset, zero_float3());
+    (void)data_node;
   }
 
   return offset;
