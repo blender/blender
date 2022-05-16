@@ -946,6 +946,9 @@ class SEQUENCER_MT_strip(Menu):
 
         strip = context.active_sequence_strip
 
+        if strip and strip.type == 'SCENE':
+            layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
+
         if has_sequencer:
             if strip:
                 strip_type = strip.type
@@ -1063,6 +1066,10 @@ class SEQUENCER_MT_context_menu(Menu):
         props.name = "TOPBAR_PT_name"
         props.keep_open = False
         layout.operator("sequencer.delete", text="Delete")
+
+        strip = context.active_sequence_strip
+        if strip and strip.type == 'SCENE':
+            layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
 
         layout.separator()
 

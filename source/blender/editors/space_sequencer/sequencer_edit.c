@@ -57,6 +57,7 @@
 #include "ED_keyframing.h"
 #include "ED_numinput.h"
 #include "ED_outliner.h"
+#include "ED_scene.h"
 #include "ED_screen.h"
 #include "ED_sequencer.h"
 
@@ -1719,11 +1720,26 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 /** \name Erase Strips Operator
  * \{ */
 
-static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
+static void sequencer_delete_strip_data(bContext *C, Sequence *seq)
+{
+  if (seq->type != SEQ_TYPE_SCENE) {
+    return;
+  }
+
+  Main *bmain = CTX_data_main(C);
+  if (seq->scene) {
+    if (ED_scene_delete(C, bmain, seq->scene)) {
+      WM_event_add_notifier(C, NC_SCENE | NA_REMOVED, seq->scene);
+    }
+  }
+}
+
+static int sequencer_delete_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ListBase *seqbasep = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+  const bool delete_data = RNA_boolean_get(op->ptr, "delete_data");
 
   if (sequencer_view_has_preview_poll(C) && !sequencer_view_preview_only_poll(C)) {
     return OPERATOR_CANCELLED;
@@ -1736,6 +1752,9 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
   SEQ_ITERATOR_FOREACH (seq, selected_strips) {
     SEQ_edit_flag_for_removal(scene, seqbasep, seq);
+    if (delete_data) {
+      sequencer_delete_strip_data(C, seq);
+    }
   }
   SEQ_edit_remove_flagged_sequences(scene, seqbasep);
 
@@ -1778,6 +1797,14 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /*  Properties. */
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "delete_data",
+                             false,
+                             "Delete Data",
+                             "After removing the Strip, delete the associated data also");
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
