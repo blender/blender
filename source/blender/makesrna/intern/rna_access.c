@@ -5546,7 +5546,12 @@ static char *rna_idp_path(PointerRNA *ptr,
     if (iter->type == IDP_GROUP) {
       if (prop->type == PROP_POINTER) {
         PointerRNA child_ptr = RNA_property_pointer_get(ptr, prop);
-        BLI_assert(!RNA_pointer_is_null(&child_ptr));
+        if (RNA_pointer_is_null(&child_ptr)) {
+          /* Pointer ID prop might be a 'leaf' in the IDProp group hierarchy, in which case a NULL
+           * value is perfectly valid. Just means it won't match the searched needle. */
+          continue;
+        }
+
         link.name = iter->name;
         link.index = -1;
         if ((path = rna_idp_path(&child_ptr, iter, needle, &link))) {
@@ -5568,7 +5573,11 @@ static char *rna_idp_path(PointerRNA *ptr,
         for (j = 0; j < iter->len; j++, array++) {
           PointerRNA child_ptr;
           if (RNA_property_collection_lookup_int(ptr, prop, j, &child_ptr)) {
-            BLI_assert(!RNA_pointer_is_null(&child_ptr));
+            if (RNA_pointer_is_null(&child_ptr)) {
+              /* Array item ID prop might be a 'leaf' in the IDProp group hierarchy, in which case
+               * a NULL value is perfectly valid. Just means it won't match the searched needle. */
+              continue;
+            }
             link.index = j;
             if ((path = rna_idp_path(&child_ptr, array, needle, &link))) {
               break;

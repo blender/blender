@@ -795,10 +795,11 @@ bool BKE_image_render_write_exr(ReportList *reports,
       const bool pass_half_float = half_float && pass_RGBA;
 
       /* Colorspace conversion only happens on RGBA passes. */
-      float *output_rect = (save_as_render && pass_RGBA) ?
-                               image_exr_from_scene_linear_to_output(
-                                   rp->rect, rr->rectx, rr->recty, 4, imf, tmp_output_rects) :
-                               rp->rect;
+      float *output_rect =
+          (save_as_render && pass_RGBA) ?
+              image_exr_from_scene_linear_to_output(
+                  rp->rect, rr->rectx, rr->recty, rp->channels, imf, tmp_output_rects) :
+              rp->rect;
 
       for (int a = 0; a < rp->channels; a++) {
         /* Save Combined as RGBA if single layer save. */
