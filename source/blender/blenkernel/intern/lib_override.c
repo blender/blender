@@ -1105,8 +1105,8 @@ static void lib_override_library_create_post_process(Main *bmain,
             if (ID_REAL_USERS(ob_new) != 0) {
               continue;
             }
-            default_instantiating_collection = BKE_collection_add(
-                bmain, (Collection *)id_root, "OVERRIDE_HIDDEN");
+            default_instantiating_collection = BKE_id_new(bmain, ID_GR, "OVERRIDE_HIDDEN");
+            id_us_min(&default_instantiating_collection->id);
             /* Hide the collection from viewport and render. */
             default_instantiating_collection->flag |= COLLECTION_HIDE_VIEWPORT |
                                                       COLLECTION_HIDE_RENDER;
@@ -1137,6 +1137,20 @@ static void lib_override_library_create_post_process(Main *bmain,
 
       BKE_collection_object_add(bmain, default_instantiating_collection, ob_new);
       DEG_id_tag_update_ex(bmain, &ob_new->id, ID_RECALC_TRANSFORM | ID_RECALC_BASE_FLAGS);
+    }
+  }
+
+  if (id_root != NULL && !ELEM(default_instantiating_collection, NULL, scene->master_collection)) {
+    ID *id_ref = id_root->newid != NULL ? id_root->newid : id_root;
+    switch (GS(id_ref->name)) {
+      case ID_GR:
+        BKE_collection_add_from_collection(
+            bmain, scene, (Collection *)id_ref, default_instantiating_collection);
+        break;
+      default:
+        /* Add to master collection. */
+        BKE_collection_add_from_collection(bmain, scene, NULL, default_instantiating_collection);
+        break;
     }
   }
 
