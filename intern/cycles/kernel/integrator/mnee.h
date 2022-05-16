@@ -36,7 +36,7 @@
  *  https://cg.ivd.kit.edu/english/HSLT.php
  */
 
-#  define MNEE_MAX_ITERATIONS 32
+#  define MNEE_MAX_ITERATIONS 64
 #  define MNEE_MAX_INTERSECTION_COUNT 10
 #  define MNEE_SOLVER_THRESHOLD 0.001f
 #  define MNEE_MINIMUM_STEP_SIZE 0.0001f
@@ -140,26 +140,8 @@ ccl_device_forceinline void mnee_update_light_sample(KernelGlobals kg,
     ls->D = normalize_len(ls->P - P, &ls->t);
     ls->pdf = fabsf(klight->area.invarea);
   }
-}
 
-/* Compute orthonormal basis
- * https://graphics.pixar.com/library/OrthonormalB/paper.pdf  */
-ccl_device_forceinline void mnee_make_orthonormals(const float3 n,
-                                                   ccl_private float3 *dp_du,
-                                                   ccl_private float3 *dp_dv)
-{
-  if (n.z < 0.0f) {
-    const float a = 1.0f / (1.0f - n.z);
-    const float b = n.x * n.y * a;
-    *dp_du = make_float3(1.0f - n.x * n.x * a, -b, n.x);
-    *dp_dv = make_float3(b, n.y * n.y * a - 1.0f, -n.y);
-  }
-  else {
-    const float a = 1.0f / (1.0f + n.z);
-    const float b = -n.x * n.y * a;
-    *dp_du = make_float3(1.0f - n.x * n.x * a, b, -n.x);
-    *dp_dv = make_float3(b, 1.0f - n.y * n.y * a, -n.y);
-  }
+  ls->pdf *= kernel_data.integrator.pdf_lights;
 }
 
 /* Manifold vertex setup from ray and intersection data */
@@ -170,8 +152,7 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
                                                        const float2 n_offset,
                                                        ccl_private const Ray *ray,
                                                        ccl_private const Intersection *isect,
-                                                       ccl_private ShaderData *sd_vtx,
-                                                       bool seed)
+                                                       ccl_private ShaderData *sd_vtx)
 {
   sd_vtx->object = (isect->object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, isect->prim) :
                                                     isect->object;
@@ -263,30 +244,13 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
   dp_dv *= inv_len_dp_dv;
   dn_dv *= inv_len_dp_dv;
 
-  /* Final local differential geometry. */
-  if (seed) {
-    vtx->dp_du = dp_du;
-    vtx->dp_dv = dp_dv;
-    vtx->dn_du = dn_du;
-    vtx->dn_dv = dn_dv;
-  }
-  else {
-    /* Find angle subtended by reference direction (travel direction). */
-    const float3 reference_direction = normalize(sd_vtx->P - vtx->p);
-    const float reference_theta = atan2(dot(reference_direction, vtx->dp_dv),
-                                        dot(reference_direction, vtx->dp_du));
-    const float current_theta = atan2(dot(reference_direction, dp_dv),
-                                      dot(reference_direction, dp_du));
-    const float theta = reference_theta - current_theta;
-
-    /* Rotate (dp_du,dp_dv) to be consistent with previous tangent frame. */
-    float cos_theta, sin_theta;
-    fast_sincosf(theta, &sin_theta, &cos_theta);
-    vtx->dp_du = cos_theta * dp_du - sin_theta * dp_dv;
-    vtx->dp_dv = sin_theta * dp_du + cos_theta * dp_dv;
-    vtx->dn_du = cos_theta * dn_du - sin_theta * dn_dv;
-    vtx->dn_dv = sin_theta * dn_du + cos_theta * dn_dv;
-  }
+  /* Find consistent tangent frame for every point on the surface. */
+  make_orthonormals(vtx->ng, &vtx->dp_du, &vtx->dp_dv);
+  /* Apply the equivalent rotation to the normal derivatives. */
+  const float cos_theta = dot(dp_du, vtx->dp_du);
+  const float sin_theta = -dot(dp_dv, vtx->dp_du);
+  vtx->dn_du = cos_theta * dn_du - sin_theta * dn_dv;
+  vtx->dn_dv = sin_theta * dn_du + cos_theta * dn_dv;
 
   /* Manifold vertex position. */
   vtx->p = sd_vtx->P;
@@ -577,8 +541,7 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
                                  mv.n_offset,
                                  &projection_ray,
                                  &projection_isect,
-                                 sd_vtx,
-                                 false);
+                                 sd_vtx);
 
       /* Fail newton solve if we are not making progress, probably stuck trying to move off the
        * edge of the mesh. */
@@ -749,7 +712,7 @@ ccl_device_forceinline bool mnee_compute_transfer_matrix(ccl_private const Shade
 
   /* Local differential geometry. */
   float3 dp_du, dp_dv;
-  mnee_make_orthonormals(ls->Ng, &dp_du, &dp_dv);
+  make_orthonormals(ls->Ng, &dp_du, &dp_dv);
 
   /* Direction toward surface sample. */
   float3 wi = vertex_count == 1 ? sd->P - m.p : vertices[mi - 1].p - m.p;
@@ -1051,7 +1014,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
 
           /* Setup differential geometry on vertex. */
           mnee_setup_manifold_vertex(
-              kg, &mv, bsdf, eta, h, &probe_ray, &probe_isect, sd_mnee, true);
+              kg, &mv, bsdf, eta, h, &probe_ray, &probe_isect, sd_mnee);
           break;
         }
       }
