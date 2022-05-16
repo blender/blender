@@ -2258,49 +2258,6 @@ static bool make_override_library_object_overridable_check(Main *bmain, Object *
   return false;
 }
 
-/* Set the object to override. */
-static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  Main *bmain = CTX_data_main(C);
-  Scene *scene = CTX_data_scene(C);
-  Object *obact = ED_object_active_context(C);
-
-  /* Sanity checks. */
-  if (!scene || ID_IS_LINKED(scene) || !obact) {
-    return OPERATOR_CANCELLED;
-  }
-
-  if ((!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
-       ID_IS_OVERRIDABLE_LIBRARY(obact->instance_collection)) ||
-      make_override_library_object_overridable_check(bmain, obact)) {
-    uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("OK?"), ICON_QUESTION);
-    uiLayout *layout = UI_popup_menu_layout(pup);
-
-    /* Create operator menu item with relevant properties filled in. */
-    PointerRNA opptr_dummy;
-    uiItemFullO_ptr(
-        layout, op->type, op->type->name, ICON_NONE, NULL, WM_OP_EXEC_REGION_WIN, 0, &opptr_dummy);
-
-    /* Present the menu and be done... */
-    UI_popup_menu_end(C, pup);
-
-    /* This invoke just calls another instance of this operator... */
-    return OPERATOR_INTERFACE;
-  }
-
-  if (ID_IS_LINKED(obact)) {
-    /* Show menu with list of directly linked collections containing the active object. */
-    WM_enum_search_invoke(C, op, event);
-    return OPERATOR_CANCELLED;
-  }
-
-  /* Error.. cannot continue. */
-  BKE_report(op->reports,
-             RPT_ERROR,
-             "Can only make library override for a referenced object or collection");
-  return OPERATOR_CANCELLED;
-}
-
 static int make_override_library_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -2409,6 +2366,37 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_WINDOW, NULL);
 
   return success ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
+/* Set the object to override. */
+static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  Object *obact = ED_object_active_context(C);
+
+  /* Sanity checks. */
+  if (!scene || ID_IS_LINKED(scene) || !obact) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if ((!ID_IS_LINKED(obact) && obact->instance_collection != NULL &&
+       ID_IS_OVERRIDABLE_LIBRARY(obact->instance_collection)) ||
+      make_override_library_object_overridable_check(bmain, obact)) {
+    return make_override_library_exec(C, op);
+  }
+
+  if (ID_IS_LINKED(obact)) {
+    /* Show menu with list of directly linked collections containing the active object. */
+    WM_enum_search_invoke(C, op, event);
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Error.. cannot continue. */
+  BKE_report(op->reports,
+             RPT_ERROR,
+             "Can only make library override for a referenced object or collection");
+  return OPERATOR_CANCELLED;
 }
 
 static bool make_override_library_poll(bContext *C)
