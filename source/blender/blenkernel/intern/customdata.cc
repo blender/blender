@@ -2575,18 +2575,24 @@ void CustomData_set_layer_stencil(CustomData *data, int type, int n)
 
 void CustomData_set_layer_active_index(CustomData *data, int type, int n)
 {
+  const int layer_index = data->typemap[type];
+  BLI_assert(customdata_typemap_is_valid(data));
+
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].type == type) {
-      data->layers[i].active = n - i;
+      data->layers[i].active = n - layer_index;
     }
   }
 }
 
 void CustomData_set_layer_render_index(CustomData *data, int type, int n)
 {
+  const int layer_index = data->typemap[type];
+  BLI_assert(customdata_typemap_is_valid(data));
+
   for (int i = 0; i < data->totlayer; i++) {
     if (data->layers[i].type == type) {
-      data->layers[i].active_rnd = n - i;
+      data->layers[i].active_rnd = n - layer_index;
     }
   }
 }
