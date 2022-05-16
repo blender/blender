@@ -46,8 +46,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
                                  struct Scene *scene,
                                  struct Image *ima,
                                  struct ImageUser *iuser,
-                                 const bool guess_path,
-                                 const bool save_as_render);
+                                 const bool guess_path);
 void BKE_image_save_options_update(struct ImageSaveOptions *opts, struct Image *ima);
 void BKE_image_save_options_free(struct ImageSaveOptions *opts);
 

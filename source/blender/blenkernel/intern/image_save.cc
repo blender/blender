@@ -78,14 +78,21 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
                                  Scene *scene,
                                  Image *ima,
                                  ImageUser *iuser,
-                                 const bool guess_path,
-                                 const bool save_as_render)
+                                 const bool guess_path)
 {
+  /* For saving a tiled image we need an iuser, so use a local one if there isn't already one. */
+  ImageUser save_iuser;
+  if (iuser == nullptr) {
+    BKE_imageuser_default(&save_iuser);
+    iuser = &save_iuser;
+    iuser->scene = scene;
+  }
+
   memset(opts, 0, sizeof(*opts));
 
   opts->bmain = bmain;
   opts->scene = scene;
-  opts->save_as_render = save_as_render;
+  opts->save_as_render = ima->source == IMA_SRC_VIEWER;
 
   BKE_image_format_init(&opts->im_format, false);
 
@@ -126,7 +133,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
     }
 
     /* Default to saving in the same colorspace as the image setting. */
-    if (!save_as_render) {
+    if (!opts->save_as_render) {
       BKE_color_managed_colorspace_settings_copy(&opts->im_format.linear_colorspace_settings,
                                                  &ima->colorspace_settings);
     }
@@ -161,7 +168,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
     /* check for empty path */
     if (guess_path && opts->filepath[0] == 0) {
       const bool is_prev_save = !STREQ(G.ima, "//");
-      if (save_as_render) {
+      if (opts->save_as_render) {
         if (is_prev_save) {
           BLI_strncpy(opts->filepath, G.ima, sizeof(opts->filepath));
         }
@@ -596,8 +603,13 @@ static bool image_save_single(ReportList *reports,
 bool BKE_image_save(
     ReportList *reports, Main *bmain, Image *ima, ImageUser *iuser, ImageSaveOptions *opts)
 {
+  /* For saving a tiled image we need an iuser, so use a local one if there isn't already one. */
   ImageUser save_iuser;
-  BKE_imageuser_default(&save_iuser);
+  if (iuser == nullptr) {
+    BKE_imageuser_default(&save_iuser);
+    iuser = &save_iuser;
+    iuser->scene = opts->scene;
+  }
 
   bool colorspace_changed = false;
 
@@ -613,12 +625,6 @@ bool BKE_image_save(
                   "When saving a tiled image, the path '%s' must contain a valid UDIM marker",
                   opts->filepath);
       return false;
-    }
-
-    /* For saving a tiled image we need an iuser, so use a local one if there isn't already one.
-     */
-    if (iuser == nullptr) {
-      iuser = &save_iuser;
     }
   }
 

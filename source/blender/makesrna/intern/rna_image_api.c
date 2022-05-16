@@ -26,6 +26,7 @@
 
 #  include "BKE_image.h"
 #  include "BKE_image_format.h"
+#  include "BKE_image_save.h"
 #  include "BKE_main.h"
 #  include "BKE_scene.h"
 #  include <errno.h>
@@ -50,77 +51,40 @@ static void rna_ImagePackedFile_save(ImagePackedFile *imapf, Main *bmain, Report
 static void rna_Image_save_render(
     Image *image, bContext *C, ReportList *reports, const char *path, Scene *scene)
 {
-  ImBuf *ibuf;
+  Main *bmain = CTX_data_main(C);
 
   if (scene == NULL) {
     scene = CTX_data_scene(C);
   }
 
-  if (scene) {
-    ImageUser iuser = {NULL};
-    void *lock;
+  ImageSaveOptions opts;
 
-    iuser.scene = scene;
+  if (BKE_image_save_options_init(&opts, bmain, scene, image, NULL, false)) {
+    opts.save_copy = true;
+    opts.save_as_render = true;
+    STRNCPY(opts.filepath, path);
 
-    ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
-
-    if (ibuf == NULL) {
-      BKE_report(reports, RPT_ERROR, "Could not acquire buffer from image");
+    if (!BKE_image_save(reports, bmain, image, NULL, &opts)) {
+      BKE_reportf(
+          reports, RPT_ERROR, "Image '%s' could not be saved to '%s'", image->id.name + 2, path);
     }
-    else {
-      ImBuf *write_ibuf;
-
-      ImageFormatData image_format;
-      BKE_image_format_init_for_write(&image_format, scene, NULL);
-
-      write_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, true, true, &image_format);
-
-      write_ibuf->planes = image_format.planes;
-      write_ibuf->dither = scene->r.dither_intensity;
-
-      if (!BKE_imbuf_write(write_ibuf, path, &image_format)) {
-        BKE_reportf(reports, RPT_ERROR, "Could not write image: %s, '%s'", strerror(errno), path);
-      }
-
-      if (write_ibuf != ibuf) {
-        IMB_freeImBuf(write_ibuf);
-      }
-
-      BKE_image_format_free(&image_format);
-    }
-
-    BKE_image_release_ibuf(image, ibuf, lock);
   }
   else {
-    BKE_report(reports, RPT_ERROR, "Scene not in context, could not get save parameters");
+    BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
   }
+
+  BKE_image_save_options_free(&opts);
+
+  WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 
 static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *reports)
 {
-  void *lock;
+  Scene *scene = CTX_data_scene(C);
+  ImageSaveOptions opts;
 
-  ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
-  if (ibuf) {
-    char filepath[FILE_MAX];
-    BLI_strncpy(filepath, image->filepath, sizeof(filepath));
-    BLI_path_abs(filepath, ID_BLEND_PATH(bmain, &image->id));
-
-    /* NOTE: we purposefully ignore packed files here,
-     * developers need to explicitly write them via 'packed_files' */
-
-    if (IMB_saveiff(ibuf, filepath, ibuf->flags)) {
-      image->type = IMA_TYPE_IMAGE;
-
-      if (image->source == IMA_SRC_GENERATED) {
-        image->source = IMA_SRC_FILE;
-      }
-
-      IMB_colormanagement_colorspace_from_ibuf_ftype(&image->colorspace_settings, ibuf);
-
-      ibuf->userflags &= ~IB_BITMAPDIRTY;
-    }
-    else {
+  if (BKE_image_save_options_init(&opts, bmain, scene, image, NULL, false)) {
+    if (!BKE_image_save(reports, bmain, image, NULL, &opts)) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Image '%s' could not be saved to '%s'",
@@ -132,7 +96,8 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
     BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
   }
 
-  BKE_image_release_ibuf(image, ibuf, lock);
+  BKE_image_save_options_free(&opts);
+
   WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 
