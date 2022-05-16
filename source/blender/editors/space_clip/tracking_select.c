@@ -305,12 +305,12 @@ static int select_exec(bContext *C, wmOperator *op)
   if (!extend) {
     MovieTrackingTrack *track = tracking_find_slidable_track_in_proximity(C, co);
     if (track != NULL) {
-      MovieClip *clip = ED_space_clip_get_clip(sc);
+      MovieClip *clip_iter = ED_space_clip_get_clip(sc);
 
-      clip->tracking.act_track = track;
+      clip_iter->tracking.act_track = track;
 
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-      DEG_id_tag_update(&clip->id, ID_RECALC_SELECT);
+      DEG_id_tag_update(&clip_iter->id, ID_RECALC_SELECT);
 
       return OPERATOR_PASS_THROUGH;
     }
