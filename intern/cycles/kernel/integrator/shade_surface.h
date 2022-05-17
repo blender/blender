@@ -253,13 +253,13 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 #  ifdef __MNEE__
   if (mnee_vertex_count > 0) {
     INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, transmission_bounce) =
-        INTEGRATOR_STATE(state, path, transmission_bounce) + mnee_vertex_count;
+        INTEGRATOR_STATE(state, path, transmission_bounce) + mnee_vertex_count - 1;
     INTEGRATOR_STATE_WRITE(shadow_state,
                            shadow_path,
                            diffuse_bounce) = INTEGRATOR_STATE(state, path, diffuse_bounce) + 1;
     INTEGRATOR_STATE_WRITE(shadow_state,
                            shadow_path,
-                           bounce) = INTEGRATOR_STATE(state, path, bounce) + 1 + mnee_vertex_count;
+                           bounce) = INTEGRATOR_STATE(state, path, bounce) + mnee_vertex_count;
   }
   else
 #  endif
