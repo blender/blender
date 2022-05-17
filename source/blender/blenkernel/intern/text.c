@@ -1425,10 +1425,14 @@ void txt_from_buf_for_undo(Text *text, const char *buf, size_t buf_len)
 
 char *txt_to_buf(Text *text, size_t *r_buf_strlen)
 {
+  const bool has_data = !BLI_listbase_is_empty(&text->lines);
   /* Identical to #txt_to_buf_for_undo except that the string is nil terminated. */
   size_t buf_len = 0;
   LISTBASE_FOREACH (const TextLine *, l, &text->lines) {
     buf_len += l->len + 1;
+  }
+  if (has_data) {
+    buf_len -= 1;
   }
   char *buf = MEM_mallocN(buf_len + 1, __func__);
   char *buf_step = buf;
@@ -1436,6 +1440,11 @@ char *txt_to_buf(Text *text, size_t *r_buf_strlen)
     memcpy(buf_step, l->line, l->len);
     buf_step += l->len;
     *buf_step++ = '\n';
+  }
+  /* Remove the trailing new-line so a round-trip doesn't add a newline:
+   * Python for e.g. `text.from_string(text.as_string())`. */
+  if (has_data) {
+    buf_step--;
   }
   *buf_step = '\0';
   *r_buf_strlen = buf_len;
