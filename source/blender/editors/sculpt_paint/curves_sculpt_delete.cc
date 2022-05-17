@@ -148,11 +148,11 @@ struct DeleteOperationExecutor {
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      this->delete_projected(curves_to_delete, brush_transform);
+      this->delete_projected(brush_transform, curves_to_delete);
     }
   }
 
-  void delete_projected(MutableSpan<bool> curves_to_delete, const float4x4 &brush_transform)
+  void delete_projected(const float4x4 &brush_transform, MutableSpan<bool> curves_to_delete)
   {
     const float4x4 brush_transform_inv = brush_transform.inverted();
 
@@ -206,13 +206,13 @@ struct DeleteOperationExecutor {
 
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       this->delete_spherical(
-          curves_to_delete, brush_transform * brush_start_cu, brush_transform * brush_end_cu);
+          brush_transform * brush_start_cu, brush_transform * brush_end_cu, curves_to_delete);
     }
   }
 
-  void delete_spherical(MutableSpan<bool> curves_to_delete,
-                        const float3 &brush_start_cu,
-                        const float3 &brush_end_cu)
+  void delete_spherical(const float3 &brush_start_cu,
+                        const float3 &brush_end_cu,
+                        MutableSpan<bool> curves_to_delete)
   {
     Span<float3> positions_cu = curves_->positions();
 
