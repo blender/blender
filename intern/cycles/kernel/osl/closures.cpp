@@ -180,6 +180,8 @@ class PrincipledSheenClosure : public CBSDFClosure {
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
     if (!skip(sd, path_flag, LABEL_DIFFUSE)) {
+      params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
       PrincipledSheenBsdf *bsdf = (PrincipledSheenBsdf *)bsdf_alloc_osl(
           sd, sizeof(PrincipledSheenBsdf), weight, &params);
       sd->flag |= (bsdf) ? bsdf_principled_sheen_setup(sd, bsdf) : 0;
@@ -223,6 +225,8 @@ class PrincipledHairClosure : public CBSDFClosure {
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
     if (!skip(sd, path_flag, LABEL_GLOSSY)) {
+      params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
       PrincipledHairBSDF *bsdf = (PrincipledHairBSDF *)alloc(sd, path_flag, weight);
       if (!bsdf) {
         return;
@@ -282,6 +286,7 @@ class PrincipledClearcoatClosure : public CBSDFClosure {
 
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
     MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
     if (!bsdf) {
       return;
@@ -503,6 +508,8 @@ class MicrofacetClosure : public CBSDFClosure {
       return;
     }
 
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
     MicrofacetBsdf *bsdf = (MicrofacetBsdf *)bsdf_alloc_osl(
         sd, sizeof(MicrofacetBsdf), weight, &params);
 
@@ -601,6 +608,8 @@ class MicrofacetGGXFresnelClosure : public MicrofacetFresnelClosure {
  public:
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
     MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
     if (!bsdf) {
       return;
@@ -630,6 +639,8 @@ class MicrofacetGGXAnisoFresnelClosure : public MicrofacetFresnelClosure {
  public:
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
     MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
     if (!bsdf) {
       return;
@@ -695,6 +706,8 @@ class MicrofacetMultiGGXClosure : public MicrofacetMultiClosure {
  public:
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
     MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
     if (!bsdf) {
       return;
@@ -723,6 +736,8 @@ class MicrofacetMultiGGXAnisoClosure : public MicrofacetMultiClosure {
  public:
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
     MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
     if (!bsdf) {
       return;
@@ -755,6 +770,8 @@ class MicrofacetMultiGGXGlassClosure : public MicrofacetMultiClosure {
 
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
     MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
     if (!bsdf) {
       return;
@@ -819,6 +836,8 @@ class MicrofacetMultiGGXFresnelClosure : public MicrofacetMultiFresnelClosure {
  public:
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
     MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
     if (!bsdf) {
       return;
@@ -849,6 +868,8 @@ class MicrofacetMultiGGXAnisoFresnelClosure : public MicrofacetMultiFresnelClosu
  public:
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
     MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
     if (!bsdf) {
       return;
@@ -883,6 +904,8 @@ class MicrofacetMultiGGXGlassFresnelClosure : public MicrofacetMultiFresnelClosu
 
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
     MicrofacetBsdf *bsdf = alloc(sd, path_flag, weight);
     if (!bsdf) {
       return;
