@@ -96,7 +96,7 @@ void weightvg_do_map(
         BLI_assert(do_invert);
         break;
       default:
-        BLI_assert(0);
+        BLI_assert_unreachable();
     }
 
     new_w[i] = do_invert ? 1.0f - fac : fac;

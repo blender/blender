@@ -326,7 +326,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
       }
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
   }
 
   /* Validate computed weighted normals. */
