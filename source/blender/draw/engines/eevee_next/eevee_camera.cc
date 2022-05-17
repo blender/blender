@@ -40,20 +40,26 @@ void Camera::init()
       default:
       case CAM_PERSP:
         data.type = CAMERA_PERSP;
+        break;
       case CAM_ORTHO:
         data.type = CAMERA_ORTHO;
+        break;
 #if 0 /* TODO(fclem): Make fisheye properties inside blender. */
       case CAM_PANO: {
         switch (cam->panorama_type) {
           default:
           case CAM_PANO_EQUIRECTANGULAR:
             data.type = CAMERA_PANO_EQUIRECT;
+            break;
           case CAM_PANO_FISHEYE_EQUIDISTANT:
             data.type = CAMERA_PANO_EQUIDISTANT;
+            break;
           case CAM_PANO_FISHEYE_EQUISOLID:
             data.type = CAMERA_PANO_EQUISOLID;
+            break;
           case CAM_PANO_MIRRORBALL:
             data.type = CAMERA_PANO_MIRROR;
+            break;
         }
       }
 #endif
