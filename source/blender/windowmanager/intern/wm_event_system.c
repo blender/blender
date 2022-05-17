@@ -1965,12 +1965,9 @@ static void wm_handler_op_context_get_if_valid(bContext *C,
         region = NULL;
       }
 
-      if (region == NULL) {
-        LISTBASE_FOREACH (ARegion *, region_iter, &area->regionbase) {
-          region = region_iter;
-          if (region == handler->context.region) {
-            break;
-          }
+      if ((region == NULL) && handler->context.region) {
+        if (BLI_findindex(&area->regionbase, handler->context.region) != -1) {
+          region = handler->context.region;
         }
       }
 
