@@ -477,7 +477,6 @@ static void split_libdata(ListBase *lb_src, Main **lib_main_array, const uint li
       }
       else {
         CLOG_ERROR(&LOG, "Invalid library for '%s'", id->name);
-        BLI_assert(0);
       }
     }
   }
