@@ -40,7 +40,7 @@ void _BLI_assert_abort(void)
   /* Wrap to remove 'noreturn' attribute since this suppresses missing return statements,
    * allowing changes to debug builds to accidentally to break release builds.
    *
-   * For example `BLI_assert(0);` at the end of a function that returns a value,
+   * For example `BLI_assert_unreachable();` at the end of a function that returns a value,
    * will hide that it's missing a return. */
 
   abort();
