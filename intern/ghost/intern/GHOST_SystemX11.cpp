@@ -63,7 +63,7 @@
 #include <stdio.h> /* for fprintf only */
 #include <vector>
 
-/* for debugging - so we can breakpoint X11 errors */
+/* For debugging, so we can break-point X11 errors. */
 // #define USE_X11_ERROR_HANDLERS
 
 #ifdef WITH_X11_XINPUT
@@ -2492,7 +2492,7 @@ GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,
 }
 #endif
 /**
- * These callbacks can be used for debugging, so we can breakpoint on an X11 error.
+ * These callbacks can be used for debugging, so we can break-point on an X11 error.
  *
  * Dummy function to get around IO Handler exiting if device invalid
  * Basically it will not crash blender now if you have a X device that

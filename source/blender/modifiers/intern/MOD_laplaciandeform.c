@@ -851,8 +851,8 @@ static void blendWrite(BlendWriter *writer, const ID *id_owner, const ModifierDa
     BLI_assert(!ID_IS_LINKED(id_owner));
     const bool is_local = (md->flag & eModifierFlag_OverrideLibrary_Local) != 0;
     if (!is_local) {
-      /* Modifier comming from linked data cannot be bound from an override, so we can remove all
-       * binding data, can save a sgnificant amout of memory. */
+      /* Modifier coming from linked data cannot be bound from an override, so we can remove all
+       * binding data, can save a significant amount of memory. */
       lmd.verts_num = 0;
       lmd.vertexco = NULL;
     }
