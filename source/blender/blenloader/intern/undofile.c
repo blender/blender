@@ -120,7 +120,7 @@ void BLO_memfile_write_init(MemFileWriteData *mem_data,
           *entry = mem_chunk;
         }
         else {
-          BLI_assert(0);
+          BLI_assert_unreachable();
         }
       }
     }

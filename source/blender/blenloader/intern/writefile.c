@@ -1409,7 +1409,7 @@ bool BLO_write_file(Main *mainvar,
           BKE_bpath_absolute_convert(mainvar, dir_src, NULL);
           break;
         case BLO_WRITE_PATH_REMAP_NONE:
-          BLI_assert(0); /* Unreachable. */
+          BLI_assert_unreachable(); /* Unreachable. */
           break;
       }
     }

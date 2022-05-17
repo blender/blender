@@ -2413,7 +2413,7 @@ static int lib_link_main_data_restore_cb(LibraryIDLinkCallbackData *cb_data)
     if (collection->flag & COLLECTION_IS_MASTER) {
       /* We should never reach that point anymore, since master collection private ID should be
        * properly tagged with IDWALK_CB_EMBEDDED. */
-      BLI_assert(0);
+      BLI_assert_unreachable();
       return IDWALK_RET_NOP;
     }
   }
