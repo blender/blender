@@ -1218,7 +1218,6 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
                "Levels of dependency relationships between library overrides IDs is way too high, "
                "skipping further processing loops (involves at least '%s')",
                id->name);
-    BLI_assert(0);
     return NULL;
   }
 
@@ -2339,7 +2338,6 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
           "loops (Involves at least '%s' and '%s')",
           id_owner->lib->filepath,
           id->lib->filepath);
-      BLI_assert(0);
       return IDWALK_RET_NOP;
     }
 

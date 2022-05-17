@@ -555,7 +555,6 @@ static void libblock_remap_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_
                new_id ? new_id->name : "<NULL>",
                new_id,
                old_id->us - skipped_refcounted);
-    BLI_assert(0);
   }
 
   const int skipped_direct = old_id->runtime.remap.skipped_direct;
