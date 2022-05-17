@@ -6723,23 +6723,27 @@ static void *rna_array_as_string_alloc(
     int type, int len, PointerRNA *ptr, PropertyRNA *prop, void **r_buf_end)
 {
   void *buf_ret = NULL;
-  if (type == PROP_BOOLEAN) {
-    bool *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
-    RNA_property_boolean_get_array(ptr, prop, buf);
-    *r_buf_end = buf + len;
-  }
-  else if (type == PROP_INT) {
-    int *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
-    RNA_property_int_get_array(ptr, prop, buf);
-    *r_buf_end = buf + len;
-  }
-  else if (type == PROP_FLOAT) {
-    float *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
-    RNA_property_float_get_array(ptr, prop, buf);
-    *r_buf_end = buf + len;
-  }
-  else {
-    BLI_assert(0);
+  switch (type) {
+    case PROP_BOOLEAN: {
+      bool *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
+      RNA_property_boolean_get_array(ptr, prop, buf);
+      *r_buf_end = buf + len;
+      break;
+    }
+    case PROP_INT: {
+      int *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
+      RNA_property_int_get_array(ptr, prop, buf);
+      *r_buf_end = buf + len;
+      break;
+    }
+    case PROP_FLOAT: {
+      float *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
+      RNA_property_float_get_array(ptr, prop, buf);
+      *r_buf_end = buf + len;
+      break;
+    }
+    default:
+      BLI_assert_unreachable();
   }
   return buf_ret;
 }
@@ -6749,29 +6753,33 @@ static void rna_array_as_string_elem(int type, void **buf_p, int len, DynStr *dy
   /* This will print a comma separated string of the array elements from
    * buf start to len. We will add a comma if len == 1 to preserve tuples. */
   const int end = len - 1;
-  if (type == PROP_BOOLEAN) {
-    bool *buf = *buf_p;
-    for (int i = 0; i < len; i++, buf++) {
-      BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%s, " : "%s", bool_as_py_string(*buf));
+  switch (type) {
+    case PROP_BOOLEAN: {
+      bool *buf = *buf_p;
+      for (int i = 0; i < len; i++, buf++) {
+        BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%s, " : "%s", bool_as_py_string(*buf));
+      }
+      *buf_p = buf;
+      break;
     }
-    *buf_p = buf;
-  }
-  else if (type == PROP_INT) {
-    int *buf = *buf_p;
-    for (int i = 0; i < len; i++, buf++) {
-      BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%d, " : "%d", *buf);
+    case PROP_INT: {
+      int *buf = *buf_p;
+      for (int i = 0; i < len; i++, buf++) {
+        BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%d, " : "%d", *buf);
+      }
+      *buf_p = buf;
+      break;
     }
-    *buf_p = buf;
-  }
-  else if (type == PROP_FLOAT) {
-    float *buf = *buf_p;
-    for (int i = 0; i < len; i++, buf++) {
-      BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%g, " : "%g", *buf);
+    case PROP_FLOAT: {
+      float *buf = *buf_p;
+      for (int i = 0; i < len; i++, buf++) {
+        BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%g, " : "%g", *buf);
+      }
+      *buf_p = buf;
+      break;
     }
-    *buf_p = buf;
-  }
-  else {
-    BLI_assert(0);
+    default:
+      BLI_assert_unreachable();
   }
 }
 

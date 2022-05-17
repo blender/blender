@@ -2085,7 +2085,7 @@ static char *rna_TransformOrientationSlot_path(PointerRNA *ptr)
   }
 
   /* Should not happen, but in case, just return default path. */
-  BLI_assert(0);
+  BLI_assert_unreachable();
   return BLI_strdup("transform_orientation_slots[0]");
 }
 
