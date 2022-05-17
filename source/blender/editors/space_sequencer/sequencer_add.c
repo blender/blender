@@ -521,7 +521,9 @@ static int sequencer_add_scene_strip_new_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int sequencer_add_scene_strip_new_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int sequencer_add_scene_strip_new_invoke(bContext *C,
+                                                wmOperator *op,
+                                                const wmEvent *UNUSED(event))
 {
   sequencer_disable_one_time_properties(C, op);
   sequencer_generic_invoke_xy__internal(C, op, 0, SEQ_TYPE_SCENE);

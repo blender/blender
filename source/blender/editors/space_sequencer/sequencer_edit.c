@@ -3070,7 +3070,7 @@ void SEQUENCER_OT_change_path(struct wmOperatorType *ot)
 /** \name Change Strip Scene Operator
  * \{ */
 
-bool sequencer_strip_change_scene_poll(bContext *C)
+static bool sequencer_strip_change_scene_poll(bContext *C)
 {
   Editing *ed = SEQ_editing_get(CTX_data_scene(C));
   if (ed == NULL) {
