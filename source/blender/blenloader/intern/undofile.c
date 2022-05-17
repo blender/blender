@@ -195,7 +195,7 @@ struct Main *BLO_memfile_main_get(struct MemFile *memfile,
   return bmain_undo;
 }
 
-bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename)
+bool BLO_memfile_write_file(struct MemFile *memfile, const char *filepath)
 {
   MemFileChunk *chunk;
   int file, oflags;
@@ -216,12 +216,12 @@ bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename)
 #    warning "Symbolic links will be followed on undo save, possibly causing CVE-2008-1103"
 #  endif
 #endif
-  file = BLI_open(filename, oflags, 0666);
+  file = BLI_open(filepath, oflags, 0666);
 
   if (file == -1) {
     fprintf(stderr,
             "Unable to save '%s': %s\n",
-            filename,
+            filepath,
             errno ? strerror(errno) : "Unknown error opening file");
     return false;
   }
@@ -242,7 +242,7 @@ bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename)
   if (chunk) {
     fprintf(stderr,
             "Unable to save '%s': %s\n",
-            filename,
+            filepath,
             errno ? strerror(errno) : "Unknown error writing file");
     return false;
   }

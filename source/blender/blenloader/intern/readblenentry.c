@@ -388,7 +388,7 @@ BlendFileData *BLO_read_from_memory(const void *mem,
 }
 
 BlendFileData *BLO_read_from_memfile(Main *oldmain,
-                                     const char *filename,
+                                     const char *filepath,
                                      MemFile *memfile,
                                      const struct BlendFileReadParams *params,
                                      ReportList *reports)
@@ -401,7 +401,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
   fd = blo_filedata_from_memfile(memfile, params, &bf_reports);
   if (fd) {
     fd->skip_flags = params->skip_flags;
-    BLI_strncpy(fd->relabase, filename, sizeof(fd->relabase));
+    BLI_strncpy(fd->relabase, filepath, sizeof(fd->relabase));
 
     /* separate libraries from old main */
     blo_split_main(&old_mainlist, oldmain);
@@ -420,7 +420,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain,
      * read IDs whenever possible. */
     blo_cache_storage_init(fd, oldmain);
 
-    bfd = blo_read_file_internal(fd, filename);
+    bfd = blo_read_file_internal(fd, filepath);
 
     /* Ensure relinked caches are not freed together with their old IDs. */
     blo_cache_storage_old_bmain_clear(fd, oldmain);

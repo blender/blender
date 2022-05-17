@@ -579,9 +579,9 @@ void BPY_python_backtrace(FILE *fp)
     PyFrameObject *frame = tstate->frame;
     do {
       const int line = PyCode_Addr2Line(frame->f_code, frame->f_lasti);
-      const char *filename = PyUnicode_AsUTF8(frame->f_code->co_filename);
+      const char *filepath = PyUnicode_AsUTF8(frame->f_code->co_filename);
       const char *funcname = PyUnicode_AsUTF8(frame->f_code->co_name);
-      fprintf(fp, "  File \"%s\", line %d in %s\n", filename, line, funcname);
+      fprintf(fp, "  File \"%s\", line %d in %s\n", filepath, line, funcname);
     } while ((frame = frame->f_back));
   }
 }
@@ -770,16 +770,16 @@ static void bpy_module_delay_init(PyObject *bpy_proxy)
   const char *argv[2];
 
   /* updating the module dict below will lose the reference to __file__ */
-  PyObject *filename_obj = PyModule_GetFilenameObject(bpy_proxy);
+  PyObject *filepath_obj = PyModule_GetFilenameObject(bpy_proxy);
 
-  const char *filename_rel = PyUnicode_AsUTF8(filename_obj); /* can be relative */
-  char filename_abs[1024];
+  const char *filepath_rel = PyUnicode_AsUTF8(filepath_obj); /* can be relative */
+  char filepath_abs[1024];
 
-  BLI_strncpy(filename_abs, filename_rel, sizeof(filename_abs));
-  BLI_path_abs_from_cwd(filename_abs, sizeof(filename_abs));
-  Py_DECREF(filename_obj);
+  BLI_strncpy(filepath_abs, filepath_rel, sizeof(filepath_abs));
+  BLI_path_abs_from_cwd(filepath_abs, sizeof(filepath_abs));
+  Py_DECREF(filepath_obj);
 
-  argv[0] = filename_abs;
+  argv[0] = filepath_abs;
   argv[1] = NULL;
 
   // printf("module found %s\n", argv[0]);
@@ -810,16 +810,16 @@ PyMODINIT_FUNC PyInit_bpy(void)
   PyObject *bpy_proxy = PyModule_Create(&bpy_proxy_def);
 
   /* Problem:
-   * 1) this init function is expected to have a private member defined - 'md_def'
+   * 1) this init function is expected to have a private member defined - `md_def`
    *    but this is only set for C defined modules (not py packages)
    *    so we can't return 'bpy_package_py' as is.
    *
    * 2) there is a 'bpy' C module for python to load which is basically all of blender,
-   *    and there is scripts/bpy/__init__.py,
+   *    and there is `scripts/bpy/__init__.py`,
    *    we may end up having to rename this module so there is no naming conflict here eg:
    *    'from blender import bpy'
    *
-   * 3) we don't know the filename at this point, workaround by assigning a dummy value
+   * 3) we don't know the filepath at this point, workaround by assigning a dummy value
    *    which calls back when its freed so the real loading can take place.
    */
 

@@ -172,7 +172,7 @@ bool BKE_previewimg_id_supports_jobs(const struct ID *id);
 /**
  * Trigger deferred loading of a custom image file into the preview buffer.
  */
-void BKE_previewimg_id_custom_set(struct ID *id, const char *path);
+void BKE_previewimg_id_custom_set(struct ID *id, const char *filepath);
 
 /**
  * Free the preview image belonging to the id.
@@ -223,11 +223,12 @@ struct PreviewImage *BKE_previewimg_cached_get(const char *name);
 struct PreviewImage *BKE_previewimg_cached_ensure(const char *name);
 
 /**
- * Generate a #PreviewImage from given file path, using thumbnails management, if not yet existing.
- * Does not actually generate the preview, #BKE_previewimg_ensure() must be called for that.
+ * Generate a #PreviewImage from given `filepath`, using thumbnails management, if not yet
+ * existing. Does not actually generate the preview, #BKE_previewimg_ensure() must be called for
+ * that.
  */
 struct PreviewImage *BKE_previewimg_cached_thumbnail_read(const char *name,
-                                                          const char *path,
+                                                          const char *filepath,
                                                           int source,
                                                           bool force_update);
 

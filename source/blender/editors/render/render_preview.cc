@@ -1306,7 +1306,7 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
 {
   static const int flags = IB_rect | IB_multilayer | IB_metadata;
 
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
   const char *folder;
 
   if (!(brush->icon_imbuf)) {
@@ -1315,22 +1315,22 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
       if (brush->icon_filepath[0]) {
         /* First use the path directly to try and load the file. */
 
-        BLI_strncpy(path, brush->icon_filepath, sizeof(brush->icon_filepath));
-        BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
+        BLI_strncpy(filepath, brush->icon_filepath, sizeof(brush->icon_filepath));
+        BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
 
         /* Use default color-spaces for brushes. */
-        brush->icon_imbuf = IMB_loadiffname(path, flags, nullptr);
+        brush->icon_imbuf = IMB_loadiffname(filepath, flags, nullptr);
 
         /* otherwise lets try to find it in other directories */
         if (!(brush->icon_imbuf)) {
           folder = BKE_appdir_folder_id(BLENDER_DATAFILES, "brushicons");
 
           BLI_make_file_string(
-              BKE_main_blendfile_path_from_global(), path, folder, brush->icon_filepath);
+              BKE_main_blendfile_path_from_global(), filepath, folder, brush->icon_filepath);
 
-          if (path[0]) {
+          if (filepath[0]) {
             /* Use default color spaces. */
-            brush->icon_imbuf = IMB_loadiffname(path, flags, nullptr);
+            brush->icon_imbuf = IMB_loadiffname(filepath, flags, nullptr);
           }
         }
 
@@ -1821,13 +1821,13 @@ void PreviewLoadJob::run_fn(void *customdata,
 
     const char *deferred_data = static_cast<char *>(PRV_DEFERRED_DATA(preview));
     const ThumbSource source = static_cast<ThumbSource>(deferred_data[0]);
-    const char *path = &deferred_data[1];
+    const char *filepath = &deferred_data[1];
 
-    //    printf("loading deferred %d×%d preview for %s\n", request->sizex, request->sizey, path);
+    // printf("loading deferred %d×%d preview for %s\n", request->sizex, request->sizey, filepath);
 
-    IMB_thumb_path_lock(path);
-    ImBuf *thumb = IMB_thumb_manage(path, THB_LARGE, source);
-    IMB_thumb_path_unlock(path);
+    IMB_thumb_path_lock(filepath);
+    ImBuf *thumb = IMB_thumb_manage(filepath, THB_LARGE, source);
+    IMB_thumb_path_unlock(filepath);
 
     if (thumb) {
       /* PreviewImage assumes premultiplied alpha... */

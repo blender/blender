@@ -189,21 +189,21 @@ ImBuf *IMB_loadifffile(
   return ibuf;
 }
 
-static void imb_cache_filename(char *filename, const char *name, int flags)
+static void imb_cache_filename(char *filepath, const char *name, int flags)
 {
   /* read .tx instead if it exists and is not older */
   if (flags & IB_tilecache) {
-    BLI_strncpy(filename, name, IMB_FILENAME_SIZE);
-    if (!BLI_path_extension_replace(filename, IMB_FILENAME_SIZE, ".tx")) {
+    BLI_strncpy(filepath, name, IMB_FILENAME_SIZE);
+    if (!BLI_path_extension_replace(filepath, IMB_FILENAME_SIZE, ".tx")) {
       return;
     }
 
-    if (BLI_file_older(name, filename)) {
+    if (BLI_file_older(name, filepath)) {
       return;
     }
   }
 
-  BLI_strncpy(filename, name, IMB_FILENAME_SIZE);
+  BLI_strncpy(filepath, name, IMB_FILENAME_SIZE);
 }
 
 ImBuf *IMB_loadiffname(const char *filepath, int flags, char colorspace[IM_MAX_SPACE])
