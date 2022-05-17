@@ -1586,10 +1586,10 @@ static ImBuf *do_render_strip_seqbase(const SeqRenderData *context,
 {
   ImBuf *ibuf = NULL;
   ListBase *seqbase = NULL;
-  ListBase *channels = &seq->channels;
+  ListBase *channels = NULL;
   int offset;
 
-  seqbase = SEQ_get_seqbase_from_sequence(seq, &offset);
+  seqbase = SEQ_get_seqbase_from_sequence(seq, &channels, &offset);
 
   if (seqbase && !BLI_listbase_is_empty(seqbase)) {
 
