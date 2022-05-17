@@ -572,8 +572,6 @@ static void drawmeta_contents(Scene *scene,
                               float y2,
                               const bool show_strip_color_tag)
 {
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *channels = SEQ_channels_displayed_get(ed);
   Sequence *seq;
   uchar col[4];
 
@@ -582,11 +580,16 @@ static void drawmeta_contents(Scene *scene,
   int chan_range = 0;
   float draw_range = y2 - y1;
   float draw_height;
-  ListBase *seqbase;
+
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *channels = SEQ_channels_displayed_get(ed);
+  ListBase *meta_seqbase;
+  ListBase *meta_channels;
   int offset;
 
-  seqbase = SEQ_get_seqbase_from_sequence(seqm, &offset);
-  if (!seqbase || BLI_listbase_is_empty(seqbase)) {
+  meta_seqbase = SEQ_get_seqbase_from_sequence(seqm, &meta_channels, &offset);
+
+  if (!meta_seqbase || BLI_listbase_is_empty(meta_seqbase)) {
     return;
   }
 
@@ -599,7 +602,7 @@ static void drawmeta_contents(Scene *scene,
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  for (seq = seqbase->first; seq; seq = seq->next) {
+  for (seq = meta_seqbase->first; seq; seq = seq->next) {
     chan_min = min_ii(chan_min, seq->machine);
     chan_max = max_ii(chan_max, seq->machine);
   }
@@ -613,7 +616,7 @@ static void drawmeta_contents(Scene *scene,
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   /* Draw only immediate children (1 level depth). */
-  for (seq = seqbase->first; seq; seq = seq->next) {
+  for (seq = meta_seqbase->first; seq; seq = seq->next) {
     const int startdisp = seq->startdisp + offset;
     const int enddisp = seq->enddisp + offset;
 
@@ -631,7 +634,7 @@ static void drawmeta_contents(Scene *scene,
         color3ubv_from_seq(scene, seq, show_strip_color_tag, col);
       }
 
-      if (SEQ_render_is_muted(channels, seqm) || SEQ_render_is_muted(&seqm->channels, seq)) {
+      if (SEQ_render_is_muted(channels, seqm) || SEQ_render_is_muted(meta_channels, seq)) {
         col[3] = 64;
       }
       else {
