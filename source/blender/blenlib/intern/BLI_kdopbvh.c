@@ -893,7 +893,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
     }
     else {
       /* should never happen! */
-      BLI_assert(0);
+      BLI_assert_unreachable();
 
       goto fail;
     }

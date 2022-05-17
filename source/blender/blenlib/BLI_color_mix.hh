@@ -1042,7 +1042,7 @@ BLI_INLINE Color BLI_mix_colors(const IMB_BlendMode tool,
     case IMB_BLEND_COLOR:
       return mix_color<Color, Traits>(a, b, alpha);
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       return Color(0, 0, 0, 0);
   }
 }
