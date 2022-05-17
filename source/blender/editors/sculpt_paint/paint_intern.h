@@ -9,9 +9,9 @@
 
 #include "BKE_paint.h"
 
-#include "BLI_rect.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_math.h"
+#include "BLI_rect.h"
 
 #include "DNA_scene_types.h"
 
@@ -87,8 +87,16 @@ typedef struct PaintStroke {
 
   float last_mouse_position[2];
   float last_world_space_position[3];
+
+  float mouse_cubic[4][2];
+  float world_cubic[4][3];
+
+  bool has_cubic_stroke;
+
   bool stroke_over_mesh;
+
   /* space distance covered so far */
+  int stroke_sample_index;
   float stroke_distance;
   float stroke_distance_t;  // divided by brush radius
 
@@ -109,6 +117,8 @@ typedef struct PaintStroke {
   float cached_size_pressure;
   /* last pressure will store last pressure value for use in interpolation for space strokes */
   float last_pressure;
+  float last_pressure2;
+
   int stroke_mode;
 
   float last_tablet_event_pressure;
@@ -607,6 +617,8 @@ void paint_delete_blur_kernel(BlurKernel *);
 
 /* paint curve defines */
 #define PAINT_CURVE_NUM_SEGMENTS 40
+
+bool paint_stroke_has_cubic(const PaintStroke *stroke);
 
 #ifdef __cplusplus
 }

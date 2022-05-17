@@ -714,6 +714,11 @@ typedef struct StrokeCache {
   // if nonzero, override brush sculpt tool
   int tool_override;
   BrushChannelSet *tool_override_channels;
+
+  float mouse_cubic[4][2];
+  float world_cubic[4][3];
+  float world_cubic_arclength;
+  bool has_cubic;
 } StrokeCache;
 
 /* Sculpt Filters */

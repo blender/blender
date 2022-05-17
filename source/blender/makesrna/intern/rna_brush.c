@@ -73,6 +73,7 @@ static const EnumPropertyItem rna_enum_brush_texture_slot_map_all_mode_items[] =
     {MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
     {MTEX_MAP_MODE_RANDOM, "RANDOM", 0, "Random", ""},
     {MTEX_MAP_MODE_STENCIL, "STENCIL", 0, "Stencil", ""},
+    //{MTEX_MAP_MODE_ROLL, "ROLL", 0, "Roll", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -4097,6 +4098,16 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 
   /* XXX: i don't think blender currently supports the ability to properly do a remappable modifier
    *      in the middle of a stroke */
+
+  prop = RNA_def_property(srna, "mouse_cubic", PROP_FLOAT, PROP_COORDS);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY);
+  RNA_def_property_array(prop, 8);
+  RNA_def_property_ui_text(prop, "Mouse", "");
+
+  prop = RNA_def_property(srna, "world_cubic", PROP_FLOAT, PROP_COORDS);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY);
+  RNA_def_property_array(prop, 12);
+  RNA_def_property_ui_text(prop, "Mouse", "");
 }
 
 void RNA_def_brush(BlenderRNA *brna)

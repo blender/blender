@@ -2307,6 +2307,13 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
 
       invradius = 1.0f / ups->pixel_radius;
     }
+    else if (mtex->brush_map_mode == MTEX_MAP_MODE_ROLL) {
+      // XXX implement me
+      x = point_2d[0] - ups->tex_mouse[0];
+      y = point_2d[1] - ups->tex_mouse[1];
+
+      invradius = 1.0f / ups->pixel_radius;
+    }
 
     x *= invradius;
     y *= invradius;

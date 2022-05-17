@@ -3663,6 +3663,174 @@ void SCULPT_calc_area_normal_and_center(
 
 /** \} */
 
+/*
+
+off period;
+
+procedure bez(a, b);
+  a + (b - a) * t;
+
+lin := bez(k1, k2);
+quad := bez(lin, sub(k2=k3, k1=k2, lin));
+
+cubic := bez(quad, sub(k3=k4, k2=k3, k1=k2, quad));
+dcubic := df(cubic, t);
+icubic := int(cubic, t);
+
+dx := sub(k1=x1, k2=x2, k3=x3, k4=x4, dcubic);
+dy := sub(k1=y1, k2=y2, k3=y3, k4=y4, dcubic);
+dz := sub(k1=z1, k2=z2, k3=z3, k4=z4, dcubic);
+darc := sqrt(dx**2 + dy**2 + dz**2);
+
+arcstep := darc*dt + 0.5*df(darc, t)*dt*dt;
+
+gentran
+begin
+declare <<
+x1,x2,x3,x4 : float;
+y1,y2,y3,y4 : float;
+z1,z2,z3,z4 : float;
+dt,t : float;
+>>;
+return eval(dcubic)
+end;
+
+on fort;
+cubic;
+dcubic;
+icubic;
+arcstep;
+off fort;
+
+*/
+
+ATTR_NO_OPT float dcubic(float k1, float k2, float k3, float k4, float t)
+{
+  return -3.0f * ((t - 1.0f) * (t - 1.0f) * k1 - k4 * t * t + (3.0f * t - 2.0f) * k3 * t -
+                  (3.0f * t - 1.0f) * (t - 1.0f) * k2);
+}
+
+ATTR_NO_OPT float cubic_arclen(const float control[4][3])
+{
+  const int steps = 2048;
+  float t = 0.0f, dt = 1.0f / (float)steps;
+  float arc = 0.0f;
+
+  for (int i = 0; i < steps; i++, t += dt) {
+    float dx = dcubic(control[0][0], control[1][0], control[2][0], control[3][0], t);
+    float dy = dcubic(control[0][1], control[1][1], control[2][1], control[3][1], t);
+    float dz = dcubic(control[0][2], control[1][2], control[2][2], control[3][2], t);
+
+    arc += sqrtf(dx * dx + dy * dy + dz * dz);
+  }
+
+  return arc;
+}
+/* Evaluate bezier position and tangent at a specific parameter value
+ * using the De Casteljau algorithm. */
+ATTR_NO_OPT static void evaluate_cubic_bezier(const float control[4][3],
+                                              float t,
+                                              float r_pos[3],
+                                              float r_tangent[3])
+{
+  float layer1[3][3];
+  interp_v3_v3v3(layer1[0], control[0], control[1], t);
+  interp_v3_v3v3(layer1[1], control[1], control[2], t);
+  interp_v3_v3v3(layer1[2], control[2], control[3], t);
+
+  float layer2[2][3];
+  interp_v3_v3v3(layer2[0], layer1[0], layer1[1], t);
+  interp_v3_v3v3(layer2[1], layer1[1], layer1[2], t);
+
+  sub_v3_v3v3(r_tangent, layer2[1], layer2[0]);
+  madd_v3_v3v3fl(r_pos, layer2[0], r_tangent, t);
+
+  r_tangent[0] = dcubic(control[0][0], control[1][0], control[2][0], control[3][0], t);
+  r_tangent[1] = dcubic(control[0][1], control[1][1], control[2][1], control[3][1], t);
+  r_tangent[2] = dcubic(control[0][2], control[1][2], control[2][2], control[3][2], t);
+}
+
+ATTR_NO_OPT static float cubic_uv_test(const float co[3], const float p[3], const float tan[3])
+{
+  float tmp[3];
+
+  sub_v3_v3v3(tmp, co, p);
+  return dot_v3v3(tmp, tan);
+}
+
+ATTR_NO_OPT static void calc_cubic_uv_v3(const float cubic[4][3],
+                                         const float co[3],
+                                         float r_out[2])
+{
+  const int steps = 5;
+  const int binary_steps = 5;
+  float dt = 1.0f / (float)steps, t = dt;
+
+  float lastp[3];
+  float p[3];
+  float tan[3];
+  float lasttan[3];
+
+  evaluate_cubic_bezier(cubic, 0.0f, p, tan);
+
+  float mindis = len_v3v3(co, cubic[0]);
+  float dis = len_v3v3(co, cubic[3]);
+
+  if (dis < mindis) {
+    mindis = dis;
+    r_out[0] = 1.0f;
+    r_out[1] = mindis;
+  }
+  else {
+    r_out[0] = 0.0f;
+    r_out[1] = mindis;
+  }
+
+  for (int i = 0; i < steps; i++, t += dt) {
+    copy_v3_v3(lastp, p);
+    copy_v3_v3(lasttan, tan);
+
+    evaluate_cubic_bezier(cubic, t, p, tan);
+
+    float f1 = cubic_uv_test(co, lastp, lasttan);
+    float f2 = cubic_uv_test(co, p, tan);
+
+    if ((f1 < 0.0f) == (f2 < 0.0f)) {
+      continue;
+    }
+
+    float midp[3], midtan[3];
+
+    float start = t - dt;
+    float end = t;
+    float mid;
+
+    for (int j = 0; j < binary_steps; j++) {
+      mid = (start + end) * 0.5f;
+
+      evaluate_cubic_bezier(cubic, mid, midp, midtan);
+      float fmid = cubic_uv_test(co, midp, midtan);
+
+      if ((fmid < 0.0f) == (f1 < 0.0f)) {
+        start = mid;
+        f1 = fmid;
+      }
+      else {
+        end = mid;
+        f2 = fmid;
+      }
+    }
+
+    dis = len_v3v3(midp, co);
+    if (dis < mindis) {
+      mindis = dis;
+
+      r_out[0] = mid;
+      r_out[1] = dis;
+    }
+  }
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Generic Brush Utilities
  * \{ */
@@ -3850,15 +4018,15 @@ static float brush_strength(const Sculpt *sd,
   }
 }
 
-float SCULPT_brush_strength_factor(SculptSession *ss,
-                                   const Brush *br,
-                                   const float brush_point[3],
-                                   const float len,
-                                   const float vno[3],
-                                   const float fno[3],
-                                   const float mask,
-                                   const SculptVertRef vertex_index,
-                                   const int thread_id)
+ATTR_NO_OPT float SCULPT_brush_strength_factor(SculptSession *ss,
+                                               const Brush *br,
+                                               const float brush_point[3],
+                                               const float len,
+                                               const float vno[3],
+                                               const float fno[3],
+                                               const float mask,
+                                               const SculptVertRef vertex_index,
+                                               const int thread_id)
 {
   StrokeCache *cache = ss->cache;
   const Scene *scene = cache->vc->scene;
@@ -3912,6 +4080,26 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
       avg = paint_get_tex_pixel(&br->mtex, x, y, ss->tex_pool, thread_id);
 
       avg += br->texture_sample_bias;
+    }
+    else if (mtex->brush_map_mode == MTEX_MAP_MODE_ROLL) {
+      float point_3d[3];
+      point_3d[2] = 0.0f;
+
+      calc_cubic_uv_v3(ss->cache->world_cubic, SCULPT_vertex_co_get(ss, vertex_index), point_3d);
+
+      if (point_3d[0] == 0.0f || point_3d[0] == 1.0f) {
+        return 0.0f;
+      }
+
+      point_3d[1] /= ss->cache->radius;
+
+      //point_3d[0] = ss->cache->input_mapping.stroke_t + point_3d[0] * ss->cache->world_cubic_arclength;
+      point_3d[0] -= floorf(point_3d[0]);
+
+      float color[4] = {point_3d[0], point_3d[1], 0.0f, 1.0f};
+      SCULPT_vertex_color_set(ss, vertex_index, color);
+
+      avg = BKE_brush_sample_tex_3d(scene, br, point_3d, rgba, 0, ss->tex_pool);
     }
     else {
       const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
@@ -6937,7 +7125,10 @@ static float sculpt_update_speed_average(SculptSession *ss, float speed)
   return speed / (float)tot;
 }
 /* Initialize the stroke cache variants from operator properties. */
-static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, PointerRNA *ptr)
+ATTR_NO_OPT static void sculpt_update_cache_variants(bContext *C,
+                                                     Sculpt *sd,
+                                                     Object *ob,
+                                                     PointerRNA *ptr)
 {
   Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -7082,6 +7273,36 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
 
   cache->input_mapping.stroke_t = cache->stroke_distance_t /
                                   10.0f; /*scale to a more user-friendly value*/
+
+  if (cache->has_cubic) {
+    RNA_float_get_array(ptr, "mouse_cubic", (float *)cache->mouse_cubic);
+
+    printf("\n");
+
+    /* Project mouse cubic into 3d space. */
+    for (int i = 0; i < 4; i++) {
+      if (!SCULPT_stroke_get_location(C, cache->world_cubic[i], cache->mouse_cubic[i])) {
+        float loc[3];
+
+        mul_v3_m4v3(loc, ob->obmat, cache->true_location);
+
+        ED_view3d_win_to_3d(CTX_wm_view3d(C),
+                            CTX_wm_region(C),
+                            cache->true_location,
+                            cache->mouse_cubic[i],
+                            cache->world_cubic[i]);
+      }
+
+#if 1
+      printf("%.2f, %.2f %.2f\n",
+             cache->world_cubic[i][0],
+             cache->world_cubic[i][1],
+             cache->world_cubic[i][2]);
+#endif
+    }
+
+    cache->world_cubic_arclength = cubic_arclen(cache->world_cubic);
+  }
 }
 
 /* Returns true if any of the smoothing modes are active (currently
@@ -7876,10 +8097,10 @@ static void sculpt_cache_dyntopo_settings(BrushChannelSet *chset,
   r_settings->constant_detail = BRUSHSET_GET_FLOAT(chset, dyntopo_constant_detail, input_data);
 };
 
-static void sculpt_stroke_update_step(bContext *C,
-                                      wmOperator *UNUSED(op),
-                                      struct PaintStroke *stroke,
-                                      PointerRNA *itemptr)
+ATTR_NO_OPT static void sculpt_stroke_update_step(bContext *C,
+                                                  wmOperator *UNUSED(op),
+                                                  struct PaintStroke *stroke,
+                                                  PointerRNA *itemptr)
 
 {
 
@@ -7891,6 +8112,8 @@ static void sculpt_stroke_update_step(bContext *C,
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
+
+  ss->cache->has_cubic = paint_stroke_has_cubic(stroke);
 
   if (ss->cache->channels_final) {
     BKE_brush_channelset_free(ss->cache->channels_final);
