@@ -1357,7 +1357,6 @@ bool BLO_write_file(Main *mainvar,
 
   /* Remapping of relative paths to new file location. */
   if (remap_mode != BLO_WRITE_PATH_REMAP_NONE) {
-
     if (remap_mode == BLO_WRITE_PATH_REMAP_RELATIVE) {
       /* Make all relative as none of the existing paths can be relative in an unsaved document. */
       if (relbase_valid == false) {
@@ -1396,6 +1395,13 @@ bool BLO_write_file(Main *mainvar,
     }
 
     if (remap_mode != BLO_WRITE_PATH_REMAP_NONE) {
+      /* Some path processing (e.g. with libraries) may use the current `main->filepath`, if this
+       * is not matching the path currently used for saving, unexpected paths corruptions can
+       * happen. See T98201. */
+      char mainvar_filepath_orig[FILE_MAX];
+      STRNCPY(mainvar_filepath_orig, mainvar->filepath);
+      STRNCPY(mainvar->filepath, filepath);
+
       /* Check if we need to backup and restore paths. */
       if (UNLIKELY(use_save_as_copy)) {
         path_list_backup = BKE_bpath_list_backup(mainvar, path_list_flag);
@@ -1420,6 +1426,8 @@ bool BLO_write_file(Main *mainvar,
           BLI_assert_unreachable(); /* Unreachable. */
           break;
       }
+
+      STRNCPY(mainvar->filepath, mainvar_filepath_orig);
     }
   }
 
