@@ -231,43 +231,51 @@ static void unlink_material_fn(bContext *UNUSED(C),
   Material **matar = nullptr;
   int a, totcol = 0;
 
-  if (GS(tsep->id->name) == ID_OB) {
-    Object *ob = (Object *)tsep->id;
-    totcol = ob->totcol;
-    matar = ob->mat;
-  }
-  else if (GS(tsep->id->name) == ID_ME) {
-    Mesh *me = (Mesh *)tsep->id;
-    totcol = me->totcol;
-    matar = me->mat;
-  }
-  else if (GS(tsep->id->name) == ID_CU_LEGACY) {
-    Curve *cu = (Curve *)tsep->id;
-    totcol = cu->totcol;
-    matar = cu->mat;
-  }
-  else if (GS(tsep->id->name) == ID_MB) {
-    MetaBall *mb = (MetaBall *)tsep->id;
-    totcol = mb->totcol;
-    matar = mb->mat;
-  }
-  else if (GS(tsep->id->name) == ID_CV) {
-    Curves *curves = (Curves *)tsep->id;
-    totcol = curves->totcol;
-    matar = curves->mat;
-  }
-  else if (GS(tsep->id->name) == ID_PT) {
-    PointCloud *pointcloud = (PointCloud *)tsep->id;
-    totcol = pointcloud->totcol;
-    matar = pointcloud->mat;
-  }
-  else if (GS(tsep->id->name) == ID_VO) {
-    Volume *volume = (Volume *)tsep->id;
-    totcol = volume->totcol;
-    matar = volume->mat;
-  }
-  else {
-    BLI_assert(0);
+  switch (GS(tsep->id->name)) {
+    case ID_OB: {
+      Object *ob = (Object *)tsep->id;
+      totcol = ob->totcol;
+      matar = ob->mat;
+      break;
+    }
+    case ID_ME: {
+      Mesh *me = (Mesh *)tsep->id;
+      totcol = me->totcol;
+      matar = me->mat;
+      break;
+    }
+    case ID_CU_LEGACY: {
+      Curve *cu = (Curve *)tsep->id;
+      totcol = cu->totcol;
+      matar = cu->mat;
+      break;
+    }
+    case ID_MB: {
+      MetaBall *mb = (MetaBall *)tsep->id;
+      totcol = mb->totcol;
+      matar = mb->mat;
+      break;
+    }
+    case ID_CV: {
+      Curves *curves = (Curves *)tsep->id;
+      totcol = curves->totcol;
+      matar = curves->mat;
+      break;
+    }
+    case ID_PT: {
+      PointCloud *pointcloud = (PointCloud *)tsep->id;
+      totcol = pointcloud->totcol;
+      matar = pointcloud->mat;
+      break;
+    }
+    case ID_VO: {
+      Volume *volume = (Volume *)tsep->id;
+      totcol = volume->totcol;
+      matar = volume->mat;
+      break;
+    }
+    default:
+      BLI_assert_unreachable();
   }
 
   if (LIKELY(matar != nullptr)) {
@@ -492,7 +500,7 @@ static int outliner_scene_operation_exec(bContext *C, wmOperator *op)
     ED_undo_push(C, "Delete Scene(s)");
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
     return OPERATOR_CANCELLED;
   }
 
@@ -1720,47 +1728,54 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 
   event = RNA_enum_get(op->ptr, "type");
 
-  if (event == OL_OP_SELECT) {
-    Scene *sce = scene; /* To be able to delete, scenes are set... */
-    outliner_do_object_operation(
-        C, op->reports, scene, space_outliner, &space_outliner->tree, object_select_fn);
-    if (scene != sce) {
-      WM_window_set_active_scene(bmain, C, win, sce);
-    }
+  switch (event) {
+    case OL_OP_SELECT: {
+      Scene *sce = scene; /* To be able to delete, scenes are set... */
+      outliner_do_object_operation(
+          C, op->reports, scene, space_outliner, &space_outliner->tree, object_select_fn);
+      /* FIXME: This is most certainly broken, maybe check should rather be
+       * `if (CTX_data_scene(C) != scene)` ? */
+      if (scene != sce) {
+        WM_window_set_active_scene(bmain, C, win, sce);
+      }
 
-    str = "Select Objects";
-    selection_changed = true;
-  }
-  else if (event == OL_OP_SELECT_HIERARCHY) {
-    Scene *sce = scene; /* To be able to delete, scenes are set... */
-    outliner_do_object_operation_ex(C,
-                                    op->reports,
-                                    scene,
-                                    space_outliner,
-                                    &space_outliner->tree,
-                                    object_select_hierarchy_fn,
-                                    nullptr,
-                                    false);
-    if (scene != sce) {
-      WM_window_set_active_scene(bmain, C, win, sce);
+      str = "Select Objects";
+      selection_changed = true;
+      break;
     }
-    str = "Select Object Hierarchy";
-    selection_changed = true;
-  }
-  else if (event == OL_OP_DESELECT) {
-    outliner_do_object_operation(
-        C, op->reports, scene, space_outliner, &space_outliner->tree, object_deselect_fn);
-    str = "Deselect Objects";
-    selection_changed = true;
-  }
-  else if (event == OL_OP_RENAME) {
-    outliner_do_object_operation(
-        C, op->reports, scene, space_outliner, &space_outliner->tree, item_rename_fn);
-    str = "Rename Object";
-  }
-  else {
-    BLI_assert(0);
-    return OPERATOR_CANCELLED;
+    case OL_OP_SELECT_HIERARCHY: {
+      Scene *sce = scene; /* To be able to delete, scenes are set... */
+      outliner_do_object_operation_ex(C,
+                                      op->reports,
+                                      scene,
+                                      space_outliner,
+                                      &space_outliner->tree,
+                                      object_select_hierarchy_fn,
+                                      nullptr,
+                                      false);
+      /* FIXME: This is most certainly broken, maybe check should rather be
+       * `if (CTX_data_scene(C) != scene)` ? */
+      if (scene != sce) {
+        WM_window_set_active_scene(bmain, C, win, sce);
+      }
+      str = "Select Object Hierarchy";
+      selection_changed = true;
+      break;
+    }
+    case OL_OP_DESELECT:
+      outliner_do_object_operation(
+          C, op->reports, scene, space_outliner, &space_outliner->tree, object_deselect_fn);
+      str = "Deselect Objects";
+      selection_changed = true;
+      break;
+    case OL_OP_RENAME:
+      outliner_do_object_operation(
+          C, op->reports, scene, space_outliner, &space_outliner->tree, item_rename_fn);
+      str = "Rename Object";
+      break;
+    default:
+      BLI_assert_unreachable();
+      return OPERATOR_CANCELLED;
   }
 
   if (selection_changed) {
