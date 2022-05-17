@@ -133,10 +133,18 @@ static void rna_Curves_update_data(struct Main *UNUSED(bmain),
                                    PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
-
-  /* cheating way for importers to avoid slow updates */
+  /* Avoid updates for importers creating curves. */
   if (id->us > 0) {
     DEG_id_tag_update(id, 0);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+  }
+}
+
+void rna_Curves_update_draw(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  ID *id = ptr->owner_id;
+  /* Avoid updates for importers creating curves. */
+  if (id->us > 0) {
     WM_main_add_notifier(NC_GEOM | ND_DATA, id);
   }
 }
@@ -278,17 +286,17 @@ static void rna_def_curves(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_X);
   RNA_def_property_ui_text(prop, "X", "Enable symmetry in the X axis");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   prop = RNA_def_property(srna, "use_mirror_y", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_Y);
   RNA_def_property_ui_text(prop, "Y", "Enable symmetry in the Y axis");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   prop = RNA_def_property(srna, "use_mirror_z", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_Z);
   RNA_def_property_ui_text(prop, "Z", "Enable symmetry in the Z axis");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   /* attributes */
   rna_def_attributes_common(srna);
