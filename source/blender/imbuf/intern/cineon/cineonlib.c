@@ -393,7 +393,7 @@ LogImageFile *cineonCreate(
   cineon->referenceBlack = 95.0f;
   cineon->gamma = 1.7f;
 
-  shortFilename = strrchr(filepath, '/');
+  shortFilename = strrchr(filepath, PATHSEP_CHAR);
   if (shortFilename == NULL) {
     shortFilename = filepath;
   }

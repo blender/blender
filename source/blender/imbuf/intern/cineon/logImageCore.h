@@ -19,6 +19,12 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
 
+#ifdef _WIN32
+#  define PATHSEP_CHAR '\\'
+#else
+#  define PATHSEP_CHAR '/'
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

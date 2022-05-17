@@ -502,7 +502,7 @@ LogImageFile *dpxCreate(const char *filepath,
     dpx->gamma = 1.7f;
   }
 
-  shortFilename = strrchr(filepath, '/');
+  shortFilename = strrchr(filepath, PATHSEP_CHAR);
   if (shortFilename == NULL) {
     shortFilename = filepath;
   }
