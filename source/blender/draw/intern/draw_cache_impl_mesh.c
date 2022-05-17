@@ -1822,9 +1822,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
     do_uvcage = !editmesh_eval_final->runtime.is_original;
   }
 
-  const int required_mode = BKE_subsurf_modifier_eval_required_mode(DRW_state_is_scene_render(),
-                                                                    is_editmode);
-  const bool do_subdivision = BKE_subsurf_modifier_can_do_gpu_subdiv(scene, ob, me, required_mode);
+  const bool do_subdivision = BKE_subsurf_modifier_has_gpu_subdiv(me);
 
   MeshBufferList *mbuflist = &cache->final.buff;
 
