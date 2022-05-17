@@ -887,7 +887,7 @@ void ACTION_OT_select_circle(wmOperatorType *ot)
   ot->exec = action_circle_select_exec;
   ot->poll = ED_operator_action_active;
   ot->cancel = WM_gesture_circle_cancel;
-  ot->get_name = ED_select_pick_get_name;
+  ot->get_name = ED_select_circle_get_name;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;

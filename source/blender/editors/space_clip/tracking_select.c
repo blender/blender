@@ -830,7 +830,7 @@ void CLIP_OT_select_circle(wmOperatorType *ot)
   ot->modal = WM_gesture_circle_modal;
   ot->exec = circle_select_exec;
   ot->poll = ED_space_clip_tracking_poll;
-  ot->get_name = ED_select_pick_get_name;
+  ot->get_name = ED_select_circle_get_name;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
