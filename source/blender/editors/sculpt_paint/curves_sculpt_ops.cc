@@ -92,7 +92,7 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bConte
     case CURVES_SCULPT_TOOL_ADD:
       return new_add_operation(C, op.reports);
     case CURVES_SCULPT_TOOL_GROW_SHRINK:
-      return new_grow_shrink_operation(mode, &C);
+      return new_grow_shrink_operation(mode, C);
   }
   BLI_assert_unreachable();
   return {};
@@ -138,7 +138,7 @@ static void stroke_update_step(bContext *C,
   }
 
   if (op_data->operation) {
-    op_data->operation->on_stroke_extended(C, stroke_extension);
+    op_data->operation->on_stroke_extended(*C, stroke_extension);
   }
 }
 

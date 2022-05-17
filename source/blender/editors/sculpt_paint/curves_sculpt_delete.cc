@@ -57,24 +57,23 @@ class DeleteOperation : public CurvesSculptStrokeOperation {
   friend struct DeleteOperationExecutor;
 
  public:
-  void on_stroke_extended(bContext *C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
 };
 
 struct DeleteOperationExecutor {
   DeleteOperation *self_ = nullptr;
-  bContext *C_ = nullptr;
-  Depsgraph *depsgraph_ = nullptr;
-  Scene *scene_ = nullptr;
-  Object *object_ = nullptr;
+  const Depsgraph *depsgraph_ = nullptr;
+  const Scene *scene_ = nullptr;
   ARegion *region_ = nullptr;
-  View3D *v3d_ = nullptr;
-  RegionView3D *rv3d_ = nullptr;
+  const View3D *v3d_ = nullptr;
+  const RegionView3D *rv3d_ = nullptr;
 
+  Object *object_ = nullptr;
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
-  CurvesSculpt *curves_sculpt_ = nullptr;
-  Brush *brush_ = nullptr;
+  const CurvesSculpt *curves_sculpt_ = nullptr;
+  const Brush *brush_ = nullptr;
   float brush_radius_re_;
 
   float2 brush_pos_re_;
@@ -83,24 +82,23 @@ struct DeleteOperationExecutor {
   float4x4 curves_to_world_mat_;
   float4x4 world_to_curves_mat_;
 
-  void execute(DeleteOperation &self, bContext *C, const StrokeExtension &stroke_extension)
+  void execute(DeleteOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {
     BLI_SCOPED_DEFER([&]() { self.brush_pos_prev_re_ = stroke_extension.mouse_position; });
 
     self_ = &self;
-    C_ = C;
-    depsgraph_ = CTX_data_depsgraph_pointer(C);
-    scene_ = CTX_data_scene(C);
-    object_ = CTX_data_active_object(C);
-    region_ = CTX_wm_region(C);
-    v3d_ = CTX_wm_view3d(C);
-    rv3d_ = CTX_wm_region_view3d(C);
+    depsgraph_ = CTX_data_depsgraph_pointer(&C);
+    scene_ = CTX_data_scene(&C);
+    object_ = CTX_data_active_object(&C);
+    region_ = CTX_wm_region(&C);
+    v3d_ = CTX_wm_view3d(&C);
+    rv3d_ = CTX_wm_region_view3d(&C);
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
 
     curves_sculpt_ = scene_->toolsettings->curves_sculpt;
-    brush_ = BKE_paint_brush(&curves_sculpt_->paint);
+    brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
     brush_radius_re_ = BKE_brush_size_get(scene_, brush_);
 
     brush_pos_re_ = stroke_extension.mouse_position;
@@ -248,14 +246,15 @@ struct DeleteOperationExecutor {
   void initialize_spherical_brush_reference_point()
   {
     std::optional<CurvesBrush3D> brush_3d = sample_curves_3d_brush(
-        *C_, *object_, brush_pos_re_, brush_radius_re_);
+        *depsgraph_, *region_, *v3d_, *rv3d_, *object_, brush_pos_re_, brush_radius_re_);
     if (brush_3d.has_value()) {
       self_->brush_3d_ = *brush_3d;
     }
   }
 };
 
-void DeleteOperation::on_stroke_extended(bContext *C, const StrokeExtension &stroke_extension)
+void DeleteOperation::on_stroke_extended(const bContext &C,
+                                         const StrokeExtension &stroke_extension)
 {
   DeleteOperationExecutor executor;
   executor.execute(*this, C, stroke_extension);
