@@ -134,7 +134,8 @@ def check_constraints(self, input_arm, expected_arm, bone, exp_bone):
                                  "Missmatching constraint boolean in pose.bones[%s].constraints[%s].%s" % (
                                      bone.name, const_name, var))
             else:
-                msg = "Missmatching constraint value in pose.bones[%s].constraints[%s].%s" % (bone.name, const_name, var)
+                msg = "Missmatching constraint value in pose.bones[%s].constraints[%s].%s" % (
+                    bone.name, const_name, var)
                 self.assertAlmostEqual(value, exp_value, places=6, msg=msg)
 
 

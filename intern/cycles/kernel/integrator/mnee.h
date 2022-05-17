@@ -534,14 +534,8 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
       tv.dp_dv = mv.dp_dv;
 
       /* Setup corrected manifold vertex. */
-      mnee_setup_manifold_vertex(kg,
-                                 &tv,
-                                 mv.bsdf,
-                                 mv.eta,
-                                 mv.n_offset,
-                                 &projection_ray,
-                                 &projection_isect,
-                                 sd_vtx);
+      mnee_setup_manifold_vertex(
+          kg, &tv, mv.bsdf, mv.eta, mv.n_offset, &projection_ray, &projection_isect, sd_vtx);
 
       /* Fail newton solve if we are not making progress, probably stuck trying to move off the
        * edge of the mesh. */
@@ -1013,8 +1007,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
           }
 
           /* Setup differential geometry on vertex. */
-          mnee_setup_manifold_vertex(
-              kg, &mv, bsdf, eta, h, &probe_ray, &probe_isect, sd_mnee);
+          mnee_setup_manifold_vertex(kg, &mv, bsdf, eta, h, &probe_ray, &probe_isect, sd_mnee);
           break;
         }
       }
