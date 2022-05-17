@@ -1822,7 +1822,7 @@ void BKE_mesh_mselect_validate(Mesh *me)
         break;
       }
       default: {
-        BLI_assert(0);
+        BLI_assert_unreachable();
         break;
       }
     }

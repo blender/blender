@@ -3652,7 +3652,7 @@ void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
       chunksize = bm_mesh_chunksize_default.totface;
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       chunksize = 512;
       break;
   }

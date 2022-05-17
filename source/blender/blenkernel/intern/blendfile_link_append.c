@@ -1125,7 +1125,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
             &LOG, "Unexpected unset append action for '%s' ID, assuming 'keep link'", id->name);
         break;
       default:
-        BLI_assert(0);
+        BLI_assert_unreachable();
     }
 
     if (local_appended_new_id != NULL) {

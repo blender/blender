@@ -114,32 +114,35 @@ static void icon_free(void *val)
 
 static void icon_free_data(int icon_id, Icon *icon)
 {
-  if (icon->obj_type == ICON_DATA_ID) {
-    ((ID *)(icon->obj))->icon_id = 0;
-  }
-  else if (icon->obj_type == ICON_DATA_IMBUF) {
-    ImBuf *imbuf = (ImBuf *)icon->obj;
-    if (imbuf) {
-      IMB_freeImBuf(imbuf);
+  switch (icon->obj_type) {
+    case ICON_DATA_ID:
+      ((ID *)(icon->obj))->icon_id = 0;
+      break;
+    case ICON_DATA_IMBUF: {
+      ImBuf *imbuf = (ImBuf *)icon->obj;
+      if (imbuf) {
+        IMB_freeImBuf(imbuf);
+      }
+      break;
     }
-  }
-  else if (icon->obj_type == ICON_DATA_PREVIEW) {
-    ((PreviewImage *)(icon->obj))->icon_id = 0;
-  }
-  else if (icon->obj_type == ICON_DATA_GPLAYER) {
-    ((bGPDlayer *)(icon->obj))->runtime.icon_id = 0;
-  }
-  else if (icon->obj_type == ICON_DATA_GEOM) {
-    ((struct Icon_Geom *)(icon->obj))->icon_id = 0;
-  }
-  else if (icon->obj_type == ICON_DATA_STUDIOLIGHT) {
-    StudioLight *sl = (StudioLight *)icon->obj;
-    if (sl != nullptr) {
-      BKE_studiolight_unset_icon_id(sl, icon_id);
+    case ICON_DATA_PREVIEW:
+      ((PreviewImage *)(icon->obj))->icon_id = 0;
+      break;
+    case ICON_DATA_GPLAYER:
+      ((bGPDlayer *)(icon->obj))->runtime.icon_id = 0;
+      break;
+    case ICON_DATA_GEOM:
+      ((struct Icon_Geom *)(icon->obj))->icon_id = 0;
+      break;
+    case ICON_DATA_STUDIOLIGHT: {
+      StudioLight *sl = (StudioLight *)icon->obj;
+      if (sl != nullptr) {
+        BKE_studiolight_unset_icon_id(sl, icon_id);
+      }
+      break;
     }
-  }
-  else {
-    BLI_assert(0);
+    default:
+      BLI_assert_unreachable();
   }
 }
 

@@ -222,7 +222,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_MPROPCOL_LOOP:
       return CD_PROP_COLOR;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
   }
   return 0; /* Should never be reached! */
 }
