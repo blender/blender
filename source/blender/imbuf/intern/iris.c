@@ -854,10 +854,9 @@ static bool output_iris(const char *filepath,
           len = compressrow((const uchar *)zptr, rlebuf, CHANOFFSET(z - 4), xsize);
         }
       }
-      if (len > rlebuflen) {
-        fprintf(stderr, "output_iris: rlebuf is too small - bad poop\n");
-        exit(1);
-      }
+
+      BLI_assert_msg(len <= rlebuflen, "The length calculated for 'rlebuflen' was too small!");
+
       goodwrite *= fwrite(rlebuf, len, 1, outf);
       starttab[y + z * ysize] = pos;
       lengthtab[y + z * ysize] = len;
