@@ -757,13 +757,12 @@ static bool lineart_edge_match(LineartTriangle *tri, LineartEdge *e, int v1, int
           (tri->v[v2] == e->v1 && tri->v[v1] == e->v2));
 }
 
-static void lineart_discard_duplicated_edges(LineartEdge *old_e, int v1id, int v2id)
+static void lineart_discard_duplicated_edges(LineartEdge *old_e)
 {
   LineartEdge *e = old_e;
-  e++;
-  while (e->v1_obindex == v1id && e->v2_obindex == v2id) {
-    e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
+  while (e->flags & LRT_EDGE_FLAG_NEXT_IS_DUPLICATION) {
     e++;
+    e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
   }
 }
 
@@ -832,7 +831,7 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
     old_e = ta->e[e_num]; \
     new_flag = old_e->flags; \
     old_e->flags = LRT_EDGE_FLAG_CHAIN_PICKED; \
-    lineart_discard_duplicated_edges(old_e, old_e->v1_obindex, old_e->v2_obindex); \
+    lineart_discard_duplicated_edges(old_e); \
     INCREASE_EDGE \
     e->v1 = (v1_link); \
     e->v2 = (v2_link); \
@@ -853,15 +852,15 @@ static void lineart_triangle_cull_single(LineartRenderBuffer *rb,
 #define REMOVE_TRIANGLE_EDGE \
   if (ta->e[0]) { \
     ta->e[0]->flags = LRT_EDGE_FLAG_CHAIN_PICKED; \
-    lineart_discard_duplicated_edges(ta->e[0], ta->e[0]->v1_obindex, ta->e[0]->v2_obindex); \
+    lineart_discard_duplicated_edges(ta->e[0]); \
   } \
   if (ta->e[1]) { \
     ta->e[1]->flags = LRT_EDGE_FLAG_CHAIN_PICKED; \
-    lineart_discard_duplicated_edges(ta->e[1], ta->e[1]->v1_obindex, ta->e[1]->v2_obindex); \
+    lineart_discard_duplicated_edges(ta->e[1]); \
   } \
   if (ta->e[2]) { \
     ta->e[2]->flags = LRT_EDGE_FLAG_CHAIN_PICKED; \
-    lineart_discard_duplicated_edges(ta->e[2], ta->e[2]->v1_obindex, ta->e[2]->v2_obindex); \
+    lineart_discard_duplicated_edges(ta->e[2]); \
   }
 
   switch (in0 + in1 + in2) {
@@ -2188,7 +2187,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info, LineartRend
       continue;
     }
 
-    bool edge_added = false;
+    LineartEdge *edge_added = NULL;
 
     /* See eLineartEdgeFlag for details. */
     for (int flag_bit = 0; flag_bit < LRT_EDGE_FLAG_TYPE_MAX_BITS; flag_bit++) {
@@ -2221,7 +2220,11 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info, LineartRend
         lineart_add_edge_to_list_thread(ob_info, la_edge);
       }
 
-      edge_added = true;
+      if (edge_added) {
+        edge_added->flags |= LRT_EDGE_FLAG_NEXT_IS_DUPLICATION;
+      }
+
+      edge_added = la_edge;
 
       la_edge++;
       la_seg++;

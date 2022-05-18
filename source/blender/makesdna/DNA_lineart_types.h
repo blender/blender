@@ -57,6 +57,8 @@ typedef enum eLineartEdgeFlag {
 
   /** For object loading code to use only. */
   LRT_EDGE_FLAG_INHIBIT = (1 << 14),
+  /** For discarding duplicated edge types in culling stage. */
+  LRT_EDGE_FLAG_NEXT_IS_DUPLICATION = (1 << 15),
 } eLineartEdgeFlag;
 
 #define LRT_EDGE_FLAG_ALL_TYPE 0x3f
