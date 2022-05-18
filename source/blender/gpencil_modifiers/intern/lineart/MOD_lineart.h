@@ -204,6 +204,12 @@ enum eLineArtTileRecursiveLimit {
 #define LRT_TILE_SPLITTING_TRIANGLE_LIMIT 100
 #define LRT_TILE_EDGE_COUNT_INITIAL 32
 
+typedef struct LineartPendingEdges {
+  LineartEdge **array;
+  int max;
+  int next;
+} LineartPendingEdges;
+
 typedef struct LineartRenderBuffer {
   struct LineartRenderBuffer *prev, *next;
 
@@ -248,15 +254,9 @@ typedef struct LineartRenderBuffer {
 
   int triangle_size;
 
-  /* Although using ListBase here, LineartEdge is single linked list.
-   * list.last is used to store worker progress along the list.
-   * See lineart_main_occlusion_begin() for more info. */
-  ListBase contour;
-  ListBase intersection;
-  ListBase crease;
-  ListBase material;
-  ListBase edge_mark;
-  ListBase floating;
+  /* Note: Data inside #pending_edges are allocated with MEM_xxx call instead of in pool. */
+  struct LineartPendingEdges pending_edges;
+  int scheduled_count;
 
   ListBase chains;
 
@@ -362,14 +362,9 @@ typedef struct LineartRenderTaskInfo {
 
   int thread_id;
 
-  /* These lists only denote the part of the main edge list that the thread should iterate over.
-   * Be careful to not iterate outside of these bounds as it is not thread safe to do so. */
-  ListBase contour;
-  ListBase intersection;
-  ListBase crease;
-  ListBase material;
-  ListBase edge_mark;
-  ListBase floating;
+  /* #pending_edges here only stores a refernce to a portion in LineartRenderbuffer::pending_edges,
+   * assigned by the occlusion scheduler. */
+  struct LineartPendingEdges pending_edges;
 
 } LineartRenderTaskInfo;
 
@@ -387,14 +382,8 @@ typedef struct LineartObjectInfo {
 
   bool free_use_mesh;
 
-  /* Threads will add lines inside here, when all threads are done, we combine those into the
-   * ones in LineartRenderBuffer. */
-  ListBase contour;
-  ListBase intersection;
-  ListBase crease;
-  ListBase material;
-  ListBase edge_mark;
-  ListBase floating;
+  /* Note: Data inside #pending_edges are allocated with MEM_xxx call instead of in pool. */
+  struct LineartPendingEdges pending_edges;
 
 } LineartObjectInfo;
 
