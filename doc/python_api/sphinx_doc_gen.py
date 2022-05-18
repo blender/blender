@@ -1456,6 +1456,12 @@ def pyrna2sphinx(basepath):
             pyprop2sphinx("   ", fw, identifier, py_prop)
         del py_properties, py_prop
 
+        # C/Python attributes: `GetSetDescriptorType`.
+        key = descr = None
+        for key, descr in sorted(struct.get_py_c_properties_getset()):
+            py_descr2sphinx("   ", fw, descr, "bpy.types", struct_id, key)
+        del key, descr
+
         for func in struct.functions:
             args_str = ", ".join(prop.get_arg_default(force=False) for prop in func.args)
 
