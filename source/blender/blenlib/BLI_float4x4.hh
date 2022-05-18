@@ -246,6 +246,25 @@ struct float4x4 {
     }
     return h;
   }
+
+  friend std::ostream &operator<<(std::ostream &stream, const float4x4 &mat)
+  {
+    char fchar[16];
+    stream << "(\n";
+    for (int i = 0; i < 4; i++) {
+      stream << "(";
+      for (int j = 0; j < 4; j++) {
+        snprintf(fchar, sizeof(fchar), "%11.6f", mat[j][i]);
+        stream << fchar;
+        if (i != 3) {
+          stream << ", ";
+        }
+      }
+      stream << ")\n";
+    }
+    stream << ")\n";
+    return stream;
+  }
 };
 
 }  // namespace blender
