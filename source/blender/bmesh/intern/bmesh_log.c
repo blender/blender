@@ -288,6 +288,8 @@ static void bm_log_verts_restore(BMesh *bm, BMLog *log, GHash *verts)
 static void bm_log_faces_restore(BMesh *bm, BMLog *log, GHash *faces)
 {
   GHashIterator gh_iter;
+  const int cd_face_sets = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
+
   GHASH_ITER (gh_iter, faces) {
     void *key = BLI_ghashIterator_getKey(&gh_iter);
     BMLogFace *lf = BLI_ghashIterator_getValue(&gh_iter);
@@ -301,6 +303,11 @@ static void bm_log_faces_restore(BMesh *bm, BMLog *log, GHash *faces)
     f = BM_face_create_verts(bm, v, 3, NULL, BM_CREATE_NOP, true);
     f->head.hflag = lf->hflag;
     bm_log_face_id_set(log, f, POINTER_AS_UINT(key));
+
+    /* Ensure face sets have valid values.  Fixes T80174. */
+    if (cd_face_sets != -1) {
+      BM_ELEM_CD_SET_INT(f, cd_face_sets, 1);
+    }
   }
 }
 

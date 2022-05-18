@@ -29,7 +29,7 @@
 // Author: vitus@google.com (Michael Vitus)
 
 // This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 
 #if defined(CERES_USE_OPENMP)
 
@@ -50,7 +50,7 @@ void ParallelFor(ContextImpl* context,
                  int num_threads,
                  const std::function<void(int)>& function) {
   CHECK_GT(num_threads, 0);
-  CHECK(context != NULL);
+  CHECK(context != nullptr);
   if (end <= start) {
     return;
   }
@@ -69,7 +69,7 @@ void ParallelFor(ContextImpl* context,
                  int end,
                  int num_threads,
                  const std::function<void(int thread_id, int i)>& function) {
-  CHECK(context != NULL);
+  CHECK(context != nullptr);
 
   ThreadTokenProvider thread_token_provider(num_threads);
   ParallelFor(context, start, end, num_threads, [&](int i) {

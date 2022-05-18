@@ -1888,7 +1888,7 @@ void OBJECT_OT_collection_external_asset_drop(wmOperatorType *ot)
 
   ED_object_add_generic_props(ot, false);
 
-  /* Important: Instancing option. Intentionally remembered across executions (no #PROP_SKIP_SAVE).
+  /* IMPORTANT: Instancing option. Intentionally remembered across executions (no #PROP_SKIP_SAVE).
    */
   RNA_def_boolean(ot->srna,
                   "use_instance",

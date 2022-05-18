@@ -2,7 +2,7 @@
 
 #include "obj_import_string_utils.hh"
 
-/* Note: we could use C++17 <charconv> from_chars to parse
+/* NOTE: we could use C++17 <charconv> from_chars to parse
  * floats, but even if some compilers claim full support,
  * their standard libraries are not quite there yet.
  * LLVM/libc++ only has a float parser since LLVM 14,
@@ -38,62 +38,63 @@ static bool is_whitespace(char c)
   return c <= ' ' || c == '\\';
 }
 
-StringRef drop_whitespace(StringRef str)
+const char *drop_whitespace(const char *p, const char *end)
 {
-  while (!str.is_empty() && is_whitespace(str[0])) {
-    str = str.drop_prefix(1);
+  while (p < end && is_whitespace(*p)) {
+    ++p;
   }
-  return str;
+  return p;
 }
 
-StringRef drop_non_whitespace(StringRef str)
+const char *drop_non_whitespace(const char *p, const char *end)
 {
-  while (!str.is_empty() && !is_whitespace(str[0])) {
-    str = str.drop_prefix(1);
+  while (p < end && !is_whitespace(*p)) {
+    ++p;
   }
-  return str;
+  return p;
 }
 
-static StringRef drop_plus(StringRef str)
+static const char *drop_plus(const char *p, const char *end)
 {
-  if (!str.is_empty() && str[0] == '+') {
-    str = str.drop_prefix(1);
+  if (p < end && *p == '+') {
+    ++p;
   }
-  return str;
+  return p;
 }
 
-StringRef parse_float(StringRef str, float fallback, float &dst, bool skip_space)
+const char *parse_float(
+    const char *p, const char *end, float fallback, float &dst, bool skip_space)
 {
   if (skip_space) {
-    str = drop_whitespace(str);
+    p = drop_whitespace(p, end);
   }
-  str = drop_plus(str);
-  fast_float::from_chars_result res = fast_float::from_chars(str.begin(), str.end(), dst);
+  p = drop_plus(p, end);
+  fast_float::from_chars_result res = fast_float::from_chars(p, end, dst);
   if (res.ec == std::errc::invalid_argument || res.ec == std::errc::result_out_of_range) {
     dst = fallback;
   }
-  return StringRef(res.ptr, str.end());
+  return res.ptr;
 }
 
-StringRef parse_floats(StringRef str, float fallback, float *dst, int count)
+const char *parse_floats(const char *p, const char *end, float fallback, float *dst, int count)
 {
   for (int i = 0; i < count; ++i) {
-    str = parse_float(str, fallback, dst[i]);
+    p = parse_float(p, end, fallback, dst[i]);
   }
-  return str;
+  return p;
 }
 
-StringRef parse_int(StringRef str, int fallback, int &dst, bool skip_space)
+const char *parse_int(const char *p, const char *end, int fallback, int &dst, bool skip_space)
 {
   if (skip_space) {
-    str = drop_whitespace(str);
+    p = drop_whitespace(p, end);
   }
-  str = drop_plus(str);
-  std::from_chars_result res = std::from_chars(str.begin(), str.end(), dst);
+  p = drop_plus(p, end);
+  std::from_chars_result res = std::from_chars(p, end, dst);
   if (res.ec == std::errc::invalid_argument || res.ec == std::errc::result_out_of_range) {
     dst = fallback;
   }
-  return StringRef(res.ptr, str.end());
+  return res.ptr;
 }
 
 }  // namespace blender::io::obj

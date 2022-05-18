@@ -1200,34 +1200,17 @@ def pycontext2sphinx(basepath):
     del write_contex_cls
     # end
 
-    # nasty, get strings directly from Blender because there is no other way to get it
-    import ctypes
-
-    context_strings = (
-        "screen_context_dir",
-        "view3d_context_dir",
-        "buttons_context_dir",
-        "image_context_dir",
-        "node_context_dir",
-        "text_context_dir",
-        "clip_context_dir",
-        "sequencer_context_dir",
-        "file_context_dir",
-    )
+    # Internal API call only intended to be used to extract context members.
+    from _bpy import context_members
+    context_member_map = context_members()
+    del context_members
 
     # Track unique for `context_strings` to validate `context_type_map`.
     unique_context_strings = set()
-    blend_cdll = ctypes.CDLL("")
-    for ctx_str in context_strings:
+    for ctx_str, ctx_members in sorted(context_member_map.items()):
         subsection = "%s Context" % ctx_str.split("_")[0].title()
         fw("\n%s\n%s\n\n" % (subsection, (len(subsection) * '-')))
-
-        attr = ctypes.addressof(getattr(blend_cdll, ctx_str))
-        c_char_p_p = ctypes.POINTER(ctypes.c_char_p)
-        char_array = c_char_p_p.from_address(attr)
-        i = 0
-        while char_array[i] is not None:
-            member = ctypes.string_at(char_array[i]).decode(encoding="ascii")
+        for member in ctx_members:
             unique_all_len = len(unique)
             unique.add(member)
             member_visited = unique_all_len == len(unique)
@@ -1247,7 +1230,6 @@ def pycontext2sphinx(basepath):
                     "Error: context key %r not found in context_type_map; update %s" %
                     (member, __file__)) from None
             fw("   :type: %s :class:`bpy.types.%s`\n\n" % ("sequence of " if is_seq else "", member_type))
-            i += 1
 
     # generate typemap...
     # for member in sorted(unique_context_strings):
@@ -1473,6 +1455,12 @@ def pyrna2sphinx(basepath):
         for identifier, py_prop in py_properties:
             pyprop2sphinx("   ", fw, identifier, py_prop)
         del py_properties, py_prop
+
+        # C/Python attributes: `GetSetDescriptorType`.
+        key = descr = None
+        for key, descr in sorted(struct.get_py_c_properties_getset()):
+            py_descr2sphinx("   ", fw, descr, "bpy.types", struct_id, key)
+        del key, descr
 
         for func in struct.functions:
             args_str = ", ".join(prop.get_arg_default(force=False) for prop in func.args)
@@ -2167,10 +2155,7 @@ def rna2sphinx(basepath):
 
     # context
     if "bpy.context" not in EXCLUDE_MODULES:
-        # one of a kind, context doc (uses ctypes to extract info!)
-        # doesn't work on mac and windows
-        if PLATFORM not in {"darwin", "windows"}:
-            pycontext2sphinx(basepath)
+        pycontext2sphinx(basepath)
 
     # internal modules
     write_rst_bpy(basepath)                 # bpy, disabled by default

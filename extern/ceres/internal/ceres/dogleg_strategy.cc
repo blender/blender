@@ -480,7 +480,7 @@ bool DoglegStrategy::FindMinimumOnTrustRegionBoundary(Vector2d* minimum) const {
 
   // Find the real parts y_i of its roots (not only the real roots).
   Vector roots_real;
-  if (!FindPolynomialRoots(polynomial, &roots_real, NULL)) {
+  if (!FindPolynomialRoots(polynomial, &roots_real, nullptr)) {
     // Failed to find the roots of the polynomial, i.e. the candidate
     // solutions of the constrained problem. Report this back to the caller.
     return false;

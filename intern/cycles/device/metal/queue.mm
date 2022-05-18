@@ -108,9 +108,6 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
   VLOG(3) << "Metal queue launch " << device_kernel_as_string(kernel) << ", work_size "
           << work_size;
 
-  const MetalDeviceKernel &metal_kernel = metal_device->kernels.get(kernel);
-  const MetalKernelPipeline &metal_kernel_pso = metal_kernel.get_pso();
-
   id<MTLComputeCommandEncoder> mtlComputeCommandEncoder = get_compute_encoder(kernel);
 
   /* Determine size requirement for argument buffer. */
@@ -212,6 +209,14 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
   }
   bytes_written = globals_offsets + sizeof(KernelParamsMetal);
 
+  const MetalKernelPipeline *metal_kernel_pso = MetalDeviceKernels::get_best_pipeline(metal_device,
+                                                                                      kernel);
+  if (!metal_kernel_pso) {
+    metal_device->set_error(
+        string_printf("No MetalKernelPipeline for %s\n", device_kernel_as_string(kernel)));
+    return false;
+  }
+
   /* Encode ancillaries */
   [metal_device->mtlAncillaryArgEncoder setArgumentBuffer:arg_buffer offset:metal_offsets];
   [metal_device->mtlAncillaryArgEncoder setBuffer:metal_device->texture_bindings_2d
@@ -228,14 +233,14 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
       }
 
       for (int table = 0; table < METALRT_TABLE_NUM; table++) {
-        if (metal_kernel_pso.intersection_func_table[table]) {
-          [metal_kernel_pso.intersection_func_table[table] setBuffer:arg_buffer
-                                                              offset:globals_offsets
-                                                             atIndex:1];
+        if (metal_kernel_pso->intersection_func_table[table]) {
+          [metal_kernel_pso->intersection_func_table[table] setBuffer:arg_buffer
+                                                               offset:globals_offsets
+                                                              atIndex:1];
           [metal_device->mtlAncillaryArgEncoder
-              setIntersectionFunctionTable:metal_kernel_pso.intersection_func_table[table]
+              setIntersectionFunctionTable:metal_kernel_pso->intersection_func_table[table]
                                    atIndex:3 + table];
-          [mtlComputeCommandEncoder useResource:metal_kernel_pso.intersection_func_table[table]
+          [mtlComputeCommandEncoder useResource:metal_kernel_pso->intersection_func_table[table]
                                           usage:MTLResourceUsageRead];
         }
         else {
@@ -281,10 +286,10 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
     }
   }
 
-  [mtlComputeCommandEncoder setComputePipelineState:metal_kernel_pso.pipeline];
+  [mtlComputeCommandEncoder setComputePipelineState:metal_kernel_pso->pipeline];
 
   /* Compute kernel launch parameters. */
-  const int num_threads_per_block = metal_kernel.get_num_threads_per_block();
+  const int num_threads_per_block = metal_kernel_pso->num_threads_per_block;
 
   int shared_mem_bytes = 0;
 
@@ -314,7 +319,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
                            threadsPerThreadgroup:size_threads_per_threadgroup];
 
   [mtlCommandBuffer addCompletedHandler:^(id<MTLCommandBuffer> command_buffer) {
-    NSString *kernel_name = metal_kernel_pso.function.label;
+    NSString *kernel_name = metal_kernel_pso->function.label;
 
     /* Enhanced command buffer errors are only available in 11.0+ */
     if (@available(macos 11.0, *)) {
@@ -546,6 +551,8 @@ id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel 
     mtlComputeEncoder = [mtlCommandBuffer
         computeCommandEncoderWithDispatchType:concurrent ? MTLDispatchTypeConcurrent :
                                                            MTLDispatchTypeSerial];
+
+    [mtlComputeEncoder setLabel:@(device_kernel_as_string(kernel))];
 
     /* declare usage of MTLBuffers etc */
     prepare_resources(kernel);

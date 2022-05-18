@@ -31,7 +31,7 @@
 #ifndef CERES_PUBLIC_EVALUATION_CALLBACK_H_
 #define CERES_PUBLIC_EVALUATION_CALLBACK_H_
 
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 
@@ -62,7 +62,7 @@ namespace ceres {
 // execute faster.
 class CERES_EXPORT EvaluationCallback {
  public:
-  virtual ~EvaluationCallback() {}
+  virtual ~EvaluationCallback();
 
   // Called before Ceres requests residuals or jacobians for a given setting of
   // the parameters. User parameters (the double* values provided to the cost

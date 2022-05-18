@@ -398,11 +398,11 @@ static Array<float> calc_full_density_factors_with_selection(const MeshComponent
 {
   const AttributeDomain attribute_domain = ATTR_DOMAIN_CORNER;
   GeometryComponentFieldContext field_context{component, attribute_domain};
-  const int domain_size = component.attribute_domain_size(attribute_domain);
+  const int domain_num = component.attribute_domain_num(attribute_domain);
 
-  Array<float> densities(domain_size, 0.0f);
+  Array<float> densities(domain_num, 0.0f);
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(density_field, densities.as_mutable_span());
   evaluator.evaluate();

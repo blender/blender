@@ -235,7 +235,7 @@ static int preprocess_include(char *maindata, const int maindata_len);
 /**
  * Scan this file for serializable types.
  */
-static int convert_include(const char *filename);
+static int convert_include(const char *filepath);
 
 /**
  * Determine how many bytes are needed for each struct.
@@ -670,12 +670,12 @@ static int preprocess_include(char *maindata, const int maindata_len)
   return newlen;
 }
 
-static void *read_file_data(const char *filename, int *r_len)
+static void *read_file_data(const char *filepath, int *r_len)
 {
 #ifdef WIN32
-  FILE *fp = fopen(filename, "rb");
+  FILE *fp = fopen(filepath, "rb");
 #else
-  FILE *fp = fopen(filename, "r");
+  FILE *fp = fopen(filepath, "r");
 #endif
   void *data;
 
@@ -711,17 +711,17 @@ static void *read_file_data(const char *filename, int *r_len)
   return data;
 }
 
-static int convert_include(const char *filename)
+static int convert_include(const char *filepath)
 {
   /* read include file, skip structs with a '#' before it.
    * store all data in temporal arrays.
    */
 
   int maindata_len;
-  char *maindata = read_file_data(filename, &maindata_len);
+  char *maindata = read_file_data(filepath, &maindata_len);
   char *md = maindata;
   if (maindata_len == -1) {
-    fprintf(stderr, "Can't read file %s\n", filename);
+    fprintf(stderr, "Can't read file %s\n", filepath);
     return 1;
   }
 
@@ -759,7 +759,7 @@ static int convert_include(const char *filename)
 
           const int strct = add_type(md1, 0);
           if (strct == -1) {
-            fprintf(stderr, "File '%s' contains struct we can't parse \"%s\"\n", filename, md1);
+            fprintf(stderr, "File '%s' contains struct we can't parse \"%s\"\n", filepath, md1);
             return 1;
           }
 
@@ -799,7 +799,7 @@ static int convert_include(const char *filename)
                   fprintf(stderr,
                           "File '%s' contains non white space character "
                           "\"%c\" after identifier \"%s\"\n",
-                          filename,
+                          filepath,
                           *md1,
                           md1_prev);
                   return 1;
@@ -812,7 +812,7 @@ static int convert_include(const char *filename)
               const int type = add_type(md1, 0);
               if (type == -1) {
                 fprintf(
-                    stderr, "File '%s' contains struct we can't parse \"%s\"\n", filename, md1);
+                    stderr, "File '%s' contains struct we can't parse \"%s\"\n", filepath, md1);
                 return 1;
               }
 
@@ -838,7 +838,7 @@ static int convert_include(const char *filename)
                     if (name == -1) {
                       fprintf(stderr,
                               "File '%s' contains struct with name that can't be added \"%s\"\n",
-                              filename,
+                              filepath,
                               md1);
                       return 1;
                     }
@@ -861,7 +861,7 @@ static int convert_include(const char *filename)
                   if (name == -1) {
                     fprintf(stderr,
                             "File '%s' contains struct with name that can't be added \"%s\"\n",
-                            filename,
+                            filepath,
                             md1);
                     return 1;
                   }

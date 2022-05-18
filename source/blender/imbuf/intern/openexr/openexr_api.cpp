@@ -363,7 +363,7 @@ static void openexr_header_compression(Header *header, int compression)
     case R_IMF_EXR_CODEC_B44A:
       header->compression() = B44A_COMPRESSION;
       break;
-#if OPENEXR_VERSION_MAJOR >= 2 && OPENEXR_VERSION_MINOR >= 2
+#if OPENEXR_VERSION_MAJOR > 2 || (OPENEXR_VERSION_MAJOR >= 2 && OPENEXR_VERSION_MINOR >= 2)
     case R_IMF_EXR_CODEC_DWAA:
       header->compression() = DWAA_COMPRESSION;
       break;

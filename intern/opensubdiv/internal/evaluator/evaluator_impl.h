@@ -32,6 +32,7 @@
 
 struct OpenSubdiv_Buffer;
 struct OpenSubdiv_EvaluatorCacheImpl;
+struct OpenSubdiv_EvaluatorSettings;
 struct OpenSubdiv_PatchCoord;
 struct OpenSubdiv_TopologyRefiner;
 
@@ -60,6 +61,8 @@ class EvalOutputAPI {
   void setCoarsePositions(const float *positions,
                           const int start_vertex_index,
                           const int num_vertices);
+  // Set vertex data from a continuous array of data.
+  void setVertexData(const float *data, const int start_vertex_index, const int num_vertices);
   // Set varying data from a continuous array of data.
   void setVaryingData(const float *varying_data,
                       const int start_vertex_index,
@@ -113,6 +116,9 @@ class EvalOutputAPI {
                      float P[3],
                      float dPdu[3],
                      float dPdv[3]);
+
+  // Evaluate varying data at a given bilinear coordinate of given ptex face.
+  void evaluateVertexData(const int ptes_face_index, float face_u, float face_v, float data[]);
 
   // Evaluate varying data at a given bilinear coordinate of given ptex face.
   void evaluateVarying(const int ptes_face_index, float face_u, float face_v, float varying[3]);
@@ -198,7 +204,8 @@ struct OpenSubdiv_EvaluatorImpl {
 OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
     struct OpenSubdiv_TopologyRefiner *topology_refiner,
     eOpenSubdivEvaluator evaluator_type,
-    OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr);
+    OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr,
+    const OpenSubdiv_EvaluatorSettings *settings);
 
 void openSubdiv_deleteEvaluatorInternal(OpenSubdiv_EvaluatorImpl *evaluator);
 

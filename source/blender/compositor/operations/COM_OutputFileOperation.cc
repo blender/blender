@@ -219,6 +219,12 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(const Scene *scene,
   image_input_ = nullptr;
 
   BKE_image_format_init_for_write(&format_, scene, format);
+  if (!save_as_render) {
+    /* If not saving as render, stop IMB_colormanagement_imbuf_for_write using this
+     * colorspace for conversion. */
+    format_.linear_colorspace_settings.name[0] = '\0';
+  }
+
   BLI_strncpy(path_, path, sizeof(path_));
 
   view_name_ = view_name;

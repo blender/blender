@@ -83,7 +83,7 @@ int USD_get_version(void);
 /* USD Import and Mesh Cache interface. */
 
 struct CacheArchiveHandle *USD_create_handle(struct Main *bmain,
-                                             const char *filename,
+                                             const char *filepath,
                                              struct ListBase *object_paths);
 
 void USD_free_handle(struct CacheArchiveHandle *handle);

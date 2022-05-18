@@ -1647,7 +1647,7 @@ static int bone_select_menu_exec(bContext *C, wmOperator *op)
   const int name_index = RNA_enum_get(op->ptr, "name");
 
   const struct SelectPick_Params params = {
-      .sel_op = ED_select_op_from_operator(op),
+      .sel_op = ED_select_op_from_operator(op->ptr),
   };
 
   View3D *v3d = CTX_wm_view3d(C);
@@ -2876,7 +2876,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
   Object *obact = CTX_data_active_object(C);
 
   struct SelectPick_Params params = {0};
-  ED_select_pick_params_from_operator(op, &params);
+  ED_select_pick_params_from_operator(op->ptr, &params);
 
   bool center = RNA_boolean_get(op->ptr, "center");
   bool enumerate = RNA_boolean_get(op->ptr, "enumerate");
@@ -2988,6 +2988,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
   ot->invoke = view3d_select_invoke;
   ot->exec = view3d_select_exec;
   ot->poll = ED_operator_view3d_active;
+  ot->get_name = ED_select_pick_get_name;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
@@ -4740,6 +4741,7 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
   ot->exec = view3d_circle_select_exec;
   ot->poll = view3d_selectable_data;
   ot->cancel = view3d_circle_select_cancel;
+  ot->get_name = ED_select_circle_get_name;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;

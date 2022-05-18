@@ -203,7 +203,7 @@ class DATA_PT_geometry_curve_start_end(CurveButtonsPanelCurve, Panel):
     @classmethod
     def poll(cls, context):
         # Text objects don't support these properties
-        return (type(context.curve) in {Curve})
+        return (type(context.curve) == Curve)
 
     def draw(self, context):
         layout = self.layout

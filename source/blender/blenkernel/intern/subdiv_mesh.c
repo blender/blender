@@ -44,6 +44,9 @@ typedef struct SubdivMeshContext {
   /* UV layers interpolation. */
   int num_uv_layers;
   MLoopUV *uv_layers[MAX_MTFACE];
+  /* Orco interpolation. */
+  float (*orco)[3];
+  float (*cloth_orco)[3];
   /* Per-subdivided vertex counter of averaged values. */
   int *accumulated_counters;
   bool have_displacement;
@@ -69,6 +72,9 @@ static void subdiv_mesh_ctx_cache_custom_data_layers(SubdivMeshContext *ctx)
   ctx->poly_origindex = CustomData_get_layer(&subdiv_mesh->pdata, CD_ORIGINDEX);
   /* UV layers interpolation. */
   subdiv_mesh_ctx_cache_uv_layers(ctx);
+  /* Orco interpolation. */
+  ctx->orco = CustomData_get_layer(&subdiv_mesh->vdata, CD_ORCO);
+  ctx->cloth_orco = CustomData_get_layer(&subdiv_mesh->vdata, CD_CLOTH_ORCO);
 }
 
 static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vertices)
@@ -417,6 +423,34 @@ static void subdiv_mesh_tls_free(void *tls_v)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Evaluation helper functions
+ * \{ */
+
+static void subdiv_vertex_orco_evaluate(const SubdivMeshContext *ctx,
+                                        const int ptex_face_index,
+                                        const float u,
+                                        const float v,
+                                        const int subdiv_vertex_index)
+{
+  if (ctx->orco || ctx->cloth_orco) {
+    float vertex_data[6];
+    BKE_subdiv_eval_vertex_data(ctx->subdiv, ptex_face_index, u, v, vertex_data);
+
+    if (ctx->orco) {
+      copy_v3_v3(ctx->orco[subdiv_vertex_index], vertex_data);
+      if (ctx->cloth_orco) {
+        copy_v3_v3(ctx->orco[subdiv_vertex_index], vertex_data + 3);
+      }
+    }
+    else if (ctx->cloth_orco) {
+      copy_v3_v3(ctx->orco[subdiv_vertex_index], vertex_data);
+    }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Accumulation helpers
  * \{ */
 
@@ -530,6 +564,8 @@ static void evaluate_vertex_and_apply_displacement_copy(const SubdivMeshContext 
   BKE_subdiv_eval_limit_point(ctx->subdiv, ptex_face_index, u, v, subdiv_vert->co);
   /* Apply displacement. */
   add_v3_v3(subdiv_vert->co, D);
+  /* Evaluate undeformed texture coordinate. */
+  subdiv_vertex_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vertex_index);
   /* Remove facedot flag. This can happen if there is more than one subsurf modifier. */
   BLI_BITMAP_DISABLE(ctx->subdiv_mesh->runtime.subsurf_face_dot_tags, subdiv_vertex_index);
 }
@@ -556,6 +592,8 @@ static void evaluate_vertex_and_apply_displacement_interpolate(
   BKE_subdiv_eval_limit_point(ctx->subdiv, ptex_face_index, u, v, subdiv_vert->co);
   /* Apply displacement. */
   add_v3_v3(subdiv_vert->co, D);
+  /* Evaluate undeformed texture coordinate. */
+  subdiv_vertex_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vertex_index);
 }
 
 static void subdiv_mesh_vertex_displacement_every_corner_or_edge(
@@ -723,6 +761,7 @@ static void subdiv_mesh_vertex_inner(const SubdivForeachContext *foreach_context
   subdiv_vertex_data_interpolate(ctx, subdiv_vert, &tls->vertex_interpolation, u, v);
   BKE_subdiv_eval_final_point(subdiv, ptex_face_index, u, v, subdiv_vert->co);
   subdiv_mesh_tag_center_vertex(coarse_poly, subdiv_vertex_index, u, v, subdiv_mesh);
+  subdiv_vertex_orco_evaluate(ctx, ptex_face_index, u, v, subdiv_vertex_index);
 }
 
 /** \} */

@@ -69,7 +69,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
 
   for (i = 0; i < numUV; i++) {
     MTFace *texface = CustomData_get_layer_n(fdata, CD_MTFACE, i);
-    MLoopUV *mloopuv = CustomData_get_layer_n(ldata, CD_MLOOPUV, i);
+    const MLoopUV *mloopuv = CustomData_get_layer_n(ldata, CD_MLOOPUV, i);
 
     for (findex = 0, pidx = polyindices, lidx = loopindices; findex < num_faces;
          pidx++, lidx++, findex++, texface++) {
@@ -81,7 +81,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
 
   for (i = 0; i < numCol; i++) {
     MCol(*mcol)[4] = CustomData_get_layer_n(fdata, CD_MCOL, i);
-    MLoopCol *mloopcol = CustomData_get_layer_n(ldata, CD_PROP_BYTE_COLOR, i);
+    const MLoopCol *mloopcol = CustomData_get_layer_n(ldata, CD_PROP_BYTE_COLOR, i);
 
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
@@ -92,7 +92,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
 
   if (hasPCol) {
     MCol(*mcol)[4] = CustomData_get_layer(fdata, CD_PREVIEW_MCOL);
-    MLoopCol *mloopcol = CustomData_get_layer(ldata, CD_PREVIEW_MLOOPCOL);
+    const MLoopCol *mloopcol = CustomData_get_layer(ldata, CD_PREVIEW_MLOOPCOL);
 
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, mcol++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
@@ -103,7 +103,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
 
   if (hasOrigSpace) {
     OrigSpaceFace *of = CustomData_get_layer(fdata, CD_ORIGSPACE);
-    OrigSpaceLoop *lof = CustomData_get_layer(ldata, CD_ORIGSPACE_MLOOP);
+    const OrigSpaceLoop *lof = CustomData_get_layer(ldata, CD_ORIGSPACE_MLOOP);
 
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, of++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
@@ -114,7 +114,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
 
   if (hasLoopNormal) {
     short(*fnors)[4][3] = CustomData_get_layer(fdata, CD_TESSLOOPNORMAL);
-    float(*lnors)[3] = CustomData_get_layer(ldata, CD_NORMAL);
+    const float(*lnors)[3] = CustomData_get_layer(ldata, CD_NORMAL);
 
     for (findex = 0, lidx = loopindices; findex < num_faces; lidx++, findex++, fnors++) {
       for (j = (mface ? mface[findex].v4 : (*lidx)[3]) ? 4 : 3; j--;) {
@@ -126,7 +126,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
   if (hasLoopTangent) {
     /* Need to do for all UV maps at some point. */
     float(*ftangents)[4] = CustomData_get_layer(fdata, CD_TANGENT);
-    float(*ltangents)[4] = CustomData_get_layer(ldata, CD_TANGENT);
+    const float(*ltangents)[4] = CustomData_get_layer(ldata, CD_TANGENT);
 
     for (findex = 0, pidx = polyindices, lidx = loopindices; findex < num_faces;
          pidx++, lidx++, findex++) {
@@ -154,8 +154,8 @@ int BKE_mesh_tessface_calc_ex(CustomData *fdata,
 
   const int looptri_num = poly_to_tri_count(totpoly, totloop);
 
-  MPoly *mp, *mpoly;
-  MLoop *ml, *mloop;
+  const MPoly *mp, *mpoly;
+  const MLoop *ml, *mloop;
   MFace *mface, *mf;
   MemArena *arena = NULL;
   int *mface_to_poly_map;

@@ -1667,7 +1667,7 @@ void psys_interpolate_face(Mesh *mesh,
                            const float (*vert_normals)[3],
                            MFace *mface,
                            MTFace *tface,
-                           float (*orcodata)[3],
+                           const float (*orcodata)[3],
                            float w[4],
                            float vec[3],
                            float nor[3],
@@ -1680,7 +1680,7 @@ void psys_interpolate_face(Mesh *mesh,
   float *uv1, *uv2, *uv3, *uv4;
   float n1[3], n2[3], n3[3], n4[3];
   float tuv[4][2];
-  float *o1, *o2, *o3, *o4;
+  const float *o1, *o2, *o3, *o4;
 
   v1 = mvert[mface->v1].co;
   v2 = mvert[mface->v2].co;
@@ -1903,9 +1903,10 @@ int psys_particle_dm_face_lookup(Mesh *mesh_final,
                                  struct LinkNode **poly_nodes)
 {
   MFace *mtessface_final;
-  OrigSpaceFace *osface_final;
+  const OrigSpaceFace *osface_final;
   int pindex_orig;
-  float uv[2], (*faceuv)[2];
+  float uv[2];
+  const float(*faceuv)[2];
 
   const int *index_mf_to_mpoly_deformed = NULL;
   const int *index_mf_to_mpoly = NULL;
@@ -2048,11 +2049,7 @@ static int psys_map_index_on_dm(Mesh *mesh,
     }
     else { /* FROM_FACE/FROM_VOLUME */
            /* find a face on the derived mesh that uses this face */
-      MFace *mface;
-      OrigSpaceFace *osface;
-      int i;
-
-      i = index_dmcache;
+      int i = index_dmcache;
 
       if (i == DMCACHE_NOTFOUND || i >= mesh->totface) {
         return 0;
@@ -2062,8 +2059,8 @@ static int psys_map_index_on_dm(Mesh *mesh,
 
       /* modify the original weights to become
        * weights for the derived mesh face */
-      osface = CustomData_get_layer(&mesh->fdata, CD_ORIGSPACE);
-      mface = &mesh->mface[i];
+      OrigSpaceFace *osface = CustomData_get_layer(&mesh->fdata, CD_ORIGSPACE);
+      const MFace *mface = &mesh->mface[i];
 
       if (osface == NULL) {
         mapfw[0] = mapfw[1] = mapfw[2] = mapfw[3] = 0.0f;
@@ -2090,7 +2087,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
                          float orco[3])
 {
   float tmpnor[3], mapfw[4];
-  float(*orcodata)[3];
+  const float(*orcodata)[3];
   int mapindex;
 
   if (!psys_map_index_on_dm(
@@ -3628,7 +3625,7 @@ static void psys_cache_edit_paths_iter(void *__restrict iter_data_v,
         BKE_defvert_weight_to_rgb(ca->col, pind.hkey[1]->weight);
       }
       else {
-        /* warning: copied from 'do_particle_interpolation' (without 'mvert' array stepping) */
+        /* WARNING: copied from 'do_particle_interpolation' (without 'mvert' array stepping) */
         float real_t;
         if (result.time < 0.0f) {
           real_t = -result.time;
@@ -3796,7 +3793,7 @@ void psys_get_from_key(ParticleKey *key, float loc[3], float vel[3], float rot[4
   }
 }
 
-static void triatomat(float *v1, float *v2, float *v3, float (*uv)[2], float mat[4][4])
+static void triatomat(float *v1, float *v2, float *v3, const float (*uv)[2], float mat[4][4])
 {
   float det, w1, w2, d1[2], d2[2];
 
@@ -3842,8 +3839,7 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
 {
   float v[3][3];
   MFace *mface;
-  OrigSpaceFace *osface;
-  float(*orcodata)[3];
+  const float(*orcodata)[3];
 
   int i = (ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND)) ? pa->num : pa->num_dmcache;
   if (i == -1 || i >= mesh->totface) {
@@ -3852,7 +3848,7 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
   }
 
   mface = &mesh->mface[i];
-  osface = CustomData_get(&mesh->fdata, i, CD_ORIGSPACE);
+  const OrigSpaceFace *osface = CustomData_get(&mesh->fdata, i, CD_ORIGSPACE);
 
   if (orco && (orcodata = CustomData_get_layer(&mesh->vdata, CD_ORCO))) {
     copy_v3_v3(v[0], orcodata[mface->v1]);
@@ -4159,7 +4155,7 @@ static int get_particle_uv(Mesh *mesh,
                            bool from_vert)
 {
   MFace *mf;
-  MTFace *tf;
+  const MTFace *tf;
   int i;
 
   tf = CustomData_get_layer_named(&mesh->fdata, CD_MTFACE, name);
@@ -5039,7 +5035,6 @@ void psys_get_dupli_texture(ParticleSystem *psys,
                             float uv[2],
                             float orco[3])
 {
-  MFace *mface;
   float loc[3];
   int num;
 
@@ -5063,9 +5058,9 @@ void psys_get_dupli_texture(ParticleSystem *psys,
         const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
 
         if (uv_idx >= 0) {
-          MTFace *mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
+          const MTFace *mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
           if (mtface != NULL) {
-            mface = CustomData_get(&psmd->mesh_final->fdata, cpa->num, CD_MFACE);
+            const MFace *mface = CustomData_get(&psmd->mesh_final->fdata, cpa->num, CD_MFACE);
             mtface += cpa->num;
             psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, uv);
           }
@@ -5107,8 +5102,8 @@ void psys_get_dupli_texture(ParticleSystem *psys,
       const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
 
       if (uv_idx >= 0) {
-        MTFace *mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
-        mface = CustomData_get(&psmd->mesh_final->fdata, num, CD_MFACE);
+        const MTFace *mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
+        const MFace *mface = CustomData_get(&psmd->mesh_final->fdata, num, CD_MFACE);
         mtface += num;
         psys_interpolate_uvs(mtface, mface->v4, pa->fuv, uv);
       }

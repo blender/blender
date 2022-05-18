@@ -117,6 +117,7 @@ set(SRC
   intern/curveprofile.cc
   intern/curves.cc
   intern/curves_geometry.cc
+  intern/curves_utils.cc
   intern/customdata.cc
   intern/customdata_file.c
   intern/data_transfer.c
@@ -356,6 +357,7 @@ set(SRC
   BKE_curveprofile.h
   BKE_curves.h
   BKE_curves.hh
+  BKE_curves_utils.hh
   BKE_customdata.h
   BKE_customdata_file.h
   BKE_data_transfer.h

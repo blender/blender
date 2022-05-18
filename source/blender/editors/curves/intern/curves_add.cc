@@ -20,7 +20,7 @@ bke::CurvesGeometry primitive_random_sphere(const int curves_size, const int poi
   MutableSpan<float3> positions = curves.positions_for_write();
 
   float *radius_data = (float *)CustomData_add_layer_named(
-      &curves.point_data, CD_PROP_FLOAT, CD_DEFAULT, nullptr, curves.point_size, "radius");
+      &curves.point_data, CD_PROP_FLOAT, CD_DEFAULT, nullptr, curves.point_num, "radius");
   MutableSpan<float> radii{radius_data, curves.points_num()};
 
   for (const int i : offsets.index_range()) {

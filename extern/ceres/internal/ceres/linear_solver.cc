@@ -30,10 +30,13 @@
 
 #include "ceres/linear_solver.h"
 
+#include <memory>
+
 #include "ceres/cgnr_solver.h"
 #include "ceres/dense_normal_cholesky_solver.h"
 #include "ceres/dense_qr_solver.h"
 #include "ceres/dynamic_sparse_normal_cholesky_solver.h"
+#include "ceres/internal/config.h"
 #include "ceres/iterative_schur_complement_solver.h"
 #include "ceres/schur_complement_solver.h"
 #include "ceres/sparse_normal_cholesky_solver.h"
@@ -43,7 +46,7 @@
 namespace ceres {
 namespace internal {
 
-LinearSolver::~LinearSolver() {}
+LinearSolver::~LinearSolver() = default;
 
 LinearSolverType LinearSolver::LinearSolverForZeroEBlocks(
     LinearSolverType linear_solver_type) {
@@ -69,50 +72,51 @@ LinearSolverType LinearSolver::LinearSolverForZeroEBlocks(
   return linear_solver_type;
 }
 
-LinearSolver* LinearSolver::Create(const LinearSolver::Options& options) {
-  CHECK(options.context != NULL);
+std::unique_ptr<LinearSolver> LinearSolver::Create(
+    const LinearSolver::Options& options) {
+  CHECK(options.context != nullptr);
 
   switch (options.type) {
     case CGNR:
-      return new CgnrSolver(options);
+      return std::make_unique<CgnrSolver>(options);
 
     case SPARSE_NORMAL_CHOLESKY:
 #if defined(CERES_NO_SPARSE)
-      return NULL;
+      return nullptr;
 #else
       if (options.dynamic_sparsity) {
-        return new DynamicSparseNormalCholeskySolver(options);
+        return std::make_unique<DynamicSparseNormalCholeskySolver>(options);
       }
 
-      return new SparseNormalCholeskySolver(options);
+      return std::make_unique<SparseNormalCholeskySolver>(options);
 #endif
 
     case SPARSE_SCHUR:
 #if defined(CERES_NO_SPARSE)
-      return NULL;
+      return nullptr;
 #else
-      return new SparseSchurComplementSolver(options);
+      return std::make_unique<SparseSchurComplementSolver>(options);
 #endif
 
     case DENSE_SCHUR:
-      return new DenseSchurComplementSolver(options);
+      return std::make_unique<DenseSchurComplementSolver>(options);
 
     case ITERATIVE_SCHUR:
       if (options.use_explicit_schur_complement) {
-        return new SparseSchurComplementSolver(options);
+        return std::make_unique<SparseSchurComplementSolver>(options);
       } else {
-        return new IterativeSchurComplementSolver(options);
+        return std::make_unique<IterativeSchurComplementSolver>(options);
       }
 
     case DENSE_QR:
-      return new DenseQRSolver(options);
+      return std::make_unique<DenseQRSolver>(options);
 
     case DENSE_NORMAL_CHOLESKY:
-      return new DenseNormalCholeskySolver(options);
+      return std::make_unique<DenseNormalCholeskySolver>(options);
 
     default:
       LOG(FATAL) << "Unknown linear solver type :" << options.type;
-      return NULL;  // MSVC doesn't understand that LOG(FATAL) never returns.
+      return nullptr;  // MSVC doesn't understand that LOG(FATAL) never returns.
   }
 }
 

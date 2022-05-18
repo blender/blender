@@ -42,17 +42,13 @@ bool BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(
  * \param skip_check_is_last: When true, we assume that the modifier passed is the last enabled
  * modifier in the stack.
  */
-bool BKE_subsurf_modifier_can_do_gpu_subdiv_ex(const struct Scene *scene,
-                                               const struct Object *ob,
-                                               const struct Mesh *mesh,
-                                               const struct SubsurfModifierData *smd,
-                                               int required_mode,
-                                               bool skip_check_is_last);
-
 bool BKE_subsurf_modifier_can_do_gpu_subdiv(const struct Scene *scene,
                                             const struct Object *ob,
                                             const struct Mesh *mesh,
+                                            const struct SubsurfModifierData *smd,
                                             int required_mode);
+
+bool BKE_subsurf_modifier_has_gpu_subdiv(const struct Mesh *mesh);
 
 extern void (*BKE_subsurf_modifier_free_gpu_cache_cb)(struct Subdiv *subdiv);
 

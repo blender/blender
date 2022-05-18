@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -256,6 +258,7 @@ typedef enum {
    */
   V3D_PROJ_TEST_CLIP_CONTENT = (1 << 5),
 } eV3DProjTest;
+ENUM_OPERATORS(eV3DProjTest, V3D_PROJ_TEST_CLIP_CONTENT);
 
 #define V3D_PROJ_TEST_CLIP_DEFAULT \
   (V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR)
@@ -443,14 +446,14 @@ void pose_foreachScreenBone(struct ViewContext *vc,
 void ED_view3d_project_float_v2_m4(const struct ARegion *region,
                                    const float co[3],
                                    float r_co[2],
-                                   float mat[4][4]);
+                                   const float mat[4][4]);
 /**
  * \note use #ED_view3d_ob_project_mat_get to get projecting mat
  */
 void ED_view3d_project_float_v3_m4(const struct ARegion *region,
                                    const float co[3],
                                    float r_co[3],
-                                   float mat[4][4]);
+                                   const float mat[4][4]);
 
 eV3DProjStatus ED_view3d_project_base(const struct ARegion *region, struct Base *base);
 
@@ -700,9 +703,9 @@ void ED_view3d_win_to_vector(const struct ARegion *region, const float mval[2], 
  * \param do_clip_planes: Optionally clip the ray by the view clipping planes.
  * \return success, false if the segment is totally clipped.
  */
-bool ED_view3d_win_to_segment_clipped(struct Depsgraph *depsgraph,
+bool ED_view3d_win_to_segment_clipped(const struct Depsgraph *depsgraph,
                                       const struct ARegion *region,
-                                      struct View3D *v3d,
+                                      const struct View3D *v3d,
                                       const float mval[2],
                                       float r_ray_start[3],
                                       float r_ray_end[3],
@@ -733,7 +736,7 @@ void ED_view3d_dist_range_get(const struct View3D *v3d, float r_dist_range[2]);
 /**
  * \note copies logic of #ED_view3d_viewplane_get(), keep in sync.
  */
-bool ED_view3d_clip_range_get(struct Depsgraph *depsgraph,
+bool ED_view3d_clip_range_get(const struct Depsgraph *depsgraph,
                               const struct View3D *v3d,
                               const struct RegionView3D *rv3d,
                               float *r_clipsta,

@@ -127,9 +127,7 @@ void LowRankInverseHessian::RightMultiply(const double* x_ptr,
   const int num_corrections = indices_.size();
   Vector alpha(num_corrections);
 
-  for (list<int>::const_reverse_iterator it = indices_.rbegin();
-       it != indices_.rend();
-       ++it) {
+  for (auto it = indices_.rbegin(); it != indices_.rend(); ++it) {
     const double alpha_i = delta_x_history_.col(*it).dot(search_direction) /
                            delta_x_dot_delta_gradient_(*it);
     search_direction -= alpha_i * delta_gradient_history_.col(*it);

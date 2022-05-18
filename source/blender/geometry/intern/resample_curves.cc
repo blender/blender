@@ -8,6 +8,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
+#include "BKE_curves_utils.hh"
 #include "BKE_geometry_fields.hh"
 
 #include "GEO_resample_curves.hh"
@@ -196,37 +197,6 @@ static void copy_between_curves(const bke::CurvesGeometry &src_curves,
   });
 }
 
-/**
- * Copy the size of every curve in #curve_ranges to the corresponding index in #counts.
- */
-static void fill_curve_counts(const bke::CurvesGeometry &src_curves,
-                              const Span<IndexRange> curve_ranges,
-                              MutableSpan<int> counts)
-{
-  threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange ranges_range) {
-    for (const IndexRange curves_range : curve_ranges.slice(ranges_range)) {
-      for (const int i : curves_range) {
-        counts[i] = src_curves.points_for_curve(i).size();
-      }
-    }
-  });
-}
-
-/**
- * Turn an array of sizes into the offset at each index including all previous sizes.
- */
-static void accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets)
-{
-  int total = 0;
-  for (const int i : counts_to_offsets.index_range().drop_back(1)) {
-    const int count = counts_to_offsets[i];
-    BLI_assert(count > 0);
-    counts_to_offsets[i] = total;
-    total += count;
-  }
-  counts_to_offsets.last() = total;
-}
-
 static Curves *resample_to_uniform(const CurveComponent &src_component,
                                    const fn::Field<bool> &selection_field,
                                    const fn::Field<int> &count_field)
@@ -257,8 +227,8 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
       src_curves.curves_range(), nullptr);
 
   /* Fill the counts for the curves that aren't selected and accumulate the counts into offsets. */
-  fill_curve_counts(src_curves, unselected_ranges, dst_offsets);
-  accumulate_counts_to_offsets(dst_offsets);
+  bke::curves::fill_curve_counts(src_curves, unselected_ranges, dst_offsets);
+  bke::curves::accumulate_counts_to_offsets(dst_offsets);
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 
   /* All resampled curves are poly curves. */
@@ -428,8 +398,8 @@ Curves *resample_to_evaluated(const CurveComponent &src_component,
       dst_offsets[i] = src_curves.evaluated_points_for_curve(i).size();
     }
   });
-  fill_curve_counts(src_curves, unselected_ranges, dst_offsets);
-  accumulate_counts_to_offsets(dst_offsets);
+  bke::curves::fill_curve_counts(src_curves, unselected_ranges, dst_offsets);
+  bke::curves::accumulate_counts_to_offsets(dst_offsets);
 
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 

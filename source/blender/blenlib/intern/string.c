@@ -1155,7 +1155,7 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base
   BLI_strncpy(dst + len, base_10 ? units_base_10[order] : units_base_2[order], dst_len - len);
 }
 
-void BLI_str_format_attribute_domain_size(char dst[7], int number_to_format)
+void BLI_str_format_decimal_unit(char dst[7], int number_to_format)
 {
   float number_to_format_converted = number_to_format;
   int order = 0;

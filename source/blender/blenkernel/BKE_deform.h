@@ -228,35 +228,38 @@ void BKE_defvert_normalize_lock_map(struct MDeformVert *dvert,
 /* Utilities to 'extract' a given vgroup into a simple float array,
  * for verts, but also edges/polys/loops. */
 
-void BKE_defvert_extract_vgroup_to_vertweights(
-    struct MDeformVert *dvert, int defgroup, int num_verts, float *r_weights, bool invert_vgroup);
+void BKE_defvert_extract_vgroup_to_vertweights(const struct MDeformVert *dvert,
+                                               int defgroup,
+                                               int num_verts,
+                                               bool invert_vgroup,
+                                               float *r_weights);
 /**
  * The following three make basic interpolation,
  * using temp vert_weights array to avoid looking up same weight several times.
  */
-void BKE_defvert_extract_vgroup_to_edgeweights(struct MDeformVert *dvert,
+void BKE_defvert_extract_vgroup_to_edgeweights(const struct MDeformVert *dvert,
                                                int defgroup,
                                                int num_verts,
                                                struct MEdge *edges,
                                                int num_edges,
-                                               float *r_weights,
-                                               bool invert_vgroup);
-void BKE_defvert_extract_vgroup_to_loopweights(struct MDeformVert *dvert,
+                                               bool invert_vgroup,
+                                               float *r_weights);
+void BKE_defvert_extract_vgroup_to_loopweights(const struct MDeformVert *dvert,
                                                int defgroup,
                                                int num_verts,
                                                struct MLoop *loops,
                                                int num_loops,
-                                               float *r_weights,
-                                               bool invert_vgroup);
-void BKE_defvert_extract_vgroup_to_polyweights(struct MDeformVert *dvert,
+                                               bool invert_vgroup,
+                                               float *r_weights);
+void BKE_defvert_extract_vgroup_to_polyweights(const struct MDeformVert *dvert,
                                                int defgroup,
                                                int num_verts,
                                                struct MLoop *loops,
                                                int num_loops,
                                                struct MPoly *polys,
                                                int num_polys,
-                                               float *r_weights,
-                                               bool invert_vgroup);
+                                               bool invert_vgroup,
+                                               float *r_weights);
 
 void BKE_defvert_weight_to_rgb(float r_rgb[3], float weight);
 

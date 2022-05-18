@@ -47,7 +47,7 @@ typedef struct DDSData {
  * Also; add new variables to the end to save pain!
  */
 
-/* Warning: Keep explicit value assignments here,
+/* WARNING: Keep explicit value assignments here,
  * this file is included in areas where not all format defines are set
  * (e.g. intern/dds only get WITH_DDS, even if TIFF, HDR etc are also defined).
  * See T46524. */

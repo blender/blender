@@ -147,9 +147,9 @@ void BKE_defvert_copy_index(MDeformVert *dvert_dst,
                             const MDeformVert *dvert_src,
                             const int defgroup_src)
 {
-  MDeformWeight *dw_src, *dw_dst;
+  MDeformWeight *dw_dst;
 
-  dw_src = BKE_defvert_find_index(dvert_src, defgroup_src);
+  const MDeformWeight *dw_src = BKE_defvert_find_index(dvert_src, defgroup_src);
 
   if (dw_src) {
     /* Source is valid, ensure destination is created. */
@@ -1008,11 +1008,11 @@ void BKE_defvert_array_free(MDeformVert *dvert, int totvert)
   MEM_freeN(dvert);
 }
 
-void BKE_defvert_extract_vgroup_to_vertweights(MDeformVert *dvert,
+void BKE_defvert_extract_vgroup_to_vertweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,
-                                               float *r_weights,
-                                               const bool invert_vgroup)
+                                               const bool invert_vgroup,
+                                               float *r_weights)
 {
   if (dvert && defgroup != -1) {
     int i = num_verts;
@@ -1027,20 +1027,20 @@ void BKE_defvert_extract_vgroup_to_vertweights(MDeformVert *dvert,
   }
 }
 
-void BKE_defvert_extract_vgroup_to_edgeweights(MDeformVert *dvert,
+void BKE_defvert_extract_vgroup_to_edgeweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,
                                                MEdge *edges,
                                                const int num_edges,
-                                               float *r_weights,
-                                               const bool invert_vgroup)
+                                               const bool invert_vgroup,
+                                               float *r_weights)
 {
   if (dvert && defgroup != -1) {
     int i = num_edges;
     float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)num_verts, __func__);
 
     BKE_defvert_extract_vgroup_to_vertweights(
-        dvert, defgroup, num_verts, tmp_weights, invert_vgroup);
+        dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
 
     while (i--) {
       MEdge *me = &edges[i];
@@ -1055,20 +1055,20 @@ void BKE_defvert_extract_vgroup_to_edgeweights(MDeformVert *dvert,
   }
 }
 
-void BKE_defvert_extract_vgroup_to_loopweights(MDeformVert *dvert,
+void BKE_defvert_extract_vgroup_to_loopweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,
                                                MLoop *loops,
                                                const int num_loops,
-                                               float *r_weights,
-                                               const bool invert_vgroup)
+                                               const bool invert_vgroup,
+                                               float *r_weights)
 {
   if (dvert && defgroup != -1) {
     int i = num_loops;
     float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)num_verts, __func__);
 
     BKE_defvert_extract_vgroup_to_vertweights(
-        dvert, defgroup, num_verts, tmp_weights, invert_vgroup);
+        dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
 
     while (i--) {
       MLoop *ml = &loops[i];
@@ -1083,22 +1083,22 @@ void BKE_defvert_extract_vgroup_to_loopweights(MDeformVert *dvert,
   }
 }
 
-void BKE_defvert_extract_vgroup_to_polyweights(MDeformVert *dvert,
+void BKE_defvert_extract_vgroup_to_polyweights(const MDeformVert *dvert,
                                                const int defgroup,
                                                const int num_verts,
                                                MLoop *loops,
                                                const int UNUSED(num_loops),
                                                MPoly *polys,
                                                const int num_polys,
-                                               float *r_weights,
-                                               const bool invert_vgroup)
+                                               const bool invert_vgroup,
+                                               float *r_weights)
 {
   if (dvert && defgroup != -1) {
     int i = num_polys;
     float *tmp_weights = MEM_mallocN(sizeof(*tmp_weights) * (size_t)num_verts, __func__);
 
     BKE_defvert_extract_vgroup_to_vertweights(
-        dvert, defgroup, num_verts, tmp_weights, invert_vgroup);
+        dvert, defgroup, num_verts, invert_vgroup, tmp_weights);
 
     while (i--) {
       MPoly *mp = &polys[i];
@@ -1193,7 +1193,7 @@ static bool data_transfer_layersmapping_vgroups_multisrc_to_dst(ListBase *r_map,
                                                                 const bool use_delete,
                                                                 Object *ob_src,
                                                                 Object *ob_dst,
-                                                                MDeformVert *data_src,
+                                                                const MDeformVert *data_src,
                                                                 MDeformVert *data_dst,
                                                                 CustomData *UNUSED(cd_src),
                                                                 CustomData *cd_dst,
@@ -1348,7 +1348,6 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
                                          const int tolayers)
 {
   int idx_src, idx_dst;
-  MDeformVert *data_src, *data_dst = NULL;
 
   const size_t elem_size = sizeof(*((MDeformVert *)NULL));
 
@@ -1370,9 +1369,9 @@ bool data_transfer_layersmapping_vgroups(ListBase *r_map,
     return true;
   }
 
-  data_src = CustomData_get_layer(cd_src, CD_MDEFORMVERT);
+  const MDeformVert *data_src = CustomData_get_layer(cd_src, CD_MDEFORMVERT);
 
-  data_dst = CustomData_get_layer(cd_dst, CD_MDEFORMVERT);
+  MDeformVert *data_dst = CustomData_get_layer(cd_dst, CD_MDEFORMVERT);
   if (data_dst && use_dupref_dst && r_map) {
     /* If dest is a derivedmesh, we do not want to overwrite cdlayers of org mesh! */
     data_dst = CustomData_duplicate_referenced_layer(cd_dst, CD_MDEFORMVERT, num_elem_dst);

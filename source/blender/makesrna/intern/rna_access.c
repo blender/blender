@@ -5546,7 +5546,12 @@ static char *rna_idp_path(PointerRNA *ptr,
     if (iter->type == IDP_GROUP) {
       if (prop->type == PROP_POINTER) {
         PointerRNA child_ptr = RNA_property_pointer_get(ptr, prop);
-        BLI_assert(!RNA_pointer_is_null(&child_ptr));
+        if (RNA_pointer_is_null(&child_ptr)) {
+          /* Pointer ID prop might be a 'leaf' in the IDProp group hierarchy, in which case a NULL
+           * value is perfectly valid. Just means it won't match the searched needle. */
+          continue;
+        }
+
         link.name = iter->name;
         link.index = -1;
         if ((path = rna_idp_path(&child_ptr, iter, needle, &link))) {
@@ -5568,7 +5573,11 @@ static char *rna_idp_path(PointerRNA *ptr,
         for (j = 0; j < iter->len; j++, array++) {
           PointerRNA child_ptr;
           if (RNA_property_collection_lookup_int(ptr, prop, j, &child_ptr)) {
-            BLI_assert(!RNA_pointer_is_null(&child_ptr));
+            if (RNA_pointer_is_null(&child_ptr)) {
+              /* Array item ID prop might be a 'leaf' in the IDProp group hierarchy, in which case
+               * a NULL value is perfectly valid. Just means it won't match the searched needle. */
+              continue;
+            }
             link.index = j;
             if ((path = rna_idp_path(&child_ptr, array, needle, &link))) {
               break;
@@ -6714,23 +6723,27 @@ static void *rna_array_as_string_alloc(
     int type, int len, PointerRNA *ptr, PropertyRNA *prop, void **r_buf_end)
 {
   void *buf_ret = NULL;
-  if (type == PROP_BOOLEAN) {
-    bool *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
-    RNA_property_boolean_get_array(ptr, prop, buf);
-    *r_buf_end = buf + len;
-  }
-  else if (type == PROP_INT) {
-    int *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
-    RNA_property_int_get_array(ptr, prop, buf);
-    *r_buf_end = buf + len;
-  }
-  else if (type == PROP_FLOAT) {
-    float *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
-    RNA_property_float_get_array(ptr, prop, buf);
-    *r_buf_end = buf + len;
-  }
-  else {
-    BLI_assert(0);
+  switch (type) {
+    case PROP_BOOLEAN: {
+      bool *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
+      RNA_property_boolean_get_array(ptr, prop, buf);
+      *r_buf_end = buf + len;
+      break;
+    }
+    case PROP_INT: {
+      int *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
+      RNA_property_int_get_array(ptr, prop, buf);
+      *r_buf_end = buf + len;
+      break;
+    }
+    case PROP_FLOAT: {
+      float *buf = buf_ret = MEM_mallocN(sizeof(*buf) * len, __func__);
+      RNA_property_float_get_array(ptr, prop, buf);
+      *r_buf_end = buf + len;
+      break;
+    }
+    default:
+      BLI_assert_unreachable();
   }
   return buf_ret;
 }
@@ -6740,29 +6753,33 @@ static void rna_array_as_string_elem(int type, void **buf_p, int len, DynStr *dy
   /* This will print a comma separated string of the array elements from
    * buf start to len. We will add a comma if len == 1 to preserve tuples. */
   const int end = len - 1;
-  if (type == PROP_BOOLEAN) {
-    bool *buf = *buf_p;
-    for (int i = 0; i < len; i++, buf++) {
-      BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%s, " : "%s", bool_as_py_string(*buf));
+  switch (type) {
+    case PROP_BOOLEAN: {
+      bool *buf = *buf_p;
+      for (int i = 0; i < len; i++, buf++) {
+        BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%s, " : "%s", bool_as_py_string(*buf));
+      }
+      *buf_p = buf;
+      break;
     }
-    *buf_p = buf;
-  }
-  else if (type == PROP_INT) {
-    int *buf = *buf_p;
-    for (int i = 0; i < len; i++, buf++) {
-      BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%d, " : "%d", *buf);
+    case PROP_INT: {
+      int *buf = *buf_p;
+      for (int i = 0; i < len; i++, buf++) {
+        BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%d, " : "%d", *buf);
+      }
+      *buf_p = buf;
+      break;
     }
-    *buf_p = buf;
-  }
-  else if (type == PROP_FLOAT) {
-    float *buf = *buf_p;
-    for (int i = 0; i < len; i++, buf++) {
-      BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%g, " : "%g", *buf);
+    case PROP_FLOAT: {
+      float *buf = *buf_p;
+      for (int i = 0; i < len; i++, buf++) {
+        BLI_dynstr_appendf(dynstr, (i < end || !end) ? "%g, " : "%g", *buf);
+      }
+      *buf_p = buf;
+      break;
     }
-    *buf_p = buf;
-  }
-  else {
-    BLI_assert(0);
+    default:
+      BLI_assert_unreachable();
   }
 }
 

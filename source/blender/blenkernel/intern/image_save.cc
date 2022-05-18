@@ -23,6 +23,7 @@
 #include "IMB_openexr.h"
 
 #include "BKE_colortools.h"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_image_format.h"
 #include "BKE_image_save.h"
@@ -34,14 +35,216 @@
 
 using blender::Vector;
 
-void BKE_image_save_options_init(ImageSaveOptions *opts, Main *bmain, Scene *scene)
+static char imtype_best_depth(ImBuf *ibuf, const char imtype)
 {
+  const char depth_ok = BKE_imtype_valid_depths(imtype);
+
+  if (ibuf->rect_float) {
+    if (depth_ok & R_IMF_CHAN_DEPTH_32) {
+      return R_IMF_CHAN_DEPTH_32;
+    }
+    if (depth_ok & R_IMF_CHAN_DEPTH_24) {
+      return R_IMF_CHAN_DEPTH_24;
+    }
+    if (depth_ok & R_IMF_CHAN_DEPTH_16) {
+      return R_IMF_CHAN_DEPTH_16;
+    }
+    if (depth_ok & R_IMF_CHAN_DEPTH_12) {
+      return R_IMF_CHAN_DEPTH_12;
+    }
+    return R_IMF_CHAN_DEPTH_8;
+  }
+
+  if (depth_ok & R_IMF_CHAN_DEPTH_8) {
+    return R_IMF_CHAN_DEPTH_8;
+  }
+  if (depth_ok & R_IMF_CHAN_DEPTH_12) {
+    return R_IMF_CHAN_DEPTH_12;
+  }
+  if (depth_ok & R_IMF_CHAN_DEPTH_16) {
+    return R_IMF_CHAN_DEPTH_16;
+  }
+  if (depth_ok & R_IMF_CHAN_DEPTH_24) {
+    return R_IMF_CHAN_DEPTH_24;
+  }
+  if (depth_ok & R_IMF_CHAN_DEPTH_32) {
+    return R_IMF_CHAN_DEPTH_32;
+  }
+  return R_IMF_CHAN_DEPTH_8; /* fallback, should not get here */
+}
+
+bool BKE_image_save_options_init(ImageSaveOptions *opts,
+                                 Main *bmain,
+                                 Scene *scene,
+                                 Image *ima,
+                                 ImageUser *iuser,
+                                 const bool guess_path)
+{
+  /* For saving a tiled image we need an iuser, so use a local one if there isn't already one. */
+  ImageUser save_iuser;
+  if (iuser == nullptr) {
+    BKE_imageuser_default(&save_iuser);
+    iuser = &save_iuser;
+    iuser->scene = scene;
+  }
+
   memset(opts, 0, sizeof(*opts));
 
   opts->bmain = bmain;
   opts->scene = scene;
+  opts->save_as_render = ima->source == IMA_SRC_VIEWER;
 
   BKE_image_format_init(&opts->im_format, false);
+
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+
+  if (ibuf) {
+    Scene *scene = opts->scene;
+    bool is_depth_set = false;
+    const char *ima_colorspace = ima->colorspace_settings.name;
+
+    if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+      /* imtype */
+      BKE_image_format_init_for_write(&opts->im_format, scene, NULL);
+      is_depth_set = true;
+      if (!BKE_image_is_multiview(ima)) {
+        /* In case multiview is disabled,
+         * render settings would be invalid for render result in this area. */
+        opts->im_format.stereo3d_format = *ima->stereo3d_format;
+        opts->im_format.views_format = ima->views_format;
+      }
+    }
+    else {
+      if (ima->source == IMA_SRC_GENERATED) {
+        opts->im_format.imtype = R_IMF_IMTYPE_PNG;
+        opts->im_format.compress = ibuf->foptions.quality;
+        opts->im_format.planes = ibuf->planes;
+        if (!IMB_colormanagement_space_name_is_data(ima_colorspace)) {
+          ima_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+        }
+      }
+      else {
+        BKE_image_format_from_imbuf(&opts->im_format, ibuf);
+      }
+
+      /* use the multiview image settings as the default */
+      opts->im_format.stereo3d_format = *ima->stereo3d_format;
+      opts->im_format.views_format = ima->views_format;
+
+      /* Render output: colorspace from render settings. */
+      BKE_image_format_color_management_copy_from_scene(&opts->im_format, scene);
+    }
+
+    /* Default to saving in the same colorspace as the image setting. */
+    if (!opts->save_as_render) {
+      STRNCPY(opts->im_format.linear_colorspace_settings.name, ima_colorspace);
+    }
+
+    opts->im_format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
+
+    if (ima->source == IMA_SRC_TILED) {
+      BLI_strncpy(opts->filepath, ima->filepath, sizeof(opts->filepath));
+      BLI_path_abs(opts->filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
+    }
+    else {
+      BLI_strncpy(opts->filepath, ibuf->name, sizeof(opts->filepath));
+    }
+
+    /* sanitize all settings */
+
+    /* unlikely but just in case */
+    if (ELEM(opts->im_format.planes, R_IMF_PLANES_BW, R_IMF_PLANES_RGB, R_IMF_PLANES_RGBA) == 0) {
+      opts->im_format.planes = R_IMF_PLANES_RGBA;
+    }
+
+    /* depth, account for float buffer and format support */
+    if (is_depth_set == false) {
+      opts->im_format.depth = imtype_best_depth(ibuf, opts->im_format.imtype);
+    }
+
+    /* some formats don't use quality so fallback to scenes quality */
+    if (opts->im_format.quality == 0) {
+      opts->im_format.quality = scene->r.im_format.quality;
+    }
+
+    /* check for empty path */
+    if (guess_path && opts->filepath[0] == 0) {
+      const bool is_prev_save = !STREQ(G.ima, "//");
+      if (opts->save_as_render) {
+        if (is_prev_save) {
+          BLI_strncpy(opts->filepath, G.ima, sizeof(opts->filepath));
+        }
+        else {
+          BLI_strncpy(opts->filepath, "//untitled", sizeof(opts->filepath));
+          BLI_path_abs(opts->filepath, BKE_main_blendfile_path(bmain));
+        }
+      }
+      else {
+        BLI_snprintf(opts->filepath, sizeof(opts->filepath), "//%s", ima->id.name + 2);
+        BLI_path_make_safe(opts->filepath);
+        BLI_path_abs(opts->filepath, is_prev_save ? G.ima : BKE_main_blendfile_path(bmain));
+      }
+
+      /* append UDIM marker if not present */
+      if (ima->source == IMA_SRC_TILED && strstr(opts->filepath, "<UDIM>") == NULL) {
+        int len = strlen(opts->filepath);
+        STR_CONCAT(opts->filepath, len, ".<UDIM>");
+      }
+    }
+  }
+
+  /* Copy for detecting UI changes. */
+  opts->prev_save_as_render = opts->save_as_render;
+  opts->prev_imtype = opts->im_format.imtype;
+
+  BKE_image_release_ibuf(ima, ibuf, lock);
+
+  return (ibuf != NULL);
+}
+
+void BKE_image_save_options_update(ImageSaveOptions *opts, Image *image)
+{
+  /* Auto update color space when changing save as render and file type. */
+  if (opts->save_as_render) {
+    if (!opts->prev_save_as_render) {
+      if (ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
+        BKE_image_format_init_for_write(&opts->im_format, opts->scene, NULL);
+      }
+      else {
+        BKE_image_format_color_management_copy_from_scene(&opts->im_format, opts->scene);
+      }
+    }
+  }
+  else {
+    if (opts->prev_save_as_render) {
+      /* Copy colorspace from image settings. */
+      BKE_color_managed_colorspace_settings_copy(&opts->im_format.linear_colorspace_settings,
+                                                 &image->colorspace_settings);
+    }
+    else if (opts->im_format.imtype != opts->prev_imtype &&
+             !IMB_colormanagement_space_name_is_data(
+                 opts->im_format.linear_colorspace_settings.name)) {
+      const bool linear_float_output = BKE_imtype_requires_linear_float(opts->im_format.imtype);
+
+      /* TODO: detect if the colorspace is linear, not just equal to scene linear. */
+      const bool is_linear = IMB_colormanagement_space_name_is_scene_linear(
+          opts->im_format.linear_colorspace_settings.name);
+
+      /* If changing to a linear float or byte format, ensure we have a compatible color space. */
+      if (linear_float_output && !is_linear) {
+        STRNCPY(opts->im_format.linear_colorspace_settings.name,
+                IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT));
+      }
+      else if (!linear_float_output && is_linear) {
+        STRNCPY(opts->im_format.linear_colorspace_settings.name,
+                IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE));
+      }
+    }
+  }
+
+  opts->prev_save_as_render = opts->save_as_render;
+  opts->prev_imtype = opts->im_format.imtype;
 }
 
 void BKE_image_save_options_free(ImageSaveOptions *opts)
@@ -105,12 +308,17 @@ static void image_save_post(ReportList *reports,
     BLI_path_rel(ima->filepath, relbase); /* only after saving */
   }
 
-  ColorManagedColorspaceSettings old_colorspace_settings;
-  BKE_color_managed_colorspace_settings_copy(&old_colorspace_settings, &ima->colorspace_settings);
-  IMB_colormanagement_colorspace_from_ibuf_ftype(&ima->colorspace_settings, ibuf);
-  if (!BKE_color_managed_colorspace_settings_equals(&old_colorspace_settings,
-                                                    &ima->colorspace_settings)) {
-    *r_colorspace_changed = true;
+  /* Update image file color space when saving to another color space. */
+  const bool linear_float_output = BKE_imtype_requires_linear_float(opts->im_format.imtype);
+
+  if (!opts->save_as_render || linear_float_output) {
+    if (opts->im_format.linear_colorspace_settings.name[0] &&
+        !BKE_color_managed_colorspace_settings_equals(
+            &ima->colorspace_settings, &opts->im_format.linear_colorspace_settings)) {
+      BKE_color_managed_colorspace_settings_copy(&ima->colorspace_settings,
+                                                 &opts->im_format.linear_colorspace_settings);
+      *r_colorspace_changed = true;
+    }
   }
 }
 
@@ -176,12 +384,12 @@ static bool image_save_single(ReportList *reports,
 
   /* we need renderresult for exr and rendered multiview */
   rr = BKE_image_acquire_renderresult(opts->scene, ima);
-  bool is_mono = rr ? BLI_listbase_count_at_most(&rr->views, 2) < 2 :
-                      BLI_listbase_count_at_most(&ima->views, 2) < 2;
-  bool is_exr_rr = rr && ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER) &&
-                   RE_HasFloatPixels(rr);
-  bool is_multilayer = is_exr_rr && (imf->imtype == R_IMF_IMTYPE_MULTILAYER);
-  int layer = (iuser && !is_multilayer) ? iuser->layer : -1;
+  const bool is_mono = rr ? BLI_listbase_count_at_most(&rr->views, 2) < 2 :
+                            BLI_listbase_count_at_most(&ima->views, 2) < 2;
+  const bool is_exr_rr = rr && ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER) &&
+                         RE_HasFloatPixels(rr);
+  const bool is_multilayer = is_exr_rr && (imf->imtype == R_IMF_IMTYPE_MULTILAYER);
+  const int layer = (iuser && !is_multilayer) ? iuser->layer : -1;
 
   /* error handling */
   if (rr == nullptr) {
@@ -366,7 +574,6 @@ static bool image_save_single(ReportList *reports,
         colormanaged_ibuf = IMB_colormanagement_imbuf_for_write(ibuf, save_as_render, true, imf);
 
         BKE_image_format_to_imbuf(colormanaged_ibuf, imf);
-        IMB_prepare_write_ImBuf(IMB_isfloat(colormanaged_ibuf), colormanaged_ibuf);
 
         /* duplicate buffer to prevent locker issue when using render result */
         ibuf_stereo[i] = IMB_dupImBuf(colormanaged_ibuf);
@@ -401,8 +608,13 @@ static bool image_save_single(ReportList *reports,
 bool BKE_image_save(
     ReportList *reports, Main *bmain, Image *ima, ImageUser *iuser, ImageSaveOptions *opts)
 {
+  /* For saving a tiled image we need an iuser, so use a local one if there isn't already one. */
   ImageUser save_iuser;
-  BKE_imageuser_default(&save_iuser);
+  if (iuser == nullptr) {
+    BKE_imageuser_default(&save_iuser);
+    iuser = &save_iuser;
+    iuser->scene = opts->scene;
+  }
 
   bool colorspace_changed = false;
 
@@ -418,12 +630,6 @@ bool BKE_image_save(
                   "When saving a tiled image, the path '%s' must contain a valid UDIM marker",
                   opts->filepath);
       return false;
-    }
-
-    /* For saving a tiled image we need an iuser, so use a local one if there isn't already one.
-     */
-    if (iuser == nullptr) {
-      iuser = &save_iuser;
     }
   }
 
@@ -600,10 +806,11 @@ bool BKE_image_render_write_exr(ReportList *reports,
       const bool pass_half_float = half_float && pass_RGBA;
 
       /* Colorspace conversion only happens on RGBA passes. */
-      float *output_rect = (save_as_render && pass_RGBA) ?
-                               image_exr_from_scene_linear_to_output(
-                                   rp->rect, rr->rectx, rr->recty, 4, imf, tmp_output_rects) :
-                               rp->rect;
+      float *output_rect =
+          (save_as_render && pass_RGBA) ?
+              image_exr_from_scene_linear_to_output(
+                  rp->rect, rr->rectx, rr->recty, rp->channels, imf, tmp_output_rects) :
+              rp->rect;
 
       for (int a = 0; a < rp->channels; a++) {
         /* Save Combined as RGBA if single layer save. */
@@ -786,7 +993,6 @@ bool BKE_image_render_write(ReportList *reports,
         int view_id = BLI_findstringindex(&rr->views, names[i], offsetof(RenderView, name));
         ibuf_arr[i] = RE_render_result_rect_to_ibuf(rr, &image_format, dither, view_id);
         IMB_colormanagement_imbuf_for_write(ibuf_arr[i], true, false, &image_format);
-        IMB_prepare_write_ImBuf(IMB_isfloat(ibuf_arr[i]), ibuf_arr[i]);
       }
 
       ibuf_arr[2] = IMB_stereo3d_ImBuf(&image_format, ibuf_arr[0], ibuf_arr[1]);

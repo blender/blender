@@ -206,6 +206,14 @@ class InfoStructRNA:
                 functions.append((identifier, attr))
         return functions
 
+    def get_py_c_properties_getset(self):
+        import types
+        properties_getset = []
+        for identifier, descr in self.py_class.__dict__.items():
+            if type(descr) == types.GetSetDescriptorType:
+                properties_getset.append((identifier, descr))
+        return properties_getset
+
     def __str__(self):
 
         txt = ""

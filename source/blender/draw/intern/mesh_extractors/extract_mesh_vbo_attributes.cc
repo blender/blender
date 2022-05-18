@@ -180,7 +180,7 @@ static void fill_vertbuf_with_attribute(const MeshRenderData *mr,
   const MPoly *mpoly = mr->mpoly;
   const MLoop *mloop = mr->mloop;
 
-  const AttributeType *attr_data = static_cast<AttributeType *>(
+  const AttributeType *attr_data = static_cast<const AttributeType *>(
       CustomData_get_layer_n(custom_data, request.cd_type, layer_index));
 
   using converter = attribute_type_converter<AttributeType, VBOType>;

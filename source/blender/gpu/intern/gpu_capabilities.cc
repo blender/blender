@@ -167,6 +167,11 @@ int GPU_max_shader_storage_buffer_bindings()
   return GCaps.max_shader_storage_buffer_bindings;
 }
 
+int GPU_max_compute_shader_storage_blocks()
+{
+  return GCaps.max_compute_shader_storage_blocks;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

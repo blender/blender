@@ -166,7 +166,7 @@ void ycc_to_rgb(float y, float cb, float cr, float *r_r, float *r_g, float *r_b,
       b = y + 1.772f * cb - 226.816f;
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
   *r_r = r / 255.0f;

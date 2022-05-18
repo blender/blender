@@ -95,7 +95,7 @@ typedef struct EEVEE_LightBake {
   /** Target layer to store the data to. */
   int layer;
   /** Sample count for the convolution. */
-  float samples_ct, invsamples_ct;
+  float samples_count, invsamples_count;
   /** Sampling bias during convolution step. */
   float lod_factor;
   /** Max cube-map LOD to sample when convolving. */
@@ -282,14 +282,14 @@ static void irradiance_pool_size_get(int visibility_size, int total_samples, int
                     (visibility_size / IRRADIANCE_SAMPLE_SIZE_Y);
 
   /* The irradiance itself take one layer, hence the +1 */
-  int layer_ct = MIN2(irr_per_vis + 1, IRRADIANCE_MAX_POOL_LAYER);
+  int layer_count = MIN2(irr_per_vis + 1, IRRADIANCE_MAX_POOL_LAYER);
 
-  int texel_ct = (int)ceilf((float)total_samples / (float)(layer_ct - 1));
+  int texel_count = (int)ceilf((float)total_samples / (float)(layer_count - 1));
   r_size[0] = visibility_size *
-              max_ii(1, min_ii(texel_ct, (IRRADIANCE_MAX_POOL_SIZE / visibility_size)));
+              max_ii(1, min_ii(texel_count, (IRRADIANCE_MAX_POOL_SIZE / visibility_size)));
   r_size[1] = visibility_size *
-              max_ii(1, (texel_ct / (IRRADIANCE_MAX_POOL_SIZE / visibility_size)));
-  r_size[2] = layer_ct;
+              max_ii(1, (texel_count / (IRRADIANCE_MAX_POOL_SIZE / visibility_size)));
+  r_size[2] = layer_count;
 }
 
 static bool EEVEE_lightcache_validate(const LightCache *light_cache,
@@ -1118,7 +1118,7 @@ static void eevee_lightbake_render_grid_sample(void *ved, void *user_data)
   SWAP(GPUTexture *, lbake->grid_prev, lcache->grid_tx.tex);
 
   /* TODO: do this once for the whole bake when we have independent DRWManagers.
-   * Warning: Some of the things above require this. */
+   * WARNING: Some of the things above require this. */
   eevee_lightbake_cache_create(vedata, lbake);
 
   /* Compute sample position */

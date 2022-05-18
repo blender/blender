@@ -36,6 +36,14 @@ void setCoarsePositions(OpenSubdiv_Evaluator *evaluator,
   evaluator->impl->eval_output->setCoarsePositions(positions, start_vertex_index, num_vertices);
 }
 
+void setVertexData(OpenSubdiv_Evaluator *evaluator,
+                   const float *vertex_data,
+                   const int start_vertex_index,
+                   const int num_vertices)
+{
+  evaluator->impl->eval_output->setVertexData(vertex_data, start_vertex_index, num_vertices);
+}
+
 void setVaryingData(OpenSubdiv_Evaluator *evaluator,
                     const float *varying_data,
                     const int start_vertex_index,
@@ -113,6 +121,15 @@ void evaluatePatchesLimit(OpenSubdiv_Evaluator *evaluator,
 {
   evaluator->impl->eval_output->evaluatePatchesLimit(
       patch_coords, num_patch_coords, P, dPdu, dPdv);
+}
+
+void evaluateVertexData(OpenSubdiv_Evaluator *evaluator,
+                        const int ptex_face_index,
+                        float face_u,
+                        float face_v,
+                        float vertex_data[3])
+{
+  evaluator->impl->eval_output->evaluateVertexData(ptex_face_index, face_u, face_v, vertex_data);
 }
 
 void evaluateVarying(OpenSubdiv_Evaluator *evaluator,
@@ -206,6 +223,7 @@ void wrapFVarSrcBuffer(struct OpenSubdiv_Evaluator *evaluator,
 void assignFunctionPointers(OpenSubdiv_Evaluator *evaluator)
 {
   evaluator->setCoarsePositions = setCoarsePositions;
+  evaluator->setVertexData = setVertexData;
   evaluator->setVaryingData = setVaryingData;
   evaluator->setFaceVaryingData = setFaceVaryingData;
 
@@ -217,6 +235,7 @@ void assignFunctionPointers(OpenSubdiv_Evaluator *evaluator)
 
   evaluator->evaluateLimit = evaluateLimit;
   evaluator->evaluateVarying = evaluateVarying;
+  evaluator->evaluateVertexData = evaluateVertexData;
   evaluator->evaluateFaceVarying = evaluateFaceVarying;
 
   evaluator->evaluatePatchesLimit = evaluatePatchesLimit;
@@ -239,12 +258,16 @@ void assignFunctionPointers(OpenSubdiv_Evaluator *evaluator)
 OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
     OpenSubdiv_TopologyRefiner *topology_refiner,
     eOpenSubdivEvaluator evaluator_type,
-    OpenSubdiv_EvaluatorCache *evaluator_cache)
+    OpenSubdiv_EvaluatorCache *evaluator_cache,
+    const OpenSubdiv_EvaluatorSettings *settings)
 {
   OpenSubdiv_Evaluator *evaluator = MEM_new<OpenSubdiv_Evaluator>(__func__);
   assignFunctionPointers(evaluator);
-  evaluator->impl = openSubdiv_createEvaluatorInternal(
-      topology_refiner, evaluator_type, evaluator_cache ? evaluator_cache->impl : nullptr);
+  evaluator->impl = openSubdiv_createEvaluatorInternal(topology_refiner,
+                                                       evaluator_type,
+                                                       evaluator_cache ? evaluator_cache->impl :
+                                                                         nullptr,
+                                                       settings);
   evaluator->type = evaluator->impl ? evaluator_type : static_cast<eOpenSubdivEvaluator>(0);
   return evaluator;
 }

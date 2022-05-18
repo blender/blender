@@ -44,4 +44,3 @@ image_dest = image_src.copy()
 image_dest.update()
 print(image_dest.size)
 print(image_dest.pixels[0:4])
-

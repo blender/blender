@@ -66,7 +66,7 @@ GPU_SHADER_INTERFACE_INFO(eevee_surf_iface, "interp")
 
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .vertex_out(eevee_surf_iface)
-    /* Note: This removes the possibility of using gl_FragDepth. */
+    /* NOTE: This removes the possibility of using gl_FragDepth. */
     // .early_fragment_test(true)
     /* Direct output. */
     .fragment_out(0, Type::VEC4, "out_radiance", DualBlend::SRC_0)

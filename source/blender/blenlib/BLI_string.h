@@ -307,7 +307,7 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, bool base_10) A
  *
  * Length of 7 is the maximum of the resulting string, for example, `-15.5K\0`.
  */
-void BLI_str_format_attribute_domain_size(char dst[7], int number_to_format) ATTR_NONNULL();
+void BLI_str_format_decimal_unit(char dst[7], int number_to_format) ATTR_NONNULL();
 /**
  * Compare two strings without regard to case.
  *

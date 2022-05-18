@@ -48,6 +48,8 @@
 
 namespace blender::ed::space_node {
 
+static bool is_event_over_node_or_socket(bContext *C, const wmEvent *event);
+
 /**
  * Function to detect if there is a visible view3d that uses workbench in texture mode.
  * This function is for fixing T76970 for Blender 2.83. The actual fix should add a mechanism in
@@ -96,6 +98,11 @@ rctf node_frame_rect_inside(const bNode &node)
   BLI_rctf_pad(&frame_inside, -margin, -margin);
 
   return frame_inside;
+}
+
+bool node_or_socket_isect_event(bContext *C, const wmEvent *event)
+{
+  return is_event_over_node_or_socket(C, event);
 }
 
 static bool node_frame_select_isect_mouse(bNode *node, const float2 &mouse)
@@ -664,7 +671,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
   RNA_int_get_array(op->ptr, "location", mval);
 
   struct SelectPick_Params params = {};
-  ED_select_pick_params_from_operator(op, &params);
+  ED_select_pick_params_from_operator(op->ptr, &params);
 
   /* perform the select */
   const bool changed = node_mouse_select(C, op, mval, &params);
@@ -698,6 +705,7 @@ void NODE_OT_select(wmOperatorType *ot)
   ot->exec = node_select_exec;
   ot->invoke = node_select_invoke;
   ot->poll = ED_operator_node_active;
+  ot->get_name = ED_select_pick_get_name;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -708,7 +716,7 @@ void NODE_OT_select(wmOperatorType *ot)
   prop = RNA_def_int_vector(ot->srna,
                             "location",
                             2,
-                            NULL,
+                            nullptr,
                             INT_MIN,
                             INT_MAX,
                             "Location",
@@ -887,8 +895,8 @@ void NODE_OT_select_circle(wmOperatorType *ot)
   ot->invoke = WM_gesture_circle_invoke;
   ot->exec = node_circleselect_exec;
   ot->modal = WM_gesture_circle_modal;
-
   ot->poll = ED_operator_node_active;
+  ot->get_name = ED_select_circle_get_name;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

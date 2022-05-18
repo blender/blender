@@ -1315,7 +1315,7 @@ void ED_screen_full_restore(bContext *C, ScrArea *area)
     else {
       ED_screen_state_toggle(C, win, area, state);
     }
-    /* warning: 'area' may be freed */
+    /* WARNING: 'area' may be freed */
   }
   /* otherwise just tile the area again */
   else {

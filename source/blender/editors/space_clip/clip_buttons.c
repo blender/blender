@@ -303,7 +303,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
       cb->marker->pattern_corners[a][1] *= scale_y;
     }
 
-    BKE_tracking_marker_clamp(cb->marker, CLAMP_PAT_DIM);
+    BKE_tracking_marker_clamp_search_size(cb->marker);
 
     ok = true;
   }
@@ -319,7 +319,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
     sub_v2_v2v2(cb->marker->search_min, delta, side);
     add_v2_v2v2(cb->marker->search_max, delta, side);
 
-    BKE_tracking_marker_clamp(cb->marker, CLAMP_SEARCH_POS);
+    BKE_tracking_marker_clamp_search_position(cb->marker);
 
     ok = true;
   }
@@ -340,7 +340,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
     cb->marker->search_max[0] += dim[0];
     cb->marker->search_max[1] += dim[1];
 
-    BKE_tracking_marker_clamp(cb->marker, CLAMP_SEARCH_DIM);
+    BKE_tracking_marker_clamp_search_size(cb->marker);
 
     ok = true;
   }

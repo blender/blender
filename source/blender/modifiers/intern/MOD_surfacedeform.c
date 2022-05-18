@@ -1669,27 +1669,41 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_SurfaceDeform, panel_draw);
 }
 
-static void blendWrite(BlendWriter *writer, const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
-  const SurfaceDeformModifierData *smd = (const SurfaceDeformModifierData *)md;
+  SurfaceDeformModifierData smd = *(const SurfaceDeformModifierData *)md;
 
-  BLO_write_struct_array(writer, SDefVert, smd->bind_verts_num, smd->verts);
+  if (ID_IS_OVERRIDE_LIBRARY(id_owner)) {
+    BLI_assert(!ID_IS_LINKED(id_owner));
+    const bool is_local = (md->flag & eModifierFlag_OverrideLibrary_Local) != 0;
+    if (!is_local) {
+      /* Modifier coming from linked data cannot be bound from an override, so we can remove all
+       * binding data, can save a significant amount of memory. */
+      smd.bind_verts_num = 0;
+      smd.verts = NULL;
+    }
+  }
 
-  if (smd->verts) {
-    for (int i = 0; i < smd->bind_verts_num; i++) {
-      BLO_write_struct_array(writer, SDefBind, smd->verts[i].binds_num, smd->verts[i].binds);
+  BLO_write_struct_at_address(writer, SurfaceDeformModifierData, md, &smd);
 
-      if (smd->verts[i].binds) {
-        for (int j = 0; j < smd->verts[i].binds_num; j++) {
+  if (smd.verts != NULL) {
+    SDefVert *bind_verts = smd.verts;
+    BLO_write_struct_array(writer, SDefVert, smd.bind_verts_num, bind_verts);
+
+    for (int i = 0; i < smd.bind_verts_num; i++) {
+      BLO_write_struct_array(writer, SDefBind, bind_verts[i].binds_num, bind_verts[i].binds);
+
+      if (bind_verts[i].binds) {
+        for (int j = 0; j < bind_verts[i].binds_num; j++) {
           BLO_write_uint32_array(
-              writer, smd->verts[i].binds[j].verts_num, smd->verts[i].binds[j].vert_inds);
+              writer, bind_verts[i].binds[j].verts_num, bind_verts[i].binds[j].vert_inds);
 
-          if (ELEM(smd->verts[i].binds[j].mode, MOD_SDEF_MODE_CENTROID, MOD_SDEF_MODE_LOOPTRI)) {
-            BLO_write_float3_array(writer, 1, smd->verts[i].binds[j].vert_weights);
+          if (ELEM(bind_verts[i].binds[j].mode, MOD_SDEF_MODE_CENTROID, MOD_SDEF_MODE_LOOPTRI)) {
+            BLO_write_float3_array(writer, 1, bind_verts[i].binds[j].vert_weights);
           }
           else {
             BLO_write_float_array(
-                writer, smd->verts[i].binds[j].verts_num, smd->verts[i].binds[j].vert_weights);
+                writer, bind_verts[i].binds[j].verts_num, bind_verts[i].binds[j].vert_weights);
           }
         }
       }

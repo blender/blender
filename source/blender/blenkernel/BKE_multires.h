@@ -130,7 +130,7 @@ void multiresModifier_prepare_join(struct Depsgraph *depsgraph,
                                    struct Object *ob,
                                    struct Object *to_ob);
 
-int multires_mdisp_corners(struct MDisps *s);
+int multires_mdisp_corners(const struct MDisps *s);
 
 /**
  * Update multi-res data after topology changing.

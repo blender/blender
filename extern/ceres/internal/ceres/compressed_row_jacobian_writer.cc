@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,10 @@
 
 #include "ceres/compressed_row_jacobian_writer.h"
 
+#include <algorithm>
 #include <iterator>
+#include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -55,7 +58,7 @@ void CompressedRowJacobianWriter::PopulateJacobianRowAndColumnBlockVectors(
   vector<int>& col_blocks = *(jacobian->mutable_col_blocks());
   col_blocks.resize(parameter_blocks.size());
   for (int i = 0; i < parameter_blocks.size(); ++i) {
-    col_blocks[i] = parameter_blocks[i]->LocalSize();
+    col_blocks[i] = parameter_blocks[i]->TangentSize();
   }
 
   const vector<ResidualBlock*>& residual_blocks = program->residual_blocks();
@@ -81,10 +84,12 @@ void CompressedRowJacobianWriter::GetOrderedParameterBlocks(
           make_pair(parameter_block->index(), j));
     }
   }
-  sort(evaluated_jacobian_blocks->begin(), evaluated_jacobian_blocks->end());
+  std::sort(evaluated_jacobian_blocks->begin(),
+            evaluated_jacobian_blocks->end());
 }
 
-SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
+std::unique_ptr<SparseMatrix> CompressedRowJacobianWriter::CreateJacobian()
+    const {
   const vector<ResidualBlock*>& residual_blocks = program_->residual_blocks();
 
   int total_num_residuals = program_->NumResiduals();
@@ -92,14 +97,13 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
 
   // Count the number of jacobian nonzeros.
   int num_jacobian_nonzeros = 0;
-  for (int i = 0; i < residual_blocks.size(); ++i) {
-    ResidualBlock* residual_block = residual_blocks[i];
+  for (auto* residual_block : residual_blocks) {
     const int num_residuals = residual_block->NumResiduals();
     const int num_parameter_blocks = residual_block->NumParameterBlocks();
     for (int j = 0; j < num_parameter_blocks; ++j) {
       ParameterBlock* parameter_block = residual_block->parameter_blocks()[j];
       if (!parameter_block->IsConstant()) {
-        num_jacobian_nonzeros += num_residuals * parameter_block->LocalSize();
+        num_jacobian_nonzeros += num_residuals * parameter_block->TangentSize();
       }
     }
   }
@@ -108,10 +112,11 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
   // Allocate more space than needed to store the jacobian so that when the LM
   // algorithm adds the diagonal, no reallocation is necessary. This reduces
   // peak memory usage significantly.
-  CompressedRowSparseMatrix* jacobian = new CompressedRowSparseMatrix(
-      total_num_residuals,
-      total_num_effective_parameters,
-      num_jacobian_nonzeros + total_num_effective_parameters);
+  std::unique_ptr<CompressedRowSparseMatrix> jacobian =
+      std::make_unique<CompressedRowSparseMatrix>(
+          total_num_residuals,
+          total_num_effective_parameters,
+          num_jacobian_nonzeros + total_num_effective_parameters);
 
   // At this stage, the CompressedRowSparseMatrix is an invalid state. But this
   // seems to be the only way to construct it without doing a memory copy.
@@ -120,8 +125,7 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
 
   int row_pos = 0;
   rows[0] = 0;
-  for (int i = 0; i < residual_blocks.size(); ++i) {
-    const ResidualBlock* residual_block = residual_blocks[i];
+  for (auto* residual_block : residual_blocks) {
     const int num_parameter_blocks = residual_block->NumParameterBlocks();
 
     // Count the number of derivatives for a row of this residual block and
@@ -132,7 +136,7 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
       ParameterBlock* parameter_block = residual_block->parameter_blocks()[j];
       if (!parameter_block->IsConstant()) {
         parameter_indices.push_back(parameter_block->index());
-        num_derivatives += parameter_block->LocalSize();
+        num_derivatives += parameter_block->TangentSize();
       }
     }
 
@@ -163,10 +167,10 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
     // parameter vector. This code mirrors that in Write(), where jacobian
     // values are updated.
     int col_pos = 0;
-    for (int j = 0; j < parameter_indices.size(); ++j) {
+    for (int parameter_index : parameter_indices) {
       ParameterBlock* parameter_block =
-          program_->parameter_blocks()[parameter_indices[j]];
-      const int parameter_block_size = parameter_block->LocalSize();
+          program_->parameter_blocks()[parameter_index];
+      const int parameter_block_size = parameter_block->TangentSize();
 
       for (int r = 0; r < num_residuals; ++r) {
         // This is the position in the values array of the jacobian where this
@@ -183,7 +187,7 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
   }
   CHECK_EQ(num_jacobian_nonzeros, rows[total_num_residuals]);
 
-  PopulateJacobianRowAndColumnBlockVectors(program_, jacobian);
+  PopulateJacobianRowAndColumnBlockVectors(program_, jacobian.get());
 
   return jacobian;
 }
@@ -192,8 +196,7 @@ void CompressedRowJacobianWriter::Write(int residual_id,
                                         int residual_offset,
                                         double** jacobians,
                                         SparseMatrix* base_jacobian) {
-  CompressedRowSparseMatrix* jacobian =
-      down_cast<CompressedRowSparseMatrix*>(base_jacobian);
+  auto* jacobian = down_cast<CompressedRowSparseMatrix*>(base_jacobian);
 
   double* jacobian_values = jacobian->mutable_values();
   const int* jacobian_rows = jacobian->rows();
@@ -210,11 +213,11 @@ void CompressedRowJacobianWriter::Write(int residual_id,
 
   // Iterate over the jacobian blocks in increasing order of their
   // positions in the reduced parameter vector.
-  for (int i = 0; i < evaluated_jacobian_blocks.size(); ++i) {
+  for (auto& evaluated_jacobian_block : evaluated_jacobian_blocks) {
     const ParameterBlock* parameter_block =
-        program_->parameter_blocks()[evaluated_jacobian_blocks[i].first];
-    const int argument = evaluated_jacobian_blocks[i].second;
-    const int parameter_block_size = parameter_block->LocalSize();
+        program_->parameter_blocks()[evaluated_jacobian_block.first];
+    const int argument = evaluated_jacobian_block.second;
+    const int parameter_block_size = parameter_block->TangentSize();
 
     // Copy one row of the jacobian block at a time.
     for (int r = 0; r < num_residuals; ++r) {

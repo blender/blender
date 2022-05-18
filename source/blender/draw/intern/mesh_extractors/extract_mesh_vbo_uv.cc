@@ -108,7 +108,8 @@ static void extract_uv_init(const MeshRenderData *mr,
         }
       }
       else {
-        MLoopUV *layer_data = (MLoopUV *)CustomData_get_layer_n(cd_ldata, CD_MLOOPUV, i);
+        const MLoopUV *layer_data = (const MLoopUV *)CustomData_get_layer_n(
+            cd_ldata, CD_MLOOPUV, i);
         for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, uv_data++, layer_data++) {
           memcpy(uv_data, layer_data->uv, sizeof(*uv_data));
         }

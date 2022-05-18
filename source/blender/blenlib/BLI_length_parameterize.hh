@@ -17,7 +17,7 @@ namespace blender::length_parameterize {
  * Return the size of the necessary lengths array for a group of points, taking into account the
  * possible last cyclic segment.
  *
- * \note This is the same as #bke::curves::curve_segment_size.
+ * \note This is the same as #bke::curves::curve_segment_num.
  */
 inline int lengths_num(const int points_num, const bool cyclic)
 {

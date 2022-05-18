@@ -27,9 +27,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
     const CurveComponent &component = *geometry_set.get_component_for_read<CurveComponent>();
     GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_CURVE};
-    const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_CURVE);
+    const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_CURVE);
 
-    fn::FieldEvaluator selection_evaluator{field_context, domain_size};
+    fn::FieldEvaluator selection_evaluator{field_context, domain_num};
     selection_evaluator.add(selection_field);
     selection_evaluator.evaluate();
     const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);

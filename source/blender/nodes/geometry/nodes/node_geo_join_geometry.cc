@@ -56,8 +56,8 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
 
   int offset = 0;
   for (const GeometryComponent *component : src_components) {
-    const int domain_size = component->attribute_domain_size(domain);
-    if (domain_size == 0) {
+    const int domain_num = component->attribute_domain_num(domain);
+    if (domain_num == 0) {
       continue;
     }
     GVArray read_attribute = component->attribute_get_for_read(
@@ -66,9 +66,9 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
     GVArray_GSpan src_span{read_attribute};
     const void *src_buffer = src_span.data();
     void *dst_buffer = dst_span[offset];
-    cpp_type->copy_assign_n(src_buffer, dst_buffer, domain_size);
+    cpp_type->copy_assign_n(src_buffer, dst_buffer, domain_num);
 
-    offset += domain_size;
+    offset += domain_num;
   }
 }
 
@@ -101,7 +101,7 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
 
   int tot_instances = 0;
   for (const InstancesComponent *src_component : src_components) {
-    tot_instances += src_component->instances_amount();
+    tot_instances += src_component->instances_num();
   }
   dst_component.reserve(tot_instances);
 

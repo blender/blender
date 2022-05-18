@@ -30,6 +30,8 @@
 
 #include "ceres/float_suitesparse.h"
 
+#include <memory>
+
 #if !defined(CERES_NO_SUITESPARSE)
 
 namespace ceres {
@@ -38,7 +40,7 @@ namespace internal {
 std::unique_ptr<SparseCholesky> FloatSuiteSparseCholesky::Create(
     OrderingType ordering_type) {
   LOG(FATAL) << "FloatSuiteSparseCholesky is not available.";
-  return std::unique_ptr<SparseCholesky>();
+  return {};
 }
 
 }  // namespace internal

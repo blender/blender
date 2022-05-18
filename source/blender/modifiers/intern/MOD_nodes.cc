@@ -985,17 +985,16 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
       if (!component.attribute_domain_supported(domain)) {
         continue;
       }
-      const int domain_size = component.attribute_domain_size(domain);
+      const int domain_num = component.attribute_domain_num(domain);
       blender::bke::GeometryComponentFieldContext field_context{component, domain};
-      blender::fn::FieldEvaluator field_evaluator{field_context, domain_size};
+      blender::fn::FieldEvaluator field_evaluator{field_context, domain_num};
       for (const OutputAttributeInfo &output_info : outputs_info) {
         const CPPType &type = output_info.field.cpp_type();
         OutputAttributeToStore store{
             component_type,
             domain,
             output_info.name,
-            GMutableSpan{
-                type, MEM_malloc_arrayN(domain_size, type.size(), __func__), domain_size}};
+            GMutableSpan{type, MEM_malloc_arrayN(domain_num, type.size(), __func__), domain_num}};
         field_evaluator.add_with_destination(output_info.field, store.data);
         attributes_to_store.append(store);
       }
@@ -1730,9 +1729,12 @@ static void panelRegister(ARegionType *region_type)
                              panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
 {
   const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
+
+  BLO_write_struct(writer, NodesModifierData, nmd);
+
   if (nmd->settings.properties != nullptr) {
     /* Note that the property settings are based on the socket type info
      * and don't necessarily need to be written, but we can't just free them. */
@@ -1799,7 +1801,7 @@ ModifierTypeInfo modifierType_Nodes = {
                                   eModifierTypeFlag_SupportsEditmode |
                                   eModifierTypeFlag_EnableInEditmode |
                                   eModifierTypeFlag_SupportsMapping),
-    /* icon */ ICON_NODETREE,
+    /* icon */ ICON_GEOMETRY_NODES,
 
     /* copyData */ copyData,
 

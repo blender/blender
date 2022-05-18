@@ -334,8 +334,16 @@ static void do_item_rename(ARegion *region,
       add_textbut = true;
     }
   }
-  else if (te->idcode == ID_LI && ((Library *)tselem->id)->parent) {
-    BKE_report(reports, RPT_WARNING, "Cannot edit the path of an indirectly linked library");
+  else if (te->idcode == ID_LI) {
+    if (reinterpret_cast<Library *>(tselem->id)->parent) {
+      BKE_report(reports, RPT_WARNING, "Cannot edit the path of an indirectly linked library");
+    }
+    else {
+      BKE_report(
+          reports,
+          RPT_WARNING,
+          "Library path is not editable from here anymore, please use Relocate operation instead");
+    }
   }
   else {
     add_textbut = true;

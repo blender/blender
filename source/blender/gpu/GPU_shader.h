@@ -282,7 +282,7 @@ typedef enum eGPUBuiltinShader {
   /**
    * Draw a texture in 3D. Take a 3D position and a 2D texture coordinate for each vertex.
    *
-   * Exposed via pyapi for add-ons.
+   * Exposed via Python-API for add-ons.
    *
    * \param image: uniform sampler2D
    * \param texCoord: in vec2

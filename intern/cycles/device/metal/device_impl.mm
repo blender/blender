@@ -275,96 +275,44 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
    * active, but may still need to be rendered without motion blur if that isn't active as well. */
   motion_blur = kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
 
-  NSError *error = NULL;
+  source[PSO_GENERIC] = get_source(kernel_features);
+  mtlLibrary[PSO_GENERIC] = compile(source[PSO_GENERIC]);
 
-  for (int i = 0; i < PSO_NUM; i++) {
-    if (mtlLibrary[i]) {
-      [mtlLibrary[i] release];
-      mtlLibrary[i] = nil;
-    }
-  }
+  MD5Hash md5;
+  md5.append(source[PSO_GENERIC]);
+  source_md5[PSO_GENERIC] = md5.get_hex();
 
+  metal_printf("Front-end compilation finished (generic)\n");
+
+  bool result = MetalDeviceKernels::load(this, false);
+
+  reserve_local_memory(kernel_features);
+
+  return result;
+}
+
+id<MTLLibrary> MetalDevice::compile(string const &source)
+{
   MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
 
   options.fastMathEnabled = YES;
   if (@available(macOS 12.0, *)) {
     options.languageVersion = MTLLanguageVersion2_4;
   }
-  else {
-    return false;
-  }
 
-  string metalsrc;
-
-  /* local helper: dump source to disk and return filepath */
-  auto dump_source = [&](int kernel_type) -> string {
-    string &source = source_used_for_compile[kernel_type];
-    string metalsrc = path_cache_get(path_join("kernels",
-                                               string_printf("%s.%s.metal",
-                                                             kernel_type_as_string(kernel_type),
-                                                             util_md5_string(source).c_str())));
-    path_write_text(metalsrc, source);
-    return metalsrc;
-  };
-
-  /* local helper: fetch the kernel source code, adjust it for specific PSO_.. kernel_type flavor,
-   * then compile it into a MTLLibrary */
-  auto fetch_and_compile_source = [&](int kernel_type) {
-    /* Record the source used to compile this library, for hash building later. */
-    string &source = source_used_for_compile[kernel_type];
-
-    switch (kernel_type) {
-      case PSO_GENERIC: {
-        source = get_source(kernel_features);
-        break;
-      }
-      case PSO_SPECIALISED: {
-        /* PSO_SPECIALISED derives from PSO_GENERIC */
-        string &generic_source = source_used_for_compile[PSO_GENERIC];
-        if (generic_source.empty()) {
-          generic_source = get_source(kernel_features);
-        }
-        source = "#define __KERNEL_METAL_USE_FUNCTION_SPECIALISATION__\n" + generic_source;
-        break;
-      }
-      default:
-        assert(0);
-    }
-
-    /* create MTLLibrary (front-end compilation) */
-    mtlLibrary[kernel_type] = [mtlDevice newLibraryWithSource:@(source.c_str())
+  NSError *error = NULL;
+  id<MTLLibrary> mtlLibrary = [mtlDevice newLibraryWithSource:@(source.c_str())
                                                       options:options
                                                         error:&error];
 
-    bool do_source_dump = (getenv("CYCLES_METAL_DUMP_SOURCE") != nullptr);
-
-    if (!mtlLibrary[kernel_type] || do_source_dump) {
-      string metalsrc = dump_source(kernel_type);
-
-      if (!mtlLibrary[kernel_type]) {
-        NSString *err = [error localizedDescription];
-        set_error(string_printf("Failed to compile library:\n%s", [err UTF8String]));
-
-        return false;
-      }
-    }
-    return true;
-  };
-
-  fetch_and_compile_source(PSO_GENERIC);
-
-  if (use_function_specialisation) {
-    fetch_and_compile_source(PSO_SPECIALISED);
+  if (!mtlLibrary) {
+    NSString *err = [error localizedDescription];
+    set_error(string_printf("Failed to compile library:\n%s", [err UTF8String]));
   }
 
-  metal_printf("Front-end compilation finished\n");
-
-  bool result = kernels.load(this, PSO_GENERIC);
-
   [options release];
-  reserve_local_memory(kernel_features);
 
-  return result;
+  return mtlLibrary;
 }
 
 void MetalDevice::reserve_local_memory(const uint kernel_features)

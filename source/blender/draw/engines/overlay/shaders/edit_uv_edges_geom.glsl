@@ -1,8 +1,5 @@
 #pragma BLENDER_REQUIRE(common_overlay_lib.glsl)
 
-layout(lines) in;
-layout(triangle_strip, max_vertices = 4) out;
-
 void do_vertex(
     vec4 pos, float selection_fac, vec2 stipple_start, vec2 stipple_pos, float coord, vec2 offset)
 {

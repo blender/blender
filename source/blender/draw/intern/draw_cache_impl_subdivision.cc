@@ -745,8 +745,8 @@ struct DRWCacheBuildingContext {
   /* Origindex layers from the mesh to directly look up during traversal the origindex from the
    * base mesh for edit data so that we do not have to handle yet another GPU buffer and do this in
    * the shaders. */
-  int *v_origindex;
-  int *e_origindex;
+  const int *v_origindex;
+  const int *e_origindex;
 };
 
 static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_context,

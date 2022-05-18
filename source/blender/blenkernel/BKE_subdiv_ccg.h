@@ -8,7 +8,6 @@
 #pragma once
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_customdata.h"
 #include "BLI_bitmap.h"
 #include "BLI_sys_types.h"
 
@@ -21,6 +20,8 @@ struct CCGFace;
 struct CCGKey;
 struct DMFlagMat;
 struct Mesh;
+struct MPoly;
+struct MLoop;
 struct Subdiv;
 
 /* --------------------------------------------------------------------
@@ -309,8 +310,8 @@ typedef enum SubdivCCGAdjacencyType {
  * adjacent to a vertex, r_v1 and r_v2 will be the index of that vertex. */
 SubdivCCGAdjacencyType BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(const SubdivCCG *subdiv_ccg,
                                                                      const SubdivCCGCoord *coord,
-                                                                     const MLoop *mloop,
-                                                                     const MPoly *mpoly,
+                                                                     const struct MLoop *mloop,
+                                                                     const struct MPoly *mpoly,
                                                                      int *r_v1,
                                                                      int *r_v2);
 

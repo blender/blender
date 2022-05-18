@@ -47,16 +47,13 @@ struct TextureUpdateRoutineSpecialisation {
             (component_count_input == other.component_count_input) &&
             (component_count_output == other.component_count_output));
   }
-};
 
-template<> struct blender::DefaultHash<TextureUpdateRoutineSpecialisation> {
-  inline uint64_t operator()(const TextureUpdateRoutineSpecialisation &key) const
+  inline uint64_t hash() const
   {
-
-    DefaultHash<std::string> string_hasher;
+    blender::DefaultHash<std::string> string_hasher;
     return (uint64_t)string_hasher(
-        key.input_data_type + key.output_data_type +
-        std::to_string((key.component_count_input << 8) + key.component_count_output));
+        this->input_data_type + this->output_data_type +
+        std::to_string((this->component_count_input << 8) + this->component_count_output));
   }
 };
 
@@ -78,12 +75,10 @@ struct DepthTextureUpdateRoutineSpecialisation {
   {
     return ((data_mode == other.data_mode));
   }
-};
 
-template<> struct blender::DefaultHash<DepthTextureUpdateRoutineSpecialisation> {
-  inline uint64_t operator()(const DepthTextureUpdateRoutineSpecialisation &key) const
+  inline uint64_t hash() const
   {
-    return (uint64_t)(key.data_mode);
+    return (uint64_t)(this->data_mode);
   }
 };
 
@@ -109,17 +104,14 @@ struct TextureReadRoutineSpecialisation {
             (component_count_output == other.component_count_output) &&
             (depth_format_mode == other.depth_format_mode));
   }
-};
 
-template<> struct blender::DefaultHash<TextureReadRoutineSpecialisation> {
-  inline uint64_t operator()(const TextureReadRoutineSpecialisation &key) const
+  inline uint64_t hash() const
   {
-
-    DefaultHash<std::string> string_hasher;
-    return (uint64_t)string_hasher(key.input_data_type + key.output_data_type +
-                                   std::to_string((key.component_count_input << 8) +
-                                                  key.component_count_output +
-                                                  (key.depth_format_mode << 28)));
+    blender::DefaultHash<std::string> string_hasher;
+    return (uint64_t)string_hasher(this->input_data_type + this->output_data_type +
+                                   std::to_string((this->component_count_input << 8) +
+                                                  this->component_count_output +
+                                                  (this->depth_format_mode << 28)));
   }
 };
 
@@ -157,21 +149,6 @@ typedef struct MTLSamplerState {
 } MTLSamplerState;
 
 const MTLSamplerState DEFAULT_SAMPLER_STATE = {GPU_SAMPLER_DEFAULT /*, 0, 9999*/};
-
-}  // namespace blender::gpu
-
-template<> struct blender::DefaultHash<blender::gpu::MTLSamplerState> {
-  inline uint64_t operator()(const blender::gpu::MTLSamplerState &key) const
-  {
-    const DefaultHash<unsigned int> uint_hasher;
-    uint64_t main_hash = (uint64_t)uint_hasher((unsigned int)(key.state));
-
-    /* Hash other parameters as needed. */
-    return main_hash;
-  }
-};
-
-namespace blender::gpu {
 
 class MTLTexture : public Texture {
   friend class MTLContext;

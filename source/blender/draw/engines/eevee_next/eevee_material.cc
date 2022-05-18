@@ -281,9 +281,7 @@ Material &MaterialModule::material_sync(::Material *blender_mat, eMaterialGeomet
     if (ob->type == OB_VOLUME) {
       return BKE_material_default_volume();
     }
-    else {
-      return BKE_material_default_surface();
-    }
+    return BKE_material_default_surface();
   }
   return ma;
 }

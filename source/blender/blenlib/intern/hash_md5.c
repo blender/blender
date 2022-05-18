@@ -271,7 +271,7 @@ static void *md5_read_ctx(const struct md5_ctx *ctx, void *resbuf)
 
 int BLI_hash_md5_stream(FILE *stream, void *resblock)
 {
-#define BLOCKSIZE 4096 /* Important: must be a multiple of 64. */
+#define BLOCKSIZE 4096 /* IMPORTANT: must be a multiple of 64. */
   struct md5_ctx ctx;
   md5_uint32 len[2];
   char buffer[BLOCKSIZE + 72];

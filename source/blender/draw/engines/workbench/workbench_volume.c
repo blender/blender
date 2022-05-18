@@ -124,12 +124,12 @@ static void workbench_volume_modifier_cache_populate(WORKBENCH_Data *vedata,
     double noise_ofs;
     BLI_halton_1d(3, 0.0, wpd->taa_sample, &noise_ofs);
     float dim[3], step_length, max_slice;
-    float slice_ct[3] = {fds->res[0], fds->res[1], fds->res[2]};
-    mul_v3_fl(slice_ct, max_ff(0.001f, fds->slice_per_voxel));
-    max_slice = max_fff(slice_ct[0], slice_ct[1], slice_ct[2]);
+    float slice_count[3] = {fds->res[0], fds->res[1], fds->res[2]};
+    mul_v3_fl(slice_count, max_ff(0.001f, fds->slice_per_voxel));
+    max_slice = max_fff(slice_count[0], slice_count[1], slice_count[2]);
     BKE_object_dimensions_get(ob, dim);
-    invert_v3(slice_ct);
-    mul_v3_v3(dim, slice_ct);
+    invert_v3(slice_count);
+    mul_v3_v3(dim, slice_count);
     step_length = len_v3(dim);
 
     grp = DRW_shgroup_create(sh, vedata->psl->volume_ps);
@@ -273,12 +273,12 @@ static void workbench_volume_object_cache_populate(WORKBENCH_Data *vedata,
     float step_length, max_slice;
     int resolution[3];
     GPU_texture_get_mipmap_size(grid->texture, 0, resolution);
-    float slice_ct[3] = {resolution[0], resolution[1], resolution[2]};
-    mul_v3_fl(slice_ct, max_ff(0.001f, 5.0f));
-    max_slice = max_fff(slice_ct[0], slice_ct[1], slice_ct[2]);
-    invert_v3(slice_ct);
-    mul_v3_v3(slice_ct, world_size);
-    step_length = len_v3(slice_ct);
+    float slice_count[3] = {resolution[0], resolution[1], resolution[2]};
+    mul_v3_fl(slice_count, max_ff(0.001f, 5.0f));
+    max_slice = max_fff(slice_count[0], slice_count[1], slice_count[2]);
+    invert_v3(slice_count);
+    mul_v3_v3(slice_count, world_size);
+    step_length = len_v3(slice_count);
 
     /* Set uniforms. */
     grp = DRW_shgroup_create(sh, vedata->psl->volume_ps);

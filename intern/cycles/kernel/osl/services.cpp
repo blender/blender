@@ -1304,8 +1304,38 @@ bool OSLRenderServices::texture(ustring filename,
       break;
     }
     case OSLTextureHandle::SVM: {
-      /* Packed texture. */
-      float4 rgba = kernel_tex_image_interp(kernel_globals, handle->svm_slot, s, 1.0f - t);
+      int id = -1;
+      if (handle->svm_slots[0].w == -1) {
+        /* Packed single texture. */
+        id = handle->svm_slots[0].y;
+      }
+      else {
+        /* Packed tiled texture. */
+        int tx = (int)s;
+        int ty = (int)t;
+        int tile = 1001 + 10 * ty + tx;
+        for (int4 tile_node : handle->svm_slots) {
+          if (tile_node.x == tile) {
+            id = tile_node.y;
+            break;
+          }
+          if (tile_node.z == tile) {
+            id = tile_node.w;
+            break;
+          }
+        }
+        s -= tx;
+        t -= ty;
+      }
+
+      float4 rgba;
+      if (id == -1) {
+        rgba = make_float4(
+            TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B, TEX_IMAGE_MISSING_A);
+      }
+      else {
+        rgba = kernel_tex_image_interp(kernel_globals, id, s, 1.0f - t);
+      }
 
       result[0] = rgba[0];
       if (nchannels > 1)
@@ -1319,7 +1349,7 @@ bool OSLRenderServices::texture(ustring filename,
     }
     case OSLTextureHandle::IES: {
       /* IES light. */
-      result[0] = kernel_ies_interp(kernel_globals, handle->svm_slot, s, t);
+      result[0] = kernel_ies_interp(kernel_globals, handle->svm_slots[0].y, s, t);
       status = true;
       break;
     }
@@ -1413,7 +1443,7 @@ bool OSLRenderServices::texture3d(ustring filename,
       /* Packed texture. */
       ShaderData *sd = (ShaderData *)(sg->renderstate);
       KernelGlobals kernel_globals = sd->osl_globals;
-      int slot = handle->svm_slot;
+      int slot = handle->svm_slots[0].y;
       float3 P_float3 = make_float3(P.x, P.y, P.z);
       float4 rgba = kernel_tex_image_interp_3d(kernel_globals, slot, P_float3, INTERPOLATION_NONE);
 

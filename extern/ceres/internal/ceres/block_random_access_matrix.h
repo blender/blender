@@ -35,7 +35,7 @@
 
 #include <mutex>
 
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 namespace internal {
@@ -62,7 +62,7 @@ namespace internal {
 //
 // There is no requirement that all cells be present, i.e. the matrix
 // itself can be block sparse. When a cell is not present, the GetCell
-// method will return a NULL pointer.
+// method will return a nullptr pointer.
 //
 // There is no requirement about how the cells are stored beyond that
 // form a dense submatrix of a larger dense matrix. Like everywhere
@@ -77,7 +77,7 @@ namespace internal {
 //                              &row, &col,
 //                              &row_stride, &col_stride);
 //
-//  if (cell != NULL) {
+//  if (cell != nullptr) {
 //     MatrixRef m(cell->values, row_stride, col_stride);
 //     std::lock_guard<std::mutex> l(&cell->m);
 //     m.block(row, col, row_block_size, col_block_size) = ...
@@ -85,21 +85,21 @@ namespace internal {
 
 // Structure to carry a pointer to the array containing a cell and the
 // mutex guarding it.
-struct CellInfo {
-  CellInfo() : values(nullptr) {}
+struct CERES_NO_EXPORT CellInfo {
+  CellInfo() = default;
   explicit CellInfo(double* values) : values(values) {}
 
-  double* values;
+  double* values{nullptr};
   std::mutex m;
 };
 
-class CERES_EXPORT_INTERNAL BlockRandomAccessMatrix {
+class CERES_NO_EXPORT BlockRandomAccessMatrix {
  public:
   virtual ~BlockRandomAccessMatrix();
 
   // If the cell (row_block_id, col_block_id) is present, then return
   // a CellInfo with a pointer to the dense matrix containing it,
-  // otherwise return NULL. The dense matrix containing this cell has
+  // otherwise return nullptr. The dense matrix containing this cell has
   // size row_stride, col_stride and the cell is located at position
   // (row, col) within this matrix.
   //

@@ -32,6 +32,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <utility>
 #include <vector>
 
 #include "Eigen/Dense"
@@ -54,10 +55,10 @@ namespace ceres {
 namespace internal {
 
 IterativeSchurComplementSolver::IterativeSchurComplementSolver(
-    const LinearSolver::Options& options)
-    : options_(options) {}
+    LinearSolver::Options options)
+    : options_(std::move(options)) {}
 
-IterativeSchurComplementSolver::~IterativeSchurComplementSolver() {}
+IterativeSchurComplementSolver::~IterativeSchurComplementSolver() = default;
 
 LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
     BlockSparseMatrix* A,
@@ -69,13 +70,13 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
   CHECK(A->block_structure() != nullptr);
   const int num_eliminate_blocks = options_.elimination_groups[0];
   // Initialize a ImplicitSchurComplement object.
-  if (schur_complement_ == NULL) {
+  if (schur_complement_ == nullptr) {
     DetectStructure(*(A->block_structure()),
                     num_eliminate_blocks,
                     &options_.row_block_size,
                     &options_.e_block_size,
                     &options_.f_block_size);
-    schur_complement_.reset(new ImplicitSchurComplement(options_));
+    schur_complement_ = std::make_unique<ImplicitSchurComplement>(options_);
   }
   schur_complement_->Init(*A, per_solve_options.D, b);
 
@@ -86,7 +87,7 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
     LinearSolver::Summary summary;
     summary.num_iterations = 0;
     summary.termination_type = LINEAR_SOLVER_SUCCESS;
-    schur_complement_->BackSubstitute(NULL, x);
+    schur_complement_->BackSubstitute(nullptr, x);
     return summary;
   }
 
@@ -104,7 +105,7 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
   cg_per_solve_options.q_tolerance = per_solve_options.q_tolerance;
 
   CreatePreconditioner(A);
-  if (preconditioner_.get() != NULL) {
+  if (preconditioner_.get() != nullptr) {
     if (!preconditioner_->Update(*A, per_solve_options.D)) {
       LinearSolver::Summary summary;
       summary.num_iterations = 0;
@@ -134,7 +135,7 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
 void IterativeSchurComplementSolver::CreatePreconditioner(
     BlockSparseMatrix* A) {
   if (options_.preconditioner_type == IDENTITY ||
-      preconditioner_.get() != NULL) {
+      preconditioner_.get() != nullptr) {
     return;
   }
 
@@ -149,22 +150,22 @@ void IterativeSchurComplementSolver::CreatePreconditioner(
   preconditioner_options.e_block_size = options_.e_block_size;
   preconditioner_options.f_block_size = options_.f_block_size;
   preconditioner_options.elimination_groups = options_.elimination_groups;
-  CHECK(options_.context != NULL);
+  CHECK(options_.context != nullptr);
   preconditioner_options.context = options_.context;
 
   switch (options_.preconditioner_type) {
     case JACOBI:
-      preconditioner_.reset(new SparseMatrixPreconditionerWrapper(
-          schur_complement_->block_diagonal_FtF_inverse()));
+      preconditioner_ = std::make_unique<SparseMatrixPreconditionerWrapper>(
+          schur_complement_->block_diagonal_FtF_inverse());
       break;
     case SCHUR_JACOBI:
-      preconditioner_.reset(new SchurJacobiPreconditioner(
-          *A->block_structure(), preconditioner_options));
+      preconditioner_ = std::make_unique<SchurJacobiPreconditioner>(
+          *A->block_structure(), preconditioner_options);
       break;
     case CLUSTER_JACOBI:
     case CLUSTER_TRIDIAGONAL:
-      preconditioner_.reset(new VisibilityBasedPreconditioner(
-          *A->block_structure(), preconditioner_options));
+      preconditioner_ = std::make_unique<VisibilityBasedPreconditioner>(
+          *A->block_structure(), preconditioner_options);
       break;
     default:
       LOG(FATAL) << "Unknown Preconditioner Type";

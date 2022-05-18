@@ -57,6 +57,7 @@
 #include "ED_keyframing.h"
 #include "ED_numinput.h"
 #include "ED_outliner.h"
+#include "ED_scene.h"
 #include "ED_screen.h"
 #include "ED_sequencer.h"
 
@@ -1719,11 +1720,26 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 /** \name Erase Strips Operator
  * \{ */
 
-static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
+static void sequencer_delete_strip_data(bContext *C, Sequence *seq)
+{
+  if (seq->type != SEQ_TYPE_SCENE) {
+    return;
+  }
+
+  Main *bmain = CTX_data_main(C);
+  if (seq->scene) {
+    if (ED_scene_delete(C, bmain, seq->scene)) {
+      WM_event_add_notifier(C, NC_SCENE | NA_REMOVED, seq->scene);
+    }
+  }
+}
+
+static int sequencer_delete_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ListBase *seqbasep = SEQ_active_seqbase_get(SEQ_editing_get(scene));
+  const bool delete_data = RNA_boolean_get(op->ptr, "delete_data");
 
   if (sequencer_view_has_preview_poll(C) && !sequencer_view_preview_only_poll(C)) {
     return OPERATOR_CANCELLED;
@@ -1736,6 +1752,9 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
   SEQ_ITERATOR_FOREACH (seq, selected_strips) {
     SEQ_edit_flag_for_removal(scene, seqbasep, seq);
+    if (delete_data) {
+      sequencer_delete_strip_data(C, seq);
+    }
   }
   SEQ_edit_remove_flagged_sequences(scene, seqbasep);
 
@@ -1778,6 +1797,14 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /*  Properties. */
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "delete_data",
+                             false,
+                             "Delete Data",
+                             "After removing the Strip, delete the associated data also");
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -2596,7 +2623,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
   }
 
   /* Paste animation.
-   * Note: Only fcurves are copied. Drivers and NLA action strips are not copied.
+   * NOTE: Only fcurves are copied. Drivers and NLA action strips are not copied.
    * First backup original curves from scene and move curves from clipboard into scene. This way,
    * when pasted strips are renamed, pasted fcurves are renamed with them. Finally restore original
    * curves from backup.
@@ -3035,6 +3062,81 @@ void SEQUENCER_OT_change_path(struct wmOperatorType *ot)
                   false,
                   "Use Placeholders",
                   "Use placeholders for missing frames of the strip");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Change Strip Scene Operator
+ * \{ */
+
+static bool sequencer_strip_change_scene_poll(bContext *C)
+{
+  Editing *ed = SEQ_editing_get(CTX_data_scene(C));
+  if (ed == NULL) {
+    return false;
+  }
+  Sequence *seq = ed->act_seq;
+  return ((seq != NULL) && (seq->type == SEQ_TYPE_SCENE));
+}
+static int sequencer_change_scene_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  Scene *scene_seq = BLI_findlink(&bmain->scenes, RNA_enum_get(op->ptr, "scene"));
+
+  if (scene_seq == NULL) {
+    BKE_report(op->reports, RPT_ERROR, "Scene not found");
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Assign new scene. */
+  Sequence *seq = SEQ_select_active_get(scene);
+  if (seq) {
+    seq->scene = scene_seq;
+    /* Do a refresh of the sequencer data. */
+    SEQ_relations_invalidate_cache_raw(scene, seq);
+    DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
+    DEG_relations_tag_update(bmain);
+  }
+
+  WM_event_add_notifier(C, NC_SCENE | ND_SCENEBROWSE, scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+
+  return OPERATOR_FINISHED;
+}
+
+static int sequencer_change_scene_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  if (!RNA_struct_property_is_set(op->ptr, "scene")) {
+    return WM_enum_search_invoke(C, op, event);
+  }
+
+  return sequencer_change_scene_exec(C, op);
+}
+
+void SEQUENCER_OT_change_scene(struct wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* Identifiers. */
+  ot->name = "Change Scene";
+  ot->idname = "SEQUENCER_OT_change_scene";
+  ot->description = "Change Scene assigned to Strip";
+
+  /* Api callbacks. */
+  ot->exec = sequencer_change_scene_exec;
+  ot->invoke = sequencer_change_scene_invoke;
+  ot->poll = sequencer_strip_change_scene_poll;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Properties. */
+  prop = RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
+  RNA_def_enum_funcs(prop, RNA_scene_without_active_itemf);
+  RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
+  ot->prop = prop;
 }
 
 /** \} */

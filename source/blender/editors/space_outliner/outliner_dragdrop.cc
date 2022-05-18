@@ -170,7 +170,8 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
     *r_insert_type = TE_INSERT_BEFORE;
     return first;
   }
-  BLI_assert(0);
+
+  BLI_assert_unreachable();
   return nullptr;
 }
 

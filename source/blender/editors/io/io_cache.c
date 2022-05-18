@@ -75,17 +75,17 @@ static void open_cancel(bContext *UNUSED(C), wmOperator *op)
 static int cachefile_open_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-    BKE_report(op->reports, RPT_ERROR, "No filename given");
+    BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
 
-  char filename[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filename);
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
 
   Main *bmain = CTX_data_main(C);
 
-  CacheFile *cache_file = BKE_libblock_alloc(bmain, ID_CF, BLI_path_basename(filename), 0);
-  BLI_strncpy(cache_file->filepath, filename, FILE_MAX);
+  CacheFile *cache_file = BKE_libblock_alloc(bmain, ID_CF, BLI_path_basename(filepath), 0);
+  BLI_strncpy(cache_file->filepath, filepath, FILE_MAX);
   DEG_id_tag_update(&cache_file->id, ID_RECALC_COPY_ON_WRITE);
 
   /* Will be set when running invoke, not exec directly. */
@@ -182,7 +182,7 @@ static int cachefile_layer_open_invoke(bContext *C, wmOperator *op, const wmEven
 static int cachefile_layer_add_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
-    BKE_report(op->reports, RPT_ERROR, "No filename given");
+    BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
 
@@ -192,10 +192,10 @@ static int cachefile_layer_add_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  char filename[FILE_MAX];
-  RNA_string_get(op->ptr, "filepath", filename);
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
 
-  CacheFileLayer *layer = BKE_cachefile_add_layer(cache_file, filename);
+  CacheFileLayer *layer = BKE_cachefile_add_layer(cache_file, filepath);
 
   if (!layer) {
     WM_report(RPT_ERROR, "Could not add a layer to the cache file");

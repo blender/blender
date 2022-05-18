@@ -31,6 +31,9 @@
  *   discarding all data inside it.
  *   Data can be accessed using the [] operator.
  *
+ * `draw::StorageFlexibleBuffer<T>`
+ *   Same as StorageArrayBuffer but will auto resize on access when using the [] operator.
+ *
  * `draw::StorageBuffer<T>`
  *   A storage buffer object class inheriting from T.
  *   Data can be accessed just like a normal T object.
@@ -333,6 +336,38 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
   {
     MEM_freeN(this->data_);
   }
+};
+
+template<
+    /** Type of the values stored in this uniform buffer. */
+    typename T,
+    /** True if created on device and no memory host memory is allocated. */
+    bool device_only = false>
+class StorageFlexibleBuffer : public detail::StorageCommon<T, 1, device_only> {
+ public:
+  StorageFlexibleBuffer(const char *name = nullptr)
+      : detail::StorageCommon<T, 1, device_only>(name)
+  {
+    /* TODO(@fclem): We should map memory instead. */
+    this->data_ = (T *)MEM_mallocN_aligned(sizeof(T), 16, this->name_);
+  }
+  ~StorageFlexibleBuffer()
+  {
+    MEM_freeN(this->data_);
+  }
+
+  /* Resize on access. */
+  T &operator[](int64_t index)
+  {
+    BLI_STATIC_ASSERT(!device_only, "");
+    BLI_assert(index >= 0);
+    if (index >= this->len_) {
+      this->resize(this->len_ * 2);
+    }
+    return this->data_[index];
+  }
+
+  /* TODO(fclem): Implement shrinking. */
 };
 
 template<
@@ -875,6 +910,58 @@ class Framebuffer : NonCopyable {
   {
     SWAP(GPUFrameBuffer *, a.fb_, b.fb_);
     SWAP(const char *, a.name_, b.name_);
+  }
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Double & Triple buffering util
+ *
+ * This is not strictly related to a GPU type and could be moved elsewhere.
+ * \{ */
+
+template<typename T, int64_t len> class SwapChain {
+ private:
+  std::array<T, len> chain_;
+  int64_t index_ = 0;
+
+ public:
+  void swap()
+  {
+    index_ = (index_ + 1) % len;
+  }
+
+  T &current()
+  {
+    return chain_[index_];
+  }
+
+  T &previous()
+  {
+    /* Avoid modulo operation with negative numbers. */
+    return chain_[(index_ + len - 1) % len];
+  }
+
+  T &next()
+  {
+    return chain_[(index_ + 1) % len];
+  }
+
+  const T &current() const
+  {
+    return chain_[index_];
+  }
+
+  const T &previous() const
+  {
+    /* Avoid modulo operation with negative numbers. */
+    return chain_[(index_ + len - 1) % len];
+  }
+
+  const T &next() const
+  {
+    return chain_[(index_ + 1) % len];
   }
 };
 

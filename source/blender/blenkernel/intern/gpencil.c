@@ -2803,7 +2803,7 @@ void BKE_gpencil_update_layer_transforms(const Depsgraph *depsgraph, Object *ob)
 
     /* Iterate over frame range. */
     for (bGPDframe *gpf = gpf_start; gpf != NULL && gpf != gpf_end; gpf = gpf->next) {
-      /* Skip frames without a valid onion skinning id (note: active frame has one). */
+      /* Skip frames without a valid onion skinning id (NOTE: active frame has one). */
       if (gpf->runtime.onion_id == INT_MAX) {
         continue;
       }

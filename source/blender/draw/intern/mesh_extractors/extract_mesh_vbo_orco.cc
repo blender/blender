@@ -17,7 +17,7 @@ namespace blender::draw {
 
 struct MeshExtract_Orco_Data {
   float (*vbo_data)[4];
-  float (*orco)[3];
+  const float (*orco)[3];
 };
 
 static void extract_orco_init(const MeshRenderData *mr,
@@ -42,7 +42,7 @@ static void extract_orco_init(const MeshRenderData *mr,
 
   MeshExtract_Orco_Data *data = static_cast<MeshExtract_Orco_Data *>(tls_data);
   data->vbo_data = (float(*)[4])GPU_vertbuf_get_data(vbo);
-  data->orco = static_cast<float(*)[3]>(CustomData_get_layer(cd_vdata, CD_ORCO));
+  data->orco = static_cast<const float(*)[3]>(CustomData_get_layer(cd_vdata, CD_ORCO));
   /* Make sure `orco` layer was requested only if needed! */
   BLI_assert(data->orco);
 }
@@ -105,7 +105,7 @@ static void extract_orco_init_subdiv(const DRWSubdivCache *subdiv_cache,
   float(*coarse_vbo_data)[4] = static_cast<float(*)[4]>(GPU_vertbuf_get_data(coarse_vbo));
 
   CustomData *cd_vdata = &mr->me->vdata;
-  float(*orco)[3] = static_cast<float(*)[3]>(CustomData_get_layer(cd_vdata, CD_ORCO));
+  const float(*orco)[3] = static_cast<const float(*)[3]>(CustomData_get_layer(cd_vdata, CD_ORCO));
 
   if (mr->extract_type == MR_EXTRACT_MESH) {
     const MLoop *mloop = mr->mloop;

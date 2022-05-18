@@ -148,9 +148,9 @@ static void ensure_seg_pt_count(const Curves &curves, CurvesEvalCache &curves_ca
     return;
   }
 
-  curves_cache.strands_len = curves.geometry.curve_size;
-  curves_cache.elems_len = curves.geometry.point_size + curves.geometry.curve_size;
-  curves_cache.point_len = curves.geometry.point_size;
+  curves_cache.strands_len = curves.geometry.curve_num;
+  curves_cache.elems_len = curves.geometry.point_num + curves.geometry.curve_num;
+  curves_cache.point_len = curves.geometry.point_num;
 }
 
 struct PositionAndParameter {
@@ -164,12 +164,12 @@ static void curves_batch_cache_fill_segments_proc_pos(
     MutableSpan<float> hairLength_data)
 {
   /* TODO: use hair radius layer if available. */
-  const int curve_size = curves_id.geometry.curve_size;
+  const int curve_num = curves_id.geometry.curve_num;
   const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
       curves_id.geometry);
   Span<float3> positions = curves.positions();
 
-  for (const int i_curve : IndexRange(curve_size)) {
+  for (const int i_curve : IndexRange(curve_num)) {
     const IndexRange points = curves.points_for_curve(i_curve);
 
     Span<float3> curve_positions = positions.slice(points);
@@ -312,7 +312,7 @@ static void curves_batch_cache_fill_segments_indices(const Curves &curves,
                                                      const int res,
                                                      GPUIndexBufBuilder &elb)
 {
-  const int curves_num = curves.geometry.curve_size;
+  const int curves_num = curves.geometry.curve_num;
 
   uint curr_point = 0;
 

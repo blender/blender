@@ -208,7 +208,7 @@ static int DNA_struct_find_nr_wrapper(const struct SDNA *sdna, const char *struc
   struct_name = DNA_struct_rename_legacy_hack_static_from_alias(struct_name);
 #ifdef RNA_RUNTIME
   /* We may support this at some point but for now we don't. */
-  BLI_assert(0);
+  BLI_assert_unreachable();
 #else
   struct_name = BLI_ghash_lookup_default(
       g_version_data.struct_map_static_from_alias, struct_name, (void *)struct_name);

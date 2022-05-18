@@ -85,7 +85,7 @@ set(SRC
   intern/draw_curves.cc
   intern/draw_debug.c
   intern/draw_fluid.c
-  intern/draw_hair.c
+  intern/draw_hair.cc
   intern/draw_instance_data.c
   intern/draw_manager.c
   intern/draw_manager_data.c
@@ -95,7 +95,7 @@ set(SRC
   intern/draw_manager_text.c
   intern/draw_manager_texture.c
   intern/draw_select_buffer.c
-  intern/draw_shader.c
+  intern/draw_shader.cc
   intern/draw_texture_pool.cc
   intern/draw_view.c
   intern/draw_view_data.cc
@@ -133,6 +133,7 @@ set(SRC
   engines/eevee/eevee_subsurface.c
   engines/eevee/eevee_temporal_sampling.c
   engines/eevee/eevee_volumes.c
+  engines/eevee_next/eevee_camera.cc
   engines/eevee_next/eevee_engine.cc
   engines/eevee_next/eevee_instance.cc
   engines/eevee_next/eevee_material.cc
@@ -333,6 +334,7 @@ set(GLSL_SRC
   engines/eevee/shaders/renderpass_lib.glsl
   engines/eevee/shaders/renderpass_postprocess_frag.glsl
   engines/eevee/shaders/cryptomatte_frag.glsl
+  engines/eevee/shaders/cryptomatte_vert.glsl
   engines/eevee/shaders/ltc_lib.glsl
   engines/eevee/shaders/ssr_lib.glsl
   engines/eevee/shaders/surface_frag.glsl
@@ -351,6 +353,7 @@ set(GLSL_SRC
   engines/eevee/shaders/world_vert.glsl
 
   engines/eevee_next/shaders/eevee_attributes_lib.glsl
+  engines/eevee_next/shaders/eevee_camera_lib.glsl
   engines/eevee_next/shaders/eevee_geom_curves_vert.glsl
   engines/eevee_next/shaders/eevee_geom_gpencil_vert.glsl
   engines/eevee_next/shaders/eevee_geom_mesh_vert.glsl

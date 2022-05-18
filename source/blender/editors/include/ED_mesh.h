@@ -384,7 +384,7 @@ void ED_operatormacros_mesh(void);
  */
 void ED_keymap_mesh(struct wmKeyConfig *keyconf);
 
-/* editface.c */
+/* editface.cc */
 
 /**
  * Copy the face flags, most importantly selection from the mesh to the final derived mesh,
@@ -520,7 +520,7 @@ float ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vert
  */
 void ED_vgroup_vert_active_mirror(struct Object *ob, int def_nr);
 
-/* mesh_data.c */
+/* mesh_data.cc */
 
 void ED_mesh_verts_add(struct Mesh *mesh, struct ReportList *reports, int count);
 void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count);
@@ -591,7 +591,7 @@ void EDBM_redo_state_restore_and_free(struct BMBackup *backup,
                                       bool recalc_looptri) ATTR_NONNULL(1, 2);
 void EDBM_redo_state_free(struct BMBackup *backup) ATTR_NONNULL(1);
 
-/* *** meshtools.c *** */
+/* *** meshtools.cc *** */
 
 int ED_mesh_join_objects_exec(struct bContext *C, struct wmOperator *op);
 int ED_mesh_shapes_join_objects_exec(struct bContext *C, struct wmOperator *op);

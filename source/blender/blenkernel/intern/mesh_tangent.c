@@ -37,13 +37,13 @@
 
 /* User data. */
 typedef struct {
-  const MPoly *mpolys;  /* faces */
-  const MLoop *mloops;  /* faces's vertices */
-  const MVert *mverts;  /* vertices */
-  const MLoopUV *luvs;  /* texture coordinates */
-  float (*lnors)[3];    /* loops' normals */
-  float (*tangents)[4]; /* output tangents */
-  int num_polys;        /* number of polygons */
+  const MPoly *mpolys;     /* faces */
+  const MLoop *mloops;     /* faces's vertices */
+  const MVert *mverts;     /* vertices */
+  const MLoopUV *luvs;     /* texture coordinates */
+  const float (*lnors)[3]; /* loops' normals */
+  float (*tangents)[4];    /* output tangents */
+  int num_polys;           /* number of polygons */
 } BKEMeshToTangent;
 
 /* Mikktspace's API */
@@ -103,7 +103,7 @@ void BKE_mesh_calc_loop_tangent_single_ex(const MVert *mverts,
                                           const int UNUSED(numVerts),
                                           const MLoop *mloops,
                                           float (*r_looptangent)[4],
-                                          float (*loopnors)[3],
+                                          const float (*loopnors)[3],
                                           const MLoopUV *loopuvs,
                                           const int UNUSED(numLoops),
                                           const MPoly *mpolys,
@@ -155,8 +155,7 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
                                        float (*r_looptangents)[4],
                                        ReportList *reports)
 {
-  MLoopUV *loopuvs;
-  float(*loopnors)[3];
+  const MLoopUV *loopuvs;
 
   /* Check we have valid texture coordinates first! */
   if (uvmap) {
@@ -173,7 +172,7 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
     return;
   }
 
-  loopnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
+  const float(*loopnors)[3] = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
   if (!loopnors) {
     BKE_report(
         reports, RPT_ERROR, "Tangent space computation needs loop normals, none found, aborting");
@@ -205,10 +204,10 @@ typedef struct {
   const float (*precomputedFaceNormals)[3];
   const float (*precomputedLoopNormals)[3];
   const MLoopTri *looptri;
-  MLoopUV *mloopuv;   /* texture coordinates */
-  const MPoly *mpoly; /* indices */
-  const MLoop *mloop; /* indices */
-  const MVert *mvert; /* vertex coordinates */
+  const MLoopUV *mloopuv; /* texture coordinates */
+  const MPoly *mpoly;     /* indices */
+  const MLoop *mloop;     /* indices */
+  const MVert *mvert;     /* vertex coordinates */
   const float (*vert_normals)[3];
   const float (*orco)[3];
   float (*tangent)[4]; /* destination */

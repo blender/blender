@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2021 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 
 #include "ceres/problem.h"
 
+#include <memory>
 #include <vector>
 
 #include "ceres/crs_matrix.h"
@@ -46,7 +47,7 @@ Problem::Problem(const Problem::Options& options)
 // Not inline defaulted in declaration due to use of std::unique_ptr.
 Problem::Problem(Problem&&) = default;
 Problem& Problem::operator=(Problem&&) = default;
-Problem::~Problem() {}
+Problem::~Problem() = default;
 
 ResidualBlockId Problem::AddResidualBlock(
     CostFunction* cost_function,
@@ -74,6 +75,10 @@ void Problem::AddParameterBlock(double* values,
                                 int size,
                                 LocalParameterization* local_parameterization) {
   impl_->AddParameterBlock(values, size, local_parameterization);
+}
+
+void Problem::AddParameterBlock(double* values, int size, Manifold* manifold) {
+  impl_->AddParameterBlock(values, size, manifold);
 }
 
 void Problem::RemoveResidualBlock(ResidualBlockId residual_block) {
@@ -104,6 +109,22 @@ void Problem::SetParameterization(
 const LocalParameterization* Problem::GetParameterization(
     const double* values) const {
   return impl_->GetParameterization(values);
+}
+
+bool Problem::HasParameterization(const double* values) const {
+  return impl_->HasParameterization(values);
+}
+
+void Problem::SetManifold(double* values, Manifold* manifold) {
+  impl_->SetManifold(values, manifold);
+}
+
+const Manifold* Problem::GetManifold(const double* values) const {
+  return impl_->GetManifold(values);
+}
+
+bool Problem::HasManifold(const double* values) const {
+  return impl_->HasManifold(values);
 }
 
 void Problem::SetParameterLowerBound(double* values,
@@ -169,12 +190,16 @@ int Problem::NumResidualBlocks() const { return impl_->NumResidualBlocks(); }
 
 int Problem::NumResiduals() const { return impl_->NumResiduals(); }
 
-int Problem::ParameterBlockSize(const double* parameter_block) const {
-  return impl_->ParameterBlockSize(parameter_block);
+int Problem::ParameterBlockSize(const double* values) const {
+  return impl_->ParameterBlockSize(values);
 }
 
-int Problem::ParameterBlockLocalSize(const double* parameter_block) const {
-  return impl_->ParameterBlockLocalSize(parameter_block);
+int Problem::ParameterBlockLocalSize(const double* values) const {
+  return impl_->ParameterBlockTangentSize(values);
+}
+
+int Problem::ParameterBlockTangentSize(const double* values) const {
+  return impl_->ParameterBlockTangentSize(values);
 }
 
 bool Problem::HasParameterBlock(const double* values) const {

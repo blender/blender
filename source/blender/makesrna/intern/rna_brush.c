@@ -1951,7 +1951,7 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "add_amount", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 1, INT32_MAX);
-  RNA_def_property_ui_text(prop, "Add Amount", "Number of curves added by the Add brush");
+  RNA_def_property_ui_text(prop, "Count", "Number of curves added by the Add brush");
 
   prop = RNA_def_property(srna, "points_per_curve", PROP_INT, PROP_NONE);
   RNA_def_property_range(prop, 2, INT32_MAX);
@@ -1974,6 +1974,13 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH);
   RNA_def_property_ui_text(
       prop, "Interpolate Length", "Use length of the curves in close proximity");
+
+  prop = RNA_def_property(srna, "interpolate_point_count", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, NULL, "flag", BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_POINT_COUNT);
+  RNA_def_property_ui_text(prop,
+                           "Interpolate Point Count",
+                           "Use the number of points from the curves in close proximity");
 
   prop = RNA_def_property(srna, "interpolate_shape", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE);

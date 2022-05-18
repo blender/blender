@@ -12,7 +12,10 @@ CCL_NAMESPACE_BEGIN
 
 class BlenderImageLoader : public ImageLoader {
  public:
-  BlenderImageLoader(BL::Image b_image, const int frame, const bool is_preview_render);
+  BlenderImageLoader(BL::Image b_image,
+                     const int frame,
+                     const int tile_number,
+                     const bool is_preview_render);
 
   bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) override;
   bool load_pixels(const ImageMetaData &metadata,
@@ -22,8 +25,11 @@ class BlenderImageLoader : public ImageLoader {
   string name() const override;
   bool equals(const ImageLoader &other) const override;
 
+  int get_tile_number() const override;
+
   BL::Image b_image;
   int frame;
+  int tile_number;
   bool free_cache;
 };
 

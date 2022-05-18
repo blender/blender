@@ -69,6 +69,11 @@ typedef struct OpenSubdiv_Evaluator {
                              const float *positions,
                              const int start_vertex_index,
                              const int num_vertices);
+  // Set vertex data from a continuous array of coordinates.
+  void (*setVertexData)(struct OpenSubdiv_Evaluator *evaluator,
+                        const float *data,
+                        const int start_vertex_index,
+                        const int num_vertices);
   // Set varying data from a continuous array of data.
   void (*setVaryingData)(struct OpenSubdiv_Evaluator *evaluator,
                          const float *varying_data,
@@ -128,6 +133,13 @@ typedef struct OpenSubdiv_Evaluator {
                         float P[3],
                         float dPdu[3],
                         float dPdv[3]);
+
+  // Evaluate vertex data at a given bilinear coordinate of given ptex face.
+  void (*evaluateVertexData)(struct OpenSubdiv_Evaluator *evaluator,
+                             const int ptex_face_index,
+                             float face_u,
+                             float face_v,
+                             float data[]);
 
   // Evaluate varying data at a given bilinear coordinate of given ptex face.
   void (*evaluateVarying)(struct OpenSubdiv_Evaluator *evaluator,
@@ -215,10 +227,16 @@ typedef struct OpenSubdiv_EvaluatorCache {
   struct OpenSubdiv_EvaluatorCacheImpl *impl;
 } OpenSubdiv_EvaluatorCache;
 
+typedef struct OpenSubdiv_EvaluatorSettings {
+  // Number of smoothly interpolated vertex data channels.
+  int num_vertex_data;
+} OpenSubdiv_EvaluatorSettings;
+
 OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
     struct OpenSubdiv_TopologyRefiner *topology_refiner,
     eOpenSubdivEvaluator evaluator_type,
-    OpenSubdiv_EvaluatorCache *evaluator_cache);
+    OpenSubdiv_EvaluatorCache *evaluator_cache,
+    const OpenSubdiv_EvaluatorSettings *settings);
 
 void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator *evaluator);
 

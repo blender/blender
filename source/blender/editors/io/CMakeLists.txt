@@ -9,6 +9,7 @@ set(INC
   ../../depsgraph
   ../../io/alembic
   ../../io/collada
+  ../../io/common
   ../../io/gpencil
   ../../io/usd
   ../../io/wavefront_obj

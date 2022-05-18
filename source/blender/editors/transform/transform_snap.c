@@ -1020,7 +1020,7 @@ static void snap_calc_uv_fn(TransInfo *t, float *UNUSED(vec))
                                    objects,
                                    objects_len,
                                    t->mval,
-                                   true,
+                                   t->tsnap.modeSelect == SNAP_NOT_SELECTED,
                                    &dist_sq,
                                    t->tsnap.snapPoint)) {
       t->tsnap.snapPoint[0] *= t->aspect[0];

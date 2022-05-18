@@ -96,7 +96,7 @@ bool BKE_copybuffer_read(Main *bmain_dst,
                          ReportList *reports,
                          const uint64_t id_types_mask)
 {
-  /* Note: No recursive append here (no `BLO_LIBLINK_APPEND_RECURSIVE`), external linked data
+  /* NOTE: No recursive append here (no `BLO_LIBLINK_APPEND_RECURSIVE`), external linked data
    * should remain linked. */
   const int flag = 0;
   const int id_tag_extra = 0;
@@ -132,7 +132,7 @@ int BKE_copybuffer_paste(bContext *C,
   View3D *v3d = CTX_wm_view3d(C); /* may be NULL. */
   const int id_tag_extra = 0;
 
-  /* Note: No recursive append here, external linked data should remain linked. */
+  /* NOTE: No recursive append here, external linked data should remain linked. */
   BLI_assert((flag & BLO_LIBLINK_APPEND_RECURSIVE) == 0);
 
   struct LibraryLink_Params liblink_params;

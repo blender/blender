@@ -10,6 +10,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 typedef struct CCGMaterialFromMeshData {
   const Mesh *mesh;

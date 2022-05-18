@@ -1163,7 +1163,7 @@ void gpu::MTLTexture::mip_range_set(int min, int max)
 {
   BLI_assert(min <= max && min >= 0 && max <= mipmaps_);
 
-  /* Note:
+  /* NOTE:
    * - mip_min_ and mip_max_ are used to Clamp LODs during sampling.
    * - Given functions like Framebuffer::recursive_downsample modifies the mip range
    *   between each layer, we do not want to be re-baking the texture.

@@ -528,7 +528,7 @@ static char *rna_SequenceTransform_path(PointerRNA *ptr)
   Editing *ed = SEQ_editing_get(scene);
   Sequence *seq = sequence_get_by_transform(ed, ptr->data);
 
-  if (seq && seq->name + 2) {
+  if (seq) {
     char name_esc[(sizeof(seq->name) - 2) * 2];
 
     BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
@@ -580,7 +580,7 @@ static char *rna_SequenceCrop_path(PointerRNA *ptr)
   Editing *ed = SEQ_editing_get(scene);
   Sequence *seq = sequence_get_by_crop(ed, ptr->data);
 
-  if (seq && seq->name + 2) {
+  if (seq) {
     char name_esc[(sizeof(seq->name) - 2) * 2];
 
     BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
@@ -725,15 +725,10 @@ static char *rna_Sequence_path(PointerRNA *ptr)
   /* sequencer data comes from scene...
    * TODO: would be nice to make SequenceEditor data a data-block of its own (for shorter paths)
    */
-  if (seq->name + 2) {
-    char name_esc[(sizeof(seq->name) - 2) * 2];
+  char name_esc[(sizeof(seq->name) - 2) * 2];
 
-    BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
-    return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"]", name_esc);
-  }
-  else {
-    return BLI_strdup("");
-  }
+  BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"]", name_esc);
 }
 
 static IDProperty **rna_Sequence_idprops(PointerRNA *ptr)
@@ -1064,7 +1059,7 @@ static char *rna_SequenceColorBalance_path(PointerRNA *ptr)
   Editing *ed = SEQ_editing_get(scene);
   Sequence *seq = sequence_get_by_colorbalance(ed, ptr->data, &smd);
 
-  if (seq && seq->name + 2) {
+  if (seq) {
     char name_esc[(sizeof(seq->name) - 2) * 2];
 
     BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
@@ -1208,7 +1203,7 @@ static char *rna_SequenceModifier_path(PointerRNA *ptr)
   SequenceModifierData *smd = ptr->data;
   Sequence *seq = sequence_get_by_modifier(ed, smd);
 
-  if (seq && seq->name + 2) {
+  if (seq) {
     char name_esc[(sizeof(seq->name) - 2) * 2];
     char name_esc_smd[sizeof(smd->name) * 2];
 

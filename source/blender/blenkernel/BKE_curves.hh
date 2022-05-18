@@ -50,7 +50,7 @@ struct BasisCache {
   Vector<int> start_indices;
 
   /**
-   * The result of #check_valid_size_and_order, to avoid retrieving its inputs later on.
+   * The result of #check_valid_num_and_order, to avoid retrieving its inputs later on.
    * If this is true, the data above will be invalid, and original data should be copied
    * to the evaluated result.
    */
@@ -127,7 +127,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Create curves with the given size. Only the position attribute is created, along with the
    * offsets.
    */
-  CurvesGeometry(int point_size, int curve_size);
+  CurvesGeometry(int point_num, int curve_num);
   CurvesGeometry(const CurvesGeometry &other);
   CurvesGeometry(CurvesGeometry &&other);
   CurvesGeometry &operator=(const CurvesGeometry &other);
@@ -418,7 +418,7 @@ namespace curves {
  * The number of segments between control points, accounting for the last segment of cyclic
  * curves. The logic is simple, but this function should be used to make intentions clearer.
  */
-inline int curve_segment_size(const int points_num, const bool cyclic)
+inline int curve_segment_num(const int points_num, const bool cyclic)
 {
   BLI_assert(points_num > 0);
   return (cyclic && points_num > 1) ? points_num : points_num - 1;
@@ -585,11 +585,11 @@ namespace catmull_rom {
  * \param points_num: The number of points in the curve.
  * \param resolution: The resolution for each segment.
  */
-int calculate_evaluated_size(int points_num, bool cyclic, int resolution);
+int calculate_evaluated_num(int points_num, bool cyclic, int resolution);
 
 /**
  * Evaluate the Catmull Rom curve. The length of the #dst span should be calculated with
- * #calculate_evaluated_size and is expected to divide evenly by the #src span's segment size.
+ * #calculate_evaluated_num and is expected to divide evenly by the #src span's segment size.
  */
 void interpolate_to_evaluated(GSpan src, bool cyclic, int resolution, GMutableSpan dst);
 
@@ -606,7 +606,7 @@ namespace nurbs {
 /**
  * Checks the conditions that a NURBS curve needs to evaluate.
  */
-bool check_valid_size_and_order(int points_num, int8_t order, bool cyclic, KnotsMode knots_mode);
+bool check_valid_num_and_order(int points_num, int8_t order, bool cyclic, KnotsMode knots_mode);
 
 /**
  * Calculate the standard evaluated size for a NURBS curve, using the standard that
@@ -616,7 +616,7 @@ bool check_valid_size_and_order(int points_num, int8_t order, bool cyclic, Knots
  * for predictability and so that cached basis weights of NURBS curves with these properties can be
  * shared.
  */
-int calculate_evaluated_size(
+int calculate_evaluated_num(
     int points_num, int8_t order, bool cyclic, int resolution, KnotsMode knots_mode);
 
 /**
@@ -624,7 +624,7 @@ int calculate_evaluated_size(
  * The knots must be longer for a cyclic curve, for example, in order to provide weights for the
  * last evaluated points that are also influenced by the first control points.
  */
-int knots_size(int points_num, int8_t order, bool cyclic);
+int knots_num(int points_num, int8_t order, bool cyclic);
 
 /**
  * Calculate the knots for a curve given its properties, based on built-in standards defined by
@@ -644,7 +644,7 @@ void calculate_knots(
  * and a weight for each control point.
  */
 void calculate_basis_cache(int points_num,
-                           int evaluated_size,
+                           int evaluated_num,
                            int8_t order,
                            bool cyclic,
                            Span<float> knots,
@@ -686,11 +686,11 @@ std::array<int, CURVE_TYPES_NUM> calculate_type_counts(const VArray<int8_t> &typ
 
 inline int CurvesGeometry::points_num() const
 {
-  return this->point_size;
+  return this->point_num;
 }
 inline int CurvesGeometry::curves_num() const
 {
-  return this->curve_size;
+  return this->curve_num;
 }
 inline IndexRange CurvesGeometry::points_range() const
 {
@@ -720,7 +720,7 @@ inline const std::array<int, CURVE_TYPES_NUM> &CurvesGeometry::curve_type_counts
 inline IndexRange CurvesGeometry::points_for_curve(const int index) const
 {
   /* Offsets are not allocated when there are no curves. */
-  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_num > 0);
   BLI_assert(this->curve_offsets != nullptr);
   const int offset = this->curve_offsets[index];
   const int offset_next = this->curve_offsets[index + 1];
@@ -730,7 +730,7 @@ inline IndexRange CurvesGeometry::points_for_curve(const int index) const
 inline IndexRange CurvesGeometry::points_for_curves(const IndexRange curves) const
 {
   /* Offsets are not allocated when there are no curves. */
-  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_num > 0);
   BLI_assert(this->curve_offsets != nullptr);
   const int offset = this->curve_offsets[curves.start()];
   const int offset_next = this->curve_offsets[curves.one_after_last()];
@@ -752,7 +752,7 @@ inline IndexRange CurvesGeometry::evaluated_points_for_curve(int index) const
 inline IndexRange CurvesGeometry::evaluated_points_for_curves(const IndexRange curves) const
 {
   BLI_assert(!this->runtime->offsets_cache_dirty);
-  BLI_assert(this->curve_size > 0);
+  BLI_assert(this->curve_num > 0);
   const int offset = this->runtime->evaluated_offsets_cache[curves.start()];
   const int offset_next = this->runtime->evaluated_offsets_cache[curves.one_after_last()];
   return {offset, offset_next - offset};
@@ -770,7 +770,7 @@ inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
   BLI_assert(cyclic == this->cyclic()[curve_index]);
   const IndexRange points = this->evaluated_points_for_curve(curve_index);
   const int start = points.start() + curve_index;
-  return {start, curves::curve_segment_size(points.size(), cyclic)};
+  return {start, curves::curve_segment_num(points.size(), cyclic)};
 }
 
 inline Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,

@@ -4892,7 +4892,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     /* Default Face Set Color. */
     for (Mesh *me = bmain->meshes.first; me != NULL; me = me->id.next) {
       if (me->totpoly > 0) {
-        int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
+        const int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
         if (face_sets) {
           me->face_sets_color_default = abs(face_sets[0]);
         }

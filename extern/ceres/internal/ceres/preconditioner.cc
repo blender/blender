@@ -35,7 +35,7 @@
 namespace ceres {
 namespace internal {
 
-Preconditioner::~Preconditioner() {}
+Preconditioner::~Preconditioner() = default;
 
 PreconditionerType Preconditioner::PreconditionerForZeroEBlocks(
     PreconditionerType preconditioner_type) {
@@ -53,7 +53,8 @@ SparseMatrixPreconditionerWrapper::SparseMatrixPreconditionerWrapper(
   CHECK(matrix != nullptr);
 }
 
-SparseMatrixPreconditionerWrapper::~SparseMatrixPreconditionerWrapper() {}
+SparseMatrixPreconditionerWrapper::~SparseMatrixPreconditionerWrapper() =
+    default;
 
 bool SparseMatrixPreconditionerWrapper::UpdateImpl(const SparseMatrix& A,
                                                    const double* D) {

@@ -82,7 +82,7 @@ typedef struct WeightedNormalData {
 
   MPoly *mpoly;
   const float (*polynors)[3];
-  int *poly_strength;
+  const int *poly_strength;
 
   MDeformVert *dvert;
   const int defgrp_index;
@@ -195,7 +195,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
 
   MPoly *mpoly = wn_data->mpoly;
   const float(*polynors)[3] = wn_data->polynors;
-  int *poly_strength = wn_data->poly_strength;
+  const int *poly_strength = wn_data->poly_strength;
 
   MDeformVert *dvert = wn_data->dvert;
 
@@ -326,7 +326,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
       }
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
   }
 
   /* Validate computed weighted normals. */
@@ -603,15 +603,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   const float split_angle = mesh->smoothresh;
-  short(*clnors)[2];
-  CustomData *ldata = &result->ldata;
-  clnors = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
+  short(*clnors)[2] = CustomData_get_layer(&result->ldata, CD_CUSTOMLOOPNORMAL);
 
   /* Keep info whether we had clnors,
    * it helps when generating clnor spaces and default normals. */
   const bool has_clnors = clnors != NULL;
   if (!clnors) {
-    clnors = CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, loops_num);
+    clnors = CustomData_add_layer(&result->ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, loops_num);
   }
 
   MDeformVert *dvert;

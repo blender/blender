@@ -9,6 +9,10 @@
 
 #include "BLI_sys_types.h" /* for bool and uint */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ARegion;
 struct Base;
 struct Depsgraph;
@@ -133,3 +137,7 @@ uint DRW_select_buffer_find_nearest_to_point(struct Depsgraph *depsgraph,
                                              uint id_max,
                                              uint *dist);
 void DRW_select_buffer_context_create(struct Base **bases, uint bases_len, short select_mode);
+
+#ifdef __cplusplus
+}
+#endif

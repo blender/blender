@@ -75,9 +75,9 @@ static void get_domains(const ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
     case ID_CV: {
       Curves *curves = (Curves *)id;
       info[ATTR_DOMAIN_POINT].customdata = &curves->geometry.point_data;
-      info[ATTR_DOMAIN_POINT].length = curves->geometry.point_size;
+      info[ATTR_DOMAIN_POINT].length = curves->geometry.point_num;
       info[ATTR_DOMAIN_CURVE].customdata = &curves->geometry.curve_data;
-      info[ATTR_DOMAIN_CURVE].length = curves->geometry.curve_size;
+      info[ATTR_DOMAIN_CURVE].length = curves->geometry.curve_num;
       break;
     }
     default:

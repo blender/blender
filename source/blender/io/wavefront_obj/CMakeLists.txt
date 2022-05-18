@@ -4,6 +4,7 @@ set(INC
   .
   ./exporter
   ./importer
+  ../common
   ../../blenkernel
   ../../blenlib
   ../../bmesh
@@ -57,6 +58,7 @@ set(SRC
 
 set(LIB
   bf_blenkernel
+  bf_io_common
 )
 
 if(WITH_TBB)

@@ -98,7 +98,7 @@ class GeometryComponent {
   /**
    * Return the length of a specific domain, or 0 if the domain is not supported.
    */
-  virtual int attribute_domain_size(AttributeDomain domain) const;
+  virtual int attribute_domain_num(AttributeDomain domain) const;
 
   /**
    * Return true if the attribute name corresponds to a built-in attribute with a hardcoded domain
@@ -560,7 +560,7 @@ class MeshComponent : public GeometryComponent {
    */
   Mesh *get_for_write();
 
-  int attribute_domain_size(AttributeDomain domain) const final;
+  int attribute_domain_num(AttributeDomain domain) const final;
 
   bool is_empty() const final;
 
@@ -623,7 +623,7 @@ class PointCloudComponent : public GeometryComponent {
    */
   PointCloud *get_for_write();
 
-  int attribute_domain_size(AttributeDomain domain) const final;
+  int attribute_domain_num(AttributeDomain domain) const final;
 
   bool is_empty() const final;
 
@@ -664,7 +664,7 @@ class CurveComponentLegacy : public GeometryComponent {
   const CurveEval *get_for_read() const;
   CurveEval *get_for_write();
 
-  int attribute_domain_size(AttributeDomain domain) const final;
+  int attribute_domain_num(AttributeDomain domain) const final;
 
   bool is_empty() const final;
 
@@ -715,7 +715,7 @@ class CurveComponent : public GeometryComponent {
   const Curves *get_for_read() const;
   Curves *get_for_write();
 
-  int attribute_domain_size(AttributeDomain domain) const final;
+  int attribute_domain_num(AttributeDomain domain) const final;
 
   bool is_empty() const final;
 
@@ -949,8 +949,8 @@ class InstancesComponent : public GeometryComponent {
   blender::MutableSpan<blender::float4x4> instance_transforms();
   blender::Span<blender::float4x4> instance_transforms() const;
 
-  int instances_amount() const;
-  int references_amount() const;
+  int instances_num() const;
+  int references_num() const;
 
   /**
    * Remove the indices that are not contained in the mask input, and remove unused instance
@@ -963,7 +963,7 @@ class InstancesComponent : public GeometryComponent {
   blender::bke::CustomDataAttributes &attributes();
   const blender::bke::CustomDataAttributes &attributes() const;
 
-  int attribute_domain_size(AttributeDomain domain) const final;
+  int attribute_domain_num(AttributeDomain domain) const final;
 
   void foreach_referenced_geometry(
       blender::FunctionRef<void(const GeometrySet &geometry_set)> callback) const;

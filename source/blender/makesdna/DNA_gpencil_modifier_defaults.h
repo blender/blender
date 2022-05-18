@@ -303,7 +303,7 @@
     .crease_threshold = DEG2RAD(140.0f), \
     .calculation_flags = LRT_ALLOW_DUPLI_OBJECTS | LRT_ALLOW_CLIPPING_BOUNDARIES | \
                          LRT_USE_CREASE_ON_SHARP_EDGES | LRT_FILTER_FACE_MARK_KEEP_CONTOUR, \
-    .angle_splitting_threshold = DEG2RAD(60.0f), \
+    .angle_splitting_threshold = 0.0f, /* Do not split by default, this is for better chaining quality. */ \
     .chaining_image_threshold = 0.001f, \
     .chain_smooth_tolerance = 0.2f,\
     .stroke_depth_offset = 0.05,\

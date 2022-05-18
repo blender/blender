@@ -42,6 +42,8 @@ class Instance {
   /** Evaluated IDs. */
   Scene *scene;
   ViewLayer *view_layer;
+  Object *camera_eval_object;
+  Object *camera_orig_object;
   /** Only available when rendering for final render. */
   const RenderLayer *render_layer;
   RenderEngine *render;

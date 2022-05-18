@@ -611,7 +611,16 @@ class SEQUENCER_MT_change(Menu):
         strip = context.active_sequence_strip
 
         layout.operator_context = 'INVOKE_REGION_WIN'
+        if strip and strip.type == 'SCENE':
+            bpy_data_scenes_len = len(bpy.data.scenes)
+            if bpy_data_scenes_len > 10:
+                layout.operator_context = 'INVOKE_DEFAULT'
+                layout.operator("sequencer.change_scene", text="Change Scene...")
+            elif bpy_data_scenes_len > 1:
+                layout.operator_menu_enum("sequencer.change_scene", "scene", text="Change Scene")
+            del bpy_data_scenes_len
 
+        layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator_menu_enum("sequencer.change_effect_input", "swap")
         layout.operator_menu_enum("sequencer.change_effect_type", "type")
         prop = layout.operator("sequencer.change_path", text="Path/Files")
@@ -667,15 +676,7 @@ class SEQUENCER_MT_add(Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        bpy_data_scenes_len = len(bpy.data.scenes)
-        if bpy_data_scenes_len > 10:
-            layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("sequencer.scene_strip_add", text="Scene...", icon='SCENE_DATA')
-        elif bpy_data_scenes_len > 1:
-            layout.operator_menu_enum("sequencer.scene_strip_add", "scene", text="Scene", icon='SCENE_DATA')
-        else:
-            layout.menu("SEQUENCER_MT_add_empty", text="Scene", icon='SCENE_DATA')
-        del bpy_data_scenes_len
+        layout.menu("SEQUENCER_MT_add_scene", text="Scene", icon='SCENE_DATA')
 
         bpy_data_movieclips_len = len(bpy.data.movieclips)
         if bpy_data_movieclips_len > 10:
@@ -723,6 +724,34 @@ class SEQUENCER_MT_add(Menu):
         col = layout.column()
         col.operator_menu_enum("sequencer.fades_add", "type", text="Fade", icon='IPO_EASE_IN_OUT')
         col.enabled = selected_sequences_len(context) >= 1
+
+
+class SEQUENCER_MT_add_scene(Menu):
+    bl_label = "Scene"
+    bl_translation_context = i18n_contexts.operator_default
+
+    def draw(self, context):
+
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("sequencer.scene_strip_add_new", text="New Scene", icon="ADD").type = 'NEW'
+
+        bpy_data_scenes_len = len(bpy.data.scenes)
+        if bpy_data_scenes_len > 10:
+            layout.separator()
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("sequencer.scene_strip_add", text="Scene...", icon='SCENE_DATA')
+        elif bpy_data_scenes_len > 1:
+            layout.separator()
+            scene = context.scene
+            for sc_item in bpy.data.scenes:
+                if sc_item == scene:
+                    continue
+
+                layout.operator_context = 'INVOKE_REGION_WIN'
+                layout.operator("sequencer.scene_strip_add", text=sc_item.name).scene = sc_item.name
+
+        del bpy_data_scenes_len
 
 
 class SEQUENCER_MT_add_empty(Menu):
@@ -917,6 +946,9 @@ class SEQUENCER_MT_strip(Menu):
 
         strip = context.active_sequence_strip
 
+        if strip and strip.type == 'SCENE':
+            layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
+
         if has_sequencer:
             if strip:
                 strip_type = strip.type
@@ -1034,6 +1066,10 @@ class SEQUENCER_MT_context_menu(Menu):
         props.name = "TOPBAR_PT_name"
         props.keep_open = False
         layout.operator("sequencer.delete", text="Delete")
+
+        strip = context.active_sequence_strip
+        if strip and strip.type == 'SCENE':
+            layout.operator("sequencer.delete", text="Delete Strip & Data").delete_data = True
 
         layout.separator()
 
@@ -2600,6 +2636,7 @@ classes = (
     SEQUENCER_MT_marker,
     SEQUENCER_MT_navigation,
     SEQUENCER_MT_add,
+    SEQUENCER_MT_add_scene,
     SEQUENCER_MT_add_effect,
     SEQUENCER_MT_add_transitions,
     SEQUENCER_MT_add_empty,

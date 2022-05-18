@@ -39,8 +39,8 @@ static void fill_mesh_topology(const int vert_offset,
                                MutableSpan<MLoop> loops,
                                MutableSpan<MPoly> polys)
 {
-  const int main_segment_num = curves::curve_segment_size(main_point_num, main_cyclic);
-  const int profile_segment_num = curves::curve_segment_size(profile_point_num, profile_cyclic);
+  const int main_segment_num = curves::curve_segment_num(main_point_num, main_cyclic);
+  const int profile_segment_num = curves::curve_segment_num(profile_point_num, profile_cyclic);
 
   if (profile_point_num == 1) {
     for (const int i : IndexRange(main_point_num - 1)) {
@@ -134,9 +134,9 @@ static void fill_mesh_topology(const int vert_offset,
 
   const bool has_caps = fill_caps && !main_cyclic && profile_cyclic;
   if (has_caps) {
-    const int poly_size = main_segment_num * profile_segment_num;
-    const int cap_loop_offset = loop_offset + poly_size * 4;
-    const int cap_poly_offset = poly_offset + poly_size;
+    const int poly_num = main_segment_num * profile_segment_num;
+    const int cap_loop_offset = loop_offset + poly_num * 4;
+    const int cap_poly_offset = poly_offset + poly_num;
 
     MPoly &poly_start = polys[cap_poly_offset];
     poly_start.loopstart = cap_loop_offset;
@@ -273,7 +273,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
   for (const int i_main : info.main.curves_range()) {
     const bool main_cyclic = info.main_cyclic[i_main];
     const int main_point_num = info.main.evaluated_points_for_curve(i_main).size();
-    const int main_segment_num = curves::curve_segment_size(main_point_num, main_cyclic);
+    const int main_segment_num = curves::curve_segment_num(main_point_num, main_cyclic);
     for (const int i_profile : info.profile.curves_range()) {
       result.vert[mesh_index] = vert_offset;
       result.edge[mesh_index] = edge_offset;
@@ -285,8 +285,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
 
       const bool profile_cyclic = info.profile_cyclic[i_profile];
       const int profile_point_num = info.profile.evaluated_points_for_curve(i_profile).size();
-      const int profile_segment_num = curves::curve_segment_size(profile_point_num,
-                                                                 profile_cyclic);
+      const int profile_segment_num = curves::curve_segment_num(profile_point_num, profile_cyclic);
 
       const bool has_caps = fill_caps && !main_cyclic && profile_cyclic;
       const int tube_face_num = main_segment_num * profile_segment_num;
@@ -408,8 +407,8 @@ static void foreach_curve_combination(const CurvesInfo &info,
                          profile_points,
                          main_cyclic,
                          profile_cyclic,
-                         curves::curve_segment_size(main_points.size(), main_cyclic),
-                         curves::curve_segment_size(profile_points.size(), profile_cyclic),
+                         curves::curve_segment_num(main_points.size(), main_cyclic),
+                         curves::curve_segment_num(profile_points.size(), profile_cyclic),
                          offsets_to_range(offsets.vert.as_span(), i),
                          offsets_to_range(offsets.edge.as_span(), i),
                          offsets_to_range(offsets.poly.as_span(), i),

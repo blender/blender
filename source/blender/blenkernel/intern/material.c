@@ -1245,7 +1245,6 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   /* this should never happen and used to crash */
   if (ob->actcol <= 0) {
     CLOG_ERROR(&LOG, "invalid material index %d, report a bug!", ob->actcol);
-    BLI_assert(0);
     return false;
   }
 

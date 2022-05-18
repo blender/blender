@@ -76,7 +76,7 @@ void PolySpline::mark_cache_invalid()
   length_cache_dirty_ = true;
 }
 
-int PolySpline::evaluated_points_size() const
+int PolySpline::evaluated_points_num() const
 {
   return this->size();
 }

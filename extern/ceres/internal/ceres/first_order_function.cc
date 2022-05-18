@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,11 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
-//
-// Wrapper functions around BLAS functions.
 
-#ifndef CERES_INTERNAL_BLAS_H_
-#define CERES_INTERNAL_BLAS_H_
+#include "ceres/first_order_function.h"
 
 namespace ceres {
-namespace internal {
 
-class BLAS {
- public:
-  // transpose = true  : c = alpha * a'a + beta * c;
-  // transpose = false : c = alpha * aa' + beta * c;
-  //
-  // Assumes column major matrices.
-  static void SymmetricRankKUpdate(int num_rows,
-                                   int num_cols,
-                                   const double* a,
-                                   bool transpose,
-                                   double alpha,
-                                   double beta,
-                                   double* c);
-};
+FirstOrderFunction::~FirstOrderFunction() = default;
 
-}  // namespace internal
 }  // namespace ceres
-
-#endif  // CERES_INTERNAL_BLAS_H_
