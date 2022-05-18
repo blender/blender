@@ -670,6 +670,7 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
 
   ntree->progress = nullptr;
   ntree->execdata = nullptr;
+  ntree->runtime_flag = 0;
 
   ntree->field_inferencing_interface = nullptr;
   BKE_ntree_update_tag_missing_runtime_data(ntree);
