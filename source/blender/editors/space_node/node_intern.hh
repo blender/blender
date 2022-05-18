@@ -31,7 +31,9 @@ struct wmKeyConfig;
 struct wmWindow;
 
 /* Outside of blender namespace to avoid Python documentation build error with `ctypes`. */
+extern "C" {
 extern const char *node_context_dir[];
+};
 
 namespace blender::ed::space_node {
 

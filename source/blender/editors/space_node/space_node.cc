@@ -826,8 +826,10 @@ static void node_region_listener(const wmRegionListenerParams *params)
 }  // namespace blender::ed::space_node
 
 /* Outside of blender namespace to avoid Python documentation build error with `ctypes`. */
+extern "C" {
 const char *node_context_dir[] = {
     "selected_nodes", "active_node", "light", "material", "world", nullptr};
+};
 
 namespace blender::ed::space_node {
 
