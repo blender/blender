@@ -158,6 +158,8 @@ typedef struct LineartEdgeChain {
 
   /** Chain now only contains one type of segments */
   int type;
+  /** Will only connect chains that has the same loop id. */
+  int loop_id;
   unsigned char material_mask_bits;
   unsigned char intersection_mask;
 
