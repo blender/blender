@@ -144,6 +144,30 @@ void GLStorageBuf::clear(eGPUTextureFormat internal_format, eGPUDataFormat data_
   }
 }
 
+void GLStorageBuf::copy_sub(VertBuf *src_, uint dst_offset, uint src_offset, uint copy_size)
+{
+  GLVertBuf *src = static_cast<GLVertBuf *>(src_);
+  GLStorageBuf *dst = this;
+
+  if (dst->ssbo_id_ == 0) {
+    dst->init();
+  }
+  if (src->vbo_id_ == 0) {
+    src->bind();
+  }
+
+  if (GLContext::direct_state_access_support) {
+    glCopyNamedBufferSubData(src->vbo_id_, dst->ssbo_id_, src_offset, dst_offset, copy_size);
+  }
+  else {
+    /* This binds the buffer to GL_ARRAY_BUFFER and upload the data if any. */
+    src->bind();
+    glBindBuffer(GL_COPY_WRITE_BUFFER, dst->ssbo_id_);
+    glCopyBufferSubData(GL_ARRAY_BUFFER, GL_COPY_WRITE_BUFFER, src_offset, dst_offset, copy_size);
+    glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+  }
+}
+
 /** \} */
 
 }  // namespace blender::gpu

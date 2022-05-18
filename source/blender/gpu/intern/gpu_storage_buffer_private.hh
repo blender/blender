@@ -43,6 +43,7 @@ class StorageBuf {
   virtual void clear(eGPUTextureFormat internal_format,
                      eGPUDataFormat data_format,
                      void *data) = 0;
+  virtual void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) = 0;
 };
 
 /* Syntactic sugar. */
