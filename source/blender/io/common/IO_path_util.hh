@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
-#include "BLI_string_ref.hh"
 #include "BLI_set.hh"
+#include "BLI_string_ref.hh"
 
 #include "IO_path_util_types.h"
 
@@ -14,7 +14,7 @@ namespace blender::io {
  *
  * When PATH_REFERENCE_COPY mode is used, the file path pair (source
  * path, destination path) is added to the `copy_set`.
- * 
+ *
  * Equivalent of bpy_extras.io_utils.path_reference.
  */
 std::string path_reference(StringRefNull filepath,
@@ -26,4 +26,4 @@ std::string path_reference(StringRefNull filepath,
 /** Execute copying files of path_reference. */
 void path_reference_copy(const Set<std::pair<std::string, std::string>> &copy_set);
 
-} // namespace blender::io
+}  // namespace blender::io
