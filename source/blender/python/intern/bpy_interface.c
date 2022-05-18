@@ -312,6 +312,14 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     PyPreConfig preconfig;
     PyStatus status;
 
+    /* To narrow down reports where the systems Python is inexplicably used, see: T98131. */
+    CLOG_INFO(
+        BPY_LOG_INTERFACE,
+        2,
+        "Initializing %s support for the systems Python environment such as 'PYTHONPATH' and "
+        "the user-site directory.",
+        py_use_system_env ? "*with*" : "*without*");
+
     if (py_use_system_env) {
       PyPreConfig_InitPythonConfig(&preconfig);
     }
