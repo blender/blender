@@ -757,13 +757,14 @@ static bool lib_override_linked_group_tag_collections_keep_tagged_check_recursiv
 static void lib_override_linked_group_tag_clear_boneshapes_objects(LibOverrideGroupTagData *data)
 {
   Main *bmain = data->bmain;
+  ID *id_root = data->id_root;
 
   /* Remove (untag) bone shape objects, they shall never need to be to directly/explicitly
    * overridden. */
   LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
     if (ob->type == OB_ARMATURE && ob->pose != NULL && (ob->id.tag & data->tag)) {
       for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
-        if (pchan->custom != NULL) {
+        if (pchan->custom != NULL && &pchan->custom->id != id_root) {
           pchan->custom->id.tag &= ~data->tag;
         }
       }
@@ -773,7 +774,7 @@ static void lib_override_linked_group_tag_clear_boneshapes_objects(LibOverrideGr
   /* Remove (untag) collections if they do not own any tagged object (either themselves, or in
    * their children collections). */
   LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    if ((collection->id.tag & data->tag) == 0) {
+    if ((collection->id.tag & data->tag) == 0 || &collection->id == id_root) {
       continue;
     }
 
