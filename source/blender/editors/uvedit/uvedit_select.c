@@ -653,6 +653,9 @@ void uvedit_uv_select_shared_vert(const Scene *scene,
   e_first = e_iter = l->e;
   do {
     BMLoop *l_radial_iter = e_iter->l;
+    if (!l_radial_iter) {
+      continue; /* Skip wire edges with no loops. */
+    }
     do {
       if (l_radial_iter->v == l->v) {
         if (uvedit_face_visible_test(scene, l_radial_iter->f)) {
