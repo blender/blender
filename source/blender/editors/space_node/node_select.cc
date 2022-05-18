@@ -48,6 +48,8 @@
 
 namespace blender::ed::space_node {
 
+static bool is_event_over_node_or_socket(bContext *C, const wmEvent *event);
+
 /**
  * Function to detect if there is a visible view3d that uses workbench in texture mode.
  * This function is for fixing T76970 for Blender 2.83. The actual fix should add a mechanism in
@@ -96,6 +98,11 @@ rctf node_frame_rect_inside(const bNode &node)
   BLI_rctf_pad(&frame_inside, -margin, -margin);
 
   return frame_inside;
+}
+
+bool node_or_socket_isect_event(bContext *C, const wmEvent *event)
+{
+  return is_event_over_node_or_socket(C, event);
 }
 
 static bool node_frame_select_isect_mouse(bNode *node, const float2 &mouse)
