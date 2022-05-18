@@ -58,7 +58,7 @@ class Instance {
   const RegionView3D *rv3d;
 
   /* Info string displayed at the top of the render / viewport. */
-  char info[64];
+  std::string info = "";
 
  public:
   Instance()

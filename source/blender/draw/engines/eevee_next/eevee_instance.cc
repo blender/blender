@@ -50,6 +50,8 @@ void Instance::init(const int2 &output_res,
   v3d = v3d_;
   rv3d = rv3d_;
 
+  info = "";
+
   update_eval_members();
 
   main_view.init(output_res);
