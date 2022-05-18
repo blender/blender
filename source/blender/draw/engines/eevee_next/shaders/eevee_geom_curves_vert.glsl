@@ -5,6 +5,7 @@
 #pragma BLENDER_REQUIRE(eevee_attributes_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
 
 void main()
 {
@@ -27,6 +28,18 @@ void main()
   interp.N = cross(T, interp.curves_binormal);
   interp.curves_strand_id = hair_get_strand_id();
   interp.barycentric_coords = hair_get_barycentric();
+#ifdef MAT_VELOCITY
+  /* Due to the screen space nature of the vertex positioning, we compute only the motion of curve
+   * strand, not its cylinder. Otherwise we would add the rotation velocity. */
+  vec3 prv, nxt;
+  velocity_local_pos_get(pos, hair_get_base_id(), prv, nxt);
+  /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
+   * ignores motion from animated displacement. Supporting animated displacement motion vectors
+   * would require evaluating the nodetree multiple time with different nodetree UBOs evaluated at
+   * different times, but also with different attributes (maybe we could assume static attribute at
+   * least). */
+  velocity_vertex(P_prev, P_curr, P_next, motion.prev, motion.next);
+#endif
 
   init_globals();
   attrib_load();

@@ -55,6 +55,13 @@ void Instance::init(const int2 &output_res,
   main_view.init(output_res);
 }
 
+void Instance::set_time(float time)
+{
+  BLI_assert(render);
+  DRW_render_set_time(render, depsgraph, floorf(time), fractf(time));
+  update_eval_members();
+}
+
 void Instance::update_eval_members()
 {
   scene = DEG_get_evaluated_scene(depsgraph);
@@ -77,6 +84,7 @@ void Instance::update_eval_members()
 void Instance::begin_sync()
 {
   materials.begin_sync();
+  velocity.begin_sync();
 
   pipelines.sync();
   main_view.sync();
@@ -136,6 +144,7 @@ void Instance::object_sync(Object *ob)
 
 void Instance::end_sync()
 {
+  velocity.end_sync();
 }
 
 void Instance::render_sync()
@@ -172,6 +181,7 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
 {
   UNUSED_VARS(dfbl);
   render_sample();
+  velocity.step_swap();
 }
 
 /** \} */

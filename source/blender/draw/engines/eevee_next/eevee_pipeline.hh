@@ -53,7 +53,9 @@ class ForwardPipeline {
   Instance &inst_;
 
   DRWPass *prepass_ps_ = nullptr;
+  DRWPass *prepass_velocity_ps_ = nullptr;
   DRWPass *prepass_culled_ps_ = nullptr;
+  DRWPass *prepass_culled_velocity_ps_ = nullptr;
   DRWPass *opaque_ps_ = nullptr;
   DRWPass *opaque_culled_ps_ = nullptr;
   DRWPass *transparent_ps_ = nullptr;
@@ -72,19 +74,25 @@ class ForwardPipeline {
                material_opaque_add(blender_mat, gpumat);
   }
 
-  DRWShadingGroup *prepass_add(::Material *blender_mat, GPUMaterial *gpumat)
+  DRWShadingGroup *prepass_add(::Material *blender_mat, GPUMaterial *gpumat, bool has_motion)
   {
     return (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) ?
                prepass_transparent_add(blender_mat, gpumat) :
-               prepass_opaque_add(blender_mat, gpumat);
+               prepass_opaque_add(blender_mat, gpumat, has_motion);
   }
 
   DRWShadingGroup *material_opaque_add(::Material *blender_mat, GPUMaterial *gpumat);
-  DRWShadingGroup *prepass_opaque_add(::Material *blender_mat, GPUMaterial *gpumat);
+  DRWShadingGroup *prepass_opaque_add(::Material *blender_mat,
+                                      GPUMaterial *gpumat,
+                                      bool has_motion);
   DRWShadingGroup *material_transparent_add(::Material *blender_mat, GPUMaterial *gpumat);
   DRWShadingGroup *prepass_transparent_add(::Material *blender_mat, GPUMaterial *gpumat);
 
-  void render(const DRWView *view, GPUTexture *depth_tx, GPUTexture *combined_tx);
+  void render(const DRWView *view,
+              Framebuffer &prepass_fb,
+              Framebuffer &combined_fb,
+              GPUTexture *depth_tx,
+              GPUTexture *combined_tx);
 };
 
 /** \} */
@@ -191,10 +199,15 @@ class PipelineModule {
   {
     switch (pipeline_type) {
       case MAT_PIPE_DEFERRED_PREPASS:
-        // return deferred.prepass_add(blender_mat, gpumat);
+        // return deferred.prepass_add(blender_mat, gpumat, false);
+        break;
+      case MAT_PIPE_DEFERRED_PREPASS_VELOCITY:
+        // return deferred.prepass_add(blender_mat, gpumat, true);
         break;
       case MAT_PIPE_FORWARD_PREPASS:
-        return forward.prepass_add(blender_mat, gpumat);
+        return forward.prepass_add(blender_mat, gpumat, false);
+      case MAT_PIPE_FORWARD_PREPASS_VELOCITY:
+        return forward.prepass_add(blender_mat, gpumat, true);
       case MAT_PIPE_DEFERRED:
         // return deferred.material_add(blender_mat, gpumat);
         break;

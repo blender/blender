@@ -78,6 +78,8 @@ ShaderModule::~ShaderModule()
 const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_type)
 {
   switch (shader_type) {
+    case VELOCITY_RESOLVE:
+      return "eevee_velocity_resolve";
     /* To avoid compiler warning about missing case. */
     case MAX_SHADER_TYPE:
       return "";
@@ -289,6 +291,10 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       break;
     default:
       switch (pipeline_type) {
+        case MAT_PIPE_FORWARD_PREPASS_VELOCITY:
+        case MAT_PIPE_DEFERRED_PREPASS_VELOCITY:
+          info.additional_info("eevee_surf_depth", "eevee_velocity_geom");
+          break;
         case MAT_PIPE_FORWARD_PREPASS:
         case MAT_PIPE_DEFERRED_PREPASS:
         case MAT_PIPE_SHADOW:

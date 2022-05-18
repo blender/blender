@@ -104,7 +104,9 @@ static inline void shgroup_geometry_call(DRWShadingGroup *grp,
 
 void SyncModule::sync_mesh(Object *ob, ObjectHandle &ob_handle)
 {
-  MaterialArray &material_array = inst_.materials.material_array_get(ob);
+  bool has_motion = inst_.velocity.step_object_sync(ob, ob_handle.object_key, ob_handle.recalc);
+
+  MaterialArray &material_array = inst_.materials.material_array_get(ob, has_motion);
 
   GPUBatch **mat_geom = DRW_cache_object_surface_material_get(
       ob, material_array.gpu_materials.data(), material_array.gpu_materials.size());
@@ -128,9 +130,6 @@ void SyncModule::sync_mesh(Object *ob, ObjectHandle &ob_handle)
     is_shadow_caster = is_shadow_caster || material->shadow.shgrp != nullptr;
     is_alpha_blend = is_alpha_blend || material->is_alpha_blend_transparent;
   }
-
-  UNUSED_VARS(ob_handle);
-  // shading_passes.velocity.mesh_add(ob, ob_handle);
 
   // shadows.sync_object(ob, ob_handle, is_shadow_caster, is_alpha_blend);
 }
@@ -156,8 +155,11 @@ struct gpIterData {
   int vcount = 0;
   bool instancing = false;
 
-  gpIterData(Instance &inst_, Object *ob_)
-      : inst(inst_), ob(ob_), material_array(inst_.materials.material_array_get(ob_))
+  gpIterData(Instance &inst_, Object *ob_, ObjectHandle &ob_handle)
+      : inst(inst_),
+        ob(ob_),
+        material_array(inst_.materials.material_array_get(
+            ob_, inst_.velocity.step_object_sync(ob, ob_handle.object_key, ob_handle.recalc)))
   {
     cfra = DEG_get_ctime(inst.depsgraph);
   };
@@ -253,15 +255,11 @@ void SyncModule::sync_gpencil(Object *ob, ObjectHandle &ob_handle)
   /* TODO(fclem): Waiting for a user option to use the render engine instead of gpencil engine. */
   return;
 
-  gpIterData iter(inst_, ob);
+  gpIterData iter(inst_, ob, ob_handle);
 
   BKE_gpencil_visible_stroke_iter((bGPdata *)ob->data, nullptr, gpencil_stroke_sync, &iter);
 
   gpencil_drawcall_flush(iter);
-
-  UNUSED_VARS(ob_handle);
-  /* TODO(fclem) Gpencil velocity. */
-  // shading_passes.velocity.gpencil_add(ob, ob_handle);
 
   // bool is_caster = true;      /* TODO material.shadow.shgrp. */
   // bool is_alpha_blend = true; /* TODO material.is_alpha_blend. */
@@ -304,12 +302,13 @@ void SyncModule::sync_curves(Object *ob, ObjectHandle &ob_handle, ModifierData *
     mat_nr = part_settings->omat;
   }
 
-  Material &material = inst_.materials.material_get(ob, mat_nr - 1, MAT_GEOM_CURVES);
+  bool has_motion = inst_.velocity.step_object_sync(ob, ob_handle.object_key, ob_handle.recalc);
+  Material &material = inst_.materials.material_get(ob, has_motion, mat_nr - 1, MAT_GEOM_CURVES);
 
   shgroup_curves_call(material.shading, ob, part_sys, modifier_data);
   shgroup_curves_call(material.prepass, ob, part_sys, modifier_data);
   shgroup_curves_call(material.shadow, ob, part_sys, modifier_data);
-  UNUSED_VARS(ob_handle);
+
   /* TODO(fclem) Hair velocity. */
   // shading_passes.velocity.gpencil_add(ob, ob_handle);
 

@@ -26,7 +26,9 @@ namespace blender::eevee {
 
 /* Keep alphabetical order and clean prefix. */
 enum eShaderType {
-  MAX_SHADER_TYPE = 0,
+  VELOCITY_RESOLVE = 0,
+
+  MAX_SHADER_TYPE,
 };
 
 /**
