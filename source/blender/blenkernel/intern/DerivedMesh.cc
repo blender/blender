@@ -1165,6 +1165,10 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
     BKE_id_free(nullptr, mesh_orco_cloth);
   }
 
+  /* Remove temporary data layer only needed for modifier evaluation.
+   * Save some memory, and ensure GPU subdivision does not need to deal with this. */
+  CustomData_free_layers(&mesh_final->vdata, CD_CLOTH_ORCO, mesh_final->totvert);
+
   /* Compute normals. */
   if (is_own_mesh) {
     mesh_calc_modifier_final_normals(mesh_input, &final_datamask, sculpt_dyntopo, mesh_final);

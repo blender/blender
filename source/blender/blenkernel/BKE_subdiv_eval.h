@@ -15,6 +15,7 @@ extern "C" {
 
 struct Mesh;
 struct OpenSubdiv_EvaluatorCache;
+struct OpenSubdiv_EvaluatorSettings;
 struct Subdiv;
 
 typedef enum eSubdivEvaluatorType {
@@ -25,7 +26,8 @@ typedef enum eSubdivEvaluatorType {
 /* Returns true if evaluator is ready for use. */
 bool BKE_subdiv_eval_begin(struct Subdiv *subdiv,
                            eSubdivEvaluatorType evaluator_type,
-                           struct OpenSubdiv_EvaluatorCache *evaluator_cache);
+                           struct OpenSubdiv_EvaluatorCache *evaluator_cache,
+                           const struct OpenSubdiv_EvaluatorSettings *settings);
 
 /* coarse_vertex_cos is an optional argument which allows to override coordinates of the coarse
  * mesh. */
@@ -59,6 +61,13 @@ void BKE_subdiv_eval_limit_point_and_derivatives(struct Subdiv *subdiv,
                                                  float r_dPdv[3]);
 void BKE_subdiv_eval_limit_point_and_normal(
     struct Subdiv *subdiv, int ptex_face_index, float u, float v, float r_P[3], float r_N[3]);
+
+/* Evaluate smoothly interpolated vertex data (such as orco). */
+void BKE_subdiv_eval_vertex_data(struct Subdiv *subdiv,
+                                 const int ptex_face_index,
+                                 const float u,
+                                 const float v,
+                                 float r_vertex_data[]);
 
 /* Evaluate face-varying layer (such as UV). */
 void BKE_subdiv_eval_face_varying(struct Subdiv *subdiv,

@@ -45,6 +45,7 @@ GpuEvalOutput::GpuEvalOutput(const StencilTable *vertex_stencils,
                              const StencilTable *varying_stencils,
                              const vector<const StencilTable *> &all_face_varying_stencils,
                              const int face_varying_width,
+                             const int vertex_data_width,
                              const PatchTable *patch_table,
                              VolatileEvalOutput::EvaluatorCache *evaluator_cache)
     : VolatileEvalOutput<GLVertexBuffer,
@@ -55,6 +56,7 @@ GpuEvalOutput::GpuEvalOutput(const StencilTable *vertex_stencils,
                                              varying_stencils,
                                              all_face_varying_stencils,
                                              face_varying_width,
+                                             vertex_data_width,
                                              patch_table,
                                              evaluator_cache)
 {
