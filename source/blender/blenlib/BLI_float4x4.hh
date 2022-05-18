@@ -147,6 +147,16 @@ struct float4x4 {
     return m * float3(v);
   }
 
+  friend bool operator==(const float4x4 &a, const float4x4 &b)
+  {
+    return equals_m4m4(a.ptr(), b.ptr());
+  }
+
+  friend bool operator!=(const float4x4 &a, const float4x4 &b)
+  {
+    return !(a == b);
+  }
+
   float3 translation() const
   {
     return float3(values[3]);
