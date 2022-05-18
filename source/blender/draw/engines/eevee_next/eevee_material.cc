@@ -75,11 +75,11 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
   {
     bNodeTree *ntree = ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
 
-    diffuse_mat_ = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default diffuse");
-    diffuse_mat_->nodetree = ntree;
-    diffuse_mat_->use_nodes = true;
+    diffuse_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default diffuse");
+    diffuse_mat->nodetree = ntree;
+    diffuse_mat->use_nodes = true;
     /* To use the forward pipeline. */
-    diffuse_mat_->blend_method = MA_BM_BLEND;
+    diffuse_mat->blend_method = MA_BM_BLEND;
 
     bNode *bsdf = nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_DIFFUSE);
     bNodeSocket *base_color = nodeFindSocket(bsdf, SOCK_IN, "Color");
@@ -98,11 +98,11 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
   {
     bNodeTree *ntree = ntreeAddTree(nullptr, "Shader Nodetree", ntreeType_Shader->idname);
 
-    glossy_mat_ = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default metal");
-    glossy_mat_->nodetree = ntree;
-    glossy_mat_->use_nodes = true;
+    glossy_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default metal");
+    glossy_mat->nodetree = ntree;
+    glossy_mat->use_nodes = true;
     /* To use the forward pipeline. */
-    glossy_mat_->blend_method = MA_BM_BLEND;
+    glossy_mat->blend_method = MA_BM_BLEND;
 
     bNode *bsdf = nodeAddStaticNode(nullptr, ntree, SH_NODE_BSDF_GLOSSY);
     bNodeSocket *base_color = nodeFindSocket(bsdf, SOCK_IN, "Color");
@@ -149,14 +149,14 @@ MaterialModule::~MaterialModule()
   for (Material *mat : material_map_.values()) {
     delete mat;
   }
-  BKE_id_free(nullptr, glossy_mat_);
-  BKE_id_free(nullptr, diffuse_mat_);
+  BKE_id_free(nullptr, glossy_mat);
+  BKE_id_free(nullptr, diffuse_mat);
   BKE_id_free(nullptr, error_mat_);
 }
 
 void MaterialModule::begin_sync()
 {
-  queued_shaders_count_ = 0;
+  queued_shaders_count = 0;
 
   for (Material *mat : material_map_.values()) {
     mat->init = false;
@@ -180,7 +180,7 @@ MaterialPass MaterialModule::material_pass_get(::Material *blender_mat,
     case GPU_MAT_SUCCESS:
       break;
     case GPU_MAT_QUEUED:
-      queued_shaders_count_++;
+      queued_shaders_count++;
       blender_mat = (geometry_type == MAT_GEOM_VOLUME) ? BKE_material_default_volume() :
                                                          BKE_material_default_surface();
       matpass.gpumat = inst_.shaders.material_shader_get(
