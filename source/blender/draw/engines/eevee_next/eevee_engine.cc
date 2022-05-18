@@ -102,6 +102,7 @@ static void eevee_cache_finish(void *vedata)
 
 static void eevee_engine_free()
 {
+  eevee::ShaderModule::module_free();
 }
 
 static void eevee_instance_free(void *instance)
