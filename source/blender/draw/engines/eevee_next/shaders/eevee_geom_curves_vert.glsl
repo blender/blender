@@ -31,14 +31,15 @@ void main()
 #ifdef MAT_VELOCITY
   /* Due to the screen space nature of the vertex positioning, we compute only the motion of curve
    * strand, not its cylinder. Otherwise we would add the rotation velocity. */
-  vec3 prv, nxt;
-  velocity_local_pos_get(pos, hair_get_base_id(), prv, nxt);
+  int vert_idx = hair_get_base_id();
+  vec3 prv, nxt, pos = texelFetch(hairPointBuffer, vert_idx).point_position;
+  velocity_local_pos_get(pos, vert_idx, prv, nxt);
   /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
    * ignores motion from animated displacement. Supporting animated displacement motion vectors
    * would require evaluating the nodetree multiple time with different nodetree UBOs evaluated at
    * different times, but also with different attributes (maybe we could assume static attribute at
    * least). */
-  velocity_vertex(P_prev, P_curr, P_next, motion.prev, motion.next);
+  velocity_vertex(prv, pos, nxt, motion.prev, motion.next);
 #endif
 
   init_globals();
