@@ -102,7 +102,7 @@ class DataBuffer {
   {
     BLI_STATIC_ASSERT(!device_only, "");
     BLI_assert(index >= 0);
-    BLI_assert(index < len);
+    BLI_assert(index < len_);
     return data_[index];
   }
 
@@ -110,7 +110,7 @@ class DataBuffer {
   {
     BLI_STATIC_ASSERT(!device_only, "");
     BLI_assert(index >= 0);
-    BLI_assert(index < len);
+    BLI_assert(index < len_);
     return data_[index];
   }
 
@@ -139,7 +139,7 @@ class DataBuffer {
   const T *end() const
   {
     BLI_STATIC_ASSERT(!device_only, "");
-    return data_ + len;
+    return data_ + len_;
   }
 
   T *begin()
@@ -150,13 +150,13 @@ class DataBuffer {
   T *end()
   {
     BLI_STATIC_ASSERT(!device_only, "");
-    return data_ + len;
+    return data_ + len_;
   }
 
   operator Span<T>() const
   {
     BLI_STATIC_ASSERT(!device_only, "");
-    return Span<T>(data_, len);
+    return Span<T>(data_, len_);
   }
 };
 
