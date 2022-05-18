@@ -219,7 +219,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                 e->flags,
                                 es->occlusion,
                                 es->material_mask_bits,
-                                e->v1_obindex);
+                                e->v1->index);
     while (ba && (new_e = lineart_line_get_connected(
                       ba, new_vt, &new_vt, e->flags, e->intersection_mask))) {
       new_e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
@@ -256,7 +256,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                       new_e->flags,
                                       es->occlusion,
                                       es->material_mask_bits,
-                                      new_e->v1_obindex);
+                                      new_e->v1->index);
           last_occlusion = es->occlusion;
           last_transparency = es->material_mask_bits;
         }
@@ -282,7 +282,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                       new_e->flags,
                                       last_occlusion,
                                       last_transparency,
-                                      new_e->v2_obindex);
+                                      new_e->v2->index);
           last_occlusion = es->occlusion;
           last_transparency = es->material_mask_bits;
         }
@@ -295,7 +295,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                     new_e->flags,
                                     last_occlusion,
                                     last_transparency,
-                                    new_e->v2_obindex);
+                                    new_e->v2->index);
       }
       ba = MOD_lineart_get_bounding_area(rb, new_vt->fbcoord[0], new_vt->fbcoord[1]);
     }
@@ -336,7 +336,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                  e->flags,
                                  es->occlusion,
                                  es->material_mask_bits,
-                                 e->v1_obindex);
+                                 e->v1->index);
       last_occlusion = es->occlusion;
       last_transparency = es->material_mask_bits;
     }
@@ -349,7 +349,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                e->flags,
                                last_occlusion,
                                last_transparency,
-                               e->v2_obindex);
+                               e->v2->index);
 
     /*  Step 3: grow right. */
     ba = MOD_lineart_get_bounding_area(rb, e->v2->fbcoord[0], e->v2->fbcoord[1]);
@@ -402,7 +402,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                      new_e->flags,
                                      last_occlusion,
                                      last_transparency,
-                                     new_e->v1_obindex);
+                                     new_e->v1->index);
         }
       }
       else if (new_vt == new_e->v2) {
@@ -428,7 +428,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                      new_e->flags,
                                      es->occlusion,
                                      es->material_mask_bits,
-                                     new_e->v2_obindex);
+                                     new_e->v2->index);
           last_occlusion = es->occlusion;
           last_transparency = es->material_mask_bits;
         }
@@ -441,7 +441,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                    new_e->flags,
                                    last_occlusion,
                                    last_transparency,
-                                   new_e->v2_obindex);
+                                   new_e->v2->index);
       }
       ba = MOD_lineart_get_bounding_area(rb, new_vt->fbcoord[0], new_vt->fbcoord[1]);
     }
