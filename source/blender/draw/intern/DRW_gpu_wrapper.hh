@@ -31,9 +31,6 @@
  *   discarding all data inside it.
  *   Data can be accessed using the [] operator.
  *
- * `draw::StorageFlexibleBuffer<T>`
- *   Same as StorageArrayBuffer but will auto resize on access when using the [] operator.
- *
  * `draw::StorageBuffer<T>`
  *   A storage buffer object class inheriting from T.
  *   Data can be accessed just like a normal T object.
@@ -237,6 +234,17 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
     }
   }
 
+  /* Resize on access. */
+  T &get_or_resize(int64_t index)
+  {
+    BLI_assert(index >= 0);
+    if (index >= this->len_) {
+      size_t size = 1u << log2_ceil_u(index);
+      this->resize(size);
+    }
+    return this->data_[index];
+  }
+
   void push_update(void)
   {
     BLI_assert(device_only == false);
@@ -336,38 +344,6 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
   {
     MEM_freeN(this->data_);
   }
-};
-
-template<
-    /** Type of the values stored in this uniform buffer. */
-    typename T,
-    /** True if created on device and no memory host memory is allocated. */
-    bool device_only = false>
-class StorageFlexibleBuffer : public detail::StorageCommon<T, 1, device_only> {
- public:
-  StorageFlexibleBuffer(const char *name = nullptr)
-      : detail::StorageCommon<T, 1, device_only>(name)
-  {
-    /* TODO(@fclem): We should map memory instead. */
-    this->data_ = (T *)MEM_mallocN_aligned(sizeof(T), 16, this->name_);
-  }
-  ~StorageFlexibleBuffer()
-  {
-    MEM_freeN(this->data_);
-  }
-
-  /* Resize on access. */
-  T &operator[](int64_t index)
-  {
-    BLI_STATIC_ASSERT(!device_only, "");
-    BLI_assert(index >= 0);
-    if (index >= this->len_) {
-      this->resize(this->len_ * 2);
-    }
-    return this->data_[index];
-  }
-
-  /* TODO(fclem): Implement shrinking. */
 };
 
 template<
