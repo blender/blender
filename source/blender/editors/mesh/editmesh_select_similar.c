@@ -1370,8 +1370,14 @@ static bool edbm_select_similar_poll_property(const bContext *UNUSED(C),
   const char *prop_id = RNA_property_identifier(prop);
   const int type = RNA_enum_get(op->ptr, "type");
 
+  /* Only show compare when it is used. */
+  if (STREQ(prop_id, "compare")) {
+    if (type == SIMVERT_VGROUP) {
+      return false;
+    }
+  }
   /* Only show threshold when it is used. */
-  if (STREQ(prop_id, "threshold")) {
+  else if (STREQ(prop_id, "threshold")) {
     if (!ELEM(type,
               SIMVERT_NORMAL,
               SIMEDGE_BEVEL,
