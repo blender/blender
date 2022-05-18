@@ -82,7 +82,7 @@ struct WeldPoly {
       int loop_start;
       int loop_end;
       /* Final Polygon Size. */
-      int len;
+      int loop_len;
       /* Group of loops that will be affected. */
       struct WeldGroup loops;
     };
@@ -194,7 +194,7 @@ static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
           poly_kills++;
           continue;
         }
-        int remain = wp->len;
+        int remain = wp->loop_len;
         int l = wp->loop_start;
         while (remain) {
           int l_next = l + 1;
@@ -228,7 +228,7 @@ static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
       poly_kills++;
       continue;
     }
-    int remain = wp->len;
+    int remain = wp->loop_len;
     int l = wp->loop_start;
     while (remain) {
       int l_next = l + 1;
@@ -260,8 +260,8 @@ static void weld_assert_poly_no_vert_repetition(const WeldPoly &wp,
                                                 Span<MLoop> mloop,
                                                 Span<int> loop_map)
 {
-  const int len = wp.len;
-  Array<int, 64> verts(len);
+  const int loop_len = wp.loop_len;
+  Array<int, 64> verts(loop_len);
   WeldLoopOfPolyIter iter;
   if (!weld_iter_loop_of_poly_begin(iter, wp, wloop, mloop, loop_map, nullptr)) {
     return;
@@ -272,9 +272,9 @@ static void weld_assert_poly_no_vert_repetition(const WeldPoly &wp,
       verts[i++] = iter.v;
     }
   }
-  for (int i = 0; i < len; i++) {
+  for (int i = 0; i < loop_len; i++) {
     int va = verts[i];
-    for (int j = i + 1; j < len; j++) {
+    for (int j = i + 1; j < loop_len; j++) {
       int vb = verts[j];
       BLI_assert(va != vb);
     }
@@ -287,7 +287,7 @@ static void weld_assert_poly_len(const WeldPoly *wp, const Span<WeldLoop> wloop)
     return;
   }
 
-  int len = wp->len;
+  int loop_len = wp->loop_len;
   const WeldLoop *wl = &wloop[wp->loops.ofs];
   BLI_assert(wp->loop_start <= wl->loop_orig);
 
@@ -301,10 +301,10 @@ static void weld_assert_poly_len(const WeldPoly *wp, const Span<WeldLoop> wloop)
       min_len++;
     }
   }
-  BLI_assert(len >= min_len);
+  BLI_assert(loop_len >= min_len);
 
   int max_len = wp->loop_end - wp->loop_start + 1;
-  BLI_assert(len <= max_len);
+  BLI_assert(loop_len <= max_len);
 }
 
 #endif /* USE_WELD_DEBUG */
@@ -783,7 +783,7 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> mpoly,
       wp.loops.ofs = prev_wloop_len;
       wp.loop_start = loopstart;
       wp.loop_end = loopstart + totloop - 1;
-      wp.len = totloop;
+      wp.loop_len = totloop;
       wpoly.append(wp);
 
       poly_map[i] = wpoly_len++;
@@ -824,8 +824,8 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
                                       int *r_poly_kill,
                                       int *r_loop_kill)
 {
-  int poly_len = r_wp->len;
-  if (poly_len < 3 || ctx_verts_len < 1) {
+  int poly_loop_len = r_wp->loop_len;
+  if (poly_loop_len < 3 || ctx_verts_len < 1) {
     return;
   }
 
@@ -867,7 +867,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
         }
         if (vert_a == vert_b) {
           const int dist_a = wlb->loop_orig - wla->loop_orig - killed_ab;
-          const int dist_b = poly_len - dist_a;
+          const int dist_b = poly_loop_len - dist_a;
 
           BLI_assert(dist_a != 0 && dist_b != 0);
           if (dist_a == 1 || dist_b == 1) {
@@ -883,7 +883,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
               wla->flag = ELEM_COLLAPSED;
               wl_tmp->flag = ELEM_COLLAPSED;
               loop_kill += 2;
-              poly_len -= 2;
+              poly_loop_len -= 2;
             }
             if (dist_b == 2) {
               if (wl_tmp != nullptr) {
@@ -898,7 +898,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
                 wl_tmp->flag = ELEM_COLLAPSED;
               }
               loop_kill += 2;
-              poly_len -= 2;
+              poly_loop_len -= 2;
             }
             if (wl_tmp == nullptr) {
               const int new_loops_len = lb - la;
@@ -911,7 +911,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
               new_wp->loops.ofs = new_loops_ofs;
               new_wp->loop_start = wla->loop_orig;
               new_wp->loop_end = wlb_prev->loop_orig;
-              new_wp->len = dist_a;
+              new_wp->loop_len = dist_a;
               weld_poly_split_recursive(vert_dest_map,
 #ifdef USE_WELD_DEBUG
                                         mloop,
@@ -921,8 +921,8 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
                                         r_weld_mesh,
                                         r_poly_kill,
                                         r_loop_kill);
-              BLI_assert(dist_b == poly_len - dist_a);
-              poly_len = dist_b;
+              BLI_assert(dist_b == poly_loop_len - dist_a);
+              poly_loop_len = dist_b;
               if (wla_prev->loop_orig > wla->loop_orig) {
                 /* New start. */
                 r_wp->loop_start = wlb->loop_orig;
@@ -947,7 +947,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
       wla_prev = wla;
     }
   }
-  r_wp->len = poly_len;
+  r_wp->loop_len = poly_loop_len;
   *r_loop_kill += loop_kill;
 
 #ifdef USE_WELD_DEBUG
@@ -982,22 +982,22 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
       const int ctx_loops_len = wp.loops.len;
       const int ctx_loops_ofs = wp.loops.ofs;
 
-      int poly_len = wp.len;
+      int poly_loop_len = wp.loop_len;
       int ctx_verts_len = 0;
       WeldLoop *wl = &wloop[ctx_loops_ofs];
       for (int l = ctx_loops_len; l--; wl++) {
         const int edge_dest = wl->edge;
         if (edge_dest == ELEM_COLLAPSED) {
           wl->flag = ELEM_COLLAPSED;
-          if (poly_len == 3) {
+          if (poly_loop_len == 3) {
             wp.flag = ELEM_COLLAPSED;
             poly_kill_len++;
             loop_kill_len += 3;
-            poly_len = 0;
+            poly_loop_len = 0;
             break;
           }
           loop_kill_len++;
-          poly_len--;
+          poly_loop_len--;
         }
         else {
           const int vert_dst = wl->vert;
@@ -1007,8 +1007,8 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
         }
       }
 
-      if (poly_len) {
-        wp.len = poly_len;
+      if (poly_loop_len) {
+        wp.loop_len = poly_loop_len;
 #ifdef USE_WELD_DEBUG
         weld_assert_poly_len(&wp, wloop);
 #endif
@@ -1092,7 +1092,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
           BLI_assert(link_poly_buffer[link_a->ofs] == i);
           continue;
         }
-        int wp_len = wp.len;
+        int wp_loop_len = wp.loop_len;
         polys_ctx_a = &link_poly_buffer[link_a->ofs];
         for (; polys_len_a--; polys_ctx_a++) {
           p_ctx_a = *polys_ctx_a;
@@ -1101,7 +1101,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
           }
 
           WeldPoly *wp_tmp = &wpoly[p_ctx_a];
-          if (wp_tmp->len != wp_len) {
+          if (wp_tmp->loop_len != wp_loop_len) {
             continue;
           }
 
@@ -1140,7 +1140,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
           BLI_assert(wp_tmp->poly_dst == OUT_OF_CONTEXT);
           BLI_assert(wp_tmp != &wp);
           wp_tmp->poly_dst = wp.poly_orig;
-          loop_kill_len += wp_tmp->len;
+          loop_kill_len += wp_tmp->loop_len;
           poly_kill_len++;
         }
       }
