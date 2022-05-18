@@ -361,10 +361,10 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
       }
       else {
         if (seq->flag & SEQ_LEFTSEL) {
-          SEQ_transform_set_left_handle_frame(seq, snap_frame);
+          SEQ_time_left_handle_frame_set(seq, snap_frame);
         }
         else { /* SEQ_RIGHTSEL */
-          SEQ_transform_set_right_handle_frame(seq, snap_frame);
+          SEQ_time_right_handle_frame_set(seq, snap_frame);
         }
         SEQ_transform_handle_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
         SEQ_transform_fix_single_image_seq_offsets(seq);
@@ -1858,8 +1858,8 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
       /* TODO: remove f-curve and assign to split image strips.
        * The old animation system would remove the user of `seq->ipo`. */
 
-      start_ofs = timeline_frame = SEQ_transform_get_left_handle_frame(seq);
-      frame_end = SEQ_transform_get_right_handle_frame(seq);
+      start_ofs = timeline_frame = SEQ_time_left_handle_frame_get(seq);
+      frame_end = SEQ_time_right_handle_frame_get(seq);
 
       while (timeline_frame < frame_end) {
         /* New seq. */
@@ -3113,8 +3113,8 @@ static int seq_cmp_time_startdisp_channel(const void *a, const void *b)
   Sequence *seq_a = (Sequence *)a;
   Sequence *seq_b = (Sequence *)b;
 
-  int seq_a_start = SEQ_transform_get_left_handle_frame(seq_a);
-  int seq_b_start = SEQ_transform_get_left_handle_frame(seq_b);
+  int seq_a_start = SEQ_time_left_handle_frame_get(seq_a);
+  int seq_b_start = SEQ_time_left_handle_frame_get(seq_b);
 
   /* If strips have the same start frame favor the one with a higher channel. */
   if (seq_a_start == seq_b_start) {

@@ -174,7 +174,7 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDa
 
   if (!load_data->effect.seq1) {
     seq->len = 1; /* Effect is generator, set non zero length. */
-    SEQ_transform_set_right_handle_frame(seq, load_data->effect.end_frame);
+    SEQ_time_right_handle_frame_set(seq, load_data->effect.end_frame);
   }
 
   seq_add_set_name(scene, seq, load_data);
@@ -656,8 +656,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
   free_proxy_seq(seq);
 
   if (lock_range) {
-    SEQ_transform_set_left_handle_frame(seq, prev_startdisp);
-    SEQ_transform_set_right_handle_frame(seq, prev_enddisp);
+    SEQ_time_left_handle_frame_set(seq, prev_startdisp);
+    SEQ_time_right_handle_frame_set(seq, prev_enddisp);
     SEQ_transform_fix_single_image_seq_offsets(seq);
   }
 

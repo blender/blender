@@ -1099,9 +1099,9 @@ static void draw_seq_background(Scene *scene,
   /* Draw the main strip body. */
   if (is_single_image) {
     immRectf(pos,
-             SEQ_transform_get_left_handle_frame(seq),
+             SEQ_time_left_handle_frame_get(seq),
              y1,
-             SEQ_transform_get_right_handle_frame(seq),
+             SEQ_time_right_handle_frame_get(seq),
              y2);
   }
   else {

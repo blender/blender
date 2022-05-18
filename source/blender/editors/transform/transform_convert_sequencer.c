@@ -91,8 +91,8 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
 
     /* *** Extend Transform *** */
     int cfra = CFRA;
-    int left = SEQ_transform_get_left_handle_frame(seq);
-    int right = SEQ_transform_get_right_handle_frame(seq);
+    int left = SEQ_time_left_handle_frame_get(seq);
+    int right = SEQ_time_right_handle_frame_get(seq);
 
     if (((seq->flag & SELECT) == 0 || SEQ_transform_is_locked(channels, seq))) {
       *r_count = 0;
@@ -173,16 +173,16 @@ static TransData *SeqToTransData(
       /* Use seq_tx_get_final_left() and an offset here
        * so transform has the left hand location of the strip.
        * tdsq->start_offset is used when flushing the tx data back */
-      start_left = SEQ_transform_get_left_handle_frame(seq);
+      start_left = SEQ_time_left_handle_frame_get(seq);
       td2d->loc[0] = start_left;
       tdsq->start_offset = start_left - seq->start; /* use to apply the original location */
       break;
     case SEQ_LEFTSEL:
-      start_left = SEQ_transform_get_left_handle_frame(seq);
+      start_left = SEQ_time_left_handle_frame_get(seq);
       td2d->loc[0] = start_left;
       break;
     case SEQ_RIGHTSEL:
-      td2d->loc[0] = SEQ_transform_get_right_handle_frame(seq);
+      td2d->loc[0] = SEQ_time_right_handle_frame_get(seq);
       break;
   }
 
@@ -489,11 +489,11 @@ static void seq_transform_handle_overwrite_trim(Scene *scene,
       continue;
     }
     if (overlap == STRIP_OVERLAP_LEFT_SIDE) {
-      SEQ_transform_set_left_handle_frame(seq, transformed->enddisp);
+      SEQ_time_left_handle_frame_set(seq, transformed->enddisp);
     }
     else {
       BLI_assert(overlap == STRIP_OVERLAP_RIGHT_SIDE);
-      SEQ_transform_set_right_handle_frame(seq, transformed->startdisp);
+      SEQ_time_right_handle_frame_set(seq, transformed->startdisp);
     }
 
     SEQ_time_update_sequence(scene, seqbasep, seq);
@@ -915,7 +915,7 @@ static void flushTransSeq(TransInfo *t)
       }
       case SEQ_LEFTSEL: { /* No vertical transform. */
         int old_startdisp = seq->startdisp;
-        SEQ_transform_set_left_handle_frame(seq, new_frame);
+        SEQ_time_left_handle_frame_set(seq, new_frame);
         SEQ_transform_handle_xlimits(seq, tdsq->flag & SEQ_LEFTSEL, tdsq->flag & SEQ_RIGHTSEL);
         SEQ_transform_fix_single_image_seq_offsets(seq);
         SEQ_time_update_sequence(t->scene, seqbasep, seq);
@@ -926,7 +926,7 @@ static void flushTransSeq(TransInfo *t)
       }
       case SEQ_RIGHTSEL: { /* No vertical transform. */
         int old_enddisp = seq->enddisp;
-        SEQ_transform_set_right_handle_frame(seq, new_frame);
+        SEQ_time_right_handle_frame_set(seq, new_frame);
         SEQ_transform_handle_xlimits(seq, tdsq->flag & SEQ_LEFTSEL, tdsq->flag & SEQ_RIGHTSEL);
         SEQ_transform_fix_single_image_seq_offsets(seq);
         SEQ_time_update_sequence(t->scene, seqbasep, seq);

@@ -177,8 +177,8 @@ void SEQ_time_update_meta_strip_range(Scene *scene, Sequence *seq_meta)
   seq_time_update_meta_strip(scene, seq_meta);
 
   /* Prevent meta-strip to move in timeline. */
-  SEQ_transform_set_left_handle_frame(seq_meta, seq_meta->startdisp);
-  SEQ_transform_set_right_handle_frame(seq_meta, seq_meta->enddisp);
+  SEQ_time_left_handle_frame_set(seq_meta, seq_meta->startdisp);
+  SEQ_time_right_handle_frame_set(seq_meta, seq_meta->enddisp);
 }
 
 void SEQ_time_update_sequence(Scene *scene, ListBase *seqbase, Sequence *seq)
@@ -523,4 +523,23 @@ bool SEQ_time_has_right_still_frames(const Sequence *seq)
 bool SEQ_time_has_still_frames(const Sequence *seq)
 {
   return SEQ_time_has_right_still_frames(seq) || SEQ_time_has_left_still_frames(seq);
+}
+
+int SEQ_time_left_handle_frame_get(Sequence *seq)
+{
+  return seq->start + seq->startofs;
+}
+int SEQ_time_right_handle_frame_get(Sequence *seq)
+{
+  return seq->start + seq->len - seq->endofs;
+}
+
+void SEQ_time_left_handle_frame_set(Sequence *seq, int val)
+{
+  seq->startofs = val - seq->start;
+}
+
+void SEQ_time_right_handle_frame_set(Sequence *seq, int val)
+{
+  seq->endofs = seq->start + seq->len - val;
 }

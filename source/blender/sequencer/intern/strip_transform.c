@@ -38,25 +38,6 @@ static int seq_tx_get_end(Sequence *seq)
   return seq->start + seq->len;
 }
 
-int SEQ_transform_get_left_handle_frame(Sequence *seq)
-{
-  return seq->start + seq->startofs;
-}
-int SEQ_transform_get_right_handle_frame(Sequence *seq)
-{
-  return seq->start + seq->len - seq->endofs;
-}
-
-void SEQ_transform_set_left_handle_frame(Sequence *seq, int val)
-{
-  seq->startofs = val - seq->start;
-}
-
-void SEQ_transform_set_right_handle_frame(Sequence *seq, int val)
-{
-  seq->endofs = seq->start + seq->len - val; 
-}
-
 bool SEQ_transform_single_image_check(Sequence *seq)
 {
   return ((seq->len == 1) &&
@@ -108,13 +89,13 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
 void SEQ_transform_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 {
   if (leftflag) {
-    if (SEQ_transform_get_left_handle_frame(seq) >= SEQ_transform_get_right_handle_frame(seq)) {
-      SEQ_transform_set_left_handle_frame(seq, SEQ_transform_get_right_handle_frame(seq) - 1);
+    if (SEQ_time_left_handle_frame_get(seq) >= SEQ_time_right_handle_frame_get(seq)) {
+      SEQ_time_left_handle_frame_set(seq, SEQ_time_right_handle_frame_get(seq) - 1);
     }
 
     if (SEQ_transform_single_image_check(seq) == 0) {
-      if (SEQ_transform_get_left_handle_frame(seq) >= seq_tx_get_end(seq)) {
-        SEQ_transform_set_left_handle_frame(seq, seq_tx_get_end(seq) - 1);
+      if (SEQ_time_left_handle_frame_get(seq) >= seq_tx_get_end(seq)) {
+        SEQ_time_left_handle_frame_set(seq, seq_tx_get_end(seq) - 1);
       }
 
       /* TODO: This doesn't work at the moment. */
@@ -130,13 +111,13 @@ void SEQ_transform_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
   }
 
   if (rightflag) {
-    if (SEQ_transform_get_right_handle_frame(seq) <= SEQ_transform_get_left_handle_frame(seq)) {
-      SEQ_transform_set_right_handle_frame(seq, SEQ_transform_get_left_handle_frame(seq) + 1);
+    if (SEQ_time_right_handle_frame_get(seq) <= SEQ_time_left_handle_frame_get(seq)) {
+      SEQ_time_right_handle_frame_set(seq, SEQ_time_left_handle_frame_get(seq) + 1);
     }
 
     if (SEQ_transform_single_image_check(seq) == 0) {
-      if (SEQ_transform_get_right_handle_frame(seq) <= seq_tx_get_start(seq)) {
-        SEQ_transform_set_right_handle_frame(seq, seq_tx_get_start(seq) + 1);
+      if (SEQ_time_right_handle_frame_get(seq) <= seq_tx_get_start(seq)) {
+        SEQ_time_right_handle_frame_set(seq, seq_tx_get_start(seq) + 1);
       }
     }
   }
@@ -157,12 +138,12 @@ void SEQ_transform_fix_single_image_seq_offsets(Sequence *seq)
 
   /* make sure the image is always at the start since there is only one,
    * adjusting its start should be ok */
-  left = SEQ_transform_get_left_handle_frame(seq);
+  left = SEQ_time_left_handle_frame_get(seq);
   start = seq->start;
   if (start != left) {
     offset = left - start;
-    SEQ_transform_set_left_handle_frame(seq, SEQ_transform_get_left_handle_frame(seq) - offset);
-    SEQ_transform_set_right_handle_frame(seq, SEQ_transform_get_right_handle_frame(seq) - offset);
+    SEQ_time_left_handle_frame_set(seq, SEQ_time_left_handle_frame_get(seq) - offset);
+    SEQ_time_right_handle_frame_set(seq, SEQ_time_right_handle_frame_get(seq) - offset);
     seq->start += offset;
   }
 }
@@ -213,8 +194,8 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
      * start/end point in timeline. */
     SEQ_time_update_meta_strip_range(evil_scene, seq);
     /* Move meta start/end points. */
-    SEQ_transform_set_left_handle_frame(seq, seq->startdisp + delta);
-    SEQ_transform_set_right_handle_frame(seq, seq->enddisp + delta);
+    SEQ_time_left_handle_frame_set(seq, seq->startdisp + delta);
+    SEQ_time_right_handle_frame_set(seq, seq->enddisp + delta);
   }
 
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(evil_scene));
