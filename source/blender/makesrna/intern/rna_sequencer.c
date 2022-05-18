@@ -376,24 +376,6 @@ static void rna_Sequence_frame_offset_end_set(PointerRNA *ptr, int value)
   seq->endofs = value;
 }
 
-static void rna_Sequence_frame_still_start_set(PointerRNA *ptr, int value)
-{
-  Sequence *seq = (Sequence *)ptr->data;
-  Scene *scene = (Scene *)ptr->owner_id;
-
-  SEQ_relations_invalidate_cache_composite(scene, seq);
-  seq->startstill = value;
-}
-
-static void rna_Sequence_frame_still_end_set(PointerRNA *ptr, int value)
-{
-  Sequence *seq = (Sequence *)ptr->data;
-  Scene *scene = (Scene *)ptr->owner_id;
-
-  SEQ_relations_invalidate_cache_composite(scene, seq);
-  seq->endstill = value;
-}
-
 static void rna_Sequence_anim_startofs_final_set(PointerRNA *ptr, int value)
 {
   Sequence *seq = (Sequence *)ptr->data;
@@ -2030,22 +2012,6 @@ static void rna_def_sequence(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "End Offset", "");
   RNA_def_property_int_funcs(
       prop, NULL, "rna_Sequence_frame_offset_end_set", "rna_Sequence_frame_offset_end_range");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
-
-  prop = RNA_def_property(srna, "frame_still_start", PROP_INT, PROP_TIME);
-  RNA_def_property_int_sdna(prop, NULL, "startstill");
-  //  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
-  RNA_def_property_range(prop, 0, MAXFRAME);
-  RNA_def_property_ui_text(prop, "Start Still", "");
-  RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_frame_still_start_set", NULL);
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
-
-  prop = RNA_def_property(srna, "frame_still_end", PROP_INT, PROP_TIME);
-  RNA_def_property_int_sdna(prop, NULL, "endstill");
-  //  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
-  RNA_def_property_range(prop, 0, MAXFRAME);
-  RNA_def_property_ui_text(prop, "End Still", "");
-  RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_frame_still_end_set", NULL);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
 
   prop = RNA_def_property(srna, "channel", PROP_INT, PROP_UNSIGNED);

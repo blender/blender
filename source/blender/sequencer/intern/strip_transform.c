@@ -40,35 +40,21 @@ static int seq_tx_get_end(Sequence *seq)
 
 int SEQ_transform_get_left_handle_frame(Sequence *seq)
 {
-  return (seq->start - seq->startstill) + seq->startofs;
+  return seq->start + seq->startofs;
 }
 int SEQ_transform_get_right_handle_frame(Sequence *seq)
 {
-  return ((seq->start + seq->len) + seq->endstill) - seq->endofs;
+  return seq->start + seq->len - seq->endofs;
 }
 
 void SEQ_transform_set_left_handle_frame(Sequence *seq, int val)
 {
-  if (val < (seq)->start) {
-    seq->startstill = abs(val - (seq)->start);
-    seq->startofs = 0;
-  }
-  else {
-    seq->startofs = abs(val - (seq)->start);
-    seq->startstill = 0;
-  }
+  seq->startofs = val - seq->start;
 }
 
 void SEQ_transform_set_right_handle_frame(Sequence *seq, int val)
 {
-  if (val > (seq)->start + (seq)->len) {
-    seq->endstill = abs(val - (seq->start + (seq)->len));
-    seq->endofs = 0;
-  }
-  else {
-    seq->endofs = abs(val - ((seq)->start + (seq)->len));
-    seq->endstill = 0;
-  }
+  seq->endofs = seq->start + seq->len - val; 
 }
 
 bool SEQ_transform_single_image_check(Sequence *seq)
@@ -157,8 +143,8 @@ void SEQ_transform_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 
   /* sounds cannot be extended past their endpoints */
   if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    seq->startstill = 0;
-    seq->endstill = 0;
+    CLAMP(seq->startofs, 0, MAXFRAME);
+    CLAMP(seq->endofs, 0, MAXFRAME);
   }
 }
 

@@ -139,15 +139,8 @@ void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
 
 static void seq_time_update_sequence_bounds(Scene *scene, Sequence *seq)
 {
-  if (seq->startofs && seq->startstill) {
-    seq->startstill = 0;
-  }
-  if (seq->endofs && seq->endstill) {
-    seq->endstill = 0;
-  }
-
-  seq->startdisp = seq->start + seq->startofs - seq->startstill;
-  seq->enddisp = seq->start + seq->len - seq->endofs + seq->endstill;
+  seq->startdisp = seq->start + seq->startofs;
+  seq->enddisp = seq->start + seq->len - seq->endofs;
 
   if (seq->type == SEQ_TYPE_META) {
     seq_update_sound_bounds_recursive(scene, seq);
@@ -204,7 +197,7 @@ void SEQ_time_update_sequence(Scene *scene, ListBase *seqbase, Sequence *seq)
   /* effects and meta: automatic start and end */
   if (seq->type & SEQ_TYPE_EFFECT) {
     if (seq->seq1) {
-      seq->startofs = seq->endofs = seq->startstill = seq->endstill = 0;
+      seq->startofs = seq->endofs = 0;
       if (seq->seq3) {
         seq->start = seq->startdisp = max_iii(
             seq->seq1->startdisp, seq->seq2->startdisp, seq->seq3->startdisp);
@@ -515,4 +508,19 @@ void seq_time_gap_info_get(const Scene *scene,
 bool SEQ_time_strip_intersects_frame(const Sequence *seq, const int timeline_frame)
 {
   return (seq->startdisp <= timeline_frame) && (seq->enddisp > timeline_frame);
+}
+
+bool SEQ_time_has_left_still_frames(const Sequence *seq)
+{
+  return seq->startofs < 0;
+}
+
+bool SEQ_time_has_right_still_frames(const Sequence *seq)
+{
+  return seq->endofs < 0;
+}
+
+bool SEQ_time_has_still_frames(const Sequence *seq)
+{
+  return SEQ_time_has_right_still_frames(seq) || SEQ_time_has_left_still_frames(seq);
 }
