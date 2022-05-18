@@ -49,7 +49,7 @@ class GreasePencilSculptAdvancedPanel:
         layout.use_property_decorate = False
 
         tool_settings = context.scene.tool_settings
-        brush = context.tool_settings.gpencil_sculpt_paint.brush
+        brush = tool_settings.gpencil_sculpt_paint.brush
         tool = brush.gpencil_sculpt_tool
         gp_settings = brush.gpencil_settings
 

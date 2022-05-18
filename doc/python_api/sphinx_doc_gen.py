@@ -1210,7 +1210,6 @@ def pycontext2sphinx(basepath):
     for ctx_str, ctx_members in sorted(context_member_map.items()):
         subsection = "%s Context" % ctx_str.split("_")[0].title()
         fw("\n%s\n%s\n\n" % (subsection, (len(subsection) * '-')))
-        i = 0
         for member in ctx_members:
             unique_all_len = len(unique)
             unique.add(member)
@@ -1231,7 +1230,6 @@ def pycontext2sphinx(basepath):
                     "Error: context key %r not found in context_type_map; update %s" %
                     (member, __file__)) from None
             fw("   :type: %s :class:`bpy.types.%s`\n\n" % ("sequence of " if is_seq else "", member_type))
-            i += 1
 
     # generate typemap...
     # for member in sorted(unique_context_strings):

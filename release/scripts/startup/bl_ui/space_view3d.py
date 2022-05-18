@@ -5689,7 +5689,7 @@ class VIEW3D_PT_object_type_visibility(Panel):
     # Allows derived classes to pass view data other than context.space_data.
     # This is used by the official VR add-on, which passes XrSessionSettings
     # since VR has a 3D view that only exists for the duration of the VR session.
-    def draw_ex(self, context, view, show_select):
+    def draw_ex(self, _context, view, show_select):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False

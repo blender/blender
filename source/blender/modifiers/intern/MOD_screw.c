@@ -881,10 +881,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       /* set normal */
       if (vert_connect) {
         if (do_normal_create) {
-          /* set the normal now its transformed */
-          float nor_tx[3];
-          mul_v3_m3v3(nor_tx, mat3, vert_connect[j].no);
-          copy_v3_v3(vert_normals_new[mv_new - mvert_new], nor_tx);
+          /* Set the normal now its transformed. */
+          mul_v3_m3v3(vert_normals_new[mv_new - mvert_new], mat3, vert_connect[j].no);
         }
       }
 
