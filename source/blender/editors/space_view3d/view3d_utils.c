@@ -1333,6 +1333,20 @@ bool ED_view3d_quat_to_axis_view(const float quat[4],
   return false;
 }
 
+bool ED_view3d_quat_to_axis_view_and_reset_quat(float quat[4],
+                                                const float epsilon,
+                                                char *r_view,
+                                                char *r_view_axis_roll)
+{
+  const bool is_axis_view = ED_view3d_quat_to_axis_view(quat, epsilon, r_view, r_view_axis_roll);
+  if (is_axis_view) {
+    /* Reset `quat` to it's view axis, so axis-aligned views are always *exactly* aligned. */
+    BLI_assert(*r_view != RV3D_VIEW_USER);
+    ED_view3d_quat_from_axis_view(*r_view, *r_view_axis_roll, quat);
+  }
+  return is_axis_view;
+}
+
 char ED_view3d_lock_view_from_index(int index)
 {
   switch (index) {
