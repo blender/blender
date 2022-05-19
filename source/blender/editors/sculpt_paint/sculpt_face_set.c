@@ -150,25 +150,22 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
         }
       }
     }
-
     else if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-      {
-        if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
-          continue;
-        }
-        const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                    brush,
-                                                                    vd.co,
-                                                                    sqrtf(test.dist),
-                                                                    vd.no,
-                                                                    vd.fno,
-                                                                    vd.mask ? *vd.mask : 0.0f,
-                                                                    vd.index,
-                                                                    thread_id);
+      if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+        continue;
+      }
+      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                  brush,
+                                                                  vd.co,
+                                                                  sqrtf(test.dist),
+                                                                  vd.no,
+                                                                  vd.fno,
+                                                                  vd.mask ? *vd.mask : 0.0f,
+                                                                  vd.index,
+                                                                  thread_id);
 
-        if (fade > 0.05f) {
-          SCULPT_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
-        }
+      if (fade > 0.05f) {
+        SCULPT_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
       }
     }
   }
