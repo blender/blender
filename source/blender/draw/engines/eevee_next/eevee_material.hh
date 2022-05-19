@@ -191,6 +191,7 @@ class DefaultSurfaceNodeTree {
   DefaultSurfaceNodeTree();
   ~DefaultSurfaceNodeTree();
 
+  /** Configure a default node-tree with the given material. */
   bNodeTree *nodetree_get(::Material *ma);
 };
 
@@ -242,7 +243,14 @@ class MaterialModule {
 
   void begin_sync();
 
+  /**
+   * Returned Material references are valid until the next call to this function or material_get().
+   */
   MaterialArray &material_array_get(Object *ob, bool has_motion);
+  /**
+   * Returned Material references are valid until the next call to this function or
+   * material_array_get().
+   */
   Material &material_get(Object *ob, bool has_motion, int mat_nr, eMaterialGeometry geometry_type);
 
  private:
@@ -250,6 +258,7 @@ class MaterialModule {
                           eMaterialGeometry geometry_type,
                           bool has_motion);
 
+  /** Return correct material or empty default material if slot is empty. */
   ::Material *material_from_slot(Object *ob, int slot);
   MaterialPass material_pass_get(::Material *blender_mat,
                                  eMaterialPipeline pipeline_type,

@@ -53,7 +53,7 @@ struct CameraData {
   float4x4 viewinv;
   float4x4 winmat;
   float4x4 wininv;
-  /** Camera UV scale and bias. Also known as viewcamtexcofac. */
+  /** Camera UV scale and bias. Also known as `viewcamtexcofac`. */
   float2 uv_scale;
   float2 uv_bias;
   /** Panorama parameters. */

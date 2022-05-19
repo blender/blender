@@ -362,8 +362,10 @@ typedef struct LineartRenderTaskInfo {
 
   int thread_id;
 
-  /* #pending_edges here only stores a refernce to a portion in LineartRenderbuffer::pending_edges,
-   * assigned by the occlusion scheduler. */
+  /**
+   * #pending_edges here only stores a reference to a portion in
+   * LineartRenderbuffer::pending_edges, assigned by the occlusion scheduler.
+   */
   struct LineartPendingEdges pending_edges;
 
 } LineartRenderTaskInfo;

@@ -74,7 +74,7 @@ void VelocityModule::step_camera_sync()
 
 bool VelocityModule::step_object_sync(Object *ob,
                                       ObjectKey &object_key,
-                                      int /* IDRecalcFlag */ recalc)
+                                      int /*IDRecalcFlag*/ recalc)
 {
   bool has_motion = object_has_velocity(ob) || (recalc & ID_RECALC_TRANSFORM);
   /* NOTE: Fragile. This will only work with 1 frame of lag since we can't record every geometry
@@ -175,7 +175,7 @@ bool VelocityModule::step_object_sync(Object *ob,
 void VelocityModule::step_swap()
 {
   {
-    /* Now that vertex buffers are garanteed to be updated, proceed with
+    /* Now that vertex buffers are guaranteed to be updated, proceed with
      * offset computation and copy into the geometry step buffer. */
     uint dst_ofs = 0;
     for (VelocityGeometryData &geom : geometry_map.values()) {
@@ -184,8 +184,8 @@ void VelocityModule::step_swap()
       geom.ofs = dst_ofs;
       dst_ofs += src_len;
     }
-    /* TODO(fclem): Fail gracefully (disable motion blur + warning print) if tot_len *
-     * sizeof(float4) is greater than max SSBO size. */
+    /* TODO(@fclem): Fail gracefully (disable motion blur + warning print) if
+       `tot_len * sizeof(float4)` is greater than max SSBO size. */
     geometry_steps[step_]->resize(max_ii(16, dst_ofs));
 
     for (VelocityGeometryData &geom : geometry_map.values()) {

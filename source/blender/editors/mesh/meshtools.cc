@@ -1374,8 +1374,8 @@ bool ED_mesh_pick_vert(
 
   if (use_zbuf) {
     if (dist_px > 0) {
-      /* sample rect to increase chances of selecting, so that when clicking
-       * on an face in the backbuf, we can still select a vert */
+      /* Sample rectangle to increase chances of selecting, so that when clicking
+       * on an face in the back-buffer, we can still select a vert. */
       *r_index = DRW_select_buffer_find_nearest_to_point(
           vc.depsgraph, vc.region, vc.v3d, mval, 1, me->totvert + 1, &dist_px);
     }

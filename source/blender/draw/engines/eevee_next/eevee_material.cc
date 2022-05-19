@@ -51,7 +51,6 @@ DefaultSurfaceNodeTree::~DefaultSurfaceNodeTree()
   MEM_SAFE_FREE(ntree_);
 }
 
-/* Configure a default nodetree with the given material.  */
 bNodeTree *DefaultSurfaceNodeTree::nodetree_get(::Material *ma)
 {
   /* WARNING: This function is not threadsafe. Which is not a problem for the moment. */
@@ -223,7 +222,7 @@ MaterialPass MaterialModule::material_pass_get(::Material *blender_mat,
       /* IMPORTANT: We always create a subgroup so that all subgroups are inserted after the
        * first "empty" shgroup. This avoids messing the order of subgroups when there is more
        * nested subgroup (i.e: hair drawing). */
-      /* TODO(fclem) Remove material resource binding from the first group creation. */
+      /* TODO(@fclem): Remove material resource binding from the first group creation. */
       matpass.shgrp = DRW_shgroup_create_sub(grp);
       DRW_shgroup_add_material_resources(matpass.shgrp, matpass.gpumat);
     }
@@ -244,13 +243,13 @@ Material &MaterialModule::material_sync(::Material *blender_mat,
                                        (has_motion ? MAT_PIPE_DEFERRED_PREPASS_VELOCITY :
                                                      MAT_PIPE_DEFERRED_PREPASS);
 
-  /* TEST until we have defered pipeline up and running. */
+  /* TEST until we have deferred pipeline up and running. */
   surface_pipe = MAT_PIPE_FORWARD;
   prepass_pipe = has_motion ? MAT_PIPE_FORWARD_PREPASS_VELOCITY : MAT_PIPE_FORWARD_PREPASS;
 
   MaterialKey material_key(blender_mat, geometry_type, surface_pipe);
 
-  /* TODO allocate in blocks to avoid memory fragmentation. */
+  /* TODO: allocate in blocks to avoid memory fragmentation. */
   auto add_cb = [&]() { return new Material(); };
   Material &mat = *material_map_.lookup_or_add_cb(material_key, add_cb);
 
@@ -274,7 +273,6 @@ Material &MaterialModule::material_sync(::Material *blender_mat,
   return mat;
 }
 
-/* Return correct material or empty default material if slot is empty. */
 ::Material *MaterialModule::material_from_slot(Object *ob, int slot)
 {
   if (ob->base_flag & BASE_HOLDOUT) {
@@ -290,8 +288,6 @@ Material &MaterialModule::material_sync(::Material *blender_mat,
   return ma;
 }
 
-/* Returned Material references are valid until the next call to this function or
- * material_get(). */
 MaterialArray &MaterialModule::material_array_get(Object *ob, bool has_motion)
 {
   material_array_.materials.clear();
@@ -308,8 +304,6 @@ MaterialArray &MaterialModule::material_array_get(Object *ob, bool has_motion)
   return material_array_;
 }
 
-/* Returned Material references are valid until the next call to this function or
- * material_array_get(). */
 Material &MaterialModule::material_get(Object *ob,
                                        bool has_motion,
                                        int mat_nr,

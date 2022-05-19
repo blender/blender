@@ -43,11 +43,11 @@
 
 #define SDNA_MAX_FILENAME_LENGTH 255
 
-/* The include file below is automatically generated from the SRC_DNA_INC
-+ * variable in 'source/blender/CMakeLists.txt'. */
+/* The include file below is automatically generated from the `SRC_DNA_INC`
+ * variable in 'source/blender/CMakeLists.txt'. */
 static const char *includefiles[] = {
 #include "dna_includes_as_strings.h"
-    /* empty string to indicate end of includefiles */
+    /* Empty string to indicate end of include files. */
     "",
 };
 
@@ -1536,7 +1536,7 @@ int main(int argc, char **argv)
 #  pragma GCC poison long
 #endif
 
-/* The include file below is automatically generated from the SRC_DNA_INC
+/* The include file below is automatically generated from the `SRC_DNA_INC`
  * variable in 'source/blender/CMakeLists.txt'. */
 #include "dna_includes_all.h"
 
