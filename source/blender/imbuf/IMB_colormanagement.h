@@ -72,8 +72,16 @@ BLI_INLINE float IMB_colormanagement_get_luminance(const float rgb[3]);
  * Byte equivalent of #IMB_colormanagement_get_luminance().
  */
 BLI_INLINE unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char[3]);
+
+/**
+ * Conversion between scene linear and other color spaces.
+ */
 BLI_INLINE void IMB_colormanagement_xyz_to_rgb(float rgb[3], const float xyz[3]);
 BLI_INLINE void IMB_colormanagement_rgb_to_xyz(float xyz[3], const float rgb[3]);
+BLI_INLINE void IMB_colormanagement_rec709_to_rgb(float rgb[3], const float rec709[3]);
+BLI_INLINE void IMB_colormanagement_rgb_to_rec709(float rec709[3], const float rgb[3]);
+BLI_INLINE void IMB_colormanagement_aces_to_rgb(float rgb[3], const float aces[3]);
+BLI_INLINE void IMB_colormanagement_rgb_to_aces(float aces[3], const float rgb[3]);
 const float *IMB_colormanagement_get_xyz_to_rgb(void);
 
 /** \} */

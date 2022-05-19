@@ -20,6 +20,10 @@ struct OCIO_ConstCPUProcessorRcPtr;
 extern float imbuf_luma_coefficients[3];
 extern float imbuf_xyz_to_rgb[3][3];
 extern float imbuf_rgb_to_xyz[3][3];
+extern float imbuf_xyz_to_aces[3][3];
+extern float imbuf_aces_to_xyz[3][3];
+extern float imbuf_xyz_to_rec709[3][3];
+extern float imbuf_rec709_to_xyz[3][3];
 
 #define MAX_COLORSPACE_NAME 64
 #define MAX_COLORSPACE_DESCRIPTION 512

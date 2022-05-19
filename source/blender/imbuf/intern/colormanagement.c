@@ -75,8 +75,10 @@ static int global_tot_looks = 0;
 float imbuf_luma_coefficients[3] = {0.0f};
 float imbuf_xyz_to_rgb[3][3] = {{0.0f}};
 float imbuf_rgb_to_xyz[3][3] = {{0.0f}};
-static float imbuf_xyz_to_linear_srgb[3][3] = {{0.0f}};
-static float imbuf_linear_srgb_to_xyz[3][3] = {{0.0f}};
+float imbuf_xyz_to_rec709[3][3] = {{0.0f}};
+float imbuf_rec709_to_xyz[3][3] = {{0.0f}};
+float imbuf_xyz_to_aces[3][3] = {{0.0f}};
+float imbuf_aces_to_xyz[3][3] = {{0.0f}};
 
 /* lock used by pre-cached processors getters, so processor wouldn't
  * be created several times
@@ -573,10 +575,14 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
 
   /* Load luminance coefficients. */
   OCIO_configGetDefaultLumaCoefs(config, imbuf_luma_coefficients);
+
+  /* Load standard color spaces. */
   OCIO_configGetXYZtoRGB(config, imbuf_xyz_to_rgb);
   invert_m3_m3(imbuf_rgb_to_xyz, imbuf_xyz_to_rgb);
-  copy_m3_m3(imbuf_xyz_to_linear_srgb, OCIO_XYZ_TO_LINEAR_SRGB);
-  invert_m3_m3(imbuf_linear_srgb_to_xyz, imbuf_xyz_to_linear_srgb);
+  copy_m3_m3(imbuf_xyz_to_rec709, OCIO_XYZ_TO_REC709);
+  invert_m3_m3(imbuf_rec709_to_xyz, imbuf_xyz_to_rec709);
+  copy_m3_m3(imbuf_aces_to_xyz, OCIO_ACES_TO_XYZ);
+  invert_m3_m3(imbuf_xyz_to_aces, imbuf_aces_to_xyz);
 }
 
 static void colormanage_free_config(void)
@@ -2370,14 +2376,14 @@ void IMB_colormanagement_color_picking_to_scene_linear_v3(float pixel[3])
 void IMB_colormanagement_scene_linear_to_srgb_v3(float pixel[3])
 {
   mul_m3_v3(imbuf_rgb_to_xyz, pixel);
-  mul_m3_v3(imbuf_xyz_to_linear_srgb, pixel);
+  mul_m3_v3(imbuf_xyz_to_rec709, pixel);
   linearrgb_to_srgb_v3_v3(pixel, pixel);
 }
 
 void IMB_colormanagement_srgb_to_scene_linear_v3(float pixel[3])
 {
   srgb_to_linearrgb_v3_v3(pixel, pixel);
-  mul_m3_v3(imbuf_linear_srgb_to_xyz, pixel);
+  mul_m3_v3(imbuf_rec709_to_xyz, pixel);
   mul_m3_v3(imbuf_xyz_to_rgb, pixel);
 }
 

@@ -244,7 +244,7 @@ void FallbackImpl::configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr * /*config*/,
 void FallbackImpl::configGetXYZtoRGB(OCIO_ConstConfigRcPtr * /*config*/, float xyz_to_rgb[3][3])
 {
   /* Default to ITU-BT.709. */
-  memcpy(xyz_to_rgb, OCIO_XYZ_TO_LINEAR_SRGB, sizeof(OCIO_XYZ_TO_LINEAR_SRGB));
+  memcpy(xyz_to_rgb, OCIO_XYZ_TO_REC709, sizeof(OCIO_XYZ_TO_REC709));
 }
 
 int FallbackImpl::configGetNumLooks(OCIO_ConstConfigRcPtr * /*config*/)

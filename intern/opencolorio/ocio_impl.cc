@@ -317,7 +317,7 @@ void OCIOImpl::configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config_, float xyz_to_rg
 
   /* Default to ITU-BT.709 in case no appropriate transform found.
    * Note XYZ is defined here as having a D65 white point. */
-  memcpy(xyz_to_rgb, OCIO_XYZ_TO_LINEAR_SRGB, sizeof(OCIO_XYZ_TO_LINEAR_SRGB));
+  memcpy(xyz_to_rgb, OCIO_XYZ_TO_REC709, sizeof(OCIO_XYZ_TO_REC709));
 
   /* Get from OpenColorO config if it has the required roles. */
   if (!config->hasRole(ROLE_SCENE_LINEAR)) {
@@ -328,13 +328,8 @@ void OCIOImpl::configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config_, float xyz_to_rg
     /* Standard OpenColorIO role, defined as ACES AP0 (ACES2065-1). */
     float aces_to_rgb[3][3];
     if (to_scene_linear_matrix(config, "aces_interchange", aces_to_rgb)) {
-      /* This is the OpenColorIO builtin transform:
-       * UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD. */
-      const float ACES_AP0_to_xyz_D65[3][3] = {{0.938280f, 0.337369f, 0.001174f},
-                                               {-0.004451f, 0.729522f, -0.003711f},
-                                               {0.016628f, -0.066890f, 1.091595f}};
       float xyz_to_aces[3][3];
-      invert_m3_m3(xyz_to_aces, ACES_AP0_to_xyz_D65);
+      invert_m3_m3(xyz_to_aces, OCIO_ACES_TO_XYZ);
 
       mul_m3_m3m3(xyz_to_rgb, aces_to_rgb, xyz_to_aces);
     }
