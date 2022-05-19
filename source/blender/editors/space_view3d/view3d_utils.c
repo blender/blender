@@ -1317,16 +1317,39 @@ bool ED_view3d_quat_to_axis_view(const float quat[4],
   *r_view = RV3D_VIEW_USER;
   *r_view_axis_roll = RV3D_VIEW_AXIS_ROLL_0;
 
-  /* quat values are all unit length */
-  for (int view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
-    for (int view_axis_roll = RV3D_VIEW_AXIS_ROLL_0; view_axis_roll <= RV3D_VIEW_AXIS_ROLL_270;
-         view_axis_roll++) {
-      if (fabsf(angle_signed_qtqt(
-              quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll])) < epsilon) {
-        *r_view = view;
-        *r_view_axis_roll = view_axis_roll;
-        return true;
+  /* Quaternion values are all unit length. */
+
+  if (epsilon < M_PI_4) {
+    /* Under 45 degrees, just pick the closest value. */
+    for (int view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
+      for (int view_axis_roll = RV3D_VIEW_AXIS_ROLL_0; view_axis_roll <= RV3D_VIEW_AXIS_ROLL_270;
+           view_axis_roll++) {
+        if (fabsf(angle_signed_qtqt(
+                quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll])) < epsilon) {
+          *r_view = view;
+          *r_view_axis_roll = view_axis_roll;
+          return true;
+        }
       }
+    }
+  }
+  else {
+    /* Epsilon over 45 degrees, check all & find use the closest. */
+    float delta_best = FLT_MAX;
+    for (int view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
+      for (int view_axis_roll = RV3D_VIEW_AXIS_ROLL_0; view_axis_roll <= RV3D_VIEW_AXIS_ROLL_270;
+           view_axis_roll++) {
+        const float delta_test = fabsf(
+            angle_signed_qtqt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll]));
+        if (delta_best > delta_test) {
+          delta_best = delta_test;
+          *r_view = view;
+          *r_view_axis_roll = view_axis_roll;
+        }
+      }
+    }
+    if (*r_view != RV3D_VIEW_USER) {
+      return true;
     }
   }
 
