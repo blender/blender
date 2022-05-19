@@ -45,7 +45,7 @@
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfPixelType.h>
 #include <OpenEXR/ImfPreviewImage.h>
-#include <openexr/ImfRgbaFile.h>
+#include <OpenEXR/ImfRgbaFile.h>
 #include <OpenEXR/ImfStandardAttributes.h>
 #include <OpenEXR/ImfStringAttribute.h>
 #include <OpenEXR/ImfVersion.h>
