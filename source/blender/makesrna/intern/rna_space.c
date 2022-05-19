@@ -1040,6 +1040,24 @@ static void rna_RegionView3D_quadview_clip_update(Main *UNUSED(main),
   }
 }
 
+/**
+ * After the rotation changes, either clear the view axis
+ * or update it not to be aligned to an axis, without this the viewport will show
+ * text that doesn't match the rotation.
+ */
+static void rna_RegionView3D_view_rotation_set_validate_view_axis(RegionView3D *rv3d)
+{
+  /* Never rotate from a "User" view into an axis aligned view,
+   * otherwise rotation could be aligned by accident - giving unexpected behavior. */
+  if (!RV3D_VIEW_IS_AXIS(rv3d->view)) {
+    return;
+  }
+  /* Keep this small as script authors wont expect the assigned value to change. */
+  const float eps_quat = 1e-6f;
+  ED_view3d_quat_to_axis_view_and_reset_quat(
+      rv3d->viewquat, eps_quat, &rv3d->view, &rv3d->view_axis_roll);
+}
+
 static void rna_RegionView3D_view_location_get(PointerRNA *ptr, float *values)
 {
   RegionView3D *rv3d = (RegionView3D *)(ptr->data);
@@ -1062,6 +1080,7 @@ static void rna_RegionView3D_view_rotation_set(PointerRNA *ptr, const float *val
 {
   RegionView3D *rv3d = (RegionView3D *)(ptr->data);
   invert_qt_qt(rv3d->viewquat, values);
+  rna_RegionView3D_view_rotation_set_validate_view_axis(rv3d);
 }
 
 static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *values)
@@ -1070,12 +1089,39 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
   float mat[4][4];
   invert_m4_m4(mat, (float(*)[4])values);
   ED_view3d_from_m4(mat, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
+  rna_RegionView3D_view_rotation_set_validate_view_axis(rv3d);
 }
 
 static bool rna_RegionView3D_is_orthographic_side_view_get(PointerRNA *ptr)
 {
+  /* NOTE: only checks axis alignment, not orthographic,
+   * we may deprecate the current name to reflect this. */
   RegionView3D *rv3d = (RegionView3D *)(ptr->data);
   return RV3D_VIEW_IS_AXIS(rv3d->view);
+}
+
+static void rna_RegionView3D_is_orthographic_side_view_set(PointerRNA *ptr, int value)
+{
+  RegionView3D *rv3d = (RegionView3D *)(ptr->data);
+  const bool was_axis_view = RV3D_VIEW_IS_AXIS(rv3d->view);
+  if (value) {
+    /* Already axis aligned, nothing to do. */
+    if (was_axis_view) {
+      return;
+    }
+    /* Use a large value as we always want to set this to the closest axis. */
+    const float eps_quat = FLT_MAX;
+    ED_view3d_quat_to_axis_view_and_reset_quat(
+        rv3d->viewquat, eps_quat, &rv3d->view, &rv3d->view_axis_roll);
+  }
+  else {
+    /* Only allow changing from axis-views to user view as camera view for e.g.
+     * doesn't make sense to update. */
+    if (!was_axis_view) {
+      return;
+    }
+    rv3d->view = RV3D_VIEW_USER;
+  }
 }
 
 static IDProperty **rna_View3DShading_idprops(PointerRNA *ptr)
@@ -5077,10 +5123,18 @@ static void rna_def_space_view3d(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Is Perspective", "");
   RNA_def_property_flag(prop, PROP_EDITABLE);
 
+  /* WARNING: Using "orthographic" in this name isn't correct and could be changed. */
   prop = RNA_def_property(srna, "is_orthographic_side_view", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "view", 0);
-  RNA_def_property_boolean_funcs(prop, "rna_RegionView3D_is_orthographic_side_view_get", NULL);
-  RNA_def_property_ui_text(prop, "Is Axis Aligned", "Is current view an orthographic side view");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_RegionView3D_is_orthographic_side_view_get",
+                                 "rna_RegionView3D_is_orthographic_side_view_set");
+  RNA_def_property_ui_text(
+      prop,
+      "Is Axis Aligned",
+      "Is current view aligned to an axis "
+      "(does not check the view is orthographic use \"is_perspective\" for that). "
+      "Assignment sets the \"view_rotation\" to the closest axis aligned view");
 
   /* This isn't directly accessible from the UI, only an operator. */
   prop = RNA_def_property(srna, "use_clip_planes", PROP_BOOLEAN, PROP_NONE);
