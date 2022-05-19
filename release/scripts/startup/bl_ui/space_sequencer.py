@@ -1642,6 +1642,24 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
                     split.operator("sound.pack", icon='UGLYPACKAGE', text="")
 
                 layout.prop(sound, "use_memory_cache")
+
+                col = layout.box()
+                col = col.column(align=True)
+                split = col.split(factor=0.5, align=False)
+                split.alignment = 'RIGHT'
+                split.label(text="Samplerate")
+                split.alignment = 'LEFT'
+                if sound.samplerate <= 0:
+                    split.label(text="Unknown")
+                else:
+                    split.label(text="%d Hz." % sound.samplerate, translate=False)
+
+                split = col.split(factor=0.5, align=False)
+                split.alignment = 'RIGHT'
+                split.label(text="Channels")
+                split.alignment = 'LEFT'
+                txt_channels = sound.bl_rna.properties["channels"].enum_items[sound.bl_rna.properties["channels"].enum_items.find(sound.channels)].name
+                split.label(text=txt_channels)
         else:
             if strip_type == 'IMAGE':
                 col = layout.column()
