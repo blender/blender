@@ -944,20 +944,6 @@ static void curve_to_mesh_eval_ensure(Object &object)
   BKE_object_runtime_free_data(&taper_object);
 }
 
-/* Necessary because #BKE_object_get_evaluated_mesh doesn't look in the geometry set yet. */
-static const Mesh *get_evaluated_mesh_from_object(const Object *object)
-{
-  const Mesh *mesh = BKE_object_get_evaluated_mesh(object);
-  if (mesh) {
-    return mesh;
-  }
-  GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval;
-  if (geometry_set_eval) {
-    return geometry_set_eval->get_mesh_for_read();
-  }
-  return nullptr;
-}
-
 static const Curves *get_evaluated_curves_from_object(const Object *object)
 {
   GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval;
@@ -969,7 +955,7 @@ static const Curves *get_evaluated_curves_from_object(const Object *object)
 
 static Mesh *mesh_new_from_evaluated_curve_type_object(const Object *evaluated_object)
 {
-  const Mesh *mesh = get_evaluated_mesh_from_object(evaluated_object);
+  const Mesh *mesh = BKE_object_get_evaluated_mesh(evaluated_object);
   if (mesh) {
     return BKE_mesh_copy_for_eval(mesh, false);
   }
