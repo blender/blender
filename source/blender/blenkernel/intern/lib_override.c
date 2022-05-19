@@ -72,6 +72,21 @@ static void lib_override_library_property_clear(IDOverrideLibraryProperty *op);
 static void lib_override_library_property_operation_clear(
     IDOverrideLibraryPropertyOperation *opop);
 
+/** Helper to preserve Pose mode on override objects.
+ * A bit annoying to have this special case, but not much to be done here currently, since the
+ * matching RNA property is read-only. */
+BLI_INLINE void lib_override_object_posemode_transfer(ID *id_dst, ID *id_src)
+{
+  if (GS(id_src->name) == ID_OB && GS(id_dst->name) == ID_OB) {
+    Object *ob_src = (Object *)id_src;
+    Object *ob_dst = (Object *)id_dst;
+    if (ob_src->type == OB_ARMATURE && (ob_src->mode & OB_MODE_POSE) != 0) {
+      ob_dst->restore_mode = ob_dst->mode;
+      ob_dst->mode |= OB_MODE_POSE;
+    }
+  }
+}
+
 /** Get override data for a given ID. Needed because of our beloved shape keys snowflake. */
 BLI_INLINE IDOverrideLibrary *lib_override_get(Main *bmain, ID *id, ID **r_owner_id)
 {
@@ -1702,6 +1717,8 @@ static bool lib_override_library_resync(Main *bmain,
           BLI_insertlinkreplace(lb, id_override_old, id_override_new);
           id_override_old->tag |= LIB_TAG_NO_MAIN;
           id_override_new->tag &= ~LIB_TAG_NO_MAIN;
+
+          lib_override_object_posemode_transfer(id_override_new, id_override_old);
 
           if (ID_IS_OVERRIDE_LIBRARY_REAL(id_override_new)) {
             BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_override_old));
@@ -3422,6 +3439,8 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
                             rnaptr_storage,
                             local->override_library,
                             RNA_OVERRIDE_APPLY_FLAG_NOP);
+
+  lib_override_object_posemode_transfer(tmp_id, local);
 
   /* This also transfers all pointers (memory) owned by local to tmp_id, and vice-versa.
    * So when we'll free tmp_id, we'll actually free old, outdated data from local. */
