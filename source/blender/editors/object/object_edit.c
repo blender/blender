@@ -1835,6 +1835,11 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  if (ID_IS_OVERRIDE_LIBRARY(collection)) {
+    BKE_report(op->reports, RPT_ERROR, "Cannot add objects to a library override collection");
+    return OPERATOR_CANCELLED;
+  }
+
   ListBase objects = selected_objects_get(C);
 
   if (is_new) {
