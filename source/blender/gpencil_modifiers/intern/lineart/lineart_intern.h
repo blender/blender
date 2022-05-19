@@ -82,7 +82,7 @@ void lineart_count_and_print_render_buffer_memory(struct LineartRenderBuffer *rb
 
 /* Initial bounding area row/column count, setting 4 is the simplest way algorithm could function
  * efficiently. */
-#define LRT_BA_ROWS 4
+#define LRT_BA_ROWS 10
 
 #ifdef __cplusplus
 extern "C" {
@@ -93,3 +93,32 @@ void lineart_sort_adjacent_items(LineartAdjacentEdge *ai, int length);
 #ifdef __cplusplus
 }
 #endif
+
+#ifndef __cplusplus /* Compatibility code for atomics, only for C. */
+
+#  if defined __has_include /* Try to use C11 atomics support. */
+#    if __has_include(<stdatomic.h>)
+#      include <stdatomic.h>
+#      define lineart_atomic_load(p) atomic_load((volatile size_t *)p)
+#      define lineart_atomic_store(p, d) atomic_store((volatile size_t *)p, (size_t)d)
+#    endif
+#  endif
+
+#  ifdef _MSC_VER /* Atomics walkaround for windows. */
+#    define WIN32_LEAN_AND_MEAN
+#    include <windows.h>
+#    define lineart_atomic_load(p) (MemoryBarrier(), *(p))
+#    define lineart_atomic_store(p, d) \
+      do { \
+        *(p) = (d); \
+        MemoryBarrier(); \
+      } while (0)
+#  endif
+
+#  if !defined lineart_atomic_load /* Fallback */
+#    include "atomic_ops.h"
+#    define lineart_atomic_load(p) atomic_add_and_fetch_z((size_t *)p, 0)
+#    define lineart_atomic_store(p, d) atomic_add_and_fetch_z((size_t *)p, (size_t)d)
+#  endif
+
+#endif /* !__cplusplus */
