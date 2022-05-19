@@ -890,8 +890,15 @@ static void object_for_curve_to_mesh_free(Object *temp_object)
     curve.editnurb = nullptr;
   }
 
-  BKE_id_free(nullptr, temp_object->data);
+  /* Only free the final object data if it is *not* stored in the #data_eval field. This is still
+   * necessary because #temp_object's data could be replaced by a #Curve data-block that isn't also
+   * assigned to #data_eval. */
+  const bool object_data_stored_in_data_eval = final_object_data == temp_object->runtime.data_eval;
+
   BKE_id_free(nullptr, temp_object);
+  if (!object_data_stored_in_data_eval) {
+    BKE_id_free(nullptr, final_object_data);
+  }
 }
 
 /**
