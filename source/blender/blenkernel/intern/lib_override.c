@@ -2335,7 +2335,6 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
   if (id != NULL && ID_IS_LINKED(id) && id->lib != id_owner->lib) {
     const int owner_library_indirect_level = ID_IS_LINKED(id_owner) ? id_owner->lib->temp_index :
                                                                       0;
-<<<<<<< Updated upstream
     if (owner_library_indirect_level > 10000) {
       CLOG_ERROR(
           &LOG,
@@ -2344,17 +2343,6 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
           id_owner->lib->filepath,
           id->lib->filepath);
       BLI_assert(0);
-=======
-    if (owner_library_indirect_level > 200) {
-      CLOG_ERROR(&LOG,
-                 "Levels of indirect usages of libraries is way too high, there are most likely "
-                 "dependency loops, skipping further building loops (involves at least '%s' from "
-                 "'%s' and '%s' from '%s')",
-                 id_owner->name,
-                 id_owner->lib->filepath,
-                 id->name,
-                 id->lib->filepath);
->>>>>>> Stashed changes
       return IDWALK_RET_NOP;
     }
 
