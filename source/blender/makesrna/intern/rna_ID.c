@@ -722,7 +722,7 @@ static ID *rna_ID_override_hierarchy_create(
 
   ID *id_root_override = NULL;
   BKE_lib_override_library_create(
-      bmain, scene, view_layer, NULL, id, id, id_instance_hint, &id_root_override);
+      bmain, scene, view_layer, NULL, id, id, id_instance_hint, &id_root_override, false);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);

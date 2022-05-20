@@ -82,7 +82,7 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
   FOREACH_MAIN_ID_END;
 
   return BKE_lib_override_library_create(
-      bmain, scene, view_layer, ob_proxy->id.lib, id_root, id_root, id_instance_hint, NULL);
+      bmain, scene, view_layer, ob_proxy->id.lib, id_root, id_root, id_instance_hint, NULL, false);
 }
 
 static void lib_override_library_proxy_convert_do(Main *bmain,

@@ -398,7 +398,8 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
                                               const ID *id_root_reference,
                                               ID *id_hierarchy_root,
                                               const ID *id_hierarchy_root_reference,
-                                              const bool do_no_main)
+                                              const bool do_no_main,
+                                              const bool do_fully_editable)
 {
   BLI_assert(id_root_reference != NULL && ID_IS_LINKED(id_root_reference));
   /* If we do not have any hierarchy root given, then the root reference must be tagged for
@@ -463,6 +464,9 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
       if (reference_id->newid == NULL) {
         success = false;
         break;
+      }
+      if (do_fully_editable) {
+        reference_id->newid->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
       }
     }
     /* We also tag the new IDs so that in next step we can remap their pointers too. */
@@ -993,7 +997,8 @@ static bool lib_override_library_create_do(Main *bmain,
                                            Scene *scene,
                                            Library *owner_library,
                                            ID *id_root_reference,
-                                           ID *id_hierarchy_root_reference)
+                                           ID *id_hierarchy_root_reference,
+                                           const bool do_fully_editable)
 {
   BKE_main_relations_create(bmain, 0);
   LibOverrideGroupTagData data = {.bmain = bmain,
@@ -1017,12 +1022,22 @@ static bool lib_override_library_create_do(Main *bmain,
     BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root_reference));
     BLI_assert(id_hierarchy_root_reference->override_library->reference->lib ==
                id_root_reference->lib);
-    success = BKE_lib_override_library_create_from_tag(
-        bmain, owner_library, id_root_reference, id_hierarchy_root_reference, NULL, false);
+    success = BKE_lib_override_library_create_from_tag(bmain,
+                                                       owner_library,
+                                                       id_root_reference,
+                                                       id_hierarchy_root_reference,
+                                                       NULL,
+                                                       false,
+                                                       do_fully_editable);
   }
   else {
-    success = BKE_lib_override_library_create_from_tag(
-        bmain, owner_library, id_root_reference, NULL, id_hierarchy_root_reference, false);
+    success = BKE_lib_override_library_create_from_tag(bmain,
+                                                       owner_library,
+                                                       id_root_reference,
+                                                       NULL,
+                                                       id_hierarchy_root_reference,
+                                                       false,
+                                                       do_fully_editable);
   }
 
   return success;
@@ -1180,7 +1195,8 @@ bool BKE_lib_override_library_create(Main *bmain,
                                      ID *id_root_reference,
                                      ID *id_hierarchy_root_reference,
                                      ID *id_instance_hint,
-                                     ID **r_id_root_override)
+                                     ID **r_id_root_override,
+                                     const bool do_fully_editable)
 {
   if (r_id_root_override != NULL) {
     *r_id_root_override = NULL;
@@ -1190,8 +1206,12 @@ bool BKE_lib_override_library_create(Main *bmain,
     id_hierarchy_root_reference = id_root_reference;
   }
 
-  const bool success = lib_override_library_create_do(
-      bmain, scene, owner_library, id_root_reference, id_hierarchy_root_reference);
+  const bool success = lib_override_library_create_do(bmain,
+                                                      scene,
+                                                      owner_library,
+                                                      id_root_reference,
+                                                      id_hierarchy_root_reference,
+                                                      do_fully_editable);
 
   if (!success) {
     return success;
@@ -1680,7 +1700,13 @@ static bool lib_override_library_resync(Main *bmain,
    * override IDs (including within the old overrides themselves, since those are tagged too
    * above). */
   const bool success = BKE_lib_override_library_create_from_tag(
-      bmain, NULL, id_root_reference, id_root->override_library->hierarchy_root, NULL, true);
+      bmain,
+      NULL,
+      id_root_reference,
+      id_root->override_library->hierarchy_root,
+      NULL,
+      true,
+      false);
 
   if (!success) {
     BLI_ghash_free(linkedref_to_old_override, NULL, NULL);

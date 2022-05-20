@@ -763,6 +763,10 @@ static void id_local_fn(bContext *C,
 
 struct OutlinerLibOverrideData {
   bool do_hierarchy;
+
+  /** When creating new overrides, make them all user-editable. */
+  bool do_fully_editable;
+
   /**
    * For resync operation, force keeping newly created override IDs (or original linked IDs)
    * instead of re-applying relevant existing ID pointer property override operations. Helps
@@ -957,7 +961,8 @@ static void id_override_library_create_fn(bContext *C,
                                                 id_root_reference,
                                                 id_hierarchy_root_reference,
                                                 id_instance_hint,
-                                                &id_root_override);
+                                                &id_root_override,
+                                                data->do_fully_editable);
 
       BLI_assert(id_root_override != nullptr);
       BLI_assert(!ID_IS_LINKED(id_root_override));
@@ -1979,6 +1984,7 @@ enum eOutlinerIdOpTypes {
   OUTLINER_IDOP_LOCAL,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY,
+  OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY_FULLY_EDITABLE,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_MAKE_EDITABLE,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET,
   OUTLINER_IDOP_OVERRIDE_LIBRARY_RESET_HIERARCHY,
@@ -2024,6 +2030,12 @@ static const EnumPropertyItem prop_id_op_types[] = {
      "Make Library Override Hierarchy",
      "Make a local override of this linked data-block, and its hierarchy of dependencies - only "
      "applies to active Outliner item"},
+    {OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY_FULLY_EDITABLE,
+     "OVERRIDE_LIBRARY_CREATE_HIERARCHY_FULLY_EDITABLE",
+     0,
+     "Make Library Override Hierarchy Fully Editable",
+     "Make a local override of this linked data-block, and its hierarchy of dependencies, making "
+     "them all fully user-editable - only applies to active Outliner item"},
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_MAKE_EDITABLE,
      "OVERRIDE_LIBRARY_MAKE_EDITABLE",
      0,
@@ -2103,6 +2115,7 @@ static bool outliner_id_operation_item_poll(bContext *C,
       }
       return false;
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY:
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY_FULLY_EDITABLE:
       if (ID_IS_OVERRIDABLE_LIBRARY(tselem->id) || (ID_IS_LINKED(tselem->id))) {
         return true;
       }
@@ -2298,6 +2311,29 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
       id_override_library_create_hierarchy_post_process(C, &override_data);
 
       ED_undo_push(C, "Overridden Data Hierarchy");
+      break;
+    }
+    case OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE_HIERARCHY_FULLY_EDITABLE: {
+      OutlinerLibOverrideData override_data{};
+      override_data.do_hierarchy = true;
+      override_data.do_fully_editable = true;
+      outliner_do_libdata_operation(C,
+                                    op->reports,
+                                    scene,
+                                    space_outliner,
+                                    &space_outliner->tree,
+                                    id_override_library_create_hierarchy_pre_process_fn,
+                                    &override_data);
+      outliner_do_libdata_operation(C,
+                                    op->reports,
+                                    scene,
+                                    space_outliner,
+                                    &space_outliner->tree,
+                                    id_override_library_create_fn,
+                                    &override_data);
+      id_override_library_create_hierarchy_post_process(C, &override_data);
+
+      ED_undo_push(C, "Overridden Data Hierarchy Fully Editable");
       break;
     }
     case OUTLINER_IDOP_OVERRIDE_LIBRARY_MAKE_EDITABLE: {
