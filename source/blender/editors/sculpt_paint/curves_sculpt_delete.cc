@@ -162,9 +162,9 @@ struct DeleteOperationExecutor {
     threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
       for (const int curve_i : curve_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
-        for (const int segment_i : IndexRange(points.size() - 1)) {
-          const float3 pos1_cu = brush_transform_inv * positions_cu[points[segment_i]];
-          const float3 pos2_cu = brush_transform_inv * positions_cu[points[segment_i + 1]];
+        for (const int segment_i : points.drop_back(1)) {
+          const float3 pos1_cu = brush_transform_inv * positions_cu[segment_i];
+          const float3 pos2_cu = brush_transform_inv * positions_cu[segment_i + 1];
 
           float2 pos1_re, pos2_re;
           ED_view3d_project_float_v2_m4(region_, pos1_cu, pos1_re, projection.values);
@@ -220,9 +220,9 @@ struct DeleteOperationExecutor {
     threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
       for (const int curve_i : curve_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
-        for (const int segment_i : IndexRange(points.size() - 1)) {
-          const float3 pos1_cu = positions_cu[points[segment_i]];
-          const float3 pos2_cu = positions_cu[points[segment_i] + 1];
+        for (const int segment_i : points.drop_back(1)) {
+          const float3 &pos1_cu = positions_cu[segment_i];
+          const float3 &pos2_cu = positions_cu[segment_i + 1];
 
           float3 closest_segment_cu, closest_brush_cu;
           isect_seg_seg_v3(pos1_cu,
