@@ -1649,15 +1649,16 @@ void UI_but_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_f
  * \param name: Text to display for the item.
  * \param poin: Opaque pointer (for use by the caller).
  * \param iconid: The icon, #ICON_NONE for no icon.
- * \param state: The buttons state flag, compatible with #uiBut.flag,
- * typically #UI_BUT_DISABLED / #UI_BUT_INACTIVE.
+ * \param but_flag: Button flags (#uiBut.flag) indicating the state of the item, typically
+ *                  #UI_ACTIVE, #UI_BUT_DISABLED, #UI_BUT_INACTIVE.
+ *
  * \return false if there is nothing to add.
  */
 bool UI_search_item_add(uiSearchItems *items,
                         const char *name,
                         void *poin,
                         int iconid,
-                        int state,
+                        int but_flag,
                         uint8_t name_prefix_offset);
 
 /**

@@ -1218,24 +1218,24 @@ typedef enum {
 /**
  * Helper call to draw a menu item without a button.
  *
- * \param state: The state of the button,
- * typically #UI_ACTIVE, #UI_BUT_DISABLED, #UI_BUT_INACTIVE.
+ * \param but_flag: Button flags (#uiBut.flag) indicating the state of the item, typically
+ *                  #UI_ACTIVE, #UI_BUT_DISABLED, #UI_BUT_INACTIVE.
  * \param separator_type: The kind of separator which controls if and how the string is clipped.
- * \param r_xmax: The right hand position of the text, this takes into the icon,
- * padding and text clipping when there is not enough room to display the full text.
+ * \param r_xmax: The right hand position of the text, this takes into the icon, padding and text
+ *                clipping when there is not enough room to display the full text.
  */
 void ui_draw_menu_item(const struct uiFontStyle *fstyle,
                        rcti *rect,
                        const char *name,
                        int iconid,
-                       int state,
+                       int but_flag,
                        uiMenuItemSeparatorType separator_type,
                        int *r_xmax);
 void ui_draw_preview_item(const struct uiFontStyle *fstyle,
                           rcti *rect,
                           const char *name,
                           int iconid,
-                          int state,
+                          int but_flag,
                           eFontStyle_Align text_align);
 /**
  * Version of #ui_draw_preview_item() that does not draw the menu background and item text based on
