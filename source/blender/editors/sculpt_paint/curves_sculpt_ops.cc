@@ -74,6 +74,28 @@ using blender::bke::CurvesGeometry;
 /** \name * SCULPT_CURVES_OT_brush_stroke
  * \{ */
 
+float brush_radius_get(const Scene &scene,
+                       const Brush &brush,
+                       const StrokeExtension &stroke_extension)
+{
+  const float initial_radius = BKE_brush_size_get(&scene, &brush);
+  if (BKE_brush_use_size_pressure(&brush)) {
+    return initial_radius * stroke_extension.pressure;
+  }
+  return initial_radius;
+}
+
+float brush_strength_get(const Scene &scene,
+                         const Brush &brush,
+                         const StrokeExtension &stroke_extension)
+{
+  const float initial_radius = BKE_brush_alpha_get(&scene, &brush);
+  if (BKE_brush_use_alpha_pressure(&brush)) {
+    return initial_radius * stroke_extension.pressure;
+  }
+  return initial_radius;
+}
+
 static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bContext &C,
                                                                           wmOperator &op)
 {
@@ -128,6 +150,7 @@ static void stroke_update_step(bContext *C,
 
   StrokeExtension stroke_extension;
   RNA_float_get_array(stroke_element, "mouse", stroke_extension.mouse_position);
+  stroke_extension.pressure = RNA_float_get(stroke_element, "pressure");
 
   if (!op_data->operation) {
     stroke_extension.is_first = true;

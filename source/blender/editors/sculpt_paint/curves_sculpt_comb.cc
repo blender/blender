@@ -126,8 +126,8 @@ struct CombOperationExecutor {
 
     curves_sculpt_ = scene_->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
-    brush_radius_re_ = BKE_brush_size_get(scene_, brush_);
-    brush_strength_ = BKE_brush_alpha_get(scene_, brush_);
+    brush_radius_re_ = brush_radius_get(*scene_, *brush_, stroke_extension);
+    brush_strength_ = brush_strength_get(*scene_, *brush_, stroke_extension);
 
     curves_to_world_mat_ = object_->obmat;
     world_to_curves_mat_ = curves_to_world_mat_.inverted();

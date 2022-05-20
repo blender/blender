@@ -321,8 +321,8 @@ struct CurvesEffectOperationExecutor {
 
     const CurvesSculpt &curves_sculpt = *scene_->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt.paint);
-    brush_radius_re_ = BKE_brush_size_get(scene_, brush_);
-    brush_strength_ = BKE_brush_alpha_get(scene_, brush_);
+    brush_radius_re_ = brush_radius_get(*scene_, *brush_, stroke_extension);
+    brush_strength_ = brush_strength_get(*scene_, *brush_, stroke_extension);
     brush_radius_sq_re_ = pow2f(brush_radius_re_);
     falloff_shape_ = eBrushFalloffShape(brush_->falloff_shape);
 
