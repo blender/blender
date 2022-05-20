@@ -170,7 +170,7 @@ struct PBVH {
 
   /* Used during BVH build and later to mark that a vertex needs to update
    * (its normal must be recalculated). */
-  BLI_bitmap *vert_bitmap;
+  bool *vert_bitmap;
 
 #ifdef PERFCNTRS
   int perf_modified;
