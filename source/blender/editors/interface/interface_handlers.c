@@ -4835,7 +4835,7 @@ static int ui_do_but_GRIDTILE(bContext *C,
       switch (event->val) {
         case KM_PRESS:
           /* Extra icons have priority, don't mess with them. */
-          if (ui_but_extra_operator_icon_mouse_over_get(but, data, event)) {
+          if (ui_but_extra_operator_icon_mouse_over_get(but, data->region, event)) {
             return WM_UI_HANDLER_BREAK;
           }
           button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
