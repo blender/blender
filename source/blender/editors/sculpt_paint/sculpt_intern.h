@@ -1652,11 +1652,11 @@ void SCULPT_do_paint_brush(struct PaintModeSettings *paint_mode_settings,
                            int totnode) ATTR_NONNULL();
 
 /**
- * @brief Get the image canvas for painting on the given object.
+ * \brief Get the image canvas for painting on the given object.
  *
- * @return #true if an image is found. The #r_image and #r_image_user fields are filled with the
+ * \return #true if an image is found. The #r_image and #r_image_user fields are filled with the
  * image and image user. Returns false when the image isn't found. In the later case the r_image
- * and r_image_user are set to nullptr/NULL.
+ * and r_image_user are set to NULL.
  */
 bool SCULPT_paint_image_canvas_get(struct PaintModeSettings *paint_mode_settings,
                                    struct Object *ob,

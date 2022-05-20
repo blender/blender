@@ -341,7 +341,7 @@ static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_transform_set_left_handle_frame(seq, value);
+  SEQ_time_left_handle_frame_set(seq, value);
   SEQ_transform_fix_single_image_seq_offsets(seq);
   do_sequence_frame_change_update(scene, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
@@ -352,7 +352,7 @@ static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_transform_set_right_handle_frame(seq, value);
+  SEQ_time_right_handle_frame_set(seq, value);
   SEQ_transform_fix_single_image_seq_offsets(seq);
   do_sequence_frame_change_update(scene, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
@@ -374,24 +374,6 @@ static void rna_Sequence_frame_offset_end_set(PointerRNA *ptr, int value)
 
   SEQ_relations_invalidate_cache_composite(scene, seq);
   seq->endofs = value;
-}
-
-static void rna_Sequence_frame_still_start_set(PointerRNA *ptr, int value)
-{
-  Sequence *seq = (Sequence *)ptr->data;
-  Scene *scene = (Scene *)ptr->owner_id;
-
-  SEQ_relations_invalidate_cache_composite(scene, seq);
-  seq->startstill = value;
-}
-
-static void rna_Sequence_frame_still_end_set(PointerRNA *ptr, int value)
-{
-  Sequence *seq = (Sequence *)ptr->data;
-  Scene *scene = (Scene *)ptr->owner_id;
-
-  SEQ_relations_invalidate_cache_composite(scene, seq);
-  seq->endstill = value;
 }
 
 static void rna_Sequence_anim_startofs_final_set(PointerRNA *ptr, int value)
@@ -455,7 +437,7 @@ static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_transform_set_right_handle_frame(seq, SEQ_transform_get_left_handle_frame(seq) + value);
+  SEQ_time_right_handle_frame_set(seq, SEQ_time_left_handle_frame_get(seq) + value);
   do_sequence_frame_change_update(scene, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
@@ -463,7 +445,7 @@ static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
 static int rna_Sequence_frame_length_get(PointerRNA *ptr)
 {
   Sequence *seq = (Sequence *)ptr->data;
-  return SEQ_transform_get_right_handle_frame(seq) - SEQ_transform_get_left_handle_frame(seq);
+  return SEQ_time_right_handle_frame_get(seq) - SEQ_time_left_handle_frame_get(seq);
 }
 
 static int rna_Sequence_frame_editable(PointerRNA *ptr, const char **UNUSED(r_info))
@@ -2030,22 +2012,6 @@ static void rna_def_sequence(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "End Offset", "");
   RNA_def_property_int_funcs(
       prop, NULL, "rna_Sequence_frame_offset_end_set", "rna_Sequence_frame_offset_end_range");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
-
-  prop = RNA_def_property(srna, "frame_still_start", PROP_INT, PROP_TIME);
-  RNA_def_property_int_sdna(prop, NULL, "startstill");
-  //  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
-  RNA_def_property_range(prop, 0, MAXFRAME);
-  RNA_def_property_ui_text(prop, "Start Still", "");
-  RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_frame_still_start_set", NULL);
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
-
-  prop = RNA_def_property(srna, "frame_still_end", PROP_INT, PROP_TIME);
-  RNA_def_property_int_sdna(prop, NULL, "endstill");
-  //  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
-  RNA_def_property_range(prop, 0, MAXFRAME);
-  RNA_def_property_ui_text(prop, "End Still", "");
-  RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_frame_still_end_set", NULL);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
 
   prop = RNA_def_property(srna, "channel", PROP_INT, PROP_UNSIGNED);

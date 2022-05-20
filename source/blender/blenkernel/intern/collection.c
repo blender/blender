@@ -1172,14 +1172,21 @@ static bool scene_collections_object_remove(
 {
   bool removed = false;
 
+  /* If given object is removed from all collections in given scene, then it can also be safely
+   * removed from rigidbody world for given scene. */
   if (collection_skip == NULL) {
     BKE_scene_remove_rigidbody_object(bmain, scene, ob, free_us);
   }
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-    if (collection != collection_skip) {
-      removed |= collection_object_remove(bmain, collection, ob, free_us);
+    if (ID_IS_LINKED(collection) || ID_IS_OVERRIDE_LIBRARY(collection)) {
+      continue;
     }
+    if (collection == collection_skip) {
+      continue;
+    }
+
+    removed |= collection_object_remove(bmain, collection, ob, free_us);
   }
   FOREACH_SCENE_COLLECTION_END;
 

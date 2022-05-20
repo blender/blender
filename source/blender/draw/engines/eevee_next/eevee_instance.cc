@@ -8,6 +8,8 @@
  * An instance contains all structures needed to do a complete render.
  */
 
+#include <sstream>
+
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BLI_rect.h"
@@ -50,9 +52,18 @@ void Instance::init(const int2 &output_res,
   v3d = v3d_;
   rv3d = rv3d_;
 
+  info = "";
+
   update_eval_members();
 
   main_view.init(output_res);
+}
+
+void Instance::set_time(float time)
+{
+  BLI_assert(render);
+  DRW_render_set_time(render, depsgraph, floorf(time), fractf(time));
+  update_eval_members();
 }
 
 void Instance::update_eval_members()
@@ -77,6 +88,7 @@ void Instance::update_eval_members()
 void Instance::begin_sync()
 {
   materials.begin_sync();
+  velocity.begin_sync();
 
   pipelines.sync();
   main_view.sync();
@@ -136,6 +148,7 @@ void Instance::object_sync(Object *ob)
 
 void Instance::end_sync()
 {
+  velocity.end_sync();
 }
 
 void Instance::render_sync()
@@ -172,6 +185,13 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
 {
   UNUSED_VARS(dfbl);
   render_sample();
+  velocity.step_swap();
+
+  if (materials.queued_shaders_count > 0) {
+    std::stringstream ss;
+    ss << "Compiling Shaders " << materials.queued_shaders_count;
+    info = ss.str();
+  }
 }
 
 /** \} */

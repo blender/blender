@@ -20,6 +20,7 @@ struct Depsgraph;
 struct Main;
 struct Sequence;
 struct bSound;
+struct SoundInfo;
 
 typedef struct SoundWaveform {
   int length;
@@ -78,6 +79,7 @@ typedef enum eSoundChannels {
 typedef struct SoundInfo {
   struct {
     eSoundChannels channels;
+    int samplerate;
   } specs;
   float length;
 } SoundInfo;

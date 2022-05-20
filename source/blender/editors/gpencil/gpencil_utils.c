@@ -3077,6 +3077,11 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
       continue;
     }
 
+    /* Check that stroke is not closed. Closed strokes must not be included in the merge. */
+    if (gps_target->flag & GP_STROKE_CYCLIC) {
+      continue;
+    }
+
     /* Check if one of the ends is inside target stroke bounding box. */
     if ((!ED_gpencil_stroke_check_collision(gsc, gps_target, pt2d_start, radius, diff_mat)) &&
         (!ED_gpencil_stroke_check_collision(gsc, gps_target, pt2d_end, radius, diff_mat))) {

@@ -381,11 +381,11 @@ struct CombOperationExecutor {
       threading::parallel_for(changed_curves.index_range(), 256, [&](const IndexRange range) {
         for (const int curve_i : changed_curves.as_span().slice(range)) {
           const IndexRange points = curves_->points_for_curve(curve_i);
-          for (const int segment_i : IndexRange(points.size() - 1)) {
-            const float3 &p1_cu = positions_cu[points[segment_i]];
-            float3 &p2_cu = positions_cu[points[segment_i] + 1];
+          for (const int segment_i : points.drop_back(1)) {
+            const float3 &p1_cu = positions_cu[segment_i];
+            float3 &p2_cu = positions_cu[segment_i + 1];
             const float3 direction = math::normalize(p2_cu - p1_cu);
-            const float expected_length_cu = expected_lengths_cu[points[segment_i]];
+            const float expected_length_cu = expected_lengths_cu[segment_i];
             p2_cu = p1_cu + direction * expected_length_cu;
           }
         }

@@ -8,6 +8,7 @@
 #pragma BLENDER_REQUIRE(common_hair_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
 
 /* From the paper "Hashed Alpha Testing" by Chris Wyman and Morgan McGuire. */
 float hash(vec2 a)
@@ -68,5 +69,17 @@ void main()
   if (transparency > random_threshold) {
     discard;
   }
+#endif
+
+#ifdef MAT_VELOCITY
+  vec4 out_velocity_camera; /* TODO(fclem): Panoramic cameras. */
+  velocity_camera(interp.P + motion.prev,
+                  interp.P,
+                  interp.P - motion.next,
+                  out_velocity_camera,
+                  out_velocity_view);
+
+  /* For testing in viewport. */
+  out_velocity_view.zw = vec2(0.0);
 #endif
 }

@@ -56,14 +56,10 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
+#ifdef WITH_GMP
   GeometryNodeBooleanOperation operation = (GeometryNodeBooleanOperation)params.node().custom1;
   const bool use_self = params.get_input<bool>("Self Intersection");
   const bool hole_tolerant = params.get_input<bool>("Hole Tolerant");
-
-#ifndef WITH_GMP
-  params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was compiled without GMP"));
-#endif
 
   Vector<const Mesh *> meshes;
   Vector<const float4x4 *> transforms;
@@ -132,6 +128,10 @@ static void node_geo_exec(GeoNodeExecParams params)
                                                              use_self,
                                                              hole_tolerant,
                                                              operation);
+  if (!result) {
+    params.set_default_remaining_outputs();
+    return;
+  }
 
   MEM_SAFE_FREE(result->mat);
   result->mat = (Material **)MEM_malloc_arrayN(materials.size(), sizeof(Material *), __func__);
@@ -139,6 +139,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   MutableSpan(result->mat, result->totcol).copy_from(materials);
 
   params.set_output("Mesh", GeometrySet::create_with_mesh(result));
+#else
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without GMP"));
+  params.set_default_remaining_outputs();
+#endif
 }
 
 }  // namespace blender::nodes::node_geo_boolean_cc

@@ -31,9 +31,6 @@
  *   discarding all data inside it.
  *   Data can be accessed using the [] operator.
  *
- * `draw::StorageFlexibleBuffer<T>`
- *   Same as StorageArrayBuffer but will auto resize on access when using the [] operator.
- *
  * `draw::StorageBuffer<T>`
  *   A storage buffer object class inheriting from T.
  *   Data can be accessed just like a normal T object.
@@ -105,7 +102,7 @@ class DataBuffer {
   {
     BLI_STATIC_ASSERT(!device_only, "");
     BLI_assert(index >= 0);
-    BLI_assert(index < len);
+    BLI_assert(index < len_);
     return data_[index];
   }
 
@@ -113,7 +110,7 @@ class DataBuffer {
   {
     BLI_STATIC_ASSERT(!device_only, "");
     BLI_assert(index >= 0);
-    BLI_assert(index < len);
+    BLI_assert(index < len_);
     return data_[index];
   }
 
@@ -142,7 +139,7 @@ class DataBuffer {
   const T *end() const
   {
     BLI_STATIC_ASSERT(!device_only, "");
-    return data_ + len;
+    return data_ + len_;
   }
 
   T *begin()
@@ -153,13 +150,13 @@ class DataBuffer {
   T *end()
   {
     BLI_STATIC_ASSERT(!device_only, "");
-    return data_ + len;
+    return data_ + len_;
   }
 
   operator Span<T>() const
   {
     BLI_STATIC_ASSERT(!device_only, "");
-    return Span<T>(data_, len);
+    return Span<T>(data_, len_);
   }
 };
 
@@ -220,21 +217,14 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
     if (name) {
       name_ = name;
     }
-    init(len);
+    this->len_ = len;
+    constexpr GPUUsageType usage = device_only ? GPU_USAGE_DEVICE_ONLY : GPU_USAGE_DYNAMIC;
+    ssbo_ = GPU_storagebuf_create_ex(sizeof(T) * this->len_, nullptr, usage, this->name_);
   }
 
   ~StorageCommon()
   {
     GPU_storagebuf_free(ssbo_);
-  }
-
-  void resize(int64_t new_size)
-  {
-    BLI_assert(new_size > 0);
-    if (new_size != this->len_) {
-      GPU_storagebuf_free(ssbo_);
-      this->init(new_size);
-    }
   }
 
   void push_update(void)
@@ -251,14 +241,6 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
   GPUStorageBuf **operator&()
   {
     return &ssbo_;
-  }
-
- private:
-  void init(int64_t new_size)
-  {
-    this->len_ = new_size;
-    GPUUsageType usage = device_only ? GPU_USAGE_DEVICE_ONLY : GPU_USAGE_DYNAMIC;
-    ssbo_ = GPU_storagebuf_create_ex(sizeof(T) * this->len_, nullptr, usage, this->name_);
   }
 };
 
@@ -336,38 +318,34 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
   {
     MEM_freeN(this->data_);
   }
-};
 
-template<
-    /** Type of the values stored in this uniform buffer. */
-    typename T,
-    /** True if created on device and no memory host memory is allocated. */
-    bool device_only = false>
-class StorageFlexibleBuffer : public detail::StorageCommon<T, 1, device_only> {
- public:
-  StorageFlexibleBuffer(const char *name = nullptr)
-      : detail::StorageCommon<T, 1, device_only>(name)
+  void resize(int64_t new_size)
   {
-    /* TODO(@fclem): We should map memory instead. */
-    this->data_ = (T *)MEM_mallocN_aligned(sizeof(T), 16, this->name_);
-  }
-  ~StorageFlexibleBuffer()
-  {
-    MEM_freeN(this->data_);
+    BLI_assert(new_size > 0);
+    if (new_size != this->len_) {
+      /* Manual realloc since MEM_reallocN_aligned does not exists. */
+      T *new_data_ = (T *)MEM_mallocN_aligned(new_size * sizeof(T), 16, this->name_);
+      memcpy(new_data_, this->data_, min_uu(this->len_, new_size) * sizeof(T));
+      MEM_freeN(this->data_);
+      this->data_ = new_data_;
+      GPU_storagebuf_free(this->ssbo_);
+
+      this->len_ = new_size;
+      constexpr GPUUsageType usage = device_only ? GPU_USAGE_DEVICE_ONLY : GPU_USAGE_DYNAMIC;
+      this->ssbo_ = GPU_storagebuf_create_ex(sizeof(T) * this->len_, nullptr, usage, this->name_);
+    }
   }
 
   /* Resize on access. */
-  T &operator[](int64_t index)
+  T &get_or_resize(int64_t index)
   {
-    BLI_STATIC_ASSERT(!device_only, "");
     BLI_assert(index >= 0);
     if (index >= this->len_) {
-      this->resize(this->len_ * 2);
+      size_t size = power_of_2_max_u(index + 1);
+      this->resize(size);
     }
     return this->data_[index];
   }
-
-  /* TODO(fclem): Implement shrinking. */
 };
 
 template<

@@ -1066,29 +1066,9 @@ def km_node_editor(params):
         {"items": items},
     )
 
-    def node_select_ops(select_mouse):
-        return [
-            ("node.select", {"type": select_mouse, "value": 'PRESS'},
-             {"properties": [("extend", False), ("deselect_all", True)]}),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "ctrl": True},
-             {"properties": [("extend", False)]}),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "alt": True},
-             {"properties": [("extend", False)]}),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "ctrl": True, "alt": True},
-             {"properties": [("extend", False)]}),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "shift": True},
-             {"properties": [("extend", True)]}),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "shift": True, "ctrl": True},
-             {"properties": [("extend", True)]}),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "shift": True, "alt": True},
-             {"properties": [("extend", True)]}),
-            ("node.select", {"type": select_mouse, "value": 'PRESS', "shift": True, "ctrl": True, "alt": True},
-             {"properties": [("extend", True)]}),
-        ]
-
     # Allow node selection with both for RMB select
 
-    items.extend(node_select_ops('LEFTMOUSE'))
+    items.extend(_template_node_select(type='LEFTMOUSE', value='PRESS', select_passthrough=True))
 
     items.extend([
         ("node.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
@@ -4051,6 +4031,36 @@ def km_3d_view_tool_edit_gpencil_select(params):
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": _template_items_tool_select(params, "gpencil.select", extend="toggle")},
     )
+
+
+# NOTE: duplicated from `blender_default.py`.
+def _template_node_select(*, type, value, select_passthrough):
+    items = [
+        ("node.select", {"type": type, "value": value},
+         {"properties": [("deselect_all", True), ("select_passthrough", True)]}),
+        ("node.select", {"type": type, "value": value, "ctrl": True}, None),
+        ("node.select", {"type": type, "value": value, "alt": True}, None),
+        ("node.select", {"type": type, "value": value, "ctrl": True, "alt": True}, None),
+        ("node.select", {"type": type, "value": value, "shift": True},
+         {"properties": [("toggle", True)]}),
+        ("node.select", {"type": type, "value": value, "shift": True, "ctrl": True},
+         {"properties": [("toggle", True)]}),
+        ("node.select", {"type": type, "value": value, "shift": True, "alt": True},
+         {"properties": [("toggle", True)]}),
+        ("node.select", {"type": type, "value": value, "shift": True, "ctrl": True, "alt": True},
+         {"properties": [("toggle", True)]}),
+    ]
+
+    if select_passthrough and (value == 'PRESS'):
+        # Add an additional click item to de-select all other items,
+        # needed so pass-through is able to de-select other items.
+        items.append((
+            "node.select",
+            {"type": type, "value": 'CLICK'},
+            {"properties": [("deselect_all", True)]},
+        ))
+
+    return items
 
 
 def km_3d_view_tool_interactive_add(params):

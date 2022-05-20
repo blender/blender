@@ -161,7 +161,7 @@ typedef struct Sequence {
    * Frames that use the first frame before data begins,
    * frames that use the last frame after data ends.
    */
-  int startstill, endstill;
+  int startstill DNA_DEPRECATED, endstill DNA_DEPRECATED;
   /** Machine: the strip channel */
   int machine;
   int _pad3;

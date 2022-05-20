@@ -360,8 +360,8 @@ static void seq_update_meta_disp_range(Editing *ed)
     }
 
     /* Update meta strip endpoints. */
-    SEQ_transform_set_left_handle_frame(ms->parseq, ms->disp_range[0]);
-    SEQ_transform_set_right_handle_frame(ms->parseq, ms->disp_range[1]);
+    SEQ_time_left_handle_frame_set(ms->parseq, ms->disp_range[0]);
+    SEQ_time_right_handle_frame_set(ms->parseq, ms->disp_range[1]);
     SEQ_transform_fix_single_image_seq_offsets(ms->parseq);
 
     /* Recalculate effects using meta strip. */

@@ -5,6 +5,7 @@
 #include "BKE_global.h"
 #include "BLI_rect.h"
 
+#include "GPU_capabilities.h"
 #include "GPU_framebuffer.h"
 
 #include "ED_view3d.h"
@@ -24,10 +25,17 @@ struct EEVEE_Data {
   DRWViewportEmptyList *psl;
   DRWViewportEmptyList *stl;
   eevee::Instance *instance;
+
+  char info[GPU_INFO_SIZE];
 };
 
 static void eevee_engine_init(void *vedata)
 {
+  /* TODO(fclem): Remove once it is minimum required. */
+  if (!GPU_shader_storage_buffer_objects_support()) {
+    return;
+  }
+
   EEVEE_Data *ved = reinterpret_cast<EEVEE_Data *>(vedata);
   if (ved->instance == nullptr) {
     ved->instance = new eevee::Instance();
@@ -81,31 +89,50 @@ static void eevee_engine_init(void *vedata)
 
 static void eevee_draw_scene(void *vedata)
 {
+  EEVEE_Data *ved = reinterpret_cast<EEVEE_Data *>(vedata);
+  if (!GPU_shader_storage_buffer_objects_support()) {
+    STRNCPY(ved->info, "Error: No shader storage buffer support");
+    return;
+  }
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-  reinterpret_cast<EEVEE_Data *>(vedata)->instance->draw_viewport(dfbl);
+  ved->instance->draw_viewport(dfbl);
+  STRNCPY(ved->info, ved->instance->info.c_str());
 }
 
 static void eevee_cache_init(void *vedata)
 {
+  if (!GPU_shader_storage_buffer_objects_support()) {
+    return;
+  }
   reinterpret_cast<EEVEE_Data *>(vedata)->instance->begin_sync();
 }
 
 static void eevee_cache_populate(void *vedata, Object *object)
 {
+  if (!GPU_shader_storage_buffer_objects_support()) {
+    return;
+  }
   reinterpret_cast<EEVEE_Data *>(vedata)->instance->object_sync(object);
 }
 
 static void eevee_cache_finish(void *vedata)
 {
+  if (!GPU_shader_storage_buffer_objects_support()) {
+    return;
+  }
   reinterpret_cast<EEVEE_Data *>(vedata)->instance->end_sync();
 }
 
 static void eevee_engine_free()
 {
+  eevee::ShaderModule::module_free();
 }
 
 static void eevee_instance_free(void *instance)
 {
+  if (!GPU_shader_storage_buffer_objects_support()) {
+    return;
+  }
   delete reinterpret_cast<eevee::Instance *>(instance);
 }
 
@@ -114,11 +141,17 @@ static void eevee_render_to_image(void *UNUSED(vedata),
                                   struct RenderLayer *layer,
                                   const struct rcti *UNUSED(rect))
 {
+  if (!GPU_shader_storage_buffer_objects_support()) {
+    return;
+  }
   UNUSED_VARS(engine, layer);
 }
 
 static void eevee_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
+  if (!GPU_shader_storage_buffer_objects_support()) {
+    return;
+  }
   UNUSED_VARS(engine, scene, view_layer);
 }
 

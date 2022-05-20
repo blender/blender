@@ -793,8 +793,8 @@ static void sequencer_add_movie_clamp_sound_strip_length(Scene *scene,
     return;
   }
 
-  SEQ_transform_set_right_handle_frame(seq_sound, SEQ_transform_get_right_handle_frame(seq_movie));
-  SEQ_transform_set_left_handle_frame(seq_sound, SEQ_transform_get_left_handle_frame(seq_movie));
+  SEQ_time_right_handle_frame_set(seq_sound, SEQ_time_right_handle_frame_get(seq_movie));
+  SEQ_time_left_handle_frame_set(seq_sound, SEQ_time_left_handle_frame_get(seq_movie));
   SEQ_time_update_sequence(scene, seqbase, seq_sound);
 }
 
@@ -1300,7 +1300,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
   /* Adjust length. */
   if (load_data.image.len == 1) {
-    SEQ_transform_set_right_handle_frame(seq, load_data.image.end_frame);
+    SEQ_time_right_handle_frame_set(seq, load_data.image.end_frame);
     SEQ_time_update_sequence(scene, SEQ_active_seqbase_get(ed), seq);
   }
 

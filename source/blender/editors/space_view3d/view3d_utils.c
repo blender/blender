@@ -1317,20 +1317,57 @@ bool ED_view3d_quat_to_axis_view(const float quat[4],
   *r_view = RV3D_VIEW_USER;
   *r_view_axis_roll = RV3D_VIEW_AXIS_ROLL_0;
 
-  /* quat values are all unit length */
-  for (int view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
-    for (int view_axis_roll = RV3D_VIEW_AXIS_ROLL_0; view_axis_roll <= RV3D_VIEW_AXIS_ROLL_270;
-         view_axis_roll++) {
-      if (fabsf(angle_signed_qtqt(
-              quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll])) < epsilon) {
-        *r_view = view;
-        *r_view_axis_roll = view_axis_roll;
-        return true;
+  /* Quaternion values are all unit length. */
+
+  if (epsilon < M_PI_4) {
+    /* Under 45 degrees, just pick the closest value. */
+    for (int view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
+      for (int view_axis_roll = RV3D_VIEW_AXIS_ROLL_0; view_axis_roll <= RV3D_VIEW_AXIS_ROLL_270;
+           view_axis_roll++) {
+        if (fabsf(angle_signed_qtqt(
+                quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll])) < epsilon) {
+          *r_view = view;
+          *r_view_axis_roll = view_axis_roll;
+          return true;
+        }
       }
+    }
+  }
+  else {
+    /* Epsilon over 45 degrees, check all & find use the closest. */
+    float delta_best = FLT_MAX;
+    for (int view = RV3D_VIEW_FRONT; view <= RV3D_VIEW_BOTTOM; view++) {
+      for (int view_axis_roll = RV3D_VIEW_AXIS_ROLL_0; view_axis_roll <= RV3D_VIEW_AXIS_ROLL_270;
+           view_axis_roll++) {
+        const float delta_test = fabsf(
+            angle_signed_qtqt(quat, view3d_quat_axis[view - RV3D_VIEW_FRONT][view_axis_roll]));
+        if (delta_best > delta_test) {
+          delta_best = delta_test;
+          *r_view = view;
+          *r_view_axis_roll = view_axis_roll;
+        }
+      }
+    }
+    if (*r_view != RV3D_VIEW_USER) {
+      return true;
     }
   }
 
   return false;
+}
+
+bool ED_view3d_quat_to_axis_view_and_reset_quat(float quat[4],
+                                                const float epsilon,
+                                                char *r_view,
+                                                char *r_view_axis_roll)
+{
+  const bool is_axis_view = ED_view3d_quat_to_axis_view(quat, epsilon, r_view, r_view_axis_roll);
+  if (is_axis_view) {
+    /* Reset `quat` to it's view axis, so axis-aligned views are always *exactly* aligned. */
+    BLI_assert(*r_view != RV3D_VIEW_USER);
+    ED_view3d_quat_from_axis_view(*r_view, *r_view_axis_roll, quat);
+  }
+  return is_axis_view;
 }
 
 char ED_view3d_lock_view_from_index(int index)

@@ -460,8 +460,9 @@ bool SCULPT_paint_image_canvas_get(PaintModeSettings *paint_mode_settings,
                                    Image **r_image,
                                    ImageUser **r_image_user)
 {
-  BLI_assert(r_image);
-  BLI_assert(r_image_user);
+  *r_image = nullptr;
+  *r_image_user = nullptr;
+
   ImageData image_data;
   if (!ImageData::init_active_image(ob, &image_data, paint_mode_settings)) {
     return false;

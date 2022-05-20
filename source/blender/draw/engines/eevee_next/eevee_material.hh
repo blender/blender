@@ -27,19 +27,21 @@ class Instance;
 
 enum eMaterialPipeline {
   MAT_PIPE_DEFERRED = 0,
-  MAT_PIPE_FORWARD = 1,
-  MAT_PIPE_DEFERRED_PREPASS = 2,
-  MAT_PIPE_FORWARD_PREPASS = 3,
-  MAT_PIPE_VOLUME = 4,
-  MAT_PIPE_SHADOW = 5,
+  MAT_PIPE_FORWARD,
+  MAT_PIPE_DEFERRED_PREPASS,
+  MAT_PIPE_DEFERRED_PREPASS_VELOCITY,
+  MAT_PIPE_FORWARD_PREPASS,
+  MAT_PIPE_FORWARD_PREPASS_VELOCITY,
+  MAT_PIPE_VOLUME,
+  MAT_PIPE_SHADOW,
 };
 
 enum eMaterialGeometry {
   MAT_GEOM_MESH = 0,
-  MAT_GEOM_CURVES = 1,
-  MAT_GEOM_GPENCIL = 2,
-  MAT_GEOM_VOLUME = 3,
-  MAT_GEOM_WORLD = 4,
+  MAT_GEOM_CURVES,
+  MAT_GEOM_GPENCIL,
+  MAT_GEOM_VOLUME,
+  MAT_GEOM_WORLD,
 };
 
 static inline void material_type_from_shader_uuid(uint64_t shader_uuid,
@@ -189,6 +191,7 @@ class DefaultSurfaceNodeTree {
   DefaultSurfaceNodeTree();
   ~DefaultSurfaceNodeTree();
 
+  /** Configure a default node-tree with the given material. */
   bNodeTree *nodetree_get(::Material *ma);
 };
 
@@ -217,8 +220,10 @@ struct MaterialArray {
 
 class MaterialModule {
  public:
-  ::Material *diffuse_mat_;
-  ::Material *glossy_mat_;
+  ::Material *diffuse_mat;
+  ::Material *glossy_mat;
+
+  int64_t queued_shaders_count = 0;
 
  private:
   Instance &inst_;
@@ -232,20 +237,28 @@ class MaterialModule {
 
   ::Material *error_mat_;
 
-  int64_t queued_shaders_count_ = 0;
-
  public:
   MaterialModule(Instance &inst);
   ~MaterialModule();
 
   void begin_sync();
 
-  MaterialArray &material_array_get(Object *ob);
-  Material &material_get(Object *ob, int mat_nr, eMaterialGeometry geometry_type);
+  /**
+   * Returned Material references are valid until the next call to this function or material_get().
+   */
+  MaterialArray &material_array_get(Object *ob, bool has_motion);
+  /**
+   * Returned Material references are valid until the next call to this function or
+   * material_array_get().
+   */
+  Material &material_get(Object *ob, bool has_motion, int mat_nr, eMaterialGeometry geometry_type);
 
  private:
-  Material &material_sync(::Material *blender_mat, eMaterialGeometry geometry_type);
+  Material &material_sync(::Material *blender_mat,
+                          eMaterialGeometry geometry_type,
+                          bool has_motion);
 
+  /** Return correct material or empty default material if slot is empty. */
   ::Material *material_from_slot(Object *ob, int slot);
   MaterialPass material_pass_get(::Material *blender_mat,
                                  eMaterialPipeline pipeline_type,

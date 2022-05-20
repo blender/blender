@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <fcntl.h>
 #include <fstream>
 #include <iostream>
 #include <set>
@@ -43,6 +44,8 @@
 #include <OpenEXR/ImfInputFile.h>
 #include <OpenEXR/ImfOutputFile.h>
 #include <OpenEXR/ImfPixelType.h>
+#include <OpenEXR/ImfPreviewImage.h>
+#include <OpenEXR/ImfRgbaFile.h>
 #include <OpenEXR/ImfStandardAttributes.h>
 #include <OpenEXR/ImfStringAttribute.h>
 #include <OpenEXR/ImfVersion.h>
@@ -63,6 +66,9 @@
 
 #if defined(WIN32)
 #  include "utfconv.h"
+#  include <io.h>
+#else
+#  include <unistd.h>
 #endif
 
 #include "MEM_guardedalloc.h"
@@ -77,7 +83,9 @@ _CRTIMP void __cdecl _invalid_parameter_noinfo(void)
 #endif
 }
 #include "BLI_blenlib.h"
+#include "BLI_fileops.h"
 #include "BLI_math_color.h"
+#include "BLI_mmap.h"
 #include "BLI_string_utils.h"
 #include "BLI_threads.h"
 
@@ -146,6 +154,66 @@ class IMemStream : public Imf::IStream {
   }
 
  private:
+  exr_file_offset_t _exrpos;
+  exr_file_offset_t _exrsize;
+  unsigned char *_exrbuf;
+};
+
+/* Memory-Mapped Input Stream */
+
+class IMMapStream : public Imf::IStream {
+ public:
+  IMMapStream(const char *filepath) : IStream(filepath)
+  {
+    int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
+    if (file < 0) {
+      throw IEX_NAMESPACE::InputExc("file not found");
+    }
+    _exrpos = 0;
+    _exrsize = BLI_file_descriptor_size(file);
+    imb_mmap_lock();
+    _mmap_file = BLI_mmap_open(file);
+    imb_mmap_unlock();
+    if (_mmap_file == NULL) {
+      throw IEX_NAMESPACE::InputExc("BLI_mmap_open failed");
+    }
+    close(file);
+    _exrbuf = (unsigned char *)BLI_mmap_get_pointer(_mmap_file);
+  }
+
+  ~IMMapStream()
+  {
+    imb_mmap_lock();
+    BLI_mmap_free(_mmap_file);
+    imb_mmap_unlock();
+  }
+
+  /* This is implementing regular `read`, not `readMemoryMapped`, because DWAA and DWAB
+   * decompressors load on unaligned offsets. Therefore we can't avoid the memory copy. */
+
+  bool read(char c[], int n) override
+  {
+    if (_exrpos + n > _exrsize) {
+      throw Iex::InputExc("Unexpected end of file.");
+    }
+    memcpy(c, _exrbuf + _exrpos, n);
+    _exrpos += n;
+
+    return _exrpos < _exrsize;
+  }
+
+  exr_file_offset_t tellg() override
+  {
+    return _exrpos;
+  }
+
+  void seekg(exr_file_offset_t pos) override
+  {
+    _exrpos = pos;
+  }
+
+ private:
+  BLI_mmap_file *_mmap_file;
   exr_file_offset_t _exrpos;
   exr_file_offset_t _exrsize;
   unsigned char *_exrbuf;
@@ -2099,19 +2167,122 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
   }
 }
 
+struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
+                                                  const int UNUSED(flags),
+                                                  const size_t max_thumb_size,
+                                                  char colorspace[],
+                                                  size_t *r_width,
+                                                  size_t *r_height)
+{
+  IStream *stream = nullptr;
+  Imf::RgbaInputFile *file = nullptr;
+
+  /* OpenExr uses exceptions for error-handling. */
+  try {
+
+    /* The memory-mapped stream is faster, but don't use for huge files as it requires contiguous
+     * address space and we are processing multiple files at once (typically one per processor
+     * core). The 100 MB limit here is arbitrary, but seems reasonable and conservative. */
+    if (BLI_file_size(filepath) < 100 * 1024 * 1024) {
+      stream = new IMMapStream(filepath);
+    }
+    else {
+      stream = new IFileStream(filepath);
+    }
+
+    /* imb_initopenexr() creates a global pool of worker threads. But we thumbnail multiple images
+     * at once, and by default each file will attempt to use the entire pool for itself, stalling
+     * the others. So each thumbnail should use a single thread of the pool. */
+    file = new RgbaInputFile(*stream, 1);
+
+    if (!file->isComplete()) {
+      return nullptr;
+    }
+
+    Imath::Box2i dw = file->dataWindow();
+    int source_w = dw.max.x - dw.min.x + 1;
+    int source_h = dw.max.y - dw.min.y + 1;
+    *r_width = source_w;
+    *r_height = source_h;
+
+    /* If there is an embedded thumbnail, return that instead of making a new one. */
+    if (file->header().hasPreviewImage()) {
+      const Imf::PreviewImage &preview = file->header().previewImage();
+      ImBuf *ibuf = IMB_allocFromBuffer(
+          (unsigned int *)preview.pixels(), NULL, preview.width(), preview.height(), 4);
+      delete file;
+      delete stream;
+      IMB_flipy(ibuf);
+      return ibuf;
+    }
+
+    /* Create a new thumbnail. */
+
+    if (colorspace && colorspace[0]) {
+      colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_FLOAT);
+    }
+
+    float scale_factor = MIN2((float)max_thumb_size / (float)source_w,
+                              (float)max_thumb_size / (float)source_h);
+    int dest_w = (int)(source_w * scale_factor);
+    int dest_h = (int)(source_h * scale_factor);
+
+    struct ImBuf *ibuf = IMB_allocImBuf(dest_w, dest_h, 32, IB_rectfloat);
+
+    /* A single row of source pixels. */
+    Imf::Array<Imf::Rgba> pixels(source_w);
+
+    /* Loop through destination thumbnail rows. */
+    for (int h = 0; h < dest_h; h++) {
+
+      /* Load the single source row that corresponds with destination row. */
+      int source_y = (int)((float)h / scale_factor) + dw.min.y;
+      file->setFrameBuffer(&pixels[0] - dw.min.x - source_y * source_w, 1, source_w);
+      file->readPixels(source_y);
+
+      for (int w = 0; w < dest_w; w++) {
+        /* For each destination pixel find single corresponding source pixel. */
+        int source_x = (int)(MIN2((w / scale_factor), dw.max.x - 1));
+        float *dest_px = &ibuf->rect_float[(h * dest_w + w) * 4];
+        dest_px[0] = pixels[source_x].r;
+        dest_px[1] = pixels[source_x].g;
+        dest_px[2] = pixels[source_x].b;
+        dest_px[3] = pixels[source_x].a;
+      }
+    }
+
+    if (file->lineOrder() == INCREASING_Y) {
+      IMB_flipy(ibuf);
+    }
+
+    delete file;
+    delete stream;
+
+    return ibuf;
+  }
+
+  catch (const std::exception &exc) {
+    std::cerr << exc.what() << std::endl;
+    delete file;
+    delete stream;
+    return nullptr;
+  }
+
+  return nullptr;
+}
+
 void imb_initopenexr(void)
 {
-  int num_threads = BLI_system_thread_count();
-
-  setGlobalThreadCount(num_threads);
+  /* In a multithreaded program, staticInitialize() must be called once during startup, before the
+   * program accesses any other functions or classes in the IlmImf library. */
+  Imf::staticInitialize();
+  Imf::setGlobalThreadCount(BLI_system_thread_count());
 }
 
 void imb_exitopenexr(void)
 {
-  /* Tells OpenEXR to free thread pool, also ensures there is no running
-   * tasks.
-   */
-  setGlobalThreadCount(0);
+  /* Tells OpenEXR to free thread pool, also ensures there is no running tasks. */
+  Imf::setGlobalThreadCount(0);
 }
 
 } /* export "C" */

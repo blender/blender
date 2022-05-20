@@ -129,6 +129,12 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
 
   /* get */
   LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
+    /* Prevent labels (typically headings), from being returned in the case the text
+     * happens to matches one of the menu items.
+     * Skip separators too as checking them is redundant. */
+    if (ELEM(but_iter->type, UI_BTYPE_LABEL, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE)) {
+      continue;
+    }
     if (mem[hash_mod] ==
         ui_popup_string_hash(but_iter->str, but_iter->flag & UI_BUT_HAS_SEP_CHAR)) {
       return but_iter;

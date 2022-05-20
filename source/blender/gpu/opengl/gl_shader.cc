@@ -876,7 +876,7 @@ static char *glsl_patch_default_get()
 static char *glsl_patch_compute_get()
 {
   /** Used for shader patching. Init once. */
-  static char patch[512] = "\0";
+  static char patch[2048] = "\0";
   if (patch[0] != '\0') {
     return patch;
   }
@@ -888,6 +888,8 @@ static char *glsl_patch_compute_get()
 
   /* Array compat. */
   STR_CONCAT(patch, slen, "#define gpu_Array(_type) _type[]\n");
+
+  STR_CONCAT(patch, slen, datatoc_glsl_shader_defines_glsl);
 
   BLI_assert(slen < sizeof(patch));
   return patch;

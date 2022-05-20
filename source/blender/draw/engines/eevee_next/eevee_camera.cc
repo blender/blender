@@ -69,7 +69,7 @@ void Camera::init()
     data.type = DRW_view_is_persp_get(inst_.drw_view) ? CAMERA_PERSP : CAMERA_ORTHO;
   }
   else {
-    /* Lightprobe baking. */
+    /* Light-probe baking. */
     data.type = CAMERA_PERSP;
   }
 }
@@ -91,7 +91,7 @@ void Camera::sync()
     DRW_view_camtexco_get(inst_.drw_view, data.uv_scale);
   }
   else if (inst_.render) {
-    /* TODO(fclem) Overscan */
+    /* TODO(@fclem): Over-scan. */
     // RE_GetCameraWindowWithOverscan(inst_.render->re, g_data->overscan, data.winmat);
     RE_GetCameraWindow(inst_.render->re, camera_eval, data.winmat.ptr());
     RE_GetCameraModelMatrix(inst_.render->re, camera_eval, data.viewinv.ptr());

@@ -23,6 +23,7 @@
 #include "SEQ_relations.h"
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -443,7 +444,8 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   float thumb_y_end = y1 + thumb_height;
 
   float cut_off = 0;
-  float upper_thumb_bound = (seq->endstill) ? (seq->start + seq->len) : seq->enddisp;
+  float upper_thumb_bound = SEQ_time_has_right_still_frames(seq) ? (seq->start + seq->len) :
+                                                                   seq->enddisp;
   if (seq->type == SEQ_TYPE_IMAGE) {
     upper_thumb_bound = seq->enddisp;
   }

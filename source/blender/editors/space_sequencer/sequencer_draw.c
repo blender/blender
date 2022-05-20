@@ -1098,26 +1098,23 @@ static void draw_seq_background(Scene *scene,
 
   /* Draw the main strip body. */
   if (is_single_image) {
-    immRectf(pos,
-             SEQ_transform_get_left_handle_frame(seq),
-             y1,
-             SEQ_transform_get_right_handle_frame(seq),
-             y2);
+    immRectf(
+        pos, SEQ_time_left_handle_frame_get(seq), y1, SEQ_time_right_handle_frame_get(seq), y2);
   }
   else {
     immRectf(pos, x1, y1, x2, y2);
   }
 
   /* Draw background for hold still regions. */
-  if (!is_single_image && (seq->startstill || seq->endstill)) {
+  if (!is_single_image && SEQ_time_has_still_frames(seq)) {
     UI_GetColorPtrShade3ubv(col, col, -35);
     immUniformColor4ubv(col);
 
-    if (seq->startstill) {
+    if (SEQ_time_has_left_still_frames(seq)) {
       const float content_start = min_ff(seq->enddisp, seq->start);
       immRectf(pos, seq->startdisp, y1, content_start, y2);
     }
-    if (seq->endstill) {
+    if (SEQ_time_has_right_still_frames(seq)) {
       const float content_end = max_ff(seq->startdisp, seq->start + seq->len);
       immRectf(pos, content_end, y1, seq->enddisp, y2);
     }
@@ -1336,9 +1333,9 @@ static void draw_seq_strip(const bContext *C,
                                      SEQ_TIMELINE_SHOW_STRIP_COLOR_TAG);
 
   /* Draw strip body. */
-  x1 = (seq->startstill) ? seq->start : seq->startdisp;
+  x1 = SEQ_time_has_left_still_frames(seq) ? seq->start : seq->startdisp;
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
-  x2 = (seq->endstill) ? (seq->start + seq->len) : seq->enddisp;
+  x2 = SEQ_time_has_right_still_frames(seq) ? (seq->start + seq->len) : seq->enddisp;
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
   /* Limit body to strip bounds. Meta strip can end up with content outside of strip range. */

@@ -28,4 +28,3 @@ set(LIB
 
 blender_add_lib(bf_editor_curves "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_dependencies(bf_editor_curves bf_rna)
-
