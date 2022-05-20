@@ -65,3 +65,21 @@ void WM_paneltype_clear(void)
 {
   BLI_ghash_free(g_paneltypes_hash, NULL, NULL);
 }
+
+void WM_paneltype_idname_visit_for_search(const bContext *UNUSED(C),
+                                          PointerRNA *UNUSED(ptr),
+                                          PropertyRNA *UNUSED(prop),
+                                          const char *UNUSED(edit_text),
+                                          StringPropertySearchVisitFunc visit_fn,
+                                          void *visit_user_data)
+{
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, g_paneltypes_hash) {
+    PanelType *pt = BLI_ghashIterator_getValue(&gh_iter);
+
+    StringPropertySearchVisitParams visit_params = {NULL};
+    visit_params.text = pt->idname;
+    visit_params.info = pt->label;
+    visit_fn(visit_user_data, &visit_params);
+  }
+}

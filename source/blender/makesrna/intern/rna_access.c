@@ -3369,6 +3369,34 @@ int RNA_property_string_default_length(PointerRNA *UNUSED(ptr), PropertyRNA *pro
   return strlen(sprop->defaultvalue);
 }
 
+eStringPropertySearchFlag RNA_property_string_search_flag(PropertyRNA *prop)
+{
+  StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
+  if (prop->magic != RNA_MAGIC) {
+    return false;
+  }
+  BLI_assert(RNA_property_type(prop) == PROP_STRING);
+  if (sprop->search) {
+    BLI_assert(sprop->search_flag & PROP_STRING_SEARCH_SUPPORTED);
+  }
+  else {
+    BLI_assert(sprop->search_flag == 0);
+  }
+  return sprop->search_flag;
+}
+
+void RNA_property_string_search(const bContext *C,
+                                PointerRNA *ptr,
+                                PropertyRNA *prop,
+                                const char *edit_text,
+                                StringPropertySearchVisitFunc visit_fn,
+                                void *visit_user_data)
+{
+  BLI_assert(RNA_property_string_search_flag(prop) & PROP_STRING_SEARCH_SUPPORTED);
+  StringPropertyRNA *sprop = (StringPropertyRNA *)rna_ensure_property(prop);
+  sprop->search(C, ptr, prop, edit_text, visit_fn, visit_user_data);
+}
+
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)
 {
   EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;

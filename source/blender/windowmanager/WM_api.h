@@ -974,6 +974,14 @@ bool WM_operatortype_remove(const char *idname);
  * Remove memory of all previously executed tools.
  */
 void WM_operatortype_last_properties_clear_all(void);
+
+void WM_operatortype_idname_visit_for_search(const struct bContext *C,
+                                             PointerRNA *ptr,
+                                             PropertyRNA *prop,
+                                             const char *edit_text,
+                                             StringPropertySearchVisitFunc visit_fn,
+                                             void *visit_user_data);
+
 /**
  * Tag all operator-properties of \a ot defined after calling this, until
  * the next #WM_operatortype_props_advanced_end call (if available), with
@@ -1077,6 +1085,13 @@ void WM_menutype_freelink(struct MenuType *mt);
 void WM_menutype_free(void);
 bool WM_menutype_poll(struct bContext *C, struct MenuType *mt);
 
+void WM_menutype_idname_visit_for_search(const struct bContext *C,
+                                         struct PointerRNA *ptr,
+                                         struct PropertyRNA *prop,
+                                         const char *edit_text,
+                                         StringPropertySearchVisitFunc visit_fn,
+                                         void *visit_user_data);
+
 /* wm_panel_type.c */
 
 /**
@@ -1087,6 +1102,13 @@ void WM_paneltype_clear(void);
 struct PanelType *WM_paneltype_find(const char *idname, bool quiet);
 bool WM_paneltype_add(struct PanelType *pt);
 void WM_paneltype_remove(struct PanelType *pt);
+
+void WM_paneltype_idname_visit_for_search(const struct bContext *C,
+                                          struct PointerRNA *ptr,
+                                          struct PropertyRNA *prop,
+                                          const char *edit_text,
+                                          StringPropertySearchVisitFunc visit_fn,
+                                          void *visit_user_data);
 
 /* wm_gesture_ops.c */
 

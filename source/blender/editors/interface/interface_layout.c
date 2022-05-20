@@ -2338,7 +2338,14 @@ void uiItemFullR(uiLayout *layout,
   /* property with separate label */
   else if (ELEM(type, PROP_ENUM, PROP_STRING, PROP_POINTER)) {
     but = ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, flag);
-    but = ui_but_add_search(but, ptr, prop, NULL, NULL, false);
+    bool results_are_suggestions = false;
+    if (type == PROP_STRING) {
+      const eStringPropertySearchFlag search_flag = RNA_property_string_search_flag(prop);
+      if (search_flag & PROP_STRING_SEARCH_SUGGESTION) {
+        results_are_suggestions = true;
+      }
+    }
+    but = ui_but_add_search(but, ptr, prop, NULL, NULL, results_are_suggestions);
 
     if (layout->redalert) {
       UI_but_flag_enable(but, UI_BUT_REDALERT);
@@ -2711,11 +2718,16 @@ uiBut *ui_but_add_search(uiBut *but,
                          PropertyRNA *prop,
                          PointerRNA *searchptr,
                          PropertyRNA *searchprop,
-                         bool results_are_suggestions)
+                         const bool results_are_suggestions)
 {
   /* for ID's we do automatic lookup */
+  bool has_search_fn = false;
+
   PointerRNA sptr;
   if (!searchprop) {
+    if (RNA_property_type(prop) == PROP_STRING) {
+      has_search_fn = (RNA_property_string_search_flag(prop) != 0);
+    }
     if (RNA_property_type(prop) == PROP_POINTER) {
       StructRNA *ptype = RNA_property_pointer_type(ptr, prop);
       search_id_collection(ptype, &sptr, &searchprop);
@@ -2724,14 +2736,18 @@ uiBut *ui_but_add_search(uiBut *but,
   }
 
   /* turn button into search button */
-  if (searchprop) {
+  if (has_search_fn || searchprop) {
     uiRNACollectionSearch *coll_search = MEM_mallocN(sizeof(*coll_search), __func__);
     uiButSearch *search_but;
 
     but = ui_but_change_type(but, UI_BTYPE_SEARCH_MENU);
     search_but = (uiButSearch *)but;
-    search_but->rnasearchpoin = *searchptr;
-    search_but->rnasearchprop = searchprop;
+
+    if (searchptr) {
+      search_but->rnasearchpoin = *searchptr;
+      search_but->rnasearchprop = searchprop;
+    }
+
     but->hardmax = MAX2(but->hardmax, 256.0f);
     but->drawflag |= UI_BUT_ICON_LEFT | UI_BUT_TEXT_LEFT;
     if (RNA_property_is_unlink(prop)) {
@@ -2740,8 +2756,17 @@ uiBut *ui_but_add_search(uiBut *but,
 
     coll_search->target_ptr = *ptr;
     coll_search->target_prop = prop;
-    coll_search->search_ptr = *searchptr;
-    coll_search->search_prop = searchprop;
+
+    if (searchptr) {
+      coll_search->search_ptr = *searchptr;
+      coll_search->search_prop = searchprop;
+    }
+    else {
+      /* Rely on `has_search_fn`. */
+      coll_search->search_ptr = PointerRNA_NULL;
+      coll_search->search_prop = NULL;
+    }
+
     coll_search->search_but = but;
     coll_search->butstore_block = but->block;
     coll_search->butstore = UI_butstore_create(coll_search->butstore_block);

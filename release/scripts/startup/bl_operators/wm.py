@@ -21,10 +21,28 @@ from bpy.props import (
 )
 from bpy.app.translations import pgettext_iface as iface_
 
+
+def rna_path_prop_search_for_context(self, context, edit_text):
+    # Use the same logic as auto-completing in the Python console to expand the data-path.
+    from bl_console_utils.autocomplete import intellisense
+    context_prefix = "context."
+    line = context_prefix + edit_text
+    cursor = len(line)
+    namespace = {"context": context}
+    comp_prefix, _, comp_options = intellisense.expand(line=line, cursor=len(line), namespace=namespace, private=False)
+    prefix = comp_prefix[len(context_prefix):]  # Strip "context."
+    for attr in comp_options.split("\n"):
+        # Exclude function calls because they are generally not part of data-paths.
+        if attr.endswith(("(", ")")):
+            continue
+        yield prefix + attr.lstrip()
+
+
 rna_path_prop = StringProperty(
     name="Context Attributes",
     description="RNA context string",
     maxlen=1024,
+    search=rna_path_prop_search_for_context,
 )
 
 rna_reverse_prop = BoolProperty(

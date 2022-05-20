@@ -440,6 +440,15 @@ typedef struct StringPropertyRNA {
   PropStringLengthFuncEx length_ex;
   PropStringSetFuncEx set_ex;
 
+  /**
+   * Optional callback to list candidates for a string.
+   * This is only for use as suggestions in UI, other values may be assigned.
+   *
+   * \note The callback type is public, hence the difference in naming convention.
+   */
+  StringPropertySearchFunc search;
+  eStringPropertySearchFlag search_flag;
+
   int maxlength; /* includes string terminator! */
 
   const char *defaultvalue;
