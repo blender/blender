@@ -1084,7 +1084,9 @@ void CUDADevice::tex_alloc(device_texture &mem)
   need_texture_info = true;
 
   if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
+      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
+      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
+      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16) {
     CUDA_RESOURCE_DESC resDesc;
     memset(&resDesc, 0, sizeof(resDesc));
 

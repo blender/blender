@@ -327,9 +327,11 @@ float Object::compute_volume_step_size() const
           /* Auto detect step size. */
           float3 size = one_float3();
 #ifdef WITH_NANOVDB
-          /* Dimensions were not applied to image transform with NanOVDB (see image_vdb.cpp) */
+          /* Dimensions were not applied to image transform with NanoVDB (see image_vdb.cpp) */
           if (metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
-              metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3)
+              metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
+              metadata.type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
+              metadata.type != IMAGE_DATA_TYPE_NANOVDB_FP16)
 #endif
             size /= make_float3(metadata.width, metadata.height, metadata.depth);
 
