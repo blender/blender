@@ -54,6 +54,7 @@ bool IMB_colormanagement_space_is_scene_linear(struct ColorSpace *colorspace);
 bool IMB_colormanagement_space_is_srgb(struct ColorSpace *colorspace);
 bool IMB_colormanagement_space_name_is_data(const char *name);
 bool IMB_colormanagement_space_name_is_scene_linear(const char *name);
+bool IMB_colormanagement_space_name_is_srgb(const char *name);
 
 /**
  * Convert a float RGB triplet to the correct luminance weighted average.

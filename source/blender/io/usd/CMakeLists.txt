@@ -43,6 +43,7 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../editors/include
+  ../../imbuf
   ../../makesdna
   ../../makesrna
   ../../windowmanager
@@ -112,6 +113,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  bf_imbuf
   bf_io_common
 )
 

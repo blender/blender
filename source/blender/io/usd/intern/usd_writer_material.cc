@@ -10,6 +10,8 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 
+#include "IMB_colormanagement.h"
+
 #include "BLI_fileops.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
@@ -414,13 +416,10 @@ static pxr::TfToken get_node_tex_image_color_space(bNode *node)
 
   Image *ima = reinterpret_cast<Image *>(node->id);
 
-  if (strcmp(ima->colorspace_settings.name, "Raw") == 0) {
+  if (IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name)) {
     return usdtokens::raw;
   }
-  if (strcmp(ima->colorspace_settings.name, "Non-Color") == 0) {
-    return usdtokens::raw;
-  }
-  if (strcmp(ima->colorspace_settings.name, "sRGB") == 0) {
+  if (IMB_colormanagement_space_name_is_srgb(ima->colorspace_settings.name)) {
     return usdtokens::sRGB;
   }
 
