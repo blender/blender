@@ -1107,7 +1107,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                          NULL);
     UI_but_func_set(but, ui_keymap_but_cb, but, NULL);
     if (flag & UI_ITEM_R_IMMEDIATE) {
-      UI_but_flag_enable(but, UI_BUT_IMMEDIATE);
+      UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
     }
   }
   else {

@@ -202,7 +202,7 @@ enum {
   UI_BUT_INACTIVE = 1 << 18,
   UI_BUT_LAST_ACTIVE = 1 << 19,
   UI_BUT_UNDO = 1 << 20,
-  UI_BUT_IMMEDIATE = 1 << 21,
+  /* UNUSED = 1 << 21, */
   UI_BUT_NO_UTF8 = 1 << 22,
 
   /** For popups, pressing return activates this button, overriding the highlighted button.

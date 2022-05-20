@@ -4511,7 +4511,8 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
   BLI_assert(but->type == UI_BTYPE_HOTKEY_EVENT);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
-    if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && event->val == KM_PRESS) {
+    if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY, EVT_BUT_OPEN) &&
+        (event->val == KM_PRESS)) {
       but->drawstr[0] = 0;
       hotkey_but->modifier_key = 0;
       button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
@@ -4534,13 +4535,9 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
       /* only cancel if click outside the button */
       if (ui_but_contains_point_px(but, but->active->region, event->xy) == false) {
-        /* data->cancel doesn't work, this button opens immediate */
-        if (but->flag & UI_BUT_IMMEDIATE) {
-          ui_but_value_set(but, 0);
-        }
-        else {
-          data->cancel = true;
-        }
+        data->cancel = true;
+        /* Close the containing popup (if any). */
+        data->escapecancel = true;
         button_activate_state(C, but, BUTTON_STATE_EXIT);
         return WM_UI_HANDLER_BREAK;
       }
@@ -8500,14 +8497,6 @@ static void button_activate_init(bContext *C,
     data->used_mouse = true;
   }
   button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
-
-  /* activate right away */
-  if (but->flag & UI_BUT_IMMEDIATE) {
-    if (but->type == UI_BTYPE_HOTKEY_EVENT) {
-      button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
-    }
-    /* .. more to be added here */
-  }
 
   if (type == BUTTON_ACTIVATE_OPEN) {
     button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
