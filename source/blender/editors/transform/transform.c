@@ -1174,7 +1174,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
                 stopConstraint(t);
                 initSelectConstraint(t);
 
-                /* In this case we might just want to remove the contraint,
+                /* In this case we might just want to remove the constraint,
                  * so set #TREDRAW_SOFT to only select the constraint on the next mouse move event.
                  * This way we can kind of "cancel" due to confirmation without constraint. */
                 t->redraw = TREDRAW_SOFT;

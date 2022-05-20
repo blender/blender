@@ -2168,7 +2168,7 @@ struct ImBuf *imb_load_openexr(const unsigned char *mem,
 }
 
 struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
-                                                  const int flags,
+                                                  const int UNUSED(flags),
                                                   const size_t max_thumb_size,
                                                   char colorspace[],
                                                   size_t *r_width,

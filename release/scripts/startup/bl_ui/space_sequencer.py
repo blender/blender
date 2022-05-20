@@ -1658,8 +1658,11 @@ class SEQUENCER_PT_source(SequencerButtonsPanel, Panel):
                 split.alignment = 'RIGHT'
                 split.label(text="Channels")
                 split.alignment = 'LEFT'
-                txt_channels = sound.bl_rna.properties["channels"].enum_items[sound.bl_rna.properties["channels"].enum_items.find(sound.channels)].name
-                split.label(text=txt_channels)
+
+                # FIXME(@campbellbarton): this is ugly, we may want to support a way of showing a label from an enum.
+                channel_enum_items = sound.bl_rna.properties["channels"].enum_items
+                split.label(text=channel_enum_items[channel_enum_items.find(sound.channels)].name)
+                del channel_enum_items
         else:
             if strip_type == 'IMAGE':
                 col = layout.column()
