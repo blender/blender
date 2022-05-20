@@ -238,7 +238,7 @@ void BPY_context_set(bContext *C)
 extern PyObject *Manta_initPython(void);
 #endif
 
-#ifdef WITH_AUDASPACE
+#ifdef WITH_AUDASPACE_PY
 /* defined in AUD_C-API.cpp */
 extern PyObject *AUD_initPython(void);
 #endif
@@ -272,7 +272,7 @@ static struct _inittab bpy_internal_modules[] = {
 #ifdef WITH_FLUID
     {"manta", Manta_initPython},
 #endif
-#ifdef WITH_AUDASPACE
+#ifdef WITH_AUDASPACE_PY
     {"aud", AUD_initPython},
 #endif
 #ifdef WITH_CYCLES
