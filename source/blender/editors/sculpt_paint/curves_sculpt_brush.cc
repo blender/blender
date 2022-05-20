@@ -94,11 +94,10 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
 
         for (const int curve_i : curves_range) {
           const IndexRange points = curves.points_for_curve(curve_i);
-          const int tot_segments = points.size() - 1;
 
-          for (const int segment_i : IndexRange(tot_segments)) {
-            const float3 &p1_cu = positions[points[segment_i]];
-            const float3 &p2_cu = positions[points[segment_i] + 1];
+          for (const int segment_i : points.drop_back(1)) {
+            const float3 &p1_cu = positions[segment_i];
+            const float3 &p2_cu = positions[segment_i + 1];
 
             float2 p1_re, p2_re;
             ED_view3d_project_float_v2_m4(&region, p1_cu, p1_re, projection.values);

@@ -390,13 +390,12 @@ struct CurvesEffectOperationExecutor {
 
       for (const int curve_i : curves_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
-        const int tot_segments = points.size() - 1;
-        float max_move_distance_cu = 0.0f;
 
+        float max_move_distance_cu = 0.0f;
         for (const float4x4 &brush_transform_inv : symmetry_brush_transforms_inv) {
-          for (const int segment_i : IndexRange(tot_segments)) {
-            const float3 &p1_cu = brush_transform_inv * positions_cu[points[segment_i]];
-            const float3 &p2_cu = brush_transform_inv * positions_cu[points[segment_i] + 1];
+          for (const int segment_i : points.drop_back(1)) {
+            const float3 p1_cu = brush_transform_inv * positions_cu[segment_i];
+            const float3 p2_cu = brush_transform_inv * positions_cu[segment_i + 1];
 
             float2 p1_re, p2_re;
             ED_view3d_project_float_v2_m4(region_, p1_cu, p1_re, projection.values);
@@ -485,15 +484,15 @@ struct CurvesEffectOperationExecutor {
 
       for (const int curve_i : curves_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
-        const int tot_segments = points.size() - 1;
+
         float max_move_distance_cu = 0.0f;
         for (const float4x4 &brush_transform : symmetry_brush_transforms) {
           const float3 brush_pos_start_transformed_cu = brush_transform * brush_pos_start_cu;
           const float3 brush_pos_end_transformed_cu = brush_transform * brush_pos_end_cu;
 
-          for (const int segment_i : IndexRange(tot_segments)) {
-            const float3 &p1_cu = positions_cu[points[segment_i]];
-            const float3 &p2_cu = positions_cu[points[segment_i] + 1];
+          for (const int segment_i : points.drop_back(1)) {
+            const float3 &p1_cu = positions_cu[segment_i];
+            const float3 &p2_cu = positions_cu[segment_i + 1];
 
             float3 closest_on_segment_cu;
             float3 closest_on_brush_cu;
