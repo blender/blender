@@ -77,14 +77,12 @@ struct DeleteOperationExecutor {
   float brush_radius_re_;
 
   float2 brush_pos_re_;
-  float2 brush_pos_prev_re_;
 
   float4x4 curves_to_world_mat_;
   float4x4 world_to_curves_mat_;
 
   void execute(DeleteOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {
-    BLI_SCOPED_DEFER([&]() { self.brush_pos_prev_re_ = stroke_extension.mouse_position; });
 
     self_ = &self;
     depsgraph_ = CTX_data_depsgraph_pointer(&C);
@@ -102,8 +100,6 @@ struct DeleteOperationExecutor {
     brush_radius_re_ = brush_radius_get(*scene_, *brush_, stroke_extension);
 
     brush_pos_re_ = stroke_extension.mouse_position;
-    brush_pos_prev_re_ = stroke_extension.is_first ? stroke_extension.mouse_position :
-                                                     self.brush_pos_prev_re_;
 
     curves_to_world_mat_ = object_->obmat;
     world_to_curves_mat_ = curves_to_world_mat_.inverted();
@@ -159,6 +155,8 @@ struct DeleteOperationExecutor {
 
     Span<float3> positions_cu = curves_->positions();
 
+    const float brush_radius_sq_re = pow2f(brush_radius_re_);
+
     threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
       for (const int curve_i : curve_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
@@ -170,8 +168,9 @@ struct DeleteOperationExecutor {
           ED_view3d_project_float_v2_m4(region_, pos1_cu, pos1_re, projection.values);
           ED_view3d_project_float_v2_m4(region_, pos2_cu, pos2_re, projection.values);
 
-          const float dist = dist_seg_seg_v2(pos1_re, pos2_re, brush_pos_prev_re_, brush_pos_re_);
-          if (dist <= brush_radius_re_) {
+          const float dist_sq_re = dist_squared_to_line_segment_v2(
+              brush_pos_re_, pos1_re, pos2_re);
+          if (dist_sq_re <= brush_radius_sq_re) {
             curves_to_delete[curve_i] = true;
             break;
           }
@@ -185,32 +184,23 @@ struct DeleteOperationExecutor {
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
 
-    float3 brush_start_wo, brush_end_wo;
-    ED_view3d_win_to_3d(v3d_,
-                        region_,
-                        curves_to_world_mat_ * self_->brush_3d_.position_cu,
-                        brush_pos_prev_re_,
-                        brush_start_wo);
+    float3 brush_wo;
     ED_view3d_win_to_3d(v3d_,
                         region_,
                         curves_to_world_mat_ * self_->brush_3d_.position_cu,
                         brush_pos_re_,
-                        brush_end_wo);
-    const float3 brush_start_cu = world_to_curves_mat_ * brush_start_wo;
-    const float3 brush_end_cu = world_to_curves_mat_ * brush_end_wo;
+                        brush_wo);
+    const float3 brush_cu = world_to_curves_mat_ * brush_wo;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
 
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      this->delete_spherical(
-          brush_transform * brush_start_cu, brush_transform * brush_end_cu, curves_to_delete);
+      this->delete_spherical(brush_transform * brush_cu, curves_to_delete);
     }
   }
 
-  void delete_spherical(const float3 &brush_start_cu,
-                        const float3 &brush_end_cu,
-                        MutableSpan<bool> curves_to_delete)
+  void delete_spherical(const float3 &brush_cu, MutableSpan<bool> curves_to_delete)
   {
     Span<float3> positions_cu = curves_->positions();
 
@@ -224,16 +214,8 @@ struct DeleteOperationExecutor {
           const float3 &pos1_cu = positions_cu[segment_i];
           const float3 &pos2_cu = positions_cu[segment_i + 1];
 
-          float3 closest_segment_cu, closest_brush_cu;
-          isect_seg_seg_v3(pos1_cu,
-                           pos2_cu,
-                           brush_start_cu,
-                           brush_end_cu,
-                           closest_segment_cu,
-                           closest_brush_cu);
-          const float distance_to_brush_sq_cu = math::distance_squared(closest_segment_cu,
-                                                                       closest_brush_cu);
-          if (distance_to_brush_sq_cu > brush_radius_sq_cu) {
+          const float distance_sq_cu = dist_squared_to_line_segment_v3(brush_cu, pos1_cu, pos2_cu);
+          if (distance_sq_cu > brush_radius_sq_cu) {
             continue;
           }
           curves_to_delete[curve_i] = true;
