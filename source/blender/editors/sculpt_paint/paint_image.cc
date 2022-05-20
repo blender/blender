@@ -359,9 +359,7 @@ void paint_brush_color_get(struct Scene *scene,
       }
       /* Gradient / Color-band colors are not considered #PROP_COLOR_GAMMA.
        * Brush colors are expected to be in sRGB though. */
-      IMB_colormanagement_scene_linear_to_srgb_v3(color_gr);
-
-      copy_v3_v3(color, color_gr);
+      IMB_colormanagement_scene_linear_to_srgb_v3(color, color_gr);
     }
     else {
       copy_v3_v3(color, BKE_brush_color_get(scene, br));

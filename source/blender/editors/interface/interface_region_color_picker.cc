@@ -116,7 +116,7 @@ void ui_scene_linear_to_perceptual_space(uiBut *but, float rgb[3])
    * assuming it is more perceptually linear than the scene linear
    * space for intuitive color picking. */
   if (!ui_but_is_color_gamma(but)) {
-    IMB_colormanagement_scene_linear_to_color_picking_v3(rgb);
+    IMB_colormanagement_scene_linear_to_color_picking_v3(rgb, rgb);
     ui_color_picker_rgb_round(rgb);
   }
 }
@@ -124,7 +124,7 @@ void ui_scene_linear_to_perceptual_space(uiBut *but, float rgb[3])
 void ui_perceptual_to_scene_linear_space(uiBut *but, float rgb[3])
 {
   if (!ui_but_is_color_gamma(but)) {
-    IMB_colormanagement_color_picking_to_scene_linear_v3(rgb);
+    IMB_colormanagement_color_picking_to_scene_linear_v3(rgb, rgb);
     ui_color_picker_rgb_round(rgb);
   }
 }
@@ -208,7 +208,7 @@ static void ui_update_color_picker_buts_rgb(uiBut *from_but,
        * (coming from other applications, web, etc) */
       copy_v3_v3(rgb_hex, rgb_scene_linear);
       if (from_but && !ui_but_is_color_gamma(from_but)) {
-        IMB_colormanagement_scene_linear_to_srgb_v3(rgb_hex);
+        IMB_colormanagement_scene_linear_to_srgb_v3(rgb_hex, rgb_hex);
         ui_color_picker_rgb_round(rgb_hex);
       }
 
@@ -291,7 +291,7 @@ static void ui_colorpicker_hex_rna_cb(bContext *UNUSED(C), void *bt1, void *hexc
 
   /* Hex code is assumed to be in sRGB space (coming from other applications, web, etc) */
   if (!ui_but_is_color_gamma(but)) {
-    IMB_colormanagement_srgb_to_scene_linear_v3(rgb);
+    IMB_colormanagement_srgb_to_scene_linear_v3(rgb, rgb);
     ui_color_picker_rgb_round(rgb);
   }
 
@@ -777,7 +777,7 @@ static void ui_block_colorpicker(uiBlock *block,
   copy_v3_v3(rgb_hex, rgba_scene_linear);
 
   if (!ui_but_is_color_gamma(from_but)) {
-    IMB_colormanagement_scene_linear_to_srgb_v3(rgb_hex);
+    IMB_colormanagement_scene_linear_to_srgb_v3(rgb_hex, rgb_hex);
     ui_color_picker_rgb_round(rgb_hex);
   }
 

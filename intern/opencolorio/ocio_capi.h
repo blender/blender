@@ -135,7 +135,8 @@ const char *OCIO_configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config,
                                                 const char *view);
 
 void OCIO_configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb);
-void OCIO_configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config, float xyz_to_rgb[3][3]);
+void OCIO_configGetXYZtoSceneLinear(OCIO_ConstConfigRcPtr *config,
+                                    float xyz_to_scene_linear[3][3]);
 
 int OCIO_configGetNumLooks(OCIO_ConstConfigRcPtr *config);
 const char *OCIO_configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index);

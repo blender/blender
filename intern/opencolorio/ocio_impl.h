@@ -48,7 +48,8 @@ class IOCIOImpl {
                                                      const char *view) = 0;
 
   virtual void configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb) = 0;
-  virtual void configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config, float xyz_to_rgb[3][3]) = 0;
+  virtual void configGetXYZtoSceneLinear(OCIO_ConstConfigRcPtr *config,
+                                         float xyz_to_scene_linear[3][3]) = 0;
 
   virtual int configGetNumLooks(OCIO_ConstConfigRcPtr *config) = 0;
   virtual const char *configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index) = 0;
@@ -167,7 +168,7 @@ class FallbackImpl : public IOCIOImpl {
                                              const char *view);
 
   void configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb);
-  void configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config, float xyz_to_rgb[3][3]);
+  void configGetXYZtoSceneLinear(OCIO_ConstConfigRcPtr *config, float xyz_to_scene_linear[3][3]);
 
   int configGetNumLooks(OCIO_ConstConfigRcPtr *config);
   const char *configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index);
@@ -257,7 +258,7 @@ class OCIOImpl : public IOCIOImpl {
                                              const char *view);
 
   void configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb);
-  void configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config, float xyz_to_rgb[3][3]);
+  void configGetXYZtoSceneLinear(OCIO_ConstConfigRcPtr *config, float xyz_to_scene_linear[3][3]);
 
   int configGetNumLooks(OCIO_ConstConfigRcPtr *config);
   const char *configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index);

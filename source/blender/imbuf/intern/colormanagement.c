@@ -73,12 +73,12 @@ static int global_tot_looks = 0;
 
 /* Luma coefficients and XYZ to RGB to be initialized by OCIO. */
 float imbuf_luma_coefficients[3] = {0.0f};
-float imbuf_xyz_to_rgb[3][3] = {{0.0f}};
-float imbuf_rgb_to_xyz[3][3] = {{0.0f}};
-float imbuf_xyz_to_rec709[3][3] = {{0.0f}};
-float imbuf_rec709_to_xyz[3][3] = {{0.0f}};
-float imbuf_xyz_to_aces[3][3] = {{0.0f}};
-float imbuf_aces_to_xyz[3][3] = {{0.0f}};
+float imbuf_scene_linear_to_xyz[3][3] = {{0.0f}};
+float imbuf_xyz_to_scene_linear[3][3] = {{0.0f}};
+float imbuf_scene_linear_to_rec709[3][3] = {{0.0f}};
+float imbuf_rec709_to_scene_linear[3][3] = {{0.0f}};
+float imbuf_scene_linear_to_aces[3][3] = {{0.0f}};
+float imbuf_aces_to_scene_linear[3][3] = {{0.0f}};
 
 /* lock used by pre-cached processors getters, so processor wouldn't
  * be created several times
@@ -577,12 +577,14 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
   OCIO_configGetDefaultLumaCoefs(config, imbuf_luma_coefficients);
 
   /* Load standard color spaces. */
-  OCIO_configGetXYZtoRGB(config, imbuf_xyz_to_rgb);
-  invert_m3_m3(imbuf_rgb_to_xyz, imbuf_xyz_to_rgb);
-  copy_m3_m3(imbuf_xyz_to_rec709, OCIO_XYZ_TO_REC709);
-  invert_m3_m3(imbuf_rec709_to_xyz, imbuf_xyz_to_rec709);
-  copy_m3_m3(imbuf_aces_to_xyz, OCIO_ACES_TO_XYZ);
-  invert_m3_m3(imbuf_xyz_to_aces, imbuf_aces_to_xyz);
+  OCIO_configGetXYZtoSceneLinear(config, imbuf_xyz_to_scene_linear);
+  invert_m3_m3(imbuf_scene_linear_to_xyz, imbuf_xyz_to_scene_linear);
+
+  mul_m3_m3m3(imbuf_scene_linear_to_rec709, OCIO_XYZ_TO_REC709, imbuf_scene_linear_to_xyz);
+  invert_m3_m3(imbuf_rec709_to_scene_linear, imbuf_scene_linear_to_rec709);
+
+  mul_m3_m3m3(imbuf_aces_to_scene_linear, imbuf_xyz_to_scene_linear, OCIO_ACES_TO_XYZ);
+  invert_m3_m3(imbuf_scene_linear_to_aces, imbuf_aces_to_scene_linear);
 }
 
 static void colormanage_free_config(void)
@@ -1424,9 +1426,9 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
   return (colorspace && IMB_colormanagement_space_is_srgb(colorspace));
 }
 
-const float *IMB_colormanagement_get_xyz_to_rgb()
+const float *IMB_colormanagement_get_xyz_to_scene_linear()
 {
-  return &imbuf_xyz_to_rgb[0][0];
+  return &imbuf_xyz_to_scene_linear[0][0];
 }
 
 /** \} */
@@ -2319,7 +2321,8 @@ void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
   }
 }
 
-void IMB_colormanagement_scene_linear_to_color_picking_v3(float pixel[3])
+void IMB_colormanagement_scene_linear_to_color_picking_v3(float color_picking[3],
+                                                          const float scene_linear[3])
 {
   if (!global_color_picking_state.cpu_processor_to && !global_color_picking_state.failed) {
     /* Create processor if none exists. */
@@ -2341,12 +2344,15 @@ void IMB_colormanagement_scene_linear_to_color_picking_v3(float pixel[3])
     BLI_mutex_unlock(&processor_lock);
   }
 
+  copy_v3_v3(color_picking, scene_linear);
+
   if (global_color_picking_state.cpu_processor_to) {
-    OCIO_cpuProcessorApplyRGB(global_color_picking_state.cpu_processor_to, pixel);
+    OCIO_cpuProcessorApplyRGB(global_color_picking_state.cpu_processor_to, color_picking);
   }
 }
 
-void IMB_colormanagement_color_picking_to_scene_linear_v3(float pixel[3])
+void IMB_colormanagement_color_picking_to_scene_linear_v3(float scene_linear[3],
+                                                          const float color_picking[3])
 {
   if (!global_color_picking_state.cpu_processor_from && !global_color_picking_state.failed) {
     /* Create processor if none exists. */
@@ -2368,23 +2374,11 @@ void IMB_colormanagement_color_picking_to_scene_linear_v3(float pixel[3])
     BLI_mutex_unlock(&processor_lock);
   }
 
+  copy_v3_v3(scene_linear, color_picking);
+
   if (global_color_picking_state.cpu_processor_from) {
-    OCIO_cpuProcessorApplyRGB(global_color_picking_state.cpu_processor_from, pixel);
+    OCIO_cpuProcessorApplyRGB(global_color_picking_state.cpu_processor_from, scene_linear);
   }
-}
-
-void IMB_colormanagement_scene_linear_to_srgb_v3(float pixel[3])
-{
-  mul_m3_v3(imbuf_rgb_to_xyz, pixel);
-  mul_m3_v3(imbuf_xyz_to_rec709, pixel);
-  linearrgb_to_srgb_v3_v3(pixel, pixel);
-}
-
-void IMB_colormanagement_srgb_to_scene_linear_v3(float pixel[3])
-{
-  srgb_to_linearrgb_v3_v3(pixel, pixel);
-  mul_m3_v3(imbuf_rec709_to_xyz, pixel);
-  mul_m3_v3(imbuf_xyz_to_rgb, pixel);
 }
 
 void IMB_colormanagement_scene_linear_to_display_v3(float pixel[3], ColorManagedDisplay *display)

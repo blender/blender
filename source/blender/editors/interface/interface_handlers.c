@@ -6277,7 +6277,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 
             if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
               RNA_property_float_get_array(&but->rnapoin, but->rnaprop, target);
-              IMB_colormanagement_srgb_to_scene_linear_v3(target);
+              IMB_colormanagement_srgb_to_scene_linear_v3(target, target);
             }
             else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
               RNA_property_float_get_array(&but->rnapoin, but->rnaprop, target);
@@ -6294,7 +6294,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
             }
             else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
               RNA_property_float_get_array(&but->rnapoin, but->rnaprop, color);
-              IMB_colormanagement_scene_linear_to_srgb_v3(color);
+              IMB_colormanagement_scene_linear_to_srgb_v3(color, color);
               BKE_brush_color_set(scene, brush, color);
               updated = true;
             }
