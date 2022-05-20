@@ -483,10 +483,10 @@ class Set {
    * while iterating over the set. However, after this method has been called, the removed element
    * must not be accessed anymore.
    */
-  void remove(const Iterator &iterator)
+  void remove(const Iterator &it)
   {
     /* The const cast is valid because this method itself is not const. */
-    Slot &slot = const_cast<Slot &>(iterator.current_slot());
+    Slot &slot = const_cast<Slot &>(it.current_slot());
     BLI_assert(slot.is_occupied());
     slot.remove();
     removed_slots_++;
