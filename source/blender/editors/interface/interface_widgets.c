@@ -3506,7 +3506,6 @@ static void widget_numbut_embossn(const uiBut *UNUSED(but),
 void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *slider, int state)
 {
   uiWidgetBase wtb;
-  bool outline = false;
 
   widget_init(&wtb);
 
@@ -3551,11 +3550,6 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
     /* draw */
     wtb.draw_emboss = false; /* only emboss once */
 
-    /* exception for progress bar */
-    if (state & UI_SCROLL_NO_OUTLINE) {
-      SWAP(bool, outline, wtb.draw_outline);
-    }
-
     round_box_edges(&wtb, UI_CNR_ALL, slider, rad);
 
     if (state & UI_SCROLL_ARROWS) {
@@ -3583,10 +3577,6 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
       }
     }
     widgetbase_draw(&wtb, wcol);
-
-    if (state & UI_SCROLL_NO_OUTLINE) {
-      SWAP(bool, outline, wtb.draw_outline);
-    }
   }
 }
 

@@ -454,7 +454,6 @@ void UI_draw_safe_areas(uint pos,
 enum {
   UI_SCROLL_PRESSED = 1 << 0,
   UI_SCROLL_ARROWS = 1 << 1,
-  UI_SCROLL_NO_OUTLINE = 1 << 2,
 };
 /**
  * Function in use for buttons and for view2d sliders.
