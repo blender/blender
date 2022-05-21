@@ -1265,7 +1265,7 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
   const float bstrength = ss->cache->bstrength;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 

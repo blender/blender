@@ -337,7 +337,7 @@ typedef enum eAutomasking_flag {
   BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS = (1 << 3),
   BRUSH_AUTOMASKING_CONCAVITY = (1 << 4),
   BRUSH_AUTOMASKING_INVERT_CONCAVITY = (1 << 5),
-  BRUSH_AUTOMASKING_BRUSH_NORMAL = (1<<6),
+  BRUSH_AUTOMASKING_BRUSH_NORMAL = (1 << 6),
   BRUSH_AUTOMASKING_VIEW_NORMAL = (1 << 7),
 } eAutomasking_flag;
 
@@ -660,6 +660,7 @@ typedef enum eBlurKernelType {
 typedef enum eBrushFalloffShape {
   PAINT_FALLOFF_SHAPE_SPHERE = 0,
   PAINT_FALLOFF_SHAPE_TUBE = 1,
+  PAINT_FALLOFF_NOOP = 2,
 } eBrushFalloffShape;
 
 // dyntopo flags

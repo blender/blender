@@ -66,7 +66,7 @@ static void do_color_smooth_task_cb_exec(void *__restrict userdata,
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
@@ -118,7 +118,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
@@ -143,6 +143,9 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   float alpha = BKE_brush_channelset_get_final_float(
       BKE_paint_brush(&data->sd->paint)->channels, data->sd->channels, "strength", NULL);
 
+  bool do_test = brush->mtex.brush_map_mode != MTEX_MAP_MODE_ROLL &&
+                 brush->mtex.brush_map_mode != MTEX_MAP_MODE_ROLL;
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     // SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     SCULPT_vertex_check_origdata(ss, vd.vertex);
@@ -163,7 +166,8 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     bool affect_vertex = false;
     float distance_to_stroke_location = 0.0f;
     if (brush->tip_roundness < 1.0f) {
-      affect_vertex = SCULPT_brush_test_cube(&test, vd.co, data->mat, brush->tip_roundness);
+      affect_vertex = SCULPT_brush_test_cube(
+          &test, vd.co, data->mat, brush->tip_roundness, brush->falloff_shape != PAINT_FALLOFF_SHAPE_TUBE);
       distance_to_stroke_location = ss->cache->radius * test.dist;
     }
     else {
@@ -171,7 +175,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
       distance_to_stroke_location = sqrtf(test.dist);
     }
 
-    if (!affect_vertex) {
+    if (do_test && !affect_vertex) {
       continue;
     }
 
@@ -251,7 +255,7 @@ static void do_sample_wet_paint_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
 
   test.radius *= data->brush->wet_paint_radius_factor;
@@ -467,7 +471,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 

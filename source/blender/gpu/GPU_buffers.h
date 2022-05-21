@@ -24,6 +24,7 @@ struct TableGSet;
 struct MLoop;
 struct MLoopCol;
 struct MLoopTri;
+struct MSculptVert;
 struct MPoly;
 struct MPropCol;
 struct MVert;
@@ -119,7 +120,8 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const int face_sets_color_seed,
                                   const int face_sets_color_default,
                                   const int update_flags,
-                                  const float (*vert_normals)[3]);
+                                  const float (*vert_normals)[3],
+                                  struct MSculptVert *sverts);
 
 bool GPU_pbvh_update_attribute_names(
     const CustomData *vdata,

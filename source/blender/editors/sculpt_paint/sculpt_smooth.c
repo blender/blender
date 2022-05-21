@@ -1481,7 +1481,7 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
   CLAMP(bstrength, -1.0f, 1.0f);
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
@@ -1523,7 +1523,7 @@ static void do_enhance_details_brush_dir_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
 
   SculptCustomLayer *strokeid_scl = data->scl2;
@@ -1577,7 +1577,7 @@ static void do_enhance_details_brush_dir2_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
 
   // SculptCustomLayer *strokeid_scl = data->scl2;
@@ -1832,7 +1832,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   CLAMP(bstrength, 0.0f, 1.0f);
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
@@ -2254,7 +2254,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
   SculptOrigVertData orig_data;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
@@ -2333,7 +2333,7 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
@@ -2404,7 +2404,7 @@ static void SCULPT_do_directional_smooth_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
@@ -2505,7 +2505,7 @@ static void SCULPT_do_uniform_weigths_smooth_task_cb_ex(void *__restrict userdat
   PBVHVertexIter vd;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
@@ -2619,7 +2619,7 @@ static void do_smooth_vcol_boundary_brush_task_cb_ex(void *__restrict userdata,
   CLAMP(bstrength, 0.0f, 1.0f);
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
 
   const int thread_id = BLI_task_parallel_thread_id(tls);

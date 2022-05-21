@@ -141,6 +141,7 @@ typedef struct PaintStroke {
   StrokeDone done;
 
   float spacing;
+  void *debug_draw_handle;
 } PaintStroke;
 
 struct PaintStroke *paint_stroke_new(struct bContext *C,
@@ -619,6 +620,8 @@ void paint_delete_blur_kernel(BlurKernel *);
 #define PAINT_CURVE_NUM_SEGMENTS 40
 
 bool paint_stroke_has_cubic(const PaintStroke *stroke);
+float bezier3_arclength_v2(const float control[4][2]);
+float bezier3_arclength_v3(const float control[4][3]);
 
 #ifdef __cplusplus
 }

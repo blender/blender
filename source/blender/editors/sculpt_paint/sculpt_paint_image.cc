@@ -221,7 +221,7 @@ template<typename ImageBuffer> class PaintingKernel {
   }
   void init_brush_test()
   {
-    brush_test_fn = SCULPT_brush_test_init_with_falloff_shape(ss, &test, brush->falloff_shape);
+    brush_test_fn = SCULPT_brush_test_init(ss, &test, (eBrushFalloffShape)brush->falloff_shape);
   }
 
   /**
@@ -269,7 +269,7 @@ static std::vector<bool> init_triangle_brush_test(SculptSession *ss,
 {
   std::vector<bool> brush_test(triangles.size());
   SculptBrushTest test;
-  SCULPT_brush_test_init(ss, &test);
+  SCULPT_brush_test_init(ss, &test, PAINT_FALLOFF_NOOP);
   float3 brush_min_bounds(test.location[0] - test.radius,
                           test.location[1] - test.radius,
                           test.location[2] - test.radius);

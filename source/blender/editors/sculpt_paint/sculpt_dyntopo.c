@@ -1609,7 +1609,7 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
   // const float *offset = data->offset;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
 
   PBVHNode *node = data->nodes[n];
@@ -1767,7 +1767,7 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   uvsolver_solve_begin(solver);
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, brush->falloff_shape);
 
   BLI_mempool_iter iter;

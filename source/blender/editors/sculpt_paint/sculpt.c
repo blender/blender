@@ -2984,10 +2984,12 @@ void ED_sculpt_redraw_planes_get(float planes[4][4], ARegion *region, Object *ob
 
 /************************ Brush Testing *******************/
 
-void SCULPT_brush_test_init(SculptSession *ss, SculptBrushTest *test)
+static void sculpt_brush_test_init(const SculptSession *ss, SculptBrushTest *test)
 {
   RegionView3D *rv3d = ss->cache ? ss->cache->vc->rv3d : ss->rv3d;
   View3D *v3d = ss->cache ? ss->cache->vc->v3d : ss->v3d;
+
+  test->tip_roundness = test->tip_scale_x = 1.0f;
 
   test->radius_squared = ss->cache ? ss->cache->radius_squared :
                                      ss->cursor_radius * ss->cursor_radius;
@@ -3051,6 +3053,28 @@ bool SCULPT_brush_test_sphere(SculptBrushTest *test, const float co[3])
   return true;
 }
 
+bool SCULPT_brush_test_cube_sq(SculptBrushTest *test, const float co[3])
+{
+  if (SCULPT_brush_test_cube(test, co, test->cube_matrix, test->tip_roundness, true)) {
+    test->dist *= test->dist * test->radius_squared;
+
+    return true;
+  }
+
+  return false;
+}
+
+bool SCULPT_brush_test_thru_cube_sq(SculptBrushTest *test, const float co[3])
+{
+  if (SCULPT_brush_test_cube(test, co, test->cube_matrix, test->tip_roundness, false)) {
+    test->dist *= test->dist * test->radius_squared;
+
+    return true;
+  }
+
+  return false;
+}
+
 bool SCULPT_brush_test_sphere_sq(SculptBrushTest *test, const float co[3])
 {
   float distsq = len_squared_v3v3(co, test->location);
@@ -3094,7 +3118,8 @@ bool SCULPT_brush_test_circle_sq(SculptBrushTest *test, const float co[3])
 bool SCULPT_brush_test_cube(SculptBrushTest *test,
                             const float co[3],
                             const float local[4][4],
-                            const float roundness)
+                            const float roundness,
+                            bool test_z)
 {
   float side = M_SQRT1_2;
   float local_co[3];
@@ -3116,7 +3141,7 @@ bool SCULPT_brush_test_cube(SculptBrushTest *test,
   const float constant_side = hardness * side;
   const float falloff_side = roundness * side;
 
-  if (!(local_co[0] <= side && local_co[1] <= side && local_co[2] <= side)) {
+  if (!(local_co[0] <= side && local_co[1] <= side && (!test_z || local_co[2] <= side))) {
     /* Outside the square. */
     return false;
   }
@@ -3138,20 +3163,140 @@ bool SCULPT_brush_test_cube(SculptBrushTest *test,
   return true;
 }
 
-SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
-                                                            SculptBrushTest *test,
-                                                            char falloff_shape)
+SculptBrushTestFn SCULPT_brush_test_init(const SculptSession *ss,
+                                         SculptBrushTest *test,
+                                         eBrushFalloffShape falloff_mode)
 {
-  SCULPT_brush_test_init(ss, test);
-  SculptBrushTestFn sculpt_brush_test_sq_fn;
-  if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-    sculpt_brush_test_sq_fn = SCULPT_brush_test_sphere_sq;
+  float tip_roundness = 1.0f;
+  float tip_scale_x = 1.0f;
+
+  if (ss->cache && ss->cache->channels_final) {
+    tip_roundness = SCULPT_get_float(ss, tip_roundness, NULL, NULL);
+    tip_scale_x = SCULPT_get_float(ss, tip_scale_x, NULL, NULL);
+  }
+
+  return SCULPT_brush_test_init_ex(ss, test, falloff_mode, tip_roundness, tip_scale_x);
+}
+
+SculptBrushTestFn SCULPT_brush_test_init_ex(const SculptSession *ss,
+                                            SculptBrushTest *test,
+                                            eBrushFalloffShape falloff_mode,
+                                            float tip_roundness,
+                                            float tip_scale_x)
+{
+  sculpt_brush_test_init(ss, test);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = NULL;
+
+  test->tip_roundness = tip_roundness;
+  test->tip_scale_x = tip_scale_x;
+
+  if (tip_roundness != 1.0f || tip_scale_x != 1.0f) {
+    float mat[4][4], tmat[4][4], scale[4][4];
+
+    float grab_delta[3];
+    copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
+
+    if (dot_v3v3(grab_delta, grab_delta) < 0.0001f) {
+      /* First time, use cached grab delta. */
+
+      copy_v3_v3(grab_delta, ss->last_grab_delta);
+      flip_v3_v3(grab_delta, grab_delta, ss->cache->mirror_symmetry_pass);
+
+      mul_m4_v3(ss->cache->symm_rot_mat, grab_delta);
+    }
+
+    if (dot_v3v3(grab_delta, grab_delta) < 0.0001f) {
+      /* Grab_delta still zero? Use cross of view and normal vectors. */
+      cross_v3_v3v3(grab_delta, ss->cache->view_normal, ss->cache->sculpt_normal);
+    }
+
+    if (dot_v3v3(grab_delta, grab_delta) < 0.0001f) {
+      /* Still zero? */
+      int axis;
+
+      float ax = fabsf(ss->cache->view_normal[0]);
+      float ay = fabsf(ss->cache->view_normal[1]);
+      float az = fabsf(ss->cache->view_normal[2]);
+
+      if (ax > ay && ax > az) {
+        axis = 1;
+      }
+      else if (ay > ax && ay > az) {
+        axis = 2;
+      }
+      else {
+        axis = 0;
+      }
+
+      grab_delta[axis] = 1.0f;
+    }
+
+    cross_v3_v3v3(mat[0], ss->cache->cached_area_normal, grab_delta);
+    mat[0][3] = 0;
+    cross_v3_v3v3(mat[1], ss->cache->cached_area_normal, mat[0]);
+    mat[1][3] = 0;
+    copy_v3_v3(mat[2], ss->cache->cached_area_normal);
+    mat[2][3] = 0;
+    copy_v3_v3(mat[3], ss->cache->location);
+    mat[3][3] = 1;
+    normalize_m4(mat);
+
+    if (determinant_m4(mat) < 0.000001f) {
+      fprintf(stderr, "%s: Matrix error 1\n", __func__);
+      unit_m4(mat);
+    }
+
+    scale_m4_fl(scale, ss->cache->radius);
+    mul_m4_m4m4(tmat, mat, scale);
+    mul_v3_fl(tmat[1], tip_scale_x);
+
+    if (determinant_m4(tmat) < 0.000001f) {
+      fprintf(stderr, "%s: Matrix error 2\n", __func__);
+      unit_m4(tmat);
+    }
+
+    invert_m4_m4(mat, tmat);
+
+    copy_m4_m4(test->cube_matrix, mat);
+
+    switch (falloff_mode) {
+      case PAINT_FALLOFF_SHAPE_SPHERE:
+        sculpt_brush_test_sq_fn = SCULPT_brush_test_cube_sq;
+
+      case PAINT_FALLOFF_SHAPE_TUBE:
+        if (ss->cache) {
+          plane_from_point_normal_v3(test->plane_view, test->location, ss->cache->view_normal);
+        }
+        else {
+          zero_v3(test->plane_view);
+          test->plane_view[2] = 1.0f;
+        }
+
+        sculpt_brush_test_sq_fn = SCULPT_brush_test_thru_cube_sq;
+      case PAINT_FALLOFF_NOOP:
+        break;
+    }
   }
   else {
-    /* PAINT_FALLOFF_SHAPE_TUBE */
-    plane_from_point_normal_v3(test->plane_view, test->location, ss->cache->view_normal);
-    sculpt_brush_test_sq_fn = SCULPT_brush_test_circle_sq;
+    switch (falloff_mode) {
+      case PAINT_FALLOFF_SHAPE_SPHERE:
+        sculpt_brush_test_sq_fn = SCULPT_brush_test_sphere_sq;
+
+      case PAINT_FALLOFF_SHAPE_TUBE:
+        if (ss->cache) {
+          plane_from_point_normal_v3(test->plane_view, test->location, ss->cache->view_normal);
+        }
+        else {
+          zero_v3(test->plane_view);
+          test->plane_view[2] = 1.0f;
+        }
+
+        sculpt_brush_test_sq_fn = SCULPT_brush_test_circle_sq;
+      case PAINT_FALLOFF_NOOP:
+        break;
+    }
   }
+
   return sculpt_brush_test_sq_fn;
 }
 
@@ -3319,8 +3464,8 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   }
 
   SculptBrushTest normal_test;
-  SculptBrushTestFn sculpt_brush_normal_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &normal_test, data->brush->falloff_shape);
+  SculptBrushTestFn sculpt_brush_normal_test_sq_fn = SCULPT_brush_test_init_ex(
+      ss, &normal_test, data->brush->falloff_shape, 1.0f, 1.0f);
 
   /* Update the test radius to sample the normal using the normal radius of the brush. */
   if (data->brush->ob_mode == OB_MODE_SCULPT) {
@@ -3331,8 +3476,8 @@ static void calc_area_normal_and_center_task_cb(void *__restrict userdata,
   }
 
   SculptBrushTest area_test;
-  SculptBrushTestFn sculpt_brush_area_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &area_test, data->brush->falloff_shape);
+  SculptBrushTestFn sculpt_brush_area_test_sq_fn = SCULPT_brush_test_init_ex(
+      ss, &area_test, data->brush->falloff_shape, 1.0f, 1.0f);
 
   if (data->brush->ob_mode == OB_MODE_SCULPT) {
     float test_radius = sqrtf(area_test.radius_squared);
@@ -3704,34 +3849,58 @@ off fort;
 
 */
 
-ATTR_NO_OPT float dcubic(float k1, float k2, float k3, float k4, float t)
+float bezier3_derivative(float k1, float k2, float k3, float k4, float t)
 {
   return -3.0f * ((t - 1.0f) * (t - 1.0f) * k1 - k4 * t * t + (3.0f * t - 2.0f) * k3 * t -
                   (3.0f * t - 1.0f) * (t - 1.0f) * k2);
 }
 
-ATTR_NO_OPT float cubic_arclen(const float control[4][3])
+void bezier3_derivative_v3(float r_out[3], float control[4][3], float t)
+{
+  r_out[0] = bezier3_derivative(control[0][0], control[1][0], control[2][0], control[3][0], t);
+  r_out[1] = bezier3_derivative(control[0][1], control[1][1], control[2][1], control[3][1], t);
+  r_out[2] = bezier3_derivative(control[0][2], control[1][2], control[2][2], control[3][2], t);
+}
+
+float bezier3_arclength_v3(const float control[4][3])
 {
   const int steps = 2048;
   float t = 0.0f, dt = 1.0f / (float)steps;
   float arc = 0.0f;
 
   for (int i = 0; i < steps; i++, t += dt) {
-    float dx = dcubic(control[0][0], control[1][0], control[2][0], control[3][0], t);
-    float dy = dcubic(control[0][1], control[1][1], control[2][1], control[3][1], t);
-    float dz = dcubic(control[0][2], control[1][2], control[2][2], control[3][2], t);
+    float dx = bezier3_derivative(control[0][0], control[1][0], control[2][0], control[3][0], t);
+    float dy = bezier3_derivative(control[0][1], control[1][1], control[2][1], control[3][1], t);
+    float dz = bezier3_derivative(control[0][2], control[1][2], control[2][2], control[3][2], t);
 
-    arc += sqrtf(dx * dx + dy * dy + dz * dz);
+    arc += sqrtf(dx * dx + dy * dy + dz * dz) * dt;
   }
 
   return arc;
 }
+
+float bezier3_arclength_v2(const float control[4][2])
+{
+  const int steps = 2048;
+  float t = 0.0f, dt = 1.0f / (float)steps;
+  float arc = 0.0f;
+
+  for (int i = 0; i < steps; i++, t += dt) {
+    float dx = bezier3_derivative(control[0][0], control[1][0], control[2][0], control[3][0], t);
+    float dy = bezier3_derivative(control[0][1], control[1][1], control[2][1], control[3][1], t);
+
+    arc += sqrtf(dx * dx + dy * dy) * dt;
+  }
+
+  return arc;
+}
+
 /* Evaluate bezier position and tangent at a specific parameter value
  * using the De Casteljau algorithm. */
-ATTR_NO_OPT static void evaluate_cubic_bezier(const float control[4][3],
-                                              float t,
-                                              float r_pos[3],
-                                              float r_tangent[3])
+static void evaluate_cubic_bezier(const float control[4][3],
+                                  float t,
+                                  float r_pos[3],
+                                  float r_tangent[3])
 {
   float layer1[3][3];
   interp_v3_v3v3(layer1[0], control[0], control[1], t);
@@ -3745,12 +3914,12 @@ ATTR_NO_OPT static void evaluate_cubic_bezier(const float control[4][3],
   sub_v3_v3v3(r_tangent, layer2[1], layer2[0]);
   madd_v3_v3v3fl(r_pos, layer2[0], r_tangent, t);
 
-  r_tangent[0] = dcubic(control[0][0], control[1][0], control[2][0], control[3][0], t);
-  r_tangent[1] = dcubic(control[0][1], control[1][1], control[2][1], control[3][1], t);
-  r_tangent[2] = dcubic(control[0][2], control[1][2], control[2][2], control[3][2], t);
+  r_tangent[0] = bezier3_derivative(control[0][0], control[1][0], control[2][0], control[3][0], t);
+  r_tangent[1] = bezier3_derivative(control[0][1], control[1][1], control[2][1], control[3][1], t);
+  r_tangent[2] = bezier3_derivative(control[0][2], control[1][2], control[2][2], control[3][2], t);
 }
 
-ATTR_NO_OPT static float cubic_uv_test(const float co[3], const float p[3], const float tan[3])
+static float cubic_uv_test(const float co[3], const float p[3], const float tan[3])
 {
   float tmp[3];
 
@@ -3758,12 +3927,10 @@ ATTR_NO_OPT static float cubic_uv_test(const float co[3], const float p[3], cons
   return dot_v3v3(tmp, tan);
 }
 
-ATTR_NO_OPT static void calc_cubic_uv_v3(const float cubic[4][3],
-                                         const float co[3],
-                                         float r_out[2])
+static void calc_cubic_uv_v3(const float cubic[4][3], const float co[3], float r_out[2])
 {
   const int steps = 5;
-  const int binary_steps = 5;
+  const int binary_steps = 10;
   float dt = 1.0f / (float)steps, t = dt;
 
   float lastp[3];
@@ -4018,15 +4185,15 @@ static float brush_strength(const Sculpt *sd,
   }
 }
 
-ATTR_NO_OPT float SCULPT_brush_strength_factor(SculptSession *ss,
-                                               const Brush *br,
-                                               const float brush_point[3],
-                                               const float len,
-                                               const float vno[3],
-                                               const float fno[3],
-                                               const float mask,
-                                               const SculptVertRef vertex_index,
-                                               const int thread_id)
+float SCULPT_brush_strength_factor(SculptSession *ss,
+                                   const Brush *br,
+                                   const float brush_point[3],
+                                   const float len,
+                                   const float vno[3],
+                                   const float fno[3],
+                                   const float mask,
+                                   const SculptVertRef vertex_index,
+                                   const int thread_id)
 {
   StrokeCache *cache = ss->cache;
   const Scene *scene = cache->vc->scene;
@@ -4087,23 +4254,63 @@ ATTR_NO_OPT float SCULPT_brush_strength_factor(SculptSession *ss,
 
       calc_cubic_uv_v3(ss->cache->world_cubic, SCULPT_vertex_co_get(ss, vertex_index), point_3d);
 
-      if (point_3d[0] == 0.0f || point_3d[0] == 1.0f) {
+      float eps = 0.001;
+      if (point_3d[0] < eps || point_3d[0] >= 1.0f - eps) {
         return 0.0f;
       }
 
-      point_3d[1] /= ss->cache->radius;
+      if (point_3d[1] >= ss->cache->radius) {
+        // return 0.0f;
+      }
 
-      //point_3d[0] = ss->cache->input_mapping.stroke_t + point_3d[0] * ss->cache->world_cubic_arclength;
-      point_3d[0] -= floorf(point_3d[0]);
+      float pos[3], tan[3];
+      evaluate_cubic_bezier(ss->cache->world_cubic, point_3d[0], pos, tan);
 
-      float color[4] = {point_3d[0], point_3d[1], 0.0f, 1.0f};
+      float vec[3], vec2[3];
+
+      normalize_v3(tan);
+      sub_v3_v3v3(vec, SCULPT_vertex_co_get(ss, vertex_index), pos);
+      normalize_v3(vec);
+
+      cross_v3_v3v3(vec2, vec, tan);
+
+      if (dot_v3v3(vec2, ss->cache->view_normal) < 0.0) {
+        point_3d[1] = (ss->cache->radius + point_3d[1]) * 0.5f;
+      }
+      else {
+        point_3d[1] = (ss->cache->radius - point_3d[1]) * 0.5f;
+      }
+
+      float t1 = ss->cache->last_stroke_distance_t;
+      float t2 = point_3d[0] * ss->cache->world_cubic_arclength / ss->cache->radius;
+
+      point_3d[0] = t1 + t2;
+      point_3d[0] *= ss->cache->radius;
+
+#if 0
+      float color[4] = {point_3d[0], point_3d[0], point_3d[0], 1.0f};
+      mul_v3_fl(color, 0.25f / ss->cache->radius);
+      color[0] -= floorf(color[0]);
+      color[1] -= floorf(color[1]);
+      color[2] -= floorf(color[2]);
+
       SCULPT_vertex_color_set(ss, vertex_index, color);
 
-      avg = BKE_brush_sample_tex_3d(scene, br, point_3d, rgba, 0, ss->tex_pool);
+// avg = 0.0f;
+#endif
+      //#else
+      // point_3d[0] /= ss->cache->radius;
+      // point_3d[0] -= floorf(point_3d[0]);
+
+      float pixel_radius = br->size;
+      mul_v3_fl(point_3d, pixel_radius / ss->cache->radius);
+
+      avg = BKE_brush_sample_tex_3d(scene, br, point_3d, rgba, thread_id, ss->tex_pool);
+      //#endif
     }
     else {
       const float point_3d[3] = {point_2d[0], point_2d[1], 0.0f};
-      avg = BKE_brush_sample_tex_3d(scene, br, point_3d, rgba, 0, ss->tex_pool);
+      avg = BKE_brush_sample_tex_3d(scene, br, point_3d, rgba, thread_id, ss->tex_pool);
     }
   }
 
@@ -4714,7 +4921,7 @@ static void do_gravity_task_cb_ex(void *__restrict userdata,
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
@@ -5128,6 +5335,10 @@ static void get_nodes_undo(Sculpt *sd,
   float radius_scale = 1.0f;
   const bool use_original = sculpt_tool_needs_original(cmd->tool) ? true : ss->cache->original;
 
+  if (BRUSHSET_GET_FLOAT(cmd->params_mapped, tip_roundness, &ss->cache->input_mapping) != 1.0f) {
+    radius_scale *= sqrtf(2.0f);
+  }
+
   if (SCULPT_tool_needs_all_pbvh_nodes(brush)) {
     /* These brushes need to update all nodes as they are not constrained by the brush radius
      */
@@ -5280,6 +5491,12 @@ static void sculpt_apply_alt_smmoth_settings(SculptSession *ss, Sculpt *sd, Brus
       BRUSHSET_LOOKUP(ss->cache->channels_final, projection), ch, parentch, false, true);
 }
 
+bool SCULPT_needs_area_normal(SculptSession *ss, Sculpt *sd, Brush *brush)
+{
+  return SCULPT_get_float(ss, tip_roundness, sd, brush) != 1.0f ||
+         SCULPT_get_float(ss, tip_scale_x, sd, brush) != 1.0f;
+}
+
 static void SCULPT_run_command(Sculpt *sd,
                                Object *ob,
                                Brush *brush,
@@ -5313,7 +5530,7 @@ static void SCULPT_run_command(Sculpt *sd,
   Brush _brush2, *brush2 = &_brush2;
 
   /*
-   * Check that original data is for anchored and drag dot modes
+   * Check that original data exists for anchored and drag dot modes
    */
   if (brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT)) {
     for (int i = 0; i < totnode; i++) {
@@ -5377,6 +5594,14 @@ static void SCULPT_run_command(Sculpt *sd,
   // printf("ss->cache->bstrength: %f\n", ss->cache->bstrength);
 
   /*Search PBVH*/
+
+  if (SCULPT_needs_area_normal(ss, sd, brush2)) {
+    SCULPT_calc_area_normal(sd, ob, nodes, totnode, ss->cache->cached_area_normal);
+
+    if (dot_v3v3(ss->cache->cached_area_normal, ss->cache->cached_area_normal) == 0.0f) {
+      ss->cache->cached_area_normal[2] = 1.0f;
+    }
+  }
 
   if (sculpt_brush_needs_normal(ss, brush2)) {
     update_sculpt_normal(sd, ob, nodes, totnode);
@@ -6853,6 +7078,9 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
                    SCULPT_TOOL_ARRAY,
                    SCULPT_TOOL_THUMB);
 
+  bad = bad && SCULPT_get_float(ss, tip_roundness, NULL, brush) == 1.0f;
+  bad = bad && SCULPT_get_float(ss, tip_scale_x, NULL, brush) == 1.0f;
+
   bad = bad && !sculpt_brush_use_topology_rake(ss, brush);
   bad = bad && !SCULPT_get_bool(ss, use_autofset, NULL, brush);
 
@@ -6979,6 +7207,10 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
     for (int i = 0; i < GRAB_DELTA_MA_SIZE; i++) {
       copy_v3_v3(cache->grab_delta_avg[i], cache->grab_delta);
     }
+  }
+
+  if (dot_v3v3(cache->grab_delta, cache->grab_delta) > 0.0f) {
+    copy_v3_v3(ss->last_grab_delta, cache->grab_delta);
   }
 
   // XXX implement me
@@ -7125,10 +7357,7 @@ static float sculpt_update_speed_average(SculptSession *ss, float speed)
   return speed / (float)tot;
 }
 /* Initialize the stroke cache variants from operator properties. */
-ATTR_NO_OPT static void sculpt_update_cache_variants(bContext *C,
-                                                     Sculpt *sd,
-                                                     Object *ob,
-                                                     PointerRNA *ptr)
+static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, PointerRNA *ptr)
 {
   Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -7141,6 +7370,43 @@ ATTR_NO_OPT static void sculpt_update_cache_variants(bContext *C,
         (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_ROTATE) ||
         SCULPT_is_cloth_deform_brush(brush))) {
     RNA_float_get_array(ptr, "location", cache->true_location);
+  }
+
+  /*
+   * Make sure last_grab_delta, which controls tip rotation on
+   * first brush dab, is not zero.
+   */
+  if (dot_v3v3(ss->last_grab_delta, ss->last_grab_delta) == 0.0f) {
+    int axis;
+
+    float mat[4][4];
+
+    ED_view3d_ob_project_mat_get(cache->vc->rv3d, ob, mat);
+    invert_m4(mat);
+
+    float dx = mat[0][0];
+    float dy = mat[1][1];
+    float dz = mat[2][2];
+
+    float ax = fabsf(dx);
+    float ay = fabsf(dy);
+    float az = fabsf(dz);
+    float sign;
+
+    if (ax > ay && ax > az) {
+      axis = 1;
+      sign = dx < 0.0f ? -1.0f : 1.0f;
+    }
+    else if (ay > ax && ay > az) {
+      axis = 2;
+      sign = dy < 0.0f ? -1.0f : 1.0f;
+    }
+    else {
+      axis = 0;
+      sign = dz < 0.0f ? -1.0f : 1.0f;
+    }
+
+    ss->last_grab_delta[axis] = sign;
   }
 
   float last_mouse[2];
@@ -7275,13 +7541,18 @@ ATTR_NO_OPT static void sculpt_update_cache_variants(bContext *C,
                                   10.0f; /*scale to a more user-friendly value*/
 
   if (cache->has_cubic) {
-    RNA_float_get_array(ptr, "mouse_cubic", (float *)cache->mouse_cubic);
+    float mouse_cubic[4][2];
 
-    printf("\n");
+    RNA_float_get_array(ptr, "mouse_cubic", (float *)mouse_cubic);
+
+    // printf("\n");
 
     /* Project mouse cubic into 3d space. */
     for (int i = 0; i < 4; i++) {
-      if (!SCULPT_stroke_get_location(C, cache->world_cubic[i], cache->mouse_cubic[i])) {
+      copy_v2_v2(cache->mouse_cubic[i], mouse_cubic[i]);
+      cache->mouse_cubic[i][2] = 0.0f;
+
+      if (!SCULPT_stroke_get_location(C, cache->world_cubic[i], mouse_cubic[i])) {
         float loc[3];
 
         mul_v3_m4v3(loc, ob->obmat, cache->true_location);
@@ -7289,11 +7560,11 @@ ATTR_NO_OPT static void sculpt_update_cache_variants(bContext *C,
         ED_view3d_win_to_3d(CTX_wm_view3d(C),
                             CTX_wm_region(C),
                             cache->true_location,
-                            cache->mouse_cubic[i],
+                            mouse_cubic[i],
                             cache->world_cubic[i]);
       }
 
-#if 1
+#if 0
       printf("%.2f, %.2f %.2f\n",
              cache->world_cubic[i][0],
              cache->world_cubic[i][1],
@@ -7301,7 +7572,8 @@ ATTR_NO_OPT static void sculpt_update_cache_variants(bContext *C,
 #endif
     }
 
-    cache->world_cubic_arclength = cubic_arclen(cache->world_cubic);
+    cache->world_cubic_arclength = bezier3_arclength_v3(cache->world_cubic);
+    cache->mouse_cubic_arclength = bezier3_arclength_v3(cache->mouse_cubic);
   }
 }
 
@@ -8090,17 +8362,17 @@ static void sculpt_cache_dyntopo_settings(BrushChannelSet *chset,
   r_settings->flag = BRUSHSET_GET_INT(chset, dyntopo_mode, NULL);
   r_settings->mode = BRUSHSET_GET_INT(chset, dyntopo_detail_mode, NULL);
   r_settings->radius_scale = BRUSHSET_GET_FLOAT(chset, dyntopo_radius_scale, input_data);
-  r_settings->spacing = BRUSHSET_GET_FLOAT(chset, dyntopo_spacing, input_data);
+  r_settings->spacing = (int)BRUSHSET_GET_FLOAT(chset, dyntopo_spacing, input_data);
   r_settings->detail_size = BRUSHSET_GET_FLOAT(chset, dyntopo_detail_size, input_data);
   r_settings->detail_range = BRUSHSET_GET_FLOAT(chset, dyntopo_detail_range, input_data);
   r_settings->detail_percent = BRUSHSET_GET_FLOAT(chset, dyntopo_detail_percent, input_data);
   r_settings->constant_detail = BRUSHSET_GET_FLOAT(chset, dyntopo_constant_detail, input_data);
 };
 
-ATTR_NO_OPT static void sculpt_stroke_update_step(bContext *C,
-                                                  wmOperator *UNUSED(op),
-                                                  struct PaintStroke *stroke,
-                                                  PointerRNA *itemptr)
+static void sculpt_stroke_update_step(bContext *C,
+                                      wmOperator *UNUSED(op),
+                                      struct PaintStroke *stroke,
+                                      PointerRNA *itemptr)
 
 {
 
@@ -8182,8 +8454,10 @@ ATTR_NO_OPT static void sculpt_stroke_update_step(bContext *C,
   }
 
   ss->cache->stroke_distance = stroke->stroke_distance;
+  ss->cache->last_stroke_distance_t = ss->cache->stroke_distance_t;
   ss->cache->stroke_distance_t = stroke->stroke_distance_t;
   ss->cache->stroke = stroke;
+  ss->cache->stroke_spacing_t = SCULPT_get_float(ss, spacing, sd, brush) / 100.0f;
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     ss->cache->last_dyntopo_t = 0.0f;

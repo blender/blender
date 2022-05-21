@@ -219,7 +219,7 @@ static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
   const Brush *brush = data->brush;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
       ss, &test, brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 

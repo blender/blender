@@ -923,6 +923,9 @@ typedef struct SculptSession {
    * Last used painting canvas key.
    */
   char *last_paint_canvas_key;
+
+  /* Used to derive initial tip rotation. */
+  float last_grab_delta[3];
 } SculptSession;
 
 void BKE_sculptsession_free(struct Object *ob);

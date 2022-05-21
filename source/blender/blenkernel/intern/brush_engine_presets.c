@@ -324,6 +324,8 @@ static bool check_builtin_init()
   // SETCAT(direction, "Basic");
   SETCAT(accumulate, "Basic");
   SETCAT(use_frontface, "Basic");
+  SETCAT(tip_roundness, "Basic");
+  SETCAT(tip_scale_x, "Basic");
 
   SETCAT(smear_deform_type, "Smear");
   SETCAT(smear_deform_blend, "Smear");
@@ -434,6 +436,16 @@ static bool check_builtin_init()
 #ifdef ADDCH
 #  undef ADDCH
 #endif
+
+/* TODO: Destroy these macros.*/
+
+#define ADDCH_EX(idname, category, visflag) \
+  do { \
+    BKE_brush_channelset_ensure_builtin(chset, BRUSH_BUILTIN_##idname); \
+    BrushChannel *ch = BKE_brush_channelset_lookup(chset, BRUSH_BUILTIN_##idname); \
+    SETCAT(idname, category); \
+    ch->flag |= visflag; \
+  } while (0);
 
 /* TODO: replace these two macros with equivalent BRUSHSET_XXX ones */
 #define ADDCH(name) \
@@ -1266,6 +1278,19 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   ADDCH(deform_target);
 
+  /* Patch olds files. */
+  if (!BRUSHSET_LOOKUP(chset, tip_scale_x)) {
+    ADDCH_EX(tip_scale_x,
+             "Basic",
+             BRUSH_CHANNEL_SHOW_IN_WORKSPACE | BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU);
+    ADDCH_EX(tip_roundness,
+             "Basic",
+             BRUSH_CHANNEL_SHOW_IN_WORKSPACE | BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU);
+
+    if (tool == SCULPT_TOOL_CLAY_STRIPS) {
+      BRUSHSET_SET_FLOAT(chset, tip_roundness, 0.18f);
+    }
+  }
   /* stuff for deform_target cloth mode*/
   ADDCH(cloth_use_collision);
   ADDCH(cloth_solve_bending);
@@ -1306,8 +1331,6 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
       ADDCH(wet_paint_radius_factor);
       ADDCH(wet_persistence);
       ADDCH(density);
-      ADDCH(tip_scale_x);
-      ADDCH(tip_roundness);
       ADDCH(flow);
       ADDCH(rate);
       ADDCH(blend);
@@ -1489,6 +1512,11 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
   SHOWWRK(hardness);
   SHOWWRK(dyntopo_disabled);
 
+  SHOWWRK(tip_roundness);
+  SHOWCTX(tip_roundness);
+  SHOWWRK(tip_scale_x);
+  SHOWCTX(tip_scale_x);
+
   switch (tool) {
     case SCULPT_TOOL_DRAW_SHARP:
       SHOWWRK(sharp_mode);
@@ -1555,7 +1583,6 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(area_radius_factor);
       SHOW_WRK_CTX(plane_offset);
       SHOW_WRK_CTX(plane_trim);
-      SHOWWRK(tip_roundness);
       SHOW_WRK_CTX(use_plane_trim);
 
       SHOWWRK(use_smoothed_rake);
@@ -1568,7 +1595,6 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(area_radius_factor);
       SHOWWRK(plane_offset);
       SHOWWRK(plane_trim);
-      SHOWWRK(tip_roundness);
       SHOWWRK(use_plane_trim);
 
       SHOWCTX(autosmooth);
@@ -1661,10 +1687,8 @@ void BKE_brush_channelset_ui_init(Brush *brush, int tool)
       SHOWWRK(wet_paint_radius_factor);
       SHOWWRK(wet_persistence);
       SHOWWRK(density);
-      SHOWWRK(tip_scale_x);
       SHOWWRK(hardness);
       SHOWWRK(wet_mix);
-      SHOWWRK(tip_roundness);
       SHOWWRK(flow);
       SHOWWRK(rate);
       SHOWALL(blend);

@@ -128,6 +128,7 @@ typedef struct PBVHGPUFormat {
 } PBVHGPUFormat;
 
 static PBVHGPUFormat g_vbo_id = {{0}};
+bool pbvh_show_orig_co = false;
 
 static int gpu_pbvh_make_attr_offs(AttributeDomainMask domain_mask,
                                    CustomDataMask type_mask,
@@ -253,7 +254,8 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const int face_sets_color_seed,
                                   const int face_sets_color_default,
                                   const int update_flags,
-                                  const float (*vert_normals)[3])
+                                  const float (*vert_normals)[3],
+                                  MSculptVert *sverts)
 {
   GPUAttrRef vcol_refs[MAX_GPU_ATTR];
   GPUAttrRef cd_uvs[MAX_GPU_ATTR];
@@ -297,183 +299,187 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
   bool empty_mask = true;
   bool default_face_set = true;
 
-  {
-    const int totelem = buffers->tot_tri * 3;
+  const int totelem = buffers->tot_tri * 3;
 
-    /* Build VBO */
-    if (gpu_pbvh_vert_buf_data_set(buffers, totelem)) {
-      GPUVertBufRaw pos_step = {0};
-      GPUVertBufRaw nor_step = {0};
-      GPUVertBufRaw msk_step = {0};
-      GPUVertBufRaw fset_step = {0};
-      GPUVertBufRaw col_step = {0};
-      GPUVertBufRaw uv_step = {0};
+  /* Build VBO */
+  if (gpu_pbvh_vert_buf_data_set(buffers, totelem)) {
+    GPUVertBufRaw pos_step = {0};
+    GPUVertBufRaw nor_step = {0};
+    GPUVertBufRaw msk_step = {0};
+    GPUVertBufRaw fset_step = {0};
+    GPUVertBufRaw col_step = {0};
+    GPUVertBufRaw uv_step = {0};
 
-      GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.pos, &pos_step);
-      GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.nor, &nor_step);
-      GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.msk, &msk_step);
-      GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.fset, &fset_step);
+    GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.pos, &pos_step);
+    GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.nor, &nor_step);
+    GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.msk, &msk_step);
+    GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.fset, &fset_step);
 
-      /* calculate normal for each polygon only once */
-      uint mpoly_prev = UINT_MAX;
-      short no[3] = {0, 0, 0};
+    /* calculate normal for each polygon only once */
+    uint mpoly_prev = UINT_MAX;
+    short no[3] = {0, 0, 0};
 
-      if (cd_uv_count > 0) {
-        for (int uv_i = 0; uv_i < cd_uv_count; uv_i++) {
-          GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.uv[uv_i], &uv_step);
+    if (cd_uv_count > 0) {
+      for (int uv_i = 0; uv_i < cd_uv_count; uv_i++) {
+        GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.uv[uv_i], &uv_step);
 
-          GPUAttrRef *ref = cd_uvs + uv_i;
-          CustomDataLayer *layer = ldata->layers + ref->layer_idx;
-          MLoopUV *muv = layer->data;
+        GPUAttrRef *ref = cd_uvs + uv_i;
+        CustomDataLayer *layer = ldata->layers + ref->layer_idx;
+        MLoopUV *muv = layer->data;
 
-          for (uint i = 0; i < buffers->face_indices_len; i++) {
-            const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
+        for (uint i = 0; i < buffers->face_indices_len; i++) {
+          const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
 
-            if (!gpu_pbvh_is_looptri_visible(lt, mvert, buffers->mloop, sculpt_face_sets)) {
-              continue;
-            }
-
-            for (uint j = 0; j < 3; j++) {
-              MLoopUV *muv2 = muv + lt->tri[j];
-
-              memcpy(GPU_vertbuf_raw_step(&uv_step), muv2->uv, sizeof(muv2->uv));
-            }
-          }
-        }
-      }
-
-      if (show_vcol) {
-        for (int col_i = 0; col_i < totcol; col_i++) {
-          GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.col[col_i], &col_step);
-
-          MPropCol *pcol = NULL;
-          MLoopCol *mcol = NULL;
-
-          GPUAttrRef *ref = vcol_refs + col_i;
-          const CustomData *cdata = ref->domain == ATTR_DOMAIN_POINT ? vdata : ldata;
-          CustomDataLayer *layer = cdata->layers + ref->layer_idx;
-
-          bool color_loops = ref->domain == ATTR_DOMAIN_CORNER;
-
-          if (layer->type == CD_PROP_COLOR) {
-            pcol = (MPropCol *)layer->data;
-          }
-          else {
-            mcol = (MLoopCol *)layer->data;
+          if (!gpu_pbvh_is_looptri_visible(lt, mvert, buffers->mloop, sculpt_face_sets)) {
+            continue;
           }
 
-          for (uint i = 0; i < buffers->face_indices_len; i++) {
-            const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
-            const uint vtri[3] = {
-                buffers->mloop[lt->tri[0]].v,
-                buffers->mloop[lt->tri[1]].v,
-                buffers->mloop[lt->tri[2]].v,
-            };
+          for (uint j = 0; j < 3; j++) {
+            MLoopUV *muv2 = muv + lt->tri[j];
 
-            if (!gpu_pbvh_is_looptri_visible(lt, mvert, buffers->mloop, sculpt_face_sets)) {
-              continue;
-            }
-
-            for (uint j = 0; j < 3; j++) {
-              /* Vertex Colors. */
-              if (show_vcol) {
-                ushort scol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
-                if (pcol) {
-                  if (color_loops) {
-                    scol[0] = unit_float_to_ushort_clamp(pcol[lt->tri[j]].color[0]);
-                    scol[1] = unit_float_to_ushort_clamp(pcol[lt->tri[j]].color[1]);
-                    scol[2] = unit_float_to_ushort_clamp(pcol[lt->tri[j]].color[2]);
-                    scol[3] = unit_float_to_ushort_clamp(pcol[lt->tri[j]].color[3]);
-                  }
-                  else {
-                    scol[0] = unit_float_to_ushort_clamp(pcol[vtri[j]].color[0]);
-                    scol[1] = unit_float_to_ushort_clamp(pcol[vtri[j]].color[1]);
-                    scol[2] = unit_float_to_ushort_clamp(pcol[vtri[j]].color[2]);
-                    scol[3] = unit_float_to_ushort_clamp(pcol[vtri[j]].color[3]);
-                  }
-
-                  memcpy(GPU_vertbuf_raw_step(&col_step), scol, sizeof(scol));
-                }
-                else if (mcol) {
-                  const uint loop_index = lt->tri[j];
-                  const MLoopCol *mcol2 = mcol + (color_loops ? loop_index : vtri[j]);
-
-                  scol[0] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol2->r]);
-                  scol[1] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol2->g]);
-                  scol[2] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol2->b]);
-                  scol[3] = unit_float_to_ushort_clamp(mcol2->a * (1.0f / 255.0f));
-                  memcpy(GPU_vertbuf_raw_step(&col_step), scol, sizeof(scol));
-                }
-              }
-            }
-          }
-        }
-      }
-
-      for (uint i = 0; i < buffers->face_indices_len; i++) {
-        const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
-        const uint vtri[3] = {
-            buffers->mloop[lt->tri[0]].v,
-            buffers->mloop[lt->tri[1]].v,
-            buffers->mloop[lt->tri[2]].v,
-        };
-
-        if (!gpu_pbvh_is_looptri_visible(lt, mvert, buffers->mloop, sculpt_face_sets)) {
-          continue;
-        }
-
-        /* Face normal and mask */
-        if (lt->poly != mpoly_prev && !buffers->smooth) {
-          const MPoly *mp = &buffers->mpoly[lt->poly];
-          float fno[3];
-          BKE_mesh_calc_poly_normal(mp, &buffers->mloop[mp->loopstart], mvert, fno);
-          normal_float_to_short_v3(no, fno);
-          mpoly_prev = lt->poly;
-        }
-
-        uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
-        if (show_face_sets) {
-          const int fset = abs(sculpt_face_sets[lt->poly]);
-          /* Skip for the default color Face Set to render it white. */
-          if (fset != face_sets_color_default) {
-            BKE_paint_face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
-            default_face_set = false;
-          }
-        }
-
-        float fmask = 0.0f;
-        uchar cmask = 0;
-        if (show_mask && !buffers->smooth) {
-          fmask = (vmask[vtri[0]] + vmask[vtri[1]] + vmask[vtri[2]]) / 3.0f;
-          cmask = (uchar)(fmask * 255);
-        }
-
-        for (uint j = 0; j < 3; j++) {
-          const MVert *v = &mvert[vtri[j]];
-          copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), v->co);
-
-          if (buffers->smooth) {
-            normal_float_to_short_v3(no, vert_normals[vtri[j]]);
-          }
-          copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), no);
-
-          if (show_mask && buffers->smooth) {
-            cmask = (uchar)(vmask[vtri[j]] * 255);
-          }
-
-          *(uchar *)GPU_vertbuf_raw_step(&msk_step) = cmask;
-          empty_mask = empty_mask && (cmask == 0);
-
-          if (!g_vbo_id.fast_mode) {
-            /* Face Sets. */
-            memcpy(GPU_vertbuf_raw_step(&fset_step), face_set_color, sizeof(uchar[3]));
+            memcpy(GPU_vertbuf_raw_step(&uv_step), muv2->uv, sizeof(muv2->uv));
           }
         }
       }
     }
 
-    gpu_pbvh_batch_init(buffers, GPU_PRIM_TRIS);
+    if (show_vcol) {
+      for (int col_i = 0; col_i < totcol; col_i++) {
+        GPU_vertbuf_attr_get_raw_data(buffers->vert_buf, g_vbo_id.col[col_i], &col_step);
+
+        MPropCol *pcol = NULL;
+        MLoopCol *mcol = NULL;
+
+        GPUAttrRef *ref = vcol_refs + col_i;
+        const CustomData *cdata = ref->domain == ATTR_DOMAIN_POINT ? vdata : ldata;
+        CustomDataLayer *layer = cdata->layers + ref->layer_idx;
+
+        bool color_loops = ref->domain == ATTR_DOMAIN_CORNER;
+
+        if (layer->type == CD_PROP_COLOR) {
+          pcol = (MPropCol *)layer->data;
+        }
+        else {
+          mcol = (MLoopCol *)layer->data;
+        }
+
+        for (uint i = 0; i < buffers->face_indices_len; i++) {
+          const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
+          const uint vtri[3] = {
+              buffers->mloop[lt->tri[0]].v,
+              buffers->mloop[lt->tri[1]].v,
+              buffers->mloop[lt->tri[2]].v,
+          };
+
+          if (!gpu_pbvh_is_looptri_visible(lt, mvert, buffers->mloop, sculpt_face_sets)) {
+            continue;
+          }
+
+          for (uint j = 0; j < 3; j++) {
+            /* Vertex Colors. */
+            if (show_vcol) {
+              ushort scol[4] = {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
+              if (pcol) {
+                if (color_loops) {
+                  scol[0] = unit_float_to_ushort_clamp(pcol[lt->tri[j]].color[0]);
+                  scol[1] = unit_float_to_ushort_clamp(pcol[lt->tri[j]].color[1]);
+                  scol[2] = unit_float_to_ushort_clamp(pcol[lt->tri[j]].color[2]);
+                  scol[3] = unit_float_to_ushort_clamp(pcol[lt->tri[j]].color[3]);
+                }
+                else {
+                  scol[0] = unit_float_to_ushort_clamp(pcol[vtri[j]].color[0]);
+                  scol[1] = unit_float_to_ushort_clamp(pcol[vtri[j]].color[1]);
+                  scol[2] = unit_float_to_ushort_clamp(pcol[vtri[j]].color[2]);
+                  scol[3] = unit_float_to_ushort_clamp(pcol[vtri[j]].color[3]);
+                }
+
+                memcpy(GPU_vertbuf_raw_step(&col_step), scol, sizeof(scol));
+              }
+              else if (mcol) {
+                const uint loop_index = lt->tri[j];
+                const MLoopCol *mcol2 = mcol + (color_loops ? loop_index : vtri[j]);
+
+                scol[0] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol2->r]);
+                scol[1] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol2->g]);
+                scol[2] = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol2->b]);
+                scol[3] = unit_float_to_ushort_clamp(mcol2->a * (1.0f / 255.0f));
+                memcpy(GPU_vertbuf_raw_step(&col_step), scol, sizeof(scol));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (uint i = 0; i < buffers->face_indices_len; i++) {
+      const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
+      const uint vtri[3] = {
+          buffers->mloop[lt->tri[0]].v,
+          buffers->mloop[lt->tri[1]].v,
+          buffers->mloop[lt->tri[2]].v,
+      };
+
+      if (!gpu_pbvh_is_looptri_visible(lt, mvert, buffers->mloop, sculpt_face_sets)) {
+        continue;
+      }
+
+      /* Face normal and mask */
+      if (lt->poly != mpoly_prev && !buffers->smooth) {
+        const MPoly *mp = &buffers->mpoly[lt->poly];
+        float fno[3];
+        BKE_mesh_calc_poly_normal(mp, &buffers->mloop[mp->loopstart], mvert, fno);
+        normal_float_to_short_v3(no, fno);
+        mpoly_prev = lt->poly;
+      }
+
+      uchar face_set_color[4] = {UCHAR_MAX, UCHAR_MAX, UCHAR_MAX, UCHAR_MAX};
+      if (show_face_sets) {
+        const int fset = abs(sculpt_face_sets[lt->poly]);
+        /* Skip for the default color Face Set to render it white. */
+        if (fset != face_sets_color_default) {
+          BKE_paint_face_set_overlay_color_get(fset, face_sets_color_seed, face_set_color);
+          default_face_set = false;
+        }
+      }
+
+      float fmask = 0.0f;
+      uchar cmask = 0;
+      if (show_mask && !buffers->smooth) {
+        fmask = (vmask[vtri[0]] + vmask[vtri[1]] + vmask[vtri[2]]) / 3.0f;
+        cmask = (uchar)(fmask * 255);
+      }
+
+      for (uint j = 0; j < 3; j++) {
+        const MVert *v = &mvert[vtri[j]];
+
+        if (pbvh_show_orig_co) {
+          copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), sverts[vtri[j]].origco);
+        }
+        else {
+          copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), v->co);
+        }
+
+        if (buffers->smooth) {
+          normal_float_to_short_v3(no, vert_normals[vtri[j]]);
+        }
+        copy_v3_v3_short(GPU_vertbuf_raw_step(&nor_step), no);
+
+        if (show_mask && buffers->smooth) {
+          cmask = (uchar)(vmask[vtri[j]] * 255);
+        }
+
+        *(uchar *)GPU_vertbuf_raw_step(&msk_step) = cmask;
+        empty_mask = empty_mask && (cmask == 0);
+
+        if (!g_vbo_id.fast_mode) {
+          /* Face Sets. */
+          memcpy(GPU_vertbuf_raw_step(&fset_step), face_set_color, sizeof(uchar[3]));
+        }
+      }
+    }
   }
+
+  gpu_pbvh_batch_init(buffers, GPU_PRIM_TRIS);
 
   /* Get material index from the first face of this buffer. */
   const MLoopTri *lt = &buffers->looptri[buffers->face_indices[0]];
@@ -948,7 +954,6 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hid
  * \{ */
 
 static int debug_pass = 0;
-bool pbvh_show_orig_co = false;
 
 static void gpu_bmesh_get_vcol(BMVert *v, BMLoop *l, const GPUAttrRef *ref, float color[4])
 {

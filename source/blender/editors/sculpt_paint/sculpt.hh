@@ -229,7 +229,7 @@ typedef float (*SculptBrushTestFn)(SculptBrushTest *test, float *co);
 typedef bool (*BKE_pbvh_SearchCallback)(PBVHNode *node, void *data);
 void BKE_pbvh_search_gather(
     PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***array, int *tot);
-SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(struct SculptSession *ss,
+SculptBrushTestFn SCULPT_brush_test_init(struct SculptSession *ss,
                                                             SculptBrushTest *test,
                                                             char falloff_shape);
 bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v);
@@ -747,7 +747,7 @@ class BMeshPBVH {
 
     if (!args->test) {
       args->test = &default_test;
-      args->test_func = SCULPT_brush_test_init_with_falloff_shape(
+      args->test_func = SCULPT_brush_test_init(
           _ss, &default_test, /*args->brush->falloff_shape*/ 0);
     }
 
@@ -859,7 +859,7 @@ class SculptImpl {
     BKE_curvemapping_init(brush->curve);
 
     SculptBrushTest test;
-    SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+    SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
         ss, &test, ss->cache->brush->falloff_shape);
 
     /*

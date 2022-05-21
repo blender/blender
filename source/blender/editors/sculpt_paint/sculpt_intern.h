@@ -444,6 +444,11 @@ typedef struct SculptBrushTest {
   int radial_symmetry_pass;
   float symm_rot_mat_inv[4][4];
 
+  float tip_roundness;
+  float tip_scale_x;
+
+  float cube_matrix[4][4];
+
   /* For circle (not sphere) projection. */
   float plane_view[4];
 
@@ -604,6 +609,8 @@ typedef struct StrokeCache {
   float sculpt_normal[3];
   float sculpt_normal_symm[3];
 
+  float cached_area_normal[3];
+
   /* Used for area texture mode, local_mat gets calculated by
    * calc_brush_local_mat() and used in tex_strength(). */
   float brush_local_mat[4][4];
@@ -692,6 +699,8 @@ typedef struct StrokeCache {
 
   float stroke_distance;    // copy of PaintStroke->stroke_distance
   float stroke_distance_t;  // copy of PaintStroke->stroke_distance_t
+  float stroke_spacing_t;
+  float last_stroke_distance_t;
 
   float last_dyntopo_t;
   float last_smooth_t[SCULPT_MAX_SYMMETRY_PASSES];
@@ -715,9 +724,10 @@ typedef struct StrokeCache {
   int tool_override;
   BrushChannelSet *tool_override_channels;
 
-  float mouse_cubic[4][2];
+  float mouse_cubic[4][3];
   float world_cubic[4][3];
   float world_cubic_arclength;
+  float mouse_cubic_arclength;
   bool has_cubic;
 } StrokeCache;
 
@@ -1483,9 +1493,20 @@ void SCULPT_flip_quat_by_symm_area(float quat[4],
                                    const float pivot[3]);
 
 /**
- * Initialize a point-in-brush test
+ * Initialize a point-in-brush test with a given falloff shape.
+ *
+ * \param falloff_shape: #PAINT_FALLOFF_SHAPE_SPHERE, #PAINT_FALLOFF_SHAPE_TUBE or
+ * #PAINT_FALLOFF_SHAPE_NOOP \return The brush falloff function, or nullptr if falloff_shape was
+ * #PAINT_FALLOFF_SHAPE_NOOP
  */
-void SCULPT_brush_test_init(struct SculptSession *ss, SculptBrushTest *test);
+SculptBrushTestFn SCULPT_brush_test_init(const SculptSession *ss,
+                                         SculptBrushTest *test,
+                                         eBrushFalloffShape falloff_mode);
+SculptBrushTestFn SCULPT_brush_test_init_ex(const SculptSession *ss,
+                                            SculptBrushTest *test,
+                                            eBrushFalloffShape falloff_mode,
+                                            float tip_roundness,
+                                            float tip_scale_x);
 
 bool SCULPT_brush_test_sphere(SculptBrushTest *test, const float co[3]);
 bool SCULPT_brush_test_sphere_sq(SculptBrushTest *test, const float co[3]);
@@ -1493,7 +1514,8 @@ bool SCULPT_brush_test_sphere_fast(const SculptBrushTest *test, const float co[3
 bool SCULPT_brush_test_cube(SculptBrushTest *test,
                             const float co[3],
                             const float local[4][4],
-                            float roundness);
+                            float roundness,
+                            bool test_z);
 bool SCULPT_brush_test_circle_sq(SculptBrushTest *test, const float co[3]);
 /**
  * Test AABB against sphere.
@@ -1504,15 +1526,6 @@ bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v);
  */
 bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v);
 
-/**
- * Initialize a point-in-brush test with a given falloff shape.
- *
- * \param falloff_shape: #PAINT_FALLOFF_SHAPE_SPHERE or #PAINT_FALLOFF_SHAPE_TUBE.
- * \return The brush falloff function.
- */
-SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
-                                                            SculptBrushTest *test,
-                                                            char falloff_shape);
 const float *SCULPT_brush_frontface_normal_from_falloff_shape(SculptSession *ss,
                                                               char falloff_shape);
 
@@ -2602,6 +2615,7 @@ void SCULPT_dyntopo_automasking_end(void *mask_data);
 #define BOUNDARY_SMOOTH_EXP 2.0
 
 #define SCULPT_TOOL_NEEDS_COLOR(tool) ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)
+bool SCULPT_needs_area_normal(SculptSession *ss, Sculpt *sd, Brush *brush);
 
 #ifdef __cplusplus
 }

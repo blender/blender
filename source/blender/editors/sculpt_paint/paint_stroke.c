@@ -35,6 +35,7 @@
 #include "GPU_state.h"
 
 #include "ED_screen.h"
+#include "ED_space_api.h"
 #include "ED_view3d.h"
 
 #include "IMB_imbuf_types.h"
@@ -49,6 +50,89 @@
 
 #ifdef DEBUG_TIME
 #  include "PIL_time_utildefines.h"
+#endif
+
+static void paint_stroke_add_sample(
+    const Paint *paint, PaintStroke *stroke, float x, float y, float pressure);
+
+#define DRAW_DEBUG_VIS
+
+#ifdef DRAW_DEBUG_VIS
+static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *userdata)
+{
+  PaintStroke *stroke = userdata;
+
+  if (!stroke->num_samples) {
+    return;
+  }
+
+  GPU_line_smooth(true);
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+  immUniformColor4ub(0, 0, 0, 155);
+
+  GPU_point_size(12);
+
+  immBegin(GPU_PRIM_LINES, 6);
+  immVertex2f(pos, stroke->mouse_cubic[0][0], stroke->mouse_cubic[0][1]);
+  immVertex2f(pos, stroke->mouse_cubic[1][0], stroke->mouse_cubic[1][1]);
+
+  immVertex2f(pos, stroke->mouse_cubic[1][0], stroke->mouse_cubic[1][1]);
+  immVertex2f(pos, stroke->mouse_cubic[2][0], stroke->mouse_cubic[2][1]);
+
+  immVertex2f(pos, stroke->mouse_cubic[2][0], stroke->mouse_cubic[2][1]);
+  immVertex2f(pos, stroke->mouse_cubic[3][0], stroke->mouse_cubic[3][1]);
+
+  immEnd();
+
+  immBegin(GPU_PRIM_POINTS, 2);
+  immVertex2f(pos, stroke->mouse_cubic[0][0], stroke->mouse_cubic[0][1]);
+  // immVertex2f(pos, stroke->mouse_cubic[1][0], stroke->mouse_cubic[1][1]);
+  // immVertex2f(pos, stroke->mouse_cubic[2][0], stroke->mouse_cubic[2][1]);
+  immVertex2f(pos, stroke->mouse_cubic[3][0], stroke->mouse_cubic[3][1]);
+  immEnd();
+
+  immUniformColor4ub(255, 0, 0, 155);
+
+  GPU_point_size(8);
+
+  for (int i = 0; i < 2; i++) {
+    if (i) {
+      if (stroke->num_samples < 2) {
+        break;
+      }
+
+      immBegin(GPU_PRIM_LINES, (stroke->num_samples - 1) * 2);
+    }
+    else {
+      immBegin(GPU_PRIM_POINTS, stroke->num_samples);
+    }
+
+    for (int j = 0; j < stroke->num_samples; j++) {
+      int j2 = (j + stroke->cur_sample) % stroke->num_samples;
+      immVertex2f(pos, stroke->samples[j2].mouse[0], stroke->samples[j2].mouse[1]);
+
+      if (i && j < stroke->num_samples - 1) {
+        int j3 = (j + stroke->cur_sample + 1) % stroke->num_samples;
+        immVertex2f(pos, stroke->samples[j3].mouse[0], stroke->samples[j3].mouse[1]);
+      }
+    }
+
+    immEnd();
+  }
+
+  immUniformColor4ub(0, 0, 255, 155);
+  immBegin(GPU_PRIM_POINTS, 1);
+  immVertex2fv(pos, stroke->samples[stroke->cur_sample].mouse);
+  immEnd();
+
+  immUnbindProgram();
+
+  GPU_blend(GPU_BLEND_NONE);
+  GPU_line_smooth(false);
+}
 #endif
 
 /*** Cursors ***/
@@ -203,6 +287,58 @@ static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode m
   }
 
   return true;
+}
+
+static void paint_brush_make_cubic(PaintStroke *stroke)
+{
+  float a[2], b[2], c[2], d[2];
+
+  int ia = (stroke->cur_sample - 3 + stroke->num_samples) % stroke->num_samples;
+  int id = (stroke->cur_sample - 2 + stroke->num_samples) % stroke->num_samples;
+
+  int ib = (stroke->cur_sample - 4 + stroke->num_samples) % stroke->num_samples;
+  int ic = (stroke->cur_sample - 1 + stroke->num_samples) % stroke->num_samples;
+
+  copy_v2_v2(a, stroke->samples[ia].mouse);
+  copy_v2_v2(b, stroke->samples[ib].mouse);
+  copy_v2_v2(c, stroke->samples[ic].mouse);
+  copy_v2_v2(d, stroke->samples[id].mouse);
+
+  float tmp[2];
+#if 1
+  sub_v2_v2v2(tmp, d, a);
+  sub_v2_v2v2(b, a, b);
+  interp_v2_v2v2(b, b, tmp, 0.5f);
+  mul_v2_fl(b, 1.0f / 3.0f);
+#else
+  zero_v2(b);
+#endif
+
+  add_v2_v2(b, a);
+
+#if 1
+  sub_v2_v2v2(tmp, a, d);
+  sub_v2_v2v2(c, d, c);
+  interp_v2_v2v2(c, c, tmp, 0.5f);
+  mul_v2_fl(c, 1.0f / 3.0f);
+#else
+  zero_v2(c);
+#endif
+
+  add_v2_v2(c, d);
+
+  copy_v2_v2(stroke->mouse_cubic[0], a);
+  copy_v2_v2(stroke->mouse_cubic[1], b);
+  copy_v2_v2(stroke->mouse_cubic[2], c);
+  copy_v2_v2(stroke->mouse_cubic[3], d);
+
+#if 0
+    printf("\n");
+    printf("a: %.2f: %.2f\n", a[0], a[1]);
+    printf("b: %.2f: %.2f\n", b[0], b[1]);
+    printf("c: %.2f: %.2f\n", c[0], c[1]);
+    printf("d: %.2f: %.2f\n", d[0], d[1]);
+#endif
 }
 
 bool paint_stroke_apply_subspacing(struct PaintStroke *stroke,
@@ -461,8 +597,8 @@ static bool paint_stroke_use_jitter(ePaintMode mode, Brush *brush, bool invert)
 }
 
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
-ATTR_NO_OPT static void paint_brush_stroke_add_step(
-    bContext *C, wmOperator *op, PaintStroke *stroke, const float mouse_in[2], float pressure)
+static void paint_brush_stroke_add_step(
+    bContext *C, wmOperator *op, PaintStroke *stroke, const float mouse[2], float pressure)
 {
   Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -472,6 +608,37 @@ ATTR_NO_OPT static void paint_brush_stroke_add_step(
   float mouse_out[2];
   PointerRNA itemptr;
   float location[3];
+
+  const float *mouse_in;
+
+  if (stroke->has_cubic_stroke) {
+    paint_stroke_add_sample(paint, stroke, mouse[0], mouse[1], pressure);
+    paint_brush_make_cubic(stroke);
+  }
+
+  float mousetemp[2];
+
+  if (stroke->has_cubic_stroke) {
+    printf("\n");
+
+    for (int i = 0; i < stroke->num_samples; i++) {
+      PaintSample *sample = stroke->samples + ((stroke->cur_sample + i) % stroke->num_samples);
+      printf("%.2f %.2f\n", sample->mouse[0], sample->mouse[1]);
+    }
+
+    mouse_in = mousetemp;
+
+    PaintSample *sample1 = stroke->samples +
+                           ((stroke->cur_sample - 3 + stroke->num_samples) % stroke->num_samples);
+    PaintSample *sample2 = stroke->samples +
+                           ((stroke->cur_sample - 2 + stroke->num_samples) % stroke->num_samples);
+    interp_v2_v2v2(mousetemp, sample1->mouse, sample2->mouse, 0.5f);
+
+    // copy_v2_v2(mousetemp, sample1->mouse);
+  }
+  else {
+    mouse_in = mouse;
+  }
 
   stroke->stroke_sample_index++;
 
@@ -504,7 +671,8 @@ ATTR_NO_OPT static void paint_brush_stroke_add_step(
 
   /* copy last position -before- jittering, or space fill code
    * will create too many dabs */
-  copy_v2_v2(stroke->last_mouse_position, mouse_in);
+  copy_v2_v2(stroke->last_mouse_position, mouse);
+
   stroke->last_pressure2 = stroke->last_pressure;
   stroke->last_pressure = pressure;
 
@@ -537,6 +705,7 @@ ATTR_NO_OPT static void paint_brush_stroke_add_step(
   }
 
   bool is_location_is_set;
+
   ups->last_hit = paint_brush_update(
       C, brush, mode, stroke, mouse_in, mouse_out, pressure, location, &is_location_is_set);
   if (is_location_is_set) {
@@ -838,11 +1007,11 @@ static float paint_space_stroke_spacing_variable(bContext *C,
 
 /* For brushes with stroke spacing enabled, moves mouse in steps
  * towards the final mouse location. */
-ATTR_NO_OPT static int paint_space_stroke(bContext *C,
-                                          wmOperator *op,
-                                          PaintStroke *stroke,
-                                          const float final_mouse[2],
-                                          float final_pressure)
+static int paint_space_stroke(bContext *C,
+                              wmOperator *op,
+                              PaintStroke *stroke,
+                              const float final_mouse[2],
+                              float final_pressure)
 {
   const Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
@@ -910,18 +1079,24 @@ ATTR_NO_OPT static int paint_space_stroke(bContext *C,
 
       ups->overlap_factor = paint_stroke_integrate_overlap(stroke->brush,
                                                            spacing / no_pressure_spacing);
+      float real_spacing = spacing;
+      if (stroke->has_cubic_stroke) {
+        // paint_brush_make_cubic(stroke);
+        // real_spacing = bezier3_arclength_v2(stroke->mouse_cubic);
+      }
+
       if (use_scene_spacing) {
         float size = paint_space_get_final_size(C, scene, stroke, pressure, dpressure, length);
 
-        stroke->stroke_distance += stroke->ups->pixel_radius * spacing / size;
-        stroke->stroke_distance_t += spacing / size;
+        stroke->stroke_distance += stroke->ups->pixel_radius * real_spacing / size;
+        stroke->stroke_distance_t += real_spacing / size;
       }
       else {
-        stroke->stroke_distance += spacing / stroke->zoom_2d;
-        stroke->stroke_distance_t += (spacing / stroke->zoom_2d) / stroke->ups->pixel_radius;
+        stroke->stroke_distance += real_spacing / stroke->zoom_2d;
+        stroke->stroke_distance_t += (real_spacing / stroke->zoom_2d) / stroke->ups->pixel_radius;
       }
 
-      stroke->stroke_distance += spacing / stroke->zoom_2d;
+      stroke->stroke_distance += real_spacing / stroke->zoom_2d;
       paint_brush_stroke_add_step(C, op, stroke, mouse, pressure);
 
       length -= spacing;
@@ -940,14 +1115,14 @@ ATTR_NO_OPT static int paint_space_stroke(bContext *C,
 
 /**** Public API ****/
 
-ATTR_NO_OPT PaintStroke *paint_stroke_new(bContext *C,
-                                          wmOperator *op,
-                                          StrokeGetLocation get_location,
-                                          StrokeTestStart test_start,
-                                          StrokeUpdateStep update_step,
-                                          StrokeRedraw redraw,
-                                          StrokeDone done,
-                                          int event_type)
+PaintStroke *paint_stroke_new(bContext *C,
+                              wmOperator *op,
+                              StrokeGetLocation get_location,
+                              StrokeTestStart test_start,
+                              StrokeUpdateStep update_step,
+                              StrokeRedraw redraw,
+                              StrokeDone done,
+                              int event_type)
 {
   struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
@@ -957,8 +1132,14 @@ ATTR_NO_OPT PaintStroke *paint_stroke_new(bContext *C,
   Brush *br = stroke->brush = BKE_paint_brush(p);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
   float zoomx, zoomy;
+  ARegion *region = CTX_wm_region(C);
 
   ED_view3d_viewcontext_init(C, &stroke->vc, depsgraph);
+
+#ifdef DRAW_DEBUG_VIS
+  stroke->debug_draw_handle = ED_region_draw_cb_activate(
+      region->type, paint_brush_cubic_vis, stroke, REGION_DRAW_POST_PIXEL);
+#endif
 
   stroke->get_location = get_location;
   stroke->test_start = test_start;
@@ -1033,6 +1214,14 @@ void paint_stroke_free(bContext *C, wmOperator *UNUSED(op), PaintStroke *stroke)
   }
 
   BLI_freelistN(&stroke->line);
+
+  ARegion *region = CTX_wm_region(C);
+
+#ifdef DRAW_DEBUG_VIS
+  ED_region_draw_cb_exit(region->type, stroke->debug_draw_handle);
+#endif
+
+  ED_region_tag_redraw(region);
 
   MEM_SAFE_FREE(stroke);
 }
@@ -1206,15 +1395,22 @@ bool paint_stroke_has_cubic(const PaintStroke *stroke)
   return stroke->has_cubic_stroke;
 }
 
+static int paint_stroke_max_samples(const Paint *paint, PaintStroke *stroke)
+{
+  int max_samples = CLAMPIS(paint->num_input_samples, 1, PAINT_MAX_INPUT_SAMPLES);
+
+  if (stroke->has_cubic_stroke) {
+    max_samples = max_ii(max_samples, 6);
+  }
+
+  return max_samples;
+}
+
 static void paint_stroke_add_sample(
     const Paint *paint, PaintStroke *stroke, float x, float y, float pressure)
 {
   PaintSample *sample = &stroke->samples[stroke->cur_sample];
-  int max_samples = CLAMPIS(paint->num_input_samples, 1, PAINT_MAX_INPUT_SAMPLES);
-
-  if (stroke->has_cubic_stroke) {
-    max_samples = max_ii(max_samples, 5);
-  }
+  int max_samples = paint_stroke_max_samples(paint, stroke);
 
   sample->mouse[0] = x;
   sample->mouse[1] = y;
@@ -1434,10 +1630,6 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
           if (stroke->stroke_started) {
             paint_brush_stroke_add_step(C, op, stroke, data + 2 * j, 1.0);
 
-            if (stroke->has_cubic_stroke) {
-              paint_brush_stroke_add_step(C, op, stroke, data + 2 * j, 1.0);
-            }
-
             paint_line_strokes_spacing(
                 C, op, stroke, spacing, &length_residue, data + 2 * j, data + 2 * (j + 1));
           }
@@ -1490,10 +1682,7 @@ static void paint_stroke_line_constrain(PaintStroke *stroke, float mouse[2])
   }
 }
 
-ATTR_NO_OPT int paint_stroke_modal(bContext *C,
-                                   wmOperator *op,
-                                   const wmEvent *event,
-                                   PaintStroke **stroke_p)
+int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintStroke **stroke_p)
 {
   Paint *p = BKE_paint_get_active_from_context(C);
   ePaintMode mode = BKE_paintmode_get_active_from_context(C);
@@ -1524,52 +1713,25 @@ ATTR_NO_OPT int paint_stroke_modal(bContext *C,
     stroke->last_tablet_event_pressure = pressure;
   }
 
-  paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1], pressure);
-  paint_stroke_sample_average(stroke, &sample_average);
-
-  if (stroke->stroke_sample_index == 0) {
-    for (int i = 0; i < 3; i++) {
-      paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1], pressure);
-    }
+  if (!stroke->has_cubic_stroke) {
+    paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1], pressure);
+    paint_stroke_sample_average(stroke, &sample_average);
+  }
+  else {
+    sample_average.mouse[0] = (float)event->mval[0];
+    sample_average.mouse[1] = (float)event->mval[1];
+    sample_average.pressure = pressure;
   }
 
-  if (stroke->has_cubic_stroke) {
-    float a[2], b[2], c[2], d[2];
+  if (stroke->stroke_sample_index == 0) {
+    stroke->last_mouse_position[0] = event->mval[0];
+    stroke->last_mouse_position[1] = event->mval[1];
 
-    int ia = (stroke->cur_sample - 3 + stroke->num_samples) % stroke->num_samples;
-    int id = (stroke->cur_sample - 1 + stroke->num_samples) % stroke->num_samples;
-    int ib = (stroke->cur_sample - 2 + stroke->num_samples) % stroke->num_samples;
-    int ic = (stroke->cur_sample - 0 + stroke->num_samples) % stroke->num_samples;
+    int max_samples = paint_stroke_max_samples(p, stroke);
 
-    copy_v2_v2(a, stroke->samples[ia].mouse);
-    copy_v2_v2(b, stroke->samples[ib].mouse);
-    copy_v2_v2(c, stroke->samples[ic].mouse);
-    copy_v2_v2(d, stroke->samples[id].mouse);
-
-    float tmp[3];
-
-    sub_v2_v2v2(tmp, d, a);
-    sub_v2_v2(b, a);
-    negate_v2(b);
-    interp_v2_v2v2(b, b, tmp, 0.5f);
-    add_v2_v2(b, a);
-
-    sub_v2_v2v2(tmp, d, a);
-    sub_v2_v2(c, d);
-    interp_v2_v2v2(c, c, tmp, 0.5f);
-    negate_v2(c);
-    add_v2_v2(c, d);
-
-    copy_v2_v2(stroke->mouse_cubic[0], a);
-    copy_v2_v2(stroke->mouse_cubic[1], b);
-    copy_v2_v2(stroke->mouse_cubic[2], c);
-    copy_v2_v2(stroke->mouse_cubic[3], d);
-
-    printf("\n");
-    printf("a: %.2f: %.2f\n", a[0], a[1]);
-    printf("b: %.2f: %.2f\n", b[0], b[1]);
-    printf("c: %.2f: %.2f\n", c[0], c[1]);
-    printf("d: %.2f: %.2f\n", d[0], d[1]);
+    for (int i = stroke->num_samples; i < max_samples; i++) {
+      paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1], pressure);
+    }
   }
 
   /* Tilt. */
@@ -1734,7 +1896,7 @@ ATTR_NO_OPT int paint_stroke_modal(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-ATTR_NO_OPT int paint_stroke_exec(bContext *C, wmOperator *op, PaintStroke *stroke)
+int paint_stroke_exec(bContext *C, wmOperator *op, PaintStroke *stroke)
 {
   /* only when executed for the first time */
   if (stroke->stroke_started == 0) {

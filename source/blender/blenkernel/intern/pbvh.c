@@ -25,6 +25,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
 #include "BKE_mesh_mapping.h"
 #include "BKE_object.h"
@@ -1543,7 +1544,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      pbvh->face_sets_color_seed,
                                      pbvh->face_sets_color_default,
                                      update_flags,
-                                     pbvh->vert_normals);
+                                     pbvh->vert_normals,
+                                     pbvh->mdyntopo_verts);
       } break;
       case PBVH_BMESH:
         if (BKE_pbvh_bmesh_check_tris(pbvh, node)) {
@@ -1644,7 +1646,8 @@ void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_update_draw_buffers(PBVH *pbvh, Mesh *me, PBVHNode **nodes, int totnode, int update_flag)
+static void pbvh_update_draw_buffers(
+    PBVH *pbvh, Mesh *me, PBVHNode **nodes, int totnode, int update_flag)
 {
 
   CustomData *vdata;
@@ -2098,7 +2101,8 @@ void BKE_pbvh_node_mark_original_update(PBVHNode *node)
 void BKE_pbvh_node_mark_update(PBVHNode *node)
 {
   node->flag |= PBVH_UpdateNormals | PBVH_UpdateBB | PBVH_UpdateOriginalBB |
-                PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_UpdateCurvatureDir | PBVH_RebuildPixels;
+                PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw | PBVH_UpdateCurvatureDir |
+                PBVH_RebuildPixels | PBVH_UpdateTriAreas;
 }
 
 void BKE_pbvh_node_mark_update_mask(PBVHNode *node)
@@ -2503,15 +2507,15 @@ bool ray_update_depth_and_hit_count(const float depth_test,
   return false;
 }
 
-float ray_face_intersection_depth_quad(const float ray_start[3],
-                                       struct IsectRayPrecalc *isect_precalc,
-                                       const float t0[3],
-                                       const float t1[3],
-                                       const float t2[3],
-                                       const float t3[3],
-                                       float *r_depth,
-                                       float *r_back_depth,
-                                       int *hit_count)
+bool ray_face_intersection_depth_quad(const float ray_start[3],
+                                      struct IsectRayPrecalc *isect_precalc,
+                                      const float t0[3],
+                                      const float t1[3],
+                                      const float t2[3],
+                                      const float t3[3],
+                                      float *r_depth,
+                                      float *r_back_depth,
+                                      int *hit_count)
 {
   float depth_test;
   if (!(isect_ray_tri_watertight_v3(ray_start, isect_precalc, t0, t1, t2, &depth_test, NULL) ||
@@ -4907,10 +4911,21 @@ void BKE_pbvh_clear_cache(PBVH *preserve)
   pbvh_clear_cached_pbvhs(NULL);
 }
 
+#define PBVH_CACHE_KEY_SIZE 1024
+
+static void pbvh_make_cached_key(Object *ob, char out[PBVH_CACHE_KEY_SIZE])
+{
+  sprintf(out, "%s:%p", ob->id.name, G.main);
+}
+
 void BKE_pbvh_invalidate_cache(Object *ob)
 {
   Object *ob_orig = DEG_get_original_object(ob);
-  PBVH *pbvh = BLI_ghash_lookup(cached_pbvhs, ob_orig->id.name);
+
+  char key[PBVH_CACHE_KEY_SIZE];
+  pbvh_make_cached_key(ob_orig, key);
+
+  PBVH *pbvh = BLI_ghash_lookup(cached_pbvhs, key);
 
   if (pbvh) {
     BKE_pbvh_cache_remove(pbvh);
@@ -4921,7 +4936,10 @@ PBVH *BKE_pbvh_get_or_free_cached(Object *ob, Mesh *me, PBVHType pbvh_type)
 {
   Object *ob_orig = DEG_get_original_object(ob);
 
-  PBVH *pbvh = BLI_ghash_lookup(cached_pbvhs, ob_orig->id.name);
+  char key[PBVH_CACHE_KEY_SIZE];
+  pbvh_make_cached_key(ob_orig, key);
+
+  PBVH *pbvh = BLI_ghash_lookup(cached_pbvhs, key);
 
   if (!pbvh) {
     return NULL;
@@ -4966,7 +4984,10 @@ void BKE_pbvh_set_cached(Object *ob, PBVH *pbvh)
 
   Object *ob_orig = DEG_get_original_object(ob);
 
-  PBVH *exist = BLI_ghash_lookup(cached_pbvhs, ob_orig->id.name);
+  char key[PBVH_CACHE_KEY_SIZE];
+  pbvh_make_cached_key(ob_orig, key);
+
+  PBVH *exist = BLI_ghash_lookup(cached_pbvhs, key);
 
   if (pbvh->invalid) {
     printf("pbvh invalid!");
@@ -4978,7 +4999,11 @@ void BKE_pbvh_set_cached(Object *ob, PBVH *pbvh)
 
   if (!exist || exist != pbvh) {
     pbvh_clear_cached_pbvhs(pbvh);
-    BLI_ghash_insert(cached_pbvhs, BLI_strdup(ob_orig->id.name), pbvh);
+
+    char key[PBVH_CACHE_KEY_SIZE];
+    pbvh_make_cached_key(ob_orig, key);
+
+    BLI_ghash_insert(cached_pbvhs, BLI_strdup(key), pbvh);
   }
 
   BKE_pbvh_cache(BKE_object_get_original_mesh(ob_orig), pbvh);

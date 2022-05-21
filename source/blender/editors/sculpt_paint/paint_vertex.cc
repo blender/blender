@@ -1979,8 +1979,8 @@ static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
   const bool use_vert_sel = (data->me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
+      ss, &test, (eBrushFalloffShape)data->brush->falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, data->brush->falloff_shape);
 
@@ -2080,8 +2080,8 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
   if (cache->is_last_valid && (normalize_v3(brush_dir) != 0.0f)) {
 
     SculptBrushTest test;
-    SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-        ss, &test, data->brush->falloff_shape);
+    SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
+        ss, &test, (eBrushFalloffShape)data->brush->falloff_shape);
     const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
         ss, data->brush->falloff_shape);
 
@@ -2191,8 +2191,8 @@ static void do_wpaint_brush_draw_task_cb_ex(void *__restrict userdata,
   const bool use_vert_sel = (data->me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
+      ss, &test, (eBrushFalloffShape)data->brush->falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, data->brush->falloff_shape);
 
@@ -2258,8 +2258,8 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(
   accum->value = 0.0;
 
   SculptBrushTest test;
-  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-      ss, &test, data->brush->falloff_shape);
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
+      ss, &test, (eBrushFalloffShape)data->brush->falloff_shape);
   const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
       ss, data->brush->falloff_shape);
 
@@ -3054,8 +3054,8 @@ static void do_vpaint_brush_blur_loops(bContext *C,
       const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
       SculptBrushTest test;
-      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-          ss, &test, brush->falloff_shape);
+      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
+          ss, &test, (eBrushFalloffShape)brush->falloff_shape);
       const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
           ss, brush->falloff_shape);
 
@@ -3201,8 +3201,8 @@ static void do_vpaint_brush_blur_verts(bContext *C,
       const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
       SculptBrushTest test;
-      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-          ss, &test, brush->falloff_shape);
+      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
+          ss, &test, (eBrushFalloffShape)brush->falloff_shape);
       const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
           ss, brush->falloff_shape);
 
@@ -3357,8 +3357,8 @@ static void do_vpaint_brush_smear(bContext *C,
       if (cache->is_last_valid && (normalize_v3(brush_dir) != 0.0f)) {
 
         SculptBrushTest test;
-        SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-            ss, &test, brush->falloff_shape);
+        SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
+            ss, &test, (eBrushFalloffShape)brush->falloff_shape);
         const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
             ss, brush->falloff_shape);
 
@@ -3523,8 +3523,8 @@ static void calculate_average_color(VPaintData<Color, Traits, domain> *vpd,
       memset(accum2->value, 0, sizeof(accum2->value));
 
       SculptBrushTest test;
-      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-          ss, &test, brush->falloff_shape);
+      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
+          ss, &test, (eBrushFalloffShape)brush->falloff_shape);
 
       /* For each vertex */
       PBVHVertexIter vd;
@@ -3641,8 +3641,8 @@ static void vpaint_do_draw(bContext *C,
       const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
       SculptBrushTest test;
-      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-          ss, &test, brush->falloff_shape);
+      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init(
+          ss, &test, (eBrushFalloffShape)brush->falloff_shape);
       const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
           ss, brush->falloff_shape);
 
