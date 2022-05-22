@@ -73,7 +73,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case GEO_NODE_CURVE_RESAMPLE_LENGTH: {
-      Field<int> length = params.extract_input<Field<float>>("Length");
+      Field<float> length = params.extract_input<Field<float>>("Length");
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const CurveComponent *component = geometry.get_component_for_read<CurveComponent>()) {
           if (!component->is_empty()) {
