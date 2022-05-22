@@ -67,9 +67,6 @@ import warnings
 
 from textwrap import indent
 
-from platform import platform
-PLATFORM = platform().split('-')[0].lower()  # 'linux', 'darwin', 'windows'
-
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 # For now, ignore add-ons and internal sub-classes of `bpy.types.PropertyGroup`.
@@ -298,7 +295,7 @@ else:
     del fnmatch
 
     BPY_LOGGER.debug(
-        "Partial Doc Build, Skipping: %s\n" %
+        "Partial Doc Build, Skipping: %s\n",
         "\n                             ".join(sorted(EXCLUDE_MODULES)))
 
     #
@@ -344,10 +341,7 @@ EXTRA_SOURCE_FILES = (
 
 # examples
 EXAMPLES_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "examples"))
-EXAMPLE_SET = set()
-for f in os.listdir(EXAMPLES_DIR):
-    if f.endswith(".py"):
-        EXAMPLE_SET.add(os.path.splitext(f)[0])
+EXAMPLE_SET = set(os.path.splitext(f)[0] for f in os.listdir(EXAMPLES_DIR) if f.endswith(".py"))
 EXAMPLE_SET_USED = set()
 
 # RST files directory.
@@ -517,6 +511,12 @@ def import_value_from_module(module_name, import_name):
     return ns["value"]
 
 
+def execfile(filepath):
+    global_namespace = {"__file__": filepath, "__name__": "__main__"}
+    with open(filepath) as file_handle:
+        exec(compile(file_handle.read(), filepath, 'exec'), global_namespace)
+
+
 def escape_rst(text):
     """
     Escape plain text which may contain characters used by RST.
@@ -533,10 +533,15 @@ escape_rst.trans = str.maketrans({
 
 
 def is_struct_seq(value):
-    return isinstance(value, tuple) and type(tuple) != tuple and hasattr(value, "n_fields")
+    return isinstance(value, tuple) and type(value) != tuple and hasattr(value, "n_fields")
 
 
 def undocumented_message(module_name, type_name, identifier):
+    BPY_LOGGER.debug(
+        "Undocumented: module %s, type: %s, id: %s is not documented",
+        module_name, type_name, identifier,
+    )
+
     return "Undocumented, consider `contributing <https://developer.blender.org/T51061>`__."
 
 
@@ -577,8 +582,7 @@ def example_extract_docstring(filepath):
         line_no += 1
         if line.startswith('"""'):
             break
-        else:
-            text.append(line.rstrip())
+        text.append(line.rstrip())
 
     line_no += 1
     line_no_has_content = False
@@ -629,7 +633,7 @@ def write_example_ref(ident, fw, example_id, ext="py"):
         EXAMPLE_SET_USED.add(example_id)
     else:
         if bpy.app.debug:
-            BPY_LOGGER.debug("\tskipping example: " + example_id)
+            BPY_LOGGER.debug("\tskipping example: %s", example_id)
 
     # Support for numbered files `bpy.types.Operator` -> `bpy.types.Operator.1.py`.
     i = 1
@@ -972,7 +976,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
             write_indented_lines("   ", fw, "Constant value %s" % repr(value), False)
             fw("\n")
         else:
-            BPY_LOGGER.debug("\tnot documenting %s.%s of %r type" % (module_name, attribute, value_type.__name__))
+            BPY_LOGGER.debug("\tnot documenting %s.%s of %r type", (module_name, attribute, value_type.__name__))
             continue
 
         attribute_set.add(attribute)
@@ -1122,7 +1126,6 @@ context_type_map = {
     "selected_editable_keyframes": ("Keyframe", True),
     "selected_editable_objects": ("Object", True),
     "selected_editable_sequences": ("Sequence", True),
-    "selected_ids": ("ID", True),
     "selected_files": ("FileSelectEntry", True),
     "selected_ids": ("ID", True),
     "selected_nla_strips": ("NlaStrip", True),
@@ -1293,7 +1296,7 @@ def pyrna2sphinx(basepath):
     ``bpy.types`` and ``bpy.ops``.
     """
     # `structs, funcs, ops, props = rna_info.BuildRNAInfo()`
-    structs, funcs, ops, props = rna_info_BuildRNAInfo_cache()
+    structs, _funcs, ops, _props = rna_info_BuildRNAInfo_cache()
 
     if USE_ONLY_BUILTIN_RNA_TYPES:
         # Ignore properties that use non `bpy.types` properties.
@@ -1682,6 +1685,7 @@ def pyrna2sphinx(basepath):
         API_BASEURL_ADDON_CONTRIB = "https://developer.blender.org/diffusion/BAC"
 
         op_modules = {}
+        op = None
         for op in ops.values():
             op_modules.setdefault(op.module_name, []).append(op)
         del op
@@ -1824,13 +1828,6 @@ class PatchedPythonDomain(PythonDomain):
     fw("    app.add_domain(PatchedPythonDomain, override=True)\n\n")
 
     file.close()
-
-
-def execfile(filepath):
-    global_namespace = {"__file__": filepath, "__name__": "__main__"}
-    file_handle = open(filepath)
-    exec(compile(file_handle.read(), filepath, 'exec'), global_namespace)
-    file_handle.close()
 
 
 def write_rst_index(basepath):
@@ -2088,7 +2085,7 @@ def write_rst_importable_modules(basepath):
     # access such as `bpy.app.sdl` which doesn't seem useful since it hides more useful
     # module-like objects among library data access.
     importable_modules_parent_map = {}
-    for mod_name in importable_modules.keys():
+    for mod_name in importable_modules:  # Iterate over keys.
         if mod_name in EXCLUDE_MODULES:
             continue
         if "." in mod_name:
@@ -2107,7 +2104,7 @@ def copy_handwritten_rsts(basepath):
 
     # Info docs.
     if not EXCLUDE_INFO_DOCS:
-        for info, info_desc in INFO_DOCS:
+        for info, _info_desc in INFO_DOCS:
             shutil.copy2(os.path.join(RST_DIR, info), basepath)
 
     # TODO: put this docs in Blender's code and use import as per modules above.
@@ -2212,7 +2209,7 @@ def align_sphinx_in_to_sphinx_in_tmp(dir_src, dir_dst):
     # Remove deprecated files that have been removed.
     for f in sorted(sphinx_dst_files):
         if f not in sphinx_src_files:
-            BPY_LOGGER.debug("\tdeprecated: %s" % f)
+            BPY_LOGGER.debug("\tdeprecated: %s", f)
             f_dst = os.path.join(dir_dst, f)
             if os.path.isdir(f_dst):
                 shutil.rmtree(f_dst, True)
@@ -2233,7 +2230,7 @@ def align_sphinx_in_to_sphinx_in_tmp(dir_src, dir_dst):
                     do_copy = False
 
             if do_copy:
-                BPY_LOGGER.debug("\tupdating: %s" % f)
+                BPY_LOGGER.debug("\tupdating: %s", f)
                 shutil.copy(f_src, f_dst)
 
 
@@ -2255,10 +2252,7 @@ def refactor_sphinx_log(sphinx_logfile):
 
 def setup_monkey_patch():
     filepath = os.path.join(SCRIPT_DIR, "sphinx_doc_gen_monkeypatch.py")
-    global_namespace = {"__file__": filepath, "__name__": "__main__"}
-    file = open(filepath, 'rb')
-    exec(compile(file.read(), filepath, 'exec'), global_namespace)
-    file.close()
+    execfile(filepath)
 
 
 # Avoid adding too many changes here.
@@ -2346,10 +2340,10 @@ def main():
     # Report which example files weren't used.
     EXAMPLE_SET_UNUSED = EXAMPLE_SET - EXAMPLE_SET_USED
     if EXAMPLE_SET_UNUSED:
-        BPY_LOGGER.debug("\nUnused examples found in '%s'..." % EXAMPLES_DIR)
+        BPY_LOGGER.debug("\nUnused examples found in '%s'...", EXAMPLES_DIR)
         for f in sorted(EXAMPLE_SET_UNUSED):
-            BPY_LOGGER.debug("    %s.py" % f)
-        BPY_LOGGER.debug("  %d total\n" % len(EXAMPLE_SET_UNUSED))
+            BPY_LOGGER.debug("    %s.py", f)
+        BPY_LOGGER.debug("  %d total\n", len(EXAMPLE_SET_UNUSED))
 
     # Eventually, build the html docs.
     if ARGS.sphinx_build:
