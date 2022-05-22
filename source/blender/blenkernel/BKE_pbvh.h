@@ -357,7 +357,7 @@ void BKE_pbvh_update_sculpt_verts(PBVH *pbvh);
 
 /** update original data, only data whose r_** parameters are passed in will be updated*/
 bool BKE_pbvh_get_origvert(
-    PBVH *pbvh, SculptVertRef vertex, float **r_co, float **r_no, float **r_color);
+    PBVH *pbvh, SculptVertRef vertex, const float **r_co, float **r_no, float **r_color);
 
 /**
 checks if original data needs to be updated for v, and if so updates it.  Stroke_id

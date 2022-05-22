@@ -2642,6 +2642,8 @@ static void init_mdyntopo_layer_faces(SculptSession *ss, PBVH *pbvh, int totvert
 
     SculptVertRef vertex = {.i = i};
 
+    copy_v3_v3(mv->origco, ss->mvert[i].co);
+
     BKE_pbvh_update_vert_boundary_faces(ss->face_sets,
                                         ss->mvert,
                                         ss->medge,

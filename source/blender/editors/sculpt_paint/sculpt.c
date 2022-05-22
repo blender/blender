@@ -3262,7 +3262,7 @@ SculptBrushTestFn SCULPT_brush_test_init_ex(const SculptSession *ss,
     switch (falloff_mode) {
       case PAINT_FALLOFF_SHAPE_SPHERE:
         sculpt_brush_test_sq_fn = SCULPT_brush_test_cube_sq;
-
+        break;
       case PAINT_FALLOFF_SHAPE_TUBE:
         if (ss->cache) {
           plane_from_point_normal_v3(test->plane_view, test->location, ss->cache->view_normal);
@@ -3281,7 +3281,7 @@ SculptBrushTestFn SCULPT_brush_test_init_ex(const SculptSession *ss,
     switch (falloff_mode) {
       case PAINT_FALLOFF_SHAPE_SPHERE:
         sculpt_brush_test_sq_fn = SCULPT_brush_test_sphere_sq;
-
+        break;
       case PAINT_FALLOFF_SHAPE_TUBE:
         if (ss->cache) {
           plane_from_point_normal_v3(test->plane_view, test->location, ss->cache->view_normal);
@@ -5332,6 +5332,7 @@ static void get_nodes_undo(Sculpt *sd,
   BrushCommand *cmd = data->cmd;
   SculptSession *ss = ob->sculpt;
   float start_radius = ss->cache->radius;
+
   float radius_scale = 1.0f;
   const bool use_original = sculpt_tool_needs_original(cmd->tool) ? true : ss->cache->original;
 
@@ -5350,7 +5351,7 @@ static void get_nodes_undo(Sculpt *sd,
   else {
     /* With these options enabled not all required nodes are inside the original brush radius,
      * so the brush can produce artifacts in some situations. */
-    if (tool == SCULPT_TOOL_DRAW && brush->flag & BRUSH_ORIGINAL_NORMAL) {
+    if (brush->flag & BRUSH_ORIGINAL_NORMAL) {
       radius_scale = MAX2(radius_scale, 2.0f);
     }
     nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale, &totnode);
@@ -5965,6 +5966,7 @@ static void SCULPT_run_commandlist(Sculpt *sd,
     do_symmetrical_brush_actions(sd, ob, SCULPT_run_command, ups, paint_mode_settings, &data);
 
     sculpt_combine_proxies(sd, ob);
+    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateOriginalBB | PBVH_UpdateBB);
   }
 
   /*
@@ -6965,6 +6967,7 @@ static void sculpt_update_cache_invariants(
   if (SCULPT_TOOL_HAS_ACCUMULATE(SCULPT_get_tool(ss, brush))) {
     if (!(BRUSHSET_GET_INT(channels, accumulate, &ss->cache->input_mapping))) {
       cache->original = true;
+
       if (SCULPT_get_tool(ss, brush) == SCULPT_TOOL_DRAW_SHARP) {
         cache->original = false;
       }
@@ -7902,7 +7905,7 @@ bool SCULPT_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 
   ss = ob->sculpt;
   cache = ss->cache;
-  original = (cache) ? cache->original : false;
+  original = cache ? cache->original : false;
 
   const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 

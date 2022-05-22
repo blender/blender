@@ -5278,7 +5278,7 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
 }
 
 bool BKE_pbvh_get_origvert(
-    PBVH *pbvh, SculptVertRef vertex, float **r_co, float **r_no, float **r_color)
+    PBVH *pbvh, SculptVertRef vertex, const float **r_co, float **r_no, float **r_color)
 {
   MSculptVert *mv;
 

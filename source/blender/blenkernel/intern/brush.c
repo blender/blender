@@ -2816,13 +2816,13 @@ void BKE_brush_randomize_texture_coords(UnifiedPaintSettings *ups, bool mask)
   }
 }
 
-ATTR_NO_OPT float BKE_brush_curve_strength_ex(
+float BKE_brush_curve_strength_ex(
     int curve_preset, const CurveMapping *curve, float p, const float len, const bool invert)
 {
   float strength = 1.0f;
 
   if (p >= len) {
-    return 0;
+    return invert ? 0.0f : 1.0f;
   }
 
   p = p / len;
@@ -2876,12 +2876,8 @@ float BKE_brush_curve_strength(const Brush *br, float p, const float len)
     return 0.0f;
   }
 
-  /* Invert p to match behavior of master. */
-  if (br->curve_preset == BRUSH_CURVE_CUSTOM) {
-    p = len - p;
-  }
-
-  return BKE_brush_curve_strength_ex(br->curve_preset, br->curve, p, len, true);
+  return BKE_brush_curve_strength_ex(
+      br->curve_preset, br->curve, p, len, br->curve_preset != BRUSH_CURVE_CUSTOM);
 }
 
 float BKE_brush_curve_strength_clamped(const Brush *br, float p, const float len)

@@ -1379,7 +1379,7 @@ static void version_liboverride_rnacollections_insertion_animdata(ID *id)
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
-ATTR_NO_OPT void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
+void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   /* The #SCE_SNAP_SEQ flag has been removed in favor of the #SCE_SNAP which can be used for each
    * snap_flag member individually. */
