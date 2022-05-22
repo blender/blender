@@ -236,7 +236,7 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdi
                                      draw_subdiv_get_pos_nor_format(),
                                      subdiv_cache->num_subdiv_loops + loose_geom.loop_len);
 
-    draw_subdiv_extract_pos_nor(subdiv_cache, pos_nor);
+    draw_subdiv_extract_pos_nor(subdiv_cache, pos_nor, nullptr);
   }
 
   /* UVs are stored contiguously so we need to compute the offset in the UVs buffer for the active

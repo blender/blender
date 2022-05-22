@@ -52,6 +52,8 @@ class GpuEvalOutput : public VolatileEvalOutput<GLVertexBuffer,
 
   void wrapSrcBuffer(OpenSubdiv_Buffer *src_buffer) override;
 
+  void wrapSrcVertexDataBuffer(OpenSubdiv_Buffer *src_buffer) override;
+
   void fillFVarPatchArraysBuffer(const int face_varying_channel,
                                  OpenSubdiv_Buffer *patch_arrays_buffer) override;
 

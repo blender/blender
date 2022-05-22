@@ -191,6 +191,12 @@ void wrapSrcBuffer(struct OpenSubdiv_Evaluator *evaluator, struct OpenSubdiv_Buf
   evaluator->impl->eval_output->wrapSrcBuffer(src_buffer);
 }
 
+void wrapSrcVertexDataBuffer(struct OpenSubdiv_Evaluator *evaluator,
+                             struct OpenSubdiv_Buffer *src_buffer)
+{
+  evaluator->impl->eval_output->wrapSrcVertexDataBuffer(src_buffer);
+}
+
 void fillFVarPatchArraysBuffer(struct OpenSubdiv_Evaluator *evaluator,
                                const int face_varying_channel,
                                struct OpenSubdiv_Buffer *patch_array_buffer)
@@ -220,6 +226,11 @@ void wrapFVarSrcBuffer(struct OpenSubdiv_Evaluator *evaluator,
   evaluator->impl->eval_output->wrapFVarSrcBuffer(face_varying_channel, src_buffer);
 }
 
+bool hasVertexData(struct OpenSubdiv_Evaluator *evaluator)
+{
+  return evaluator->impl->eval_output->hasVertexData();
+}
+
 void assignFunctionPointers(OpenSubdiv_Evaluator *evaluator)
 {
   evaluator->setCoarsePositions = setCoarsePositions;
@@ -246,11 +257,14 @@ void assignFunctionPointers(OpenSubdiv_Evaluator *evaluator)
   evaluator->wrapPatchIndexBuffer = wrapPatchIndexBuffer;
   evaluator->wrapPatchParamBuffer = wrapPatchParamBuffer;
   evaluator->wrapSrcBuffer = wrapSrcBuffer;
+  evaluator->wrapSrcVertexDataBuffer = wrapSrcVertexDataBuffer;
 
   evaluator->fillFVarPatchArraysBuffer = fillFVarPatchArraysBuffer;
   evaluator->wrapFVarPatchIndexBuffer = wrapFVarPatchIndexBuffer;
   evaluator->wrapFVarPatchParamBuffer = wrapFVarPatchParamBuffer;
   evaluator->wrapFVarSrcBuffer = wrapFVarSrcBuffer;
+
+  evaluator->hasVertexData = hasVertexData;
 }
 
 }  // namespace

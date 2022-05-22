@@ -793,7 +793,12 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
   /* The order in which extractors are added to the list matters somewhat, as some buffers are
    * reused when building others. */
   EXTRACT_ADD_REQUESTED(ibo, tris);
-  EXTRACT_ADD_REQUESTED(vbo, pos_nor);
+
+  /* Orcos are extracted at the same time as positions. */
+  if (DRW_vbo_requested(mbuflist->vbo.pos_nor) || DRW_vbo_requested(mbuflist->vbo.orco)) {
+    extractors.append(&extract_pos_nor);
+  }
+
   EXTRACT_ADD_REQUESTED(vbo, lnor);
   for (int i = 0; i < GPU_MAX_ATTR; i++) {
     EXTRACT_ADD_REQUESTED(vbo, attr[i]);
@@ -843,7 +848,6 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
   EXTRACT_ADD_REQUESTED(vbo, edituv_stretch_angle);
   EXTRACT_ADD_REQUESTED(ibo, lines_paint_mask);
   EXTRACT_ADD_REQUESTED(ibo, lines_adjacency);
-  EXTRACT_ADD_REQUESTED(vbo, orco);
   EXTRACT_ADD_REQUESTED(vbo, vcol);
   EXTRACT_ADD_REQUESTED(vbo, weights);
   EXTRACT_ADD_REQUESTED(vbo, sculpt_data);

@@ -103,6 +103,10 @@ class EvalOutputAPI::EvalOutput {
   {
   }
 
+  virtual void wrapSrcVertexDataBuffer(OpenSubdiv_Buffer * /*src_buffer*/)
+  {
+  }
+
   virtual void fillFVarPatchArraysBuffer(const int /*face_varying_channel*/,
                                          OpenSubdiv_Buffer * /*patch_arrays_buffer*/)
   {
@@ -121,6 +125,11 @@ class EvalOutputAPI::EvalOutput {
   virtual void wrapFVarSrcBuffer(const int /*face_varying_channel*/,
                                  OpenSubdiv_Buffer * /*src_buffer*/)
   {
+  }
+
+  virtual bool hasVertexData() const
+  {
+    return false;
   }
 };
 
@@ -437,6 +446,11 @@ class VolatileEvalOutput : public EvalOutputAPI::EvalOutput {
     return face_varying_evaluators_.size() != 0;
   }
 
+  bool hasVertexData() const override
+  {
+    return src_vertex_data_ != nullptr;
+  }
+
   void refine() override
   {
     // Evaluate vertex positions.
@@ -597,6 +611,11 @@ class VolatileEvalOutput : public EvalOutputAPI::EvalOutput {
   SRC_VERTEX_BUFFER *getSrcBuffer() const
   {
     return src_data_;
+  }
+
+  SRC_VERTEX_BUFFER *getSrcVertexDataBuffer() const
+  {
+    return src_vertex_data_;
   }
 
   PATCH_TABLE *getPatchTable() const

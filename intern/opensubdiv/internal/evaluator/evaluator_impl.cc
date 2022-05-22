@@ -383,6 +383,11 @@ void EvalOutputAPI::wrapSrcBuffer(OpenSubdiv_Buffer *src_buffer)
   implementation_->wrapSrcBuffer(src_buffer);
 }
 
+void EvalOutputAPI::wrapSrcVertexDataBuffer(OpenSubdiv_Buffer *src_buffer)
+{
+  implementation_->wrapSrcVertexDataBuffer(src_buffer);
+}
+
 void EvalOutputAPI::fillFVarPatchArraysBuffer(const int face_varying_channel,
                                               OpenSubdiv_Buffer *patch_arrays_buffer)
 {
@@ -405,6 +410,11 @@ void EvalOutputAPI::wrapFVarSrcBuffer(const int face_varying_channel,
                                       OpenSubdiv_Buffer *src_buffer)
 {
   implementation_->wrapFVarSrcBuffer(face_varying_channel, src_buffer);
+}
+
+bool EvalOutputAPI::hasVertexData() const
+{
+  return implementation_->hasVertexData();
 }
 
 }  // namespace opensubdiv

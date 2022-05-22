@@ -201,7 +201,7 @@ static GPUVertFormat *get_custom_normals_format()
 
 static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                         const MeshRenderData *UNUSED(mr),
-                                        struct MeshBatchCache *UNUSED(cache),
+                                        struct MeshBatchCache *cache,
                                         void *buffer,
                                         void *UNUSED(data))
 {
@@ -216,7 +216,21 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
     return;
   }
 
-  draw_subdiv_extract_pos_nor(subdiv_cache, vbo);
+  GPUVertBuf *orco_vbo = cache->final.buff.vbo.orco;
+
+  if (orco_vbo) {
+    static GPUVertFormat format = {0};
+    if (format.attr_len == 0) {
+      /* FIXME(fclem): We use the last component as a way to differentiate from generic vertex
+       * attributes. This is a substantial waste of video-ram and should be done another way.
+       * Unfortunately, at the time of writing, I did not found any other "non disruptive"
+       * alternative. */
+      GPU_vertformat_attr_add(&format, "orco", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    }
+    GPU_vertbuf_init_build_on_device(orco_vbo, &format, subdiv_cache->num_subdiv_loops);
+  }
+
+  draw_subdiv_extract_pos_nor(subdiv_cache, vbo, orco_vbo);
 
   if (subdiv_cache->use_custom_loop_normals) {
     Mesh *coarse_mesh = subdiv_cache->mesh;
