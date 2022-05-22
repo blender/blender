@@ -12,6 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_array.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
@@ -1378,7 +1379,7 @@ static void version_liboverride_rnacollections_insertion_animdata(ID *id)
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
-void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
+ATTR_NO_OPT void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   /* The #SCE_SNAP_SEQ flag has been removed in favor of the #SCE_SNAP which can be used for each
    * snap_flag member individually. */
@@ -3220,6 +3221,52 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         }
       }
     }
+  }
+
+  if (MAIN_VERSION_ATLEAST(bmain, 303, 0) && !MAIN_VERSION_ATLEAST(bmain, 303, 1)) {
+    BrushChannelSet **sets = NULL;
+    BLI_array_declare(sets);
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->channels) {
+        BLI_array_append(sets, brush->channels);
+      }
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings && scene->toolsettings->sculpt &&
+          scene->toolsettings->sculpt->channels) {
+        BLI_array_append(sets, scene->toolsettings->sculpt->channels);
+      }
+    }
+
+    /* Fix inverted input curves. */
+    for (int i = 0; i < BLI_array_len(sets); i++) {
+      BrushChannelSet *chset = sets[i];
+      BrushChannel *ch;
+
+      for (ch = (BrushChannel *)chset->channels.first; ch; ch = ch->next) {
+        for (int j = 0; j < BRUSH_MAPPING_MAX; j++) {
+          BrushMapping *mp = ch->mappings + j;
+
+          if (!mp->mapping_curve.curve) {
+            continue;
+          }
+
+          BKE_brush_mapping_ensure_write(mp);
+
+          CurveMapping *curve = mp->mapping_curve.curve;
+
+          for (int k = 0; k < curve->cm->totpoint; k++) {
+            curve->cm->curve[k].x = 1.0f - curve->cm->curve[k].x;
+          }
+
+          BKE_curvemapping_changed(curve, false);
+        }
+      }
+    }
+
+    BLI_array_free(sets);
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 12)) {

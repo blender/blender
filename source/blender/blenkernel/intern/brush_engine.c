@@ -152,7 +152,7 @@ bool BKE_brush_mapping_ensure_write(BrushMapping *mp)
     BKE_curvemap_reset(curve->cm,
                        &(struct rctf){.xmin = 0.0f, .ymin = 0.0f, .xmax = 1.0f, .ymax = 1.0f},
                        CURVE_PRESET_LINE,
-                       CURVEMAP_SLOPE_NEGATIVE);
+                       CURVEMAP_SLOPE_POSITIVE);
 
     BKE_curvemapping_init(curve);
 
@@ -525,7 +525,7 @@ void BKE_brush_channel_init(BrushChannel *ch, BrushChannelType *def)
       BKE_curvemap_reset(mp->mapping_curve.curve->cm,
                          &(struct rctf){.xmin = 0.0f, .ymin = 0.0f, .xmax = 1.0f, .ymax = 1.0f},
                          mdef->curve,
-                         CURVEMAP_SLOPE_NEGATIVE);
+                         CURVEMAP_SLOPE_POSITIVE);
 
       BKE_curvemapping_init(mp->mapping_curve.curve);
 
@@ -590,7 +590,7 @@ float BKE_brush_channel_curve_evaluate(BrushChannel *ch, float val, const float 
 {
   BKE_brush_channel_curvemapping_get(&ch->curve, false);
 
-  return BKE_brush_curve_strength_ex(ch->curve.preset, ch->curve.curve, val, maxval);
+  return BKE_brush_curve_strength_ex(ch->curve.preset, ch->curve.curve, val, maxval, true);
 }
 
 BrushChannelSet *BKE_brush_channelset_create(const char *info)
@@ -1096,7 +1096,7 @@ double BKE_brush_channel_eval_mappings(BrushChannel *ch,
       }
 
       double f2 = BKE_brush_curve_strength_ex(
-          mp->mapping_curve.preset, mp->mapping_curve.curve, 1.0f - inputf, 1.0f);
+          mp->mapping_curve.preset, mp->mapping_curve.curve, inputf, 1.0f, false);
       f2 = mp->min + (mp->max - mp->min) * f2;
 
       /* make sure to update blend_items in rna_brush_engine.c
@@ -2052,16 +2052,6 @@ void BKE_brush_channelset_read(BlendDataReader *reader, BrushChannelSet *chset)
         /* Only convert curve if it's not linear. */
         if (!BKE_curvemapping_equals(mp->curve, &linear_curve)) {
           mp->mapping_curve.preset = BRUSH_CURVE_CUSTOM;
-
-          /* TODO: figure out why BKE_brush_curve_strength_ex inverts custom curves
-           * but not any other preset.
-           */
-          for (int i = 0; i < mp->curve->cm->totpoint; i++) {
-            mp->curve->cm->curve[i].x = 1.0f - mp->curve->cm->curve[i].x;
-          }
-
-          BKE_curvemapping_changed(mp->curve, false);
-
           mp->mapping_curve.curve = GET_CACHE_CURVE(mp->curve);
         }
         else {

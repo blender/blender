@@ -81,7 +81,7 @@ class BrushCurveIF {
     /* ensure that curve is in valid state */
     initCurve(false);
 
-    return BKE_brush_curve_strength_ex(_curve->preset, _curve->curve, f, maxval);
+    return BKE_brush_curve_strength_ex(_curve->preset, _curve->curve, f, maxval, true);
   }
 
   void initCurve(bool forceCreate = false)
@@ -297,7 +297,7 @@ template<typename T> class BrushChannelIF {
         }
 
         double f2 = BKE_brush_curve_strength_ex(
-            mp->mapping_curve.preset, mp->mapping_curve.curve, inputf, 1.0f);
+            mp->mapping_curve.preset, mp->mapping_curve.curve, inputf, 1.0f, false);
         f2 = mp->min + (mp->max - mp->min) * f2;
 
         /* make sure to update blend_items in rna_brush_engine.c

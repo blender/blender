@@ -2816,10 +2816,8 @@ void BKE_brush_randomize_texture_coords(UnifiedPaintSettings *ups, bool mask)
   }
 }
 
-float BKE_brush_curve_strength_ex(int curve_preset,
-                                  const CurveMapping *curve,
-                                  float p,
-                                  const float len)
+ATTR_NO_OPT float BKE_brush_curve_strength_ex(
+    int curve_preset, const CurveMapping *curve, float p, const float len, const bool invert)
 {
   float strength = 1.0f;
 
@@ -2828,11 +2826,14 @@ float BKE_brush_curve_strength_ex(int curve_preset,
   }
 
   p = p / len;
-  p = 1.0f - p;
+
+  if (invert) {
+    p = 1.0f - p;
+  }
 
   switch (curve_preset) {
     case BRUSH_CURVE_CUSTOM:
-      strength = BKE_curvemapping_evaluateF(curve, 0, 1.0f - p);
+      strength = BKE_curvemapping_evaluateF(curve, 0, p);
       break;
     case BRUSH_CURVE_SHARP:
       strength = p * p;
@@ -2866,10 +2867,21 @@ float BKE_brush_curve_strength_ex(int curve_preset,
   return strength;
 }
 
-/* Uses the brush curve control to find a strength value between 0 and 1 */
+/* DEPRECATED: use BKE_brush_curve_strength_ex for new code.
+ * Uses the brush curve control to find a strength value between 0 and 1
+ */
 float BKE_brush_curve_strength(const Brush *br, float p, const float len)
 {
-  return BKE_brush_curve_strength_ex(br->curve_preset, br->curve, p, len);
+  if (p >= len) {
+    return 0.0f;
+  }
+
+  /* Invert p to match behavior of master. */
+  if (br->curve_preset == BRUSH_CURVE_CUSTOM) {
+    p = len - p;
+  }
+
+  return BKE_brush_curve_strength_ex(br->curve_preset, br->curve, p, len, true);
 }
 
 float BKE_brush_curve_strength_clamped(const Brush *br, float p, const float len)

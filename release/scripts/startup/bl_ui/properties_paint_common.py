@@ -675,7 +675,7 @@ class UnifiedPaintPanel:
                         row = col.row(align=True)
 
                         if not header and mp.curve.curve_preset == "CUSTOM":
-                            template_curve(col, mp.curve, "curve", path2 + ".curve", use_negative_slope=False)                            
+                            template_curve(col, mp.curve, "curve", path2 + ".curve", use_negative_slope=True)                            
 
                         col.prop(mp, "factor")
                         col.prop(mp, "blendmode")
@@ -1146,7 +1146,7 @@ class FalloffPanel(BrushPanel):
             path += ".curve.curve"
 
             if ch.curve.curve_preset == "CUSTOM":
-                template_curve(layout, ch.curve, "curve", path, True)
+                template_curve(layout, ch.curve, "curve", path, False)
 
             UnifiedPaintPanel.channel_unified(layout, context, brush, "falloff_shape", expand=True)
             return
