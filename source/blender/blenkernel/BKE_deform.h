@@ -263,7 +263,9 @@ void BKE_defvert_extract_vgroup_to_polyweights(const struct MDeformVert *dvert,
 
 void BKE_defvert_weight_to_rgb(float r_rgb[3], float weight);
 
-void BKE_defvert_blend_write(struct BlendWriter *writer, int count, struct MDeformVert *dvlist);
+void BKE_defvert_blend_write(struct BlendWriter *writer,
+                             int count,
+                             const struct MDeformVert *dvlist);
 void BKE_defvert_blend_read(struct BlendDataReader *reader,
                             int count,
                             struct MDeformVert *mdverts);
