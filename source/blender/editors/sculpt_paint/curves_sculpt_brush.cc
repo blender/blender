@@ -95,6 +95,26 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
         for (const int curve_i : curves_range) {
           const IndexRange points = curves.points_for_curve(curve_i);
 
+          if (points.size() == 1) {
+            const float3 &pos_cu = positions[points.first()];
+
+            const float depth_sq_cu = math::distance_squared(ray_start_cu, pos_cu);
+            if (depth_sq_cu > max_depth_sq_cu) {
+              continue;
+            }
+
+            float2 pos_re;
+            ED_view3d_project_float_v2_m4(&region, pos_cu, pos_re, projection.values);
+
+            BrushPositionCandidate candidate;
+            candidate.position_cu = pos_cu;
+            candidate.depth_sq_cu = depth_sq_cu;
+            candidate.distance_sq_re = math::distance_squared(brush_pos_re, pos_re);
+
+            update_if_better(best_candidate, candidate);
+            continue;
+          }
+
           for (const int segment_i : points.drop_back(1)) {
             const float3 &p1_cu = positions[segment_i];
             const float3 &p2_cu = positions[segment_i + 1];

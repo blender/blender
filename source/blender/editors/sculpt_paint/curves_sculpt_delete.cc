@@ -163,6 +163,17 @@ struct DeleteOperationExecutor {
     threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
       for (const int curve_i : curve_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
+        if (points.size() == 1) {
+          const float3 pos_cu = brush_transform_inv * positions_cu[points.first()];
+          float2 pos_re;
+          ED_view3d_project_float_v2_m4(region_, pos_cu, pos_re, projection.values);
+
+          if (math::distance_squared(brush_pos_re_, pos_re) <= brush_radius_sq_re) {
+            curves_to_delete[curve_i] = true;
+          }
+          continue;
+        }
+
         for (const int segment_i : points.drop_back(1)) {
           const float3 pos1_cu = brush_transform_inv * positions_cu[segment_i];
           const float3 pos2_cu = brush_transform_inv * positions_cu[segment_i + 1];
@@ -213,6 +224,16 @@ struct DeleteOperationExecutor {
     threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
       for (const int curve_i : curve_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
+
+        if (points.size() == 1) {
+          const float3 &pos_cu = positions_cu[points.first()];
+          const float distance_sq_cu = math::distance_squared(pos_cu, brush_cu);
+          if (distance_sq_cu < brush_radius_sq_cu) {
+            curves_to_delete[curve_i] = true;
+          }
+          continue;
+        }
+
         for (const int segment_i : points.drop_back(1)) {
           const float3 &pos1_cu = positions_cu[segment_i];
           const float3 &pos2_cu = positions_cu[segment_i + 1];
