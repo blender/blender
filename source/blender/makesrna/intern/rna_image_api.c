@@ -156,6 +156,7 @@ static void rna_Image_update(Image *image, ReportList *reports)
   }
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+  BKE_image_partial_update_mark_full_update(image);
 
   BKE_image_release_ibuf(image, ibuf, NULL);
 }
