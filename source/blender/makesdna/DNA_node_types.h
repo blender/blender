@@ -610,6 +610,8 @@ typedef enum eNodeTreeExecutionMode {
 typedef enum eNodeTreeRuntimeFlag {
   /** There is a node that references an image with animation. */
   NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION = 1 << 0,
+  /** There is a material output node in the group. */
+  NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT = 1 << 1,
 } eNodeTreeRuntimeFlag;
 
 /* socket value structs for input buttons
