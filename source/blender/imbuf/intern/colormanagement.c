@@ -1412,6 +1412,12 @@ bool IMB_colormanagement_space_name_is_scene_linear(const char *name)
   return (colorspace && IMB_colormanagement_space_is_scene_linear(colorspace));
 }
 
+bool IMB_colormanagement_space_name_is_srgb(const char *name)
+{
+  ColorSpace *colorspace = colormanage_colorspace_get_named(name);
+  return (colorspace && IMB_colormanagement_space_is_srgb(colorspace));
+}
+
 const float *IMB_colormanagement_get_xyz_to_rgb()
 {
   return &imbuf_xyz_to_rgb[0][0];
