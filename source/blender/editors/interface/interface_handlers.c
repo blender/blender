@@ -542,7 +542,7 @@ static bool but_copypaste_profile_alive = false;
 
 bool ui_but_is_editing(const uiBut *but)
 {
-  uiHandleButtonData *data = but->active;
+  const uiHandleButtonData *data = but->active;
   return (data && ELEM(data->state, BUTTON_STATE_TEXT_EDITING, BUTTON_STATE_NUM_EDITING));
 }
 
@@ -660,21 +660,23 @@ static bool ui_but_dragedit_update_mval(uiHandleButtonData *data, int mx)
 static bool ui_rna_is_userdef(PointerRNA *ptr, PropertyRNA *prop)
 {
   /* Not very elegant, but ensures preference changes force re-save. */
-  bool tag = false;
-  if (prop && !(RNA_property_flag(prop) & PROP_NO_DEG_UPDATE)) {
-    StructRNA *base = RNA_struct_base(ptr->type);
-    if (base == NULL) {
-      base = ptr->type;
-    }
-    if (ELEM(base,
-             &RNA_AddonPreferences,
-             &RNA_KeyConfigPreferences,
-             &RNA_KeyMapItem,
-             &RNA_UserAssetLibrary)) {
-      tag = true;
-    }
+
+  if (!prop) {
+    return false;
   }
-  return tag;
+  if (RNA_property_flag(prop) & PROP_NO_DEG_UPDATE) {
+    return false;
+  }
+
+  StructRNA *base = RNA_struct_base(ptr->type);
+  if (base == NULL) {
+    base = ptr->type;
+  }
+  return ELEM(base,
+              &RNA_AddonPreferences,
+              &RNA_KeyConfigPreferences,
+              &RNA_KeyMapItem,
+              &RNA_UserAssetLibrary);
 }
 
 bool UI_but_is_userdef(const uiBut *but)
@@ -900,64 +902,66 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 /* typically call ui_apply_but_undo(), ui_apply_but_autokey() */
 static void ui_apply_but_undo(uiBut *but)
 {
-  if (but->flag & UI_BUT_UNDO) {
-    const char *str = NULL;
-    size_t str_len_clip = SIZE_MAX - 1;
-    bool skip_undo = false;
+  if (!(but->flag & UI_BUT_UNDO)) {
+    return;
+  }
 
-    /* define which string to use for undo */
-    if (but->type == UI_BTYPE_MENU) {
-      str = but->drawstr;
-      str_len_clip = ui_but_drawstr_len_without_sep_char(but);
-    }
-    else if (but->drawstr[0]) {
-      str = but->drawstr;
-      str_len_clip = ui_but_drawstr_len_without_sep_char(but);
+  const char *str = NULL;
+  size_t str_len_clip = SIZE_MAX - 1;
+  bool skip_undo = false;
+
+  /* define which string to use for undo */
+  if (but->type == UI_BTYPE_MENU) {
+    str = but->drawstr;
+    str_len_clip = ui_but_drawstr_len_without_sep_char(but);
+  }
+  else if (but->drawstr[0]) {
+    str = but->drawstr;
+    str_len_clip = ui_but_drawstr_len_without_sep_char(but);
+  }
+  else {
+    str = but->tip;
+    str_len_clip = ui_but_tip_len_only_first_line(but);
+  }
+
+  /* fallback, else we don't get an undo! */
+  if (str == NULL || str[0] == '\0' || str_len_clip == 0) {
+    str = "Unknown Action";
+    str_len_clip = strlen(str);
+  }
+
+  /* Optionally override undo when undo system doesn't support storing properties. */
+  if (but->rnapoin.owner_id) {
+    /* Exception for renaming ID data, we always need undo pushes in this case,
+     * because undo systems track data by their ID, see: T67002. */
+    /* Exception for active shape-key, since changing this in edit-mode updates
+     * the shape key from object mode data. */
+    if (ELEM(but->rnaprop, &rna_ID_name, &rna_Object_active_shape_key_index)) {
+      /* pass */
     }
     else {
-      str = but->tip;
-      str_len_clip = ui_but_tip_len_only_first_line(but);
-    }
-
-    /* fallback, else we don't get an undo! */
-    if (str == NULL || str[0] == '\0' || str_len_clip == 0) {
-      str = "Unknown Action";
-      str_len_clip = strlen(str);
-    }
-
-    /* Optionally override undo when undo system doesn't support storing properties. */
-    if (but->rnapoin.owner_id) {
-      /* Exception for renaming ID data, we always need undo pushes in this case,
-       * because undo systems track data by their ID, see: T67002. */
-      /* Exception for active shape-key, since changing this in edit-mode updates
-       * the shape key from object mode data. */
-      if (ELEM(but->rnaprop, &rna_ID_name, &rna_Object_active_shape_key_index)) {
-        /* pass */
-      }
-      else {
-        ID *id = but->rnapoin.owner_id;
-        if (!ED_undo_is_legacy_compatible_for_property(but->block->evil_C, id)) {
-          skip_undo = true;
-        }
-      }
-    }
-
-    if (skip_undo == false) {
-      /* XXX: disable all undo pushes from UI changes from sculpt mode as they cause memfile undo
-       * steps to be written which cause lag: T71434. */
-      if (BKE_paintmode_get_active_from_context(but->block->evil_C) == PAINT_MODE_SCULPT) {
+      ID *id = but->rnapoin.owner_id;
+      if (!ED_undo_is_legacy_compatible_for_property(but->block->evil_C, id)) {
         skip_undo = true;
       }
     }
-
-    if (skip_undo) {
-      str = "";
-    }
-
-    /* delayed, after all other funcs run, popups are closed, etc */
-    uiAfterFunc *after = ui_afterfunc_new();
-    BLI_strncpy(after->undostr, str, min_zz(str_len_clip + 1, sizeof(after->undostr)));
   }
+
+  if (skip_undo == false) {
+    /* XXX: disable all undo pushes from UI changes from sculpt mode as they cause memfile undo
+     * steps to be written which cause lag: T71434. */
+    if (BKE_paintmode_get_active_from_context(but->block->evil_C) == PAINT_MODE_SCULPT) {
+      skip_undo = true;
+    }
+  }
+
+  if (skip_undo) {
+    str = "";
+  }
+
+  /* delayed, after all other funcs run, popups are closed, etc */
+  uiAfterFunc *after = ui_afterfunc_new();
+  BLI_strncpy(after->undostr, str, min_zz(str_len_clip + 1, sizeof(after->undostr)));
 }
 
 static void ui_apply_but_autokey(bContext *C, uiBut *but)
@@ -967,21 +971,21 @@ static void ui_apply_but_autokey(bContext *C, uiBut *but)
   /* try autokey */
   ui_but_anim_autokey(C, but, scene, scene->r.cfra);
 
+  if (!but->rnaprop) {
+    return;
+  }
+
+  if (RNA_property_subtype(but->rnaprop) == PROP_PASSWORD) {
+    return;
+  }
+
   /* make a little report about what we've done! */
-  if (but->rnaprop) {
-    char *buf;
+  char *buf = WM_prop_pystring_assign(C, &but->rnapoin, but->rnaprop, but->rnaindex);
+  if (buf) {
+    BKE_report(CTX_wm_reports(C), RPT_PROPERTY, buf);
+    MEM_freeN(buf);
 
-    if (RNA_property_subtype(but->rnaprop) == PROP_PASSWORD) {
-      return;
-    }
-
-    buf = WM_prop_pystring_assign(C, &but->rnapoin, but->rnaprop, but->rnaindex);
-    if (buf) {
-      BKE_report(CTX_wm_reports(C), RPT_PROPERTY, buf);
-      MEM_freeN(buf);
-
-      WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, NULL);
-    }
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, NULL);
   }
 }
 
@@ -1631,29 +1635,34 @@ static bool ui_drag_toggle_set_xy_xy(
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       /* NOTE: ctrl is always true here because (at least for now)
        * we always want to consider text control in this case, even when not embossed. */
-      if (ui_but_is_interactive(but, true)) {
-        if (BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
 
-          /* execute the button */
-          if (ui_drag_toggle_but_is_supported(but)) {
-            /* is it pressed? */
-            const int pushed_state_but = ui_drag_toggle_but_pushed_state(but);
-            if (pushed_state_but != pushed_state) {
-              UI_but_execute(C, region, but);
-              if (do_check) {
-                ui_but_update_edited(but);
-              }
-              if (U.runtime.is_dirty == false) {
-                ui_but_update_preferences_dirty(but);
-              }
-              changed = true;
-            }
-          }
-          /* done */
-        }
+      if (!ui_but_is_interactive(but, true)) {
+        continue;
       }
+      if (!BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
+        continue;
+      }
+      if (!ui_drag_toggle_but_is_supported(but)) {
+        continue;
+      }
+      /* is it pressed? */
+      const int pushed_state_but = ui_drag_toggle_but_pushed_state(but);
+      if (pushed_state_but == pushed_state) {
+        continue;
+      }
+
+      /* execute the button */
+      UI_but_execute(C, region, but);
+      if (do_check) {
+        ui_but_update_edited(but);
+      }
+      if (U.runtime.is_dirty == false) {
+        ui_but_update_preferences_dirty(but);
+      }
+      changed = true;
     }
   }
+
   if (changed) {
     /* apply now, not on release (or if handlers are canceled for whatever reason) */
     ui_apply_but_funcs_after(C);
