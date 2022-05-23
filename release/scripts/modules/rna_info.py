@@ -61,7 +61,8 @@ def range_str(val):
 
 def float_as_string(f):
     val_str = "%g" % f
-    if '.' not in val_str and '-' not in val_str:  # value could be 1e-05
+    # Ensure a `.0` suffix for whole numbers, excluding scientific notation such as `1e-05` or `1e+5`.
+    if '.' not in val_str and 'e' not in val_str:
         val_str += '.0'
     return val_str
 
