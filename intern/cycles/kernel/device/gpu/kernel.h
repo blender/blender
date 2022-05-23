@@ -647,8 +647,9 @@ ccl_device_inline void kernel_gpu_film_convert_half_write(ccl_global uchar4 *rgb
     const int x = render_pixel_index % width; \
     const int y = render_pixel_index / width; \
 \
-    ccl_global const float *buffer = render_buffer + offset + x * kfilm_convert.pass_stride + \
-                                     y * stride * kfilm_convert.pass_stride; \
+    const uint64_t buffer_pixel_index = x + y * stride; \
+    ccl_global const float *buffer = render_buffer + offset + \
+                                     buffer_pixel_index * kfilm_convert.pass_stride; \
 \
     ccl_global float *pixel = pixels + \
                               (render_pixel_index + rgba_offset) * kfilm_convert.pixel_stride; \
@@ -677,8 +678,9 @@ ccl_device_inline void kernel_gpu_film_convert_half_write(ccl_global uchar4 *rgb
     const int x = render_pixel_index % width; \
     const int y = render_pixel_index / width; \
 \
-    ccl_global const float *buffer = render_buffer + offset + x * kfilm_convert.pass_stride + \
-                                     y * stride * kfilm_convert.pass_stride; \
+    const uint64_t buffer_pixel_index = x + y * stride; \
+    ccl_global const float *buffer = render_buffer + offset + \
+                                     buffer_pixel_index * kfilm_convert.pass_stride; \
 \
     float pixel[4]; \
     film_get_pass_pixel_##variant(&kfilm_convert, buffer, pixel); \
