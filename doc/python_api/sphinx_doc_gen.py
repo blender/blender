@@ -976,7 +976,7 @@ def pymodule2sphinx(basepath, module_name, module, title, module_all_extra):
             write_indented_lines("   ", fw, "Constant value %s" % repr(value), False)
             fw("\n")
         else:
-            BPY_LOGGER.debug("\tnot documenting %s.%s of %r type", (module_name, attribute, value_type.__name__))
+            BPY_LOGGER.debug("\tnot documenting %s.%s of %r type", module_name, attribute, value_type.__name__)
             continue
 
         attribute_set.add(attribute)
