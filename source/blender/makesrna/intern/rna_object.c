@@ -1829,6 +1829,24 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
   ModifierData *mod_dst = ED_object_modifier_add(
       NULL, bmain, NULL, ob_dst, mod_src->name, mod_src->type);
 
+  if (mod_dst == NULL) {
+    /* This can happen e.g. when a modifier type is tagged as `eModifierTypeFlag_Single`, and that
+     * modifier has somehow been added already by another code path (e.g.
+     * `rna_CollisionSettings_dependency_update` does add the `eModifierType_Collision` singleton
+     * modifier).
+     *
+     * Try to handle this by finding already existing one here. */
+    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)mod_src->type);
+    if (mti->flags & eModifierTypeFlag_Single) {
+      mod_dst = BKE_modifiers_findby_type(ob_dst, (ModifierType)mod_src->type);
+    }
+
+    if (mod_dst == NULL) {
+      BLI_assert(mod_src != NULL);
+      return false;
+    }
+  }
+
   /* XXX Current handling of 'copy' from particle-system modifier is *very* bad (it keeps same psys
    * pointer as source, then calling code copies psys of object separately and do some magic
    * remapping of pointers...), unfortunately several pieces of code in Object editing area rely on
