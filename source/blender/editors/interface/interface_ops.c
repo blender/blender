@@ -1895,14 +1895,14 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
       if (!gamma) {
-        IMB_colormanagement_scene_linear_to_srgb_v3(color);
+        IMB_colormanagement_scene_linear_to_srgb_v3(color, color);
       }
       RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
       RNA_property_update(C, &but->rnapoin, but->rnaprop);
     }
     else if (RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
       if (gamma) {
-        IMB_colormanagement_srgb_to_scene_linear_v3(color);
+        IMB_colormanagement_srgb_to_scene_linear_v3(color, color);
       }
       RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
       RNA_property_update(C, &but->rnapoin, but->rnaprop);

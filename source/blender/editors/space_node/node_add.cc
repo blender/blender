@@ -348,8 +348,14 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
+  const char *node_idname = node_group_idname(C);
+  if (node_idname[0] == '\0') {
+    BKE_report(op->reports, RPT_WARNING, "Could not determine type of group node");
+    return OPERATOR_CANCELLED;
+  }
+
   bNode *group_node = node_add_node(*C,
-                                    node_group_idname(C),
+                                    node_idname,
                                     (node_group->type == NTREE_CUSTOM) ? NODE_CUSTOM_GROUP :
                                                                          NODE_GROUP,
                                     snode->runtime->cursor[0],
@@ -366,6 +372,21 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
   nodeSetActive(ntree, group_node);
   ED_node_tree_propagate_change(C, bmain, nullptr);
   return OPERATOR_FINISHED;
+}
+
+static bool node_add_group_poll(bContext *C)
+{
+  if (!ED_operator_node_editable(C)) {
+    return false;
+  }
+  const SpaceNode *snode = CTX_wm_space_node(C);
+  if (snode->edittree->type == NTREE_CUSTOM) {
+    CTX_wm_operator_poll_msg_set(C,
+                                 "This node editor displays a custom (Python defined) node tree. "
+                                 "Dropping node groups isn't supported for this.");
+    return false;
+  }
+  return true;
 }
 
 static int node_add_group_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -396,7 +417,7 @@ void NODE_OT_add_group(wmOperatorType *ot)
   /* callbacks */
   ot->exec = node_add_group_exec;
   ot->invoke = node_add_group_invoke;
-  ot->poll = ED_operator_node_editable;
+  ot->poll = node_add_group_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;

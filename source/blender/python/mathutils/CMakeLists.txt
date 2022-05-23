@@ -4,6 +4,7 @@ set(INC
   .
   ../../blenkernel
   ../../blenlib
+  ../../imbuf
   ../../bmesh
   ../../depsgraph
   ../../makesdna
@@ -42,6 +43,7 @@ set(SRC
 
 set(LIB
   bf_blenlib
+  bf_imbuf
   bf_python_ext
 
   ${PYTHON_LINKFLAGS}

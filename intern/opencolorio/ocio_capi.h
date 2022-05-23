@@ -31,10 +31,15 @@ OCIO_DECLARE_HANDLE(OCIO_ConstContextRcPtr);
 OCIO_DECLARE_HANDLE(OCIO_PackedImageDesc);
 OCIO_DECLARE_HANDLE(OCIO_ConstLookRcPtr);
 
-/* Standard XYZ to linear sRGB transform, for fallback. */
-static const float OCIO_XYZ_TO_LINEAR_SRGB[3][3] = {{3.2404542f, -0.9692660f, 0.0556434f},
-                                                    {-1.5371385f, 1.8760108f, -0.2040259f},
-                                                    {-0.4985314f, 0.0415560f, 1.0572252f}};
+/* Standard XYZ (D65) to linear Rec.709 transform. */
+static const float OCIO_XYZ_TO_REC709[3][3] = {{3.2404542f, -0.9692660f, 0.0556434f},
+                                               {-1.5371385f, 1.8760108f, -0.2040259f},
+                                               {-0.4985314f, 0.0415560f, 1.0572252f}};
+/* Standard ACES to XYZ (D65) transform.
+ * Matches OpenColorIO builtin transform: UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD. */
+static const float OCIO_ACES_TO_XYZ[3][3] = {{0.938280f, 0.337369f, 0.001174f},
+                                             {-0.004451f, 0.729522f, -0.003711f},
+                                             {0.016628f, -0.066890f, 1.091595f}};
 
 /* This structure is used to pass curve mapping settings from
  * blender's DNA structure stored in view transform settings
@@ -130,7 +135,8 @@ const char *OCIO_configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config,
                                                 const char *view);
 
 void OCIO_configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb);
-void OCIO_configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config, float xyz_to_rgb[3][3]);
+void OCIO_configGetXYZtoSceneLinear(OCIO_ConstConfigRcPtr *config,
+                                    float xyz_to_scene_linear[3][3]);
 
 int OCIO_configGetNumLooks(OCIO_ConstConfigRcPtr *config);
 const char *OCIO_configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index);

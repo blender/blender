@@ -2197,7 +2197,7 @@ static void rna_def_mloopcol(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_float_funcs(
       prop, "rna_MeshLoopColor_color_get", "rna_MeshLoopColor_color_set", NULL);
-  RNA_def_property_ui_text(prop, "Color", "");
+  RNA_def_property_ui_text(prop, "Color", "Color in sRGB color space");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 }
 
@@ -3212,7 +3212,9 @@ static void rna_def_mesh(BlenderRNA *brna)
                                     NULL);
   RNA_def_property_struct_type(prop, "MeshLoopColorLayer");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
-  RNA_def_property_ui_text(prop, "Vertex Colors", "All vertex colors");
+  RNA_def_property_ui_text(prop,
+                           "Vertex Colors",
+                           "Legacy vertex color layers. Deprecated, use color attributes instead");
   rna_def_loop_colors(brna, prop);
 
   /* Sculpt Vertex colors */
@@ -3230,7 +3232,9 @@ static void rna_def_mesh(BlenderRNA *brna)
                                     NULL);
   RNA_def_property_struct_type(prop, "MeshVertColorLayer");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
-  RNA_def_property_ui_text(prop, "Sculpt Vertex Colors", "All vertex colors");
+  RNA_def_property_ui_text(prop,
+                           "Sculpt Vertex Colors",
+                           "Sculpt vertex color layers. Deprecated, use color attributes instead");
   rna_def_vert_colors(brna, prop);
 
   /* TODO: edge customdata layers (bmesh py api can access already). */
