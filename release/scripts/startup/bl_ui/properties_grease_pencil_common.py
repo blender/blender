@@ -245,7 +245,7 @@ class GPENCIL_MT_move_to_layer(Menu):
                     icon = 'GREASEPENCIL'
                 else:
                     icon = 'NONE'
-                layout.operator("gpencil.move_to_layer", text=gpl.info, icon=icon).layer = i
+                layout.operator("gpencil.move_to_layer", text=gpl.info, icon=icon, translate=False).layer = i
                 i -= 1
 
             layout.separator()
