@@ -283,9 +283,10 @@ struct CurvesEffectOperationExecutor {
   CurvesGeometry *curves_ = nullptr;
 
   const Brush *brush_ = nullptr;
-  float brush_radius_re_;
-  float brush_radius_sq_re_;
+  float brush_radius_base_re_;
+  float brush_radius_factor_;
   float brush_strength_;
+
   eBrushFalloffShape falloff_shape_;
 
   float4x4 curves_to_world_mat_;
@@ -321,9 +322,12 @@ struct CurvesEffectOperationExecutor {
 
     const CurvesSculpt &curves_sculpt = *scene_->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt.paint);
-    brush_radius_re_ = brush_radius_get(*scene_, *brush_, stroke_extension);
     brush_strength_ = brush_strength_get(*scene_, *brush_, stroke_extension);
-    brush_radius_sq_re_ = pow2f(brush_radius_re_);
+
+    brush_radius_base_re_ = BKE_brush_size_get(scene_, brush_);
+    brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
+    brush_strength_ = brush_strength_get(*scene_, *brush_, stroke_extension);
+
     falloff_shape_ = eBrushFalloffShape(brush_->falloff_shape);
 
     curves_to_world_mat_ = object_->obmat;
@@ -341,7 +345,7 @@ struct CurvesEffectOperationExecutor {
                 *rv3d_,
                 *object_,
                 stroke_extension.mouse_position,
-                brush_radius_re_)) {
+                brush_radius_base_re_)) {
           self.brush_3d_ = *brush_3d;
         }
       }
@@ -385,6 +389,9 @@ struct CurvesEffectOperationExecutor {
       symmetry_brush_transforms_inv.append(brush_transform.inverted());
     }
 
+    const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
+    const float brush_radius_sq_re = pow2f(brush_radius_re);
+
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       Influences &local_influences = influences_for_thread.local();
 
@@ -414,13 +421,13 @@ struct CurvesEffectOperationExecutor {
                                                                  p1_re,
                                                                  p2_re);
 
-            if (dist_to_brush_sq_re > brush_radius_sq_re_) {
+            if (dist_to_brush_sq_re > brush_radius_sq_re) {
               continue;
             }
 
             const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
             const float radius_falloff = BKE_brush_curve_strength(
-                brush_, dist_to_brush_re, brush_radius_re_);
+                brush_, dist_to_brush_re, brush_radius_re);
             const float weight = brush_strength_ * radius_falloff;
 
             const float3 closest_on_segment_cu = math::interpolate(
@@ -473,7 +480,7 @@ struct CurvesEffectOperationExecutor {
     const float3 brush_pos_end_cu = world_to_curves_mat_ * brush_pos_end_wo;
     const float3 brush_pos_diff_cu = brush_pos_end_cu - brush_pos_start_cu;
     const float brush_pos_diff_length_cu = math::length(brush_pos_diff_cu);
-    const float brush_radius_cu = self_->brush_3d_.radius_cu;
+    const float brush_radius_cu = self_->brush_3d_.radius_cu * brush_radius_factor_;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(

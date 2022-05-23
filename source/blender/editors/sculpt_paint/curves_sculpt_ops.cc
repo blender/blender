@@ -74,26 +74,34 @@ using blender::bke::CurvesGeometry;
 /** \name * SCULPT_CURVES_OT_brush_stroke
  * \{ */
 
+float brush_radius_factor(const Brush &brush, const StrokeExtension &stroke_extension)
+{
+  if (BKE_brush_use_size_pressure(&brush)) {
+    return stroke_extension.pressure;
+  }
+  return 1.0f;
+}
+
 float brush_radius_get(const Scene &scene,
                        const Brush &brush,
                        const StrokeExtension &stroke_extension)
 {
-  const float initial_radius = BKE_brush_size_get(&scene, &brush);
-  if (BKE_brush_use_size_pressure(&brush)) {
-    return initial_radius * stroke_extension.pressure;
+  return BKE_brush_size_get(&scene, &brush) * brush_radius_factor(brush, stroke_extension);
+}
+
+float brush_strength_factor(const Brush &brush, const StrokeExtension &stroke_extension)
+{
+  if (BKE_brush_use_alpha_pressure(&brush)) {
+    return stroke_extension.pressure;
   }
-  return initial_radius;
+  return 1.0f;
 }
 
 float brush_strength_get(const Scene &scene,
                          const Brush &brush,
                          const StrokeExtension &stroke_extension)
 {
-  const float initial_radius = BKE_brush_alpha_get(&scene, &brush);
-  if (BKE_brush_use_alpha_pressure(&brush)) {
-    return initial_radius * stroke_extension.pressure;
-  }
-  return initial_radius;
+  return BKE_brush_alpha_get(&scene, &brush) * brush_strength_factor(brush, stroke_extension);
 }
 
 static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bContext &C,

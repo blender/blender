@@ -16,6 +16,8 @@ struct RegionView3D;
 struct Depsgraph;
 struct View3D;
 struct Object;
+struct Brush;
+struct Scene;
 
 namespace blender::ed::sculpt_paint {
 
@@ -27,10 +29,12 @@ struct StrokeExtension {
   float pressure;
 };
 
+float brush_radius_factor(const Brush &brush, const StrokeExtension &stroke_extension);
 float brush_radius_get(const Scene &scene,
                        const Brush &brush,
                        const StrokeExtension &stroke_extension);
 
+float brush_strength_factor(const Brush &brush, const StrokeExtension &stroke_extension);
 float brush_strength_get(const Scene &scene,
                          const Brush &brush,
                          const StrokeExtension &stroke_extension);
