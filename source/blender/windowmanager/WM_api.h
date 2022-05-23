@@ -770,6 +770,36 @@ void WM_operator_properties_filesel(struct wmOperatorType *ot,
                                     eFileSel_Flag flag,
                                     short display,
                                     short sort);
+
+/**
+ * Tries to pass \a id to an operator via either a "session_uuid" or a "name" property defined in
+ * the properties of \a ptr. The former is preferred, since it works properly with linking and
+ * library overrides (which may both result in multiple IDs with the same name and type).
+ *
+ * Also see #WM_operator_properties_id_lookup() and
+ * #WM_operator_properties_id_lookup_from_name_or_session_uuid()
+ */
+void WM_operator_properties_id_lookup_set_from_id(PointerRNA *ptr, const ID *id);
+/**
+ * Tries to find an ID in \a bmain. There needs to be either a "name" string or "session_uuid" int
+ * property defined and set. The former has priority. See #WM_operator_properties_id_lookup() for a
+ * helper to add the properties.
+ */
+struct ID *WM_operator_properties_id_lookup_from_name_or_session_uuid(struct Main *bmain,
+                                                                      const struct wmOperator *op,
+                                                                      enum ID_Type type);
+/**
+ * Adds "name" and "session_uuid" properties so the caller can tell the operator which ID to act
+ * on. See #WM_operator_properties_id_lookup_from_name_or_session_uuid(). Both properties will be
+ * hidden in the UI and not be saved over consecutive operator calls.
+ *
+ * \note New operators should probably use "session_uuid" only (set \a add_name_prop to #false),
+ * since this works properly with linked data and/or library overrides (in both cases, multiple IDs
+ * with the same name and type may be present). The "name" property is only kept to not break
+ * compatibility with old scripts using some previously existing operators.
+ */
+void WM_operator_properties_id_lookup(wmOperatorType *ot, const bool add_name_prop);
+
 /**
  * Disable using cursor position,
  * use when view operators are initialized from buttons.

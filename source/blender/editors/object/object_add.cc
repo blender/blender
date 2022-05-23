@@ -252,65 +252,6 @@ static int object_add_drop_xy_generic_invoke(bContext *C, wmOperator *op, const 
   return op->type->exec(C, op);
 }
 
-/**
- * Tries to find an ID in \a bmain. Three needs to be either a "name" string or "session_uuid" int
- * property defined and set. The former has priority.
- *
- * See #id_add_lookup_props for a helper to add the properties.
- */
-static ID *id_add_lookup_from_name_or_session_uuid_props(Main *bmain,
-                                                         const wmOperator *op,
-                                                         const ID_Type type)
-{
-  PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
-  PropertyRNA *prop_session_uuid = RNA_struct_find_property(op->ptr, "session_uuid");
-
-  if (prop_name && RNA_property_is_set(op->ptr, prop_name)) {
-    char name[MAX_ID_NAME - 2];
-    RNA_property_string_get(op->ptr, prop_name, name);
-    return BKE_libblock_find_name(bmain, type, name);
-  }
-
-  if (prop_session_uuid && RNA_property_is_set(op->ptr, prop_session_uuid)) {
-    const uint32_t session_uuid = (uint32_t)RNA_property_int_get(op->ptr, prop_session_uuid);
-    return BKE_libblock_find_session_uuid(bmain, type, session_uuid);
-  }
-
-  return nullptr;
-}
-
-/**
- * Adds "name" and "session_uuid" properties to the operator so the caller can tell the operator
- * which ID to add. See #id_add_find_from_name_or_session_uuid_op_props(). Both properties will be
- * hidden in the UI.
- *
- * \note New operators should probably use "session_uuid" only (set \a add_name_prop to #false),
- * since this works with linked data and/or library overrides (in both cases, multiple IDs with the
- * same name and type may be present). The "name" property is only kept to not break compatibility
- * with old scripts using these operators.
- */
-static void id_add_lookup_props(wmOperatorType *ot, const bool add_name_prop = false)
-{
-  PropertyRNA *prop;
-
-  if (add_name_prop) {
-    prop = RNA_def_string(
-        ot->srna, "name", nullptr, MAX_ID_NAME - 2, "Name", "Name of the data-block to add");
-    RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
-  }
-
-  prop = RNA_def_int(ot->srna,
-                     "session_uuid",
-                     0,
-                     INT32_MIN,
-                     INT32_MAX,
-                     "Session UUID",
-                     "Session UUID of the data-block to add",
-                     INT32_MIN,
-                     INT32_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1712,7 +1653,7 @@ static std::optional<CollectionAddInfo> collection_add_info_get_from_op(bContext
   PropertyRNA *prop_location = RNA_struct_find_property(op->ptr, "location");
 
   add_info.collection = reinterpret_cast<Collection *>(
-      id_add_lookup_from_name_or_session_uuid_props(bmain, op, ID_GR));
+      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op, ID_GR));
 
   bool update_location_if_necessary = false;
   if (add_info.collection) {
@@ -3860,7 +3801,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   /* Find object, create fake base. */
 
   Object *ob = reinterpret_cast<Object *>(
-      id_add_lookup_from_name_or_session_uuid_props(bmain, op, ID_OB));
+      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op, ID_OB));
 
   if (ob == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Object not found");
@@ -3948,7 +3889,7 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
                   "Linked",
                   "Duplicate object but not object data, linking to the original data");
 
-  id_add_lookup_props(ot, true);
+  WM_operator_properties_id_lookup(ot, true);
 
   prop = RNA_def_float_matrix(
       ot->srna, "matrix", 4, 4, nullptr, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);
@@ -3972,7 +3913,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   Object *ob = reinterpret_cast<Object *>(
-      id_add_lookup_from_name_or_session_uuid_props(bmain, op, ID_OB));
+      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op, ID_OB));
 
   if (!ob) {
     ob = OBACT(view_layer);

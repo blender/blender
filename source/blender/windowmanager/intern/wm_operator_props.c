@@ -8,7 +8,11 @@
  * (`WM_operator_properties_*` functions).
  */
 
+#include "DNA_ID_enums.h"
 #include "DNA_space_types.h"
+
+#include "BKE_lib_id.h"
+#include "BKE_main.h"
 
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
@@ -220,6 +224,69 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
   prop = RNA_def_enum(ot->srna, "sort_method", DummyRNA_NULL_items, sort, "File sorting mode", "");
   RNA_def_enum_funcs(prop, wm_operator_properties_filesel_sort_items_itemf);
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+}
+
+void WM_operator_properties_id_lookup_set_from_id(PointerRNA *ptr, const ID *id)
+{
+  PropertyRNA *prop_session_uuid = RNA_struct_find_property(ptr, "session_uuid");
+  PropertyRNA *prop_name = RNA_struct_find_property(ptr, "name");
+
+  if (prop_session_uuid) {
+    RNA_int_set(ptr, "session_uuid", (int)id->session_uuid);
+  }
+  else if (prop_name) {
+    RNA_string_set(ptr, "name", id->name + 2);
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+}
+
+ID *WM_operator_properties_id_lookup_from_name_or_session_uuid(Main *bmain,
+                                                               const wmOperator *op,
+                                                               const ID_Type type)
+{
+  PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
+  PropertyRNA *prop_session_uuid = RNA_struct_find_property(op->ptr, "session_uuid");
+
+  if (prop_name && RNA_property_is_set(op->ptr, prop_name)) {
+    char name[MAX_ID_NAME - 2];
+    RNA_property_string_get(op->ptr, prop_name, name);
+    return BKE_libblock_find_name(bmain, type, name);
+  }
+
+  if (prop_session_uuid && RNA_property_is_set(op->ptr, prop_session_uuid)) {
+    const uint32_t session_uuid = (uint32_t)RNA_property_int_get(op->ptr, prop_session_uuid);
+    return BKE_libblock_find_session_uuid(bmain, type, session_uuid);
+  }
+
+  return NULL;
+}
+
+void WM_operator_properties_id_lookup(wmOperatorType *ot, const bool add_name_prop)
+{
+  PropertyRNA *prop;
+
+  if (add_name_prop) {
+    prop = RNA_def_string(ot->srna,
+                          "name",
+                          NULL,
+                          MAX_ID_NAME - 2,
+                          "Name",
+                          "Name of the data-block to use by the operator");
+    RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+  }
+
+  prop = RNA_def_int(ot->srna,
+                     "session_uuid",
+                     0,
+                     INT32_MIN,
+                     INT32_MAX,
+                     "Session UUID",
+                     "Session UUID of the data-block to use by the operator",
+                     INT32_MIN,
+                     INT32_MAX);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
 static void wm_operator_properties_select_action_ex(wmOperatorType *ot,
