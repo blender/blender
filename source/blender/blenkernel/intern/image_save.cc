@@ -143,7 +143,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
     opts->im_format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
 
-    if (ima->source == IMA_SRC_TILED) {
+    if (ibuf->name[0] == '\0' || ima->source == IMA_SRC_TILED) {
       BLI_strncpy(opts->filepath, ima->filepath, sizeof(opts->filepath));
       BLI_path_abs(opts->filepath, ID_BLEND_PATH_FROM_GLOBAL(&ima->id));
     }
