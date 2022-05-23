@@ -103,7 +103,7 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
   int cd_loop_uv_offset;
 
   if (em && em->bm->totface && !CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
-    ED_mesh_uv_texture_add(obedit->data, NULL, true, true, NULL);
+    ED_mesh_uv_add(obedit->data, NULL, true, true, NULL);
   }
 
   /* Happens when there are no faces. */
@@ -3038,7 +3038,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
    * since we are not in edit mode we need to ensure only the uv flags are tested */
   scene->toolsettings->uv_flag &= ~UV_SYNC_SELECTION;
 
-  ED_mesh_uv_texture_ensure(me, NULL);
+  ED_mesh_uv_ensure(me, NULL);
 
   BM_mesh_bm_from_me(bm,
                      me,

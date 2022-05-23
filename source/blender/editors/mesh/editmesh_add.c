@@ -113,7 +113,7 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_texture_ensure(obedit->data, NULL);
+    ED_mesh_uv_ensure(obedit->data, NULL);
   }
 
   if (!EDBM_op_call_and_selectf(
@@ -178,7 +178,7 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_texture_ensure(obedit->data, NULL);
+    ED_mesh_uv_ensure(obedit->data, NULL);
   }
 
   if (!EDBM_op_call_and_selectf(em,
@@ -252,7 +252,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_texture_ensure(obedit->data, NULL);
+    ED_mesh_uv_ensure(obedit->data, NULL);
   }
 
   if (!EDBM_op_call_and_selectf(
@@ -324,7 +324,7 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_texture_ensure(obedit->data, NULL);
+    ED_mesh_uv_ensure(obedit->data, NULL);
   }
 
   if (!EDBM_op_call_and_selectf(em,
@@ -400,7 +400,7 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_texture_ensure(obedit->data, NULL);
+    ED_mesh_uv_ensure(obedit->data, NULL);
   }
 
   if (!EDBM_op_call_and_selectf(em,
@@ -476,7 +476,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_texture_ensure(obedit->data, NULL);
+    ED_mesh_uv_ensure(obedit->data, NULL);
   }
 
   if (!EDBM_op_call_and_selectf(
@@ -553,7 +553,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_texture_ensure(obedit->data, NULL);
+    ED_mesh_uv_ensure(obedit->data, NULL);
   }
 
   if (!EDBM_op_call_and_selectf(em,
@@ -614,7 +614,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_texture_ensure(obedit->data, NULL);
+    ED_mesh_uv_ensure(obedit->data, NULL);
   }
 
   if (!EDBM_op_call_and_selectf(
@@ -682,7 +682,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
   em = BKE_editmesh_from_object(obedit);
 
   if (calc_uvs) {
-    ED_mesh_uv_texture_ensure(obedit->data, NULL);
+    ED_mesh_uv_ensure(obedit->data, NULL);
   }
 
   if (!EDBM_op_call_and_selectf(

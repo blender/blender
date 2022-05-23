@@ -1638,7 +1638,7 @@ static PointerRNA rna_Mesh_uv_layers_new(struct Mesh *me,
   PointerRNA ptr;
   CustomData *ldata;
   CustomDataLayer *cdl = NULL;
-  int index = ED_mesh_uv_texture_add(me, name, false, do_init, reports);
+  int index = ED_mesh_uv_add(me, name, false, do_init, reports);
 
   if (index != -1) {
     ldata = rna_mesh_ldata_helper(me);
@@ -1651,7 +1651,7 @@ static PointerRNA rna_Mesh_uv_layers_new(struct Mesh *me,
 
 static void rna_Mesh_uv_layers_remove(struct Mesh *me, ReportList *reports, CustomDataLayer *layer)
 {
-  if (ED_mesh_uv_texture_remove_named(me, layer->name) == false) {
+  if (ED_mesh_uv_remove_named(me, layer->name) == false) {
     BKE_reportf(reports, RPT_ERROR, "Texture layer '%s' not found", layer->name);
   }
 }
