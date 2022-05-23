@@ -772,6 +772,15 @@ void WM_operator_properties_filesel(struct wmOperatorType *ot,
                                     short sort);
 
 /**
+ * Tries to pass \a id to an operator via either a "session_uuid" or a "name" property defined in
+ * the properties of \a ptr. The former is preferred, since it works properly with linking and
+ * library overrides (which may both result in multiple IDs with the same name and type).
+ *
+ * Also see #WM_operator_properties_id_lookup() and
+ * #WM_operator_properties_id_lookup_from_name_or_session_uuid()
+ */
+void WM_operator_properties_id_lookup_set_from_id(PointerRNA *ptr, const ID *id);
+/**
  * Tries to find an ID in \a bmain. There needs to be either a "name" string or "session_uuid" int
  * property defined and set. The former has priority. See #WM_operator_properties_id_lookup() for a
  * helper to add the properties.

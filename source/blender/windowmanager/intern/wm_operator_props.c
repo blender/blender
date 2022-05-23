@@ -226,6 +226,22 @@ void WM_operator_properties_filesel(wmOperatorType *ot,
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
+void WM_operator_properties_id_lookup_set_from_id(PointerRNA *ptr, const ID *id)
+{
+  PropertyRNA *prop_session_uuid = RNA_struct_find_property(ptr, "session_uuid");
+  PropertyRNA *prop_name = RNA_struct_find_property(ptr, "name");
+
+  if (prop_session_uuid) {
+    RNA_int_set(ptr, "session_uuid", (int)id->session_uuid);
+  }
+  else if (prop_name) {
+    RNA_string_set(ptr, "name", id->name + 2);
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+}
+
 ID *WM_operator_properties_id_lookup_from_name_or_session_uuid(Main *bmain,
                                                                const wmOperator *op,
                                                                const ID_Type type)

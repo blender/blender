@@ -2629,11 +2629,9 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
   Object *ob = ED_view3d_give_material_slot_under_cursor(C, event->mval, &mat_slot);
   mat_slot = max_ii(mat_slot, 1);
 
-  Material *ma;
-  char name[MAX_ID_NAME - 2];
+  Material *ma = (Material *)WM_operator_properties_id_lookup_from_name_or_session_uuid(
+      bmain, op, ID_MA);
 
-  RNA_string_get(op->ptr, "name", name);
-  ma = (Material *)BKE_libblock_find_name(bmain, ID_MA, name);
   if (ob == NULL || ma == NULL) {
     return OPERATOR_CANCELLED;
   }
@@ -2663,7 +2661,7 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   /* properties */
-  RNA_def_string(ot->srna, "name", "Material", MAX_ID_NAME - 2, "Name", "Material name to assign");
+  WM_operator_properties_id_lookup(ot, true);
 }
 
 /** \} */
