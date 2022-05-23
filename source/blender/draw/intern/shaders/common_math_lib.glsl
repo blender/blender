@@ -110,6 +110,7 @@ float len_squared(vec3 a) { return dot(a, a); }
 float len_squared(vec2 a) { return dot(a, a); }
 
 bool flag_test(uint flag, uint val) { return (flag & val) != 0u; }
+bool flag_test(int flag, uint val) { return flag_test(uint(flag), val); }
 bool flag_test(int flag, int val) { return (flag & val) != 0; }
 
 void set_flag_from_test(inout uint value, bool test, uint flag) { if (test) { value |= flag; } else { value &= ~flag; } }
