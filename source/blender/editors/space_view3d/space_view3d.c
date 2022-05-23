@@ -716,7 +716,7 @@ static void view3d_ob_drop_copy_local_id(bContext *UNUSED(C), wmDrag *drag, wmDr
 {
   ID *id = WM_drag_get_local_ID(drag, ID_OB);
 
-  RNA_string_set(drop->ptr, "name", id->name + 2);
+  RNA_int_set(drop->ptr, "session_uuid", id->session_uuid);
   /* Don't duplicate ID's which were just imported. Only do that for existing, local IDs. */
   BLI_assert(drag->type != WM_DRAG_ASSET);
 
@@ -751,7 +751,7 @@ static void view3d_ob_drop_copy_external_asset(bContext *UNUSED(C), wmDrag *drag
   DEG_relations_tag_update(CTX_data_main(C));
   WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-  RNA_string_set(drop->ptr, "name", id->name + 2);
+  RNA_int_set(drop->ptr, "session_uuid", id->session_uuid);
 
   Base *base = BKE_view_layer_base_find(view_layer, (Object *)id);
   if (base != NULL) {
