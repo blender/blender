@@ -186,9 +186,6 @@ MINLINE void rgba_uchar_args_test_set(
     unsigned char col[4], unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 MINLINE void cpack_cpy_3ub(unsigned char r_col[3], unsigned int pack);
 
-void blackbody_temperature_to_rgb_table(float *r_table, int width, float min, float max);
-void wavelength_to_xyz_table(float *r_table, int width);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
