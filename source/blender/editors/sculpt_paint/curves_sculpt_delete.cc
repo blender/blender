@@ -50,8 +50,6 @@ using blender::bke::CurvesGeometry;
 
 class DeleteOperation : public CurvesSculptStrokeOperation {
  private:
-  float2 brush_pos_prev_re_;
-
   CurvesBrush3D brush_3d_;
 
   friend struct DeleteOperationExecutor;
