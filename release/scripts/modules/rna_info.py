@@ -585,6 +585,16 @@ def BuildRNAInfo():
     structs = []
 
     def _bpy_types_iterator():
+        # Don't report when these types are ignored.
+        suppress_warning = {
+            "bpy_func",
+            "bpy_prop",
+            "bpy_prop_array",
+            "bpy_prop_collection",
+            "bpy_struct",
+            "bpy_struct_meta_idprop",
+        }
+
         names_unique = set()
         rna_type_list = []
         for rna_type_name in dir(bpy.types):
@@ -594,8 +604,13 @@ def BuildRNAInfo():
             if rna_struct is not None:
                 rna_type_list.append(rna_type)
                 yield (rna_type_name, rna_struct)
+            elif rna_type_name.startswith("_"):
+                # Ignore "__dir__", "__getattr__" .. etc.
+                pass
+            elif rna_type_name in suppress_warning:
+                pass
             else:
-                print("Ignoring", rna_type_name)
+                print("rna_info.BuildRNAInfo(..): ignoring type", repr(rna_type_name))
 
         # Now, there are some sub-classes in add-ons we also want to include.
         # Cycles for e.g. these are referenced from the Scene, but not part of

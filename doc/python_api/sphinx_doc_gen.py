@@ -13,10 +13,10 @@ API dump in RST files
   providing ./blender is or links to the blender executable
 
   To choose sphinx-in directory:
-    blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py -- --output ../python_api
+    blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py -- --output=../python_api
 
   For quick builds:
-    blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py -- --partial bmesh.*
+    blender --background --factory-startup --python doc/python_api/sphinx_doc_gen.py -- --partial=bmesh.*
 
 
 Sphinx: HTML generation
@@ -98,8 +98,9 @@ def handle_args():
         type=str,
         default="",
         help="Use a wildcard to only build specific module(s)\n"
-        "Example: --partial bmesh*\n",
-        required=False,)
+        "Example: --partial\"=bmesh*\"\n",
+        required=False,
+    )
 
     parser.add_argument(
         "-f", "--fullrebuild",
@@ -287,7 +288,7 @@ else:
     if FILTER_BPY_TYPES:
         EXCLUDE_MODULES.remove("bpy.types")
 
-    print(FILTER_BPY_TYPES)
+    # print(FILTER_BPY_TYPES)
 
     EXCLUDE_INFO_DOCS = (not fnmatch.fnmatchcase("info", ARGS.partial))
 
