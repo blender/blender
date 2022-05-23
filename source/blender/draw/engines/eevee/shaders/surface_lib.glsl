@@ -108,9 +108,7 @@ GlobalData init_globals(void)
 #  endif
   surf.barycentric_coords = vec2(0.0);
   surf.barycentric_dists = vec3(0.0);
-  if (!FrontFacing) {
-    surf.N = -surf.N;
-  }
+  surf.N = (FrontFacing) ? surf.N : -surf.N;
 #  ifdef HAIR_SHADER
   vec3 V = cameraVec(surf.P);
   /* Shade as a cylinder. */
