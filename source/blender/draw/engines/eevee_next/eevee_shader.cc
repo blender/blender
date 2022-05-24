@@ -161,6 +161,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
         }
       }
       info.vertex_inputs_.clear();
+      info.additional_info("draw_curves_infos");
       break;
     case MAT_GEOM_WORLD:
       /**

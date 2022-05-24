@@ -3400,6 +3400,9 @@ void DRW_batch_cache_free_old(Object *ob, int ctime)
     case OB_MESH:
       DRW_mesh_batch_cache_free_old((Mesh *)ob->data, ctime);
       break;
+    case OB_CURVES:
+      DRW_curves_batch_cache_free_old((Curves *)ob->data, ctime);
+      break;
     /* TODO: all cases. */
     default:
       break;

@@ -69,6 +69,7 @@ set(SRC
   intern/mesh_extractors/extract_mesh_vbo_uv.cc
   intern/mesh_extractors/extract_mesh_vbo_vcol.cc
   intern/mesh_extractors/extract_mesh_vbo_weights.cc
+  intern/draw_attributes.cc
   intern/draw_cache_impl_curve.cc
   intern/draw_cache_impl_curves.cc
   intern/draw_cache_impl_displist.c
@@ -198,6 +199,7 @@ set(SRC
   DRW_select_buffer.h
   intern/DRW_gpu_wrapper.hh
   intern/DRW_render.h
+  intern/draw_attributes.h
   intern/draw_cache.h
   intern/draw_cache_extract.h
   intern/draw_cache_impl.h

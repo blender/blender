@@ -65,6 +65,22 @@ vec3 attr_load_orco(samplerBuffer cd_buf)
 }
 #  endif
 
+/* Per attribute scope follows loading order. */
+int g_curves_attr_id = 0;
+
+/* Return the index to use for looking up the attribute value in the sampler
+ * based on the attribute scope (point or spline). */
+int curves_attribute_element_id()
+{
+    int id = hairStrandID;
+    if (drw_curves.is_point_attribute[g_curves_attr_id] != 0) {
+        id = hair_get_base_id();
+    }
+
+    g_curves_attr_id += 1;
+    return id;
+}
+
 vec4 attr_load_tangent(samplerBuffer cd_buf)
 {
   /* Not supported. */
@@ -73,22 +89,22 @@ vec4 attr_load_tangent(samplerBuffer cd_buf)
 
 vec4 attr_load_vec4(samplerBuffer cd_buf)
 {
-  return texelFetch(cd_buf, hairStrandID).rgba;
+  return texelFetch(cd_buf, curves_attribute_element_id()).rgba;
 }
 
 vec3 attr_load_vec3(samplerBuffer cd_buf)
 {
-  return texelFetch(cd_buf, hairStrandID).rgb;
+  return texelFetch(cd_buf, curves_attribute_element_id()).rgb;
 }
 
 vec2 attr_load_vec2(samplerBuffer cd_buf)
 {
-  return texelFetch(cd_buf, hairStrandID).rg;
+  return texelFetch(cd_buf, curves_attribute_element_id()).rg;
 }
 
 float attr_load_float(samplerBuffer cd_buf)
 {
-  return texelFetch(cd_buf, hairStrandID).r;
+  return texelFetch(cd_buf, curves_attribute_element_id()).r;
 }
 
 #else

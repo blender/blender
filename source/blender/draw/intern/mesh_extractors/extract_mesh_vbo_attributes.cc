@@ -14,6 +14,7 @@
 
 #include "BKE_attribute.h"
 
+#include "draw_attributes.h"
 #include "draw_subdivision.h"
 #include "extract_mesh.h"
 
@@ -284,7 +285,7 @@ static void extract_attr_init(const MeshRenderData *mr,
                               void *UNUSED(tls_data),
                               int index)
 {
-  const DRW_MeshAttributes *attrs_used = &cache->attr_used;
+  const DRW_Attributes *attrs_used = &cache->attr_used;
   const DRW_AttributeRequest &request = attrs_used->requests[index];
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
@@ -337,7 +338,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                      void *UNUSED(tls_data),
                                      int index)
 {
-  const DRW_MeshAttributes *attrs_used = &cache->attr_used;
+  const DRW_Attributes *attrs_used = &cache->attr_used;
   const DRW_AttributeRequest &request = attrs_used->requests[index];
 
   Mesh *coarse_mesh = subdiv_cache->mesh;
