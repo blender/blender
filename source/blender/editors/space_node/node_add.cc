@@ -371,6 +371,7 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
 
   nodeSetActive(ntree, group_node);
   ED_node_tree_propagate_change(C, bmain, nullptr);
+  DEG_relations_tag_update(bmain);
   return OPERATOR_FINISHED;
 }
 
