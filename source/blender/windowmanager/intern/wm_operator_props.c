@@ -262,6 +262,12 @@ ID *WM_operator_properties_id_lookup_from_name_or_session_uuid(Main *bmain,
   return NULL;
 }
 
+bool WM_operator_properties_id_lookup_is_set(PointerRNA *ptr)
+{
+  return RNA_struct_property_is_set(ptr, "session_uuid") ||
+         RNA_struct_property_is_set(ptr, "name");
+}
+
 void WM_operator_properties_id_lookup(wmOperatorType *ot, const bool add_name_prop)
 {
   PropertyRNA *prop;

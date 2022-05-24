@@ -1729,8 +1729,7 @@ static int object_instance_add_invoke(bContext *C, wmOperator *op, const wmEvent
     RNA_int_set(op->ptr, "drop_y", event->xy[1]);
   }
 
-  if (!RNA_struct_property_is_set(op->ptr, "name") &&
-      !RNA_struct_property_is_set(op->ptr, "session_uuid")) {
+  if (!WM_operator_properties_id_lookup_is_set(op->ptr)) {
     return WM_enum_search_invoke(C, op, event);
   }
   return op->type->exec(C, op);
@@ -1762,16 +1761,7 @@ void OBJECT_OT_collection_instance_add(wmOperatorType *ot)
   ot->prop = prop;
   ED_object_add_generic_props(ot, false);
 
-  prop = RNA_def_int(ot->srna,
-                     "session_uuid",
-                     0,
-                     INT32_MIN,
-                     INT32_MAX,
-                     "Session UUID",
-                     "Session UUID of the collection to add",
-                     INT32_MIN,
-                     INT32_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+  WM_operator_properties_id_lookup(ot, false);
 
   object_add_drop_xy_props(ot);
 }
@@ -1868,16 +1858,7 @@ void OBJECT_OT_collection_external_asset_drop(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   /* properties */
-  prop = RNA_def_int(ot->srna,
-                     "session_uuid",
-                     0,
-                     INT32_MIN,
-                     INT32_MAX,
-                     "Session UUID",
-                     "Session UUID of the collection to add",
-                     INT32_MIN,
-                     INT32_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+  WM_operator_properties_id_lookup(ot, false);
 
   ED_object_add_generic_props(ot, false);
 

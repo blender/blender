@@ -2142,11 +2142,8 @@ static int ui_drop_material_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
 
-  if (!RNA_struct_property_is_set(op->ptr, "session_uuid")) {
-    return OPERATOR_CANCELLED;
-  }
-  const uint32_t session_uuid = (uint32_t)RNA_int_get(op->ptr, "session_uuid");
-  Material *ma = (Material *)BKE_libblock_find_session_uuid(bmain, ID_MA, session_uuid);
+  Material *ma = (Material *)WM_operator_properties_id_lookup_from_name_or_session_uuid(
+      bmain, op->ptr, ID_MA);
   if (ma == NULL) {
     return OPERATOR_CANCELLED;
   }
@@ -2184,16 +2181,7 @@ static void UI_OT_drop_material(wmOperatorType *ot)
   ot->exec = ui_drop_material_exec;
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
-  PropertyRNA *prop = RNA_def_int(ot->srna,
-                                  "session_uuid",
-                                  0,
-                                  INT32_MIN,
-                                  INT32_MAX,
-                                  "Session UUID",
-                                  "Session UUID of the data-block to assign",
-                                  INT32_MIN,
-                                  INT32_MAX);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  WM_operator_properties_id_lookup(ot, false);
 }
 
 /** \} */
