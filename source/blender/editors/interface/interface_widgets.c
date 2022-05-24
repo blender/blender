@@ -1302,14 +1302,14 @@ static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
 
 static float widget_alpha_factor(const uiWidgetStateInfo *state)
 {
-  if (state->but_drawflag & (UI_BUT_INACTIVE | UI_BUT_DISABLED)) {
-    if (state->but_drawflag & UI_SEARCH_FILTER_NO_MATCH) {
+  if (state->but_flag & (UI_BUT_INACTIVE | UI_BUT_DISABLED)) {
+    if (state->but_flag & UI_SEARCH_FILTER_NO_MATCH) {
       return 0.25f;
     }
     return 0.5f;
   }
 
-  if (state->but_drawflag & UI_SEARCH_FILTER_NO_MATCH) {
+  if (state->but_flag & UI_SEARCH_FILTER_NO_MATCH) {
     return 0.5f;
   }
 
