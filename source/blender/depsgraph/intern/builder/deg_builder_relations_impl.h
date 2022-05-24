@@ -36,34 +36,34 @@ Relation *DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
   if (op_from && op_to) {
     return add_operation_relation(op_from, op_to, description, flags);
   }
-  else {
-    if (!op_from) {
-      /* XXX TODO: handle as error or report if needed. */
-      fprintf(stderr,
-              "add_relation(%s) - Could not find op_from (%s)\n",
-              description,
-              key_from.identifier().c_str());
-    }
-    else {
-      fprintf(stderr,
-              "add_relation(%s) - Failed, but op_from (%s) was ok\n",
-              description,
-              key_from.identifier().c_str());
-    }
-    if (!op_to) {
-      /* XXX TODO: handle as error or report if needed. */
-      fprintf(stderr,
-              "add_relation(%s) - Could not find op_to (%s)\n",
-              description,
-              key_to.identifier().c_str());
-    }
-    else {
-      fprintf(stderr,
-              "add_relation(%s) - Failed, but op_to (%s) was ok\n",
-              description,
-              key_to.identifier().c_str());
-    }
+
+  if (!op_from) {
+    /* XXX TODO: handle as error or report if needed. */
+    fprintf(stderr,
+            "add_relation(%s) - Could not find op_from (%s)\n",
+            description,
+            key_from.identifier().c_str());
   }
+  else {
+    fprintf(stderr,
+            "add_relation(%s) - Failed, but op_from (%s) was ok\n",
+            description,
+            key_from.identifier().c_str());
+  }
+  if (!op_to) {
+    /* XXX TODO: handle as error or report if needed. */
+    fprintf(stderr,
+            "add_relation(%s) - Could not find op_to (%s)\n",
+            description,
+            key_to.identifier().c_str());
+  }
+  else {
+    fprintf(stderr,
+            "add_relation(%s) - Failed, but op_to (%s) was ok\n",
+            description,
+            key_to.identifier().c_str());
+  }
+
   return nullptr;
 }
 
