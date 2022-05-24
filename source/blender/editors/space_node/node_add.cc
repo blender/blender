@@ -303,10 +303,8 @@ static bNodeTree *node_add_group_get_and_poll_group_node_tree(Main *bmain,
                                                               wmOperator *op,
                                                               bNodeTree *ntree)
 {
-  char name[MAX_ID_NAME - 2];
-  RNA_string_get(op->ptr, "name", name);
-
-  bNodeTree *node_group = (bNodeTree *)BKE_libblock_find_name(bmain, ID_NT, name);
+  bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
+      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_NT));
   if (!node_group) {
     return nullptr;
   }
@@ -423,7 +421,7 @@ void NODE_OT_add_group(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
-  RNA_def_string(ot->srna, "name", "Mask", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
+  WM_operator_properties_id_lookup(ot, true);
 }
 
 /** \} */
@@ -721,7 +719,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
                                  WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
                                  FILE_DEFAULTDISPLAY,
                                  FILE_SORT_DEFAULT);
-  RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Data-block name to assign");
+  WM_operator_properties_id_lookup(ot, true);
 }
 
 /** \} */

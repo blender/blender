@@ -1266,6 +1266,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
 {
   Main *bmain = CTX_data_main(C);
   ID *id = NULL;
+
   /* check input variables */
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
@@ -1303,19 +1304,29 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
         }
       }
     }
+
+    return id;
   }
-  else if (RNA_struct_property_is_set(op->ptr, "name")) {
-    char name[MAX_ID_NAME - 2];
-    RNA_string_get(op->ptr, "name", name);
-    id = BKE_libblock_find_name(bmain, idcode, name);
-    if (!id) {
+
+  /* Lookup an already existing ID. */
+  id = WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, idcode);
+
+  if (!id) {
+    /* Print error with the name if the name is available. */
+
+    if (RNA_struct_property_is_set(op->ptr, "name")) {
+      char name[MAX_ID_NAME - 2];
+      RNA_string_get(op->ptr, "name", name);
       BKE_reportf(
           op->reports, RPT_ERROR, "%s '%s' not found", BKE_idtype_idcode_to_name(idcode), name);
       return NULL;
     }
-    id_us_plus(id);
+
+    BKE_reportf(op->reports, RPT_ERROR, "%s not found", BKE_idtype_idcode_to_name(idcode));
+    return NULL;
   }
 
+  id_us_plus(id);
   return id;
 }
 

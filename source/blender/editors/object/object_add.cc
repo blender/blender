@@ -1265,9 +1265,9 @@ void OBJECT_OT_drop_named_image(wmOperatorType *ot)
                   "Relative Path",
                   "Select the file relative to the blend file");
   RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
-  prop = RNA_def_string(
-      ot->srna, "name", nullptr, MAX_ID_NAME - 2, "Name", "Image name to assign");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+
+  WM_operator_properties_id_lookup(ot, true);
+
   ED_object_add_generic_props(ot, false);
 }
 
@@ -1894,18 +1894,12 @@ static int object_data_instance_add_exec(bContext *C, wmOperator *op)
   ushort local_view_bits;
   float loc[3], rot[3];
 
-  PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
   PropertyRNA *prop_type = RNA_struct_find_property(op->ptr, "type");
   PropertyRNA *prop_location = RNA_struct_find_property(op->ptr, "location");
 
-  /* These shouldn't fail when created by outliner dropping as it checks the ID is valid. */
-  if (!RNA_property_is_set(op->ptr, prop_name) || !RNA_property_is_set(op->ptr, prop_type)) {
-    return OPERATOR_CANCELLED;
-  }
   const short id_type = RNA_property_enum_get(op->ptr, prop_type);
-  char name[MAX_ID_NAME - 2];
-  RNA_property_string_get(op->ptr, prop_name, name);
-  id = BKE_libblock_find_name(bmain, id_type, name);
+  id = WM_operator_properties_id_lookup_from_name_or_session_uuid(
+      bmain, op->ptr, (ID_Type)id_type);
   if (id == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -1948,7 +1942,7 @@ void OBJECT_OT_data_instance_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_string(ot->srna, "name", "Name", MAX_ID_NAME - 2, "Name", "ID name to add");
+  WM_operator_properties_id_lookup(ot, true);
   PropertyRNA *prop = RNA_def_enum(ot->srna, "type", rna_enum_id_type_items, 0, "Type", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
   ED_object_add_generic_props(ot, false);
