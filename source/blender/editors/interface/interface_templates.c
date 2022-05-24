@@ -820,8 +820,11 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
     id_override->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
     *r_undo_push_label = "Make Library Override Hierarchy";
 
-    WM_event_add_notifier(C, NC_WINDOW, NULL);
-    DEG_relations_tag_update(bmain);
+    /* Given `idptr` is re-assigned to owner property by caller to ensure proper updates etc. Here
+     * we also use it to ensure remapping of the owner property from the linked data to the newly
+     * created liboverride (note that in theory this remapping has already been done by code
+     * above). */
+    RNA_id_pointer_create(id_override, idptr);
   }
 }
 
