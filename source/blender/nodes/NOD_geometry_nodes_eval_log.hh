@@ -89,8 +89,9 @@ class GFieldValueLog : public ValueLog {
 
 struct GeometryAttributeInfo {
   std::string name;
-  AttributeDomain domain;
-  CustomDataType data_type;
+  /** Can be empty when #name does not actually exist on a geometry yet. */
+  std::optional<AttributeDomain> domain;
+  std::optional<CustomDataType> data_type;
 };
 
 /** Contains information about a geometry set. In most cases this does not store the entire

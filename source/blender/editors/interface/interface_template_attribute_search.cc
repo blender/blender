@@ -40,8 +40,8 @@ static StringRef attribute_domain_string(const AttributeDomain domain)
 
 static bool attribute_search_item_add(uiSearchItems *items, const GeometryAttributeInfo &item)
 {
-  const StringRef data_type_name = attribute_data_type_string(item.data_type);
-  const StringRef domain_name = attribute_domain_string(item.domain);
+  const StringRef data_type_name = attribute_data_type_string(*item.data_type);
+  const StringRef domain_name = attribute_domain_string(*item.domain);
   std::string search_item_text = domain_name + " " + UI_MENU_ARROW_SEP + item.name + UI_SEP_CHAR +
                                  data_type_name;
 
