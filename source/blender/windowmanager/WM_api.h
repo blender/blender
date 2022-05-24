@@ -786,7 +786,7 @@ void WM_operator_properties_id_lookup_set_from_id(PointerRNA *ptr, const ID *id)
  * helper to add the properties.
  */
 struct ID *WM_operator_properties_id_lookup_from_name_or_session_uuid(struct Main *bmain,
-                                                                      const struct wmOperator *op,
+                                                                      PointerRNA *ptr,
                                                                       enum ID_Type type);
 /**
  * Adds "name" and "session_uuid" properties so the caller can tell the operator which ID to act

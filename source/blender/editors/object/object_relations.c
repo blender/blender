@@ -2605,9 +2605,7 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 /** \name Drop Named Material on Object Operator
  * \{ */
 
-char *ED_object_ot_drop_named_material_tooltip(bContext *C,
-                                               PointerRNA *properties,
-                                               const int mval[2])
+char *ED_object_ot_drop_named_material_tooltip(bContext *C, const char *name, const int mval[2])
 {
   int mat_slot = 0;
   Object *ob = ED_view3d_give_material_slot_under_cursor(C, mval, &mat_slot);
@@ -2615,9 +2613,6 @@ char *ED_object_ot_drop_named_material_tooltip(bContext *C,
     return BLI_strdup("");
   }
   mat_slot = max_ii(mat_slot, 1);
-
-  char name[MAX_ID_NAME - 2];
-  RNA_string_get(properties, "name", name);
 
   Material *prev_mat = BKE_object_material_get(ob, mat_slot);
 
@@ -2641,7 +2636,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
   mat_slot = max_ii(mat_slot, 1);
 
   Material *ma = (Material *)WM_operator_properties_id_lookup_from_name_or_session_uuid(
-      bmain, op, ID_MA);
+      bmain, op->ptr, ID_MA);
 
   if (ob == NULL || ma == NULL) {
     return OPERATOR_CANCELLED;
