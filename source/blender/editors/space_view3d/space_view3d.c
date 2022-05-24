@@ -590,16 +590,15 @@ static bool view3d_mat_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 static char *view3d_mat_drop_tooltip(bContext *C,
                                      wmDrag *drag,
                                      const int xy[2],
-                                     struct wmDropBox *drop)
+                                     wmDropBox *UNUSED(drop))
 {
   const char *name = WM_drag_get_item_name(drag);
   ARegion *region = CTX_wm_region(C);
-  RNA_string_set(drop->ptr, "name", name);
   int mval[2] = {
       xy[0] - region->winrct.xmin,
       xy[1] - region->winrct.ymin,
   };
-  return ED_object_ot_drop_named_material_tooltip(C, drop->ptr, mval);
+  return ED_object_ot_drop_named_material_tooltip(C, name, mval);
 }
 
 static bool view3d_world_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
