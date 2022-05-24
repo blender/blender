@@ -683,15 +683,10 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *
     return;
   }
 
-  /* Get name from property, not asset data - it may have changed after importing to ensure
-   * uniqueness (name is assumed to be set from the imported ID name). */
-  char name[MAX_ID_NAME - 2];
-  RNA_string_get(drop->ptr, "name", name);
-  if (!name[0]) {
-    return;
-  }
-
-  ID *id = BKE_libblock_find_name(bmain, asset_drag->id_type, name);
+  /* Try to find the imported ID. For this to work either a "session_uuid" or "name" property must
+   * have been defined (see #WM_operator_properties_id_lookup()). */
+  ID *id = WM_operator_properties_id_lookup_from_name_or_session_uuid(
+      bmain, drop->ptr, asset_drag->id_type);
   if (id != NULL) {
     /* Do not delete the dragged ID if it has any user, otherwise if it is a 're-used' ID it will
      * cause T95636. Note that we need first to add the user that we want to remove in

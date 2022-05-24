@@ -243,20 +243,20 @@ void WM_operator_properties_id_lookup_set_from_id(PointerRNA *ptr, const ID *id)
 }
 
 ID *WM_operator_properties_id_lookup_from_name_or_session_uuid(Main *bmain,
-                                                               const wmOperator *op,
+                                                               PointerRNA *ptr,
                                                                const ID_Type type)
 {
-  PropertyRNA *prop_name = RNA_struct_find_property(op->ptr, "name");
-  PropertyRNA *prop_session_uuid = RNA_struct_find_property(op->ptr, "session_uuid");
+  PropertyRNA *prop_name = RNA_struct_find_property(ptr, "name");
+  PropertyRNA *prop_session_uuid = RNA_struct_find_property(ptr, "session_uuid");
 
-  if (prop_name && RNA_property_is_set(op->ptr, prop_name)) {
+  if (prop_name && RNA_property_is_set(ptr, prop_name)) {
     char name[MAX_ID_NAME - 2];
-    RNA_property_string_get(op->ptr, prop_name, name);
+    RNA_property_string_get(ptr, prop_name, name);
     return BKE_libblock_find_name(bmain, type, name);
   }
 
-  if (prop_session_uuid && RNA_property_is_set(op->ptr, prop_session_uuid)) {
-    const uint32_t session_uuid = (uint32_t)RNA_property_int_get(op->ptr, prop_session_uuid);
+  if (prop_session_uuid && RNA_property_is_set(ptr, prop_session_uuid)) {
+    const uint32_t session_uuid = (uint32_t)RNA_property_int_get(ptr, prop_session_uuid);
     return BKE_libblock_find_session_uuid(bmain, type, session_uuid);
   }
 

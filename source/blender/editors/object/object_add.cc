@@ -1653,7 +1653,7 @@ static std::optional<CollectionAddInfo> collection_add_info_get_from_op(bContext
   PropertyRNA *prop_location = RNA_struct_find_property(op->ptr, "location");
 
   add_info.collection = reinterpret_cast<Collection *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op, ID_GR));
+      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_GR));
 
   bool update_location_if_necessary = false;
   if (add_info.collection) {
@@ -3717,7 +3717,7 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
   /* Find object, create fake base. */
 
   Object *ob = reinterpret_cast<Object *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op, ID_OB));
+      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_OB));
 
   if (ob == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Object not found");
@@ -3829,7 +3829,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
   Object *ob = reinterpret_cast<Object *>(
-      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op, ID_OB));
+      WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, ID_OB));
 
   if (!ob) {
     ob = OBACT(view_layer);

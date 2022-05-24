@@ -2630,7 +2630,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, const wmEvent
   mat_slot = max_ii(mat_slot, 1);
 
   Material *ma = (Material *)WM_operator_properties_id_lookup_from_name_or_session_uuid(
-      bmain, op, ID_MA);
+      bmain, op->ptr, ID_MA);
 
   if (ob == NULL || ma == NULL) {
     return OPERATOR_CANCELLED;
