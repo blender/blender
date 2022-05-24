@@ -72,13 +72,13 @@ int g_curves_attr_id = 0;
  * based on the attribute scope (point or spline). */
 int curves_attribute_element_id()
 {
-    int id = hairStrandID;
-    if (drw_curves.is_point_attribute[g_curves_attr_id] != 0) {
-        id = hair_get_base_id();
-    }
+  int id = hairStrandID;
+  if (drw_curves.is_point_attribute[g_curves_attr_id] != 0) {
+    id = hair_get_base_id();
+  }
 
-    g_curves_attr_id += 1;
-    return id;
+  g_curves_attr_id += 1;
+  return id;
 }
 
 vec4 attr_load_tangent(samplerBuffer cd_buf)
