@@ -487,7 +487,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
               static fn::CustomMF_SI_SI_SI_SO<float3, float3, float, bool> fn{
                   "Not Equal - Element-wise",
                   [](float3 a, float3 b, float epsilon) {
-                    return abs(a.x - b.x) > epsilon && abs(a.y - b.y) > epsilon &&
+                    return abs(a.x - b.x) > epsilon || abs(a.y - b.y) > epsilon ||
                            abs(a.z - b.z) > epsilon;
                   },
                   exec_preset_first_two};
@@ -522,7 +522,7 @@ static const fn::MultiFunction *get_multi_function(bNode &node)
           static fn::CustomMF_SI_SI_SI_SO<ColorGeometry4f, ColorGeometry4f, float, bool> fn{
               "Not Equal",
               [](ColorGeometry4f a, ColorGeometry4f b, float epsilon) {
-                return abs(a.r - b.r) > epsilon && abs(a.g - b.g) > epsilon &&
+                return abs(a.r - b.r) > epsilon || abs(a.g - b.g) > epsilon ||
                        abs(a.b - b.b) > epsilon;
               },
               exec_preset_first_two};
