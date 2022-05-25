@@ -265,6 +265,7 @@ void draw_subdiv_build_lines_buffer(const DRWSubdivCache *cache,
 
 void draw_subdiv_build_lines_loose_buffer(const DRWSubdivCache *cache,
                                           struct GPUIndexBuf *lines_indices,
+                                          GPUVertBuf *lines_flags,
                                           uint num_loose_edges);
 
 void draw_subdiv_build_fdots_buffers(const DRWSubdivCache *cache,

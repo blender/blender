@@ -600,8 +600,9 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache)
 #define SUBDIV_COARSE_FACE_FLAG_SMOOTH 1u
 #define SUBDIV_COARSE_FACE_FLAG_SELECT 2u
 #define SUBDIV_COARSE_FACE_FLAG_ACTIVE 4u
+#define SUBDIV_COARSE_FACE_FLAG_HIDDEN 8u
 
-#define SUBDIV_COARSE_FACE_FLAG_OFFSET 29u
+#define SUBDIV_COARSE_FACE_FLAG_OFFSET 28u
 
 #define SUBDIV_COARSE_FACE_FLAG_SMOOTH_MASK \
   (SUBDIV_COARSE_FACE_FLAG_SMOOTH << SUBDIV_COARSE_FACE_FLAG_OFFSET)
@@ -609,10 +610,12 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache)
   (SUBDIV_COARSE_FACE_FLAG_SELECT << SUBDIV_COARSE_FACE_FLAG_OFFSET)
 #define SUBDIV_COARSE_FACE_FLAG_ACTIVE_MASK \
   (SUBDIV_COARSE_FACE_FLAG_ACTIVE << SUBDIV_COARSE_FACE_FLAG_OFFSET)
+#define SUBDIV_COARSE_FACE_FLAG_HIDDEN_MASK \
+  (SUBDIV_COARSE_FACE_FLAG_HIDDEN << SUBDIV_COARSE_FACE_FLAG_OFFSET)
 
 #define SUBDIV_COARSE_FACE_LOOP_START_MASK \
   ~((SUBDIV_COARSE_FACE_FLAG_SMOOTH | SUBDIV_COARSE_FACE_FLAG_SELECT | \
-     SUBDIV_COARSE_FACE_FLAG_ACTIVE) \
+     SUBDIV_COARSE_FACE_FLAG_ACTIVE | SUBDIV_COARSE_FACE_FLAG_HIDDEN) \
     << SUBDIV_COARSE_FACE_FLAG_OFFSET)
 
 static uint32_t compute_coarse_face_flag(BMFace *f, BMFace *efa_act)
@@ -628,6 +631,9 @@ static uint32_t compute_coarse_face_flag(BMFace *f, BMFace *efa_act)
   }
   if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
     flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
+  }
+  if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+    flag |= SUBDIV_COARSE_FACE_FLAG_HIDDEN;
   }
   if (f == efa_act) {
     flag |= SUBDIV_COARSE_FACE_FLAG_ACTIVE;
@@ -658,6 +664,9 @@ static void draw_subdiv_cache_extra_coarse_face_data_mesh(Mesh *mesh, uint32_t *
     }
     if ((mesh->mpoly[i].flag & ME_FACE_SEL) != 0) {
       flag |= SUBDIV_COARSE_FACE_FLAG_SELECT;
+    }
+    if ((mesh->mpoly[i].flag & ME_HIDE) != 0) {
+      flag |= SUBDIV_COARSE_FACE_FLAG_HIDDEN;
     }
     flags_data[i] = (uint)(mesh->mpoly[i].loopstart) | (flag << SUBDIV_COARSE_FACE_FLAG_OFFSET);
   }
@@ -1148,12 +1157,17 @@ struct DRWSubdivUboStorage {
   uint coarse_face_select_mask;
   uint coarse_face_smooth_mask;
   uint coarse_face_active_mask;
+  uint coarse_face_hidden_mask;
   uint coarse_face_loopstart_mask;
 
   /* Number of elements to process in the compute shader (can be the coarse quad count, or the
    * final vertex count, depending on which compute pass we do). This is used to early out in case
    * of out of bond accesses as compute dispatch are of fixed size. */
   uint total_dispatch_size;
+
+  int _pad0;
+  int _pad2;
+  int _pad3;
 };
 
 static_assert((sizeof(DRWSubdivUboStorage) % 16) == 0,
@@ -1180,6 +1194,7 @@ static void draw_subdiv_init_ubo_storage(const DRWSubdivCache *cache,
   ubo->coarse_face_smooth_mask = SUBDIV_COARSE_FACE_FLAG_SMOOTH_MASK;
   ubo->coarse_face_select_mask = SUBDIV_COARSE_FACE_FLAG_SELECT_MASK;
   ubo->coarse_face_active_mask = SUBDIV_COARSE_FACE_FLAG_ACTIVE_MASK;
+  ubo->coarse_face_hidden_mask = SUBDIV_COARSE_FACE_FLAG_HIDDEN_MASK;
   ubo->coarse_face_loopstart_mask = SUBDIV_COARSE_FACE_LOOP_START_MASK;
   ubo->total_dispatch_size = total_dispatch_size;
 }
@@ -1597,12 +1612,11 @@ void draw_subdiv_build_tris_buffer(const DRWSubdivCache *cache,
       do_single_material ? SHADER_BUFFER_TRIS : SHADER_BUFFER_TRIS_MULTIPLE_MATERIALS, defines);
   GPU_shader_bind(shader);
 
-  if (!do_single_material) {
-    /* subdiv_polygon_offset is always at binding point 0 for each shader using it. */
-    GPU_vertbuf_bind_as_ssbo(cache->subdiv_polygon_offset_buffer, 0);
-  }
+  int binding_point = 0;
 
-  int binding_point = 1;
+  /* subdiv_polygon_offset is always at binding point 0 for each shader using it. */
+  GPU_vertbuf_bind_as_ssbo(cache->subdiv_polygon_offset_buffer, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(cache->extra_coarse_face_data, binding_point++);
 
   /* Outputs */
   GPU_indexbuf_bind_as_ssbo(subdiv_tris, binding_point++);
@@ -1691,11 +1705,13 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache *cache,
 
 void draw_subdiv_build_lines_buffer(const DRWSubdivCache *cache, GPUIndexBuf *lines_indices)
 {
-  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_LINES, nullptr);
+  GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_LINES, "#define SUBDIV_POLYGON_OFFSET\n");
   GPU_shader_bind(shader);
 
   int binding_point = 0;
+  GPU_vertbuf_bind_as_ssbo(cache->subdiv_polygon_offset_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->edges_orig_index, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(cache->extra_coarse_face_data, binding_point++);
   GPU_indexbuf_bind_as_ssbo(lines_indices, binding_point++);
   BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);
 
@@ -1710,12 +1726,14 @@ void draw_subdiv_build_lines_buffer(const DRWSubdivCache *cache, GPUIndexBuf *li
 
 void draw_subdiv_build_lines_loose_buffer(const DRWSubdivCache *cache,
                                           GPUIndexBuf *lines_indices,
+                                          GPUVertBuf *lines_flags,
                                           uint num_loose_edges)
 {
   GPUShader *shader = get_subdiv_shader(SHADER_BUFFER_LINES_LOOSE, "#define LINES_LOOSE\n");
   GPU_shader_bind(shader);
 
-  GPU_indexbuf_bind_as_ssbo(lines_indices, 1);
+  GPU_indexbuf_bind_as_ssbo(lines_indices, 3);
+  GPU_vertbuf_bind_as_ssbo(lines_flags, 4);
 
   drw_subdiv_compute_dispatch(cache, shader, 0, 0, num_loose_edges);
 
@@ -1950,7 +1968,7 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
                                                  const bool do_final,
                                                  const bool do_uvedit,
                                                  const ToolSettings *ts,
-                                                 const bool /*use_hide*/,
+                                                 const bool use_hide,
                                                  OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
   SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(
@@ -2028,6 +2046,7 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
 
   MeshRenderData *mr = mesh_render_data_create(
       ob, mesh, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
+  mr->use_hide = use_hide;
 
   draw_subdiv_cache_update_extra_coarse_face_data(draw_cache, mesh_eval, mr);
 

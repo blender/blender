@@ -387,6 +387,11 @@ float get_face_flag(uint coarse_quad_index)
   return 0.0;
 }
 
+bool is_face_hidden(uint coarse_quad_index)
+{
+  return (extra_coarse_face_data[coarse_quad_index] & coarse_face_hidden_mask) != 0;
+}
+
 void main()
 {
   /* We execute for each coarse quad. */
@@ -417,7 +422,13 @@ void main()
 
   output_verts[coarse_quad_index] = vert;
   output_nors[coarse_quad_index] = fnor;
-  output_indices[coarse_quad_index] = coarse_quad_index;
+
+  if (is_face_hidden(coarse_quad_index)) {
+      output_indices[coarse_quad_index] = 0xffffffff;
+  }
+  else {
+      output_indices[coarse_quad_index] = coarse_quad_index;
+  }
 }
 #else
 void main()
