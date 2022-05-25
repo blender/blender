@@ -298,7 +298,7 @@ static void detect_workarounds()
         "RX550/550", "(TM) 520", "(TM) 530", "(TM) 535", "R5", "R7", "R9"};
 
     if (match_renderer(renderer, matches)) {
-      GCaps.use_hq_normals_workaround = false;
+      GCaps.use_hq_normals_workaround = true;
     }
   }
   /* There is an issue with the #glBlitFramebuffer on MacOS with radeon pro graphics.
