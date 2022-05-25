@@ -68,6 +68,7 @@
 #include "outliner_intern.hh"
 #include "tree/tree_display.hh"
 #include "tree/tree_element_seq.hh"
+#include "tree/tree_iterator.hh"
 
 using namespace blender::ed::outliner;
 
@@ -1457,7 +1458,7 @@ void outliner_item_select(bContext *C,
   /* Clear previous active when activating and clear selection when not extending selection */
   const short clear_flag = (activate ? TSE_ACTIVE : 0) | (extend ? 0 : TSE_SELECTED);
   if (clear_flag) {
-    outliner_flag_set(&space_outliner->tree, clear_flag, false);
+    outliner_flag_set(*space_outliner, clear_flag, false);
   }
 
   if (select_flag & OL_ITEM_SELECT) {
@@ -1531,7 +1532,7 @@ static void do_outliner_range_select(bContext *C,
   const bool active_selected = (tselem->flag & TSE_SELECTED);
 
   if (!extend) {
-    outliner_flag_set(&space_outliner->tree, TSE_SELECTED, false);
+    outliner_flag_set(*space_outliner, TSE_SELECTED, false);
   }
 
   /* Select active if under cursor */
@@ -1604,7 +1605,7 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
 
   if (!(te = outliner_find_item_at_y(space_outliner, &space_outliner->tree, view_mval[1]))) {
     if (deselect_all) {
-      changed |= outliner_flag_set(&space_outliner->tree, TSE_SELECTED, false);
+      changed |= outliner_flag_set(*space_outliner, TSE_SELECTED, false);
     }
   }
   /* Don't allow toggle on scene collection */
@@ -1715,26 +1716,17 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 /** \name Box Select Operator
  * \{ */
 
-static void outliner_item_box_select(bContext *C,
-                                     SpaceOutliner *space_outliner,
-                                     Scene *scene,
-                                     rctf *rectf,
-                                     TreeElement *te,
-                                     bool select)
+static void outliner_box_select(bContext *C,
+                                SpaceOutliner *space_outliner,
+                                const rctf *rectf,
+                                const bool select)
 {
-  TreeStoreElem *tselem = TREESTORE(te);
-
-  if (te->ys <= rectf->ymax && te->ys + UI_UNIT_Y >= rectf->ymin) {
-    outliner_item_select(
-        C, space_outliner, te, (select ? OL_ITEM_SELECT : OL_ITEM_DESELECT) | OL_ITEM_EXTEND);
-  }
-
-  /* Look at its children. */
-  if (TSELEM_OPEN(tselem, space_outliner)) {
-    LISTBASE_FOREACH (TreeElement *, te_sub, &te->subtree) {
-      outliner_item_box_select(C, space_outliner, scene, rectf, te_sub, select);
+  tree_iterator::all_open(*space_outliner, [&](TreeElement *te) {
+    if (te->ys <= rectf->ymax && te->ys + UI_UNIT_Y >= rectf->ymin) {
+      outliner_item_select(
+          C, space_outliner, te, (select ? OL_ITEM_SELECT : OL_ITEM_DESELECT) | OL_ITEM_EXTEND);
     }
-  }
+  });
 }
 
 static int outliner_box_select_exec(bContext *C, wmOperator *op)
@@ -1747,15 +1739,13 @@ static int outliner_box_select_exec(bContext *C, wmOperator *op)
   const eSelectOp sel_op = (eSelectOp)RNA_enum_get(op->ptr, "mode");
   const bool select = (sel_op != SEL_OP_SUB);
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-    outliner_flag_set(&space_outliner->tree, TSE_SELECTED, 0);
+    outliner_flag_set(*space_outliner, TSE_SELECTED, 0);
   }
 
   WM_operator_properties_border_to_rctf(op, &rectf);
   UI_view2d_region_to_view_rctf(&region->v2d, &rectf, &rectf);
 
-  LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
-    outliner_item_box_select(C, space_outliner, scene, &rectf, te, select);
-  }
+  outliner_box_select(C, space_outliner, &rectf, select);
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);

@@ -408,8 +408,12 @@ int outliner_flag_is_any_test(ListBase *lb, short flag, int curlevel);
  * Set or unset \a flag for all outliner elements in \a lb and sub-trees.
  * \return if any flag was modified.
  */
-bool outliner_flag_set(ListBase *lb, short flag, short set);
-bool outliner_flag_flip(ListBase *lb, short flag);
+extern "C++" {
+bool outliner_flag_set(const SpaceOutliner &space_outliner, short flag, short set);
+bool outliner_flag_set(const ListBase &lb, short flag, short set);
+bool outliner_flag_flip(const SpaceOutliner &space_outliner, short flag);
+bool outliner_flag_flip(const ListBase &lb, short flag);
+}
 
 void item_rename_fn(struct bContext *C,
                     struct ReportList *reports,
@@ -451,7 +455,8 @@ void id_remap_fn(struct bContext *C,
 /**
  * To retrieve coordinates with redrawing the entire tree.
  */
-void outliner_set_coordinates(struct ARegion *region, struct SpaceOutliner *space_outliner);
+void outliner_set_coordinates(const struct ARegion *region,
+                              const struct SpaceOutliner *space_outliner);
 
 /**
  * Open or close a tree element, optionally toggling all children recursively.
