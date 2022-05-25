@@ -1912,6 +1912,10 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
       BKE_modifiers_findby_session_uuid(ob, &mesh->runtime.subsurf_session_uuid));
   BLI_assert(smd);
 
+  if (!smd) {
+    return false;
+  }
+
   const bool is_final_render = DRW_state_is_scene_render();
 
   SubdivSettings settings;

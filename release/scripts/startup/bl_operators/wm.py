@@ -2943,7 +2943,7 @@ link below.
     for line in msg.split("\n"):
         layout.label(text=line)
 
-    url = "https://blender.chat/channel/sculpt-paint-texture-module"
+    url = "https://blender.chat/channel/sculpt-paint-texture"
     props = layout.operator("wm.url_open", text=url)
     props.url = url
 
