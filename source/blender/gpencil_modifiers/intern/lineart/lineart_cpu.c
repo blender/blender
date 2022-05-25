@@ -1753,6 +1753,11 @@ static void lineart_finalize_object_edge_array_reserve(LineartPendingEdges *pe, 
 
 static void lineart_finalize_object_edge_array(LineartPendingEdges *pe, LineartObjectInfo *obi)
 {
+  /* In case of line art "occlusion only" or contour not enabled, it's possible for an object to
+   * not produce any feature lines. */
+  if (!obi->pending_edges.array) {
+    return;
+  }
   memcpy(&pe->array[pe->next],
          obi->pending_edges.array,
          sizeof(LineartEdge *) * obi->pending_edges.next);
