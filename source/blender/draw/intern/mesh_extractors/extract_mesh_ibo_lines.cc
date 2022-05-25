@@ -160,7 +160,7 @@ static void extract_lines_init_subdiv(const DRWSubdivCache *subdiv_cache,
 }
 
 static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
-                                            const MeshRenderData *UNUSED(mr),
+                                            const MeshRenderData *mr,
                                             void *buffer,
                                             void *UNUSED(data))
 {
@@ -169,8 +169,31 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
     return;
   }
 
+  /* Update flags for loose edges, points are already handled. */
+  static GPUVertFormat format;
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
+  }
+
+  GPUVertBuf *flags = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format(flags, &format);
+
+  Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+  GPU_vertbuf_data_alloc(flags, loose_edges.size());
+
+  uint *flags_data = static_cast<uint *>(GPU_vertbuf_get_data(flags));
+
+  const MEdge *medge = mr->medge;
+
+  for (DRWSubdivLooseEdge edge : loose_edges) {
+    *flags_data++ = (medge[edge.coarse_edge_index].flag & ME_HIDE) != 0;
+  }
+
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buffer);
-  draw_subdiv_build_lines_loose_buffer(subdiv_cache, ibo, static_cast<uint>(loose_geom.edge_len));
+  draw_subdiv_build_lines_loose_buffer(
+      subdiv_cache, ibo, flags, static_cast<uint>(loose_geom.edge_len));
+
+  GPU_vertbuf_discard(flags);
 }
 
 constexpr MeshExtract create_extractor_lines()
