@@ -1050,7 +1050,7 @@ static struct PyMethodDef Color_methods[] = {
     /* base-math methods */
     {"freeze", (PyCFunction)BaseMathObject_freeze, METH_NOARGS, BaseMathObject_freeze_doc},
 
-    /* Colorspace methods. */
+    /* Color-space methods. */
     {"from_scene_linear_to_srgb",
      (PyCFunction)Color_from_scene_linear_to_srgb,
      METH_NOARGS,

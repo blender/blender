@@ -418,7 +418,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   }
   totcol = ob->totcol;
 
-  /* obact materials in new main array, is nicer start! */
+  /* Active object materials in new main array, is nicer start! */
   for (a = 0; a < ob->totcol; a++) {
     matar[a] = BKE_object_material_get(ob, a + 1);
     id_us_plus((ID *)matar[a]);

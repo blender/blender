@@ -135,11 +135,11 @@ const Curve *CurveComponent::get_curve_for_render() const
 
 /** \} */
 
+namespace blender::bke {
+
 /* -------------------------------------------------------------------- */
 /** \name Curve Normals Access
  * \{ */
-
-namespace blender::bke {
 
 static Array<float3> curve_normal_point_domain(const bke::CurvesGeometry &curves)
 {
@@ -300,9 +300,9 @@ bool CurveLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
   return dynamic_cast<const CurveLengthFieldInput *>(&other) != nullptr;
 }
 
-}  // namespace blender::bke
-
 /** \} */
+
+}  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */
 /** \name Attribute Access Helper Functions

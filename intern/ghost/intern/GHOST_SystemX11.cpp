@@ -1117,7 +1117,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 #else
       /* In keyboards like Latin ones,
        * numbers needs a 'Shift' to be accessed but key_sym
-       * is unmodified (or anyone swapping the keys with xmodmap).
+       * is unmodified (or anyone swapping the keys with `xmodmap`).
        *
        * Here we look at the 'Shifted' version of the key.
        * If it is a number, then we take it instead of the normal key.

@@ -71,7 +71,7 @@ class BuilderStack {
    * `BuilderStack::trace` (which pushes entry to the stack), and upon destruction of this object
    * the corresponding entry is popped from the stack.
    *
-   * The goal of this `ScopedEntry` is to free developers from worryign about removing entries from
+   * The goal of this `ScopedEntry` is to free developers from worrying about removing entries from
    * the stack whenever leaving a builder step scope. */
   class ScopedEntry {
    public:

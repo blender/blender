@@ -587,7 +587,7 @@ static bNode *ntree_shader_copy_branch(bNodeTree *ntree,
       }
     }
   }
-  /* Recreate links between copied nodes AND incomming links to the copied nodes. */
+  /* Recreate links between copied nodes AND incoming links to the copied nodes. */
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
     if (link->tonode->tmp_flag >= 0) {
       bool from_node_copied = link->fromnode->tmp_flag >= 0;
