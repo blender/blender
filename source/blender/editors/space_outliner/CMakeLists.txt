@@ -27,6 +27,7 @@ set(SRC
   outliner_draw.cc
   outliner_edit.cc
   outliner_ops.cc
+  outliner_query.cc
   outliner_select.cc
   outliner_sync.cc
   outliner_tools.cc

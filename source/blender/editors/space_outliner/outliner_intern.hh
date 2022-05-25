@@ -160,8 +160,6 @@ enum {
   /* Child elements of the same type in the icon-row are drawn merged as one icon.
    * This flag is set for an element that is part of these merged child icons. */
   TE_ICONROW_MERGED = (1 << 7),
-  /* This element has some warning to be displayed. */
-  TE_HAS_WARNING = (1 << 8),
 };
 
 /* button events */
@@ -509,6 +507,11 @@ void OUTLINER_OT_drivers_add_selected(struct wmOperatorType *ot);
 void OUTLINER_OT_drivers_delete_selected(struct wmOperatorType *ot);
 
 void OUTLINER_OT_orphans_purge(struct wmOperatorType *ot);
+
+/* outliner_query.cc ---------------------------------------------- */
+
+bool outliner_shows_mode_column(const SpaceOutliner &space_outliner);
+bool outliner_has_element_warnings(const SpaceOutliner &space_outliner);
 
 /* outliner_tools.c ---------------------------------------------- */
 

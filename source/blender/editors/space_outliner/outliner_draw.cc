@@ -72,6 +72,7 @@
 #include "tree/tree_element_overrides.hh"
 #include "tree/tree_element_rna.hh"
 
+using namespace blender;
 using namespace blender::ed::outliner;
 
 /* -------------------------------------------------------------------- */
@@ -2285,31 +2286,25 @@ static void outliner_draw_mode_column(const bContext *C,
 static bool outliner_draw_warning_tree_element(uiBlock *block,
                                                SpaceOutliner *space_outliner,
                                                TreeElement *te,
-                                               TreeStoreElem *tselem,
                                                const bool use_mode_column,
                                                const int te_ys)
 {
-  if ((te->flag & TE_HAS_WARNING) == 0) {
-    /* If given element has no warning, recursively try to display the first sub-elements' warning.
-     */
-    if (!TSELEM_OPEN(tselem, space_outliner)) {
-      LISTBASE_FOREACH (TreeElement *, sub_te, &te->subtree) {
-        TreeStoreElem *sub_tselem = TREESTORE(sub_te);
+  const AbstractTreeElement *abstract_te = tree_element_cast<AbstractTreeElement>(te);
+  const StringRefNull warning_msg = abstract_te ? abstract_te->getWarning() : "";
 
+  if (warning_msg.is_empty()) {
+    /* If given element has no warning, recursively try to display the first sub-element's warning.
+     */
+    if (!TSELEM_OPEN(te->store_elem, space_outliner)) {
+      LISTBASE_FOREACH (TreeElement *, sub_te, &te->subtree) {
         if (outliner_draw_warning_tree_element(
-                block, space_outliner, sub_te, sub_tselem, use_mode_column, te_ys)) {
+                block, space_outliner, sub_te, use_mode_column, te_ys)) {
           return true;
         }
       }
     }
     return false;
   }
-
-  int icon = ICON_NONE;
-  const char *tip = "";
-  const bool has_warning = tree_element_warnings_get(te, &icon, &tip);
-  BLI_assert(has_warning);
-  UNUSED_VARS_NDEBUG(has_warning);
 
   /* Move the warnings a unit left in view layer mode. */
   const short mode_column_offset = (use_mode_column && (space_outliner->outlinevis == SO_SCENES)) ?
@@ -2320,7 +2315,7 @@ static bool outliner_draw_warning_tree_element(uiBlock *block,
   uiBut *but = uiDefIconBut(block,
                             UI_BTYPE_ICON_TOGGLE,
                             0,
-                            icon,
+                            ICON_ERROR,
                             mode_column_offset,
                             te_ys,
                             UI_UNIT_X,
@@ -2330,7 +2325,7 @@ static bool outliner_draw_warning_tree_element(uiBlock *block,
                             0.0,
                             0.0,
                             0.0,
-                            tip);
+                            warning_msg.c_str());
   /* No need for undo here, this is a pure info widget. */
   UI_but_flag_disable(but, UI_BUT_UNDO);
 
@@ -2344,11 +2339,9 @@ static void outliner_draw_warning_column(const bContext *C,
                                          ListBase *tree)
 {
   LISTBASE_FOREACH (TreeElement *, te, tree) {
-    TreeStoreElem *tselem = TREESTORE(te);
+    outliner_draw_warning_tree_element(block, space_outliner, te, use_mode_column, te->ys);
 
-    outliner_draw_warning_tree_element(block, space_outliner, te, tselem, use_mode_column, te->ys);
-
-    if (TSELEM_OPEN(tselem, space_outliner)) {
+    if (TSELEM_OPEN(te->store_elem, space_outliner)) {
       outliner_draw_warning_column(C, block, space_outliner, use_mode_column, &te->subtree);
     }
   }
@@ -3961,13 +3954,8 @@ void draw_outliner(const bContext *C)
   UI_view2d_view_ortho(v2d);
 
   /* Only show mode column in View Layers and Scenes view. */
-  const bool use_mode_column = (space_outliner->flag & SO_MODE_COLUMN) &&
-                               (ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES));
-
-  const bool use_warning_column = ELEM(space_outliner->outlinevis,
-                                       SO_LIBRARIES,
-                                       SO_OVERRIDES_LIBRARY) &&
-                                  space_outliner->runtime->tree_display->hasWarnings();
+  const bool use_mode_column = outliner_shows_mode_column(*space_outliner);
+  const bool use_warning_column = outliner_has_element_warnings(*space_outliner);
 
   /* Draw outliner stuff (background, hierarchy lines and names). */
   const float right_column_width = outliner_right_columns_width(space_outliner);

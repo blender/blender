@@ -66,6 +66,7 @@
 #include "RNA_prototypes.h"
 
 #include "outliner_intern.hh"
+#include "tree/tree_display.hh"
 #include "tree/tree_element_seq.hh"
 
 using namespace blender::ed::outliner;
@@ -1557,12 +1558,11 @@ static bool outliner_is_co_within_restrict_columns(const SpaceOutliner *space_ou
 
 bool outliner_is_co_within_mode_column(SpaceOutliner *space_outliner, const float view_mval[2])
 {
-  /* Mode toggles only show in View Layer and Scenes modes. */
-  if (!ELEM(space_outliner->outlinevis, SO_VIEW_LAYER, SO_SCENES)) {
+  if (!outliner_shows_mode_column(*space_outliner)) {
     return false;
   }
 
-  return space_outliner->flag & SO_MODE_COLUMN && view_mval[0] < UI_UNIT_X;
+  return view_mval[0] < UI_UNIT_X;
 }
 
 static bool outliner_is_co_within_active_mode_column(bContext *C,
