@@ -1195,26 +1195,6 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
                                                      .active_collection = NULL};
   loose_data_instantiate(&instantiate_context);
 
-  /* Attempt to deal with object proxies.
-   *
-   * NOTE: Copied from `BKE_library_make_local`, but this is not really working (as in, not
-   * producing any useful result in any known use case), neither here nor in
-   * `BKE_library_make_local` currently.
-   * Proxies are end of life anyway, so not worth spending time on this. */
-  for (itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
-    BlendfileLinkAppendContextItem *item = itemlink->link;
-
-    if (item->action != LINK_APPEND_ACT_COPY_LOCAL) {
-      continue;
-    }
-
-    ID *id = item->new_id;
-    if (id == NULL) {
-      continue;
-    }
-    BLI_assert(!ID_IS_LINKED(id));
-  }
-
   BKE_main_id_newptr_and_tag_clear(bmain);
 
   blendfile_link_append_proxies_convert(bmain, reports);
