@@ -458,17 +458,6 @@ static ID *loose_data_instantiate_process_check(LooseDataInstantiateContext *ins
     return NULL;
   }
 
-  if (item->action == LINK_APPEND_ACT_COPY_LOCAL) {
-    BLI_assert(ID_IS_LINKED(id));
-    id = id->newid;
-    if (id == NULL) {
-      return NULL;
-    }
-
-    BLI_assert(!ID_IS_LINKED(id));
-    return id;
-  }
-
   BLI_assert(!ID_IS_LINKED(id));
   return id;
 }
@@ -1178,7 +1167,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   for (itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
     BlendfileLinkAppendContextItem *item = itemlink->link;
 
-    if (item->action != LINK_APPEND_ACT_REUSE_LOCAL) {
+    if (!ELEM(item->action, LINK_APPEND_ACT_COPY_LOCAL, LINK_APPEND_ACT_REUSE_LOCAL)) {
       continue;
     }
 
@@ -1189,13 +1178,15 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
     BLI_assert(ID_IS_LINKED(id));
     BLI_assert(id->newid != NULL);
 
+    /* Calling code may want to access newly appended IDs from the link/append context items. */
+    item->new_id = id->newid;
+
     /* Do NOT delete a linked data that was already linked before this append. */
     if (id->tag & LIB_TAG_PRE_EXISTING) {
       continue;
     }
 
     id->tag |= LIB_TAG_DOIT;
-    item->new_id = id->newid;
   }
   BKE_id_multi_tagged_delete(bmain);
 
@@ -1221,7 +1212,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
     if (id == NULL) {
       continue;
     }
-    BLI_assert(ID_IS_LINKED(id));
+    BLI_assert(!ID_IS_LINKED(id));
   }
 
   BKE_main_id_newptr_and_tag_clear(bmain);
