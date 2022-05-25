@@ -3810,7 +3810,7 @@ static void knife_reset_snap_angle_input(KnifeTool_OpData *kcd)
  * If scene orientation is set to anything other than global it takes priority.
  * Otherwise kcd->constrain_axis_mode is used.
  */
-static void knife_constrain_axis(bContext *C, KnifeTool_OpData *kcd)
+static void knife_constrain_axis(KnifeTool_OpData *kcd)
 {
   /* Obtain current mouse position in world space. */
   float curr_cage_adjusted[3];
@@ -3819,7 +3819,7 @@ static void knife_constrain_axis(bContext *C, KnifeTool_OpData *kcd)
 
   /* Constrain axes. */
   Scene *scene = kcd->scene;
-  ViewLayer *view_layer = CTX_data_view_layer(C);
+  ViewLayer *view_layer = kcd->vc.view_layer;
   Object *obedit = (kcd->prev.ob) ? kcd->prev.ob : kcd->vc.obedit;
   RegionView3D *rv3d = kcd->region->regiondata;
   const short scene_orientation = BKE_scene_orientation_get_index(scene, SCE_ORIENT_DEFAULT);
@@ -3871,7 +3871,7 @@ static void knife_constrain_axis(bContext *C, KnifeTool_OpData *kcd)
  * In this case the selection-buffer is used to select the face,
  * then the closest `vert` or `edge` is set, and those will enable `is_co_set`.
  */
-static bool knife_snap_update_from_mval(bContext *C, KnifeTool_OpData *kcd, const float mval[2])
+static bool knife_snap_update_from_mval(KnifeTool_OpData *kcd, const float mval[2])
 {
   knife_pos_data_clear(&kcd->curr);
   copy_v2_v2(kcd->curr.mval, mval);
@@ -3894,7 +3894,7 @@ static bool knife_snap_update_from_mval(bContext *C, KnifeTool_OpData *kcd, cons
     }
 
     if (kcd->axis_constrained) {
-      knife_constrain_axis(C, kcd);
+      knife_constrain_axis(kcd);
     }
   }
 
@@ -4075,8 +4075,7 @@ static void knife_init_colors(KnifeColors *colors)
 }
 
 /* called when modal loop selection gets set up... */
-static void knifetool_init(bContext *C,
-                           ViewContext *vc,
+static void knifetool_init(ViewContext *vc,
                            KnifeTool_OpData *kcd,
                            const bool only_select,
                            const bool cut_through,
@@ -4099,7 +4098,7 @@ static void knifetool_init(bContext *C,
   kcd->region = vc->region;
 
   kcd->objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
-      CTX_data_view_layer(C), CTX_wm_view3d(C), &kcd->objects_len);
+      vc->view_layer, vc->v3d, &kcd->objects_len);
 
   Object *ob;
   BMEditMesh *em;
@@ -4241,14 +4240,14 @@ static void knifetool_exit(wmOperator *op)
 /** \name Mouse-Moving Event Updates
  * \{ */
 
-/* Update active knife edge/vert pointers. */
-static int knife_update_active(bContext *C, KnifeTool_OpData *kcd)
+/** Update active knife edge/vert pointers. */
+static int knife_update_active(KnifeTool_OpData *kcd)
 {
   /* If no hits are found this would normally default to (0, 0, 0) so instead
    * get a point at the mouse ray closest to the previous point.
    * Note that drawing lines in `free-space` isn't properly supported
    * but there's no guarantee (0, 0, 0) has any geometry either - campbell */
-  if (!knife_snap_update_from_mval(C, kcd, kcd->mval)) {
+  if (!knife_snap_update_from_mval(kcd, kcd->mval)) {
     float origin[3];
     float origin_ofs[3];
 
@@ -4269,20 +4268,20 @@ static int knife_update_active(bContext *C, KnifeTool_OpData *kcd)
   return 1;
 }
 
-static void knifetool_update_mval(bContext *C, KnifeTool_OpData *kcd, const float mval[2])
+static void knifetool_update_mval(KnifeTool_OpData *kcd, const float mval[2])
 {
   knife_recalc_ortho(kcd);
   copy_v2_v2(kcd->mval, mval);
 
-  if (knife_update_active(C, kcd)) {
+  if (knife_update_active(kcd)) {
     ED_region_tag_redraw(kcd->region);
   }
 }
 
-static void knifetool_update_mval_i(bContext *C, KnifeTool_OpData *kcd, const int mval_i[2])
+static void knifetool_update_mval_i(KnifeTool_OpData *kcd, const int mval_i[2])
 {
   const float mval[2] = {UNPACK2(mval_i)};
-  knifetool_update_mval(C, kcd, mval);
+  knifetool_update_mval(kcd, mval);
 }
 
 /** \} */
@@ -4445,7 +4444,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
           snapping_increment_temp <= KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) {
         kcd->angle_snapping_increment = snapping_increment_temp;
       }
-      knife_update_active(C, kcd);
+      knife_update_active(kcd);
       knife_update_header(C, op, kcd);
       ED_region_tag_redraw(kcd->region);
       return OPERATOR_RUNNING_MODAL;
@@ -4486,7 +4485,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
           return OPERATOR_CANCELLED;
         }
         knifetool_undo(kcd);
-        knife_update_active(C, kcd);
+        knife_update_active(kcd);
         ED_region_tag_redraw(kcd->region);
         handled = true;
         break;
@@ -4494,7 +4493,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         kcd->snap_midpoints = true;
 
         knife_recalc_ortho(kcd);
-        knife_update_active(C, kcd);
+        knife_update_active(kcd);
         knife_update_header(C, op, kcd);
         ED_region_tag_redraw(kcd->region);
         do_refresh = true;
@@ -4504,7 +4503,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         kcd->snap_midpoints = false;
 
         knife_recalc_ortho(kcd);
-        knife_update_active(C, kcd);
+        knife_update_active(kcd);
         knife_update_header(C, op, kcd);
         ED_region_tag_redraw(kcd->region);
         do_refresh = true;
@@ -4538,7 +4537,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
             RNA_float_get(op->ptr, "angle_snapping_increment"));
         knifetool_disable_orientation_locking(kcd);
         knife_reset_snap_angle_input(kcd);
-        knife_update_active(C, kcd);
+        knife_update_active(kcd);
         knife_update_header(C, op, kcd);
         ED_region_tag_redraw(kcd->region);
         do_refresh = true;
@@ -4623,7 +4622,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
           kcd->is_drag_undo = false;
 
           /* Needed because the last face 'hit' is ignored when dragging. */
-          knifetool_update_mval(C, kcd, kcd->curr.mval);
+          knifetool_update_mval(kcd, kcd->curr.mval);
         }
 
         ED_region_tag_redraw(kcd->region);
@@ -4636,14 +4635,14 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
           if (kcd->is_drag_hold) {
             kcd->is_drag_hold = false;
             kcd->is_drag_undo = false;
-            knifetool_update_mval(C, kcd, kcd->curr.mval);
+            knifetool_update_mval(kcd, kcd->curr.mval);
           }
 
           kcd->prev = kcd->curr;
           kcd->curr = kcd->init;
 
           knife_project_v2(kcd, kcd->curr.cage, kcd->curr.mval);
-          knifetool_update_mval(C, kcd, kcd->curr.mval);
+          knifetool_update_mval(kcd, kcd->curr.mval);
 
           knife_add_cut(kcd);
 
@@ -4679,7 +4678,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
         return OPERATOR_PASS_THROUGH;
       case MOUSEMOVE: /* Mouse moved somewhere to select another loop. */
         if (kcd->mode != MODE_PANNING) {
-          knifetool_update_mval_i(C, kcd, event->mval);
+          knifetool_update_mval_i(kcd, event->mval);
 
           if (kcd->is_drag_hold) {
             if (kcd->totlinehit >= 2) {
@@ -4706,7 +4705,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
             snapping_increment_temp <= KNIFE_MAX_ANGLE_SNAPPING_INCREMENT) {
           kcd->angle_snapping_increment = snapping_increment_temp;
         }
-        knife_update_active(C, kcd);
+        knife_update_active(kcd);
         knife_update_header(C, op, kcd);
         ED_region_tag_redraw(kcd->region);
         return OPERATOR_RUNNING_MODAL;
@@ -4761,7 +4760,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
   if (do_refresh) {
     /* We don't really need to update mval,
      * but this happens to be the best way to refresh at the moment. */
-    knifetool_update_mval_i(C, kcd, event->mval);
+    knifetool_update_mval_i(kcd, event->mval);
   }
 
   /* Keep going until the user confirms. */
@@ -4787,8 +4786,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   /* alloc new customdata */
   kcd = op->customdata = MEM_callocN(sizeof(KnifeTool_OpData), __func__);
 
-  knifetool_init(C,
-                 &vc,
+  knifetool_init(&vc,
                  kcd,
                  only_select,
                  cut_through,
@@ -4824,7 +4822,7 @@ static int knifetool_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_KNIFE);
   WM_event_add_modal_handler(C, op);
 
-  knifetool_update_mval_i(C, kcd, event->mval);
+  knifetool_update_mval_i(kcd, event->mval);
 
   if (wait_for_input == false) {
     /* Avoid copy-paste logic. */
@@ -4942,7 +4940,7 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
   return false;
 }
 
-void EDBM_mesh_knife(bContext *C, ViewContext *vc, LinkNode *polys, bool use_tag, bool cut_through)
+void EDBM_mesh_knife(ViewContext *vc, LinkNode *polys, bool use_tag, bool cut_through)
 {
   KnifeTool_OpData *kcd;
 
@@ -4957,8 +4955,7 @@ void EDBM_mesh_knife(bContext *C, ViewContext *vc, LinkNode *polys, bool use_tag
 
     kcd = MEM_callocN(sizeof(KnifeTool_OpData), __func__);
 
-    knifetool_init(C,
-                   vc,
+    knifetool_init(vc,
                    kcd,
                    only_select,
                    cut_through,
@@ -4984,7 +4981,7 @@ void EDBM_mesh_knife(bContext *C, ViewContext *vc, LinkNode *polys, bool use_tag
       int i;
 
       for (i = 0; i < mval_tot; i++) {
-        knifetool_update_mval(C, kcd, mval_fl[i]);
+        knifetool_update_mval(kcd, mval_fl[i]);
         if (i == 0) {
           knife_start_cut(kcd);
           kcd->mode = MODE_DRAGGING;
