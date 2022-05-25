@@ -19,7 +19,8 @@ typedef struct {
  * be stored in py_data) or be a wrapper for data allocated through
  * Blender (stored in blend_data). This is an either/or struct not both. */
 
-/* prototypes */
+/* Prototypes. */
+
 PyObject *Color_CreatePyObject(const float col[3],
                                PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;
 PyObject *Color_CreatePyObject_wrap(float col[3], PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT

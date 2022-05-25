@@ -45,7 +45,8 @@ typedef struct {
  * be stored in py_data) or be a wrapper for data allocated through
  * blender (stored in blend_data). This is an either/or struct not both */
 
-/* prototypes */
+/* Prototypes. */
+
 PyObject *Matrix_CreatePyObject(const float *mat,
                                 ushort col_num,
                                 ushort row_num,
@@ -70,6 +71,7 @@ PyObject *Matrix_CreatePyObject_alloc(float *mat,
                                       PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;
 
 /* PyArg_ParseTuple's "O&" formatting helpers. */
+
 int Matrix_ParseAny(PyObject *o, void *p);
 int Matrix_Parse2x2(PyObject *o, void *p);
 int Matrix_Parse3x3(PyObject *o, void *p);
