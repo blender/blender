@@ -61,7 +61,7 @@ class AbstractTreeElement {
    * By letting this return a warning message, the tree element will display a warning icon with
    * the message in the tooltip.
    */
-  virtual blender::StringRefNull getWarning() const;
+  virtual StringRefNull getWarning() const;
 
   /**
    * Expand this tree element if it is displayed for the first time (as identified by its

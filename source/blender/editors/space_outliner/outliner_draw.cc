@@ -1921,91 +1921,6 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
   }
 }
 
-static bool outliner_draw_overrides_warning_buts(uiBlock *block,
-                                                 ARegion *region,
-                                                 SpaceOutliner *space_outliner,
-                                                 ListBase *lb,
-                                                 const bool is_open)
-{
-  bool any_item_has_warnings = false;
-
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
-    bool item_has_warnings = false;
-    const bool do_draw = outliner_is_element_in_view(te, &region->v2d);
-    int but_flag = UI_BUT_DRAG_LOCK;
-    const char *tip = nullptr;
-
-    TreeStoreElem *tselem = TREESTORE(te);
-    switch (tselem->type) {
-      case TSE_LIBRARY_OVERRIDE_BASE: {
-        ID *id = tselem->id;
-
-        if (id->flag & LIB_LIB_OVERRIDE_RESYNC_LEFTOVER) {
-          item_has_warnings = true;
-          if (do_draw) {
-            tip = TIP_(
-                "This override data-block is not needed anymore, but was detected as user-edited");
-          }
-        }
-        else if (ID_IS_OVERRIDE_LIBRARY_REAL(id) && ID_REAL_USERS(id) == 0) {
-          item_has_warnings = true;
-          if (do_draw) {
-            tip = TIP_("This override data-block is unused");
-          }
-        }
-        break;
-      }
-      case TSE_LIBRARY_OVERRIDE: {
-        TreeElementOverridesProperty &te_override_prop =
-            *tree_element_cast<TreeElementOverridesProperty>(te);
-        if (!te_override_prop.is_rna_path_valid) {
-          item_has_warnings = true;
-          if (do_draw) {
-            tip = TIP_(
-                "This override property does not exist in current data, it will be removed on "
-                "next .blend file save");
-          }
-        }
-        break;
-      }
-      default:
-        break;
-    }
-
-    const bool any_child_has_warnings = outliner_draw_overrides_warning_buts(
-        block,
-        region,
-        space_outliner,
-        &te->subtree,
-        is_open && TSELEM_OPEN(tselem, space_outliner));
-
-    if (do_draw &&
-        (item_has_warnings || (any_child_has_warnings && !TSELEM_OPEN(tselem, space_outliner)))) {
-      if (tip == nullptr) {
-        tip = TIP_("Some sub-items require attention");
-      }
-      uiBut *bt = uiDefIconBut(block,
-                               UI_BTYPE_BUT,
-                               1,
-                               ICON_ERROR,
-                               (int)(region->v2d.cur.xmax - OL_TOG_USER_BUTS_STATUS),
-                               te->ys,
-                               UI_UNIT_X,
-                               UI_UNIT_Y,
-                               nullptr,
-                               0.0,
-                               0.0,
-                               0.0,
-                               0.0,
-                               tip);
-      UI_but_flag_enable(bt, but_flag);
-    }
-    any_item_has_warnings = any_item_has_warnings || item_has_warnings || any_child_has_warnings;
-  }
-
-  return any_item_has_warnings;
-}
-
 static void outliner_draw_separator(ARegion *region, const int x)
 {
   View2D *v2d = &region->v2d;
@@ -3993,10 +3908,6 @@ void draw_outliner(const bContext *C)
     outliner_draw_userbuts(block, region, space_outliner, &space_outliner->tree);
   }
   else if (space_outliner->outlinevis == SO_OVERRIDES_LIBRARY) {
-    /* Draw overrides status columns. */
-    outliner_draw_overrides_warning_buts(
-        block, region, space_outliner, &space_outliner->tree, true);
-
     const int x = region->v2d.cur.xmax - right_column_width;
     outliner_draw_separator(region, x);
     if (space_outliner->lib_override_view_mode == SO_LIB_OVERRIDE_VIEW_PROPERTIES) {
