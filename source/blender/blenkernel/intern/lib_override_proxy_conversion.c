@@ -39,7 +39,8 @@ bool BKE_lib_override_library_proxy_convert(Main *bmain,
   /* `proxy_group`, if defined, is the empty instantiating the collection from which the proxy is
    * coming. */
   Object *ob_proxy_group = ob_proxy->proxy_group;
-  const bool is_override_instancing_object = ob_proxy_group != NULL;
+  const bool is_override_instancing_object = (ob_proxy_group != NULL) &&
+                                             (ob_proxy_group->instance_collection != NULL);
   ID *id_root = is_override_instancing_object ? &ob_proxy_group->instance_collection->id :
                                                 &ob_proxy->proxy->id;
   ID *id_instance_hint = is_override_instancing_object ? &ob_proxy_group->id : &ob_proxy->id;
