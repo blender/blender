@@ -154,6 +154,42 @@ void createTransSeqImageData(TransInfo *t)
   SEQ_collection_free(strips);
 }
 
+static bool autokeyframe_sequencer_image(bContext *C,
+                                         Scene *scene,
+                                         StripTransform *transform,
+                                         const int tmode)
+{
+  PointerRNA ptr;
+  PropertyRNA *prop;
+  RNA_pointer_create(&scene->id, &RNA_SequenceTransform, transform, &ptr);
+
+  const bool around_cursor = scene->toolsettings->sequencer_tool_settings->pivot_point ==
+                             V3D_AROUND_CURSOR;
+  const bool do_loc = tmode == TFM_TRANSLATION || around_cursor;
+  const bool do_rot = tmode == TFM_ROTATION;
+  const bool do_scale = tmode == TFM_RESIZE;
+
+  bool changed = false;
+  if (do_rot) {
+    prop = RNA_struct_find_property(&ptr, "rotation");
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, CFRA, false);
+  }
+  if (do_loc) {
+    prop = RNA_struct_find_property(&ptr, "offset_x");
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, CFRA, false);
+    prop = RNA_struct_find_property(&ptr, "offset_y");
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, CFRA, false);
+  }
+  if (do_scale) {
+    prop = RNA_struct_find_property(&ptr, "scale_x");
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, CFRA, false);
+    prop = RNA_struct_find_property(&ptr, "scale_y");
+    changed |= ED_autokeyframe_property(C, scene, &ptr, prop, -1, CFRA, false);
+  }
+
+  return changed;
+}
+
 void recalcData_sequencer_image(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -199,6 +235,12 @@ void recalcData_sequencer_image(TransInfo *t)
     if (t->mode == TFM_ROTATION) {
       transform->rotation = tdseq->orig_rotation - t->values_final[0];
     }
+
+    if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+      animrecord_check_state(t, &t->scene->id);
+      autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
+    }
+
     SEQ_relations_invalidate_cache_preprocessed(t->scene, seq);
   }
 }
@@ -211,9 +253,6 @@ void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), TransInfo *
   TransData2D *td2d = NULL;
   int i;
 
-  PointerRNA ptr;
-  PropertyRNA *prop;
-
   for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i++, td++, td2d++) {
     TransDataSeq *tdseq = td->extra;
     Sequence *seq = tdseq->seq;
@@ -225,24 +264,8 @@ void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), TransInfo *
       continue;
     }
 
-    Scene *scene = t->scene;
-    RNA_pointer_create(&scene->id, &RNA_SequenceTransform, transform, &ptr);
-
-    if (t->mode == TFM_ROTATION) {
-      prop = RNA_struct_find_property(&ptr, "rotation");
-      ED_autokeyframe_property(t->context, scene, &ptr, prop, -1, CFRA);
-    }
-    if (t->mode == TFM_TRANSLATION) {
-      prop = RNA_struct_find_property(&ptr, "offset_x");
-      ED_autokeyframe_property(t->context, scene, &ptr, prop, -1, CFRA);
-      prop = RNA_struct_find_property(&ptr, "offset_y");
-      ED_autokeyframe_property(t->context, scene, &ptr, prop, -1, CFRA);
-    }
-    if (t->mode == TFM_RESIZE) {
-      prop = RNA_struct_find_property(&ptr, "scale_x");
-      ED_autokeyframe_property(t->context, scene, &ptr, prop, -1, CFRA);
-      prop = RNA_struct_find_property(&ptr, "scale_y");
-      ED_autokeyframe_property(t->context, scene, &ptr, prop, -1, CFRA);
+    if (IS_AUTOKEY_ON(t->scene)) {
+      autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
     }
   }
 }

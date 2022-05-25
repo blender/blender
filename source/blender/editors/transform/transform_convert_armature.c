@@ -1471,7 +1471,7 @@ void recalcData_pose(TransInfo *t)
         /* XXX: this currently doesn't work, since flags aren't set yet! */
         int targetless_ik = (t->flag & T_AUTOIK);
 
-        animrecord_check_state(t, ob);
+        animrecord_check_state(t, &ob->id);
         autokeyframe_pose(t->context, t->scene, ob, t->mode, targetless_ik);
       }
 
