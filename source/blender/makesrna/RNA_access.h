@@ -413,8 +413,7 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr,
                                           PropertyRNA *prop,
                                           const char *key,
                                           PointerRNA *r_ptr);
-int RNA_property_collection_lookup_string_index(
-    PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr, int *r_index);
+int RNA_property_collection_lookup_string_index(PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr, int *r_index);
 /**
  * Zero return is an assignment error.
  */
@@ -470,7 +469,7 @@ bool RNA_property_assign_default(PointerRNA *ptr, PropertyRNA *prop);
  * UI code or Actions, though efficiency is a concern. */
 
 char *RNA_path_append(
-    const char *path, PointerRNA *ptr, PropertyRNA *prop, int intkey, const char *strkey);
+    const char *path, const PointerRNA *ptr, PropertyRNA *prop, int intkey, const char *strkey);
 #if 0 /* UNUSED. */
 char *RNA_path_back(const char *path);
 #endif
@@ -488,7 +487,10 @@ char *RNA_path_back(const char *path);
  * \note Assumes all pointers provided are valid
  * \return True if path can be resolved to a valid "pointer + property" OR "pointer only"
  */
-bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop);
+bool RNA_path_resolve(const PointerRNA *ptr,
+                      const char *path,
+                      PointerRNA *r_ptr,
+                      PropertyRNA **r_prop);
 
 /**
  * Resolve the given RNA Path to find the pointer and/or property + array index
@@ -497,16 +499,22 @@ bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prop
  * \note Assumes all pointers provided are valid.
  * \return True if path can be resolved to a valid "pointer + property" OR "pointer only"
  */
-bool RNA_path_resolve_full(
-    PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index);
+bool RNA_path_resolve_full(const PointerRNA *ptr,
+                           const char *path,
+                           PointerRNA *r_ptr,
+                           PropertyRNA **r_prop,
+                           int *r_index);
 /**
  * A version of #RNA_path_resolve_full doesn't check the value of #PointerRNA.data.
  *
  * \note While it's correct to ignore the value of #PointerRNA.data
  * most callers need to know if the resulting pointer was found and not null.
  */
-bool RNA_path_resolve_full_maybe_null(
-    PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index);
+bool RNA_path_resolve_full_maybe_null(const PointerRNA *ptr,
+                                      const char *path,
+                                      PointerRNA *r_ptr,
+                                      PropertyRNA **r_prop,
+                                      int *r_index);
 
 /* RNA_path_resolve_property() variants ensure that pointer + property both exist. */
 
@@ -518,7 +526,7 @@ bool RNA_path_resolve_full_maybe_null(
  * \note Assumes all pointers provided are valid
  * \return True only if both a valid pointer and property are found after resolving the path
  */
-bool RNA_path_resolve_property(PointerRNA *ptr,
+bool RNA_path_resolve_property(const PointerRNA *ptr,
                                const char *path,
                                PointerRNA *r_ptr,
                                PropertyRNA **r_prop);
@@ -531,8 +539,11 @@ bool RNA_path_resolve_property(PointerRNA *ptr,
  * \note Assumes all pointers provided are valid
  * \return True only if both a valid pointer and property are found after resolving the path
  */
-bool RNA_path_resolve_property_full(
-    PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index);
+bool RNA_path_resolve_property_full(const PointerRNA *ptr,
+                                    const char *path,
+                                    PointerRNA *r_ptr,
+                                    PropertyRNA **r_prop,
+                                    int *r_index);
 
 /* RNA_path_resolve_property_and_item_pointer() variants ensure that pointer + property both exist,
  * and resolve last Pointer value if possible (Pointer prop or item of a Collection prop). */
@@ -549,7 +560,7 @@ bool RNA_path_resolve_property_full(
  * You must check for its validity before use!
  * \return True only if both a valid pointer and property are found after resolving the path
  */
-bool RNA_path_resolve_property_and_item_pointer(PointerRNA *ptr,
+bool RNA_path_resolve_property_and_item_pointer(const PointerRNA *ptr,
                                                 const char *path,
                                                 PointerRNA *r_ptr,
                                                 PropertyRNA **r_prop,
@@ -568,7 +579,7 @@ bool RNA_path_resolve_property_and_item_pointer(PointerRNA *ptr,
  * You must check for its validity before use!
  * \return True only if both a valid pointer and property are found after resolving the path
  */
-bool RNA_path_resolve_property_and_item_pointer_full(PointerRNA *ptr,
+bool RNA_path_resolve_property_and_item_pointer_full(const PointerRNA *ptr,
                                                      const char *path,
                                                      PointerRNA *r_ptr,
                                                      PropertyRNA **r_prop,
@@ -670,7 +681,7 @@ char *RNA_path_full_property_py(struct Main *bmain,
  * Get the struct.property as a python representation, eg:
  *   some_struct.some_prop[10]
  */
-char *RNA_path_struct_property_py(const PointerRNA *ptr, PropertyRNA *prop, int index);
+char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index);
 /**
  * Get the struct.property as a python representation, eg:
  *   some_prop[10]

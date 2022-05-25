@@ -5108,7 +5108,7 @@ static bool rna_path_parse_array_index(const char **path,
  *
  * \return \a true on success, \a false if the path is somehow invalid.
  */
-static bool rna_path_parse(PointerRNA *ptr,
+static bool rna_path_parse(const PointerRNA *ptr,
                            const char *path,
                            PointerRNA *r_ptr,
                            PropertyRNA **r_prop,
@@ -5265,7 +5265,10 @@ static bool rna_path_parse(PointerRNA *ptr,
   return true;
 }
 
-bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop)
+bool RNA_path_resolve(const PointerRNA *ptr,
+                      const char *path,
+                      PointerRNA *r_ptr,
+                      PropertyRNA **r_prop)
 {
   if (!rna_path_parse(ptr, path, r_ptr, r_prop, NULL, NULL, NULL, true)) {
     return false;
@@ -5275,7 +5278,7 @@ bool RNA_path_resolve(PointerRNA *ptr, const char *path, PointerRNA *r_ptr, Prop
 }
 
 bool RNA_path_resolve_full(
-    PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
+    const PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
 {
   if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, NULL, true)) {
     return false;
@@ -5285,12 +5288,12 @@ bool RNA_path_resolve_full(
 }
 
 bool RNA_path_resolve_full_maybe_null(
-    PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
+    const PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
 {
   return rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, NULL, true);
 }
 
-bool RNA_path_resolve_property(PointerRNA *ptr,
+bool RNA_path_resolve_property(const PointerRNA *ptr,
                                const char *path,
                                PointerRNA *r_ptr,
                                PropertyRNA **r_prop)
@@ -5303,7 +5306,7 @@ bool RNA_path_resolve_property(PointerRNA *ptr,
 }
 
 bool RNA_path_resolve_property_full(
-    PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
+    const PointerRNA *ptr, const char *path, PointerRNA *r_ptr, PropertyRNA **r_prop, int *r_index)
 {
   if (!rna_path_parse(ptr, path, r_ptr, r_prop, r_index, NULL, NULL, false)) {
     return false;
@@ -5312,7 +5315,7 @@ bool RNA_path_resolve_property_full(
   return r_ptr->data != NULL && *r_prop != NULL;
 }
 
-bool RNA_path_resolve_property_and_item_pointer(PointerRNA *ptr,
+bool RNA_path_resolve_property_and_item_pointer(const PointerRNA *ptr,
                                                 const char *path,
                                                 PointerRNA *r_ptr,
                                                 PropertyRNA **r_prop,
@@ -5325,7 +5328,7 @@ bool RNA_path_resolve_property_and_item_pointer(PointerRNA *ptr,
   return r_ptr->data != NULL && *r_prop != NULL;
 }
 
-bool RNA_path_resolve_property_and_item_pointer_full(PointerRNA *ptr,
+bool RNA_path_resolve_property_and_item_pointer_full(const PointerRNA *ptr,
                                                      const char *path,
                                                      PointerRNA *r_ptr,
                                                      PropertyRNA **r_prop,
@@ -5343,8 +5346,11 @@ bool RNA_path_resolve_elements(PointerRNA *ptr, const char *path, ListBase *r_el
   return rna_path_parse(ptr, path, NULL, NULL, NULL, NULL, r_elements, false);
 }
 
-char *RNA_path_append(
-    const char *path, PointerRNA *UNUSED(ptr), PropertyRNA *prop, int intkey, const char *strkey)
+char *RNA_path_append(const char *path,
+                      const PointerRNA *UNUSED(ptr),
+                      PropertyRNA *prop,
+                      int intkey,
+                      const char *strkey)
 {
   DynStr *dynstr;
   char *result;
@@ -6004,7 +6010,7 @@ char *RNA_path_full_property_py(Main *bmain, const PointerRNA *ptr, PropertyRNA 
   return RNA_path_full_property_py_ex(bmain, ptr, prop, index, false);
 }
 
-char *RNA_path_struct_property_py(const PointerRNA *ptr, PropertyRNA *prop, int index)
+char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
   char *data_path;
 
