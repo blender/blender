@@ -36,7 +36,7 @@ bvec4 gather_edges(vec2 uv, uint ref)
 #ifdef GPU_ARB_texture_gather
   ids = textureGather(outlineId, uv);
 #else
-  vec3 ofs = vec3(0.5, 0.5, -0.5) * drw_view.viewport_size_inversey;
+  vec3 ofs = vec3(0.5, 0.5, -0.5) * drw_view.viewport_size_inverse.xyy;
   ids.x = textureLod(outlineId, uv - ofs.xz, 0.0).r;
   ids.y = textureLod(outlineId, uv + ofs.xy, 0.0).r;
   ids.z = textureLod(outlineId, uv + ofs.xz, 0.0).r;
