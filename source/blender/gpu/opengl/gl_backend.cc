@@ -291,7 +291,8 @@ static void detect_workarounds()
   }
   /* See T82856: AMD drivers since 20.11 running on a polaris architecture doesn't support the
    * `GL_INT_2_10_10_10_REV` data type correctly. This data type is used to pack normals and flags.
-   * The work around uses `GPU_RGBA16I`.
+   * The work around uses `GPU_RGBA16I`. In 22.?.? drivers this has been fixed for
+   * polaris platform. Keeping legacy platforms around just in case.
    */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
     const Vector<std::string> matches = {
