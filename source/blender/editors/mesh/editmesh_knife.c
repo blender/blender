@@ -1383,7 +1383,6 @@ static BMFace *knife_bvh_raycast(KnifeTool_OpData *kcd,
                                  uint *r_base_index)
 {
   BMFace *face;
-  BMLoop **ltri;
   BVHTreeRayHit hit;
   const float dist = r_dist ? *r_dist : FLT_MAX;
   hit.dist = dist;
@@ -1397,8 +1396,9 @@ static BMFace *knife_bvh_raycast(KnifeTool_OpData *kcd,
 
     /* Hits returned in world space. */
     if (r_hitout) {
-      ltri = kcd->bvh.looptris[hit.index];
-      interp_v3_v3v3v3_uv(r_hitout, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co, kcd->bvh.uv);
+      float tri_cos[3][3];
+      knife_bm_tri_cagecos_get_worldspace(kcd, kcd->bvh.base_index, hit.index, tri_cos);
+      interp_v3_v3v3v3_uv(r_hitout, UNPACK3(tri_cos), kcd->bvh.uv);
 
       if (r_cagehit) {
         copy_v3_v3(r_cagehit, hit.co);
@@ -1434,7 +1434,6 @@ static BMFace *knife_bvh_raycast_filter(KnifeTool_OpData *kcd,
   kcd->bvh.filter_data = filter_userdata;
 
   BMFace *face;
-  BMLoop **ltri;
   BVHTreeRayHit hit;
   const float dist = r_dist ? *r_dist : FLT_MAX;
   hit.dist = dist;
@@ -1451,8 +1450,9 @@ static BMFace *knife_bvh_raycast_filter(KnifeTool_OpData *kcd,
 
     /* Hits returned in world space. */
     if (r_hitout) {
-      ltri = kcd->bvh.looptris[hit.index];
-      interp_v3_v3v3v3_uv(r_hitout, ltri[0]->v->co, ltri[1]->v->co, ltri[2]->v->co, kcd->bvh.uv);
+      float tri_cos[3][3];
+      knife_bm_tri_cagecos_get_worldspace(kcd, kcd->bvh.base_index, hit.index, tri_cos);
+      interp_v3_v3v3v3_uv(r_hitout, UNPACK3(tri_cos), kcd->bvh.uv);
 
       if (r_cagehit) {
         copy_v3_v3(r_cagehit, hit.co);
@@ -4290,33 +4290,18 @@ static void knifetool_update_mval_i(KnifeTool_OpData *kcd, const int mval_i[2])
 /** \name Finalization
  * \{ */
 
-/* Called on tool confirmation. */
-static void knifetool_finish_ex(KnifeTool_OpData *kcd)
-{
-  Object *ob;
-  BMEditMesh *em;
-  for (uint b = 0; b < kcd->objects_len; b++) {
-    ob = kcd->objects[b];
-    em = BKE_editmesh_from_object(ob);
-
-    knife_make_cuts(kcd, ob);
-
-    EDBM_selectmode_flush(em);
-    EDBM_update(ob->data,
-                &(const struct EDBMUpdate_Params){
-                    .calc_looptri = true,
-                    .calc_normals = true,
-                    .is_destructive = true,
-                });
-  }
-}
-
-static void knifetool_finish_single_ex(KnifeTool_OpData *kcd, Object *ob, uint UNUSED(base_index))
+static void knifetool_finish_single_pre(KnifeTool_OpData *kcd, Object *ob)
 {
   knife_make_cuts(kcd, ob);
+}
 
+/**
+ * A post version is needed to to delay recalculating tessellation after making cuts.
+ * Without this, knife-project can't use the BVH tree to select geometry after a cut, see: T98349.
+ */
+static void knifetool_finish_single_post(KnifeTool_OpData *UNUSED(kcd), Object *ob)
+{
   BMEditMesh *em = BKE_editmesh_from_object(ob);
-
   EDBM_selectmode_flush(em);
   EDBM_update(ob->data,
               &(const struct EDBMUpdate_Params){
@@ -4324,6 +4309,16 @@ static void knifetool_finish_single_ex(KnifeTool_OpData *kcd, Object *ob, uint U
                   .calc_normals = true,
                   .is_destructive = true,
               });
+}
+
+/* Called on tool confirmation. */
+static void knifetool_finish_ex(KnifeTool_OpData *kcd)
+{
+  for (uint b = 0; b < kcd->objects_len; b++) {
+    Object *ob = kcd->objects[b];
+    knifetool_finish_single_pre(kcd, ob);
+    knifetool_finish_single_post(kcd, ob);
+  }
 }
 
 static void knifetool_finish(wmOperator *op)
@@ -5009,7 +5004,7 @@ void EDBM_mesh_knife(ViewContext *vc, LinkNode *polys, bool use_tag, bool cut_th
         BM_mesh_elem_hflag_enable_all(em->bm, BM_EDGE, BM_ELEM_TAG, false);
       }
 
-      knifetool_finish_single_ex(kcd, ob, b);
+      knifetool_finish_single_pre(kcd, ob);
 
       /* Tag faces inside! */
       if (use_tag) {
@@ -5098,6 +5093,10 @@ void EDBM_mesh_knife(ViewContext *vc, LinkNode *polys, bool use_tag, bool cut_th
 #undef F_ISECT_SET_UNKNOWN
 #undef F_ISECT_SET_OUTSIDE
       }
+
+      /* Defer freeing data until the BVH tree is finished with, see: #point_is_visible and
+       * the doc-string for #knifetool_finish_single_post. */
+      knifetool_finish_single_post(kcd, ob);
     }
 
     knifetool_exit_ex(kcd);
