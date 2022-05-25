@@ -483,9 +483,10 @@ static void rna_RenderLayer_passes_begin(CollectionPropertyIterator *iter, Point
   rna_iterator_listbase_begin(iter, &rl->passes, NULL);
 }
 
-static int rna_RenderPass_rect_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+static int rna_RenderPass_rect_get_length(const PointerRNA *ptr,
+                                          int length[RNA_MAX_ARRAY_DIMENSION])
 {
-  RenderPass *rpass = (RenderPass *)ptr->data;
+  const RenderPass *rpass = (RenderPass *)ptr->data;
 
   length[0] = rpass->rectx * rpass->recty;
   length[1] = rpass->channels;

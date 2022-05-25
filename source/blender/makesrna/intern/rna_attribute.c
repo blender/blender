@@ -118,9 +118,9 @@ const EnumPropertyItem rna_enum_color_attribute_domain_items[] = {
 
 /* Attribute */
 
-static char *rna_Attribute_path(PointerRNA *ptr)
+static char *rna_Attribute_path(const PointerRNA *ptr)
 {
-  CustomDataLayer *layer = ptr->data;
+  const CustomDataLayer *layer = ptr->data;
   return BLI_sprintfN("attributes['%s']", layer->name);
 }
 

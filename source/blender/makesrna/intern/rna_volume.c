@@ -46,12 +46,12 @@ const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
 #  include "WM_api.h"
 #  include "WM_types.h"
 
-static char *rna_VolumeRender_path(PointerRNA *UNUSED(ptr))
+static char *rna_VolumeRender_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("render");
 }
 
-static char *rna_VolumeDisplay_path(PointerRNA *UNUSED(ptr))
+static char *rna_VolumeDisplay_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("display");
 }

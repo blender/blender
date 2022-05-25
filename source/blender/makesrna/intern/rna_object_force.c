@@ -130,7 +130,7 @@ static bool rna_Cache_get_valid_owner_ID(PointerRNA *ptr, Object **ob, Scene **s
   return (*ob != NULL || *scene != NULL);
 }
 
-static char *rna_PointCache_path(PointerRNA *ptr)
+static char *rna_PointCache_path(const PointerRNA *ptr)
 {
   ModifierData *md;
   Object *ob = (Object *)ptr->owner_id;
@@ -443,7 +443,7 @@ int rna_Cache_info_length(PointerRNA *ptr)
   return (int)strlen(cache->info);
 }
 
-static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))
+static char *rna_CollisionSettings_path(const PointerRNA *UNUSED(ptr))
 {
   /* both methods work ok, but return the shorter path */
 #  if 0
@@ -619,17 +619,17 @@ static void rna_SoftBodySettings_spring_vgroup_set(PointerRNA *ptr, const char *
   rna_object_vgroup_name_set(ptr, value, sb->namedVG_Spring_K, sizeof(sb->namedVG_Spring_K));
 }
 
-static char *rna_SoftBodySettings_path(PointerRNA *ptr)
+static char *rna_SoftBodySettings_path(const PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
-  ModifierData *md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Softbody);
+  const Object *ob = (Object *)ptr->owner_id;
+  const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Softbody);
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
 }
 
-static int particle_id_check(PointerRNA *ptr)
+static int particle_id_check(const PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
 
@@ -731,7 +731,7 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
   }
 }
 
-static char *rna_FieldSettings_path(PointerRNA *ptr)
+static char *rna_FieldSettings_path(const PointerRNA *ptr)
 {
   PartDeflect *pd = (PartDeflect *)ptr->data;
 
@@ -787,7 +787,7 @@ static void rna_EffectorWeight_dependency_update(Main *bmain,
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
 
-static char *rna_EffectorWeight_path(PointerRNA *ptr)
+static char *rna_EffectorWeight_path(const PointerRNA *ptr)
 {
   EffectorWeights *ew = (EffectorWeights *)ptr->data;
   /* Check through all possible places the settings can be to find the right one */

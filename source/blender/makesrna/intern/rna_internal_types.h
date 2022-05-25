@@ -50,9 +50,10 @@ typedef int (*EditableFunc)(struct PointerRNA *ptr, const char **r_info);
 typedef int (*ItemEditableFunc)(struct PointerRNA *ptr, int index);
 typedef struct IDProperty **(*IDPropertiesFunc)(struct PointerRNA *ptr);
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
-typedef char *(*StructPathFunc)(struct PointerRNA *ptr);
+typedef char *(*StructPathFunc)(const struct PointerRNA *ptr);
 
-typedef int (*PropArrayLengthGetFunc)(struct PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION]);
+typedef int (*PropArrayLengthGetFunc)(const struct PointerRNA *ptr,
+                                      int length[RNA_MAX_ARRAY_DIMENSION]);
 typedef bool (*PropBooleanGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, bool value);
 typedef void (*PropBooleanArrayGetFunc)(struct PointerRNA *ptr, bool *values);

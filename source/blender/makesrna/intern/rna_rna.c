@@ -721,7 +721,7 @@ static int rna_IntProperty_default_get(PointerRNA *ptr)
   return ((IntPropertyRNA *)prop)->defaultvalue;
 }
 /* int/float/bool */
-static int rna_NumberProperty_default_array_get_length(PointerRNA *ptr,
+static int rna_NumberProperty_default_array_get_length(const PointerRNA *ptr,
                                                        int length[RNA_MAX_ARRAY_DIMENSION])
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;

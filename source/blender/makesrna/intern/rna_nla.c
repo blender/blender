@@ -57,7 +57,7 @@ static void rna_NlaStrip_name_set(PointerRNA *ptr, const char *value)
   }
 }
 
-static char *rna_NlaStrip_path(PointerRNA *ptr)
+static char *rna_NlaStrip_path(const PointerRNA *ptr)
 {
   NlaStrip *strip = (NlaStrip *)ptr->data;
   AnimData *adt = BKE_animdata_from_id(ptr->owner_id);

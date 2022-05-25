@@ -98,7 +98,7 @@ static void rna_LayerObjects_active_object_set(PointerRNA *ptr,
   }
 }
 
-size_t rna_ViewLayer_path_buffer_get(ViewLayer *view_layer,
+size_t rna_ViewLayer_path_buffer_get(const ViewLayer *view_layer,
                                      char *r_rna_path,
                                      const size_t rna_path_buffer_size)
 {
@@ -108,9 +108,9 @@ size_t rna_ViewLayer_path_buffer_get(ViewLayer *view_layer,
   return BLI_snprintf_rlen(r_rna_path, rna_path_buffer_size, "view_layers[\"%s\"]", name_esc);
 }
 
-static char *rna_ViewLayer_path(PointerRNA *ptr)
+static char *rna_ViewLayer_path(const PointerRNA *ptr)
 {
-  ViewLayer *view_layer = (ViewLayer *)ptr->data;
+  const ViewLayer *view_layer = (ViewLayer *)ptr->data;
   char rna_path[sizeof(view_layer->name) * 3];
 
   rna_ViewLayer_path_buffer_get(view_layer, rna_path, sizeof(rna_path));

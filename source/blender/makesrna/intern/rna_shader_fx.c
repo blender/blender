@@ -142,9 +142,9 @@ static void rna_ShaderFx_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(NULL, "shader_effects", oldname, gmd->name);
 }
 
-static char *rna_ShaderFx_path(PointerRNA *ptr)
+static char *rna_ShaderFx_path(const PointerRNA *ptr)
 {
-  ShaderFxData *gmd = ptr->data;
+  const ShaderFxData *gmd = ptr->data;
   char name_esc[sizeof(gmd->name) * 2];
 
   BLI_str_escape(name_esc, gmd->name, sizeof(name_esc));

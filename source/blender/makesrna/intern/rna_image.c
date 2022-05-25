@@ -175,7 +175,7 @@ static void rna_ImageUser_relations_update(Main *bmain, Scene *scene, PointerRNA
   DEG_relations_tag_update(bmain);
 }
 
-static char *rna_ImageUser_path(PointerRNA *ptr)
+static char *rna_ImageUser_path(const PointerRNA *ptr)
 {
   if (ptr->owner_id) {
     /* ImageUser *iuser = ptr->data; */
@@ -446,7 +446,7 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
   return duration;
 }
 
-static int rna_Image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+static int rna_Image_pixels_get_length(const PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
   Image *ima = (Image *)ptr->owner_id;
   ImBuf *ibuf;
