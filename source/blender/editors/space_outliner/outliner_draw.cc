@@ -2196,31 +2196,50 @@ static void outliner_draw_mode_column(const bContext *C,
   }
 }
 
-/* Returns `true` if some warning was drawn for that element or one of its sub-elements (if it is
- * not open). */
-static bool outliner_draw_warning_tree_element(uiBlock *block,
-                                               SpaceOutliner *space_outliner,
-                                               TreeElement *te,
-                                               const bool use_mode_column,
-                                               const int te_ys)
+static StringRefNull outliner_draw_get_warning_tree_element_subtree(const TreeElement *parent_te)
+{
+  LISTBASE_FOREACH (const TreeElement *, sub_te, &parent_te->subtree) {
+    const AbstractTreeElement *abstract_te = tree_element_cast<AbstractTreeElement>(sub_te);
+    StringRefNull warning_msg = abstract_te ? abstract_te->getWarning() : "";
+
+    if (!warning_msg.is_empty()) {
+      return warning_msg;
+    }
+
+    warning_msg = outliner_draw_get_warning_tree_element_subtree(sub_te);
+    if (!warning_msg.is_empty()) {
+      return warning_msg;
+    }
+  }
+
+  return "";
+}
+
+static StringRefNull outliner_draw_get_warning_tree_element(const SpaceOutliner &space_outliner,
+                                                            const TreeElement *te)
 {
   const AbstractTreeElement *abstract_te = tree_element_cast<AbstractTreeElement>(te);
   const StringRefNull warning_msg = abstract_te ? abstract_te->getWarning() : "";
 
-  if (warning_msg.is_empty()) {
-    /* If given element has no warning, recursively try to display the first sub-element's warning.
-     */
-    if (!TSELEM_OPEN(te->store_elem, space_outliner)) {
-      LISTBASE_FOREACH (TreeElement *, sub_te, &te->subtree) {
-        if (outliner_draw_warning_tree_element(
-                block, space_outliner, sub_te, use_mode_column, te_ys)) {
-          return true;
-        }
-      }
-    }
-    return false;
+  if (!warning_msg.is_empty()) {
+    return warning_msg;
   }
 
+  /* If given element has no warning, recursively try to display the first sub-element's warning.
+   */
+  if (!TSELEM_OPEN(te->store_elem, &space_outliner)) {
+    return outliner_draw_get_warning_tree_element_subtree(te);
+  }
+
+  return "";
+}
+
+static void outliner_draw_warning_tree_element(uiBlock *block,
+                                               SpaceOutliner *space_outliner,
+                                               StringRefNull warning_msg,
+                                               const bool use_mode_column,
+                                               const int te_ys)
+{
   /* Move the warnings a unit left in view layer mode. */
   const short mode_column_offset = (use_mode_column && (space_outliner->outlinevis == SO_SCENES)) ?
                                        UI_UNIT_X :
@@ -2243,8 +2262,6 @@ static bool outliner_draw_warning_tree_element(uiBlock *block,
                             warning_msg.c_str());
   /* No need for undo here, this is a pure info widget. */
   UI_but_flag_disable(but, UI_BUT_UNDO);
-
-  return true;
 }
 
 static void outliner_draw_warning_column(const bContext *C,
@@ -2254,7 +2271,14 @@ static void outliner_draw_warning_column(const bContext *C,
                                          ListBase *tree)
 {
   LISTBASE_FOREACH (TreeElement *, te, tree) {
-    outliner_draw_warning_tree_element(block, space_outliner, te, use_mode_column, te->ys);
+    /* Get warning for this element, or if there is none and the element is collapsed, the first
+     * warning in the collapsed sub-tree. */
+    StringRefNull warning_msg = outliner_draw_get_warning_tree_element(*space_outliner, te);
+
+    if (!warning_msg.is_empty()) {
+      outliner_draw_warning_tree_element(
+          block, space_outliner, warning_msg, use_mode_column, te->ys);
+    }
 
     if (TSELEM_OPEN(te->store_elem, space_outliner)) {
       outliner_draw_warning_column(C, block, space_outliner, use_mode_column, &te->subtree);
