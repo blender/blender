@@ -7032,6 +7032,14 @@ static void sort_bmelem_flag(bContext *C,
   }
 
   BM_mesh_remap(em->bm, map[0], map[1], map[2]);
+
+  EDBM_update(ob->data,
+              &(const struct EDBMUpdate_Params){
+                  .calc_looptri = (totelem[2] != 0),
+                  .calc_normals = false,
+                  .is_destructive = true,
+              });
+
   DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
