@@ -2031,13 +2031,9 @@ def km_node_editor(params):
             items.extend(_template_node_select(type='LEFTMOUSE', value='PRESS', select_passthrough=True))
     else:
         items.extend(_template_node_select(
-            type='RIGHTMOUSE', value=params.select_mouse_value, select_passthrough=False))
-        items.extend([
-            ("node.select", {"type": 'LEFTMOUSE', "value": 'PRESS'},
-             {"properties": [("deselect_all", False)]}),
-            ("node.select", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-             {"properties": [("toggle", True)]}),
-        ])
+            type='RIGHTMOUSE', value=params.select_mouse_value, select_passthrough=True))
+        items.extend(_template_node_select(
+            type='LEFTMOUSE', value='PRESS', select_passthrough=True))
 
     items.extend([
         ("node.select_box", {"type": params.select_mouse, "value": 'CLICK_DRAG'},
@@ -4774,7 +4770,7 @@ def _template_view3d_gpencil_select(*, type, value, legacy, use_select_mouse=Tru
 def _template_node_select(*, type, value, select_passthrough):
     items = [
         ("node.select", {"type": type, "value": value},
-         {"properties": [("deselect_all", True), ("select_passthrough", True)]}),
+         {"properties": [("deselect_all", True), ("select_passthrough", select_passthrough)]}),
         ("node.select", {"type": type, "value": value, "ctrl": True}, None),
         ("node.select", {"type": type, "value": value, "alt": True}, None),
         ("node.select", {"type": type, "value": value, "ctrl": True, "alt": True}, None),
