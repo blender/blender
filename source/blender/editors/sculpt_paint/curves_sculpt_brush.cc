@@ -41,9 +41,9 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
                                                         const float3 &ray_start_cu,
                                                         const float3 &ray_end_cu,
                                                         const float brush_radius_re,
-                                                        ARegion &region,
-                                                        RegionView3D &rv3d,
-                                                        Object &object)
+                                                        const ARegion &region,
+                                                        const RegionView3D &rv3d,
+                                                        const Object &object)
 {
   /* This value might have to be adjusted based on user feedback. */
   const float brush_inner_radius_re = std::min<float>(brush_radius_re, (float)UI_UNIT_X / 3.0f);
@@ -94,11 +94,30 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
 
         for (const int curve_i : curves_range) {
           const IndexRange points = curves.points_for_curve(curve_i);
-          const int tot_segments = points.size() - 1;
 
-          for (const int segment_i : IndexRange(tot_segments)) {
-            const float3 &p1_cu = positions[points[segment_i]];
-            const float3 &p2_cu = positions[points[segment_i] + 1];
+          if (points.size() == 1) {
+            const float3 &pos_cu = positions[points.first()];
+
+            const float depth_sq_cu = math::distance_squared(ray_start_cu, pos_cu);
+            if (depth_sq_cu > max_depth_sq_cu) {
+              continue;
+            }
+
+            float2 pos_re;
+            ED_view3d_project_float_v2_m4(&region, pos_cu, pos_re, projection.values);
+
+            BrushPositionCandidate candidate;
+            candidate.position_cu = pos_cu;
+            candidate.depth_sq_cu = depth_sq_cu;
+            candidate.distance_sq_re = math::distance_squared(brush_pos_re, pos_re);
+
+            update_if_better(best_candidate, candidate);
+            continue;
+          }
+
+          for (const int segment_i : points.drop_back(1)) {
+            const float3 &p1_cu = positions[segment_i];
+            const float3 &p2_cu = positions[segment_i + 1];
 
             float2 p1_re, p2_re;
             ED_view3d_project_float_v2_m4(&region, p1_cu, p1_re, projection.values);
@@ -141,23 +160,21 @@ static std::optional<float3> find_curves_brush_position(const CurvesGeometry &cu
   return best_candidate.position_cu;
 }
 
-std::optional<CurvesBrush3D> sample_curves_3d_brush(bContext &C,
-                                                    Object &curves_object,
+std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
+                                                    const ARegion &region,
+                                                    const View3D &v3d,
+                                                    const RegionView3D &rv3d,
+                                                    const Object &curves_object,
                                                     const float2 &brush_pos_re,
                                                     const float brush_radius_re)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
-  ARegion *region = CTX_wm_region(&C);
-  View3D *v3d = CTX_wm_view3d(&C);
-  RegionView3D *rv3d = CTX_wm_region_view3d(&C);
-
-  Curves &curves_id = *static_cast<Curves *>(curves_object.data);
-  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
-  Object *surface_object = curves_id.surface;
+  const Curves &curves_id = *static_cast<Curves *>(curves_object.data);
+  const CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+  const Object *surface_object = curves_id.surface;
 
   float3 center_ray_start_wo, center_ray_end_wo;
   ED_view3d_win_to_segment_clipped(
-      depsgraph, region, v3d, brush_pos_re, center_ray_start_wo, center_ray_end_wo, true);
+      &depsgraph, &region, &v3d, brush_pos_re, center_ray_start_wo, center_ray_end_wo, true);
 
   /* Shorten ray when the surface object is hit. */
   if (surface_object != nullptr) {
@@ -205,8 +222,8 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(bContext &C,
       center_ray_start_cu,
       center_ray_end_cu,
       brush_radius_re,
-      *region,
-      *rv3d,
+      region,
+      rv3d,
       curves_object);
   if (!brush_position_optional_cu.has_value()) {
     /* Nothing found. */
@@ -216,9 +233,9 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(bContext &C,
 
   /* Determine the 3D brush radius. */
   float3 radius_ray_start_wo, radius_ray_end_wo;
-  ED_view3d_win_to_segment_clipped(depsgraph,
-                                   region,
-                                   v3d,
+  ED_view3d_win_to_segment_clipped(&depsgraph,
+                                   &region,
+                                   &v3d,
                                    brush_pos_re + float2(brush_radius_re, 0.0f),
                                    radius_ray_start_wo,
                                    radius_ray_end_wo,

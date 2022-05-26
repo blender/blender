@@ -67,49 +67,11 @@ int lineart_count_intersection_segment_count(struct LineartRenderBuffer *rb);
 void lineart_count_and_print_render_buffer_memory(struct LineartRenderBuffer *rb);
 
 #define LRT_ITER_ALL_LINES_BEGIN \
-  LineartEdge *e, *next_e; \
-  void **current_head; \
-  e = rb->contour.first; \
-  if (!e) { \
-    e = rb->crease.first; \
-  } \
-  if (!e) { \
-    e = rb->material.first; \
-  } \
-  if (!e) { \
-    e = rb->edge_mark.first; \
-  } \
-  if (!e) { \
-    e = rb->intersection.first; \
-  } \
-  if (!e) { \
-    e = rb->floating.first; \
-  } \
-  for (current_head = &rb->contour.first; e; e = next_e) { \
-    next_e = e->next;
+  LineartEdge *e; \
+  for (int i = 0; i < rb->pending_edges.next; i++) { \
+    e = rb->pending_edges.array[i];
 
-#define LRT_ITER_ALL_LINES_NEXT \
-  while (!next_e) { \
-    if (current_head == &rb->contour.first) { \
-      current_head = &rb->crease.first; \
-    } \
-    else if (current_head == &rb->crease.first) { \
-      current_head = &rb->material.first; \
-    } \
-    else if (current_head == &rb->material.first) { \
-      current_head = &rb->edge_mark.first; \
-    } \
-    else if (current_head == &rb->edge_mark.first) { \
-      current_head = &rb->intersection.first; \
-    } \
-    else if (current_head == &rb->intersection.first) { \
-      current_head = &rb->floating.first; \
-    } \
-    else { \
-      break; \
-    } \
-    next_e = *current_head; \
-  }
+#define LRT_ITER_ALL_LINES_NEXT ; /* Doesn't do anything now with new array setup. */
 
 #define LRT_ITER_ALL_LINES_END \
   LRT_ITER_ALL_LINES_NEXT \

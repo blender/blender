@@ -155,12 +155,12 @@ void SCULPT_face_ensure_original(SculptSession *ss, Object *ob)
   SculptCustomLayer *scl = MEM_callocN(sizeof(*scl), "orig fset scl");
 
   SCULPT_attr_get_layer(ss,
-                              ob,
-                              ATTR_DOMAIN_FACE,
-                              CD_PROP_INT32,
-                              SCULPT_SCL_GET_NAME(SCULPT_SCL_ORIG_FSETS),
-                              scl,
-                              &((SculptLayerParams){.permanent = false, .simple_array = false}));
+                        ob,
+                        ATTR_DOMAIN_FACE,
+                        CD_PROP_INT32,
+                        SCULPT_SCL_GET_NAME(SCULPT_SCL_ORIG_FSETS),
+                        scl,
+                        &((SculptLayerParams){.permanent = false, .simple_array = false}));
 
   ss->custom_layers[SCULPT_SCL_ORIG_FSETS] = scl;
 }
@@ -212,7 +212,7 @@ int SCULPT_face_set_flag_set(SculptSession *ss, SculptFaceRef face, char flag, b
 
 int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
 {
-  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  const int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
   if (!face_sets) {
     return SCULPT_FACE_SET_NONE;
   }

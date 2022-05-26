@@ -86,7 +86,7 @@ void ShadingView::sync(int2 render_extent_)
 
   // dof_.sync(winmat_p, extent_);
   // mb_.sync(extent_);
-  // velocity_.sync(extent_);
+  velocity_.sync();
   // rt_buffer_opaque_.sync(extent_);
   // rt_buffer_refract_.sync(extent_);
   // inst_.hiz_back.view_sync(extent_);
@@ -108,22 +108,30 @@ void ShadingView::render()
    * With this, we can reuse the same texture across views. */
   DrawEngineType *owner = (DrawEngineType *)name_;
 
+  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
   depth_tx_.ensure_2d(GPU_DEPTH24_STENCIL8, extent_);
   combined_tx_.acquire(extent_, GPU_RGBA16F, owner);
-  view_fb_.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx_), GPU_ATTACHMENT_TEXTURE(combined_tx_));
+  velocity_.acquire(extent_);
+  // combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx_), GPU_ATTACHMENT_TEXTURE(combined_tx_));
+  // prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx_),
+  //                    GPU_ATTACHMENT_TEXTURE(velocity_.view_vectors_get()));
+  combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(dtxl->depth), GPU_ATTACHMENT_TEXTURE(dtxl->color));
+  prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+                     GPU_ATTACHMENT_TEXTURE(velocity_.view_vectors_get()));
 
   update_view();
 
   DRW_stats_group_start(name_);
   // DRW_view_set_active(render_view_);
 
+  float4 clear_velocity(VELOCITY_INVALID);
+  GPU_framebuffer_bind(prepass_fb_);
+  GPU_framebuffer_clear_color(prepass_fb_, clear_velocity);
   /* Alpha stores transmittance. So start at 1. */
   float4 clear_color = {0.0f, 0.0f, 0.0f, 1.0f};
-  // GPU_framebuffer_bind(view_fb_);
-  // GPU_framebuffer_clear_color_depth(view_fb_, clear_color, 1.0f);
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-  GPU_framebuffer_bind(dfbl->default_fb);
-  GPU_framebuffer_clear_color_depth(dfbl->default_fb, clear_color, 1.0f);
+  GPU_framebuffer_bind(combined_fb_);
+  GPU_framebuffer_clear_color_depth(combined_fb_, clear_color, 1.0f);
 
   inst_.pipelines.world.render();
 
@@ -134,12 +142,13 @@ void ShadingView::render()
 
   // inst_.lookdev.render_overlay(view_fb_);
 
-  inst_.pipelines.forward.render(render_view_, depth_tx_, combined_tx_);
+  inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_, depth_tx_, combined_tx_);
 
   // inst_.lights.debug_draw(view_fb_);
   // inst_.shadows.debug_draw(view_fb_);
 
-  // velocity_.render(depth_tx_);
+  // velocity_.resolve(depth_tx_);
+  velocity_.resolve(dtxl->depth);
 
   // if (inst_.render_passes.vector) {
   //   inst_.render_passes.vector->accumulate(velocity_.camera_vectors_get(), sub_view_);
@@ -159,6 +168,7 @@ void ShadingView::render()
 
   combined_tx_.release();
   postfx_tx_.release();
+  velocity_.release();
 }
 
 GPUTexture *ShadingView::render_post(GPUTexture *input_tx)

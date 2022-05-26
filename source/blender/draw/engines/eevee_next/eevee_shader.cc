@@ -78,6 +78,8 @@ ShaderModule::~ShaderModule()
 const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_type)
 {
   switch (shader_type) {
+    case VELOCITY_RESOLVE:
+      return "eevee_velocity_resolve";
     /* To avoid compiler warning about missing case. */
     case MAX_SHADER_TYPE:
       return "";
@@ -159,6 +161,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
         }
       }
       info.vertex_inputs_.clear();
+      info.additional_info("draw_curves_infos");
       break;
     case MAT_GEOM_WORLD:
       /**
@@ -190,7 +193,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     const StageInterfaceInfo &iface = *info.vertex_out_interfaces_.first();
     /* Globals the attrib_load() can write to when it is in the fragment shader. */
     global_vars << "struct " << iface.name << " {\n";
-    for (auto &inout : iface.inouts) {
+    for (const auto &inout : iface.inouts) {
       global_vars << "  " << inout.type << " " << inout.name << ";\n";
     }
     global_vars << "};\n";
@@ -289,6 +292,10 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       break;
     default:
       switch (pipeline_type) {
+        case MAT_PIPE_FORWARD_PREPASS_VELOCITY:
+        case MAT_PIPE_DEFERRED_PREPASS_VELOCITY:
+          info.additional_info("eevee_surf_depth", "eevee_velocity_geom");
+          break;
         case MAT_PIPE_FORWARD_PREPASS:
         case MAT_PIPE_DEFERRED_PREPASS:
         case MAT_PIPE_SHADOW:

@@ -523,9 +523,7 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context,
   SeqRenderState state;
   seq_render_state_init(&state);
 
-  for (timeline_frame = seq->startdisp + seq->startstill;
-       timeline_frame < seq->enddisp - seq->endstill;
-       timeline_frame++) {
+  for (timeline_frame = seq->startdisp; timeline_frame < seq->enddisp; timeline_frame++) {
     if (context->size_flags & IMB_PROXY_25) {
       seq_proxy_build_frame(&render_context, &state, seq, timeline_frame, 25, overwrite);
     }
@@ -539,8 +537,7 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context,
       seq_proxy_build_frame(&render_context, &state, seq, timeline_frame, 100, overwrite);
     }
 
-    *progress = (float)(timeline_frame - seq->startdisp - seq->startstill) /
-                (seq->enddisp - seq->endstill - seq->startdisp - seq->startstill);
+    *progress = (float)(timeline_frame - seq->startdisp) / (seq->enddisp - seq->startdisp);
     *do_update = true;
 
     if (*stop || G.is_break) {

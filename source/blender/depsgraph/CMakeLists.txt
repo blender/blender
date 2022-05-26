@@ -40,6 +40,7 @@ set(SRC
   intern/builder/deg_builder_relations_view_layer.cc
   intern/builder/deg_builder_remove_noop.cc
   intern/builder/deg_builder_rna.cc
+  intern/builder/deg_builder_stack.cc
   intern/builder/deg_builder_transitive.cc
   intern/builder/pipeline.cc
   intern/builder/pipeline_all_objects.cc
@@ -103,6 +104,7 @@ set(SRC
   intern/builder/deg_builder_relations_impl.h
   intern/builder/deg_builder_remove_noop.h
   intern/builder/deg_builder_rna.h
+  intern/builder/deg_builder_stack.h
   intern/builder/deg_builder_transitive.h
   intern/builder/pipeline.h
   intern/builder/pipeline_all_objects.h

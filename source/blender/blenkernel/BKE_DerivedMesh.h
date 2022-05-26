@@ -46,14 +46,9 @@
  *       as it is and stick with using BMesh and CDDM.
  */
 
-#include "DNA_customdata_types.h"
-#include "DNA_defs.h"
-#include "DNA_meshdata_types.h"
-
 #include "BLI_compiler_attrs.h"
 
-#include "BKE_bvhutils.h"
-#include "BKE_customdata.h"
+#include "DNA_customdata_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,7 +120,6 @@ struct DerivedMesh {
   /* Also called in Editmode */
   int (*getNumVerts)(DerivedMesh *dm);
   int (*getNumEdges)(DerivedMesh *dm);
-  int (*getNumTessFaces)(DerivedMesh *dm);
   int (*getNumLoops)(DerivedMesh *dm);
   int (*getNumPolys)(DerivedMesh *dm);
 
@@ -232,15 +226,6 @@ bool DM_release(DerivedMesh *dm);
  * will be copied
  */
 void DM_set_only_copy(DerivedMesh *dm, const struct CustomData_MeshMasks *mask);
-
-/* Adds a vertex/edge/face custom data layer to a DerivedMesh, optionally
- * backed by an external data array
- * alloctype defines how the layer is allocated or copied, and how it is
- * freed, see BKE_customdata.h for the different options. */
-
-void DM_add_vert_layer(struct DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer);
-void DM_add_edge_layer(struct DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer);
-void DM_add_poly_layer(struct DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer);
 
 /* -------------------------------------------------------------------- */
 /** \name Custom Data Layer Access Functions

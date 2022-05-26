@@ -5,6 +5,8 @@
  * \ingroup gpu
  */
 
+#include "GPU_texture.h"
+
 #include "gl_context.hh"
 
 #include "gl_vertex_buffer.hh"
@@ -38,6 +40,7 @@ void GLVertBuf::release_data()
   }
 
   if (vbo_id_ != 0) {
+    GPU_TEXTURE_FREE_SAFE(buffer_texture_);
     GLContext::buf_free(vbo_id_);
     vbo_id_ = 0;
     memory_usage -= vbo_size_;
@@ -51,6 +54,7 @@ void GLVertBuf::duplicate_data(VertBuf *dst_)
   BLI_assert(GLContext::get() != nullptr);
   GLVertBuf *src = this;
   GLVertBuf *dst = static_cast<GLVertBuf *>(dst_);
+  dst->buffer_texture_ = nullptr;
 
   if (src->vbo_id_ != 0) {
     dst->vbo_size_ = src->size_used_get();
@@ -109,6 +113,16 @@ void GLVertBuf::bind_as_ssbo(uint binding)
   bind();
   BLI_assert(vbo_id_ != 0);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, vbo_id_);
+}
+
+void GLVertBuf::bind_as_texture(uint binding)
+{
+  bind();
+  BLI_assert(vbo_id_ != 0);
+  if (buffer_texture_ == nullptr) {
+    buffer_texture_ = GPU_texture_create_from_vertbuf("vertbuf_as_texture", wrap(this));
+  }
+  GPU_texture_bind(buffer_texture_, binding);
 }
 
 const void *GLVertBuf::read() const

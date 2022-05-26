@@ -19,6 +19,7 @@
 
 #include "BKE_collection.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
@@ -137,8 +138,12 @@ void ED_editors_init(bContext *C)
       ED_object_posemode_enter_ex(bmain, ob);
     }
 
-    /* Other edit/paint/etc. modes are only settable for objects in active scene currently. */
-    if (!BKE_collection_has_object_recursive(scene->master_collection, ob)) {
+    /* Other edit/paint/etc. modes are only settable for objects visible in active scene currently.
+     * Otherwise, they (and their obdata) may not be (fully) evaluated, which is mandatory for some
+     * modes like Sculpt.
+     * Ref. T98225. */
+    if (!BKE_collection_has_object_recursive(scene->master_collection, ob) ||
+        !BKE_scene_has_object(scene, ob) || (ob->visibility_flag & OB_HIDE_VIEWPORT) != 0) {
       continue;
     }
 

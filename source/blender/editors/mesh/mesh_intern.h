@@ -9,6 +9,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct BMEditMesh;
 struct BMElem;
 struct BMOperator;
@@ -170,8 +174,7 @@ void MESH_OT_knife_project(struct wmOperatorType *ot);
 /**
  * \param use_tag: When set, tag all faces inside the polylines.
  */
-void EDBM_mesh_knife(struct bContext *C,
-                     struct ViewContext *vc,
+void EDBM_mesh_knife(struct ViewContext *vc,
                      struct LinkNode *polys,
                      bool use_tag,
                      bool cut_through);
@@ -305,7 +308,7 @@ void MESH_OT_mark_freestyle_edge(struct wmOperatorType *ot);
 void MESH_OT_mark_freestyle_face(struct wmOperatorType *ot);
 #endif
 
-/* *** mesh_data.c *** */
+/* *** mesh_data.cc *** */
 
 void MESH_OT_uv_texture_add(struct wmOperatorType *ot);
 void MESH_OT_uv_texture_remove(struct wmOperatorType *ot);
@@ -320,3 +323,7 @@ void MESH_OT_customdata_custom_splitnormals_add(struct wmOperatorType *ot);
 void MESH_OT_customdata_custom_splitnormals_clear(struct wmOperatorType *ot);
 void MESH_OT_dump_mres_grids(struct wmOperatorType *ot);
 void MESH_OT_customdata_ids_clear(struct wmOperatorType *ot);
+
+#ifdef __cplusplus
+}
+#endif

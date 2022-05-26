@@ -236,7 +236,7 @@ constexpr FormattingSyntax syntax_elem_to_formatting(const eMTLSyntaxElement key
     case eMTLSyntaxElement::Ke: {
       return {"Ke {:.6f} {:.6f} {:.6f}\n", 3, is_type_float<T...>};
     }
-    /* Note: first texture map related argument, if present, will have its own leading space. */
+    /* NOTE: first texture map related argument, if present, will have its own leading space. */
     case eMTLSyntaxElement::map_Kd: {
       return {"map_Kd{} {}\n", 2, is_type_string_related<T...>};
     }

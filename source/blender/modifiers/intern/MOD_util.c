@@ -100,10 +100,9 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
       BLI_bitmap *done = BLI_BITMAP_NEW(verts_num, __func__);
       const int polys_num = mesh->totpoly;
       char uvname[MAX_CUSTOMDATA_LAYER_NAME];
-      MLoopUV *mloop_uv;
 
       CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, dmd->uvlayer_name, uvname);
-      mloop_uv = CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uvname);
+      const MLoopUV *mloop_uv = CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uvname);
 
       /* verts are given the UV from the first face that uses them */
       for (i = 0, mp = mpoly; i < polys_num; i++, mp++) {

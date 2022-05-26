@@ -198,7 +198,7 @@ void BLI_str_cursor_step_utf8(const char *str,
     }
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
   }
 }
 
@@ -296,6 +296,6 @@ void BLI_str_cursor_step_utf32(const char32_t *str,
     }
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
   }
 }

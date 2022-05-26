@@ -183,9 +183,9 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   BLI_assert(socket->type == SOCK_STRING);
 
   /* For the attribute input node, also adjust the type and links connected to the output. */
-  if (node->type == GEO_NODE_INPUT_NAMED_ATTRIBUTE) {
+  if (node->type == GEO_NODE_INPUT_NAMED_ATTRIBUTE && item->data_type.has_value()) {
     NodeGeometryInputNamedAttribute &storage = *(NodeGeometryInputNamedAttribute *)node->storage;
-    const CustomDataType new_type = data_type_in_attribute_input_node(item->data_type);
+    const CustomDataType new_type = data_type_in_attribute_input_node(*item->data_type);
     if (new_type != storage.data_type) {
       storage.data_type = new_type;
       /* Make the output socket with the new type on the attribute input node active. */

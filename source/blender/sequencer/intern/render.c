@@ -1586,10 +1586,10 @@ static ImBuf *do_render_strip_seqbase(const SeqRenderData *context,
 {
   ImBuf *ibuf = NULL;
   ListBase *seqbase = NULL;
-  ListBase *channels = &seq->channels;
+  ListBase *channels = NULL;
   int offset;
 
-  seqbase = SEQ_get_seqbase_from_sequence(seq, &offset);
+  seqbase = SEQ_get_seqbase_from_sequence(seq, &channels, &offset);
 
   if (seqbase && !BLI_listbase_is_empty(seqbase)) {
 
@@ -2088,7 +2088,8 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
 
   /* Adding the hold offset value (seq->anim_startofs) to the start frame. Position of image not
    * affected, but frame loaded affected. */
-  float upper_thumb_bound = (seq->endstill) ? (seq->start + seq->len) : seq->enddisp;
+  float upper_thumb_bound = SEQ_time_has_right_still_frames(seq) ? (seq->start + seq->len) :
+                                                                   seq->enddisp;
   upper_thumb_bound = (upper_thumb_bound > view_area->xmax) ? view_area->xmax + frame_step :
                                                               upper_thumb_bound;
 
@@ -2121,7 +2122,9 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
 
 int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const Sequence *seq)
 {
-  const int content_len = (seq->enddisp - seq->startdisp - seq->startstill - seq->endstill);
+  const int content_start = max_ii(seq->startdisp, seq->start);
+  const int content_end = min_ii(seq->enddisp, seq->start + seq->len);
+  const int content_len = content_end - content_start;
 
   /* Arbitrary, but due to performance reasons should be as low as possible. */
   const int thumbnails_base_set_count = min_ii(content_len / 100, 30);

@@ -218,9 +218,18 @@ static void add_this_collection(Collection *c,
   if (!c) {
     return;
   }
+  bool default_add = true;
+  /* Do not do nested collection usage check, this is consistent with lineart calculation, because
+   * collection usage doesn't have a INHERIT mode. This might initially be derived from the fact
+   * that an object can be inside multiple collections, but might be irrelevant now with the way
+   * objects are iterated. Keep this logic for now. */
+  if (c->lineart_usage & COLLECTION_LRT_EXCLUDE) {
+    default_add = false;
+  }
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (c, ob, mode) {
     if (ELEM(ob->type, OB_MESH, OB_MBALL, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
-      if (ob->lineart.usage != OBJECT_LRT_EXCLUDE) {
+      if ((ob->lineart.usage == OBJECT_LRT_INHERIT && default_add) ||
+          ob->lineart.usage != OBJECT_LRT_EXCLUDE) {
         DEG_add_object_relation(ctx->node, ob, DEG_OB_COMP_GEOMETRY, "Line Art Modifier");
         DEG_add_object_relation(ctx->node, ob, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
       }
@@ -239,15 +248,11 @@ static void updateDepsgraph(GpencilModifierData *md,
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
 
   LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
-  if (lmd->source_type == LRT_SOURCE_OBJECT && lmd->source_object) {
-    DEG_add_object_relation(
-        ctx->node, lmd->source_object, DEG_OB_COMP_GEOMETRY, "Line Art Modifier");
-    DEG_add_object_relation(
-        ctx->node, lmd->source_object, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
-  }
-  else {
-    add_this_collection(ctx->scene->master_collection, ctx, mode);
-  }
+
+  /* Always add whole master collection because line art will need the whole scene for
+   * visibility computation. Line art exclusion is handled inside #add_this_collection. */
+  add_this_collection(ctx->scene->master_collection, ctx, mode);
+
   if (lmd->calculation_flags & LRT_USE_CUSTOM_CAMERA && lmd->source_camera) {
     DEG_add_object_relation(
         ctx->node, lmd->source_camera, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");

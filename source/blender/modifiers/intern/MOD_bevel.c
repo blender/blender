@@ -396,9 +396,11 @@ static void panelRegister(ARegionType *region_type)
       region_type, "shading", "Shading", NULL, shading_panel_draw, panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
 {
   const BevelModifierData *bmd = (const BevelModifierData *)md;
+
+  BLO_write_struct(writer, BevelModifierData, bmd);
 
   if (bmd->custom_profile) {
     BKE_curveprofile_blend_write(writer, bmd->custom_profile);

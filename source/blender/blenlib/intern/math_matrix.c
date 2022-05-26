@@ -1496,7 +1496,7 @@ void orthogonalize_m3(float R[3][3], int axis)
       }
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
   mul_v3_fl(R[0], size[0]);
@@ -1580,7 +1580,7 @@ void orthogonalize_m4(float R[4][4], int axis)
       }
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
   mul_v3_fl(R[0], size[0]);
@@ -1654,7 +1654,7 @@ void orthogonalize_m3_stable(float R[3][3], int axis, bool normalize)
       orthogonalize_stable(R[2], R[0], R[1], normalize);
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
 }
@@ -1672,7 +1672,7 @@ void orthogonalize_m4_stable(float R[4][4], int axis, bool normalize)
       orthogonalize_stable(R[2], R[0], R[1], normalize);
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
 }
@@ -1734,7 +1734,7 @@ static bool orthogonalize_m3_zero_axes_impl(float *mat[3], const float unit_leng
       break;
     }
     default: {
-      BLI_assert(0); /* Unreachable! */
+      BLI_assert_unreachable();
     }
   }
 
@@ -2338,7 +2338,7 @@ void rotate_m4(float mat[4][4], const char axis, const float angle)
       }
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
 }

@@ -26,7 +26,7 @@ struct UVStretchAngle {
 
 struct MeshExtract_StretchAngle_Data {
   UVStretchAngle *vbo_data;
-  MLoopUV *luv;
+  const MLoopUV *luv;
   float auv[2][2], last_auv[2];
   float av[2][3], last_av[3];
   int cd_ofs;
@@ -98,7 +98,7 @@ static void extract_edituv_stretch_angle_init(const MeshRenderData *mr,
   }
   else {
     BLI_assert(ELEM(mr->extract_type, MR_EXTRACT_MAPPED, MR_EXTRACT_MESH));
-    data->luv = (MLoopUV *)CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
+    data->luv = (const MLoopUV *)CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
   }
 }
 
@@ -236,7 +236,7 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdi
                                      draw_subdiv_get_pos_nor_format(),
                                      subdiv_cache->num_subdiv_loops + loose_geom.loop_len);
 
-    draw_subdiv_extract_pos_nor(subdiv_cache, pos_nor);
+    draw_subdiv_extract_pos_nor(subdiv_cache, pos_nor, nullptr);
   }
 
   /* UVs are stored contiguously so we need to compute the offset in the UVs buffer for the active

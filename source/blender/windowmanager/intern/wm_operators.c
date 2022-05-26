@@ -106,47 +106,38 @@
 /** \name Operator API
  * \{ */
 
-void WM_operator_py_idname(char *to, const char *from)
+size_t WM_operator_py_idname(char *dst, const char *src)
 {
-  const char *sep = strstr(from, "_OT_");
+  const char *sep = strstr(src, "_OT_");
   if (sep) {
-    int ofs = (sep - from);
+    int ofs = (sep - src);
 
     /* NOTE: we use ascii `tolower` instead of system `tolower`, because the
      * latter depends on the locale, and can lead to `idname` mismatch. */
-    memcpy(to, from, sizeof(char) * ofs);
-    BLI_str_tolower_ascii(to, ofs);
+    memcpy(dst, src, sizeof(char) * ofs);
+    BLI_str_tolower_ascii(dst, ofs);
 
-    to[ofs] = '.';
-    BLI_strncpy(to + (ofs + 1), sep + 4, OP_MAX_TYPENAME - (ofs + 1));
+    dst[ofs] = '.';
+    return BLI_strncpy_rlen(dst + (ofs + 1), sep + 4, OP_MAX_TYPENAME - (ofs + 1)) + (ofs + 1);
   }
-  else {
-    /* should not happen but support just in case */
-    BLI_strncpy(to, from, OP_MAX_TYPENAME);
-  }
+  /* Should not happen but support just in case. */
+  return BLI_strncpy_rlen(dst, src, OP_MAX_TYPENAME);
 }
 
-void WM_operator_bl_idname(char *to, const char *from)
+size_t WM_operator_bl_idname(char *dst, const char *src)
 {
-  if (from) {
-    const char *sep = strchr(from, '.');
-
-    int from_len;
-    if (sep && (from_len = strlen(from)) < OP_MAX_TYPENAME - 3) {
-      const int ofs = (sep - from);
-      memcpy(to, from, sizeof(char) * ofs);
-      BLI_str_toupper_ascii(to, ofs);
-      memcpy(to + ofs, "_OT_", 4);
-      memcpy(to + (ofs + 4), sep + 1, (from_len - ofs));
-    }
-    else {
-      /* should not happen but support just in case */
-      BLI_strncpy(to, from, OP_MAX_TYPENAME);
-    }
+  const char *sep = strchr(src, '.');
+  int from_len;
+  if (sep && (from_len = strlen(src)) < OP_MAX_TYPENAME - 3) {
+    const int ofs = (sep - src);
+    memcpy(dst, src, sizeof(char) * ofs);
+    BLI_str_toupper_ascii(dst, ofs);
+    memcpy(dst + ofs, "_OT_", 4);
+    memcpy(dst + (ofs + 4), sep + 1, (from_len - ofs));
+    return (from_len - ofs) - 1;
   }
-  else {
-    to[0] = 0;
-  }
+  /* Should not happen but support just in case. */
+  return BLI_strncpy_rlen(dst, src, OP_MAX_TYPENAME);
 }
 
 bool WM_operator_py_idname_ok_or_report(ReportList *reports,
@@ -1275,6 +1266,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
 {
   Main *bmain = CTX_data_main(C);
   ID *id = NULL;
+
   /* check input variables */
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
@@ -1312,19 +1304,29 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
         }
       }
     }
+
+    return id;
   }
-  else if (RNA_struct_property_is_set(op->ptr, "name")) {
-    char name[MAX_ID_NAME - 2];
-    RNA_string_get(op->ptr, "name", name);
-    id = BKE_libblock_find_name(bmain, idcode, name);
-    if (!id) {
+
+  /* Lookup an already existing ID. */
+  id = WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, idcode);
+
+  if (!id) {
+    /* Print error with the name if the name is available. */
+
+    if (RNA_struct_property_is_set(op->ptr, "name")) {
+      char name[MAX_ID_NAME - 2];
+      RNA_string_get(op->ptr, "name", name);
       BKE_reportf(
           op->reports, RPT_ERROR, "%s '%s' not found", BKE_idtype_idcode_to_name(idcode), name);
       return NULL;
     }
-    id_us_plus(id);
+
+    BKE_reportf(op->reports, RPT_ERROR, "%s not found", BKE_idtype_idcode_to_name(idcode));
+    return NULL;
   }
 
+  id_us_plus(id);
   return id;
 }
 

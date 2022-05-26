@@ -21,10 +21,8 @@
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-
 #include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_key.h"
@@ -78,7 +76,7 @@ static void get_id_range(Mesh *mesh,
   int min_id = 0, max_id = 0;
 
   for (int i = 0; i < 4; i++) {
-    int *ids = CustomData_get_layer(datas[i], CD_MESH_ID);
+    int *ids = (int *)CustomData_get_layer(datas[i], CD_MESH_ID);
     if (!ids) {
       continue;
     }
@@ -161,8 +159,8 @@ static void handle_missing_id_layers(Mesh *src,
       // assign ids
       int offset = dst_range[1] - src_range[0] + 1;
 
-      int *srcids = CustomData_get_layer(srcdata, CD_MESH_ID);
-      int *dstids = CustomData_get_layer(dstdata, CD_MESH_ID);
+      int *srcids = (int *)CustomData_get_layer(srcdata, CD_MESH_ID);
+      int *dstids = (int *)CustomData_get_layer(dstdata, CD_MESH_ID);
 
       int start = dsttots[i];
       int end = start + srctots[i];
@@ -175,7 +173,7 @@ static void handle_missing_id_layers(Mesh *src,
     }
     else if (haveid_dst) {
       int curid = dst_range[1] + 1;
-      int *dstids = CustomData_get_layer(dstdata, CD_MESH_ID);
+      int *dstids = (int *)CustomData_get_layer(dstdata, CD_MESH_ID);
 
       int start = dsttots[i];
       int end = start + srctots[i];
@@ -219,7 +217,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
 {
   int a, b;
 
-  Mesh *me = ob_src->data;
+  Mesh *me = static_cast<Mesh *>(ob_src->data);
   MVert *mvert = *mvert_pp;
   MEdge *medge = *medge_pp;
   MLoop *mloop = *mloop_pp;
@@ -234,12 +232,13 @@ static void join_mesh_single(Depsgraph *depsgraph,
     CustomData_copy_data_named(&me->vdata, vdata, 0, *vertofs, me->totvert);
 
     /* vertex groups */
-    MDeformVert *dvert = CustomData_get(vdata, *vertofs, CD_MDEFORMVERT);
-    MDeformVert *dvert_src = CustomData_get(&me->vdata, 0, CD_MDEFORMVERT);
+    MDeformVert *dvert = (MDeformVert *)CustomData_get(vdata, *vertofs, CD_MDEFORMVERT);
+    const MDeformVert *dvert_src = (const MDeformVert *)CustomData_get(
+        &me->vdata, 0, CD_MDEFORMVERT);
 
     /* Remap to correct new vgroup indices, if needed. */
     if (dvert_src) {
-      BLI_assert(dvert != NULL);
+      BLI_assert(dvert != nullptr);
 
       /* Build src to merged mapping of vgroup indices. */
       int *vgroup_index_map;
@@ -248,7 +247,7 @@ static void join_mesh_single(Depsgraph *depsgraph,
           ob_src, ob_dst, &vgroup_index_map_len);
       BKE_object_defgroup_index_map_apply(
           dvert, me->totvert, vgroup_index_map, vgroup_index_map_len);
-      if (vgroup_index_map != NULL) {
+      if (vgroup_index_map != nullptr) {
         MEM_freeN(vgroup_index_map);
       }
     }
@@ -278,11 +277,11 @@ static void join_mesh_single(Depsgraph *depsgraph,
           float(*cos)[3] = ((float(*)[3])kb->data) + *vertofs;
 
           /* Check if this mesh has such a shape-key. */
-          KeyBlock *okb = me->key ? BKE_keyblock_find_name(me->key, kb->name) : NULL;
+          KeyBlock *okb = me->key ? BKE_keyblock_find_name(me->key, kb->name) : nullptr;
           if (okb) {
             /* copy this mesh's shape-key to the destination shape-key
              * (need to transform first) */
-            float(*ocos)[3] = okb->data;
+            float(*ocos)[3] = static_cast<float(*)[3]>(okb->data);
             for (a = 0; a < me->totvert; a++, cos++, ocos++) {
               copy_v3_v3(*cos, *ocos);
               mul_m4_v3(cmat, *cos);
@@ -308,10 +307,10 @@ static void join_mesh_single(Depsgraph *depsgraph,
           float(*cos)[3] = ((float(*)[3])kb->data) + *vertofs;
 
           /* Check if this was one of the original shape-keys. */
-          KeyBlock *okb = nkey ? BKE_keyblock_find_name(nkey, kb->name) : NULL;
+          KeyBlock *okb = nkey ? BKE_keyblock_find_name(nkey, kb->name) : nullptr;
           if (okb) {
             /* copy this mesh's shape-key to the destination shape-key */
-            float(*ocos)[3] = okb->data;
+            float(*ocos)[3] = static_cast<float(*)[3]>(okb->data);
             for (a = 0; a < me->totvert; a++, cos++, ocos++) {
               copy_v3_v3(*cos, *ocos);
             }
@@ -382,17 +381,17 @@ static void join_mesh_single(Depsgraph *depsgraph,
     }
 
     /* Face maps. */
-    int *fmap = CustomData_get(pdata, *polyofs, CD_FACEMAP);
-    int *fmap_src = CustomData_get(&me->pdata, 0, CD_FACEMAP);
+    int *fmap = (int *)CustomData_get(pdata, *polyofs, CD_FACEMAP);
+    const int *fmap_src = (const int *)CustomData_get(&me->pdata, 0, CD_FACEMAP);
 
     /* Remap to correct new face-map indices, if needed. */
     if (fmap_src) {
-      BLI_assert(fmap != NULL);
+      BLI_assert(fmap != nullptr);
       int *fmap_index_map;
       int fmap_index_map_len;
       fmap_index_map = BKE_object_facemap_index_map_create(ob_src, ob_dst, &fmap_index_map_len);
       BKE_object_facemap_index_map_apply(fmap, me->totpoly, fmap_index_map, fmap_index_map_len);
-      if (fmap_index_map != NULL) {
+      if (fmap_index_map != nullptr) {
         MEM_freeN(fmap_index_map);
       }
     }
@@ -429,7 +428,7 @@ static void mesh_join_offset_face_sets_ID(const Mesh *mesh, int *face_set_offset
     return;
   }
 
-  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  int *face_sets = (int *)CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
   if (!face_sets) {
     return;
   }
@@ -456,20 +455,18 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  Material **matar = NULL, *ma;
+  Material **matar = nullptr, *ma;
   Mesh *me;
-  MVert *mvert = NULL;
-  MEdge *medge = NULL;
-  MPoly *mpoly = NULL;
-  MLoop *mloop = NULL;
-  Key *key, *nkey = NULL;
-  KeyBlock *kb, *kbn;
+  MVert *mvert = nullptr;
+  MEdge *medge = nullptr;
+  MPoly *mpoly = nullptr;
+  MLoop *mloop = nullptr;
+  Key *key, *nkey = nullptr;
   float imat[4][4];
   int a, b, totcol, totmat = 0, totedge = 0, totvert = 0;
-  int totloop = 0, totpoly = 0, vertofs, *matmap = NULL;
+  int totloop = 0, totpoly = 0, vertofs, *matmap = nullptr;
   int i, haskey = 0, edgeofs, loopofs, polyofs;
   bool ok = false, join_parent = false;
-  bDeformGroup *dg, *odg;
   CustomData vdata, edata, fdata, ldata, pdata;
 
   if (ob->mode & OB_MODE_EDIT) {
@@ -488,7 +485,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* count & check */
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
     if (ob_iter->type == OB_MESH) {
-      me = ob_iter->data;
+      me = static_cast<Mesh *>(ob_iter->data);
 
       totvert += me->totvert;
       totedge += me->totedge;
@@ -500,7 +497,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
         ok = true;
       }
 
-      if ((ob->parent != NULL) && (ob_iter == ob->parent)) {
+      if ((ob->parent != nullptr) && (ob_iter == ob->parent)) {
         join_parent = true;
       }
 
@@ -515,7 +512,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   /* Apply parent transform if the active object's parent was joined to it.
    * NOTE: This doesn't apply recursive parenting. */
   if (join_parent) {
-    ob->parent = NULL;
+    ob->parent = nullptr;
     BKE_object_apply_mat4_ex(ob, ob->obmat, ob->parent, ob->parentinv, false);
   }
 
@@ -555,12 +552,12 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   /* new material indices and material array */
   if (totmat) {
-    matar = MEM_callocN(sizeof(*matar) * totmat, "join_mesh matar");
-    matmap = MEM_callocN(sizeof(*matmap) * totmat, "join_mesh matmap");
+    matar = static_cast<Material **>(MEM_callocN(sizeof(*matar) * totmat, __func__));
+    matmap = static_cast<int *>(MEM_callocN(sizeof(*matmap) * totmat, __func__));
   }
   totcol = ob->totcol;
 
-  /* obact materials in new main array, is nicer start! */
+  /* Active object materials in new main array, is nicer start! */
   for (a = 0; a < ob->totcol; a++) {
     matar[a] = BKE_object_material_get(ob, a + 1);
     id_us_plus((ID *)matar[a]);
@@ -577,7 +574,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
     nkey = (Key *)BKE_id_copy(bmain, &key->id);
 
     /* for all keys in old block, clear data-arrays */
-    for (kb = key->block.first; kb; kb = kb->next) {
+    LISTBASE_FOREACH (KeyBlock *, kb, &key->block) {
       if (kb->data) {
         MEM_freeN(kb->data);
       }
@@ -601,13 +598,14 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
     /* only act if a mesh, and not the one we're joining to */
     if ((ob != ob_iter) && (ob_iter->type == OB_MESH)) {
-      me = ob_iter->data;
+      me = static_cast<Mesh *>(ob_iter->data);
 
       /* Join this object's vertex groups to the base one's */
-      for (dg = me->vertex_group_names.first; dg; dg = dg->next) {
+      LISTBASE_FOREACH (bDeformGroup *, dg, &me->vertex_group_names) {
         /* See if this group exists in the object (if it doesn't, add it to the end) */
         if (!BKE_object_defgroup_find_name(ob, dg->name)) {
-          odg = MEM_mallocN(sizeof(bDeformGroup), "join deformGroup");
+          bDeformGroup *odg = static_cast<bDeformGroup *>(
+              MEM_mallocN(sizeof(bDeformGroup), __func__));
           memcpy(odg, dg, sizeof(bDeformGroup));
           BLI_addtail(&mesh_active->vertex_group_names, odg);
         }
@@ -620,8 +618,8 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
       /* Join this object's face maps to the base one's. */
       LISTBASE_FOREACH (bFaceMap *, fmap, &ob_iter->fmaps) {
         /* See if this group exists in the object (if it doesn't, add it to the end) */
-        if (BKE_object_facemap_find_name(ob, fmap->name) == NULL) {
-          bFaceMap *fmap_new = MEM_mallocN(sizeof(bFaceMap), "join faceMap");
+        if (BKE_object_facemap_find_name(ob, fmap->name) == nullptr) {
+          bFaceMap *fmap_new = static_cast<bFaceMap *>(MEM_mallocN(sizeof(bFaceMap), __func__));
           memcpy(fmap_new, fmap, sizeof(bFaceMap));
           BLI_addtail(&ob->fmaps, fmap_new);
         }
@@ -661,13 +659,15 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
          * check if destination mesh already has matching entries too. */
         if (me->key && key) {
           /* for remapping KeyBlock.relative */
-          int *index_map = MEM_mallocN(sizeof(int) * me->key->totkey, __func__);
-          KeyBlock **kb_map = MEM_mallocN(sizeof(KeyBlock *) * me->key->totkey, __func__);
+          int *index_map = static_cast<int *>(
+              MEM_mallocN(sizeof(int) * me->key->totkey, __func__));
+          KeyBlock **kb_map = static_cast<KeyBlock **>(
+              MEM_mallocN(sizeof(KeyBlock *) * me->key->totkey, __func__));
 
-          for (kb = me->key->block.first, i = 0; kb; kb = kb->next, i++) {
+          LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &me->key->block, i) {
             BLI_assert(i < me->key->totkey);
 
-            kbn = BKE_keyblock_find_name(key, kb->name);
+            KeyBlock *kbn = BKE_keyblock_find_name(key, kb->name);
             /* if key doesn't exist in destination mesh, add it */
             if (kbn) {
               index_map[i] = BLI_findindex(&key->block, kbn);
@@ -688,7 +688,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
           }
 
           /* remap relative index values */
-          for (kb = me->key->block.first, i = 0; kb; kb = kb->next, i++) {
+          LISTBASE_FOREACH_INDEX (KeyBlock *, kb, &me->key->block, i) {
             /* sanity check, should always be true */
             if (LIKELY(kb->relative < me->key->totkey)) {
               kb_map[i]->relative = index_map[kb->relative];
@@ -710,10 +710,10 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   CustomData_reset(&ldata);
   CustomData_reset(&pdata);
 
-  mvert = CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
-  medge = CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
-  mloop = CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, NULL, totloop);
-  mpoly = CustomData_add_layer(&pdata, CD_MPOLY, CD_CALLOC, NULL, totpoly);
+  mvert = (MVert *)CustomData_add_layer(&vdata, CD_MVERT, CD_CALLOC, nullptr, totvert);
+  medge = (MEdge *)CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, nullptr, totedge);
+  mloop = (MLoop *)CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, nullptr, totloop);
+  mpoly = (MPoly *)CustomData_add_layer(&pdata, CD_MPOLY, CD_CALLOC, nullptr, totpoly);
 
   vertofs = 0;
   edgeofs = 0;
@@ -800,7 +800,7 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   CTX_DATA_END;
 
   /* return to mesh we're merging to */
-  me = ob->data;
+  me = static_cast<Mesh *>(ob->data);
 
   CustomData_free(&me->vdata, me->totvert);
   CustomData_free(&me->edata, me->totedge);
@@ -842,8 +842,8 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
 
   if (totcol) {
     me->mat = matar;
-    ob->mat = MEM_callocN(sizeof(*ob->mat) * totcol, "join obmatar");
-    ob->matbits = MEM_callocN(sizeof(*ob->matbits) * totcol, "join obmatbits");
+    ob->mat = static_cast<Material **>(MEM_callocN(sizeof(*ob->mat) * totcol, __func__));
+    ob->matbits = static_cast<char *>(MEM_callocN(sizeof(*ob->matbits) * totcol, __func__));
     MEM_freeN(matmap);
   }
 
@@ -890,8 +890,8 @@ int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
   Object *ob_active = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Mesh *me = (Mesh *)ob_active->data;
-  Mesh *selme = NULL;
-  Mesh *me_deformed = NULL;
+  Mesh *selme = nullptr;
+  Mesh *me_deformed = nullptr;
   Key *key = me->key;
   KeyBlock *kb;
   bool ok = false, nonequal_verts = false;
@@ -908,7 +908,7 @@ int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
         ok = true;
       }
       else {
-        nonequal_verts = 1;
+        nonequal_verts = true;
       }
     }
   }
@@ -926,12 +926,12 @@ int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (key == NULL) {
+  if (key == nullptr) {
     key = me->key = BKE_key_add(bmain, (ID *)me);
     key->type = KEY_RELATIVE;
 
     /* first key added, so it was the basis. initialize it with the existing mesh */
-    kb = BKE_keyblock_add(key, NULL);
+    kb = BKE_keyblock_add(key, nullptr);
     BKE_keyblock_convert_from_mesh(me, key, kb);
   }
 
@@ -974,21 +974,21 @@ int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op)
 /** \name Mesh Topology Mirror API
  * \{ */
 
-static MirrTopoStore_t mesh_topo_store = {NULL, -1. - 1, -1};
+static MirrTopoStore_t mesh_topo_store = {nullptr, -1, -1, false};
 
 BLI_INLINE void mesh_mirror_topo_table_get_meshes(Object *ob,
                                                   Mesh *me_eval,
                                                   Mesh **r_me_mirror,
                                                   BMEditMesh **r_em_mirror)
 {
-  Mesh *me_mirror = NULL;
-  BMEditMesh *em_mirror = NULL;
+  Mesh *me_mirror = nullptr;
+  BMEditMesh *em_mirror = nullptr;
 
-  Mesh *me = ob->data;
-  if (me_eval != NULL) {
+  Mesh *me = static_cast<Mesh *>(ob->data);
+  if (me_eval != nullptr) {
     me_mirror = me_eval;
   }
-  else if (me->edit_mesh != NULL) {
+  else if (me->edit_mesh != nullptr) {
     em_mirror = me->edit_mesh;
   }
   else {
@@ -1031,7 +1031,7 @@ static bool ed_mesh_mirror_topo_table_update(Object *ob, Mesh *me_eval)
 
 static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *me_eval, int index)
 {
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   MVert *mvert = me_eval ? me_eval->mvert : me->mvert;
   float vec[3];
 
@@ -1040,7 +1040,7 @@ static int mesh_get_x_mirror_vert_spatial(Object *ob, Mesh *me_eval, int index)
   vec[1] = mvert->co[1];
   vec[2] = mvert->co[2];
 
-  return ED_mesh_mirror_spatial_table_lookup(ob, NULL, me_eval, vec);
+  return ED_mesh_mirror_spatial_table_lookup(ob, nullptr, me_eval, vec);
 }
 
 static int mesh_get_x_mirror_vert_topo(Object *ob, Mesh *mesh, int index)
@@ -1067,28 +1067,25 @@ static BMVert *editbmesh_get_x_mirror_vert_spatial(Object *ob, BMEditMesh *em, c
 
   /* ignore nan verts */
   if ((isfinite(co[0]) == false) || (isfinite(co[1]) == false) || (isfinite(co[2]) == false)) {
-    return NULL;
+    return nullptr;
   }
 
   vec[0] = -co[0];
   vec[1] = co[1];
   vec[2] = co[2];
 
-  i = ED_mesh_mirror_spatial_table_lookup(ob, em, NULL, vec);
+  i = ED_mesh_mirror_spatial_table_lookup(ob, em, nullptr, vec);
   if (i != -1) {
     return BM_vert_at_index(em->bm, i);
   }
-  return NULL;
+  return nullptr;
 }
 
-static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob,
-                                                struct BMEditMesh *em,
-                                                BMVert *eve,
-                                                int index)
+static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob, BMEditMesh *em, BMVert *eve, int index)
 {
   intptr_t poinval;
-  if (!ed_mesh_mirror_topo_table_update(ob, NULL)) {
-    return NULL;
+  if (!ed_mesh_mirror_topo_table_update(ob, nullptr)) {
+    return nullptr;
   }
 
   if (index == -1) {
@@ -1104,7 +1101,7 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob,
     }
 
     if (index == em->bm->totvert) {
-      return NULL;
+      return nullptr;
     }
   }
 
@@ -1113,15 +1110,11 @@ static BMVert *editbmesh_get_x_mirror_vert_topo(Object *ob,
   if (poinval != -1) {
     return (BMVert *)(poinval);
   }
-  return NULL;
+  return nullptr;
 }
 
-BMVert *editbmesh_get_x_mirror_vert(Object *ob,
-                                    struct BMEditMesh *em,
-                                    BMVert *eve,
-                                    const float co[3],
-                                    int index,
-                                    const bool use_topology)
+BMVert *editbmesh_get_x_mirror_vert(
+    Object *ob, BMEditMesh *em, BMVert *eve, const float co[3], int index, const bool use_topology)
 {
   if (use_topology) {
     return editbmesh_get_x_mirror_vert_topo(ob, em, eve, index);
@@ -1131,7 +1124,7 @@ BMVert *editbmesh_get_x_mirror_vert(Object *ob,
 
 int ED_mesh_mirror_get_vert(Object *ob, int index)
 {
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   BMEditMesh *em = me->edit_mesh;
   bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
   int index_mirr;
@@ -1143,7 +1136,7 @@ int ED_mesh_mirror_get_vert(Object *ob, int index)
     index_mirr = eve_mirr ? BM_elem_index_get(eve_mirr) : -1;
   }
   else {
-    index_mirr = mesh_get_x_mirror_vert(ob, NULL, index, use_topology);
+    index_mirr = mesh_get_x_mirror_vert(ob, nullptr, index, use_topology);
   }
 
   return index_mirr;
@@ -1160,7 +1153,7 @@ static float *editmesh_get_mirror_uv(
 
   /* ignore nan verts */
   if (isnan(uv[0]) || !isfinite(uv[0]) || isnan(uv[1]) || !isfinite(uv[1])) {
-    return NULL;
+    return nullptr;
   }
 
   if (axis) {
@@ -1200,14 +1193,14 @@ static float *editmesh_get_mirror_uv(
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 #endif
 
 static uint mirror_facehash(const void *ptr)
 {
-  const MFace *mf = ptr;
+  const MFace *mf = static_cast<const MFace *>(ptr);
   uint v0, v1;
 
   if (mf->v4) {
@@ -1260,21 +1253,21 @@ static bool mirror_facecmp(const void *a, const void *b)
 
 int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 {
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   MVert *mv, *mvert;
   MFace mirrormf, *mf, *hashmf, *mface;
   GHash *fhash;
   int *mirrorverts, *mirrorfaces;
 
-  BLI_assert(em == NULL); /* Does not work otherwise, currently... */
+  BLI_assert(em == nullptr); /* Does not work otherwise, currently... */
 
   const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
   const int totvert = me_eval ? me_eval->totvert : me->totvert;
   const int totface = me_eval ? me_eval->totface : me->totface;
   int a;
 
-  mirrorverts = MEM_callocN(sizeof(int) * totvert, "MirrorVerts");
-  mirrorfaces = MEM_callocN(sizeof(int[2]) * totface, "MirrorFaces");
+  mirrorverts = static_cast<int *>(MEM_callocN(sizeof(int) * totvert, "MirrorVerts"));
+  mirrorfaces = static_cast<int *>(MEM_callocN(sizeof(int[2]) * totface, "MirrorFaces"));
 
   mvert = me_eval ? me_eval->mvert : me->mvert;
   mface = me_eval ? me_eval->mface : me->mface;
@@ -1304,7 +1297,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
       SWAP(uint, mirrormf.v2, mirrormf.v4);
     }
 
-    hashmf = BLI_ghash_lookup(fhash, &mirrormf);
+    hashmf = static_cast<MFace *>(BLI_ghash_lookup(fhash, &mirrormf));
     if (hashmf) {
       mirrorfaces[a * 2] = hashmf - mface;
       mirrorfaces[a * 2 + 1] = mirror_facerotation(&mirrormf, hashmf);
@@ -1314,7 +1307,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
     }
   }
 
-  BLI_ghash_free(fhash, NULL, NULL);
+  BLI_ghash_free(fhash, nullptr, nullptr);
   MEM_freeN(mirrorverts);
 
   return mirrorfaces;
@@ -1325,7 +1318,7 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, Mesh *me_eval)
 bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px, uint *r_index)
 {
   ViewContext vc;
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
 
@@ -1338,8 +1331,8 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
   ED_view3d_select_id_validate(&vc);
 
   if (dist_px) {
-    /* sample rect to increase chances of selecting, so that when clicking
-     * on an edge in the backbuf, we can still select a face */
+    /* Sample rect to increase chances of selecting, so that when clicking
+     * on an edge in the back-buffer, we can still select a face. */
     *r_index = DRW_select_buffer_find_nearest_to_point(
         vc.depsgraph, vc.region, vc.v3d, mval, 1, me->totpoly + 1, &dist_px);
   }
@@ -1359,7 +1352,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], uint dist_px,
 
 static void ed_mesh_pick_face_vert__mpoly_find(
     /* context */
-    struct ARegion *region,
+    ARegion *region,
     const float mval[2],
     /* mesh data (evaluated) */
     const MPoly *mp,
@@ -1389,14 +1382,14 @@ bool ED_mesh_pick_face_vert(
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   uint poly_index;
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
 
   if (ED_mesh_pick_face(C, ob, mval, dist_px, &poly_index)) {
     Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-    struct ARegion *region = CTX_wm_region(C);
+    ARegion *region = CTX_wm_region(C);
 
     /* derived mesh to find deformed locations */
     Mesh *me_eval = mesh_get_eval_final(
@@ -1405,14 +1398,13 @@ bool ED_mesh_pick_face_vert(
     int v_idx_best = ORIGINDEX_NONE;
 
     /* find the vert closest to 'mval' */
-    const float mval_f[2] = {UNPACK2(mval)};
+    const float mval_f[2] = {(float)mval[0], (float)mval[1]};
     float len_best = FLT_MAX;
 
     MPoly *me_eval_mpoly;
     MLoop *me_eval_mloop;
     MVert *me_eval_mvert;
     uint me_eval_mpoly_len;
-    const int *index_mp_to_orig;
 
     me_eval_mpoly = me_eval->mpoly;
     me_eval_mloop = me_eval->mloop;
@@ -1420,7 +1412,7 @@ bool ED_mesh_pick_face_vert(
 
     me_eval_mpoly_len = me_eval->totpoly;
 
-    index_mp_to_orig = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
+    const int *index_mp_to_orig = (const int *)CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX);
 
     /* tag all verts using this face */
     if (index_mp_to_orig) {
@@ -1452,8 +1444,8 @@ bool ED_mesh_pick_face_vert(
 
     /* map 'dm -> me' r_index if possible */
     if (v_idx_best != ORIGINDEX_NONE) {
-      const int *index_mv_to_orig;
-      index_mv_to_orig = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
+      const int *index_mv_to_orig = (const int *)CustomData_get_layer(&me_eval->vdata,
+                                                                      CD_ORIGINDEX);
       if (index_mv_to_orig) {
         v_idx_best = index_mv_to_orig[v_idx_best];
       }
@@ -1474,7 +1466,7 @@ bool ED_mesh_pick_face_vert(
  *
  * \return boolean true == Found
  */
-typedef struct VertPickData {
+struct VertPickData {
   const MVert *mvert;
   const float *mval_f; /* [2] */
   ARegion *region;
@@ -1482,14 +1474,14 @@ typedef struct VertPickData {
   /* runtime */
   float len_best;
   int v_idx_best;
-} VertPickData;
+};
 
 static void ed_mesh_pick_vert__mapFunc(void *userData,
                                        int index,
                                        const float co[3],
                                        const float UNUSED(no[3]))
 {
-  VertPickData *data = userData;
+  VertPickData *data = static_cast<VertPickData *>(userData);
   if ((data->mvert[index].flag & ME_HIDE) == 0) {
     float sco[2];
 
@@ -1507,7 +1499,7 @@ bool ED_mesh_pick_vert(
     bContext *C, Object *ob, const int mval[2], uint dist_px, bool use_zbuf, uint *r_index)
 {
   ViewContext vc;
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
 
   BLI_assert(me && GS(me->id.name) == ID_ME);
 
@@ -1521,8 +1513,8 @@ bool ED_mesh_pick_vert(
 
   if (use_zbuf) {
     if (dist_px > 0) {
-      /* sample rect to increase chances of selecting, so that when clicking
-       * on an face in the backbuf, we can still select a vert */
+      /* Sample rectangle to increase chances of selecting, so that when clicking
+       * on an face in the back-buffer, we can still select a vert. */
       *r_index = DRW_select_buffer_find_nearest_to_point(
           vc.depsgraph, vc.region, vc.v3d, mval, 1, me->totvert + 1, &dist_px);
     }
@@ -1544,16 +1536,16 @@ bool ED_mesh_pick_vert(
     /* derived mesh to find deformed locations */
     Mesh *me_eval = mesh_get_eval_final(vc.depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
     ARegion *region = vc.region;
-    RegionView3D *rv3d = region->regiondata;
+    RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
     /* find the vert closest to 'mval' */
     const float mval_f[2] = {(float)mval[0], (float)mval[1]};
 
-    VertPickData data = {NULL};
+    VertPickData data = {nullptr};
 
     ED_view3d_init_mats_rv3d(ob, rv3d);
 
-    if (me_eval == NULL) {
+    if (me_eval == nullptr) {
       return false;
     }
 
@@ -1579,7 +1571,7 @@ bool ED_mesh_pick_vert(
 MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
 {
   if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH) {
-    Mesh *me = ob->data;
+    Mesh *me = static_cast<Mesh *>(ob->data);
     if (!BLI_listbase_is_empty(&me->vertex_group_names)) {
       BMesh *bm = me->edit_mesh->bm;
       const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
@@ -1591,27 +1583,27 @@ MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
           if (r_eve) {
             *r_eve = eve;
           }
-          return BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
+          return static_cast<MDeformVert *>(BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset));
         }
       }
     }
   }
 
   if (r_eve) {
-    *r_eve = NULL;
+    *r_eve = nullptr;
   }
-  return NULL;
+  return nullptr;
 }
 
 MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
 {
-  Mesh *me = ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   int index = BKE_mesh_mselect_active_get(me, ME_VSEL);
   if (r_index) {
     *r_index = index;
   }
-  if (index == -1 || me->dvert == NULL) {
-    return NULL;
+  if (index == -1 || me->dvert == nullptr) {
+    return nullptr;
   }
   return me->dvert + index;
 }
@@ -1620,14 +1612,14 @@ MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)
 {
   if (ob->type == OB_MESH) {
     if (ob->mode & OB_MODE_EDIT) {
-      return ED_mesh_active_dvert_get_em(ob, NULL);
+      return ED_mesh_active_dvert_get_em(ob, nullptr);
     }
-    return ED_mesh_active_dvert_get_ob(ob, NULL);
+    return ED_mesh_active_dvert_get_ob(ob, nullptr);
   }
-  return NULL;
+  return nullptr;
 }
 
-void EDBM_mesh_stats_multi(struct Object **objects,
+void EDBM_mesh_stats_multi(Object **objects,
                            const uint objects_len,
                            int totelem[3],
                            int totelem_sel[3])

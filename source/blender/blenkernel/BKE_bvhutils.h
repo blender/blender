@@ -157,25 +157,6 @@ BVHTree *bvhtree_from_mesh_edges_ex(struct BVHTreeFromMesh *data,
                                     int tree_type,
                                     int axis);
 
-/**
- * Builds a BVH-tree where nodes are the given tessellated faces
- * (NOTE: does not copy given mfaces!).
- * \param vert_allocated: if true, vert freeing will be done when freeing data.
- * \param face_allocated: if true, face freeing will be done when freeing data.
- * \param faces_mask: if not null, true elements give which faces to add to BVH-tree.
- * \param faces_num_active: if >= 0, number of active faces to add to BVH-tree
- * (else will be computed from mask).
- */
-BVHTree *bvhtree_from_mesh_faces_ex(struct BVHTreeFromMesh *data,
-                                    const struct MVert *vert,
-                                    const struct MFace *face,
-                                    int numFaces,
-                                    const BLI_bitmap *faces_mask,
-                                    int faces_num_active,
-                                    float epsilon,
-                                    int tree_type,
-                                    int axis);
-
 BVHTree *bvhtree_from_editmesh_looptri(
     BVHTreeFromEditMesh *data, struct BMEditMesh *em, float epsilon, int tree_type, int axis);
 
@@ -192,8 +173,6 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
 
 /**
  * Builds a BVH-tree where nodes are the looptri faces of the given mesh.
- *
- * \note for edit-mesh this is currently a duplicate of #bvhtree_from_mesh_faces_ex
  */
 BVHTree *bvhtree_from_mesh_looptri_ex(struct BVHTreeFromMesh *data,
                                       const struct MVert *vert,

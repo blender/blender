@@ -122,10 +122,11 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
-  float brush_color[4];
-  copy_v4_v4(brush_color, data->brush_color);
-
-  IMB_colormanagement_srgb_to_scene_linear_v3(brush_color);
+  float brush_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  copy_v3_v3(brush_color,
+             ss->cache->invert ? BKE_brush_secondary_color_get(ss->scene, brush) :
+                                 BKE_brush_color_get(ss->scene, brush));
+  IMB_colormanagement_srgb_to_scene_linear_v3(brush_color, brush_color);
 
   if (hue_offset != 0.5f) {
     hue_offset = (hue_offset * 2.0 - 1.0) * 0.5f;

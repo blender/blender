@@ -228,7 +228,7 @@ class AnimationImporter : private TransformReader, public AnimationImporterBase 
                        COLLADAFW::Transformation::TransformationType tm_type);
   /**
    * Internal, better make it private
-   * warning: evaluates only rotation and only assigns matrix transforms now
+   * WARNING: evaluates only rotation and only assigns matrix transforms now
    * prerequisites: animlist_map, curve_map.
    */
   void evaluate_transform_at_frame(float mat[4][4], COLLADAFW::Node *node, float fra);

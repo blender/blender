@@ -30,7 +30,7 @@
 #  include "WM_api.h"
 #  include "WM_types.h"
 
-static Curves *rna_curves(PointerRNA *ptr)
+static Curves *rna_curves(const PointerRNA *ptr)
 {
   return (Curves *)ptr->owner_id;
 }
@@ -52,11 +52,16 @@ static void rna_Curves_curve_offset_data_begin(CollectionPropertyIterator *iter,
                            NULL);
 }
 
-static int rna_CurvePoint_index_get(PointerRNA *ptr)
+static int rna_CurvePoint_index_get_const(const PointerRNA *ptr)
 {
   const Curves *curves = rna_curves(ptr);
   const float(*co)[3] = ptr->data;
   return (int)(co - curves->geometry.position);
+}
+
+static int rna_CurvePoint_index_get(PointerRNA *ptr)
+{
+  return rna_CurvePoint_index_get_const(ptr);
 }
 
 static void rna_CurvePoint_location_get(PointerRNA *ptr, float value[3])
@@ -89,20 +94,25 @@ static void rna_CurvePoint_radius_set(PointerRNA *ptr, float value)
   curves->geometry.radius[co - curves->geometry.position] = value;
 }
 
-static char *rna_CurvePoint_path(PointerRNA *ptr)
+static char *rna_CurvePoint_path(const PointerRNA *ptr)
 {
-  return BLI_sprintfN("points[%d]", rna_CurvePoint_index_get(ptr));
+  return BLI_sprintfN("points[%d]", rna_CurvePoint_index_get_const(ptr));
 }
 
-static int rna_CurveSlice_index_get(PointerRNA *ptr)
+static int rna_CurveSlice_index_get_const(const PointerRNA *ptr)
 {
   Curves *curves = rna_curves(ptr);
   return (int)((int *)ptr->data - curves->geometry.curve_offsets);
 }
 
-static char *rna_CurveSlice_path(PointerRNA *ptr)
+static int rna_CurveSlice_index_get(PointerRNA *ptr)
 {
-  return BLI_sprintfN("curves[%d]", rna_CurveSlice_index_get(ptr));
+  return rna_CurveSlice_index_get_const(ptr);
+}
+
+static char *rna_CurveSlice_path(const PointerRNA *ptr)
+{
+  return BLI_sprintfN("curves[%d]", rna_CurveSlice_index_get_const(ptr));
 }
 
 static void rna_CurveSlice_points_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -133,10 +143,18 @@ static void rna_Curves_update_data(struct Main *UNUSED(bmain),
                                    PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
-
-  /* cheating way for importers to avoid slow updates */
+  /* Avoid updates for importers creating curves. */
   if (id->us > 0) {
     DEG_id_tag_update(id, 0);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+  }
+}
+
+void rna_Curves_update_draw(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  ID *id = ptr->owner_id;
+  /* Avoid updates for importers creating curves. */
+  if (id->us > 0) {
     WM_main_add_notifier(NC_GEOM | ND_DATA, id);
   }
 }
@@ -278,17 +296,17 @@ static void rna_def_curves(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_X);
   RNA_def_property_ui_text(prop, "X", "Enable symmetry in the X axis");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   prop = RNA_def_property(srna, "use_mirror_y", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_Y);
   RNA_def_property_ui_text(prop, "Y", "Enable symmetry in the Y axis");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   prop = RNA_def_property(srna, "use_mirror_z", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_Z);
   RNA_def_property_ui_text(prop, "Z", "Enable symmetry in the Z axis");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   /* attributes */
   rna_def_attributes_common(srna);

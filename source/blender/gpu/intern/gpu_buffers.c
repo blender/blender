@@ -1383,6 +1383,10 @@ bool GPU_pbvh_update_attribute_names(
         bool is_active = ref->layer_idx == CustomData_get_active_layer_index(ldata, CD_MLOOPUV);
 
         DRW_make_cdlayer_attr_aliases(&vbo_id->format, "u", ldata, cl, cl == render, is_active);
+
+        if (cl == render) {
+          GPU_vertformat_alias_add(&vbo_id->format, "a");
+        }
       }
     }
   }

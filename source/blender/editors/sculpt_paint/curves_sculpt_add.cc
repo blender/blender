@@ -37,6 +37,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "WM_api.h"
+
 /**
  * The code below uses a prefix naming convention to indicate the coordinate space:
  * cu: Local space of the curves object that is being edited.
@@ -64,7 +66,7 @@ class AddOperation : public CurvesSculptStrokeOperation {
     }
   }
 
-  void on_stroke_extended(bContext *C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
 };
 
 static void initialize_straight_curve_positions(const float3 &p1,
@@ -83,11 +85,12 @@ static void initialize_straight_curve_positions(const float3 &p1,
  */
 struct AddOperationExecutor {
   AddOperation *self_ = nullptr;
-  Depsgraph *depsgraph_ = nullptr;
-  Scene *scene_ = nullptr;
-  Object *object_ = nullptr;
+  const Depsgraph *depsgraph_ = nullptr;
+  const Scene *scene_ = nullptr;
   ARegion *region_ = nullptr;
-  View3D *v3d_ = nullptr;
+  const View3D *v3d_ = nullptr;
+
+  Object *object_ = nullptr;
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
@@ -96,9 +99,9 @@ struct AddOperationExecutor {
   Span<MLoopTri> surface_looptris_;
   Span<float3> corner_normals_su_;
 
-  CurvesSculpt *curves_sculpt_ = nullptr;
-  Brush *brush_ = nullptr;
-  BrushCurvesSculptSettings *brush_settings_ = nullptr;
+  const CurvesSculpt *curves_sculpt_ = nullptr;
+  const Brush *brush_ = nullptr;
+  const BrushCurvesSculptSettings *brush_settings_ = nullptr;
 
   float brush_radius_re_;
   float2 brush_pos_re_;
@@ -140,14 +143,14 @@ struct AddOperationExecutor {
   static constexpr int max_neighbors = 5;
   using NeighborsVector = Vector<NeighborInfo, max_neighbors>;
 
-  void execute(AddOperation &self, bContext *C, const StrokeExtension &stroke_extension)
+  void execute(AddOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {
     self_ = &self;
-    depsgraph_ = CTX_data_depsgraph_pointer(C);
-    scene_ = CTX_data_scene(C);
-    object_ = CTX_data_active_object(C);
-    region_ = CTX_wm_region(C);
-    v3d_ = CTX_wm_view3d(C);
+    depsgraph_ = CTX_data_depsgraph_pointer(&C);
+    scene_ = CTX_data_scene(&C);
+    object_ = CTX_data_active_object(&C);
+    region_ = CTX_wm_region(&C);
+    v3d_ = CTX_wm_view3d(&C);
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
@@ -174,9 +177,9 @@ struct AddOperationExecutor {
         surface_->totloop};
 
     curves_sculpt_ = scene_->toolsettings->curves_sculpt;
-    brush_ = BKE_paint_brush(&curves_sculpt_->paint);
+    brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
     brush_settings_ = brush_->curves_sculpt_settings;
-    brush_radius_re_ = BKE_brush_size_get(scene_, brush_, false);
+    brush_radius_re_ = brush_radius_get(*scene_, *brush_, stroke_extension);
     brush_pos_re_ = stroke_extension.mouse_position;
 
     use_front_face_ = brush_->flag & BRUSH_FRONTFACE;
@@ -252,6 +255,7 @@ struct AddOperationExecutor {
     curves_->update_curve_types();
 
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
     ED_region_tag_redraw(region_);
   }
 
@@ -696,10 +700,9 @@ struct AddOperationExecutor {
         for (const NeighborInfo &neighbor : neighbors) {
           const IndexRange neighbor_points = curves_->points_for_curve(neighbor.index);
           float neighbor_length = 0.0f;
-          const int tot_segments = neighbor_points.size() - 1;
-          for (const int segment_i : IndexRange(tot_segments)) {
-            const float3 &p1 = positions_cu[neighbor_points[segment_i]];
-            const float3 &p2 = positions_cu[neighbor_points[segment_i] + 1];
+          for (const int segment_i : neighbor_points.drop_back(1)) {
+            const float3 &p1 = positions_cu[segment_i];
+            const float3 &p2 = positions_cu[segment_i + 1];
             neighbor_length += math::distance(p1, p2);
           }
           length_sum += neighbor.weight * neighbor_length;
@@ -861,17 +864,18 @@ struct AddOperationExecutor {
   }
 };
 
-void AddOperation::on_stroke_extended(bContext *C, const StrokeExtension &stroke_extension)
+void AddOperation::on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension)
 {
   AddOperationExecutor executor;
   executor.execute(*this, C, stroke_extension);
 }
 
-std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation(bContext &C, ReportList *reports)
+std::unique_ptr<CurvesSculptStrokeOperation> new_add_operation(const bContext &C,
+                                                               ReportList *reports)
 {
-  Object &ob_active = *CTX_data_active_object(&C);
+  const Object &ob_active = *CTX_data_active_object(&C);
   BLI_assert(ob_active.type == OB_CURVES);
-  Curves &curves_id = *static_cast<Curves *>(ob_active.data);
+  const Curves &curves_id = *static_cast<Curves *>(ob_active.data);
   if (curves_id.surface == nullptr || curves_id.surface->type != OB_MESH) {
     BKE_report(reports, RPT_WARNING, "Can not use Add brush when there is no surface mesh");
     return {};

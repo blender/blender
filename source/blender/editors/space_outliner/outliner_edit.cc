@@ -576,6 +576,187 @@ void OUTLINER_OT_id_delete(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name ID Remap Operator
+ * \{ */
+
+static int outliner_id_remap_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+
+  const short id_type = (short)RNA_enum_get(op->ptr, "id_type");
+  ID *old_id = reinterpret_cast<ID *>(
+      BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "old_id")));
+  ID *new_id = reinterpret_cast<ID *>(
+      BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "new_id")));
+
+  /* check for invalid states */
+  if (space_outliner == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  if (!(old_id && new_id && (old_id != new_id) && (GS(old_id->name) == GS(new_id->name)))) {
+    BKE_reportf(op->reports,
+                RPT_ERROR_INVALID_INPUT,
+                "Invalid old/new ID pair ('%s' / '%s')",
+                old_id ? old_id->name : "Invalid ID",
+                new_id ? new_id->name : "Invalid ID");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (ID_IS_LINKED(old_id)) {
+    BKE_reportf(op->reports,
+                RPT_WARNING,
+                "Old ID '%s' is linked from a library, indirect usages of this data-block will "
+                "not be remapped",
+                old_id->name);
+  }
+
+  BKE_libblock_remap(
+      bmain, old_id, new_id, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
+
+  BKE_main_lib_objects_recalc_all(bmain);
+
+  /* recreate dependency graph to include new objects */
+  DEG_relations_tag_update(bmain);
+
+  /* Free gpu materials, some materials depend on existing objects,
+   * such as lights so freeing correctly refreshes. */
+  GPU_materials_free(bmain);
+
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool outliner_id_remap_find_tree_element(bContext *C,
+                                                wmOperator *op,
+                                                ListBase *tree,
+                                                const float y)
+{
+  LISTBASE_FOREACH (TreeElement *, te, tree) {
+    if (y > te->ys && y < te->ys + UI_UNIT_Y) {
+      TreeStoreElem *tselem = TREESTORE(te);
+
+      if ((tselem->type == TSE_SOME_ID) && tselem->id) {
+        RNA_enum_set(op->ptr, "id_type", GS(tselem->id->name));
+        RNA_enum_set_identifier(C, op->ptr, "new_id", tselem->id->name + 2);
+        RNA_enum_set_identifier(C, op->ptr, "old_id", tselem->id->name + 2);
+        return true;
+      }
+    }
+    if (outliner_id_remap_find_tree_element(C, op, &te->subtree, y)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static int outliner_id_remap_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
+  ARegion *region = CTX_wm_region(C);
+  float fmval[2];
+
+  if (!RNA_property_is_set(op->ptr, RNA_struct_find_property(op->ptr, "id_type"))) {
+    UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+    outliner_id_remap_find_tree_element(C, op, &space_outliner->tree, fmval[1]);
+  }
+
+  return WM_operator_props_dialog_popup(C, op, 400);
+}
+
+static const EnumPropertyItem *outliner_id_itemf(bContext *C,
+                                                 PointerRNA *ptr,
+                                                 PropertyRNA *UNUSED(prop),
+                                                 bool *r_free)
+{
+  if (C == nullptr) {
+    return DummyRNA_NULL_items;
+  }
+
+  EnumPropertyItem item_tmp = {0}, *item = nullptr;
+  int totitem = 0;
+  int i = 0;
+
+  short id_type = (short)RNA_enum_get(ptr, "id_type");
+  ID *id = reinterpret_cast<ID *>(which_libbase(CTX_data_main(C), id_type)->first);
+
+  for (; id; id = reinterpret_cast<ID *>(id->next)) {
+    item_tmp.identifier = item_tmp.name = id->name + 2;
+    item_tmp.value = i++;
+    RNA_enum_item_add(&item, &totitem, &item_tmp);
+  }
+
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+
+  return item;
+}
+
+void OUTLINER_OT_id_remap(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* identifiers */
+  ot->name = "Outliner ID Data Remap";
+  ot->idname = "OUTLINER_OT_id_remap";
+
+  /* callbacks */
+  ot->invoke = outliner_id_remap_invoke;
+  ot->exec = outliner_id_remap_exec;
+  ot->poll = ED_operator_outliner_active;
+
+  /* Flags. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  prop = RNA_def_enum(ot->srna, "id_type", rna_enum_id_type_items, ID_OB, "ID Type", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
+  /* Changing ID type wont make sense, would return early with "Invalid old/new ID pair" anyways.
+   */
+  RNA_def_property_flag(prop, PROP_HIDDEN);
+
+  prop = RNA_def_enum(ot->srna, "old_id", DummyRNA_NULL_items, 0, "Old ID", "Old ID to replace");
+  RNA_def_property_enum_funcs_runtime(prop, nullptr, nullptr, outliner_id_itemf);
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_ENUM_NO_TRANSLATE | PROP_HIDDEN));
+
+  ot->prop = RNA_def_enum(ot->srna,
+                          "new_id",
+                          DummyRNA_NULL_items,
+                          0,
+                          "New ID",
+                          "New ID to remap all selected IDs' users to");
+  RNA_def_property_enum_funcs_runtime(ot->prop, nullptr, nullptr, outliner_id_itemf);
+  RNA_def_property_flag(ot->prop, PROP_ENUM_NO_TRANSLATE);
+}
+
+void id_remap_fn(bContext *C,
+                 ReportList *UNUSED(reports),
+                 Scene *UNUSED(scene),
+                 TreeElement *UNUSED(te),
+                 TreeStoreElem *UNUSED(tsep),
+                 TreeStoreElem *tselem,
+                 void *UNUSED(user_data))
+{
+  wmOperatorType *ot = WM_operatortype_find("OUTLINER_OT_id_remap", false);
+  PointerRNA op_props;
+
+  BLI_assert(tselem->id != nullptr);
+
+  WM_operator_properties_create_ptr(&op_props, ot);
+
+  RNA_enum_set(&op_props, "id_type", GS(tselem->id->name));
+  RNA_enum_set_identifier(C, &op_props, "old_id", tselem->id->name + 2);
+
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_props, nullptr);
+
+  WM_operator_properties_free(&op_props);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name ID Copy Operator
  * \{ */
 

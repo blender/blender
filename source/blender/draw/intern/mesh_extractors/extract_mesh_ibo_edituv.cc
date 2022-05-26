@@ -387,8 +387,7 @@ static void extract_edituv_points_iter_poly_mesh(const MeshRenderData *mr,
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mloop[ml_index];
 
-    const bool real_vert = (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
-                            mr->v_origindex[ml->v] != ORIGINDEX_NONE);
+    const bool real_vert = !mr->v_origindex || mr->v_origindex[ml->v] != ORIGINDEX_NONE;
     edituv_point_add(
         data, ((mp->flag & ME_HIDE) != 0) || !real_vert, (mp->flag & ME_FACE_SEL) != 0, ml_index);
   }
@@ -449,9 +448,8 @@ static void extract_edituv_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_
   uint end_loop_idx = (subdiv_quad_index + 1) * 4;
   for (uint i = start_loop_idx; i < end_loop_idx; i++) {
     const int vert_origindex = subdiv_loop_vert_index[i];
-    const bool real_vert = (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
-                            vert_origindex != -1 &&
-                            mr->v_origindex[vert_origindex] != ORIGINDEX_NONE);
+    const bool real_vert = !mr->v_origindex || (vert_origindex != -1 &&
+                                                mr->v_origindex[vert_origindex] != ORIGINDEX_NONE);
     edituv_point_add(data,
                      ((coarse_quad->flag & ME_HIDE) != 0) || !real_vert,
                      (coarse_quad->flag & ME_FACE_SEL) != 0,
@@ -543,8 +541,7 @@ static void extract_edituv_fdots_iter_poly_mesh(const MeshRenderData *mr,
     for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
       const MLoop *ml = &mloop[ml_index];
 
-      const bool real_fdot = (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex &&
-                              mr->p_origindex[mp_index] != ORIGINDEX_NONE);
+      const bool real_fdot = !mr->p_origindex || (mr->p_origindex[mp_index] != ORIGINDEX_NONE);
       const bool subd_fdot = BLI_BITMAP_TEST(facedot_tags, ml->v);
       edituv_facedot_add(data,
                          ((mp->flag & ME_HIDE) != 0) || !real_fdot || !subd_fdot,
@@ -553,8 +550,7 @@ static void extract_edituv_fdots_iter_poly_mesh(const MeshRenderData *mr,
     }
   }
   else {
-    const bool real_fdot = (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex &&
-                            mr->p_origindex[mp_index] != ORIGINDEX_NONE);
+    const bool real_fdot = !mr->p_origindex || (mr->p_origindex[mp_index] != ORIGINDEX_NONE);
     edituv_facedot_add(
         data, ((mp->flag & ME_HIDE) != 0) || !real_fdot, (mp->flag & ME_FACE_SEL) != 0, mp_index);
   }

@@ -49,7 +49,7 @@ class GreasePencilSculptAdvancedPanel:
         layout.use_property_decorate = False
 
         tool_settings = context.scene.tool_settings
-        brush = context.tool_settings.gpencil_sculpt_paint.brush
+        brush = tool_settings.gpencil_sculpt_paint.brush
         tool = brush.gpencil_sculpt_tool
         gp_settings = brush.gpencil_settings
 
@@ -245,7 +245,7 @@ class GPENCIL_MT_move_to_layer(Menu):
                     icon = 'GREASEPENCIL'
                 else:
                     icon = 'NONE'
-                layout.operator("gpencil.move_to_layer", text=gpl.info, icon=icon).layer = i
+                layout.operator("gpencil.move_to_layer", text=gpl.info, icon=icon, translate=False).layer = i
                 i -= 1
 
             layout.separator()

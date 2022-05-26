@@ -442,6 +442,13 @@ void id_delete_fn(struct bContext *C,
                   struct TreeStoreElem *tsep,
                   struct TreeStoreElem *tselem,
                   void *user_data);
+void id_remap_fn(struct bContext *C,
+                 struct ReportList *reports,
+                 struct Scene *scene,
+                 struct TreeElement *te,
+                 struct TreeStoreElem *tsep,
+                 struct TreeStoreElem *tselem,
+                 void *user_data);
 
 /**
  * To retrieve coordinates with redrawing the entire tree.
@@ -516,6 +523,7 @@ void OUTLINER_OT_scene_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_object_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_lib_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_id_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_id_remap(struct wmOperatorType *ot);
 void OUTLINER_OT_id_copy(struct wmOperatorType *ot);
 void OUTLINER_OT_id_paste(struct wmOperatorType *ot);
 void OUTLINER_OT_data_operation(struct wmOperatorType *ot);

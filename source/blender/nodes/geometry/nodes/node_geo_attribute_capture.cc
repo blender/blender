@@ -126,30 +126,66 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
   output_attribute.save();
 }
 
+static StringRefNull identifier_suffix(CustomDataType data_type)
+{
+  switch (data_type) {
+    case CD_PROP_FLOAT:
+      return "_001";
+    case CD_PROP_INT32:
+      return "_004";
+    case CD_PROP_COLOR:
+      return "_002";
+    case CD_PROP_BOOL:
+      return "_003";
+    case CD_PROP_FLOAT3:
+      return "";
+    default:
+      BLI_assert_unreachable();
+      return "";
+  }
+}
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
+
+  if (!params.output_is_required("Geometry")) {
+    params.error_message_add(
+        NodeWarningType::Info,
+        TIP_("The attribute output can not be used without the geometry output"));
+    params.set_default_remaining_outputs();
+    return;
+  }
 
   const NodeGeometryAttributeCapture &storage = node_storage(params.node());
   const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
   const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
 
+  const std::string output_identifier = "Attribute" + identifier_suffix(data_type);
+
+  if (!params.output_is_required(output_identifier)) {
+    params.set_output("Geometry", geometry_set);
+    return;
+  }
+
+  const std::string input_identifier = "Value" + identifier_suffix(data_type);
   GField field;
+
   switch (data_type) {
     case CD_PROP_FLOAT:
-      field = params.get_input<Field<float>>("Value_001");
+      field = params.get_input<Field<float>>(input_identifier);
       break;
     case CD_PROP_FLOAT3:
-      field = params.get_input<Field<float3>>("Value");
+      field = params.get_input<Field<float3>>(input_identifier);
       break;
     case CD_PROP_COLOR:
-      field = params.get_input<Field<ColorGeometry4f>>("Value_002");
+      field = params.get_input<Field<ColorGeometry4f>>(input_identifier);
       break;
     case CD_PROP_BOOL:
-      field = params.get_input<Field<bool>>("Value_003");
+      field = params.get_input<Field<bool>>(input_identifier);
       break;
     case CD_PROP_INT32:
-      field = params.get_input<Field<int>>("Value_004");
+      field = params.get_input<Field<int>>(input_identifier);
       break;
     default:
       break;
@@ -185,23 +221,23 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   switch (data_type) {
     case CD_PROP_FLOAT: {
-      params.set_output("Attribute_001", Field<float>(output_field));
+      params.set_output(output_identifier, Field<float>(output_field));
       break;
     }
     case CD_PROP_FLOAT3: {
-      params.set_output("Attribute", Field<float3>(output_field));
+      params.set_output(output_identifier, Field<float3>(output_field));
       break;
     }
     case CD_PROP_COLOR: {
-      params.set_output("Attribute_002", Field<ColorGeometry4f>(output_field));
+      params.set_output(output_identifier, Field<ColorGeometry4f>(output_field));
       break;
     }
     case CD_PROP_BOOL: {
-      params.set_output("Attribute_003", Field<bool>(output_field));
+      params.set_output(output_identifier, Field<bool>(output_field));
       break;
     }
     case CD_PROP_INT32: {
-      params.set_output("Attribute_004", Field<int>(output_field));
+      params.set_output(output_identifier, Field<int>(output_field));
       break;
     }
     default:

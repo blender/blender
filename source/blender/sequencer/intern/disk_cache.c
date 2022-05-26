@@ -344,15 +344,15 @@ static void seq_disk_cache_create_version_file(char *path)
 
 static void seq_disk_cache_handle_versioning(SeqDiskCache *disk_cache)
 {
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
   char path_version_file[FILE_MAX];
   int version = 0;
 
-  seq_disk_cache_get_project_dir(disk_cache, path, sizeof(path));
-  BLI_strncpy(path_version_file, path, sizeof(path_version_file));
+  seq_disk_cache_get_project_dir(disk_cache, filepath, sizeof(filepath));
+  BLI_strncpy(path_version_file, filepath, sizeof(path_version_file));
   BLI_path_append(path_version_file, sizeof(path_version_file), "cache_version");
 
-  if (BLI_exists(path) && BLI_is_dir(path)) {
+  if (BLI_exists(filepath) && BLI_is_dir(filepath)) {
     FILE *file = BLI_fopen(path_version_file, "r");
 
     if (file) {
@@ -364,7 +364,7 @@ static void seq_disk_cache_handle_versioning(SeqDiskCache *disk_cache)
     }
 
     if (version != DCACHE_CURRENT_VERSION) {
-      BLI_delete(path, false, true);
+      BLI_delete(filepath, false, true);
       seq_disk_cache_create_version_file(path_version_file);
     }
   }
@@ -548,22 +548,22 @@ bool seq_disk_cache_write_file(SeqDiskCache *disk_cache, SeqCacheKey *key, ImBuf
 {
   BLI_mutex_lock(&disk_cache->read_write_mutex);
 
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
-  seq_disk_cache_get_file_path(disk_cache, key, path, sizeof(path));
-  BLI_make_existing_file(path);
+  seq_disk_cache_get_file_path(disk_cache, key, filepath, sizeof(filepath));
+  BLI_make_existing_file(filepath);
 
-  FILE *file = BLI_fopen(path, "rb+");
+  FILE *file = BLI_fopen(filepath, "rb+");
   if (!file) {
-    file = BLI_fopen(path, "wb+");
+    file = BLI_fopen(filepath, "wb+");
     if (!file) {
       BLI_mutex_unlock(&disk_cache->read_write_mutex);
       return false;
     }
-    seq_disk_cache_add_file_to_list(disk_cache, path);
+    seq_disk_cache_add_file_to_list(disk_cache, filepath);
   }
 
-  DiskCacheFile *cache_file = seq_disk_cache_get_file_entry_by_path(disk_cache, path);
+  DiskCacheFile *cache_file = seq_disk_cache_get_file_entry_by_path(disk_cache, filepath);
   DiskCacheHeader header;
   memset(&header, 0, sizeof(header));
   /* #BLI_make_existing_file() above may create an empty file. This is fine, don't attempt reading
@@ -585,7 +585,7 @@ bool seq_disk_cache_write_file(SeqDiskCache *disk_cache, SeqCacheKey *key, ImBuf
      */
     header.entry[entry_index].size_compressed = bytes_written;
     seq_disk_cache_write_header(file, &header);
-    seq_disk_cache_update_file(disk_cache, path);
+    seq_disk_cache_update_file(disk_cache, filepath);
     fclose(file);
 
     BLI_mutex_unlock(&disk_cache->read_write_mutex);
@@ -600,13 +600,13 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
 {
   BLI_mutex_lock(&disk_cache->read_write_mutex);
 
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
   DiskCacheHeader header;
 
-  seq_disk_cache_get_file_path(disk_cache, key, path, sizeof(path));
-  BLI_make_existing_file(path);
+  seq_disk_cache_get_file_path(disk_cache, key, filepath, sizeof(filepath));
+  BLI_make_existing_file(filepath);
 
-  FILE *file = BLI_fopen(path, "rb");
+  FILE *file = BLI_fopen(filepath, "rb");
   if (!file) {
     BLI_mutex_unlock(&disk_cache->read_write_mutex);
     return NULL;
@@ -656,8 +656,8 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
     BLI_mutex_unlock(&disk_cache->read_write_mutex);
     return NULL;
   }
-  BLI_file_touch(path);
-  seq_disk_cache_update_file(disk_cache, path);
+  BLI_file_touch(filepath);
+  seq_disk_cache_update_file(disk_cache, filepath);
   fclose(file);
 
   BLI_mutex_unlock(&disk_cache->read_write_mutex);

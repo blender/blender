@@ -499,7 +499,13 @@ typedef struct bNodeTree {
 
   int type;
 
-  char _pad1[4];
+  /**
+   * Used to cache run-time information of the node tree.
+   * #eNodeTreeRuntimeFlag.
+   */
+  uint8_t runtime_flag;
+
+  char _pad1[3];
 
   /**
    * Sockets in groups have unique identifiers, adding new sockets always
@@ -600,6 +606,13 @@ typedef enum eNodeTreeExecutionMode {
   NTREE_EXECUTION_MODE_TILED = 0,
   NTREE_EXECUTION_MODE_FULL_FRAME = 1,
 } eNodeTreeExecutionMode;
+
+typedef enum eNodeTreeRuntimeFlag {
+  /** There is a node that references an image with animation. */
+  NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION = 1 << 0,
+  /** There is a material output node in the group. */
+  NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT = 1 << 1,
+} eNodeTreeRuntimeFlag;
 
 /* socket value structs for input buttons
  * DEPRECATED now using ID properties

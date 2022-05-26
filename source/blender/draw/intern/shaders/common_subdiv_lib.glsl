@@ -31,6 +31,7 @@ layout(std140) uniform shader_data
   uint coarse_face_select_mask;
   uint coarse_face_smooth_mask;
   uint coarse_face_active_mask;
+  uint coarse_face_hidden_mask;
   uint coarse_face_loopstart_mask;
 
   /* Total number of elements to process. */

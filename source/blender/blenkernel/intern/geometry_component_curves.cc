@@ -135,11 +135,11 @@ const Curve *CurveComponent::get_curve_for_render() const
 
 /** \} */
 
+namespace blender::bke {
+
 /* -------------------------------------------------------------------- */
 /** \name Curve Normals Access
  * \{ */
-
-namespace blender::bke {
 
 static Array<float3> curve_normal_point_domain(const bke::CurvesGeometry &curves)
 {
@@ -300,9 +300,9 @@ bool CurveLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
   return dynamic_cast<const CurveLengthFieldInput *>(&other) != nullptr;
 }
 
-}  // namespace blender::bke
-
 /** \} */
+
+}  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */
 /** \name Attribute Access Helper Functions
@@ -313,13 +313,13 @@ int CurveComponent::attribute_domain_num(const AttributeDomain domain) const
   if (curves_ == nullptr) {
     return 0;
   }
-  const blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(
+  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
       curves_->geometry);
   if (domain == ATTR_DOMAIN_POINT) {
-    return geometry.points_num();
+    return curves.points_num();
   }
   if (domain == ATTR_DOMAIN_CURVE) {
-    return geometry.curves_num();
+    return curves.curves_num();
   }
   return 0;
 }

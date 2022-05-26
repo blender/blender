@@ -181,7 +181,7 @@ static void idp_repr_fn_recursive(struct ReprState *state, const IDProperty *pro
       break;
     }
     default: {
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
     }
   }

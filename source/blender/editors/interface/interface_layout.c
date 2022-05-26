@@ -961,11 +961,17 @@ static void ui_item_enum_expand_tabs(uiLayout *layout,
 static void ui_keymap_but_cb(bContext *UNUSED(C), void *but_v, void *UNUSED(key_v))
 {
   uiBut *but = but_v;
+  BLI_assert(but->type == UI_BTYPE_HOTKEY_EVENT);
+  const uiButHotkeyEvent *hotkey_but = (uiButHotkeyEvent *)but;
 
-  RNA_int_set(&but->rnapoin, "shift", (but->modifier_key & KM_SHIFT) ? KM_MOD_HELD : KM_NOTHING);
-  RNA_int_set(&but->rnapoin, "ctrl", (but->modifier_key & KM_CTRL) ? KM_MOD_HELD : KM_NOTHING);
-  RNA_int_set(&but->rnapoin, "alt", (but->modifier_key & KM_ALT) ? KM_MOD_HELD : KM_NOTHING);
-  RNA_int_set(&but->rnapoin, "oskey", (but->modifier_key & KM_OSKEY) ? KM_MOD_HELD : KM_NOTHING);
+  RNA_int_set(
+      &but->rnapoin, "shift", (hotkey_but->modifier_key & KM_SHIFT) ? KM_MOD_HELD : KM_NOTHING);
+  RNA_int_set(
+      &but->rnapoin, "ctrl", (hotkey_but->modifier_key & KM_CTRL) ? KM_MOD_HELD : KM_NOTHING);
+  RNA_int_set(
+      &but->rnapoin, "alt", (hotkey_but->modifier_key & KM_ALT) ? KM_MOD_HELD : KM_NOTHING);
+  RNA_int_set(
+      &but->rnapoin, "oskey", (hotkey_but->modifier_key & KM_OSKEY) ? KM_MOD_HELD : KM_NOTHING);
 }
 
 /**
@@ -1101,7 +1107,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                          NULL);
     UI_but_func_set(but, ui_keymap_but_cb, but, NULL);
     if (flag & UI_ITEM_R_IMMEDIATE) {
-      UI_but_flag_enable(but, UI_BUT_IMMEDIATE);
+      UI_but_flag_enable(but, UI_BUT_ACTIVATE_ON_INIT);
     }
   }
   else {
@@ -5316,7 +5322,7 @@ static void ui_item_align(uiLayout *litem, short nr)
   }
 }
 
-static void ui_item_flag(uiLayout *litem, uint64_t flag)
+static void ui_item_flag(uiLayout *litem, int flag)
 {
   LISTBASE_FOREACH_BACKWARD (uiItem *, item, &litem->items) {
     if (item->type == ITEM_BUTTON) {

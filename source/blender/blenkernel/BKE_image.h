@@ -273,14 +273,6 @@ bool BKE_image_is_openexr(struct Image *ima);
 void BKE_image_backup_render(struct Scene *scene, struct Image *ima, bool free_current_slot);
 
 /**
- * For single-layer OpenEXR saving.
- */
-bool BKE_image_save_openexr_multiview(struct Image *ima,
-                                      struct ImBuf *ibuf,
-                                      const char *filepath,
-                                      int flags);
-
-/**
  * Goes over all textures that use images.
  */
 void BKE_image_free_all_textures(struct Main *bmain);
@@ -387,7 +379,7 @@ void BKE_image_ensure_tile_token(char *filename);
 /**
  * When provided with an absolute virtual `filepath`, check to see if at least
  * one concrete file exists.
- * Note: This function requires directory traversal and may be inefficient in time-critical,
+ * NOTE: This function requires directory traversal and may be inefficient in time-critical,
  * or iterative, code paths.
  */
 bool BKE_image_tile_filepath_exists(const char *filepath);

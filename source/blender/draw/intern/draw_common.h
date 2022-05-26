@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+struct CurvesUniformBufPool;
 struct DRWShadingGroup;
 struct FluidModifierData;
 struct GPUMaterial;
@@ -44,7 +45,7 @@ float *DRW_color_background_blend_get(int theme_id);
 bool DRW_object_is_flat(struct Object *ob, int *r_axis);
 bool DRW_object_axis_orthogonal_to_view(struct Object *ob, int axis);
 
-/* draw_hair.c */
+/* draw_hair.cc */
 
 /**
  * This creates a shading group with display hairs.
@@ -82,7 +83,8 @@ struct DRWShadingGroup *DRW_shgroup_curves_create_sub(struct Object *object,
                                                       struct DRWShadingGroup *shgrp,
                                                       struct GPUMaterial *gpu_material);
 
-void DRW_curves_init(void);
+void DRW_curves_init(struct DRWData *drw_data);
+void DRW_curves_ubos_pool_free(struct CurvesUniformBufPool *pool);
 void DRW_curves_update(void);
 void DRW_curves_free(void);
 

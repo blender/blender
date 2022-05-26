@@ -423,21 +423,6 @@ static void mesh_set_only_copy(Mesh *mesh, const CustomData_MeshMasks *mask)
 #endif
 }
 
-void DM_add_vert_layer(DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer)
-{
-  CustomData_add_layer(&dm->vertData, type, alloctype, layer, dm->numVertData);
-}
-
-void DM_add_edge_layer(DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer)
-{
-  CustomData_add_layer(&dm->edgeData, type, alloctype, layer, dm->numEdgeData);
-}
-
-void DM_add_poly_layer(DerivedMesh *dm, int type, eCDAllocType alloctype, void *layer)
-{
-  CustomData_add_layer(&dm->polyData, type, alloctype, layer, dm->numPolyData);
-}
-
 void *DM_get_vert_data_layer(DerivedMesh *dm, int type)
 {
   if (type == CD_MVERT) {
@@ -1179,6 +1164,10 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
   if (mesh_orco_cloth) {
     BKE_id_free(nullptr, mesh_orco_cloth);
   }
+
+  /* Remove temporary data layer only needed for modifier evaluation.
+   * Save some memory, and ensure GPU subdivision does not need to deal with this. */
+  CustomData_free_layers(&mesh_final->vdata, CD_CLOTH_ORCO, mesh_final->totvert);
 
   /* Compute normals. */
   if (is_own_mesh) {

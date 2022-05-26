@@ -219,7 +219,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                 e->flags,
                                 es->occlusion,
                                 es->material_mask_bits,
-                                e->v1_obindex);
+                                e->v1->index);
     while (ba && (new_e = lineart_line_get_connected(
                       ba, new_vt, &new_vt, e->flags, e->intersection_mask))) {
       new_e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
@@ -256,7 +256,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                       new_e->flags,
                                       es->occlusion,
                                       es->material_mask_bits,
-                                      new_e->v1_obindex);
+                                      new_e->v1->index);
           last_occlusion = es->occlusion;
           last_transparency = es->material_mask_bits;
         }
@@ -282,7 +282,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                       new_e->flags,
                                       last_occlusion,
                                       last_transparency,
-                                      new_e->v2_obindex);
+                                      new_e->v2->index);
           last_occlusion = es->occlusion;
           last_transparency = es->material_mask_bits;
         }
@@ -295,7 +295,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                     new_e->flags,
                                     last_occlusion,
                                     last_transparency,
-                                    new_e->v2_obindex);
+                                    new_e->v2->index);
       }
       ba = MOD_lineart_get_bounding_area(rb, new_vt->fbcoord[0], new_vt->fbcoord[1]);
     }
@@ -336,7 +336,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                  e->flags,
                                  es->occlusion,
                                  es->material_mask_bits,
-                                 e->v1_obindex);
+                                 e->v1->index);
       last_occlusion = es->occlusion;
       last_transparency = es->material_mask_bits;
     }
@@ -349,7 +349,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                e->flags,
                                last_occlusion,
                                last_transparency,
-                               e->v2_obindex);
+                               e->v2->index);
 
     /*  Step 3: grow right. */
     ba = MOD_lineart_get_bounding_area(rb, e->v2->fbcoord[0], e->v2->fbcoord[1]);
@@ -402,7 +402,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                      new_e->flags,
                                      last_occlusion,
                                      last_transparency,
-                                     new_e->v1_obindex);
+                                     new_e->v1->index);
         }
       }
       else if (new_vt == new_e->v2) {
@@ -428,7 +428,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                      new_e->flags,
                                      es->occlusion,
                                      es->material_mask_bits,
-                                     new_e->v2_obindex);
+                                     new_e->v2->index);
           last_occlusion = es->occlusion;
           last_transparency = es->material_mask_bits;
         }
@@ -441,7 +441,7 @@ void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb)
                                    new_e->flags,
                                    last_occlusion,
                                    last_transparency,
-                                   new_e->v2_obindex);
+                                   new_e->v2->index);
       }
       ba = MOD_lineart_get_bounding_area(rb, new_vt->fbcoord[0], new_vt->fbcoord[1]);
     }
@@ -617,9 +617,14 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
 
   rb->chains.last = rb->chains.first = NULL;
 
+  int loop_id = 0;
   while ((ec = BLI_pophead(&swap)) != NULL) {
     ec->next = ec->prev = NULL;
     BLI_addtail(&rb->chains, ec);
+
+    ec->loop_id = loop_id;
+    loop_id++;
+
     LineartEdgeChainItem *first_eci = (LineartEdgeChainItem *)ec->chain.first;
     int fixed_occ = first_eci->occlusion;
     unsigned char fixed_mask = first_eci->material_mask_bits;
@@ -651,6 +656,7 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb)
         new_ec = lineart_chain_create(rb);
         new_ec->chain.first = eci;
         new_ec->chain.last = ec->chain.last;
+        new_ec->loop_id = loop_id;
         ec->chain.last = eci->prev;
         ((LineartEdgeChainItem *)ec->chain.last)->next = 0;
         eci->prev = 0;
@@ -743,6 +749,7 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
                                                                 int occlusion,
                                                                 unsigned char material_mask_bits,
                                                                 unsigned char isec_mask,
+                                                                int loop_id,
                                                                 float dist,
                                                                 float *result_new_len,
                                                                 LineartBoundingArea *caller_ba)
@@ -791,7 +798,11 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
 
     float new_len = rb->use_geometry_space_chain ? len_v3v3(cre->eci->gpos, eci->gpos) :
                                                    len_v2v2(cre->eci->pos, eci->pos);
-    if (new_len < dist) {
+    /* Even if the vertex is not from the same contour loop, we try to chain it still if the
+     * distance is small enough. This way we can better chain smaller loops and smooth them out
+     * later. */
+    if (((cre->ec->loop_id == loop_id) && (new_len < dist)) ||
+        ((cre->ec->loop_id != loop_id) && (new_len < dist / 10))) {
       closest_cre = cre;
       dist = new_len;
       if (result_new_len) {
@@ -815,6 +826,7 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartRenderBuf
                                                        occlusion, \
                                                        material_mask_bits, \
                                                        isec_mask, \
+                                                       loop_id, \
                                                        dist, \
                                                        &adjacent_new_len, \
                                                        ba); \
@@ -844,7 +856,7 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
   LineartChainRegisterEntry *closest_cre_l, *closest_cre_r, *closest_cre;
   float dist = rb->chaining_image_threshold;
   float dist_l, dist_r;
-  int occlusion, reverse_main;
+  int occlusion, reverse_main, loop_id;
   unsigned char material_mask_bits, isec_mask;
   ListBase swap = {0};
 
@@ -863,6 +875,7 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
       continue;
     }
     BLI_addtail(&rb->chains, ec);
+    loop_id = ec->loop_id;
 
     if (ec->type == LRT_EDGE_FLAG_LOOSE && (!rb->use_loose_edge_chain)) {
       continue;
@@ -876,10 +889,28 @@ void MOD_lineart_chain_connect(LineartRenderBuffer *rb)
     eci_r = ec->chain.last;
     while ((ba_l = lineart_bounding_area_get_end_point(rb, eci_l)) &&
            (ba_r = lineart_bounding_area_get_end_point(rb, eci_r))) {
-      closest_cre_l = lineart_chain_get_closest_cre(
-          rb, ba_l, ec, eci_l, occlusion, material_mask_bits, isec_mask, dist, &dist_l, NULL);
-      closest_cre_r = lineart_chain_get_closest_cre(
-          rb, ba_r, ec, eci_r, occlusion, material_mask_bits, isec_mask, dist, &dist_r, NULL);
+      closest_cre_l = lineart_chain_get_closest_cre(rb,
+                                                    ba_l,
+                                                    ec,
+                                                    eci_l,
+                                                    occlusion,
+                                                    material_mask_bits,
+                                                    isec_mask,
+                                                    loop_id,
+                                                    dist,
+                                                    &dist_l,
+                                                    NULL);
+      closest_cre_r = lineart_chain_get_closest_cre(rb,
+                                                    ba_r,
+                                                    ec,
+                                                    eci_r,
+                                                    occlusion,
+                                                    material_mask_bits,
+                                                    isec_mask,
+                                                    loop_id,
+                                                    dist,
+                                                    &dist_r,
+                                                    NULL);
       if (closest_cre_l && closest_cre_r) {
         if (dist_l < dist_r) {
           closest_cre = closest_cre_l;
@@ -971,27 +1002,67 @@ void MOD_lineart_chain_clear_picked_flag(LineartCache *lc)
 void MOD_lineart_smooth_chains(LineartRenderBuffer *rb, float tolerance)
 {
   LISTBASE_FOREACH (LineartEdgeChain *, ec, &rb->chains) {
-    LineartEdgeChainItem *next_eci;
-    for (LineartEdgeChainItem *eci = ec->chain.first; eci; eci = next_eci) {
-      next_eci = eci->next;
-      LineartEdgeChainItem *eci2, *eci3, *eci4;
+    /* Go through the chain two times, once from each direction. */
+    for (int times = 0; times < 2; times++) {
+      for (LineartEdgeChainItem *eci = ec->chain.first, *next_eci = eci->next; eci;
+           eci = next_eci) {
+        LineartEdgeChainItem *eci2, *eci3, *eci4;
 
-      /* Not enough point to do simplify. */
-      if ((!(eci2 = eci->next)) || (!(eci3 = eci2->next))) {
-        continue;
-      }
-
-      /* No need to care for different line types/occlusion and so on, because at this stage they
-       * are all the same within a chain. */
-
-      /* If p3 is within the p1-p2 segment of a width of "tolerance". */
-      if (dist_to_line_segment_v2(eci3->pos, eci->pos, eci2->pos) < tolerance) {
-        /* And if p4 is on the extension of p1-p2 , we remove p3. */
-        if ((eci4 = eci3->next) && (dist_to_line_v2(eci4->pos, eci->pos, eci2->pos) < tolerance)) {
-          BLI_remlink(&ec->chain, eci3);
-          next_eci = eci;
+        if ((!(eci2 = eci->next)) || (!(eci3 = eci2->next))) {
+          /* Not enough points to simplify. */
+          next_eci = eci->next;
+          continue;
         }
+        /* No need to care for different line types/occlusion and so on, because at this stage they
+         * are all the same within a chain.
+         *
+         * We need to simplify a chain from this:
+         * 1-----------2
+         *        3-----------4
+         * to this:
+         * 1-----------2--_
+         *                 `--4 */
+
+        /* If p3 is within the p1-p2 segment of a width of "tolerance", in other words, p3 is
+         * approximately on the segment of p1-p2. */
+        if (dist_to_line_segment_v2(eci3->pos, eci->pos, eci2->pos) < tolerance) {
+          float vec2[2], vec3[2], v2n[2], ratio, len2;
+          sub_v2_v2v2(vec2, eci2->pos, eci->pos);
+          sub_v2_v2v2(vec3, eci3->pos, eci->pos);
+          normalize_v2_v2(v2n, vec2);
+          ratio = dot_v2v2(v2n, vec3);
+          len2 = len_v2(vec2);
+          /* Because this smoothing applies on geometries of different scales in the same scene,
+           * some small scale features (e.g. the "tails" on the inner ring of a torus geometry)
+           * could be completely erased if the tolerance value is set for accommodating the entire
+           * scene. Those situations typically result in (ratio << 0), looks like this:
+           *                         1---2
+           * 3-------------------------------4
+           * (this sort of long zigzag obviously are "features" that can't be erased)
+           * setting a ratio of -10 turned out to be a reasonable threshold in tests. */
+          if (ratio < len2 && ratio > -len2 * 10) {
+            /* We only remove p3 if p4 is on the extension of p1->p2. */
+            if ((eci4 = eci3->next) &&
+                (dist_to_line_v2(eci4->pos, eci->pos, eci2->pos) < tolerance)) {
+              BLI_remlink(&ec->chain, eci3);
+              next_eci = eci;
+              continue;
+            }
+            if (!eci4) {
+              /* See if the last segment's direction is reversed, if so remove that.
+               * Basically we don't need to preserve p3 if the entire chain looked like this:
+               * ...----1----3===2 */
+              if (len_v2(vec2) > len_v2(vec3)) {
+                BLI_remlink(&ec->chain, eci3);
+              }
+              next_eci = NULL;
+              continue;
+            }
+          }
+        }
+        next_eci = eci->next;
       }
+      BLI_listbase_reverse(&ec->chain);
     }
   }
 }
@@ -1152,6 +1223,8 @@ void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshol
         new_ec->object_ref = ec->object_ref;
         new_ec->type = ec->type;
         new_ec->level = ec->level;
+        new_ec->loop_id = ec->loop_id;
+        new_ec->intersection_mask = ec->intersection_mask;
         new_ec->material_mask_bits = ec->material_mask_bits;
         ec = new_ec;
       }

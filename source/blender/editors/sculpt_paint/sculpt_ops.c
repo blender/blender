@@ -41,6 +41,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_brush.h"
+#include "BKE_bvhutils.h"
 #include "BKE_ccg.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -454,20 +455,22 @@ static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
   if (MPropCol_layer_n == -1) {
     return OPERATOR_CANCELLED;
   }
-  MPropCol *vertcols = CustomData_get_layer_n(&mesh->vdata, CD_PROP_COLOR, MPropCol_layer_n);
+  const MPropCol *vertcols = CustomData_get_layer_n(&mesh->vdata, CD_PROP_COLOR, MPropCol_layer_n);
 
-  MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
-  MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
+  const MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
+  const MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
 
   for (int i = 0; i < mesh->totpoly; i++) {
-    MPoly *c_poly = &polys[i];
+    const MPoly *c_poly = &polys[i];
     for (int j = 0; j < c_poly->totloop; j++) {
       int loop_index = c_poly->loopstart + j;
-      MLoop *c_loop = &loops[c_poly->loopstart + j];
-      loopcols[loop_index].r = (char)(vertcols[c_loop->v].color[0] * 255);
-      loopcols[loop_index].g = (char)(vertcols[c_loop->v].color[1] * 255);
-      loopcols[loop_index].b = (char)(vertcols[c_loop->v].color[2] * 255);
-      loopcols[loop_index].a = (char)(vertcols[c_loop->v].color[3] * 255);
+      const MLoop *c_loop = &loops[c_poly->loopstart + j];
+      float srgb_color[4];
+      linearrgb_to_srgb_v4(srgb_color, vertcols[c_loop->v].color);
+      loopcols[loop_index].r = (char)(srgb_color[0] * 255);
+      loopcols[loop_index].g = (char)(srgb_color[1] * 255);
+      loopcols[loop_index].b = (char)(srgb_color[2] * 255);
+      loopcols[loop_index].a = (char)(srgb_color[3] * 255);
     }
   }
 
@@ -530,7 +533,8 @@ static int loop_to_vertex_colors_exec(bContext *C, wmOperator *UNUSED(op))
   if (mloopcol_layer_n == -1) {
     return OPERATOR_CANCELLED;
   }
-  MLoopCol *loopcols = CustomData_get_layer_n(&mesh->ldata, CD_PROP_BYTE_COLOR, mloopcol_layer_n);
+  const MLoopCol *loopcols = CustomData_get_layer_n(
+      &mesh->ldata, CD_PROP_BYTE_COLOR, mloopcol_layer_n);
 
   const int MPropCol_layer_n = CustomData_get_active_layer(&mesh->vdata, CD_PROP_COLOR);
   if (MPropCol_layer_n == -1) {
@@ -538,14 +542,14 @@ static int loop_to_vertex_colors_exec(bContext *C, wmOperator *UNUSED(op))
   }
   MPropCol *vertcols = CustomData_get_layer_n(&mesh->vdata, CD_PROP_COLOR, MPropCol_layer_n);
 
-  MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
-  MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
+  const MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
+  const MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
 
   for (int i = 0; i < mesh->totpoly; i++) {
-    MPoly *c_poly = &polys[i];
+    const MPoly *c_poly = &polys[i];
     for (int j = 0; j < c_poly->totloop; j++) {
       int loop_index = c_poly->loopstart + j;
-      MLoop *c_loop = &loops[c_poly->loopstart + j];
+      const MLoop *c_loop = &loops[c_poly->loopstart + j];
       vertcols[c_loop->v].color[0] = (loopcols[loop_index].r / 255.0f);
       vertcols[c_loop->v].color[1] = (loopcols[loop_index].g / 255.0f);
       vertcols[c_loop->v].color[2] = (loopcols[loop_index].b / 255.0f);
@@ -659,7 +663,7 @@ static bool sculpt_sample_color_update_from_base(bContext *C,
   free_bvhtree_from_mesh(&bvh);
 
   copy_v4_v4(sccd->sampled_color, vcol[nearest.index].color);
-  IMB_colormanagement_scene_linear_to_srgb_v3(sccd->sampled_color);
+  IMB_colormanagement_scene_linear_to_srgb_v3(sccd->sampled_color, sccd->sampled_color);
   return true;
 }
 
@@ -698,7 +702,7 @@ static int sculpt_sample_color_modal(bContext *C, wmOperator *op, const wmEvent 
   if (over_mesh) {
     SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
     SCULPT_vertex_color_get(ss, active_vertex, sccd->sampled_color);
-    IMB_colormanagement_scene_linear_to_srgb_v3(sccd->sampled_color);
+    IMB_colormanagement_scene_linear_to_srgb_v3(sccd->sampled_color, sccd->sampled_color);
   }
   else {
     sculpt_sample_color_update_from_base(C, event, sccd);
@@ -731,8 +735,7 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color);
 
   float color_srgb[3];
-  copy_v3_v3(color_srgb, active_vertex_color);
-  IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb);
+  IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb, active_vertex_color);
   BKE_brush_color_set(scene, brush, color_srgb, ob->mode == OB_MODE_SCULPT);
 
   SampleColorCustomData *sccd = MEM_callocN(sizeof(SampleColorCustomData),

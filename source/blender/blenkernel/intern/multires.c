@@ -1475,7 +1475,7 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   Object *ob;
   Mesh *me;
-  MDisps *mdisps;
+  const MDisps *mdisps;
   MultiresModifierData *mmd;
 
   ob = ccgdm->multires.ob;
@@ -1857,7 +1857,7 @@ static void multires_apply_smat(struct Depsgraph *UNUSED(depsgraph),
   }
 }
 
-int multires_mdisp_corners(MDisps *s)
+int multires_mdisp_corners(const MDisps *s)
 {
   int lvl = 13;
 

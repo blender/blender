@@ -325,7 +325,6 @@ void OutputStereoOperation::deinit_execution()
 
         /* do colormanagement in the individual views, so it doesn't need to do in the stereo */
         IMB_colormanagement_imbuf_for_write(ibuf[i], true, false, &format_);
-        IMB_prepare_write_ImBuf(IMB_isfloat(ibuf[i]), ibuf[i]);
       }
 
       /* create stereo buffer */

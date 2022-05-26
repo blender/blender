@@ -53,7 +53,7 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
   }
 
   if (usd_export_context_.export_params.relative_paths) {
-    if (auto relative_vdb_file_path = construct_vdb_relative_file_path(vdb_file_path.value())) {
+    if (auto relative_vdb_file_path = construct_vdb_relative_file_path(*vdb_file_path)) {
       vdb_file_path = relative_vdb_file_path;
     }
     else {
@@ -75,7 +75,7 @@ void USDVolumeWriter::do_write(HierarchyContext &context)
     const pxr::SdfPath grid_path = volume_path.AppendPath(pxr::SdfPath(grid_id));
     pxr::UsdVolOpenVDBAsset usd_grid = pxr::UsdVolOpenVDBAsset::Define(stage, grid_path);
     usd_grid.GetFieldNameAttr().Set(pxr::TfToken(grid_name), timecode);
-    usd_grid.GetFilePathAttr().Set(pxr::SdfAssetPath(vdb_file_path.value()), timecode);
+    usd_grid.GetFilePathAttr().Set(pxr::SdfAssetPath(*vdb_file_path), timecode);
     usd_volume.CreateFieldRelationship(pxr::TfToken(grid_id), grid_path);
   }
 
@@ -107,7 +107,7 @@ std::optional<std::string> USDVolumeWriter::resolve_vdb_file(const Volume *volum
 
   if (!vdb_file_path.has_value()) {
     vdb_file_path = BKE_volume_grids_frame_filepath(volume);
-    if (vdb_file_path.value().empty()) {
+    if (vdb_file_path->empty()) {
       return std::nullopt;
     }
   }

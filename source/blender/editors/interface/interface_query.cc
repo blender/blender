@@ -58,12 +58,23 @@ bool ui_but_is_toggle(const uiBut *but)
               UI_BTYPE_TREEROW);
 }
 
-bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
+bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool for_tooltip)
 {
   /* NOTE: #UI_BTYPE_LABEL is included for highlights, this allows drags. */
-  if ((but->type == UI_BTYPE_LABEL) && but->dragpoin == nullptr && but->tip_func == nullptr) {
-    return false;
+  if (but->type == UI_BTYPE_LABEL) {
+    if (for_tooltip) {
+      /* It's important labels are considered interactive for the purpose of showing tooltip. */
+      if (but->dragpoin == nullptr && but->tip_func == nullptr) {
+        return false;
+      }
+    }
+    else {
+      if (but->dragpoin == nullptr) {
+        return false;
+      }
+    }
   }
+
   if (ELEM(but->type, UI_BTYPE_ROUNDBOX, UI_BTYPE_SEPR, UI_BTYPE_SEPR_LINE, UI_BTYPE_LISTBOX)) {
     return false;
   }
@@ -82,6 +93,11 @@ bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
   }
 
   return true;
+}
+
+bool ui_but_is_interactive(const uiBut *but, const bool labeledit)
+{
+  return ui_but_is_interactive_ex(but, labeledit, false);
 }
 
 bool UI_but_is_utf8(const uiBut *but)
@@ -266,6 +282,7 @@ static uiBut *ui_but_find(const ARegion *region,
 uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
                                  const int xy[2],
                                  const bool labeledit,
+                                 const bool for_tooltip,
                                  const uiButFindPollFn find_poll,
                                  const void *find_custom_data)
 {
@@ -282,7 +299,7 @@ uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
       if (find_poll && find_poll(but, find_custom_data) == false) {
         continue;
       }
-      if (ui_but_is_interactive(but, labeledit)) {
+      if (ui_but_is_interactive_ex(but, labeledit, for_tooltip)) {
         if (but->pie_dir != UI_RADIAL_NONE) {
           if (ui_but_isect_pie_seg(block, but)) {
             butover = but;
@@ -310,7 +327,8 @@ uiBut *ui_but_find_mouse_over_ex(const ARegion *region,
 
 uiBut *ui_but_find_mouse_over(const ARegion *region, const wmEvent *event)
 {
-  return ui_but_find_mouse_over_ex(region, event->xy, event->modifier & KM_CTRL, nullptr, nullptr);
+  return ui_but_find_mouse_over_ex(
+      region, event->xy, event->modifier & KM_CTRL, false, nullptr, nullptr);
 }
 
 uiBut *ui_but_find_rect_over(const struct ARegion *region, const rcti *rect_px)
@@ -414,7 +432,7 @@ static bool ui_but_is_listrow(const uiBut *but, const void *UNUSED(customdata))
 
 uiBut *ui_list_row_find_mouse_over(const ARegion *region, const int xy[2])
 {
-  return ui_but_find_mouse_over_ex(region, xy, false, ui_but_is_listrow, nullptr);
+  return ui_but_find_mouse_over_ex(region, xy, false, false, ui_but_is_listrow, nullptr);
 }
 
 struct ListRowFindIndexData {
@@ -446,7 +464,7 @@ static bool ui_but_is_treerow(const uiBut *but, const void *UNUSED(customdata))
 
 uiBut *ui_tree_row_find_mouse_over(const ARegion *region, const int xy[2])
 {
-  return ui_but_find_mouse_over_ex(region, xy, false, ui_but_is_treerow, nullptr);
+  return ui_but_find_mouse_over_ex(region, xy, false, false, ui_but_is_treerow, nullptr);
 }
 
 static bool ui_but_is_active_treerow(const uiBut *but, const void *customdata)
@@ -699,9 +717,7 @@ uiBut *ui_region_find_active_but(ARegion *region)
   return nullptr;
 }
 
-uiBut *ui_region_find_first_but_test_flag(ARegion *region,
-                                          uint64_t flag_include,
-                                          uint64_t flag_exclude)
+uiBut *ui_region_find_first_but_test_flag(ARegion *region, int flag_include, int flag_exclude)
 {
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {

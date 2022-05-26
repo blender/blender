@@ -114,7 +114,9 @@ void EEVEE_motion_blur_data_free(EEVEE_MotionBlurData *mb)
   }
 }
 
-EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *mb, Object *ob)
+EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *mb,
+                                                          Object *ob,
+                                                          bool is_psys)
 {
   if (mb->object == NULL) {
     return NULL;
@@ -123,14 +125,16 @@ EEVEE_ObjectMotionData *EEVEE_motion_blur_object_data_get(EEVEE_MotionBlurData *
   EEVEE_ObjectKey key, *key_p;
   /* Assumes that all instances have the same object pointer. This is currently the case because
    * instance objects are temporary objects on the stack. */
-  key.ob = ob;
+  /* WORKAROUND: Duplicate object key for particle system (hairs) to be able to store dupli offset
+   * matrix along with the emitter obmat. (see T97380) */
+  key.ob = (void *)((char *)ob + is_psys);
   DupliObject *dup = DRW_object_get_dupli(ob);
   if (dup) {
     key.parent = DRW_object_get_dupli_parent(ob);
     memcpy(key.id, dup->persistent_id, sizeof(key.id));
   }
   else {
-    key.parent = key.ob;
+    key.parent = ob;
     memset(key.id, 0, sizeof(key.id));
   }
 

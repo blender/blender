@@ -372,7 +372,7 @@ class FieldEvaluator : NonMovable, NonCopyable {
   /**
    * \param field: Field to add to the evaluator.
    * \param dst: Mutable span that the evaluated result for this field is be written into.
-   * \note: When the output may only be used as a single value, the version of this function with
+   * \note When the output may only be used as a single value, the version of this function with
    * a virtual array result array should be used.
    */
   int add_with_destination(GField field, GMutableSpan dst);
@@ -380,7 +380,7 @@ class FieldEvaluator : NonMovable, NonCopyable {
   /**
    * \param field: Field to add to the evaluator.
    * \param dst: Mutable span that the evaluated result for this field is be written into.
-   * \note: When the output may only be used as a single value, the version of this function with
+   * \note When the output may only be used as a single value, the version of this function with
    * a virtual array result array should be used.
    */
   template<typename T> int add_with_destination(Field<T> field, MutableSpan<T> dst)

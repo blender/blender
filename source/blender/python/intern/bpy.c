@@ -400,6 +400,62 @@ static PyObject *bpy_unescape_identifier(PyObject *UNUSED(self), PyObject *value
   return value_unescape;
 }
 
+/**
+ * \note only exposed for generating documentation, see: `doc/python_api/sphinx_doc_gen.py`.
+ */
+PyDoc_STRVAR(
+    bpy_context_members_doc,
+    ".. function:: context_members()\n"
+    "\n"
+    "   :return: A dict where the key is the context and the value is a tuple of it's members.\n"
+    "   :rtype: dict\n");
+static PyObject *bpy_context_members(PyObject *UNUSED(self))
+{
+  extern const char *buttons_context_dir[];
+  extern const char *clip_context_dir[];
+  extern const char *file_context_dir[];
+  extern const char *image_context_dir[];
+  extern const char *node_context_dir[];
+  extern const char *screen_context_dir[];
+  extern const char *sequencer_context_dir[];
+  extern const char *text_context_dir[];
+  extern const char *view3d_context_dir[];
+
+  struct {
+    const char *name;
+    const char **dir;
+  } context_members_all[] = {
+      {"buttons", buttons_context_dir},
+      {"clip", clip_context_dir},
+      {"file", file_context_dir},
+      {"image", image_context_dir},
+      {"node", node_context_dir},
+      {"screen", screen_context_dir},
+      {"sequencer", sequencer_context_dir},
+      {"text", text_context_dir},
+      {"view3d", view3d_context_dir},
+  };
+
+  PyObject *result = _PyDict_NewPresized(ARRAY_SIZE(context_members_all));
+  for (int context_index = 0; context_index < ARRAY_SIZE(context_members_all); context_index++) {
+    const char *name = context_members_all[context_index].name;
+    const char **dir = context_members_all[context_index].dir;
+    int i;
+    for (i = 0; dir[i]; i++) {
+      /* Pass. */
+    }
+    PyObject *members = PyTuple_New(i);
+    for (i = 0; dir[i]; i++) {
+      PyTuple_SET_ITEM(members, i, PyUnicode_FromString(dir[i]));
+    }
+    PyDict_SetItemString(result, name, members);
+    Py_DECREF(members);
+  }
+  BLI_assert(PyDict_GET_SIZE(result) == ARRAY_SIZE(context_members_all));
+
+  return result;
+}
+
 static PyMethodDef meth_bpy_script_paths = {
     "script_paths",
     (PyCFunction)bpy_script_paths,
@@ -447,6 +503,12 @@ static PyMethodDef meth_bpy_unescape_identifier = {
     (PyCFunction)bpy_unescape_identifier,
     METH_O,
     bpy_unescape_identifier_doc,
+};
+static PyMethodDef meth_bpy_context_members = {
+    "context_members",
+    (PyCFunction)bpy_context_members,
+    METH_NOARGS,
+    bpy_context_members_doc,
 };
 
 static PyObject *bpy_import_test(const char *modname)
@@ -551,6 +613,9 @@ void BPy_init_modules(struct bContext *C)
                      (PyObject *)PyCFunction_New(&meth_bpy_unescape_identifier, NULL));
   PyModule_AddObject(
       mod, meth_bpy_flip_name.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_flip_name, NULL));
+  PyModule_AddObject(mod,
+                     meth_bpy_context_members.ml_name,
+                     (PyObject *)PyCFunction_New(&meth_bpy_context_members, NULL));
 
   /* register funcs (bpy_rna.c) */
   PyModule_AddObject(mod,

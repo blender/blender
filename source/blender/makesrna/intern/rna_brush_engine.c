@@ -579,7 +579,7 @@ static void rna_BrushChannel_enum_items_begin(CollectionPropertyIterator *iter, 
       iter, (void *)item, sizeof(EnumPropertyItem), totitem, false, rna_enum_check_separator);
 }
 
-char *rna_BrushChannel_rnapath(PointerRNA *ptr)
+char *rna_BrushChannel_rnapath(const PointerRNA *ptr)
 {
   BrushChannel *ch = (BrushChannel *)ptr->data;
 

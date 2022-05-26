@@ -118,7 +118,7 @@ void EuclideanResectionAnsarDaniilidis(const Mat2X& x_camera,
  * This is the algorithm described in:
  * "{EP$n$P: An Accurate $O(n)$ Solution to the P$n$P Problem", by V. Lepetit
  * and F. Moreno-Noguer and P. Fua, IJCV 2009. vol. 81, no. 2
- * \note: the non-linear optimization is not implemented here.
+ * \note the non-linear optimization is not implemented here.
  */
 bool EuclideanResectionEPnP(const Mat2X& x_camera,
                             const Mat3X& X_world,

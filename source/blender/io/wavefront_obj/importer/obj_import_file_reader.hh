@@ -13,7 +13,7 @@
 
 namespace blender::io::obj {
 
-/* Note: the OBJ parser implementation is planned to get fairly large changes "soon",
+/* NOTE: the OBJ parser implementation is planned to get fairly large changes "soon",
  * so don't read too much into current implementation... */
 class OBJParser {
  private:

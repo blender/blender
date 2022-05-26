@@ -103,6 +103,11 @@ static bool wm_operator_check_locked_interface(bContext *C, wmOperatorType *ot);
 static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win);
 static void wm_operator_free_for_fileselect(wmOperator *file_operator);
 
+static void wm_event_state_update_and_click_set_ex(wmEvent *event,
+                                                   wmEvent *event_state,
+                                                   const bool is_keyboard,
+                                                   const bool check_double_click);
+
 /* -------------------------------------------------------------------- */
 /** \name Event Management
  * \{ */
@@ -148,17 +153,7 @@ wmEvent *WM_event_add_simulate(wmWindow *win, const wmEvent *event_to_add)
     copy_v2_v2_int(event->prev_xy, win->eventstate->xy);
   }
   else if (ISKEYBOARD_OR_BUTTON(event->type)) {
-    win->eventstate->prev_val = event->prev_val = win->eventstate->val;
-    win->eventstate->prev_type = event->prev_type = win->eventstate->type;
-
-    win->eventstate->val = event->val;
-    win->eventstate->type = event->type;
-
-    if (event->val == KM_PRESS) {
-      if ((event->flag & WM_EVENT_IS_REPEAT) == 0) {
-        copy_v2_v2_int(win->eventstate->prev_press_xy, event->xy);
-      }
-    }
+    wm_event_state_update_and_click_set_ex(event, win->eventstate, ISKEYBOARD(event->type), false);
   }
   return event;
 }
@@ -1965,12 +1960,9 @@ static void wm_handler_op_context_get_if_valid(bContext *C,
         region = NULL;
       }
 
-      if (region == NULL) {
-        LISTBASE_FOREACH (ARegion *, region_iter, &area->regionbase) {
-          region = region_iter;
-          if (region == handler->context.region) {
-            break;
-          }
+      if ((region == NULL) && handler->context.region) {
+        if (BLI_findindex(&area->regionbase, handler->context.region) != -1) {
+          region = handler->context.region;
         }
       }
 
@@ -5064,10 +5056,14 @@ static wmEvent *wm_event_add_trackpad(wmWindow *win, const wmEvent *event, int d
 
 /**
  * Update the event-state for any kind of event that supports #KM_PRESS / #KM_RELEASE.
+ *
+ * \param check_double_click: Optionally skip checking for double-click events.
+ * Needed for event simulation where the time of click events is not so predictable.
  */
-static void wm_event_state_update_and_click_set(const GHOST_TEventType type,
-                                                wmEvent *event,
-                                                wmEvent *event_state)
+static void wm_event_state_update_and_click_set_ex(wmEvent *event,
+                                                   wmEvent *event_state,
+                                                   const bool is_keyboard,
+                                                   const bool check_double_click)
 {
   BLI_assert(ISKEYBOARD_OR_BUTTON(event->type));
   BLI_assert(ELEM(event->val, KM_PRESS, KM_RELEASE));
@@ -5083,7 +5079,7 @@ static void wm_event_state_update_and_click_set(const GHOST_TEventType type,
   /* It's important only to write into the `event_state` modifier for keyboard
    * events because emulate MMB clears one of the modifiers in `event->modifier`,
    * making the second press not behave as if the modifier is pressed, see T96279. */
-  if (ELEM(type, GHOST_kEventKeyDown, GHOST_kEventKeyUp)) {
+  if (is_keyboard) {
     event_state->modifier = event->modifier;
   }
   event_state->flag = (event->flag & event_state_flag_mask);
@@ -5091,7 +5087,7 @@ static void wm_event_state_update_and_click_set(const GHOST_TEventType type,
    * since the `event_state` and the `event` are not kept in sync. */
 
   /* Double click test. */
-  if (wm_event_is_double_click(event)) {
+  if (check_double_click && wm_event_is_double_click(event)) {
     CLOG_INFO(WM_LOG_HANDLERS, 1, "DBL_CLICK: detected");
     event->val = KM_DBL_CLICK;
   }
@@ -5100,6 +5096,15 @@ static void wm_event_state_update_and_click_set(const GHOST_TEventType type,
       wm_event_prev_click_set(event_state);
     }
   }
+}
+
+static void wm_event_state_update_and_click_set(wmEvent *event,
+                                                wmEvent *event_state,
+                                                const GHOST_TEventType type)
+{
+  const bool is_keyboard = ELEM(type, GHOST_kEventKeyDown, GHOST_kEventKeyUp);
+  const bool check_double_click = true;
+  wm_event_state_update_and_click_set_ex(event, event_state, is_keyboard, check_double_click);
 }
 
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata)
@@ -5261,7 +5266,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       wm_tablet_data_from_ghost(&bd->tablet, &event.tablet);
 
       wm_eventemulation(&event, false);
-      wm_event_state_update_and_click_set(type, &event, event_state);
+      wm_event_state_update_and_click_set(&event, event_state, type);
 
       /* Add to other window if event is there (not to both!). */
       wmWindow *win_other = wm_event_cursor_other_windows(wm, win, &event);
@@ -5385,7 +5390,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       }
 
       /* It's important `event.modifier` has been initialized first. */
-      wm_event_state_update_and_click_set(type, &event, event_state);
+      wm_event_state_update_and_click_set(&event, event_state, type);
 
       /* If test_break set, it catches this. Do not set with modifier presses.
        * Exclude modifiers because MS-Windows uses these to bring up the task manager.
@@ -5459,7 +5464,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
       event.custom = 0;
       event.customdata = NULL;
 
-      wm_event_state_update_and_click_set(type, &event, event_state);
+      wm_event_state_update_and_click_set(&event, event_state, type);
 
       wm_event_add(win, &event);
 
@@ -5908,7 +5913,7 @@ bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *la
     bool show_text = true;
 
     {
-      /* Warning: O(n^2). */
+      /* WARNING: O(n^2). */
       wmKeyMapItem *kmi = NULL;
       for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
         if (kmi->propvalue == items[i].value) {

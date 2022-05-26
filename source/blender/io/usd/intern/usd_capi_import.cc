@@ -119,7 +119,7 @@ struct ImportJobData {
   ViewLayer *view_layer;
   wmWindowManager *wm;
 
-  char filename[1024];
+  char filepath[1024];
   USDImportParams params;
   ImportSettings settings;
 
@@ -150,7 +150,7 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
   if (data->params.create_collection) {
     char display_name[1024];
     BLI_path_to_display_name(
-        display_name, strlen(data->filename), BLI_path_basename(data->filename));
+        display_name, strlen(data->filepath), BLI_path_basename(data->filepath));
     Collection *import_collection = BKE_collection_add(
         data->bmain, data->scene->master_collection, display_name);
     id_fake_user_set(&import_collection->id);
@@ -164,10 +164,10 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
         data->view_layer, import_collection);
   }
 
-  BLI_path_abs(data->filename, BKE_main_blendfile_path_from_global());
+  BLI_path_abs(data->filepath, BKE_main_blendfile_path_from_global());
 
   CacheFile *cache_file = static_cast<CacheFile *>(
-      BKE_cachefile_add(data->bmain, BLI_path_basename(data->filename)));
+      BKE_cachefile_add(data->bmain, BLI_path_basename(data->filepath)));
 
   /* Decrement the ID ref-count because it is going to be incremented for each
    * modifier and constraint that it will be attached to, so since currently
@@ -176,7 +176,7 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
 
   cache_file->is_sequence = data->params.is_sequence;
   cache_file->scale = data->params.scale;
-  STRNCPY(cache_file->filepath, data->filename);
+  STRNCPY(cache_file->filepath, data->filepath);
 
   data->settings.cache_file = cache_file;
 
@@ -191,10 +191,10 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
   *data->do_update = true;
   *data->progress = 0.1f;
 
-  pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(data->filename);
+  pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(data->filepath);
 
   if (!stage) {
-    WM_reportf(RPT_ERROR, "USD Import: unable to open stage to read %s", data->filename);
+    WM_reportf(RPT_ERROR, "USD Import: unable to open stage to read %s", data->filepath);
     data->import_ok = false;
     return;
   }
@@ -356,7 +356,7 @@ bool USD_import(struct bContext *C,
   job->view_layer = CTX_data_view_layer(C);
   job->wm = CTX_wm_manager(C);
   job->import_ok = false;
-  BLI_strncpy(job->filename, filepath, 1024);
+  BLI_strncpy(job->filepath, filepath, 1024);
 
   job->settings.scale = params->scale;
   job->settings.sequence_offset = params->offset;
@@ -499,13 +499,13 @@ void USD_CacheReader_free(CacheReader *reader)
 }
 
 CacheArchiveHandle *USD_create_handle(struct Main * /*bmain*/,
-                                      const char *filename,
+                                      const char *filepath,
                                       ListBase *object_paths)
 {
   /* Must call this so that USD file format plugins are loaded. */
   ensure_usd_plugin_path_registered();
 
-  pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(filename);
+  pxr::UsdStageRefPtr stage = pxr::UsdStage::Open(filepath);
 
   if (!stage) {
     return nullptr;

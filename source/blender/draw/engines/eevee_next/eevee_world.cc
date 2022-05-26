@@ -64,19 +64,17 @@ void World::sync()
   // }
 
   ::World *bl_world = inst_.scene->world;
-
   if (bl_world == nullptr) {
     // bl_world = BKE_world_default();
     return;
   }
-  else {
-    WorldHandle &wo_handle = inst_.sync.sync_world(bl_world);
 
-    if (wo_handle.recalc != 0) {
-      // inst_.lightprobes.set_world_dirty();
-    }
-    wo_handle.reset_recalc_flag();
+  WorldHandle &wo_handle = inst_.sync.sync_world(bl_world);
+
+  if (wo_handle.recalc != 0) {
+    // inst_.lightprobes.set_world_dirty();
   }
+  wo_handle.reset_recalc_flag();
 
   /* TODO(fclem) This should be detected to scene level. */
   ::World *orig_world = (::World *)DEG_get_original_id(&bl_world->id);

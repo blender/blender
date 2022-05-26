@@ -263,7 +263,6 @@ void id_us_ensure_real(ID *id)
                    "ID user count error: %s (from '%s')",
                    id->name,
                    id->lib ? id->lib->filepath_abs : "[Main]");
-        BLI_assert(0);
       }
       id->us = limit + 1;
       id->tag |= LIB_TAG_EXTRAUSER_SET;
@@ -321,7 +320,6 @@ void id_us_min(ID *id)
                    id->lib ? id->lib->filepath_abs : "[Main]",
                    id->us,
                    limit);
-        BLI_assert(0);
       }
       id->us = limit;
     }

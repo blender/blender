@@ -1270,8 +1270,10 @@ typedef struct UnifiedPaintSettings {
   float pixel_radius;
   float initial_pixel_radius;
 
-  char _pad[3];
+  char _pad[7];
   char hard_edge_mode;
+
+  float start_pixel_radius;
 
   /* drawing pressure */
   float size_pressure_value;

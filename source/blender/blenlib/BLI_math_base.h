@@ -204,13 +204,17 @@ MINLINE int integer_digits_i(int i);
 /* These don't really fit anywhere but were being copied about a lot. */
 
 MINLINE int is_power_of_2_i(int n);
-MINLINE int power_of_2_max_i(int n);
-MINLINE int power_of_2_min_i(int n);
 
-MINLINE unsigned int power_of_2_max_u(unsigned int x);
-MINLINE unsigned int power_of_2_min_u(unsigned int x);
 MINLINE unsigned int log2_floor_u(unsigned int x);
 MINLINE unsigned int log2_ceil_u(unsigned int x);
+
+/**
+ * Returns next (or previous) power of 2 or the input number if it is already a power of 2.
+ */
+MINLINE int power_of_2_max_i(int n);
+MINLINE int power_of_2_min_i(int n);
+MINLINE unsigned int power_of_2_max_u(unsigned int x);
+MINLINE unsigned int power_of_2_min_u(unsigned int x);
 
 /**
  * Integer division that rounds 0.5 up, particularly useful for color blending

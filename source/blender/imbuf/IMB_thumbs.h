@@ -50,7 +50,7 @@ typedef enum ThumbSource {
 /**
  * Create thumbnail for file and returns new imbuf for thumbnail.
  */
-struct ImBuf *IMB_thumb_create(const char *path,
+struct ImBuf *IMB_thumb_create(const char *filepath,
                                ThumbSize size,
                                ThumbSource source,
                                struct ImBuf *img);
@@ -58,17 +58,17 @@ struct ImBuf *IMB_thumb_create(const char *path,
 /**
  * Read thumbnail for file and returns new imbuf for thumbnail.
  */
-struct ImBuf *IMB_thumb_read(const char *path, ThumbSize size);
+struct ImBuf *IMB_thumb_read(const char *filepath, ThumbSize size);
 
 /**
  * Delete all thumbs for the file.
  */
-void IMB_thumb_delete(const char *path, ThumbSize size);
+void IMB_thumb_delete(const char *filepath, ThumbSize size);
 
 /**
  * Create the thumb if necessary and manage failed and old thumbs.
  */
-struct ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source);
+struct ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source);
 
 /**
  * Create the necessary directories to store the thumbnails.
@@ -85,7 +85,7 @@ struct ImBuf *IMB_thumb_load_blend(const char *blen_path,
 /**
  * Special function for previewing fonts.
  */
-struct ImBuf *IMB_thumb_load_font(const char *filename, unsigned int x, unsigned int y);
+struct ImBuf *IMB_thumb_load_font(const char *filepath, unsigned int x, unsigned int y);
 bool IMB_thumb_load_font_get_hash(char *r_hash);
 void IMB_thumb_clear_translations(void);
 void IMB_thumb_ensure_translations(void);

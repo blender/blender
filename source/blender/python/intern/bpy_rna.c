@@ -8886,7 +8886,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
     return NULL;
   }
 
-  /* Warning: gets parent classes srna, only for the register function. */
+  /* WARNING: gets parent classes srna, only for the register function. */
   srna = pyrna_struct_as_srna(py_class, true, "register_class(...):");
   if (srna == NULL) {
     return NULL;

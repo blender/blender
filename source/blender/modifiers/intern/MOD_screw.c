@@ -182,7 +182,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
   const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER) != 0;
 
-  int *origindex;
   int mpoly_index = 0;
   uint step;
   uint i, j;
@@ -375,6 +374,12 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     uv_u_scale = (uv_u_scale / (float)ltmd->iter) * (angle / ((float)M_PI * 2.0f));
   }
 
+  /* The `screw_ofs` cannot change from now on. */
+  const bool do_remove_doubles = (ltmd->flag & MOD_SCREW_MERGE) && (screw_ofs == 0.0f);
+  /* Only calculate normals if `do_remove_doubles` since removing doubles frees the normals. */
+  const bool do_normal_create = (ltmd->flag & MOD_SCREW_NORMAL_CALC) &&
+                                (do_remove_doubles == false);
+
   result = BKE_mesh_new_nomain_from_template(
       mesh, (int)maxVerts, (int)maxEdges, 0, (int)maxPolys * 4, (int)maxPolys);
 
@@ -383,7 +388,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   medge_orig = mesh->medge;
 
   mvert_new = result->mvert;
-  float(*vert_normals_new)[3] = BKE_mesh_vertex_normals_for_write(result);
   mpoly_new = result->mpoly;
   mloop_new = result->mloop;
   medge_new = result->medge;
@@ -392,7 +396,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, (int)maxPolys);
   }
 
-  origindex = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
+  int *origindex = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
 
   CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)totvert);
 
@@ -439,7 +443,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
     /* Tag mvert as not loose. */
     BLI_BITMAP_ENABLE(vert_tag, med_orig->v1);
-    BLI_BITMAP_ENABLE(vert_tag, med_orig->v1);
+    BLI_BITMAP_ENABLE(vert_tag, med_orig->v2);
   }
 
   /* build polygon -> edge map */
@@ -472,7 +476,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     }
   }
 
+  float(*vert_normals_new)[3] = do_normal_create ? BKE_mesh_vertex_normals_for_write(result) :
+                                                   NULL;
+
   if (ltmd->flag & MOD_SCREW_NORMAL_CALC) {
+
     /*
      * Normal Calculation (for face flipping)
      * Sort edge verts for correct face flipping
@@ -766,68 +774,69 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
          *
          * calculate vertex normals that can be propagated on lathing
          * use edge connectivity work this out */
-        if (SV_IS_VALID(vc->v[0])) {
-          if (SV_IS_VALID(vc->v[1])) {
-            /* 2 edges connected. */
-            /* make 2 connecting vert locations relative to the middle vert */
-            sub_v3_v3v3(tmp_vec1, mvert_new[vc->v[0]].co, mvert_new[i].co);
-            sub_v3_v3v3(tmp_vec2, mvert_new[vc->v[1]].co, mvert_new[i].co);
-            /* normalize so both edges have the same influence, no matter their length */
-            normalize_v3(tmp_vec1);
-            normalize_v3(tmp_vec2);
-
-            /* vc_no_tmp1 - this line is the average direction of both connecting edges
-             *
-             * Use the edge order to make the subtraction, flip the normal the right way
-             * edge should be there but check just in case... */
-            if (vc->e[0]->v1 == i) {
-              sub_v3_v3(tmp_vec1, tmp_vec2);
-            }
-            else {
-              sub_v3_v3v3(tmp_vec1, tmp_vec2, tmp_vec1);
-            }
-          }
-          else {
-            /* only 1 edge connected - same as above except
-             * don't need to average edge direction */
-            if (vc->e[0]->v2 == i) {
-              sub_v3_v3v3(tmp_vec1, mvert_new[i].co, mvert_new[vc->v[0]].co);
-            }
-            else {
+        if (do_normal_create) {
+          if (SV_IS_VALID(vc->v[0])) {
+            if (SV_IS_VALID(vc->v[1])) {
+              /* 2 edges connected. */
+              /* make 2 connecting vert locations relative to the middle vert */
               sub_v3_v3v3(tmp_vec1, mvert_new[vc->v[0]].co, mvert_new[i].co);
-            }
-          }
+              sub_v3_v3v3(tmp_vec2, mvert_new[vc->v[1]].co, mvert_new[i].co);
+              /* normalize so both edges have the same influence, no matter their length */
+              normalize_v3(tmp_vec1);
+              normalize_v3(tmp_vec2);
 
-          /* tmp_vec2 - is a line 90d from the pivot to the vec
-           * This is used so the resulting normal points directly away from the middle */
-          cross_v3_v3v3(tmp_vec2, axis_vec, vc->co);
-
-          if (UNLIKELY(is_zero_v3(tmp_vec2))) {
-            /* we're _on_ the axis, so copy it based on our winding */
-            if (vc->e[0]->v2 == i) {
-              negate_v3_v3(vc->no, axis_vec);
+              /* vc_no_tmp1 - this line is the average direction of both connecting edges
+               *
+               * Use the edge order to make the subtraction, flip the normal the right way
+               * edge should be there but check just in case... */
+              if (vc->e[0]->v1 == i) {
+                sub_v3_v3(tmp_vec1, tmp_vec2);
+              }
+              else {
+                sub_v3_v3v3(tmp_vec1, tmp_vec2, tmp_vec1);
+              }
             }
             else {
-              copy_v3_v3(vc->no, axis_vec);
+              /* only 1 edge connected - same as above except
+               * don't need to average edge direction */
+              if (vc->e[0]->v2 == i) {
+                sub_v3_v3v3(tmp_vec1, mvert_new[i].co, mvert_new[vc->v[0]].co);
+              }
+              else {
+                sub_v3_v3v3(tmp_vec1, mvert_new[vc->v[0]].co, mvert_new[i].co);
+              }
+            }
+
+            /* tmp_vec2 - is a line 90d from the pivot to the vec
+             * This is used so the resulting normal points directly away from the middle */
+            cross_v3_v3v3(tmp_vec2, axis_vec, vc->co);
+
+            if (UNLIKELY(is_zero_v3(tmp_vec2))) {
+              /* we're _on_ the axis, so copy it based on our winding */
+              if (vc->e[0]->v2 == i) {
+                negate_v3_v3(vc->no, axis_vec);
+              }
+              else {
+                copy_v3_v3(vc->no, axis_vec);
+              }
+            }
+            else {
+              /* edge average vector and right angle to the pivot make the normal */
+              cross_v3_v3v3(vc->no, tmp_vec1, tmp_vec2);
             }
           }
           else {
-            /* edge average vector and right angle to the pivot make the normal */
-            cross_v3_v3v3(vc->no, tmp_vec1, tmp_vec2);
+            copy_v3_v3(vc->no, vc->co);
           }
-        }
-        else {
-          copy_v3_v3(vc->no, vc->co);
-        }
 
-        /* we won't be looping on this data again so copy normals here */
-        if ((angle < 0.0f) != do_flip) {
-          negate_v3(vc->no);
+          /* we won't be looping on this data again so copy normals here */
+          if ((angle < 0.0f) != do_flip) {
+            negate_v3(vc->no);
+          }
+
+          normalize_v3(vc->no);
+          copy_v3_v3(vert_normals_new[i], vc->no);
         }
-
-        normalize_v3(vc->no);
-        copy_v3_v3(vert_normals_new[i], vc->no);
-
         /* Done with normals */
       }
     }
@@ -846,7 +855,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   for (step = 1; step < step_tot; step++) {
     const uint varray_stride = totvert * step;
     float step_angle;
-    float nor_tx[3];
     float mat[4][4];
     /* Rotation Matrix */
     step_angle = (angle / (float)(step_tot - (!close))) * (float)step;
@@ -872,10 +880,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     for (j = 0; j < totvert; j++, mv_new_base++, mv_new++) {
       /* set normal */
       if (vert_connect) {
-        mul_v3_m3v3(nor_tx, mat3, vert_connect[j].no);
-
-        /* set the normal now its transformed */
-        copy_v3_v3(vert_normals_new[mv_new - mvert_new], nor_tx);
+        if (do_normal_create) {
+          /* Set the normal now its transformed. */
+          mul_v3_m3v3(vert_normals_new[mv_new - mvert_new], mat3, vert_connect[j].no);
+        }
       }
 
       /* set location */
@@ -1118,7 +1126,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     MEM_freeN(vert_loop_map);
   }
 
-  if ((ltmd->flag & MOD_SCREW_MERGE) && (screw_ofs == 0.0f)) {
+  if (do_normal_create) {
+    BKE_mesh_vertex_normals_clear_dirty(result);
+  }
+
+  if (do_remove_doubles) {
     result = mesh_remove_doubles_on_axis(result,
                                          mvert_new,
                                          totvert,
@@ -1126,10 +1138,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
                                          axis_vec,
                                          ob_axis != NULL ? mtx_tx[3] : NULL,
                                          ltmd->merge_dist);
-  }
-
-  if ((ltmd->flag & MOD_SCREW_NORMAL_CALC)) {
-    BKE_mesh_vertex_normals_clear_dirty(result);
   }
 
   return result;

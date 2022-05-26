@@ -808,7 +808,7 @@ static void exec_distribute_child(TaskPool *__restrict UNUSED(pool), void *taskd
 
 static int distribute_compare_orig_index(const void *p1, const void *p2, void *user_data)
 {
-  int *orig_index = (int *)user_data;
+  const int *orig_index = (const int *)user_data;
   int index1 = orig_index[*(const int *)p1];
   int index2 = orig_index[*(const int *)p2];
 
@@ -989,7 +989,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
 
     if (from == PART_FROM_VERT) {
       MVert *mv = mesh->mvert;
-      float(*orcodata)[3] = CustomData_get_layer(&mesh->vdata, CD_ORCO);
+      const float(*orcodata)[3] = CustomData_get_layer(&mesh->vdata, CD_ORCO);
       int totvert = mesh->totvert;
 
       tree = BLI_kdtree_3d_new(totvert);
@@ -1037,7 +1037,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   if ((part->flag & PART_EDISTR || children) && from != PART_FROM_VERT) {
     MVert *v1, *v2, *v3, *v4;
     float totarea = 0.0f, co1[3], co2[3], co3[3], co4[3];
-    float(*orcodata)[3];
+    const float(*orcodata)[3];
 
     orcodata = CustomData_get_layer(&mesh->vdata, CD_ORCO);
 
@@ -1219,7 +1219,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   /* For hair, sort by origindex (allows optimization's in rendering), */
   /* however with virtual parents the children need to be in random order. */
   if (part->type == PART_HAIR && !(part->childtype == PART_CHILD_FACES && part->parents != 0.0f)) {
-    int *orig_index = NULL;
+    const int *orig_index = NULL;
 
     if (from == PART_FROM_VERT) {
       if (mesh->totvert) {
@@ -1233,8 +1233,11 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     }
 
     if (orig_index) {
-      BLI_qsort_r(
-          particle_element, totpart, sizeof(int), distribute_compare_orig_index, orig_index);
+      BLI_qsort_r(particle_element,
+                  totpart,
+                  sizeof(int),
+                  distribute_compare_orig_index,
+                  (void *)orig_index);
     }
   }
 

@@ -400,7 +400,9 @@ typedef struct LooseDataInstantiateContext {
 static bool object_in_any_scene(Main *bmain, Object *ob)
 {
   LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
-    if (BKE_scene_object_find(sce, ob)) {
+    /* #BKE_scene_has_object checks bases cache of the scenes' view-layer, not actual content of
+     * their collections. */
+    if (BKE_collection_has_object_recursive(sce->master_collection, ob)) {
       return true;
     }
   }
@@ -454,17 +456,6 @@ static ID *loose_data_instantiate_process_check(LooseDataInstantiateContext *ins
   ID *id = item->new_id;
   if (id == NULL) {
     return NULL;
-  }
-
-  if (item->action == LINK_APPEND_ACT_COPY_LOCAL) {
-    BLI_assert(ID_IS_LINKED(id));
-    id = id->newid;
-    if (id == NULL) {
-      return NULL;
-    }
-
-    BLI_assert(!ID_IS_LINKED(id));
-    return id;
   }
 
   BLI_assert(!ID_IS_LINKED(id));
@@ -1123,7 +1114,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
             &LOG, "Unexpected unset append action for '%s' ID, assuming 'keep link'", id->name);
         break;
       default:
-        BLI_assert(0);
+        BLI_assert_unreachable();
     }
 
     if (local_appended_new_id != NULL) {
@@ -1176,7 +1167,7 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   for (itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
     BlendfileLinkAppendContextItem *item = itemlink->link;
 
-    if (item->action != LINK_APPEND_ACT_REUSE_LOCAL) {
+    if (!ELEM(item->action, LINK_APPEND_ACT_COPY_LOCAL, LINK_APPEND_ACT_REUSE_LOCAL)) {
       continue;
     }
 
@@ -1187,13 +1178,15 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
     BLI_assert(ID_IS_LINKED(id));
     BLI_assert(id->newid != NULL);
 
+    /* Calling code may want to access newly appended IDs from the link/append context items. */
+    item->new_id = id->newid;
+
     /* Do NOT delete a linked data that was already linked before this append. */
     if (id->tag & LIB_TAG_PRE_EXISTING) {
       continue;
     }
 
     id->tag |= LIB_TAG_DOIT;
-    item->new_id = id->newid;
   }
   BKE_id_multi_tagged_delete(bmain);
 
@@ -1201,26 +1194,6 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   LooseDataInstantiateContext instantiate_context = {.lapp_context = lapp_context,
                                                      .active_collection = NULL};
   loose_data_instantiate(&instantiate_context);
-
-  /* Attempt to deal with object proxies.
-   *
-   * NOTE: Copied from `BKE_library_make_local`, but this is not really working (as in, not
-   * producing any useful result in any known use case), neither here nor in
-   * `BKE_library_make_local` currently.
-   * Proxies are end of life anyway, so not worth spending time on this. */
-  for (itemlink = lapp_context->items.list; itemlink; itemlink = itemlink->next) {
-    BlendfileLinkAppendContextItem *item = itemlink->link;
-
-    if (item->action != LINK_APPEND_ACT_COPY_LOCAL) {
-      continue;
-    }
-
-    ID *id = item->new_id;
-    if (id == NULL) {
-      continue;
-    }
-    BLI_assert(ID_IS_LINKED(id));
-  }
 
   BKE_main_id_newptr_and_tag_clear(bmain);
 

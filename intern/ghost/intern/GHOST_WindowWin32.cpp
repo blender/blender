@@ -322,7 +322,7 @@ void GHOST_WindowWin32::adjustWindowRectForClosestMonitor(LPRECT win_rect,
   }
 
   /* Adjust to allow for caption, borders, shadows, scaling, etc. Resulting values can be
-   * correctly outside of monitor bounds. Note: You cannot specify WS_OVERLAPPED when calling. */
+   * correctly outside of monitor bounds. NOTE: You cannot specify #WS_OVERLAPPED when calling. */
   if (fpAdjustWindowRectExForDpi) {
     UINT dpiX, dpiY;
     GetDpiForMonitor(hmonitor, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);

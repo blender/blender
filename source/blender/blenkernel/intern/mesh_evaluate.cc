@@ -18,14 +18,19 @@
 #include "BLI_alloca.h"
 #include "BLI_bitmap.h"
 #include "BLI_edgehash.h"
-
+#include "BLI_index_range.hh"
 #include "BLI_math.h"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
 
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
+
+using blender::IndexRange;
+using blender::MutableSpan;
+using blender::Span;
 
 /* -------------------------------------------------------------------- */
 /** \name Polygon Calculations
@@ -644,7 +649,7 @@ static void bm_corners_to_loops_ex(ID *id,
   MFace *mf = mface + findex;
 
   for (int i = 0; i < numTex; i++) {
-    MTFace *texface = (MTFace *)CustomData_get_n(fdata, CD_MTFACE, findex, i);
+    const MTFace *texface = (const MTFace *)CustomData_get_n(fdata, CD_MTFACE, findex, i);
 
     MLoopUV *mloopuv = (MLoopUV *)CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
     copy_v2_v2(mloopuv->uv, texface->uv[0]);
@@ -662,7 +667,7 @@ static void bm_corners_to_loops_ex(ID *id,
 
   for (int i = 0; i < numCol; i++) {
     MLoopCol *mloopcol = (MLoopCol *)CustomData_get_n(ldata, CD_PROP_BYTE_COLOR, loopstart, i);
-    MCol *mcol = (MCol *)CustomData_get_n(fdata, CD_MCOL, findex, i);
+    const MCol *mcol = (const MCol *)CustomData_get_n(fdata, CD_MCOL, findex, i);
 
     MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[0]);
     mloopcol++;
@@ -678,7 +683,7 @@ static void bm_corners_to_loops_ex(ID *id,
 
   if (CustomData_has_layer(fdata, CD_TESSLOOPNORMAL)) {
     float(*lnors)[3] = (float(*)[3])CustomData_get(ldata, loopstart, CD_NORMAL);
-    short(*tlnors)[3] = (short(*)[3])CustomData_get(fdata, findex, CD_TESSLOOPNORMAL);
+    const short(*tlnors)[3] = (short(*)[3])CustomData_get(fdata, findex, CD_TESSLOOPNORMAL);
     const int max = mf->v4 ? 4 : 3;
 
     for (int i = 0; i < max; i++, lnors++, tlnors++) {
@@ -688,8 +693,8 @@ static void bm_corners_to_loops_ex(ID *id,
 
   if (CustomData_has_layer(fdata, CD_MDISPS)) {
     MDisps *ld = (MDisps *)CustomData_get(ldata, loopstart, CD_MDISPS);
-    MDisps *fd = (MDisps *)CustomData_get(fdata, findex, CD_MDISPS);
-    float(*disps)[3] = fd->disps;
+    const MDisps *fd = (const MDisps *)CustomData_get(fdata, findex, CD_MDISPS);
+    const float(*disps)[3] = fd->disps;
     int tot = mf->v4 ? 4 : 3;
     int corners;
 
@@ -1113,58 +1118,49 @@ void BKE_mesh_flush_select_from_polys(Mesh *me)
       me->mvert, me->totvert, me->mloop, me->medge, me->totedge, me->mpoly, me->totpoly);
 }
 
-void BKE_mesh_flush_select_from_verts_ex(const MVert *mvert,
-                                         const int UNUSED(totvert),
-                                         const MLoop *mloop,
-                                         MEdge *medge,
-                                         const int totedge,
-                                         MPoly *mpoly,
-                                         const int totpoly)
+static void mesh_flush_select_from_verts(const Span<MVert> verts,
+                                         const Span<MLoop> loops,
+                                         MutableSpan<MEdge> edges,
+                                         MutableSpan<MPoly> polys)
 {
-  MEdge *med;
-  MPoly *mp;
-
-  /* edges */
-  int i = totedge;
-  for (med = medge; i--; med++) {
-    if ((med->flag & ME_HIDE) == 0) {
-      if ((mvert[med->v1].flag & SELECT) && (mvert[med->v2].flag & SELECT)) {
-        med->flag |= SELECT;
+  for (const int i : edges.index_range()) {
+    if ((edges[i].flag & ME_HIDE) == 0) {
+      MEdge &edge = edges[i];
+      if ((verts[edge.v1].flag & SELECT) && (verts[edge.v2].flag & SELECT)) {
+        edge.flag |= SELECT;
       }
       else {
-        med->flag &= ~SELECT;
+        edge.flag &= ~SELECT;
       }
     }
   }
 
-  /* polys */
-  i = totpoly;
-  for (mp = mpoly; i--; mp++) {
-    if ((mp->flag & ME_HIDE) == 0) {
-      bool ok = true;
-      const MLoop *ml;
-      int j;
-      j = mp->totloop;
-      for (ml = &mloop[mp->loopstart]; j--; ml++) {
-        if ((mvert[ml->v].flag & SELECT) == 0) {
-          ok = false;
-          break;
-        }
+  for (const int i : polys.index_range()) {
+    if (polys[i].flag & ME_HIDE) {
+      continue;
+    }
+    MPoly &poly = polys[i];
+    bool all_verts_selected = true;
+    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
+      if (!(verts[loop.v].flag & SELECT)) {
+        all_verts_selected = false;
       }
-
-      if (ok) {
-        mp->flag |= ME_FACE_SEL;
-      }
-      else {
-        mp->flag &= (char)~ME_FACE_SEL;
-      }
+    }
+    if (all_verts_selected) {
+      poly.flag |= ME_FACE_SEL;
+    }
+    else {
+      poly.flag &= (char)~ME_FACE_SEL;
     }
   }
 }
+
 void BKE_mesh_flush_select_from_verts(Mesh *me)
 {
-  BKE_mesh_flush_select_from_verts_ex(
-      me->mvert, me->totvert, me->mloop, me->medge, me->totedge, me->mpoly, me->totpoly);
+  mesh_flush_select_from_verts({me->mvert, me->totvert},
+                               {me->mloop, me->totloop},
+                               {me->medge, me->totedge},
+                               {me->mpoly, me->totpoly});
 }
 
 /** \} */

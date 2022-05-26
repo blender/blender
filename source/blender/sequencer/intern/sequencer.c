@@ -129,7 +129,13 @@ Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int 
   seq->pitch = 1.0f;
   seq->scene_sound = NULL;
   seq->type = type;
-  seq->blend_mode = SEQ_TYPE_ALPHAOVER;
+
+  if (seq->type == SEQ_TYPE_ADJUSTMENT) {
+    seq->blend_mode = SEQ_TYPE_CROSS;
+  }
+  else {
+    seq->blend_mode = SEQ_TYPE_ALPHAOVER;
+  }
 
   seq->strip = seq_strip_alloc(type);
   seq->stereo3d_format = MEM_callocN(sizeof(Stereo3dFormat), "Sequence Stereo Format");

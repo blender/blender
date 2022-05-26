@@ -624,6 +624,11 @@ Brush *BKE_paint_brush(Paint *p)
   return p ? (p->brush_eval ? p->brush_eval : p->brush) : NULL;
 }
 
+const Brush *BKE_paint_brush_for_read(const Paint *p)
+{
+  return p ? p->brush : NULL;
+}
+
 void BKE_paint_brush_set(Paint *p, Brush *br)
 {
   if (p) {
@@ -2345,7 +2350,7 @@ void BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(Mesh *mesh)
 
 void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
 {
-  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  const int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
   if (!face_sets) {
     return;
   }
@@ -2360,7 +2365,7 @@ void BKE_sculpt_sync_face_sets_visibility_to_base_mesh(Mesh *mesh)
 
 void BKE_sculpt_sync_face_sets_visibility_to_grids(Mesh *mesh, SubdivCCG *subdiv_ccg)
 {
-  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  const int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
   if (!face_sets) {
     return;
   }

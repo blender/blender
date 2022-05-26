@@ -85,6 +85,7 @@ set(SRC
   GPU_buffers.h
   GPU_capabilities.h
   GPU_common.h
+  GPU_common_types.h
   GPU_compute.h
   GPU_context.h
   GPU_debug.h
@@ -189,6 +190,7 @@ set(METAL_SRC
   metal/mtl_backend.mm
   metal/mtl_context.mm
   metal/mtl_debug.mm
+  metal/mtl_state.mm
   metal/mtl_texture.mm
   metal/mtl_texture_util.mm
 
@@ -197,6 +199,7 @@ set(METAL_SRC
   metal/mtl_common.hh
   metal/mtl_context.hh
   metal/mtl_debug.hh
+  metal/mtl_state.hh
   metal/mtl_texture.hh
 )
 
@@ -301,8 +304,6 @@ set(GLSL_SRC
 
   shaders/gpu_shader_codegen_lib.glsl
 
-  shaders/gpu_shader_geometry.glsl
-
   shaders/common/gpu_shader_common_color_ramp.glsl
   shaders/common/gpu_shader_common_color_utils.glsl
   shaders/common/gpu_shader_common_curves.glsl
@@ -405,8 +406,6 @@ set(GLSL_SRC
   shaders/gpu_shader_cfg_world_clip_lib.glsl
   shaders/gpu_shader_colorspace_lib.glsl
 
-  shaders/gpu_shader_common_obinfos_lib.glsl
-
   GPU_shader_shared_utils.h
 )
 
@@ -445,6 +444,7 @@ list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/basic/shaders/infos/basic_depth_info.hh
   ../draw/engines/eevee_next/shaders/infos/eevee_material_info.hh
+  ../draw/engines/eevee_next/shaders/infos/eevee_velocity_info.hh
   ../draw/engines/gpencil/shaders/infos/gpencil_info.hh
   ../draw/engines/gpencil/shaders/infos/gpencil_vfx_info.hh
   ../draw/engines/overlay/shaders/infos/antialiasing_info.hh

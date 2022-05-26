@@ -15,6 +15,7 @@
 #include "DNA_lightprobe_types.h"
 #include "DRW_render.h"
 
+#include "eevee_camera.hh"
 #include "eevee_material.hh"
 #include "eevee_pipeline.hh"
 #include "eevee_shader.hh"
@@ -29,11 +30,15 @@ namespace blender::eevee {
  * \brief A running instance of the engine.
  */
 class Instance {
+  friend VelocityModule;
+
  public:
   ShaderModule &shaders;
   SyncModule sync;
   MaterialModule materials;
   PipelineModule pipelines;
+  VelocityModule velocity;
+  Camera camera;
   MainView main_view;
   World world;
 
@@ -42,6 +47,8 @@ class Instance {
   /** Evaluated IDs. */
   Scene *scene;
   ViewLayer *view_layer;
+  Object *camera_eval_object;
+  Object *camera_orig_object;
   /** Only available when rendering for final render. */
   const RenderLayer *render_layer;
   RenderEngine *render;
@@ -51,7 +58,7 @@ class Instance {
   const RegionView3D *rv3d;
 
   /* Info string displayed at the top of the render / viewport. */
-  char info[64];
+  std::string info = "";
 
  public:
   Instance()
@@ -59,6 +66,8 @@ class Instance {
         sync(*this),
         materials(*this),
         pipelines(*this),
+        velocity(*this),
+        camera(*this),
         main_view(*this),
         world(*this){};
   ~Instance(){};
@@ -83,12 +92,37 @@ class Instance {
 
   void draw_viewport(DefaultFramebufferList *dfbl);
 
+  bool is_viewport(void)
+  {
+    return !DRW_state_is_scene_render();
+  }
+
+  bool use_scene_lights(void) const
+  {
+    return (!v3d) ||
+           ((v3d->shading.type == OB_MATERIAL) &&
+            (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS)) ||
+           ((v3d->shading.type == OB_RENDER) &&
+            (v3d->shading.flag & V3D_SHADING_SCENE_LIGHTS_RENDER));
+  }
+
+  /* Light the scene using the selected HDRI in the viewport shading pop-over. */
+  bool use_studio_light(void) const
+  {
+    return (v3d) && (((v3d->shading.type == OB_MATERIAL) &&
+                      ((v3d->shading.flag & V3D_SHADING_SCENE_WORLD) == 0)) ||
+                     ((v3d->shading.type == OB_RENDER) &&
+                      ((v3d->shading.flag & V3D_SHADING_SCENE_WORLD_RENDER) == 0)));
+  }
+
  private:
   void render_sample();
 
   void mesh_sync(Object *ob, ObjectHandle &ob_handle);
 
   void update_eval_members();
+
+  void set_time(float time);
 };
 
 }  // namespace blender::eevee

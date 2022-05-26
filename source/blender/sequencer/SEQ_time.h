@@ -60,6 +60,13 @@ void SEQ_time_update_recursive(struct Scene *scene, struct Sequence *changed_seq
  */
 bool SEQ_time_strip_intersects_frame(const struct Sequence *seq, int timeline_frame);
 void SEQ_time_update_meta_strip_range(struct Scene *scene, struct Sequence *seq_meta);
+bool SEQ_time_has_still_frames(const struct Sequence *seq);
+bool SEQ_time_has_left_still_frames(const struct Sequence *seq);
+bool SEQ_time_has_right_still_frames(const struct Sequence *seq);
+int SEQ_time_left_handle_frame_get(struct Sequence *seq);
+int SEQ_time_right_handle_frame_get(struct Sequence *seq);
+void SEQ_time_left_handle_frame_set(struct Sequence *seq, int val);
+void SEQ_time_right_handle_frame_set(struct Sequence *seq, int val);
 
 #ifdef __cplusplus
 }

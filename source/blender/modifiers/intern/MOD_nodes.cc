@@ -1729,9 +1729,12 @@ static void panelRegister(ARegionType *region_type)
                              panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
 {
   const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
+
+  BLO_write_struct(writer, NodesModifierData, nmd);
+
   if (nmd->settings.properties != nullptr) {
     /* Note that the property settings are based on the socket type info
      * and don't necessarily need to be written, but we can't just free them. */

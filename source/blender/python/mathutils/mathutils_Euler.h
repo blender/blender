@@ -22,6 +22,7 @@ typedef struct {
  * blender (stored in blend_data). This is an either/or struct not both */
 
 /* prototypes */
+
 PyObject *Euler_CreatePyObject(const float eul[3],
                                short order,
                                PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;

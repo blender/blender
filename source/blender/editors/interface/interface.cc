@@ -848,7 +848,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
   BLI_assert(oldbut->active);
 
   /* flags from the buttons we want to refresh, may want to add more here... */
-  const uint64_t flag_copy = UI_BUT_REDALERT | UI_HAS_ICON | UI_SELECT_DRAW;
+  const int flag_copy = UI_BUT_REDALERT | UI_HAS_ICON | UI_SELECT_DRAW;
   const int drawflag_copy = 0; /* None currently. */
 
   /* still stuff needs to be copied */
@@ -991,7 +991,7 @@ static bool ui_but_update_from_old_block(const bContext *C,
     found_active = true;
   }
   else {
-    uint64_t flag_copy = UI_BUT_DRAG_MULTI;
+    int flag_copy = UI_BUT_DRAG_MULTI;
 
     /* Stupid special case: The active button may be inside (as in, overlapped on top) a tree-row
      * button which we also want to keep highlighted then. */
@@ -1861,15 +1861,32 @@ bool ui_but_context_poll_operator_ex(bContext *C,
                                      const wmOperatorCallParams *optype_params)
 {
   bool result;
+  int old_but_flag = 0;
 
-  if (but && but->context) {
-    CTX_store_set(C, but->context);
+  if (but) {
+    old_but_flag = but->flag;
+
+    /* Temporarily make this button override the active one, in case the poll acts on the active
+     * button. */
+    const_cast<uiBut *>(but)->flag |= UI_BUT_ACTIVE_OVERRIDE;
+
+    if (but->context) {
+      CTX_store_set(C, but->context);
+    }
   }
 
   result = WM_operator_poll_context(C, optype_params->optype, optype_params->opcontext);
 
-  if (but && but->context) {
-    CTX_store_set(C, nullptr);
+  if (but) {
+    BLI_assert_msg((but->flag & ~UI_BUT_ACTIVE_OVERRIDE) ==
+                       (old_but_flag & ~UI_BUT_ACTIVE_OVERRIDE),
+                   "Operator polls shouldn't change button flags");
+
+    const_cast<uiBut *>(but)->flag = old_but_flag;
+
+    if (but->context) {
+      CTX_store_set(C, nullptr);
+    }
   }
 
   return result;
@@ -3832,21 +3849,22 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
     }
     case UI_BTYPE_HOTKEY_EVENT:
       if (but->flag & UI_SELECT) {
+        const uiButHotkeyEvent *hotkey_but = (uiButHotkeyEvent *)but;
 
-        if (but->modifier_key) {
+        if (hotkey_but->modifier_key) {
           char *str = but->drawstr;
           but->drawstr[0] = '\0';
 
-          if (but->modifier_key & KM_SHIFT) {
+          if (hotkey_but->modifier_key & KM_SHIFT) {
             str += BLI_strcpy_rlen(str, "Shift ");
           }
-          if (but->modifier_key & KM_CTRL) {
+          if (hotkey_but->modifier_key & KM_CTRL) {
             str += BLI_strcpy_rlen(str, "Ctrl ");
           }
-          if (but->modifier_key & KM_ALT) {
+          if (hotkey_but->modifier_key & KM_ALT) {
             str += BLI_strcpy_rlen(str, "Alt ");
           }
-          if (but->modifier_key & KM_OSKEY) {
+          if (hotkey_but->modifier_key & KM_OSKEY) {
             str += BLI_strcpy_rlen(str, "Cmd ");
           }
 
@@ -3971,6 +3989,10 @@ static void ui_but_alloc_info(const eButType type,
     case UI_BTYPE_TREEROW:
       alloc_size = sizeof(uiButTreeRow);
       alloc_str = "uiButTreeRow";
+      break;
+    case UI_BTYPE_HOTKEY_EVENT:
+      alloc_size = sizeof(uiButHotkeyEvent);
+      alloc_str = "uiButHotkeyEvent";
       break;
     default:
       alloc_size = sizeof(uiBut);
@@ -4219,7 +4241,7 @@ static uiBut *ui_def_but(uiBlock *block,
   return but;
 }
 
-void ui_def_but_icon(uiBut *but, const int icon, const uint64_t flag)
+void ui_def_but_icon(uiBut *but, const int icon, const int flag)
 {
   if (icon) {
     ui_icon_ensure_deferred(static_cast<const bContext *>(but->block->evil_C),
@@ -5806,17 +5828,17 @@ void UI_block_flag_disable(uiBlock *block, int flag)
   block->flag &= ~flag;
 }
 
-void UI_but_flag_enable(uiBut *but, uint64_t flag)
+void UI_but_flag_enable(uiBut *but, int flag)
 {
   but->flag |= flag;
 }
 
-void UI_but_flag_disable(uiBut *but, uint64_t flag)
+void UI_but_flag_disable(uiBut *but, int flag)
 {
   but->flag &= ~flag;
 }
 
-bool UI_but_flag_is_set(uiBut *but, uint64_t flag)
+bool UI_but_flag_is_set(uiBut *but, int flag)
 {
   return (but->flag & flag) != 0;
 }
@@ -6260,64 +6282,6 @@ uiBut *uiDefIconBlockBut(uiBlock *block,
   but->block_create_func = func;
   ui_but_update(but);
 
-  return but;
-}
-
-uiBut *uiDefKeyevtButS(uiBlock *block,
-                       int retval,
-                       const char *str,
-                       int x,
-                       int y,
-                       short width,
-                       short height,
-                       short *spoin,
-                       const char *tip)
-{
-  uiBut *but = ui_def_but(block,
-                          UI_BTYPE_KEY_EVENT | UI_BUT_POIN_SHORT,
-                          retval,
-                          str,
-                          x,
-                          y,
-                          width,
-                          height,
-                          spoin,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0.0,
-                          tip);
-  ui_but_update(but);
-  return but;
-}
-
-uiBut *uiDefHotKeyevtButS(uiBlock *block,
-                          int retval,
-                          const char *str,
-                          int x,
-                          int y,
-                          short width,
-                          short height,
-                          short *keypoin,
-                          const short *modkeypoin,
-                          const char *tip)
-{
-  uiBut *but = ui_def_but(block,
-                          UI_BTYPE_HOTKEY_EVENT | UI_BUT_POIN_SHORT,
-                          retval,
-                          str,
-                          x,
-                          y,
-                          width,
-                          height,
-                          keypoin,
-                          0.0,
-                          0.0,
-                          0.0,
-                          0.0,
-                          tip);
-  but->modifier_key = *modkeypoin;
-  ui_but_update(but);
   return but;
 }
 

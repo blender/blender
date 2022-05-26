@@ -12,6 +12,7 @@
 #include "DNA_node_types.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_node_tree_update.h"
@@ -984,6 +985,7 @@ class NodeTreeMainUpdater {
     this->remove_unused_previews_when_necessary(ntree);
 
     this->ensure_tree_ref(ntree, tree_ref);
+    this->propagate_runtime_flags(*tree_ref);
     if (ntree.type == NTREE_GEOMETRY) {
       if (node_field_inferencing::update_field_inferencing(*tree_ref)) {
         result.interface_changed = true;
@@ -1254,6 +1256,44 @@ class NodeTreeMainUpdater {
     BKE_node_preview_remove_unused(&ntree);
   }
 
+  void propagate_runtime_flags(const NodeTreeRef &tree_ref)
+  {
+    bNodeTree &ntree = *tree_ref.btree();
+    ntree.runtime_flag = 0;
+    if (ntree.type != NTREE_SHADER) {
+      return;
+    }
+
+    /* Check if a used node group has an animated image. */
+    for (const NodeRef *group_node : tree_ref.nodes_by_type("NodeGroup")) {
+      const bNodeTree *group = reinterpret_cast<bNodeTree *>(group_node->bnode()->id);
+      if (group != nullptr) {
+        ntree.runtime_flag |= group->runtime_flag;
+      }
+    }
+    /* Check if the tree itself has an animated image. */
+    for (const StringRefNull idname : {"ShaderNodeTexImage", "ShaderNodeTexEnvironment"}) {
+      for (const NodeRef *node : tree_ref.nodes_by_type(idname)) {
+        Image *image = reinterpret_cast<Image *>(node->bnode()->id);
+        if (image != nullptr && BKE_image_is_animated(image)) {
+          ntree.runtime_flag |= NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION;
+          break;
+        }
+      }
+    }
+    /* Check if the tree has a material output. */
+    for (const StringRefNull idname : {"ShaderNodeOutputMaterial",
+                                       "ShaderNodeOutputLight",
+                                       "ShaderNodeOutputWorld",
+                                       "ShaderNodeOutputAOV"}) {
+      const Span<const NodeRef *> nodes = tree_ref.nodes_by_type(idname);
+      if (!nodes.is_empty()) {
+        ntree.runtime_flag |= NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT;
+        break;
+      }
+    }
+  }
+
   void update_node_levels(bNodeTree &ntree)
   {
     ntreeUpdateNodeLevels(&ntree);
@@ -1361,10 +1401,12 @@ class NodeTreeMainUpdater {
       return true;
     }
     /* Assume node groups without output sockets are outputs. */
-    /* TODO: Store whether a node group contains a top-level output node (e.g. Material Output) in
-     * run-time information on the node group itself. */
-    if (bnode.type == NODE_GROUP && node.outputs().is_empty()) {
-      return true;
+    if (bnode.type == NODE_GROUP) {
+      const bNodeTree *node_group = reinterpret_cast<const bNodeTree *>(bnode.id);
+      if (node_group != nullptr &&
+          node_group->runtime_flag & NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT) {
+        return true;
+      }
     }
     return false;
   }

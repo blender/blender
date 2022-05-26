@@ -97,12 +97,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
       ntree, socket_remainder, overflow == GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE);
 
   bNodeSocket *height_socket = (bNodeSocket *)node->inputs.last;
-  bNodeSocket *width_socket = height_socket->prev;
   nodeSetSocketAvailability(
       ntree, height_socket, overflow != GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
-  node_sock_label(width_socket,
-                  overflow == GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW ? N_("Max Width") :
-                                                                        N_("Text Box Width"));
 }
 
 static float3 get_pivot_point(GeoNodeExecParams &params, CurveEval &curve)

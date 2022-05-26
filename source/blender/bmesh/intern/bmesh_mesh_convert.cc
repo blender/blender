@@ -79,6 +79,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_array.h"
+#include "BLI_bitmap.h"
 #include "BLI_array.hh"
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"

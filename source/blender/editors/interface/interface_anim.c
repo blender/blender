@@ -144,7 +144,7 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *decorator_but)
     return;
   }
 
-  const uint64_t flag = but_anim->flag;
+  const int flag = but_anim->flag;
 
   if (flag & UI_BUT_DRIVEN) {
     but->icon = ICON_DECORATE_DRIVER;
@@ -162,7 +162,7 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *decorator_but)
     but->icon = ICON_DECORATE;
   }
 
-  const uint64_t flag_copy = (UI_BUT_DISABLED | UI_BUT_INACTIVE);
+  const int flag_copy = (UI_BUT_DISABLED | UI_BUT_INACTIVE);
   but->flag = (but->flag & ~flag_copy) | (flag & flag_copy);
 }
 

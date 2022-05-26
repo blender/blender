@@ -752,28 +752,27 @@ static PyObject *pygpu_shader_unbind(BPyGPUShader *UNUSED(self))
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_shader_from_builtin_doc,
-             ".. function:: from_builtin(shader_name, config='DEFAULT')\n"
-             "\n"
-             "   Shaders that are embedded in the blender internal code:\n"
-             "" PYDOC_BUILTIN_SHADER_DESCRIPTION
-             "\n"
-             "   They all read the uniform ``mat4 ModelViewProjectionMatrix``,\n"
-             "   which can be edited by the :mod:`gpu.matrix` module.\n"
-             "\n"
-             "   You can also choose a shader configuration that uses clip_planes by setting the "
-             "``CLIPPED`` value to the config parameter. Note that in this case you also need to "
-             "manually set the value of ``mat4 ModelMatrix``.\n"
-             "\n"
-             "   :param shader_name: One of the builtin shader names.\n"
-             "   :type shader_name: str\n"
-             "   :param config: One of these types of shader configuration:\n"
-             "\n"
-             "      - ``DEFAULT``\n"
-             "      - ``CLIPPED``\n"
-             "   :type config: str\n"
-             "   :return: Shader object corresponding to the given name.\n"
-             "   :rtype: :class:`bpy.types.GPUShader`\n");
+PyDoc_STRVAR(
+    pygpu_shader_from_builtin_doc,
+    ".. function:: from_builtin(shader_name, config='DEFAULT')\n"
+    "\n"
+    "   Shaders that are embedded in the blender internal code (see :ref:`built-in-shaders`).\n"
+    "   They all read the uniform ``mat4 ModelViewProjectionMatrix``,\n"
+    "   which can be edited by the :mod:`gpu.matrix` module.\n"
+    "\n"
+    "   You can also choose a shader configuration that uses clip_planes by setting the "
+    "``CLIPPED`` value to the config parameter. Note that in this case you also need to "
+    "manually set the value of ``mat4 ModelMatrix``.\n"
+    "\n"
+    "   :param shader_name: One of the builtin shader names.\n"
+    "   :type shader_name: str\n"
+    "   :param config: One of these types of shader configuration:\n"
+    "\n"
+    "      - ``DEFAULT``\n"
+    "      - ``CLIPPED``\n"
+    "   :type config: str\n"
+    "   :return: Shader object corresponding to the given name.\n"
+    "   :rtype: :class:`bpy.types.GPUShader`\n");
 static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -853,6 +852,8 @@ static struct PyMethodDef pygpu_shader_module__tp_methods[] = {
 
 PyDoc_STRVAR(pygpu_shader_module__tp_doc,
              "This module provides access to GPUShader internal functions.\n"
+             "\n"
+             ".. _built-in-shaders:\n"
              "\n"
              ".. rubric:: Built-in shaders\n"
              "\n"

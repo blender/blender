@@ -164,10 +164,10 @@ bool BLI_file_magic_is_zstd(const char header[4])
   return false;
 }
 
-bool BLI_file_is_writable(const char *filename)
+bool BLI_file_is_writable(const char *filepath)
 {
   bool writable;
-  if (BLI_access(filename, W_OK) == 0) {
+  if (BLI_access(filepath, W_OK) == 0) {
     /* file exists and I can write to it */
     writable = true;
   }
@@ -178,7 +178,7 @@ bool BLI_file_is_writable(const char *filename)
   else {
     /* file doesn't exist -- check I can create it in parent directory */
     char parent[FILE_MAX];
-    BLI_split_dirfile(filename, parent, NULL, sizeof(parent), 0);
+    BLI_split_dirfile(filepath, parent, NULL, sizeof(parent), 0);
 #ifdef WIN32
     /* windows does not have X_OK */
     writable = BLI_access(parent, W_OK) == 0;
@@ -224,38 +224,38 @@ static void callLocalErrorCallBack(const char *err)
   printf("%s\n", err);
 }
 
-FILE *BLI_fopen(const char *filename, const char *mode)
+FILE *BLI_fopen(const char *filepath, const char *mode)
 {
-  BLI_assert(!BLI_path_is_rel(filename));
+  BLI_assert(!BLI_path_is_rel(filepath));
 
-  return ufopen(filename, mode);
+  return ufopen(filepath, mode);
 }
 
-void BLI_get_short_name(char short_name[256], const char *filename)
+void BLI_get_short_name(char short_name[256], const char *filepath)
 {
   wchar_t short_name_16[256];
   int i = 0;
 
-  UTF16_ENCODE(filename);
+  UTF16_ENCODE(filepath);
 
-  GetShortPathNameW(filename_16, short_name_16, 256);
+  GetShortPathNameW(filepath_16, short_name_16, 256);
 
   for (i = 0; i < 256; i++) {
     short_name[i] = (char)short_name_16[i];
   }
 
-  UTF16_UN_ENCODE(filename);
+  UTF16_UN_ENCODE(filepath);
 }
 
-void *BLI_gzopen(const char *filename, const char *mode)
+void *BLI_gzopen(const char *filepath, const char *mode)
 {
   gzFile gzfile;
 
-  BLI_assert(!BLI_path_is_rel(filename));
+  BLI_assert(!BLI_path_is_rel(filepath));
 
   /* XXX: Creates file before transcribing the path. */
   if (mode[0] == 'w') {
-    FILE *file = ufopen(filename, "a");
+    FILE *file = ufopen(filepath, "a");
     if (file == NULL) {
       /* File couldn't be opened, e.g. due to permission error. */
       return NULL;
@@ -266,15 +266,15 @@ void *BLI_gzopen(const char *filename, const char *mode)
   /* temporary #if until we update all libraries to 1.2.7
    * for correct wide char path handling */
 #  if ZLIB_VERNUM >= 0x1270
-  UTF16_ENCODE(filename);
+  UTF16_ENCODE(filepath);
 
-  gzfile = gzopen_w(filename_16, mode);
+  gzfile = gzopen_w(filepath_16, mode);
 
-  UTF16_UN_ENCODE(filename);
+  UTF16_UN_ENCODE(filepath);
 #  else
   {
     char short_name[256];
-    BLI_get_short_name(short_name, filename);
+    BLI_get_short_name(short_name, filepath);
     gzfile = gzopen(short_name, mode);
   }
 #  endif
@@ -282,18 +282,18 @@ void *BLI_gzopen(const char *filename, const char *mode)
   return gzfile;
 }
 
-int BLI_open(const char *filename, int oflag, int pmode)
+int BLI_open(const char *filepath, int oflag, int pmode)
 {
-  BLI_assert(!BLI_path_is_rel(filename));
+  BLI_assert(!BLI_path_is_rel(filepath));
 
-  return uopen(filename, oflag, pmode);
+  return uopen(filepath, oflag, pmode);
 }
 
-int BLI_access(const char *filename, int mode)
+int BLI_access(const char *filepath, int mode)
 {
-  BLI_assert(!BLI_path_is_rel(filename));
+  BLI_assert(!BLI_path_is_rel(filepath));
 
-  return uaccess(filename, mode);
+  return uaccess(filepath, mode);
 }
 
 static bool delete_soft(const wchar_t *path_16, const char **error_message)
@@ -466,8 +466,8 @@ int BLI_move(const char *file, const char *to)
   int err;
 
   /* windows doesn't support moving to a directory
-   * it has to be 'mv filename filename' and not
-   * 'mv filename destination_directory' */
+   * it has to be 'mv filepath filepath' and not
+   * 'mv filepath destination_directory' */
 
   BLI_strncpy(str, to, sizeof(str));
   /* points 'to' to a directory ? */
@@ -498,8 +498,8 @@ int BLI_copy(const char *file, const char *to)
   int err;
 
   /* windows doesn't support copying to a directory
-   * it has to be 'cp filename filename' and not
-   * 'cp filename destdir' */
+   * it has to be 'cp filepath filepath' and not
+   * 'cp filepath destdir' */
 
   BLI_strncpy(str, to, sizeof(str));
   /* points 'to' to a directory ? */
@@ -587,7 +587,7 @@ int BLI_rename(const char *from, const char *to)
     return 0;
   }
 
-  /* make sure the filenames are different (case insensitive) before removing */
+  /* Make sure `from` & `to` are different (case insensitive) before removing. */
   if (BLI_exists(to) && BLI_strcasecmp(from, to)) {
     if (BLI_delete(to, false, false)) {
       return 1;
@@ -728,9 +728,9 @@ static int recursive_operation(const char *startfrom,
 #  ifdef __HAIKU__
       {
         struct stat st_dir;
-        char filename[FILE_MAX];
-        BLI_path_join(filename, sizeof(filename), startfrom, dirent->d_name, NULL);
-        lstat(filename, &st_dir);
+        char filepath[FILE_MAX];
+        BLI_path_join(filepath, sizeof(filepath), startfrom, dirent->d_name, NULL);
+        lstat(filepath, &st_dir);
         is_dir = S_ISDIR(st_dir.st_mode);
       }
 #  else
@@ -903,32 +903,32 @@ static int delete_soft(const char *file, const char **error_message)
 }
 #  endif
 
-FILE *BLI_fopen(const char *filename, const char *mode)
+FILE *BLI_fopen(const char *filepath, const char *mode)
 {
-  BLI_assert(!BLI_path_is_rel(filename));
+  BLI_assert(!BLI_path_is_rel(filepath));
 
-  return fopen(filename, mode);
+  return fopen(filepath, mode);
 }
 
-void *BLI_gzopen(const char *filename, const char *mode)
+void *BLI_gzopen(const char *filepath, const char *mode)
 {
-  BLI_assert(!BLI_path_is_rel(filename));
+  BLI_assert(!BLI_path_is_rel(filepath));
 
-  return gzopen(filename, mode);
+  return gzopen(filepath, mode);
 }
 
-int BLI_open(const char *filename, int oflag, int pmode)
+int BLI_open(const char *filepath, int oflag, int pmode)
 {
-  BLI_assert(!BLI_path_is_rel(filename));
+  BLI_assert(!BLI_path_is_rel(filepath));
 
-  return open(filename, oflag, pmode);
+  return open(filepath, oflag, pmode);
 }
 
-int BLI_access(const char *filename, int mode)
+int BLI_access(const char *filepath, int mode)
 {
-  BLI_assert(!BLI_path_is_rel(filename));
+  BLI_assert(!BLI_path_is_rel(filepath));
 
-  return access(filename, mode);
+  return access(filepath, mode);
 }
 
 int BLI_delete(const char *file, bool dir, bool recursive)

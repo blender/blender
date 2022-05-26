@@ -55,7 +55,7 @@
 static void paint_stroke_add_sample(
     const Paint *paint, PaintStroke *stroke, float x, float y, float pressure);
 
-#define DRAW_DEBUG_VIS
+//#define DRAW_DEBUG_VIS
 
 #ifdef DRAW_DEBUG_VIS
 static void paint_brush_cubic_vis(const bContext *C, ARegion *region, void *userdata)
@@ -1127,6 +1127,7 @@ PaintStroke *paint_stroke_new(bContext *C,
   struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
   ToolSettings *toolsettings = CTX_data_tool_settings(C);
+  ePaintMode mode = BKE_paintmode_get_active_from_context(C);
   UnifiedPaintSettings *ups = &toolsettings->unified_paint_settings;
   Paint *p = BKE_paint_get_active_from_context(C);
   Brush *br = stroke->brush = BKE_paint_brush(p);
@@ -1180,6 +1181,8 @@ PaintStroke *paint_stroke_new(bContext *C,
   }
 
   BKE_paint_set_overlay_override(br->overlay_flags);
+
+  ups->start_pixel_radius = BKE_brush_size_get(CTX_data_scene(C), br, mode == PAINT_MODE_SCULPT);
 
   return stroke;
 }

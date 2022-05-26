@@ -67,19 +67,19 @@ static bool lib_id_preview_editing_poll(bContext *C)
 
 static int lib_id_load_custom_preview_exec(bContext *C, wmOperator *op)
 {
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
-  RNA_string_get(op->ptr, "filepath", path);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
-  if (!BLI_is_file(path)) {
-    BKE_reportf(op->reports, RPT_ERROR, "File not found '%s'", path);
+  if (!BLI_is_file(filepath)) {
+    BKE_reportf(op->reports, RPT_ERROR, "File not found '%s'", filepath);
     return OPERATOR_CANCELLED;
   }
 
   PointerRNA idptr = CTX_data_pointer_get(C, "id");
   ID *id = (ID *)idptr.data;
 
-  BKE_previewimg_id_custom_set(id, path);
+  BKE_previewimg_id_custom_set(id, filepath);
 
   WM_event_add_notifier(C, NC_ASSET | NA_EDITED, nullptr);
 

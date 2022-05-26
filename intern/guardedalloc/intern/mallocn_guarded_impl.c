@@ -54,7 +54,7 @@
 #  define DEBUG_MEMCOUNTER_ERROR_VAL 0
 static int _mallocn_count = 0;
 
-/* breakpoint here */
+/* Break-point here. */
 static void memcount_raise(const char *name)
 {
   fprintf(stderr, "%s: memcount-leak, %d\n", name, _mallocn_count);

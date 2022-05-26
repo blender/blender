@@ -819,6 +819,7 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
         /* Toggle flipping on/off. */
         gesture->use_flip = !gesture->use_flip;
         gesture_straightline_apply(C, op);
+        wm_gesture_tag_redraw(win);
         break;
       }
       case GESTURE_MODAL_SELECT: {
@@ -897,6 +898,7 @@ int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmE
       case GESTURE_MODAL_FLIP: {
         /* Toggle flip on/off. */
         gesture->use_flip = !gesture->use_flip;
+        wm_gesture_tag_redraw(win);
         break;
       }
       case GESTURE_MODAL_SELECT:

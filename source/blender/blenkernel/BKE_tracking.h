@@ -28,7 +28,22 @@ struct Scene;
 struct bGPDlayer;
 struct rcti;
 
-/* **** Common functions **** */
+/* --------------------------------------------------------------------
+ * Common types and constants.
+ */
+
+typedef enum eTrackArea {
+  TRACK_AREA_POINT = (1 << 0),
+  TRACK_AREA_PAT = (1 << 1),
+  TRACK_AREA_SEARCH = (1 << 2),
+
+  TRACK_AREA_NONE = 0,
+  TRACK_AREA_ALL = (TRACK_AREA_POINT | TRACK_AREA_PAT | TRACK_AREA_SEARCH),
+} eTrackArea;
+
+/* --------------------------------------------------------------------
+ * Common functions.
+ */
 
 /**
  * Free tracking structure, only frees structure contents
@@ -84,7 +99,10 @@ void BKE_tracking_get_projection_matrix(struct MovieTracking *tracking,
                                         int winy,
                                         float mat[4][4]);
 
-/* **** Clipboard **** */
+/* --------------------------------------------------------------------
+ * Clipboard.
+ */
+
 /**
  * Free clipboard by freeing memory used by all tracks in it.
  */
@@ -204,15 +222,21 @@ bool BKE_tracking_track_has_marker_at_frame(struct MovieTrackingTrack *track, in
 bool BKE_tracking_track_has_enabled_marker_at_frame(struct MovieTrackingTrack *track, int framenr);
 
 /**
- * Clear track's path:
- *
- * - If action is #TRACK_CLEAR_REMAINED path from `ref_frame+1` up to end will be clear.
- * - If action is #TRACK_CLEAR_UPTO path from the beginning up to `ref_frame-1` will be clear.
- * - If action is #TRACK_CLEAR_ALL only marker at frame ref_frame will remain.
+ * Clear track's path.
  *
  * \note frame number should be in clip space, not scene space.
  */
-void BKE_tracking_track_path_clear(struct MovieTrackingTrack *track, int ref_frame, int action);
+typedef enum eTrackClearAction {
+  /* Clear path from `ref_frame+1` up to the . */
+  TRACK_CLEAR_UPTO,
+  /* Clear path from the beginning up to `ref_frame-1`. */
+  TRACK_CLEAR_REMAINED,
+  /* Only marker at frame `ref_frame` will remain. */
+  TRACK_CLEAR_ALL,
+} eTrackClearAction;
+void BKE_tracking_track_path_clear(struct MovieTrackingTrack *track,
+                                   int ref_frame,
+                                   eTrackClearAction action);
 
 void BKE_tracking_tracks_join(struct MovieTracking *tracking,
                               struct MovieTrackingTrack *dst_track,
@@ -240,7 +264,9 @@ float BKE_tracking_track_get_weight_for_marker(struct MovieClip *clip,
                                                struct MovieTrackingTrack *track,
                                                struct MovieTrackingMarker *marker);
 
-/* Selection */
+/* --------------------------------------------------------------------
+ * Selection.
+ */
 
 /**
  * \param area: which part of marker should be selected. see TRACK_AREA_* constants.
@@ -252,12 +278,43 @@ void BKE_tracking_track_select(struct ListBase *tracksbase,
 void BKE_tracking_track_deselect(struct MovieTrackingTrack *track, int area);
 void BKE_tracking_tracks_deselect_all(struct ListBase *tracksbase);
 
-/* **** Marker **** */
+/* --------------------------------------------------------------------
+ * Marker.
+ */
+
 struct MovieTrackingMarker *BKE_tracking_marker_insert(struct MovieTrackingTrack *track,
                                                        struct MovieTrackingMarker *marker);
 void BKE_tracking_marker_delete(struct MovieTrackingTrack *track, int framenr);
 
-void BKE_tracking_marker_clamp(struct MovieTrackingMarker *marker, int event);
+/**
+ * If the pattern area is outside of the search area its position will be modified in a way that it
+ * is within the pattern is within the search area.
+ *
+ * If the pattern area is already within the search area nothing happens.
+ *
+ * If the pattern area is bigger than the search area the behavior is undefined.
+ *
+ * Search area is never modified.
+ */
+void BKE_tracking_marker_clamp_pattern_position(struct MovieTrackingMarker *marker);
+
+/**
+ * If the search size is such that pattern area is (partially) outside of the search area make the
+ * search area bigger so that the pattern is within the search area.
+ *
+ * Pattern area is never modified.
+ */
+void BKE_tracking_marker_clamp_search_size(struct MovieTrackingMarker *marker);
+
+/**
+ * If the search position is such that pattern area is (partially) outside of the search area move
+ * the search area so that the pattern is within the search area.
+ *
+ * If the search area is smaller than the pattern the behavior is undefined.
+ *
+ * Pattern area is never modified.
+ */
+void BKE_tracking_marker_clamp_search_position(struct MovieTrackingMarker *marker);
 
 /**
  * Get marker closest to the given frame number.
@@ -296,7 +353,10 @@ void BKE_tracking_marker_get_subframe_position(struct MovieTrackingTrack *track,
                                                float framenr,
                                                float pos[2]);
 
-/* **** Plane Track **** */
+/* --------------------------------------------------------------------
+ * Plane track.
+ */
+
 /**
  * Creates new plane track out of selected point tracks.
  */
@@ -342,7 +402,10 @@ void BKE_tracking_plane_tracks_replace_point_track(struct MovieTracking *trackin
                                                    struct MovieTrackingTrack *old_track,
                                                    struct MovieTrackingTrack *new_track);
 
-/* **** Plane Marker **** */
+/* --------------------------------------------------------------------
+ * Plane marker.
+ */
+
 struct MovieTrackingPlaneMarker *BKE_tracking_plane_marker_insert(
     struct MovieTrackingPlaneTrack *plane_track, struct MovieTrackingPlaneMarker *plane_marker);
 void BKE_tracking_plane_marker_delete(struct MovieTrackingPlaneTrack *plane_track, int framenr);
@@ -368,7 +431,10 @@ void BKE_tracking_plane_marker_get_subframe_corners(struct MovieTrackingPlaneTra
                                                     float framenr,
                                                     float corners[4][2]);
 
-/* **** Object **** */
+/* --------------------------------------------------------------------
+ * Object.
+ */
+
 struct MovieTrackingObject *BKE_tracking_object_add(struct MovieTracking *tracking,
                                                     const char *name);
 bool BKE_tracking_object_delete(struct MovieTracking *tracking,
@@ -390,7 +456,10 @@ struct ListBase *BKE_tracking_object_get_plane_tracks(struct MovieTracking *trac
 struct MovieTrackingReconstruction *BKE_tracking_object_get_reconstruction(
     struct MovieTracking *tracking, struct MovieTrackingObject *object);
 
-/* **** Camera **** */
+/* --------------------------------------------------------------------
+ * Camera.
+ */
+
 /**
  * Converts principal offset from center to offset of blender's camera.
  */
@@ -409,7 +478,10 @@ void BKE_tracking_camera_get_reconstructed_interpolate(struct MovieTracking *tra
                                                        float framenr,
                                                        float mat[4][4]);
 
-/* **** Distortion/Undistortion **** */
+/* --------------------------------------------------------------------
+ * (Un)distortion.
+ */
+
 struct MovieDistortion *BKE_tracking_distortion_new(struct MovieTracking *tracking,
                                                     int calibration_width,
                                                     int calibration_height);
@@ -463,7 +535,10 @@ void BKE_tracking_max_distortion_delta_across_bound(struct MovieTracking *tracki
                                                     bool undistort,
                                                     float delta[2]);
 
-/* **** Image sampling **** */
+/* --------------------------------------------------------------------
+ * Image sampling.
+ */
+
 struct ImBuf *BKE_tracking_sample_pattern(int frame_width,
                                           int frame_height,
                                           struct ImBuf *search_ib,
@@ -493,7 +568,9 @@ struct ImBuf *BKE_tracking_get_search_imbuf(struct ImBuf *ibuf,
 void BKE_tracking_disable_channels(
     struct ImBuf *ibuf, bool disable_red, bool disable_green, bool disable_blue, bool grayscale);
 
-/* **** 2D tracking **** */
+/* --------------------------------------------------------------------
+ * 2D tracking.
+ */
 
 /**
  * Refine marker's position using previously known keyframe.
@@ -505,7 +582,9 @@ void BKE_tracking_refine_marker(struct MovieClip *clip,
                                 struct MovieTrackingMarker *marker,
                                 bool backwards);
 
-/* *** 2D auto track  *** */
+/* --------------------------------------------------------------------
+ * 2D tracking using auto-track pipeline.
+ */
 
 struct AutoTrackContext *BKE_autotrack_context_new(struct MovieClip *clip,
                                                    struct MovieClipUser *user,
@@ -517,7 +596,9 @@ void BKE_autotrack_context_sync_user(struct AutoTrackContext *context, struct Mo
 void BKE_autotrack_context_finish(struct AutoTrackContext *context);
 void BKE_autotrack_context_free(struct AutoTrackContext *context);
 
-/* **** Plane tracking **** */
+/* --------------------------------------------------------------------
+ * Plane tracking.
+ */
 
 /**
  * \note frame number should be in clip space, not scene space.
@@ -530,7 +611,9 @@ void BKE_tracking_homography_between_two_quads(/*const*/ float reference_corners
                                                /*const*/ float corners[4][2],
                                                float H[3][3]);
 
-/* **** Camera solving **** */
+/* --------------------------------------------------------------------
+ * Camera solving.
+ */
 
 /**
  * Perform early check on whether everything is fine to start reconstruction.
@@ -617,7 +700,9 @@ void BKE_tracking_detect_harris(struct MovieTracking *tracking,
                                 struct bGPDlayer *layer,
                                 bool place_outside_layer);
 
-/* **** 2D stabilization **** */
+/* --------------------------------------------------------------------
+ * 2D stabilization.
+ */
 
 /**
  * Get stabilization data (translation, scaling and angle) for a given frame.
@@ -686,7 +771,9 @@ void BKE_tracking_dopesheet_tag_update(struct MovieTracking *tracking);
  */
 void BKE_tracking_dopesheet_update(struct MovieTracking *tracking);
 
-/* **** Query/search **** */
+/* --------------------------------------------------------------------
+ * Query and search.
+ */
 
 /**
  * \note Returns NULL if the track comes from camera object,.
@@ -722,7 +809,9 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
     char *rna_path,
     size_t rna_path_len);
 
-/* **** Utility macros **** */
+/* --------------------------------------------------------------------
+ * Utility macros.
+ */
 
 #define TRACK_SELECTED(track) \
   ((track)->flag & SELECT || (track)->pat_flag & SELECT || (track)->search_flag & SELECT)
@@ -744,22 +833,6 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
 #define MARKER_VISIBLE(sc, track, marker) \
   (((marker)->flag & MARKER_DISABLED) == 0 || ((sc)->flag & SC_HIDE_DISABLED) == 0 || \
    ((sc)->clip->tracking.act_track == track))
-
-#define TRACK_CLEAR_UPTO 0
-#define TRACK_CLEAR_REMAINED 1
-#define TRACK_CLEAR_ALL 2
-
-#define CLAMP_PAT_DIM 1
-#define CLAMP_PAT_POS 2
-#define CLAMP_SEARCH_DIM 3
-#define CLAMP_SEARCH_POS 4
-
-#define TRACK_AREA_NONE -1
-#define TRACK_AREA_POINT 1
-#define TRACK_AREA_PAT 2
-#define TRACK_AREA_SEARCH 4
-
-#define TRACK_AREA_ALL (TRACK_AREA_POINT | TRACK_AREA_PAT | TRACK_AREA_SEARCH)
 
 #ifdef __cplusplus
 }

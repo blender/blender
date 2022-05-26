@@ -54,6 +54,7 @@ bool IMB_colormanagement_space_is_scene_linear(struct ColorSpace *colorspace);
 bool IMB_colormanagement_space_is_srgb(struct ColorSpace *colorspace);
 bool IMB_colormanagement_space_name_is_data(const char *name);
 bool IMB_colormanagement_space_name_is_scene_linear(const char *name);
+bool IMB_colormanagement_space_name_is_srgb(const char *name);
 
 /**
  * Convert a float RGB triplet to the correct luminance weighted average.
@@ -71,9 +72,21 @@ BLI_INLINE float IMB_colormanagement_get_luminance(const float rgb[3]);
  * Byte equivalent of #IMB_colormanagement_get_luminance().
  */
 BLI_INLINE unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char[3]);
-BLI_INLINE void IMB_colormanagement_xyz_to_rgb(float rgb[3], const float xyz[3]);
-BLI_INLINE void IMB_colormanagement_rgb_to_xyz(float xyz[3], const float rgb[3]);
-const float *IMB_colormanagement_get_xyz_to_rgb(void);
+
+/**
+ * Conversion between scene linear and other color spaces.
+ */
+BLI_INLINE void IMB_colormanagement_xyz_to_scene_linear(float scene_linear[3], const float xyz[3]);
+BLI_INLINE void IMB_colormanagement_scene_linear_to_xyz(float xyz[3], const float scene_linear[3]);
+BLI_INLINE void IMB_colormanagement_rec709_to_scene_linear(float scene_linear[3],
+                                                           const float rec709[3]);
+BLI_INLINE void IMB_colormanagement_scene_linear_to_rec709(float rec709[3],
+                                                           const float scene_linear[3]);
+BLI_INLINE void IMB_colormanagement_aces_to_scene_linear(float scene_linear[3],
+                                                         const float aces[3]);
+BLI_INLINE void IMB_colormanagement_scene_linear_to_aces(float aces[3],
+                                                         const float scene_linear[3]);
+const float *IMB_colormanagement_get_xyz_to_scene_linear(void);
 
 /** \} */
 
@@ -187,15 +200,19 @@ void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
  * - Color picking values 0..1 map to scene linear values in the 0..1 range,
  *   so that picked albedo values are energy conserving.
  */
-void IMB_colormanagement_scene_linear_to_color_picking_v3(float pixel[3]);
-void IMB_colormanagement_color_picking_to_scene_linear_v3(float pixel[3]);
+void IMB_colormanagement_scene_linear_to_color_picking_v3(float color_picking[3],
+                                                          const float scene_linear[3]);
+void IMB_colormanagement_color_picking_to_scene_linear_v3(float scene_linear[3],
+                                                          const float color_picking[3]);
 
 /**
  * Conversion between sRGB, for rare cases like hex color or copy/pasting
  * between UI theme and scene linear colors.
  */
-void IMB_colormanagement_scene_linear_to_srgb_v3(float pixel[3]);
-void IMB_colormanagement_srgb_to_scene_linear_v3(float pixel[3]);
+BLI_INLINE void IMB_colormanagement_scene_linear_to_srgb_v3(float srgb[3],
+                                                            const float scene_linear[3]);
+BLI_INLINE void IMB_colormanagement_srgb_to_scene_linear_v3(float scene_linear[3],
+                                                            const float srgb[3]);
 
 /**
  * Convert pixel from scene linear to display space using default view
@@ -494,6 +511,18 @@ enum {
   COLOR_ROLE_DEFAULT_FLOAT,
   COLOR_ROLE_DATA,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rendering Tables
+ * \{ */
+
+void IMB_colormanagement_blackbody_temperature_to_rgb_table(float *r_table,
+                                                            const int width,
+                                                            const float min,
+                                                            const float max);
+void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, const int width);
 
 /** \} */
 

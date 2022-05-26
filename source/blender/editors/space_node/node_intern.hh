@@ -31,7 +31,9 @@ struct wmKeyConfig;
 struct wmWindow;
 
 /* Outside of blender namespace to avoid Python documentation build error with `ctypes`. */
+extern "C" {
 extern const char *node_context_dir[];
+};
 
 namespace blender::ed::space_node {
 
@@ -127,8 +129,6 @@ ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
  */
 float2 space_node_group_offset(const SpaceNode &snode);
 
-rctf node_frame_rect_inside(const bNode &node);
-
 int node_get_resize_cursor(NodeResizeDirection directions);
 /**
  * Usual convention here would be #node_socket_get_color(),
@@ -164,6 +164,9 @@ void node_operatortypes();
 void node_keymap(wmKeyConfig *keyconf);
 
 /* node_select.cc */
+
+rctf node_frame_rect_inside(const bNode &node);
+bool node_or_socket_isect_event(bContext *C, const wmEvent *event);
 
 void node_deselect_all(SpaceNode &snode);
 void node_socket_select(bNode *node, bNodeSocket &sock);

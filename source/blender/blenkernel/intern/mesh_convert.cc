@@ -12,6 +12,7 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
@@ -889,8 +890,15 @@ static void object_for_curve_to_mesh_free(Object *temp_object)
     curve.editnurb = nullptr;
   }
 
-  BKE_id_free(nullptr, temp_object->data);
+  /* Only free the final object data if it is *not* stored in the #data_eval field. This is still
+   * necessary because #temp_object's data could be replaced by a #Curve data-block that isn't also
+   * assigned to #data_eval. */
+  const bool object_data_stored_in_data_eval = final_object_data == temp_object->runtime.data_eval;
+
   BKE_id_free(nullptr, temp_object);
+  if (!object_data_stored_in_data_eval) {
+    BKE_id_free(nullptr, final_object_data);
+  }
 }
 
 /**
@@ -936,24 +944,9 @@ static void curve_to_mesh_eval_ensure(Object &object)
   BKE_object_runtime_free_data(&taper_object);
 }
 
-/* Necessary because #BKE_object_get_evaluated_mesh doesn't look in the geometry set yet. */
-static const Mesh *get_evaluated_mesh_from_object(const Object *object)
-{
-  const Mesh *mesh = BKE_object_get_evaluated_mesh(object);
-  if (mesh) {
-    return mesh;
-  }
-  GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval;
-  if (geometry_set_eval) {
-    return geometry_set_eval->get_mesh_for_read();
-  }
-  return nullptr;
-}
-
 static const Curves *get_evaluated_curves_from_object(const Object *object)
 {
-  GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval;
-  if (geometry_set_eval) {
+  if (GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval) {
     return geometry_set_eval->get_curves_for_read();
   }
   return nullptr;
@@ -961,12 +954,10 @@ static const Curves *get_evaluated_curves_from_object(const Object *object)
 
 static Mesh *mesh_new_from_evaluated_curve_type_object(const Object *evaluated_object)
 {
-  const Mesh *mesh = get_evaluated_mesh_from_object(evaluated_object);
-  if (mesh) {
+  if (const Mesh *mesh = BKE_object_get_evaluated_mesh(evaluated_object)) {
     return BKE_mesh_copy_for_eval(mesh, false);
   }
-  const Curves *curves = get_evaluated_curves_from_object(evaluated_object);
-  if (curves) {
+  if (const Curves *curves = get_evaluated_curves_from_object(evaluated_object)) {
     return blender::bke::curve_to_wire_mesh(blender::bke::CurvesGeometry::wrap(curves->geometry));
   }
   return nullptr;
@@ -1385,7 +1376,7 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
   for (i = 0; i < tot; i++) {
     CustomDataLayer *layer =
         &mesh_src->vdata.layers[CustomData_get_layer_index_n(&mesh_src->vdata, CD_SHAPEKEY, i)];
-    float(*cos)[3], (*kbcos)[3];
+    float(*kbcos)[3];
 
     for (kb = (KeyBlock *)mesh_dst->key->block.first; kb; kb = kb->next) {
       if (kb->uid == layer->uid) {
@@ -1402,7 +1393,8 @@ static void shapekey_layers_to_keyblocks(Mesh *mesh_src, Mesh *mesh_dst, int act
       MEM_freeN(kb->data);
     }
 
-    cos = (float(*)[3])CustomData_get_layer_n(&mesh_src->vdata, CD_SHAPEKEY, i);
+    const float(*cos)[3] = (const float(*)[3])CustomData_get_layer_n(
+        &mesh_src->vdata, CD_SHAPEKEY, i);
     kb->totelem = mesh_src->totvert;
 
     kb->data = kbcos = (float(*)[3])MEM_malloc_arrayN(kb->totelem, sizeof(float[3]), __func__);

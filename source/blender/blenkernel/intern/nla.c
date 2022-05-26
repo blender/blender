@@ -244,22 +244,36 @@ void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, const ListBase *src, const 
   }
 }
 
-/* Set adt_dest->actstrip to the strip with the same index as adt_source->actstrip. */
-static void update_active_strip(AnimData *adt_dest,
-                                NlaTrack *track_dest,
-                                const AnimData *adt_source,
-                                NlaTrack *track_source)
+static void update_active_strip_from_listbase(AnimData *adt_dest,
+                                              NlaTrack *track_dest,
+                                              const NlaStrip *active_strip,
+                                              const ListBase /* NlaStrip */ *strips_source)
 {
-  BLI_assert(BLI_listbase_count(&track_source->strips) == BLI_listbase_count(&track_dest->strips));
-
   NlaStrip *strip_dest = track_dest->strips.first;
-  LISTBASE_FOREACH (NlaStrip *, strip_source, &track_source->strips) {
-    if (strip_source == adt_source->actstrip) {
+  LISTBASE_FOREACH (const NlaStrip *, strip_source, strips_source) {
+    if (strip_source == active_strip) {
       adt_dest->actstrip = strip_dest;
+      return;
+    }
+
+    if (strip_source->type == NLASTRIP_TYPE_META) {
+      update_active_strip_from_listbase(adt_dest, track_dest, active_strip, &strip_source->strips);
     }
 
     strip_dest = strip_dest->next;
   }
+}
+
+/* Set adt_dest->actstrip to the strip with the same index as adt_source->actstrip. */
+static void update_active_strip(AnimData *adt_dest,
+                                NlaTrack *track_dest,
+                                const AnimData *adt_source,
+                                const NlaTrack *track_source)
+{
+  BLI_assert(BLI_listbase_count(&track_source->strips) == BLI_listbase_count(&track_dest->strips));
+
+  update_active_strip_from_listbase(
+      adt_dest, track_dest, adt_source->actstrip, &track_source->strips);
 }
 
 /* Set adt_dest->act_track to the track with the same index as adt_source->act_track. */
@@ -272,20 +286,20 @@ static void update_active_track(AnimData *adt_dest, const AnimData *adt_source)
   LISTBASE_FOREACH (NlaTrack *, track_source, &adt_source->nla_tracks) {
     if (track_source == adt_source->act_track) {
       adt_dest->act_track = track_dest;
-      /* Assumption: the active strip is on the active track. */
-      update_active_strip(adt_dest, track_dest, adt_source, track_source);
     }
+    update_active_strip(adt_dest, track_dest, adt_source, track_source);
 
     track_dest = track_dest->next;
   }
 
-  /* If the above assumption failed to hold, do a more thorough search for the active strip. */
-  if (adt_source->actstrip != NULL && adt_dest->actstrip == NULL) {
-    nla_tweakmode_find_active(&adt_source->nla_tracks, &track_dest, &adt_dest->actstrip);
+#ifndef NDEBUG
+  {
+    const bool source_has_actstrip = adt_source->actstrip != NULL;
+    const bool dest_has_actstrip = adt_dest->actstrip != NULL;
+    BLI_assert_msg(source_has_actstrip == dest_has_actstrip,
+                   "Active strip did not copy correctly");
   }
-
-  BLI_assert_msg((adt_source->actstrip == NULL) == (adt_dest->actstrip == NULL),
-                 "Active strip did not copy correctly");
+#endif
 }
 
 void BKE_nla_tracks_copy_from_adt(Main *bmain,
@@ -1171,24 +1185,33 @@ bool BKE_nlatrack_is_nonlocal_in_liboverride(const ID *id, const NlaTrack *nlt)
 
 /* NLA Strips -------------------------------------- */
 
-NlaStrip *BKE_nlastrip_find_active(NlaTrack *nlt)
+static NlaStrip *nlastrip_find_active(ListBase /* NlaStrip */ *strips)
 {
-  NlaStrip *strip;
-
-  /* sanity check */
-  if (ELEM(NULL, nlt, nlt->strips.first)) {
-    return NULL;
-  }
-
-  /* try to find the first active strip */
-  for (strip = nlt->strips.first; strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
       return strip;
     }
+
+    if (strip->type != NLASTRIP_TYPE_META) {
+      continue;
+    }
+
+    NlaStrip *inner_active = nlastrip_find_active(&strip->strips);
+    if (inner_active != NULL) {
+      return inner_active;
+    }
   }
 
-  /* none found */
   return NULL;
+}
+
+NlaStrip *BKE_nlastrip_find_active(NlaTrack *nlt)
+{
+  if (nlt == NULL) {
+    return NULL;
+  }
+
+  return nlastrip_find_active(&nlt->strips);
 }
 
 void BKE_nlastrip_set_active(AnimData *adt, NlaStrip *strip)

@@ -36,7 +36,7 @@ bvec4 gather_edges(vec2 uv, uint ref)
 #ifdef GPU_ARB_texture_gather
   ids = textureGather(outlineId, uv);
 #else
-  vec3 ofs = vec3(0.5, 0.5, -0.5) * drw_view.viewport_size_inversey;
+  vec3 ofs = vec3(0.5, 0.5, -0.5) * drw_view.viewport_size_inverse.xyy;
   ids.x = textureLod(outlineId, uv - ofs.xz, 0.0).r;
   ids.y = textureLod(outlineId, uv + ofs.xy, 0.0).r;
   ids.z = textureLod(outlineId, uv + ofs.xz, 0.0).r;
@@ -347,7 +347,7 @@ void main()
       line_end = vec2(0.0, 0.5);
       break;
     default:
-      /* Ensure values are assigned to, avoids undefined behaviour for
+      /* Ensure values are assigned to, avoids undefined behavior for
        * divergent control-flow. This can occur if discard is called
        * as discard is not treated as a return in Metal 2.2. So
        * side-effects can still cause problems. */

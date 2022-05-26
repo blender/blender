@@ -872,7 +872,7 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
     case IDP_ID:
       return (IDP_Id(prop1) == IDP_Id(prop2));
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
 

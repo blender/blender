@@ -75,6 +75,7 @@ static void foreach_libblock_remap_callback_skip(const ID *UNUSED(id_owner),
 {
   ID *id = *id_ptr;
   BLI_assert(id != NULL);
+
   if (is_indirect) {
     id->runtime.remap.skipped_indirect++;
   }
@@ -82,8 +83,9 @@ static void foreach_libblock_remap_callback_skip(const ID *UNUSED(id_owner),
     id->runtime.remap.skipped_direct++;
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
   }
+
   if (cb_flag & IDWALK_CB_USER) {
     id->runtime.remap.skipped_refcounted++;
   }
@@ -553,7 +555,6 @@ static void libblock_remap_foreach_idpair_cb(ID *old_id, ID *new_id, void *user_
                new_id ? new_id->name : "<NULL>",
                new_id,
                old_id->us - skipped_refcounted);
-    BLI_assert(0);
   }
 
   const int skipped_direct = old_id->runtime.remap.skipped_direct;

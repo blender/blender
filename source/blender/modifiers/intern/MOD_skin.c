@@ -881,34 +881,29 @@ static int calc_edge_subdivisions(const MVert *mvert,
 
 /* Take a Mesh and subdivide its edges to keep skin nodes
  * reasonably close. */
-static Mesh *subdivide_base(Mesh *orig)
+static Mesh *subdivide_base(const Mesh *orig)
 {
-  Mesh *result;
-  MVertSkin *orignode, *outnode;
-  MVert *origvert, *outvert;
-  MEdge *origedge, *outedge, *e;
-  MDeformVert *origdvert, *outdvert;
-  int orig_vert_num, orig_edge_num;
-  int subd_num, *degree, *edge_subd;
+  const MEdge *e;
+  int subd_num;
   int i, j, k, u, v;
   float radrat;
 
-  orignode = CustomData_get_layer(&orig->vdata, CD_MVERT_SKIN);
-  origvert = orig->mvert;
-  origedge = orig->medge;
-  origdvert = orig->dvert;
-  orig_vert_num = orig->totvert;
-  orig_edge_num = orig->totedge;
+  const MVertSkin *orignode = CustomData_get_layer(&orig->vdata, CD_MVERT_SKIN);
+  const MVert *origvert = orig->mvert;
+  const MEdge *origedge = orig->medge;
+  const MDeformVert *origdvert = orig->dvert;
+  int orig_vert_num = orig->totvert;
+  int orig_edge_num = orig->totedge;
 
   /* Get degree of all vertices */
-  degree = MEM_calloc_arrayN(orig_vert_num, sizeof(int), "degree");
+  int *degree = MEM_calloc_arrayN(orig_vert_num, sizeof(int), "degree");
   for (i = 0; i < orig_edge_num; i++) {
     degree[origedge[i].v1]++;
     degree[origedge[i].v2]++;
   }
 
   /* Per edge, store how many subdivisions are needed */
-  edge_subd = MEM_calloc_arrayN((uint)orig_edge_num, sizeof(int), "edge_subd");
+  int *edge_subd = MEM_calloc_arrayN((uint)orig_edge_num, sizeof(int), "edge_subd");
   for (i = 0, subd_num = 0; i < orig_edge_num; i++) {
     edge_subd[i] += calc_edge_subdivisions(origvert, orignode, &origedge[i], degree);
     BLI_assert(edge_subd[i] >= 0);
@@ -918,13 +913,13 @@ static Mesh *subdivide_base(Mesh *orig)
   MEM_freeN(degree);
 
   /* Allocate output mesh */
-  result = BKE_mesh_new_nomain_from_template(
+  Mesh *result = BKE_mesh_new_nomain_from_template(
       orig, orig_vert_num + subd_num, orig_edge_num + subd_num, 0, 0, 0);
 
-  outvert = result->mvert;
-  outedge = result->medge;
-  outnode = CustomData_get_layer(&result->vdata, CD_MVERT_SKIN);
-  outdvert = result->dvert;
+  MVert *outvert = result->mvert;
+  MEdge *outedge = result->medge;
+  MVertSkin *outnode = CustomData_get_layer(&result->vdata, CD_MVERT_SKIN);
+  MDeformVert *outdvert = result->dvert;
 
   /* Copy original vertex data */
   CustomData_copy_data(&orig->vdata, &result->vdata, 0, 0, orig_vert_num);

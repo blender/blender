@@ -489,22 +489,24 @@ static void panelRegister(ARegionType *region_type)
       region_type, "texture", "Texture", NULL, texture_panel_draw, panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
 {
-  const WarpModifierData *tmd = (const WarpModifierData *)md;
+  const WarpModifierData *wmd = (const WarpModifierData *)md;
 
-  if (tmd->curfalloff) {
-    BKE_curvemapping_blend_write(writer, tmd->curfalloff);
+  BLO_write_struct(writer, WarpModifierData, wmd);
+
+  if (wmd->curfalloff) {
+    BKE_curvemapping_blend_write(writer, wmd->curfalloff);
   }
 }
 
 static void blendRead(BlendDataReader *reader, ModifierData *md)
 {
-  WarpModifierData *tmd = (WarpModifierData *)md;
+  WarpModifierData *wmd = (WarpModifierData *)md;
 
-  BLO_read_data_address(reader, &tmd->curfalloff);
-  if (tmd->curfalloff) {
-    BKE_curvemapping_blend_read(reader, tmd->curfalloff);
+  BLO_read_data_address(reader, &wmd->curfalloff);
+  if (wmd->curfalloff) {
+    BKE_curvemapping_blend_read(reader, wmd->curfalloff);
   }
 }
 

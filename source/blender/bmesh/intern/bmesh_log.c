@@ -1069,6 +1069,7 @@ static void bm_log_edges_unmake(
     BMesh *bm, BMLog *log, GHash *edges, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   GHashIterator gh_iter;
+
   GHASH_ITER (gh_iter, edges) {
     BMLogEdge *le = BLI_ghashIterator_getValue(&gh_iter);
     BMEdge *e = bm_log_edge_from_id(log, le->head.id);

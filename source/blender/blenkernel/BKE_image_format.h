@@ -76,6 +76,8 @@ char BKE_imtype_from_arg(const char *arg);
 void BKE_image_format_from_imbuf(struct ImageFormatData *im_format, const struct ImBuf *imbuf);
 void BKE_image_format_to_imbuf(struct ImBuf *ibuf, const struct ImageFormatData *imf);
 
+bool BKE_image_format_is_byte(const struct ImageFormatData *imf);
+
 /* Color Management */
 
 void BKE_image_format_color_management_copy(struct ImageFormatData *imf,

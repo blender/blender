@@ -770,7 +770,7 @@ static void rna_Curve_active_spline_set(PointerRNA *ptr,
   }
 }
 
-static char *rna_Curve_spline_path(PointerRNA *ptr)
+static char *rna_Curve_spline_path(const PointerRNA *ptr)
 {
   Curve *cu = (Curve *)ptr->owner_id;
   ListBase *nubase = BKE_curve_nurbs_get(cu);
@@ -786,7 +786,7 @@ static char *rna_Curve_spline_path(PointerRNA *ptr)
 }
 
 /* use for both bezier and nurbs */
-static char *rna_Curve_spline_point_path(PointerRNA *ptr)
+static char *rna_Curve_spline_point_path(const PointerRNA *ptr)
 {
   Curve *cu = (Curve *)ptr->owner_id;
   Nurb *nu;
@@ -808,10 +808,10 @@ static char *rna_Curve_spline_point_path(PointerRNA *ptr)
   }
 }
 
-static char *rna_TextBox_path(PointerRNA *ptr)
+static char *rna_TextBox_path(const PointerRNA *ptr)
 {
-  Curve *cu = (Curve *)ptr->owner_id;
-  TextBox *tb = ptr->data;
+  const Curve *cu = (Curve *)ptr->owner_id;
+  const TextBox *tb = ptr->data;
   int index = (int)(tb - cu->tb);
 
   if (index >= 0 && index < cu->totbox) {

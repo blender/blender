@@ -36,16 +36,16 @@
 
 /* own include */
 
-void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
+void paintface_flush_flags(bContext *C, Object *ob, short flag)
 {
   Mesh *me = BKE_mesh_from_object(ob);
   MPoly *polys, *mp_orig;
-  const int *index_array = NULL;
+  const int *index_array = nullptr;
   int totpoly;
 
   BLI_assert((flag & ~(SELECT | ME_HIDE)) == 0);
 
-  if (me == NULL) {
+  if (me == nullptr) {
     return;
   }
 
@@ -60,7 +60,7 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 
-  if (ob_eval == NULL) {
+  if (ob_eval == nullptr) {
     return;
   }
 
@@ -68,7 +68,7 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
   Mesh *me_eval = (Mesh *)ob_eval->runtime.data_eval;
   bool updated = false;
 
-  if (me_orig != NULL && me_eval != NULL && me_orig->totpoly == me->totpoly) {
+  if (me_orig != nullptr && me_eval != nullptr && me_orig->totpoly == me->totpoly) {
     /* Update the COW copy of the mesh. */
     for (int i = 0; i < me->totpoly; i++) {
       me_orig->mpoly[i].flag = me->mpoly[i].flag;
@@ -79,7 +79,7 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
       updated = true;
     }
     /* Mesh polys => Final derived polys */
-    else if ((index_array = CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX))) {
+    else if ((index_array = (const int *)CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX))) {
       polys = me_eval->mpoly;
       totpoly = me_eval->totpoly;
 
@@ -104,10 +104,10 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
       BKE_mesh_batch_cache_dirty_tag(me_eval, BKE_MESH_BATCH_DIRTY_SELECT_PAINT);
     }
 
-    DEG_id_tag_update(ob->data, ID_RECALC_SELECT);
+    DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_SELECT);
   }
   else {
-    DEG_id_tag_update(ob->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+    DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
   }
 
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
@@ -115,18 +115,13 @@ void paintface_flush_flags(struct bContext *C, Object *ob, short flag)
 
 void paintface_hide(bContext *C, Object *ob, const bool unselected)
 {
-  Mesh *me;
-  MPoly *mpoly;
-  int a;
-
-  me = BKE_mesh_from_object(ob);
-  if (me == NULL || me->totpoly == 0) {
+  Mesh *me = BKE_mesh_from_object(ob);
+  if (me == nullptr || me->totpoly == 0) {
     return;
   }
 
-  mpoly = me->mpoly;
-  a = me->totpoly;
-  while (a--) {
+  for (int i = 0; i < me->totpoly; i++) {
+    MPoly *mpoly = &me->mpoly[i];
     if ((mpoly->flag & ME_HIDE) == 0) {
       if (((mpoly->flag & ME_FACE_SEL) == 0) == unselected) {
         mpoly->flag |= ME_HIDE;
@@ -136,8 +131,6 @@ void paintface_hide(bContext *C, Object *ob, const bool unselected)
     if (mpoly->flag & ME_HIDE) {
       mpoly->flag &= ~ME_FACE_SEL;
     }
-
-    mpoly++;
   }
 
   BKE_mesh_flush_hidden_from_polys(me);
@@ -147,23 +140,17 @@ void paintface_hide(bContext *C, Object *ob, const bool unselected)
 
 void paintface_reveal(bContext *C, Object *ob, const bool select)
 {
-  Mesh *me;
-  MPoly *mpoly;
-  int a;
-
-  me = BKE_mesh_from_object(ob);
-  if (me == NULL || me->totpoly == 0) {
+  Mesh *me = BKE_mesh_from_object(ob);
+  if (me == nullptr || me->totpoly == 0) {
     return;
   }
 
-  mpoly = me->mpoly;
-  a = me->totpoly;
-  while (a--) {
+  for (int i = 0; i < me->totpoly; i++) {
+    MPoly *mpoly = &me->mpoly[i];
     if (mpoly->flag & ME_HIDE) {
       SET_FLAG_FROM_TEST(mpoly->flag, select, ME_FACE_SEL);
       mpoly->flag &= ~ME_HIDE;
     }
-    mpoly++;
   }
 
   BKE_mesh_flush_hidden_from_polys(me);
@@ -175,9 +162,6 @@ void paintface_reveal(bContext *C, Object *ob, const bool select)
 
 static void select_linked_tfaces_with_seams(Mesh *me, const uint index, const bool select)
 {
-  MPoly *mp;
-  MLoop *ml;
-  int a, b;
   bool do_it = true;
   bool mark = false;
 
@@ -186,20 +170,20 @@ static void select_linked_tfaces_with_seams(Mesh *me, const uint index, const bo
 
   if (index != (uint)-1) {
     /* only put face under cursor in array */
-    mp = &me->mpoly[index];
+    MPoly *mp = &me->mpoly[index];
     BKE_mesh_poly_edgebitmap_insert(edge_tag, mp, me->mloop + mp->loopstart);
     BLI_BITMAP_ENABLE(poly_tag, index);
   }
   else {
     /* fill array by selection */
-    mp = me->mpoly;
-    for (a = 0; a < me->totpoly; a++, mp++) {
+    for (int i = 0; i < me->totpoly; i++) {
+      MPoly *mp = &me->mpoly[i];
       if (mp->flag & ME_HIDE) {
         /* pass */
       }
       else if (mp->flag & ME_FACE_SEL) {
         BKE_mesh_poly_edgebitmap_insert(edge_tag, mp, me->mloop + mp->loopstart);
-        BLI_BITMAP_ENABLE(poly_tag, a);
+        BLI_BITMAP_ENABLE(poly_tag, i);
       }
     }
   }
@@ -208,17 +192,17 @@ static void select_linked_tfaces_with_seams(Mesh *me, const uint index, const bo
     do_it = false;
 
     /* expand selection */
-    mp = me->mpoly;
-    for (a = 0; a < me->totpoly; a++, mp++) {
+    for (int i = 0; i < me->totpoly; i++) {
+      MPoly *mp = &me->mpoly[i];
       if (mp->flag & ME_HIDE) {
         continue;
       }
 
-      if (!BLI_BITMAP_TEST(poly_tag, a)) {
+      if (!BLI_BITMAP_TEST(poly_tag, i)) {
         mark = false;
 
-        ml = me->mloop + mp->loopstart;
-        for (b = 0; b < mp->totloop; b++, ml++) {
+        MLoop *ml = me->mloop + mp->loopstart;
+        for (int b = 0; b < mp->totloop; b++, ml++) {
           if ((me->medge[ml->e].flag & ME_SEAM) == 0) {
             if (BLI_BITMAP_TEST(edge_tag, ml->e)) {
               mark = true;
@@ -228,7 +212,7 @@ static void select_linked_tfaces_with_seams(Mesh *me, const uint index, const bo
         }
 
         if (mark) {
-          BLI_BITMAP_ENABLE(poly_tag, a);
+          BLI_BITMAP_ENABLE(poly_tag, i);
           BKE_mesh_poly_edgebitmap_insert(edge_tag, mp, me->mloop + mp->loopstart);
           do_it = true;
         }
@@ -238,8 +222,9 @@ static void select_linked_tfaces_with_seams(Mesh *me, const uint index, const bo
 
   MEM_freeN(edge_tag);
 
-  for (a = 0, mp = me->mpoly; a < me->totpoly; a++, mp++) {
-    if (BLI_BITMAP_TEST(poly_tag, a)) {
+  for (int i = 0; i < me->totpoly; i++) {
+    MPoly *mp = &me->mpoly[i];
+    if (BLI_BITMAP_TEST(poly_tag, i)) {
       SET_FLAG_FROM_TEST(mp->flag, select, ME_FACE_SEL);
     }
   }
@@ -249,11 +234,10 @@ static void select_linked_tfaces_with_seams(Mesh *me, const uint index, const bo
 
 void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const bool select)
 {
-  Mesh *me;
   uint index = (uint)-1;
 
-  me = BKE_mesh_from_object(ob);
-  if (me == NULL || me->totpoly == 0) {
+  Mesh *me = BKE_mesh_from_object(ob);
+  if (me == nullptr || me->totpoly == 0) {
     return;
   }
 
@@ -270,34 +254,27 @@ void paintface_select_linked(bContext *C, Object *ob, const int mval[2], const b
 
 bool paintface_deselect_all_visible(bContext *C, Object *ob, int action, bool flush_flags)
 {
-  Mesh *me;
-  MPoly *mpoly;
-  int a;
-
-  me = BKE_mesh_from_object(ob);
-  if (me == NULL) {
+  Mesh *me = BKE_mesh_from_object(ob);
+  if (me == nullptr) {
     return false;
   }
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
 
-    mpoly = me->mpoly;
-    a = me->totpoly;
-    while (a--) {
+    for (int i = 0; i < me->totpoly; i++) {
+      MPoly *mpoly = &me->mpoly[i];
       if ((mpoly->flag & ME_HIDE) == 0 && mpoly->flag & ME_FACE_SEL) {
         action = SEL_DESELECT;
         break;
       }
-      mpoly++;
     }
   }
 
   bool changed = false;
 
-  mpoly = me->mpoly;
-  a = me->totpoly;
-  while (a--) {
+  for (int i = 0; i < me->totpoly; i++) {
+    MPoly *mpoly = &me->mpoly[i];
     if ((mpoly->flag & ME_HIDE) == 0) {
       switch (action) {
         case SEL_SELECT:
@@ -318,7 +295,6 @@ bool paintface_deselect_all_visible(bContext *C, Object *ob, int action, bool fl
           break;
       }
     }
-    mpoly++;
   }
 
   if (changed) {
@@ -331,30 +307,25 @@ bool paintface_deselect_all_visible(bContext *C, Object *ob, int action, bool fl
 
 bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 {
-  const Mesh *me;
-  const MPoly *mp;
-  const MLoop *ml;
-  const MVert *mvert;
-  int a, b;
   bool ok = false;
   float vec[3], bmat[3][3];
 
-  me = BKE_mesh_from_object(ob);
+  const Mesh *me = BKE_mesh_from_object(ob);
   if (!me || !me->mloopuv) {
     return ok;
   }
+  const MVert *mvert = me->mvert;
 
   copy_m3_m4(bmat, ob->obmat);
 
-  mvert = me->mvert;
-  mp = me->mpoly;
-  for (a = me->totpoly; a > 0; a--, mp++) {
+  for (int i = 0; i < me->totpoly; i++) {
+    MPoly *mp = &me->mpoly[i];
     if (mp->flag & ME_HIDE || !(mp->flag & ME_FACE_SEL)) {
       continue;
     }
 
-    ml = me->mloop + mp->loopstart;
-    for (b = 0; b < mp->totloop; b++, ml++) {
+    const MLoop *ml = me->mloop + mp->loopstart;
+    for (int b = 0; b < mp->totloop; b++, ml++) {
       mul_v3_m3v3(vec, bmat, mvert[ml->v].co);
       add_v3_v3v3(vec, vec, ob->obmat[3]);
       minmax_v3v3_v3(r_min, r_max, vec);
@@ -366,19 +337,18 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
   return ok;
 }
 
-bool paintface_mouse_select(struct bContext *C,
+bool paintface_mouse_select(bContext *C,
                             const int mval[2],
-                            const struct SelectPick_Params *params,
+                            const SelectPick_Params *params,
                             Object *ob)
 {
-  Mesh *me;
-  MPoly *mpoly_sel = NULL;
+  MPoly *mpoly_sel = nullptr;
   uint index;
   bool changed = false;
   bool found = false;
 
   /* Get the face under the cursor */
-  me = BKE_mesh_from_object(ob);
+  Mesh *me = BKE_mesh_from_object(ob);
 
   if (ED_mesh_pick_face(C, ob, mval, ED_MESH_PICK_DEFAULT_FACE_DIST, &index)) {
     if (index < me->totpoly) {
@@ -444,11 +414,11 @@ void paintvert_flush_flags(Object *ob)
   Mesh *me = BKE_mesh_from_object(ob);
   Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
   MVert *mvert_eval, *mv;
-  const int *index_array = NULL;
+  const int *index_array = nullptr;
   int totvert;
   int i;
 
-  if (me == NULL) {
+  if (me == nullptr) {
     return;
   }
 
@@ -456,11 +426,11 @@ void paintvert_flush_flags(Object *ob)
    * since this could become slow for realtime updates (circle-select for eg) */
   BKE_mesh_flush_select_from_verts(me);
 
-  if (me_eval == NULL) {
+  if (me_eval == nullptr) {
     return;
   }
 
-  index_array = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
+  index_array = (const int *)CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX);
 
   mvert_eval = me_eval->mvert;
   totvert = me_eval->totvert;
@@ -485,41 +455,34 @@ void paintvert_flush_flags(Object *ob)
   BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_ALL);
 }
 
-void paintvert_tag_select_update(struct bContext *C, struct Object *ob)
+void paintvert_tag_select_update(bContext *C, Object *ob)
 {
-  DEG_id_tag_update(ob->data, ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
+  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_COPY_ON_WRITE | ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
 }
 
 bool paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
 {
-  Mesh *me;
-  MVert *mvert;
-  int a;
-
-  me = BKE_mesh_from_object(ob);
-  if (me == NULL) {
+  Mesh *me = BKE_mesh_from_object(ob);
+  if (me == nullptr) {
     return false;
   }
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
 
-    mvert = me->mvert;
-    a = me->totvert;
-    while (a--) {
+    for (int i = 0; i < me->totvert; i++) {
+      MVert *mvert = &me->mvert[i];
       if ((mvert->flag & ME_HIDE) == 0 && mvert->flag & SELECT) {
         action = SEL_DESELECT;
         break;
       }
-      mvert++;
     }
   }
 
   bool changed = false;
-  mvert = me->mvert;
-  a = me->totvert;
-  while (a--) {
+  for (int i = 0; i < me->totvert; i++) {
+    MVert *mvert = &me->mvert[i];
     if ((mvert->flag & ME_HIDE) == 0) {
       switch (action) {
         case SEL_SELECT:
@@ -540,7 +503,6 @@ bool paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
           break;
       }
     }
-    mvert++;
   }
 
   if (changed) {
@@ -565,11 +527,8 @@ bool paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)
 void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags)
 {
   Mesh *me = BKE_mesh_from_object(ob);
-  MVert *mv;
-  MDeformVert *dv;
-  int a, tot;
 
-  if (me == NULL || me->dvert == NULL) {
+  if (me == nullptr || me->dvert == nullptr) {
     return;
   }
 
@@ -577,12 +536,11 @@ void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags)
     paintvert_deselect_all_visible(ob, SEL_DESELECT, false);
   }
 
-  dv = me->dvert;
-  tot = me->totvert;
-
-  for (a = 0, mv = me->mvert; a < tot; a++, mv++, dv++) {
+  for (int i = 0; i < me->totvert; i++) {
+    MVert *mv = &me->mvert[i];
+    MDeformVert *dv = &me->dvert[i];
     if ((mv->flag & ME_HIDE) == 0) {
-      if (dv->dw == NULL) {
+      if (dv->dw == nullptr) {
         /* if null weight then not grouped */
         mv->flag |= SELECT;
       }

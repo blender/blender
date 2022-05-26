@@ -1598,16 +1598,16 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
   }
 }
 
-static char *rna_Node_path(PointerRNA *ptr)
+static char *rna_Node_path(const PointerRNA *ptr)
 {
-  bNode *node = (bNode *)ptr->data;
+  const bNode *node = (bNode *)ptr->data;
   char name_esc[sizeof(node->name) * 2];
 
   BLI_str_escape(name_esc, node->name, sizeof(name_esc));
   return BLI_sprintfN("nodes[\"%s\"]", name_esc);
 }
 
-char *rna_Node_ImageUser_path(PointerRNA *ptr)
+char *rna_Node_ImageUser_path(const PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   bNode *node;
@@ -2756,7 +2756,7 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
   }
 }
 
-static char *rna_NodeSocket_path(PointerRNA *ptr)
+static char *rna_NodeSocket_path(const PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
@@ -3070,10 +3070,10 @@ static StructRNA *rna_NodeSocketInterface_refine(PointerRNA *ptr)
   }
 }
 
-static char *rna_NodeSocketInterface_path(PointerRNA *ptr)
+static char *rna_NodeSocketInterface_path(const PointerRNA *ptr)
 {
-  bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-  bNodeSocket *sock = (bNodeSocket *)ptr->data;
+  const bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
+  const bNodeSocket *sock = (bNodeSocket *)ptr->data;
   int socketindex;
 
   socketindex = BLI_findindex(&ntree->inputs, sock);

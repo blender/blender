@@ -946,7 +946,7 @@ TEST_F(RenderGraph, constant_fold_bright_contrast)
 TEST_F(RenderGraph, constant_fold_blackbody)
 {
   EXPECT_ANY_MESSAGE(log);
-  CORRECT_INFO_MESSAGE(log, "Folding Blackbody::Color to constant (3.94163, 0.226523, 0).");
+  CORRECT_INFO_MESSAGE(log, "Folding Blackbody::Color to constant (3.96553, 0.227897, 0).");
 
   builder
       .add_node(ShaderNodeBuilder<BlackbodyNode>(graph, "Blackbody").set("Temperature", 1200.0f))
