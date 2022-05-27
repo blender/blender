@@ -103,7 +103,9 @@ class GHOST_SystemWayland : public GHOST_System {
 
   GHOST_TSuccess setCursorVisibility(bool visible);
 
-  GHOST_TSuccess setCursorGrab(const GHOST_TGrabCursorMode mode, wl_surface *surface);
+  GHOST_TSuccess setCursorGrab(const GHOST_TGrabCursorMode mode,
+                               const GHOST_TGrabCursorMode mode_current,
+                               wl_surface *surface);
 
  private:
   struct display_t *d;

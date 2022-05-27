@@ -1920,6 +1920,8 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(bool visible)
 }
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mode,
+                                                  const GHOST_TGrabCursorMode mode_current,
+
                                                   wl_surface *surface)
 {
   /* ignore, if the required protocols are not supported */
@@ -1933,36 +1935,37 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
 
   input_t *input = d->inputs[0];
 
-  switch (mode) {
-    case GHOST_kGrabDisable:
-      if (input->relative_pointer) {
-        zwp_relative_pointer_v1_destroy(input->relative_pointer);
-        input->relative_pointer = nullptr;
-      }
-      if (input->locked_pointer) {
-        zwp_locked_pointer_v1_destroy(input->locked_pointer);
-        input->locked_pointer = nullptr;
-      }
-      break;
+  if (mode != GHOST_kGrabDisable) {
+    /* TODO(@campbellbarton): Support #GHOST_kGrabWrap,
+     * where the cursor moves but is constrained to a region. */
+    input->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
+        d->relative_pointer_manager, input->pointer);
+    zwp_relative_pointer_v1_add_listener(
+        input->relative_pointer, &relative_pointer_listener, input);
+    input->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(
+        d->pointer_constraints,
+        surface,
+        input->pointer,
+        nullptr,
+        ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
 
-    case GHOST_kGrabNormal:
-      break;
-    case GHOST_kGrabWrap:
-      input->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
-          d->relative_pointer_manager, input->pointer);
-      zwp_relative_pointer_v1_add_listener(
-          input->relative_pointer, &relative_pointer_listener, input);
-      input->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(
-          d->pointer_constraints,
-          surface,
-          input->pointer,
-          nullptr,
-          ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
-      break;
-
-    case GHOST_kGrabHide:
+    if (mode == GHOST_kGrabHide) {
       setCursorVisibility(false);
-      break;
+    }
+  }
+  else {
+    if (input->relative_pointer) {
+      zwp_relative_pointer_v1_destroy(input->relative_pointer);
+      input->relative_pointer = nullptr;
+    }
+    if (input->locked_pointer) {
+      zwp_locked_pointer_v1_destroy(input->locked_pointer);
+      input->locked_pointer = nullptr;
+    }
+
+    if (mode_current == GHOST_kGrabHide) {
+      setCursorVisibility(false);
+    }
   }
 
   return GHOST_kSuccess;
