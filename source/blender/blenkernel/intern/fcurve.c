@@ -351,8 +351,8 @@ FCurve *BKE_fcurve_find_by_rna(PointerRNA *ptr,
       NULL, ptr, prop, rnaindex, r_adt, r_action, r_driven, r_special);
 }
 
-FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *C,
-                                          PointerRNA *ptr,
+FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *UNUSED(C),
+                                          const PointerRNA *ptr,
                                           PropertyRNA *prop,
                                           int rnaindex,
                                           AnimData **r_animdata,
@@ -361,7 +361,6 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *C,
                                           bool *r_special)
 {
   FCurve *fcu = NULL;
-  PointerRNA tptr = *ptr;
 
   *r_driven = false;
   *r_special = false;
@@ -388,79 +387,51 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *C,
   }
 
   /* There must be some RNA-pointer + property combo. */
-  if (prop && tptr.owner_id && RNA_property_animateable(&tptr, prop)) {
-    AnimData *adt = BKE_animdata_from_id(tptr.owner_id);
-    int step = (
-        /* Always 1 in case we have no context (can't check in 'ancestors' of given RNA ptr). */
-        C ? 2 : 1);
-    char *path = NULL;
-
-    if (!adt && C) {
-      path = RNA_path_from_ID_to_property(&tptr, prop);
-      adt = BKE_animdata_from_id(tptr.owner_id);
-      step--;
-    }
-
-    /* Standard F-Curve - Animation (Action) or Drivers. */
-    while (adt && step--) {
-      if ((adt->action == NULL || adt->action->curves.first == NULL) &&
-          (adt->drivers.first == NULL)) {
-        continue;
-      }
-
-      /* XXX This function call can become a performance bottleneck. */
-      if (step) {
-        path = RNA_path_from_ID_to_property(&tptr, prop);
-      }
-      if (path == NULL) {
-        continue;
-      }
-
-      /* XXX: The logic here is duplicated with a function up above. */
-      /* animation takes priority over drivers. */
-      if (adt->action && adt->action->curves.first) {
-        fcu = BKE_fcurve_find(&adt->action->curves, path, rnaindex);
-
-        if (fcu && r_action) {
-          *r_action = adt->action;
-        }
-      }
-
-      /* If not animated, check if driven. */
-      if (!fcu && (adt->drivers.first)) {
-        fcu = BKE_fcurve_find(&adt->drivers, path, rnaindex);
-
-        if (fcu) {
-          if (r_animdata) {
-            *r_animdata = adt;
-          }
-          *r_driven = true;
-        }
-      }
-
-      if (fcu && r_action) {
-        if (r_animdata) {
-          *r_animdata = adt;
-        }
-        *r_action = adt->action;
-        break;
-      }
-
-      if (step) {
-        char *tpath = path ? path : RNA_path_from_ID_to_property(&tptr, prop);
-        if (tpath && tpath != path) {
-          MEM_freeN(path);
-          path = tpath;
-          adt = BKE_animdata_from_id(tptr.owner_id);
-        }
-        else {
-          adt = NULL;
-        }
-      }
-    }
-    MEM_SAFE_FREE(path);
+  if (!prop || !ptr->owner_id || !RNA_property_animateable(ptr, prop)) {
+    return fcu;
   }
 
+  AnimData *adt = BKE_animdata_from_id(ptr->owner_id);
+  if (adt == NULL) {
+    return fcu;
+  }
+
+  const bool has_action_fcurves = adt->action != NULL &&
+                                  !BLI_listbase_is_empty(&adt->action->curves);
+  const bool has_drivers = !BLI_listbase_is_empty(&adt->drivers);
+
+  /* XXX This function call can become a performance bottleneck. */
+  char *path = RNA_path_from_ID_to_property(ptr, prop);
+
+  /* Standard F-Curve - Animation (Action) or Drivers. */
+  /* Animation takes priority over drivers. */
+  /* XXX: The logic here is duplicated with a function up above. */
+  if (has_action_fcurves) {
+    fcu = BKE_fcurve_find(&adt->action->curves, path, rnaindex);
+
+    if (fcu) {
+      if (r_action) {
+        *r_action = adt->action;
+      }
+      if (r_animdata) {
+        *r_animdata = adt;
+      }
+    }
+  }
+
+  /* If not animated, check if driven. */
+  if (fcu == NULL && has_drivers) {
+    fcu = BKE_fcurve_find(&adt->drivers, path, rnaindex);
+
+    if (fcu) {
+      if (r_animdata) {
+        *r_animdata = adt;
+      }
+      *r_driven = true;
+    }
+  }
+
+  MEM_SAFE_FREE(path);
   return fcu;
 }
 

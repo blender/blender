@@ -284,7 +284,7 @@ bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, const int i
  */
 bool RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop);
 
-bool RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop);
+bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
 /**
  * \note Does not take into account editable status, this has to be checked separately

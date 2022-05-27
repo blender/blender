@@ -293,7 +293,7 @@ struct FCurve *BKE_fcurve_find_by_rna(struct PointerRNA *ptr,
  * temp hack needed for complex paths like texture ones.
  */
 struct FCurve *BKE_fcurve_find_by_rna_context_ui(struct bContext *C,
-                                                 struct PointerRNA *ptr,
+                                                 const struct PointerRNA *ptr,
                                                  struct PropertyRNA *prop,
                                                  int rnaindex,
                                                  struct AnimData **r_animdata,
