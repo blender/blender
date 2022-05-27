@@ -33,7 +33,7 @@ class GHOST_SystemSDL : public GHOST_System {
 
   bool processEvents(bool waitForEvent);
 
-  int setConsoleWindowState(GHOST_TConsoleWindowState action)
+  int setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
   {
     return 0;
   }
