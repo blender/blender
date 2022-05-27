@@ -311,7 +311,7 @@ void id_us_min(ID *id)
     const int limit = ID_FAKE_USERS(id);
 
     if (id->us <= limit) {
-      if (GS(id->name) != ID_IP) {
+      if (!ID_TYPE_IS_DEPRECATED(GS(id->name))) {
         /* Do not assert on deprecated ID types, we cannot really ensure that their ID refcounting
          * is valid... */
         CLOG_ERROR(&LOG,
@@ -590,11 +590,9 @@ static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
 
 bool BKE_id_copy_is_allowed(const ID *id)
 {
-#define LIB_ID_TYPES_NOCOPY \
-  ID_LI, ID_SCR, ID_WM, ID_WS, /* Not supported */ \
-      ID_IP                    /* Deprecated */
+#define LIB_ID_TYPES_NOCOPY ID_LI, ID_SCR, ID_WM, ID_WS /* Not supported */
 
-  return !ELEM(GS(id->name), LIB_ID_TYPES_NOCOPY);
+  return !ID_TYPE_IS_DEPRECATED(GS(id->name)) && !ELEM(GS(id->name), LIB_ID_TYPES_NOCOPY);
 
 #undef LIB_ID_TYPES_NOCOPY
 }
