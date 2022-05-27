@@ -1612,6 +1612,8 @@ GHOST_TSuccess GHOST_SystemX11::getButtons(GHOST_Buttons &buttons) const
     buttons.set(GHOST_kButtonMaskLeft, (mask_return & Button1Mask) != 0);
     buttons.set(GHOST_kButtonMaskMiddle, (mask_return & Button2Mask) != 0);
     buttons.set(GHOST_kButtonMaskRight, (mask_return & Button3Mask) != 0);
+    buttons.set(GHOST_kButtonMaskButton4, (mask_return & Button4Mask) != 0);
+    buttons.set(GHOST_kButtonMaskButton5, (mask_return & Button5Mask) != 0);
   }
   else {
     return GHOST_kFailure;
