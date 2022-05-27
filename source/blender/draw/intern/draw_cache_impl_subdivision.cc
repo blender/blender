@@ -69,6 +69,7 @@ enum {
   SHADER_PATCH_EVALUATION,
   SHADER_PATCH_EVALUATION_FVAR,
   SHADER_PATCH_EVALUATION_FACE_DOTS,
+  SHADER_PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS,
   SHADER_PATCH_EVALUATION_ORCO,
   SHADER_COMP_CUSTOM_DATA_INTERP_1D,
   SHADER_COMP_CUSTOM_DATA_INTERP_2D,
@@ -109,6 +110,7 @@ static const char *get_shader_code(int shader_type)
     case SHADER_PATCH_EVALUATION:
     case SHADER_PATCH_EVALUATION_FVAR:
     case SHADER_PATCH_EVALUATION_FACE_DOTS:
+    case SHADER_PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS:
     case SHADER_PATCH_EVALUATION_ORCO: {
       return datatoc_common_subdiv_patch_evaluation_comp_glsl;
     }
@@ -165,6 +167,9 @@ static const char *get_shader_name(int shader_type)
     case SHADER_PATCH_EVALUATION_FACE_DOTS: {
       return "subdiv patch evaluation face dots";
     }
+    case SHADER_PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS: {
+      return "subdiv patch evaluation face dots with normals";
+    }
     case SHADER_PATCH_EVALUATION_ORCO: {
       return "subdiv patch evaluation orco";
     }
@@ -210,6 +215,13 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
           "#define OSD_PATCH_BASIS_GLSL\n"
           "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n"
           "#define FDOTS_EVALUATION\n";
+    }
+    else if (shader_type == SHADER_PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS) {
+      defines =
+          "#define OSD_PATCH_BASIS_GLSL\n"
+          "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n"
+          "#define FDOTS_EVALUATION\n"
+          "#define FOTS_NORMALS\n";
     }
     else if (shader_type == SHADER_PATCH_EVALUATION_ORCO) {
       defines =
@@ -1670,7 +1682,9 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache *cache,
                                                                get_patch_param_format());
   evaluator->wrapPatchParamBuffer(evaluator, &patch_param_buffer_interface);
 
-  GPUShader *shader = get_patch_evaluation_shader(SHADER_PATCH_EVALUATION_FACE_DOTS);
+  GPUShader *shader = get_patch_evaluation_shader(
+      fdots_nor ? SHADER_PATCH_EVALUATION_FACE_DOTS_WITH_NORMALS :
+                  SHADER_PATCH_EVALUATION_FACE_DOTS);
   GPU_shader_bind(shader);
 
   int binding_point = 0;
@@ -1683,7 +1697,11 @@ void draw_subdiv_build_fdots_buffers(const DRWSubdivCache *cache,
   GPU_vertbuf_bind_as_ssbo(patch_index_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(patch_param_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(fdots_pos, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(fdots_nor, binding_point++);
+  /* F-dots normals may not be requested, still reserve the binding point. */
+  if (fdots_nor) {
+    GPU_vertbuf_bind_as_ssbo(fdots_nor, binding_point);
+  }
+  binding_point++;
   GPU_indexbuf_bind_as_ssbo(fdots_indices, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->extra_coarse_face_data, binding_point++);
   BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);

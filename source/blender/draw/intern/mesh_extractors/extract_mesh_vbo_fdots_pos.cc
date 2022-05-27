@@ -110,8 +110,11 @@ static void extract_fdots_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPUVertBuf *fdots_nor_vbo = cache->final.buff.vbo.fdots_nor;
   GPUIndexBuf *fdots_pos_ibo = cache->final.buff.ibo.fdots;
 
-  GPU_vertbuf_init_build_on_device(
-      fdots_nor_vbo, get_fdots_nor_format_subdiv(), subdiv_cache->num_coarse_poly);
+  /* The normals may not be requested. */
+  if (fdots_nor_vbo) {
+    GPU_vertbuf_init_build_on_device(
+        fdots_nor_vbo, get_fdots_nor_format_subdiv(), subdiv_cache->num_coarse_poly);
+  }
   GPU_vertbuf_init_build_on_device(
       fdots_pos_vbo, get_fdots_pos_format(), subdiv_cache->num_coarse_poly);
   GPU_indexbuf_init_build_on_device(fdots_pos_ibo, subdiv_cache->num_coarse_poly);
