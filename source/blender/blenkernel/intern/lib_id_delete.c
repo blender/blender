@@ -6,6 +6,8 @@
  * Contains management of ID's for freeing & deletion.
  */
 
+#include "CLG_log.h"
+
 #include "MEM_guardedalloc.h"
 
 /* all types are needed here, in order to do memory operations */
@@ -35,8 +37,7 @@
 #  include "BPY_extern.h"
 #endif
 
-/* Not used currently. */
-// static CLG_LogRef LOG = {.identifier = "bke.lib_id_delete"};
+static CLG_LogRef LOG = {.identifier = "bke.lib_id_delete"};
 
 void BKE_libblock_free_data(ID *id, const bool do_id_user)
 {
@@ -334,11 +335,13 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
     for (id = do_tagged_deletion ? tagged_deleted_ids.first : lb->first; id; id = id_next) {
       id_next = id->next;
       if (id->tag & tag) {
-        if (id->us != 0) {
-#ifdef DEBUG_PRINT
-          printf("%s: deleting %s (%d)\n", __func__, id->name, id->us);
-#endif
-          BLI_assert(id->us == 0);
+        if (((id->tag & LIB_TAG_EXTRAUSER_SET) == 0 && ID_REAL_USERS(id) != 0) ||
+            ((id->tag & LIB_TAG_EXTRAUSER_SET) != 0 && ID_REAL_USERS(id) != 1)) {
+          CLOG_ERROR(&LOG,
+                     "Deleting %s which still has %d users (including %d 'extra' shallow users)\n",
+                     id->name,
+                     ID_REAL_USERS(id),
+                     (id->tag & LIB_TAG_EXTRAUSER_SET) != 0 ? 1 : 0);
         }
         BKE_id_free_ex(bmain, id, free_flag, !do_tagged_deletion);
         ++num_datablocks_deleted;
