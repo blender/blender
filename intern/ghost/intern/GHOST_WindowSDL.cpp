@@ -610,7 +610,7 @@ GHOST_TSuccess GHOST_WindowSDL::setWindowCustomCursorShape(
   }
 
   m_sdl_custom_cursor = sdl_ghost_CreateCursor(
-      (const Uint8 *)bitmap, (const Uint8 *)mask, sizex, sizex, hotX, hotY);
+      (const Uint8 *)bitmap, (const Uint8 *)mask, sizex, sizey, hotX, hotY);
 
   SDL_SetCursor(m_sdl_custom_cursor);
   return GHOST_kSuccess;
