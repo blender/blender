@@ -182,9 +182,7 @@ static void image_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
 
   for (int eye = 0; eye < 2; eye++) {
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
-        image_dst->gputexture[i][eye][resolution] = nullptr;
-      }
+      image_dst->gputexture[i][eye] = nullptr;
     }
   }
 
@@ -236,24 +234,21 @@ static void image_foreach_cache(ID *id,
   key.offset_in_ID = offsetof(Image, cache);
   function_callback(id, &key, (void **)&image->cache, 0, user_data);
 
-  auto gputexture_offset = [image](int target, int eye, int resolution) {
+  auto gputexture_offset = [image](int target, int eye) {
     constexpr size_t base_offset = offsetof(Image, gputexture);
-    struct GPUTexture **first = &image->gputexture[0][0][0];
-    const size_t array_offset = sizeof(*first) *
-                                (&image->gputexture[target][eye][resolution] - first);
+    struct GPUTexture **first = &image->gputexture[0][0];
+    const size_t array_offset = sizeof(*first) * (&image->gputexture[target][eye] - first);
     return base_offset + array_offset;
   };
 
   for (int eye = 0; eye < 2; eye++) {
     for (int a = 0; a < TEXTARGET_COUNT; a++) {
-      for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
-        GPUTexture *texture = image->gputexture[a][eye][resolution];
-        if (texture == nullptr) {
-          continue;
-        }
-        key.offset_in_ID = gputexture_offset(a, eye, resolution);
-        function_callback(id, &key, (void **)&image->gputexture[a][eye][resolution], 0, user_data);
+      GPUTexture *texture = image->gputexture[a][eye];
+      if (texture == nullptr) {
+        continue;
       }
+      key.offset_in_ID = gputexture_offset(a, eye);
+      function_callback(id, &key, (void **)&image->gputexture[a][eye], 0, user_data);
     }
   }
 
@@ -335,9 +330,7 @@ static void image_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   ima->runtime.partial_update_user = nullptr;
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 2; j++) {
-      for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
-        ima->gputexture[i][j][resolution] = nullptr;
-      }
+      ima->gputexture[i][j] = nullptr;
     }
   }
 
@@ -784,10 +777,8 @@ bool BKE_image_has_opengl_texture(Image *ima)
 {
   for (int eye = 0; eye < 2; eye++) {
     for (int i = 0; i < TEXTARGET_COUNT; i++) {
-      for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
-        if (ima->gputexture[i][eye][resolution] != nullptr) {
-          return true;
-        }
+      if (ima->gputexture[i][eye] != nullptr) {
+        return true;
       }
     }
   }
@@ -2864,11 +2855,9 @@ static void image_free_tile(Image *ima, ImageTile *tile)
     }
 
     for (int eye = 0; eye < 2; eye++) {
-      for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
-        if (ima->gputexture[i][eye][resolution] != nullptr) {
-          GPU_texture_free(ima->gputexture[i][eye][resolution]);
-          ima->gputexture[i][eye][resolution] = nullptr;
-        }
+      if (ima->gputexture[i][eye] != nullptr) {
+        GPU_texture_free(ima->gputexture[i][eye]);
+        ima->gputexture[i][eye] = nullptr;
       }
     }
   }
@@ -3208,16 +3197,14 @@ ImageTile *BKE_image_add_tile(struct Image *ima, int tile_number, const char *la
   }
 
   for (int eye = 0; eye < 2; eye++) {
-    for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
-      /* Reallocate GPU tile array. */
-      if (ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution] != nullptr) {
-        GPU_texture_free(ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution]);
-        ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution] = nullptr;
-      }
-      if (ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution] != nullptr) {
-        GPU_texture_free(ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution]);
-        ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution] = nullptr;
-      }
+    /* Reallocate GPU tile array. */
+    if (ima->gputexture[TEXTARGET_2D_ARRAY][eye] != nullptr) {
+      GPU_texture_free(ima->gputexture[TEXTARGET_2D_ARRAY][eye]);
+      ima->gputexture[TEXTARGET_2D_ARRAY][eye] = nullptr;
+    }
+    if (ima->gputexture[TEXTARGET_TILE_MAPPING][eye] != nullptr) {
+      GPU_texture_free(ima->gputexture[TEXTARGET_TILE_MAPPING][eye]);
+      ima->gputexture[TEXTARGET_TILE_MAPPING][eye] = nullptr;
     }
   }
   BKE_image_partial_update_mark_full_update(ima);
@@ -3273,17 +3260,14 @@ void BKE_image_reassign_tile(struct Image *ima, ImageTile *tile, int new_tile_nu
   }
 
   for (int eye = 0; eye < 2; eye++) {
-    for (int resolution = 0; resolution < IMA_TEXTURE_RESOLUTION_LEN; resolution++) {
-
-      /* Reallocate GPU tile array. */
-      if (ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution] != nullptr) {
-        GPU_texture_free(ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution]);
-        ima->gputexture[TEXTARGET_2D_ARRAY][eye][resolution] = nullptr;
-      }
-      if (ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution] != nullptr) {
-        GPU_texture_free(ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution]);
-        ima->gputexture[TEXTARGET_TILE_MAPPING][eye][resolution] = nullptr;
-      }
+    /* Reallocate GPU tile array. */
+    if (ima->gputexture[TEXTARGET_2D_ARRAY][eye] != nullptr) {
+      GPU_texture_free(ima->gputexture[TEXTARGET_2D_ARRAY][eye]);
+      ima->gputexture[TEXTARGET_2D_ARRAY][eye] = nullptr;
+    }
+    if (ima->gputexture[TEXTARGET_TILE_MAPPING][eye] != nullptr) {
+      GPU_texture_free(ima->gputexture[TEXTARGET_TILE_MAPPING][eye]);
+      ima->gputexture[TEXTARGET_TILE_MAPPING][eye] = nullptr;
     }
   }
   BKE_image_partial_update_mark_full_update(ima);

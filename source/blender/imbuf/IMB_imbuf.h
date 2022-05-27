@@ -936,8 +936,7 @@ const char *IMB_ffmpeg_last_error(void);
 struct GPUTexture *IMB_create_gpu_texture(const char *name,
                                           struct ImBuf *ibuf,
                                           bool use_high_bitdepth,
-                                          bool use_premult,
-                                          bool limit_gl_texture_size);
+                                          bool use_premult);
 /**
  * The `ibuf` is only here to detect the storage type. The produced texture will have undefined
  * content. It will need to be populated by using #IMB_update_gpu_texture_sub().

@@ -397,7 +397,7 @@ static void rna_Image_resolution_set(PointerRNA *ptr, const float *values)
 static int rna_Image_bindcode_get(PointerRNA *ptr)
 {
   Image *ima = (Image *)ptr->data;
-  GPUTexture *tex = ima->gputexture[TEXTARGET_2D][0][IMA_TEXTURE_RESOLUTION_FULL];
+  GPUTexture *tex = ima->gputexture[TEXTARGET_2D][0];
   return (tex) ? GPU_texture_opengl_bindcode(tex) : 0;
 }
 

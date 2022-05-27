@@ -33,11 +33,10 @@ int GPU_max_texture_size()
   return GCaps.max_texture_size;
 }
 
-int GPU_texture_size_with_limit(int res, bool limit_gl_texture_size)
+int GPU_texture_size_with_limit(int res)
 {
   int size = GPU_max_texture_size();
-  int reslimit = (limit_gl_texture_size && (U.glreslimit != 0)) ? min_ii(U.glreslimit, size) :
-                                                                  size;
+  int reslimit = (U.glreslimit != 0) ? min_ii(U.glreslimit, size) : size;
   return min_ii(reslimit, res);
 }
 
