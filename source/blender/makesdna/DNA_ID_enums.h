@@ -38,6 +38,8 @@ enum eIconSizes {
  *
  * Written to #BHead.code (for file IO)
  * and the first 2 bytes of #ID.name (for runtime checks, see #GS macro).
+ *
+ * Update #ID_TYPE_IS_DEPRECATED() when deprecating types.
  */
 typedef enum ID_Type {
   ID_SCE = MAKE_ID2('S', 'C'),       /* Scene */
