@@ -320,6 +320,7 @@ static int gpencil_bake_grease_pencil_animation_exec(bContext *C, wmOperator *op
           /* Update point location to new object space. */
           for (int j = 0; j < gps->totpoints; j++) {
             bGPDspoint *pt = &gps->points[j];
+            mul_m4_v3(ob_eval->obmat, &pt->x);
             mul_m4_v3(invmat, &pt->x);
           }
 
