@@ -406,8 +406,6 @@ set(GLSL_SRC
   shaders/gpu_shader_cfg_world_clip_lib.glsl
   shaders/gpu_shader_colorspace_lib.glsl
 
-  shaders/gpu_shader_common_obinfos_lib.glsl
-
   GPU_shader_shared_utils.h
 )
 

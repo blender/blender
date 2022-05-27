@@ -195,6 +195,10 @@ typedef struct OpenSubdiv_Evaluator {
   void (*wrapSrcBuffer)(struct OpenSubdiv_Evaluator *evaluator,
                         struct OpenSubdiv_Buffer *src_buffer);
 
+  // Fill the given buffer with data from the evaluator's extra source buffer.
+  void (*wrapSrcVertexDataBuffer)(struct OpenSubdiv_Evaluator *evaluator,
+                                  struct OpenSubdiv_Buffer *src_buffer);
+
   // Fill the given buffer with data from the evaluator's face varying patch array buffer.
   void (*fillFVarPatchArraysBuffer)(struct OpenSubdiv_Evaluator *evaluator,
                                     const int face_varying_channel,
@@ -214,6 +218,9 @@ typedef struct OpenSubdiv_Evaluator {
   void (*wrapFVarSrcBuffer)(struct OpenSubdiv_Evaluator *evaluator,
                             const int face_varying_channel,
                             struct OpenSubdiv_Buffer *src_buffer);
+
+  // Return true if the evaluator has source vertex data set.
+  bool (*hasVertexData)(struct OpenSubdiv_Evaluator *evaluator);
 
   // Implementation of the evaluator.
   struct OpenSubdiv_EvaluatorImpl *impl;

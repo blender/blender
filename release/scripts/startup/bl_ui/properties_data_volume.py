@@ -115,6 +115,9 @@ class DATA_PT_volume_render(DataButtonsPanel, Panel):
             col = layout.column(align=True)
             col.prop(render, "clipping")
 
+            col = layout.column()
+            col.prop(render, "precision")
+
             col = layout.column(align=False)
             col.prop(volume, "velocity_grid")
 

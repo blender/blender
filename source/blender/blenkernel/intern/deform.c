@@ -1561,7 +1561,7 @@ void BKE_defbase_blend_write(BlendWriter *writer, const ListBase *defbase)
   }
 }
 
-void BKE_defvert_blend_write(BlendWriter *writer, int count, MDeformVert *dvlist)
+void BKE_defvert_blend_write(BlendWriter *writer, int count, const MDeformVert *dvlist)
 {
   if (dvlist == NULL) {
     return;

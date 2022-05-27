@@ -36,6 +36,9 @@ void DepsgraphRelationBuilder::build_scene_parameters(Scene *scene)
   if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_PARAMETERS)) {
     return;
   }
+
+  /* TODO(sergey): Trace as a scene parameters. */
+
   build_idproperties(scene->id.properties);
   build_parameters(&scene->id);
   OperationKey parameters_eval_key(
@@ -56,6 +59,9 @@ void DepsgraphRelationBuilder::build_scene_compositor(Scene *scene)
   if (scene->nodetree == nullptr) {
     return;
   }
+
+  /* TODO(sergey): Trace as a scene compositor. */
+
   build_nodetree(scene->nodetree);
 }
 

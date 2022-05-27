@@ -20,6 +20,8 @@ struct TaskGraph;
 #include "GPU_index_buffer.h"
 #include "GPU_vertex_buffer.h"
 
+#include "draw_attributes.h"
+
 /* Vertex Group Selection and display options */
 typedef struct DRW_MeshWeightState {
   int defgroup_active;
@@ -66,17 +68,6 @@ typedef enum eMRIterType {
   MR_ITER_LVERT = 1 << 3,
 } eMRIterType;
 ENUM_OPERATORS(eMRIterType, MR_ITER_LVERT)
-
-typedef struct DRW_AttributeRequest {
-  CustomDataType cd_type;
-  int layer_index;
-  AttributeDomain domain;
-} DRW_AttributeRequest;
-
-typedef struct DRW_MeshAttributes {
-  DRW_AttributeRequest requests[GPU_MAX_ATTR];
-  int num_requests;
-} DRW_MeshAttributes;
 
 typedef enum eMRDataType {
   MR_DATA_NONE = 0,
@@ -294,7 +285,7 @@ typedef struct MeshBatchCache {
 
   DRW_MeshCDMask cd_used, cd_needed, cd_used_over_time;
 
-  DRW_MeshAttributes attr_used, attr_needed, attr_used_over_time;
+  DRW_Attributes attr_used, attr_needed, attr_used_over_time;
 
   int lastmatch;
 

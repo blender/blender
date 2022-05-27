@@ -27,6 +27,7 @@ set(SRC
   outliner_draw.cc
   outliner_edit.cc
   outliner_ops.cc
+  outliner_query.cc
   outliner_select.cc
   outliner_sync.cc
   outliner_tools.cc
@@ -57,6 +58,7 @@ set(SRC
   tree/tree_element_scene_objects.cc
   tree/tree_element_seq.cc
   tree/tree_element_view_layer.cc
+  tree/tree_iterator.cc
 
   outliner_intern.hh
   tree/common.hh
@@ -75,6 +77,7 @@ set(SRC
   tree/tree_element_scene_objects.hh
   tree/tree_element_seq.hh
   tree/tree_element_view_layer.hh
+  tree/tree_iterator.hh
 )
 
 set(LIB

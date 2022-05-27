@@ -156,6 +156,7 @@ static void rna_Image_update(Image *image, ReportList *reports)
   }
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+  BKE_image_partial_update_mark_full_update(image);
 
   BKE_image_release_ibuf(image, ibuf, NULL);
 }
@@ -197,7 +198,7 @@ static int rna_Image_gl_touch(
 
   BKE_image_tag_time(image);
 
-  if (image->gputexture[TEXTARGET_2D][0][IMA_TEXTURE_RESOLUTION_FULL] == NULL) {
+  if (image->gputexture[TEXTARGET_2D][0] == NULL) {
     error = rna_Image_gl_load(image, reports, frame, layer_index, pass_index);
   }
 

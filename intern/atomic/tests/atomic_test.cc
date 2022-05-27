@@ -143,6 +143,40 @@ TEST(atomic, atomic_cas_uint64)
   }
 }
 
+TEST(atomic, atomic_load_uint64)
+{
+  /* Make sure alias is implemented. */
+  {
+    uint64_t value = 2;
+    EXPECT_EQ(atomic_load_uint64(&value), 2);
+  }
+
+  /* Make sure alias is using proper bitness. */
+  {
+    const uint64_t uint64_t_max = std::numeric_limits<uint64_t>::max();
+    uint64_t value = uint64_t_max;
+    EXPECT_EQ(atomic_load_uint64(&value), uint64_t_max);
+  }
+}
+
+TEST(atomic, atomic_store_uint64)
+{
+  /* Make sure alias is implemented. */
+  {
+    uint64_t value = 0;
+    atomic_store_uint64(&value, 2);
+    EXPECT_EQ(value, 2);
+  }
+
+  /* Make sure alias is using proper bitness. */
+  {
+    const uint64_t uint64_t_max = std::numeric_limits<uint64_t>::max();
+    uint64_t value = 0;
+    atomic_store_uint64(&value, uint64_t_max);
+    EXPECT_EQ(value, uint64_t_max);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -277,6 +311,40 @@ TEST(atomic, atomic_cas_int64)
   }
 }
 
+TEST(atomic, atomic_load_int64)
+{
+  /* Make sure alias is implemented. */
+  {
+    int64_t value = 2;
+    EXPECT_EQ(atomic_load_int64(&value), 2);
+  }
+
+  /* Make sure alias is using proper bitness. */
+  {
+    const int64_t int64_t_max = std::numeric_limits<int64_t>::max();
+    int64_t value = int64_t_max;
+    EXPECT_EQ(atomic_load_int64(&value), int64_t_max);
+  }
+}
+
+TEST(atomic, atomic_store_int64)
+{
+  /* Make sure alias is implemented. */
+  {
+    int64_t value = 0;
+    atomic_store_int64(&value, 2);
+    EXPECT_EQ(value, 2);
+  }
+
+  /* Make sure alias is using proper bitness. */
+  {
+    const int64_t int64_t_max = std::numeric_limits<int64_t>::max();
+    int64_t value = 0;
+    atomic_store_int64(&value, int64_t_max);
+    EXPECT_EQ(value, int64_t_max);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -355,6 +423,40 @@ TEST(atomic, atomic_cas_uint32)
     uint32_t value = 0x12345678;
     EXPECT_EQ(atomic_cas_uint32(&value, 0xdeadbeef, 0x87654321), 0x12345678);
     EXPECT_EQ(value, 0x12345678);
+  }
+}
+
+TEST(atomic, atomic_load_uint32)
+{
+  /* Make sure alias is implemented. */
+  {
+    uint32_t value = 2;
+    EXPECT_EQ(atomic_load_uint32(&value), 2);
+  }
+
+  /* Make sure alias is using proper bitness. */
+  {
+    const uint32_t uint32_t_max = std::numeric_limits<uint32_t>::max();
+    uint32_t value = uint32_t_max;
+    EXPECT_EQ(atomic_load_uint32(&value), uint32_t_max);
+  }
+}
+
+TEST(atomic, atomic_store_uint32)
+{
+  /* Make sure alias is implemented. */
+  {
+    uint32_t value = 0;
+    atomic_store_uint32(&value, 2);
+    EXPECT_EQ(value, 2);
+  }
+
+  /* Make sure alias is using proper bitness. */
+  {
+    const uint32_t uint32_t_max = std::numeric_limits<uint32_t>::max();
+    uint32_t value = 0;
+    atomic_store_uint32(&value, uint32_t_max);
+    EXPECT_EQ(value, uint32_t_max);
   }
 }
 
@@ -502,6 +604,40 @@ TEST(atomic, atomic_cas_int32)
     int32_t value = 0x12345678;
     EXPECT_EQ(atomic_cas_int32(&value, -0x21524111, -0x789abcdf), 0x12345678);
     EXPECT_EQ(value, 0x12345678);
+  }
+}
+
+TEST(atomic, atomic_load_int32)
+{
+  /* Make sure alias is implemented. */
+  {
+    int32_t value = 2;
+    EXPECT_EQ(atomic_load_int32(&value), 2);
+  }
+
+  /* Make sure alias is using proper bitness. */
+  {
+    const int32_t int32_t_max = std::numeric_limits<int32_t>::max();
+    int32_t value = int32_t_max;
+    EXPECT_EQ(atomic_load_int32(&value), int32_t_max);
+  }
+}
+
+TEST(atomic, atomic_store_int32)
+{
+  /* Make sure alias is implemented. */
+  {
+    int32_t value = 0;
+    atomic_store_int32(&value, 2);
+    EXPECT_EQ(value, 2);
+  }
+
+  /* Make sure alias is using proper bitness. */
+  {
+    const int32_t int32_t_max = std::numeric_limits<int32_t>::max();
+    int32_t value = 0;
+    atomic_store_int32(&value, int32_t_max);
+    EXPECT_EQ(value, int32_t_max);
   }
 }
 
@@ -757,6 +893,40 @@ TEST(atomic, atomic_cas_z)
     const size_t size_t_max = std::numeric_limits<size_t>::max();
     size_t value = 1;
     EXPECT_EQ(atomic_cas_z(&value, 1, size_t_max), 1);
+    EXPECT_EQ(value, size_t_max);
+  }
+}
+
+TEST(atomic, atomic_load_z)
+{
+  /* Make sure alias is implemented. */
+  {
+    size_t value = 2;
+    EXPECT_EQ(atomic_load_z(&value), 2);
+  }
+
+  /* Make sure alias is using proper bitness. */
+  {
+    const size_t size_t_max = std::numeric_limits<size_t>::max();
+    size_t value = size_t_max;
+    EXPECT_EQ(atomic_load_z(&value), size_t_max);
+  }
+}
+
+TEST(atomic, atomic_store_z)
+{
+  /* Make sure alias is implemented. */
+  {
+    size_t value = 0;
+    atomic_store_z(&value, 2);
+    EXPECT_EQ(value, 2);
+  }
+
+  /* Make sure alias is using proper bitness. */
+  {
+    const size_t size_t_max = std::numeric_limits<size_t>::max();
+    size_t value = 0;
+    atomic_store_z(&value, size_t_max);
     EXPECT_EQ(value, size_t_max);
   }
 }

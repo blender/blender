@@ -4,6 +4,8 @@
  * \ingroup spoutliner
  */
 
+#include "BLT_translation.h"
+
 #include "DNA_ID.h"
 #include "DNA_listBase.h"
 
@@ -22,6 +24,23 @@ TreeElementIDLibrary::TreeElementIDLibrary(TreeElement &legacy_te, Library &libr
 bool TreeElementIDLibrary::isExpandValid() const
 {
   return true;
+}
+
+StringRefNull TreeElementIDLibrary::getWarning() const
+{
+  Library &library = reinterpret_cast<Library &>(id_);
+
+  if (library.tag & LIBRARY_TAG_RESYNC_REQUIRED) {
+    return TIP_(
+        "Contains linked library overrides that need to be resynced, updating the library is "
+        "recommended");
+  }
+
+  if (library.id.tag & LIB_TAG_MISSING) {
+    return TIP_("Missing library");
+  }
+
+  return {};
 }
 
 }  // namespace blender::ed::outliner

@@ -126,6 +126,13 @@ typedef enum VolumeWireframeDetail {
   VOLUME_WIREFRAME_FINE = 1,
 } VolumeWireframeDetail;
 
+/** #VolumeRender.precision */
+typedef enum VolumeRenderPrecision {
+  VOLUME_PRECISION_HALF = 0,
+  VOLUME_PRECISION_FULL = 1,
+  VOLUME_PRECISION_VARIABLE = 2,
+} VolumeRenderPrecision;
+
 /** #VolumeRender.space */
 typedef enum VolumeRenderSpace {
   VOLUME_SPACE_OBJECT = 0,

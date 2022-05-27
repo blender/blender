@@ -136,9 +136,6 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar, ListBase 
           tenlib = outliner_add_element(&space_outliner_, &lb, &mainvar, nullptr, TSE_ID_BASE, 0);
           tenlib->name = IFACE_("Current File");
         }
-        if (tenlib->flag & TE_HAS_WARNING) {
-          has_warnings = true;
-        }
       }
 
       /* Create data-block list parent element on demand. */

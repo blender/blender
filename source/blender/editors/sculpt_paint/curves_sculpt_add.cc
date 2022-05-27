@@ -179,7 +179,7 @@ struct AddOperationExecutor {
     curves_sculpt_ = scene_->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
     brush_settings_ = brush_->curves_sculpt_settings;
-    brush_radius_re_ = BKE_brush_size_get(scene_, brush_);
+    brush_radius_re_ = brush_radius_get(*scene_, *brush_, stroke_extension);
     brush_pos_re_ = stroke_extension.mouse_position;
 
     use_front_face_ = brush_->flag & BRUSH_FRONTFACE;
@@ -700,10 +700,9 @@ struct AddOperationExecutor {
         for (const NeighborInfo &neighbor : neighbors) {
           const IndexRange neighbor_points = curves_->points_for_curve(neighbor.index);
           float neighbor_length = 0.0f;
-          const int tot_segments = neighbor_points.size() - 1;
-          for (const int segment_i : IndexRange(tot_segments)) {
-            const float3 &p1 = positions_cu[neighbor_points[segment_i]];
-            const float3 &p2 = positions_cu[neighbor_points[segment_i] + 1];
+          for (const int segment_i : neighbor_points.drop_back(1)) {
+            const float3 &p1 = positions_cu[segment_i];
+            const float3 &p2 = positions_cu[segment_i + 1];
             neighbor_length += math::distance(p1, p2);
           }
           length_sum += neighbor.weight * neighbor_length;

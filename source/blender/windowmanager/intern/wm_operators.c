@@ -1266,6 +1266,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
 {
   Main *bmain = CTX_data_main(C);
   ID *id = NULL;
+
   /* check input variables */
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
@@ -1303,19 +1304,29 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
         }
       }
     }
+
+    return id;
   }
-  else if (RNA_struct_property_is_set(op->ptr, "name")) {
-    char name[MAX_ID_NAME - 2];
-    RNA_string_get(op->ptr, "name", name);
-    id = BKE_libblock_find_name(bmain, idcode, name);
-    if (!id) {
+
+  /* Lookup an already existing ID. */
+  id = WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, idcode);
+
+  if (!id) {
+    /* Print error with the name if the name is available. */
+
+    if (RNA_struct_property_is_set(op->ptr, "name")) {
+      char name[MAX_ID_NAME - 2];
+      RNA_string_get(op->ptr, "name", name);
       BKE_reportf(
           op->reports, RPT_ERROR, "%s '%s' not found", BKE_idtype_idcode_to_name(idcode), name);
       return NULL;
     }
-    id_us_plus(id);
+
+    BKE_reportf(op->reports, RPT_ERROR, "%s not found", BKE_idtype_idcode_to_name(idcode));
+    return NULL;
   }
 
+  id_us_plus(id);
   return id;
 }
 
@@ -1859,7 +1870,14 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 
   ot->flag = OPTYPE_INTERNAL;
 
-  RNA_def_string(ot->srna, "name", NULL, BKE_ST_MAXNAME, "Name", "Name of the menu");
+  PropertyRNA *prop;
+
+  prop = RNA_def_string(ot->srna, "name", NULL, BKE_ST_MAXNAME, "Name", "Name of the menu");
+  RNA_def_property_string_search_func_runtime(
+      prop,
+      WM_menutype_idname_visit_for_search,
+      /* Only a suggestion as menu items may be referenced from add-ons that have been disabled. */
+      (PROP_STRING_SEARCH_SORT | PROP_STRING_SEARCH_SUGGESTION));
 }
 
 static int wm_call_pie_menu_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1891,7 +1909,14 @@ static void WM_OT_call_menu_pie(wmOperatorType *ot)
 
   ot->flag = OPTYPE_INTERNAL;
 
-  RNA_def_string(ot->srna, "name", NULL, BKE_ST_MAXNAME, "Name", "Name of the pie menu");
+  PropertyRNA *prop;
+
+  prop = RNA_def_string(ot->srna, "name", NULL, BKE_ST_MAXNAME, "Name", "Name of the pie menu");
+  RNA_def_property_string_search_func_runtime(
+      prop,
+      WM_menutype_idname_visit_for_search,
+      /* Only a suggestion as menu items may be referenced from add-ons that have been disabled. */
+      (PROP_STRING_SEARCH_SORT | PROP_STRING_SEARCH_SUGGESTION));
 }
 
 static int wm_call_panel_exec(bContext *C, wmOperator *op)
@@ -1927,6 +1952,11 @@ static void WM_OT_call_panel(wmOperatorType *ot)
   PropertyRNA *prop;
 
   prop = RNA_def_string(ot->srna, "name", NULL, BKE_ST_MAXNAME, "Name", "Name of the menu");
+  RNA_def_property_string_search_func_runtime(
+      prop,
+      WM_paneltype_idname_visit_for_search,
+      /* Only a suggestion as menu items may be referenced from add-ons that have been disabled. */
+      (PROP_STRING_SEARCH_SORT | PROP_STRING_SEARCH_SUGGESTION));
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna, "keep_open", true, "Keep Open", "");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);

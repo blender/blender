@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+struct CurvesUniformBufPool;
 struct DRWShadingGroup;
 struct FluidModifierData;
 struct GPUMaterial;
@@ -82,7 +83,8 @@ struct DRWShadingGroup *DRW_shgroup_curves_create_sub(struct Object *object,
                                                       struct DRWShadingGroup *shgrp,
                                                       struct GPUMaterial *gpu_material);
 
-void DRW_curves_init(void);
+void DRW_curves_init(struct DRWData *drw_data);
+void DRW_curves_ubos_pool_free(struct CurvesUniformBufPool *pool);
 void DRW_curves_update(void);
 void DRW_curves_free(void);
 

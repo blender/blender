@@ -22,7 +22,7 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
                                  GHOST_TDrawingContextType type,
                                  const bool stereoVisual,
                                  const bool exclusive,
-                                 const GHOST_IWindow *parentWindow)
+                                 const GHOST_IWindow * /*parentWindow*/)
     : GHOST_Window(width, height, state, stereoVisual, exclusive),
       m_system(system),
       m_valid_setup(false),
@@ -581,7 +581,7 @@ static SDL_Cursor *getStandardCursorShape(GHOST_TStandardCursor shape)
   return sdl_std_cursor_array[(int)shape];
 }
 
-GHOST_TSuccess GHOST_WindowSDL::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
+GHOST_TSuccess GHOST_WindowSDL::setWindowCursorGrab(GHOST_TGrabCursorMode /*mode*/)
 {
   return GHOST_kSuccess;
 }
@@ -602,15 +602,20 @@ GHOST_TSuccess GHOST_WindowSDL::hasCursorShape(GHOST_TStandardCursor shape)
   return (getStandardCursorShape(shape)) ? GHOST_kSuccess : GHOST_kFailure;
 }
 
-GHOST_TSuccess GHOST_WindowSDL::setWindowCustomCursorShape(
-    uint8_t *bitmap, uint8_t *mask, int sizex, int sizey, int hotX, int hotY, bool canInvertColor)
+GHOST_TSuccess GHOST_WindowSDL::setWindowCustomCursorShape(uint8_t *bitmap,
+                                                           uint8_t *mask,
+                                                           int sizex,
+                                                           int sizey,
+                                                           int hotX,
+                                                           int hotY,
+                                                           bool /*canInvertColor*/)
 {
   if (m_sdl_custom_cursor) {
     SDL_FreeCursor(m_sdl_custom_cursor);
   }
 
   m_sdl_custom_cursor = sdl_ghost_CreateCursor(
-      (const Uint8 *)bitmap, (const Uint8 *)mask, sizex, sizex, hotX, hotY);
+      (const Uint8 *)bitmap, (const Uint8 *)mask, sizex, sizey, hotX, hotY);
 
   SDL_SetCursor(m_sdl_custom_cursor);
   return GHOST_kSuccess;

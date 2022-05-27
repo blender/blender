@@ -160,8 +160,6 @@ enum {
   /* Child elements of the same type in the icon-row are drawn merged as one icon.
    * This flag is set for an element that is part of these merged child icons. */
   TE_ICONROW_MERGED = (1 << 7),
-  /* This element has some warning to be displayed. */
-  TE_HAS_WARNING = (1 << 8),
 };
 
 /* button events */
@@ -410,8 +408,12 @@ int outliner_flag_is_any_test(ListBase *lb, short flag, int curlevel);
  * Set or unset \a flag for all outliner elements in \a lb and sub-trees.
  * \return if any flag was modified.
  */
-bool outliner_flag_set(ListBase *lb, short flag, short set);
-bool outliner_flag_flip(ListBase *lb, short flag);
+extern "C++" {
+bool outliner_flag_set(const SpaceOutliner &space_outliner, short flag, short set);
+bool outliner_flag_set(const ListBase &lb, short flag, short set);
+bool outliner_flag_flip(const SpaceOutliner &space_outliner, short flag);
+bool outliner_flag_flip(const ListBase &lb, short flag);
+}
 
 void item_rename_fn(struct bContext *C,
                     struct ReportList *reports,
@@ -453,7 +455,8 @@ void id_remap_fn(struct bContext *C,
 /**
  * To retrieve coordinates with redrawing the entire tree.
  */
-void outliner_set_coordinates(struct ARegion *region, struct SpaceOutliner *space_outliner);
+void outliner_set_coordinates(const struct ARegion *region,
+                              const struct SpaceOutliner *space_outliner);
 
 /**
  * Open or close a tree element, optionally toggling all children recursively.
@@ -509,6 +512,11 @@ void OUTLINER_OT_drivers_add_selected(struct wmOperatorType *ot);
 void OUTLINER_OT_drivers_delete_selected(struct wmOperatorType *ot);
 
 void OUTLINER_OT_orphans_purge(struct wmOperatorType *ot);
+
+/* outliner_query.cc ---------------------------------------------- */
+
+bool outliner_shows_mode_column(const SpaceOutliner &space_outliner);
+bool outliner_has_element_warnings(const SpaceOutliner &space_outliner);
 
 /* outliner_tools.c ---------------------------------------------- */
 

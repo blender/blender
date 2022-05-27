@@ -195,6 +195,7 @@ static const EnumPropertyItem rna_enum_time_mode_items[] = {
     {GP_TIME_MODE_NORMAL, "NORMAL", 0, "Regular", "Apply offset in usual animation direction"},
     {GP_TIME_MODE_REVERSE, "REVERSE", 0, "Reverse", "Apply offset in reverse animation direction"},
     {GP_TIME_MODE_FIX, "FIX", 0, "Fixed Frame", "Keep frame and do not change with time"},
+    {GP_TIME_MODE_PINGPONG, "PINGPONG", 0, "Ping Pong", "Loop back and forth"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -340,9 +341,9 @@ static void rna_GpencilModifier_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(NULL, "grease_pencil_modifiers", oldname, gmd->name);
 }
 
-static char *rna_GpencilModifier_path(PointerRNA *ptr)
+static char *rna_GpencilModifier_path(const PointerRNA *ptr)
 {
-  GpencilModifierData *gmd = ptr->data;
+  const GpencilModifierData *gmd = ptr->data;
   char name_esc[sizeof(gmd->name) * 2];
 
   BLI_str_escape(name_esc, gmd->name, sizeof(name_esc));
@@ -751,11 +752,11 @@ static void rna_GpencilDash_segments_begin(CollectionPropertyIterator *iter, Poi
       iter, dmd->segments, sizeof(DashGpencilModifierSegment), dmd->segments_len, false, NULL);
 }
 
-static char *rna_DashGpencilModifierSegment_path(PointerRNA *ptr)
+static char *rna_DashGpencilModifierSegment_path(const PointerRNA *ptr)
 {
-  DashGpencilModifierSegment *ds = (DashGpencilModifierSegment *)ptr->data;
+  const DashGpencilModifierSegment *ds = (DashGpencilModifierSegment *)ptr->data;
 
-  DashGpencilModifierData *dmd = (DashGpencilModifierData *)ds->dmd;
+  const DashGpencilModifierData *dmd = (DashGpencilModifierData *)ds->dmd;
 
   BLI_assert(dmd != NULL);
 

@@ -109,7 +109,7 @@ class GHOST_WindowSDL : public GHOST_Window {
 
   GHOST_TWindowState getState() const;
 
-  GHOST_TSuccess setOrder(GHOST_TWindowOrder order)
+  GHOST_TSuccess setOrder(GHOST_TWindowOrder /*order*/)
   {
     // TODO
     return GHOST_kSuccess;

@@ -174,8 +174,7 @@ void MESH_OT_knife_project(struct wmOperatorType *ot);
 /**
  * \param use_tag: When set, tag all faces inside the polylines.
  */
-void EDBM_mesh_knife(struct bContext *C,
-                     struct ViewContext *vc,
+void EDBM_mesh_knife(struct ViewContext *vc,
                      struct LinkNode *polys,
                      bool use_tag,
                      bool cut_through);

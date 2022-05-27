@@ -117,7 +117,7 @@ static void rna_Camera_dof_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
-char *rna_CameraDOFSettings_path(PointerRNA *ptr)
+char *rna_CameraDOFSettings_path(const PointerRNA *ptr)
 {
   /* if there is ID-data, resolve the path using the index instead of by name,
    * since the name used is the name of the texture assigned, but the texture

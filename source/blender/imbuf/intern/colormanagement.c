@@ -73,10 +73,12 @@ static int global_tot_looks = 0;
 
 /* Luma coefficients and XYZ to RGB to be initialized by OCIO. */
 float imbuf_luma_coefficients[3] = {0.0f};
-float imbuf_xyz_to_rgb[3][3] = {{0.0f}};
-float imbuf_rgb_to_xyz[3][3] = {{0.0f}};
-static float imbuf_xyz_to_linear_srgb[3][3] = {{0.0f}};
-static float imbuf_linear_srgb_to_xyz[3][3] = {{0.0f}};
+float imbuf_scene_linear_to_xyz[3][3] = {{0.0f}};
+float imbuf_xyz_to_scene_linear[3][3] = {{0.0f}};
+float imbuf_scene_linear_to_rec709[3][3] = {{0.0f}};
+float imbuf_rec709_to_scene_linear[3][3] = {{0.0f}};
+float imbuf_scene_linear_to_aces[3][3] = {{0.0f}};
+float imbuf_aces_to_scene_linear[3][3] = {{0.0f}};
 
 /* lock used by pre-cached processors getters, so processor wouldn't
  * be created several times
@@ -573,10 +575,16 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
 
   /* Load luminance coefficients. */
   OCIO_configGetDefaultLumaCoefs(config, imbuf_luma_coefficients);
-  OCIO_configGetXYZtoRGB(config, imbuf_xyz_to_rgb);
-  invert_m3_m3(imbuf_rgb_to_xyz, imbuf_xyz_to_rgb);
-  copy_m3_m3(imbuf_xyz_to_linear_srgb, OCIO_XYZ_TO_LINEAR_SRGB);
-  invert_m3_m3(imbuf_linear_srgb_to_xyz, imbuf_xyz_to_linear_srgb);
+
+  /* Load standard color spaces. */
+  OCIO_configGetXYZtoSceneLinear(config, imbuf_xyz_to_scene_linear);
+  invert_m3_m3(imbuf_scene_linear_to_xyz, imbuf_xyz_to_scene_linear);
+
+  mul_m3_m3m3(imbuf_scene_linear_to_rec709, OCIO_XYZ_TO_REC709, imbuf_scene_linear_to_xyz);
+  invert_m3_m3(imbuf_rec709_to_scene_linear, imbuf_scene_linear_to_rec709);
+
+  mul_m3_m3m3(imbuf_aces_to_scene_linear, imbuf_xyz_to_scene_linear, OCIO_ACES_TO_XYZ);
+  invert_m3_m3(imbuf_scene_linear_to_aces, imbuf_aces_to_scene_linear);
 }
 
 static void colormanage_free_config(void)
@@ -1412,9 +1420,15 @@ bool IMB_colormanagement_space_name_is_scene_linear(const char *name)
   return (colorspace && IMB_colormanagement_space_is_scene_linear(colorspace));
 }
 
-const float *IMB_colormanagement_get_xyz_to_rgb()
+bool IMB_colormanagement_space_name_is_srgb(const char *name)
 {
-  return &imbuf_xyz_to_rgb[0][0];
+  ColorSpace *colorspace = colormanage_colorspace_get_named(name);
+  return (colorspace && IMB_colormanagement_space_is_srgb(colorspace));
+}
+
+const float *IMB_colormanagement_get_xyz_to_scene_linear()
+{
+  return &imbuf_xyz_to_scene_linear[0][0];
 }
 
 /** \} */
@@ -2307,7 +2321,8 @@ void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
   }
 }
 
-void IMB_colormanagement_scene_linear_to_color_picking_v3(float pixel[3])
+void IMB_colormanagement_scene_linear_to_color_picking_v3(float color_picking[3],
+                                                          const float scene_linear[3])
 {
   if (!global_color_picking_state.cpu_processor_to && !global_color_picking_state.failed) {
     /* Create processor if none exists. */
@@ -2329,12 +2344,15 @@ void IMB_colormanagement_scene_linear_to_color_picking_v3(float pixel[3])
     BLI_mutex_unlock(&processor_lock);
   }
 
+  copy_v3_v3(color_picking, scene_linear);
+
   if (global_color_picking_state.cpu_processor_to) {
-    OCIO_cpuProcessorApplyRGB(global_color_picking_state.cpu_processor_to, pixel);
+    OCIO_cpuProcessorApplyRGB(global_color_picking_state.cpu_processor_to, color_picking);
   }
 }
 
-void IMB_colormanagement_color_picking_to_scene_linear_v3(float pixel[3])
+void IMB_colormanagement_color_picking_to_scene_linear_v3(float scene_linear[3],
+                                                          const float color_picking[3])
 {
   if (!global_color_picking_state.cpu_processor_from && !global_color_picking_state.failed) {
     /* Create processor if none exists. */
@@ -2356,23 +2374,11 @@ void IMB_colormanagement_color_picking_to_scene_linear_v3(float pixel[3])
     BLI_mutex_unlock(&processor_lock);
   }
 
+  copy_v3_v3(scene_linear, color_picking);
+
   if (global_color_picking_state.cpu_processor_from) {
-    OCIO_cpuProcessorApplyRGB(global_color_picking_state.cpu_processor_from, pixel);
+    OCIO_cpuProcessorApplyRGB(global_color_picking_state.cpu_processor_from, scene_linear);
   }
-}
-
-void IMB_colormanagement_scene_linear_to_srgb_v3(float pixel[3])
-{
-  mul_m3_v3(imbuf_rgb_to_xyz, pixel);
-  mul_m3_v3(imbuf_xyz_to_linear_srgb, pixel);
-  linearrgb_to_srgb_v3_v3(pixel, pixel);
-}
-
-void IMB_colormanagement_srgb_to_scene_linear_v3(float pixel[3])
-{
-  srgb_to_linearrgb_v3_v3(pixel, pixel);
-  mul_m3_v3(imbuf_linear_srgb_to_xyz, pixel);
-  mul_m3_v3(imbuf_xyz_to_rgb, pixel);
 }
 
 void IMB_colormanagement_scene_linear_to_display_v3(float pixel[3], ColorManagedDisplay *display)
@@ -4107,6 +4113,173 @@ void IMB_colormanagement_finish_glsl_draw(void)
   if (global_gpu_state.gpu_shader_bound) {
     OCIO_gpuDisplayShaderUnbind();
     global_gpu_state.gpu_shader_bound = false;
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rendering Tables
+ * \{ */
+
+/* Calculate color in range 800..12000 using an approximation
+ * a/x+bx+c for R and G and ((at + b)t + c)t + d) for B
+ *
+ * The result of this can be negative to support gamut wider than
+ * than rec.709, just needs to be clamped. */
+
+static const float blackbody_table_r[7][3] = {{1.61919106e+03f, -2.05010916e-03f, 5.02995757e+00f},
+                                              {2.48845471e+03f, -1.11330907e-03f, 3.22621544e+00f},
+                                              {3.34143193e+03f, -4.86551192e-04f, 1.76486769e+00f},
+                                              {4.09461742e+03f, -1.27446582e-04f, 7.25731635e-01f},
+                                              {4.67028036e+03f, 2.91258199e-05f, 1.26703442e-01f},
+                                              {4.59509185e+03f, 2.87495649e-05f, 1.50345020e-01f},
+                                              {3.78717450e+03f, 9.35907826e-06f, 3.99075871e-01f}};
+
+static const float blackbody_table_g[7][3] = {
+    {-4.88999748e+02f, 6.04330754e-04f, -7.55807526e-02f},
+    {-7.55994277e+02f, 3.16730098e-04f, 4.78306139e-01f},
+    {-1.02363977e+03f, 1.20223470e-04f, 9.36662319e-01f},
+    {-1.26571316e+03f, 4.87340896e-06f, 1.27054498e+00f},
+    {-1.42529332e+03f, -4.01150431e-05f, 1.43972784e+00f},
+    {-1.17554822e+03f, -2.16378048e-05f, 1.30408023e+00f},
+    {-5.00799571e+02f, -4.59832026e-06f, 1.09098763e+00f}};
+
+static const float blackbody_table_b[7][4] = {
+    {5.96945309e-11f, -4.85742887e-08f, -9.70622247e-05f, -4.07936148e-03f},
+    {2.40430366e-11f, 5.55021075e-08f, -1.98503712e-04f, 2.89312858e-02f},
+    {-1.40949732e-11f, 1.89878968e-07f, -3.56632824e-04f, 9.10767778e-02f},
+    {-3.61460868e-11f, 2.84822009e-07f, -4.93211319e-04f, 1.56723440e-01f},
+    {-1.97075738e-11f, 1.75359352e-07f, -2.50542825e-04f, -2.22783266e-02f},
+    {-1.61997957e-13f, -1.64216008e-08f, 3.86216271e-04f, -7.38077418e-01f},
+    {6.72650283e-13f, -2.73078809e-08f, 4.24098264e-04f, -7.52335691e-01f}};
+
+static void blackbody_temperature_to_rec709(float rec709[3], float t)
+{
+  if (t >= 12000.0f) {
+    rec709[0] = 0.8262954810464208f;
+    rec709[1] = 0.9945080501520986f;
+    rec709[2] = 1.566307710274283f;
+  }
+  else if (t < 800.0f) {
+    rec709[0] = 5.413294490189271f;
+    rec709[1] = -0.20319390035873933f;
+    rec709[2] = -0.0822535242887164f;
+  }
+  else {
+    int i = (t >= 6365.0f) ? 6 :
+            (t >= 3315.0f) ? 5 :
+            (t >= 1902.0f) ? 4 :
+            (t >= 1449.0f) ? 3 :
+            (t >= 1167.0f) ? 2 :
+            (t >= 965.0f)  ? 1 :
+                             0;
+
+    const float *r = blackbody_table_r[i];
+    const float *g = blackbody_table_g[i];
+    const float *b = blackbody_table_b[i];
+
+    const float t_inv = 1.0f / t;
+    rec709[0] = r[0] * t_inv + r[1] * t + r[2];
+    rec709[1] = g[0] * t_inv + g[1] * t + g[2];
+    rec709[2] = ((b[0] * t + b[1]) * t + b[2]) * t + b[3];
+  }
+}
+
+void IMB_colormanagement_blackbody_temperature_to_rgb_table(float *r_table,
+                                                            const int width,
+                                                            const float min,
+                                                            const float max)
+{
+  for (int i = 0; i < width; i++) {
+    float temperature = min + (max - min) / (float)width * (float)i;
+
+    float rec709[3];
+    blackbody_temperature_to_rec709(rec709, temperature);
+
+    float rgb[3];
+    IMB_colormanagement_rec709_to_scene_linear(rgb, rec709);
+    clamp_v3(rgb, 0.0f, FLT_MAX);
+
+    copy_v3_v3(&r_table[i * 4], rgb);
+    r_table[i * 4 + 3] = 0.0f;
+  }
+}
+
+/**
+ * CIE color matching functions `xBar`, `yBar`, and `zBar` for
+ * wavelengths from 380 through 780 nanometers, every 5 nanometers.
+ *
+ * For a wavelength lambda in this range:
+ * \code{.txt}
+ * cie_color_match[(lambda - 380) / 5][0] = xBar
+ * cie_color_match[(lambda - 380) / 5][1] = yBar
+ * cie_color_match[(lambda - 380) / 5][2] = zBar
+ * \endcode
+ */
+
+static float cie_colour_match[81][3] = {
+    {0.0014f, 0.0000f, 0.0065f}, {0.0022f, 0.0001f, 0.0105f}, {0.0042f, 0.0001f, 0.0201f},
+    {0.0076f, 0.0002f, 0.0362f}, {0.0143f, 0.0004f, 0.0679f}, {0.0232f, 0.0006f, 0.1102f},
+    {0.0435f, 0.0012f, 0.2074f}, {0.0776f, 0.0022f, 0.3713f}, {0.1344f, 0.0040f, 0.6456f},
+    {0.2148f, 0.0073f, 1.0391f}, {0.2839f, 0.0116f, 1.3856f}, {0.3285f, 0.0168f, 1.6230f},
+    {0.3483f, 0.0230f, 1.7471f}, {0.3481f, 0.0298f, 1.7826f}, {0.3362f, 0.0380f, 1.7721f},
+    {0.3187f, 0.0480f, 1.7441f}, {0.2908f, 0.0600f, 1.6692f}, {0.2511f, 0.0739f, 1.5281f},
+    {0.1954f, 0.0910f, 1.2876f}, {0.1421f, 0.1126f, 1.0419f}, {0.0956f, 0.1390f, 0.8130f},
+    {0.0580f, 0.1693f, 0.6162f}, {0.0320f, 0.2080f, 0.4652f}, {0.0147f, 0.2586f, 0.3533f},
+    {0.0049f, 0.3230f, 0.2720f}, {0.0024f, 0.4073f, 0.2123f}, {0.0093f, 0.5030f, 0.1582f},
+    {0.0291f, 0.6082f, 0.1117f}, {0.0633f, 0.7100f, 0.0782f}, {0.1096f, 0.7932f, 0.0573f},
+    {0.1655f, 0.8620f, 0.0422f}, {0.2257f, 0.9149f, 0.0298f}, {0.2904f, 0.9540f, 0.0203f},
+    {0.3597f, 0.9803f, 0.0134f}, {0.4334f, 0.9950f, 0.0087f}, {0.5121f, 1.0000f, 0.0057f},
+    {0.5945f, 0.9950f, 0.0039f}, {0.6784f, 0.9786f, 0.0027f}, {0.7621f, 0.9520f, 0.0021f},
+    {0.8425f, 0.9154f, 0.0018f}, {0.9163f, 0.8700f, 0.0017f}, {0.9786f, 0.8163f, 0.0014f},
+    {1.0263f, 0.7570f, 0.0011f}, {1.0567f, 0.6949f, 0.0010f}, {1.0622f, 0.6310f, 0.0008f},
+    {1.0456f, 0.5668f, 0.0006f}, {1.0026f, 0.5030f, 0.0003f}, {0.9384f, 0.4412f, 0.0002f},
+    {0.8544f, 0.3810f, 0.0002f}, {0.7514f, 0.3210f, 0.0001f}, {0.6424f, 0.2650f, 0.0000f},
+    {0.5419f, 0.2170f, 0.0000f}, {0.4479f, 0.1750f, 0.0000f}, {0.3608f, 0.1382f, 0.0000f},
+    {0.2835f, 0.1070f, 0.0000f}, {0.2187f, 0.0816f, 0.0000f}, {0.1649f, 0.0610f, 0.0000f},
+    {0.1212f, 0.0446f, 0.0000f}, {0.0874f, 0.0320f, 0.0000f}, {0.0636f, 0.0232f, 0.0000f},
+    {0.0468f, 0.0170f, 0.0000f}, {0.0329f, 0.0119f, 0.0000f}, {0.0227f, 0.0082f, 0.0000f},
+    {0.0158f, 0.0057f, 0.0000f}, {0.0114f, 0.0041f, 0.0000f}, {0.0081f, 0.0029f, 0.0000f},
+    {0.0058f, 0.0021f, 0.0000f}, {0.0041f, 0.0015f, 0.0000f}, {0.0029f, 0.0010f, 0.0000f},
+    {0.0020f, 0.0007f, 0.0000f}, {0.0014f, 0.0005f, 0.0000f}, {0.0010f, 0.0004f, 0.0000f},
+    {0.0007f, 0.0002f, 0.0000f}, {0.0005f, 0.0002f, 0.0000f}, {0.0003f, 0.0001f, 0.0000f},
+    {0.0002f, 0.0001f, 0.0000f}, {0.0002f, 0.0001f, 0.0000f}, {0.0001f, 0.0000f, 0.0000f},
+    {0.0001f, 0.0000f, 0.0000f}, {0.0001f, 0.0000f, 0.0000f}, {0.0000f, 0.0000f, 0.0000f}};
+
+static void wavelength_to_xyz(float xyz[3], float lambda_nm)
+{
+  float ii = (lambda_nm - 380.0f) * (1.0f / 5.0f); /* Scaled 0..80. */
+  int i = (int)ii;
+
+  if (i < 0 || i >= 80) {
+    xyz[0] = 0.0f;
+    xyz[1] = 0.0f;
+    xyz[2] = 0.0f;
+  }
+  else {
+    ii -= (float)i;
+    const float *c = cie_colour_match[i];
+    xyz[0] = c[0] + ii * (c[3] - c[0]);
+    xyz[1] = c[1] + ii * (c[4] - c[1]);
+    xyz[2] = c[2] + ii * (c[5] - c[2]);
+  }
+}
+
+void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, const int width)
+{
+  for (int i = 0; i < width; i++) {
+    float temperature = 380 + 400 / (float)width * (float)i;
+
+    float xyz[3];
+    wavelength_to_xyz(xyz, temperature);
+
+    float rgb[3];
+    IMB_colormanagement_xyz_to_scene_linear(rgb, xyz);
+    clamp_v3(rgb, 0.0f, FLT_MAX);
+
+    copy_v3_v3(&r_table[i * 4], rgb);
+    r_table[i * 4 + 3] = 0.0f;
   }
 }
 

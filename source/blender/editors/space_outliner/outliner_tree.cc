@@ -919,10 +919,6 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
   }
 
-  if (tree_element_warnings_get(te, nullptr, nullptr)) {
-    te->flag |= TE_HAS_WARNING;
-  }
-
   return te;
 }
 

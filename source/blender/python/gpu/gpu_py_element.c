@@ -91,15 +91,11 @@ static PyObject *pygpu_IndexBuf__tp_new(PyTypeObject *UNUSED(type), PyObject *ar
     /* Use `INT_MAX` instead of the actual number of vertices. */
     GPU_indexbuf_init(&builder, prim_type.value_found, index_len, INT_MAX);
 
-#if 0
     uint *buf = pybuffer.buf;
     for (uint i = index_len; i--; buf++) {
       GPU_indexbuf_add_generic_vert(&builder, *buf);
     }
-#else
-    memcpy(builder.data, pybuffer.buf, index_len * sizeof(*builder.data));
-    builder.index_len = index_len;
-#endif
+
     PyBuffer_Release(&pybuffer);
   }
   else {

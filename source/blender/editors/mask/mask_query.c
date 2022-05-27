@@ -45,6 +45,8 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
                                      float *r_u,
                                      float *r_score)
 {
+  const float threshold_sq = threshold * threshold;
+
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
 
@@ -139,7 +141,7 @@ bool ED_mask_find_nearest_diff_point(const bContext *C,
     }
   }
 
-  if (point && dist_best_sq < threshold) {
+  if (point && dist_best_sq < threshold_sq) {
     if (r_mask_layer) {
       *r_mask_layer = point_mask_layer;
     }

@@ -340,7 +340,7 @@ bool rna_Action_actedit_assign_poll(PointerRNA *ptr, PointerRNA value)
   return 0;
 }
 
-static char *rna_DopeSheet_path(PointerRNA *UNUSED(ptr))
+static char *rna_DopeSheet_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("dopesheet");
 }

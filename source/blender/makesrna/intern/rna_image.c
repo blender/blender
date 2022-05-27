@@ -175,7 +175,7 @@ static void rna_ImageUser_relations_update(Main *bmain, Scene *scene, PointerRNA
   DEG_relations_tag_update(bmain);
 }
 
-static char *rna_ImageUser_path(PointerRNA *ptr)
+static char *rna_ImageUser_path(const PointerRNA *ptr)
 {
   if (ptr->owner_id) {
     /* ImageUser *iuser = ptr->data; */
@@ -397,7 +397,7 @@ static void rna_Image_resolution_set(PointerRNA *ptr, const float *values)
 static int rna_Image_bindcode_get(PointerRNA *ptr)
 {
   Image *ima = (Image *)ptr->data;
-  GPUTexture *tex = ima->gputexture[TEXTARGET_2D][0][IMA_TEXTURE_RESOLUTION_FULL];
+  GPUTexture *tex = ima->gputexture[TEXTARGET_2D][0];
   return (tex) ? GPU_texture_opengl_bindcode(tex) : 0;
 }
 
@@ -446,7 +446,7 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
   return duration;
 }
 
-static int rna_Image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+static int rna_Image_pixels_get_length(const PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
   Image *ima = (Image *)ptr->owner_id;
   ImBuf *ibuf;

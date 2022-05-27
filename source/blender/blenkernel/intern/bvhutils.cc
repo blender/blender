@@ -967,31 +967,6 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(float epsilon,
   return tree;
 }
 
-BVHTree *bvhtree_from_mesh_faces_ex(BVHTreeFromMesh *data,
-                                    const MVert *vert,
-                                    const MFace *face,
-                                    const int numFaces,
-                                    const BLI_bitmap *faces_mask,
-                                    int faces_num_active,
-                                    float epsilon,
-                                    int tree_type,
-                                    int axis)
-{
-  BVHTree *tree = nullptr;
-  tree = bvhtree_from_mesh_faces_create_tree(
-      epsilon, tree_type, axis, vert, face, numFaces, faces_mask, faces_num_active);
-
-  bvhtree_balance(tree, false);
-
-  if (data) {
-    /* Setup BVHTreeFromMesh */
-    bvhtree_from_mesh_setup_data(
-        tree, BVHTREE_FROM_FACES, vert, nullptr, face, nullptr, nullptr, nullptr, data);
-  }
-
-  return tree;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

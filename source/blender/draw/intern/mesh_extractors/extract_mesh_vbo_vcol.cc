@@ -271,8 +271,6 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
   blender::Vector<VColRef> refs = get_vcol_refs(cd_vdata, cd_ldata, vcol_layers);
 
-  gpuMeshVcol *vcol = mesh_vcol;
-
   /* Index of the vertex color layer in the compact buffer. Used vertex color layers are stored in
    * a single buffer. */
   int pack_layer_index = 0;
@@ -287,10 +285,10 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
     if (layer_i == -1) {
       printf("%s: missing color layer %s\n", __func__, ref.layer->name);
-      vcol += coarse_mesh->totloop;
       continue;
     }
 
+    gpuMeshVcol *vcol = mesh_vcol;
     MLoopCol *mcol = nullptr;
     MPropCol *pcol = nullptr;
 

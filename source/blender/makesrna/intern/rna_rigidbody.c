@@ -148,7 +148,7 @@ static void rna_RigidBodyWorld_reset(Main *UNUSED(bmain), Scene *UNUSED(scene), 
   BKE_rigidbody_cache_reset(rbw);
 }
 
-static char *rna_RigidBodyWorld_path(PointerRNA *UNUSED(ptr))
+static char *rna_RigidBodyWorld_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("rigidbody_world");
 }
@@ -240,7 +240,7 @@ static void rna_RigidBodyOb_mesh_source_update(Main *bmain, Scene *scene, Pointe
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
-static char *rna_RigidBodyOb_path(PointerRNA *UNUSED(ptr))
+static char *rna_RigidBodyOb_path(const PointerRNA *UNUSED(ptr))
 {
   /* NOTE: this hardcoded path should work as long as only Objects have this */
   return BLI_strdup("rigid_body");
@@ -432,7 +432,7 @@ static void rna_RigidBodyOb_angular_damping_set(PointerRNA *ptr, float value)
 #  endif
 }
 
-static char *rna_RigidBodyCon_path(PointerRNA *UNUSED(ptr))
+static char *rna_RigidBodyCon_path(const PointerRNA *UNUSED(ptr))
 {
   /* NOTE: this hardcoded path should work as long as only Objects have this */
   return BLI_strdup("rigid_body_constraint");

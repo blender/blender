@@ -328,7 +328,7 @@ static int add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
   const bool calc_uvs = RNA_boolean_get(op->ptr, "calc_uvs");
 
   if (calc_uvs) {
-    ED_mesh_uv_texture_ensure(obedit->data, NULL);
+    ED_mesh_uv_ensure(obedit->data, NULL);
   }
 
   if (!EDBM_op_call_and_selectf(em,

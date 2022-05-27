@@ -92,12 +92,14 @@ struct OBJImportParams {
 };
 
 /**
- * Time the full import process.
+ * Perform the full import process.
+ * Import also changes the selection & the active object; callers
+ * need to update the UI bits if needed.
  */
 void OBJ_import(bContext *C, const struct OBJImportParams *import_params);
 
 /**
- * C-interface for the exporter.
+ * Perform the full export process.
  */
 void OBJ_export(bContext *C, const struct OBJExportParams *export_params);
 

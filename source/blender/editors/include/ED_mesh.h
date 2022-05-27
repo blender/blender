@@ -536,12 +536,12 @@ void ED_mesh_geometry_clear(struct Mesh *mesh);
 
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C, bool calc_edges, bool calc_edges_loose);
 
-void ED_mesh_uv_texture_ensure(struct Mesh *me, const char *name);
-int ED_mesh_uv_texture_add(
+void ED_mesh_uv_ensure(struct Mesh *me, const char *name);
+int ED_mesh_uv_add(
     struct Mesh *me, const char *name, bool active_set, bool do_init, struct ReportList *reports);
-bool ED_mesh_uv_texture_remove_index(struct Mesh *me, int n);
-bool ED_mesh_uv_texture_remove_active(struct Mesh *me);
-bool ED_mesh_uv_texture_remove_named(struct Mesh *me, const char *name);
+bool ED_mesh_uv_remove_index(struct Mesh *me, int n);
+bool ED_mesh_uv_remove_active(struct Mesh *me);
+bool ED_mesh_uv_remove_named(struct Mesh *me, const char *name);
 void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me);
 /**
  * Without a #bContext, called when UV-editing.

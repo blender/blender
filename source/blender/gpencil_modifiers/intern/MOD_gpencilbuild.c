@@ -109,7 +109,7 @@ static void reduce_stroke_points(bGPdata *gpd,
                                  const int points_num,
                                  const eBuildGpencil_Transition transition)
 {
-  if (points_num == 0) {
+  if ((points_num == 0) || (gps->points == NULL)) {
     clear_stroke(gpf, gps);
     return;
   }

@@ -786,11 +786,11 @@ static void rna_FModifier_active_update(Main *bmain, Scene *scene, PointerRNA *p
   rna_FModifier_update(bmain, scene, ptr);
 }
 
-static int rna_FModifierGenerator_coefficients_get_length(PointerRNA *ptr,
+static int rna_FModifierGenerator_coefficients_get_length(const PointerRNA *ptr,
                                                           int length[RNA_MAX_ARRAY_DIMENSION])
 {
-  FModifier *fcm = (FModifier *)ptr->data;
-  FMod_Generator *gen = fcm->data;
+  const FModifier *fcm = (FModifier *)ptr->data;
+  const FMod_Generator *gen = fcm->data;
 
   if (gen) {
     length[0] = gen->arraysize;

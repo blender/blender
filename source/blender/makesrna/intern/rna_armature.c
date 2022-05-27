@@ -216,10 +216,10 @@ static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
   WM_main_add_notifier(NC_ANIMATION | ND_ANIMCHAN, id);
 }
 
-static char *rna_Bone_path(PointerRNA *ptr)
+static char *rna_Bone_path(const PointerRNA *ptr)
 {
-  ID *id = ptr->owner_id;
-  Bone *bone = (Bone *)ptr->data;
+  const ID *id = ptr->owner_id;
+  const Bone *bone = (const Bone *)ptr->data;
   char name_esc[sizeof(bone->name) * 2];
 
   BLI_str_escape(name_esc, bone->name, sizeof(name_esc));

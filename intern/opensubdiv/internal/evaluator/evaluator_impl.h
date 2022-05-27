@@ -163,6 +163,9 @@ class EvalOutputAPI {
   // Wrap the buffer used by OpenSubDiv for the source data with the given buffer.
   void wrapSrcBuffer(OpenSubdiv_Buffer *src_buffer);
 
+  // Wrap the buffer used by OpenSubDiv for the extra source data with the given buffer.
+  void wrapSrcVertexDataBuffer(OpenSubdiv_Buffer *src_buffer);
+
   // Copy the patch arrays buffer used by OpenSubDiv for the face varying channel with the given
   // buffer.
   void fillFVarPatchArraysBuffer(const int face_varying_channel,
@@ -180,6 +183,9 @@ class EvalOutputAPI {
 
   // Wrap thebuffer used by OpenSubDiv for the face varying channel with the given buffer.
   void wrapFVarSrcBuffer(const int face_varying_channel, OpenSubdiv_Buffer *src_buffer);
+
+  // Return true if source vertex data has been set.
+  bool hasVertexData() const;
 
  protected:
   PatchMap *patch_map_;

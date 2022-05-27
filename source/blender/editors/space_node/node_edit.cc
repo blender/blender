@@ -293,9 +293,9 @@ static void compo_startjob(void *cjv,
   ntree->progress = nullptr;
 }
 
-}  // namespace blender::ed::space_node
-
 /** \} */
+
+}  // namespace blender::ed::space_node
 
 /* -------------------------------------------------------------------- */
 /** \name Composite Job C API

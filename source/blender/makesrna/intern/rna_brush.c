@@ -934,7 +934,7 @@ static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C,
 }
 
 /* Grease Pencil Drawing Brushes Settings */
-static char *rna_BrushGpencilSettings_path(PointerRNA *UNUSED(ptr))
+static char *rna_BrushGpencilSettings_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_paint.brush.gpencil_settings");
 }

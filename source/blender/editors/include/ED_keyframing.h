@@ -351,6 +351,19 @@ int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks);
 struct KeyingSet *ANIM_get_keyingset_for_autokeying(const struct Scene *scene,
                                                     const char *transformKSName);
 
+void ANIM_keyingset_visit_for_search(const struct bContext *C,
+                                     struct PointerRNA *ptr,
+                                     struct PropertyRNA *prop,
+                                     const char *edit_text,
+                                     StringPropertySearchVisitFunc visit_fn,
+                                     void *visit_user_data);
+
+void ANIM_keyingset_visit_for_search_no_poll(const struct bContext *C,
+                                             struct PointerRNA *ptr,
+                                             struct PropertyRNA *prop,
+                                             const char *edit_text,
+                                             StringPropertySearchVisitFunc visit_fn,
+                                             void *visit_user_data);
 /**
  * Dynamically populate an enum of Keying Sets.
  */

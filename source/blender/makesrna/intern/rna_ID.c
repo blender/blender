@@ -722,7 +722,7 @@ static ID *rna_ID_override_hierarchy_create(
 
   ID *id_root_override = NULL;
   BKE_lib_override_library_create(
-      bmain, scene, view_layer, NULL, id, id, id_instance_hint, &id_root_override);
+      bmain, scene, view_layer, NULL, id, id, id_instance_hint, &id_root_override, false);
 
   WM_main_add_notifier(NC_ID | NA_ADDED, NULL);
   WM_main_add_notifier(NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
@@ -1131,7 +1131,7 @@ static void rna_ImagePreview_size_set(PointerRNA *ptr, const int *values, enum e
   prv_img->flag[size] |= (PRV_CHANGED | PRV_USER_EDITED);
 }
 
-static int rna_ImagePreview_pixels_get_length(PointerRNA *ptr,
+static int rna_ImagePreview_pixels_get_length(const PointerRNA *ptr,
                                               int length[RNA_MAX_ARRAY_DIMENSION],
                                               enum eIconSizes size)
 {
@@ -1176,7 +1176,7 @@ static void rna_ImagePreview_pixels_set(PointerRNA *ptr, const int *values, enum
   prv_img->flag[size] |= PRV_USER_EDITED;
 }
 
-static int rna_ImagePreview_pixels_float_get_length(PointerRNA *ptr,
+static int rna_ImagePreview_pixels_float_get_length(const PointerRNA *ptr,
                                                     int length[RNA_MAX_ARRAY_DIMENSION],
                                                     enum eIconSizes size)
 {
@@ -1256,7 +1256,7 @@ static void rna_ImagePreview_image_size_set(PointerRNA *ptr, const int *values)
   rna_ImagePreview_size_set(ptr, values, ICON_SIZE_PREVIEW);
 }
 
-static int rna_ImagePreview_image_pixels_get_length(PointerRNA *ptr,
+static int rna_ImagePreview_image_pixels_get_length(const PointerRNA *ptr,
                                                     int length[RNA_MAX_ARRAY_DIMENSION])
 {
   return rna_ImagePreview_pixels_get_length(ptr, length, ICON_SIZE_PREVIEW);
@@ -1272,7 +1272,7 @@ static void rna_ImagePreview_image_pixels_set(PointerRNA *ptr, const int *values
   rna_ImagePreview_pixels_set(ptr, values, ICON_SIZE_PREVIEW);
 }
 
-static int rna_ImagePreview_image_pixels_float_get_length(PointerRNA *ptr,
+static int rna_ImagePreview_image_pixels_float_get_length(const PointerRNA *ptr,
                                                           int length[RNA_MAX_ARRAY_DIMENSION])
 {
   return rna_ImagePreview_pixels_float_get_length(ptr, length, ICON_SIZE_PREVIEW);
@@ -1303,7 +1303,7 @@ static void rna_ImagePreview_icon_size_set(PointerRNA *ptr, const int *values)
   rna_ImagePreview_size_set(ptr, values, ICON_SIZE_ICON);
 }
 
-static int rna_ImagePreview_icon_pixels_get_length(PointerRNA *ptr,
+static int rna_ImagePreview_icon_pixels_get_length(const PointerRNA *ptr,
                                                    int length[RNA_MAX_ARRAY_DIMENSION])
 {
   return rna_ImagePreview_pixels_get_length(ptr, length, ICON_SIZE_ICON);
@@ -1319,7 +1319,7 @@ static void rna_ImagePreview_icon_pixels_set(PointerRNA *ptr, const int *values)
   rna_ImagePreview_pixels_set(ptr, values, ICON_SIZE_ICON);
 }
 
-static int rna_ImagePreview_icon_pixels_float_get_length(PointerRNA *ptr,
+static int rna_ImagePreview_icon_pixels_float_get_length(const PointerRNA *ptr,
                                                          int length[RNA_MAX_ARRAY_DIMENSION])
 {
   return rna_ImagePreview_pixels_float_get_length(ptr, length, ICON_SIZE_ICON);

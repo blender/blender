@@ -16,6 +16,8 @@ struct RegionView3D;
 struct Depsgraph;
 struct View3D;
 struct Object;
+struct Brush;
+struct Scene;
 
 namespace blender::ed::sculpt_paint {
 
@@ -24,7 +26,18 @@ using bke::CurvesGeometry;
 struct StrokeExtension {
   bool is_first;
   float2 mouse_position;
+  float pressure;
 };
+
+float brush_radius_factor(const Brush &brush, const StrokeExtension &stroke_extension);
+float brush_radius_get(const Scene &scene,
+                       const Brush &brush,
+                       const StrokeExtension &stroke_extension);
+
+float brush_strength_factor(const Brush &brush, const StrokeExtension &stroke_extension);
+float brush_strength_get(const Scene &scene,
+                         const Brush &brush,
+                         const StrokeExtension &stroke_extension);
 
 /**
  * Base class for stroke based operations in curves sculpt mode.

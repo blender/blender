@@ -538,6 +538,8 @@ typedef struct DRWData {
   struct DRWTexturePool *texture_pool;
   /** Per stereo view data. Contains engine data and default framebuffers. */
   struct DRWViewData *view_data[2];
+  /** Per draw-call curves object data. */
+  struct CurvesUniformBufPool *curves_ubos;
 } DRWData;
 
 /* ------------- DRAW MANAGER ------------ */

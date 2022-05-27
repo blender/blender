@@ -103,7 +103,7 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
   int cd_loop_uv_offset;
 
   if (em && em->bm->totface && !CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
-    ED_mesh_uv_texture_add(obedit->data, NULL, true, true, NULL);
+    ED_mesh_uv_add(obedit->data, NULL, true, true, NULL);
   }
 
   /* Happens when there are no faces. */
@@ -339,7 +339,6 @@ static ParamHandle *construct_param_handle(const Scene *scene,
                                            const UnwrapOptions *options,
                                            UnwrapResultInfo *result_info)
 {
-  ParamHandle *handle;
   BMFace *efa;
   BMLoop *l;
   BMEdge *eed;
@@ -348,7 +347,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
 
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
-  handle = GEO_uv_parametrizer_construct_begin();
+  ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
 
   if (options->correct_aspect) {
     float aspx, aspy;
@@ -417,14 +416,13 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
                                                  const UnwrapOptions *options,
                                                  int *count_fail)
 {
-  ParamHandle *handle;
   BMFace *efa;
   BMLoop *l;
   BMEdge *eed;
   BMIter iter, liter;
   int i;
 
-  handle = GEO_uv_parametrizer_construct_begin();
+  ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
 
   if (options->correct_aspect) {
     Object *ob = objects[0];
@@ -539,7 +537,6 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
                                                      const UnwrapOptions *options,
                                                      UnwrapResultInfo *result_info)
 {
-  ParamHandle *handle;
   /* index pointers */
   MPoly *mpoly;
   MLoop *mloop;
@@ -571,7 +568,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-  handle = GEO_uv_parametrizer_construct_begin();
+  ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
 
   if (options->correct_aspect) {
     float aspx, aspy;
@@ -1023,8 +1020,7 @@ static void uvedit_pack_islands(const Scene *scene, Object *ob, BMesh *bm)
   bool rotate = true;
   bool ignore_pinned = false;
 
-  ParamHandle *handle;
-  handle = construct_param_handle(scene, ob, bm, &options, NULL);
+  ParamHandle *handle = construct_param_handle(scene, ob, bm, &options, NULL);
   GEO_uv_parametrizer_pack(handle, scene->toolsettings->uvcalc_margin, rotate, ignore_pinned);
   GEO_uv_parametrizer_flush(handle);
   GEO_uv_parametrizer_delete(handle);
@@ -1043,8 +1039,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
                                       bool rotate,
                                       bool ignore_pinned)
 {
-  ParamHandle *handle;
-  handle = construct_param_handle_multi(scene, objects, objects_len, options, NULL);
+  ParamHandle *handle = construct_param_handle_multi(scene, objects, objects_len, options, NULL);
   GEO_uv_parametrizer_pack(handle, scene->toolsettings->uvcalc_margin, rotate, ignore_pinned);
   GEO_uv_parametrizer_flush(handle);
   GEO_uv_parametrizer_delete(handle);
@@ -3038,7 +3033,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
    * since we are not in edit mode we need to ensure only the uv flags are tested */
   scene->toolsettings->uv_flag &= ~UV_SYNC_SELECTION;
 
-  ED_mesh_uv_texture_ensure(me, NULL);
+  ED_mesh_uv_ensure(me, NULL);
 
   BM_mesh_bm_from_me(bm,
                      me,

@@ -156,7 +156,8 @@ static void extract_points_init_subdiv(const DRWSubdivCache *subdiv_cache,
 static void extract_points_iter_subdiv_common(GPUIndexBufBuilder *elb,
                                               const MeshRenderData *mr,
                                               const DRWSubdivCache *subdiv_cache,
-                                              uint subdiv_quad_index)
+                                              uint subdiv_quad_index,
+                                              bool for_bmesh)
 {
   int *subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index);
   uint start_loop_idx = subdiv_quad_index * 4;
@@ -172,6 +173,21 @@ static void extract_points_iter_subdiv_common(GPUIndexBufBuilder *elb,
       continue;
     }
 
+    if (for_bmesh) {
+      const BMVert *mv = BM_vert_at_index(mr->bm, coarse_vertex_index);
+      if (BM_elem_flag_test(mv, BM_ELEM_HIDDEN)) {
+        GPU_indexbuf_set_point_restart(elb, coarse_vertex_index);
+        continue;
+      }
+    }
+    else {
+      const MVert *mv = &mr->mvert[coarse_vertex_index];
+      if (mr->use_hide && (mv->flag & ME_HIDE)) {
+        GPU_indexbuf_set_point_restart(elb, coarse_vertex_index);
+        continue;
+      }
+    }
+
     GPU_indexbuf_set_point_vert(elb, coarse_vertex_index, i);
   }
 }
@@ -183,7 +199,7 @@ static void extract_points_iter_subdiv_bm(const DRWSubdivCache *subdiv_cache,
                                           const BMFace *UNUSED(coarse_quad))
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
-  extract_points_iter_subdiv_common(elb, mr, subdiv_cache, subdiv_quad_index);
+  extract_points_iter_subdiv_common(elb, mr, subdiv_cache, subdiv_quad_index, true);
 }
 
 static void extract_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
@@ -193,7 +209,7 @@ static void extract_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_cache,
                                             const MPoly *UNUSED(coarse_quad))
 {
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_data);
-  extract_points_iter_subdiv_common(elb, mr, subdiv_cache, subdiv_quad_index);
+  extract_points_iter_subdiv_common(elb, mr, subdiv_cache, subdiv_quad_index, false);
 }
 
 static void extract_points_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,

@@ -24,6 +24,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_report.h"
 
@@ -516,71 +517,136 @@ void ui_rna_collection_search_update_fn(
 
   StringSearch *search = skip_filter ? nullptr : BLI_string_search_new();
 
-  /* build a temporary list of relevant items first */
-  int item_index = 0;
-  RNA_PROP_BEGIN (&data->search_ptr, itemptr, data->search_prop) {
+  if (data->search_prop != nullptr) {
+    /* build a temporary list of relevant items first */
+    int item_index = 0;
+    RNA_PROP_BEGIN (&data->search_ptr, itemptr, data->search_prop) {
 
-    if (flag & PROP_ID_SELF_CHECK) {
-      if (itemptr.data == data->target_ptr.owner_id) {
-        continue;
-      }
-    }
-
-    /* use filter */
-    if (is_ptr_target) {
-      if (RNA_property_pointer_poll(&data->target_ptr, data->target_prop, &itemptr) == 0) {
-        continue;
-      }
-    }
-
-    int name_prefix_offset = 0;
-    int iconid = ICON_NONE;
-    bool has_sep_char = false;
-    const bool is_id = itemptr.type && RNA_struct_is_ID(itemptr.type);
-
-    if (is_id) {
-      iconid = ui_id_icon_get(C, static_cast<ID *>(itemptr.data), false);
-      if (!ELEM(iconid, 0, ICON_BLANK1)) {
-        has_id_icon = true;
+      if (flag & PROP_ID_SELF_CHECK) {
+        if (itemptr.data == data->target_ptr.owner_id) {
+          continue;
+        }
       }
 
-      if (requires_exact_data_name) {
-        name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
+      /* use filter */
+      if (is_ptr_target) {
+        if (RNA_property_pointer_poll(&data->target_ptr, data->target_prop, &itemptr) == 0) {
+          continue;
+        }
+      }
+
+      int name_prefix_offset = 0;
+      int iconid = ICON_NONE;
+      bool has_sep_char = false;
+      const bool is_id = itemptr.type && RNA_struct_is_ID(itemptr.type);
+
+      if (is_id) {
+        iconid = ui_id_icon_get(C, static_cast<ID *>(itemptr.data), false);
+        if (!ELEM(iconid, 0, ICON_BLANK1)) {
+          has_id_icon = true;
+        }
+
+        if (requires_exact_data_name) {
+          name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
+        }
+        else {
+          const ID *id = static_cast<ID *>(itemptr.data);
+          BKE_id_full_name_ui_prefix_get(name_buf, id, true, UI_SEP_CHAR, &name_prefix_offset);
+          BLI_STATIC_ASSERT(sizeof(name_buf) >= MAX_ID_FULL_NAME_UI,
+                            "Name string buffer should be big enough to hold full UI ID name");
+          name = name_buf;
+          has_sep_char = ID_IS_LINKED(id);
+        }
       }
       else {
-        const ID *id = static_cast<ID *>(itemptr.data);
-        BKE_id_full_name_ui_prefix_get(name_buf, id, true, UI_SEP_CHAR, &name_prefix_offset);
-        BLI_STATIC_ASSERT(sizeof(name_buf) >= MAX_ID_FULL_NAME_UI,
-                          "Name string buffer should be big enough to hold full UI ID name");
-        name = name_buf;
-        has_sep_char = ID_IS_LINKED(id);
+        name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
       }
-    }
-    else {
-      name = RNA_struct_name_get_alloc(&itemptr, name_buf, sizeof(name_buf), nullptr);
-    }
 
-    if (name) {
-      CollItemSearch *cis = MEM_cnew<CollItemSearch>(__func__);
-      cis->data = itemptr.data;
-      cis->name = BLI_strdup(name);
-      cis->index = item_index;
-      cis->iconid = iconid;
-      cis->is_id = is_id;
-      cis->name_prefix_offset = name_prefix_offset;
-      cis->has_sep_char = has_sep_char;
-      if (!skip_filter) {
-        BLI_string_search_add(search, name, cis, 0);
+      if (name) {
+        CollItemSearch *cis = MEM_cnew<CollItemSearch>(__func__);
+        cis->data = itemptr.data;
+        cis->name = BLI_strdup(name);
+        cis->index = item_index;
+        cis->iconid = iconid;
+        cis->is_id = is_id;
+        cis->name_prefix_offset = name_prefix_offset;
+        cis->has_sep_char = has_sep_char;
+        if (!skip_filter) {
+          BLI_string_search_add(search, name, cis, 0);
+        }
+        BLI_addtail(items_list, cis);
+        if (name != name_buf) {
+          MEM_freeN(name);
+        }
       }
-      BLI_addtail(items_list, cis);
-      if (name != name_buf) {
-        MEM_freeN(name);
-      }
-    }
 
-    item_index++;
+      item_index++;
+    }
+    RNA_PROP_END;
   }
-  RNA_PROP_END;
+  else {
+    BLI_assert(RNA_property_type(data->target_prop) == PROP_STRING);
+    const eStringPropertySearchFlag search_flag = RNA_property_string_search_flag(
+        data->target_prop);
+    BLI_assert(search_flag & PROP_STRING_SEARCH_SUPPORTED);
+
+    struct SearchVisitUserData {
+      StringSearch *search;
+      bool skip_filter;
+      int item_index;
+      ListBase *items_list;
+      const char *func_id;
+    } user_data = {nullptr};
+
+    user_data.search = search;
+    user_data.skip_filter = skip_filter;
+    user_data.items_list = items_list;
+    user_data.func_id = __func__;
+
+    RNA_property_string_search(
+        C,
+        &data->target_ptr,
+        data->target_prop,
+        str,
+        [](void *user_data, const StringPropertySearchVisitParams *visit_params) {
+          const bool show_extra_info = (G.debug_value == 102);
+
+          SearchVisitUserData *search_data = (struct SearchVisitUserData *)user_data;
+          CollItemSearch *cis = MEM_cnew<CollItemSearch>(search_data->func_id);
+          cis->data = nullptr;
+          if (visit_params->info && show_extra_info) {
+            cis->name = BLI_sprintfN(
+                "%s" UI_SEP_CHAR_S "%s", visit_params->text, visit_params->info);
+          }
+          else {
+            cis->name = BLI_strdup(visit_params->text);
+          }
+          cis->index = search_data->item_index;
+          cis->iconid = ICON_NONE;
+          cis->is_id = false;
+          cis->name_prefix_offset = 0;
+          cis->has_sep_char = visit_params->info != nullptr;
+          if (!search_data->skip_filter) {
+            BLI_string_search_add(search_data->search, visit_params->text, cis, 0);
+          }
+          BLI_addtail(search_data->items_list, cis);
+          search_data->item_index++;
+        },
+        (void *)&user_data);
+
+    if (search_flag & PROP_STRING_SEARCH_SORT) {
+      BLI_listbase_sort(items_list, [](const void *a_, const void *b_) -> int {
+        const CollItemSearch *cis_a = (const CollItemSearch *)a_;
+        const CollItemSearch *cis_b = (const CollItemSearch *)b_;
+        return BLI_strcasecmp_natural(cis_a->name, cis_b->name);
+      });
+      int i = 0;
+      LISTBASE_FOREACH (CollItemSearch *, cis, items_list) {
+        cis->index = i;
+        i++;
+      }
+    }
+  }
 
   if (skip_filter) {
     LISTBASE_FOREACH (CollItemSearch *, cis, items_list) {

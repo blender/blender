@@ -5149,12 +5149,12 @@ void CustomData_data_transfer(const MeshPairRemap *me_remap,
 /** \name Custom Data IO
  * \{ */
 
-static void write_mdisps(BlendWriter *writer, int count, MDisps *mdlist, int external)
+static void write_mdisps(BlendWriter *writer, int count, const MDisps *mdlist, int external)
 {
   if (mdlist) {
     BLO_write_struct_array(writer, MDisps, count, mdlist);
     for (int i = 0; i < count; i++) {
-      MDisps *md = &mdlist[i];
+      const MDisps *md = &mdlist[i];
       if (md->disps) {
         if (!external) {
           BLO_write_float3_array(writer, md->totdisp, &md->disps[0][0]);
@@ -5168,12 +5168,14 @@ static void write_mdisps(BlendWriter *writer, int count, MDisps *mdlist, int ext
   }
 }
 
-static void write_grid_paint_mask(BlendWriter *writer, int count, GridPaintMask *grid_paint_mask)
+static void write_grid_paint_mask(BlendWriter *writer,
+                                  int count,
+                                  const GridPaintMask *grid_paint_mask)
 {
   if (grid_paint_mask) {
     BLO_write_struct_array(writer, GridPaintMask, count, grid_paint_mask);
     for (int i = 0; i < count; i++) {
-      GridPaintMask *gpm = &grid_paint_mask[i];
+      const GridPaintMask *gpm = &grid_paint_mask[i];
       if (gpm->data) {
         const int gridsize = BKE_ccg_gridsize(gpm->level);
         BLO_write_raw(writer, sizeof(*gpm->data) * gridsize * gridsize, gpm->data);
@@ -5201,11 +5203,11 @@ void CustomData_blend_write(BlendWriter *writer,
 
     if (layer->type == CD_MDEFORMVERT) {
       /* layer types that allocate own memory need special handling */
-      BKE_defvert_blend_write(writer, count, static_cast<struct MDeformVert *>(layer->data));
+      BKE_defvert_blend_write(writer, count, static_cast<const MDeformVert *>(layer->data));
     }
     else if (layer->type == CD_MDISPS) {
       write_mdisps(
-          writer, count, static_cast<MDisps *>(layer->data), layer->flag & CD_FLAG_EXTERNAL);
+          writer, count, static_cast<const MDisps *>(layer->data), layer->flag & CD_FLAG_EXTERNAL);
     }
     else if (layer->type == CD_PAINT_MASK) {
       const float *layer_data = static_cast<const float *>(layer->data);
@@ -5216,7 +5218,7 @@ void CustomData_blend_write(BlendWriter *writer,
       BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
     }
     else if (layer->type == CD_GRID_PAINT_MASK) {
-      write_grid_paint_mask(writer, count, static_cast<GridPaintMask *>(layer->data));
+      write_grid_paint_mask(writer, count, static_cast<const GridPaintMask *>(layer->data));
     }
     else if (layer->type == CD_FACEMAP) {
       const int *layer_data = static_cast<const int *>(layer->data);

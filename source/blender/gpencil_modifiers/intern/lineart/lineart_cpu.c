@@ -1753,6 +1753,11 @@ static void lineart_finalize_object_edge_array_reserve(LineartPendingEdges *pe, 
 
 static void lineart_finalize_object_edge_array(LineartPendingEdges *pe, LineartObjectInfo *obi)
 {
+  /* In case of line art "occlusion only" or contour not enabled, it's possible for an object to
+   * not produce any feature lines. */
+  if (!obi->pending_edges.array) {
+    return;
+  }
   memcpy(&pe->array[pe->next],
          obi->pending_edges.array,
          sizeof(LineartEdge *) * obi->pending_edges.next);
@@ -2357,6 +2362,11 @@ static void lineart_object_load_single_instance(LineartRenderBuffer *rb,
   }
   if (ob->type == OB_MESH) {
     use_mesh = BKE_object_get_evaluated_mesh(ob);
+    if (use_mesh->edit_mesh) {
+      /* If the object is being edited, then the mesh is not evaluated fully into the final
+       * result, do not load them. */
+      return;
+    }
   }
   else {
     use_mesh = BKE_mesh_new_from_object(depsgraph, ob, true, true);

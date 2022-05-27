@@ -124,7 +124,7 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
   copy_v3_v3(brush_color,
              ss->cache->invert ? BKE_brush_secondary_color_get(ss->scene, brush) :
                                  BKE_brush_color_get(ss->scene, brush));
-  IMB_colormanagement_srgb_to_scene_linear_v3(brush_color);
+  IMB_colormanagement_srgb_to_scene_linear_v3(brush_color, brush_color);
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, &vd);

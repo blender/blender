@@ -35,7 +35,7 @@ int GPU_max_compute_shader_storage_blocks(void);
 int GPU_extensions_len(void);
 const char *GPU_extension_get(int i);
 
-int GPU_texture_size_with_limit(int res, bool limit_gl_texture_size);
+int GPU_texture_size_with_limit(int res);
 
 bool GPU_mip_render_workaround(void);
 bool GPU_depth_blitting_workaround(void);

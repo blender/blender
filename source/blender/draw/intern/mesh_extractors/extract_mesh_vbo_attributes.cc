@@ -14,6 +14,7 @@
 
 #include "BKE_attribute.h"
 
+#include "draw_attributes.h"
 #include "draw_subdivision.h"
 #include "extract_mesh.h"
 
@@ -284,7 +285,7 @@ static void extract_attr_init(const MeshRenderData *mr,
                               void *UNUSED(tls_data),
                               int index)
 {
-  const DRW_MeshAttributes *attrs_used = &cache->attr_used;
+  const DRW_Attributes *attrs_used = &cache->attr_used;
   const DRW_AttributeRequest &request = attrs_used->requests[index];
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
@@ -337,7 +338,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                      void *UNUSED(tls_data),
                                      int index)
 {
-  const DRW_MeshAttributes *attrs_used = &cache->attr_used;
+  const DRW_Attributes *attrs_used = &cache->attr_used;
   const DRW_AttributeRequest &request = attrs_used->requests[index];
 
   Mesh *coarse_mesh = subdiv_cache->mesh;
@@ -346,7 +347,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
   /* Prepare VBO for coarse data. The compute shader only expects floats. */
   GPUVertBuf *src_data = GPU_vertbuf_calloc();
-  static GPUVertFormat coarse_format = {0};
+  GPUVertFormat coarse_format = {0};
   GPU_vertformat_attr_add(&coarse_format, "data", GPU_COMP_F32, dimensions, GPU_FETCH_FLOAT);
   GPU_vertbuf_init_with_format_ex(src_data, &coarse_format, GPU_USAGE_STATIC);
   GPU_vertbuf_data_alloc(src_data, static_cast<uint32_t>(coarse_mesh->totloop));

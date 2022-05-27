@@ -38,7 +38,8 @@
 
 #include <cstring>
 
-/* selected input event code defines from 'linux/input-event-codes.h'
+/**
+ * Selected input event code defines from `linux/input-event-codes.h`
  * We include some of the button input event codes here, since the header is
  * only available in more recent kernel versions. The event codes are used to
  * to differentiate from which mouse button an event comes from.
@@ -46,6 +47,11 @@
 #define BTN_LEFT 0x110
 #define BTN_RIGHT 0x111
 #define BTN_MIDDLE 0x112
+#define BTN_SIDE 0x113
+#define BTN_EXTRA 0x114
+#define BTN_FORWARD 0x115
+#define BTN_BACK 0x116
+// #define BTN_TASK 0x117 /* UNUSED. */
 
 struct buffer_t {
   void *data;
@@ -973,6 +979,18 @@ static void pointer_button(void *data,
       break;
     case BTN_RIGHT:
       ebutton = GHOST_kButtonMaskRight;
+      break;
+    case BTN_SIDE:
+      ebutton = GHOST_kButtonMaskButton4;
+      break;
+    case BTN_EXTRA:
+      ebutton = GHOST_kButtonMaskButton5;
+      break;
+    case BTN_FORWARD:
+      ebutton = GHOST_kButtonMaskButton6;
+      break;
+    case BTN_BACK:
+      ebutton = GHOST_kButtonMaskButton7;
       break;
   }
 
@@ -1902,6 +1920,8 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(bool visible)
 }
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mode,
+                                                  const GHOST_TGrabCursorMode mode_current,
+
                                                   wl_surface *surface)
 {
   /* ignore, if the required protocols are not supported */
@@ -1915,36 +1935,37 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
 
   input_t *input = d->inputs[0];
 
-  switch (mode) {
-    case GHOST_kGrabDisable:
-      if (input->relative_pointer) {
-        zwp_relative_pointer_v1_destroy(input->relative_pointer);
-        input->relative_pointer = nullptr;
-      }
-      if (input->locked_pointer) {
-        zwp_locked_pointer_v1_destroy(input->locked_pointer);
-        input->locked_pointer = nullptr;
-      }
-      break;
+  if (mode != GHOST_kGrabDisable) {
+    /* TODO(@campbellbarton): Support #GHOST_kGrabWrap,
+     * where the cursor moves but is constrained to a region. */
+    input->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
+        d->relative_pointer_manager, input->pointer);
+    zwp_relative_pointer_v1_add_listener(
+        input->relative_pointer, &relative_pointer_listener, input);
+    input->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(
+        d->pointer_constraints,
+        surface,
+        input->pointer,
+        nullptr,
+        ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
 
-    case GHOST_kGrabNormal:
-      break;
-    case GHOST_kGrabWrap:
-      input->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
-          d->relative_pointer_manager, input->pointer);
-      zwp_relative_pointer_v1_add_listener(
-          input->relative_pointer, &relative_pointer_listener, input);
-      input->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(
-          d->pointer_constraints,
-          surface,
-          input->pointer,
-          nullptr,
-          ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
-      break;
-
-    case GHOST_kGrabHide:
+    if (mode == GHOST_kGrabHide) {
       setCursorVisibility(false);
-      break;
+    }
+  }
+  else {
+    if (input->relative_pointer) {
+      zwp_relative_pointer_v1_destroy(input->relative_pointer);
+      input->relative_pointer = nullptr;
+    }
+    if (input->locked_pointer) {
+      zwp_locked_pointer_v1_destroy(input->locked_pointer);
+      input->locked_pointer = nullptr;
+    }
+
+    if (mode_current == GHOST_kGrabHide) {
+      setCursorVisibility(false);
+    }
   }
 
   return GHOST_kSuccess;

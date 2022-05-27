@@ -12,23 +12,25 @@
 #include "DNA_space_types.h"
 
 #include "outliner_intern.hh"
+#include "tree/tree_iterator.hh"
 
-static void outliner_context_selected_ids_recursive(const ListBase *subtree,
+using namespace blender::ed::outliner;
+
+static void outliner_context_selected_ids_recursive(const SpaceOutliner &space_outliner,
                                                     bContextDataResult *result)
 {
-  LISTBASE_FOREACH (const TreeElement *, te, subtree) {
+  tree_iterator::all(space_outliner, [&](const TreeElement *te) {
     const TreeStoreElem *tse = TREESTORE(te);
     if ((tse->flag & TSE_SELECTED) && (ELEM(tse->type, TSE_SOME_ID, TSE_LAYER_COLLECTION))) {
       CTX_data_id_list_add(result, tse->id);
     }
-    outliner_context_selected_ids_recursive(&te->subtree, result);
-  }
+  });
 }
 
 static void outliner_context_selected_ids(const SpaceOutliner *space_outliner,
                                           bContextDataResult *result)
 {
-  outliner_context_selected_ids_recursive(&space_outliner->tree, result);
+  outliner_context_selected_ids_recursive(*space_outliner, result);
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 }
 

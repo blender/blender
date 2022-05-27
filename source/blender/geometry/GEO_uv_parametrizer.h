@@ -12,8 +12,8 @@
 extern "C" {
 #endif
 
-typedef void ParamHandle;  /* handle to a set of charts */
-typedef intptr_t ParamKey; /* (hash) key for identifying verts and faces */
+typedef struct ParamHandle ParamHandle; /* Handle to an array of charts. */
+typedef intptr_t ParamKey;              /* Key (hash) for identifying verts and faces. */
 typedef enum ParamBool {
   PARAM_TRUE = 1,
   PARAM_FALSE = 0,
