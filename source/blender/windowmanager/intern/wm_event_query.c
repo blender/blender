@@ -199,6 +199,13 @@ bool WM_event_type_mask_test(const int event_type, const enum eEventType_Mask ma
     }
   }
 
+  /* NDOF */
+  if (mask & EVT_TYPE_MASK_NDOF) {
+    if (ISNDOF(event_type)) {
+      return true;
+    }
+  }
+
   /* Action Zone. */
   if (mask & EVT_TYPE_MASK_ACTIONZONE) {
     if (IS_EVENT_ACTIONZONE(event_type)) {
