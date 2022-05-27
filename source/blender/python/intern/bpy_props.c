@@ -4050,7 +4050,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
   if (bpy_prop_callback_check(set_fn, "set", 2) == -1) {
     return NULL;
   }
-  if (bpy_prop_callback_check(set_fn, "search", 3) == -1) {
+  if (bpy_prop_callback_check(search_fn, "search", 3) == -1) {
     return NULL;
   }
 
