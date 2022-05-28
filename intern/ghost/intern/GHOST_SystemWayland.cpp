@@ -1933,11 +1933,37 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
     return GHOST_kFailure;
   }
 
+  /* No change, success. */
+  if (mode == mode_current) {
+    return GHOST_kSuccess;
+  }
+
   input_t *input = d->inputs[0];
 
+  if (mode_current == GHOST_kGrabHide) {
+    setCursorVisibility(true);
+  }
+
+  if ((mode == GHOST_kGrabDisable) ||
+      /* Switching from one grab mode to another,
+       * in this case disable the current locks as it makes logic confusing,
+       * postpone changing the cursor to avoid flickering. */
+      (mode_current != GHOST_kGrabDisable)) {
+    if (input->relative_pointer) {
+      zwp_relative_pointer_v1_destroy(input->relative_pointer);
+      input->relative_pointer = nullptr;
+    }
+    if (input->locked_pointer) {
+      zwp_locked_pointer_v1_destroy(input->locked_pointer);
+      input->locked_pointer = nullptr;
+    }
+  }
+
   if (mode != GHOST_kGrabDisable) {
-    /* TODO(@campbellbarton): Support #GHOST_kGrabWrap,
-     * where the cursor moves but is constrained to a region. */
+    /* TODO(@campbellbarton): As WAYLAND does not support warping the pointer it may not be
+     * possible to support #GHOST_kGrabWrap by pragmatically settings it's coordinates.
+     * An alternative could be to draw the cursor in software (and hide the real cursor),
+     * or just accept a locked cursor on WAYLAND. */
     input->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
         d->relative_pointer_manager, input->pointer);
     zwp_relative_pointer_v1_add_listener(
@@ -1950,20 +1976,6 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
         ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
 
     if (mode == GHOST_kGrabHide) {
-      setCursorVisibility(false);
-    }
-  }
-  else {
-    if (input->relative_pointer) {
-      zwp_relative_pointer_v1_destroy(input->relative_pointer);
-      input->relative_pointer = nullptr;
-    }
-    if (input->locked_pointer) {
-      zwp_locked_pointer_v1_destroy(input->locked_pointer);
-      input->locked_pointer = nullptr;
-    }
-
-    if (mode_current == GHOST_kGrabHide) {
       setCursorVisibility(false);
     }
   }
