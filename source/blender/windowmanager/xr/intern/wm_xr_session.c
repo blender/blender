@@ -1175,7 +1175,6 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
   XrSessionSettings *settings = &xr->session_settings;
   GHOST_XrContextHandle xr_context = xr->runtime->context;
   wmXrSessionState *state = &xr->runtime->session_state;
-  wmXrActionSet *active_action_set = state->active_action_set;
 
   if (state->is_navigation_dirty) {
     memcpy(&state->nav_pose_prev, &state->nav_pose, sizeof(state->nav_pose_prev));
@@ -1191,6 +1190,13 @@ void wm_xr_session_actions_update(wmWindowManager *wm)
     wm_xr_pose_scale_to_imat(
         &state->viewer_pose, settings->base_scale * state->nav_scale, state->viewer_viewmat);
   }
+
+  /* Set active action set if requested previously. */
+  if (state->active_action_set_next[0]) {
+    WM_xr_active_action_set_set(xr, state->active_action_set_next, false);
+    state->active_action_set_next[0] = '\0';
+  }
+  wmXrActionSet *active_action_set = state->active_action_set;
 
   const bool synced = GHOST_XrSyncActions(xr_context,
                                           active_action_set ? active_action_set->name : NULL);
