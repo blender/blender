@@ -67,7 +67,7 @@ typedef struct MeshRenderData {
   const float (*bm_poly_normals)[3];
   const float (*bm_poly_centers)[3];
 
-  int *v_origindex, *e_origindex, *p_origindex;
+  const int *v_origindex, *e_origindex, *p_origindex;
   int edge_crease_ofs;
   int vert_crease_ofs;
   int bweight_ofs;

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ namespace ceres {
 
 using std::vector;
 
-LocalParameterization::~LocalParameterization() {}
+LocalParameterization::~LocalParameterization() = default;
 
 bool LocalParameterization::MultiplyByJacobian(const double* x,
                                                const int num_rows,
@@ -107,8 +107,8 @@ SubsetParameterization::SubsetParameterization(
       << "of the parameter block.";
   CHECK(std::adjacent_find(constant.begin(), constant.end()) == constant.end())
       << "The set of constant parameters cannot contain duplicates";
-  for (int i = 0; i < constant_parameters.size(); ++i) {
-    constancy_mask_[constant_parameters[i]] = 1;
+  for (int parameter : constant_parameters) {
+    constancy_mask_[parameter] = 1;
   }
 }
 

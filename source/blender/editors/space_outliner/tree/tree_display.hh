@@ -75,12 +75,16 @@ class AbstractTreeDisplay {
    */
   virtual ListBase buildTree(const TreeSourceData &source_data) = 0;
 
-  /** Accessor to whether given tree has some warnings to display. */
-  bool hasWarnings() const;
+  /**
+   * Define if the display mode should be allowed to show a mode column on the left. This column
+   * adds an icon to indicate which objects are in the current mode (edit mode, pose mode, etc.)
+   * and allows adding other objects to the mode by clicking the icon.
+   *
+   * Returns false by default.
+   */
+  virtual bool supportsModeColumn() const;
 
  protected:
-  bool has_warnings = false;
-
   /** All derived classes will need a handle to this, so storing it in the base for convenience. */
   SpaceOutliner &space_outliner_;
 };
@@ -99,6 +103,8 @@ class TreeDisplayViewLayer final : public AbstractTreeDisplay {
   TreeDisplayViewLayer(SpaceOutliner &space_outliner);
 
   ListBase buildTree(const TreeSourceData &source_data) override;
+
+  bool supportsModeColumn() const override;
 
  private:
   void add_view_layer(Scene &, ListBase &, TreeElement *);
@@ -212,6 +218,8 @@ class TreeDisplayScenes final : public AbstractTreeDisplay {
   TreeDisplayScenes(SpaceOutliner &space_outliner);
 
   ListBase buildTree(const TreeSourceData &source_data) override;
+
+  bool supportsModeColumn() const override;
 };
 
 /* -------------------------------------------------------------------- */

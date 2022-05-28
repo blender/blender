@@ -619,6 +619,44 @@ static void clip_dropboxes(void)
   WM_dropbox_add(lb, "CLIP_OT_open", clip_drop_poll, clip_drop_copy, NULL, NULL);
 }
 
+static bool clip_set_region_visible(const bContext *C,
+                                    ARegion *region,
+                                    const bool is_visible,
+                                    const short alignment,
+                                    const bool view_all_on_show)
+{
+  bool view_changed = false;
+
+  if (is_visible) {
+    if (region && (region->flag & RGN_FLAG_HIDDEN)) {
+      region->flag &= ~RGN_FLAG_HIDDEN;
+      region->v2d.flag &= ~V2D_IS_INIT;
+      if (view_all_on_show) {
+        region->v2d.cur = region->v2d.tot;
+      }
+      view_changed = true;
+    }
+    if (region && region->alignment != alignment) {
+      region->alignment = alignment;
+      view_changed = true;
+    }
+  }
+  else {
+    if (region && !(region->flag & RGN_FLAG_HIDDEN)) {
+      region->flag |= RGN_FLAG_HIDDEN;
+      region->v2d.flag &= ~V2D_IS_INIT;
+      WM_event_remove_handlers((bContext *)C, &region->handlers);
+      view_changed = true;
+    }
+    if (region && region->alignment != RGN_ALIGN_NONE) {
+      region->alignment = RGN_ALIGN_NONE;
+      view_changed = true;
+    }
+  }
+
+  return view_changed;
+}
+
 static void clip_refresh(const bContext *C, ScrArea *area)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -662,127 +700,14 @@ static void clip_refresh(const bContext *C, ScrArea *area)
       break;
   }
 
-  if (main_visible) {
-    if (region_main && (region_main->flag & RGN_FLAG_HIDDEN)) {
-      region_main->flag &= ~RGN_FLAG_HIDDEN;
-      region_main->v2d.flag &= ~V2D_IS_INIT;
-      view_changed = true;
-    }
-
-    if (region_main && region_main->alignment != RGN_ALIGN_NONE) {
-      region_main->alignment = RGN_ALIGN_NONE;
-      view_changed = true;
-    }
-  }
-  else {
-    if (region_main && !(region_main->flag & RGN_FLAG_HIDDEN)) {
-      region_main->flag |= RGN_FLAG_HIDDEN;
-      region_main->v2d.flag &= ~V2D_IS_INIT;
-      WM_event_remove_handlers((bContext *)C, &region_main->handlers);
-      view_changed = true;
-    }
-    if (region_main && region_main->alignment != RGN_ALIGN_NONE) {
-      region_main->alignment = RGN_ALIGN_NONE;
-      view_changed = true;
-    }
-  }
-
-  if (properties_visible) {
-    if (region_properties && (region_properties->flag & RGN_FLAG_HIDDEN)) {
-      region_properties->flag &= ~RGN_FLAG_HIDDEN;
-      region_properties->v2d.flag &= ~V2D_IS_INIT;
-      view_changed = true;
-    }
-    if (region_properties && region_properties->alignment != RGN_ALIGN_RIGHT) {
-      region_properties->alignment = RGN_ALIGN_RIGHT;
-      view_changed = true;
-    }
-  }
-  else {
-    if (region_properties && !(region_properties->flag & RGN_FLAG_HIDDEN)) {
-      region_properties->flag |= RGN_FLAG_HIDDEN;
-      region_properties->v2d.flag &= ~V2D_IS_INIT;
-      WM_event_remove_handlers((bContext *)C, &region_properties->handlers);
-      view_changed = true;
-    }
-    if (region_properties && region_properties->alignment != RGN_ALIGN_NONE) {
-      region_properties->alignment = RGN_ALIGN_NONE;
-      view_changed = true;
-    }
-  }
-
-  if (tools_visible) {
-    if (region_tools && (region_tools->flag & RGN_FLAG_HIDDEN)) {
-      region_tools->flag &= ~RGN_FLAG_HIDDEN;
-      region_tools->v2d.flag &= ~V2D_IS_INIT;
-      view_changed = true;
-    }
-    if (region_tools && region_tools->alignment != RGN_ALIGN_LEFT) {
-      region_tools->alignment = RGN_ALIGN_LEFT;
-      view_changed = true;
-    }
-  }
-  else {
-    if (region_tools && !(region_tools->flag & RGN_FLAG_HIDDEN)) {
-      region_tools->flag |= RGN_FLAG_HIDDEN;
-      region_tools->v2d.flag &= ~V2D_IS_INIT;
-      WM_event_remove_handlers((bContext *)C, &region_tools->handlers);
-      view_changed = true;
-    }
-    if (region_tools && region_tools->alignment != RGN_ALIGN_NONE) {
-      region_tools->alignment = RGN_ALIGN_NONE;
-      view_changed = true;
-    }
-  }
-
-  if (preview_visible) {
-    if (region_preview && (region_preview->flag & RGN_FLAG_HIDDEN)) {
-      region_preview->flag &= ~RGN_FLAG_HIDDEN;
-      region_preview->v2d.flag &= ~V2D_IS_INIT;
-      region_preview->v2d.cur = region_preview->v2d.tot;
-      view_changed = true;
-    }
-    if (region_preview && region_preview->alignment != RGN_ALIGN_NONE) {
-      region_preview->alignment = RGN_ALIGN_NONE;
-      view_changed = true;
-    }
-  }
-  else {
-    if (region_preview && !(region_preview->flag & RGN_FLAG_HIDDEN)) {
-      region_preview->flag |= RGN_FLAG_HIDDEN;
-      region_preview->v2d.flag &= ~V2D_IS_INIT;
-      WM_event_remove_handlers((bContext *)C, &region_preview->handlers);
-      view_changed = true;
-    }
-    if (region_preview && region_preview->alignment != RGN_ALIGN_NONE) {
-      region_preview->alignment = RGN_ALIGN_NONE;
-      view_changed = true;
-    }
-  }
-
-  if (channels_visible) {
-    if (region_channels && (region_channels->flag & RGN_FLAG_HIDDEN)) {
-      region_channels->flag &= ~RGN_FLAG_HIDDEN;
-      region_channels->v2d.flag &= ~V2D_IS_INIT;
-      view_changed = true;
-    }
-    if (region_channels && region_channels->alignment != RGN_ALIGN_LEFT) {
-      region_channels->alignment = RGN_ALIGN_LEFT;
-      view_changed = true;
-    }
-  }
-  else {
-    if (region_channels && !(region_channels->flag & RGN_FLAG_HIDDEN)) {
-      region_channels->flag |= RGN_FLAG_HIDDEN;
-      region_channels->v2d.flag &= ~V2D_IS_INIT;
-      WM_event_remove_handlers((bContext *)C, &region_channels->handlers);
-      view_changed = true;
-    }
-    if (region_channels && region_channels->alignment != RGN_ALIGN_NONE) {
-      region_channels->alignment = RGN_ALIGN_NONE;
-      view_changed = true;
-    }
-  }
+  view_changed |= clip_set_region_visible(C, region_main, main_visible, RGN_ALIGN_NONE, false);
+  view_changed |= clip_set_region_visible(
+      C, region_properties, properties_visible, RGN_ALIGN_RIGHT, false);
+  view_changed |= clip_set_region_visible(C, region_tools, tools_visible, RGN_ALIGN_LEFT, false);
+  view_changed |= clip_set_region_visible(
+      C, region_preview, preview_visible, RGN_ALIGN_NONE, true);
+  view_changed |= clip_set_region_visible(
+      C, region_channels, channels_visible, RGN_ALIGN_LEFT, false);
 
   if (view_changed) {
     ED_area_init(wm, window, area);

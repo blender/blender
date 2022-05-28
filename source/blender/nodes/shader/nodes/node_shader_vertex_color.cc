@@ -42,10 +42,20 @@ static int node_shader_gpu_vertex_color(GPUMaterial *mat,
                                         GPUNodeStack *out)
 {
   NodeShaderVertexColor *vertexColor = (NodeShaderVertexColor *)node->storage;
-  /* NOTE: using CD_AUTO_FROM_NAME instead of CD_MCOL or CD_PROP_COLOR as geometry nodes may
-   * overwrite data which will also change the CustomDataType. This will also make EEVEE and Cycles
+  /* NOTE: using CD_AUTO_FROM_NAME instead of CD_MCOL or CD_PROP_COLOR for named attributes
+   * as geometry nodes may overwrite data which will also change the CustomDataType.
+   * This will also make EEVEE and Cycles
    * consistent. See T93179. */
-  GPUNodeLink *vertexColorLink = GPU_attribute(mat, CD_AUTO_FROM_NAME, vertexColor->layer_name);
+
+  GPUNodeLink *vertexColorLink;
+
+  if (vertexColor->layer_name[0]) {
+    vertexColorLink = GPU_attribute(mat, CD_AUTO_FROM_NAME, vertexColor->layer_name);
+  }
+  else { /* Fall back on active render color attribute. */
+    vertexColorLink = GPU_attribute(mat, CD_MCOL, vertexColor->layer_name);
+  }
+
   return GPU_stack_link(mat, node, "node_vertex_color", in, out, vertexColorLink);
 }
 

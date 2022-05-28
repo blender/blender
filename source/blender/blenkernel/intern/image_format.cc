@@ -911,6 +911,11 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
   im_format->planes = imbuf->planes;
 }
 
+bool BKE_image_format_is_byte(const ImageFormatData *imf)
+{
+  return (imf->depth == R_IMF_CHAN_DEPTH_8) && (BKE_imtype_valid_depths(imf->imtype) & imf->depth);
+}
+
 /* Color Management */
 
 void BKE_image_format_color_management_copy(ImageFormatData *imf, const ImageFormatData *imf_src)

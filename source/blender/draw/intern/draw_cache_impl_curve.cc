@@ -108,7 +108,7 @@ static void curve_eval_render_wire_verts_edges_len_get(const blender::bke::Curve
   const blender::VArray<bool> cyclic = curves.cyclic();
   for (const int i : curves.curves_range()) {
     const IndexRange points = curves.evaluated_points_for_curve(i);
-    *r_edge_len += blender::bke::curves::curve_segment_size(points.size(), cyclic[i]);
+    *r_edge_len += blender::bke::curves::curve_segment_num(points.size(), cyclic[i]);
   }
 }
 

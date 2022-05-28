@@ -97,9 +97,9 @@ PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
     const int merge_index = merge_indices[i];
     const int dst_index = src_to_dst_indices[merge_index];
 
-    const IndexRange point_range(map_offsets[dst_index],
-                                 map_offsets[dst_index + 1] - map_offsets[dst_index]);
-    MutableSpan<int> point_merge_indices = merge_map.as_mutable_span().slice(point_range);
+    const IndexRange points(map_offsets[dst_index],
+                            map_offsets[dst_index + 1] - map_offsets[dst_index]);
+    MutableSpan<int> point_merge_indices = merge_map.as_mutable_span().slice(points);
     point_merge_indices[point_merge_counts[dst_index]] = i;
     point_merge_counts[dst_index]++;
   }
@@ -116,9 +116,8 @@ PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
 
     threading::parallel_for(IndexRange(dst_size), 1024, [&](IndexRange range) {
       for (const int i_dst : range) {
-        const IndexRange point_range(map_offsets[i_dst],
-                                     map_offsets[i_dst + 1] - map_offsets[i_dst]);
-        dst_ids[i_dst] = src_ids[point_range.first()];
+        const IndexRange points(map_offsets[i_dst], map_offsets[i_dst + 1] - map_offsets[i_dst]);
+        dst_ids[i_dst] = src_ids[points.first()];
       }
     });
 
@@ -147,9 +146,9 @@ PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
              * in the mixer the size of the result point cloud and to improve memory locality. */
             attribute_math::DefaultMixer<T> mixer{dst.slice(i_dst, 1)};
 
-            const IndexRange point_range(map_offsets[i_dst],
-                                         map_offsets[i_dst + 1] - map_offsets[i_dst]);
-            Span<int> src_merge_indices = merge_map.as_span().slice(point_range);
+            const IndexRange points(map_offsets[i_dst],
+                                    map_offsets[i_dst + 1] - map_offsets[i_dst]);
+            Span<int> src_merge_indices = merge_map.as_span().slice(points);
             for (const int i_src : src_merge_indices) {
               mixer.mix_in(0, src[i_src]);
             }

@@ -79,7 +79,7 @@ typedef struct CameraParams {
 void BKE_camera_params_init(CameraParams *params);
 void BKE_camera_params_from_object(CameraParams *params, const struct Object *cam_ob);
 void BKE_camera_params_from_view3d(CameraParams *params,
-                                   struct Depsgraph *depsgraph,
+                                   const struct Depsgraph *depsgraph,
                                    const struct View3D *v3d,
                                    const struct RegionView3D *rv3d);
 

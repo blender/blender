@@ -170,7 +170,8 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
     *r_insert_type = TE_INSERT_BEFORE;
     return first;
   }
-  BLI_assert(0);
+
+  BLI_assert_unreachable();
   return nullptr;
 }
 
@@ -315,7 +316,7 @@ static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
-  bool changed = outliner_flag_set(&space_outliner->tree, TSE_DRAG_ANY, false);
+  bool changed = outliner_flag_set(*space_outliner, TSE_DRAG_ANY, false);
   if (changed) {
     ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));
   }
@@ -846,8 +847,7 @@ static bool datastack_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ARegion *region = CTX_wm_region(C);
-  bool changed = outliner_flag_set(
-      &space_outliner->tree, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
+  bool changed = outliner_flag_set(*space_outliner, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
 
   StackDropData *drop_data = reinterpret_cast<StackDropData *>(drag->poin);
   if (!drop_data) {
@@ -1194,8 +1194,7 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ARegion *region = CTX_wm_region(C);
-  bool changed = outliner_flag_set(
-      &space_outliner->tree, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
+  bool changed = outliner_flag_set(*space_outliner, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
 
   CollectionDrop data;
   if (((event->modifier & KM_SHIFT) == 0) &&
@@ -1460,7 +1459,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
 
     /* Only drag element under mouse if it was not selected before. */
     if ((tselem->flag & TSE_SELECTED) == 0) {
-      outliner_flag_set(&space_outliner->tree, TSE_SELECTED, 0);
+      outliner_flag_set(*space_outliner, TSE_SELECTED, 0);
       tselem->flag |= TSE_SELECTED;
     }
 

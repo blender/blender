@@ -290,7 +290,7 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
         &target->vdata, CD_PAINT_MASK, CD_CALLOC, nullptr, target->totvert);
   }
 
-  float *source_mask;
+  const float *source_mask;
   if (CustomData_has_layer(&source->vdata, CD_PAINT_MASK)) {
     source_mask = (float *)CustomData_get_layer(&source->vdata, CD_PAINT_MASK);
   }

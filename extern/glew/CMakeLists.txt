@@ -7,6 +7,11 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     "-Wno-strict-prototypes"
   )
 endif()
+if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "12.1"))
+  add_c_flag(
+    "-Wno-address"
+  )
+endif()
 
 # MSVC's inliner is not having a happy time with glewIsSupported
 # causing this to be one of the most expensive things to build

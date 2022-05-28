@@ -19,7 +19,7 @@ static void translate_instances(GeoNodeExecParams &params, InstancesComponent &i
 {
   GeometryComponentFieldContext field_context{instances_component, ATTR_DOMAIN_INSTANCE};
 
-  fn::FieldEvaluator evaluator{field_context, instances_component.instances_amount()};
+  fn::FieldEvaluator evaluator{field_context, instances_component.instances_num()};
   evaluator.set_selection(params.extract_input<Field<bool>>("Selection"));
   evaluator.add(params.extract_input<Field<float3>>("Translation"));
   evaluator.add(params.extract_input<Field<bool>>("Local Space"));

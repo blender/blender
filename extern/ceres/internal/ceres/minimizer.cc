@@ -30,6 +30,8 @@
 
 #include "ceres/minimizer.h"
 
+#include <memory>
+
 #include "ceres/line_search_minimizer.h"
 #include "ceres/trust_region_minimizer.h"
 #include "ceres/types.h"
@@ -38,20 +40,20 @@
 namespace ceres {
 namespace internal {
 
-Minimizer* Minimizer::Create(MinimizerType minimizer_type) {
+std::unique_ptr<Minimizer> Minimizer::Create(MinimizerType minimizer_type) {
   if (minimizer_type == TRUST_REGION) {
-    return new TrustRegionMinimizer;
+    return std::make_unique<TrustRegionMinimizer>();
   }
 
   if (minimizer_type == LINE_SEARCH) {
-    return new LineSearchMinimizer;
+    return std::make_unique<LineSearchMinimizer>();
   }
 
   LOG(FATAL) << "Unknown minimizer_type: " << minimizer_type;
-  return NULL;
+  return nullptr;
 }
 
-Minimizer::~Minimizer() {}
+Minimizer::~Minimizer() = default;
 
 bool Minimizer::RunCallbacks(const Minimizer::Options& options,
                              const IterationSummary& iteration_summary,

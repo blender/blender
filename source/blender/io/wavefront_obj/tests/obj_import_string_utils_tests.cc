@@ -21,6 +21,19 @@ TEST(obj_import_string_utils, read_next_line)
   EXPECT_TRUE(s.is_empty());
 }
 
+static StringRef drop_whitespace(StringRef s)
+{
+  return StringRef(drop_whitespace(s.begin(), s.end()), s.end());
+}
+static StringRef parse_int(StringRef s, int fallback, int &dst, bool skip_space = true)
+{
+  return StringRef(parse_int(s.begin(), s.end(), fallback, dst, skip_space), s.end());
+}
+static StringRef parse_float(StringRef s, float fallback, float &dst, bool skip_space = true)
+{
+  return StringRef(parse_float(s.begin(), s.end(), fallback, dst, skip_space), s.end());
+}
+
 TEST(obj_import_string_utils, drop_whitespace)
 {
   /* Empty */

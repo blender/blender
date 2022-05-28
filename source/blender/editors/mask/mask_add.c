@@ -230,7 +230,7 @@ static bool add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2
   MaskLayer *mask_layer;
   MaskSpline *spline;
   MaskSplinePoint *point = NULL;
-  const float threshold = 9;
+  const float threshold = 12;
   float tangent[2];
   float u;
 
@@ -593,7 +593,7 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
   MaskLayer *mask_layer;
   MaskSpline *spline;
   MaskSplinePoint *point = NULL;
-  const float threshold = 9;
+  const float threshold = 12;
   float co[2], u;
 
   RNA_float_get_array(op->ptr, "location", co);

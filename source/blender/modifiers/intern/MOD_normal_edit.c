@@ -136,7 +136,7 @@ static void mix_normals(const float mix_factor,
   if (dvert) {
     facs = MEM_malloc_arrayN((size_t)loops_num, sizeof(*facs), __func__);
     BKE_defvert_extract_vgroup_to_loopweights(
-        dvert, defgrp_index, verts_num, mloop, loops_num, facs, use_invert_vgroup);
+        dvert, defgrp_index, verts_num, mloop, loops_num, use_invert_vgroup, facs);
   }
 
   for (i = loops_num, no_new = nos_new, no_old = nos_old, wfac = facs; i--;
@@ -532,14 +532,13 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
   MDeformVert *dvert;
 
   float(*loopnors)[3] = NULL;
-  short(*clnors)[2] = NULL;
 
   CustomData *ldata = &result->ldata;
 
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(result);
   const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(result);
 
-  clnors = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
+  short(*clnors)[2] = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
   if (use_current_clnors) {
     clnors = CustomData_duplicate_referenced_layer(ldata, CD_CUSTOMLOOPNORMAL, loops_num);
     loopnors = MEM_malloc_arrayN((size_t)loops_num, sizeof(*loopnors), __func__);

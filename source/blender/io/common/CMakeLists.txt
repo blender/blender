@@ -7,6 +7,7 @@ set(INC
   ../../blenlib
   ../../depsgraph
   ../../makesdna
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -17,9 +18,12 @@ set(SRC
   intern/dupli_parent_finder.cc
   intern/dupli_persistent_id.cc
   intern/object_identifier.cc
+  intern/path_util.cc
 
   IO_abstract_hierarchy_iterator.h
   IO_dupli_persistent_id.hh
+  IO_path_util.hh
+  IO_path_util_types.h
   IO_types.h
   intern/dupli_parent_finder.hh
 )

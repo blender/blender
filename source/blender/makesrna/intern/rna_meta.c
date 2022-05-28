@@ -156,10 +156,10 @@ static bool rna_Meta_is_editmode_get(PointerRNA *ptr)
   return (mb->editelems != NULL);
 }
 
-static char *rna_MetaElement_path(PointerRNA *ptr)
+static char *rna_MetaElement_path(const PointerRNA *ptr)
 {
-  MetaBall *mb = (MetaBall *)ptr->owner_id;
-  MetaElem *ml = ptr->data;
+  const MetaBall *mb = (MetaBall *)ptr->owner_id;
+  const MetaElem *ml = ptr->data;
   int index = -1;
 
   if (mb->editelems) {

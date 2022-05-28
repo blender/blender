@@ -302,7 +302,7 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *cam_ob)
 }
 
 void BKE_camera_params_from_view3d(CameraParams *params,
-                                   Depsgraph *depsgraph,
+                                   const Depsgraph *depsgraph,
                                    const View3D *v3d,
                                    const RegionView3D *rv3d)
 {

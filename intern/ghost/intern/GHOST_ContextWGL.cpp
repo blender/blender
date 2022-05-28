@@ -136,10 +136,10 @@ static int weight_pixel_format(PIXELFORMATDESCRIPTOR &pfd, PIXELFORMATDESCRIPTOR
   /* cull unusable pixel formats */
   /* if no formats can be found, can we determine why it was rejected? */
   if (!(pfd.dwFlags & PFD_SUPPORT_OPENGL) || !(pfd.dwFlags & PFD_DRAW_TO_WINDOW) ||
-      !(pfd.dwFlags & PFD_DOUBLEBUFFER) || /* Blender _needs_ this */
+      !(pfd.dwFlags & PFD_DOUBLEBUFFER) || /* Blender _needs_ this. */
       !(pfd.iPixelType == PFD_TYPE_RGBA) ||
-      (pfd.cColorBits > 32) ||            /* 64 bit formats disable aero */
-      (pfd.dwFlags & PFD_GENERIC_FORMAT)) /* no software renderers */
+      (pfd.cColorBits > 32) ||            /* 64 bit formats disable AERO. */
+      (pfd.dwFlags & PFD_GENERIC_FORMAT)) /* No software renderers. */
   {
     return 0;
   }

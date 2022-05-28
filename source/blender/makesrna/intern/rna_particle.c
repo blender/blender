@@ -660,7 +660,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem,
     }
     else {
       MFace *mface = &modifier->mesh_final->mface[num];
-      MTFace *mtface = (MTFace *)CustomData_get_layer_n(
+      const MTFace *mtface = (const MTFace *)CustomData_get_layer_n(
           &modifier->mesh_final->fdata, CD_MTFACE, uv_no);
 
       psys_interpolate_uvs(&mtface[num], mface->v4, *fuv, r_uv);
@@ -694,7 +694,8 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem,
     }
     else {
       MFace *mface = &modifier->mesh_final->mface[num];
-      MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->mesh_final->fdata, CD_MCOL, vcol_no);
+      const MCol *mc = (const MCol *)CustomData_get_layer_n(
+          &modifier->mesh_final->fdata, CD_MCOL, vcol_no);
       MCol mcol;
 
       psys_interpolate_mcol(&mc[num * 4], mface->v4, *fuv, &mcol);
@@ -1207,19 +1208,19 @@ static int rna_ParticleTarget_name_length(PointerRNA *ptr)
   return strlen(tstr);
 }
 
-static int particle_id_check(PointerRNA *ptr)
+static int particle_id_check(const PointerRNA *ptr)
 {
-  ID *id = ptr->owner_id;
+  const ID *id = ptr->owner_id;
 
   return (GS(id->name) == ID_PA);
 }
 
-static char *rna_SPHFluidSettings_path(PointerRNA *ptr)
+static char *rna_SPHFluidSettings_path(const PointerRNA *ptr)
 {
-  SPHFluidSettings *fluid = (SPHFluidSettings *)ptr->data;
+  const SPHFluidSettings *fluid = (SPHFluidSettings *)ptr->data;
 
   if (particle_id_check(ptr)) {
-    ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
+    const ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
 
     if (part->fluid == fluid) {
       return BLI_strdup("fluid");
@@ -1462,9 +1463,9 @@ static void psys_vg_name_set__internal(PointerRNA *ptr, const char *value, int i
   }
 }
 
-static char *rna_ParticleSystem_path(PointerRNA *ptr)
+static char *rna_ParticleSystem_path(const PointerRNA *ptr)
 {
-  ParticleSystem *psys = (ParticleSystem *)ptr->data;
+  const ParticleSystem *psys = (ParticleSystem *)ptr->data;
   char name_esc[sizeof(psys->name) * 2];
 
   BLI_str_escape(name_esc, psys->name, sizeof(name_esc));

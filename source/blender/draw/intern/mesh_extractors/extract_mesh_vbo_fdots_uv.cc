@@ -17,7 +17,7 @@ namespace blender::draw {
 
 struct MeshExtract_FdotUV_Data {
   float (*vbo_data)[2];
-  MLoopUV *uv_data;
+  const MLoopUV *uv_data;
   int cd_ofs;
 };
 
@@ -49,7 +49,7 @@ static void extract_fdots_uv_init(const MeshRenderData *mr,
     data->cd_ofs = CustomData_get_offset(&mr->bm->ldata, CD_MLOOPUV);
   }
   else {
-    data->uv_data = (MLoopUV *)CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
+    data->uv_data = (const MLoopUV *)CustomData_get_layer(&mr->me->ldata, CD_MLOOPUV);
   }
 }
 

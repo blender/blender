@@ -102,7 +102,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   /* Setup render buffers. */
   const int index = INTEGRATOR_STATE(state, path, render_pixel_index);
   const int pass_stride = kernel_data.film.pass_stride;
-  ccl_global float *buffer = render_buffer + index * pass_stride;
+  ccl_global float *buffer = render_buffer + (uint64_t)index * pass_stride;
 
   ccl_global float *primitive = buffer + kernel_data.film.pass_bake_primitive;
   ccl_global float *differential = buffer + kernel_data.film.pass_bake_differential;

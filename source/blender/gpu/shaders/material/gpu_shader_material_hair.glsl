@@ -40,7 +40,7 @@ void node_bsdf_hair_principled(vec4 color,
   hair_data.color = color.rgb;
   hair_data.offset = offset;
   hair_data.roughness = vec2(0.0);
-  hair_data.T = g_data.T;
+  hair_data.T = g_data.curve_B;
 
   result = closure_eval(hair_data);
 }

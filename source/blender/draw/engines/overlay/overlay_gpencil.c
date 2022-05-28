@@ -297,7 +297,7 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
     }
 
     const int gridlines = (gpd->grid.lines <= 0) ? 1 : gpd->grid.lines;
-    int line_ct = gridlines * 4 + 2;
+    const int line_count = gridlines * 4 + 2;
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA;
     state |= (grid_xray) ? DRW_STATE_DEPTH_ALWAYS : DRW_STATE_DEPTH_LESS_EQUAL;
@@ -311,8 +311,8 @@ void OVERLAY_gpencil_cache_init(OVERLAY_Data *vedata)
     DRW_shgroup_uniform_vec3_copy(grp, "xAxis", mat[0]);
     DRW_shgroup_uniform_vec3_copy(grp, "yAxis", mat[1]);
     DRW_shgroup_uniform_vec3_copy(grp, "origin", mat[3]);
-    DRW_shgroup_uniform_int_copy(grp, "halfLineCount", line_ct / 2);
-    DRW_shgroup_call_procedural_lines(grp, NULL, line_ct);
+    DRW_shgroup_uniform_int_copy(grp, "halfLineCount", line_count / 2);
+    DRW_shgroup_call_procedural_lines(grp, NULL, line_count);
   }
 }
 

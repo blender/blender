@@ -15,6 +15,7 @@
 #include "BLI_math.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
 #include "BKE_lib_id.h"

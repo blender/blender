@@ -21,6 +21,7 @@
 #include "eevee_camera.hh"
 #include "eevee_pipeline.hh"
 #include "eevee_shader.hh"
+#include "eevee_velocity.hh"
 
 namespace blender::eevee {
 
@@ -43,13 +44,14 @@ class ShadingView {
   /** Post-fx modules. */
   // DepthOfField dof_;
   // MotionBlur mb_;
-  // Velocity velocity_;
+  VelocityView velocity_;
 
   /** Raytracing persistent buffers. Only opaque and refraction can have surface tracing. */
   // RaytraceBuffer rt_buffer_opaque_;
   // RaytraceBuffer rt_buffer_refract_;
 
-  Framebuffer view_fb_;
+  Framebuffer prepass_fb_;
+  Framebuffer combined_fb_;
   Texture depth_tx_;
   TextureFromPool combined_tx_;
   TextureFromPool postfx_tx_;
@@ -69,7 +71,7 @@ class ShadingView {
 
  public:
   ShadingView(Instance &inst, const char *name, const float (*face_matrix)[4])
-      : inst_(inst), name_(name), face_matrix_(face_matrix){};
+      : inst_(inst), name_(name), face_matrix_(face_matrix), velocity_(inst, name){};
 
   ~ShadingView(){};
 

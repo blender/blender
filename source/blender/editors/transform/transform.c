@@ -1172,12 +1172,20 @@ int transformEvent(TransInfo *t, const wmEvent *event)
                                   MOD_CONSTRAINT_SELECT_PLANE;
               if (t->con.mode & CON_APPLY) {
                 stopConstraint(t);
-              }
+                initSelectConstraint(t);
 
-              initSelectConstraint(t);
-              /* Use #TREDRAW_SOFT so that #selectConstraint is only called on the next event.
-               * This allows us to "deselect" the constraint. */
-              t->redraw = TREDRAW_SOFT;
+                /* In this case we might just want to remove the constraint,
+                 * so set #TREDRAW_SOFT to only select the constraint on the next mouse move event.
+                 * This way we can kind of "cancel" due to confirmation without constraint. */
+                t->redraw = TREDRAW_SOFT;
+              }
+              else {
+                initSelectConstraint(t);
+
+                /* When first called, set #TREDRAW_HARD to select constraint immediately in
+                 * #selectConstraint. */
+                BLI_assert(t->redraw == TREDRAW_HARD);
+              }
             }
           }
           handled = true;

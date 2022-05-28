@@ -44,14 +44,30 @@ struct ToDenseOp {
 #  ifdef WITH_NANOVDB
 struct ToNanoOp {
   nanovdb::GridHandle<> nanogrid;
+  int precision;
 
   template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
   bool operator()(const openvdb::GridBase::ConstPtr &grid)
   {
     if constexpr (!std::is_same_v<GridType, openvdb::MaskGrid>) {
       try {
-        nanogrid = nanovdb::openToNanoVDB(
-            FloatGridType(*openvdb::gridConstPtrCast<GridType>(grid)));
+        FloatGridType floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
+        if constexpr (std::is_same_v<FloatGridType, openvdb::FloatGrid>) {
+          if (precision == 0) {
+            nanogrid = nanovdb::openToNanoVDB<nanovdb::HostBuffer,
+                                              typename FloatGridType::TreeType,
+                                              nanovdb::FpN>(floatgrid);
+            return true;
+          }
+          else if (precision == 16) {
+            nanogrid = nanovdb::openToNanoVDB<nanovdb::HostBuffer,
+                                              typename FloatGridType::TreeType,
+                                              nanovdb::Fp16>(floatgrid);
+            return true;
+          }
+        }
+
+        nanogrid = nanovdb::openToNanoVDB(floatgrid);
       }
       catch (const std::exception &e) {
         VLOG(1) << "Error converting OpenVDB to NanoVDB grid: " << e.what();
@@ -102,6 +118,7 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
     openvdb::tools::pruneInactive(pruned_grid.tree());
     nanogrid = nanovdb::openToNanoVDB(pruned_grid);*/
     ToNanoOp op;
+    op.precision = precision;
     if (!openvdb::grid_type_operation(grid, op)) {
       return false;
     }
@@ -124,7 +141,15 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
   if (nanogrid) {
     metadata.byte_size = nanogrid.size();
     if (metadata.channels == 1) {
-      metadata.type = IMAGE_DATA_TYPE_NANOVDB_FLOAT;
+      if (precision == 0) {
+        metadata.type = IMAGE_DATA_TYPE_NANOVDB_FPN;
+      }
+      else if (precision == 16) {
+        metadata.type = IMAGE_DATA_TYPE_NANOVDB_FP16;
+      }
+      else {
+        metadata.type = IMAGE_DATA_TYPE_NANOVDB_FLOAT;
+      }
     }
     else {
       metadata.type = IMAGE_DATA_TYPE_NANOVDB_FLOAT3;

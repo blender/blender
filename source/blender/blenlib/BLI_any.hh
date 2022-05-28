@@ -184,7 +184,7 @@ class Any {
   }
 
   /**
-   * \note: Only needed because the template below does not count as copy assignment operator.
+   * \note Only needed because the template below does not count as copy assignment operator.
    */
   Any &operator=(const Any &other)
   {

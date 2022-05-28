@@ -17,10 +17,6 @@ struct Scene;
 struct SeqCollection;
 struct Sequence;
 
-int SEQ_transform_get_left_handle_frame(struct Sequence *seq);
-int SEQ_transform_get_right_handle_frame(struct Sequence *seq);
-void SEQ_transform_set_left_handle_frame(struct Sequence *seq, int val);
-void SEQ_transform_set_right_handle_frame(struct Sequence *seq, int val);
 /**
  * Use to impose limits when dragging/extending - so impossible situations don't happen.
  * Can't use the #SEQ_LEFTSEL and #SEQ_LEFTSEL directly because the strip may be in a meta-strip.

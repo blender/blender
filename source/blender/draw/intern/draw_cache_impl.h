@@ -83,6 +83,7 @@ void DRW_batch_cache_free_old(struct Object *ob, int ctime);
  * \note For now this only free the shading batches / VBO if any cd layers is not needed anymore.
  */
 void DRW_mesh_batch_cache_free_old(struct Mesh *me, int ctime);
+void DRW_curves_batch_cache_free_old(struct Curves *curves, int ctime);
 
 /** \} */
 

@@ -526,13 +526,19 @@ void OBJECT_OT_collection_link(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-static int collection_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int collection_remove_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = ED_object_context(C);
   Collection *collection = CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data;
 
   if (!ob || !collection) {
+    return OPERATOR_CANCELLED;
+  }
+  if (ID_IS_LINKED(collection) || ID_IS_OVERRIDE_LIBRARY(collection)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Cannot remove an object from a linked or library override collection");
     return OPERATOR_CANCELLED;
   }
 
@@ -561,12 +567,20 @@ void OBJECT_OT_collection_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int collection_unlink_exec(bContext *C, wmOperator *UNUSED(op))
+static int collection_unlink_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Collection *collection = CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data;
 
   if (!collection) {
+    return OPERATOR_CANCELLED;
+  }
+  if (ID_IS_OVERRIDE_LIBRARY(collection) &&
+      collection->id.override_library->hierarchy_root != &collection->id) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Cannot unlink a library override collection which is not the root of its override "
+               "hierarchy");
     return OPERATOR_CANCELLED;
   }
 

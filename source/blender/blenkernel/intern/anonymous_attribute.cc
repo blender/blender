@@ -41,7 +41,7 @@ static std::string get_new_internal_name()
 {
   static std::atomic<int> index = 0;
   const int next_index = index.fetch_add(1);
-  return "anonymous_attribute_" + std::to_string(next_index);
+  return ".a_" + std::to_string(next_index);
 }
 
 AnonymousAttributeID *BKE_anonymous_attribute_id_new_weak(const char *debug_name)

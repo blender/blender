@@ -192,28 +192,26 @@ ccl_device float svm_math(NodeMathType type, float a, float b, float c)
 ccl_device float3 svm_math_blackbody_color_rec709(float t)
 {
   /* Calculate color in range 800..12000 using an approximation
-   * a/x+bx+c for R and G and ((at + b)t + c)t + d) for B
-   * Max absolute error for RGB is (0.00095, 0.00077, 0.00057),
-   * which is enough to get the same 8 bit/channel color.
-   */
+   * a/x+bx+c for R and G and ((at + b)t + c)t + d) for B.
+   *
+   * The result of this can be negative to support gamut wider than
+   * than rec.709, just needs to be clamped. */
 
   if (t >= 12000.0f) {
-    return make_float3(0.826270103f, 0.994478524f, 1.56626022f);
+    return make_float3(0.8262954810464208f, 0.9945080501520986f, 1.566307710274283f);
   }
-  else if (t < 965.0f) {
-    /* For 800 <= t < 965 color does not change in OSL implementation, so keep color the same */
-    return make_float3(4.70366907f, 0.0f, 0.0f);
+  else if (t < 800.0f) {
+    /* Arbitrary lower limit where light is very dim, matching OSL. */
+    return make_float3(5.413294490189271f, -0.20319390035873933f, -0.0822535242887164f);
   }
 
-  /* Manually align for readability. */
-  /* clang-format off */
-  int i = (t >= 6365.0f) ? 5 :
-          (t >= 3315.0f) ? 4 :
-          (t >= 1902.0f) ? 3 :
-          (t >= 1449.0f) ? 2 :
-          (t >= 1167.0f) ? 1 :
+  int i = (t >= 6365.0f) ? 6 :
+          (t >= 3315.0f) ? 5 :
+          (t >= 1902.0f) ? 4 :
+          (t >= 1449.0f) ? 3 :
+          (t >= 1167.0f) ? 2 :
+          (t >= 965.0f)  ? 1 :
                            0;
-  /* clang-format on */
 
   ccl_constant float *r = blackbody_table_r[i];
   ccl_constant float *g = blackbody_table_g[i];

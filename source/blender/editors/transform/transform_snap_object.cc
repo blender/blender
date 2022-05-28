@@ -168,8 +168,13 @@ struct SnapObjectContext {
 /** \name Utilities
  * \{ */
 
-/* Mesh used for snapping.
- * If nullptr the BMesh should be used. */
+/**
+ * Mesh used for snapping.
+ *
+ * - When the return value is null the `BKE_editmesh_from_object(ob_eval)` should be used.
+ * - In rare cases there is no evaluated mesh available and a null result doesn't imply an
+ *   edit-mesh, so callers need to account for a null edit-mesh too, see: T96536.
+ */
 static const Mesh *mesh_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bool *r_use_hide)
 {
   const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
@@ -998,6 +1003,9 @@ static void raycast_obj_fn(SnapObjectContext *sctx,
       const Mesh *me_eval = mesh_for_snap(ob_eval, edit_mode_type, &use_hide);
       if (me_eval == nullptr) {
         BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
+        if (UNLIKELY(!em)) { /* See #mesh_for_snap doc-string. */
+          return;
+        }
         BLI_assert_msg(em == BKE_editmesh_from_object(DEG_get_original_object(ob_eval)),
                        "Make sure there is only one pointer for looptris");
         retval = raycastEditMesh(sctx,
@@ -2696,6 +2704,9 @@ static void snap_obj_fn(SnapObjectContext *sctx,
       const Mesh *me_eval = mesh_for_snap(ob_eval, edit_mode_type, &use_hide);
       if (me_eval == nullptr) {
         BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
+        if (UNLIKELY(!em)) { /* See #mesh_for_snap doc-string. */
+          return;
+        }
         BLI_assert_msg(em == BKE_editmesh_from_object(DEG_get_original_object(ob_eval)),
                        "Make sure there is only one pointer for looptris");
         retval = snapEditMesh(

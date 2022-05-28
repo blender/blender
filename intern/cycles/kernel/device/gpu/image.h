@@ -125,7 +125,8 @@ kernel_tex_image_interp_tricubic(ccl_global const TextureInfo &info, float x, fl
 
 #ifdef WITH_NANOVDB
 template<typename T, typename S>
-ccl_device T kernel_tex_image_interp_tricubic_nanovdb(S &s, float x, float y, float z)
+ccl_device typename nanovdb::NanoGrid<T>::ValueType kernel_tex_image_interp_tricubic_nanovdb(
+    S &s, float x, float y, float z)
 {
   float px = floorf(x);
   float py = floorf(y);
@@ -157,7 +158,7 @@ ccl_device T kernel_tex_image_interp_tricubic_nanovdb(S &s, float x, float y, fl
 }
 
 template<typename T>
-ccl_device_noinline T kernel_tex_image_interp_nanovdb(
+ccl_device_noinline typename nanovdb::NanoGrid<T>::ValueType kernel_tex_image_interp_nanovdb(
     ccl_global const TextureInfo &info, float x, float y, float z, uint interpolation)
 {
   using namespace nanovdb;
@@ -237,6 +238,14 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
     nanovdb::Vec3f f = kernel_tex_image_interp_nanovdb<nanovdb::Vec3f>(
         info, x, y, z, interpolation);
     return make_float4(f[0], f[1], f[2], 1.0f);
+  }
+  if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FPN) {
+    float f = kernel_tex_image_interp_nanovdb<nanovdb::FpN>(info, x, y, z, interpolation);
+    return make_float4(f, f, f, 1.0f);
+  }
+  if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FP16) {
+    float f = kernel_tex_image_interp_nanovdb<nanovdb::Fp16>(info, x, y, z, interpolation);
+    return make_float4(f, f, f, 1.0f);
   }
 #endif
   if (texture_type == IMAGE_DATA_TYPE_FLOAT4 || texture_type == IMAGE_DATA_TYPE_BYTE4 ||

@@ -479,6 +479,45 @@ TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTr
 /** \name UV Coordinates
  * \{ */
 
+/**
+ * Find the correction for the scaling factor when "Constrain to Bounds" is active.
+ * \param numerator: How far the UV boundary (unit square) is from the origin of the scale.
+ * \param denominator: How far the AABB is from the origin of the scale.
+ * \param scale: Scale parameter to update.
+ */
+static void constrain_scale_to_boundary(const float numerator,
+                                        const float denominator,
+                                        float *scale)
+{
+  if (denominator == 0.0f) {
+    /* The origin of the scale is on the edge of the boundary. */
+    if (numerator < 0.0f) {
+      /* Negative scale will wrap around and put us outside the boundary. */
+      *scale = 0.0f; /* Hold at the boundary instead. */
+    }
+    return; /* Nothing else we can do without more info. */
+  }
+
+  const float correction = numerator / denominator;
+  if (correction < 0.0f || !isfinite(correction)) {
+    /* TODO: Correction is negative or invalid, but we lack context to fix `*scale`. */
+    return;
+  }
+
+  if (denominator < 0.0f) {
+    /* Scale origin is outside boundary, only make scale bigger. */
+    if (*scale < correction) {
+      *scale = correction;
+    }
+    return;
+  }
+
+  /* Scale origin is inside boundary, the "regular" case, limit maximum scale. */
+  if (*scale > correction) {
+    *scale = correction;
+  }
+}
+
 bool clipUVTransform(TransInfo *t, float vec[2], const bool resize)
 {
   bool clipx = true, clipy = true;
@@ -517,31 +556,29 @@ bool clipUVTransform(TransInfo *t, float vec[2], const bool resize)
   }
 
   if (resize) {
-    if (min[0] < base_offset[0] && t->center_global[0] > base_offset[0] &&
-        t->center_global[0] < base_offset[0] + (t->aspect[0] * 0.5f)) {
-      vec[0] *= (t->center_global[0] - base_offset[0]) / (t->center_global[0] - min[0]);
-    }
-    else if (max[0] > (base_offset[0] + t->aspect[0]) &&
-             t->center_global[0] < (base_offset[0] + t->aspect[0])) {
-      vec[0] *= (t->center_global[0] - (base_offset[0] + t->aspect[0])) /
-                (t->center_global[0] - max[0]);
-    }
-    else {
-      clipx = 0;
-    }
+    /* Assume no change is required. */
+    float scalex = 1.0f;
+    float scaley = 1.0f;
 
-    if (min[1] < base_offset[1] && t->center_global[1] > base_offset[1] &&
-        t->center_global[1] < base_offset[1] + (t->aspect[1] * 0.5f)) {
-      vec[1] *= (t->center_global[1] - base_offset[1]) / (t->center_global[1] - min[1]);
-    }
-    else if (max[1] > (base_offset[1] + t->aspect[1]) &&
-             t->center_global[1] < (base_offset[1] + t->aspect[1])) {
-      vec[1] *= (t->center_global[1] - (base_offset[1] + t->aspect[1])) /
-                (t->center_global[1] - max[1]);
-    }
-    else {
-      clipy = 0;
-    }
+    /* Update U against the left border. */
+    constrain_scale_to_boundary(
+        t->center_global[0] - base_offset[0], t->center_global[0] - min[0], &scalex);
+    /* Now the right border, negated, because `-1.0 / -1.0 = 1.0` */
+    constrain_scale_to_boundary(base_offset[0] + t->aspect[0] - t->center_global[0],
+                                max[0] - t->center_global[0],
+                                &scalex);
+
+    /* Do the same for the V co-ordinate, which is called `y`. */
+    constrain_scale_to_boundary(
+        t->center_global[1] - base_offset[1], t->center_global[1] - min[1], &scaley);
+    constrain_scale_to_boundary(base_offset[1] + t->aspect[1] - t->center_global[1],
+                                max[1] - t->center_global[1],
+                                &scaley);
+
+    clipx = (scalex != 1.0f);
+    clipy = (scaley != 1.0f);
+    vec[0] *= scalex;
+    vec[1] *= scaley;
   }
   else {
     if (min[0] < base_offset[0]) {

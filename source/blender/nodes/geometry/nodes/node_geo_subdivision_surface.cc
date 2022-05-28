@@ -118,8 +118,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     const MeshComponent &mesh_component = *geometry_set.get_component_for_read<MeshComponent>();
-    const int verts_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
-    const int edges_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
+    const int verts_num = mesh_component.attribute_domain_num(ATTR_DOMAIN_POINT);
+    const int edges_num = mesh_component.attribute_domain_num(ATTR_DOMAIN_EDGE);
     if (verts_num == 0 || edges_num == 0) {
       return;
     }

@@ -33,7 +33,7 @@ class GArray {
   void *data_ = nullptr;
   int64_t size_ = 0;
 
-  Allocator allocator_;
+  BLI_NO_UNIQUE_ADDRESS Allocator allocator_;
 
  public:
   /**

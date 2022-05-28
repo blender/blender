@@ -107,20 +107,20 @@ static void copy_attributes(const Spline &input_spline, Spline &output_spline, C
 static Vector<float3> create_nurbs_to_bezier_handles(const Span<float3> nurbs_positions,
                                                      const KnotsMode knots_mode)
 {
-  const int nurbs_positions_size = nurbs_positions.size();
+  const int nurbs_positions_num = nurbs_positions.size();
   Vector<float3> handle_positions;
   if (knots_mode == NURBS_KNOT_MODE_BEZIER) {
-    for (const int i : IndexRange(nurbs_positions_size)) {
+    for (const int i : IndexRange(nurbs_positions_num)) {
       if (i % 3 == 1) {
         continue;
       }
       handle_positions.append(nurbs_positions[i]);
     }
-    if (nurbs_positions_size % 3 == 1) {
+    if (nurbs_positions_num % 3 == 1) {
       handle_positions.pop_last();
     }
-    else if (nurbs_positions_size % 3 == 2) {
-      const int last_index = nurbs_positions_size - 1;
+    else if (nurbs_positions_num % 3 == 2) {
+      const int last_index = nurbs_positions_num - 1;
       handle_positions.append(2 * nurbs_positions[last_index] - nurbs_positions[last_index - 1]);
     }
   }
@@ -134,11 +134,11 @@ static Vector<float3> create_nurbs_to_bezier_handles(const Span<float3> nurbs_po
       handle_positions.append(2 * nurbs_positions[0] - nurbs_positions[1]);
       handle_positions.append(nurbs_positions[1]);
     }
-    const int segments_size = nurbs_positions_size - 1;
-    const bool ignore_interior_segment = segments_size == 3 && is_periodic == false;
+    const int segments_num = nurbs_positions_num - 1;
+    const bool ignore_interior_segment = segments_num == 3 && is_periodic == false;
     if (ignore_interior_segment == false) {
-      const float mid_offset = (float)(segments_size - 1) / 2.0f;
-      for (const int i : IndexRange(1, segments_size - 2)) {
+      const float mid_offset = (float)(segments_num - 1) / 2.0f;
+      for (const int i : IndexRange(1, segments_num - 2)) {
         const int divisor = is_periodic ?
                                 3 :
                                 std::min(3, (int)(-std::abs(i - mid_offset) + mid_offset + 1.0f));
@@ -151,7 +151,7 @@ static Vector<float3> create_nurbs_to_bezier_handles(const Span<float3> nurbs_po
         }
       }
     }
-    const int last_index = nurbs_positions_size - 1;
+    const int last_index = nurbs_positions_num - 1;
     if (is_periodic) {
       handle_positions.append(
           nurbs_positions[last_index - 1] +
@@ -368,11 +368,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
         *curve_component->get_for_read());
     GeometryComponentFieldContext field_context{*curve_component, ATTR_DOMAIN_CURVE};
-    const int domain_size = curve_component->attribute_domain_size(ATTR_DOMAIN_CURVE);
+    const int domain_num = curve_component->attribute_domain_num(ATTR_DOMAIN_CURVE);
 
     Span<SplinePtr> src_splines = curve->splines();
 
-    fn::FieldEvaluator selection_evaluator{field_context, domain_size};
+    fn::FieldEvaluator selection_evaluator{field_context, domain_num};
     selection_evaluator.add(selection_field);
     selection_evaluator.evaluate();
     const VArray<bool> &selection = selection_evaluator.get_evaluated<bool>(0);

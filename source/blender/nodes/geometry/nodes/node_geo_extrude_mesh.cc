@@ -109,7 +109,7 @@ static MutableSpan<MLoop> mesh_loops(Mesh &mesh)
 }
 
 /**
- * \note: Some areas in this file rely on the new sections of attributes from #CustomData_realloc
+ * \note Some areas in this file rely on the new sections of attributes from #CustomData_realloc
  * to be zeroed.
  */
 static void expand_mesh(Mesh &mesh,

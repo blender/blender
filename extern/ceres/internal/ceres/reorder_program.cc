@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,8 @@
 
 #include "Eigen/SparseCore"
 #include "ceres/cxsparse.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
+#include "ceres/internal/export.h"
 #include "ceres/ordered_groups.h"
 #include "ceres/parameter_block.h"
 #include "ceres/parameter_block_ordering.h"
@@ -88,8 +89,8 @@ static int MinParameterBlock(const ResidualBlock* residual_block,
 #if defined(CERES_USE_EIGEN_SPARSE)
 Eigen::SparseMatrix<int> CreateBlockJacobian(
     const TripletSparseMatrix& block_jacobian_transpose) {
-  typedef Eigen::SparseMatrix<int> SparseMatrix;
-  typedef Eigen::Triplet<int> Triplet;
+  using SparseMatrix = Eigen::SparseMatrix<int>;
+  using Triplet = Eigen::Triplet<int>;
 
   const int* rows = block_jacobian_transpose.rows();
   const int* cols = block_jacobian_transpose.cols();
@@ -97,7 +98,7 @@ Eigen::SparseMatrix<int> CreateBlockJacobian(
   vector<Triplet> triplets;
   triplets.reserve(num_nonzeros);
   for (int i = 0; i < num_nonzeros; ++i) {
-    triplets.push_back(Triplet(cols[i], rows[i], 1));
+    triplets.emplace_back(cols[i], rows[i], 1);
   }
 
   SparseMatrix block_jacobian(block_jacobian_transpose.num_cols(),
@@ -127,9 +128,9 @@ void OrderingForSparseNormalCholeskyUsingSuiteSparse(
     ss.ApproximateMinimumDegreeOrdering(block_jacobian_transpose, &ordering[0]);
   } else {
     vector<int> constraints;
-    for (int i = 0; i < parameter_blocks.size(); ++i) {
+    for (auto* parameter_block : parameter_blocks) {
       constraints.push_back(parameter_block_ordering.GroupId(
-          parameter_blocks[i]->mutable_user_state()));
+          parameter_block->mutable_user_state()));
     }
 
     // Renumber the entries of constraints to be contiguous integers
@@ -188,7 +189,7 @@ void OrderingForSparseNormalCholeskyUsingEigenSparse(
   // things. The right thing to do here would be to get a compressed
   // row sparse matrix representation of the jacobian and go from
   // there. But that is a project for another day.
-  typedef Eigen::SparseMatrix<int> SparseMatrix;
+  using SparseMatrix = Eigen::SparseMatrix<int>;
 
   const SparseMatrix block_jacobian =
       CreateBlockJacobian(tsm_block_jacobian_transpose);
@@ -279,7 +280,7 @@ bool LexicographicallyOrderResidualBlocks(
 
   CHECK(find(residual_blocks_per_e_block.begin(),
              residual_blocks_per_e_block.end() - 1,
-             0) != residual_blocks_per_e_block.end())
+             0) == residual_blocks_per_e_block.end() - 1)
       << "Congratulations, you found a Ceres bug! Please report this error "
       << "to the developers.";
 
@@ -291,7 +292,7 @@ bool LexicographicallyOrderResidualBlocks(
   // filling is finished, the offset pointerts should have shifted down one
   // entry (this is verified below).
   vector<ResidualBlock*> reordered_residual_blocks(
-      (*residual_blocks).size(), static_cast<ResidualBlock*>(NULL));
+      (*residual_blocks).size(), static_cast<ResidualBlock*>(nullptr));
   for (int i = 0; i < residual_blocks->size(); ++i) {
     int bucket = min_position_per_residual[i];
 
@@ -299,7 +300,7 @@ bool LexicographicallyOrderResidualBlocks(
     offsets[bucket]--;
 
     // Sanity.
-    CHECK(reordered_residual_blocks[offsets[bucket]] == NULL)
+    CHECK(reordered_residual_blocks[offsets[bucket]] == nullptr)
         << "Congratulations, you found a Ceres bug! Please report this error "
         << "to the developers.";
 
@@ -313,9 +314,9 @@ bool LexicographicallyOrderResidualBlocks(
         << "Congratulations, you found a Ceres bug! Please report this error "
         << "to the developers.";
   }
-  // Sanity check #2: No NULL's left behind.
-  for (int i = 0; i < reordered_residual_blocks.size(); ++i) {
-    CHECK(reordered_residual_blocks[i] != NULL)
+  // Sanity check #2: No nullptr's left behind.
+  for (auto* residual_block : reordered_residual_blocks) {
+    CHECK(residual_block != nullptr)
         << "Congratulations, you found a Ceres bug! Please report this error "
         << "to the developers.";
   }
@@ -339,9 +340,9 @@ static void MaybeReorderSchurComplementColumnsUsingSuiteSparse(
   vector<ParameterBlock*>& parameter_blocks =
       *(program->mutable_parameter_blocks());
 
-  for (int i = 0; i < parameter_blocks.size(); ++i) {
+  for (auto* parameter_block : parameter_blocks) {
     constraints.push_back(parameter_block_ordering.GroupId(
-        parameter_blocks[i]->mutable_user_state()));
+        parameter_block->mutable_user_state()));
   }
 
   // Renumber the entries of constraints to be contiguous integers as
@@ -378,7 +379,7 @@ static void MaybeReorderSchurComplementColumnsUsingEigen(
   std::unique_ptr<TripletSparseMatrix> tsm_block_jacobian_transpose(
       program->CreateJacobianBlockSparsityTranspose());
 
-  typedef Eigen::SparseMatrix<int> SparseMatrix;
+  using SparseMatrix = Eigen::SparseMatrix<int>;
   const SparseMatrix block_jacobian =
       CreateBlockJacobian(*tsm_block_jacobian_transpose);
   const int num_rows = block_jacobian.rows();
@@ -441,7 +442,7 @@ bool ReorderProgramForSchurTypeLinearSolver(
 
   if (parameter_block_ordering->NumGroups() == 1) {
     // If the user supplied an parameter_block_ordering with just one
-    // group, it is equivalent to the user supplying NULL as an
+    // group, it is equivalent to the user supplying nullptr as an
     // parameter_block_ordering. Ceres is completely free to choose the
     // parameter block ordering as it sees fit. For Schur type solvers,
     // this means that the user wishes for Ceres to identify the

@@ -125,7 +125,7 @@ uint8_t GHOST_SystemSDL::getNumDisplays() const
   return SDL_GetNumVideoDisplays();
 }
 
-GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GLSettings glSettings)
+GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GLSettings /*glSettings*/)
 {
   GHOST_Context *context = new GHOST_ContextSDL(0,
                                                 NULL,
@@ -732,12 +732,12 @@ GHOST_TSuccess GHOST_SystemSDL::getButtons(GHOST_Buttons &buttons) const
   return GHOST_kSuccess;
 }
 
-char *GHOST_SystemSDL::getClipboard(bool selection) const
+char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const
 {
   return (char *)SDL_GetClipboardText();
 }
 
-void GHOST_SystemSDL::putClipboard(const char *buffer, bool selection) const
+void GHOST_SystemSDL::putClipboard(const char *buffer, bool /*selection*/) const
 {
   SDL_SetClipboardText(buffer);
 }

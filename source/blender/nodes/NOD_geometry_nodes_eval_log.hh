@@ -89,8 +89,9 @@ class GFieldValueLog : public ValueLog {
 
 struct GeometryAttributeInfo {
   std::string name;
-  AttributeDomain domain;
-  CustomDataType data_type;
+  /** Can be empty when #name does not actually exist on a geometry yet. */
+  std::optional<AttributeDomain> domain;
+  std::optional<CustomDataType> data_type;
 };
 
 /** Contains information about a geometry set. In most cases this does not store the entire
@@ -103,16 +104,16 @@ class GeometryValueLog : public ValueLog {
 
  public:
   struct MeshInfo {
-    int tot_verts, tot_edges, tot_faces;
+    int verts_num, edges_num, faces_num;
   };
   struct CurveInfo {
-    int tot_splines;
+    int splines_num;
   };
   struct PointCloudInfo {
-    int tot_points;
+    int points_num;
   };
   struct InstancesInfo {
-    int tot_instances;
+    int instances_num;
   };
 
   std::optional<MeshInfo> mesh_info;

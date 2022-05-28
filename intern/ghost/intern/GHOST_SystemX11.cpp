@@ -63,7 +63,7 @@
 #include <stdio.h> /* for fprintf only */
 #include <vector>
 
-/* for debugging - so we can breakpoint X11 errors */
+/* For debugging, so we can break-point X11 errors. */
 // #define USE_X11_ERROR_HANDLERS
 
 #ifdef WITH_X11_XINPUT
@@ -1117,7 +1117,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 #else
       /* In keyboards like Latin ones,
        * numbers needs a 'Shift' to be accessed but key_sym
-       * is unmodified (or anyone swapping the keys with xmodmap).
+       * is unmodified (or anyone swapping the keys with `xmodmap`).
        *
        * Here we look at the 'Shifted' version of the key.
        * If it is a number, then we take it instead of the normal key.
@@ -1612,6 +1612,8 @@ GHOST_TSuccess GHOST_SystemX11::getButtons(GHOST_Buttons &buttons) const
     buttons.set(GHOST_kButtonMaskLeft, (mask_return & Button1Mask) != 0);
     buttons.set(GHOST_kButtonMaskMiddle, (mask_return & Button2Mask) != 0);
     buttons.set(GHOST_kButtonMaskRight, (mask_return & Button3Mask) != 0);
+    buttons.set(GHOST_kButtonMaskButton4, (mask_return & Button4Mask) != 0);
+    buttons.set(GHOST_kButtonMaskButton5, (mask_return & Button5Mask) != 0);
   }
   else {
     return GHOST_kFailure;
@@ -2492,7 +2494,7 @@ GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,
 }
 #endif
 /**
- * These callbacks can be used for debugging, so we can breakpoint on an X11 error.
+ * These callbacks can be used for debugging, so we can break-point on an X11 error.
  *
  * Dummy function to get around IO Handler exiting if device invalid
  * Basically it will not crash blender now if you have a X device that

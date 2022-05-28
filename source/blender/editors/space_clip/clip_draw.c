@@ -676,6 +676,40 @@ static void track_colors(MovieTrackingTrack *track, int act, float col[3], float
   }
 }
 
+static void set_draw_marker_area_color(const MovieTrackingTrack *track,
+                                       const MovieTrackingMarker *marker,
+                                       const bool is_track_active,
+                                       const bool is_area_selected,
+                                       const float color[3],
+                                       const float selected_color[3])
+{
+  if (track->flag & TRACK_LOCKED) {
+    if (is_track_active) {
+      immUniformThemeColor(TH_ACT_MARKER);
+    }
+    else if (is_area_selected) {
+      immUniformThemeColorShade(TH_LOCK_MARKER, 64);
+    }
+    else {
+      immUniformThemeColor(TH_LOCK_MARKER);
+    }
+  }
+  else if (marker->flag & MARKER_DISABLED) {
+    if (is_track_active) {
+      immUniformThemeColor(TH_ACT_MARKER);
+    }
+    else if (is_area_selected) {
+      immUniformThemeColorShade(TH_DIS_MARKER, 128);
+    }
+    else {
+      immUniformThemeColor(TH_DIS_MARKER);
+    }
+  }
+  else {
+    immUniformColor3fv(is_area_selected ? selected_color : color);
+  }
+}
+
 static void draw_marker_areas(SpaceClip *sc,
                               MovieTrackingTrack *track,
                               MovieTrackingMarker *marker,
@@ -785,31 +819,7 @@ static void draw_marker_areas(SpaceClip *sc,
   GPU_matrix_push();
   GPU_matrix_translate_2fv(marker_pos);
 
-  if (track->flag & TRACK_LOCKED) {
-    if (act) {
-      immUniformThemeColor(TH_ACT_MARKER);
-    }
-    else if (track->pat_flag & SELECT) {
-      immUniformThemeColorShade(TH_LOCK_MARKER, 64);
-    }
-    else {
-      immUniformThemeColor(TH_LOCK_MARKER);
-    }
-  }
-  else if (marker->flag & MARKER_DISABLED) {
-    if (act) {
-      immUniformThemeColor(TH_ACT_MARKER);
-    }
-    else if (track->pat_flag & SELECT) {
-      immUniformThemeColorShade(TH_DIS_MARKER, 128);
-    }
-    else {
-      immUniformThemeColor(TH_DIS_MARKER);
-    }
-  }
-  else {
-    immUniformColor3fv((track->pat_flag & SELECT) ? scol : col);
-  }
+  set_draw_marker_area_color(track, marker, act, track->pat_flag & SELECT, col, scol);
 
   if (tiny) {
     immUniform1f("dash_width", 6.0f);
@@ -834,6 +844,8 @@ static void draw_marker_areas(SpaceClip *sc,
                 0;
 
   if ((track->search_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_SEARCH) && show_search) {
+    set_draw_marker_area_color(track, marker, act, track->search_flag & SELECT, col, scol);
+
     imm_draw_box_wire_2d(shdr_pos,
                          marker->search_min[0],
                          marker->search_min[1],

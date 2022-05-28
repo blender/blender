@@ -19,6 +19,7 @@
 
 #include "GPU_storage_buffer.h"
 #include "gpu_storage_buffer_private.hh"
+#include "gpu_vertex_buffer_private.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Creation & Deletion
@@ -101,6 +102,12 @@ void GPU_storagebuf_clear_to_zero(GPUStorageBuf *ssbo)
 {
   uint32_t data = 0u;
   GPU_storagebuf_clear(ssbo, GPU_R32UI, GPU_DATA_UINT, &data);
+}
+
+void GPU_storagebuf_copy_sub_from_vertbuf(
+    GPUStorageBuf *ssbo, GPUVertBuf *src, uint dst_offset, uint src_offset, uint copy_size)
+{
+  unwrap(ssbo)->copy_sub(unwrap(src), dst_offset, src_offset, copy_size);
 }
 
 /** \} */

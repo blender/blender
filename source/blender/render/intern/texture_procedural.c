@@ -1208,9 +1208,8 @@ static int multitex(Tex *tex,
       case TEX_MUSGRAVE:
         /* newnoise: musgrave types */
 
-        /* ton: added this, for Blender convention reason.
-         * artificer: added the use of tmpvec to avoid scaling texvec
-         */
+        /* NOTE(@ton): added this, for Blender convention reason.
+         * NOTE(@artificer): added the use of tmpvec to avoid scaling texvec. */
         copy_v3_v3(tmpvec, texvec);
         mul_v3_fl(tmpvec, 1.0f / tex->noisesize);
 
@@ -1230,18 +1229,16 @@ static int multitex(Tex *tex,
         break;
       /* newnoise: voronoi type */
       case TEX_VORONOI:
-        /* ton: added this, for Blender convention reason.
-         * artificer: added the use of tmpvec to avoid scaling texvec
-         */
+        /* NOTE(@ton): added this, for Blender convention reason.
+         * NOTE(@artificer): added the use of tmpvec to avoid scaling texvec. */
         copy_v3_v3(tmpvec, texvec);
         mul_v3_fl(tmpvec, 1.0f / tex->noisesize);
 
         retval = voronoiTex(tex, tmpvec, texres);
         break;
       case TEX_DISTNOISE:
-        /* ton: added this, for Blender convention reason.
-         * artificer: added the use of tmpvec to avoid scaling texvec
-         */
+        /* NOTE(@ton): added this, for Blender convention reason.
+         * NOTE(@artificer): added the use of tmpvec to avoid scaling texvec. */
         copy_v3_v3(tmpvec, texvec);
         mul_v3_fl(tmpvec, 1.0f / tex->noisesize);
 

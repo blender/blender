@@ -39,7 +39,7 @@
 #define CERES_PUBLIC_C_API_H_
 
 // clang-format off
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/internal/disable_warnings.h"
 // clang-format on
 

@@ -40,7 +40,9 @@
 #include "ceres/block_random_access_matrix.h"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
-#include "ceres/internal/port.h"
+#include "ceres/dense_cholesky.h"
+#include "ceres/internal/config.h"
+#include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
 #include "ceres/schur_eliminator.h"
 #include "ceres/types.h"
@@ -49,6 +51,8 @@
 #include "Eigen/OrderingMethods"
 #include "Eigen/SparseCholesky"
 #endif
+
+#include "ceres/internal/disable_warnings.h"
 
 namespace ceres {
 namespace internal {
@@ -107,20 +111,12 @@ class SparseCholesky;
 // set to DENSE_SCHUR and SPARSE_SCHUR
 // respectively. LinearSolver::Options::elimination_groups[0] should
 // be at least 1.
-class CERES_EXPORT_INTERNAL SchurComplementSolver
-    : public BlockSparseMatrixSolver {
+class CERES_NO_EXPORT SchurComplementSolver : public BlockSparseMatrixSolver {
  public:
-  explicit SchurComplementSolver(const LinearSolver::Options& options)
-      : options_(options) {
-    CHECK_GT(options.elimination_groups.size(), 1);
-    CHECK_GT(options.elimination_groups[0], 0);
-    CHECK(options.context != NULL);
-  }
+  explicit SchurComplementSolver(const LinearSolver::Options& options);
   SchurComplementSolver(const SchurComplementSolver&) = delete;
   void operator=(const SchurComplementSolver&) = delete;
 
-  // LinearSolver methods
-  virtual ~SchurComplementSolver() {}
   LinearSolver::Summary SolveImpl(
       BlockSparseMatrix* A,
       const double* b,
@@ -130,10 +126,14 @@ class CERES_EXPORT_INTERNAL SchurComplementSolver
  protected:
   const LinearSolver::Options& options() const { return options_; }
 
+  void set_lhs(std::unique_ptr<BlockRandomAccessMatrix> lhs) {
+    lhs_ = std::move(lhs);
+  }
   const BlockRandomAccessMatrix* lhs() const { return lhs_.get(); }
-  void set_lhs(BlockRandomAccessMatrix* lhs) { lhs_.reset(lhs); }
+  BlockRandomAccessMatrix* mutable_lhs() { return lhs_.get(); }
+
+  void set_rhs(std::unique_ptr<double[]> rhs) { rhs_ = std::move(rhs); }
   const double* rhs() const { return rhs_.get(); }
-  void set_rhs(double* rhs) { rhs_.reset(rhs); }
 
  private:
   virtual void InitStorage(const CompressedRowBlockStructure* bs) = 0;
@@ -149,30 +149,33 @@ class CERES_EXPORT_INTERNAL SchurComplementSolver
 };
 
 // Dense Cholesky factorization based solver.
-class DenseSchurComplementSolver : public SchurComplementSolver {
+class CERES_NO_EXPORT DenseSchurComplementSolver final
+    : public SchurComplementSolver {
  public:
-  explicit DenseSchurComplementSolver(const LinearSolver::Options& options)
-      : SchurComplementSolver(options) {}
+  explicit DenseSchurComplementSolver(const LinearSolver::Options& options);
   DenseSchurComplementSolver(const DenseSchurComplementSolver&) = delete;
   void operator=(const DenseSchurComplementSolver&) = delete;
 
-  virtual ~DenseSchurComplementSolver() {}
+  ~DenseSchurComplementSolver() override;
 
  private:
   void InitStorage(const CompressedRowBlockStructure* bs) final;
   LinearSolver::Summary SolveReducedLinearSystem(
       const LinearSolver::PerSolveOptions& per_solve_options,
       double* solution) final;
+
+  std::unique_ptr<DenseCholesky> cholesky_;
 };
 
 // Sparse Cholesky factorization based solver.
-class SparseSchurComplementSolver : public SchurComplementSolver {
+class CERES_NO_EXPORT SparseSchurComplementSolver final
+    : public SchurComplementSolver {
  public:
   explicit SparseSchurComplementSolver(const LinearSolver::Options& options);
   SparseSchurComplementSolver(const SparseSchurComplementSolver&) = delete;
   void operator=(const SparseSchurComplementSolver&) = delete;
 
-  virtual ~SparseSchurComplementSolver();
+  ~SparseSchurComplementSolver() override;
 
  private:
   void InitStorage(const CompressedRowBlockStructure* bs) final;
@@ -190,5 +193,7 @@ class SparseSchurComplementSolver : public SchurComplementSolver {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_SCHUR_COMPLEMENT_SOLVER_H_

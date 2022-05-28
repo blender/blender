@@ -530,7 +530,6 @@ void IMB_scaleImBuf_threaded(struct ImBuf *ibuf, unsigned int newx, unsigned int
  * \attention Defined in writeimage.c
  */
 bool IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags);
-bool IMB_prepare_write_ImBuf(bool isfloat, struct ImBuf *ibuf);
 
 /**
  *
@@ -552,12 +551,6 @@ bool IMB_isanim(const char *filepath);
  * \attention Defined in util.c
  */
 int imb_get_anim_type(const char *filepath);
-
-/**
- *
- * \attention Defined in util.c
- */
-bool IMB_isfloat(const struct ImBuf *ibuf);
 
 /**
  * Test if color-space conversions of pixels in buffer need to take into account alpha.
@@ -943,8 +936,7 @@ const char *IMB_ffmpeg_last_error(void);
 struct GPUTexture *IMB_create_gpu_texture(const char *name,
                                           struct ImBuf *ibuf,
                                           bool use_high_bitdepth,
-                                          bool use_premult,
-                                          bool limit_gl_texture_size);
+                                          bool use_premult);
 /**
  * The `ibuf` is only here to detect the storage type. The produced texture will have undefined
  * content. It will need to be populated by using #IMB_update_gpu_texture_sub().

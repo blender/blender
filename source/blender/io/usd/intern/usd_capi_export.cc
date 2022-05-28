@@ -38,7 +38,7 @@ struct ExportJobData {
   Depsgraph *depsgraph;
   wmWindowManager *wm;
 
-  char filename[FILE_MAX];
+  char filepath[FILE_MAX];
   USDExportParams params;
 
   bool export_ok;
@@ -74,13 +74,13 @@ static void export_startjob(void *customdata,
   /* For restoring the current frame after exporting animation is done. */
   const int orig_frame = CFRA;
 
-  pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(data->filename);
+  pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(data->filepath);
   if (!usd_stage) {
     /* This happens when the USD JSON files cannot be found. When that happens,
      * the USD library doesn't know it has the functionality to write USDA and
      * USDC files, and creating a new UsdStage fails. */
     WM_reportf(
-        RPT_ERROR, "USD Export: unable to find suitable USD plugin to write %s", data->filename);
+        RPT_ERROR, "USD Export: unable to find suitable USD plugin to write %s", data->filepath);
     return;
   }
 
@@ -145,8 +145,8 @@ static void export_endjob(void *customdata)
 
   DEG_graph_free(data->depsgraph);
 
-  if (!data->export_ok && BLI_exists(data->filename)) {
-    BLI_delete(data->filename, false, false);
+  if (!data->export_ok && BLI_exists(data->filepath)) {
+    BLI_delete(data->filepath, false, false);
   }
 
   G.is_rendering = false;
@@ -171,7 +171,7 @@ bool USD_export(bContext *C,
   job->bmain = CTX_data_main(C);
   job->wm = CTX_wm_manager(C);
   job->export_ok = false;
-  BLI_strncpy(job->filename, filepath, sizeof(job->filename));
+  BLI_strncpy(job->filepath, filepath, sizeof(job->filepath));
 
   job->depsgraph = DEG_graph_new(job->bmain, scene, view_layer, params->evaluation_mode);
   job->params = *params;

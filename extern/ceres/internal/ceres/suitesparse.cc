@@ -29,9 +29,10 @@
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
 // This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 
 #ifndef CERES_NO_SUITESPARSE
+#include <memory>
 #include <vector>
 
 #include "ceres/compressed_col_sparse_matrix_utils.h"
@@ -368,7 +369,7 @@ SuiteSparseCholesky::~SuiteSparseCholesky() {
 LinearSolverTerminationType SuiteSparseCholesky::Factorize(
     CompressedRowSparseMatrix* lhs, string* message) {
   if (lhs == nullptr) {
-    *message = "Failure: Input lhs is NULL.";
+    *message = "Failure: Input lhs is nullptr.";
     return LINEAR_SOLVER_FATAL_ERROR;
   }
 

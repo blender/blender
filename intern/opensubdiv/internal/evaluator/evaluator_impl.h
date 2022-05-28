@@ -32,6 +32,7 @@
 
 struct OpenSubdiv_Buffer;
 struct OpenSubdiv_EvaluatorCacheImpl;
+struct OpenSubdiv_EvaluatorSettings;
 struct OpenSubdiv_PatchCoord;
 struct OpenSubdiv_TopologyRefiner;
 
@@ -60,6 +61,8 @@ class EvalOutputAPI {
   void setCoarsePositions(const float *positions,
                           const int start_vertex_index,
                           const int num_vertices);
+  // Set vertex data from a continuous array of data.
+  void setVertexData(const float *data, const int start_vertex_index, const int num_vertices);
   // Set varying data from a continuous array of data.
   void setVaryingData(const float *varying_data,
                       const int start_vertex_index,
@@ -115,6 +118,9 @@ class EvalOutputAPI {
                      float dPdv[3]);
 
   // Evaluate varying data at a given bilinear coordinate of given ptex face.
+  void evaluateVertexData(const int ptes_face_index, float face_u, float face_v, float data[]);
+
+  // Evaluate varying data at a given bilinear coordinate of given ptex face.
   void evaluateVarying(const int ptes_face_index, float face_u, float face_v, float varying[3]);
 
   // Evaluate facee-varying data at a given bilinear coordinate of given
@@ -157,6 +163,9 @@ class EvalOutputAPI {
   // Wrap the buffer used by OpenSubDiv for the source data with the given buffer.
   void wrapSrcBuffer(OpenSubdiv_Buffer *src_buffer);
 
+  // Wrap the buffer used by OpenSubDiv for the extra source data with the given buffer.
+  void wrapSrcVertexDataBuffer(OpenSubdiv_Buffer *src_buffer);
+
   // Copy the patch arrays buffer used by OpenSubDiv for the face varying channel with the given
   // buffer.
   void fillFVarPatchArraysBuffer(const int face_varying_channel,
@@ -174,6 +183,9 @@ class EvalOutputAPI {
 
   // Wrap thebuffer used by OpenSubDiv for the face varying channel with the given buffer.
   void wrapFVarSrcBuffer(const int face_varying_channel, OpenSubdiv_Buffer *src_buffer);
+
+  // Return true if source vertex data has been set.
+  bool hasVertexData() const;
 
  protected:
   PatchMap *patch_map_;
@@ -198,7 +210,8 @@ struct OpenSubdiv_EvaluatorImpl {
 OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
     struct OpenSubdiv_TopologyRefiner *topology_refiner,
     eOpenSubdivEvaluator evaluator_type,
-    OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr);
+    OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr,
+    const OpenSubdiv_EvaluatorSettings *settings);
 
 void openSubdiv_deleteEvaluatorInternal(OpenSubdiv_EvaluatorImpl *evaluator);
 

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@
 
 #include "ceres/dynamic_compressed_row_jacobian_writer.h"
 
+#include <memory>
+
 #include "ceres/casts.h"
 #include "ceres/compressed_row_jacobian_writer.h"
 #include "ceres/dynamic_compressed_row_sparse_matrix.h"
@@ -43,25 +45,24 @@ namespace internal {
 using std::pair;
 using std::vector;
 
-ScratchEvaluatePreparer*
+std::unique_ptr<ScratchEvaluatePreparer[]>
 DynamicCompressedRowJacobianWriter::CreateEvaluatePreparers(int num_threads) {
   return ScratchEvaluatePreparer::Create(*program_, num_threads);
 }
 
-SparseMatrix* DynamicCompressedRowJacobianWriter::CreateJacobian() const {
-  DynamicCompressedRowSparseMatrix* jacobian =
-      new DynamicCompressedRowSparseMatrix(program_->NumResiduals(),
-                                           program_->NumEffectiveParameters(),
-                                           0 /* max_num_nonzeros */);
-  return jacobian;
+std::unique_ptr<SparseMatrix>
+DynamicCompressedRowJacobianWriter::CreateJacobian() const {
+  return std::make_unique<DynamicCompressedRowSparseMatrix>(
+      program_->NumResiduals(),
+      program_->NumEffectiveParameters(),
+      0 /* max_num_nonzeros */);
 }
 
 void DynamicCompressedRowJacobianWriter::Write(int residual_id,
                                                int residual_offset,
                                                double** jacobians,
                                                SparseMatrix* base_jacobian) {
-  DynamicCompressedRowSparseMatrix* jacobian =
-      down_cast<DynamicCompressedRowSparseMatrix*>(base_jacobian);
+  auto* jacobian = down_cast<DynamicCompressedRowSparseMatrix*>(base_jacobian);
 
   // Get the `residual_block` of interest.
   const ResidualBlock* residual_block =
@@ -77,12 +78,11 @@ void DynamicCompressedRowJacobianWriter::Write(int residual_id,
   jacobian->ClearRows(residual_offset, num_residuals);
 
   // Iterate over each parameter block.
-  for (int i = 0; i < evaluated_jacobian_blocks.size(); ++i) {
+  for (const auto& evaluated_jacobian_block : evaluated_jacobian_blocks) {
     const ParameterBlock* parameter_block =
-        program_->parameter_blocks()[evaluated_jacobian_blocks[i].first];
-    const int parameter_block_jacobian_index =
-        evaluated_jacobian_blocks[i].second;
-    const int parameter_block_size = parameter_block->LocalSize();
+        program_->parameter_blocks()[evaluated_jacobian_block.first];
+    const int parameter_block_jacobian_index = evaluated_jacobian_block.second;
+    const int parameter_block_size = parameter_block->TangentSize();
     const double* parameter_jacobian =
         jacobians[parameter_block_jacobian_index];
 

@@ -130,7 +130,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      ICON_MOD_EDGESPLIT,
      "Edge Split",
      "Split away joined faces at the edges"},
-    {eModifierType_Nodes, "NODES", ICON_NODETREE, "Geometry Nodes", ""},
+    {eModifierType_Nodes, "NODES", ICON_GEOMETRY_NODES, "Geometry Nodes", ""},
     {eModifierType_Mask,
      "MASK",
      ICON_MOD_MASK,
@@ -722,9 +722,9 @@ static void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(NULL, "modifiers", oldname, md->name);
 }
 
-static char *rna_Modifier_path(PointerRNA *ptr)
+static char *rna_Modifier_path(const PointerRNA *ptr)
 {
-  ModifierData *md = ptr->data;
+  const ModifierData *md = ptr->data;
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
@@ -947,10 +947,10 @@ static void rna_HookModifier_subtarget_set(PointerRNA *ptr, const char *value)
   BKE_object_modifier_hook_reset(owner, hmd);
 }
 
-static int rna_HookModifier_vertex_indices_get_length(PointerRNA *ptr,
+static int rna_HookModifier_vertex_indices_get_length(const PointerRNA *ptr,
                                                       int length[RNA_MAX_ARRAY_DIMENSION])
 {
-  HookModifierData *hmd = ptr->data;
+  const HookModifierData *hmd = ptr->data;
   int indexar_num = hmd->indexar ? hmd->indexar_num : 0;
   return (length[0] = indexar_num);
 }
@@ -6991,7 +6991,7 @@ static void rna_def_modifier_nodes(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Nodes Modifier", "");
   RNA_def_struct_sdna(srna, "NodesModifierData");
   RNA_def_struct_idprops_func(srna, "rna_NodesModifier_properties");
-  RNA_def_struct_ui_icon(srna, ICON_NODETREE);
+  RNA_def_struct_ui_icon(srna, ICON_GEOMETRY_NODES);
 
   RNA_define_lib_overridable(true);
 

@@ -74,6 +74,36 @@ using blender::bke::CurvesGeometry;
 /** \name * SCULPT_CURVES_OT_brush_stroke
  * \{ */
 
+float brush_radius_factor(const Brush &brush, const StrokeExtension &stroke_extension)
+{
+  if (BKE_brush_use_size_pressure(&brush)) {
+    return stroke_extension.pressure;
+  }
+  return 1.0f;
+}
+
+float brush_radius_get(const Scene &scene,
+                       const Brush &brush,
+                       const StrokeExtension &stroke_extension)
+{
+  return BKE_brush_size_get(&scene, &brush) * brush_radius_factor(brush, stroke_extension);
+}
+
+float brush_strength_factor(const Brush &brush, const StrokeExtension &stroke_extension)
+{
+  if (BKE_brush_use_alpha_pressure(&brush)) {
+    return stroke_extension.pressure;
+  }
+  return 1.0f;
+}
+
+float brush_strength_get(const Scene &scene,
+                         const Brush &brush,
+                         const StrokeExtension &stroke_extension)
+{
+  return BKE_brush_alpha_get(&scene, &brush) * brush_strength_factor(brush, stroke_extension);
+}
+
 static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bContext &C,
                                                                           wmOperator &op)
 {
@@ -92,7 +122,7 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bConte
     case CURVES_SCULPT_TOOL_ADD:
       return new_add_operation(C, op.reports);
     case CURVES_SCULPT_TOOL_GROW_SHRINK:
-      return new_grow_shrink_operation(mode, &C);
+      return new_grow_shrink_operation(mode, C);
   }
   BLI_assert_unreachable();
   return {};
@@ -128,6 +158,7 @@ static void stroke_update_step(bContext *C,
 
   StrokeExtension stroke_extension;
   RNA_float_get_array(stroke_element, "mouse", stroke_extension.mouse_position);
+  stroke_extension.pressure = RNA_float_get(stroke_element, "pressure");
 
   if (!op_data->operation) {
     stroke_extension.is_first = true;
@@ -138,7 +169,7 @@ static void stroke_update_step(bContext *C,
   }
 
   if (op_data->operation) {
-    op_data->operation->on_stroke_extended(C, stroke_extension);
+    op_data->operation->on_stroke_extended(*C, stroke_extension);
   }
 }
 

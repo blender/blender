@@ -184,26 +184,26 @@ enum {
 
 /** #uiBut.flag general state flags. */
 enum {
-  /* WARNING: the first 7 flags are internal (see #UI_SELECT definition). */
-  UI_BUT_ICON_SUBMENU = 1 << 7,
-  UI_BUT_ICON_PREVIEW = 1 << 8,
+  /* WARNING: the first 8 flags are internal (see #UI_SELECT definition). */
+  UI_BUT_ICON_SUBMENU = 1 << 8,
+  UI_BUT_ICON_PREVIEW = 1 << 9,
 
-  UI_BUT_NODE_LINK = 1 << 9,
-  UI_BUT_NODE_ACTIVE = 1 << 10,
-  UI_BUT_DRAG_LOCK = 1 << 11,
+  UI_BUT_NODE_LINK = 1 << 10,
+  UI_BUT_NODE_ACTIVE = 1 << 11,
+  UI_BUT_DRAG_LOCK = 1 << 12,
   /** Grayed out and un-editable. */
-  UI_BUT_DISABLED = 1 << 12,
+  UI_BUT_DISABLED = 1 << 13,
 
-  UI_BUT_ANIMATED = 1 << 13,
-  UI_BUT_ANIMATED_KEY = 1 << 14,
-  UI_BUT_DRIVEN = 1 << 15,
-  UI_BUT_REDALERT = 1 << 16,
+  UI_BUT_ANIMATED = 1 << 14,
+  UI_BUT_ANIMATED_KEY = 1 << 15,
+  UI_BUT_DRIVEN = 1 << 16,
+  UI_BUT_REDALERT = 1 << 17,
   /** Grayed out but still editable. */
-  UI_BUT_INACTIVE = 1 << 17,
-  UI_BUT_LAST_ACTIVE = 1 << 18,
-  UI_BUT_UNDO = 1 << 19,
-  UI_BUT_IMMEDIATE = 1 << 20,
-  UI_BUT_NO_UTF8 = 1 << 21,
+  UI_BUT_INACTIVE = 1 << 18,
+  UI_BUT_LAST_ACTIVE = 1 << 19,
+  UI_BUT_UNDO = 1 << 20,
+  /* UNUSED = 1 << 21, */
+  UI_BUT_NO_UTF8 = 1 << 22,
 
   /** For popups, pressing return activates this button, overriding the highlighted button.
    * For non-popups this is just used as a display hint for the user to let them
@@ -454,7 +454,6 @@ void UI_draw_safe_areas(uint pos,
 enum {
   UI_SCROLL_PRESSED = 1 << 0,
   UI_SCROLL_ARROWS = 1 << 1,
-  UI_SCROLL_NO_OUTLINE = 1 << 2,
 };
 /**
  * Function in use for buttons and for view2d sliders.
@@ -1539,31 +1538,6 @@ uiBut *uiDefIconTextBlockBut(uiBlock *block,
                              short height,
                              const char *tip);
 
-uiBut *uiDefKeyevtButS(uiBlock *block,
-                       int retval,
-                       const char *str,
-                       int x,
-                       int y,
-                       short width,
-                       short height,
-                       short *spoin,
-                       const char *tip);
-
-/**
- * Short pointers hard-coded.
- * \param modkeypoin: will be set to #KM_SHIFT, #KM_ALT, #KM_CTRL, #KM_OSKEY bits.
- */
-uiBut *uiDefHotKeyevtButS(uiBlock *block,
-                          int retval,
-                          const char *str,
-                          int x,
-                          int y,
-                          short width,
-                          short height,
-                          short *keypoin,
-                          const short *modkeypoin,
-                          const char *tip);
-
 /**
  * \param arg: A pointer to string/name, use #UI_but_func_search_set() below to make this work.
  * here `a1` and `a2`, if set, control thumbnail preview rows/cols.
@@ -1674,15 +1648,16 @@ void UI_but_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_f
  * \param name: Text to display for the item.
  * \param poin: Opaque pointer (for use by the caller).
  * \param iconid: The icon, #ICON_NONE for no icon.
- * \param state: The buttons state flag, compatible with #uiBut.flag,
- * typically #UI_BUT_DISABLED / #UI_BUT_INACTIVE.
+ * \param but_flag: Button flags (#uiBut.flag) indicating the state of the item, typically
+ *                  #UI_BUT_DISABLED, #UI_BUT_INACTIVE or #UI_BUT_HAS_SEP_CHAR.
+ *
  * \return false if there is nothing to add.
  */
 bool UI_search_item_add(uiSearchItems *items,
                         const char *name,
                         void *poin,
                         int iconid,
-                        int state,
+                        int but_flag,
                         uint8_t name_prefix_offset);
 
 /**

@@ -17,6 +17,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
+#include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -86,6 +87,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_types.h"
 
 #include "UI_interface_icons.h"
 
@@ -1241,6 +1243,9 @@ static int object_calculate_paths_exec(bContext *C, wmOperator *op)
   ED_objects_recalculate_paths_selected(C, scene, OBJECT_PATH_CALC_RANGE_FULL);
 
   /* notifiers for updates */
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW_ANIMVIZ, NULL);
+  /* Note: the notifier below isn't actually correct, but kept around just to be on the safe side.
+   * If further testing shows it's not necessary (for both bones and objects) removal is fine. */
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM | ND_POSE, NULL);
 
   return OPERATOR_FINISHED;
@@ -1310,6 +1315,9 @@ static int object_update_paths_exec(bContext *C, wmOperator *op)
   ED_objects_recalculate_paths_selected(C, scene, OBJECT_PATH_CALC_RANGE_FULL);
 
   /* notifiers for updates */
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW_ANIMVIZ, NULL);
+  /* Note: the notifier below isn't actually correct, but kept around just to be on the safe side.
+   * If further testing shows it's not necessary (for both bones and objects) removal is fine. */
   WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM | ND_POSE, NULL);
 
   return OPERATOR_FINISHED;
@@ -1461,6 +1469,8 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
   const bool use_smooth = STREQ(op->idname, "OBJECT_OT_shade_smooth");
+  const bool use_auto_smooth = RNA_boolean_get(op->ptr, "use_auto_smooth");
+  const float auto_smooth_angle = RNA_float_get(op->ptr, "auto_smooth_angle");
   bool changed_multi = false;
   bool has_linked_data = false;
 
@@ -1508,6 +1518,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
     bool changed = false;
     if (ob->type == OB_MESH) {
       BKE_mesh_smooth_flag_set(ob->data, use_smooth);
+      BKE_mesh_auto_smooth_flag_set(ob->data, use_auto_smooth, auto_smooth_angle);
       BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
     }
@@ -1577,6 +1588,25 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  PropertyRNA *prop;
+
+  prop = RNA_def_boolean(
+      ot->srna,
+      "use_auto_smooth",
+      false,
+      "Auto Smooth",
+      "Enable automatic smooth based on smooth/sharp faces/edges and angle between faces");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+  prop = RNA_def_property(ot->srna, "auto_smooth_angle", PROP_FLOAT, PROP_ANGLE);
+  RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
+  RNA_def_property_float_default(prop, DEG2RADF(30.0f));
+  RNA_def_property_ui_text(prop,
+                           "Angle",
+                           "Maximum angle between face normals that will be considered as smooth"
+                           "(unused if custom split normals data are available)");
 }
 
 /** \} */
@@ -1808,6 +1838,11 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
   Collection *collection = BKE_collection_from_index(scene, collection_index);
   if (collection == NULL) {
     BKE_report(op->reports, RPT_ERROR, "Unexpected error, collection not found");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (ID_IS_OVERRIDE_LIBRARY(collection)) {
+    BKE_report(op->reports, RPT_ERROR, "Cannot add objects to a library override collection");
     return OPERATOR_CANCELLED;
   }
 

@@ -17,15 +17,15 @@ static void set_resolution_in_component(GeometryComponent &component,
                                         const Field<int> &resolution_field)
 {
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_CURVE};
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_CURVE);
-  if (domain_size == 0) {
+  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_CURVE);
+  if (domain_num == 0) {
     return;
   }
 
   OutputAttribute_Typed<int> resolutions = component.attribute_try_get_for_output_only<int>(
       "resolution", ATTR_DOMAIN_CURVE);
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(resolution_field, resolutions.varray());
   evaluator.evaluate();

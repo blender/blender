@@ -57,8 +57,6 @@ Mesh *create_cylinder_or_cone_mesh(float radius_top,
                                    GeometryNodeMeshCircleFillType fill_type,
                                    ConeAttributeOutputs &attribute_outputs);
 
-Mesh *create_cuboid_mesh(float3 size, int verts_x, int verts_y, int verts_z);
-
 /**
  * Copies the point domain attributes from `in_component` that are in the mask to `out_component`.
  */

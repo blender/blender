@@ -402,6 +402,7 @@ void MASK_OT_select(wmOperatorType *ot)
   ot->exec = select_exec;
   ot->invoke = select_invoke;
   ot->poll = ED_maskedit_mask_poll;
+  ot->get_name = ED_select_pick_get_name;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
@@ -748,6 +749,7 @@ void MASK_OT_select_circle(wmOperatorType *ot)
   ot->modal = WM_gesture_circle_modal;
   ot->exec = circle_select_exec;
   ot->poll = ED_maskedit_mask_poll;
+  ot->get_name = ED_select_circle_get_name;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

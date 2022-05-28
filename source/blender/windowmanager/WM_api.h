@@ -770,6 +770,41 @@ void WM_operator_properties_filesel(struct wmOperatorType *ot,
                                     eFileSel_Flag flag,
                                     short display,
                                     short sort);
+
+/**
+ * Tries to pass \a id to an operator via either a "session_uuid" or a "name" property defined in
+ * the properties of \a ptr. The former is preferred, since it works properly with linking and
+ * library overrides (which may both result in multiple IDs with the same name and type).
+ *
+ * Also see #WM_operator_properties_id_lookup() and
+ * #WM_operator_properties_id_lookup_from_name_or_session_uuid()
+ */
+void WM_operator_properties_id_lookup_set_from_id(PointerRNA *ptr, const ID *id);
+/**
+ * Tries to find an ID in \a bmain. There needs to be either a "session_uuid" int or "name" string
+ * property defined and set. The former has priority. See #WM_operator_properties_id_lookup() for a
+ * helper to add the properties.
+ */
+struct ID *WM_operator_properties_id_lookup_from_name_or_session_uuid(struct Main *bmain,
+                                                                      PointerRNA *ptr,
+                                                                      enum ID_Type type);
+/**
+ * Check if either the "session_uuid" or "name" property is set inside \a ptr. If this is the case
+ * the ID can be looked up by #WM_operator_properties_id_lookup_from_name_or_session_uuid().
+ */
+bool WM_operator_properties_id_lookup_is_set(PointerRNA *ptr);
+/**
+ * Adds "name" and "session_uuid" properties so the caller can tell the operator which ID to act
+ * on. See #WM_operator_properties_id_lookup_from_name_or_session_uuid(). Both properties will be
+ * hidden in the UI and not be saved over consecutive operator calls.
+ *
+ * \note New operators should probably use "session_uuid" only (set \a add_name_prop to #false),
+ * since this works properly with linked data and/or library overrides (in both cases, multiple IDs
+ * with the same name and type may be present). The "name" property is only kept to not break
+ * compatibility with old scripts using some previously existing operators.
+ */
+void WM_operator_properties_id_lookup(wmOperatorType *ot, const bool add_name_prop);
+
 /**
  * Disable using cursor position,
  * use when view operators are initialized from buttons.
@@ -895,12 +930,14 @@ char *WM_prop_pystring_assign(struct bContext *C,
                               int index);
 /**
  * Convert: `some.op` -> `SOME_OT_op` or leave as-is.
+ * \return the length of `dst`.
  */
-void WM_operator_bl_idname(char *to, const char *from);
+size_t WM_operator_bl_idname(char *dst, const char *src) ATTR_NONNULL(1, 2);
 /**
  * Convert: `SOME_OT_op` -> `some.op` or leave as-is.
+ * \return the length of `dst`.
  */
-void WM_operator_py_idname(char *to, const char *from);
+size_t WM_operator_py_idname(char *dst, const char *src) ATTR_NONNULL(1, 2);
 /**
  * Sanity check to ensure #WM_operator_bl_idname won't fail.
  * \returns true when there are no problems with \a idname, otherwise report an error.
@@ -937,6 +974,14 @@ bool WM_operatortype_remove(const char *idname);
  * Remove memory of all previously executed tools.
  */
 void WM_operatortype_last_properties_clear_all(void);
+
+void WM_operatortype_idname_visit_for_search(const struct bContext *C,
+                                             PointerRNA *ptr,
+                                             PropertyRNA *prop,
+                                             const char *edit_text,
+                                             StringPropertySearchVisitFunc visit_fn,
+                                             void *visit_user_data);
+
 /**
  * Tag all operator-properties of \a ot defined after calling this, until
  * the next #WM_operatortype_props_advanced_end call (if available), with
@@ -1040,6 +1085,13 @@ void WM_menutype_freelink(struct MenuType *mt);
 void WM_menutype_free(void);
 bool WM_menutype_poll(struct bContext *C, struct MenuType *mt);
 
+void WM_menutype_idname_visit_for_search(const struct bContext *C,
+                                         struct PointerRNA *ptr,
+                                         struct PropertyRNA *prop,
+                                         const char *edit_text,
+                                         StringPropertySearchVisitFunc visit_fn,
+                                         void *visit_user_data);
+
 /* wm_panel_type.c */
 
 /**
@@ -1050,6 +1102,13 @@ void WM_paneltype_clear(void);
 struct PanelType *WM_paneltype_find(const char *idname, bool quiet);
 bool WM_paneltype_add(struct PanelType *pt);
 void WM_paneltype_remove(struct PanelType *pt);
+
+void WM_paneltype_idname_visit_for_search(const struct bContext *C,
+                                          struct PointerRNA *ptr,
+                                          struct PropertyRNA *prop,
+                                          const char *edit_text,
+                                          StringPropertySearchVisitFunc visit_fn,
+                                          void *visit_user_data);
 
 /* wm_gesture_ops.c */
 
@@ -1196,7 +1255,7 @@ struct ID *WM_drag_get_local_ID_from_event(const struct wmEvent *event, short id
 bool WM_drag_is_ID_type(const struct wmDrag *drag, int idcode);
 
 /**
- * \note: Does not store \a asset in any way, so it's fine to pass a temporary.
+ * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
 wmDragAsset *WM_drag_create_asset_data(const struct AssetHandle *asset,
                                        struct AssetMetaData *metadata,
@@ -1228,7 +1287,7 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain,
 struct wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const struct wmDrag *drag);
 
 /**
- * \note: Does not store \a asset in any way, so it's fine to pass a temporary.
+ * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
 void WM_drag_add_asset_list_item(wmDrag *drag,
                                  const struct bContext *C,
@@ -1647,7 +1706,7 @@ void WM_xr_action_binding_destroy(wmXrData *xr,
 /**
  * If action_set_name is NULL, then all action sets will be treated as active.
  */
-bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name);
+bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name, bool delayed);
 
 bool WM_xr_controller_pose_actions_set(wmXrData *xr,
                                        const char *action_set_name,

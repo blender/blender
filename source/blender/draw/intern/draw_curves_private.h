@@ -7,6 +7,11 @@
 
 #pragma once
 
+#include "BKE_attribute.h"
+#include "GPU_shader.h"
+
+#include "draw_attributes.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,6 +40,23 @@ typedef struct CurvesEvalFinalCache {
 
   /* Points per curve, at least 2. */
   int strands_res;
+
+  /* Attributes currently being or about to be drawn. */
+  DRW_Attributes attr_used;
+
+  /* Attributes which were used at some point. This is used for garbage collection, to remove
+   * attributes which are not used in shaders anymore due to user edits. */
+  DRW_Attributes attr_used_over_time;
+
+  /* Last time, in seconds, the `attr_used` and `attr_used_over_time` were exactly the same.
+   * If the delta between this time and the current scene time is greater than the timeout set in
+   * user preferences (`U.vbotimeout`) then garbage collection is performed. */
+  int last_attr_matching_time;
+
+  /* Output of the subdivision stage: vertex buffers sized to subdiv level. This is only attributes
+   * on point domain. */
+  GPUVertBuf *attributes_buf[GPU_MAX_ATTR];
+  GPUTexture *attributes_tex[GPU_MAX_ATTR];
 } CurvesEvalFinalCache;
 
 /* Curves procedural display: Evaluation is done on the GPU. */
@@ -56,6 +78,11 @@ typedef struct CurvesEvalCache {
 
   CurvesEvalFinalCache final[MAX_HAIR_SUBDIV];
 
+  /* For point attributes, which need subdivision, these are the input data.
+   * For spline attributes, which need not subdivision, these are the final data. */
+  GPUVertBuf *proc_attributes_buf[GPU_MAX_ATTR];
+  GPUTexture *proc_attributes_tex[GPU_MAX_ATTR];
+
   int strands_len;
   int elems_len;
   int point_len;
@@ -69,6 +96,8 @@ bool curves_ensure_procedural_data(struct Object *object,
                                    struct GPUMaterial *gpu_material,
                                    int subdiv,
                                    int thickness_res);
+
+void drw_curves_get_attribute_sampler_name(const char *layer_name, char r_sampler_name[32]);
 
 #ifdef __cplusplus
 }

@@ -32,13 +32,15 @@
 #ifndef CERES_INTERNAL_GRADIENT_CHECKING_COST_FUNCTION_H_
 #define CERES_INTERNAL_GRADIENT_CHECKING_COST_FUNCTION_H_
 
+#include <memory>
 #include <mutex>
 #include <string>
 
 #include "ceres/cost_function.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 #include "ceres/iteration_callback.h"
-#include "ceres/local_parameterization.h"
+#include "ceres/manifold.h"
 
 namespace ceres {
 namespace internal {
@@ -47,7 +49,7 @@ class ProblemImpl;
 
 // Callback that collects information about gradient checking errors, and
 // will abort the solve as soon as an error occurs.
-class CERES_EXPORT_INTERNAL GradientCheckingIterationCallback
+class CERES_NO_EXPORT GradientCheckingIterationCallback
     : public IterationCallback {
  public:
   GradientCheckingIterationCallback();
@@ -73,9 +75,10 @@ class CERES_EXPORT_INTERNAL GradientCheckingIterationCallback
 // with finite differences. This API is only intended for unit tests that intend
 // to  check the functionality of the GradientCheckingCostFunction
 // implementation directly.
-CERES_EXPORT_INTERNAL CostFunction* CreateGradientCheckingCostFunction(
+CERES_NO_EXPORT std::unique_ptr<CostFunction>
+CreateGradientCheckingCostFunction(
     const CostFunction* cost_function,
-    const std::vector<const LocalParameterization*>* local_parameterizations,
+    const std::vector<const Manifold*>* manifolds,
     double relative_step_size,
     double relative_precision,
     const std::string& extra_info,
@@ -92,8 +95,6 @@ CERES_EXPORT_INTERNAL CostFunction* CreateGradientCheckingCostFunction(
 // iteration, the respective cost function will notify the
 // GradientCheckingIterationCallback.
 //
-// The caller owns the returned ProblemImpl object.
-//
 // Note: This is quite inefficient and is intended only for debugging.
 //
 // relative_step_size and relative_precision are parameters to control
@@ -102,7 +103,7 @@ CERES_EXPORT_INTERNAL CostFunction* CreateGradientCheckingCostFunction(
 // jacobians obtained by numerically differentiating them. See the
 // documentation of 'numeric_derivative_relative_step_size' in solver.h for a
 // better explanation.
-CERES_EXPORT_INTERNAL ProblemImpl* CreateGradientCheckingProblemImpl(
+CERES_NO_EXPORT std::unique_ptr<ProblemImpl> CreateGradientCheckingProblemImpl(
     ProblemImpl* problem_impl,
     double relative_step_size,
     double relative_precision,
@@ -110,5 +111,7 @@ CERES_EXPORT_INTERNAL ProblemImpl* CreateGradientCheckingProblemImpl(
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_GRADIENT_CHECKING_COST_FUNCTION_H_

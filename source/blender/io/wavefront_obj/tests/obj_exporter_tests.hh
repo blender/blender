@@ -11,6 +11,7 @@ struct OBJExportParamsDefault {
   OBJExportParamsDefault()
   {
     params.filepath[0] = '\0';
+    params.file_base_for_tests[0] = '\0';
     params.blen_filepath = "";
     params.export_animation = false;
     params.start_frame = 0;
@@ -26,6 +27,7 @@ struct OBJExportParamsDefault {
     params.export_uv = true;
     params.export_normals = true;
     params.export_materials = true;
+    params.path_mode = PATH_REFERENCE_AUTO;
     params.export_triangulated_mesh = false;
     params.export_curves_as_nurbs = false;
 

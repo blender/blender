@@ -685,7 +685,7 @@ void EuclideanBundleCommonIntrinsics(const Tracks& tracks,
       PackCamerasRotationAndTranslation(*reconstruction);
 
   // Parameterization used to restrict camera motion for modal solvers.
-  ceres::SubsetParameterization* constant_translation_parameterization = NULL;
+  ceres::SubsetManifold* constant_translation_manifold = NULL;
   if (bundle_constraints & BUNDLE_NO_TRANSLATION) {
     std::vector<int> constant_translation;
 
@@ -694,8 +694,8 @@ void EuclideanBundleCommonIntrinsics(const Tracks& tracks,
     constant_translation.push_back(4);
     constant_translation.push_back(5);
 
-    constant_translation_parameterization =
-        new ceres::SubsetParameterization(6, constant_translation);
+    constant_translation_manifold =
+        new ceres::SubsetManifold(6, constant_translation);
   }
 
   // Add residual blocks to the problem.
@@ -735,8 +735,7 @@ void EuclideanBundleCommonIntrinsics(const Tracks& tracks,
       }
 
       if (bundle_constraints & BUNDLE_NO_TRANSLATION) {
-        problem.SetParameterization(current_camera_R_t,
-                                    constant_translation_parameterization);
+        problem.SetManifold(current_camera_R_t, constant_translation_manifold);
       }
 
       zero_weight_tracks_flags[marker.track] = false;
@@ -787,11 +786,11 @@ void EuclideanBundleCommonIntrinsics(const Tracks& tracks,
 #undef MAYBE_SET_CONSTANT
 
     if (!constant_intrinsics.empty()) {
-      ceres::SubsetParameterization* subset_parameterization =
-          new ceres::SubsetParameterization(PackedIntrinsics::NUM_PARAMETERS,
-                                            constant_intrinsics);
+      ceres::SubsetManifold* subset_parameterization =
+          new ceres::SubsetManifold(PackedIntrinsics::NUM_PARAMETERS,
+                                    constant_intrinsics);
 
-      problem.SetParameterization(intrinsics_block, subset_parameterization);
+      problem.SetManifold(intrinsics_block, subset_parameterization);
     }
   }
 

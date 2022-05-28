@@ -64,16 +64,22 @@ ATOMIC_INLINE uint64_t atomic_sub_and_fetch_uint64(uint64_t *p, uint64_t x);
 ATOMIC_INLINE uint64_t atomic_fetch_and_add_uint64(uint64_t *p, uint64_t x);
 ATOMIC_INLINE uint64_t atomic_fetch_and_sub_uint64(uint64_t *p, uint64_t x);
 ATOMIC_INLINE uint64_t atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _new);
+ATOMIC_INLINE uint64_t atomic_load_uint64(const uint64_t *v);
+ATOMIC_INLINE void atomic_store_uint64(uint64_t *p, uint64_t v);
 
 ATOMIC_INLINE int64_t atomic_add_and_fetch_int64(int64_t *p, int64_t x);
 ATOMIC_INLINE int64_t atomic_sub_and_fetch_int64(int64_t *p, int64_t x);
 ATOMIC_INLINE int64_t atomic_fetch_and_add_int64(int64_t *p, int64_t x);
 ATOMIC_INLINE int64_t atomic_fetch_and_sub_int64(int64_t *p, int64_t x);
 ATOMIC_INLINE int64_t atomic_cas_int64(int64_t *v, int64_t old, int64_t _new);
+ATOMIC_INLINE int64_t atomic_load_int64(const int64_t *v);
+ATOMIC_INLINE void atomic_store_int64(int64_t *p, int64_t v);
 
 ATOMIC_INLINE uint32_t atomic_add_and_fetch_uint32(uint32_t *p, uint32_t x);
 ATOMIC_INLINE uint32_t atomic_sub_and_fetch_uint32(uint32_t *p, uint32_t x);
 ATOMIC_INLINE uint32_t atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _new);
+ATOMIC_INLINE uint32_t atomic_load_uint32(const uint32_t *v);
+ATOMIC_INLINE void atomic_store_uint32(uint32_t *p, uint32_t v);
 
 ATOMIC_INLINE uint32_t atomic_fetch_and_add_uint32(uint32_t *p, uint32_t x);
 ATOMIC_INLINE uint32_t atomic_fetch_and_or_uint32(uint32_t *p, uint32_t x);
@@ -82,6 +88,8 @@ ATOMIC_INLINE uint32_t atomic_fetch_and_and_uint32(uint32_t *p, uint32_t x);
 ATOMIC_INLINE int32_t atomic_add_and_fetch_int32(int32_t *p, int32_t x);
 ATOMIC_INLINE int32_t atomic_sub_and_fetch_int32(int32_t *p, int32_t x);
 ATOMIC_INLINE int32_t atomic_cas_int32(int32_t *v, int32_t old, int32_t _new);
+ATOMIC_INLINE int32_t atomic_load_int32(const int32_t *v);
+ATOMIC_INLINE void atomic_store_int32(int32_t *p, int32_t v);
 
 ATOMIC_INLINE int32_t atomic_fetch_and_add_int32(int32_t *p, int32_t x);
 ATOMIC_INLINE int32_t atomic_fetch_and_or_int32(int32_t *p, int32_t x);
@@ -104,6 +112,8 @@ ATOMIC_INLINE size_t atomic_sub_and_fetch_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_fetch_and_add_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_fetch_and_sub_z(size_t *p, size_t x);
 ATOMIC_INLINE size_t atomic_cas_z(size_t *v, size_t old, size_t _new);
+ATOMIC_INLINE size_t atomic_load_z(const size_t *v);
+ATOMIC_INLINE void atomic_store_z(size_t *p, size_t v);
 /* Uses CAS loop, see warning below. */
 ATOMIC_INLINE size_t atomic_fetch_and_update_max_z(size_t *p, size_t x);
 

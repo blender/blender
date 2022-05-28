@@ -266,6 +266,10 @@ struct BMLoop **ED_uvedit_selected_verts(const struct Scene *scene,
                                          int *r_verts_len);
 
 void ED_uvedit_get_aspect(struct Object *obedit, float *r_aspx, float *r_aspy);
+void ED_uvedit_get_aspect_from_material(Object *ob,
+                                        const int material_index,
+                                        float *r_aspx,
+                                        float *r_aspy);
 
 void ED_uvedit_active_vert_loop_set(struct BMesh *bm, struct BMLoop *l);
 struct BMLoop *ED_uvedit_active_vert_loop_get(struct BMesh *bm);

@@ -130,10 +130,10 @@ class Map {
   uint64_t slot_mask_;
 
   /** This is called to hash incoming keys. */
-  Hash hash_;
+  BLI_NO_UNIQUE_ADDRESS Hash hash_;
 
   /** This is called to check equality of two keys. */
-  IsEqual is_equal_;
+  BLI_NO_UNIQUE_ADDRESS IsEqual is_equal_;
 
   /** The max load factor is 1/2 = 50% by default. */
 #define LOAD_FACTOR 1, 2

@@ -1308,7 +1308,6 @@ void wm_xr_session_actions_update(const bContext *C)
   XrSessionSettings *settings = &xr->session_settings;
   GHOST_XrContextHandle xr_context = xr->runtime->context;
   wmXrSessionState *state = &xr->runtime->session_state;
-  wmXrActionSet *active_action_set = state->active_action_set;
   wmWindow *win = wm_xr_session_root_window_or_fallback_get(wm, xr->runtime);
 
   if (state->is_navigation_dirty) {
@@ -1325,6 +1324,13 @@ void wm_xr_session_actions_update(const bContext *C)
     wm_xr_pose_scale_to_imat(
         &state->viewer_pose, settings->base_scale * state->nav_scale, state->viewer_viewmat);
   }
+
+  /* Set active action set if requested previously. */
+  if (state->active_action_set_next[0]) {
+    WM_xr_active_action_set_set(xr, state->active_action_set_next, false);
+    state->active_action_set_next[0] = '\0';
+  }
+  wmXrActionSet *active_action_set = state->active_action_set;
 
   /* Update headset motion capture objects. */
   {

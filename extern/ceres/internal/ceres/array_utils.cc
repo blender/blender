@@ -44,7 +44,7 @@ namespace internal {
 using std::string;
 
 bool IsArrayValid(const int size, const double* x) {
-  if (x != NULL) {
+  if (x != nullptr) {
     for (int i = 0; i < size; ++i) {
       if (!std::isfinite(x[i]) || (x[i] == kImpossibleValue)) {
         return false;
@@ -55,7 +55,7 @@ bool IsArrayValid(const int size, const double* x) {
 }
 
 int FindInvalidValue(const int size, const double* x) {
-  if (x == NULL) {
+  if (x == nullptr) {
     return size;
   }
 
@@ -69,7 +69,7 @@ int FindInvalidValue(const int size, const double* x) {
 }
 
 void InvalidateArray(const int size, double* x) {
-  if (x != NULL) {
+  if (x != nullptr) {
     for (int i = 0; i < size; ++i) {
       x[i] = kImpossibleValue;
     }
@@ -78,7 +78,7 @@ void InvalidateArray(const int size, double* x) {
 
 void AppendArrayToString(const int size, const double* x, string* result) {
   for (int i = 0; i < size; ++i) {
-    if (x == NULL) {
+    if (x == nullptr) {
       StringAppendF(result, "Not Computed  ");
     } else {
       if (x[i] == kImpossibleValue) {

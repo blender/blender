@@ -273,14 +273,6 @@ bool BKE_image_is_openexr(struct Image *ima);
 void BKE_image_backup_render(struct Scene *scene, struct Image *ima, bool free_current_slot);
 
 /**
- * For single-layer OpenEXR saving.
- */
-bool BKE_image_save_openexr_multiview(struct Image *ima,
-                                      struct ImBuf *ibuf,
-                                      const char *filepath,
-                                      int flags);
-
-/**
  * Goes over all textures that use images.
  */
 void BKE_image_free_all_textures(struct Main *bmain);
@@ -379,6 +371,11 @@ typedef enum {
 } eUDIM_TILE_FORMAT;
 
 /**
+ * Checks if the filename portion of the path contains a UDIM token.
+ */
+bool BKE_image_is_filename_tokenized(char *filepath);
+
+/**
  * Ensures that `filename` contains a UDIM token if we find a supported format pattern.
  * \note This must only be the name component (without slashes).
  */
@@ -387,7 +384,7 @@ void BKE_image_ensure_tile_token(char *filename);
 /**
  * When provided with an absolute virtual `filepath`, check to see if at least
  * one concrete file exists.
- * Note: This function requires directory traversal and may be inefficient in time-critical,
+ * NOTE: This function requires directory traversal and may be inefficient in time-critical,
  * or iterative, code paths.
  */
 bool BKE_image_tile_filepath_exists(const char *filepath);
@@ -454,7 +451,7 @@ bool BKE_image_is_dirty_writable(struct Image *image, bool *r_is_writable);
 int BKE_image_sequence_guess_offset(struct Image *image);
 bool BKE_image_has_anim(struct Image *image);
 bool BKE_image_has_packedfile(const struct Image *image);
-bool BKE_image_has_filepath(struct Image *ima);
+bool BKE_image_has_filepath(const struct Image *ima);
 /**
  * Checks the image buffer changes with time (not keyframed values).
  */

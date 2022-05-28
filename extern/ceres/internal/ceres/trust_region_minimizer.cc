@@ -62,8 +62,6 @@
 namespace ceres {
 namespace internal {
 
-TrustRegionMinimizer::~TrustRegionMinimizer() {}
-
 void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
                                     double* parameters,
                                     Solver::Summary* solver_summary) {
@@ -75,11 +73,11 @@ void TrustRegionMinimizer::Minimize(const Minimizer::Options& options,
   // Create the TrustRegionStepEvaluator. The construction needs to be
   // delayed to this point because we need the cost for the starting
   // point to initialize the step evaluator.
-  step_evaluator_.reset(new TrustRegionStepEvaluator(
+  step_evaluator_ = std::make_unique<TrustRegionStepEvaluator>(
       x_cost_,
       options_.use_nonmonotonic_steps
           ? options_.max_consecutive_nonmonotonic_steps
-          : 0));
+          : 0);
 
   while (FinalizeIterationAndCheckIfMinimizerCanContinue()) {
     iteration_start_time_in_secs_ = WallTimeInSeconds();
@@ -750,14 +748,12 @@ bool TrustRegionMinimizer::FunctionToleranceReached() {
 // Compute candidate_x_ = Plus(x_, delta_)
 // Evaluate the cost of candidate_x_ as candidate_cost_.
 //
-// Failure to compute the step or the cost mean that candidate_cost_
-// is set to std::numeric_limits<double>::max(). Unlike
-// EvaluateGradientAndJacobian, failure in this function is not fatal
-// as we are only computing and evaluating a candidate point, and if
-// for some reason we are unable to evaluate it, we consider it to be
-// a point with very high cost. This allows the user to deal with edge
-// cases/constraints as part of the LocalParameterization and
-// CostFunction objects.
+// Failure to compute the step or the cost mean that candidate_cost_ is set to
+// std::numeric_limits<double>::max(). Unlike EvaluateGradientAndJacobian,
+// failure in this function is not fatal as we are only computing and evaluating
+// a candidate point, and if for some reason we are unable to evaluate it, we
+// consider it to be a point with very high cost. This allows the user to deal
+// with edge cases/constraints as part of the Manifold and CostFunction objects.
 void TrustRegionMinimizer::ComputeCandidatePointAndEvaluateCost() {
   if (!evaluator_->Plus(x_.data(), delta_.data(), candidate_x_.data())) {
     if (is_not_silent_) {

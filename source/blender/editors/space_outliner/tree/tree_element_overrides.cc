@@ -38,6 +38,19 @@ TreeElementOverridesBase::TreeElementOverridesBase(TreeElement &legacy_te, ID &i
   }
 }
 
+StringRefNull TreeElementOverridesBase::getWarning() const
+{
+  if (id.flag & LIB_LIB_OVERRIDE_RESYNC_LEFTOVER) {
+    return TIP_("This override data-block is not needed anymore, but was detected as user-edited");
+  }
+
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(&id) && ID_REAL_USERS(&id) == 0) {
+    return TIP_("This override data-block is unused");
+  }
+
+  return {};
+}
+
 void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
 {
   BLI_assert(id.override_library != nullptr);
@@ -84,14 +97,24 @@ TreeElementOverridesProperty::TreeElementOverridesProperty(TreeElement &legacy_t
                                                            TreeElementOverridesData &override_data)
     : AbstractTreeElement(legacy_te),
       override_rna_ptr(override_data.override_rna_ptr),
-      override_rna_prop(override_data.override_rna_prop)
+      override_rna_prop(override_data.override_rna_prop),
+      rna_path(override_data.override_property.rna_path),
+      is_rna_path_valid(override_data.is_rna_path_valid)
 {
   BLI_assert(legacy_te.store_elem->type == TSE_LIBRARY_OVERRIDE);
 
   legacy_te.name = override_data.override_property.rna_path;
-  /* Abusing this for now, better way to do it is also pending current refactor of the whole tree
-   * code to use C++. */
-  legacy_te.directdata = POINTER_FROM_UINT(override_data.is_rna_path_valid);
+}
+
+StringRefNull TreeElementOverridesProperty::getWarning() const
+{
+  if (!is_rna_path_valid) {
+    return TIP_(
+        "This override property does not exist in current data, it will be removed on "
+        "next .blend file save");
+  }
+
+  return {};
 }
 
 }  // namespace blender::ed::outliner

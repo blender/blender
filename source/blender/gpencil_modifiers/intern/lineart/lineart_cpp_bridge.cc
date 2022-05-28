@@ -21,5 +21,5 @@ static bool cmp_adjacent_items(const LineartAdjacentEdge &p1, const LineartAdjac
 
 void lineart_sort_adjacent_items(LineartAdjacentEdge *ai, int length)
 {
-  blender::parallel_sort(ai, ai + length - 1, cmp_adjacent_items);
+  blender::parallel_sort(ai, ai + length, cmp_adjacent_items);
 }

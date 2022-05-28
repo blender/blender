@@ -108,10 +108,9 @@ GlobalData init_globals(void)
 #  endif
   surf.barycentric_coords = vec2(0.0);
   surf.barycentric_dists = vec3(0.0);
-  if (!FrontFacing) {
-    surf.N = -surf.N;
-  }
+  surf.N = (FrontFacing) ? surf.N : -surf.N;
 #  ifdef HAIR_SHADER
+  vec3 V = cameraVec(surf.P);
   /* Shade as a cylinder. */
   vec3 B = normalize(cross(worldNormal, hairTangent));
   float cos_theta;
@@ -125,7 +124,10 @@ GlobalData init_globals(void)
   }
   float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
   surf.N = safe_normalize(worldNormal * sin_theta + B * cos_theta);
-  surf.T = hairTangent;
+  surf.curve_T = -hairTangent;
+  /* Costly, but follows cycles per pixel tangent space (not following curve shape). */
+  surf.curve_B = cross(V, surf.curve_T);
+  surf.curve_N = safe_normalize(cross(surf.curve_T, surf.curve_B));
   surf.is_strand = true;
   surf.hair_time = hairTime;
   surf.hair_thickness = hairThickness;
@@ -134,7 +136,7 @@ GlobalData init_globals(void)
   surf.barycentric_coords = hair_resolve_barycentric(hairBary);
 #    endif
 #  else
-  surf.T = vec3(0.0);
+  surf.curve_T = surf.curve_B = surf.curve_N = vec3(0.0);
   surf.is_strand = false;
   surf.hair_time = 0.0;
   surf.hair_thickness = 0.0;

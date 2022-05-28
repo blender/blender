@@ -54,11 +54,17 @@ void ForwardPipeline::sync()
   {
     DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
     prepass_ps_ = DRW_pass_create("Forward.Opaque.Prepass", state);
+    prepass_velocity_ps_ = DRW_pass_create("Forward.Opaque.Prepass.Velocity",
+                                           state | DRW_STATE_WRITE_COLOR);
 
     state |= DRW_STATE_CULL_BACK;
     prepass_culled_ps_ = DRW_pass_create("Forward.Opaque.Prepass.Culled", state);
+    prepass_culled_velocity_ps_ = DRW_pass_create("Forward.Opaque.Prepass.Velocity",
+                                                  state | DRW_STATE_WRITE_COLOR);
 
-    DRW_pass_link(prepass_ps_, prepass_culled_ps_);
+    DRW_pass_link(prepass_ps_, prepass_velocity_ps_);
+    DRW_pass_link(prepass_velocity_ps_, prepass_culled_ps_);
+    DRW_pass_link(prepass_culled_ps_, prepass_culled_velocity_ps_);
   }
   {
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
@@ -110,11 +116,17 @@ DRWShadingGroup *ForwardPipeline::material_opaque_add(::Material *blender_mat, G
   return grp;
 }
 
-DRWShadingGroup *ForwardPipeline::prepass_opaque_add(::Material *blender_mat, GPUMaterial *gpumat)
+DRWShadingGroup *ForwardPipeline::prepass_opaque_add(::Material *blender_mat,
+                                                     GPUMaterial *gpumat,
+                                                     bool has_motion)
 {
-  DRWPass *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ? prepass_culled_ps_ :
-                                                                    prepass_ps_;
+  DRWPass *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ?
+                      (has_motion ? prepass_culled_velocity_ps_ : prepass_culled_ps_) :
+                      (has_motion ? prepass_velocity_ps_ : prepass_ps_);
   DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, pass);
+  if (has_motion) {
+    inst_.velocity.bind_resources(grp);
+  }
   return grp;
 }
 
@@ -181,15 +193,19 @@ DRWShadingGroup *ForwardPipeline::prepass_transparent_add(::Material *blender_ma
 }
 
 void ForwardPipeline::render(const DRWView *view,
+                             Framebuffer &prepass_fb,
+                             Framebuffer &combined_fb,
                              GPUTexture *depth_tx,
                              GPUTexture *UNUSED(combined_tx))
 {
-  UNUSED_VARS(view, depth_tx);
+  UNUSED_VARS(view, depth_tx, prepass_fb, combined_fb);
   // HiZBuffer &hiz = inst_.hiz_front;
 
   DRW_stats_group_start("ForwardOpaque");
 
+  GPU_framebuffer_bind(prepass_fb);
   DRW_draw_pass(prepass_ps_);
+
   // hiz.set_dirty();
 
   // if (inst_.raytracing.enabled()) {
@@ -199,6 +215,7 @@ void ForwardPipeline::render(const DRWView *view,
 
   // inst_.shadows.set_view(view, depth_tx);
 
+  GPU_framebuffer_bind(combined_fb);
   DRW_draw_pass(opaque_ps_);
 
   DRW_stats_group_end();

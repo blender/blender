@@ -39,8 +39,8 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
     const GPUVertAttr *a = &format->attrs[a_idx];
 
     if (format->deinterleaved) {
-      offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].sz) * v_len;
-      stride = a->sz;
+      offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].size) * v_len;
+      stride = a->size;
     }
     else {
       offset = a->offset;

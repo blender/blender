@@ -21,10 +21,68 @@ from bpy.props import (
 )
 from bpy.app.translations import pgettext_iface as iface_
 
+
+def _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs):
+    # Use the same logic as auto-completing in the Python console to expand the data-path.
+    from bl_console_utils.autocomplete import intellisense
+    context_prefix = "context."
+    line = context_prefix + edit_text
+    cursor = len(line)
+    namespace = {"context": context}
+    comp_prefix, _, comp_options = intellisense.expand(line=line, cursor=len(line), namespace=namespace, private=False)
+    prefix = comp_prefix[len(context_prefix):]  # Strip "context."
+    for attr in comp_options.split("\n"):
+        if attr.endswith((
+                # Exclude function calls because they are generally not part of data-paths.
+                "(", ")",
+                # RNA properties for introspection, not useful to expand.
+                ".bl_rna", ".rna_type",
+        )):
+            continue
+        attr_full = prefix + attr.lstrip()
+        if attr_full in unique_attrs:
+            continue
+        unique_attrs.add(attr_full)
+        yield attr_full
+
+
+def rna_path_prop_search_for_context(self, context, edit_text):
+    # NOTE(@campbellbarton): Limiting data-path expansion is rather arbitrary.
+    # It's possible for e.g. that someone would want to set a shortcut in the preferences or
+    # in other region types than those currently expanded. Unless there is a reasonable likelihood
+    # users might expand these space-type/region-type combinations - exclude them from this search.
+    # After all, this list is mainly intended as a hint, users are not prevented from constructing
+    # the data-paths themselves.
+    unique_attrs = set()
+
+    for window in context.window_manager.windows:
+        for area in window.screen.areas:
+            # Users are very unlikely to be setting shortcuts in the preferences, skip this.
+            if area.type == 'PREFERENCES':
+                continue
+            space = area.spaces.active
+            # Ignore the same region type multiple times in an area.
+            # Prevents the 3D-viewport quad-view from attempting to expand 3 extra times for e.g.
+            region_type_unique = set()
+            for region in area.regions:
+                if region.type not in {'WINDOW', 'PREVIEW'}:
+                    continue
+                if region.type in region_type_unique:
+                    continue
+                region_type_unique.add(region.type)
+                with context.temp_override(window=window, area=area, region=region):
+                    yield from _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs)
+
+    if not unique_attrs:
+        # Users *might* only have a preferences area shown, in that case just expand the current context.
+        yield from _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs)
+
+
 rna_path_prop = StringProperty(
     name="Context Attributes",
-    description="RNA context string",
+    description="Context data-path (expanded using visible windows in the current .blend file)",
     maxlen=1024,
+    search=rna_path_prop_search_for_context,
 )
 
 rna_reverse_prop = BoolProperty(

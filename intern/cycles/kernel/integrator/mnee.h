@@ -36,7 +36,7 @@
  *  https://cg.ivd.kit.edu/english/HSLT.php
  */
 
-#  define MNEE_MAX_ITERATIONS 32
+#  define MNEE_MAX_ITERATIONS 64
 #  define MNEE_MAX_INTERSECTION_COUNT 10
 #  define MNEE_SOLVER_THRESHOLD 0.001f
 #  define MNEE_MINIMUM_STEP_SIZE 0.0001f
@@ -140,26 +140,8 @@ ccl_device_forceinline void mnee_update_light_sample(KernelGlobals kg,
     ls->D = normalize_len(ls->P - P, &ls->t);
     ls->pdf = fabsf(klight->area.invarea);
   }
-}
 
-/* Compute orthonormal basis
- * https://graphics.pixar.com/library/OrthonormalB/paper.pdf  */
-ccl_device_forceinline void mnee_make_orthonormals(const float3 n,
-                                                   ccl_private float3 *dp_du,
-                                                   ccl_private float3 *dp_dv)
-{
-  if (n.z < 0.0f) {
-    const float a = 1.0f / (1.0f - n.z);
-    const float b = n.x * n.y * a;
-    *dp_du = make_float3(1.0f - n.x * n.x * a, -b, n.x);
-    *dp_dv = make_float3(b, n.y * n.y * a - 1.0f, -n.y);
-  }
-  else {
-    const float a = 1.0f / (1.0f + n.z);
-    const float b = -n.x * n.y * a;
-    *dp_du = make_float3(1.0f - n.x * n.x * a, b, -n.x);
-    *dp_dv = make_float3(b, 1.0f - n.y * n.y * a, -n.y);
-  }
+  ls->pdf *= kernel_data.integrator.pdf_lights;
 }
 
 /* Manifold vertex setup from ray and intersection data */
@@ -170,8 +152,7 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
                                                        const float2 n_offset,
                                                        ccl_private const Ray *ray,
                                                        ccl_private const Intersection *isect,
-                                                       ccl_private ShaderData *sd_vtx,
-                                                       bool seed)
+                                                       ccl_private ShaderData *sd_vtx)
 {
   sd_vtx->object = (isect->object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, isect->prim) :
                                                     isect->object;
@@ -263,30 +244,13 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
   dp_dv *= inv_len_dp_dv;
   dn_dv *= inv_len_dp_dv;
 
-  /* Final local differential geometry. */
-  if (seed) {
-    vtx->dp_du = dp_du;
-    vtx->dp_dv = dp_dv;
-    vtx->dn_du = dn_du;
-    vtx->dn_dv = dn_dv;
-  }
-  else {
-    /* Find angle subtended by reference direction (travel direction). */
-    const float3 reference_direction = normalize(sd_vtx->P - vtx->p);
-    const float reference_theta = atan2(dot(reference_direction, vtx->dp_dv),
-                                        dot(reference_direction, vtx->dp_du));
-    const float current_theta = atan2(dot(reference_direction, dp_dv),
-                                      dot(reference_direction, dp_du));
-    const float theta = reference_theta - current_theta;
-
-    /* Rotate (dp_du,dp_dv) to be consistent with previous tangent frame. */
-    float cos_theta, sin_theta;
-    fast_sincosf(theta, &sin_theta, &cos_theta);
-    vtx->dp_du = cos_theta * dp_du - sin_theta * dp_dv;
-    vtx->dp_dv = sin_theta * dp_du + cos_theta * dp_dv;
-    vtx->dn_du = cos_theta * dn_du - sin_theta * dn_dv;
-    vtx->dn_dv = sin_theta * dn_du + cos_theta * dn_dv;
-  }
+  /* Find consistent tangent frame for every point on the surface. */
+  make_orthonormals(vtx->ng, &vtx->dp_du, &vtx->dp_dv);
+  /* Apply the equivalent rotation to the normal derivatives. */
+  const float cos_theta = dot(dp_du, vtx->dp_du);
+  const float sin_theta = -dot(dp_dv, vtx->dp_du);
+  vtx->dn_du = cos_theta * dn_du - sin_theta * dn_dv;
+  vtx->dn_dv = sin_theta * dn_du + cos_theta * dn_dv;
 
   /* Manifold vertex position. */
   vtx->p = sd_vtx->P;
@@ -570,15 +534,8 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
       tv.dp_dv = mv.dp_dv;
 
       /* Setup corrected manifold vertex. */
-      mnee_setup_manifold_vertex(kg,
-                                 &tv,
-                                 mv.bsdf,
-                                 mv.eta,
-                                 mv.n_offset,
-                                 &projection_ray,
-                                 &projection_isect,
-                                 sd_vtx,
-                                 false);
+      mnee_setup_manifold_vertex(
+          kg, &tv, mv.bsdf, mv.eta, mv.n_offset, &projection_ray, &projection_isect, sd_vtx);
 
       /* Fail newton solve if we are not making progress, probably stuck trying to move off the
        * edge of the mesh. */
@@ -749,7 +706,7 @@ ccl_device_forceinline bool mnee_compute_transfer_matrix(ccl_private const Shade
 
   /* Local differential geometry. */
   float3 dp_du, dp_dv;
-  mnee_make_orthonormals(ls->Ng, &dp_du, &dp_dv);
+  make_orthonormals(ls->Ng, &dp_du, &dp_dv);
 
   /* Direction toward surface sample. */
   float3 wi = vertex_count == 1 ? sd->P - m.p : vertices[mi - 1].p - m.p;
@@ -850,6 +807,15 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
    * and keep pdf in vertex area measure */
   mnee_update_light_sample(kg, vertices[vertex_count - 1].p, ls);
 
+  /* Save state path bounce info in case a light path node is used in the refractive interface or
+   * light shader graph. */
+  const int transmission_bounce = INTEGRATOR_STATE(state, path, transmission_bounce);
+  const int diffuse_bounce = INTEGRATOR_STATE(state, path, diffuse_bounce);
+  const int bounce = INTEGRATOR_STATE(state, path, bounce);
+
+  /* Set diffuse bounce info . */
+  INTEGRATOR_STATE_WRITE(state, path, diffuse_bounce) = diffuse_bounce + 1;
+
   /* Evaluate light sample
    * in case the light has a node-based shader:
    * 1. sd_mnee will be used to store light data, which is why we need to do
@@ -857,6 +823,12 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
    *    interface data at the end of the call for the shadow ray setup to work.
    * 2. ls needs to contain the last interface data for the light shader to
    *    evaluate properly */
+
+  /* Set bounce info in case a light path node is used in the light shader graph. */
+  INTEGRATOR_STATE_WRITE(state, path, transmission_bounce) = transmission_bounce + vertex_count -
+                                                             1;
+  INTEGRATOR_STATE_WRITE(state, path, bounce) = bounce + vertex_count;
+
   float3 light_eval = light_sample_shader_eval(kg, state, sd_mnee, ls, sd->time);
   bsdf_eval_mul3(throughput, light_eval / ls->pdf);
 
@@ -928,6 +900,11 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
                              false,
                              LAMP_NONE);
 
+    /* Set bounce info in case a light path node is used in the refractive interface
+     * shader graph. */
+    INTEGRATOR_STATE_WRITE(state, path, transmission_bounce) = transmission_bounce + vi;
+    INTEGRATOR_STATE_WRITE(state, path, bounce) = bounce + 1 + vi;
+
     /* Evaluate shader nodes at solution vi. */
     shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
         kg, state, sd_mnee, NULL, PATH_RAY_DIFFUSE, true);
@@ -943,6 +920,11 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
     float3 bsdf_contribution = mnee_eval_bsdf_contribution(v.bsdf, wi, wo);
     bsdf_eval_mul3(throughput, bsdf_contribution);
   }
+
+  /* Restore original state path bounce info. */
+  INTEGRATOR_STATE_WRITE(state, path, transmission_bounce) = transmission_bounce;
+  INTEGRATOR_STATE_WRITE(state, path, diffuse_bounce) = diffuse_bounce;
+  INTEGRATOR_STATE_WRITE(state, path, bounce) = bounce;
 
   return true;
 }
@@ -1026,7 +1008,9 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
         if (bsdf->type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID ||
             bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID ||
             bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID ||
-            bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID) {
+            bsdf->type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID ||
+            bsdf->type == CLOSURE_BSDF_REFRACTION_ID ||
+            bsdf->type == CLOSURE_BSDF_SHARP_GLASS_ID) {
           /* Note that CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID and
            * CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID are treated as
            * CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID further below. */
@@ -1038,15 +1022,17 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
           const float eta = (sd_mnee->flag & SD_BACKFACING) ? 1.0f / microfacet_bsdf->ior :
                                                               microfacet_bsdf->ior;
 
-          /* Sample transmissive microfacet bsdf. */
-          float bsdf_u, bsdf_v;
-          path_state_rng_2D(kg, rng_state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
-          float2 h = mnee_sample_bsdf_dh(
-              bsdf->type, microfacet_bsdf->alpha_x, microfacet_bsdf->alpha_y, bsdf_u, bsdf_v);
+          float2 h = zero_float2();
+          if (microfacet_bsdf->alpha_x > 0.f && microfacet_bsdf->alpha_y > 0.f) {
+            /* Sample transmissive microfacet bsdf. */
+            float bsdf_u, bsdf_v;
+            path_state_rng_2D(kg, rng_state, PRNG_BSDF_U, &bsdf_u, &bsdf_v);
+            h = mnee_sample_bsdf_dh(
+                bsdf->type, microfacet_bsdf->alpha_x, microfacet_bsdf->alpha_y, bsdf_u, bsdf_v);
+          }
 
           /* Setup differential geometry on vertex. */
-          mnee_setup_manifold_vertex(
-              kg, &mv, bsdf, eta, h, &probe_ray, &probe_isect, sd_mnee, true);
+          mnee_setup_manifold_vertex(kg, &mv, bsdf, eta, h, &probe_ray, &probe_isect, sd_mnee);
           break;
         }
       }
@@ -1068,18 +1054,17 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
     return 0;
 
   /* Check whether the transmission depth limit is reached before continuing. */
-  if (INTEGRATOR_STATE(state, path, transmission_bounce) + vertex_count >=
+  if ((INTEGRATOR_STATE(state, path, transmission_bounce) + vertex_count - 1) >=
       kernel_data.integrator.max_transmission_bounce)
     return 0;
 
   /* Check whether the diffuse depth limit is reached before continuing. */
-  if (INTEGRATOR_STATE(state, path, diffuse_bounce) + 1 >=
+  if ((INTEGRATOR_STATE(state, path, diffuse_bounce) + 1) >=
       kernel_data.integrator.max_diffuse_bounce)
     return 0;
 
   /* Check whether the overall depth limit is reached before continuing. */
-  if (INTEGRATOR_STATE(state, path, bounce) + 1 + vertex_count >=
-      kernel_data.integrator.max_bounce)
+  if ((INTEGRATOR_STATE(state, path, bounce) + vertex_count) >= kernel_data.integrator.max_bounce)
     return 0;
 
   /* Mark the manifold walk valid to turn off mollification regardless of how successful the walk

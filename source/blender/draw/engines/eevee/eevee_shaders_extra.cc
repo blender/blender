@@ -118,6 +118,10 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
     info.vertex_inputs_.clear();
   }
 
+  if (is_hair) {
+    info.additional_info("draw_curves_infos");
+  }
+
   if (!is_volume) {
     info.define("EEVEE_GENERATED_INTERFACE");
     info.vertex_out(*stage_interface);

@@ -197,11 +197,7 @@ void recalcData_sequencer_image(TransInfo *t)
 
     /* Rotation. Scaling can cause negative rotation. */
     if (t->mode == TFM_ROTATION) {
-      const float orig_dir[2] = {cosf(tdseq->orig_rotation), sinf(tdseq->orig_rotation)};
-      float rotation = angle_signed_v2v2(handle_x, orig_dir) * mirror[0] * mirror[1];
-      transform->rotation = tdseq->orig_rotation + rotation;
-      transform->rotation += DEG2RAD(360.0);
-      transform->rotation = fmod(transform->rotation, DEG2RAD(360.0));
+      transform->rotation = tdseq->orig_rotation - t->values_final[0];
     }
     SEQ_relations_invalidate_cache_preprocessed(t->scene, seq);
   }
@@ -209,9 +205,6 @@ void recalcData_sequencer_image(TransInfo *t)
 
 void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), TransInfo *t)
 {
-  if (t->state == TRANS_CANCEL) {
-    return;
-  }
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   TransData *td = NULL;
@@ -225,8 +218,14 @@ void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), TransInfo *
     TransDataSeq *tdseq = td->extra;
     Sequence *seq = tdseq->seq;
     StripTransform *transform = seq->strip->transform;
-    Scene *scene = t->scene;
+    if (t->state == TRANS_CANCEL) {
+      if (t->mode == TFM_ROTATION) {
+        transform->rotation = tdseq->orig_rotation;
+      }
+      continue;
+    }
 
+    Scene *scene = t->scene;
     RNA_pointer_create(&scene->id, &RNA_SequenceTransform, transform, &ptr);
 
     if (t->mode == TFM_ROTATION) {

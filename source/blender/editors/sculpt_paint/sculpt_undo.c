@@ -1265,7 +1265,7 @@ static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType typ
 
   unode->face_sets = MEM_callocN(me->totpoly * sizeof(int), "sculpt face sets");
 
-  int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
+  const int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
   for (int i = 0; i < me->totpoly; i++) {
     unode->face_sets[i] = face_sets[i];
   }

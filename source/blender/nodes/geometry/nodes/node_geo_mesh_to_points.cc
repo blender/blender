@@ -66,12 +66,12 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     return;
   }
   GeometryComponentFieldContext field_context{*mesh_component, domain};
-  const int domain_size = mesh_component->attribute_domain_size(domain);
-  if (domain_size == 0) {
+  const int domain_num = mesh_component->attribute_domain_num(domain);
+  if (domain_num == 0) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     return;
   }
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
   /* Evaluating directly into the point cloud doesn't work because we are not using the full
    * "min_array_size" array but compressing the selected elements into the final array with no

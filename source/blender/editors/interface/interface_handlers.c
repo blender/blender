@@ -384,6 +384,12 @@ typedef struct uiHandleButtonData {
 
   /* True when alt is held and the preference for displaying tooltips should be ignored. */
   bool tooltip_force;
+  /**
+   * Behave as if #UI_BUT_DISABLED is set (without drawing grayed out).
+   * Needed so non-interactive labels can be activated for the purpose of showing tool-tips,
+   * without them blocking interaction with nodes, see: T97386.
+   */
+  bool disable_force;
 
   /* auto open */
   bool used_mouse;
@@ -536,7 +542,7 @@ static bool but_copypaste_profile_alive = false;
 
 bool ui_but_is_editing(const uiBut *but)
 {
-  uiHandleButtonData *data = but->active;
+  const uiHandleButtonData *data = but->active;
   return (data && ELEM(data->state, BUTTON_STATE_TEXT_EDITING, BUTTON_STATE_NUM_EDITING));
 }
 
@@ -654,21 +660,23 @@ static bool ui_but_dragedit_update_mval(uiHandleButtonData *data, int mx)
 static bool ui_rna_is_userdef(PointerRNA *ptr, PropertyRNA *prop)
 {
   /* Not very elegant, but ensures preference changes force re-save. */
-  bool tag = false;
-  if (prop && !(RNA_property_flag(prop) & PROP_NO_DEG_UPDATE)) {
-    StructRNA *base = RNA_struct_base(ptr->type);
-    if (base == NULL) {
-      base = ptr->type;
-    }
-    if (ELEM(base,
-             &RNA_AddonPreferences,
-             &RNA_KeyConfigPreferences,
-             &RNA_KeyMapItem,
-             &RNA_UserAssetLibrary)) {
-      tag = true;
-    }
+
+  if (!prop) {
+    return false;
   }
-  return tag;
+  if (RNA_property_flag(prop) & PROP_NO_DEG_UPDATE) {
+    return false;
+  }
+
+  StructRNA *base = RNA_struct_base(ptr->type);
+  if (base == NULL) {
+    base = ptr->type;
+  }
+  return ELEM(base,
+              &RNA_AddonPreferences,
+              &RNA_KeyConfigPreferences,
+              &RNA_KeyMapItem,
+              &RNA_UserAssetLibrary);
 }
 
 bool UI_but_is_userdef(const uiBut *but)
@@ -894,64 +902,66 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 /* typically call ui_apply_but_undo(), ui_apply_but_autokey() */
 static void ui_apply_but_undo(uiBut *but)
 {
-  if (but->flag & UI_BUT_UNDO) {
-    const char *str = NULL;
-    size_t str_len_clip = SIZE_MAX - 1;
-    bool skip_undo = false;
+  if (!(but->flag & UI_BUT_UNDO)) {
+    return;
+  }
 
-    /* define which string to use for undo */
-    if (but->type == UI_BTYPE_MENU) {
-      str = but->drawstr;
-      str_len_clip = ui_but_drawstr_len_without_sep_char(but);
-    }
-    else if (but->drawstr[0]) {
-      str = but->drawstr;
-      str_len_clip = ui_but_drawstr_len_without_sep_char(but);
+  const char *str = NULL;
+  size_t str_len_clip = SIZE_MAX - 1;
+  bool skip_undo = false;
+
+  /* define which string to use for undo */
+  if (but->type == UI_BTYPE_MENU) {
+    str = but->drawstr;
+    str_len_clip = ui_but_drawstr_len_without_sep_char(but);
+  }
+  else if (but->drawstr[0]) {
+    str = but->drawstr;
+    str_len_clip = ui_but_drawstr_len_without_sep_char(but);
+  }
+  else {
+    str = but->tip;
+    str_len_clip = ui_but_tip_len_only_first_line(but);
+  }
+
+  /* fallback, else we don't get an undo! */
+  if (str == NULL || str[0] == '\0' || str_len_clip == 0) {
+    str = "Unknown Action";
+    str_len_clip = strlen(str);
+  }
+
+  /* Optionally override undo when undo system doesn't support storing properties. */
+  if (but->rnapoin.owner_id) {
+    /* Exception for renaming ID data, we always need undo pushes in this case,
+     * because undo systems track data by their ID, see: T67002. */
+    /* Exception for active shape-key, since changing this in edit-mode updates
+     * the shape key from object mode data. */
+    if (ELEM(but->rnaprop, &rna_ID_name, &rna_Object_active_shape_key_index)) {
+      /* pass */
     }
     else {
-      str = but->tip;
-      str_len_clip = ui_but_tip_len_only_first_line(but);
-    }
-
-    /* fallback, else we don't get an undo! */
-    if (str == NULL || str[0] == '\0' || str_len_clip == 0) {
-      str = "Unknown Action";
-      str_len_clip = strlen(str);
-    }
-
-    /* Optionally override undo when undo system doesn't support storing properties. */
-    if (but->rnapoin.owner_id) {
-      /* Exception for renaming ID data, we always need undo pushes in this case,
-       * because undo systems track data by their ID, see: T67002. */
-      /* Exception for active shape-key, since changing this in edit-mode updates
-       * the shape key from object mode data. */
-      if (ELEM(but->rnaprop, &rna_ID_name, &rna_Object_active_shape_key_index)) {
-        /* pass */
-      }
-      else {
-        ID *id = but->rnapoin.owner_id;
-        if (!ED_undo_is_legacy_compatible_for_property(but->block->evil_C, id)) {
-          skip_undo = true;
-        }
-      }
-    }
-
-    if (skip_undo == false) {
-      /* XXX: disable all undo pushes from UI changes from sculpt mode as they cause memfile undo
-       * steps to be written which cause lag: T71434. */
-      if (BKE_paintmode_get_active_from_context(but->block->evil_C) == PAINT_MODE_SCULPT) {
+      ID *id = but->rnapoin.owner_id;
+      if (!ED_undo_is_legacy_compatible_for_property(but->block->evil_C, id)) {
         skip_undo = true;
       }
     }
-
-    if (skip_undo) {
-      str = "";
-    }
-
-    /* delayed, after all other funcs run, popups are closed, etc */
-    uiAfterFunc *after = ui_afterfunc_new();
-    BLI_strncpy(after->undostr, str, min_zz(str_len_clip + 1, sizeof(after->undostr)));
   }
+
+  if (skip_undo == false) {
+    /* XXX: disable all undo pushes from UI changes from sculpt mode as they cause memfile undo
+     * steps to be written which cause lag: T71434. */
+    if (BKE_paintmode_get_active_from_context(but->block->evil_C) == PAINT_MODE_SCULPT) {
+      skip_undo = true;
+    }
+  }
+
+  if (skip_undo) {
+    str = "";
+  }
+
+  /* delayed, after all other funcs run, popups are closed, etc */
+  uiAfterFunc *after = ui_afterfunc_new();
+  BLI_strncpy(after->undostr, str, min_zz(str_len_clip + 1, sizeof(after->undostr)));
 }
 
 static void ui_apply_but_autokey(bContext *C, uiBut *but)
@@ -961,21 +971,21 @@ static void ui_apply_but_autokey(bContext *C, uiBut *but)
   /* try autokey */
   ui_but_anim_autokey(C, but, scene, scene->r.cfra);
 
+  if (!but->rnaprop) {
+    return;
+  }
+
+  if (RNA_property_subtype(but->rnaprop) == PROP_PASSWORD) {
+    return;
+  }
+
   /* make a little report about what we've done! */
-  if (but->rnaprop) {
-    char *buf;
+  char *buf = WM_prop_pystring_assign(C, &but->rnapoin, but->rnaprop, but->rnaindex);
+  if (buf) {
+    BKE_report(CTX_wm_reports(C), RPT_PROPERTY, buf);
+    MEM_freeN(buf);
 
-    if (RNA_property_subtype(but->rnaprop) == PROP_PASSWORD) {
-      return;
-    }
-
-    buf = WM_prop_pystring_assign(C, &but->rnapoin, but->rnaprop, but->rnaindex);
-    if (buf) {
-      BKE_report(CTX_wm_reports(C), RPT_PROPERTY, buf);
-      MEM_freeN(buf);
-
-      WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, NULL);
-    }
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, NULL);
   }
 }
 
@@ -1625,29 +1635,34 @@ static bool ui_drag_toggle_set_xy_xy(
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
       /* NOTE: ctrl is always true here because (at least for now)
        * we always want to consider text control in this case, even when not embossed. */
-      if (ui_but_is_interactive(but, true)) {
-        if (BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
 
-          /* execute the button */
-          if (ui_drag_toggle_but_is_supported(but)) {
-            /* is it pressed? */
-            const int pushed_state_but = ui_drag_toggle_but_pushed_state(but);
-            if (pushed_state_but != pushed_state) {
-              UI_but_execute(C, region, but);
-              if (do_check) {
-                ui_but_update_edited(but);
-              }
-              if (U.runtime.is_dirty == false) {
-                ui_but_update_preferences_dirty(but);
-              }
-              changed = true;
-            }
-          }
-          /* done */
-        }
+      if (!ui_but_is_interactive(but, true)) {
+        continue;
       }
+      if (!BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
+        continue;
+      }
+      if (!ui_drag_toggle_but_is_supported(but)) {
+        continue;
+      }
+      /* is it pressed? */
+      const int pushed_state_but = ui_drag_toggle_but_pushed_state(but);
+      if (pushed_state_but == pushed_state) {
+        continue;
+      }
+
+      /* execute the button */
+      UI_but_execute(C, region, but);
+      if (do_check) {
+        ui_but_update_edited(but);
+      }
+      if (U.runtime.is_dirty == false) {
+        ui_but_update_preferences_dirty(but);
+      }
+      changed = true;
     }
   }
+
   if (changed) {
     /* apply now, not on release (or if handlers are canceled for whatever reason) */
     ui_apply_but_funcs_after(C);
@@ -1669,7 +1684,7 @@ static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const
    */
   if (drag_info->is_xy_lock_init == false) {
     /* first store the buttons original coords */
-    uiBut *but = ui_but_find_mouse_over_ex(region, xy_input, true, NULL, NULL);
+    uiBut *but = ui_but_find_mouse_over_ex(region, xy_input, true, false, NULL, NULL);
 
     if (but) {
       if (but->flag & UI_BUT_DRAG_LOCK) {
@@ -1739,7 +1754,7 @@ static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void
   if (done) {
     wmWindow *win = CTX_wm_window(C);
     const ARegion *region = CTX_wm_region(C);
-    uiBut *but = ui_but_find_mouse_over_ex(region, drag_info->xy_init, true, NULL, NULL);
+    uiBut *but = ui_but_find_mouse_over_ex(region, drag_info->xy_init, true, false, NULL, NULL);
 
     if (but) {
       ui_apply_but_undo(but);
@@ -4324,7 +4339,7 @@ static uiBut *ui_but_list_row_text_activate(bContext *C,
                                             uiButtonActivateType activate_type)
 {
   ARegion *region = CTX_wm_region(C);
-  uiBut *labelbut = ui_but_find_mouse_over_ex(region, event->xy, true, NULL, NULL);
+  uiBut *labelbut = ui_but_find_mouse_over_ex(region, event->xy, true, false, NULL, NULL);
 
   if (labelbut && labelbut->type == UI_BTYPE_TEXT && !(labelbut->flag & UI_BUT_DISABLED)) {
     /* exit listrow */
@@ -4346,14 +4361,14 @@ static uiBut *ui_but_list_row_text_activate(bContext *C,
  * \{ */
 
 static uiButExtraOpIcon *ui_but_extra_operator_icon_mouse_over_get(uiBut *but,
-                                                                   uiHandleButtonData *data,
+                                                                   ARegion *region,
                                                                    const wmEvent *event)
 {
   float xmax = but->rect.xmax;
   const float icon_size = 0.8f * BLI_rctf_size_y(&but->rect); /* ICON_SIZE_FROM_BUTRECT */
   int x = event->xy[0], y = event->xy[1];
 
-  ui_window_to_block(data->region, but->block, &x, &y);
+  ui_window_to_block(region, but->block, &x, &y);
   if (!BLI_rctf_isect_pt(&but->rect, x, y)) {
     return NULL;
   }
@@ -4382,7 +4397,7 @@ static bool ui_do_but_extra_operator_icon(bContext *C,
                                           uiHandleButtonData *data,
                                           const wmEvent *event)
 {
-  uiButExtraOpIcon *op_icon = ui_but_extra_operator_icon_mouse_over_get(but, data, event);
+  uiButExtraOpIcon *op_icon = ui_but_extra_operator_icon_mouse_over_get(but, data->region, event);
 
   if (!op_icon) {
     return false;
@@ -4417,7 +4432,7 @@ static void ui_do_but_extra_operator_icons_mousemove(uiBut *but,
     op_icon->highlighted = false;
   }
 
-  uiButExtraOpIcon *hovered = ui_but_extra_operator_icon_mouse_over_get(but, data, event);
+  uiButExtraOpIcon *hovered = ui_but_extra_operator_icon_mouse_over_get(but, data->region, event);
 
   if (hovered) {
     hovered->highlighted = true;
@@ -4501,10 +4516,14 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
                                uiHandleButtonData *data,
                                const wmEvent *event)
 {
+  uiButHotkeyEvent *hotkey_but = (uiButHotkeyEvent *)but;
+  BLI_assert(but->type == UI_BTYPE_HOTKEY_EVENT);
+
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
-    if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && event->val == KM_PRESS) {
+    if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY, EVT_BUT_OPEN) &&
+        (event->val == KM_PRESS)) {
       but->drawstr[0] = 0;
-      but->modifier_key = 0;
+      hotkey_but->modifier_key = 0;
       button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
       return WM_UI_HANDLER_BREAK;
     }
@@ -4525,20 +4544,16 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
     if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
       /* only cancel if click outside the button */
       if (ui_but_contains_point_px(but, but->active->region, event->xy) == false) {
-        /* data->cancel doesn't work, this button opens immediate */
-        if (but->flag & UI_BUT_IMMEDIATE) {
-          ui_but_value_set(but, 0);
-        }
-        else {
-          data->cancel = true;
-        }
+        data->cancel = true;
+        /* Close the containing popup (if any). */
+        data->escapecancel = true;
         button_activate_state(C, but, BUTTON_STATE_EXIT);
         return WM_UI_HANDLER_BREAK;
       }
     }
 
     /* always set */
-    but->modifier_key = event->modifier;
+    hotkey_but->modifier_key = event->modifier;
 
     ui_but_update(but);
     ED_region_tag_redraw(data->region);
@@ -4656,7 +4671,7 @@ static int ui_do_but_TEX(
         /* pass */
       }
       else {
-        if (!ui_but_extra_operator_icon_mouse_over_get(but, data, event)) {
+        if (!ui_but_extra_operator_icon_mouse_over_get(but, data->region, event)) {
           button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
         }
         return WM_UI_HANDLER_BREAK;
@@ -4782,7 +4797,7 @@ static int ui_do_but_TREEROW(bContext *C,
       switch (event->val) {
         case KM_PRESS:
           /* Extra icons have priority, don't mess with them. */
-          if (ui_but_extra_operator_icon_mouse_over_get(but, data, event)) {
+          if (ui_but_extra_operator_icon_mouse_over_get(but, data->region, event)) {
             return WM_UI_HANDLER_BREAK;
           }
           button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
@@ -6271,7 +6286,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 
             if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
               RNA_property_float_get_array(&but->rnapoin, but->rnaprop, target);
-              IMB_colormanagement_srgb_to_scene_linear_v3(target);
+              IMB_colormanagement_srgb_to_scene_linear_v3(target, target);
             }
             else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
               RNA_property_float_get_array(&but->rnapoin, but->rnaprop, target);
@@ -6288,7 +6303,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
             }
             else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
               RNA_property_float_get_array(&but->rnapoin, but->rnaprop, color);
-              IMB_colormanagement_scene_linear_to_srgb_v3(color);
+              IMB_colormanagement_scene_linear_to_srgb_v3(color, color);
               BKE_brush_color_set(scene, brush, color);
               updated = true;
             }
@@ -7899,7 +7914,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
   uiHandleButtonData *data = but->active;
   int retval = WM_UI_HANDLER_CONTINUE;
 
-  const bool is_disabled = but->flag & UI_BUT_DISABLED;
+  const bool is_disabled = but->flag & UI_BUT_DISABLED || data->disable_force;
 
   /* if but->pointype is set, but->poin should be too */
   BLI_assert(!but->pointype || but->poin);
@@ -8216,7 +8231,7 @@ static ARegion *ui_but_tooltip_init(
   if (but) {
     const wmWindow *win = CTX_wm_window(C);
     uiButExtraOpIcon *extra_icon = ui_but_extra_operator_icon_mouse_over_get(
-        but, but->active, win->eventstate);
+        but, but->active ? but->active->region : region, win->eventstate);
 
     return UI_tooltip_create_from_button_or_extra_icon(C, region, but, extra_icon, is_label);
   }
@@ -8492,14 +8507,6 @@ static void button_activate_init(bContext *C,
   }
   button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 
-  /* activate right away */
-  if (but->flag & UI_BUT_IMMEDIATE) {
-    if (but->type == UI_BTYPE_HOTKEY_EVENT) {
-      button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
-    }
-    /* .. more to be added here */
-  }
-
   if (type == BUTTON_ACTIVATE_OPEN) {
     button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
 
@@ -8703,18 +8710,36 @@ static uiBut *ui_context_button_active(const ARegion *region, bool (*but_check_c
   uiBut *but_found = NULL;
 
   while (region) {
-    uiBut *activebut = NULL;
+    /* Follow this exact priority (from highest to lowest priority):
+     * 1) Active-override button (#UI_BUT_ACTIVE_OVERRIDE).
+     * 2) The real active button.
+     * 3) The previously active button (#UI_BUT_LAST_ACTIVE).
+     */
+    uiBut *active_but_override = NULL;
+    uiBut *active_but_real = NULL;
+    uiBut *active_but_last = NULL;
 
     /* find active button */
     LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
       LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-        if (but->active) {
-          activebut = but;
+        if (but->flag & UI_BUT_ACTIVE_OVERRIDE) {
+          active_but_override = but;
         }
-        else if (!activebut && (but->flag & UI_BUT_LAST_ACTIVE)) {
-          activebut = but;
+        if (but->active) {
+          active_but_real = but;
+        }
+        if (but->flag & UI_BUT_LAST_ACTIVE) {
+          active_but_last = but;
         }
       }
+    }
+
+    uiBut *activebut = active_but_override;
+    if (!activebut) {
+      activebut = active_but_real;
+    }
+    if (!activebut) {
+      activebut = active_but_last;
     }
 
     if (activebut && (but_check_cb == NULL || but_check_cb(activebut))) {
@@ -8947,7 +8972,12 @@ static uiBut *ui_but_find_open_event(ARegion *region, const wmEvent *event)
 static int ui_handle_button_over(bContext *C, const wmEvent *event, ARegion *region)
 {
   if (event->type == MOUSEMOVE) {
-    uiBut *but = ui_but_find_mouse_over(region, event);
+    const bool labeledit = event->modifier & KM_CTRL;
+    /* Allow buttons to be activated to show the tool-tip,
+     * then force-disable them if they're not considered interactive
+     * so they don't swallow events but can still display tips. */
+    const bool for_tooltip = true;
+    uiBut *but = ui_but_find_mouse_over_ex(region, event->xy, labeledit, for_tooltip, NULL, NULL);
     if (but) {
       button_activate_init(C, region, but, BUTTON_ACTIVATE_OVER);
 
@@ -8955,6 +8985,10 @@ static int ui_handle_button_over(bContext *C, const wmEvent *event, ARegion *reg
         /* Display tool-tips if holding Alt on mouse-over when tool-tips are disabled in the
          * preferences. */
         but->active->tooltip_force = true;
+      }
+
+      if (but->active && !ui_but_is_interactive(but, labeledit)) {
+        but->active->disable_force = true;
       }
     }
   }
@@ -9435,7 +9469,7 @@ static bool ui_list_is_hovering_draggable_but(bContext *C,
   int mouse_xy[2];
   WM_event_drag_start_xy(event, mouse_xy);
 
-  const uiBut *hovered_but = ui_but_find_mouse_over_ex(region, mouse_xy, false, NULL, NULL);
+  const uiBut *hovered_but = ui_but_find_mouse_over_ex(region, mouse_xy, false, false, NULL, NULL);
 
   if (list->dyn_data->custom_drag_optype) {
     if (ui_but_context_poll_operator(C, list->dyn_data->custom_drag_optype, hovered_but)) {

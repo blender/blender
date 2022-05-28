@@ -10,6 +10,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -464,140 +465,141 @@ static void do_multires_bake(MultiresBakeRender *bkr,
   const MLoopTri *mlooptri = dm->getLoopTriArray(dm);
   const int lvl = bkr->lvl;
   int tot_tri = dm->getNumLoopTri(dm);
-
-  if (tot_tri > 0) {
-    MultiresBakeThread *handles;
-    MultiresBakeQueue queue;
-
-    MVert *mvert = dm->getVertArray(dm);
-    MPoly *mpoly = dm->getPolyArray(dm);
-    MLoop *mloop = dm->getLoopArray(dm);
-    MLoopUV *mloopuv = dm->getLoopDataArray(dm, CD_MLOOPUV);
-    float *pvtangent = NULL;
-
-    ListBase threads;
-    int i, tot_thread = bkr->threads > 0 ? bkr->threads : BLI_system_thread_count();
-
-    void *bake_data = NULL;
-
-    Mesh *temp_mesh = BKE_mesh_new_nomain(
-        dm->getNumVerts(dm), dm->getNumEdges(dm), 0, dm->getNumLoops(dm), dm->getNumPolys(dm));
-    memcpy(temp_mesh->mvert, dm->getVertArray(dm), temp_mesh->totvert * sizeof(*temp_mesh->mvert));
-    memcpy(temp_mesh->medge, dm->getEdgeArray(dm), temp_mesh->totedge * sizeof(*temp_mesh->medge));
-    memcpy(temp_mesh->mpoly, dm->getPolyArray(dm), temp_mesh->totpoly * sizeof(*temp_mesh->mpoly));
-    memcpy(temp_mesh->mloop, dm->getLoopArray(dm), temp_mesh->totloop * sizeof(*temp_mesh->mloop));
-    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
-    const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
-
-    if (require_tangent) {
-      if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
-        BKE_mesh_calc_loop_tangent_ex(
-            dm->getVertArray(dm),
-            dm->getPolyArray(dm),
-            dm->getNumPolys(dm),
-            dm->getLoopArray(dm),
-            dm->getLoopTriArray(dm),
-            dm->getNumLoopTri(dm),
-            &dm->loopData,
-            true,
-            NULL,
-            0,
-            vert_normals,
-            poly_normals,
-            (const float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
-            (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* may be nullptr */
-            /* result */
-            &dm->loopData,
-            dm->getNumLoops(dm),
-            &dm->tangent_mask);
-      }
-
-      pvtangent = DM_get_loop_data_layer(dm, CD_TANGENT);
-    }
-
-    /* all threads shares the same custom bake data */
-    if (initBakeData) {
-      bake_data = initBakeData(bkr, ibuf);
-    }
-
-    if (tot_thread > 1) {
-      BLI_threadpool_init(&threads, do_multires_bake_thread, tot_thread);
-    }
-
-    handles = MEM_callocN(tot_thread * sizeof(MultiresBakeThread), "do_multires_bake handles");
-
-    init_ccgdm_arrays(bkr->hires_dm);
-
-    /* faces queue */
-    queue.cur_tri = 0;
-    queue.tot_tri = tot_tri;
-    BLI_spin_init(&queue.spin);
-
-    /* fill in threads handles */
-    for (i = 0; i < tot_thread; i++) {
-      MultiresBakeThread *handle = &handles[i];
-
-      handle->bkr = bkr;
-      handle->image = ima;
-      handle->queue = &queue;
-
-      handle->data.mpoly = mpoly;
-      handle->data.mvert = mvert;
-      handle->data.vert_normals = vert_normals;
-      handle->data.mloopuv = mloopuv;
-      BKE_image_get_tile_uv(ima, tile->tile_number, handle->data.uv_offset);
-      handle->data.mlooptri = mlooptri;
-      handle->data.mloop = mloop;
-      handle->data.pvtangent = pvtangent;
-      handle->data.precomputed_normals = poly_normals; /* don't strictly need this */
-      handle->data.w = ibuf->x;
-      handle->data.h = ibuf->y;
-      handle->data.lores_dm = dm;
-      handle->data.hires_dm = bkr->hires_dm;
-      handle->data.lvl = lvl;
-      handle->data.pass_data = passKnownData;
-      handle->data.thread_data = handle;
-      handle->data.bake_data = bake_data;
-      handle->data.ibuf = ibuf;
-
-      handle->height_min = FLT_MAX;
-      handle->height_max = -FLT_MAX;
-
-      init_bake_rast(&handle->bake_rast, ibuf, &handle->data, flush_pixel, bkr->do_update);
-
-      if (tot_thread > 1) {
-        BLI_threadpool_insert(&threads, handle);
-      }
-    }
-
-    /* run threads */
-    if (tot_thread > 1) {
-      BLI_threadpool_end(&threads);
-    }
-    else {
-      do_multires_bake_thread(&handles[0]);
-    }
-
-    /* construct bake result */
-    result->height_min = handles[0].height_min;
-    result->height_max = handles[0].height_max;
-
-    for (i = 1; i < tot_thread; i++) {
-      result->height_min = min_ff(result->height_min, handles[i].height_min);
-      result->height_max = max_ff(result->height_max, handles[i].height_max);
-    }
-
-    BLI_spin_end(&queue.spin);
-
-    /* finalize baking */
-    if (freeBakeData) {
-      freeBakeData(bake_data);
-    }
-
-    MEM_freeN(handles);
-
-    BKE_id_free(NULL, temp_mesh);
+  if (tot_tri < 1) {
+    return;
   }
+
+  MultiresBakeThread *handles;
+  MultiresBakeQueue queue;
+
+  MVert *mvert = dm->getVertArray(dm);
+  MPoly *mpoly = dm->getPolyArray(dm);
+  MLoop *mloop = dm->getLoopArray(dm);
+  MLoopUV *mloopuv = dm->getLoopDataArray(dm, CD_MLOOPUV);
+  float *pvtangent = NULL;
+
+  ListBase threads;
+  int i, tot_thread = bkr->threads > 0 ? bkr->threads : BLI_system_thread_count();
+
+  void *bake_data = NULL;
+
+  Mesh *temp_mesh = BKE_mesh_new_nomain(
+      dm->getNumVerts(dm), dm->getNumEdges(dm), 0, dm->getNumLoops(dm), dm->getNumPolys(dm));
+  memcpy(temp_mesh->mvert, dm->getVertArray(dm), temp_mesh->totvert * sizeof(*temp_mesh->mvert));
+  memcpy(temp_mesh->medge, dm->getEdgeArray(dm), temp_mesh->totedge * sizeof(*temp_mesh->medge));
+  memcpy(temp_mesh->mpoly, dm->getPolyArray(dm), temp_mesh->totpoly * sizeof(*temp_mesh->mpoly));
+  memcpy(temp_mesh->mloop, dm->getLoopArray(dm), temp_mesh->totloop * sizeof(*temp_mesh->mloop));
+  const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(temp_mesh);
+  const float(*poly_normals)[3] = BKE_mesh_poly_normals_ensure(temp_mesh);
+
+  if (require_tangent) {
+    if (CustomData_get_layer_index(&dm->loopData, CD_TANGENT) == -1) {
+      BKE_mesh_calc_loop_tangent_ex(
+          dm->getVertArray(dm),
+          dm->getPolyArray(dm),
+          dm->getNumPolys(dm),
+          dm->getLoopArray(dm),
+          dm->getLoopTriArray(dm),
+          dm->getNumLoopTri(dm),
+          &dm->loopData,
+          true,
+          NULL,
+          0,
+          vert_normals,
+          poly_normals,
+          (const float(*)[3])dm->getLoopDataArray(dm, CD_NORMAL),
+          (const float(*)[3])dm->getVertDataArray(dm, CD_ORCO), /* may be nullptr */
+          /* result */
+          &dm->loopData,
+          dm->getNumLoops(dm),
+          &dm->tangent_mask);
+    }
+
+    pvtangent = DM_get_loop_data_layer(dm, CD_TANGENT);
+  }
+
+  /* all threads shares the same custom bake data */
+  if (initBakeData) {
+    bake_data = initBakeData(bkr, ibuf);
+  }
+
+  if (tot_thread > 1) {
+    BLI_threadpool_init(&threads, do_multires_bake_thread, tot_thread);
+  }
+
+  handles = MEM_callocN(tot_thread * sizeof(MultiresBakeThread), "do_multires_bake handles");
+
+  init_ccgdm_arrays(bkr->hires_dm);
+
+  /* faces queue */
+  queue.cur_tri = 0;
+  queue.tot_tri = tot_tri;
+  BLI_spin_init(&queue.spin);
+
+  /* fill in threads handles */
+  for (i = 0; i < tot_thread; i++) {
+    MultiresBakeThread *handle = &handles[i];
+
+    handle->bkr = bkr;
+    handle->image = ima;
+    handle->queue = &queue;
+
+    handle->data.mpoly = mpoly;
+    handle->data.mvert = mvert;
+    handle->data.vert_normals = vert_normals;
+    handle->data.mloopuv = mloopuv;
+    BKE_image_get_tile_uv(ima, tile->tile_number, handle->data.uv_offset);
+    handle->data.mlooptri = mlooptri;
+    handle->data.mloop = mloop;
+    handle->data.pvtangent = pvtangent;
+    handle->data.precomputed_normals = poly_normals; /* don't strictly need this */
+    handle->data.w = ibuf->x;
+    handle->data.h = ibuf->y;
+    handle->data.lores_dm = dm;
+    handle->data.hires_dm = bkr->hires_dm;
+    handle->data.lvl = lvl;
+    handle->data.pass_data = passKnownData;
+    handle->data.thread_data = handle;
+    handle->data.bake_data = bake_data;
+    handle->data.ibuf = ibuf;
+
+    handle->height_min = FLT_MAX;
+    handle->height_max = -FLT_MAX;
+
+    init_bake_rast(&handle->bake_rast, ibuf, &handle->data, flush_pixel, bkr->do_update);
+
+    if (tot_thread > 1) {
+      BLI_threadpool_insert(&threads, handle);
+    }
+  }
+
+  /* run threads */
+  if (tot_thread > 1) {
+    BLI_threadpool_end(&threads);
+  }
+  else {
+    do_multires_bake_thread(&handles[0]);
+  }
+
+  /* construct bake result */
+  result->height_min = handles[0].height_min;
+  result->height_max = handles[0].height_max;
+
+  for (i = 1; i < tot_thread; i++) {
+    result->height_min = min_ff(result->height_min, handles[i].height_min);
+    result->height_max = max_ff(result->height_max, handles[i].height_max);
+  }
+
+  BLI_spin_end(&queue.spin);
+
+  /* finalize baking */
+  if (freeBakeData) {
+    freeBakeData(bake_data);
+  }
+
+  MEM_freeN(handles);
+
+  BKE_id_free(NULL, temp_mesh);
 }
 
 /* mode = 0: interpolate normals,

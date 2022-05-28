@@ -581,17 +581,49 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_MeshDeform, panel_draw);
 }
 
-static void blendWrite(BlendWriter *writer, const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
-  MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
-  int size = mmd->dyngridsize;
+  MeshDeformModifierData mmd = *(const MeshDeformModifierData *)md;
 
-  BLO_write_struct_array(writer, MDefInfluence, mmd->influences_num, mmd->bindinfluences);
-  BLO_write_int32_array(writer, mmd->verts_num + 1, mmd->bindoffsets);
-  BLO_write_float3_array(writer, mmd->cage_verts_num, mmd->bindcagecos);
-  BLO_write_struct_array(writer, MDefCell, size * size * size, mmd->dyngrid);
-  BLO_write_struct_array(writer, MDefInfluence, mmd->influences_num, mmd->dyninfluences);
-  BLO_write_int32_array(writer, mmd->verts_num, mmd->dynverts);
+  if (ID_IS_OVERRIDE_LIBRARY(id_owner)) {
+    BLI_assert(!ID_IS_LINKED(id_owner));
+    const bool is_local = (md->flag & eModifierFlag_OverrideLibrary_Local) != 0;
+    if (!is_local) {
+      /* Modifier coming from linked data cannot be bound from an override, so we can remove all
+       * binding data, can save a significant amount of memory. */
+      mmd.influences_num = 0;
+      mmd.bindinfluences = NULL;
+      mmd.verts_num = 0;
+      mmd.bindoffsets = NULL;
+      mmd.cage_verts_num = 0;
+      mmd.bindcagecos = NULL;
+      mmd.dyngridsize = 0;
+      mmd.dyngrid = NULL;
+      mmd.influences_num = 0;
+      mmd.dyninfluences = NULL;
+      mmd.dynverts = NULL;
+    }
+  }
+
+  const int size = mmd.dyngridsize;
+
+  BLO_write_struct_at_address(writer, MeshDeformModifierData, md, &mmd);
+
+  BLO_write_struct_array(writer, MDefInfluence, mmd.influences_num, mmd.bindinfluences);
+
+  /* NOTE: `bindoffset` is abusing `verts_num + 1` as its size, this becomes an incorrect value in
+   * case `verts_num == 0`, since `bindoffset` is then NULL, not a size 1 allocated array. */
+  if (mmd.verts_num > 0) {
+    BLO_write_int32_array(writer, mmd.verts_num + 1, mmd.bindoffsets);
+  }
+  else {
+    BLI_assert(mmd.bindoffsets == NULL);
+  }
+
+  BLO_write_float3_array(writer, mmd.cage_verts_num, mmd.bindcagecos);
+  BLO_write_struct_array(writer, MDefCell, size * size * size, mmd.dyngrid);
+  BLO_write_struct_array(writer, MDefInfluence, mmd.influences_num, mmd.dyninfluences);
+  BLO_write_int32_array(writer, mmd.verts_num, mmd.dynverts);
 }
 
 static void blendRead(BlendDataReader *reader, ModifierData *md)
@@ -599,7 +631,13 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 
   BLO_read_data_address(reader, &mmd->bindinfluences);
-  BLO_read_int32_array(reader, mmd->verts_num + 1, &mmd->bindoffsets);
+
+  /* NOTE: `bindoffset` is abusing `verts_num + 1` as its size, this becomes an incorrect value in
+   * case `verts_num == 0`, since `bindoffset` is then NULL, not a size 1 allocated array. */
+  if (mmd->verts_num > 0) {
+    BLO_read_int32_array(reader, mmd->verts_num + 1, &mmd->bindoffsets);
+  }
+
   BLO_read_float3_array(reader, mmd->cage_verts_num, &mmd->bindcagecos);
   BLO_read_data_address(reader, &mmd->dyngrid);
   BLO_read_data_address(reader, &mmd->dyninfluences);

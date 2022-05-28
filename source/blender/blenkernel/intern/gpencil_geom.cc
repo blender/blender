@@ -236,6 +236,7 @@ static int stroke_march_next_point(const bGPDstroke *gps,
       }
       else {
         next_point_index = gps->totpoints - 1;
+        remaining_till_next = 0;
         break;
       }
     }
@@ -263,15 +264,18 @@ static int stroke_march_next_point(const bGPDstroke *gps,
   float ratio = remaining_march / remaining_till_next;
   interp_v3_v3v3(result, step_start, point, ratio);
   *ratio_result = ratio;
+  float d1 = len_v3v3(result, &gps->points[*index_from].x);
+  float d2 = len_v3v3(result, &gps->points[next_point_index].x);
+  float vratio = d1 / (d1 + d2);
 
   *pressure = interpf(
-      gps->points[next_point_index].pressure, gps->points[*index_from].pressure, ratio);
+      gps->points[next_point_index].pressure, gps->points[*index_from].pressure, vratio);
   *strength = interpf(
-      gps->points[next_point_index].strength, gps->points[*index_from].strength, ratio);
+      gps->points[next_point_index].strength, gps->points[*index_from].strength, vratio);
   interp_v4_v4v4(vert_color,
                  gps->points[*index_from].vert_color,
                  gps->points[next_point_index].vert_color,
-                 ratio);
+                 vratio);
 
   return next_point_index == 0 ? gps->totpoints : next_point_index;
 }
@@ -320,6 +324,7 @@ static int stroke_march_next_point_no_interp(const bGPDstroke *gps,
       }
       else {
         next_point_index = gps->totpoints - 1;
+        remaining_till_next = 0;
         break;
       }
     }

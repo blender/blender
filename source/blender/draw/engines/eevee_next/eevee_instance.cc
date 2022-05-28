@@ -8,6 +8,8 @@
  * An instance contains all structures needed to do a complete render.
  */
 
+#include <sstream>
+
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BLI_rect.h"
@@ -41,26 +43,36 @@ void Instance::init(const int2 &output_res,
                     const View3D *v3d_,
                     const RegionView3D *rv3d_)
 {
-  UNUSED_VARS(light_probe_, camera_object_, output_rect);
+  UNUSED_VARS(light_probe_, output_rect);
   render = render_;
   depsgraph = depsgraph_;
+  camera_orig_object = camera_object_;
   render_layer = render_layer_;
   drw_view = drw_view_;
   v3d = v3d_;
   rv3d = rv3d_;
+
+  info = "";
 
   update_eval_members();
 
   main_view.init(output_res);
 }
 
+void Instance::set_time(float time)
+{
+  BLI_assert(render);
+  DRW_render_set_time(render, depsgraph, floorf(time), fractf(time));
+  update_eval_members();
+}
+
 void Instance::update_eval_members()
 {
   scene = DEG_get_evaluated_scene(depsgraph);
   view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  // camera_eval_object = (camera_orig_object) ?
-  //                          DEG_get_evaluated_object(depsgraph, camera_orig_object) :
-  //                          nullptr;
+  camera_eval_object = (camera_orig_object) ?
+                           DEG_get_evaluated_object(depsgraph, camera_orig_object) :
+                           nullptr;
 }
 
 /** \} */
@@ -76,6 +88,7 @@ void Instance::update_eval_members()
 void Instance::begin_sync()
 {
   materials.begin_sync();
+  velocity.begin_sync();
 
   pipelines.sync();
   main_view.sync();
@@ -135,6 +148,7 @@ void Instance::object_sync(Object *ob)
 
 void Instance::end_sync()
 {
+  velocity.end_sync();
 }
 
 void Instance::render_sync()
@@ -171,6 +185,13 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
 {
   UNUSED_VARS(dfbl);
   render_sample();
+  velocity.step_swap();
+
+  if (materials.queued_shaders_count > 0) {
+    std::stringstream ss;
+    ss << "Compiling Shaders " << materials.queued_shaders_count;
+    info = ss.str();
+  }
 }
 
 /** \} */

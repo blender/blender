@@ -333,7 +333,7 @@ TEST_F(obj_importer_test, import_invalid_syntax)
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
       {"OBObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLon",
        OB_MESH,
-       10, /* Note: right now parses some invalid obj syntax as valid vertices. */
+       10, /* NOTE: right now parses some invalid obj syntax as valid vertices. */
        3,
        1,
        3,

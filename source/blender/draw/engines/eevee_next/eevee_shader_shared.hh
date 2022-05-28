@@ -19,12 +19,107 @@
 namespace blender::eevee {
 
 using draw::Framebuffer;
+using draw::SwapChain;
 using draw::Texture;
 using draw::TextureFromPool;
 
 #endif
 
 #define UBO_MIN_MAX_SUPPORTED_SIZE 1 << 14
+
+/* -------------------------------------------------------------------- */
+/** \name Camera
+ * \{ */
+
+enum eCameraType : uint32_t {
+  CAMERA_PERSP = 0u,
+  CAMERA_ORTHO = 1u,
+  CAMERA_PANO_EQUIRECT = 2u,
+  CAMERA_PANO_EQUISOLID = 3u,
+  CAMERA_PANO_EQUIDISTANT = 4u,
+  CAMERA_PANO_MIRROR = 5u
+};
+
+static inline bool is_panoramic(eCameraType type)
+{
+  return type > CAMERA_ORTHO;
+}
+
+struct CameraData {
+  /* View Matrices of the camera, not from any view! */
+  float4x4 persmat;
+  float4x4 persinv;
+  float4x4 viewmat;
+  float4x4 viewinv;
+  float4x4 winmat;
+  float4x4 wininv;
+  /** Camera UV scale and bias. Also known as `viewcamtexcofac`. */
+  float2 uv_scale;
+  float2 uv_bias;
+  /** Panorama parameters. */
+  float2 equirect_scale;
+  float2 equirect_scale_inv;
+  float2 equirect_bias;
+  float fisheye_fov;
+  float fisheye_lens;
+  /** Clipping distances. */
+  float clip_near;
+  float clip_far;
+  /** Film pixel filter radius. */
+  float filter_size;
+  eCameraType type;
+};
+BLI_STATIC_ASSERT_ALIGN(CameraData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name VelocityModule
+ * \{ */
+
+#define VELOCITY_INVALID 512.0
+
+enum eVelocityStep : uint32_t {
+  STEP_PREVIOUS = 0,
+  STEP_NEXT = 1,
+  STEP_CURRENT = 2,
+};
+
+struct VelocityObjectIndex {
+  /** Offset inside #VelocityObjectBuf for each timestep. Indexed using eVelocityStep. */
+  int3 ofs;
+  /** Temporary index to copy this to the #VelocityIndexBuf. */
+  uint resource_id;
+
+#ifdef __cplusplus
+  VelocityObjectIndex() : ofs(-1, -1, -1), resource_id(-1){};
+#endif
+};
+BLI_STATIC_ASSERT_ALIGN(VelocityObjectIndex, 16)
+
+struct VelocityGeometryIndex {
+  /** Offset inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
+  int3 ofs;
+  /** If true, compute deformation motion blur. */
+  bool1 do_deform;
+  /** Length of data inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
+  int3 len;
+
+  int _pad0;
+
+#ifdef __cplusplus
+  VelocityGeometryIndex() : ofs(-1, -1, -1), do_deform(false), len(-1, -1, -1), _pad0(1){};
+#endif
+};
+BLI_STATIC_ASSERT_ALIGN(VelocityGeometryIndex, 16)
+
+struct VelocityIndex {
+  VelocityObjectIndex obj;
+  VelocityGeometryIndex geo;
+};
+BLI_STATIC_ASSERT_ALIGN(VelocityGeometryIndex, 16)
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Ray-Tracing
@@ -82,6 +177,11 @@ float4 utility_tx_sample(sampler2DArray util_tx, float2 uv, float layer)
 /** \} */
 
 #ifdef __cplusplus
+
+using CameraDataBuf = draw::UniformBuffer<CameraData>;
+using VelocityIndexBuf = draw::StorageArrayBuffer<VelocityIndex, 16>;
+using VelocityObjectBuf = draw::StorageArrayBuffer<float4x4, 16>;
+using VelocityGeometryBuf = draw::StorageArrayBuffer<float4, 16, true>;
 
 }  // namespace blender::eevee
 #endif

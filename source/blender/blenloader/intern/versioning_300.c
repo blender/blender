@@ -1217,6 +1217,15 @@ static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
   return true;
 }
 
+static bool version_merge_still_offsets(Sequence *seq, void *UNUSED(user_data))
+{
+  seq->startofs -= seq->startstill;
+  seq->endofs -= seq->endstill;
+  seq->startstill = 0;
+  seq->endstill = 0;
+  return true;
+}
+
 /* Those `version_liboverride_rnacollections_*` functions mimic the old, pre-3.0 code to find
  * anchor and source items in the given list of modifiers, constraints etc., using only the
  * `subitem_local` data of the override property operation.
@@ -3032,6 +3041,25 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
       if (brush->curves_sculpt_settings->points_per_curve == 0) {
         brush->curves_sculpt_settings->points_per_curve = 8;
+      }
+    }
+
+    /* UDIM Packing. */
+    if (!DNA_struct_elem_find(fd->filesdna, "ImagePackedFile", "int", "tile_number")) {
+      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+        int view;
+        LISTBASE_FOREACH_INDEX (ImagePackedFile *, imapf, &ima->packedfiles, view) {
+          imapf->view = view;
+          imapf->tile_number = 1001;
+        }
+      }
+    }
+
+    /* Merge still offsets into start/end offsets. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != NULL) {
+        SEQ_for_each_callback(&ed->seqbase, version_merge_still_offsets, NULL);
       }
     }
   }

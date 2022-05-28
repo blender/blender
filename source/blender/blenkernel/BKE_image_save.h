@@ -13,10 +13,11 @@ extern "C" {
 #endif
 
 struct Image;
+struct ImageUser;
 struct Main;
+struct RenderResult;
 struct ReportList;
 struct Scene;
-struct RenderResult;
 
 /* Image datablock saving. */
 
@@ -34,11 +35,19 @@ typedef struct ImageSaveOptions {
   bool save_copy;
   bool save_as_render;
   bool do_newpath;
+
+  /* Keep track of previous values for auto updates in UI. */
+  bool prev_save_as_render;
+  int prev_imtype;
 } ImageSaveOptions;
 
-void BKE_image_save_options_init(struct ImageSaveOptions *opts,
+bool BKE_image_save_options_init(ImageSaveOptions *opts,
                                  struct Main *bmain,
-                                 struct Scene *scene);
+                                 struct Scene *scene,
+                                 struct Image *ima,
+                                 struct ImageUser *iuser,
+                                 const bool guess_path);
+void BKE_image_save_options_update(struct ImageSaveOptions *opts, struct Image *ima);
 void BKE_image_save_options_free(struct ImageSaveOptions *opts);
 
 bool BKE_image_save(struct ReportList *reports,

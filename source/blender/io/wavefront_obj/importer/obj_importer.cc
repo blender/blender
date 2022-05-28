@@ -88,7 +88,6 @@ void importer_main(bContext *C, const OBJImportParams &import_params)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   importer_main(bmain, scene, view_layer, import_params);
-  static_cast<void>(CTX_data_ensure_evaluated_depsgraph(C));
 }
 
 void importer_main(Main *bmain,

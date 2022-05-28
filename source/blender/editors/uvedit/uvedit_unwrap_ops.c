@@ -103,7 +103,7 @@ static bool ED_uvedit_ensure_uvs(Object *obedit)
   int cd_loop_uv_offset;
 
   if (em && em->bm->totface && !CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
-    ED_mesh_uv_texture_add(obedit->data, NULL, true, true, NULL);
+    ED_mesh_uv_add(obedit->data, NULL, true, true, NULL);
   }
 
   /* Happens when there are no faces. */
@@ -267,26 +267,35 @@ static bool uvedit_have_selection_multi(const Scene *scene,
   return have_select;
 }
 
+void ED_uvedit_get_aspect_from_material(Object *ob,
+                                        const int material_index,
+                                        float *r_aspx,
+                                        float *r_aspy)
+{
+  if (UNLIKELY(material_index < 0 || material_index >= ob->totcol)) {
+    *r_aspx = 1.0f;
+    *r_aspy = 1.0f;
+    return;
+  }
+  Image *ima;
+  ED_object_get_active_image(ob, material_index + 1, &ima, NULL, NULL, NULL);
+  ED_image_get_uv_aspect(ima, NULL, r_aspx, r_aspy);
+}
+
 void ED_uvedit_get_aspect(Object *ob, float *r_aspx, float *r_aspy)
 {
   BMEditMesh *em = BKE_editmesh_from_object(ob);
   BLI_assert(em != NULL);
   bool sloppy = true;
   bool selected = false;
-  BMFace *efa;
-  Image *ima;
-
-  efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
-
-  if (efa) {
-    ED_object_get_active_image(ob, efa->mat_nr + 1, &ima, NULL, NULL, NULL);
-
-    ED_image_get_uv_aspect(ima, NULL, r_aspx, r_aspy);
-  }
-  else {
+  BMFace *efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
+  if (!efa) {
     *r_aspx = 1.0f;
     *r_aspy = 1.0f;
+    return;
   }
+
+  ED_uvedit_get_aspect_from_material(ob, efa->mat_nr, r_aspx, r_aspy);
 }
 
 static void construct_param_handle_face_add(ParamHandle *handle,
@@ -330,7 +339,6 @@ static ParamHandle *construct_param_handle(const Scene *scene,
                                            const UnwrapOptions *options,
                                            UnwrapResultInfo *result_info)
 {
-  ParamHandle *handle;
   BMFace *efa;
   BMLoop *l;
   BMEdge *eed;
@@ -339,7 +347,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
 
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
-  handle = GEO_uv_parametrizer_construct_begin();
+  ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
 
   if (options->correct_aspect) {
     float aspx, aspy;
@@ -408,14 +416,13 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
                                                  const UnwrapOptions *options,
                                                  int *count_fail)
 {
-  ParamHandle *handle;
   BMFace *efa;
   BMLoop *l;
   BMEdge *eed;
   BMIter iter, liter;
   int i;
 
-  handle = GEO_uv_parametrizer_construct_begin();
+  ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
 
   if (options->correct_aspect) {
     Object *ob = objects[0];
@@ -530,7 +537,6 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
                                                      const UnwrapOptions *options,
                                                      UnwrapResultInfo *result_info)
 {
-  ParamHandle *handle;
   /* index pointers */
   MPoly *mpoly;
   MLoop *mloop;
@@ -562,7 +568,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-  handle = GEO_uv_parametrizer_construct_begin();
+  ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
 
   if (options->correct_aspect) {
     float aspx, aspy;
@@ -1014,8 +1020,7 @@ static void uvedit_pack_islands(const Scene *scene, Object *ob, BMesh *bm)
   bool rotate = true;
   bool ignore_pinned = false;
 
-  ParamHandle *handle;
-  handle = construct_param_handle(scene, ob, bm, &options, NULL);
+  ParamHandle *handle = construct_param_handle(scene, ob, bm, &options, NULL);
   GEO_uv_parametrizer_pack(handle, scene->toolsettings->uvcalc_margin, rotate, ignore_pinned);
   GEO_uv_parametrizer_flush(handle);
   GEO_uv_parametrizer_delete(handle);
@@ -1034,8 +1039,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
                                       bool rotate,
                                       bool ignore_pinned)
 {
-  ParamHandle *handle;
-  handle = construct_param_handle_multi(scene, objects, objects_len, options, NULL);
+  ParamHandle *handle = construct_param_handle_multi(scene, objects, objects_len, options, NULL);
   GEO_uv_parametrizer_pack(handle, scene->toolsettings->uvcalc_margin, rotate, ignore_pinned);
   GEO_uv_parametrizer_flush(handle);
   GEO_uv_parametrizer_delete(handle);
@@ -1527,49 +1531,88 @@ static void uv_transform_properties(wmOperatorType *ot, int radius)
   }
 }
 
+static void shrink_loop_uv_by_aspect_ratio(BMFace *efa,
+                                           const int cd_loop_uv_offset,
+                                           const float aspect_y)
+{
+  BLI_assert(aspect_y != 1.0f); /* Nothing to do, should be handled by caller. */
+  BLI_assert(aspect_y > 0.0f);  /* Negative aspect ratios are not supported. */
+
+  BMLoop *l;
+  BMIter iter;
+  BM_ITER_ELEM (l, &iter, efa, BM_LOOPS_OF_FACE) {
+    MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+    if (aspect_y > 1.0f) {
+      /* Reduce round-off error, i.e. `u = (u - 0.5) / aspect_y + 0.5`. */
+      luv->uv[0] = luv->uv[0] / aspect_y + (0.5f - 0.5f / aspect_y);
+    }
+    else {
+      /* Reduce round-off error, i.e. `v = (v - 0.5) * aspect_y + 0.5`. */
+      luv->uv[1] = luv->uv[1] * aspect_y + (0.5f - 0.5f * aspect_y);
+    }
+  }
+}
+
 static void correct_uv_aspect(Object *ob, BMEditMesh *em)
 {
-  BMLoop *l;
-  BMIter iter, liter;
-  MLoopUV *luv;
-  BMFace *efa;
-  float scale, aspx, aspy;
-
   const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
+  float aspx, aspy;
   ED_uvedit_get_aspect(ob, &aspx, &aspy);
+  const float aspect_y = aspx / aspy;
+  if (aspect_y == 1.0f) {
+    /* Scaling by 1.0 has no effect. */
+    return;
+  }
+  BMFace *efa;
+  BMIter iter;
+  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+      shrink_loop_uv_by_aspect_ratio(efa, cd_loop_uv_offset, aspect_y);
+    }
+  }
+}
 
-  if (aspx == aspy) {
+static void correct_uv_aspect_per_face(Object *ob, BMEditMesh *em)
+{
+  const int materials_num = ob->totcol;
+  if (materials_num == 0) {
+    /* Without any materials, there is no aspect_y information and nothing to do. */
     return;
   }
 
-  if (aspx > aspy) {
-    scale = aspy / aspx;
+  float *material_aspect_y = BLI_array_alloca(material_aspect_y, materials_num);
+  /* Lazily initialize aspect ratio for materials. */
+  copy_vn_fl(material_aspect_y, materials_num, -1.0f);
 
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-        continue;
-      }
+  const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-      BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        luv->uv[0] = ((luv->uv[0] - 0.5f) * scale) + 0.5f;
-      }
+  BMFace *efa;
+  BMIter iter;
+  BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+    if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+      continue;
     }
-  }
-  else {
-    scale = aspx / aspy;
 
-    BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-        continue;
-      }
-
-      BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-        luv->uv[1] = ((luv->uv[1] - 0.5f) * scale) + 0.5f;
-      }
+    const int material_index = efa->mat_nr;
+    if (UNLIKELY(material_index < 0 || material_index >= materials_num)) {
+      /* The index might be for a material slot which is not currently setup. */
+      continue;
     }
+
+    float aspect_y = material_aspect_y[material_index];
+    if (aspect_y == -1.0f) {
+      /* Lazily initialize aspect ratio for materials. */
+      float aspx, aspy;
+      ED_uvedit_get_aspect_from_material(ob, material_index, &aspx, &aspy);
+      aspect_y = aspx / aspy;
+      material_aspect_y[material_index] = aspect_y;
+    }
+
+    if (aspect_y == 1.0f) {
+      /* Scaling by 1.0 has no effect. */
+      continue;
+    }
+    shrink_loop_uv_by_aspect_ratio(efa, cd_loop_uv_offset, aspect_y);
   }
 }
 
@@ -1613,7 +1656,17 @@ static void uv_map_clip_correct_properties(wmOperatorType *ot)
   uv_map_clip_correct_properties_ex(ot, true);
 }
 
-static void uv_map_clip_correct_multi(Object **objects, uint objects_len, wmOperator *op)
+/**
+ * \param per_face_aspect: Calculate the aspect ratio per-face,
+ * otherwise use a single aspect for all UV's based on the material of the active face.
+ * TODO: using per-face aspect may split UV islands so more advanced UV projection methods
+ * such as "Unwrap" & "Smart UV Projections" will need to handle aspect correction themselves.
+ * For now keep using a single aspect for all faces in this case.
+ */
+static void uv_map_clip_correct_multi(Object **objects,
+                                      uint objects_len,
+                                      wmOperator *op,
+                                      bool per_face_aspect)
 {
   BMFace *efa;
   BMLoop *l;
@@ -1633,9 +1686,14 @@ static void uv_map_clip_correct_multi(Object **objects, uint objects_len, wmOper
     BMEditMesh *em = BKE_editmesh_from_object(ob);
     const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-    /* correct for image aspect ratio */
+    /* Correct for image aspect ratio. */
     if (correct_aspect) {
-      correct_uv_aspect(ob, em);
+      if (per_face_aspect) {
+        correct_uv_aspect_per_face(ob, em);
+      }
+      else {
+        correct_uv_aspect(ob, em);
+      }
     }
 
     if (scale_to_bounds) {
@@ -1678,6 +1736,11 @@ static void uv_map_clip_correct_multi(Object **objects, uint objects_len, wmOper
       dy = 1.0f / dy;
     }
 
+    if (dx == 1.0f && dy == 1.0f) {
+      /* Scaling by 1.0 has no effect. */
+      return;
+    }
+
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob = objects[ob_index];
 
@@ -1702,7 +1765,7 @@ static void uv_map_clip_correct_multi(Object **objects, uint objects_len, wmOper
 
 static void uv_map_clip_correct(Object *ob, wmOperator *op)
 {
-  uv_map_clip_correct_multi(&ob, 1, op);
+  uv_map_clip_correct_multi(&ob, 1, op, true);
 }
 
 /** \} */
@@ -2283,7 +2346,9 @@ static int smart_project_exec(bContext *C, wmOperator *op)
                                      .use_seams = true,
                                  });
 
-    uv_map_clip_correct_multi(objects_changed, object_changed_len, op);
+    /* #ED_uvedit_pack_islands_multi only supports `per_face_aspect = false`. */
+    const bool per_face_aspect = false;
+    uv_map_clip_correct_multi(objects_changed, object_changed_len, op, per_face_aspect);
   }
 
   MEM_freeN(objects_changed);
@@ -2485,7 +2550,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
   }
 
   if (changed_multi) {
-    uv_map_clip_correct_multi(objects, objects_len, op);
+    uv_map_clip_correct_multi(objects, objects_len, op, true);
   }
 
   MEM_freeN(objects);
@@ -2968,7 +3033,7 @@ void ED_uvedit_add_simple_uvs(Main *bmain, const Scene *scene, Object *ob)
    * since we are not in edit mode we need to ensure only the uv flags are tested */
   scene->toolsettings->uv_flag &= ~UV_SYNC_SELECTION;
 
-  ED_mesh_uv_texture_ensure(me, NULL);
+  ED_mesh_uv_ensure(me, NULL);
 
   BM_mesh_bm_from_me(bm,
                      me,

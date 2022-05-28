@@ -1320,10 +1320,15 @@ static int rna_Object_rotation_4d_editable(PointerRNA *ptr, int index)
   return PROP_EDITABLE;
 }
 
-static int rna_MaterialSlot_index(PointerRNA *ptr)
+static int rna_MaterialSlot_index(const PointerRNA *ptr)
 {
   /* There is an offset, so that `ptr->data` is not null and unique across IDs. */
   return (uintptr_t)ptr->data - (uintptr_t)ptr->owner_id;
+}
+
+static int rna_MaterialSlot_index_get(PointerRNA *ptr)
+{
+  return rna_MaterialSlot_index(ptr);
 }
 
 static int rna_MaterialSlot_material_editable(PointerRNA *ptr, const char **UNUSED(r_info))
@@ -1451,7 +1456,7 @@ static void rna_MaterialSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
   DEG_relations_tag_update(bmain);
 }
 
-static char *rna_MaterialSlot_path(PointerRNA *ptr)
+static char *rna_MaterialSlot_path(const PointerRNA *ptr)
 {
   int index = rna_MaterialSlot_index(ptr);
   return BLI_sprintfN("material_slots[%d]", index);
@@ -1504,7 +1509,7 @@ static PointerRNA rna_Object_display_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_ObjectDisplay, ptr->data);
 }
 
-static char *rna_ObjectDisplay_path(PointerRNA *UNUSED(ptr))
+static char *rna_ObjectDisplay_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("display");
 }
@@ -1828,6 +1833,24 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
    * instead, to avoid duplicating code. */
   ModifierData *mod_dst = ED_object_modifier_add(
       NULL, bmain, NULL, ob_dst, mod_src->name, mod_src->type);
+
+  if (mod_dst == NULL) {
+    /* This can happen e.g. when a modifier type is tagged as `eModifierTypeFlag_Single`, and that
+     * modifier has somehow been added already by another code path (e.g.
+     * `rna_CollisionSettings_dependency_update` does add the `eModifierType_Collision` singleton
+     * modifier).
+     *
+     * Try to handle this by finding already existing one here. */
+    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)mod_src->type);
+    if (mti->flags & eModifierTypeFlag_Single) {
+      mod_dst = BKE_modifiers_findby_type(ob_dst, (ModifierType)mod_src->type);
+    }
+
+    if (mod_dst == NULL) {
+      BLI_assert(mod_src != NULL);
+      return false;
+    }
+  }
 
   /* XXX Current handling of 'copy' from particle-system modifier is *very* bad (it keeps same psys
    * pointer as source, then calling code copies psys of object separately and do some magic
@@ -2466,7 +2489,7 @@ static void rna_def_material_slot(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "slot_index", PROP_INT, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_int_funcs(prop, "rna_MaterialSlot_index", NULL, NULL);
+  RNA_def_property_int_funcs(prop, "rna_MaterialSlot_index_get", NULL, NULL);
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_string_funcs(

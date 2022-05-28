@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2019 Google Inc. All rights reserved.
+// Copyright 2021 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 #define CERES_PUBLIC_VERSION_H_
 
 #define CERES_VERSION_MAJOR 2
-#define CERES_VERSION_MINOR 0
+#define CERES_VERSION_MINOR 1
 #define CERES_VERSION_REVISION 0
 
 // Classic CPP stringifcation; the extra level of indirection allows the

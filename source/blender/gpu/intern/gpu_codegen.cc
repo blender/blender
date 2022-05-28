@@ -32,6 +32,7 @@
 #include "GPU_vertex_format.h"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
+#include "BLI_vector.hh"
 
 #include "gpu_codegen.h"
 #include "gpu_material_library.h"
@@ -58,18 +59,27 @@ struct GPUCodegenCreateInfo : ShaderCreateInfo {
     /** Duplicate attribute names to avoid reference the GPUNodeGraph directly. */
     char attr_names[16][GPU_MAX_SAFE_ATTR_NAME + 1];
     char var_names[16][8];
+    blender::Vector<std::array<char, 32>, 16> sampler_names;
+
+    /* Returns the appended name memory location */
+    const char *append_sampler_name(const char name[32])
+    {
+      auto index = sampler_names.append_and_get_index(std::array<char, 32>());
+      char *name_buffer = sampler_names[index].data();
+      memcpy(name_buffer, name, 32);
+      return name_buffer;
+    }
   };
 
   /** Optional generated interface. */
   StageInterfaceInfo *interface_generated = nullptr;
   /** Optional name buffer containing names referenced by StringRefNull. */
-  NameBuffer *name_buffer = nullptr;
+  NameBuffer name_buffer;
 
   GPUCodegenCreateInfo(const char *name) : ShaderCreateInfo(name){};
   ~GPUCodegenCreateInfo()
   {
     delete interface_generated;
-    MEM_delete(name_buffer);
   };
 };
 
@@ -288,7 +298,6 @@ void GPUCodegen::generate_attribs()
 
   GPUCodegenCreateInfo &info = *create_info;
 
-  info.name_buffer = MEM_new<GPUCodegenCreateInfo::NameBuffer>("info.name_buffer");
   info.interface_generated = new StageInterfaceInfo("codegen_iface", "var_attrs");
   StageInterfaceInfo &iface = *info.interface_generated;
   info.vertex_out(iface);
@@ -302,11 +311,11 @@ void GPUCodegen::generate_attribs()
       BLI_assert_msg(0, "Too many attributes");
       break;
     }
-    STRNCPY(info.name_buffer->attr_names[slot], attr->input_name);
-    SNPRINTF(info.name_buffer->var_names[slot], "v%d", attr->id);
+    STRNCPY(info.name_buffer.attr_names[slot], attr->input_name);
+    SNPRINTF(info.name_buffer.var_names[slot], "v%d", attr->id);
 
-    blender::StringRefNull attr_name = info.name_buffer->attr_names[slot];
-    blender::StringRefNull var_name = info.name_buffer->var_names[slot];
+    blender::StringRefNull attr_name = info.name_buffer.attr_names[slot];
+    blender::StringRefNull var_name = info.name_buffer.var_names[slot];
 
     eGPUType input_type, iface_type;
 
@@ -348,14 +357,19 @@ void GPUCodegen::generate_resources()
   /* Textures. */
   LISTBASE_FOREACH (GPUMaterialTexture *, tex, &graph.textures) {
     if (tex->colorband) {
-      info.sampler(0, ImageType::FLOAT_1D_ARRAY, tex->sampler_name, Frequency::BATCH);
+      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+      info.sampler(0, ImageType::FLOAT_1D_ARRAY, name, Frequency::BATCH);
     }
     else if (tex->tiled_mapping_name[0] != '\0') {
-      info.sampler(0, ImageType::FLOAT_2D_ARRAY, tex->sampler_name, Frequency::BATCH);
-      info.sampler(0, ImageType::FLOAT_1D_ARRAY, tex->tiled_mapping_name, Frequency::BATCH);
+      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+      info.sampler(0, ImageType::FLOAT_2D_ARRAY, name, Frequency::BATCH);
+
+      const char *name_mapping = info.name_buffer.append_sampler_name(tex->tiled_mapping_name);
+      info.sampler(0, ImageType::FLOAT_1D_ARRAY, name_mapping, Frequency::BATCH);
     }
     else {
-      info.sampler(0, ImageType::FLOAT_2D, tex->sampler_name, Frequency::BATCH);
+      const char *name = info.name_buffer.append_sampler_name(tex->sampler_name);
+      info.sampler(0, ImageType::FLOAT_2D, name, Frequency::BATCH);
     }
   }
 

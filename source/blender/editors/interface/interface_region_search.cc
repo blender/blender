@@ -58,7 +58,7 @@ struct uiSearchItems {
   char **names;
   void **pointers;
   int *icons;
-  int *states;
+  int *but_flags;
   uint8_t *name_prefix_offsets;
 
   /** Is there any item with an icon? */
@@ -94,7 +94,7 @@ bool UI_search_item_add(uiSearchItems *items,
                         const char *name,
                         void *poin,
                         int iconid,
-                        int state,
+                        const int but_flag,
                         const uint8_t name_prefix_offset)
 {
   /* hijack for autocomplete */
@@ -148,10 +148,10 @@ bool UI_search_item_add(uiSearchItems *items,
 
   /* Limit flags that can be set so flags such as 'UI_SELECT' aren't accidentally set
    * which will cause problems, add others as needed. */
-  BLI_assert(
-      (state & ~(UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_BUT_REDALERT | UI_BUT_HAS_SEP_CHAR)) == 0);
-  if (items->states) {
-    items->states[items->totitem] = state;
+  BLI_assert((but_flag &
+              ~(UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_BUT_REDALERT | UI_BUT_HAS_SEP_CHAR)) == 0);
+  if (items->but_flags) {
+    items->but_flags[items->totitem] = but_flag;
   }
 
   items->totitem++;
@@ -556,7 +556,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
     if (data->preview) {
       /* draw items */
       for (int a = 0; a < data->items.totitem; a++) {
-        const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
+        const int but_flag = ((a == data->active) ? UI_ACTIVE : 0) | data->items.but_flags[a];
 
         /* ensure icon is up-to-date */
         ui_icon_ensure_deferred(C, data->items.icons[a], data->preview);
@@ -568,7 +568,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
                              &rect,
                              data->items.names[a],
                              data->items.icons[a],
-                             state,
+                             but_flag,
                              UI_STYLE_TEXT_LEFT);
       }
 
@@ -590,7 +590,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
       const int search_sep_len = data->sep_string ? strlen(data->sep_string) : 0;
       /* draw items */
       for (int a = 0; a < data->items.totitem; a++) {
-        const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
+        const int but_flag = ((a == data->active) ? UI_ACTIVE : 0) | data->items.but_flags[a];
         char *name = data->items.names[a];
         int icon = data->items.icons[a];
         char *name_sep_test = nullptr;
@@ -600,7 +600,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
           separator_type = UI_MENU_ITEM_SEPARATOR_SHORTCUT;
         }
         /* Only set for displaying additional hint (e.g. library name of a linked data-block). */
-        else if (state & UI_BUT_HAS_SEP_CHAR) {
+        else if (but_flag & UI_BUT_HAS_SEP_CHAR) {
           separator_type = UI_MENU_ITEM_SEPARATOR_HINT;
         }
 
@@ -615,7 +615,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
           }
 
           /* Simple menu item. */
-          ui_draw_menu_item(&data->fstyle, &rect, name, icon, state, separator_type, nullptr);
+          ui_draw_menu_item(&data->fstyle, &rect, name, icon, but_flag, separator_type, nullptr);
         }
         else {
           /* Split menu item, faded text before the separator. */
@@ -633,7 +633,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
                             &rect,
                             name,
                             0,
-                            state | UI_BUT_INACTIVE,
+                            but_flag | UI_BUT_INACTIVE,
                             UI_MENU_ITEM_SEPARATOR_NONE,
                             &name_width);
           *name_sep = name_sep_prev;
@@ -646,7 +646,8 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
           }
 
           /* The previous menu item draws the active selection. */
-          ui_draw_menu_item(&data->fstyle, &rect, name_sep, icon, state, separator_type, nullptr);
+          ui_draw_menu_item(
+              &data->fstyle, &rect, name_sep, icon, but_flag, separator_type, nullptr);
         }
       }
       /* indicate more */
@@ -677,7 +678,7 @@ static void ui_searchbox_region_free_fn(ARegion *region)
   MEM_freeN(data->items.names);
   MEM_freeN(data->items.pointers);
   MEM_freeN(data->items.icons);
-  MEM_freeN(data->items.states);
+  MEM_freeN(data->items.but_flags);
 
   if (data->items.name_prefix_offsets != nullptr) {
     MEM_freeN(data->items.name_prefix_offsets);
@@ -847,7 +848,7 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
   data->items.names = (char **)MEM_callocN(data->items.maxitem * sizeof(void *), __func__);
   data->items.pointers = (void **)MEM_callocN(data->items.maxitem * sizeof(void *), __func__);
   data->items.icons = (int *)MEM_callocN(data->items.maxitem * sizeof(int), __func__);
-  data->items.states = (int *)MEM_callocN(data->items.maxitem * sizeof(int), __func__);
+  data->items.but_flags = (int *)MEM_callocN(data->items.maxitem * sizeof(int), __func__);
   data->items.name_prefix_offsets = nullptr; /* Lazy initialized as needed. */
   for (int i = 0; i < data->items.maxitem; i++) {
     data->items.names[i] = (char *)MEM_callocN(data->items.maxstrlen + 1, __func__);
@@ -913,7 +914,7 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
       /* widget itself */
       /* NOTE: i18n messages extracting tool does the same, please keep it in sync. */
       {
-        const int state = ((a == data->active) ? UI_ACTIVE : 0) | data->items.states[a];
+        const int but_flag = ((a == data->active) ? UI_ACTIVE : 0) | data->items.but_flags[a];
 
         wmOperatorType *ot = static_cast<wmOperatorType *>(data->items.pointers[a]);
         char text_pre[128];
@@ -936,14 +937,14 @@ static void ui_searchbox_region_draw_cb__operator(const bContext *UNUSED(C), ARe
                           &rect_pre,
                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, text_pre),
                           data->items.icons[a],
-                          state,
+                          but_flag,
                           UI_MENU_ITEM_SEPARATOR_NONE,
                           nullptr);
         ui_draw_menu_item(&data->fstyle,
                           &rect_post,
                           data->items.names[a],
                           0,
-                          state,
+                          but_flag,
                           data->use_shortcut_sep ? UI_MENU_ITEM_SEPARATOR_SHORTCUT :
                                                    UI_MENU_ITEM_SEPARATOR_NONE,
                           nullptr);

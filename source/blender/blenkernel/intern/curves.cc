@@ -78,12 +78,12 @@ static void curves_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
    * shallow copy from the source to the destination, and because the copy-on-write functionality
    * isn't supported more generically yet. */
 
-  dst.point_size = src.point_size;
-  dst.curve_size = src.curve_size;
+  dst.point_num = src.point_num;
+  dst.curve_num = src.curve_num;
 
   const eCDAllocType alloc_type = (flag & LIB_ID_COPY_CD_REFERENCE) ? CD_REFERENCE : CD_DUPLICATE;
-  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, alloc_type, dst.point_size);
-  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, alloc_type, dst.curve_size);
+  CustomData_copy(&src.point_data, &dst.point_data, CD_MASK_ALL, alloc_type, dst.point_num);
+  CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, alloc_type, dst.curve_num);
 
   dst.curve_offsets = static_cast<int *>(MEM_dupallocN(src.curve_offsets));
 
@@ -136,17 +136,17 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   CustomData_blend_write(writer,
                          &curves->geometry.point_data,
                          players,
-                         curves->geometry.point_size,
+                         curves->geometry.point_num,
                          CD_MASK_ALL,
                          &curves->id);
   CustomData_blend_write(writer,
                          &curves->geometry.curve_data,
                          clayers,
-                         curves->geometry.curve_size,
+                         curves->geometry.curve_num,
                          CD_MASK_ALL,
                          &curves->id);
 
-  BLO_write_int32_array(writer, curves->geometry.curve_size + 1, curves->geometry.curve_offsets);
+  BLO_write_int32_array(writer, curves->geometry.curve_num + 1, curves->geometry.curve_offsets);
 
   BLO_write_pointer_array(writer, curves->totcol, curves->mat);
   if (curves->adt) {
@@ -169,11 +169,11 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_animdata_blend_read_data(reader, curves->adt);
 
   /* Geometry */
-  CustomData_blend_read(reader, &curves->geometry.point_data, curves->geometry.point_size);
-  CustomData_blend_read(reader, &curves->geometry.curve_data, curves->geometry.curve_size);
+  CustomData_blend_read(reader, &curves->geometry.point_data, curves->geometry.point_num);
+  CustomData_blend_read(reader, &curves->geometry.curve_data, curves->geometry.curve_num);
   update_custom_data_pointers(*curves);
 
-  BLO_read_int32_array(reader, curves->geometry.curve_size + 1, &curves->geometry.curve_offsets);
+  BLO_read_int32_array(reader, curves->geometry.curve_num + 1, &curves->geometry.curve_offsets);
 
   curves->geometry.runtime = MEM_new<blender::bke::CurvesGeometryRuntime>(__func__);
 
@@ -247,7 +247,7 @@ void *BKE_curves_add(Main *bmain, const char *name)
 BoundBox *BKE_curves_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_CURVES);
-  Curves *curves = static_cast<Curves *>(ob->data);
+  const Curves *curves_id = static_cast<const Curves *>(ob->data);
 
   if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
     return ob->runtime.bb;
@@ -256,11 +256,12 @@ BoundBox *BKE_curves_boundbox_get(Object *ob)
   if (ob->runtime.bb == nullptr) {
     ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
 
-    blender::bke::CurvesGeometry &geometry = blender::bke::CurvesGeometry::wrap(curves->geometry);
+    const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
+        curves_id->geometry);
 
     float3 min(FLT_MAX);
     float3 max(-FLT_MAX);
-    if (!geometry.bounds_min_max(min, max)) {
+    if (!curves.bounds_min_max(min, max)) {
       min = float3(-1);
       max = float3(1);
     }
@@ -364,19 +365,26 @@ namespace blender::bke {
 
 Curves *curves_new_nomain(const int points_num, const int curves_num)
 {
-  Curves *curves = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
-  CurvesGeometry &geometry = CurvesGeometry::wrap(curves->geometry);
-  geometry.resize(points_num, curves_num);
-  return curves;
+  Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+  curves.resize(points_num, curves_num);
+  return curves_id;
 }
 
 Curves *curves_new_nomain_single(const int points_num, const CurveType type)
 {
-  Curves *curves = curves_new_nomain(points_num, 1);
-  CurvesGeometry &geometry = CurvesGeometry::wrap(curves->geometry);
-  geometry.offsets_for_write().last() = points_num;
-  geometry.fill_curve_types(type);
-  return curves;
+  Curves *curves_id = curves_new_nomain(points_num, 1);
+  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+  curves.offsets_for_write().last() = points_num;
+  curves.fill_curve_types(type);
+  return curves_id;
+}
+
+Curves *curves_new_nomain(CurvesGeometry curves)
+{
+  Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+  bke::CurvesGeometry::wrap(curves_id->geometry) = std::move(curves);
+  return curves_id;
 }
 
 }  // namespace blender::bke

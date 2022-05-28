@@ -37,6 +37,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "WM_api.h"
+
 /**
  * The code below uses a prefix naming convention to indicate the coordinate space:
  * - `cu`: Local space of the curves object that is being edited.
@@ -61,7 +63,7 @@ class SnakeHookOperation : public CurvesSculptStrokeOperation {
   friend struct SnakeHookOperatorExecutor;
 
  public:
-  void on_stroke_extended(bContext *C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
 };
 
 /**
@@ -70,19 +72,21 @@ class SnakeHookOperation : public CurvesSculptStrokeOperation {
  */
 struct SnakeHookOperatorExecutor {
   SnakeHookOperation *self_ = nullptr;
-  bContext *C_ = nullptr;
-  Scene *scene_ = nullptr;
-  Object *object_ = nullptr;
+  const Depsgraph *depsgraph_ = nullptr;
+  const Scene *scene_ = nullptr;
   ARegion *region_ = nullptr;
-  View3D *v3d_ = nullptr;
-  RegionView3D *rv3d_ = nullptr;
+  const View3D *v3d_ = nullptr;
+  const RegionView3D *rv3d_ = nullptr;
 
-  CurvesSculpt *curves_sculpt_ = nullptr;
-  Brush *brush_ = nullptr;
-  float brush_radius_re_;
+  const CurvesSculpt *curves_sculpt_ = nullptr;
+  const Brush *brush_ = nullptr;
+  float brush_radius_base_re_;
+  float brush_radius_factor_;
   float brush_strength_;
+
   eBrushFalloffShape falloff_shape_;
 
+  Object *object_ = nullptr;
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
@@ -93,22 +97,28 @@ struct SnakeHookOperatorExecutor {
   float2 brush_pos_re_;
   float2 brush_pos_diff_re_;
 
-  void execute(SnakeHookOperation &self, bContext *C, const StrokeExtension &stroke_extension)
+  void execute(SnakeHookOperation &self,
+               const bContext &C,
+               const StrokeExtension &stroke_extension)
   {
     BLI_SCOPED_DEFER([&]() { self.last_mouse_position_re_ = stroke_extension.mouse_position; });
 
     self_ = &self;
-    C_ = C;
-    scene_ = CTX_data_scene(C);
-    object_ = CTX_data_active_object(C);
-    region_ = CTX_wm_region(C);
-    v3d_ = CTX_wm_view3d(C);
-    rv3d_ = CTX_wm_region_view3d(C);
+    depsgraph_ = CTX_data_depsgraph_pointer(&C);
+    scene_ = CTX_data_scene(&C);
+    scene_ = CTX_data_scene(&C);
+    object_ = CTX_data_active_object(&C);
+    region_ = CTX_wm_region(&C);
+    v3d_ = CTX_wm_view3d(&C);
+    rv3d_ = CTX_wm_region_view3d(&C);
 
     curves_sculpt_ = scene_->toolsettings->curves_sculpt;
-    brush_ = BKE_paint_brush(&curves_sculpt_->paint);
-    brush_radius_re_ = BKE_brush_size_get(scene_, brush_);
-    brush_strength_ = BKE_brush_alpha_get(scene_, brush_);
+    brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
+
+    brush_radius_base_re_ = BKE_brush_size_get(scene_, brush_);
+    brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
+    brush_strength_ = brush_strength_get(*scene_, *brush_, stroke_extension);
+
     falloff_shape_ = static_cast<eBrushFalloffShape>(brush_->falloff_shape);
 
     curves_to_world_mat_ = object_->obmat;
@@ -127,7 +137,7 @@ struct SnakeHookOperatorExecutor {
     if (stroke_extension.is_first) {
       if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
         std::optional<CurvesBrush3D> brush_3d = sample_curves_3d_brush(
-            *C_, *object_, brush_pos_re_, brush_radius_re_);
+            *depsgraph_, *region_, *v3d_, *rv3d_, *object_, brush_pos_re_, brush_radius_base_re_);
         if (brush_3d.has_value()) {
           self_->brush_3d_ = *brush_3d;
         }
@@ -147,6 +157,7 @@ struct SnakeHookOperatorExecutor {
 
     curves_->tag_positions_changed();
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
     ED_region_tag_redraw(region_);
   }
 
@@ -168,6 +179,9 @@ struct SnakeHookOperatorExecutor {
     float4x4 projection;
     ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
 
+    const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
+    const float brush_radius_sq_re = pow2f(brush_radius_re);
+
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       for (const int curve_i : curves_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
@@ -177,13 +191,14 @@ struct SnakeHookOperatorExecutor {
         float2 old_pos_re;
         ED_view3d_project_float_v2_m4(region_, old_pos_cu, old_pos_re, projection.values);
 
-        const float distance_to_brush_re = math::distance(old_pos_re, brush_pos_prev_re_);
-        if (distance_to_brush_re > brush_radius_re_) {
+        const float distance_to_brush_sq_re = math::distance_squared(old_pos_re,
+                                                                     brush_pos_prev_re_);
+        if (distance_to_brush_sq_re > brush_radius_sq_re) {
           continue;
         }
 
         const float radius_falloff = BKE_brush_curve_strength(
-            brush_, distance_to_brush_re, brush_radius_re_);
+            brush_, std::sqrt(distance_to_brush_sq_re), brush_radius_re);
         const float weight = brush_strength_ * radius_falloff;
 
         const float2 new_position_re = old_pos_re + brush_pos_diff_re_ * weight;
@@ -216,7 +231,7 @@ struct SnakeHookOperatorExecutor {
     const float3 brush_start_cu = world_to_curves_mat_ * brush_start_wo;
     const float3 brush_end_cu = world_to_curves_mat_ * brush_end_wo;
 
-    const float brush_radius_cu = self_->brush_3d_.radius_cu;
+    const float brush_radius_cu = self_->brush_3d_.radius_cu * brush_radius_factor_;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
@@ -292,7 +307,8 @@ struct SnakeHookOperatorExecutor {
   }
 };
 
-void SnakeHookOperation::on_stroke_extended(bContext *C, const StrokeExtension &stroke_extension)
+void SnakeHookOperation::on_stroke_extended(const bContext &C,
+                                            const StrokeExtension &stroke_extension)
 {
   SnakeHookOperatorExecutor executor;
   executor.execute(*this, C, stroke_extension);

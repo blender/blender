@@ -1364,3 +1364,21 @@ ScrArea *ED_fileselect_handler_area_find(const wmWindow *win, const wmOperator *
 
   return NULL;
 }
+
+ScrArea *ED_fileselect_handler_area_find_any_with_op(const wmWindow *win)
+{
+  const bScreen *screen = WM_window_get_active_screen(win);
+
+  ED_screen_areas_iter (win, screen, area) {
+    if (area->spacetype != SPACE_FILE) {
+      continue;
+    }
+
+    const SpaceFile *sfile = area->spacedata.first;
+    if (sfile->op) {
+      return area;
+    }
+  }
+
+  return NULL;
+}

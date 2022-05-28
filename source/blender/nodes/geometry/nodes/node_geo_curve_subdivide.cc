@@ -30,9 +30,9 @@ static Array<int> get_subdivided_offsets(const Spline &spline,
                                          const VArray<int> &cuts,
                                          const int spline_offset)
 {
-  Array<int> offsets(spline.segments_size() + 1);
+  Array<int> offsets(spline.segments_num() + 1);
   int offset = 0;
-  for (const int i : IndexRange(spline.segments_size())) {
+  for (const int i : IndexRange(spline.segments_num())) {
     offsets[i] = offset;
     offset = offset + std::max(cuts[spline_offset + i], 0) + 1;
   }
@@ -46,8 +46,8 @@ static void subdivide_attribute(Span<T> src,
                                 const bool is_cyclic,
                                 MutableSpan<T> dst)
 {
-  const int src_size = src.size();
-  threading::parallel_for(IndexRange(src_size - 1), 1024, [&](IndexRange range) {
+  const int src_num = src.size();
+  threading::parallel_for(IndexRange(src_num - 1), 1024, [&](IndexRange range) {
     for (const int i : range) {
       const int cuts = offsets[i + 1] - offsets[i];
       dst[offsets[i]] = src[i];
@@ -60,7 +60,7 @@ static void subdivide_attribute(Span<T> src,
   });
 
   if (is_cyclic) {
-    const int i = src_size - 1;
+    const int i = src_num - 1;
     const int cuts = offsets[i + 1] - offsets[i];
     dst[offsets[i]] = src.last();
     const float factor_delta = cuts == 0 ? 1.0f : 1.0f / cuts;
@@ -86,7 +86,7 @@ static void subdivide_attribute(Span<T> src,
 static void subdivide_bezier_segment(const BezierSpline &src,
                                      const int index,
                                      const int offset,
-                                     const int result_size,
+                                     const int result_num,
                                      Span<float3> src_positions,
                                      Span<float3> src_handles_left,
                                      Span<float3> src_handles_right,
@@ -106,11 +106,11 @@ static void subdivide_bezier_segment(const BezierSpline &src,
     if (is_last_cyclic_segment) {
       dst_type_left.first() = BEZIER_HANDLE_VECTOR;
     }
-    dst_type_left.slice(offset + 1, result_size).fill(BEZIER_HANDLE_VECTOR);
-    dst_type_right.slice(offset, result_size).fill(BEZIER_HANDLE_VECTOR);
+    dst_type_left.slice(offset + 1, result_num).fill(BEZIER_HANDLE_VECTOR);
+    dst_type_right.slice(offset, result_num).fill(BEZIER_HANDLE_VECTOR);
 
-    const float factor_delta = 1.0f / result_size;
-    for (const int cut : IndexRange(result_size)) {
+    const float factor_delta = 1.0f / result_num;
+    for (const int cut : IndexRange(result_num)) {
       const float factor = cut * factor_delta;
       dst_positions[offset + cut] = attribute_math::mix2(
           factor, src_positions[index], src_positions[next_index]);
@@ -120,10 +120,10 @@ static void subdivide_bezier_segment(const BezierSpline &src,
     if (is_last_cyclic_segment) {
       dst_type_left.first() = BEZIER_HANDLE_FREE;
     }
-    dst_type_left.slice(offset + 1, result_size).fill(BEZIER_HANDLE_FREE);
-    dst_type_right.slice(offset, result_size).fill(BEZIER_HANDLE_FREE);
+    dst_type_left.slice(offset + 1, result_num).fill(BEZIER_HANDLE_FREE);
+    dst_type_right.slice(offset, result_num).fill(BEZIER_HANDLE_FREE);
 
-    const int i_segment_last = is_last_cyclic_segment ? 0 : offset + result_size;
+    const int i_segment_last = is_last_cyclic_segment ? 0 : offset + result_num;
 
     /* Create a Bezier segment to update iteratively for every subdivision
      * and references to the meaningful values for ease of use. */
@@ -138,8 +138,8 @@ static void subdivide_bezier_segment(const BezierSpline &src,
     handle_prev = src_handles_right[index];
     handle_next = src_handles_left[next_index];
 
-    for (const int cut : IndexRange(result_size - 1)) {
-      const float parameter = 1.0f / (result_size - cut);
+    for (const int cut : IndexRange(result_num - 1)) {
+      const float parameter = 1.0f / (result_num - cut);
       const BezierSpline::InsertResult insert = temp.calculate_segment_insertion(0, 1, parameter);
 
       /* Copy relevant temporary data to the result. */
@@ -154,7 +154,7 @@ static void subdivide_bezier_segment(const BezierSpline &src,
     }
 
     /* Copy the handles for the last segment from the temporary spline. */
-    dst_handles_right[offset + result_size - 1] = handle_prev;
+    dst_handles_right[offset + result_num - 1] = handle_prev;
     dst_handles_left[i_segment_last] = handle_next;
   }
 }
@@ -287,9 +287,9 @@ static SplinePtr subdivide_spline(const Spline &spline,
    * of cuts is a real span (especially considering the note below). Using the offset at each
    * point facilitates subdividing in parallel later. */
   Array<int> offsets = get_subdivided_offsets(spline, cuts, spline_offset);
-  const int result_size = offsets.last() + int(!spline.is_cyclic());
+  const int result_num = offsets.last() + int(!spline.is_cyclic());
   SplinePtr new_spline = spline.copy_only_settings();
-  new_spline->resize(result_size);
+  new_spline->resize(result_num);
   subdivide_builtin_attributes(spline, offsets, *new_spline);
   subdivide_dynamic_attributes(spline, offsets, *new_spline);
   return new_spline;
@@ -334,9 +334,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     const CurveComponent &component = *geometry_set.get_component_for_read<CurveComponent>();
     GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-    const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
+    const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_POINT);
 
-    fn::FieldEvaluator evaluator{field_context, domain_size};
+    fn::FieldEvaluator evaluator{field_context, domain_num};
     evaluator.add(cuts_field);
     evaluator.evaluate();
     const VArray<int> &cuts = evaluator.get_evaluated<int>(0);

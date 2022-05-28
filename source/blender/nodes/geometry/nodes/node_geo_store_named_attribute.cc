@@ -88,8 +88,8 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
                                           const GField &field)
 {
   GeometryComponentFieldContext field_context{component, domain};
-  const int domain_size = component.attribute_domain_size(domain);
-  const IndexMask mask{IndexMask(domain_size)};
+  const int domain_num = component.attribute_domain_num(domain);
+  const IndexMask mask{IndexMask(domain_num)};
 
   const CPPType &type = field.cpp_type();
   const CustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
@@ -97,10 +97,10 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
   /* Could avoid allocating a new buffer if:
    * - We are writing to an attribute that exists already.
    * - The field does not depend on that attribute (we can't easily check for that yet). */
-  void *buffer = MEM_mallocN(type.size() * domain_size, __func__);
+  void *buffer = MEM_mallocN(type.size() * domain_num, __func__);
 
   fn::FieldEvaluator evaluator{field_context, &mask};
-  evaluator.add_with_destination(field, GMutableSpan{type, buffer, domain_size});
+  evaluator.add_with_destination(field, GMutableSpan{type, buffer, domain_num});
   evaluator.evaluate();
 
   component.attribute_try_delete(name);
@@ -114,7 +114,7 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
     else {
       /* Cannot change type of built-in attribute. */
     }
-    type.destruct_n(buffer, domain_size);
+    type.destruct_n(buffer, domain_num);
     MEM_freeN(buffer);
   }
   else {

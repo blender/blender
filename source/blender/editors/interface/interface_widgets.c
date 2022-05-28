@@ -107,22 +107,22 @@ typedef enum {
   UI_WTYPE_TREEROW,
 } uiWidgetTypeEnum;
 
-/* Button state argument shares bits with 'uiBut.flag'.
- * reuse flags that aren't needed for drawing to avoid collision. */
-enum {
-  /* Show that holding the button opens a menu. */
-  UI_STATE_HOLD_ACTION = UI_BUT_UPDATE_DELAY,
-  UI_STATE_TEXT_INPUT = UI_BUT_UNDO,
-  UI_STATE_ACTIVE_LEFT = UI_BUT_VALUE_CLEAR,
-  UI_STATE_ACTIVE_RIGHT = UI_BUT_TEXTEDIT_UPDATE,
-  UI_STATE_TEXT_BEFORE_WIDGET = UI_BUT_IMMEDIATE,
+/**
+ * The button's state information adapted for drawing. Use #STATE_INFO_NULL for empty state.
+ */
+typedef struct {
+  /** Copy of #uiBut.flag (possibly with overrides for drawing). */
+  int but_flag;
+  /** Copy of #uiBut.drawflag (possibly with overrides for drawing). */
+  int but_drawflag;
 
-  UI_STATE_FLAGS_ALL = (UI_STATE_HOLD_ACTION | UI_STATE_TEXT_INPUT | UI_STATE_ACTIVE_LEFT |
-                        UI_STATE_ACTIVE_RIGHT | UI_STATE_TEXT_BEFORE_WIDGET),
-};
-/* Prevent accidental use. */
-#define UI_BUT_UPDATE_DELAY ((void)0)
-#define UI_BUT_UNDO ((void)0)
+  /** Show that holding the button opens a menu. */
+  bool has_hold_action : 1;
+  /** The button is in text input mode. */
+  bool is_text_input : 1;
+} uiWidgetStateInfo;
+
+static const uiWidgetStateInfo STATE_INFO_NULL = {0};
 
 /** \} */
 
@@ -256,10 +256,21 @@ typedef struct uiWidgetType {
   /* converted colors for state */
   uiWidgetColors wcol;
 
-  void (*state)(struct uiWidgetType *, int state, int drawflag, eUIEmbossType emboss);
-  void (*draw)(uiWidgetColors *, rcti *, int state, int roundboxalign, const float zoom);
-  void (*custom)(
-      uiBut *, uiWidgetColors *, rcti *, int state, int roundboxalign, const float zoom);
+  void (*state)(struct uiWidgetType *, const uiWidgetStateInfo *state, eUIEmbossType emboss)
+      ATTR_NONNULL();
+  void (*draw)(uiWidgetColors *,
+               rcti *,
+               const uiWidgetStateInfo *,
+               int roundboxalign,
+               const float zoom) ATTR_NONNULL();
+  void (*custom)(uiBut *,
+                 uiWidgetColors *,
+                 rcti *,
+                 const uiWidgetStateInfo *,
+                 int roundboxalign,
+                 const float zoom) ATTR_NONNULL();
+  void (*draw_block)(
+      uiWidgetColors *, rcti *, int block_flag, int roundboxalign, const float zoom);
   void (*text)(const uiFontStyle *, const uiWidgetColors *, uiBut *, rcti *);
 
 } uiWidgetType;
@@ -1289,16 +1300,16 @@ static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
 
 #define PREVIEW_PAD 4
 
-static float widget_alpha_factor(const int state)
+static float widget_alpha_factor(const uiWidgetStateInfo *state)
 {
-  if (state & (UI_BUT_INACTIVE | UI_BUT_DISABLED)) {
-    if (state & UI_SEARCH_FILTER_NO_MATCH) {
+  if (state->but_flag & (UI_BUT_INACTIVE | UI_BUT_DISABLED)) {
+    if (state->but_flag & UI_SEARCH_FILTER_NO_MATCH) {
       return 0.25f;
     }
     return 0.5f;
   }
 
-  if (state & UI_SEARCH_FILTER_NO_MATCH) {
+  if (state->but_flag & UI_SEARCH_FILTER_NO_MATCH) {
     return 0.5f;
   }
 
@@ -1367,7 +1378,10 @@ static void widget_draw_icon(
     }
   }
   else if (ELEM(but->type, UI_BTYPE_BUT, UI_BTYPE_DECORATOR)) {
-    alpha *= widget_alpha_factor(but->flag);
+    uiWidgetStateInfo state = {0};
+    state.but_flag = but->flag;
+    state.but_drawflag = but->drawflag;
+    alpha *= widget_alpha_factor(&state);
   }
 
   GPU_blend(GPU_BLEND_ALPHA);
@@ -2446,7 +2460,7 @@ static void widget_draw_text_icon(const uiFontStyle *fstyle,
  * \{ */
 
 /* put all widget colors on half alpha, use local storage */
-static void ui_widget_color_disabled(uiWidgetType *wt, const int state)
+static void ui_widget_color_disabled(uiWidgetType *wt, const uiWidgetStateInfo *state)
 {
   static uiWidgetColors wcol_theme_s;
 
@@ -2473,8 +2487,7 @@ static void widget_active_color(uiWidgetColors *wcol)
 }
 
 static const uchar *widget_color_blend_from_flags(const uiWidgetStateColors *wcol_state,
-                                                  int state,
-                                                  int drawflag,
+                                                  const uiWidgetStateInfo *state,
                                                   const eUIEmbossType emboss)
 {
   /* Explicitly require #UI_EMBOSS_NONE_OR_STATUS for color blending with no emboss. */
@@ -2482,44 +2495,44 @@ static const uchar *widget_color_blend_from_flags(const uiWidgetStateColors *wco
     return NULL;
   }
 
-  if (drawflag & UI_BUT_ANIMATED_CHANGED) {
+  if (state->but_drawflag & UI_BUT_ANIMATED_CHANGED) {
     return wcol_state->inner_changed_sel;
   }
-  if (state & UI_BUT_ANIMATED_KEY) {
+  if (state->but_flag & UI_BUT_ANIMATED_KEY) {
     return wcol_state->inner_key_sel;
   }
-  if (state & UI_BUT_ANIMATED) {
+  if (state->but_flag & UI_BUT_ANIMATED) {
     return wcol_state->inner_anim_sel;
   }
-  if (state & UI_BUT_DRIVEN) {
+  if (state->but_flag & UI_BUT_DRIVEN) {
     return wcol_state->inner_driven_sel;
   }
-  if (state & UI_BUT_OVERRIDDEN) {
+  if (state->but_flag & UI_BUT_OVERRIDDEN) {
     return wcol_state->inner_overridden_sel;
   }
   return NULL;
 }
 
 /* copy colors from theme, and set changes in it based on state */
-static void widget_state(uiWidgetType *wt, int state, int drawflag, eUIEmbossType emboss)
+static void widget_state(uiWidgetType *wt, const uiWidgetStateInfo *state, eUIEmbossType emboss)
 {
   uiWidgetStateColors *wcol_state = wt->wcol_state;
 
-  if (state & UI_BUT_LIST_ITEM) {
+  if (state->but_flag & UI_BUT_LIST_ITEM) {
     /* Override default widget's colors. */
     bTheme *btheme = UI_GetTheme();
     wt->wcol_theme = &btheme->tui.wcol_list_item;
 
-    if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
+    if (state->but_flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
       ui_widget_color_disabled(wt, state);
     }
   }
 
   wt->wcol = *(wt->wcol_theme);
 
-  const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag, emboss);
+  const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, emboss);
 
-  if (state & UI_SELECT) {
+  if (state->but_flag & UI_SELECT) {
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     if (color_blend != NULL) {
       color_blend_v3_v3(wt->wcol.inner, color_blend, wcol_state->blend);
@@ -2527,12 +2540,12 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag, eUIEmbossTyp
 
     copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
 
-    if (state & UI_SELECT) {
+    if (state->but_flag & UI_SELECT) {
       SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
     }
   }
   else {
-    if (state & UI_BUT_ACTIVE_DEFAULT) {
+    if (state->but_flag & UI_BUT_ACTIVE_DEFAULT) {
       copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
       copy_v4_v4_uchar(wt->wcol.text, wt->wcol.text_sel);
     }
@@ -2544,12 +2557,12 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag, eUIEmbossTyp
      * even if UI_SELECT. But currently this causes some flickering
      * as buttons can be created and updated without respect to mouse
      * position and so can draw without UI_ACTIVE set.  See D6503. */
-    if (state & UI_ACTIVE) {
+    if (state->but_flag & UI_ACTIVE) {
       widget_active_color(&wt->wcol);
     }
   }
 
-  if (state & UI_BUT_REDALERT) {
+  if (state->but_flag & UI_BUT_REDALERT) {
     const uchar red[4] = {255, 0, 0};
     if (wt->draw && emboss != UI_EMBOSS_NONE) {
       color_blend_v3_v3(wt->wcol.inner, red, 0.4f);
@@ -2559,14 +2572,14 @@ static void widget_state(uiWidgetType *wt, int state, int drawflag, eUIEmbossTyp
     }
   }
 
-  if (state & UI_BUT_DRAG_MULTI) {
+  if (state->but_flag & UI_BUT_DRAG_MULTI) {
     /* the button isn't SELECT but we're editing this so draw with sel color */
     copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
     color_blend_v3_v3(wt->wcol.text, wt->wcol.text_sel, 0.85f);
   }
 
-  if (state & UI_BUT_NODE_ACTIVE) {
+  if (state->but_flag & UI_BUT_NODE_ACTIVE) {
     const uchar blue[4] = {86, 128, 194};
     color_blend_v3_v3(wt->wcol.inner, blue, 0.3f);
   }
@@ -2600,14 +2613,16 @@ static float widget_radius_from_rcti(const rcti *rect, const uiWidgetColors *wco
  * \{ */
 
 /* sliders use special hack which sets 'item' as inner when drawing filling */
-static void widget_state_numslider(uiWidgetType *wt, int state, int drawflag, eUIEmbossType emboss)
+static void widget_state_numslider(uiWidgetType *wt,
+                                   const uiWidgetStateInfo *state,
+                                   eUIEmbossType emboss)
 {
   uiWidgetStateColors *wcol_state = wt->wcol_state;
 
   /* call this for option button */
-  widget_state(wt, state, drawflag, emboss);
+  widget_state(wt, state, emboss);
 
-  const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, drawflag, emboss);
+  const uchar *color_blend = widget_color_blend_from_flags(wcol_state, state, emboss);
   if (color_blend != NULL) {
     /* Set the slider 'item' so that it reflects state settings too.
      * De-saturate so the color of the slider doesn't conflict with the blend color,
@@ -2617,15 +2632,14 @@ static void widget_state_numslider(uiWidgetType *wt, int state, int drawflag, eU
     color_ensure_contrast_v3(wt->wcol.item, wt->wcol.inner, 30);
   }
 
-  if (state & UI_SELECT) {
+  if (state->but_flag & UI_SELECT) {
     SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
   }
 }
 
 /* labels use theme colors for text */
 static void widget_state_option_menu(uiWidgetType *wt,
-                                     int state,
-                                     int drawflag,
+                                     const uiWidgetStateInfo *state,
                                      eUIEmbossType emboss)
 {
   const bTheme *btheme = UI_GetTheme();
@@ -2638,14 +2652,13 @@ static void widget_state_option_menu(uiWidgetType *wt,
   copy_v3_v3_uchar(wcol_menu_option.text_sel, btheme->tui.wcol_menu_back.text_sel);
   wt->wcol_theme = &wcol_menu_option;
 
-  widget_state(wt, state, drawflag, emboss);
+  widget_state(wt, state, emboss);
 
   wt->wcol_theme = old_wcol;
 }
 
 static void widget_state_nothing(uiWidgetType *wt,
-                                 int UNUSED(state),
-                                 int UNUSED(drawflag),
+                                 const uiWidgetStateInfo *UNUSED(state),
                                  eUIEmbossType UNUSED(emboss))
 {
   wt->wcol = *(wt->wcol_theme);
@@ -2653,8 +2666,7 @@ static void widget_state_nothing(uiWidgetType *wt,
 
 /* special case, button that calls pulldown */
 static void widget_state_pulldown(uiWidgetType *wt,
-                                  int UNUSED(state),
-                                  int UNUSED(drawflag),
+                                  const uiWidgetStateInfo *UNUSED(state),
                                   eUIEmbossType UNUSED(emboss))
 {
   wt->wcol = *(wt->wcol_theme);
@@ -2662,14 +2674,13 @@ static void widget_state_pulldown(uiWidgetType *wt,
 
 /* special case, pie menu items */
 static void widget_state_pie_menu_item(uiWidgetType *wt,
-                                       int state,
-                                       int UNUSED(drawflag),
+                                       const uiWidgetStateInfo *state,
                                        eUIEmbossType UNUSED(emboss))
 {
   wt->wcol = *(wt->wcol_theme);
 
   /* active and disabled (not so common) */
-  if ((state & UI_BUT_DISABLED) && (state & UI_ACTIVE)) {
+  if ((state->but_flag & UI_BUT_DISABLED) && (state->but_flag & UI_ACTIVE)) {
     color_blend_v3_v3(wt->wcol.text, wt->wcol.text_sel, 0.5f);
     /* draw the backdrop at low alpha, helps navigating with keys
      * when disabled items are active */
@@ -2678,18 +2689,18 @@ static void widget_state_pie_menu_item(uiWidgetType *wt,
   }
   else {
     /* regular active */
-    if (state & (UI_SELECT | UI_ACTIVE)) {
+    if (state->but_flag & (UI_SELECT | UI_ACTIVE)) {
       copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
     }
-    else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
+    else if (state->but_flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
       /* regular disabled */
       color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
     }
 
-    if (state & UI_SELECT) {
+    if (state->but_flag & UI_SELECT) {
       copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     }
-    else if (state & UI_ACTIVE) {
+    else if (state->but_flag & UI_ACTIVE) {
       copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.item);
     }
   }
@@ -2697,14 +2708,13 @@ static void widget_state_pie_menu_item(uiWidgetType *wt,
 
 /* special case, menu items */
 static void widget_state_menu_item(uiWidgetType *wt,
-                                   int state,
-                                   int UNUSED(drawflag),
+                                   const uiWidgetStateInfo *state,
                                    eUIEmbossType UNUSED(emboss))
 {
   wt->wcol = *(wt->wcol_theme);
 
   /* active and disabled (not so common) */
-  if ((state & UI_BUT_DISABLED) && (state & UI_ACTIVE)) {
+  if ((state->but_flag & UI_BUT_DISABLED) && (state->but_flag & UI_ACTIVE)) {
     /* draw the backdrop at low alpha, helps navigating with keys
      * when disabled items are active */
     wt->wcol.text[3] = 128;
@@ -2713,15 +2723,15 @@ static void widget_state_menu_item(uiWidgetType *wt,
   }
   else {
     /* regular active */
-    if (state & UI_ACTIVE) {
+    if (state->but_flag & UI_ACTIVE) {
       copy_v3_v3_uchar(wt->wcol.text, wt->wcol.text_sel);
     }
-    else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
+    else if (state->but_flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
       /* regular disabled */
       color_blend_v3_v3(wt->wcol.text, wt->wcol.inner, 0.5f);
     }
 
-    if (state & UI_ACTIVE) {
+    if (state->but_flag & UI_ACTIVE) {
       copy_v4_v4_uchar(wt->wcol.inner, wt->wcol.inner_sel);
     }
   }
@@ -2787,7 +2797,7 @@ static void widget_softshadow(const rcti *rect, int roundboxalign, const float r
 }
 
 static void widget_menu_back(
-    uiWidgetColors *wcol, rcti *rect, int flag, int direction, const float zoom)
+    uiWidgetColors *wcol, rcti *rect, const int block_flag, const int direction, const float zoom)
 {
   uiWidgetBase wtb;
   int roundboxalign = UI_CNR_ALL;
@@ -2795,7 +2805,7 @@ static void widget_menu_back(
   widget_init(&wtb);
 
   /* menu is 2nd level or deeper */
-  if (flag & UI_BLOCK_POPUP) {
+  if (block_flag & UI_BLOCK_POPUP) {
     // rect->ymin -= 4.0;
     // rect->ymax += 4.0;
   }
@@ -3321,13 +3331,17 @@ static void ui_draw_separator(const rcti *rect, const uiWidgetColors *wcol)
 
 #define NUM_BUT_PADDING_FACTOR 0.425f
 
-static void widget_numbut_draw(
-    uiWidgetColors *wcol, rcti *rect, const float zoom, int state, int roundboxalign, bool emboss)
+static void widget_numbut_draw(uiWidgetColors *wcol,
+                               rcti *rect,
+                               const float zoom,
+                               const uiWidgetStateInfo *state,
+                               int roundboxalign,
+                               bool emboss)
 {
   const float rad = widget_radius_from_zoom(zoom, wcol);
   const int handle_width = min_ii(BLI_rcti_size_x(rect) / 3, BLI_rcti_size_y(rect) * 0.7f);
 
-  if (state & UI_SELECT) {
+  if (state->but_flag & UI_SELECT) {
     SWAP(short, wcol->shadetop, wcol->shadedown);
   }
 
@@ -3343,7 +3357,7 @@ static void widget_numbut_draw(
   }
 
   /* decoration */
-  if ((state & UI_ACTIVE) && !(state & UI_STATE_TEXT_INPUT)) {
+  if ((state->but_flag & UI_ACTIVE) && !state->is_text_input) {
     uiWidgetColors wcol_zone;
     uiWidgetBase wtb_zone;
     rcti rect_zone;
@@ -3356,7 +3370,7 @@ static void widget_numbut_draw(
 
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
-    if (state & UI_STATE_ACTIVE_LEFT) {
+    if (state->but_drawflag & UI_BUT_ACTIVE_LEFT) {
       widget_active_color(&wcol_zone);
     }
 
@@ -3376,7 +3390,7 @@ static void widget_numbut_draw(
 
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
-    if (state & UI_STATE_ACTIVE_RIGHT) {
+    if (state->but_drawflag & UI_BUT_ACTIVE_RIGHT) {
       widget_active_color(&wcol_zone);
     }
 
@@ -3395,7 +3409,7 @@ static void widget_numbut_draw(
 
     wcol_zone = *wcol;
     copy_v3_v3_uchar(wcol_zone.item, wcol->text);
-    if (!(state & (UI_STATE_ACTIVE_LEFT | UI_STATE_ACTIVE_RIGHT))) {
+    if (!(state->but_drawflag & (UI_BUT_ACTIVE_LEFT | UI_BUT_ACTIVE_RIGHT))) {
       widget_active_color(&wcol_zone);
     }
 
@@ -3414,7 +3428,7 @@ static void widget_numbut_draw(
     widgetbase_draw(&wtb, wcol);
   }
 
-  if (!(state & UI_STATE_TEXT_INPUT)) {
+  if (!state->is_text_input) {
     const float text_padding = NUM_BUT_PADDING_FACTOR * BLI_rcti_size_y(rect);
 
     rect->xmin += text_padding;
@@ -3422,14 +3436,20 @@ static void widget_numbut_draw(
   }
 }
 
-static void widget_numbut(
-    uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, const float zoom)
+static void widget_numbut(uiWidgetColors *wcol,
+                          rcti *rect,
+                          const uiWidgetStateInfo *state,
+                          int roundboxalign,
+                          const float zoom)
 {
   widget_numbut_draw(wcol, rect, zoom, state, roundboxalign, false);
 }
 
-static void widget_menubut(
-    uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign, const float zoom)
+static void widget_menubut(uiWidgetColors *wcol,
+                           rcti *rect,
+                           const uiWidgetStateInfo *UNUSED(state),
+                           int roundboxalign,
+                           const float zoom)
 {
   uiWidgetBase wtb;
   widget_init(&wtb);
@@ -3454,7 +3474,7 @@ static void widget_menubut(
 static void widget_menubut_embossn(const uiBut *UNUSED(but),
                                    uiWidgetColors *wcol,
                                    rcti *rect,
-                                   int UNUSED(state),
+                                   const uiWidgetStateInfo *UNUSED(state),
                                    int UNUSED(roundboxalign))
 {
   uiWidgetBase wtb;
@@ -3476,7 +3496,7 @@ static void widget_menubut_embossn(const uiBut *UNUSED(but),
 static void widget_numbut_embossn(const uiBut *UNUSED(but),
                                   uiWidgetColors *wcol,
                                   rcti *rect,
-                                  int state,
+                                  const uiWidgetStateInfo *state,
                                   int roundboxalign,
                                   const float zoom)
 {
@@ -3486,7 +3506,6 @@ static void widget_numbut_embossn(const uiBut *UNUSED(but),
 void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *slider, int state)
 {
   uiWidgetBase wtb;
-  bool outline = false;
 
   widget_init(&wtb);
 
@@ -3531,11 +3550,6 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
     /* draw */
     wtb.draw_emboss = false; /* only emboss once */
 
-    /* exception for progress bar */
-    if (state & UI_SCROLL_NO_OUTLINE) {
-      SWAP(bool, outline, wtb.draw_outline);
-    }
-
     round_box_edges(&wtb, UI_CNR_ALL, slider, rad);
 
     if (state & UI_SCROLL_ARROWS) {
@@ -3563,17 +3577,13 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
       }
     }
     widgetbase_draw(&wtb, wcol);
-
-    if (state & UI_SCROLL_NO_OUTLINE) {
-      SWAP(bool, outline, wtb.draw_outline);
-    }
   }
 }
 
 static void widget_scroll(uiBut *but,
                           uiWidgetColors *wcol,
                           rcti *rect,
-                          int state,
+                          const uiWidgetStateInfo *state,
                           int UNUSED(roundboxalign),
                           const float UNUSED(zoom))
 {
@@ -3623,19 +3633,13 @@ static void widget_scroll(uiBut *but,
     }
   }
 
-  if (state & UI_SELECT) {
-    state = UI_SCROLL_PRESSED;
-  }
-  else {
-    state = 0;
-  }
-  UI_draw_widget_scroll(wcol, rect, &rect1, state);
+  UI_draw_widget_scroll(wcol, rect, &rect1, (state->but_flag & UI_SELECT) ? UI_SCROLL_PRESSED : 0);
 }
 
 static void widget_progressbar(uiBut *but,
                                uiWidgetColors *wcol,
                                rcti *rect,
-                               int UNUSED(state),
+                               const uiWidgetStateInfo *UNUSED(state),
                                int roundboxalign,
                                const float zoom)
 {
@@ -3669,7 +3673,7 @@ static void widget_progressbar(uiBut *but,
 
 static void widget_treerow_exec(uiWidgetColors *wcol,
                                 rcti *rect,
-                                int state,
+                                const uiWidgetStateInfo *state,
                                 int UNUSED(roundboxalign),
                                 int indentation,
                                 const float zoom)
@@ -3682,7 +3686,7 @@ static void widget_treerow_exec(uiWidgetColors *wcol,
   const float rad = widget_radius_from_zoom(zoom, wcol);
   round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 
-  if ((state & UI_ACTIVE) || (state & UI_SELECT)) {
+  if ((state->but_flag & UI_ACTIVE) || (state->but_flag & UI_SELECT)) {
     widgetbase_draw(&wtb, wcol);
   }
 
@@ -3690,8 +3694,12 @@ static void widget_treerow_exec(uiWidgetColors *wcol,
   BLI_rcti_translate(rect, 0.5f * UI_UNIT_X * indentation, 0);
 }
 
-static void widget_treerow(
-    uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, const float zoom)
+static void widget_treerow(uiBut *but,
+                           uiWidgetColors *wcol,
+                           rcti *rect,
+                           const uiWidgetStateInfo *state,
+                           int roundboxalign,
+                           const float zoom)
 {
   uiButTreeRow *tree_row = (uiButTreeRow *)but;
   BLI_assert(but->type == UI_BTYPE_TREEROW);
@@ -3701,7 +3709,7 @@ static void widget_treerow(
 static void widget_nodesocket(uiBut *but,
                               uiWidgetColors *wcol,
                               rcti *rect,
-                              int UNUSED(state),
+                              const uiWidgetStateInfo *UNUSED(state),
                               int UNUSED(roundboxalign),
                               const float UNUSED(zoom))
 {
@@ -3737,8 +3745,12 @@ static void widget_nodesocket(uiBut *but,
   copy_v3_v3_uchar(wcol->outline, old_outline);
 }
 
-static void widget_numslider(
-    uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, const float zoom)
+static void widget_numslider(uiBut *but,
+                             uiWidgetColors *wcol,
+                             rcti *rect,
+                             const uiWidgetStateInfo *state,
+                             int roundboxalign,
+                             const float zoom)
 {
   uiWidgetBase wtb, wtb1;
   widget_init(&wtb);
@@ -3752,7 +3764,7 @@ static void widget_numslider(
   widgetbase_draw(&wtb, wcol);
 
   /* Draw slider part only when not in text editing. */
-  if (!(state & UI_STATE_TEXT_INPUT)) {
+  if (!state->is_text_input) {
     int roundboxalign_slider = roundboxalign;
 
     uchar outline[3];
@@ -3760,7 +3772,7 @@ static void widget_numslider(
     copy_v3_v3_uchar(wcol->outline, wcol->item);
     copy_v3_v3_uchar(wcol->inner, wcol->item);
 
-    if (!(state & UI_SELECT)) {
+    if (!(state->but_flag & UI_SELECT)) {
       SWAP(short, wcol->shadetop, wcol->shadedown);
     }
 
@@ -3828,7 +3840,7 @@ static void widget_numslider(
 
     copy_v3_v3_uchar(wcol->outline, outline);
 
-    if (!(state & UI_SELECT)) {
+    if (!(state->but_flag & UI_SELECT)) {
       SWAP(short, wcol->shadetop, wcol->shadedown);
     }
   }
@@ -3840,7 +3852,7 @@ static void widget_numslider(
 
   /* Add space at either side of the button so text aligns with number-buttons
    * (which have arrow icons). */
-  if (!(state & UI_STATE_TEXT_INPUT)) {
+  if (!state->is_text_input) {
     const float text_padding = NUM_BUT_PADDING_FACTOR * BLI_rcti_size_y(rect);
     rect->xmax -= text_padding;
     rect->xmin += text_padding;
@@ -3850,8 +3862,12 @@ static void widget_numslider(
 /* I think 3 is sufficient border to indicate keyed status */
 #define SWATCH_KEYED_BORDER 3
 
-static void widget_swatch(
-    uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, const float zoom)
+static void widget_swatch(uiBut *but,
+                          uiWidgetColors *wcol,
+                          rcti *rect,
+                          const uiWidgetStateInfo *state,
+                          int roundboxalign,
+                          const float zoom)
 {
   BLI_assert(but->type == UI_BTYPE_COLOR);
   uiButColor *color_but = (uiButColor *)but;
@@ -3875,9 +3891,9 @@ static void widget_swatch(
 
   ui_but_v3_get(but, col);
 
-  if ((state & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_OVERRIDDEN |
-                UI_BUT_REDALERT)) ||
-      (but->drawflag & UI_BUT_ANIMATED_CHANGED)) {
+  if ((state->but_flag & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN |
+                          UI_BUT_OVERRIDDEN | UI_BUT_REDALERT)) ||
+      (state->but_drawflag & UI_BUT_ANIMATED_CHANGED)) {
     /* draw based on state - color for keyed etc */
     widgetbase_draw(&wtb, wcol);
 
@@ -3938,7 +3954,7 @@ static void widget_swatch(
 static void widget_unitvec(uiBut *but,
                            uiWidgetColors *wcol,
                            rcti *rect,
-                           int UNUSED(state),
+                           const uiWidgetStateInfo *UNUSED(state),
                            int UNUSED(roundboxalign),
                            const float zoom)
 {
@@ -3946,10 +3962,15 @@ static void widget_unitvec(uiBut *but,
   ui_draw_but_UNITVEC(but, wcol, rect, rad);
 }
 
-static void widget_icon_has_anim(
-    uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, const float zoom)
+static void widget_icon_has_anim(uiBut *but,
+                                 uiWidgetColors *wcol,
+                                 rcti *rect,
+                                 const uiWidgetStateInfo *state,
+                                 int roundboxalign,
+                                 const float zoom)
 {
-  if (state & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_REDALERT) &&
+  if (state->but_flag &
+          (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_REDALERT) &&
       but->emboss != UI_EMBOSS_NONE) {
     uiWidgetBase wtb;
     widget_init(&wtb);
@@ -3970,10 +3991,13 @@ static void widget_icon_has_anim(
   }
 }
 
-static void widget_textbut(
-    uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, const float zoom)
+static void widget_textbut(uiWidgetColors *wcol,
+                           rcti *rect,
+                           const uiWidgetStateInfo *state,
+                           int roundboxalign,
+                           const float zoom)
 {
-  if (state & UI_SELECT) {
+  if (state->but_flag & UI_SELECT) {
     SWAP(short, wcol->shadetop, wcol->shadedown);
   }
 
@@ -3989,7 +4013,7 @@ static void widget_textbut(
 static void widget_preview_tile(uiBut *but,
                                 uiWidgetColors *wcol,
                                 rcti *rect,
-                                int UNUSED(state),
+                                const uiWidgetStateInfo *UNUSED(state),
                                 int UNUSED(roundboxalign),
                                 const float UNUSED(zoom))
 {
@@ -3998,8 +4022,11 @@ static void widget_preview_tile(uiBut *but,
       &style->widget, rect, but->drawstr, but->icon, wcol->text, UI_STYLE_TEXT_CENTER);
 }
 
-static void widget_menuiconbut(
-    uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign, const float zoom)
+static void widget_menuiconbut(uiWidgetColors *wcol,
+                               rcti *rect,
+                               const uiWidgetStateInfo *UNUSED(state),
+                               int roundboxalign,
+                               const float zoom)
 {
   uiWidgetBase wtb;
   widget_init(&wtb);
@@ -4011,17 +4038,20 @@ static void widget_menuiconbut(
   widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_pulldownbut(
-    uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, const float zoom)
+static void widget_pulldownbut(uiWidgetColors *wcol,
+                               rcti *rect,
+                               const uiWidgetStateInfo *state,
+                               int roundboxalign,
+                               const float zoom)
 {
   float back[4];
   UI_GetThemeColor4fv(TH_BACK, back);
 
-  if ((state & UI_ACTIVE) || (back[3] < 1.0f)) {
+  if ((state->but_flag & UI_ACTIVE) || (back[3] < 1.0f)) {
     uiWidgetBase wtb;
     const float rad = widget_radius_from_zoom(zoom, wcol);
 
-    if (state & UI_ACTIVE) {
+    if (state->but_flag & UI_ACTIVE) {
       copy_v4_v4_uchar(wcol->inner, wcol->inner_sel);
       copy_v3_v3_uchar(wcol->text, wcol->text_sel);
       copy_v3_v3_uchar(wcol->outline, wcol->inner);
@@ -4042,7 +4072,7 @@ static void widget_pulldownbut(
 
 static void widget_menu_itembut(uiWidgetColors *wcol,
                                 rcti *rect,
-                                int UNUSED(state),
+                                const uiWidgetStateInfo *UNUSED(state),
                                 int UNUSED(roundboxalign),
                                 const float zoom)
 {
@@ -4066,7 +4096,7 @@ static void widget_menu_itembut(uiWidgetColors *wcol,
 
 static void widget_menu_itembut_unpadded(uiWidgetColors *wcol,
                                          rcti *rect,
-                                         int UNUSED(state),
+                                         const uiWidgetStateInfo *UNUSED(state),
                                          int UNUSED(roundboxalign),
                                          const float zoom)
 {
@@ -4088,7 +4118,7 @@ static void widget_menu_itembut_unpadded(uiWidgetColors *wcol,
 static void widget_menu_radial_itembut(uiBut *but,
                                        uiWidgetColors *wcol,
                                        rcti *rect,
-                                       int UNUSED(state),
+                                       const uiWidgetStateInfo *UNUSED(state),
                                        int UNUSED(roundboxalign),
                                        const float zoom)
 {
@@ -4114,7 +4144,7 @@ static void widget_menu_radial_itembut(uiBut *but,
 
 static void widget_list_itembut(uiWidgetColors *wcol,
                                 rcti *rect,
-                                int UNUSED(state),
+                                const uiWidgetStateInfo *UNUSED(state),
                                 int UNUSED(roundboxalign),
                                 const float zoom)
 {
@@ -4131,11 +4161,13 @@ static void widget_list_itembut(uiWidgetColors *wcol,
 
 static void widget_optionbut(uiWidgetColors *wcol,
                              rcti *rect,
-                             int state,
+                             const uiWidgetStateInfo *state,
                              int UNUSED(roundboxalign),
                              const float UNUSED(zoom))
 {
-  const bool text_before_widget = (state & UI_STATE_TEXT_BEFORE_WIDGET);
+  /* For a right aligned layout (signified by #UI_BUT_TEXT_RIGHT), draw the text on the left of the
+   * checkbox. */
+  const bool text_before_widget = (state->but_drawflag & UI_BUT_TEXT_RIGHT);
   rcti recttemp = *rect;
 
   uiWidgetBase wtb;
@@ -4160,7 +4192,7 @@ static void widget_optionbut(uiWidgetColors *wcol,
   round_box_edges(&wtb, UI_CNR_ALL, &recttemp, rad);
 
   /* decoration */
-  if (state & UI_SELECT) {
+  if (state->but_flag & UI_SELECT) {
     shape_preset_trias_from_rect_checkmark(&wtb.tria1, &recttemp);
   }
 
@@ -4177,19 +4209,21 @@ static void widget_optionbut(uiWidgetColors *wcol,
 }
 
 /* labels use Editor theme colors for text */
-static void widget_state_label(uiWidgetType *wt, int state, int drawflag, eUIEmbossType emboss)
+static void widget_state_label(uiWidgetType *wt,
+                               const uiWidgetStateInfo *state,
+                               eUIEmbossType emboss)
 {
-  if (state & UI_BUT_LIST_ITEM) {
+  if (state->but_flag & UI_BUT_LIST_ITEM) {
     /* Override default label theme's colors. */
     bTheme *btheme = UI_GetTheme();
     wt->wcol_theme = &btheme->tui.wcol_list_item;
     /* call this for option button */
-    widget_state(wt, state, drawflag, emboss);
+    widget_state(wt, state, emboss);
   }
   else {
     /* call this for option button */
-    widget_state(wt, state, drawflag, emboss);
-    if (state & UI_SELECT) {
+    widget_state(wt, state, emboss);
+    if (state->but_flag & UI_SELECT) {
       UI_GetThemeColor3ubv(TH_TEXT_HI, wt->wcol.text);
     }
     else {
@@ -4197,14 +4231,17 @@ static void widget_state_label(uiWidgetType *wt, int state, int drawflag, eUIEmb
     }
   }
 
-  if (state & UI_BUT_REDALERT) {
+  if (state->but_flag & UI_BUT_REDALERT) {
     const uchar red[4] = {255, 0, 0};
     color_blend_v3_v3(wt->wcol.text, red, 0.4f);
   }
 }
 
-static void widget_radiobut(
-    uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign, const float zoom)
+static void widget_radiobut(uiWidgetColors *wcol,
+                            rcti *rect,
+                            const uiWidgetStateInfo *UNUSED(state),
+                            int roundboxalign,
+                            const float zoom)
 {
   uiWidgetBase wtb;
   widget_init(&wtb);
@@ -4218,7 +4255,7 @@ static void widget_radiobut(
 static void widget_box(uiBut *but,
                        uiWidgetColors *wcol,
                        rcti *rect,
-                       int UNUSED(state),
+                       const uiWidgetStateInfo *UNUSED(state),
                        int roundboxalign,
                        const float zoom)
 {
@@ -4244,8 +4281,11 @@ static void widget_box(uiBut *but,
   copy_v3_v3_uchar(wcol->inner, old_col);
 }
 
-static void widget_but(
-    uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign, const float zoom)
+static void widget_but(uiWidgetColors *wcol,
+                       rcti *rect,
+                       const uiWidgetStateInfo *UNUSED(state),
+                       int roundboxalign,
+                       const float zoom)
 {
   uiWidgetBase wtb;
   widget_init(&wtb);
@@ -4271,13 +4311,16 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state),
 }
 #endif
 
-static void widget_roundbut_exec(
-    uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, const float zoom)
+static void widget_roundbut_exec(uiWidgetColors *wcol,
+                                 rcti *rect,
+                                 const uiWidgetStateInfo *state,
+                                 int roundboxalign,
+                                 const float zoom)
 {
   uiWidgetBase wtb;
   widget_init(&wtb);
 
-  if (state & UI_STATE_HOLD_ACTION) {
+  if (state->has_hold_action) {
     /* Show that keeping pressed performs another action (typically a menu). */
     shape_preset_init_hold_action(&wtb.tria1, rect, 0.75f, 'r');
   }
@@ -4290,11 +4333,14 @@ static void widget_roundbut_exec(
   widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_tab(
-    uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, const float zoom)
+static void widget_tab(uiWidgetColors *wcol,
+                       rcti *rect,
+                       const uiWidgetStateInfo *state,
+                       int roundboxalign,
+                       const float zoom)
 {
   const float rad = widget_radius_from_zoom(zoom, wcol);
-  const bool is_active = (state & UI_SELECT);
+  const bool is_active = (state->but_flag & UI_SELECT);
 
   /* Draw shaded outline - Disabled for now,
    * seems incorrect and also looks nicer without it IMHO ;). */
@@ -4442,7 +4488,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 
     case UI_WTYPE_TOOLTIP:
       wt.wcol_theme = &btheme->tui.wcol_tooltip;
-      wt.draw = widget_menu_back;
+      wt.draw_block = widget_menu_back;
       break;
 
     /* strings */
@@ -4498,7 +4544,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 
     case UI_WTYPE_MENU_BACK:
       wt.wcol_theme = &btheme->tui.wcol_menu_back;
-      wt.draw = widget_menu_back;
+      wt.draw_block = widget_menu_back;
       break;
 
     /* specials */
@@ -4921,62 +4967,50 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
 
   const int roundboxalign = widget_roundbox_set(but, rect);
 
-  /* Mask out flags re-used for local state. */
-  int state = but->flag & ~UI_STATE_FLAGS_ALL;
-  const int drawflag = but->drawflag;
+  uiWidgetStateInfo state = {0};
+  state.but_flag = but->flag;
+  state.but_drawflag = but->drawflag;
 
-  if (state & UI_SELECT_DRAW) {
-    state |= UI_SELECT;
+  /* Override selected flag for drawing. */
+  if (but->flag & UI_SELECT_DRAW) {
+    state.but_flag |= UI_SELECT;
   }
 
   if ((but->editstr) ||
       (UNLIKELY(but->flag & UI_BUT_DRAG_MULTI) && ui_but_drag_multi_edit_get(but))) {
-    state |= UI_STATE_TEXT_INPUT;
+    state.is_text_input = true;
   }
 
   if (but->hold_func) {
-    state |= UI_STATE_HOLD_ACTION;
-  }
-
-  if (state & UI_ACTIVE) {
-    if (but->drawflag & UI_BUT_ACTIVE_LEFT) {
-      state |= UI_STATE_ACTIVE_LEFT;
-    }
-    else if (but->drawflag & UI_BUT_ACTIVE_RIGHT) {
-      state |= UI_STATE_ACTIVE_RIGHT;
-    }
+    state.has_hold_action = true;
   }
 
   bool use_alpha_blend = false;
   if (but->emboss != UI_EMBOSS_PULLDOWN) {
-    if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
+    if (but->flag & (UI_BUT_DISABLED | UI_BUT_INACTIVE | UI_SEARCH_FILTER_NO_MATCH)) {
       use_alpha_blend = true;
-      ui_widget_color_disabled(wt, state);
+      ui_widget_color_disabled(wt, &state);
     }
-  }
-
-  if (drawflag & UI_BUT_TEXT_RIGHT) {
-    state |= UI_STATE_TEXT_BEFORE_WIDGET;
   }
 
 #ifdef USE_UI_POPOVER_ONCE
   if (but->block->flag & UI_BLOCK_POPOVER_ONCE) {
-    if ((state & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
-      state |= UI_BUT_ACTIVE_DEFAULT;
+    if ((but->flag & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
+      state.but_flag |= UI_BUT_ACTIVE_DEFAULT;
     }
   }
 #endif
   if (but->block->flag & UI_BLOCK_NO_DRAW_OVERRIDDEN_STATE) {
-    state &= ~UI_BUT_OVERRIDDEN;
+    state.but_flag &= ~UI_BUT_OVERRIDDEN;
   }
 
   const float zoom = 1.0f / but->block->aspect;
-  wt->state(wt, state, drawflag, but->emboss);
+  wt->state(wt, &state, but->emboss);
   if (wt->custom) {
-    wt->custom(but, &wt->wcol, rect, state, roundboxalign, zoom);
+    wt->custom(but, &wt->wcol, rect, &state, roundboxalign, zoom);
   }
   else if (wt->draw) {
-    wt->draw(&wt->wcol, rect, state, roundboxalign, zoom);
+    wt->draw(&wt->wcol, rect, &state, roundboxalign, zoom);
   }
 
   if (wt->text) {
@@ -5017,13 +5051,13 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
 
-  wt->state(wt, 0, 0, UI_EMBOSS_UNDEFINED);
+  wt->state(wt, &STATE_INFO_NULL, UI_EMBOSS_UNDEFINED);
   if (block) {
     const float zoom = 1.0f / block->aspect;
-    wt->draw(&wt->wcol, rect, block->flag, block->direction, zoom);
+    wt->draw_block(&wt->wcol, rect, block->flag, block->direction, zoom);
   }
   else {
-    wt->draw(&wt->wcol, rect, 0, 0, 1.0f);
+    wt->draw_block(&wt->wcol, rect, 0, 0, 1.0f);
   }
 
   ui_draw_clip_tri(block, rect, wt);
@@ -5118,8 +5152,8 @@ void ui_draw_popover_back(struct ARegion *region,
   }
   else {
     const float zoom = 1.0f / block->aspect;
-    wt->state(wt, 0, 0, UI_EMBOSS_UNDEFINED);
-    wt->draw(&wt->wcol, rect, 0, 0, zoom);
+    wt->state(wt, &STATE_INFO_NULL, UI_EMBOSS_UNDEFINED);
+    wt->draw_block(&wt->wcol, rect, 0, 0, zoom);
   }
 
   ui_draw_clip_tri(block, rect, wt);
@@ -5307,11 +5341,20 @@ static void ui_draw_widget_back_color(uiWidgetTypeEnum type,
   }
 
   rcti rect_copy = *rect;
-  wt->state(wt, 0, 0, UI_EMBOSS_UNDEFINED);
+  wt->state(wt, &STATE_INFO_NULL, UI_EMBOSS_UNDEFINED);
   if (color) {
     rgba_float_to_uchar(wt->wcol.inner, color);
   }
-  wt->draw(&wt->wcol, &rect_copy, 0, UI_CNR_ALL, 1.0f);
+
+  if (wt->draw_block) {
+    wt->draw_block(&wt->wcol, &rect_copy, 0, UI_CNR_ALL, 1.0f);
+  }
+  else if (wt->draw) {
+    wt->draw(&wt->wcol, &rect_copy, &STATE_INFO_NULL, UI_CNR_ALL, 1.0f);
+  }
+  else {
+    BLI_assert_unreachable();
+  }
 }
 void ui_draw_widget_menu_back_color(const rcti *rect, bool use_shadow, const float color[4])
 {
@@ -5326,16 +5369,16 @@ void ui_draw_widget_menu_back(const rcti *rect, bool use_shadow)
 void ui_draw_tooltip_background(const uiStyle *UNUSED(style), uiBlock *UNUSED(block), rcti *rect)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_TOOLTIP);
-  wt->state(wt, 0, 0, UI_EMBOSS_UNDEFINED);
-  /* wt->draw ends up using same function to draw the tooltip as menu_back */
-  wt->draw(&wt->wcol, rect, 0, 0, 1.0f);
+  wt->state(wt, &STATE_INFO_NULL, UI_EMBOSS_UNDEFINED);
+  /* wt->draw_block ends up using same function to draw the tooltip as menu_back */
+  wt->draw_block(&wt->wcol, rect, 0, 0, 1.0f);
 }
 
 void ui_draw_menu_item(const uiFontStyle *fstyle,
                        rcti *rect,
                        const char *name,
                        int iconid,
-                       int state,
+                       int but_flag,
                        uiMenuItemSeparatorType separator_type,
                        int *r_xmax)
 {
@@ -5346,8 +5389,11 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
   int padding = 0.25f * row_height;
   char *cpoin = NULL;
 
-  wt->state(wt, state, 0, UI_EMBOSS_UNDEFINED);
-  wt->draw(&wt->wcol, rect, 0, 0, 1.0f);
+  uiWidgetStateInfo state = {0};
+  state.but_flag = but_flag;
+
+  wt->state(wt, &state, UI_EMBOSS_UNDEFINED);
+  wt->draw(&wt->wcol, rect, &STATE_INFO_NULL, 0, 1.0f);
 
   UI_fontstyle_set(fstyle);
 
@@ -5442,8 +5488,12 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
   /* part text right aligned */
   if (separator_type != UI_MENU_ITEM_SEPARATOR_NONE) {
     if (cpoin) {
+      /* State info for the hint drawing. */
+      uiWidgetStateInfo hint_state = state;
       /* Set inactive state for grayed out text. */
-      wt->state(wt, state | UI_BUT_INACTIVE, 0, UI_EMBOSS_UNDEFINED);
+      hint_state.but_flag |= UI_BUT_INACTIVE;
+
+      wt->state(wt, &hint_state, UI_EMBOSS_UNDEFINED);
 
       char hint_drawstr[UI_MAX_DRAW_STR];
       {
@@ -5528,14 +5578,17 @@ void ui_draw_preview_item(const uiFontStyle *fstyle,
                           rcti *rect,
                           const char *name,
                           int iconid,
-                          int state,
+                          int but_flag,
                           eFontStyle_Align text_align)
 {
   uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM_UNPADDED);
 
+  uiWidgetStateInfo state = {0};
+  state.but_flag = but_flag;
+
   /* drawing button background */
-  wt->state(wt, state, 0, UI_EMBOSS_UNDEFINED);
-  wt->draw(&wt->wcol, rect, 0, 0, 1.0f);
+  wt->state(wt, &state, UI_EMBOSS_UNDEFINED);
+  wt->draw(&wt->wcol, rect, &STATE_INFO_NULL, 0, 1.0f);
 
   ui_draw_preview_item_stateless(fstyle, rect, name, iconid, wt->wcol.text, text_align);
 }

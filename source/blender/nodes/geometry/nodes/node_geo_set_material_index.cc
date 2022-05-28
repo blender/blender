@@ -17,15 +17,15 @@ static void set_material_index_in_component(GeometryComponent &component,
                                             const Field<int> &index_field)
 {
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_FACE};
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_FACE);
-  if (domain_size == 0) {
+  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_FACE);
+  if (domain_num == 0) {
     return;
   }
 
   OutputAttribute_Typed<int> indices = component.attribute_try_get_for_output_only<int>(
       "material_index", ATTR_DOMAIN_FACE);
 
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(index_field, indices.varray());
   evaluator.evaluate();

@@ -1039,6 +1039,38 @@ static void rna_clamp_value(FILE *f, PropertyRNA *prop, int array)
   }
 }
 
+static char *rna_def_property_search_func(FILE *f,
+                                          StructRNA *srna,
+                                          PropertyRNA *prop,
+                                          PropertyDefRNA *UNUSED(dp),
+                                          const char *manualfunc)
+{
+  char *func;
+
+  if (prop->flag & PROP_IDPROPERTY && manualfunc == NULL) {
+    return NULL;
+  }
+  if (!manualfunc) {
+    return NULL;
+  }
+
+  func = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "search");
+
+  fprintf(f,
+          "void %s("
+          "const bContext *C, "
+          "PointerRNA *ptr, "
+          "PropertyRNA *prop, "
+          "const char *edit_text, "
+          "StringPropertySearchVisitFunc visit_fn, "
+          "void *visit_user_data)\n",
+          func);
+  fprintf(f, "{\n");
+  fprintf(f, "\n    %s(C, ptr, prop, edit_text, visit_fn, visit_user_data);\n", manualfunc);
+  fprintf(f, "}\n\n");
+  return func;
+}
+
 static char *rna_def_property_set_func(
     FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *dp, const char *manualfunc)
 {
@@ -1895,6 +1927,8 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
       sprop->length = (void *)rna_def_property_length_func(
           f, srna, prop, dp, (const char *)sprop->length);
       sprop->set = (void *)rna_def_property_set_func(f, srna, prop, dp, (const char *)sprop->set);
+      sprop->search = (void *)rna_def_property_search_func(
+          f, srna, prop, dp, (const char *)sprop->search);
       break;
     }
     case PROP_POINTER: {
@@ -4081,13 +4115,15 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     case PROP_STRING: {
       StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
       fprintf(f,
-              "\t%s, %s, %s, %s, %s, %s, %d, ",
+              "\t%s, %s, %s, %s, %s, %s, %s, %d, %d, ",
               rna_function_string(sprop->get),
               rna_function_string(sprop->length),
               rna_function_string(sprop->set),
               rna_function_string(sprop->get_ex),
               rna_function_string(sprop->length_ex),
               rna_function_string(sprop->set_ex),
+              rna_function_string(sprop->search),
+              (int)sprop->search_flag,
               sprop->maxlength);
       rna_print_c_string(f, sprop->defaultvalue);
       fprintf(f, "\n");

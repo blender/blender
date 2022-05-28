@@ -1067,7 +1067,7 @@ void BKE_modifier_check_uuids_unique_and_report(const Object *object)
   BLI_gset_free(used_uuids, NULL);
 }
 
-void BKE_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
+void BKE_modifier_blend_write(BlendWriter *writer, const ID *id_owner, ListBase *modbase)
 {
   if (modbase == NULL) {
     return;
@@ -1076,7 +1076,13 @@ void BKE_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
   LISTBASE_FOREACH (ModifierData *, md, modbase) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info(md->type);
     if (mti == NULL) {
-      return;
+      continue;
+    }
+
+    /* If the blendWrite callback is defined, it should handle the whole writing process. */
+    if (mti->blendWrite != NULL) {
+      mti->blendWrite(writer, id_owner, md);
+      continue;
     }
 
     BLO_write_struct_by_name(writer, mti->structName, md);
@@ -1161,10 +1167,6 @@ void BKE_modifier_blend_write(BlendWriter *writer, ListBase *modbase)
       writestruct(wd, DATA, MVert, collmd->numverts, collmd->xnew);
       writestruct(wd, DATA, MFace, collmd->numfaces, collmd->mfaces);
 #endif
-    }
-
-    if (mti->blendWrite != NULL) {
-      mti->blendWrite(writer, md);
     }
   }
 }

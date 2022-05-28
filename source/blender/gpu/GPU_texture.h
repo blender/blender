@@ -282,7 +282,7 @@ void *GPU_texture_read(GPUTexture *tex, eGPUDataFormat data_format, int miplvl);
  * \warning Only work for 2D texture for now.
  * \warning Only clears the MIP 0 of the texture.
  * \param data_format: data format of the pixel data.
- * \note The format is float for uniform textures.
+ * \note The format is float for UNORM textures.
  * \param data: 1 pixel worth of data to fill the texture with.
  */
 void GPU_texture_clear(GPUTexture *tex, eGPUDataFormat data_format, const void *data);

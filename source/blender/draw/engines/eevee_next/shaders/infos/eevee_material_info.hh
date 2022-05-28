@@ -22,6 +22,7 @@ GPU_SHADER_CREATE_INFO(eevee_sampling_data)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(eevee_geom_mesh)
+    .additional_info("eevee_shared")
     .define("MAT_GEOM_MESH")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::VEC3, "nor")
@@ -29,16 +30,19 @@ GPU_SHADER_CREATE_INFO(eevee_geom_mesh)
     .additional_info("draw_mesh", "draw_resource_id_varying", "draw_resource_handle");
 
 GPU_SHADER_CREATE_INFO(eevee_geom_gpencil)
+    .additional_info("eevee_shared")
     .define("MAT_GEOM_GPENCIL")
     .vertex_source("eevee_geom_gpencil_vert.glsl")
     .additional_info("draw_gpencil", "draw_resource_id_varying", "draw_resource_handle");
 
 GPU_SHADER_CREATE_INFO(eevee_geom_curves)
+    .additional_info("eevee_shared")
     .define("MAT_GEOM_CURVES")
     .vertex_source("eevee_geom_curves_vert.glsl")
     .additional_info("draw_hair", "draw_resource_id_varying", "draw_resource_handle");
 
 GPU_SHADER_CREATE_INFO(eevee_geom_world)
+    .additional_info("eevee_shared")
     .define("MAT_GEOM_WORLD")
     .builtins(BuiltinBits::VERTEX_ID)
     .vertex_source("eevee_geom_world_vert.glsl")
@@ -54,6 +58,7 @@ GPU_SHADER_INTERFACE_INFO(eevee_surf_iface, "interp")
     .smooth(Type::VEC3, "P")
     .smooth(Type::VEC3, "N")
     .smooth(Type::VEC2, "barycentric_coords")
+    .smooth(Type::VEC3, "curves_tangent")
     .smooth(Type::VEC3, "curves_binormal")
     .smooth(Type::FLOAT, "curves_time")
     .smooth(Type::FLOAT, "curves_time_width")
@@ -65,7 +70,7 @@ GPU_SHADER_INTERFACE_INFO(eevee_surf_iface, "interp")
 
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .vertex_out(eevee_surf_iface)
-    /* Note: This removes the possibility of using gl_FragDepth. */
+    /* NOTE: This removes the possibility of using gl_FragDepth. */
     // .early_fragment_test(true)
     /* Direct output. */
     .fragment_out(0, Type::VEC4, "out_radiance", DualBlend::SRC_0)

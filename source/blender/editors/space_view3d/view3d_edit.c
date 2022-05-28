@@ -608,7 +608,7 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO;
 
   /* properties */
-  RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Image name to assign");
+  WM_operator_properties_id_lookup(ot, true);
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE,
                                  FILE_SPECIAL,
@@ -678,10 +678,8 @@ static int drop_world_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
 
-  char name[MAX_ID_NAME - 2];
-
-  RNA_string_get(op->ptr, "name", name);
-  World *world = (World *)BKE_libblock_find_name(bmain, ID_WO, name);
+  World *world = (World *)WM_operator_properties_id_lookup_from_name_or_session_uuid(
+      bmain, op->ptr, ID_WO);
   if (world == NULL) {
     return OPERATOR_CANCELLED;
   }
@@ -718,7 +716,7 @@ void VIEW3D_OT_drop_world(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
   /* properties */
-  RNA_def_string(ot->srna, "name", "World", MAX_ID_NAME - 2, "Name", "World to assign");
+  WM_operator_properties_id_lookup(ot, true);
 }
 
 /** \} */

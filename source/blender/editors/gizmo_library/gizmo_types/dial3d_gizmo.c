@@ -96,7 +96,7 @@ static void dial_geom_draw(const float color[4],
                                                  ED_GIZMO_DIAL_DRAW_FLAG_FILL)));
 
   GPUVertFormat *format = immVertexFormat();
-  /* Note(Metal): Prefer using 3D coordinates with 3D shader, even if rendering 2D gizmo's. */
+  /* NOTE(Metal): Prefer using 3D coordinates with 3D shader, even if rendering 2D gizmo's. */
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   if (clip_plane) {

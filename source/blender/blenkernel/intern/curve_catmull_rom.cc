@@ -9,11 +9,11 @@
 
 namespace blender::bke::curves::catmull_rom {
 
-int calculate_evaluated_size(const int points_num, const bool cyclic, const int resolution)
+int calculate_evaluated_num(const int points_num, const bool cyclic, const int resolution)
 {
-  const int eval_size = resolution * curve_segment_size(points_num, cyclic);
+  const int eval_num = resolution * curve_segment_num(points_num, cyclic);
   /* If the curve isn't cyclic, one last point is added to the final point. */
-  return cyclic ? eval_size : eval_size + 1;
+  return cyclic ? eval_num : eval_num + 1;
 }
 
 /* Adapted from Cycles #catmull_rom_basis_eval function. */
@@ -46,7 +46,7 @@ static void interpolate_to_evaluated(const Span<T> src,
                                      MutableSpan<T> dst)
 
 {
-  BLI_assert(dst.size() == calculate_evaluated_size(src.size(), cyclic, resolution));
+  BLI_assert(dst.size() == calculate_evaluated_num(src.size(), cyclic, resolution));
 
   /* - First deal with one and two point curves need special attention.
    * - Then evaluate the first and last segment(s) whose control points need to wrap around

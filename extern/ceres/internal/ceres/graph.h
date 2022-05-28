@@ -36,6 +36,7 @@
 #include <unordered_set>
 #include <utility>
 
+#include "ceres/internal/export.h"
 #include "ceres/map_util.h"
 #include "ceres/pair_hash.h"
 #include "ceres/types.h"
@@ -47,10 +48,8 @@ namespace internal {
 // A unweighted undirected graph templated over the vertex ids. Vertex
 // should be hashable.
 template <typename Vertex>
-class Graph {
+class CERES_NO_EXPORT Graph {
  public:
-  Graph() {}
-
   // Add a vertex.
   void AddVertex(const Vertex& vertex) {
     if (vertices_.insert(vertex).second) {
@@ -106,8 +105,6 @@ class Graph {
 template <typename Vertex>
 class WeightedGraph {
  public:
-  WeightedGraph() {}
-
   // Add a weighted vertex. If the vertex already exists in the graph,
   // its weight is set to the new weight.
   void AddVertex(const Vertex& vertex, double weight) {

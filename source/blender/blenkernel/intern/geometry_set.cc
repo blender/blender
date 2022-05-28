@@ -272,7 +272,7 @@ bool GeometrySet::has_pointcloud() const
 bool GeometrySet::has_instances() const
 {
   const InstancesComponent *component = this->get_component_for_read<InstancesComponent>();
-  return component != nullptr && component->instances_amount() >= 1;
+  return component != nullptr && component->instances_num() >= 1;
 }
 
 bool GeometrySet::has_volume() const

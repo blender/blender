@@ -116,6 +116,11 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar, ListBase 
     ID *id = static_cast<ID *>(lbarray[a]->first);
     const bool is_library = (GS(id->name) == ID_LI) && (lib != nullptr);
 
+    /* Don't show deprecated types. */
+    if (ID_TYPE_IS_DEPRECATED(GS(id->name))) {
+      continue;
+    }
+
     /* check if there's data in current lib */
     for (ID *id_iter : List<ID>(lbarray[a])) {
       if (id_iter->lib == lib) {
@@ -135,9 +140,6 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar, ListBase 
         else {
           tenlib = outliner_add_element(&space_outliner_, &lb, &mainvar, nullptr, TSE_ID_BASE, 0);
           tenlib->name = IFACE_("Current File");
-        }
-        if (tenlib->flag & TE_HAS_WARNING) {
-          has_warnings = true;
         }
       }
 

@@ -40,7 +40,7 @@
 // This file is generated using generate_template_specializations.py.
 
 // This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 
 #ifndef CERES_RESTRICT_SCHUR_SPECIALIZATION
 

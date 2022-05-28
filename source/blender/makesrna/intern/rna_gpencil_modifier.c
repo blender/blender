@@ -195,6 +195,7 @@ static const EnumPropertyItem rna_enum_time_mode_items[] = {
     {GP_TIME_MODE_NORMAL, "NORMAL", 0, "Regular", "Apply offset in usual animation direction"},
     {GP_TIME_MODE_REVERSE, "REVERSE", 0, "Reverse", "Apply offset in reverse animation direction"},
     {GP_TIME_MODE_FIX, "FIX", 0, "Fixed Frame", "Keep frame and do not change with time"},
+    {GP_TIME_MODE_PINGPONG, "PINGPONG", 0, "Ping Pong", "Loop back and forth"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -233,8 +234,8 @@ static const EnumPropertyItem gpencil_envelope_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 static const EnumPropertyItem modifier_noise_random_mode_items[] = {
-    {GP_NOISE_RANDOM_STEP, "STEP", 0, "Steps", "Apply random every N steps"},
-    {GP_NOISE_RANDOM_KEYFRAME, "KEYFRAME", 0, "On Keyframes", "Apply random every keyframe"},
+    {GP_NOISE_RANDOM_STEP, "STEP", 0, "Steps", "Randomize every number of frames"},
+    {GP_NOISE_RANDOM_KEYFRAME, "KEYFRAME", 0, "Keyframes", "Randomize on keyframes only"},
     {0, NULL, 0, NULL, NULL},
 };
 #endif
@@ -340,9 +341,9 @@ static void rna_GpencilModifier_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(NULL, "grease_pencil_modifiers", oldname, gmd->name);
 }
 
-static char *rna_GpencilModifier_path(PointerRNA *ptr)
+static char *rna_GpencilModifier_path(const PointerRNA *ptr)
 {
-  GpencilModifierData *gmd = ptr->data;
+  const GpencilModifierData *gmd = ptr->data;
   char name_esc[sizeof(gmd->name) * 2];
 
   BLI_str_escape(name_esc, gmd->name, sizeof(name_esc));
@@ -751,11 +752,11 @@ static void rna_GpencilDash_segments_begin(CollectionPropertyIterator *iter, Poi
       iter, dmd->segments, sizeof(DashGpencilModifierSegment), dmd->segments_len, false, NULL);
 }
 
-static char *rna_DashGpencilModifierSegment_path(PointerRNA *ptr)
+static char *rna_DashGpencilModifierSegment_path(const PointerRNA *ptr)
 {
-  DashGpencilModifierSegment *ds = (DashGpencilModifierSegment *)ptr->data;
+  const DashGpencilModifierSegment *ds = (DashGpencilModifierSegment *)ptr->data;
 
-  DashGpencilModifierData *dmd = (DashGpencilModifierData *)ds->dmd;
+  const DashGpencilModifierData *dmd = (DashGpencilModifierData *)ds->dmd;
 
   BLI_assert(dmd != NULL);
 
@@ -929,8 +930,7 @@ static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
   prop = RNA_def_property(srna, "step", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "step");
   RNA_def_property_range(prop, 1, 100);
-  RNA_def_property_ui_text(
-      prop, "Step", "Number of frames before recalculate random values again");
+  RNA_def_property_ui_text(prop, "Step", "Number of frames between randomization steps");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "invert_layers", PROP_BOOLEAN, PROP_NONE);
@@ -967,7 +967,7 @@ static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
   prop = RNA_def_property(srna, "random_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "noise_mode");
   RNA_def_property_enum_items(prop, modifier_noise_random_mode_items);
-  RNA_def_property_ui_text(prop, "Mode", "How the random changes are applied");
+  RNA_def_property_ui_text(prop, "Mode", "Where to perform randomization");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   RNA_define_lib_overridable(false);
@@ -2122,17 +2122,17 @@ static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)
   static EnumPropertyItem prop_gpencil_build_mode_items[] = {
       {GP_BUILD_MODE_SEQUENTIAL,
        "SEQUENTIAL",
-       ICON_PARTICLE_POINT,
+       0,
        "Sequential",
        "Strokes appear/disappear one after the other, but only a single one changes at a time"},
       {GP_BUILD_MODE_CONCURRENT,
        "CONCURRENT",
-       ICON_PARTICLE_TIP,
+       0,
        "Concurrent",
        "Multiple strokes appear/disappear at once"},
       {GP_BUILD_MODE_ADDITIVE,
        "ADDITIVE",
-       ICON_PARTICLE_PATH,
+       0,
        "Additive",
        "Builds only new strokes (assuming 'additive' drawing)"},
       {0, NULL, 0, NULL, NULL},

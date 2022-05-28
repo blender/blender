@@ -87,8 +87,8 @@ Closure closure_eval(ClosureDiffuse diffuse,
                      ClosureReflection clearcoat,
                      ClosureRefraction refraction);
 
-Closure closure_add(Closure cl1, Closure cl2);
-Closure closure_mix(Closure cl1, Closure cl2, float fac);
+Closure closure_add(inout Closure cl1, inout Closure cl2);
+Closure closure_mix(inout Closure cl1, inout Closure cl2, float fac);
 
 float ambient_occlusion_eval(vec3 normal,
                              float distance,

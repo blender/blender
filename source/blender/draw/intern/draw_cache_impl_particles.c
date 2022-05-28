@@ -277,7 +277,7 @@ static void particle_calculate_parent_uvs(ParticleSystem *psys,
                                           ParticleSystemModifierData *psmd,
                                           const int num_uv_layers,
                                           const int parent_index,
-                                          /*const*/ MTFace **mtfaces,
+                                          const MTFace **mtfaces,
                                           float (*r_uv)[2])
 {
   if (psmd == NULL) {
@@ -306,7 +306,7 @@ static void particle_calculate_parent_mcol(ParticleSystem *psys,
                                            ParticleSystemModifierData *psmd,
                                            const int num_col_layers,
                                            const int parent_index,
-                                           /*const*/ MCol **mcols,
+                                           const MCol **mcols,
                                            MCol *r_mcol)
 {
   if (psmd == NULL) {
@@ -337,7 +337,7 @@ static void particle_interpolate_children_uvs(ParticleSystem *psys,
                                               ParticleSystemModifierData *psmd,
                                               const int num_uv_layers,
                                               const int child_index,
-                                              /*const*/ MTFace **mtfaces,
+                                              const MTFace **mtfaces,
                                               float (*r_uv)[2])
 {
   if (psmd == NULL) {
@@ -361,7 +361,7 @@ static void particle_interpolate_children_mcol(ParticleSystem *psys,
                                                ParticleSystemModifierData *psmd,
                                                const int num_col_layers,
                                                const int child_index,
-                                               /*const*/ MCol **mcols,
+                                               const MCol **mcols,
                                                MCol *r_mcol)
 {
   if (psmd == NULL) {
@@ -388,7 +388,7 @@ static void particle_calculate_uvs(ParticleSystem *psys,
                                    const int num_uv_layers,
                                    const int parent_index,
                                    const int child_index,
-                                   /*const*/ MTFace **mtfaces,
+                                   const MTFace **mtfaces,
                                    float (**r_parent_uvs)[2],
                                    float (**r_uv)[2])
 {
@@ -431,7 +431,7 @@ static void particle_calculate_mcol(ParticleSystem *psys,
                                     const int num_col_layers,
                                     const int parent_index,
                                     const int child_index,
-                                    /*const*/ MCol **mcols,
+                                    const MCol **mcols,
                                     MCol **r_parent_mcol,
                                     MCol **r_mcol)
 {
@@ -482,8 +482,8 @@ static int particle_batch_cache_fill_segments(ParticleSystem *psys,
                                               const int num_path_keys,
                                               const int num_uv_layers,
                                               const int num_col_layers,
-                                              /*const*/ MTFace **mtfaces,
-                                              /*const*/ MCol **mcols,
+                                              const MTFace **mtfaces,
+                                              const MCol **mcols,
                                               uint *uv_id,
                                               uint *col_id,
                                               float (***r_parent_uvs)[2],
@@ -713,11 +713,11 @@ static int particle_batch_cache_fill_strands_data(ParticleSystem *psys,
                                                   GPUVertBufRaw *seg_step,
                                                   float (***r_parent_uvs)[2],
                                                   GPUVertBufRaw *uv_step,
-                                                  MTFace **mtfaces,
+                                                  const MTFace **mtfaces,
                                                   int num_uv_layers,
                                                   MCol ***r_parent_mcol,
                                                   GPUVertBufRaw *col_step,
-                                                  MCol **mcols,
+                                                  const MCol **mcols,
                                                   int num_col_layers)
 {
   const bool is_simple = (psys->part->childtype == PART_CHILD_PARTICLES);
@@ -834,8 +834,8 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   GPUVertBufRaw uv_step[MAX_MTFACE];
   GPUVertBufRaw col_step[MAX_MCOL];
 
-  MTFace *mtfaces[MAX_MTFACE] = {NULL};
-  MCol *mcols[MAX_MCOL] = {NULL};
+  const MTFace *mtfaces[MAX_MTFACE] = {NULL};
+  const MCol *mcols[MAX_MCOL] = {NULL};
   float(**parent_uvs)[2] = NULL;
   MCol **parent_mcol = NULL;
 
@@ -909,12 +909,13 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     BKE_mesh_tessface_ensure(psmd->mesh_final);
     if (cache->num_uv_layers) {
       for (int j = 0; j < cache->num_uv_layers; j++) {
-        mtfaces[j] = (MTFace *)CustomData_get_layer_n(&psmd->mesh_final->fdata, CD_MTFACE, j);
+        mtfaces[j] = (const MTFace *)CustomData_get_layer_n(
+            &psmd->mesh_final->fdata, CD_MTFACE, j);
       }
     }
     if (cache->num_col_layers) {
       for (int j = 0; j < cache->num_col_layers; j++) {
-        mcols[j] = (MCol *)CustomData_get_layer_n(&psmd->mesh_final->fdata, CD_MCOL, j);
+        mcols[j] = (const MCol *)CustomData_get_layer_n(&psmd->mesh_final->fdata, CD_MCOL, j);
       }
     }
   }
@@ -930,11 +931,11 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
                                            &seg_step,
                                            &parent_uvs,
                                            uv_step,
-                                           (MTFace **)mtfaces,
+                                           mtfaces,
                                            cache->num_uv_layers,
                                            &parent_mcol,
                                            col_step,
-                                           (MCol **)mcols,
+                                           mcols,
                                            cache->num_col_layers);
   }
   else {
@@ -951,11 +952,11 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
                                                           &seg_step,
                                                           &parent_uvs,
                                                           uv_step,
-                                                          (MTFace **)mtfaces,
+                                                          mtfaces,
                                                           cache->num_uv_layers,
                                                           &parent_mcol,
                                                           col_step,
-                                                          (MCol **)mcols,
+                                                          mcols,
                                                           cache->num_col_layers);
     }
     if (psys->childcache) {
@@ -970,11 +971,11 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
                                                           &seg_step,
                                                           &parent_uvs,
                                                           uv_step,
-                                                          (MTFace **)mtfaces,
+                                                          mtfaces,
                                                           cache->num_uv_layers,
                                                           &parent_mcol,
                                                           col_step,
-                                                          (MCol **)mcols,
+                                                          mcols,
                                                           cache->num_col_layers);
     }
   }
@@ -1147,8 +1148,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   int num_col_layers = 0;
   int active_uv = 0;
   int active_col = 0;
-  MTFace **mtfaces = NULL;
-  MCol **mcols = NULL;
+  const MTFace **mtfaces = NULL;
+  const MCol **mcols = NULL;
   float(**parent_uvs)[2] = NULL;
   MCol **parent_mcol = NULL;
 
@@ -1214,13 +1215,14 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     if (num_uv_layers) {
       mtfaces = MEM_mallocN(sizeof(*mtfaces) * num_uv_layers, "Faces UV layers");
       for (int i = 0; i < num_uv_layers; i++) {
-        mtfaces[i] = (MTFace *)CustomData_get_layer_n(&psmd->mesh_final->fdata, CD_MTFACE, i);
+        mtfaces[i] = (const MTFace *)CustomData_get_layer_n(
+            &psmd->mesh_final->fdata, CD_MTFACE, i);
       }
     }
     if (num_col_layers) {
       mcols = MEM_mallocN(sizeof(*mcols) * num_col_layers, "Color layers");
       for (int i = 0; i < num_col_layers; i++) {
-        mcols[i] = (MCol *)CustomData_get_layer_n(&psmd->mesh_final->fdata, CD_MCOL, i);
+        mcols[i] = (const MCol *)CustomData_get_layer_n(&psmd->mesh_final->fdata, CD_MCOL, i);
       }
     }
   }
@@ -1304,10 +1306,10 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     MEM_freeN(parent_mcol);
   }
   if (num_uv_layers) {
-    MEM_freeN(mtfaces);
+    MEM_freeN((void *)mtfaces);
   }
   if (num_col_layers) {
-    MEM_freeN(mcols);
+    MEM_freeN((void *)mcols);
   }
   if (psmd != NULL) {
     MEM_freeN(uv_id);

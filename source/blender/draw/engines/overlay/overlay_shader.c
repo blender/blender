@@ -893,7 +893,7 @@ GPUShader *OVERLAY_shader_edit_uv_edges_get(void)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_edges) {
-    sh_data->edit_uv_edges = GPU_shader_create_from_info_name("overlay_edit_uv_edges_select");
+    sh_data->edit_uv_edges = GPU_shader_create_from_info_name("overlay_edit_uv_edges");
   }
   return sh_data->edit_uv_edges;
 }
@@ -903,7 +903,7 @@ GPUShader *OVERLAY_shader_edit_uv_edges_for_edge_select_get(void)
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->edit_uv_edges_for_edge_select) {
     sh_data->edit_uv_edges_for_edge_select = GPU_shader_create_from_info_name(
-        "overlay_edit_uv_edges");
+        "overlay_edit_uv_edges_select");
   }
   return sh_data->edit_uv_edges_for_edge_select;
 }

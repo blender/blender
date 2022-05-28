@@ -219,7 +219,10 @@ static void sync_smoke_volume(
 
 class BlenderVolumeLoader : public VDBImageLoader {
  public:
-  BlenderVolumeLoader(BL::BlendData &b_data, BL::Volume &b_volume, const string &grid_name)
+  BlenderVolumeLoader(BL::BlendData &b_data,
+                      BL::Volume &b_volume,
+                      const string &grid_name,
+                      BL::VolumeRender::precision_enum precision_)
       : VDBImageLoader(grid_name), b_volume(b_volume)
   {
     b_volume.grids.load(b_data.ptr.data);
@@ -240,6 +243,22 @@ class BlenderVolumeLoader : public VDBImageLoader {
         break;
       }
     }
+#endif
+#ifdef WITH_NANOVDB
+    switch (precision_) {
+      case BL::VolumeRender::precision_FULL:
+        precision = 32;
+        break;
+      case BL::VolumeRender::precision_HALF:
+        precision = 16;
+        break;
+      default:
+      case BL::VolumeRender::precision_VARIABLE:
+        precision = 0;
+        break;
+    }
+#else
+    (void)precision_;
 #endif
   }
 
@@ -318,7 +337,8 @@ static void sync_volume_object(BL::BlendData &b_data,
                             volume->attributes.add(std) :
                             volume->attributes.add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VOXEL);
 
-      ImageLoader *loader = new BlenderVolumeLoader(b_data, b_volume, name.string());
+      ImageLoader *loader = new BlenderVolumeLoader(
+          b_data, b_volume, name.string(), b_render.precision());
       ImageParams params;
       params.frame = b_volume.grids.frame();
 

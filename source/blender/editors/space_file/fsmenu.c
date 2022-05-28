@@ -519,13 +519,13 @@ void fsmenu_remove_entry(struct FSMenu *fsmenu, FSMenuCategory category, int idx
   }
 }
 
-void fsmenu_write_file(struct FSMenu *fsmenu, const char *filename)
+void fsmenu_write_file(struct FSMenu *fsmenu, const char *filepath)
 {
   FSMenuEntry *fsm_iter = NULL;
   char fsm_name[FILE_MAX];
   int nwritten = 0;
 
-  FILE *fp = BLI_fopen(filename, "w");
+  FILE *fp = BLI_fopen(filepath, "w");
   if (!fp) {
     return;
   }
@@ -556,14 +556,14 @@ void fsmenu_write_file(struct FSMenu *fsmenu, const char *filename)
   fclose(fp);
 }
 
-void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filename)
+void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filepath)
 {
   char line[FILE_MAXDIR];
   char name[FILE_MAXFILE];
   FSMenuCategory category = FS_CATEGORY_BOOKMARKS;
   FILE *fp;
 
-  fp = BLI_fopen(filename, "r");
+  fp = BLI_fopen(filepath, "r");
   if (!fp) {
     return;
   }

@@ -335,7 +335,7 @@ void BezierSpline::mark_cache_invalid()
   auto_handles_dirty_ = true;
 }
 
-int BezierSpline::evaluated_points_size() const
+int BezierSpline::evaluated_points_num() const
 {
   BLI_assert(this->size() > 0);
   return this->control_point_offsets().last();
@@ -502,12 +502,12 @@ Span<float> BezierSpline::evaluated_mappings() const
     return evaluated_mapping_cache_;
   }
 
-  const int size = this->size();
-  const int eval_size = this->evaluated_points_size();
-  evaluated_mapping_cache_.resize(eval_size);
+  const int num = this->size();
+  const int eval_num = this->evaluated_points_num();
+  evaluated_mapping_cache_.resize(eval_num);
   MutableSpan<float> mappings = evaluated_mapping_cache_;
 
-  if (eval_size == 1) {
+  if (eval_num == 1) {
     mappings.first() = 0.0f;
     mapping_cache_dirty_ = false;
     return mappings;
@@ -517,7 +517,7 @@ Span<float> BezierSpline::evaluated_mappings() const
 
   blender::threading::isolate_task([&]() {
     /* Isolate the task, since this is function is multi-threaded and holds a lock. */
-    calculate_mappings_linear_resolution(offsets, size, resolution_, is_cyclic_, mappings);
+    calculate_mappings_linear_resolution(offsets, num, resolution_, is_cyclic_, mappings);
   });
 
   mapping_cache_dirty_ = false;
@@ -535,15 +535,15 @@ Span<float3> BezierSpline::evaluated_positions() const
     return evaluated_position_cache_;
   }
 
-  const int size = this->size();
-  const int eval_size = this->evaluated_points_size();
-  evaluated_position_cache_.resize(eval_size);
+  const int num = this->size();
+  const int eval_num = this->evaluated_points_num();
+  evaluated_position_cache_.resize(eval_num);
 
   MutableSpan<float3> positions = evaluated_position_cache_;
 
-  if (size == 1) {
+  if (num == 1) {
     /* Use a special case for single point splines to avoid checking in #evaluate_segment. */
-    BLI_assert(eval_size == 1);
+    BLI_assert(eval_num == 1);
     positions.first() = positions_.first();
     position_cache_dirty_ = false;
     return positions;
@@ -556,7 +556,7 @@ Span<float3> BezierSpline::evaluated_positions() const
   const int grain_size = std::max(512 / resolution_, 1);
   blender::threading::isolate_task([&]() {
     /* Isolate the task, since this is function is multi-threaded and holds a lock. */
-    blender::threading::parallel_for(IndexRange(size - 1), grain_size, [&](IndexRange range) {
+    blender::threading::parallel_for(IndexRange(num - 1), grain_size, [&](IndexRange range) {
       for (const int i : range) {
         this->evaluate_segment(i, i + 1, positions.slice(offsets[i], offsets[i + 1] - offsets[i]));
       }
@@ -564,7 +564,7 @@ Span<float3> BezierSpline::evaluated_positions() const
   });
   if (is_cyclic_) {
     this->evaluate_segment(
-        size - 1, 0, positions.slice(offsets[size - 1], offsets[size] - offsets[size - 1]));
+        num - 1, 0, positions.slice(offsets[num - 1], offsets[num] - offsets[num - 1]));
   }
   else {
     /* Since evaluating the bezier segment doesn't add the final point,
@@ -579,23 +579,23 @@ Span<float3> BezierSpline::evaluated_positions() const
 BezierSpline::InterpolationData BezierSpline::interpolation_data_from_index_factor(
     const float index_factor) const
 {
-  const int size = this->size();
+  const int num = this->size();
 
   if (is_cyclic_) {
-    if (index_factor < size) {
+    if (index_factor < num) {
       const int index = std::floor(index_factor);
-      const int next_index = (index < size - 1) ? index + 1 : 0;
+      const int next_index = (index < num - 1) ? index + 1 : 0;
       return InterpolationData{index, next_index, index_factor - index};
     }
-    return InterpolationData{size - 1, 0, 1.0f};
+    return InterpolationData{num - 1, 0, 1.0f};
   }
 
-  if (index_factor < size - 1) {
+  if (index_factor < num - 1) {
     const int index = std::floor(index_factor);
     const int next_index = index + 1;
     return InterpolationData{index, next_index, index_factor - index};
   }
-  return InterpolationData{size - 2, size - 1, 1.0f};
+  return InterpolationData{num - 2, num - 1, 1.0f};
 }
 
 /* Use a spline argument to avoid adding this to the header. */
@@ -605,7 +605,7 @@ static void interpolate_to_evaluated_impl(const BezierSpline &spline,
                                           MutableSpan<T> dst)
 {
   BLI_assert(src.size() == spline.size());
-  BLI_assert(dst.size() == spline.evaluated_points_size());
+  BLI_assert(dst.size() == spline.evaluated_points_num());
   Span<float> mappings = spline.evaluated_mappings();
 
   for (const int i : dst.index_range()) {
@@ -627,8 +627,8 @@ GVArray BezierSpline::interpolate_to_evaluated(const GVArray &src) const
     return src;
   }
 
-  const int eval_size = this->evaluated_points_size();
-  if (eval_size == 1) {
+  const int eval_num = this->evaluated_points_num();
+  if (eval_num == 1) {
     return src;
   }
 
@@ -636,7 +636,7 @@ GVArray BezierSpline::interpolate_to_evaluated(const GVArray &src) const
   blender::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<blender::attribute_math::DefaultMixer<T>>) {
-      Array<T> values(eval_size);
+      Array<T> values(eval_num);
       interpolate_to_evaluated_impl<T>(*this, src.typed<T>(), values);
       new_varray = VArray<T>::ForContainer(std::move(values));
     }

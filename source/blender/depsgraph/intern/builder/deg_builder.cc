@@ -136,8 +136,22 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
   for (IDNode *id_node : graph->id_nodes) {
     for (ComponentNode *comp_node : id_node->components.values()) {
       comp_node->affects_directly_visible |= id_node->is_directly_visible;
+
+      /* Enforce "visibility" of the syncronization component.
+       *
+       * This component is never connected to other ID nodes, and hence can not be handled in the
+       * same way as other components needed for evaluation. It is only needed for proper
+       * evaluation of the ID node it belongs to.
+       *
+       * The design is such that the synchronization is supposed to happen whenever any part of the
+       * ID changed/evaluated. Here we mark the component as "visible" so that genetic recalc flag
+       * flushing and scheduling will handle the component in a generic manner. */
+      if (comp_node->type == NodeType::SYNCHRONIZATION) {
+        comp_node->affects_directly_visible = true;
+      }
     }
   }
+
   for (OperationNode *op_node : graph->operations) {
     op_node->custom_flags = 0;
     op_node->num_links_pending = 0;
@@ -151,6 +165,7 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
       op_node->custom_flags |= DEG_NODE_VISITED;
     }
   }
+
   while (!BLI_stack_is_empty(stack)) {
     OperationNode *op_node;
     BLI_stack_pop(stack, &op_node);

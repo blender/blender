@@ -98,27 +98,6 @@ set(ALEMBIC_HASH 2cd8d6e5a3ac4a014e24a4b04f4fadf9)
 set(ALEMBIC_HASH_TYPE MD5)
 set(ALEMBIC_FILE alembic-${ALEMBIC_VERSION}.tar.gz)
 
-# hash is for 3.1.2
-set(GLFW_GIT_UID 30306e54705c3adae9fe082c816a3be71963485c)
-set(GLFW_URI https://github.com/glfw/glfw/archive/${GLFW_GIT_UID}.zip)
-set(GLFW_HASH 20cacb1613da7eeb092f3ac4f6b2b3d0)
-set(GLFW_HASH_TYPE MD5)
-set(GLFW_FILE glfw-${GLFW_GIT_UID}.zip)
-
-# latest uid in git as of 2016-04-01
-set(CLEW_GIT_UID 277db43f6cafe8b27c6f1055f69dc67da4aeb299)
-set(CLEW_URI https://github.com/OpenCLWrangler/clew/archive/${CLEW_GIT_UID}.zip)
-set(CLEW_HASH 2c699d10ed78362e71f56fae2a4c5f98)
-set(CLEW_HASH_TYPE MD5)
-set(CLEW_FILE clew-${CLEW_GIT_UID}.zip)
-
-# latest uid in git as of 2016-04-01
-set(CUEW_GIT_UID 1744972026de9cf27c8a7dc39cf39cd83d5f922f)
-set(CUEW_URI https://github.com/CudaWrangler/cuew/archive/${CUEW_GIT_UID}.zip)
-set(CUEW_HASH 86760d62978ebfd96cd93f5aa1abaf4a)
-set(CUEW_HASH_TYPE MD5)
-set(CUEW_FILE cuew-${CUEW_GIT_UID}.zip)
-
 set(OPENSUBDIV_VERSION v3_4_4)
 set(OPENSUBDIV_URI https://github.com/PixarAnimationStudios/OpenSubdiv/archive/${OPENSUBDIV_VERSION}.tar.gz)
 set(OPENSUBDIV_HASH 39ecc5caf0abebc943d1ce131855e76e)

@@ -262,8 +262,11 @@ static inline bool BKE_object_is_modified(BL::Object &self, BL::Scene &scene, bo
 static inline bool BKE_object_is_deform_modified(BObjectInfo &self, BL::Scene &scene, bool preview)
 {
   if (!self.is_real_object_data()) {
-    return false;
+    /* Comes from geometry nodes, can't use heuristic to guess if it's animated. */
+    return true;
   }
+
+  /* Use heuristic to quickly check if object is potentially animated. */
   return self.real_object.is_deform_modified(scene, (preview) ? (1 << 0) : (1 << 1)) ? true :
                                                                                        false;
 }

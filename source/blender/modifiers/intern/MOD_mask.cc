@@ -91,7 +91,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 }
 
 /* A vertex will be in the mask if a selected bone influences it more than a certain threshold. */
-static void compute_vertex_mask__armature_mode(MDeformVert *dvert,
+static void compute_vertex_mask__armature_mode(const MDeformVert *dvert,
                                                Mesh *mesh,
                                                Object *armature_ob,
                                                float threshold,
@@ -125,7 +125,7 @@ static void compute_vertex_mask__armature_mode(MDeformVert *dvert,
 }
 
 /* A vertex will be in the mask if the vertex group influences it more than a certain threshold. */
-static void compute_vertex_mask__vertex_group_mode(MDeformVert *dvert,
+static void compute_vertex_mask__vertex_group_mode(const MDeformVert *dvert,
                                                    int defgrp_index,
                                                    float threshold,
                                                    MutableSpan<bool> r_vertex_mask)
@@ -347,7 +347,7 @@ static void copy_masked_vertices_to_new_mesh(const Mesh &src_mesh,
 }
 
 static float get_interp_factor_from_vgroup(
-    MDeformVert *dvert, int defgrp_index, float threshold, uint v1, uint v2)
+    const MDeformVert *dvert, int defgrp_index, float threshold, uint v1, uint v2)
 {
   /* NOTE: this calculation is done twice for every vertex,
    * instead of storing it the first time and then reusing it. */
@@ -360,7 +360,7 @@ static void add_interp_verts_copy_edges_to_new_mesh(const Mesh &src_mesh,
                                                     Mesh &dst_mesh,
                                                     Span<bool> vertex_mask,
                                                     Span<int> vertex_map,
-                                                    MDeformVert *dvert,
+                                                    const MDeformVert *dvert,
                                                     int defgrp_index,
                                                     float threshold,
                                                     uint edges_masked_num,
@@ -478,7 +478,7 @@ static void add_interpolated_polys_to_new_mesh(const Mesh &src_mesh,
                                                Span<bool> vertex_mask,
                                                Span<int> vertex_map,
                                                Span<int> edge_map,
-                                               MDeformVert *dvert,
+                                               const MDeformVert *dvert,
                                                int defgrp_index,
                                                float threshold,
                                                Span<int> masked_poly_indices,
@@ -619,7 +619,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *UNUSED(ctx)
                                  (mmd->flag & MOD_MASK_SMOOTH);
 
   /* Return empty or input mesh when there are no vertex groups. */
-  MDeformVert *dvert = (MDeformVert *)CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
+  const MDeformVert *dvert = (const MDeformVert *)CustomData_get_layer(&mesh->vdata,
+                                                                       CD_MDEFORMVERT);
   if (dvert == nullptr) {
     return invert_mask ? mesh : BKE_mesh_new_nomain_from_template(mesh, 0, 0, 0, 0, 0);
   }

@@ -360,8 +360,8 @@ static void seq_update_meta_disp_range(Editing *ed)
     }
 
     /* Update meta strip endpoints. */
-    SEQ_transform_set_left_handle_frame(ms->parseq, ms->disp_range[0]);
-    SEQ_transform_set_right_handle_frame(ms->parseq, ms->disp_range[1]);
+    SEQ_time_left_handle_frame_set(ms->parseq, ms->disp_range[0]);
+    SEQ_time_right_handle_frame_set(ms->parseq, ms->disp_range[1]);
     SEQ_transform_fix_single_image_seq_offsets(ms->parseq);
 
     /* Recalculate effects using meta strip. */
@@ -1666,13 +1666,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
-          /* UV/Image Max resolution images in image editor. */
-          if (space->spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = (SpaceImage *)space;
-            sima->iuser.flag |= IMA_SHOW_MAX_RESOLUTION;
-          }
           /* Enable Outliner render visibility column. */
-          else if (space->spacetype == SPACE_OUTLINER) {
+          if (space->spacetype == SPACE_OUTLINER) {
             SpaceOutliner *space_outliner = (SpaceOutliner *)space;
             space_outliner->show_restrict_flags |= SO_RESTRICT_RENDER;
           }

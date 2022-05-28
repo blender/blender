@@ -200,7 +200,7 @@ static float text_size_get(const SeqChannelDrawContext *context)
   return UI_fontstyle_height_max(&style->widget) * 1.5f * context->scale;
 }
 
-/* Todo: decide what gets priority - label or buttons */
+/* TODO: decide what gets priority - label or buttons. */
 static rctf label_rect_init(const SeqChannelDrawContext *context,
                             const int channel_index,
                             const float used_width)
@@ -286,7 +286,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
   }
 }
 
-/* Todo: different text/buttons alignment */
+/* TODO: different text/buttons alignment. */
 static void draw_channel_header(const SeqChannelDrawContext *context,
                                 uiBlock *block,
                                 const int channel_index)

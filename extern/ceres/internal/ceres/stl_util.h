@@ -73,7 +73,7 @@ void STLDeleteUniqueContainerPointers(ForwardIterator begin,
 // hash_set, or any other STL container which defines sensible begin(), end(),
 // and clear() methods.
 //
-// If container is NULL, this function is a no-op.
+// If container is nullptr, this function is a no-op.
 //
 // As an alternative to calling STLDeleteElements() directly, consider
 // ElementDeleter (defined below), which ensures that your container's elements

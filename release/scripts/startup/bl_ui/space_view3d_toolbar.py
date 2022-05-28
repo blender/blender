@@ -276,7 +276,7 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
 
 
 class TEXTURE_UL_texpaintslots(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
         # mat = data
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -390,6 +390,11 @@ class VIEW3D_PT_tools_brush_settings_advanced(Panel, View3DPaintBrushPanel):
     bl_label = "Advanced"
     bl_options = {'DEFAULT_CLOSED'}
     bl_ui_units_x = 14
+
+    @classmethod
+    def poll(cls, context):
+        mode = cls.get_brush_mode(context)
+        return mode is not None and mode != 'SCULPT_CURVES'
 
     def draw(self, context):
         layout = self.layout

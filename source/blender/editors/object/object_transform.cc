@@ -1125,7 +1125,7 @@ static int object_transform_apply_invoke(bContext *C, wmOperator *op, const wmEv
   bool can_handle_multiuser = apply_objects_internal_can_multiuser(C);
   bool need_single_user = can_handle_multiuser && apply_objects_internal_need_single_user(C);
 
-  if ((ob->data != nullptr) && need_single_user) {
+  if ((ob != nullptr) && (ob->data != nullptr) && need_single_user) {
     PropertyRNA *prop = RNA_struct_find_property(op->ptr, "isolate_users");
     if (!RNA_property_is_set(op->ptr, prop)) {
       RNA_property_boolean_set(op->ptr, prop, true);

@@ -35,39 +35,39 @@
 
 namespace ceres {
 
-typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Vector;
-typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
-    Matrix;
-typedef Eigen::Map<Vector> VectorRef;
-typedef Eigen::Map<Matrix> MatrixRef;
-typedef Eigen::Map<const Vector> ConstVectorRef;
-typedef Eigen::Map<const Matrix> ConstMatrixRef;
+using Vector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+using Matrix =
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using VectorRef = Eigen::Map<Vector>;
+using MatrixRef = Eigen::Map<Matrix>;
+using ConstVectorRef = Eigen::Map<const Vector>;
+using ConstMatrixRef = Eigen::Map<const Matrix>;
 
 // Column major matrices for DenseSparseMatrix/DenseQRSolver
-typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>
-    ColMajorMatrix;
+using ColMajorMatrix =
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
-typedef Eigen::Map<ColMajorMatrix, 0, Eigen::Stride<Eigen::Dynamic, 1>>
-    ColMajorMatrixRef;
+using ColMajorMatrixRef =
+    Eigen::Map<ColMajorMatrix, 0, Eigen::Stride<Eigen::Dynamic, 1>>;
 
-typedef Eigen::Map<const ColMajorMatrix, 0, Eigen::Stride<Eigen::Dynamic, 1>>
-    ConstColMajorMatrixRef;
+using ConstColMajorMatrixRef =
+    Eigen::Map<const ColMajorMatrix, 0, Eigen::Stride<Eigen::Dynamic, 1>>;
 
 // C++ does not support templated typdefs, thus the need for this
 // struct so that we can support statically sized Matrix and Maps.
 template <int num_rows = Eigen::Dynamic, int num_cols = Eigen::Dynamic>
 struct EigenTypes {
-  typedef Eigen::Matrix<double,
-                        num_rows,
-                        num_cols,
-                        num_cols == 1 ? Eigen::ColMajor : Eigen::RowMajor>
-      Matrix;
+  using Matrix =
+      Eigen::Matrix<double,
+                    num_rows,
+                    num_cols,
+                    num_cols == 1 ? Eigen::ColMajor : Eigen::RowMajor>;
 
-  typedef Eigen::Map<Matrix> MatrixRef;
-  typedef Eigen::Map<const Matrix> ConstMatrixRef;
-  typedef Eigen::Matrix<double, num_rows, 1> Vector;
-  typedef Eigen::Map<Eigen::Matrix<double, num_rows, 1>> VectorRef;
-  typedef Eigen::Map<const Eigen::Matrix<double, num_rows, 1>> ConstVectorRef;
+  using MatrixRef = Eigen::Map<Matrix>;
+  using ConstMatrixRef = Eigen::Map<const Matrix>;
+  using Vector = Eigen::Matrix<double, num_rows, 1>;
+  using VectorRef = Eigen::Map<Eigen::Matrix<double, num_rows, 1>>;
+  using ConstVectorRef = Eigen::Map<const Eigen::Matrix<double, num_rows, 1>>;
 };
 
 }  // namespace ceres

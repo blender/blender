@@ -259,7 +259,7 @@ static bool rna_ParticleEdit_hair_get(PointerRNA *ptr)
   return 0;
 }
 
-static char *rna_ParticleEdit_path(PointerRNA *UNUSED(ptr))
+static char *rna_ParticleEdit_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.particle_edit");
 }
@@ -403,15 +403,15 @@ static void rna_Sculpt_ShowMask_update(bContext *C, PointerRNA *UNUSED(ptr))
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, object);
 }
 
-static char *rna_Sculpt_path(PointerRNA *UNUSED(ptr))
+static char *rna_Sculpt_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.sculpt");
 }
 
-static char *rna_VertexPaint_path(PointerRNA *ptr)
+static char *rna_VertexPaint_path(const PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
-  ToolSettings *ts = scene->toolsettings;
+  const Scene *scene = (Scene *)ptr->owner_id;
+  const ToolSettings *ts = scene->toolsettings;
   if (ptr->data == ts->vpaint) {
     return BLI_strdup("tool_settings.vertex_paint");
   }
@@ -420,47 +420,47 @@ static char *rna_VertexPaint_path(PointerRNA *ptr)
   }
 }
 
-static char *rna_ImagePaintSettings_path(PointerRNA *UNUSED(ptr))
+static char *rna_ImagePaintSettings_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.image_paint");
 }
 
-static char *rna_PaintModeSettings_path(PointerRNA *UNUSED(ptr))
+static char *rna_PaintModeSettings_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.paint_mode");
 }
 
-static char *rna_UvSculpt_path(PointerRNA *UNUSED(ptr))
+static char *rna_UvSculpt_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.uv_sculpt");
 }
 
-static char *rna_CurvesSculpt_path(PointerRNA *UNUSED(ptr))
+static char *rna_CurvesSculpt_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.curves_sculpt");
 }
 
-static char *rna_GpPaint_path(PointerRNA *UNUSED(ptr))
+static char *rna_GpPaint_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_paint");
 }
 
-static char *rna_GpVertexPaint_path(PointerRNA *UNUSED(ptr))
+static char *rna_GpVertexPaint_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_vertex_paint");
 }
 
-static char *rna_GpSculptPaint_path(PointerRNA *UNUSED(ptr))
+static char *rna_GpSculptPaint_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_sculpt_paint");
 }
 
-static char *rna_GpWeightPaint_path(PointerRNA *UNUSED(ptr))
+static char *rna_GpWeightPaint_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_weight_paint");
 }
 
-static char *rna_ParticleBrush_path(PointerRNA *UNUSED(ptr))
+static char *rna_ParticleBrush_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.particle_edit.brush");
 }
@@ -578,12 +578,12 @@ static bool rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
   return imapaint->missing_data == 0;
 }
 
-static char *rna_GPencilSculptSettings_path(PointerRNA *UNUSED(ptr))
+static char *rna_GPencilSculptSettings_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_sculpt");
 }
 
-static char *rna_GPencilSculptGuide_path(PointerRNA *UNUSED(ptr))
+static char *rna_GPencilSculptGuide_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_sculpt.guide");
 }

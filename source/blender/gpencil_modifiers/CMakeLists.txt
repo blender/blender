@@ -72,7 +72,6 @@ set(SRC
 
   intern/lineart/MOD_lineart.h
   intern/lineart/lineart_intern.h
-
 )
 
 if(WITH_TBB)

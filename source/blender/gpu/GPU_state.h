@@ -35,6 +35,19 @@ typedef enum eGPUBarrier {
 
 ENUM_OPERATORS(eGPUBarrier, GPU_BARRIER_ELEMENT_ARRAY)
 
+/* NOTE: For Metal and Vulkan only.
+ * TODO(Metal): Update barrier calls to use stage flags. */
+typedef enum eGPUStageBarrierBits {
+  GPU_BARRIER_STAGE_VERTEX = (1 << 0),
+  GPU_BARRIER_STAGE_FRAGMENT = (1 << 1),
+  GPU_BARRIER_STAGE_COMPUTE = (1 << 2),
+  GPU_BARRIER_STAGE_ANY_GRAPHICS = (GPU_BARRIER_STAGE_VERTEX | GPU_BARRIER_STAGE_FRAGMENT),
+  GPU_BARRIER_STAGE_ANY = (GPU_BARRIER_STAGE_VERTEX | GPU_BARRIER_STAGE_FRAGMENT |
+                           GPU_BARRIER_STAGE_COMPUTE),
+} eGPUStageBarrierBits;
+
+ENUM_OPERATORS(eGPUStageBarrierBits, GPU_BARRIER_STAGE_COMPUTE)
+
 /**
  * Defines the fixed pipeline blending equation.
  * SRC is the output color from the shader.

@@ -291,7 +291,7 @@ void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
   }
 }
 
-char *rna_TextureSlot_path(PointerRNA *ptr)
+char *rna_TextureSlot_path(const PointerRNA *ptr)
 {
   MTex *mtex = ptr->data;
 

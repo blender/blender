@@ -1157,9 +1157,7 @@ static int rna_wmKeyMapItem_idname_length(PointerRNA *ptr)
 {
   wmKeyMapItem *kmi = ptr->data;
   char pyname[OP_MAX_TYPENAME];
-
-  WM_operator_py_idname(pyname, kmi->idname);
-  return strlen(pyname);
+  return WM_operator_py_idname(pyname, kmi->idname);
 }
 
 static void rna_wmKeyMapItem_idname_set(PointerRNA *ptr, const char *value)
@@ -2601,6 +2599,9 @@ static void rna_def_keyconfig(BlenderRNA *brna)
                                 "rna_wmKeyMapItem_idname_get",
                                 "rna_wmKeyMapItem_idname_length",
                                 "rna_wmKeyMapItem_idname_set");
+  RNA_def_property_string_search_func(prop,
+                                      "WM_operatortype_idname_visit_for_search",
+                                      PROP_STRING_SEARCH_SORT | PROP_STRING_SEARCH_SUGGESTION);
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 

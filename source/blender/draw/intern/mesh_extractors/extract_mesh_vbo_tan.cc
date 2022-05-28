@@ -291,7 +291,8 @@ static void extract_tan_init_subdiv(const DRWSubdivCache *subdiv_cache,
   for (int i = 0; i < tan_len; i++) {
     float(*tan_data)[4] = (float(*)[4])GPU_vertbuf_get_data(coarse_vbo);
     const char *name = tangent_names[i];
-    float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_named(&loop_data, CD_TANGENT, name);
+    const float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_named(
+        &loop_data, CD_TANGENT, name);
     for (int ml_index = 0; ml_index < mr->loop_len; ml_index++) {
       copy_v3_v3(*tan_data, layer_data[ml_index]);
       (*tan_data)[3] = (layer_data[ml_index][3] > 0.0f) ? 1.0f : -1.0f;
@@ -306,7 +307,7 @@ static void extract_tan_init_subdiv(const DRWSubdivCache *subdiv_cache,
   }
   if (use_orco_tan) {
     float(*tan_data)[4] = (float(*)[4])GPU_vertbuf_get_data(coarse_vbo);
-    float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_n(&loop_data, CD_TANGENT, 0);
+    const float(*layer_data)[4] = (float(*)[4])CustomData_get_layer_n(&loop_data, CD_TANGENT, 0);
     for (int ml_index = 0; ml_index < mr->loop_len; ml_index++) {
       copy_v3_v3(*tan_data, layer_data[ml_index]);
       (*tan_data)[3] = (layer_data[ml_index][3] > 0.0f) ? 1.0f : -1.0f;

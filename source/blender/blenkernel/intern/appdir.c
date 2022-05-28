@@ -61,7 +61,7 @@ static CLG_LogRef LOG = {"bke.appdir"};
 
 static struct {
   /** Full path to program executable. */
-  char program_filename[FILE_MAX];
+  char program_filepath[FILE_MAX];
   /** Full path to directory in which executable is located. */
   char program_dirname[FILE_MAX];
   /** Persistent temporary directory (defined by the preferences or OS). */
@@ -860,14 +860,14 @@ static void where_am_i(char *fullname, const size_t maxlen, const char *name)
 
 void BKE_appdir_program_path_init(const char *argv0)
 {
-  where_am_i(g_app.program_filename, sizeof(g_app.program_filename), argv0);
-  BLI_split_dir_part(g_app.program_filename, g_app.program_dirname, sizeof(g_app.program_dirname));
+  where_am_i(g_app.program_filepath, sizeof(g_app.program_filepath), argv0);
+  BLI_split_dir_part(g_app.program_filepath, g_app.program_dirname, sizeof(g_app.program_dirname));
 }
 
 const char *BKE_appdir_program_path(void)
 {
-  BLI_assert(g_app.program_filename[0]);
-  return g_app.program_filename;
+  BLI_assert(g_app.program_filepath[0]);
+  return g_app.program_filepath;
 }
 
 const char *BKE_appdir_program_dir(void)

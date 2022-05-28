@@ -2051,6 +2051,8 @@ void ANIM_OT_keyframe_insert_by_name(wmOperatorType *ot)
   /* keyingset to use (idname) */
   prop = RNA_def_string(
       ot->srna, "type", NULL, MAX_ID_NAME - 2, "Keying Set", "The Keying Set to use");
+  RNA_def_property_string_search_func_runtime(
+      prop, ANIM_keyingset_visit_for_search_no_poll, PROP_STRING_SEARCH_SUGGESTION);
   RNA_def_property_flag(prop, PROP_HIDDEN);
   ot->prop = prop;
 }
@@ -2246,6 +2248,8 @@ void ANIM_OT_keyframe_delete_by_name(wmOperatorType *ot)
   /* keyingset to use (idname) */
   prop = RNA_def_string(
       ot->srna, "type", NULL, MAX_ID_NAME - 2, "Keying Set", "The Keying Set to use");
+  RNA_def_property_string_search_func_runtime(
+      prop, ANIM_keyingset_visit_for_search_no_poll, PROP_STRING_SEARCH_SUGGESTION);
   RNA_def_property_flag(prop, PROP_HIDDEN);
   ot->prop = prop;
 }

@@ -39,9 +39,9 @@ static PointCloud *pointcloud_merge_by_distance(const PointCloudComponent &src_p
                                                 const float merge_distance,
                                                 const Field<bool> &selection_field)
 {
-  const int src_size = src_points.attribute_domain_size(ATTR_DOMAIN_POINT);
+  const int src_num = src_points.attribute_domain_num(ATTR_DOMAIN_POINT);
   GeometryComponentFieldContext context{src_points, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{context, src_size};
+  FieldEvaluator evaluator{context, src_num};
   evaluator.add(selection_field);
   evaluator.evaluate();
 
@@ -57,10 +57,10 @@ static std::optional<Mesh *> mesh_merge_by_distance_connected(const MeshComponen
                                                               const float merge_distance,
                                                               const Field<bool> &selection_field)
 {
-  const int src_size = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
-  Array<bool> selection(src_size);
+  const int src_num = mesh_component.attribute_domain_num(ATTR_DOMAIN_POINT);
+  Array<bool> selection(src_num);
   GeometryComponentFieldContext context{mesh_component, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{context, src_size};
+  FieldEvaluator evaluator{context, src_num};
   evaluator.add_with_destination(selection_field, selection.as_mutable_span());
   evaluator.evaluate();
 
@@ -72,9 +72,9 @@ static std::optional<Mesh *> mesh_merge_by_distance_all(const MeshComponent &mes
                                                         const float merge_distance,
                                                         const Field<bool> &selection_field)
 {
-  const int src_size = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  const int src_num = mesh_component.attribute_domain_num(ATTR_DOMAIN_POINT);
   GeometryComponentFieldContext context{mesh_component, ATTR_DOMAIN_POINT};
-  FieldEvaluator evaluator{context, src_size};
+  FieldEvaluator evaluator{context, src_num};
   evaluator.add(selection_field);
   evaluator.evaluate();
 

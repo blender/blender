@@ -34,7 +34,7 @@
 #define CERES_INTERNAL_EIGENSPARSE_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 
 #ifdef CERES_USE_EIGEN_SPARSE
 
@@ -42,44 +42,45 @@
 #include <string>
 
 #include "Eigen/SparseCore"
+#include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
 #include "ceres/sparse_cholesky.h"
 
 namespace ceres {
 namespace internal {
 
-class EigenSparseCholesky : public SparseCholesky {
+class CERES_NO_EXPORT EigenSparseCholesky : public SparseCholesky {
  public:
   // Factory
   static std::unique_ptr<SparseCholesky> Create(
       const OrderingType ordering_type);
 
   // SparseCholesky interface.
-  virtual ~EigenSparseCholesky();
-  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
-                                                std::string* message) = 0;
-  virtual CompressedRowSparseMatrix::StorageType StorageType() const = 0;
-  virtual LinearSolverTerminationType Solve(const double* rhs,
-                                            double* solution,
-                                            std::string* message) = 0;
+  ~EigenSparseCholesky() override;
+  LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                        std::string* message) override = 0;
+  CompressedRowSparseMatrix::StorageType StorageType() const override = 0;
+  LinearSolverTerminationType Solve(const double* rhs,
+                                    double* solution,
+                                    std::string* message) override = 0;
 };
 
 // Even though the input is double precision linear system, this class
 // solves it by computing a single precision Cholesky factorization.
-class FloatEigenSparseCholesky : public SparseCholesky {
+class CERES_NO_EXPORT FloatEigenSparseCholesky : public SparseCholesky {
  public:
   // Factory
   static std::unique_ptr<SparseCholesky> Create(
       const OrderingType ordering_type);
 
   // SparseCholesky interface.
-  virtual ~FloatEigenSparseCholesky();
-  virtual LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
-                                                std::string* message) = 0;
-  virtual CompressedRowSparseMatrix::StorageType StorageType() const = 0;
-  virtual LinearSolverTerminationType Solve(const double* rhs,
-                                            double* solution,
-                                            std::string* message) = 0;
+  ~FloatEigenSparseCholesky() override;
+  LinearSolverTerminationType Factorize(CompressedRowSparseMatrix* lhs,
+                                        std::string* message) override = 0;
+  CompressedRowSparseMatrix::StorageType StorageType() const override = 0;
+  LinearSolverTerminationType Solve(const double* rhs,
+                                    double* solution,
+                                    std::string* message) override = 0;
 };
 
 }  // namespace internal

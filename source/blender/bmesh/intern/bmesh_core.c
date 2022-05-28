@@ -1460,7 +1460,7 @@ BMFace *bmesh_kernel_split_face_make_edge(BMesh *bm,
   }
   else {
     /* this code is not significant until holes actually work */
-    // printf("warning: call to split face euler without holes argument; holes will be tossed.\n");
+    // printf("WARNING: call to split face euler without holes argument; holes will be tossed.\n");
     for (lst = f->loops.last; lst != f->loops.first; lst = lst2) {
       lst2 = lst->prev;
       BLI_mempool_free(bm->looplistpool, lst);

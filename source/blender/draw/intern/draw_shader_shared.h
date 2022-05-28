@@ -1,12 +1,14 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifndef GPU_SHADER
+#  include "GPU_shader.h"
 #  include "GPU_shader_shared_utils.h"
 
 typedef struct ViewInfos ViewInfos;
 typedef struct ObjectMatrices ObjectMatrices;
 typedef struct ObjectInfos ObjectInfos;
 typedef struct VolumeInfos VolumeInfos;
+typedef struct CurvesInfos CurvesInfos;
 #endif
 
 #define DRW_SHADER_SHARED_H
@@ -15,6 +17,10 @@ typedef struct VolumeInfos VolumeInfos;
 
 /* Define the maximum number of grid we allow in a volume UBO. */
 #define DRW_GRID_PER_VOLUME_MAX 16
+
+/* Define the maximum number of attribute we allow in a curves UBO.
+ * This should be kept in sync with `GPU_ATTR_MAX` */
+#define DRW_ATTRIBUTE_PER_CURVES_MAX 15
 
 struct ViewInfos {
   /* View matrices */
@@ -78,6 +84,14 @@ struct VolumeInfos {
   float _pad;
 };
 BLI_STATIC_ASSERT_ALIGN(VolumeInfos, 16)
+
+struct CurvesInfos {
+  /* Per attribute scope, follows loading order.
+   * NOTE: uint as bool in GLSL is 4 bytes. */
+  uint is_point_attribute[DRW_ATTRIBUTE_PER_CURVES_MAX];
+  int _pad;
+};
+BLI_STATIC_ASSERT_ALIGN(CurvesInfos, 16)
 
 #define OrcoTexCoFactors (drw_infos[resource_id].drw_OrcoTexCoFactors)
 #define ObjectInfo (drw_infos[resource_id].drw_Infos)

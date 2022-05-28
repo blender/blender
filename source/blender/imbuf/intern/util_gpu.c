@@ -197,12 +197,10 @@ void IMB_update_gpu_texture_sub(GPUTexture *tex,
 GPUTexture *IMB_create_gpu_texture(const char *name,
                                    ImBuf *ibuf,
                                    bool use_high_bitdepth,
-                                   bool use_premult,
-                                   bool limit_gl_texture_size)
+                                   bool use_premult)
 {
   GPUTexture *tex = NULL;
-  int size[2] = {GPU_texture_size_with_limit(ibuf->x, limit_gl_texture_size),
-                 GPU_texture_size_with_limit(ibuf->y, limit_gl_texture_size)};
+  int size[2] = {GPU_texture_size_with_limit(ibuf->x), GPU_texture_size_with_limit(ibuf->y)};
   bool do_rescale = (ibuf->x != size[0]) || (ibuf->y != size[1]);
 
 #ifdef WITH_DDS
