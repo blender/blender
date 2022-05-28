@@ -1274,8 +1274,8 @@ static Image *image_open_single(Main *bmain,
       BKE_image_free_views(ima);
     }
 
-    if ((range->length > 1) && (ima->source == IMA_SRC_FILE)) {
-      if (range->udim_tiles.first) {
+    if (ima->source == IMA_SRC_FILE) {
+      if (range->udims_detected && range->udim_tiles.first) {
         ima->source = IMA_SRC_TILED;
         ImageTile *first_tile = ima->tiles.first;
         first_tile->tile_number = range->offset;
@@ -1283,7 +1283,7 @@ static Image *image_open_single(Main *bmain,
           BKE_image_add_tile(ima, POINTER_AS_INT(node->data), NULL);
         }
       }
-      else {
+      else if (range->length > 1) {
         ima->source = IMA_SRC_SEQUENCE;
       }
     }
