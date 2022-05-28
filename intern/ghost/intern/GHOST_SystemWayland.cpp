@@ -522,7 +522,7 @@ static void data_source_send(void *data,
                              int32_t fd)
 {
   const char *const buffer = static_cast<char *>(data);
-  if (write(fd, buffer, strlen(buffer) + 1) < 0) {
+  if (write(fd, buffer, strlen(buffer)) < 0) {
     GHOST_PRINT("error writing to clipboard: " << std::strerror(errno) << std::endl);
   }
   close(fd);
