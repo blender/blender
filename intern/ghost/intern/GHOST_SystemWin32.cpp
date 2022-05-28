@@ -2211,30 +2211,27 @@ char *GHOST_SystemWin32::getClipboard(bool selection) const
 
 void GHOST_SystemWin32::putClipboard(const char *buffer, bool selection) const
 {
-  if (selection) {
+  if (selection || !buffer) {
     return;
   }  // for copying the selection, used on X11
 
   if (OpenClipboard(NULL)) {
-    HLOCAL clipbuffer;
-    wchar_t *data;
+    EmptyClipboard();
 
-    if (buffer) {
-      size_t len = count_utf_16_from_8(buffer);
-      EmptyClipboard();
+    // Get length of buffer including the terminating null
+    size_t len = count_utf_16_from_8(buffer);
 
-      clipbuffer = LocalAlloc(LMEM_FIXED, sizeof(wchar_t) * len);
-      data = (wchar_t *)GlobalLock(clipbuffer);
+    HGLOBAL clipbuffer = GlobalAlloc(GMEM_MOVEABLE, sizeof(wchar_t) * len);
+    if (clipbuffer) {
+      wchar_t *data = (wchar_t *)GlobalLock(clipbuffer);
 
       conv_utf_8_to_16(buffer, data, len);
 
-      LocalUnlock(clipbuffer);
+      GlobalUnlock(clipbuffer);
       SetClipboardData(CF_UNICODETEXT, clipbuffer);
     }
+
     CloseClipboard();
-  }
-  else {
-    return;
   }
 }
 
