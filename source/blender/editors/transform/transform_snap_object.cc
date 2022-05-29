@@ -2077,11 +2077,14 @@ static short snapCurve(SnapObjectContext *sctx,
                                                  nu->bezt[u].vec[1],
                                                  &dist_px_sq,
                                                  r_loc);
+
             /* Don't snap if handle is selected (moving),
              * or if it is aligning to a moving handle. */
-            is_selected = (!(nu->bezt[u].f1 & SELECT) &&
-                           !(nu->bezt[u].h1 & HD_ALIGN && nu->bezt[u].f3 & SELECT)) != 0;
-            if (!(is_selected && skip_selected)) {
+            bool is_selected_h1 = (nu->bezt[u].f1 & SELECT) != 0;
+            bool is_selected_h2 = (nu->bezt[u].f3 & SELECT) != 0;
+            bool is_autoalign_h1 = (nu->bezt[u].h1 & HD_ALIGN) != 0;
+            bool is_autoalign_h2 = (nu->bezt[u].h2 & HD_ALIGN) != 0;
+            if (!skip_selected || !(is_selected_h1 || (is_autoalign_h1 && is_selected_h2))) {
               has_snap |= test_projected_vert_dist(&neasrest_precalc,
                                                    clip_planes_local,
                                                    clip_plane_len,
@@ -2091,9 +2094,7 @@ static short snapCurve(SnapObjectContext *sctx,
                                                    r_loc);
             }
 
-            is_selected = (!(nu->bezt[u].f3 & SELECT) &&
-                           !(nu->bezt[u].h2 & HD_ALIGN && nu->bezt[u].f1 & SELECT)) != 0;
-            if (!(is_selected && skip_selected)) {
+            if (!skip_selected || !(is_selected_h2 || (is_autoalign_h2 && is_selected_h1))) {
               has_snap |= test_projected_vert_dist(&neasrest_precalc,
                                                    clip_planes_local,
                                                    clip_plane_len,
