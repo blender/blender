@@ -8,7 +8,7 @@
 #include "GHOST_DropTargetX11.h"
 #include "GHOST_Debug.h"
 
-#include <cassert>.
+#include <cassert>
 #include <cctype>
 #include <cstdio>
 #include <cstring>
