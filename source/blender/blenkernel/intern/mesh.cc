@@ -31,6 +31,7 @@
 #include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.h"
 
@@ -60,6 +61,7 @@
 #include "BLO_read_write.h"
 
 using blender::float3;
+using blender::Vector;
 
 static void mesh_clear_geometry(Mesh *mesh);
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata);
@@ -208,46 +210,40 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   Mesh *mesh = (Mesh *)id;
   const bool is_undo = BLO_write_is_undo(writer);
 
-  CustomDataLayer *vlayers = nullptr, vlayers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomDataLayer *elayers = nullptr, elayers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomDataLayer *flayers = nullptr, flayers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomDataLayer *llayers = nullptr, llayers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomDataLayer *players = nullptr, players_buff[CD_TEMP_CHUNK_SIZE];
+  Vector<CustomDataLayer, 16> vert_layers;
+  Vector<CustomDataLayer, 16> edge_layers;
+  Vector<CustomDataLayer, 16> loop_layers;
+  Vector<CustomDataLayer, 16> poly_layers;
 
   /* cache only - don't write */
   mesh->mface = nullptr;
   mesh->totface = 0;
   memset(&mesh->fdata, 0, sizeof(mesh->fdata));
   mesh->runtime = blender::dna::shallow_zero_initialize();
-  flayers = flayers_buff;
 
   /* Do not store actual geometry data in case this is a library override ID. */
   if (ID_IS_OVERRIDE_LIBRARY(mesh) && !is_undo) {
     mesh->mvert = nullptr;
     mesh->totvert = 0;
     memset(&mesh->vdata, 0, sizeof(mesh->vdata));
-    vlayers = vlayers_buff;
 
     mesh->medge = nullptr;
     mesh->totedge = 0;
     memset(&mesh->edata, 0, sizeof(mesh->edata));
-    elayers = elayers_buff;
 
     mesh->mloop = nullptr;
     mesh->totloop = 0;
     memset(&mesh->ldata, 0, sizeof(mesh->ldata));
-    llayers = llayers_buff;
 
     mesh->mpoly = nullptr;
     mesh->totpoly = 0;
     memset(&mesh->pdata, 0, sizeof(mesh->pdata));
-    players = players_buff;
   }
   else {
-    CustomData_blend_write_prepare(&mesh->vdata, &vlayers, vlayers_buff, ARRAY_SIZE(vlayers_buff));
-    CustomData_blend_write_prepare(&mesh->edata, &elayers, elayers_buff, ARRAY_SIZE(elayers_buff));
-    CustomData_blend_write_prepare(&mesh->ldata, &llayers, llayers_buff, ARRAY_SIZE(llayers_buff));
-    CustomData_blend_write_prepare(&mesh->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
+    CustomData_blend_write_prepare(mesh->vdata, vert_layers);
+    CustomData_blend_write_prepare(mesh->edata, edge_layers);
+    CustomData_blend_write_prepare(mesh->ldata, loop_layers);
+    CustomData_blend_write_prepare(mesh->pdata, poly_layers);
   }
 
   BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
@@ -264,33 +260,15 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   BLO_write_raw(writer, sizeof(MSelect) * mesh->totselect, mesh->mselect);
 
   CustomData_blend_write(
-      writer, &mesh->vdata, vlayers, mesh->totvert, CD_MASK_MESH.vmask, &mesh->id);
+      writer, &mesh->vdata, vert_layers, mesh->totvert, CD_MASK_MESH.vmask, &mesh->id);
   CustomData_blend_write(
-      writer, &mesh->edata, elayers, mesh->totedge, CD_MASK_MESH.emask, &mesh->id);
+      writer, &mesh->edata, edge_layers, mesh->totedge, CD_MASK_MESH.emask, &mesh->id);
   /* fdata is really a dummy - written so slots align */
+  CustomData_blend_write(writer, &mesh->fdata, {}, mesh->totface, CD_MASK_MESH.fmask, &mesh->id);
   CustomData_blend_write(
-      writer, &mesh->fdata, flayers, mesh->totface, CD_MASK_MESH.fmask, &mesh->id);
+      writer, &mesh->ldata, loop_layers, mesh->totloop, CD_MASK_MESH.lmask, &mesh->id);
   CustomData_blend_write(
-      writer, &mesh->ldata, llayers, mesh->totloop, CD_MASK_MESH.lmask, &mesh->id);
-  CustomData_blend_write(
-      writer, &mesh->pdata, players, mesh->totpoly, CD_MASK_MESH.pmask, &mesh->id);
-
-  /* Free temporary data */
-
-  /* Free custom-data layers, when not assigned a buffer value. */
-#define CD_LAYERS_FREE(id) \
-  if (id && id != id##_buff) { \
-    MEM_freeN(id); \
-  } \
-  ((void)0)
-
-  CD_LAYERS_FREE(vlayers);
-  CD_LAYERS_FREE(elayers);
-  // CD_LAYER_FREE(flayers); /* Never allocated. */
-  CD_LAYERS_FREE(llayers);
-  CD_LAYERS_FREE(players);
-
-#undef CD_LAYERS_FREE
+      writer, &mesh->pdata, poly_layers, mesh->totpoly, CD_MASK_MESH.pmask, &mesh->id);
 }
 
 static void mesh_blend_read_data(BlendDataReader *reader, ID *id)

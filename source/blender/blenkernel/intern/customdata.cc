@@ -25,6 +25,7 @@
 #include "BLI_math_vector.hh"
 #include "BLI_mempool.h"
 #include "BLI_path_util.h"
+#include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
@@ -53,6 +54,9 @@
 
 /* only for customdata_data_transfer_interp_normal_normals */
 #include "data_transfer_intern.h"
+
+using blender::Span;
+using blender::Vector;
 
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5
@@ -4349,45 +4353,19 @@ void CustomData_file_write_info(int type, const char **r_struct_name, int *r_str
   *r_struct_num = typeInfo->structnum;
 }
 
-void CustomData_blend_write_prepare(CustomData *data,
-                                    CustomDataLayer **r_write_layers,
-                                    CustomDataLayer *write_layers_buff,
-                                    size_t write_layers_size)
+void CustomData_blend_write_prepare(CustomData &data, Vector<CustomDataLayer, 16> &layers_to_write)
 {
-  CustomDataLayer *write_layers = write_layers_buff;
-  const size_t chunk_size = (write_layers_size > 0) ? write_layers_size : CD_TEMP_CHUNK_SIZE;
-
-  const int totlayer = data->totlayer;
-  int i, j;
-
-  for (i = 0, j = 0; i < totlayer; i++) {
-    CustomDataLayer *layer = &data->layers[i];
-    /* Layers with this flag set are not written to file. */
-    if ((layer->flag & CD_FLAG_NOCOPY) || layer->anonymous_id != nullptr) {
-      data->totlayer--;
-      // CLOG_WARN(&LOG, "skipping layer %p (%s)", layer, layer->name);
+  for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
+    if (layer.flag & CD_FLAG_NOCOPY) {
+      continue;
     }
-    else {
-      if (UNLIKELY((size_t)j >= write_layers_size)) {
-        if (write_layers == write_layers_buff) {
-          write_layers = (CustomDataLayer *)MEM_malloc_arrayN(
-              (write_layers_size + chunk_size), sizeof(*write_layers), __func__);
-          if (write_layers_buff) {
-            memcpy(write_layers, write_layers_buff, sizeof(*write_layers) * write_layers_size);
-          }
-        }
-        else {
-          write_layers = (CustomDataLayer *)MEM_reallocN(
-              write_layers, sizeof(*write_layers) * (write_layers_size + chunk_size));
-        }
-        write_layers_size += chunk_size;
-      }
-      write_layers[j++] = *layer;
+    if (layer.anonymous_id != nullptr) {
+      continue;
     }
+    layers_to_write.append(layer);
   }
-  BLI_assert(j == data->totlayer);
-  data->maxlayer = data->totlayer; /* We only write that much of data! */
-  *r_write_layers = write_layers;
+  data.totlayer = layers_to_write.size();
+  data.maxlayer = data.totlayer;
 }
 
 int CustomData_sizeof(int type)
@@ -5186,7 +5164,7 @@ static void write_grid_paint_mask(BlendWriter *writer,
 
 void CustomData_blend_write(BlendWriter *writer,
                             CustomData *data,
-                            CustomDataLayer *layers,
+                            Span<CustomDataLayer> layers_to_write,
                             int count,
                             CustomDataMask cddata_mask,
                             ID *id)
@@ -5196,55 +5174,50 @@ void CustomData_blend_write(BlendWriter *writer,
     CustomData_external_write(data, id, cddata_mask, count, 0);
   }
 
-  BLO_write_struct_array_at_address(writer, CustomDataLayer, data->totlayer, data->layers, layers);
+  BLO_write_struct_array_at_address(
+      writer, CustomDataLayer, data->totlayer, data->layers, layers_to_write.data());
 
-  for (int i = 0; i < data->totlayer; i++) {
-    CustomDataLayer *layer = &layers[i];
-
-    if (layer->type == CD_MDEFORMVERT) {
-      /* layer types that allocate own memory need special handling */
-      BKE_defvert_blend_write(writer, count, static_cast<const MDeformVert *>(layer->data));
-    }
-    else if (layer->type == CD_MDISPS) {
-      write_mdisps(
-          writer, count, static_cast<const MDisps *>(layer->data), layer->flag & CD_FLAG_EXTERNAL);
-    }
-    else if (layer->type == CD_PAINT_MASK) {
-      const float *layer_data = static_cast<const float *>(layer->data);
-      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
-    }
-    else if (layer->type == CD_SCULPT_FACE_SETS) {
-      const float *layer_data = static_cast<const float *>(layer->data);
-      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
-    }
-    else if (layer->type == CD_GRID_PAINT_MASK) {
-      write_grid_paint_mask(writer, count, static_cast<const GridPaintMask *>(layer->data));
-    }
-    else if (layer->type == CD_FACEMAP) {
-      const int *layer_data = static_cast<const int *>(layer->data);
-      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
-    }
-    else if (layer->type == CD_PROP_BOOL) {
-      const bool *layer_data = static_cast<const bool *>(layer->data);
-      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
-    }
-    else if (layer->type == CD_CREASE) {
-      const float *layer_data = static_cast<const float *>(layer->data);
-      BLO_write_raw(writer, sizeof(*layer_data) * count, layer_data);
-    }
-    else {
-      const char *structname;
-      int structnum;
-      CustomData_file_write_info(layer->type, &structname, &structnum);
-      if (structnum) {
-        int datasize = structnum * count;
-        BLO_write_struct_array_by_name(writer, structname, datasize, layer->data);
-      }
-      else if (!BLO_write_is_undo(writer)) { /* Do not warn on undo. */
-        printf("%s error: layer '%s':%d - can't be written to file\n",
-               __func__,
-               structname,
-               layer->type);
+  for (const CustomDataLayer &layer : layers_to_write) {
+    switch (layer.type) {
+      case CD_MDEFORMVERT:
+        BKE_defvert_blend_write(writer, count, static_cast<const MDeformVert *>(layer.data));
+        break;
+      case CD_MDISPS:
+        write_mdisps(
+            writer, count, static_cast<const MDisps *>(layer.data), layer.flag & CD_FLAG_EXTERNAL);
+        break;
+      case CD_PAINT_MASK:
+        BLO_write_raw(writer, sizeof(float) * count, static_cast<const float *>(layer.data));
+        break;
+      case CD_SCULPT_FACE_SETS:
+        BLO_write_raw(writer, sizeof(float) * count, static_cast<const float *>(layer.data));
+        break;
+      case CD_GRID_PAINT_MASK:
+        write_grid_paint_mask(writer, count, static_cast<const GridPaintMask *>(layer.data));
+        break;
+      case CD_FACEMAP:
+        BLO_write_raw(writer, sizeof(int) * count, static_cast<const int *>(layer.data));
+        break;
+      case CD_PROP_BOOL:
+        BLO_write_raw(writer, sizeof(bool) * count, static_cast<const bool *>(layer.data));
+        break;
+      case CD_CREASE:
+        BLO_write_raw(writer, sizeof(float) * count, static_cast<const float *>(layer.data));
+        break;
+      default: {
+        const char *structname;
+        int structnum;
+        CustomData_file_write_info(layer.type, &structname, &structnum);
+        if (structnum) {
+          int datasize = structnum * count;
+          BLO_write_struct_array_by_name(writer, structname, datasize, layer.data);
+        }
+        else if (!BLO_write_is_undo(writer)) { /* Do not warn on undo. */
+          printf("%s error: layer '%s':%d - can't be written to file\n",
+                 __func__,
+                 structname,
+                 layer.type);
+        }
       }
     }
   }

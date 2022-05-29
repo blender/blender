@@ -10,6 +10,10 @@
 
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
+#ifdef __cplusplus
+#  include "BLI_span.hh"
+#  include "BLI_vector.hh"
+#endif
 
 #include "DNA_customdata_types.h"
 
@@ -700,39 +704,33 @@ void CustomData_data_transfer(const struct MeshPairRemap *me_remap,
 
 /* .blend file I/O */
 
+#ifdef __cplusplus
+
 /**
  * Prepare given custom data for file writing.
  *
- * \param data: the custom-data to tweak for .blend file writing (modified in place).
- * \param r_write_layers: contains a reduced set of layers to be written to file,
- * use it with #writestruct_at_address()
- * (caller must free it if != \a write_layers_buff).
+ * \param data: The custom-data to tweak for .blend file writing (modified in place).
+ * \param layers_to_write: A reduced set of layers to be written to file.
  *
- * \param write_layers_buff: An optional buffer for r_write_layers (to avoid allocating it).
- * \param write_layers_size: The size of pre-allocated \a write_layer_buff.
- *
- * \warning After this function has ran, given custom data is no more valid from Blender POV
- * (its `totlayer` is invalid). This function shall always be called with localized data
- * (as it is in write_meshes()).
- *
- * \note `data->typemap` is not updated here, since it is always rebuilt on file read anyway.
- * This means written `typemap` does not match written layers (as returned by \a r_write_layers).
- * Trivial to fix is ever needed.
+ * \warning This function invalidates the custom data struct by changing the layer counts and the
+ * #layers pointer, and by invalidating the type map. It expects to work on a shallow copy of
+ * the struct.
  */
-void CustomData_blend_write_prepare(struct CustomData *data,
-                                    struct CustomDataLayer **r_write_layers,
-                                    struct CustomDataLayer *write_layers_buff,
-                                    size_t write_layers_size);
+void CustomData_blend_write_prepare(CustomData &data,
+                                    blender::Vector<CustomDataLayer, 16> &layers_to_write);
 
 /**
- * \param layers: The layers argument assigned by #CustomData_blend_write_prepare.
+ * \param layers_to_write: Layers created by #CustomData_blend_write_prepare.
  */
-void CustomData_blend_write(struct BlendWriter *writer,
-                            struct CustomData *data,
-                            CustomDataLayer *layers,
+void CustomData_blend_write(BlendWriter *writer,
+                            CustomData *data,
+                            blender::Span<CustomDataLayer> layers_to_write,
                             int count,
                             CustomDataMask cddata_mask,
-                            struct ID *id);
+                            ID *id);
+
+#endif
+
 void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
 
 #ifndef NDEBUG
