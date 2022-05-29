@@ -785,6 +785,9 @@ inline float CurvesGeometry::evaluated_length_total_for_curve(const int curve_in
                                                               const bool cyclic) const
 {
   const Span<float> lengths = this->evaluated_lengths_for_curve(curve_index, cyclic);
+  if (lengths.is_empty()) {
+    return 0.0f;
+  }
   return lengths.last();
 }
 
