@@ -128,6 +128,9 @@ static void threaded_id_offset_copy(const Span<int> offsets,
     for (const int i : range) {
       dst[offsets[i]] = src[i];
       const int count = offsets[i + 1] - offsets[i];
+      if (count == 0) {
+        continue;
+      }
       for (const int i_duplicate : IndexRange(1, count - 1)) {
         dst[offsets[i] + i_duplicate] = noise::hash(src[i], i_duplicate);
       }
