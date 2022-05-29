@@ -109,7 +109,7 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::setCurrentDisplaySetting(
 
       SDL_GetDisplayMode(display, i, &mode);
 
-      if (setting.xPixels > mode.w || setting.yPixels > mode.h) {
+      if ((int)setting.xPixels > mode.w || (int)setting.yPixels > mode.h) {
         continue;
       }
 
@@ -122,9 +122,9 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::setCurrentDisplaySetting(
       }
     }
 
-    if (best_fit == -1)
+    if (best_fit == -1) {
       return GHOST_kFailure;
-
+    }
     SDL_GetDisplayMode(display, best_fit, &mode);
   }
 
@@ -142,12 +142,10 @@ GHOST_TSuccess GHOST_DisplayManagerSDL::setCurrentDisplaySetting(
 
     return GHOST_kSuccess;
   }
-  else {
-    /* this is a problem for the BGE player :S, perhaps SDL2 will resolve at some point.
-     * we really need SDL_SetDisplayModeForDisplay() to become an API func! - campbell */
-    printf("no windows available, can't fullscreen\n");
+  /* This is a problem for the BGE player :S, perhaps SDL2 will resolve at some point.
+   * we really need SDL_SetDisplayModeForDisplay() to become an API func! - campbell. */
+  printf("no windows available, can't fullscreen\n");
 
-    /* do not fail, we will try again later when the window is created - wander */
-    return GHOST_kSuccess;
-  }
+  /* do not fail, we will try again later when the window is created - wander */
+  return GHOST_kSuccess;
 }

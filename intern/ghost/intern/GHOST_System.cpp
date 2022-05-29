@@ -8,7 +8,7 @@
 #include "GHOST_System.h"
 
 #include <chrono>
-#include <stdio.h> /* just for printf */
+#include <cstdio> /* just for printf */
 
 #include "GHOST_DisplayManager.h"
 #include "GHOST_EventManager.h"
@@ -23,10 +23,10 @@
 GHOST_System::GHOST_System()
     : m_nativePixel(false),
       m_windowFocus(true),
-      m_displayManager(NULL),
-      m_timerManager(NULL),
-      m_windowManager(NULL),
-      m_eventManager(NULL),
+      m_displayManager(nullptr),
+      m_timerManager(nullptr),
+      m_windowManager(nullptr),
+      m_eventManager(nullptr),
 #ifdef WITH_INPUT_NDOF
       m_ndofManager(0),
 #endif
@@ -61,7 +61,7 @@ GHOST_ITimerTask *GHOST_System::installTimer(uint64_t delay,
     }
     else {
       delete timer;
-      timer = NULL;
+      timer = nullptr;
     }
   }
   return timer;
@@ -205,7 +205,7 @@ GHOST_IWindow *GHOST_System::getWindowUnderCursor(int32_t x, int32_t y)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void GHOST_System::dispatchEvents()
@@ -331,20 +331,20 @@ GHOST_TSuccess GHOST_System::exit()
   }
 
   delete m_displayManager;
-  m_displayManager = NULL;
+  m_displayManager = nullptr;
 
   delete m_windowManager;
-  m_windowManager = NULL;
+  m_windowManager = nullptr;
 
   delete m_timerManager;
-  m_timerManager = NULL;
+  m_timerManager = nullptr;
 
   delete m_eventManager;
-  m_eventManager = NULL;
+  m_eventManager = nullptr;
 
 #ifdef WITH_INPUT_NDOF
   delete m_ndofManager;
-  m_ndofManager = NULL;
+  m_ndofManager = nullptr;
 #endif
 
   return GHOST_kSuccess;
@@ -376,13 +376,13 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
                                          GHOST_kDrawingContextTypeOpenGL,
                                          glSettings,
                                          true /* exclusive */);
-  return (*window == NULL) ? GHOST_kFailure : GHOST_kSuccess;
+  return (*window == nullptr) ? GHOST_kFailure : GHOST_kSuccess;
 }
 
-bool GHOST_System::useNativePixel(void)
+bool GHOST_System::useNativePixel()
 {
   m_nativePixel = true;
-  return 1;
+  return true;
 }
 
 void GHOST_System::useWindowFocus(const bool use_focus)

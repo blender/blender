@@ -28,7 +28,7 @@ static DBusMessage *get_setting_sync(DBusConnection *const connection,
       message, DBUS_TYPE_STRING, &key, DBUS_TYPE_STRING, &value, DBUS_TYPE_INVALID);
 
   if (!success) {
-    return NULL;
+    return nullptr;
   }
 
   reply = dbus_connection_send_with_reply_and_block(
@@ -37,7 +37,7 @@ static DBusMessage *get_setting_sync(DBusConnection *const connection,
   dbus_message_unref(message);
 
   if (dbus_error_is_set(&error)) {
-    return NULL;
+    return nullptr;
   }
 
   return reply;
@@ -76,7 +76,7 @@ static bool get_cursor_settings(std::string &theme, int &size)
   DBusError error;
   DBusConnection *connection;
   DBusMessage *reply;
-  const char *value_theme = NULL;
+  const char *value_theme = nullptr;
 
   dbus_error_init(&error);
 

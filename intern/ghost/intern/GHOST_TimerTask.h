@@ -25,7 +25,7 @@ class GHOST_TimerTask : public GHOST_ITimerTask {
   GHOST_TimerTask(uint64_t start,
                   uint64_t interval,
                   GHOST_TimerProcPtr timerProc,
-                  GHOST_TUserDataPtr userData = NULL)
+                  GHOST_TUserDataPtr userData = nullptr)
       : m_start(start),
         m_interval(interval),
         m_next(start),

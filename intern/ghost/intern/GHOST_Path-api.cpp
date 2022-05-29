@@ -25,25 +25,28 @@ GHOST_TSuccess GHOST_DisposeSystemPaths(void)
 const char *GHOST_getSystemDir(int version, const char *versionstr)
 {
   GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
-  return systemPaths ? systemPaths->getSystemDir(version, versionstr) : NULL;
+  return systemPaths ? systemPaths->getSystemDir(version, versionstr) : nullptr;
 }
 
 const char *GHOST_getUserDir(int version, const char *versionstr)
 {
   GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
-  return systemPaths ? systemPaths->getUserDir(version, versionstr) : NULL; /* shouldn't be NULL */
+  /* Shouldn't be `nullptr`. */
+  return systemPaths ? systemPaths->getUserDir(version, versionstr) : nullptr;
 }
 
 const char *GHOST_getUserSpecialDir(GHOST_TUserSpecialDirTypes type)
 {
   GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
-  return systemPaths ? systemPaths->getUserSpecialDir(type) : NULL; /* shouldn't be NULL */
+  /* Shouldn't be `nullptr`. */
+  return systemPaths ? systemPaths->getUserSpecialDir(type) : nullptr;
 }
 
 const char *GHOST_getBinaryDir()
 {
   GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
-  return systemPaths ? systemPaths->getBinaryDir() : NULL; /* shouldn't be NULL */
+  /* Shouldn't be `nullptr`. */
+  return systemPaths ? systemPaths->getBinaryDir() : nullptr;
 }
 
 void GHOST_addToSystemRecentFiles(const char *filename)

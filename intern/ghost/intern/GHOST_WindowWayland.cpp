@@ -134,8 +134,9 @@ static bool update_scale(GHOST_WindowWayland *window)
 {
   int scale = 0;
   for (const output_t *output : window->outputs_active()) {
-    if (output->scale > scale)
+    if (output->scale > scale) {
       scale = output->scale;
+    }
   }
 
   if (scale > 0 && window->scale() != scale) {
@@ -453,12 +454,10 @@ GHOST_TWindowState GHOST_WindowWayland::getState() const
   if (w->is_fullscreen) {
     return GHOST_kWindowStateFullScreen;
   }
-  else if (w->is_maximised) {
+  if (w->is_maximised) {
     return GHOST_kWindowStateMaximized;
   }
-  else {
-    return GHOST_kWindowStateNormal;
-  }
+  return GHOST_kWindowStateNormal;
 }
 
 GHOST_TSuccess GHOST_WindowWayland::invalidate()
@@ -525,10 +524,10 @@ GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType 
                                        GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
                                        EGL_OPENGL_API);
 
-        if (context->initializeDrawingContext())
+        if (context->initializeDrawingContext()) {
           return context;
-        else
-          delete context;
+        }
+        delete context;
       }
       context = new GHOST_ContextEGL(this->m_system,
                                      m_wantStereoVisual,

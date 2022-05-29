@@ -40,7 +40,7 @@ class GHOST_SystemNULL : public GHOST_System {
   }
   char *getClipboard(bool selection) const
   {
-    return NULL;
+    return nullptr;
   }
   void putClipboard(const char *buffer, bool selection) const
   { /* nop */
@@ -69,7 +69,7 @@ class GHOST_SystemNULL : public GHOST_System {
   }
   GHOST_IContext *createOffscreenContext(GHOST_GLSettings glSettings)
   {
-    return NULL;
+    return nullptr;
   }
   GHOST_TSuccess disposeContext(GHOST_IContext *context)
   {
@@ -117,6 +117,6 @@ class GHOST_SystemNULL : public GHOST_System {
 
   GHOST_IWindow *getWindowUnderCursor(int32_t x, int32_t y)
   {
-    return NULL;
+    return nullptr;
   }
 };

@@ -507,7 +507,7 @@ static std::string read_pipe(data_offer_t *data_offer, const std::string mime_re
  * A target accepts an offered mime type.
  *
  * Sent when a target accepts pointer_focus or motion events. If
- * a target does not accept any of the offered types, type is NULL.
+ * a target does not accept any of the offered types, type is nullptr.
  */
 static void data_source_target(void * /*data*/,
                                struct wl_data_source * /*wl_data_source*/,
@@ -828,8 +828,9 @@ static bool update_cursor_scale(cursor_t &cursor, wl_shm *shm)
 {
   int scale = 0;
   for (const output_t *output : cursor.outputs) {
-    if (output->scale > scale)
+    if (output->scale > scale) {
       scale = output->scale;
+    }
   }
 
   if (scale > 0 && cursor.scale != scale) {
@@ -1538,8 +1539,9 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool /*selection*/) c
   data_source_t *data_source = d->inputs[0]->data_source;
 
   /* Copy buffer. */
-  data_source->buffer_out = static_cast<char *>(malloc(strlen(buffer) + 1));
-  std::strcpy(data_source->buffer_out, buffer);
+  const size_t buffer_size = strlen(buffer) + 1;
+  data_source->buffer_out = static_cast<char *>(malloc(buffer_size));
+  std::memcpy(data_source->buffer_out, buffer, buffer_size);
 
   data_source->data_source = wl_data_device_manager_create_data_source(d->data_device_manager);
 
@@ -1563,14 +1565,13 @@ uint8_t GHOST_SystemWayland::getNumDisplays() const
 
 GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) const
 {
-  if (!d->inputs.empty() && (d->inputs[0]->focus_pointer != nullptr)) {
-    x = d->inputs[0]->x;
-    y = d->inputs[0]->y;
-    return GHOST_kSuccess;
-  }
-  else {
+  if (d->inputs.empty() || (d->inputs[0]->focus_pointer == nullptr)) {
     return GHOST_kFailure;
   }
+
+  x = d->inputs[0]->x;
+  y = d->inputs[0]->y;
+  return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(int32_t /*x*/, int32_t /*y*/)
@@ -1615,10 +1616,10 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*g
                                    GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
                                    EGL_OPENGL_API);
 
-    if (context->initializeDrawingContext())
+    if (context->initializeDrawingContext()) {
       return context;
-    else
-      delete context;
+    }
+    delete context;
   }
 
   context = new GHOST_ContextEGL(this,
@@ -1635,9 +1636,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*g
   if (context->initializeDrawingContext()) {
     return context;
   }
-  else {
-    delete context;
-  }
+  delete context;
 
   GHOST_PRINT("Cannot create off-screen EGL context" << std::endl);
 
@@ -1806,7 +1805,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   cursor_t *cursor = &d->inputs[0]->cursor;
 
   static const int32_t stride = sizex * 4; /* ARGB */
-  cursor->file_buffer->size = size_t(stride * sizey);
+  cursor->file_buffer->size = (size_t)stride * sizey;
 
 #ifdef HAVE_MEMFD_CREATE
   const int fd = memfd_create("blender-cursor-custom", MFD_CLOEXEC | MFD_ALLOW_SEALING);
