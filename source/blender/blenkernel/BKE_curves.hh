@@ -453,7 +453,7 @@ void calculate_tangents(Span<float3> positions, bool is_cyclic, MutableSpan<floa
 
 /**
  * Calculate directions perpendicular to the tangent at every point by rotating an arbitrary
- * starting vector by the same rotation of each tangent. If the curve is cylic, propagate a
+ * starting vector by the same rotation of each tangent. If the curve is cyclic, propagate a
  * correction through the entire to make sure the first and last normal align.
  */
 void calculate_normals_minimum(Span<float3> tangents, bool cyclic, MutableSpan<float3> normals);
@@ -483,10 +483,10 @@ bool segment_is_vector(Span<int8_t> handle_types_left,
                        int segment_index);
 
 /**
- * Return true if the curve's last cylic segment has a vector type.
+ * Return true if the curve's last cyclic segment has a vector type.
  * This only makes a difference in the shape of cyclic curves.
  */
-bool last_cylic_segment_is_vector(Span<int8_t> handle_types_left, Span<int8_t> handle_types_right);
+bool last_cyclic_segment_is_vector(Span<int8_t> handle_types_left, Span<int8_t> handle_types_right);
 
 /**
  * Return true if the handle types at the index are free (#BEZIER_HANDLE_FREE) or vector
