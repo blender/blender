@@ -49,7 +49,8 @@ void calculate_evaluated_offsets(const Span<int8_t> handle_types_left,
   }
 
   if (cyclic) {
-    offset += last_cyclic_segment_is_vector(handle_types_left, handle_types_right) ? 1 : resolution;
+    offset += last_cyclic_segment_is_vector(handle_types_left, handle_types_right) ? 1 :
+                                                                                     resolution;
   }
   else {
     offset++;

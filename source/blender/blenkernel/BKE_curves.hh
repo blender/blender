@@ -486,7 +486,8 @@ bool segment_is_vector(Span<int8_t> handle_types_left,
  * Return true if the curve's last cyclic segment has a vector type.
  * This only makes a difference in the shape of cyclic curves.
  */
-bool last_cyclic_segment_is_vector(Span<int8_t> handle_types_left, Span<int8_t> handle_types_right);
+bool last_cyclic_segment_is_vector(Span<int8_t> handle_types_left,
+                                   Span<int8_t> handle_types_right);
 
 /**
  * Return true if the handle types at the index are free (#BEZIER_HANDLE_FREE) or vector
