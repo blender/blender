@@ -60,6 +60,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
 #include "RNA_access.h"
@@ -94,6 +95,7 @@ using blender::Stack;
 using blender::StringRef;
 using blender::Vector;
 using blender::VectorSet;
+using blender::bke::bNodeTreeRuntime;
 using blender::nodes::FieldInferencingInterface;
 using blender::nodes::InputSocketFieldType;
 using blender::nodes::NodeDeclaration;
@@ -123,6 +125,7 @@ static void nodeMuteRerouteOutputLinks(struct bNodeTree *ntree,
 static void ntree_init_data(ID *id)
 {
   bNodeTree *ntree = (bNodeTree *)id;
+  ntree->runtime = MEM_new<bNodeTreeRuntime>(__func__);
   ntree_set_typeinfo(ntree, nullptr);
 }
 
@@ -133,6 +136,8 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
 
   /* We never handle usercount here for own data. */
   const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+
+  ntree_dst->runtime = MEM_new<bNodeTreeRuntime>(__func__);
 
   /* in case a running nodetree is copied */
   ntree_dst->execdata = nullptr;
@@ -203,9 +208,9 @@ static void ntree_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, c
   /* node tree will generate its own interface type */
   ntree_dst->interface_type = nullptr;
 
-  if (ntree_src->field_inferencing_interface) {
-    ntree_dst->field_inferencing_interface = new FieldInferencingInterface(
-        *ntree_src->field_inferencing_interface);
+  if (ntree_src->runtime->field_inferencing_interface) {
+    ntree_dst->runtime->field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
+        *ntree_src->runtime->field_inferencing_interface);
   }
 
   if (flag & LIB_ID_COPY_NO_PREVIEW) {
@@ -258,8 +263,6 @@ static void ntree_free_data(ID *id)
     MEM_freeN(sock);
   }
 
-  delete ntree->field_inferencing_interface;
-
   /* free preview hash */
   if (ntree->previews) {
     BKE_node_instance_hash_free(ntree->previews, (bNodeInstanceValueFP)BKE_node_preview_free);
@@ -270,6 +273,7 @@ static void ntree_free_data(ID *id)
   }
 
   BKE_previewimg_free(&ntree->preview);
+  MEM_delete(ntree->runtime);
 }
 
 static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket *sock)
@@ -670,9 +674,7 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
 
   ntree->progress = nullptr;
   ntree->execdata = nullptr;
-  ntree->runtime_flag = 0;
-
-  ntree->field_inferencing_interface = nullptr;
+  ntree->runtime = MEM_new<bNodeTreeRuntime>(__func__);
   BKE_ntree_update_tag_missing_runtime_data(ntree);
 
   BLO_read_data_address(reader, &ntree->adt);

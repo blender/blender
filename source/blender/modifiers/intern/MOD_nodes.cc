@@ -45,6 +45,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_object.h"
 #include "BKE_pointcloud.h"
@@ -396,8 +397,9 @@ static bool socket_type_has_attribute_toggle(const bNodeSocket &socket)
  */
 static bool input_has_attribute_toggle(const bNodeTree &node_tree, const int socket_index)
 {
-  BLI_assert(node_tree.field_inferencing_interface != nullptr);
-  const FieldInferencingInterface &field_interface = *node_tree.field_inferencing_interface;
+  BLI_assert(node_tree.runtime->field_inferencing_interface);
+  const FieldInferencingInterface &field_interface =
+      *node_tree.runtime->field_inferencing_interface;
   return field_interface.inputs[socket_index] != InputSocketFieldType::None;
 }
 
