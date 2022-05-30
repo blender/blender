@@ -2668,6 +2668,7 @@ bNodeTree *ntreeAddTree(Main *bmain, const char *name, const char *idname)
     flag |= LIB_ID_CREATE_NO_MAIN;
   }
   bNodeTree *ntree = (bNodeTree *)BKE_libblock_alloc(bmain, ID_NT, name, flag);
+  BKE_libblock_init_empty(&ntree->id);
   if (is_embedded) {
     ntree->id.flag |= LIB_EMBEDDED_DATA;
   }
