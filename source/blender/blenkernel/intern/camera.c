@@ -66,14 +66,19 @@ static void camera_init_data(ID *id)
  *
  * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
-static void camera_copy_data(Main *UNUSED(bmain),
-                             ID *id_dst,
-                             const ID *id_src,
-                             const int UNUSED(flag))
+static void camera_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
 {
   Camera *cam_dst = (Camera *)id_dst;
   const Camera *cam_src = (const Camera *)id_src;
-  BLI_duplicatelist(&cam_dst->bg_images, &cam_src->bg_images);
+
+  /* We never handle usercount here for own data. */
+  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+
+  BLI_listbase_clear(&cam_dst->bg_images);
+  LISTBASE_FOREACH (CameraBGImage *, bgpic_src, &cam_src->bg_images) {
+    CameraBGImage *bgpic_dst = BKE_camera_background_image_copy(bgpic_src, flag_subdata);
+    BLI_addtail(&cam_dst->bg_images, bgpic_dst);
+  }
 }
 
 /** Free (or release) any data used by this camera (does not free the camera itself). */
@@ -125,6 +130,11 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
     bgpic->iuser.scene = NULL;
+
+    /* If linking from a library, clear 'local' library override flag. */
+    if (ID_IS_LINKED(ca)) {
+      bgpic->flag &= ~CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
+    }
   }
 }
 
@@ -1119,11 +1129,29 @@ CameraBGImage *BKE_camera_background_image_new(Camera *cam)
   bgpic->scale = 1.0f;
   bgpic->alpha = 0.5f;
   bgpic->iuser.flag |= IMA_ANIM_ALWAYS;
-  bgpic->flag |= CAM_BGIMG_FLAG_EXPANDED;
+  bgpic->flag |= CAM_BGIMG_FLAG_EXPANDED | CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
 
   BLI_addtail(&cam->bg_images, bgpic);
 
   return bgpic;
+}
+
+CameraBGImage *BKE_camera_background_image_copy(CameraBGImage *bgpic_src, const int flag)
+{
+  CameraBGImage *bgpic_dst = MEM_dupallocN(bgpic_src);
+
+  bgpic_dst->next = bgpic_dst->prev = NULL;
+
+  if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+    id_us_plus((ID *)bgpic_dst->ima);
+    id_us_plus((ID *)bgpic_dst->clip);
+  }
+
+  if ((flag & LIB_ID_COPY_NO_LIB_OVERRIDE_LOCAL_DATA_FLAG) == 0) {
+    bgpic_dst->flag |= CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
+  }
+
+  return bgpic_dst;
 }
 
 void BKE_camera_background_image_remove(Camera *cam, CameraBGImage *bgpic)

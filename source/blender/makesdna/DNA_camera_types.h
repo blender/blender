@@ -194,6 +194,9 @@ enum {
   /* Axis flip options */
   CAM_BGIMG_FLAG_FLIP_X = (1 << 7),
   CAM_BGIMG_FLAG_FLIP_Y = (1 << 8),
+
+  /* That background image has been inserted in local override (i.e. it can be fully edited!). */
+  CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL = (1 << 9),
 };
 
 /* CameraBGImage->source */

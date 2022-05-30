@@ -164,6 +164,14 @@ bool BKE_camera_multiview_spherical_stereo(const struct RenderData *rd,
 /* Camera background image API */
 
 struct CameraBGImage *BKE_camera_background_image_new(struct Camera *cam);
+/**
+ * Duplicate a background image, in a ID management compatible way.
+ *
+ * \param copy_flag The usual ID copying flags, see `LIB_ID_CREATE_`/`LIB_ID_COPY_` enums in
+ * `BKE_lib_id.h`.
+ */
+struct CameraBGImage *BKE_camera_background_image_copy(struct CameraBGImage *bgpic_src,
+                                                            const int copy_flag);
 void BKE_camera_background_image_remove(struct Camera *cam, struct CameraBGImage *bgpic);
 void BKE_camera_background_image_clear(struct Camera *cam);
 

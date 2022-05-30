@@ -631,6 +631,17 @@ static int background_image_remove_exec(bContext *C, wmOperator *op)
   CameraBGImage *bgpic_rem = BLI_findlink(&cam->bg_images, index);
 
   if (bgpic_rem) {
+    if (ID_IS_OVERRIDE_LIBRARY(cam) &&
+        (bgpic_rem->flag & CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL) == 0) {
+      BKE_reportf(op->reports,
+                  RPT_WARNING,
+                  "Cannot remove background image %d from camera '%s', as it is from the linked "
+                  "reference data",
+                  index,
+                  cam->id.name + 2);
+      return OPERATOR_CANCELLED;
+    }
+
     id_us_min((ID *)bgpic_rem->ima);
     id_us_min((ID *)bgpic_rem->clip);
 
