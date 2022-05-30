@@ -9,7 +9,7 @@
 
 namespace blender::nodes {
 struct FieldInferencingInterface;
-struct NodeDeclaration;
+class NodeDeclaration;
 }  // namespace blender::nodes
 
 namespace blender::bke {
