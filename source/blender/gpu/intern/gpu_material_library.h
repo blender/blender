@@ -30,7 +30,7 @@ typedef struct GPUFunction {
   eGPUType paramtype[MAX_PARAMETER];
   GPUFunctionQual paramqual[MAX_PARAMETER];
   int totparam;
-  /* TOOD(@fclem): Clean that void pointer. */
+  /* TODO(@fclem): Clean that void pointer. */
   void *source; /* GPUSource */
 } GPUFunction;
 
