@@ -35,7 +35,8 @@ void emit_line(uint line_offset, uint quad_index, uint start_loop_index, uint co
   uint coarse_quad_index = coarse_polygon_index_from_subdiv_quad_index(quad_index,
                                                                        coarse_poly_count);
 
-  if (is_face_hidden(coarse_quad_index) || (input_origindex[vertex_index] == ORIGINDEX_NONE && optimal_display)) {
+  if (is_face_hidden(coarse_quad_index) ||
+      (input_origindex[vertex_index] == ORIGINDEX_NONE && optimal_display)) {
     output_lines[line_offset + 0] = 0xffffffff;
     output_lines[line_offset + 1] = 0xffffffff;
   }
@@ -62,13 +63,13 @@ void main()
   uint loop_index = num_subdiv_loops + index * 2;
 
   if (lines_loose_flags[index] != 0) {
-      /* Line is hidden. */
-      output_lines[line_offset] = 0xffffffff;
-      output_lines[line_offset + 1] = 0xffffffff;
+    /* Line is hidden. */
+    output_lines[line_offset] = 0xffffffff;
+    output_lines[line_offset + 1] = 0xffffffff;
   }
   else {
-      output_lines[line_offset] = loop_index;
-      output_lines[line_offset + 1] = loop_index + 1;
+    output_lines[line_offset] = loop_index;
+    output_lines[line_offset + 1] = loop_index + 1;
   }
 
 #else

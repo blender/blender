@@ -46,19 +46,19 @@ void main()
 #endif
 
   if (is_face_hidden(coarse_quad_index)) {
-      output_tris[triangle_loop_index + 0] = 0xffffffff;
-      output_tris[triangle_loop_index + 1] = 0xffffffff;
-      output_tris[triangle_loop_index + 2] = 0xffffffff;
-      output_tris[triangle_loop_index + 3] = 0xffffffff;
-      output_tris[triangle_loop_index + 4] = 0xffffffff;
-      output_tris[triangle_loop_index + 5] = 0xffffffff;
+    output_tris[triangle_loop_index + 0] = 0xffffffff;
+    output_tris[triangle_loop_index + 1] = 0xffffffff;
+    output_tris[triangle_loop_index + 2] = 0xffffffff;
+    output_tris[triangle_loop_index + 3] = 0xffffffff;
+    output_tris[triangle_loop_index + 4] = 0xffffffff;
+    output_tris[triangle_loop_index + 5] = 0xffffffff;
   }
   else {
-      output_tris[triangle_loop_index + 0] = loop_index + 0;
-      output_tris[triangle_loop_index + 1] = loop_index + 1;
-      output_tris[triangle_loop_index + 2] = loop_index + 2;
-      output_tris[triangle_loop_index + 3] = loop_index + 0;
-      output_tris[triangle_loop_index + 4] = loop_index + 2;
-      output_tris[triangle_loop_index + 5] = loop_index + 3;
-   }
+    output_tris[triangle_loop_index + 0] = loop_index + 0;
+    output_tris[triangle_loop_index + 1] = loop_index + 1;
+    output_tris[triangle_loop_index + 2] = loop_index + 2;
+    output_tris[triangle_loop_index + 3] = loop_index + 0;
+    output_tris[triangle_loop_index + 4] = loop_index + 2;
+    output_tris[triangle_loop_index + 5] = loop_index + 3;
+  }
 }
