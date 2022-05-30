@@ -631,12 +631,8 @@ static int background_image_remove_exec(bContext *C, wmOperator *op)
   CameraBGImage *bgpic_rem = BLI_findlink(&cam->bg_images, index);
 
   if (bgpic_rem) {
-    if (bgpic_rem->source == CAM_BGIMG_SOURCE_IMAGE) {
-      id_us_min((ID *)bgpic_rem->ima);
-    }
-    else if (bgpic_rem->source == CAM_BGIMG_SOURCE_MOVIE) {
-      id_us_min((ID *)bgpic_rem->clip);
-    }
+    id_us_min((ID *)bgpic_rem->ima);
+    id_us_min((ID *)bgpic_rem->clip);
 
     BKE_camera_background_image_remove(cam, bgpic_rem);
 
