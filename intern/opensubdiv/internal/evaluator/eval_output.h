@@ -27,6 +27,8 @@
 #include "internal/base/type.h"
 #include "internal/evaluator/evaluator_impl.h"
 
+#include "opensubdiv_evaluator_capi.h"
+
 using OpenSubdiv::Far::PatchTable;
 using OpenSubdiv::Far::StencilTable;
 using OpenSubdiv::Osd::BufferDescriptor;
@@ -41,6 +43,8 @@ namespace opensubdiv {
 class EvalOutputAPI::EvalOutput {
  public:
   virtual ~EvalOutput() = default;
+
+  virtual void updateSettings(const OpenSubdiv_EvaluatorSettings *settings) = 0;
 
   virtual void updateData(const float *src, int start_vertex, int num_vertices) = 0;
 
@@ -347,13 +351,13 @@ class VolatileEvalOutput : public EvalOutputAPI::EvalOutput {
                      const StencilTable *varying_stencils,
                      const vector<const StencilTable *> &all_face_varying_stencils,
                      const int face_varying_width,
-                     const int vertex_data_width,
                      const PatchTable *patch_table,
                      EvaluatorCache *evaluator_cache = NULL,
                      DEVICE_CONTEXT *device_context = NULL)
-      : src_desc_(0, 3, 3),
+      : src_vertex_data_(NULL),
+        src_desc_(0, 3, 3),
         src_varying_desc_(0, 3, 3),
-        src_vertex_data_desc_(0, vertex_data_width, vertex_data_width),
+        src_vertex_data_desc_(0, 0, 0),
         face_varying_width_(face_varying_width),
         evaluator_cache_(evaluator_cache),
         device_context_(device_context)
@@ -370,15 +374,6 @@ class VolatileEvalOutput : public EvalOutputAPI::EvalOutput {
                                                                       device_context_);
     varying_stencils_ = convertToCompatibleStencilTable<STENCIL_TABLE>(varying_stencils,
                                                                        device_context_);
-
-    // Optionally allocate additional data to be subdivided like vertex coordinates.
-    if (vertex_data_width > 0) {
-      src_vertex_data_ = SRC_VERTEX_BUFFER::Create(
-          vertex_data_width, num_total_vertices, device_context_);
-    }
-    else {
-      src_vertex_data_ = NULL;
-    }
 
     // Create evaluators for every face varying channel.
     face_varying_evaluators_.reserve(all_face_varying_stencils.size());
@@ -404,6 +399,23 @@ class VolatileEvalOutput : public EvalOutputAPI::EvalOutput {
     delete varying_stencils_;
     for (FaceVaryingEval *face_varying_evaluator : face_varying_evaluators_) {
       delete face_varying_evaluator;
+    }
+  }
+
+  void updateSettings(const OpenSubdiv_EvaluatorSettings *settings) override
+  {
+    // Optionally allocate additional data to be subdivided like vertex coordinates.
+    if (settings->num_vertex_data != src_vertex_data_desc_.length) {
+      delete src_vertex_data_;
+      if (settings->num_vertex_data > 0) {
+        src_vertex_data_ = SRC_VERTEX_BUFFER::Create(
+            settings->num_vertex_data, src_data_->GetNumVertices(), device_context_);
+      }
+      else {
+        src_vertex_data_ = NULL;
+      }
+      src_vertex_data_desc_ = BufferDescriptor(
+          0, settings->num_vertex_data, settings->num_vertex_data);
     }
   }
 
