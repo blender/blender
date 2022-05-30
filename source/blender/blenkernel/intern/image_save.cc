@@ -107,7 +107,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
     if (opts->save_as_render) {
       /* Render/compositor output or user chose to save with render settings. */
-      BKE_image_format_init_for_write(&opts->im_format, scene, NULL);
+      BKE_image_format_init_for_write(&opts->im_format, scene, nullptr);
       is_depth_set = true;
       if (!BKE_image_is_multiview(ima)) {
         /* In case multiview is disabled,
@@ -188,7 +188,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
       }
 
       /* append UDIM marker if not present */
-      if (ima->source == IMA_SRC_TILED && strstr(opts->filepath, "<UDIM>") == NULL) {
+      if (ima->source == IMA_SRC_TILED && strstr(opts->filepath, "<UDIM>") == nullptr) {
         int len = strlen(opts->filepath);
         STR_CONCAT(opts->filepath, len, ".<UDIM>");
       }
@@ -201,7 +201,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
   BKE_image_release_ibuf(ima, ibuf, lock);
 
-  return (ibuf != NULL);
+  return (ibuf != nullptr);
 }
 
 void BKE_image_save_options_update(ImageSaveOptions *opts, Image *image)
@@ -210,7 +210,7 @@ void BKE_image_save_options_update(ImageSaveOptions *opts, Image *image)
   if (opts->save_as_render) {
     if (!opts->prev_save_as_render) {
       if (ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-        BKE_image_format_init_for_write(&opts->im_format, opts->scene, NULL);
+        BKE_image_format_init_for_write(&opts->im_format, opts->scene, nullptr);
       }
       else {
         BKE_image_format_color_management_copy_from_scene(&opts->im_format, opts->scene);

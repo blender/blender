@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-#include "curves_sculpt_intern.hh"
-
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_kdtree.h"

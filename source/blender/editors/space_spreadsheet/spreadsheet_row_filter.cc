@@ -14,8 +14,6 @@
 
 #include "RNA_access.h"
 
-#include "spreadsheet_intern.hh"
-
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_layout.hh"

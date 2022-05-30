@@ -20,8 +20,6 @@
 
 #include "UI_view2d.h"
 
-#include "RNA_define.h"
-
 #include "SEQ_iterator.h"
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"

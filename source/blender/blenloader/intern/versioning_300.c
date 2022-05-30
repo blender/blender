@@ -63,15 +63,13 @@
 #include "RNA_prototypes.h"
 
 #include "BLO_readfile.h"
-#include "MEM_guardedalloc.h"
+
 #include "readfile.h"
 
 #include "SEQ_channels.h"
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
-
-#include "RNA_access.h"
 
 #include "versioning_common.h"
 

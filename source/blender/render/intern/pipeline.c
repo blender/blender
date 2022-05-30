@@ -87,8 +87,6 @@
 #  include "FRS_freestyle.h"
 #endif
 
-#include "DEG_depsgraph.h"
-
 /* internal */
 #include "pipeline.h"
 #include "render_result.h"

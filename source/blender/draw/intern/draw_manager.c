@@ -44,7 +44,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_world_types.h"
-#include "draw_manager.h"
 
 #include "ED_gpencil.h"
 #include "ED_screen.h"

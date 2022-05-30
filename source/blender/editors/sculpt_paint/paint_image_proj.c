@@ -97,8 +97,6 @@
 #include "RNA_enum_types.h"
 #include "RNA_types.h"
 
-#include "NOD_shader.h"
-
 #include "IMB_colormanagement.h"
 
 //#include "bmesh_tools.h"

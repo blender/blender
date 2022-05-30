@@ -12,7 +12,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
-#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
