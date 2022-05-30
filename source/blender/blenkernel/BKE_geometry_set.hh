@@ -521,11 +521,11 @@ struct GeometrySet {
 };
 
 /**
- * A geometry component that can store a mesh, storing the #Mesh data structure.
+ * A geometry component that can store a mesh, using the #Mesh data-block.
  *
- * Attributes are stored in the mesh itself, on any of the four attribute domains. Generic
- * attributes are stored in contiguous arrays, but often built-in attributes are stored in an
- * array of structs fashion for historical reasons, requiring more complex attribute access.
+ * Attributes are stored, on any of the four attribute domains. Generic attributes are stored in
+ * contiguous arrays, but often built-in attributes are stored in an array of structs fashion for
+ * historical reasons, requiring more complex attribute access.
  */
 class MeshComponent : public GeometryComponent {
  private:
@@ -682,8 +682,9 @@ class CurveComponentLegacy : public GeometryComponent {
 };
 
 /**
- * A geometry component that stores a group of curves, corresponding the #Curves and
- * #CurvesGeometry types.
+ * A geometry component that stores a group of curves, corresponding the #Curves data-block type
+ * and the #CurvesGeometry type. Attributes are are stored on the control point domain and the
+ * curve domain.
  */
 class CurveComponent : public GeometryComponent {
  private:
