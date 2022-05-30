@@ -1310,7 +1310,7 @@ static void knife_bvh_raycast_cb(void *userdata,
                                  const BVHTreeRay *ray,
                                  BVHTreeRayHit *hit)
 {
-  if (index != -1) {
+  if (index == -1) {
     return;
   }
 
