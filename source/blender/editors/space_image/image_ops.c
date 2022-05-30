@@ -1727,7 +1727,7 @@ static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
   isd->image = image;
   isd->iuser = iuser;
 
-  if (!BKE_image_save_options_init(&isd->opts, bmain, scene, image, iuser, true)) {
+  if (!BKE_image_save_options_init(&isd->opts, bmain, scene, image, iuser, true, false)) {
     BKE_image_save_options_free(&isd->opts);
     MEM_freeN(isd);
     return NULL;
@@ -1994,7 +1994,7 @@ static int image_save_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  if (!BKE_image_save_options_init(&opts, bmain, scene, image, iuser, false)) {
+  if (!BKE_image_save_options_init(&opts, bmain, scene, image, iuser, false, false)) {
     BKE_image_save_options_free(&opts);
     return OPERATOR_CANCELLED;
   }
@@ -2266,7 +2266,7 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
         if (image_has_valid_path(ima)) {
           ImageSaveOptions opts;
           Scene *scene = CTX_data_scene(C);
-          if (!BKE_image_save_options_init(&opts, bmain, scene, ima, NULL, false)) {
+          if (!BKE_image_save_options_init(&opts, bmain, scene, ima, NULL, false, false)) {
             bool saved_successfully = BKE_image_save(reports, bmain, ima, NULL, &opts);
             ok = ok && saved_successfully;
           }

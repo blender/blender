@@ -78,7 +78,8 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
                                  Scene *scene,
                                  Image *ima,
                                  ImageUser *iuser,
-                                 const bool guess_path)
+                                 const bool guess_path,
+                                 const bool save_as_render)
 {
   /* For saving a tiled image we need an iuser, so use a local one if there isn't already one. */
   ImageUser save_iuser;
@@ -92,7 +93,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
   opts->bmain = bmain;
   opts->scene = scene;
-  opts->save_as_render = ima->source == IMA_SRC_VIEWER;
+  opts->save_as_render = ima->source == IMA_SRC_VIEWER || save_as_render;
 
   BKE_image_format_init(&opts->im_format, false);
 
@@ -104,8 +105,8 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
     bool is_depth_set = false;
     const char *ima_colorspace = ima->colorspace_settings.name;
 
-    if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-      /* imtype */
+    if (opts->save_as_render) {
+      /* Render/compositor output or user chose to save with render settings. */
       BKE_image_format_init_for_write(&opts->im_format, scene, NULL);
       is_depth_set = true;
       if (!BKE_image_is_multiview(ima)) {
