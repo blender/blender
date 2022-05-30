@@ -41,6 +41,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 
 #include "DNA_node_types.h"
 
@@ -597,7 +598,7 @@ inline bNodeType *NodeRef::typeinfo() const
 inline const NodeDeclaration *NodeRef::declaration() const
 {
   nodeDeclarationEnsure(this->tree().btree(), bnode_);
-  return bnode_->declaration;
+  return bnode_->runtime->declaration;
 }
 
 inline int NodeRef::id() const

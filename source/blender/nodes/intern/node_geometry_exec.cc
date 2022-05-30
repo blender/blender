@@ -37,7 +37,7 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
                                                  const GeometrySet &geometry_set) const
 {
   const SocketDeclaration &decl =
-      *provider_->dnode->input_by_identifier(identifier).bsocket()->declaration;
+      *provider_->dnode->input_by_identifier(identifier).bsocket()->runtime->declaration;
   const decl::Geometry *geo_decl = dynamic_cast<const decl::Geometry *>(&decl);
   if (geo_decl == nullptr) {
     return;

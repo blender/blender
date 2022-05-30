@@ -95,6 +95,8 @@ using blender::Stack;
 using blender::StringRef;
 using blender::Vector;
 using blender::VectorSet;
+using blender::bke::bNodeRuntime;
+using blender::bke::bNodeSocketRuntime;
 using blender::bke::bNodeTreeRuntime;
 using blender::nodes::FieldInferencingInterface;
 using blender::nodes::InputSocketFieldType;
@@ -662,7 +664,7 @@ static void direct_link_node_socket(BlendDataReader *reader, bNodeSocket *sock)
   BLO_read_data_address(reader, &sock->default_attribute_name);
   sock->total_inputs = 0; /* Clear runtime data set before drawing. */
   sock->cache = nullptr;
-  sock->declaration = nullptr;
+  sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
 }
 
 void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
@@ -682,8 +684,8 @@ void ntreeBlendReadData(BlendDataReader *reader, bNodeTree *ntree)
 
   BLO_read_list(reader, &ntree->nodes);
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    node->runtime = MEM_new<bNodeRuntime>(__func__);
     node->typeinfo = nullptr;
-    node->declaration = nullptr;
 
     BLO_read_list(reader, &node->inputs);
     BLO_read_list(reader, &node->outputs);
@@ -1514,6 +1516,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
       unique_identifier_check, lb, "socket", '_', auto_identifier, sizeof(auto_identifier));
 
   bNodeSocket *sock = MEM_cnew<bNodeSocket>("sock");
+  sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
   sock->in_out = in_out;
 
   BLI_strncpy(sock->identifier, auto_identifier, NODE_MAXSTR);
@@ -1919,6 +1922,7 @@ static void node_socket_free(bNodeSocket *sock, const bool do_id_user)
     }
     MEM_freeN(sock->default_value);
   }
+  MEM_delete(sock->runtime);
 }
 
 void nodeRemoveSocket(bNodeTree *ntree, bNode *node, bNodeSocket *sock)
@@ -2124,6 +2128,7 @@ void nodeUniqueName(bNodeTree *ntree, bNode *node)
 bNode *nodeAddNode(const struct bContext *C, bNodeTree *ntree, const char *idname)
 {
   bNode *node = MEM_cnew<bNode>("new node");
+  node->runtime = MEM_new<bNodeRuntime>(__func__);
   BLI_addtail(&ntree->nodes, node);
 
   BLI_strncpy(node->idname, idname, sizeof(node->idname));
@@ -2161,6 +2166,7 @@ bNode *nodeAddStaticNode(const struct bContext *C, bNodeTree *ntree, int type)
 
 static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src, const int flag)
 {
+  sock_dst->runtime = MEM_new<bNodeSocketRuntime>(__func__);
   if (sock_src->prop) {
     sock_dst->prop = IDP_CopyProperty_ex(sock_src->prop, flag);
   }
@@ -2192,6 +2198,8 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
 {
   bNode *node_dst = (bNode *)MEM_mallocN(sizeof(bNode), __func__);
   *node_dst = node_src;
+
+  node_dst->runtime = MEM_new<bNodeRuntime>(__func__);
 
   /* Can be called for nodes outside a node tree (e.g. clipboard). */
   if (dst_tree) {
@@ -2253,7 +2261,6 @@ bNode *node_copy_with_mapping(bNodeTree *dst_tree,
   }
 
   /* Reset the declaration of the new node. */
-  node_dst->declaration = nullptr;
   nodeDeclarationEnsure(dst_tree, node_dst);
 
   return node_dst;
@@ -2972,9 +2979,10 @@ static void node_free_node(bNodeTree *ntree, bNode *node)
   }
 
   if (node->typeinfo->declaration_is_dynamic) {
-    delete node->declaration;
+    delete node->runtime->declaration;
   }
 
+  MEM_delete(node->runtime);
   MEM_freeN(node);
 
   if (ntree) {
@@ -3066,6 +3074,7 @@ static void node_socket_interface_free(bNodeTree *UNUSED(ntree),
     }
     MEM_freeN(sock->default_value);
   }
+  MEM_delete(sock->runtime);
 }
 
 static void free_localized_node_groups(bNodeTree *ntree)
@@ -3292,6 +3301,7 @@ static bNodeSocket *make_socket_interface(bNodeTree *ntree,
   }
 
   bNodeSocket *sock = MEM_cnew<bNodeSocket>("socket template");
+  sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
   BLI_strncpy(sock->idname, stype->idname, sizeof(sock->idname));
   sock->in_out = in_out;
   sock->type = SOCK_CUSTOM; /* int type undefined by default */
@@ -3679,34 +3689,34 @@ static void update_socket_declarations(ListBase *sockets,
   int index;
   LISTBASE_FOREACH_INDEX (bNodeSocket *, socket, sockets, index) {
     const SocketDeclaration &socket_decl = *declarations[index];
-    socket->declaration = &socket_decl;
+    socket->runtime->declaration = &socket_decl;
   }
 }
 
 void nodeSocketDeclarationsUpdate(bNode *node)
 {
-  BLI_assert(node->declaration != nullptr);
-  update_socket_declarations(&node->inputs, node->declaration->inputs());
-  update_socket_declarations(&node->outputs, node->declaration->outputs());
+  BLI_assert(node->runtime->declaration != nullptr);
+  update_socket_declarations(&node->inputs, node->runtime->declaration->inputs());
+  update_socket_declarations(&node->outputs, node->runtime->declaration->outputs());
 }
 
 bool nodeDeclarationEnsureOnOutdatedNode(bNodeTree *UNUSED(ntree), bNode *node)
 {
-  if (node->declaration != nullptr) {
+  if (node->runtime->declaration != nullptr) {
     return false;
   }
   if (node->typeinfo->declare == nullptr) {
     return false;
   }
   if (node->typeinfo->declaration_is_dynamic) {
-    node->declaration = new blender::nodes::NodeDeclaration();
-    blender::nodes::NodeDeclarationBuilder builder{*node->declaration};
+    node->runtime->declaration = new blender::nodes::NodeDeclaration();
+    blender::nodes::NodeDeclarationBuilder builder{*node->runtime->declaration};
     node->typeinfo->declare(builder);
   }
   else {
     /* Declaration should have been created in #nodeRegisterType. */
     BLI_assert(node->typeinfo->fixed_declaration != nullptr);
-    node->declaration = node->typeinfo->fixed_declaration;
+    node->runtime->declaration = node->typeinfo->fixed_declaration;
   }
   return true;
 }

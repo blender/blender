@@ -55,13 +55,13 @@ static void add_tree_tag(bNodeTree *ntree, const eNodeTreeChangedFlag flag)
 static void add_node_tag(bNodeTree *ntree, bNode *node, const eNodeTreeChangedFlag flag)
 {
   add_tree_tag(ntree, flag);
-  node->changed_flag |= flag;
+  node->runtime->changed_flag |= flag;
 }
 
 static void add_socket_tag(bNodeTree *ntree, bNodeSocket *socket, const eNodeTreeChangedFlag flag)
 {
   add_tree_tag(ntree, flag);
-  socket->changed_flag |= flag;
+  socket->runtime->changed_flag |= flag;
 }
 
 namespace blender::bke {
@@ -1082,7 +1082,7 @@ class NodeTreeMainUpdater {
     if (ntree.runtime->changed_flag & NTREE_CHANGED_ANY) {
       return true;
     }
-    if (bnode.changed_flag & NTREE_CHANGED_NODE_PROPERTY) {
+    if (bnode.runtime->changed_flag & NTREE_CHANGED_NODE_PROPERTY) {
       return true;
     }
     if (ntree.runtime->changed_flag & NTREE_CHANGED_LINK) {
@@ -1542,12 +1542,12 @@ class NodeTreeMainUpdater {
       const NodeRef &node = in_out_socket.node();
       const bNode &bnode = *node.bnode();
       const bNodeSocket &bsocket = *in_out_socket.bsocket();
-      if (bsocket.changed_flag != NTREE_CHANGED_NOTHING) {
+      if (bsocket.runtime->changed_flag != NTREE_CHANGED_NOTHING) {
         return true;
       }
-      if (bnode.changed_flag != NTREE_CHANGED_NOTHING) {
+      if (bnode.runtime->changed_flag != NTREE_CHANGED_NOTHING) {
         const bool only_unused_internal_link_changed = (bnode.flag & NODE_MUTED) == 0 &&
-                                                       bnode.changed_flag ==
+                                                       bnode.runtime->changed_flag ==
                                                            NTREE_CHANGED_INTERNAL_LINK;
         if (!only_unused_internal_link_changed) {
           return true;
@@ -1595,13 +1595,13 @@ class NodeTreeMainUpdater {
   {
     ntree.runtime->changed_flag = NTREE_CHANGED_NOTHING;
     LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-      node->changed_flag = NTREE_CHANGED_NOTHING;
+      node->runtime->changed_flag = NTREE_CHANGED_NOTHING;
       node->update = 0;
       LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
-        socket->changed_flag = NTREE_CHANGED_NOTHING;
+        socket->runtime->changed_flag = NTREE_CHANGED_NOTHING;
       }
       LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
-        socket->changed_flag = NTREE_CHANGED_NOTHING;
+        socket->runtime->changed_flag = NTREE_CHANGED_NOTHING;
       }
     }
   }
