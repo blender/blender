@@ -28,6 +28,7 @@ void OptiXDeviceQueue::init_execution()
 static bool is_optix_specific_kernel(DeviceKernel kernel)
 {
   return (kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
+          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST ||
           kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW ||
           kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE ||
@@ -63,7 +64,8 @@ bool OptiXDeviceQueue::enqueue(DeviceKernel kernel,
                         cuda_stream_));
 
   if (kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST ||
-      kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE) {
+      kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
+      kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE) {
     cuda_device_assert(
         cuda_device_,
         cuMemcpyHtoDAsync(launch_params_ptr + offsetof(KernelParamsOptiX, render_buffer),
@@ -81,6 +83,10 @@ bool OptiXDeviceQueue::enqueue(DeviceKernel kernel,
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
       pipeline = optix_device->pipelines[PIP_SHADE_RAYTRACE];
       sbt_params.raygenRecord = sbt_data_ptr + PG_RGEN_SHADE_SURFACE_RAYTRACE * sizeof(SbtRecord);
+      break;
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
+      pipeline = optix_device->pipelines[PIP_SHADE_MNEE];
+      sbt_params.raygenRecord = sbt_data_ptr + PG_RGEN_SHADE_SURFACE_MNEE * sizeof(SbtRecord);
       break;
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST:
       pipeline = optix_device->pipelines[PIP_INTERSECT];

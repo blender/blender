@@ -489,7 +489,8 @@ bool MetalDeviceKernels::load(MetalDevice *device, int kernel_type)
             i == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW ||
             i == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE ||
             i == DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK ||
-            i == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE) {
+            i == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
+            i == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE) {
           kernel_function_list = function_list;
         }
 
