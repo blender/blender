@@ -130,11 +130,6 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob)
   else {
     ob->transflag &= ~OB_NEG_SCALE;
   }
-
-  /* Assign evaluated version. */
-  if ((ob->type == OB_GPENCIL) && (ob->runtime.gpd_eval != NULL)) {
-    ob->data = ob->runtime.gpd_eval;
-  }
 }
 
 void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
