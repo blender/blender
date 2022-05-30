@@ -225,9 +225,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     return; /* Sanity check. */
   }
 
-  /* Only copy normals to the new BMesh if they are not already dirty. This avoids unnecessary
-   * work, but also accessing normals on an incomplete mesh, for example when restoring undo steps
-   * in edit mode. */
   const float(*vert_normals)[3] = nullptr;
   if (params->calc_vert_normal) {
     vert_normals = BKE_mesh_vertex_normals_ensure(me);
