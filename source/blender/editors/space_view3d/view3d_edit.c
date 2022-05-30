@@ -653,7 +653,7 @@ void VIEW3D_OT_background_image_remove(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = background_image_remove_exec;
-  ot->poll = ED_operator_camera;
+  ot->poll = ED_operator_camera_poll;
 
   /* flags */
   ot->flag = 0;
