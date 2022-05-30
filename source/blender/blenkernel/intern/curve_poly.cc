@@ -13,15 +13,28 @@
 
 namespace blender::bke::curves::poly {
 
-static float3 direction_bisect(const float3 &prev, const float3 &middle, const float3 &next)
+static float3 direction_bisect(const float3 &prev,
+                               const float3 &middle,
+                               const float3 &next,
+                               bool &r_used_fallback)
 {
+  const float epsilon = 1e-6f;
+  const bool prev_equal = math::almost_equal_relative(prev, middle, epsilon);
+  const bool next_equal = math::almost_equal_relative(middle, next, epsilon);
+  if (prev_equal && next_equal) {
+    r_used_fallback = true;
+    return {0.0f, 0.0f, 0.0f};
+  }
+  if (prev_equal) {
+    return math::normalize(next - middle);
+  }
+  if (next_equal) {
+    return math::normalize(middle - prev);
+  }
+
   const float3 dir_prev = math::normalize(middle - prev);
   const float3 dir_next = math::normalize(next - middle);
-
   const float3 result = math::normalize(dir_prev + dir_next);
-  if (UNLIKELY(math::is_zero(result))) {
-    return float3(0.0f, 0.0f, 1.0f);
-  }
   return result;
 }
 
@@ -36,8 +49,11 @@ void calculate_tangents(const Span<float3> positions,
     return;
   }
 
+  bool used_fallback = false;
+
   for (const int i : IndexRange(1, positions.size() - 2)) {
-    tangents[i] = direction_bisect(positions[i - 1], positions[i], positions[i + 1]);
+    tangents[i] = direction_bisect(
+        positions[i - 1], positions[i], positions[i + 1], used_fallback);
   }
 
   if (is_cyclic) {
@@ -45,12 +61,45 @@ void calculate_tangents(const Span<float3> positions,
     const float3 &last = positions.last();
     const float3 &first = positions.first();
     const float3 &second = positions[1];
-    tangents.first() = direction_bisect(last, first, second);
-    tangents.last() = direction_bisect(second_to_last, last, first);
+    tangents.first() = direction_bisect(last, first, second, used_fallback);
+    tangents.last() = direction_bisect(second_to_last, last, first, used_fallback);
   }
   else {
     tangents.first() = math::normalize(positions[1] - positions.first());
     tangents.last() = math::normalize(positions.last() - positions[positions.size() - 2]);
+  }
+
+  if (!used_fallback) {
+    return;
+  }
+
+  /* Find the first tangent that does not use the fallback. */
+  int first_valid_tangent_index = -1;
+  for (const int i : tangents.index_range()) {
+    if (!math::is_zero(tangents[i])) {
+      first_valid_tangent_index = i;
+      break;
+    }
+  }
+  if (first_valid_tangent_index == -1) {
+    /* If all tangents used the fallback, it means that all positions are (almost) the same. Just
+     * use the up-vector as default tangent. */
+    const float3 up_vector{0.0f, 0.0f, 1.0f};
+    tangents.fill(up_vector);
+  }
+  else {
+    const float3 &first_valid_tangent = tangents[first_valid_tangent_index];
+    /* If the first few tangents are invalid, use the tangent from the first point with a valid
+     * tangent. */
+    tangents.take_front(first_valid_tangent_index).fill(first_valid_tangent);
+    /* Use the previous valid tangent for points that had no valid tangent. */
+    for (const int i : tangents.index_range().drop_front(first_valid_tangent_index + 1)) {
+      float3 &tangent = tangents[i];
+      if (math::is_zero(tangent)) {
+        const float3 &prev_tangent = tangents[i - 1];
+        tangent = prev_tangent;
+      }
+    }
   }
 }
 
