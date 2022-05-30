@@ -111,6 +111,20 @@ static void rna_Camera_background_images_clear(Camera *cam)
   WM_main_add_notifier(NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, cam);
 }
 
+static char *rna_Camera_background_image_path(const PointerRNA *ptr)
+{
+  const CameraBGImage *bgpic = ptr->data;
+  Camera *camera = (Camera *)ptr->owner_id;
+
+  const int bgpic_index = BLI_findindex(&camera->bg_images, bgpic);
+
+  if (bgpic_index >= 0) {
+    return BLI_sprintfN("background_images[%d]", bgpic_index);
+  }
+
+  return NULL;
+}
+
 static void rna_Camera_dof_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
   SEQ_relations_invalidate_scene_strips(bmain, scene);
@@ -179,6 +193,7 @@ static void rna_def_camera_background_image(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "CameraBGImage");
   RNA_def_struct_ui_text(
       srna, "Background Image", "Image and settings for display in the 3D View background");
+  RNA_def_struct_path_func(srna, "rna_Camera_background_image_path");
 
   RNA_define_lib_overridable(true);
 
