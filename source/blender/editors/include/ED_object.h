@@ -536,12 +536,12 @@ bool ED_object_modifier_move_to_index(struct ReportList *reports,
                                       struct ModifierData *md,
                                       int index);
 
-bool ED_object_modifier_convert(struct ReportList *reports,
-                                struct Main *bmain,
-                                struct Depsgraph *depsgraph,
-                                struct ViewLayer *view_layer,
-                                struct Object *ob,
-                                struct ModifierData *md);
+bool ED_object_modifier_convert_psys_to_mesh(struct ReportList *reports,
+                                             struct Main *bmain,
+                                             struct Depsgraph *depsgraph,
+                                             struct ViewLayer *view_layer,
+                                             struct Object *ob,
+                                             struct ModifierData *md);
 bool ED_object_modifier_apply(struct Main *bmain,
                               struct ReportList *reports,
                               struct Depsgraph *depsgraph,
