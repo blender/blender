@@ -49,6 +49,7 @@ typedef enum AttributeDomainMask {
 /* Attributes. */
 
 bool BKE_id_attributes_supported(struct ID *id);
+bool BKE_attribute_allow_procedural_access(const char *attribute_name);
 
 /**
  * Create a new attribute layer.

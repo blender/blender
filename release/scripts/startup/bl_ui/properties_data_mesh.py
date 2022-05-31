@@ -497,6 +497,16 @@ class MESH_UL_attributes(UIList):
         'CORNER': "Face Corner",
     }
 
+    def filter_items(self, context, data, property):
+        attributes = getattr(data, property)
+        flags = []
+        indices = [i for i in range(len(attributes))]
+
+        for index, item in enumerate(attributes):
+            flags.append(self.bitflag_filter_item if item.is_internal else 0)
+        
+        return flags, indices
+
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
         data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
 
@@ -576,7 +586,7 @@ class ColorAttributesListBase():
         'CORNER': "Face Corner",
     }
 
-    def filter_items(self, _context, data, property):
+    def filter_items(self, context, data, property):
         attrs = getattr(data, property)
         ret = []
         idxs = []
@@ -584,7 +594,8 @@ class ColorAttributesListBase():
         for idx, item in enumerate(attrs):
             skip = (
                 (item.domain not in {"POINT", "CORNER"}) or
-                (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"})
+                (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"}) or
+                (not item.is_internal)
             )
             ret.append(self.bitflag_filter_item if not skip else 0)
             idxs.append(idx)

@@ -23,6 +23,7 @@
 #include "BLI_string_utils.h"
 
 #include "BKE_attribute.h"
+#include "BKE_attribute_access.hh"
 #include "BKE_curves.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
@@ -114,6 +115,11 @@ bool BKE_id_attributes_supported(ID *id)
     }
   }
   return false;
+}
+
+bool BKE_attribute_allow_procedural_access(const char *attribute_name)
+{
+  return blender::bke::allow_procedural_attribute_access(attribute_name);
 }
 
 bool BKE_id_attribute_rename(ID *id,

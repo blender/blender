@@ -91,6 +91,9 @@ void attribute_search_add_items(StringRefNull str,
     if (item->name == "normal" && item->domain == ATTR_DOMAIN_FACE) {
       continue;
     }
+    if (!bke::allow_procedural_attribute_access(item->name)) {
+      continue;
+    }
 
     BLI_string_search_add(search, item->name.c_str(), (void *)item, 0);
   }

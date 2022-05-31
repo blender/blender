@@ -55,6 +55,14 @@ std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_i
   return stream;
 }
 
+const char *no_procedural_access_message =
+    "This attribute can not be accessed in a procedural context";
+
+bool allow_procedural_attribute_access(StringRef attribute_name)
+{
+  return !attribute_name.startswith(".selection");
+}
+
 static int attribute_data_type_complexity(const CustomDataType data_type)
 {
   switch (data_type) {

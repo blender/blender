@@ -77,6 +77,9 @@ class AttributeIDRef {
   friend std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id);
 };
 
+bool allow_procedural_attribute_access(StringRef attribute_name);
+extern const char *no_procedural_access_message;
+
 }  // namespace blender::bke
 
 /**
