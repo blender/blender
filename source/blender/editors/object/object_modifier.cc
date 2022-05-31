@@ -1468,7 +1468,7 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
     return OPERATOR_CANCELLED;
   }
 
-  if (do_merge_customdata &&
+  if (ob->type == OB_MESH && do_merge_customdata &&
       (mti->type & (eModifierTypeType_Constructive | eModifierTypeType_Nonconstructive))) {
     BKE_mesh_merge_customdata_for_apply_modifier((Mesh *)ob->data);
   }
@@ -1531,12 +1531,12 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
   edit_modifier_properties(ot);
   edit_modifier_report_property(ot);
 
-  RNA_def_boolean(
-      ot->srna,
-      "merge_customdata",
-      true,
-      "Merge UV's",
-      "Merge UV coordinates that share a vertex to account for imprecision in some modifiers");
+  RNA_def_boolean(ot->srna,
+                  "merge_customdata",
+                  true,
+                  "Merge UV's",
+                  "For mesh objects, merge UV coordinates that share a vertex to account for "
+                  "imprecision in some modifiers");
   PropertyRNA *prop = RNA_def_boolean(ot->srna,
                                       "single_user",
                                       false,
