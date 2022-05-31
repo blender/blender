@@ -78,6 +78,17 @@ SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 # See: D6261 for reference.
 USE_ONLY_BUILTIN_RNA_TYPES = True
 
+# Write a page for each static enum defined in:
+# `source/blender/makesrna/RNA_enum_items.h` so the enums can be linked to instead of being expanded everywhere.
+USE_SHARED_RNA_ENUM_ITEMS_STATIC = True
+
+if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
+    from _bpy import rna_enum_items_static
+    rna_enum_dict = rna_enum_items_static()
+    for key in ("DummyRNA_DEFAULT_items", "DummyRNA_NULL_items"):
+        del rna_enum_dict[key]
+    del key, rna_enum_items_static
+
 
 def handle_args():
     """
@@ -1978,6 +1989,14 @@ def write_rst_types_index(basepath):
         fw(".. toctree::\n")
         fw("   :glob:\n\n")
         fw("   bpy.types.*\n\n")
+
+        # This needs to be included somewhere, while it's hidden, list to avoid warnings.
+        if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
+            fw(".. toctree::\n")
+            fw("   :hidden:\n")
+            fw("   :maxdepth: 1\n\n")
+            fw("   Shared Enum Types <bpy_types_enum_items/index>\n\n")
+
         file.close()
 
 
@@ -2046,6 +2065,68 @@ def write_rst_data(basepath):
         file.close()
 
         EXAMPLE_SET_USED.add("bpy.data")
+
+
+def write_rst_enum_items(basepath, key, key_no_prefix, enum_items):
+    """
+    Write a single page for a static enum in RST.
+
+    This helps avoiding very large lists being in-lined in many places which is an issue
+    especially with icons in ``bpy.types.UILayout``. See T87008.
+    """
+    filepath = os.path.join(basepath, "%s.rst" % key_no_prefix)
+    with open(filepath, "w", encoding="utf-8") as fh:
+        fw = fh.write
+        # fw(".. noindex::\n\n")
+        fw(".. _%s:\n\n" % key)
+
+        fw(title_string(key_no_prefix.replace("_", " ").title(), "#"))
+        # fw(".. rubric:: %s\n\n" % key_no_prefix.replace("_", " ").title())
+
+        for item in enum_items:
+            identifier = item.identifier
+            name = item.name
+            description = item.description
+            if identifier:
+                fw(":%s: %s\n" % (item.identifier, (escape_rst(name) + ".") if name else ""))
+                if description:
+                    fw("\n")
+                    write_indented_lines("   ", fw, escape_rst(description) + ".")
+                else:
+                    fw("\n")
+            else:
+                if name:
+                    fw("\n\n**%s**\n\n" % name)
+                else:
+                    fw("\n\n----\n\n")
+
+                if description:
+                    fw(escape_rst(description) + ".")
+                    fw("\n\n")
+
+
+def write_rst_enum_items_and_index(basepath):
+    """
+    Write shared enum items.
+    """
+    subdir = "bpy_types_enum_items"
+    basepath_bpy_types_rna_enum = os.path.join(basepath, subdir)
+    os.makedirs(basepath_bpy_types_rna_enum, exist_ok=True)
+    with open(os.path.join(basepath_bpy_types_rna_enum, "index.rst"), "w", encoding="utf-8") as fh:
+        fw = fh.write
+        fw(title_string("Shared Enum Items", "#"))
+        fw(".. toctree::\n")
+        fw("\n")
+        for key, enum_items in rna_enum_dict.items():
+            if not key.startswith("rna_enum_"):
+                raise Exception("Found RNA enum identifier that doesn't use the 'rna_enum_' prefix, found %r!", key)
+            key_no_prefix = key.removeprefix("rna_enum_")
+            fw("   %s\n" % key_no_prefix)
+
+        for key, enum_items in rna_enum_dict.items():
+            key_no_prefix = key.removeprefix("rna_enum_")
+            write_rst_enum_items(basepath_bpy_types_rna_enum, key, key_no_prefix, enum_items)
+        fw("\n")
 
 
 def write_rst_importable_modules(basepath):
@@ -2211,6 +2292,10 @@ def rna2sphinx(basepath):
     pyrna2sphinx(basepath)                  # bpy.types.* and bpy.ops.*
     write_rst_data(basepath)                # bpy.data
     write_rst_importable_modules(basepath)
+
+    # `bpy_types_enum_items/*` (referenced from `bpy.types`).
+    if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
+        write_rst_enum_items_and_index(basepath)
 
     # copy the other rsts
     copy_handwritten_rsts(basepath)
