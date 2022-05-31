@@ -150,7 +150,15 @@ DEF_ENUM(rna_enum_wm_report_items)
 
 DEF_ENUM(rna_enum_property_type_items)
 DEF_ENUM(rna_enum_property_subtype_items)
+DEF_ENUM(rna_enum_property_subtype_string_items)
+DEF_ENUM(rna_enum_property_subtype_number_items)
+DEF_ENUM(rna_enum_property_subtype_number_array_items)
 DEF_ENUM(rna_enum_property_unit_items)
+DEF_ENUM(rna_enum_property_flag_items)
+DEF_ENUM(rna_enum_property_flag_enum_items)
+DEF_ENUM(rna_enum_property_override_flag_items)
+DEF_ENUM(rna_enum_property_override_flag_collection_items)
+DEF_ENUM(rna_enum_property_string_search_flag_items)
 
 DEF_ENUM(rna_enum_shading_type_items)
 

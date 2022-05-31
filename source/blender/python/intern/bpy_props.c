@@ -45,162 +45,33 @@
 /** \name Shared Enums & Doc-Strings
  * \{ */
 
-static const EnumPropertyItem property_flag_items[] = {
-    {PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
-    {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
-    {PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
-    {PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", ""},
-    {PROP_PROPORTIONAL, "PROPORTIONAL", 0, "Adjust values proportionally to eachother", ""},
-    {PROP_TEXTEDIT_UPDATE,
-     "TEXTEDIT_UPDATE",
-     0,
-     "Update on every keystroke in textedit 'mode'",
-     ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
 #define BPY_PROPDEF_OPTIONS_DOC \
-  "   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'LIBRARY_EDITABLE', " \
-  "'PROPORTIONAL'," \
-  "'TEXTEDIT_UPDATE'].\n" \
+  "   :arg options: Enumerator in :ref:`rna_enum_property_flag_items`.\n" \
   "   :type options: set\n"
-
-static const EnumPropertyItem property_flag_enum_items[] = {
-    {PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
-    {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
-    {PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
-    {PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", ""},
-    {PROP_ENUM_FLAG, "ENUM_FLAG", 0, "Enum Flag", ""},
-    {0, NULL, 0, NULL, NULL},
-};
 
 #define BPY_PROPDEF_OPTIONS_ENUM_DOC \
-  "   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'ENUM_FLAG', " \
-  "'LIBRARY_EDITABLE'].\n" \
+  "   :arg options: Enumerator in :ref:`rna_enum_property_flag_enum_items`.\n" \
   "   :type options: set\n"
 
-static const EnumPropertyItem property_flag_override_items[] = {
-    {PROPOVERRIDE_OVERRIDABLE_LIBRARY,
-     "LIBRARY_OVERRIDABLE",
-     0,
-     "Library Overridable",
-     "Make that property editable in library overrides of linked data-blocks"},
-    {0, NULL, 0, NULL, NULL},
-};
-
 #define BPY_PROPDEF_OPTIONS_OVERRIDE_DOC \
-  "   :arg override: Enumerator in ['LIBRARY_OVERRIDABLE'].\n" \
+  "   :arg override: Enumerator in :ref:`rna_enum_property_override_flag_items`.\n" \
   "   :type override: set\n"
-
-static const EnumPropertyItem property_flag_override_collection_items[] = {
-    {PROPOVERRIDE_OVERRIDABLE_LIBRARY,
-     "LIBRARY_OVERRIDABLE",
-     0,
-     "Library Overridable",
-     "Make that property editable in library overrides of linked data-blocks"},
-    {PROPOVERRIDE_NO_PROP_NAME,
-     "NO_PROPERTY_NAME",
-     0,
-     "No Name",
-     "Do not use the names of the items, only their indices in the collection"},
-    {PROPOVERRIDE_LIBRARY_INSERTION,
-     "USE_INSERTION",
-     0,
-     "Use Insertion",
-     "Allow users to add new items in that collection in library overrides"},
-    {0, NULL, 0, NULL, NULL},
-};
 
 #define BPY_PROPDEF_OPTIONS_OVERRIDE_COLLECTION_DOC \
-  "   :arg override: Enumerator in ['LIBRARY_OVERRIDABLE', 'NO_PROPERTY_NAME', " \
-  "'USE_INSERTION'].\n" \
+  "   :arg override: Enumerator in :ref:`rna_enum_property_override_flag_collection_items`.\n" \
   "   :type override: set\n"
 
-/* subtypes */
-/* Keep in sync with RNA_types.h PropertySubType and rna_rna.c's rna_enum_property_subtype_items */
-static const EnumPropertyItem property_subtype_string_items[] = {
-    {PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
-    {PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
-    {PROP_FILENAME, "FILE_NAME", 0, "Filename", ""},
-    {PROP_BYTESTRING, "BYTE_STRING", 0, "Byte String", ""},
-    {PROP_PASSWORD, "PASSWORD", 0, "Password", "A string that is displayed hidden ('********')"},
-
-    {PROP_NONE, "NONE", 0, "None", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
 #define BPY_PROPDEF_SUBTYPE_STRING_DOC \
-  "   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILE_NAME', 'BYTE_STRING', " \
-  "'PASSWORD', 'NONE'].\n" \
+  "   :arg subtype: Enumerator in :ref:`rna_enum_property_subtype_string_items`.\n" \
   "   :type subtype: string\n"
-
-static const EnumPropertyItem property_subtype_number_items[] = {
-    {PROP_PIXEL, "PIXEL", 0, "Pixel", ""},
-    {PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""},
-    {PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
-    {PROP_FACTOR, "FACTOR", 0, "Factor", ""},
-    {PROP_ANGLE, "ANGLE", 0, "Angle", ""},
-    {PROP_TIME,
-     "TIME",
-     0,
-     "Time (Scene Relative)",
-     "Time specified in frames, converted to seconds based on scene frame rate"},
-    {PROP_TIME_ABSOLUTE,
-     "TIME_ABSOLUTE",
-     0,
-     "Time (Absolute)",
-     "Time specified in seconds, independent of the scene"},
-    {PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},
-    {PROP_DISTANCE_CAMERA, "DISTANCE_CAMERA", 0, "Camera Distance", ""},
-    {PROP_POWER, "POWER", 0, "Power", ""},
-    {PROP_TEMPERATURE, "TEMPERATURE", 0, "Temperature", ""},
-
-    {PROP_NONE, "NONE", 0, "None", ""},
-    {0, NULL, 0, NULL, NULL},
-};
 
 #define BPY_PROPDEF_SUBTYPE_NUMBER_DOC \
-  "   :arg subtype: Enumerator in ['PIXEL', 'UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', " \
-  "'TIME', 'DISTANCE', 'DISTANCE_CAMERA', 'POWER', 'TEMPERATURE', 'NONE'].\n" \
+  "   :arg subtype: Enumerator in :ref:`rna_enum_property_subtype_number_items`.\n" \
   "   :type subtype: string\n"
 
-static const EnumPropertyItem property_subtype_array_items[] = {
-    {PROP_COLOR, "COLOR", 0, "Color", ""},
-    {PROP_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
-    {PROP_DIRECTION, "DIRECTION", 0, "Direction", ""},
-    {PROP_VELOCITY, "VELOCITY", 0, "Velocity", ""},
-    {PROP_ACCELERATION, "ACCELERATION", 0, "Acceleration", ""},
-    {PROP_MATRIX, "MATRIX", 0, "Matrix", ""},
-    {PROP_EULER, "EULER", 0, "Euler", ""},
-    {PROP_QUATERNION, "QUATERNION", 0, "Quaternion", ""},
-    {PROP_AXISANGLE, "AXISANGLE", 0, "Axis Angle", ""},
-    {PROP_XYZ, "XYZ", 0, "XYZ", ""},
-    {PROP_XYZ_LENGTH, "XYZ_LENGTH", 0, "XYZ Length", ""},
-    {PROP_COLOR_GAMMA, "COLOR_GAMMA", 0, "Color Gamma", ""},
-    {PROP_COORDS, "COORDINATES", 0, "Vector Coordinates", ""},
-    {PROP_LAYER, "LAYER", 0, "Layer", ""},
-    {PROP_LAYER_MEMBER, "LAYER_MEMBER", 0, "Layer Member", ""},
-
-    {PROP_NONE, "NONE", 0, "None", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-
-#define BPY_PROPDEF_SUBTYPE_ARRAY_DOC \
-  "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', " \
-  "'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', " \
-  "'XYZ', 'XYZ_LENGTH', 'COLOR_GAMMA', 'COORDINATES', 'LAYER', 'LAYER_MEMBER', 'NONE'].\n" \
+#define BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC \
+  "   :arg subtype: Enumerator in :ref:`rna_enum_property_subtype_number_array_items`.\n" \
   "   :type subtype: string\n"
-
-static const EnumPropertyItem property_string_search_options_items[] = {
-    {PROP_STRING_SEARCH_SORT, "SORT", 0, "Sort Search Results", ""},
-    {PROP_STRING_SEARCH_SUGGESTION,
-     "SUGGESTION",
-     0,
-     "Suggestion",
-     "Search results are suggestions (other values may be entered)"},
-
-    {0, NULL, 0, NULL, NULL},
-};
 
 /** \} */
 
@@ -2750,8 +2621,7 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "   :type description: string\n"
 
 #define BPY_PROPDEF_UNIT_DOC \
-  "   :arg unit: Enumerator in ['NONE', 'LENGTH', 'AREA', 'VOLUME', 'ROTATION', 'TIME', " \
-  "'VELOCITY', 'ACCELERATION', 'MASS', 'CAMERA', 'POWER'].\n" \
+  "   :arg unit: Enumerator in :ref:`rna_enum_property_unit_items`.\n" \
   "   :type unit: string\n"
 
 #define BPY_PROPDEF_NUM_MIN_DOC \
@@ -2900,18 +2770,18 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
   bool default_value = false;
   PropertyRNA *prop;
   struct BPy_EnumProperty_Parse options_enum = {
-      .items = property_flag_items,
+      .items = rna_enum_property_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse override_enum = {
-      .items = property_flag_override_items,
+      .items = rna_enum_property_override_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse_WithSRNA tags_enum = {
       .srna = srna,
   };
   struct BPy_EnumProperty_Parse subtype_enum = {
-      .items = property_subtype_number_items,
+      .items = rna_enum_property_subtype_number_items,
       .value = PROP_NONE,
   };
 
@@ -3025,7 +2895,7 @@ PyDoc_STRVAR(
     "\n" BPY_PROPDEF_NAME_DOC BPY_PROPDEF_DESC_DOC
     "   :arg default: sequence of booleans the length of *size*.\n"
     "   :type default: sequence\n" BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
-        BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_ARRAY_DOC BPY_PROPDEF_VECSIZE_DOC
+        BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_VECSIZE_DOC
             BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC);
 static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
@@ -3048,18 +2918,18 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
   PropertyRNA *prop;
   PyObject *default_py = NULL;
   struct BPy_EnumProperty_Parse options_enum = {
-      .items = property_flag_items,
+      .items = rna_enum_property_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse override_enum = {
-      .items = property_flag_override_items,
+      .items = rna_enum_property_override_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse_WithSRNA tags_enum = {
       .srna = srna,
   };
   struct BPy_EnumProperty_Parse subtype_enum = {
-      .items = property_subtype_array_items,
+      .items = rna_enum_property_subtype_number_array_items,
       .value = PROP_NONE,
   };
   PyObject *update_fn = NULL;
@@ -3224,18 +3094,18 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
   PropertyRNA *prop;
 
   struct BPy_EnumProperty_Parse options_enum = {
-      .items = property_flag_items,
+      .items = rna_enum_property_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse override_enum = {
-      .items = property_flag_override_items,
+      .items = rna_enum_property_override_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse_WithSRNA tags_enum = {
       .srna = srna,
   };
   struct BPy_EnumProperty_Parse subtype_enum = {
-      .items = property_subtype_number_items,
+      .items = rna_enum_property_subtype_number_items,
       .value = PROP_NONE,
   };
   PyObject *update_fn = NULL;
@@ -3371,8 +3241,8 @@ PyDoc_STRVAR(BPy_IntVectorProperty_doc,
              "   :type soft_min: int\n" BPY_PROPDEF_NUM_SOFTMAX_DOC
              "   :type soft_max: int\n" BPY_PROPDEF_INT_STEP_DOC BPY_PROPDEF_OPTIONS_DOC
                  BPY_PROPDEF_OPTIONS_OVERRIDE_DOC BPY_PROPDEF_TAGS_DOC
-                     BPY_PROPDEF_SUBTYPE_ARRAY_DOC BPY_PROPDEF_VECSIZE_DOC BPY_PROPDEF_UPDATE_DOC
-                         BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC);
+                     BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_VECSIZE_DOC
+                         BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC);
 static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -3397,18 +3267,18 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
   PyObject *default_py = NULL;
 
   struct BPy_EnumProperty_Parse options_enum = {
-      .items = property_flag_items,
+      .items = rna_enum_property_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse override_enum = {
-      .items = property_flag_override_items,
+      .items = rna_enum_property_override_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse_WithSRNA tags_enum = {
       .srna = srna,
   };
   struct BPy_EnumProperty_Parse subtype_enum = {
-      .items = property_subtype_array_items,
+      .items = rna_enum_property_subtype_number_array_items,
       .value = PROP_NONE,
   };
   PyObject *update_fn = NULL;
@@ -3594,18 +3464,18 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
   PropertyRNA *prop;
 
   struct BPy_EnumProperty_Parse options_enum = {
-      .items = property_flag_items,
+      .items = rna_enum_property_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse override_enum = {
-      .items = property_flag_override_items,
+      .items = rna_enum_property_override_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse_WithSRNA tags_enum = {
       .srna = srna,
   };
   struct BPy_EnumProperty_Parse subtype_enum = {
-      .items = property_subtype_number_items,
+      .items = rna_enum_property_subtype_number_items,
       .value = PROP_NONE,
   };
   struct BPy_EnumProperty_Parse unit_enum = {
@@ -3739,8 +3609,9 @@ PyDoc_STRVAR(BPy_FloatVectorProperty_doc,
              "   :type soft_min: float\n" BPY_PROPDEF_NUM_SOFTMAX_DOC
              "   :type soft_max: float\n" BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
                  BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_FLOAT_STEP_DOC BPY_PROPDEF_FLOAT_PREC_DOC
-                     BPY_PROPDEF_SUBTYPE_ARRAY_DOC BPY_PROPDEF_UNIT_DOC BPY_PROPDEF_VECSIZE_DOC
-                         BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC BPY_PROPDEF_SET_DOC);
+                     BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_UNIT_DOC
+                         BPY_PROPDEF_VECSIZE_DOC BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC
+                             BPY_PROPDEF_SET_DOC);
 static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -3766,18 +3637,18 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
   PyObject *default_py = NULL;
 
   struct BPy_EnumProperty_Parse options_enum = {
-      .items = property_flag_items,
+      .items = rna_enum_property_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse override_enum = {
-      .items = property_flag_override_items,
+      .items = rna_enum_property_override_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse_WithSRNA tags_enum = {
       .srna = srna,
   };
   struct BPy_EnumProperty_Parse subtype_enum = {
-      .items = property_subtype_array_items,
+      .items = rna_enum_property_subtype_number_array_items,
       .value = PROP_NONE,
   };
   struct BPy_EnumProperty_Parse unit_enum = {
@@ -3955,18 +3826,18 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
   PropertyRNA *prop;
 
   struct BPy_EnumProperty_Parse options_enum = {
-      .items = property_flag_items,
+      .items = rna_enum_property_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse override_enum = {
-      .items = property_flag_override_items,
+      .items = rna_enum_property_override_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse_WithSRNA tags_enum = {
       .srna = srna,
   };
   struct BPy_EnumProperty_Parse subtype_enum = {
-      .items = property_subtype_string_items,
+      .items = rna_enum_property_subtype_string_items,
       .value = PROP_NONE,
   };
   PyObject *update_fn = NULL;
@@ -3974,7 +3845,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
   PyObject *set_fn = NULL;
   PyObject *search_fn = NULL;
   static struct BPy_EnumProperty_Parse search_options_enum = {
-      .items = property_string_search_options_items,
+      .items = rna_enum_property_string_search_flag_items,
       .value = PROP_STRING_SEARCH_SUGGESTION,
   };
 
@@ -4161,11 +4032,11 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
   PropertyRNA *prop;
 
   struct BPy_EnumProperty_Parse options_enum = {
-      .items = property_flag_enum_items,
+      .items = rna_enum_property_flag_enum_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse override_enum = {
-      .items = property_flag_override_items,
+      .items = rna_enum_property_override_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse_WithSRNA tags_enum = {
@@ -4384,11 +4255,11 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
   PyObject *type = Py_None;
 
   struct BPy_EnumProperty_Parse options_enum = {
-      .items = property_flag_items,
+      .items = rna_enum_property_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse override_enum = {
-      .items = property_flag_override_items,
+      .items = rna_enum_property_override_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse_WithSRNA tags_enum = {
@@ -4521,11 +4392,11 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
   PyObject *type = Py_None;
 
   struct BPy_EnumProperty_Parse options_enum = {
-      .items = property_flag_items,
+      .items = rna_enum_property_flag_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse override_enum = {
-      .items = property_flag_override_collection_items,
+      .items = rna_enum_property_override_flag_collection_items,
       .value = 0,
   };
   struct BPy_EnumProperty_Parse_WithSRNA tags_enum = {
