@@ -456,6 +456,7 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
   ot->name = "Import Wavefront OBJ";
   ot->description = "Load a Wavefront OBJ scene";
   ot->idname = "WM_OT_obj_import";
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   ot->invoke = wm_obj_import_invoke;
   ot->exec = wm_obj_import_exec;
