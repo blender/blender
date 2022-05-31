@@ -1060,6 +1060,25 @@ TEST(atomic, atomic_cas_ptr)
   }
 }
 
+TEST(atomic, atomic_load_ptr)
+{
+  {
+    void *value = INT_AS_PTR(0x7f);
+    void *dest = atomic_load_ptr(&value);
+    EXPECT_EQ(dest, INT_AS_PTR(0x7f));
+  }
+}
+
+TEST(atomic, atomic_store_ptr)
+{
+  {
+    void *value = INT_AS_PTR(0x7f);
+    void *dest = nullptr;
+    atomic_store_ptr(&dest, value);
+    EXPECT_EQ(dest, INT_AS_PTR(0x7f));
+  }
+}
+
 #undef INT_AS_PTR
 
 /** \} */
