@@ -237,7 +237,7 @@ if(WITH_IMAGE_HDR)
 endif()
 
 if(WITH_IMAGE_WEBP)
-	add_definitions(-DWITH_WEBP)
+  add_definitions(-DWITH_WEBP)
 endif()
 
 if(WITH_AUDASPACE)
