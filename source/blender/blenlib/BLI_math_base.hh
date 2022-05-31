@@ -14,19 +14,9 @@
 #include "BLI_math_base_safe.h"
 #include "BLI_utildefines.h"
 
-#ifdef WITH_GMP
-#  include "BLI_math_mpq.hh"
-#endif
-
 namespace blender::math {
 
-template<typename T>
-inline constexpr bool is_math_float_type = (std::is_floating_point_v<T>
-#ifdef WITH_GMP
-                                            || std::is_same_v<T, mpq_class>
-#endif
-);
-
+template<typename T> inline constexpr bool is_math_float_type = std::is_floating_point_v<T>;
 template<typename T> inline constexpr bool is_math_integral_type = std::is_integral_v<T>;
 
 template<typename T> inline bool is_zero(const T &a)

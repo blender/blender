@@ -14,10 +14,6 @@
 
 #include "BLI_utildefines.h"
 
-#ifdef WITH_GMP
-#  include "BLI_math_mpq.hh"
-#endif
-
 namespace blender {
 
 /* clang-format off */
