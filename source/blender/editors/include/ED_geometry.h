@@ -7,12 +7,22 @@
 
 #pragma once
 
+#include "BKE_attribute.h"
+#include "DNA_customdata_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void ED_operatortypes_geometry(void);
+struct Mesh;
 
+void ED_operatortypes_geometry(void);
+bool ED_geometry_attribute_convert(struct Mesh *mesh,
+                                   const char *layer_name,
+                                   CustomDataType old_type,
+                                   AttributeDomain old_domain,
+                                   CustomDataType new_type,
+                                   AttributeDomain new_domain);
 #ifdef __cplusplus
 }
 #endif

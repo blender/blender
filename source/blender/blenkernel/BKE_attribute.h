@@ -43,6 +43,8 @@ typedef enum AttributeDomainMask {
   ATTR_DOMAIN_MASK_ALL = (1 << 5) - 1
 } AttributeDomainMask;
 
+#define ATTR_DOMAIN_AS_MASK(domain) ((AttributeDomainMask)((1 << (int)(domain))))
+
 /* All domains that support color attributes. */
 #define ATTR_DOMAIN_MASK_COLOR \
   ((AttributeDomainMask)((ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER)))
@@ -62,8 +64,13 @@ bool BKE_id_attribute_remove(struct ID *id,
 
 struct CustomDataLayer *BKE_id_attribute_find(const struct ID *id,
                                               const char *name,
-                                              int type,
-                                              AttributeDomain domain);
+                                              const int type,
+                                              const AttributeDomain domain);
+
+struct CustomDataLayer *BKE_id_attribute_search(const struct ID *id,
+                                                const char *name,
+                                                const CustomDataMask type,
+                                                const AttributeDomainMask domain_mask);
 
 AttributeDomain BKE_id_attribute_domain(const struct ID *id, const struct CustomDataLayer *layer);
 int BKE_id_attribute_data_length(struct ID *id, struct CustomDataLayer *layer);

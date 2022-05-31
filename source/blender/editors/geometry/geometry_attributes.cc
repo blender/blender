@@ -33,6 +33,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "ED_geometry.h"
 #include "ED_object.h"
 
 #include "geometry_intern.hh"
@@ -580,3 +581,38 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
 }
 
 }  // namespace blender::ed::geometry
+
+using blender::CPPType;
+using blender::GVArray;
+
+bool ED_geometry_attribute_convert(Mesh *mesh,
+                                   const char *layer_name,
+                                   CustomDataType old_type,
+                                   AttributeDomain old_domain,
+                                   CustomDataType new_type,
+                                   AttributeDomain new_domain)
+{
+  CustomDataLayer *layer = BKE_id_attribute_find(&mesh->id, layer_name, old_type, old_domain);
+  const std::string name = layer->name;
+
+  if (!layer) {
+    return false;
+  }
+
+  MeshComponent mesh_component;
+  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
+  GVArray src_varray = mesh_component.attribute_get_for_read(name, new_domain, new_type);
+
+  const CPPType &cpp_type = src_varray.type();
+  void *new_data = MEM_malloc_arrayN(src_varray.size(), cpp_type.size(), __func__);
+  src_varray.materialize_to_uninitialized(new_data);
+  mesh_component.attribute_try_delete(name);
+  mesh_component.attribute_try_create(name, new_domain, new_type, AttributeInitMove(new_data));
+
+  int *active_index = BKE_id_attributes_active_index_p(&mesh->id);
+  if (*active_index > 0) {
+    *active_index -= 1;
+  }
+
+  return true;
+}

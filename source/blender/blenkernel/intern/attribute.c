@@ -274,6 +274,35 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
   return NULL;
 }
 
+CustomDataLayer *BKE_id_attribute_search(const ID *id,
+                                         const char *name,
+                                         const CustomDataMask type_mask,
+                                         const AttributeDomainMask domain_mask)
+{
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  get_domains(id, info);
+
+  for (AttributeDomain domain = ATTR_DOMAIN_POINT; domain < ATTR_DOMAIN_NUM; domain++) {
+    if (!(domain_mask & ATTR_DOMAIN_AS_MASK(domain))) {
+      continue;
+    }
+
+    CustomData *customdata = info[domain].customdata;
+    if (customdata == NULL) {
+      return NULL;
+    }
+
+    for (int i = 0; i < customdata->totlayer; i++) {
+      CustomDataLayer *layer = &customdata->layers[i];
+      if ((CD_TYPE_AS_MASK(layer->type) & type_mask) && STREQ(layer->name, name)) {
+        return layer;
+      }
+    }
+  }
+
+  return NULL;
+}
+
 int BKE_id_attributes_length(const ID *id, AttributeDomainMask domain_mask, CustomDataMask mask)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
@@ -641,6 +670,7 @@ CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const char *name)
   if (layer == NULL) {
     layer = BKE_id_attribute_find(id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER);
   }
+
   return layer;
 }
 
