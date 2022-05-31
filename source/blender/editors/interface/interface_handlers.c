@@ -2135,25 +2135,7 @@ static bool ui_but_drag_init(bContext *C,
       }
     }
     else {
-      wmDrag *drag = WM_event_start_drag(
-          C,
-          but->icon,
-          but->dragtype,
-          but->dragpoin,
-          ui_but_value_get(but),
-          (but->dragflag & UI_BUT_DRAGPOIN_FREE) ? WM_DRAG_FREE_DATA : WM_DRAG_NOP);
-      /* wmDrag has ownership over dragpoin now, stop messing with it. */
-      but->dragpoin = NULL;
-
-      if (but->imb) {
-        WM_event_drag_image(drag, but->imb, but->imb_scale);
-      }
-
-      /* Special feature for assets: We add another drag item that supports multiple assets. It
-       * gets the assets from context. */
-      if (ELEM(but->dragtype, WM_DRAG_ASSET, WM_DRAG_ID)) {
-        WM_event_start_drag(C, ICON_NONE, WM_DRAG_ASSET_LIST, NULL, 0, WM_DRAG_NOP);
-      }
+      ui_but_drag_start(C, but);
     }
     return true;
   }
@@ -4830,7 +4812,7 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
 
     /* First handle click on icon-drag type button. */
-    if ((event->type == LEFTMOUSE) && (event->val == KM_PRESS) && but->dragpoin) {
+    if ((event->type == LEFTMOUSE) && (event->val == KM_PRESS) && ui_but_drag_is_draggable(but)) {
       if (ui_but_contains_point_px_icon(but, data->region, event)) {
 
         /* tell the button to wait and keep checking further events to
@@ -4853,7 +4835,8 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
     if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && event->val == KM_PRESS) {
       int ret = WM_UI_HANDLER_BREAK;
       /* XXX: (a bit ugly) Special case handling for file-browser drag button. */
-      if (but->dragpoin && but->imb && ui_but_contains_point_px_icon(but, data->region, event)) {
+      if (ui_but_drag_is_draggable(but) && but->imb &&
+          ui_but_contains_point_px_icon(but, data->region, event)) {
         ret = WM_UI_HANDLER_CONTINUE;
       }
       /* Same special case handling for UI lists. Return CONTINUE so that a tweak or CLICK event
@@ -6007,7 +5990,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
 
     /* First handle click on icon-drag type button. */
-    if (event->type == LEFTMOUSE && but->dragpoin && event->val == KM_PRESS) {
+    if (event->type == LEFTMOUSE && ui_but_drag_is_draggable(but) && event->val == KM_PRESS) {
       if (ui_but_contains_point_px_icon(but, data->region, event)) {
         button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
         data->dragstartx = event->xy[0];
@@ -6193,7 +6176,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     /* First handle click on icon-drag type button. */
-    if (event->type == LEFTMOUSE && but->dragpoin && event->val == KM_PRESS) {
+    if (event->type == LEFTMOUSE && ui_but_drag_is_draggable(but) && event->val == KM_PRESS) {
       ui_palette_set_active(color_but);
       if (ui_but_contains_point_px_icon(but, data->region, event)) {
         button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
@@ -9476,7 +9459,7 @@ static bool ui_list_is_hovering_draggable_but(bContext *C,
     }
   }
 
-  return (hovered_but && hovered_but->dragpoin);
+  return (hovered_but && ui_but_drag_is_draggable(hovered_but));
 }
 
 static int ui_list_handle_click_drag(bContext *C,

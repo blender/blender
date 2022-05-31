@@ -1321,6 +1321,12 @@ void ui_button_group_add_but(uiBlock *block, uiBut *but);
 void ui_button_group_replace_but_ptr(uiBlock *block, const void *old_but_ptr, uiBut *new_but);
 void ui_block_free_button_groups(uiBlock *block);
 
+/* interface_drag.cc */
+
+void ui_but_drag_free(uiBut *but);
+bool ui_but_drag_is_draggable(const uiBut *but);
+void ui_but_drag_start(struct bContext *C, uiBut *but);
+
 /* interface_align.c */
 
 bool ui_but_can_align(const uiBut *but) ATTR_WARN_UNUSED_RESULT;

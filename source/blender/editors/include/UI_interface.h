@@ -851,33 +851,6 @@ void UI_block_translate(uiBlock *block, int x, int y);
 
 int UI_but_return_value_get(uiBut *but);
 
-void UI_but_drag_set_id(uiBut *but, struct ID *id);
-/**
- * Set an image to display while dragging. This works for any drag type (`WM_DRAG_XXX`).
- * Not to be confused with #UI_but_drag_set_image(), which sets up dragging of an image.
- */
-void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, float scale);
-/**
- * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
- */
-void UI_but_drag_set_asset(uiBut *but,
-                           const struct AssetHandle *asset,
-                           const char *path,
-                           struct AssetMetaData *metadata,
-                           int import_type, /* eFileAssetImportType */
-                           int icon,
-                           struct ImBuf *imb,
-                           float scale);
-void UI_but_drag_set_rna(uiBut *but, struct PointerRNA *ptr);
-void UI_but_drag_set_path(uiBut *but, const char *path, bool use_free);
-void UI_but_drag_set_name(uiBut *but, const char *name);
-/**
- * Value from button itself.
- */
-void UI_but_drag_set_value(uiBut *but);
-void UI_but_drag_set_image(
-    uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale, bool use_free);
-
 uiBut *UI_but_active_drop_name_button(const struct bContext *C);
 /**
  * Returns true if highlighted button allows drop of names.
@@ -1782,6 +1755,38 @@ typedef struct AutoComplete AutoComplete;
 AutoComplete *UI_autocomplete_begin(const char *startname, size_t maxlen);
 void UI_autocomplete_update_name(AutoComplete *autocpl, const char *name);
 int UI_autocomplete_end(AutoComplete *autocpl, char *autoname);
+
+/* Button drag-data (interface_drag.cc).
+ *
+ * Functions to set drag data for buttons. This enables dragging support, whereby the drag data is
+ * "dragged", not the button itself. */
+
+void UI_but_drag_set_id(uiBut *but, struct ID *id);
+/**
+ * Set an image to display while dragging. This works for any drag type (`WM_DRAG_XXX`).
+ * Not to be confused with #UI_but_drag_set_image(), which sets up dragging of an image.
+ */
+void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, float scale);
+/**
+ * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
+ */
+void UI_but_drag_set_asset(uiBut *but,
+                           const struct AssetHandle *asset,
+                           const char *path,
+                           struct AssetMetaData *metadata,
+                           int import_type, /* eFileAssetImportType */
+                           int icon,
+                           struct ImBuf *imb,
+                           float scale);
+void UI_but_drag_set_rna(uiBut *but, struct PointerRNA *ptr);
+void UI_but_drag_set_path(uiBut *but, const char *path, bool use_free);
+void UI_but_drag_set_name(uiBut *but, const char *name);
+/**
+ * Value from button itself.
+ */
+void UI_but_drag_set_value(uiBut *but);
+void UI_but_drag_set_image(
+    uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale, bool use_free);
 
 /* Panels
  *

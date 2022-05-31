@@ -1419,7 +1419,7 @@ static void widget_draw_icon(
     const bool has_theme = UI_icon_get_theme_color(icon, color);
 
     /* to indicate draggable */
-    if (but->dragpoin && (but->flag & UI_ACTIVE)) {
+    if (ui_but_drag_is_draggable(but) && (but->flag & UI_ACTIVE)) {
       UI_icon_draw_ex(xs, ys, icon, aspect, 1.25f, 0.0f, color, has_theme);
     }
     else if ((but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW))) {

@@ -31,6 +31,7 @@ set(SRC
   interface_button_group.c
   interface_context_menu.c
   interface_context_path.cc
+  interface_drag.cc
   interface_draw.c
   interface_dropboxes.cc
   interface_eyedropper.c
