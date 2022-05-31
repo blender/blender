@@ -88,7 +88,9 @@ BLI_INLINE void lib_override_object_posemode_transfer(ID *id_dst, ID *id_src)
 }
 
 /** Get override data for a given ID. Needed because of our beloved shape keys snowflake. */
-BLI_INLINE IDOverrideLibrary *lib_override_get(Main *bmain, ID *id, ID **r_owner_id)
+BLI_INLINE const IDOverrideLibrary *lib_override_get(const Main *bmain,
+                                                     const ID *id,
+                                                     const ID **r_owner_id)
 {
   if (r_owner_id != nullptr) {
     *r_owner_id = id;
@@ -96,7 +98,9 @@ BLI_INLINE IDOverrideLibrary *lib_override_get(Main *bmain, ID *id, ID **r_owner
   if (id->flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE) {
     const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
     if (id_type->owner_get != nullptr) {
-      ID *owner_id = id_type->owner_get(bmain, id);
+      /* The #IDTypeInfo::owner_get callback should not modify the arguments, so casting away const
+       * is okay. */
+      const ID *owner_id = id_type->owner_get(const_cast<Main *>(bmain), const_cast<ID *>(id));
       if (r_owner_id != nullptr) {
         *r_owner_id = owner_id;
       }
@@ -105,6 +109,15 @@ BLI_INLINE IDOverrideLibrary *lib_override_get(Main *bmain, ID *id, ID **r_owner
     BLI_assert_msg(0, "IDTypeInfo of liboverride-embedded ID with no owner getter");
   }
   return id->override_library;
+}
+
+BLI_INLINE IDOverrideLibrary *lib_override_get(Main *bmain, ID *id, ID **r_owner_id)
+{
+  /* Reuse the implementation of the const access function, which does not change the arguments.
+   * Add const explicitly to make it clear to the compiler to avoid just calling this function. */
+  return const_cast<IDOverrideLibrary *>(lib_override_get(const_cast<const Main *>(bmain),
+                                                          const_cast<const ID *>(id),
+                                                          const_cast<const ID **>(r_owner_id)));
 }
 
 IDOverrideLibrary *BKE_lib_override_library_init(ID *local_id, ID *reference_id)
@@ -267,7 +280,7 @@ static ID *lib_override_library_create_from(Main *bmain,
 
 /* TODO: This could be simplified by storing a flag in #IDOverrideLibrary
  * during the diffing process? */
-bool BKE_lib_override_library_is_user_edited(ID *id)
+bool BKE_lib_override_library_is_user_edited(const ID *id)
 {
 
   if (!ID_IS_OVERRIDE_LIBRARY(id)) {
@@ -281,8 +294,8 @@ bool BKE_lib_override_library_is_user_edited(ID *id)
     return false;
   }
 
-  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {
-    LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+  LISTBASE_FOREACH (const IDOverrideLibraryProperty *, op, &id->override_library->properties) {
+    LISTBASE_FOREACH (const IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
       if ((opop->flag & IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE) != 0) {
         continue;
       }
@@ -297,11 +310,11 @@ bool BKE_lib_override_library_is_user_edited(ID *id)
   return false;
 }
 
-bool BKE_lib_override_library_is_system_defined(Main *bmain, ID *id)
+bool BKE_lib_override_library_is_system_defined(const Main *bmain, const ID *id)
 {
 
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
-    ID *override_owner_id;
+    const ID *override_owner_id;
     lib_override_get(bmain, id, &override_owner_id);
     return (override_owner_id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) !=
            0;
@@ -963,8 +976,8 @@ static void lib_override_overrides_group_tag_recursive(LibOverrideGroupTagData *
       continue;
     }
 
-    Library *reference_lib = lib_override_get(bmain, id_owner, nullptr)->reference->lib;
-    ID *to_id_reference = lib_override_get(bmain, to_id, nullptr)->reference;
+    const Library *reference_lib = lib_override_get(bmain, id_owner, nullptr)->reference->lib;
+    const ID *to_id_reference = lib_override_get(bmain, to_id, nullptr)->reference;
     if (to_id_reference->lib != reference_lib) {
       /* We do not override data-blocks from other libraries, nor do we process them. */
       continue;
