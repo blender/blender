@@ -15,6 +15,7 @@
 #include "DNA_text_types.h"
 #include "DNA_world_types.h"
 
+#include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -275,6 +276,7 @@ static void compo_startjob(void *cjv,
 
   // XXX BIF_store_spare();
   /* 1 is do_previews */
+  BKE_callback_exec_id(cj->bmain, &scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
   if ((cj->scene->r.scemode & R_MULTIVIEW) == 0) {
     ntreeCompositExecTree(cj->scene, ntree, &cj->scene->r, false, true, "");
@@ -291,6 +293,22 @@ static void compo_startjob(void *cjv,
   ntree->test_break = nullptr;
   ntree->stats_draw = nullptr;
   ntree->progress = nullptr;
+}
+
+static void compo_canceljob(void *cjv)
+{
+  CompoJob *cj = (CompoJob *)cjv;
+  Main *bmain = cj->bmain;
+  Scene *scene = cj->scene;
+  BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_COMPOSITE_CANCEL);
+}
+
+static void compo_completejob(void *cjv)
+{
+  CompoJob *cj = (CompoJob *)cjv;
+  Main *bmain = cj->bmain;
+  Scene *scene = cj->scene;
+  BKE_callback_exec_id(bmain, &scene->id, BKE_CB_EVT_COMPOSITE_POST);
 }
 
 /** \} */
@@ -339,7 +357,13 @@ void ED_node_composite_job(const bContext *C, struct bNodeTree *nodetree, Scene 
   /* setup job */
   WM_jobs_customdata_set(wm_job, cj, compo_freejob);
   WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_COMPO_RESULT, NC_SCENE | ND_COMPO_RESULT);
-  WM_jobs_callbacks(wm_job, compo_startjob, compo_initjob, compo_updatejob, nullptr);
+  WM_jobs_callbacks_ex(wm_job,
+                       compo_startjob,
+                       compo_initjob,
+                       compo_updatejob,
+                       nullptr,
+                       compo_completejob,
+                       compo_canceljob);
 
   WM_jobs_start(CTX_wm_manager(C), wm_job);
 }
