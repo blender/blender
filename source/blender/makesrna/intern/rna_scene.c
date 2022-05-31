@@ -345,7 +345,7 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
   R_IMF_ENUM_JPEG \
   R_IMF_ENUM_JPEG2K \
   R_IMF_ENUM_TAGA \
-  R_IMF_ENUM_TAGA_RAW{0, "", 0, " ", NULL}, \
+  R_IMF_ENUM_TAGA_RAW{0, "", 0, "", NULL}, \
       R_IMF_ENUM_CINEON R_IMF_ENUM_DPX R_IMF_ENUM_EXR_MULTILAYER R_IMF_ENUM_EXR R_IMF_ENUM_HDR \
           R_IMF_ENUM_TIFF R_IMF_ENUM_WEBP
 
