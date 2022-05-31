@@ -229,16 +229,13 @@ FCurve *id_data_find_fcurve(
     return NULL;
   }
 
-  /* Animation takes priority over drivers. */
-  if (adt->action && adt->action->curves.first) {
-    fcu = BKE_fcurve_find(&adt->action->curves, path, index);
-  }
-
-  /* If not animated, check if driven. */
-  if (fcu == NULL && adt->drivers.first) {
-    fcu = BKE_fcurve_find(&adt->drivers, path, index);
-    if (fcu && r_driven) {
-      *r_driven = true;
+  /* FIXME: The way drivers are handled here (always NULL-ifying `fcu`) is very weird, this needs
+   * to be re-checked I think?. */
+  bool is_driven = false;
+  fcu = BKE_animadata_fcurve_find_by_rna_path(adt, path, index, NULL, &is_driven);
+  if (is_driven) {
+    if (r_driven != NULL) {
+      *r_driven = is_driven;
     }
     fcu = NULL;
   }
@@ -339,6 +336,47 @@ int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, con
   return matches;
 }
 
+FCurve *BKE_animadata_fcurve_find_by_rna_path(
+    AnimData *animdata, const char *rna_path, int rna_index, bAction **r_action, bool *r_driven)
+{
+  if (r_driven != NULL) {
+    *r_driven = false;
+  }
+  if (r_action != NULL) {
+    *r_action = NULL;
+  }
+
+  const bool has_action_fcurves = animdata->action != NULL &&
+                                  !BLI_listbase_is_empty(&animdata->action->curves);
+  const bool has_drivers = !BLI_listbase_is_empty(&animdata->drivers);
+
+  /* Animation takes priority over drivers. */
+  if (has_action_fcurves) {
+    FCurve *fcu = BKE_fcurve_find(&animdata->action->curves, rna_path, rna_index);
+
+    if (fcu != NULL) {
+      if (r_action != NULL) {
+        *r_action = animdata->action;
+      }
+      return fcu;
+    }
+  }
+
+  /* If not animated, check if driven. */
+  if (has_drivers) {
+    FCurve *fcu = BKE_fcurve_find(&animdata->drivers, rna_path, rna_index);
+
+    if (fcu != NULL) {
+      if (r_driven != NULL) {
+        *r_driven = true;
+      }
+      return fcu;
+    }
+  }
+
+  return NULL;
+}
+
 FCurve *BKE_fcurve_find_by_rna(PointerRNA *ptr,
                                PropertyRNA *prop,
                                int rnaindex,
@@ -360,16 +398,17 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *UNUSED(C),
                                           bool *r_driven,
                                           bool *r_special)
 {
-  FCurve *fcu = NULL;
-
-  *r_driven = false;
-  *r_special = false;
-
-  if (r_animdata) {
+  if (r_animdata != NULL) {
     *r_animdata = NULL;
   }
-  if (r_action) {
+  if (r_action != NULL) {
     *r_action = NULL;
+  }
+  if (r_driven != NULL) {
+    *r_driven = false;
+  }
+  if (r_special) {
+    *r_special = false;
   }
 
   /* Special case for NLA Control Curves... */
@@ -379,59 +418,46 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *UNUSED(C),
     /* Set the special flag, since it cannot be a normal action/driver
      * if we've been told to start looking here...
      */
-    *r_special = true;
+    if (r_special) {
+      *r_special = true;
+    }
+
+    *r_driven = false;
+    if (r_animdata) {
+      *r_animdata = NULL;
+    }
+    if (r_action) {
+      *r_action = NULL;
+    }
 
     /* The F-Curve either exists or it doesn't here... */
-    fcu = BKE_fcurve_find(&strip->fcurves, RNA_property_identifier(prop), rnaindex);
-    return fcu;
+    return BKE_fcurve_find(&strip->fcurves, RNA_property_identifier(prop), rnaindex);
   }
 
   /* There must be some RNA-pointer + property combo. */
   if (!prop || !ptr->owner_id || !RNA_property_animateable(ptr, prop)) {
-    return fcu;
+    return NULL;
   }
 
   AnimData *adt = BKE_animdata_from_id(ptr->owner_id);
   if (adt == NULL) {
-    return fcu;
+    return NULL;
   }
-
-  const bool has_action_fcurves = adt->action != NULL &&
-                                  !BLI_listbase_is_empty(&adt->action->curves);
-  const bool has_drivers = !BLI_listbase_is_empty(&adt->drivers);
 
   /* XXX This function call can become a performance bottleneck. */
-  char *path = RNA_path_from_ID_to_property(ptr, prop);
-
-  /* Standard F-Curve - Animation (Action) or Drivers. */
-  /* Animation takes priority over drivers. */
-  /* XXX: The logic here is duplicated with a function up above. */
-  if (has_action_fcurves) {
-    fcu = BKE_fcurve_find(&adt->action->curves, path, rnaindex);
-
-    if (fcu) {
-      if (r_action) {
-        *r_action = adt->action;
-      }
-      if (r_animdata) {
-        *r_animdata = adt;
-      }
-    }
+  char *rna_path = RNA_path_from_ID_to_property(ptr, prop);
+  if (rna_path == NULL) {
+    return NULL;
   }
 
-  /* If not animated, check if driven. */
-  if (fcu == NULL && has_drivers) {
-    fcu = BKE_fcurve_find(&adt->drivers, path, rnaindex);
+  /* Standard F-Curve from animdata - Animation (Action) or Drivers. */
+  FCurve *fcu = BKE_animadata_fcurve_find_by_rna_path(adt, rna_path, rnaindex, r_action, r_driven);
 
-    if (fcu) {
-      if (r_animdata) {
-        *r_animdata = adt;
-      }
-      *r_driven = true;
-    }
+  if (fcu != NULL && r_animdata != NULL) {
+    *r_animdata = adt;
   }
 
-  MEM_SAFE_FREE(path);
+  MEM_freeN(rna_path);
   return fcu;
 }
 
