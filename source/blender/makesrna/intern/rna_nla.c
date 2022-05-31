@@ -36,7 +36,7 @@ const EnumPropertyItem rna_enum_nla_mode_blend_items[] = {
      "Combine",
      "The strip values are combined with accumulated results by appropriately using addition, "
      "multiplication, or quaternion math, based on channel type"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {NLASTRIP_MODE_ADD,
      "ADD",
      0,
