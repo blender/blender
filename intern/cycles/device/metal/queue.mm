@@ -270,6 +270,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE:
         case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK:
         case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
+        case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
           break;
         default:
           bvhMetalRT = nil;

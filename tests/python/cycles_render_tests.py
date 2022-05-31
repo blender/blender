@@ -33,8 +33,6 @@ BLACKLIST_OPTIX = [
 ]
 
 BLACKLIST_METAL = [
-    # No MNEE for Metal currently
-    "underwater_caustics.blend",
 ]
 
 BLACKLIST_GPU = [
