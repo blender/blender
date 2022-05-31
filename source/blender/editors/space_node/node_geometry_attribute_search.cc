@@ -82,8 +82,10 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
         if (const geo_log::GeometryValueLog *geo_value_log =
                 dynamic_cast<const geo_log::GeometryValueLog *>(value_log)) {
           for (const GeometryAttributeInfo &attribute : geo_value_log->attributes()) {
-            if (names.add(attribute.name)) {
-              attributes.append(&attribute);
+            if (bke::allow_procedural_attribute_access(attribute.name)) {
+              if (names.add(attribute.name)) {
+                attributes.append(&attribute);
+              }
             }
           }
         }
