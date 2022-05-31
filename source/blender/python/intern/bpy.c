@@ -23,6 +23,7 @@
 #include "BKE_global.h" /* XXX, G_MAIN only */
 
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 #include "RNA_types.h"
 
@@ -456,6 +457,41 @@ static PyObject *bpy_context_members(PyObject *UNUSED(self))
   return result;
 }
 
+/**
+ * \note only exposed for generating documentation, see: `doc/python_api/sphinx_doc_gen.py`.
+ */
+PyDoc_STRVAR(bpy_rna_enum_items_static_doc,
+             ".. function:: rna_enum_items_static()\n"
+             "\n"
+             "   :return: A dict where the key the name of the enum, the value is a tuple of "
+             ":class:`bpy.types.EnumPropertyItem`.\n"
+             "   :rtype: dict of \n");
+static PyObject *bpy_rna_enum_items_static(PyObject *UNUSED(self))
+{
+#define DEF_ENUM(id) {STRINGIFY(id), id},
+  struct {
+    const char *id;
+    const EnumPropertyItem *items;
+  } enum_info[] = {
+#include "RNA_enum_items.h"
+  };
+  PyObject *result = _PyDict_NewPresized(ARRAY_SIZE(enum_info));
+  for (int i = 0; i < ARRAY_SIZE(enum_info); i++) {
+    /* Include all items (including headings & separators), can be shown in documentation. */
+    const EnumPropertyItem *items = enum_info[i].items;
+    const int items_count = RNA_enum_items_count(items);
+    PyObject *value = PyTuple_New(items_count);
+    for (int item_index = 0; item_index < items_count; item_index++) {
+      PointerRNA ptr;
+      RNA_pointer_create(NULL, &RNA_EnumPropertyItem, (void *)&items[item_index], &ptr);
+      PyTuple_SET_ITEM(value, item_index, pyrna_struct_CreatePyObject(&ptr));
+    }
+    PyDict_SetItemString(result, enum_info[i].id, value);
+    Py_DECREF(value);
+  }
+  return result;
+}
+
 static PyMethodDef meth_bpy_script_paths = {
     "script_paths",
     (PyCFunction)bpy_script_paths,
@@ -509,6 +545,12 @@ static PyMethodDef meth_bpy_context_members = {
     (PyCFunction)bpy_context_members,
     METH_NOARGS,
     bpy_context_members_doc,
+};
+static PyMethodDef meth_bpy_rna_enum_items_static = {
+    "rna_enum_items_static",
+    (PyCFunction)bpy_rna_enum_items_static,
+    METH_NOARGS,
+    bpy_rna_enum_items_static_doc,
 };
 
 static PyObject *bpy_import_test(const char *modname)
@@ -616,6 +658,9 @@ void BPy_init_modules(struct bContext *C)
   PyModule_AddObject(mod,
                      meth_bpy_context_members.ml_name,
                      (PyObject *)PyCFunction_New(&meth_bpy_context_members, NULL));
+  PyModule_AddObject(mod,
+                     meth_bpy_rna_enum_items_static.ml_name,
+                     (PyObject *)PyCFunction_New(&meth_bpy_rna_enum_items_static, NULL));
 
   /* register funcs (bpy_rna.c) */
   PyModule_AddObject(mod,

@@ -941,17 +941,29 @@ static int rna_EnumPropertyItem_identifier_length(PointerRNA *ptr)
 
 static void rna_EnumPropertyItem_name_get(PointerRNA *ptr, char *value)
 {
-  strcpy(value, ((EnumPropertyItem *)ptr->data)->name);
+  const EnumPropertyItem *eprop = ptr->data;
+  /* Name can be NULL in the case of separators
+   * which are exposed via `_bpy.rna_enum_items_static`. */
+  if (eprop->name) {
+    strcpy(value, eprop->name);
+  }
+  else {
+    value[0] = '\0';
+  }
 }
 
 static int rna_EnumPropertyItem_name_length(PointerRNA *ptr)
 {
-  return strlen(((EnumPropertyItem *)ptr->data)->name);
+  const EnumPropertyItem *eprop = ptr->data;
+  if (eprop->name) {
+    return strlen(eprop->name);
+  }
+  return 0;
 }
 
 static void rna_EnumPropertyItem_description_get(PointerRNA *ptr, char *value)
 {
-  EnumPropertyItem *eprop = (EnumPropertyItem *)ptr->data;
+  const EnumPropertyItem *eprop = ptr->data;
 
   if (eprop->description) {
     strcpy(value, eprop->description);
@@ -968,9 +980,7 @@ static int rna_EnumPropertyItem_description_length(PointerRNA *ptr)
   if (eprop->description) {
     return strlen(eprop->description);
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 static int rna_EnumPropertyItem_value_get(PointerRNA *ptr)
