@@ -242,6 +242,7 @@ class InfoPropertyRNA:
         "default_str",
         "default",
         "enum_items",
+        "enum_pointer",
         "min",
         "max",
         "array_length",
@@ -285,9 +286,17 @@ class InfoPropertyRNA:
         else:
             self.fixed_type = None
 
+        self.enum_pointer = 0
         if self.type == "enum":
-            self.enum_items[:] = [(item.identifier, item.name, item.description) for item in rna_prop.enum_items]
+            items = tuple(rna_prop.enum_items)
+            items_static = tuple(rna_prop.enum_items_static)
+            self.enum_items[:] = [(item.identifier, item.name, item.description) for item in items]
             self.is_enum_flag = rna_prop.is_enum_flag
+            # Prioritize static items as this is never going to be allocated data and is therefor
+            # will be a stable match to compare against.
+            item = (items_static or items)
+            if item:
+                self.enum_pointer = item[0].as_pointer()
         else:
             self.is_enum_flag = False
 
@@ -342,7 +351,19 @@ class InfoPropertyRNA:
             return "%s=%s" % (self.identifier, default)
         return self.identifier
 
-    def get_type_description(self, as_ret=False, as_arg=False, class_fmt="%s", collection_id="Collection"):
+    def get_type_description(
+            self, *,
+            as_ret=False,
+            as_arg=False,
+            class_fmt="%s",
+            collection_id="Collection",
+            enum_descr_override=None,
+    ):
+        """
+        :arg enum_descr_override: Optionally override items for enum.
+           Otherwise expand the literal items.
+        :type enum_descr_override: string or None when unset.
+        """
         type_str = ""
         if self.fixed_type is None:
             type_str += self.type
@@ -357,10 +378,17 @@ class InfoPropertyRNA:
             if self.type in {"float", "int"}:
                 type_str += " in [%s, %s]" % (range_str(self.min), range_str(self.max))
             elif self.type == "enum":
+                enum_descr = enum_descr_override
+                if not enum_descr:
+                    if self.is_enum_flag:
+                        enum_descr = "{%s}" % ", ".join(("'%s'" % s[0]) for s in self.enum_items)
+                    else:
+                        enum_descr = "[%s]" % ", ".join(("'%s'" % s[0]) for s in self.enum_items)
                 if self.is_enum_flag:
-                    type_str += " set in {%s}" % ", ".join(("'%s'" % s[0]) for s in self.enum_items)
+                    type_str += " set in %s" % enum_descr
                 else:
-                    type_str += " in [%s]" % ", ".join(("'%s'" % s[0]) for s in self.enum_items)
+                    type_str += " in %s" % enum_descr
+                del enum_descr
 
             if not (as_arg or as_ret):
                 # write default property, ignore function args for this

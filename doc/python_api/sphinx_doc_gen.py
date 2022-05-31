@@ -89,6 +89,16 @@ if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
         del rna_enum_dict[key]
     del key, rna_enum_items_static
 
+    # Build enum `{pointer: identifier}` map, so any enum property pointer can
+    # lookup an identifier using `InfoPropertyRNA.enum_pointer` as the key.
+    rna_enum_pointer_to_id_map = {
+        enum_prop.as_pointer(): key
+        for key, enum_items in rna_enum_dict.items()
+        # It's possible the first item is a heading (which has no identifier).
+        # skip these as the `EnumProperty.enum_items` does not expose them.
+        if (enum_prop := next(iter(enum_prop for enum_prop in enum_items if enum_prop.identifier), None))
+    }
+
 
 def handle_args():
     """
@@ -1231,15 +1241,23 @@ def pycontext2sphinx(basepath):
             # No need to check if there are duplicates yet as it's known there wont be.
             unique.add(prop.identifier)
 
+            enum_descr_override = None
+            if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
+                enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
+
             type_descr = prop.get_type_description(
-                class_fmt=":class:`bpy.types.%s`", collection_id=_BPY_PROP_COLLECTION_ID)
+                class_fmt=":class:`bpy.types.%s`",
+                collection_id=_BPY_PROP_COLLECTION_ID,
+                enum_descr_override=enum_descr_override,
+            )
             fw(".. data:: %s\n\n" % prop.identifier)
             if prop.description:
                 fw("   %s\n\n" % prop.description)
 
             # Special exception, can't use generic code here for enums.
             if prop.type == "enum":
-                enum_text = pyrna_enum2sphinx(prop)
+                # If the link has been written, no need to inline the enum items.
+                enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
                 if enum_text:
                     write_indented_lines("   ", fw, enum_text)
                     fw("\n")
@@ -1300,6 +1318,11 @@ def pyrna_enum2sphinx(prop, use_empty_descriptions=False):
     """
     Write a bullet point list of enum + descriptions.
     """
+
+    # Write a link to the enum if this is part of `rna_enum_pointer_map`.
+    if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
+        if (result := pyrna_enum2sphinx_shared_link(prop)) is not None:
+            return result
 
     if use_empty_descriptions:
         ok = True
@@ -1379,10 +1402,15 @@ def pyrna2sphinx(basepath):
 
         kwargs["collection_id"] = _BPY_PROP_COLLECTION_ID
 
+        enum_descr_override = None
+        if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
+            enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
+            kwargs["enum_descr_override"] = enum_descr_override
+
         type_descr = prop.get_type_description(**kwargs)
 
-        enum_text = pyrna_enum2sphinx(prop)
-
+        # If the link has been written, no need to inline the enum items.
+        enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
         if prop.name or prop.description or enum_text:
             fw(ident + ":%s%s:\n\n" % (id_name, identifier))
 
@@ -1483,7 +1511,15 @@ def pyrna2sphinx(basepath):
             if identifier in struct_blacklist:
                 continue
 
-            type_descr = prop.get_type_description(class_fmt=":class:`%s`", collection_id=_BPY_PROP_COLLECTION_ID)
+            enum_descr_override = None
+            if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
+                enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
+
+            type_descr = prop.get_type_description(
+                class_fmt=":class:`%s`",
+                collection_id=_BPY_PROP_COLLECTION_ID,
+                enum_descr_override=enum_descr_override,
+            )
             # Read-only properties use "data" directive, variables properties use "attribute" directive.
             if "readonly" in type_descr:
                 fw("   .. data:: %s\n" % identifier)
@@ -1500,7 +1536,8 @@ def pyrna2sphinx(basepath):
 
             # Special exception, can't use generic code here for enums.
             if prop.type == "enum":
-                enum_text = pyrna_enum2sphinx(prop)
+                # If the link has been written, no need to inline the enum items.
+                enum_text = "" if enum_descr_override else pyrna_enum2sphinx(prop)
                 if enum_text:
                     write_indented_lines("      ", fw, enum_text)
                     fw("\n")
@@ -1539,8 +1576,16 @@ def pyrna2sphinx(basepath):
                 for prop in func.return_values:
                     # TODO: pyrna_enum2sphinx for multiple return values... actually don't
                     # think we even use this but still!
+
+                    enum_descr_override = None
+                    if USE_SHARED_RNA_ENUM_ITEMS_STATIC:
+                        enum_descr_override = pyrna_enum2sphinx_shared_link(prop)
+
                     type_descr = prop.get_type_description(
-                        as_ret=True, class_fmt=":class:`%s`", collection_id=_BPY_PROP_COLLECTION_ID)
+                        as_ret=True, class_fmt=":class:`%s`",
+                        collection_id=_BPY_PROP_COLLECTION_ID,
+                        enum_descr_override=enum_descr_override,
+                    )
                     descr = prop.description
                     if not descr:
                         descr = prop.name
@@ -2065,6 +2110,19 @@ def write_rst_data(basepath):
         file.close()
 
         EXAMPLE_SET_USED.add("bpy.data")
+
+
+def pyrna_enum2sphinx_shared_link(prop):
+    """
+    Return a reference to the enum used by ``prop`` or None when not found.
+    """
+    if (
+            (prop.type == "enum") and
+            (pointer := prop.enum_pointer) and
+            (identifier := rna_enum_pointer_to_id_map.get(pointer))
+    ):
+        return ":ref:`%s`" % identifier
+    return None
 
 
 def write_rst_enum_items(basepath, key, key_no_prefix, enum_items):
