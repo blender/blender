@@ -205,7 +205,7 @@ ATOMIC_INLINE void *atomic_cas_ptr(void **v, void *old, void *_new)
 #endif
 }
 
-ATOMIC_INLINE void *atomic_load_ptr(const void **v)
+ATOMIC_INLINE void *atomic_load_ptr(void *const *v)
 {
 #if (LG_SIZEOF_PTR == 8)
   return (void *)atomic_load_uint64((const uint64_t *)v);
