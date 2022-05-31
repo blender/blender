@@ -54,6 +54,8 @@
 /* only for customdata_data_transfer_interp_normal_normals */
 #include "data_transfer_intern.h"
 
+using blender::IndexRange;
+
 /* number of layers to add when growing a CustomData object */
 #define CUSTOMDATA_GROW 5
 
@@ -515,6 +517,22 @@ static bool layerValidate_propFloat(void *data, const uint totitems, const bool 
 static void layerCopy_propInt(const void *source, void *dest, int count)
 {
   memcpy(dest, source, sizeof(MIntProperty) * count);
+}
+
+static void layerInterp_propInt(const void **sources,
+                                const float *weights,
+                                const float *UNUSED(sub_weights),
+                                int count,
+                                void *dest)
+{
+  float result = 0.0f;
+  for (const int i : IndexRange(count)) {
+    const float weight = weights[i];
+    const float src = *static_cast<const int *>(sources[i]);
+    result += src * weight;
+  }
+  const int rounded_result = static_cast<int>(round(result));
+  *static_cast<int *>(dest) = rounded_result;
 }
 
 /** \} */
@@ -1679,7 +1697,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      N_("Int"),
      layerCopy_propInt,
      nullptr,
-     nullptr,
+     layerInterp_propInt,
      nullptr},
     /* 12: CD_PROP_STRING */
     {sizeof(MStringProperty),
