@@ -2316,14 +2316,58 @@ class _defs_gpencil_weight:
 
 class _defs_curves_sculpt:
 
-    @staticmethod
-    def generate_from_brushes(context):
-        return generate_from_enum_ex(
-            context,
-            idname_prefix="builtin_brush.",
-            icon_prefix="ops.curves.sculpt_",
-            type=bpy.types.Brush,
-            attr="curves_sculpt_tool",
+    @ToolDef.from_fn
+    def selection_paint():
+        return dict(
+            idname="builtin_brush.selection_paint",
+            label="Selection Paint",
+            icon="ops.generic.select_paint",
+            data_block="SELECTION_PAINT"
+        )
+
+    @ToolDef.from_fn
+    def comb():
+        return dict(
+            idname="builtin_brush.comb",
+            label="Comb",
+            icon="ops.curves.sculpt_comb",
+            data_block='COMB'
+        )
+
+    @ToolDef.from_fn
+    def add():
+        return dict(
+            idname="builtin_brush.add",
+            label="Add",
+            icon="ops.curves.sculpt_add",
+            data_block='ADD'
+        )
+
+    @ToolDef.from_fn
+    def delete():
+        return dict(
+            idname="builtin_brush.delete",
+            label="Delete",
+            icon="ops.curves.sculpt_delete",
+            data_block='DELETE'
+        )
+
+    @ToolDef.from_fn
+    def snake_hook():
+        return dict(
+            idname="builtin_brush.snake_hook",
+            label="Snake Hook",
+            icon="ops.curves.sculpt_snake_hook",
+            data_block='SNAKE_HOOK'
+        )
+
+    @ToolDef.from_fn
+    def grow_shrink():
+        return dict(
+            idname="builtin_brush.grow_shrink",
+            label="Grow/Shrink",
+            icon="ops.curves.sculpt_grow_shrink",
+            data_block='GROW_SHRINK'
         )
 
 
@@ -3076,7 +3120,21 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
         ],
         'SCULPT_CURVES': [
-            _defs_curves_sculpt.generate_from_brushes,
+            lambda context: (
+                (
+                    _defs_curves_sculpt.selection_paint,
+                    None,
+                )
+                if context is None or context.preferences.experimental.use_new_curves_tools
+                else ()
+            ),
+            _defs_curves_sculpt.comb,
+            _defs_curves_sculpt.add,
+            _defs_curves_sculpt.delete,
+            _defs_curves_sculpt.snake_hook,
+            _defs_curves_sculpt.grow_shrink,
+            None,
+            *_tools_annotate,
         ],
     }
 

@@ -6,18 +6,23 @@
 
 #include <atomic>
 
+#include "BLI_devirtualize_parameters.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector_set.hh"
 
 #include "ED_curves.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 
 #include "WM_api.h"
 
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_layer.h"
+#include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
@@ -37,6 +42,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 #include "RNA_prototypes.h"
 
 /**
@@ -48,6 +54,41 @@
  */
 
 namespace blender::ed::curves {
+
+static bool object_has_editable_curves(const Main &bmain, const Object &object)
+{
+  if (object.type != OB_CURVES) {
+    return false;
+  }
+  if (!ELEM(object.mode, OB_MODE_SCULPT_CURVES, OB_MODE_EDIT)) {
+    return false;
+  }
+  if (!BKE_id_is_editable(&bmain, static_cast<const ID *>(object.data))) {
+    return false;
+  }
+  return true;
+}
+
+static VectorSet<Curves *> get_unique_editable_curves(const bContext &C)
+{
+  VectorSet<Curves *> unique_curves;
+
+  const Main &bmain = *CTX_data_main(&C);
+
+  Object *object = CTX_data_active_object(&C);
+  if (object && object_has_editable_curves(bmain, *object)) {
+    unique_curves.add_new(static_cast<Curves *>(object->data));
+  }
+
+  CTX_DATA_BEGIN (&C, Object *, object, selected_objects) {
+    if (object_has_editable_curves(bmain, *object)) {
+      unique_curves.add(static_cast<Curves *>(object->data));
+    }
+  }
+  CTX_DATA_END;
+
+  return unique_curves;
+}
 
 using bke::CurvesGeometry;
 
@@ -645,6 +686,211 @@ static void CURVES_OT_snap_curves_to_surface(wmOperatorType *ot)
                "How to find the point on the surface to attach to");
 }
 
+static bool selection_poll(bContext *C)
+{
+  const Object *object = CTX_data_active_object(C);
+  if (object == nullptr) {
+    return false;
+  }
+  if (object->type != OB_CURVES) {
+    return false;
+  }
+  if (!BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(object->data))) {
+    return false;
+  }
+  return true;
+}
+
+namespace set_selection_domain {
+
+static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
+{
+  const AttributeDomain domain = AttributeDomain(RNA_enum_get(op->ptr, "domain"));
+
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    if (curves_id->selection_domain == domain && (curves_id->flag & CV_SCULPT_SELECTION_ENABLED)) {
+      continue;
+    }
+
+    const AttributeDomain old_domain = AttributeDomain(curves_id->selection_domain);
+    curves_id->selection_domain = domain;
+    curves_id->flag |= CV_SCULPT_SELECTION_ENABLED;
+
+    CurveComponent component;
+    component.replace(curves_id, GeometryOwnershipType::Editable);
+    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+
+    if (old_domain == ATTR_DOMAIN_POINT && domain == ATTR_DOMAIN_CURVE) {
+      VArray<float> curve_selection = curves.adapt_domain(
+          curves.selection_point_float(), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
+      curve_selection.materialize(curves.selection_curve_float_for_write());
+      component.attribute_try_delete(".selection_point_float");
+    }
+    else if (old_domain == ATTR_DOMAIN_CURVE && domain == ATTR_DOMAIN_POINT) {
+      VArray<float> point_selection = curves.adapt_domain(
+          curves.selection_curve_float(), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
+      point_selection.materialize(curves.selection_point_float_for_write());
+      component.attribute_try_delete(".selection_curve_float");
+    }
+
+    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
+     * attribute for now. */
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace set_selection_domain
+
+static void CURVES_OT_set_selection_domain(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  ot->name = "Set Select Mode";
+  ot->idname = __func__;
+  ot->description = "Change the mode used for selection masking in curves sculpt mode";
+
+  ot->exec = set_selection_domain::curves_set_selection_domain_exec;
+  ot->poll = selection_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = prop = RNA_def_enum(
+      ot->srna, "domain", rna_enum_attribute_curves_domain_items, 0, "Domain", "");
+  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+}
+
+namespace disable_selection {
+
+static int curves_disable_selection_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  for (Curves *curves_id : get_unique_editable_curves(*C)) {
+    curves_id->flag &= ~CV_SCULPT_SELECTION_ENABLED;
+
+    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
+     * attribute for now. */
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+
+  WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, nullptr);
+
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace disable_selection
+
+static void CURVES_OT_disable_selection(wmOperatorType *ot)
+{
+  ot->name = "Disable Selection";
+  ot->idname = __func__;
+  ot->description = "Disable the drawing of influence of selection in sculpt mode";
+
+  ot->exec = disable_selection::curves_disable_selection_exec;
+  ot->poll = selection_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+namespace select_all {
+
+static bool varray_contains_nonzero(const VArray<float> &data)
+{
+  bool contains_nonzero = false;
+  devirtualize_varray(data, [&](const auto array) {
+    for (const int i : data.index_range()) {
+      if (array[i] != 0.0f) {
+        contains_nonzero = true;
+        break;
+      }
+    }
+  });
+  return contains_nonzero;
+}
+
+static bool any_point_selected(const CurvesGeometry &curves)
+{
+  return varray_contains_nonzero(curves.selection_point_float());
+}
+
+static bool any_point_selected(const Span<Curves *> curves_ids)
+{
+  for (const Curves *curves_id : curves_ids) {
+    if (any_point_selected(CurvesGeometry::wrap(curves_id->geometry))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static void invert_selection(MutableSpan<float> selection)
+{
+  threading::parallel_for(selection.index_range(), 2048, [&](IndexRange range) {
+    for (const int i : range) {
+      selection[i] = 1.0f - selection[i];
+    }
+  });
+}
+
+static int select_all_exec(bContext *C, wmOperator *op)
+{
+  int action = RNA_enum_get(op->ptr, "action");
+
+  VectorSet<Curves *> unique_curves = get_unique_editable_curves(*C);
+
+  if (action == SEL_TOGGLE) {
+    action = any_point_selected(unique_curves) ? SEL_DESELECT : SEL_SELECT;
+  }
+
+  for (Curves *curves_id : unique_curves) {
+    if (action == SEL_SELECT) {
+      CurveComponent component;
+      component.replace(curves_id, GeometryOwnershipType::Editable);
+      component.attribute_try_delete(".selection_point_float");
+      component.attribute_try_delete(".selection_curve_float");
+    }
+    else {
+      CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+      MutableSpan<float> selection = curves_id->selection_domain == ATTR_DOMAIN_POINT ?
+                                         curves.selection_point_float_for_write() :
+                                         curves.selection_curve_float_for_write();
+      if (action == SEL_DESELECT) {
+        selection.fill(0.0f);
+      }
+      else if (action == SEL_INVERT) {
+        invert_selection(selection);
+      }
+    }
+
+    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
+     * attribute for now. */
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, curves_id);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace select_all
+
+static void SCULPT_CURVES_OT_select_all(wmOperatorType *ot)
+{
+  ot->name = "(De)select All";
+  ot->idname = __func__;
+  ot->description = "(De)select all control points";
+
+  ot->exec = select_all::select_all_exec;
+  ot->poll = selection_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  WM_operator_properties_select_all(ot);
+}
+
 }  // namespace blender::ed::curves
 
 void ED_operatortypes_curves()
@@ -653,4 +899,7 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_convert_to_particle_system);
   WM_operatortype_append(CURVES_OT_convert_from_particle_system);
   WM_operatortype_append(CURVES_OT_snap_curves_to_surface);
+  WM_operatortype_append(CURVES_OT_set_selection_domain);
+  WM_operatortype_append(SCULPT_CURVES_OT_select_all);
+  WM_operatortype_append(CURVES_OT_disable_selection);
 }

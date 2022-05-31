@@ -249,6 +249,7 @@ const EnumPropertyItem rna_enum_brush_curves_sculpt_tool_items[] = {
     {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_NONE, "Curves Snake Hook", ""},
     {CURVES_SCULPT_TOOL_ADD, "ADD", ICON_NONE, "Add Curves", ""},
     {CURVES_SCULPT_TOOL_GROW_SHRINK, "GROW_SHRINK", ICON_NONE, "Grow / Shrink Curves", ""},
+    {CURVES_SCULPT_TOOL_SELECTION_PAINT, "SELECTION_PAINT", ICON_NONE, "Paint Selection", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -885,6 +886,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
     case PAINT_MODE_SCULPT_CURVES:
       switch (me->curves_sculpt_tool) {
         case CURVES_SCULPT_TOOL_GROW_SHRINK:
+        case CURVES_SCULPT_TOOL_SELECTION_PAINT:
           return prop_direction_items;
         default:
           return DummyRNA_DEFAULT_items;

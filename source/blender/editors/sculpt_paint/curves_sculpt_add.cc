@@ -652,6 +652,8 @@ struct AddOperationExecutor {
     Array<float3> new_normals_su = this->compute_normals_for_added_curves_su(added_points);
     this->initialize_surface_attachment(added_points);
 
+    this->fill_new_selection();
+
     if (interpolate_shape_) {
       this->initialize_position_with_interpolation(
           added_points, neighbors_per_curve, new_normals_su, new_lengths_cu);
@@ -659,6 +661,33 @@ struct AddOperationExecutor {
     else {
       this->initialize_position_without_interpolation(
           added_points, new_lengths_cu, new_normals_su);
+    }
+  }
+
+  /**
+   * Select newly created points or curves in new curves if necessary.
+   */
+  void fill_new_selection()
+  {
+    switch (curves_id_->selection_domain) {
+      case ATTR_DOMAIN_CURVE: {
+        const VArray<float> selection = curves_->selection_curve_float();
+        if (selection.is_single() && selection.get_internal_single() >= 1.0f) {
+          return;
+        }
+        curves_->selection_curve_float_for_write().drop_front(tot_old_curves_).fill(1.0f);
+        break;
+      }
+      case ATTR_DOMAIN_POINT: {
+        const VArray<float> selection = curves_->selection_point_float();
+        if (selection.is_single() && selection.get_internal_single() >= 1.0f) {
+          return;
+        }
+        curves_->selection_point_float_for_write().drop_front(tot_old_points_).fill(1.0f);
+        break;
+      }
+      default:
+        BLI_assert_unreachable();
     }
   }
 

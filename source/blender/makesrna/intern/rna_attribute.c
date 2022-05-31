@@ -106,6 +106,11 @@ const EnumPropertyItem rna_enum_color_attribute_domain_items[] = {
     {ATTR_DOMAIN_CORNER, "CORNER", 0, "Face Corner", ""},
     {0, NULL, 0, NULL, NULL}};
 
+const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
+    {ATTR_DOMAIN_POINT, "POINT", 0, "Control Point", ""},
+    {ATTR_DOMAIN_CURVE, "CURVE", 0, "Curve", ""},
+    {0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math.h"
