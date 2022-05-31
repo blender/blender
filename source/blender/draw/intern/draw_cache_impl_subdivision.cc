@@ -1124,6 +1124,25 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
   cache->resolution = to_mesh_settings.resolution;
   cache->num_coarse_poly = mesh_eval->totpoly;
 
+  /* To avoid floating point precision issues when evaluating patches at patch boundaries,
+   * ensure that all loops sharing a vertex use the same patch coordinate. This could cause
+   * the mesh to not be watertight, leading to shadowing artifacts (see T97877). */
+  blender::Vector<int> first_loop_index(cache->num_subdiv_verts, -1);
+
+  for (int i = 0; i < cache->num_subdiv_loops; i++) {
+    const int vertex = cache_building_context.subdiv_loop_subdiv_vert_index[i];
+    if (first_loop_index[vertex] != -1) {
+      continue;
+    }
+    first_loop_index[vertex] = i;
+  }
+
+  for (int i = 0; i < cache->num_subdiv_loops; i++) {
+    const int vertex = cache_building_context.subdiv_loop_subdiv_vert_index[i];
+    cache_building_context.patch_coords[i] =
+        cache_building_context.patch_coords[first_loop_index[vertex]];
+  }
+
   /* Cleanup. */
   MEM_SAFE_FREE(cache_building_context.vert_origindex_map);
   MEM_SAFE_FREE(cache_building_context.edge_origindex_map);
