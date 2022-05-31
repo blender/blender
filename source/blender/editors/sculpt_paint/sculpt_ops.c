@@ -1098,7 +1098,7 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Mask by Color";
   ot->idname = "SCULPT_OT_mask_by_color";
-  ot->description = "Creates a mask based on the sculpt vertex colors";
+  ot->description = "Creates a mask based on the active color attribute";
 
   /* api callbacks */
   ot->invoke = sculpt_mask_by_color_invoke;
