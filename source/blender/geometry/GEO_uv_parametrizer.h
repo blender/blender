@@ -88,14 +88,6 @@ void GEO_uv_parametrizer_stretch_end(ParamHandle *handle);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Area Smooth
- * \{ */
-
-void GEO_uv_parametrizer_smooth_area(ParamHandle *handle);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Packing
  * \{ */
 
