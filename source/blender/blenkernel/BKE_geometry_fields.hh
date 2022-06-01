@@ -104,7 +104,7 @@ VArray<float3> curve_normals_varray(const CurveComponent &component, const eAttr
 VArray<float3> mesh_normals_varray(const MeshComponent &mesh_component,
                                    const Mesh &mesh,
                                    const IndexMask mask,
-                                   const eAttrDomain domain);
+                                   eAttrDomain domain);
 
 class NormalFieldInput : public GeometryFieldInput {
  public:

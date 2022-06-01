@@ -749,7 +749,7 @@ void CustomData_debug_info_from_layers(const struct CustomData *data,
 #  include "BLI_cpp_type.hh"
 
 namespace blender::bke {
-const CPPType *custom_data_type_to_cpp_type(const eCustomDataType type);
+const CPPType *custom_data_type_to_cpp_type(eCustomDataType type);
 eCustomDataType cpp_type_to_custom_data_type(const CPPType &type);
 }  // namespace blender::bke
 #endif

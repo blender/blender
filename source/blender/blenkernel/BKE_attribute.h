@@ -64,13 +64,13 @@ bool BKE_id_attribute_remove(struct ID *id,
 
 struct CustomDataLayer *BKE_id_attribute_find(const struct ID *id,
                                               const char *name,
-                                              const int type,
-                                              const eAttrDomain domain);
+                                              int type,
+                                              eAttrDomain domain);
 
 struct CustomDataLayer *BKE_id_attribute_search(const struct ID *id,
                                                 const char *name,
-                                                const eCustomDataMask type,
-                                                const eAttrDomainMask domain_mask);
+                                                eCustomDataMask type,
+                                                eAttrDomainMask domain_mask);
 
 eAttrDomain BKE_id_attribute_domain(const struct ID *id, const struct CustomDataLayer *layer);
 int BKE_id_attribute_data_length(struct ID *id, struct CustomDataLayer *layer);

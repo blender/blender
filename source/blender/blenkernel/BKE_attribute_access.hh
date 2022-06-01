@@ -376,7 +376,7 @@ class CustomDataAttributes {
    * value for the type will be used.
    */
   blender::GVArray get_for_read(const AttributeIDRef &attribute_id,
-                                const eCustomDataType data_type,
+                                eCustomDataType data_type,
                                 const void *default_value) const;
 
   template<typename T>
@@ -389,10 +389,8 @@ class CustomDataAttributes {
   }
 
   std::optional<blender::GMutableSpan> get_for_write(const AttributeIDRef &attribute_id);
-  bool create(const AttributeIDRef &attribute_id, const eCustomDataType data_type);
-  bool create_by_move(const AttributeIDRef &attribute_id,
-                      const eCustomDataType data_type,
-                      void *buffer);
+  bool create(const AttributeIDRef &attribute_id, eCustomDataType data_type);
+  bool create_by_move(const AttributeIDRef &attribute_id, eCustomDataType data_type, void *buffer);
   bool remove(const AttributeIDRef &attribute_id);
 
   /**

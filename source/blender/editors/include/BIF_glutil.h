@@ -55,17 +55,17 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
  * finished.
  */
 void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
-                                    const float x,
-                                    const float y,
-                                    const int img_w,
-                                    const int img_h,
-                                    const eGPUTextureFormat gpu_format,
-                                    const bool use_filter,
+                                    float x,
+                                    float y,
+                                    int img_w,
+                                    int img_h,
+                                    eGPUTextureFormat gpu_format,
+                                    bool use_filter,
                                     const void *rect,
-                                    const float scaleX,
-                                    const float scaleY,
-                                    const float xzoom,
-                                    const float yzoom,
+                                    float scaleX,
+                                    float scaleY,
+                                    float xzoom,
+                                    float yzoom,
                                     const float color[4]);
 
 /**

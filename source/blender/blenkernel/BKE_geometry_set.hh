@@ -157,7 +157,7 @@ class GeometryComponent {
   /** Returns true when the attribute has been created. */
   bool attribute_try_create(const blender::bke::AttributeIDRef &attribute_id,
                             eAttrDomain domain,
-                            const eCustomDataType data_type,
+                            eCustomDataType data_type,
                             const AttributeInit &initializer);
 
   /**
@@ -183,7 +183,7 @@ class GeometryComponent {
    */
   blender::GVArray attribute_try_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
                                               eAttrDomain domain,
-                                              const eCustomDataType data_type) const;
+                                              eCustomDataType data_type) const;
 
   /**
    * Get a virtual array that refers to the data of an attribute, interpolated to the given domain.
@@ -199,7 +199,7 @@ class GeometryComponent {
    * cannot be converted.
    */
   blender::bke::ReadAttributeLookup attribute_try_get_for_read(
-      const blender::bke::AttributeIDRef &attribute_id, const eCustomDataType data_type) const;
+      const blender::bke::AttributeIDRef &attribute_id, eCustomDataType data_type) const;
 
   /**
    * Get a virtual array that refers to the data of an attribute, interpolated to the given domain
@@ -208,7 +208,7 @@ class GeometryComponent {
    */
   blender::GVArray attribute_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
                                           eAttrDomain domain,
-                                          const eCustomDataType data_type,
+                                          eCustomDataType data_type,
                                           const void *default_value = nullptr) const;
   /* Use instead of the method above when the type is known at compile time for type safety. */
   template<typename T>
@@ -235,7 +235,7 @@ class GeometryComponent {
   blender::bke::OutputAttribute attribute_try_get_for_output(
       const blender::bke::AttributeIDRef &attribute_id,
       eAttrDomain domain,
-      const eCustomDataType data_type,
+      eCustomDataType data_type,
       const void *default_value = nullptr);
   /* Use instead of the method above when the type is known at compile time for type safety. */
   template<typename T>
@@ -258,7 +258,7 @@ class GeometryComponent {
   blender::bke::OutputAttribute attribute_try_get_for_output_only(
       const blender::bke::AttributeIDRef &attribute_id,
       eAttrDomain domain,
-      const eCustomDataType data_type);
+      eCustomDataType data_type);
   /* Use instead of the method above when the type is known at compile time for type safety. */
   template<typename T>
   blender::bke::OutputAttribute_Typed<T> attribute_try_get_for_output_only(
