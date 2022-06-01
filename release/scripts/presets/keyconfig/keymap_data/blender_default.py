@@ -6551,7 +6551,10 @@ def km_node_editor_tool_select(params, *, fallback):
         _fallback_id("Node Tool: Tweak", fallback),
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else
+            # The node key-map already selects, leave this empty.
+            # NOTE: intentionally don't check `fallback` here (unlike other tweak tool checks).
+            # as this should only be used on LMB select which would otherwise activate on click, not press.
+            *([] if (params.select_mouse == 'RIGHTMOUSE') else
               _template_node_select(type=params.select_mouse, value='PRESS', select_passthrough=True)),
         ]},
     )
