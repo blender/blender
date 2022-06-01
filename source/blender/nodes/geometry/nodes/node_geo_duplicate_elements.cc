@@ -701,12 +701,12 @@ static void copy_stable_id_edges(const Mesh &mesh,
   VArray_Span<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.as_span<int>();
   threading::parallel_for(IndexRange(selection.size()), 1024, [&](IndexRange range) {
-    for (const int i_edge : range) {
-      const IndexRange edge_range = range_for_offsets_index(edge_offsets, i_edge);
+    for (const int i_selection : range) {
+      const IndexRange edge_range = range_for_offsets_index(edge_offsets, i_selection);
       if (edge_range.size() == 0) {
         continue;
       }
-      const MEdge &edge = edges[i_edge];
+      const MEdge &edge = edges[selection[i_selection]];
       const IndexRange vert_range = {edge_range.start() * 2, edge_range.size() * 2};
 
       dst[vert_range[0]] = src[edge.v1];
@@ -750,9 +750,9 @@ static void duplicate_edges(GeometrySet &geometry_set,
 
   Array<int> vert_orig_indices(edge_offsets.last() * 2);
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
-    for (const int i_edge : range) {
-      const MEdge &edge = edges[i_edge];
-      const IndexRange edge_range = range_for_offsets_index(edge_offsets, i_edge);
+    for (const int i_selection : range) {
+      const MEdge &edge = edges[selection[i_selection]];
+      const IndexRange edge_range = range_for_offsets_index(edge_offsets, i_selection);
       const IndexRange vert_range(edge_range.start() * 2, edge_range.size() * 2);
 
       for (const int i_duplicate : IndexRange(edge_range.size())) {
@@ -763,8 +763,8 @@ static void duplicate_edges(GeometrySet &geometry_set,
   });
 
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
-    for (const int i_edge : range) {
-      const IndexRange edge_range = range_for_offsets_index(edge_offsets, i_edge);
+    for (const int i_selection : range) {
+      const IndexRange edge_range = range_for_offsets_index(edge_offsets, i_selection);
       const IndexRange vert_range(edge_range.start() * 2, edge_range.size() * 2);
       for (const int i_duplicate : IndexRange(edge_range.size())) {
         MEdge &new_edge = new_edges[edge_range[i_duplicate]];
