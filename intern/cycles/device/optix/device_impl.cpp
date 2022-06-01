@@ -1237,7 +1237,7 @@ bool OptiXDevice::denoise_configure_if_needed(DenoiseContext &context)
   const OptixResult result = optixDenoiserSetup(
       denoiser_.optix_denoiser,
       0, /* Work around bug in r495 drivers that causes artifacts when denoiser setup is called
-            on a stream that is not the default stream */
+          * on a stream that is not the default stream. */
       tile_size.x + denoiser_.sizes.overlapWindowSizeInPixels * 2,
       tile_size.y + denoiser_.sizes.overlapWindowSizeInPixels * 2,
       denoiser_.state.device_pointer,
@@ -1912,7 +1912,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       {
         /* Can disable __anyhit__kernel_optix_visibility_test by default (except for thick curves,
          * since it needs to filter out end-caps there).
-
+         *
          * It is enabled where necessary (visibility mask exceeds 8 bits or the other any-hit
          * programs like __anyhit__kernel_optix_shadow_all_hit) via OPTIX_RAY_FLAG_ENFORCE_ANYHIT.
          */

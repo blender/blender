@@ -794,8 +794,8 @@ struct DRWCacheBuildingContext {
   int *edge_origindex_map;
 
   /* #CD_ORIGINDEX layers from the mesh to directly look up during traversal the original-index
-     from the base mesh for edit data so that we do not have to handle yet another GPU buffer and
-     do this in the shaders. */
+   * from the base mesh for edit data so that we do not have to handle yet another GPU buffer and
+   * do this in the shaders. */
   const int *v_origindex;
   const int *e_origindex;
 };

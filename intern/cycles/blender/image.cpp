@@ -19,7 +19,7 @@ BlenderImageLoader::BlenderImageLoader(BL::Image b_image,
       frame(frame),
       tile_number(tile_number),
       /* Don't free cache for preview render to avoid race condition from T93560, to be fixed
-         properly later as we are close to release. */
+       * properly later as we are close to release. */
       free_cache(!is_preview_render && !b_image.has_data())
 {
 }
