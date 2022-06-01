@@ -49,6 +49,7 @@ void IMAGE_OT_new(struct wmOperatorType *ot);
  * Called by other space types too.
  */
 void IMAGE_OT_open(struct wmOperatorType *ot);
+void IMAGE_OT_file_browse(struct wmOperatorType *ot);
 /**
  * Called by other space types too.
  */

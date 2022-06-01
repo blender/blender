@@ -1535,6 +1535,120 @@ void IMAGE_OT_open(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Browse Image Operator
+ * \{ */
+
+static int image_file_browse_exec(bContext *C, wmOperator *op)
+{
+  Image *ima = op->customdata;
+  if (ima == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
+
+  /* If loading into a tiled texture, ensure that the filename is tokenized. */
+  if (ima->source == IMA_SRC_TILED) {
+    char *filename = (char *)BLI_path_basename(filepath);
+    BKE_image_ensure_tile_token(filename);
+  }
+
+  PointerRNA imaptr;
+  PropertyRNA *imaprop;
+  RNA_id_pointer_create(&ima->id, &imaptr);
+  imaprop = RNA_struct_find_property(&imaptr, "filepath");
+
+  RNA_property_string_set(&imaptr, imaprop, filepath);
+  RNA_property_update(C, &imaptr, imaprop);
+
+  return OPERATOR_FINISHED;
+}
+
+static int image_file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  Image *ima = image_from_context(C);
+  if (!ima) {
+    return OPERATOR_CANCELLED;
+  }
+
+  char filepath[FILE_MAX];
+  BLI_strncpy(filepath, ima->filepath, sizeof(filepath));
+
+  /* Shift+Click to open the file, Alt+Click to browse a folder in the OS's browser. */
+  if (event->modifier & (KM_SHIFT | KM_ALT)) {
+    wmOperatorType *ot = WM_operatortype_find("WM_OT_path_open", true);
+    PointerRNA props_ptr;
+
+    if (event->modifier & KM_ALT) {
+      char *lslash = (char *)BLI_path_slash_rfind(filepath);
+      if (lslash) {
+        *lslash = '\0';
+      }
+    }
+    else if (ima->source == IMA_SRC_TILED) {
+      ImageUser iuser;
+      BKE_imageuser_default(&iuser);
+
+      /* Use the file associated with the active tile. Otherwise use the first tile. */
+      const ImageTile *active = (ImageTile *)BLI_findlink(&ima->tiles, ima->active_tile_index);
+      iuser.tile = active ? active->tile_number : ((ImageTile *)ima->tiles.first)->tile_number;
+      BKE_image_user_file_path(&iuser, ima, filepath);
+    }
+
+    WM_operator_properties_create_ptr(&props_ptr, ot);
+    RNA_string_set(&props_ptr, "filepath", filepath);
+    WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &props_ptr, NULL);
+    WM_operator_properties_free(&props_ptr);
+
+    return OPERATOR_CANCELLED;
+  }
+
+  /* The image is typically passed to the operator via layout/button context (e.g.
+   * #uiLayoutSetContextPointer()). The File Browser doesn't support restoring this context
+   * when calling `exec()` though, so we have to pass it the image via custom data. */
+  op->customdata = ima;
+
+  image_filesel(C, op, filepath);
+
+  return OPERATOR_RUNNING_MODAL;
+}
+
+static bool image_file_browse_poll(bContext *C)
+{
+  return image_from_context(C) != NULL;
+}
+
+void IMAGE_OT_file_browse(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Browse Image";
+  ot->description =
+      "Open an image file browser, hold Shift to open the file, Alt to browse containing "
+      "directory";
+  ot->idname = "IMAGE_OT_file_browse";
+
+  /* api callbacks */
+  ot->exec = image_file_browse_exec;
+  ot->invoke = image_file_browse_invoke;
+  ot->poll = image_file_browse_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_UNDO;
+
+  /* properties */
+  WM_operator_properties_filesel(ot,
+                                 FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE,
+                                 FILE_SPECIAL,
+                                 FILE_OPENFILE,
+                                 WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH,
+                                 FILE_DEFAULTDISPLAY,
+                                 FILE_SORT_DEFAULT);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Match Movie Length Operator
  * \{ */
 
