@@ -848,10 +848,21 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
   for (Curves *curves_id : unique_curves) {
     if (action == SEL_SELECT) {
+      /* The optimization to avoid storing the selection when everything is selected causes too
+       * many problems at the moment, since there is no proper visualization yet. Keep the code but
+       * disable it for now. */
+#if 0
       CurveComponent component;
       component.replace(curves_id, GeometryOwnershipType::Editable);
       component.attribute_try_delete(".selection_point_float");
       component.attribute_try_delete(".selection_curve_float");
+#else
+      CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+      MutableSpan<float> selection = curves_id->selection_domain == ATTR_DOMAIN_POINT ?
+                                         curves.selection_point_float_for_write() :
+                                         curves.selection_curve_float_for_write();
+      selection.fill(1.0f);
+#endif
     }
     else {
       CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
