@@ -198,7 +198,7 @@ struct PBVH {
   const struct MeshElemMap *pmap;
 
   CustomDataLayer *color_layer;
-  AttributeDomain color_domain;
+  eAttrDomain color_domain;
 
   bool is_drawing;
 

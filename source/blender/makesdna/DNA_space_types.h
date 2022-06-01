@@ -1936,7 +1936,7 @@ typedef struct SpaceSpreadsheet {
 
   /* #GeometryComponentType. */
   uint8_t geometry_component_type;
-  /* #AttributeDomain. */
+  /* #eAttrDomain. */
   uint8_t attribute_domain;
   /* eSpaceSpreadsheet_ObjectContext. */
   uint8_t object_eval_state;

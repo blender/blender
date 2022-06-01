@@ -160,30 +160,29 @@ CurvesGeometry::~CurvesGeometry()
 /** \name Accessors
  * \{ */
 
-static int domain_num(const CurvesGeometry &curves, const AttributeDomain domain)
+static int domain_num(const CurvesGeometry &curves, const eAttrDomain domain)
 {
   return domain == ATTR_DOMAIN_POINT ? curves.points_num() : curves.curves_num();
 }
 
-static CustomData &domain_custom_data(CurvesGeometry &curves, const AttributeDomain domain)
+static CustomData &domain_custom_data(CurvesGeometry &curves, const eAttrDomain domain)
 {
   return domain == ATTR_DOMAIN_POINT ? curves.point_data : curves.curve_data;
 }
 
-static const CustomData &domain_custom_data(const CurvesGeometry &curves,
-                                            const AttributeDomain domain)
+static const CustomData &domain_custom_data(const CurvesGeometry &curves, const eAttrDomain domain)
 {
   return domain == ATTR_DOMAIN_POINT ? curves.point_data : curves.curve_data;
 }
 
 template<typename T>
 static VArray<T> get_varray_attribute(const CurvesGeometry &curves,
-                                      const AttributeDomain domain,
+                                      const eAttrDomain domain,
                                       const StringRefNull name,
                                       const T default_value)
 {
   const int num = domain_num(curves, domain);
-  const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
+  const eCustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
   const CustomData &custom_data = domain_custom_data(curves, domain);
 
   const T *data = (const T *)CustomData_get_layer_named(&custom_data, type, name.c_str());
@@ -195,12 +194,12 @@ static VArray<T> get_varray_attribute(const CurvesGeometry &curves,
 
 template<typename T>
 static Span<T> get_span_attribute(const CurvesGeometry &curves,
-                                  const AttributeDomain domain,
+                                  const eAttrDomain domain,
                                   const StringRefNull name)
 {
   const int num = domain_num(curves, domain);
   const CustomData &custom_data = domain_custom_data(curves, domain);
-  const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
+  const eCustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
 
   T *data = (T *)CustomData_get_layer_named(&custom_data, type, name.c_str());
   if (data == nullptr) {
@@ -211,12 +210,12 @@ static Span<T> get_span_attribute(const CurvesGeometry &curves,
 
 template<typename T>
 static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
-                                            const AttributeDomain domain,
+                                            const eAttrDomain domain,
                                             const StringRefNull name,
                                             const T default_value = T())
 {
   const int num = domain_num(curves, domain);
-  const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
+  const eCustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
   CustomData &custom_data = domain_custom_data(curves, domain);
 
   T *data = (T *)CustomData_duplicate_referenced_layer_named(
@@ -1106,7 +1105,7 @@ void CurvesGeometry::update_customdata_pointers()
 
 static void *ensure_customdata_layer(CustomData &custom_data,
                                      const StringRefNull name,
-                                     const CustomDataType data_type,
+                                     const eCustomDataType data_type,
                                      const int tot_elements)
 {
   for (const int other_layer_i : IndexRange(custom_data.totlayer)) {
@@ -1175,7 +1174,7 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
         CustomData &new_point_data = new_curves.point_data;
         for (const int layer_i : IndexRange(old_point_data.totlayer)) {
           const CustomDataLayer &old_layer = old_point_data.layers[layer_i];
-          const CustomDataType data_type = static_cast<CustomDataType>(old_layer.type);
+          const eCustomDataType data_type = static_cast<eCustomDataType>(old_layer.type);
           const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
 
           const void *src_buffer = old_layer.data;
@@ -1202,7 +1201,7 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
         CustomData &new_curve_data = new_curves.curve_data;
         for (const int layer_i : IndexRange(old_curve_data.totlayer)) {
           const CustomDataLayer &old_layer = old_curve_data.layers[layer_i];
-          const CustomDataType data_type = static_cast<CustomDataType>(old_layer.type);
+          const eCustomDataType data_type = static_cast<eCustomDataType>(old_layer.type);
           const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
 
           const void *src_buffer = old_layer.data;
@@ -1268,7 +1267,7 @@ static void reverse_swap_curve_point_data(const CurvesGeometry &curves,
 
 static bool layer_matches_name_and_type(const CustomDataLayer &layer,
                                         const StringRef name,
-                                        const CustomDataType type)
+                                        const eCustomDataType type)
 {
   if (layer.type != type) {
     return false;
@@ -1311,7 +1310,7 @@ void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
       continue;
     }
 
-    const CustomDataType data_type = static_cast<CustomDataType>(layer.type);
+    const eCustomDataType data_type = static_cast<eCustomDataType>(layer.type);
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
       reverse_curve_point_data<T>(
@@ -1430,8 +1429,8 @@ static GVArray adapt_curve_domain_curve_to_point(const CurvesGeometry &curves,
 }
 
 GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
-                                     const AttributeDomain from,
-                                     const AttributeDomain to) const
+                                     const eAttrDomain from,
+                                     const eAttrDomain to) const
 {
   if (!varray) {
     return {};

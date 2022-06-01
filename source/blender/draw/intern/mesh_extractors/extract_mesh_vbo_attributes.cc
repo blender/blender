@@ -24,7 +24,7 @@ namespace blender::draw {
 /** \name Extract Attributes
  * \{ */
 
-static CustomData *get_custom_data_for_domain(const MeshRenderData *mr, AttributeDomain domain)
+static CustomData *get_custom_data_for_domain(const MeshRenderData *mr, eAttrDomain domain)
 {
   switch (domain) {
     default: {
@@ -80,7 +80,7 @@ template<> struct attribute_type_converter<MPropCol, gpuMeshCol> {
 };
 
 /* Return the number of component for the attribute's value type, or 0 if is it unsupported. */
-static uint gpu_component_size_for_attribute_type(CustomDataType type)
+static uint gpu_component_size_for_attribute_type(eCustomDataType type)
 {
   switch (type) {
     case CD_PROP_BOOL:
@@ -106,7 +106,7 @@ static uint gpu_component_size_for_attribute_type(CustomDataType type)
   }
 }
 
-static GPUVertFetchMode get_fetch_mode_for_type(CustomDataType type)
+static GPUVertFetchMode get_fetch_mode_for_type(eCustomDataType type)
 {
   switch (type) {
     case CD_PROP_INT32: {
@@ -121,7 +121,7 @@ static GPUVertFetchMode get_fetch_mode_for_type(CustomDataType type)
   }
 }
 
-static GPUVertCompType get_comp_type_for_type(CustomDataType type)
+static GPUVertCompType get_comp_type_for_type(eCustomDataType type)
 {
   switch (type) {
     case CD_PROP_INT32: {

@@ -1369,10 +1369,9 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
     Object *ob_src = dtmd->ob_source;
 
     if (ob_src) {
-      AttributeDomain domain = STREQ(RNA_property_identifier(prop),
-                                     "layers_vcol_vert_select_src") ?
-                                   ATTR_DOMAIN_POINT :
-                                   ATTR_DOMAIN_CORNER;
+      eAttrDomain domain = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_src") ?
+                               ATTR_DOMAIN_POINT :
+                               ATTR_DOMAIN_CORNER;
 
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
       Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
@@ -1392,7 +1391,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
         cdata = &me_eval->ldata;
       }
 
-      CustomDataType types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
+      eCustomDataType types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
 
       int idx = 0;
       for (int i = 0; i < 2; i++) {
@@ -1492,7 +1491,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_dst_itemf(
       Object *ob_dst = CTX_data_active_object(C); /* XXX Is this OK? */
 
       if (ob_dst && ob_dst->data) {
-        CustomDataType types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
+        eCustomDataType types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
 
         Mesh *me_dst = ob_dst->data;
         CustomData *cdata = STREQ(RNA_property_identifier(prop), "layers_vcol_vert_select_dst") ?

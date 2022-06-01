@@ -705,14 +705,14 @@ namespace set_selection_domain {
 
 static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
 {
-  const AttributeDomain domain = AttributeDomain(RNA_enum_get(op->ptr, "domain"));
+  const eAttrDomain domain = eAttrDomain(RNA_enum_get(op->ptr, "domain"));
 
   for (Curves *curves_id : get_unique_editable_curves(*C)) {
     if (curves_id->selection_domain == domain && (curves_id->flag & CV_SCULPT_SELECTION_ENABLED)) {
       continue;
     }
 
-    const AttributeDomain old_domain = AttributeDomain(curves_id->selection_domain);
+    const eAttrDomain old_domain = eAttrDomain(curves_id->selection_domain);
     curves_id->selection_domain = domain;
     curves_id->flag |= CV_SCULPT_SELECTION_ENABLED;
 

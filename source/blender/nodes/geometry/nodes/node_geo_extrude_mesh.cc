@@ -63,7 +63,7 @@ struct AttributeOutputs {
 
 static void save_selection_as_attribute(MeshComponent &component,
                                         const AnonymousAttributeID *id,
-                                        const AttributeDomain domain,
+                                        const eAttrDomain domain,
                                         const IndexMask selection)
 {
   BLI_assert(!component.attribute_exists(id));

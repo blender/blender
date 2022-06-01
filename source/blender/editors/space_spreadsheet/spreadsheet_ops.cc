@@ -84,7 +84,7 @@ static int select_component_domain_invoke(bContext *C,
 {
   GeometryComponentType component_type = static_cast<GeometryComponentType>(
       RNA_int_get(op->ptr, "component_type"));
-  AttributeDomain attribute_domain = static_cast<AttributeDomain>(
+  eAttrDomain attribute_domain = static_cast<eAttrDomain>(
       RNA_int_get(op->ptr, "attribute_domain_type"));
 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);

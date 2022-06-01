@@ -42,7 +42,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
-  const CustomDataType data_type = static_cast<CustomDataType>(node->custom2);
+  const eCustomDataType data_type = static_cast<eCustomDataType>(node->custom2);
 
   bNodeSocket *sock_index = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *sock_in_float = sock_index->next;
@@ -74,10 +74,10 @@ class FieldAtIndex final : public GeometryFieldInput {
  private:
   Field<int> index_field_;
   GField value_field_;
-  AttributeDomain value_field_domain_;
+  eAttrDomain value_field_domain_;
 
  public:
-  FieldAtIndex(Field<int> index_field, GField value_field, AttributeDomain value_field_domain)
+  FieldAtIndex(Field<int> index_field, GField value_field, eAttrDomain value_field_domain)
       : GeometryFieldInput(value_field.cpp_type(), "Field at Index"),
         index_field_(std::move(index_field)),
         value_field_(std::move(value_field)),
@@ -86,7 +86,7 @@ class FieldAtIndex final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask mask) const final
   {
     const GeometryComponentFieldContext value_field_context{component, value_field_domain_};
@@ -125,7 +125,7 @@ class FieldAtIndex final : public GeometryFieldInput {
   }
 };
 
-static StringRefNull identifier_suffix(CustomDataType data_type)
+static StringRefNull identifier_suffix(eCustomDataType data_type)
 {
   switch (data_type) {
     case CD_PROP_BOOL:
@@ -147,8 +147,8 @@ static StringRefNull identifier_suffix(CustomDataType data_type)
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
-  const AttributeDomain domain = static_cast<AttributeDomain>(node.custom1);
-  const CustomDataType data_type = static_cast<CustomDataType>(node.custom2);
+  const eAttrDomain domain = static_cast<eAttrDomain>(node.custom1);
+  const eCustomDataType data_type = static_cast<eCustomDataType>(node.custom2);
 
   Field<int> index_field = params.extract_input<Field<int>>("Index");
   attribute_math::convert_to_static_type(data_type, [&](auto dummy) {

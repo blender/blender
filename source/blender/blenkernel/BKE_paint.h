@@ -501,8 +501,8 @@ typedef struct SculptSession {
   struct MPropCol *vcol;
   struct MLoopCol *mcol;
 
-  AttributeDomain vcol_domain;
-  CustomDataType vcol_type;
+  eAttrDomain vcol_domain;
+  eCustomDataType vcol_type;
 
   float *vmask;
 

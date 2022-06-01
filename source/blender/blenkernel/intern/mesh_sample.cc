@@ -204,7 +204,7 @@ Span<float3> MeshAttributeInterpolator::ensure_nearest_weights()
 }
 
 void MeshAttributeInterpolator::sample_data(const GVArray &src,
-                                            const AttributeDomain domain,
+                                            const eAttrDomain domain,
                                             const eAttributeMapMode mode,
                                             const GMutableSpan dst)
 {

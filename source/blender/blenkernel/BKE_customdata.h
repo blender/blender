@@ -28,7 +28,7 @@ struct BlendWriter;
 struct CustomData;
 struct CustomData_MeshMasks;
 struct ID;
-typedef uint64_t CustomDataMask;
+typedef uint64_t eCustomDataMask;
 
 /* A data type large enough to hold 1 element from any custom-data layer type. */
 typedef struct {
@@ -63,7 +63,7 @@ typedef enum eCDAllocType {
   CD_DUPLICATE = 4,
 } eCDAllocType;
 
-#define CD_TYPE_AS_MASK(_type) (CustomDataMask)((CustomDataMask)1 << (CustomDataMask)(_type))
+#define CD_TYPE_AS_MASK(_type) (eCustomDataMask)((eCustomDataMask)1 << (eCustomDataMask)(_type))
 
 void customData_mask_layers__print(const struct CustomData_MeshMasks *mask);
 
@@ -137,7 +137,7 @@ void CustomData_data_add(int type, void *data1, const void *data2);
  */
 void CustomData_copy(const struct CustomData *source,
                      struct CustomData *dest,
-                     CustomDataMask mask,
+                     eCustomDataMask mask,
                      eCDAllocType alloctype,
                      int totelem);
 
@@ -150,7 +150,7 @@ void CustomData_update_typemap(struct CustomData *data);
  */
 bool CustomData_merge(const struct CustomData *source,
                       struct CustomData *dest,
-                      CustomDataMask mask,
+                      eCustomDataMask mask,
                       eCDAllocType alloctype,
                       int totelem);
 
@@ -170,7 +170,7 @@ void CustomData_realloc(struct CustomData *data, int totelem);
  */
 bool CustomData_bmesh_merge(const struct CustomData *source,
                             struct CustomData *dest,
-                            CustomDataMask mask,
+                            eCustomDataMask mask,
                             eCDAllocType alloctype,
                             struct BMesh *bm,
                             char htype);
@@ -188,7 +188,7 @@ void CustomData_free(struct CustomData *data, int totelem);
 /**
  * Same as above, but only frees layers which matches the given mask.
  */
-void CustomData_free_typemask(struct CustomData *data, int totelem, CustomDataMask mask);
+void CustomData_free_typemask(struct CustomData *data, int totelem, eCustomDataMask mask);
 
 /**
  * Frees all layers with #CD_FLAG_TEMPORARY.
@@ -248,7 +248,7 @@ bool CustomData_has_layer(const struct CustomData *data, int type);
  * Returns the number of layers with this type.
  */
 int CustomData_number_of_layers(const struct CustomData *data, int type);
-int CustomData_number_of_layers_typemask(const struct CustomData *data, CustomDataMask mask);
+int CustomData_number_of_layers_typemask(const struct CustomData *data, eCustomDataMask mask);
 
 /**
  * Duplicate data of a layer with flag NOFREE, and remove that flag.
@@ -276,7 +276,7 @@ void CustomData_duplicate_referenced_layers(CustomData *data, int totelem);
  * Set the #CD_FLAG_NOCOPY flag in custom data layers where the mask is
  * zero for the layer type, so only layer types specified by the mask will be copied
  */
-void CustomData_set_only_copy(const struct CustomData *data, CustomDataMask mask);
+void CustomData_set_only_copy(const struct CustomData *data, eCustomDataMask mask);
 
 /**
  * Copies data from one CustomData object to another
@@ -309,7 +309,7 @@ void CustomData_bmesh_copy_data_exclude_by_type(const struct CustomData *source,
                                                 struct CustomData *dest,
                                                 void *src_block,
                                                 void **dest_block,
-                                                CustomDataMask mask_exclude);
+                                                eCustomDataMask mask_exclude);
 
 /**
  * Copies data of a single layer of a given type.
@@ -488,7 +488,7 @@ void CustomData_bmesh_free_block_data(struct CustomData *data, void *block);
  */
 void CustomData_bmesh_free_block_data_exclude_by_type(struct CustomData *data,
                                                       void *block,
-                                                      CustomDataMask mask_exclude);
+                                                      eCustomDataMask mask_exclude);
 
 /**
  * Copy custom data to/from layers as in mesh/derived-mesh, to edit-mesh
@@ -593,14 +593,14 @@ void CustomData_external_remove(struct CustomData *data, struct ID *id, int type
 bool CustomData_external_test(struct CustomData *data, int type);
 
 void CustomData_external_write(
-    struct CustomData *data, struct ID *id, CustomDataMask mask, int totelem, int free);
+    struct CustomData *data, struct ID *id, eCustomDataMask mask, int totelem, int free);
 void CustomData_external_read(struct CustomData *data,
                               struct ID *id,
-                              CustomDataMask mask,
+                              eCustomDataMask mask,
                               int totelem);
 void CustomData_external_reload(struct CustomData *data,
                                 struct ID *id,
-                                CustomDataMask mask,
+                                eCustomDataMask mask,
                                 int totelem);
 
 /* Mesh-to-mesh transfer data. */
@@ -726,7 +726,7 @@ void CustomData_blend_write(BlendWriter *writer,
                             CustomData *data,
                             blender::Span<CustomDataLayer> layers_to_write,
                             int count,
-                            CustomDataMask cddata_mask,
+                            eCustomDataMask cddata_mask,
                             ID *id);
 
 #endif
@@ -749,7 +749,7 @@ void CustomData_debug_info_from_layers(const struct CustomData *data,
 #  include "BLI_cpp_type.hh"
 
 namespace blender::bke {
-const CPPType *custom_data_type_to_cpp_type(const CustomDataType type);
-CustomDataType cpp_type_to_custom_data_type(const CPPType &type);
+const CPPType *custom_data_type_to_cpp_type(const eCustomDataType type);
+eCustomDataType cpp_type_to_custom_data_type(const CPPType &type);
 }  // namespace blender::bke
 #endif

@@ -512,7 +512,7 @@ class GeometryComponentCacheValue : public SpreadsheetCache::Value {
  public:
   /* Stores the result of fields evaluated on a geometry component. Without this, fields would have
    * to be reevaluated on every redraw. */
-  Map<std::pair<AttributeDomain, GField>, GArray<>> arrays;
+  Map<std::pair<eAttrDomain, GField>, GArray<>> arrays;
 };
 
 static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
@@ -526,7 +526,7 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
       sspreadsheet->runtime->cache.lookup_or_add<GeometryComponentCacheValue>(
           std::make_unique<GeometryComponentCacheKey>(component));
 
-  const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
+  const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
   const int domain_num = component.attribute_domain_num(domain);
   for (const auto item : fields_to_show.items()) {
     StringRef name = item.key;
@@ -550,7 +550,7 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
 std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object *object_eval)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
+  const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
   const GeometryComponentType component_type = get_display_component_type(C, object_eval);
   GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);
 

@@ -106,7 +106,7 @@ typedef struct UndoSculpt {
 } UndoSculpt;
 
 typedef struct SculptAttrRef {
-  AttributeDomain domain;
+  eAttrDomain domain;
   int type;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   bool was_set;
@@ -1576,7 +1576,7 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
    */
   if (!layer) {
     layer = BKE_id_attribute_search(&me->id, attr->name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
-    AttributeDomain domain = layer ? BKE_id_attribute_domain(&me->id, layer) : ATTR_DOMAIN_NUM;
+    eAttrDomain domain = layer ? BKE_id_attribute_domain(&me->id, layer) : ATTR_DOMAIN_NUM;
 
     if (layer && ED_geometry_attribute_convert(
                      me, attr->name, layer->type, domain, attr->type, attr->domain)) {

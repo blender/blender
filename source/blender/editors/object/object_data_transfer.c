@@ -88,14 +88,14 @@ static const EnumPropertyItem DT_layer_items[] = {
 };
 
 static void dt_add_vcol_layers(CustomData *cdata,
-                               CustomDataMask mask,
+                               eCustomDataMask mask,
                                EnumPropertyItem **r_item,
                                int *r_totitem)
 {
   int types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
 
   for (int i = 0; i < 2; i++) {
-    CustomDataType type = types[i];
+    eCustomDataType type = types[i];
 
     if (!(mask & CD_TYPE_AS_MASK(type))) {
       continue;

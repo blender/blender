@@ -55,7 +55,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   });
 
   if (attribute_exists && !cannot_delete) {
-    params.used_named_attribute(name, NamedAttributeUsage::Remove);
+    params.used_named_attribute(name, eNamedAttrUsage::Remove);
   }
 
   if (!attribute_exists) {

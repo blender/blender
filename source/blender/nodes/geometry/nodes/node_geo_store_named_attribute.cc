@@ -45,7 +45,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryStoreNamedAttribute &storage = node_storage(*node);
-  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
+  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
 
   bNodeSocket *socket_geometry = (bNodeSocket *)node->inputs.first;
   bNodeSocket *socket_name = socket_geometry->next;
@@ -69,7 +69,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.inputs().take_front(2));
 
   if (params.in_out() == SOCK_OUT) {
-    const std::optional<CustomDataType> type = node_data_type_to_custom_data_type(
+    const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
         static_cast<eNodeSocketDatatype>(params.other_socket().type));
     if (type && *type != CD_PROP_STRING) {
       /* The input and output sockets have the same name. */
@@ -84,7 +84,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void try_capture_field_on_geometry(GeometryComponent &component,
                                           const StringRef name,
-                                          const AttributeDomain domain,
+                                          const eAttrDomain domain,
                                           const GField &field)
 {
   GeometryComponentFieldContext field_context{component, domain};
@@ -92,7 +92,7 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
   const IndexMask mask{IndexMask(domain_num)};
 
   const CPPType &type = field.cpp_type();
-  const CustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
+  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
 
   /* Could avoid allocating a new buffer if:
    * - We are writing to an attribute that exists already.
@@ -137,11 +137,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  params.used_named_attribute(name, NamedAttributeUsage::Write);
+  params.used_named_attribute(name, eNamedAttrUsage::Write);
 
   const NodeGeometryStoreNamedAttribute &storage = node_storage(params.node());
-  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
-  const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
+  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
 
   GField field;
   switch (data_type) {

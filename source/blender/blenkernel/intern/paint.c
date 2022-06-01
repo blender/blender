@@ -1674,7 +1674,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 
     CustomDataLayer *layer;
-    AttributeDomain domain;
+    eAttrDomain domain;
 
     if (BKE_pbvh_get_color_layer(me, &layer, &domain)) {
       if (layer->type == CD_PROP_COLOR) {

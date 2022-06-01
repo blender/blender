@@ -142,7 +142,7 @@ typedef struct Curves {
    */
   char symmetry;
   /**
-   * #AttributeDomain. The active selection mode domain. At most one selection mode can be active
+   * #eAttrDomain. The active selection mode domain. At most one selection mode can be active
    * at a time.
    */
   char selection_domain;

@@ -19,10 +19,10 @@ struct Mesh;
 void ED_operatortypes_geometry(void);
 bool ED_geometry_attribute_convert(struct Mesh *mesh,
                                    const char *layer_name,
-                                   CustomDataType old_type,
-                                   AttributeDomain old_domain,
-                                   CustomDataType new_type,
-                                   AttributeDomain new_domain);
+                                   eCustomDataType old_type,
+                                   eAttrDomain old_domain,
+                                   eCustomDataType new_type,
+                                   eAttrDomain new_domain);
 #ifdef __cplusplus
 }
 #endif

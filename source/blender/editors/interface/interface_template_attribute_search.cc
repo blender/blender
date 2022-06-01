@@ -24,14 +24,14 @@ using blender::nodes::geometry_nodes_eval_log::GeometryAttributeInfo;
 
 namespace blender::ui {
 
-static StringRef attribute_data_type_string(const CustomDataType type)
+static StringRef attribute_data_type_string(const eCustomDataType type)
 {
   const char *name = nullptr;
   RNA_enum_name_from_value(rna_enum_attribute_type_items, type, &name);
   return StringRef(IFACE_(name));
 }
 
-static StringRef attribute_domain_string(const AttributeDomain domain)
+static StringRef attribute_domain_string(const eAttrDomain domain)
 {
   const char *name = nullptr;
   RNA_enum_name_from_value(rna_enum_attribute_domain_items, domain, &name);

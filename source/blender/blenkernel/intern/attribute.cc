@@ -183,7 +183,7 @@ bool BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
 }
 
 CustomDataLayer *BKE_id_attribute_new(
-    ID *id, const char *name, const int type, const AttributeDomain domain, ReportList *reports)
+    ID *id, const char *name, const int type, const eAttrDomain domain, ReportList *reports)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -264,7 +264,7 @@ bool BKE_id_attribute_remove(ID *id, CustomDataLayer *layer, ReportList *reports
 CustomDataLayer *BKE_id_attribute_find(const ID *id,
                                        const char *name,
                                        const int type,
-                                       const AttributeDomain domain)
+                                       const eAttrDomain domain)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -286,14 +286,14 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
 
 CustomDataLayer *BKE_id_attribute_search(const ID *id,
                                          const char *name,
-                                         const CustomDataMask type_mask,
-                                         const AttributeDomainMask domain_mask)
+                                         const eCustomDataMask type_mask,
+                                         const eAttrDomainMask domain_mask)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
 
-  for (AttributeDomain domain = ATTR_DOMAIN_POINT; domain < ATTR_DOMAIN_NUM;
-       domain = static_cast<AttributeDomain>((static_cast<int>(domain)) + 1)) {
+  for (eAttrDomain domain = ATTR_DOMAIN_POINT; domain < ATTR_DOMAIN_NUM;
+       domain = static_cast<eAttrDomain>((static_cast<int>(domain)) + 1)) {
     if (!(domain_mask & ATTR_DOMAIN_AS_MASK(domain))) {
       continue;
     }
@@ -314,7 +314,7 @@ CustomDataLayer *BKE_id_attribute_search(const ID *id,
   return NULL;
 }
 
-int BKE_id_attributes_length(const ID *id, AttributeDomainMask domain_mask, CustomDataMask mask)
+int BKE_id_attributes_length(const ID *id, eAttrDomainMask domain_mask, eCustomDataMask mask)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -332,7 +332,7 @@ int BKE_id_attributes_length(const ID *id, AttributeDomainMask domain_mask, Cust
   return length;
 }
 
-AttributeDomain BKE_id_attribute_domain(const ID *id, const CustomDataLayer *layer)
+eAttrDomain BKE_id_attribute_domain(const ID *id, const CustomDataLayer *layer)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -341,12 +341,12 @@ AttributeDomain BKE_id_attribute_domain(const ID *id, const CustomDataLayer *lay
     CustomData *customdata = info[domain].customdata;
     if (customdata &&
         ARRAY_HAS_ITEM((CustomDataLayer *)layer, customdata->layers, customdata->totlayer)) {
-      return static_cast<AttributeDomain>(domain);
+      return static_cast<eAttrDomain>(domain);
     }
   }
 
   BLI_assert_msg(0, "Custom data layer not found in geometry");
-  return static_cast<AttributeDomain>(ATTR_DOMAIN_POINT);
+  return static_cast<eAttrDomain>(ATTR_DOMAIN_POINT);
 }
 
 int BKE_id_attribute_data_length(ID *id, CustomDataLayer *layer)
@@ -489,8 +489,8 @@ CustomData *BKE_id_attributes_iterator_next_domain(ID *id, CustomDataLayer *laye
 
 CustomDataLayer *BKE_id_attribute_from_index(ID *id,
                                              int lookup_index,
-                                             AttributeDomainMask domain_mask,
-                                             CustomDataMask layer_mask)
+                                             eAttrDomainMask domain_mask,
+                                             eCustomDataMask layer_mask)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -523,27 +523,27 @@ CustomDataLayer *BKE_id_attribute_from_index(ID *id,
 /** Get list of domain types but with ATTR_DOMAIN_FACE and
  * ATTR_DOMAIN_CORNER swapped.
  */
-static void get_domains_types(AttributeDomain domains[ATTR_DOMAIN_NUM])
+static void get_domains_types(eAttrDomain domains[ATTR_DOMAIN_NUM])
 {
   for (const int i : IndexRange(ATTR_DOMAIN_NUM)) {
-    domains[i] = static_cast<AttributeDomain>(i);
+    domains[i] = static_cast<eAttrDomain>(i);
   }
 
   /* Swap corner and face. */
-  SWAP(AttributeDomain, domains[ATTR_DOMAIN_FACE], domains[ATTR_DOMAIN_CORNER]);
+  SWAP(eAttrDomain, domains[ATTR_DOMAIN_FACE], domains[ATTR_DOMAIN_CORNER]);
 }
 
 int BKE_id_attribute_to_index(const ID *id,
                               const CustomDataLayer *layer,
-                              AttributeDomainMask domain_mask,
-                              CustomDataMask layer_mask)
+                              eAttrDomainMask domain_mask,
+                              eCustomDataMask layer_mask)
 {
   if (!layer) {
     return -1;
   }
 
   DomainInfo info[ATTR_DOMAIN_NUM];
-  AttributeDomain domains[ATTR_DOMAIN_NUM];
+  eAttrDomain domains[ATTR_DOMAIN_NUM];
   get_domains_types(domains);
   get_domains(id, info);
 
@@ -575,11 +575,11 @@ int BKE_id_attribute_to_index(const ID *id,
 
 CustomDataLayer *BKE_id_attribute_subset_active_get(const ID *id,
                                                     int active_flag,
-                                                    AttributeDomainMask domain_mask,
-                                                    CustomDataMask mask)
+                                                    eAttrDomainMask domain_mask,
+                                                    eCustomDataMask mask)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
-  AttributeDomain domains[ATTR_DOMAIN_NUM];
+  eAttrDomain domains[ATTR_DOMAIN_NUM];
 
   get_domains_types(domains);
   get_domains(id, info);
@@ -613,17 +613,17 @@ CustomDataLayer *BKE_id_attribute_subset_active_get(const ID *id,
 void BKE_id_attribute_subset_active_set(ID *id,
                                         CustomDataLayer *layer,
                                         int active_flag,
-                                        AttributeDomainMask domain_mask,
-                                        CustomDataMask mask)
+                                        eAttrDomainMask domain_mask,
+                                        eCustomDataMask mask)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
-  AttributeDomain domains[ATTR_DOMAIN_NUM];
+  eAttrDomain domains[ATTR_DOMAIN_NUM];
 
   get_domains_types(domains);
   get_domains(id, info);
 
   for (int i = 0; i < ATTR_DOMAIN_NUM; i++) {
-    AttributeDomainMask domain_mask2 = (AttributeDomainMask)(1 << domains[i]);
+    eAttrDomainMask domain_mask2 = (eAttrDomainMask)(1 << domains[i]);
 
     if (!(domain_mask2 & domain_mask) || !info[domains[i]].customdata) {
       continue;

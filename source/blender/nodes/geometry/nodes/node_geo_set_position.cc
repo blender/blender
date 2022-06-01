@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void set_computed_position_and_offset(GeometryComponent &component,
                                              const VArray<float3> &in_positions,
                                              const VArray<float3> &in_offsets,
-                                             const AttributeDomain domain,
+                                             const eAttrDomain domain,
                                              const IndexMask selection)
 {
 
@@ -139,9 +139,8 @@ static void set_position_in_component(GeometryComponent &component,
                                       const Field<float3> &position_field,
                                       const Field<float3> &offset_field)
 {
-  AttributeDomain domain = component.type() == GEO_COMPONENT_TYPE_INSTANCES ?
-                               ATTR_DOMAIN_INSTANCE :
-                               ATTR_DOMAIN_POINT;
+  eAttrDomain domain = component.type() == GEO_COMPONENT_TYPE_INSTANCES ? ATTR_DOMAIN_INSTANCE :
+                                                                          ATTR_DOMAIN_POINT;
   GeometryComponentFieldContext field_context{component, domain};
   const int domain_num = component.attribute_domain_num(domain);
   if (domain_num == 0) {

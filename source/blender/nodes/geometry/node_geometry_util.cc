@@ -14,7 +14,7 @@
 
 namespace blender::nodes {
 
-std::optional<CustomDataType> node_data_type_to_custom_data_type(const eNodeSocketDatatype type)
+std::optional<eCustomDataType> node_data_type_to_custom_data_type(const eNodeSocketDatatype type)
 {
   switch (type) {
     case SOCK_FLOAT:
@@ -34,7 +34,7 @@ std::optional<CustomDataType> node_data_type_to_custom_data_type(const eNodeSock
   }
 }
 
-std::optional<CustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket)
+std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket)
 {
   return node_data_type_to_custom_data_type(static_cast<eNodeSocketDatatype>(socket.type));
 }
