@@ -116,7 +116,7 @@ static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int 
   CustomData_MeshMasks mask = CD_MASK_MESH;
 
   if (mesh_src->id.tag & LIB_TAG_NO_MAIN) {
-    /* For copies in depsgraph, keep data like origindex and orco. */
+    /* For copies in depsgraph, keep data like #CD_ORIGINDEX and #CD_ORCO. */
     CustomData_MeshMasks_update(&mask, &CD_MASK_DERIVEDMESH);
   }
 

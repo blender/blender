@@ -4492,7 +4492,8 @@ static void project_paint_begin(const bContext *C,
     }
   }
 
-  /* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
+  /* when using sub-surface or multi-resolution,
+   * mesh-data arrays are thrown away, we need to keep a copy. */
   if (ps->is_shared_user == false) {
     proj_paint_state_cavity_init(ps);
   }

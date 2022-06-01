@@ -781,7 +781,7 @@ struct DRWCacheBuildingContext {
 
   DRWSubdivCache *cache;
 
-  /* Pointers into DRWSubdivCache buffers for easier access during traversal. */
+  /* Pointers into #DRWSubdivCache buffers for easier access during traversal. */
   CompressedPatchCoord *patch_coords;
   int *subdiv_loop_vert_index;
   int *subdiv_loop_subdiv_vert_index;
@@ -793,9 +793,9 @@ struct DRWCacheBuildingContext {
   int *vert_origindex_map;
   int *edge_origindex_map;
 
-  /* Origindex layers from the mesh to directly look up during traversal the origindex from the
-   * base mesh for edit data so that we do not have to handle yet another GPU buffer and do this in
-   * the shaders. */
+  /* #CD_ORIGINDEX layers from the mesh to directly look up during traversal the original-index
+     from the base mesh for edit data so that we do not have to handle yet another GPU buffer and
+     do this in the shaders. */
   const int *v_origindex;
   const int *e_origindex;
 };

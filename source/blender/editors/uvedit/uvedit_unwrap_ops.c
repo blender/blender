@@ -652,7 +652,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
     mloop = &subsurfedLoops[mpoly->loopstart];
 
-    /* We will not check for v4 here. Subsurfed mfaces always have 4 vertices. */
+    /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
     BLI_assert(mpoly->totloop == 4);
     key = (ParamKey)i;
     vkeys[0] = (ParamKey)mloop[0].v;

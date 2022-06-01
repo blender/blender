@@ -44,7 +44,7 @@ typedef struct SubdivMeshContext {
   /* UV layers interpolation. */
   int num_uv_layers;
   MLoopUV *uv_layers[MAX_MTFACE];
-  /* Orco interpolation. */
+  /* Original coordinates (ORCO) interpolation. */
   float (*orco)[3];
   float (*cloth_orco)[3];
   /* Per-subdivided vertex counter of averaged values. */

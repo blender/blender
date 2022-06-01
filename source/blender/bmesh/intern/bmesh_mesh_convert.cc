@@ -931,7 +931,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   me->totloop = bm->totloop;
   me->totpoly = bm->totface;
   /* Will be overwritten with a valid value if 'dotess' is set, otherwise we
-   * end up with 'me->totface' and me->mface == nullptr which can crash T28625. */
+   * end up with 'me->totface' and `me->mface == nullptr` which can crash T28625. */
   me->totface = 0;
   me->act_face = -1;
 

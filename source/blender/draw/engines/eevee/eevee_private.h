@@ -671,7 +671,7 @@ typedef struct EEVEE_HairMotionData {
   /** Allocator will alloc enough slot for all particle systems. Or 1 if it's a curves object. */
   int psys_len;
   struct {
-    /* The vbos and textures are not owned. */
+    /* The VBO's and textures are not owned. */
     EEVEE_HairMotionStepData step_data[2]; /* Data for time = t +/- step. */
   } psys[0];
 } EEVEE_HairMotionData;

@@ -83,17 +83,17 @@ static void requiredDataMask(Object *UNUSED(ob),
   if (pmd->canvas) {
     DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
     for (; surface; surface = surface->next) {
-      /* tface */
+      /* UV's: #CD_MLOOPUV. */
       if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ ||
           surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE) {
         r_cddata_masks->lmask |= CD_MASK_MLOOPUV;
       }
-      /* mcol */
+      /* Vertex Colors: #CD_PROP_BYTE_COLOR. */
       if (surface->type == MOD_DPAINT_SURFACE_T_PAINT ||
           surface->init_color_type == MOD_DPAINT_INITIAL_VERTEXCOLOR) {
         r_cddata_masks->lmask |= CD_MASK_PROP_BYTE_COLOR;
       }
-      /* CD_MDEFORMVERT */
+      /* Vertex Weights: #CD_MDEFORMVERT. */
       if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
         r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
       }

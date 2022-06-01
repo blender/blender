@@ -234,7 +234,7 @@ static void try_convert_single_object(Object &curves_ob,
   /* The old hair system still uses #MFace, so make sure those are available on the mesh. */
   BKE_mesh_tessface_calc(&surface_me);
 
-  /* Prepare utility data structure to map hair roots to mfaces. */
+  /* Prepare utility data structure to map hair roots to #MFace's. */
   const Span<int> mface_to_poly_map{
       static_cast<const int *>(CustomData_get_layer(&surface_me.fdata, CD_ORIGINDEX)),
       surface_me.totface};
