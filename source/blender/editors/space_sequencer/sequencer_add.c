@@ -191,10 +191,11 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if ((ELEM(type, -1, seq->type)) && (seq->enddisp < timeline_frame) &&
-        (timeline_frame - seq->enddisp < proximity)) {
+    const int strip_end = SEQ_time_right_handle_frame_get(seq);
+    if ((ELEM(type, -1, seq->type)) && (strip_end < timeline_frame) &&
+        (timeline_frame - strip_end < proximity)) {
       tgt = seq;
-      proximity = timeline_frame - seq->enddisp;
+      proximity = timeline_frame - strip_end;
     }
   }
 
@@ -793,9 +794,8 @@ static void sequencer_add_movie_clamp_sound_strip_length(Scene *scene,
     return;
   }
 
-  SEQ_time_right_handle_frame_set(seq_sound, SEQ_time_right_handle_frame_get(seq_movie));
-  SEQ_time_left_handle_frame_set(seq_sound, SEQ_time_left_handle_frame_get(seq_movie));
-  SEQ_time_update_sequence(scene, seqbase, seq_sound);
+  SEQ_time_right_handle_frame_set(scene, seq_sound, SEQ_time_right_handle_frame_get(seq_movie));
+  SEQ_time_left_handle_frame_set(scene, seq_sound, SEQ_time_left_handle_frame_get(seq_movie));
 }
 
 static void sequencer_add_movie_multiple_strips(bContext *C,
@@ -842,7 +842,8 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
         }
       }
 
-      load_data->start_frame += seq_movie->enddisp - seq_movie->startdisp;
+      load_data->start_frame += SEQ_time_right_handle_frame_get(seq_movie) -
+                                SEQ_time_left_handle_frame_get(seq_movie);
       if (overlap_shuffle_override) {
         has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(
             C, op, seq_sound, strip_col);
@@ -1073,7 +1074,8 @@ static void sequencer_add_sound_multiple_strips(bContext *C,
     }
     else {
       seq_load_apply_generic_options(C, op, seq);
-      load_data->start_frame += seq->enddisp - seq->startdisp;
+      load_data->start_frame += SEQ_time_right_handle_frame_get(seq) -
+                                SEQ_time_left_handle_frame_get(seq);
     }
   }
   RNA_END;
@@ -1300,8 +1302,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
   /* Adjust length. */
   if (load_data.image.len == 1) {
-    SEQ_time_right_handle_frame_set(seq, load_data.image.end_frame);
-    SEQ_time_update_sequence(scene, SEQ_active_seqbase_get(ed), seq);
+    SEQ_time_right_handle_frame_set(scene, seq, load_data.image.end_frame);
   }
 
   seq_load_apply_generic_options(C, op, seq);

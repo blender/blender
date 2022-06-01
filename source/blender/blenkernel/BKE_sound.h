@@ -136,7 +136,7 @@ void BKE_sound_remove_scene_sound(struct Scene *scene, void *handle);
 
 void BKE_sound_mute_scene_sound(void *handle, char mute);
 
-void BKE_sound_move_scene_sound(struct Scene *scene,
+void BKE_sound_move_scene_sound(const struct Scene *scene,
                                 void *handle,
                                 int startframe,
                                 int endframe,

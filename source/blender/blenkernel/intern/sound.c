@@ -54,6 +54,7 @@
 
 #include "SEQ_sequencer.h"
 #include "SEQ_sound.h"
+#include "SEQ_time.h"
 
 static void sound_free_audio(bSound *sound);
 
@@ -719,8 +720,8 @@ void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Sequence *sequence)
 {
   return BKE_sound_scene_add_scene_sound(scene,
                                          sequence,
-                                         sequence->startdisp,
-                                         sequence->enddisp,
+                                         SEQ_time_left_handle_frame_get(sequence),
+                                         SEQ_time_right_handle_frame_get(sequence),
                                          sequence->startofs + sequence->anim_startofs);
 }
 
@@ -745,8 +746,8 @@ void *BKE_sound_add_scene_sound_defaults(Scene *scene, Sequence *sequence)
 {
   return BKE_sound_add_scene_sound(scene,
                                    sequence,
-                                   sequence->startdisp,
-                                   sequence->enddisp,
+                                   SEQ_time_left_handle_frame_get(sequence),
+                                   SEQ_time_right_handle_frame_get(sequence),
                                    sequence->startofs + sequence->anim_startofs);
 }
 
@@ -760,8 +761,12 @@ void BKE_sound_mute_scene_sound(void *handle, char mute)
   AUD_SequenceEntry_setMuted(handle, mute);
 }
 
-void BKE_sound_move_scene_sound(
-    Scene *scene, void *handle, int startframe, int endframe, int frameskip, double audio_offset)
+void BKE_sound_move_scene_sound(const Scene *scene,
+                                void *handle,
+                                int startframe,
+                                int endframe,
+                                int frameskip,
+                                double audio_offset)
 {
   sound_verify_evaluated_id(&scene->id);
   const double fps = FPS;
@@ -774,8 +779,8 @@ void BKE_sound_move_scene_sound_defaults(Scene *scene, Sequence *sequence)
   if (sequence->scene_sound) {
     BKE_sound_move_scene_sound(scene,
                                sequence->scene_sound,
-                               sequence->startdisp,
-                               sequence->enddisp,
+                               SEQ_time_left_handle_frame_get(sequence),
+                               SEQ_time_right_handle_frame_get(sequence),
                                sequence->startofs + sequence->anim_startofs,
                                0.0);
   }
@@ -1344,7 +1349,7 @@ void BKE_sound_remove_scene_sound(Scene *UNUSED(scene), void *UNUSED(handle))
 void BKE_sound_mute_scene_sound(void *UNUSED(handle), char UNUSED(mute))
 {
 }
-void BKE_sound_move_scene_sound(Scene *UNUSED(scene),
+void BKE_sound_move_scene_sound(const Scene *UNUSED(scene),
                                 void *UNUSED(handle),
                                 int UNUSED(startframe),
                                 int UNUSED(endframe),

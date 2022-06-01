@@ -231,9 +231,8 @@ static void update_overlay_strip_poistion_data(bContext *C, const int mval[2])
   else {
     /* Check if there is a strip that would intersect with the new strip(s). */
     coords->is_intersecting = false;
-    Sequence dummy_seq = {.machine = coords->channel,
-                          .startdisp = coords->start_frame,
-                          .enddisp = coords->start_frame + coords->strip_len};
+    Sequence dummy_seq = {
+        .machine = coords->channel, .start = coords->start_frame, .len = coords->strip_len};
     Editing *ed = SEQ_editing_get(scene);
 
     for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {

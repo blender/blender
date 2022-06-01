@@ -240,7 +240,7 @@ static int rna_SequenceEditor_sequences_all_lookup_string(PointerRNA *ptr,
   ID *id = ptr->owner_id;
   Scene *scene = (Scene *)id;
 
-  Sequence *seq = SEQ_sequence_lookup_by_name(scene, key);
+  Sequence *seq = SEQ_sequence_lookup_seq_by_name(scene, key);
   if (seq) {
     RNA_pointer_create(ptr->owner_id, &RNA_Sequence, seq, r_ptr);
     return true;
@@ -289,26 +289,11 @@ static void rna_Sequence_views_format_update(Main *bmain, Scene *scene, PointerR
 
 static void do_sequence_frame_change_update(Scene *scene, Sequence *seq)
 {
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
-  Sequence *tseq;
-  SEQ_time_update_sequence(scene, seqbase, seq);
-
-  /* ensure effects are always fit in length to their input */
-
-  /* TODO(sergey): probably could be optimized.
-   *               in terms skipping update of non-changing strips
-   */
-  for (tseq = seqbase->first; tseq; tseq = tseq->next) {
-    if (tseq->seq1 || tseq->seq2 || tseq->seq3) {
-      SEQ_time_update_sequence(scene, seqbase, tseq);
-    }
-  }
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, seq);
 
   if (SEQ_transform_test_overlap(seqbase, seq)) {
-    SEQ_transform_seqbase_shuffle(seqbase, seq, scene); /* XXX: BROKEN!, uses context seqbasep. */
+    SEQ_transform_seqbase_shuffle(seqbase, seq, scene);
   }
-  SEQ_sort(seqbase);
 
   if (seq->type == SEQ_TYPE_SOUND_RAM) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -341,8 +326,8 @@ static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_time_left_handle_frame_set(seq, value);
-  SEQ_transform_fix_single_image_seq_offsets(seq);
+  SEQ_time_left_handle_frame_set(scene, seq, value);
+  SEQ_transform_fix_single_image_seq_offsets(scene, seq);
   do_sequence_frame_change_update(scene, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
@@ -352,8 +337,8 @@ static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_time_right_handle_frame_set(seq, value);
-  SEQ_transform_fix_single_image_seq_offsets(seq);
+  SEQ_time_right_handle_frame_set(scene, seq, value);
+  SEQ_transform_fix_single_image_seq_offsets(scene, seq);
   do_sequence_frame_change_update(scene, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
@@ -437,7 +422,7 @@ static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_time_right_handle_frame_set(seq, SEQ_time_left_handle_frame_get(seq) + value);
+  SEQ_time_right_handle_frame_set(scene, seq, SEQ_time_left_handle_frame_get(seq) + value);
   do_sequence_frame_change_update(scene, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
@@ -459,18 +444,15 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
 {
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, seq);
 
   /* check channel increment or decrement */
   const int channel_delta = (value >= seq->machine) ? 1 : -1;
   seq->machine = value;
 
   if (SEQ_transform_test_overlap(seqbase, seq)) {
-    /* XXX: BROKEN!, uses context seqbasep. */
     SEQ_transform_seqbase_shuffle_ex(seqbase, seq, scene, channel_delta);
   }
-  SEQ_sort(seqbase);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
 
@@ -722,8 +704,6 @@ static IDProperty **rna_Sequence_idprops(PointerRNA *ptr)
 static bool rna_MovieSequence_reload_if_needed(ID *scene_id, Sequence *seq, Main *bmain)
 {
   Scene *scene = (Scene *)scene_id;
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
 
   bool has_reloaded;
   bool can_produce_frames;
@@ -731,7 +711,6 @@ static bool rna_MovieSequence_reload_if_needed(ID *scene_id, Sequence *seq, Main
   SEQ_add_movie_reload_if_needed(bmain, scene, seq, &has_reloaded, &can_produce_frames);
 
   if (has_reloaded && can_produce_frames) {
-    SEQ_time_update_sequence(scene, seqbase, seq);
     SEQ_relations_invalidate_cache_raw(scene, seq);
 
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -919,9 +898,6 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *UNUSED(scene), Poin
   Scene *scene = (Scene *)ptr->owner_id;
   Sequence *seq = (Sequence *)(ptr->data);
   SEQ_add_reload_new_file(bmain, scene, seq, true);
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
-  SEQ_time_update_sequence(scene, seqbase, seq);
   rna_Sequence_invalidate_raw_update(bmain, scene, ptr);
 }
 
@@ -1337,8 +1313,7 @@ static void rna_Sequence_separate(ID *id, Sequence *seqm, Main *bmain)
   Scene *scene = (Scene *)id;
 
   /* Find the appropriate seqbase */
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seqm);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, seqm);
 
   LISTBASE_FOREACH_MUTABLE (Sequence *, seq, &seqm->seqbase) {
     SEQ_edit_move_strip_to_seqbase(scene, &seqm->seqbase, seq, seqbase);

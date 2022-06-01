@@ -47,7 +47,8 @@ static bool seq_relations_check_depend(Sequence *seq, Sequence *cur)
   }
 
   /* sequences are not intersecting in time, assume no dependency exists between them */
-  if (cur->enddisp < seq->startdisp || cur->startdisp > seq->enddisp) {
+  if (SEQ_time_right_handle_frame_get(cur) < SEQ_time_left_handle_frame_get(seq) ||
+      SEQ_time_left_handle_frame_get(cur) > SEQ_time_right_handle_frame_get(seq)) {
     return false;
   }
 
@@ -290,8 +291,8 @@ static void sequencer_all_free_anim_ibufs(Editing *ed,
       }
       else {
         /* Limit frame range to meta strip. */
-        meta_range[0] = max_ii(frame_range[0], seq->startdisp);
-        meta_range[1] = min_ii(frame_range[1], seq->enddisp);
+        meta_range[0] = max_ii(frame_range[0], SEQ_time_left_handle_frame_get(seq));
+        meta_range[1] = min_ii(frame_range[1], SEQ_time_right_handle_frame_get(seq));
       }
 
       sequencer_all_free_anim_ibufs(ed, &seq->seqbase, timeline_frame, meta_range);
@@ -345,7 +346,7 @@ bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports)
                 RPT_WARNING,
                 "Recursion detected in video sequencer. Strip %s at frame %d will not be rendered",
                 recursive_seq->name + 2,
-                recursive_seq->startdisp);
+                SEQ_time_left_handle_frame_get(recursive_seq));
 
     LISTBASE_FOREACH (Sequence *, seq, &ed->seqbase) {
       if (seq->type != SEQ_TYPE_SCENE && sequencer_seq_generates_image(seq)) {

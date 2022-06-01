@@ -51,6 +51,8 @@
 
 #include "multiview.h"
 #include "proxy.h"
+#include "sequencer.h"
+#include "strip_time.h"
 #include "utils.h"
 
 void SEQ_add_load_data_init(SeqLoadData *load_data,
@@ -73,9 +75,9 @@ void SEQ_add_load_data_init(SeqLoadData *load_data,
 static void seq_add_generic_update(Scene *scene, ListBase *seqbase, Sequence *seq)
 {
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
-  SEQ_time_update_sequence(scene, seqbase, seq);
-  SEQ_sort(seqbase);
   SEQ_relations_invalidate_cache_composite(scene, seq);
+  SEQ_sequence_lookup_tag(scene, SEQ_LOOKUP_TAG_INVALID);
+  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, seq));
 }
 
 static void seq_add_set_name(Scene *scene, Sequence *seq, SeqLoadData *load_data)
@@ -174,11 +176,12 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDa
 
   if (!load_data->effect.seq1) {
     seq->len = 1; /* Effect is generator, set non zero length. */
-    SEQ_time_right_handle_frame_set(seq, load_data->effect.end_frame);
+    SEQ_time_right_handle_frame_set(scene, seq, load_data->effect.end_frame);
   }
 
   seq_add_set_name(scene, seq, load_data);
   seq_add_generic_update(scene, seqbase, seq);
+  seq_time_effect_range_set(seq);
 
   return seq;
 }
@@ -362,7 +365,6 @@ Sequence *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_
   /* Set frames start and length. */
   seqm->start = load_data->start_frame;
   seqm->len = 1;
-  SEQ_time_update_sequence(scene, seqbase, seqm);
 
   return seqm;
 }
@@ -509,11 +511,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
   if (lock_range) {
     /* keep so we don't have to move the actual start and end points (only the data) */
-    Editing *ed = SEQ_editing_get(scene);
-    ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
-    SEQ_time_update_sequence(scene, seqbase, seq);
-    prev_startdisp = seq->startdisp;
-    prev_enddisp = seq->enddisp;
+    prev_startdisp = SEQ_time_left_handle_frame_get(seq);
+    prev_enddisp = SEQ_time_right_handle_frame_get(seq);
   }
 
   switch (seq->type) {
@@ -656,13 +655,11 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
   free_proxy_seq(seq);
 
   if (lock_range) {
-    SEQ_time_left_handle_frame_set(seq, prev_startdisp);
-    SEQ_time_right_handle_frame_set(seq, prev_enddisp);
-    SEQ_transform_fix_single_image_seq_offsets(seq);
+    SEQ_time_left_handle_frame_set(scene, seq, prev_startdisp);
+    SEQ_time_right_handle_frame_set(scene, seq, prev_enddisp);
+    SEQ_transform_fix_single_image_seq_offsets(scene, seq);
   }
 
-  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
-  SEQ_time_update_sequence(scene, seqbase, seq);
   SEQ_relations_invalidate_cache_raw(scene, seq);
 }
 

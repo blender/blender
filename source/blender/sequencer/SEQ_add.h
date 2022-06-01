@@ -183,9 +183,6 @@ void SEQ_add_image_load_file(struct Sequence *seq, size_t strip_frame, char *fil
  * \param seq: image strip to be changed
  */
 void SEQ_add_image_init_alpha_mode(struct Sequence *seq);
-/**
- * \note caller should run `SEQ_time_update_sequence(scene, seq)` after..
- */
 void SEQ_add_reload_new_file(struct Main *bmain,
                              struct Scene *scene,
                              struct Sequence *seq,

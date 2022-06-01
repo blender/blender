@@ -405,7 +405,9 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
           v->speed_control_type = SEQ_SPEED_MULTIPLY;
           v->speed_fader = globalSpeed *
                            ((float)seq->seq1->len /
-                            max_ff((float)(seq->seq1->enddisp - seq->seq1->start), 1.0f));
+                            max_ff((float)(SEQ_time_right_handle_frame_get(seq->seq1) -
+                                           seq->seq1->start),
+                                   1.0f));
         }
       }
       else if (v->flags & SEQ_SPEED_INTEGRATE) {
