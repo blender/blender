@@ -4145,6 +4145,11 @@ static void lineart_main_add_triangles(LineartRenderBuffer *rb)
   int x1, x2, y1, y2;
   int r, co;
 
+  double t_start;
+  if (G.debug_value == 4000) {
+    t_start = PIL_check_seconds_timer();
+  }
+
   LISTBASE_FOREACH (LineartElementLinkNode *, eln, &rb->triangle_buffer_pointers) {
     tri = eln->pointer;
     lim = eln->element_count;
@@ -4168,6 +4173,11 @@ static void lineart_main_add_triangles(LineartRenderBuffer *rb)
       } /* Else throw away. */
       tri = (void *)(((uchar *)tri) + rb->triangle_size);
     }
+  }
+
+  if (G.debug_value == 4000) {
+    double t_elapsed = PIL_check_seconds_timer() - t_start;
+    printf("Line art intersection time: %f\n", t_elapsed);
   }
 }
 
