@@ -1811,7 +1811,16 @@ static int gpencil_move_to_layer_exec(bContext *C, wmOperator *op)
   }
   else {
     /* Create a new layer. */
-    target_layer = BKE_gpencil_layer_addnew(gpd, "GP_Layer", true, false);
+    PropertyRNA *prop;
+    char name[128];
+    prop = RNA_struct_find_property(op->ptr, "new_layer_name");
+    if (RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_string_get(op->ptr, prop, name);
+    }
+    else {
+      strcpy(name, "GP_Layer");
+    }
+    target_layer = BKE_gpencil_layer_addnew(gpd, name, true, false);
   }
 
   if (target_layer == NULL) {
@@ -1888,8 +1897,46 @@ static int gpencil_move_to_layer_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
+static void layer_new_name_get(bGPdata *gpd, char *rname)
+{
+  int index = 0;
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    if (strstr(gpl->info, "GP_Layer")) {
+      index++;
+    }
+  }
+
+  if (index == 0) {
+    BLI_strncpy(rname, "GP_Layer", 128);
+    return;
+  }
+  char *name = BLI_sprintfN("%.*s.%03d", 128, "GP_Layer", index);
+  BLI_strncpy(rname, name, 128);
+  MEM_freeN(name);
+}
+
+static int gpencil_move_to_layer_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+  Object *ob = CTX_data_active_object(C);
+  PropertyRNA *prop;
+  if (RNA_int_get(op->ptr, "layer") == -1) {
+    prop = RNA_struct_find_property(op->ptr, "new_layer_name");
+    if (!RNA_property_is_set(op->ptr, prop)) {
+      char name[MAX_NAME];
+      bGPdata *gpd = ob->data;
+      layer_new_name_get(gpd, name);
+      RNA_property_string_set(op->ptr, prop, name);
+      return WM_operator_props_dialog_popup(C, op, 200);
+    }
+  }
+
+  return gpencil_move_to_layer_exec(C, op);
+}
+
 void GPENCIL_OT_move_to_layer(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Move Strokes to Layer";
   ot->idname = "GPENCIL_OT_move_to_layer";
@@ -1898,15 +1945,20 @@ void GPENCIL_OT_move_to_layer(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = gpencil_move_to_layer_exec;
-  ot->poll = gpencil_stroke_edit_poll; /* XXX? */
+  ot->invoke = gpencil_move_to_layer_invoke;
+  ot->poll = gpencil_stroke_edit_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* GPencil layer to use. */
-  ot->prop = RNA_def_int(
-      ot->srna, "layer", 0, -1, INT_MAX, "Grease Pencil Layer", "", -1, INT_MAX);
-  RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+  prop = RNA_def_int(ot->srna, "layer", 0, -1, INT_MAX, "Grease Pencil Layer", "", -1, INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+  prop = RNA_def_string(
+      ot->srna, "new_layer_name", NULL, MAX_NAME, "Name", "Name of the newly added layer");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  ot->prop = prop;
 }
 
 /** \} */
