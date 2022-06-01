@@ -2271,10 +2271,14 @@ Object *BKE_object_add(Main *bmain, ViewLayer *view_layer, int type, const char 
   Object *ob = object_add_common(bmain, view_layer, type, name);
 
   LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
-  BKE_collection_object_add(bmain, layer_collection->collection, ob);
+  BKE_collection_viewlayer_object_add(bmain, view_layer, layer_collection->collection, ob);
 
+  /* Note: There is no way to be sure that #BKE_collection_viewlayer_object_add will actually
+   * manage to find a valid collection in given `view_layer` to add the new object to. */
   Base *base = BKE_view_layer_base_find(view_layer, ob);
-  BKE_view_layer_base_select_and_set_active(view_layer, base);
+  if (base != nullptr) {
+    BKE_view_layer_base_select_and_set_active(view_layer, base);
+  }
 
   return ob;
 }
