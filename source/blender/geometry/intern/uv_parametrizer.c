@@ -36,11 +36,6 @@
 #define param_warning(message) \
   {/*printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message);*/}(void)0
 
-typedef enum PBool {
-  P_TRUE = 1,
-  P_FALSE = 0,
-} PBool;
-
 /* Special Purpose Hash */
 
 typedef intptr_t PHashKey;
@@ -509,53 +504,26 @@ static void UNUSED_FUNCTION(p_chart_uv_from_array)(PChart *chart, float (*points
   }
 }
 
-static PBool p_intersect_line_2d_dir(const float v1[2],
-                                     const float dir1[2],
-                                     const float v2[2],
-                                     const float dir2[2],
-                                     float r_isect[2])
+static bool p_intersect_line_2d_dir(const float v1[2],
+                                    const float dir1[2],
+                                    const float v2[2],
+                                    const float dir2[2],
+                                    float r_isect[2])
 {
   float lmbda, div;
 
   div = dir2[0] * dir1[1] - dir2[1] * dir1[0];
 
   if (div == 0.0f) {
-    return P_FALSE;
+    return false;
   }
 
   lmbda = ((v1[1] - v2[1]) * dir1[0] - (v1[0] - v2[0]) * dir1[1]) / div;
   r_isect[0] = v1[0] + lmbda * dir2[0];
   r_isect[1] = v1[1] + lmbda * dir2[1];
 
-  return P_TRUE;
+  return true;
 }
-
-#if 0
-static PBool p_intersect_line_2d(const float v1[2],
-                                 const float v2[2],
-                                 const float v3[2],
-                                 const float v4[2],
-                                 const float r_isect[2])
-{
-  float dir1[2], dir2[2];
-
-  dir1[0] = v4[0] - v3[0];
-  dir1[1] = v4[1] - v3[1];
-
-  dir2[0] = v2[0] - v1[0];
-  dir2[1] = v2[1] - v1[1];
-
-  if (!p_intersect_line_2d_dir(v1, dir1, v2, dir2, isect)) {
-    /* parallel - should never happen in theory for polygon kernel, but
-     * let's give a point nearby in case things go wrong */
-    isect[0] = (v1[0] + v2[0]) * 0.5f;
-    isect[1] = (v1[1] + v2[1]) * 0.5f;
-    return P_FALSE;
-  }
-
-  return P_TRUE;
-}
-#endif
 
 /* Topological Utilities */
 
@@ -586,9 +554,9 @@ static PEdge *p_boundary_edge_prev(PEdge *e)
   return last->next->next;
 }
 
-static PBool p_vert_interior(PVert *v)
+static bool p_vert_interior(PVert *v)
 {
-  return (v->edge->pair != NULL);
+  return v->edge->pair;
 }
 
 static void p_face_flip(PFace *f)
@@ -807,7 +775,7 @@ static PEdge *p_edge_lookup(ParamHandle *handle, const PHashKey *vkeys)
   return NULL;
 }
 
-static int p_face_exists(ParamHandle *handle, ParamKey *pvkeys, int i1, int i2, int i3)
+static int p_face_exists(ParamHandle *handle, const ParamKey *pvkeys, int i1, int i2, int i3)
 {
   PHashKey *vkeys = (PHashKey *)pvkeys;
   PHashKey key = PHASH_edge(vkeys[i1], vkeys[i2]);
@@ -816,19 +784,19 @@ static int p_face_exists(ParamHandle *handle, ParamKey *pvkeys, int i1, int i2, 
   while (e) {
     if ((e->vert->u.key == vkeys[i1]) && (e->next->vert->u.key == vkeys[i2])) {
       if (e->next->next->vert->u.key == vkeys[i3]) {
-        return P_TRUE;
+        return true;
       }
     }
     else if ((e->vert->u.key == vkeys[i2]) && (e->next->vert->u.key == vkeys[i1])) {
       if (e->next->next->vert->u.key == vkeys[i3]) {
-        return P_TRUE;
+        return true;
       }
     }
 
     e = (PEdge *)phash_next(handle->hash_edges, key, (PHashLink *)e);
   }
 
-  return P_FALSE;
+  return false;
 }
 
 static PChart *p_chart_new(ParamHandle *handle)
@@ -845,7 +813,7 @@ static void p_chart_delete(PChart *chart)
   MEM_freeN(chart);
 }
 
-static PBool p_edge_implicit_seam(PEdge *e, PEdge *ep)
+static bool p_edge_implicit_seam(PEdge *e, PEdge *ep)
 {
   float *uv1, *uv2, *uvp1, *uvp2;
   float limit[2];
@@ -868,21 +836,18 @@ static PBool p_edge_implicit_seam(PEdge *e, PEdge *ep)
   if ((fabsf(uv1[0] - uvp1[0]) > limit[0]) || (fabsf(uv1[1] - uvp1[1]) > limit[1])) {
     e->flag |= PEDGE_SEAM;
     ep->flag |= PEDGE_SEAM;
-    return P_TRUE;
+    return true;
   }
   if ((fabsf(uv2[0] - uvp2[0]) > limit[0]) || (fabsf(uv2[1] - uvp2[1]) > limit[1])) {
     e->flag |= PEDGE_SEAM;
     ep->flag |= PEDGE_SEAM;
-    return P_TRUE;
+    return true;
   }
 
-  return P_FALSE;
+  return false;
 }
 
-static PBool p_edge_has_pair(ParamHandle *handle,
-                             PEdge *e,
-                             PBool topology_from_uvs,
-                             PEdge **r_pair)
+static bool p_edge_has_pair(ParamHandle *handle, PEdge *e, bool topology_from_uvs, PEdge **r_pair)
 {
   PHashKey key;
   PEdge *pe;
@@ -891,7 +856,7 @@ static PBool p_edge_has_pair(ParamHandle *handle,
   PHashKey key2 = e->next->vert->u.key;
 
   if (e->flag & PEDGE_SEAM) {
-    return P_FALSE;
+    return false;
   }
 
   key = PHASH_edge(key1, key2);
@@ -910,7 +875,7 @@ static PBool p_edge_has_pair(ParamHandle *handle,
         if ((pe->flag & PEDGE_SEAM) || *r_pair ||
             (topology_from_uvs && p_edge_implicit_seam(e, pe))) {
           *r_pair = NULL;
-          return P_FALSE;
+          return false;
         }
 
         *r_pair = pe;
@@ -924,17 +889,17 @@ static PBool p_edge_has_pair(ParamHandle *handle,
     if ((*r_pair)->next->pair || (*r_pair)->next->next->pair) {
       /* non unfoldable, maybe mobius ring or klein bottle */
       *r_pair = NULL;
-      return P_FALSE;
+      return false;
     }
   }
 
   return (*r_pair != NULL);
 }
 
-static PBool p_edge_connect_pair(ParamHandle *handle,
-                                 PEdge *e,
-                                 PBool topology_from_uvs,
-                                 PEdge ***stack)
+static bool p_edge_connect_pair(ParamHandle *handle,
+                                PEdge *e,
+                                bool topology_from_uvs,
+                                PEdge ***stack)
 {
   PEdge *pair = NULL;
 
@@ -955,7 +920,7 @@ static PBool p_edge_connect_pair(ParamHandle *handle,
   return (e->pair != NULL);
 }
 
-static int p_connect_pairs(ParamHandle *handle, PBool topology_from_uvs)
+static int p_connect_pairs(ParamHandle *handle, bool topology_from_uvs)
 {
   PEdge **stackbase = MEM_mallocN(sizeof(*stackbase) * phash_size(handle->hash_faces),
                                   "Pstackbase");
@@ -1009,7 +974,7 @@ static void p_split_vert(PChart *chart, PEdge *e)
 {
   PEdge *we, *lastwe = NULL;
   PVert *v = e->vert;
-  PBool copy = P_TRUE;
+  bool copy = true;
 
   if (e->flag & PEDGE_PIN) {
     chart->flag |= PCHART_HAS_PINS;
@@ -1035,7 +1000,7 @@ static void p_split_vert(PChart *chart, PEdge *e)
 
     if (we == v->edge) {
       /* found it, no need to copy */
-      copy = P_FALSE;
+      copy = false;
       v->nextlink = chart->verts;
       chart->verts = v;
       chart->nverts++;
@@ -1136,13 +1101,13 @@ static PFace *p_face_add(ParamHandle *handle)
 static PFace *p_face_add_construct(ParamHandle *handle,
                                    ParamKey key,
                                    const ParamKey *vkeys,
-                                   float *co[4],
-                                   float *uv[4],
+                                   const float **co,
+                                   float **uv,
                                    int i1,
                                    int i2,
                                    int i3,
-                                   const ParamBool *pin,
-                                   const ParamBool *select)
+                                   const bool *pin,
+                                   const bool *select)
 {
   PFace *f = p_face_add(handle);
   PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
@@ -1179,7 +1144,6 @@ static PFace *p_face_add_construct(ParamHandle *handle,
     }
   }
 
-  /* insert into hash */
   f->u.key = key;
   phash_insert(handle->hash_faces, (PHashLink *)f);
 
@@ -1220,14 +1184,14 @@ static PFace *p_face_add_fill(PChart *chart, PVert *v1, PVert *v2, PVert *v3)
   return f;
 }
 
-static PBool p_quad_split_direction(ParamHandle *handle, float **co, PHashKey *vkeys)
+static bool p_quad_split_direction(ParamHandle *handle, const float **co, const ParamKey *vkeys)
 {
   /* Slight bias to prefer one edge over the other in case they are equal, so
    * that in symmetric models we choose the same split direction instead of
    * depending on floating point errors to decide. */
   float bias = 1.0f + 1e-6f;
   float fac = len_v3v3(co[0], co[2]) * bias - len_v3v3(co[1], co[3]);
-  PBool dir = (fac <= 0.0f);
+  bool dir = (fac <= 0.0f);
 
   /* The face exists check is there because of a special case:
    * when two quads share three vertices, they can each be split into two triangles,
@@ -1566,22 +1530,22 @@ static float p_vert_cotan(const float v1[3], const float v2[3], const float v3[3
   return dot_v3v3(a, b) / clen;
 }
 
-static PBool p_vert_flipped_wheel_triangle(PVert *v)
+static bool p_vert_flipped_wheel_triangle(PVert *v)
 {
   PEdge *e = v->edge;
 
   do {
     if (p_face_uv_area_signed(e->face) < 0.0f) {
-      return P_TRUE;
+      return true;
     }
 
     e = p_wheel_edge_next(e);
   } while (e && (e != v->edge));
 
-  return P_FALSE;
+  return false;
 }
 
-static PBool p_vert_map_harmonic_weights(PVert *v)
+static bool p_vert_map_harmonic_weights(PVert *v)
 {
   float weightsum, positionsum[2], olduv[2];
 
@@ -1647,10 +1611,10 @@ static PBool p_vert_map_harmonic_weights(PVert *v)
     v->uv[0] = olduv[0];
     v->uv[1] = olduv[1];
 
-    return P_FALSE;
+    return false;
   }
 
-  return P_TRUE;
+  return true;
 }
 
 static void p_vert_harmonic_insert(PVert *v)
@@ -1883,7 +1847,7 @@ static void p_split_vertex(PEdge *edge, PEdge *pair)
   } while (e && (e != newv->edge));
 }
 
-static PBool p_collapse_allowed_topologic(PEdge *edge, PEdge *pair)
+static bool p_collapse_allowed_topologic(PEdge *edge, PEdge *pair)
 {
   PVert *oldv, *keepv;
 
@@ -1893,22 +1857,22 @@ static PBool p_collapse_allowed_topologic(PEdge *edge, PEdge *pair)
   if (!edge || !pair) {
     /* avoid collapsing chart into an edge */
     if (edge && !edge->next->pair && !edge->next->next->pair) {
-      return P_FALSE;
+      return false;
     }
     else if (pair && !pair->next->pair && !pair->next->next->pair) {
-      return P_FALSE;
+      return false;
     }
   }
   /* avoid merging two boundaries (oldv and keepv are on the 'other side' of
    * the chart) */
   else if (!p_vert_interior(oldv) && !p_vert_interior(keepv)) {
-    return P_FALSE;
+    return false;
   }
 
-  return P_TRUE;
+  return true;
 }
 
-static PBool p_collapse_normal_flipped(float *v1, float *v2, float *vold, float *vnew)
+static bool p_collapse_normal_flipped(float *v1, float *v2, float *vold, float *vnew)
 {
   float nold[3], nnew[3], sub1[3], sub2[3];
 
@@ -1923,7 +1887,7 @@ static PBool p_collapse_normal_flipped(float *v1, float *v2, float *vold, float 
   return (dot_v3v3(nold, nnew) <= 0.0f);
 }
 
-static PBool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
+static bool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
 {
   PVert *oldv, *keepv;
   PEdge *e;
@@ -1950,7 +1914,7 @@ static PBool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
     }
 
     if (p_collapse_normal_flipped(v1->co, v2->co, oldv->co, keepv->co)) {
-      return P_FALSE;
+      return false;
     }
 
     a[0] = angle;
@@ -1967,10 +1931,10 @@ static PBool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
 
     for (i = 0; i < 3; i++) {
       if ((b[i] < a[i]) && (b[i] < minangle)) {
-        return P_FALSE;
+        return false;
       }
       else if ((b[i] > a[i]) && (b[i] > maxangle)) {
-        return P_FALSE;
+        return false;
       }
     }
 
@@ -1980,7 +1944,7 @@ static PBool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
   if (p_vert_interior(oldv)) {
     /* HLSCM criterion: angular defect smaller than threshold. */
     if (fabsf(angulardefect) > (float)(M_PI * 30.0 / 180.0)) {
-      return P_FALSE;
+      return false;
     }
   }
   else {
@@ -1989,27 +1953,27 @@ static PBool p_collapse_allowed_geometric(PEdge *edge, PEdge *pair)
 
     /* ABF++ criterion 2: avoid collapsing verts inwards. */
     if (p_vert_interior(keepv)) {
-      return P_FALSE;
+      return false;
     }
 
     /* Don't collapse significant boundary changes. */
     angle = p_vec_angle(v1->co, oldv->co, v2->co);
     if (angle < (M_PI * 160.0 / 180.0)) {
-      return P_FALSE;
+      return false;
     }
   }
 
-  return P_TRUE;
+  return true;
 }
 
-static PBool p_collapse_allowed(PEdge *edge, PEdge *pair)
+static bool p_collapse_allowed(PEdge *edge, PEdge *pair)
 {
   PVert *oldv, *keepv;
 
   p_collapsing_verts(edge, pair, &oldv, &keepv);
 
   if (oldv->flag & PVERT_PIN) {
-    return P_FALSE;
+    return false;
   }
 
   return (p_collapse_allowed_topologic(edge, pair) && p_collapse_allowed_geometric(edge, pair));
@@ -2572,21 +2536,17 @@ static float p_abf_compute_gradient(PAbfSystem *sys, PChart *chart)
   return norm;
 }
 
-static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
+static bool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
 {
-  PFace *f;
-  PEdge *e;
-  int i, j, ninterior = sys->ninterior, nvar = 2 * sys->ninterior;
-  PBool success;
-  LinearSolver *context;
+  int ninterior = sys->ninterior;
+  int nvar = 2 * ninterior;
+  LinearSolver *context = EIG_linear_solver_new(0, nvar, 1);
 
-  context = EIG_linear_solver_new(0, nvar, 1);
-
-  for (i = 0; i < nvar; i++) {
+  for (int i = 0; i < nvar; i++) {
     EIG_linear_solver_right_hand_side_add(context, 0, i, sys->bInterior[i]);
   }
 
-  for (f = chart->faces; f; f = f->nextlink) {
+  for (PFace *f = chart->faces; f; f = f->nextlink) {
     float wi1, wi2, wi3, b, si, beta[3], j2[3][3], W[3][3];
     float row1[6], row2[6], row3[6];
     int vid[6];
@@ -2691,14 +2651,14 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
       row3[5] = j2[0][2] * W[2][0] + j2[1][2] * W[2][1];
     }
 
-    for (i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; i++) {
       int r = vid[i];
 
       if (r == -1) {
         continue;
       }
 
-      for (j = 0; j < 6; j++) {
+      for (int j = 0; j < 6; j++) {
         int c = vid[j];
 
         if (c == -1) {
@@ -2729,10 +2689,10 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
     }
   }
 
-  success = EIG_linear_solver_solve(context);
+  bool success = EIG_linear_solver_solve(context);
 
   if (success) {
-    for (f = chart->faces; f; f = f->nextlink) {
+    for (PFace *f = chart->faces; f; f = f->nextlink) {
       float dlambda1, pre[3], dalpha;
       PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
       PVert *v1 = e1->vert, *v2 = e2->vert, *v3 = e3->vert;
@@ -2778,7 +2738,7 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
       sys->alpha[e3->u.id] += dalpha / sys->weight[e3->u.id] - pre[2];
 
       /* clamp */
-      e = f->edge;
+      PEdge *e = f->edge;
       do {
         if (sys->alpha[e->u.id] > (float)M_PI) {
           sys->alpha[e->u.id] = (float)M_PI;
@@ -2789,7 +2749,7 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
       } while (e != f->edge);
     }
 
-    for (i = 0; i < ninterior; i++) {
+    for (int i = 0; i < ninterior; i++) {
       sys->lambdaPlanar[i] += (float)EIG_linear_solver_variable_get(context, 0, i);
       sys->lambdaLength[i] += (float)EIG_linear_solver_variable_get(context, 0, ninterior + i);
     }
@@ -2800,7 +2760,7 @@ static PBool p_abf_matrix_invert(PAbfSystem *sys, PChart *chart)
   return success;
 }
 
-static PBool p_chart_abf_solve(PChart *chart)
+static bool p_chart_abf_solve(PChart *chart)
 {
   PVert *v;
   PFace *f;
@@ -2911,7 +2871,7 @@ static PBool p_chart_abf_solve(PChart *chart)
       if (!p_abf_matrix_invert(&sys, chart)) {
         param_warning("ABF failed to invert matrix");
         p_abf_free_system(&sys);
-        return P_FALSE;
+        return false;
       }
 
       p_abf_compute_sines(&sys);
@@ -2920,14 +2880,14 @@ static PBool p_chart_abf_solve(PChart *chart)
     if (i == ABF_MAX_ITER) {
       param_warning("ABF maximum iterations reached");
       p_abf_free_system(&sys);
-      return P_FALSE;
+      return false;
     }
   }
 
   chart->u.lscm.abf_alpha = MEM_dupallocN(sys.alpha);
   p_abf_free_system(&sys);
 
-  return P_TRUE;
+  return true;
 }
 
 /* Least Squares Conformal Maps */
@@ -2983,7 +2943,7 @@ static void p_chart_pin_positions(PChart *chart, PVert **pin1, PVert **pin2)
   }
 }
 
-static PBool p_chart_symmetry_pins(PChart *chart, PEdge *outer, PVert **pin1, PVert **pin2)
+static bool p_chart_symmetry_pins(PChart *chart, PEdge *outer, PVert **pin1, PVert **pin2)
 {
   PEdge *be, *lastbe = NULL, *maxe1 = NULL, *maxe2 = NULL, *be1, *be2;
   PEdge *cure = NULL, *firste1 = NULL, *firste2 = NULL, *nextbe;
@@ -3044,7 +3004,7 @@ static PBool p_chart_symmetry_pins(PChart *chart, PEdge *outer, PVert **pin1, PV
   }
 
   if (!maxe1 || !maxe2 || (maxlen < 0.5f * totlen)) {
-    return P_FALSE;
+    return false;
   }
 
   /* find pin1 in the split vertices */
@@ -3144,10 +3104,10 @@ static void p_chart_lscm_load_solution(PChart *chart)
   }
 }
 
-static void p_chart_lscm_begin(PChart *chart, PBool live, PBool abf)
+static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
 {
   PVert *v, *pin1, *pin2;
-  PBool select = P_FALSE, deselect = P_FALSE;
+  bool select = false, deselect = false;
   int npins = 0, id = 0;
 
   /* give vertices matrix indices and count pins */
@@ -3155,12 +3115,12 @@ static void p_chart_lscm_begin(PChart *chart, PBool live, PBool abf)
     if (v->flag & PVERT_PIN) {
       npins++;
       if (v->flag & PVERT_SELECT) {
-        select = P_TRUE;
+        select = true;
       }
     }
 
     if (!(v->flag & PVERT_SELECT)) {
-      deselect = P_TRUE;
+      deselect = true;
     }
   }
 
@@ -3213,7 +3173,7 @@ static void p_chart_lscm_begin(PChart *chart, PBool live, PBool abf)
   }
 }
 
-static PBool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
+static bool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
 {
   LinearSolver *context = chart->u.lscm.context;
   PVert *v, *pin1 = chart->u.lscm.pin1, *pin2 = chart->u.lscm.pin2;
@@ -3350,7 +3310,7 @@ static PBool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
 
   if (EIG_linear_solver_solve(context)) {
     p_chart_lscm_load_solution(chart);
-    return P_TRUE;
+    return true;
   }
 
   for (v = chart->verts; v; v = v->nextlink) {
@@ -3358,7 +3318,7 @@ static PBool p_chart_lscm_solve(ParamHandle *handle, PChart *chart)
     v->uv[1] = 0.0f;
   }
 
-  return P_FALSE;
+  return false;
 }
 
 static void p_chart_lscm_transform_single_pin(PChart *chart)
@@ -3570,7 +3530,7 @@ static int p_compare_geometric_uv(const void *a, const void *b)
   return 1;
 }
 
-static PBool p_chart_convex_hull(PChart *chart, PVert ***r_verts, int *r_nverts, int *r_right)
+static bool p_chart_convex_hull(PChart *chart, PVert ***r_verts, int *r_nverts, int *r_right)
 {
   /* Graham algorithm, taken from:
    * http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/117225 */
@@ -3582,7 +3542,7 @@ static PBool p_chart_convex_hull(PChart *chart, PVert ***r_verts, int *r_nverts,
   p_chart_boundaries(chart, NULL, &be);
 
   if (!be) {
-    return P_FALSE;
+    return false;
   }
 
   e = be;
@@ -3636,7 +3596,7 @@ static PBool p_chart_convex_hull(PChart *chart, PVert ***r_verts, int *r_nverts,
   MEM_freeN(U);
   MEM_freeN(L);
 
-  return P_TRUE;
+  return true;
 }
 
 static float p_rectangle_area(float *p1, float *dir, float *p2, float *p3, float *p4)
@@ -3876,13 +3836,13 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
 }
 
 static void p_add_ngon(ParamHandle *handle,
-                       ParamKey key,
-                       int nverts,
-                       ParamKey *vkeys,
-                       float **co,
-                       float **uv,
-                       ParamBool *pin,
-                       ParamBool *select)
+                       const ParamKey key,
+                       const int nverts,
+                       const ParamKey *vkeys,
+                       const float **co,
+                       float **uv, /* Output will eventually be written to `uv`. */
+                       const bool *pin,
+                       const bool *select)
 {
   /* Allocate memory for polyfill. */
   MemArena *arena = handle->polyfill_arena;
@@ -3924,11 +3884,11 @@ static void p_add_ngon(ParamHandle *handle,
     uint v1 = tri[1];
     uint v2 = tri[2];
 
-    ParamKey tri_vkeys[3] = {vkeys[v0], vkeys[v1], vkeys[v2]};
-    float *tri_co[3] = {co[v0], co[v1], co[v2]};
+    const ParamKey tri_vkeys[3] = {vkeys[v0], vkeys[v1], vkeys[v2]};
+    const float *tri_co[3] = {co[v0], co[v1], co[v2]};
     float *tri_uv[3] = {uv[v0], uv[v1], uv[v2]};
-    ParamBool tri_pin[3] = {pin[v0], pin[v1], pin[v2]};
-    ParamBool tri_select[3] = {select[v0], select[v1], select[v2]};
+    bool tri_pin[3] = {pin[v0], pin[v1], pin[v2]};
+    bool tri_select[3] = {select[v0], select[v1], select[v2]};
 
     GEO_uv_parametrizer_face_add(handle, key, 3, tri_vkeys, tri_co, tri_uv, tri_pin, tri_select);
   }
@@ -3937,13 +3897,13 @@ static void p_add_ngon(ParamHandle *handle,
 }
 
 void GEO_uv_parametrizer_face_add(ParamHandle *phandle,
-                                  ParamKey key,
-                                  int nverts,
-                                  ParamKey *vkeys,
-                                  float *co[4],
-                                  float *uv[4],
-                                  ParamBool *pin,
-                                  ParamBool *select)
+                                  const ParamKey key,
+                                  const int nverts,
+                                  const ParamKey *vkeys,
+                                  const float **co,
+                                  float **uv,
+                                  const bool *pin,
+                                  const bool *select)
 {
   param_assert(phash_lookup(phandle->hash_faces, key) == NULL);
   param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
@@ -3983,8 +3943,8 @@ void GEO_uv_parametrizer_edge_set_seam(ParamHandle *phandle, ParamKey *vkeys)
 }
 
 void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
-                                       ParamBool fill,
-                                       ParamBool topology_from_uvs,
+                                       bool fill,
+                                       bool topology_from_uvs,
                                        int *count_fail)
 {
   PChart *chart = phandle->construction_chart;
@@ -3993,7 +3953,7 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
 
   param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
 
-  phandle->ncharts = p_connect_pairs(phandle, (PBool)topology_from_uvs);
+  phandle->ncharts = p_connect_pairs(phandle, topology_from_uvs);
   phandle->charts = p_split_charts(phandle, chart, phandle->ncharts);
 
   p_chart_delete(phandle->construction_chart);
@@ -4035,7 +3995,7 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
   phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
-void GEO_uv_parametrizer_lscm_begin(ParamHandle *phandle, ParamBool live, ParamBool abf)
+void GEO_uv_parametrizer_lscm_begin(ParamHandle *phandle, bool live, bool abf)
 {
   PFace *f;
   int i;
@@ -4047,7 +4007,7 @@ void GEO_uv_parametrizer_lscm_begin(ParamHandle *phandle, ParamBool live, ParamB
     for (f = phandle->charts[i]->faces; f; f = f->nextlink) {
       p_face_backup_uvs(f);
     }
-    p_chart_lscm_begin(phandle->charts[i], (PBool)live, (PBool)abf);
+    p_chart_lscm_begin(phandle->charts[i], live, abf);
   }
 }
 
@@ -4062,7 +4022,7 @@ void GEO_uv_parametrizer_lscm_solve(ParamHandle *phandle, int *count_changed, in
     chart = phandle->charts[i];
 
     if (chart->u.lscm.context) {
-      const PBool result = p_chart_lscm_solve(phandle, chart);
+      const bool result = p_chart_lscm_solve(phandle, chart);
 
       if (result && !(chart->flag & PCHART_HAS_PINS)) {
         p_chart_rotate_minimum_area(chart);
