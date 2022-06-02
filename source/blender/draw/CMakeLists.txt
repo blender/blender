@@ -452,10 +452,10 @@ set(GLSL_SRC
   engines/select/shaders/select_id_vert.glsl
   engines/select/shaders/select_id_frag.glsl
 
-  engines/basic/shaders/conservative_depth_geom.glsl
-  engines/basic/shaders/depth_vert.glsl
-  engines/basic/shaders/depth_pointcloud_vert.glsl
-  engines/basic/shaders/depth_frag.glsl
+  engines/basic/shaders/basic_conservative_depth_geom.glsl
+  engines/basic/shaders/basic_depth_vert.glsl
+  engines/basic/shaders/basic_depth_pointcloud_vert.glsl
+  engines/basic/shaders/basic_depth_frag.glsl
 
   engines/overlay/shaders/overlay_common_lib.glsl
   engines/overlay/shaders/overlay_antialiasing_frag.glsl
