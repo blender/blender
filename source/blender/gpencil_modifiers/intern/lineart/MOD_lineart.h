@@ -236,6 +236,9 @@ typedef struct LineartRenderBuffer {
   ListBase line_buffer_pointers;
   ListBase triangle_buffer_pointers;
 
+  LineartElementLinkNode *isect_scheduled_up_to;
+  int isect_scheduled_up_to_index;
+
   /** This one's memory is not from main pool and is free()ed after culling stage. */
   ListBase triangle_adjacent_pointers;
 
@@ -429,15 +432,18 @@ typedef struct LineartBoundingArea {
   /** 1,2,3,4 quadrant */
   struct LineartBoundingArea *child;
 
+  SpinLock lock;
+
   ListBase lp;
   ListBase rp;
   ListBase up;
   ListBase bp;
 
-  uint16_t triangle_count;
-  uint16_t max_triangle_count;
-  uint16_t line_count;
-  uint16_t max_line_count;
+  uint32_t triangle_count;
+  uint32_t max_triangle_count;
+  uint32_t line_count;
+  uint32_t max_line_count;
+  uint32_t user_count;
 
   /* Use array for speeding up multiple accesses. */
   struct LineartTriangle **linked_triangles;
