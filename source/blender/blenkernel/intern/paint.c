@@ -2810,6 +2810,10 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 #endif
   }
 
+  if (!ob->sculpt->pmap) {
+    ob->sculpt->pmap = BKE_pbvh_make_pmap(BKE_object_get_original_mesh(ob));
+  }
+
   BKE_pbvh_set_pmap(pbvh, ob->sculpt->pmap);
 
   ob->sculpt->pbvh = pbvh;
