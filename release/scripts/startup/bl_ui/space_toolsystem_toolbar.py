@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # For documentation on tool definitions: see "bl_ui.space_toolsystem_common.ToolDef"
 # where there are comments for each field and their use.
 

@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 import bpy
 import nodeitems_utils
 from nodeitems_utils import (

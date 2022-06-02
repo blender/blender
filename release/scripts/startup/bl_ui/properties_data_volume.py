@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 import bpy
 from bpy.types import Panel, UIList
 from rna_prop_ui import PropertyPanel

@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 from bpy.types import Menu, Panel, UIList
 from bl_ui.properties_grease_pencil_common import (
     GreasePencilSculptAdvancedPanel,

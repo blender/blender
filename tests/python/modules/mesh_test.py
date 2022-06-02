@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # A framework to run regression tests on mesh modifiers and operators based on howardt's mesh_ops_test.py
 #
 # General idea:

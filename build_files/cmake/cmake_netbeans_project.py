@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 """
 Example linux usage
  python3 ~/blender-git/blender/build_files/cmake/cmake_netbeans_project.py ~/blender-git/cmake

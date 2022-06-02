@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Global settings used by all scripts in this dir.
 # XXX Before any use of the tools in this dir, please make a copy of this file
 #     named "setting.py"
