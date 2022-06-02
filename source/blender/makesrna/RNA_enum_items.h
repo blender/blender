@@ -147,6 +147,7 @@ DEF_ENUM(rna_enum_keymap_propvalue_items)
 DEF_ENUM(rna_enum_operator_context_items)
 
 DEF_ENUM(rna_enum_wm_report_items)
+DEF_ENUM(rna_enum_wm_job_type_items)
 
 DEF_ENUM(rna_enum_property_type_items)
 DEF_ENUM(rna_enum_property_subtype_items)
