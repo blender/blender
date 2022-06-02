@@ -145,7 +145,7 @@ static void expand_mesh(Mesh &mesh,
   BKE_mesh_update_customdata_pointers(&mesh, false);
 }
 
-static CustomData &get_customdata(Mesh &mesh, const AttributeDomain domain)
+static CustomData &get_customdata(Mesh &mesh, const eAttrDomain domain)
 {
   switch (domain) {
     case ATTR_DOMAIN_POINT:
@@ -162,13 +162,13 @@ static CustomData &get_customdata(Mesh &mesh, const AttributeDomain domain)
   }
 }
 
-static MutableSpan<int> get_orig_index_layer(Mesh &mesh, const AttributeDomain domain)
+static MutableSpan<int> get_orig_index_layer(Mesh &mesh, const eAttrDomain domain)
 {
   MeshComponent component;
   component.replace(&mesh, GeometryOwnershipType::ReadOnly);
   CustomData &custom_data = get_customdata(mesh, domain);
   if (int *orig_indices = static_cast<int *>(CustomData_get_layer(&custom_data, CD_ORIGINDEX))) {
-    return {orig_indices, component.attribute_domain_size(domain)};
+    return {orig_indices, component.attribute_domain_num(domain)};
   }
   return {};
 }
