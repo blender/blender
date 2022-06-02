@@ -661,6 +661,26 @@ Attribute *AttributeSet::find(AttributeStandard std) const
   return NULL;
 }
 
+Attribute *AttributeSet::find_matching(const Attribute &other)
+{
+  for (Attribute &attr : attributes) {
+    if (attr.name != other.name) {
+      continue;
+    }
+    if (attr.std != other.std) {
+      continue;
+    }
+    if (attr.type != other.type) {
+      continue;
+    }
+    if (attr.element != other.element) {
+      continue;
+    }
+    return &attr;
+  }
+  return nullptr;
+}
+
 void AttributeSet::remove(AttributeStandard std)
 {
   Attribute *attr = find(std);
@@ -729,30 +749,22 @@ void AttributeSet::clear(bool preserve_voxel_data)
 
 void AttributeSet::update(AttributeSet &&new_attributes)
 {
-  /* add or update old_attributes based on the new_attributes */
+  /* Remove any attributes not on new_attributes. */
+  list<Attribute>::iterator it;
+  for (it = attributes.begin(); it != attributes.end();) {
+    const Attribute &old_attr = *it;
+    if (new_attributes.find_matching(old_attr) == nullptr) {
+      remove(it++);
+      continue;
+    }
+    it++;
+  }
+
+  /* Add or update old_attributes based on the new_attributes. */
   foreach (Attribute &attr, new_attributes.attributes) {
     Attribute *nattr = add(attr.name, attr.type, attr.element);
     nattr->std = attr.std;
     nattr->set_data_from(std::move(attr));
-  }
-
-  /* remove any attributes not on new_attributes */
-  list<Attribute>::iterator it;
-  for (it = attributes.begin(); it != attributes.end();) {
-    if (it->std != ATTR_STD_NONE) {
-      if (new_attributes.find(it->std) == nullptr) {
-        remove(it++);
-        continue;
-      }
-    }
-    else if (it->name != "") {
-      if (new_attributes.find(it->name) == nullptr) {
-        remove(it++);
-        continue;
-      }
-    }
-
-    it++;
   }
 
   /* If all attributes were replaced, transform is no longer applied. */
