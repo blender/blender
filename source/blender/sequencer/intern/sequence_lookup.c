@@ -104,7 +104,7 @@ static void seq_sequence_lookup_free(struct SequenceLookup **lookup)
 
   BLI_ghash_free((*lookup)->seq_by_name, NULL, NULL);
   BLI_ghash_free((*lookup)->meta_by_seq, NULL, NULL);
-  BLI_ghash_free((*lookup)->effects_by_seq, NULL, SEQ_collection_free);
+  BLI_ghash_free((*lookup)->effects_by_seq, NULL, SEQ_collection_free_void_p);
   (*lookup)->seq_by_name = NULL;
   (*lookup)->meta_by_seq = NULL;
   (*lookup)->effects_by_seq = NULL;

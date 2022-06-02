@@ -786,7 +786,6 @@ static void seq_build_proxy(bContext *C, SeqCollection *movie_strips)
 }
 
 static void sequencer_add_movie_clamp_sound_strip_length(Scene *scene,
-                                                         ListBase *seqbase,
                                                          Sequence *seq_movie,
                                                          Sequence *seq_sound)
 {
@@ -833,7 +832,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
     else {
       if (RNA_boolean_get(op->ptr, "sound")) {
         seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
-        sequencer_add_movie_clamp_sound_strip_length(scene, ed->seqbasep, seq_movie, seq_sound);
+        sequencer_add_movie_clamp_sound_strip_length(scene, seq_movie, seq_sound);
 
         if (seq_sound) {
           /* The video has sound, shift the video strip up a channel to make room for the sound
@@ -891,7 +890,7 @@ static bool sequencer_add_movie_single_strip(bContext *C,
   }
   if (RNA_boolean_get(op->ptr, "sound")) {
     seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
-    sequencer_add_movie_clamp_sound_strip_length(scene, ed->seqbasep, seq_movie, seq_sound);
+    sequencer_add_movie_clamp_sound_strip_length(scene, seq_movie, seq_sound);
     if (seq_sound) {
       /* The video has sound, shift the video strip up a channel to make room for the sound
        * strip. */

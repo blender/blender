@@ -347,7 +347,6 @@ static bool seq_edit_split_effect_intersect_check(const Sequence *seq, const int
 
 static void seq_edit_split_handle_strip_offsets(Main *bmain,
                                                 Scene *scene,
-                                                ListBase *seqbase,
                                                 Sequence *left_seq,
                                                 Sequence *right_seq,
                                                 const int timeline_frame,
@@ -499,8 +498,7 @@ Sequence *SEQ_edit_strip_split(Main *bmain,
       return_seq = right_seq;
     }
 
-    seq_edit_split_handle_strip_offsets(
-        bmain, scene, seqbase, left_seq, right_seq, timeline_frame, method);
+    seq_edit_split_handle_strip_offsets(bmain, scene, left_seq, right_seq, timeline_frame, method);
     left_seq = left_seq->next;
     right_seq = right_seq->next;
   }

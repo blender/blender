@@ -72,7 +72,7 @@ void SEQ_add_load_data_init(SeqLoadData *load_data,
   load_data->channel = channel;
 }
 
-static void seq_add_generic_update(Scene *scene, ListBase *seqbase, Sequence *seq)
+static void seq_add_generic_update(Scene *scene, Sequence *seq)
 {
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
@@ -130,7 +130,7 @@ Sequence *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDat
   seq->len = load_data->scene->r.efra - load_data->scene->r.sfra + 1;
   id_us_ensure_real((ID *)load_data->scene);
   seq_add_set_name(scene, seq, load_data);
-  seq_add_generic_update(scene, seqbase, seq);
+  seq_add_generic_update(scene, seq);
   return seq;
 }
 
@@ -142,7 +142,7 @@ Sequence *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, struct SeqLoa
   seq->len = BKE_movieclip_get_duration(load_data->clip);
   id_us_ensure_real((ID *)load_data->clip);
   seq_add_set_name(scene, seq, load_data);
-  seq_add_generic_update(scene, seqbase, seq);
+  seq_add_generic_update(scene, seq);
   return seq;
 }
 
@@ -154,7 +154,7 @@ Sequence *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, struct SeqLoadData
   seq->len = BKE_mask_get_duration(load_data->mask);
   id_us_ensure_real((ID *)load_data->mask);
   seq_add_set_name(scene, seq, load_data);
-  seq_add_generic_update(scene, seqbase, seq);
+  seq_add_generic_update(scene, seq);
   return seq;
 }
 
@@ -180,7 +180,7 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDa
   }
 
   seq_add_set_name(scene, seq, load_data);
-  seq_add_generic_update(scene, seqbase, seq);
+  seq_add_generic_update(scene, seq);
   seq_time_effect_range_set(seq);
 
   return seq;
@@ -267,7 +267,7 @@ Sequence *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   BLI_strncpy(scene->ed->act_imagedir, seq->strip->dir, sizeof(scene->ed->act_imagedir));
   seq_add_set_view_transform(scene, seq, load_data);
   seq_add_set_name(scene, seq, load_data);
-  seq_add_generic_update(scene, seqbase, seq);
+  seq_add_generic_update(scene, seq);
 
   return seq;
 }
@@ -338,7 +338,7 @@ Sequence *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
   /* Set Last active directory. */
   BLI_strncpy(scene->ed->act_sounddir, strip->dir, FILE_MAXDIR);
   seq_add_set_name(scene, seq, load_data);
-  seq_add_generic_update(scene, seqbase, seq);
+  seq_add_generic_update(scene, seq);
 
   return seq;
 }
@@ -486,7 +486,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
 
   seq_add_set_view_transform(scene, seq, load_data);
   seq_add_set_name(scene, seq, load_data);
-  seq_add_generic_update(scene, seqbase, seq);
+  seq_add_generic_update(scene, seq);
 
   MEM_freeN(anim_arr);
   return seq;
