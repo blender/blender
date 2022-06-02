@@ -459,7 +459,7 @@ PyDoc_STRVAR(bpy_app_is_job_running_doc,
              "\n"
              "   Check whether a job of the given type is running.\n"
              "\n"
-             "   :arg job_type: job type in ['RENDER', 'RENDER_PREVIEW', OBJECT_BAKE]."
+             "   :arg job_type: job type in :ref:`rna_enum_wm_job_type_items`.\n"
              "   :type job_type: str\n"
              "   :return: Whether a job of the given type is currently running.\n"
              "   :rtype: bool.\n");
