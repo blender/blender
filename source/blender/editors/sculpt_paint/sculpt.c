@@ -3058,6 +3058,10 @@ bool SCULPT_brush_test_cube_sq(SculptBrushTest *test, const float co[3])
   if (SCULPT_brush_test_cube(test, co, test->cube_matrix, test->tip_roundness, true)) {
     test->dist *= test->dist * test->radius_squared;
 
+    if (test->dist > test->radius_squared) {
+      return false;
+    }
+
     return true;
   }
 
@@ -3067,7 +3071,7 @@ bool SCULPT_brush_test_cube_sq(SculptBrushTest *test, const float co[3])
 bool SCULPT_brush_test_thru_cube_sq(SculptBrushTest *test, const float co[3])
 {
   if (SCULPT_brush_test_cube(test, co, test->cube_matrix, test->tip_roundness, false)) {
-    test->dist *= test->dist * test->radius_squared;
+    test->dist *= test->radius;
 
     return true;
   }
@@ -3237,7 +3241,12 @@ SculptBrushTestFn SCULPT_brush_test_init_ex(const SculptSession *ss,
     mat[1][3] = 0;
     copy_v3_v3(mat[2], ss->cache->cached_area_normal);
     mat[2][3] = 0;
-    copy_v3_v3(mat[3], ss->cache->location);
+
+    float loc[3];
+    copy_v3_v3(loc, ss->cache->location);
+    madd_v3_v3fl(loc, ss->cache->sculpt_normal_symm, -ss->cache->radius * 0.5f);
+
+    copy_v3_v3(mat[3], loc);
     mat[3][3] = 1;
     normalize_m4(mat);
 

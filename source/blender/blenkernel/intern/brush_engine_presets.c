@@ -52,12 +52,6 @@
 
 extern struct CurveMappingCache *brush_curve_cache;
 
-#if 1
-struct {
-  char t1[32], t2[32], t3[32], t4[32];
-} test[1] = {{1, 1, 1, 1}};
-#endif
-
 static bool check_builtin_init();
 
 #if 1
@@ -439,13 +433,19 @@ static bool check_builtin_init()
 
 /* TODO: Destroy these macros.*/
 
-#define ADDCH_EX(idname, category, visflag) \
-  do { \
-    BKE_brush_channelset_ensure_builtin(chset, BRUSH_BUILTIN_##idname); \
-    BrushChannel *ch = BKE_brush_channelset_lookup(chset, BRUSH_BUILTIN_##idname); \
-    SETCAT(idname, category); \
-    ch->flag |= visflag; \
-  } while (0);
+static void _ensure_channel(BrushChannelSet *chset,
+                            const char *idname,
+                            const char *category,
+                            int visflag)
+{
+  BKE_brush_channelset_ensure_builtin(chset, idname);
+  BrushChannel *ch = BKE_brush_channelset_lookup(chset, idname);
+
+  BLI_strncpy(_get_def(idname)->category, category, sizeof(_get_def(idname)->category));
+  ch->flag |= visflag;
+}
+#define ensure_channel(chset, idname, category, visflag) \
+  _ensure_channel(chset, BRUSH_BUILTIN_##idname, category, visflag)
 
 /* TODO: replace these two macros with equivalent BRUSHSET_XXX ones */
 #define ADDCH(name) \
@@ -1104,7 +1104,7 @@ void reset_clay_mappings(BrushChannelSet *chset, bool strips)
 }
 
 // adds any missing channels to brushes
-void BKE_brush_builtin_patch(Brush *brush, int tool)
+ATTR_NO_OPT void BKE_brush_builtin_patch(Brush *brush, int tool)
 {
   check_builtin_init();
 
@@ -1280,16 +1280,23 @@ void BKE_brush_builtin_patch(Brush *brush, int tool)
 
   /* Patch olds files. */
   if (!BRUSHSET_LOOKUP(chset, tip_scale_x)) {
-    ADDCH_EX(tip_scale_x,
-             "Basic",
-             BRUSH_CHANNEL_SHOW_IN_WORKSPACE | BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU);
-    ADDCH_EX(tip_roundness,
-             "Basic",
-             BRUSH_CHANNEL_SHOW_IN_WORKSPACE | BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU);
+    ensure_channel(chset,
+                   tip_scale_x,
+                   "Basic",
+                   BRUSH_CHANNEL_SHOW_IN_WORKSPACE | BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU);
+    ensure_channel(chset,
+                   tip_roundness,
+                   "Basic",
+                   BRUSH_CHANNEL_SHOW_IN_WORKSPACE | BRUSH_CHANNEL_SHOW_IN_CONTEXT_MENU);
 
     if (tool == SCULPT_TOOL_CLAY_STRIPS) {
       BRUSHSET_SET_FLOAT(chset, tip_roundness, 0.18f);
     }
+    else {
+      BRUSHSET_SET_FLOAT(chset, tip_roundness, 1.0f);
+    }
+
+    BRUSHSET_SET_FLOAT(chset, tip_scale_x, 1.0f);
   }
   /* stuff for deform_target cloth mode*/
   ADDCH(cloth_use_collision);

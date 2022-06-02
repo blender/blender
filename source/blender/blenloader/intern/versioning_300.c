@@ -2471,6 +2471,9 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
       BKE_brush_builtin_create(brush, brush->sculpt_tool);
       BKE_brush_channelset_compat_load(brush->channels, brush, true);
+
+      BRUSHSET_SET_FLOAT(brush->channels, tip_roundness, 1.0f);
+      BRUSHSET_SET_FLOAT(brush->channels, tip_scale_x, 1.0f);
     }
   }
 
@@ -2884,6 +2887,9 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
       BKE_brush_builtin_patch(brush, brush->sculpt_tool);
       BKE_brush_channelset_compat_load(brush->channels, brush, true);
+
+      BRUSHSET_SET_FLOAT(brush->channels, tip_roundness, 1.0f);
+      BRUSHSET_SET_FLOAT(brush->channels, tip_scale_x, 1.0f);
 
       Brush temp = *brush;
       temp.channels = NULL;
