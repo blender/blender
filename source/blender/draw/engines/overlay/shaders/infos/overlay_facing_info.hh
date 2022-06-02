@@ -5,8 +5,8 @@
 GPU_SHADER_CREATE_INFO(overlay_facing)
     .do_static_compilation(true)
     .vertex_in(0, Type::VEC3, "pos")
-    .vertex_source("facing_vert.glsl")
-    .fragment_source("facing_frag.glsl")
+    .vertex_source("overlay_facing_vert.glsl")
+    .fragment_source("overlay_facing_frag.glsl")
     .fragment_out(0, Type::VEC4, "fragColor")
     .additional_info("draw_mesh", "draw_globals");
 

@@ -25,8 +25,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_sphere_outline)
     /* Per instance. */
     .vertex_in(1, Type::MAT4, "inst_obmat")
     .vertex_out(overlay_armature_wire_iface)
-    .vertex_source("armature_sphere_outline_vert.glsl")
-    .fragment_source("armature_wire_frag.glsl")
+    .vertex_source("overlay_armature_sphere_outline_vert.glsl")
+    .fragment_source("overlay_armature_wire_frag.glsl")
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_sphere_outline_clipped)
@@ -47,8 +47,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_sphere_solid)
     .vertex_in(2, Type::MAT4, "inst_obmat")
     // .depth_layout(DepthLayout::GREATER) /* TODO */
     .vertex_out(overlay_armature_sphere_solid_iface)
-    .vertex_source("armature_sphere_solid_vert.glsl")
-    .fragment_source("armature_sphere_solid_frag.glsl")
+    .vertex_source("overlay_armature_sphere_solid_vert.glsl")
+    .fragment_source("overlay_armature_sphere_solid_frag.glsl")
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_sphere_solid_clipped)
@@ -79,9 +79,9 @@ GPU_SHADER_CREATE_INFO(overlay_armature_shape_outline)
     .vertex_out(overlay_armature_shape_outline_iface)
     .geometry_layout(PrimitiveIn::LINES_ADJACENCY, PrimitiveOut::LINE_STRIP, 2)
     .geometry_out(overlay_armature_wire_iface)
-    .vertex_source("armature_shape_outline_vert.glsl")
-    .geometry_source("armature_shape_outline_geom.glsl")
-    .fragment_source("armature_wire_frag.glsl")
+    .vertex_source("overlay_armature_shape_outline_vert.glsl")
+    .geometry_source("overlay_armature_shape_outline_geom.glsl")
+    .fragment_source("overlay_armature_wire_frag.glsl")
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_shape_outline_clipped)
@@ -100,8 +100,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_shape_solid)
     .vertex_in(2, Type::MAT4, "inst_obmat")
     .depth_write(DepthWrite::GREATER)
     .vertex_out(overlay_armature_shape_solid_iface)
-    .vertex_source("armature_shape_solid_vert.glsl")
-    .fragment_source("armature_shape_solid_frag.glsl")
+    .vertex_source("overlay_armature_shape_solid_vert.glsl")
+    .fragment_source("overlay_armature_shape_solid_frag.glsl")
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_shape_solid_clipped)
@@ -115,8 +115,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_shape_wire)
     /* Per instance. */
     .vertex_in(2, Type::MAT4, "inst_obmat")
     .vertex_out(overlay_armature_wire_iface)
-    .vertex_source("armature_shape_wire_vert.glsl")
-    .fragment_source("armature_wire_frag.glsl")
+    .vertex_source("overlay_armature_shape_wire_vert.glsl")
+    .fragment_source("overlay_armature_wire_frag.glsl")
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_shape_wire_clipped)
@@ -140,8 +140,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_envelope_outline)
     .vertex_in(5, Type::VEC4, "outlineColorSize")
     .vertex_in(6, Type::VEC3, "xAxis")
     .vertex_out(overlay_armature_wire_iface)
-    .vertex_source("armature_envelope_outline_vert.glsl")
-    .fragment_source("armature_wire_frag.glsl")
+    .vertex_source("overlay_armature_envelope_outline_vert.glsl")
+    .fragment_source("overlay_armature_wire_frag.glsl")
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_envelope_outline_clipped)
@@ -164,8 +164,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_envelope_solid)
     .vertex_in(5, Type::VEC3, "boneColor")
     .vertex_out(overlay_armature_envelope_solid_iface)
     .push_constant(Type::BOOL, "isDistance")
-    .vertex_source("armature_envelope_solid_vert.glsl")
-    .fragment_source("armature_envelope_solid_frag.glsl")
+    .vertex_source("overlay_armature_envelope_solid_vert.glsl")
+    .fragment_source("overlay_armature_envelope_solid_frag.glsl")
     .additional_info("overlay_frag_output", "overlay_armature_common");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_envelope_solid_clipped)
@@ -198,8 +198,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_stick)
     .vertex_in(7, Type::VEC4, "tailColor")
     .define("do_wire", "(wireColor.a > 0.0)")
     .vertex_out(overlay_armature_stick_iface)
-    .vertex_source("armature_stick_vert.glsl")
-    .fragment_source("armature_stick_frag.glsl")
+    .vertex_source("overlay_armature_stick_vert.glsl")
+    .fragment_source("overlay_armature_stick_frag.glsl")
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_stick_clipped)
@@ -218,12 +218,12 @@ GPU_SHADER_CREATE_INFO(overlay_armature_dof)
     .vertex_in(1, Type::VEC4, "color")
     .vertex_in(2, Type::MAT4, "inst_obmat")
     .vertex_out(overlay_armature_wire_iface)
-    .vertex_source("armature_dof_vert.glsl")
+    .vertex_source("overlay_armature_dof_vert.glsl")
     .additional_info("overlay_frag_output", "overlay_armature_common", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_dof_wire)
     .do_static_compilation(true)
-    .fragment_source("armature_dof_solid_frag.glsl")
+    .fragment_source("overlay_armature_dof_solid_frag.glsl")
     .additional_info("overlay_armature_dof");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_dof_wire_clipped)
@@ -232,7 +232,7 @@ GPU_SHADER_CREATE_INFO(overlay_armature_dof_wire_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_armature_dof_solid)
     .do_static_compilation(true)
-    .fragment_source("armature_dof_solid_frag.glsl")
+    .fragment_source("overlay_armature_dof_solid_frag.glsl")
     .additional_info("overlay_armature_dof");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_dof_solid_clipped)
@@ -251,8 +251,8 @@ GPU_SHADER_CREATE_INFO(overlay_armature_wire)
     .vertex_in(1, Type::VEC4, "color")
     .push_constant(Type::FLOAT, "alpha")
     .vertex_out(overlay_armature_wire_iface)
-    .vertex_source("armature_wire_vert.glsl")
-    .fragment_source("armature_wire_frag.glsl")
+    .vertex_source("overlay_armature_wire_vert.glsl")
+    .fragment_source("overlay_armature_wire_frag.glsl")
     .additional_info("overlay_frag_output", "draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_armature_wire_clipped)

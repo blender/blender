@@ -28,7 +28,7 @@ GPU_SHADER_CREATE_INFO(overlay_volume_velocity)
     .push_constant(Type::IVEC3, "adaptiveCellOffset")
     .vertex_out(overlay_volume_velocity_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("volume_velocity_vert.glsl")
+    .vertex_source("overlay_volume_velocity_vert.glsl")
     .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
     .additional_info("draw_volume");
 
@@ -69,7 +69,7 @@ GPU_SHADER_CREATE_INFO(overlay_volume_gridlines)
     .push_constant(Type::IVEC3, "adaptiveCellOffset")
     .vertex_out(overlay_volume_gridlines_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("volume_gridlines_vert.glsl")
+    .vertex_source("overlay_volume_gridlines_vert.glsl")
     .fragment_source("gpu_shader_flat_color_frag.glsl")
     .additional_info("draw_volume");
 

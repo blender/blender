@@ -9,7 +9,7 @@ GPU_SHADER_CREATE_INFO(overlay_antialiasing)
     .sampler(2, ImageType::FLOAT_2D, "lineTex")
     .push_constant(Type::BOOL, "doSmoothLines")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .fragment_source("antialiasing_frag.glsl")
+    .fragment_source("overlay_antialiasing_frag.glsl")
     .additional_info("draw_fullscreen", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_xray_fade)
@@ -18,5 +18,5 @@ GPU_SHADER_CREATE_INFO(overlay_xray_fade)
     .sampler(1, ImageType::DEPTH_2D, "xrayDepthTex")
     .push_constant(Type::FLOAT, "opacity")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .fragment_source("xray_fade_frag.glsl")
+    .fragment_source("overlay_xray_fade_frag.glsl")
     .additional_info("draw_fullscreen");

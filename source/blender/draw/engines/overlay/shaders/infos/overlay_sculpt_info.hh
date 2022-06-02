@@ -15,8 +15,8 @@ GPU_SHADER_CREATE_INFO(overlay_sculpt_mask)
     .vertex_in(1, Type::VEC3, "fset")
     .vertex_in(2, Type::FLOAT, "msk")
     .vertex_out(overlay_sculpt_mask_iface)
-    .vertex_source("sculpt_mask_vert.glsl")
-    .fragment_source("sculpt_mask_frag.glsl")
+    .vertex_source("overlay_sculpt_mask_vert.glsl")
+    .fragment_source("overlay_sculpt_mask_frag.glsl")
     .fragment_out(0, Type::VEC4, "fragColor")
     .additional_info("draw_mesh", "draw_object_infos", "draw_globals");
 

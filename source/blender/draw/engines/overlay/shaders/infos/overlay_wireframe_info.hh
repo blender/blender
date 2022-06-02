@@ -23,8 +23,8 @@ GPU_SHADER_CREATE_INFO(overlay_wireframe)
     .vertex_in(1, Type::VEC3, "nor")
     .vertex_in(2, Type::FLOAT, "wd") /* wire-data. */
     .vertex_out(overlay_wireframe_iface)
-    .vertex_source("wireframe_vert.glsl")
-    .fragment_source("wireframe_frag.glsl")
+    .vertex_source("overlay_wireframe_vert.glsl")
+    .fragment_source("overlay_wireframe_frag.glsl")
     .fragment_out(0, Type::VEC4, "fragColor")
     .fragment_out(1, Type::VEC4, "lineOutput")
     .additional_info("draw_mesh", "draw_object_infos", "draw_globals");

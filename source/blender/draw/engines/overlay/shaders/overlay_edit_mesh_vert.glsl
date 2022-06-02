@@ -1,7 +1,7 @@
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
-#pragma BLENDER_REQUIRE(edit_mesh_common_lib.glsl)
+#pragma BLENDER_REQUIRE(overlay_edit_mesh_common_lib.glsl)
 
 #ifdef EDGE
 /* Ugly but needed to keep the same vertex shader code for other passes. */
