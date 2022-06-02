@@ -884,7 +884,6 @@ void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val);
 void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop);
 
 void BKE_pbvh_update_active_vcol(PBVH *pbvh, const struct Mesh *mesh);
-void BKE_pbvh_pmap_set(PBVH *pbvh, struct SculptPMap *pmap);
 
 void BKE_pbvh_vertex_color_set(PBVH *pbvh, SculptVertRef vertex, const float color[4]);
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, SculptVertRef vertex, float r_color[4]);

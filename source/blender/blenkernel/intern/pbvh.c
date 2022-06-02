@@ -5223,11 +5223,6 @@ void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh)
   }
 }
 
-void BKE_pbvh_pmap_set(PBVH *pbvh, SculptPMap *pmap)
-{
-  pbvh->pmap = pmap;
-}
-
 void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
 {
   BLI_assert(BKE_pbvh_type(pbvh) == PBVH_FACES);
