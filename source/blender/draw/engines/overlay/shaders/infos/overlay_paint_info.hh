@@ -10,13 +10,12 @@
 
 GPU_SHADER_CREATE_INFO(overlay_paint_face)
     .do_static_compilation(true)
-    .define("srgbTarget", "false") /* NOTE: Color already in Linear space. */
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::VEC4, "nor") /* Select flag on the 4th component. */
     .push_constant(Type::VEC4, "color")
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_paint_face_vert.glsl")
-    .fragment_source("gpu_shader_uniform_color_frag.glsl")
+    .fragment_source("overlay_uniform_color_frag.glsl")
     .additional_info("draw_modelmat");
 
 GPU_SHADER_CREATE_INFO(overlay_paint_face_clipped)
@@ -41,7 +40,7 @@ GPU_SHADER_CREATE_INFO(overlay_paint_point)
     .vertex_out(overlay_overlay_paint_point_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_paint_point_vert.glsl")
-    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .fragment_source("overlay_point_varying_color_frag.glsl")
     .additional_info("draw_modelmat", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_paint_point_clipped)
@@ -162,14 +161,13 @@ GPU_SHADER_INTERFACE_INFO(overlay_paint_wire_iface, "").flat(Type::VEC4, "finalC
 
 GPU_SHADER_CREATE_INFO(overlay_paint_wire)
     .do_static_compilation(true)
-    .define("srgbTarget", "false") /* NOTE: Color already in Linear space. */
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::VEC4, "nor") /* flag stored in w */
     .vertex_out(overlay_paint_wire_iface)
     .push_constant(Type::BOOL, "useSelect")
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_paint_wire_vert.glsl")
-    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_modelmat", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_paint_wire_clipped)

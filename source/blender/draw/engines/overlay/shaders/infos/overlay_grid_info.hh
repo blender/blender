@@ -31,11 +31,9 @@ GPU_SHADER_CREATE_INFO(overlay_grid_background)
 
 GPU_SHADER_CREATE_INFO(overlay_grid_image)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .push_constant(Type::VEC4, "color")
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_edit_uv_tiled_image_borders_vert.glsl")
-    .fragment_source("gpu_shader_uniform_color_frag.glsl")
+    .fragment_source("overlay_uniform_color_frag.glsl")
     .additional_info("draw_modelmat");

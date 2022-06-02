@@ -15,11 +15,9 @@ GPU_SHADER_CREATE_INFO(overlay_background)
 
 GPU_SHADER_CREATE_INFO(overlay_clipbound)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .push_constant(Type::VEC4, "color")
     .push_constant(Type::VEC3, "boundbox", 8)
     .vertex_source("overlay_clipbound_vert.glsl")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .fragment_source("gpu_shader_uniform_color_frag.glsl")
+    .fragment_source("overlay_uniform_color_frag.glsl")
     .additional_info("draw_view");

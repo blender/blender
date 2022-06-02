@@ -54,7 +54,7 @@ GPU_SHADER_CREATE_INFO(overlay_extra_grid)
     .vertex_out(overlay_extra_grid_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_extra_lightprobe_grid_vert.glsl")
-    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .fragment_source("overlay_point_varying_color_frag.glsl")
     .additional_info("draw_view", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_extra_grid_clipped)
@@ -149,7 +149,7 @@ GPU_SHADER_CREATE_INFO(overlay_extra_point)
     .vertex_out(overlay_extra_point_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_extra_point_vert.glsl")
-    .fragment_source("gpu_shader_point_varying_color_varying_outline_aa_frag.glsl")
+    .fragment_source("overlay_point_varying_color_varying_outline_aa_frag.glsl")
     .additional_info("draw_modelmat", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_extra_point_clipped)
@@ -216,7 +216,7 @@ GPU_SHADER_CREATE_INFO(overlay_motion_path_point)
     .vertex_out(overlay_motion_path_point_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_motion_path_point_vert.glsl")
-    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .fragment_source("overlay_point_varying_color_frag.glsl")
     .additional_info("draw_view", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_motion_path_point_clipped)
@@ -308,13 +308,11 @@ GPU_SHADER_CREATE_INFO(overlay_particle_dot_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_particle_shape)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     /* Instantiated Attrs. */
     .vertex_in(3, Type::VEC3, "pos")
     .vertex_in(4, Type::INT, "vclass")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("overlay_particle", "draw_modelmat", "draw_resource_id_uniform");
 
 GPU_SHADER_CREATE_INFO(overlay_particle_shape_clipped)

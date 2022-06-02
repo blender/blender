@@ -10,8 +10,6 @@ GPU_SHADER_INTERFACE_INFO(overlay_volume_velocity_iface, "").smooth(Type::VEC4, 
 
 GPU_SHADER_CREATE_INFO(overlay_volume_velocity)
     .do_static_compilation(true)
-    /* Colors are already in linear space. */
-    .define("srgbTarget", "false")
     .sampler(0, ImageType::FLOAT_3D, "velocityX")
     .sampler(1, ImageType::FLOAT_3D, "velocityY")
     .sampler(2, ImageType::FLOAT_3D, "velocityZ")
@@ -29,7 +27,7 @@ GPU_SHADER_CREATE_INFO(overlay_volume_velocity)
     .vertex_out(overlay_volume_velocity_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_volume_velocity_vert.glsl")
-    .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_volume");
 
 GPU_SHADER_CREATE_INFO(overlay_volume_velocity_mac)
@@ -55,8 +53,6 @@ GPU_SHADER_INTERFACE_INFO(overlay_volume_gridlines_iface, "").flat(Type::VEC4, "
 
 GPU_SHADER_CREATE_INFO(overlay_volume_gridlines)
     .do_static_compilation(true)
-    /* Colors are already in linear space. */
-    .define("srgbTarget", "false")
     .push_constant(Type::FLOAT, "slicePosition")
     .push_constant(Type::INT, "sliceAxis")
     /* FluidDomainSettings.res */
@@ -70,7 +66,7 @@ GPU_SHADER_CREATE_INFO(overlay_volume_gridlines)
     .vertex_out(overlay_volume_gridlines_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_source("overlay_volume_gridlines_vert.glsl")
-    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_volume");
 
 GPU_SHADER_CREATE_INFO(overlay_volume_gridlines_flags)
