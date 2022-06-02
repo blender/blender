@@ -1814,10 +1814,15 @@ def write_sphinx_conf_py(basepath):
     fw("extensions = ['sphinx.ext.intersphinx']\n\n")
     fw("intersphinx_mapping = {'blender_manual': ('https://docs.blender.org/manual/en/dev/', None)}\n\n")
     fw("project = 'Blender %s Python API'\n" % BLENDER_VERSION_STRING)
-    fw("master_doc = 'index'\n")
-    fw("copyright = u'Blender Foundation'\n")
+    fw("root_doc = 'index'\n")
+    fw("copyright = 'Blender Foundation'\n")
     fw("version = '%s'\n" % BLENDER_VERSION_DOTS)
     fw("release = '%s'\n" % BLENDER_VERSION_DOTS)
+
+    # Set this as the default is a super-set of Python3.
+    fw("highlight_language = 'python3'\n")
+    # No need to detect encoding.
+    fw("highlight_options = {'default': {'encoding': 'utf-8'}}\n\n")
 
     # Quiet file not in table-of-contents warnings.
     fw("exclude_patterns = [\n")
