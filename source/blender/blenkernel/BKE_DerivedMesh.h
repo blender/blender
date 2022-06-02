@@ -68,8 +68,8 @@ struct Object;
 struct Scene;
 
 /*
- * NOTE: all mface interfaces now officially operate on tessellated data.
- *       Also, the mface origindex layer indexes mpolys, not mfaces.
+ * NOTE: all #MFace interfaces now officially operate on tessellated data.
+ *       Also, the #MFace orig-index layer indexes #MPoly, not #MFace.
  */
 
 /* keep in sync with MFace/MPoly types */

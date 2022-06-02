@@ -1,6 +1,6 @@
 #pragma BLENDER_REQUIRE(gpu_shader_material_tangent.glsl)
 
-void node_geometry(vec3 orco,
+void node_geometry(vec3 orco_attr,
                    out vec3 position,
                    out vec3 normal,
                    out vec3 tangent,
@@ -21,8 +21,8 @@ void node_geometry(vec3 orco,
     tangent = g_data.curve_T;
   }
   else {
-    tangent_orco_z(orco, orco);
-    node_tangent(orco, tangent);
+    tangent_orco_z(orco_attr, orco_attr);
+    node_tangent(orco_attr, tangent);
   }
 
   parametric = vec3(g_data.barycentric_coords, 0.0);

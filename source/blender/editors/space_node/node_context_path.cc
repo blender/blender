@@ -26,8 +26,6 @@
 #include "UI_interface.hh"
 #include "UI_resources.h"
 
-#include "UI_interface.hh"
-
 #include "node_intern.hh"
 
 struct Curve;

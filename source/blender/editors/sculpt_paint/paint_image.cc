@@ -736,7 +736,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
   ot->poll = sample_color_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER;
 
   /* properties */
   PropertyRNA *prop;
@@ -954,7 +954,7 @@ void PAINT_OT_brush_colors_flip(wmOperatorType *ot)
   ot->poll = brush_colors_flip_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER;
 }
 
 void ED_imapaint_bucket_fill(struct bContext *C,

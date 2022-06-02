@@ -64,7 +64,7 @@ static Array<float3> curve_tangent_point_domain(const bke::CurvesGeometry &curve
 }
 
 static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &component,
-                                                      const AttributeDomain domain)
+                                                      const eAttrDomain domain)
 {
   if (!component.has_curves()) {
     return {};
@@ -101,7 +101,7 @@ class TangentFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_CURVE) {

@@ -4741,6 +4741,10 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
     # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
     # as a tool key-map with RMB-select and `use_fallback_tool_rmb` is enabled. See T92467.
 
+    props_vert_without_handles = ()
+    if select_passthrough:
+        props_vert_without_handles = ("vert_without_handles",)
+
     # See: `use_tweak_select_passthrough` doc-string.
     if select_passthrough and (value in {'CLICK', 'RELEASE'}):
         select_passthrough = False
@@ -4750,9 +4754,9 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
         {"type": type, "value": value, **{m: True for m in mods}},
         {"properties": [(c, True) for c in props]},
     ) for props, mods in (
-        ((("deselect_all", "select_passthrough") if select_passthrough else
-          ("deselect_all",)) if not legacy else (), ()),
-        (("toggle",), ("shift",)),
+        ((("deselect_all", "select_passthrough", *props_vert_without_handles) if select_passthrough else
+          ("deselect_all", *props_vert_without_handles)) if not legacy else (), ()),
+        (("toggle", *props_vert_without_handles), ("shift",)),
         (("center", "object"), ("ctrl",)),
         (("enumerate",), ("alt",)),
         (("toggle", "center"), ("shift", "ctrl")),
@@ -4767,7 +4771,10 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
         items.append((
             "view3d.select",
             {"type": type, "value": 'CLICK'},
-            {"properties": [("deselect_all", True)]},
+            {"properties": [
+                (c, True)
+                for c in ("deselect_all", *props_vert_without_handles)
+            ]},
         ))
 
     return items
@@ -5615,7 +5622,14 @@ def km_sculpt_curves(params):
          {"properties": [("mode", 'NORMAL')]}),
         ("sculpt_curves.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
          {"properties": [("mode", 'INVERT')]}),
+        ("sculpt_curves.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+         {"properties": [("mode", 'SMOOTH')]}),
+        ("curves.set_selection_domain", {"type": 'ONE', "value": 'PRESS'}, {"properties": [("domain", 'POINT')]}),
+        ("curves.set_selection_domain", {"type": 'TWO', "value": 'PRESS'}, {"properties": [("domain", 'CURVE')]}),
+        ("curves.disable_selection", {"type": 'ONE', "value": 'PRESS', "alt": True}, None),
+        ("curves.disable_selection", {"type": 'TWO', "value": 'PRESS', "alt": True}, None),
         *_template_paint_radial_control("curves_sculpt"),
+        *_template_items_select_actions(params, "sculpt_curves.select_all"),
     ])
 
     return keymap
@@ -6578,7 +6592,10 @@ def km_node_editor_tool_select(params, *, fallback):
         _fallback_id("Node Tool: Tweak", fallback),
         {"space_type": 'NODE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else
+            # The node key-map already selects, leave this empty.
+            # NOTE: intentionally don't check `fallback` here (unlike other tweak tool checks).
+            # as this should only be used on LMB select which would otherwise activate on click, not press.
+            *([] if (params.select_mouse == 'RIGHTMOUSE') else
               _template_node_select(type=params.select_mouse, value='PRESS', select_passthrough=True)),
         ]},
     )

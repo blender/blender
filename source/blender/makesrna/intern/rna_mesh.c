@@ -1094,7 +1094,7 @@ static int rna_MeshPoly_vertices_get_length(const PointerRNA *ptr,
 {
   const MPoly *mp = (MPoly *)ptr->data;
   /* NOTE: raw access uses dummy item, this _could_ crash,
-   * watch out for this, mface uses it but it can't work here. */
+   * watch out for this, #MFace uses it but it can't work here. */
   return (length[0] = mp->totloop);
 }
 

@@ -1400,6 +1400,14 @@ void WM_jobs_callbacks(struct wmJob *,
                        void (*update)(void *),
                        void (*endjob)(void *));
 
+void WM_jobs_callbacks_ex(wmJob *wm_job,
+                          wm_jobs_start_callback startjob,
+                          void (*initjob)(void *),
+                          void (*update)(void *),
+                          void (*endjob)(void *),
+                          void (*completed)(void *),
+                          void (*canceled)(void *));
+
 /**
  * If job running, the same owner gave it a new job.
  * if different owner starts existing startjob, it suspends itself
@@ -1426,6 +1434,7 @@ void WM_jobs_kill_all_except(struct wmWindowManager *wm, const void *owner);
 void WM_jobs_kill_type(struct wmWindowManager *wm, const void *owner, int job_type);
 
 bool WM_jobs_has_running(const struct wmWindowManager *wm);
+bool WM_jobs_has_running_type(const struct wmWindowManager *wm, int job_type);
 
 void WM_job_main_thread_lock_acquire(struct wmJob *job);
 void WM_job_main_thread_lock_release(struct wmJob *job);
@@ -1700,7 +1709,7 @@ void WM_xr_action_binding_destroy(wmXrData *xr,
 /**
  * If action_set_name is NULL, then all action sets will be treated as active.
  */
-bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name);
+bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name, bool delayed);
 
 bool WM_xr_controller_pose_actions_set(wmXrData *xr,
                                        const char *action_set_name,

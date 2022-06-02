@@ -141,8 +141,8 @@ set(SRC
   engines/eevee_next/eevee_pipeline.cc
   engines/eevee_next/eevee_shader.cc
   engines/eevee_next/eevee_sync.cc
-  engines/eevee_next/eevee_view.cc
   engines/eevee_next/eevee_velocity.cc
+  engines/eevee_next/eevee_view.cc
   engines/eevee_next/eevee_world.cc
   engines/workbench/workbench_data.c
   engines/workbench/workbench_effect_antialiasing.c

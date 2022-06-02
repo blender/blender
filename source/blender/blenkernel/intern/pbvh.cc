@@ -44,7 +44,7 @@ using blender::IndexRange;
 namespace blender::bke {
 
 template<typename Func>
-inline void to_static_color_type(const CustomDataType type, const Func &func)
+inline void to_static_color_type(const eCustomDataType type, const Func &func)
 {
   switch (type) {
     case CD_PROP_COLOR:
@@ -146,7 +146,7 @@ static void pbvh_vertex_color_set(PBVH &pbvh, int vertex, const float color[4])
 extern "C" {
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, int vertex, float r_color[4])
 {
-  blender::bke::to_static_color_type(CustomDataType(pbvh->color_layer->type), [&](auto dummy) {
+  blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
     blender::bke::pbvh_vertex_color_get<T>(*pbvh, vertex, r_color);
   });
@@ -154,7 +154,7 @@ void BKE_pbvh_vertex_color_get(const PBVH *pbvh, int vertex, float r_color[4])
 
 void BKE_pbvh_vertex_color_set(PBVH *pbvh, int vertex, const float color[4])
 {
-  blender::bke::to_static_color_type(CustomDataType(pbvh->color_layer->type), [&](auto dummy) {
+  blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
     blender::bke::pbvh_vertex_color_set<T>(*pbvh, vertex, color);
   });
@@ -165,7 +165,7 @@ void BKE_pbvh_swap_colors(PBVH *pbvh,
                           const int indices_num,
                           float (*r_colors)[4])
 {
-  blender::bke::to_static_color_type(CustomDataType(pbvh->color_layer->type), [&](auto dummy) {
+  blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
     T *pbvh_colors = static_cast<T *>(pbvh->color_layer->data);
     for (const int i : IndexRange(indices_num)) {
@@ -181,7 +181,7 @@ void BKE_pbvh_store_colors(PBVH *pbvh,
                            const int indices_num,
                            float (*r_colors)[4])
 {
-  blender::bke::to_static_color_type(CustomDataType(pbvh->color_layer->type), [&](auto dummy) {
+  blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
     T *pbvh_colors = static_cast<T *>(pbvh->color_layer->data);
     for (const int i : IndexRange(indices_num)) {
@@ -199,7 +199,7 @@ void BKE_pbvh_store_colors_vertex(PBVH *pbvh,
     BKE_pbvh_store_colors(pbvh, indices, indices_num, r_colors);
   }
   else {
-    blender::bke::to_static_color_type(CustomDataType(pbvh->color_layer->type), [&](auto dummy) {
+    blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
       using T = decltype(dummy);
       for (const int i : IndexRange(indices_num)) {
         blender::bke::pbvh_vertex_color_get<T>(*pbvh, indices[i], r_colors[i]);

@@ -549,7 +549,7 @@ PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
 bool BKE_pbvh_get_color_layer(const struct Mesh *me,
                               CustomDataLayer **r_layer,
-                              AttributeDomain *r_attr);
+                              eAttrDomain *r_attr);
 
 /* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
  * with values in colors. */

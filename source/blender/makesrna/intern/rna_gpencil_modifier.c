@@ -46,7 +46,7 @@
 #include "WM_types.h"
 
 const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
-    {0, "", 0, N_("Modify"), ""},
+    RNA_ENUM_ITEM_HEADING(N_("Modify"), NULL),
     {eGpencilModifierType_Texture,
      "GP_TEXTURE",
      ICON_MOD_UVPROJECT,
@@ -63,7 +63,8 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      ICON_MOD_VERTEX_WEIGHT,
      "Vertex Weight Proximity",
      "Generate Vertex Weights base on distance to object"},
-    {0, "", 0, N_("Generate"), ""},
+
+    RNA_ENUM_ITEM_HEADING(N_("Generate"), NULL),
     {eGpencilModifierType_Array,
      "GP_ARRAY",
      ICON_MOD_ARRAY,
@@ -114,7 +115,7 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      ICON_MOD_SUBSURF,
      "Subdivide",
      "Subdivide stroke adding more control points"},
-    {0, "", 0, N_("Deform"), ""},
+    RNA_ENUM_ITEM_HEADING(N_("Deform"), NULL),
     {eGpencilModifierType_Armature,
      "GP_ARMATURE",
      ICON_MOD_ARMATURE,
@@ -147,7 +148,7 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
      ICON_MOD_THICKNESS,
      "Thickness",
      "Change stroke thickness"},
-    {0, "", 0, N_("Color"), ""},
+    RNA_ENUM_ITEM_HEADING(N_("Color"), NULL),
     {eGpencilModifierType_Color,
      "GP_COLOR",
      ICON_MOD_HUE_SATURATION,

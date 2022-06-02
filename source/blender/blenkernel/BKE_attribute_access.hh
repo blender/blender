@@ -32,7 +32,7 @@
  *    extremely important for writing coherent bug-free code. When an attribute is retrieved with
  *    write access, via #WriteAttributeLookup or #OutputAttribute, the geometry component must be
  *    tagged to clear caches that depend on the changed data.
- * 2. Domain interpolation: When retrieving an attribute, a domain (#AttributeDomain) can be
+ * 2. Domain interpolation: When retrieving an attribute, a domain (#eAttrDomain) can be
  *    provided. If the attribute is stored on a different domain and conversion is possible, a
  *    version of the data interpolated to the requested domain will be provided. These conversions
  *    are implemented in each #GeometryComponent by `attribute_try_adapt_domain_impl`.
@@ -77,6 +77,9 @@ class AttributeIDRef {
   friend std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_id);
 };
 
+bool allow_procedural_attribute_access(StringRef attribute_name);
+extern const char *no_procedural_access_message;
+
 }  // namespace blender::bke
 
 /**
@@ -85,8 +88,8 @@ class AttributeIDRef {
  * stored (uv map, vertex group, ...).
  */
 struct AttributeMetaData {
-  AttributeDomain domain;
-  CustomDataType data_type;
+  eAttrDomain domain;
+  eCustomDataType data_type;
 
   constexpr friend bool operator==(AttributeMetaData a, AttributeMetaData b)
   {
@@ -95,8 +98,8 @@ struct AttributeMetaData {
 };
 
 struct AttributeKind {
-  AttributeDomain domain;
-  CustomDataType data_type;
+  eAttrDomain domain;
+  eCustomDataType data_type;
 };
 
 /**
@@ -164,12 +167,12 @@ using AttributeForeachCallback = blender::FunctionRef<bool(
 
 namespace blender::bke {
 
-CustomDataType attribute_data_type_highest_complexity(Span<CustomDataType> data_types);
+eCustomDataType attribute_data_type_highest_complexity(Span<eCustomDataType> data_types);
 /**
  * Domains with a higher "information density" have a higher priority,
  * in order to choose a domain that will not lose data through domain conversion.
  */
-AttributeDomain attribute_domain_highest_priority(Span<AttributeDomain> domains);
+eAttrDomain attribute_domain_highest_priority(Span<eAttrDomain> domains);
 
 /**
  * Used when looking up a "plain attribute" based on a name for reading from it.
@@ -178,7 +181,7 @@ struct ReadAttributeLookup {
   /* The virtual array that is used to read from this attribute. */
   GVArray varray;
   /* Domain the attribute lives on in the geometry. */
-  AttributeDomain domain;
+  eAttrDomain domain;
 
   /* Convenience function to check if the attribute has been found. */
   operator bool() const
@@ -194,7 +197,7 @@ struct WriteAttributeLookup {
   /** The virtual array that is used to read from and write to the attribute. */
   GVMutableArray varray;
   /** Domain the attributes lives on in the geometry component. */
-  AttributeDomain domain;
+  eAttrDomain domain;
   /**
    * Call this after changing the attribute to invalidate caches that depend on this attribute.
    * \note Do not call this after the component the attribute is from has been destructed.
@@ -229,7 +232,7 @@ class OutputAttribute {
 
  private:
   GVMutableArray varray_;
-  AttributeDomain domain_ = ATTR_DOMAIN_AUTO;
+  eAttrDomain domain_ = ATTR_DOMAIN_AUTO;
   SaveFn save_;
   std::unique_ptr<GVMutableArray_GSpan> optional_span_varray_;
   bool ignore_old_values_ = false;
@@ -238,10 +241,7 @@ class OutputAttribute {
  public:
   OutputAttribute();
   OutputAttribute(OutputAttribute &&other);
-  OutputAttribute(GVMutableArray varray,
-                  AttributeDomain domain,
-                  SaveFn save,
-                  bool ignore_old_values);
+  OutputAttribute(GVMutableArray varray, eAttrDomain domain, SaveFn save, bool ignore_old_values);
 
   ~OutputAttribute();
 
@@ -250,9 +250,9 @@ class OutputAttribute {
   GVMutableArray &operator*();
   GVMutableArray *operator->();
   GVMutableArray &varray();
-  AttributeDomain domain() const;
+  eAttrDomain domain() const;
   const CPPType &cpp_type() const;
-  CustomDataType custom_data_type() const;
+  eCustomDataType custom_data_type() const;
 
   GMutableSpan as_span();
   template<typename T> MutableSpan<T> as_span();
@@ -310,7 +310,7 @@ template<typename T> class OutputAttribute_Typed {
     return varray_;
   }
 
-  AttributeDomain domain() const
+  eAttrDomain domain() const
   {
     return attribute_.domain();
   }
@@ -320,7 +320,7 @@ template<typename T> class OutputAttribute_Typed {
     return CPPType::get<T>();
   }
 
-  CustomDataType custom_data_type() const
+  eCustomDataType custom_data_type() const
   {
     return cpp_type_to_custom_data_type(this->cpp_type());
   }
@@ -376,23 +376,21 @@ class CustomDataAttributes {
    * value for the type will be used.
    */
   blender::GVArray get_for_read(const AttributeIDRef &attribute_id,
-                                const CustomDataType data_type,
+                                eCustomDataType data_type,
                                 const void *default_value) const;
 
   template<typename T>
   blender::VArray<T> get_for_read(const AttributeIDRef &attribute_id, const T &default_value) const
   {
     const blender::CPPType &cpp_type = blender::CPPType::get<T>();
-    const CustomDataType type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
+    const eCustomDataType type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
     GVArray varray = this->get_for_read(attribute_id, type, &default_value);
     return varray.typed<T>();
   }
 
   std::optional<blender::GMutableSpan> get_for_write(const AttributeIDRef &attribute_id);
-  bool create(const AttributeIDRef &attribute_id, const CustomDataType data_type);
-  bool create_by_move(const AttributeIDRef &attribute_id,
-                      const CustomDataType data_type,
-                      void *buffer);
+  bool create(const AttributeIDRef &attribute_id, eCustomDataType data_type);
+  bool create_by_move(const AttributeIDRef &attribute_id, eCustomDataType data_type, void *buffer);
   bool remove(const AttributeIDRef &attribute_id);
 
   /**
@@ -400,7 +398,7 @@ class CustomDataAttributes {
    */
   void reorder(Span<AttributeIDRef> new_order);
 
-  bool foreach_attribute(const AttributeForeachCallback callback, AttributeDomain domain) const;
+  bool foreach_attribute(const AttributeForeachCallback callback, eAttrDomain domain) const;
 };
 
 /* -------------------------------------------------------------------- */
@@ -488,7 +486,7 @@ inline OutputAttribute::OutputAttribute() = default;
 inline OutputAttribute::OutputAttribute(OutputAttribute &&other) = default;
 
 inline OutputAttribute::OutputAttribute(GVMutableArray varray,
-                                        AttributeDomain domain,
+                                        eAttrDomain domain,
                                         SaveFn save,
                                         const bool ignore_old_values)
     : varray_(std::move(varray)),
@@ -518,7 +516,7 @@ inline GVMutableArray &OutputAttribute::varray()
   return varray_;
 }
 
-inline AttributeDomain OutputAttribute::domain() const
+inline eAttrDomain OutputAttribute::domain() const
 {
   return domain_;
 }
@@ -528,7 +526,7 @@ inline const CPPType &OutputAttribute::cpp_type() const
   return varray_.type();
 }
 
-inline CustomDataType OutputAttribute::custom_data_type() const
+inline eCustomDataType OutputAttribute::custom_data_type() const
 {
   return cpp_type_to_custom_data_type(this->cpp_type());
 }

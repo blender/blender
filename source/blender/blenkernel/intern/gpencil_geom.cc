@@ -4209,7 +4209,14 @@ bGPDstroke *BKE_gpencil_stroke_perimeter_from_view(struct RegionView3D *rv3d,
   if (gps->totpoints == 0) {
     return nullptr;
   }
-  bGPDstroke *gps_temp = BKE_gpencil_stroke_duplicate(gps, true, false);
+  /* Duplicate only points and fill data. Weight and Curve are not needed. */
+  bGPDstroke *gps_temp = (bGPDstroke *)MEM_dupallocN(gps);
+  gps_temp->prev = gps_temp->next = nullptr;
+  gps_temp->triangles = (bGPDtriangle *)MEM_dupallocN(gps->triangles);
+  gps_temp->points = (bGPDspoint *)MEM_dupallocN(gps->points);
+  gps_temp->dvert = nullptr;
+  gps_temp->editcurve = nullptr;
+
   const bool cyclic = ((gps_temp->flag & GP_STROKE_CYCLIC) != 0);
 
   /* If Cyclic, add a new point. */

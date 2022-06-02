@@ -153,6 +153,6 @@ class GHOST_WindowNULL : public GHOST_Window {
    */
   GHOST_Context *newDrawingContext(GHOST_TDrawingContextType type)
   {
-    return NULL;
+    return nullptr;
   }
 };

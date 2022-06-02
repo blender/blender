@@ -50,10 +50,8 @@
 /* to use custom arrows exported to geom_arrow_gizmo.c */
 //#define USE_GIZMO_CUSTOM_ARROWS
 
-/** Margins to add when selecting the arrow stem. */
-#define ARROW_SELECT_THRESHOLD_PX_STEM (5 * UI_DPI_FAC)
-/** Margins to add when selecting the arrow head. */
-#define ARROW_SELECT_THRESHOLD_PX_HEAD (12 * UI_DPI_FAC)
+/* Margin to add when selecting the arrow. */
+#define ARROW_SELECT_THRESHOLD_PX (5)
 
 typedef struct ArrowGizmo3D {
   wmGizmo gizmo;
@@ -121,8 +119,8 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
     };
 
     if (draw_options & ED_GIZMO_ARROW_DRAW_FLAG_STEM) {
-      const float stem_width = (arrow->gizmo.line_width * U.pixelsize) +
-                               (select ? ARROW_SELECT_THRESHOLD_PX_STEM : 0);
+      const float stem_width = arrow->gizmo.line_width * U.pixelsize +
+                               (select ? ARROW_SELECT_THRESHOLD_PX * U.dpi_fac : 0);
       immUniform1f("lineWidth", stem_width);
       wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_STRIP);
     }
@@ -134,7 +132,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 
     GPU_matrix_push();
 
-    /* NOTE: ideally #ARROW_SELECT_THRESHOLD_PX_HEAD would be added here, however adding a
+    /* NOTE: ideally #ARROW_SELECT_THRESHOLD_PX would be added here, however adding a
      * margin in pixel space isn't so simple, nor is it as important as for the arrow stem. */
     if (draw_style == ED_GIZMO_ARROW_STYLE_BOX) {
       const float size = 0.05f;
@@ -223,9 +221,15 @@ static void gizmo_arrow_draw(const bContext *UNUSED(C), wmGizmo *gz)
  */
 static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int mval[2])
 {
+  /* This following values are based on manual inspection of `verts[]` defined in
+   * geom_arrow_gizmo.c */
+  const float head_center_z = (0.974306f + 1.268098f) / 2;
+  const float head_geo_x = 0.051304f;
+  const float stem_geo_x = 0.012320f;
+
   /* Project into 2D space since it simplifies pixel threshold tests. */
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
-  const float arrow_length = RNA_float_get(arrow->gizmo.ptr, "length");
+  const float arrow_length = RNA_float_get(arrow->gizmo.ptr, "length") * head_center_z;
 
   float matrix_final[4][4];
   WM_gizmo_calc_matrix_final(gz, matrix_final);
@@ -239,12 +243,15 @@ static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int m
     copy_v2_v2(arrow_end, co);
   }
 
+  const float scale_final = mat4_to_scale(matrix_final);
+  const float head_width = ARROW_SELECT_THRESHOLD_PX * scale_final * head_geo_x;
+  const float stem_width = ARROW_SELECT_THRESHOLD_PX * scale_final * stem_geo_x;
+  float select_threshold_base = gz->line_width * U.pixelsize;
+
   const float mval_fl[2] = {UNPACK2(mval)};
-  const float arrow_stem_threshold_px = ARROW_SELECT_THRESHOLD_PX_STEM;
-  const float arrow_head_threshold_px = ARROW_SELECT_THRESHOLD_PX_HEAD;
 
   /* Distance to arrow head. */
-  if (len_squared_v2v2(mval_fl, arrow_end) < square_f(arrow_head_threshold_px)) {
+  if (len_squared_v2v2(mval_fl, arrow_end) < square_f(select_threshold_base + head_width)) {
     return 0;
   }
 
@@ -253,8 +260,8 @@ static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int m
   const float lambda = closest_to_line_v2(co_isect, mval_fl, arrow_start, arrow_end);
   /* Clamp inside the line, to avoid overlapping with other gizmos,
    * especially around the start of the arrow. */
-  if (lambda >= 0.0 && lambda <= 1.0) {
-    if (len_squared_v2v2(mval_fl, co_isect) < square_f(arrow_stem_threshold_px)) {
+  if (lambda >= 0.0f && lambda <= 1.0f) {
+    if (len_squared_v2v2(mval_fl, co_isect) < square_f(select_threshold_base + stem_width)) {
       return 0;
     }
   }

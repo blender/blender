@@ -467,6 +467,27 @@ typedef struct EnumPropertyItem {
   const char *description;
 } EnumPropertyItem;
 
+/**
+ * Heading for RNA enum items (shown in the UI).
+ *
+ * The description is currently only shown in the Python documentation.
+ * By convention the value should be a non-empty string or NULL when there is no description
+ * (never an empty string).
+ */
+#define RNA_ENUM_ITEM_HEADING(name, description) \
+  { \
+    0, "", 0, name, description \
+  }
+
+/** Separator for RNA enum items (shown in the UI). */
+#define RNA_ENUM_ITEM_SEPR \
+  { \
+    0, "", 0, NULL, NULL \
+  }
+
+/** Separator for RNA enum that begins a new column in menus (shown in the UI). */
+#define RNA_ENUM_ITEM_SEPR_COLUMN RNA_ENUM_ITEM_HEADING("", NULL)
+
 /* extended versions with PropertyRNA argument */
 typedef bool (*BooleanPropertyGetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop);
 typedef void (*BooleanPropertySetFunc)(struct PointerRNA *ptr,

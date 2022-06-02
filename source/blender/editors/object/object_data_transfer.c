@@ -45,7 +45,7 @@
  * Note some are 'fake' ones, i.e. they are not hold by real CDLayers. */
 /* Not shared with modifier, since we use a usual enum here, not a multi-choice one. */
 static const EnumPropertyItem DT_layer_items[] = {
-    {0, "", 0, "Vertex Data", ""},
+    RNA_ENUM_ITEM_HEADING("Vertex Data", NULL),
     {DT_TYPE_MDEFORMVERT,
      "VGROUP_WEIGHTS",
      0,
@@ -60,7 +60,8 @@ static const EnumPropertyItem DT_layer_items[] = {
     {DT_TYPE_SKIN, "SKIN", 0, "Skin Weight", "Transfer skin weights"},
 #endif
     {DT_TYPE_BWEIGHT_VERT, "BEVEL_WEIGHT_VERT", 0, "Bevel Weight", "Transfer bevel weights"},
-    {0, "", 0, "Edge Data", ""},
+
+    RNA_ENUM_ITEM_HEADING("Edge Data", NULL),
     {DT_TYPE_SHARP_EDGE, "SHARP_EDGE", 0, "Sharp", "Transfer sharp mark"},
     {DT_TYPE_SEAM, "SEAM", 0, "UV Seam", "Transfer UV seam mark"},
     {DT_TYPE_CREASE, "CREASE", 0, "Subdivision Crease", "Transfer crease values"},
@@ -70,11 +71,13 @@ static const EnumPropertyItem DT_layer_items[] = {
      0,
      "Freestyle Mark",
      "Transfer Freestyle edge mark"},
-    {0, "", 0, "Face Corner Data", ""},
+
+    RNA_ENUM_ITEM_HEADING("Face Corner Data", NULL),
     {DT_TYPE_LNOR, "CUSTOM_NORMAL", 0, "Custom Normals", "Transfer custom normals"},
     {DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP, "VCOL", 0, "Colors", "Color Attributes"},
     {DT_TYPE_UV, "UV", 0, "UVs", "Transfer UV layers"},
-    {0, "", 0, "Face Data", ""},
+
+    RNA_ENUM_ITEM_HEADING("Face Data", NULL),
     {DT_TYPE_SHARP_FACE, "SMOOTH", 0, "Smooth", "Transfer flat/smooth mark"},
     {DT_TYPE_FREESTYLE_FACE,
      "FREESTYLE_FACE",
@@ -85,14 +88,14 @@ static const EnumPropertyItem DT_layer_items[] = {
 };
 
 static void dt_add_vcol_layers(CustomData *cdata,
-                               CustomDataMask mask,
+                               eCustomDataMask mask,
                                EnumPropertyItem **r_item,
                                int *r_totitem)
 {
   int types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
 
   for (int i = 0; i < 2; i++) {
-    CustomDataType type = types[i];
+    eCustomDataType type = types[i];
 
     if (!(mask & CD_TYPE_AS_MASK(type))) {
       continue;

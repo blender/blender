@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8-80 compliant>
-
 # This file defines a set of methods that are useful for various
 # Relative Keying Set (RKS) related operations, such as: callbacks
 # for polling, iterator callbacks, and also generate callbacks.

@@ -81,9 +81,9 @@ struct CurvesUniformBufPool {
   {
     if (used >= ubos.size()) {
       ubos.append(std::make_unique<CurvesInfosBuf>());
-      return *ubos.last().get();
+      return *ubos.last();
     }
-    return *ubos[used++].get();
+    return *ubos[used++];
   }
 };
 

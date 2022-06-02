@@ -31,6 +31,11 @@ struct OpenSubdiv_EvaluatorInternal;
 struct OpenSubdiv_PatchCoord;
 struct OpenSubdiv_TopologyRefiner;
 
+typedef struct OpenSubdiv_EvaluatorSettings {
+  // Number of smoothly interpolated vertex data channels.
+  int num_vertex_data;
+} OpenSubdiv_EvaluatorSettings;
+
 // Callback type for doing input/output operations on buffers.
 // Useful to abstract GPU buffers.
 typedef struct OpenSubdiv_Buffer {
@@ -64,6 +69,10 @@ typedef struct OpenSubdiv_Buffer {
 } OpenSubdiv_Buffer;
 
 typedef struct OpenSubdiv_Evaluator {
+  // Set settings for data buffers used.
+  void (*setSettings)(struct OpenSubdiv_Evaluator *evaluator,
+                      const OpenSubdiv_EvaluatorSettings *settings);
+
   // Set coarse positions from a continuous array of coordinates.
   void (*setCoarsePositions)(struct OpenSubdiv_Evaluator *evaluator,
                              const float *positions,
@@ -234,16 +243,10 @@ typedef struct OpenSubdiv_EvaluatorCache {
   struct OpenSubdiv_EvaluatorCacheImpl *impl;
 } OpenSubdiv_EvaluatorCache;
 
-typedef struct OpenSubdiv_EvaluatorSettings {
-  // Number of smoothly interpolated vertex data channels.
-  int num_vertex_data;
-} OpenSubdiv_EvaluatorSettings;
-
 OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
     struct OpenSubdiv_TopologyRefiner *topology_refiner,
     eOpenSubdivEvaluator evaluator_type,
-    OpenSubdiv_EvaluatorCache *evaluator_cache,
-    const OpenSubdiv_EvaluatorSettings *settings);
+    OpenSubdiv_EvaluatorCache *evaluator_cache);
 
 void openSubdiv_deleteEvaluator(OpenSubdiv_Evaluator *evaluator);
 

@@ -97,8 +97,6 @@
 #include "RNA_enum_types.h"
 #include "RNA_types.h"
 
-#include "NOD_shader.h"
-
 #include "IMB_colormanagement.h"
 
 //#include "bmesh_tools.h"
@@ -4494,7 +4492,8 @@ static void project_paint_begin(const bContext *C,
     }
   }
 
-  /* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
+  /* when using sub-surface or multi-resolution,
+   * mesh-data arrays are thrown away, we need to keep a copy. */
   if (ps->is_shared_user == false) {
     proj_paint_state_cavity_init(ps);
   }
@@ -6490,14 +6489,14 @@ static CustomDataLayer *proj_paint_color_attribute_create(wmOperator *op, Object
 {
   char name[MAX_NAME] = "";
   float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-  AttributeDomain domain = ATTR_DOMAIN_POINT;
-  CustomDataType type = CD_PROP_COLOR;
+  eAttrDomain domain = ATTR_DOMAIN_POINT;
+  eCustomDataType type = CD_PROP_COLOR;
 
   if (op) {
     RNA_string_get(op->ptr, "name", name);
     RNA_float_get_array(op->ptr, "color", color);
-    domain = (AttributeDomain)RNA_enum_get(op->ptr, "domain");
-    type = (CustomDataType)RNA_enum_get(op->ptr, "data_type");
+    domain = (eAttrDomain)RNA_enum_get(op->ptr, "domain");
+    type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
   }
 
   ID *id = (ID *)ob->data;

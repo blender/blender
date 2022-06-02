@@ -58,7 +58,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
                                         Field<float3> &position_field,
                                         Field<float> &radius_field,
                                         Field<bool> &selection_field,
-                                        const AttributeDomain domain)
+                                        const eAttrDomain domain)
 {
   const MeshComponent *mesh_component = geometry_set.get_component_for_read<MeshComponent>();
   if (mesh_component == nullptr) {
@@ -105,7 +105,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
 
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    const CustomDataType data_type = entry.value.data_type;
+    const eCustomDataType data_type = entry.value.data_type;
     GVArray src = mesh_component->attribute_get_for_read(attribute_id, domain, data_type);
     OutputAttribute dst = point_component.attribute_try_get_for_output_only(
         attribute_id, ATTR_DOMAIN_POINT, data_type);

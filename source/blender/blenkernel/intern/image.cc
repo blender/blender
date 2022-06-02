@@ -2929,6 +2929,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
           MEM_freeN(tile);
         }
         base_tile->next = nullptr;
+        base_tile->tile_number = 1001;
         ima->tiles.last = base_tile;
       }
 
@@ -3111,7 +3112,9 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start,
   char filename[FILE_MAXFILE], dirname[FILE_MAXDIR];
   BLI_split_dirfile(filepath, dirname, filename, sizeof(dirname), sizeof(filename));
 
-  BKE_image_ensure_tile_token(filename);
+  if (!BKE_image_is_filename_tokenized(filename)) {
+    BKE_image_ensure_tile_token(filename);
+  }
 
   eUDIM_TILE_FORMAT tile_format;
   char *udim_pattern = BKE_image_get_tile_strformat(filename, &tile_format);
@@ -3145,10 +3148,7 @@ bool BKE_image_get_tile_info(char *filepath, ListBase *tiles, int *r_tile_start,
   BLI_filelist_free(dirs, dirs_num);
   MEM_SAFE_FREE(udim_pattern);
 
-  /* Ensure that all discovered UDIMs are valid and that there's at least 2 files in total.
-   * Downstream code checks the range value to determine tiled-ness; it's important we match that
-   * expectation here too (T97366). */
-  if (all_valid_udim && min_udim <= IMA_UDIM_MAX && max_udim > min_udim) {
+  if (all_valid_udim && min_udim <= IMA_UDIM_MAX) {
     BLI_join_dirfile(filepath, FILE_MAX, dirname, filename);
 
     *r_tile_start = min_udim;
@@ -3315,13 +3315,18 @@ bool BKE_image_fill_tile(struct Image *ima,
   return false;
 }
 
+bool BKE_image_is_filename_tokenized(char *filepath)
+{
+  const char *filename = BLI_path_basename(filepath);
+  return strstr(filename, "<UDIM>") != nullptr || strstr(filename, "<UVTILE>") != nullptr;
+}
+
 void BKE_image_ensure_tile_token(char *filename)
 {
   BLI_assert_msg(BLI_path_slash_find(filename) == nullptr,
                  "Only the file-name component should be used!");
 
-  /* Is there a '<' character in the filename? Assume tokens already present. */
-  if (strstr(filename, "<") != nullptr) {
+  if (BKE_image_is_filename_tokenized(filename)) {
     return;
   }
 

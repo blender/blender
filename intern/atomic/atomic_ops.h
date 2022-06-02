@@ -124,6 +124,8 @@ ATOMIC_INLINE unsigned int atomic_fetch_and_sub_u(unsigned int *p, unsigned int 
 ATOMIC_INLINE unsigned int atomic_cas_u(unsigned int *v, unsigned int old, unsigned int _new);
 
 ATOMIC_INLINE void *atomic_cas_ptr(void **v, void *old, void *_new);
+ATOMIC_INLINE void *atomic_load_ptr(void *const *v);
+ATOMIC_INLINE void atomic_store_ptr(void **p, void *v);
 
 ATOMIC_INLINE float atomic_cas_float(float *v, float old, float _new);
 

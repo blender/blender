@@ -43,7 +43,7 @@ static int node_shader_gpu_vertex_color(GPUMaterial *mat,
 {
   NodeShaderVertexColor *vertexColor = (NodeShaderVertexColor *)node->storage;
   /* NOTE: using CD_AUTO_FROM_NAME instead of CD_MCOL or CD_PROP_COLOR for named attributes
-   * as geometry nodes may overwrite data which will also change the CustomDataType.
+   * as geometry nodes may overwrite data which will also change the eCustomDataType.
    * This will also make EEVEE and Cycles
    * consistent. See T93179. */
 

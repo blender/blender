@@ -1572,6 +1572,7 @@ typedef enum DeviceKernel {
   DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT,
   DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE,
   DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE,
+  DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE,
   DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME,
   DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW,
   DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL,
@@ -1689,6 +1690,9 @@ enum KernelFeatureFlag : uint32_t {
   KERNEL_FEATURE_AO_PASS = (1U << 25U),
   KERNEL_FEATURE_AO_ADDITIVE = (1U << 26U),
   KERNEL_FEATURE_AO = (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE),
+
+  /* MNEE. */
+  KERNEL_FEATURE_MNEE = (1U << 27U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */
@@ -1714,9 +1718,12 @@ enum KernelFeatureFlag : uint32_t {
  * are different depending on the main, shadow or null path. For GPU we don't have
  * C++17 everywhere so can't use it. */
 #ifdef __KERNEL_CPU__
+#  define IF_KERNEL_FEATURE(feature) \
+    if constexpr ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
 #  define IF_KERNEL_NODES_FEATURE(feature) \
     if constexpr ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
 #else
+#  define IF_KERNEL_FEATURE(feature) if ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
 #  define IF_KERNEL_NODES_FEATURE(feature) \
     if ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
 #endif

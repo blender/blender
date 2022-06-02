@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8-80 compliant>
-
 from mathutils import Vector
 import bpy
 from bpy.types import Operator

@@ -1653,7 +1653,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
        "Link Instance Collection",
        "Replace assigned Collection Instance"},
       {MAKE_LINKS_FONTS, "FONTS", 0, "Link Fonts to Text", "Replace Text object Fonts"},
-      {0, "", 0, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {MAKE_LINKS_MODIFIERS, "MODIFIERS", 0, "Copy Modifiers", "Replace Modifiers"},
       {MAKE_LINKS_SHADERFX,
        "EFFECTS",

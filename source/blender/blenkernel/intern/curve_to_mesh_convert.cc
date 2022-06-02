@@ -315,8 +315,8 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
   return result;
 }
 
-static AttributeDomain get_attribute_domain_for_mesh(const MeshComponent &mesh,
-                                                     const AttributeIDRef &attribute_id)
+static eAttrDomain get_attribute_domain_for_mesh(const MeshComponent &mesh,
+                                                 const AttributeIDRef &attribute_id)
 {
   /* Only use a different domain if it is builtin and must only exist on one domain. */
   if (!mesh.attribute_is_builtin(attribute_id)) {
@@ -456,7 +456,7 @@ static void copy_main_point_data_to_mesh_faces(const Span<T> src,
 
 static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_info,
                                                      const ResultOffsets &offsets,
-                                                     const AttributeDomain dst_domain,
+                                                     const eAttrDomain dst_domain,
                                                      const GSpan src_all,
                                                      GMutableSpan dst_all)
 {
@@ -538,7 +538,7 @@ static void copy_profile_point_data_to_mesh_faces(const Span<T> src,
 
 static void copy_profile_point_domain_attribute_to_mesh(const CurvesInfo &curves_info,
                                                         const ResultOffsets &offsets,
-                                                        const AttributeDomain dst_domain,
+                                                        const eAttrDomain dst_domain,
                                                         const GSpan src_all,
                                                         GMutableSpan dst_all)
 {
@@ -597,7 +597,7 @@ static void copy_indices_to_offset_ranges(const VArray<T> &src,
 
 static void copy_curve_domain_attribute_to_mesh(const ResultOffsets &mesh_offsets,
                                                 const Span<int> curve_indices,
-                                                const AttributeDomain dst_domain,
+                                                const eAttrDomain dst_domain,
                                                 const GVArray &src,
                                                 GMutableSpan dst)
 {
@@ -728,11 +728,11 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     }
     main_attributes.add_new(id);
 
-    const AttributeDomain src_domain = meta_data.domain;
-    const CustomDataType type = meta_data.data_type;
+    const eAttrDomain src_domain = meta_data.domain;
+    const eCustomDataType type = meta_data.data_type;
     GVArray src = main_component.attribute_try_get_for_read(id, src_domain, type);
 
-    const AttributeDomain dst_domain = get_attribute_domain_for_mesh(mesh_component, id);
+    const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_component, id);
     OutputAttribute dst = mesh_component.attribute_try_get_for_output_only(id, dst_domain, type);
     if (!dst) {
       return true;
@@ -763,11 +763,11 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     if (!should_add_attribute_to_mesh(profile_component, mesh_component, id)) {
       return true;
     }
-    const AttributeDomain src_domain = meta_data.domain;
-    const CustomDataType type = meta_data.data_type;
+    const eAttrDomain src_domain = meta_data.domain;
+    const eCustomDataType type = meta_data.data_type;
     GVArray src = profile_component.attribute_try_get_for_read(id, src_domain, type);
 
-    const AttributeDomain dst_domain = get_attribute_domain_for_mesh(mesh_component, id);
+    const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_component, id);
     OutputAttribute dst = mesh_component.attribute_try_get_for_output_only(id, dst_domain, type);
     if (!dst) {
       return true;

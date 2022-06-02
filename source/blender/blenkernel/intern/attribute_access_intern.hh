@@ -47,16 +47,16 @@ class BuiltinAttributeProvider {
 
  protected:
   const std::string name_;
-  const AttributeDomain domain_;
-  const CustomDataType data_type_;
+  const eAttrDomain domain_;
+  const eCustomDataType data_type_;
   const CreatableEnum createable_;
   const WritableEnum writable_;
   const DeletableEnum deletable_;
 
  public:
   BuiltinAttributeProvider(std::string name,
-                           const AttributeDomain domain,
-                           const CustomDataType data_type,
+                           const eAttrDomain domain,
+                           const eCustomDataType data_type,
                            const CreatableEnum createable,
                            const WritableEnum writable,
                            const DeletableEnum deletable)
@@ -81,12 +81,12 @@ class BuiltinAttributeProvider {
     return name_;
   }
 
-  AttributeDomain domain() const
+  eAttrDomain domain() const
   {
     return domain_;
   }
 
-  CustomDataType data_type() const
+  eCustomDataType data_type() const
   {
     return data_type_;
   }
@@ -106,8 +106,8 @@ class DynamicAttributesProvider {
                           const AttributeIDRef &attribute_id) const = 0;
   virtual bool try_create(GeometryComponent &UNUSED(component),
                           const AttributeIDRef &UNUSED(attribute_id),
-                          const AttributeDomain UNUSED(domain),
-                          const CustomDataType UNUSED(data_type),
+                          const eAttrDomain UNUSED(domain),
+                          const eCustomDataType UNUSED(data_type),
                           const AttributeInit &UNUSED(initializer)) const
   {
     /* Some providers should not create new attributes. */
@@ -116,7 +116,7 @@ class DynamicAttributesProvider {
 
   virtual bool foreach_attribute(const GeometryComponent &component,
                                  const AttributeForeachCallback callback) const = 0;
-  virtual void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const = 0;
+  virtual void foreach_domain(const FunctionRef<void(eAttrDomain)> callback) const = 0;
 };
 
 /**
@@ -128,11 +128,11 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
                                                    CD_MASK_PROP_FLOAT3 | CD_MASK_PROP_INT32 |
                                                    CD_MASK_PROP_COLOR | CD_MASK_PROP_BOOL |
                                                    CD_MASK_PROP_INT8 | CD_MASK_PROP_BYTE_COLOR;
-  const AttributeDomain domain_;
+  const eAttrDomain domain_;
   const CustomDataAccessInfo custom_data_access_;
 
  public:
-  CustomDataAttributeProvider(const AttributeDomain domain,
+  CustomDataAttributeProvider(const eAttrDomain domain,
                               const CustomDataAccessInfo custom_data_access)
       : domain_(domain), custom_data_access_(custom_data_access)
   {
@@ -148,20 +148,20 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
 
   bool try_create(GeometryComponent &component,
                   const AttributeIDRef &attribute_id,
-                  AttributeDomain domain,
-                  const CustomDataType data_type,
+                  eAttrDomain domain,
+                  const eCustomDataType data_type,
                   const AttributeInit &initializer) const final;
 
   bool foreach_attribute(const GeometryComponent &component,
                          const AttributeForeachCallback callback) const final;
 
-  void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final
+  void foreach_domain(const FunctionRef<void(eAttrDomain)> callback) const final
   {
     callback(domain_);
   }
 
  private:
-  bool type_is_supported(CustomDataType data_type) const
+  bool type_is_supported(eCustomDataType data_type) const
   {
     return ((1ULL << data_type) & supported_types_mask) != 0;
   }
@@ -174,17 +174,17 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
  private:
   using AsReadAttribute = GVArray (*)(const void *data, int domain_num);
   using AsWriteAttribute = GVMutableArray (*)(void *data, int domain_num);
-  const AttributeDomain domain_;
-  const CustomDataType attribute_type_;
-  const CustomDataType stored_type_;
+  const eAttrDomain domain_;
+  const eCustomDataType attribute_type_;
+  const eCustomDataType stored_type_;
   const CustomDataAccessInfo custom_data_access_;
   const AsReadAttribute as_read_attribute_;
   const AsWriteAttribute as_write_attribute_;
 
  public:
-  NamedLegacyCustomDataProvider(const AttributeDomain domain,
-                                const CustomDataType attribute_type,
-                                const CustomDataType stored_type,
+  NamedLegacyCustomDataProvider(const eAttrDomain domain,
+                                const eCustomDataType attribute_type,
+                                const eCustomDataType stored_type,
                                 const CustomDataAccessInfo custom_data_access,
                                 const AsReadAttribute as_read_attribute,
                                 const AsWriteAttribute as_write_attribute)
@@ -204,7 +204,7 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
   bool try_delete(GeometryComponent &component, const AttributeIDRef &attribute_id) const final;
   bool foreach_attribute(const GeometryComponent &component,
                          const AttributeForeachCallback callback) const final;
-  void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final;
+  void foreach_domain(const FunctionRef<void(eAttrDomain)> callback) const final;
 };
 
 template<typename T> GVArray make_array_read_attribute(const void *data, const int domain_num)
@@ -230,7 +230,7 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   using AsWriteAttribute = GVMutableArray (*)(void *data, int domain_num);
   using UpdateOnRead = void (*)(const GeometryComponent &component);
   using UpdateOnWrite = void (*)(GeometryComponent &component);
-  const CustomDataType stored_type_;
+  const eCustomDataType stored_type_;
   const CustomDataAccessInfo custom_data_access_;
   const AsReadAttribute as_read_attribute_;
   const AsWriteAttribute as_write_attribute_;
@@ -239,9 +239,9 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
 
  public:
   BuiltinCustomDataLayerProvider(std::string attribute_name,
-                                 const AttributeDomain domain,
-                                 const CustomDataType attribute_type,
-                                 const CustomDataType stored_type,
+                                 const eAttrDomain domain,
+                                 const eCustomDataType attribute_type,
+                                 const eCustomDataType stored_type,
                                  const CreatableEnum creatable,
                                  const WritableEnum writable,
                                  const DeletableEnum deletable,
@@ -288,7 +288,7 @@ class ComponentAttributeProviders {
   /**
    * All the domains that are supported by at least one of the providers above.
    */
-  VectorSet<AttributeDomain> supported_domains_;
+  VectorSet<eAttrDomain> supported_domains_;
 
  public:
   ComponentAttributeProviders(Span<const BuiltinAttributeProvider *> builtin_attribute_providers,
@@ -301,7 +301,7 @@ class ComponentAttributeProviders {
       supported_domains_.add(provider->domain());
     }
     for (const DynamicAttributesProvider *provider : dynamic_attribute_providers) {
-      provider->foreach_domain([&](AttributeDomain domain) { supported_domains_.add(domain); });
+      provider->foreach_domain([&](eAttrDomain domain) { supported_domains_.add(domain); });
     }
   }
 
@@ -315,7 +315,7 @@ class ComponentAttributeProviders {
     return dynamic_attribute_providers_;
   }
 
-  Span<AttributeDomain> supported_domains() const
+  Span<eAttrDomain> supported_domains() const
   {
     return supported_domains_;
   }

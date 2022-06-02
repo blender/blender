@@ -1264,7 +1264,7 @@ static int pbvh_get_buffers_update_flags(PBVH *UNUSED(pbvh))
   return update_flags;
 }
 
-bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, AttributeDomain *r_attr)
+bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_attr)
 {
   CustomDataLayer *layer = BKE_id_attributes_active_color_get((ID *)me);
 
@@ -1274,7 +1274,7 @@ bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, Attribu
     return false;
   }
 
-  AttributeDomain domain = BKE_id_attribute_domain((ID *)me, layer);
+  eAttrDomain domain = BKE_id_attribute_domain((ID *)me, layer);
 
   if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
     *r_layer = NULL;
@@ -1340,7 +1340,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
         break;
       case PBVH_FACES: {
         CustomDataLayer *layer = NULL;
-        AttributeDomain domain;
+        eAttrDomain domain;
 
         BKE_pbvh_get_color_layer(pbvh->mesh, &layer, &domain);
 

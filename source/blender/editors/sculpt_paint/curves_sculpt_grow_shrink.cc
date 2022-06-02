@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-#include "curves_sculpt_intern.hh"
-
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_kdtree.h"
@@ -282,6 +280,10 @@ struct CurvesEffectOperationExecutor {
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
+  VArray<float> curve_selection_factors_;
+  Vector<int64_t> selected_curve_indices_;
+  IndexMask curve_selection_;
+
   const Brush *brush_ = nullptr;
   float brush_radius_base_re_;
   float brush_radius_factor_;
@@ -319,6 +321,9 @@ struct CurvesEffectOperationExecutor {
     if (curves_->curves_num() == 0) {
       return;
     }
+
+    curve_selection_factors_ = get_curves_selection(*curves_id_);
+    curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
     const CurvesSculpt &curves_sculpt = *scene_->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt.paint);
@@ -398,6 +403,8 @@ struct CurvesEffectOperationExecutor {
       for (const int curve_i : curves_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
 
+        const float curve_selection_factor = curve_selection_factors_[curve_i];
+
         float max_move_distance_cu = 0.0f;
         for (const float4x4 &brush_transform_inv : symmetry_brush_transforms_inv) {
           for (const int segment_i : points.drop_back(1)) {
@@ -428,7 +435,7 @@ struct CurvesEffectOperationExecutor {
             const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
             const float radius_falloff = BKE_brush_curve_strength(
                 brush_, dist_to_brush_re, brush_radius_re);
-            const float weight = brush_strength_ * radius_falloff;
+            const float weight = brush_strength_ * radius_falloff * curve_selection_factor;
 
             const float3 closest_on_segment_cu = math::interpolate(
                 p1_cu, p2_cu, lambda_on_segment);
@@ -493,6 +500,9 @@ struct CurvesEffectOperationExecutor {
         const IndexRange points = curves_->points_for_curve(curve_i);
 
         float max_move_distance_cu = 0.0f;
+
+        const float curve_selection_factor = curve_selection_factors_[curve_i];
+
         for (const float4x4 &brush_transform : symmetry_brush_transforms) {
           const float3 brush_pos_start_transformed_cu = brush_transform * brush_pos_start_cu;
           const float3 brush_pos_end_transformed_cu = brush_transform * brush_pos_end_cu;
@@ -519,7 +529,7 @@ struct CurvesEffectOperationExecutor {
             const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
             const float radius_falloff = BKE_brush_curve_strength(
                 brush_, dist_to_brush_cu, brush_radius_cu);
-            const float weight = brush_strength_ * radius_falloff;
+            const float weight = brush_strength_ * radius_falloff * curve_selection_factor;
 
             const float move_distance_cu = weight * brush_pos_diff_length_cu;
             max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);

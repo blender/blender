@@ -33,6 +33,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "ED_geometry.h"
 #include "ED_object.h"
 
 #include "geometry_intern.hh"
@@ -89,8 +90,8 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
-  CustomDataType type = (CustomDataType)RNA_enum_get(op->ptr, "data_type");
-  AttributeDomain domain = (AttributeDomain)RNA_enum_get(op->ptr, "domain");
+  eCustomDataType type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
+  eAttrDomain domain = (eAttrDomain)RNA_enum_get(op->ptr, "domain");
   CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
 
   if (layer == nullptr) {
@@ -218,8 +219,8 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
-  CustomDataType type = (CustomDataType)RNA_enum_get(op->ptr, "data_type");
-  AttributeDomain domain = (AttributeDomain)RNA_enum_get(op->ptr, "domain");
+  eCustomDataType type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
+  eAttrDomain domain = (eAttrDomain)RNA_enum_get(op->ptr, "domain");
   CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
 
   float color[4];
@@ -288,9 +289,8 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
    * 4. Create a new attribute based on the previously copied data. */
   switch (mode) {
     case ConvertAttributeMode::Generic: {
-      const AttributeDomain dst_domain = static_cast<AttributeDomain>(
-          RNA_enum_get(op->ptr, "domain"));
-      const CustomDataType dst_type = static_cast<CustomDataType>(
+      const eAttrDomain dst_domain = static_cast<eAttrDomain>(RNA_enum_get(op->ptr, "domain"));
+      const eCustomDataType dst_type = static_cast<eCustomDataType>(
           RNA_enum_get(op->ptr, "data_type"));
 
       if (ELEM(dst_type, CD_PROP_STRING)) {
@@ -402,7 +402,7 @@ void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
   static float default_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
   prop = RNA_def_float_color(
-      ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
+      ot->srna, "color", 4, nullptr, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
   RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
   RNA_def_property_float_array_default(prop, default_color);
 }
@@ -572,3 +572,38 @@ void GEOMETRY_OT_attribute_convert(wmOperatorType *ot)
 }
 
 }  // namespace blender::ed::geometry
+
+using blender::CPPType;
+using blender::GVArray;
+
+bool ED_geometry_attribute_convert(Mesh *mesh,
+                                   const char *layer_name,
+                                   eCustomDataType old_type,
+                                   eAttrDomain old_domain,
+                                   eCustomDataType new_type,
+                                   eAttrDomain new_domain)
+{
+  CustomDataLayer *layer = BKE_id_attribute_find(&mesh->id, layer_name, old_type, old_domain);
+  const std::string name = layer->name;
+
+  if (!layer) {
+    return false;
+  }
+
+  MeshComponent mesh_component;
+  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
+  GVArray src_varray = mesh_component.attribute_get_for_read(name, new_domain, new_type);
+
+  const CPPType &cpp_type = src_varray.type();
+  void *new_data = MEM_malloc_arrayN(src_varray.size(), cpp_type.size(), __func__);
+  src_varray.materialize_to_uninitialized(new_data);
+  mesh_component.attribute_try_delete(name);
+  mesh_component.attribute_try_create(name, new_domain, new_type, AttributeInitMove(new_data));
+
+  int *active_index = BKE_id_attributes_active_index_p(&mesh->id);
+  if (*active_index > 0) {
+    *active_index -= 1;
+  }
+
+  return true;
+}

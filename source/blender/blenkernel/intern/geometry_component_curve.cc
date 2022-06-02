@@ -114,7 +114,7 @@ void CurveComponentLegacy::ensure_owns_direct_data()
 /** \name Attribute Access Helper Functions
  * \{ */
 
-int CurveComponentLegacy::attribute_domain_num(const AttributeDomain domain) const
+int CurveComponentLegacy::attribute_domain_num(const eAttrDomain domain) const
 {
   if (curve_ == nullptr) {
     return 0;
@@ -308,10 +308,9 @@ static GVArray adapt_curve_domain_spline_to_point(const CurveEval &curve, GVArra
 
 }  // namespace blender::bke
 
-GVArray CurveComponentLegacy::attribute_try_adapt_domain_impl(
-    const GVArray &varray,
-    const AttributeDomain from_domain,
-    const AttributeDomain to_domain) const
+GVArray CurveComponentLegacy::attribute_try_adapt_domain_impl(const GVArray &varray,
+                                                              const eAttrDomain from_domain,
+                                                              const eAttrDomain to_domain) const
 {
   if (!varray) {
     return {};
@@ -366,7 +365,7 @@ class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
 
  public:
   BuiltinSplineAttributeProvider(std::string attribute_name,
-                                 const CustomDataType attribute_type,
+                                 const eCustomDataType attribute_type,
                                  const WritableEnum writable,
                                  const AsReadAttribute as_read_attribute,
                                  const AsWriteAttribute as_write_attribute)
@@ -577,7 +576,7 @@ static void point_attribute_materialize_to_uninitialized(Span<Span<T>> data,
 }
 
 static GVArray varray_from_initializer(const AttributeInit &initializer,
-                                       const CustomDataType data_type,
+                                       const eCustomDataType data_type,
                                        const Span<SplinePtr> splines)
 {
   switch (initializer.type) {
@@ -604,7 +603,7 @@ static GVArray varray_from_initializer(const AttributeInit &initializer,
 static bool create_point_attribute(GeometryComponent &component,
                                    const AttributeIDRef &attribute_id,
                                    const AttributeInit &initializer,
-                                   const CustomDataType data_type)
+                                   const eCustomDataType data_type)
 {
   CurveEval *curve = get_curve_from_component_for_write(component);
   if (curve == nullptr || curve->splines().size() == 0) {
@@ -1306,8 +1305,8 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
 
   bool try_create(GeometryComponent &component,
                   const AttributeIDRef &attribute_id,
-                  const AttributeDomain domain,
-                  const CustomDataType data_type,
+                  const eAttrDomain domain,
+                  const eCustomDataType data_type,
                   const AttributeInit &initializer) const final
   {
     BLI_assert(this->type_is_supported(data_type));
@@ -1336,12 +1335,12 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
     return true;
   }
 
-  void foreach_domain(const FunctionRef<void(AttributeDomain)> callback) const final
+  void foreach_domain(const FunctionRef<void(eAttrDomain)> callback) const final
   {
     callback(ATTR_DOMAIN_POINT);
   }
 
-  bool type_is_supported(CustomDataType data_type) const
+  bool type_is_supported(eCustomDataType data_type) const
   {
     return ((1ULL << data_type) & supported_types_mask) != 0;
   }

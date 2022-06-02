@@ -1,10 +1,3 @@
-/* T76453: Prevent Long enum lists */
-.field-list > dd p {
-   max-height: 245px;
-   overflow-y: auto !important;
-   word-break: break-word;
-}
-
 /* Hide home icon in search area */
 .wy-side-nav-search > a:hover {background: none; opacity: 0.9}
 .wy-side-nav-search > a.icon::before {content: none}

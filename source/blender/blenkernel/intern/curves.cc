@@ -23,6 +23,7 @@
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_curves.hh"
@@ -48,6 +49,7 @@ using blender::IndexRange;
 using blender::MutableSpan;
 using blender::RandomNumberGenerator;
 using blender::Span;
+using blender::Vector;
 
 static const char *ATTR_POSITION = "position";
 
@@ -121,12 +123,10 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 {
   Curves *curves = (Curves *)id;
 
-  CustomDataLayer *players = nullptr, players_buff[CD_TEMP_CHUNK_SIZE];
-  CustomDataLayer *clayers = nullptr, clayers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomData_blend_write_prepare(
-      &curves->geometry.point_data, &players, players_buff, ARRAY_SIZE(players_buff));
-  CustomData_blend_write_prepare(
-      &curves->geometry.curve_data, &clayers, clayers_buff, ARRAY_SIZE(clayers_buff));
+  Vector<CustomDataLayer, 16> point_layers;
+  Vector<CustomDataLayer, 16> curve_layers;
+  CustomData_blend_write_prepare(curves->geometry.point_data, point_layers);
+  CustomData_blend_write_prepare(curves->geometry.curve_data, curve_layers);
 
   /* Write LibData */
   BLO_write_id_struct(writer, Curves, id_address, &curves->id);
@@ -135,13 +135,13 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   /* Direct data */
   CustomData_blend_write(writer,
                          &curves->geometry.point_data,
-                         players,
+                         point_layers,
                          curves->geometry.point_num,
                          CD_MASK_ALL,
                          &curves->id);
   CustomData_blend_write(writer,
                          &curves->geometry.curve_data,
-                         clayers,
+                         curve_layers,
                          curves->geometry.curve_num,
                          CD_MASK_ALL,
                          &curves->id);
@@ -151,14 +151,6 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BLO_write_pointer_array(writer, curves->totcol, curves->mat);
   if (curves->adt) {
     BKE_animdata_blend_write(writer, curves->adt);
-  }
-
-  /* Remove temporary data. */
-  if (players && players != players_buff) {
-    MEM_freeN(players);
-  }
-  if (clayers && clayers != clayers_buff) {
-    MEM_freeN(clayers);
   }
 }
 

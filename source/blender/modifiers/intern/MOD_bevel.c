@@ -39,7 +39,6 @@
 
 #include "BLO_read_write.h"
 
-#include "BKE_curveprofile.h"
 #include "bmesh.h"
 #include "bmesh_tools.h"
 

@@ -5,12 +5,6 @@
 
 #include "ED_screen.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "BLI_listbase.h"
 
 #include "MEM_guardedalloc.h"
@@ -19,8 +13,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-
-#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -92,7 +84,7 @@ static int select_component_domain_invoke(bContext *C,
 {
   GeometryComponentType component_type = static_cast<GeometryComponentType>(
       RNA_int_get(op->ptr, "component_type"));
-  AttributeDomain attribute_domain = static_cast<AttributeDomain>(
+  eAttrDomain attribute_domain = static_cast<eAttrDomain>(
       RNA_int_get(op->ptr, "attribute_domain_type"));
 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);

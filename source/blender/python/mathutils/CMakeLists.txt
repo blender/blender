@@ -4,9 +4,9 @@ set(INC
   .
   ../../blenkernel
   ../../blenlib
-  ../../imbuf
   ../../bmesh
   ../../depsgraph
+  ../../imbuf
   ../../makesdna
   ../../../../intern/guardedalloc
 )

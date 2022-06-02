@@ -57,7 +57,7 @@ static IndexMask index_mask_indices(Span<bool> mask, const bool invert, Vector<i
 static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes,
                             const GeometryComponent &in_component,
                             GeometryComponent &result_component,
-                            const Span<AttributeDomain> domains)
+                            const Span<eAttrDomain> domains)
 {
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
@@ -70,7 +70,7 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
     if (!domains.contains(attribute.domain)) {
       continue;
     }
-    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
 
     OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
         attribute_id, attribute.domain, data_type);
@@ -96,7 +96,7 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
 static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKind> &attributes,
                                           const GeometryComponent &in_component,
                                           GeometryComponent &result_component,
-                                          const AttributeDomain domain,
+                                          const eAttrDomain domain,
                                           const IndexMask mask)
 {
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
@@ -110,7 +110,7 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
     if (domain != attribute.domain) {
       continue;
     }
-    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
 
     OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
         attribute_id, attribute.domain, data_type);
@@ -132,7 +132,7 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
 static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind> &attributes,
                                          const GeometryComponent &in_component,
                                          GeometryComponent &result_component,
-                                         const AttributeDomain domain,
+                                         const eAttrDomain domain,
                                          const Span<int> index_map)
 {
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
@@ -146,7 +146,7 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
     if (domain != attribute.domain) {
       continue;
     }
-    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
 
     OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
         attribute_id, attribute.domain, data_type);
@@ -400,7 +400,7 @@ static SplinePtr spline_delete(const Spline &spline, const IndexMask mask)
 
 static std::unique_ptr<CurveEval> curve_separate(const CurveEval &input_curve,
                                                  const Span<bool> selection,
-                                                 const AttributeDomain selection_domain,
+                                                 const eAttrDomain selection_domain,
                                                  const bool invert)
 {
   Span<SplinePtr> input_splines = input_curve.splines();
@@ -463,7 +463,7 @@ static std::unique_ptr<CurveEval> curve_separate(const CurveEval &input_curve,
 
 static void separate_curve_selection(GeometrySet &geometry_set,
                                      const Field<bool> &selection_field,
-                                     const AttributeDomain selection_domain,
+                                     const eAttrDomain selection_domain,
                                      const bool invert)
 {
   const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
@@ -987,7 +987,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
                                const MeshComponent &in_component,
                                const VArray_Span<bool> &selection,
                                const bool invert,
-                               const AttributeDomain domain,
+                               const eAttrDomain domain,
                                const GeometryNodeDeleteGeometryMode mode)
 {
   /* Needed in all cases. */
@@ -1230,7 +1230,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
 
 static void separate_mesh_selection(GeometrySet &geometry_set,
                                     const Field<bool> &selection_field,
-                                    const AttributeDomain selection_domain,
+                                    const eAttrDomain selection_domain,
                                     const GeometryNodeDeleteGeometryMode mode,
                                     const bool invert)
 {
@@ -1263,7 +1263,7 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
 namespace blender::nodes {
 
 void separate_geometry(GeometrySet &geometry_set,
-                       const AttributeDomain domain,
+                       const eAttrDomain domain,
                        const GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection_field,
                        const bool invert,
@@ -1320,7 +1320,7 @@ static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   const bNode *node = static_cast<bNode *>(ptr->data);
   const NodeGeometryDeleteGeometry &storage = node_storage(*node);
-  const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
+  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
 
   uiItemR(layout, ptr, "domain", 0, "", ICON_NONE);
   /* Only show the mode when it is relevant. */
@@ -1345,7 +1345,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
   const NodeGeometryDeleteGeometry &storage = node_storage(params.node());
-  const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
+  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
   const GeometryNodeDeleteGeometryMode mode = (GeometryNodeDeleteGeometryMode)storage.mode;
 
   if (domain == ATTR_DOMAIN_INSTANCE) {

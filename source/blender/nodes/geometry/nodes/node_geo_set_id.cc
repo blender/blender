@@ -16,9 +16,9 @@ static void set_id_in_component(GeometryComponent &component,
                                 const Field<bool> &selection_field,
                                 const Field<int> &id_field)
 {
-  const AttributeDomain domain = (component.type() == GEO_COMPONENT_TYPE_INSTANCES) ?
-                                     ATTR_DOMAIN_INSTANCE :
-                                     ATTR_DOMAIN_POINT;
+  const eAttrDomain domain = (component.type() == GEO_COMPONENT_TYPE_INSTANCES) ?
+                                 ATTR_DOMAIN_INSTANCE :
+                                 ATTR_DOMAIN_POINT;
   GeometryComponentFieldContext field_context{component, domain};
   const int domain_num = component.attribute_domain_num(domain);
   if (domain_num == 0) {

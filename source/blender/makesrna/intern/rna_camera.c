@@ -111,6 +111,63 @@ static void rna_Camera_background_images_clear(Camera *cam)
   WM_main_add_notifier(NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, cam);
 }
 
+static char *rna_Camera_background_image_path(const PointerRNA *ptr)
+{
+  const CameraBGImage *bgpic = ptr->data;
+  Camera *camera = (Camera *)ptr->owner_id;
+
+  const int bgpic_index = BLI_findindex(&camera->bg_images, bgpic);
+
+  if (bgpic_index >= 0) {
+    return BLI_sprintfN("background_images[%d]", bgpic_index);
+  }
+
+  return NULL;
+}
+
+static bool rna_Camera_background_images_override_apply(Main *bmain,
+                                                        PointerRNA *ptr_dst,
+                                                        PointerRNA *ptr_src,
+                                                        PointerRNA *UNUSED(ptr_storage),
+                                                        PropertyRNA *prop_dst,
+                                                        PropertyRNA *UNUSED(prop_src),
+                                                        PropertyRNA *UNUSED(prop_storage),
+                                                        const int UNUSED(len_dst),
+                                                        const int UNUSED(len_src),
+                                                        const int UNUSED(len_storage),
+                                                        PointerRNA *UNUSED(ptr_item_dst),
+                                                        PointerRNA *UNUSED(ptr_item_src),
+                                                        PointerRNA *UNUSED(ptr_item_storage),
+                                                        IDOverrideLibraryPropertyOperation *opop)
+{
+  BLI_assert_msg(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER,
+                 "Unsupported RNA override operation on background images collection");
+
+  Camera *cam_dst = (Camera *)ptr_dst->owner_id;
+  Camera *cam_src = (Camera *)ptr_src->owner_id;
+
+  /* Remember that insertion operations are defined and stored in correct order, which means that
+   * even if we insert several items in a row, we always insert first one, then second one, etc.
+   * So we should always find 'anchor' constraint in both _src *and* _dst. */
+  CameraBGImage *bgpic_anchor = BLI_findlink(&cam_dst->bg_images, opop->subitem_reference_index);
+
+  /* If `bgpic_anchor` is NULL, `bgpic_src` will be inserted in first position. */
+  CameraBGImage *bgpic_src = BLI_findlink(&cam_src->bg_images, opop->subitem_local_index);
+
+  if (bgpic_src == NULL) {
+    BLI_assert(bgpic_src != NULL);
+    return false;
+  }
+
+  CameraBGImage *bgpic_dst = BKE_camera_background_image_copy(bgpic_src, 0);
+
+  /* This handles NULL anchor as expected by adding at head of list. */
+  BLI_insertlinkafter(&cam_dst->bg_images, bgpic_anchor, bgpic_dst);
+
+  RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
+  return true;
+}
+
 static void rna_Camera_dof_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
   SEQ_relations_invalidate_scene_strips(bmain, scene);
@@ -179,6 +236,17 @@ static void rna_def_camera_background_image(BlenderRNA *brna)
   RNA_def_struct_sdna(srna, "CameraBGImage");
   RNA_def_struct_ui_text(
       srna, "Background Image", "Image and settings for display in the 3D View background");
+  RNA_def_struct_path_func(srna, "rna_Camera_background_image_path");
+
+  prop = RNA_def_boolean(srna,
+                         "is_override_data",
+                         false,
+                         "Override Background Image",
+                         "In a local override camera, whether this background image comes from "
+                         "the linked reference camera, or is local to the override");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_negative_sdna(
+      prop, NULL, "flag", CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL);
 
   RNA_define_lib_overridable(true);
 
@@ -736,6 +804,8 @@ void RNA_def_camera(BlenderRNA *brna)
   RNA_def_property_collection_sdna(prop, NULL, "bg_images", NULL);
   RNA_def_property_struct_type(prop, "CameraBackgroundImage");
   RNA_def_property_ui_text(prop, "Background Images", "List of background images");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_LIBRARY_INSERTION | PROPOVERRIDE_NO_PROP_NAME);
+  RNA_def_property_override_funcs(prop, NULL, NULL, "rna_Camera_background_images_override_apply");
   RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, NULL);
 
   RNA_define_lib_overridable(false);

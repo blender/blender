@@ -281,6 +281,11 @@ class CurvesGeometry : public ::CurvesGeometry {
   Span<float2> surface_triangle_coords() const;
   MutableSpan<float2> surface_triangle_coords_for_write();
 
+  VArray<float> selection_point_float() const;
+  MutableSpan<float> selection_point_float_for_write();
+  VArray<float> selection_curve_float() const;
+  MutableSpan<float> selection_curve_float_for_write();
+
   /**
    * Calculate the largest and smallest position values, only including control points
    * (rather than evaluated points). The existing values of `min` and `max` are taken into account.
@@ -405,7 +410,12 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Attributes.
    */
 
-  GVArray adapt_domain(const GVArray &varray, AttributeDomain from, AttributeDomain to) const;
+  GVArray adapt_domain(const GVArray &varray, eAttrDomain from, eAttrDomain to) const;
+  template<typename T>
+  VArray<T> adapt_domain(const VArray<T> &varray, eAttrDomain from, eAttrDomain to) const
+  {
+    return this->adapt_domain(GVArray(varray), from, to).typed<T>();
+  }
 };
 
 namespace curves {
@@ -453,7 +463,7 @@ void calculate_tangents(Span<float3> positions, bool is_cyclic, MutableSpan<floa
 
 /**
  * Calculate directions perpendicular to the tangent at every point by rotating an arbitrary
- * starting vector by the same rotation of each tangent. If the curve is cylic, propagate a
+ * starting vector by the same rotation of each tangent. If the curve is cyclic, propagate a
  * correction through the entire to make sure the first and last normal align.
  */
 void calculate_normals_minimum(Span<float3> tangents, bool cyclic, MutableSpan<float3> normals);
@@ -483,10 +493,11 @@ bool segment_is_vector(Span<int8_t> handle_types_left,
                        int segment_index);
 
 /**
- * Return true if the curve's last cylic segment has a vector type.
+ * Return true if the curve's last cyclic segment has a vector type.
  * This only makes a difference in the shape of cyclic curves.
  */
-bool last_cylic_segment_is_vector(Span<int8_t> handle_types_left, Span<int8_t> handle_types_right);
+bool last_cyclic_segment_is_vector(Span<int8_t> handle_types_left,
+                                   Span<int8_t> handle_types_right);
 
 /**
  * Return true if the handle types at the index are free (#BEZIER_HANDLE_FREE) or vector
@@ -785,6 +796,9 @@ inline float CurvesGeometry::evaluated_length_total_for_curve(const int curve_in
                                                               const bool cyclic) const
 {
   const Span<float> lengths = this->evaluated_lengths_for_curve(curve_index, cyclic);
+  if (lengths.is_empty()) {
+    return 0.0f;
+  }
   return lengths.last();
 }
 

@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Dynamically create a keymap which is used by the popup toolbar
 # for accelerator key access.
 

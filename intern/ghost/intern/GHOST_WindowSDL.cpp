@@ -10,7 +10,7 @@
 
 #include "GHOST_ContextSDL.h"
 
-#include <assert.h>
+#include <cassert>
 
 GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
                                  const char *title,
@@ -27,7 +27,7 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
       m_system(system),
       m_valid_setup(false),
       m_invalid_window(false),
-      m_sdl_custom_cursor(NULL)
+      m_sdl_custom_cursor(nullptr)
 {
 
   /* creating the window _must_ come after setting attributes */
@@ -73,16 +73,16 @@ GHOST_Context *GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type
                                                   GHOST_OPENGL_SDL_CONTEXT_FLAGS,
                                                   GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
 
-    if (context->initializeDrawingContext())
+    if (context->initializeDrawingContext()) {
       return context;
-    else
-      delete context;
+    }
+    delete context;
   }
 
-  return NULL;
+  return nullptr;
 }
 
-GHOST_TSuccess GHOST_WindowSDL::invalidate(void)
+GHOST_TSuccess GHOST_WindowSDL::invalidate()
 {
   if (m_invalid_window == false) {
     m_system->addDirtyWindow(this);
@@ -120,12 +120,15 @@ GHOST_TWindowState GHOST_WindowSDL::getState() const
 {
   Uint32 flags = SDL_GetWindowFlags(m_sdl_win);
 
-  if (flags & SDL_WINDOW_FULLSCREEN)
+  if (flags & SDL_WINDOW_FULLSCREEN) {
     return GHOST_kWindowStateFullScreen;
-  else if (flags & SDL_WINDOW_MAXIMIZED)
+  }
+  if (flags & SDL_WINDOW_MAXIMIZED) {
     return GHOST_kWindowStateMaximized;
-  else if (flags & SDL_WINDOW_MINIMIZED)
+  }
+  if (flags & SDL_WINDOW_MINIMIZED) {
     return GHOST_kWindowStateMinimized;
+  }
   return GHOST_kWindowStateNormal;
 }
 
@@ -164,7 +167,7 @@ void GHOST_WindowSDL::getClientBounds(GHOST_Rect &bounds) const
 GHOST_TSuccess GHOST_WindowSDL::setClientWidth(uint32_t width)
 {
   int height;
-  SDL_GetWindowSize(m_sdl_win, NULL, &height);
+  SDL_GetWindowSize(m_sdl_win, nullptr, &height);
   SDL_SetWindowSize(m_sdl_win, width, height);
   return GHOST_kSuccess;
 }
@@ -172,7 +175,7 @@ GHOST_TSuccess GHOST_WindowSDL::setClientWidth(uint32_t width)
 GHOST_TSuccess GHOST_WindowSDL::setClientHeight(uint32_t height)
 {
   int width;
-  SDL_GetWindowSize(m_sdl_win, &width, NULL);
+  SDL_GetWindowSize(m_sdl_win, &width, nullptr);
   SDL_SetWindowSize(m_sdl_win, width, height);
   return GHOST_kSuccess;
 }
@@ -483,7 +486,7 @@ static unsigned char sdl_std_cursor_arrow[] = {
 #define sdl_std_cursor_HOT_Y_arrow -14
 /* end cursor data */
 
-static SDL_Cursor *sdl_std_cursor_array[(int)GHOST_kStandardCursorNumCursors] = {0};
+static SDL_Cursor *sdl_std_cursor_array[(int)GHOST_kStandardCursorNumCursors] = {nullptr};
 
 /* utility function mostly a copy of SDL_CreateCursor but allows us to change
  * color and supports blenders flipped bits */
@@ -505,7 +508,7 @@ static SDL_Cursor *sdl_ghost_CreateCursor(
   /* Create the surface from a bitmap */
   surface = SDL_CreateRGBSurface(0, w, h, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
   if (!surface) {
-    return NULL;
+    return nullptr;
   }
   for (y = 0; y < h; ++y) {
     pixel = (Uint32 *)((Uint8 *)surface->pixels + y * surface->pitch);
@@ -539,7 +542,7 @@ static SDL_Cursor *sdl_ghost_CreateCursor(
 /* TODO: this is currently never freed but it won't leak either. */
 static SDL_Cursor *getStandardCursorShape(GHOST_TStandardCursor shape)
 {
-  if (sdl_std_cursor_array[0] == NULL) {
+  if (sdl_std_cursor_array[0] == nullptr) {
 #define DEF_CURSOR(name, ind) \
   { \
     sdl_std_cursor_array[(int)ind] = sdl_ghost_CreateCursor( \
@@ -549,7 +552,7 @@ static SDL_Cursor *getStandardCursorShape(GHOST_TStandardCursor shape)
         sdl_std_cursor_HEIGHT_##name, \
         (sdl_std_cursor_WIDTH_##name + (sdl_std_cursor_HOT_X_##name)) - 1, \
         (sdl_std_cursor_HEIGHT_##name + (sdl_std_cursor_HOT_Y_##name)) - 1); \
-    assert(sdl_std_cursor_array[(int)ind] != NULL); \
+    assert(sdl_std_cursor_array[(int)ind] != nullptr); \
   } \
   (void)0
 
@@ -589,7 +592,7 @@ GHOST_TSuccess GHOST_WindowSDL::setWindowCursorGrab(GHOST_TGrabCursorMode /*mode
 GHOST_TSuccess GHOST_WindowSDL::setWindowCursorShape(GHOST_TStandardCursor shape)
 {
   SDL_Cursor *cursor = getStandardCursorShape(shape);
-  if (cursor == NULL) {
+  if (cursor == nullptr) {
     cursor = getStandardCursorShape(GHOST_kStandardCursorDefault);
   }
 
@@ -635,7 +638,7 @@ uint16_t GHOST_WindowSDL::getDPIHint()
   }
 
   float ddpi;
-  if (SDL_GetDisplayDPI(displayIndex, &ddpi, NULL, NULL) != 0) {
+  if (SDL_GetDisplayDPI(displayIndex, &ddpi, nullptr, nullptr) != 0) {
     return 96;
   }
 

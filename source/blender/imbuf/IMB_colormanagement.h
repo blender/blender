@@ -519,10 +519,10 @@ enum {
  * \{ */
 
 void IMB_colormanagement_blackbody_temperature_to_rgb_table(float *r_table,
-                                                            const int width,
-                                                            const float min,
-                                                            const float max);
-void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, const int width);
+                                                            int width,
+                                                            float min,
+                                                            float max);
+void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, int width);
 
 /** \} */
 

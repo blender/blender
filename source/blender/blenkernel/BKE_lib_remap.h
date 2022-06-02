@@ -95,11 +95,11 @@ typedef enum eIDRemapType {
  */
 void BKE_libblock_remap_multiple_locked(struct Main *bmain,
                                         struct IDRemapper *mappings,
-                                        const short remap_flags);
+                                        short remap_flags);
 
 void BKE_libblock_remap_multiple(struct Main *bmain,
                                  struct IDRemapper *mappings,
-                                 const short remap_flags);
+                                 short remap_flags);
 
 /**
  * Replace all references in given Main to \a old_id by \a new_id
@@ -142,9 +142,9 @@ void BKE_libblock_relink_ex(struct Main *bmain,
  */
 void BKE_libblock_relink_multiple(struct Main *bmain,
                                   struct LinkNode *ids,
-                                  const eIDRemapType remap_type,
+                                  eIDRemapType remap_type,
                                   struct IDRemapper *id_remapper,
-                                  const short remap_flags);
+                                  short remap_flags);
 
 /**
  * Remaps ID usages of given ID to their `id->newid` pointer if not None, and proceeds recursively

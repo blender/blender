@@ -157,7 +157,7 @@ float attr_load_float(sampler3D tex)
 }
 
 /* TODO(@fclem): These implementation details should concern the DRWManager and not be a fix on
- * the engine side. But as of now, the engines are reponsible for loading the attributes. */
+ * the engine side. But as of now, the engines are responsible for loading the attributes. */
 float attr_load_temperature_post(float attr)
 {
 #ifdef MESH_SHADER

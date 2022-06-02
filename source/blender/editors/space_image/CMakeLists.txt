@@ -61,7 +61,7 @@ if(WITH_IMAGE_CINEON)
 endif()
 
 if(WITH_IMAGE_WEBP)
-	add_definitions(-DWITH_WEBP)
+  add_definitions(-DWITH_WEBP)
 endif()
 
 blender_add_lib(bf_editor_space_image "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

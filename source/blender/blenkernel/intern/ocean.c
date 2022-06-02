@@ -48,7 +48,7 @@ static float nextfr(RNG *rng, float min, float max)
 static float gaussRand(RNG *rng)
 {
   /* NOTE: to avoid numerical problems with very small numbers, we make these variables
-   * singe-precision floats, but later we call the double-precision log() and sqrt() functions
+   * single-precision floats, but later we call the double-precision log() and sqrt() functions
    * instead of logf() and sqrtf(). */
   float x;
   float y;

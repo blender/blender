@@ -59,9 +59,8 @@ static void rna_Image_save_render(
 
   ImageSaveOptions opts;
 
-  if (BKE_image_save_options_init(&opts, bmain, scene, image, NULL, false)) {
+  if (BKE_image_save_options_init(&opts, bmain, scene, image, NULL, false, true)) {
     opts.save_copy = true;
-    opts.save_as_render = true;
     STRNCPY(opts.filepath, path);
 
     if (!BKE_image_save(reports, bmain, image, NULL, &opts)) {
@@ -83,7 +82,7 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
   Scene *scene = CTX_data_scene(C);
   ImageSaveOptions opts;
 
-  if (BKE_image_save_options_init(&opts, bmain, scene, image, NULL, false)) {
+  if (BKE_image_save_options_init(&opts, bmain, scene, image, NULL, false, false)) {
     if (!BKE_image_save(reports, bmain, image, NULL, &opts)) {
       BKE_reportf(reports,
                   RPT_ERROR,

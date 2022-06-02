@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8-80 compliant>
-
 import os
 import subprocess
 import shutil
@@ -22,7 +20,6 @@ import shutil
 
 # how many lines to read into the file, pep8 comment
 # should be directly after the license header, ~20 in most cases
-PEP8_SEEK_COMMENT = 40
 SKIP_PREFIX = "./tools", "./config", "./extern"
 SKIP_ADDONS = True
 FORCE_PEP8_ALL = False
@@ -39,22 +36,8 @@ def is_pep8(path):
     print(path)
     if open(path, 'rb').read(3) == b'\xef\xbb\xbf':
         print("\nfile contains BOM, remove first 3 bytes: %r\n" % path)
-
-    # templates don't have a header but should be pep8
-    for d in ("presets", "templates_py", "examples"):
-        if ("%s%s%s" % (os.sep, d, os.sep)) in path:
-            return 1
-
-    f = open(path, 'r', encoding="utf8")
-    for _ in range(PEP8_SEEK_COMMENT):
-        line = f.readline()
-        if line.startswith("# <pep8"):
-            if line.startswith("# <pep8 compliant>"):
-                return 1
-            elif line.startswith("# <pep8-80 compliant>"):
-                return 2
-    f.close()
-    return 0
+    # Currently all scripts assumed to be pep8.
+    return 1
 
 
 def check_files_flake8(files):

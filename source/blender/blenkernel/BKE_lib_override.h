@@ -62,12 +62,12 @@ void BKE_lib_override_library_free(struct IDOverrideLibrary **override, bool do_
 /**
  * Check if given ID has some override rules that actually indicate the user edited it.
  */
-bool BKE_lib_override_library_is_user_edited(struct ID *id);
+bool BKE_lib_override_library_is_user_edited(const struct ID *id);
 
 /**
  * Check if given ID is a system override.
  */
-bool BKE_lib_override_library_is_system_defined(struct Main *bmain, struct ID *id);
+bool BKE_lib_override_library_is_system_defined(const struct Main *bmain, const struct ID *id);
 
 /**
  * Check if given ID is a leaf in its liboverride hierarchy (i.e. if it does not use any other

@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 """
 Dump the python API into a text file so we can generate changelogs.
 

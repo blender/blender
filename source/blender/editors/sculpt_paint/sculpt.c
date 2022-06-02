@@ -1354,8 +1354,23 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
 
   SculptUndoNode *unode;
-  SculptUndoType type = (data->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
-                                                                        SCULPT_UNDO_COORDS);
+  SculptUndoType type;
+
+  switch (data->brush->sculpt_tool) {
+    case SCULPT_TOOL_MASK:
+      type = SCULPT_UNDO_MASK;
+      BKE_pbvh_node_mark_update_mask(data->nodes[n]);
+      break;
+    case SCULPT_TOOL_PAINT:
+    case SCULPT_TOOL_SMEAR:
+      type = SCULPT_UNDO_COLOR;
+      BKE_pbvh_node_mark_update_color(data->nodes[n]);
+      break;
+    default:
+      type = SCULPT_UNDO_COORDS;
+      BKE_pbvh_node_mark_update(data->nodes[n]);
+      break;
+  }
 
   if (ss->bm) {
     unode = SCULPT_undo_push_node(data->ob, data->nodes[n], type);
@@ -1397,8 +1412,6 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     }
   }
   BKE_pbvh_vertex_iter_end;
-
-  BKE_pbvh_node_mark_update(data->nodes[n]);
 }
 
 static void paint_mesh_restore_co(Sculpt *sd, Object *ob)

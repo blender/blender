@@ -396,7 +396,7 @@ static uint mesh_cd_calc_gpu_layers_vcol_used(const Mesh *me_query,
                                               const char name[])
 {
   CustomDataLayer *layer = NULL;
-  AttributeDomain domain;
+  eAttrDomain domain;
 
   if (name[0]) {
     int layer_i = 0;
@@ -469,7 +469,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
         int type = gpu_attr->type;
         int layer = -1;
         /* ATTR_DOMAIN_NUM is standard for "invalid value". */
-        AttributeDomain domain = ATTR_DOMAIN_NUM;
+        eAttrDomain domain = ATTR_DOMAIN_NUM;
 
         if (type == CD_AUTO_FROM_NAME) {
           /* We need to deduce what exact layer is used.

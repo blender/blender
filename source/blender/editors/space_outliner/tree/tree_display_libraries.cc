@@ -116,6 +116,11 @@ TreeElement *TreeDisplayLibraries::add_library_contents(Main &mainvar, ListBase 
     ID *id = static_cast<ID *>(lbarray[a]->first);
     const bool is_library = (GS(id->name) == ID_LI) && (lib != nullptr);
 
+    /* Don't show deprecated types. */
+    if (ID_TYPE_IS_DEPRECATED(GS(id->name))) {
+      continue;
+    }
+
     /* check if there's data in current lib */
     for (ID *id_iter : List<ID>(lbarray[a])) {
       if (id_iter->lib == lib) {

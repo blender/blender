@@ -67,6 +67,10 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"annotation_pre", "on drawing an annotation (before)"},
     {"annotation_post", "on drawing an annotation (after)"},
 
+    {"object_bake_pre", "before starting a bake job"},
+    {"object_bake_complete", "on completing a bake job; will be called in the main thread"},
+    {"object_bake_cancel", "on canceling a bake job; will be called in the main thread"},
+
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1
     {"persistent",

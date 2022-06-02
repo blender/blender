@@ -59,6 +59,7 @@
 #include "BKE_mask.h"     /* free mask clipboard */
 #include "BKE_material.h" /* BKE_material_copybuf_clear */
 #include "BKE_studiolight.h"
+#include "BKE_subdiv.h"
 #include "BKE_tracking.h" /* free tracking clipboard */
 
 #include "RE_engine.h"
@@ -113,9 +114,6 @@
 #include "GPU_context.h"
 #include "GPU_init_exit.h"
 #include "GPU_material.h"
-
-#include "BKE_sound.h"
-#include "BKE_subdiv.h"
 
 #include "COM_compositor.h"
 

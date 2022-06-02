@@ -74,10 +74,10 @@ static bool check_seq_need_thumbnails(Sequence *seq, rctf *view_area)
   if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
     return false;
   }
-  if (min_ii(seq->startdisp, seq->start) > view_area->xmax) {
+  if (min_ii(SEQ_time_left_handle_frame_get(seq), seq->start) > view_area->xmax) {
     return false;
   }
-  if (max_ii(seq->enddisp, seq->start + seq->len) < view_area->xmin) {
+  if (max_ii(SEQ_time_right_handle_frame_get(seq), seq->start + seq->len) < view_area->xmin) {
     return false;
   }
   if (seq->machine + 1.0f < view_area->ymin) {
@@ -206,7 +206,7 @@ static GHash *sequencer_thumbnail_ghash_init(const bContext *C, View2D *v2d, Edi
     else {
       if (val_need_update != NULL) {
         val_need_update->seq_dupli->start = seq->start;
-        val_need_update->seq_dupli->startdisp = seq->startdisp;
+        val_need_update->seq_dupli->startdisp = SEQ_time_left_handle_frame_get(seq);
       }
     }
   }
@@ -363,15 +363,16 @@ static int sequencer_thumbnail_closest_previous_frame_get(int timeline_frame,
 
 static int sequencer_thumbnail_closest_guaranteed_frame_get(Sequence *seq, int timeline_frame)
 {
-  if (timeline_frame <= seq->startdisp) {
-    return seq->startdisp;
+  if (timeline_frame <= SEQ_time_left_handle_frame_get(seq)) {
+    return SEQ_time_left_handle_frame_get(seq);
   }
 
   /* Set of "guaranteed" thumbnails. */
-  const int frame_index = timeline_frame - seq->startdisp;
+  const int frame_index = timeline_frame - SEQ_time_left_handle_frame_get(seq);
   const int frame_step = SEQ_render_thumbnails_guaranteed_set_frame_step_get(seq);
   const int relative_base_frame = round_fl_to_int((frame_index / (float)frame_step)) * frame_step;
-  const int nearest_guaranted_absolute_frame = relative_base_frame + seq->startdisp;
+  const int nearest_guaranted_absolute_frame = relative_base_frame +
+                                               SEQ_time_left_handle_frame_get(seq);
   return nearest_guaranted_absolute_frame;
 }
 
@@ -444,10 +445,11 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   float thumb_y_end = y1 + thumb_height;
 
   float cut_off = 0;
-  float upper_thumb_bound = SEQ_time_has_right_still_frames(seq) ? (seq->start + seq->len) :
-                                                                   seq->enddisp;
+  float upper_thumb_bound = SEQ_time_has_right_still_frames(seq) ?
+                                (seq->start + seq->len) :
+                                SEQ_time_right_handle_frame_get(seq);
   if (seq->type == SEQ_TYPE_IMAGE) {
-    upper_thumb_bound = seq->enddisp;
+    upper_thumb_bound = SEQ_time_right_handle_frame_get(seq);
   }
 
   float timeline_frame = SEQ_render_thumbnail_first_frame_get(seq, thumb_width, &v2d->cur);
@@ -473,8 +475,8 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     }
 
     /* Set the clipping bound to show the left handle moving over thumbs and not shift thumbs. */
-    if (IN_RANGE_INCL(seq->startdisp, timeline_frame, thumb_x_end)) {
-      cut_off = seq->startdisp - timeline_frame;
+    if (IN_RANGE_INCL(SEQ_time_left_handle_frame_get(seq), timeline_frame, thumb_x_end)) {
+      cut_off = SEQ_time_left_handle_frame_get(seq) - timeline_frame;
       clipped = true;
     }
 

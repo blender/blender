@@ -158,7 +158,7 @@ void paintface_reveal(bContext *C, Object *ob, const bool select)
   paintface_flush_flags(C, ob, SELECT | ME_HIDE);
 }
 
-/* Set tface seams based on edge data, uses hash table to find seam edges. */
+/* Set object-mode face selection seams based on edge data, uses hash table to find seam edges. */
 
 static void select_linked_tfaces_with_seams(Mesh *me, const uint index, const bool select)
 {

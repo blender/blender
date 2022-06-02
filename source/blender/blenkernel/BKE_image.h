@@ -371,6 +371,11 @@ typedef enum {
 } eUDIM_TILE_FORMAT;
 
 /**
+ * Checks if the filename portion of the path contains a UDIM token.
+ */
+bool BKE_image_is_filename_tokenized(char *filepath);
+
+/**
  * Ensures that `filename` contains a UDIM token if we find a supported format pattern.
  * \note This must only be the name component (without slashes).
  */

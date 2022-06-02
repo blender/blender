@@ -49,20 +49,6 @@
 
 #  include "WM_api.h"
 
-static void rna_Sequence_update_rnafunc(ID *id, Sequence *self, bool do_data)
-{
-  Scene *scene = (Scene *)id;
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, self);
-
-  if (do_data) {
-    SEQ_time_update_recursive(scene, self);
-    // new_tstripdata(self); /* need 2.6x version of this. */
-  }
-
-  SEQ_time_update_sequence(scene, seqbase, self);
-}
-
 static void rna_Sequence_swap_internal(Sequence *seq_self,
                                        ReportList *reports,
                                        Sequence *seq_other)
@@ -96,8 +82,7 @@ static Sequence *rna_Sequence_split(
     ID *id, Sequence *seq, Main *bmain, ReportList *reports, int frame, int split_method)
 {
   Scene *scene = (Scene *)id;
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, seq);
 
   const char *error_msg = NULL;
   Sequence *r_seq = SEQ_edit_strip_split(
@@ -576,8 +561,6 @@ static void rna_Sequences_meta_remove(
 static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char *filename)
 {
   Scene *scene = (Scene *)id;
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
   StripElem *se;
 
   seq->strip->stripdata = se = MEM_reallocN(seq->strip->stripdata,
@@ -586,7 +569,6 @@ static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char 
   BLI_strncpy(se->name, filename, sizeof(se->name));
   seq->len++;
 
-  SEQ_time_update_sequence(scene, seqbase, seq);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return se;
@@ -595,8 +577,6 @@ static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char 
 static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports, int index)
 {
   Scene *scene = (Scene *)id;
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
   StripElem *new_seq, *se;
 
   if (seq->len == 1) {
@@ -628,8 +608,6 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
 
   MEM_freeN(seq->strip->stripdata);
   seq->strip->stripdata = new_seq;
-
-  SEQ_time_update_sequence(scene, seqbase, seq);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
@@ -668,11 +646,6 @@ void RNA_api_sequence_strip(StructRNA *srna)
       {SEQ_SPLIT_HARD, "HARD", 0, "Hard", ""},
       {0, NULL, 0, NULL, NULL},
   };
-
-  func = RNA_def_function(srna, "update", "rna_Sequence_update_rnafunc");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-  RNA_def_function_ui_description(func, "Update the strip dimensions");
-  parm = RNA_def_boolean(func, "data", false, "Data", "Update strip data");
 
   func = RNA_def_function(srna, "strip_elem_from_frame", "SEQ_render_give_stripelem");
   RNA_def_function_ui_description(func, "Return the strip element from a given frame or None");

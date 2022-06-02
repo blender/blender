@@ -41,6 +41,10 @@ class MFParamsBuilder {
   MFParamsBuilder(const MFSignature &signature, const IndexMask mask)
       : signature_(&signature), mask_(mask), min_array_size_(mask.min_array_size())
   {
+    virtual_arrays_.reserve(signature.virtual_array_num);
+    mutable_spans_.reserve(signature.span_num);
+    virtual_vector_arrays_.reserve(signature.virtual_vector_array_num);
+    vector_arrays_.reserve(signature.vector_array_num);
   }
 
  public:
@@ -53,28 +57,33 @@ class MFParamsBuilder {
 
   template<typename T> void add_readonly_single_input_value(T value, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(VArray<T>::ForSingle(std::move(value), min_array_size_),
-                                    expected_name);
+    this->assert_current_param_type(MFParamType::ForSingleInput(CPPType::get<T>()), expected_name);
+    virtual_arrays_.append_unchecked_as(
+        varray_tag::single{}, CPPType::get<T>(), min_array_size_, &value);
   }
   template<typename T> void add_readonly_single_input(const T *value, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(
-        GVArray::ForSingleRef(CPPType::get<T>(), min_array_size_, value), expected_name);
+    this->assert_current_param_type(MFParamType::ForSingleInput(CPPType::get<T>()), expected_name);
+    virtual_arrays_.append_unchecked_as(
+        varray_tag::single_ref{}, CPPType::get<T>(), min_array_size_, value);
   }
   void add_readonly_single_input(const GSpan span, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(GVArray::ForSpan(span), expected_name);
+    this->assert_current_param_type(MFParamType::ForSingleInput(span.type()), expected_name);
+    BLI_assert(span.size() >= min_array_size_);
+    virtual_arrays_.append_unchecked_as(varray_tag::span{}, span);
   }
   void add_readonly_single_input(GPointer value, StringRef expected_name = "")
   {
-    this->add_readonly_single_input(
-        GVArray::ForSingleRef(*value.type(), min_array_size_, value.get()), expected_name);
+    this->assert_current_param_type(MFParamType::ForSingleInput(*value.type()), expected_name);
+    virtual_arrays_.append_unchecked_as(
+        varray_tag::single_ref{}, *value.type(), min_array_size_, value.get());
   }
   void add_readonly_single_input(GVArray varray, StringRef expected_name = "")
   {
     this->assert_current_param_type(MFParamType::ForSingleInput(varray.type()), expected_name);
     BLI_assert(varray.size() >= min_array_size_);
-    virtual_arrays_.append(varray);
+    virtual_arrays_.append_unchecked_as(std::move(varray));
   }
 
   void add_readonly_vector_input(const GVectorArray &vector_array, StringRef expected_name = "")
@@ -92,7 +101,7 @@ class MFParamsBuilder {
   {
     this->assert_current_param_type(MFParamType::ForVectorInput(ref.type()), expected_name);
     BLI_assert(ref.size() >= min_array_size_);
-    virtual_vector_arrays_.append(&ref);
+    virtual_vector_arrays_.append_unchecked(&ref);
   }
 
   template<typename T> void add_uninitialized_single_output(T *value, StringRef expected_name = "")
@@ -104,7 +113,7 @@ class MFParamsBuilder {
   {
     this->assert_current_param_type(MFParamType::ForSingleOutput(ref.type()), expected_name);
     BLI_assert(ref.size() >= min_array_size_);
-    mutable_spans_.append(ref);
+    mutable_spans_.append_unchecked(ref);
   }
   void add_ignored_single_output(StringRef expected_name = "")
   {
@@ -115,7 +124,7 @@ class MFParamsBuilder {
     const CPPType &type = param_type.data_type().single_type();
     /* An empty span indicates that this is ignored. */
     const GMutableSpan dummy_span{type};
-    mutable_spans_.append(dummy_span);
+    mutable_spans_.append_unchecked(dummy_span);
   }
 
   void add_vector_output(GVectorArray &vector_array, StringRef expected_name = "")
@@ -123,14 +132,14 @@ class MFParamsBuilder {
     this->assert_current_param_type(MFParamType::ForVectorOutput(vector_array.type()),
                                     expected_name);
     BLI_assert(vector_array.size() >= min_array_size_);
-    vector_arrays_.append(&vector_array);
+    vector_arrays_.append_unchecked(&vector_array);
   }
 
   void add_single_mutable(GMutableSpan ref, StringRef expected_name = "")
   {
     this->assert_current_param_type(MFParamType::ForMutableSingle(ref.type()), expected_name);
     BLI_assert(ref.size() >= min_array_size_);
-    mutable_spans_.append(ref);
+    mutable_spans_.append_unchecked(ref);
   }
 
   void add_vector_mutable(GVectorArray &vector_array, StringRef expected_name = "")
@@ -138,7 +147,7 @@ class MFParamsBuilder {
     this->assert_current_param_type(MFParamType::ForMutableVector(vector_array.type()),
                                     expected_name);
     BLI_assert(vector_array.size() >= min_array_size_);
-    vector_arrays_.append(&vector_array);
+    vector_arrays_.append_unchecked(&vector_array);
   }
 
   GMutableSpan computed_array(int param_index)

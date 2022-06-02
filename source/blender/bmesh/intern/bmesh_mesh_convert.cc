@@ -225,9 +225,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const struct BMeshFromMeshPar
     return; /* Sanity check. */
   }
 
-  /* Only copy normals to the new BMesh if they are not already dirty. This avoids unnecessary
-   * work, but also accessing normals on an incomplete mesh, for example when restoring undo steps
-   * in edit mode. */
   const float(*vert_normals)[3] = nullptr;
   if (params->calc_vert_normal) {
     vert_normals = BKE_mesh_vertex_normals_ensure(me);
@@ -934,7 +931,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   me->totloop = bm->totloop;
   me->totpoly = bm->totface;
   /* Will be overwritten with a valid value if 'dotess' is set, otherwise we
-   * end up with 'me->totface' and me->mface == nullptr which can crash T28625. */
+   * end up with 'me->totface' and `me->mface == nullptr` which can crash T28625. */
   me->totface = 0;
   me->act_face = -1;
 

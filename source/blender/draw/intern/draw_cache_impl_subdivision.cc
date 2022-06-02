@@ -575,6 +575,7 @@ static void draw_subdiv_free_edit_mode_cache(DRWSubdivCache *cache)
 void draw_subdiv_cache_free(DRWSubdivCache *cache)
 {
   GPU_VERTBUF_DISCARD_SAFE(cache->patch_coords);
+  GPU_VERTBUF_DISCARD_SAFE(cache->corner_patch_coords);
   GPU_VERTBUF_DISCARD_SAFE(cache->face_ptex_offset_buffer);
   GPU_VERTBUF_DISCARD_SAFE(cache->subdiv_polygon_offset_buffer);
   GPU_VERTBUF_DISCARD_SAFE(cache->extra_coarse_face_data);
@@ -780,7 +781,7 @@ struct DRWCacheBuildingContext {
 
   DRWSubdivCache *cache;
 
-  /* Pointers into DRWSubdivCache buffers for easier access during traversal. */
+  /* Pointers into #DRWSubdivCache buffers for easier access during traversal. */
   CompressedPatchCoord *patch_coords;
   int *subdiv_loop_vert_index;
   int *subdiv_loop_subdiv_vert_index;
@@ -792,9 +793,9 @@ struct DRWCacheBuildingContext {
   int *vert_origindex_map;
   int *edge_origindex_map;
 
-  /* Origindex layers from the mesh to directly look up during traversal the origindex from the
-   * base mesh for edit data so that we do not have to handle yet another GPU buffer and do this in
-   * the shaders. */
+  /* #CD_ORIGINDEX layers from the mesh to directly look up during traversal the original-index
+   * from the base mesh for edit data so that we do not have to handle yet another GPU buffer and
+   * do this in the shaders. */
   const int *v_origindex;
   const int *e_origindex;
 };
@@ -833,6 +834,11 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   GPU_vertbuf_init_with_format_ex(
       cache->patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
   GPU_vertbuf_data_alloc(cache->patch_coords, cache->num_subdiv_loops);
+
+  cache->corner_patch_coords = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format_ex(
+      cache->corner_patch_coords, get_blender_patch_coords_format(), GPU_USAGE_DYNAMIC);
+  GPU_vertbuf_data_alloc(cache->corner_patch_coords, cache->num_subdiv_loops);
 
   cache->verts_orig_index = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format_ex(
@@ -1124,6 +1130,31 @@ static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
   cache->resolution = to_mesh_settings.resolution;
   cache->num_coarse_poly = mesh_eval->totpoly;
 
+  /* To avoid floating point precision issues when evaluating patches at patch boundaries,
+   * ensure that all loops sharing a vertex use the same patch coordinate. This could cause
+   * the mesh to not be watertight, leading to shadowing artifacts (see T97877). */
+  blender::Vector<int> first_loop_index(cache->num_subdiv_verts, -1);
+
+  /* Save coordinates for corners, as attributes may vary for each loop connected to the same
+   * vertex. */
+  memcpy(GPU_vertbuf_get_data(cache->corner_patch_coords),
+         cache_building_context.patch_coords,
+         sizeof(CompressedPatchCoord) * cache->num_subdiv_loops);
+
+  for (int i = 0; i < cache->num_subdiv_loops; i++) {
+    const int vertex = cache_building_context.subdiv_loop_subdiv_vert_index[i];
+    if (first_loop_index[vertex] != -1) {
+      continue;
+    }
+    first_loop_index[vertex] = i;
+  }
+
+  for (int i = 0; i < cache->num_subdiv_loops; i++) {
+    const int vertex = cache_building_context.subdiv_loop_subdiv_vert_index[i];
+    cache_building_context.patch_coords[i] =
+        cache_building_context.patch_coords[first_loop_index[vertex]];
+  }
+
   /* Cleanup. */
   MEM_SAFE_FREE(cache_building_context.vert_origindex_map);
   MEM_SAFE_FREE(cache_building_context.edge_origindex_map);
@@ -1405,7 +1436,7 @@ void draw_subdiv_extract_uvs(const DRWSubdivCache *cache,
   GPU_vertbuf_bind_as_ssbo(src_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->gpu_patch_map.patch_map_handles, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->gpu_patch_map.patch_map_quadtree, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache->patch_coords, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(cache->corner_patch_coords, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->verts_orig_index, binding_point++);
   GPU_vertbuf_bind_as_ssbo(patch_arrays_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(patch_index_buffer, binding_point++);
@@ -1480,7 +1511,7 @@ void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
   GPU_vertbuf_bind_as_ssbo(cache->subdiv_polygon_offset_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(src_data, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->face_ptex_offset_buffer, binding_point++);
-  GPU_vertbuf_bind_as_ssbo(cache->patch_coords, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(cache->corner_patch_coords, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->extra_coarse_face_data, binding_point++);
   GPU_vertbuf_bind_as_ssbo(dst_data, binding_point++);
   BLI_assert(binding_point <= MAX_GPU_SUBDIV_SSBOS);

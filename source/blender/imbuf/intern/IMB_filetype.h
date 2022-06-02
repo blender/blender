@@ -42,8 +42,8 @@ typedef struct ImFileType {
    * dimensions of the full-size image in r_width & r_height.
    */
   struct ImBuf *(*load_filepath_thumbnail)(const char *filepath,
-                                           const int flags,
-                                           const size_t max_thumb_size,
+                                           int flags,
+                                           size_t max_thumb_size,
                                            char colorspace[IM_MAX_SPACE],
                                            size_t *r_width,
                                            size_t *r_height);
@@ -155,8 +155,8 @@ struct ImBuf *imb_load_jpeg(const unsigned char *buffer,
                             int flags,
                             char colorspace[IM_MAX_SPACE]);
 struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
-                                 const int flags,
-                                 const size_t max_thumb_size,
+                                 int flags,
+                                 size_t max_thumb_size,
                                  char colorspace[IM_MAX_SPACE],
                                  size_t *r_width,
                                  size_t *r_height);

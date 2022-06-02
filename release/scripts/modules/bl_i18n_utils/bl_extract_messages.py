@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Populate a template file (POT format currently) from Blender RNA/py/C data.
 # XXX: This script is meant to be used from inside Blender!
 #      You should not directly use this script, rather use update_msg.py!

@@ -81,7 +81,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryTransferAttribute &storage = node_storage(*node);
-  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
+  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
   const GeometryNodeAttributeTransferMode mapping = (GeometryNodeAttributeTransferMode)
                                                         storage.mode;
 
@@ -123,7 +123,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.inputs().take_back(2));
   search_link_ops_for_declarations(params, declaration.inputs().take_front(1));
 
-  const std::optional<CustomDataType> type = node_data_type_to_custom_data_type(
+  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       (eNodeSocketDatatype)params.other_socket().type);
   if (type && *type != CD_PROP_STRING) {
     /* The input and output sockets have the same name. */
@@ -356,7 +356,7 @@ void copy_with_indices_and_comparison(const VArray<T> &src_1,
 
 static bool component_is_available(const GeometrySet &geometry,
                                    const GeometryComponentType type,
-                                   const AttributeDomain domain)
+                                   const eAttrDomain domain)
 {
   if (!geometry.has(type)) {
     return false;
@@ -383,7 +383,7 @@ class NearestInterpolatedTransferFunction : public fn::MultiFunction {
    * future, it should be possible to use the most complex domain required by the field inputs, to
    * simplify sampling and avoid domain conversions.
    */
-  AttributeDomain domain_ = ATTR_DOMAIN_CORNER;
+  eAttrDomain domain_ = ATTR_DOMAIN_CORNER;
 
   fn::MFSignature signature_;
 
@@ -449,7 +449,7 @@ class NearestInterpolatedTransferFunction : public fn::MultiFunction {
 class NearestTransferFunction : public fn::MultiFunction {
   GeometrySet source_;
   GField src_field_;
-  AttributeDomain domain_;
+  eAttrDomain domain_;
 
   fn::MFSignature signature_;
 
@@ -466,7 +466,7 @@ class NearestTransferFunction : public fn::MultiFunction {
   const GVArray *point_data_;
 
  public:
-  NearestTransferFunction(GeometrySet geometry, GField src_field, AttributeDomain domain)
+  NearestTransferFunction(GeometrySet geometry, GField src_field, eAttrDomain domain)
       : source_(std::move(geometry)), src_field_(std::move(src_field)), domain_(domain)
   {
     source_.ensure_owns_direct_data();
@@ -599,7 +599,7 @@ class NearestTransferFunction : public fn::MultiFunction {
 };
 
 static const GeometryComponent *find_source_component(const GeometrySet &geometry,
-                                                      const AttributeDomain domain)
+                                                      const eAttrDomain domain)
 {
   /* Choose the other component based on a consistent order, rather than some more complicated
    * heuristic. This is the same order visible in the spreadsheet and used in the ray-cast node. */
@@ -624,7 +624,7 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
 class IndexTransferFunction : public fn::MultiFunction {
   GeometrySet src_geometry_;
   GField src_field_;
-  AttributeDomain domain_;
+  eAttrDomain domain_;
 
   fn::MFSignature signature_;
 
@@ -633,7 +633,7 @@ class IndexTransferFunction : public fn::MultiFunction {
   const GVArray *src_data_ = nullptr;
 
  public:
-  IndexTransferFunction(GeometrySet geometry, GField src_field, const AttributeDomain domain)
+  IndexTransferFunction(GeometrySet geometry, GField src_field, const eAttrDomain domain)
       : src_geometry_(std::move(geometry)), src_field_(std::move(src_field)), domain_(domain)
   {
     src_geometry_.ensure_owns_direct_data();
@@ -684,7 +684,7 @@ class IndexTransferFunction : public fn::MultiFunction {
   }
 };
 
-static GField get_input_attribute_field(GeoNodeExecParams &params, const CustomDataType data_type)
+static GField get_input_attribute_field(GeoNodeExecParams &params, const eCustomDataType data_type)
 {
   switch (data_type) {
     case CD_PROP_FLOAT:
@@ -737,8 +737,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometryTransferAttribute &storage = node_storage(params.node());
   const GeometryNodeAttributeTransferMode mapping = (GeometryNodeAttributeTransferMode)
                                                         storage.mode;
-  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
-  const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
+  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
 
   GField field = get_input_attribute_field(params, data_type);
 
