@@ -4720,6 +4720,10 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
     # NOTE: `exclude_mod` is needed since we don't want this tool to exclude Control-RMB actions when this is used
     # as a tool key-map with RMB-select and `use_fallback_tool_rmb` is enabled. See T92467.
 
+    props_vert_without_handles = ()
+    if select_passthrough:
+        props_vert_without_handles = ("vert_without_handles",)
+
     # See: `use_tweak_select_passthrough` doc-string.
     if select_passthrough and (value in {'CLICK', 'RELEASE'}):
         select_passthrough = False
@@ -4729,9 +4733,9 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
         {"type": type, "value": value, **{m: True for m in mods}},
         {"properties": [(c, True) for c in props]},
     ) for props, mods in (
-        ((("deselect_all", "select_passthrough") if select_passthrough else
-          ("deselect_all",)) if not legacy else (), ()),
-        (("toggle",), ("shift",)),
+        ((("deselect_all", "select_passthrough", *props_vert_without_handles) if select_passthrough else
+          ("deselect_all", *props_vert_without_handles)) if not legacy else (), ()),
+        (("toggle", *props_vert_without_handles), ("shift",)),
         (("center", "object"), ("ctrl",)),
         (("enumerate",), ("alt",)),
         (("toggle", "center"), ("shift", "ctrl")),
@@ -4746,7 +4750,10 @@ def _template_view3d_select(*, type, value, legacy, select_passthrough, exclude_
         items.append((
             "view3d.select",
             {"type": type, "value": 'CLICK'},
-            {"properties": [("deselect_all", True)]},
+            {"properties": [
+                (c, True)
+                for c in ("deselect_all", *props_vert_without_handles)
+            ]},
         ))
 
     return items
