@@ -1866,7 +1866,7 @@ struct PointerRNA *UI_region_panel_custom_data_under_cursor(const struct bContex
                                                             const struct wmEvent *event);
 void UI_panel_custom_data_set(struct Panel *panel, struct PointerRNA *custom_data);
 
-/* Polyinstantiated panels for representing a list of data. */
+/* Poly-instantiated panels for representing a list of data. */
 /**
  * Called in situations where panels need to be added dynamically rather than
  * having only one panel corresponding to each #PanelType.

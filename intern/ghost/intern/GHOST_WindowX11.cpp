@@ -1711,7 +1711,7 @@ uint16_t GHOST_WindowX11::getDPIHint()
     XrmDestroyDatabase(xrdb);
   }
 
-  /* Fallback to calculating DPI using X reported DPI, set using xrandr --dpi */
+  /* Fallback to calculating DPI using X reported DPI, set using `xrandr --dpi`. */
   XWindowAttributes attr;
   if (!XGetWindowAttributes(m_display, m_window, &attr)) {
     /* Failed to get window attributes, return X11 default DPI */

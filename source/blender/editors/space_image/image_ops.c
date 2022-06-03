@@ -1446,7 +1446,7 @@ static int image_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 
   image_open_init(C, op);
 
-  /* show multiview save options only if scene has multiviews */
+  /* Show multi-view save options only if scene has multi-views. */
   PropertyRNA *prop;
   prop = RNA_struct_find_property(op->ptr, "show_multiview");
   RNA_property_boolean_set(op->ptr, prop, (scene->r.scemode & R_MULTIVIEW) != 0);

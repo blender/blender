@@ -915,7 +915,7 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
 
 /**
  * Assumes value to be an enum from rna_enum_event_type_items.
- * Function makes sure keymodifiers are only valid keys, ESC keeps it unaltered.
+ * Function makes sure key-modifiers are only valid keys, ESC keeps it unaltered.
  */
 static void rna_wmKeyMapItem_keymodifier_set(PointerRNA *ptr, int value)
 {

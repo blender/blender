@@ -597,7 +597,7 @@ static void colormanage_free_config(void)
   while (colorspace) {
     ColorSpace *colorspace_next = colorspace->next;
 
-    /* free precomputer processors */
+    /* Free precomputed processors. */
     if (colorspace->to_scene_linear) {
       OCIO_cpuProcessorRelease((OCIO_ConstCPUProcessorRcPtr *)colorspace->to_scene_linear);
     }
@@ -673,7 +673,7 @@ void colormanagement_init(void)
 
 #ifdef WIN32
       {
-        /* quite a hack to support loading configuration from path with non-acii symbols */
+        /* Quite a hack to support loading configuration from path with non-ACII symbols. */
 
         char short_name[256];
         BLI_get_short_name(short_name, configfile);

@@ -2425,7 +2425,7 @@ static bool uv_mouse_select_multi(bContext *C,
   UvNearestHit hit = UV_NEAREST_HIT_INIT_DIST_PX(&region->v2d, 75.0f);
   int selectmode, sticky;
   bool found_item = false;
-  /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
+  /* 0 == don't flush, 1 == sel, -1 == deselect;  only use when selection sync is enabled. */
   int flush = 0;
 
   /* Penalty (in pixels) applied to elements that are already selected
@@ -2735,7 +2735,7 @@ static int uv_mouse_select_loop_generic_multi(bContext *C,
   const ToolSettings *ts = scene->toolsettings;
   UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
   bool found_item = false;
-  /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
+  /* 0 == don't flush, 1 == sel, -1 == deselect;  only use when selection sync is enabled. */
   int flush = 0;
 
   /* Find edge. */

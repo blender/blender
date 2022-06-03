@@ -1104,7 +1104,7 @@ static void gpencil_stroke_to_bezier(bContext *C,
                                        rad_fac,
                                        minmax_weights);
 
-    /* shift coord vects */
+    /* Shift coord vectors. */
     copy_v3_v3(p3d_prev, p3d_cur);
     copy_v3_v3(p3d_cur, p3d_next);
 

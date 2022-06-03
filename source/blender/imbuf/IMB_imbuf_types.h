@@ -176,7 +176,7 @@ typedef struct ImBuf {
    * avoid problems and use int. - campbell */
   int x, y;
 
-  /** Active amount of bits/bitplanes */
+  /** Active amount of bits/bit-planes. */
   unsigned char planes;
   /** Number of channels in `rect_float` (0 = 4 channel default) */
   int channels;
@@ -276,7 +276,7 @@ typedef struct ImBuf {
 } ImBuf;
 
 /**
- * \brief userflags: Flags used internally by blender for imagebuffers
+ * \brief userflags: Flags used internally by blender for image-buffers.
  */
 
 enum {

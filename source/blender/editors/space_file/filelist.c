@@ -3075,7 +3075,7 @@ static int filelist_readjob_list_dir(const char *root,
           }
           target = entry->redirection_path;
 #ifdef WIN32
-          /* On Windows don't show ".lnk" extension for valid shortcuts. */
+          /* On Windows don't show `.lnk` extension for valid shortcuts. */
           BLI_path_extension_replace(entry->relpath, FILE_MAXDIR, "");
 #endif
         }

@@ -104,7 +104,7 @@ bool BlenderImageLoader::load_pixels(const ImageMetaData &metadata,
   }
   else if (metadata.type == IMAGE_DATA_TYPE_HALF || metadata.type == IMAGE_DATA_TYPE_HALF4) {
     /* Half float. Blender does not have a half type, but in some cases
-     * we upsample byte to half to avoid precision loss for colorspace
+     * we up-sample byte to half to avoid precision loss for colorspace
      * conversion. */
     unsigned char *in_pixels = image_get_pixels_for_frame(b_image, frame, tile_number);
 

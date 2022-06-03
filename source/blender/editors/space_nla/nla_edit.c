@@ -1004,7 +1004,7 @@ static int nlaedit_add_meta_exec(bContext *C, wmOperator *UNUSED(op))
     NlaStrip *strip;
 
     if (BKE_nlatrack_is_nonlocal_in_liboverride(ale->id, nlt)) {
-      /* No making metastrips in non-local tracks of override data. */
+      /* No making meta-strips in non-local tracks of override data. */
       continue;
     }
 
@@ -1078,7 +1078,7 @@ static int nlaedit_remove_meta_exec(bContext *C, wmOperator *UNUSED(op))
     NlaTrack *nlt = (NlaTrack *)ale->data;
 
     if (BKE_nlatrack_is_nonlocal_in_liboverride(ale->id, nlt)) {
-      /* No removing metastrips from non-local tracks of override data. */
+      /* No removing meta-strips from non-local tracks of override data. */
       continue;
     }
 
@@ -1714,7 +1714,7 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
       BKE_nlatrack_add_strip(nlt, sb, is_liboverride);
     }
 
-    /* clear (temp) metastrips */
+    /* Clear (temp) meta-strips. */
     BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
   }
 

@@ -235,7 +235,8 @@ AviError AVI_close_compress(AviMovie *movie);
  */
 AviError AVI_set_compress_option(
     AviMovie *movie, int option_type, int stream, AviOption option, void *opt_data);
-/* Hmmm... there should be some explanation about what these mean */
+
+/* TODO: there should be some explanation about what these mean. */
 /**
  * Compression option, for use in avi_set_compress_option
  */

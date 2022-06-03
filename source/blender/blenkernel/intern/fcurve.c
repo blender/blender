@@ -1025,9 +1025,8 @@ static void UNUSED_FUNCTION(bezt_add_to_cfra_elem)(ListBase *lb, BezTriple *bezt
  * \{ */
 
 /* Some utilities for working with FPoints (i.e. 'sampled' animation curve data, such as
- * data imported from BVH/Mocap files), which are specialized for use with high density datasets,
- * which BezTriples/Keyframe data are ill equipped to do.
- */
+ * data imported from BVH/motion-capture files), which are specialized for use with high density
+ * datasets, which BezTriples/Keyframe data are ill equipped to do. */
 
 float fcurve_samplingcb_evalcurve(FCurve *fcu, void *UNUSED(data), float evaltime)
 {
