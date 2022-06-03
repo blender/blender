@@ -96,10 +96,6 @@ struct CombOperationExecutor {
   Vector<int64_t> selected_curve_indices_;
   IndexMask curve_selection_;
 
-  const Object *surface_ob_ = nullptr;
-  const Mesh *surface_ = nullptr;
-  Span<MLoopTri> surface_looptris_;
-
   float2 brush_pos_prev_re_;
   float2 brush_pos_re_;
   float2 brush_pos_diff_re_;
@@ -109,8 +105,6 @@ struct CombOperationExecutor {
   float4x4 world_to_curves_mat_;
   float4x4 surface_to_world_mat_;
   float4x4 world_to_surface_mat_;
-
-  BVHTreeFromMesh surface_bvh_;
 
   CombOperationExecutor(const bContext &C) : ctx_(C)
   {
@@ -148,22 +142,6 @@ struct CombOperationExecutor {
     brush_pos_re_ = stroke_extension.mouse_position;
     brush_pos_diff_re_ = brush_pos_re_ - brush_pos_prev_re_;
     brush_pos_diff_length_re_ = math::length(brush_pos_diff_re_);
-
-    surface_ob_ = curves_id_->surface;
-    if (surface_ob_ != nullptr) {
-      surface_ = static_cast<const Mesh *>(surface_ob_->data);
-      surface_looptris_ = {BKE_mesh_runtime_looptri_ensure(surface_),
-                           BKE_mesh_runtime_looptri_len(surface_)};
-      surface_to_world_mat_ = surface_ob_->obmat;
-      world_to_surface_mat_ = surface_to_world_mat_.inverted();
-      BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_LOOPTRI, 2);
-    }
-
-    BLI_SCOPED_DEFER([&]() {
-      if (surface_ob_ != nullptr) {
-        free_bvhtree_from_mesh(&surface_bvh_);
-      }
-    });
 
     if (stroke_extension.is_first) {
       if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
