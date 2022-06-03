@@ -292,6 +292,9 @@ void constraintTransLim(const TransInfo *t, TransData *td)
           continue;
         }
 
+        /* Initialize the custom space for use in calculating the matrices. */
+        BKE_constraint_custom_object_space_init(&cob, con);
+
         /* get constraint targets if needed */
         BKE_constraint_targets_for_solving_get(t->depsgraph, con, &cob, &targets, ctime);
 

@@ -6259,6 +6259,9 @@ void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph,
       }
     }
 
+    /* Initialize the custom space for use in calculating the matrices. */
+    BKE_constraint_custom_object_space_init(cob, con);
+
     /* get targets - we only need the first one though (and there should only be one) */
     cti->get_constraint_targets(con, &targets);
 
