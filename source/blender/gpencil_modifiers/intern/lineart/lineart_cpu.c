@@ -720,6 +720,7 @@ static void lineart_triangle_post(LineartTriangle *tri, LineartTriangle *orig)
   /* Just re-assign normal and set cull flag. */
   copy_v3_v3_db(tri->gn, orig->gn);
   tri->flags = LRT_CULL_GENERATED;
+  tri->intersection_mask = orig->intersection_mask;
   tri->material_mask_bits = orig->material_mask_bits;
   tri->mat_occlusion = orig->mat_occlusion;
 }
@@ -3989,6 +3990,7 @@ static void lineart_bounding_area_link_triangle(LineartRenderBuffer *rb,
 
 static void lineart_free_bounding_area_memory(LineartBoundingArea *ba, bool recursive)
 {
+  BLI_spin_end(&ba->lock);
   if (ba->linked_lines) {
     MEM_freeN(ba->linked_lines);
   }
