@@ -95,4 +95,15 @@ VArray<float> get_point_selection(const Curves &curves_id);
  */
 IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_indices);
 
+class CurvesSculptCommonContext {
+ public:
+  const Depsgraph *depsgraph = nullptr;
+  const Scene *scene = nullptr;
+  ARegion *region = nullptr;
+  const View3D *v3d = nullptr;
+  const RegionView3D *rv3d = nullptr;
+
+  CurvesSculptCommonContext(const bContext &C);
+};
+
 }  // namespace blender::ed::sculpt_paint

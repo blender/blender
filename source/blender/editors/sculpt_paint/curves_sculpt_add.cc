@@ -85,10 +85,7 @@ static void initialize_straight_curve_positions(const float3 &p1,
  */
 struct AddOperationExecutor {
   AddOperation *self_ = nullptr;
-  const Depsgraph *depsgraph_ = nullptr;
-  const Scene *scene_ = nullptr;
-  ARegion *region_ = nullptr;
-  const View3D *v3d_ = nullptr;
+  CurvesSculptCommonContext ctx_;
 
   Object *object_ = nullptr;
   Curves *curves_id_ = nullptr;
@@ -143,14 +140,14 @@ struct AddOperationExecutor {
   static constexpr int max_neighbors = 5;
   using NeighborsVector = Vector<NeighborInfo, max_neighbors>;
 
+  AddOperationExecutor(const bContext &C) : ctx_(C)
+  {
+  }
+
   void execute(AddOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {
     self_ = &self;
-    depsgraph_ = CTX_data_depsgraph_pointer(&C);
-    scene_ = CTX_data_scene(&C);
     object_ = CTX_data_active_object(&C);
-    region_ = CTX_wm_region(&C);
-    v3d_ = CTX_wm_view3d(&C);
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
@@ -176,10 +173,10 @@ struct AddOperationExecutor {
         reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_->ldata, CD_NORMAL)),
         surface_->totloop};
 
-    curves_sculpt_ = scene_->toolsettings->curves_sculpt;
+    curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
     brush_settings_ = brush_->curves_sculpt_settings;
-    brush_radius_re_ = brush_radius_get(*scene_, *brush_, stroke_extension);
+    brush_radius_re_ = brush_radius_get(*ctx_.scene, *brush_, stroke_extension);
     brush_pos_re_ = stroke_extension.mouse_position;
 
     use_front_face_ = brush_->flag & BRUSH_FRONTFACE;
@@ -256,7 +253,7 @@ struct AddOperationExecutor {
 
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
-    ED_region_tag_redraw(region_);
+    ED_region_tag_redraw(ctx_.region);
   }
 
   float3 get_bary_coords(const Mesh &mesh, const MLoopTri &looptri, const float3 position) const
@@ -276,7 +273,7 @@ struct AddOperationExecutor {
   {
     float3 ray_start_wo, ray_end_wo;
     ED_view3d_win_to_segment_clipped(
-        depsgraph_, region_, v3d_, brush_pos_re_, ray_start_wo, ray_end_wo, true);
+        ctx_.depsgraph, ctx_.region, ctx_.v3d, brush_pos_re_, ray_start_wo, ray_end_wo, true);
     const float3 ray_start_su = world_to_surface_mat_ * ray_start_wo;
     const float3 ray_end_su = world_to_surface_mat_ * ray_end_wo;
 
@@ -352,7 +349,7 @@ struct AddOperationExecutor {
 
       float3 ray_start_wo, ray_end_wo;
       ED_view3d_win_to_segment_clipped(
-          depsgraph_, region_, v3d_, pos_re, ray_start_wo, ray_end_wo, true);
+          ctx_.depsgraph, ctx_.region, ctx_.v3d, pos_re, ray_start_wo, ray_end_wo, true);
       const float3 ray_start_su = brush_transform * (world_to_surface_mat_ * ray_start_wo);
       const float3 ray_end_su = brush_transform * (world_to_surface_mat_ * ray_end_wo);
       const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
@@ -400,17 +397,22 @@ struct AddOperationExecutor {
   {
     /* Find ray that starts in the center of the brush. */
     float3 brush_ray_start_wo, brush_ray_end_wo;
-    ED_view3d_win_to_segment_clipped(
-        depsgraph_, region_, v3d_, brush_pos_re_, brush_ray_start_wo, brush_ray_end_wo, true);
+    ED_view3d_win_to_segment_clipped(ctx_.depsgraph,
+                                     ctx_.region,
+                                     ctx_.v3d,
+                                     brush_pos_re_,
+                                     brush_ray_start_wo,
+                                     brush_ray_end_wo,
+                                     true);
     const float3 brush_ray_start_su = world_to_surface_mat_ * brush_ray_start_wo;
     const float3 brush_ray_end_su = world_to_surface_mat_ * brush_ray_end_wo;
 
     /* Find ray that starts on the boundary of the brush. That is used to compute the brush radius
      * in 3D. */
     float3 brush_radius_ray_start_wo, brush_radius_ray_end_wo;
-    ED_view3d_win_to_segment_clipped(depsgraph_,
-                                     region_,
-                                     v3d_,
+    ED_view3d_win_to_segment_clipped(ctx_.depsgraph,
+                                     ctx_.region,
+                                     ctx_.v3d,
                                      brush_pos_re_ + float2(brush_radius_re_, 0),
                                      brush_radius_ray_start_wo,
                                      brush_radius_ray_end_wo,
@@ -895,7 +897,7 @@ struct AddOperationExecutor {
 
 void AddOperation::on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension)
 {
-  AddOperationExecutor executor;
+  AddOperationExecutor executor{C};
   executor.execute(*this, C, stroke_extension);
 }
 

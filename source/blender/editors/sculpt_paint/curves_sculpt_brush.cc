@@ -277,4 +277,13 @@ Vector<float4x4> get_symmetry_brush_transforms(const eCurvesSymmetryType symmetr
   return matrices;
 }
 
+CurvesSculptCommonContext::CurvesSculptCommonContext(const bContext &C)
+{
+  this->depsgraph = CTX_data_depsgraph_pointer(&C);
+  this->scene = CTX_data_scene(&C);
+  this->region = CTX_wm_region(&C);
+  this->v3d = CTX_wm_view3d(&C);
+  this->rv3d = CTX_wm_region_view3d(&C);
+}
+
 }  // namespace blender::ed::sculpt_paint
