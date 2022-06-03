@@ -48,7 +48,7 @@ ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
 
     PROFILING_SHADER(emission_sd->object, emission_sd->shader);
     PROFILING_EVENT(PROFILING_SHADE_LIGHT_EVAL);
-    shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
+    shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND>(
         kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
 
     L = shader_background_eval(emission_sd);
