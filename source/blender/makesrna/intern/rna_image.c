@@ -257,6 +257,51 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
   }
 }
 
+static void rna_UDIMTile_size_get(PointerRNA *ptr, int *values)
+{
+  ImageTile *tile = (ImageTile *)ptr->data;
+  Image *image = (Image *)ptr->owner_id;
+
+  ImageUser image_user;
+  BKE_imageuser_default(&image_user);
+  image_user.tile = tile->tile_number;
+
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, &image_user, &lock);
+  if (ibuf) {
+    values[0] = ibuf->x;
+    values[1] = ibuf->y;
+  }
+  else {
+    values[0] = 0;
+    values[1] = 0;
+  }
+
+  BKE_image_release_ibuf(image, ibuf, lock);
+}
+
+static int rna_UDIMTile_channels_get(PointerRNA *ptr)
+{
+  ImageTile *tile = (ImageTile *)ptr->data;
+  Image *image = (Image *)ptr->owner_id;
+
+  ImageUser image_user;
+  BKE_imageuser_default(&image_user);
+  image_user.tile = tile->tile_number;
+
+  int channels = 0;
+
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, &image_user, &lock);
+  if (ibuf) {
+    channels = ibuf->channels;
+  }
+
+  BKE_image_release_ibuf(image, ibuf, lock);
+
+  return channels;
+}
+
 static void rna_UDIMTile_label_get(PointerRNA *ptr, char *value)
 {
   ImageTile *tile = (ImageTile *)ptr->data;
@@ -826,6 +871,26 @@ static void rna_def_udim_tile(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Number", "Number of the position that this tile covers");
   RNA_def_property_int_funcs(prop, NULL, "rna_UDIMTile_tile_number_set", NULL);
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
+
+  prop = RNA_def_int_vector(
+      srna,
+      "size",
+      2,
+      NULL,
+      0,
+      0,
+      "Size",
+      "Width and height of the tile buffer in pixels, zero when image data can't be loaded",
+      0,
+      0);
+  RNA_def_property_subtype(prop, PROP_PIXEL);
+  RNA_def_property_int_funcs(prop, "rna_UDIMTile_size_get", NULL, NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "channels", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_funcs(prop, "rna_UDIMTile_channels_get", NULL, NULL);
+  RNA_def_property_ui_text(prop, "Channels", "Number of channels in the tile pixels buffer");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 static void rna_def_udim_tiles(BlenderRNA *brna, PropertyRNA *cprop)
