@@ -1810,7 +1810,6 @@ static void image_save_options_from_op(Main *bmain, ImageSaveOptions *opts, wmOp
                      RNA_boolean_get(op->ptr, "copy"));
   opts->save_as_render = (RNA_struct_find_property(op->ptr, "save_as_render") &&
                           RNA_boolean_get(op->ptr, "save_as_render"));
-  opts->do_newpath = true;
 }
 
 static bool save_image_op(
@@ -1846,6 +1845,8 @@ static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
     MEM_freeN(isd);
     return NULL;
   }
+
+  isd->opts.do_newpath = true;
 
   if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
     RNA_string_set(op->ptr, "filepath", isd->opts.filepath);
