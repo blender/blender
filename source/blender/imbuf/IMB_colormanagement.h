@@ -181,7 +181,6 @@ void IMB_colormanagement_imbuf_to_byte_texture(unsigned char *out_buffer,
                                                int width,
                                                int height,
                                                const struct ImBuf *ibuf,
-                                               bool compress_as_srgb,
                                                bool store_premultiplied);
 void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
                                                 int offset_x,
