@@ -3289,8 +3289,6 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
 
     BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, efa_index) {
       if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-        /* tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset); */ /* UNUSED */
-
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
           if (select) {
@@ -3360,8 +3358,6 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
 
     /* now select tagged verts */
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      /* tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset); */ /* UNUSED */
-
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (BM_elem_flag_test(l->v, BM_ELEM_TAG)) {
           uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
@@ -3380,8 +3376,6 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
     }
 
     BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, efa_index) {
-      /* tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset); */ /* UNUSED */
-
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (BM_elem_flag_test(l, BM_ELEM_TAG)) {
           uv_select_flush_from_tag_sticky_loc_internal(
