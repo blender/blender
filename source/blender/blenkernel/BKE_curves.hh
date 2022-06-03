@@ -405,7 +405,7 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Attributes.
    */
 
-  GVArray adapt_domain(const GVArray &varray, AttributeDomain from, AttributeDomain to) const;
+  GVArray adapt_domain(const GVArray &varray, eAttrDomain from, eAttrDomain to) const;
 };
 
 namespace curves {

@@ -1352,7 +1352,8 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
   SCULPT_update_customdata_refs(sgcontext->ss, sgcontext->vc.obact);
   BM_mesh_free(trimbm);
 
-  BM_mesh_bm_from_me(NULL, bm,
+  BM_mesh_bm_from_me(NULL,
+                     bm,
                      sculpt_mesh,
                      &((struct BMeshFromMeshParams){
                          .calc_face_normal = true,

@@ -1879,7 +1879,6 @@ static LineartEdgeNeighbor *lineart_build_edge_neighbor(Mesh *me, int total_edge
   LineartEdgeNeighbor *edge_nabr = MEM_mallocN(sizeof(LineartEdgeNeighbor) * total_edges,
                                                "LineartEdgeNeighbor arr");
 
-
   MLoopTri *mlooptri = me->runtime.looptris.array;
 
   TaskParallelSettings en_settings;

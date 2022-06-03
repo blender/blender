@@ -84,7 +84,7 @@ typedef struct CustomData {
 } CustomData;
 
 /** #CustomData.type */
-typedef enum CustomDataType {
+typedef enum eCustomDataType {
   /* Used by GLSL attributes in the cases when we need a delayed CD type
    * assignment (in the cases when we don't know in advance which layer
    * we are addressing).
@@ -166,9 +166,9 @@ typedef enum CustomDataType {
   CD_DYNTOPO_VERT = 53,
   CD_TOOLFLAGS = 54,
   CD_NUMTYPES = 55,
-} CustomDataType;
+} eCustomDataType;
 
-/* Bits for CustomDataMask */
+/* Bits for eCustomDataMask */
 #define CD_MASK_MVERT (1 << CD_MVERT)
 // #define CD_MASK_MSTICKY      (1 << CD_MSTICKY)  /* DEPRECATED */
 #define CD_MASK_MDEFORMVERT (1 << CD_MDEFORMVERT)

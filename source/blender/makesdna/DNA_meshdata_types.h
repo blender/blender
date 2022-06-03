@@ -557,8 +557,8 @@ enum {
   SCULPTVERT_SHARP_CORNER = (1 << 12),
   SCULPTVERT_SPLIT_TEMP = (1 << 13),
   SCULPTVERT_PBVH_BOUNDARY = (1 << 14),
-  SCULPTVERT_UV_BOUNDARY = (1<<15),
-  SCULPTVERT_UV_CORNER = (1<<16)
+  SCULPTVERT_UV_BOUNDARY = (1 << 15),
+  SCULPTVERT_UV_CORNER = (1 << 16)
 };
 
 /* for internal bmesh toolflags api */

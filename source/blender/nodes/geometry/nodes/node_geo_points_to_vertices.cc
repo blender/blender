@@ -59,7 +59,7 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
 
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    const CustomDataType data_type = entry.value.data_type;
+    const eCustomDataType data_type = entry.value.data_type;
     GVArray src = point_component->attribute_get_for_read(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
     OutputAttribute dst = mesh_component.attribute_try_get_for_output_only(

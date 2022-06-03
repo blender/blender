@@ -18,8 +18,8 @@
 #include "DNA_cachefile_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_defaults.h"
 #include "DNA_curves_types.h"
+#include "DNA_defaults.h"
 #include "DNA_fluid_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
@@ -41,7 +41,6 @@
 
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
-#include "BKE_brush.h"
 #include "BKE_attribute.h"
 #include "BKE_brush.h"
 #include "BKE_collection.h"

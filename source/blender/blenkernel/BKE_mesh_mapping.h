@@ -109,7 +109,7 @@ void BKE_mesh_vert_poly_map_create(
     int totpoly,
     int totloop,
     const bool sort_disk_cycles);  // put polys in sorted geometric order
-    
+
 /**
  * Generates a map where the key is the edge and the value
  * is a list of looptris that use that edge.

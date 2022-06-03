@@ -16,7 +16,7 @@
 
 struct VColRef {
   const CustomDataLayer *layer;
-  AttributeDomain domain;
+  eAttrDomain domain;
 };
 
 /** Get all vcol layers as AttributeRefs.
@@ -32,7 +32,7 @@ static blender::Vector<VColRef> get_vcol_refs(const CustomData *cd_vdata,
   blender::Vector<VColRef> refs;
   uint layeri = 0;
 
-  auto buildList = [&](const CustomData *cdata, AttributeDomain domain) {
+  auto buildList = [&](const CustomData *cdata, eAttrDomain domain) {
     for (int i = 0; i < cdata->totlayer; i++) {
       const CustomDataLayer *layer = cdata->layers + i;
 

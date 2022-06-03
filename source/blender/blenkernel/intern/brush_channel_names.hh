@@ -9,6 +9,3 @@
 static std::basic_string<char> brush_channel_idnames[] = {
 #include "intern/brush_channel_define.h"
 };
-
-
-

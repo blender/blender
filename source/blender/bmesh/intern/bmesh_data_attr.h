@@ -16,15 +16,15 @@ a way as possible.
 
 #ifdef USE_BMESH_PAGE_CUSTOMDATA
 
-#define BM_PAGE_SHIFT 10
-#define BM_PAGE_SIZE (1 << BM_PAGE_SHIFT)
-#define BM_PAGE_MASK (BM_PAGE_SIZE - 1)
+#  define BM_PAGE_SHIFT 10
+#  define BM_PAGE_SIZE (1 << BM_PAGE_SHIFT)
+#  define BM_PAGE_MASK (BM_PAGE_SIZE - 1)
 
-#ifdef __cplusplus
+#  ifdef __cplusplus
 
-#  include "BLI_alloca.h"
-#  include "BLI_array.hh"
-#  include <vector>
+#    include "BLI_alloca.h"
+#    include "BLI_array.hh"
+#    include <vector>
 
 namespace blender {
 namespace bmesh {
@@ -34,7 +34,7 @@ using PageElemRef = int;
 template<int PageSizeShift = BM_PAGE_SHIFT> struct PageArray {
   std::vector<void *> pages;
   size_t elemSize;
-  CustomDataType type;
+  eCustomDataType type;
 
   PageArray(const PageArray &b)
   {
@@ -48,7 +48,7 @@ template<int PageSizeShift = BM_PAGE_SHIFT> struct PageArray {
     pages = std::move(b.pages);
   }
 
-  PageArray(CustomDataType t, size_t size = 0) : type(t)
+  PageArray(eCustomDataType t, size_t size = 0) : type(t)
   {
     elemSize = CustomData_getTypeSize(type);
 
@@ -117,12 +117,12 @@ struct BMAttrDomain {
   std::vector<PageElemRef> freelist;
   std::vector<PageArray<BM_PAGE_SHIFT> *> arrays;
 
-  AttributeDomain domain;
+  eAttrDomain domain;
   int totpage;
   int totelem;
   int totalloc;
 
-  BMAttrDomain(AttributeDomain d) : domain(d), totpage(0), totelem(0)
+  BMAttrDomain(eAttrDomain d) : domain(d), totpage(0), totelem(0)
   {
   }
 
@@ -140,7 +140,7 @@ struct BMAttrDomain {
     }
   }
 
-  PageArray<BM_PAGE_SHIFT> *addLayer(CustomDataType type)
+  PageArray<BM_PAGE_SHIFT> *addLayer(eCustomDataType type)
   {
     PageArray<BM_PAGE_SHIFT> *array = new PageArray<BM_PAGE_SHIFT>(type);
     array->reserve(totelem);
@@ -148,11 +148,11 @@ struct BMAttrDomain {
     /* keep layers ordered by type */
 
     bool state = false;
-    for (auto iter=arrays.begin(); iter != arrays.end(); ++iter) {
+    for (auto iter = arrays.begin(); iter != arrays.end(); ++iter) {
       if ((*iter)->type == type) {
         state = true;
-        //now find next layer with wrong type, we
-        //will insert before it.
+        // now find next layer with wrong type, we
+        // will insert before it.
       }
       else if (state) {
         arrays.insert(iter, array);
@@ -185,7 +185,8 @@ struct BMAttrDomain {
     return r;
   }
 
-  void setDefault(PageElemRef ref) {
+  void setDefault(PageElemRef ref)
+  {
     for (auto *array : arrays) {
       array->setDefault(ref);
     }
@@ -217,12 +218,12 @@ struct BMAttrDomain {
 };
 
 extern "C" {
-#else
+#  else
 struct BMAttrDomain;
-#endif  //_cplusplus
+#  endif  //_cplusplus
 
-#include "BLI_compiler_compat.h"
-#include "bmesh_class.h"
+#  include "BLI_compiler_compat.h"
+#  include "bmesh_class.h"
 
 struct BMesh;
 
@@ -265,10 +266,10 @@ void BMAttr_free(BMeshAttrList *list);
 void BMAttr_fromCData(BMeshAttrList *list, CustomData *domains[ATTR_DOMAIN_NUM]);
 void BMAttr_init(struct BMesh *bm);
 
-#ifdef __cplusplus
+#  ifdef __cplusplus
 }
 
 }  // namespace bmesh
 }  // namespace blender
-#endif
+#  endif
 #endif

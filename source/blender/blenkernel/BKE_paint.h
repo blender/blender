@@ -648,7 +648,7 @@ typedef struct SculptLayerParams {
 } SculptLayerParams;
 
 typedef struct SculptCustomLayer {
-  AttributeDomain domain;
+  eAttrDomain domain;
   int proptype;
   SculptLayerParams params;
 
@@ -721,8 +721,8 @@ typedef struct SculptSession {
   struct MPropCol *vcol;
   struct MLoopCol *mcol;
 
-  AttributeDomain vcol_domain;
-  CustomDataType vcol_type;
+  eAttrDomain vcol_domain;
+  eCustomDataType vcol_type;
 
   float *vmask;
 
@@ -945,7 +945,7 @@ void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me);
 
 void BKE_sculptsession_bmesh_add_layers(struct Object *ob);
 bool BKE_sculptsession_attr_get_layer(struct Object *ob,
-                                      AttributeDomain domain,
+                                      eAttrDomain domain,
                                       int proptype,
                                       const char *name,
                                       SculptCustomLayer *scl,

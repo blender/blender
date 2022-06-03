@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 }
 
 static VArray<int> construct_neighbor_count_gvarray(const MeshComponent &component,
-                                                    const AttributeDomain domain)
+                                                    const eAttrDomain domain)
 {
   const Mesh *mesh = component.get_for_read();
   if (mesh == nullptr) {
@@ -53,7 +53,7 @@ class FaceNeighborCountFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_MESH) {
@@ -76,7 +76,7 @@ class FaceNeighborCountFieldInput final : public GeometryFieldInput {
 };
 
 static VArray<int> construct_vertex_count_gvarray(const MeshComponent &component,
-                                                  const AttributeDomain domain)
+                                                  const eAttrDomain domain)
 {
   const Mesh *mesh = component.get_for_read();
   if (mesh == nullptr) {
@@ -98,7 +98,7 @@ class FaceVertexCountFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_MESH) {

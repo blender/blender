@@ -7,9 +7,9 @@
 
 #include "BKE_global.h"
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_string.h"
 #include "BLI_vector.hh"
-#include "BLI_compiler_attrs.h"
 
 #include "GPU_capabilities.h"
 #include "GPU_platform.h"

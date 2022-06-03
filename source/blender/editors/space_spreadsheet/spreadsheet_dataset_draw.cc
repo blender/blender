@@ -27,7 +27,7 @@ class GeometryDataSetTreeView;
 
 class GeometryDataSetTreeViewItem : public ui::AbstractTreeViewItem {
   GeometryComponentType component_type_;
-  std::optional<AttributeDomain> domain_;
+  std::optional<eAttrDomain> domain_;
   BIFIconID icon_;
 
  public:
@@ -35,7 +35,7 @@ class GeometryDataSetTreeViewItem : public ui::AbstractTreeViewItem {
                               StringRef label,
                               BIFIconID icon);
   GeometryDataSetTreeViewItem(GeometryComponentType component_type,
-                              AttributeDomain domain,
+                              eAttrDomain domain,
                               StringRef label,
                               BIFIconID icon);
 
@@ -113,7 +113,7 @@ GeometryDataSetTreeViewItem::GeometryDataSetTreeViewItem(GeometryComponentType c
   this->set_collapsed(false);
 }
 GeometryDataSetTreeViewItem::GeometryDataSetTreeViewItem(GeometryComponentType component_type,
-                                                         AttributeDomain domain,
+                                                         eAttrDomain domain,
                                                          StringRef label,
                                                          BIFIconID icon)
     : component_type_(component_type), domain_(domain), icon_(icon)

@@ -57,7 +57,7 @@ static void fn_node_random_value_init(bNodeTree *UNUSED(tree), bNode *node)
 static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
 {
   const NodeRandomValue &storage = node_storage(*node);
-  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
+  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
 
   bNodeSocket *sock_min_vector = (bNodeSocket *)node->inputs.first;
   bNodeSocket *sock_max_vector = sock_min_vector->next;
@@ -86,7 +86,7 @@ static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, sock_out_bool, data_type == CD_PROP_BOOL);
 }
 
-static std::optional<CustomDataType> node_type_from_other_socket(const bNodeSocket &socket)
+static std::optional<eCustomDataType> node_type_from_other_socket(const bNodeSocket &socket)
 {
   switch (socket.type) {
     case SOCK_FLOAT:
@@ -106,7 +106,7 @@ static std::optional<CustomDataType> node_type_from_other_socket(const bNodeSock
 static void fn_node_random_value_gather_link_search(GatherLinkSearchOpParams &params)
 {
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
-  const std::optional<CustomDataType> type = node_type_from_other_socket(params.other_socket());
+  const std::optional<eCustomDataType> type = node_type_from_other_socket(params.other_socket());
   if (!type) {
     return;
   }
@@ -137,7 +137,7 @@ static void fn_node_random_value_gather_link_search(GatherLinkSearchOpParams &pa
 static void fn_node_random_value_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const NodeRandomValue &storage = node_storage(builder.node());
-  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
+  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
 
   switch (data_type) {
     case CD_PROP_FLOAT3: {

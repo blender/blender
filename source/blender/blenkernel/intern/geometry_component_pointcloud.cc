@@ -104,7 +104,7 @@ void PointCloudComponent::ensure_owns_direct_data()
 /** \name Attribute Access
  * \{ */
 
-int PointCloudComponent::attribute_domain_num(const AttributeDomain domain) const
+int PointCloudComponent::attribute_domain_num(const eAttrDomain domain) const
 {
   if (pointcloud_ == nullptr) {
     return 0;

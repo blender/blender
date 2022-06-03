@@ -1289,7 +1289,6 @@ bool BKE_bassrelief_init_tree(
     return false;
   }
 
-
   /* We could create a BVH tree from the edit mesh,
    * however accessing normals from the face/loop normals gets more involved.
    * Convert mesh data since this isn't typically used in edit-mode. */
@@ -1460,10 +1459,11 @@ bool BKE_bassrelief_project_normal(char options,
   return false;
 }
 
-ATTR_NO_OPT static void shrinkwrap_calc_normal_projection_cb_ex_intern(BassReliefCalcCBData *data,
-                                                           const int i,
-                                                           BassReliefTreeData *tree,
-                                                           BassReliefTreeRayHit *treehit)
+ATTR_NO_OPT static void shrinkwrap_calc_normal_projection_cb_ex_intern(
+    BassReliefCalcCBData *data,
+    const int i,
+    BassReliefTreeData *tree,
+    BassReliefTreeRayHit *treehit)
 {
   BassReliefCalcData *calc = data->calc;
   float *proj_axis = data->proj_axis;
@@ -1881,9 +1881,9 @@ static bool update_hit(BVHTreeNearest *nearest,
 
 /* Target normal projection BVH callback - based on mesh_looptri_nearest_point. */
 ATTR_NO_OPT static void mesh_looptri_target_project(void *userdata,
-                                        int index,
-                                        const float co[3],
-                                        BVHTreeNearest *nearest)
+                                                    int index,
+                                                    const float co[3],
+                                                    BVHTreeNearest *nearest)
 {
   const BassReliefTreeData *tree = (BassReliefTreeData *)userdata;
   const BVHTreeFromMesh *data = &tree->treeData;
@@ -1932,11 +1932,11 @@ ATTR_NO_OPT static void mesh_looptri_target_project(void *userdata,
  * \param r_no: output in hit coordinate space; may be shared with inputs
  */
 ATTR_NO_OPT void BKE_bassrelief_compute_smooth_normal(const struct BassReliefTreeData *tree,
-                                          const struct SpaceTransform *transform,
-                                          int looptri_idx,
-                                          const float hit_co[3],
-                                          const float hit_no[3],
-                                          float r_no[3])
+                                                      const struct SpaceTransform *transform,
+                                                      int looptri_idx,
+                                                      const float hit_co[3],
+                                                      const float hit_no[3],
+                                                      float r_no[3])
 {
   const BVHTreeFromMesh *treeData = &tree->treeData;
   const MLoopTri *tri = &treeData->looptri[looptri_idx];

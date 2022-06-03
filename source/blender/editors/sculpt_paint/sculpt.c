@@ -569,7 +569,7 @@ float SCULPT_vertex_mask_get(SculptSession *ss, SculptVertRef index)
 
 bool SCULPT_attr_ensure_layer(SculptSession *ss,
                               Object *ob,
-                              AttributeDomain domain,
+                              eAttrDomain domain,
                               int proptype,
                               const char *name,
                               SculptLayerParams *params)
@@ -588,10 +588,7 @@ bool SCULPT_attr_ensure_layer(SculptSession *ss,
 }
 
 /* TODO: thoroughly test this function */
-bool SCULPT_attr_has_layer(SculptSession *ss,
-                           AttributeDomain domain,
-                           int proptype,
-                           const char *name)
+bool SCULPT_attr_has_layer(SculptSession *ss, eAttrDomain domain, int proptype, const char *name)
 {
   CustomData *vdata = NULL, *pdata = NULL, *data = NULL;
 
@@ -634,7 +631,7 @@ bool SCULPT_attr_release_layer(SculptSession *ss, Object *ob, SculptCustomLayer 
 
 bool SCULPT_attr_get_layer(SculptSession *ss,
                            Object *ob,
-                           AttributeDomain domain,
+                           eAttrDomain domain,
                            int proptype,
                            const char *name,
                            SculptCustomLayer *scl,

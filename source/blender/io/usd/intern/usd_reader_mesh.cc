@@ -143,7 +143,7 @@ static void assign_materials(Main *bmain,
 
 static void *add_customdata_cb(Mesh *mesh, const char *name, const int data_type)
 {
-  CustomDataType cd_data_type = static_cast<CustomDataType>(data_type);
+  eCustomDataType cd_data_type = static_cast<eCustomDataType>(data_type);
   void *cd_ptr;
   CustomData *loopdata;
   int numloops;

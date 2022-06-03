@@ -2396,22 +2396,19 @@ TODO: prune CD_TEMPORARY layers on sculpt mode exit if PBVH_FACES is active;
 /** returns true if layer was successfully created */
 bool SCULPT_attr_ensure_layer(SculptSession *ss,
                               Object *ob,
-                              AttributeDomain domain,
+                              eAttrDomain domain,
                               int proptype,
                               const char *name,
                               SculptLayerParams *params);
 bool SCULPT_attr_get_layer(SculptSession *ss,
                            Object *ob,
-                           AttributeDomain domain,
+                           eAttrDomain domain,
                            int proptype,
                            const char *name,
                            SculptCustomLayer *scl,
                            SculptLayerParams *params);
 bool SCULPT_attr_release_layer(SculptSession *ss, struct Object *ob, SculptCustomLayer *scl);
-bool SCULPT_attr_has_layer(SculptSession *ss,
-                           AttributeDomain domain,
-                           int proptype,
-                           const char *name);
+bool SCULPT_attr_has_layer(SculptSession *ss, eAttrDomain domain, int proptype, const char *name);
 
 /** updates all entries (e.g. customdata offsets) in ss->custom_layers */
 void SCULPT_update_customdata_refs(SculptSession *ss, Object *ob);

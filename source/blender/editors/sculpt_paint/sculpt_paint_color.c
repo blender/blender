@@ -167,8 +167,11 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     bool affect_vertex = false;
     float distance_to_stroke_location = 0.0f;
     if (brush->tip_roundness < 1.0f) {
-      affect_vertex = SCULPT_brush_test_cube(
-          &test, vd.co, data->mat, brush->tip_roundness, brush->falloff_shape != PAINT_FALLOFF_SHAPE_TUBE);
+      affect_vertex = SCULPT_brush_test_cube(&test,
+                                             vd.co,
+                                             data->mat,
+                                             brush->tip_roundness,
+                                             brush->falloff_shape != PAINT_FALLOFF_SHAPE_TUBE);
       distance_to_stroke_location = ss->cache->radius * test.dist;
     }
     else {

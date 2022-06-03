@@ -99,7 +99,7 @@ static void retrieve_attribute_spans(const Span<bke::AttributeIDRef> ids,
     BLI_assert(src_attribute);
     src.append(src_attribute.get_internal_span());
 
-    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(src_attribute.type());
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(src_attribute.type());
     bke::OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
         ids[i], ATTR_DOMAIN_POINT, data_type);
     dst.append(dst_attribute.as_span());

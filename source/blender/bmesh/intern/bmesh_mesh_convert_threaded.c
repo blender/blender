@@ -98,7 +98,7 @@ static void bm_vert_task(void *__restrict userdata,
     v->head.api_flag = 0;
 
     copy_v3_v3(v->co, mv->co);
-    //XXX normal_short_to_float_v3(v->no, mv->no);
+    // XXX normal_short_to_float_v3(v->no, mv->no);
 
     v->e = NULL;
     v->head.index = i + starti;
@@ -635,7 +635,7 @@ static void me_vert_task(void *__restrict userdata)
 
   BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
     copy_v3_v3(mvert->co, v->co);
-    //XXX normal_float_to_short_v3(mvert->no, v->no);
+    // XXX normal_float_to_short_v3(mvert->no, v->no);
 
     mvert->flag = BM_vert_flag_to_mflag(v);
 
@@ -853,7 +853,7 @@ void BM_mesh_bm_to_me_threaded(
 
   CustomData_MeshMasks mask = CD_MASK_MESH;
   CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
-  CustomDataMask extra2 = !params->ignore_mesh_id_layers ? CD_MASK_MESH_ID : 0;
+  eCustomDataMask extra2 = !params->ignore_mesh_id_layers ? CD_MASK_MESH_ID : 0;
   CustomData *srcdatas[] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
   int id_flags[4] = {-1, -1, -1, -1};
 

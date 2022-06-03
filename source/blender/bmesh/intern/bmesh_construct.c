@@ -245,9 +245,9 @@ void bm_assign_id(BMesh *bm, BMElem *elem, uint id, bool check_unqiue)
     if (old = (BMElem *)BM_ELEM_FROM_ID(bm, id)) {
       printf("id conflict in bm_assign_id; elem %p (a %s) is being reassinged to id %d.\n",
              elem,
-             bm_get_htype_str((int) elem->head.htype),
+             bm_get_htype_str((int)elem->head.htype),
              (int)id);
-      printf("  elem %p (a %s) will get a new id\n", old, bm_get_htype_str((int) old->head.htype));
+      printf("  elem %p (a %s) will get a new id\n", old, bm_get_htype_str((int)old->head.htype));
 
       bm_free_id(bm, old);
 
@@ -362,8 +362,11 @@ void BM_edges_from_verts_ensure(BMesh *bm, BMEdge **edge_arr, BMVert **vert_arr,
 }
 
 /* prototypes */
-static void bm_loop_attrs_copy(
-    BMesh *bm_src, BMesh *bm_dst, const BMLoop *l_src, BMLoop *l_dst, CustomDataMask mask_exclude);
+static void bm_loop_attrs_copy(BMesh *bm_src,
+                               BMesh *bm_dst,
+                               const BMLoop *l_src,
+                               BMLoop *l_dst,
+                               eCustomDataMask mask_exclude);
 
 BMFace *BM_face_create_quad_tri(BMesh *bm,
                                 BMVert *v1,
@@ -696,7 +699,7 @@ void BM_sort_disk_cycle(BMVert *v)
 /*************************************************************/
 
 static void bm_vert_attrs_copy(
-    BMesh *bm_src, BMesh *bm_dst, const BMVert *v_src, BMVert *v_dst, CustomDataMask mask_exclude)
+    BMesh *bm_src, BMesh *bm_dst, const BMVert *v_src, BMVert *v_dst, eCustomDataMask mask_exclude)
 {
   if ((bm_src == bm_dst) && (v_src == v_dst)) {
     BLI_assert_msg(0, "BMVert: source and target match");
@@ -716,7 +719,7 @@ static void bm_vert_attrs_copy(
 }
 
 static void bm_edge_attrs_copy(
-    BMesh *bm_src, BMesh *bm_dst, const BMEdge *e_src, BMEdge *e_dst, CustomDataMask mask_exclude)
+    BMesh *bm_src, BMesh *bm_dst, const BMEdge *e_src, BMEdge *e_dst, eCustomDataMask mask_exclude)
 {
   if ((bm_src == bm_dst) && (e_src == e_dst)) {
     BLI_assert_msg(0, "BMEdge: source and target match");
@@ -733,7 +736,7 @@ static void bm_edge_attrs_copy(
 }
 
 static void bm_loop_attrs_copy(
-    BMesh *bm_src, BMesh *bm_dst, const BMLoop *l_src, BMLoop *l_dst, CustomDataMask mask_exclude)
+    BMesh *bm_src, BMesh *bm_dst, const BMLoop *l_src, BMLoop *l_dst, eCustomDataMask mask_exclude)
 {
   if ((bm_src == bm_dst) && (l_src == l_dst)) {
     BLI_assert_msg(0, "BMLoop: source and target match");
@@ -750,7 +753,7 @@ static void bm_loop_attrs_copy(
 }
 
 static void bm_face_attrs_copy(
-    BMesh *bm_src, BMesh *bm_dst, const BMFace *f_src, BMFace *f_dst, CustomDataMask mask_exclude)
+    BMesh *bm_src, BMesh *bm_dst, const BMFace *f_src, BMFace *f_dst, eCustomDataMask mask_exclude)
 {
   if ((bm_src == bm_dst) && (f_src == f_dst)) {
     BLI_assert_msg(0, "BMFace: source and target match");

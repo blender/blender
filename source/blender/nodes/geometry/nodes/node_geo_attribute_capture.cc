@@ -50,7 +50,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryAttributeCapture &storage = node_storage(*node);
-  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
+  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
 
   bNodeSocket *socket_value_geometry = (bNodeSocket *)node->inputs.first;
   bNodeSocket *socket_value_vector = socket_value_geometry->next;
@@ -86,7 +86,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.outputs().take_front(1));
 
   const bNodeType &node_type = params.node_type();
-  const std::optional<CustomDataType> type = node_data_type_to_custom_data_type(
+  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       (eNodeSocketDatatype)params.other_socket().type);
   if (type && *type != CD_PROP_STRING) {
     if (params.in_out() == SOCK_OUT) {
@@ -108,14 +108,14 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void try_capture_field_on_geometry(GeometryComponent &component,
                                           const AttributeIDRef &attribute_id,
-                                          const AttributeDomain domain,
+                                          const eAttrDomain domain,
                                           const GField &field)
 {
   GeometryComponentFieldContext field_context{component, domain};
   const int domain_num = component.attribute_domain_num(domain);
   const IndexMask mask{IndexMask(domain_num)};
 
-  const CustomDataType data_type = bke::cpp_type_to_custom_data_type(field.cpp_type());
+  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(field.cpp_type());
   OutputAttribute output_attribute = component.attribute_try_get_for_output_only(
       attribute_id, domain, data_type);
 
@@ -126,7 +126,7 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
   output_attribute.save();
 }
 
-static StringRefNull identifier_suffix(CustomDataType data_type)
+static StringRefNull identifier_suffix(eCustomDataType data_type)
 {
   switch (data_type) {
     case CD_PROP_FLOAT:
@@ -158,8 +158,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   const NodeGeometryAttributeCapture &storage = node_storage(params.node());
-  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
-  const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
+  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
 
   const std::string output_identifier = "Attribute" + identifier_suffix(data_type);
 

@@ -102,12 +102,12 @@ static void sculpt_array_datalayers_init(Object *ob, SculptArray *array, SculptS
   SCULPT_attr_get_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
   SCULPT_attr_get_layer(ss,
-                              ob,
-                              ATTR_DOMAIN_POINT,
-                              CD_PROP_INT32,
-                              array_symmetry_pass_cd_name,
-                              array->scl_sym,
-                              &params);
+                        ob,
+                        ATTR_DOMAIN_POINT,
+                        CD_PROP_INT32,
+                        array_symmetry_pass_cd_name,
+                        array->scl_sym,
+                        &params);
 }
 
 static void sculpt_array_datalayers_add(SculptArray *array, SculptSession *ss, Mesh *mesh)
@@ -162,23 +162,23 @@ void SCULPT_array_datalayers_free(SculptArray *array, Object *ob)
 
   if (array->scl_inst) {
     SCULPT_attr_get_layer(ss,
-                                ob,
-                                ATTR_DOMAIN_POINT,
-                                CD_PROP_INT32,
-                                array_instance_cd_name,
-                                array->scl_inst,
-                                &params);
+                          ob,
+                          ATTR_DOMAIN_POINT,
+                          CD_PROP_INT32,
+                          array_instance_cd_name,
+                          array->scl_inst,
+                          &params);
     SCULPT_attr_release_layer(ss, ob, array->scl_inst);
   }
 
   if (array->scl_sym) {
     SCULPT_attr_get_layer(ss,
-                                ob,
-                                ATTR_DOMAIN_POINT,
-                                CD_PROP_INT32,
-                                array_symmetry_pass_cd_name,
-                                array->scl_sym,
-                                &params);
+                          ob,
+                          ATTR_DOMAIN_POINT,
+                          CD_PROP_INT32,
+                          array_symmetry_pass_cd_name,
+                          array->scl_sym,
+                          &params);
     SCULPT_attr_release_layer(ss, ob, array->scl_sym);
   }
 
@@ -356,12 +356,12 @@ static void sculpt_array_ensure_geometry_indices(Object *ob, SculptArray *array)
   SCULPT_attr_get_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_INT32, array_instance_cd_name, array->scl_inst, &params);
   SCULPT_attr_get_layer(ss,
-                              ob,
-                              ATTR_DOMAIN_POINT,
-                              CD_PROP_INT32,
-                              array_symmetry_pass_cd_name,
-                              array->scl_sym,
-                              &params);
+                        ob,
+                        ATTR_DOMAIN_POINT,
+                        CD_PROP_INT32,
+                        array_symmetry_pass_cd_name,
+                        array->scl_sym,
+                        &params);
 
   array->copy_index = MEM_malloc_arrayN(totvert, sizeof(int), "array copy index");
   array->symmetry_pass = MEM_malloc_arrayN(totvert, sizeof(int), "array symmetry pass index");

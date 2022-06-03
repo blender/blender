@@ -1219,7 +1219,6 @@ enum {
   MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS = (1 << 2),
 };
 
-
 typedef struct BassReliefModifierData {
   ModifierData modifier;
 
@@ -1264,7 +1263,7 @@ enum {
   MOD_BASSRELIEF_INVERT_VGROUP = (1 << 5),
   MOD_BASSRELIEF_INVERT_CULL_TARGET = (1 << 6),
 
-  MOD_BASSRELIEF_OPTIMIZE = (1<<7)
+  MOD_BASSRELIEF_OPTIMIZE = (1 << 7)
 };
 
 #define MOD_BASSRELIEF_CULL_TARGET_MASK \

@@ -89,8 +89,8 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
-  CustomDataType type = (CustomDataType)RNA_enum_get(op->ptr, "data_type");
-  AttributeDomain domain = (AttributeDomain)RNA_enum_get(op->ptr, "domain");
+  eCustomDataType type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
+  eAttrDomain domain = (eAttrDomain)RNA_enum_get(op->ptr, "domain");
   CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
 
   if (layer == nullptr) {
@@ -218,8 +218,8 @@ static int geometry_color_attribute_add_exec(bContext *C, wmOperator *op)
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
-  CustomDataType type = (CustomDataType)RNA_enum_get(op->ptr, "data_type");
-  AttributeDomain domain = (AttributeDomain)RNA_enum_get(op->ptr, "domain");
+  eCustomDataType type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
+  eAttrDomain domain = (eAttrDomain)RNA_enum_get(op->ptr, "domain");
   CustomDataLayer *layer = BKE_id_attribute_new(id, name, type, domain, op->reports);
 
   float color[4];
@@ -288,9 +288,8 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
    * 4. Create a new attribute based on the previously copied data. */
   switch (mode) {
     case ConvertAttributeMode::Generic: {
-      const AttributeDomain dst_domain = static_cast<AttributeDomain>(
-          RNA_enum_get(op->ptr, "domain"));
-      const CustomDataType dst_type = static_cast<CustomDataType>(
+      const eAttrDomain dst_domain = static_cast<eAttrDomain>(RNA_enum_get(op->ptr, "domain"));
+      const eCustomDataType dst_type = static_cast<eCustomDataType>(
           RNA_enum_get(op->ptr, "data_type"));
 
       if (ELEM(dst_type, CD_PROP_STRING)) {

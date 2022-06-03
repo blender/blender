@@ -24,8 +24,8 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
-#include "BKE_report.h"
 #include "BKE_paint.h"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 

@@ -376,7 +376,7 @@ BLI_INLINE void read_uvs_params(CDStreamConfig &config,
 
 static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
 {
-  CustomDataType cd_data_type = static_cast<CustomDataType>(data_type);
+  eCustomDataType cd_data_type = static_cast<eCustomDataType>(data_type);
 
   /* unsupported custom data type -- don't do anything. */
   if (!ELEM(cd_data_type, CD_MLOOPUV, CD_PROP_BYTE_COLOR)) {

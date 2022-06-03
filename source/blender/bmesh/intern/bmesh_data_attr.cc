@@ -24,7 +24,7 @@ BMeshAttrList *BMAttr_new()
       MEM_callocN(sizeof(BMeshAttrList), "BMeshAttrList"));
 
   for (int i : IndexRange(ATTR_DOMAIN_NUM)) {
-    list->domains[i] = new BMAttrDomain(static_cast<AttributeDomain>(i));
+    list->domains[i] = new BMAttrDomain(static_cast<eAttrDomain>(i));
   }
 
   return list;
@@ -44,7 +44,7 @@ void BMAttr_reset(BMeshAttrList *list)
   }
 
   for (int i : IndexRange(ATTR_DOMAIN_NUM)) {
-    list->domains[i] = new BMAttrDomain(static_cast<AttributeDomain>(i));
+    list->domains[i] = new BMAttrDomain(static_cast<eAttrDomain>(i));
   }
 }
 
@@ -70,7 +70,7 @@ static void bm_update_page_pointers(BMeshAttrList *list)
   }
 }
 
-int BMAttr_allocElem(BMeshAttrList *list, AttributeDomain domain)
+int BMAttr_allocElem(BMeshAttrList *list, eAttrDomain domain)
 {
   bool hadNewPage;
 
@@ -83,7 +83,7 @@ int BMAttr_allocElem(BMeshAttrList *list, AttributeDomain domain)
   return ret;
 }
 
-void BMAttr_freeElem(BMeshAttrList *list, AttributeDomain domain, int elem)
+void BMAttr_freeElem(BMeshAttrList *list, eAttrDomain domain, int elem)
 {
   bool pageRemoved;
 
@@ -94,7 +94,7 @@ void BMAttr_freeElem(BMeshAttrList *list, AttributeDomain domain, int elem)
   }
 }
 
-int BMAttr_addLayer(BMeshAttrList *list, AttributeDomain domain, CustomDataType type)
+int BMAttr_addLayer(BMeshAttrList *list, eAttrDomain domain, eCustomDataType type)
 {
   list->totarray++;
 
@@ -122,7 +122,7 @@ int BMAttr_addLayer(BMeshAttrList *list, AttributeDomain domain, CustomDataType 
 
 void BMAttr_init(BMesh *bm)
 {
-#ifdef USE_BMESH_PAGE_CUSTOMDATA
+#  ifdef USE_BMESH_PAGE_CUSTOMDATA
   CustomData *domains[ATTR_DOMAIN_NUM] = {nullptr};
 
   domains[ATTR_DOMAIN_POINT] = &bm->vdata;
@@ -135,13 +135,12 @@ void BMAttr_init(BMesh *bm)
   }
 
   BMAttr_fromCData(bm->attr_list, domains);
-#endif
+#  endif
 }
 
 void BMAttr_fromCData(BMeshAttrList *list, CustomData *domains[ATTR_DOMAIN_NUM])
 {
-  AttributeDomain ds[4] = {
-      ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_FACE};
+  eAttrDomain ds[4] = {ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_FACE};
 
   for (int i : IndexRange(4)) {
     CustomData *cdata = domains[ds[i]];
@@ -152,12 +151,12 @@ void BMAttr_fromCData(BMeshAttrList *list, CustomData *domains[ATTR_DOMAIN_NUM])
     for (int j : IndexRange(cdata->totlayer)) {
       CustomDataLayer *layer = cdata->layers + j;
 
-      layer->offset = BMAttr_addLayer(list, ds[i], static_cast<CustomDataType>(layer->type));
+      layer->offset = BMAttr_addLayer(list, ds[i], static_cast<eCustomDataType>(layer->type));
     }
   }
 }
 
-static AttributeDomain domain_map[] = {
+static eAttrDomain domain_map[] = {
     ATTR_DOMAIN_AUTO,    // 0
     ATTR_DOMAIN_POINT,   // 1
     ATTR_DOMAIN_EDGE,    // 2
@@ -204,7 +203,7 @@ static void CustomData_bmesh_alloc_block(CustomData *data, void **block)
   BMeshAttrList *list = static_cast<BMeshAttrList *>(data->bm_attrs);
   BMeshPageRef *ref = static_cast<BMeshPageRef *>(BLI_mempool_calloc(data->pool));
 
-  AttributeDomain domain = static_cast<AttributeDomain>(POINTER_AS_UINT(data->_pad[0]));
+  eAttrDomain domain = static_cast<eAttrDomain>(POINTER_AS_UINT(data->_pad[0]));
 
   ref->attrs = list;
   ref->idx = BMAttr_allocElem(list, domain);
@@ -234,15 +233,12 @@ static void CustomData_bmesh_set_default(CustomData *data, void **block)
 
   BMeshAttrList *list = static_cast<BMeshAttrList *>(data->bm_attrs);
   BMeshPageRef *ref = static_cast<BMeshPageRef *>(*block);
-  AttributeDomain domain = static_cast<AttributeDomain>(POINTER_AS_UINT(data->_pad[0]));
+  eAttrDomain domain = static_cast<eAttrDomain>(POINTER_AS_UINT(data->_pad[0]));
 
   list->domains[domain].setDefault(static_cast<PageElemRef>(ref->idx));
 }
 
-static void alloc_block(CustomData *data,
-                        BMeshAttrList *list,
-                        AttributeDomain domain,
-                        void **block)
+static void alloc_block(CustomData *data, BMeshAttrList *list, eAttrDomain domain, void **block)
 {
   CustomData_bmesh_alloc_block(data, block);
   BMeshPageRef *ref = static_cast<BMeshPageRef *> * block;
@@ -259,7 +255,7 @@ void CustomData_bmesh_interp(CustomData *data,
                              void *dst_block)
 {
   BMeshPageRef *ref = static_cast<BMeshPageRef *> dst_block;
-  AttributeDomain domain = static_cast<AttributeDomain>(ref->domain);
+  eAttrDomain domain = static_cast<eAttrDomain>(ref->domain);
 
   PageElemRef *elems = BLI_array_alloca(elems, count);
 

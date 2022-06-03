@@ -111,7 +111,7 @@ typedef struct UndoSculpt {
 } UndoSculpt;
 
 typedef struct SculptAttrRef {
-  AttributeDomain domain;
+  eAttrDomain domain;
   int type;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   bool was_set;

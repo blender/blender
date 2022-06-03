@@ -58,7 +58,7 @@ static Mesh *triangulate_mesh(Mesh *mesh,
   }
 
   bm = BKE_mesh_to_bmesh_ex(NULL,
-                            mesh, 
+                            mesh,
                             &((struct BMeshCreateParams){0}),
                             &((struct BMeshFromMeshParams){
                                 .calc_face_normal = true,
@@ -109,7 +109,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 {
   TriangulateModifierData *tmd = (TriangulateModifierData *)md;
   Mesh *result;
-  if (!(result = triangulate_mesh(mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices, tmd->flag))) {
+  if (!(result = triangulate_mesh(
+            mesh, tmd->quad_method, tmd->ngon_method, tmd->min_vertices, tmd->flag))) {
     return mesh;
   }
 

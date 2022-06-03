@@ -855,7 +855,7 @@ const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3];
 
 bool BKE_pbvh_get_color_layer(const struct Mesh *me,
                               CustomDataLayer **r_layer,
-                              AttributeDomain *r_attr);
+                              eAttrDomain *r_attr);
 
 /* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
  * with values in colors. PBVH_FACES only.*/

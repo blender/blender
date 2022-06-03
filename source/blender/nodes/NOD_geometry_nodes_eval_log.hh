@@ -90,8 +90,8 @@ class GFieldValueLog : public ValueLog {
 struct GeometryAttributeInfo {
   std::string name;
   /** Can be empty when #name does not actually exist on a geometry yet. */
-  std::optional<AttributeDomain> domain;
-  std::optional<CustomDataType> data_type;
+  std::optional<eAttrDomain> domain;
+  std::optional<eCustomDataType> data_type;
 };
 
 /** Contains information about a geometry set. In most cases this does not store the entire
@@ -171,17 +171,17 @@ struct ValueOfSockets {
   destruct_ptr<ValueLog> value;
 };
 
-enum class NamedAttributeUsage {
+enum class eNamedAttrUsage {
   None = 0,
   Read = 1 << 0,
   Write = 1 << 1,
   Remove = 1 << 2,
 };
-ENUM_OPERATORS(NamedAttributeUsage, NamedAttributeUsage::Remove);
+ENUM_OPERATORS(eNamedAttrUsage, eNamedAttrUsage::Remove);
 
 struct UsedNamedAttribute {
   std::string name;
-  NamedAttributeUsage usage;
+  eNamedAttrUsage usage;
 };
 
 struct NodeWithUsedNamedAttribute {
@@ -219,7 +219,7 @@ class LocalGeoLogger {
   void log_multi_value_socket(DSocket socket, Span<GPointer> values);
   void log_node_warning(DNode node, NodeWarningType type, std::string message);
   void log_execution_time(DNode node, std::chrono::microseconds exec_time);
-  void log_used_named_attribute(DNode node, std::string attribute_name, NamedAttributeUsage usage);
+  void log_used_named_attribute(DNode node, std::string attribute_name, eNamedAttrUsage usage);
   /**
    * Log a message that will be displayed in the node editor next to the node.
    * This should only be used for debugging purposes and not to display information to users.

@@ -15,7 +15,6 @@
 #include <cstdio>
 #include <vector>
 
-
 HGLRC GHOST_ContextWGL::s_sharedHGLRC = NULL;
 int GHOST_ContextWGL::s_sharedCount = 0;
 

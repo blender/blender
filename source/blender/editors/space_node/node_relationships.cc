@@ -454,7 +454,7 @@ static bool socket_can_be_viewed(const OutputSocketRef &socket)
               SOCK_RGBA);
 }
 
-static CustomDataType socket_type_to_custom_data_type(const eNodeSocketDatatype socket_type)
+static eCustomDataType socket_type_to_custom_data_type(const eNodeSocketDatatype socket_type)
 {
   switch (socket_type) {
     case SOCK_FLOAT:
@@ -491,7 +491,7 @@ static bNodeSocket *node_link_viewer_get_socket(bNodeTree &ntree,
         return viewer_socket;
       }
       NodeGeometryViewer *storage = (NodeGeometryViewer *)viewer_node.storage;
-      const CustomDataType data_type = socket_type_to_custom_data_type(
+      const eCustomDataType data_type = socket_type_to_custom_data_type(
           (eNodeSocketDatatype)src_socket.type);
       BLI_assert(data_type != CD_AUTO_FROM_NAME);
       storage->data_type = data_type;

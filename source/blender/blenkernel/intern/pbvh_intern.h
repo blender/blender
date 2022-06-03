@@ -256,7 +256,7 @@ struct PBVH {
 
   /* This data is for validating cached PBVHs;
    * it is not guaranteed to be valid in any way! */
-  struct { 
+  struct {
     CustomData vdata, edata, ldata, pdata;
     int totvert, totedge, totloop, totpoly;
     struct BMesh *bm;
@@ -265,8 +265,8 @@ struct PBVH {
   bool invalid;
 
   CustomDataLayer *color_layer;
-  CustomDataType color_type;
-  AttributeDomain color_domain;
+  eCustomDataType color_type;
+  eAttrDomain color_domain;
 
   bool is_drawing;
 

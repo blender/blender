@@ -10,15 +10,15 @@
 #include <stdint.h>
 
 #ifndef ATTR_NO_OPT
-#ifdef __clang__
-#  define ATTR_NO_OPT __attribute__((optnone))
-#elif defined(_MSC_VER)
-#  define ATTR_NO_OPT __pragma(optimize("", off))
-#elif defined(__GNUC__)
-#  define ATTR_NO_OPT __attribute__((optimize("O0")))
-#else
-#  define ATTR_NO_OPT
-#endif
+#  ifdef __clang__
+#    define ATTR_NO_OPT __attribute__((optnone))
+#  elif defined(_MSC_VER)
+#    define ATTR_NO_OPT __pragma(optimize("", off))
+#  elif defined(__GNUC__)
+#    define ATTR_NO_OPT __attribute__((optimize("O0")))
+#  else
+#    define ATTR_NO_OPT
+#  endif
 #endif
 
 #ifdef WITH_CXX_GUARDEDALLOC

@@ -129,7 +129,7 @@ typedef struct bNodeSocket {
   short stack_type DNA_DEPRECATED;
   char display_shape;
 
-  /* #AttributeDomain used when the geometry nodes modifier creates an attribute for a group
+  /* #eAttrDomain used when the geometry nodes modifier creates an attribute for a group
    * output. */
   char attribute_domain;
   /* Runtime-only cache of the number of input links, for multi-input sockets. */
@@ -1219,7 +1219,7 @@ typedef struct NodeDenoise {
 } NodeDenoise;
 
 typedef struct NodeMapRange {
-  /* CustomDataType */
+  /* eCustomDataType */
   uint8_t data_type;
 
   /* NodeMapRangeType. */
@@ -1229,14 +1229,14 @@ typedef struct NodeMapRange {
 } NodeMapRange;
 
 typedef struct NodeRandomValue {
-  /* CustomDataType. */
+  /* eCustomDataType. */
   uint8_t data_type;
 } NodeRandomValue;
 
 typedef struct NodeAccumulateField {
-  /* CustomDataType. */
+  /* eCustomDataType. */
   uint8_t data_type;
-  /* AttributeDomain. */
+  /* eAttrDomain. */
   uint8_t domain;
 } NodeAccumulateField;
 
@@ -1406,9 +1406,9 @@ typedef struct NodeGeometryCurveSample {
 } NodeGeometryCurveSample;
 
 typedef struct NodeGeometryTransferAttribute {
-  /* CustomDataType. */
+  /* eCustomDataType. */
   int8_t data_type;
-  /* AttributeDomain. */
+  /* eAttrDomain. */
   int8_t domain;
   /* GeometryNodeAttributeTransferMode. */
   uint8_t mode;
@@ -1419,7 +1419,7 @@ typedef struct NodeGeometryRaycast {
   /* GeometryNodeRaycastMapMode. */
   uint8_t mapping;
 
-  /* CustomDataType. */
+  /* eCustomDataType. */
   int8_t data_type;
 
   /* Deprecated input types in new Ray-cast node. Can be removed when legacy nodes are no longer
@@ -1438,21 +1438,21 @@ typedef struct NodeGeometryMeshToPoints {
 } NodeGeometryMeshToPoints;
 
 typedef struct NodeGeometryAttributeCapture {
-  /* CustomDataType. */
+  /* eCustomDataType. */
   int8_t data_type;
-  /* AttributeDomain. */
+  /* eAttrDomain. */
   int8_t domain;
 } NodeGeometryAttributeCapture;
 
 typedef struct NodeGeometryStoreNamedAttribute {
-  /* CustomDataType. */
+  /* eCustomDataType. */
   int8_t data_type;
-  /* AttributeDomain. */
+  /* eAttrDomain. */
   int8_t domain;
 } NodeGeometryStoreNamedAttribute;
 
 typedef struct NodeGeometryInputNamedAttribute {
-  /* CustomDataType. */
+  /* eCustomDataType. */
   int8_t data_type;
 } NodeGeometryInputNamedAttribute;
 
@@ -1468,19 +1468,19 @@ typedef struct NodeGeometryStringToCurves {
 } NodeGeometryStringToCurves;
 
 typedef struct NodeGeometryDeleteGeometry {
-  /* AttributeDomain. */
+  /* eAttrDomain. */
   int8_t domain;
   /* GeometryNodeDeleteGeometryMode. */
   int8_t mode;
 } NodeGeometryDeleteGeometry;
 
 typedef struct NodeGeometryDuplicateElements {
-  /* AttributeDomain. */
+  /* eAttrDomain. */
   int8_t domain;
 } NodeGeometryDuplicateElements;
 
 typedef struct NodeGeometrySeparateGeometry {
-  /* AttributeDomain. */
+  /* eAttrDomain. */
   int8_t domain;
 } NodeGeometrySeparateGeometry;
 
@@ -1490,7 +1490,7 @@ typedef struct NodeGeometryImageTexture {
 } NodeGeometryImageTexture;
 
 typedef struct NodeGeometryViewer {
-  /* CustomDataType. */
+  /* eCustomDataType. */
   int8_t data_type;
 } NodeGeometryViewer;
 

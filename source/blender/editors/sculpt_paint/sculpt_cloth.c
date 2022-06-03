@@ -2002,8 +2002,8 @@ static void cloth_brush_satisfy_constraints_task_cb(void *__restrict userdata,
 }
 
 static void cloth_brush_satisfy_constraints(SculptSession *ss,
-                                     Brush *brush,
-                                     SculptClothSimulation *cloth_sim)
+                                            Brush *brush,
+                                            SculptClothSimulation *cloth_sim)
 {
   ConstraintThreadData data = {.cloth_sim = cloth_sim, .ss = ss, .brush = brush};
 

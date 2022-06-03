@@ -884,11 +884,15 @@ void SCULPT_replay(struct bContext *C)
 
     ss->cache->last_dyntopo_t = last_dyntopo_t;
 
-    //XXX
-    //sculpt_stroke_update_step(C, ss->cache->stroke, NULL);
+    // XXX
+    // sculpt_stroke_update_step(C, ss->cache->stroke, NULL);
     last_dyntopo_t = ss->cache->last_dyntopo_t;
     continue;
-    do_brush_action(sd, ob, brush, &scene->toolsettings->unified_paint_settings, &scene->toolsettings->paint_mode);
+    do_brush_action(sd,
+                    ob,
+                    brush,
+                    &scene->toolsettings->unified_paint_settings,
+                    &scene->toolsettings->paint_mode);
     sculpt_combine_proxies(sd, ob);
 
     /* Hack to fix noise texture tearing mesh. */

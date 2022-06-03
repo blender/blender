@@ -247,7 +247,7 @@ BLI_NOINLINE static void eliminate_points_based_on_mask(const Span<bool> elimina
 BLI_NOINLINE static void interpolate_attribute(const Mesh &mesh,
                                                const Span<float3> bary_coords,
                                                const Span<int> looptri_indices,
-                                               const AttributeDomain source_domain,
+                                               const eAttrDomain source_domain,
                                                const GVArray &source_data,
                                                GMutableSpan output_data)
 {
@@ -293,7 +293,7 @@ BLI_NOINLINE static void propagate_existing_attributes(
 
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    const CustomDataType output_data_type = entry.value.data_type;
+    const eCustomDataType output_data_type = entry.value.data_type;
 
     ReadAttributeLookup source_attribute = mesh_component.attribute_try_get_for_read(attribute_id);
     if (!source_attribute) {
@@ -396,7 +396,7 @@ static Array<float> calc_full_density_factors_with_selection(const MeshComponent
                                                              const Field<float> &density_field,
                                                              const Field<bool> &selection_field)
 {
-  const AttributeDomain attribute_domain = ATTR_DOMAIN_CORNER;
+  const eAttrDomain attribute_domain = ATTR_DOMAIN_CORNER;
   GeometryComponentFieldContext field_context{component, attribute_domain};
   const int domain_num = component.attribute_domain_num(attribute_domain);
 

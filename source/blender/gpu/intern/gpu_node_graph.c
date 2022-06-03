@@ -328,7 +328,7 @@ void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph)
 
 /* Attributes and Textures */
 
-static char attr_prefix_get(CustomDataType type)
+static char attr_prefix_get(eCustomDataType type)
 {
   switch (type) {
     case CD_TANGENT:
@@ -364,7 +364,7 @@ static void attr_input_name(GPUMaterialAttribute *attr)
 
 /** Add a new varying attribute of given type and name. Returns NULL if out of slots. */
 static GPUMaterialAttribute *gpu_node_graph_add_attribute(GPUNodeGraph *graph,
-                                                          CustomDataType type,
+                                                          eCustomDataType type,
                                                           const char *name)
 {
   /* Find existing attribute. */
@@ -468,7 +468,7 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
 
 /* Creating Inputs */
 
-GPUNodeLink *GPU_attribute(GPUMaterial *mat, const CustomDataType type, const char *name)
+GPUNodeLink *GPU_attribute(GPUMaterial *mat, const eCustomDataType type, const char *name)
 {
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUMaterialAttribute *attr = gpu_node_graph_add_attribute(graph, type, name);
@@ -491,7 +491,7 @@ GPUNodeLink *GPU_attribute(GPUMaterial *mat, const CustomDataType type, const ch
 }
 
 GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
-                                        const CustomDataType type,
+                                        const eCustomDataType type,
                                         const char *name,
                                         eGPUDefaultValue default_value)
 {

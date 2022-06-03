@@ -1092,16 +1092,16 @@ BLI_INLINE int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
 /* ensures attribute active indices are kept up to date */
 
 bool BKE_mesh_customdata_merge(struct Mesh *me,
-                               AttributeDomain domain,
+                               eAttrDomain domain,
                                CustomData *src,
-                               CustomDataMask mask,
+                               eCustomDataMask mask,
                                eCDAllocType alloctype,
                                int totelem);
 
 void BKE_mesh_customdata_copy(struct Mesh *me,
-                              AttributeDomain domain,
+                              eAttrDomain domain,
                               CustomData *src,
-                              CustomDataMask mask,
+                              eCustomDataMask mask,
                               eCDAllocType alloctype,
                               int totelem);
 
@@ -1114,11 +1114,11 @@ typedef struct CustomDataMergeState {
 } CustomDataMergeState;
 
 void BKE_mesh_attributes_update_pre(struct Mesh *me,
-                                    AttributeDomain domain,
+                                    eAttrDomain domain,
                                     CustomDataMergeState *state);
 
 void BKE_mesh_attributes_update_post(struct Mesh *me,
-                                     AttributeDomain domain,
+                                     eAttrDomain domain,
                                      CustomDataMergeState *state);
 #ifdef __cplusplus
 }

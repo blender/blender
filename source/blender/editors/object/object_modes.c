@@ -410,7 +410,7 @@ bool ED_object_mode_generic_has_data(struct Depsgraph *depsgraph, const struct O
 
 /** \} */
 
-	/* -------------------------------------------------------------------- */
+/* -------------------------------------------------------------------- */
 /** \name Transfer Mode
  *
  * Enters the same mode of the current active object in another object,

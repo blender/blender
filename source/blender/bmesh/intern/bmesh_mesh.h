@@ -6,8 +6,8 @@
  * \ingroup bmesh
  */
 
-#include "bmesh_class.h"
 #include "BLI_compiler_compat.h"
+#include "bmesh_class.h"
 
 typedef struct BMTracer {
   void (*on_vert_kill)(BMesh *bm, BMVert *v, void *userdata);
@@ -246,6 +246,7 @@ void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
        BLI_ghash_lookup(bm->idmap.ghash, POINTER_FROM_UINT(id)) : \
        bm->idmap.map[id])
 
-#define BM_ELEM_FROM_ID_SAFE(bm, id) (((id) >= 0 && (id) < (bm)->idmap.maxid) ? (BM_ELEM_FROM_ID(bm, id)) : NULL)
+#define BM_ELEM_FROM_ID_SAFE(bm, id) \
+  (((id) >= 0 && (id) < (bm)->idmap.maxid) ? (BM_ELEM_FROM_ID(bm, id)) : NULL)
 
 bool BM_elem_is_free(BMElem *elem, int htype);

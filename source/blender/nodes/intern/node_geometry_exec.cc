@@ -24,7 +24,7 @@ void GeoNodeExecParams::error_message_add(const NodeWarningType type, std::strin
 }
 
 void GeoNodeExecParams::used_named_attribute(std::string attribute_name,
-                                             const NamedAttributeUsage usage)
+                                             const eNamedAttrUsage usage)
 {
   if (provider_->logger == nullptr) {
     return;
@@ -112,8 +112,8 @@ const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name
 
 GVArray GeoNodeExecParams::get_input_attribute(const StringRef name,
                                                const GeometryComponent &component,
-                                               const AttributeDomain domain,
-                                               const CustomDataType type,
+                                               const eAttrDomain domain,
+                                               const eCustomDataType type,
                                                const void *default_value) const
 {
   const bNodeSocket *found_socket = this->find_available_socket(name);
@@ -176,10 +176,10 @@ GVArray GeoNodeExecParams::get_input_attribute(const StringRef name,
   return GVArray::ForSingle(*cpp_type, domain_num, default_value);
 }
 
-CustomDataType GeoNodeExecParams::get_input_attribute_data_type(
+eCustomDataType GeoNodeExecParams::get_input_attribute_data_type(
     const StringRef name,
     const GeometryComponent &component,
-    const CustomDataType default_type) const
+    const eCustomDataType default_type) const
 {
   const bNodeSocket *found_socket = this->find_available_socket(name);
   BLI_assert(found_socket != nullptr); /* There should always be available socket for the name. */
@@ -212,12 +212,12 @@ CustomDataType GeoNodeExecParams::get_input_attribute_data_type(
   return default_type;
 }
 
-AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
+eAttrDomain GeoNodeExecParams::get_highest_priority_input_domain(
     Span<std::string> names,
     const GeometryComponent &component,
-    const AttributeDomain default_domain) const
+    const eAttrDomain default_domain) const
 {
-  Vector<AttributeDomain, 8> input_domains;
+  Vector<eAttrDomain, 8> input_domains;
   for (const std::string &name : names) {
     const bNodeSocket *found_socket = this->find_available_socket(name);
     BLI_assert(found_socket != nullptr); /* A socket should be available socket for the name. */

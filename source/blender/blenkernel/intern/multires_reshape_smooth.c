@@ -32,7 +32,6 @@
 #include "atomic_ops.h"
 #include "subdiv_converter.h"
 
-
 bool debug_invert_m3_m3(float m1[3][3], const float m2[3][3], const char *func, int line)
 {
   float det;

@@ -131,7 +131,7 @@ static PBVHGPUFormat g_vbo_id = {{0}};
 bool pbvh_show_orig_co = false;
 
 static int gpu_pbvh_make_attr_offs(AttributeDomainMask domain_mask,
-                                   CustomDataMask type_mask,
+                                   eCustomDataMask type_mask,
                                    const CustomData *vdata,
                                    const CustomData *edata,
                                    const CustomData *ldata,
@@ -249,7 +249,7 @@ void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
                                   const float *vmask,
                                   const CustomDataLayer *active_vcol_layer,
                                   const CustomDataLayer *render_vcol_layer,
-                                  const AttributeDomain active_vcol_domain,
+                                  const eAttrDomain active_vcol_domain,
                                   const int *sculpt_face_sets,
                                   const int face_sets_color_seed,
                                   const int face_sets_color_default,
@@ -1166,7 +1166,7 @@ void GPU_pbvh_bmesh_buffers_update_free(GPU_PBVH_Buffers *buffers)
 }
 
 static int gpu_pbvh_make_attr_offs(AttributeDomainMask domain_mask,
-                                   CustomDataMask type_mask,
+                                   eCustomDataMask type_mask,
                                    const CustomData *vdata,
                                    const CustomData *edata,
                                    const CustomData *ldata,
@@ -1198,7 +1198,7 @@ static int gpu_pbvh_make_attr_offs(AttributeDomainMask domain_mask,
   const CustomData *datas[4] = {vdata, edata, pdata, ldata};
 
   int count = 0;
-  for (AttributeDomain domain = 0; domain < 4; domain++) {
+  for (eAttrDomain domain = 0; domain < 4; domain++) {
     const CustomData *cdata = datas[domain];
 
     if (!cdata || !((1 << domain) & domain_mask)) {

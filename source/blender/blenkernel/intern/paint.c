@@ -1788,7 +1788,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 
     CustomDataLayer *layer;
-    AttributeDomain domain;
+    eAttrDomain domain;
 
     if (BKE_pbvh_get_color_layer(me, &layer, &domain)) {
       if (layer->type == CD_PROP_COLOR) {
@@ -3095,7 +3095,7 @@ void BKE_sculptsession_bmesh_add_layers(Object *ob)
 
   ss->cd_face_areas = ss->bm->pdata.layers[ss->cd_face_areas].offset;
 
-  AttributeDomain domain;
+  eAttrDomain domain;
   CustomDataLayer *cl;
   Mesh *me = BKE_object_get_original_mesh(ob);
 
@@ -3113,7 +3113,7 @@ void BKE_sculptsession_bmesh_add_layers(Object *ob)
 
 static bool sculpt_attr_get_layer(SculptSession *ss,
                                   Object *ob,
-                                  AttributeDomain domain,
+                                  eAttrDomain domain,
                                   int proptype,
                                   const char *name,
                                   SculptCustomLayer *out,
@@ -3406,7 +3406,7 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
 }
 
 bool BKE_sculptsession_attr_get_layer(Object *ob,
-                                      AttributeDomain domain,
+                                      eAttrDomain domain,
                                       int proptype,
                                       const char *name,
                                       SculptCustomLayer *scl,
@@ -3465,7 +3465,7 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
 
   if (ss->pbvh) {
     Mesh *me = BKE_object_get_original_mesh(ob);
-    AttributeDomain domain;
+    eAttrDomain domain;
     CustomDataLayer *layer = NULL;
 
     BKE_pbvh_get_color_layer(me, &layer, &domain);
@@ -3507,7 +3507,7 @@ bool BKE_paint_uses_channels(ePaintMode mode)
 bool BKE_sculptsession_attr_release_layer(Object *ob, SculptCustomLayer *scl)
 {
   SculptSession *ss = ob->sculpt;
-  AttributeDomain domain = scl->domain;
+  eAttrDomain domain = scl->domain;
 
   if (scl->released) {
     return false;

@@ -1334,7 +1334,7 @@ void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers
   bool modified = false;
   CustomData old = *data;
   CustomData temp;
-  CustomDataMask mask = 0;
+  eCustomDataMask mask = 0;
 
   if (old.layers) {
     old.layers = MEM_dupallocN(old.layers);
@@ -1347,7 +1347,7 @@ void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers
     BMCustomLayerReq *req = layers + i;
     int idx;
 
-    mask |= 1ULL << (CustomDataMask)req->type;
+    mask |= 1ULL << (eCustomDataMask)req->type;
 
     if (req->name) {
       idx = CustomData_get_named_layer_index(data, req->type, req->name);

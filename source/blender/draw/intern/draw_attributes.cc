@@ -65,9 +65,9 @@ bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b)
 }
 
 DRW_AttributeRequest *drw_attributes_add_request(DRW_Attributes *attrs,
-                                                 CustomDataType type,
+                                                 eCustomDataType type,
                                                  int layer,
-                                                 AttributeDomain domain)
+                                                 eAttrDomain domain)
 {
   if (attrs->num_requests >= GPU_MAX_ATTR) {
     return nullptr;
