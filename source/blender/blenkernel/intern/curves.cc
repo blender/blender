@@ -89,6 +89,10 @@ static void curves_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
 
   dst.curve_offsets = static_cast<int *>(MEM_dupallocN(src.curve_offsets));
 
+  if (curves_src->surface_uv_map != nullptr) {
+    curves_dst->surface_uv_map = BLI_strdup(curves_src->surface_uv_map);
+  }
+
   dst.runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
 
   dst.runtime->type_counts = src.runtime->type_counts;
@@ -108,6 +112,7 @@ static void curves_free_data(ID *id)
   BKE_curves_batch_cache_free(curves);
 
   MEM_SAFE_FREE(curves->mat);
+  MEM_SAFE_FREE(curves->surface_uv_map);
 }
 
 static void curves_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -148,6 +153,8 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 
   BLO_write_int32_array(writer, curves->geometry.curve_num + 1, curves->geometry.curve_offsets);
 
+  BLO_write_string(writer, curves->surface_uv_map);
+
   BLO_write_pointer_array(writer, curves->totcol, curves->mat);
   if (curves->adt) {
     BKE_animdata_blend_write(writer, curves->adt);
@@ -166,6 +173,8 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   update_custom_data_pointers(*curves);
 
   BLO_read_int32_array(reader, curves->geometry.curve_num + 1, &curves->geometry.curve_offsets);
+
+  BLO_read_data_address(reader, &curves->surface_uv_map);
 
   curves->geometry.runtime = MEM_new<blender::bke::CurvesGeometryRuntime>(__func__);
 

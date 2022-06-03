@@ -44,6 +44,7 @@ class DATA_PT_curves_surface(DataButtonsPanel, Panel):
         layout.use_property_split = True
 
         layout.prop(ob.data, "surface")
+        layout.prop(ob.data, "surface_uv_map", text="UV Map")
 
 
 class CURVES_MT_add_attribute(Menu):
