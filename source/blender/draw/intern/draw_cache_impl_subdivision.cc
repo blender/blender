@@ -221,7 +221,7 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
           "#define OSD_PATCH_BASIS_GLSL\n"
           "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n"
           "#define FDOTS_EVALUATION\n"
-          "#define FOTS_NORMALS\n";
+          "#define FDOTS_NORMALS\n";
     }
     else if (shader_type == SHADER_PATCH_EVALUATION_ORCO) {
       defines =
