@@ -668,7 +668,10 @@ float sequence_handle_size_get_clamped(Sequence *seq, const float pixelx)
   const float maxhandle = (pixelx * SEQ_HANDLE_SIZE) * U.pixelsize;
 
   /* Ensure that handle is not wider, than quarter of strip. */
-  return min_ff(maxhandle, ((float)(SEQ_time_right_handle_frame_get(seq) - SEQ_time_left_handle_frame_get(seq)) / 4.0f));
+  return min_ff(
+      maxhandle,
+      ((float)(SEQ_time_right_handle_frame_get(seq) - SEQ_time_left_handle_frame_get(seq)) /
+       4.0f));
 }
 
 /* Draw a handle, on left or right side of strip. */
@@ -739,7 +742,11 @@ static void draw_seq_handle(View2D *v2d,
     BLF_set_default();
 
     /* Calculate if strip is wide enough for showing the labels. */
-    numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d%d", SEQ_time_left_handle_frame_get(seq), SEQ_time_right_handle_frame_get(seq));
+    numstr_len = BLI_snprintf_rlen(numstr,
+                                   sizeof(numstr),
+                                   "%d%d",
+                                   SEQ_time_left_handle_frame_get(seq),
+                                   SEQ_time_right_handle_frame_get(seq));
     float tot_width = BLF_width(fontid, numstr, numstr_len);
 
     if ((x2 - x1) / pixelx > 20 + tot_width) {
@@ -747,12 +754,14 @@ static void draw_seq_handle(View2D *v2d,
       float text_margin = 1.2f * handsize_clamped;
 
       if (direction == SEQ_LEFTHANDLE) {
-        numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", SEQ_time_left_handle_frame_get(seq));
+        numstr_len = BLI_snprintf_rlen(
+            numstr, sizeof(numstr), "%d", SEQ_time_left_handle_frame_get(seq));
         x1 += text_margin;
         y1 += 0.09f;
       }
       else {
-        numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", SEQ_time_right_handle_frame_get(seq) - 1);
+        numstr_len = BLI_snprintf_rlen(
+            numstr, sizeof(numstr), "%d", SEQ_time_right_handle_frame_get(seq) - 1);
         x1 = x2 - (text_margin + pixelx * BLF_width(fontid, numstr, numstr_len));
         y1 += 0.09f;
       }
@@ -913,7 +922,8 @@ static size_t draw_seq_text_get_overlay_string(SpaceSeq *sseq,
 
   char strip_duration_text[16];
   if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION) {
-    const int strip_duration = SEQ_time_right_handle_frame_get(seq) - SEQ_time_left_handle_frame_get(seq);
+    const int strip_duration = SEQ_time_right_handle_frame_get(seq) -
+                               SEQ_time_left_handle_frame_get(seq);
     SNPRINTF(strip_duration_text, "%d", strip_duration);
     if (i != 0) {
       text_array[i++] = text_sep;
@@ -1038,7 +1048,11 @@ static void draw_color_strip_band(
 
   immUniformColor4ubv(col);
 
-  immRectf(pos, SEQ_time_left_handle_frame_get(seq), y1, SEQ_time_right_handle_frame_get(seq), text_margin_y);
+  immRectf(pos,
+           SEQ_time_left_handle_frame_get(seq),
+           y1,
+           SEQ_time_right_handle_frame_get(seq),
+           text_margin_y);
 
   /* 1px line to better separate the color band. */
   UI_GetColorPtrShade3ubv(col, col, -20);
@@ -1335,7 +1349,8 @@ static void draw_seq_strip(const bContext *C,
   /* Draw strip body. */
   x1 = SEQ_time_has_left_still_frames(seq) ? seq->start : SEQ_time_left_handle_frame_get(seq);
   y1 = seq->machine + SEQ_STRIP_OFSBOTTOM;
-  x2 = SEQ_time_has_right_still_frames(seq) ? (seq->start + seq->len) : SEQ_time_right_handle_frame_get(seq);
+  x2 = SEQ_time_has_right_still_frames(seq) ? (seq->start + seq->len) :
+                                              SEQ_time_right_handle_frame_get(seq);
   y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
   /* Limit body to strip bounds. Meta strip can end up with content outside of strip range. */
@@ -2597,7 +2612,8 @@ static void draw_cache_view(const bContext *C)
       continue;
     }
 
-    if (SEQ_time_left_handle_frame_get(seq) > v2d->cur.xmax || SEQ_time_right_handle_frame_get(seq) < v2d->cur.xmin) {
+    if (SEQ_time_left_handle_frame_get(seq) > v2d->cur.xmax ||
+        SEQ_time_right_handle_frame_get(seq) < v2d->cur.xmin) {
       continue;
     }
 
@@ -2607,7 +2623,11 @@ static void draw_cache_view(const bContext *C)
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_RAW) {
       const float bg_color[4] = {1.0f, 0.1f, 0.02f, 0.1f};
       immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
-      immRectf(pos, SEQ_time_left_handle_frame_get(seq), stripe_bot, SEQ_time_right_handle_frame_get(seq), stripe_top);
+      immRectf(pos,
+               SEQ_time_left_handle_frame_get(seq),
+               stripe_bot,
+               SEQ_time_right_handle_frame_get(seq),
+               stripe_top);
     }
 
     stripe_bot += stripe_ht + stripe_ofs_y;
@@ -2616,7 +2636,11 @@ static void draw_cache_view(const bContext *C)
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_PREPROCESSED) {
       const float bg_color[4] = {0.1f, 0.1f, 0.75f, 0.1f};
       immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
-      immRectf(pos, SEQ_time_left_handle_frame_get(seq), stripe_bot, SEQ_time_right_handle_frame_get(seq), stripe_top);
+      immRectf(pos,
+               SEQ_time_left_handle_frame_get(seq),
+               stripe_bot,
+               SEQ_time_right_handle_frame_get(seq),
+               stripe_top);
     }
 
     stripe_top = seq->machine + SEQ_STRIP_OFSTOP - stripe_ofs_y;
@@ -2625,7 +2649,11 @@ static void draw_cache_view(const bContext *C)
     if (scene->ed->cache_flag & SEQ_CACHE_VIEW_COMPOSITE) {
       const float bg_color[4] = {1.0f, 0.6f, 0.0f, 0.1f};
       immUniformColor4f(bg_color[0], bg_color[1], bg_color[2], bg_color[3]);
-      immRectf(pos, SEQ_time_left_handle_frame_get(seq), stripe_bot, SEQ_time_right_handle_frame_get(seq), stripe_top);
+      immRectf(pos,
+               SEQ_time_left_handle_frame_get(seq),
+               stripe_bot,
+               SEQ_time_right_handle_frame_get(seq),
+               stripe_top);
     }
   }
 

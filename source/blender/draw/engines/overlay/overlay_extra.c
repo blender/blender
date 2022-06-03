@@ -1315,7 +1315,6 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
         if ((curcon->ui_expand_flag & (1 << 0)) && BKE_constraint_targets_get(curcon, &targets)) {
           bConstraintTarget *ct;
 
-
           for (ct = targets.first; ct; ct = ct->next) {
             /* calculate target's matrix */
             if (cti->get_target_matrix) {

@@ -25,8 +25,8 @@
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
 
-#include "strip_time.h"
 #include "sequencer.h"
+#include "strip_time.h"
 
 #include "CLG_log.h"
 
@@ -198,7 +198,7 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
   else { /* All other strip types. */
     seq->start += delta;
     /* Only to make files usable in older versions. */
-    seq->startdisp = SEQ_time_left_handle_frame_get(seq); 
+    seq->startdisp = SEQ_time_left_handle_frame_get(seq);
     seq->enddisp = SEQ_time_right_handle_frame_get(seq);
   }
 
