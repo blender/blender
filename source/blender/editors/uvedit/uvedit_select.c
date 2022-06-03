@@ -2514,8 +2514,15 @@ static bool uv_mouse_select_multi(bContext *C,
     else if (selectmode == UV_SELECT_EDGE) {
       is_selected = uvedit_edge_select_test(scene, hit.l, cd_loop_uv_offset);
     }
-    else { /* Vertex or island. */
-      is_selected = uvedit_uv_select_test(scene, hit.l, cd_loop_uv_offset);
+    else {
+      /* Vertex or island. For island (if we were using #uv_find_nearest_face_multi_ex, see above),
+       * `hit.l` is NULL, use `hit.efa` instead. */
+      if (hit.l != NULL) {
+        is_selected = uvedit_uv_select_test(scene, hit.l, cd_loop_uv_offset);
+      }
+      else {
+        is_selected = uvedit_face_select_test(scene, hit.efa, cd_loop_uv_offset);
+      }
     }
   }
 
