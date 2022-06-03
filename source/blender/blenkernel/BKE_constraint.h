@@ -334,7 +334,15 @@ void BKE_constraint_targets_for_solving_get(struct Depsgraph *depsgraph,
                                             struct bConstraintOb *ob,
                                             struct ListBase *targets,
                                             float ctime);
-void BKE_constraint_custom_object_space_get(float r_mat[4][4], struct bConstraint *con);
+
+/**
+ * Initializes the custom coordinate space data if required by the constraint.
+ *
+ * \param cob Constraint evaluation context (contains the matrix to be initialized).
+ * \param con Constraint that is about to be evaluated.
+ */
+void BKE_constraint_custom_object_space_init(struct bConstraintOb *cob, struct bConstraint *con);
+
 /**
  * This function is called whenever constraints need to be evaluated. Currently, all
  * constraints that can be evaluated are every time this gets run.

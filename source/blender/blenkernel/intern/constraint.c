@@ -6323,33 +6323,24 @@ void BKE_constraint_targets_for_solving_get(struct Depsgraph *depsgraph,
   }
 }
 
-void BKE_constraint_custom_object_space_get(float r_mat[4][4], bConstraint *con)
+/** Initialize the Custom Space matrix inside cob. */
+void BKE_constraint_custom_object_space_init(bConstraintOb *cob, bConstraint *con)
 {
-  if (!con ||
-      (con->ownspace != CONSTRAINT_SPACE_CUSTOM && con->tarspace != CONSTRAINT_SPACE_CUSTOM)) {
-    return;
-  }
-  bConstraintTarget *ct;
-  ListBase target = {NULL, NULL};
-  SINGLETARGET_GET_TARS(con, con->space_object, con->space_subtarget, ct, &target);
-
-  /* Basically default_get_tarmat but without the unused parameters. */
-  if (VALID_CONS_TARGET(ct)) {
-    constraint_target_to_mat4(ct->tar,
-                              ct->subtarget,
+  if (con && con->space_object && is_custom_space_needed(con)) {
+    /* Basically default_get_tarmat but without the unused parameters. */
+    constraint_target_to_mat4(con->space_object,
+                              con->space_subtarget,
                               NULL,
-                              ct->matrix,
+                              cob->space_obj_world_matrix,
                               CONSTRAINT_SPACE_WORLD,
                               CONSTRAINT_SPACE_WORLD,
                               0,
                               0);
-    copy_m4_m4(r_mat, ct->matrix);
-  }
-  else {
-    unit_m4(r_mat);
+
+    return;
   }
 
-  SINGLETARGET_FLUSH_TARS(con, con->space_object, con->space_subtarget, ct, &target, true);
+  unit_m4(cob->space_obj_world_matrix);
 }
 
 /* ---------- Evaluation ----------- */
@@ -6394,8 +6385,8 @@ void BKE_constraints_solve(struct Depsgraph *depsgraph,
      */
     enf = con->enforce;
 
-    /* Get custom space matrix. */
-    BKE_constraint_custom_object_space_get(cob->space_obj_world_matrix, con);
+    /* Initialize the custom space for use in calculating the matrices. */
+    BKE_constraint_custom_object_space_init(cob, con);
 
     /* make copy of world-space matrix pre-constraint for use with blending later */
     copy_m4_m4(oldmat, cob->matrix);
