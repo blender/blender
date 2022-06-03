@@ -13,6 +13,7 @@
 #include "UI_interface.h"
 
 #include "BLI_enumerable_thread_specific.hh"
+#include "BLI_length_parameterize.hh"
 #include "BLI_task.hh"
 
 /**
@@ -275,6 +276,37 @@ Vector<float4x4> get_symmetry_brush_transforms(const eCurvesSymmetryType symmetr
   }
 
   return matrices;
+}
+
+void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &new_last_position)
+{
+  /* Find the accumulated length of each point in the original curve,
+   * treating it as a poly curve for performance reasons and simplicity. */
+  Array<float> orig_lengths(length_parameterize::lengths_num(positions.size(), false));
+  length_parameterize::accumulate_lengths<float3>(positions, false, orig_lengths);
+  const float orig_total_length = orig_lengths.last();
+
+  /* Find the factor by which the new curve is shorter or longer than the original. */
+  const float new_last_segment_length = math::distance(positions.last(1), new_last_position);
+  const float new_total_length = orig_lengths.last(1) + new_last_segment_length;
+  const float length_factor = safe_divide(new_total_length, orig_total_length);
+
+  /* Calculate the lengths to sample the original curve with by scaling the original lengths. */
+  Array<float> new_lengths(positions.size() - 1);
+  new_lengths.first() = 0.0f;
+  for (const int i : new_lengths.index_range().drop_front(1)) {
+    new_lengths[i] = orig_lengths[i - 1] * length_factor;
+  }
+
+  Array<int> indices(positions.size() - 1);
+  Array<float> factors(positions.size() - 1);
+  length_parameterize::create_samples_from_sorted_lengths(
+      orig_lengths, new_lengths, false, indices, factors);
+
+  Array<float3> new_positions(positions.size() - 1);
+  length_parameterize::linear_interpolation<float3>(positions, indices, factors, new_positions);
+  positions.drop_back(1).copy_from(new_positions);
+  positions.last() = new_last_position;
 }
 
 CurvesSculptCommonContext::CurvesSculptCommonContext(const bContext &C)

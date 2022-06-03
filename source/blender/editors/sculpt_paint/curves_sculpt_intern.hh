@@ -95,6 +95,8 @@ VArray<float> get_point_selection(const Curves &curves_id);
  */
 IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_indices);
 
+void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &new_last_position);
+
 class CurvesSculptCommonContext {
  public:
   const Depsgraph *depsgraph = nullptr;

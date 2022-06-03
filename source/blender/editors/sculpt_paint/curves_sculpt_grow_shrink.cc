@@ -151,49 +151,9 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
         const float3 direction = math::normalize(old_last_pos_cu - direction_reference_point);
 
         const float3 new_last_pos_cu = old_last_pos_cu + direction * move_distance_cu;
-        this->move_last_point_and_resample(positions_cu, curve_points, new_last_pos_cu);
+        move_last_point_and_resample(positions_cu.slice(curve_points), new_last_pos_cu);
       }
     });
-  }
-
-  void move_last_point_and_resample(MutableSpan<float3> positions,
-                                    const IndexRange curve_points,
-                                    const float3 &new_last_point_position) const
-  {
-    Vector<float> old_lengths;
-    old_lengths.append(0.0f);
-    /* Used to (1) normalize the segment sizes over time and (2) support making zero-length
-     * segments */
-    const float extra_length = 0.001f;
-    for (const int segment_i : IndexRange(curve_points.size() - 1)) {
-      const float3 &p1 = positions[curve_points[segment_i]];
-      const float3 &p2 = positions[curve_points[segment_i] + 1];
-      const float length = math::distance(p1, p2);
-      old_lengths.append(old_lengths.last() + length + extra_length);
-    }
-    Vector<float> point_factors;
-    for (float &old_length : old_lengths) {
-      point_factors.append(old_length / old_lengths.last());
-    }
-
-    PolySpline new_spline;
-    new_spline.resize(curve_points.size());
-    MutableSpan<float3> new_spline_positions = new_spline.positions();
-    for (const int i : IndexRange(curve_points.size() - 1)) {
-      new_spline_positions[i] = positions[curve_points[i]];
-    }
-    new_spline_positions.last() = new_last_point_position;
-    new_spline.mark_cache_invalid();
-
-    for (const int i : IndexRange(curve_points.size())) {
-      const float factor = point_factors[i];
-      const Spline::LookupResult lookup = new_spline.lookup_evaluated_factor(factor);
-      const float index_factor = lookup.evaluated_index + lookup.factor;
-      float3 p;
-      new_spline.sample_with_index_factors<float3>(
-          new_spline_positions, {&index_factor, 1}, {&p, 1});
-      positions[curve_points[i]] = p;
-    }
   }
 };
 
