@@ -66,6 +66,7 @@
 
 #include "NOD_geometry_nodes_eval_log.hh"
 #include "NOD_node_declaration.hh"
+#include "NOD_socket_declarations_geometry.hh"
 
 #include "FN_field.hh"
 #include "FN_field_cpp_type.hh"
@@ -871,7 +872,8 @@ static void create_inspection_string_for_gfield(const geo_log::GFieldValueLog &v
 }
 
 static void create_inspection_string_for_geometry(const geo_log::GeometryValueLog &value_log,
-                                                  std::stringstream &ss)
+                                                  std::stringstream &ss,
+                                                  const nodes::decl::Geometry *geometry)
 {
   Span<GeometryComponentType> component_types = value_log.component_types();
   if (component_types.is_empty()) {
@@ -938,6 +940,45 @@ static void create_inspection_string_for_geometry(const geo_log::GeometryValueLo
       }
     }
   }
+
+  /* If the geometry declaration is null, as is the case for input to group output,
+   * or it is an output socket don't show supported types. */
+  if (geometry == nullptr || geometry->in_out() == SOCK_OUT) {
+    return;
+  }
+
+  Span<GeometryComponentType> supported_types = geometry->supported_types();
+  if (supported_types.is_empty()) {
+    ss << ".\n\n" << TIP_("Supported: All Types");
+    return;
+  }
+
+  ss << ".\n\n" << TIP_("Supported: ");
+  for (GeometryComponentType type : supported_types) {
+    switch (type) {
+      case GEO_COMPONENT_TYPE_MESH: {
+        ss << TIP_("Mesh");
+        break;
+      }
+      case GEO_COMPONENT_TYPE_POINT_CLOUD: {
+        ss << TIP_("Point Cloud");
+        break;
+      }
+      case GEO_COMPONENT_TYPE_CURVE: {
+        ss << TIP_("Curve");
+        break;
+      }
+      case GEO_COMPONENT_TYPE_INSTANCES: {
+        ss << TIP_("Instances");
+        break;
+      }
+      case GEO_COMPONENT_TYPE_VOLUME: {
+        ss << TIP_("Volume");
+        break;
+      }
+    }
+    ss << ((type == supported_types.last()) ? "" : ", ");
+  }
 }
 
 static std::optional<std::string> create_socket_inspection_string(bContext *C,
@@ -970,7 +1011,10 @@ static std::optional<std::string> create_socket_inspection_string(bContext *C,
   }
   else if (const geo_log::GeometryValueLog *geo_value_log =
                dynamic_cast<const geo_log::GeometryValueLog *>(value_log)) {
-    create_inspection_string_for_geometry(*geo_value_log, ss);
+    create_inspection_string_for_geometry(
+        *geo_value_log,
+        ss,
+        dynamic_cast<const nodes::decl::Geometry *>(socket.runtime->declaration));
   }
 
   return ss.str();
