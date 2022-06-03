@@ -223,7 +223,7 @@ static BMesh *BMD_mesh_bm_create(
     Mesh *mesh, Object *object, Mesh *mesh_operand_ob, Object *operand_ob, bool *r_is_flip)
 {
 #ifdef DEBUG_TIME
-  SCOPED_TIMER(__func__)
+  SCOPED_TIMER(__func__);
 #endif
 
   *r_is_flip = (is_negative_m4(object->obmat) != is_negative_m4(operand_ob->obmat));
@@ -270,7 +270,7 @@ static void BMD_mesh_intersection(BMesh *bm,
                                   bool is_flip)
 {
 #ifdef DEBUG_TIME
-  SCOPED_TIMER(__func__)
+  SCOPED_TIMER(__func__);
 #endif
 
   BooleanModifierData *bmd = (BooleanModifierData *)md;
@@ -399,7 +399,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   Vector<Array<short>> material_remaps;
 
 #  ifdef DEBUG_TIME
-  SCOPED_TIMER(__func__)
+  SCOPED_TIMER(__func__);
 #  endif
 
   if ((bmd->flag & eBooleanModifierFlag_Object) && bmd->object == nullptr) {
@@ -470,7 +470,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #endif
 
 #ifdef DEBUG_TIME
-  SCOPED_TIMER(__func__)
+  SCOPED_TIMER(__func__);
 #endif
 
   if (bmd->flag & eBooleanModifierFlag_Object) {
