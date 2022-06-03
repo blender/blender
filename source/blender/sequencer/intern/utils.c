@@ -39,54 +39,8 @@
 
 #include "multiview.h"
 #include "proxy.h"
+#include "sequencer.h"
 #include "utils.h"
-
-void SEQ_sort(ListBase *seqbase)
-{
-  if (seqbase == NULL) {
-    return;
-  }
-
-  /* all strips together per kind, and in order of y location ("machine") */
-  ListBase inputbase, effbase;
-  Sequence *seq, *seqt;
-
-  BLI_listbase_clear(&inputbase);
-  BLI_listbase_clear(&effbase);
-
-  while ((seq = BLI_pophead(seqbase))) {
-
-    if (seq->type & SEQ_TYPE_EFFECT) {
-      seqt = effbase.first;
-      while (seqt) {
-        if (seqt->machine >= seq->machine) {
-          BLI_insertlinkbefore(&effbase, seqt, seq);
-          break;
-        }
-        seqt = seqt->next;
-      }
-      if (seqt == NULL) {
-        BLI_addtail(&effbase, seq);
-      }
-    }
-    else {
-      seqt = inputbase.first;
-      while (seqt) {
-        if (seqt->machine >= seq->machine) {
-          BLI_insertlinkbefore(&inputbase, seqt, seq);
-          break;
-        }
-        seqt = seqt->next;
-      }
-      if (seqt == NULL) {
-        BLI_addtail(&inputbase, seq);
-      }
-    }
-  }
-
-  BLI_movelisttolist(seqbase, &inputbase);
-  BLI_movelisttolist(seqbase, &effbase);
-}
 
 typedef struct SeqUniqueInfo {
   Sequence *seq;
@@ -414,20 +368,18 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   return best_seq;
 }
 
-ListBase *SEQ_get_seqbase_by_seq(ListBase *seqbase, Sequence *seq)
+ListBase *SEQ_get_seqbase_by_seq(const Scene *scene, Sequence *seq)
 {
-  Sequence *iseq;
-  ListBase *lb = NULL;
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *main_seqbase = &ed->seqbase;
+  Sequence *seq_meta = seq_sequence_lookup_meta_by_seq(scene, seq);
 
-  for (iseq = seqbase->first; iseq; iseq = iseq->next) {
-    if (seq == iseq) {
-      return seqbase;
-    }
-    if (iseq->seqbase.first && (lb = SEQ_get_seqbase_by_seq(&iseq->seqbase, seq))) {
-      return lb;
-    }
+  if (seq_meta != NULL) {
+    return &seq_meta->seqbase;
   }
-
+  if (BLI_findindex(main_seqbase, seq) >= 0) {
+    return main_seqbase;
+  }
   return NULL;
 }
 

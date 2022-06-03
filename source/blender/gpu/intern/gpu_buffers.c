@@ -130,7 +130,7 @@ typedef struct PBVHGPUFormat {
 static PBVHGPUFormat g_vbo_id = {{0}};
 bool pbvh_show_orig_co = false;
 
-static int gpu_pbvh_make_attr_offs(AttributeDomainMask domain_mask,
+static int gpu_pbvh_make_attr_offs(eAttrDomainMask domain_mask,
                                    eCustomDataMask type_mask,
                                    const CustomData *vdata,
                                    const CustomData *edata,
@@ -1165,7 +1165,7 @@ void GPU_pbvh_bmesh_buffers_update_free(GPU_PBVH_Buffers *buffers)
   GPU_INDEXBUF_DISCARD_SAFE(buffers->index_lines_buf);
 }
 
-static int gpu_pbvh_make_attr_offs(AttributeDomainMask domain_mask,
+static int gpu_pbvh_make_attr_offs(eAttrDomainMask domain_mask,
                                    eCustomDataMask type_mask,
                                    const CustomData *vdata,
                                    const CustomData *edata,

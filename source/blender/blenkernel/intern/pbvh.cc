@@ -229,7 +229,7 @@ static void pbvh_vertex_color_set(PBVH &pbvh, SculptVertRef vertex, const float 
 extern "C" {
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, SculptVertRef vertex, float r_color[4])
 {
-  blender::bke::to_static_color_type(eCustomDataType(pbvh->color_type), [&](auto dummy) {
+  blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
     blender::bke::pbvh_vertex_color_get<T>(*pbvh, vertex, r_color);
   });
@@ -237,7 +237,7 @@ void BKE_pbvh_vertex_color_get(const PBVH *pbvh, SculptVertRef vertex, float r_c
 
 void BKE_pbvh_vertex_color_set(PBVH *pbvh, SculptVertRef vertex, const float color[4])
 {
-  blender::bke::to_static_color_type(eCustomDataType(pbvh->color_type), [&](auto dummy) {
+  blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
     blender::bke::pbvh_vertex_color_set<T>(*pbvh, vertex, color);
   });

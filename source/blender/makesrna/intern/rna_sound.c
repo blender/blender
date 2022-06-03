@@ -15,7 +15,7 @@
 #include "BKE_sound.h"
 
 /* Enumeration for Audio Channels, compatible with eSoundChannels */
-const EnumPropertyItem rna_enum_audio_channels_items[] = {
+static const EnumPropertyItem rna_enum_audio_channels_items[] = {
     {SOUND_CHANNELS_INVALID, "INVALID", ICON_NONE, "Invalid", "Invalid"},
     {SOUND_CHANNELS_MONO, "MONO", ICON_NONE, "Mono", "Mono"},
     {SOUND_CHANNELS_STEREO, "STEREO", ICON_NONE, "Stereo", "Stereo"},

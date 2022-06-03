@@ -143,7 +143,8 @@ typedef enum eSequenceLookupTag {
  *
  * \return pointer to Sequence
  */
-struct Sequence *SEQ_sequence_lookup_by_name(const struct Scene *scene, const char *key);
+struct Sequence *SEQ_sequence_lookup_seq_by_name(const struct Scene *scene, const char *key);
+
 /**
  * Free lookup hash data.
  *

@@ -103,7 +103,7 @@ static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(
   simage->overlay.flag = SI_OVERLAY_SHOW_OVERLAYS | SI_OVERLAY_SHOW_GRID_BACKGROUND;
 
   BKE_imageuser_default(&simage->iuser);
-  simage->iuser.flag = IMA_SHOW_STEREO | IMA_ANIM_ALWAYS | IMA_SHOW_MAX_RESOLUTION;
+  simage->iuser.flag = IMA_SHOW_STEREO | IMA_ANIM_ALWAYS;
 
   BKE_scopes_new(&simage->scopes);
   simage->sample_line_hist.height = 100;
@@ -199,6 +199,7 @@ static void image_operatortypes(void)
 
   WM_operatortype_append(IMAGE_OT_new);
   WM_operatortype_append(IMAGE_OT_open);
+  WM_operatortype_append(IMAGE_OT_file_browse);
   WM_operatortype_append(IMAGE_OT_match_movie_length);
   WM_operatortype_append(IMAGE_OT_replace);
   WM_operatortype_append(IMAGE_OT_reload);

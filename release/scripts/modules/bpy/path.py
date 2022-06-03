@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8-80 compliant>
-
 """
 This module has a similar scope to os.path, containing utility
 functions for dealing with paths in Blender.

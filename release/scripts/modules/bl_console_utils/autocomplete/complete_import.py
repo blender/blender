@@ -10,8 +10,6 @@
 #  the file COPYING, distributed as part of this software.
 # ****************************************************************************
 
-# <pep8 compliant>
-
 """Completer for import statements
 
 Original code was from IPython/Extensions/ipy_completers.py. The following

@@ -5,12 +5,6 @@
 
 #include "ED_screen.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "BLI_listbase.h"
 
 #include "MEM_guardedalloc.h"
@@ -19,8 +13,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-
-#include "ED_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

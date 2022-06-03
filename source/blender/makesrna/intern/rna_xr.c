@@ -849,7 +849,7 @@ bool rna_XrSessionState_active_action_set_set(bContext *C, const char *action_se
 {
 #  ifdef WITH_XR_OPENXR
   wmWindowManager *wm = CTX_wm_manager(C);
-  return WM_xr_active_action_set_set(&wm->xr, action_set_name);
+  return WM_xr_active_action_set_set(&wm->xr, action_set_name, true);
 #  else
   UNUSED_VARS(C, action_set_name);
   return false;

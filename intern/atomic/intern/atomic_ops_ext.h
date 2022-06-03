@@ -102,6 +102,24 @@ ATOMIC_INLINE size_t atomic_cas_z(size_t *v, size_t old, size_t _new)
 #endif
 }
 
+ATOMIC_INLINE size_t atomic_load_z(const size_t *v)
+{
+#if (LG_SIZEOF_PTR == 8)
+  return (size_t)atomic_load_uint64((const uint64_t *)v);
+#elif (LG_SIZEOF_PTR == 4)
+  return (size_t)atomic_load_uint32((const uint32_t *)v);
+#endif
+}
+
+ATOMIC_INLINE void atomic_store_z(size_t *p, size_t v)
+{
+#if (LG_SIZEOF_PTR == 8)
+  atomic_store_uint64((uint64_t *)p, v);
+#elif (LG_SIZEOF_PTR == 4)
+  atomic_store_uint32((uint32_t *)p, v);
+#endif
+}
+
 ATOMIC_INLINE size_t atomic_fetch_and_update_max_z(size_t *p, size_t x)
 {
   size_t prev_value;
@@ -184,6 +202,24 @@ ATOMIC_INLINE void *atomic_cas_ptr(void **v, void *old, void *_new)
   return (void *)atomic_cas_uint64((uint64_t *)v, *(uint64_t *)&old, *(uint64_t *)&_new);
 #elif (LG_SIZEOF_PTR == 4)
   return (void *)atomic_cas_uint32((uint32_t *)v, *(uint32_t *)&old, *(uint32_t *)&_new);
+#endif
+}
+
+ATOMIC_INLINE void *atomic_load_ptr(void *const *v)
+{
+#if (LG_SIZEOF_PTR == 8)
+  return (void *)atomic_load_uint64((const uint64_t *)v);
+#elif (LG_SIZEOF_PTR == 4)
+  return (void *)atomic_load_uint32((const uint32_t *)v);
+#endif
+}
+
+ATOMIC_INLINE void atomic_store_ptr(void **p, void *v)
+{
+#if (LG_SIZEOF_PTR == 8)
+  atomic_store_uint64((uint64_t *)p, (uint64_t)v);
+#elif (LG_SIZEOF_PTR == 4)
+  atomic_store_uint32((uint32_t *)p, (uint32_t)v);
 #endif
 }
 

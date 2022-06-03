@@ -2886,7 +2886,7 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
   }
   BKE_pbvh_vertex_iter_end;
 
-  if (modified) {
+  if (modified && (type & SCULPT_UNDO_COORDS)) {
     BKE_pbvh_node_mark_update(data->nodes[n]);
   }
 }

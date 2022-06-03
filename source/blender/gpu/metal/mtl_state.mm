@@ -532,9 +532,11 @@ void MTLStateManager::set_blend(const eGPUBlend value)
 
 /* NOTE(Metal): Granular option for specifying before/after stages for a barrier
  * Would be a useful feature. */
-/*void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits,
+#if 0
+void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits,
                                     eGPUStageBarrierBits before_stages,
-                                    eGPUStageBarrierBits after_stages) */
+                                    eGPUStageBarrierBits after_stages)
+#endif
 void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits)
 {
   /* NOTE(Metal): The Metal API implicitly tracks dependencies between resources.

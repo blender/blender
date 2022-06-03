@@ -33,6 +33,8 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "integrator_shade_surface";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
       return "integrator_shade_surface_raytrace";
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
+      return "integrator_shade_surface_mnee";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
       return "integrator_shade_volume";
     case DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL:

@@ -9,17 +9,15 @@ GPU_SHADER_CREATE_INFO(overlay_background)
     .sampler(1, ImageType::DEPTH_2D, "depthBuffer")
     .push_constant(Type::INT, "bgType")
     .push_constant(Type::VEC4, "colorOverride")
-    .fragment_source("background_frag.glsl")
+    .fragment_source("overlay_background_frag.glsl")
     .fragment_out(0, Type::VEC4, "fragColor")
     .additional_info("draw_fullscreen", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_clipbound)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .push_constant(Type::VEC4, "color")
     .push_constant(Type::VEC3, "boundbox", 8)
-    .vertex_source("clipbound_vert.glsl")
+    .vertex_source("overlay_clipbound_vert.glsl")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .fragment_source("gpu_shader_uniform_color_frag.glsl")
+    .fragment_source("overlay_uniform_color_frag.glsl")
     .additional_info("draw_view");

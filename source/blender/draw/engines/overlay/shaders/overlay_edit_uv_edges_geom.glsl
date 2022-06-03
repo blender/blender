@@ -1,4 +1,4 @@
-#pragma BLENDER_REQUIRE(common_overlay_lib.glsl)
+#pragma BLENDER_REQUIRE(overlay_common_lib.glsl)
 
 void do_vertex(
     vec4 pos, float selection_fac, vec2 stipple_start, vec2 stipple_pos, float coord, vec2 offset)

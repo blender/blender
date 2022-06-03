@@ -71,11 +71,22 @@ namespace blender::nodes {
 class NodeDeclaration;
 class SocketDeclaration;
 }  // namespace blender::nodes
+namespace blender::bke {
+class bNodeTreeRuntime;
+class bNodeRuntime;
+class bNodeSocketRuntime;
+}  // namespace blender::bke
 using NodeDeclarationHandle = blender::nodes::NodeDeclaration;
 using SocketDeclarationHandle = blender::nodes::SocketDeclaration;
+using bNodeTreeRuntimeHandle = blender::bke::bNodeTreeRuntime;
+using bNodeRuntimeHandle = blender::bke::bNodeRuntime;
+using bNodeSocketRuntimeHandle = blender::bke::bNodeSocketRuntime;
 #else
 typedef struct NodeDeclarationHandle NodeDeclarationHandle;
 typedef struct SocketDeclarationHandle SocketDeclarationHandle;
+typedef struct bNodeTreeRuntimeHandle bNodeTreeRuntimeHandle;
+typedef struct bNodeRuntimeHandle bNodeRuntimeHandle;
+typedef struct bNodeSocketRuntimeHandle bNodeSocketRuntimeHandle;
 #endif
 
 typedef struct bNodeSocket {
@@ -169,15 +180,7 @@ typedef struct bNodeSocket {
   /** Custom data for inputs, only UI writes in this. */
   bNodeStack ns DNA_DEPRECATED;
 
-  /**
-   * References a socket declaration that is owned by `node->declaration`. This is only runtime
-   * data. It has to be updated when the node declaration changes.
-   */
-  const SocketDeclarationHandle *declaration;
-
-  /** #eNodeTreeChangedFlag. */
-  uint32_t changed_flag;
-  char _pad[4];
+  bNodeSocketRuntimeHandle *runtime;
 } bNodeSocket;
 
 /** #bNodeSocket.type & #bNodeSocketType.type */
@@ -266,9 +269,7 @@ typedef struct bNode {
 
   /** Used as a boolean for execution. */
   uint8_t need_exec;
-  char _pad2[5];
-  /** #eNodeTreeChangedFlag. */
-  uint32_t changed_flag;
+  char _pad2[1];
 
   /** Custom user-defined color. */
   float color[3];
@@ -331,25 +332,7 @@ typedef struct bNode {
   /** Used at runtime when iterating over node branches. */
   char iter_flag;
 
-  /**
-   * Describes the desired interface of the node. This is run-time data only.
-   * The actual interface of the node may deviate from the declaration temporarily.
-   * It's possible to sync the actual state of the node to the desired state. Currently, this is
-   * only done when a node is created or loaded.
-   *
-   * In the future, we may want to keep more data only in the declaration, so that it does not have
-   * to be synced to other places that are stored in files. That especially applies to data that
-   * can't be edited by users directly (e.g. min/max values of sockets, tooltips, ...).
-   *
-   * The declaration of a node can be recreated at any time when it is used. Caching it here is
-   * just a bit more efficient when it is used a lot. To make sure that the cache is up-to-date,
-   * call #nodeDeclarationEnsure before using it.
-   *
-   * Currently, the declaration is the same for every node of the same type. Going forward, that is
-   * intended to change though. Especially when nodes become more dynamic with respect to how many
-   * sockets they have.
-   */
-  NodeDeclarationHandle *declaration;
+  bNodeRuntimeHandle *runtime;
 } bNode;
 
 /* node->flag */
@@ -462,16 +445,6 @@ typedef struct bNodeLink {
 #define NTREE_CHUNKSIZE_512 512
 #define NTREE_CHUNKSIZE_1024 1024
 
-/** Workaround to forward-declare C++ type in C header. */
-#ifdef __cplusplus
-namespace blender::nodes {
-struct FieldInferencingInterface;
-}
-using FieldInferencingInterfaceHandle = blender::nodes::FieldInferencingInterface;
-#else
-typedef struct FieldInferencingInterfaceHandle FieldInferencingInterfaceHandle;
-#endif
-
 /* the basis for a Node tree, all links and nodes reside internal here */
 /* only re-usable node trees are in the library though,
  * materials and textures allocate own tree struct */
@@ -494,18 +467,8 @@ typedef struct bNodeTree {
   float view_center[2];
 
   ListBase nodes, links;
-  /** Information about how inputs and outputs of the node group interact with fields. */
-  FieldInferencingInterfaceHandle *field_inferencing_interface;
 
   int type;
-
-  /**
-   * Used to cache run-time information of the node tree.
-   * #eNodeTreeRuntimeFlag.
-   */
-  uint8_t runtime_flag;
-
-  char _pad1[3];
 
   /**
    * Sockets in groups have unique identifiers, adding new sockets always
@@ -513,12 +476,6 @@ typedef struct bNodeTree {
    */
   int cur_index;
   int flag;
-  /**
-   * Keeps track of what changed in the node tree until the next update.
-   * Should not be changed directly, instead use the functions in `BKE_node_tree_update.h`.
-   * #eNodeTreeChangedFlag.
-   */
-  uint32_t changed_flag;
   /** Flag to prevent re-entrant update calls. */
   short is_updating;
   /** Generic temporary flag for recursion check (DFS/BFS). */
@@ -552,11 +509,8 @@ typedef struct bNodeTree {
    * in case multiple different editors are used and make context ambiguous.
    */
   bNodeInstanceKey active_viewer_key;
-  /**
-   * A hash of the topology of the node tree leading up to the outputs. This is used to determine
-   * of the node tree changed in a way that requires updating geometry nodes or shaders.
-   */
-  uint32_t output_topology_hash;
+
+  char _pad[4];
 
   /** Execution data.
    *
@@ -579,6 +533,8 @@ typedef struct bNodeTree {
 
   /** Image representing what the node group does. */
   struct PreviewImage *preview;
+
+  bNodeTreeRuntimeHandle *runtime;
 } bNodeTree;
 
 /** #NodeTree.type, index */

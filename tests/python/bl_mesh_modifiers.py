@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Currently this script only generates images from different modifier
 # combinations and does not validate they work correctly,
 # this is because we don't get 1:1 match with bmesh.

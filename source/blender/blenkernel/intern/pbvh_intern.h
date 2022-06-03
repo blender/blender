@@ -265,7 +265,6 @@ struct PBVH {
   bool invalid;
 
   CustomDataLayer *color_layer;
-  eCustomDataType color_type;
   eAttrDomain color_domain;
 
   bool is_drawing;

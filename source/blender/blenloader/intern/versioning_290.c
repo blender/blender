@@ -349,8 +349,9 @@ static void seq_convert_transform_crop_lb_2(const Scene *scene,
   }
 }
 
-static void seq_update_meta_disp_range(Editing *ed)
+static void seq_update_meta_disp_range(Scene *scene)
 {
+  Editing *ed = SEQ_editing_get(scene);
   if (ed == NULL) {
     return;
   }
@@ -358,21 +359,14 @@ static void seq_update_meta_disp_range(Editing *ed)
   LISTBASE_FOREACH_BACKWARD (MetaStack *, ms, &ed->metastack) {
     /* Update ms->disp_range from meta. */
     if (ms->disp_range[0] == ms->disp_range[1]) {
-      copy_v2_v2_int(ms->disp_range, &ms->parseq->startdisp);
+      ms->disp_range[0] = SEQ_time_left_handle_frame_get(ms->parseq);
+      ms->disp_range[1] = SEQ_time_right_handle_frame_get(ms->parseq);
     }
 
     /* Update meta strip endpoints. */
-    SEQ_time_left_handle_frame_set(ms->parseq, ms->disp_range[0]);
-    SEQ_time_right_handle_frame_set(ms->parseq, ms->disp_range[1]);
-    SEQ_transform_fix_single_image_seq_offsets(ms->parseq);
-
-    /* Recalculate effects using meta strip. */
-    LISTBASE_FOREACH (Sequence *, seq, ms->oldbasep) {
-      if (seq->seq2) {
-        seq->start = seq->startdisp = max_ii(seq->seq1->startdisp, seq->seq2->startdisp);
-        seq->enddisp = min_ii(seq->seq1->enddisp, seq->seq2->enddisp);
-      }
-    }
+    SEQ_time_left_handle_frame_set(scene, ms->parseq, ms->disp_range[0]);
+    SEQ_time_right_handle_frame_set(scene, ms->parseq, ms->disp_range[1]);
+    SEQ_transform_fix_single_image_seq_offsets(scene, ms->parseq);
 
     /* Ensure that active seqbase points to active meta strip seqbase. */
     MetaStack *active_ms = SEQ_meta_stack_active_get(ed);
@@ -649,7 +643,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList *UNUSED(reports))
 
   if (!MAIN_VERSION_ATLEAST(bmain, 293, 16)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      seq_update_meta_disp_range(SEQ_editing_get(scene));
+      seq_update_meta_disp_range(scene);
     }
 
     /* Add a separate socket for Grid node X and Y size. */
@@ -1668,13 +1662,8 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
         LISTBASE_FOREACH (SpaceLink *, space, &area->spacedata) {
-          /* UV/Image Max resolution images in image editor. */
-          if (space->spacetype == SPACE_IMAGE) {
-            SpaceImage *sima = (SpaceImage *)space;
-            sima->iuser.flag |= IMA_SHOW_MAX_RESOLUTION;
-          }
           /* Enable Outliner render visibility column. */
-          else if (space->spacetype == SPACE_OUTLINER) {
+          if (space->spacetype == SPACE_OUTLINER) {
             SpaceOutliner *space_outliner = (SpaceOutliner *)space;
             space_outliner->show_restrict_flags |= SO_RESTRICT_RENDER;
           }

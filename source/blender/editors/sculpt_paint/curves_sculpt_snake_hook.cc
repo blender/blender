@@ -90,6 +90,10 @@ struct SnakeHookOperatorExecutor {
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
+  VArray<float> curve_factors_;
+  Vector<int64_t> selected_curve_indices_;
+  IndexMask curve_selection_;
+
   float4x4 curves_to_world_mat_;
   float4x4 world_to_curves_mat_;
 
@@ -129,6 +133,9 @@ struct SnakeHookOperatorExecutor {
     if (curves_->curves_num() == 0) {
       return;
     }
+
+    curve_factors_ = get_curves_selection(*curves_id_);
+    curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
     brush_pos_prev_re_ = self.last_mouse_position_re_;
     brush_pos_re_ = stroke_extension.mouse_position;
@@ -199,7 +206,7 @@ struct SnakeHookOperatorExecutor {
 
         const float radius_falloff = BKE_brush_curve_strength(
             brush_, std::sqrt(distance_to_brush_sq_re), brush_radius_re);
-        const float weight = brush_strength_ * radius_falloff;
+        const float weight = brush_strength_ * radius_falloff * curve_factors_[curve_i];
 
         const float2 new_position_re = old_pos_re + brush_pos_diff_re_ * weight;
         float3 new_position_wo;
@@ -265,7 +272,7 @@ struct SnakeHookOperatorExecutor {
 
         const float radius_falloff = BKE_brush_curve_strength(
             brush_, distance_to_brush_cu, brush_radius_cu);
-        const float weight = brush_strength_ * radius_falloff;
+        const float weight = brush_strength_ * radius_falloff * curve_factors_[curve_i];
 
         const float3 new_pos_cu = old_pos_cu + weight * brush_diff_cu;
 

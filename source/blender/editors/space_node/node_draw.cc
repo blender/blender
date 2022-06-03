@@ -982,8 +982,8 @@ static bool node_socket_has_tooltip(bNodeTree *ntree, bNodeSocket *socket)
     return true;
   }
 
-  if (socket->declaration != nullptr) {
-    const blender::nodes::SocketDeclaration &socket_decl = *socket->declaration;
+  if (socket->runtime->declaration != nullptr) {
+    const blender::nodes::SocketDeclaration &socket_decl = *socket->runtime->declaration;
     return !socket_decl.description().is_empty();
   }
 
@@ -996,8 +996,8 @@ static char *node_socket_get_tooltip(bContext *C,
                                      bNodeSocket *socket)
 {
   std::stringstream output;
-  if (socket->declaration != nullptr) {
-    const blender::nodes::SocketDeclaration &socket_decl = *socket->declaration;
+  if (socket->runtime->declaration != nullptr) {
+    const blender::nodes::SocketDeclaration &socket_decl = *socket->runtime->declaration;
     blender::StringRef description = socket_decl.description();
     if (!description.is_empty()) {
       output << TIP_(description.data());
@@ -2654,7 +2654,7 @@ static void frame_node_draw_label(const bNodeTree &ntree,
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
   /* clamp otherwise it can suck up a LOT of memory */
-  BLF_size(fontid, MIN2(24.0f, font_size), U.dpi);
+  BLF_size(fontid, MIN2(24.0f, font_size) * U.pixelsize, U.dpi);
 
   /* title color */
   int color_id = node_get_colorid(node);

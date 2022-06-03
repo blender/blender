@@ -111,7 +111,7 @@ static GPUVertFormat *get_coarse_vcol_format()
 {
   static GPUVertFormat format = {0};
   if (format.attr_len == 0) {
-    GPU_vertformat_attr_add(&format, "cCol", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "cCol", GPU_COMP_U16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     GPU_vertformat_alias_add(&format, "c");
     GPU_vertformat_alias_add(&format, "ac");
   }
@@ -245,6 +245,7 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                                &coarse_mesh->vdata;
   const CustomData *cd_ldata = extract_bmesh ? &coarse_mesh->edit_mesh->bm->ldata :
                                                &coarse_mesh->ldata;
+  const int totloop = extract_bmesh ? coarse_mesh->edit_mesh->bm->totloop : coarse_mesh->totloop;
 
   Mesh me_query = blender::dna::shallow_copy(*coarse_mesh);
   BKE_id_attribute_copy_domains_temp(
@@ -263,15 +264,13 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
   /* Dynamic as we upload and interpolate layers one at a time. */
   GPU_vertbuf_init_with_format_ex(src_data, get_coarse_vcol_format(), GPU_USAGE_DYNAMIC);
 
-  GPU_vertbuf_data_alloc(src_data, coarse_mesh->totloop);
+  GPU_vertbuf_data_alloc(src_data, totloop);
 
   gpuMeshVcol *mesh_vcol = (gpuMeshVcol *)GPU_vertbuf_get_data(src_data);
 
   const uint vcol_layers = cache->cd_used.vcol;
 
   blender::Vector<VColRef> refs = get_vcol_refs(cd_vdata, cd_ldata, vcol_layers);
-
-  gpuMeshVcol *vcol = mesh_vcol;
 
   /* Index of the vertex color layer in the compact buffer. Used vertex color layers are stored in
    * a single buffer. */
@@ -281,25 +280,14 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
     const int dst_offset = (int)subdiv_cache->num_subdiv_loops * 2 * pack_layer_index++;
 
     const CustomData *cdata = ref.domain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata;
-    const MLoop *ml = coarse_mesh->mloop;
-
     int layer_i = CustomData_get_named_layer_index(cdata, ref.layer->type, ref.layer->name);
 
     if (layer_i == -1) {
       printf("%s: missing color layer %s\n", __func__, ref.layer->name);
-      vcol += coarse_mesh->totloop;
       continue;
     }
 
-    MLoopCol *mcol = nullptr;
-    MPropCol *pcol = nullptr;
-
-    if (ref.layer->type == CD_PROP_COLOR) {
-      pcol = static_cast<MPropCol *>(cdata->layers[layer_i].data);
-    }
-    else {
-      mcol = static_cast<MLoopCol *>(cdata->layers[layer_i].data);
-    }
+    gpuMeshVcol *vcol = mesh_vcol;
 
     const bool is_vert = ref.domain == ATTR_DOMAIN_POINT;
 
@@ -333,10 +321,23 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
             vcol->b = unit_float_to_ushort_clamp(pcol2->color[2]);
             vcol->a = unit_float_to_ushort_clamp(pcol2->color[3]);
           }
+
+          vcol++;
         } while ((l_iter = l_iter->next) != f->l_first);
       }
     }
     else {
+      const MLoop *ml = coarse_mesh->mloop;
+      MLoopCol *mcol = nullptr;
+      MPropCol *pcol = nullptr;
+
+      if (ref.layer->type == CD_PROP_COLOR) {
+        pcol = static_cast<MPropCol *>(cdata->layers[layer_i].data);
+      }
+      else {
+        mcol = static_cast<MLoopCol *>(cdata->layers[layer_i].data);
+      }
+
       for (int ml_index = 0; ml_index < coarse_mesh->totloop; ml_index++, vcol++, ml++) {
         int idx = is_vert ? ml->v : ml_index;
 

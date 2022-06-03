@@ -257,6 +257,8 @@ class BlenderVolumeLoader : public VDBImageLoader {
         precision = 0;
         break;
     }
+#else
+    (void)precision_;
 #endif
   }
 

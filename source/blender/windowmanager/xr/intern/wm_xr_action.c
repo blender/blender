@@ -391,11 +391,18 @@ void WM_xr_action_binding_destroy(wmXrData *xr,
       xr->runtime->context, action_set_name, 1, &action_name, &profile_path);
 }
 
-bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name)
+bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name, bool delayed)
 {
   wmXrActionSet *action_set = action_set_find(xr, action_set_name);
   if (!action_set) {
     return false;
+  }
+
+  if (delayed) {
+    /* Save name to activate action set later, before next actions sync
+     * (see #wm_xr_session_actions_update()). */
+    strcpy(xr->runtime->session_state.active_action_set_next, action_set_name);
+    return true;
   }
 
   {

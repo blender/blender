@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 __all__ = (
     "property_definition_from_data_path",
     "decompose_data_path",

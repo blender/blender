@@ -55,6 +55,14 @@ std::ostream &operator<<(std::ostream &stream, const AttributeIDRef &attribute_i
   return stream;
 }
 
+const char *no_procedural_access_message =
+    "This attribute can not be accessed in a procedural context";
+
+bool allow_procedural_attribute_access(StringRef attribute_name)
+{
+  return !attribute_name.startswith(".selection");
+}
+
 static int attribute_data_type_complexity(const eCustomDataType data_type)
 {
   switch (data_type) {
@@ -75,11 +83,6 @@ static int attribute_data_type_complexity(const eCustomDataType data_type)
     case CD_PROP_COLOR:
       return 7;
 #if 0 /* These attribute types are not supported yet. */
-<<<<<<< HEAD
-    case CD_PROP_BYTE_COLOR:
-      return 3;
-=======
->>>>>>> origin/master
     case CD_PROP_STRING:
       return 6;
 #endif

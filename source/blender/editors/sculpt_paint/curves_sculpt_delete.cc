@@ -70,6 +70,9 @@ struct DeleteOperationExecutor {
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
+  Vector<int64_t> selected_curve_indices_;
+  IndexMask curve_selection_;
+
   const CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;
   float brush_radius_base_re_;
@@ -93,6 +96,9 @@ struct DeleteOperationExecutor {
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
+
+    selected_curve_indices_.clear();
+    curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
     curves_sculpt_ = scene_->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
@@ -158,8 +164,8 @@ struct DeleteOperationExecutor {
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
-    threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
-      for (const int curve_i : curve_range) {
+    threading::parallel_for(curve_selection_.index_range(), 512, [&](const IndexRange range) {
+      for (const int curve_i : curve_selection_.slice(range)) {
         const IndexRange points = curves_->points_for_curve(curve_i);
         if (points.size() == 1) {
           const float3 pos_cu = brush_transform_inv * positions_cu[points.first()];
@@ -219,8 +225,8 @@ struct DeleteOperationExecutor {
     const float brush_radius_cu = self_->brush_3d_.radius_cu * brush_radius_factor_;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
-    threading::parallel_for(curves_->curves_range(), 512, [&](IndexRange curve_range) {
-      for (const int curve_i : curve_range) {
+    threading::parallel_for(curve_selection_.index_range(), 512, [&](const IndexRange range) {
+      for (const int curve_i : curve_selection_.slice(range)) {
         const IndexRange points = curves_->points_for_curve(curve_i);
 
         if (points.size() == 1) {

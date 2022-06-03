@@ -8,15 +8,15 @@
 #include "GHOST_DropTargetX11.h"
 #include "GHOST_Debug.h"
 
-#include <assert.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <string.h>
+#include <cassert>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
 
 bool GHOST_DropTargetX11::m_xdndInitialized = false;
 DndClass GHOST_DropTargetX11::m_dndClass;
-Atom *GHOST_DropTargetX11::m_dndTypes = NULL;
-Atom *GHOST_DropTargetX11::m_dndActions = NULL;
+Atom *GHOST_DropTargetX11::m_dndTypes = nullptr;
+Atom *GHOST_DropTargetX11::m_dndActions = nullptr;
 const char *GHOST_DropTargetX11::m_dndMimeTypes[] = {
     "url/url", "text/uri-list", "text/plain", "application/octet-stream"};
 int GHOST_DropTargetX11::m_refCounter = 0;
@@ -180,12 +180,12 @@ char *GHOST_DropTargetX11::FileUrlDecode(char *fileUrl)
     return decodedPath;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dropBufferSize)
 {
-  GHOST_TStringArray *strArray = NULL;
+  GHOST_TStringArray *strArray = nullptr;
   int totPaths = 0, curLength = 0;
 
   /* Count total number of file paths in buffer. */
@@ -196,8 +196,9 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
         curLength = 0;
       }
     }
-    else
+    else {
       curLength++;
+    }
   }
 
   strArray = (GHOST_TStringArray *)malloc(sizeof(GHOST_TStringArray));
@@ -224,8 +225,9 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
         curLength = 0;
       }
     }
-    else
+    else {
       curLength++;
+    }
   }
 
   return strArray;
@@ -235,11 +237,11 @@ void *GHOST_DropTargetX11::getGhostData(Atom dropType,
                                         unsigned char *dropBuffer,
                                         int dropBufferSize)
 {
-  void *data = NULL;
+  void *data = nullptr;
   unsigned char *tmpBuffer = (unsigned char *)malloc(dropBufferSize + 1);
   bool needsFree = true;
 
-  /* ensure NULL-terminator */
+  /* Ensure nil-terminator. */
   memcpy(tmpBuffer, dropBuffer, dropBufferSize);
   tmpBuffer[dropBufferSize] = 0;
 
@@ -265,8 +267,9 @@ void *GHOST_DropTargetX11::getGhostData(Atom dropType,
     m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
   }
 
-  if (needsFree)
+  if (needsFree) {
     free(tmpBuffer);
+  }
 
   return data;
 }
@@ -288,9 +291,10 @@ bool GHOST_DropTargetX11::GHOST_HandleClientMessage(XEvent *event)
                     &dropY)) {
     void *data = getGhostData(dropType, dropBuffer, dropBufferSize);
 
-    if (data)
+    if (data) {
       m_system->pushDragDropEvent(
           GHOST_kEventDraggingDropDone, m_draggedObjectType, m_window, dropX, dropY, data);
+    }
 
     free(dropBuffer);
 

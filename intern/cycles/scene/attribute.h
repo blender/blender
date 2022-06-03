@@ -194,6 +194,7 @@ class AttributeSet {
   void remove(AttributeStandard std);
 
   Attribute *find(AttributeRequest &req);
+  Attribute *find_matching(const Attribute &other);
 
   void remove(Attribute *attribute);
 

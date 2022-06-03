@@ -45,6 +45,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_object.h"
 #include "BKE_pointcloud.h"
@@ -396,8 +397,9 @@ static bool socket_type_has_attribute_toggle(const bNodeSocket &socket)
  */
 static bool input_has_attribute_toggle(const bNodeTree &node_tree, const int socket_index)
 {
-  BLI_assert(node_tree.field_inferencing_interface != nullptr);
-  const FieldInferencingInterface &field_interface = *node_tree.field_inferencing_interface;
+  BLI_assert(node_tree.runtime->field_inferencing_interface);
+  const FieldInferencingInterface &field_interface =
+      *node_tree.runtime->field_inferencing_interface;
   return field_interface.inputs[socket_index] != InputSocketFieldType::None;
 }
 
@@ -753,6 +755,7 @@ static void initialize_group_input(NodesModifierData &nmd,
 {
   const bNodeSocketType &socket_type = *socket.typeinfo();
   const bNodeSocket &bsocket = *socket.bsocket();
+  const eNodeSocketDatatype socket_data_type = static_cast<eNodeSocketDatatype>(bsocket.type);
   if (nmd.settings.properties == nullptr) {
     socket_type.get_geometry_nodes_cpp_value(bsocket, r_value);
     return;
@@ -769,8 +772,7 @@ static void initialize_group_input(NodesModifierData &nmd,
   }
 
   if (!input_has_attribute_toggle(*nmd.node_group, socket.index())) {
-    init_socket_cpp_value_from_property(
-        *property, static_cast<eNodeSocketDatatype>(bsocket.type), r_value);
+    init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
     return;
   }
 
@@ -779,14 +781,17 @@ static void initialize_group_input(NodesModifierData &nmd,
   const IDProperty *property_attribute_name = IDP_GetPropertyFromGroup(
       nmd.settings.properties, (socket.identifier() + attribute_name_suffix).c_str());
   if (property_use_attribute == nullptr || property_attribute_name == nullptr) {
-    init_socket_cpp_value_from_property(
-        *property, static_cast<eNodeSocketDatatype>(bsocket.type), r_value);
+    init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
     return;
   }
 
   const bool use_attribute = IDP_Int(property_use_attribute) != 0;
   if (use_attribute) {
     const StringRef attribute_name{IDP_String(property_attribute_name)};
+    if (!blender::bke::allow_procedural_attribute_access(attribute_name)) {
+      init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
+      return;
+    }
     auto attribute_input = std::make_shared<blender::bke::AttributeFieldInput>(
         attribute_name, *socket_type.base_cpp_type);
     GField attribute_field{std::move(attribute_input), 0};
@@ -797,8 +802,7 @@ static void initialize_group_input(NodesModifierData &nmd,
     cpp_type->construct_from_field(r_value, std::move(attribute_field));
   }
   else {
-    init_socket_cpp_value_from_property(
-        *property, static_cast<eNodeSocketDatatype>(bsocket.type), r_value);
+    init_socket_cpp_value_from_property(*property, socket_data_type, r_value);
   }
 }
 
@@ -942,6 +946,9 @@ static MultiValueMap<eAttrDomain, OutputAttributeInfo> find_output_attributes_to
     }
     const StringRefNull attribute_name = IDP_String(prop);
     if (attribute_name.is_empty()) {
+      continue;
+    }
+    if (!blender::bke::allow_procedural_attribute_access(attribute_name)) {
       continue;
     }
 
@@ -1430,6 +1437,14 @@ static void add_attribute_search_button(const bContext &C,
                          nullptr,
                          attribute_search_exec_fn,
                          nullptr);
+
+  char *attribute_name = RNA_string_get_alloc(
+      md_ptr, rna_path_attribute_name.c_str(), nullptr, 0, nullptr);
+  const bool access_allowed = blender::bke::allow_procedural_attribute_access(attribute_name);
+  MEM_freeN(attribute_name);
+  if (!access_allowed) {
+    UI_but_flag_enable(but, UI_BUT_REDALERT);
+  }
 }
 
 static void add_attribute_search_or_value_buttons(const bContext &C,

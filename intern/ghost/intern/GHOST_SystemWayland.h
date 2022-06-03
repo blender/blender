@@ -23,8 +23,8 @@ struct display_t;
 
 struct output_t {
   struct wl_output *output;
-  int32_t width_pxl, height_pxl;  // dimensions in pixel
-  int32_t width_mm, height_mm;    // dimensions in millimeter
+  int32_t width_pxl, height_pxl; /* Dimensions in pixel. */
+  int32_t width_mm, height_mm;   /* Dimensions in millimeter. */
   int transform;
   int scale;
   std::string make;
@@ -103,7 +103,9 @@ class GHOST_SystemWayland : public GHOST_System {
 
   GHOST_TSuccess setCursorVisibility(bool visible);
 
-  GHOST_TSuccess setCursorGrab(const GHOST_TGrabCursorMode mode, wl_surface *surface);
+  GHOST_TSuccess setCursorGrab(const GHOST_TGrabCursorMode mode,
+                               const GHOST_TGrabCursorMode mode_current,
+                               wl_surface *surface);
 
  private:
   struct display_t *d;

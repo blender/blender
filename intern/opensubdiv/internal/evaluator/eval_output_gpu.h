@@ -40,7 +40,6 @@ class GpuEvalOutput : public VolatileEvalOutput<GLVertexBuffer,
                 const StencilTable *varying_stencils,
                 const vector<const StencilTable *> &all_face_varying_stencils,
                 const int face_varying_width,
-                const int vertex_data_width,
                 const PatchTable *patch_table,
                 EvaluatorCache *evaluator_cache = NULL);
 

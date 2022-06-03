@@ -467,6 +467,27 @@ typedef struct EnumPropertyItem {
   const char *description;
 } EnumPropertyItem;
 
+/**
+ * Heading for RNA enum items (shown in the UI).
+ *
+ * The description is currently only shown in the Python documentation.
+ * By convention the value should be a non-empty string or NULL when there is no description
+ * (never an empty string).
+ */
+#define RNA_ENUM_ITEM_HEADING(name, description) \
+  { \
+    0, "", 0, name, description \
+  }
+
+/** Separator for RNA enum items (shown in the UI). */
+#define RNA_ENUM_ITEM_SEPR \
+  { \
+    0, "", 0, NULL, NULL \
+  }
+
+/** Separator for RNA enum that begins a new column in menus (shown in the UI). */
+#define RNA_ENUM_ITEM_SEPR_COLUMN RNA_ENUM_ITEM_HEADING("", NULL)
+
 /* extended versions with PropertyRNA argument */
 typedef bool (*BooleanPropertyGetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop);
 typedef void (*BooleanPropertySetFunc)(struct PointerRNA *ptr,
@@ -515,6 +536,55 @@ typedef int (*StringPropertyLengthFunc)(struct PointerRNA *ptr, struct PropertyR
 typedef void (*StringPropertySetFunc)(struct PointerRNA *ptr,
                                       struct PropertyRNA *prop,
                                       const char *value);
+
+typedef struct StringPropertySearchVisitParams {
+  /** Text being searched for (never NULL). */
+  const char *text;
+  /** Additional information to display (optional, may be NULL). */
+  const char *info;
+} StringPropertySearchVisitParams;
+
+typedef enum eStringPropertySearchFlag {
+  /**
+   * Used so the result of #RNA_property_string_search_flag can be used to check
+   * if search is supported.
+   */
+  PROP_STRING_SEARCH_SUPPORTED = (1 << 0),
+  /** Items resulting from  the search must be sorted. */
+  PROP_STRING_SEARCH_SORT = (1 << 1),
+  /**
+   * Allow members besides the ones listed to be entered.
+   *
+   * \warning disabling this options causes the search callback to run on redraw and should
+   * only be enabled this doesn't cause performance issues.
+   */
+  PROP_STRING_SEARCH_SUGGESTION = (1 << 2),
+} eStringPropertySearchFlag;
+
+/**
+ * Visit string search candidates, `text` may be freed once this callback has finished,
+ * so references to it should not be held.
+ */
+typedef void (*StringPropertySearchVisitFunc)(void *visit_user_data,
+                                              const StringPropertySearchVisitParams *params);
+/**
+ * \param C: context, may be NULL (in this case all available items should be shown).
+ * \param ptr: RNA pointer.
+ * \param prop: RNA property. This must have it's #StringPropertyRNA.search callback set,
+ * to check this use `RNA_property_string_search_flag(prop) & PROP_STRING_SEARCH_SUPPORTED`.
+ * \param edit_text: Optionally use the string being edited by the user as a basis
+ * for the search results (auto-complete Python attributes for e.g.).
+ * \param visit_fn: This function is called with every search candidate and is typically
+ * responsible for storing the search results.
+ * \param visit_user_data: Caller defined data, passed to `visit_fn`.
+ */
+typedef void (*StringPropertySearchFunc)(const struct bContext *C,
+                                         struct PointerRNA *ptr,
+                                         struct PropertyRNA *prop,
+                                         const char *edit_text,
+                                         StringPropertySearchVisitFunc visit_fn,
+                                         void *visit_user_data);
+
 typedef int (*EnumPropertyGetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop);
 typedef void (*EnumPropertySetFunc)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
 /* same as PropEnumItemFunc */

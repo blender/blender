@@ -27,8 +27,8 @@ bool imb_save_openexr(struct ImBuf *ibuf, const char *name, int flags);
 struct ImBuf *imb_load_openexr(const unsigned char *mem, size_t size, int flags, char *colorspace);
 
 struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
-                                                  const int flags,
-                                                  const size_t max_thumb_size,
+                                                  int flags,
+                                                  size_t max_thumb_size,
                                                   char colorspace[],
                                                   size_t *r_width,
                                                   size_t *r_height);

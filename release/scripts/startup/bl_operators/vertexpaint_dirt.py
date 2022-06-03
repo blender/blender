@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright Campbell Barton.
 
-# <pep8 compliant>
-
 
 def get_vcolor_layer_data(me):
     for lay in me.vertex_colors:

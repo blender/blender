@@ -306,9 +306,10 @@ ModifierTypeInfo modifierType_ParticleSystem = {
     /* srna */ &RNA_ParticleSystemModifier,
     /* type */ eModifierTypeType_OnlyDeform,
     /* flags */ eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping |
-        eModifierTypeFlag_UsesPointCache /* |
-                          eModifierTypeFlag_SupportsEditmode |
-                          eModifierTypeFlag_EnableInEditmode */
+        eModifierTypeFlag_UsesPointCache
+#if 0
+        | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode
+#endif
     ,
     /* icon */ ICON_MOD_PARTICLES,
 

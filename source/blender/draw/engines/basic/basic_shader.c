@@ -11,9 +11,9 @@
 
 #include "basic_private.h"
 
-extern char datatoc_depth_frag_glsl[];
-extern char datatoc_depth_vert_glsl[];
-extern char datatoc_conservative_depth_geom_glsl[];
+extern char datatoc_basic_depth_frag_glsl[];
+extern char datatoc_basic_depth_vert_glsl[];
+extern char datatoc_basic_conservative_depth_geom_glsl[];
 
 extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_common_pointcloud_lib_glsl[];

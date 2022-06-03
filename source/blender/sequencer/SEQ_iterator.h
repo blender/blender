@@ -131,6 +131,9 @@ bool SEQ_collection_remove_strip(struct Sequence *seq, SeqCollection *collection
  * \param collection: collection to be freed
  */
 void SEQ_collection_free(SeqCollection *collection);
+/** Quiet compiler warning for free function. */
+#define SEQ_collection_free_void_p ((GHashValFreeFP)SEQ_collection_free)
+
 /**
  * Move strips from collection_src to collection_dst. Source collection will be freed.
  *

@@ -157,7 +157,7 @@ class GeometryComponent {
   /** Returns true when the attribute has been created. */
   bool attribute_try_create(const blender::bke::AttributeIDRef &attribute_id,
                             eAttrDomain domain,
-                            const eCustomDataType data_type,
+                            eCustomDataType data_type,
                             const AttributeInit &initializer);
 
   /**
@@ -183,7 +183,7 @@ class GeometryComponent {
    */
   blender::GVArray attribute_try_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
                                               eAttrDomain domain,
-                                              const eCustomDataType data_type) const;
+                                              eCustomDataType data_type) const;
 
   /**
    * Get a virtual array that refers to the data of an attribute, interpolated to the given domain.
@@ -199,7 +199,7 @@ class GeometryComponent {
    * cannot be converted.
    */
   blender::bke::ReadAttributeLookup attribute_try_get_for_read(
-      const blender::bke::AttributeIDRef &attribute_id, const eCustomDataType data_type) const;
+      const blender::bke::AttributeIDRef &attribute_id, eCustomDataType data_type) const;
 
   /**
    * Get a virtual array that refers to the data of an attribute, interpolated to the given domain
@@ -208,7 +208,7 @@ class GeometryComponent {
    */
   blender::GVArray attribute_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
                                           eAttrDomain domain,
-                                          const eCustomDataType data_type,
+                                          eCustomDataType data_type,
                                           const void *default_value = nullptr) const;
   /* Use instead of the method above when the type is known at compile time for type safety. */
   template<typename T>
@@ -235,7 +235,7 @@ class GeometryComponent {
   blender::bke::OutputAttribute attribute_try_get_for_output(
       const blender::bke::AttributeIDRef &attribute_id,
       eAttrDomain domain,
-      const eCustomDataType data_type,
+      eCustomDataType data_type,
       const void *default_value = nullptr);
   /* Use instead of the method above when the type is known at compile time for type safety. */
   template<typename T>
@@ -258,7 +258,7 @@ class GeometryComponent {
   blender::bke::OutputAttribute attribute_try_get_for_output_only(
       const blender::bke::AttributeIDRef &attribute_id,
       eAttrDomain domain,
-      const eCustomDataType data_type);
+      eCustomDataType data_type);
   /* Use instead of the method above when the type is known at compile time for type safety. */
   template<typename T>
   blender::bke::OutputAttribute_Typed<T> attribute_try_get_for_output_only(
@@ -521,11 +521,11 @@ struct GeometrySet {
 };
 
 /**
- * A geometry component that can store a mesh, storing the #Mesh data structure.
+ * A geometry component that can store a mesh, using the #Mesh data-block.
  *
- * Attributes are stored in the mesh itself, on any of the four attribute domains. Generic
- * attributes are stored in contiguous arrays, but often built-in attributes are stored in an
- * array of structs fashion for historical reasons, requiring more complex attribute access.
+ * Attributes are stored, on any of the four attribute domains. Generic attributes are stored in
+ * contiguous arrays, but often built-in attributes are stored in an array of structs fashion for
+ * historical reasons, requiring more complex attribute access.
  */
 class MeshComponent : public GeometryComponent {
  private:
@@ -682,8 +682,9 @@ class CurveComponentLegacy : public GeometryComponent {
 };
 
 /**
- * A geometry component that stores a group of curves, corresponding the #Curves and
- * #CurvesGeometry types.
+ * A geometry component that stores a group of curves, corresponding the #Curves data-block type
+ * and the #CurvesGeometry type. Attributes are are stored on the control point domain and the
+ * curve domain.
  */
 class CurveComponent : public GeometryComponent {
  private:

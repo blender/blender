@@ -26,12 +26,9 @@
 #include "RNA_prototypes.h"
 
 #include "transform.h"
-#include "transform_snap.h"
-
 #include "transform_convert.h"
-#include "transform_snap.h"
-
 #include "transform_mode.h"
+#include "transform_snap.h"
 
 /** Used for NLA transform (stored in #TransData.extra pointer). */
 typedef struct TransDataNla {

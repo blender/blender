@@ -845,7 +845,10 @@ void uiTemplateImage(uiLayout *layout,
 
     row = uiLayoutRow(row, true);
     uiLayoutSetEnabled(row, is_packed == false);
-    uiItemR(row, &imaptr, "filepath", 0, "", ICON_NONE);
+
+    prop = RNA_struct_find_property(&imaptr, "filepath");
+    uiDefAutoButR(block, &imaptr, prop, -1, "", ICON_NONE, 0, 0, 200, UI_UNIT_Y);
+    uiItemO(row, "", ICON_FILEBROWSER, "image.file_browse");
     uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
   }
 

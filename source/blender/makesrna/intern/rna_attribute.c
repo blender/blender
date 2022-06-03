@@ -106,6 +106,11 @@ const EnumPropertyItem rna_enum_color_attribute_domain_items[] = {
     {ATTR_DOMAIN_CORNER, "CORNER", 0, "Face Corner", ""},
     {0, NULL, 0, NULL, NULL}};
 
+const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
+    {ATTR_DOMAIN_POINT, "POINT", 0, "Control Point", ""},
+    {ATTR_DOMAIN_CURVE, "CURVE", 0, "Curve", ""},
+    {0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math.h"
@@ -230,6 +235,12 @@ static const EnumPropertyItem *rna_Attribute_domain_itemf(bContext *UNUSED(C),
 static int rna_Attribute_domain_get(PointerRNA *ptr)
 {
   return BKE_id_attribute_domain(ptr->owner_id, ptr->data);
+}
+
+static bool rna_Attribute_is_internal_get(PointerRNA *ptr)
+{
+  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+  return BKE_attribute_allow_procedural_access(layer->name);
 }
 
 static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -928,6 +939,12 @@ static void rna_def_attribute(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Domain", "Domain of the Attribute");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+  prop = RNA_def_property(srna, "is_internal", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_Attribute_is_internal_get", NULL);
+  RNA_def_property_ui_text(
+      prop, "Is Internal", "The attribute is meant for internal use by Blender");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
   /* types */
   rna_def_attribute_float(brna);
   rna_def_attribute_float_vector(brna);
@@ -940,7 +957,7 @@ static void rna_def_attribute(BlenderRNA *brna)
   rna_def_attribute_int8(brna);
 }
 
-/* Mesh/PointCloud/Hair.attributes */
+/* Mesh/PointCloud/Curves.attributes */
 static void rna_def_attribute_group(BlenderRNA *brna)
 {
   StructRNA *srna;

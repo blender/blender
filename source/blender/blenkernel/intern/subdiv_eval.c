@@ -62,7 +62,7 @@ bool BKE_subdiv_eval_begin(Subdiv *subdiv,
         opensubdiv_evalutor_from_subdiv_evaluator_type(evaluator_type);
     BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
     subdiv->evaluator = openSubdiv_createEvaluatorFromTopologyRefiner(
-        subdiv->topology_refiner, opensubdiv_evaluator_type, evaluator_cache, settings);
+        subdiv->topology_refiner, opensubdiv_evaluator_type, evaluator_cache);
     BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
     if (subdiv->evaluator == NULL) {
       return false;
@@ -71,6 +71,7 @@ bool BKE_subdiv_eval_begin(Subdiv *subdiv,
   else {
     /* TODO(sergey): Check for topology change. */
   }
+  subdiv->evaluator->setSettings(subdiv->evaluator, settings);
   BKE_subdiv_eval_init_displacement(subdiv);
   return true;
 }

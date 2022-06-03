@@ -2,8 +2,6 @@
 
 # Copyright (c) 2009 www.stani.be
 
-# <pep8-80 compliant>
-
 """This module provides intellisense features such as:
 
 * autocompletion

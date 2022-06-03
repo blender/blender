@@ -685,10 +685,10 @@ bool ED_operator_mask(bContext *C)
   return false;
 }
 
-bool ED_operator_camera(bContext *C)
+bool ED_operator_camera_poll(bContext *C)
 {
   struct Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
-  return (cam != NULL);
+  return (cam != NULL && !ID_IS_LINKED(cam));
 }
 
 /** \} */

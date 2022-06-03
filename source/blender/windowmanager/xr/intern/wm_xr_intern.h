@@ -54,9 +54,11 @@ typedef struct wmXrSessionState {
   ListBase controllers; /* #wmXrController */
 
   /** The currently active action set that will be updated on calls to
-   * wm_xr_session_actions_update(). If NULL, all action sets will be treated as active and
+   * #wm_xr_session_actions_update(). If NULL, all action sets will be treated as active and
    * updated. */
   struct wmXrActionSet *active_action_set;
+  /* Name of the action set (if any) to activate before the next actions sync. */
+  char active_action_set_next[64]; /* MAX_NAME */
 } wmXrSessionState;
 
 typedef struct wmXrRuntimeData {

@@ -20,8 +20,8 @@ bool segment_is_vector(const Span<int8_t> handle_types_left,
          handle_types_left[segment_index + 1] == BEZIER_HANDLE_VECTOR;
 }
 
-bool last_cylic_segment_is_vector(const Span<int8_t> handle_types_left,
-                                  const Span<int8_t> handle_types_right)
+bool last_cyclic_segment_is_vector(const Span<int8_t> handle_types_left,
+                                   const Span<int8_t> handle_types_right)
 {
   return handle_types_right.last() == BEZIER_HANDLE_VECTOR &&
          handle_types_left.first() == BEZIER_HANDLE_VECTOR;
@@ -49,7 +49,8 @@ void calculate_evaluated_offsets(const Span<int8_t> handle_types_left,
   }
 
   if (cyclic) {
-    offset += last_cylic_segment_is_vector(handle_types_left, handle_types_right) ? 1 : resolution;
+    offset += last_cyclic_segment_is_vector(handle_types_left, handle_types_right) ? 1 :
+                                                                                     resolution;
   }
   else {
     offset++;

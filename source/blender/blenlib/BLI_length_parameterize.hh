@@ -84,7 +84,7 @@ void create_uniform_samples(Span<float> lengths,
  * Could be calculated by #accumulate_lengths.
  * \param sample_lengths: Sampled locations in the #lengths array. Must be sorted and is expected
  * to be within the range of the #lengths values.
- * \param cyclic: Whether the points described by the #lenghts input is cyclic. This is likely
+ * \param cyclic: Whether the points described by the #lengths input is cyclic. This is likely
  * redundant information theoretically.
  * \param indices: The index of the previous point at each sample.
  * \param factors: The portion of the length in each segment at each sample.

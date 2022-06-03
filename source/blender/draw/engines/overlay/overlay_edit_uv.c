@@ -115,7 +115,7 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   const bool is_tiled_image = image && (image->source == IMA_SRC_TILED);
   const bool do_edges_only = (ts->uv_flag & UV_SYNC_SELECTION) ?
                                   /* NOTE: Ignore #SCE_SELECT_EDGE because a single selected edge
-                                   * on the mesh may cause singe UV vertices to be selected. */
+                                   * on the mesh may cause single UV vertices to be selected. */
                                   false :
                                   (ts->uv_selectmode == UV_SELECT_EDGE);
   const bool do_faces = ((sima->flag & SI_NO_DRAWFACES) == 0);

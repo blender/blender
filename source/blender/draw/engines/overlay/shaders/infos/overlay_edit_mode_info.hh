@@ -19,7 +19,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common)
     .push_constant(Type::BOOL, "selectEdges")
     .push_constant(Type::FLOAT, "alpha")
     .push_constant(Type::IVEC4, "dataMask")
-    .vertex_source("edit_mesh_vert.glsl")
+    .vertex_source("overlay_edit_mesh_vert.glsl")
     .additional_info("draw_modelmat", "draw_globals");
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_vert_iface, "")
@@ -29,13 +29,12 @@ GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_vert_iface, "")
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_vert)
     .do_static_compilation(true)
     .builtins(BuiltinBits::POINT_SIZE)
-    .define("srgbTarget", "false") /* Colors are already in linear space. */
     .define("VERT")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::IVEC4, "data")
     .vertex_in(2, Type::VEC3, "vnor")
     .vertex_out(overlay_edit_mesh_vert_iface)
-    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .fragment_source("overlay_point_varying_color_frag.glsl")
     .additional_info("overlay_edit_mesh_common");
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_edge_iface, "geometry_in")
@@ -58,8 +57,8 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge)
     .vertex_out(overlay_edit_mesh_edge_iface)
     .geometry_out(overlay_edit_mesh_edge_geom_iface)
     .geometry_layout(PrimitiveIn::LINES, PrimitiveOut::TRIANGLE_STRIP, 4)
-    .geometry_source("edit_mesh_geom.glsl")
-    .fragment_source("edit_mesh_frag.glsl")
+    .geometry_source("overlay_edit_mesh_geom.glsl")
+    .fragment_source("overlay_edit_mesh_frag.glsl")
     .additional_info("overlay_edit_mesh_common");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat)
@@ -69,13 +68,12 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat)
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_face)
     .do_static_compilation(true)
-    .define("srgbTarget", "false") /* Colors are already in linear space. */
     .define("FACE")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::IVEC4, "data")
     .vertex_in(2, Type::VEC3, "vnor")
     .vertex_out(overlay_edit_flat_color_iface)
-    .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("overlay_edit_mesh_common");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_facedot)
@@ -86,12 +84,11 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_facedot)
     .vertex_in(2, Type::VEC4, "norAndFlag")
     .define("vnor", "norAndFlag.xyz")
     .vertex_out(overlay_edit_flat_color_iface)
-    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .fragment_source("overlay_point_varying_color_frag.glsl")
     .additional_info("overlay_edit_mesh_common");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_normal)
     .do_static_compilation(true)
-    .define("srgbTarget", "false") /* Colors are already in linear space. */
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::VEC4, "lnor")
     .vertex_in(2, Type::VEC4, "vnor")
@@ -103,8 +100,8 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_normal)
     .push_constant(Type::BOOL, "isConstantScreenSizeNormals")
     .vertex_out(overlay_edit_flat_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_mesh_normal_vert.glsl")
-    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .vertex_source("overlay_edit_mesh_normal_vert.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_modelmat_instanced_attr", "draw_globals");
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_mesh_analysis_iface, "").smooth(Type::VEC4, "weightColor");
@@ -116,20 +113,19 @@ GPU_SHADER_CREATE_INFO(overlay_edit_mesh_analysis)
     .sampler(0, ImageType::FLOAT_1D, "weightTex")
     .fragment_out(0, Type::VEC4, "fragColor")
     .vertex_out(overlay_edit_mesh_analysis_iface)
-    .vertex_source("edit_mesh_analysis_vert.glsl")
-    .fragment_source("edit_mesh_analysis_frag.glsl")
+    .vertex_source("overlay_edit_mesh_analysis_vert.glsl")
+    .fragment_source("overlay_edit_mesh_analysis_frag.glsl")
     .additional_info("draw_modelmat");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_skin_root)
     .do_static_compilation(true)
-    .define("srgbTarget", "false") /* Colors are already in linear space. */
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::FLOAT, "size")
     .vertex_in(2, Type::VEC3, "local_pos")
     .vertex_out(overlay_edit_flat_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_mesh_skin_root_vert.glsl")
-    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .vertex_source("overlay_edit_mesh_skin_root_vert.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_modelmat_instanced_attr", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_vert_clipped)
@@ -193,9 +189,9 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges)
     .push_constant(Type::FLOAT, "alpha")
     .push_constant(Type::FLOAT, "dashLength")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_uv_edges_vert.glsl")
-    .geometry_source("edit_uv_edges_geom.glsl")
-    .fragment_source("edit_uv_edges_frag.glsl")
+    .vertex_source("overlay_edit_uv_edges_vert.glsl")
+    .geometry_source("overlay_edit_uv_edges_geom.glsl")
+    .fragment_source("overlay_edit_uv_edges_frag.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_select)
@@ -205,28 +201,24 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_select)
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_faces)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC2, "au")
     .vertex_in(1, Type::INT, "flag")
     .push_constant(Type::FLOAT, "uvOpacity")
     .vertex_out(overlay_edit_flat_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_uv_faces_vert.glsl")
-    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .vertex_source("overlay_edit_uv_faces_vert.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_face_dots)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC2, "au")
     .vertex_in(1, Type::INT, "flag")
     .push_constant(Type::FLOAT, "pointSize")
     .vertex_out(overlay_edit_flat_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_uv_face_dots_vert.glsl")
-    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .vertex_source("overlay_edit_uv_face_dots_vert.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_vert_iface, "")
@@ -236,8 +228,6 @@ GPU_SHADER_INTERFACE_INFO(overlay_edit_uv_vert_iface, "")
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_verts)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC2, "au")
     .vertex_in(1, Type::INT, "flag")
     .push_constant(Type::FLOAT, "pointSize")
@@ -245,19 +235,17 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_verts)
     .push_constant(Type::VEC4, "color")
     .vertex_out(overlay_edit_uv_vert_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_uv_verts_vert.glsl")
-    .fragment_source("edit_uv_verts_frag.glsl")
+    .vertex_source("overlay_edit_uv_verts_vert.glsl")
+    .fragment_source("overlay_edit_uv_verts_frag.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_tiled_image_borders)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .push_constant(Type::VEC4, "color")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_uv_tiled_image_borders_vert.glsl")
-    .fragment_source("gpu_shader_uniform_color_frag.glsl")
+    .vertex_source("overlay_edit_uv_tiled_image_borders_vert.glsl")
+    .fragment_source("overlay_uniform_color_frag.glsl")
     .additional_info("draw_mesh");
 
 GPU_SHADER_INTERFACE_INFO(edit_uv_image_iface, "").smooth(Type::VEC2, "uvs");
@@ -266,13 +254,13 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_stencil_image)
     .do_static_compilation(true)
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_out(edit_uv_image_iface)
-    .vertex_source("edit_uv_image_vert.glsl")
+    .vertex_source("overlay_edit_uv_image_vert.glsl")
     .sampler(0, ImageType::FLOAT_2D, "imgTexture")
     .push_constant(Type::BOOL, "imgPremultiplied")
     .push_constant(Type::BOOL, "imgAlphaBlend")
     .push_constant(Type::VEC4, "color")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .fragment_source("image_frag.glsl")
+    .fragment_source("overlay_image_frag.glsl")
     .additional_info("draw_mesh");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_mask_image)
@@ -282,8 +270,8 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_mask_image)
     .sampler(0, ImageType::FLOAT_2D, "imgTexture")
     .push_constant(Type::VEC4, "color")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_uv_image_vert.glsl")
-    .fragment_source("edit_uv_image_mask_frag.glsl")
+    .vertex_source("overlay_edit_uv_image_vert.glsl")
+    .fragment_source("overlay_edit_uv_image_mask_frag.glsl")
     .additional_info("draw_mesh");
 
 /** \} */
@@ -293,14 +281,12 @@ GPU_SHADER_CREATE_INFO(overlay_edit_uv_mask_image)
  * \{ */
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC2, "pos")
     .push_constant(Type::VEC2, "aspect")
     .vertex_out(overlay_edit_nopersp_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_uv_stretching_vert.glsl")
-    .fragment_source("gpu_shader_2D_smooth_color_frag.glsl")
+    .vertex_source("overlay_edit_uv_stretching_vert.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_stretching_area)
@@ -328,8 +314,6 @@ GPU_SHADER_INTERFACE_INFO(overlay_edit_curve_handle_iface, "vert").flat(Type::IN
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle)
     .do_static_compilation(true)
     .typedef_source("overlay_shader_shared.h")
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::INT, "data")
     .vertex_out(overlay_edit_curve_handle_iface)
@@ -338,9 +322,9 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle)
     .push_constant(Type::BOOL, "showCurveHandles")
     .push_constant(Type::INT, "curveHandleDisplay")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_curve_handle_vert.glsl")
-    .geometry_source("edit_curve_handle_geom.glsl")
-    .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
+    .vertex_source("overlay_edit_curve_handle_vert.glsl")
+    .geometry_source("overlay_edit_curve_handle_geom.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_clipped)
@@ -350,16 +334,14 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_clipped)
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_point)
     .do_static_compilation(true)
     .typedef_source("overlay_shader_shared.h")
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::INT, "data")
     .vertex_out(overlay_edit_flat_color_iface)
     .push_constant(Type::BOOL, "showCurveHandles")
     .push_constant(Type::INT, "curveHandleDisplay")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_curve_point_vert.glsl")
-    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .vertex_source("overlay_edit_curve_point_vert.glsl")
+    .fragment_source("overlay_point_varying_color_frag.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_point_clipped)
@@ -368,8 +350,6 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_point_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::VEC3, "nor")
     .vertex_in(2, Type::VEC3, "tan")
@@ -377,8 +357,8 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire)
     .push_constant(Type::FLOAT, "normalSize")
     .vertex_out(overlay_edit_flat_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_curve_wire_vert.glsl")
-    .fragment_source("gpu_shader_flat_color_frag.glsl")
+    .vertex_source("overlay_edit_curve_wire_vert.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_modelmat", "draw_resource_id_uniform", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire_clipped)
@@ -393,14 +373,12 @@ GPU_SHADER_CREATE_INFO(overlay_edit_curve_wire_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_edit_lattice_point)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::INT, "data")
     .vertex_out(overlay_edit_flat_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_lattice_point_vert.glsl")
-    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .vertex_source("overlay_edit_lattice_point_vert.glsl")
+    .fragment_source("overlay_point_varying_color_frag.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_lattice_point_clipped)
@@ -409,15 +387,13 @@ GPU_SHADER_CREATE_INFO(overlay_edit_lattice_point_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_edit_lattice_wire)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::FLOAT, "weight")
     .sampler(0, ImageType::FLOAT_1D, "weightTex")
     .vertex_out(overlay_edit_smooth_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_lattice_wire_vert.glsl")
-    .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
+    .vertex_source("overlay_edit_lattice_wire_vert.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_lattice_wire_clipped)
@@ -432,16 +408,14 @@ GPU_SHADER_CREATE_INFO(overlay_edit_lattice_wire_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_edit_particle_strand)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::FLOAT, "color")
     .sampler(0, ImageType::FLOAT_1D, "weightTex")
     .push_constant(Type::BOOL, "useWeight")
     .vertex_out(overlay_edit_smooth_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_particle_strand_vert.glsl")
-    .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
+    .vertex_source("overlay_edit_particle_strand_vert.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_particle_strand_clipped)
@@ -450,14 +424,12 @@ GPU_SHADER_CREATE_INFO(overlay_edit_particle_strand_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_edit_particle_point)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::FLOAT, "color")
     .vertex_out(overlay_edit_flat_color_iface)
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_particle_point_vert.glsl")
-    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .vertex_source("overlay_edit_particle_point_vert.glsl")
+    .fragment_source("overlay_point_varying_color_frag.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_particle_point_clipped)
@@ -472,8 +444,6 @@ GPU_SHADER_CREATE_INFO(overlay_edit_particle_point_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_edit_gpencil)
     .typedef_source("overlay_shader_shared.h")
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::INT, "ma")
     .vertex_in(2, Type::UINT, "vflag")
@@ -487,13 +457,13 @@ GPU_SHADER_CREATE_INFO(overlay_edit_gpencil)
     .push_constant(Type::VEC4, "gpEditColor")
     .sampler(0, ImageType::FLOAT_1D, "weightTex")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_gpencil_vert.glsl")
+    .vertex_source("overlay_edit_gpencil_vert.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_gpencil_wire)
     .do_static_compilation(true)
     .vertex_out(overlay_edit_smooth_color_iface)
-    .fragment_source("gpu_shader_3D_smooth_color_frag.glsl")
+    .fragment_source("overlay_varying_color.glsl")
     .additional_info("overlay_edit_gpencil");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_gpencil_wire_clipped)
@@ -504,7 +474,7 @@ GPU_SHADER_CREATE_INFO(overlay_edit_gpencil_point)
     .do_static_compilation(true)
     .define("USE_POINTS")
     .vertex_out(overlay_edit_flat_color_iface)
-    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .fragment_source("overlay_point_varying_color_frag.glsl")
     .additional_info("overlay_edit_gpencil");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_gpencil_point_clipped)
@@ -514,8 +484,6 @@ GPU_SHADER_CREATE_INFO(overlay_edit_gpencil_point_clipped)
 /* TODO(fclem): Refactor this to take list of point instead of drawing 1 point per drawcall. */
 GPU_SHADER_CREATE_INFO(overlay_edit_gpencil_guide_point)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .vertex_in(1, Type::INT, "data")
     .vertex_out(overlay_edit_flat_color_iface)
@@ -523,8 +491,8 @@ GPU_SHADER_CREATE_INFO(overlay_edit_gpencil_guide_point)
     .push_constant(Type::FLOAT, "pSize")
     .push_constant(Type::VEC4, "pColor")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("edit_gpencil_guide_vert.glsl")
-    .fragment_source("gpu_shader_point_varying_color_frag.glsl")
+    .vertex_source("overlay_edit_gpencil_guide_vert.glsl")
+    .fragment_source("overlay_point_varying_color_frag.glsl")
     .additional_info("draw_mesh", "draw_globals");
 
 GPU_SHADER_CREATE_INFO(overlay_edit_gpencil_guide_point_clipped)
@@ -542,8 +510,8 @@ GPU_SHADER_CREATE_INFO(overlay_edit_gpencil_guide_point_clipped)
 GPU_SHADER_CREATE_INFO(overlay_depth_only)
     .do_static_compilation(true)
     .vertex_in(0, Type::VEC3, "pos")
-    .vertex_source("depth_only_vert.glsl")
-    .fragment_source("gpu_shader_depth_only_frag.glsl")
+    .vertex_source("overlay_depth_only_vert.glsl")
+    .fragment_source("overlay_depth_only_frag.glsl")
     .additional_info("draw_mesh");
 
 GPU_SHADER_CREATE_INFO(overlay_depth_only_clipped)
@@ -558,13 +526,11 @@ GPU_SHADER_CREATE_INFO(overlay_depth_only_clipped)
 
 GPU_SHADER_CREATE_INFO(overlay_uniform_color)
     .do_static_compilation(true)
-    /* NOTE: Color already in Linear space. Which is what we want. */
-    .define("srgbTarget", "false")
     .vertex_in(0, Type::VEC3, "pos")
     .push_constant(Type::VEC4, "color")
     .fragment_out(0, Type::VEC4, "fragColor")
-    .vertex_source("depth_only_vert.glsl")
-    .fragment_source("gpu_shader_uniform_color_frag.glsl")
+    .vertex_source("overlay_depth_only_vert.glsl")
+    .fragment_source("overlay_uniform_color_frag.glsl")
     .additional_info("draw_mesh");
 
 GPU_SHADER_CREATE_INFO(overlay_uniform_color_clipped)

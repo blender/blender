@@ -10,7 +10,7 @@
 
 GPU_SHADER_CREATE_INFO(basic_conservative)
     .geometry_layout(PrimitiveIn::TRIANGLES, PrimitiveOut::TRIANGLE_STRIP, 3)
-    .geometry_source("conservative_depth_geom.glsl");
+    .geometry_source("basic_conservative_depth_geom.glsl");
 
 /** \} */
 
@@ -20,11 +20,11 @@ GPU_SHADER_CREATE_INFO(basic_conservative)
 
 GPU_SHADER_CREATE_INFO(basic_mesh)
     .vertex_in(0, Type::VEC3, "pos")
-    .vertex_source("depth_vert.glsl")
+    .vertex_source("basic_depth_vert.glsl")
     .additional_info("draw_mesh");
 
 GPU_SHADER_CREATE_INFO(basic_pointcloud)
-    .vertex_source("depth_pointcloud_vert.glsl")
+    .vertex_source("basic_depth_pointcloud_vert.glsl")
     .additional_info("draw_pointcloud");
 
 /** \} */
@@ -54,7 +54,7 @@ GPU_SHADER_CREATE_INFO(basic_pointcloud)
 /** \name Depth shader types.
  * \{ */
 
-GPU_SHADER_CREATE_INFO(basic_depth).fragment_source("depth_frag.glsl");
+GPU_SHADER_CREATE_INFO(basic_depth).fragment_source("basic_depth_frag.glsl");
 
 BASIC_OBTYPE_VARIATIONS(basic_depth, "basic_depth");
 

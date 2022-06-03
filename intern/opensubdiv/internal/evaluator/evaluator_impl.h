@@ -57,6 +57,9 @@ class EvalOutputAPI {
 
   ~EvalOutputAPI();
 
+  // Set settings for data buffers.
+  void setSettings(const OpenSubdiv_EvaluatorSettings *settings);
+
   // Set coarse positions from a continuous array of coordinates.
   void setCoarsePositions(const float *positions,
                           const int start_vertex_index,
@@ -210,8 +213,7 @@ struct OpenSubdiv_EvaluatorImpl {
 OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
     struct OpenSubdiv_TopologyRefiner *topology_refiner,
     eOpenSubdivEvaluator evaluator_type,
-    OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr,
-    const OpenSubdiv_EvaluatorSettings *settings);
+    OpenSubdiv_EvaluatorCacheImpl *evaluator_cache_descr);
 
 void openSubdiv_deleteEvaluatorInternal(OpenSubdiv_EvaluatorImpl *evaluator);
 

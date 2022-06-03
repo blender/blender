@@ -24,6 +24,7 @@ enum {
   PG_RGEN_INTERSECT_SUBSURFACE,
   PG_RGEN_INTERSECT_VOLUME_STACK,
   PG_RGEN_SHADE_SURFACE_RAYTRACE,
+  PG_RGEN_SHADE_SURFACE_MNEE,
   PG_MISS,
   PG_HITD, /* Default hit group. */
   PG_HITS, /* __SHADOW_RECORD_ALL__ hit group. */
@@ -46,7 +47,7 @@ static const int CALLABLE_PROGRAM_GROUPS_BASE = PG_CALL_SVM_AO;
 static const int NUM_CALLABLE_PROGRAM_GROUPS = 2;
 
 /* List of OptiX pipelines. */
-enum { PIP_SHADE_RAYTRACE, PIP_INTERSECT, NUM_PIPELINES };
+enum { PIP_SHADE_RAYTRACE, PIP_SHADE_MNEE, PIP_INTERSECT, NUM_PIPELINES };
 
 /* A single shader binding table entry. */
 struct SbtRecord {

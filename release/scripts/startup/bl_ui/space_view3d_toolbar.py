@@ -4,6 +4,7 @@
 from bpy.props import EnumProperty
 from bpy.types import Operator
 from bpy.types import Menu, Panel, UIList, WindowManager, SpaceProperties
+
 from bl_ui.properties_grease_pencil_common import (
     GreasePencilSculptAdvancedPanel,
     GreasePencilDisplayPanel,

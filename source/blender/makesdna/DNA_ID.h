@@ -597,6 +597,8 @@ typedef struct PreviewImage {
  * Keep in sync with #BKE_id_eval_properties_copy. */
 #define ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW(id_type) ELEM(id_type, ID_ME)
 
+#define ID_TYPE_IS_DEPRECATED(id_type) ELEM(id_type, ID_IP)
+
 #ifdef GS
 #  undef GS
 #endif

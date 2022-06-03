@@ -48,8 +48,8 @@ typedef enum eLineartEdgeFlag {
   LRT_EDGE_FLAG_INTERSECTION = (1 << 4),
   LRT_EDGE_FLAG_LOOSE = (1 << 5),
   /* LRT_EDGE_FLAG_FOR_FUTURE = (1 << 7), */
-  /* Limited to 8 bits for edge type flag, don't add anymore because BMEdge->head.eflag only has 8
-     bits. So unless we changed this into a non-single-bit flag thing, we keep it this way. */
+  /* Limited to 8 bits for edge type flag, don't add anymore because `BMEdge->head.eflag` only has
+   * 8 bits. So unless we changed this into a non-single-bit flag thing, we keep it this way. */
   /** Also used as discarded line mark. */
   LRT_EDGE_FLAG_CHAIN_PICKED = (1 << 8),
   LRT_EDGE_FLAG_CLIPPED = (1 << 9),

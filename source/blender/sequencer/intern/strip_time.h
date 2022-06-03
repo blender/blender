@@ -14,9 +14,10 @@ extern "C" {
 struct ListBase;
 struct Scene;
 struct Sequence;
+struct SeqCollection;
 
 float seq_give_frame_index(struct Sequence *seq, float timeline_frame);
-void seq_update_sound_bounds_recursive(struct Scene *scene, struct Sequence *metaseq);
+void seq_update_sound_bounds_recursive(const struct Scene *scene, struct Sequence *metaseq);
 
 /* Describes gap between strips in timeline. */
 typedef struct GapInfo {
@@ -37,6 +38,8 @@ void seq_time_gap_info_get(const struct Scene *scene,
                            struct ListBase *seqbase,
                            int initial_frame,
                            struct GapInfo *r_gap_info);
+void seq_time_effect_range_set(Sequence *seq);
+void seq_time_update_effects_strip_range(const struct Scene *scene, struct SeqCollection *effects);
 
 #ifdef __cplusplus
 }

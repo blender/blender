@@ -39,7 +39,7 @@ namespace blender::deg {
 
 class RNANodeQueryIDData {
  public:
-  explicit RNANodeQueryIDData(const ID *id) : id_(id), constraint_to_pchan_map_(nullptr)
+  explicit RNANodeQueryIDData(const ID *id) : id_(id)
   {
   }
 
@@ -77,7 +77,7 @@ class RNANodeQueryIDData {
 
   /* indexed by bConstraint*, returns pose channel which contains that
    * constraint. */
-  Map<const bConstraint *, const bPoseChannel *> *constraint_to_pchan_map_;
+  Map<const bConstraint *, const bPoseChannel *> *constraint_to_pchan_map_ = nullptr;
 };
 
 /* ***************************** Node Identifier **************************** */

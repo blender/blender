@@ -80,17 +80,11 @@ typedef struct RenderSlot {
   struct RenderResult *render;
 } RenderSlot;
 
-typedef struct ImageTile_RuntimeTextureSlot {
+typedef struct ImageTile_Runtime {
   int tilearray_layer;
   int _pad;
   int tilearray_offset[2];
   int tilearray_size[2];
-} ImageTile_RuntimeTextureSlot;
-
-typedef struct ImageTile_Runtime {
-  /* Data per `eImageTextureResolution`.
-   * Should match `IMA_TEXTURE_RESOLUTION_LEN` */
-  ImageTile_RuntimeTextureSlot slots[2];
 } ImageTile_Runtime;
 
 typedef struct ImageTile {
@@ -109,10 +103,7 @@ typedef struct ImageTile {
 /* #define IMA_UNUSED_2         (1 << 2) */
 #define IMA_NEED_FRAME_RECALC (1 << 3)
 #define IMA_SHOW_STEREO (1 << 4)
-/* Do not limit the resolution by the limit texture size option in the user preferences.
- * Images in the image editor or used as a backdrop are always shown using the maximum
- * possible resolution. */
-#define IMA_SHOW_MAX_RESOLUTION (1 << 5)
+/* #define IMA_UNUSED_5         (1 << 5) */
 
 /* Used to get the correct gpu texture from an Image datablock. */
 typedef enum eGPUTextureTarget {
@@ -121,15 +112,6 @@ typedef enum eGPUTextureTarget {
   TEXTARGET_TILE_MAPPING,
   TEXTARGET_COUNT,
 } eGPUTextureTarget;
-
-/* Resolution variations that can be cached for an image. */
-typedef enum eImageTextureResolution {
-  IMA_TEXTURE_RESOLUTION_FULL = 0,
-  IMA_TEXTURE_RESOLUTION_LIMITED,
-
-  /* Not an option, but holds the number of options defined for this struct. */
-  IMA_TEXTURE_RESOLUTION_LEN
-} eImageTextureResolution;
 
 /* Defined in BKE_image.h. */
 struct PartialUpdateRegister;
@@ -155,8 +137,8 @@ typedef struct Image {
 
   /** Not written in file. */
   struct MovieCache *cache;
-  /** Not written in file 3 = TEXTARGET_COUNT, 2 = stereo eyes, 2 = IMA_TEXTURE_RESOLUTION_LEN. */
-  struct GPUTexture *gputexture[3][2][2];
+  /** Not written in file 3 = TEXTARGET_COUNT, 2 = stereo eyes. */
+  struct GPUTexture *gputexture[3][2];
 
   /* sources from: */
   ListBase anims;
@@ -244,11 +226,6 @@ enum {
 enum {
   /** All mipmap levels in OpenGL texture set? */
   IMA_GPU_MIPMAP_COMPLETE = (1 << 0),
-  /* Reuse the max resolution textures as they fit in the limited scale. */
-  IMA_GPU_REUSE_MAX_RESOLUTION = (1 << 1),
-  /* Has any limited scale textures been allocated.
-   * Adds additional checks to reuse max resolution images when they fit inside limited scale. */
-  IMA_GPU_HAS_LIMITED_SCALE_TEXTURES = (1 << 2),
 };
 
 /* Image.source, where the image comes from */

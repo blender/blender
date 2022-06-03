@@ -81,6 +81,9 @@ void GeometryDataSource::foreach_default_column_ids(
         if (attribute_id.is_anonymous()) {
           return true;
         }
+        if (!bke::allow_procedural_attribute_access(attribute_id.name())) {
+          return true;
+        }
         SpreadsheetColumnID column_id;
         column_id.name = (char *)attribute_id.name().data();
         fn(column_id, false);

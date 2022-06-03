@@ -55,8 +55,8 @@ extern void (*MEM_freeN)(void *vmemh);
 
 #if 0 /* UNUSED */
 /**
-   * Return zero if memory is not in allocated list
-   */
+ * Return zero if memory is not in allocated list
+ */
 extern short (*MEM_testN)(void *vmemh);
 #endif
 

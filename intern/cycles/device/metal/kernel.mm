@@ -35,7 +35,8 @@ bool kernel_has_intersection(DeviceKernel device_kernel)
           device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW ||
           device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE ||
           device_kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK ||
-          device_kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE);
+          device_kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
+          device_kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE);
 }
 
 struct ShaderCache {

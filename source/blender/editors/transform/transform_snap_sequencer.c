@@ -25,6 +25,7 @@
 #include "SEQ_relations.h"
 #include "SEQ_render.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "transform.h"
 #include "transform_snap.h"
@@ -65,14 +66,14 @@ static void seq_snap_source_points_build(TransSeqSnapData *snap_data, SeqCollect
   SEQ_ITERATOR_FOREACH (seq, snap_sources) {
     int left = 0, right = 0;
     if (seq->flag & SEQ_LEFTSEL) {
-      left = right = seq->startdisp;
+      left = right = SEQ_time_left_handle_frame_get(seq);
     }
     else if (seq->flag & SEQ_RIGHTSEL) {
-      left = right = seq->enddisp;
+      left = right = SEQ_time_right_handle_frame_get(seq);
     }
     else {
-      left = seq->startdisp;
-      right = seq->enddisp;
+      left = SEQ_time_left_handle_frame_get(seq);
+      right = SEQ_time_right_handle_frame_get(seq);
     }
 
     snap_data->source_snap_points[i] = left;
@@ -193,21 +194,24 @@ static void seq_snap_target_points_build(Scene *scene,
 
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, snap_targets) {
-    snap_data->target_snap_points[i] = seq->startdisp;
-    snap_data->target_snap_points[i + 1] = seq->enddisp;
+    snap_data->target_snap_points[i] = SEQ_time_left_handle_frame_get(seq);
+    snap_data->target_snap_points[i + 1] = SEQ_time_right_handle_frame_get(seq);
     i += 2;
 
     if (snap_mode & SEQ_SNAP_TO_STRIP_HOLD) {
-      int content_start = min_ii(seq->enddisp, seq->start);
-      int content_end = max_ii(seq->startdisp, seq->start + seq->len);
+      int content_start = min_ii(SEQ_time_right_handle_frame_get(seq), seq->start);
+      int content_end = max_ii(SEQ_time_left_handle_frame_get(seq), seq->start + seq->len);
       /* Effects and single image strips produce incorrect content length. Skip these strips. */
       if ((seq->type & SEQ_TYPE_EFFECT) != 0 || seq->len == 1) {
-        content_start = seq->startdisp;
-        content_end = seq->enddisp;
+        content_start = SEQ_time_left_handle_frame_get(seq);
+        content_end = SEQ_time_right_handle_frame_get(seq);
       }
 
-      CLAMP(content_start, seq->startdisp, seq->enddisp);
-      CLAMP(content_end, seq->startdisp, seq->enddisp);
+      CLAMP(content_start,
+            SEQ_time_left_handle_frame_get(seq),
+            SEQ_time_right_handle_frame_get(seq));
+      CLAMP(
+          content_end, SEQ_time_left_handle_frame_get(seq), SEQ_time_right_handle_frame_get(seq));
 
       snap_data->target_snap_points[i] = content_start;
       snap_data->target_snap_points[i + 1] = content_end;

@@ -49,6 +49,20 @@ template<typename T, int Size> inline bool is_any_zero(const vec_base<T, Size> &
   return false;
 }
 
+template<typename T, int Size>
+inline bool almost_equal_relative(const vec_base<T, Size> &a,
+                                  const vec_base<T, Size> &b,
+                                  const T &epsilon_factor)
+{
+  for (int i = 0; i < Size; i++) {
+    const float epsilon = epsilon_factor * math::abs(a[i]);
+    if (math::distance(a[i], b[i]) > epsilon) {
+      return false;
+    }
+  }
+  return true;
+}
+
 template<typename T, int Size> inline vec_base<T, Size> abs(const vec_base<T, Size> &a)
 {
   vec_base<T, Size> result;

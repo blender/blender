@@ -26,6 +26,11 @@ TreeDisplayScenes::TreeDisplayScenes(SpaceOutliner &space_outliner)
 {
 }
 
+bool TreeDisplayScenes::supportsModeColumn() const
+{
+  return true;
+}
+
 ListBase TreeDisplayScenes::buildTree(const TreeSourceData &source_data)
 {
   /* On first view we open scenes. */

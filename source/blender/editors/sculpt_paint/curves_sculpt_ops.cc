@@ -49,7 +49,7 @@
 
 bool CURVES_SCULPT_mode_poll(bContext *C)
 {
-  Object *ob = CTX_data_active_object(C);
+  const Object *ob = CTX_data_active_object(C);
   return ob && ob->mode & OB_MODE_SCULPT_CURVES;
 }
 
@@ -109,9 +109,9 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bConte
 {
   const BrushStrokeMode mode = static_cast<BrushStrokeMode>(RNA_enum_get(op.ptr, "mode"));
 
-  Scene &scene = *CTX_data_scene(&C);
-  CurvesSculpt &curves_sculpt = *scene.toolsettings->curves_sculpt;
-  Brush &brush = *BKE_paint_brush(&curves_sculpt.paint);
+  const Scene &scene = *CTX_data_scene(&C);
+  const CurvesSculpt &curves_sculpt = *scene.toolsettings->curves_sculpt;
+  const Brush &brush = *BKE_paint_brush_for_read(&curves_sculpt.paint);
   switch (brush.curves_sculpt_tool) {
     case CURVES_SCULPT_TOOL_COMB:
       return new_comb_operation();
@@ -123,6 +123,8 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(bConte
       return new_add_operation(C, op.reports);
     case CURVES_SCULPT_TOOL_GROW_SHRINK:
       return new_grow_shrink_operation(mode, C);
+    case CURVES_SCULPT_TOOL_SELECTION_PAINT:
+      return new_selection_paint_operation(mode, C);
   }
   BLI_assert_unreachable();
   return {};
@@ -180,8 +182,8 @@ static void stroke_done(const bContext *C, PaintStroke *stroke)
 
 static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  Paint *paint = BKE_paint_get_active_from_context(C);
-  Brush *brush = BKE_paint_brush(paint);
+  const Paint *paint = BKE_paint_get_active_from_context(C);
+  const Brush *brush = BKE_paint_brush_for_read(paint);
   if (brush == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -250,7 +252,7 @@ static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
 
 static bool curves_sculptmode_toggle_poll(bContext *C)
 {
-  Object *ob = CTX_data_active_object(C);
+  const Object *ob = CTX_data_active_object(C);
   if (ob == nullptr) {
     return false;
   }

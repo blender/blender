@@ -1573,22 +1573,23 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
             continue;
           }
 
-          PBVHGPUBuildArgs args = {.buffers = node->mat_draw_buffers[i],
-                                   .bm = pbvh->bm,
-                                   .bm_faces = node->bm_faces,
-                                   .bm_unique_verts = node->bm_unique_verts,
-                                   .bm_other_verts = node->bm_other_verts,
-                                   .tribuf = node->tri_buffers + i,
-                                   .update_flags = update_flags,
-                                   .cd_vert_node_offset = pbvh->cd_vert_node_offset,
-                                   .face_sets_color_seed = pbvh->face_sets_color_seed,
-                                   .face_sets_color_default = pbvh->face_sets_color_default,
-                                   .flat_vcol = data->flat_vcol_shading,
-                                   .mat_nr = node->tri_buffers[i].mat_nr,
-                                   .active_vcol_domain = pbvh->color_domain,
-                                   .active_vcol_type = pbvh->color_type,
-                                   .active_vcol_layer = pbvh->color_layer,
-                                   .render_vcol_layer = render_vcol_layer};
+          PBVHGPUBuildArgs args = {
+              .buffers = node->mat_draw_buffers[i],
+              .bm = pbvh->bm,
+              .bm_faces = node->bm_faces,
+              .bm_unique_verts = node->bm_unique_verts,
+              .bm_other_verts = node->bm_other_verts,
+              .tribuf = node->tri_buffers + i,
+              .update_flags = update_flags,
+              .cd_vert_node_offset = pbvh->cd_vert_node_offset,
+              .face_sets_color_seed = pbvh->face_sets_color_seed,
+              .face_sets_color_default = pbvh->face_sets_color_default,
+              .flat_vcol = data->flat_vcol_shading,
+              .mat_nr = node->tri_buffers[i].mat_nr,
+              .active_vcol_domain = pbvh->color_domain,
+              .active_vcol_type = pbvh->color_layer ? pbvh->color_layer->type : -1,
+              .active_vcol_layer = pbvh->color_layer,
+              .render_vcol_layer = render_vcol_layer};
 
           GPU_pbvh_bmesh_buffers_update(&args);
         }
@@ -1688,7 +1689,7 @@ static void pbvh_update_draw_buffers(
                                       ldata,
                                       GPU_pbvh_need_full_render_get(),
                                       pbvh->flags & PBVH_FAST_DRAW,
-                                      pbvh->color_type,
+                                      pbvh->color_layer ? pbvh->color_layer->type : -1,
                                       pbvh->color_domain,
                                       vcol_layer,
                                       render_vcol_layer,
@@ -5201,12 +5202,8 @@ void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh)
   BKE_id_attribute_copy_domains_temp(ID_ME, vdata, NULL, ldata, NULL, NULL, &me_query.id);
   BKE_pbvh_get_color_layer(&me_query, &pbvh->color_layer, &pbvh->color_domain);
 
-  if (pbvh->color_layer) {
-    pbvh->color_type = pbvh->color_layer->type;
-
-    if (pbvh->bm) {
-      pbvh->cd_vcol_offset = pbvh->color_layer->offset;
-    }
+  if (pbvh->color_layer && pbvh->bm) {
+    pbvh->cd_vcol_offset = pbvh->color_layer->offset;
   }
   else {
     pbvh->cd_vcol_offset = -1;

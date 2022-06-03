@@ -328,7 +328,7 @@ static void mesh_merge_transform(Mesh *result,
     ml->e += cap_edges_index;
   }
 
-  /* set origindex */
+  /* Set #CD_ORIGINDEX. */
   index_orig = CustomData_get_layer(&result->vdata, CD_ORIGINDEX);
   if (index_orig) {
     copy_vn_i(index_orig + cap_verts_index, cap_nverts, ORIGINDEX_NONE);

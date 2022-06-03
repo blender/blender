@@ -927,8 +927,11 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
     BLI_strncpy(oldbut->strdata, but->strdata, sizeof(oldbut->strdata));
   }
 
-  if (but->dragpoin && (but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
+  if (but->dragpoin) {
     SWAP(void *, but->dragpoin, oldbut->dragpoin);
+  }
+  if (but->imb) {
+    SWAP(ImBuf *, but->imb, oldbut->imb);
   }
 
   /* NOTE: if layout hasn't been applied yet, it uses old button pointers... */

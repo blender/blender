@@ -29,11 +29,12 @@
 
 /* please keep the names in sync with constraint.c */
 const EnumPropertyItem rna_enum_constraint_type_items[] = {
-    {0, "", 0, N_("Motion Tracking"), ""},
+    RNA_ENUM_ITEM_HEADING(N_("Motion Tracking"), NULL),
     {CONSTRAINT_TYPE_CAMERASOLVER, "CAMERA_SOLVER", ICON_CON_CAMERASOLVER, "Camera Solver", ""},
     {CONSTRAINT_TYPE_FOLLOWTRACK, "FOLLOW_TRACK", ICON_CON_FOLLOWTRACK, "Follow Track", ""},
     {CONSTRAINT_TYPE_OBJECTSOLVER, "OBJECT_SOLVER", ICON_CON_OBJECTSOLVER, "Object Solver", ""},
-    {0, "", 0, N_("Transform"), ""},
+
+    RNA_ENUM_ITEM_HEADING(N_("Transform"), NULL),
     {CONSTRAINT_TYPE_LOCLIKE,
      "COPY_LOCATION",
      ICON_CON_LOCLIKE,
@@ -91,7 +92,8 @@ const EnumPropertyItem rna_enum_constraint_type_items[] = {
      ICON_CON_TRANSFORM_CACHE,
      "Transform Cache",
      "Look up the transformation matrix from an external file"},
-    {0, "", 0, N_("Tracking"), ""},
+
+    RNA_ENUM_ITEM_HEADING(N_("Tracking"), NULL),
     {CONSTRAINT_TYPE_CLAMPTO,
      "CLAMP_TO",
      ICON_CON_CLAMPTO,
@@ -127,7 +129,8 @@ const EnumPropertyItem rna_enum_constraint_type_items[] = {
      ICON_CON_TRACKTO,
      "Track To",
      "Legacy tracking constraint prone to twisting artifacts"},
-    {0, "", 0, N_("Relationship"), ""},
+
+    RNA_ENUM_ITEM_HEADING(N_("Relationship"), NULL),
     {CONSTRAINT_TYPE_ACTION,
      "ACTION",
      ICON_ACTION,
@@ -192,7 +195,7 @@ static const EnumPropertyItem target_space_pchan_items[] = {
      "Custom Space",
      "The transformation of the target is evaluated relative to a custom object/bone/vertex "
      "group"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {CONSTRAINT_SPACE_POSE,
      "POSE",
      0,
@@ -233,7 +236,7 @@ static const EnumPropertyItem owner_space_pchan_items[] = {
      0,
      "Custom Space",
      "The constraint is applied in local space of a custom object/bone/vertex group"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {CONSTRAINT_SPACE_POSE,
      "POSE",
      0,
@@ -1623,7 +1626,7 @@ static void rna_def_constraint_transform_like(BlenderRNA *brna)
        0,
        "Replace",
        "Replace the original transformation with copied"},
-      {0, "", 0, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {TRANSLIKE_MIX_BEFORE_FULL,
        "BEFORE_FULL",
        0,
@@ -1644,7 +1647,7 @@ static void rna_def_constraint_transform_like(BlenderRNA *brna)
        "Before Original (Split Channels)",
        "Apply copied transformation before original, handling location, rotation and scale "
        "separately, similar to a sequence of three Copy constraints"},
-      {0, "", 0, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {TRANSLIKE_MIX_AFTER_FULL,
        "AFTER_FULL",
        0,
@@ -1782,7 +1785,7 @@ static void rna_def_constraint_action(BlenderRNA *brna)
        "Before Original (Split Channels)",
        "Apply the action channels before the original transformation, handling location, rotation "
        "and scale separately"},
-      {0, "", 0, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {ACTCON_MIX_AFTER_FULL,
        "AFTER_FULL",
        0,

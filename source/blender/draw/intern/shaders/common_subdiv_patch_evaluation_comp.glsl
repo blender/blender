@@ -70,10 +70,12 @@ layout(std430, binding = 8) writeonly buffer outputVertices
   FDotVert output_verts[];
 };
 
+#  ifdef FDOTS_NORMALS
 layout(std430, binding = 9) writeonly buffer outputNormals
 {
   FDotNor output_nors[];
 };
+#  endif
 
 layout(std430, binding = 10) writeonly buffer outputFdotsIndices
 {
@@ -421,7 +423,9 @@ void main()
   fnor.flag = get_face_flag(coarse_quad_index);
 
   output_verts[coarse_quad_index] = vert;
+#  ifdef FDOTS_NORMALS
   output_nors[coarse_quad_index] = fnor;
+#  endif
 
   if (is_face_hidden(coarse_quad_index)) {
     output_indices[coarse_quad_index] = 0xffffffff;

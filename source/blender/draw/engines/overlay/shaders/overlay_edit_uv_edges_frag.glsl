@@ -1,4 +1,4 @@
-#pragma BLENDER_REQUIRE(common_overlay_lib.glsl)
+#pragma BLENDER_REQUIRE(overlay_common_lib.glsl)
 
 /**
  * We want to know how much a pixel is covered by a line.

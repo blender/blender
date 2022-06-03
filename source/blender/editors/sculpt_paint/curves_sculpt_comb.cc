@@ -96,6 +96,10 @@ struct CombOperationExecutor {
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
+  VArray<float> point_factors_;
+  Vector<int64_t> selected_curve_indices_;
+  IndexMask curve_selection_;
+
   const Object *surface_ob_ = nullptr;
   const Mesh *surface_ = nullptr;
   Span<MLoopTri> surface_looptris_;
@@ -141,6 +145,9 @@ struct CombOperationExecutor {
     if (curves_->curves_num() == 0) {
       return;
     }
+
+    point_factors_ = get_point_selection(*curves_id_);
+    curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
     brush_pos_prev_re_ = self_->brush_pos_last_re_;
     brush_pos_re_ = stroke_extension.mouse_position;
@@ -217,9 +224,9 @@ struct CombOperationExecutor {
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
-    threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
+    threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       Vector<int> &local_changed_curves = r_changed_curves.local();
-      for (const int curve_i : curves_range) {
+      for (const int curve_i : curve_selection_.slice(range)) {
         bool curve_changed = false;
         const IndexRange points = curves_->points_for_curve(curve_i);
         for (const int point_i : points.drop_front(1)) {
@@ -241,9 +248,10 @@ struct CombOperationExecutor {
           const float radius_falloff = BKE_brush_curve_strength(
               brush_, distance_to_brush_re, brush_radius_re);
           /* Combine the falloff and brush strength. */
-          const float weight = brush_strength_ * radius_falloff;
+          const float weight = brush_strength_ * radius_falloff * point_factors_[point_i];
 
-          /* Offset the old point position in screen space and transform it back into 3D space. */
+          /* Offset the old point position in screen space and transform it back into 3D space.
+           */
           const float2 new_position_re = old_pos_re + brush_pos_diff_re_ * weight;
           float3 new_position_wo;
           ED_view3d_win_to_3d(
@@ -304,9 +312,9 @@ struct CombOperationExecutor {
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
     const float3 brush_diff_cu = brush_end_cu - brush_start_cu;
 
-    threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
+    threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
       Vector<int> &local_changed_curves = r_changed_curves.local();
-      for (const int curve_i : curves_range) {
+      for (const int curve_i : curve_selection_.slice(range)) {
         bool curve_changed = false;
         const IndexRange points = curves_->points_for_curve(curve_i);
         for (const int point_i : points.drop_front(1)) {
@@ -326,7 +334,7 @@ struct CombOperationExecutor {
           const float radius_falloff = BKE_brush_curve_strength(
               brush_, distance_to_brush_cu, brush_radius_cu);
           /* Combine the falloff and brush strength. */
-          const float weight = brush_strength_ * radius_falloff;
+          const float weight = brush_strength_ * radius_falloff * point_factors_[point_i];
 
           /* Update the point position. */
           positions_cu[point_i] = pos_old_cu + weight * brush_diff_cu;

@@ -308,7 +308,7 @@ class GeoNodeExecParams {
   GVArray get_input_attribute(const StringRef name,
                               const GeometryComponent &component,
                               eAttrDomain domain,
-                              const eCustomDataType type,
+                              eCustomDataType type,
                               const void *default_value) const;
 
   template<typename T>
@@ -328,7 +328,7 @@ class GeoNodeExecParams {
    */
   eCustomDataType get_input_attribute_data_type(const StringRef name,
                                                 const GeometryComponent &component,
-                                                const eCustomDataType default_type) const;
+                                                eCustomDataType default_type) const;
 
   /**
    * If any of the corresponding input sockets are attributes instead of single values,

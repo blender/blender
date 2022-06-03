@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # note, properties_animviz is a helper module only.
 
 # support reloading sub-modules

@@ -28,6 +28,12 @@
 
 namespace {
 
+void setSettings(struct OpenSubdiv_Evaluator *evaluator,
+                 const OpenSubdiv_EvaluatorSettings *settings)
+{
+  evaluator->impl->eval_output->setSettings(settings);
+}
+
 void setCoarsePositions(OpenSubdiv_Evaluator *evaluator,
                         const float *positions,
                         const int start_vertex_index,
@@ -233,6 +239,8 @@ bool hasVertexData(struct OpenSubdiv_Evaluator *evaluator)
 
 void assignFunctionPointers(OpenSubdiv_Evaluator *evaluator)
 {
+  evaluator->setSettings = setSettings;
+
   evaluator->setCoarsePositions = setCoarsePositions;
   evaluator->setVertexData = setVertexData;
   evaluator->setVaryingData = setVaryingData;
@@ -272,16 +280,12 @@ void assignFunctionPointers(OpenSubdiv_Evaluator *evaluator)
 OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
     OpenSubdiv_TopologyRefiner *topology_refiner,
     eOpenSubdivEvaluator evaluator_type,
-    OpenSubdiv_EvaluatorCache *evaluator_cache,
-    const OpenSubdiv_EvaluatorSettings *settings)
+    OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
   OpenSubdiv_Evaluator *evaluator = MEM_new<OpenSubdiv_Evaluator>(__func__);
   assignFunctionPointers(evaluator);
-  evaluator->impl = openSubdiv_createEvaluatorInternal(topology_refiner,
-                                                       evaluator_type,
-                                                       evaluator_cache ? evaluator_cache->impl :
-                                                                         nullptr,
-                                                       settings);
+  evaluator->impl = openSubdiv_createEvaluatorInternal(
+      topology_refiner, evaluator_type, evaluator_cache ? evaluator_cache->impl : nullptr);
   evaluator->type = evaluator->impl ? evaluator_type : static_cast<eOpenSubdivEvaluator>(0);
   return evaluator;
 }

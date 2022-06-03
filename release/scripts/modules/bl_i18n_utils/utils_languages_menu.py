@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Update "languages" text file used by Blender at runtime to build translations menu.
 
 

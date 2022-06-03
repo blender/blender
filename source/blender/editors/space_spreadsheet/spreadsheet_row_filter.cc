@@ -14,8 +14,6 @@
 
 #include "RNA_access.h"
 
-#include "spreadsheet_intern.hh"
-
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_layout.hh"
@@ -190,33 +188,29 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
   }
   else if (column_data.type().is<InstanceReference>()) {
     const StringRef value = row_filter.value_string;
-    switch (row_filter.operation) {
-      case SPREADSHEET_ROW_FILTER_EQUAL: {
-        apply_filter_operation(
-            column_data.typed<InstanceReference>(),
-            [&](const InstanceReference cell) {
-              switch (cell.type()) {
-                case InstanceReference::Type::Object: {
-                  return value == (reinterpret_cast<ID &>(cell.object()).name + 2);
-                }
-                case InstanceReference::Type::Collection: {
-                  return value == (reinterpret_cast<ID &>(cell.collection()).name + 2);
-                }
-                case InstanceReference::Type::GeometrySet: {
-                  return false;
-                }
-                case InstanceReference::Type::None: {
-                  return false;
-                }
-              }
-              BLI_assert_unreachable();
+
+    apply_filter_operation(
+        column_data.typed<InstanceReference>(),
+        [&](const InstanceReference cell) {
+          switch (cell.type()) {
+            case InstanceReference::Type::Object: {
+              return value == (reinterpret_cast<ID &>(cell.object()).name + 2);
+            }
+            case InstanceReference::Type::Collection: {
+              return value == (reinterpret_cast<ID &>(cell.collection()).name + 2);
+            }
+            case InstanceReference::Type::GeometrySet: {
               return false;
-            },
-            prev_mask,
-            new_indices);
-        break;
-      }
-    }
+            }
+            case InstanceReference::Type::None: {
+              return false;
+            }
+          }
+          BLI_assert_unreachable();
+          return false;
+        },
+        prev_mask,
+        new_indices);
   }
 }
 

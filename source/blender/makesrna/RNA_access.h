@@ -284,7 +284,7 @@ bool RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, const int i
  */
 bool RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop);
 
-bool RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop);
+bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
 /**
  * \note Does not take into account editable status, this has to be checked separately
@@ -358,6 +358,21 @@ char *RNA_property_string_get_alloc(
     PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen, int *r_len);
 void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *value);
 void RNA_property_string_set_bytes(PointerRNA *ptr, PropertyRNA *prop, const char *value, int len);
+
+eStringPropertySearchFlag RNA_property_string_search_flag(PropertyRNA *prop);
+/**
+ * Search candidates for string `prop` by calling `visit_fn` with each string.
+ * Typically these strings are collected in `visit_user_data` in a format defined by the caller.
+ *
+ * See #PropStringSearchFunc for details.
+ */
+void RNA_property_string_search(const struct bContext *C,
+                                PointerRNA *ptr,
+                                PropertyRNA *prop,
+                                const char *edit_text,
+                                StringPropertySearchVisitFunc visit_fn,
+                                void *visit_user_data);
+
 /**
  * \return the length without `\0` terminator.
  */
