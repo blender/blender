@@ -330,11 +330,15 @@ def main():
                                             {"solver": 'FAST', "operation": 'DIFFERENCE', "operand_type": 'OBJECT',
                                              "object": bpy.data.objects["test" + boolean_basename + "Operand"]})]))
     boolean_basename = "CubeBooleanDiffBMeshCollection"
-    tests.append(SpecMeshTest("BooleandDiffBMeshCollection", "test" + boolean_basename, "expected" + boolean_basename,
-                              [ModifierSpec("boolean", 'BOOLEAN',
-                                            {"solver": 'FAST', "operation": 'DIFFERENCE', "operand_type": 'COLLECTION',
+    tests.append(SpecMeshTest("BooleandDiffBMeshCollection",
+                              "test" + boolean_basename,
+                              "expected" + boolean_basename,
+                              [ModifierSpec("boolean",
+                                            'BOOLEAN',
+                                            {"solver": 'FAST',
+                                             "operation": 'DIFFERENCE',
+                                             "operand_type": 'COLLECTION',
                                              "collection": bpy.data.collections["test" + boolean_basename + "Operands"]})]))
-
 
     modifiers_test = RunTest(tests)
 
