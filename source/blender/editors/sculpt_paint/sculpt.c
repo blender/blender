@@ -3535,15 +3535,7 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   Sculpt *sd = data->sd;
   Object *ob = data->ob;
-
-  /* These brushes start from original coordinates. */
-  const bool use_orco = ELEM(data->brush->sculpt_tool,
-                             SCULPT_TOOL_GRAB,
-                             SCULPT_TOOL_ROTATE,
-                             SCULPT_TOOL_THUMB,
-                             SCULPT_TOOL_ELASTIC_DEFORM,
-                             SCULPT_TOOL_BOUNDARY,
-                             SCULPT_TOOL_POSE);
+  const bool use_orco = data->use_proxies_orco;
 
   PBVHVertexIter vd;
   PBVHProxyNode *proxies;
@@ -3598,17 +3590,49 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
     return;
   }
 
-  BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
-  SculptThreadedTaskData data = {
+ /* First line is tools that don't support proxies. */
+    const bool use_orco = ELEM(brush->sculpt_tool,
+                               SCULPT_TOOL_GRAB,
+                               SCULPT_TOOL_ROTATE,
+                               SCULPT_TOOL_THUMB,
+                               SCULPT_TOOL_ELASTIC_DEFORM,
+                               SCULPT_TOOL_BOUNDARY,
+                               SCULPT_TOOL_POSE);
+
+    BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
+
+    SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
       .brush = brush,
       .nodes = nodes,
+      .use_proxies_orco = use_orco,
   };
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, sculpt_combine_proxies_task_cb, &settings);
+  MEM_SAFE_FREE(nodes);
+}
+
+void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+  PBVHNode **nodes;
+  int totnode;
+
+  BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = nodes,
+      .use_proxies_orco = false,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, sculpt_combine_proxies_task_cb, &settings);
+
   MEM_SAFE_FREE(nodes);
 }
 
