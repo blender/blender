@@ -867,10 +867,10 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   ctx->subdiv_loop_subdiv_edge_index = cache->subdiv_loop_subdiv_edge_index;
   ctx->subdiv_loop_poly_index = cache->subdiv_loop_poly_index;
 
-  ctx->v_origindex = static_cast<int *>(
+  ctx->v_origindex = static_cast<const int *>(
       CustomData_get_layer(&ctx->coarse_mesh->vdata, CD_ORIGINDEX));
 
-  ctx->e_origindex = static_cast<int *>(
+  ctx->e_origindex = static_cast<const int *>(
       CustomData_get_layer(&ctx->coarse_mesh->edata, CD_ORIGINDEX));
 
   if (cache->num_subdiv_verts) {

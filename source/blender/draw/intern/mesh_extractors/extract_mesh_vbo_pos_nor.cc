@@ -234,7 +234,7 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
   if (subdiv_cache->use_custom_loop_normals) {
     Mesh *coarse_mesh = subdiv_cache->mesh;
-    const float(*lnors)[3] = static_cast<float(*)[3]>(
+    const float(*lnors)[3] = static_cast<const float(*)[3]>(
         CustomData_get_layer(&coarse_mesh->ldata, CD_NORMAL));
     BLI_assert(lnors != nullptr);
 

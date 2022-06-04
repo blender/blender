@@ -453,7 +453,7 @@ int16_t OBJMesh::get_poly_deform_group_index(const int poly_index,
   BLI_assert(poly_index < export_mesh_eval_->totpoly);
   BLI_assert(group_weights.size() == BKE_object_defgroup_count(&export_object_eval_));
 
-  const MDeformVert *dvert_layer = static_cast<MDeformVert *>(
+  const MDeformVert *dvert_layer = static_cast<const MDeformVert *>(
       CustomData_get_layer(&export_mesh_eval_->vdata, CD_MDEFORMVERT));
   if (!dvert_layer) {
     return NOT_FOUND;
