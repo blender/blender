@@ -263,10 +263,10 @@ static void sculpt_elastic_transform_task_cb(void *__restrict userdata,
 
 static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float transform_radius)
 {
+  SculptSession *ss = ob->sculpt;
   BLI_assert(ss->filter_cache->transform_displacement_mode ==
              SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL);
 
-  SculptSession *ss = ob->sculpt;
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
 
   SculptThreadedTaskData data = {
