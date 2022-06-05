@@ -616,6 +616,7 @@ typedef enum eWM_EventFlag {
    */
   WM_EVENT_FORCE_DRAG_THRESHOLD = (1 << 2),
 } eWM_EventFlag;
+ENUM_OPERATORS(eWM_EventFlag, WM_EVENT_FORCE_DRAG_THRESHOLD);
 
 typedef struct wmTabletData {
   /** 0=EVT_TABLET_NONE, 1=EVT_TABLET_STYLUS, 2=EVT_TABLET_ERASER. */
