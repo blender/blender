@@ -1751,7 +1751,17 @@ static void gizmo_refresh_from_matrix(wmGizmoGroup *gzgroup,
 
         gizmo_line_range(ggd->twtype, axis_type, &start_co[2], &len);
 
-        WM_gizmo_set_matrix_rotation_from_z_axis(axis, twmat[aidx_norm]);
+        const float *z_axis = twmat[aidx_norm];
+        if (axis_type == MAN_AXES_SCALE) {
+          /* Scale handles are cubes that don't look right when not aligned with other axes.
+           * This is noticeable when the axis is rotated to something besides the global-axis. */
+          const int aidx_norm_y = (aidx_norm + 2) % 3;
+          const float *y_axis = twmat[aidx_norm_y];
+          WM_gizmo_set_matrix_rotation_from_yz_axis(axis, y_axis, z_axis);
+        }
+        else {
+          WM_gizmo_set_matrix_rotation_from_z_axis(axis, z_axis);
+        }
         RNA_float_set(axis->ptr, "length", len);
 
         if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
