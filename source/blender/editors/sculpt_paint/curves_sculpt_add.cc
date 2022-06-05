@@ -19,6 +19,7 @@
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
@@ -95,6 +96,7 @@ struct AddOperationExecutor {
   Mesh *surface_ = nullptr;
   Span<MLoopTri> surface_looptris_;
   Span<float3> corner_normals_su_;
+  VArray_Span<float2> surface_uv_map_;
 
   const CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;
@@ -114,6 +116,7 @@ struct AddOperationExecutor {
 
   /** Various matrices to convert between coordinate spaces. */
   float4x4 curves_to_world_mat_;
+  float4x4 curves_to_surface_mat_;
   float4x4 world_to_curves_mat_;
   float4x4 world_to_surface_mat_;
   float4x4 surface_to_world_mat_;
@@ -165,6 +168,7 @@ struct AddOperationExecutor {
     world_to_surface_mat_ = surface_to_world_mat_.inverted();
     surface_to_curves_mat_ = world_to_curves_mat_ * surface_to_world_mat_;
     surface_to_curves_normal_mat_ = surface_to_curves_mat_.inverted().transposed();
+    curves_to_surface_mat_ = curves_to_world_mat_ * world_to_surface_mat_;
 
     if (!CustomData_has_layer(&surface_->ldata, CD_NORMAL)) {
       BKE_mesh_calc_normals_split(surface_);
@@ -207,6 +211,15 @@ struct AddOperationExecutor {
 
     surface_looptris_ = {BKE_mesh_runtime_looptri_ensure(surface_),
                          BKE_mesh_runtime_looptri_len(surface_)};
+
+    if (curves_id_->surface_uv_map != nullptr) {
+      MeshComponent surface_component;
+      surface_component.replace(surface_, GeometryOwnershipType::ReadOnly);
+      surface_uv_map_ = surface_component
+                            .attribute_try_get_for_read(curves_id_->surface_uv_map,
+                                                        ATTR_DOMAIN_CORNER)
+                            .typed<float2>();
+    }
 
     /* Sample points on the surface using one of multiple strategies. */
     AddedPoints added_points;
@@ -652,7 +665,9 @@ struct AddOperationExecutor {
     }
 
     Array<float3> new_normals_su = this->compute_normals_for_added_curves_su(added_points);
-    this->initialize_surface_attachment(added_points);
+    if (!surface_uv_map_.is_empty()) {
+      this->initialize_surface_attachment(added_points);
+    }
 
     this->fill_new_selection();
 
@@ -775,14 +790,18 @@ struct AddOperationExecutor {
 
   void initialize_surface_attachment(const AddedPoints &added_points)
   {
-    MutableSpan<int> surface_triangle_indices = curves_->surface_triangle_indices_for_write();
-    MutableSpan<float2> surface_triangle_coords = curves_->surface_triangle_coords_for_write();
+    MutableSpan<float2> surface_uv_coords = curves_->surface_uv_coords_for_write();
     threading::parallel_for(
         added_points.bary_coords.index_range(), 1024, [&](const IndexRange range) {
           for (const int i : range) {
             const int curve_i = tot_old_curves_ + i;
-            surface_triangle_indices[curve_i] = added_points.looptri_indices[i];
-            surface_triangle_coords[curve_i] = float2(added_points.bary_coords[i]);
+            const MLoopTri &looptri = surface_looptris_[added_points.looptri_indices[i]];
+            const float2 &uv0 = surface_uv_map_[looptri.tri[0]];
+            const float2 &uv1 = surface_uv_map_[looptri.tri[1]];
+            const float2 &uv2 = surface_uv_map_[looptri.tri[2]];
+            const float3 &bary_coords = added_points.bary_coords[i];
+            const float2 uv = attribute_math::mix3(bary_coords, uv0, uv1, uv2);
+            surface_uv_coords[curve_i] = uv;
           }
         });
   }
@@ -820,8 +839,6 @@ struct AddOperationExecutor {
                                               const Span<float> new_lengths_cu)
   {
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
-    const VArray_Span<int> surface_triangle_indices{curves_->surface_triangle_indices()};
-    const Span<float2> surface_triangle_coords = curves_->surface_triangle_coords();
 
     threading::parallel_for(
         added_points.bary_coords.index_range(), 256, [&](const IndexRange range) {
@@ -846,10 +863,22 @@ struct AddOperationExecutor {
 
             for (const NeighborInfo &neighbor : neighbors) {
               const int neighbor_curve_i = neighbor.index;
-              const int neighbor_looptri_index = surface_triangle_indices[neighbor_curve_i];
+              const float3 &neighbor_first_pos_cu =
+                  positions_cu[curves_->offsets()[neighbor_curve_i]];
+              const float3 neighbor_first_pos_su = curves_to_surface_mat_ * neighbor_first_pos_cu;
 
-              float3 neighbor_bary_coord{surface_triangle_coords[neighbor_curve_i]};
-              neighbor_bary_coord.z = 1.0f - neighbor_bary_coord.x - neighbor_bary_coord.y;
+              BVHTreeNearest nearest;
+              nearest.dist_sq = FLT_MAX;
+              BLI_bvhtree_find_nearest(surface_bvh_.tree,
+                                       neighbor_first_pos_su,
+                                       &nearest,
+                                       surface_bvh_.nearest_callback,
+                                       &surface_bvh_);
+              const int neighbor_looptri_index = nearest.index;
+              const MLoopTri &neighbor_looptri = surface_looptris_[neighbor_looptri_index];
+
+              const float3 neighbor_bary_coord = this->get_bary_coords(
+                  *surface_, neighbor_looptri, nearest.co);
 
               const float3 neighbor_normal_su = this->compute_point_normal_su(
                   neighbor_looptri_index, neighbor_bary_coord);

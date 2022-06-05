@@ -1138,6 +1138,8 @@ template<typename T> class VArray_Span final : public Span<T> {
   Array<T> owned_data_;
 
  public:
+  VArray_Span() = default;
+
   VArray_Span(VArray<T> varray) : Span<T>(), varray_(std::move(varray))
   {
     this->size_ = varray_.size();
