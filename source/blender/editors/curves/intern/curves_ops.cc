@@ -620,10 +620,11 @@ static int snap_curves_to_surface_exec(bContext *C, wmOperator *op)
         break;
       }
       case AttachMode::Deform: {
-        if (!surface_uv_map.is_empty()) {
+        if (surface_uv_map.is_empty()) {
           BKE_report(op->reports,
                      RPT_ERROR,
                      "Curves do not have attachment information that can be used for deformation");
+          break;
         }
         using geometry::ReverseUVSampler;
         ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_looptris};
