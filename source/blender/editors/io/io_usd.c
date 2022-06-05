@@ -216,8 +216,7 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   ot->ui = wm_usd_export_draw;
   ot->check = wm_usd_export_check;
 
-  ot->flag = OPTYPE_REGISTER; /* No UNDO possible. */
-  ot->flag |= OPTYPE_PRESET;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_PRESET; /* No UNDO possible. */
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_USD,

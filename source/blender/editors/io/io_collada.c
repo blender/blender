@@ -468,7 +468,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
   ot->poll = WM_operator_winactive;
   ot->check = wm_collada_export_check;
 
-  ot->flag |= OPTYPE_PRESET;
+  ot->flag = OPTYPE_PRESET;
 
   ot->ui = wm_collada_export_draw;
 
@@ -786,7 +786,7 @@ void WM_OT_collada_import(wmOperatorType *ot)
   ot->exec = wm_collada_import_exec;
   ot->poll = WM_operator_winactive;
 
-  // ot->flag |= OPTYPE_PRESET;
+  // ot->flag = OPTYPE_PRESET;
 
   ot->ui = wm_collada_import_draw;
 

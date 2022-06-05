@@ -261,7 +261,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
   ot->ui = wm_obj_export_draw;
   ot->check = wm_obj_export_check;
 
-  ot->flag |= OPTYPE_PRESET;
+  ot->flag = OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER,
