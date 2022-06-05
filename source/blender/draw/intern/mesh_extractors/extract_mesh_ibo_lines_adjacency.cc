@@ -11,7 +11,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -253,6 +253,4 @@ constexpr MeshExtract create_extractor_lines_adjacency()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_lines_adjacency = blender::draw::create_extractor_lines_adjacency();
-}

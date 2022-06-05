@@ -10,7 +10,7 @@
 #include "BKE_deform.h"
 
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -208,6 +208,4 @@ constexpr MeshExtract create_extractor_weights()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_weights = blender::draw::create_extractor_weights();
-}

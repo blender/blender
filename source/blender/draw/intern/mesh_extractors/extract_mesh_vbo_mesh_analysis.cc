@@ -14,7 +14,7 @@
 #include "BKE_editmesh_bvh.h"
 #include "BKE_editmesh_cache.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -633,6 +633,4 @@ constexpr MeshExtract create_extractor_mesh_analysis()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_mesh_analysis = blender::draw::create_extractor_mesh_analysis();
-}

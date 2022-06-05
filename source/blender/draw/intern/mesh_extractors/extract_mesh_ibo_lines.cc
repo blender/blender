@@ -7,7 +7,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_subdivision.h"
 
@@ -320,9 +320,7 @@ constexpr MeshExtract create_extractor_lines_loose_only()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_lines = blender::draw::create_extractor_lines();
 const MeshExtract extract_lines_with_lines_loose =
     blender::draw::create_extractor_lines_with_lines_loose();
 const MeshExtract extract_lines_loose_only = blender::draw::create_extractor_lines_loose_only();
-}

@@ -7,7 +7,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_subdivision.h"
 
@@ -243,7 +243,5 @@ constexpr MeshExtract create_extractor_tris_single_mat()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_tris = blender::draw::create_extractor_tris();
 const MeshExtract extract_tris_single_mat = blender::draw::create_extractor_tris_single_mat();
-}

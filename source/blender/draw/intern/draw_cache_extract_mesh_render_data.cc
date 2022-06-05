@@ -9,7 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
+#include "BLI_array.hh"
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
@@ -22,7 +22,7 @@
 
 #include "ED_mesh.h"
 
-#include "mesh_extractors/extract_mesh.h"
+#include "mesh_extractors/extract_mesh.hh"
 
 /* ---------------------------------------------------------------------- */
 /** \name Update Loose Geometry
@@ -78,7 +78,8 @@ static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBuffe
 {
   BLI_bitmap *lvert_map = BLI_BITMAP_NEW(mr->vert_len, __func__);
 
-  cache->loose_geom.edges = MEM_mallocN(mr->edge_len * sizeof(*cache->loose_geom.edges), __func__);
+  cache->loose_geom.edges = static_cast<int *>(
+      MEM_mallocN(mr->edge_len * sizeof(*cache->loose_geom.edges), __func__));
   const MEdge *med = mr->medge;
   for (int med_index = 0; med_index < mr->edge_len; med_index++, med++) {
     if (med->flag & ME_LOOSEEDGE) {
@@ -89,19 +90,20 @@ static void mesh_render_data_loose_geom_mesh(const MeshRenderData *mr, MeshBuffe
     BLI_BITMAP_ENABLE(lvert_map, med->v2);
   }
   if (cache->loose_geom.edge_len < mr->edge_len) {
-    cache->loose_geom.edges = MEM_reallocN(
-        cache->loose_geom.edges, cache->loose_geom.edge_len * sizeof(*cache->loose_geom.edges));
+    cache->loose_geom.edges = static_cast<int *>(MEM_reallocN(
+        cache->loose_geom.edges, cache->loose_geom.edge_len * sizeof(*cache->loose_geom.edges)));
   }
 
-  cache->loose_geom.verts = MEM_mallocN(mr->vert_len * sizeof(*cache->loose_geom.verts), __func__);
+  cache->loose_geom.verts = static_cast<int *>(
+      MEM_mallocN(mr->vert_len * sizeof(*cache->loose_geom.verts), __func__));
   for (int v = 0; v < mr->vert_len; v++) {
     if (!BLI_BITMAP_TEST(lvert_map, v)) {
       cache->loose_geom.verts[cache->loose_geom.vert_len++] = v;
     }
   }
   if (cache->loose_geom.vert_len < mr->vert_len) {
-    cache->loose_geom.verts = MEM_reallocN(
-        cache->loose_geom.verts, cache->loose_geom.vert_len * sizeof(*cache->loose_geom.verts));
+    cache->loose_geom.verts = static_cast<int *>(MEM_reallocN(
+        cache->loose_geom.verts, cache->loose_geom.vert_len * sizeof(*cache->loose_geom.verts)));
   }
 
   MEM_freeN(lvert_map);
@@ -112,15 +114,16 @@ static void mesh_render_data_lverts_bm(const MeshRenderData *mr, MeshBufferCache
   int elem_id;
   BMIter iter;
   BMVert *eve;
-  cache->loose_geom.verts = MEM_mallocN(mr->vert_len * sizeof(*cache->loose_geom.verts), __func__);
+  cache->loose_geom.verts = static_cast<int *>(
+      MEM_mallocN(mr->vert_len * sizeof(*cache->loose_geom.verts), __func__));
   BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, elem_id) {
     if (eve->e == NULL) {
       cache->loose_geom.verts[cache->loose_geom.vert_len++] = elem_id;
     }
   }
   if (cache->loose_geom.vert_len < mr->vert_len) {
-    cache->loose_geom.verts = MEM_reallocN(
-        cache->loose_geom.verts, cache->loose_geom.vert_len * sizeof(*cache->loose_geom.verts));
+    cache->loose_geom.verts = static_cast<int *>(MEM_reallocN(
+        cache->loose_geom.verts, cache->loose_geom.vert_len * sizeof(*cache->loose_geom.verts)));
   }
 }
 
@@ -129,15 +132,16 @@ static void mesh_render_data_ledges_bm(const MeshRenderData *mr, MeshBufferCache
   int elem_id;
   BMIter iter;
   BMEdge *ede;
-  cache->loose_geom.edges = MEM_mallocN(mr->edge_len * sizeof(*cache->loose_geom.edges), __func__);
+  cache->loose_geom.edges = static_cast<int *>(
+      MEM_mallocN(mr->edge_len * sizeof(*cache->loose_geom.edges), __func__));
   BM_ITER_MESH_INDEX (ede, &iter, bm, BM_EDGES_OF_MESH, elem_id) {
     if (ede->l == NULL) {
       cache->loose_geom.edges[cache->loose_geom.edge_len++] = elem_id;
     }
   }
   if (cache->loose_geom.edge_len < mr->edge_len) {
-    cache->loose_geom.edges = MEM_reallocN(
-        cache->loose_geom.edges, cache->loose_geom.edge_len * sizeof(*cache->loose_geom.edges));
+    cache->loose_geom.edges = static_cast<int *>(MEM_reallocN(
+        cache->loose_geom.edges, cache->loose_geom.edge_len * sizeof(*cache->loose_geom.edges)));
   }
 }
 
@@ -192,12 +196,13 @@ static void mesh_render_data_polys_sorted_ensure(MeshRenderData *mr, MeshBufferC
 
 static void mesh_render_data_polys_sorted_build(MeshRenderData *mr, MeshBufferCache *cache)
 {
-  int *tri_first_index = MEM_mallocN(sizeof(*tri_first_index) * mr->poly_len, __func__);
+  int *tri_first_index = static_cast<int *>(
+      MEM_mallocN(sizeof(*tri_first_index) * mr->poly_len, __func__));
   int *mat_tri_len = mesh_render_data_mat_tri_len_build(mr);
 
   /* Apply offset. */
   int visible_tri_len = 0;
-  int *mat_tri_offs = BLI_array_alloca(mat_tri_offs, mr->mat_len);
+  blender::Array<int, 32> mat_tri_offs(mr->mat_len);
   {
     for (int i = 0; i < mr->mat_len; i++) {
       mat_tri_offs[i] = visible_tri_len;
@@ -245,8 +250,8 @@ static void mesh_render_data_mat_tri_len_bm_range_fn(void *__restrict userdata,
                                                      const int iter,
                                                      const TaskParallelTLS *__restrict tls)
 {
-  MeshRenderData *mr = userdata;
-  int *mat_tri_len = tls->userdata_chunk;
+  MeshRenderData *mr = static_cast<MeshRenderData *>(userdata);
+  int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
 
   BMesh *bm = mr->bm;
   BMFace *efa = BM_face_at_index(bm, iter);
@@ -260,8 +265,8 @@ static void mesh_render_data_mat_tri_len_mesh_range_fn(void *__restrict userdata
                                                        const int iter,
                                                        const TaskParallelTLS *__restrict tls)
 {
-  MeshRenderData *mr = userdata;
-  int *mat_tri_len = tls->userdata_chunk;
+  MeshRenderData *mr = static_cast<MeshRenderData *>(userdata);
+  int *mat_tri_len = static_cast<int *>(tls->userdata_chunk);
 
   const MPoly *mp = &mr->mpoly[iter];
   if (!(mr->use_hide && (mp->flag & ME_HIDE))) {
@@ -274,9 +279,9 @@ static void mesh_render_data_mat_tri_len_reduce_fn(const void *__restrict userda
                                                    void *__restrict chunk_join,
                                                    void *__restrict chunk)
 {
-  const MeshRenderData *mr = userdata;
-  int *dst_mat_len = chunk_join;
-  int *src_mat_len = chunk;
+  const MeshRenderData *mr = static_cast<const MeshRenderData *>(userdata);
+  int *dst_mat_len = static_cast<int *>(chunk_join);
+  int *src_mat_len = static_cast<int *>(chunk);
   for (int i = 0; i < mr->mat_len; i++) {
     dst_mat_len[i] += src_mat_len[i];
   }
@@ -288,7 +293,7 @@ static int *mesh_render_data_mat_tri_len_build_threaded(MeshRenderData *mr,
 {
   /* Extending the #MatOffsetUserData with an int per material slot. */
   size_t mat_tri_len_size = sizeof(int) * mr->mat_len;
-  int *mat_tri_len = MEM_callocN(mat_tri_len_size, __func__);
+  int *mat_tri_len = static_cast<int *>(MEM_callocN(mat_tri_len_size, __func__));
 
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
@@ -330,7 +335,8 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
       /* NOTE(campbell): It's possible to skip allocating tessellation,
        * the tessellation can be calculated as part of the iterator, see: P2188.
        * The overall advantage is small (around 1%), so keep this as-is. */
-      mr->mlooptri = MEM_mallocN(sizeof(*mr->mlooptri) * mr->tri_len, "MR_DATATYPE_LOOPTRI");
+      mr->mlooptri = static_cast<MLoopTri *>(
+          MEM_mallocN(sizeof(*mr->mlooptri) * mr->tri_len, "MR_DATATYPE_LOOPTRI"));
       if (mr->poly_normals != NULL) {
         BKE_mesh_recalc_looptri_with_normals(me->mloop,
                                              me->mpoly,
@@ -368,8 +374,10 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
       mr->poly_normals = BKE_mesh_poly_normals_ensure(mr->me);
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
-      mr->loop_normals = MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__);
-      short(*clnors)[2] = CustomData_get_layer(&mr->me->ldata, CD_CUSTOMLOOPNORMAL);
+      mr->loop_normals = static_cast<float(*)[3]>(
+          MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__));
+      short(*clnors)[2] = static_cast<short(*)[2]>(
+          CustomData_get_layer(&mr->me->ldata, CD_CUSTOMLOOPNORMAL));
       BKE_mesh_normals_loop_split(mr->me->mvert,
                                   mr->vert_normals,
                                   mr->vert_len,
@@ -405,7 +413,8 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
         poly_normals = mr->bm_poly_normals;
       }
 
-      mr->loop_normals = MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__);
+      mr->loop_normals = static_cast<float(*)[3]>(
+          MEM_mallocN(sizeof(*mr->loop_normals) * mr->loop_len, __func__));
       const int clnors_offset = CustomData_get_offset(&mr->bm->ldata, CD_CUSTOMLOOPNORMAL);
       BM_loops_calc_normal_vcos(mr->bm,
                                 vert_coords,
@@ -432,7 +441,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
                                         const bool do_uvedit,
                                         const ToolSettings *ts)
 {
-  MeshRenderData *mr = MEM_callocN(sizeof(*mr), __func__);
+  MeshRenderData *mr = static_cast<MeshRenderData *>(MEM_callocN(sizeof(*mr), __func__));
   mr->toolsettings = ts;
   mr->mat_len = mesh_render_mat_len_get(object, me);
 
@@ -491,9 +500,12 @@ MeshRenderData *mesh_render_data_create(Object *object,
 #endif
 
     if (use_mapped) {
-      mr->v_origindex = CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX);
-      mr->e_origindex = CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX);
-      mr->p_origindex = CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX);
+      mr->v_origindex = static_cast<const int *>(
+          CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX));
+      mr->e_origindex = static_cast<const int *>(
+          CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX));
+      mr->p_origindex = static_cast<const int *>(
+          CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX));
 
       use_mapped = (mr->v_origindex || mr->e_origindex || mr->p_origindex);
     }
@@ -513,9 +525,12 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
     bool use_mapped = is_paint_mode && mr->me && !mr->me->runtime.is_original;
     if (use_mapped) {
-      mr->v_origindex = CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX);
-      mr->e_origindex = CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX);
-      mr->p_origindex = CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX);
+      mr->v_origindex = static_cast<const int *>(
+          CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX));
+      mr->e_origindex = static_cast<const int *>(
+          CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX));
+      mr->p_origindex = static_cast<const int *>(
+          CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX));
 
       use_mapped = (mr->v_origindex || mr->e_origindex || mr->p_origindex);
     }
@@ -531,14 +546,14 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->poly_len = mr->me->totpoly;
     mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
 
-    mr->mvert = CustomData_get_layer(&mr->me->vdata, CD_MVERT);
-    mr->medge = CustomData_get_layer(&mr->me->edata, CD_MEDGE);
-    mr->mloop = CustomData_get_layer(&mr->me->ldata, CD_MLOOP);
-    mr->mpoly = CustomData_get_layer(&mr->me->pdata, CD_MPOLY);
+    mr->mvert = static_cast<MVert *>(CustomData_get_layer(&mr->me->vdata, CD_MVERT));
+    mr->medge = static_cast<MEdge *>(CustomData_get_layer(&mr->me->edata, CD_MEDGE));
+    mr->mloop = static_cast<MLoop *>(CustomData_get_layer(&mr->me->ldata, CD_MLOOP));
+    mr->mpoly = static_cast<MPoly *>(CustomData_get_layer(&mr->me->pdata, CD_MPOLY));
 
-    mr->v_origindex = CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX);
-    mr->e_origindex = CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX);
-    mr->p_origindex = CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX);
+    mr->v_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->vdata, CD_ORIGINDEX));
+    mr->e_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->edata, CD_ORIGINDEX));
+    mr->p_origindex = static_cast<const int *>(CustomData_get_layer(&mr->me->pdata, CD_ORIGINDEX));
   }
   else {
     /* #BMesh */

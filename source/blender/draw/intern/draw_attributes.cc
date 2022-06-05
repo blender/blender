@@ -84,9 +84,9 @@ DRW_AttributeRequest *drw_attributes_add_request(DRW_Attributes *attrs,
 bool drw_custom_data_match_attribute(const CustomData *custom_data,
                                      const char *name,
                                      int *r_layer_index,
-                                     int *r_type)
+                                     eCustomDataType *r_type)
 {
-  const int possible_attribute_types[7] = {
+  const eCustomDataType possible_attribute_types[7] = {
       CD_PROP_BOOL,
       CD_PROP_INT8,
       CD_PROP_INT32,
@@ -97,7 +97,7 @@ bool drw_custom_data_match_attribute(const CustomData *custom_data,
   };
 
   for (int i = 0; i < ARRAY_SIZE(possible_attribute_types); i++) {
-    const int attr_type = possible_attribute_types[i];
+    const eCustomDataType attr_type = possible_attribute_types[i];
     int layer_index = CustomData_get_named_layer(custom_data, attr_type, name);
     if (layer_index == -1) {
       continue;

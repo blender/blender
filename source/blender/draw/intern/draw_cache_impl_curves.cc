@@ -512,7 +512,7 @@ static bool curves_ensure_attributes(const Curves &curves,
   ListBase gpu_attrs = GPU_material_attributes(gpu_material);
   LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
     const char *name = gpu_attr->name;
-    int type = gpu_attr->type;
+    eCustomDataType type = static_cast<eCustomDataType>(gpu_attr->type);
     int layer = -1;
     eAttrDomain domain;
 

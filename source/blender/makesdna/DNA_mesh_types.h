@@ -83,7 +83,7 @@ typedef struct Mesh_Runtime {
 
   /**
    * Data used to efficiently draw the mesh in the viewport, especially useful when
-   * the same mesh is used in many objects or instances. See `draw_cache_impl_mesh.c`.
+   * the same mesh is used in many objects or instances. See `draw_cache_impl_mesh.cc`.
    */
   void *batch_cache;
 

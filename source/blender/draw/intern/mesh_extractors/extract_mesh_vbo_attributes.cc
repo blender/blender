@@ -16,7 +16,7 @@
 
 #include "draw_attributes.h"
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -447,7 +447,6 @@ constexpr MeshExtract create_extractor_attr(ExtractInitFn fn, ExtractInitSubdivF
 
 }  // namespace blender::draw
 
-extern "C" {
 #define CREATE_EXTRACTOR_ATTR(index) \
   blender::draw::create_extractor_attr<index>(blender::draw::extract_attr_init##index, \
                                               blender::draw::extract_attr_init_subdiv##index)
@@ -469,4 +468,3 @@ const MeshExtract extract_attr[GPU_MAX_ATTR] = {
     CREATE_EXTRACTOR_ATTR(13),
     CREATE_EXTRACTOR_ATTR(14),
 };
-}

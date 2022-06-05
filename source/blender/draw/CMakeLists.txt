@@ -39,8 +39,8 @@ set(INC
 set(SRC
   intern/draw_cache.c
   intern/draw_cache_extract_mesh.cc
-  intern/draw_cache_extract_mesh_render_data.c
-  intern/mesh_extractors/extract_mesh.c
+  intern/draw_cache_extract_mesh_render_data.cc
+  intern/mesh_extractors/extract_mesh.cc
   intern/mesh_extractors/extract_mesh_ibo_edituv.cc
   intern/mesh_extractors/extract_mesh_ibo_fdots.cc
   intern/mesh_extractors/extract_mesh_ibo_lines.cc
@@ -75,7 +75,7 @@ set(SRC
   intern/draw_cache_impl_displist.c
   intern/draw_cache_impl_gpencil.c
   intern/draw_cache_impl_lattice.c
-  intern/draw_cache_impl_mesh.c
+  intern/draw_cache_impl_mesh.cc
   intern/draw_cache_impl_metaball.c
   intern/draw_cache_impl_particles.c
   intern/draw_cache_impl_pointcloud.c
@@ -201,7 +201,7 @@ set(SRC
   intern/DRW_render.h
   intern/draw_attributes.h
   intern/draw_cache.h
-  intern/draw_cache_extract.h
+  intern/draw_cache_extract.hh
   intern/draw_cache_impl.h
   intern/draw_cache_inline.h
   intern/draw_color_management.h
@@ -221,7 +221,7 @@ set(SRC
   intern/draw_texture_pool.h
   intern/draw_view.h
   intern/draw_view_data.h
-  intern/mesh_extractors/extract_mesh.h
+  intern/mesh_extractors/extract_mesh.hh
   intern/smaa_textures.h
   engines/basic/basic_engine.h
   engines/basic/basic_private.h

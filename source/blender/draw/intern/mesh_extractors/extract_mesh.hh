@@ -17,11 +17,7 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 
-#include "draw_cache_extract.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "draw_cache_extract.hh"
 
 struct DRWSubdivCache;
 
@@ -31,13 +27,13 @@ struct DRWSubdivCache;
 /** \name Mesh Render Data
  * \{ */
 
-typedef enum eMRExtractType {
+enum eMRExtractType {
   MR_EXTRACT_BMESH,
   MR_EXTRACT_MAPPED,
   MR_EXTRACT_MESH,
-} eMRExtractType;
+};
 
-typedef struct MeshRenderData {
+struct MeshRenderData {
   eMRExtractType extract_type;
 
   int poly_len, edge_len, vert_len, loop_len;
@@ -95,7 +91,7 @@ typedef struct MeshRenderData {
     int *mat_tri_len;
     int visible_tri_len;
   } poly_sorted;
-} MeshRenderData;
+};
 
 BLI_INLINE BMFace *bm_original_face_get(const MeshRenderData *mr, int idx)
 {
@@ -159,71 +155,71 @@ BLI_INLINE const float *bm_face_no_get(const MeshRenderData *mr, const BMFace *e
 
 /* TODO(jbakker): move parameters inside a struct. */
 
-typedef void(ExtractTriBMeshFn)(const MeshRenderData *mr, BMLoop **elt, int elt_index, void *data);
-typedef void(ExtractTriMeshFn)(const MeshRenderData *mr,
-                               const MLoopTri *mlt,
-                               int elt_index,
-                               void *data);
-typedef void(ExtractPolyBMeshFn)(const MeshRenderData *mr,
-                                 const BMFace *f,
-                                 int f_index,
-                                 void *data);
-typedef void(ExtractPolyMeshFn)(const MeshRenderData *mr,
-                                const MPoly *mp,
-                                int mp_index,
+using ExtractTriBMeshFn = void(const MeshRenderData *mr, BMLoop **elt, int elt_index, void *data);
+using ExtractTriMeshFn = void(const MeshRenderData *mr,
+                              const MLoopTri *mlt,
+                              int elt_index,
+                              void *data);
+using ExtractPolyBMeshFn = void(const MeshRenderData *mr,
+                                const BMFace *f,
+                                int f_index,
                                 void *data);
-typedef void(ExtractLEdgeBMeshFn)(const MeshRenderData *mr,
-                                  const BMEdge *eed,
-                                  int ledge_index,
-                                  void *data);
-typedef void(ExtractLEdgeMeshFn)(const MeshRenderData *mr,
-                                 const MEdge *med,
+using ExtractPolyMeshFn = void(const MeshRenderData *mr,
+                               const MPoly *mp,
+                               int mp_index,
+                               void *data);
+using ExtractLEdgeBMeshFn = void(const MeshRenderData *mr,
+                                 const BMEdge *eed,
                                  int ledge_index,
                                  void *data);
-typedef void(ExtractLVertBMeshFn)(const MeshRenderData *mr,
-                                  const BMVert *eve,
-                                  int lvert_index,
-                                  void *data);
-typedef void(ExtractLVertMeshFn)(const MeshRenderData *mr,
-                                 const MVert *mv,
+using ExtractLEdgeMeshFn = void(const MeshRenderData *mr,
+                                const MEdge *med,
+                                int ledge_index,
+                                void *data);
+using ExtractLVertBMeshFn = void(const MeshRenderData *mr,
+                                 const BMVert *eve,
                                  int lvert_index,
                                  void *data);
-typedef void(ExtractLooseGeomSubdivFn)(const struct DRWSubdivCache *subdiv_cache,
-                                       const MeshRenderData *mr,
-                                       void *buffer,
-                                       void *data);
-typedef void(ExtractInitFn)(const MeshRenderData *mr,
-                            struct MeshBatchCache *cache,
-                            void *buffer,
-                            void *r_data);
-typedef void(ExtractFinishFn)(const MeshRenderData *mr,
-                              struct MeshBatchCache *cache,
-                              void *buffer,
-                              void *data);
-typedef void(ExtractTaskReduceFn)(void *userdata, void *task_userdata);
+using ExtractLVertMeshFn = void(const MeshRenderData *mr,
+                                const MVert *mv,
+                                int lvert_index,
+                                void *data);
+using ExtractLooseGeomSubdivFn = void(const struct DRWSubdivCache *subdiv_cache,
+                                      const MeshRenderData *mr,
+                                      void *buffer,
+                                      void *data);
+using ExtractInitFn = void(const MeshRenderData *mr,
+                           struct MeshBatchCache *cache,
+                           void *buffer,
+                           void *r_data);
+using ExtractFinishFn = void(const MeshRenderData *mr,
+                             struct MeshBatchCache *cache,
+                             void *buffer,
+                             void *data);
+using ExtractTaskReduceFn = void(void *userdata, void *task_userdata);
 
-typedef void(ExtractInitSubdivFn)(const struct DRWSubdivCache *subdiv_cache,
-                                  const MeshRenderData *mr,
-                                  struct MeshBatchCache *cache,
-                                  void *buf,
-                                  void *data);
-typedef void(ExtractIterSubdivBMeshFn)(const struct DRWSubdivCache *subdiv_cache,
-                                       const MeshRenderData *mr,
-                                       void *data,
-                                       uint subdiv_quad_index,
-                                       const BMFace *coarse_quad);
-typedef void(ExtractIterSubdivMeshFn)(const struct DRWSubdivCache *subdiv_cache,
+using ExtractInitSubdivFn = void(const struct DRWSubdivCache *subdiv_cache,
+                                 const MeshRenderData *mr,
+                                 struct MeshBatchCache *cache,
+                                 void *buf,
+                                 void *data);
+using ExtractIterSubdivBMeshFn = void(const struct DRWSubdivCache *subdiv_cache,
                                       const MeshRenderData *mr,
                                       void *data,
                                       uint subdiv_quad_index,
-                                      const MPoly *coarse_quad);
-typedef void(ExtractFinishSubdivFn)(const struct DRWSubdivCache *subdiv_cache,
-                                    const MeshRenderData *mr,
-                                    struct MeshBatchCache *cache,
-                                    void *buf,
-                                    void *data);
+                                      const BMFace *coarse_quad);
+using ExtractIterSubdivMeshFn = void(const struct DRWSubdivCache *subdiv_cache,
+                                     const MeshRenderData *mr,
+                                     void *data,
+                                     uint subdiv_quad_index,
+                                     const MPoly *coarse_quad);
+using ExtractFinishSubdivFn = void(const struct DRWSubdivCache *subdiv_cache,
+                                   const MeshRenderData *mr,
+                                   struct MeshBatchCache *cache,
+                                   void *buf,
+                                   void *data);
 
-typedef struct MeshExtract {
+struct MeshExtract {
   /** Executed on main thread and return user data for iteration functions. */
   ExtractInitFn *init;
   /** Executed on one (or more if use_threading) worker thread(s). */
@@ -254,7 +250,7 @@ typedef struct MeshExtract {
    * buffer.
    */
   size_t mesh_buffer_offset;
-} MeshExtract;
+};
 
 /** \} */
 
@@ -291,14 +287,14 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
 
 /* draw_cache_extract_mesh_extractors.c */
 
-typedef struct EditLoopData {
+struct EditLoopData {
   uchar v_flag;
   uchar e_flag;
   /* This is used for both vertex and edge creases. The edge crease value is stored in the bottom 4
    * bits, while the vertex crease is stored in the upper 4 bits. */
   uchar crease;
   uchar bweight;
-} EditLoopData;
+};
 
 void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuflist);
 eMRIterType mesh_extract_iter_type(const MeshExtract *ext);
@@ -359,7 +355,3 @@ extern const MeshExtract extract_edge_idx;
 extern const MeshExtract extract_vert_idx;
 extern const MeshExtract extract_fdot_idx;
 extern const MeshExtract extract_attr[GPU_MAX_ATTR];
-
-#ifdef __cplusplus
-}
-#endif

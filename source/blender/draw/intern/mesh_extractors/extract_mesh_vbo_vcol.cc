@@ -12,7 +12,7 @@
 #include "BLI_vector.hh"
 
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 struct VColRef {
   const CustomDataLayer *layer;
@@ -380,6 +380,4 @@ constexpr MeshExtract create_extractor_vcol()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_vcol = blender::draw::create_extractor_vcol();
-}

@@ -13,7 +13,7 @@
 
 #include "ED_uvedit.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_cache_impl.h"
 
@@ -29,7 +29,7 @@ void *mesh_extract_buffer_get(const MeshExtract *extractor, MeshBufferList *mbuf
 
 eMRIterType mesh_extract_iter_type(const MeshExtract *ext)
 {
-  eMRIterType type = 0;
+  eMRIterType type = (eMRIterType)0;
   SET_FLAG_FROM_TEST(type, (ext->iter_looptri_bm || ext->iter_looptri_mesh), MR_ITER_LOOPTRI);
   SET_FLAG_FROM_TEST(type, (ext->iter_poly_bm || ext->iter_poly_mesh), MR_ITER_POLY);
   SET_FLAG_FROM_TEST(type, (ext->iter_ledge_bm || ext->iter_ledge_mesh), MR_ITER_LEDGE);

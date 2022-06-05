@@ -7,7 +7,7 @@
 
 #include "BLI_bitmap.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 /* ---------------------------------------------------------------------- */
@@ -95,6 +95,4 @@ constexpr MeshExtract create_extractor_fdots()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_fdots = blender::draw::create_extractor_fdots();
-}
