@@ -71,6 +71,10 @@
 
 #include "GPU_state.h"
 
+static void gizmo_refresh_from_matrix(wmGizmoGroup *gzgroup,
+                                      const float twmat[4][4],
+                                      const float scale[3]);
+
 /* return codes for select, and drawing flags */
 
 #define MAN_TRANS_X (1 << 0)
@@ -1461,18 +1465,98 @@ static int gizmo_modal(bContext *C,
 
   ARegion *region = CTX_wm_region(C);
   RegionView3D *rv3d = region->regiondata;
-  struct TransformBounds tbounds;
+  wmGizmoGroup *gzgroup = widget->parent_gzgroup;
 
-  if (ED_transform_calc_gizmo_stats(C,
-                                    &(struct TransformCalcParams){
-                                        .use_only_center = true,
-                                    },
-                                    &tbounds)) {
-    gizmo_prepare_mat(C, rv3d, &tbounds);
-    WM_gizmo_set_matrix_location(widget, rv3d->twmat[3]);
+  /* Recalculating the orientation has two problems.
+   * - The matrix calculated based on the transformed selection may not match the matrix
+   *   that was set when transform started.
+   * - Inspecting the selection for every update is expensive (for *every* redraw).
+   *
+   * Instead, use #transform_apply_matrix to transform `rv3d->twmat` or the final scale value
+   * when scaling.
+   */
+  if (false) {
+    struct TransformBounds tbounds;
+
+    if (ED_transform_calc_gizmo_stats(C,
+                                      &(struct TransformCalcParams){
+                                          .use_only_center = true,
+                                      },
+                                      &tbounds)) {
+      gizmo_prepare_mat(C, rv3d, &tbounds);
+      for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {
+        WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
+      }
+    }
   }
+  else {
+    GizmoGroup *ggd = gzgroup->customdata;
 
-  ED_region_tag_redraw_editor_overlays(region);
+    short axis_type = 0;
+    MAN_ITER_AXES_BEGIN (axis, axis_idx) {
+      if (axis == widget) {
+        axis_type = gizmo_get_axis_type(axis_idx);
+        break;
+      }
+    }
+    MAN_ITER_AXES_END;
+
+    /* Showing axes which aren't being manipulated doesn't always work so well.
+     *
+     * - For rotate: global axis will reset after finish.
+     *   Also, gimbal axis isn't properly recalculated while transforming.
+     * - For scale: showing the other axes isn't so useful and can be distracting
+     *   since the handles can get very big-small.
+     */
+    if (ELEM(axis_type, MAN_AXES_ROTATE, MAN_AXES_SCALE)) {
+      MAN_ITER_AXES_BEGIN (axis, axis_idx) {
+        if (axis == widget) {
+          continue;
+        }
+
+        bool is_plane_dummy;
+        const uint aidx_norm = gizmo_orientation_axis(axis_idx, &is_plane_dummy);
+        /* Always show the axis-aligned handle as it's distracting when it's disabled. */
+        if (aidx_norm == 3) {
+          continue;
+        }
+        WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, true);
+      }
+      MAN_ITER_AXES_END;
+    }
+
+    wmWindow *win = CTX_wm_window(C);
+    wmOperator *op = NULL;
+    for (int i = 0; i < widget->op_data_len; i++) {
+      wmGizmoOpElem *gzop = WM_gizmo_operator_get(widget, i);
+      op = WM_operator_find_modal_by_type(win, gzop->type);
+      if (op != NULL) {
+        break;
+      }
+    }
+
+    if (op != NULL) {
+      float twmat[4][4];
+      float scale_buf[3];
+      float *scale = NULL;
+      bool update = false;
+      copy_m4_m4(twmat, rv3d->twmat);
+
+      if (axis_type == MAN_AXES_SCALE) {
+        scale = scale_buf;
+        transform_final_value_get(op->customdata, scale, 3);
+        update = true;
+      }
+      else if (transform_apply_matrix(op->customdata, twmat)) {
+        update = true;
+      }
+
+      if (update) {
+        gizmo_refresh_from_matrix(gzgroup, twmat, scale);
+        ED_region_tag_redraw_editor_overlays(region);
+      }
+    }
+  }
 
   return OPERATOR_RUNNING_MODAL;
 }
@@ -1638,13 +1722,109 @@ static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *gzgroup)
   gizmogroup_init_properties_from_twtype(gzgroup);
 }
 
+/**
+ * Set properties for axes.
+ *
+ * \param twmat: The transform matrix (typically #RegionView3D.twmat).
+ * \param scale: Optional scale, to show scale while modally dragging the scale handles.
+ */
+static void gizmo_refresh_from_matrix(wmGizmoGroup *gzgroup,
+                                      const float twmat[4][4],
+                                      const float scale[3])
+{
+  GizmoGroup *ggd = gzgroup->customdata;
+
+  MAN_ITER_AXES_BEGIN (axis, axis_idx) {
+    const short axis_type = gizmo_get_axis_type(axis_idx);
+    const int aidx_norm = gizmo_orientation_axis(axis_idx, NULL);
+
+    WM_gizmo_set_matrix_location(axis, twmat[3]);
+    switch (axis_idx) {
+      case MAN_AXIS_TRANS_X:
+      case MAN_AXIS_TRANS_Y:
+      case MAN_AXIS_TRANS_Z:
+      case MAN_AXIS_SCALE_X:
+      case MAN_AXIS_SCALE_Y:
+      case MAN_AXIS_SCALE_Z: {
+        float start_co[3] = {0.0f, 0.0f, 0.0f};
+        float len;
+
+        gizmo_line_range(ggd->twtype, axis_type, &start_co[2], &len);
+
+        WM_gizmo_set_matrix_rotation_from_z_axis(axis, twmat[aidx_norm]);
+        RNA_float_set(axis->ptr, "length", len);
+
+        if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
+          if (ggd->twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) {
+            /* Avoid rotate and translate arrows overlap. */
+            start_co[2] += 0.215f;
+          }
+        }
+        WM_gizmo_set_matrix_offset_location(axis, start_co);
+
+        WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_OFFSET_SCALE, true);
+
+        if (scale) {
+          if (axis_type == MAN_AXES_SCALE) {
+            mul_v3_fl(axis->matrix_basis[2], scale[aidx_norm]);
+          }
+        }
+        break;
+      }
+      case MAN_AXIS_ROT_X:
+      case MAN_AXIS_ROT_Y:
+      case MAN_AXIS_ROT_Z:
+        WM_gizmo_set_matrix_rotation_from_z_axis(axis, twmat[aidx_norm]);
+        break;
+      case MAN_AXIS_TRANS_XY:
+      case MAN_AXIS_TRANS_YZ:
+      case MAN_AXIS_TRANS_ZX:
+      case MAN_AXIS_SCALE_XY:
+      case MAN_AXIS_SCALE_YZ:
+      case MAN_AXIS_SCALE_ZX: {
+        const int aidx_norm_x = (aidx_norm + 1) % 3;
+        const int aidx_norm_y = (aidx_norm + 2) % 3;
+        const float *y_axis = twmat[aidx_norm_y];
+        const float *z_axis = twmat[aidx_norm];
+        WM_gizmo_set_matrix_rotation_from_yz_axis(axis, y_axis, z_axis);
+
+        if (scale) {
+          if (axis_type == MAN_AXES_SCALE) {
+            mul_v3_fl(axis->matrix_basis[0], scale[aidx_norm_x]);
+            mul_v3_fl(axis->matrix_basis[1], scale[aidx_norm_y]);
+          }
+        }
+        break;
+      }
+    }
+  }
+  MAN_ITER_AXES_END;
+
+  /* Ensure rotate disks don't overlap scale arrows, especially in ortho view. */
+  float rotate_select_bias = 0.0f;
+  if ((ggd->twtype & V3D_GIZMO_SHOW_OBJECT_SCALE) && ggd->twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) {
+    rotate_select_bias = -2.0f;
+  }
+  for (int i = MAN_AXIS_RANGE_ROT_START; i < MAN_AXIS_RANGE_ROT_END; i++) {
+    ggd->gizmos[i]->select_bias = rotate_select_bias;
+  }
+}
+
 static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
+  ARegion *region = CTX_wm_region(C);
+
+  {
+    wmGizmo *gz = WM_gizmomap_get_modal(region->gizmo_map);
+    if (gz && gz->parent_gzgroup == gzgroup) {
+      return;
+    }
+  }
+
   GizmoGroup *ggd = gzgroup->customdata;
   Scene *scene = CTX_data_scene(C);
   ScrArea *area = CTX_wm_area(C);
   View3D *v3d = area->spacedata.first;
-  ARegion *region = CTX_wm_region(C);
   RegionView3D *rv3d = region->regiondata;
   struct TransformBounds tbounds;
 
@@ -1670,67 +1850,7 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
   gizmo_prepare_mat(C, rv3d, &tbounds);
 
-  /* *** set properties for axes *** */
-
-  MAN_ITER_AXES_BEGIN (axis, axis_idx) {
-    const short axis_type = gizmo_get_axis_type(axis_idx);
-    const int aidx_norm = gizmo_orientation_axis(axis_idx, NULL);
-
-    WM_gizmo_set_matrix_location(axis, rv3d->twmat[3]);
-
-    switch (axis_idx) {
-      case MAN_AXIS_TRANS_X:
-      case MAN_AXIS_TRANS_Y:
-      case MAN_AXIS_TRANS_Z:
-      case MAN_AXIS_SCALE_X:
-      case MAN_AXIS_SCALE_Y:
-      case MAN_AXIS_SCALE_Z: {
-        float start_co[3] = {0.0f, 0.0f, 0.0f};
-        float len;
-
-        gizmo_line_range(ggd->twtype, axis_type, &start_co[2], &len);
-
-        WM_gizmo_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
-        RNA_float_set(axis->ptr, "length", len);
-
-        if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
-          if (ggd->twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) {
-            /* Avoid rotate and translate arrows overlap. */
-            start_co[2] += 0.215f;
-          }
-        }
-        WM_gizmo_set_matrix_offset_location(axis, start_co);
-        WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_OFFSET_SCALE, true);
-        break;
-      }
-      case MAN_AXIS_ROT_X:
-      case MAN_AXIS_ROT_Y:
-      case MAN_AXIS_ROT_Z:
-        WM_gizmo_set_matrix_rotation_from_z_axis(axis, rv3d->twmat[aidx_norm]);
-        break;
-      case MAN_AXIS_TRANS_XY:
-      case MAN_AXIS_TRANS_YZ:
-      case MAN_AXIS_TRANS_ZX:
-      case MAN_AXIS_SCALE_XY:
-      case MAN_AXIS_SCALE_YZ:
-      case MAN_AXIS_SCALE_ZX: {
-        const float *y_axis = rv3d->twmat[aidx_norm - 1 < 0 ? 2 : aidx_norm - 1];
-        const float *z_axis = rv3d->twmat[aidx_norm];
-        WM_gizmo_set_matrix_rotation_from_yz_axis(axis, y_axis, z_axis);
-        break;
-      }
-    }
-  }
-  MAN_ITER_AXES_END;
-
-  /* Ensure rotate disks don't overlap scale arrows, especially in ortho view. */
-  float rotate_select_bias = 0.0f;
-  if ((ggd->twtype & V3D_GIZMO_SHOW_OBJECT_SCALE) && ggd->twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) {
-    rotate_select_bias = -2.0f;
-  }
-  for (int i = MAN_AXIS_RANGE_ROT_START; i < MAN_AXIS_RANGE_ROT_END; i++) {
-    ggd->gizmos[i]->select_bias = rotate_select_bias;
-  }
+  gizmo_refresh_from_matrix(gzgroup, rv3d->twmat, NULL);
 }
 
 static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
@@ -1756,11 +1876,22 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
   copy_m3_m4(viewinv_m3, rv3d->viewinv);
   float idot[3];
 
+  /* Re-calculate hidden unless modal. */
+  bool calc_hidden = true;
+  {
+    wmGizmo *gz = WM_gizmomap_get_modal(region->gizmo_map);
+    if (gz && gz->parent_gzgroup == gzgroup) {
+      calc_hidden = false;
+    }
+  }
+
   /* when looking through a selected camera, the gizmo can be at the
    * exact same position as the view, skip so we don't break selection */
   if (ggd->all_hidden || fabsf(ED_view3d_pixel_size(rv3d, rv3d->twmat[3])) < 5e-7f) {
     MAN_ITER_AXES_BEGIN (axis, axis_idx) {
-      WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, true);
+      if (calc_hidden) {
+        WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, true);
+      }
     }
     MAN_ITER_AXES_END;
     return;
@@ -1771,12 +1902,15 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
   MAN_ITER_AXES_BEGIN (axis, axis_idx) {
     const short axis_type = gizmo_get_axis_type(axis_idx);
     /* XXX maybe unset _HIDDEN flag on redraw? */
-
     if (gizmo_is_axis_visible(rv3d, ggd->twtype, idot, axis_type, axis_idx)) {
-      WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, false);
+      if (calc_hidden) {
+        WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, false);
+      }
     }
     else {
-      WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, true);
+      if (calc_hidden) {
+        WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, true);
+      }
       continue;
     }
 
@@ -1944,8 +2078,8 @@ void VIEW3D_GGT_xform_gizmo(wmGizmoGroupType *gzgt)
   gzgt->name = "3D View: Transform Gizmo";
   gzgt->idname = "VIEW3D_GGT_xform_gizmo";
 
-  gzgt->flag = WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_DRAW_MODAL_EXCLUDE |
-               WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP | WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
+  gzgt->flag = WM_GIZMOGROUPTYPE_3D | WM_GIZMOGROUPTYPE_TOOL_FALLBACK_KEYMAP |
+               WM_GIZMOGROUPTYPE_DELAY_REFRESH_FOR_TWEAK;
 
   gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
   gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;

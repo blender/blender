@@ -4583,6 +4583,20 @@ void WM_event_remove_area_handler(ListBase *handlers, void *area)
   }
 }
 
+wmOperator *WM_operator_find_modal_by_type(wmWindow *win, const wmOperatorType *ot)
+{
+  LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
+    if (handler_base->type != WM_HANDLER_TYPE_OP) {
+      continue;
+    }
+    wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
+    if (handler->op && handler->op->type == ot) {
+      return handler->op;
+    }
+  }
+  return NULL;
+}
+
 #if 0
 static void WM_event_remove_handler(ListBase *handlers, wmEventHandler *handler)
 {

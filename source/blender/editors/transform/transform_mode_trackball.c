@@ -75,19 +75,25 @@ static void transdata_elem_trackball_fn(void *__restrict iter_data_v,
 /** \name Transform (Rotation - Trackball)
  * \{ */
 
-static void applyTrackballValue(TransInfo *t,
-                                const float axis1[3],
-                                const float axis2[3],
-                                const float angles[2])
+static void applyTrackballValue_calc_axis_angle(const TransInfo *t,
+                                                const float phi[2],
+                                                float r_axis[3],
+                                                float *r_angle)
+{
+  float axis1[3], axis2[3];
+  normalize_v3_v3(axis1, t->persinv[0]);
+  normalize_v3_v3(axis2, t->persinv[1]);
+
+  mul_v3_v3fl(r_axis, axis1, phi[0]);
+  madd_v3_v3fl(r_axis, axis2, phi[1]);
+  *r_angle = normalize_v3(r_axis);
+}
+
+static void applyTrackballValue(TransInfo *t, const float axis[3], const float angle)
 {
   float mat_final[3][3];
-  float axis[3];
-  float angle;
   int i;
 
-  mul_v3_v3fl(axis, axis1, angles[0]);
-  madd_v3_v3fl(axis, axis2, angles[1]);
-  angle = normalize_v3(axis);
   axis_angle_normalized_to_mat3(mat_final, axis, angle);
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -120,16 +126,7 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 {
   char str[UI_MAX_DRAW_STR];
   size_t ofs = 0;
-  float axis1[3], axis2[3];
-#if 0 /* UNUSED */
-  float mat[3][3], totmat[3][3], smat[3][3];
-#endif
   float phi[2];
-
-  copy_v3_v3(axis1, t->persinv[0]);
-  copy_v3_v3(axis2, t->persinv[1]);
-  normalize_v3(axis1);
-  normalize_v3(axis2);
 
   copy_v2_v2(phi, t->values);
 
@@ -165,27 +162,35 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
         str + ofs, sizeof(str) - ofs, TIP_(" Proportional size: %.2f"), t->prop_size);
   }
 
-#if 0 /* UNUSED */
-  axis_angle_normalized_to_mat3(smat, axis1, phi[0]);
-  axis_angle_normalized_to_mat3(totmat, axis2, phi[1]);
-
-  mul_m3_m3m3(mat, smat, totmat);
-
-  /* TRANSFORM_FIX_ME */
-  // copy_m3_m3(t->mat, mat);  /* used in gizmo. */
-#endif
-
-  applyTrackballValue(t, axis1, axis2, phi);
+  float axis_final[3], angle_final;
+  applyTrackballValue_calc_axis_angle(t, phi, axis_final, &angle_final);
+  applyTrackballValue(t, axis_final, angle_final);
 
   recalcData(t);
 
   ED_area_status_text(t->area, str);
 }
 
+static void applyTrackballMatrix(TransInfo *t, float mat_xform[4][4])
+{
+  const float phi[2] = {UNPACK2(t->values_final)};
+
+  float axis_final[3], angle_final;
+  applyTrackballValue_calc_axis_angle(t, phi, axis_final, &angle_final);
+
+  float mat3[3][3], mat4[4][4];
+  axis_angle_normalized_to_mat3(mat3, axis_final, angle_final);
+
+  copy_m4_m3(mat4, mat3);
+  transform_pivot_set_m4(mat4, t->center_global);
+  mul_m4_m4m4(mat_xform, mat4, mat_xform);
+}
+
 void initTrackball(TransInfo *t)
 {
   t->mode = TFM_TRACKBALL;
   t->transform = applyTrackball;
+  t->transform_matrix = applyTrackballMatrix;
 
   initMouseInputMode(t, &t->mouse, INPUT_TRACKBALL);
 

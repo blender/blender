@@ -388,6 +388,12 @@ struct wmEventHandler_UI *WM_event_add_ui_handler(const struct bContext *C,
                                                   wmUIHandlerRemoveFunc remove_fn,
                                                   void *user_data,
                                                   char flag);
+
+/**
+ * Return the first modal operator of type \a ot or NULL.
+ */
+wmOperator *WM_operator_find_modal_by_type(wmWindow *win, const wmOperatorType *ot);
+
 /**
  * \param postpone: Enable for `win->modalhandlers`,
  * this is in a running for () loop in wm_handlers_do().

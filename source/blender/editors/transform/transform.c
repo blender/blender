@@ -2054,3 +2054,17 @@ bool checkUseAxisMatrix(TransInfo *t)
 
   return false;
 }
+
+bool transform_apply_matrix(TransInfo *t, float mat[4][4])
+{
+  if (t->transform_matrix != NULL) {
+    t->transform_matrix(t, mat);
+    return true;
+  }
+  return false;
+}
+
+void transform_final_value_get(const TransInfo *t, float *value, const int value_num)
+{
+  memcpy(value, t->values_final, sizeof(float) * value_num);
+}

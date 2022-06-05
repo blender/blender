@@ -518,6 +518,13 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
+static void applyTranslationMatrix(TransInfo *t, float mat_xform[4][4])
+{
+  float delta[3];
+  mul_v3_m3v3(delta, t->spacemtx, t->values_final);
+  add_v3_v3(mat_xform[3], delta);
+}
+
 void initTranslation(TransInfo *t)
 {
   if (t->spacetype == SPACE_ACTION) {
@@ -530,6 +537,7 @@ void initTranslation(TransInfo *t)
   }
 
   t->transform = applyTranslation;
+  t->transform_matrix = applyTranslationMatrix;
   t->tsnap.applySnap = ApplySnapTranslation;
   t->tsnap.distance = transform_snap_distance_len_squared_fn;
 

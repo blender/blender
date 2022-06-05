@@ -533,6 +533,13 @@ typedef struct TransInfo {
   /* Event handler function that determines whether the viewport needs to be redrawn. */
   eRedrawFlag (*handleEvent)(struct TransInfo *, const struct wmEvent *);
 
+  /**
+   * Optional callback to transform a single matrix.
+   *
+   * \note used by the gizmo to transform the matrix used to position it.
+   */
+  void (*transform_matrix)(struct TransInfo *t, float mat_xform[4][4]);
+
   /** Constraint Data. */
   TransCon con;
 
@@ -712,6 +719,12 @@ void removeAspectRatio(TransInfo *t, float vec[2]);
  * Called in transform_ops.c, on each regeneration of key-maps.
  */
 struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
+
+/**
+ * Transform a single matrix using the current `t->final_values`.
+ */
+bool transform_apply_matrix(TransInfo *t, float mat[4][4]);
+void transform_final_value_get(const TransInfo *t, float *value, int value_num);
 
 /** \} */
 

@@ -229,6 +229,11 @@ bool WM_gizmomap_is_any_selected(const wmGizmoMap *gzmap)
   return gzmap->gzmap_context.select.len != 0;
 }
 
+wmGizmo *WM_gizmomap_get_modal(const wmGizmoMap *gzmap)
+{
+  return gzmap->gzmap_context.modal;
+}
+
 bool WM_gizmomap_minmax(const wmGizmoMap *gzmap,
                         bool UNUSED(use_hidden),
                         bool use_select,
