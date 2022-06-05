@@ -38,19 +38,6 @@ static void copy_data_based_on_map(Span<T> src, MutableSpan<T> dst, Span<int> in
   }
 }
 
-/** Utility function for making an IndexMask from a boolean selection. The indices vector should
- * live at least as long as the returned IndexMask.
- */
-static IndexMask index_mask_indices(Span<bool> mask, const bool invert, Vector<int64_t> &indices)
-{
-  for (const int i : mask.index_range()) {
-    if (mask[i] != invert) {
-      indices.append(i);
-    }
-  }
-  return IndexMask(indices);
-}
-
 /**
  * Copies the attributes with a domain in `domains` to `result_component`.
  */
@@ -400,8 +387,7 @@ static SplinePtr spline_delete(const Spline &spline, const IndexMask mask)
 
 static std::unique_ptr<CurveEval> curve_separate(const CurveEval &input_curve,
                                                  const Span<bool> selection,
-                                                 const eAttrDomain selection_domain,
-                                                 const bool invert)
+                                                 const eAttrDomain selection_domain)
 {
   Span<SplinePtr> input_splines = input_curve.splines();
   std::unique_ptr<CurveEval> output_curve = std::make_unique<CurveEval>();
@@ -413,7 +399,7 @@ static std::unique_ptr<CurveEval> curve_separate(const CurveEval &input_curve,
     /* Operates on each of the splines as a whole, i.e. not on the points in the splines
      * themselves. */
     for (const int i : selection.index_range()) {
-      if (selection[i] != invert) {
+      if (selection[i]) {
         output_curve->add_spline(input_splines[i]->copy());
         copied_splines.append(i);
       }
@@ -431,7 +417,7 @@ static std::unique_ptr<CurveEval> curve_separate(const CurveEval &input_curve,
 
       indices_to_copy.clear();
       for (const int i_point : IndexRange(spline.size())) {
-        if (selection[selection_index] != invert) {
+        if (selection[selection_index]) {
           /* Append i_point instead of selection_index because we need indices local to the spline
            * for copying. */
           indices_to_copy.append(i_point);
@@ -463,8 +449,7 @@ static std::unique_ptr<CurveEval> curve_separate(const CurveEval &input_curve,
 
 static void separate_curve_selection(GeometrySet &geometry_set,
                                      const Field<bool> &selection_field,
-                                     const eAttrDomain selection_domain,
-                                     const bool invert)
+                                     const eAttrDomain selection_domain)
 {
   const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
   GeometryComponentFieldContext field_context{src_component, selection_domain};
@@ -475,7 +460,7 @@ static void separate_curve_selection(GeometrySet &geometry_set,
   evaluator.evaluate();
   const VArray_Span<bool> &selection = evaluator.get_evaluated<bool>(0);
   std::unique_ptr<CurveEval> r_curve = curve_separate(
-      *curves_to_curve_eval(*src_component.get_for_read()), selection, selection_domain, invert);
+      *curves_to_curve_eval(*src_component.get_for_read()), selection, selection_domain);
   if (r_curve) {
     geometry_set.replace_curves(curve_eval_to_curves(*r_curve));
   }
@@ -485,27 +470,22 @@ static void separate_curve_selection(GeometrySet &geometry_set,
 }
 
 static void separate_point_cloud_selection(GeometrySet &geometry_set,
-                                           const Field<bool> &selection_field,
-                                           const bool invert)
+                                           const Field<bool> &selection_field)
 {
   const PointCloudComponent &src_points =
       *geometry_set.get_component_for_read<PointCloudComponent>();
   GeometryComponentFieldContext field_context{src_points, ATTR_DOMAIN_POINT};
 
   fn::FieldEvaluator evaluator{field_context, src_points.attribute_domain_num(ATTR_DOMAIN_POINT)};
-  evaluator.add(selection_field);
+  evaluator.set_selection(selection_field);
   evaluator.evaluate();
-  const VArray_Span<bool> &selection = evaluator.get_evaluated<bool>(0);
-
-  Vector<int64_t> indices;
-  const IndexMask mask = index_mask_indices(selection, invert, indices);
-  const int total = mask.size();
-  PointCloud *pointcloud = BKE_pointcloud_new_nomain(total);
-
-  if (total == 0) {
-    geometry_set.replace_pointcloud(pointcloud);
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.is_empty()) {
+    geometry_set.replace_pointcloud(nullptr);
     return;
   }
+
+  PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
 
   PointCloudComponent dst_points;
   dst_points.replace(pointcloud, GeometryOwnershipType::Editable);
@@ -514,36 +494,30 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
   geometry_set.gather_attributes_for_propagation(
       {GEO_COMPONENT_TYPE_POINT_CLOUD}, GEO_COMPONENT_TYPE_POINT_CLOUD, false, attributes);
 
-  copy_attributes_based_on_mask(attributes, src_points, dst_points, ATTR_DOMAIN_POINT, mask);
+  copy_attributes_based_on_mask(attributes, src_points, dst_points, ATTR_DOMAIN_POINT, selection);
   geometry_set.replace_pointcloud(pointcloud);
 }
 
-static void separate_instance_selection(GeometrySet &geometry_set,
-                                        const Field<bool> &selection_field,
-                                        const bool invert)
+static void delete_selected_instances(GeometrySet &geometry_set,
+                                      const Field<bool> &selection_field)
 {
   InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
   GeometryComponentFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
 
-  const int domain_num = instances.attribute_domain_num(ATTR_DOMAIN_INSTANCE);
-  fn::FieldEvaluator evaluator{field_context, domain_num};
-  evaluator.add(selection_field);
+  fn::FieldEvaluator evaluator{field_context,
+                               instances.attribute_domain_num(ATTR_DOMAIN_INSTANCE)};
+  evaluator.set_selection(selection_field);
   evaluator.evaluate();
-  const VArray_Span<bool> &selection = evaluator.get_evaluated<bool>(0);
-
-  Vector<int64_t> indices;
-  const IndexMask mask = index_mask_indices(selection, invert, indices);
-
-  if (mask.is_empty()) {
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.is_empty()) {
     geometry_set.remove<InstancesComponent>();
     return;
   }
 
-  instances.remove_instances(mask);
+  instances.remove_instances(selection);
 }
 
 static void compute_selected_vertices_from_vertex_selection(const Span<bool> vertex_selection,
-                                                            const bool invert,
                                                             MutableSpan<int> r_vertex_map,
                                                             int *r_selected_vertices_num)
 {
@@ -551,7 +525,7 @@ static void compute_selected_vertices_from_vertex_selection(const Span<bool> ver
 
   int selected_verts_num = 0;
   for (const int i : r_vertex_map.index_range()) {
-    if (vertex_selection[i] != invert) {
+    if (vertex_selection[i]) {
       r_vertex_map[i] = selected_verts_num;
       selected_verts_num++;
     }
@@ -565,7 +539,6 @@ static void compute_selected_vertices_from_vertex_selection(const Span<bool> ver
 
 static void compute_selected_edges_from_vertex_selection(const Mesh &mesh,
                                                          const Span<bool> vertex_selection,
-                                                         const bool invert,
                                                          MutableSpan<int> r_edge_map,
                                                          int *r_selected_edges_num)
 {
@@ -576,7 +549,7 @@ static void compute_selected_edges_from_vertex_selection(const Mesh &mesh,
     const MEdge &edge = mesh.medge[i];
 
     /* Only add the edge if both vertices will be in the new mesh. */
-    if (vertex_selection[edge.v1] != invert && vertex_selection[edge.v2] != invert) {
+    if (vertex_selection[edge.v1] && vertex_selection[edge.v2]) {
       r_edge_map[i] = selected_edges_num;
       selected_edges_num++;
     }
@@ -590,7 +563,6 @@ static void compute_selected_edges_from_vertex_selection(const Mesh &mesh,
 
 static void compute_selected_polygons_from_vertex_selection(const Mesh &mesh,
                                                             const Span<bool> vertex_selection,
-                                                            const bool invert,
                                                             Vector<int> &r_selected_poly_indices,
                                                             Vector<int> &r_loop_starts,
                                                             int *r_selected_polys_num,
@@ -608,7 +580,7 @@ static void compute_selected_polygons_from_vertex_selection(const Mesh &mesh,
     bool all_verts_in_selection = true;
     Span<MLoop> loops_src(&mesh.mloop[poly_src.loopstart], poly_src.totloop);
     for (const MLoop &loop : loops_src) {
-      if (vertex_selection[loop.v] == invert) {
+      if (!vertex_selection[loop.v]) {
         all_verts_in_selection = false;
         break;
       }
@@ -632,7 +604,6 @@ static void compute_selected_polygons_from_vertex_selection(const Mesh &mesh,
 static void compute_selected_vertices_and_edges_from_edge_selection(
     const Mesh &mesh,
     const Span<bool> edge_selection,
-    const bool invert,
     MutableSpan<int> r_vertex_map,
     MutableSpan<int> r_edge_map,
     int *r_selected_vertices_num,
@@ -644,7 +615,7 @@ static void compute_selected_vertices_and_edges_from_edge_selection(
   int selected_verts_num = 0;
   for (const int i : IndexRange(mesh.totedge)) {
     const MEdge &edge = mesh.medge[i];
-    if (edge_selection[i] != invert) {
+    if (edge_selection[i]) {
       r_edge_map[i] = selected_edges_num;
       selected_edges_num++;
       if (r_vertex_map[edge.v1] == -1) {
@@ -670,7 +641,6 @@ static void compute_selected_vertices_and_edges_from_edge_selection(
  */
 static void compute_selected_edges_from_edge_selection(const Mesh &mesh,
                                                        const Span<bool> edge_selection,
-                                                       const bool invert,
                                                        MutableSpan<int> r_edge_map,
                                                        int *r_selected_edges_num)
 {
@@ -678,7 +648,7 @@ static void compute_selected_edges_from_edge_selection(const Mesh &mesh,
 
   int selected_edges_num = 0;
   for (const int i : IndexRange(mesh.totedge)) {
-    if (edge_selection[i] != invert) {
+    if (edge_selection[i]) {
       r_edge_map[i] = selected_edges_num;
       selected_edges_num++;
     }
@@ -696,7 +666,6 @@ static void compute_selected_edges_from_edge_selection(const Mesh &mesh,
  */
 static void compute_selected_polygons_from_edge_selection(const Mesh &mesh,
                                                           const Span<bool> edge_selection,
-                                                          const bool invert,
                                                           Vector<int> &r_selected_poly_indices,
                                                           Vector<int> &r_loop_starts,
                                                           int *r_selected_polys_num,
@@ -712,7 +681,7 @@ static void compute_selected_polygons_from_edge_selection(const Mesh &mesh,
     bool all_edges_in_selection = true;
     Span<MLoop> loops_src(&mesh.mloop[poly_src.loopstart], poly_src.totloop);
     for (const MLoop &loop : loops_src) {
-      if (edge_selection[loop.e] == invert) {
+      if (!edge_selection[loop.e]) {
         all_edges_in_selection = false;
         break;
       }
@@ -735,7 +704,6 @@ static void compute_selected_polygons_from_edge_selection(const Mesh &mesh,
 static void compute_selected_mesh_data_from_vertex_selection_edge_face(
     const Mesh &mesh,
     const Span<bool> vertex_selection,
-    const bool invert,
     MutableSpan<int> r_edge_map,
     Vector<int> &r_selected_poly_indices,
     Vector<int> &r_loop_starts,
@@ -745,11 +713,10 @@ static void compute_selected_mesh_data_from_vertex_selection_edge_face(
 {
 
   compute_selected_edges_from_vertex_selection(
-      mesh, vertex_selection, invert, r_edge_map, r_selected_edges_num);
+      mesh, vertex_selection, r_edge_map, r_selected_edges_num);
 
   compute_selected_polygons_from_vertex_selection(mesh,
                                                   vertex_selection,
-                                                  invert,
                                                   r_selected_poly_indices,
                                                   r_loop_starts,
                                                   r_selected_polys_num,
@@ -762,7 +729,6 @@ static void compute_selected_mesh_data_from_vertex_selection_edge_face(
  */
 static void compute_selected_mesh_data_from_vertex_selection(const Mesh &mesh,
                                                              const Span<bool> vertex_selection,
-                                                             const bool invert,
                                                              MutableSpan<int> r_vertex_map,
                                                              MutableSpan<int> r_edge_map,
                                                              Vector<int> &r_selected_poly_indices,
@@ -773,14 +739,13 @@ static void compute_selected_mesh_data_from_vertex_selection(const Mesh &mesh,
                                                              int *r_selected_loops_num)
 {
   compute_selected_vertices_from_vertex_selection(
-      vertex_selection, invert, r_vertex_map, r_selected_vertices_num);
+      vertex_selection, r_vertex_map, r_selected_vertices_num);
 
   compute_selected_edges_from_vertex_selection(
-      mesh, vertex_selection, invert, r_edge_map, r_selected_edges_num);
+      mesh, vertex_selection, r_edge_map, r_selected_edges_num);
 
   compute_selected_polygons_from_vertex_selection(mesh,
                                                   vertex_selection,
-                                                  invert,
                                                   r_selected_poly_indices,
                                                   r_loop_starts,
                                                   r_selected_polys_num,
@@ -794,7 +759,6 @@ static void compute_selected_mesh_data_from_vertex_selection(const Mesh &mesh,
 static void compute_selected_mesh_data_from_edge_selection_edge_face(
     const Mesh &mesh,
     const Span<bool> edge_selection,
-    const bool invert,
     MutableSpan<int> r_edge_map,
     Vector<int> &r_selected_poly_indices,
     Vector<int> &r_loop_starts,
@@ -803,10 +767,9 @@ static void compute_selected_mesh_data_from_edge_selection_edge_face(
     int *r_selected_loops_num)
 {
   compute_selected_edges_from_edge_selection(
-      mesh, edge_selection, invert, r_edge_map, r_selected_edges_num);
+      mesh, edge_selection, r_edge_map, r_selected_edges_num);
   compute_selected_polygons_from_edge_selection(mesh,
                                                 edge_selection,
-                                                invert,
                                                 r_selected_poly_indices,
                                                 r_loop_starts,
                                                 r_selected_polys_num,
@@ -819,7 +782,6 @@ static void compute_selected_mesh_data_from_edge_selection_edge_face(
  */
 static void compute_selected_mesh_data_from_edge_selection(const Mesh &mesh,
                                                            const Span<bool> edge_selection,
-                                                           const bool invert,
                                                            MutableSpan<int> r_vertex_map,
                                                            MutableSpan<int> r_edge_map,
                                                            Vector<int> &r_selected_poly_indices,
@@ -832,14 +794,12 @@ static void compute_selected_mesh_data_from_edge_selection(const Mesh &mesh,
   r_vertex_map.fill(-1);
   compute_selected_vertices_and_edges_from_edge_selection(mesh,
                                                           edge_selection,
-                                                          invert,
                                                           r_vertex_map,
                                                           r_edge_map,
                                                           r_selected_vertices_num,
                                                           r_selected_edges_num);
   compute_selected_polygons_from_edge_selection(mesh,
                                                 edge_selection,
-                                                invert,
                                                 r_selected_poly_indices,
                                                 r_loop_starts,
                                                 r_selected_polys_num,
@@ -851,7 +811,6 @@ static void compute_selected_mesh_data_from_edge_selection(const Mesh &mesh,
  */
 static void compute_selected_polygons_from_poly_selection(const Mesh &mesh,
                                                           const Span<bool> poly_selection,
-                                                          const bool invert,
                                                           Vector<int> &r_selected_poly_indices,
                                                           Vector<int> &r_loop_starts,
                                                           int *r_selected_polys_num,
@@ -866,7 +825,7 @@ static void compute_selected_polygons_from_poly_selection(const Mesh &mesh,
   for (const int i : IndexRange(mesh.totpoly)) {
     const MPoly &poly_src = mesh.mpoly[i];
     /* We keep this one. */
-    if (poly_selection[i] != invert) {
+    if (poly_selection[i]) {
       r_selected_poly_indices.append_unchecked(i);
       r_loop_starts.append_unchecked(selected_loops_num);
       selected_loops_num += poly_src.totloop;
@@ -882,7 +841,6 @@ static void compute_selected_polygons_from_poly_selection(const Mesh &mesh,
 static void compute_selected_mesh_data_from_poly_selection_edge_face(
     const Mesh &mesh,
     const Span<bool> poly_selection,
-    const bool invert,
     MutableSpan<int> r_edge_map,
     Vector<int> &r_selected_poly_indices,
     Vector<int> &r_loop_starts,
@@ -902,7 +860,7 @@ static void compute_selected_mesh_data_from_poly_selection_edge_face(
   for (const int i : IndexRange(mesh.totpoly)) {
     const MPoly &poly_src = mesh.mpoly[i];
     /* We keep this one. */
-    if (poly_selection[i] != invert) {
+    if (poly_selection[i]) {
       r_selected_poly_indices.append_unchecked(i);
       r_loop_starts.append_unchecked(selected_loops_num);
       selected_loops_num += poly_src.totloop;
@@ -929,7 +887,6 @@ static void compute_selected_mesh_data_from_poly_selection_edge_face(
  */
 static void compute_selected_mesh_data_from_poly_selection(const Mesh &mesh,
                                                            const Span<bool> poly_selection,
-                                                           const bool invert,
                                                            MutableSpan<int> r_vertex_map,
                                                            MutableSpan<int> r_edge_map,
                                                            Vector<int> &r_selected_poly_indices,
@@ -953,7 +910,7 @@ static void compute_selected_mesh_data_from_poly_selection(const Mesh &mesh,
   for (const int i : IndexRange(mesh.totpoly)) {
     const MPoly &poly_src = mesh.mpoly[i];
     /* We keep this one. */
-    if (poly_selection[i] != invert) {
+    if (poly_selection[i]) {
       r_selected_poly_indices.append_unchecked(i);
       r_loop_starts.append_unchecked(selected_loops_num);
       selected_loops_num += poly_src.totloop;
@@ -984,8 +941,7 @@ static void compute_selected_mesh_data_from_poly_selection(const Mesh &mesh,
  */
 static void do_mesh_separation(GeometrySet &geometry_set,
                                const MeshComponent &in_component,
-                               const VArray_Span<bool> &selection,
-                               const bool invert,
+                               const Span<bool> selection,
                                const eAttrDomain domain,
                                const GeometryNodeDeleteGeometryMode mode)
 {
@@ -1016,7 +972,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
         case ATTR_DOMAIN_POINT:
           compute_selected_mesh_data_from_vertex_selection(mesh_in,
                                                            selection,
-                                                           invert,
                                                            vertex_map,
                                                            edge_map,
                                                            selected_poly_indices,
@@ -1029,7 +984,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
         case ATTR_DOMAIN_EDGE:
           compute_selected_mesh_data_from_edge_selection(mesh_in,
                                                          selection,
-                                                         invert,
                                                          vertex_map,
                                                          edge_map,
                                                          selected_poly_indices,
@@ -1042,7 +996,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
         case ATTR_DOMAIN_FACE:
           compute_selected_mesh_data_from_poly_selection(mesh_in,
                                                          selection,
-                                                         invert,
                                                          vertex_map,
                                                          edge_map,
                                                          selected_poly_indices,
@@ -1097,7 +1050,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
         case ATTR_DOMAIN_POINT:
           compute_selected_mesh_data_from_vertex_selection_edge_face(mesh_in,
                                                                      selection,
-                                                                     invert,
                                                                      edge_map,
                                                                      selected_poly_indices,
                                                                      new_loop_starts,
@@ -1108,7 +1060,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
         case ATTR_DOMAIN_EDGE:
           compute_selected_mesh_data_from_edge_selection_edge_face(mesh_in,
                                                                    selection,
-                                                                   invert,
                                                                    edge_map,
                                                                    selected_poly_indices,
                                                                    new_loop_starts,
@@ -1119,7 +1070,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
         case ATTR_DOMAIN_FACE:
           compute_selected_mesh_data_from_poly_selection_edge_face(mesh_in,
                                                                    selection,
-                                                                   invert,
                                                                    edge_map,
                                                                    selected_poly_indices,
                                                                    new_loop_starts,
@@ -1168,7 +1118,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
         case ATTR_DOMAIN_POINT:
           compute_selected_polygons_from_vertex_selection(mesh_in,
                                                           selection,
-                                                          invert,
                                                           selected_poly_indices,
                                                           new_loop_starts,
                                                           &selected_polys_num,
@@ -1177,7 +1126,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
         case ATTR_DOMAIN_EDGE:
           compute_selected_polygons_from_edge_selection(mesh_in,
                                                         selection,
-                                                        invert,
                                                         selected_poly_indices,
                                                         new_loop_starts,
                                                         &selected_polys_num,
@@ -1186,7 +1134,6 @@ static void do_mesh_separation(GeometrySet &geometry_set,
         case ATTR_DOMAIN_FACE:
           compute_selected_polygons_from_poly_selection(mesh_in,
                                                         selection,
-                                                        invert,
                                                         selected_poly_indices,
                                                         new_loop_starts,
                                                         &selected_polys_num,
@@ -1230,8 +1177,7 @@ static void do_mesh_separation(GeometrySet &geometry_set,
 static void separate_mesh_selection(GeometrySet &geometry_set,
                                     const Field<bool> &selection_field,
                                     const eAttrDomain selection_domain,
-                                    const GeometryNodeDeleteGeometryMode mode,
-                                    const bool invert)
+                                    const GeometryNodeDeleteGeometryMode mode)
 {
   const MeshComponent &src_component = *geometry_set.get_component_for_read<MeshComponent>();
   GeometryComponentFieldContext field_context{src_component, selection_domain};
@@ -1240,21 +1186,15 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
                                src_component.attribute_domain_num(selection_domain)};
   evaluator.add(selection_field);
   evaluator.evaluate();
-  const VArray_Span<bool> &selection = evaluator.get_evaluated<bool>(0);
-
+  const VArray<bool> selection = evaluator.get_evaluated<bool>(0);
   /* Check if there is anything to delete. */
-  bool delete_nothing = true;
-  for (const int i : selection.index_range()) {
-    if (selection[i] == invert) {
-      delete_nothing = false;
-      break;
-    }
-  }
-  if (delete_nothing) {
+  if (selection.is_single() && selection.get_internal_single()) {
     return;
   }
 
-  do_mesh_separation(geometry_set, src_component, selection, invert, selection_domain, mode);
+  const VArray_Span<bool> selection_span{selection};
+
+  do_mesh_separation(geometry_set, src_component, selection_span, selection_domain, mode);
 }
 
 }  // namespace blender::nodes::node_geo_delete_geometry_cc
@@ -1265,7 +1205,6 @@ void separate_geometry(GeometrySet &geometry_set,
                        const eAttrDomain domain,
                        const GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection_field,
-                       const bool invert,
                        bool &r_is_error)
 {
   namespace file_ns = blender::nodes::node_geo_delete_geometry_cc;
@@ -1273,25 +1212,25 @@ void separate_geometry(GeometrySet &geometry_set,
   bool some_valid_domain = false;
   if (geometry_set.has_pointcloud()) {
     if (domain == ATTR_DOMAIN_POINT) {
-      file_ns::separate_point_cloud_selection(geometry_set, selection_field, invert);
+      file_ns::separate_point_cloud_selection(geometry_set, selection_field);
       some_valid_domain = true;
     }
   }
   if (geometry_set.has_mesh()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE, ATTR_DOMAIN_CORNER)) {
-      file_ns::separate_mesh_selection(geometry_set, selection_field, domain, mode, invert);
+      file_ns::separate_mesh_selection(geometry_set, selection_field, domain, mode);
       some_valid_domain = true;
     }
   }
   if (geometry_set.has_curves()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
-      file_ns::separate_curve_selection(geometry_set, selection_field, domain, invert);
+      file_ns::separate_curve_selection(geometry_set, selection_field, domain);
       some_valid_domain = true;
     }
   }
   if (geometry_set.has_instances()) {
     if (domain == ATTR_DOMAIN_INSTANCE) {
-      file_ns::separate_instance_selection(geometry_set, selection_field, invert);
+      file_ns::delete_selected_instances(geometry_set, selection_field);
       some_valid_domain = true;
     }
   }
@@ -1341,7 +1280,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
-  const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
+  /* The node's input is a selection of elements that should be deleted, but the code is
+   * implemented as a separation operation that copies the selected elements to a new geometry.
+   * Invert the selection to avoid the need to keep track of both cases in the code. */
+  const Field<bool> selection = fn::invert_boolean_field(
+      params.extract_input<Field<bool>>("Selection"));
 
   const NodeGeometryDeleteGeometry &storage = node_storage(params.node());
   const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
@@ -1349,13 +1292,13 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   if (domain == ATTR_DOMAIN_INSTANCE) {
     bool is_error;
-    separate_geometry(geometry_set, domain, mode, selection_field, true, is_error);
+    separate_geometry(geometry_set, domain, mode, selection, is_error);
   }
   else {
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
       bool is_error;
       /* Invert here because we want to keep the things not in the selection. */
-      separate_geometry(geometry_set, domain, mode, selection_field, true, is_error);
+      separate_geometry(geometry_set, domain, mode, selection, is_error);
     });
   }
 

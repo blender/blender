@@ -73,7 +73,6 @@ void separate_geometry(GeometrySet &geometry_set,
                        eAttrDomain domain,
                        GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection_field,
-                       bool invert,
                        bool &r_is_error);
 
 std::optional<eCustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
