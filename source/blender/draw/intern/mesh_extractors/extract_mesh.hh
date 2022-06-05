@@ -184,38 +184,38 @@ using ExtractLVertMeshFn = void(const MeshRenderData *mr,
                                 const MVert *mv,
                                 int lvert_index,
                                 void *data);
-using ExtractLooseGeomSubdivFn = void(const struct DRWSubdivCache *subdiv_cache,
+using ExtractLooseGeomSubdivFn = void(const DRWSubdivCache *subdiv_cache,
                                       const MeshRenderData *mr,
                                       void *buffer,
                                       void *data);
 using ExtractInitFn = void(const MeshRenderData *mr,
-                           struct MeshBatchCache *cache,
+                           MeshBatchCache *cache,
                            void *buffer,
                            void *r_data);
 using ExtractFinishFn = void(const MeshRenderData *mr,
-                             struct MeshBatchCache *cache,
+                             MeshBatchCache *cache,
                              void *buffer,
                              void *data);
 using ExtractTaskReduceFn = void(void *userdata, void *task_userdata);
 
-using ExtractInitSubdivFn = void(const struct DRWSubdivCache *subdiv_cache,
+using ExtractInitSubdivFn = void(const DRWSubdivCache *subdiv_cache,
                                  const MeshRenderData *mr,
-                                 struct MeshBatchCache *cache,
+                                 MeshBatchCache *cache,
                                  void *buf,
                                  void *data);
-using ExtractIterSubdivBMeshFn = void(const struct DRWSubdivCache *subdiv_cache,
+using ExtractIterSubdivBMeshFn = void(const DRWSubdivCache *subdiv_cache,
                                       const MeshRenderData *mr,
                                       void *data,
                                       uint subdiv_quad_index,
                                       const BMFace *coarse_quad);
-using ExtractIterSubdivMeshFn = void(const struct DRWSubdivCache *subdiv_cache,
+using ExtractIterSubdivMeshFn = void(const DRWSubdivCache *subdiv_cache,
                                      const MeshRenderData *mr,
                                      void *data,
                                      uint subdiv_quad_index,
                                      const MPoly *coarse_quad);
-using ExtractFinishSubdivFn = void(const struct DRWSubdivCache *subdiv_cache,
+using ExtractFinishSubdivFn = void(const DRWSubdivCache *subdiv_cache,
                                    const MeshRenderData *mr,
-                                   struct MeshBatchCache *cache,
+                                   MeshBatchCache *cache,
                                    void *buf,
                                    void *data);
 

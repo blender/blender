@@ -37,12 +37,12 @@ struct DRW_MeshWeightState {
   char alert_mode;
 
   /* Set of all selected bones for Multi-paint. */
-  bool *defgroup_sel; /* [defgroup_len] */
+  bool *defgroup_sel; /* #defgroup_len */
   int defgroup_sel_count;
 
   /* Set of all locked and unlocked deform bones for Lock Relative mode. */
-  bool *defgroup_locked;   /* [defgroup_len] */
-  bool *defgroup_unlocked; /* [defgroup_len] */
+  bool *defgroup_locked;   /* #defgroup_len */
+  bool *defgroup_unlocked; /* #defgroup_len */
 };
 
 /* DRW_MeshWeightState.flags */
@@ -59,14 +59,16 @@ struct DRW_MeshCDMask {
   uint32_t orco : 1;
   uint32_t tan_orco : 1;
   uint32_t sculpt_overlays : 1;
-  /** Edit uv layer is from the base edit mesh as
-   *  modifiers could remove it. (see T68857) */
+  /**
+   * Edit uv layer is from the base edit mesh as modifiers could remove it. (see T68857)
+   */
   uint32_t edit_uv : 1;
 };
-/* Keep `DRW_MeshCDMask` struct within an `uint32_t`.
+/* Keep `DRW_MeshCDMask` struct within a `uint32_t`.
  * bit-wise and atomic operations are used to compare and update the struct.
  * See `mesh_cd_layers_type_*` functions. */
 BLI_STATIC_ASSERT(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask exceeds 32 bits")
+
 enum eMRIterType {
   MR_ITER_LOOPTRI = 1 << 0,
   MR_ITER_POLY = 1 << 1,
@@ -99,26 +101,9 @@ BLI_INLINE int mesh_render_mat_len_get(const Object *object, const Mesh *me)
 }
 
 struct MeshBufferList {
-
-  // enum class BufferItem {
-  //   PosNor,
-  //   LNor,
-  //   EdgeFac,
-  //   Weights,
-  //   UV,
-  //   Tan,
-  //   VCol,
-  //   SculptData,
-  //   Orco,
-  //   EditData,
-  //   EditUVData,
-  //   EditUVStretchArea,
-
-  // }
-  /* Every VBO below contains at least enough
-   * data for every loops in the mesh (except fdots and skin roots).
-   * For some VBOs, it extends to (in this exact order) :
-   * loops + loose_edges*2 + loose_verts */
+  /* Every VBO below contains at least enough data for every loop in the mesh
+   * (except fdots and skin roots). For some VBOs, it extends to (in this exact order) :
+   * loops + loose_edges * 2 + loose_verts */
   struct {
     GPUVertBuf *pos_nor;  /* extend */
     GPUVertBuf *lnor;     /* extend */
@@ -151,14 +136,17 @@ struct MeshBufferList {
   /* Index Buffers:
    * Only need to be updated when topology changes. */
   struct {
-    /* Indices to vloops. */
-    GPUIndexBuf *tris;        /* Ordered per material. */
-    GPUIndexBuf *lines;       /* Loose edges last. */
-    GPUIndexBuf *lines_loose; /* sub buffer of `lines` only containing the loose edges. */
+    /* Indices to vloops. Ordered per material. */
+    GPUIndexBuf *tris;
+    /* Loose edges last. */
+    GPUIndexBuf *lines;
+    /* Sub buffer of `lines` only containing the loose edges. */
+    GPUIndexBuf *lines_loose;
     GPUIndexBuf *points;
     GPUIndexBuf *fdots;
     /* 3D overlays. */
-    GPUIndexBuf *lines_paint_mask; /* no loose edges. */
+    /* no loose edges. */
+    GPUIndexBuf *lines_paint_mask;
     GPUIndexBuf *lines_adjacency;
     /* Uv overlays. (visibility can differ from 3D view) */
     GPUIndexBuf *edituv_tris;
@@ -198,9 +186,12 @@ struct MeshBatchList {
   GPUBatch *all_edges;
   GPUBatch *loose_edges;
   GPUBatch *edge_detection;
-  GPUBatch *wire_edges;     /* Individual edges with face normals. */
-  GPUBatch *wire_loops;     /* Loops around faces. no edges between selected faces */
-  GPUBatch *wire_loops_uvs; /* Same as wire_loops but only has uvs. */
+  /* Individual edges with face normals. */
+  GPUBatch *wire_edges;
+  /* Loops around faces. no edges between selected faces */
+  GPUBatch *wire_loops;
+  /* Same as wire_loops but only has uvs. */
+  GPUBatch *wire_loops_uvs;
   GPUBatch *sculpt_overlays;
 };
 
@@ -286,22 +277,23 @@ struct MeshBatchCache {
 
   GPUBatch **surface_per_mat;
 
-  struct DRWSubdivCache *subdiv_cache;
+  DRWSubdivCache *subdiv_cache;
 
-  DRWBatchFlag batch_requested; /* DRWBatchFlag */
-  DRWBatchFlag batch_ready;     /* DRWBatchFlag */
+  DRWBatchFlag batch_requested;
+  DRWBatchFlag batch_ready;
 
-  /* settings to determine if cache is invalid */
+  /* Settings to determine if cache is invalid. */
   int edge_len;
   int tri_len;
   int poly_len;
   int vert_len;
   int mat_len;
-  bool is_dirty; /* Instantly invalidates cache, skipping mesh check */
+  /* Instantly invalidates cache, skipping mesh check */
+  bool is_dirty;
   bool is_editmode;
   bool is_uvsyncsel;
 
-  struct DRW_MeshWeightState weight_state;
+  DRW_MeshWeightState weight_state;
 
   DRW_MeshCDMask cd_used, cd_needed, cd_used_over_time;
 
@@ -330,7 +322,7 @@ struct MeshBatchCache {
 
 namespace blender::draw {
 
-void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
+void mesh_buffer_cache_create_requested(TaskGraph *task_graph,
                                         MeshBatchCache *cache,
                                         MeshBufferCache *mbc,
                                         Object *object,
@@ -342,12 +334,12 @@ void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
                                         bool do_final,
                                         bool do_uvedit,
                                         const Scene *scene,
-                                        const struct ToolSettings *ts,
+                                        const ToolSettings *ts,
                                         bool use_hide);
 
 void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
                                                MeshBufferCache *mbc,
-                                               struct DRWSubdivCache *subdiv_cache,
-                                               struct MeshRenderData *mr);
+                                               DRWSubdivCache *subdiv_cache,
+                                               MeshRenderData *mr);
 
 }  // namespace blender::draw
