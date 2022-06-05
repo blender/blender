@@ -1195,7 +1195,7 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
 
           const void *src_buffer = old_layer.data;
           void *dst_buffer = ensure_customdata_layer(
-              new_curve_data, old_layer.name, data_type, new_tot_points);
+              new_curve_data, old_layer.name, data_type, new_tot_curves);
 
           threading::parallel_for(
               old_curve_ranges.index_range(), 128, [&](const IndexRange ranges_range) {
