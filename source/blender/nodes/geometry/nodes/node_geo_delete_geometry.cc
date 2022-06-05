@@ -469,11 +469,11 @@ static void separate_curve_selection(GeometrySet &geometry_set,
   const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
   GeometryComponentFieldContext field_context{src_component, selection_domain};
 
-  fn::FieldEvaluator selection_evaluator{field_context,
-                                         src_component.attribute_domain_num(selection_domain)};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const VArray_Span<bool> &selection = selection_evaluator.get_evaluated<bool>(0);
+  fn::FieldEvaluator evaluator{field_context,
+                               src_component.attribute_domain_num(selection_domain)};
+  evaluator.add(selection_field);
+  evaluator.evaluate();
+  const VArray_Span<bool> &selection = evaluator.get_evaluated<bool>(0);
   std::unique_ptr<CurveEval> r_curve = curve_separate(
       *curves_to_curve_eval(*src_component.get_for_read()), selection, selection_domain, invert);
   if (r_curve) {
@@ -492,11 +492,10 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
       *geometry_set.get_component_for_read<PointCloudComponent>();
   GeometryComponentFieldContext field_context{src_points, ATTR_DOMAIN_POINT};
 
-  fn::FieldEvaluator selection_evaluator{field_context,
-                                         src_points.attribute_domain_num(ATTR_DOMAIN_POINT)};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const VArray_Span<bool> &selection = selection_evaluator.get_evaluated<bool>(0);
+  fn::FieldEvaluator evaluator{field_context, src_points.attribute_domain_num(ATTR_DOMAIN_POINT)};
+  evaluator.add(selection_field);
+  evaluator.evaluate();
+  const VArray_Span<bool> &selection = evaluator.get_evaluated<bool>(0);
 
   Vector<int64_t> indices;
   const IndexMask mask = index_mask_indices(selection, invert, indices);
@@ -1237,11 +1236,11 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
   const MeshComponent &src_component = *geometry_set.get_component_for_read<MeshComponent>();
   GeometryComponentFieldContext field_context{src_component, selection_domain};
 
-  fn::FieldEvaluator selection_evaluator{field_context,
-                                         src_component.attribute_domain_num(selection_domain)};
-  selection_evaluator.add(selection_field);
-  selection_evaluator.evaluate();
-  const VArray_Span<bool> &selection = selection_evaluator.get_evaluated<bool>(0);
+  fn::FieldEvaluator evaluator{field_context,
+                               src_component.attribute_domain_num(selection_domain)};
+  evaluator.add(selection_field);
+  evaluator.evaluate();
+  const VArray_Span<bool> &selection = evaluator.get_evaluated<bool>(0);
 
   /* Check if there is anything to delete. */
   bool delete_nothing = true;
