@@ -12,7 +12,6 @@
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
-#include "BKE_spline.hh"
 
 #include "attribute_access_intern.hh"
 
