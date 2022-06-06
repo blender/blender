@@ -1378,6 +1378,11 @@ void drawDial3d(const TransInfo *t)
 /** \name Transform Gizmo
  * \{ */
 
+/** Scale of the two-axis planes. */
+#define MAN_AXIS_SCALE_PLANE_SCALE 0.07f
+/** Offset of the two-axis planes, depends on the gizmos scale. Define to avoid repeating. */
+#define MAN_AXIS_SCALE_PLANE_OFFSET 7.0f
+
 static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
 {
   GizmoGroup *ggd;
@@ -1503,12 +1508,10 @@ static int gizmo_modal(bContext *C,
 
     /* Showing axes which aren't being manipulated doesn't always work so well.
      *
-     * - For rotate: global axis will reset after finish.
-     *   Also, gimbal axis isn't properly recalculated while transforming.
-     * - For scale: showing the other axes isn't so useful and can be distracting
-     *   since the handles can get very big-small.
+     * For rotate: global axis will reset after finish.
+     * Also, gimbal axis isn't properly recalculated while transforming.
      */
-    if (ELEM(axis_type, MAN_AXES_ROTATE, MAN_AXES_SCALE)) {
+    if (axis_type == MAN_AXES_ROTATE) {
       MAN_ITER_AXES_BEGIN (axis, axis_idx) {
         if (axis == widget) {
           continue;
@@ -1608,9 +1611,8 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
       case MAN_AXIS_SCALE_XY:
       case MAN_AXIS_SCALE_YZ:
       case MAN_AXIS_SCALE_ZX: {
-        const float ofs_ax = 7.0f;
-        const float ofs[3] = {ofs_ax, ofs_ax, 0.0f};
-        WM_gizmo_set_scale(axis, 0.07f);
+        const float ofs[3] = {MAN_AXIS_SCALE_PLANE_OFFSET, MAN_AXIS_SCALE_PLANE_OFFSET, 0.0f};
+        WM_gizmo_set_scale(axis, MAN_AXIS_SCALE_PLANE_SCALE);
         WM_gizmo_set_matrix_offset_location(axis, ofs);
         WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_OFFSET_SCALE, true);
         break;
@@ -1762,7 +1764,6 @@ static void gizmo_refresh_from_matrix(wmGizmoGroup *gzgroup,
         else {
           WM_gizmo_set_matrix_rotation_from_z_axis(axis, z_axis);
         }
-        RNA_float_set(axis->ptr, "length", len);
 
         if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
           if (ggd->twtype & V3D_GIZMO_SHOW_OBJECT_ROTATE) {
@@ -1770,15 +1771,19 @@ static void gizmo_refresh_from_matrix(wmGizmoGroup *gzgroup,
             start_co[2] += 0.215f;
           }
         }
+
+        if (scale) {
+          if (axis_type == MAN_AXES_SCALE) {
+            len = ((start_co[2] + len) * scale[aidx_norm]) - start_co[2];
+          }
+        }
+
+        RNA_float_set(axis->ptr, "length", len);
+
         WM_gizmo_set_matrix_offset_location(axis, start_co);
 
         WM_gizmo_set_flag(axis, WM_GIZMO_DRAW_OFFSET_SCALE, true);
 
-        if (scale) {
-          if (axis_type == MAN_AXES_SCALE) {
-            mul_v3_fl(axis->matrix_basis[2], scale[aidx_norm]);
-          }
-        }
         break;
       }
       case MAN_AXIS_ROT_X:
@@ -1798,11 +1803,13 @@ static void gizmo_refresh_from_matrix(wmGizmoGroup *gzgroup,
         const float *z_axis = twmat[aidx_norm];
         WM_gizmo_set_matrix_rotation_from_yz_axis(axis, y_axis, z_axis);
 
-        if (scale) {
-          if (axis_type == MAN_AXES_SCALE) {
-            mul_v3_fl(axis->matrix_basis[0], scale[aidx_norm_x]);
-            mul_v3_fl(axis->matrix_basis[1], scale[aidx_norm_y]);
+        if (axis_type == MAN_AXES_SCALE) {
+          float ofs[3] = {MAN_AXIS_SCALE_PLANE_OFFSET, MAN_AXIS_SCALE_PLANE_OFFSET, 0.0f};
+          if (scale) {
+            ofs[0] *= scale[aidx_norm_x];
+            ofs[1] *= scale[aidx_norm_y];
           }
+          WM_gizmo_set_matrix_offset_location(axis, ofs);
         }
         break;
       }
