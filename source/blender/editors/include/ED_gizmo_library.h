@@ -14,6 +14,8 @@
 extern "C" {
 #endif
 
+#include "DNA_scene_types.h"
+
 /* initialize gizmos */
 void ED_gizmotypes_arrow_3d(void);
 void ED_gizmotypes_button_2d(void);
@@ -258,7 +260,7 @@ void ED_gizmotypes_snap_3d_data_get(const struct bContext *C,
                                     float r_loc[3],
                                     float r_nor[3],
                                     int r_elem_index[3],
-                                    int *r_snap_elem);
+                                    eSnapMode *r_snap_elem);
 
 #ifdef __cplusplus
 }

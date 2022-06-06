@@ -92,11 +92,11 @@ static const EnumPropertyItem uv_sculpt_relaxation_items[] = {
 };
 #endif
 
-const EnumPropertyItem rna_enum_snap_target_items[] = {
-    {SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target"},
-    {SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap transformation center onto target"},
-    {SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target"},
-    {SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target"},
+const EnumPropertyItem rna_enum_snap_source_items[] = {
+    {SCE_SNAP_SOURCE_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target"},
+    {SCE_SNAP_SOURCE_CENTER, "CENTER", 0, "Center", "Snap transformation center onto target"},
+    {SCE_SNAP_SOURCE_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target"},
+    {SCE_SNAP_SOURCE_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -3306,9 +3306,12 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       "Absolute grid alignment while translating (based on the pivot center)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
+  /* TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid
+   * previous ambiguity of "target" (now, "source" is geometry to be moved and "target" is
+   * geometry to which moved geometry is snapped). */
   prop = RNA_def_property(srna, "snap_target", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "snap_target");
-  RNA_def_property_enum_items(prop, rna_enum_snap_target_items);
+  RNA_def_property_enum_items(prop, rna_enum_snap_source_items);
   RNA_def_property_ui_text(prop, "Snap Target", "Which part to snap onto the target");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 

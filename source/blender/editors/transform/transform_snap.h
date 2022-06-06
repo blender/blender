@@ -19,12 +19,12 @@ bool peelObjectsTransform(struct TransInfo *t,
                           float r_no[3],
                           float *r_thickness);
 
-short snapObjectsTransform(struct TransInfo *t,
-                           const float mval[2],
-                           float *dist_px,
-                           /* return args */
-                           float r_loc[3],
-                           float r_no[3]);
+eSnapMode snapObjectsTransform(struct TransInfo *t,
+                               const float mval[2],
+                               float *dist_px,
+                               /* return args */
+                               float r_loc[3],
+                               float r_no[3]);
 bool snapNodesTransform(struct TransInfo *t,
                         const int mval[2],
                         /* return args */

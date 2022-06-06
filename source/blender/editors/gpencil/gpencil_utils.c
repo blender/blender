@@ -1149,7 +1149,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
                                                depsgraph,
                                                v3d,
                                                &(const struct SnapObjectParams){
-                                                   .snap_select = SNAP_ALL,
+                                                   .snap_target_select = SCE_SNAP_TARGET_ALL,
                                                },
                                                &ray_start[0],
                                                &ray_normal[0],

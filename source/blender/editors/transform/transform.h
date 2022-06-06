@@ -13,6 +13,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_object_enums.h"
+#include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.h"
 
@@ -153,7 +154,8 @@ typedef enum {
 } eTModifier;
 
 /** #TransSnap.status */
-typedef enum {
+typedef enum eTSnap {
+  SNAP_RESETTED = 0,
   SNAP_FORCED = 1 << 0,
   TARGET_INIT = 1 << 1,
   /* Special flag for snap to grid. */
@@ -294,11 +296,14 @@ typedef struct TransSnapPoint {
 } TransSnapPoint;
 
 typedef struct TransSnap {
-  char flag;
-  char mode;
-  short target;
-  short modePoint;
-  short modeSelect;
+  /* Snapping options stored as flags */
+  eSnapFlag flag;
+  /* Method(s) used for snapping source to target */
+  eSnapMode mode;
+  /* Part of source to snap to target */
+  eSnapSourceSelect source_select;
+  /* Determines which objects are possible target */
+  eSnapTargetSelect target_select;
   bool align;
   bool project;
   bool snap_self;
@@ -306,7 +311,7 @@ typedef struct TransSnap {
   bool use_backface_culling;
   eTSnap status;
   /* Snapped Element Type (currently for objects only). */
-  char snapElem;
+  eSnapMode snapElem;
   /** snapping from this point (in global-space). */
   float snapTarget[3];
   /** to this point (in global-space). */

@@ -8,7 +8,6 @@
  */
 
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
@@ -53,7 +52,7 @@ typedef struct SnapCursorDataIntern {
 
   struct SnapObjectContext *snap_context_v3d;
   const Scene *scene;
-  short snap_elem_hidden;
+  eSnapMode snap_elem_hidden;
 
   float prevpoint_stack[3];
 
@@ -373,7 +372,7 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
                                      const float normal[3],
                                      const uchar color_line[4],
                                      const uchar color_point[4],
-                                     const short snap_elem_type)
+                                     const eSnapMode snap_elem_type)
 {
   if (!loc_prev && !loc_curr) {
     return;
@@ -538,9 +537,9 @@ static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *data_intern, const w
 /** \name Update
  * \{ */
 
-static short v3d_cursor_snap_elements(V3DSnapCursorState *snap_state, Scene *scene)
+static eSnapMode v3d_cursor_snap_elements(V3DSnapCursorState *snap_state, Scene *scene)
 {
-  short snap_elements = snap_state->snap_elem_force;
+  eSnapMode snap_elements = snap_state->snap_elem_force;
   if (!snap_elements) {
     return scene->toolsettings->snap_mode;
   }
@@ -586,7 +585,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   v3d_cursor_snap_context_ensure(scene);
 
   float co[3], no[3], face_nor[3], obmat[4][4], omat[3][3];
-  short snap_elem = 0;
+  eSnapMode snap_elem = SCE_SNAP_MODE_NONE;
   int snap_elem_index[3] = {-1, -1, -1};
   int index = -1;
 
@@ -595,8 +594,8 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   zero_v3(face_nor);
   unit_m3(omat);
 
-  ushort snap_elements = v3d_cursor_snap_elements(state, scene);
-  data_intern->snap_elem_hidden = 0;
+  eSnapMode snap_elements = v3d_cursor_snap_elements(state, scene);
+  data_intern->snap_elem_hidden = SCE_SNAP_MODE_NONE;
   const bool calc_plane_omat = v3d_cursor_snap_calc_plane();
   if (calc_plane_omat && !(snap_elements & SCE_SNAP_MODE_FACE)) {
     data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
@@ -612,7 +611,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     if (snap_data->is_snap_invert != !(ts->snap_flag & SCE_SNAP)) {
       snap_data->is_enabled = false;
       if (!calc_plane_omat) {
-        snap_data->snap_elem = 0;
+        snap_data->snap_elem = SCE_SNAP_MODE_NONE;
         return;
       }
       snap_elements = data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
@@ -620,8 +619,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   }
 #endif
 
-  if (snap_elements & (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
-                       SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+  if (snap_elements & SCE_SNAP_MODE_GEOM) {
     float prev_co[3] = {0.0f};
     if (state->prevpoint) {
       copy_v3_v3(prev_co, state->prevpoint);
@@ -647,7 +645,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
         v3d,
         snap_elements,
         &(const struct SnapObjectParams){
-            .snap_select = SNAP_ALL,
+            .snap_target_select = SCE_SNAP_TARGET_ALL,
             .edit_mode_type = edit_mode_type,
             .use_occlusion_test = use_occlusion_test,
         },
@@ -668,7 +666,8 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 
   if (calc_plane_omat) {
     RegionView3D *rv3d = region->regiondata;
-    bool orient_surface = snap_elem && (state->plane_orient == V3D_PLACE_ORIENT_SURFACE);
+    bool orient_surface = (snap_elem != SCE_SNAP_MODE_NONE) &&
+                          (state->plane_orient == V3D_PLACE_ORIENT_SURFACE);
     if (orient_surface) {
       copy_m3_m4(omat, obmat);
     }
@@ -699,7 +698,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     }
   }
 
-  float *co_depth = snap_elem ? co : scene->cursor.location;
+  float *co_depth = (snap_elem != SCE_SNAP_MODE_NONE) ? co : scene->cursor.location;
   snap_elem &= ~data_intern->snap_elem_hidden;
   if (snap_elem == 0) {
     RegionView3D *rv3d = region->regiondata;
@@ -815,7 +814,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
   }
 
   const bool draw_plane = state->draw_plane || state->draw_box;
-  if (!snap_data->snap_elem && !draw_plane) {
+  if (snap_data->snap_elem == SCE_SNAP_MODE_NONE && !draw_plane) {
     return;
   }
 
@@ -833,7 +832,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
     v3d_cursor_plane_draw(rv3d, state->plane_axis, matrix);
   }
 
-  if (snap_data->snap_elem && (state->draw_point || state->draw_box)) {
+  if (snap_data->snap_elem != SCE_SNAP_MODE_NONE && (state->draw_point || state->draw_box)) {
     const float *prev_point = (snap_data->snap_elem & SCE_SNAP_MODE_EDGE_PERPENDICULAR) ?
                                   state->prevpoint :
                                   NULL;

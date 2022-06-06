@@ -21,7 +21,7 @@ DEF_ENUM(rna_enum_metaelem_type_items)
 
 DEF_ENUM(rna_enum_proportional_falloff_items)
 DEF_ENUM(rna_enum_proportional_falloff_curve_only_items)
-DEF_ENUM(rna_enum_snap_target_items)
+DEF_ENUM(rna_enum_snap_source_items)
 DEF_ENUM(rna_enum_snap_element_items)
 DEF_ENUM(rna_enum_snap_node_element_items)
 DEF_ENUM(rna_enum_curve_fit_method_items)

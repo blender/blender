@@ -140,7 +140,7 @@ static void rna_Scene_ray_cast(Scene *scene,
                                                      depsgraph,
                                                      NULL,
                                                      &(const struct SnapObjectParams){
-                                                         .snap_select = SNAP_ALL,
+                                                         .snap_target_select = SCE_SNAP_TARGET_ALL,
                                                      },
                                                      origin,
                                                      direction,
