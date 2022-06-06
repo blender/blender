@@ -2803,7 +2803,7 @@ int ED_path_extension_type(const char *path)
     return FILE_TYPE_ARCHIVE;
   }
   if (BLI_path_extension_check_n(
-          path, ".obj", ".mtl", ".3ds", ".fbx", ".glb", ".gltf", ".svg", NULL)) {
+          path, ".obj", ".mtl", ".3ds", ".fbx", ".glb", ".gltf", ".svg", ".stl", NULL)) {
     return FILE_TYPE_OBJECT_IO;
   }
   if (BLI_path_extension_check_array(path, imb_ext_image)) {

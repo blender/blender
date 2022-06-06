@@ -3,6 +3,7 @@
 
 add_subdirectory(common)
 add_subdirectory(wavefront_obj)
+add_subdirectory(stl)
 
 if(WITH_ALEMBIC)
   add_subdirectory(alembic)

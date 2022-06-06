@@ -455,6 +455,7 @@ class TOPBAR_MT_file_import(Menu):
 
         self.layout.operator("wm.gpencil_import_svg", text="SVG as Grease Pencil")
         self.layout.operator("wm.obj_import", text="Wavefront (.obj) (experimental)")
+        self.layout.operator("wm.stl_import", text="STL (.stl) (experimental)")
 
 
 class TOPBAR_MT_file_export(Menu):

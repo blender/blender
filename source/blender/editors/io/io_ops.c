@@ -24,6 +24,7 @@
 #include "io_cache.h"
 #include "io_gpencil.h"
 #include "io_obj.h"
+#include "io_stl_ops.h"
 
 void ED_operatortypes_io(void)
 {
@@ -60,4 +61,6 @@ void ED_operatortypes_io(void)
 
   WM_operatortype_append(WM_OT_obj_export);
   WM_operatortype_append(WM_OT_obj_import);
+
+  WM_operatortype_append(WM_OT_stl_import);
 }

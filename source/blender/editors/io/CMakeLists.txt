@@ -13,6 +13,7 @@ set(INC
   ../../io/gpencil
   ../../io/usd
   ../../io/wavefront_obj
+  ../../io/stl
   ../../makesdna
   ../../makesrna
   ../../windowmanager
@@ -33,6 +34,7 @@ set(SRC
   io_obj.c
   io_ops.c
   io_usd.c
+  io_stl_ops.c
 
   io_alembic.h
   io_cache.h
@@ -41,12 +43,14 @@ set(SRC
   io_obj.h
   io_ops.h
   io_usd.h
+  io_stl_ops.h
 )
 
 set(LIB
   bf_blenkernel
   bf_blenlib
   bf_wavefront_obj
+  bf_stl
 )
 
 if(WITH_OPENCOLLADA)
