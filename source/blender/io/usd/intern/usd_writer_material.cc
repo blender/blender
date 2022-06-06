@@ -354,17 +354,16 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
   }
 }
 
+static bool is_in_memory_texture(Image *ima)
+{
+  return BKE_image_is_dirty(ima) || ima->source == IMA_SRC_GENERATED ||
+         BKE_image_has_packedfile(ima);
+}
+
 /* Generate a file name for an in-memory image that doesn't have a
  * filepath already defined. */
 static std::string get_in_memory_texture_filename(Image *ima)
 {
-  bool is_dirty = BKE_image_is_dirty(ima);
-  bool is_generated = ima->source == IMA_SRC_GENERATED;
-  bool is_packed = BKE_image_has_packedfile(ima);
-  if (!(is_generated || is_dirty || is_packed)) {
-    return "";
-  }
-
   /* Determine the correct file extension from the image format. */
   ImBuf *imbuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
   if (!imbuf) {
@@ -375,8 +374,13 @@ static std::string get_in_memory_texture_filename(Image *ima)
   BKE_image_format_from_imbuf(&imageFormat, imbuf);
 
   char file_name[FILE_MAX];
-  /* Use the image name for the file name. */
-  strcpy(file_name, ima->id.name + 2);
+  if (strlen(ima->filepath) > 0) {
+    BLI_split_file_part(ima->filepath, file_name, FILE_MAX);
+  }
+  else {
+    /* Use the image name for the file name. */
+    strcpy(file_name, ima->id.name + 2);
+  }
 
   BKE_image_path_ensure_ext_from_imformat(file_name, &imageFormat);
 
@@ -2215,15 +2219,12 @@ std::string get_tex_image_asset_path(bNode *node,
 
   std::string path;
 
-  if (strlen(ima->filepath) > 0) {
+  if (is_in_memory_texture(ima)) {
+    path = get_in_memory_texture_filename(ima);
+  }
+  else if (strlen(ima->filepath) > 0) {
     /* Get absolute path. */
     path = get_tex_image_asset_path(ima);
-  }
-  else if (export_params.export_textures) {
-    /* Image has no filepath, but since we are exporting textures,
-     * check if this is an in-memory texture for which we can
-     * generate a file name. */
-    path = get_in_memory_texture_filename(ima);
   }
 
   return get_tex_image_asset_path(path, stage, export_params); 
@@ -2407,13 +2408,9 @@ void export_texture(bNode *node,
 
   BLI_dir_create_recursive(tex_dir_path);
 
-  const bool is_dirty = BKE_image_is_dirty(ima);
-  const bool is_generated = ima->source == IMA_SRC_GENERATED;
-  const bool is_packed = BKE_image_has_packedfile(ima);
-
   std::string dest_dir(tex_dir_path);
 
-  if (is_generated || is_dirty || is_packed) {
+  if (is_in_memory_texture(ima)) {
     export_in_memory_texture(ima, dest_dir, allow_overwrite);
   }
   else if (ima->source == IMA_SRC_TILED) {
