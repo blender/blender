@@ -8,9 +8,6 @@ snowballstemmer==2.2.0
 babel==2.10.1
 requests==2.27.1
 
-# Only needed for building translations.
-sphinx-intl==2.0.1
-
 # Only needed to match the theme used for the official documentation.
 # Without this theme, the default theme will be used.
 sphinx_rtd_theme==1.0.0
