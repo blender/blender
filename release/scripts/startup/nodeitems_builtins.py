@@ -197,6 +197,7 @@ def geometry_instance_node_items(context):
     yield NodeItem("GeometryNodeTranslateInstances")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeInputInstanceRotation")
+    yield NodeItem("GeometryNodeInputInstanceScale")
 
 # Custom Menu for Material Nodes.
 def geometry_material_node_items(context):
