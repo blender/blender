@@ -20,6 +20,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_color.hh"
 #include "BLI_endian_switch.h"
+#include "BLI_index_range.hh"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.hh"
@@ -27,6 +28,7 @@
 #include "BLI_path_util.h"
 #include "BLI_span.hh"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
@@ -57,6 +59,7 @@
 
 using blender::IndexRange;
 using blender::Span;
+using blender::StringRef;
 using blender::Vector;
 
 /* number of layers to add when growing a CustomData object */
@@ -2897,6 +2900,18 @@ bool CustomData_free_layer(CustomData *data, int type, int totelem, int index)
   customData_update_offsets(data);
 
   return true;
+}
+
+bool CustomData_free_layer_named(CustomData *data, const char *name, const int totelem)
+{
+  for (const int i : IndexRange(data->totlayer)) {
+    const CustomDataLayer &layer = data->layers[i];
+    if (StringRef(layer.name) == name) {
+      CustomData_free_layer(data, layer.type, totelem, i);
+      return true;
+    }
+  }
+  return false;
 }
 
 bool CustomData_free_layer_active(CustomData *data, int type, int totelem)
