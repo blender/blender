@@ -41,7 +41,7 @@ Mesh *read_stl_binary(FILE *file, Main *bmain, char *mesh_name, bool use_custom_
   Array<STLBinaryTriangle> tris_buf(chunk_size);
   STLMeshHelper stl_mesh(num_tris, use_custom_normals);
   size_t num_read_tris;
-  while (num_read_tris = fread(tris_buf.data(), sizeof(STLBinaryTriangle), chunk_size, file)) {
+  while ((num_read_tris = fread(tris_buf.data(), sizeof(STLBinaryTriangle), chunk_size, file))) {
     for (size_t i = 0; i < num_read_tris; i++) {
       if (use_custom_normals) {
         stl_mesh.add_triangle(tris_buf[i].v1, tris_buf[i].v2, tris_buf[i].v3, tris_buf[i].normal);

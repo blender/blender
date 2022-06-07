@@ -24,6 +24,7 @@
 #include "fast_float.h"
 
 #include "stl_import.hh"
+#include "stl_import_ascii_reader.hh"
 #include "stl_import_mesh.hh"
 
 namespace blender::io::stl {

@@ -16,8 +16,8 @@ class VectorFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const eAttrDomain domain,
-                                 IndexMask mask) const final
+                                 const eAttrDomain UNUSED(domain),
+                                 IndexMask UNUSED(mask)) const final
   {
     if (component.type() != GEO_COMPONENT_TYPE_INSTANCES) {
       return {};
