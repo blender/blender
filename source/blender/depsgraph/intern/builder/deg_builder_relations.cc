@@ -1711,6 +1711,37 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
         }
         add_relation(variable_exit_key, driver_key, "RNA Target -> Driver");
 
+        /* It is possible that RNA path points to a property of a different ID than the target_id:
+         * for example, paths like "data" on Object, "camera" on Scene.
+         *
+         * For the demonstration purposes lets consider a driver variable uses Scene ID as target
+         * and "camera.location.x" as its RNA path. If the scene has 2 different cameras at
+         * 2 different locations changing the active scene camera is expected to immediately be
+         * reflected in the variable value. In order to achieve this behavior we create a relation
+         * from the target ID to the driver so that if the ID property of the target ID changes the
+         * driver is re-evaluated.
+         *
+         * The most straightforward (at the moment of writing this comment) way of figuring out
+         * such relation is to use copy-on-write operation of the target ID. There are two down
+         * sides of this approach which are considered a design limitation as there is a belief
+         * that they are not common in practice or are not reliable due to other issues:
+         *
+         * - IDs which are not covered with the copy-on-write mechanism.
+         *
+         *   Such IDs are either do not have ID properties, or are not part of the dependency
+         *   graph.
+         *
+         * - Modifications of evaluated IDs from a Python handler.
+         *   Such modifications are not fully integrated in the dependency graph evaluation as it
+         *   has issues with copy-on-write tagging and the fact that relations are defined by the
+         *   original main database status. */
+        if (target_id != variable_exit_key.ptr.owner_id) {
+          if (deg_copy_on_write_is_needed(GS(target_id->name))) {
+            ComponentKey target_id_key(target_id, NodeType::COPY_ON_WRITE);
+            add_relation(target_id_key, driver_key, "Target ID -> Driver");
+          }
+        }
+
         /* The RNA getter for `object.data` can write to the mesh datablock due
          * to the call to `BKE_mesh_wrapper_ensure_subdivision()`. This relation
          * ensures it is safe to call when the driver is evaluated.
