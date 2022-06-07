@@ -240,11 +240,10 @@ void imb_loadtiletiff(
 /**
  * Saves a TIFF file.
  *
- * #ImBuf structures with 1, 3 or 4 bytes per pixel (GRAY, RGB, RGBA
- * respectively) are accepted, and interpreted correctly.  Note that the TIFF
- * convention is to use pre-multiplied alpha, which can be achieved within
- * Blender by setting "Premul" alpha handling.  Other alpha conventions are
- * not strictly correct, but are permitted anyhow.
+ * #ImBuf structures with 1, 3 or 4 bytes per pixel (GRAY, RGB, RGBA respectively)
+ * are accepted, and interpreted correctly. Note that the TIFF convention is to use
+ * pre-multiplied alpha, which can be achieved within Blender by setting `premul` alpha handling.
+ * Other alpha conventions are not strictly correct, but are permitted anyhow.
  *
  * \param ibuf: Image buffer.
  * \param filepath: Name of the TIFF file to create.

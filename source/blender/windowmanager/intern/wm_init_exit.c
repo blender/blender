@@ -380,7 +380,7 @@ static void free_openrecent(void)
 }
 
 #ifdef WIN32
-/* Read console events until there is a key event.  Also returns on any error. */
+/* Read console events until there is a key event. Also returns on any error. */
 static void wait_for_console_key(void)
 {
   HANDLE hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);

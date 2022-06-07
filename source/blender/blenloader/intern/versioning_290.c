@@ -1440,7 +1440,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
         view_layer->eevee.render_passes &= ~EEVEE_RENDER_PASS_UNUSED_8;
       }
 
-      /* Rename Renderlayer Socket `VolumeScatterCol` to `VolumeDir` */
+      /* Rename Render-layer Socket `VolumeScatterCol` to `VolumeDir`. */
       if (scene->nodetree) {
         LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
           if (node->type == CMP_NODE_R_LAYERS) {

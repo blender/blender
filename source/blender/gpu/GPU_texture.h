@@ -113,7 +113,7 @@ typedef enum eGPUTextureFormat {
   GPU_R16F,
   GPU_R16, /* Max texture buffer format. */
 
-  /* Special formats texture & renderbuffer */
+  /* Special formats texture & render-buffer. */
   GPU_RGB10_A2,
   GPU_R11F_G11F_B10F,
   GPU_DEPTH32F_STENCIL8,

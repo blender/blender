@@ -454,7 +454,7 @@ static void libblock_remap_reset_remapping_status_callback(ID *old_id,
  * \param old_id: the data-block to dereference (may be NULL if \a id is non-NULL).
  * \param new_id: the new data-block to replace \a old_id references with (may be NULL).
  * \param r_id_remap_data: if non-NULL, the IDRemap struct to use
- * (uselful to retrieve info about remapping process).
+ * (useful to retrieve info about remapping process).
  */
 ATTR_NONNULL(1)
 static void libblock_remap_data(Main *bmain,

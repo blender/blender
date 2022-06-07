@@ -90,7 +90,7 @@ static vector<ChannelMapping> output_channels()
   return map;
 }
 
-/* Renderlayer Handling */
+/* Render-layer Handling. */
 
 bool DenoiseImageLayer::detect_denoising_channels()
 {

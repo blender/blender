@@ -72,7 +72,7 @@ class MeshImporter : public MeshImporterBase {
 
   std::map<std::string, std::string> mesh_geom_map;       /* needed for correct shape key naming */
   std::map<COLLADAFW::UniqueId, Mesh *> uid_mesh_map;     /* geometry unique id-to-mesh map */
-  std::map<COLLADAFW::UniqueId, Object *> uid_object_map; /* geom uid-to-object */
+  std::map<COLLADAFW::UniqueId, Object *> uid_object_map; /* geom UID-to-object */
   std::vector<Object *> imported_objects;                 /* list of imported objects */
 
   /* this structure is used to assign material indices to polygons
@@ -86,7 +86,7 @@ class MeshImporter : public MeshImporterBase {
   /* crazy name! */
   std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map;
   /* < materials that have already been mapped to a geometry.
-   * A pair/of geom uid and mat uid, one geometry can have several materials */
+   * A pair/of geom UID and mat UID, one geometry can have several materials. */
   std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId> materials_mapped_to_geom;
 
   bool set_poly_indices(

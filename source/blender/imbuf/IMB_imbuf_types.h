@@ -41,8 +41,7 @@ typedef struct DDSData {
 
 /**
  * \ingroup imbuf
- * This is the abstraction of an image.  ImBuf is the basic type used for all
- * imbuf operations.
+ * This is the abstraction of an image. ImBuf is the basic type used for all imbuf operations.
  *
  * Also; add new variables to the end to save pain!
  */

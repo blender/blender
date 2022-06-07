@@ -3121,7 +3121,7 @@ static void collision_check(ParticleSimulationData *sim, int p, float dfra, floa
   col.cfra = cfra;
   col.old_cfra = sim->psys->cfra;
 
-  /* get acceleration (from gravity, forcefields etc. to be re-applied in collision response) */
+  /* Get acceleration (from gravity, force-fields etc. to be re-applied in collision response). */
   sub_v3_v3v3(col.acc, pa->state.vel, pa->prev_state.vel);
   mul_v3_fl(col.acc, 1.0f / col.total_time);
 
@@ -4962,7 +4962,7 @@ void particle_system_update(struct Depsgraph *depsgraph,
   }
 
   /* Save matrix for duplicators,
-   * at rendertime the actual dupliobject's matrix is used so don't update! */
+   * at render-time the actual dupli-object's matrix is used so don't update! */
   invert_m4_m4(psys->imat, ob->obmat);
 
   BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);

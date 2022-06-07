@@ -31,7 +31,7 @@ bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures &, ImageMetaDat
   if (b_image.source() != BL::Image::source_TILED) {
     /* Image sequence might have different dimensions, and hence needs to be handled in a special
      * manner.
-     * NOTE: Currently the sequences are not handled by this image laoder. */
+     * NOTE: Currently the sequences are not handled by this image loader. */
     assert(b_image.source() != BL::Image::source_SEQUENCE);
 
     metadata.width = b_image.size()[0];
