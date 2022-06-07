@@ -97,6 +97,14 @@ IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_i
 
 void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &new_last_position);
 
+float3 compute_surface_point_normal(const MLoopTri &looptri,
+                                    const float3 &bary_coord,
+                                    const Span<float3> corner_normals);
+
+float3 compute_bary_coord_in_triangle(const Mesh &mesh,
+                                      const MLoopTri &looptri,
+                                      const float3 &position);
+
 class CurvesSculptCommonContext {
  public:
   const Depsgraph *depsgraph = nullptr;

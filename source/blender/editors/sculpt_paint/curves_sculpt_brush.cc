@@ -4,13 +4,19 @@
 
 #include "curves_sculpt_intern.hh"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 
+#include "DNA_meshdata_types.h"
+
 #include "ED_view3d.h"
 
 #include "UI_interface.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_length_parameterize.hh"
@@ -316,6 +322,35 @@ CurvesSculptCommonContext::CurvesSculptCommonContext(const bContext &C)
   this->region = CTX_wm_region(&C);
   this->v3d = CTX_wm_view3d(&C);
   this->rv3d = CTX_wm_region_view3d(&C);
+}
+
+float3 compute_surface_point_normal(const MLoopTri &looptri,
+                                    const float3 &bary_coord,
+                                    const Span<float3> corner_normals)
+{
+  const int l0 = looptri.tri[0];
+  const int l1 = looptri.tri[1];
+  const int l2 = looptri.tri[2];
+
+  const float3 &l0_normal = corner_normals[l0];
+  const float3 &l1_normal = corner_normals[l1];
+  const float3 &l2_normal = corner_normals[l2];
+
+  const float3 normal = math::normalize(
+      attribute_math::mix3(bary_coord, l0_normal, l1_normal, l2_normal));
+  return normal;
+}
+
+float3 compute_bary_coord_in_triangle(const Mesh &mesh,
+                                      const MLoopTri &looptri,
+                                      const float3 &position)
+{
+  const float3 &v0 = mesh.mvert[mesh.mloop[looptri.tri[0]].v].co;
+  const float3 &v1 = mesh.mvert[mesh.mloop[looptri.tri[1]].v].co;
+  const float3 &v2 = mesh.mvert[mesh.mloop[looptri.tri[2]].v].co;
+  float3 bary_coords;
+  interp_weights_tri_v3(bary_coords, v0, v1, v2, position);
+  return bary_coords;
 }
 
 }  // namespace blender::ed::sculpt_paint
