@@ -801,8 +801,9 @@ static void panelRegister(ARegionType *region_type)
 static void blendWrite(BlendWriter *writer, const ID *id_owner, const ModifierData *md)
 {
   CorrectiveSmoothModifierData csmd = *(const CorrectiveSmoothModifierData *)md;
+  const bool is_undo = BLO_write_is_undo(writer);
 
-  if (ID_IS_OVERRIDE_LIBRARY(id_owner)) {
+  if (ID_IS_OVERRIDE_LIBRARY(id_owner) && !is_undo) {
     BLI_assert(!ID_IS_LINKED(id_owner));
     const bool is_local = (md->flag & eModifierFlag_OverrideLibrary_Local) != 0;
     if (!is_local) {
