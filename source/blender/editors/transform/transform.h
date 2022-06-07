@@ -743,7 +743,6 @@ void transform_final_value_get(const TransInfo *t, float *value, int value_num);
 
 bool gimbal_axis_pose(struct Object *ob, const struct bPoseChannel *pchan, float gmat[3][3]);
 bool gimbal_axis_object(struct Object *ob, float gmat[3][3]);
-void drawDial3d(const TransInfo *t);
 
 /** \} */
 

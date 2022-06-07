@@ -1682,6 +1682,16 @@ bool transform_snap_increment(const TransInfo *t, float *r_val)
   return transform_snap_increment_ex(t, false, r_val);
 }
 
+float transform_snap_increment_get(const TransInfo *t)
+{
+  if (activeSnap(t) && (!transformModeUseSnap(t) ||
+                        (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)))) {
+    return (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
+  }
+
+  return 0.0f;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

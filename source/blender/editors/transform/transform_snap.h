@@ -36,6 +36,7 @@ bool transformModeUseSnap(const TransInfo *t);
 
 bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float *r_val);
 bool transform_snap_increment(const TransInfo *t, float *val);
+float transform_snap_increment_get(const TransInfo *t);
 bool transform_snap_grid(TransInfo *t, float *val);
 
 bool activeSnap(const TransInfo *t);

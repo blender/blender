@@ -45,7 +45,6 @@
 #include "WM_api.h"
 #include "WM_message.h"
 #include "WM_types.h"
-#include "wm.h"
 
 #include "ED_armature.h"
 #include "ED_gizmo_library.h"
@@ -158,6 +157,9 @@ typedef struct GizmoGroup {
   struct {
     float viewinv_m3[3][3];
   } prev;
+
+  /* Only for Rotate operator. */
+  float rotation;
 
   struct wmGizmo *gizmos[MAN_AXIS_LAST];
 } GizmoGroup;
@@ -1273,103 +1275,31 @@ static void gizmo_xform_message_subscribe(wmGizmoGroup *gzgroup,
   WM_msg_subscribe_rna_anon_prop(mbus, EditBone, lock, &msg_sub_value_gz_tag_refresh);
 }
 
-void drawDial3d(const TransInfo *t)
+static void gizmo_3d_dial_matrixbasis_calc(const ARegion *region,
+                                           float axis[3],
+                                           float center_global[3],
+                                           float mval_init[2],
+                                           float r_mat_basis[4][4])
 {
-  if (t->mode == TFM_ROTATION && t->spacetype == SPACE_VIEW3D) {
-    if (t->options & CTX_PAINT_CURVE) {
-      /* Matrices are in the screen space. Not supported. */
-      return;
-    }
+  copy_v3_v3(r_mat_basis[2], axis);
+  copy_v3_v3(r_mat_basis[3], center_global);
+  r_mat_basis[2][3] = -dot_v3v3(axis, center_global);
 
-    wmGizmo *gz = wm_gizmomap_modal_get(t->region->gizmo_map);
-    if (gz == NULL) {
-      /* We only draw Dial3d if the operator has been called by a gizmo. */
-      return;
-    }
-
-    float mat_basis[4][4];
-    float mat_final[4][4];
-    float color[4];
-    float increment = 0.0f;
-    float line_with = GIZMO_AXIS_LINE_WIDTH + 1.0f;
-    float scale = UI_DPI_FAC * U.gizmo_size;
-
-    int axis_idx;
-
-    const TransCon *tc = &(t->con);
-    if (tc->mode & CON_APPLY) {
-      if (tc->mode & CON_AXIS0) {
-        axis_idx = MAN_AXIS_ROT_X;
-        negate_v3_v3(mat_basis[2], t->spacemtx[0]);
-      }
-      else if (tc->mode & CON_AXIS1) {
-        axis_idx = MAN_AXIS_ROT_Y;
-        negate_v3_v3(mat_basis[2], t->spacemtx[1]);
-      }
-      else {
-        BLI_assert((tc->mode & CON_AXIS2) != 0);
-        axis_idx = MAN_AXIS_ROT_Z;
-        negate_v3_v3(mat_basis[2], t->spacemtx[2]);
-      }
-    }
-    else {
-      axis_idx = MAN_AXIS_ROT_C;
-      copy_v3_v3(mat_basis[2], t->spacemtx[t->orient_axis]);
-      scale *= 1.2f;
-      line_with -= 1.0f;
-    }
-
-    copy_v3_v3(mat_basis[3], t->center_global);
-    mat_basis[2][3] = -dot_v3v3(mat_basis[2], mat_basis[3]);
-
-    if (ED_view3d_win_to_3d_on_plane(
-            t->region, mat_basis[2], (float[2]){UNPACK2(t->mouse.imval)}, false, mat_basis[1])) {
-      sub_v3_v3(mat_basis[1], mat_basis[3]);
-      normalize_v3(mat_basis[1]);
-      cross_v3_v3v3(mat_basis[0], mat_basis[1], mat_basis[2]);
-    }
-    else {
-      /* The plane and the mouse direction are parallel.
-       * Calculate a matrix orthogonal to the axis. */
-      ortho_basis_v3v3_v3(mat_basis[0], mat_basis[1], mat_basis[2]);
-    }
-
-    mat_basis[0][3] = 0.0f;
-    mat_basis[1][3] = 0.0f;
-    mat_basis[2][3] = 0.0f;
-    mat_basis[3][3] = 1.0f;
-
-    copy_m4_m4(mat_final, mat_basis);
-    scale *= ED_view3d_pixel_size_no_ui_scale(t->region->regiondata, mat_final[3]);
-    mul_mat3_m4_fl(mat_final, scale);
-
-    if (activeSnap(t) && (!transformModeUseSnap(t) ||
-                          (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)))) {
-      increment = (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
-    }
-
-    BLI_assert(axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END);
-    gizmo_get_axis_color(axis_idx, NULL, color, color);
-
-    GPU_depth_test(GPU_DEPTH_NONE);
-    GPU_blend(GPU_BLEND_ALPHA);
-    GPU_line_smooth(true);
-
-    ED_gizmotypes_dial_3d_draw_util(mat_basis,
-                                    mat_final,
-                                    line_with,
-                                    color,
-                                    false,
-                                    &(struct Dial3dParams){
-                                        .draw_options = ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE,
-                                        .angle_delta = t->values_final[0],
-                                        .angle_increment = increment,
-                                    });
-
-    GPU_line_smooth(false);
-    GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
-    GPU_blend(GPU_BLEND_NONE);
+  if (ED_view3d_win_to_3d_on_plane(region, axis, mval_init, false, r_mat_basis[1])) {
+    sub_v3_v3(r_mat_basis[1], center_global);
+    normalize_v3(r_mat_basis[1]);
+    cross_v3_v3v3(r_mat_basis[0], r_mat_basis[1], r_mat_basis[2]);
   }
+  else {
+    /* The plane and the mouse direction are parallel.
+     * Calculate a matrix orthogonal to the axis. */
+    ortho_basis_v3v3_v3(r_mat_basis[0], r_mat_basis[1], r_mat_basis[2]);
+  }
+
+  r_mat_basis[0][3] = 0.0f;
+  r_mat_basis[1][3] = 0.0f;
+  r_mat_basis[2][3] = 0.0f;
+  r_mat_basis[3][3] = 1.0f;
 }
 
 /** \} */
@@ -1383,6 +1313,18 @@ void drawDial3d(const TransInfo *t)
 /** Offset of the two-axis planes, depends on the gizmos scale. Define to avoid repeating. */
 #define MAN_AXIS_SCALE_PLANE_OFFSET 7.0f
 
+static void rotation_get_fn(const wmGizmo *UNUSED(gz), wmGizmoProperty *gz_prop, void *value)
+{
+  const GizmoGroup *ggd = (const GizmoGroup *)gz_prop->custom_func.user_data;
+  *(float *)value = ggd->rotation;
+}
+
+static void rotation_set_fn(const wmGizmo *UNUSED(gz), wmGizmoProperty *gz_prop, const void *value)
+{
+  GizmoGroup *ggd = (GizmoGroup *)gz_prop->custom_func.user_data;
+  ggd->rotation = *(const float *)value;
+}
+
 static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
 {
   GizmoGroup *ggd;
@@ -1392,6 +1334,9 @@ static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
   const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
   const wmGizmoType *gzt_prim = WM_gizmotype_find("GIZMO_GT_primitive_3d", true);
+
+  wmGizmoPropertyFnParams params = {
+      .value_get_fn = rotation_get_fn, .value_set_fn = rotation_set_fn, .user_data = ggd};
 
 #define GIZMO_NEW_ARROW(v, draw_style) \
   { \
@@ -1403,6 +1348,7 @@ static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
   { \
     ggd->gizmos[v] = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL); \
     RNA_enum_set(ggd->gizmos[v]->ptr, "draw_options", draw_options); \
+    WM_gizmo_target_property_def_func(ggd->gizmos[v], "offset", &params); \
   } \
   ((void)0)
 #define GIZMO_NEW_PRIM(v, draw_style) \
@@ -1549,6 +1495,14 @@ static int gizmo_modal(bContext *C,
         scale = scale_buf;
         transform_final_value_get(op->customdata, scale, 3);
         update = true;
+      }
+      else if (axis_type == MAN_AXES_ROTATE) {
+        transform_final_value_get(op->customdata, &ggd->rotation, 1);
+        if (widget != ggd->gizmos[MAN_AXIS_ROT_C]) {
+          ggd->rotation *= -1;
+        }
+        RNA_float_set(
+            widget->ptr, "incremental_angle", transform_snap_increment_get(op->customdata));
       }
       else if (transform_apply_matrix(op->customdata, twmat)) {
         update = true;
@@ -1789,8 +1743,18 @@ static void gizmo_refresh_from_matrix(wmGizmoGroup *gzgroup,
       case MAN_AXIS_ROT_X:
       case MAN_AXIS_ROT_Y:
       case MAN_AXIS_ROT_Z:
-        WM_gizmo_set_matrix_rotation_from_z_axis(axis, twmat[aidx_norm]);
-        break;
+      case MAN_AXIS_ROT_C: {
+        if (axis_idx != MAN_AXIS_ROT_C) {
+          WM_gizmo_set_matrix_rotation_from_z_axis(axis, twmat[aidx_norm]);
+        }
+
+        /* Remove #ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE. It is used only for modal drawing. */
+        PropertyRNA *prop = RNA_struct_find_property(axis->ptr, "draw_options");
+        RNA_property_enum_set(axis->ptr,
+                              prop,
+                              RNA_property_enum_get(axis->ptr, prop) &
+                                  ~ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE);
+      } break;
       case MAN_AXIS_TRANS_XY:
       case MAN_AXIS_TRANS_YZ:
       case MAN_AXIS_TRANS_ZX:
@@ -1894,11 +1858,11 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
   float idot[3];
 
   /* Re-calculate hidden unless modal. */
-  bool calc_hidden = true;
+  bool is_modal = false;
   {
     wmGizmo *gz = WM_gizmomap_get_modal(region->gizmo_map);
     if (gz && gz->parent_gzgroup == gzgroup) {
-      calc_hidden = false;
+      is_modal = true;
     }
   }
 
@@ -1906,7 +1870,7 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
    * exact same position as the view, skip so we don't break selection */
   if (ggd->all_hidden || fabsf(ED_view3d_pixel_size(rv3d, rv3d->twmat[3])) < 5e-7f) {
     MAN_ITER_AXES_BEGIN (axis, axis_idx) {
-      if (calc_hidden) {
+      if (!is_modal) {
         WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, true);
       }
     }
@@ -1920,12 +1884,12 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
     const short axis_type = gizmo_get_axis_type(axis_idx);
     /* XXX maybe unset _HIDDEN flag on redraw? */
     if (gizmo_is_axis_visible(rv3d, ggd->twtype, idot, axis_type, axis_idx)) {
-      if (calc_hidden) {
+      if (!is_modal) {
         WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, false);
       }
     }
     else {
-      if (calc_hidden) {
+      if (!is_modal) {
         WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, true);
       }
       continue;
@@ -1936,13 +1900,15 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
     WM_gizmo_set_color(axis, color);
     WM_gizmo_set_color_highlight(axis, color_hi);
 
-    switch (axis_idx) {
-      case MAN_AXIS_TRANS_C:
-      case MAN_AXIS_ROT_C:
-      case MAN_AXIS_SCALE_C:
-      case MAN_AXIS_ROT_T:
-        WM_gizmo_set_matrix_rotation_from_z_axis(axis, rv3d->viewinv[2]);
-        break;
+    if (!is_modal) {
+      switch (axis_idx) {
+        case MAN_AXIS_TRANS_C:
+        case MAN_AXIS_ROT_C:
+        case MAN_AXIS_SCALE_C:
+        case MAN_AXIS_ROT_T:
+          WM_gizmo_set_matrix_rotation_from_z_axis(axis, rv3d->viewinv[2]);
+          break;
+      }
     }
   }
   MAN_ITER_AXES_END;
@@ -2029,6 +1995,17 @@ static void WIDGETGROUP_gizmo_invoke_prepare(const bContext *C,
         RNA_property_boolean_set_array(ptr, prop_constraint_axis, constraint);
       }
     }
+  }
+  else if (ELEM(axis_idx, MAN_AXIS_ROT_X, MAN_AXIS_ROT_Y, MAN_AXIS_ROT_Z, MAN_AXIS_ROT_C)) {
+    gizmo_3d_dial_matrixbasis_calc(CTX_wm_region(C),
+                                   gz->matrix_basis[2],
+                                   gz->matrix_basis[3],
+                                   (float[2]){UNPACK2(event->mval)},
+                                   gz->matrix_basis);
+    PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "draw_options");
+    RNA_property_enum_set(
+        gz->ptr, prop, RNA_property_enum_get(gz->ptr, prop) | ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE);
+    RNA_float_set(gz->ptr, "incremental_angle", 0.0f);
   }
 }
 

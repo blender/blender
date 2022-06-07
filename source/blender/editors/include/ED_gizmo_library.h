@@ -225,24 +225,6 @@ enum {
 /* -------------------------------------------------------------------- */
 /* Specific gizmos utils */
 
-/* dial3d_gizmo.c */
-
-struct Dial3dParams {
-  int draw_options;
-  float angle_ofs;
-  float angle_delta;
-  float angle_increment;
-  float arc_partial_angle;
-  float arc_inner_factor;
-  float *clip_plane;
-};
-void ED_gizmotypes_dial_3d_draw_util(const float matrix_basis[4][4],
-                                     const float matrix_final[4][4],
-                                     float line_width,
-                                     const float color[4],
-                                     bool select,
-                                     struct Dial3dParams *params);
-
 /* snap3d_gizmo.c */
 
 struct SnapObjectContext *ED_gizmotypes_snap_3d_context_ensure(struct Scene *scene,
