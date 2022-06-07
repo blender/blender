@@ -3507,7 +3507,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
   WM_cursor_modal_set(win, WM_CURSOR_TEXT_EDIT);
 
 #ifdef WITH_INPUT_IME
-  if (is_num_but == false && BLT_lang_is_ime_supported()) {
+  if (!is_num_but) {
     ui_textedit_ime_begin(win, but);
   }
 #endif
@@ -3911,7 +3911,7 @@ static void ui_do_but_textedit(
 
     if ((event->ascii || event->utf8_buf[0]) && (retval == WM_UI_HANDLER_CONTINUE)
 #ifdef WITH_INPUT_IME
-        && !is_ime_composing && (!WM_event_is_ime_switch(event) || !BLT_lang_is_ime_supported())
+        && !is_ime_composing && !WM_event_is_ime_switch(event)
 #endif
     ) {
       char ascii = event->ascii;

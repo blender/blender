@@ -345,12 +345,3 @@ void BLT_lang_locale_explode(const char *locale,
     MEM_freeN(_t);
   }
 }
-
-bool BLT_lang_is_ime_supported(void)
-{
-#ifdef WITH_INPUT_IME
-  return true;
-#else
-  return false;
-#endif
-}
