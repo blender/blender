@@ -4,21 +4,23 @@
  * \ingroup editor/io
  */
 
-#include "BKE_context.h"
-#include "BKE_report.h"
+#ifdef WITH_IO_STL
 
-#include "WM_api.h"
-#include "WM_types.h"
+#  include "BKE_context.h"
+#  include "BKE_report.h"
 
-#include "DNA_space_types.h"
+#  include "WM_api.h"
+#  include "WM_types.h"
 
-#include "ED_outliner.h"
+#  include "DNA_space_types.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#  include "ED_outliner.h"
 
-#include "IO_stl.h"
-#include "io_stl_ops.h"
+#  include "RNA_access.h"
+#  include "RNA_define.h"
+
+#  include "IO_stl.h"
+#  include "io_stl_ops.h"
 
 static int wm_stl_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -127,3 +129,5 @@ void WM_OT_stl_import(struct wmOperatorType *ot)
   prop = RNA_def_string(ot->srna, "filter_glob", "*.stl", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
+
+#endif /* WITH_IO_STL */

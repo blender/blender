@@ -4,37 +4,39 @@
  * \ingroup editor/io
  */
 
-#include "DNA_space_types.h"
+#ifdef WITH_IO_WAVEFRONT_OBJ
 
-#include "BKE_context.h"
-#include "BKE_main.h"
-#include "BKE_report.h"
+#  include "DNA_space_types.h"
 
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#  include "BKE_context.h"
+#  include "BKE_main.h"
+#  include "BKE_report.h"
 
-#include "BLT_translation.h"
+#  include "BLI_path_util.h"
+#  include "BLI_string.h"
+#  include "BLI_utildefines.h"
 
-#include "ED_outliner.h"
+#  include "BLT_translation.h"
 
-#include "MEM_guardedalloc.h"
+#  include "ED_outliner.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#  include "MEM_guardedalloc.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#  include "RNA_access.h"
+#  include "RNA_define.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#  include "UI_interface.h"
+#  include "UI_resources.h"
 
-#include "DEG_depsgraph.h"
+#  include "WM_api.h"
+#  include "WM_types.h"
 
-#include "IO_orientation.h"
-#include "IO_path_util_types.h"
-#include "IO_wavefront_obj.h"
-#include "io_obj.h"
+#  include "DEG_depsgraph.h"
+
+#  include "IO_orientation.h"
+#  include "IO_path_util_types.h"
+#  include "IO_wavefront_obj.h"
+#  include "io_obj.h"
 
 static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
     {DAG_EVAL_RENDER, "DAG_EVAL_RENDER", 0, "Render", "Export objects as they appear in render"},
@@ -472,3 +474,5 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
   prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
+
+#endif /* WITH_IO_WAVEFRONT_OBJ */

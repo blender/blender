@@ -49,8 +49,6 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
-  bf_wavefront_obj
-  bf_stl
 )
 
 if(WITH_OPENCOLLADA)
@@ -58,6 +56,27 @@ if(WITH_OPENCOLLADA)
     bf_collada
   )
   add_definitions(-DWITH_COLLADA)
+endif()
+
+if(WITH_IO_WAVEFRONT_OBJ)
+  list(APPEND LIB
+    bf_wavefront_obj
+  )
+  add_definitions(-DWITH_IO_WAVEFRONT_OBJ)
+endif()
+
+if(WITH_IO_STL)
+  list(APPEND LIB
+    bf_stl
+  )
+  add_definitions(-DWITH_IO_STL)
+endif()
+
+if(WITH_IO_GPENCIL)
+  list(APPEND LIB
+    bf_gpencil
+  )
+  add_definitions(-DWITH_IO_GPENCIL)
 endif()
 
 if(WITH_ALEMBIC)
@@ -81,7 +100,5 @@ endif()
 if(WITH_HARU)
   add_definitions(-DWITH_HARU)
 endif()
-
-list(APPEND LIB bf_gpencil)
 
 blender_add_lib(bf_editor_io "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

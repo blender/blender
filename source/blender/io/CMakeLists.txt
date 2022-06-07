@@ -1,9 +1,21 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright 2020 Blender Foundation. All rights reserved.
 
-add_subdirectory(common)
-add_subdirectory(wavefront_obj)
-add_subdirectory(stl)
+if(WITH_IO_WAVEFRONT_OBJ OR WITH_IO_STL OR WITH_IO_GPENCIL OR WITH_ALEMBIC OR WITH_USD)
+  add_subdirectory(common)
+endif()
+
+if(WITH_IO_WAVEFRONT_OBJ)
+  add_subdirectory(wavefront_obj)
+endif()
+
+if(WITH_IO_STL)
+  add_subdirectory(stl)
+endif()
+
+if(WITH_IO_GPENCIL)
+  add_subdirectory(gpencil)
+endif()
 
 if(WITH_ALEMBIC)
   add_subdirectory(alembic)
@@ -20,5 +32,3 @@ endif()
 if(WITH_USD)
   add_subdirectory(usd)
 endif()
-
-add_subdirectory(gpencil)
