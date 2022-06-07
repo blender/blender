@@ -148,7 +148,7 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, int index)
 bool SCULPT_has_loop_colors(const Object *ob)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
 
   return layer && BKE_id_attribute_domain(&me->id, layer) == ATTR_DOMAIN_CORNER;
 }

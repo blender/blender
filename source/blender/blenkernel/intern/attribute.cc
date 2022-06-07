@@ -105,7 +105,7 @@ static CustomData *attribute_customdata_find(ID *id, CustomDataLayer *layer)
   return nullptr;
 }
 
-bool BKE_id_attributes_supported(ID *id)
+bool BKE_id_attributes_supported(const ID *id)
 {
   DomainInfo info[ATTR_DOMAIN_NUM];
   get_domains(id, info);
@@ -382,14 +382,14 @@ int BKE_id_attribute_data_length(ID *id, CustomDataLayer *layer)
   return 0;
 }
 
-bool BKE_id_attribute_required(ID *id, CustomDataLayer *layer)
+bool BKE_id_attribute_required(const ID *id, CustomDataLayer *layer)
 {
   switch (GS(id->name)) {
     case ID_PT: {
-      return BKE_pointcloud_customdata_required((PointCloud *)id, layer);
+      return BKE_pointcloud_customdata_required((const PointCloud *)id, layer);
     }
     case ID_CV: {
-      return BKE_curves_customdata_required((Curves *)id, layer);
+      return BKE_curves_customdata_required((const Curves *)id, layer);
     }
     default:
       return false;

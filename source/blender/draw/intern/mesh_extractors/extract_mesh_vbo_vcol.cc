@@ -73,10 +73,10 @@ namespace blender::draw {
 /* Initialize the common vertex format for vcol for coarse and subdivided meshes. */
 static void init_vcol_format(GPUVertFormat *format,
                              const MeshBatchCache *cache,
-                             CustomData *cd_vdata,
-                             CustomData *cd_ldata,
-                             CustomDataLayer *active,
-                             CustomDataLayer *render)
+                             const CustomData *cd_vdata,
+                             const CustomData *cd_ldata,
+                             const CustomDataLayer *active,
+                             const CustomDataLayer *render)
 {
   GPU_vertformat_deinterleave(format);
 
@@ -130,16 +130,18 @@ static void extract_vcol_init(const MeshRenderData *mr,
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   GPUVertFormat format = {0};
 
-  CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
-  CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
+  const CustomData *cd_vdata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata :
+                                                                        &mr->me->vdata;
+  const CustomData *cd_ldata = (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata :
+                                                                        &mr->me->ldata;
 
   Mesh me_query = blender::dna::shallow_zero_initialize();
 
   BKE_id_attribute_copy_domains_temp(
       ID_ME, cd_vdata, nullptr, cd_ldata, nullptr, nullptr, &me_query.id);
 
-  CustomDataLayer *active_color = BKE_id_attributes_active_color_get(&me_query.id);
-  CustomDataLayer *render_color = BKE_id_attributes_render_color_get(&me_query.id);
+  const CustomDataLayer *active_color = BKE_id_attributes_active_color_get(&me_query.id);
+  const CustomDataLayer *render_color = BKE_id_attributes_render_color_get(&me_query.id);
 
   const uint32_t vcol_layers = cache->cd_used.vcol;
   init_vcol_format(&format, cache, cd_vdata, cd_ldata, active_color, render_color);
@@ -152,7 +154,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
   blender::Vector<VColRef> refs = get_vcol_refs(cd_vdata, cd_ldata, vcol_layers);
 
   for (const VColRef &ref : refs) {
-    CustomData *cdata = ref.domain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata;
+    const CustomData *cdata = ref.domain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata;
 
     if (mr->extract_type == MR_EXTRACT_BMESH) {
       int cd_ofs = ref.layer->offset;
@@ -168,10 +170,10 @@ static void extract_vcol_init(const MeshRenderData *mr,
 
       BMFace *f;
       BM_ITER_MESH (f, &iter, mr->bm, BM_FACES_OF_MESH) {
-        BMLoop *l_iter = f->l_first;
+        const BMLoop *l_iter = f->l_first;
         do {
-          BMElem *elem = is_point ? reinterpret_cast<BMElem *>(l_iter->v) :
-                                    reinterpret_cast<BMElem *>(l_iter);
+          const BMElem *elem = is_point ? reinterpret_cast<const BMElem *>(l_iter->v) :
+                                          reinterpret_cast<const BMElem *>(l_iter);
           if (is_byte) {
             const MLoopCol *mloopcol = (const MLoopCol *)BM_ELEM_CD_GET_VOID_P(elem, cd_ofs);
             vcol_data->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mloopcol->r]);
@@ -193,17 +195,17 @@ static void extract_vcol_init(const MeshRenderData *mr,
     }
     else {
       int totloop = mr->loop_len;
-      int idx = CustomData_get_named_layer_index(cdata, ref.layer->type, ref.layer->name);
+      const int idx = CustomData_get_named_layer_index(cdata, ref.layer->type, ref.layer->name);
 
-      MLoopCol *mcol = nullptr;
-      MPropCol *pcol = nullptr;
+      const MLoopCol *mcol = nullptr;
+      const MPropCol *pcol = nullptr;
       const MLoop *mloop = mr->mloop;
 
       if (ref.layer->type == CD_PROP_COLOR) {
-        pcol = static_cast<MPropCol *>(cdata->layers[idx].data);
+        pcol = static_cast<const MPropCol *>(cdata->layers[idx].data);
       }
       else {
-        mcol = static_cast<MLoopCol *>(cdata->layers[idx].data);
+        mcol = static_cast<const MLoopCol *>(cdata->layers[idx].data);
       }
 
       const bool is_corner = ref.domain == ATTR_DOMAIN_CORNER;
@@ -251,8 +253,8 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
   BKE_id_attribute_copy_domains_temp(
       ID_ME, cd_vdata, nullptr, cd_ldata, nullptr, nullptr, &me_query.id);
 
-  CustomDataLayer *active_color = BKE_id_attributes_active_color_get(&me_query.id);
-  CustomDataLayer *render_color = BKE_id_attributes_render_color_get(&me_query.id);
+  const CustomDataLayer *active_color = BKE_id_attributes_active_color_get(&me_query.id);
+  const CustomDataLayer *render_color = BKE_id_attributes_render_color_get(&me_query.id);
 
   GPUVertFormat format = {0};
   init_vcol_format(
@@ -299,14 +301,15 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
       const bool is_byte = ref.layer->type == CD_PROP_BYTE_COLOR;
 
       BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-        BMLoop *l_iter = f->l_first;
+        const BMLoop *l_iter = f->l_first;
 
         do {
-          BMElem *elem = is_vert ? reinterpret_cast<BMElem *>(l_iter->v) :
-                                   reinterpret_cast<BMElem *>(l_iter);
+          const BMElem *elem = is_vert ? reinterpret_cast<const BMElem *>(l_iter->v) :
+                                         reinterpret_cast<const BMElem *>(l_iter);
 
           if (is_byte) {
-            MLoopCol *mcol2 = static_cast<MLoopCol *>(BM_ELEM_CD_GET_VOID_P(elem, cd_ofs));
+            const MLoopCol *mcol2 = static_cast<const MLoopCol *>(
+                BM_ELEM_CD_GET_VOID_P(elem, cd_ofs));
 
             vcol->r = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol2->r]);
             vcol->g = unit_float_to_ushort_clamp(BLI_color_from_srgb_table[mcol2->g]);
@@ -314,7 +317,8 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
             vcol->a = unit_float_to_ushort_clamp(mcol2->a * (1.0f / 255.0f));
           }
           else {
-            MPropCol *pcol2 = static_cast<MPropCol *>(BM_ELEM_CD_GET_VOID_P(elem, cd_ofs));
+            const MPropCol *pcol2 = static_cast<const MPropCol *>(
+                BM_ELEM_CD_GET_VOID_P(elem, cd_ofs));
 
             vcol->r = unit_float_to_ushort_clamp(pcol2->color[0]);
             vcol->g = unit_float_to_ushort_clamp(pcol2->color[1]);
@@ -328,14 +332,14 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
     }
     else {
       const MLoop *ml = coarse_mesh->mloop;
-      MLoopCol *mcol = nullptr;
-      MPropCol *pcol = nullptr;
+      const MLoopCol *mcol = nullptr;
+      const MPropCol *pcol = nullptr;
 
       if (ref.layer->type == CD_PROP_COLOR) {
-        pcol = static_cast<MPropCol *>(cdata->layers[layer_i].data);
+        pcol = static_cast<const MPropCol *>(cdata->layers[layer_i].data);
       }
       else {
-        mcol = static_cast<MLoopCol *>(cdata->layers[layer_i].data);
+        mcol = static_cast<const MLoopCol *>(cdata->layers[layer_i].data);
       }
 
       for (int ml_index = 0; ml_index < coarse_mesh->totloop; ml_index++, vcol++, ml++) {

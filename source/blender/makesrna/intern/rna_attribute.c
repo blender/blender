@@ -538,7 +538,7 @@ static void rna_AttributeGroup_active_color_set(PointerRNA *ptr,
 
 static int rna_AttributeGroup_active_color_index_get(PointerRNA *ptr)
 {
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(ptr->owner_id);
+  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(ptr->owner_id);
 
   return BKE_id_attribute_to_index(
       ptr->owner_id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);

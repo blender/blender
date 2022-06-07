@@ -44,9 +44,9 @@ namespace blender::ed::geometry {
 
 static bool geometry_attributes_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
-  Main *bmain = CTX_data_main(C);
-  ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
+  const Object *ob = ED_object_context(C);
+  const Main *bmain = CTX_data_main(C);
+  const ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
   return (ob && BKE_id_is_editable(bmain, &ob->id) && data && BKE_id_is_editable(bmain, data)) &&
          BKE_id_attributes_supported(data);
 }
@@ -106,7 +106,7 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void next_color_attribute(struct ID *id, CustomDataLayer *layer, bool is_render)
+static void next_color_attribute(ID *id, CustomDataLayer *layer, bool is_render)
 {
   int index = BKE_id_attribute_to_index(id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 
@@ -129,7 +129,7 @@ static void next_color_attribute(struct ID *id, CustomDataLayer *layer, bool is_
   }
 }
 
-static void next_color_attributes(struct ID *id, CustomDataLayer *layer)
+static void next_color_attributes(ID *id, CustomDataLayer *layer)
 {
   next_color_attribute(id, layer, false); /* active */
   next_color_attribute(id, layer, true);  /* render */

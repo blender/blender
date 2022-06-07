@@ -1465,7 +1465,7 @@ static bool sculpt_attribute_ref_equals(SculptAttrRef *a, SculptAttrRef *b)
 static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
-  CustomDataLayer *layer;
+  const CustomDataLayer *layer;
 
   if (ob && me && (layer = BKE_id_attributes_active_color_get((ID *)me))) {
     attr->domain = BKE_id_attribute_domain((ID *)me, layer);

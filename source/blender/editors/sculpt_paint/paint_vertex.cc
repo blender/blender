@@ -139,7 +139,7 @@ struct NormalAnglePrecalc {
 /* Returns number of elements. */
 static int get_vcol_elements(Mesh *me, size_t *r_elem_size)
 {
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
   eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
 
   if (r_elem_size) {

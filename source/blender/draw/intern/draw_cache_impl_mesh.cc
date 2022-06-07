@@ -353,7 +353,7 @@ static void mesh_cd_calc_active_mloopcol_layer(const Object *object,
 
   BKE_id_attribute_copy_domains_temp(ID_ME, cd_vdata, NULL, cd_ldata, NULL, NULL, &me_query.id);
 
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me_query.id);
+  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me_query.id);
   int layer_i = BKE_id_attribute_to_index(
       &me_query.id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 
@@ -367,7 +367,7 @@ static uint mesh_cd_calc_gpu_layers_vcol_used(const Mesh *me_query,
                                               const CustomData *cd_ldata,
                                               const char name[])
 {
-  CustomDataLayer *layer = NULL;
+  const CustomDataLayer *layer = NULL;
   eAttrDomain domain;
 
   if (name[0]) {
@@ -1089,8 +1089,8 @@ static void sculpt_request_active_vcol(MeshBatchCache *cache, Object *object, Me
   Mesh me_query = blender::dna::shallow_zero_initialize();
   BKE_id_attribute_copy_domains_temp(ID_ME, cd_vdata, NULL, cd_ldata, NULL, NULL, &me_query.id);
 
-  CustomDataLayer *active = BKE_id_attributes_active_color_get(&me_query.id);
-  CustomDataLayer *render = BKE_id_attributes_render_color_get(&me_query.id);
+  const CustomDataLayer *active = BKE_id_attributes_active_color_get(&me_query.id);
+  const CustomDataLayer *render = BKE_id_attributes_render_color_get(&me_query.id);
 
   int active_i = BKE_id_attribute_to_index(
       &me_query.id, active, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);

@@ -50,7 +50,7 @@ typedef enum eAttrDomainMask {
 
 /* Attributes. */
 
-bool BKE_id_attributes_supported(struct ID *id);
+bool BKE_id_attributes_supported(const struct ID *id);
 bool BKE_attribute_allow_procedural_access(const char *attribute_name);
 
 /**
@@ -74,7 +74,7 @@ struct CustomDataLayer *BKE_id_attribute_search(const struct ID *id,
 
 eAttrDomain BKE_id_attribute_domain(const struct ID *id, const struct CustomDataLayer *layer);
 int BKE_id_attribute_data_length(struct ID *id, struct CustomDataLayer *layer);
-bool BKE_id_attribute_required(struct ID *id, struct CustomDataLayer *layer);
+bool BKE_id_attribute_required(const struct ID *id, struct CustomDataLayer *layer);
 bool BKE_id_attribute_rename(struct ID *id,
                              struct CustomDataLayer *layer,
                              const char *new_name,
