@@ -539,10 +539,11 @@ static int gizmo_dial_modal(bContext *C,
 static void gizmo_dial_exit(bContext *C, wmGizmo *gz, const bool cancel)
 {
   DialInteraction *inter = gz->interaction_data;
-  bool use_reset_value = false;
-  float reset_value = 0.0f;
-  if (cancel) {
-    if (inter) {
+  if (inter) {
+    bool use_reset_value = false;
+    float reset_value = 0.0f;
+
+    if (cancel) {
       /* Set the property for the operator and call its modal function. */
       wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
       if (WM_gizmo_target_property_is_valid(gz_prop)) {
@@ -550,21 +551,21 @@ static void gizmo_dial_exit(bContext *C, wmGizmo *gz, const bool cancel)
         reset_value = inter->init.prop_angle;
       }
     }
-  }
-  else {
-    if (inter->has_drag == false) {
-      PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "click_value");
-      if (RNA_property_is_set(gz->ptr, prop)) {
-        use_reset_value = true;
-        reset_value = RNA_property_float_get(gz->ptr, prop);
+    else {
+      if (inter->has_drag == false) {
+        PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "click_value");
+        if (RNA_property_is_set(gz->ptr, prop)) {
+          use_reset_value = true;
+          reset_value = RNA_property_float_get(gz->ptr, prop);
+        }
       }
     }
-  }
 
-  if (use_reset_value) {
-    wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
-    if (WM_gizmo_target_property_is_valid(gz_prop)) {
-      WM_gizmo_target_property_float_set(C, gz, gz_prop, reset_value);
+    if (use_reset_value) {
+      wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+      if (WM_gizmo_target_property_is_valid(gz_prop)) {
+        WM_gizmo_target_property_float_set(C, gz, gz_prop, reset_value);
+      }
     }
   }
 
