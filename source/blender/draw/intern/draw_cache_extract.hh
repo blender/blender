@@ -196,8 +196,8 @@ struct MeshBatchList {
 };
 
 #define MBC_BATCH_LEN (sizeof(MeshBatchList) / sizeof(void *))
-#define MBC_VBO_LEN (sizeof((MeshBufferList{0}).vbo) / sizeof(void *))
-#define MBC_IBO_LEN (sizeof((MeshBufferList{0}).ibo) / sizeof(void *))
+#define MBC_VBO_LEN (sizeof(MeshBufferList::vbo) / sizeof(void *))
+#define MBC_IBO_LEN (sizeof(MeshBufferList::ibo) / sizeof(void *))
 
 #define MBC_BATCH_INDEX(batch) (offsetof(MeshBatchList, batch) / sizeof(void *))
 
