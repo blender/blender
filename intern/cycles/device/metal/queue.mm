@@ -37,6 +37,61 @@ MetalDeviceQueue::MetalDeviceQueue(MetalDevice *device)
   }
 
   wait_semaphore = dispatch_semaphore_create(0);
+
+  if (@available(macos 10.14, *)) {
+    if (getenv("CYCLES_METAL_PROFILING")) {
+      /* Enable per-kernel timing breakdown (shown at end of render). */
+      timing_shared_event = [mtlDevice newSharedEvent];
+    }
+    if (getenv("CYCLES_METAL_DEBUG")) {
+      /* Enable very verbose tracing (shows every dispatch). */
+      verbose_tracing = true;
+    }
+    timing_shared_event_id = 1;
+  }
+
+  capture_kernel = DeviceKernel(-1);
+  if (auto capture_kernel_str = getenv("CYCLES_DEBUG_METAL_CAPTURE_KERNEL")) {
+    /* Enable .gputrace capture for the specified DeviceKernel. */
+    MTLCaptureManager *captureManager = [MTLCaptureManager sharedCaptureManager];
+    mtlCaptureScope = [captureManager newCaptureScopeWithDevice:mtlDevice];
+    mtlCaptureScope.label = [NSString stringWithFormat:@"Cycles kernel dispatch"];
+    [captureManager setDefaultCaptureScope:mtlCaptureScope];
+
+    capture_dispatch = -1;
+    if (auto capture_dispatch_str = getenv("CYCLES_DEBUG_METAL_CAPTURE_DISPATCH")) {
+      capture_dispatch = atoi(capture_dispatch_str);
+      capture_dispatch_counter = 0;
+    }
+
+    capture_kernel = DeviceKernel(atoi(capture_kernel_str));
+    printf("Capture kernel: %d = %s\n", capture_kernel, device_kernel_as_string(capture_kernel));
+
+    if (auto capture_url = getenv("CYCLES_DEBUG_METAL_CAPTURE_URL")) {
+      if (@available(macos 10.15, *)) {
+        if ([captureManager supportsDestination:MTLCaptureDestinationGPUTraceDocument]) {
+
+          MTLCaptureDescriptor *captureDescriptor = [[MTLCaptureDescriptor alloc] init];
+          captureDescriptor.captureObject = mtlCaptureScope;
+          captureDescriptor.destination = MTLCaptureDestinationGPUTraceDocument;
+          captureDescriptor.outputURL = [NSURL fileURLWithPath:@(capture_url)];
+
+          NSError *error;
+          if (![captureManager startCaptureWithDescriptor:captureDescriptor error:&error]) {
+            NSString *err = [error localizedDescription];
+            printf("Start capture failed: %s\n", [err UTF8String]);
+          }
+          else {
+            printf("Capture started (URL: %s)\n", capture_url);
+            is_capturing_to_disk = true;
+          }
+        }
+        else {
+          printf("Capture to file is not supported\n");
+        }
+      }
+    }
+  }
 }
 
 MetalDeviceQueue::~MetalDeviceQueue()
@@ -57,6 +112,56 @@ MetalDeviceQueue::~MetalDeviceQueue()
   if (mtlCommandQueue) {
     [mtlCommandQueue release];
     mtlCommandQueue = nil;
+  }
+
+  if (mtlCaptureScope) {
+    [mtlCaptureScope release];
+  }
+
+  double total_time = 0.0;
+
+  /* Show per-kernel timings, if gathered (see CYCLES_METAL_PROFILING). */
+  int64_t total_work_size = 0;
+  int64_t num_dispatches = 0;
+  for (auto &stat : timing_stats) {
+    total_time += stat.total_time;
+    total_work_size += stat.total_work_size;
+    num_dispatches += stat.num_dispatches;
+  }
+
+  if (num_dispatches) {
+    printf("\nMetal dispatch stats:\n\n");
+    auto header = string_printf("%-40s %16s %12s %12s %7s %7s",
+                                "Kernel name",
+                                "Total threads",
+                                "Dispatches",
+                                "Avg. T/D",
+                                "Time",
+                                "Time%");
+    auto divider = string(header.length(), '-');
+    printf("%s\n%s\n%s\n", divider.c_str(), header.c_str(), divider.c_str());
+
+    for (size_t i = 0; i < DEVICE_KERNEL_NUM; i++) {
+      auto &stat = timing_stats[i];
+      if (stat.num_dispatches > 0) {
+        printf("%-40s %16s %12s %12s %6.2fs %6.2f%%\n",
+               device_kernel_as_string(DeviceKernel(i)),
+               string_human_readable_number(stat.total_work_size).c_str(),
+               string_human_readable_number(stat.num_dispatches).c_str(),
+               string_human_readable_number(stat.total_work_size / stat.num_dispatches).c_str(),
+               stat.total_time,
+               stat.total_time * 100.0 / total_time);
+      }
+    }
+    printf("%s\n", divider.c_str());
+    printf("%-40s %16s %12s %12s %6.2fs %6.2f%%\n",
+           "",
+           "",
+           string_human_readable_number(num_dispatches).c_str(),
+           "",
+           total_time,
+           100.0);
+    printf("%s\n\n", divider.c_str());
   }
 }
 
@@ -101,6 +206,19 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
                                const int work_size,
                                DeviceKernelArguments const &args)
 {
+  if (kernel == capture_kernel) {
+    if (capture_dispatch < 0 || capture_dispatch == capture_dispatch_counter) {
+      /* Start gputrace capture. */
+      if (mtlCommandBuffer) {
+        synchronize();
+      }
+      [mtlCaptureScope beginScope];
+      printf("[mtlCaptureScope beginScope]\n");
+      is_capturing = true;
+    }
+    capture_dispatch_counter += 1;
+  }
+
   if (metal_device->have_error()) {
     return false;
   }
@@ -109,6 +227,10 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
           << work_size;
 
   id<MTLComputeCommandEncoder> mtlComputeCommandEncoder = get_compute_encoder(kernel);
+
+  if (timing_shared_event) {
+    command_encoder_labels.push_back({kernel, work_size, timing_shared_event_id});
+  }
 
   /* Determine size requirement for argument buffer. */
   size_t arg_buffer_length = 0;
@@ -189,6 +311,14 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
   /* Encode KernelParamsMetal buffers */
   [metal_device->mtlBufferKernelParamsEncoder setArgumentBuffer:arg_buffer offset:globals_offsets];
 
+  if (verbose_tracing || timing_shared_event || is_capturing) {
+    /* Add human-readable labels if we're doing any form of debugging / profiling. */
+    mtlComputeCommandEncoder.label = [[NSString alloc]
+        initWithFormat:@"Metal queue launch %s, work_size %d",
+                       device_kernel_as_string(kernel),
+                       work_size];
+  }
+
   /* this relies on IntegratorStateGPU layout being contiguous device_ptrs  */
   const size_t pointer_block_end = offsetof(KernelParamsMetal, __integrator_state) +
                                    sizeof(IntegratorStateGPU);
@@ -196,7 +326,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
     int pointer_index = offset / sizeof(device_ptr);
     MetalDevice::MetalMem *mmem = *(
         MetalDevice::MetalMem **)((uint8_t *)&metal_device->launch_params + offset);
-    if (mmem && (mmem->mtlBuffer || mmem->mtlTexture)) {
+    if (mmem && mmem->mem && (mmem->mtlBuffer || mmem->mtlTexture)) {
       [metal_device->mtlBufferKernelParamsEncoder setBuffer:mmem->mtlBuffer
                                                      offset:0
                                                     atIndex:pointer_index];
@@ -344,12 +474,53 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
     }
   }];
 
+  if (verbose_tracing || is_capturing) {
+    /* Force a sync we've enabled step-by-step verbose tracing or if we're capturing. */
+    synchronize();
+
+    /* Show queue counters and dispatch timing. */
+    if (verbose_tracing) {
+      if (kernel == DEVICE_KERNEL_INTEGRATOR_RESET) {
+        printf(
+            "_____________________________________.____________________.______________.___________"
+            "______________________________________\n");
+      }
+
+      printf("%-40s| %7d threads |%5.2fms | buckets [",
+             device_kernel_as_string(kernel),
+             work_size,
+             last_completion_time * 1000.0);
+      std::lock_guard<std::recursive_mutex> lock(metal_device->metal_mem_map_mutex);
+      for (auto &it : metal_device->metal_mem_map) {
+        const string c_integrator_queue_counter = "integrator_queue_counter";
+        if (it.first->name == c_integrator_queue_counter) {
+          /* Workaround "device_copy_from" being protected. */
+          struct MyDeviceMemory : device_memory {
+            void device_copy_from__IntegratorQueueCounter()
+            {
+              device_copy_from(0, data_width, 1, sizeof(IntegratorQueueCounter));
+            }
+          };
+          ((MyDeviceMemory *)it.first)->device_copy_from__IntegratorQueueCounter();
+
+          if (IntegratorQueueCounter *queue_counter = (IntegratorQueueCounter *)
+                                                          it.first->host_pointer) {
+            for (int i = 0; i < DEVICE_KERNEL_INTEGRATOR_NUM; i++)
+              printf("%s%d", i == 0 ? "" : ",", int(queue_counter->num_queued[i]));
+          }
+          break;
+        }
+      }
+      printf("]\n");
+    }
+  }
+
   return !(metal_device->have_error());
 }
 
 bool MetalDeviceQueue::synchronize()
 {
-  if (metal_device->have_error()) {
+  if (has_captured_to_disk || metal_device->have_error()) {
     return false;
   }
 
@@ -359,6 +530,28 @@ bool MetalDeviceQueue::synchronize()
   close_blit_encoder();
 
   if (mtlCommandBuffer) {
+    scoped_timer timer;
+    if (timing_shared_event) {
+      /* For per-kernel timing, add event handlers to measure & accumulate dispatch times. */
+      __block double completion_time = 0;
+      for (uint64_t i = command_buffer_start_timing_id; i < timing_shared_event_id; i++) {
+        [timing_shared_event notifyListener:shared_event_listener
+                                    atValue:i
+                                      block:^(id<MTLSharedEvent> sharedEvent, uint64_t value) {
+                                        completion_time = timer.get_time() - completion_time;
+                                        last_completion_time = completion_time;
+                                        for (auto label : command_encoder_labels) {
+                                          if (label.timing_id == value) {
+                                            TimingStats &stat = timing_stats[label.kernel];
+                                            stat.num_dispatches++;
+                                            stat.total_time += completion_time;
+                                            stat.total_work_size += label.work_size;
+                                          }
+                                        }
+                                      }];
+      }
+    }
+
     uint64_t shared_event_id = this->shared_event_id++;
 
     if (@available(macos 10.14, *)) {
@@ -374,6 +567,22 @@ bool MetalDeviceQueue::synchronize()
       dispatch_semaphore_wait(wait_semaphore, DISPATCH_TIME_FOREVER);
     }
 
+    if (is_capturing) {
+      [mtlCaptureScope endScope];
+      is_capturing = false;
+      printf("[mtlCaptureScope endScope]\n");
+
+      if (is_capturing_to_disk) {
+        if (@available(macos 10.15, *)) {
+          [[MTLCaptureManager sharedCaptureManager] stopCapture];
+          has_captured_to_disk = true;
+          is_capturing_to_disk = false;
+          is_capturing = false;
+          printf("Capture stopped\n");
+        }
+      }
+    }
+
     [mtlCommandBuffer release];
 
     for (const CopyBack &mmem : copy_back_mem) {
@@ -385,6 +594,7 @@ bool MetalDeviceQueue::synchronize()
     metal_device->flush_delayed_free_list();
 
     mtlCommandBuffer = nil;
+    command_encoder_labels.clear();
   }
 
   return !(metal_device->have_error());
@@ -530,6 +740,13 @@ id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel 
 {
   bool concurrent = (kernel < DEVICE_KERNEL_INTEGRATOR_NUM);
 
+  if (timing_shared_event) {
+    /* Close the current encoder to ensure we're able to capture per-encoder timing data. */
+    if (mtlComputeEncoder) {
+      close_compute_encoder();
+    }
+  }
+
   if (@available(macos 10.14, *)) {
     if (mtlComputeEncoder) {
       if (mtlComputeEncoder.dispatchType == concurrent ? MTLDispatchTypeConcurrent :
@@ -575,6 +792,7 @@ id<MTLBlitCommandEncoder> MetalDeviceQueue::get_blit_encoder()
   if (!mtlCommandBuffer) {
     mtlCommandBuffer = [mtlCommandQueue commandBuffer];
     [mtlCommandBuffer retain];
+    command_buffer_start_timing_id = timing_shared_event_id;
   }
 
   mtlBlitEncoder = [mtlCommandBuffer blitCommandEncoder];
@@ -585,6 +803,10 @@ void MetalDeviceQueue::close_compute_encoder()
 {
   [mtlComputeEncoder endEncoding];
   mtlComputeEncoder = nil;
+
+  if (timing_shared_event) {
+    [mtlCommandBuffer encodeSignalEvent:timing_shared_event value:timing_shared_event_id++];
+  }
 }
 
 void MetalDeviceQueue::close_blit_encoder()

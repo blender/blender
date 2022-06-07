@@ -14,6 +14,8 @@
 
 #  include "util/thread.h"
 
+#  define metal_printf VLOG(4) << string_printf
+
 CCL_NAMESPACE_BEGIN
 
 enum MetalGPUVendor {
