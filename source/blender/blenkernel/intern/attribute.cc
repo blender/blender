@@ -138,8 +138,10 @@ bool BKE_id_attribute_rename(ID *id,
     return false;
   }
 
-  BLI_strncpy_utf8(layer->name, new_name, sizeof(layer->name));
-  CustomData_set_layer_unique_name(customdata, layer - customdata->layers);
+  char result_name[MAX_CUSTOMDATA_LAYER_NAME];
+  BKE_id_attribute_calc_unique_name(id, new_name, result_name);
+  BLI_strncpy_utf8(layer->name, result_name, sizeof(layer->name));
+
   return true;
 }
 
