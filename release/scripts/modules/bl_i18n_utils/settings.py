@@ -56,7 +56,7 @@ LANGUAGES = (
     (21, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"),
     (22, "Bulgarian (Български)", "bg_BG"),
     (23, "Greek (Ελληνικά)", "el_GR"),
-    (24, "Korean (한국 언어)", "ko_KR"),
+    (24, "Korean (한국어)", "ko_KR"),
     (25, "Nepali (नेपाली)", "ne_NP"),
     # Using the utf8 flipped form of Persian (فارسی).
     (26, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"),
