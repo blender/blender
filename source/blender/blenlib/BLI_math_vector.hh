@@ -159,6 +159,26 @@ inline T safe_mod(const vec_base<T, Size> &a, const T &b)
   return result;
 }
 
+template<typename T, int Size, BLI_ENABLE_IF((is_math_integral_type<T>))>
+inline vec_base<T, Size> ceil_to_multiple(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+{
+  vec_base<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = ((a[i] + b[i] - 1) / b[i]) * b[i];
+  }
+  return result;
+}
+
+template<typename T, int Size, BLI_ENABLE_IF((is_math_integral_type<T>))>
+inline vec_base<T, Size> divide_ceil(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+{
+  vec_base<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = (a[i] + b[i] - 1) / b[i];
+  }
+  return result;
+}
+
 template<typename T, int Size>
 inline void min_max(const vec_base<T, Size> &vector,
                     vec_base<T, Size> &min,
