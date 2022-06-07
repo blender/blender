@@ -302,7 +302,7 @@ CustomDataLayer *BKE_id_attribute_search(const ID *id,
 
     CustomData *customdata = info[domain].customdata;
     if (customdata == NULL) {
-      return NULL;
+      continue;
     }
 
     for (int i = 0; i < customdata->totlayer; i++) {
