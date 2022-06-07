@@ -133,7 +133,7 @@ TEST_F(obj_importer_test, import_cube)
 {
   Expectation expect[] = {
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBNew object",
+      {"OBcube",
        OB_MESH,
        8,
        12,
@@ -168,7 +168,7 @@ TEST_F(obj_importer_test, import_nurbs)
 {
   Expectation expect[] = {
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBNew object",
+      {"OBnurbs",
        OB_CURVES_LEGACY,
        12,
        0,
@@ -184,7 +184,7 @@ TEST_F(obj_importer_test, import_nurbs_curves)
 {
   Expectation expect[] = {
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBNew object", OB_CURVES_LEGACY, 4, 0, 4, 0, float3(2, -2, 0), float3(-2, -2, 0)},
+      {"OBnurbs_curves", OB_CURVES_LEGACY, 4, 0, 4, 0, float3(2, -2, 0), float3(-2, -2, 0)},
       {"OBNurbsCurveDiffWeights",
        OB_CURVES_LEGACY,
        4,
@@ -211,7 +211,7 @@ TEST_F(obj_importer_test, import_nurbs_cyclic)
 {
   Expectation expect[] = {
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBNew object",
+      {"OBnurbs_cyclic",
        OB_CURVES_LEGACY,
        31,
        0,
@@ -262,7 +262,7 @@ TEST_F(obj_importer_test, import_materials)
 {
   Expectation expect[] = {
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBNew object", OB_MESH, 8, 12, 6, 24, float3(-1, -1, 1), float3(1, -1, -1)},
+      {"OBmaterials", OB_MESH, 8, 12, 6, 24, float3(-1, -1, 1), float3(1, -1, -1)},
   };
   import_and_check("materials.obj", expect, std::size(expect), 4);
 }
