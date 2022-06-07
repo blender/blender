@@ -2490,6 +2490,7 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
       return OPERATOR_CANCELLED;
 
     case EVT_LEFTCTRLKEY:
+    case EVT_RIGHTCTRLKEY:
       sd->do_snap = event->val == KM_PRESS;
       update_factor = true;
       break;
