@@ -35,7 +35,7 @@ typedef struct CurvesEvalFinalCache {
   GPUVertBuf *proc_buf;
   GPUTexture *proc_tex;
 
-  /**Just contains a huge index buffer used to draw the final curves. */
+  /** Just contains a huge index buffer used to draw the final curves. */
   GPUBatch *proc_hairs[MAX_THICKRES];
 
   /** Points per curve, at least 2. */

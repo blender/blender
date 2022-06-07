@@ -1480,9 +1480,9 @@ static void ui_multibut_states_create(uiBut *but_active, uiHandleButtonData *dat
     }
   }
 
-  /* edit buttons proportionally to eachother
+  /* Edit buttons proportionally to each other.
    * NOTE: if we mix buttons which are proportional and others which are not,
-   * this may work a bit strangely */
+   * this may work a bit strangely. */
   if ((but_active->rnaprop && (RNA_property_flag(but_active->rnaprop) & PROP_PROPORTIONAL)) ||
       ELEM(but_active->unit_type, RNA_SUBTYPE_UNIT_VALUE(PROP_UNIT_LENGTH))) {
     if (data->origvalue != 0.0) {

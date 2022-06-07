@@ -136,7 +136,7 @@ bool is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], 
 bool is_poly_convex_v2(const float verts[][2], unsigned int nr);
 /**
  * Check if either of the diagonals along this quad create flipped triangles
- * (normals pointing away from eachother).
+ * (normals pointing away from each other).
  * - (1 << 0): (v1-v3) is flipped.
  * - (1 << 1): (v2-v4) is flipped.
  */

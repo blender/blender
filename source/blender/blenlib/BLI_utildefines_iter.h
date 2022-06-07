@@ -21,7 +21,7 @@
  * (100, 3) ->   [16, 49, 83]
  * (100, 100) -> [0..99]
  * </pre>
- * \note this is mainly useful for numbers that might not divide evenly into eachother.
+ * \note this is mainly useful for numbers that might not divide evenly into each other.
  */
 #define BLI_FOREACH_SPARSE_RANGE(src, dst, i) \
   for (int _src = (src), _src2 = _src * 2, _dst2 = (dst)*2, _error = _dst2 - _src, i = 0, _delta; \

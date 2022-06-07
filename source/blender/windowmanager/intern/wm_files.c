@@ -1096,7 +1096,7 @@ void wm_homefile_read_ex(bContext *C,
   const bool reset_app_template = ((!app_template && U.app_template[0]) ||
                                    (app_template && !STREQ(app_template, U.app_template)));
 
-  /* options exclude eachother */
+  /* Options exclude each other. */
   BLI_assert((use_factory_settings && filepath_startup_override) == 0);
 
   if ((G.f & G_FLAG_SCRIPT_OVERRIDE_PREF) == 0) {

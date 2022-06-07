@@ -1147,7 +1147,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
               }
 
               if (axis_delta == 0.0f) {
-                /* both mirrored bones exist and point to eachother and overlap exactly.
+                /* Both mirrored bones exist and point to each other and overlap exactly.
                  *
                  * in this case there's no well defined solution, so de-select both and skip.
                  */
