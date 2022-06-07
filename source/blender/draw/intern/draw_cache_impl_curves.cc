@@ -52,11 +52,14 @@ struct CurvesBatchCache {
 
   GPUBatch *edit_points;
 
-  /* To determine if cache is invalid. */
+  /* Whether the cache is invalid. */
   bool is_dirty;
 
-  /** Needed when updating material data (e.g. attributes) as the same curves might be used for
-   * multiple objects with different materials. */
+  /**
+   * The draw cache extraction is currently not multi-threaded for multiple objects, but if it was,
+   * some locking would be necessary because multiple objects can use the same curves data with
+   * different materials, etc. This is a placeholder to make multi-threading easier in the future.
+   */
   ThreadMutex render_mutex;
 };
 
