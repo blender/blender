@@ -99,12 +99,9 @@ struct CombOperationExecutor {
   float2 brush_pos_prev_re_;
   float2 brush_pos_re_;
   float2 brush_pos_diff_re_;
-  float brush_pos_diff_length_re_;
 
   float4x4 curves_to_world_mat_;
   float4x4 world_to_curves_mat_;
-  float4x4 surface_to_world_mat_;
-  float4x4 world_to_surface_mat_;
 
   CombOperationExecutor(const bContext &C) : ctx_(C)
   {
@@ -141,7 +138,6 @@ struct CombOperationExecutor {
     brush_pos_prev_re_ = self_->brush_pos_last_re_;
     brush_pos_re_ = stroke_extension.mouse_position;
     brush_pos_diff_re_ = brush_pos_re_ - brush_pos_prev_re_;
-    brush_pos_diff_length_re_ = math::length(brush_pos_diff_re_);
 
     if (stroke_extension.is_first) {
       if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
