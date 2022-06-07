@@ -463,6 +463,7 @@ def _template_items_tool_select(
         # Always use the cursor operator where possible,
         # needed for time-line views where we always want to be able to scrub time.
         cursor_prioritize=False,
+        operator_props=(),
         fallback=False,
 ):
     if not params.legacy and not fallback:
@@ -479,11 +480,11 @@ def _template_items_tool_select(
         if select_passthrough:
             return [
                 (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
-                 {"properties": [("deselect_all", True), ("select_passthrough", True)]}),
+                 {"properties": [("deselect_all", True), ("select_passthrough", True), *operator_props]}),
                 (operator, {"type": 'LEFTMOUSE', "value": 'CLICK'},
-                 {"properties": [("deselect_all", True)]}),
+                 {"properties": [("deselect_all", True), *operator_props]}),
                 (operator, {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
-                 {"properties": [("deselect_all", False), ("toggle", True)]}),
+                 {"properties": [("deselect_all", False), ("toggle", True), *operator_props]}),
                 ("transform.translate", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
                  {"properties": [("release_confirm", True)]}),
             ]
@@ -497,9 +498,9 @@ def _template_items_tool_select(
         # the tool without selecting elements under the cursor.
         return [
             (operator, {"type": 'LEFTMOUSE', "value": 'CLICK' if fallback else 'PRESS'},
-             {"properties": [("deselect_all", True)]}),
+             {"properties": [("deselect_all", True), *operator_props]}),
             (operator, {"type": 'LEFTMOUSE', "value": 'CLICK' if fallback else 'PRESS', "shift": True},
-             {"properties": [("toggle", True)]}),
+             {"properties": [("toggle", True), *operator_props]}),
 
             # Fallback key-map must transform as the primary tool is expected
             # to be accessed via gizmos in this case. See: T96885.
@@ -6655,12 +6656,15 @@ def km_3d_view_tool_cursor(params):
 
 
 def km_3d_view_tool_select(params, *, fallback):
+    if params.use_tweak_select_passthrough:
+        operator_props = (("vert_without_handles", True),)
+
     return (
         _fallback_id("3D View Tool: Tweak", fallback),
         {"space_type": 'VIEW_3D', "region_type": 'WINDOW'},
         {"items": [
             *([] if (fallback and (params.select_mouse == 'RIGHTMOUSE')) else _template_items_tool_select(
-                params, "view3d.select", "view3d.cursor3d", fallback=fallback)),
+                params, "view3d.select", "view3d.cursor3d", operator_props=operator_props, fallback=fallback)),
             *([] if (not params.use_fallback_tool_rmb) else _template_view3d_select(
                 type=params.select_mouse,
                 value=params.select_mouse_value,
