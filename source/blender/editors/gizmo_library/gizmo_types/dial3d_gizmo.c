@@ -426,7 +426,9 @@ static void dial_draw_intern(
       if (WM_gizmo_target_property_is_valid(gz_prop)) {
         angle_delta = WM_gizmo_target_property_float_get(gz, gz_prop);
       }
-      angle_increment = RNA_float_get(gz->ptr, "incremental_angle");
+      if (gz->state & WM_GIZMO_STATE_MODAL) {
+        angle_increment = RNA_float_get(gz->ptr, "incremental_angle");
+      }
     }
   }
 
