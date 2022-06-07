@@ -182,6 +182,7 @@ def geometry_input_node_items(context):
     yield NodeItem("GeometryNodeInputRadius")
     yield NodeItem("GeometryNodeInputSceneTime")
 
+
 # Custom Menu for Geometry Node Instance Nodes.
 def geometry_instance_node_items(context):
     if context is None:
@@ -198,6 +199,7 @@ def geometry_instance_node_items(context):
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeInputInstanceRotation")
     yield NodeItem("GeometryNodeInputInstanceScale")
+
 
 # Custom Menu for Material Nodes.
 def geometry_material_node_items(context):
