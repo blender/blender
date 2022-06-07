@@ -640,12 +640,12 @@ void seq_cache_cleanup_sequence(Scene *scene,
   int range_end = SEQ_time_right_handle_frame_get(seq_changed);
 
   if (!force_seq_changed_range) {
-    if (seq->startdisp > range_start) {
-      range_start = seq->startdisp;
+    if (SEQ_time_left_handle_frame_get(seq) > range_start) {
+      range_start = SEQ_time_left_handle_frame_get(seq);
     }
 
-    if (seq->enddisp < range_end) {
-      range_end = seq->enddisp;
+    if (SEQ_time_right_handle_frame_get(seq) < range_end) {
+      range_end = SEQ_time_right_handle_frame_get(seq);
     }
   }
 
