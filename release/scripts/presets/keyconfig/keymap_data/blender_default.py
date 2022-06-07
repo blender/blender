@@ -6658,6 +6658,8 @@ def km_3d_view_tool_cursor(params):
 def km_3d_view_tool_select(params, *, fallback):
     if params.use_tweak_select_passthrough:
         operator_props = (("vert_without_handles", True),)
+    else:
+        operator_props = ()
 
     return (
         _fallback_id("3D View Tool: Tweak", fallback),
