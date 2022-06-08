@@ -402,6 +402,10 @@ extern GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
                                               int32_t x,
                                               int32_t y);
 
+GHOST_TSuccess GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
+                                        GHOST_TAxisFlag *r_wrap_axis,
+                                        int r_bounds[4]);
+
 /**
  * Grabs the cursor for a modal operation, to keep receiving
  * events when the mouse is outside the window. X11 only, others
@@ -895,6 +899,11 @@ extern int setConsoleWindowState(GHOST_TConsoleWindowState action);
  * Use native pixel size (MacBook pro 'retina'), if supported.
  */
 extern int GHOST_UseNativePixels(void);
+
+/**
+ * Warp the cursor, if supported.
+ */
+extern int GHOST_SupportsCursorWarp(void);
 
 /**
  * Focus window after opening, or put them in the background.

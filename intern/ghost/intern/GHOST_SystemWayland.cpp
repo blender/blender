@@ -1920,6 +1920,11 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(bool visible)
   return GHOST_kSuccess;
 }
 
+bool GHOST_SystemWayland::supportsCursorWarp()
+{
+  return false;
+}
+
 GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mode,
                                                   const GHOST_TGrabCursorMode mode_current,
 
@@ -1948,8 +1953,9 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
   const bool was_lock = MODE_NEEDS_LOCK(mode_current);
   const bool use_lock = MODE_NEEDS_LOCK(mode);
 
-  const bool was_hide = MODE_NEEDS_HIDE(mode_current);
-  const bool use_hide = MODE_NEEDS_HIDE(mode);
+  /* Check for wrap as #supportsCursorWarp isn't supproted. */
+  const bool was_hide = MODE_NEEDS_HIDE(mode_current) || (mode_current == GHOST_kGrabWrap);
+  const bool use_hide = MODE_NEEDS_HIDE(mode) || (mode == GHOST_kGrabWrap);
 
   const bool was_confine = MODE_NEEDS_CONFINE(mode_current);
   const bool use_confine = MODE_NEEDS_CONFINE(mode);
