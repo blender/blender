@@ -283,8 +283,10 @@ static SnapData_Mesh *snap_object_data_mesh_get(SnapObjectContext *sctx,
     }
   }
   else {
-    /* Any existing #SnapData_EditMesh is now invalid. */
-    sctx->editmesh_caches.remove(BKE_editmesh_from_object(ob_eval));
+    if (ob_eval->type == OB_MESH) {
+      /* Any existing #SnapData_EditMesh is now invalid. */
+      sctx->editmesh_caches.remove(BKE_editmesh_from_object(ob_eval));
+    }
 
     std::unique_ptr<SnapData_Mesh> sod_ptr = std::make_unique<SnapData_Mesh>();
     sod = sod_ptr.get();
