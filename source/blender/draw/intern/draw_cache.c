@@ -3412,8 +3412,8 @@ void DRW_batch_cache_free_old(Object *ob, int ctime)
 /** \} */
 
 void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
-                                  char *base_name,
-                                  const CustomData *data,
+                                  const char *base_name,
+                                  const CustomData *UNUSED(data),
                                   const CustomDataLayer *cl,
                                   bool is_active_render,
                                   bool is_active_layer)
