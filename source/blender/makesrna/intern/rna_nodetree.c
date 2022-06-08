@@ -1610,26 +1610,31 @@ static char *rna_Node_path(const PointerRNA *ptr)
 char *rna_Node_ImageUser_path(const PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-  bNode *node;
-  char name_esc[sizeof(node->name) * 2];
+  if (!ELEM(ntree->type, NTREE_SHADER, NTREE_CUSTOM)) {
+    return NULL;
+  }
 
-  for (node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == SH_NODE_TEX_ENVIRONMENT) {
-      NodeTexEnvironment *data = node->storage;
-      if (&data->iuser != ptr->data) {
-        continue;
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    switch (node->type) {
+      case SH_NODE_TEX_ENVIRONMENT: {
+        NodeTexEnvironment *data = node->storage;
+        if (&data->iuser != ptr->data) {
+          continue;
+        }
+        break;
       }
-    }
-    else if (node->type == SH_NODE_TEX_IMAGE) {
-      NodeTexImage *data = node->storage;
-      if (&data->iuser != ptr->data) {
-        continue;
+      case SH_NODE_TEX_IMAGE: {
+        NodeTexImage *data = node->storage;
+        if (&data->iuser != ptr->data) {
+          continue;
+        }
+        break;
       }
-    }
-    else {
-      continue;
+      default:
+        continue;
     }
 
+    char name_esc[sizeof(node->name) * 2];
     BLI_str_escape(name_esc, node->name, sizeof(name_esc));
     return BLI_sprintfN("nodes[\"%s\"].image_user", name_esc);
   }
