@@ -985,7 +985,7 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
     else {
       BPoint *last_bp = nu1->bp + nu1->pntsu - 1;
       const bool first_sel = nu1->bp->f1 & SELECT;
-      const bool last_sel = last_bp->f1 & SELECT;
+      const bool last_sel = last_bp->f1 & SELECT && nu1->pntsu > 1;
       if (first_sel) {
         if (last_sel) {
           BPoint *new_bp = (BPoint *)MEM_mallocN((nu1->pntsu + 2) * sizeof(BPoint), __func__);
