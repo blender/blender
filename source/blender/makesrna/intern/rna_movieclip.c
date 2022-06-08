@@ -281,6 +281,8 @@ static void rna_def_movieclipUser(BlenderRNA *brna)
       "Parameters defining how a MovieClip data-block is used by another data-block");
   RNA_def_struct_path_func(srna, "rna_MovieClipUser_path");
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "framenr");
   RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
@@ -303,6 +305,8 @@ static void rna_def_movieclipUser(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Render Undistorted", "Render preview using undistorted proxy");
   RNA_def_property_update(
       prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClipUser_proxy_render_settings_update");
+
+  RNA_define_lib_overridable(false);
 }
 
 static void rna_def_movieClipScopes(BlenderRNA *brna)

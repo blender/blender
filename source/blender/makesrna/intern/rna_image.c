@@ -701,6 +701,8 @@ static void rna_def_imageuser(BlenderRNA *brna)
       "Parameters defining how an Image data-block is used by another data-block");
   RNA_def_struct_path_func(srna, "rna_ImageUser_path");
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "use_auto_refresh", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANIM_ALWAYS);
   RNA_def_property_ui_text(prop, "Auto Refresh", "Always refresh image on frame changes");
@@ -762,6 +764,8 @@ static void rna_def_imageuser(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "tile");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Tile", "Tile in tiled image");
+
+  RNA_define_lib_overridable(false);
 }
 
 /* image.packed_files */
