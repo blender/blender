@@ -24,6 +24,7 @@ struct Scene;
 struct SpaceImage;
 struct View2D;
 struct bContext;
+struct Paint;
 struct wmOperator;
 struct wmWindowManager;
 
@@ -186,6 +187,9 @@ typedef struct ImageFrameRange {
 ListBase ED_image_filesel_detect_sequences(struct Main *bmain,
                                            struct wmOperator *op,
                                            bool detect_udim);
+
+bool ED_image_tools_paint_poll(struct bContext *C);
+void ED_paint_cursor_start(struct Paint *p, bool (*poll)(struct bContext *C));
 
 #ifdef __cplusplus
 }
