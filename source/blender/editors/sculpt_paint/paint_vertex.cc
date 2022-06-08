@@ -140,7 +140,7 @@ struct NormalAnglePrecalc {
 static int get_vcol_elements(Mesh *me, size_t *r_elem_size)
 {
   const CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
-  eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
+  const eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
 
   if (r_elem_size) {
     *r_elem_size = layer->type == CD_PROP_COLOR ? sizeof(float) * 4ULL : 4ULL;
@@ -217,7 +217,7 @@ static MDeformVert *defweight_prev_init(MDeformVert *dvert_prev,
                                         MDeformVert *dvert_curr,
                                         int index)
 {
-  MDeformVert *dv_curr = &dvert_curr[index];
+  const MDeformVert *dv_curr = &dvert_curr[index];
   MDeformVert *dv_prev = &dvert_prev[index];
   if (dv_prev->flag == 1) {
     dv_prev->flag = 0;
@@ -233,7 +233,7 @@ static bool vertex_paint_use_fast_update_check(Object *ob)
   const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
 
   if (me_eval != nullptr) {
-    Mesh *me = BKE_mesh_from_object(ob);
+    const Mesh *me = BKE_mesh_from_object(ob);
     if (me && me->mloopcol) {
       return (me->mloopcol == CustomData_get_layer(&me_eval->ldata, CD_PROP_BYTE_COLOR));
     }
@@ -252,13 +252,14 @@ static void paint_last_stroke_update(Scene *scene, const float location[3])
 
 bool vertex_paint_mode_poll(bContext *C)
 {
-  Object *ob = CTX_data_active_object(C);
+  const Object *ob = CTX_data_active_object(C);
 
-  if (!(ob && ob->mode == OB_MODE_VERTEX_PAINT && ((Mesh *)ob->data)->totpoly)) {
+  if (!(ob && ob->mode == OB_MODE_VERTEX_PAINT && ((const Mesh *)ob->data)->totpoly)) {
     return false;
   }
 
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get((ID *)ob->data);
+  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(
+      static_cast<const ID *>(ob->data));
 
   return layer != nullptr;
 }
@@ -291,15 +292,15 @@ bool vertex_paint_poll_ignore_tool(bContext *C)
 
 bool weight_paint_mode_poll(bContext *C)
 {
-  Object *ob = CTX_data_active_object(C);
+  const Object *ob = CTX_data_active_object(C);
 
-  return ob && ob->mode == OB_MODE_WEIGHT_PAINT && ((Mesh *)ob->data)->totpoly;
+  return ob && ob->mode == OB_MODE_WEIGHT_PAINT && ((const Mesh *)ob->data)->totpoly;
 }
 
 static bool weight_paint_poll_ex(bContext *C, bool check_tool)
 {
-  Object *ob = CTX_data_active_object(C);
-  ScrArea *area;
+  const Object *ob = CTX_data_active_object(C);
+  const ScrArea *area;
 
   if ((ob != nullptr) && (ob->mode & OB_MODE_WEIGHT_PAINT) &&
       (BKE_paint_brush(&CTX_data_tool_settings(C)->wpaint->paint) != nullptr) &&
@@ -327,7 +328,7 @@ bool weight_paint_poll_ignore_tool(bContext *C)
 template<typename Color, typename Traits, eAttrDomain domain>
 static Color vpaint_get_current_col(Scene *scene, VPaint *vp, bool secondary)
 {
-  Brush *brush = BKE_paint_brush(&vp->paint);
+  const Brush *brush = BKE_paint_brush_for_read(&vp->paint);
   float color[4];
   const float *brush_color = secondary ? BKE_brush_secondary_color_get(scene, brush) :
                                          BKE_brush_color_get(scene, brush);
@@ -360,7 +361,7 @@ static Color vpaint_blend(const VPaint *vp,
   const Brush *brush = vp->paint.brush;
   const IMB_BlendMode blend = (IMB_BlendMode)brush->blend;
 
-  Color color_blend = BLI_mix_colors<Color, Traits>(blend, color_curr, color_paint, alpha);
+  const Color color_blend = BLI_mix_colors<Color, Traits>(blend, color_curr, color_paint, alpha);
 
   /* If no accumulate, clip color adding with `color_orig` & `color_test`. */
   if (!brush_use_accumulate(vp)) {
@@ -1609,7 +1610,7 @@ static void vwpaint_update_cache_invariants(
     bContext *C, VPaint *vp, SculptSession *ss, wmOperator *op, const float mouse[2])
 {
   StrokeCache *cache;
-  Scene *scene = CTX_data_scene(C);
+  const Scene *scene = CTX_data_scene(C);
   UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
   ViewContext *vc = paint_stroke_view_context((PaintStroke *)op->customdata);
   Object *ob = CTX_data_active_object(C);
@@ -1651,7 +1652,7 @@ static void vwpaint_update_cache_invariants(
   }
 
   copy_v2_v2(cache->mouse, cache->initial_mouse);
-  Brush *brush = vp->paint.brush;
+  const Brush *brush = vp->paint.brush;
   /* Truly temporary data that isn't stored in properties */
   cache->vc = vc;
   cache->brush = brush;
