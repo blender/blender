@@ -14,6 +14,8 @@
 #include "draw_subdivision.h"
 #include "extract_mesh.hh"
 
+namespace blender::draw {
+
 struct VColRef {
   const CustomDataLayer *layer;
   eAttrDomain domain;
@@ -25,11 +27,11 @@ struct VColRef {
  *                     corresponds to the integer position of the attribute
  *                     within the global color attribute list.
  */
-static blender::Vector<VColRef> get_vcol_refs(const CustomData *cd_vdata,
-                                              const CustomData *cd_ldata,
-                                              const uint vcol_layers)
+static Vector<VColRef> get_vcol_refs(const CustomData *cd_vdata,
+                                     const CustomData *cd_ldata,
+                                     const uint vcol_layers)
 {
-  blender::Vector<VColRef> refs;
+  Vector<VColRef> refs;
   uint layeri = 0;
 
   auto buildList = [&](const CustomData *cdata, eAttrDomain domain) {
@@ -64,8 +66,6 @@ static blender::Vector<VColRef> get_vcol_refs(const CustomData *cd_vdata,
   return refs;
 }
 
-namespace blender::draw {
-
 /* ---------------------------------------------------------------------- */
 /** \name Extract VCol
  * \{ */
@@ -82,7 +82,7 @@ static void init_vcol_format(GPUVertFormat *format,
 
   const uint32_t vcol_layers = cache->cd_used.vcol;
 
-  blender::Vector<VColRef> refs = get_vcol_refs(cd_vdata, cd_ldata, vcol_layers);
+  Vector<VColRef> refs = get_vcol_refs(cd_vdata, cd_ldata, vcol_layers);
 
   for (const VColRef &ref : refs) {
     char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
@@ -118,7 +118,7 @@ static GPUVertFormat *get_coarse_vcol_format()
   return &format;
 }
 
-using gpuMeshVcol = struct gpuMeshVcol {
+struct gpuMeshVcol {
   ushort r, g, b, a;
 };
 
@@ -151,7 +151,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
 
   gpuMeshVcol *vcol_data = (gpuMeshVcol *)GPU_vertbuf_get_data(vbo);
 
-  blender::Vector<VColRef> refs = get_vcol_refs(cd_vdata, cd_ldata, vcol_layers);
+  Vector<VColRef> refs = get_vcol_refs(cd_vdata, cd_ldata, vcol_layers);
 
   for (const VColRef &ref : refs) {
     const CustomData *cdata = ref.domain == ATTR_DOMAIN_POINT ? cd_vdata : cd_ldata;
@@ -239,7 +239,7 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                      void *UNUSED(data))
 {
   GPUVertBuf *dst_buffer = static_cast<GPUVertBuf *>(buffer);
-  Mesh *coarse_mesh = subdiv_cache->mesh;
+  const Mesh *coarse_mesh = subdiv_cache->mesh;
 
   bool extract_bmesh = mr->extract_type == MR_EXTRACT_BMESH;
 
@@ -272,7 +272,7 @@ static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
   const uint vcol_layers = cache->cd_used.vcol;
 
-  blender::Vector<VColRef> refs = get_vcol_refs(cd_vdata, cd_ldata, vcol_layers);
+  Vector<VColRef> refs = get_vcol_refs(cd_vdata, cd_ldata, vcol_layers);
 
   /* Index of the vertex color layer in the compact buffer. Used vertex color layers are stored in
    * a single buffer. */
