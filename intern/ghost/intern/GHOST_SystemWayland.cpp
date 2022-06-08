@@ -112,6 +112,7 @@ struct input_t {
 
   struct zwp_relative_pointer_v1 *relative_pointer;
   struct zwp_locked_pointer_v1 *locked_pointer;
+  struct zwp_confined_pointer_v1 *confined_pointer;
 
   struct xkb_context *xkb_context;
   struct xkb_state *xkb_state;
@@ -1376,6 +1377,7 @@ static void global_add(void *data,
     input->data_source->buffer_out = nullptr;
     input->relative_pointer = nullptr;
     input->locked_pointer = nullptr;
+    input->confined_pointer = nullptr;
     input->seat = static_cast<wl_seat *>(
         wl_registry_bind(wl_registry, name, &wl_seat_interface, 4));
     display->inputs.push_back(input);
@@ -1939,15 +1941,31 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
 
   input_t *input = d->inputs[0];
 
-  if (mode_current == GHOST_kGrabHide) {
+#define MODE_NEEDS_LOCK(m) ((m) == GHOST_kGrabWrap || (m) == GHOST_kGrabHide)
+#define MODE_NEEDS_HIDE(m) ((m) == GHOST_kGrabHide)
+#define MODE_NEEDS_CONFINE(m) ((m) == GHOST_kGrabNormal)
+
+  const bool was_lock = MODE_NEEDS_LOCK(mode_current);
+  const bool use_lock = MODE_NEEDS_LOCK(mode);
+
+  const bool was_hide = MODE_NEEDS_HIDE(mode_current);
+  const bool use_hide = MODE_NEEDS_HIDE(mode);
+
+  const bool was_confine = MODE_NEEDS_CONFINE(mode_current);
+  const bool use_confine = MODE_NEEDS_CONFINE(mode);
+
+#undef MODE_NEEDS_LOCK
+#undef MODE_NEEDS_HIDE
+#undef MODE_NEEDS_CONFINE
+
+  if (!use_hide) {
     setCursorVisibility(true);
   }
 
-  if ((mode == GHOST_kGrabDisable) ||
-      /* Switching from one grab mode to another,
-       * in this case disable the current locks as it makes logic confusing,
-       * postpone changing the cursor to avoid flickering. */
-      (mode_current != GHOST_kGrabDisable)) {
+  /* Switching from one grab mode to another,
+   * in this case disable the current locks as it makes logic confusing,
+   * postpone changing the cursor to avoid flickering. */
+  if (!use_lock) {
     if (input->relative_pointer) {
       zwp_relative_pointer_v1_destroy(input->relative_pointer);
       input->relative_pointer = nullptr;
@@ -1958,23 +1976,44 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
     }
   }
 
-  if (mode != GHOST_kGrabDisable) {
-    /* TODO(@campbellbarton): As WAYLAND does not support warping the pointer it may not be
-     * possible to support #GHOST_kGrabWrap by pragmatically settings it's coordinates.
-     * An alternative could be to draw the cursor in software (and hide the real cursor),
-     * or just accept a locked cursor on WAYLAND. */
-    input->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
-        d->relative_pointer_manager, input->pointer);
-    zwp_relative_pointer_v1_add_listener(
-        input->relative_pointer, &relative_pointer_listener, input);
-    input->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(
-        d->pointer_constraints,
-        surface,
-        input->pointer,
-        nullptr,
-        ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+  if (!use_confine) {
+    if (input->confined_pointer) {
+      zwp_confined_pointer_v1_destroy(input->confined_pointer);
+      input->confined_pointer = nullptr;
+    }
+  }
 
-    if (mode == GHOST_kGrabHide) {
+  if (mode != GHOST_kGrabDisable) {
+    if (use_lock) {
+      if (!was_lock) {
+        /* TODO(@campbellbarton): As WAYLAND does not support warping the pointer it may not be
+         * possible to support #GHOST_kGrabWrap by pragmatically settings it's coordinates.
+         * An alternative could be to draw the cursor in software (and hide the real cursor),
+         * or just accept a locked cursor on WAYLAND. */
+        input->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
+            d->relative_pointer_manager, input->pointer);
+        zwp_relative_pointer_v1_add_listener(
+            input->relative_pointer, &relative_pointer_listener, input);
+        input->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(
+            d->pointer_constraints,
+            surface,
+            input->pointer,
+            nullptr,
+            ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+      }
+    }
+    else if (use_confine) {
+      if (!was_confine) {
+        input->confined_pointer = zwp_pointer_constraints_v1_confine_pointer(
+            d->pointer_constraints,
+            surface,
+            input->pointer,
+            nullptr,
+            ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+      }
+    }
+
+    if (use_hide && !was_hide) {
       setCursorVisibility(false);
     }
   }
