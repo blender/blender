@@ -9,6 +9,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_hash.h"
+#include "BLI_index_range.hh"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
@@ -45,6 +46,8 @@
 
 #include <math.h>
 #include <stdlib.h>
+
+using blender::IndexRange;
 
 AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss)
 {
@@ -178,7 +181,7 @@ typedef struct AutomaskFloodFillData {
 static bool automask_floodfill_cb(
     SculptSession *ss, int from_v, int to_v, bool UNUSED(is_duplicate), void *userdata)
 {
-  AutomaskFloodFillData *data = userdata;
+  AutomaskFloodFillData *data = (AutomaskFloodFillData *)userdata;
 
   data->automask_factor[to_v] = 1.0f;
   data->automask_factor[from_v] = 1.0f;
@@ -198,7 +201,7 @@ static float *SCULPT_topology_automasking_init(Sculpt *sd, Object *ob, float *au
   }
 
   const int totvert = SCULPT_vertex_count_get(ss);
-  for (int i = 0; i < totvert; i++) {
+  for (int i : IndexRange(totvert)) {
     automask_factor[i] = 0.0f;
   }
 
@@ -209,12 +212,13 @@ static float *SCULPT_topology_automasking_init(Sculpt *sd, Object *ob, float *au
   const float radius = ss->cache ? ss->cache->radius : FLT_MAX;
   SCULPT_floodfill_add_active(sd, ob, ss, &flood, radius);
 
-  AutomaskFloodFillData fdata = {
-      .automask_factor = automask_factor,
-      .radius = radius,
-      .use_radius = ss->cache && sculpt_automasking_is_constrained_by_radius(brush),
-      .symm = SCULPT_mesh_symmetry_xyz_get(ob),
-  };
+  AutomaskFloodFillData fdata = {0};
+
+  fdata.automask_factor = automask_factor;
+  fdata.radius = radius;
+  fdata.use_radius = ss->cache && sculpt_automasking_is_constrained_by_radius(brush);
+  fdata.symm = SCULPT_mesh_symmetry_xyz_get(ob);
+
   copy_v3_v3(fdata.location, SCULPT_active_vertex_co_get(ss));
   SCULPT_floodfill_execute(ss, &flood, automask_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
@@ -238,7 +242,7 @@ static float *sculpt_face_sets_automasking_init(Sculpt *sd, Object *ob, float *a
 
   int tot_vert = SCULPT_vertex_count_get(ss);
   int active_face_set = SCULPT_active_face_set_get(ss);
-  for (int i = 0; i < tot_vert; i++) {
+  for (int i : IndexRange(tot_vert)) {
     if (!SCULPT_vertex_has_face_set(ss, i, active_face_set)) {
       automask_factor[i] *= 0.0f;
     }
@@ -262,9 +266,9 @@ float *SCULPT_boundary_automasking_init(Object *ob,
   }
 
   const int totvert = SCULPT_vertex_count_get(ss);
-  int *edge_distance = MEM_callocN(sizeof(int) * totvert, "automask_factor");
+  int *edge_distance = (int *)MEM_callocN(sizeof(int) * totvert, "automask_factor");
 
-  for (int i = 0; i < totvert; i++) {
+  for (int i : IndexRange(totvert)) {
     edge_distance[i] = EDGE_DISTANCE_INF;
     switch (mode) {
       case AUTOMASK_INIT_BOUNDARY_EDGES:
@@ -280,8 +284,8 @@ float *SCULPT_boundary_automasking_init(Object *ob,
     }
   }
 
-  for (int propagation_it = 0; propagation_it < propagation_steps; propagation_it++) {
-    for (int i = 0; i < totvert; i++) {
+  for (int propagation_it : IndexRange(propagation_steps)) {
+    for (int i : IndexRange(totvert)) {
       if (edge_distance[i] != EDGE_DISTANCE_INF) {
         continue;
       }
@@ -295,7 +299,7 @@ float *SCULPT_boundary_automasking_init(Object *ob,
     }
   }
 
-  for (int i = 0; i < totvert; i++) {
+  for (int i : IndexRange(totvert)) {
     if (edge_distance[i] == EDGE_DISTANCE_INF) {
       continue;
     }
@@ -326,7 +330,8 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
     return NULL;
   }
 
-  AutomaskingCache *automasking = MEM_callocN(sizeof(AutomaskingCache), "automasking cache");
+  AutomaskingCache *automasking = (AutomaskingCache *)MEM_callocN(sizeof(AutomaskingCache),
+                                                                  "automasking cache");
   SCULPT_automasking_cache_settings_update(automasking, ss, sd, brush);
   SCULPT_boundary_info_ensure(ob);
 
@@ -334,8 +339,8 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, Brush *brush, Object
     return automasking;
   }
 
-  automasking->factor = MEM_malloc_arrayN(totvert, sizeof(float), "automask_factor");
-  for (int i = 0; i < totvert; i++) {
+  automasking->factor = (float *)MEM_malloc_arrayN(totvert, sizeof(float), "automask_factor");
+  for (int i : IndexRange(totvert)) {
     automasking->factor[i] = 1.0f;
   }
 
