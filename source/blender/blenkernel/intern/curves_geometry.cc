@@ -18,6 +18,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
+#include "BKE_curves_utils.hh"
 
 namespace blender::bke {
 
@@ -550,16 +551,8 @@ IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
                                                  const IndexMask selection,
                                                  Vector<int64_t> &r_indices) const
 {
-  if (this->curve_type_counts()[type] == this->curves_num()) {
-    return selection;
-  }
-  const VArray<int8_t> types = this->curve_types();
-  if (types.is_single()) {
-    return types.get_internal_single() == type ? IndexMask(this->curves_num()) : IndexMask(0);
-  }
-  Span<int8_t> types_span = types.get_internal_span();
-  return index_mask_ops::find_indices_based_on_predicate(
-      selection, 1024, r_indices, [&](const int index) { return types_span[index] == type; });
+  return curves::indices_for_type(
+      this->curve_types(), this->curve_type_counts(), type, selection, r_indices);
 }
 
 void CurvesGeometry::ensure_nurbs_basis_cache() const
@@ -1320,6 +1313,27 @@ void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
   }
 
   this->tag_topology_changed();
+}
+
+void CurvesGeometry::remove_attributes_based_on_types()
+{
+  const int points_num = this->points_num();
+  const int curves_num = this->curves_num();
+  if (!this->has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    CustomData_free_layer_named(&this->point_data, ATTR_HANDLE_TYPE_LEFT.c_str(), points_num);
+    CustomData_free_layer_named(&this->point_data, ATTR_HANDLE_TYPE_RIGHT.c_str(), points_num);
+    CustomData_free_layer_named(&this->point_data, ATTR_HANDLE_POSITION_LEFT.c_str(), points_num);
+    CustomData_free_layer_named(&this->point_data, ATTR_HANDLE_POSITION_RIGHT.c_str(), points_num);
+  }
+  if (!this->has_curve_with_type(CURVE_TYPE_NURBS)) {
+    CustomData_free_layer_named(&this->point_data, ATTR_NURBS_WEIGHT.c_str(), points_num);
+    CustomData_free_layer_named(&this->curve_data, ATTR_NURBS_ORDER.c_str(), curves_num);
+    CustomData_free_layer_named(&this->curve_data, ATTR_NURBS_KNOTS_MODE.c_str(), curves_num);
+  }
+  if (!this->has_curve_with_type({CURVE_TYPE_BEZIER, CURVE_TYPE_CATMULL_ROM, CURVE_TYPE_NURBS})) {
+    CustomData_free_layer_named(&this->curve_data, ATTR_RESOLUTION.c_str(), curves_num);
+  }
+  this->update_customdata_pointers();
 }
 
 /** \} */

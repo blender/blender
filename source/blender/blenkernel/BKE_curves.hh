@@ -182,6 +182,7 @@ class CurvesGeometry : public ::CurvesGeometry {
   void update_curve_types();
 
   bool has_curve_with_type(CurveType type) const;
+  bool has_curve_with_type(Span<CurveType> types) const;
   /** Return true if all of the curves have the provided type. */
   bool is_single_type(CurveType type) const;
   /** Return the number of curves with each type. */
@@ -393,6 +394,11 @@ class CurvesGeometry : public ::CurvesGeometry {
    * shape.
    */
   void reverse_curves(IndexMask curves_to_reverse);
+
+  /**
+   * Remove any attributes that are unused based on the types in the curves.
+   */
+  void remove_attributes_based_on_types();
 
   /* --------------------------------------------------------------------
    * Attributes.
@@ -708,6 +714,12 @@ inline bool CurvesGeometry::is_single_type(const CurveType type) const
 inline bool CurvesGeometry::has_curve_with_type(const CurveType type) const
 {
   return this->curve_type_counts()[type] > 0;
+}
+
+inline bool CurvesGeometry::has_curve_with_type(const Span<CurveType> types) const
+{
+  return std::any_of(
+      types.begin(), types.end(), [&](CurveType type) { return this->has_curve_with_type(type); });
 }
 
 inline const std::array<int, CURVE_TYPES_NUM> &CurvesGeometry::curve_type_counts() const

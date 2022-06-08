@@ -228,6 +228,8 @@ DEF_ENUM(rna_enum_transform_orientation_items)
 
 DEF_ENUM(rna_enum_velocity_unit_items)
 
+DEF_ENUM(rna_enum_curves_types)
+
 /* Not available to RNA pre-processing (`makesrna`).
  * Defined in editors for example. */
 #ifndef RNA_MAKESRNA

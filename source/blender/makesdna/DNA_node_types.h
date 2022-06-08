@@ -1915,12 +1915,6 @@ typedef enum GeometryNodeBooleanOperation {
   GEO_NODE_BOOLEAN_DIFFERENCE = 2,
 } GeometryNodeBooleanOperation;
 
-typedef enum GeometryNodeSplineType {
-  GEO_NODE_SPLINE_TYPE_BEZIER = 0,
-  GEO_NODE_SPLINE_TYPE_NURBS = 1,
-  GEO_NODE_SPLINE_TYPE_POLY = 2,
-} GeometryNodeSplineType;
-
 typedef enum GeometryNodeCurvePrimitiveCircleMode {
   GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_POINTS = 0,
   GEO_NODE_CURVE_PRIMITIVE_CIRCLE_TYPE_RADIUS = 1

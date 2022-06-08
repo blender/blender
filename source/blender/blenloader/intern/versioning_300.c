@@ -25,6 +25,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_lineart_types.h"
@@ -3021,18 +3022,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  /**
-   * Versioning code until next subversion bump goes here.
-   *
-   * \note Be sure to check when bumping the version:
-   * - "versioning_userdef.c", #blo_do_versions_userdef
-   * - "versioning_userdef.c", #do_versions_theme
-   *
-   * \note Keep this message at the bottom of the function.
-   */
-  {
-    /* Keep this block, even when empty. */
-
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 1)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       versioning_replace_legacy_combined_and_separate_color_nodes(ntree);
     }
@@ -3066,5 +3056,41 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         SEQ_for_each_callback(&ed->seqbase, version_merge_still_offsets, NULL);
       }
     }
+
+    /* Use the curves type enum for the set spline type node, instead of a special one. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == GEO_NODE_CURVE_SPLINE_TYPE) {
+            NodeGeometryCurveSplineType *storage = (NodeGeometryCurveSplineType *)node->storage;
+            switch (storage->spline_type) {
+              case 0: /* GEO_NODE_SPLINE_TYPE_BEZIER */
+                storage->spline_type = CURVE_TYPE_BEZIER;
+                break;
+              case 1: /* GEO_NODE_SPLINE_TYPE_NURBS */
+                storage->spline_type = CURVE_TYPE_NURBS;
+                break;
+              case 2: /* GEO_NODE_SPLINE_TYPE_POLY */
+                storage->spline_type = CURVE_TYPE_POLY;
+                break;
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
   }
 }

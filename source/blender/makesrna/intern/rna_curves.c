@@ -18,6 +18,14 @@
 
 #include "WM_types.h"
 
+const EnumPropertyItem rna_enum_curves_types[] = {
+    {CURVE_TYPE_CATMULL_ROM, "CATMULL_ROM", 0, "Catmull Rom", ""},
+    {CURVE_TYPE_POLY, "POLY", 0, "Poly", ""},
+    {CURVE_TYPE_BEZIER, "BEZIER", 0, "Bezier", ""},
+    {CURVE_TYPE_NURBS, "NURBS", 0, "NURBS", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math_vector.h"
