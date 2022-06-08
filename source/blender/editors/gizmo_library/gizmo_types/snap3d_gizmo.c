@@ -96,7 +96,7 @@ void ED_gizmotypes_snap_3d_data_get(const struct bContext *C,
                                     float r_loc[3],
                                     float r_nor[3],
                                     int r_elem_index[3],
-                                    int *r_snap_elem)
+                                    eSnapMode *r_snap_elem)
 {
   if (C) {
     /* Snap values are updated too late at the cursor. Be sure to update ahead of time. */
@@ -283,7 +283,7 @@ static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   ED_view3d_cursor_snap_data_update(snap_gizmo->snap_state, C, x, y);
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
 
-  if (snap_data->snap_elem) {
+  if (snap_data->snap_elem != SCE_SNAP_MODE_NONE) {
     return 0;
   }
   return -1;

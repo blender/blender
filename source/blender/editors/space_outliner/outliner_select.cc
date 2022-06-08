@@ -1693,7 +1693,7 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 
   ot->poll = ED_operator_outliner_active;
 
-  ot->flag |= OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   PropertyRNA *prop;
   prop = RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection for activation");
@@ -2028,7 +2028,7 @@ void OUTLINER_OT_select_walk(wmOperatorType *ot)
   ot->invoke = outliner_walk_select_invoke;
   ot->poll = ED_operator_outliner_active;
 
-  ot->flag |= OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
   PropertyRNA *prop;

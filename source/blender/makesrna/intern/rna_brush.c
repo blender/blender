@@ -98,14 +98,14 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_INFLATE, "INFLATE", ICON_BRUSH_INFLATE, "Inflate", ""},
     {SCULPT_TOOL_BLOB, "BLOB", ICON_BRUSH_BLOB, "Blob", ""},
     {SCULPT_TOOL_CREASE, "CREASE", ICON_BRUSH_CREASE, "Crease", ""},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_SMOOTH, "Smooth", ""},
     {SCULPT_TOOL_FLATTEN, "FLATTEN", ICON_BRUSH_FLATTEN, "Flatten", ""},
     {SCULPT_TOOL_FILL, "FILL", ICON_BRUSH_FILL, "Fill", ""},
     {SCULPT_TOOL_SCRAPE, "SCRAPE", ICON_BRUSH_SCRAPE, "Scrape", ""},
     {SCULPT_TOOL_MULTIPLANE_SCRAPE, "MULTIPLANE_SCRAPE", ICON_BRUSH_SCRAPE, "Multi-plane Scrape", ""},
     {SCULPT_TOOL_PINCH, "PINCH", ICON_BRUSH_PINCH, "Pinch", ""},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {SCULPT_TOOL_GRAB, "GRAB", ICON_BRUSH_GRAB, "Grab", ""},
     {SCULPT_TOOL_ELASTIC_DEFORM, "ELASTIC_DEFORM", ICON_BRUSH_GRAB, "Elastic Deform", ""},
     {SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_BRUSH_SNAKE_HOOK, "Snake Hook", ""},
@@ -115,7 +115,7 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_ROTATE, "ROTATE", ICON_BRUSH_ROTATE, "Rotate", ""},
     {SCULPT_TOOL_SLIDE_RELAX, "TOPOLOGY", ICON_BRUSH_GRAB, "Slide Relax", ""},
     {SCULPT_TOOL_BOUNDARY, "BOUNDARY", ICON_BRUSH_GRAB, "Boundary", ""},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {SCULPT_TOOL_CLOTH, "CLOTH", ICON_BRUSH_SCULPT_DRAW, "Cloth", ""},
     {SCULPT_TOOL_SIMPLIFY, "SIMPLIFY", ICON_BRUSH_DATA, "Simplify", ""},
     {SCULPT_TOOL_MASK, "MASK", ICON_BRUSH_MASK, "Mask", ""},
@@ -249,6 +249,7 @@ const EnumPropertyItem rna_enum_brush_curves_sculpt_tool_items[] = {
     {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_NONE, "Curves Snake Hook", ""},
     {CURVES_SCULPT_TOOL_ADD, "ADD", ICON_NONE, "Add Curves", ""},
     {CURVES_SCULPT_TOOL_GROW_SHRINK, "GROW_SHRINK", ICON_NONE, "Grow / Shrink Curves", ""},
+    {CURVES_SCULPT_TOOL_SELECTION_PAINT, "SELECTION_PAINT", ICON_NONE, "Paint Selection", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -885,6 +886,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
     case PAINT_MODE_SCULPT_CURVES:
       switch (me->curves_sculpt_tool) {
         case CURVES_SCULPT_TOOL_GROW_SHRINK:
+        case CURVES_SCULPT_TOOL_SELECTION_PAINT:
           return prop_direction_items;
         default:
           return DummyRNA_DEFAULT_items;
@@ -2002,7 +2004,7 @@ static void rna_def_brush(BlenderRNA *brna)
 
   static const EnumPropertyItem prop_blend_items[] = {
       {IMB_BLEND_MIX, "MIX", 0, "Mix", "Use Mix blending mode while painting"},
-      {0, "", ICON_NONE, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {IMB_BLEND_DARKEN, "DARKEN", 0, "Darken", "Use Darken blending mode while painting"},
       {IMB_BLEND_MUL, "MUL", 0, "Multiply", "Use Multiply blending mode while painting"},
       {IMB_BLEND_COLORBURN,
@@ -2015,7 +2017,7 @@ static void rna_def_brush(BlenderRNA *brna)
        0,
        "Linear Burn",
        "Use Linear Burn blending mode while painting"},
-      {0, "", ICON_NONE, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {IMB_BLEND_LIGHTEN, "LIGHTEN", 0, "Lighten", "Use Lighten blending mode while painting"},
       {IMB_BLEND_SCREEN, "SCREEN", 0, "Screen", "Use Screen blending mode while painting"},
       {IMB_BLEND_COLORDODGE,
@@ -2024,7 +2026,7 @@ static void rna_def_brush(BlenderRNA *brna)
        "Color Dodge",
        "Use Color Dodge blending mode while painting"},
       {IMB_BLEND_ADD, "ADD", 0, "Add", "Use Add blending mode while painting"},
-      {0, "", ICON_NONE, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {IMB_BLEND_OVERLAY, "OVERLAY", 0, "Overlay", "Use Overlay blending mode while painting"},
       {IMB_BLEND_SOFTLIGHT,
        "SOFTLIGHT",
@@ -2051,7 +2053,7 @@ static void rna_def_brush(BlenderRNA *brna)
        0,
        "Pin Light",
        "Use Pin Light blending mode while painting"},
-      {0, "", ICON_NONE, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {IMB_BLEND_DIFFERENCE,
        "DIFFERENCE",
        0,
@@ -2063,7 +2065,7 @@ static void rna_def_brush(BlenderRNA *brna)
        "Exclusion",
        "Use Exclusion blending mode while painting"},
       {IMB_BLEND_SUB, "SUB", 0, "Subtract", "Use Subtract blending mode while painting"},
-      {0, "", ICON_NONE, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {IMB_BLEND_HUE, "HUE", 0, "Hue", "Use Hue blending mode while painting"},
       {IMB_BLEND_SATURATION,
        "SATURATION",
@@ -2072,7 +2074,7 @@ static void rna_def_brush(BlenderRNA *brna)
        "Use Saturation blending mode while painting"},
       {IMB_BLEND_COLOR, "COLOR", 0, "Color", "Use Color blending mode while painting"},
       {IMB_BLEND_LUMINOSITY, "LUMINOSITY", 0, "Value", "Use Value blending mode while painting"},
-      {0, "", ICON_NONE, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {IMB_BLEND_ERASE_ALPHA, "ERASE_ALPHA", 0, "Erase Alpha", "Erase alpha while painting"},
       {IMB_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting"},
       {0, NULL, 0, NULL, NULL},

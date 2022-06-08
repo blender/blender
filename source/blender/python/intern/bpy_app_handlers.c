@@ -66,6 +66,12 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"xr_session_start_pre", "on starting an xr session (before)"},
     {"annotation_pre", "on drawing an annotation (before)"},
     {"annotation_post", "on drawing an annotation (after)"},
+    {"object_bake_pre", "before starting a bake job"},
+    {"object_bake_complete", "on completing a bake job; will be called in the main thread"},
+    {"object_bake_cancel", "on canceling a bake job; will be called in the main thread"},
+    {"composite_pre", "on a compositing background job (before)"},
+    {"composite_post", "on a compositing background job (after)"},
+    {"composite_cancel", "on a compositing background job (cancel)"},
 
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1

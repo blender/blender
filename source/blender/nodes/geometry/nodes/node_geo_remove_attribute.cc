@@ -21,6 +21,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.set_output("Geometry", std::move(geometry_set));
     return;
   }
+  if (!bke::allow_procedural_attribute_access(name)) {
+    params.error_message_add(NodeWarningType::Info, TIP_(bke::no_procedural_access_message));
+    params.set_output("Geometry", std::move(geometry_set));
+    return;
+  }
 
   std::atomic<bool> attribute_exists = false;
   std::atomic<bool> cannot_delete = false;
@@ -50,7 +55,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   });
 
   if (attribute_exists && !cannot_delete) {
-    params.used_named_attribute(name, NamedAttributeUsage::Remove);
+    params.used_named_attribute(name, eNamedAttrUsage::Remove);
   }
 
   if (!attribute_exists) {

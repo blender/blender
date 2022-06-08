@@ -105,4 +105,24 @@ TEST(math_vector, InterpolateFloat)
   EXPECT_FLOAT_EQ(result.z, 75.0f);
 }
 
+TEST(math_vector, CeilToMultiple)
+{
+  const int3 a(21, 16, 0);
+  const int3 b(8, 16, 15);
+  const int3 result = math::ceil_to_multiple(a, b);
+  EXPECT_FLOAT_EQ(result.x, 24);
+  EXPECT_FLOAT_EQ(result.y, 16);
+  EXPECT_FLOAT_EQ(result.z, 0);
+}
+
+TEST(math_vector, DivideCeil)
+{
+  const int3 a(21, 16, 0);
+  const int3 b(8, 16, 15);
+  const int3 result = math::divide_ceil(a, b);
+  EXPECT_FLOAT_EQ(result.x, 3);
+  EXPECT_FLOAT_EQ(result.y, 1);
+  EXPECT_FLOAT_EQ(result.z, 0);
+}
+
 }  // namespace blender::tests

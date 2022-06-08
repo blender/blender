@@ -452,9 +452,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   }
 
   { /* Load and compile PTX module with OptiX kernels. */
-    string ptx_data, ptx_filename = path_get((kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) ?
-                                                 "lib/kernel_optix_shader_raytrace.ptx" :
-                                                 "lib/kernel_optix.ptx");
+    string ptx_data, ptx_filename = path_get(
+                         (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) ?
+                             "lib/kernel_optix_shader_raytrace.ptx" :
+                             "lib/kernel_optix.ptx");
     if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
       if (!getenv("OPTIX_ROOT_DIR")) {
         set_error(
@@ -464,7 +465,9 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       }
       ptx_filename = compile_kernel(
           kernel_features,
-          (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) ? "kernel_shader_raytrace" : "kernel",
+          (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) ?
+              "kernel_shader_raytrace" :
+              "kernel",
           "optix",
           true);
     }
@@ -550,7 +553,8 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       OptixBuiltinISOptions builtin_options = {};
 #  if OPTIX_ABI_VERSION >= 55
       builtin_options.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_ROUND_CATMULLROM;
-      builtin_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
+      builtin_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE |
+                                   OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
       builtin_options.curveEndcapFlags = OPTIX_CURVE_ENDCAP_DEFAULT; /* Disable end-caps. */
 #  else
       builtin_options.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE;
@@ -618,6 +622,14 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_CALL_SVM_BEVEL].callables.moduleDC = optix_module;
     group_descs[PG_CALL_SVM_BEVEL].callables.entryFunctionNameDC =
         "__direct_callable__svm_node_bevel";
+  }
+
+  /* MNEE. */
+  if (kernel_features & KERNEL_FEATURE_MNEE) {
+    group_descs[PG_RGEN_SHADE_SURFACE_MNEE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_SHADE_SURFACE_MNEE].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_SURFACE_MNEE].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_shade_surface_mnee";
   }
 
   optix_assert(optixProgramGroupCreate(
@@ -699,6 +711,46 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     /* Set stack size depending on pipeline options. */
     optix_assert(optixPipelineSetStackSize(
         pipelines[PIP_SHADE_RAYTRACE], 0, dss, css, motion_blur ? 3 : 2));
+  }
+
+  if (kernel_features & KERNEL_FEATURE_MNEE) {
+    /* Create MNEE pipeline. */
+    vector<OptixProgramGroup> pipeline_groups;
+    pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_MNEE]);
+    pipeline_groups.push_back(groups[PG_MISS]);
+    pipeline_groups.push_back(groups[PG_HITD]);
+    pipeline_groups.push_back(groups[PG_HITS]);
+    pipeline_groups.push_back(groups[PG_HITL]);
+    pipeline_groups.push_back(groups[PG_HITV]);
+    if (motion_blur) {
+      pipeline_groups.push_back(groups[PG_HITD_MOTION]);
+      pipeline_groups.push_back(groups[PG_HITS_MOTION]);
+    }
+    if (kernel_features & KERNEL_FEATURE_POINTCLOUD) {
+      pipeline_groups.push_back(groups[PG_HITD_POINTCLOUD]);
+      pipeline_groups.push_back(groups[PG_HITS_POINTCLOUD]);
+    }
+    pipeline_groups.push_back(groups[PG_CALL_SVM_AO]);
+    pipeline_groups.push_back(groups[PG_CALL_SVM_BEVEL]);
+
+    optix_assert(optixPipelineCreate(context,
+                                     &pipeline_options,
+                                     &link_options,
+                                     pipeline_groups.data(),
+                                     pipeline_groups.size(),
+                                     nullptr,
+                                     0,
+                                     &pipelines[PIP_SHADE_MNEE]));
+
+    /* Combine ray generation and trace continuation stack size. */
+    const unsigned int css = stack_size[PG_RGEN_SHADE_SURFACE_MNEE].cssRG +
+                             link_options.maxTraceDepth * trace_css;
+    const unsigned int dss = 0;
+
+    /* Set stack size depending on pipeline options. */
+    optix_assert(
+        optixPipelineSetStackSize(pipelines[PIP_SHADE_MNEE], 0, dss, css, motion_blur ? 3 : 2));
   }
 
   { /* Create intersection-only pipeline. */
@@ -1186,7 +1238,7 @@ bool OptiXDevice::denoise_configure_if_needed(DenoiseContext &context)
   const OptixResult result = optixDenoiserSetup(
       denoiser_.optix_denoiser,
       0, /* Work around bug in r495 drivers that causes artifacts when denoiser setup is called
-            on a stream that is not the default stream */
+          * on a stream that is not the default stream. */
       tile_size.x + denoiser_.sizes.overlapWindowSizeInPixels * 2,
       tile_size.y + denoiser_.sizes.overlapWindowSizeInPixels * 2,
       denoiser_.state.device_pointer,
@@ -1336,7 +1388,10 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
   OptixAccelBufferSizes sizes = {};
   OptixAccelBuildOptions options = {};
   options.operation = operation;
-  if (use_fast_trace_bvh) {
+  if (use_fast_trace_bvh ||
+      /* The build flags have to match the ones used to query the built-in curve intersection
+         program (see optixBuiltinISModuleGet above) */
+      build_input.type == OPTIX_BUILD_INPUT_TYPE_CURVES) {
     VLOG(2) << "Using fast to trace OptiX BVH";
     options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
   }
@@ -1861,7 +1916,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       {
         /* Can disable __anyhit__kernel_optix_visibility_test by default (except for thick curves,
          * since it needs to filter out end-caps there).
-
+         *
          * It is enabled where necessary (visibility mask exceeds 8 bits or the other any-hit
          * programs like __anyhit__kernel_optix_shadow_all_hit) via OPTIX_RAY_FLAG_ENFORCE_ANYHIT.
          */

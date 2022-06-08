@@ -174,9 +174,14 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   const int object_flags = intersection_get_object_flags(kg, &ss_isect.hits[0]);
   const bool use_caustics = kernel_data.integrator.use_caustics &&
                             (object_flags & SD_OBJECT_CAUSTICS);
-  const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE) || use_caustics;
+  const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE);
 
-  if (use_raytrace_kernel) {
+  if (use_caustics) {
+    INTEGRATOR_PATH_NEXT_SORTED(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
+                                DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE,
+                                shader);
+  }
+  else if (use_raytrace_kernel) {
     INTEGRATOR_PATH_NEXT_SORTED(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE,
                                 shader);

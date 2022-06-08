@@ -366,7 +366,7 @@ blender::Span<int> InstancesComponent::almost_unique_ids() const
   return almost_unique_ids_;
 }
 
-int InstancesComponent::attribute_domain_num(const AttributeDomain domain) const
+int InstancesComponent::attribute_domain_num(const eAttrDomain domain) const
 {
   if (domain != ATTR_DOMAIN_INSTANCE) {
     return 0;

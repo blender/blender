@@ -39,7 +39,7 @@ inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
 }
 
 template<typename Func>
-inline void convert_to_static_type(const CustomDataType data_type, const Func &func)
+inline void convert_to_static_type(const eCustomDataType data_type, const Func &func)
 {
   const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(data_type);
   convert_to_static_type(cpp_type, func);

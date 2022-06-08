@@ -2425,7 +2425,7 @@ static bool uv_mouse_select_multi(bContext *C,
   UvNearestHit hit = UV_NEAREST_HIT_INIT_DIST_PX(&region->v2d, 75.0f);
   int selectmode, sticky;
   bool found_item = false;
-  /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
+  /* 0 == don't flush, 1 == sel, -1 == deselect;  only use when selection sync is enabled. */
   int flush = 0;
 
   /* Penalty (in pixels) applied to elements that are already selected
@@ -2514,8 +2514,15 @@ static bool uv_mouse_select_multi(bContext *C,
     else if (selectmode == UV_SELECT_EDGE) {
       is_selected = uvedit_edge_select_test(scene, hit.l, cd_loop_uv_offset);
     }
-    else { /* Vertex or island. */
-      is_selected = uvedit_uv_select_test(scene, hit.l, cd_loop_uv_offset);
+    else {
+      /* Vertex or island. For island (if we were using #uv_find_nearest_face_multi_ex, see above),
+       * `hit.l` is NULL, use `hit.efa` instead. */
+      if (hit.l != NULL) {
+        is_selected = uvedit_uv_select_test(scene, hit.l, cd_loop_uv_offset);
+      }
+      else {
+        is_selected = uvedit_face_select_test(scene, hit.efa, cd_loop_uv_offset);
+      }
     }
   }
 
@@ -2728,7 +2735,7 @@ static int uv_mouse_select_loop_generic_multi(bContext *C,
   const ToolSettings *ts = scene->toolsettings;
   UvNearestHit hit = UV_NEAREST_HIT_INIT_MAX(&region->v2d);
   bool found_item = false;
-  /* 0 == don't flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
+  /* 0 == don't flush, 1 == sel, -1 == deselect;  only use when selection sync is enabled. */
   int flush = 0;
 
   /* Find edge. */
@@ -3282,8 +3289,6 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
 
     BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, efa_index) {
       if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-        /* tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset); */ /* UNUSED */
-
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
           if (select) {
@@ -3353,8 +3358,6 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
 
     /* now select tagged verts */
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-      /* tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset); */ /* UNUSED */
-
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (BM_elem_flag_test(l->v, BM_ELEM_TAG)) {
           uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
@@ -3373,8 +3376,6 @@ static void uv_select_flush_from_tag_loop(const Scene *scene, Object *obedit, co
     }
 
     BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, efa_index) {
-      /* tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset); */ /* UNUSED */
-
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
         if (BM_elem_flag_test(l, BM_ELEM_TAG)) {
           uv_select_flush_from_tag_sticky_loc_internal(

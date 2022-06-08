@@ -29,7 +29,7 @@ enum VertexNumber { VERTEX_ONE, VERTEX_TWO };
 
 static VArray<int> construct_edge_vertices_gvarray(const MeshComponent &component,
                                                    const VertexNumber vertex,
-                                                   const AttributeDomain domain)
+                                                   const eAttrDomain domain)
 {
   const Mesh *mesh = component.get_for_read();
   if (mesh == nullptr) {
@@ -58,7 +58,7 @@ class EdgeVerticesFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_MESH) {
@@ -85,7 +85,7 @@ class EdgeVerticesFieldInput final : public GeometryFieldInput {
 
 static VArray<float3> construct_edge_positions_gvarray(const MeshComponent &component,
                                                        const VertexNumber vertex,
-                                                       const AttributeDomain domain)
+                                                       const eAttrDomain domain)
 {
   const Mesh *mesh = component.get_for_read();
   if (mesh == nullptr) {
@@ -120,7 +120,7 @@ class EdgePositionFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_MESH) {

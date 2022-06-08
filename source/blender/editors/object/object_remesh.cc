@@ -344,7 +344,7 @@ static void voxel_size_edit_draw(const bContext *C, ARegion *UNUSED(ar), void *a
   BKE_unit_value_as_string(str,
                            VOXEL_SIZE_EDIT_MAX_STR_LEN,
                            (double)(cd->voxel_size * unit->scale_length),
-                           4,
+                           -3,
                            B_UNIT_LENGTH,
                            unit,
                            true);

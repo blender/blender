@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 if 1:
     # Print once every 1000
     GEN_PATH = True

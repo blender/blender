@@ -31,6 +31,8 @@ class MetalDevice : public Device {
   string source[PSO_NUM];
   string source_md5[PSO_NUM];
 
+  bool capture_enabled = false;
+
   KernelParamsMetal launch_params = {0};
 
   /* MetalRT members ----------------------------------*/

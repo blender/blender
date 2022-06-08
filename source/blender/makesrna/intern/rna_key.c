@@ -26,6 +26,14 @@
 
 #include "rna_internal.h"
 
+const EnumPropertyItem rna_enum_keyblock_type_items[] = {
+    {KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
+    {KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
+    {KEY_CATMULL_ROM, "KEY_CATMULL_ROM", 0, "Catmull-Rom", ""},
+    {KEY_BSPLINE, "KEY_BSPLINE", 0, "BSpline", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include <stddef.h>
@@ -788,14 +796,6 @@ static char *rna_ShapeKeyPoint_path(const PointerRNA *ptr)
 }
 
 #else
-
-const EnumPropertyItem rna_enum_keyblock_type_items[] = {
-    {KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
-    {KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
-    {KEY_CATMULL_ROM, "KEY_CATMULL_ROM", 0, "Catmull-Rom", ""},
-    {KEY_BSPLINE, "KEY_BSPLINE", 0, "BSpline", ""},
-    {0, NULL, 0, NULL, NULL},
-};
 
 static const float tilt_limit = DEG2RADF(21600.0f);
 

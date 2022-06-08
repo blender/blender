@@ -20,6 +20,7 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_scene.h"
 #include "BKE_tracking.h"
@@ -1271,14 +1272,14 @@ static void node_file_output_socket_draw(bContext *C,
 
 static bool socket_needs_attribute_search(bNode &node, bNodeSocket &socket)
 {
-  if (node.declaration == nullptr) {
+  if (node.runtime->declaration == nullptr) {
     return false;
   }
   if (socket.in_out == SOCK_OUT) {
     return false;
   }
   const int socket_index = BLI_findindex(&node.inputs, &socket);
-  return node.declaration->inputs()[socket_index]->is_attribute_name();
+  return node.runtime->declaration->inputs()[socket_index]->is_attribute_name();
 }
 
 static void std_node_socket_draw(

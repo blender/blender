@@ -20,8 +20,8 @@ extern "C" {
  * Mass-Spring Model to Describe Rigid Cloth Behavior by Xavier Provot.
  *
  * I've tried to keep similar, if not exact names for the variables as
- * are presented in the paper.  Where I've changed the concept slightly,
- * as in stepsPerFrame compared to the time step in the paper, I've used
+ * are presented in the paper. Where I've changed the concept slightly,
+ * as in `stepsPerFrame` compared to the time step in the paper, I've used
  * variables with different names to minimize confusion.
  */
 

@@ -7,7 +7,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_subdivision.h"
 
@@ -234,7 +234,7 @@ static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
   if (subdiv_cache->use_custom_loop_normals) {
     Mesh *coarse_mesh = subdiv_cache->mesh;
-    const float(*lnors)[3] = static_cast<float(*)[3]>(
+    const float(*lnors)[3] = static_cast<const float(*)[3]>(
         CustomData_get_layer(&coarse_mesh->ldata, CD_NORMAL));
     BLI_assert(lnors != nullptr);
 
@@ -552,7 +552,5 @@ constexpr MeshExtract create_extractor_pos_nor_hq()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_pos_nor = blender::draw::create_extractor_pos_nor();
 const MeshExtract extract_pos_nor_hq = blender::draw::create_extractor_pos_nor_hq();
-}

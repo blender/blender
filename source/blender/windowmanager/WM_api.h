@@ -388,6 +388,12 @@ struct wmEventHandler_UI *WM_event_add_ui_handler(const struct bContext *C,
                                                   wmUIHandlerRemoveFunc remove_fn,
                                                   void *user_data,
                                                   char flag);
+
+/**
+ * Return the first modal operator of type \a ot or NULL.
+ */
+wmOperator *WM_operator_find_modal_by_type(wmWindow *win, const wmOperatorType *ot);
+
 /**
  * \param postpone: Enable for `win->modalhandlers`,
  * this is in a running for () loop in wm_handlers_do().
@@ -1400,6 +1406,14 @@ void WM_jobs_callbacks(struct wmJob *,
                        void (*update)(void *),
                        void (*endjob)(void *));
 
+void WM_jobs_callbacks_ex(wmJob *wm_job,
+                          wm_jobs_start_callback startjob,
+                          void (*initjob)(void *),
+                          void (*update)(void *),
+                          void (*endjob)(void *),
+                          void (*completed)(void *),
+                          void (*canceled)(void *));
+
 /**
  * If job running, the same owner gave it a new job.
  * if different owner starts existing startjob, it suspends itself
@@ -1426,6 +1440,7 @@ void WM_jobs_kill_all_except(struct wmWindowManager *wm, const void *owner);
 void WM_jobs_kill_type(struct wmWindowManager *wm, const void *owner, int job_type);
 
 bool WM_jobs_has_running(const struct wmWindowManager *wm);
+bool WM_jobs_has_running_type(const struct wmWindowManager *wm, int job_type);
 
 void WM_job_main_thread_lock_acquire(struct wmJob *job);
 void WM_job_main_thread_lock_release(struct wmJob *job);

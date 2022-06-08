@@ -412,7 +412,7 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
       walk->depsgraph,
       walk->v3d,
       &(const struct SnapObjectParams){
-          .snap_select = SNAP_ALL,
+          .snap_target_select = SCE_SNAP_TARGET_ALL,
           /* Avoid having to convert the edit-mesh to a regular mesh. */
           .edit_mode_type = SNAP_GEOM_EDIT,
       },
@@ -454,7 +454,7 @@ static bool walk_ray_cast(RegionView3D *rv3d,
                                              walk->depsgraph,
                                              walk->v3d,
                                              &(const struct SnapObjectParams){
-                                                 .snap_select = SNAP_ALL,
+                                                 .snap_target_select = SCE_SNAP_TARGET_ALL,
                                              },
                                              ray_start,
                                              ray_normal,

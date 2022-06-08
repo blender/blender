@@ -328,7 +328,7 @@ static void mesh_merge_transform(Mesh *result,
     ml->e += cap_edges_index;
   }
 
-  /* set origindex */
+  /* Set #CD_ORIGINDEX. */
   index_orig = CustomData_get_layer(&result->vdata, CD_ORIGINDEX);
   if (index_orig) {
     copy_vn_i(index_orig + cap_verts_index, cap_nverts, ORIGINDEX_NONE);
@@ -464,7 +464,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     copy_m4_m4(offset, result_mat);
   }
 
-  /* Check if there is some scaling.  If scaling, then we will not translate mapping */
+  /* Check if there is some scaling. If scaling, then we will not translate mapping */
   mat4_to_size(scale, offset);
   offset_has_scale = !is_one_v3(scale);
 

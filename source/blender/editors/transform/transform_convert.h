@@ -92,10 +92,6 @@ char transform_convert_frame_side_dir_get(TransInfo *t, float cframe);
  */
 bool FrameOnMouseSide(char side, float frame, float cframe);
 void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc);
-/**
- * For the realtime animation recording feature, handle overlapping data.
- */
-void animrecord_check_state(TransInfo *t, struct Object *ob);
 
 /* transform_convert_action.c */
 

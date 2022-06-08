@@ -145,7 +145,7 @@ static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e,
 }
 
 static bool bm_edge_delimit_cdata(CustomData *ldata,
-                                  CustomDataType type,
+                                  eCustomDataType type,
                                   struct DelimitData_CD *r_delim_cd)
 {
   const int layer_len = CustomData_number_of_layers(ldata, type);

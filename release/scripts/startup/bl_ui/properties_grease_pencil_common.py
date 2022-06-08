@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 import bpy
 from bpy.types import Menu, UIList, Operator
 from bpy.app.translations import pgettext_iface as iface_
@@ -250,6 +248,7 @@ class GPENCIL_MT_move_to_layer(Menu):
 
             layout.separator()
 
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("gpencil.move_to_layer", text="New Layer", icon='ADD').layer = -1
 
 

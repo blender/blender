@@ -86,6 +86,10 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     use_metalrt = (atoi(metalrt) != 0);
   }
 
+  if (getenv("CYCLES_DEBUG_METAL_CAPTURE_KERNEL")) {
+    capture_enabled = true;
+  }
+
   MTLArgumentDescriptor *arg_desc_params = [[MTLArgumentDescriptor alloc] init];
   arg_desc_params.dataType = MTLDataTypePointer;
   arg_desc_params.access = MTLArgumentAccessReadOnly;
@@ -394,7 +398,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
   }
 
   if (size > 0) {
-    if (mem.type == MEM_DEVICE_ONLY) {
+    if (mem.type == MEM_DEVICE_ONLY && !capture_enabled) {
       options = MTLResourceStorageModePrivate;
     }
 
@@ -697,8 +701,7 @@ void MetalDevice::tex_alloc_as_buffer(device_texture &mem)
 void MetalDevice::tex_alloc(device_texture &mem)
 {
   /* Check that dimensions fit within maximum allowable size.
-     See https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
-  */
+   * See: https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf */
   if (mem.data_width > 16384 || mem.data_height > 16384) {
     set_error(string_printf(
         "Texture exceeds maximum allowed size of 16384 x 16384 (requested: %zu x %zu)",

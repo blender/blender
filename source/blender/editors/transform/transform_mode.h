@@ -25,7 +25,7 @@ typedef struct TransDataGenericSlideVert {
 
 /* transform_mode.c */
 
-int transform_mode_really_used(struct bContext *C, int mode);
+eTfmMode transform_mode_really_used(struct bContext *C, eTfmMode mode);
 bool transdata_check_local_center(const TransInfo *t, short around);
 /**
  * Informs if the mode can be switched during modal.

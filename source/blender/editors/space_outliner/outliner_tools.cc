@@ -1954,7 +1954,7 @@ void OUTLINER_OT_delete(wmOperatorType *ot)
   ot->poll = ED_operator_outliner_active;
 
   /* flags */
-  ot->flag |= OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
   PropertyRNA *prop = RNA_def_boolean(
@@ -2008,7 +2008,7 @@ static const EnumPropertyItem prop_id_op_types[] = {
      0,
      "Remap Users",
      "Make all users of selected data-blocks to use instead current (clicked) one"},
-    {0, "", 0, nullptr, nullptr},
+    RNA_ENUM_ITEM_SEPR,
     {OUTLINER_IDOP_OVERRIDE_LIBRARY_CREATE,
      "OVERRIDE_LIBRARY_CREATE",
      0,
@@ -2067,10 +2067,10 @@ static const EnumPropertyItem prop_id_op_types[] = {
      "Clear Library Override Hierarchy",
      "Delete this local override (including its hierarchy of override dependencies) and relink "
      "its usages to the linked data-blocks"},
-    {0, "", 0, nullptr, nullptr},
+    RNA_ENUM_ITEM_SEPR,
     {OUTLINER_IDOP_COPY, "COPY", ICON_COPYDOWN, "Copy", ""},
     {OUTLINER_IDOP_PASTE, "PASTE", ICON_PASTEDOWN, "Paste", ""},
-    {0, "", 0, nullptr, nullptr},
+    RNA_ENUM_ITEM_SEPR,
     {OUTLINER_IDOP_FAKE_ADD,
      "ADD_FAKE",
      0,

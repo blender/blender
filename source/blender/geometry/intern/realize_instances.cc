@@ -279,12 +279,12 @@ static void copy_generic_attributes_to_result(
     const Span<std::optional<GVArray_GSpan>> src_attributes,
     const AttributeFallbacksArray &attribute_fallbacks,
     const OrderedAttributes &ordered_attributes,
-    const FunctionRef<IndexRange(AttributeDomain)> &range_fn,
+    const FunctionRef<IndexRange(eAttrDomain)> &range_fn,
     MutableSpan<GMutableSpan> dst_attributes)
 {
   threading::parallel_for(dst_attributes.index_range(), 10, [&](const IndexRange attribute_range) {
     for (const int attribute_index : attribute_range) {
-      const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
+      const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
       const IndexRange element_slice = range_fn(domain);
 
       GMutableSpan dst_span = dst_attributes[attribute_index].slice(element_slice);
@@ -363,7 +363,7 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
           return true;
         }
         GSpan span = *attributes.get_for_read(attribute_id);
-        const CustomDataType expected_type = ordered_attributes.kinds[attribute_index].data_type;
+        const eCustomDataType expected_type = ordered_attributes.kinds[attribute_index].data_type;
         if (meta_data.data_type != expected_type) {
           const CPPType &from_type = span.type();
           const CPPType &to_type = *custom_data_type_to_cpp_type(expected_type);
@@ -644,8 +644,8 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
     pointcloud_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
-      const CustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
-      const AttributeDomain domain = info.attributes.kinds[attribute_index].domain;
+      const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
+      const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
       if (component.attribute_exists(attribute_id)) {
         GVArray attribute = component.attribute_get_for_read(attribute_id, domain, data_type);
         pointcloud_info.attributes[attribute_index].emplace(std::move(attribute));
@@ -687,7 +687,7 @@ static void execute_realize_pointcloud_task(const RealizeInstancesOptions &optio
       pointcloud_info.attributes,
       task.attribute_fallbacks,
       ordered_attributes,
-      [&](const AttributeDomain domain) {
+      [&](const eAttrDomain domain) {
         BLI_assert(domain == ATTR_DOMAIN_POINT);
         UNUSED_VARS_NDEBUG(domain);
         return point_slice;
@@ -728,7 +728,7 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
   Vector<GMutableSpan> dst_attribute_spans;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
-    const CustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
     OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
     dst_attribute_spans.append(dst_attribute.as_span());
@@ -835,8 +835,8 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     mesh_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
-      const CustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
-      const AttributeDomain domain = info.attributes.kinds[attribute_index].domain;
+      const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
+      const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
       if (component.attribute_exists(attribute_id)) {
         GVArray attribute = component.attribute_get_for_read(attribute_id, domain, data_type);
         mesh_info.attributes[attribute_index].emplace(std::move(attribute));
@@ -927,7 +927,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       mesh_info.attributes,
       task.attribute_fallbacks,
       ordered_attributes,
-      [&](const AttributeDomain domain) {
+      [&](const eAttrDomain domain) {
         switch (domain) {
           case ATTR_DOMAIN_POINT:
             return IndexRange(task.start_indices.vertex, mesh.totvert);
@@ -991,8 +991,8 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   Vector<GMutableSpan> dst_attribute_spans;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
-    const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
-    const CustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
+    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
     OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
         attribute_id, domain, data_type);
     dst_attribute_spans.append(dst_attribute.as_span());
@@ -1083,9 +1083,9 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
     component.replace(const_cast<Curves *>(curves), GeometryOwnershipType::ReadOnly);
     curve_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
-      const AttributeDomain domain = info.attributes.kinds[attribute_index].domain;
+      const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
-      const CustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
+      const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
       if (component.attribute_exists(attribute_id)) {
         GVArray attribute = component.attribute_get_for_read(attribute_id, domain, data_type);
         curve_info.attributes[attribute_index].emplace(std::move(attribute));
@@ -1189,7 +1189,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
       curves_info.attributes,
       task.attribute_fallbacks,
       ordered_attributes,
-      [&](const AttributeDomain domain) {
+      [&](const eAttrDomain domain) {
         switch (domain) {
           case ATTR_DOMAIN_POINT:
             return IndexRange(task.start_indices.point, curves.points_num());
@@ -1238,8 +1238,8 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   Vector<GMutableSpan> dst_attribute_spans;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
-    const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
-    const CustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
+    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
     OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
         attribute_id, domain, data_type);
     dst_attribute_spans.append(dst_attribute.as_span());

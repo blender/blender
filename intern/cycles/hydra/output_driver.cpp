@@ -30,11 +30,11 @@ bool HdCyclesOutputDriver::update_render_tile(const Tile &tile)
   std::vector<float> pixels;
 
   for (const HdRenderPassAovBinding &aovBinding : _renderParam->GetAovBindings()) {
-    if (aovBinding == _renderParam->GetDisplayAovBinding()) {
-      continue;  // Display AOV binding is already updated by Cycles display driver
-    }
-
     if (const auto renderBuffer = static_cast<HdCyclesRenderBuffer *>(aovBinding.renderBuffer)) {
+      if (aovBinding == _renderParam->GetDisplayAovBinding() && renderBuffer->IsResourceUsed()) {
+        continue;  // Display AOV binding is already updated by Cycles display driver
+      }
+
       const HdFormat format = renderBuffer->GetFormat();
       if (format == HdFormatInvalid) {
         continue;  // Skip invalid AOV bindings

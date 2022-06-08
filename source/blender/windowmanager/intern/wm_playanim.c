@@ -673,7 +673,7 @@ static void build_pict_list_ex(
      *
      * If set, all reads and writes on the resulting file descriptor will
      * be performed directly to or from the user program buffer, provided
-     * appropriate size and alignment restrictions are met.  Refer to the
+     * appropriate size and alignment restrictions are met. Refer to the
      * F_SETFL and F_DIOINFO commands in the fcntl(2) manual entry for
      * information about how to determine the alignment constraints.
      * O_DIRECT is a Silicon Graphics extension and is only supported on

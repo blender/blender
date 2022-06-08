@@ -495,7 +495,7 @@ void LocalGeoLogger::log_execution_time(DNode node, std::chrono::microseconds ex
 
 void LocalGeoLogger::log_used_named_attribute(DNode node,
                                               std::string attribute_name,
-                                              NamedAttributeUsage usage)
+                                              eNamedAttrUsage usage)
 {
   used_named_attributes_.append({node, {std::move(attribute_name), usage}});
 }

@@ -145,10 +145,10 @@ void icon_draw_rect_input(float x,
     SNPRINTF(str, "F%d", 1 + (event_type - EVT_F1KEY));
     icon_draw_rect_input_text(&rect, color, str, event_type > EVT_F9KEY ? 8.0f : 10.0f);
   }
-  else if (event_type == EVT_LEFTSHIFTKEY) {
+  else if (event_type == EVT_LEFTSHIFTKEY) { /* Right Shift has already been converted to left. */
     icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x87, 0xa7, 0x0});
   }
-  else if (event_type == EVT_LEFTCTRLKEY) {
+  else if (event_type == EVT_LEFTCTRLKEY) { /* Right Shift has already been converted to left. */
     if (platform == MACOS) {
       icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x8c, 0x83, 0x0});
     }
@@ -156,7 +156,7 @@ void icon_draw_rect_input(float x,
       icon_draw_rect_input_text(&rect, color, "Ctrl", 9.0f);
     }
   }
-  else if (event_type == EVT_LEFTALTKEY) {
+  else if (event_type == EVT_LEFTALTKEY) { /* Right Alt has already been converted to left. */
     if (platform == MACOS) {
       icon_draw_rect_input_symbol(&rect, color, (const char[]){0xe2, 0x8c, 0xa5, 0x0});
     }

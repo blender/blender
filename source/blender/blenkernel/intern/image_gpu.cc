@@ -718,12 +718,31 @@ static void gpu_texture_update_from_ibuf(
   int tex_offset = ibuf->channels * (y * ibuf->x + x);
 
   const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
-  if (rect_float == nullptr) {
-    /* Byte pixels. */
-    if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
-      const bool compress_as_srgb = !IMB_colormanagement_space_is_scene_linear(
-          ibuf->rect_colorspace);
+  if (rect_float) {
+    /* Float image is already in scene linear colorspace or non-color data by
+     * convention, no colorspace conversion needed. But we do require 4 channels
+     * currently. */
+    if (ibuf->channels != 4 || scaled || !store_premultiplied) {
+      rect_float = (float *)MEM_mallocN(sizeof(float[4]) * w * h, __func__);
+      if (rect_float == nullptr) {
+        return;
+      }
 
+      tex_stride = w;
+      tex_offset = 0;
+
+      IMB_colormanagement_imbuf_to_float_texture(
+          rect_float, x, y, w, h, ibuf, store_premultiplied);
+    }
+  }
+  else {
+    /* Byte image is in original colorspace from the file, and may need conversion. */
+    if (IMB_colormanagement_space_is_data(ibuf->rect_colorspace) ||
+        IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace)) {
+      /* Non-color data, just store buffer as is. */
+    }
+    else if (IMB_colormanagement_space_is_srgb(ibuf->rect_colorspace)) {
+      /* sRGB or scene linear, store as byte texture that the GPU can decode directly. */
       rect = (uchar *)MEM_mallocN(sizeof(uchar[4]) * w * h, __func__);
       if (rect == nullptr) {
         return;
@@ -734,13 +753,10 @@ static void gpu_texture_update_from_ibuf(
 
       /* Convert to scene linear with sRGB compression, and premultiplied for
        * correct texture interpolation. */
-      IMB_colormanagement_imbuf_to_byte_texture(
-          rect, x, y, w, h, ibuf, compress_as_srgb, store_premultiplied);
+      IMB_colormanagement_imbuf_to_byte_texture(rect, x, y, w, h, ibuf, store_premultiplied);
     }
-  }
-  else {
-    /* Float pixels. */
-    if (ibuf->channels != 4 || scaled || !store_premultiplied) {
+    else {
+      /* Other colorspace, store as float texture to avoid precision loss. */
       rect_float = (float *)MEM_mallocN(sizeof(float[4]) * w * h, __func__);
       if (rect_float == nullptr) {
         return;

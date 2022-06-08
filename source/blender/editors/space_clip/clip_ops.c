@@ -777,7 +777,7 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
   ot->poll = ED_space_clip_view_clip_poll;
 
   /* flags */
-  ot->flag |= OPTYPE_LOCK_BYPASS;
+  ot->flag = OPTYPE_LOCK_BYPASS;
 
   /* properties */
   prop = RNA_def_float_vector(ot->srna,
@@ -834,7 +834,7 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
   ot->poll = ED_space_clip_view_clip_poll;
 
   /* flags */
-  ot->flag |= OPTYPE_LOCK_BYPASS;
+  ot->flag = OPTYPE_LOCK_BYPASS;
 
   /* properties */
   prop = RNA_def_float_vector(ot->srna,
@@ -883,7 +883,7 @@ void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
   ot->poll = ED_space_clip_view_clip_poll;
 
   /* flags */
-  ot->flag |= OPTYPE_LOCK_BYPASS;
+  ot->flag = OPTYPE_LOCK_BYPASS;
 
   /* properties */
   RNA_def_float(ot->srna,

@@ -550,7 +550,7 @@ void Scene::update_kernel_features()
   dscene.data.integrator.use_caustics = false;
   if (has_caustics_caster && has_caustics_receiver && has_caustics_light) {
     dscene.data.integrator.use_caustics = true;
-    kernel_features |= KERNEL_FEATURE_NODE_RAYTRACE;
+    kernel_features |= KERNEL_FEATURE_MNEE;
   }
 
   if (bake_manager->get_baking()) {
@@ -597,6 +597,7 @@ static void log_kernel_features(const uint features)
           << "\n";
   VLOG(2) << "Use Shader Raytrace " << string_from_bool(features & KERNEL_FEATURE_NODE_RAYTRACE)
           << "\n";
+  VLOG(2) << "Use MNEE" << string_from_bool(features & KERNEL_FEATURE_MNEE) << "\n";
   VLOG(2) << "Use Transparent " << string_from_bool(features & KERNEL_FEATURE_TRANSPARENT) << "\n";
   VLOG(2) << "Use Denoising " << string_from_bool(features & KERNEL_FEATURE_DENOISING) << "\n";
   VLOG(2) << "Use Path Tracing " << string_from_bool(features & KERNEL_FEATURE_PATH_TRACING)

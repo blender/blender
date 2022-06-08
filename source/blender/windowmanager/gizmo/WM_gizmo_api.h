@@ -388,6 +388,8 @@ void WM_gizmomap_message_subscribe(const struct bContext *C,
                                    struct ARegion *region,
                                    struct wmMsgBus *mbus);
 bool WM_gizmomap_is_any_selected(const struct wmGizmoMap *gzmap);
+struct wmGizmo *WM_gizmomap_get_modal(const struct wmGizmoMap *gzmap);
+
 /**
  * \note We could use a callback to define bounds, for now just use matrix location.
  */

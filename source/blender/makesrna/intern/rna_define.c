@@ -4448,7 +4448,7 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropert
 
 void RNA_enum_item_add_separator(EnumPropertyItem **items, int *totitem)
 {
-  static const EnumPropertyItem sepr = {0, "", 0, NULL, NULL};
+  static const EnumPropertyItem sepr = RNA_ENUM_ITEM_SEPR;
   RNA_enum_item_add(items, totitem, &sepr);
 }
 

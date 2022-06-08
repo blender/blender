@@ -25,9 +25,9 @@ extern "C" {
 #endif
 
 typedef struct DRW_AttributeRequest {
-  CustomDataType cd_type;
+  eCustomDataType cd_type;
   int layer_index;
-  AttributeDomain domain;
+  eAttrDomain domain;
   char attribute_name[64];
 } DRW_AttributeRequest;
 
@@ -46,14 +46,14 @@ void drw_attributes_merge(DRW_Attributes *dst,
 bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b);
 
 DRW_AttributeRequest *drw_attributes_add_request(DRW_Attributes *attrs,
-                                                 CustomDataType type,
+                                                 eCustomDataType type,
                                                  int layer,
-                                                 AttributeDomain domain);
+                                                 eAttrDomain domain);
 
 bool drw_custom_data_match_attribute(const CustomData *custom_data,
                                      const char *name,
                                      int *r_layer_index,
-                                     int *r_type);
+                                     eCustomDataType *r_type);
 
 #ifdef __cplusplus
 }

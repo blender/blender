@@ -872,6 +872,22 @@ template<typename T> class VArrayCommon {
 template<typename T> class VMutableArray;
 
 /**
+ * Various tags to disambiguate constructors of virtual arrays.
+ * Generally it is easier to use `VArray::For*` functions to construct virtual arrays, but
+ * sometimes being able to use the constructor can result in better performance For example, when
+ * constructing the virtual array directly in a vector. Without the constructor one would have to
+ * construct the virtual array first and then move it into the vector.
+ */
+namespace varray_tag {
+struct span {
+};
+struct single_ref {
+};
+struct single {
+};
+}  // namespace varray_tag
+
+/**
  * A #VArray wraps a virtual array implementation and provides easy access to its elements. It can
  * be copied and moved. While it is relatively small, it should still be passed by reference if
  * possible (other than e.g. #Span).
@@ -892,6 +908,19 @@ template<typename T> class VArray : public VArrayCommon<T> {
   {
   }
 
+  VArray(varray_tag::span /* tag */, Span<T> span)
+  {
+    /* Cast const away, because the virtual array implementation for const and non const spans is
+     * shared. */
+    MutableSpan<T> mutable_span{const_cast<T *>(span.data()), span.size()};
+    this->template emplace<VArrayImpl_For_Span_final<T>>(mutable_span);
+  }
+
+  VArray(varray_tag::single /* tag */, T value, const int64_t size)
+  {
+    this->template emplace<VArrayImpl_For_Single<T>>(std::move(value), size);
+  }
+
   /**
    * Construct a new virtual array for a custom #VArrayImpl.
    */
@@ -908,7 +937,7 @@ template<typename T> class VArray : public VArrayCommon<T> {
    */
   static VArray ForSingle(T value, const int64_t size)
   {
-    return VArray::For<VArrayImpl_For_Single<T>>(std::move(value), size);
+    return VArray(varray_tag::single{}, std::move(value), size);
   }
 
   /**
@@ -917,10 +946,7 @@ template<typename T> class VArray : public VArrayCommon<T> {
    */
   static VArray ForSpan(Span<T> values)
   {
-    /* Cast const away, because the virtual array implementation for const and non const spans is
-     * shared. */
-    MutableSpan<T> span{const_cast<T *>(values.data()), values.size()};
-    return VArray::For<VArrayImpl_For_Span_final<T>>(span);
+    return VArray(varray_tag::span{}, values);
   }
 
   /**
@@ -1112,6 +1138,8 @@ template<typename T> class VArray_Span final : public Span<T> {
   Array<T> owned_data_;
 
  public:
+  VArray_Span() = default;
+
   VArray_Span(VArray<T> varray) : Span<T>(), varray_(std::move(varray))
   {
     this->size_ = varray_.size();
@@ -1124,6 +1152,30 @@ template<typename T> class VArray_Span final : public Span<T> {
       varray_.materialize_to_uninitialized(owned_data_);
       this->data_ = owned_data_.data();
     }
+  }
+
+  VArray_Span(VArray_Span &&other)
+      : varray_(std::move(other.varray_)), owned_data_(std::move(other.owned_data_))
+  {
+    this->size_ = varray_.size();
+    if (varray_.is_span()) {
+      this->data_ = varray_.get_internal_span().data();
+    }
+    else {
+      this->data_ = owned_data_.data();
+    }
+    other.data_ = nullptr;
+    other.size_ = 0;
+  }
+
+  VArray_Span &operator=(VArray_Span &&other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+    std::destroy_at(this);
+    new (this) VArray_Span(std::move(other));
+    return *this;
   }
 };
 

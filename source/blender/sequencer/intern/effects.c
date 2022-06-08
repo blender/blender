@@ -49,6 +49,7 @@
 #include "SEQ_proxy.h"
 #include "SEQ_relations.h"
 #include "SEQ_render.h"
+#include "SEQ_time.h"
 #include "SEQ_utils.h"
 
 #include "BLF_api.h"
@@ -2431,7 +2432,7 @@ static ImBuf *do_multicam(const SeqRenderData *context,
   if (!ed) {
     return NULL;
   }
-  ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *seqbasep = SEQ_get_seqbase_by_seq(context->scene, seq);
   ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, seq);
   if (!seqbasep) {
     return NULL;
@@ -2467,13 +2468,15 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
 
   ed = context->scene->ed;
 
-  ListBase *seqbasep = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *seqbasep = SEQ_get_seqbase_by_seq(context->scene, seq);
   ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, seq);
 
   /* Clamp timeline_frame to strip range so it behaves as if it had "still frame" offset (last
    * frame is static after end of strip). This is how most strips behave. This way transition
    * effects that doesn't overlap or speed effect can't fail rendering outside of strip range. */
-  timeline_frame = clamp_i(timeline_frame, seq->startdisp, seq->enddisp - 1);
+  timeline_frame = clamp_i(timeline_frame,
+                           SEQ_time_left_handle_frame_get(seq),
+                           SEQ_time_right_handle_frame_get(seq) - 1);
 
   if (seq->machine > 1) {
     i = seq_render_give_ibuf_seqbase(
@@ -2583,7 +2586,7 @@ static int early_out_speed(Sequence *UNUSED(seq), float UNUSED(fac))
 static int seq_effect_speed_get_strip_content_length(const Sequence *seq)
 {
   if ((seq->type & SEQ_TYPE_EFFECT) != 0 && SEQ_effect_get_num_inputs(seq->type) == 0) {
-    return seq->enddisp - seq->startdisp;
+    return SEQ_time_right_handle_frame_get(seq) - SEQ_time_left_handle_frame_get(seq);
   }
 
   return seq->len;
@@ -2610,13 +2613,14 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
     MEM_freeN(v->frameMap);
   }
 
-  const int effect_strip_length = seq->enddisp - seq->startdisp;
+  const int effect_strip_length = SEQ_time_right_handle_frame_get(seq) -
+                                  SEQ_time_left_handle_frame_get(seq);
   v->frameMap = MEM_mallocN(sizeof(float) * effect_strip_length, __func__);
   v->frameMap[0] = 0.0f;
 
   float target_frame = 0;
   for (int frame_index = 1; frame_index < effect_strip_length; frame_index++) {
-    target_frame += evaluate_fcurve(fcu, seq->startdisp + frame_index);
+    target_frame += evaluate_fcurve(fcu, SEQ_time_left_handle_frame_get(seq) + frame_index);
     CLAMP(target_frame, 0, seq->seq1->len);
     v->frameMap[frame_index] = target_frame;
   }
@@ -2652,7 +2656,8 @@ float seq_speed_effect_target_frame_get(Scene *scene,
       /* Only right handle controls effect speed! */
       const float target_content_length = seq_effect_speed_get_strip_content_length(source) -
                                           source->startofs;
-      const float speed_effetct_length = seq_speed->enddisp - seq_speed->startdisp;
+      const float speed_effetct_length = SEQ_time_right_handle_frame_get(seq_speed) -
+                                         SEQ_time_left_handle_frame_get(seq_speed);
       const float ratio = frame_index / speed_effetct_length;
       target_frame = target_content_length * ratio;
       break;
@@ -3509,7 +3514,7 @@ static void get_default_fac_noop(Sequence *UNUSED(seq), float UNUSED(timeline_fr
 
 static void get_default_fac_fade(Sequence *seq, float timeline_frame, float *fac)
 {
-  *fac = (float)(timeline_frame - seq->startdisp);
+  *fac = (float)(timeline_frame - SEQ_time_left_handle_frame_get(seq));
   *fac /= seq->len;
 }
 

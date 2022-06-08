@@ -272,7 +272,7 @@ static bool image_paint_poll_ex(bContext *C, bool check_tool)
     SpaceImage *sima = CTX_wm_space_image(C);
 
     if (sima) {
-      if (sima->image != nullptr &&
+      if (sima->image != NULL &&
           (ID_IS_LINKED(sima->image) || ID_IS_OVERRIDE_LIBRARY(sima->image))) {
         return false;
       }
@@ -287,7 +287,7 @@ static bool image_paint_poll_ex(bContext *C, bool check_tool)
   return false;
 }
 
-bool image_paint_poll(bContext *C)
+bool ED_image_tools_paint_poll(bContext *C)
 {
   return image_paint_poll_ex(C, true);
 }
@@ -301,7 +301,7 @@ static bool image_paint_2d_clone_poll(bContext *C)
 {
   Brush *brush = image_paint_brush(C);
 
-  if (!CTX_wm_region_view3d(C) && image_paint_poll(C)) {
+  if (!CTX_wm_region_view3d(C) && ED_image_tools_paint_poll(C)) {
     if (brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE)) {
       if (brush->clone.image) {
         return true;
@@ -430,7 +430,7 @@ static void toggle_paint_cursor(Scene *scene, bool enable)
     paint_cursor_delete_textures();
   }
   else if (enable) {
-    paint_cursor_start(p, image_paint_poll);
+    ED_paint_cursor_start(p, ED_image_tools_paint_poll);
   }
 }
 
@@ -455,7 +455,7 @@ void ED_space_image_paint_update(Main *bmain, wmWindowManager *wm, Scene *scene)
   if (enabled) {
     BKE_paint_init(bmain, scene, PAINT_MODE_TEXTURE_2D, PAINT_CURSOR_TEXTURE_PAINT);
 
-    paint_cursor_start(&imapaint->paint, image_paint_poll);
+    ED_paint_cursor_start(&imapaint->paint, ED_image_tools_paint_poll);
   }
   else {
     paint_cursor_delete_textures();
@@ -736,7 +736,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
   ot->poll = sample_color_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER;
 
   /* properties */
   PropertyRNA *prop;
@@ -925,7 +925,7 @@ static int brush_colors_flip_exec(bContext *C, wmOperator *UNUSED(op))
 
 static bool brush_colors_flip_poll(bContext *C)
 {
-  if (image_paint_poll(C)) {
+  if (ED_image_tools_paint_poll(C)) {
     Brush *br = image_paint_brush(C);
     if (ELEM(br->imagepaint_tool, PAINT_TOOL_DRAW, PAINT_TOOL_FILL)) {
       return true;
@@ -954,7 +954,7 @@ void PAINT_OT_brush_colors_flip(wmOperatorType *ot)
   ot->poll = brush_colors_flip_poll;
 
   /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER;
 }
 
 void ED_imapaint_bucket_fill(struct bContext *C,
@@ -991,7 +991,7 @@ static bool texture_paint_poll(bContext *C)
 
 bool image_texture_paint_poll(bContext *C)
 {
-  return (texture_paint_poll(C) || image_paint_poll(C));
+  return (texture_paint_poll(C) || ED_image_tools_paint_poll(C));
 }
 
 bool facemask_paint_poll(bContext *C)

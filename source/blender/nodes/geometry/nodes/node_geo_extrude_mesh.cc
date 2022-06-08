@@ -63,7 +63,7 @@ struct AttributeOutputs {
 
 static void save_selection_as_attribute(MeshComponent &component,
                                         const AnonymousAttributeID *id,
-                                        const AttributeDomain domain,
+                                        const eAttrDomain domain,
                                         const IndexMask selection)
 {
   BLI_assert(!component.attribute_exists(id));
@@ -143,6 +143,34 @@ static void expand_mesh(Mesh &mesh,
     CustomData_realloc(&mesh.ldata, mesh.totloop);
   }
   BKE_mesh_update_customdata_pointers(&mesh, false);
+}
+
+static CustomData &get_customdata(Mesh &mesh, const eAttrDomain domain)
+{
+  switch (domain) {
+    case ATTR_DOMAIN_POINT:
+      return mesh.vdata;
+    case ATTR_DOMAIN_EDGE:
+      return mesh.edata;
+    case ATTR_DOMAIN_FACE:
+      return mesh.pdata;
+    case ATTR_DOMAIN_CORNER:
+      return mesh.ldata;
+    default:
+      BLI_assert_unreachable();
+      return mesh.vdata;
+  }
+}
+
+static MutableSpan<int> get_orig_index_layer(Mesh &mesh, const eAttrDomain domain)
+{
+  MeshComponent component;
+  component.replace(&mesh, GeometryOwnershipType::ReadOnly);
+  CustomData &custom_data = get_customdata(mesh, domain);
+  if (int *orig_indices = static_cast<int *>(CustomData_get_layer(&custom_data, CD_ORIGINDEX))) {
+    return {orig_indices, component.attribute_domain_num(domain)};
+  }
+  return {};
 }
 
 static MEdge new_edge(const int v1, const int v2)
@@ -291,6 +319,9 @@ static void extrude_mesh_vertices(MeshComponent &component,
       }
     });
   });
+
+  MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
+  vert_orig_indices.slice(new_vert_range).fill(ORIGINDEX_NONE);
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
@@ -614,6 +645,13 @@ static void extrude_mesh_edges(MeshComponent &component,
       }
     });
   }
+
+  MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
+  vert_orig_indices.slice(new_vert_range).fill(ORIGINDEX_NONE);
+
+  MutableSpan<int> edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
+  edge_orig_indices.slice(connect_edge_range).fill(ORIGINDEX_NONE);
+  edge_orig_indices.slice(duplicate_edge_range).fill(ORIGINDEX_NONE);
 
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
@@ -983,6 +1021,17 @@ static void extrude_mesh_face_regions(MeshComponent &component,
         });
   }
 
+  MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
+  vert_orig_indices.slice(new_vert_range).fill(ORIGINDEX_NONE);
+
+  MutableSpan<int> edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
+  edge_orig_indices.slice(connect_edge_range).fill(ORIGINDEX_NONE);
+  edge_orig_indices.slice(new_inner_edge_range).fill(ORIGINDEX_NONE);
+  edge_orig_indices.slice(boundary_edge_range).fill(ORIGINDEX_NONE);
+
+  MutableSpan<int> poly_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
+  poly_orig_indices.slice(side_poly_range).fill(ORIGINDEX_NONE);
+
   if (attribute_outputs.top_id) {
     save_selection_as_attribute(
         component, attribute_outputs.top_id.get(), ATTR_DOMAIN_FACE, poly_selection);
@@ -1231,6 +1280,16 @@ static void extrude_individual_mesh_faces(MeshComponent &component,
       }
     }
   });
+
+  MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
+  vert_orig_indices.slice(new_vert_range).fill(ORIGINDEX_NONE);
+
+  MutableSpan<int> edge_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_EDGE);
+  edge_orig_indices.slice(connect_edge_range).fill(ORIGINDEX_NONE);
+  edge_orig_indices.slice(duplicate_edge_range).fill(ORIGINDEX_NONE);
+
+  MutableSpan<int> poly_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
+  poly_orig_indices.slice(side_poly_range).fill(ORIGINDEX_NONE);
 
   /* Finally update each extruded polygon's loops to point to the new edges and vertices.
    * This must be done last, because they were used to find original indices for attribute

@@ -92,11 +92,11 @@ static const EnumPropertyItem uv_sculpt_relaxation_items[] = {
 };
 #endif
 
-const EnumPropertyItem rna_enum_snap_target_items[] = {
-    {SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target"},
-    {SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap transformation center onto target"},
-    {SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target"},
-    {SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target"},
+const EnumPropertyItem rna_enum_snap_source_items[] = {
+    {SCE_SNAP_SOURCE_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target"},
+    {SCE_SNAP_SOURCE_CENTER, "CENTER", 0, "Center", "Snap transformation center onto target"},
+    {SCE_SNAP_SOURCE_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target"},
+    {SCE_SNAP_SOURCE_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -345,9 +345,9 @@ const EnumPropertyItem rna_enum_curve_fit_method_items[] = {
   R_IMF_ENUM_JPEG \
   R_IMF_ENUM_JPEG2K \
   R_IMF_ENUM_TAGA \
-  R_IMF_ENUM_TAGA_RAW{0, "", 0, " ", NULL}, \
-      R_IMF_ENUM_CINEON R_IMF_ENUM_DPX R_IMF_ENUM_EXR_MULTILAYER R_IMF_ENUM_EXR R_IMF_ENUM_HDR \
-          R_IMF_ENUM_TIFF R_IMF_ENUM_WEBP
+  R_IMF_ENUM_TAGA_RAW \
+  RNA_ENUM_ITEM_SEPR_COLUMN, R_IMF_ENUM_CINEON R_IMF_ENUM_DPX R_IMF_ENUM_EXR_MULTILAYER \
+                                 R_IMF_ENUM_EXR R_IMF_ENUM_HDR R_IMF_ENUM_TIFF R_IMF_ENUM_WEBP
 
 #ifdef RNA_RUNTIME
 static const EnumPropertyItem image_only_type_items[] = {
@@ -359,11 +359,11 @@ static const EnumPropertyItem image_only_type_items[] = {
 #endif
 
 const EnumPropertyItem rna_enum_image_type_items[] = {
-    {0, "", 0, N_("Image"), NULL},
+    RNA_ENUM_ITEM_HEADING(N_("Image"), NULL),
 
     IMAGE_TYPE_ITEMS_IMAGE_ONLY
 
-    {0, "", 0, N_("Movie"), NULL},
+        RNA_ENUM_ITEM_HEADING(N_("Movie"), NULL),
     {R_IMF_IMTYPE_AVIJPEG,
      "AVI_JPEG",
      ICON_FILE_MOVIE,
@@ -3306,9 +3306,12 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       "Absolute grid alignment while translating (based on the pivot center)");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
+  /* TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid
+   * previous ambiguity of "target" (now, "source" is geometry to be moved and "target" is
+   * geometry to which moved geometry is snapped). */
   prop = RNA_def_property(srna, "snap_target", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "snap_target");
-  RNA_def_property_enum_items(prop, rna_enum_snap_target_items);
+  RNA_def_property_enum_items(prop, rna_enum_snap_source_items);
   RNA_def_property_ui_text(prop, "Snap Target", "Which part to snap onto the target");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 

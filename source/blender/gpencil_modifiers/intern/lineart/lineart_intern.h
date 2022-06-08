@@ -80,9 +80,9 @@ void lineart_count_and_print_render_buffer_memory(struct LineartRenderBuffer *rb
 #define LRT_BOUND_AREA_CROSSES(b1, b2) \
   ((b1)[0] < (b2)[1] && (b1)[1] > (b2)[0] && (b1)[3] < (b2)[2] && (b1)[2] > (b2)[3])
 
-/* Initial bounding area row/column count, setting 4 is the simplest way algorithm could function
- * efficiently. */
-#define LRT_BA_ROWS 4
+/* Initial bounding area row/column count, setting 10 is tested to be relatively optimal for the
+ * performance under current algorithm. */
+#define LRT_BA_ROWS 10
 
 #ifdef __cplusplus
 extern "C" {

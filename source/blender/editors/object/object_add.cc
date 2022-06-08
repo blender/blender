@@ -621,9 +621,16 @@ Object *ED_object_add_type_with_obdata(bContext *C,
   else {
     ob = BKE_object_add(bmain, view_layer, type, name);
   }
-  BASACT(view_layer)->local_view_bits = local_view_bits;
-  /* editor level activate, notifiers */
-  ED_object_base_activate(C, view_layer->basact);
+
+  Base *ob_base_act = BASACT(view_layer);
+  /* While not getting a valid base is not a good thing, it can happen in convoluted corner cases,
+   * better not crash on it in releases. */
+  BLI_assert(ob_base_act != nullptr);
+  if (ob_base_act != nullptr) {
+    ob_base_act->local_view_bits = local_view_bits;
+    /* editor level activate, notifiers */
+    ED_object_base_activate(C, ob_base_act);
+  }
 
   /* more editor stuff */
   ED_object_base_init_transform_on_add(ob, loc, rot);
@@ -2079,6 +2086,12 @@ static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
     Curves *curves_id = static_cast<Curves *>(object->data);
     curves_id->surface = surface_ob;
     id_us_plus(&surface_ob->id);
+
+    Mesh *surface_mesh = static_cast<Mesh *>(surface_ob->data);
+    const char *uv_name = CustomData_get_active_layer_name(&surface_mesh->ldata, CD_MLOOPUV);
+    if (uv_name != nullptr) {
+      curves_id->surface_uv_map = BLI_strdup(uv_name);
+    }
   }
 
   return OPERATOR_FINISHED;

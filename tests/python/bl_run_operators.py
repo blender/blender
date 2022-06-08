@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # semi-useful script, runs all operators in a number of different
 # contexts, cheap way to find misc small bugs but is in no way a complete test.
 #

@@ -44,7 +44,6 @@
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_spline.hh"
 #include "BKE_vfont.h"
 
 #include "DEG_depsgraph.h"

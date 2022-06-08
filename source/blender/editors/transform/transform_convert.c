@@ -1607,9 +1607,8 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
   }
 }
 
-void ED_transform_animrecord_check_state(Scene *scene, wmTimer *animtimer, struct Object *ob)
+void ED_transform_animrecord_check_state(Scene *scene, wmTimer *animtimer, struct ID *id)
 {
-  ID *id = &ob->id;
   ScreenAnimData *sad = (animtimer) ? animtimer->customdata : NULL;
 
   /* sanity checks */

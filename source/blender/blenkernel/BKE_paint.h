@@ -501,8 +501,8 @@ typedef struct SculptSession {
   struct MPropCol *vcol;
   struct MLoopCol *mcol;
 
-  AttributeDomain vcol_domain;
-  CustomDataType vcol_type;
+  eAttrDomain vcol_domain;
+  eCustomDataType vcol_type;
 
   float *vmask;
 
@@ -612,6 +612,10 @@ typedef struct SculptSession {
   float init_pivot_pos[3];
   float init_pivot_rot[4];
   float init_pivot_scale[3];
+
+  float prev_pivot_pos[3];
+  float prev_pivot_rot[4];
+  float prev_pivot_scale[3];
 
   union {
     struct {

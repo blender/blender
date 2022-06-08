@@ -17,10 +17,10 @@ namespace blender::bke {
 class GeometryComponentFieldContext : public fn::FieldContext {
  private:
   const GeometryComponent &component_;
-  const AttributeDomain domain_;
+  const eAttrDomain domain_;
 
  public:
-  GeometryComponentFieldContext(const GeometryComponent &component, const AttributeDomain domain)
+  GeometryComponentFieldContext(const GeometryComponent &component, const eAttrDomain domain)
       : component_(component), domain_(domain)
   {
   }
@@ -30,7 +30,7 @@ class GeometryComponentFieldContext : public fn::FieldContext {
     return component_;
   }
 
-  AttributeDomain domain() const
+  eAttrDomain domain() const
   {
     return domain_;
   }
@@ -45,7 +45,7 @@ class GeometryFieldInput : public fn::FieldInput {
                                  ResourceScope &scope) const override;
 
   virtual GVArray get_varray_for_context(const GeometryComponent &component,
-                                         AttributeDomain domain,
+                                         eAttrDomain domain,
                                          IndexMask mask) const = 0;
 };
 
@@ -73,7 +73,7 @@ class AttributeFieldInput : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 AttributeDomain domain,
+                                 eAttrDomain domain,
                                  IndexMask mask) const override;
 
   std::string socket_inspection_name() const override;
@@ -90,7 +90,7 @@ class IDAttributeFieldInput : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 AttributeDomain domain,
+                                 eAttrDomain domain,
                                  IndexMask mask) const override;
 
   std::string socket_inspection_name() const override;
@@ -99,12 +99,12 @@ class IDAttributeFieldInput : public GeometryFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override;
 };
 
-VArray<float3> curve_normals_varray(const CurveComponent &component, const AttributeDomain domain);
+VArray<float3> curve_normals_varray(const CurveComponent &component, const eAttrDomain domain);
 
 VArray<float3> mesh_normals_varray(const MeshComponent &mesh_component,
                                    const Mesh &mesh,
                                    const IndexMask mask,
-                                   const AttributeDomain domain);
+                                   eAttrDomain domain);
 
 class NormalFieldInput : public GeometryFieldInput {
  public:
@@ -114,7 +114,7 @@ class NormalFieldInput : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask mask) const override;
 
   std::string socket_inspection_name() const override;
@@ -153,7 +153,7 @@ class AnonymousAttributeFieldInput : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 AttributeDomain domain,
+                                 eAttrDomain domain,
                                  IndexMask mask) const override;
 
   std::string socket_inspection_name() const override;
@@ -166,7 +166,7 @@ class CurveLengthFieldInput final : public GeometryFieldInput {
  public:
   CurveLengthFieldInput();
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 AttributeDomain domain,
+                                 eAttrDomain domain,
                                  IndexMask mask) const final;
   uint64_t hash() const override;
   bool is_equal_to(const fn::FieldNode &other) const override;

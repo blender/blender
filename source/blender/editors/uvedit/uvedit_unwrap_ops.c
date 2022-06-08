@@ -301,21 +301,18 @@ void ED_uvedit_get_aspect(Object *ob, float *r_aspx, float *r_aspy)
 static void construct_param_handle_face_add(ParamHandle *handle,
                                             const Scene *scene,
                                             BMFace *efa,
-                                            int face_index,
+                                            ParamKey face_index,
                                             const int cd_loop_uv_offset)
 {
-  ParamKey key;
   ParamKey *vkeys = BLI_array_alloca(vkeys, efa->len);
-  ParamBool *pin = BLI_array_alloca(pin, efa->len);
-  ParamBool *select = BLI_array_alloca(select, efa->len);
-  float **co = BLI_array_alloca(co, efa->len);
+  bool *pin = BLI_array_alloca(pin, efa->len);
+  bool *select = BLI_array_alloca(select, efa->len);
+  const float **co = BLI_array_alloca(co, efa->len);
   float **uv = BLI_array_alloca(uv, efa->len);
   int i;
 
   BMIter liter;
   BMLoop *l;
-
-  key = (ParamKey)face_index;
 
   /* let parametrizer split the ngon, it can make better decisions
    * about which split is best for unwrapping than poly-fill. */
@@ -329,7 +326,7 @@ static void construct_param_handle_face_add(ParamHandle *handle,
     select[i] = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
   }
 
-  GEO_uv_parametrizer_face_add(handle, key, i, vkeys, co, uv, pin, select);
+  GEO_uv_parametrizer_face_add(handle, face_index, i, vkeys, co, uv, pin, select);
 }
 
 /* See: construct_param_handle_multi to handle multiple objects at once. */
@@ -500,8 +497,8 @@ static void texface_from_original_index(const Scene *scene,
                                         BMFace *efa,
                                         int index,
                                         float **r_uv,
-                                        ParamBool *r_pin,
-                                        ParamBool *r_select)
+                                        bool *r_pin,
+                                        bool *r_select)
 {
   BMLoop *l;
   BMIter liter;
@@ -633,8 +630,8 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
   /* Prepare and feed faces to the solver */
   for (i = 0, mpoly = subsurfedPolys; i < numOfFaces; i++, mpoly++) {
     ParamKey key, vkeys[4];
-    ParamBool pin[4], select[4];
-    float *co[4];
+    bool pin[4], select[4];
+    const float *co[4];
     float *uv[4];
     BMFace *origFace = faceMap[i];
 
@@ -652,7 +649,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
     mloop = &subsurfedLoops[mpoly->loopstart];
 
-    /* We will not check for v4 here. Subsurfed mfaces always have 4 vertices. */
+    /* We will not check for v4 here. Sub-surface faces always have 4 vertices. */
     BLI_assert(mpoly->totloop == 4);
     key = (ParamKey)i;
     vkeys[0] = (ParamKey)mloop[0].v;
@@ -1245,7 +1242,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
     handle = construct_param_handle(scene, obedit, em->bm, &options, NULL);
   }
 
-  GEO_uv_parametrizer_lscm_begin(handle, PARAM_TRUE, abf);
+  GEO_uv_parametrizer_lscm_begin(handle, true, abf);
 
   /* Create or increase size of g_live_unwrap.handles array */
   if (g_live_unwrap.handles == NULL) {
@@ -1796,7 +1793,7 @@ static void uvedit_unwrap(const Scene *scene,
     handle = construct_param_handle(scene, obedit, em->bm, options, result_info);
   }
 
-  GEO_uv_parametrizer_lscm_begin(handle, PARAM_FALSE, scene->toolsettings->unwrapper == 0);
+  GEO_uv_parametrizer_lscm_begin(handle, false, scene->toolsettings->unwrapper == 0);
   GEO_uv_parametrizer_lscm_solve(handle,
                                  result_info ? &result_info->count_changed : NULL,
                                  result_info ? &result_info->count_failed : NULL);

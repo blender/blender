@@ -985,7 +985,7 @@ static void extrude_vertices_from_selected_endpoints(EditNurb *editnurb,
     else {
       BPoint *last_bp = nu1->bp + nu1->pntsu - 1;
       const bool first_sel = nu1->bp->f1 & SELECT;
-      const bool last_sel = last_bp->f1 & SELECT;
+      const bool last_sel = last_bp->f1 & SELECT && nu1->pntsu > 1;
       if (first_sel) {
         if (last_sel) {
           BPoint *new_bp = (BPoint *)MEM_mallocN((nu1->pntsu + 2) * sizeof(BPoint), __func__);
@@ -1655,7 +1655,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else if (ELEM(event->type, LEFTMOUSE)) {
     if (ELEM(event->val, KM_RELEASE, KM_DBL_CLICK)) {
       if (delete_point && !cpd->new_point && !cpd->dragging) {
-        if (ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, &params)) {
+        if (ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, false, &params)) {
           cpd->acted = delete_point_under_mouse(&vc, event);
         }
       }
@@ -1714,7 +1714,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
           }
         }
         else if (select_point) {
-          ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, &params);
+          ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, false, &params);
         }
       }
 

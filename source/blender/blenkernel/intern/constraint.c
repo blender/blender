@@ -6191,6 +6191,40 @@ bool BKE_constraint_is_nonlocal_in_liboverride(const Object *ob, const bConstrai
 
 /* -------- Target-Matrix Stuff ------- */
 
+int BKE_constraint_targets_get(struct bConstraint *con, struct ListBase *r_targets)
+{
+  BLI_listbase_clear(r_targets);
+
+  const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+
+  if (!cti) {
+    return 0;
+  }
+
+  int count = 0;
+
+  /* Constraint-specific targets. */
+  if (cti->get_constraint_targets) {
+    count = cti->get_constraint_targets(con, r_targets);
+  }
+
+  return count;
+}
+
+void BKE_constraint_targets_flush(struct bConstraint *con, struct ListBase *targets, bool no_copy)
+{
+  const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
+
+  if (!cti) {
+    return;
+  }
+
+  /* Release the constraint-specific targets. */
+  if (cti->flush_constraint_targets) {
+    cti->flush_constraint_targets(con, targets, no_copy);
+  }
+}
+
 void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph,
                                       Scene *scene,
                                       bConstraint *con,

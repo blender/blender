@@ -75,7 +75,7 @@ static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
         case CURVE_TYPE_CATMULL_ROM: {
           const int resolution = resolutions[i_curve];
           for (const int i : IndexRange(points.size()).drop_back(1)) {
-            lengths[i + 1] = evaluated_lengths[resolution * i];
+            lengths[i + 1] = evaluated_lengths[resolution * (i + 1) - 1];
           }
           break;
         }
@@ -107,7 +107,7 @@ static Array<float> curve_length_point_domain(const bke::CurvesGeometry &curves)
 
 static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry &curves,
                                                       const IndexMask UNUSED(mask),
-                                                      const AttributeDomain domain)
+                                                      const eAttrDomain domain)
 {
   VArray<bool> cyclic = curves.cyclic();
 
@@ -146,7 +146,7 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
 
 static VArray<float> construct_curve_length_parameter_varray(const bke::CurvesGeometry &curves,
                                                              const IndexMask UNUSED(mask),
-                                                             const AttributeDomain domain)
+                                                             const eAttrDomain domain)
 {
   curves.ensure_evaluated_lengths();
 
@@ -165,7 +165,7 @@ static VArray<float> construct_curve_length_parameter_varray(const bke::CurvesGe
 
 static VArray<int> construct_index_on_spline_varray(const bke::CurvesGeometry &curves,
                                                     const IndexMask UNUSED(mask),
-                                                    const AttributeDomain domain)
+                                                    const eAttrDomain domain)
 {
   if (domain == ATTR_DOMAIN_POINT) {
     Array<int> result(curves.points_num());
@@ -191,7 +191,7 @@ class CurveParameterFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask mask) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
@@ -225,7 +225,7 @@ class CurveLengthParameterFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask mask) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_CURVE) {
@@ -259,7 +259,7 @@ class IndexOnSplineFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask mask) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_CURVE) {

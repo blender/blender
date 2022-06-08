@@ -1936,7 +1936,7 @@ typedef struct SpaceSpreadsheet {
 
   /* #GeometryComponentType. */
   uint8_t geometry_component_type;
-  /* #AttributeDomain. */
+  /* #eAttrDomain. */
   uint8_t attribute_domain;
   /* eSpaceSpreadsheet_ObjectContext. */
   uint8_t object_eval_state;
@@ -2014,6 +2014,7 @@ typedef enum eSpreadsheetColumnValueType {
   SPREADSHEET_VALUE_TYPE_INSTANCES = 6,
   SPREADSHEET_VALUE_TYPE_STRING = 7,
   SPREADSHEET_VALUE_TYPE_BYTE_COLOR = 8,
+  SPREADSHEET_VALUE_TYPE_INT8 = 9,
 } eSpreadsheetColumnValueType;
 
 /**

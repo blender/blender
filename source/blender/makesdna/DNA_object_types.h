@@ -374,7 +374,7 @@ typedef struct Object {
   /** Dupliface scale. */
   float instance_faces_scale;
 
-  /** Custom index, for renderpasses. */
+  /** Custom index, for render-passes. */
   short index;
   /** Current deformation group, NOTE: index starts at 1. */
   unsigned short actdef DNA_DEPRECATED;

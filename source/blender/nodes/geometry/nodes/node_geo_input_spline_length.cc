@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
  */
 
 static VArray<int> construct_curve_point_count_gvarray(const CurveComponent &component,
-                                                       const AttributeDomain domain)
+                                                       const eAttrDomain domain)
 {
   if (!component.has_curves()) {
     return {};
@@ -47,7 +47,7 @@ class SplineCountFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_CURVE) {

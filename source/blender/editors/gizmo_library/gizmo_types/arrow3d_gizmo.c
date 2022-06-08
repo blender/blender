@@ -50,15 +50,18 @@
 /* to use custom arrows exported to geom_arrow_gizmo.c */
 //#define USE_GIZMO_CUSTOM_ARROWS
 
-/** Margins to add when selecting the arrow stem. */
-#define ARROW_SELECT_THRESHOLD_PX_STEM (5 * UI_DPI_FAC)
-/** Margins to add when selecting the arrow head. */
-#define ARROW_SELECT_THRESHOLD_PX_HEAD (12 * UI_DPI_FAC)
+/* Margin to add when selecting the arrow. */
+#define ARROW_SELECT_THRESHOLD_PX (5)
 
 typedef struct ArrowGizmo3D {
   wmGizmo gizmo;
   GizmoCommonData data;
 } ArrowGizmo3D;
+
+typedef struct ArrowGizmoInteraction {
+  GizmoInteraction inter;
+  float init_arrow_length;
+} ArrowGizmoInteraction;
 
 /* -------------------------------------------------------------------- */
 
@@ -70,7 +73,10 @@ static void gizmo_arrow_matrix_basis_get(const wmGizmo *gz, float r_matrix[4][4]
   madd_v3_v3fl(r_matrix[3], arrow->gizmo.matrix_basis[2], arrow->data.offset);
 }
 
-static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const float color[4])
+static void arrow_draw_geom(const ArrowGizmo3D *arrow,
+                            const bool select,
+                            const float color[4],
+                            const float arrow_length)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   bool unbind_shader = true;
@@ -113,16 +119,14 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 #ifdef USE_GIZMO_CUSTOM_ARROWS
     wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_arrow, select, color);
 #else
-    const float arrow_length = RNA_float_get(arrow->gizmo.ptr, "length");
-
     const float vec[2][3] = {
         {0.0f, 0.0f, 0.0f},
         {0.0f, 0.0f, arrow_length},
     };
 
     if (draw_options & ED_GIZMO_ARROW_DRAW_FLAG_STEM) {
-      const float stem_width = (arrow->gizmo.line_width * U.pixelsize) +
-                               (select ? ARROW_SELECT_THRESHOLD_PX_STEM : 0);
+      const float stem_width = arrow->gizmo.line_width * U.pixelsize +
+                               (select ? ARROW_SELECT_THRESHOLD_PX * U.dpi_fac : 0);
       immUniform1f("lineWidth", stem_width);
       wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_STRIP);
     }
@@ -134,7 +138,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 
     GPU_matrix_push();
 
-    /* NOTE: ideally #ARROW_SELECT_THRESHOLD_PX_HEAD would be added here, however adding a
+    /* NOTE: ideally #ARROW_SELECT_THRESHOLD_PX would be added here, however adding a
      * margin in pixel space isn't so simple, nor is it as important as for the arrow stem. */
     if (draw_style == ED_GIZMO_ARROW_STYLE_BOX) {
       const float size = 0.05f;
@@ -178,6 +182,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 static void arrow_draw_intern(ArrowGizmo3D *arrow, const bool select, const bool highlight)
 {
   wmGizmo *gz = &arrow->gizmo;
+  const float arrow_length = RNA_float_get(gz->ptr, "length");
   float color[4];
   float matrix_final[4][4];
 
@@ -188,19 +193,20 @@ static void arrow_draw_intern(ArrowGizmo3D *arrow, const bool select, const bool
   GPU_matrix_push();
   GPU_matrix_mul(matrix_final);
   GPU_blend(GPU_BLEND_ALPHA);
-  arrow_draw_geom(arrow, select, color);
+  arrow_draw_geom(arrow, select, color, arrow_length);
   GPU_blend(GPU_BLEND_NONE);
 
   GPU_matrix_pop();
 
   if (gz->interaction_data) {
-    GizmoInteraction *inter = gz->interaction_data;
+    ArrowGizmoInteraction *arrow_inter = gz->interaction_data;
 
     GPU_matrix_push();
-    GPU_matrix_mul(inter->init_matrix_final);
+    GPU_matrix_mul(arrow_inter->inter.init_matrix_final);
 
     GPU_blend(GPU_BLEND_ALPHA);
-    arrow_draw_geom(arrow, select, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
+    arrow_draw_geom(
+        arrow, select, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f}, arrow_inter->init_arrow_length);
     GPU_blend(GPU_BLEND_NONE);
 
     GPU_matrix_pop();
@@ -223,9 +229,15 @@ static void gizmo_arrow_draw(const bContext *UNUSED(C), wmGizmo *gz)
  */
 static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int mval[2])
 {
+  /* This following values are based on manual inspection of `verts[]` defined in
+   * geom_arrow_gizmo.c */
+  const float head_center_z = (0.974306f + 1.268098f) / 2;
+  const float head_geo_x = 0.051304f;
+  const float stem_geo_x = 0.012320f;
+
   /* Project into 2D space since it simplifies pixel threshold tests. */
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
-  const float arrow_length = RNA_float_get(arrow->gizmo.ptr, "length");
+  const float arrow_length = RNA_float_get(arrow->gizmo.ptr, "length") * head_center_z;
 
   float matrix_final[4][4];
   WM_gizmo_calc_matrix_final(gz, matrix_final);
@@ -239,12 +251,15 @@ static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int m
     copy_v2_v2(arrow_end, co);
   }
 
+  const float scale_final = mat4_to_scale(matrix_final);
+  const float head_width = ARROW_SELECT_THRESHOLD_PX * scale_final * head_geo_x;
+  const float stem_width = ARROW_SELECT_THRESHOLD_PX * scale_final * stem_geo_x;
+  float select_threshold_base = gz->line_width * U.pixelsize;
+
   const float mval_fl[2] = {UNPACK2(mval)};
-  const float arrow_stem_threshold_px = ARROW_SELECT_THRESHOLD_PX_STEM;
-  const float arrow_head_threshold_px = ARROW_SELECT_THRESHOLD_PX_HEAD;
 
   /* Distance to arrow head. */
-  if (len_squared_v2v2(mval_fl, arrow_end) < square_f(arrow_head_threshold_px)) {
+  if (len_squared_v2v2(mval_fl, arrow_end) < square_f(select_threshold_base + head_width)) {
     return 0;
   }
 
@@ -253,8 +268,8 @@ static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int m
   const float lambda = closest_to_line_v2(co_isect, mval_fl, arrow_start, arrow_end);
   /* Clamp inside the line, to avoid overlapping with other gizmos,
    * especially around the start of the arrow. */
-  if (lambda >= 0.0 && lambda <= 1.0) {
-    if (len_squared_v2v2(mval_fl, co_isect) < square_f(arrow_stem_threshold_px)) {
+  if (lambda >= 0.0f && lambda <= 1.0f) {
+    if (len_squared_v2v2(mval_fl, co_isect) < square_f(select_threshold_base + stem_width)) {
       return 0;
     }
   }
@@ -373,7 +388,7 @@ static void gizmo_arrow_setup(wmGizmo *gz)
 static int gizmo_arrow_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
 {
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
-  GizmoInteraction *inter = MEM_callocN(sizeof(GizmoInteraction), __func__);
+  GizmoInteraction *inter = MEM_callocN(sizeof(ArrowGizmoInteraction), __func__);
   wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 
   /* Some gizmos don't use properties. */
@@ -388,6 +403,8 @@ static int gizmo_arrow_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEvent *e
 
   gizmo_arrow_matrix_basis_get(gz, inter->init_matrix_basis);
   WM_gizmo_calc_matrix_final(gz, inter->init_matrix_final);
+
+  ((ArrowGizmoInteraction *)inter)->init_arrow_length = RNA_float_get(gz->ptr, "length");
 
   gz->interaction_data = inter;
 
@@ -513,7 +530,8 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
                     "");
   RNA_def_enum_flag(gzt->srna, "transform", rna_enum_transform_items, 0, "Transform", "");
 
-  RNA_def_float(gzt->srna, "length", 1.0f, 0.0f, FLT_MAX, "Arrow Line Length", "", 0.0f, FLT_MAX);
+  RNA_def_float(
+      gzt->srna, "length", 1.0f, -FLT_MAX, FLT_MAX, "Arrow Line Length", "", -FLT_MAX, FLT_MAX);
   RNA_def_float_vector(
       gzt->srna, "aspect", 2, NULL, 0, FLT_MAX, "Aspect", "Cone/box style only", 0.0f, FLT_MAX);
 

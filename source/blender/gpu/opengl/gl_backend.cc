@@ -408,7 +408,7 @@ static void detect_workarounds()
   /* Certain Intel/AMD based platforms don't clear the viewport textures. Always clearing leads to
    * noticeable performance regressions on other platforms as well. */
   if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY) ||
-      GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_UNIX, GPU_DRIVER_ANY)) {
+      GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
     GCaps.clear_viewport_workaround = true;
   }
 

@@ -106,6 +106,11 @@ const EnumPropertyItem rna_enum_color_attribute_domain_items[] = {
     {ATTR_DOMAIN_CORNER, "CORNER", 0, "Face Corner", ""},
     {0, NULL, 0, NULL, NULL}};
 
+const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
+    {ATTR_DOMAIN_POINT, "POINT", 0, "Control Point", ""},
+    {ATTR_DOMAIN_CURVE, "CURVE", 0, "Curve", ""},
+    {0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_math.h"
@@ -124,7 +129,7 @@ static char *rna_Attribute_path(const PointerRNA *ptr)
   return BLI_sprintfN("attributes['%s']", layer->name);
 }
 
-static StructRNA *srna_by_custom_data_layer_type(const CustomDataType type)
+static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)
 {
   switch (type) {
     case CD_PROP_FLOAT:
@@ -158,13 +163,14 @@ static StructRNA *rna_Attribute_refine(PointerRNA *ptr)
 
 static void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
 {
-  BKE_id_attribute_rename(ptr->owner_id, ptr->data, value, NULL);
+  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+  BKE_id_attribute_rename(ptr->owner_id, layer->name, value, NULL);
 }
 
 static int rna_Attribute_name_editable(PointerRNA *ptr, const char **r_info)
 {
   CustomDataLayer *layer = ptr->data;
-  if (BKE_id_attribute_required(ptr->owner_id, layer)) {
+  if (BKE_id_attribute_required(ptr->owner_id, layer->name)) {
     *r_info = N_("Cannot modify name of required geometry attribute");
     return false;
   }
@@ -230,6 +236,12 @@ static const EnumPropertyItem *rna_Attribute_domain_itemf(bContext *UNUSED(C),
 static int rna_Attribute_domain_get(PointerRNA *ptr)
 {
   return BKE_id_attribute_domain(ptr->owner_id, ptr->data);
+}
+
+static bool rna_Attribute_is_internal_get(PointerRNA *ptr)
+{
+  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+  return BKE_attribute_allow_procedural_access(layer->name);
 }
 
 static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -347,8 +359,8 @@ static PointerRNA rna_AttributeGroup_new(
 
 static void rna_AttributeGroup_remove(ID *id, ReportList *reports, PointerRNA *attribute_ptr)
 {
-  CustomDataLayer *layer = (CustomDataLayer *)attribute_ptr->data;
-  BKE_id_attribute_remove(id, layer, reports);
+  const CustomDataLayer *layer = (const CustomDataLayer *)attribute_ptr->data;
+  BKE_id_attribute_remove(id, layer->name, reports);
   RNA_POINTER_INVALIDATE(attribute_ptr);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
@@ -367,7 +379,7 @@ static int rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter, 
 
   /* Check valid domain here, too, keep in line with rna_AttributeGroup_color_length(). */
   ID *id = iter->parent.owner_id;
-  AttributeDomain domain = BKE_id_attribute_domain(id, layer);
+  eAttrDomain domain = BKE_id_attribute_domain(id, layer);
   if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
     return 1;
   }
@@ -527,7 +539,7 @@ static void rna_AttributeGroup_active_color_set(PointerRNA *ptr,
 
 static int rna_AttributeGroup_active_color_index_get(PointerRNA *ptr)
 {
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(ptr->owner_id);
+  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(ptr->owner_id);
 
   return BKE_id_attribute_to_index(
       ptr->owner_id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
@@ -930,6 +942,12 @@ static void rna_def_attribute(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Domain", "Domain of the Attribute");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+  prop = RNA_def_property(srna, "is_internal", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_Attribute_is_internal_get", NULL);
+  RNA_def_property_ui_text(
+      prop, "Is Internal", "The attribute is meant for internal use by Blender");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
   /* types */
   rna_def_attribute_float(brna);
   rna_def_attribute_float_vector(brna);
@@ -942,7 +960,7 @@ static void rna_def_attribute(BlenderRNA *brna)
   rna_def_attribute_int8(brna);
 }
 
-/* Mesh/PointCloud/Hair.attributes */
+/* Mesh/PointCloud/Curves.attributes */
 static void rna_def_attribute_group(BlenderRNA *brna)
 {
   StructRNA *srna;

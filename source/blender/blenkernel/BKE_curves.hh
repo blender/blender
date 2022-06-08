@@ -182,6 +182,7 @@ class CurvesGeometry : public ::CurvesGeometry {
   void update_curve_types();
 
   bool has_curve_with_type(CurveType type) const;
+  bool has_curve_with_type(Span<CurveType> types) const;
   /** Return true if all of the curves have the provided type. */
   bool is_single_type(CurveType type) const;
   /** Return the number of curves with each type. */
@@ -264,22 +265,15 @@ class CurvesGeometry : public ::CurvesGeometry {
   MutableSpan<float> nurbs_weights_for_write();
 
   /**
-   * The index of a triangle (#MLoopTri) that a curve is attached to.
-   * The index is -1, if the curve is not attached.
+   * UV coordinate for each curve that encodes where the curve is attached to the surface mesh.
    */
-  VArray<int> surface_triangle_indices() const;
-  MutableSpan<int> surface_triangle_indices_for_write();
+  Span<float2> surface_uv_coords() const;
+  MutableSpan<float2> surface_uv_coords_for_write();
 
-  /**
-   * Barycentric coordinates of the attachment point within a triangle.
-   * Only the first two coordinates are stored. The third coordinate can be derived because the sum
-   * of the three coordinates is 1.
-   *
-   * When the triangle index is -1, this coordinate should be ignored.
-   * The span can be empty, when all triangle indices are -1.
-   */
-  Span<float2> surface_triangle_coords() const;
-  MutableSpan<float2> surface_triangle_coords_for_write();
+  VArray<float> selection_point_float() const;
+  MutableSpan<float> selection_point_float_for_write();
+  VArray<float> selection_curve_float() const;
+  MutableSpan<float> selection_curve_float_for_write();
 
   /**
    * Calculate the largest and smallest position values, only including control points
@@ -401,11 +395,21 @@ class CurvesGeometry : public ::CurvesGeometry {
    */
   void reverse_curves(IndexMask curves_to_reverse);
 
+  /**
+   * Remove any attributes that are unused based on the types in the curves.
+   */
+  void remove_attributes_based_on_types();
+
   /* --------------------------------------------------------------------
    * Attributes.
    */
 
-  GVArray adapt_domain(const GVArray &varray, AttributeDomain from, AttributeDomain to) const;
+  GVArray adapt_domain(const GVArray &varray, eAttrDomain from, eAttrDomain to) const;
+  template<typename T>
+  VArray<T> adapt_domain(const VArray<T> &varray, eAttrDomain from, eAttrDomain to) const
+  {
+    return this->adapt_domain(GVArray(varray), from, to).typed<T>();
+  }
 };
 
 namespace curves {
@@ -453,7 +457,7 @@ void calculate_tangents(Span<float3> positions, bool is_cyclic, MutableSpan<floa
 
 /**
  * Calculate directions perpendicular to the tangent at every point by rotating an arbitrary
- * starting vector by the same rotation of each tangent. If the curve is cylic, propagate a
+ * starting vector by the same rotation of each tangent. If the curve is cyclic, propagate a
  * correction through the entire to make sure the first and last normal align.
  */
 void calculate_normals_minimum(Span<float3> tangents, bool cyclic, MutableSpan<float3> normals);
@@ -483,10 +487,11 @@ bool segment_is_vector(Span<int8_t> handle_types_left,
                        int segment_index);
 
 /**
- * Return true if the curve's last cylic segment has a vector type.
+ * Return true if the curve's last cyclic segment has a vector type.
  * This only makes a difference in the shape of cyclic curves.
  */
-bool last_cylic_segment_is_vector(Span<int8_t> handle_types_left, Span<int8_t> handle_types_right);
+bool last_cyclic_segment_is_vector(Span<int8_t> handle_types_left,
+                                   Span<int8_t> handle_types_right);
 
 /**
  * Return true if the handle types at the index are free (#BEZIER_HANDLE_FREE) or vector
@@ -711,6 +716,12 @@ inline bool CurvesGeometry::has_curve_with_type(const CurveType type) const
   return this->curve_type_counts()[type] > 0;
 }
 
+inline bool CurvesGeometry::has_curve_with_type(const Span<CurveType> types) const
+{
+  return std::any_of(
+      types.begin(), types.end(), [&](CurveType type) { return this->has_curve_with_type(type); });
+}
+
 inline const std::array<int, CURVE_TYPES_NUM> &CurvesGeometry::curve_type_counts() const
 {
   BLI_assert(this->runtime->type_counts == calculate_type_counts(this->curve_types()));
@@ -785,6 +796,9 @@ inline float CurvesGeometry::evaluated_length_total_for_curve(const int curve_in
                                                               const bool cyclic) const
 {
   const Span<float> lengths = this->evaluated_lengths_for_curve(curve_index, cyclic);
+  if (lengths.is_empty()) {
+    return 0.0f;
+  }
   return lengths.last();
 }
 

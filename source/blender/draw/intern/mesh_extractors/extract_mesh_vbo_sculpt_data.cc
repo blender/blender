@@ -12,7 +12,7 @@
 #include "BKE_paint.h"
 
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -215,6 +215,4 @@ constexpr MeshExtract create_extractor_sculpt_data()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_sculpt_data = blender::draw::create_extractor_sculpt_data();
-}

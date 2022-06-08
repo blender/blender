@@ -148,7 +148,7 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, int index)
 bool SCULPT_has_loop_colors(const Object *ob)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
 
   return layer && BKE_id_attribute_domain(&me->id, layer) == ATTR_DOMAIN_CORNER;
 }
@@ -1354,8 +1354,23 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
 
   SculptUndoNode *unode;
-  SculptUndoType type = (data->brush->sculpt_tool == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
-                                                                        SCULPT_UNDO_COORDS);
+  SculptUndoType type;
+
+  switch (data->brush->sculpt_tool) {
+    case SCULPT_TOOL_MASK:
+      type = SCULPT_UNDO_MASK;
+      BKE_pbvh_node_mark_update_mask(data->nodes[n]);
+      break;
+    case SCULPT_TOOL_PAINT:
+    case SCULPT_TOOL_SMEAR:
+      type = SCULPT_UNDO_COLOR;
+      BKE_pbvh_node_mark_update_color(data->nodes[n]);
+      break;
+    default:
+      type = SCULPT_UNDO_COORDS;
+      BKE_pbvh_node_mark_update(data->nodes[n]);
+      break;
+  }
 
   if (ss->bm) {
     unode = SCULPT_undo_push_node(data->ob, data->nodes[n], type);
@@ -1397,8 +1412,6 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     }
   }
   BKE_pbvh_vertex_iter_end;
-
-  BKE_pbvh_node_mark_update(data->nodes[n]);
 }
 
 static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
@@ -3522,15 +3535,7 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   Sculpt *sd = data->sd;
   Object *ob = data->ob;
-
-  /* These brushes start from original coordinates. */
-  const bool use_orco = ELEM(data->brush->sculpt_tool,
-                             SCULPT_TOOL_GRAB,
-                             SCULPT_TOOL_ROTATE,
-                             SCULPT_TOOL_THUMB,
-                             SCULPT_TOOL_ELASTIC_DEFORM,
-                             SCULPT_TOOL_BOUNDARY,
-                             SCULPT_TOOL_POSE);
+  const bool use_orco = data->use_proxies_orco;
 
   PBVHVertexIter vd;
   PBVHProxyNode *proxies;
@@ -3585,17 +3590,49 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
     return;
   }
 
+  /* First line is tools that don't support proxies. */
+  const bool use_orco = ELEM(brush->sculpt_tool,
+                             SCULPT_TOOL_GRAB,
+                             SCULPT_TOOL_ROTATE,
+                             SCULPT_TOOL_THUMB,
+                             SCULPT_TOOL_ELASTIC_DEFORM,
+                             SCULPT_TOOL_BOUNDARY,
+                             SCULPT_TOOL_POSE);
+
   BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
+
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
       .brush = brush,
       .nodes = nodes,
+      .use_proxies_orco = use_orco,
   };
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, sculpt_combine_proxies_task_cb, &settings);
+  MEM_SAFE_FREE(nodes);
+}
+
+void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+  PBVHNode **nodes;
+  int totnode;
+
+  BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = nodes,
+      .use_proxies_orco = false,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, sculpt_combine_proxies_task_cb, &settings);
+
   MEM_SAFE_FREE(nodes);
 }
 

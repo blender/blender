@@ -23,6 +23,7 @@
 #include "wm_cursors.h"
 #include "wm_event_types.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "rna_internal.h" /* own include */

@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 """
 This module has utility functions for renaming
 rna values in fcurves and drivers.

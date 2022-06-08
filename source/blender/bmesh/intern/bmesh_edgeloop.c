@@ -460,7 +460,7 @@ void BM_mesh_edgeloops_calc_order(BMesh *UNUSED(bm), ListBase *eloops, const boo
     for (el_store = eloops->first; el_store; el_store = el_store->next) {
       float len_sq;
       if (use_normals) {
-        /* scale the length by how close the loops are to pointing at eachother */
+        /* Scale the length by how close the loops are to pointing at each other. */
         float dir[3];
         sub_v3_v3v3(dir, co, el_store->co);
         len_sq = normalize_v3(dir);

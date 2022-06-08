@@ -375,7 +375,7 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
 
   while ((layer = BKE_id_attribute_from_index(
               const_cast<ID *>(&source->id), i++, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL))) {
-    AttributeDomain domain = BKE_id_attribute_domain(&source->id, layer);
+    eAttrDomain domain = BKE_id_attribute_domain(&source->id, layer);
 
     CustomData *target_cdata = domain == ATTR_DOMAIN_POINT ? &target->vdata : &target->ldata;
     const CustomData *source_cdata = domain == ATTR_DOMAIN_POINT ? &source->vdata : &source->ldata;

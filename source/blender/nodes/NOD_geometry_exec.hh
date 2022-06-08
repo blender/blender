@@ -40,7 +40,7 @@ using fn::FieldInput;
 using fn::FieldOperation;
 using fn::GField;
 using fn::ValueOrField;
-using geometry_nodes_eval_log::NamedAttributeUsage;
+using geometry_nodes_eval_log::eNamedAttrUsage;
 using geometry_nodes_eval_log::NodeWarningType;
 
 /**
@@ -298,52 +298,11 @@ class GeoNodeExecParams {
    */
   void error_message_add(const NodeWarningType type, std::string message) const;
 
-  /**
-   * Creates a read-only attribute based on node inputs. The method automatically detects which
-   * input socket with the given name is available.
-   *
-   * \note This will add an error message if the string socket is active and
-   * the input attribute does not exist.
-   */
-  GVArray get_input_attribute(const StringRef name,
-                              const GeometryComponent &component,
-                              AttributeDomain domain,
-                              const CustomDataType type,
-                              const void *default_value) const;
-
-  template<typename T>
-  VArray<T> get_input_attribute(const StringRef name,
-                                const GeometryComponent &component,
-                                const AttributeDomain domain,
-                                const T &default_value) const
-  {
-    const CustomDataType type = bke::cpp_type_to_custom_data_type(CPPType::get<T>());
-    GVArray varray = this->get_input_attribute(name, component, domain, type, &default_value);
-    return varray.typed<T>();
-  }
-
-  /**
-   * Get the type of an input property or the associated constant socket types with the
-   * same names. Fall back to the default value if no attribute exists with the name.
-   */
-  CustomDataType get_input_attribute_data_type(const StringRef name,
-                                               const GeometryComponent &component,
-                                               const CustomDataType default_type) const;
-
-  /**
-   * If any of the corresponding input sockets are attributes instead of single values,
-   * use the highest priority attribute domain from among them.
-   * Otherwise return the default domain.
-   */
-  AttributeDomain get_highest_priority_input_domain(Span<std::string> names,
-                                                    const GeometryComponent &component,
-                                                    AttributeDomain default_domain) const;
-
   std::string attribute_producer_name() const;
 
   void set_default_remaining_outputs();
 
-  void used_named_attribute(std::string attribute_name, NamedAttributeUsage usage);
+  void used_named_attribute(std::string attribute_name, eNamedAttrUsage usage);
 
  private:
   /* Utilities for detecting common errors at when using this class. */

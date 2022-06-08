@@ -305,6 +305,11 @@ class GHOST_ISystem {
   virtual bool useNativePixel(void) = 0;
 
   /**
+   * Return true when warping the cursor is supported.
+   */
+  virtual bool supportsCursorWarp() = 0;
+
+  /**
    * Focus window after opening, or put them in the background.
    */
   virtual void useWindowFocus(const bool use_focus) = 0;

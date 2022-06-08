@@ -16,7 +16,7 @@
 
 #include "draw_attributes.h"
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -24,7 +24,7 @@ namespace blender::draw {
 /** \name Extract Attributes
  * \{ */
 
-static CustomData *get_custom_data_for_domain(const MeshRenderData *mr, AttributeDomain domain)
+static CustomData *get_custom_data_for_domain(const MeshRenderData *mr, eAttrDomain domain)
 {
   switch (domain) {
     default: {
@@ -80,7 +80,7 @@ template<> struct attribute_type_converter<MPropCol, gpuMeshCol> {
 };
 
 /* Return the number of component for the attribute's value type, or 0 if is it unsupported. */
-static uint gpu_component_size_for_attribute_type(CustomDataType type)
+static uint gpu_component_size_for_attribute_type(eCustomDataType type)
 {
   switch (type) {
     case CD_PROP_BOOL:
@@ -106,7 +106,7 @@ static uint gpu_component_size_for_attribute_type(CustomDataType type)
   }
 }
 
-static GPUVertFetchMode get_fetch_mode_for_type(CustomDataType type)
+static GPUVertFetchMode get_fetch_mode_for_type(eCustomDataType type)
 {
   switch (type) {
     case CD_PROP_INT32: {
@@ -121,7 +121,7 @@ static GPUVertFetchMode get_fetch_mode_for_type(CustomDataType type)
   }
 }
 
-static GPUVertCompType get_comp_type_for_type(CustomDataType type)
+static GPUVertCompType get_comp_type_for_type(eCustomDataType type)
 {
   switch (type) {
     case CD_PROP_INT32: {
@@ -447,7 +447,6 @@ constexpr MeshExtract create_extractor_attr(ExtractInitFn fn, ExtractInitSubdivF
 
 }  // namespace blender::draw
 
-extern "C" {
 #define CREATE_EXTRACTOR_ATTR(index) \
   blender::draw::create_extractor_attr<index>(blender::draw::extract_attr_init##index, \
                                               blender::draw::extract_attr_init_subdiv##index)
@@ -469,4 +468,3 @@ const MeshExtract extract_attr[GPU_MAX_ATTR] = {
     CREATE_EXTRACTOR_ATTR(13),
     CREATE_EXTRACTOR_ATTR(14),
 };
-}

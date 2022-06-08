@@ -18,6 +18,7 @@
 
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
+#include "BKE_curves_utils.hh"
 
 namespace blender::bke {
 
@@ -35,8 +36,9 @@ static const std::string ATTR_HANDLE_POSITION_RIGHT = "handle_right";
 static const std::string ATTR_NURBS_ORDER = "nurbs_order";
 static const std::string ATTR_NURBS_WEIGHT = "nurbs_weight";
 static const std::string ATTR_NURBS_KNOTS_MODE = "knots_mode";
-static const std::string ATTR_SURFACE_TRIANGLE_INDEX = "surface_triangle_index";
-static const std::string ATTR_SURFACE_TRIANGLE_COORDINATE = "surface_triangle_coordinate";
+static const std::string ATTR_SELECTION_POINT_FLOAT = ".selection_point_float";
+static const std::string ATTR_SELECTION_CURVE_FLOAT = ".selection_curve_float";
+static const std::string ATTR_SURFACE_UV_COORDINATE = "surface_uv_coordinate";
 
 /* -------------------------------------------------------------------- */
 /** \name Constructors/Destructor
@@ -158,30 +160,29 @@ CurvesGeometry::~CurvesGeometry()
 /** \name Accessors
  * \{ */
 
-static int domain_num(const CurvesGeometry &curves, const AttributeDomain domain)
+static int domain_num(const CurvesGeometry &curves, const eAttrDomain domain)
 {
   return domain == ATTR_DOMAIN_POINT ? curves.points_num() : curves.curves_num();
 }
 
-static CustomData &domain_custom_data(CurvesGeometry &curves, const AttributeDomain domain)
+static CustomData &domain_custom_data(CurvesGeometry &curves, const eAttrDomain domain)
 {
   return domain == ATTR_DOMAIN_POINT ? curves.point_data : curves.curve_data;
 }
 
-static const CustomData &domain_custom_data(const CurvesGeometry &curves,
-                                            const AttributeDomain domain)
+static const CustomData &domain_custom_data(const CurvesGeometry &curves, const eAttrDomain domain)
 {
   return domain == ATTR_DOMAIN_POINT ? curves.point_data : curves.curve_data;
 }
 
 template<typename T>
 static VArray<T> get_varray_attribute(const CurvesGeometry &curves,
-                                      const AttributeDomain domain,
+                                      const eAttrDomain domain,
                                       const StringRefNull name,
                                       const T default_value)
 {
   const int num = domain_num(curves, domain);
-  const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
+  const eCustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
   const CustomData &custom_data = domain_custom_data(curves, domain);
 
   const T *data = (const T *)CustomData_get_layer_named(&custom_data, type, name.c_str());
@@ -193,12 +194,12 @@ static VArray<T> get_varray_attribute(const CurvesGeometry &curves,
 
 template<typename T>
 static Span<T> get_span_attribute(const CurvesGeometry &curves,
-                                  const AttributeDomain domain,
+                                  const eAttrDomain domain,
                                   const StringRefNull name)
 {
   const int num = domain_num(curves, domain);
   const CustomData &custom_data = domain_custom_data(curves, domain);
-  const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
+  const eCustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
 
   T *data = (T *)CustomData_get_layer_named(&custom_data, type, name.c_str());
   if (data == nullptr) {
@@ -209,12 +210,12 @@ static Span<T> get_span_attribute(const CurvesGeometry &curves,
 
 template<typename T>
 static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
-                                            const AttributeDomain domain,
+                                            const eAttrDomain domain,
                                             const StringRefNull name,
                                             const T default_value = T())
 {
   const int num = domain_num(curves, domain);
-  const CustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
+  const eCustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
   CustomData &custom_data = domain_custom_data(curves, domain);
 
   T *data = (T *)CustomData_duplicate_referenced_layer_named(
@@ -418,24 +419,34 @@ MutableSpan<int8_t> CurvesGeometry::nurbs_knots_modes_for_write()
   return get_mutable_attribute<int8_t>(*this, ATTR_DOMAIN_CURVE, ATTR_NURBS_KNOTS_MODE, 0);
 }
 
-VArray<int> CurvesGeometry::surface_triangle_indices() const
+Span<float2> CurvesGeometry::surface_uv_coords() const
 {
-  return get_varray_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_INDEX, -1);
+  return get_span_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_UV_COORDINATE);
 }
 
-MutableSpan<int> CurvesGeometry::surface_triangle_indices_for_write()
+MutableSpan<float2> CurvesGeometry::surface_uv_coords_for_write()
 {
-  return get_mutable_attribute<int>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_INDEX, -1);
+  return get_mutable_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_UV_COORDINATE);
 }
 
-Span<float2> CurvesGeometry::surface_triangle_coords() const
+VArray<float> CurvesGeometry::selection_point_float() const
 {
-  return get_span_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_COORDINATE);
+  return get_varray_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_SELECTION_POINT_FLOAT, 1.0f);
 }
 
-MutableSpan<float2> CurvesGeometry::surface_triangle_coords_for_write()
+MutableSpan<float> CurvesGeometry::selection_point_float_for_write()
 {
-  return get_mutable_attribute<float2>(*this, ATTR_DOMAIN_CURVE, ATTR_SURFACE_TRIANGLE_COORDINATE);
+  return get_mutable_attribute<float>(*this, ATTR_DOMAIN_POINT, ATTR_SELECTION_POINT_FLOAT, 1.0f);
+}
+
+VArray<float> CurvesGeometry::selection_curve_float() const
+{
+  return get_varray_attribute<float>(*this, ATTR_DOMAIN_CURVE, ATTR_SELECTION_CURVE_FLOAT, 1.0f);
+}
+
+MutableSpan<float> CurvesGeometry::selection_curve_float_for_write()
+{
+  return get_mutable_attribute<float>(*this, ATTR_DOMAIN_CURVE, ATTR_SELECTION_CURVE_FLOAT, 1.0f);
 }
 
 /** \} */
@@ -540,16 +551,8 @@ IndexMask CurvesGeometry::indices_for_curve_type(const CurveType type,
                                                  const IndexMask selection,
                                                  Vector<int64_t> &r_indices) const
 {
-  if (this->curve_type_counts()[type] == this->curves_num()) {
-    return selection;
-  }
-  const VArray<int8_t> types = this->curve_types();
-  if (types.is_single()) {
-    return types.get_internal_single() == type ? IndexMask(this->curves_num()) : IndexMask(0);
-  }
-  Span<int8_t> types_span = types.get_internal_span();
-  return index_mask_ops::find_indices_based_on_predicate(
-      selection, 1024, r_indices, [&](const int index) { return types_span[index] == type; });
+  return curves::indices_for_type(
+      this->curve_types(), this->curve_type_counts(), type, selection, r_indices);
 }
 
 void CurvesGeometry::ensure_nurbs_basis_cache() const
@@ -1084,7 +1087,7 @@ void CurvesGeometry::update_customdata_pointers()
 
 static void *ensure_customdata_layer(CustomData &custom_data,
                                      const StringRefNull name,
-                                     const CustomDataType data_type,
+                                     const eCustomDataType data_type,
                                      const int tot_elements)
 {
   for (const int other_layer_i : IndexRange(custom_data.totlayer)) {
@@ -1153,7 +1156,7 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
         CustomData &new_point_data = new_curves.point_data;
         for (const int layer_i : IndexRange(old_point_data.totlayer)) {
           const CustomDataLayer &old_layer = old_point_data.layers[layer_i];
-          const CustomDataType data_type = static_cast<CustomDataType>(old_layer.type);
+          const eCustomDataType data_type = static_cast<eCustomDataType>(old_layer.type);
           const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
 
           const void *src_buffer = old_layer.data;
@@ -1180,12 +1183,12 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
         CustomData &new_curve_data = new_curves.curve_data;
         for (const int layer_i : IndexRange(old_curve_data.totlayer)) {
           const CustomDataLayer &old_layer = old_curve_data.layers[layer_i];
-          const CustomDataType data_type = static_cast<CustomDataType>(old_layer.type);
+          const eCustomDataType data_type = static_cast<eCustomDataType>(old_layer.type);
           const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
 
           const void *src_buffer = old_layer.data;
           void *dst_buffer = ensure_customdata_layer(
-              new_curve_data, old_layer.name, data_type, new_tot_points);
+              new_curve_data, old_layer.name, data_type, new_tot_curves);
 
           threading::parallel_for(
               old_curve_ranges.index_range(), 128, [&](const IndexRange ranges_range) {
@@ -1246,7 +1249,7 @@ static void reverse_swap_curve_point_data(const CurvesGeometry &curves,
 
 static bool layer_matches_name_and_type(const CustomDataLayer &layer,
                                         const StringRef name,
-                                        const CustomDataType type)
+                                        const eCustomDataType type)
 {
   if (layer.type != type) {
     return false;
@@ -1289,7 +1292,7 @@ void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
       continue;
     }
 
-    const CustomDataType data_type = static_cast<CustomDataType>(layer.type);
+    const eCustomDataType data_type = static_cast<eCustomDataType>(layer.type);
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
       reverse_curve_point_data<T>(
@@ -1310,6 +1313,27 @@ void CurvesGeometry::reverse_curves(const IndexMask curves_to_reverse)
   }
 
   this->tag_topology_changed();
+}
+
+void CurvesGeometry::remove_attributes_based_on_types()
+{
+  const int points_num = this->points_num();
+  const int curves_num = this->curves_num();
+  if (!this->has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    CustomData_free_layer_named(&this->point_data, ATTR_HANDLE_TYPE_LEFT.c_str(), points_num);
+    CustomData_free_layer_named(&this->point_data, ATTR_HANDLE_TYPE_RIGHT.c_str(), points_num);
+    CustomData_free_layer_named(&this->point_data, ATTR_HANDLE_POSITION_LEFT.c_str(), points_num);
+    CustomData_free_layer_named(&this->point_data, ATTR_HANDLE_POSITION_RIGHT.c_str(), points_num);
+  }
+  if (!this->has_curve_with_type(CURVE_TYPE_NURBS)) {
+    CustomData_free_layer_named(&this->point_data, ATTR_NURBS_WEIGHT.c_str(), points_num);
+    CustomData_free_layer_named(&this->curve_data, ATTR_NURBS_ORDER.c_str(), curves_num);
+    CustomData_free_layer_named(&this->curve_data, ATTR_NURBS_KNOTS_MODE.c_str(), curves_num);
+  }
+  if (!this->has_curve_with_type({CURVE_TYPE_BEZIER, CURVE_TYPE_CATMULL_ROM, CURVE_TYPE_NURBS})) {
+    CustomData_free_layer_named(&this->curve_data, ATTR_RESOLUTION.c_str(), curves_num);
+  }
+  this->update_customdata_pointers();
 }
 
 /** \} */
@@ -1408,8 +1432,8 @@ static GVArray adapt_curve_domain_curve_to_point(const CurvesGeometry &curves,
 }
 
 GVArray CurvesGeometry::adapt_domain(const GVArray &varray,
-                                     const AttributeDomain from,
-                                     const AttributeDomain to) const
+                                     const eAttrDomain from,
+                                     const eAttrDomain to) const
 {
   if (!varray) {
     return {};

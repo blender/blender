@@ -49,7 +49,7 @@ static void add_instances_from_component(
     const GeoNodeExecParams &params,
     const Map<AttributeIDRef, AttributeKind> &attributes_to_propagate)
 {
-  const AttributeDomain domain = ATTR_DOMAIN_POINT;
+  const eAttrDomain domain = ATTR_DOMAIN_POINT;
   const int domain_num = src_component.attribute_domain_num(domain);
 
   VArray<bool> pick_instance;

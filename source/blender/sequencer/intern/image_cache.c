@@ -36,6 +36,7 @@
 #include "SEQ_prefetch.h"
 #include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
+#include "SEQ_time.h"
 
 #include "disk_cache.h"
 #include "image_cache.h"
@@ -558,8 +559,9 @@ void seq_cache_free_temp_cache(Scene *scene, short id, int timeline_frame)
       /* Use frame_index here to avoid freeing raw images if they are used for multiple frames. */
       float frame_index = seq_cache_timeline_frame_to_frame_index(
           key->seq, timeline_frame, key->type);
-      if (frame_index != key->frame_index || timeline_frame > key->seq->enddisp ||
-          timeline_frame < key->seq->startdisp) {
+      if (frame_index != key->frame_index ||
+          timeline_frame > SEQ_time_right_handle_frame_get(key->seq) ||
+          timeline_frame < SEQ_time_left_handle_frame_get(key->seq)) {
         BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
       }
     }
@@ -634,16 +636,16 @@ void seq_cache_cleanup_sequence(Scene *scene,
 
   seq_cache_lock(scene);
 
-  int range_start = seq_changed->startdisp;
-  int range_end = seq_changed->enddisp;
+  int range_start = SEQ_time_left_handle_frame_get(seq_changed);
+  int range_end = SEQ_time_right_handle_frame_get(seq_changed);
 
   if (!force_seq_changed_range) {
-    if (seq->startdisp > range_start) {
-      range_start = seq->startdisp;
+    if (SEQ_time_left_handle_frame_get(seq) > range_start) {
+      range_start = SEQ_time_left_handle_frame_get(seq);
     }
 
-    if (seq->enddisp < range_end) {
-      range_end = seq->enddisp;
+    if (SEQ_time_right_handle_frame_get(seq) < range_end) {
+      range_end = SEQ_time_right_handle_frame_get(seq);
     }
   }
 
@@ -668,8 +670,8 @@ void seq_cache_cleanup_sequence(Scene *scene,
     }
 
     if (key->type & invalidate_source && key->seq == seq &&
-        key->timeline_frame >= seq_changed->startdisp &&
-        key->timeline_frame <= seq_changed->enddisp) {
+        key->timeline_frame >= SEQ_time_left_handle_frame_get(seq_changed) &&
+        key->timeline_frame <= SEQ_time_right_handle_frame_get(seq_changed)) {
       if (key->link_next || key->link_prev) {
         seq_cache_relink_keys(key->link_next, key->link_prev);
       }
@@ -700,11 +702,12 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
     SeqCacheKey *key = BLI_ghashIterator_getKey(&gh_iter);
     BLI_ghashIterator_step(&gh_iter);
 
-    const int frame_index = key->timeline_frame - key->seq->startdisp;
+    const int frame_index = key->timeline_frame - SEQ_time_left_handle_frame_get(key->seq);
     const int frame_step = SEQ_render_thumbnails_guaranteed_set_frame_step_get(key->seq);
     const int relative_base_frame = round_fl_to_int((frame_index / (float)frame_step)) *
                                     frame_step;
-    const int nearest_guaranted_absolute_frame = relative_base_frame + key->seq->startdisp;
+    const int nearest_guaranted_absolute_frame = relative_base_frame +
+                                                 SEQ_time_left_handle_frame_get(key->seq);
 
     if (nearest_guaranted_absolute_frame == key->timeline_frame) {
       continue;

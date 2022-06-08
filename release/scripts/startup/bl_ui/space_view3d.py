@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 import bpy
 from bpy.types import (
     Header,
@@ -512,28 +510,30 @@ class _draw_tool_settings_context_mode:
                 header=True,
             )
 
-        if brush.curves_sculpt_tool == 'COMB':
+        curves_tool = brush.curves_sculpt_tool
+
+        if curves_tool == 'COMB':
             layout.prop(brush, "falloff_shape", expand=True)
             layout.popover("VIEW3D_PT_tools_brush_falloff")
-
-        if brush.curves_sculpt_tool == 'ADD':
+        elif curves_tool == 'ADD':
             layout.prop(brush, "falloff_shape", expand=True)
             layout.prop(brush.curves_sculpt_settings, "add_amount")
             layout.popover("VIEW3D_PT_curves_sculpt_add_shape", text="Curve Shape")
             layout.prop(brush, "use_frontface", text="Front Faces Only")
-
-        if brush.curves_sculpt_tool == 'GROW_SHRINK':
+        elif curves_tool == 'GROW_SHRINK':
             layout.prop(brush, "direction", expand=True, text="")
             layout.prop(brush, "falloff_shape", expand=True)
             layout.popover("VIEW3D_PT_curves_sculpt_grow_shrink_scaling", text="Scaling")
             layout.popover("VIEW3D_PT_tools_brush_falloff")
-
-        if brush.curves_sculpt_tool == 'SNAKE_HOOK':
+        elif curves_tool == 'SNAKE_HOOK':
             layout.prop(brush, "falloff_shape", expand=True)
             layout.popover("VIEW3D_PT_tools_brush_falloff")
-
-        if brush.curves_sculpt_tool == 'DELETE':
+        elif curves_tool == 'DELETE':
             layout.prop(brush, "falloff_shape", expand=True)
+        elif curves_tool == 'SELECTION_PAINT':
+            layout.prop(brush, "direction", expand=True, text="")
+            layout.prop(brush, "falloff_shape", expand=True)
+            layout.popover("VIEW3D_PT_tools_brush_falloff")
 
 
 class VIEW3D_HT_header(Header):
@@ -687,6 +687,24 @@ class VIEW3D_HT_header(Header):
             if object_mode == 'PARTICLE_EDIT':
                 row = layout.row()
                 row.prop(tool_settings.particle_edit, "select_mode", text="", expand=True)
+            elif object_mode == 'SCULPT_CURVES' and obj.type == 'CURVES':
+                curves = obj.data
+
+                row = layout.row(align=True)
+
+                experimental = context.preferences.experimental
+                if experimental.use_new_curves_tools:
+                    # Combine the "use selection" toggle with the "set domain" operators
+                    # to allow turning selection off directly.
+                    domain = curves.selection_domain
+                    if domain == 'POINT':
+                        row.prop(curves, "use_sculpt_selection", text="", icon='CURVE_BEZCIRCLE')
+                    else:
+                        row.operator("curves.set_selection_domain", text="", icon='CURVE_BEZCIRCLE').domain = 'POINT'
+                    if domain == 'CURVE':
+                        row.prop(curves, "use_sculpt_selection", text="", icon='CURVE_PATH')
+                    else:
+                        row.operator("curves.set_selection_domain", text="", icon='CURVE_PATH').domain = 'CURVE'
 
         # Grease Pencil
         if obj and obj.type == 'GPENCIL' and context.gpencil_data:
@@ -939,6 +957,7 @@ class VIEW3D_MT_editor_menus(Menu):
                 layout.menu("VIEW3D_MT_mask")
                 layout.menu("VIEW3D_MT_face_sets")
             if mode_string == 'SCULPT_CURVES':
+                layout.menu("VIEW3D_MT_select_sculpt_curves")
                 layout.menu("VIEW3D_MT_sculpt_curves")
 
         else:
@@ -1974,6 +1993,17 @@ class VIEW3D_MT_select_edit_curves(Menu):
 
     def draw(self, _context):
         pass
+
+
+class VIEW3D_MT_select_sculpt_curves(Menu):
+    bl_label = "Select"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator("sculpt_curves.select_all", text="All").action = 'SELECT'
+        layout.operator("sculpt_curves.select_all", text="None").action = 'DESELECT'
+        layout.operator("sculpt_curves.select_all", text="Invert").action = 'INVERT'
 
 
 class VIEW3D_MT_angle_control(Menu):
@@ -7703,6 +7733,7 @@ classes = (
     VIEW3D_MT_select_paint_mask,
     VIEW3D_MT_select_paint_mask_vertex,
     VIEW3D_MT_select_edit_curves,
+    VIEW3D_MT_select_sculpt_curves,
     VIEW3D_MT_angle_control,
     VIEW3D_MT_mesh_add,
     VIEW3D_MT_curve_add,

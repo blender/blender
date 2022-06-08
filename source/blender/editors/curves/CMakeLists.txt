@@ -7,6 +7,7 @@ set(INC
   ../../blentranslation
   ../../depsgraph
   ../../functions
+  ../../geometry
   ../../makesdna
   ../../makesrna
   ../../windowmanager

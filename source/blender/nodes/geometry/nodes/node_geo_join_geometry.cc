@@ -47,8 +47,8 @@ static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
 
 static void fill_new_attribute(Span<const GeometryComponent *> src_components,
                                const AttributeIDRef &attribute_id,
-                               const CustomDataType data_type,
-                               const AttributeDomain domain,
+                               const eCustomDataType data_type,
+                               const eAttrDomain domain,
                                GMutableSpan dst_span)
 {
   const CPPType *cpp_type = bke::custom_data_type_to_cpp_type(data_type);

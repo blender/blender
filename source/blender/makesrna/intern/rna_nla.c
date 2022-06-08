@@ -23,6 +23,49 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+/* enum defines exported for rna_animation.c */
+const EnumPropertyItem rna_enum_nla_mode_blend_items[] = {
+    {NLASTRIP_MODE_REPLACE,
+     "REPLACE",
+     0,
+     "Replace",
+     "The strip values replace the accumulated results by amount specified by influence"},
+    {NLASTRIP_MODE_COMBINE,
+     "COMBINE",
+     0,
+     "Combine",
+     "The strip values are combined with accumulated results by appropriately using addition, "
+     "multiplication, or quaternion math, based on channel type"},
+    RNA_ENUM_ITEM_SEPR,
+    {NLASTRIP_MODE_ADD,
+     "ADD",
+     0,
+     "Add",
+     "Weighted result of strip is added to the accumulated results"},
+    {NLASTRIP_MODE_SUBTRACT,
+     "SUBTRACT",
+     0,
+     "Subtract",
+     "Weighted result of strip is removed from the accumulated results"},
+    {NLASTRIP_MODE_MULTIPLY,
+     "MULTIPLY",
+     0,
+     "Multiply",
+     "Weighted result of strip is multiplied with the accumulated results"},
+    {0, NULL, 0, NULL, NULL},
+};
+
+const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
+    {NLASTRIP_EXTEND_NOTHING, "NOTHING", 0, "Nothing", "Strip has no influence past its extents"},
+    {NLASTRIP_EXTEND_HOLD,
+     "HOLD",
+     0,
+     "Hold",
+     "Hold the first frame if no previous strips in track, and always hold last frame"},
+    {NLASTRIP_EXTEND_HOLD_FORWARD, "HOLD_FORWARD", 0, "Hold Forward", "Only hold last frame"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include <math.h>
@@ -493,49 +536,6 @@ static void rna_NlaTrack_solo_set(PointerRNA *ptr, bool value)
 }
 
 #else
-
-/* enum defines exported for rna_animation.c */
-const EnumPropertyItem rna_enum_nla_mode_blend_items[] = {
-    {NLASTRIP_MODE_REPLACE,
-     "REPLACE",
-     0,
-     "Replace",
-     "The strip values replace the accumulated results by amount specified by influence"},
-    {NLASTRIP_MODE_COMBINE,
-     "COMBINE",
-     0,
-     "Combine",
-     "The strip values are combined with accumulated results by appropriately using addition, "
-     "multiplication, or quaternion math, based on channel type"},
-    {0, "", 0, NULL, NULL},
-    {NLASTRIP_MODE_ADD,
-     "ADD",
-     0,
-     "Add",
-     "Weighted result of strip is added to the accumulated results"},
-    {NLASTRIP_MODE_SUBTRACT,
-     "SUBTRACT",
-     0,
-     "Subtract",
-     "Weighted result of strip is removed from the accumulated results"},
-    {NLASTRIP_MODE_MULTIPLY,
-     "MULTIPLY",
-     0,
-     "Multiply",
-     "Weighted result of strip is multiplied with the accumulated results"},
-    {0, NULL, 0, NULL, NULL},
-};
-
-const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
-    {NLASTRIP_EXTEND_NOTHING, "NOTHING", 0, "Nothing", "Strip has no influence past its extents"},
-    {NLASTRIP_EXTEND_HOLD,
-     "HOLD",
-     0,
-     "Hold",
-     "Hold the first frame if no previous strips in track, and always hold last frame"},
-    {NLASTRIP_EXTEND_HOLD_FORWARD, "HOLD_FORWARD", 0, "Hold Forward", "Only hold last frame"},
-    {0, NULL, 0, NULL, NULL},
-};
 
 static void rna_def_strip_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 {

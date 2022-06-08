@@ -84,6 +84,7 @@
 #include "WM_toolsystem.h"
 #include "WM_types.h"
 
+#include "ED_image.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
@@ -349,7 +350,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT);
   BKE_paint_init(bmain, scene, PAINT_MODE_SCULPT, PAINT_CURSOR_SCULPT);
 
-  paint_cursor_start(paint, SCULPT_mode_poll_view3d);
+  ED_paint_cursor_start(paint, SCULPT_mode_poll_view3d);
 
   /* Check dynamic-topology flag; re-enter dynamic-topology mode when changing modes,
    * As long as no data was added that is not supported. */
@@ -1098,7 +1099,7 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Mask by Color";
   ot->idname = "SCULPT_OT_mask_by_color";
-  ot->description = "Creates a mask based on the sculpt vertex colors";
+  ot->description = "Creates a mask based on the active color attribute";
 
   /* api callbacks */
   ot->invoke = sculpt_mask_by_color_invoke;

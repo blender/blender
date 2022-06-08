@@ -61,7 +61,9 @@ class GVArrayImpl {
 /* A generic version of #VMutableArrayImpl. */
 class GVMutableArrayImpl : public GVArrayImpl {
  public:
-  GVMutableArrayImpl(const CPPType &type, int64_t size);
+  GVMutableArrayImpl(const CPPType &type, int64_t size) : GVArrayImpl(type, size)
+  {
+  }
 
   virtual void set_by_copy(int64_t index, const void *value);
   virtual void set_by_relocate(int64_t index, void *value);
@@ -105,7 +107,7 @@ class GVArrayCommon {
   Storage storage_;
 
  protected:
-  GVArrayCommon();
+  GVArrayCommon() = default;
   GVArrayCommon(const GVArrayCommon &other);
   GVArrayCommon(GVArrayCommon &&other) noexcept;
   GVArrayCommon(const GVArrayImpl *impl);
@@ -185,6 +187,10 @@ class GVArray : public GVArrayCommon {
   GVArray(GVArray &&other) noexcept;
   GVArray(const GVArrayImpl *impl);
   GVArray(std::shared_ptr<const GVArrayImpl> impl);
+
+  GVArray(varray_tag::span /* tag */, GSpan span);
+  GVArray(varray_tag::single_ref /* tag */, const CPPType &type, int64_t size, const void *value);
+  GVArray(varray_tag::single /* tag */, const CPPType &type, int64_t size, const void *value);
 
   template<typename T> GVArray(const VArray<T> &varray);
   template<typename T> VArray<T> typed() const;
@@ -643,10 +649,18 @@ class GVArrayImpl_For_GSpan : public GVMutableArrayImpl {
   const int64_t element_size_;
 
  public:
-  GVArrayImpl_For_GSpan(const GMutableSpan span);
+  GVArrayImpl_For_GSpan(const GMutableSpan span)
+      : GVMutableArrayImpl(span.type(), span.size()),
+        data_(span.data()),
+        element_size_(span.type().size())
+  {
+  }
 
  protected:
-  GVArrayImpl_For_GSpan(const CPPType &type, int64_t size);
+  GVArrayImpl_For_GSpan(const CPPType &type, int64_t size)
+      : GVMutableArrayImpl(type, size), element_size_(type.size())
+  {
+  }
 
  public:
   void get(int64_t index, void *r_value) const override;
@@ -665,6 +679,61 @@ class GVArrayImpl_For_GSpan : public GVMutableArrayImpl {
   virtual void materialize_compressed(const IndexMask mask, void *dst) const override;
   virtual void materialize_compressed_to_uninitialized(const IndexMask mask,
                                                        void *dst) const override;
+};
+
+class GVArrayImpl_For_GSpan_final final : public GVArrayImpl_For_GSpan {
+ public:
+  using GVArrayImpl_For_GSpan::GVArrayImpl_For_GSpan;
+
+ private:
+  bool may_have_ownership() const override
+  {
+    return false;
+  }
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name #GVArrayImpl_For_SingleValueRef.
+ * \{ */
+
+class GVArrayImpl_For_SingleValueRef : public GVArrayImpl {
+ protected:
+  const void *value_ = nullptr;
+
+ public:
+  GVArrayImpl_For_SingleValueRef(const CPPType &type, const int64_t size, const void *value)
+      : GVArrayImpl(type, size), value_(value)
+  {
+  }
+
+ protected:
+  GVArrayImpl_For_SingleValueRef(const CPPType &type, const int64_t size) : GVArrayImpl(type, size)
+  {
+  }
+
+  void get(const int64_t index, void *r_value) const override;
+  void get_to_uninitialized(const int64_t index, void *r_value) const override;
+  bool is_span() const override;
+  GSpan get_internal_span() const override;
+  bool is_single() const override;
+  void get_internal_single(void *r_value) const override;
+  void materialize(const IndexMask mask, void *dst) const override;
+  void materialize_to_uninitialized(const IndexMask mask, void *dst) const override;
+  void materialize_compressed(const IndexMask mask, void *dst) const override;
+  void materialize_compressed_to_uninitialized(const IndexMask mask, void *dst) const override;
+};
+
+class GVArrayImpl_For_SingleValueRef_final final : public GVArrayImpl_For_SingleValueRef {
+ public:
+  using GVArrayImpl_For_SingleValueRef::GVArrayImpl_For_SingleValueRef;
+
+ private:
+  bool may_have_ownership() const override
+  {
+    return false;
+  }
 };
 
 /** \} */
@@ -808,6 +877,22 @@ inline bool GVArrayCommon::is_empty() const
 /* -------------------------------------------------------------------- */
 /** \name Inline methods for #GVArray.
  * \{ */
+
+inline GVArray::GVArray(varray_tag::span /* tag */, const GSpan span)
+{
+  /* Use const-cast because the underlying virtual array implementation is shared between const
+   * and non const data. */
+  GMutableSpan mutable_span{span.type(), const_cast<void *>(span.data()), span.size()};
+  this->emplace<GVArrayImpl_For_GSpan_final>(mutable_span);
+}
+
+inline GVArray::GVArray(varray_tag::single_ref /* tag */,
+                        const CPPType &type,
+                        const int64_t size,
+                        const void *value)
+{
+  this->emplace<GVArrayImpl_For_SingleValueRef_final>(type, size, value);
+}
 
 namespace detail {
 template<typename StorageT> constexpr GVArrayAnyExtraInfo GVArrayAnyExtraInfo::get()

@@ -403,6 +403,8 @@ typedef enum {
   GHOST_kGrabHide,
 } GHOST_TGrabCursorMode;
 
+#define GHOST_GRAB_NEEDS_SOFTWARE_CURSOR_FOR_WARP(grab) ((grab) == GHOST_kGrabWrap)
+
 typedef enum {
   /** Axis that cursor grab will wrap. */
   GHOST_kGrabAxisNone = 0,
@@ -521,7 +523,7 @@ typedef struct {
 } GHOST_TEventNDOFMotionData;
 
 typedef enum { GHOST_kPress, GHOST_kRelease } GHOST_TButtonAction;
-/* Good for mouse or other buttons too, hmmm? */
+/* Good for mouse or other buttons too? */
 
 typedef struct {
   GHOST_TButtonAction action;

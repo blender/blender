@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
-from bpy.types import Panel
+from bpy.types import Panel, Menu
 
 
 class CollectionButtonsPanel:
@@ -44,6 +42,16 @@ class COLLECTION_PT_collection_flags(CollectionButtonsPanel, Panel):
         col.prop(vlc, "indirect_only", toggle=False)
 
 
+class COLLECTION_MT_context_menu_instance_offset(Menu):
+    bl_label = "Instance Offset"
+
+    def draw(self, _context):
+        layout = self.layout
+        layout.operator("object.instance_offset_from_cursor")
+        layout.operator("object.instance_offset_from_object")
+        layout.operator("object.instance_offset_to_cursor")
+
+
 class COLLECTION_PT_instancing(CollectionButtonsPanel, Panel):
     bl_label = "Instancing"
 
@@ -53,8 +61,9 @@ class COLLECTION_PT_instancing(CollectionButtonsPanel, Panel):
         layout.use_property_decorate = False
         collection = context.collection
 
-        row = layout.row()
+        row = layout.row(align=True)
         row.prop(collection, "instance_offset")
+        row.menu("COLLECTION_MT_context_menu_instance_offset", icon='DOWNARROW_HLT', text="")
 
 
 class COLLECTION_PT_lineart_collection(CollectionButtonsPanel, Panel):
@@ -82,6 +91,7 @@ class COLLECTION_PT_lineart_collection(CollectionButtonsPanel, Panel):
 
 
 classes = (
+    COLLECTION_MT_context_menu_instance_offset,
     COLLECTION_PT_collection_flags,
     COLLECTION_PT_instancing,
     COLLECTION_PT_lineart_collection,

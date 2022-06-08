@@ -87,6 +87,16 @@ struct wmJob {
    * Executed in main thread.
    */
   void (*endjob)(void *);
+  /**
+   * Called when job is stopped normally, i.e. by simply completing the startjob function.
+   * Executed in main thread.
+   */
+  void (*completed)(void *);
+  /**
+   * Called when job is stopped abnormally, i.e. when stop=true but ready=false.
+   * Executed in main thread.
+   */
+  void (*canceled)(void *);
 
   /** Running jobs each have own timer */
   double timestep;
@@ -344,10 +354,23 @@ void WM_jobs_callbacks(wmJob *wm_job,
                        void (*update)(void *),
                        void (*endjob)(void *))
 {
+  WM_jobs_callbacks_ex(wm_job, startjob, initjob, update, endjob, NULL, NULL);
+}
+
+void WM_jobs_callbacks_ex(wmJob *wm_job,
+                          wm_jobs_start_callback startjob,
+                          void (*initjob)(void *),
+                          void (*update)(void *),
+                          void (*endjob)(void *),
+                          void (*completed)(void *),
+                          void (*canceled)(void *))
+{
   wm_job->startjob = startjob;
   wm_job->initjob = initjob;
   wm_job->update = update;
   wm_job->endjob = endjob;
+  wm_job->completed = completed;
+  wm_job->canceled = canceled;
 }
 
 static void *do_job_thread(void *job_v)
@@ -465,6 +488,24 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
   }
 }
 
+static void wm_job_end(wmJob *wm_job)
+{
+  BLI_assert_msg(BLI_thread_is_main(), "wm_job_end should only be called from the main thread");
+  if (wm_job->endjob) {
+    wm_job->endjob(wm_job->run_customdata);
+  }
+
+  /* Do the final callback based on whether the job was run to completion or not.
+   * Not all jobs have the same way of signaling cancellation (i.e. rendering stops when
+   * `G.is_break == true`, but doesn't set any wm_job properties to cancel the WM job). */
+  const bool was_canceled = wm_job->stop || G.is_break;
+  void (*final_callback)(void *) = (wm_job->ready && !was_canceled) ? wm_job->completed :
+                                                                      wm_job->canceled;
+  if (final_callback) {
+    final_callback(wm_job->run_customdata);
+  }
+}
+
 static void wm_job_free(wmWindowManager *wm, wmJob *wm_job)
 {
   BLI_remlink(&wm->jobs, wm_job);
@@ -485,10 +526,7 @@ static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *wm_job)
     WM_job_main_thread_lock_release(wm_job);
     BLI_threadpool_end(&wm_job->threads);
     WM_job_main_thread_lock_acquire(wm_job);
-
-    if (wm_job->endjob) {
-      wm_job->endjob(wm_job->run_customdata);
-    }
+    wm_job_end(wm_job);
   }
 
   if (wm_job->wt) {
@@ -600,9 +638,7 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
         }
 
         if (wm_job->ready) {
-          if (wm_job->endjob) {
-            wm_job->endjob(wm_job->run_customdata);
-          }
+          wm_job_end(wm_job);
 
           /* free own data */
           wm_job->run_free(wm_job->run_customdata);
@@ -668,5 +704,15 @@ bool WM_jobs_has_running(const wmWindowManager *wm)
     }
   }
 
+  return false;
+}
+
+bool WM_jobs_has_running_type(const struct wmWindowManager *wm, int job_type)
+{
+  LISTBASE_FOREACH (wmJob *, wm_job, &wm->jobs) {
+    if (wm_job->running && wm_job->job_type == job_type) {
+      return true;
+    }
+  }
   return false;
 }

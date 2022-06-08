@@ -182,12 +182,12 @@ static char *rna_ImageUser_path(const PointerRNA *ptr)
 
     switch (GS(ptr->owner_id->name)) {
       case ID_OB:
-      case ID_TE: {
+      case ID_TE:
         return BLI_strdup("image_user");
-      }
-      case ID_NT: {
+      case ID_NT:
         return rna_Node_ImageUser_path(ptr);
-      }
+      case ID_CA:
+        return rna_CameraBackgroundImage_image_or_movieclip_user_path(ptr);
       default:
         break;
     }
@@ -255,6 +255,51 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
     int ftype = BKE_imtype_to_ftype(value, &options);
     BKE_image_file_format_set(image, ftype, &options);
   }
+}
+
+static void rna_UDIMTile_size_get(PointerRNA *ptr, int *values)
+{
+  ImageTile *tile = (ImageTile *)ptr->data;
+  Image *image = (Image *)ptr->owner_id;
+
+  ImageUser image_user;
+  BKE_imageuser_default(&image_user);
+  image_user.tile = tile->tile_number;
+
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, &image_user, &lock);
+  if (ibuf) {
+    values[0] = ibuf->x;
+    values[1] = ibuf->y;
+  }
+  else {
+    values[0] = 0;
+    values[1] = 0;
+  }
+
+  BKE_image_release_ibuf(image, ibuf, lock);
+}
+
+static int rna_UDIMTile_channels_get(PointerRNA *ptr)
+{
+  ImageTile *tile = (ImageTile *)ptr->data;
+  Image *image = (Image *)ptr->owner_id;
+
+  ImageUser image_user;
+  BKE_imageuser_default(&image_user);
+  image_user.tile = tile->tile_number;
+
+  int channels = 0;
+
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, &image_user, &lock);
+  if (ibuf) {
+    channels = ibuf->channels;
+  }
+
+  BKE_image_release_ibuf(image, ibuf, lock);
+
+  return channels;
 }
 
 static void rna_UDIMTile_label_get(PointerRNA *ptr, char *value)
@@ -656,6 +701,8 @@ static void rna_def_imageuser(BlenderRNA *brna)
       "Parameters defining how an Image data-block is used by another data-block");
   RNA_def_struct_path_func(srna, "rna_ImageUser_path");
 
+  RNA_define_lib_overridable(true);
+
   prop = RNA_def_property(srna, "use_auto_refresh", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANIM_ALWAYS);
   RNA_def_property_ui_text(prop, "Auto Refresh", "Always refresh image on frame changes");
@@ -717,6 +764,8 @@ static void rna_def_imageuser(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "tile");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Tile", "Tile in tiled image");
+
+  RNA_define_lib_overridable(false);
 }
 
 /* image.packed_files */
@@ -826,6 +875,26 @@ static void rna_def_udim_tile(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Number", "Number of the position that this tile covers");
   RNA_def_property_int_funcs(prop, NULL, "rna_UDIMTile_tile_number_set", NULL);
   RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
+
+  prop = RNA_def_int_vector(
+      srna,
+      "size",
+      2,
+      NULL,
+      0,
+      0,
+      "Size",
+      "Width and height of the tile buffer in pixels, zero when image data can't be loaded",
+      0,
+      0);
+  RNA_def_property_subtype(prop, PROP_PIXEL);
+  RNA_def_property_int_funcs(prop, "rna_UDIMTile_size_get", NULL, NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "channels", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_funcs(prop, "rna_UDIMTile_channels_get", NULL, NULL);
+  RNA_def_property_ui_text(prop, "Channels", "Number of channels in the tile pixels buffer");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 static void rna_def_udim_tiles(BlenderRNA *brna, PropertyRNA *cprop)

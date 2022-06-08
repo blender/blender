@@ -2271,10 +2271,14 @@ Object *BKE_object_add(Main *bmain, ViewLayer *view_layer, int type, const char 
   Object *ob = object_add_common(bmain, view_layer, type, name);
 
   LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
-  BKE_collection_object_add(bmain, layer_collection->collection, ob);
+  BKE_collection_viewlayer_object_add(bmain, view_layer, layer_collection->collection, ob);
 
+  /* Note: There is no way to be sure that #BKE_collection_viewlayer_object_add will actually
+   * manage to find a valid collection in given `view_layer` to add the new object to. */
   Base *base = BKE_view_layer_base_find(view_layer, ob);
-  BKE_view_layer_base_select_and_set_active(view_layer, base);
+  if (base != nullptr) {
+    BKE_view_layer_base_select_and_set_active(view_layer, base);
+  }
 
   return ob;
 }
@@ -2479,21 +2483,16 @@ static void copy_object_pose(Object *obn, const Object *ob, const int flag)
      *     BKE_library_remap stuff, but...
      *     the flush_constraint_targets callback am not sure about, so will delay that for now. */
     LISTBASE_FOREACH (bConstraint *, con, &chan->constraints) {
-      const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
       ListBase targets = {nullptr, nullptr};
 
-      if (cti && cti->get_constraint_targets) {
-        cti->get_constraint_targets(con, &targets);
-
+      if (BKE_constraint_targets_get(con, &targets)) {
         LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
           if (ct->tar == ob) {
             ct->tar = obn;
           }
         }
 
-        if (cti->flush_constraint_targets) {
-          cti->flush_constraint_targets(con, &targets, false);
-        }
+        BKE_constraint_targets_flush(con, &targets, false);
       }
     }
   }
@@ -5484,11 +5483,9 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
 
     /* also update constraint targets */
     LISTBASE_FOREACH (bConstraint *, con, &ob->constraints) {
-      const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
       ListBase targets = {nullptr, nullptr};
 
-      if (cti && cti->get_constraint_targets) {
-        cti->get_constraint_targets(con, &targets);
+      if (BKE_constraint_targets_get(con, &targets)) {
         LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
           if (ct->tar) {
             BKE_object_modifier_update_subframe(
@@ -5496,9 +5493,7 @@ bool BKE_object_modifier_update_subframe(Depsgraph *depsgraph,
           }
         }
         /* free temp targets */
-        if (cti->flush_constraint_targets) {
-          cti->flush_constraint_targets(con, &targets, false);
-        }
+        BKE_constraint_targets_flush(con, &targets, false);
       }
     }
   }

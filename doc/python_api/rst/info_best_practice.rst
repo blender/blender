@@ -40,15 +40,6 @@ As well as pep8 we have additional conventions used for Blender Python scripts:
 - pep8 also defines that lines should not exceed 79 characters,
   we have decided that this is too restrictive so it is optional per script.
 
-Periodically we run checks for pep8 compliance on Blender scripts,
-for scripts to be included in this check add this line as a comment at the top of the script:
-
-``# <pep8 compliant>``
-
-To enable line length checks use this instead:
-
-``# <pep8-80 compliant>``
-
 
 User Interface Layout
 =====================

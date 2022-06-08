@@ -890,7 +890,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
           continue;
         }
 
-        /* Exclude "all my files" as it makes no sense in blender fileselector */
+        /* Exclude "all my files" as it makes no sense in blender file-selector. */
         /* Exclude "airdrop" if wlan not active as it would show "" ) */
         if (!strstr(line, "myDocuments.cannedSearch") && (*line != '\0')) {
           fsmenu_insert_entry(

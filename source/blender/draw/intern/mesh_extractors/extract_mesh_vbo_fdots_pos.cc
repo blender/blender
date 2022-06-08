@@ -7,7 +7,7 @@
 
 #include "BLI_bitmap.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_subdivision.h"
 
@@ -139,6 +139,4 @@ constexpr MeshExtract create_extractor_fdots_pos()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_fdots_pos = blender::draw::create_extractor_fdots_pos();
-}

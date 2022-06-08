@@ -153,7 +153,7 @@ static void transfer_attributes(
       continue;
     }
 
-    AttributeDomain out_domain;
+    eAttrDomain out_domain;
     if (src_attribute.domain == ATTR_DOMAIN_FACE) {
       out_domain = ATTR_DOMAIN_POINT;
     }
@@ -164,7 +164,7 @@ static void transfer_attributes(
       /* Edges and Face Corners. */
       out_domain = src_attribute.domain;
     }
-    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
         src_attribute.varray.type());
     OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
         attribute_id, out_domain, data_type);

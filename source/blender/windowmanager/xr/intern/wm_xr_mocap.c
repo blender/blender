@@ -187,7 +187,7 @@ void wm_xr_mocap_object_autokey(
   bScreen *screen = CTX_wm_screen(C);
   if (screen && screen->animtimer && (IS_AUTOKEY_FLAG(scene, INSERTAVAIL) == 0) &&
       ((scene->toolsettings->autokey_flag & ANIMRECORD_FLAG_WITHNLA) != 0)) {
-    ED_transform_animrecord_check_state(scene, screen->animtimer, ob);
+    ED_transform_animrecord_check_state(scene, screen->animtimer, &ob->id);
   }
 
   ED_transform_autokeyframe_object(C, scene, view_layer, ob, TFM_TRANSLATION);

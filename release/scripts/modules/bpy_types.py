@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8-80 compliant>
-
 from _bpy import types as bpy_types
 
 StructRNA = bpy_types.bpy_struct

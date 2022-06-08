@@ -23,6 +23,7 @@
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_curves.hh"
@@ -48,6 +49,7 @@ using blender::IndexRange;
 using blender::MutableSpan;
 using blender::RandomNumberGenerator;
 using blender::Span;
+using blender::Vector;
 
 static const char *ATTR_POSITION = "position";
 
@@ -87,6 +89,10 @@ static void curves_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
 
   dst.curve_offsets = static_cast<int *>(MEM_dupallocN(src.curve_offsets));
 
+  if (curves_src->surface_uv_map != nullptr) {
+    curves_dst->surface_uv_map = BLI_strdup(curves_src->surface_uv_map);
+  }
+
   dst.runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
 
   dst.runtime->type_counts = src.runtime->type_counts;
@@ -106,6 +112,7 @@ static void curves_free_data(ID *id)
   BKE_curves_batch_cache_free(curves);
 
   MEM_SAFE_FREE(curves->mat);
+  MEM_SAFE_FREE(curves->surface_uv_map);
 }
 
 static void curves_foreach_id(ID *id, LibraryForeachIDData *data)
@@ -121,12 +128,10 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
 {
   Curves *curves = (Curves *)id;
 
-  CustomDataLayer *players = nullptr, players_buff[CD_TEMP_CHUNK_SIZE];
-  CustomDataLayer *clayers = nullptr, clayers_buff[CD_TEMP_CHUNK_SIZE];
-  CustomData_blend_write_prepare(
-      &curves->geometry.point_data, &players, players_buff, ARRAY_SIZE(players_buff));
-  CustomData_blend_write_prepare(
-      &curves->geometry.curve_data, &clayers, clayers_buff, ARRAY_SIZE(clayers_buff));
+  Vector<CustomDataLayer, 16> point_layers;
+  Vector<CustomDataLayer, 16> curve_layers;
+  CustomData_blend_write_prepare(curves->geometry.point_data, point_layers);
+  CustomData_blend_write_prepare(curves->geometry.curve_data, curve_layers);
 
   /* Write LibData */
   BLO_write_id_struct(writer, Curves, id_address, &curves->id);
@@ -135,30 +140,24 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   /* Direct data */
   CustomData_blend_write(writer,
                          &curves->geometry.point_data,
-                         players,
+                         point_layers,
                          curves->geometry.point_num,
                          CD_MASK_ALL,
                          &curves->id);
   CustomData_blend_write(writer,
                          &curves->geometry.curve_data,
-                         clayers,
+                         curve_layers,
                          curves->geometry.curve_num,
                          CD_MASK_ALL,
                          &curves->id);
 
   BLO_write_int32_array(writer, curves->geometry.curve_num + 1, curves->geometry.curve_offsets);
 
+  BLO_write_string(writer, curves->surface_uv_map);
+
   BLO_write_pointer_array(writer, curves->totcol, curves->mat);
   if (curves->adt) {
     BKE_animdata_blend_write(writer, curves->adt);
-  }
-
-  /* Remove temporary data. */
-  if (players && players != players_buff) {
-    MEM_freeN(players);
-  }
-  if (clayers && clayers != clayers_buff) {
-    MEM_freeN(clayers);
   }
 }
 
@@ -174,6 +173,8 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   update_custom_data_pointers(*curves);
 
   BLO_read_int32_array(reader, curves->geometry.curve_num + 1, &curves->geometry.curve_offsets);
+
+  BLO_read_data_address(reader, &curves->surface_uv_map);
 
   curves->geometry.runtime = MEM_new<blender::bke::CurvesGeometryRuntime>(__func__);
 
@@ -207,8 +208,8 @@ IDTypeInfo IDType_ID_CV = {
     /*id_filter */ FILTER_ID_CV,
     /*main_listbase_index */ INDEX_ID_CV,
     /*struct_size */ sizeof(Curves),
-    /*name */ "Hair Curves",
-    /*name_plural */ "Hair Curves",
+    /*name */ "Curves",
+    /*name_plural */ "curves",
     /*translation_context */ BLT_I18NCONTEXT_ID_CURVES,
     /*flags */ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info */ nullptr,
@@ -272,9 +273,9 @@ BoundBox *BKE_curves_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-bool BKE_curves_customdata_required(Curves *UNUSED(curves), CustomDataLayer *layer)
+bool BKE_curves_customdata_required(const Curves *UNUSED(curves), const char *name)
 {
-  return layer->type == CD_PROP_FLOAT3 && STREQ(layer->name, ATTR_POSITION);
+  return STREQ(name, ATTR_POSITION);
 }
 
 Curves *BKE_curves_copy_for_eval(Curves *curves_src, bool reference)

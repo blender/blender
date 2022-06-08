@@ -78,6 +78,7 @@
 #include "BKE_modifier.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -1083,7 +1084,8 @@ void DepsgraphNodeBuilder::build_animation_images(ID *id)
   bool has_image_animation = false;
   if (ELEM(GS(id->name), ID_MA, ID_WO)) {
     bNodeTree *ntree = *BKE_ntree_ptr_from_id(id);
-    if (ntree != nullptr && ntree->runtime_flag & NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION) {
+    if (ntree != nullptr &&
+        ntree->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION) {
       has_image_animation = true;
     }
   }

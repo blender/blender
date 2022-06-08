@@ -811,7 +811,7 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
     /* unalignedLeafSAH = params.sah_primitive_cost * split.leafSAH; */
     unalignedSplitSAH = params.sah_node_cost * unaligned_split.bounds.half_area() +
                         params.sah_primitive_cost * unaligned_split.nodeSAH;
-    /* TOOD(sergey): Check we can create leaf already. */
+    /* TODO(sergey): Check we can create leaf already. */
     /* Check whether unaligned split is better than the regular one. */
     if (unalignedSplitSAH < splitSAH) {
       do_unalinged_split = true;

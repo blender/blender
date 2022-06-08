@@ -884,7 +884,7 @@ void recalcData_objects(TransInfo *t)
       /* TODO: autokeyframe calls need some setting to specify to add samples
        * (FPoints) instead of keyframes? */
       if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-        ED_transform_animrecord_check_state(t->scene, t->animtimer, ob);
+        ED_transform_animrecord_check_state(t->scene, t->animtimer, &ob->id);
         ED_transform_autokeyframe_object(t->context, t->scene, t->view_layer, ob, t->mode);
       }
 

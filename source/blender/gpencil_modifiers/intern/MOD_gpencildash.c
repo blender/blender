@@ -12,8 +12,6 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 
-#include "BLT_translation.h"
-
 #include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"

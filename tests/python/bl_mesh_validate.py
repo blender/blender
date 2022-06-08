@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Simple script to check mash validate code.
 # XXX Should be extended with many more "wrong cases"!
 

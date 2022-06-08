@@ -4729,6 +4729,7 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 bool ED_curve_editnurb_select_pick(bContext *C,
                                    const int mval[2],
                                    const int dist_px,
+                                   const bool vert_without_handles,
                                    const struct SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -4743,6 +4744,9 @@ bool ED_curve_editnurb_select_pick(bContext *C,
   view3d_operator_needs_opengl(C);
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
   copy_v2_v2_int(vc.mval, mval);
+
+  const bool use_handle_select = vert_without_handles &&
+                                 (vc.v3d->overlay.handle_display != CURVE_HANDLE_NONE);
 
   bool found = ED_curve_pick_vert_ex(&vc, 1, dist_px, &nu, &bezt, &bp, &hand, &basact);
 
@@ -4779,7 +4783,12 @@ bool ED_curve_editnurb_select_pick(bContext *C,
       case SEL_OP_ADD: {
         if (bezt) {
           if (hand == 1) {
-            select_beztriple(bezt, SELECT, SELECT, HIDDEN);
+            if (use_handle_select) {
+              bezt->f2 |= SELECT;
+            }
+            else {
+              select_beztriple(bezt, SELECT, SELECT, HIDDEN);
+            }
           }
           else {
             if (hand == 0) {
@@ -4800,7 +4809,12 @@ bool ED_curve_editnurb_select_pick(bContext *C,
       case SEL_OP_SUB: {
         if (bezt) {
           if (hand == 1) {
-            select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
+            if (use_handle_select) {
+              bezt->f2 &= ~SELECT;
+            }
+            else {
+              select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
+            }
             if (bezt == vert) {
               cu->actvert = CU_ACT_NONE;
             }
@@ -4824,13 +4838,23 @@ bool ED_curve_editnurb_select_pick(bContext *C,
         if (bezt) {
           if (hand == 1) {
             if (bezt->f2 & SELECT) {
-              select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
+              if (use_handle_select) {
+                bezt->f2 &= ~SELECT;
+              }
+              else {
+                select_beztriple(bezt, DESELECT, SELECT, HIDDEN);
+              }
               if (bezt == vert) {
                 cu->actvert = CU_ACT_NONE;
               }
             }
             else {
-              select_beztriple(bezt, SELECT, SELECT, HIDDEN);
+              if (use_handle_select) {
+                bezt->f2 |= SELECT;
+              }
+              else {
+                select_beztriple(bezt, SELECT, SELECT, HIDDEN);
+              }
               BKE_curve_nurb_vert_active_set(cu, nu, bezt);
             }
           }
@@ -4861,7 +4885,12 @@ bool ED_curve_editnurb_select_pick(bContext *C,
         if (bezt) {
 
           if (hand == 1) {
-            select_beztriple(bezt, SELECT, SELECT, HIDDEN);
+            if (use_handle_select) {
+              bezt->f2 |= SELECT;
+            }
+            else {
+              select_beztriple(bezt, SELECT, SELECT, HIDDEN);
+            }
           }
           else {
             if (hand == 0) {
@@ -5568,7 +5597,8 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
           vc.v3d,
           SCE_SNAP_MODE_FACE,
           &(const struct SnapObjectParams){
-              .snap_select = (vc.obedit != NULL) ? SNAP_NOT_ACTIVE : SNAP_ALL,
+              .snap_target_select = (vc.obedit != NULL) ? SCE_SNAP_TARGET_NOT_ACTIVE :
+                                                          SCE_SNAP_TARGET_ALL,
               .edit_mode_type = SNAP_GEOM_FINAL,
           },
           mval,

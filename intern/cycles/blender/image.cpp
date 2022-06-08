@@ -7,6 +7,8 @@
 #include "blender/session.h"
 #include "blender/util.h"
 
+#include "util/half.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Packed Images */
@@ -19,17 +21,40 @@ BlenderImageLoader::BlenderImageLoader(BL::Image b_image,
       frame(frame),
       tile_number(tile_number),
       /* Don't free cache for preview render to avoid race condition from T93560, to be fixed
-         properly later as we are close to release. */
+       * properly later as we are close to release. */
       free_cache(!is_preview_render && !b_image.has_data())
 {
 }
 
 bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures &, ImageMetaData &metadata)
 {
-  metadata.width = b_image.size()[0];
-  metadata.height = b_image.size()[1];
+  if (b_image.source() != BL::Image::source_TILED) {
+    /* Image sequence might have different dimensions, and hence needs to be handled in a special
+     * manner.
+     * NOTE: Currently the sequences are not handled by this image loader. */
+    assert(b_image.source() != BL::Image::source_SEQUENCE);
+
+    metadata.width = b_image.size()[0];
+    metadata.height = b_image.size()[1];
+    metadata.channels = b_image.channels();
+  }
+  else {
+    /* Different UDIM tiles might have different resolutions, so get resolution from the actual
+     * tile. */
+    BL::UDIMTile b_udim_tile = b_image.tiles.get(tile_number);
+    if (b_udim_tile) {
+      metadata.width = b_udim_tile.size()[0];
+      metadata.height = b_udim_tile.size()[1];
+      metadata.channels = b_udim_tile.channels();
+    }
+    else {
+      metadata.width = 0;
+      metadata.height = 0;
+      metadata.channels = 0;
+    }
+  }
+
   metadata.depth = 1;
-  metadata.channels = b_image.channels();
 
   if (b_image.is_float()) {
     if (metadata.channels == 1) {
@@ -62,79 +87,133 @@ bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures &, ImageMetaDat
 }
 
 bool BlenderImageLoader::load_pixels(const ImageMetaData &metadata,
-                                     void *pixels,
-                                     const size_t pixels_size,
+                                     void *out_pixels,
+                                     const size_t out_pixels_size,
                                      const bool associate_alpha)
 {
   const size_t num_pixels = ((size_t)metadata.width) * metadata.height;
   const int channels = metadata.channels;
 
-  if (b_image.is_float()) {
-    /* image data */
-    float *image_pixels;
-    image_pixels = image_get_float_pixels_for_frame(b_image, frame, tile_number);
+  if (metadata.type == IMAGE_DATA_TYPE_FLOAT || metadata.type == IMAGE_DATA_TYPE_FLOAT4) {
+    /* Float. */
+    float *in_pixels = image_get_float_pixels_for_frame(b_image, frame, tile_number);
 
-    if (image_pixels && num_pixels * channels == pixels_size) {
-      memcpy(pixels, image_pixels, pixels_size * sizeof(float));
+    if (in_pixels && num_pixels * channels == out_pixels_size) {
+      /* Straight copy pixel data. */
+      memcpy(out_pixels, in_pixels, out_pixels_size * sizeof(float));
     }
     else {
+      /* Missing or invalid pixel data. */
       if (channels == 1) {
-        memset(pixels, 0, num_pixels * sizeof(float));
+        memset(out_pixels, 0, num_pixels * sizeof(float));
       }
       else {
-        const size_t num_pixels_safe = pixels_size / channels;
-        float *fp = (float *)pixels;
-        for (int i = 0; i < num_pixels_safe; i++, fp += channels) {
-          fp[0] = 1.0f;
-          fp[1] = 0.0f;
-          fp[2] = 1.0f;
+        const size_t num_pixels_safe = out_pixels_size / channels;
+        float *out_pixel = (float *)out_pixels;
+        for (int i = 0; i < num_pixels_safe; i++, out_pixel += channels) {
+          out_pixel[0] = 1.0f;
+          out_pixel[1] = 0.0f;
+          out_pixel[2] = 1.0f;
           if (channels == 4) {
-            fp[3] = 1.0f;
+            out_pixel[3] = 1.0f;
           }
         }
       }
     }
 
-    if (image_pixels) {
-      MEM_freeN(image_pixels);
+    if (in_pixels) {
+      MEM_freeN(in_pixels);
+    }
+  }
+  else if (metadata.type == IMAGE_DATA_TYPE_HALF || metadata.type == IMAGE_DATA_TYPE_HALF4) {
+    /* Half float. Blender does not have a half type, but in some cases
+     * we up-sample byte to half to avoid precision loss for colorspace
+     * conversion. */
+    unsigned char *in_pixels = image_get_pixels_for_frame(b_image, frame, tile_number);
+
+    if (in_pixels && num_pixels * channels == out_pixels_size) {
+      /* Convert uchar to half. */
+      const uchar *in_pixel = in_pixels;
+      half *out_pixel = (half *)out_pixels;
+      if (associate_alpha && channels == 4) {
+        for (size_t i = 0; i < num_pixels; i++, in_pixel += 4, out_pixel += 4) {
+          const float alpha = util_image_cast_to_float(in_pixel[3]);
+          out_pixel[0] = float_to_half_image(util_image_cast_to_float(in_pixel[0]) * alpha);
+          out_pixel[1] = float_to_half_image(util_image_cast_to_float(in_pixel[1]) * alpha);
+          out_pixel[2] = float_to_half_image(util_image_cast_to_float(in_pixel[2]) * alpha);
+          out_pixel[3] = float_to_half_image(alpha);
+        }
+      }
+      else {
+        for (size_t i = 0; i < num_pixels; i++) {
+          for (int c = 0; c < channels; c++, in_pixel++, out_pixel++) {
+            *out_pixel = float_to_half_image(util_image_cast_to_float(*in_pixel));
+          }
+        }
+      }
+    }
+    else {
+      /* Missing or invalid pixel data. */
+      if (channels == 1) {
+        memset(out_pixels, 0, num_pixels * sizeof(half));
+      }
+      else {
+        const size_t num_pixels_safe = out_pixels_size / channels;
+        half *out_pixel = (half *)out_pixels;
+        for (int i = 0; i < num_pixels_safe; i++, out_pixel += channels) {
+          out_pixel[0] = float_to_half_image(1.0f);
+          out_pixel[1] = float_to_half_image(0.0f);
+          out_pixel[2] = float_to_half_image(1.0f);
+          if (channels == 4) {
+            out_pixel[3] = float_to_half_image(1.0f);
+          }
+        }
+      }
+    }
+
+    if (in_pixels) {
+      MEM_freeN(in_pixels);
     }
   }
   else {
-    unsigned char *image_pixels = image_get_pixels_for_frame(b_image, frame, tile_number);
+    /* Byte. */
+    unsigned char *in_pixels = image_get_pixels_for_frame(b_image, frame, tile_number);
 
-    if (image_pixels && num_pixels * channels == pixels_size) {
-      memcpy(pixels, image_pixels, pixels_size * sizeof(unsigned char));
+    if (in_pixels && num_pixels * channels == out_pixels_size) {
+      /* Straight copy pixel data. */
+      memcpy(out_pixels, in_pixels, out_pixels_size * sizeof(unsigned char));
+
+      if (associate_alpha && channels == 4) {
+        /* Premultiply, byte images are always straight for Blender. */
+        unsigned char *out_pixel = (unsigned char *)out_pixels;
+        for (size_t i = 0; i < num_pixels; i++, out_pixel += 4) {
+          out_pixel[0] = (out_pixel[0] * out_pixel[3]) / 255;
+          out_pixel[1] = (out_pixel[1] * out_pixel[3]) / 255;
+          out_pixel[2] = (out_pixel[2] * out_pixel[3]) / 255;
+        }
+      }
     }
     else {
+      /* Missing or invalid pixel data. */
       if (channels == 1) {
-        memset(pixels, 0, pixels_size * sizeof(unsigned char));
+        memset(out_pixels, 0, out_pixels_size * sizeof(unsigned char));
       }
       else {
-        const size_t num_pixels_safe = pixels_size / channels;
-        unsigned char *cp = (unsigned char *)pixels;
-        for (size_t i = 0; i < num_pixels_safe; i++, cp += channels) {
-          cp[0] = 255;
-          cp[1] = 0;
-          cp[2] = 255;
+        const size_t num_pixels_safe = out_pixels_size / channels;
+        unsigned char *out_pixel = (unsigned char *)out_pixels;
+        for (size_t i = 0; i < num_pixels_safe; i++, out_pixel += channels) {
+          out_pixel[0] = 255;
+          out_pixel[1] = 0;
+          out_pixel[2] = 255;
           if (channels == 4) {
-            cp[3] = 255;
+            out_pixel[3] = 255;
           }
         }
       }
     }
 
-    if (image_pixels) {
-      MEM_freeN(image_pixels);
-    }
-
-    if (associate_alpha) {
-      /* Premultiply, byte images are always straight for Blender. */
-      unsigned char *cp = (unsigned char *)pixels;
-      for (size_t i = 0; i < num_pixels; i++, cp += channels) {
-        cp[0] = (cp[0] * cp[3]) / 255;
-        cp[1] = (cp[1] * cp[3]) / 255;
-        cp[2] = (cp[2] * cp[3]) / 255;
-      }
+    if (in_pixels) {
+      MEM_freeN(in_pixels);
     }
   }
 

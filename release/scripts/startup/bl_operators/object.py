@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8-80 compliant>
-
 import bpy
 from bpy.types import Operator
 from bpy.props import (
@@ -857,6 +855,37 @@ class DupliOffsetFromCursor(Operator):
         return {'FINISHED'}
 
 
+class DupliOffsetToCursor(Operator):
+    """Set cursor position to the offset used for collection instances"""
+    bl_idname = "object.instance_offset_to_cursor"
+    bl_label = "Set Cursor to Offset"
+    bl_options = {'INTERNAL', 'UNDO'}
+
+    def execute(self, context):
+        scene = context.scene
+        collection = context.collection
+        scene.cursor.location = collection.instance_offset
+        return {'FINISHED'}
+
+
+class DupliOffsetFromObject(Operator):
+    """Set offset used for collection instances based on the active object position"""
+    bl_idname = "object.instance_offset_from_object"
+    bl_label = "Set Offset from Object"
+    bl_options = {'INTERNAL', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object is not None)
+
+    def execute(self, context):
+        ob_eval = context.active_object.evaluated_get(context.view_layer.depsgraph)
+        world_loc = ob_eval.matrix_world.to_translation()
+        collection = context.collection
+        collection.instance_offset = world_loc
+        return {'FINISHED'}
+
+
 class LoadImageAsEmpty:
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -978,6 +1007,8 @@ class OBJECT_OT_assign_property_defaults(Operator):
 classes = (
     ClearAllRestrictRender,
     DupliOffsetFromCursor,
+    DupliOffsetToCursor,
+    DupliOffsetFromObject,
     IsolateTypeRender,
     JoinUVs,
     LoadBackgroundImage,

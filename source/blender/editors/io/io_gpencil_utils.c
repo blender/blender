@@ -5,14 +5,16 @@
  * \ingroup editor/io
  */
 
-#include "DNA_space_types.h"
+#ifdef WITH_IO_GPENCIL
 
-#include "BKE_context.h"
-#include "BKE_screen.h"
+#  include "DNA_space_types.h"
 
-#include "WM_api.h"
+#  include "BKE_context.h"
+#  include "BKE_screen.h"
 
-#include "io_gpencil.h"
+#  include "WM_api.h"
+
+#  include "io_gpencil.h"
 
 ARegion *get_invoke_region(bContext *C)
 {
@@ -46,3 +48,5 @@ View3D *get_invoke_view3d(bContext *C)
 
   return NULL;
 }
+
+#endif /* WITH_IO_GPENCIL */

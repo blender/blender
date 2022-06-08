@@ -62,6 +62,8 @@ void register_node_type_geo_input_curve_handles(void);
 void register_node_type_geo_input_curve_tilt(void);
 void register_node_type_geo_input_id(void);
 void register_node_type_geo_input_index(void);
+void register_node_type_geo_input_instance_rotation(void);
+void register_node_type_geo_input_instance_scale(void);
 void register_node_type_geo_input_material_index(void);
 void register_node_type_geo_input_material(void);
 void register_node_type_geo_input_mesh_edge_angle(void);

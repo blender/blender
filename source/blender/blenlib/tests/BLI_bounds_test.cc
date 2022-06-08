@@ -33,6 +33,13 @@ TEST(bounds, MinMaxFloat)
   EXPECT_EQ(result->max, 3.0f);
 }
 
+TEST(bounds, MinGreaterThanZero)
+{
+  Array<float> data = {1.5f, 3.0f, 1.1f, 100.0f};
+  auto result = bounds::min_max(data.as_span());
+  EXPECT_GT(result->min, 1.0f);
+}
+
 TEST(bounds, MinMaxRadii)
 {
   Array<int2> data = {int2(0, 1), int2(3, -1), int2(0, -2), int2(-1, 1)};

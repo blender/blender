@@ -58,6 +58,8 @@ class HdCyclesRenderBuffer final : public PXR_NS::HdRenderBuffer {
 
   void SetConverged(bool converged);
 
+  bool IsResourceUsed() const;
+
   PXR_NS::VtValue GetResource(bool multiSampled = false) const override;
 
   void SetResource(const PXR_NS::VtValue &resource);
@@ -74,9 +76,11 @@ class HdCyclesRenderBuffer final : public PXR_NS::HdRenderBuffer {
   unsigned int _width = 0u;
   unsigned int _height = 0u;
   PXR_NS::HdFormat _format = PXR_NS::HdFormatInvalid;
+  size_t _dataSize = 0;
 
   std::vector<uint8_t> _data;
   PXR_NS::VtValue _resource;
+  mutable std::atomic_bool _resourceUsed = false;
 
   std::atomic_int _mapped = 0;
   std::atomic_bool _converged = false;

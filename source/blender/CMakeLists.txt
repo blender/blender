@@ -96,15 +96,15 @@ set(SRC_DNA_DEFAULTS_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_cachefile_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_camera_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_collection_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curves_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curve_defaults.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curves_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_fluid_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_gpencil_modifier_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_image_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lattice_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lightprobe_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_light_defaults.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lightprobe_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_linestyle_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_material_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_mesh_defaults.h

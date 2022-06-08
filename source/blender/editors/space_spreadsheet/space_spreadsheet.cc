@@ -32,8 +32,6 @@
 
 #include "BLF_api.h"
 
-#include "spreadsheet_intern.hh"
-
 #include "spreadsheet_context.hh"
 #include "spreadsheet_data_source_geometry.hh"
 #include "spreadsheet_dataset_draw.hh"
@@ -304,6 +302,7 @@ static float get_default_column_width(const ColumnValues &values)
   switch (values.type()) {
     case SPREADSHEET_VALUE_TYPE_BOOL:
       return 2.0f;
+    case SPREADSHEET_VALUE_TYPE_INT8:
     case SPREADSHEET_VALUE_TYPE_INT32:
       return float_width;
     case SPREADSHEET_VALUE_TYPE_FLOAT:

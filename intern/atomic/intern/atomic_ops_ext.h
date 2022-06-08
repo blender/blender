@@ -205,6 +205,24 @@ ATOMIC_INLINE void *atomic_cas_ptr(void **v, void *old, void *_new)
 #endif
 }
 
+ATOMIC_INLINE void *atomic_load_ptr(void *const *v)
+{
+#if (LG_SIZEOF_PTR == 8)
+  return (void *)atomic_load_uint64((const uint64_t *)v);
+#elif (LG_SIZEOF_PTR == 4)
+  return (void *)atomic_load_uint32((const uint32_t *)v);
+#endif
+}
+
+ATOMIC_INLINE void atomic_store_ptr(void **p, void *v)
+{
+#if (LG_SIZEOF_PTR == 8)
+  atomic_store_uint64((uint64_t *)p, (uint64_t)v);
+#elif (LG_SIZEOF_PTR == 4)
+  atomic_store_uint32((uint32_t *)p, (uint32_t)v);
+#endif
+}
+
 /******************************************************************************/
 /* float operations. */
 ATOMIC_STATIC_ASSERT(sizeof(float) == sizeof(uint32_t), "sizeof(float) != sizeof(uint32_t)");

@@ -97,8 +97,6 @@
 #include "RNA_enum_types.h"
 #include "RNA_types.h"
 
-#include "NOD_shader.h"
-
 #include "IMB_colormanagement.h"
 
 //#include "bmesh_tools.h"
@@ -3134,7 +3132,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
               }
             }
 
-            /* Is this UV visible from the view? - raytrace */
+            /* Is this UV visible from the view? - ray-trace */
             /* project_paint_PickFace is less complex, use for testing */
             // if (project_paint_PickFace(ps, pixelScreenCo, w, &side) == tri_index) {
             if ((ps->do_occlude == false) ||
@@ -3224,7 +3222,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
       float seam_subsection[4][2];
       float fac1, fac2;
 
-      /* Pixelspace UVs. */
+      /* Pixel-space UV's. */
       float lt_puv[3][2];
 
       lt_puv[0][0] = lt_uv_pxoffset[0][0] * ibuf->x;
@@ -4494,7 +4492,8 @@ static void project_paint_begin(const bContext *C,
     }
   }
 
-  /* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
+  /* when using sub-surface or multi-resolution,
+   * mesh-data arrays are thrown away, we need to keep a copy. */
   if (ps->is_shared_user == false) {
     proj_paint_state_cavity_init(ps);
   }
@@ -6490,14 +6489,14 @@ static CustomDataLayer *proj_paint_color_attribute_create(wmOperator *op, Object
 {
   char name[MAX_NAME] = "";
   float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-  AttributeDomain domain = ATTR_DOMAIN_POINT;
-  CustomDataType type = CD_PROP_COLOR;
+  eAttrDomain domain = ATTR_DOMAIN_POINT;
+  eCustomDataType type = CD_PROP_COLOR;
 
   if (op) {
     RNA_string_get(op->ptr, "name", name);
     RNA_float_get_array(op->ptr, "color", color);
-    domain = (AttributeDomain)RNA_enum_get(op->ptr, "domain");
-    type = (CustomDataType)RNA_enum_get(op->ptr, "data_type");
+    domain = (eAttrDomain)RNA_enum_get(op->ptr, "domain");
+    type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
   }
 
   ID *id = (ID *)ob->data;

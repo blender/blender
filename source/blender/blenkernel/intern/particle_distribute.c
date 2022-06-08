@@ -1216,8 +1216,8 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   MEM_freeN(element_sum);
   MEM_freeN(element_map);
 
-  /* For hair, sort by origindex (allows optimization's in rendering), */
-  /* however with virtual parents the children need to be in random order. */
+  /* For hair, sort by #CD_ORIGINDEX (allows optimization's in rendering),
+   * however with virtual parents the children need to be in random order. */
   if (part->type == PART_HAIR && !(part->childtype == PART_CHILD_FACES && part->parents != 0.0f)) {
     const int *orig_index = NULL;
 

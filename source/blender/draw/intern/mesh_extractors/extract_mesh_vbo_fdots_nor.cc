@@ -5,7 +5,7 @@
  * \ingroup draw
  */
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -180,7 +180,5 @@ constexpr MeshExtract create_extractor_fdots_nor_hq()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_fdots_nor = blender::draw::create_extractor_fdots_nor();
 const MeshExtract extract_fdots_nor_hq = blender::draw::create_extractor_fdots_nor_hq();
-}

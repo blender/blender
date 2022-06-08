@@ -21,6 +21,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
+#include "BKE_callbacks.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -1535,7 +1536,7 @@ static int bake(const BakeAPIRender *bkr,
                                           ob_low_eval->obmat);
         }
         else {
-          /* from multiresolution */
+          /* From multi-resolution. */
           Mesh *me_nores = NULL;
           ModifierData *md = NULL;
           int mode;
@@ -1806,6 +1807,17 @@ static void bake_startjob(void *bkv, short *UNUSED(stop), short *do_update, floa
   RE_SetReports(bkr->render, NULL);
 }
 
+static void bake_job_complete(void *bkv)
+{
+  BakeAPIRender *bkr = (BakeAPIRender *)bkv;
+  BKE_callback_exec_id(bkr->main, &bkr->ob->id, BKE_CB_EVT_OBJECT_BAKE_COMPLETE);
+}
+static void bake_job_canceled(void *bkv)
+{
+  BakeAPIRender *bkr = (BakeAPIRender *)bkv;
+  BKE_callback_exec_id(bkr->main, &bkr->ob->id, BKE_CB_EVT_OBJECT_BAKE_CANCEL);
+}
+
 static void bake_freejob(void *bkv)
 {
   BakeAPIRender *bkr = (BakeAPIRender *)bkv;
@@ -1941,6 +1953,7 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
 
   /* init bake render */
   bake_init_api_data(op, C, bkr);
+  BKE_callback_exec_id(CTX_data_main(C), &bkr->ob->id, BKE_CB_EVT_OBJECT_BAKE_PRE);
   re = bkr->render;
 
   /* setup new render */
@@ -1958,7 +1971,8 @@ static int bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
   /* TODO: only draw bake image, can we enforce this. */
   WM_jobs_timer(
       wm_job, 0.5, (bkr->target == R_BAKE_TARGET_VERTEX_COLORS) ? NC_GEOM | ND_DATA : NC_IMAGE, 0);
-  WM_jobs_callbacks(wm_job, bake_startjob, NULL, NULL, NULL);
+  WM_jobs_callbacks_ex(
+      wm_job, bake_startjob, NULL, NULL, NULL, bake_job_complete, bake_job_canceled);
 
   G.is_break = false;
   G.is_rendering = true;

@@ -35,7 +35,7 @@
 /* Own include. */
 #include "transform_mode.h"
 
-int transform_mode_really_used(bContext *C, int mode)
+eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode)
 {
   if (mode == TFM_BONESIZE) {
     Object *ob = CTX_data_active_object(C);

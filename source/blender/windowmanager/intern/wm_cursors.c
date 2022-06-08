@@ -383,7 +383,7 @@ void WM_cursor_time(wmWindow *win, int nr)
 /**
  * Because defining a cursor mixes declarations and executable code
  * each cursor needs its own scoping block or it would be split up
- * over several hundred lines of code.  To enforce/document this better
+ * over several hundred lines of code. To enforce/document this better
  * I define 2 pretty brain-dead macros so it's obvious what the extra "[]"
  * are for */
 

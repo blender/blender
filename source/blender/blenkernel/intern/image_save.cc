@@ -78,7 +78,8 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
                                  Scene *scene,
                                  Image *ima,
                                  ImageUser *iuser,
-                                 const bool guess_path)
+                                 const bool guess_path,
+                                 const bool save_as_render)
 {
   /* For saving a tiled image we need an iuser, so use a local one if there isn't already one. */
   ImageUser save_iuser;
@@ -92,7 +93,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
   opts->bmain = bmain;
   opts->scene = scene;
-  opts->save_as_render = ima->source == IMA_SRC_VIEWER;
+  opts->save_as_render = ima->source == IMA_SRC_VIEWER || save_as_render;
 
   BKE_image_format_init(&opts->im_format, false);
 
@@ -104,9 +105,9 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
     bool is_depth_set = false;
     const char *ima_colorspace = ima->colorspace_settings.name;
 
-    if (ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-      /* imtype */
-      BKE_image_format_init_for_write(&opts->im_format, scene, NULL);
+    if (opts->save_as_render) {
+      /* Render/compositor output or user chose to save with render settings. */
+      BKE_image_format_init_for_write(&opts->im_format, scene, nullptr);
       is_depth_set = true;
       if (!BKE_image_is_multiview(ima)) {
         /* In case multiview is disabled,
@@ -187,7 +188,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
       }
 
       /* append UDIM marker if not present */
-      if (ima->source == IMA_SRC_TILED && strstr(opts->filepath, "<UDIM>") == NULL) {
+      if (ima->source == IMA_SRC_TILED && strstr(opts->filepath, "<UDIM>") == nullptr) {
         int len = strlen(opts->filepath);
         STR_CONCAT(opts->filepath, len, ".<UDIM>");
       }
@@ -200,7 +201,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
 
   BKE_image_release_ibuf(ima, ibuf, lock);
 
-  return (ibuf != NULL);
+  return (ibuf != nullptr);
 }
 
 void BKE_image_save_options_update(ImageSaveOptions *opts, Image *image)
@@ -209,7 +210,7 @@ void BKE_image_save_options_update(ImageSaveOptions *opts, Image *image)
   if (opts->save_as_render) {
     if (!opts->prev_save_as_render) {
       if (ELEM(image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
-        BKE_image_format_init_for_write(&opts->im_format, opts->scene, NULL);
+        BKE_image_format_init_for_write(&opts->im_format, opts->scene, nullptr);
       }
       else {
         BKE_image_format_color_management_copy_from_scene(&opts->im_format, opts->scene);
@@ -273,6 +274,12 @@ static void image_save_post(ReportList *reports,
   if (opts->do_newpath) {
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
     BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
+
+    /* only image path, never ibuf */
+    if (opts->relative) {
+      const char *relbase = ID_BLEND_PATH(opts->bmain, &ima->id);
+      BLI_path_rel(ima->filepath, relbase); /* only after saving */
+    }
   }
 
   ibuf->userflags &= ~IB_BITMAPDIRTY;
@@ -300,12 +307,6 @@ static void image_save_post(ReportList *reports,
   if (ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
     ima->source = IMA_SRC_FILE;
     ima->type = IMA_TYPE_IMAGE;
-  }
-
-  /* only image path, never ibuf */
-  if (opts->relative) {
-    const char *relbase = ID_BLEND_PATH(opts->bmain, &ima->id);
-    BLI_path_rel(ima->filepath, relbase); /* only after saving */
   }
 
   /* Update image file color space when saving to another color space. */

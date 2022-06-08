@@ -34,7 +34,7 @@ class PlanarFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  [[maybe_unused]] IndexMask mask) const final
   {
     if (component.type() != GEO_COMPONENT_TYPE_MESH) {

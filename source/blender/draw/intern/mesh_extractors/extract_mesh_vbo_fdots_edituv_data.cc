@@ -5,7 +5,7 @@
  * \ingroup draw
  */
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_cache_impl.h"
 
@@ -81,6 +81,4 @@ constexpr MeshExtract create_extractor_fdots_edituv_data()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_fdots_edituv_data = blender::draw::create_extractor_fdots_edituv_data();
-}

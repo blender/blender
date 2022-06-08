@@ -245,13 +245,11 @@ static void set_constraint_nth_target(bConstraint *con,
                                       const char subtarget[],
                                       int index)
 {
-  const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
   ListBase targets = {NULL, NULL};
   bConstraintTarget *ct;
   int num_targets, i;
 
-  if (cti && cti->get_constraint_targets) {
-    cti->get_constraint_targets(con, &targets);
+  if (BKE_constraint_targets_get(con, &targets)) {
     num_targets = BLI_listbase_count(&targets);
 
     if (index < 0) {
@@ -274,9 +272,7 @@ static void set_constraint_nth_target(bConstraint *con,
       }
     }
 
-    if (cti->flush_constraint_targets) {
-      cti->flush_constraint_targets(con, &targets, 0);
-    }
+    BKE_constraint_targets_flush(con, &targets, 0);
   }
 }
 
@@ -289,7 +285,6 @@ static void set_constraint_nth_target(bConstraint *con,
 static void test_constraint(
     Main *bmain, Object *owner, bPoseChannel *pchan, bConstraint *con, int type)
 {
-  const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
   ListBase targets = {NULL, NULL};
   bConstraintTarget *ct;
   bool check_targets = true;
@@ -465,14 +460,7 @@ static void test_constraint(
   }
 
   /* Check targets for constraints */
-  if (check_targets && cti && cti->get_constraint_targets) {
-    cti->get_constraint_targets(con, &targets);
-
-    /* constraints with empty target list that actually require targets */
-    if (!targets.first && ELEM(con->type, CONSTRAINT_TYPE_ARMATURE)) {
-      con->flag |= CONSTRAINT_DISABLE;
-    }
-
+  if (check_targets && BKE_constraint_targets_get(con, &targets)) {
     /* disable and clear constraints targets that are incorrect */
     for (ct = targets.first; ct; ct = ct->next) {
       /* general validity checks (for those constraints that need this) */
@@ -543,8 +531,12 @@ static void test_constraint(
     }
 
     /* free any temporary targets */
-    if (cti->flush_constraint_targets) {
-      cti->flush_constraint_targets(con, &targets, 0);
+    BKE_constraint_targets_flush(con, &targets, 0);
+  }
+  else if (check_targets) {
+    /* constraints with empty target list that actually require targets */
+    if (ELEM(con->type, CONSTRAINT_TYPE_ARMATURE)) {
+      con->flag |= CONSTRAINT_DISABLE;
     }
   }
 }

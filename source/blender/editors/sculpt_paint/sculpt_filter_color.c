@@ -378,7 +378,7 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot)
   /* identifiers */
   ot->name = "Filter Color";
   ot->idname = "SCULPT_OT_color_filter";
-  ot->description = "Applies a filter to modify the current sculpt vertex colors";
+  ot->description = "Applies a filter to modify the active color attribute";
 
   /* api callbacks */
   ot->invoke = sculpt_color_filter_invoke;

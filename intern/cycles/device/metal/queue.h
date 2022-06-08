@@ -12,8 +12,6 @@
 #  include "device/metal/util.h"
 #  include "kernel/device/metal/globals.h"
 
-#  define metal_printf VLOG(4) << string_printf
-
 CCL_NAMESPACE_BEGIN
 
 class MetalDevice;
@@ -77,6 +75,38 @@ class MetalDeviceQueue : public DeviceQueue {
 
   void close_compute_encoder();
   void close_blit_encoder();
+
+  bool verbose_tracing = false;
+
+  /* Per-kernel profiling (see CYCLES_METAL_PROFILING). */
+
+  struct TimingData {
+    DeviceKernel kernel;
+    int work_size;
+    uint64_t timing_id;
+  };
+  std::vector<TimingData> command_encoder_labels;
+  id<MTLSharedEvent> timing_shared_event = nil;
+  uint64_t timing_shared_event_id;
+  uint64_t command_buffer_start_timing_id;
+
+  struct TimingStats {
+    double total_time = 0.0;
+    uint64_t total_work_size = 0;
+    uint64_t num_dispatches = 0;
+  };
+  TimingStats timing_stats[DEVICE_KERNEL_NUM];
+  double last_completion_time = 0.0;
+
+  /* .gputrace capture (see CYCLES_DEBUG_METAL_CAPTURE_...). */
+
+  id<MTLCaptureScope> mtlCaptureScope = nil;
+  DeviceKernel capture_kernel;
+  int capture_dispatch = 0;
+  int capture_dispatch_counter = 0;
+  bool is_capturing = false;
+  bool is_capturing_to_disk = false;
+  bool has_captured_to_disk = false;
 };
 
 CCL_NAMESPACE_END

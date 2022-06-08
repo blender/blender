@@ -4351,15 +4351,15 @@ void ANIM_channel_setting_set(bAnimContext *ac,
 
 /* --------------------------- */
 
-/* size of icons */
+/** Size of icons. */
 #define ICON_WIDTH (0.85f * U.widget_unit)
-/* width of sliders */
+/** Width of sliders. */
 #define SLIDER_WIDTH (4 * U.widget_unit)
-/* min-width of rename textboxes */
+/** Min-width of rename text-boxes. */
 #define RENAME_TEXT_MIN_WIDTH (U.widget_unit)
-/* width of graph editor color bands */
+/** Width of graph editor color bands. */
 #define GRAPH_COLOR_BAND_WIDTH (0.3f * U.widget_unit)
-/* extra offset for the visibility icons in the graph editor */
+/** Extra offset for the visibility icons in the graph editor. */
 #define GRAPH_ICON_VISIBILITY_OFFSET (GRAPH_COLOR_BAND_WIDTH * 1.5f)
 
 /* Helper - Check if a channel needs renaming */

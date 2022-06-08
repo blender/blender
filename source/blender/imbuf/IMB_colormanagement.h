@@ -181,7 +181,6 @@ void IMB_colormanagement_imbuf_to_byte_texture(unsigned char *out_buffer,
                                                int width,
                                                int height,
                                                const struct ImBuf *ibuf,
-                                               bool compress_as_srgb,
                                                bool store_premultiplied);
 void IMB_colormanagement_imbuf_to_float_texture(float *out_buffer,
                                                 int offset_x,
@@ -519,10 +518,10 @@ enum {
  * \{ */
 
 void IMB_colormanagement_blackbody_temperature_to_rgb_table(float *r_table,
-                                                            const int width,
-                                                            const float min,
-                                                            const float max);
-void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, const int width);
+                                                            int width,
+                                                            float min,
+                                                            float max);
+void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, int width);
 
 /** \} */
 

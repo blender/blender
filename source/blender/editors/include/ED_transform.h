@@ -13,6 +13,7 @@ extern "C" {
 
 /* ******************* Registration Function ********************** */
 
+struct ID;
 struct Object;
 struct bContext;
 struct ViewLayer;
@@ -207,7 +208,7 @@ int ED_transform_calc_gizmo_stats(const struct bContext *C,
 /* transform_convert.c */
 void ED_transform_animrecord_check_state(struct Scene *scene,
                                          struct wmTimer *animtimer,
-                                         struct Object *ob);
+                                         struct ID *id);
 
 /* transform_convert_object.c */
 void ED_transform_autokeyframe_object(struct bContext *C,

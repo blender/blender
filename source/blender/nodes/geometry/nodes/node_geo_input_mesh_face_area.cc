@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 }
 
 static VArray<float> construct_face_area_gvarray(const MeshComponent &component,
-                                                 const AttributeDomain domain)
+                                                 const eAttrDomain domain)
 {
   const Mesh *mesh = component.get_for_read();
   if (mesh == nullptr) {
@@ -41,7 +41,7 @@ class FaceAreaFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_MESH) {

@@ -343,9 +343,14 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     return;
   }
 
+  /* Use the filename as the default name given to the initial object. */
+  char ob_name[FILE_MAXFILE];
+  BLI_strncpy(ob_name, BLI_path_basename(import_params_.filepath), FILE_MAXFILE);
+  BLI_path_extension_replace(ob_name, FILE_MAXFILE, "");
+
   VertexIndexOffset offsets;
   Geometry *curr_geom = create_geometry(
-      nullptr, GEOM_MESH, "", r_global_vertices, r_all_geometries, offsets);
+      nullptr, GEOM_MESH, ob_name, r_global_vertices, r_all_geometries, offsets);
 
   /* State variables: once set, they remain the same for the remaining
    * elements in the object. */

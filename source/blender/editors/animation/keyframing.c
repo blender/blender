@@ -3094,8 +3094,13 @@ bool ED_autokeyframe_pchan(
   return false;
 }
 
-bool ED_autokeyframe_property(
-    bContext *C, Scene *scene, PointerRNA *ptr, PropertyRNA *prop, int rnaindex, float cfra)
+bool ED_autokeyframe_property(bContext *C,
+                              Scene *scene,
+                              PointerRNA *ptr,
+                              PropertyRNA *prop,
+                              int rnaindex,
+                              float cfra,
+                              const bool only_if_property_keyed)
 {
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
@@ -3114,7 +3119,8 @@ bool ED_autokeyframe_property(
   fcu = BKE_fcurve_find_by_rna_context_ui(
       C, ptr, prop, rnaindex_check, NULL, &action, &driven, &special);
 
-  if (fcu == NULL) {
+  /* Only early out when we actually want an existing fcurve already (e.g. auto-keyframing from buttons). */
+  if (fcu == NULL && (driven || special || only_if_property_keyed)) {
     return changed;
   }
 
@@ -3150,23 +3156,28 @@ bool ED_autokeyframe_property(
       ReportList *reports = CTX_wm_reports(C);
       ToolSettings *ts = scene->toolsettings;
       const eInsertKeyFlags flag = ANIM_get_keyframing_flags(scene, true);
+      char *path = RNA_path_from_ID_to_property(ptr, prop);
 
-      /* NOTE: We use rnaindex instead of fcu->array_index,
-       *       because a button may control all items of an array at once.
-       *       E.g., color wheels (see T42567). */
-      BLI_assert((fcu->array_index == rnaindex) || (rnaindex == -1));
+      if (only_if_property_keyed) {
+        /* NOTE: We use rnaindex instead of fcu->array_index,
+         *       because a button may control all items of an array at once.
+         *       E.g., color wheels (see T42567). */
+        BLI_assert((fcu->array_index == rnaindex) || (rnaindex == -1));
+      }
       changed = insert_keyframe(bmain,
                                 reports,
                                 id,
                                 action,
-                                ((fcu->grp) ? (fcu->grp->name) : (NULL)),
-                                fcu->rna_path,
+                                (fcu && fcu->grp) ? fcu->grp->name : NULL,
+                                fcu ? fcu->rna_path : path,
                                 rnaindex,
                                 &anim_eval_context,
                                 ts->keyframe_type,
                                 NULL,
                                 flag) != 0;
-
+      if (path) {
+        MEM_freeN(path);
+      }
       WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
     }
   }

@@ -29,6 +29,15 @@ struct MFSignature {
   Vector<int> param_data_indices;
   bool depends_on_context = false;
 
+  /**
+   * Number of elements of each of these types that has to be passed into the multi-function as an
+   * input or output.
+   */
+  int span_num = 0;
+  int virtual_array_num = 0;
+  int virtual_vector_array_num = 0;
+  int vector_array_num = 0;
+
   int data_index(int param_index) const
   {
     return param_data_indices[param_index];
@@ -38,10 +47,6 @@ struct MFSignature {
 class MFSignatureBuilder {
  private:
   MFSignature signature_;
-  int span_count_ = 0;
-  int virtual_array_count_ = 0;
-  int virtual_vector_array_count_ = 0;
-  int vector_array_count_ = 0;
 
  public:
   MFSignatureBuilder(const char *function_name)
@@ -79,10 +84,10 @@ class MFSignatureBuilder {
 
     switch (data_type.category()) {
       case MFDataType::Single:
-        signature_.param_data_indices.append(virtual_array_count_++);
+        signature_.param_data_indices.append(signature_.virtual_array_num++);
         break;
       case MFDataType::Vector:
-        signature_.param_data_indices.append(virtual_vector_array_count_++);
+        signature_.param_data_indices.append(signature_.virtual_vector_array_num++);
         break;
     }
   }
@@ -112,10 +117,10 @@ class MFSignatureBuilder {
 
     switch (data_type.category()) {
       case MFDataType::Single:
-        signature_.param_data_indices.append(span_count_++);
+        signature_.param_data_indices.append(signature_.span_num++);
         break;
       case MFDataType::Vector:
-        signature_.param_data_indices.append(vector_array_count_++);
+        signature_.param_data_indices.append(signature_.vector_array_num++);
         break;
     }
   }
@@ -145,10 +150,10 @@ class MFSignatureBuilder {
 
     switch (data_type.category()) {
       case MFDataType::Single:
-        signature_.param_data_indices.append(span_count_++);
+        signature_.param_data_indices.append(signature_.span_num++);
         break;
       case MFDataType::Vector:
-        signature_.param_data_indices.append(vector_array_count_++);
+        signature_.param_data_indices.append(signature_.vector_array_num++);
         break;
     }
   }

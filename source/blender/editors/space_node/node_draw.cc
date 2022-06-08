@@ -66,6 +66,7 @@
 
 #include "NOD_geometry_nodes_eval_log.hh"
 #include "NOD_node_declaration.hh"
+#include "NOD_socket_declarations_geometry.hh"
 
 #include "FN_field.hh"
 #include "FN_field_cpp_type.hh"
@@ -75,7 +76,7 @@
 using blender::GPointer;
 using blender::fn::GField;
 namespace geo_log = blender::nodes::geometry_nodes_eval_log;
-using geo_log::NamedAttributeUsage;
+using geo_log::eNamedAttrUsage;
 
 extern "C" {
 /* XXX interface.h */
@@ -871,7 +872,8 @@ static void create_inspection_string_for_gfield(const geo_log::GFieldValueLog &v
 }
 
 static void create_inspection_string_for_geometry(const geo_log::GeometryValueLog &value_log,
-                                                  std::stringstream &ss)
+                                                  std::stringstream &ss,
+                                                  const nodes::decl::Geometry *geometry)
 {
   Span<GeometryComponentType> component_types = value_log.component_types();
   if (component_types.is_empty()) {
@@ -938,6 +940,45 @@ static void create_inspection_string_for_geometry(const geo_log::GeometryValueLo
       }
     }
   }
+
+  /* If the geometry declaration is null, as is the case for input to group output,
+   * or it is an output socket don't show supported types. */
+  if (geometry == nullptr || geometry->in_out() == SOCK_OUT) {
+    return;
+  }
+
+  Span<GeometryComponentType> supported_types = geometry->supported_types();
+  if (supported_types.is_empty()) {
+    ss << ".\n\n" << TIP_("Supported: All Types");
+    return;
+  }
+
+  ss << ".\n\n" << TIP_("Supported: ");
+  for (GeometryComponentType type : supported_types) {
+    switch (type) {
+      case GEO_COMPONENT_TYPE_MESH: {
+        ss << TIP_("Mesh");
+        break;
+      }
+      case GEO_COMPONENT_TYPE_POINT_CLOUD: {
+        ss << TIP_("Point Cloud");
+        break;
+      }
+      case GEO_COMPONENT_TYPE_CURVE: {
+        ss << TIP_("Curve");
+        break;
+      }
+      case GEO_COMPONENT_TYPE_INSTANCES: {
+        ss << TIP_("Instances");
+        break;
+      }
+      case GEO_COMPONENT_TYPE_VOLUME: {
+        ss << TIP_("Volume");
+        break;
+      }
+    }
+    ss << ((type == supported_types.last()) ? "" : ", ");
+  }
 }
 
 static std::optional<std::string> create_socket_inspection_string(bContext *C,
@@ -970,7 +1011,10 @@ static std::optional<std::string> create_socket_inspection_string(bContext *C,
   }
   else if (const geo_log::GeometryValueLog *geo_value_log =
                dynamic_cast<const geo_log::GeometryValueLog *>(value_log)) {
-    create_inspection_string_for_geometry(*geo_value_log, ss);
+    create_inspection_string_for_geometry(
+        *geo_value_log,
+        ss,
+        dynamic_cast<const nodes::decl::Geometry *>(socket.runtime->declaration));
   }
 
   return ss.str();
@@ -982,8 +1026,8 @@ static bool node_socket_has_tooltip(bNodeTree *ntree, bNodeSocket *socket)
     return true;
   }
 
-  if (socket->declaration != nullptr) {
-    const blender::nodes::SocketDeclaration &socket_decl = *socket->declaration;
+  if (socket->runtime->declaration != nullptr) {
+    const blender::nodes::SocketDeclaration &socket_decl = *socket->runtime->declaration;
     return !socket_decl.description().is_empty();
   }
 
@@ -996,8 +1040,8 @@ static char *node_socket_get_tooltip(bContext *C,
                                      bNodeSocket *socket)
 {
   std::stringstream output;
-  if (socket->declaration != nullptr) {
-    const blender::nodes::SocketDeclaration &socket_decl = *socket->declaration;
+  if (socket->runtime->declaration != nullptr) {
+    const blender::nodes::SocketDeclaration &socket_decl = *socket->runtime->declaration;
     blender::StringRef description = socket_decl.description();
     if (!description.is_empty()) {
       output << TIP_(description.data());
@@ -1695,7 +1739,7 @@ struct NodeExtraInfoRow {
 };
 
 struct NamedAttributeTooltipArg {
-  Map<std::string, NamedAttributeUsage> usage_by_attribute;
+  Map<std::string, eNamedAttrUsage> usage_by_attribute;
 };
 
 static char *named_attribute_tooltip(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
@@ -1707,7 +1751,7 @@ static char *named_attribute_tooltip(bContext *UNUSED(C), void *argN, const char
 
   struct NameWithUsage {
     StringRefNull name;
-    NamedAttributeUsage usage;
+    eNamedAttrUsage usage;
   };
 
   Vector<NameWithUsage> sorted_used_attribute;
@@ -1722,16 +1766,16 @@ static char *named_attribute_tooltip(bContext *UNUSED(C), void *argN, const char
 
   for (const NameWithUsage &attribute : sorted_used_attribute) {
     const StringRefNull name = attribute.name;
-    const NamedAttributeUsage usage = attribute.usage;
+    const eNamedAttrUsage usage = attribute.usage;
     ss << "  \u2022 \"" << name << "\": ";
     Vector<std::string> usages;
-    if ((usage & NamedAttributeUsage::Read) != NamedAttributeUsage::None) {
+    if ((usage & eNamedAttrUsage::Read) != eNamedAttrUsage::None) {
       usages.append(TIP_("read"));
     }
-    if ((usage & NamedAttributeUsage::Write) != NamedAttributeUsage::None) {
+    if ((usage & eNamedAttrUsage::Write) != eNamedAttrUsage::None) {
       usages.append(TIP_("write"));
     }
-    if ((usage & NamedAttributeUsage::Remove) != NamedAttributeUsage::None) {
+    if ((usage & eNamedAttrUsage::Remove) != eNamedAttrUsage::None) {
       usages.append(TIP_("remove"));
     }
     for (const int i : usages.index_range()) {
@@ -1749,7 +1793,7 @@ static char *named_attribute_tooltip(bContext *UNUSED(C), void *argN, const char
 }
 
 static NodeExtraInfoRow row_from_used_named_attribute(
-    const Map<std::string, NamedAttributeUsage> &usage_by_attribute_name)
+    const Map<std::string, eNamedAttrUsage> &usage_by_attribute_name)
 {
   const int attributes_num = usage_by_attribute_name.size();
 
@@ -1777,7 +1821,7 @@ static std::optional<NodeExtraInfoRow> node_get_accessed_attributes_row(const Sp
       return std::nullopt;
     }
 
-    Map<std::string, NamedAttributeUsage> usage_by_attribute;
+    Map<std::string, eNamedAttrUsage> usage_by_attribute;
     tree_log->foreach_node_log([&](const geo_log::NodeLog &node_log) {
       for (const geo_log::UsedNamedAttribute &used_attribute : node_log.used_named_attributes()) {
         usage_by_attribute.lookup_or_add_as(used_attribute.name,
@@ -1807,7 +1851,7 @@ static std::optional<NodeExtraInfoRow> node_get_accessed_attributes_row(const Sp
     if (node_log == nullptr) {
       return std::nullopt;
     }
-    Map<std::string, NamedAttributeUsage> usage_by_attribute;
+    Map<std::string, eNamedAttrUsage> usage_by_attribute;
     for (const geo_log::UsedNamedAttribute &used_attribute : node_log->used_named_attributes()) {
       usage_by_attribute.lookup_or_add_as(used_attribute.name,
                                           used_attribute.usage) |= used_attribute.usage;
@@ -2654,7 +2698,7 @@ static void frame_node_draw_label(const bNodeTree &ntree,
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
   /* clamp otherwise it can suck up a LOT of memory */
-  BLF_size(fontid, MIN2(24.0f, font_size), U.dpi);
+  BLF_size(fontid, MIN2(24.0f, font_size) * U.pixelsize, U.dpi);
 
   /* title color */
   int color_id = node_get_colorid(node);

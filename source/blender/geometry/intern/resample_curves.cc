@@ -99,7 +99,7 @@ static void retrieve_attribute_spans(const Span<bke::AttributeIDRef> ids,
     BLI_assert(src_attribute);
     src.append(src_attribute.get_internal_span());
 
-    const CustomDataType data_type = bke::cpp_type_to_custom_data_type(src_attribute.type());
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(src_attribute.type());
     bke::OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
         ids[i], ATTR_DOMAIN_POINT, data_type);
     dst.append(dst_attribute.as_span());
@@ -163,38 +163,6 @@ static void gather_point_attributes_to_interpolate(const CurveComponent &src_com
                            result.dst_attributes);
 
   dst_curves.update_customdata_pointers();
-}
-
-/**
- * Copy the provided point attribute values between all curves in the #curve_ranges index
- * ranges, assuming that all curves are the same size in #src_curves and #dst_curves.
- */
-template<typename T>
-static void copy_between_curves(const bke::CurvesGeometry &src_curves,
-                                const bke::CurvesGeometry &dst_curves,
-                                const Span<IndexRange> curve_ranges,
-                                const Span<T> src,
-                                const MutableSpan<T> dst)
-{
-  threading::parallel_for(curve_ranges.index_range(), 512, [&](IndexRange range) {
-    for (const IndexRange range : curve_ranges.slice(range)) {
-      const IndexRange src_points = src_curves.points_for_curves(range);
-      const IndexRange dst_points = dst_curves.points_for_curves(range);
-      /* The arrays might be large, so a threaded copy might make sense here too. */
-      dst.slice(dst_points).copy_from(src.slice(src_points));
-    }
-  });
-}
-static void copy_between_curves(const bke::CurvesGeometry &src_curves,
-                                const bke::CurvesGeometry &dst_curves,
-                                const Span<IndexRange> unselected_ranges,
-                                const GSpan src,
-                                const GMutableSpan dst)
-{
-  attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
-    using T = decltype(dummy);
-    copy_between_curves(src_curves, dst_curves, unselected_ranges, src.typed<T>(), dst.typed<T>());
-  });
 }
 
 static Curves *resample_to_uniform(const CurveComponent &src_component,
@@ -328,20 +296,21 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
 
   /* Any attribute data from unselected curve points can be directly copied. */
   for (const int i : attributes.src.index_range()) {
-    copy_between_curves(
+    bke::curves::copy_point_data(
         src_curves, dst_curves, unselected_ranges, attributes.src[i], attributes.dst[i]);
   }
   for (const int i : attributes.src_no_interpolation.index_range()) {
-    copy_between_curves(src_curves,
-                        dst_curves,
-                        unselected_ranges,
-                        attributes.src_no_interpolation[i],
-                        attributes.dst_no_interpolation[i]);
+    bke::curves::copy_point_data(src_curves,
+                                 dst_curves,
+                                 unselected_ranges,
+                                 attributes.src_no_interpolation[i],
+                                 attributes.dst_no_interpolation[i]);
   }
 
   /* Copy positions for unselected curves. */
   Span<float3> src_positions = src_curves.positions();
-  copy_between_curves(src_curves, dst_curves, unselected_ranges, src_positions, dst_positions);
+  bke::curves::copy_point_data(
+      src_curves, dst_curves, unselected_ranges, src_positions, dst_positions);
 
   for (bke::OutputAttribute &attribute : attributes.dst_attributes) {
     attribute.save();
@@ -449,20 +418,21 @@ Curves *resample_to_evaluated(const CurveComponent &src_component,
 
   /* Any attribute data from unselected curve points can be directly copied. */
   for (const int i : attributes.src.index_range()) {
-    copy_between_curves(
+    bke::curves::copy_point_data(
         src_curves, dst_curves, unselected_ranges, attributes.src[i], attributes.dst[i]);
   }
   for (const int i : attributes.src_no_interpolation.index_range()) {
-    copy_between_curves(src_curves,
-                        dst_curves,
-                        unselected_ranges,
-                        attributes.src_no_interpolation[i],
-                        attributes.dst_no_interpolation[i]);
+    bke::curves::copy_point_data(src_curves,
+                                 dst_curves,
+                                 unselected_ranges,
+                                 attributes.src_no_interpolation[i],
+                                 attributes.dst_no_interpolation[i]);
   }
 
   /* Copy positions for unselected curves. */
   Span<float3> src_positions = src_curves.positions();
-  copy_between_curves(src_curves, dst_curves, unselected_ranges, src_positions, dst_positions);
+  bke::curves::copy_point_data(
+      src_curves, dst_curves, unselected_ranges, src_positions, dst_positions);
 
   for (bke::OutputAttribute &attribute : attributes.dst_attributes) {
     attribute.save();

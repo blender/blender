@@ -1994,11 +1994,12 @@ ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context,
 
 float SEQ_render_thumbnail_first_frame_get(Sequence *seq, float frame_step, rctf *view_area)
 {
-  int first_drawable_frame = max_iii(seq->startdisp, seq->start, view_area->xmin);
+  int first_drawable_frame = max_iii(
+      SEQ_time_left_handle_frame_get(seq), seq->start, view_area->xmin);
 
   /* First frame should correspond to handle position. */
-  if (first_drawable_frame == seq->startdisp) {
-    return seq->startdisp;
+  if (first_drawable_frame == SEQ_time_left_handle_frame_get(seq)) {
+    return SEQ_time_left_handle_frame_get(seq);
   }
 
   float aligned_frame_offset = (int)((first_drawable_frame - seq->start) / frame_step) *
@@ -2011,7 +2012,7 @@ float SEQ_render_thumbnail_next_frame_get(Sequence *seq, float last_frame, float
   float next_frame = last_frame + frame_step;
 
   /* If handle position was displayed, align next frame with `seq->start`. */
-  if (last_frame == seq->startdisp) {
+  if (last_frame == SEQ_time_left_handle_frame_get(seq)) {
     next_frame = seq->start + ((int)((last_frame - seq->start) / frame_step) + 1) * frame_step;
   }
 
@@ -2088,8 +2089,9 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
 
   /* Adding the hold offset value (seq->anim_startofs) to the start frame. Position of image not
    * affected, but frame loaded affected. */
-  float upper_thumb_bound = SEQ_time_has_right_still_frames(seq) ? (seq->start + seq->len) :
-                                                                   seq->enddisp;
+  float upper_thumb_bound = SEQ_time_has_right_still_frames(seq) ?
+                                (seq->start + seq->len) :
+                                SEQ_time_right_handle_frame_get(seq);
   upper_thumb_bound = (upper_thumb_bound > view_area->xmax) ? view_area->xmax + frame_step :
                                                               upper_thumb_bound;
 
@@ -2122,8 +2124,8 @@ void SEQ_render_thumbnails(const SeqRenderData *context,
 
 int SEQ_render_thumbnails_guaranteed_set_frame_step_get(const Sequence *seq)
 {
-  const int content_start = max_ii(seq->startdisp, seq->start);
-  const int content_end = min_ii(seq->enddisp, seq->start + seq->len);
+  const int content_start = max_ii(SEQ_time_left_handle_frame_get(seq), seq->start);
+  const int content_end = min_ii(SEQ_time_right_handle_frame_get(seq), seq->start + seq->len);
   const int content_len = content_end - content_start;
 
   /* Arbitrary, but due to performance reasons should be as low as possible. */
@@ -2143,10 +2145,10 @@ void SEQ_render_thumbnails_base_set(const SeqRenderData *context,
   SeqRenderState state;
   seq_render_state_init(&state);
 
-  int timeline_frame = seq->startdisp;
+  int timeline_frame = SEQ_time_left_handle_frame_get(seq);
   const int frame_step = SEQ_render_thumbnails_guaranteed_set_frame_step_get(seq);
 
-  while (timeline_frame < seq->enddisp && !*stop) {
+  while (timeline_frame < SEQ_time_right_handle_frame_get(seq) && !*stop) {
     ImBuf *ibuf = seq_cache_get(
         context, seq_orig, roundf(timeline_frame), SEQ_CACHE_STORE_THUMBNAIL);
     if (ibuf) {

@@ -25,6 +25,9 @@
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
 
+#include "sequencer.h"
+#include "strip_time.h"
+
 #include "CLG_log.h"
 
 static CLG_LogRef LOG = {"seq.strip_transform"};
@@ -86,16 +89,16 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
   return true;
 }
 
-void SEQ_transform_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
+void SEQ_transform_handle_xlimits(const Scene *scene, Sequence *seq, int leftflag, int rightflag)
 {
   if (leftflag) {
     if (SEQ_time_left_handle_frame_get(seq) >= SEQ_time_right_handle_frame_get(seq)) {
-      SEQ_time_left_handle_frame_set(seq, SEQ_time_right_handle_frame_get(seq) - 1);
+      SEQ_time_left_handle_frame_set(scene, seq, SEQ_time_right_handle_frame_get(seq) - 1);
     }
 
     if (SEQ_transform_single_image_check(seq) == 0) {
       if (SEQ_time_left_handle_frame_get(seq) >= seq_tx_get_end(seq)) {
-        SEQ_time_left_handle_frame_set(seq, seq_tx_get_end(seq) - 1);
+        SEQ_time_left_handle_frame_set(scene, seq, seq_tx_get_end(seq) - 1);
       }
 
       /* TODO: This doesn't work at the moment. */
@@ -112,12 +115,12 @@ void SEQ_transform_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 
   if (rightflag) {
     if (SEQ_time_right_handle_frame_get(seq) <= SEQ_time_left_handle_frame_get(seq)) {
-      SEQ_time_right_handle_frame_set(seq, SEQ_time_left_handle_frame_get(seq) + 1);
+      SEQ_time_right_handle_frame_set(scene, seq, SEQ_time_left_handle_frame_get(seq) + 1);
     }
 
     if (SEQ_transform_single_image_check(seq) == 0) {
       if (SEQ_time_right_handle_frame_get(seq) <= seq_tx_get_start(seq)) {
-        SEQ_time_right_handle_frame_set(seq, seq_tx_get_start(seq) + 1);
+        SEQ_time_right_handle_frame_set(scene, seq, seq_tx_get_start(seq) + 1);
       }
     }
   }
@@ -129,7 +132,7 @@ void SEQ_transform_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
   }
 }
 
-void SEQ_transform_fix_single_image_seq_offsets(Sequence *seq)
+void SEQ_transform_fix_single_image_seq_offsets(const Scene *scene, Sequence *seq)
 {
   int left, start, offset;
   if (!SEQ_transform_single_image_check(seq)) {
@@ -142,8 +145,8 @@ void SEQ_transform_fix_single_image_seq_offsets(Sequence *seq)
   start = seq->start;
   if (start != left) {
     offset = left - start;
-    SEQ_time_left_handle_frame_set(seq, SEQ_time_left_handle_frame_get(seq) - offset);
-    SEQ_time_right_handle_frame_set(seq, SEQ_time_right_handle_frame_get(seq) - offset);
+    SEQ_time_left_handle_frame_set(scene, seq, SEQ_time_left_handle_frame_get(seq) - offset);
+    SEQ_time_right_handle_frame_set(scene, seq, SEQ_time_right_handle_frame_get(seq) - offset);
     seq->start += offset;
   }
 }
@@ -156,7 +159,8 @@ bool SEQ_transform_sequence_can_be_translated(Sequence *seq)
 bool SEQ_transform_test_overlap_seq_seq(Sequence *seq1, Sequence *seq2)
 {
   return (seq1 != seq2 && seq1->machine == seq2->machine &&
-          ((seq1->enddisp <= seq2->startdisp) || (seq1->startdisp >= seq2->enddisp)) == 0);
+          ((SEQ_time_right_handle_frame_get(seq1) <= SEQ_time_left_handle_frame_get(seq2)) ||
+           (SEQ_time_left_handle_frame_get(seq1) >= SEQ_time_right_handle_frame_get(seq2))) == 0);
 }
 
 bool SEQ_transform_test_overlap(ListBase *seqbasep, Sequence *test)
@@ -180,9 +184,6 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
     return;
   }
 
-  SEQ_offset_animdata(evil_scene, seq, delta);
-  seq->start += delta;
-
   /* Meta strips requires special handling: their content is to be translated, and then frame range
    * of the meta is to be updated for the updated content. */
   if (seq->type == SEQ_TYPE_META) {
@@ -190,16 +191,21 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delt
     for (seq_child = seq->seqbase.first; seq_child; seq_child = seq_child->next) {
       SEQ_transform_translate_sequence(evil_scene, seq_child, delta);
     }
-    /* Ensure that meta bounds are updated, but this function prevents resets seq->start and
-     * start/end point in timeline. */
-    SEQ_time_update_meta_strip_range(evil_scene, seq);
     /* Move meta start/end points. */
-    SEQ_time_left_handle_frame_set(seq, seq->startdisp + delta);
-    SEQ_time_right_handle_frame_set(seq, seq->enddisp + delta);
+    SEQ_time_left_handle_frame_set(evil_scene, seq, SEQ_time_left_handle_frame_get(seq) + delta);
+    SEQ_time_right_handle_frame_set(evil_scene, seq, SEQ_time_right_handle_frame_get(seq) + delta);
+  }
+  else { /* All other strip types. */
+    seq->start += delta;
+    /* Only to make files usable in older versions. */
+    seq->startdisp = SEQ_time_left_handle_frame_get(seq);
+    seq->enddisp = SEQ_time_right_handle_frame_get(seq);
   }
 
-  ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(evil_scene));
-  SEQ_time_update_sequence(evil_scene, seqbase, seq);
+  SEQ_offset_animdata(evil_scene, seq, delta);
+  SEQ_time_update_meta_strip_range(evil_scene, seq_sequence_lookup_meta_by_seq(evil_scene, seq));
+  seq_time_update_effects_strip_range(evil_scene,
+                                      seq_sequence_lookup_effects_by_seq(evil_scene, seq));
 }
 
 bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
@@ -211,16 +217,12 @@ bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
   BLI_assert(ELEM(channel_delta, -1, 1));
 
   test->machine += channel_delta;
-  SEQ_time_update_sequence(evil_scene, seqbasep, test);
   while (SEQ_transform_test_overlap(seqbasep, test)) {
     if ((channel_delta > 0) ? (test->machine >= MAXSEQ) : (test->machine < 1)) {
       break;
     }
 
     test->machine += channel_delta;
-
-    /* XXX: I don't think this is needed since were only moving vertically, Campbell. */
-    SEQ_time_update_sequence(evil_scene, seqbasep, test);
   }
 
   if (!SEQ_valid_strip_channel(test)) {
@@ -228,19 +230,18 @@ bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
      * nicer to move it to the end */
 
     Sequence *seq;
-    int new_frame = test->enddisp;
+    int new_frame = SEQ_time_right_handle_frame_get(test);
 
     for (seq = seqbasep->first; seq; seq = seq->next) {
       if (seq->machine == orig_machine) {
-        new_frame = max_ii(new_frame, seq->enddisp);
+        new_frame = max_ii(new_frame, SEQ_time_right_handle_frame_get(seq));
       }
     }
 
     test->machine = orig_machine;
-    new_frame = new_frame + (test->start - test->startdisp); /* adjust by the startdisp */
+    new_frame = new_frame +
+                (test->start - SEQ_time_left_handle_frame_get(test)); /* adjust by the startdisp */
     SEQ_transform_translate_sequence(evil_scene, test, new_frame - test->start);
-
-    SEQ_time_update_sequence(evil_scene, seqbasep, test);
     return false;
   }
 
@@ -252,61 +253,57 @@ bool SEQ_transform_seqbase_shuffle(ListBase *seqbasep, Sequence *test, Scene *ev
   return SEQ_transform_seqbase_shuffle_ex(seqbasep, test, evil_scene, 1);
 }
 
-static int shuffle_seq_time_offset_test(SeqCollection *strips_to_shuffle,
-                                        ListBase *seqbasep,
-                                        char dir)
+static bool shuffle_seq_test_overlap(const Sequence *seq1, const Sequence *seq2, const int offset)
+{
+  return (
+      seq1 != seq2 && seq1->machine == seq2->machine &&
+      ((SEQ_time_right_handle_frame_get(seq1) + offset <= SEQ_time_left_handle_frame_get(seq2)) ||
+       (SEQ_time_left_handle_frame_get(seq1) + offset >= SEQ_time_right_handle_frame_get(seq2))) ==
+          0);
+}
+
+static int shuffle_seq_time_offset_get(SeqCollection *strips_to_shuffle,
+                                       ListBase *seqbasep,
+                                       char dir)
 {
   int offset = 0;
   Sequence *seq;
+  bool all_conflicts_resolved = false;
 
-  SEQ_ITERATOR_FOREACH (seq, strips_to_shuffle) {
-    LISTBASE_FOREACH (Sequence *, seq_other, seqbasep) {
-      if (!SEQ_transform_test_overlap_seq_seq(seq, seq_other)) {
-        continue;
-      }
-      if (SEQ_relation_is_effect_of_strip(seq_other, seq)) {
-        continue;
-      }
-      if (UNLIKELY(SEQ_collection_has_strip(seq_other, strips_to_shuffle))) {
-        CLOG_WARN(&LOG,
-                  "Strip overlaps with itself or another strip, that is to be shuffled. "
-                  "This should never happen.");
-        continue;
-      }
-      if (dir == 'L') {
-        offset = min_ii(offset, seq_other->startdisp - seq->enddisp);
-      }
-      else {
-        offset = max_ii(offset, seq_other->enddisp - seq->startdisp);
-      }
-    }
-  }
-  return offset;
-}
-
-static int shuffle_seq_time_offset(SeqCollection *strips_to_shuffle,
-                                   ListBase *seqbasep,
-                                   Scene *scene,
-                                   char dir)
-{
-  int ofs = 0;
-  int tot_ofs = 0;
-  Sequence *seq;
-  while ((ofs = shuffle_seq_time_offset_test(strips_to_shuffle, seqbasep, dir))) {
+  while (!all_conflicts_resolved) {
+    all_conflicts_resolved = true;
     SEQ_ITERATOR_FOREACH (seq, strips_to_shuffle) {
-      /* seq_test_overlap only tests display values */
-      seq->startdisp += ofs;
-      seq->enddisp += ofs;
+      LISTBASE_FOREACH (Sequence *, seq_other, seqbasep) {
+        if (!shuffle_seq_test_overlap(seq, seq_other, offset)) {
+          continue;
+        }
+        if (SEQ_relation_is_effect_of_strip(seq_other, seq)) {
+          continue;
+        }
+        if (UNLIKELY(SEQ_collection_has_strip(seq_other, strips_to_shuffle))) {
+          CLOG_WARN(&LOG,
+                    "Strip overlaps with itself or another strip, that is to be shuffled. "
+                    "This should never happen.");
+          continue;
+        }
+
+        all_conflicts_resolved = false;
+
+        if (dir == 'L') {
+          offset = min_ii(offset,
+                          SEQ_time_left_handle_frame_get(seq_other) -
+                              SEQ_time_right_handle_frame_get(seq));
+        }
+        else {
+          offset = max_ii(offset,
+                          SEQ_time_right_handle_frame_get(seq_other) -
+                              SEQ_time_left_handle_frame_get(seq));
+        }
+      }
     }
-
-    tot_ofs += ofs;
   }
 
-  SEQ_ITERATOR_FOREACH (seq, strips_to_shuffle) {
-    SEQ_time_update_sequence(scene, seqbasep, seq); /* corrects dummy startdisp/enddisp values */
-  }
-
-  return tot_ofs;
+  return offset;
 }
 
 bool SEQ_transform_seqbase_shuffle_time(SeqCollection *strips_to_shuffle,
@@ -315,8 +312,8 @@ bool SEQ_transform_seqbase_shuffle_time(SeqCollection *strips_to_shuffle,
                                         ListBase *markers,
                                         const bool use_sync_markers)
 {
-  int offset_l = shuffle_seq_time_offset(strips_to_shuffle, seqbasep, evil_scene, 'L');
-  int offset_r = shuffle_seq_time_offset(strips_to_shuffle, seqbasep, evil_scene, 'R');
+  int offset_l = shuffle_seq_time_offset_get(strips_to_shuffle, seqbasep, 'L');
+  int offset_r = shuffle_seq_time_offset_get(strips_to_shuffle, seqbasep, 'R');
   int offset = (-offset_l < offset_r) ? offset_l : offset_r;
 
   if (offset) {
@@ -346,9 +343,8 @@ void SEQ_transform_offset_after_frame(Scene *scene,
                                       const int timeline_frame)
 {
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (seq->startdisp >= timeline_frame) {
+    if (SEQ_time_left_handle_frame_get(seq) >= timeline_frame) {
       SEQ_transform_translate_sequence(scene, seq, delta);
-      SEQ_time_update_sequence(scene, seqbase, seq);
       SEQ_relations_invalidate_cache_preprocessed(scene, seq);
     }
   }

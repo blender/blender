@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
 
@@ -455,8 +453,13 @@ class TOPBAR_MT_file_import(Menu):
             self.layout.operator(
                 "wm.usd_import", text="Universal Scene Description (.usd, .usdc, .usda)")
 
-        self.layout.operator("wm.gpencil_import_svg", text="SVG as Grease Pencil")
-        self.layout.operator("wm.obj_import", text="Wavefront (.obj) (experimental)")
+        if bpy.app.build_options.io_gpencil:
+            self.layout.operator("wm.gpencil_import_svg", text="SVG as Grease Pencil")
+
+        if bpy.app.build_options.io_wavefront_obj:
+            self.layout.operator("wm.obj_import", text="Wavefront (.obj) (experimental)")
+        if bpy.app.build_options.io_stl:
+            self.layout.operator("wm.stl_import", text="STL (.stl) (experimental)")
 
 
 class TOPBAR_MT_file_export(Menu):
@@ -473,14 +476,16 @@ class TOPBAR_MT_file_export(Menu):
             self.layout.operator(
                 "wm.usd_export", text="Universal Scene Description (.usd, .usdc, .usda)")
 
-        # Pugixml lib dependency
-        if bpy.app.build_options.pugixml:
-            self.layout.operator("wm.gpencil_export_svg", text="Grease Pencil as SVG")
-        # Haru lib dependency
-        if bpy.app.build_options.haru:
-            self.layout.operator("wm.gpencil_export_pdf", text="Grease Pencil as PDF")
+        if bpy.app.build_options.io_gpencil:
+            # Pugixml lib dependency
+            if bpy.app.build_options.pugixml:
+                self.layout.operator("wm.gpencil_export_svg", text="Grease Pencil as SVG")
+            # Haru lib dependency
+            if bpy.app.build_options.haru:
+                self.layout.operator("wm.gpencil_export_pdf", text="Grease Pencil as PDF")
 
-        self.layout.operator("wm.obj_export", text="Wavefront (.obj) (experimental)")
+        if bpy.app.build_options.io_wavefront_obj:
+            self.layout.operator("wm.obj_export", text="Wavefront (.obj) (experimental)")
 
 
 class TOPBAR_MT_file_external_data(Menu):

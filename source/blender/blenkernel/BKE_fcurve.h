@@ -259,6 +259,18 @@ struct FCurve *BKE_fcurve_iter_step(struct FCurve *fcu_iter, const char rna_path
 
 /**
  * High level function to get an f-curve from C without having the RNA.
+ *
+ * If there is an action assigned to the `id`'s #AnimData, it will be searched for a matching
+ * F-curve first. Drivers are searched only if no valid action F-curve could be found.
+ *
+ * \note Return pointer parameter (`r_driven`) is optional and may be NULL.
+ *
+ * \warning In case no animation (from an Action) F-curve is found, returned value is always NULL.
+ * This means that this function will set `r_driven` to True in case a valid driver F-curve is
+ * found, but will not return said F-curve. In other words:
+ * - Animated with FCurve: returns the `FCurve*` and `*r_driven = false`.
+ * - Animated with driver: returns `NULL` and `*r_driven = true`.
+ * - Not animated: returns `NULL` and `*r_driven = false`.
  */
 struct FCurve *id_data_find_fcurve(
     ID *id, void *data, struct StructRNA *type, const char *prop_name, int index, bool *r_driven);
@@ -279,6 +291,25 @@ struct FCurve *id_data_find_fcurve(
 int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName);
 
 /**
+ * Find an F-Curve from its rna path and index.
+ *
+ * If there is an action assigned to the `animdata`, it will be searched for a matching F-curve
+ * first. Drivers are searched only if no valid action F-curve could be found.
+ *
+ * \note Typically, indices in RNA arrays are stored separately in F-curves, so the rna_path
+ * should not include them (e.g. `rna_path='location[0]'` will not match any F-Curve on an Object,
+ * but `rna_path='location', rna_index=0` will if it exists).
+ *
+ * \note Return pointer parameters (`r_action`, `r_driven` and `r_special`) are all optional and
+ * may be NULL.
+ */
+struct FCurve *BKE_animadata_fcurve_find_by_rna_path(struct AnimData *animdata,
+                                                     const char *rna_path,
+                                                     const int rna_index,
+                                                     struct bAction **r_action,
+                                                     bool *r_driven);
+
+/**
  * Find an f-curve based on an rna property.
  */
 struct FCurve *BKE_fcurve_find_by_rna(struct PointerRNA *ptr,
@@ -291,9 +322,11 @@ struct FCurve *BKE_fcurve_find_by_rna(struct PointerRNA *ptr,
 /**
  * Same as above, but takes a context data,
  * temp hack needed for complex paths like texture ones.
- */
+ *
+ * \param r_special Optional, ignored when NULL. Set to `true` if the given RNA `ptr` is a NLA
+ * strip, and the returned F-curve comes from this NLA strip. */
 struct FCurve *BKE_fcurve_find_by_rna_context_ui(struct bContext *C,
-                                                 struct PointerRNA *ptr,
+                                                 const struct PointerRNA *ptr,
                                                  struct PropertyRNA *prop,
                                                  int rnaindex,
                                                  struct AnimData **r_animdata,

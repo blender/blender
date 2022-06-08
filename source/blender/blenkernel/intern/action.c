@@ -980,13 +980,10 @@ void BKE_pose_channels_remove(Object *ob,
       else {
         /* Maybe something the bone references is being removed instead? */
         for (con = pchan->constraints.first; con; con = con->next) {
-          const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
           ListBase targets = {NULL, NULL};
           bConstraintTarget *ct;
 
-          if (cti && cti->get_constraint_targets) {
-            cti->get_constraint_targets(con, &targets);
-
+          if (BKE_constraint_targets_get(con, &targets)) {
             for (ct = targets.first; ct; ct = ct->next) {
               if (ct->tar == ob) {
                 if (ct->subtarget[0]) {
@@ -998,9 +995,7 @@ void BKE_pose_channels_remove(Object *ob,
               }
             }
 
-            if (cti->flush_constraint_targets) {
-              cti->flush_constraint_targets(con, &targets, 0);
-            }
+            BKE_constraint_targets_flush(con, &targets, 0);
           }
         }
 

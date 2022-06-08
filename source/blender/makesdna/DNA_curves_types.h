@@ -141,7 +141,12 @@ typedef struct Curves {
    * symmetrical geometry.
    */
   char symmetry;
-  char _pad2[5];
+  /**
+   * #eAttrDomain. The active selection mode domain. At most one selection mode can be active
+   * at a time.
+   */
+  char selection_domain;
+  char _pad[4];
 
   /**
    * Used as base mesh when curves represent e.g. hair or fur. This surface is used in edit modes.
@@ -152,6 +157,13 @@ typedef struct Curves {
    */
   struct Object *surface;
 
+  /**
+   * The name of the attribute on the surface #Mesh used to give meaning to the UV attachment
+   * coordinates stored on each curve. Expected to be a 2D vector attribute on the face corner
+   * domain.
+   */
+  char *surface_uv_map;
+
   /* Draw Cache. */
   void *batch_cache;
 } Curves;
@@ -159,6 +171,7 @@ typedef struct Curves {
 /** #Curves.flag */
 enum {
   HA_DS_EXPAND = (1 << 0),
+  CV_SCULPT_SELECTION_ENABLED = (1 << 1),
 };
 
 /** #Curves.symmetry */

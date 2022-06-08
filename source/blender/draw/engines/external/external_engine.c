@@ -36,8 +36,8 @@
 
 #define EXTERNAL_ENGINE "BLENDER_EXTERNAL"
 
-extern char datatoc_depth_frag_glsl[];
-extern char datatoc_depth_vert_glsl[];
+extern char datatoc_basic_depth_frag_glsl[];
+extern char datatoc_basic_depth_vert_glsl[];
 
 extern char datatoc_common_view_lib_glsl[];
 

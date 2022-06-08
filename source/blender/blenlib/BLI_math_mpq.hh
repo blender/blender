@@ -19,4 +19,10 @@
  */
 #  include "gmpxx.h"
 
+#  include "BLI_math_base.hh"
+
+namespace blender::math {
+template<> inline constexpr bool is_math_float_type<mpq_class> = true;
+}
+
 #endif /* WITH_GMP */
