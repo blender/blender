@@ -566,11 +566,9 @@ static void convert_to_nurbs(const CurveComponent &src_component,
     /* Avoid using "Endpoint" knots modes for cyclic curves, since it adds a sharp point at the
      * start/end. */
     if (src_cyclic.is_single()) {
-      bke::curves::fill_points<int8_t>(dst_curves,
-                                       selection,
-                                       src_cyclic.get_internal_single() ? NURBS_KNOT_MODE_NORMAL :
-                                                                          NURBS_KNOT_MODE_ENDPOINT,
-                                       dst_curves.nurbs_knots_modes_for_write());
+      dst_curves.nurbs_knots_modes_for_write().fill_indices(
+          selection,
+          src_cyclic.get_internal_single() ? NURBS_KNOT_MODE_NORMAL : NURBS_KNOT_MODE_ENDPOINT);
     }
     else {
       VArray_Span<bool> cyclic{src_cyclic};
