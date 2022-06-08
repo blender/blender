@@ -261,8 +261,11 @@ static bool geometry_attribute_convert_poll(bContext *C)
   if (GS(data->name) != ID_ME) {
     return false;
   }
-  CustomDataLayer *layer = BKE_id_attributes_active_get(data);
-  if (layer == nullptr) {
+  if (CTX_data_edit_object(C) != nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "Operation is not allowed in edit mode");
+    return false;
+  }
+  if (BKE_id_attributes_active_get(data) == nullptr) {
     return false;
   }
   return true;
