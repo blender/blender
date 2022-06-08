@@ -40,6 +40,27 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="3.2" date="2022-06-08">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Cycles Light Groups</li>
+                    <li>Cycles Shadow Caustics using Manifold Next Event Estimation</li>
+                    <li>New Tools and usability improvements for Polygon Painting</li>
+                    <li>More Geometry Nodes, including Duplicate Elements</li>
+                    <li>Asset Browser: Support for Asset Collections</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Enhanced channels in the video sequencer</li>
+                    <li>Support for WebP format</li>
+                    <li>New experimental OBJ importer</li>
+                    <li>Motion Paths improvements</li>
+                    <li>Grease Pencil Envelope Modifier</li>
+                    <li>New Curve Pen Tool</li>
+                </ul>
+            </description>
+        </release>
         <release version="3.1" date="2022-03-09">
             <description>
                 <p>New features:</p>
