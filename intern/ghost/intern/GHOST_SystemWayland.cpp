@@ -603,7 +603,7 @@ static const struct wl_data_source_listener data_source_listener = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Listener (Data Device), #wl_data_device_listener
+/** \name Listener (Data Offer), #wl_data_offer_listener
  * \{ */
 
 static void data_offer_offer(void *data,
@@ -632,6 +632,12 @@ static const struct wl_data_offer_listener data_offer_listener = {
     data_offer_source_actions,
     data_offer_action,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Data Device), #wl_data_device_listener
+ * \{ */
 
 static void data_device_data_offer(void * /*data*/,
                                    struct wl_data_device * /*wl_data_device*/,
@@ -1276,7 +1282,7 @@ static const struct wl_keyboard_listener keyboard_listener = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Listener (Output), #wl_output_listener
+/** \name Listener (Seat), #wl_seat_listener
  * \{ */
 
 static void seat_capabilities(void *data, struct wl_seat *wl_seat, uint32_t capabilities)
@@ -1314,6 +1320,12 @@ static const struct wl_seat_listener seat_listener = {
     seat_capabilities,
     seat_name,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Output), #wl_output_listener
+ * \{ */
 
 static void output_geometry(void *data,
                             struct wl_output * /*wl_output*/,
