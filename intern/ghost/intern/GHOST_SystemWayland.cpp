@@ -38,6 +38,10 @@
 
 #include <cstring>
 
+/* -------------------------------------------------------------------- */
+/** \name Private Types & Defines
+ * \{ */
+
 /**
  * Selected input event code defines from `linux/input-event-codes.h`
  * We include some of the button input event codes here, since the header is
@@ -156,6 +160,12 @@ struct display_t {
   std::vector<struct wl_surface *> os_surfaces;
   std::vector<struct wl_egl_window *> os_egl_windows;
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Private Utility Functions
+ * \{ */
 
 static GHOST_WindowManager *window_manager = nullptr;
 
@@ -430,8 +440,10 @@ static const std::vector<std::string> mime_send = {
     "text/plain",
 };
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/** \name Interface Callbacks
+/** \name Listener (Relative Motion), #zwp_relative_pointer_v1_listener
  *
  * These callbacks are registered for Wayland interfaces and called when
  * an event is received from the compositor.
@@ -466,6 +478,12 @@ static void relative_pointer_relative_motion(
 static const zwp_relative_pointer_v1_listener relative_pointer_listener = {
     relative_pointer_relative_motion,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Data Source), #wl_data_source_listener
+ * \{ */
 
 static void dnd_events(const input_t *const input, const GHOST_TEventType event)
 {
@@ -581,6 +599,12 @@ static const struct wl_data_source_listener data_source_listener = {
     data_source_dnd_finished,
     data_source_action,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Data Device), #wl_data_device_listener
+ * \{ */
 
 static void data_offer_offer(void *data,
                              struct wl_data_offer * /*wl_data_offer*/,
@@ -794,6 +818,12 @@ static const struct wl_data_device_listener data_device_listener = {
     data_device_drop,
     data_device_selection,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Pointer), #wl_pointer_listener
+ * \{ */
 
 static void cursor_buffer_release(void *data, struct wl_buffer *wl_buffer)
 {
@@ -1032,6 +1062,12 @@ static const struct wl_pointer_listener pointer_listener = {
     pointer_axis,
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Keyboard), #wl_keyboard_listener
+ * \{ */
+
 static void keyboard_keymap(
     void *data, struct wl_keyboard * /*wl_keyboard*/, uint32_t format, int32_t fd, uint32_t size)
 {
@@ -1237,6 +1273,12 @@ static const struct wl_keyboard_listener keyboard_listener = {
     keyboard_repeat_info,
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Output), #wl_output_listener
+ * \{ */
+
 static void seat_capabilities(void *data, struct wl_seat *wl_seat, uint32_t capabilities)
 {
   input_t *input = static_cast<input_t *>(data);
@@ -1328,6 +1370,12 @@ static const struct wl_output_listener output_listener = {
     output_scale,
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (XDG WM Base), #xdg_wm_base_listener
+ * \{ */
+
 static void shell_ping(void * /*data*/, struct xdg_wm_base *xdg_wm_base, uint32_t serial)
 {
   xdg_wm_base_pong(xdg_wm_base, serial);
@@ -1336,6 +1384,12 @@ static void shell_ping(void * /*data*/, struct xdg_wm_base *xdg_wm_base, uint32_
 static const struct xdg_wm_base_listener shell_listener = {
     shell_ping,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Registry), #wl_registry_listener
+ * \{ */
 
 static void global_add(void *data,
                        struct wl_registry *wl_registry,
