@@ -182,12 +182,12 @@ static char *rna_ImageUser_path(const PointerRNA *ptr)
 
     switch (GS(ptr->owner_id->name)) {
       case ID_OB:
-      case ID_TE: {
+      case ID_TE:
         return BLI_strdup("image_user");
-      }
-      case ID_NT: {
+      case ID_NT:
         return rna_Node_ImageUser_path(ptr);
-      }
+      case ID_CA:
+        return rna_CameraBackgroundImage_image_or_movieclip_user_path(ptr);
       default:
         break;
     }
