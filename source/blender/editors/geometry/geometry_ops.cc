@@ -22,5 +22,6 @@ void ED_operatortypes_geometry(void)
   WM_operatortype_append(GEOMETRY_OT_color_attribute_add);
   WM_operatortype_append(GEOMETRY_OT_color_attribute_remove);
   WM_operatortype_append(GEOMETRY_OT_color_attribute_render_set);
+  WM_operatortype_append(GEOMETRY_OT_color_attribute_duplicate);
   WM_operatortype_append(GEOMETRY_OT_attribute_convert);
 }

@@ -208,6 +208,55 @@ CustomDataLayer *BKE_id_attribute_new(
   return (index == -1) ? nullptr : &(customdata->layers[index]);
 }
 
+CustomDataLayer *BKE_id_attribute_duplicate(ID *id, CustomDataLayer *layer, ReportList *reports)
+{
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  get_domains(id, info);
+
+  eCustomDataType type = (eCustomDataType)layer->type;
+  eAttrDomain domain = BKE_id_attribute_domain(id, layer);
+
+  CustomData *customdata = info[domain].customdata;
+  if (customdata == nullptr) {
+    BKE_report(reports, RPT_ERROR, "Attribute domain not supported by this geometry type");
+    return nullptr;
+  }
+
+  char name[MAX_CUSTOMDATA_LAYER_NAME];
+  char uniquename[MAX_CUSTOMDATA_LAYER_NAME];
+
+  /* Make a copy of name in case CustomData API reallocates the layers. */
+  BLI_strncpy(name, layer->name, MAX_CUSTOMDATA_LAYER_NAME);
+  BKE_id_attribute_calc_unique_name(id, layer->name, uniquename);
+
+  switch (GS(id->name)) {
+    case ID_ME: {
+      Mesh *me = (Mesh *)id;
+      BMEditMesh *em = me->edit_mesh;
+      if (em != nullptr) {
+        BM_data_layer_add_named(em->bm, customdata, type, uniquename);
+      }
+      else {
+        CustomData_add_layer_named(
+            customdata, type, CD_DEFAULT, nullptr, info[domain].length, uniquename);
+      }
+      break;
+    }
+    default: {
+      CustomData_add_layer_named(
+          customdata, type, CD_DEFAULT, nullptr, info[domain].length, uniquename);
+      break;
+    }
+  }
+
+  int from_index = CustomData_get_named_layer_index(customdata, type, name);
+  int to_index = CustomData_get_named_layer_index(customdata, type, uniquename);
+  CustomData_copy_data_layer(
+      customdata, customdata, from_index, to_index, 0, 0, info[domain].length);
+
+  return (to_index == -1) ? nullptr : &(customdata->layers[to_index]);
+}
+
 bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
 {
   if (BKE_id_attribute_required(id, name)) {
@@ -283,7 +332,7 @@ CustomDataLayer *BKE_id_attribute_search(const ID *id,
     }
 
     CustomData *customdata = info[domain].customdata;
-    if (customdata == NULL) {
+    if (customdata == nullptr) {
       continue;
     }
 
@@ -295,7 +344,7 @@ CustomDataLayer *BKE_id_attribute_search(const ID *id,
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 int BKE_id_attributes_length(const ID *id, eAttrDomainMask domain_mask, eCustomDataMask mask)

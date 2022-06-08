@@ -498,6 +498,7 @@ static bool geometry_color_attributes_remove_poll(bContext *C)
 
   return false;
 }
+
 void GEOMETRY_OT_color_attribute_remove(wmOperatorType *ot)
 {
   /* identifiers */
@@ -508,6 +509,57 @@ void GEOMETRY_OT_color_attribute_remove(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = geometry_color_attribute_remove_exec;
   ot->poll = geometry_color_attributes_remove_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_context(C);
+  ID *id = static_cast<ID *>(ob->data);
+  CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
+
+  if (layer == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  CustomDataLayer *newLayer = BKE_id_attribute_duplicate(id, layer, op->reports);
+
+  BKE_id_attributes_active_color_set(id, newLayer);
+
+  DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool geometry_color_attributes_duplicate_poll(bContext *C)
+{
+  if (!geometry_attributes_poll(C)) {
+    return false;
+  }
+
+  Object *ob = ED_object_context(C);
+  ID *data = ob ? static_cast<ID *>(ob->data) : nullptr;
+
+  if (BKE_id_attributes_active_color_get(data) != nullptr) {
+    return true;
+  }
+
+  return false;
+}
+
+void GEOMETRY_OT_color_attribute_duplicate(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Duplicate Color Attribute";
+  ot->description = "Duplicate color attribute";
+  ot->idname = "GEOMETRY_OT_color_attribute_duplicate";
+
+  /* api callbacks */
+  ot->exec = geometry_color_attribute_duplicate_exec;
+  ot->poll = geometry_color_attributes_duplicate_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
