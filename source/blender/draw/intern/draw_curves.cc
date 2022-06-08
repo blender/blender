@@ -339,8 +339,15 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
     blender::VArray<float> radii = curves_component.attribute_get_for_read(
         "radius", ATTR_DOMAIN_POINT, 0.005f);
     const blender::IndexRange first_curve_points = curves.points_for_curve(0);
+    const float first_radius = radii[first_curve_points.first()];
+    const float last_radius = radii[first_curve_points.last()];
+    const float middle_radius = radii[first_curve_points.size() / 2];
     hair_rad_root = radii[first_curve_points.first()];
     hair_rad_tip = radii[first_curve_points.last()];
+    hair_rad_shape = std::clamp(
+        safe_divide(middle_radius - first_radius, last_radius - first_radius) * 2.0f - 1.0f,
+        -1.0f,
+        1.0f);
   }
 
   DRW_shgroup_uniform_texture(shgrp, "hairPointBuffer", curves_cache->final[subdiv].proc_tex);
