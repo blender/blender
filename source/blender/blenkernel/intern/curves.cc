@@ -273,9 +273,9 @@ BoundBox *BKE_curves_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-bool BKE_curves_customdata_required(const Curves *UNUSED(curves), CustomDataLayer *layer)
+bool BKE_curves_customdata_required(const Curves *UNUSED(curves), const char *name)
 {
-  return layer->type == CD_PROP_FLOAT3 && STREQ(layer->name, ATTR_POSITION);
+  return STREQ(name, ATTR_POSITION);
 }
 
 Curves *BKE_curves_copy_for_eval(Curves *curves_src, bool reference)

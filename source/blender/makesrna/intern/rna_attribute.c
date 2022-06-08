@@ -163,13 +163,14 @@ static StructRNA *rna_Attribute_refine(PointerRNA *ptr)
 
 static void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
 {
-  BKE_id_attribute_rename(ptr->owner_id, ptr->data, value, NULL);
+  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+  BKE_id_attribute_rename(ptr->owner_id, layer->name, value, NULL);
 }
 
 static int rna_Attribute_name_editable(PointerRNA *ptr, const char **r_info)
 {
   CustomDataLayer *layer = ptr->data;
-  if (BKE_id_attribute_required(ptr->owner_id, layer)) {
+  if (BKE_id_attribute_required(ptr->owner_id, layer->name)) {
     *r_info = N_("Cannot modify name of required geometry attribute");
     return false;
   }
@@ -358,8 +359,8 @@ static PointerRNA rna_AttributeGroup_new(
 
 static void rna_AttributeGroup_remove(ID *id, ReportList *reports, PointerRNA *attribute_ptr)
 {
-  CustomDataLayer *layer = (CustomDataLayer *)attribute_ptr->data;
-  BKE_id_attribute_remove(id, layer, reports);
+  const CustomDataLayer *layer = (const CustomDataLayer *)attribute_ptr->data;
+  BKE_id_attribute_remove(id, layer->name, reports);
   RNA_POINTER_INVALIDATE(attribute_ptr);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);

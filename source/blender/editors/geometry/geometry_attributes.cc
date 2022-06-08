@@ -182,7 +182,7 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
 
   next_color_attributes(id, layer);
 
-  if (!BKE_id_attribute_remove(id, layer, op->reports)) {
+  if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -468,7 +468,7 @@ static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
 
   next_color_attributes(id, layer);
 
-  if (!BKE_id_attribute_remove(id, layer, op->reports)) {
+  if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 

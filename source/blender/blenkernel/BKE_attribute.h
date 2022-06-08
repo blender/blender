@@ -58,9 +58,7 @@ bool BKE_attribute_allow_procedural_access(const char *attribute_name);
  */
 struct CustomDataLayer *BKE_id_attribute_new(
     struct ID *id, const char *name, int type, eAttrDomain domain, struct ReportList *reports);
-bool BKE_id_attribute_remove(struct ID *id,
-                             struct CustomDataLayer *layer,
-                             struct ReportList *reports);
+bool BKE_id_attribute_remove(struct ID *id, const char *name, struct ReportList *reports);
 
 struct CustomDataLayer *BKE_id_attribute_find(const struct ID *id,
                                               const char *name,
@@ -74,9 +72,9 @@ struct CustomDataLayer *BKE_id_attribute_search(const struct ID *id,
 
 eAttrDomain BKE_id_attribute_domain(const struct ID *id, const struct CustomDataLayer *layer);
 int BKE_id_attribute_data_length(struct ID *id, struct CustomDataLayer *layer);
-bool BKE_id_attribute_required(const struct ID *id, struct CustomDataLayer *layer);
+bool BKE_id_attribute_required(const struct ID *id, const char *name);
 bool BKE_id_attribute_rename(struct ID *id,
-                             struct CustomDataLayer *layer,
+                             const char *old_name,
                              const char *new_name,
                              struct ReportList *reports);
 
