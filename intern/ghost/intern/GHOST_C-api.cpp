@@ -376,21 +376,18 @@ GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
       mode, wrap_axis, bounds ? &bounds_rect : nullptr, mouse_ungrab_xy ? mouse_xy : nullptr);
 }
 
-GHOST_TSuccess GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
-                                        GHOST_TAxisFlag *r_axis_flag,
-                                        int r_bounds[4])
+void GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
+                              GHOST_TGrabCursorMode *r_mode,
+                              GHOST_TAxisFlag *r_axis_flag,
+                              int r_bounds[4])
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
   GHOST_Rect bounds_rect;
-  if (!window->getCursorGrabState(*r_axis_flag, bounds_rect)) {
-    return GHOST_kFailure;
-  }
-
+  window->getCursorGrabState(*r_mode, *r_axis_flag, bounds_rect);
   r_bounds[0] = bounds_rect.m_l;
   r_bounds[1] = bounds_rect.m_t;
   r_bounds[2] = bounds_rect.m_r;
   r_bounds[3] = bounds_rect.m_b;
-  return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,

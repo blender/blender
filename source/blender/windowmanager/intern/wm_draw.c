@@ -137,6 +137,13 @@ static struct {
     .winid = -1,
 };
 
+/** Reuse the result from #GHOST_GetCursorGrabState. */
+struct GrabState {
+  GHOST_TGrabCursorMode mode;
+  GHOST_TAxisFlag wrap_axis;
+  int bounds[4];
+};
+
 static bool wm_software_cursor_needed(void)
 {
   if (UNLIKELY(g_software_cursor.enabled == -1)) {
@@ -145,10 +152,19 @@ static bool wm_software_cursor_needed(void)
   return g_software_cursor.enabled;
 }
 
-static bool wm_software_cursor_needed_for_window(const wmWindow *win)
+static bool wm_software_cursor_needed_for_window(const wmWindow *win, struct GrabState *grab_state)
 {
   BLI_assert(wm_software_cursor_needed());
-  return (win->grabcursor == GHOST_kGrabWrap) && GHOST_GetCursorVisibility(win->ghostwin);
+  if (GHOST_GetCursorVisibility(win->ghostwin)) {
+    /* NOTE: The value in `win->grabcursor` can't be used as it
+     * doesn't always match GHOST's value in the case of tablet events. */
+    GHOST_GetCursorGrabState(
+        win->ghostwin, &grab_state->mode, &grab_state->wrap_axis, grab_state->bounds);
+    if (grab_state->mode == GHOST_kGrabWrap) {
+      return true;
+    }
+  }
+  return false;
 }
 
 static bool wm_software_cursor_motion_test(const wmWindow *win)
@@ -173,28 +189,24 @@ static void wm_software_cursor_motion_clear(void)
   g_software_cursor.xy[1] = -1;
 }
 
-static void wm_software_cursor_draw(wmWindow *win)
+static void wm_software_cursor_draw(wmWindow *win, const struct GrabState *grab_state)
 {
   int x = win->eventstate->xy[0];
   int y = win->eventstate->xy[1];
 
-  int bounds[4];
-  GHOST_TAxisFlag wrap_axis = 0;
-  if (GHOST_GetCursorGrabState(win->ghostwin, &wrap_axis, bounds) != GHOST_kFailure) {
-    if (wrap_axis & GHOST_kAxisX) {
-      const int min = bounds[0];
-      const int max = bounds[2];
-      if (min != max) {
-        x = mod_i(x - min, max - min) + min;
-      }
+  if (grab_state->wrap_axis & GHOST_kAxisX) {
+    const int min = grab_state->bounds[0];
+    const int max = grab_state->bounds[2];
+    if (min != max) {
+      x = mod_i(x - min, max - min) + min;
     }
-    if (wrap_axis & GHOST_kGrabAxisY) {
-      const int height = WM_window_pixels_y(win);
-      const int min = height - bounds[1];
-      const int max = height - bounds[3];
-      if (min != max) {
-        y = mod_i(y - max, min - max) + max;
-      }
+  }
+  if (grab_state->wrap_axis & GHOST_kGrabAxisY) {
+    const int height = WM_window_pixels_y(win);
+    const int min = height - grab_state->bounds[1];
+    const int max = height - grab_state->bounds[3];
+    if (min != max) {
+      y = mod_i(y - max, min - max) + max;
     }
   }
 
@@ -979,8 +991,9 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   }
 
   if (wm_software_cursor_needed()) {
-    if (wm_software_cursor_needed_for_window(win)) {
-      wm_software_cursor_draw(win);
+    struct GrabState grab_state;
+    if (wm_software_cursor_needed_for_window(win, &grab_state)) {
+      wm_software_cursor_draw(win, &grab_state);
       wm_software_cursor_motion_update(win);
     }
     else {
@@ -1139,7 +1152,9 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
   }
 
   if (wm_software_cursor_needed()) {
-    if (wm_software_cursor_needed_for_window(win) && wm_software_cursor_motion_test(win)) {
+    struct GrabState grab_state;
+    if (wm_software_cursor_needed_for_window(win, &grab_state) &&
+        wm_software_cursor_motion_test(win)) {
       return true;
     }
   }

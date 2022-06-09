@@ -256,7 +256,9 @@ class GHOST_IWindow {
 
   virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) = 0;
 
-  virtual GHOST_TSuccess getCursorGrabState(GHOST_TAxisFlag &axis_flag, GHOST_Rect &bounds) = 0;
+  virtual void getCursorGrabState(GHOST_TGrabCursorMode &mode,
+                                  GHOST_TAxisFlag &axis_flag,
+                                  GHOST_Rect &bounds) = 0;
 
   /**
    * Test if the standard cursor shape is supported by current platform.
