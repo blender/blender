@@ -1238,7 +1238,8 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
                    &update_frustum,
                    &draw_frustum,
                    (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb,
-                   scd, scd->use_mats);
+                   scd,
+                   scd->use_mats);
 
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;

@@ -678,6 +678,7 @@ class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
 
         self.draw_attribute_warnings(context, layout)
 
+
 classes = (
     MESH_MT_vertex_group_context_menu,
     MESH_MT_shape_key_context_menu,

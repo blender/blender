@@ -467,10 +467,11 @@ static size_t unit_as_string(char *str,
    * to replace 'scientific notation' in those cases. */
   prec -= integer_digits_d(value_conv);
 
-  /* Negative precision is used to disable stripping of zeroes. This reduces text jumping when changing values. */
+  /* Negative precision is used to disable stripping of zeroes.
+   * This reduces text jumping when changing values. */
   if (prec < 0) {
-  strip_skip = true;
-  prec *= -1;
+    strip_skip = true;
+    prec *= -1;
   }
 
   CLAMP(prec, 0, 6);

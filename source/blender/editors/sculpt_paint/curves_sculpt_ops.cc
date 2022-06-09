@@ -17,8 +17,8 @@
 #include "WM_api.h"
 #include "WM_toolsystem.h"
 
-#include "ED_image.h"
 #include "ED_curves_sculpt.h"
+#include "ED_image.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"

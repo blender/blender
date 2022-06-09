@@ -662,8 +662,8 @@ bool ED_autokeyframe_pchan(struct bContext *C,
 /**
  * Use for auto-key-framing
  * \param only_if_property_keyed: if true, auto-key-framing only creates keyframes on already keyed
- * properties. This is by design when using buttons. For other callers such as gizmos or VSE preview
- * transform, creating new animation/keyframes also on non-keyed properties is desired.
+ * properties. This is by design when using buttons. For other callers such as gizmos or VSE
+ * preview transform, creating new animation/keyframes also on non-keyed properties is desired.
  */
 bool ED_autokeyframe_property(struct bContext *C,
                               struct Scene *scene,

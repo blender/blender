@@ -55,8 +55,8 @@
 #include "WM_toolsystem.h"
 #include "WM_types.h"
 
-#include "ED_image.h"
 #include "ED_armature.h"
+#include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
