@@ -81,8 +81,8 @@ class TonemapOperation : public MultiThreadedOperation {
 };
 
 /**
- * \brief class of tonemap, implementing the photoreceptor tonemap
- * most parts have already been done in TonemapOperation
+ * \brief class of tone-map, implementing the photo-receptor tone-map
+ * most parts have already been done in #TonemapOperation.
  * \ingroup operation
  */
 

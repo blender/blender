@@ -2019,7 +2019,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
   const bool was_lock = MODE_NEEDS_LOCK(mode_current);
   const bool use_lock = MODE_NEEDS_LOCK(mode);
 
-  /* Check for wrap as #supportsCursorWarp isn't supproted. */
+  /* Check for wrap as #supportsCursorWarp isn't supported. */
   const bool was_hide = MODE_NEEDS_HIDE(mode_current) || (mode_current == GHOST_kGrabWrap);
   const bool use_hide = MODE_NEEDS_HIDE(mode) || (mode == GHOST_kGrabWrap);
 

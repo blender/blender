@@ -176,7 +176,8 @@ static void nurbs_to_bezier_assign(const Span<T> src,
       dst.last() = src.last();
       break;
     default:
-      /* Every 3rd NURBS position (starting from index 1) should have its attributes transfered. */
+      /* Every 3rd NURBS position (starting from index 1) should have its attributes transferred.
+       */
       scale_input_assign<T>(src, 3, 1, dst);
   }
 }
@@ -448,7 +449,7 @@ static void convert_to_bezier(const CurveComponent &src_component,
         Vector<float3> nurbs_positions_vector;
         if (src_cyclic[i] && is_nurbs_to_bezier_one_to_one(knots_mode)) {
           /* For conversion treat this as periodic closed curve. Extend NURBS hull to first and
-           * second point which will act as a sceleton for placing Bezier handles. */
+           * second point which will act as a skeleton for placing Bezier handles. */
           nurbs_positions_vector.extend(src_curve_positions);
           nurbs_positions_vector.append(src_curve_positions[0]);
           nurbs_positions_vector.append(src_curve_positions[1]);
