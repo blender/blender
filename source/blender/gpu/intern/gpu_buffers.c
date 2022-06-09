@@ -109,7 +109,7 @@ typedef struct PBVHGPUFormat {
   bool active_attrs_only;
 } PBVHGPUFormat;
 
-PBVHGPUFormat *GPU_pbvh_make_format()
+PBVHGPUFormat *GPU_pbvh_make_format(void)
 {
   PBVHGPUFormat *vbo_id = MEM_callocN(sizeof(PBVHGPUFormat), "PBVHGPUFormat");
 
