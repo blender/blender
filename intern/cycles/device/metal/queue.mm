@@ -121,11 +121,9 @@ MetalDeviceQueue::~MetalDeviceQueue()
   double total_time = 0.0;
 
   /* Show per-kernel timings, if gathered (see CYCLES_METAL_PROFILING). */
-  int64_t total_work_size = 0;
   int64_t num_dispatches = 0;
   for (auto &stat : timing_stats) {
     total_time += stat.total_time;
-    total_work_size += stat.total_work_size;
     num_dispatches += stat.num_dispatches;
   }
 

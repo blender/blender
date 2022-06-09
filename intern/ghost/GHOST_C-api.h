@@ -402,9 +402,10 @@ extern GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
                                               int32_t x,
                                               int32_t y);
 
-GHOST_TSuccess GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
-                                        GHOST_TAxisFlag *r_wrap_axis,
-                                        int r_bounds[4]);
+void GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
+                              GHOST_TGrabCursorMode *r_mode,
+                              GHOST_TAxisFlag *r_wrap_axis,
+                              int r_bounds[4]);
 
 /**
  * Grabs the cursor for a modal operation, to keep receiving

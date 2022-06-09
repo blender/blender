@@ -109,7 +109,7 @@ typedef struct PBVHGPUFormat {
   bool active_attrs_only;
 } PBVHGPUFormat;
 
-PBVHGPUFormat *GPU_pbvh_make_format()
+PBVHGPUFormat *GPU_pbvh_make_format(void)
 {
   PBVHGPUFormat *vbo_id = MEM_callocN(sizeof(PBVHGPUFormat), "PBVHGPUFormat");
 
@@ -1206,17 +1206,17 @@ static int gpu_pbvh_make_attr_offs(eAttrDomainMask domain_mask,
                                    const CustomDataLayer *active_layer,
                                    const CustomDataLayer *render_layer)
 {
-  const CustomData *cdata = active_domain == ATTR_DOMAIN_POINT ? vdata : ldata;
+  const CustomData *cdata_active = active_domain == ATTR_DOMAIN_POINT ? vdata : ldata;
 
-  if (!cdata) {
+  if (!cdata_active) {
     return 0;
   }
 
   if (active_only) {
-    int idx = active_layer ? active_layer - cdata->layers : -1;
+    int idx = active_layer ? active_layer - cdata_active->layers : -1;
 
-    if (idx >= 0 && idx < cdata->totlayer) {
-      r_cd_attrs[0].cd_offset = cdata->layers[idx].offset;
+    if (idx >= 0 && idx < cdata_active->totlayer) {
+      r_cd_attrs[0].cd_offset = cdata_active->layers[idx].offset;
       r_cd_attrs[0].domain = active_domain;
       r_cd_attrs[0].type = active_type;
       r_cd_attrs[0].layer_idx = idx;

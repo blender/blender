@@ -111,7 +111,7 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
         int endpoint = (nurb->flagu & CU_NURB_ENDPOINT) ? 1 : 0;
         EXPECT_EQ(nurb->orderu, exp.mesh_totpoly_or_curve_order);
         EXPECT_EQ(endpoint, exp.mesh_totedge_or_curve_endp);
-        // Cyclic flag is not set by the importer yet
+        /* Cyclic flag is not set by the importer yet. */
         // int cyclic = (nurb->flagu & CU_NURB_CYCLIC) ? 1 : 0;
         // EXPECT_EQ(cyclic, exp.mesh_totloop_or_curve_cyclic);
       }

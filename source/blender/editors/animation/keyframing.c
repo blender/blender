@@ -3119,7 +3119,8 @@ bool ED_autokeyframe_property(bContext *C,
   fcu = BKE_fcurve_find_by_rna_context_ui(
       C, ptr, prop, rnaindex_check, NULL, &action, &driven, &special);
 
-  /* Only early out when we actually want an existing fcurve already (e.g. auto-keyframing from buttons). */
+  /* Only early out when we actually want an existing F-curve already
+   * (e.g. auto-keyframing from buttons). */
   if (fcu == NULL && (driven || special || only_if_property_keyed)) {
     return changed;
   }

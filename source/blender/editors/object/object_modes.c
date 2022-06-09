@@ -458,7 +458,7 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
     return false;
   }
 
-  bool mode_transfered = false;
+  bool mode_transferred = false;
 
   ED_undo_group_begin(C);
 
@@ -480,11 +480,11 @@ static bool object_transfer_mode_to_base(bContext *C, wmOperator *op, Base *base
 
     WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
     WM_toolsystem_update_from_context_view3d(C);
-    mode_transfered = true;
+    mode_transferred = true;
   }
 
   ED_undo_group_end(C);
-  return mode_transfered;
+  return mode_transferred;
 }
 
 static int object_transfer_mode_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -493,8 +493,8 @@ static int object_transfer_mode_invoke(bContext *C, wmOperator *op, const wmEven
   const eObjectMode src_mode = (eObjectMode)ob_src->mode;
 
   Base *base_dst = ED_view3d_give_base_under_cursor(C, event->mval);
-  const bool mode_transfered = object_transfer_mode_to_base(C, op, base_dst);
-  if (!mode_transfered) {
+  const bool mode_transferred = object_transfer_mode_to_base(C, op, base_dst);
+  if (!mode_transferred) {
     return OPERATOR_CANCELLED;
   }
 

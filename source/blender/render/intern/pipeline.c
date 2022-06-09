@@ -981,7 +981,7 @@ static void render_result_uncrop(Render *re)
       render_result_free(re->result);
       re->result = rres;
 
-      /* weak... the display callback wants an active renderlayer pointer... */
+      /* Weak, the display callback wants an active render-layer pointer. */
       re->result->renlay = render_get_active_layer(re, re->result);
 
       BLI_rw_mutex_unlock(&re->resultmutex);
@@ -1313,8 +1313,8 @@ static void do_render_sequencer(Render *re)
                              true,
                              &context);
 
-  /* the renderresult gets destroyed during the rendering, so we first collect all ibufs
-   * and then we populate the final renderesult */
+  /* The render-result gets destroyed during the rendering, so we first collect all ibufs
+   * and then we populate the final render-result. */
 
   for (view_id = 0; view_id < tot_views; view_id++) {
     context.view_id = view_id;

@@ -19,7 +19,7 @@ namespace blender::io::stl {
 class Triangle {
  public:
   int v1, v2, v3;
-  /* Based on an old version of Python's frozenset hash
+  /* Based on an old version of Python's frozen-set hash
    * https://web.archive.org/web/20220520211017/https://stackoverflow.com/questions/20832279/python-frozenset-hashing-algorithm-implementation
    */
   uint64_t hash() const

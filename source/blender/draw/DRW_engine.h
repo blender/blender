@@ -222,7 +222,7 @@ void DRW_opengl_context_activate(bool drw_state);
 void DRW_draw_cursor_2d_ex(const struct ARegion *region, const float cursor[2]);
 
 void DRW_cdlayer_attr_aliases_add(struct GPUVertFormat *format,
-                                  char *base_name,
+                                  const char *base_name,
                                   const struct CustomData *data,
                                   const struct CustomDataLayer *cl,
                                   bool is_active_render,

@@ -8,10 +8,10 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_curves.hh"
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
 #include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
 
 #include "node_geometry_util.hh"
 
@@ -311,161 +311,35 @@ static void copy_masked_polys_to_new_mesh(const Mesh &src_mesh,
   }
 }
 
-static void spline_copy_builtin_attributes(const Spline &spline,
-                                           Spline &r_spline,
-                                           const IndexMask mask)
-{
-  copy_data_based_on_mask(spline.positions(), r_spline.positions(), mask);
-  copy_data_based_on_mask(spline.radii(), r_spline.radii(), mask);
-  copy_data_based_on_mask(spline.tilts(), r_spline.tilts(), mask);
-  switch (spline.type()) {
-    case CURVE_TYPE_POLY:
-      break;
-    case CURVE_TYPE_BEZIER: {
-      const BezierSpline &src = static_cast<const BezierSpline &>(spline);
-      BezierSpline &dst = static_cast<BezierSpline &>(r_spline);
-      copy_data_based_on_mask(src.handle_positions_left(), dst.handle_positions_left(), mask);
-      copy_data_based_on_mask(src.handle_positions_right(), dst.handle_positions_right(), mask);
-      copy_data_based_on_mask(src.handle_types_left(), dst.handle_types_left(), mask);
-      copy_data_based_on_mask(src.handle_types_right(), dst.handle_types_right(), mask);
-      break;
-    }
-    case CURVE_TYPE_NURBS: {
-      const NURBSpline &src = static_cast<const NURBSpline &>(spline);
-      NURBSpline &dst = static_cast<NURBSpline &>(r_spline);
-      copy_data_based_on_mask(src.weights(), dst.weights(), mask);
-      break;
-    }
-    case CURVE_TYPE_CATMULL_ROM: {
-      BLI_assert_unreachable();
-      break;
-    }
-  }
-}
-
-static void copy_dynamic_attributes(const CustomDataAttributes &src,
-                                    CustomDataAttributes &dst,
-                                    const IndexMask mask)
-{
-  src.foreach_attribute(
-      [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-        std::optional<GSpan> src_attribute = src.get_for_read(attribute_id);
-        BLI_assert(src_attribute);
-
-        if (!dst.create(attribute_id, meta_data.data_type)) {
-          /* Since the source spline of the same type had the attribute, adding it should work.
-           */
-          BLI_assert_unreachable();
-        }
-
-        std::optional<GMutableSpan> new_attribute = dst.get_for_write(attribute_id);
-        BLI_assert(new_attribute);
-
-        attribute_math::convert_to_static_type(new_attribute->type(), [&](auto dummy) {
-          using T = decltype(dummy);
-          copy_data_based_on_mask(src_attribute->typed<T>(), new_attribute->typed<T>(), mask);
-        });
-        return true;
-      },
-      ATTR_DOMAIN_POINT);
-}
-
-/**
- * Deletes points in the spline. Those not in the mask are deleted. The spline is not split into
- * multiple newer splines.
- */
-static SplinePtr spline_delete(const Spline &spline, const IndexMask mask)
-{
-  SplinePtr new_spline = spline.copy_only_settings();
-  new_spline->resize(mask.size());
-
-  spline_copy_builtin_attributes(spline, *new_spline, mask);
-  copy_dynamic_attributes(spline.attributes, new_spline->attributes, mask);
-
-  return new_spline;
-}
-
-static std::unique_ptr<CurveEval> curve_separate(const CurveEval &input_curve,
-                                                 const Span<bool> selection,
-                                                 const eAttrDomain selection_domain)
-{
-  Span<SplinePtr> input_splines = input_curve.splines();
-  std::unique_ptr<CurveEval> output_curve = std::make_unique<CurveEval>();
-
-  /* Keep track of which splines were copied to the result to copy spline domain attributes. */
-  Vector<int64_t> copied_splines;
-
-  if (selection_domain == ATTR_DOMAIN_CURVE) {
-    /* Operates on each of the splines as a whole, i.e. not on the points in the splines
-     * themselves. */
-    for (const int i : selection.index_range()) {
-      if (selection[i]) {
-        output_curve->add_spline(input_splines[i]->copy());
-        copied_splines.append(i);
-      }
-    }
-  }
-  else {
-    /* Operates on the points in the splines themselves. */
-
-    /* Reuse index vector for each spline. */
-    Vector<int64_t> indices_to_copy;
-
-    int selection_index = 0;
-    for (const int i : input_splines.index_range()) {
-      const Spline &spline = *input_splines[i];
-
-      indices_to_copy.clear();
-      for (const int i_point : IndexRange(spline.size())) {
-        if (selection[selection_index]) {
-          /* Append i_point instead of selection_index because we need indices local to the spline
-           * for copying. */
-          indices_to_copy.append(i_point);
-        }
-        selection_index++;
-      }
-
-      /* Avoid creating an empty spline. */
-      if (indices_to_copy.is_empty()) {
-        continue;
-      }
-
-      SplinePtr new_spline = spline_delete(spline, IndexMask(indices_to_copy));
-      output_curve->add_spline(std::move(new_spline));
-      copied_splines.append(i);
-    }
-  }
-
-  if (copied_splines.is_empty()) {
-    return {};
-  }
-
-  output_curve->attributes.reallocate(output_curve->splines().size());
-  copy_dynamic_attributes(
-      input_curve.attributes, output_curve->attributes, IndexMask(copied_splines));
-
-  return output_curve;
-}
-
-static void separate_curve_selection(GeometrySet &geometry_set,
-                                     const Field<bool> &selection_field,
-                                     const eAttrDomain selection_domain)
+static void delete_curves_selection(GeometrySet &geometry_set,
+                                    const Field<bool> &selection_field,
+                                    const eAttrDomain selection_domain)
 {
   const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
   GeometryComponentFieldContext field_context{src_component, selection_domain};
 
-  fn::FieldEvaluator evaluator{field_context,
-                               src_component.attribute_domain_num(selection_domain)};
-  evaluator.add(selection_field);
+  const int domain_num = src_component.attribute_domain_num(selection_domain);
+  fn::FieldEvaluator evaluator{field_context, domain_num};
+  evaluator.set_selection(selection_field);
   evaluator.evaluate();
-  const VArray_Span<bool> &selection = evaluator.get_evaluated<bool>(0);
-  std::unique_ptr<CurveEval> r_curve = curve_separate(
-      *curves_to_curve_eval(*src_component.get_for_read()), selection, selection_domain);
-  if (r_curve) {
-    geometry_set.replace_curves(curve_eval_to_curves(*r_curve));
+  const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.is_empty()) {
+    return;
   }
-  else {
-    geometry_set.replace_curves(nullptr);
+  if (selection.size() == domain_num) {
+    geometry_set.remove<CurveComponent>();
+    return;
+  }
+
+  CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
+  Curves &curves_id = *component.get_for_write();
+  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+
+  if (selection_domain == ATTR_DOMAIN_POINT) {
+    curves.remove_points(selection);
+  }
+  else if (selection_domain == ATTR_DOMAIN_CURVE) {
+    curves.remove_curves(selection);
   }
 }
 
@@ -1224,7 +1098,8 @@ void separate_geometry(GeometrySet &geometry_set,
   }
   if (geometry_set.has_curves()) {
     if (ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
-      file_ns::separate_curve_selection(geometry_set, selection_field, domain);
+      file_ns::delete_curves_selection(
+          geometry_set, fn::invert_boolean_field(selection_field), domain);
       some_valid_domain = true;
     }
   }

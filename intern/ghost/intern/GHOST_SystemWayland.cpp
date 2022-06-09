@@ -71,7 +71,7 @@ struct cursor_t {
   struct wl_cursor_theme *theme = nullptr;
   int size;
   std::string theme_name;
-  // outputs on which the cursor is visible
+  /** Outputs on which the cursor is visible. */
   std::unordered_set<const output_t *> outputs;
   int scale = 1;
 };
@@ -121,11 +121,11 @@ struct input_t {
   struct xkb_context *xkb_context;
   struct xkb_state *xkb_state;
   struct {
-    /* Key repetition in character per second. */
+    /** Key repetition in character per second. */
     int32_t rate;
-    /* Time (milliseconds) after which to start repeating keys. */
+    /** Time (milliseconds) after which to start repeating keys. */
     int32_t delay;
-    /* Timer for key repeats. */
+    /** Timer for key repeats. */
     GHOST_ITimerTask *timer = nullptr;
   } key_repeat;
 
@@ -133,8 +133,10 @@ struct input_t {
   struct wl_surface *focus_keyboard = nullptr;
 
   struct wl_data_device *data_device = nullptr;
-  struct data_offer_t *data_offer_dnd;        /* Drag & Drop. */
-  struct data_offer_t *data_offer_copy_paste; /* Copy & Paste. */
+  /** Drag & Drop. */
+  struct data_offer_t *data_offer_dnd;
+  /** Copy & Paste. */
+  struct data_offer_t *data_offer_copy_paste;
 
   struct data_source_t *data_source;
 };
@@ -828,7 +830,7 @@ static const struct wl_data_device_listener data_device_listener = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Listener (Pointer), #wl_pointer_listener
+/** \name Listener (Surface), #wl_surface_listener
  * \{ */
 
 static void cursor_buffer_release(void *data, struct wl_buffer *wl_buffer)
@@ -910,6 +912,12 @@ struct wl_surface_listener cursor_surface_listener = {
     cursor_surface_enter,
     cursor_surface_leave,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Pointer), #wl_pointer_listener
+ * \{ */
 
 static void pointer_enter(void *data,
                           struct wl_pointer * /*wl_pointer*/,
@@ -1607,6 +1615,7 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool /*selection*/) c
   data_source_t *data_source = d->inputs[0]->data_source;
 
   /* Copy buffer. */
+  free(data_source->buffer_out);
   const size_t buffer_size = strlen(buffer) + 1;
   data_source->buffer_out = static_cast<char *>(malloc(buffer_size));
   std::memcpy(data_source->buffer_out, buffer, buffer_size);
@@ -2019,7 +2028,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
   const bool was_lock = MODE_NEEDS_LOCK(mode_current);
   const bool use_lock = MODE_NEEDS_LOCK(mode);
 
-  /* Check for wrap as #supportsCursorWarp isn't supproted. */
+  /* Check for wrap as #supportsCursorWarp isn't supported. */
   const bool was_hide = MODE_NEEDS_HIDE(mode_current) || (mode_current == GHOST_kGrabWrap);
   const bool use_hide = MODE_NEEDS_HIDE(mode) || (mode == GHOST_kGrabWrap);
 

@@ -209,11 +209,11 @@ template<typename Key, Key EmptyValue, Key RemovedValue> struct TemplatedKeyInfo
 };
 
 /**
- * 0xffff...ffff indicates an empty slot.
- * 0xffff...fffe indicates a removed slot.
+ * `0xffff...ffff` indicates an empty slot.
+ * `0xffff...fffe` indicates a removed slot.
  *
  * Those specific values are used, because with them a single comparison is enough to check whether
- * a slot is occupied. The keys 0x0000...0000 and 0x0000...0001 also satisfy this constraint.
+ * a slot is occupied. The keys `0x0000...0000` and `0x0000...0001` also satisfy this constraint.
  * However, nullptr is much more likely to be used as valid key.
  */
 template<typename Pointer> struct PointerKeyInfo {

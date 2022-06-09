@@ -60,7 +60,7 @@ bool ED_space_clip_get_position(struct SpaceClip *sc,
  */
 bool ED_space_clip_color_sample(struct SpaceClip *sc,
                                 struct ARegion *region,
-                                int mval[2],
+                                const int mval[2],
                                 float r_col[3]);
 
 void ED_clip_update_frame(const struct Main *mainp, int cfra);

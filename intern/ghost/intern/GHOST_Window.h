@@ -152,7 +152,9 @@ class GHOST_Window : public GHOST_IWindow {
    */
   GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds);
 
-  GHOST_TSuccess getCursorGrabState(GHOST_TAxisFlag &axis_flag, GHOST_Rect &bounds);
+  void getCursorGrabState(GHOST_TGrabCursorMode &mode,
+                          GHOST_TAxisFlag &axis_flag,
+                          GHOST_Rect &bounds);
 
   /**
    * Sets the progress bar value displayed in the window/application icon

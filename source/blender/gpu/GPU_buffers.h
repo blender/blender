@@ -151,7 +151,7 @@ struct GPUBatch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast
 short GPU_pbvh_buffers_material_index_get(GPU_PBVH_Buffers *buffers);
 bool GPU_pbvh_buffers_has_overlays(GPU_PBVH_Buffers *buffers);
 
-PBVHGPUFormat *GPU_pbvh_make_format();
+PBVHGPUFormat *GPU_pbvh_make_format(void);
 void GPU_pbvh_free_format(PBVHGPUFormat *vbo_id);
 
 #ifdef __cplusplus
