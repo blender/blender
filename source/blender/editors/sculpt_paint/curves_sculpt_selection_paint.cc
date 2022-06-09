@@ -83,6 +83,9 @@ struct SelectionPaintOperationExecutor {
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
     curves_id_->flag |= CV_SCULPT_SELECTION_ENABLED;
+    if (curves_->curves_num() == 0) {
+      return;
+    }
 
     brush_ = BKE_paint_brush_for_read(&ctx_.scene->toolsettings->curves_sculpt->paint);
     brush_radius_base_re_ = BKE_brush_size_get(ctx_.scene, brush_);
