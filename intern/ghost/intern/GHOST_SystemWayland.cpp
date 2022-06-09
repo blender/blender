@@ -1615,6 +1615,7 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool /*selection*/) c
   data_source_t *data_source = d->inputs[0]->data_source;
 
   /* Copy buffer. */
+  free(data_source->buffer_out);
   const size_t buffer_size = strlen(buffer) + 1;
   data_source->buffer_out = static_cast<char *>(malloc(buffer_size));
   std::memcpy(data_source->buffer_out, buffer, buffer_size);
