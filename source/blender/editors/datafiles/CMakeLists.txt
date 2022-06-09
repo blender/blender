@@ -782,6 +782,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.curves.sculpt_puff
   ops.curves.sculpt_smooth
   ops.curves.sculpt_snake_hook
+  ops.curves.slide
   ops.generic.cursor
   ops.generic.select
   ops.generic.select_box
