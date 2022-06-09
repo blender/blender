@@ -387,6 +387,7 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   void update_customdata_pointers();
 
+  void remove_points(IndexMask points_to_delete);
   void remove_curves(IndexMask curves_to_delete);
 
   /**
