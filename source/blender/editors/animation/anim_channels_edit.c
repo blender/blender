@@ -2791,12 +2791,34 @@ static bool rename_anim_channels(bAnimContext *ac, int channel_index)
     return false;
   }
 
-  /* don't allow renaming linked channels */
-  if ((ale->fcurve_owner_id != NULL &&
-       (ID_IS_LINKED(ale->fcurve_owner_id) || ID_IS_OVERRIDE_LIBRARY(ale->fcurve_owner_id))) ||
-      (ale->id != NULL && (ID_IS_LINKED(ale->id) || ID_IS_OVERRIDE_LIBRARY(ale->id)))) {
+  /* Don't allow renaming linked/liboverride channels. */
+  if (ale->fcurve_owner_id != NULL &&
+      (ID_IS_LINKED(ale->fcurve_owner_id) || ID_IS_OVERRIDE_LIBRARY(ale->fcurve_owner_id))) {
     ANIM_animdata_freelist(&anim_data);
     return false;
+  }
+  if (ale->id != NULL) {
+    if (ID_IS_LINKED(ale->id)) {
+      ANIM_animdata_freelist(&anim_data);
+      return false;
+    }
+    /* There is one exception to not allowing renaming on liboverride channels: locally-inserted
+     * NLA tracks. */
+    if (ID_IS_OVERRIDE_LIBRARY(ale->id)) {
+      switch (ale->type) {
+        case ANIMTYPE_NLATRACK: {
+          NlaTrack *nlt = (NlaTrack *)ale->data;
+          if ((nlt->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0) {
+            ANIM_animdata_freelist(&anim_data);
+            return false;
+          }
+          break;
+        }
+        default:
+          ANIM_animdata_freelist(&anim_data);
+          return false;
+      }
+    }
   }
 
   /* check that channel can be renamed */
