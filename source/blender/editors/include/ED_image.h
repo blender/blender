@@ -64,8 +64,11 @@ bool ED_space_image_get_position(struct SpaceImage *sima,
 /**
  * Returns color in linear space, matching #ED_space_node_color_sample().
  */
-bool ED_space_image_color_sample(
-    struct SpaceImage *sima, struct ARegion *region, int mval[2], float r_col[3], bool *r_is_data);
+bool ED_space_image_color_sample(struct SpaceImage *sima,
+                                 struct ARegion *region,
+                                 const int mval[2],
+                                 float r_col[3],
+                                 bool *r_is_data);
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock, int tile);
 /**
  * Get the #SpaceImage flag that is valid for the given ibuf.

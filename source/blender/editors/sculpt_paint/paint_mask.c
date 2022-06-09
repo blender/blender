@@ -1584,7 +1584,7 @@ static int sculpt_trim_gesture_box_invoke(bContext *C, wmOperator *op, const wmE
   SculptSession *ss = ob->sculpt;
 
   SculptCursorGeometryInfo sgi;
-  float mouse[2] = {event->mval[0], event->mval[1]};
+  const float mouse[2] = {event->mval[0], event->mval[1]};
   SCULPT_vertex_random_access_ensure(ss);
   ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
   if (ss->gesture_initial_hit) {
@@ -1625,7 +1625,7 @@ static int sculpt_trim_gesture_lasso_invoke(bContext *C, wmOperator *op, const w
   SculptSession *ss = ob->sculpt;
 
   SculptCursorGeometryInfo sgi;
-  float mouse[2] = {event->mval[0], event->mval[1]};
+  const float mouse[2] = {event->mval[0], event->mval[1]};
   SCULPT_vertex_random_access_ensure(ss);
   ss->gesture_initial_hit = SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
   if (ss->gesture_initial_hit) {

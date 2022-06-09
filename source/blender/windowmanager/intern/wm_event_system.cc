@@ -1379,7 +1379,7 @@ static int wm_operator_invoke(bContext *C,
 
     if (op->type->invoke && event) {
       /* Temporarily write into `mval` (not technically `const` correct) but this is restored. */
-      int mval_prev[2] = {UNPACK2(event->mval)};
+      const int mval_prev[2] = {UNPACK2(event->mval)};
       wm_region_mouse_co(C, (wmEvent *)event);
 
       if (op->type->flag & OPTYPE_UNDO) {
@@ -3393,7 +3393,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
               else {
                 /* Position is where the actual click happens, for more
                  * accurate selecting in case the mouse drifts a little. */
-                int xy[2] = {UNPACK2(event->xy)};
+                const int xy[2] = {UNPACK2(event->xy)};
 
                 copy_v2_v2_int(event->xy, event->prev_press_xy);
                 event->val = KM_CLICK;

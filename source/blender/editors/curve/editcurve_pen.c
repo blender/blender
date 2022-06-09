@@ -843,7 +843,7 @@ static bool insert_point_to_segment(const ViewContext *vc, const wmEvent *event)
 {
   Curve *cu = vc->obedit->data;
   CutData cd = init_cut_data(event);
-  float mval[2] = {UNPACK2(event->mval)};
+  const float mval[2] = {UNPACK2(event->mval)};
   const float threshold_dist_px = ED_view3d_select_dist_px() * SEL_DIST_FACTOR;
   const bool near_spline = update_cut_data_for_all_nurbs(
       vc, BKE_curve_editNurbs_get(cu), mval, threshold_dist_px, &cd);
@@ -1134,7 +1134,7 @@ static bool is_spline_nearby(ViewContext *vc,
   ListBase *nurbs = BKE_curve_editNurbs_get(cu);
   CutData cd = init_cut_data(event);
 
-  float mval[2] = {UNPACK2(event->mval)};
+  const float mval[2] = {UNPACK2(event->mval)};
   const bool nearby = update_cut_data_for_all_nurbs(vc, nurbs, mval, sel_dist, &cd);
 
   if (nearby) {

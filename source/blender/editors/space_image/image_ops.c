@@ -3204,7 +3204,7 @@ bool ED_space_image_get_position(SpaceImage *sima,
 }
 
 bool ED_space_image_color_sample(
-    SpaceImage *sima, ARegion *region, int mval[2], float r_col[3], bool *r_is_data)
+    SpaceImage *sima, ARegion *region, const int mval[2], float r_col[3], bool *r_is_data)
 {
   if (r_is_data) {
     *r_is_data = false;
