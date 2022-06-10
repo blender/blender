@@ -67,8 +67,10 @@ void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
 
   for (auto *override_prop :
        ListBaseWrapper<IDOverrideLibraryProperty>(id.override_library->properties)) {
+    int rnaprop_index = 0;
     const bool is_rna_path_valid = BKE_lib_override_rna_property_find(
-        &idpoin, override_prop, &override_rna_ptr, &override_rna_prop);
+        &idpoin, override_prop, &override_rna_ptr, &override_rna_prop, &rnaprop_index);
+
     if (is_rna_path_valid && !show_system_overrides &&
         ELEM(override_prop->rna_prop_type, PROP_POINTER, PROP_COLLECTION) &&
         RNA_struct_is_ID(RNA_property_pointer_type(&override_rna_ptr, override_rna_prop))) {

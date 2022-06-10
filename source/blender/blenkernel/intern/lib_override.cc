@@ -312,7 +312,6 @@ bool BKE_lib_override_library_is_user_edited(const ID *id)
 
 bool BKE_lib_override_library_is_system_defined(const Main *bmain, const ID *id)
 {
-
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     const ID *override_owner_id;
     lib_override_get(bmain, id, &override_owner_id);
@@ -2677,11 +2676,12 @@ IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibra
 bool BKE_lib_override_rna_property_find(PointerRNA *idpoin,
                                         const IDOverrideLibraryProperty *library_prop,
                                         PointerRNA *r_override_poin,
-                                        PropertyRNA **r_override_prop)
+                                        PropertyRNA **r_override_prop,
+                                        int *r_index)
 {
   BLI_assert(RNA_struct_is_ID(idpoin->type) && ID_IS_OVERRIDE_LIBRARY(idpoin->data));
-  return RNA_path_resolve_property(
-      idpoin, library_prop->rna_path, r_override_poin, r_override_prop);
+  return RNA_path_resolve_property_full(
+      idpoin, library_prop->rna_path, r_override_poin, r_override_prop, r_index);
 }
 
 void lib_override_library_property_copy(IDOverrideLibraryProperty *op_dst,

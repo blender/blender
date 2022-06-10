@@ -281,11 +281,14 @@ void BKE_lib_override_library_property_delete(struct IDOverrideLibrary *override
  *
  * \param idpoin: Pointer to the override ID.
  * \param library_prop: The library override property to find the matching RNA property for.
+ * \param r_index: The RNA array flat index (i.e. flatened index in case of multi-dimensional array
+ * properties). See #RNA_path_resolve_full familly of functions for details.
  */
 bool BKE_lib_override_rna_property_find(struct PointerRNA *idpoin,
                                         const struct IDOverrideLibraryProperty *library_prop,
                                         struct PointerRNA *r_override_poin,
-                                        struct PropertyRNA **r_override_prop);
+                                        struct PropertyRNA **r_override_prop,
+                                        int *r_index);
 
 /**
  * Find override property operation from given sub-item(s), if it exists.
