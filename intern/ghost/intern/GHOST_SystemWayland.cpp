@@ -38,6 +38,8 @@
 
 #include <cstring>
 
+static GHOST_IWindow *get_window(struct wl_surface *surface);
+
 /* -------------------------------------------------------------------- */
 /** \name Private Types & Defines
  * \{ */
@@ -131,6 +133,7 @@ struct input_t {
 
   struct wl_surface *focus_pointer = nullptr;
   struct wl_surface *focus_keyboard = nullptr;
+  struct wl_surface *focus_dnd = nullptr;
 
   struct wl_data_device *data_device = nullptr;
   /** Drag & Drop. */
@@ -508,7 +511,7 @@ static void dnd_events(const input_t *const input, const GHOST_TEventType event)
 {
   const uint64_t time = input->system->getMilliSeconds();
   GHOST_IWindow *const window = static_cast<GHOST_WindowWayland *>(
-      wl_surface_get_user_data(input->focus_pointer));
+      wl_surface_get_user_data(input->focus_dnd));
   for (const std::string &type : mime_preference_order) {
     input->system->pushEvent(new GHOST_EventDragnDrop(time,
                                                       event,
@@ -670,7 +673,7 @@ static void data_device_data_offer(void * /*data*/,
 static void data_device_enter(void *data,
                               struct wl_data_device * /*wl_data_device*/,
                               uint32_t serial,
-                              struct wl_surface * /*surface*/,
+                              struct wl_surface *surface,
                               wl_fixed_t x,
                               wl_fixed_t y,
                               struct wl_data_offer *id)
@@ -692,6 +695,7 @@ static void data_device_enter(void *data,
     wl_data_offer_accept(id, serial, type.c_str());
   }
 
+  input->focus_dnd = surface;
   dnd_events(input, GHOST_kEventDraggingEntered);
 }
 
@@ -700,6 +704,7 @@ static void data_device_leave(void *data, struct wl_data_device * /*wl_data_devi
   input_t *input = static_cast<input_t *>(data);
 
   dnd_events(input, GHOST_kEventDraggingExited);
+  input->focus_dnd = nullptr;
 
   if (input->data_offer_dnd && !input->data_offer_dnd->in_use.load()) {
     wl_data_offer_destroy(input->data_offer_dnd->id);
@@ -732,6 +737,7 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
 
   auto read_uris = [](input_t *const input,
                       data_offer_t *data_offer,
+                      wl_surface *surface,
                       const std::string mime_receive) {
     const int x = data_offer->dnd.x;
     const int y = data_offer->dnd.y;
@@ -749,6 +755,9 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
     if (mime_receive == mime_text_uri) {
       static constexpr const char *file_proto = "file://";
       static constexpr const char *crlf = "\r\n";
+
+      GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(surface));
+      GHOST_ASSERT(win != nullptr, "Unable to find window for drop event from surface");
 
       std::vector<std::string> uris;
 
@@ -773,8 +782,6 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
         flist->strings[i] = static_cast<uint8_t *>(malloc((uris[i].size() + 1) * sizeof(uint8_t)));
         memcpy(flist->strings[i], uris[i].data(), uris[i].size() + 1);
       }
-      GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
-          wl_surface_get_user_data(input->focus_pointer));
       system->pushEvent(new GHOST_EventDragnDrop(system->getMilliSeconds(),
                                                  GHOST_kEventDraggingDropDone,
                                                  GHOST_kDragnDropTypeFilenames,
@@ -790,7 +797,9 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
     wl_display_roundtrip(system->display());
   };
 
-  std::thread read_thread(read_uris, input, data_offer, mime_receive);
+  /* Pass in `input->focus_dnd` instead of accessing it from `input` since the leave callback
+   * (#data_device_leave) will clear the value once this function starts. */
+  std::thread read_thread(read_uris, input, data_offer, input->focus_dnd, mime_receive);
   read_thread.detach();
 }
 
@@ -1480,7 +1489,7 @@ static void global_add(void *data,
   }
   else if (!strcmp(interface, wl_data_device_manager_interface.name)) {
     display->data_device_manager = static_cast<wl_data_device_manager *>(
-        wl_registry_bind(wl_registry, name, &wl_data_device_manager_interface, 1));
+        wl_registry_bind(wl_registry, name, &wl_data_device_manager_interface, 3));
   }
   else if (!strcmp(interface, zwp_relative_pointer_manager_v1_interface.name)) {
     display->relative_pointer_manager = static_cast<zwp_relative_pointer_manager_v1 *>(
