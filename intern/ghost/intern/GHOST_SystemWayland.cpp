@@ -1561,42 +1561,44 @@ int GHOST_SystemWayland::setConsoleWindowState(GHOST_TConsoleWindowState /*actio
 
 GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
-  if (!d->inputs.empty()) {
-    static const xkb_state_component mods_all = xkb_state_component(
-        XKB_STATE_MODS_DEPRESSED | XKB_STATE_MODS_LATCHED | XKB_STATE_MODS_LOCKED |
-        XKB_STATE_MODS_EFFECTIVE);
-
-    keys.set(GHOST_kModifierKeyLeftShift,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) ==
-                 1);
-    keys.set(GHOST_kModifierKeyRightShift,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) ==
-                 1);
-    keys.set(GHOST_kModifierKeyLeftAlt,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "LAlt", mods_all) == 1);
-    keys.set(GHOST_kModifierKeyRightAlt,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "RAlt", mods_all) == 1);
-    keys.set(GHOST_kModifierKeyLeftControl,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "LControl", mods_all) == 1);
-    keys.set(GHOST_kModifierKeyRightControl,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "RControl", mods_all) == 1);
-    keys.set(GHOST_kModifierKeyOS,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "Super", mods_all) == 1);
-    keys.set(GHOST_kModifierKeyNumMasks,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "NumLock", mods_all) == 1);
-
-    return GHOST_kSuccess;
+  if (d->inputs.empty()) {
+    return GHOST_kFailure;
   }
-  return GHOST_kFailure;
+
+  static const xkb_state_component mods_all = xkb_state_component(
+      XKB_STATE_MODS_DEPRESSED | XKB_STATE_MODS_LATCHED | XKB_STATE_MODS_LOCKED |
+      XKB_STATE_MODS_EFFECTIVE);
+
+  keys.set(GHOST_kModifierKeyLeftShift,
+           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) ==
+               1);
+  keys.set(GHOST_kModifierKeyRightShift,
+           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) ==
+               1);
+  keys.set(GHOST_kModifierKeyLeftAlt,
+           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "LAlt", mods_all) == 1);
+  keys.set(GHOST_kModifierKeyRightAlt,
+           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "RAlt", mods_all) == 1);
+  keys.set(GHOST_kModifierKeyLeftControl,
+           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "LControl", mods_all) == 1);
+  keys.set(GHOST_kModifierKeyRightControl,
+           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "RControl", mods_all) == 1);
+  keys.set(GHOST_kModifierKeyOS,
+           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "Super", mods_all) == 1);
+  keys.set(GHOST_kModifierKeyNumMasks,
+           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "NumLock", mods_all) == 1);
+
+  return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 {
-  if (!d->inputs.empty()) {
-    buttons = d->inputs[0]->buttons;
-    return GHOST_kSuccess;
+  if (d->inputs.empty()) {
+    return GHOST_kFailure;
   }
-  return GHOST_kFailure;
+
+  buttons = d->inputs[0]->buttons;
+  return GHOST_kSuccess;
 }
 
 char *GHOST_SystemWayland::getClipboard(bool /*selection*/) const
@@ -1813,14 +1815,20 @@ static void set_cursor_buffer(input_t *input, wl_buffer *buffer)
 
   c->visible = (buffer != nullptr);
 
-  wl_surface_attach(c->surface, buffer, 0, 0);
+  const int32_t image_size_x = int32_t(c->image.width);
+  const int32_t image_size_y = int32_t(c->image.height);
 
-  wl_surface_damage(c->surface, 0, 0, int32_t(c->image.width), int32_t(c->image.height));
+  const int32_t hotspot_x = int32_t(c->image.hotspot_x) / c->scale;
+  const int32_t hotspot_y = int32_t(c->image.hotspot_y) / c->scale;
+
+  wl_surface_attach(c->surface, buffer, 0, 0);
+  wl_surface_damage(c->surface, 0, 0, image_size_x, image_size_y);
+
   wl_pointer_set_cursor(input->pointer,
                         input->pointer_serial,
                         c->visible ? c->surface : nullptr,
-                        int32_t(c->image.hotspot_x) / c->scale,
-                        int32_t(c->image.hotspot_y) / c->scale);
+                        hotspot_x,
+                        hotspot_y);
 
   wl_surface_commit(c->surface);
 }
