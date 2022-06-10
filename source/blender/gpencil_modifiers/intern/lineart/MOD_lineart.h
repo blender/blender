@@ -210,52 +210,107 @@ typedef struct LineartPendingEdges {
   int next;
 } LineartPendingEdges;
 
-typedef struct LineartRenderBuffer {
-  struct LineartRenderBuffer *prev, *next;
-
-  int thread_count;
+typedef struct LineartData {
 
   int w, h;
-  int tile_size_w, tile_size_h;
-  int tile_count_x, tile_count_y;
-  double width_per_tile, height_per_tile;
-  double view_projection[4][4];
-  double view[4][4];
+  int thread_count;
+  int sizeof_triangle;
 
-  float overscan;
+  LineartStaticMemPool render_data_pool;
+  /* A pointer to LineartCache::chain_data_pool, which acts as a cache for edge chains. */
+  LineartStaticMemPool *chain_data_pool;
 
-  struct LineartBoundingArea *initial_bounding_areas;
-  unsigned int bounding_area_count;
+  struct _qtree {
 
-  /* When splitting bounding areas, if there's an ortho camera placed at a straight angle, there
-   * will be a lot of triangles aligned in line which can not be separated by continue subdividing
-   * the tile. So we set a strict limit when using ortho camera. See eLineArtTileRecursiveLimit. */
-  int tile_recursive_level;
+    int count_x, count_y;
+    double tile_width, tile_height;
 
-  ListBase vertex_buffer_pointers;
-  ListBase line_buffer_pointers;
-  ListBase triangle_buffer_pointers;
+    /* When splitting bounding areas, if there's an ortho camera placed at a straight angle, there
+     * will be a lot of triangles aligned in line which can not be separated by continue
+     * subdividing the tile. So we set a strict limit when using ortho camera. See
+     * eLineArtTileRecursiveLimit. */
+    int recursive_level;
+
+    struct LineartBoundingArea *initials;
+
+    unsigned int tile_count;
+
+  } qtree;
+
+  struct _geom {
+
+    ListBase vertex_buffer_pointers;
+    ListBase line_buffer_pointers;
+    ListBase triangle_buffer_pointers;
+
+    /** This one's memory is not from main pool and is free()ed after culling stage. */
+    ListBase triangle_adjacent_pointers;
+
+    ListBase intersecting_vertex_buffer;
+
+  } geom;
+
+  struct _conf {
+
+    double view_projection[4][4];
+    double view[4][4];
+
+    float overscan;
+
+    int max_occlusion_level;
+    double crease_angle;
+    double crease_cos;
+
+    int draw_material_preview;
+    double material_transparency;
+
+    bool use_contour;
+    bool use_crease;
+    bool use_material;
+    bool use_edge_marks;
+    bool use_intersections;
+    bool use_loose;
+    bool fuzzy_intersections;
+    bool fuzzy_everything;
+    bool allow_boundaries;
+    bool allow_overlapping_edges;
+    bool allow_duplicated_types;
+    bool remove_doubles;
+    bool use_loose_as_contour;
+    bool use_loose_edge_chain;
+    bool use_geometry_space_chain;
+    bool use_image_boundary_trimming;
+    bool use_back_face_culling;
+
+    bool filter_face_mark;
+    bool filter_face_mark_invert;
+    bool filter_face_mark_boundaries;
+    bool filter_face_mark_keep_contour;
+
+    bool force_crease;
+    bool sharp_as_crease;
+
+    bool chain_preserve_details;
+
+    /* Keep an copy of these data so when line art is running it's self-contained. */
+    bool cam_is_persp;
+    float cam_obmat[4][4];
+    double camera_pos[3];
+    double active_camera_pos[3]; /* Stroke offset calculation may use active or selected camera. */
+    double near_clip, far_clip;
+    float shift_x, shift_y;
+    float crease_threshold;
+    float chaining_image_threshold;
+    float angle_splitting_threshold;
+
+    float chain_smooth_tolerance;
+
+    double view_vector[3];
+
+  } conf;
 
   LineartElementLinkNode *isect_scheduled_up_to;
   int isect_scheduled_up_to_index;
-
-  /** This one's memory is not from main pool and is free()ed after culling stage. */
-  ListBase triangle_adjacent_pointers;
-
-  ListBase intersecting_vertex_buffer;
-  /** Use the one comes with Line Art. */
-  LineartStaticMemPool render_data_pool;
-  ListBase wasted_cuts;
-  SpinLock lock_cuts;
-
-  /* This is just a pointer to LineartCache::chain_data_pool, which acts as a cache for line
-   * chains. */
-  LineartStaticMemPool *chain_data_pool;
-
-  /*  Render status */
-  double view_vector[3];
-
-  int triangle_size;
 
   /* Note: Data inside #pending_edges are allocated with MEM_xxx call instead of in pool. */
   struct LineartPendingEdges pending_edges;
@@ -263,75 +318,18 @@ typedef struct LineartRenderBuffer {
 
   ListBase chains;
 
-  /* For managing calculation tasks for multiple threads. */
+  ListBase wasted_cuts;
+  SpinLock lock_cuts;
   SpinLock lock_task;
 
-  /*  settings */
-
-  int max_occlusion_level;
-  double crease_angle;
-  double crease_cos;
-
-  int draw_material_preview;
-  double material_transparency;
-
-  bool use_contour;
-  bool use_crease;
-  bool use_material;
-  bool use_edge_marks;
-  bool use_intersections;
-  bool use_loose;
-  bool fuzzy_intersections;
-  bool fuzzy_everything;
-  bool allow_boundaries;
-  bool allow_overlapping_edges;
-  bool allow_duplicated_types;
-  bool remove_doubles;
-  bool use_loose_as_contour;
-  bool use_loose_edge_chain;
-  bool use_geometry_space_chain;
-  bool use_image_boundary_trimming;
-  bool use_back_face_culling;
-
-  bool filter_face_mark;
-  bool filter_face_mark_invert;
-  bool filter_face_mark_boundaries;
-  bool filter_face_mark_keep_contour;
-
-  bool force_crease;
-  bool sharp_as_crease;
-
-  bool chain_preserve_details;
-
-  /* Keep an copy of these data so when line art is running it's self-contained. */
-  bool cam_is_persp;
-  float cam_obmat[4][4];
-  double camera_pos[3];
-  double active_camera_pos[3]; /* Stroke offset calculation may use active or selected camera. */
-  double near_clip, far_clip;
-  float shift_x, shift_y;
-  float crease_threshold;
-  float chaining_image_threshold;
-  float angle_splitting_threshold;
-
-  float chain_smooth_tolerance;
-
-  /* FIXME(Yiming): Temporary solution for speeding up calculation by not including lines that
-   * are not in the selected source. This will not be needed after we have a proper scene-wise
-   * cache running because multiple modifiers can then select results from that without further
-   * calculation. */
-  int _source_type;
-  struct Collection *_source_collection;
-  struct Object *_source_object;
-
-} LineartRenderBuffer;
+} LineartData;
 
 typedef struct LineartCache {
   /** Separate memory pool for chain data, this goes to the cache, so when we free the main pool,
    * chains will still be available. */
   LineartStaticMemPool chain_data_pool;
 
-  /** A copy of rb->chains so we have that data available after rb has been destroyed. */
+  /** A copy of ld->chains so we have that data available after ld has been destroyed. */
   ListBase chains;
 
   /** Cache only contains edge types specified in this variable. */
@@ -361,13 +359,13 @@ typedef enum eLineartTriangleFlags {
 #define LRT_THREAD_EDGE_COUNT 1000
 
 typedef struct LineartRenderTaskInfo {
-  struct LineartRenderBuffer *rb;
+  struct LineartData *ld;
 
   int thread_id;
 
   /**
    * #pending_edges here only stores a reference to a portion in
-   * LineartRenderbuffer::pending_edges, assigned by the occlusion scheduler.
+   * LineartData::pending_edges, assigned by the occlusion scheduler.
    */
   struct LineartPendingEdges pending_edges;
 
@@ -393,7 +391,7 @@ typedef struct LineartObjectInfo {
 } LineartObjectInfo;
 
 typedef struct LineartObjectLoadTaskInfo {
-  struct LineartRenderBuffer *rb;
+  struct LineartData *ld;
   int thread_id;
   /* LinkNode styled list */
   LineartObjectInfo *pending;
@@ -632,30 +630,28 @@ BLI_INLINE int lineart_intersect_seg_seg(const double *a1,
 
 struct Depsgraph;
 struct LineartGpencilModifierData;
-struct LineartRenderBuffer;
+struct LineartData;
 struct Scene;
 
 void MOD_lineart_destroy_render_data(struct LineartGpencilModifierData *lmd);
 
-void MOD_lineart_chain_feature_lines(LineartRenderBuffer *rb);
-void MOD_lineart_chain_split_for_fixed_occlusion(LineartRenderBuffer *rb);
+void MOD_lineart_chain_feature_lines(LineartData *ld);
+void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld);
 /**
  * This function only connects two different chains. It will not do any clean up or smart chaining.
  * So no: removing overlapping chains, removal of short isolated segments, and no loop reduction is
  * implemented yet.
  */
-void MOD_lineart_chain_connect(LineartRenderBuffer *rb);
-void MOD_lineart_chain_discard_short(LineartRenderBuffer *rb, float threshold);
-void MOD_lineart_chain_clip_at_border(LineartRenderBuffer *rb);
+void MOD_lineart_chain_connect(LineartData *ld);
+void MOD_lineart_chain_discard_short(LineartData *ld, float threshold);
+void MOD_lineart_chain_clip_at_border(LineartData *ld);
 /**
  * This should always be the last stage!, see the end of
  * #MOD_lineart_chain_split_for_fixed_occlusion().
  */
-void MOD_lineart_chain_split_angle(LineartRenderBuffer *rb, float angle_threshold_rad);
-void MOD_lineart_smooth_chains(LineartRenderBuffer *rb, float tolerance);
-void MOD_lineart_chain_offset_towards_camera(LineartRenderBuffer *rb,
-                                             float dist,
-                                             bool use_custom_camera);
+void MOD_lineart_chain_split_angle(LineartData *ld, float angle_threshold_rad);
+void MOD_lineart_smooth_chains(LineartData *ld, float tolerance);
+void MOD_lineart_chain_offset_towards_camera(LineartData *ld, float dist, bool use_custom_camera);
 
 int MOD_lineart_chain_count(const LineartEdgeChain *ec);
 void MOD_lineart_chain_clear_picked_flag(LineartCache *lc);
@@ -675,14 +671,12 @@ struct Scene;
 /**
  * This only gets initial "biggest" tile.
  */
-LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartRenderBuffer *rb,
-                                                          double x,
-                                                          double y);
+LineartBoundingArea *MOD_lineart_get_parent_bounding_area(LineartData *ld, double x, double y);
 
 /**
  * Wrapper for more convenience.
  */
-LineartBoundingArea *MOD_lineart_get_bounding_area(LineartRenderBuffer *rb, double x, double y);
+LineartBoundingArea *MOD_lineart_get_bounding_area(LineartData *ld, double x, double y);
 
 struct bGPDframe;
 struct bGPDlayer;

@@ -212,13 +212,13 @@ void lineart_matrix_ortho_44d(double (*mProjection)[4],
   mProjection[3][3] = 1.0f;
 }
 
-void lineart_count_and_print_render_buffer_memory(LineartRenderBuffer *rb)
+void lineart_count_and_print_render_buffer_memory(LineartData *ld)
 {
   size_t total = 0;
   size_t sum_this = 0;
   size_t count_this = 0;
 
-  LISTBASE_FOREACH (LineartStaticMemPoolNode *, smpn, &rb->render_data_pool.pools) {
+  LISTBASE_FOREACH (LineartStaticMemPoolNode *, smpn, &ld->render_data_pool.pools) {
     count_this++;
     sum_this += LRT_MEMORY_POOL_1MB;
   }
@@ -227,7 +227,7 @@ void lineart_count_and_print_render_buffer_memory(LineartRenderBuffer *rb)
   sum_this = 0;
   count_this = 0;
 
-  LISTBASE_FOREACH (LineartElementLinkNode *, reln, &rb->line_buffer_pointers) {
+  LISTBASE_FOREACH (LineartElementLinkNode *, reln, &ld->geom.line_buffer_pointers) {
     count_this++;
     sum_this += reln->element_count * sizeof(LineartEdge);
   }
@@ -236,9 +236,9 @@ void lineart_count_and_print_render_buffer_memory(LineartRenderBuffer *rb)
   sum_this = 0;
   count_this = 0;
 
-  LISTBASE_FOREACH (LineartElementLinkNode *, reln, &rb->triangle_buffer_pointers) {
+  LISTBASE_FOREACH (LineartElementLinkNode *, reln, &ld->geom.triangle_buffer_pointers) {
     count_this++;
-    sum_this += reln->element_count * rb->triangle_size;
+    sum_this += reln->element_count * ld->sizeof_triangle;
   }
   printf("             allocated %zu triangle blocks, total %zu Bytes.\n", count_this, sum_this);
   total += sum_this;
