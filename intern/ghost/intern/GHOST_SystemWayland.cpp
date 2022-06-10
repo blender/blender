@@ -137,7 +137,7 @@ struct input_t {
   struct wl_data_device *data_device = nullptr;
   /** Drag & Drop. */
   struct data_offer_t *data_offer_dnd;
-  std::mutex data_offer_dnd_lock;
+  std::mutex data_offer_dnd_mutex;
 
   /** Copy & Paste. */
   struct data_offer_t *data_offer_copy_paste;
@@ -518,7 +518,7 @@ static const zwp_relative_pointer_v1_listener relative_pointer_listener = {
 
 static void dnd_events(const input_t *const input, const GHOST_TEventType event)
 {
-  /* NOTE: `input->data_offer_dnd_lock` must already be locked. */
+  /* NOTE: `input->data_offer_dnd_mutex` must already be locked. */
   const uint64_t time = input->system->getMilliSeconds();
   GHOST_IWindow *const window = static_cast<GHOST_WindowWayland *>(
       wl_surface_get_user_data(input->focus_dnd));
@@ -700,7 +700,7 @@ static void data_device_enter(void *data,
                               struct wl_data_offer *id)
 {
   input_t *input = static_cast<input_t *>(data);
-  std::lock_guard lock{input->data_offer_dnd_lock};
+  std::lock_guard lock{input->data_offer_dnd_mutex};
 
   input->data_offer_dnd = static_cast<data_offer_t *>(wl_data_offer_get_user_data(id));
   data_offer_t *data_offer = input->data_offer_dnd;
@@ -725,7 +725,7 @@ static void data_device_enter(void *data,
 static void data_device_leave(void *data, struct wl_data_device * /*wl_data_device*/)
 {
   input_t *input = static_cast<input_t *>(data);
-  std::lock_guard lock{input->data_offer_dnd_lock};
+  std::lock_guard lock{input->data_offer_dnd_mutex};
 
   dnd_events(input, GHOST_kEventDraggingExited);
   input->focus_dnd = nullptr;
@@ -744,7 +744,7 @@ static void data_device_motion(void *data,
                                wl_fixed_t y)
 {
   input_t *input = static_cast<input_t *>(data);
-  std::lock_guard lock{input->data_offer_dnd_lock};
+  std::lock_guard lock{input->data_offer_dnd_mutex};
 
   input->data_offer_dnd->dnd.x = wl_fixed_to_int(x);
   input->data_offer_dnd->dnd.y = wl_fixed_to_int(y);
@@ -754,7 +754,7 @@ static void data_device_motion(void *data,
 static void data_device_drop(void *data, struct wl_data_device * /*wl_data_device*/)
 {
   input_t *input = static_cast<input_t *>(data);
-  std::lock_guard lock{input->data_offer_dnd_lock};
+  std::lock_guard lock{input->data_offer_dnd_mutex};
 
   data_offer_t *data_offer = input->data_offer_dnd;
 
