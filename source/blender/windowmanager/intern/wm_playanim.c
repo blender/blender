@@ -33,6 +33,7 @@
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_system.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.h"
@@ -1535,6 +1536,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   {
 
     GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(ghost_event_proc, &ps);
+
+    GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
 
     g_WS.ghost_system = GHOST_CreateSystem();
     GHOST_AddEventConsumer(g_WS.ghost_system, consumer);

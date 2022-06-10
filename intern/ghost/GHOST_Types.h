@@ -42,6 +42,8 @@ GHOST_DECLARE_HANDLE(GHOST_EventConsumerHandle);
 GHOST_DECLARE_HANDLE(GHOST_ContextHandle);
 GHOST_DECLARE_HANDLE(GHOST_XrContextHandle);
 
+typedef void (*GHOST_TBacktraceFn)(void *file_handle);
+
 typedef struct {
   int flags;
 } GHOST_GLSettings;

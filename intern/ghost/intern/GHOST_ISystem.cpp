@@ -31,6 +31,8 @@
 
 GHOST_ISystem *GHOST_ISystem::m_system = nullptr;
 
+GHOST_TBacktraceFn GHOST_ISystem::m_backtrace_fn = nullptr;
+
 GHOST_TSuccess GHOST_ISystem::createSystem()
 {
   GHOST_TSuccess success;
@@ -88,4 +90,14 @@ GHOST_TSuccess GHOST_ISystem::disposeSystem()
 GHOST_ISystem *GHOST_ISystem::getSystem()
 {
   return m_system;
+}
+
+GHOST_TBacktraceFn GHOST_ISystem::getBacktraceFn()
+{
+  return GHOST_ISystem::m_backtrace_fn;
+}
+
+void GHOST_ISystem::setBacktraceFn(GHOST_TBacktraceFn backtrace_fn)
+{
+  GHOST_ISystem::m_backtrace_fn = backtrace_fn;
 }

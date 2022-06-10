@@ -133,6 +133,9 @@ class GHOST_ISystem {
    */
   static GHOST_ISystem *getSystem();
 
+  static GHOST_TBacktraceFn getBacktraceFn();
+  static void setBacktraceFn(GHOST_TBacktraceFn backtrace_fn);
+
  protected:
   /**
    * Constructor.
@@ -481,6 +484,9 @@ class GHOST_ISystem {
 
   /** The one and only system */
   static GHOST_ISystem *m_system;
+
+  /** Function to call that sets the back-trace. */
+  static GHOST_TBacktraceFn m_backtrace_fn;
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_ISystem")

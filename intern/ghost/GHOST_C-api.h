@@ -907,6 +907,11 @@ extern int GHOST_UseNativePixels(void);
 extern int GHOST_SupportsCursorWarp(void);
 
 /**
+ * Assign the callback which generates a back-trace (may be NULL).
+ */
+extern void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn);
+
+/**
  * Focus window after opening, or put them in the background.
  */
 extern void GHOST_UseWindowFocus(int use_focus);
