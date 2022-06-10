@@ -42,9 +42,7 @@ struct StackEntry {
 
 struct CyclesSolverState {
   CyclesSolverState(Depsgraph *graph)
-      : graph(graph),
-        traversal_stack(BLI_stack_new(sizeof(StackEntry), "DEG detect cycles stack")),
-        num_cycles(0)
+      : graph(graph), traversal_stack(BLI_stack_new(sizeof(StackEntry), "DEG detect cycles stack"))
   {
     /* pass */
   }
@@ -57,7 +55,7 @@ struct CyclesSolverState {
   }
   Depsgraph *graph;
   BLI_Stack *traversal_stack;
-  int num_cycles;
+  int num_cycles = 0;
 };
 
 inline void set_node_visited_state(Node *node, eCyclicCheckVisitedState state)

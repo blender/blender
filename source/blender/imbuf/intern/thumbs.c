@@ -30,7 +30,6 @@
 #include "IMB_thumbs.h"
 
 #include <ctype.h>
-#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -514,7 +513,7 @@ void IMB_thumb_delete(const char *filepath, ThumbSize size)
   }
 }
 
-ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source)
+ImBuf *IMB_thumb_manage(const char *filepath, ThumbSize size, ThumbSource source)
 {
   char thumb_path[FILE_MAX];
   char thumb_name[40];
@@ -526,7 +525,7 @@ ImBuf *IMB_thumb_manage(const char *org_path, ThumbSize size, ThumbSource source
   ImBuf *img = NULL;
   char *blen_group = NULL, *blen_id = NULL;
 
-  path = file_path = org_path;
+  path = file_path = filepath;
   if (source == THB_SOURCE_BLEND) {
     if (BLO_library_path_explode(path, path_buff, &blen_group, &blen_id)) {
       if (blen_group) {

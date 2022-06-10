@@ -873,7 +873,7 @@ bool WM_operator_poll(bContext *C, wmOperatorType *ot)
 {
 
   LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &ot->macro) {
-    wmOperatorType *ot_macro = WM_operatortype_find(macro->idname, 0);
+    wmOperatorType *ot_macro = WM_operatortype_find(macro->idname, false);
 
     if (!WM_operator_poll(C, ot_macro)) {
       return false;
@@ -903,7 +903,7 @@ bool WM_operator_check_ui_empty(wmOperatorType *ot)
   if (ot->macro.first != nullptr) {
     /* For macros, check all have exec() we can call. */
     LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &ot->macro) {
-      wmOperatorType *otm = WM_operatortype_find(macro->idname, 0);
+      wmOperatorType *otm = WM_operatortype_find(macro->idname, false);
       if (otm && !WM_operator_check_ui_empty(otm)) {
         return false;
       }
@@ -1180,7 +1180,7 @@ bool WM_operator_repeat_check(const bContext *UNUSED(C), wmOperator *op)
   if (op->opm) {
     /* For macros, check all have exec() we can call. */
     LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &op->opm->type->macro) {
-      wmOperatorType *otm = WM_operatortype_find(macro->idname, 0);
+      wmOperatorType *otm = WM_operatortype_find(macro->idname, false);
       if (otm && otm->exec == nullptr) {
         return false;
       }
@@ -1260,7 +1260,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
 
         /* Skip invalid properties. */
         if (STREQ(RNA_property_identifier(prop), otmacro->idname)) {
-          wmOperatorType *otm = WM_operatortype_find(otmacro->idname, 0);
+          wmOperatorType *otm = WM_operatortype_find(otmacro->idname, false);
           PointerRNA someptr = RNA_property_pointer_get(properties, prop);
           wmOperator *opm = wm_operator_create(wm, otm, &someptr, nullptr);
 
@@ -1276,7 +1276,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
     }
     else {
       LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &ot->macro) {
-        wmOperatorType *otm = WM_operatortype_find(macro->idname, 0);
+        wmOperatorType *otm = WM_operatortype_find(macro->idname, false);
         wmOperator *opm = wm_operator_create(wm, otm, macro->ptr, nullptr);
 
         BLI_addtail(&motherop->macro, opm);
@@ -1289,7 +1289,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm,
     }
   }
 
-  WM_operator_properties_sanitize(op->ptr, 0);
+  WM_operator_properties_sanitize(op->ptr, false);
 
   return op;
 }
@@ -1649,7 +1649,7 @@ int WM_operator_name_call(bContext *C,
                           PointerRNA *properties,
                           const wmEvent *event)
 {
-  wmOperatorType *ot = WM_operatortype_find(opstring, 0);
+  wmOperatorType *ot = WM_operatortype_find(opstring, false);
   if (ot) {
     return WM_operator_name_call_ptr(C, ot, context, properties, event);
   }
@@ -1659,7 +1659,7 @@ int WM_operator_name_call(bContext *C,
 
 bool WM_operator_name_poll(bContext *C, const char *opstring)
 {
-  wmOperatorType *ot = WM_operatortype_find(opstring, 0);
+  wmOperatorType *ot = WM_operatortype_find(opstring, false);
   if (!ot) {
     return false;
   }
@@ -1827,7 +1827,7 @@ void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
   int flag = ot->flag;
 
   LISTBASE_FOREACH (wmOperatorTypeMacro *, macro, &ot->macro) {
-    wmOperatorType *otm = WM_operatortype_find(macro->idname, 0);
+    wmOperatorType *otm = WM_operatortype_find(macro->idname, false);
     if (otm != nullptr) {
       flag |= otm->flag;
     }
@@ -2396,11 +2396,11 @@ static int wm_handler_operator_call(bContext *C,
     }
   }
   else {
-    wmOperatorType *ot = WM_operatortype_find(kmi_idname, 0);
+    wmOperatorType *ot = WM_operatortype_find(kmi_idname, false);
 
     if (ot && wm_operator_check_locked_interface(C, ot)) {
       bool use_last_properties = true;
-      PointerRNA tool_properties = {0};
+      PointerRNA tool_properties = {nullptr};
 
       bToolRef *keymap_tool = nullptr;
       if (handler_base->type == WM_HANDLER_TYPE_KEYMAP) {
@@ -2770,7 +2770,7 @@ static const char *keymap_handler_log_kmi_op_str(bContext *C,
   /* The key-map item properties can further help distinguish this item from others. */
   char *kmi_props = nullptr;
   if (kmi->properties != nullptr) {
-    wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
+    wmOperatorType *ot = WM_operatortype_find(kmi->idname, false);
     if (ot) {
       kmi_props = RNA_pointer_as_string_keywords(C, kmi->ptr, false, false, true, 512);
     }
@@ -3031,7 +3031,7 @@ static int wm_handlers_do_gizmo_handler(bContext *C,
             if ((kmi->flag & KMI_INACTIVE) == 0) {
               if (wm_eventmatch(&event_test_click, kmi) ||
                   wm_eventmatch(&event_test_click_drag, kmi)) {
-                wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
+                wmOperatorType *ot = WM_operatortype_find(kmi->idname, false);
                 if (WM_operator_poll_context(C, ot, WM_OP_INVOKE_DEFAULT)) {
                   is_event_handle_all = true;
                   break;
@@ -3179,7 +3179,7 @@ static int wm_handlers_do_intern(bContext *C, wmWindow *win, wmEvent *event, Lis
 
                   /* Pass single matched #wmDrag onto the operator. */
                   BLI_remlink(lb, drag);
-                  ListBase single_lb = {0};
+                  ListBase single_lb = {nullptr};
                   BLI_addtail(&single_lb, drag);
                   event->customdata = &single_lb;
 
@@ -4604,7 +4604,7 @@ wmOperator *WM_operator_find_modal_by_type(wmWindow *win, const wmOperatorType *
       return handler->op;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 #if 0
@@ -5632,7 +5632,7 @@ wmKeyMapItem *WM_event_match_keymap_item(bContext *C, wmKeyMap *keymap, const wm
 {
   LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
     if (wm_eventmatch(event, kmi)) {
-      wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
+      wmOperatorType *ot = WM_operatortype_find(kmi->idname, false);
       if (WM_operator_poll_context(C, ot, WM_OP_INVOKE_DEFAULT)) {
         return kmi;
       }
@@ -5882,7 +5882,7 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
       }
     }
     if (kmi) {
-      wmOperatorType *ot = WM_operatortype_find(kmi->idname, 0);
+      wmOperatorType *ot = WM_operatortype_find(kmi->idname, false);
       const char *name = (ot) ? WM_operatortype_name(ot, kmi->ptr) : kmi->idname;
       STRNCPY(cd->text[button_index][type_index], name);
     }

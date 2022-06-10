@@ -81,7 +81,7 @@ static void add_existing_edges_to_hash_maps(Mesh *mesh,
 {
   /* Assume existing edges are valid. */
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
-    const int task_index = &edge_map - &edge_maps[0];
+    const int task_index = &edge_map - edge_maps.data();
     for (const MEdge &edge : Span(mesh->medge, mesh->totedge)) {
       OrderedEdge ordered_edge{edge.v1, edge.v2};
       /* Only add the edge when it belongs into this map. */
@@ -98,7 +98,7 @@ static void add_polygon_edges_to_hash_maps(Mesh *mesh,
 {
   const Span<MLoop> loops{mesh->mloop, mesh->totloop};
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
-    const int task_index = &edge_map - &edge_maps[0];
+    const int task_index = &edge_map - edge_maps.data();
     for (const MPoly &poly : Span(mesh->mpoly, mesh->totpoly)) {
       Span<MLoop> poly_loops = loops.slice(poly.loopstart, poly.totloop);
       const MLoop *prev_loop = &poly_loops.last();
@@ -131,7 +131,7 @@ static void serialize_and_initialize_deduplicated_edges(MutableSpan<EdgeMap> edg
   }
 
   threading::parallel_for_each(edge_maps, [&](EdgeMap &edge_map) {
-    const int task_index = &edge_map - &edge_maps[0];
+    const int task_index = &edge_map - edge_maps.data();
 
     int new_edge_index = edge_index_offsets[task_index];
     for (EdgeMap::MutableItem item : edge_map.items()) {
