@@ -490,6 +490,18 @@ char *RNA_path_append(
 char *RNA_path_back(const char *path);
 #endif
 
+/**
+ * Search for the start of the 'rna array index' part of the given `rna_path`.
+ *
+ * Given the root RNA pointer and resolved RNA property, and the RNA path, return the first
+ * character in `rna_path` that is part of the array index for the given property. Return NULL if
+ * none can be found, e.g. because the property is not an RNA array.
+ *
+ * \param array_prop if not NULL, the PropertyRNA assumed to be the last one from the RNA path.
+ * Only used to ensure it is a valid array property.
+ */
+const char *RNA_path_array_index_token_find(const char *rna_path, const PropertyRNA *array_prop);
+
 /* RNA_path_resolve() variants only ensure that a valid pointer (and optionally property) exist. */
 
 /**
