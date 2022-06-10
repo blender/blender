@@ -171,6 +171,23 @@ struct display_t {
 
 static GHOST_WindowManager *window_manager = nullptr;
 
+/**
+ * Callback for WAYLAND to run when there is an error.
+ *
+ * \note It's useful to set a break-point on this function as some errors are fatal
+ * (for all intents and purposes) but don't crash the process.
+ */
+static void ghost_wayland_log_handler(const char *msg, va_list arg)
+{
+  fprintf(stderr, "GHOST/Wayland: ");
+  vfprintf(stderr, msg, arg); /* Includes newline. */
+
+  GHOST_TBacktraceFn backtrace_fn = GHOST_ISystem::getBacktraceFn();
+  if (backtrace_fn) {
+    backtrace_fn(stderr); /* Includes newline. */
+  }
+}
+
 static void display_destroy(display_t *d)
 {
   if (d->data_device_manager) {
@@ -1503,6 +1520,8 @@ static const struct wl_registry_listener registry_listener = {
 
 GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new display_t)
 {
+  wl_log_set_handler_client(ghost_wayland_log_handler);
+
   d->system = this;
   /* Connect to the Wayland server. */
   d->display = wl_display_connect(nullptr);
