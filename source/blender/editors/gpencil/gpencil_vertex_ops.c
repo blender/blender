@@ -587,7 +587,7 @@ static int gpencil_vertexpaint_set_exec(bContext *C, wmOperator *op)
               srgb_to_linearrgb_v4(color, color);
               for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
                 if ((!any_selected) || (pt->flag & GP_SPOINT_SELECT)) {
-                  copy_v3_v3(pt->vert_color, color);
+                  copy_v4_v4(pt->vert_color, color);
                 }
               }
             }
