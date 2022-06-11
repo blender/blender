@@ -15,13 +15,21 @@
 
 #include <wayland-egl.h>
 
+#include <algorithm> /* For `std::find`. */
+
 static constexpr size_t base_dpi = 96;
 
 struct window_t {
   GHOST_WindowWayland *w;
   wl_surface *surface;
-  /* Outputs on which the window is currently shown on. */
-  std::unordered_set<const output_t *> outputs;
+  /**
+   * Outputs on which the window is currently shown on.
+   *
+   * This is an ordered set (whoever adds to this is responsible for keeping members unique).
+   * In practice this is rarely manipulated and is limited by the number of physical displays.
+   */
+  std::vector<const output_t *> outputs;
+
   uint16_t dpi = 0;
   int scale = 1;
   struct xdg_surface *xdg_surface;
@@ -130,46 +138,38 @@ static const xdg_surface_listener surface_listener = {
     surface_configure,
 };
 
-static bool update_scale(GHOST_WindowWayland *window)
-{
-  int scale = 0;
-  for (const output_t *output : window->outputs_active()) {
-    if (output->scale > scale) {
-      scale = output->scale;
-    }
-  }
-
-  if (scale > 0 && window->scale() != scale) {
-    window->scale() = scale;
-    /* Using the real DPI will cause wrong scaling of the UI
-     * use a multiplier for the default DPI as workaround. */
-    window->dpi() = scale * base_dpi;
-    wl_surface_set_buffer_scale(window->surface(), scale);
-    return true;
-  }
-  return false;
-}
-
 static void surface_enter(void *data, struct wl_surface * /*wl_surface*/, struct wl_output *output)
 {
   GHOST_WindowWayland *w = static_cast<GHOST_WindowWayland *>(data);
-  for (const output_t *reg_output : w->outputs()) {
-    if (reg_output->output == output) {
-      w->outputs_active().insert(reg_output);
-    }
+  output_t *reg_output = w->output_find_by_wl(output);
+  if (reg_output == nullptr) {
+    return;
   }
-  update_scale(w);
+  std::vector<const output_t *> &outputs = w->outputs();
+  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
+  if (it != outputs.end()) {
+    return;
+  }
+  outputs.push_back(reg_output);
+
+  w->outputs_changed_update_scale();
 }
 
 static void surface_leave(void *data, struct wl_surface * /*wl_surface*/, struct wl_output *output)
 {
   GHOST_WindowWayland *w = static_cast<GHOST_WindowWayland *>(data);
-  for (const output_t *reg_output : w->outputs()) {
-    if (reg_output->output == output) {
-      w->outputs_active().erase(reg_output);
-    }
+  output_t *reg_output = w->output_find_by_wl(output);
+  if (reg_output == nullptr) {
+    return;
   }
-  update_scale(w);
+  std::vector<const output_t *> &outputs = w->outputs();
+  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
+  if (it == outputs.end()) {
+    return;
+  }
+  outputs.erase(it);
+
+  w->outputs_changed_update_scale();
 }
 
 struct wl_surface_listener wl_surface_listener = {
@@ -299,22 +299,53 @@ wl_surface *GHOST_WindowWayland::surface() const
   return w->surface;
 }
 
-const std::vector<output_t *> &GHOST_WindowWayland::outputs() const
-{
-  return m_system->outputs();
-}
-
-std::unordered_set<const output_t *> &GHOST_WindowWayland::outputs_active()
+std::vector<const output_t *> &GHOST_WindowWayland::outputs()
 {
   return w->outputs;
 }
 
-uint16_t &GHOST_WindowWayland::dpi()
+output_t *GHOST_WindowWayland::output_find_by_wl(struct wl_output *output)
+{
+  for (output_t *reg_output : this->m_system->outputs()) {
+    if (reg_output->output == output) {
+      return reg_output;
+    }
+  }
+  return nullptr;
+}
+
+bool GHOST_WindowWayland::outputs_changed_update_scale()
+{
+  int scale_next = 0;
+  for (const output_t *reg_output : this->w->outputs) {
+    if (scale_next < reg_output->scale) {
+      scale_next = reg_output->scale;
+    }
+  }
+  if (scale_next == 0) {
+    return false;
+  }
+  const int scale_curr = this->w->scale;
+  if (scale_next == scale_curr) {
+    return false;
+  }
+
+  this->w->scale = scale_next;
+  wl_surface_set_buffer_scale(this->surface(), scale_next);
+
+  /* Using the real DPI will cause wrong scaling of the UI
+   * use a multiplier for the default DPI as workaround. */
+  this->w->dpi = scale_next * base_dpi;
+
+  return true;
+}
+
+uint16_t GHOST_WindowWayland::dpi()
 {
   return w->dpi;
 }
 
-int &GHOST_WindowWayland::scale()
+int GHOST_WindowWayland::scale()
 {
   return w->scale;
 }
