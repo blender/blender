@@ -385,7 +385,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
      * attributes. */
     const int index = attribute_index_in_material(gpu_material, request.attribute_name);
     if (index != -1) {
-      curves_infos.is_point_attribute[index] = request.domain == ATTR_DOMAIN_POINT;
+      curves_infos.is_point_attribute[index][0] = request.domain == ATTR_DOMAIN_POINT;
     }
   }
 

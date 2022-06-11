@@ -87,9 +87,9 @@ BLI_STATIC_ASSERT_ALIGN(VolumeInfos, 16)
 
 struct CurvesInfos {
   /* Per attribute scope, follows loading order.
-   * NOTE: uint as bool in GLSL is 4 bytes. */
-  uint is_point_attribute[DRW_ATTRIBUTE_PER_CURVES_MAX];
-  int _pad;
+   * NOTE: uint as bool in GLSL is 4 bytes.
+   * NOTE: GLSL pad arrays of scalar to 16 bytes (std140). */
+  uint4 is_point_attribute[DRW_ATTRIBUTE_PER_CURVES_MAX];
 };
 BLI_STATIC_ASSERT_ALIGN(CurvesInfos, 16)
 
