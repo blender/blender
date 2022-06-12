@@ -380,6 +380,15 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  float brush_delta[3];
+
+  if (brush->flag & BRUSH_ANCHORED) {
+    copy_v3_v3(brush_delta, ss->cache->grab_delta_symmetry);
+  }
+  else {
+    sub_v3_v3v3(brush_delta, ss->cache->location, ss->cache->last_location);
+  }
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -404,7 +413,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
 
     switch (brush->smear_deform_type) {
       case BRUSH_SMEAR_DEFORM_DRAG:
-        sub_v3_v3v3(current_disp, ss->cache->location, ss->cache->last_location);
+        copy_v3_v3(current_disp, brush_delta);
         break;
       case BRUSH_SMEAR_DEFORM_PINCH:
         sub_v3_v3v3(current_disp, ss->cache->location, vd.co);
@@ -529,12 +538,10 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   const int totvert = SCULPT_vertex_count_get(ss);
 
-  if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
-    if (!ss->cache->prev_colors) {
-      ss->cache->prev_colors = MEM_callocN(sizeof(float[4]) * totvert, "prev colors");
-      for (int i = 0; i < totvert; i++) {
-        SCULPT_vertex_color_get(ss, i, ss->cache->prev_colors[i]);
-      }
+  if (!ss->cache->prev_colors) {
+    ss->cache->prev_colors = MEM_callocN(sizeof(float[4]) * totvert, "prev colors");
+    for (int i = 0; i < totvert; i++) {
+      SCULPT_vertex_color_get(ss, i, ss->cache->prev_colors[i]);
     }
   }
 

@@ -4343,7 +4343,8 @@ static bool sculpt_needs_delta_from_anchored_origin(Brush *brush)
            SCULPT_TOOL_POSE,
            SCULPT_TOOL_BOUNDARY,
            SCULPT_TOOL_THUMB,
-           SCULPT_TOOL_ELASTIC_DEFORM)) {
+           SCULPT_TOOL_ELASTIC_DEFORM,
+           SCULPT_TOOL_SMEAR)) {
     return true;
   }
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
@@ -4392,6 +4393,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
             SCULPT_TOOL_SNAKE_HOOK,
             SCULPT_TOOL_POSE,
             SCULPT_TOOL_BOUNDARY,
+            SCULPT_TOOL_SMEAR,
             SCULPT_TOOL_THUMB) &&
       !sculpt_brush_use_topology_rake(ss, brush)) {
     return;
