@@ -437,6 +437,16 @@ GHOST_TSuccess GHOST_WindowWayland::setClientHeight(uint32_t height)
 GHOST_TSuccess GHOST_WindowWayland::setClientSize(uint32_t width, uint32_t height)
 {
   wl_egl_window_resize(w->egl_window, int(width), int(height), 0, 0);
+
+  /* Override any pending size that may be set. */
+  w->size_pending[0] = 0;
+  w->size_pending[1] = 0;
+
+  w->size[0] = width;
+  w->size[1] = height;
+
+  notify_size();
+
   return GHOST_kSuccess;
 }
 
