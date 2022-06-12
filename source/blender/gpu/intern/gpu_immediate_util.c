@@ -337,13 +337,27 @@ static void imm_draw_circle_3D(
     /* Note(Metal/AMD): For small primitives, line list more efficient than line strip. */
     immBegin(GPU_PRIM_LINES, nsegments * 2);
 
-    immVertex3f(pos, x + radius * cosf(0.0f), y + radius * sinf(0.0f), 0.0f);
-    for (int i = 1; i < nsegments; i++) {
-      float angle = (float)(2 * M_PI) * ((float)i / (float)nsegments);
-      immVertex3f(pos, x + radius * cosf(angle), y + radius * sinf(angle), 0.0f);
-      immVertex3f(pos, x + radius * cosf(angle), y + radius * sinf(angle), 0.0f);
+    const float angle = (float)(2 * M_PI) / (float)nsegments;
+    float xprev = cosf(-angle) * radius;
+    float yprev = sinf(-angle) * radius;
+    const float alpha = 2.0f * cosf(angle);
+
+    float xr = radius;
+    float yr = 0;
+
+    for (int i = 0; i < nsegments; i++) {
+      immVertex3f(pos, x + xr, y + yr, 0.0f);
+      if (i) {
+        immVertex3f(pos, x + xr, y + yr, 0.0f);
+      }
+      const float xnext = alpha * xr - xprev;
+      const float ynext = alpha * yr - yprev;
+      xprev = xr;
+      yprev = yr;
+      xr = xnext;
+      yr = ynext;
     }
-    immVertex3f(pos, x + radius * cosf(0.0f), y + radius * sinf(0.0f), 0.0f);
+    immVertex3f(pos, x + radius, y, 0.0f);
     immEnd();
   }
   else {
