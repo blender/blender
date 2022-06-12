@@ -256,6 +256,12 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   w->xdg_surface = xdg_wm_base_get_xdg_surface(m_system->shell(), w->surface);
   w->xdg_toplevel = xdg_surface_get_toplevel(w->xdg_surface);
 
+  /* NOTE: The limit is in points (not pixels) so Hi-DPI will limit to larger number of pixels.
+   * This has the advantage that the size limit is the same when moving the window between monitors
+   * with different scales set. If it was important to limit in pixels it could be re-calculated
+   * when the `w->scale` changed. */
+  xdg_toplevel_set_min_size(w->xdg_toplevel, 320, 240);
+
   if (m_system->decoration_manager()) {
     w->xdg_toplevel_decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
         m_system->decoration_manager(), w->xdg_toplevel);
