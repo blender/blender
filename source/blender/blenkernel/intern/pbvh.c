@@ -1391,8 +1391,7 @@ void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_update_draw_buffers(
-    PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag, bool full_render)
+static void pbvh_check_draw_layout(PBVH *pbvh, bool full_render)
 {
   const CustomData *vdata;
   const CustomData *ldata;
@@ -1420,10 +1419,8 @@ static void pbvh_update_draw_buffers(
       break;
   }
 
-  const bool active_attrs_only = !full_render;
-
   /* rebuild all draw buffers if attribute layout changed */
-  if (GPU_pbvh_attribute_names_update(pbvh->type, pbvh->vbo_id, vdata, ldata, active_attrs_only)) {
+  if (GPU_pbvh_attribute_names_update(pbvh->type, pbvh->vbo_id, vdata, ldata, !full_render)) {
     /* attribute layout changed; force rebuild */
     for (int i = 0; i < pbvh->totnode; i++) {
       PBVHNode *node = pbvh->nodes + i;
@@ -1432,6 +1429,36 @@ static void pbvh_update_draw_buffers(
         node->flag |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
       }
     }
+  }
+}
+
+static void pbvh_update_draw_buffers(
+    PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag, bool full_render)
+{
+  const CustomData *vdata;
+  const CustomData *ldata;
+
+  if (!pbvh->vbo_id) {
+    pbvh->vbo_id = GPU_pbvh_make_format();
+  }
+
+  switch (pbvh->type) {
+    case PBVH_BMESH:
+      if (!pbvh->bm) {
+        /* BMesh hasn't been created yet */
+        return;
+      }
+
+      vdata = &pbvh->bm->vdata;
+      ldata = &pbvh->bm->ldata;
+      break;
+    case PBVH_FACES:
+      vdata = pbvh->vdata;
+      ldata = pbvh->ldata;
+      break;
+    case PBVH_GRIDS:
+      ldata = vdata = NULL;
+      break;
   }
 
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
@@ -2839,8 +2866,6 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       void *user_data,
                       bool full_render)
 {
-  pbvh->draw_cache_invalid = false;
-
   PBVHNode **nodes;
   int totnode;
   int update_flag = 0;
@@ -2861,6 +2886,8 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
         pbvh, update_search_cb, POINTER_FROM_INT(search_flag), &nodes, &totnode);
     update_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
   }
+
+  pbvh_check_draw_layout(pbvh, full_render);
 
   /* Update draw buffers. */
   if (totnode != 0 && (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers))) {
