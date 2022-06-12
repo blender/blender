@@ -1634,24 +1634,27 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
       XKB_STATE_MODS_DEPRESSED | XKB_STATE_MODS_LATCHED | XKB_STATE_MODS_LOCKED |
       XKB_STATE_MODS_EFFECTIVE);
 
-  keys.set(GHOST_kModifierKeyLeftShift,
-           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) ==
-               1);
-  keys.set(GHOST_kModifierKeyRightShift,
-           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) ==
-               1);
-  keys.set(GHOST_kModifierKeyLeftAlt,
-           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "LAlt", mods_all) == 1);
-  keys.set(GHOST_kModifierKeyRightAlt,
-           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "RAlt", mods_all) == 1);
-  keys.set(GHOST_kModifierKeyLeftControl,
-           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "LControl", mods_all) == 1);
-  keys.set(GHOST_kModifierKeyRightControl,
-           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "RControl", mods_all) == 1);
-  keys.set(GHOST_kModifierKeyOS,
-           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "Super", mods_all) == 1);
-  keys.set(GHOST_kModifierKeyNumMasks,
-           xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "NumLock", mods_all) == 1);
+  bool val;
+
+  /* NOTE: XKB doesn't seem to differentiate between left/right modifiers. */
+
+  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) == 1;
+  keys.set(GHOST_kModifierKeyLeftShift, val);
+  keys.set(GHOST_kModifierKeyRightShift, val);
+
+  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_ALT, mods_all) == 1;
+  keys.set(GHOST_kModifierKeyLeftAlt, val);
+  keys.set(GHOST_kModifierKeyRightAlt, val);
+
+  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_CTRL, mods_all) == 1;
+  keys.set(GHOST_kModifierKeyLeftControl, val);
+  keys.set(GHOST_kModifierKeyRightControl, val);
+
+  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_LOGO, mods_all) == 1;
+  keys.set(GHOST_kModifierKeyOS, val);
+
+  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_NUM, mods_all) == 1;
+  keys.set(GHOST_kModifierKeyNumMasks, val);
 
   return GHOST_kSuccess;
 }
