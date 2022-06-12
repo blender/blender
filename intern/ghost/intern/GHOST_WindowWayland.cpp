@@ -37,12 +37,13 @@ struct window_t {
   struct zxdg_toplevel_decoration_v1 *xdg_toplevel_decoration = nullptr;
   enum zxdg_toplevel_decoration_v1_mode decoration_mode;
   wl_egl_window *egl_window;
-  int32_t pending_width, pending_height;
   bool is_maximised;
   bool is_fullscreen;
   bool is_active;
   bool is_dialog;
-  int32_t width, height;
+
+  int32_t size[2];
+  int32_t size_pending[2];
 };
 
 /* -------------------------------------------------------------------- */
@@ -56,8 +57,8 @@ static void toplevel_configure(
     void *data, xdg_toplevel * /*xdg_toplevel*/, int32_t width, int32_t height, wl_array *states)
 {
   window_t *win = static_cast<window_t *>(data);
-  win->pending_width = width;
-  win->pending_height = height;
+  win->size_pending[0] = win->scale * width;
+  win->size_pending[1] = win->scale * height;
 
   win->is_maximised = false;
   win->is_fullscreen = false;
@@ -115,12 +116,12 @@ static void surface_configure(void *data, xdg_surface *xdg_surface, uint32_t ser
     return;
   }
 
-  if (win->pending_width != 0 && win->pending_height != 0) {
-    win->width = win->scale * win->pending_width;
-    win->height = win->scale * win->pending_height;
-    wl_egl_window_resize(win->egl_window, win->width, win->height, 0, 0);
-    win->pending_width = 0;
-    win->pending_height = 0;
+  if (win->size_pending[0] != 0 && win->size_pending[1] != 0) {
+    win->size[0] = win->size_pending[0];
+    win->size[1] = win->size_pending[1];
+    wl_egl_window_resize(win->egl_window, win->size[0], win->size[1], 0, 0);
+    win->size_pending[0] = 0;
+    win->size_pending[1] = 0;
     win->w->notify_size();
   }
 
@@ -208,8 +209,8 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 {
   w->w = this;
 
-  w->width = int32_t(width);
-  w->height = int32_t(height);
+  w->size[0] = int32_t(width);
+  w->size[1] = int32_t(height);
 
   w->is_dialog = is_dialog;
 
@@ -217,7 +218,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   w->surface = wl_compositor_create_surface(m_system->compositor());
   wl_surface_add_listener(w->surface, &wl_surface_listener, this);
 
-  w->egl_window = wl_egl_window_create(w->surface, int(width), int(height));
+  w->egl_window = wl_egl_window_create(w->surface, int(w->size[0]), int(w->size[1]));
 
   w->xdg_surface = xdg_wm_base_get_xdg_surface(m_system->shell(), w->surface);
   w->xdg_toplevel = xdg_surface_get_toplevel(w->xdg_surface);
@@ -325,17 +326,22 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
   if (scale_next == 0) {
     return false;
   }
-  const int scale_curr = this->w->scale;
+  window_t *win = this->w;
+  const int scale_curr = win->scale;
   if (scale_next == scale_curr) {
     return false;
   }
 
-  this->w->scale = scale_next;
+  /* Unlikely but possible there is a pending size change is set. */
+  win->size_pending[0] = (win->size_pending[0] / scale_curr) * scale_next;
+  win->size_pending[1] = (win->size_pending[1] / scale_curr) * scale_next;
+
+  win->scale = scale_next;
   wl_surface_set_buffer_scale(this->surface(), scale_next);
 
   /* Using the real DPI will cause wrong scaling of the UI
    * use a multiplier for the default DPI as workaround. */
-  this->w->dpi = scale_next * base_dpi;
+  win->dpi = scale_next * base_dpi;
 
   return true;
 }
@@ -387,17 +393,17 @@ void GHOST_WindowWayland::getWindowBounds(GHOST_Rect &bounds) const
 
 void GHOST_WindowWayland::getClientBounds(GHOST_Rect &bounds) const
 {
-  bounds.set(0, 0, w->width, w->height);
+  bounds.set(0, 0, w->size[0], w->size[1]);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientWidth(uint32_t width)
 {
-  return setClientSize(width, uint32_t(w->height));
+  return setClientSize(width, uint32_t(w->size[1]));
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientHeight(uint32_t height)
 {
-  return setClientSize(uint32_t(w->width), height);
+  return setClientSize(uint32_t(w->size[0]), height);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientSize(uint32_t width, uint32_t height)
@@ -525,7 +531,7 @@ void GHOST_WindowWayland::setOpaque() const
 
   /* Make the window opaque. */
   region = wl_compositor_create_region(m_system->compositor());
-  wl_region_add(region, 0, 0, w->width, w->height);
+  wl_region_add(region, 0, 0, w->size[0], w->size[1]);
   wl_surface_set_opaque_region(w->surface, region);
   wl_region_destroy(region);
 }
