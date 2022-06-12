@@ -30,8 +30,11 @@ struct window_t {
    */
   std::vector<const output_t *> outputs;
 
-  uint16_t dpi = 0;
-  int scale = 1;
+  /** The scale value written to #wl_surface_set_buffer_scale. */
+  int scale;
+  /** The DPI (currently always `scale * base_dpi`). */
+  uint16_t dpi;
+
   struct xdg_surface *xdg_surface;
   struct xdg_toplevel *xdg_toplevel;
   struct zxdg_toplevel_decoration_v1 *xdg_toplevel_decoration = nullptr;
@@ -45,6 +48,22 @@ struct window_t {
   int32_t size[2];
   int32_t size_pending[2];
 };
+
+/* -------------------------------------------------------------------- */
+/** \name Internal Utilities
+ * \{ */
+
+static int outputs_max_scale_or_default(const std::vector<output_t *> &outputs,
+                                        const int scale_default)
+{
+  int scale_max = 0;
+  for (const output_t *reg_output : outputs) {
+    scale_max = std::max(scale_max, reg_output->scale);
+  }
+  return scale_max ? scale_max : scale_default;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Wayland Interface Callbacks
@@ -214,8 +233,22 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
   w->is_dialog = is_dialog;
 
+  /* NOTE(@campbellbarton): The scale set here to avoid flickering on startup.
+   * When all monitors use the same scale (which is quite common) there aren't any problems.
+   *
+   * When monitors have different scales there may still be a visible window resize on startup.
+   * Ideally it would be possible to know the scale this window will use however that's only
+   * known once #surface_enter callback runs (which isn't guaranteed to run at all).
+   *
+   * Using the maximum scale is best as it results in the window first being smaller,
+   * avoiding a large window flashing before it's made smaller. */
+  w->scale = outputs_max_scale_or_default(this->m_system->outputs(), 1);
+  w->dpi = w->scale * base_dpi;
+
   /* Window surfaces. */
   w->surface = wl_compositor_create_surface(m_system->compositor());
+  wl_surface_set_buffer_scale(this->surface(), w->scale);
+
   wl_surface_add_listener(w->surface, &wl_surface_listener, this);
 
   w->egl_window = wl_egl_window_create(w->surface, int(w->size[0]), int(w->size[1]));
@@ -317,12 +350,7 @@ output_t *GHOST_WindowWayland::output_find_by_wl(struct wl_output *output)
 
 bool GHOST_WindowWayland::outputs_changed_update_scale()
 {
-  int scale_next = 0;
-  for (const output_t *reg_output : this->w->outputs) {
-    if (scale_next < reg_output->scale) {
-      scale_next = reg_output->scale;
-    }
-  }
+  const int scale_next = outputs_max_scale_or_default(this->m_system->outputs(), 0);
   if (scale_next == 0) {
     return false;
   }
