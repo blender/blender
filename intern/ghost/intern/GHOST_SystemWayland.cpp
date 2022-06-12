@@ -2131,6 +2131,37 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
       input->relative_pointer = nullptr;
     }
     if (input->locked_pointer) {
+      /* Request location to restore to. */
+      if (mode_current == GHOST_kGrabWrap) {
+        GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(surface));
+        GHOST_Rect bounds;
+        int x_new = input->x, y_new = input->y;
+
+        /* Fallback to window bounds. */
+        if (win->getCursorGrabBounds(bounds) == GHOST_kFailure) {
+          ((GHOST_Window *)win)->getClientBounds(bounds);
+        }
+        bounds.wrapPoint(x_new, y_new, 0, win->getCursorGrabAxis());
+
+        /* Push an event so the new location is registered. */
+        if ((x_new != input->x) || (y_new != input->y)) {
+          input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
+                                                         GHOST_kEventCursorMove,
+                                                         win,
+                                                         x_new,
+                                                         y_new,
+                                                         GHOST_TABLET_DATA_NONE));
+        }
+        input->x = x_new;
+        input->y = y_new;
+
+        const int scale = win->scale();
+        zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer,
+                                                       wl_fixed_from_int(x_new) / scale,
+                                                       wl_fixed_from_int(y_new) / scale);
+        wl_surface_commit(surface);
+      }
+
       zwp_locked_pointer_v1_destroy(input->locked_pointer);
       input->locked_pointer = nullptr;
     }
