@@ -315,10 +315,11 @@ static int gizmo_button2d_cursor_get(wmGizmo *gz)
   return WM_CURSOR_DEFAULT;
 }
 
+#define CIRCLE_RESOLUTION_3D 32
 static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
 {
   ScrArea *area = CTX_wm_area(C);
-  float rad = CIRCLE_RESOLUTION * U.dpi_fac / 2.0f;
+  float rad = CIRCLE_RESOLUTION_3D * U.dpi_fac / 2.0f;
   const float *co = NULL;
   float matrix_final[4][4];
   float co_proj[3];
@@ -342,6 +343,7 @@ static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box
     }
   }
   else {
+    rad = mat4_to_scale(matrix_final);
     co = matrix_final[3];
   }
 
