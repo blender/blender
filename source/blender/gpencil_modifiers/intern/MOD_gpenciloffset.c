@@ -7,14 +7,13 @@
 
 #include <stdio.h>
 
+#include "BLI_hash.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
-
-#include "BLI_hash.h"
-#include "BLI_math.h"
-#include "BLI_rand.h"
 
 #include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"

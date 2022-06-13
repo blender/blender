@@ -7,14 +7,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
+#include "BLI_listbase.h"
+#include "BLI_math_base.h"
+#include "BLI_math_vector.h"
 #include "BLI_sort.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 

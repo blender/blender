@@ -7,9 +7,8 @@
 
 #include <stdio.h>
 
-#include "BLI_utildefines.h"
-
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -21,9 +20,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-
-#include "MOD_gpencil_lineart.h"
-#include "lineart/MOD_lineart.h"
 
 #include "BKE_collection.h"
 #include "BKE_context.h"
@@ -43,8 +39,10 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "MOD_gpencil_lineart.h"
 #include "MOD_gpencil_modifiertypes.h"
 #include "MOD_gpencil_ui_common.h"
+#include "lineart/MOD_lineart.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
