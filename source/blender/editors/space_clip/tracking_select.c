@@ -360,8 +360,6 @@ static int mouse_select(bContext *C, const float co[2], const bool extend, const
   else if (deselect_all) {
     ed_tracking_deselect_all_tracks(tracksbase);
     ed_tracking_deselect_all_plane_tracks(plane_tracks_base);
-    /* Mask as well if we are in combined mask / track view. */
-    ED_mask_deselect_all(C);
   }
 
   ED_clip_view_lock_state_restore_no_jump(C, &lock_state);
