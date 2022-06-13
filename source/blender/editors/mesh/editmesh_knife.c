@@ -1355,12 +1355,18 @@ static void knife_bvh_raycast_cb(void *userdata,
 #endif
 
   if (isect && dist < hit->dist) {
+    madd_v3_v3v3fl(hit->co, ray->origin, ray->direction, dist);
+
+    /* Discard clipped points. */
+    if (RV3D_CLIPPING_ENABLED(kcd->vc.v3d, kcd->vc.rv3d) &&
+        ED_view3d_clipping_test(kcd->vc.rv3d, hit->co, false)) {
+      return;
+    }
+
     hit->dist = dist;
     hit->index = index;
 
     copy_v3_v3(hit->no, ltri[0]->f->no);
-
-    madd_v3_v3v3fl(hit->co, ray->origin, ray->direction, dist);
 
     kcd->bvh.looptris = em->looptris;
     copy_v2_v2(kcd->bvh.uv, uv);
