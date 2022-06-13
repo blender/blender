@@ -29,7 +29,7 @@ bool closure_select(float weight, inout float total_weight, inout float r)
   float x = weight / total_weight;
   bool chosen = (r < x);
   /* Assuming that if r is in the interval [0,x] or [x,1], it's still uniformly distributed within
-   * that interval, so you remaping to [0,1] again to explore this space of probability. */
+   * that interval, so you remapping to [0,1] again to explore this space of probability. */
   r = (chosen) ? (r / x) : ((r - x) / (1.0 - x));
   return chosen;
 }
@@ -333,7 +333,7 @@ vec3 coordinate_screen(vec3 P)
     window.xy = vec2(0.5);
   }
   else {
-    /* TODO(fclem): Actual camera tranform. */
+    /* TODO(fclem): Actual camera transform. */
     window.xy = project_point(ViewProjectionMatrix, P).xy * 0.5 + 0.5;
     window.xy = window.xy * CameraTexCoFactors.xy + CameraTexCoFactors.zw;
   }

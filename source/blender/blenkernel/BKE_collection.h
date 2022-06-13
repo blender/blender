@@ -119,7 +119,7 @@ bool BKE_collection_object_add(struct Main *bmain,
 /**
  * Add object to given collection, similar to #BKE_collection_object_add.
  *
- * However, it additionnally ensures that the selected collection is also part of the given
+ * However, it additionally ensures that the selected collection is also part of the given
  * `view_layer`, if non-NULL. Otherwise, the object is not added to any collection.
  */
 bool BKE_collection_viewlayer_object_add(struct Main *bmain,

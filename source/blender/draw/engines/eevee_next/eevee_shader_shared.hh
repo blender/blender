@@ -126,7 +126,7 @@ BLI_STATIC_ASSERT_ALIGN(VelocityGeometryIndex, 16)
  * \{ */
 
 enum eClosureBits : uint32_t {
-  /** NOTE: Theses are used as stencil bits. So we are limited to 8bits. */
+  /** NOTE: These are used as stencil bits. So we are limited to 8bits. */
   CLOSURE_DIFFUSE = (1u << 0u),
   CLOSURE_SSS = (1u << 1u),
   CLOSURE_REFLECTION = (1u << 2u),
