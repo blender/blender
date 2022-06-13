@@ -23,7 +23,7 @@ static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
                                                LineartVert *vt,
                                                LineartVert **new_vt,
                                                int match_flag,
-                                               unsigned char match_isec_mask)
+                                               uint8_t match_isec_mask)
 {
   for (int i = 0; i < ba->line_count; i++) {
     LineartEdge *n_e = ba->linked_lines[i];
@@ -90,9 +90,9 @@ static LineartEdgeChainItem *lineart_chain_append_point(LineartData *ld,
                                                         float *fbcoord,
                                                         float *gpos,
                                                         float *normal,
-                                                        char type,
+                                                        uint8_t type,
                                                         int level,
-                                                        unsigned char material_mask_bits,
+                                                        uint8_t material_mask_bits,
                                                         size_t index)
 {
   LineartEdgeChainItem *eci;
@@ -127,9 +127,9 @@ static LineartEdgeChainItem *lineart_chain_prepend_point(LineartData *ld,
                                                          float *fbcoord,
                                                          float *gpos,
                                                          float *normal,
-                                                         char type,
+                                                         uint8_t type,
                                                          int level,
-                                                         unsigned char material_mask_bits,
+                                                         uint8_t material_mask_bits,
                                                          size_t index)
 {
   LineartEdgeChainItem *eci;
@@ -159,7 +159,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
   LineartBoundingArea *ba;
   LineartEdgeSegment *es;
   int last_occlusion;
-  unsigned char last_transparency;
+  uint8_t last_transparency;
   /* Used when converting from double. */
   float use_fbcoord[4];
   float use_gpos[3];
@@ -564,7 +564,7 @@ static bool lineart_chain_fix_ambiguous_segments(LineartEdgeChain *ec,
   float dist_accum = 0;
 
   int fixed_occ = last_matching_eci->occlusion;
-  unsigned char fixed_mask = last_matching_eci->material_mask_bits;
+  uint8_t fixed_mask = last_matching_eci->material_mask_bits;
 
   LineartEdgeChainItem *can_skip_to = NULL;
   LineartEdgeChainItem *last_eci = last_matching_eci;
@@ -627,7 +627,7 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
 
     LineartEdgeChainItem *first_eci = (LineartEdgeChainItem *)ec->chain.first;
     int fixed_occ = first_eci->occlusion;
-    unsigned char fixed_mask = first_eci->material_mask_bits;
+    uint8_t fixed_mask = first_eci->material_mask_bits;
     ec->level = fixed_occ;
     ec->material_mask_bits = fixed_mask;
     for (eci = first_eci->next; eci; eci = next_eci) {
@@ -747,8 +747,8 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
                                                                 LineartEdgeChain *ec,
                                                                 LineartEdgeChainItem *eci,
                                                                 int occlusion,
-                                                                unsigned char material_mask_bits,
-                                                                unsigned char isec_mask,
+                                                                uint8_t material_mask_bits,
+                                                                uint8_t isec_mask,
                                                                 int loop_id,
                                                                 float dist,
                                                                 float *result_new_len,
@@ -857,7 +857,7 @@ void MOD_lineart_chain_connect(LineartData *ld)
   float dist = ld->conf.chaining_image_threshold;
   float dist_l, dist_r;
   int occlusion, reverse_main, loop_id;
-  unsigned char material_mask_bits, isec_mask;
+  uint8_t material_mask_bits, isec_mask;
   ListBase swap = {0};
 
   if (ld->conf.chaining_image_threshold < 0.0001) {
@@ -1238,8 +1238,6 @@ void MOD_lineart_chain_offset_towards_camera(LineartData *ld, float dist, bool u
   float cam[3];
   float view[3];
   float view_clamp[3];
-  copy_v3fl_v3db(cam, ld->conf.camera_pos);
-  copy_v3fl_v3db(view, ld->conf.view_vector);
 
   if (use_custom_camera) {
     copy_v3fl_v3db(cam, ld->conf.camera_pos);
@@ -1260,6 +1258,7 @@ void MOD_lineart_chain_offset_towards_camera(LineartData *ld, float dist, bool u
     }
   }
   else {
+    copy_v3fl_v3db(view, ld->conf.view_vector);
     LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
       LISTBASE_FOREACH (LineartEdgeChainItem *, eci, &ec->chain) {
         sub_v3_v3v3(dir, cam, eci->gpos);

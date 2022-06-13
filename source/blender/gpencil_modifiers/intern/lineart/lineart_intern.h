@@ -49,7 +49,6 @@ void *lineart_mem_acquire(struct LineartStaticMemPool *smp, size_t size);
 void *lineart_mem_acquire_thread(struct LineartStaticMemPool *smp, size_t size);
 void lineart_mem_destroy(struct LineartStaticMemPool *smp);
 
-void lineart_prepend_edge_direct(void **list_head, void *node);
 void lineart_prepend_pool(LinkNode **first, struct LineartStaticMemPool *smp, void *link);
 
 void lineart_matrix_ortho_44d(double (*mProjection)[4],

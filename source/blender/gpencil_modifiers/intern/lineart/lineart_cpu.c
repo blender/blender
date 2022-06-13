@@ -46,10 +46,6 @@
 #include "DNA_scene_types.h"
 #include "MEM_guardedalloc.h"
 
-#include "bmesh.h"
-#include "bmesh_class.h"
-#include "bmesh_tools.h"
-
 #include "lineart_intern.h"
 
 typedef struct LineartIsecSingle {
@@ -262,8 +258,10 @@ static void lineart_edge_cut(LineartData *ld,
     if (cut_start_before != ns) {
       /* Insert cutting points for when a new cut is needed. */
       ies = cut_start_before->prev ? cut_start_before->prev : NULL;
-      ns->occlusion = ies ? ies->occlusion : 0;
-      ns->material_mask_bits = ies->material_mask_bits;
+      if (ies) {
+        ns->occlusion = ies->occlusion;
+        ns->material_mask_bits = ies->material_mask_bits;
+      }
       BLI_insertlinkbefore(&e->segments, cut_start_before, ns);
     }
     /* Otherwise we already found a existing cutting point, no need to insert a new one. */
@@ -280,8 +278,10 @@ static void lineart_edge_cut(LineartData *ld,
     /* The same manipulation as on "cut_start_before". */
     if (cut_end_before != ns2) {
       ies = cut_end_before->prev ? cut_end_before->prev : NULL;
-      ns2->occlusion = ies ? ies->occlusion : 0;
-      ns2->material_mask_bits = ies ? ies->material_mask_bits : 0;
+      if (ies) {
+        ns2->occlusion = ies->occlusion;
+        ns2->material_mask_bits = ies->material_mask_bits;
+      }
       BLI_insertlinkbefore(&e->segments, cut_end_before, ns2);
     }
   }
@@ -310,7 +310,7 @@ static void lineart_edge_cut(LineartData *ld,
   }
 
   /* Reduce adjacent cutting points of the same level, which saves memory. */
-  char min_occ = 127;
+  int8_t min_occ = 127;
   prev_es = NULL;
   for (es = e->segments.first; es; es = next_es) {
     next_es = es->next;
@@ -1432,14 +1432,22 @@ static void lineart_mvert_transform_task(void *__restrict userdata,
   v->index = i;
 }
 
-#define LRT_EDGE_FLAG_TYPE_MAX_BITS 6
+static const int LRT_MESH_EDGE_TYPES[] = {
+    LRT_EDGE_FLAG_EDGE_MARK,
+    LRT_EDGE_FLAG_CONTOUR,
+    LRT_EDGE_FLAG_CREASE,
+    LRT_EDGE_FLAG_MATERIAL,
+    LRT_EDGE_FLAG_LOOSE,
+};
 
-static int lineart_edge_type_duplication_count(char eflag)
+#define LRT_MESH_EDGE_TYPES_COUNT 5
+
+static int lineart_edge_type_duplication_count(int eflag)
 {
   int count = 0;
   /* See eLineartEdgeFlag for details. */
-  for (int i = 0; i < LRT_EDGE_FLAG_TYPE_MAX_BITS; i++) {
-    if (eflag & (1 << i)) {
+  for (int i = 0; i < LRT_MESH_EDGE_TYPES_COUNT; i++) {
+    if (eflag & LRT_MESH_EDGE_TYPES[i]) {
       count++;
     }
   }
@@ -1454,7 +1462,7 @@ static LineartTriangle *lineart_triangle_from_index(LineartData *ld,
                                                     LineartTriangle *rt_array,
                                                     int index)
 {
-  char *b = (char *)rt_array;
+  int8_t *b = (int8_t *)rt_array;
   b += (index * ld->sizeof_triangle);
   return (LineartTriangle *)b;
 }
@@ -1883,7 +1891,7 @@ static void lineart_edge_neighbor_init_task(void *__restrict userdata,
   adj_e->v1 = mloop[looptri->tri[i % 3]].v;
   adj_e->v2 = mloop[looptri->tri[(i + 1) % 3]].v;
   if (adj_e->v1 > adj_e->v2) {
-    SWAP(unsigned int, adj_e->v1, adj_e->v2);
+    SWAP(uint32_t, adj_e->v1, adj_e->v2);
   }
   edge_nabr->e = -1;
 
@@ -2054,7 +2062,7 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info, LineartData
   tri_data.lineart_triangle_size = la_data->sizeof_triangle;
   tri_data.tri_adj = tri_adj;
 
-  unsigned int total_edges = tot_tri * 3;
+  uint32_t total_edges = tot_tri * 3;
 
   BLI_task_parallel_range(0, tot_tri, &tri_data, lineart_load_tri_task, &tri_settings);
 
@@ -2149,8 +2157,8 @@ static void lineart_geometry_object_load(LineartObjectInfo *ob_info, LineartData
     LineartEdge *edge_added = NULL;
 
     /* See eLineartEdgeFlag for details. */
-    for (int flag_bit = 0; flag_bit < LRT_EDGE_FLAG_TYPE_MAX_BITS; flag_bit++) {
-      char use_type = 1 << flag_bit;
+    for (int flag_bit = 0; flag_bit < LRT_MESH_EDGE_TYPES_COUNT; flag_bit++) {
+      int use_type = LRT_MESH_EDGE_TYPES[flag_bit];
       if (!(use_type & edge_nabr->flags)) {
         continue;
       }
@@ -2221,9 +2229,6 @@ static void lineart_object_load_worker(TaskPool *__restrict UNUSED(pool),
 {
   for (LineartObjectInfo *obi = olti->pending; obi; obi = obi->next) {
     lineart_geometry_object_load(obi, olti->ld);
-    if (G.debug_value == 4000) {
-      printf("thread id: %d processed: %d\n", olti->thread_id, obi->original_me->totpoly);
-    }
   }
 }
 
@@ -2301,7 +2306,7 @@ static void lineart_geometry_load_assign_thread(LineartObjectLoadTaskInfo *olti_
                                                 int this_face_count)
 {
   LineartObjectLoadTaskInfo *use_olti = olti_list;
-  long unsigned int min_face = use_olti->total_faces;
+  uint64_t min_face = use_olti->total_faces;
   for (int i = 0; i < thread_count; i++) {
     if (olti_list[i].total_faces < min_face) {
       min_face = olti_list[i].total_faces;
@@ -3397,6 +3402,7 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
     copy_v3db_v3fl(ld->conf.active_camera_pos, active_camera->obmat[3]);
   }
   copy_m4_m4(ld->conf.cam_obmat, camera->obmat);
+
   ld->conf.cam_is_persp = (c->type == CAM_PERSP);
   ld->conf.near_clip = c->clip_start + clipping_offset;
   ld->conf.far_clip = c->clip_end - clipping_offset;
@@ -4630,8 +4636,6 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
     t_start = PIL_check_seconds_timer();
   }
 
-  BKE_scene_camera_switch_update(scene);
-
   if (lmd->calculation_flags & LRT_USE_CUSTOM_CAMERA) {
     if (!lmd->source_camera ||
         (use_camera = DEG_get_evaluated_object(depsgraph, lmd->source_camera))->type !=
@@ -4640,6 +4644,9 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
     }
   }
   else {
+
+    BKE_scene_camera_switch_update(scene);
+
     if (!scene->camera) {
       return false;
     }
@@ -4787,7 +4794,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
                                      uchar mask_switches,
                                      uchar material_mask_bits,
                                      uchar intersection_mask,
-                                     short thickness,
+                                     int16_t thickness,
                                      float opacity,
                                      const char *source_vgname,
                                      const char *vgname,
@@ -4946,16 +4953,16 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   Object *ob,
                                   bGPDlayer *gpl,
                                   bGPDframe *gpf,
-                                  char source_type,
+                                  int8_t source_type,
                                   void *source_reference,
                                   int level_start,
                                   int level_end,
                                   int mat_nr,
-                                  short edge_types,
+                                  int16_t edge_types,
                                   uchar mask_switches,
                                   uchar material_mask_bits,
                                   uchar intersection_mask,
-                                  short thickness,
+                                  int16_t thickness,
                                   float opacity,
                                   const char *source_vgname,
                                   const char *vgname,
@@ -4968,7 +4975,7 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
 
   Object *source_object = NULL;
   Collection *source_collection = NULL;
-  short use_types = 0;
+  int16_t use_types = 0;
   if (source_type == LRT_SOURCE_OBJECT) {
     if (!source_reference) {
       return;

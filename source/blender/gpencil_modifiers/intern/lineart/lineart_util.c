@@ -144,13 +144,6 @@ void lineart_mem_destroy(LineartStaticMemPool *smp)
   }
 }
 
-void lineart_prepend_edge_direct(void **list_head, void *node)
-{
-  LineartEdge *e_n = (LineartEdge *)node;
-  e_n->next = (*list_head);
-  (*list_head) = e_n;
-}
-
 void lineart_prepend_pool(LinkNode **first, LineartStaticMemPool *smp, void *link)
 {
   LinkNode *ln = lineart_mem_acquire_thread(smp, sizeof(LinkNode));

@@ -36,10 +36,10 @@ typedef struct LineartTriangle {
   /* first culled in line list to use adjacent triangle info, then go through triangle list. */
   double gn[3];
 
-  unsigned char material_mask_bits;
-  unsigned char intersection_mask;
-  unsigned char mat_occlusion;
-  unsigned char flags; /* #eLineartTriangleFlags */
+  uint8_t material_mask_bits;
+  uint8_t intersection_mask;
+  uint8_t mat_occlusion;
+  uint8_t flags; /* #eLineartTriangleFlags */
 
   /**
    * Only use single link list, because we don't need to go back in order.
@@ -84,10 +84,10 @@ typedef struct LineartEdgeSegment {
   /** at==0: left  at==1: right  (this is in 2D projected space) */
   double at;
   /** Occlusion level after "at" point */
-  unsigned char occlusion;
+  uint8_t occlusion;
 
   /* Used to filter line art occlusion edges */
-  unsigned char material_mask_bits;
+  uint8_t material_mask_bits;
 } LineartEdgeSegment;
 
 typedef struct LineartVert {
@@ -119,17 +119,14 @@ typedef enum eLineArtVertFlags {
 } eLineArtVertFlags;
 
 typedef struct LineartEdge {
-  /** We only need link node kind of list here. */
-  struct LineartEdge *next;
   struct LineartVert *v1, *v2;
-
   struct LineartTriangle *t1, *t2;
   ListBase segments;
-  char min_occ;
+  int8_t min_occ;
 
   /** Also for line type determination on chaining. */
   uint16_t flags;
-  unsigned char intersection_mask;
+  uint8_t intersection_mask;
 
   /**
    * Still need this entry because culled lines will not add to object
@@ -149,15 +146,15 @@ typedef struct LineartEdgeChain {
   float length;
 
   /** Used when re-connecting and grease-pencil stroke generation. */
-  char picked;
-  char level;
+  int8_t picked;
+  int8_t level;
 
   /** Chain now only contains one type of segments */
   int type;
   /** Will only connect chains that has the same loop id. */
   int loop_id;
-  unsigned char material_mask_bits;
-  unsigned char intersection_mask;
+  uint8_t material_mask_bits;
+  uint8_t intersection_mask;
 
   struct Object *object_ref;
 } LineartEdgeChain;
@@ -170,9 +167,9 @@ typedef struct LineartEdgeChainItem {
   float gpos[3];
   float normal[3];
   uint16_t line_type;
-  char occlusion;
-  unsigned char material_mask_bits;
-  unsigned char intersection_mask;
+  int8_t occlusion;
+  uint8_t material_mask_bits;
+  uint8_t intersection_mask;
   size_t index;
 } LineartEdgeChainItem;
 
@@ -180,17 +177,17 @@ typedef struct LineartChainRegisterEntry {
   struct LineartChainRegisterEntry *next, *prev;
   LineartEdgeChain *ec;
   LineartEdgeChainItem *eci;
-  char picked;
+  int8_t picked;
 
   /* left/right mark.
    * Because we revert list in chaining so we need the flag. */
-  char is_left;
+  int8_t is_left;
 } LineartChainRegisterEntry;
 
 typedef struct LineartAdjacentEdge {
-  unsigned int v1;
-  unsigned int v2;
-  unsigned int e;
+  uint32_t v1;
+  uint32_t v2;
+  uint32_t e;
 } LineartAdjacentEdge;
 
 enum eLineArtTileRecursiveLimit {
@@ -233,7 +230,7 @@ typedef struct LineartData {
 
     struct LineartBoundingArea *initials;
 
-    unsigned int tile_count;
+    uint32_t tile_count;
 
   } qtree;
 
@@ -333,7 +330,7 @@ typedef struct LineartCache {
   ListBase chains;
 
   /** Cache only contains edge types specified in this variable. */
-  char rb_edge_types;
+  int8_t rb_edge_types;
 } LineartCache;
 
 #define DBL_TRIANGLE_LIM 1e-8
@@ -396,7 +393,7 @@ typedef struct LineartObjectLoadTaskInfo {
   /* LinkNode styled list */
   LineartObjectInfo *pending;
   /* Used to spread the load across several threads. This can not overflow. */
-  long unsigned int total_faces;
+  uint64_t total_faces;
 } LineartObjectLoadTaskInfo;
 
 /**
@@ -689,16 +686,16 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   struct Object *ob,
                                   struct bGPDlayer *gpl,
                                   struct bGPDframe *gpf,
-                                  char source_type,
+                                  int8_t source_type,
                                   void *source_reference,
                                   int level_start,
                                   int level_end,
                                   int mat_nr,
-                                  short edge_types,
-                                  unsigned char mask_switches,
-                                  unsigned char material_mask_bits,
-                                  unsigned char intersection_mask,
-                                  short thickness,
+                                  int16_t edge_types,
+                                  uint8_t mask_switches,
+                                  uint8_t material_mask_bits,
+                                  uint8_t intersection_mask,
+                                  int16_t thickness,
                                   float opacity,
                                   const char *source_vgname,
                                   const char *vgname,

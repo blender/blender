@@ -352,7 +352,7 @@ static void edge_types_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *sub = uiLayoutRowWithHeading(col, false, IFACE_("Crease"));
   uiItemR(sub, ptr, "use_crease", 0, "", ICON_NONE);
   uiLayout *entry = uiLayoutRow(sub, false);
-  uiLayoutSetEnabled(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
+  uiLayoutSetActive(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
   if (use_cache && !is_first) {
     uiItemL(entry, IFACE_("Angle Cached"), ICON_INFO);
   }
@@ -524,6 +524,7 @@ static void intersection_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemR(layout, ptr, "use_intersection_match", 0, IFACE_("Exact Match"), ICON_NONE);
 }
+
 static void face_mark_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
