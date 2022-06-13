@@ -1837,6 +1837,7 @@ void draw_subdiv_build_lnor_buffer(const DRWSubdivCache *cache,
   GPU_vertbuf_bind_as_ssbo(cache->subdiv_polygon_offset_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(pos_nor, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->extra_coarse_face_data, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(cache->verts_orig_index, binding_point++);
 
   /* Outputs */
   GPU_vertbuf_bind_as_ssbo(lnor, binding_point++);

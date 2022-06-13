@@ -11,7 +11,12 @@ layout(std430, binding = 2) readonly buffer extraCoarseFaceData
   uint extra_coarse_face_data[];
 };
 
-layout(std430, binding = 3) writeonly buffer outputLoopNormals
+layout(std430, binding = 3) readonly buffer inputVertOrigIndices
+{
+  int input_vert_origindex[];
+};
+
+layout(std430, binding = 4) writeonly buffer outputLoopNormals
 {
   LoopNormal output_lnor[];
 };
@@ -60,13 +65,15 @@ void main()
     loop_normal.nx = face_normal.x;
     loop_normal.ny = face_normal.y;
     loop_normal.nz = face_normal.z;
-    loop_normal.flag = 0.0;
-
-    if (is_face_selected(coarse_quad_index)) {
-      loop_normal.flag = 1.0;
-    }
 
     for (int i = 0; i < 4; i++) {
+      int origindex = input_vert_origindex[start_loop_index + i];
+      float flag = 0.0;
+      if (origindex == -1) {
+        flag = -1.0;
+      }
+      loop_normal.flag = flag;
+
       output_lnor[start_loop_index + i] = loop_normal;
     }
   }
