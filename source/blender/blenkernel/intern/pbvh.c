@@ -1432,11 +1432,9 @@ static void pbvh_check_draw_layout(PBVH *pbvh, bool full_render)
   }
 }
 
-static void pbvh_update_draw_buffers(
-    PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag, bool full_render)
+static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
 {
   const CustomData *vdata;
-  const CustomData *ldata;
 
   if (!pbvh->vbo_id) {
     pbvh->vbo_id = GPU_pbvh_make_format();
@@ -1450,14 +1448,12 @@ static void pbvh_update_draw_buffers(
       }
 
       vdata = &pbvh->bm->vdata;
-      ldata = &pbvh->bm->ldata;
       break;
     case PBVH_FACES:
       vdata = pbvh->vdata;
-      ldata = pbvh->ldata;
       break;
     case PBVH_GRIDS:
-      ldata = vdata = NULL;
+      vdata = NULL;
       break;
   }
 
@@ -2891,7 +2887,7 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
 
   /* Update draw buffers. */
   if (totnode != 0 && (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers))) {
-    pbvh_update_draw_buffers(pbvh, nodes, totnode, update_flag, full_render);
+    pbvh_update_draw_buffers(pbvh, nodes, totnode, update_flag);
   }
   MEM_SAFE_FREE(nodes);
 
