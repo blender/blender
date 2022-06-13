@@ -34,13 +34,6 @@ TreeDisplayOverrideLibraryHierarchies::TreeDisplayOverrideLibraryHierarchies(
 {
 }
 
-/* XXX Remove expanded subtree, we add our own items here. Expanding should probably be
- * optional. */
-static void remove_expanded_children(TreeElement &te)
-{
-  outliner_free_tree(&te.subtree);
-}
-
 ListBase TreeDisplayOverrideLibraryHierarchies::buildTree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
@@ -114,8 +107,7 @@ ListBase TreeDisplayOverrideLibraryHierarchies::build_hierarchy_for_lib_or_main(
     });
 
     TreeElement *new_id_te = outliner_add_element(
-        &space_outliner_, &new_base_te->subtree, iter_id, new_base_te, TSE_SOME_ID, 0);
-    remove_expanded_children(*new_id_te);
+        &space_outliner_, &new_base_te->subtree, iter_id, new_base_te, TSE_SOME_ID, 0, false);
 
     build_hierarchy_for_ID(bmain, *iter_id, *tree_element_cast<TreeElementID>(new_id_te));
   }
@@ -193,8 +185,8 @@ static int build_hierarchy_foreach_ID_cb(LibraryIDLinkCallbackData *cb_data)
                                              &id,
                                              &build_data.parent_te->getLegacyElement(),
                                              TSE_SOME_ID,
-                                             0);
-  remove_expanded_children(*new_te);
+                                             0,
+                                             false);
   build_data.sibling_ids.add(&id);
 
   BuildHierarchyForeachIDCbData child_build_data{build_data.bmain,
