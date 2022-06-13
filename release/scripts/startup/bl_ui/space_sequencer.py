@@ -2087,10 +2087,9 @@ class SEQUENCER_PT_adjust_transform(SequencerButtonsPanel, Panel):
         col = layout.column(align=True)
         col.prop(strip.transform, "origin")
 
-        row = layout.row(heading="Mirror")
-        sub = row.row(align=True)
-        sub.prop(strip, "use_flip_x", text="X", toggle=True)
-        sub.prop(strip, "use_flip_y", text="Y", toggle=True)
+        col = layout.column(heading="Mirror", align=True)
+        col.prop(strip, "use_flip_x", text="X", toggle=True)
+        col.prop(strip, "use_flip_y", text="Y", toggle=True)
 
 
 class SEQUENCER_PT_adjust_video(SequencerButtonsPanel, Panel):
