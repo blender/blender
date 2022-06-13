@@ -185,8 +185,7 @@ void draw_subdiv_cache_free(DRWSubdivCache *cache);
 
 /** \} */
 
-void DRW_create_subdivision(const struct Scene *scene,
-                            struct Object *ob,
+void DRW_create_subdivision(struct Object *ob,
                             struct Mesh *mesh,
                             struct MeshBatchCache *batch_cache,
                             struct MeshBufferCache *mbc,
