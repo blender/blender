@@ -183,10 +183,18 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
 
   uint *flags_data = static_cast<uint *>(GPU_vertbuf_get_data(flags));
 
-  const MEdge *medge = mr->medge;
-
-  for (DRWSubdivLooseEdge edge : loose_edges) {
-    *flags_data++ = (medge[edge.coarse_edge_index].flag & ME_HIDE) != 0;
+  if (mr->extract_type == MR_EXTRACT_MESH) {
+    const MEdge *medge = mr->medge;
+    for (DRWSubdivLooseEdge edge : loose_edges) {
+      *flags_data++ = (medge[edge.coarse_edge_index].flag & ME_HIDE) != 0;
+    }
+  }
+  else {
+    BMesh *bm = mr->bm;
+    for (DRWSubdivLooseEdge edge : loose_edges) {
+      const BMEdge *bm_edge = BM_edge_at_index(bm, edge.coarse_edge_index);
+      *flags_data++ = BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) != 0;
+    }
   }
 
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buffer);
