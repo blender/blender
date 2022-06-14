@@ -300,7 +300,7 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
   return nullptr;
 }
 
-CustomDataLayer *BKE_id_attribute_search(const ID *id,
+CustomDataLayer *BKE_id_attribute_search(ID *id,
                                          const char *name,
                                          const eCustomDataMask type_mask,
                                          const eAttrDomainMask domain_mask)

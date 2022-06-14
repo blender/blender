@@ -72,7 +72,7 @@ struct CustomDataLayer *BKE_id_attribute_find(const struct ID *id,
                                               int type,
                                               eAttrDomain domain);
 
-struct CustomDataLayer *BKE_id_attribute_search(const struct ID *id,
+struct CustomDataLayer *BKE_id_attribute_search(struct ID *id,
                                                 const char *name,
                                                 eCustomDataMask type,
                                                 eAttrDomainMask domain_mask);
