@@ -1419,8 +1419,14 @@ static void pbvh_check_draw_layout(PBVH *pbvh, bool full_render)
       break;
   }
 
-  /* rebuild all draw buffers if attribute layout changed */
-  if (GPU_pbvh_attribute_names_update(pbvh->type, pbvh->vbo_id, vdata, ldata, !full_render)) {
+  /* Rebuild all draw buffers if attribute layout changed.
+   *
+   * NOTE: The optimization where we only send active attributes
+   * to the GPU in workbench mode is disabled due to bugs
+   * (there's no guarantee there isn't another EEVEE viewport which would
+   *  free the draw buffers and corrupt the draw cache).
+   */
+  if (GPU_pbvh_attribute_names_update(pbvh->type, pbvh->vbo_id, vdata, ldata, false)) {
     /* attribute layout changed; force rebuild */
     for (int i = 0; i < pbvh->totnode; i++) {
       PBVHNode *node = pbvh->nodes + i;
