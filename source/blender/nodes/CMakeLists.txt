@@ -68,6 +68,7 @@ set(SRC
   NOD_node_declaration.hh
   NOD_node_tree_ref.hh
   NOD_particles.h
+  NOD_particles_exec.hh
   NOD_shader.h
   NOD_socket.h
   NOD_socket_declarations.hh

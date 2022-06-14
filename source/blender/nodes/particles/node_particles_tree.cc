@@ -4,7 +4,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "NOD_geometry.h"
+#include "NOD_particles.h"
 
 #include "BKE_context.h"
 #include "BKE_node.h"
