@@ -640,13 +640,8 @@ void seq_cache_cleanup_sequence(Scene *scene,
   int range_end = SEQ_time_right_handle_frame_get(seq_changed);
 
   if (!force_seq_changed_range) {
-    if (SEQ_time_left_handle_frame_get(seq) > range_start) {
-      range_start = SEQ_time_left_handle_frame_get(seq);
-    }
-
-    if (SEQ_time_right_handle_frame_get(seq) < range_end) {
-      range_end = SEQ_time_right_handle_frame_get(seq);
-    }
+    range_start = max_ii(range_start, SEQ_time_left_handle_frame_get(seq));
+    range_end = min_ii(range_end, SEQ_time_right_handle_frame_get(seq));
   }
 
   int invalidate_composite = invalidate_types & SEQ_CACHE_STORE_FINAL_OUT;
