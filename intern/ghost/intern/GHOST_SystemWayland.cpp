@@ -2560,7 +2560,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
 
         /* Fallback to window bounds. */
         if (win->getCursorGrabBounds(bounds) == GHOST_kFailure) {
-          ((GHOST_Window *)win)->getClientBounds(bounds);
+          win->getClientBounds(bounds);
         }
         bounds.wrapPoint(x_new, y_new, 0, win->getCursorGrabAxis());
 
