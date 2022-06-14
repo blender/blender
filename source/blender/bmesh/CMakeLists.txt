@@ -13,6 +13,7 @@ set(INC
   ../../../intern/eigen
   ../../../intern/guardedalloc
   ../../../extern/rangetree
+  ../python/bmesh
 )
 
 set(INC_SYS
