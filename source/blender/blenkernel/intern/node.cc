@@ -73,6 +73,7 @@
 #include "NOD_geometry.h"
 #include "NOD_node_declaration.hh"
 #include "NOD_node_tree_ref.hh"
+#include "NOD_particles.h"
 #include "NOD_shader.h"
 #include "NOD_socket.h"
 #include "NOD_texture.h"
@@ -538,7 +539,7 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
     }
 
     if (node->storage) {
-      if (ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY) &&
+      if (ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY, NTREE_PARTICLES) &&
           ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB, SH_NODE_CURVE_FLOAT)) {
         BKE_curvemapping_blend_write(writer, (const CurveMapping *)node->storage);
       }
@@ -4875,6 +4876,7 @@ void BKE_node_system_init()
   register_node_tree_type_sh();
   register_node_tree_type_tex();
   register_node_tree_type_geo();
+  register_node_tree_type_particles();
 
   register_node_type_frame();
   register_node_type_reroute();

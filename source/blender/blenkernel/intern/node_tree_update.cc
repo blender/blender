@@ -860,7 +860,7 @@ class NodeTreeMainUpdater {
       this->reset_changed_flags(*ntree);
 
       if (result.interface_changed) {
-        if (ntree->type == NTREE_GEOMETRY) {
+        if (ELEM(ntree->type, NTREE_GEOMETRY, NTREE_PARTICLES)) {
           relations_.ensure_modifier_users();
           for (const ObjectModifierPair &pair : relations_.get_modifier_users(ntree)) {
             Object *object = pair.first;
@@ -987,7 +987,7 @@ class NodeTreeMainUpdater {
 
     this->ensure_tree_ref(ntree, tree_ref);
     this->propagate_runtime_flags(*tree_ref);
-    if (ntree.type == NTREE_GEOMETRY) {
+    if (ELEM(ntree.type, NTREE_GEOMETRY, NTREE_PARTICLES)) {
       if (node_field_inferencing::update_field_inferencing(*tree_ref)) {
         result.interface_changed = true;
       }

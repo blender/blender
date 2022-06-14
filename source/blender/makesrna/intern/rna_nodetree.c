@@ -12428,6 +12428,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
       {NTREE_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture nodes"},
       {NTREE_COMPOSIT, "COMPOSITING", ICON_RENDERLAYERS, "Compositing", "Compositing nodes"},
       {NTREE_GEOMETRY, "GEOMETRY", ICON_GEOMETRY_NODES, "Geometry", "Geometry nodes"},
+      {NTREE_PARTICLES, "PARTICLES", ICON_PARTICLE_DATA, "Particles", "Particle nodes"},
       {0, NULL, 0, NULL, NULL},
   };
 
@@ -12681,6 +12682,17 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_NODETREE);
 }
 
+static void rna_def_particle_nodetree(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "ParticleNodeTree", "NodeTree");
+  RNA_def_struct_ui_text(
+      srna, "Particle Node Tree", "Node tree consisting of linked nodes used for particles");
+  RNA_def_struct_sdna(srna, "bNodeTree");
+  RNA_def_struct_ui_icon(srna, ICON_NODETREE);
+}
+
 static StructRNA *define_specific_node(BlenderRNA *brna,
                                        const char *struct_name,
                                        const char *base_name,
@@ -12778,6 +12790,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
   rna_def_shader_nodetree(brna);
   rna_def_texture_nodetree(brna);
   rna_def_geometry_nodetree(brna);
+  rna_def_particle_nodetree(brna);
 
 #  define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
     { \

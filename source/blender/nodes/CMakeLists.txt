@@ -4,6 +4,7 @@
 add_subdirectory(composite)
 add_subdirectory(function)
 add_subdirectory(geometry)
+add_subdirectory(particles)
 add_subdirectory(shader)
 add_subdirectory(texture)
 
@@ -13,6 +14,7 @@ set(INC
   function
   geometry
   intern
+  particles
   shader
   texture
   ../editors/include
@@ -65,6 +67,7 @@ set(SRC
   NOD_multi_function.hh
   NOD_node_declaration.hh
   NOD_node_tree_ref.hh
+  NOD_particles.h
   NOD_shader.h
   NOD_socket.h
   NOD_socket_declarations.hh
@@ -83,6 +86,7 @@ set(LIB
   bf_nodes_composite
   bf_nodes_function
   bf_nodes_geometry
+  bf_nodes_particles
   bf_nodes_shader
   bf_nodes_texture
 )

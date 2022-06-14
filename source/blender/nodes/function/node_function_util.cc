@@ -10,7 +10,7 @@ static bool fn_node_poll_default(bNodeType *UNUSED(ntype),
                                  const char **r_disabled_hint)
 {
   /* Function nodes are only supported in simulation node trees so far. */
-  if (!STREQ(ntree->idname, "GeometryNodeTree")) {
+  if (!STREQ(ntree->idname, "GeometryNodeTree", "ParticleNodeTree")) {
     *r_disabled_hint = TIP_("Not a geometry node tree");
     return false;
   }

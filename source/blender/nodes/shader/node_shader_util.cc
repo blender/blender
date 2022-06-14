@@ -26,7 +26,7 @@ static bool sh_fn_poll_default(bNodeType *UNUSED(ntype),
                                bNodeTree *ntree,
                                const char **r_disabled_hint)
 {
-  if (!STR_ELEM(ntree->idname, "ShaderNodeTree", "GeometryNodeTree")) {
+  if (!STR_ELEM(ntree->idname, "ShaderNodeTree", "GeometryNodeTree", "ParticleNodeTree")) {
     *r_disabled_hint = TIP_("Not a shader or geometry node tree");
     return false;
   }

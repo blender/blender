@@ -151,7 +151,7 @@ Vector<ui::ContextPathItem> context_path_for_space_node(const bContext &C)
 
   Vector<ui::ContextPathItem> context_path;
 
-  if (snode->edittree->type == NTREE_GEOMETRY) {
+  if (ELEM(snode->edittree->type, NTREE_GEOMETRY, NTREE_PARTICLES)) {
     get_context_path_node_geometry(C, *snode, context_path);
   }
   else if (snode->edittree->type == NTREE_SHADER) {

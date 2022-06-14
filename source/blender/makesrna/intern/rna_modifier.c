@@ -1662,7 +1662,7 @@ static bool rna_Modifier_show_expanded_get(PointerRNA *ptr)
 static bool rna_NodesModifier_node_group_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
   bNodeTree *ntree = value.data;
-  return ntree->type == NTREE_GEOMETRY;
+  return ELEM(ntree->type, NTREE_GEOMETRY, NTREE_PARTICLES);
 }
 
 static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, PointerRNA *ptr)

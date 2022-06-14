@@ -50,7 +50,7 @@ static void sh_node_math_gather_link_searches(GatherLinkSearchOpParams &params)
     return;
   }
 
-  const bool is_geometry_node_tree = params.node_tree().type == NTREE_GEOMETRY;
+  const bool is_geometry_node_tree = ELEM(params.node_tree().type, NTREE_GEOMETRY, NTREE_PARTICLES);
   const int weight = ELEM(params.other_socket().type, SOCK_FLOAT, SOCK_BOOLEAN, SOCK_INT) ? 0 : -1;
 
   for (const EnumPropertyItem *item = rna_enum_node_math_items; item->identifier != nullptr;

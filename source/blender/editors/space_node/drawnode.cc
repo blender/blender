@@ -1353,7 +1353,7 @@ static void std_node_socket_draw(
     }
     case SOCK_IMAGE: {
       const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
-      if (node_tree->type == NTREE_GEOMETRY) {
+      if (ELEM(node_tree->type, NTREE_GEOMETRY, NTREE_PARTICLES)) {
         if (text[0] == '\0') {
           uiTemplateID(layout,
                        C,
@@ -1996,7 +1996,7 @@ void node_draw_link_bezier(const bContext &C,
   bTheme *btheme = UI_GetTheme();
   const float dash_alpha = btheme->space_node.dash_alpha;
 
-  if (snode.edittree->type == NTREE_GEOMETRY) {
+  if (ELEM(snode.edittree->type, NTREE_GEOMETRY, NTREE_PARTICLES)) {
     if (link.fromsock && link.fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) {
       /* Make field links a bit thinner. */
       thickness = 1.0f;
@@ -2158,7 +2158,7 @@ void node_draw_link(const bContext &C,
     }
   }
   /* Links from field to non-field sockets are not allowed. */
-  if (snode.edittree->type == NTREE_GEOMETRY && !(link.flag & NODE_LINK_DRAGGED)) {
+  if (ELEM(snode.edittree->type, NTREE_GEOMETRY, NTREE_PARTICLES) && !(link.flag & NODE_LINK_DRAGGED)) {
     if ((link.fromsock && link.fromsock->display_shape == SOCK_DISPLAY_SHAPE_DIAMOND) &&
         (link.tosock && link.tosock->display_shape == SOCK_DISPLAY_SHAPE_CIRCLE)) {
       th_col1 = th_col2 = th_col3 = TH_REDALERT;

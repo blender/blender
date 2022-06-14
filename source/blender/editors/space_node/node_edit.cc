@@ -422,6 +422,9 @@ static void send_notifiers_after_tree_change(ID *id, bNodeTree *ntree)
   else if (ntree->type == NTREE_GEOMETRY) {
     WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, id);
   }
+  else if (ntree->type == NTREE_PARTICLES) {
+    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, id);
+  }
 }
 
 /** \} */
@@ -812,6 +815,9 @@ void ED_node_set_active(
           ED_spreadsheet_context_paths_set_geometry_node(bmain, snode, node);
         }
       }
+    }
+    else if (ntree->type == NTREE_PARTICLES) {
+      /* TODO particle viewer node takes point cloud from context and does not need geometry input */
     }
   }
 }

@@ -670,7 +670,7 @@ static int link_socket_to_viewer(const bContext &C,
 
   remove_links_to_unavailable_viewer_sockets(btree, *viewer_bnode);
 
-  if (btree.type == NTREE_GEOMETRY) {
+  if (ELEM(btree.type == NTREE_GEOMETRY, NTREE_PARTICLES)) {
     ED_spreadsheet_context_paths_set_geometry_node(CTX_data_main(&C), &snode, viewer_bnode);
   }
 

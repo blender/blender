@@ -392,7 +392,7 @@ void ED_spreadsheet_context_path_guess(const bContext *C, SpaceSpreadsheet *sspr
         if (sl->spacetype == SPACE_NODE) {
           SpaceNode *snode = (SpaceNode *)sl;
           if (snode->edittree != nullptr) {
-            if (snode->edittree->type == NTREE_GEOMETRY) {
+            if (ELEM(snode->edittree->type, NTREE_GEOMETRY, NTREE_PARTICLES)) {
               LISTBASE_FOREACH (bNode *, node, &snode->edittree->nodes) {
                 if (node->type == GEO_NODE_VIEWER) {
                   if (node->flag & NODE_DO_OUTPUT) {

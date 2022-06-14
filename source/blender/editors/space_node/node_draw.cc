@@ -148,6 +148,9 @@ void ED_node_tag_update_id(ID *id)
   else if (ntree->type == NTREE_GEOMETRY) {
     WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, id);
   }
+  else if (ntree->type == NTREE_PARTICLES) {
+    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, id);
+  }
   else if (id == &ntree->id) {
     /* Node groups. */
     DEG_id_tag_update(id, 0);
@@ -1022,7 +1025,7 @@ static std::optional<std::string> create_socket_inspection_string(bContext *C,
 
 static bool node_socket_has_tooltip(bNodeTree *ntree, bNodeSocket *socket)
 {
-  if (ntree->type == NTREE_GEOMETRY) {
+  if (ELEM(ntree->type, NTREE_GEOMETRY, NTREE_PARTICLES)) {
     return true;
   }
 
@@ -1048,7 +1051,7 @@ static char *node_socket_get_tooltip(bContext *C,
     }
   }
 
-  if (ntree->type == NTREE_GEOMETRY) {
+  if (ELEM(ntree->type, NTREE_GEOMETRY, NTREE_PARTICLES)) {
     if (!output.str().empty()) {
       output << ".\n\n";
     }
@@ -1873,7 +1876,7 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const SpaceNode &snode, cons
   }
 
   if (snode.overlay.flag & SN_OVERLAY_SHOW_NAMED_ATTRIBUTES &&
-      snode.edittree->type == NTREE_GEOMETRY) {
+      ELEM(snode.edittree->type, NTREE_GEOMETRY, NTREE_PARTICLES)) {
     if (std::optional<NodeExtraInfoRow> row = node_get_accessed_attributes_row(snode, node)) {
       rows.append(std::move(*row));
     }
