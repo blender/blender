@@ -85,7 +85,13 @@ def _read_blend_rend_chunk_from_file(blendfile, filepath):
 
     sizeof_bhead = 24 if is_64_bit else 20
 
-    while len(bhead_id := blendfile.read(4)) == 4:
+    # Should always be 4, but a malformed/corrupt file may be less.
+    while (bhead_id := blendfile.read(4)) != b'ENDB':
+
+        if len(bhead_id) != 4:
+            sys.stderr.write("Unable to read until ENDB block (corrupt file): %s\n" % filepath)
+            break
+
         sizeof_data_left = struct.unpack('>i' if is_big_endian else '<i', blendfile.read(4))[0]
         # 4 from the `head_id`, another 4 for the size of the BHEAD.
         sizeof_bhead_left = sizeof_bhead - 8
@@ -107,8 +113,12 @@ def _read_blend_rend_chunk_from_file(blendfile, filepath):
 
             scenes.append((start_frame, end_frame, scene_name))
 
-        if sizeof_data_left != 0:
+        if sizeof_data_left > 0:
             blendfile.seek(sizeof_data_left, SEEK_CUR)
+        elif sizeof_data_left < 0:
+            # Very unlikely, but prevent attempting to further parse corrupt data.
+            sys.stderr.write("Error calculating next block (corrupt file): %s\n" % filepath)
+            break
 
     return scenes
 
