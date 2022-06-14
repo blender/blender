@@ -1028,7 +1028,7 @@ class DashedLineShader(StrokeShader):
         it = stroke.stroke_vertices_begin(sampling)
         pattern_cycle = cycle(self.pattern)
         pattern = next(pattern_cycle)
-        for svert in it:
+        for _svert in it:
             pos = it.t  # curvilinear abscissa
 
             if pos - start + sampling > pattern:

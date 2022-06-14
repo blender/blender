@@ -151,7 +151,7 @@ def normal_at_I0D(it: Interface0DIterator) -> Vector:
         # this case sometimes has a small difference with Normal2DF0D (1e-3 -ish)
         it.decrement()
         a = it.object
-        curr, b = next(it), next(it)
+        _curr, b = next(it), next(it)
         # give iterator back in original state
         it.decrement()
     return (b.point - a.point).orthogonal().normalized()
@@ -228,8 +228,6 @@ def simplifyDouglasPeucker(points, tolerance):
 
     first_stack = []
     last_stack = []
-
-    new_points = []
 
     markers[first] = 1
     markers[last] = 1

@@ -3013,7 +3013,7 @@ def km_sequencerpreview(params):
     return keymap
 
 
-def km_sequencer_channels(params):
+def km_sequencer_channels(_params):
     items = []
     keymap = (
         "Sequencer Channels",
