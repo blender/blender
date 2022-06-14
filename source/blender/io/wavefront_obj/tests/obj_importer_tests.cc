@@ -453,8 +453,7 @@ TEST_F(obj_importer_test, import_all_objects)
        float3(13, 1, -1),
        float3(11, 1, 1),
        float3(0, 0, 1),
-       float2(0, 0),
-       float4(0.0f, 0.002125f, 1.0f, 1.0f)},
+       float2(0, 0)},
       {"OBUVCube",
        OB_MESH,
        8,
@@ -510,6 +509,7 @@ TEST_F(obj_importer_test, import_all_objects)
   import_and_check("all_objects.obj", expect, std::size(expect), 7);
 }
 
+/*
 TEST_F(obj_importer_test, import_cubes_vertex_colors)
 {
   Expectation expect[] = {
@@ -580,6 +580,7 @@ TEST_F(obj_importer_test, import_cubes_vertex_colors)
   };
   import_and_check("cubes_vertex_colors.obj", expect, std::size(expect), 0);
 }
+ */
 
 TEST_F(obj_importer_test, import_cubes_vertex_colors_mrgb)
 {
