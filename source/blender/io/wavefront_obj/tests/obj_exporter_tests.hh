@@ -17,8 +17,8 @@ struct OBJExportParamsDefault {
     params.start_frame = 0;
     params.end_frame = 1;
 
-    params.forward_axis = OBJ_AXIS_NEGATIVE_Z_FORWARD;
-    params.up_axis = OBJ_AXIS_Y_UP;
+    params.forward_axis = IO_AXIS_NEGATIVE_Z;
+    params.up_axis = IO_AXIS_Y;
     params.scaling_factor = 1.f;
 
     params.apply_modifiers = true;

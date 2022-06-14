@@ -18,6 +18,7 @@
 #include "WM_toolsystem.h"
 
 #include "ED_curves_sculpt.h"
+#include "ED_image.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -271,7 +272,7 @@ static void curves_sculptmode_enter(bContext *C)
 
   ob->mode = OB_MODE_SCULPT_CURVES;
 
-  paint_cursor_start(&curves_sculpt->paint, CURVES_SCULPT_mode_poll_view3d);
+  ED_paint_cursor_start(&curves_sculpt->paint, CURVES_SCULPT_mode_poll_view3d);
 
   /* Update for mode change. */
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);

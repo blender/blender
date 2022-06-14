@@ -88,6 +88,10 @@ _km_hierarchy = [
             _km_expand_from_toolsystem('VIEW_3D', 'SCULPT'),
         ]),
 
+        ('Sculpt Curves', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'CURVES_SCULPT'),
+        ]),
+
         ('Particle', 'EMPTY', 'WINDOW', [
             _km_expand_from_toolsystem('VIEW_3D', 'PARTICLE'),
         ]),

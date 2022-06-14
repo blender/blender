@@ -347,7 +347,7 @@ static char attr_prefix_get(eCustomDataType type)
 
 static void attr_input_name(GPUMaterialAttribute *attr)
 {
-  /* NOTE: Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
+  /* NOTE: Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.cc */
   if (attr->type == CD_ORCO) {
     /* OPTI: orco is computed from local positions, but only if no modifier is present. */
     STRNCPY(attr->input_name, "orco");

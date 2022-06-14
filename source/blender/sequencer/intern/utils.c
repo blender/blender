@@ -217,7 +217,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   const bool is_multiview = (seq->flag & SEQ_USE_VIEWS) != 0 &&
                             (scene->r.scemode & R_MULTIVIEW) != 0;
 
-  if ((seq->anims.first != NULL) && (((StripAnim *)seq->anims.first)->anim != NULL)) {
+  if ((seq->anims.first != NULL) && (((StripAnim *)seq->anims.first)->anim != NULL) && !openfile) {
     return;
   }
 

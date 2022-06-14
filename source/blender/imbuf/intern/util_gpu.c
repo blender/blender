@@ -28,17 +28,30 @@ static void imb_gpu_get_format(const ImBuf *ibuf,
                                eGPUTextureFormat *r_texture_format)
 {
   const bool float_rect = (ibuf->rect_float != NULL);
-  const bool use_srgb = (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace) &&
-                         !IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace));
-  high_bitdepth = (!(ibuf->flags & IB_halffloat) && high_bitdepth);
-
-  *r_data_format = (float_rect) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
   if (float_rect) {
-    *r_texture_format = high_bitdepth ? GPU_RGBA32F : GPU_RGBA16F;
+    /* Float. */
+    const bool use_high_bitdepth = (!(ibuf->flags & IB_halffloat) && high_bitdepth);
+    *r_data_format = GPU_DATA_FLOAT;
+    *r_texture_format = use_high_bitdepth ? GPU_RGBA32F : GPU_RGBA16F;
   }
   else {
-    *r_texture_format = use_srgb ? GPU_SRGB8_A8 : GPU_RGBA8;
+    if (IMB_colormanagement_space_is_data(ibuf->rect_colorspace) ||
+        IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace)) {
+      /* Non-color data or scene linear, just store buffer as is. */
+      *r_data_format = GPU_DATA_UBYTE;
+      *r_texture_format = GPU_RGBA8;
+    }
+    else if (IMB_colormanagement_space_is_srgb(ibuf->rect_colorspace)) {
+      /* sRGB, store as byte texture that the GPU can decode directly. */
+      *r_data_format = GPU_DATA_UBYTE;
+      *r_texture_format = GPU_SRGB8_A8;
+    }
+    else {
+      /* Other colorspace, store as half float texture to avoid precision loss. */
+      *r_data_format = GPU_DATA_FLOAT;
+      *r_texture_format = GPU_RGBA16F;
+    }
   }
 }
 
@@ -74,7 +87,6 @@ static bool IMB_gpu_get_compressed_format(const ImBuf *ibuf, eGPUTextureFormat *
 static void *imb_gpu_get_data(const ImBuf *ibuf,
                               const bool do_rescale,
                               const int rescale_size[2],
-                              const bool compress_as_srgb,
                               const bool store_premultiplied,
                               bool *r_freedata)
 {
@@ -99,14 +111,16 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
     }
   }
   else {
-    /* Byte image is in original colorspace from the file. If the file is sRGB
-     * scene linear, or non-color data no conversion is needed. Otherwise we
-     * compress as scene linear + sRGB transfer function to avoid precision loss
-     * in common cases.
+    /* Byte image is in original colorspace from the file, and may need conversion.
      *
      * We must also convert to premultiplied for correct texture interpolation
      * and consistency with float images. */
-    if (!IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
+    if (IMB_colormanagement_space_is_data(ibuf->rect_colorspace)) {
+      /* Non-color data, just store buffer as is. */
+    }
+    else if (IMB_colormanagement_space_is_srgb(ibuf->rect_colorspace) ||
+             IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace)) {
+      /* sRGB or scene linear, store as byte texture that the GPU can decode directly. */
       data_rect = MEM_mallocN(sizeof(uchar[4]) * ibuf->x * ibuf->y, __func__);
       *r_freedata = freedata = true;
 
@@ -120,7 +134,24 @@ static void *imb_gpu_get_data(const ImBuf *ibuf,
        * zero alpha areas, and appears generally closer to what game engines that we
        * want to be compatible with do. */
       IMB_colormanagement_imbuf_to_byte_texture(
-          (uchar *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, compress_as_srgb, store_premultiplied);
+          (uchar *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
+    }
+    else {
+      /* Other colorspace, store as float texture to avoid precision loss. */
+      data_rect = MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__);
+      *r_freedata = freedata = true;
+
+      if (data_rect == NULL) {
+        return NULL;
+      }
+
+      /* Texture storage of images is defined by the alpha mode of the image. The
+       * downside of this is that there can be artifacts near alpha edges. However,
+       * this allows us to use sRGB texture formats and preserves color values in
+       * zero alpha areas, and appears generally closer to what game engines that we
+       * want to be compatible with do. */
+      IMB_colormanagement_imbuf_to_float_texture(
+          (float *)data_rect, 0, 0, ibuf->x, ibuf->y, ibuf, store_premultiplied);
     }
   }
 
@@ -181,10 +212,9 @@ void IMB_update_gpu_texture_sub(GPUTexture *tex,
   eGPUTextureFormat tex_format;
   imb_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
 
-  const bool compress_as_srgb = (tex_format == GPU_SRGB8_A8);
   bool freebuf = false;
 
-  void *data = imb_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
+  void *data = imb_gpu_get_data(ibuf, do_rescale, size, use_premult, &freebuf);
 
   /* Update Texture. */
   GPU_texture_update_sub(tex, data_format, data, x, y, z, w, h, 1);
@@ -238,7 +268,6 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
   eGPUTextureFormat tex_format;
   imb_gpu_get_format(ibuf, use_high_bitdepth, &data_format, &tex_format);
 
-  const bool compress_as_srgb = (tex_format == GPU_SRGB8_A8);
   bool freebuf = false;
 
   /* Create Texture. */
@@ -250,7 +279,7 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
     do_rescale = true;
   }
   BLI_assert(tex != NULL);
-  void *data = imb_gpu_get_data(ibuf, do_rescale, size, compress_as_srgb, use_premult, &freebuf);
+  void *data = imb_gpu_get_data(ibuf, do_rescale, size, use_premult, &freebuf);
   GPU_texture_update(tex, data_format, data);
 
   GPU_texture_anisotropic_filter(tex, true);

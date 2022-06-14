@@ -626,8 +626,8 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
     screen_geom_vertices_scale(win, screen);
 
     ED_screen_areas_iter (win, screen, area) {
-      /* set spacetype and region callbacks, calls init() */
-      /* sets subwindows for regions, adds handlers */
+      /* Set space-type and region callbacks, calls init() */
+      /* Sets sub-windows for regions, adds handlers. */
       ED_area_init(wm, win, area);
     }
 

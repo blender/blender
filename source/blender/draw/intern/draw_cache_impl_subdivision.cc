@@ -39,10 +39,10 @@
 #include "opensubdiv_evaluator_capi.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
-#include "draw_cache_extract.h"
+#include "draw_cache_extract.hh"
 #include "draw_cache_impl.h"
 #include "draw_cache_inline.h"
-#include "mesh_extractors/extract_mesh.h"
+#include "mesh_extractors/extract_mesh.hh"
 
 extern "C" char datatoc_common_subdiv_custom_data_interp_comp_glsl[];
 extern "C" char datatoc_common_subdiv_ibo_lines_comp_glsl[];
@@ -221,7 +221,7 @@ static GPUShader *get_patch_evaluation_shader(int shader_type)
           "#define OSD_PATCH_BASIS_GLSL\n"
           "#define OPENSUBDIV_GLSL_COMPUTE_USE_1ST_DERIVATIVES\n"
           "#define FDOTS_EVALUATION\n"
-          "#define FOTS_NORMALS\n";
+          "#define FDOTS_NORMALS\n";
     }
     else if (shader_type == SHADER_PATCH_EVALUATION_ORCO) {
       defines =
@@ -867,10 +867,10 @@ static bool draw_subdiv_topology_info_cb(const SubdivForeachContext *foreach_con
   ctx->subdiv_loop_subdiv_edge_index = cache->subdiv_loop_subdiv_edge_index;
   ctx->subdiv_loop_poly_index = cache->subdiv_loop_poly_index;
 
-  ctx->v_origindex = static_cast<int *>(
+  ctx->v_origindex = static_cast<const int *>(
       CustomData_get_layer(&ctx->coarse_mesh->vdata, CD_ORIGINDEX));
 
-  ctx->e_origindex = static_cast<int *>(
+  ctx->e_origindex = static_cast<const int *>(
       CustomData_get_layer(&ctx->coarse_mesh->edata, CD_ORIGINDEX));
 
   if (cache->num_subdiv_verts) {
@@ -1837,6 +1837,7 @@ void draw_subdiv_build_lnor_buffer(const DRWSubdivCache *cache,
   GPU_vertbuf_bind_as_ssbo(cache->subdiv_polygon_offset_buffer, binding_point++);
   GPU_vertbuf_bind_as_ssbo(pos_nor, binding_point++);
   GPU_vertbuf_bind_as_ssbo(cache->extra_coarse_face_data, binding_point++);
+  GPU_vertbuf_bind_as_ssbo(cache->verts_orig_index, binding_point++);
 
   /* Outputs */
   GPU_vertbuf_bind_as_ssbo(lnor, binding_point++);
@@ -2103,7 +2104,7 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
 
   draw_subdiv_cache_update_extra_coarse_face_data(draw_cache, mesh_eval, mr);
 
-  mesh_buffer_cache_create_requested_subdiv(batch_cache, mbc, draw_cache, mr);
+  blender::draw::mesh_buffer_cache_create_requested_subdiv(batch_cache, mbc, draw_cache, mr);
 
   mesh_render_data_free(mr);
 

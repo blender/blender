@@ -40,8 +40,8 @@
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_dependency_private.h"
 
-#include <stdarg.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstring>
 
 #include <sstream>
 #include <string>

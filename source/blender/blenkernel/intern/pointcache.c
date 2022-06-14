@@ -3232,7 +3232,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
                 scene, pid->calldata, &cache->startframe, &cache->endframe);
           }
 
-          /* XXX workaround for regression inroduced in ee3fadd, needs looking into */
+          /* XXX: workaround for regression introduced in ee3fadd, needs looking into. */
           if (pid->type == PTCACHE_TYPE_RIGIDBODY) {
             if ((cache->flag & PTCACHE_REDO_NEEDED ||
                  (cache->flag & PTCACHE_SIMULATION_VALID) == 0) &&

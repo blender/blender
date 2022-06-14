@@ -23,6 +23,9 @@ eSpreadsheetColumnValueType cpp_type_to_column_type(const CPPType &type)
   if (type.is<bool>()) {
     return SPREADSHEET_VALUE_TYPE_BOOL;
   }
+  if (type.is<int8_t>()) {
+    return SPREADSHEET_VALUE_TYPE_INT8;
+  }
   if (type.is<int>()) {
     return SPREADSHEET_VALUE_TYPE_INT32;
   }

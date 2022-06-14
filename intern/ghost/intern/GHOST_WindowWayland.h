@@ -50,13 +50,15 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   wl_surface *surface() const;
 
-  const std::vector<output_t *> &outputs() const;
+  std::vector<const output_t *> &outputs();
 
-  std::unordered_set<const output_t *> &outputs_active();
+  output_t *output_find_by_wl(struct wl_output *output);
 
-  uint16_t &dpi();
+  bool outputs_changed_update_scale();
 
-  int &scale();
+  uint16_t dpi();
+
+  int scale();
 
  protected:
   GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) override;

@@ -99,8 +99,8 @@ bool BLI_tridiagonal_solve_cyclic(
 
   /* Degenerate case that works but can be simplified. */
   if (count == 2) {
-    float a2[2] = {0, a[1] + c[1]};
-    float c2[2] = {a[0] + c[0], 0};
+    const float a2[2] = {0, a[1] + c[1]};
+    const float c2[2] = {a[0] + c[0], 0};
 
     return BLI_tridiagonal_solve(a2, b, c2, d, r_x, count);
   }

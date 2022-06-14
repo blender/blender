@@ -318,6 +318,8 @@ DefNode(GeometryNode, GEO_NODE_INPUT_CURVE_HANDLES, 0, "INPUT_CURVE_HANDLES", In
 DefNode(GeometryNode, GEO_NODE_INPUT_CURVE_TILT, 0, "INPUT_CURVE_TILT", InputCurveTilt, "Curve Tilt", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_ID, 0, "INPUT_ID", InputID, "ID", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_INDEX, 0, "INDEX", InputIndex, "Index", "")
+DefNode(GeometryNode, GEO_NODE_INPUT_INSTANCE_ROTATION, 0, "INPUT_INSTANCE_ROTATION", InputInstanceRotation, "Instance Rotation", "")
+DefNode(GeometryNode, GEO_NODE_INPUT_INSTANCE_SCALE, 0, "INPUT_INSTANCE_SCALE", InputInstanceScale, "Instance Scale", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_MATERIAL_INDEX, 0, "INPUT_MATERIAL_INDEX", InputMaterialIndex, "Material Index", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_MATERIAL, def_geo_input_material, "INPUT_MATERIAL", InputMaterial, "Material", "")
 DefNode(GeometryNode, GEO_NODE_INPUT_MESH_EDGE_ANGLE, 0, "MESH_EDGE_ANGLE", InputMeshEdgeAngle, "Edge Angle", "")

@@ -34,6 +34,7 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
+#include "ED_view3d.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
@@ -61,6 +62,7 @@ void ED_sculpt_init_transform(struct bContext *C, Object *ob)
   copy_v3_v3(ss->prev_pivot_pos, ss->pivot_pos);
   copy_v4_v4(ss->prev_pivot_rot, ss->pivot_rot);
   copy_v3_v3(ss->prev_pivot_scale, ss->pivot_scale);
+
   ss->pivot_rot[3] = 1.0f;
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
@@ -181,6 +183,7 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
   SCULPT_undo_push_node(data->ob, node, SCULPT_UNDO_COORDS);
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
+
     float transformed_co[3], orig_co[3], disp[3];
     float *start_co;
     float fade = vd.mask ? *vd.mask : 0.0f;
@@ -318,6 +321,8 @@ static void sculpt_transform_radius_elastic(Sculpt *sd, Object *ob, const float 
   for (ePaintSymmetryFlags symmpass = 0; symmpass <= symm; symmpass++) {
     if (SCULPT_is_symmetry_iteration_valid(symmpass, symm)) {
       flip_v3_v3(data.elastic_transform_pivot, ss->pivot_pos, symmpass);
+      flip_v3_v3(data.elastic_transform_pivot_init, ss->init_pivot_pos, symmpass);
+
       const int symm_area = SCULPT_get_vertex_symm_area(data.elastic_transform_pivot);
       copy_m4_m4(data.elastic_transform_mat, data.transform_mats[symm_area]);
       BLI_task_parallel_range(
@@ -344,7 +349,20 @@ void ED_sculpt_update_modal_transform(struct bContext *C, Object *ob)
     case SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC: {
       Brush *brush = BKE_paint_brush(&sd->paint);
       Scene *scene = CTX_data_scene(C);
-      const float transform_radius = BKE_brush_unprojected_radius_get(scene, brush, true);
+      float transform_radius;
+
+      if (BKE_brush_use_locked_size(scene, brush, false)) {
+        transform_radius = BKE_brush_unprojected_radius_get(scene, brush, false);
+      }
+      else {
+        ViewContext vc;
+
+        ED_view3d_viewcontext_init(C, &vc, depsgraph);
+
+        transform_radius = paint_calc_object_space_radius(
+            &vc, ss->init_pivot_pos, BKE_brush_size_get(scene, brush, false));
+      }
+
       sculpt_transform_radius_elastic(sd, ob, transform_radius);
       break;
     }

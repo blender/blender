@@ -518,6 +518,14 @@ GField make_field_constant_if_possible(GField field)
   return new_field;
 }
 
+Field<bool> invert_boolean_field(const Field<bool> &field)
+{
+  static CustomMF_SI_SO<bool, bool> not_fn{
+      "Not", [](bool a) { return !a; }, CustomMF_presets::AllSpanOrSingle()};
+  auto not_op = std::make_shared<FieldOperation>(FieldOperation(not_fn, {field}));
+  return Field<bool>(not_op);
+}
+
 GField make_constant_field(const CPPType &type, const void *value)
 {
   auto constant_node = std::make_shared<FieldConstant>(type, value);

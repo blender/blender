@@ -316,6 +316,9 @@ static void image_listener(const wmSpaceTypeListenerParams *params)
           ED_area_tag_redraw(area);
           break;
         case ND_MODE:
+          ED_paint_cursor_start(&params->scene->toolsettings->imapaint.paint,
+                                ED_image_tools_paint_poll);
+
           if (wmn->subtype == NS_EDITMODE_MESH) {
             ED_area_tag_refresh(area);
           }

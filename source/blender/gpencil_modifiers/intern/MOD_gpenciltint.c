@@ -10,7 +10,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math.h"
+#include "BLI_math_vector.h"
 
 #include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
@@ -47,7 +47,6 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
 
 static void initData(GpencilModifierData *md)
 {

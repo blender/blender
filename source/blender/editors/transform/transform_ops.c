@@ -419,7 +419,7 @@ static int transform_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* XXX, workaround: active needs to be calculated before transforming,
    * since we're not reading from 'td->center' in this case. see: T40241 */
-  if (t->tsnap.target == SCE_SNAP_TARGET_ACTIVE) {
+  if (t->tsnap.source_select == SCE_SNAP_SOURCE_ACTIVE) {
     /* In camera view, tsnap callback is not set
      * (see #initSnappingMode() in transform_snap.c, and T40348). */
     if (t->tsnap.targetSnap && ((t->tsnap.status & TARGET_INIT) == 0)) {
@@ -648,7 +648,11 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
     RNA_def_property_flag(prop, PROP_HIDDEN);
 
     if (flags & P_GEO_SNAP) {
-      prop = RNA_def_enum(ot->srna, "snap_target", rna_enum_snap_target_items, 0, "Target", "");
+      /* TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid
+       * previous ambiguity of "target" (now, "source" is geometry to be moved and "target" is
+       * geometry to which moved geometry is snapped).  Use "Source snap point" and "Point on
+       * source that will snap to target" for name and description, respectively. */
+      prop = RNA_def_enum(ot->srna, "snap_target", rna_enum_snap_source_items, 0, "Target", "");
       RNA_def_property_flag(prop, PROP_HIDDEN);
       prop = RNA_def_float_vector(
           ot->srna, "snap_point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "", -FLT_MAX, FLT_MAX);

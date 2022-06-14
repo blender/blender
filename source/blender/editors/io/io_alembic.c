@@ -282,7 +282,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
   ot->poll = WM_operator_winactive;
   ot->ui = wm_alembic_export_draw;
   ot->check = wm_alembic_export_check;
-  ot->flag |= OPTYPE_PRESET;
+  ot->flag = OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_ALEMBIC,

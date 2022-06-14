@@ -1954,7 +1954,7 @@ void OUTLINER_OT_delete(wmOperatorType *ot)
   ot->poll = ED_operator_outliner_active;
 
   /* flags */
-  ot->flag |= OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* properties */
   PropertyRNA *prop = RNA_def_boolean(

@@ -182,6 +182,7 @@ class CurvesGeometry : public ::CurvesGeometry {
   void update_curve_types();
 
   bool has_curve_with_type(CurveType type) const;
+  bool has_curve_with_type(Span<CurveType> types) const;
   /** Return true if all of the curves have the provided type. */
   bool is_single_type(CurveType type) const;
   /** Return the number of curves with each type. */
@@ -264,22 +265,10 @@ class CurvesGeometry : public ::CurvesGeometry {
   MutableSpan<float> nurbs_weights_for_write();
 
   /**
-   * The index of a triangle (#MLoopTri) that a curve is attached to.
-   * The index is -1, if the curve is not attached.
+   * UV coordinate for each curve that encodes where the curve is attached to the surface mesh.
    */
-  VArray<int> surface_triangle_indices() const;
-  MutableSpan<int> surface_triangle_indices_for_write();
-
-  /**
-   * Barycentric coordinates of the attachment point within a triangle.
-   * Only the first two coordinates are stored. The third coordinate can be derived because the sum
-   * of the three coordinates is 1.
-   *
-   * When the triangle index is -1, this coordinate should be ignored.
-   * The span can be empty, when all triangle indices are -1.
-   */
-  Span<float2> surface_triangle_coords() const;
-  MutableSpan<float2> surface_triangle_coords_for_write();
+  Span<float2> surface_uv_coords() const;
+  MutableSpan<float2> surface_uv_coords_for_write();
 
   VArray<float> selection_point_float() const;
   MutableSpan<float> selection_point_float_for_write();
@@ -398,6 +387,7 @@ class CurvesGeometry : public ::CurvesGeometry {
 
   void update_customdata_pointers();
 
+  void remove_points(IndexMask points_to_delete);
   void remove_curves(IndexMask curves_to_delete);
 
   /**
@@ -405,6 +395,11 @@ class CurvesGeometry : public ::CurvesGeometry {
    * shape.
    */
   void reverse_curves(IndexMask curves_to_reverse);
+
+  /**
+   * Remove any attributes that are unused based on the types in the curves.
+   */
+  void remove_attributes_based_on_types();
 
   /* --------------------------------------------------------------------
    * Attributes.
@@ -720,6 +715,12 @@ inline bool CurvesGeometry::is_single_type(const CurveType type) const
 inline bool CurvesGeometry::has_curve_with_type(const CurveType type) const
 {
   return this->curve_type_counts()[type] > 0;
+}
+
+inline bool CurvesGeometry::has_curve_with_type(const Span<CurveType> types) const
+{
+  return std::any_of(
+      types.begin(), types.end(), [&](CurveType type) { return this->has_curve_with_type(type); });
 }
 
 inline const std::array<int, CURVE_TYPES_NUM> &CurvesGeometry::curve_type_counts() const

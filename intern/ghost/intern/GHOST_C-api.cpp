@@ -376,6 +376,20 @@ GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
       mode, wrap_axis, bounds ? &bounds_rect : nullptr, mouse_ungrab_xy ? mouse_xy : nullptr);
 }
 
+void GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
+                              GHOST_TGrabCursorMode *r_mode,
+                              GHOST_TAxisFlag *r_axis_flag,
+                              int r_bounds[4])
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+  GHOST_Rect bounds_rect;
+  window->getCursorGrabState(*r_mode, *r_axis_flag, bounds_rect);
+  r_bounds[0] = bounds_rect.m_l;
+  r_bounds[1] = bounds_rect.m_t;
+  r_bounds[2] = bounds_rect.m_r;
+  r_bounds[3] = bounds_rect.m_b;
+}
+
 GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
                                          GHOST_TModifierKeyMask mask,
                                          int *isDown)
@@ -813,6 +827,17 @@ int GHOST_UseNativePixels(void)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->useNativePixel();
+}
+
+int GHOST_SupportsCursorWarp(void)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->supportsCursorWarp();
+}
+
+void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn)
+{
+  GHOST_ISystem::setBacktraceFn(backtrace_fn);
 }
 
 void GHOST_UseWindowFocus(int use_focus)

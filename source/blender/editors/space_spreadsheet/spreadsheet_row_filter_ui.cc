@@ -63,6 +63,7 @@ static std::string value_string(const SpreadsheetRowFilter &row_filter,
                                 const eSpreadsheetColumnValueType data_type)
 {
   switch (data_type) {
+    case SPREADSHEET_VALUE_TYPE_INT8:
     case SPREADSHEET_VALUE_TYPE_INT32:
       return std::to_string(row_filter.value_int);
     case SPREADSHEET_VALUE_TYPE_FLOAT: {
@@ -200,6 +201,10 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
   }
 
   switch (static_cast<eSpreadsheetColumnValueType>(column->data_type)) {
+    case SPREADSHEET_VALUE_TYPE_INT8:
+      uiItemR(layout, filter_ptr, "operation", 0, nullptr, ICON_NONE);
+      uiItemR(layout, filter_ptr, "value_int8", 0, IFACE_("Value"), ICON_NONE);
+      break;
     case SPREADSHEET_VALUE_TYPE_INT32:
       uiItemR(layout, filter_ptr, "operation", 0, nullptr, ICON_NONE);
       uiItemR(layout, filter_ptr, "value_int", 0, IFACE_("Value"), ICON_NONE);

@@ -19,6 +19,7 @@
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_geometry_set.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
@@ -85,10 +86,7 @@ static void initialize_straight_curve_positions(const float3 &p1,
  */
 struct AddOperationExecutor {
   AddOperation *self_ = nullptr;
-  const Depsgraph *depsgraph_ = nullptr;
-  const Scene *scene_ = nullptr;
-  ARegion *region_ = nullptr;
-  const View3D *v3d_ = nullptr;
+  CurvesSculptCommonContext ctx_;
 
   Object *object_ = nullptr;
   Curves *curves_id_ = nullptr;
@@ -98,6 +96,7 @@ struct AddOperationExecutor {
   Mesh *surface_ = nullptr;
   Span<MLoopTri> surface_looptris_;
   Span<float3> corner_normals_su_;
+  VArray_Span<float2> surface_uv_map_;
 
   const CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;
@@ -117,6 +116,7 @@ struct AddOperationExecutor {
 
   /** Various matrices to convert between coordinate spaces. */
   float4x4 curves_to_world_mat_;
+  float4x4 curves_to_surface_mat_;
   float4x4 world_to_curves_mat_;
   float4x4 world_to_surface_mat_;
   float4x4 surface_to_world_mat_;
@@ -143,14 +143,14 @@ struct AddOperationExecutor {
   static constexpr int max_neighbors = 5;
   using NeighborsVector = Vector<NeighborInfo, max_neighbors>;
 
+  AddOperationExecutor(const bContext &C) : ctx_(C)
+  {
+  }
+
   void execute(AddOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {
     self_ = &self;
-    depsgraph_ = CTX_data_depsgraph_pointer(&C);
-    scene_ = CTX_data_scene(&C);
     object_ = CTX_data_active_object(&C);
-    region_ = CTX_wm_region(&C);
-    v3d_ = CTX_wm_view3d(&C);
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
@@ -168,6 +168,7 @@ struct AddOperationExecutor {
     world_to_surface_mat_ = surface_to_world_mat_.inverted();
     surface_to_curves_mat_ = world_to_curves_mat_ * surface_to_world_mat_;
     surface_to_curves_normal_mat_ = surface_to_curves_mat_.inverted().transposed();
+    curves_to_surface_mat_ = world_to_surface_mat_ * curves_to_world_mat_;
 
     if (!CustomData_has_layer(&surface_->ldata, CD_NORMAL)) {
       BKE_mesh_calc_normals_split(surface_);
@@ -176,10 +177,10 @@ struct AddOperationExecutor {
         reinterpret_cast<const float3 *>(CustomData_get_layer(&surface_->ldata, CD_NORMAL)),
         surface_->totloop};
 
-    curves_sculpt_ = scene_->toolsettings->curves_sculpt;
+    curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
     brush_settings_ = brush_->curves_sculpt_settings;
-    brush_radius_re_ = brush_radius_get(*scene_, *brush_, stroke_extension);
+    brush_radius_re_ = brush_radius_get(*ctx_.scene, *brush_, stroke_extension);
     brush_pos_re_ = stroke_extension.mouse_position;
 
     use_front_face_ = brush_->flag & BRUSH_FRONTFACE;
@@ -210,6 +211,15 @@ struct AddOperationExecutor {
 
     surface_looptris_ = {BKE_mesh_runtime_looptri_ensure(surface_),
                          BKE_mesh_runtime_looptri_len(surface_)};
+
+    if (curves_id_->surface_uv_map != nullptr) {
+      MeshComponent surface_component;
+      surface_component.replace(surface_, GeometryOwnershipType::ReadOnly);
+      surface_uv_map_ = surface_component
+                            .attribute_try_get_for_read(curves_id_->surface_uv_map,
+                                                        ATTR_DOMAIN_CORNER)
+                            .typed<float2>();
+    }
 
     /* Sample points on the surface using one of multiple strategies. */
     AddedPoints added_points;
@@ -256,17 +266,7 @@ struct AddOperationExecutor {
 
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
-    ED_region_tag_redraw(region_);
-  }
-
-  float3 get_bary_coords(const Mesh &mesh, const MLoopTri &looptri, const float3 position) const
-  {
-    const float3 &v0 = mesh.mvert[mesh.mloop[looptri.tri[0]].v].co;
-    const float3 &v1 = mesh.mvert[mesh.mloop[looptri.tri[1]].v].co;
-    const float3 &v2 = mesh.mvert[mesh.mloop[looptri.tri[2]].v].co;
-    float3 bary_coords;
-    interp_weights_tri_v3(bary_coords, v0, v1, v2, position);
-    return bary_coords;
+    ED_region_tag_redraw(ctx_.region);
   }
 
   /**
@@ -276,16 +276,16 @@ struct AddOperationExecutor {
   {
     float3 ray_start_wo, ray_end_wo;
     ED_view3d_win_to_segment_clipped(
-        depsgraph_, region_, v3d_, brush_pos_re_, ray_start_wo, ray_end_wo, true);
-    const float3 ray_start_su = world_to_surface_mat_ * ray_start_wo;
-    const float3 ray_end_su = world_to_surface_mat_ * ray_end_wo;
+        ctx_.depsgraph, ctx_.region, ctx_.v3d, brush_pos_re_, ray_start_wo, ray_end_wo, true);
+    const float3 ray_start_cu = world_to_curves_mat_ * ray_start_wo;
+    const float3 ray_end_cu = world_to_curves_mat_ * ray_end_wo;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
 
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      this->sample_in_center(
-          r_added_points, brush_transform * ray_start_su, brush_transform * ray_end_su);
+      const float4x4 transform = curves_to_surface_mat_ * brush_transform;
+      this->sample_in_center(r_added_points, transform * ray_start_cu, transform * ray_end_cu);
     }
   }
 
@@ -312,7 +312,7 @@ struct AddOperationExecutor {
 
     const int looptri_index = ray_hit.index;
     const float3 brush_pos_su = ray_hit.co;
-    const float3 bary_coords = this->get_bary_coords(
+    const float3 bary_coords = compute_bary_coord_in_triangle(
         *surface_, surface_looptris_[looptri_index], brush_pos_su);
 
     const float3 brush_pos_cu = surface_to_curves_mat_ * brush_pos_su;
@@ -352,9 +352,12 @@ struct AddOperationExecutor {
 
       float3 ray_start_wo, ray_end_wo;
       ED_view3d_win_to_segment_clipped(
-          depsgraph_, region_, v3d_, pos_re, ray_start_wo, ray_end_wo, true);
-      const float3 ray_start_su = brush_transform * (world_to_surface_mat_ * ray_start_wo);
-      const float3 ray_end_su = brush_transform * (world_to_surface_mat_ * ray_end_wo);
+          ctx_.depsgraph, ctx_.region, ctx_.v3d, pos_re, ray_start_wo, ray_end_wo, true);
+      const float3 ray_start_cu = brush_transform * (world_to_curves_mat_ * ray_start_wo);
+      const float3 ray_end_cu = brush_transform * (world_to_curves_mat_ * ray_end_wo);
+
+      const float3 ray_start_su = curves_to_surface_mat_ * ray_start_cu;
+      const float3 ray_end_su = curves_to_surface_mat_ * ray_end_cu;
       const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
 
       BVHTreeRayHit ray_hit;
@@ -382,7 +385,7 @@ struct AddOperationExecutor {
       const int looptri_index = ray_hit.index;
       const float3 pos_su = ray_hit.co;
 
-      const float3 bary_coords = this->get_bary_coords(
+      const float3 bary_coords = compute_bary_coord_in_triangle(
           *surface_, surface_looptris_[looptri_index], pos_su);
 
       const float3 pos_cu = surface_to_curves_mat_ * pos_su;
@@ -400,33 +403,39 @@ struct AddOperationExecutor {
   {
     /* Find ray that starts in the center of the brush. */
     float3 brush_ray_start_wo, brush_ray_end_wo;
-    ED_view3d_win_to_segment_clipped(
-        depsgraph_, region_, v3d_, brush_pos_re_, brush_ray_start_wo, brush_ray_end_wo, true);
-    const float3 brush_ray_start_su = world_to_surface_mat_ * brush_ray_start_wo;
-    const float3 brush_ray_end_su = world_to_surface_mat_ * brush_ray_end_wo;
+    ED_view3d_win_to_segment_clipped(ctx_.depsgraph,
+                                     ctx_.region,
+                                     ctx_.v3d,
+                                     brush_pos_re_,
+                                     brush_ray_start_wo,
+                                     brush_ray_end_wo,
+                                     true);
+    const float3 brush_ray_start_cu = world_to_curves_mat_ * brush_ray_start_wo;
+    const float3 brush_ray_end_cu = world_to_curves_mat_ * brush_ray_end_wo;
 
     /* Find ray that starts on the boundary of the brush. That is used to compute the brush radius
      * in 3D. */
     float3 brush_radius_ray_start_wo, brush_radius_ray_end_wo;
-    ED_view3d_win_to_segment_clipped(depsgraph_,
-                                     region_,
-                                     v3d_,
+    ED_view3d_win_to_segment_clipped(ctx_.depsgraph,
+                                     ctx_.region,
+                                     ctx_.v3d,
                                      brush_pos_re_ + float2(brush_radius_re_, 0),
                                      brush_radius_ray_start_wo,
                                      brush_radius_ray_end_wo,
                                      true);
-    const float3 brush_radius_ray_start_su = world_to_surface_mat_ * brush_radius_ray_start_wo;
-    const float3 brush_radius_ray_end_su = world_to_surface_mat_ * brush_radius_ray_end_wo;
+    const float3 brush_radius_ray_start_cu = world_to_curves_mat_ * brush_radius_ray_start_wo;
+    const float3 brush_radius_ray_end_cu = world_to_curves_mat_ * brush_radius_ray_end_wo;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+      const float4x4 transform = curves_to_surface_mat_ * brush_transform;
       this->sample_spherical(rng,
                              r_added_points,
-                             brush_transform * brush_ray_start_su,
-                             brush_transform * brush_ray_end_su,
-                             brush_transform * brush_radius_ray_start_su,
-                             brush_transform * brush_radius_ray_end_su);
+                             transform * brush_ray_start_cu,
+                             transform * brush_ray_end_cu,
+                             transform * brush_radius_ray_start_cu,
+                             transform * brush_radius_ray_end_cu);
     }
   }
 
@@ -650,7 +659,9 @@ struct AddOperationExecutor {
     }
 
     Array<float3> new_normals_su = this->compute_normals_for_added_curves_su(added_points);
-    this->initialize_surface_attachment(added_points);
+    if (!surface_uv_map_.is_empty()) {
+      this->initialize_surface_attachment(added_points);
+    }
 
     this->fill_new_selection();
 
@@ -765,7 +776,8 @@ struct AddOperationExecutor {
       for (const int i : range) {
         const int looptri_index = added_points.looptri_indices[i];
         const float3 &bary_coord = added_points.bary_coords[i];
-        normals_su[i] = this->compute_point_normal_su(looptri_index, bary_coord);
+        normals_su[i] = compute_surface_point_normal(
+            surface_looptris_[looptri_index], bary_coord, corner_normals_su_);
       }
     });
     return normals_su;
@@ -773,14 +785,18 @@ struct AddOperationExecutor {
 
   void initialize_surface_attachment(const AddedPoints &added_points)
   {
-    MutableSpan<int> surface_triangle_indices = curves_->surface_triangle_indices_for_write();
-    MutableSpan<float2> surface_triangle_coords = curves_->surface_triangle_coords_for_write();
+    MutableSpan<float2> surface_uv_coords = curves_->surface_uv_coords_for_write();
     threading::parallel_for(
         added_points.bary_coords.index_range(), 1024, [&](const IndexRange range) {
           for (const int i : range) {
             const int curve_i = tot_old_curves_ + i;
-            surface_triangle_indices[curve_i] = added_points.looptri_indices[i];
-            surface_triangle_coords[curve_i] = float2(added_points.bary_coords[i]);
+            const MLoopTri &looptri = surface_looptris_[added_points.looptri_indices[i]];
+            const float2 &uv0 = surface_uv_map_[looptri.tri[0]];
+            const float2 &uv1 = surface_uv_map_[looptri.tri[1]];
+            const float2 &uv2 = surface_uv_map_[looptri.tri[2]];
+            const float3 &bary_coords = added_points.bary_coords[i];
+            const float2 uv = attribute_math::mix3(bary_coords, uv0, uv1, uv2);
+            surface_uv_coords[curve_i] = uv;
           }
         });
   }
@@ -818,8 +834,6 @@ struct AddOperationExecutor {
                                               const Span<float> new_lengths_cu)
   {
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
-    const VArray_Span<int> surface_triangle_indices{curves_->surface_triangle_indices()};
-    const Span<float2> surface_triangle_coords = curves_->surface_triangle_coords();
 
     threading::parallel_for(
         added_points.bary_coords.index_range(), 256, [&](const IndexRange range) {
@@ -844,13 +858,27 @@ struct AddOperationExecutor {
 
             for (const NeighborInfo &neighbor : neighbors) {
               const int neighbor_curve_i = neighbor.index;
-              const int neighbor_looptri_index = surface_triangle_indices[neighbor_curve_i];
+              const float3 &neighbor_first_pos_cu =
+                  positions_cu[curves_->offsets()[neighbor_curve_i]];
+              const float3 neighbor_first_pos_su = curves_to_surface_mat_ * neighbor_first_pos_cu;
 
-              float3 neighbor_bary_coord{surface_triangle_coords[neighbor_curve_i]};
-              neighbor_bary_coord.z = 1.0f - neighbor_bary_coord.x - neighbor_bary_coord.y;
+              BVHTreeNearest nearest;
+              nearest.dist_sq = FLT_MAX;
+              BLI_bvhtree_find_nearest(surface_bvh_.tree,
+                                       neighbor_first_pos_su,
+                                       &nearest,
+                                       surface_bvh_.nearest_callback,
+                                       &surface_bvh_);
+              const int neighbor_looptri_index = nearest.index;
+              const MLoopTri &neighbor_looptri = surface_looptris_[neighbor_looptri_index];
 
-              const float3 neighbor_normal_su = this->compute_point_normal_su(
-                  neighbor_looptri_index, neighbor_bary_coord);
+              const float3 neighbor_bary_coord = compute_bary_coord_in_triangle(
+                  *surface_, neighbor_looptri, nearest.co);
+
+              const float3 neighbor_normal_su = compute_surface_point_normal(
+                  surface_looptris_[neighbor_looptri_index],
+                  neighbor_bary_coord,
+                  corner_normals_su_);
               const float3 neighbor_normal_cu = math::normalize(surface_to_curves_normal_mat_ *
                                                                 neighbor_normal_su);
 
@@ -895,7 +923,7 @@ struct AddOperationExecutor {
 
 void AddOperation::on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension)
 {
-  AddOperationExecutor executor;
+  AddOperationExecutor executor{C};
   executor.execute(*this, C, stroke_extension);
 }
 

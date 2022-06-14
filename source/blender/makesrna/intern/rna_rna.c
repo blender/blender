@@ -154,7 +154,7 @@ const EnumPropertyItem rna_enum_property_flag_items[] = {
     {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
     {PROP_ANIMATABLE, "ANIMATABLE", 0, "Animatable", ""},
     {PROP_LIB_EXCEPTION, "LIBRARY_EDITABLE", 0, "Library Editable", ""},
-    {PROP_PROPORTIONAL, "PROPORTIONAL", 0, "Adjust values proportionally to eachother", ""},
+    {PROP_PROPORTIONAL, "PROPORTIONAL", 0, "Adjust values proportionally to each other", ""},
     {PROP_TEXTEDIT_UPDATE,
      "TEXTEDIT_UPDATE",
      0,

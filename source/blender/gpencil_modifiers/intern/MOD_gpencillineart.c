@@ -7,9 +7,8 @@
 
 #include <stdio.h>
 
-#include "BLI_utildefines.h"
-
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -21,9 +20,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-
-#include "MOD_gpencil_lineart.h"
-#include "lineart/MOD_lineart.h"
 
 #include "BKE_collection.h"
 #include "BKE_context.h"
@@ -43,8 +39,10 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "MOD_gpencil_lineart.h"
 #include "MOD_gpencil_modifiertypes.h"
 #include "MOD_gpencil_ui_common.h"
+#include "lineart/MOD_lineart.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -354,7 +352,7 @@ static void edge_types_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiLayout *sub = uiLayoutRowWithHeading(col, false, IFACE_("Crease"));
   uiItemR(sub, ptr, "use_crease", 0, "", ICON_NONE);
   uiLayout *entry = uiLayoutRow(sub, false);
-  uiLayoutSetEnabled(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
+  uiLayoutSetActive(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
   if (use_cache && !is_first) {
     uiItemL(entry, IFACE_("Angle Cached"), ICON_INFO);
   }
@@ -526,6 +524,7 @@ static void intersection_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemR(layout, ptr, "use_intersection_match", 0, IFACE_("Exact Match"), ICON_NONE);
 }
+
 static void face_mark_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;

@@ -274,6 +274,12 @@ static void image_save_post(ReportList *reports,
   if (opts->do_newpath) {
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
     BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
+
+    /* only image path, never ibuf */
+    if (opts->relative) {
+      const char *relbase = ID_BLEND_PATH(opts->bmain, &ima->id);
+      BLI_path_rel(ima->filepath, relbase); /* only after saving */
+    }
   }
 
   ibuf->userflags &= ~IB_BITMAPDIRTY;
@@ -301,12 +307,6 @@ static void image_save_post(ReportList *reports,
   if (ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
     ima->source = IMA_SRC_FILE;
     ima->type = IMA_TYPE_IMAGE;
-  }
-
-  /* only image path, never ibuf */
-  if (opts->relative) {
-    const char *relbase = ID_BLEND_PATH(opts->bmain, &ima->id);
-    BLI_path_rel(ima->filepath, relbase); /* only after saving */
   }
 
   /* Update image file color space when saving to another color space. */

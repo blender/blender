@@ -1022,9 +1022,10 @@ typedef struct Sculpt {
   float detail_percent;
   int dyntopo_spacing;
 
-  struct Object *gravity_object;
   float dyntopo_radius_scale;
-  int _pad[1];
+  int _pad1[1];
+
+  struct Object *gravity_object;
   struct BrushChannelSet *channels;
 } Sculpt;
 
@@ -1508,18 +1509,19 @@ typedef struct ToolSettings {
   /* Transform */
   char transform_pivot_point;
   char transform_flag;
-  /** Snap elements (per spacetype). */
+  /** Snap elements (per spacetype), #eSnapMode. */
   char snap_mode;
   char snap_node_mode;
   char snap_uv_mode;
-  /** Generic flags (per spacetype). */
+  /** Generic flags (per spacetype), #eSnapFlag. */
   char snap_flag;
   char snap_flag_node;
   char snap_flag_seq;
   char snap_uv_flag;
-  /** Default snap source. */
+  /** Default snap source, #eSnapSourceSelect. */
+  /* TODO(@gfxcoder): Rename `snap_target` to `snap_source_point`, because target is incorrect. */
   char snap_target;
-  /** Snap mask for transform modes. */
+  /** Snap mask for transform modes, #eSnapTransformMode. */
   char snap_transform_mode_flag;
 
   char proportional_edit, prop_mode;
@@ -2093,30 +2095,64 @@ enum {
 };
 
 /** #ToolSettings.snap_flag */
-#define SCE_SNAP (1 << 0)
-#define SCE_SNAP_ROTATE (1 << 1)
-#define SCE_SNAP_PEEL_OBJECT (1 << 2)
-#define SCE_SNAP_PROJECT (1 << 3)
-#define SCE_SNAP_NO_SELF (1 << 4)
-#define SCE_SNAP_ABS_GRID (1 << 5)
-#define SCE_SNAP_BACKFACE_CULLING (1 << 6)
+typedef enum eSnapFlag {
+  SCE_SNAP = (1 << 0),
+  SCE_SNAP_ROTATE = (1 << 1),
+  SCE_SNAP_PEEL_OBJECT = (1 << 2),
+  SCE_SNAP_PROJECT = (1 << 3),
+  SCE_SNAP_NO_SELF = (1 << 4),
+  SCE_SNAP_ABS_GRID = (1 << 5),
+  SCE_SNAP_BACKFACE_CULLING = (1 << 6),
+} eSnapFlag;
+/* Due to dependency conflicts with Cycles, header cannot directly include `BLI_utildefines.h`. */
+/* TODO: move this macro to a more general place. */
+#ifdef ENUM_OPERATORS
+ENUM_OPERATORS(eSnapFlag, SCE_SNAP_BACKFACE_CULLING)
+#endif
 
-/** #ToolSettings.snap_target */
-#define SCE_SNAP_TARGET_CLOSEST 0
-#define SCE_SNAP_TARGET_CENTER 1
-#define SCE_SNAP_TARGET_MEDIAN 2
-#define SCE_SNAP_TARGET_ACTIVE 3
+/** #ToolSettings.snap_target and #TransSnap.source_select */
+typedef enum eSnapSourceSelect {
+  SCE_SNAP_SOURCE_CLOSEST = 0,
+  SCE_SNAP_SOURCE_CENTER = 1,
+  SCE_SNAP_SOURCE_MEDIAN = 2,
+  SCE_SNAP_SOURCE_ACTIVE = 3,
+} eSnapSourceSelect;
+
+/** #TransSnap.target_select and #ToolSettings.snap_flag (SCE_SNAP_NO_SELF) */
+typedef enum eSnapTargetSelect {
+  SCE_SNAP_TARGET_ALL = 0,
+  SCE_SNAP_TARGET_NOT_SELECTED = 1,
+  SCE_SNAP_TARGET_NOT_ACTIVE = 2,
+  SCE_SNAP_TARGET_NOT_EDITED = 3,
+  SCE_SNAP_TARGET_ONLY_SELECTABLE = 4,
+} eSnapTargetSelect;
 
 /** #ToolSettings.snap_mode */
-#define SCE_SNAP_MODE_VERTEX (1 << 0)
-#define SCE_SNAP_MODE_EDGE (1 << 1)
-#define SCE_SNAP_MODE_FACE (1 << 2)
-#define SCE_SNAP_MODE_VOLUME (1 << 3)
-#define SCE_SNAP_MODE_EDGE_MIDPOINT (1 << 4)
-#define SCE_SNAP_MODE_EDGE_PERPENDICULAR (1 << 5)
-#define SCE_SNAP_MODE_GEOM \
-  (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE | \
-   SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT)
+typedef enum eSnapMode {
+  SCE_SNAP_MODE_NONE = 0,
+  SCE_SNAP_MODE_VERTEX = (1 << 0),
+  SCE_SNAP_MODE_EDGE = (1 << 1),
+  SCE_SNAP_MODE_FACE = (1 << 2), /* TODO(@gfxcoder): Rename to `SCE_SNAP_MODE_FACE_RAYCAST`
+                                            when other face snapping methods are added. */
+  SCE_SNAP_MODE_VOLUME = (1 << 3),
+  SCE_SNAP_MODE_EDGE_MIDPOINT = (1 << 4),
+  SCE_SNAP_MODE_EDGE_PERPENDICULAR = (1 << 5),
+  SCE_SNAP_MODE_GEOM = (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE |
+                        SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT),
+
+  /** #ToolSettings.snap_node_mode */
+  SCE_SNAP_MODE_NODE_X = (1 << 0),
+  SCE_SNAP_MODE_NODE_Y = (1 << 1),
+
+  /* #ToolSettings.snap_mode and #ToolSettings.snap_node_mode and #ToolSettings.snap_uv_mode */
+  SCE_SNAP_MODE_INCREMENT = (1 << 6),
+  SCE_SNAP_MODE_GRID = (1 << 7),
+} eSnapMode;
+/* Due to dependency conflicts with Cycles, header cannot directly include `BLI_utildefines.h`. */
+/* TODO: move this macro to a more general place. */
+#ifdef ENUM_OPERATORS
+ENUM_OPERATORS(eSnapMode, SCE_SNAP_MODE_GRID)
+#endif
 
 /** #SequencerToolSettings.snap_mode */
 #define SEQ_SNAP_TO_STRIPS (1 << 0)
@@ -2128,22 +2164,12 @@ enum {
 #define SEQ_SNAP_IGNORE_SOUND (1 << 1)
 #define SEQ_SNAP_CURRENT_FRAME_TO_STRIPS (1 << 2)
 
-/** #ToolSettings.snap_node_mode */
-#define SCE_SNAP_MODE_NODE_X (1 << 0)
-#define SCE_SNAP_MODE_NODE_Y (1 << 1)
-
-/**
- * #ToolSettings.snap_mode and #ToolSettings.snap_node_mode
- */
-#define SCE_SNAP_MODE_INCREMENT (1 << 6)
-#define SCE_SNAP_MODE_GRID (1 << 7)
-
 /** #ToolSettings.snap_transform_mode_flag */
-enum {
+typedef enum eSnapTransformMode {
   SCE_SNAP_TRANSFORM_MODE_TRANSLATE = (1 << 0),
   SCE_SNAP_TRANSFORM_MODE_ROTATE = (1 << 1),
   SCE_SNAP_TRANSFORM_MODE_SCALE = (1 << 2),
-};
+} eSnapTransformMode;
 
 /** #ToolSettings.selectmode */
 #define SCE_SELECT_VERTEX (1 << 0) /* for mesh */
@@ -2306,7 +2332,7 @@ typedef enum eSculptFlags {
   SCULPT_DYNTOPO_ENABLED = (1 << 23),
 } eSculptFlags;
 
-/** #Sculpt.transform_mode */
+/* Sculpt.transform_mode */
 typedef enum eSculptTransformMode {
   SCULPT_TRANSFORM_MODE_ALL_VERTICES = 0,
   SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC = 1,

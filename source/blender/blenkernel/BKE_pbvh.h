@@ -450,7 +450,8 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data, struct GPU_PBVH_Buffers *buffers),
-                      void *user_data);
+                      void *user_data,
+                      bool full_render);
 
 void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
                             void (*draw_fn)(void *user_data,
@@ -1200,3 +1201,5 @@ SculptPMap *BKE_pbvh_make_pmap(const struct Mesh *me);
 void BKE_pbvh_pmap_aquire(SculptPMap *pmap);
 bool BKE_pbvh_pmap_release(SculptPMap *pmap);
 void BKE_pbvh_clear_cache(PBVH *preserve);
+
+void BKE_pbvh_need_full_render_set(PBVH *pbvh, bool state);

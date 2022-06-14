@@ -861,7 +861,16 @@ void BKE_pbvh_free(PBVH *pbvh)
 
   pbvh->invalid = true;
 
+  if (pbvh->vbo_id) {
+    GPU_pbvh_free_format(pbvh->vbo_id);
+  }
+
   MEM_freeN(pbvh);
+}
+
+void BKE_pbvh_need_full_render_set(PBVH *pbvh, bool state)
+{
+  GPU_pbvh_need_full_render_set(pbvh->vbo_id, state);
 }
 
 static void pbvh_iter_begin(PBVHIter *iter,
@@ -1467,6 +1476,15 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
 
   CustomDataLayer *render_vcol_layer = BKE_id_attributes_render_color_get(&me_query.id);
 
+  if (!pbvh->bm) {
+    vdata = pbvh->vdata;
+    ldata = pbvh->ldata;
+  }
+  else {
+    vdata = &pbvh->bm->vdata;
+    ldata = &pbvh->bm->ldata;
+  }
+
   if (node->flag & PBVH_RebuildDrawBuffers) {
     node->updategen++;
 
@@ -1476,6 +1494,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
         break;
       case PBVH_FACES:
         node->draw_buffers = GPU_pbvh_mesh_buffers_build(
+            pbvh->vbo_id,
             pbvh->mpoly,
             pbvh->mloop,
             pbvh->looptri,
@@ -1496,8 +1515,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
         }
 
         for (int i = 0; i < node->tot_tri_buffers; i++) {
-          node->mat_draw_buffers[i] = GPU_pbvh_bmesh_buffers_build(pbvh->flags &
-                                                                   PBVH_DYNTOPO_SMOOTH_SHADING);
+          node->mat_draw_buffers[i] = GPU_pbvh_bmesh_buffers_build(
+              pbvh->vbo_id, pbvh->flags & PBVH_DYNTOPO_SMOOTH_SHADING);
         }
 
         break;
@@ -1511,7 +1530,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
     const int update_flags = pbvh_get_buffers_update_flags(pbvh);
     switch (pbvh->type) {
       case PBVH_GRIDS:
-        GPU_pbvh_grid_buffers_update(node->draw_buffers,
+        GPU_pbvh_grid_buffers_update(pbvh->vbo_id,
+                                     node->draw_buffers,
                                      pbvh->subdiv_ccg,
                                      pbvh->grids,
                                      pbvh->grid_flag_mats,
@@ -1524,28 +1544,17 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      update_flags);
         break;
       case PBVH_FACES: {
-        CustomDataLayer *layer = NULL;
-        eAttrDomain domain;
-
-        BKE_pbvh_get_color_layer(pbvh->mesh, &layer, &domain);
-
-        GPU_pbvh_mesh_buffers_update(node->draw_buffers,
+        GPU_pbvh_mesh_buffers_update(pbvh->vbo_id,
+                                     node->draw_buffers,
                                      pbvh->verts,
-                                     pbvh->mloop,
-                                     pbvh->mpoly,
-                                     pbvh->looptri,
                                      vdata,
                                      ldata,
                                      CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK),
-                                     layer,
-                                     render_vcol_layer,
-                                     domain,
                                      CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
                                      pbvh->face_sets_color_seed,
                                      pbvh->face_sets_color_default,
                                      update_flags,
-                                     pbvh->vert_normals,
-                                     pbvh->mdyntopo_verts);
+                                     pbvh->vert_normals);
       } break;
       case PBVH_BMESH:
         if (BKE_pbvh_bmesh_check_tris(pbvh, node)) {
@@ -1560,7 +1569,7 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
 
             for (int i = 0; i < node->tot_tri_buffers; i++) {
               node->mat_draw_buffers[i] = GPU_pbvh_bmesh_buffers_build(
-                  pbvh->flags & PBVH_DYNTOPO_SMOOTH_SHADING);
+                  pbvh->vbo_id, pbvh->flags & PBVH_DYNTOPO_SMOOTH_SHADING);
             }
           }
         }
@@ -1591,8 +1600,9 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
               .active_vcol_layer = pbvh->color_layer,
               .render_vcol_layer = render_vcol_layer};
 
-          GPU_pbvh_bmesh_buffers_update(&args);
+          GPU_pbvh_bmesh_buffers_update(pbvh->vbo_id, &args);
         }
+
         break;
     }
   }
@@ -1638,63 +1648,46 @@ void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node)
 {
   if (pbvh->type == PBVH_GRIDS) {
     GPU_pbvh_grid_buffers_update_free(
-        node->draw_buffers, pbvh->grid_flag_mats, node->prim_indices);
+        pbvh->vbo_id, node->draw_buffers, pbvh->grid_flag_mats, node->prim_indices);
   }
   else if (pbvh->type == PBVH_BMESH) {
     for (int i = 0; i < node->tot_mat_draw_buffers; i++) {
-      GPU_pbvh_bmesh_buffers_update_free(node->mat_draw_buffers[i]);
+      GPU_pbvh_bmesh_buffers_update_free(pbvh->vbo_id, node->mat_draw_buffers[i]);
     }
   }
 }
 
-static void pbvh_update_draw_buffers(
-    PBVH *pbvh, Mesh *me, PBVHNode **nodes, int totnode, int update_flag)
+static void pbvh_check_draw_layout(PBVH *pbvh, bool full_render)
 {
+  const CustomData *vdata;
+  const CustomData *ldata;
 
-  CustomData *vdata;
-  CustomData *ldata;
+  if (!pbvh->vbo_id) {
+    pbvh->vbo_id = GPU_pbvh_make_format();
+  }
 
-  if (pbvh->type == PBVH_BMESH) {
-    if (pbvh->bm) {
+  switch (pbvh->type) {
+    case PBVH_BMESH:
+      if (!pbvh->bm) {
+        /* BMesh hasn't been created yet */
+        return;
+      }
+
       vdata = &pbvh->bm->vdata;
       ldata = &pbvh->bm->ldata;
-    }
-    else {
-      vdata = ldata = NULL;
-    }
+      break;
+    case PBVH_FACES:
+      vdata = pbvh->vdata;
+      ldata = pbvh->ldata;
+      break;
+    case PBVH_GRIDS:
+      ldata = vdata = NULL;
+      break;
   }
-  else {
-    vdata = pbvh->vdata;
-    ldata = pbvh->ldata;
-  }
-
-  if (!vdata && me) {
-    vdata = &me->vdata;
-  }
-
-  if (!ldata && me) {
-    ldata = &me->ldata;
-  }
-
-  Mesh me_query;
-  BKE_id_attribute_copy_domains_temp(ID_ME, vdata, NULL, ldata, NULL, NULL, &me_query.id);
-
-  CustomDataLayer *vcol_layer = NULL;
-  eAttrDomain domain;
-  BKE_pbvh_get_color_layer(&me_query, &vcol_layer, &domain);
-  CustomDataLayer *render_vcol_layer = BKE_id_attributes_render_color_get(&me_query.id);
 
   /* rebuild all draw buffers if attribute layout changed */
-  if (GPU_pbvh_update_attribute_names(vdata,
-                                      ldata,
-                                      GPU_pbvh_need_full_render_get(),
-                                      pbvh->flags & PBVH_FAST_DRAW,
-                                      pbvh->color_layer ? pbvh->color_layer->type : -1,
-                                      pbvh->color_domain,
-                                      vcol_layer,
-                                      render_vcol_layer,
-                                      !GPU_pbvh_need_full_render_get())) {
-    // attribute layout changed; force rebuild
+  if (GPU_pbvh_attribute_names_update(pbvh->type, pbvh->vbo_id, vdata, ldata, !full_render)) {
+    /* attribute layout changed; force rebuild */
     for (int i = 0; i < pbvh->totnode; i++) {
       PBVHNode *node = pbvh->nodes + i;
 
@@ -1702,6 +1695,33 @@ static void pbvh_update_draw_buffers(
         node->flag |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
       }
     }
+  }
+}
+
+static void pbvh_update_draw_buffers(
+    PBVH *pbvh, Mesh *me, PBVHNode **nodes, int totnode, int update_flag)
+{
+  const CustomData *vdata;
+
+  if (!pbvh->vbo_id) {
+    pbvh->vbo_id = GPU_pbvh_make_format();
+  }
+
+  switch (pbvh->type) {
+    case PBVH_BMESH:
+      if (!pbvh->bm) {
+        /* BMesh hasn't been created yet */
+        return;
+      }
+
+      vdata = &pbvh->bm->vdata;
+      break;
+    case PBVH_FACES:
+      vdata = pbvh->vdata;
+      break;
+    case PBVH_GRIDS:
+      vdata = NULL;
+      break;
   }
 
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
@@ -2985,7 +3005,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
     }
 
     if (origco) {
-      /* intersect with backuped original coordinates */
+      /* Intersect with backed-up original coordinates. */
       hit |= ray_face_nearest_tri(ray_start,
                                   ray_normal,
                                   origco[face_verts[0]],
@@ -3238,7 +3258,8 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
-                      void *user_data)
+                      void *user_data,
+                      bool full_render)
 {
   PBVHNode **nodes;
   int totnode;
@@ -3261,12 +3282,15 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
     update_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
   }
 
+  pbvh_check_draw_layout(pbvh, full_render);
+
   /* Update draw buffers. */
   if (totnode != 0 && (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers))) {
     // check that need_full_render is set to GPU_pbvh_need_full_render_get(),
     // but only if nodes need updating
 
-    if (pbvh->type != PBVH_GRIDS && pbvh->need_full_render != GPU_pbvh_need_full_render_get()) {
+    if (pbvh->type != PBVH_GRIDS &&
+        pbvh->need_full_render != GPU_pbvh_need_full_render_get(pbvh->vbo_id)) {
       // update all nodes
       MEM_SAFE_FREE(nodes);
 
@@ -3278,9 +3302,15 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
         node->flag |= PBVH_UpdateDrawBuffers | PBVH_RebuildDrawBuffers;
       }
 
-      pbvh->need_full_render = GPU_pbvh_need_full_render_get();
-      BKE_pbvh_draw_cb(
-          pbvh, me, update_only_visible, update_frustum, draw_frustum, draw_fn, user_data);
+      pbvh->need_full_render = GPU_pbvh_need_full_render_get(pbvh->vbo_id);
+      BKE_pbvh_draw_cb(pbvh,
+                       me,
+                       update_only_visible,
+                       update_frustum,
+                       draw_frustum,
+                       draw_fn,
+                       user_data,
+                       full_render);
       return;
     }
 
@@ -5168,6 +5198,11 @@ bool BKE_pbvh_is_drawing(const PBVH *pbvh)
   return pbvh->is_drawing;
 }
 
+bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh)
+{
+  return pbvh->draw_cache_invalid;
+}
+
 void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val)
 {
   pbvh->is_drawing = val;
@@ -5347,9 +5382,4 @@ bool BKE_pbvh_get_origvert(
   }
 
   return true;
-}
-
-bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh)
-{
-  return pbvh->draw_cache_invalid;
 }

@@ -28,13 +28,6 @@ const char *BLT_translate_do_iface(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_tooltip(const char *msgctxt, const char *msgid);
 const char *BLT_translate_do_new_dataname(const char *msgctxt, const char *msgid);
 
-/**
- * Note that "lang" here is the _output_ display language. We used to restrict
- * IME for keyboard _input_ language because our multilingual font was only used
- * when some output languages were selected. That font is used all the time now.
- */
-bool BLT_lang_is_ime_supported(void);
-
 /* The "translation-marker" macro. */
 #define N_(msgid) msgid
 #define CTX_N_(context, msgid) msgid

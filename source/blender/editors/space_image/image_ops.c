@@ -197,6 +197,20 @@ static ImageUser *image_user_from_context(const bContext *C)
   return (sima) ? &sima->iuser : NULL;
 }
 
+static ImageUser image_user_from_active_tile(Image *ima)
+{
+  ImageUser iuser;
+  BKE_imageuser_default(&iuser);
+
+  /* Use the file associated with the active tile. Otherwise use the first tile. */
+  if (ima && ima->source == IMA_SRC_TILED) {
+    const ImageTile *active = (ImageTile *)BLI_findlink(&ima->tiles, ima->active_tile_index);
+    iuser.tile = active ? active->tile_number : ((ImageTile *)ima->tiles.first)->tile_number;
+  }
+
+  return iuser;
+}
+
 static bool image_from_context_has_data_poll(bContext *C)
 {
   Image *ima = image_from_context(C);
@@ -214,13 +228,14 @@ static bool image_from_context_has_data_poll(bContext *C)
 }
 
 /**
- * Use this when the image buffer is accessed without the image user.
+ * Use this when the image buffer is accessing the active tile without the image user.
  */
-static bool image_from_context_has_data_poll_no_image_user(bContext *C)
+static bool image_from_context_has_data_poll_active_tile(bContext *C)
 {
   Image *ima = image_from_context(C);
+  ImageUser iuser = image_user_from_active_tile(ima);
 
-  return BKE_image_has_ibuf(ima, NULL);
+  return BKE_image_has_ibuf(ima, &iuser);
 }
 
 static bool image_not_packed_poll(bContext *C)
@@ -1446,7 +1461,7 @@ static int image_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 
   image_open_init(C, op);
 
-  /* show multiview save options only if scene has multiviews */
+  /* Show multi-view save options only if scene has multi-views. */
   PropertyRNA *prop;
   prop = RNA_struct_find_property(op->ptr, "show_multiview");
   RNA_property_boolean_set(op->ptr, prop, (scene->r.scemode & R_MULTIVIEW) != 0);
@@ -1587,12 +1602,7 @@ static int image_file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *
       }
     }
     else if (ima->source == IMA_SRC_TILED) {
-      ImageUser iuser;
-      BKE_imageuser_default(&iuser);
-
-      /* Use the file associated with the active tile. Otherwise use the first tile. */
-      const ImageTile *active = (ImageTile *)BLI_findlink(&ima->tiles, ima->active_tile_index);
-      iuser.tile = active ? active->tile_number : ((ImageTile *)ima->tiles.first)->tile_number;
+      ImageUser iuser = image_user_from_active_tile(ima);
       BKE_image_user_file_path(&iuser, ima, filepath);
     }
 
@@ -1810,7 +1820,6 @@ static void image_save_options_from_op(Main *bmain, ImageSaveOptions *opts, wmOp
                      RNA_boolean_get(op->ptr, "copy"));
   opts->save_as_render = (RNA_struct_find_property(op->ptr, "save_as_render") &&
                           RNA_boolean_get(op->ptr, "save_as_render"));
-  opts->do_newpath = true;
 }
 
 static bool save_image_op(
@@ -1846,6 +1855,8 @@ static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
     MEM_freeN(isd);
     return NULL;
   }
+
+  isd->opts.do_newpath = true;
 
   if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
     RNA_string_set(op->ptr, "filepath", isd->opts.filepath);
@@ -2687,7 +2698,8 @@ void IMAGE_OT_new(wmOperatorType *ot)
 static int image_flip_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+  ImageUser iuser = image_user_from_active_tile(ima);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   SpaceImage *sima = CTX_wm_space_image(C);
   const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
 
@@ -2784,7 +2796,7 @@ void IMAGE_OT_flip(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = image_flip_exec;
-  ot->poll = image_from_context_has_data_poll_no_image_user;
+  ot->poll = image_from_context_has_data_poll_active_tile;
 
   /* properties */
   PropertyRNA *prop;
@@ -2807,7 +2819,8 @@ void IMAGE_OT_flip(wmOperatorType *ot)
 static int image_invert_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+  ImageUser iuser = image_user_from_active_tile(ima);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   SpaceImage *sima = CTX_wm_space_image(C);
   const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
 
@@ -2905,7 +2918,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = image_invert_exec;
-  ot->poll = image_from_context_has_data_poll_no_image_user;
+  ot->poll = image_from_context_has_data_poll_active_tile;
 
   /* properties */
   prop = RNA_def_boolean(ot->srna, "invert_r", 0, "Red", "Invert red channel");
@@ -2930,9 +2943,10 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 static int image_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   Image *ima = image_from_context(C);
+  ImageUser iuser = image_user_from_active_tile(ima);
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "size");
   if (!RNA_property_is_set(op->ptr, prop)) {
-    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
     const int size[2] = {ibuf->x, ibuf->y};
     RNA_property_int_set_array(op->ptr, prop, size);
     BKE_image_release_ibuf(ima, ibuf, NULL);
@@ -2943,7 +2957,8 @@ static int image_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 static int image_scale_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+  ImageUser iuser = image_user_from_active_tile(ima);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   SpaceImage *sima = CTX_wm_space_image(C);
   const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
 
@@ -2993,7 +3008,7 @@ void IMAGE_OT_resize(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = image_scale_invoke;
   ot->exec = image_scale_exec;
-  ot->poll = image_from_context_has_data_poll_no_image_user;
+  ot->poll = image_from_context_has_data_poll_active_tile;
 
   /* properties */
   RNA_def_int_vector(ot->srna, "size", 2, NULL, 1, INT_MAX, "Size", "", 1, SHRT_MAX);
@@ -3189,7 +3204,7 @@ bool ED_space_image_get_position(SpaceImage *sima,
 }
 
 bool ED_space_image_color_sample(
-    SpaceImage *sima, ARegion *region, int mval[2], float r_col[3], bool *r_is_data)
+    SpaceImage *sima, ARegion *region, const int mval[2], float r_col[3], bool *r_is_data)
 {
   if (r_is_data) {
     *r_is_data = false;

@@ -13,6 +13,8 @@
 
 #include "bmesh.h"
 
+struct PBVHGPUFormat;
+
 /** \file
  * \ingroup bke
  */
@@ -271,6 +273,8 @@ struct PBVH {
 
   /* Used by DynTopo to invalidate the draw cache. */
   bool draw_cache_invalid;
+
+  struct PBVHGPUFormat *vbo_id;
 };
 
 /* pbvh.c */

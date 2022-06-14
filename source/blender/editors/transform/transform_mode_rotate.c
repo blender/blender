@@ -322,10 +322,30 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
+static void applyRotationMatrix(TransInfo *t, float mat_xform[4][4])
+{
+  float axis_final[3];
+  const float angle_final = t->values_final[0];
+  if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
+    t->con.applyRot(t, NULL, NULL, axis_final, NULL);
+  }
+  else {
+    negate_v3_v3(axis_final, t->spacemtx[t->orient_axis]);
+  }
+
+  float mat3[3][3];
+  float mat4[4][4];
+  axis_angle_normalized_to_mat3(mat3, axis_final, angle_final);
+  copy_m4_m3(mat4, mat3);
+  transform_pivot_set_m4(mat4, t->center_global);
+  mul_m4_m4m4(mat_xform, mat4, mat_xform);
+}
+
 void initRotation(TransInfo *t)
 {
   t->mode = TFM_ROTATION;
   t->transform = applyRotation;
+  t->transform_matrix = applyRotationMatrix;
   t->tsnap.applySnap = ApplySnapRotation;
   t->tsnap.distance = RotationBetween;
 

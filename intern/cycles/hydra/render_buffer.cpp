@@ -35,7 +35,7 @@ bool HdCyclesRenderBuffer::Allocate(const GfVec3i &dimensions, HdFormat format, 
     return false;
   }
 
-  const size_t oldSize = _data.size();
+  const size_t oldSize = _dataSize;
   const size_t newSize = dimensions[0] * dimensions[1] * HdDataSizeOfFormat(format);
   if (oldSize == newSize) {
     return true;
@@ -49,8 +49,8 @@ bool HdCyclesRenderBuffer::Allocate(const GfVec3i &dimensions, HdFormat format, 
   _width = dimensions[0];
   _height = dimensions[1];
   _format = format;
-
-  _data.resize(newSize);
+  _dataSize = newSize;
+  _resourceUsed = false;
 
   return true;
 }
@@ -63,6 +63,7 @@ void HdCyclesRenderBuffer::_Deallocate()
 
   _data.clear();
   _data.shrink_to_fit();
+  _dataSize = 0;
 
   _resource = VtValue();
 }
@@ -72,6 +73,10 @@ void *HdCyclesRenderBuffer::Map()
   // Mapping is not implemented when a resource is set
   if (!_resource.IsEmpty()) {
     return nullptr;
+  }
+
+  if (_data.size() != _dataSize) {
+    _data.resize(_dataSize);
   }
 
   ++_mapped;
@@ -103,9 +108,16 @@ void HdCyclesRenderBuffer::SetConverged(bool converged)
   _converged = converged;
 }
 
+bool HdCyclesRenderBuffer::IsResourceUsed() const
+{
+  return _resourceUsed;
+}
+
 VtValue HdCyclesRenderBuffer::GetResource(bool multiSampled) const
 {
   TF_UNUSED(multiSampled);
+
+  _resourceUsed = true;
 
   return _resource;
 }

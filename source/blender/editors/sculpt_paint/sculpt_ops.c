@@ -85,6 +85,7 @@
 #include "WM_toolsystem.h"
 #include "WM_types.h"
 
+#include "ED_image.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
@@ -361,6 +362,219 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
                 "Distance within which symmetrical vertices are merged",
                 0.0f,
                 1.0f);
+}
+
+/**** Toggle operator for turning sculpt mode on or off ****/
+
+static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
+{
+  /* Create persistent sculpt mode data. */
+  BKE_sculpt_toolsettings_data_ensure(scene);
+
+  /* Create sculpt mode session data. */
+  if (ob->sculpt != NULL) {
+    BKE_sculptsession_free(ob);
+  }
+
+  ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
+  ob->sculpt->mode_type = OB_MODE_SCULPT;
+  ob->sculpt->active_face_index.i = SCULPT_REF_NONE;
+  ob->sculpt->active_vertex_index.i = SCULPT_REF_NONE;
+
+  CustomData_reset(&ob->sculpt->temp_vdata);
+  CustomData_reset(&ob->sculpt->temp_pdata);
+
+  BKE_sculpt_ensure_orig_mesh_data(scene, ob);
+
+  BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
+
+  /* This function expects a fully evaluated depsgraph. */
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
+
+  /* Here we can detect geometry that was just added to Sculpt Mode as it has the
+   * SCULPT_FACE_SET_NONE assigned, so we can create a new Face Set for it. */
+  /* In sculpt mode all geometry that is assigned to SCULPT_FACE_SET_NONE is considered as not
+   * initialized, which is used is some operators that modify the mesh topology to perform
+   * certain actions in the new polys. After these operations are finished, all polys should have
+   * a valid face set ID assigned (different from SCULPT_FACE_SET_NONE) to manage their
+   * visibility correctly. */
+  /* TODO(pablodp606): Based on this we can improve the UX in future tools for creating new
+   * objects, like moving the transform pivot position to the new area or masking existing
+   * geometry. */
+  SculptSession *ss = ob->sculpt;
+  const int new_face_set = SCULPT_face_set_next_available_get(ss);
+  for (int i = 0; i < ss->totfaces; i++) {
+    if (ss->face_sets[i] == SCULPT_FACE_SET_NONE) {
+      ss->face_sets[i] = new_face_set;
+    }
+  }
+}
+
+void ED_object_sculptmode_enter_ex(Main *bmain,
+                                   Depsgraph *depsgraph,
+                                   Scene *scene,
+                                   Object *ob,
+                                   const bool force_dyntopo,
+                                   ReportList *reports,
+                                   bool do_undo)
+{
+  const int mode_flag = OB_MODE_SCULPT;
+  Mesh *me = BKE_mesh_from_object(ob);
+
+  /* Enter sculpt mode. */
+  ob->mode |= mode_flag;
+
+  sculpt_init_session(bmain, depsgraph, scene, ob);
+
+  if (!(fabsf(ob->scale[0] - ob->scale[1]) < 1e-4f &&
+        fabsf(ob->scale[1] - ob->scale[2]) < 1e-4f)) {
+    BKE_report(
+        reports, RPT_WARNING, "Object has non-uniform scale, sculpting may be unpredictable");
+  }
+  else if (is_negative_m4(ob->obmat)) {
+    BKE_report(reports,
+               RPT_ERROR,
+               "Object has negative scale. \nSculpting may be unpredictable.\nApply scale in "
+               "object mode with Ctrl A->Scale.");
+  }
+
+  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT);
+  BKE_paint_init(bmain, scene, PAINT_MODE_SCULPT, PAINT_CURSOR_SCULPT);
+
+  ED_paint_cursor_start(paint, SCULPT_mode_poll_view3d);
+
+  bool has_multires = false;
+
+  /* Check dynamic-topology flag; re-enter dynamic-topology mode when changing modes,
+   * As long as no data was added that is not supported. */
+  if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
+    MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
+
+    const char *message_unsupported = NULL;
+    if (mmd != NULL) {
+      message_unsupported = TIP_("multi-res modifier");
+      has_multires = true;
+    }
+    else {
+      enum eDynTopoWarnFlag flag = SCULPT_dynamic_topology_check(scene, ob);
+      if (flag == 0) {
+        /* pass */
+      }
+      else if (flag & DYNTOPO_WARN_EDATA) {
+        message_unsupported = TIP_("edge data");
+      }
+      else if (flag & DYNTOPO_WARN_MODIFIER) {
+        message_unsupported = TIP_("constructive modifier");
+      }
+      else {
+        BLI_assert(0);
+      }
+    }
+
+    if (!has_multires && ((message_unsupported == NULL) || force_dyntopo)) {
+      /* Needed because we may be entering this mode before the undo system loads. */
+      wmWindowManager *wm = bmain->wm.first;
+      bool has_undo = do_undo && wm->undo_stack != NULL;
+
+      /* Undo push is needed to prevent memory leak. */
+      if (has_undo) {
+        SCULPT_undo_push_begin(ob, "Dynamic topology enable");
+      }
+
+      bool need_bmlog = !ob->sculpt->bm_log;
+
+      SCULPT_dynamic_topology_enable_ex(bmain, depsgraph, scene, ob);
+
+      if (has_undo) {
+        SCULPT_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
+        SCULPT_undo_push_end(ob);
+      }
+      else if (need_bmlog) {
+        if (ob->sculpt->bm_log) {
+          BM_log_free(ob->sculpt->bm_log, true);
+          ob->sculpt->bm_log = NULL;
+        }
+
+        SCULPT_undo_ensure_bmlog(ob);
+
+        // SCULPT_undo_ensure_bmlog failed to find a sculpt undo step
+        if (!ob->sculpt->bm_log) {
+          ob->sculpt->bm_log = BM_log_create(ob->sculpt->bm, ob->sculpt->cd_sculpt_vert);
+        }
+      }
+    }
+    else {
+      BKE_reportf(
+          reports, RPT_WARNING, "Dynamic Topology found: %s, disabled", message_unsupported);
+      me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
+    }
+  }
+
+  /* Flush object mode. */
+  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+}
+
+void ED_object_sculptmode_enter(struct bContext *C, Depsgraph *depsgraph, ReportList *reports)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *ob = OBACT(view_layer);
+  ED_object_sculptmode_enter_ex(bmain, depsgraph, scene, ob, false, reports, true);
+}
+
+void ED_object_sculptmode_exit_ex(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob)
+{
+  const int mode_flag = OB_MODE_SCULPT;
+  Mesh *me = BKE_mesh_from_object(ob);
+
+  multires_flush_sculpt_updates(ob);
+
+  /* Not needed for now. */
+#if 0
+  MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
+  const int flush_recalc = ed_object_sculptmode_flush_recalc_flag(scene, ob, mmd);
+#endif
+
+  /* Always for now, so leaving sculpt mode always ensures scene is in
+   * a consistent state. */
+  if (true || /* flush_recalc || */ (ob->sculpt && ob->sculpt->bm)) {
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
+
+  /* Leave sculpt mode. We do this here to prevent
+   * the depsgraph spawning a PBVH_FACES after disabling
+   * dynamic topology below. */
+  ob->mode &= ~mode_flag;
+
+  if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
+    /* Dynamic topology must be disabled before exiting sculpt
+     * mode to ensure the undo stack stays in a consistent
+     * state. */
+    sculpt_dynamic_topology_disable_with_undo(bmain, depsgraph, scene, ob);
+
+    /* Store so we know to re-enable when entering sculpt mode. */
+    me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
+  }
+
+  BKE_sculptsession_free(ob);
+
+  paint_cursor_delete_textures();
+
+  /* Never leave derived meshes behind. */
+  BKE_object_free_derived_caches(ob);
+
+  /* Flush object mode. */
+  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+}
+
+void ED_object_sculptmode_exit(bContext *C, Depsgraph *depsgraph)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Object *ob = OBACT(view_layer);
+  ED_object_sculptmode_exit_ex(bmain, depsgraph, scene, ob);
 }
 
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)

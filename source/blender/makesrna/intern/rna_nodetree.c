@@ -1610,26 +1610,31 @@ static char *rna_Node_path(const PointerRNA *ptr)
 char *rna_Node_ImageUser_path(const PointerRNA *ptr)
 {
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-  bNode *node;
-  char name_esc[sizeof(node->name) * 2];
+  if (!ELEM(ntree->type, NTREE_SHADER, NTREE_CUSTOM)) {
+    return NULL;
+  }
 
-  for (node = ntree->nodes.first; node; node = node->next) {
-    if (node->type == SH_NODE_TEX_ENVIRONMENT) {
-      NodeTexEnvironment *data = node->storage;
-      if (&data->iuser != ptr->data) {
-        continue;
+  for (bNode *node = ntree->nodes.first; node; node = node->next) {
+    switch (node->type) {
+      case SH_NODE_TEX_ENVIRONMENT: {
+        NodeTexEnvironment *data = node->storage;
+        if (&data->iuser != ptr->data) {
+          continue;
+        }
+        break;
       }
-    }
-    else if (node->type == SH_NODE_TEX_IMAGE) {
-      NodeTexImage *data = node->storage;
-      if (&data->iuser != ptr->data) {
-        continue;
+      case SH_NODE_TEX_IMAGE: {
+        NodeTexImage *data = node->storage;
+        if (&data->iuser != ptr->data) {
+          continue;
+        }
+        break;
       }
-    }
-    else {
-      continue;
+      default:
+        continue;
     }
 
+    char name_esc[sizeof(node->name) * 2];
     BLI_str_escape(name_esc, node->name, sizeof(name_esc));
     return BLI_sprintfN("nodes[\"%s\"].image_user", name_esc);
   }
@@ -9575,18 +9580,14 @@ static void def_geo_distribute_points_on_faces(StructRNA *srna)
 
 static void def_geo_curve_spline_type(StructRNA *srna)
 {
-  static const EnumPropertyItem type_items[] = {
-      {GEO_NODE_SPLINE_TYPE_BEZIER, "BEZIER", ICON_NONE, "Bezier", "Set the splines to Bezier"},
-      {GEO_NODE_SPLINE_TYPE_NURBS, "NURBS", ICON_NONE, "NURBS", "Set the splines to NURBS"},
-      {GEO_NODE_SPLINE_TYPE_POLY, "POLY", ICON_NONE, "Poly", "Set the splines to Poly"},
-      {0, NULL, 0, NULL, NULL}};
-
   PropertyRNA *prop;
   RNA_def_struct_sdna_from(srna, "NodeGeometryCurveSplineType", "storage");
 
   prop = RNA_def_property(srna, "spline_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "spline_type");
-  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_enum_items(prop, rna_enum_curves_types);
+  RNA_def_property_ui_text(prop, "Type", "The curve type to change the selected curves to");
+
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }
 

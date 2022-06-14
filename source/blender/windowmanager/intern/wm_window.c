@@ -23,6 +23,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_system.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -1542,6 +1543,8 @@ void wm_ghost_init(bContext *C)
     if (C != NULL) {
       consumer = GHOST_CreateEventConsumer(ghost_event_proc, C);
     }
+
+    GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
 
     g_system = GHOST_CreateSystem();
 

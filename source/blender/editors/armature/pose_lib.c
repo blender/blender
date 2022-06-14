@@ -1431,7 +1431,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
         ret = OPERATOR_PASS_THROUGH;
         break;
 
-      /* quicky compare to original */
+      /* Quickly compare to original. */
       case EVT_TABKEY:
         pld->flag &= ~PL_PREVIEW_SHOWORIGINAL;
         pld->redraw = PL_PREVIEW_REDRAWALL;

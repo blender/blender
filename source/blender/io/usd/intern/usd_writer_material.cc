@@ -590,6 +590,7 @@ static std::string get_tex_image_asset_path(bNode *node,
       BLI_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
       BLI_path_join(exp_path, FILE_MAX, dir_path, "textures", file_path, nullptr);
     }
+    BLI_str_replace_char(exp_path, '\\', '/');
     return exp_path;
   }
 
@@ -608,7 +609,7 @@ static std::string get_tex_image_asset_path(bNode *node,
     if (!BLI_path_is_rel(rel_path)) {
       return path;
     }
-
+    BLI_str_replace_char(rel_path, '\\', '/');
     return rel_path + 2;
   }
 

@@ -272,7 +272,7 @@ bool ED_space_clip_get_position(struct SpaceClip *sc,
   return true;
 }
 
-bool ED_space_clip_color_sample(SpaceClip *sc, ARegion *region, int mval[2], float r_col[3])
+bool ED_space_clip_color_sample(SpaceClip *sc, ARegion *region, const int mval[2], float r_col[3])
 {
   ImBuf *ibuf;
   float fx, fy, co[2];

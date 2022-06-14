@@ -469,7 +469,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
       add_v3_v3(global_dir, values_ofs);
     }
 
-    t->tsnap.snapElem = 0;
+    t->tsnap.snapElem = SCE_SNAP_MODE_NONE;
     applySnapping(t, global_dir);
     transform_snap_grid(t, global_dir);
 
@@ -486,7 +486,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 
       /* Test for mixed snap with grid. */
       float snap_dist_sq = FLT_MAX;
-      if (t->tsnap.snapElem != 0) {
+      if (t->tsnap.snapElem != SCE_SNAP_MODE_NONE) {
         snap_dist_sq = len_squared_v3v3(t->values, global_dir);
       }
       if ((snap_dist_sq == FLT_MAX) || (len_squared_v3v3(global_dir, incr_dir) < snap_dist_sq)) {
@@ -518,6 +518,13 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
+static void applyTranslationMatrix(TransInfo *t, float mat_xform[4][4])
+{
+  float delta[3];
+  mul_v3_m3v3(delta, t->spacemtx, t->values_final);
+  add_v3_v3(mat_xform[3], delta);
+}
+
 void initTranslation(TransInfo *t)
 {
   if (t->spacetype == SPACE_ACTION) {
@@ -530,6 +537,7 @@ void initTranslation(TransInfo *t)
   }
 
   t->transform = applyTranslation;
+  t->transform_matrix = applyTranslationMatrix;
   t->tsnap.applySnap = ApplySnapTranslation;
   t->tsnap.distance = transform_snap_distance_len_squared_fn;
 

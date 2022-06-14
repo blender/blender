@@ -143,7 +143,7 @@ static void md5_process_block(const void *buffer, size_t len, struct md5_ctx *ct
   (void)0
 
     /* Before we start, one word to the strange constants. They are defined in RFC 1321 as:
-     *     T[i] = (int) (4294967296.0 * fabs (sin (i))), i=1..64
+     *     `T[i] = (int) (4294967296.0 * fabs (sin (i))), i=1..64`
      */
 
     /* Round 1. */
@@ -315,7 +315,7 @@ int BLI_hash_md5_stream(FILE *stream, void *resblock)
       break;
     }
 
-    /* Process buffer with BLOCKSIZE bytes. Note that BLOCKSIZE % 64 == 0. */
+    /* Process buffer with BLOCKSIZE bytes. Note that `BLOCKSIZE % 64 == 0`. */
     md5_process_block(buffer, BLOCKSIZE, &ctx);
   }
 
@@ -323,7 +323,7 @@ int BLI_hash_md5_stream(FILE *stream, void *resblock)
    * 'fillbuf' contains the needed bits. */
   memcpy(&buffer[sum], fillbuf, 64);
 
-  /* Compute amount of padding bytes needed. Alignment is done to (N + PAD) % 64 == 56.
+  /* Compute amount of padding bytes needed. Alignment is done to `(N + PAD) % 64 == 56`.
    * There is always at least one byte padded, i.e. if the alignment is correctly aligned,
    * 64 padding bytes are added.
    */

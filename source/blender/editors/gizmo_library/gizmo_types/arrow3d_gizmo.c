@@ -58,6 +58,11 @@ typedef struct ArrowGizmo3D {
   GizmoCommonData data;
 } ArrowGizmo3D;
 
+typedef struct ArrowGizmoInteraction {
+  GizmoInteraction inter;
+  float init_arrow_length;
+} ArrowGizmoInteraction;
+
 /* -------------------------------------------------------------------- */
 
 static void gizmo_arrow_matrix_basis_get(const wmGizmo *gz, float r_matrix[4][4])
@@ -68,7 +73,10 @@ static void gizmo_arrow_matrix_basis_get(const wmGizmo *gz, float r_matrix[4][4]
   madd_v3_v3fl(r_matrix[3], arrow->gizmo.matrix_basis[2], arrow->data.offset);
 }
 
-static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const float color[4])
+static void arrow_draw_geom(const ArrowGizmo3D *arrow,
+                            const bool select,
+                            const float color[4],
+                            const float arrow_length)
 {
   uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   bool unbind_shader = true;
@@ -111,8 +119,6 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 #ifdef USE_GIZMO_CUSTOM_ARROWS
     wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_arrow, select, color);
 #else
-    const float arrow_length = RNA_float_get(arrow->gizmo.ptr, "length");
-
     const float vec[2][3] = {
         {0.0f, 0.0f, 0.0f},
         {0.0f, 0.0f, arrow_length},
@@ -176,6 +182,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 static void arrow_draw_intern(ArrowGizmo3D *arrow, const bool select, const bool highlight)
 {
   wmGizmo *gz = &arrow->gizmo;
+  const float arrow_length = RNA_float_get(gz->ptr, "length");
   float color[4];
   float matrix_final[4][4];
 
@@ -186,19 +193,20 @@ static void arrow_draw_intern(ArrowGizmo3D *arrow, const bool select, const bool
   GPU_matrix_push();
   GPU_matrix_mul(matrix_final);
   GPU_blend(GPU_BLEND_ALPHA);
-  arrow_draw_geom(arrow, select, color);
+  arrow_draw_geom(arrow, select, color, arrow_length);
   GPU_blend(GPU_BLEND_NONE);
 
   GPU_matrix_pop();
 
   if (gz->interaction_data) {
-    GizmoInteraction *inter = gz->interaction_data;
+    ArrowGizmoInteraction *arrow_inter = gz->interaction_data;
 
     GPU_matrix_push();
-    GPU_matrix_mul(inter->init_matrix_final);
+    GPU_matrix_mul(arrow_inter->inter.init_matrix_final);
 
     GPU_blend(GPU_BLEND_ALPHA);
-    arrow_draw_geom(arrow, select, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
+    arrow_draw_geom(
+        arrow, select, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f}, arrow_inter->init_arrow_length);
     GPU_blend(GPU_BLEND_NONE);
 
     GPU_matrix_pop();
@@ -380,7 +388,7 @@ static void gizmo_arrow_setup(wmGizmo *gz)
 static int gizmo_arrow_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
 {
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
-  GizmoInteraction *inter = MEM_callocN(sizeof(GizmoInteraction), __func__);
+  GizmoInteraction *inter = MEM_callocN(sizeof(ArrowGizmoInteraction), __func__);
   wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 
   /* Some gizmos don't use properties. */
@@ -395,6 +403,8 @@ static int gizmo_arrow_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEvent *e
 
   gizmo_arrow_matrix_basis_get(gz, inter->init_matrix_basis);
   WM_gizmo_calc_matrix_final(gz, inter->init_matrix_final);
+
+  ((ArrowGizmoInteraction *)inter)->init_arrow_length = RNA_float_get(gz->ptr, "length");
 
   gz->interaction_data = inter;
 
@@ -520,7 +530,8 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
                     "");
   RNA_def_enum_flag(gzt->srna, "transform", rna_enum_transform_items, 0, "Transform", "");
 
-  RNA_def_float(gzt->srna, "length", 1.0f, 0.0f, FLT_MAX, "Arrow Line Length", "", 0.0f, FLT_MAX);
+  RNA_def_float(
+      gzt->srna, "length", 1.0f, -FLT_MAX, FLT_MAX, "Arrow Line Length", "", -FLT_MAX, FLT_MAX);
   RNA_def_float_vector(
       gzt->srna, "aspect", 2, NULL, 0, FLT_MAX, "Aspect", "Cone/box style only", 0.0f, FLT_MAX);
 

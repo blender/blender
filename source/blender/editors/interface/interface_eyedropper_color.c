@@ -50,8 +50,6 @@
 
 #include "RE_pipeline.h"
 
-#include "RE_pipeline.h"
-
 #include "interface_eyedropper_intern.h"
 
 typedef struct Eyedropper {
@@ -329,7 +327,7 @@ void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3])
       ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval);
       if (region) {
         SpaceImage *sima = area->spacedata.first;
-        int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
+        const int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
 
         if (ED_space_image_color_sample(sima, region, region_mval, r_col, NULL)) {
           return;
@@ -340,7 +338,7 @@ void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3])
       ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval);
       if (region) {
         SpaceNode *snode = area->spacedata.first;
-        int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
+        const int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
 
         if (ED_space_node_color_sample(bmain, snode, region, region_mval, r_col)) {
           return;
@@ -351,7 +349,7 @@ void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3])
       ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, mval);
       if (region) {
         SpaceClip *sc = area->spacedata.first;
-        int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
+        const int region_mval[2] = {mval[0] - region->winrct.xmin, mval[1] - region->winrct.ymin};
 
         if (ED_space_clip_color_sample(sc, region, region_mval, r_col)) {
           return;

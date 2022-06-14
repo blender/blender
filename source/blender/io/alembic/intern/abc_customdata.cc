@@ -257,7 +257,7 @@ void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &
   /* ORCOs are always stored in the normalized 0..1 range in Blender, but Alembic stores them
    * unnormalized, so we need to unnormalize (invert transform) them. */
   BKE_mesh_orco_verts_transform(
-      mesh, reinterpret_cast<float(*)[3]>(&coords[0]), mesh->totvert, true);
+      mesh, reinterpret_cast<float(*)[3]>(coords.data()), mesh->totvert, true);
 
   if (!config.abc_orco.valid()) {
     /* Create the Alembic property and keep a reference so future frames can reuse it. */

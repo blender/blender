@@ -324,7 +324,8 @@ static eV3DShadingColorType workbench_color_type_get(WORKBENCH_PrivateData *wpd,
     }
   }
 
-  if (is_sculpt_pbvh && color_type == V3D_SHADING_TEXTURE_COLOR) {
+  if (is_sculpt_pbvh && color_type == V3D_SHADING_TEXTURE_COLOR &&
+      BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_FACES) {
     /* Force use of material color for sculpt. */
     color_type = V3D_SHADING_MATERIAL_COLOR;
   }

@@ -310,6 +310,18 @@ if(WITH_OPENCOLLADA)
   add_definitions(-DWITH_COLLADA)
 endif()
 
+if(WITH_IO_WAVEFRONT_OBJ)
+  add_definitions(-DWITH_IO_WAVEFRONT_OBJ)
+endif()
+
+if(WITH_IO_STL)
+  add_definitions(-DWITH_IO_STL)
+endif()
+
+if(WITH_IO_GPENCIL)
+  add_definitions(-DWITH_IO_GPENCIL)
+endif()
+
 if(WITH_ALEMBIC)
   add_definitions(-DWITH_ALEMBIC)
 endif()

@@ -155,8 +155,29 @@ GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode,
 
 GHOST_TSuccess GHOST_Window::getCursorGrabBounds(GHOST_Rect &bounds)
 {
+  if (m_cursorGrab != GHOST_kGrabWrap) {
+    return GHOST_kFailure;
+  }
   bounds = m_cursorGrabBounds;
   return (bounds.m_l == -1 && bounds.m_r == -1) ? GHOST_kFailure : GHOST_kSuccess;
+}
+
+void GHOST_Window::getCursorGrabState(GHOST_TGrabCursorMode &mode,
+                                      GHOST_TAxisFlag &wrap_axis,
+                                      GHOST_Rect &bounds)
+{
+  mode = m_cursorGrab;
+  if (m_cursorGrab == GHOST_kGrabWrap) {
+    bounds = m_cursorGrabBounds;
+    wrap_axis = m_cursorGrabAxis;
+  }
+  else {
+    bounds.m_l = -1;
+    bounds.m_r = -1;
+    bounds.m_t = -1;
+    bounds.m_b = -1;
+    wrap_axis = GHOST_kGrabAxisNone;
+  }
 }
 
 GHOST_TSuccess GHOST_Window::setCursorShape(GHOST_TStandardCursor cursorShape)

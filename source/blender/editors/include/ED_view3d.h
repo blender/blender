@@ -8,6 +8,7 @@
 #pragma once
 
 #include "BLI_utildefines.h"
+#include "DNA_scene_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -299,7 +300,7 @@ typedef enum {
 } eV3DPlaceOrient;
 
 typedef struct V3DSnapCursorData {
-  short snap_elem;
+  eSnapMode snap_elem;
   float loc[3];
   float nor[3];
   float obmat[4][4];
@@ -322,7 +323,7 @@ typedef struct V3DSnapCursorState {
   struct wmGizmoGroupType *gzgrp_type; /* Force cursor to be drawn only when gizmo is available. */
   float *prevpoint;
   float box_dimensions[3];
-  short snap_elem_force; /* If zero, use scene settings. */
+  eSnapMode snap_elem_force; /* If SCE_SNAP_MODE_NONE, use scene settings. */
   short plane_axis;
   bool use_plane_axis_auto;
   bool draw_point;
@@ -347,7 +348,7 @@ void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
                                      const float normal[3],
                                      const uchar color_line[4],
                                      const uchar color_point[4],
-                                     short snap_elem_type);
+                                     eSnapMode snap_elem_type);
 
 /* view3d_iterators.c */
 

@@ -287,7 +287,7 @@ static void ptile_restore_runtime_list(ListBase *paint_tiles)
       ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
     }
     if (ibuf->mipmap[0]) {
-      ibuf->userflags |= IB_MIPMAP_INVALID; /* force mip-map recreation. */
+      ibuf->userflags |= IB_MIPMAP_INVALID; /* Force MIP-MAP recreation. */
     }
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 

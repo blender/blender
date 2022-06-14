@@ -496,9 +496,8 @@ static void wm_job_end(wmJob *wm_job)
   }
 
   /* Do the final callback based on whether the job was run to completion or not.
-   * Not all jobs have the same way of signalling cancellation (f.e. rendering
-   * stops when G.is_break=true, but doesn't set any wm_job properties to cancel
-   * the WM job). */
+   * Not all jobs have the same way of signaling cancellation (i.e. rendering stops when
+   * `G.is_break == true`, but doesn't set any wm_job properties to cancel the WM job). */
   const bool was_canceled = wm_job->stop || G.is_break;
   void (*final_callback)(void *) = (wm_job->ready && !was_canceled) ? wm_job->completed :
                                                                       wm_job->canceled;

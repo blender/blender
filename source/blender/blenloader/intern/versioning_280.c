@@ -1569,8 +1569,8 @@ void do_versions_after_linking_280(Main *bmain, ReportList *UNUSED(reports))
 
   if (!MAIN_VERSION_ATLEAST(bmain, 281, 2)) {
     /* Replace Multiply and Additive blend mode by Alpha Blend
-     * now that we use dualsource blending. */
-    /* We take care of doing only nodetrees that are always part of materials
+     * now that we use dual-source blending. */
+    /* We take care of doing only node-trees that are always part of materials
      * with old blending modes. */
     for (Material *ma = bmain->materials.first; ma; ma = ma->id.next) {
       bNodeTree *ntree = ma->nodetree;

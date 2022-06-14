@@ -159,6 +159,39 @@ inline T safe_mod(const vec_base<T, Size> &a, const T &b)
   return result;
 }
 
+/**
+ * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
+ * In other words, it is equivalent to `divide_ceil(a, b) * b`.
+ * It is undefined if \a a is negative or \b b is not strictly positive.
+ */
+template<typename T, int Size, BLI_ENABLE_IF((is_math_integral_type<T>))>
+inline vec_base<T, Size> ceil_to_multiple(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+{
+  vec_base<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    BLI_assert(a[i] >= 0);
+    BLI_assert(b[i] > 0);
+    result[i] = ((a[i] + b[i] - 1) / b[i]) * b[i];
+  }
+  return result;
+}
+
+/**
+ * Integer division that returns the ceiling, instead of flooring like normal C division.
+ * It is undefined if \a a is negative or \b b is not strictly positive.
+ */
+template<typename T, int Size, BLI_ENABLE_IF((is_math_integral_type<T>))>
+inline vec_base<T, Size> divide_ceil(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+{
+  vec_base<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    BLI_assert(a[i] >= 0);
+    BLI_assert(b[i] > 0);
+    result[i] = (a[i] + b[i] - 1) / b[i];
+  }
+  return result;
+}
+
 template<typename T, int Size>
 inline void min_max(const vec_base<T, Size> &vector,
                     vec_base<T, Size> &min,

@@ -345,7 +345,7 @@ void BKE_mesh_calc_normals_poly_and_vertex(const MVert *mvert,
 
 const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
 {
-  if (!(BKE_mesh_vertex_normals_are_dirty(mesh) || BKE_mesh_poly_normals_are_dirty(mesh))) {
+  if (!BKE_mesh_vertex_normals_are_dirty(mesh)) {
     BLI_assert(mesh->runtime.vert_normals != nullptr || mesh->totvert == 0);
     return mesh->runtime.vert_normals;
   }
@@ -356,7 +356,7 @@ const float (*BKE_mesh_vertex_normals_ensure(const Mesh *mesh))[3]
 
   ThreadMutex *normals_mutex = (ThreadMutex *)mesh->runtime.normals_mutex;
   BLI_mutex_lock(normals_mutex);
-  if (!(BKE_mesh_vertex_normals_are_dirty(mesh) || BKE_mesh_poly_normals_are_dirty(mesh))) {
+  if (!BKE_mesh_vertex_normals_are_dirty(mesh)) {
     BLI_assert(mesh->runtime.vert_normals != nullptr);
     BLI_mutex_unlock(normals_mutex);
     return mesh->runtime.vert_normals;

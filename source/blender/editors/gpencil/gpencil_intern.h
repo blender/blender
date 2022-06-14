@@ -726,16 +726,16 @@ struct GP_EditableStrokes_Iter {
   (void)0
 
 /**
- * Iterate over all editable editcurves in the current context,
- * stopping on each usable layer + stroke + curve pair (i.e. gpl, gps and gpc)
+ * Iterate over all editable edit-curves in the current context,
+ * stopping on each usable layer + stroke + curve pair (i.e. `gpl`, `gps` and `gpc`)
  * to perform some operations on the curve.
  *
  * \param gpl: The identifier to use for the layer of the stroke being processed.
- *                    Choose a suitable value to avoid name clashes.
+ *             Choose a suitable value to avoid name clashes.
  * \param gps: The identifier to use for current stroke being processed.
- *                    Choose a suitable value to avoid name clashes.
+ *             Choose a suitable value to avoid name clashes.
  * \param gpc: The identifier to use for current editcurve being processed.
- *                    Choose a suitable value to avoid name clashes.
+ *             Choose a suitable value to avoid name clashes.
  */
 #define GP_EDITABLE_CURVES_BEGIN(gpstroke_iter, C, gpl, gps, gpc) \
   { \

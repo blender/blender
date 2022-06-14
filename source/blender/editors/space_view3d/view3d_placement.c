@@ -695,7 +695,7 @@ static bool view3d_interactive_add_calc_snap(bContext *UNUSED(C),
   if (r_is_snap_invert) {
     *r_is_snap_invert = snap_data->is_snap_invert;
   }
-  return snap_data->snap_elem != 0;
+  return snap_data->snap_elem != SCE_SNAP_MODE_NONE;
 }
 
 /** \} */
@@ -1303,7 +1303,7 @@ static int idp_rna_snap_target_get_fn(struct PointerRNA *UNUSED(ptr),
                                       struct PropertyRNA *UNUSED(prop))
 {
   V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  if (!snap_state->snap_elem_force) {
+  if (snap_state->snap_elem_force == SCE_SNAP_MODE_NONE) {
     return PLACE_SNAP_TO_DEFAULT;
   }
 
@@ -1316,7 +1316,7 @@ static void idp_rna_snap_target_set_fn(struct PointerRNA *UNUSED(ptr),
                                        struct PropertyRNA *UNUSED(prop),
                                        int value)
 {
-  short snap_mode = 0; /* #toolsettings->snap_mode. */
+  eSnapMode snap_mode = SCE_SNAP_MODE_NONE; /* #toolsettings->snap_mode. */
   const enum ePlace_SnapTo snap_to = value;
   if (snap_to == PLACE_SNAP_TO_GEOMETRY) {
     snap_mode = SCE_SNAP_MODE_GEOM;

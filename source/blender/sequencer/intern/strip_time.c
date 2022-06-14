@@ -173,6 +173,10 @@ void SEQ_time_update_meta_strip_range(const Scene *scene, Sequence *seq_meta)
 
 void seq_time_effect_range_set(Sequence *seq)
 {
+  if (seq->seq1 == NULL && seq->seq2 == NULL) {
+    return;
+  }
+
   if (seq->seq1 && seq->seq2) { /* 2 - input effect. */
     seq->startdisp = max_ii(SEQ_time_left_handle_frame_get(seq->seq1),
                             SEQ_time_left_handle_frame_get(seq->seq2));

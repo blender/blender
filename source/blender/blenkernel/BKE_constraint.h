@@ -307,6 +307,25 @@ void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph,
                                       void *ownerdata,
                                       float mat[4][4],
                                       float ctime);
+
+/**
+ * Retrieves the list of all constraint targets, including the custom space target.
+ * Must be followed by a call to BKE_constraint_targets_flush to free memory.
+ *
+ * \param r_targets Pointer to the list to be initialized with target data.
+ * \returns the number of targets stored in the list.
+ */
+int BKE_constraint_targets_get(struct bConstraint *con, struct ListBase *r_targets);
+
+/**
+ * Copies changed data from the list produced by BKE_constraint_targets_get back to the constraint
+ * data structures and frees memory.
+ *
+ * \param targets List of targets filled by BKE_constraint_targets_get.
+ * \param no_copy Only free memory without copying changes (read-only mode).
+ */
+void BKE_constraint_targets_flush(struct bConstraint *con, struct ListBase *targets, bool no_copy);
+
 /**
  * Get the list of targets required for solving a constraint.
  */

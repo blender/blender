@@ -315,8 +315,8 @@ TEST_F(obj_exporter_regression_test, all_quads)
 TEST_F(obj_exporter_regression_test, fgons)
 {
   OBJExportParamsDefault _export;
-  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
-  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   compare_obj_export_to_golden(
       "io_tests/blend_geometry/fgons.blend", "io_tests/obj/fgons.obj", "", _export.params);
@@ -325,8 +325,8 @@ TEST_F(obj_exporter_regression_test, fgons)
 TEST_F(obj_exporter_regression_test, edges)
 {
   OBJExportParamsDefault _export;
-  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
-  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   compare_obj_export_to_golden(
       "io_tests/blend_geometry/edges.blend", "io_tests/obj/edges.obj", "", _export.params);
@@ -335,8 +335,8 @@ TEST_F(obj_exporter_regression_test, edges)
 TEST_F(obj_exporter_regression_test, vertices)
 {
   OBJExportParamsDefault _export;
-  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
-  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   compare_obj_export_to_golden(
       "io_tests/blend_geometry/vertices.blend", "io_tests/obj/vertices.obj", "", _export.params);
@@ -355,8 +355,8 @@ TEST_F(obj_exporter_regression_test, non_uniform_scale)
 TEST_F(obj_exporter_regression_test, nurbs_as_nurbs)
 {
   OBJExportParamsDefault _export;
-  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
-  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   _export.params.export_curves_as_nurbs = true;
   compare_obj_export_to_golden(
@@ -366,8 +366,8 @@ TEST_F(obj_exporter_regression_test, nurbs_as_nurbs)
 TEST_F(obj_exporter_regression_test, nurbs_curves_as_nurbs)
 {
   OBJExportParamsDefault _export;
-  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
-  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   _export.params.export_curves_as_nurbs = true;
   compare_obj_export_to_golden("io_tests/blend_geometry/nurbs_curves.blend",
@@ -379,8 +379,8 @@ TEST_F(obj_exporter_regression_test, nurbs_curves_as_nurbs)
 TEST_F(obj_exporter_regression_test, nurbs_as_mesh)
 {
   OBJExportParamsDefault _export;
-  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
-  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   _export.params.export_curves_as_nurbs = false;
   compare_obj_export_to_golden(
@@ -390,8 +390,8 @@ TEST_F(obj_exporter_regression_test, nurbs_as_mesh)
 TEST_F(obj_exporter_regression_test, cube_all_data_triangulated)
 {
   OBJExportParamsDefault _export;
-  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
-  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   _export.params.export_triangulated_mesh = true;
   compare_obj_export_to_golden("io_tests/blend_geometry/cube_all_data.blend",
@@ -403,8 +403,8 @@ TEST_F(obj_exporter_regression_test, cube_all_data_triangulated)
 TEST_F(obj_exporter_regression_test, cube_normal_edit)
 {
   OBJExportParamsDefault _export;
-  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
-  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   compare_obj_export_to_golden("io_tests/blend_geometry/cube_normal_edit.blend",
                                "io_tests/obj/cube_normal_edit.obj",
@@ -459,8 +459,8 @@ TEST_F(obj_exporter_regression_test, cubes_with_textures_relative)
 TEST_F(obj_exporter_regression_test, suzanne_all_data)
 {
   OBJExportParamsDefault _export;
-  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
-  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_materials = false;
   _export.params.export_smooth_groups = true;
   compare_obj_export_to_golden("io_tests/blend_geometry/suzanne_all_data.blend",
@@ -491,8 +491,8 @@ TEST_F(obj_exporter_regression_test, all_curves_as_nurbs)
 TEST_F(obj_exporter_regression_test, all_objects)
 {
   OBJExportParamsDefault _export;
-  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
-  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_smooth_groups = true;
   compare_obj_export_to_golden("io_tests/blend_scene/all_objects.blend",
                                "io_tests/obj/all_objects.obj",
@@ -503,8 +503,8 @@ TEST_F(obj_exporter_regression_test, all_objects)
 TEST_F(obj_exporter_regression_test, all_objects_mat_groups)
 {
   OBJExportParamsDefault _export;
-  _export.params.forward_axis = OBJ_AXIS_Y_FORWARD;
-  _export.params.up_axis = OBJ_AXIS_Z_UP;
+  _export.params.forward_axis = IO_AXIS_Y;
+  _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_smooth_groups = true;
   _export.params.export_material_groups = true;
   compare_obj_export_to_golden("io_tests/blend_scene/all_objects.blend",

@@ -479,6 +479,15 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
       ss, &test, data->brush->falloff_shape);
   const int thread_id = BLI_task_parallel_thread_id(tls);
 
+  float brush_delta[3];
+
+  if (brush->flag & BRUSH_ANCHORED) {
+    copy_v3_v3(brush_delta, ss->cache->grab_delta_symmetry);
+  }
+  else {
+    sub_v3_v3v3(brush_delta, ss->cache->location, ss->cache->last_location);
+  }
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
       continue;
@@ -505,7 +514,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
 
     switch (brush->smear_deform_type) {
       case BRUSH_SMEAR_DEFORM_DRAG:
-        sub_v3_v3v3(current_disp, ss->cache->location, ss->cache->last_location);
+        copy_v3_v3(current_disp, brush_delta);
         break;
       case BRUSH_SMEAR_DEFORM_PINCH:
         sub_v3_v3v3(current_disp, ss->cache->location, vd.co);

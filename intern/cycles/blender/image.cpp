@@ -28,10 +28,33 @@ BlenderImageLoader::BlenderImageLoader(BL::Image b_image,
 
 bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures &, ImageMetaData &metadata)
 {
-  metadata.width = b_image.size()[0];
-  metadata.height = b_image.size()[1];
+  if (b_image.source() != BL::Image::source_TILED) {
+    /* Image sequence might have different dimensions, and hence needs to be handled in a special
+     * manner.
+     * NOTE: Currently the sequences are not handled by this image loader. */
+    assert(b_image.source() != BL::Image::source_SEQUENCE);
+
+    metadata.width = b_image.size()[0];
+    metadata.height = b_image.size()[1];
+    metadata.channels = b_image.channels();
+  }
+  else {
+    /* Different UDIM tiles might have different resolutions, so get resolution from the actual
+     * tile. */
+    BL::UDIMTile b_udim_tile = b_image.tiles.get(tile_number);
+    if (b_udim_tile) {
+      metadata.width = b_udim_tile.size()[0];
+      metadata.height = b_udim_tile.size()[1];
+      metadata.channels = b_udim_tile.channels();
+    }
+    else {
+      metadata.width = 0;
+      metadata.height = 0;
+      metadata.channels = 0;
+    }
+  }
+
   metadata.depth = 1;
-  metadata.channels = b_image.channels();
 
   if (b_image.is_float()) {
     if (metadata.channels == 1) {
@@ -104,7 +127,7 @@ bool BlenderImageLoader::load_pixels(const ImageMetaData &metadata,
   }
   else if (metadata.type == IMAGE_DATA_TYPE_HALF || metadata.type == IMAGE_DATA_TYPE_HALF4) {
     /* Half float. Blender does not have a half type, but in some cases
-     * we upsample byte to half to avoid precision loss for colorspace
+     * we up-sample byte to half to avoid precision loss for colorspace
      * conversion. */
     unsigned char *in_pixels = image_get_pixels_for_frame(b_image, frame, tile_number);
 

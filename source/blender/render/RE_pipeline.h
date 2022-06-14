@@ -74,10 +74,12 @@ typedef struct RenderPass {
   int pad;
 } RenderPass;
 
-/* a renderlayer is a full image, but with all passes and samples */
-/* size of the rects is defined in RenderResult */
-/* after render, the Combined pass is in combined,
- * for renderlayers read from files it is a real pass */
+/**
+ * - A render-layer is a full image, but with all passes and samples.
+ * - The size of the rects is defined in #RenderResult.
+ * - After render, the Combined pass is in combined,
+ *   for render-layers read from files it is a real pass.
+ */
 typedef struct RenderLayer {
   struct RenderLayer *next, *prev;
 

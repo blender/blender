@@ -4267,7 +4267,6 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 
   Mesh *me = ob->data;
   BMEditMesh *em = me->edit_mesh;
-  float weight_act;
   int i;
 
   if (em) {
@@ -4279,18 +4278,15 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
     if (dvert_act == NULL) {
       return;
     }
-    weight_act = BKE_defvert_find_weight(dvert_act, def_nr);
 
     BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
       if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && (eve != eve_act)) {
-        MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-        MDeformWeight *dw = BKE_defvert_find_index(dv, def_nr);
-        if (dw) {
-          dw->weight = weight_act;
+        MDeformVert *dvert_dst = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 
-          if (me->symmetry & ME_SYMMETRY_X) {
-            ED_mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
-          }
+        BKE_defvert_copy_index(dvert_dst, def_nr, dvert_act, def_nr);
+
+        if (me->symmetry & ME_SYMMETRY_X) {
+          ED_mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
         }
       }
     }
@@ -4307,17 +4303,15 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
     if (dvert_act == NULL) {
       return;
     }
-    weight_act = BKE_defvert_find_weight(dvert_act, def_nr);
 
     dv = me->dvert;
     for (i = 0; i < me->totvert; i++, dv++) {
       if ((me->mvert[i].flag & SELECT) && (dv != dvert_act)) {
-        MDeformWeight *dw = BKE_defvert_find_index(dv, def_nr);
-        if (dw) {
-          dw->weight = weight_act;
-          if (me->symmetry & ME_SYMMETRY_X) {
-            ED_mesh_defvert_mirror_update_ob(ob, -1, i);
-          }
+
+        BKE_defvert_copy_index(dv, def_nr, dvert_act, def_nr);
+
+        if (me->symmetry & ME_SYMMETRY_X) {
+          ED_mesh_defvert_mirror_update_ob(ob, -1, i);
         }
       }
     }

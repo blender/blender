@@ -6,7 +6,7 @@
  */
 
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -411,9 +411,7 @@ constexpr MeshExtract create_extractor_fdot_idx()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_poly_idx = blender::draw::create_extractor_poly_idx();
 const MeshExtract extract_edge_idx = blender::draw::create_extractor_edge_idx();
 const MeshExtract extract_vert_idx = blender::draw::create_extractor_vert_idx();
 const MeshExtract extract_fdot_idx = blender::draw::create_extractor_fdot_idx();
-}

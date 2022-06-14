@@ -1536,8 +1536,8 @@ static void template_ID_tabs(const bContext *C,
                                                0.0f,
                                                "");
     UI_but_funcN_set(&tab->but, template_ID_set_property_exec_fn, MEM_dupallocN(template), id);
+    UI_but_drag_set_id(&tab->but, id);
     tab->but.custom_data = (void *)id;
-    tab->but.dragpoin = id;
     tab->menu = mt;
 
     UI_but_drawflag_enable(&tab->but, but_align);

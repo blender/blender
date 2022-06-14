@@ -10,6 +10,7 @@ set(INC
   ../../depsgraph
   ../../draw
   ../../functions
+  ../../geometry
   ../../gpu
   ../../imbuf
   ../../makesdna
@@ -60,7 +61,7 @@ set(SRC
 
   sculpt_array.c
   sculpt_curvature.c
-  sculpt_automasking.c
+  sculpt_automasking.cc
   sculpt_boundary.c
   sculpt_brush_types.c
   sculpt_cloth.c

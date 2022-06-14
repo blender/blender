@@ -897,7 +897,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 {
   Mesh *explode, *mesh = to_explode;
   MFace *mf = NULL, *mface;
-  /* ParticleSettings *part=psmd->psys->part; */ /* UNUSED */
+  // ParticleSettings *part=psmd->psys->part; /* UNUSED */
   ParticleSimulationData sim = {NULL};
   ParticleData *pa = NULL, *pars = psmd->psys->particles;
   ParticleKey state, birth;
@@ -906,7 +906,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   float *vertco = NULL, imat[4][4];
   float rot[4];
   float ctime;
-  /* float timestep; */
+  // float timestep;
   const int *facepa = emd->facepa;
   int totdup = 0, totvert = 0, totface = 0, totpart = 0, delface = 0;
   int i, v, u;
@@ -923,7 +923,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   sim.psys = psmd->psys;
   sim.psmd = psmd;
 
-  /* timestep = psys_get_timestep(&sim); */
+  // timestep = psys_get_timestep(&sim);
 
   ctime = BKE_scene_ctime_get(scene);
 

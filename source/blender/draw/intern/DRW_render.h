@@ -837,7 +837,7 @@ void DRW_render_viewport_size_set(const int size[2]);
 /**
  * Assume a valid GL context is bound (and that the gl_context_mutex has been acquired).
  * This function only setup DST and execute the given function.
- * \warning similar to DRW_render_to_image you cannot use default lists (dfbl & dtxl).
+ * \warning similar to DRW_render_to_image you cannot use default lists (`dfbl` & `dtxl`).
  */
 void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
                          struct Depsgraph *depsgraph,
@@ -850,6 +850,7 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
 void DRW_cache_restart(void);
 
 /* ViewLayers */
+
 void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type);
 void **DRW_view_layer_engine_data_ensure_ex(struct ViewLayer *view_layer,
                                             DrawEngineType *engine_type,
@@ -858,6 +859,7 @@ void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type,
                                          void (*callback)(void *storage));
 
 /* DrawData */
+
 DrawData *DRW_drawdata_get(ID *id, DrawEngineType *engine_type);
 DrawData *DRW_drawdata_ensure(ID *id,
                               DrawEngineType *engine_type,

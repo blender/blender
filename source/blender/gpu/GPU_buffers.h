@@ -10,6 +10,7 @@
 #include <stddef.h>
 
 #include "BKE_attribute.h"
+#include "BKE_pbvh.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +33,8 @@ struct Mesh;
 struct PBVH;
 struct SubdivCCG;
 struct CustomData;
+
+typedef struct PBVHGPUFormat PBVHGPUFormat;
 
 /**
  * Buffers for drawing from PBVH grids.
@@ -64,7 +67,8 @@ typedef struct PBVHGPUBuildArgs {
  *
  * Threaded: do not call any functions that use OpenGL calls!
  */
-GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(const struct MPoly *mpoly,
+GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(PBVHGPUFormat *vbo_id,
+                                              const struct MPoly *mpoly,
                                               const struct MLoop *mloop,
                                               const struct MLoopTri *looptri,
                                               const struct MVert *mvert,
@@ -81,13 +85,14 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, unsigned int **grid_h
 /**
  * Threaded: do not call any functions that use OpenGL calls!
  */
-GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading);
+GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(PBVHGPUFormat *vbo_id, bool smooth_shading);
 
 /**
  * Free part of data for update. Not thread safe, must run in OpenGL main thread.
  */
-void GPU_pbvh_bmesh_buffers_update_free(GPU_PBVH_Buffers *buffers);
-void GPU_pbvh_grid_buffers_update_free(GPU_PBVH_Buffers *buffers,
+void GPU_pbvh_bmesh_buffers_update_free(PBVHGPUFormat *vbo_id, GPU_PBVH_Buffers *buffers);
+void GPU_pbvh_grid_buffers_update_free(PBVHGPUFormat *vbo_id,
+                                       GPU_PBVH_Buffers *buffers,
                                        const struct DMFlagMat *grid_flag_mats,
                                        const int *grid_indices);
 
@@ -105,46 +110,36 @@ enum {
  * if smooth shading, an element index buffer.
  * Threaded: do not call any functions that use OpenGL calls!
  */
-void GPU_pbvh_mesh_buffers_update(GPU_PBVH_Buffers *buffers,
+void GPU_pbvh_mesh_buffers_update(PBVHGPUFormat *vbo_id,
+                                  GPU_PBVH_Buffers *buffers,
                                   const struct MVert *mvert,
-                                  const struct MLoop *mloop,
-                                  const struct MPoly *mpoly,
-                                  const struct MLoopTri *looptri,
                                   const CustomData *vdata,
                                   const CustomData *ldata,
                                   const float *vmask,
-                                  const CustomDataLayer *active_vcol_layer,
-                                  const CustomDataLayer *render_vcol_layer,
-                                  const eAttrDomain active_vcol_domain,
                                   const int *sculpt_face_sets,
                                   const int face_sets_color_seed,
                                   const int face_sets_color_default,
                                   const int update_flags,
-                                  const float (*vert_normals)[3],
-                                  struct MSculptVert *sverts);
+                                  const float (*vert_normals)[3]);
 
-bool GPU_pbvh_update_attribute_names(
-    const CustomData *vdata,
-    const CustomData *ldata,
-    bool need_full_render,
-    bool fast_mode,  // fast mode renders without vcol, uv, facesets, even mask, etc
-    int active_vcol_type,
-    int active_vcol_domain,
-    const struct CustomDataLayer *active_vcol_layer,
-    const struct CustomDataLayer *render_vcol_layer,
-    bool active_attrs_only);
+bool GPU_pbvh_attribute_names_update(PBVHType pbvh_type,
+                                     PBVHGPUFormat *vbo_id,
+                                     const struct CustomData *vdata,
+                                     const struct CustomData *ldata,
+                                     bool active_attrs_only);
 
 /**
  * Creates a vertex buffer (coordinate, normal, color) and,
  * if smooth shading, an element index buffer.
  * Threaded: do not call any functions that use OpenGL calls!
  */
-void GPU_pbvh_bmesh_buffers_update(PBVHGPUBuildArgs *args);
+void GPU_pbvh_bmesh_buffers_update(PBVHGPUFormat *vbo_id, PBVHGPUBuildArgs *args);
 
 /**
  * Threaded: do not call any functions that use OpenGL calls!
  */
-void GPU_pbvh_grid_buffers_update(GPU_PBVH_Buffers *buffers,
+void GPU_pbvh_grid_buffers_update(PBVHGPUFormat *vbo_id,
+                                  GPU_PBVH_Buffers *buffers,
                                   struct SubdivCCG *subdiv_ccg,
                                   struct CCGElem **grids,
                                   const struct DMFlagMat *grid_flag_mats,
@@ -177,8 +172,11 @@ float *GPU_pbvh_get_extra_matrix(GPU_PBVH_Buffers *buffers);
 /** if need_full_render is false, only the active (not render!)
    vcol layer will be uploaded to GPU*/
 
-void GPU_pbvh_need_full_render_set(bool state);
-bool GPU_pbvh_need_full_render_get(void);
+void GPU_pbvh_need_full_render_set(PBVHGPUFormat *vbo_id, bool state);
+bool GPU_pbvh_need_full_render_get(PBVHGPUFormat *vbo_id);
+
+PBVHGPUFormat *GPU_pbvh_make_format(void);
+void GPU_pbvh_free_format(PBVHGPUFormat *vbo_id);
 
 #ifdef __cplusplus
 }

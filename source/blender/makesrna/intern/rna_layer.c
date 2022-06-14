@@ -339,6 +339,7 @@ static void rna_LayerCollection_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
   DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS);
 
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, NULL);
+  WM_main_add_notifier(NC_IMAGE | ND_LAYER_CONTENT, NULL);
 }
 
 static bool rna_LayerCollection_has_objects(LayerCollection *lc)

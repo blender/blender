@@ -289,7 +289,7 @@ static Material *get_or_create_material(Main *bmain,
   /* We have not, will have to create it. Create a new default
    * MTLMaterial too, in case the OBJ file tries to use a material
    * that was not in the MTL file. */
-  const MTLMaterial &mtl = *materials.lookup_or_add(name, std::make_unique<MTLMaterial>()).get();
+  const MTLMaterial &mtl = *materials.lookup_or_add(name, std::make_unique<MTLMaterial>());
 
   Material *mat = BKE_material_add(bmain, name.c_str());
   ShaderNodetreeWrap mat_wrap{bmain, mtl, mat};

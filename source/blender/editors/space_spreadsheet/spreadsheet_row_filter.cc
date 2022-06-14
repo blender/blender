@@ -71,6 +71,35 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
       }
     }
   }
+  else if (column_data.type().is<int8_t>()) {
+    const int value = row_filter.value_int;
+    switch (row_filter.operation) {
+      case SPREADSHEET_ROW_FILTER_EQUAL: {
+        apply_filter_operation(
+            column_data.typed<int8_t>(),
+            [&](const int cell) { return cell == value; },
+            prev_mask,
+            new_indices);
+        break;
+      }
+      case SPREADSHEET_ROW_FILTER_GREATER: {
+        apply_filter_operation(
+            column_data.typed<int8_t>(),
+            [value](const int cell) { return cell > value; },
+            prev_mask,
+            new_indices);
+        break;
+      }
+      case SPREADSHEET_ROW_FILTER_LESS: {
+        apply_filter_operation(
+            column_data.typed<int8_t>(),
+            [&](const int cell) { return cell < value; },
+            prev_mask,
+            new_indices);
+        break;
+      }
+    }
+  }
   else if (column_data.type().is<int>()) {
     const int value = row_filter.value_int;
     switch (row_filter.operation) {

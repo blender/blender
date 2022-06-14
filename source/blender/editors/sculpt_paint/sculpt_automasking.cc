@@ -9,6 +9,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_hash.h"
+#include "BLI_index_range.hh"
 #include "BLI_math.h"
 #include "BLI_task.h"
 
@@ -43,8 +44,10 @@
 
 #include "bmesh.h"
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
+#include <cstdlib>
+
+using blender::IndexRange;
 
 AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss)
 {
@@ -54,7 +57,7 @@ AutomaskingCache *SCULPT_automasking_active_cache_get(SculptSession *ss)
   if (ss->filter_cache) {
     return ss->filter_cache->automasking;
   }
-  return NULL;
+  return nullptr;
 }
 
 bool SCULPT_is_automasking_mode_enabled(const SculptSession *ss,
@@ -286,7 +289,7 @@ typedef struct AutomaskFloodFillData {
   bool use_radius;
   float location[3];
   char symm;
-} AutomaskFloodFillData;
+};
 
 static bool automask_floodfill_cb(SculptSession *ss,
                                   SculptVertRef from_vref,
@@ -294,7 +297,7 @@ static bool automask_floodfill_cb(SculptSession *ss,
                                   bool UNUSED(is_duplicate),
                                   void *userdata)
 {
-  AutomaskFloodFillData *data = userdata;
+  AutomaskFloodFillData *data = (AutomaskFloodFillData *)userdata;
 
   *(float *)SCULPT_attr_vertex_data(to_vref, data->factorlayer) = 1.0f;
   *(float *)SCULPT_attr_vertex_data(from_vref, data->factorlayer) = 1.0f;
@@ -320,7 +323,7 @@ static void SCULPT_topology_automasking_init(Sculpt *sd,
   for (int i = 0; i < totvert; i++) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-    float *fac = SCULPT_attr_vertex_data(vertex, factorlayer);
+    float *fac = (float *)SCULPT_attr_vertex_data(vertex, factorlayer);
     *fac = 0.0f;
   }
 
@@ -339,12 +342,13 @@ static void SCULPT_topology_automasking_init(Sculpt *sd,
     SCULPT_floodfill_add_active(sd, ob, ss, &flood, radius);
   }
 
-  AutomaskFloodFillData fdata = {
-      .factorlayer = factorlayer,
-      .radius = radius,
-      .use_radius = ss->cache && sculpt_automasking_is_constrained_by_radius(brush),
-      .symm = symm,
-  };
+  AutomaskFloodFillData fdata = {nullptr};
+
+  fdata.factorlayer = factorlayer;
+  fdata.radius = radius;
+  fdata.use_radius = ss->cache && sculpt_automasking_is_constrained_by_radius(brush);
+  fdata.symm = SCULPT_mesh_symmetry_xyz_get(ob);
+
   copy_v3_v3(fdata.location, SCULPT_active_vertex_co_get(ss));
   SCULPT_floodfill_execute(ss, &flood, automask_floodfill_cb, &fdata);
   SCULPT_floodfill_free(&flood);
@@ -368,7 +372,8 @@ static void sculpt_face_sets_automasking_init(Sculpt *sd,
 
   int tot_vert = SCULPT_vertex_count_get(ss);
   int active_face_set = SCULPT_active_face_set_get(ss);
-  for (int i = 0; i < tot_vert; i++) {
+
+  for (int i : IndexRange(tot_vert)) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
     if (!SCULPT_vertex_has_face_set(ss, vertex, active_face_set)) {
@@ -386,10 +391,15 @@ void SCULPT_boundary_automasking_init(Object *ob,
 {
   SculptSession *ss = ob->sculpt;
 
-  const int totvert = SCULPT_vertex_count_get(ss);
-  int *edge_distance = MEM_callocN(sizeof(int) * totvert, "automask_factor");
+  if (!ss->pmap) {
+    BLI_assert_msg(0, "Boundary Edges masking: pmap missing");
+    return;
+  }
 
-  for (int i = 0; i < totvert; i++) {
+  const int totvert = SCULPT_vertex_count_get(ss);
+  int *edge_distance = (int *)MEM_callocN(sizeof(int) * totvert, "automask_factor");
+
+  for (int i : IndexRange(totvert)) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
     edge_distance[i] = EDGE_DISTANCE_INF;
@@ -408,8 +418,8 @@ void SCULPT_boundary_automasking_init(Object *ob,
     }
   }
 
-  for (int propagation_it = 0; propagation_it < propagation_steps; propagation_it++) {
-    for (int i = 0; i < totvert; i++) {
+  for (int propagation_it : IndexRange(propagation_steps)) {
+    for (int i : IndexRange(totvert)) {
       SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
       if (edge_distance[i] != EDGE_DISTANCE_INF) {
@@ -425,7 +435,7 @@ void SCULPT_boundary_automasking_init(Object *ob,
     }
   }
 
-  for (int i = 0; i < totvert; i++) {
+  for (int i : IndexRange(totvert)) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
     if (edge_distance[i] == EDGE_DISTANCE_INF) {
@@ -534,10 +544,11 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
   const int totvert = SCULPT_vertex_count_get(ss);
 
   if (!SCULPT_is_automasking_enabled(sd, ss, brush)) {
-    return NULL;
+    return nullptr;
   }
 
-  AutomaskingCache *automasking = MEM_callocN(sizeof(AutomaskingCache), "automasking cache");
+  AutomaskingCache *automasking = (AutomaskingCache *)MEM_callocN(sizeof(AutomaskingCache),
+                                                                  "automasking cache");
 
   SCULPT_automasking_cache_settings_update(automasking, ss, sd, brush);
   SCULPT_boundary_info_ensure(ob);
@@ -550,8 +561,8 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
   SCULPT_face_random_access_ensure(ss);
 
   if (!ss->custom_layers[SCULPT_SCL_AUTOMASKING]) {
-    ss->custom_layers[SCULPT_SCL_AUTOMASKING] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                            "automasking->factorlayer");
+    ss->custom_layers[SCULPT_SCL_AUTOMASKING] = (SculptCustomLayer *)MEM_callocN(
+        sizeof(SculptCustomLayer), "automasking->factorlayer");
 
     SculptLayerParams params = {.permanent = false, .simple_array = false};
 
@@ -574,9 +585,9 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
 
   // automasking->factorlayer = SCULPT_attr_ensure_layer()
   // automasking->factor = MEM_malloc_arrayN(totvert, sizeof(float), "automask_factor");
-  for (int i = 0; i < totvert; i++) {
+  for (int i : IndexRange(totvert)) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
-    float *f = SCULPT_attr_vertex_data(vertex, automasking->factorlayer);
+    float *f = (float *)SCULPT_attr_vertex_data(vertex, automasking->factorlayer);
 
     *f = 1.0f;
   }

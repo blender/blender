@@ -37,6 +37,13 @@
 #include <unistd.h>
 
 #include <cstring>
+#include <mutex>
+
+static GHOST_IWindow *get_window(struct wl_surface *surface);
+
+/* -------------------------------------------------------------------- */
+/** \name Private Types & Defines
+ * \{ */
 
 /**
  * Selected input event code defines from `linux/input-event-codes.h`
@@ -67,7 +74,7 @@ struct cursor_t {
   struct wl_cursor_theme *theme = nullptr;
   int size;
   std::string theme_name;
-  // outputs on which the cursor is visible
+  /** Outputs on which the cursor is visible. */
   std::unordered_set<const output_t *> outputs;
   int scale = 1;
 };
@@ -85,8 +92,6 @@ struct data_offer_t {
 
 struct data_source_t {
   struct wl_data_source *data_source;
-  /** Last device that was active. */
-  uint32_t source_serial;
   char *buffer_out;
 };
 
@@ -112,26 +117,37 @@ struct input_t {
 
   struct zwp_relative_pointer_v1 *relative_pointer;
   struct zwp_locked_pointer_v1 *locked_pointer;
+  struct zwp_confined_pointer_v1 *confined_pointer;
 
   struct xkb_context *xkb_context;
   struct xkb_state *xkb_state;
   struct {
-    /* Key repetition in character per second. */
+    /** Key repetition in character per second. */
     int32_t rate;
-    /* Time (milliseconds) after which to start repeating keys. */
+    /** Time (milliseconds) after which to start repeating keys. */
     int32_t delay;
-    /* Timer for key repeats. */
+    /** Timer for key repeats. */
     GHOST_ITimerTask *timer = nullptr;
   } key_repeat;
 
   struct wl_surface *focus_pointer = nullptr;
   struct wl_surface *focus_keyboard = nullptr;
+  struct wl_surface *focus_dnd = nullptr;
 
   struct wl_data_device *data_device = nullptr;
-  struct data_offer_t *data_offer_dnd;        /* Drag & Drop. */
-  struct data_offer_t *data_offer_copy_paste; /* Copy & Paste. */
+  /** Drag & Drop. */
+  struct data_offer_t *data_offer_dnd;
+  std::mutex data_offer_dnd_mutex;
+
+  /** Copy & Paste. */
+  struct data_offer_t *data_offer_copy_paste;
+  std::mutex data_offer_copy_paste_mutex;
 
   struct data_source_t *data_source;
+  std::mutex data_source_mutex;
+
+  /** Last device that was active. */
+  uint32_t data_source_serial;
 };
 
 struct display_t {
@@ -156,7 +172,33 @@ struct display_t {
   std::vector<struct wl_egl_window *> os_egl_windows;
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Private Utility Functions
+ * \{ */
+
 static GHOST_WindowManager *window_manager = nullptr;
+
+/** Check this lock before accessing `GHOST_SystemWayland::selection` from a thread. */
+static std::mutex system_selection_mutex;
+
+/**
+ * Callback for WAYLAND to run when there is an error.
+ *
+ * \note It's useful to set a break-point on this function as some errors are fatal
+ * (for all intents and purposes) but don't crash the process.
+ */
+static void ghost_wayland_log_handler(const char *msg, va_list arg)
+{
+  fprintf(stderr, "GHOST/Wayland: ");
+  vfprintf(stderr, msg, arg); /* Includes newline. */
+
+  GHOST_TBacktraceFn backtrace_fn = GHOST_ISystem::getBacktraceFn();
+  if (backtrace_fn) {
+    backtrace_fn(stderr); /* Includes newline. */
+  }
+}
 
 static void display_destroy(display_t *d)
 {
@@ -429,8 +471,10 @@ static const std::vector<std::string> mime_send = {
     "text/plain",
 };
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/** \name Interface Callbacks
+/** \name Listener (Relative Motion), #zwp_relative_pointer_v1_listener
  *
  * These callbacks are registered for Wayland interfaces and called when
  * an event is received from the compositor.
@@ -466,11 +510,18 @@ static const zwp_relative_pointer_v1_listener relative_pointer_listener = {
     relative_pointer_relative_motion,
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Data Source), #wl_data_source_listener
+ * \{ */
+
 static void dnd_events(const input_t *const input, const GHOST_TEventType event)
 {
+  /* NOTE: `input->data_offer_dnd_mutex` must already be locked. */
   const uint64_t time = input->system->getMilliSeconds();
   GHOST_IWindow *const window = static_cast<GHOST_WindowWayland *>(
-      wl_surface_get_user_data(input->focus_pointer));
+      wl_surface_get_user_data(input->focus_dnd));
   for (const std::string &type : mime_preference_order) {
     input->system->pushEvent(new GHOST_EventDragnDrop(time,
                                                       event,
@@ -482,7 +533,9 @@ static void dnd_events(const input_t *const input, const GHOST_TEventType event)
   }
 }
 
-static std::string read_pipe(data_offer_t *data_offer, const std::string mime_receive)
+static std::string read_pipe(data_offer_t *data_offer,
+                             const std::string mime_receive,
+                             std::mutex *mutex)
 {
   int pipefd[2];
   if (pipe(pipefd) != 0) {
@@ -491,6 +544,13 @@ static std::string read_pipe(data_offer_t *data_offer, const std::string mime_re
   wl_data_offer_receive(data_offer->id, mime_receive.c_str(), pipefd[1]);
   close(pipefd[1]);
 
+  data_offer->in_use.store(false);
+
+  if (mutex) {
+    mutex->unlock();
+  }
+  /* WARNING: `data_offer` may be freed from now on. */
+
   std::string data;
   ssize_t len;
   char buffer[4096];
@@ -498,7 +558,6 @@ static std::string read_pipe(data_offer_t *data_offer, const std::string mime_re
     data.insert(data.end(), buffer, buffer + len);
   }
   close(pipefd[0]);
-  data_offer->in_use.store(false);
 
   return data;
 }
@@ -521,7 +580,10 @@ static void data_source_send(void *data,
                              const char * /*mime_type*/,
                              int32_t fd)
 {
-  const char *const buffer = static_cast<char *>(data);
+  input_t *input = static_cast<input_t *>(data);
+  std::lock_guard lock{input->data_source_mutex};
+
+  const char *const buffer = input->data_source->buffer_out;
   if (write(fd, buffer, strlen(buffer)) < 0) {
     GHOST_PRINT("error writing to clipboard: " << std::strerror(errno) << std::endl);
   }
@@ -581,6 +643,12 @@ static const struct wl_data_source_listener data_source_listener = {
     data_source_action,
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Data Offer), #wl_data_offer_listener
+ * \{ */
+
 static void data_offer_offer(void *data,
                              struct wl_data_offer * /*wl_data_offer*/,
                              const char *mime_type)
@@ -608,6 +676,12 @@ static const struct wl_data_offer_listener data_offer_listener = {
     data_offer_action,
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Data Device), #wl_data_device_listener
+ * \{ */
+
 static void data_device_data_offer(void * /*data*/,
                                    struct wl_data_device * /*wl_data_device*/,
                                    struct wl_data_offer *id)
@@ -620,12 +694,14 @@ static void data_device_data_offer(void * /*data*/,
 static void data_device_enter(void *data,
                               struct wl_data_device * /*wl_data_device*/,
                               uint32_t serial,
-                              struct wl_surface * /*surface*/,
+                              struct wl_surface *surface,
                               wl_fixed_t x,
                               wl_fixed_t y,
                               struct wl_data_offer *id)
 {
   input_t *input = static_cast<input_t *>(data);
+  std::lock_guard lock{input->data_offer_dnd_mutex};
+
   input->data_offer_dnd = static_cast<data_offer_t *>(wl_data_offer_get_user_data(id));
   data_offer_t *data_offer = input->data_offer_dnd;
 
@@ -642,14 +718,17 @@ static void data_device_enter(void *data,
     wl_data_offer_accept(id, serial, type.c_str());
   }
 
+  input->focus_dnd = surface;
   dnd_events(input, GHOST_kEventDraggingEntered);
 }
 
 static void data_device_leave(void *data, struct wl_data_device * /*wl_data_device*/)
 {
   input_t *input = static_cast<input_t *>(data);
+  std::lock_guard lock{input->data_offer_dnd_mutex};
 
   dnd_events(input, GHOST_kEventDraggingExited);
+  input->focus_dnd = nullptr;
 
   if (input->data_offer_dnd && !input->data_offer_dnd->in_use.load()) {
     wl_data_offer_destroy(input->data_offer_dnd->id);
@@ -665,6 +744,8 @@ static void data_device_motion(void *data,
                                wl_fixed_t y)
 {
   input_t *input = static_cast<input_t *>(data);
+  std::lock_guard lock{input->data_offer_dnd_mutex};
+
   input->data_offer_dnd->dnd.x = wl_fixed_to_int(x);
   input->data_offer_dnd->dnd.y = wl_fixed_to_int(y);
   dnd_events(input, GHOST_kEventDraggingUpdated);
@@ -673,6 +754,8 @@ static void data_device_motion(void *data,
 static void data_device_drop(void *data, struct wl_data_device * /*wl_data_device*/)
 {
   input_t *input = static_cast<input_t *>(data);
+  std::lock_guard lock{input->data_offer_dnd_mutex};
+
   data_offer_t *data_offer = input->data_offer_dnd;
 
   const std::string mime_receive = *std::find_first_of(mime_preference_order.begin(),
@@ -682,11 +765,12 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
 
   auto read_uris = [](input_t *const input,
                       data_offer_t *data_offer,
+                      wl_surface *surface,
                       const std::string mime_receive) {
     const int x = data_offer->dnd.x;
     const int y = data_offer->dnd.y;
 
-    const std::string data = read_pipe(data_offer, mime_receive);
+    const std::string data = read_pipe(data_offer, mime_receive, nullptr);
 
     wl_data_offer_finish(data_offer->id);
     wl_data_offer_destroy(data_offer->id);
@@ -699,6 +783,9 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
     if (mime_receive == mime_text_uri) {
       static constexpr const char *file_proto = "file://";
       static constexpr const char *crlf = "\r\n";
+
+      GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(surface));
+      GHOST_ASSERT(win != nullptr, "Unable to find window for drop event from surface");
 
       std::vector<std::string> uris;
 
@@ -723,8 +810,6 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
         flist->strings[i] = static_cast<uint8_t *>(malloc((uris[i].size() + 1) * sizeof(uint8_t)));
         memcpy(flist->strings[i], uris[i].data(), uris[i].size() + 1);
       }
-      GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
-          wl_surface_get_user_data(input->focus_pointer));
       system->pushEvent(new GHOST_EventDragnDrop(system->getMilliSeconds(),
                                                  GHOST_kEventDraggingDropDone,
                                                  GHOST_kDragnDropTypeFilenames,
@@ -740,7 +825,9 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
     wl_display_roundtrip(system->display());
   };
 
-  std::thread read_thread(read_uris, input, data_offer, mime_receive);
+  /* Pass in `input->focus_dnd` instead of accessing it from `input` since the leave callback
+   * (#data_device_leave) will clear the value once this function starts. */
+  std::thread read_thread(read_uris, input, data_offer, input->focus_dnd, mime_receive);
   read_thread.detach();
 }
 
@@ -749,6 +836,9 @@ static void data_device_selection(void *data,
                                   struct wl_data_offer *id)
 {
   input_t *input = static_cast<input_t *>(data);
+
+  std::lock_guard lock{input->data_offer_copy_paste_mutex};
+
   data_offer_t *data_offer = input->data_offer_copy_paste;
 
   /* Delete old data offer. */
@@ -766,22 +856,28 @@ static void data_device_selection(void *data,
   data_offer = static_cast<data_offer_t *>(wl_data_offer_get_user_data(id));
   input->data_offer_copy_paste = data_offer;
 
-  std::string mime_receive;
-  for (const std::string type : {mime_text_utf8, mime_text_plain}) {
-    if (data_offer->types.count(type)) {
-      mime_receive = type;
-      break;
-    }
-  }
+  auto read_selection = [](input_t *input) {
+    GHOST_SystemWayland *const system = input->system;
+    input->data_offer_copy_paste_mutex.lock();
 
-  auto read_selection = [](GHOST_SystemWayland *const system,
-                           data_offer_t *data_offer,
-                           const std::string mime_receive) {
-    const std::string data = read_pipe(data_offer, mime_receive);
-    system->setSelection(data);
+    data_offer_t *data_offer = input->data_offer_copy_paste;
+    std::string mime_receive;
+    for (const std::string type : {mime_text_utf8, mime_text_plain}) {
+      if (data_offer->types.count(type)) {
+        mime_receive = type;
+        break;
+      }
+    }
+    const std::string data = read_pipe(
+        data_offer, mime_receive, &input->data_offer_copy_paste_mutex);
+
+    {
+      std::lock_guard lock{system_selection_mutex};
+      system->setSelection(data);
+    }
   };
 
-  std::thread read_thread(read_selection, input->system, data_offer, mime_receive);
+  std::thread read_thread(read_selection, input);
   read_thread.detach();
 }
 
@@ -793,6 +889,12 @@ static const struct wl_data_device_listener data_device_listener = {
     data_device_drop,
     data_device_selection,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Surface), #wl_surface_listener
+ * \{ */
 
 static void cursor_buffer_release(void *data, struct wl_buffer *wl_buffer)
 {
@@ -873,6 +975,12 @@ struct wl_surface_listener cursor_surface_listener = {
     cursor_surface_enter,
     cursor_surface_leave,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Pointer), #wl_pointer_listener
+ * \{ */
 
 static void pointer_enter(void *data,
                           struct wl_pointer * /*wl_pointer*/,
@@ -995,7 +1103,7 @@ static void pointer_button(void *data,
       break;
   }
 
-  input->data_source->source_serial = serial;
+  input->data_source_serial = serial;
   input->buttons.set(ebutton, state == WL_POINTER_BUTTON_STATE_PRESSED);
   input->system->pushEvent(new GHOST_EventButton(
       input->system->getMilliSeconds(), etype, win, ebutton, GHOST_TABLET_DATA_NONE));
@@ -1030,6 +1138,12 @@ static const struct wl_pointer_listener pointer_listener = {
     pointer_button,
     pointer_axis,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Keyboard), #wl_keyboard_listener
+ * \{ */
 
 static void keyboard_keymap(
     void *data, struct wl_keyboard * /*wl_keyboard*/, uint32_t format, int32_t fd, uint32_t size)
@@ -1164,7 +1278,7 @@ static void keyboard_key(void *data,
     key_data.utf8_buf[0] = '\0';
   }
 
-  input->data_source->source_serial = serial;
+  input->data_source_serial = serial;
 
   GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
       wl_surface_get_user_data(input->focus_keyboard));
@@ -1236,6 +1350,12 @@ static const struct wl_keyboard_listener keyboard_listener = {
     keyboard_repeat_info,
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Seat), #wl_seat_listener
+ * \{ */
+
 static void seat_capabilities(void *data, struct wl_seat *wl_seat, uint32_t capabilities)
 {
   input_t *input = static_cast<input_t *>(data);
@@ -1271,6 +1391,12 @@ static const struct wl_seat_listener seat_listener = {
     seat_capabilities,
     seat_name,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Output), #wl_output_listener
+ * \{ */
 
 static void output_geometry(void *data,
                             struct wl_output * /*wl_output*/,
@@ -1327,6 +1453,12 @@ static const struct wl_output_listener output_listener = {
     output_scale,
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (XDG WM Base), #xdg_wm_base_listener
+ * \{ */
+
 static void shell_ping(void * /*data*/, struct xdg_wm_base *xdg_wm_base, uint32_t serial)
 {
   xdg_wm_base_pong(xdg_wm_base, serial);
@@ -1335,6 +1467,12 @@ static void shell_ping(void * /*data*/, struct xdg_wm_base *xdg_wm_base, uint32_
 static const struct xdg_wm_base_listener shell_listener = {
     shell_ping,
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Registry), #wl_registry_listener
+ * \{ */
 
 static void global_add(void *data,
                        struct wl_registry *wl_registry,
@@ -1376,6 +1514,7 @@ static void global_add(void *data,
     input->data_source->buffer_out = nullptr;
     input->relative_pointer = nullptr;
     input->locked_pointer = nullptr;
+    input->confined_pointer = nullptr;
     input->seat = static_cast<wl_seat *>(
         wl_registry_bind(wl_registry, name, &wl_seat_interface, 4));
     display->inputs.push_back(input);
@@ -1387,7 +1526,7 @@ static void global_add(void *data,
   }
   else if (!strcmp(interface, wl_data_device_manager_interface.name)) {
     display->data_device_manager = static_cast<wl_data_device_manager *>(
-        wl_registry_bind(wl_registry, name, &wl_data_device_manager_interface, 1));
+        wl_registry_bind(wl_registry, name, &wl_data_device_manager_interface, 3));
   }
   else if (!strcmp(interface, zwp_relative_pointer_manager_v1_interface.name)) {
     display->relative_pointer_manager = static_cast<zwp_relative_pointer_manager_v1 *>(
@@ -1427,6 +1566,8 @@ static const struct wl_registry_listener registry_listener = {
 
 GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new display_t)
 {
+  wl_log_set_handler_client(ghost_wayland_log_handler);
+
   d->system = this;
   /* Connect to the Wayland server. */
   d->display = wl_display_connect(nullptr);
@@ -1485,42 +1626,47 @@ int GHOST_SystemWayland::setConsoleWindowState(GHOST_TConsoleWindowState /*actio
 
 GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
-  if (!d->inputs.empty()) {
-    static const xkb_state_component mods_all = xkb_state_component(
-        XKB_STATE_MODS_DEPRESSED | XKB_STATE_MODS_LATCHED | XKB_STATE_MODS_LOCKED |
-        XKB_STATE_MODS_EFFECTIVE);
-
-    keys.set(GHOST_kModifierKeyLeftShift,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) ==
-                 1);
-    keys.set(GHOST_kModifierKeyRightShift,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) ==
-                 1);
-    keys.set(GHOST_kModifierKeyLeftAlt,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "LAlt", mods_all) == 1);
-    keys.set(GHOST_kModifierKeyRightAlt,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "RAlt", mods_all) == 1);
-    keys.set(GHOST_kModifierKeyLeftControl,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "LControl", mods_all) == 1);
-    keys.set(GHOST_kModifierKeyRightControl,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "RControl", mods_all) == 1);
-    keys.set(GHOST_kModifierKeyOS,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "Super", mods_all) == 1);
-    keys.set(GHOST_kModifierKeyNumMasks,
-             xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, "NumLock", mods_all) == 1);
-
-    return GHOST_kSuccess;
+  if (d->inputs.empty()) {
+    return GHOST_kFailure;
   }
-  return GHOST_kFailure;
+
+  static const xkb_state_component mods_all = xkb_state_component(
+      XKB_STATE_MODS_DEPRESSED | XKB_STATE_MODS_LATCHED | XKB_STATE_MODS_LOCKED |
+      XKB_STATE_MODS_EFFECTIVE);
+
+  bool val;
+
+  /* NOTE: XKB doesn't seem to differentiate between left/right modifiers. */
+
+  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_SHIFT, mods_all) == 1;
+  keys.set(GHOST_kModifierKeyLeftShift, val);
+  keys.set(GHOST_kModifierKeyRightShift, val);
+
+  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_ALT, mods_all) == 1;
+  keys.set(GHOST_kModifierKeyLeftAlt, val);
+  keys.set(GHOST_kModifierKeyRightAlt, val);
+
+  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_CTRL, mods_all) == 1;
+  keys.set(GHOST_kModifierKeyLeftControl, val);
+  keys.set(GHOST_kModifierKeyRightControl, val);
+
+  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_LOGO, mods_all) == 1;
+  keys.set(GHOST_kModifierKeyOS, val);
+
+  val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_NUM, mods_all) == 1;
+  keys.set(GHOST_kModifierKeyNumMasks, val);
+
+  return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 {
-  if (!d->inputs.empty()) {
-    buttons = d->inputs[0]->buttons;
-    return GHOST_kSuccess;
+  if (d->inputs.empty()) {
+    return GHOST_kFailure;
   }
-  return GHOST_kFailure;
+
+  buttons = d->inputs[0]->buttons;
+  return GHOST_kSuccess;
 }
 
 char *GHOST_SystemWayland::getClipboard(bool /*selection*/) const
@@ -1536,25 +1682,29 @@ void GHOST_SystemWayland::putClipboard(const char *buffer, bool /*selection*/) c
     return;
   }
 
-  data_source_t *data_source = d->inputs[0]->data_source;
+  input_t *input = d->inputs[0];
+
+  std::lock_guard lock{input->data_source_mutex};
+
+  data_source_t *data_source = input->data_source;
 
   /* Copy buffer. */
+  free(data_source->buffer_out);
   const size_t buffer_size = strlen(buffer) + 1;
   data_source->buffer_out = static_cast<char *>(malloc(buffer_size));
   std::memcpy(data_source->buffer_out, buffer, buffer_size);
 
   data_source->data_source = wl_data_device_manager_create_data_source(d->data_device_manager);
 
-  wl_data_source_add_listener(
-      data_source->data_source, &data_source_listener, data_source->buffer_out);
+  wl_data_source_add_listener(data_source->data_source, &data_source_listener, input);
 
   for (const std::string &type : mime_send) {
     wl_data_source_offer(data_source->data_source, type.c_str());
   }
 
-  if (!d->inputs.empty() && d->inputs[0]->data_device) {
+  if (input->data_device) {
     wl_data_device_set_selection(
-        d->inputs[0]->data_device, data_source->data_source, data_source->source_serial);
+        input->data_device, data_source->data_source, input->data_source_serial);
   }
 }
 
@@ -1736,14 +1886,20 @@ static void set_cursor_buffer(input_t *input, wl_buffer *buffer)
 
   c->visible = (buffer != nullptr);
 
-  wl_surface_attach(c->surface, buffer, 0, 0);
+  const int32_t image_size_x = int32_t(c->image.width);
+  const int32_t image_size_y = int32_t(c->image.height);
 
-  wl_surface_damage(c->surface, 0, 0, int32_t(c->image.width), int32_t(c->image.height));
+  const int32_t hotspot_x = int32_t(c->image.hotspot_x) / c->scale;
+  const int32_t hotspot_y = int32_t(c->image.hotspot_y) / c->scale;
+
+  wl_surface_attach(c->surface, buffer, 0, 0);
+  wl_surface_damage(c->surface, 0, 0, image_size_x, image_size_y);
+
   wl_pointer_set_cursor(input->pointer,
                         input->pointer_serial,
                         c->visible ? c->surface : nullptr,
-                        int32_t(c->image.hotspot_x) / c->scale,
-                        int32_t(c->image.hotspot_y) / c->scale);
+                        hotspot_x,
+                        hotspot_y);
 
   wl_surface_commit(c->surface);
 }
@@ -1918,6 +2074,11 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(bool visible)
   return GHOST_kSuccess;
 }
 
+bool GHOST_SystemWayland::supportsCursorWarp()
+{
+  return false;
+}
+
 GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mode,
                                                   const GHOST_TGrabCursorMode mode_current,
 
@@ -1939,42 +2100,111 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
 
   input_t *input = d->inputs[0];
 
-  if (mode_current == GHOST_kGrabHide) {
+#define MODE_NEEDS_LOCK(m) ((m) == GHOST_kGrabWrap || (m) == GHOST_kGrabHide)
+#define MODE_NEEDS_HIDE(m) ((m) == GHOST_kGrabHide)
+#define MODE_NEEDS_CONFINE(m) ((m) == GHOST_kGrabNormal)
+
+  const bool was_lock = MODE_NEEDS_LOCK(mode_current);
+  const bool use_lock = MODE_NEEDS_LOCK(mode);
+
+  /* Check for wrap as #supportsCursorWarp isn't supported. */
+  const bool was_hide = MODE_NEEDS_HIDE(mode_current) || (mode_current == GHOST_kGrabWrap);
+  const bool use_hide = MODE_NEEDS_HIDE(mode) || (mode == GHOST_kGrabWrap);
+
+  const bool was_confine = MODE_NEEDS_CONFINE(mode_current);
+  const bool use_confine = MODE_NEEDS_CONFINE(mode);
+
+#undef MODE_NEEDS_LOCK
+#undef MODE_NEEDS_HIDE
+#undef MODE_NEEDS_CONFINE
+
+  if (!use_hide) {
     setCursorVisibility(true);
   }
 
-  if ((mode == GHOST_kGrabDisable) ||
-      /* Switching from one grab mode to another,
-       * in this case disable the current locks as it makes logic confusing,
-       * postpone changing the cursor to avoid flickering. */
-      (mode_current != GHOST_kGrabDisable)) {
+  /* Switching from one grab mode to another,
+   * in this case disable the current locks as it makes logic confusing,
+   * postpone changing the cursor to avoid flickering. */
+  if (!use_lock) {
     if (input->relative_pointer) {
       zwp_relative_pointer_v1_destroy(input->relative_pointer);
       input->relative_pointer = nullptr;
     }
     if (input->locked_pointer) {
+      /* Request location to restore to. */
+      if (mode_current == GHOST_kGrabWrap) {
+        GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(surface));
+        GHOST_Rect bounds;
+        int x_new = input->x, y_new = input->y;
+
+        /* Fallback to window bounds. */
+        if (win->getCursorGrabBounds(bounds) == GHOST_kFailure) {
+          ((GHOST_Window *)win)->getClientBounds(bounds);
+        }
+        bounds.wrapPoint(x_new, y_new, 0, win->getCursorGrabAxis());
+
+        /* Push an event so the new location is registered. */
+        if ((x_new != input->x) || (y_new != input->y)) {
+          input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
+                                                         GHOST_kEventCursorMove,
+                                                         win,
+                                                         x_new,
+                                                         y_new,
+                                                         GHOST_TABLET_DATA_NONE));
+        }
+        input->x = x_new;
+        input->y = y_new;
+
+        const int scale = win->scale();
+        zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer,
+                                                       wl_fixed_from_int(x_new) / scale,
+                                                       wl_fixed_from_int(y_new) / scale);
+        wl_surface_commit(surface);
+      }
+
       zwp_locked_pointer_v1_destroy(input->locked_pointer);
       input->locked_pointer = nullptr;
     }
   }
 
-  if (mode != GHOST_kGrabDisable) {
-    /* TODO(@campbellbarton): As WAYLAND does not support warping the pointer it may not be
-     * possible to support #GHOST_kGrabWrap by pragmatically settings it's coordinates.
-     * An alternative could be to draw the cursor in software (and hide the real cursor),
-     * or just accept a locked cursor on WAYLAND. */
-    input->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
-        d->relative_pointer_manager, input->pointer);
-    zwp_relative_pointer_v1_add_listener(
-        input->relative_pointer, &relative_pointer_listener, input);
-    input->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(
-        d->pointer_constraints,
-        surface,
-        input->pointer,
-        nullptr,
-        ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+  if (!use_confine) {
+    if (input->confined_pointer) {
+      zwp_confined_pointer_v1_destroy(input->confined_pointer);
+      input->confined_pointer = nullptr;
+    }
+  }
 
-    if (mode == GHOST_kGrabHide) {
+  if (mode != GHOST_kGrabDisable) {
+    if (use_lock) {
+      if (!was_lock) {
+        /* TODO(@campbellbarton): As WAYLAND does not support warping the pointer it may not be
+         * possible to support #GHOST_kGrabWrap by pragmatically settings it's coordinates.
+         * An alternative could be to draw the cursor in software (and hide the real cursor),
+         * or just accept a locked cursor on WAYLAND. */
+        input->relative_pointer = zwp_relative_pointer_manager_v1_get_relative_pointer(
+            d->relative_pointer_manager, input->pointer);
+        zwp_relative_pointer_v1_add_listener(
+            input->relative_pointer, &relative_pointer_listener, input);
+        input->locked_pointer = zwp_pointer_constraints_v1_lock_pointer(
+            d->pointer_constraints,
+            surface,
+            input->pointer,
+            nullptr,
+            ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+      }
+    }
+    else if (use_confine) {
+      if (!was_confine) {
+        input->confined_pointer = zwp_pointer_constraints_v1_confine_pointer(
+            d->pointer_constraints,
+            surface,
+            input->pointer,
+            nullptr,
+            ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+      }
+    }
+
+    if (use_hide && !was_hide) {
       setCursorVisibility(false);
     }
   }

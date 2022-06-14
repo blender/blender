@@ -9,29 +9,12 @@
 #include "BKE_context.h"
 #include "BLI_path_util.h"
 #include "DEG_depsgraph.h"
+#include "IO_orientation.h"
 #include "IO_path_util_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef enum {
-  OBJ_AXIS_X_UP = 0,
-  OBJ_AXIS_Y_UP = 1,
-  OBJ_AXIS_Z_UP = 2,
-  OBJ_AXIS_NEGATIVE_X_UP = 3,
-  OBJ_AXIS_NEGATIVE_Y_UP = 4,
-  OBJ_AXIS_NEGATIVE_Z_UP = 5,
-} eTransformAxisUp;
-
-typedef enum {
-  OBJ_AXIS_X_FORWARD = 0,
-  OBJ_AXIS_Y_FORWARD = 1,
-  OBJ_AXIS_Z_FORWARD = 2,
-  OBJ_AXIS_NEGATIVE_X_FORWARD = 3,
-  OBJ_AXIS_NEGATIVE_Y_FORWARD = 4,
-  OBJ_AXIS_NEGATIVE_Z_FORWARD = 5,
-} eTransformAxisForward;
 
 static const int TOTAL_AXES = 3;
 
@@ -52,8 +35,8 @@ struct OBJExportParams {
   int end_frame;
 
   /* Geometry Transform options. */
-  eTransformAxisForward forward_axis;
-  eTransformAxisUp up_axis;
+  eIOAxis forward_axis;
+  eIOAxis up_axis;
   float scaling_factor;
 
   /* File Write Options. */
@@ -86,8 +69,8 @@ struct OBJImportParams {
   char filepath[FILE_MAX];
   /** Value 0 disables clamping. */
   float clamp_size;
-  eTransformAxisForward forward_axis;
-  eTransformAxisUp up_axis;
+  eIOAxis forward_axis;
+  eIOAxis up_axis;
   bool validate_meshes;
 };
 

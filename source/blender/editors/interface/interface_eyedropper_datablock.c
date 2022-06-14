@@ -156,7 +156,7 @@ static void datadropper_id_sample_pt(
         CTX_wm_area_set(C, area);
         CTX_wm_region_set(C, region);
 
-        /* grr, always draw else we leave stale text */
+        /* Unfortunately it's necessary to always draw else we leave stale text. */
         ED_region_tag_redraw(region);
 
         if (area->spacetype == SPACE_VIEW3D) {

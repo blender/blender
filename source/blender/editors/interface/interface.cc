@@ -3445,9 +3445,7 @@ static void ui_but_free(const bContext *C, uiBut *but)
     IMB_freeImBuf((struct ImBuf *)but->poin);
   }
 
-  if (but->dragpoin && (but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-  }
+  ui_but_drag_free(but);
   ui_but_extra_operator_icons_free(but);
 
   BLI_assert(UI_butstore_is_registered(but->block, but) == false);
@@ -5879,104 +5877,6 @@ void UI_but_type_set_menu_from_pulldown(uiBut *but)
 int UI_but_return_value_get(uiBut *but)
 {
   return but->retval;
-}
-
-void UI_but_drag_set_id(uiBut *but, ID *id)
-{
-  but->dragtype = WM_DRAG_ID;
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-    but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
-  }
-  but->dragpoin = (void *)id;
-}
-
-void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, const float scale)
-{
-  but->imb = imb;
-  but->imb_scale = scale;
-}
-
-void UI_but_drag_set_asset(uiBut *but,
-                           const AssetHandle *asset,
-                           const char *path,
-                           struct AssetMetaData *metadata,
-                           int import_type,
-                           int icon,
-                           struct ImBuf *imb,
-                           float scale)
-{
-  wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, metadata, path, import_type);
-
-  /* FIXME: This is temporary evil solution to get scene/viewlayer/etc in the copy callback of the
-   * #wmDropBox.
-   * TODO: Handle link/append in operator called at the end of the drop process, and NOT in its
-   * copy callback.
-   * */
-  asset_drag->evil_C = static_cast<bContext *>(but->block->evil_C);
-
-  but->dragtype = WM_DRAG_ASSET;
-  ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-  }
-  but->dragpoin = asset_drag;
-  but->dragflag |= UI_BUT_DRAGPOIN_FREE;
-  UI_but_drag_attach_image(but, imb, scale);
-}
-
-void UI_but_drag_set_rna(uiBut *but, PointerRNA *ptr)
-{
-  but->dragtype = WM_DRAG_RNA;
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-    but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
-  }
-  but->dragpoin = (void *)ptr;
-}
-
-void UI_but_drag_set_path(uiBut *but, const char *path, const bool use_free)
-{
-  but->dragtype = WM_DRAG_PATH;
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-    but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
-  }
-  but->dragpoin = (void *)path;
-  if (use_free) {
-    but->dragflag |= UI_BUT_DRAGPOIN_FREE;
-  }
-}
-
-void UI_but_drag_set_name(uiBut *but, const char *name)
-{
-  but->dragtype = WM_DRAG_NAME;
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-    but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
-  }
-  but->dragpoin = (void *)name;
-}
-
-void UI_but_drag_set_value(uiBut *but)
-{
-  but->dragtype = WM_DRAG_VALUE;
-}
-
-void UI_but_drag_set_image(
-    uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale, const bool use_free)
-{
-  but->dragtype = WM_DRAG_PATH;
-  ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-    but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
-  }
-  but->dragpoin = (void *)path;
-  if (use_free) {
-    but->dragflag |= UI_BUT_DRAGPOIN_FREE;
-  }
-  UI_but_drag_attach_image(but, imb, scale);
 }
 
 PointerRNA *UI_but_operator_ptr_get(uiBut *but)

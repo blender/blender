@@ -129,6 +129,15 @@ class NodeAddOperator:
 
         return result
 
+    @classmethod
+    def description(cls, context, properties):
+        nodetype = properties["type"]
+        bl_rna = bpy.types.Node.bl_rna_get_subclass(nodetype)
+        if bl_rna is not None:
+            return bl_rna.description
+        else:
+            return ""
+
 
 # Simple basic operator for adding a node
 class NODE_OT_add_node(NodeAddOperator, Operator):

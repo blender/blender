@@ -137,6 +137,7 @@ const EnumPropertyItem rna_enum_wm_job_type_items[] = {
     {WM_JOB_TYPE_RENDER, "RENDER", 0, "Regular rendering", ""},
     {WM_JOB_TYPE_RENDER_PREVIEW, "RENDER_PREVIEW", 0, "Rendering previews", ""},
     {WM_JOB_TYPE_OBJECT_BAKE, "OBJECT_BAKE", 0, "Object Baking", ""},
+    {WM_JOB_TYPE_COMPOSITE, "COMPOSITE", 0, "Compositing", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -915,7 +916,7 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
 
 /**
  * Assumes value to be an enum from rna_enum_event_type_items.
- * Function makes sure keymodifiers are only valid keys, ESC keeps it unaltered.
+ * Function makes sure key-modifiers are only valid keys, ESC keeps it unaltered.
  */
 static void rna_wmKeyMapItem_keymodifier_set(PointerRNA *ptr, int value)
 {

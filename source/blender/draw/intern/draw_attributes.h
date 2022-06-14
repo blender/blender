@@ -53,7 +53,7 @@ DRW_AttributeRequest *drw_attributes_add_request(DRW_Attributes *attrs,
 bool drw_custom_data_match_attribute(const CustomData *custom_data,
                                      const char *name,
                                      int *r_layer_index,
-                                     int *r_type);
+                                     eCustomDataType *r_type);
 
 #ifdef __cplusplus
 }

@@ -256,7 +256,7 @@ bool MTLBackend::metal_is_supported()
 
   NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
 
-  /* Metal Viewport requires macOS Version 10.15 onwards. */
+  /* Metal Viewport requires macOS Version 10.15 onward. */
   bool supported_os_version = version.majorVersion >= 11 ||
                               (version.majorVersion == 10 ? version.minorVersion >= 15 : false);
   if (!supported_os_version) {

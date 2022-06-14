@@ -4,54 +4,39 @@
  * \ingroup editor/io
  */
 
-#include "DNA_space_types.h"
+#ifdef WITH_IO_WAVEFRONT_OBJ
 
-#include "BKE_context.h"
-#include "BKE_main.h"
-#include "BKE_report.h"
+#  include "DNA_space_types.h"
 
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#  include "BKE_context.h"
+#  include "BKE_main.h"
+#  include "BKE_report.h"
 
-#include "BLT_translation.h"
+#  include "BLI_path_util.h"
+#  include "BLI_string.h"
+#  include "BLI_utildefines.h"
 
-#include "ED_outliner.h"
+#  include "BLT_translation.h"
 
-#include "MEM_guardedalloc.h"
+#  include "ED_outliner.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#  include "MEM_guardedalloc.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#  include "RNA_access.h"
+#  include "RNA_define.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#  include "UI_interface.h"
+#  include "UI_resources.h"
 
-#include "DEG_depsgraph.h"
+#  include "WM_api.h"
+#  include "WM_types.h"
 
-#include "IO_path_util_types.h"
-#include "IO_wavefront_obj.h"
-#include "io_obj.h"
+#  include "DEG_depsgraph.h"
 
-static const EnumPropertyItem io_obj_transform_axis_forward[] = {
-    {OBJ_AXIS_X_FORWARD, "X_FORWARD", 0, "X", "Positive X axis"},
-    {OBJ_AXIS_Y_FORWARD, "Y_FORWARD", 0, "Y", "Positive Y axis"},
-    {OBJ_AXIS_Z_FORWARD, "Z_FORWARD", 0, "Z", "Positive Z axis"},
-    {OBJ_AXIS_NEGATIVE_X_FORWARD, "NEGATIVE_X_FORWARD", 0, "-X", "Negative X axis"},
-    {OBJ_AXIS_NEGATIVE_Y_FORWARD, "NEGATIVE_Y_FORWARD", 0, "-Y", "Negative Y axis"},
-    {OBJ_AXIS_NEGATIVE_Z_FORWARD, "NEGATIVE_Z_FORWARD", 0, "-Z", "Negative Z axis"},
-    {0, NULL, 0, NULL, NULL}};
-
-static const EnumPropertyItem io_obj_transform_axis_up[] = {
-    {OBJ_AXIS_X_UP, "X_UP", 0, "X", "Positive X axis"},
-    {OBJ_AXIS_Y_UP, "Y_UP", 0, "Y", "Positive Y axis"},
-    {OBJ_AXIS_Z_UP, "Z_UP", 0, "Z", "Positive Z axis"},
-    {OBJ_AXIS_NEGATIVE_X_UP, "NEGATIVE_X_UP", 0, "-X", "Negative X axis"},
-    {OBJ_AXIS_NEGATIVE_Y_UP, "NEGATIVE_Y_UP", 0, "-Y", "Negative Y axis"},
-    {OBJ_AXIS_NEGATIVE_Z_UP, "NEGATIVE_Z_UP", 0, "-Z", "Negative Z axis"},
-    {0, NULL, 0, NULL, NULL}};
+#  include "IO_orientation.h"
+#  include "IO_path_util_types.h"
+#  include "IO_wavefront_obj.h"
+#  include "io_obj.h"
 
 static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
     {DAG_EVAL_RENDER, "DAG_EVAL_RENDER", 0, "Render", "Export objects as they appear in render"},
@@ -261,7 +246,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
   ot->ui = wm_obj_export_draw;
   ot->check = wm_obj_export_check;
 
-  ot->flag |= OPTYPE_PRESET;
+  ot->flag = OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER,
@@ -296,13 +281,9 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
               INT_MIN,
               INT_MAX);
   /* Object transform options. */
-  RNA_def_enum(ot->srna,
-               "forward_axis",
-               io_obj_transform_axis_forward,
-               OBJ_AXIS_NEGATIVE_Z_FORWARD,
-               "Forward Axis",
-               "");
-  RNA_def_enum(ot->srna, "up_axis", io_obj_transform_axis_up, OBJ_AXIS_Y_UP, "Up Axis", "");
+  RNA_def_enum(
+      ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
+  RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
   RNA_def_float(ot->srna,
                 "scaling_factor",
                 1.0f,
@@ -480,13 +461,9 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
       "Resize the objects to keep bounding box under this value. Value 0 disables clamping",
       0.0f,
       1000.0f);
-  RNA_def_enum(ot->srna,
-               "forward_axis",
-               io_obj_transform_axis_forward,
-               OBJ_AXIS_NEGATIVE_Z_FORWARD,
-               "Forward Axis",
-               "");
-  RNA_def_enum(ot->srna, "up_axis", io_obj_transform_axis_up, OBJ_AXIS_Y_UP, "Up Axis", "");
+  RNA_def_enum(
+      ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
+  RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
   RNA_def_boolean(ot->srna,
                   "validate_meshes",
                   false,
@@ -497,3 +474,5 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
   prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
+
+#endif /* WITH_IO_WAVEFRONT_OBJ */

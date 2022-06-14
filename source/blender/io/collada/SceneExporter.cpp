@@ -191,14 +191,11 @@ void SceneExporter::writeNode(Object *ob)
           /* not ideal: add the target object name as another parameter.
            * No real mapping in the `.dae`.
            * Need support for multiple target objects also. */
-          const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-          ListBase targets = {nullptr, nullptr};
-          if (cti && cti->get_constraint_targets) {
 
+          ListBase targets = {nullptr, nullptr};
+          if (BKE_constraint_targets_get(con, &targets)) {
             bConstraintTarget *ct;
             Object *obtar;
-
-            cti->get_constraint_targets(con, &targets);
 
             for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
               obtar = ct->tar;
@@ -206,9 +203,7 @@ void SceneExporter::writeNode(Object *ob)
               colladaNode.addExtraTechniqueChildParameter("blender", con_tag, "target_id", tar_id);
             }
 
-            if (cti->flush_constraint_targets) {
-              cti->flush_constraint_targets(con, &targets, true);
-            }
+            BKE_constraint_targets_flush(con, &targets, true);
           }
 
           con = con->next;

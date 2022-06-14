@@ -385,6 +385,7 @@ typedef struct SculptThreadedTaskData {
   float transform_mats[8][4][4];
   float elastic_transform_mat[4][4];
   float elastic_transform_pivot[3];
+  float elastic_transform_pivot_init[3];
   float elastic_transform_radius;
 
   /* Boundary brush */
@@ -482,6 +483,21 @@ typedef struct {
   struct DistRayAABB_Precalc *dist_ray_to_aabb_precalc;
 } SculptSearchCircleData;
 
+/* Sculpt Filters */
+typedef enum SculptFilterOrientation {
+  SCULPT_FILTER_ORIENTATION_LOCAL = 0,
+  SCULPT_FILTER_ORIENTATION_WORLD = 1,
+  SCULPT_FILTER_ORIENTATION_VIEW = 2,
+} SculptFilterOrientation;
+
+/* Defines how transform tools are going to apply its displacement. */
+typedef enum SculptTransformDisplacementMode {
+  /* Displaces the elements from their original coordinates. */
+  SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL = 0,
+  /* Displaces the elements incrementally from their previous position. */
+  SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL = 1,
+} SculptTransformDisplacementMode;
+
 #define SCULPT_CLAY_STABILIZER_LEN 10
 #define SCULPT_SPEED_MA_SIZE 4
 #define GRAB_DELTA_MA_SIZE 3
@@ -504,6 +520,133 @@ typedef struct AutomaskingCache {
   // float *factor;
   SculptCustomLayer *factorlayer;
 } AutomaskingCache;
+
+
+typedef enum eSculptGradientType {
+  SCULPT_GRADIENT_LINEAR,
+  SCULPT_GRADIENT_SPHERICAL,
+  SCULPT_GRADIENT_RADIAL,
+  SCULPT_GRADIENT_ANGLE,
+  SCULPT_GRADIENT_REFLECTED,
+} eSculptGradientType;
+typedef struct SculptGradientContext {
+  eSculptGradientType gradient_type;
+  ViewContext vc;
+
+  int symm;
+
+  int update_type;
+  float line_points[2][2];
+
+  float line_length;
+
+  float depth_point[3];
+
+  float gradient_plane[4];
+  float initial_location[3];
+
+  float gradient_line[3];
+  float initial_projected_location[2];
+
+  float strength;
+  void (*sculpt_gradient_begin)(struct bContext *);
+
+  void (*sculpt_gradient_apply_for_element)(struct Sculpt *,
+                                            struct SculptSession *,
+                                            SculptOrigVertData *orig_data,
+                                            PBVHVertexIter *vd,
+                                            float gradient_value,
+                                            float fade_value);
+  void (*sculpt_gradient_node_update)(struct PBVHNode *);
+  void (*sculpt_gradient_end)(struct bContext *);
+} SculptGradientContext;
+
+/* IPMask filter vertex callback function. */
+typedef float(SculptIPMaskFilterStepVertexCB)(struct SculptSession *, SculptVertRef, float *);
+
+typedef struct FilterCache {
+  bool enabled_axis[3];
+  bool enabled_force_axis[3];
+  int random_seed;
+
+  /* Used for alternating between filter operations in filters that need to apply different ones to
+   * achieve certain effects. */
+  int iteration_count;
+
+  /* Stores the displacement produced by the laplacian step of HC smooth. */
+  float (*surface_smooth_laplacian_disp)[3];
+  float surface_smooth_shape_preservation;
+  float surface_smooth_current_vertex;
+
+  /* Sharpen mesh filter. */
+  float sharpen_smooth_ratio;
+  float sharpen_intensify_detail_strength;
+  int sharpen_curvature_smooth_iterations;
+  float *sharpen_factor;
+  float (*detail_directions)[3];
+
+  /* Sphere mesh filter. */
+  float sphere_center[3];
+  float sphere_radius;
+
+  /* Filter orientation. */
+  SculptFilterOrientation orientation;
+  float obmat[4][4];
+  float obmat_inv[4][4];
+  float viewmat[4][4];
+  float viewmat_inv[4][4];
+
+  /* Displacement eraser. */
+  float (*limit_surface_co)[3];
+
+  /* unmasked nodes */
+  PBVHNode **nodes;
+  int totnode;
+
+  /* Cloth filter. */
+  SculptClothSimulation *cloth_sim;
+  float cloth_sim_pinch_point[3];
+
+  /* mask expand iteration caches */
+  int mask_update_current_it;
+  int mask_update_last_it;
+  int *mask_update_it;
+  float *normal_factor;
+  float *edge_factor;
+  float *prev_mask;
+  float mask_expand_initial_co[3];
+
+  int new_face_set;
+  int *prev_face_set;
+
+  int active_face_set;
+
+  /* Transform. */
+  SculptTransformDisplacementMode transform_displacement_mode;
+
+  /* Gradient. */
+  SculptGradientContext *gradient_context;
+
+  /* Auto-masking. */
+  AutomaskingCache *automasking;
+
+  /* Mask Filter. */
+  int mask_filter_current_step;
+  float *mask_filter_ref;
+  SculptIPMaskFilterStepVertexCB *mask_filter_step_forward;
+  SculptIPMaskFilterStepVertexCB *mask_filter_step_backward;
+
+  GHash *mask_delta_step;
+
+  bool preserve_fset_boundaries;
+  bool weighted_smooth;
+  float hard_edge_fac;
+  bool hard_edge_mode;
+  float bound_smooth_radius;
+  float bevel_smooth_fac;
+
+  float (*pre_smoothed_color)[3];
+} FilterCache;
 
 /**
  * This structure contains all the temporary data
@@ -731,21 +874,6 @@ typedef struct StrokeCache {
   bool has_cubic;
 } StrokeCache;
 
-/* Sculpt Filters */
-typedef enum SculptFilterOrientation {
-  SCULPT_FILTER_ORIENTATION_LOCAL = 0,
-  SCULPT_FILTER_ORIENTATION_WORLD = 1,
-  SCULPT_FILTER_ORIENTATION_VIEW = 2,
-} SculptFilterOrientation;
-
-/* Defines how transform tools are going to apply its displacement. */
-typedef enum SculptTransformDisplacementMode {
-  /* Displaces the elements from their original coordinates. */
-  SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL = 0,
-  /* Displaces the elements incrementally from their previous position. */
-  SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL = 1,
-} SculptTransformDisplacementMode;
-
 /* Sculpt Expand. */
 typedef enum eSculptExpandFalloffType {
   SCULPT_EXPAND_FALLOFF_GEODESIC,
@@ -899,137 +1027,11 @@ typedef struct ExpandCache {
   float (*original_colors)[4];
 } ExpandCache;
 
-typedef enum eSculptGradientType {
-  SCULPT_GRADIENT_LINEAR,
-  SCULPT_GRADIENT_SPHERICAL,
-  SCULPT_GRADIENT_RADIAL,
-  SCULPT_GRADIENT_ANGLE,
-  SCULPT_GRADIENT_REFLECTED,
-} eSculptGradientType;
-typedef struct SculptGradientContext {
-  eSculptGradientType gradient_type;
-  ViewContext vc;
-
-  int symm;
-
-  int update_type;
-  float line_points[2][2];
-
-  float line_length;
-
-  float depth_point[3];
-
-  float gradient_plane[4];
-  float initial_location[3];
-
-  float gradient_line[3];
-  float initial_projected_location[2];
-
-  float strength;
-  void (*sculpt_gradient_begin)(struct bContext *);
-
-  void (*sculpt_gradient_apply_for_element)(struct Sculpt *,
-                                            struct SculptSession *,
-                                            SculptOrigVertData *orig_data,
-                                            PBVHVertexIter *vd,
-                                            float gradient_value,
-                                            float fade_value);
-  void (*sculpt_gradient_node_update)(struct PBVHNode *);
-  void (*sculpt_gradient_end)(struct bContext *);
-} SculptGradientContext;
-
-/* IPMask filter vertex callback function. */
-typedef float(SculptIPMaskFilterStepVertexCB)(struct SculptSession *, SculptVertRef, float *);
-
 typedef struct MaskFilterDeltaStep {
   int totelem;
   int *index;
   float *delta;
 } MaskFilterDeltaStep;
-
-typedef struct FilterCache {
-  bool enabled_axis[3];
-  bool enabled_force_axis[3];
-  int random_seed;
-
-  /* Used for alternating between filter operations in filters that need to apply different ones to
-   * achieve certain effects. */
-  int iteration_count;
-
-  /* Stores the displacement produced by the laplacian step of HC smooth. */
-  float (*surface_smooth_laplacian_disp)[3];
-  float surface_smooth_shape_preservation;
-  float surface_smooth_current_vertex;
-
-  /* Sharpen mesh filter. */
-  float sharpen_smooth_ratio;
-  float sharpen_intensify_detail_strength;
-  int sharpen_curvature_smooth_iterations;
-  float *sharpen_factor;
-  float (*detail_directions)[3];
-
-  /* Sphere mesh filter. */
-  float sphere_center[3];
-  float sphere_radius;
-
-  /* Filter orientation. */
-  SculptFilterOrientation orientation;
-  float obmat[4][4];
-  float obmat_inv[4][4];
-  float viewmat[4][4];
-  float viewmat_inv[4][4];
-
-  /* Displacement eraser. */
-  float (*limit_surface_co)[3];
-
-  /* unmasked nodes */
-  PBVHNode **nodes;
-  int totnode;
-
-  /* Cloth filter. */
-  SculptClothSimulation *cloth_sim;
-  float cloth_sim_pinch_point[3];
-
-  /* mask expand iteration caches */
-  int mask_update_current_it;
-  int mask_update_last_it;
-  int *mask_update_it;
-  float *normal_factor;
-  float *edge_factor;
-  float *prev_mask;
-  float mask_expand_initial_co[3];
-
-  int new_face_set;
-  int *prev_face_set;
-
-  int active_face_set;
-
-  /* Transform. */
-  SculptTransformDisplacementMode transform_displacement_mode;
-
-  /* Gradient. */
-  SculptGradientContext *gradient_context;
-
-  /* Auto-masking. */
-  AutomaskingCache *automasking;
-
-  /* Mask Filter. */
-  int mask_filter_current_step;
-  float *mask_filter_ref;
-  SculptIPMaskFilterStepVertexCB *mask_filter_step_forward;
-  SculptIPMaskFilterStepVertexCB *mask_filter_step_backward;
-
-  GHash *mask_delta_step;
-
-  bool preserve_fset_boundaries;
-  bool weighted_smooth;
-  float hard_edge_fac;
-  bool hard_edge_mode;
-  float bound_smooth_radius;
-  float bevel_smooth_fac;
-
-  float (*pre_smoothed_color)[3];
-} FilterCache;
 
 typedef struct SculptCurvatureData {
   float ks[3];
@@ -1526,6 +1528,18 @@ bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v);
  */
 bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v);
 
+void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob);
+
+/**
+ * Initialize a point-in-brush test with a given falloff shape.
+ *
+ * \param falloff_shape: #PAINT_FALLOFF_SHAPE_SPHERE or #PAINT_FALLOFF_SHAPE_TUBE.
+ * \return The brush falloff function.
+ */
+
+SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
+                                                            SculptBrushTest *test,
+                                                            char falloff_shape);
 const float *SCULPT_brush_frontface_normal_from_falloff_shape(SculptSession *ss,
                                                               char falloff_shape);
 

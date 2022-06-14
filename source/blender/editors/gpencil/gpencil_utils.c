@@ -525,7 +525,7 @@ bool ED_gpencil_stroke_can_use_direct(const ScrArea *area, const bGPDstroke *gps
     return (area->spacetype == SPACE_IMAGE);
   }
   if (gps->flag & GP_STROKE_2DSPACE) {
-    /* 2D strokes (dataspace) - for any 2D view (i.e. everything other than 3D view) */
+    /* 2D strokes (data-space) - for any 2D view (i.e. everything other than 3D view). */
     return (area->spacetype != SPACE_VIEW3D);
   }
   /* view aligned - anything goes */
@@ -1149,7 +1149,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
                                                depsgraph,
                                                v3d,
                                                &(const struct SnapObjectParams){
-                                                   .snap_select = SNAP_ALL,
+                                                   .snap_target_select = SCE_SNAP_TARGET_ALL,
                                                },
                                                &ray_start[0],
                                                &ray_normal[0],
@@ -1747,7 +1747,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
   float darkcolor[3];
   float radius = 3.0f;
 
-  int mval_i[2] = {x, y};
+  const int mval_i[2] = {x, y};
   /* Check if cursor is in drawing region and has valid data-block. */
   if ((!gpencil_check_cursor_region(C, mval_i)) || (gpd == NULL)) {
     return;

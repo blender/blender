@@ -229,6 +229,11 @@ bool WM_gizmomap_is_any_selected(const wmGizmoMap *gzmap)
   return gzmap->gzmap_context.select.len != 0;
 }
 
+wmGizmo *WM_gizmomap_get_modal(const wmGizmoMap *gzmap)
+{
+  return gzmap->gzmap_context.modal;
+}
+
 bool WM_gizmomap_minmax(const wmGizmoMap *gzmap,
                         bool UNUSED(use_hidden),
                         bool use_select,
@@ -669,7 +674,7 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
    * This way we always use the first hit. */
   if (has_3d) {
 
-    /* The depth buffer is needed for for gizmos to obscure eachother.  */
+    /* The depth buffer is needed for for gizmos to obscure each other. */
     GPUViewport *viewport = WM_draw_region_get_viewport(CTX_wm_region(C));
 
     /* When switching between modes and the mouse pointer is over a gizmo, the highlight test is

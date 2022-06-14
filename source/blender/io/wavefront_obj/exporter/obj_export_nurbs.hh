@@ -56,7 +56,7 @@ class OBJCurve : NonCopyable {
   /**
    * Set the final transform after applying axes settings and an Object's world transform.
    */
-  void set_world_axes_transform(eTransformAxisForward forward, eTransformAxisUp up);
+  void set_world_axes_transform(eIOAxis forward, eIOAxis up);
 };
 
 }  // namespace blender::io::obj
