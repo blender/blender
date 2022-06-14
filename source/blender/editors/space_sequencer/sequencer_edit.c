@@ -581,21 +581,13 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 
 static void sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
 {
-  /* Iterate in reverse so meta-strips are iterated after their children. */
   for (int i = data->num_seq - 1; i >= 0; i--) {
     Sequence *seq = data->seq_array[i];
-    int endframe;
 
-    /* Offset seq start. */
     seq->start = data->ts[i].start + offset;
-
     if (data->trim[i]) {
-      /* Find the end-frame. */
-      endframe = seq->start + seq->len;
-
-      /* Compute the sequence offsets. */
-      seq->endofs = endframe - SEQ_time_right_handle_frame_get(seq);
-      seq->startofs = SEQ_time_left_handle_frame_get(seq) - seq->start;
+      seq->startofs = data->ts[i].startofs - offset;
+      seq->endofs = data->ts[i].endofs + offset;
     }
   }
 
