@@ -525,6 +525,9 @@ static int geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
   }
 
   CustomDataLayer *newLayer = BKE_id_attribute_duplicate(id, layer->name, op->reports);
+  if (newLayer == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
 
   BKE_id_attributes_active_color_set(id, newLayer);
 
