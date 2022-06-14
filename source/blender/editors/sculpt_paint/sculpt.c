@@ -5419,8 +5419,8 @@ static void get_nodes_undo(Sculpt *sd,
     return;
   }
 
-  // dyntopo can't push undo nodes inside a thread
-  if (ss->bm && use_pixels) {
+  /* Dyntopo can't push undo nodes inside a thread. */
+  if (ss->bm && !use_pixels) {
     if (ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
       for (int i = 0; i < totnode; i++) {
         int other = brush->vcol_boundary_factor > 0.0f ? SCULPT_UNDO_COORDS : -1;
