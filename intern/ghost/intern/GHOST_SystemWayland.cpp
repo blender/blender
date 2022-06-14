@@ -2163,6 +2163,10 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) co
   }
 
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(wl_surface_get_user_data(surface));
+  if (!win) {
+    return GHOST_kFailure;
+  }
+
   const wl_fixed_t scale = win->scale();
   x = wl_fixed_to_int(scale * input->xy[0]);
   y = wl_fixed_to_int(scale * input->xy[1]);
