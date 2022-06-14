@@ -102,7 +102,7 @@ typedef struct LineartVert {
    * size of the struct is extended to include intersection data.
    * See #eLineArtVertFlags.
    */
-  char flag;
+  uint8_t flag;
 
 } LineartVert;
 
@@ -459,9 +459,6 @@ typedef struct LineartBoundingArea {
 #define LRT_MAX3_INDEX_ABC(x, y, z) (x > y ? (x > z ? a : (y > z ? b : c)) : (y > z ? b : c))
 
 #define LRT_MIN3_INDEX_ABC(x, y, z) (x < y ? (x < z ? a : (y < z ? b : c)) : (y < z ? b : c))
-
-#define LRT_ABC(index) (index == 0 ? a : (index == 1 ? b : c))
-#define LRT_PABC(index) (index == 0 ? pa : (index == 1 ? pb : pc))
 
 #define DBL_LOOSER 1e-5
 #define LRT_DOUBLE_CLOSE_LOOSER(a, b) (((a) + DBL_LOOSER) >= (b) && ((a)-DBL_LOOSER) <= (b))
