@@ -107,7 +107,8 @@ struct data_offer_t {
   struct wl_data_offer *id;
   std::atomic<bool> in_use;
   struct {
-    int x, y;
+    /** Compatible with #input_t.xy coordinates. */
+    wl_fixed_t xy[2];
   } dnd;
 };
 
@@ -137,7 +138,23 @@ struct input_t {
 
   uint32_t pointer_serial;
   uint32_t tablet_serial;
-  int x, y;
+
+  /** Use to check if the last cursor input was tablet or pointer. */
+  uint32_t cursor_serial;
+
+  /**
+   * High precision mouse coordinates (pointer or tablet).
+   *
+   * The following example converts these values to screen coordinates.
+   * \code{.cc}
+   * const wl_fixed_t scale = win->scale();
+   * const int event_xy[2] = {
+   *   wl_fixed_to_int(scale * input->xy[0]),
+   *   wl_fixed_to_int(scale * input->xy[1]),
+   * };
+   * \endocde
+   */
+  wl_fixed_t xy[2];
   GHOST_Buttons buttons;
   struct cursor_t cursor;
 
@@ -544,18 +561,19 @@ static void relative_pointer_relative_motion(
     wl_fixed_t /*dy_unaccel*/)
 {
   input_t *input = static_cast<input_t *>(data);
-
-  input->x += wl_fixed_to_int(dx);
-  input->y += wl_fixed_to_int(dy);
-
-  GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
-      wl_surface_get_user_data(input->focus_pointer));
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(input->focus_pointer));
+  if (win == nullptr) {
+    return;
+  }
+  const wl_fixed_t scale = win->scale();
+  input->xy[0] += dx / scale;
+  input->xy[1] += dy / scale;
 
   input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
                                                  GHOST_kEventCursorMove,
                                                  win,
-                                                 input->x,
-                                                 input->y,
+                                                 wl_fixed_to_int(scale * input->xy[0]),
+                                                 wl_fixed_to_int(scale * input->xy[1]),
                                                  GHOST_TABLET_DATA_NONE));
 }
 
@@ -573,16 +591,20 @@ static void dnd_events(const input_t *const input, const GHOST_TEventType event)
 {
   /* NOTE: `input->data_offer_dnd_mutex` must already be locked. */
   const uint64_t time = input->system->getMilliSeconds();
-  GHOST_IWindow *const window = static_cast<GHOST_WindowWayland *>(
+  GHOST_WindowWayland *const win = static_cast<GHOST_WindowWayland *>(
       wl_surface_get_user_data(input->focus_dnd));
+  if (!win) {
+    return;
+  }
+  const wl_fixed_t scale = win->scale();
+  const int event_xy[2] = {
+      wl_fixed_to_int(scale * input->data_offer_dnd->dnd.xy[0]),
+      wl_fixed_to_int(scale * input->data_offer_dnd->dnd.xy[1]),
+  };
+
   for (const std::string &type : mime_preference_order) {
-    input->system->pushEvent(new GHOST_EventDragnDrop(time,
-                                                      event,
-                                                      mime_dnd.at(type),
-                                                      window,
-                                                      input->data_offer_dnd->dnd.x,
-                                                      input->data_offer_dnd->dnd.y,
-                                                      nullptr));
+    input->system->pushEvent(new GHOST_EventDragnDrop(
+        time, event, mime_dnd.at(type), win, event_xy[0], event_xy[1], nullptr));
   }
 }
 
@@ -759,8 +781,8 @@ static void data_device_enter(void *data,
   data_offer_t *data_offer = input->data_offer_dnd;
 
   data_offer->in_use.store(true);
-  data_offer->dnd.x = wl_fixed_to_int(x);
-  data_offer->dnd.y = wl_fixed_to_int(y);
+  data_offer->dnd.xy[0] = x;
+  data_offer->dnd.xy[1] = y;
 
   wl_data_offer_set_actions(id,
                             WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY |
@@ -799,8 +821,9 @@ static void data_device_motion(void *data,
   input_t *input = static_cast<input_t *>(data);
   std::lock_guard lock{input->data_offer_dnd_mutex};
 
-  input->data_offer_dnd->dnd.x = wl_fixed_to_int(x);
-  input->data_offer_dnd->dnd.y = wl_fixed_to_int(y);
+  input->data_offer_dnd->dnd.xy[0] = x;
+  input->data_offer_dnd->dnd.xy[1] = y;
+
   dnd_events(input, GHOST_kEventDraggingUpdated);
 }
 
@@ -820,8 +843,7 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
                       data_offer_t *data_offer,
                       wl_surface *surface,
                       const std::string mime_receive) {
-    const int x = data_offer->dnd.x;
-    const int y = data_offer->dnd.y;
+    const wl_fixed_t *xy = data_offer->dnd.xy;
 
     const std::string data = read_pipe(data_offer, mime_receive, nullptr);
 
@@ -863,12 +885,14 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
         flist->strings[i] = static_cast<uint8_t *>(malloc((uris[i].size() + 1) * sizeof(uint8_t)));
         memcpy(flist->strings[i], uris[i].data(), uris[i].size() + 1);
       }
+
+      const wl_fixed_t scale = win->scale();
       system->pushEvent(new GHOST_EventDragnDrop(system->getMilliSeconds(),
                                                  GHOST_kEventDraggingDropDone,
                                                  GHOST_kDragnDropTypeFilenames,
                                                  win,
-                                                 x,
-                                                 y,
+                                                 wl_fixed_to_int(scale * xy[0]),
+                                                 wl_fixed_to_int(scale * xy[1]),
                                                  flist));
     }
     else if (mime_receive == mime_text_plain || mime_receive == mime_text_utf8) {
@@ -1052,17 +1076,19 @@ static void pointer_enter(void *data,
 
   input_t *input = static_cast<input_t *>(data);
   input->pointer_serial = serial;
-  input->x = win->scale() * wl_fixed_to_int(surface_x);
-  input->y = win->scale() * wl_fixed_to_int(surface_y);
+  input->cursor_serial = serial;
+  input->xy[0] = surface_x;
+  input->xy[1] = surface_y;
   input->focus_pointer = surface;
 
   win->setCursorShape(win->getCursorShape());
 
+  const wl_fixed_t scale = win->scale();
   input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
                                                  GHOST_kEventCursorMove,
                                                  static_cast<GHOST_WindowWayland *>(win),
-                                                 input->x,
-                                                 input->y,
+                                                 wl_fixed_to_int(scale * input->xy[0]),
+                                                 wl_fixed_to_int(scale * input->xy[1]),
                                                  GHOST_TABLET_DATA_NONE));
 }
 
@@ -1095,14 +1121,15 @@ static void pointer_motion(void *data,
     return;
   }
 
-  input->x = win->scale() * wl_fixed_to_int(surface_x);
-  input->y = win->scale() * wl_fixed_to_int(surface_y);
+  input->xy[0] = surface_x;
+  input->xy[1] = surface_y;
 
+  const wl_fixed_t scale = win->scale();
   input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
                                                  GHOST_kEventCursorMove,
                                                  win,
-                                                 input->x,
-                                                 input->y,
+                                                 wl_fixed_to_int(scale * input->xy[0]),
+                                                 wl_fixed_to_int(scale * input->xy[1]),
                                                  GHOST_TABLET_DATA_NONE));
 }
 
@@ -1253,6 +1280,8 @@ static void tablet_tool_proximity_in(void *data,
 
   input->focus_tablet = surface;
   input->tablet_serial = serial;
+  input->cursor_serial = serial;
+
   input->data_source_serial = serial;
 
   /* Update #GHOST_TabletData. */
@@ -1333,14 +1362,15 @@ static void tablet_tool_motion(void *data,
     return;
   }
 
-  input->x = win->scale() * wl_fixed_to_int(x);
-  input->y = win->scale() * wl_fixed_to_int(y);
+  input->xy[0] = x;
+  input->xy[1] = y;
 
+  const wl_fixed_t scale = win->scale();
   input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
                                                  GHOST_kEventCursorMove,
                                                  win,
-                                                 input->x,
-                                                 input->y,
+                                                 wl_fixed_to_int(scale * input->xy[0]),
+                                                 wl_fixed_to_int(scale * input->xy[1]),
                                                  tool_input->data));
 }
 
@@ -2116,13 +2146,26 @@ uint8_t GHOST_SystemWayland::getNumDisplays() const
 
 GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) const
 {
-  if (d->inputs.empty() ||
-      (d->inputs[0]->focus_pointer == nullptr && d->inputs[0]->focus_tablet == nullptr)) {
+  if (d->inputs.empty()) {
     return GHOST_kFailure;
   }
 
-  x = d->inputs[0]->x;
-  y = d->inputs[0]->y;
+  input_t *input = d->inputs[0];
+  struct wl_surface *surface = nullptr;
+  if (input->pointer_serial == input->cursor_serial) {
+    surface = input->focus_pointer;
+  }
+  else if (input->tablet_serial == input->cursor_serial) {
+    surface = input->focus_tablet;
+  }
+  if (!surface) {
+    return GHOST_kFailure;
+  }
+
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(wl_surface_get_user_data(surface));
+  const wl_fixed_t scale = win->scale();
+  x = wl_fixed_to_int(scale * input->xy[0]);
+  y = wl_fixed_to_int(scale * input->xy[1]);
   return GHOST_kSuccess;
 }
 
@@ -2556,30 +2599,36 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
       if (mode_current == GHOST_kGrabWrap) {
         GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(surface));
         GHOST_Rect bounds;
-        int x_new = input->x, y_new = input->y;
+        int32_t xy_new[2] = {input->xy[0], input->xy[1]};
 
         /* Fallback to window bounds. */
         if (win->getCursorGrabBounds(bounds) == GHOST_kFailure) {
           win->getClientBounds(bounds);
         }
-        bounds.wrapPoint(x_new, y_new, 0, win->getCursorGrabAxis());
+
+        const int scale = win->scale();
+
+        bounds.m_l = wl_fixed_from_int(bounds.m_l) / scale;
+        bounds.m_t = wl_fixed_from_int(bounds.m_t) / scale;
+        bounds.m_r = wl_fixed_from_int(bounds.m_r) / scale;
+        bounds.m_b = wl_fixed_from_int(bounds.m_b) / scale;
+
+        bounds.wrapPoint(xy_new[0], xy_new[1], 0, win->getCursorGrabAxis());
 
         /* Push an event so the new location is registered. */
-        if ((x_new != input->x) || (y_new != input->y)) {
+        if ((xy_new[0] != input->xy[0]) || (xy_new[1] != input->xy[1])) {
           input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
                                                          GHOST_kEventCursorMove,
                                                          win,
-                                                         x_new,
-                                                         y_new,
+                                                         wl_fixed_to_int(scale * xy_new[0]),
+                                                         wl_fixed_to_int(scale * xy_new[1]),
                                                          GHOST_TABLET_DATA_NONE));
         }
-        input->x = x_new;
-        input->y = y_new;
+        input->xy[0] = xy_new[0];
+        input->xy[1] = xy_new[1];
 
-        const int scale = win->scale();
-        zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer,
-                                                       wl_fixed_from_int(x_new) / scale,
-                                                       wl_fixed_from_int(y_new) / scale);
+        zwp_locked_pointer_v1_set_cursor_position_hint(
+            input->locked_pointer, xy_new[0], xy_new[1]);
         wl_surface_commit(surface);
       }
 
