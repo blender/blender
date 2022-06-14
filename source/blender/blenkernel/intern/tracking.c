@@ -336,6 +336,10 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
   tracking->stabilization.filter = TRACKING_FILTER_BILINEAR;
   tracking->stabilization.flag |= TRACKING_SHOW_STAB_TRACKS;
 
+  /* Descending order of average error: tracks with the highest error are on top. */
+  tracking->dopesheet.sort_method = TRACKING_DOPE_SORT_AVERAGE_ERROR;
+  tracking->dopesheet.flag |= TRACKING_DOPE_SORT_INVERSE;
+
   BKE_tracking_object_add(tracking, "Camera");
 }
 
