@@ -843,7 +843,7 @@ static void data_device_drop(void *data, struct wl_data_device * /*wl_data_devic
                       data_offer_t *data_offer,
                       wl_surface *surface,
                       const std::string mime_receive) {
-    const wl_fixed_t *xy = data_offer->dnd.xy;
+    const wl_fixed_t xy[2] = {data_offer->dnd.xy[0], data_offer->dnd.xy[1]};
 
     const std::string data = read_pipe(data_offer, mime_receive, nullptr);
 
