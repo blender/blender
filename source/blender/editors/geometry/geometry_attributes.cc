@@ -539,6 +539,10 @@ static bool geometry_color_attributes_duplicate_poll(bContext *C)
   if (!geometry_attributes_poll(C)) {
     return false;
   }
+  if (CTX_data_edit_object(C) != nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "Operation is not allowed in edit mode");
+    return false;
+  }
 
   Object *ob = ED_object_context(C);
   ID *data = ob ? static_cast<ID *>(ob->data) : nullptr;
