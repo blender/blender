@@ -307,6 +307,7 @@ static int shuffle_seq_time_offset_get(SeqCollection *strips_to_shuffle,
 }
 
 bool SEQ_transform_seqbase_shuffle_time(SeqCollection *strips_to_shuffle,
+                                        SeqCollection *time_dependent_strips,
                                         ListBase *seqbasep,
                                         Scene *evil_scene,
                                         ListBase *markers,
@@ -321,6 +322,12 @@ bool SEQ_transform_seqbase_shuffle_time(SeqCollection *strips_to_shuffle,
     SEQ_ITERATOR_FOREACH (seq, strips_to_shuffle) {
       SEQ_transform_translate_sequence(evil_scene, seq, offset);
       seq->flag &= ~SEQ_OVERLAP;
+    }
+
+    if (time_dependent_strips != NULL) {
+      SEQ_ITERATOR_FOREACH (seq, time_dependent_strips) {
+        SEQ_offset_animdata(evil_scene, seq, offset);
+      }
     }
 
     if (use_sync_markers && !(evil_scene->toolsettings->lock_markers) && (markers != NULL)) {
