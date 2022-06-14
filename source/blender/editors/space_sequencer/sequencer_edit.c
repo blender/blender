@@ -2389,6 +2389,13 @@ static void sequencer_copy_animation(Scene *scene, Sequence *seq)
     return;
   }
 
+  /* Add curves for strips inside meta strip. */
+  if (seq->type == SEQ_TYPE_META) {
+    LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
+      sequencer_copy_animation(scene, meta_child);
+    }
+  }
+
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
   if (fcurves == NULL) {
     return;
@@ -2398,6 +2405,7 @@ static void sequencer_copy_animation(Scene *scene, Sequence *seq)
     BLI_addtail(&fcurves_clipboard, BKE_fcurve_copy(fcu));
   }
   GSET_FOREACH_END();
+
   BLI_gset_free(fcurves, NULL);
 }
 
