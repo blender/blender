@@ -195,7 +195,7 @@ static void geom_add_polygon(Geometry *geom,
       if (p < end && *p == '/') {
         ++p;
         p = parse_int(p, end, INT32_MAX, corner.vertex_normal_index, false);
-        got_normal = corner.uv_vert_index != INT32_MAX;
+        got_normal = corner.vertex_normal_index != INT32_MAX;
       }
     }
     /* Always keep stored indices non-negative and zero-based. */
@@ -218,7 +218,10 @@ static void geom_add_polygon(Geometry *geom,
         face_valid = false;
       }
     }
-    if (got_normal) {
+    /* Ignore corner normal index, if the geometry does not have any normals.
+     * Some obj files out there do have face definitions that refer to normal indices,
+     * without any normals being present (T98782). */
+    if (got_normal && geom->has_vertex_normals_) {
       corner.vertex_normal_index += corner.vertex_normal_index < 0 ?
                                         global_vertices.vertex_normals.size() :
                                         -1;
