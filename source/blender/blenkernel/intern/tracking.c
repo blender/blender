@@ -2904,6 +2904,10 @@ static int channels_average_error_sort(const void *a, const void *b)
     return 1;
   }
 
+  if (channel_a->track->error == channel_b->track->error) {
+    return channels_alpha_sort(a, b);
+  }
+
   return 0;
 }
 
