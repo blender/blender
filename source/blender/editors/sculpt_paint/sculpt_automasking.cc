@@ -283,7 +283,7 @@ static bool sculpt_automasking_is_constrained_by_radius(const Brush *br)
   return false;
 }
 
-typedef struct AutomaskFloodFillData {
+struct AutomaskFloodFillData {
   SculptCustomLayer *factorlayer;
   float radius;
   bool use_radius;
@@ -333,9 +333,7 @@ static void SCULPT_topology_automasking_init(Sculpt *sd,
   SCULPT_floodfill_init(ss, &flood);
   const float radius = ss->cache ? ss->cache->radius : FLT_MAX;
 
-  char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   if (brush->sculpt_tool == SCULPT_TOOL_ARRAY) {
-    symm = 0;
     SCULPT_floodfill_add_initial(&flood, SCULPT_active_vertex_get(ss));
   }
   else {
