@@ -64,7 +64,7 @@ bool BKE_id_attribute_remove(struct ID *id, const char *name, struct ReportList 
  * Creates a duplicate attribute layer.
  */
 struct CustomDataLayer *BKE_id_attribute_duplicate(struct ID *id,
-                                                   struct CustomDataLayer *layer,
+                                                   const char *name,
                                                    struct ReportList *reports);
 
 struct CustomDataLayer *BKE_id_attribute_find(const struct ID *id,

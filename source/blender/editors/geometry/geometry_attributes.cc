@@ -518,13 +518,13 @@ static int geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *id = static_cast<ID *>(ob->data);
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
+  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
 
   if (layer == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  CustomDataLayer *newLayer = BKE_id_attribute_duplicate(id, layer, op->reports);
+  CustomDataLayer *newLayer = BKE_id_attribute_duplicate(id, layer->name, op->reports);
 
   BKE_id_attributes_active_color_set(id, newLayer);
 
