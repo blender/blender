@@ -5588,6 +5588,17 @@ def km_font(params):
 
     return keymap
 
+# Curves edit mode.
+def km_curves(params):
+    items = []
+    keymap = (
+        "Curves",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    return keymap
+
 
 def km_sculpt_curves(params):
     items = []
@@ -8013,6 +8024,7 @@ def generate_keymaps(params=None):
         km_lattice(params),
         km_particle(params),
         km_font(params),
+        km_curves(params),
         km_sculpt_curves(params),
         km_object_non_modal(params),
 
