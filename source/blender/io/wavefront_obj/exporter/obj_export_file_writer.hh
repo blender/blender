@@ -72,9 +72,11 @@ class OBJWriter : NonMovable, NonCopyable {
    */
   void write_mtllib_name(const StringRefNull mtl_filepath) const;
   /**
-   * Write vertex coordinates for all vertices as "v x y z".
+   * Write vertex coordinates for all vertices as "v x y z" or "v x y z r g b".
    */
-  void write_vertex_coords(FormatHandler<eFileType::OBJ> &fh, const OBJMesh &obj_mesh_data) const;
+  void write_vertex_coords(FormatHandler<eFileType::OBJ> &fh,
+                           const OBJMesh &obj_mesh_data,
+                           bool write_colors) const;
   /**
    * Write UV vertex coordinates for all vertices as `vt u v`.
    * \note UV indices are stored here, but written with polygons later.

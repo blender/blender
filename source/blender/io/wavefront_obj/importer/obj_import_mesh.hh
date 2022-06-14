@@ -65,6 +65,7 @@ class MeshFromGeometry : NonMovable, NonCopyable {
                         Map<std::string, Material *> &created_materials,
                         Object *obj);
   void create_normals(Mesh *mesh);
+  void create_colors(Mesh *mesh);
 };
 
 }  // namespace blender::io::obj

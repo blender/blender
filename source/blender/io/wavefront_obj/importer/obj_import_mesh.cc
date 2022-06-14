@@ -8,6 +8,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_attribute.h"
 #include "BKE_customdata.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -50,6 +51,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   create_edges(mesh);
   create_uv_verts(mesh);
   create_normals(mesh);
+  create_colors(mesh);
   create_materials(bmain, materials, created_materials, obj);
 
   if (import_params.validate_meshes || mesh_geometry_.has_invalid_polys_) {
@@ -343,6 +345,28 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
   mesh->flag |= ME_AUTOSMOOTH;
   BKE_mesh_set_custom_normals(mesh, loop_normals);
   MEM_freeN(loop_normals);
+}
+
+void MeshFromGeometry::create_colors(Mesh *mesh)
+{
+  /* Nothing to do if we don't have vertex colors. */
+  if (mesh_geometry_.vertex_color_count_ < 1) {
+    return;
+  }
+  if (mesh_geometry_.vertex_color_count_ != mesh_geometry_.vertex_count_) {
+    std::cerr << "Mismatching number of vertices (" << mesh_geometry_.vertex_count_
+              << ") and colors (" << mesh_geometry_.vertex_color_count_ << ") on object '"
+              << mesh_geometry_.geometry_name_ << "', ignoring colors." << std::endl;
+    return;
+  }
+
+  CustomDataLayer *color_layer = BKE_id_attribute_new(
+      &mesh->id, "Color", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
+  float4 *colors = (float4 *)color_layer->data;
+  for (int i = 0; i < mesh_geometry_.vertex_color_count_; ++i) {
+    float3 c = global_vertices_.vertex_colors[mesh_geometry_.vertex_color_start_ + i];
+    colors[i] = float4(c.x, c.y, c.z, 1.0f);
+  }
 }
 
 }  // namespace blender::io::obj

@@ -8,7 +8,9 @@
 #include <cstdio>
 
 #include "BKE_blender_version.h"
+#include "BKE_geometry_set.hh"
 
+#include "BLI_color.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_path_util.h"
 #include "BLI_task.hh"
@@ -241,13 +243,38 @@ void obj_parallel_chunked_output(FormatHandler<eFileType::OBJ> &fh,
 }
 
 void OBJWriter::write_vertex_coords(FormatHandler<eFileType::OBJ> &fh,
-                                    const OBJMesh &obj_mesh_data) const
+                                    const OBJMesh &obj_mesh_data,
+                                    bool write_colors) const
 {
   const int tot_count = obj_mesh_data.tot_vertices();
-  obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler<eFileType::OBJ> &buf, int i) {
-    float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.scaling_factor);
-    buf.write<eOBJSyntaxElement::vertex_coords>(vertex[0], vertex[1], vertex[2]);
-  });
+
+  Mesh *mesh = obj_mesh_data.get_mesh();
+  CustomDataLayer *colors_layer = nullptr;
+  if (write_colors) {
+    colors_layer = BKE_id_attributes_active_color_get(&mesh->id);
+  }
+  if (write_colors && (colors_layer != nullptr)) {
+    MeshComponent component;
+    component.replace(mesh, GeometryOwnershipType::ReadOnly);
+    VArray<ColorGeometry4f> attribute = component.attribute_get_for_read<ColorGeometry4f>(
+        colors_layer->name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
+
+    BLI_assert(tot_count == attribute.size());
+    obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler<eFileType::OBJ> &buf, int i) {
+      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.scaling_factor);
+      ColorGeometry4f linear = attribute.get(i);
+      float srgb[3];
+      linearrgb_to_srgb_v3_v3(srgb, linear);
+      buf.write<eOBJSyntaxElement::vertex_coords_color>(
+          vertex[0], vertex[1], vertex[2], srgb[0], srgb[1], srgb[2]);
+    });
+  }
+  else {
+    obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler<eFileType::OBJ> &buf, int i) {
+      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.scaling_factor);
+      buf.write<eOBJSyntaxElement::vertex_coords>(vertex[0], vertex[1], vertex[2]);
+    });
+  }
 }
 
 void OBJWriter::write_uv_coords(FormatHandler<eFileType::OBJ> &fh, OBJMesh &r_obj_mesh_data) const

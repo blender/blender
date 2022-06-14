@@ -100,6 +100,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   export_params.export_selected_objects = RNA_boolean_get(op->ptr, "export_selected_objects");
   export_params.export_uv = RNA_boolean_get(op->ptr, "export_uv");
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
+  export_params.export_colors = RNA_boolean_get(op->ptr, "export_colors");
   export_params.export_materials = RNA_boolean_get(op->ptr, "export_materials");
   export_params.path_mode = RNA_enum_get(op->ptr, "path_mode");
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
@@ -160,6 +161,7 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Export"));
   uiItemR(sub, imfptr, "export_uv", 0, IFACE_("UV Coordinates"), ICON_NONE);
   uiItemR(sub, imfptr, "export_normals", 0, IFACE_("Normals"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_colors", 0, IFACE_("Colors"), ICON_NONE);
   uiItemR(sub, imfptr, "export_materials", 0, IFACE_("Materials"), ICON_NONE);
   uiItemR(sub, imfptr, "export_triangulated_mesh", 0, IFACE_("Triangulated Mesh"), ICON_NONE);
   uiItemR(sub, imfptr, "export_curves_as_nurbs", 0, IFACE_("Curves as NURBS"), ICON_NONE);
@@ -315,6 +317,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                   "Export Normals",
                   "Export per-face normals if the face is flat-shaded, per-face-per-loop "
                   "normals if smooth-shaded");
+  RNA_def_boolean(ot->srna, "export_colors", false, "Export Colors", "Export per-vertex colors");
   RNA_def_boolean(ot->srna,
                   "export_materials",
                   true,

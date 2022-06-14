@@ -26,6 +26,7 @@ struct OBJExportParamsDefault {
     params.export_selected_objects = false;
     params.export_uv = true;
     params.export_normals = true;
+    params.export_colors = false;
     params.export_materials = true;
     params.path_mode = PATH_REFERENCE_AUTO;
     params.export_triangulated_mesh = false;

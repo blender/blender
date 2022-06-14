@@ -39,6 +39,7 @@ struct Expectation {
   float3 vert_first, vert_last;
   float3 normal_first;
   float2 uv_first;
+  float4 color_first = {-1, -1, -1, -1};
 };
 
 class obj_importer_test : public BlendfileLoadingBaseTest {
@@ -98,6 +99,15 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
             CustomData_get_layer(&mesh->ldata, CD_MLOOPUV));
         float2 uv_first = mloopuv ? float2(mloopuv->uv) : float2(0, 0);
         EXPECT_V2_NEAR(uv_first, exp.uv_first, 0.0001f);
+        if (exp.color_first.x >= 0) {
+          const float4 *colors = (const float4 *)(CustomData_get_layer(&mesh->vdata,
+                                                                       CD_PROP_COLOR));
+          EXPECT_TRUE(colors != nullptr);
+          EXPECT_V4_NEAR(colors[0], exp.color_first, 0.0001f);
+        }
+        else {
+          EXPECT_FALSE(CustomData_has_layer(&mesh->vdata, CD_PROP_COLOR));
+        }
       }
       if (object->type == OB_CURVES_LEGACY) {
         Curve *curve = static_cast<Curve *>(DEG_get_evaluated_object(depsgraph, object)->data);
@@ -434,7 +444,17 @@ TEST_F(obj_importer_test, import_all_objects)
        float3(16, 1, -1),
        float3(14, 1, 1),
        float3(0, 0, 1)},
-      {"OBVColCube", OB_MESH, 8, 13, 7, 26, float3(13, 1, -1), float3(11, 1, 1), float3(0, 0, 1)},
+      {"OBVColCube",
+       OB_MESH,
+       8,
+       13,
+       7,
+       26,
+       float3(13, 1, -1),
+       float3(11, 1, 1),
+       float3(0, 0, 1),
+       float2(0, 0),
+       float4(0.0f, 0.002125f, 1.0f, 1.0f)},
       {"OBUVCube",
        OB_MESH,
        8,
@@ -488,6 +508,105 @@ TEST_F(obj_importer_test, import_all_objects)
       {"OBBlankCube", OB_MESH, 8, 13, 7, 26, float3(1, 1, -1), float3(-1, 1, 1), float3(0, 0, 1)},
   };
   import_and_check("all_objects.obj", expect, std::size(expect), 7);
+}
+
+TEST_F(obj_importer_test, import_cubes_vertex_colors)
+{
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBCubeVertexByte",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(1.0f, 1.0f, -1.0f),
+       float3(-1.0f, -1.0f, 1.0f),
+       float3(0, 0, 0),
+       float2(0, 0),
+       float4(0.846873f, 0.027321f, 0.982251f, 1.0f)},
+      {"OBCubeVertexFloat",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(3.392028f, 1.0f, -1.0f),
+       float3(1.392028f, -1.0f, 1.0f),
+       float3(0, 0, 0),
+       float2(0, 0),
+       float4(49.99558f, 0.027321f, 0.982251f, 1.0f)},
+      {"OBCubeCornerByte",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(1.0f, 1.0f, -3.812445f),
+       float3(-1.0f, -1.0f, -1.812445f),
+       float3(0, 0, 0),
+       float2(0, 0),
+       float4(0.89627f, 0.036889f, 0.47932f, 1.0f)},
+      {"OBCubeCornerFloat",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(3.481967f, 1.0f, -3.812445f),
+       float3(1.481967f, -1.0f, -1.812445f),
+       float3(0, 0, 0),
+       float2(0, 0),
+       float4(1.564582f, 0.039217f, 0.664309f, 1.0f)},
+      {"OBCubeMultiColorAttribs",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(-4.725068f, -1.0f, 1.0f),
+       float3(-2.725068f, 1.0f, -1.0f),
+       float3(0, 0, 0),
+       float2(0, 0),
+       float4(0.270498f, 0.47932f, 0.262251f, 1.0f)},
+      {"OBCubeNoColors",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(-4.550208f, -1.0f, -1.918042f),
+       float3(-2.550208f, 1.0f, -3.918042f)},
+  };
+  import_and_check("cubes_vertex_colors.obj", expect, std::size(expect), 0);
+}
+
+TEST_F(obj_importer_test, import_cubes_vertex_colors_mrgb)
+{
+  Expectation expect[] = {{"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+                          {"OBCubeXYZRGB",
+                           OB_MESH,
+                           8,
+                           12,
+                           6,
+                           24,
+                           float3(1, 1, -1),
+                           float3(-1, -1, 1),
+                           float3(0, 0, 0),
+                           float2(0, 0),
+                           float4(0.6038f, 0.3185f, 0.1329f, 1.0f)},
+                          {"OBCubeMRGB",
+                           OB_MESH,
+                           8,
+                           12,
+                           6,
+                           24,
+                           float3(4, 1, -1),
+                           float3(2, -1, 1),
+                           float3(0, 0, 0),
+                           float2(0, 0),
+                           float4(0.8714f, 0.6308f, 0.5271f, 1.0f)}};
+  import_and_check("cubes_vertex_colors_mrgb.obj", expect, std::size(expect), 0);
 }
 
 }  // namespace blender::io::obj
