@@ -564,7 +564,9 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
     ss->custom_layers[SCULPT_SCL_AUTOMASKING] = (SculptCustomLayer *)MEM_callocN(
         sizeof(SculptCustomLayer), "automasking->factorlayer");
 
-    SculptLayerParams params = {.permanent = false, .simple_array = false};
+    SculptLayerParams params;
+    params.permanent = false;
+    params.simple_array = false;
 
     if (!SCULPT_attr_get_layer(ss,
                                ob,
