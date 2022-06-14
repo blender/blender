@@ -2945,6 +2945,9 @@ void ui_but_text_password_hide(char password_str[UI_MAX_PASSWORD_STR],
 
 void ui_but_set_string_interactive(bContext *C, uiBut *but, const char *value)
 {
+  /* Caller should check. */
+  BLI_assert((but->flag & UI_BUT_DISABLED) == 0);
+
   button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
   ui_textedit_string_set(but, but->active, value);
 
