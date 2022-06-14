@@ -27,10 +27,10 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
+#include "BKE_paint.h"
+#include "BKE_pbvh.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_pbvh.h"
-#include "BKE_paint.h"
 
 #include "GHOST_C-api.h"
 
@@ -1194,16 +1194,24 @@ void WM_paint_cursor_tag_redraw(wmWindow *win, ARegion *UNUSED(region))
   }
 }
 
-static void pbvh_full_render_update(PBVH *pbvh, bContext *C, Main *bmain, wmWindowManager *wm)
+static void wm_pbvh_full_render_update(bContext *C)
 {
+  Main *bmain = CTX_data_main(C);
+  wmWindowManager *wm = CTX_wm_manager(C);
 
-  /*We can save GPU bandwidth for PBVH drawing if we know for sure that no
-    viewport has EEVEE running in it.  As in no viewport in any windows.
+  /*
+   * We can save GPU bandwidth for PBVH drawing if we know for sure that no
+   * viewport has EEVEE running in it.  As in no viewport in any windows.
+   *
+   * This saves us from having to upload every possible attribute eevee
+   * might need.
+   *
+   * This is because PBVH only supplies one set of drawing buffers
+   * to the draw manager.  Creating more buffers for specific drawengines
+   * is simply not feasible for performance reasons.
+   */
 
-    This is because PBVH only supplies one set of drawing buffers
-    to the draw manager.  Creating more buffers for specific drawengines
-    is simply not feasible for performance reasons.
-    */
+  bool need_full_render = false;
 
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
@@ -1214,7 +1222,12 @@ static void pbvh_full_render_update(PBVH *pbvh, bContext *C, Main *bmain, wmWind
 
     CTX_wm_window_set(C, win);
 
-    BKE_pbvh_need_full_render_set(pbvh, false);
+    Object *ob = CTX_data_active_object(C);
+    if (!ob || !(ob->mode & OB_MODE_SCULPT) || !ob->sculpt || !ob->sculpt->pbvh) {
+      continue;
+    }
+
+    BKE_pbvh_need_full_render_set(ob->sculpt->pbvh, false);
 
     if (wm_draw_update_test_window(bmain, C, win)) {
       bScreen *screen = WM_window_get_active_screen(win);
@@ -1226,12 +1239,30 @@ static void pbvh_full_render_update(PBVH *pbvh, bContext *C, Main *bmain, wmWind
         }
 
         CTX_wm_area_set(C, area);
+
         View3D *v3d = CTX_wm_view3d(C);
-        if (v3d->shading.type >= OB_MATERIAL) {
-          BKE_pbvh_need_full_render_set(pbvh, true);
-        }
+
+        need_full_render |= v3d->shading.type >= OB_MATERIAL;
+        need_full_render |= v3d->shading.color_type == V3D_SHADING_MATERIAL_COLOR;
       }
     }
+  }
+
+  LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+    GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
+
+    if (state == GHOST_kWindowStateMinimized) {
+      continue;
+    }
+
+    CTX_wm_window_set(C, win);
+
+    Object *ob = CTX_data_active_object(C);
+    if (!ob || !(ob->mode & OB_MODE_SCULPT) || !ob->sculpt || !ob->sculpt->pbvh) {
+      continue;
+    }
+
+    BKE_pbvh_need_full_render_set(ob->sculpt->pbvh, need_full_render);
   }
 }
 
@@ -1247,11 +1278,6 @@ void wm_draw_update(bContext *C)
 
   BKE_image_free_unused_gpu_textures();
 
-  Object *ob = CTX_data_active_object(C);
-  if (ob && (ob->mode & OB_MODE_SCULPT) && ob->sculpt && ob->sculpt->pbvh) {
-    pbvh_full_render_update(ob->sculpt->pbvh, C, bmain, wm);
-  }
-
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
 #ifdef WIN32
     GHOST_TWindowState state = GHOST_GetWindowState(win->ghostwin);
@@ -1266,6 +1292,8 @@ void wm_draw_update(bContext *C)
 #endif
 
     CTX_wm_window_set(C, win);
+
+    wm_pbvh_full_render_update(C);
 
     if (wm_draw_update_test_window(bmain, C, win)) {
       bScreen *screen = WM_window_get_active_screen(win);

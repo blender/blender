@@ -870,7 +870,9 @@ void BKE_pbvh_free(PBVH *pbvh)
 
 void BKE_pbvh_need_full_render_set(PBVH *pbvh, bool state)
 {
-  GPU_pbvh_need_full_render_set(pbvh->vbo_id, state);
+  if (pbvh->vbo_id) {
+    GPU_pbvh_need_full_render_set(pbvh->vbo_id, state);
+  }
 }
 
 static void pbvh_iter_begin(PBVHIter *iter,
@@ -1657,7 +1659,7 @@ void pbvh_update_free_all_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_check_draw_layout(PBVH *pbvh, bool full_render)
+ATTR_NO_OPT static void pbvh_check_draw_layout(PBVH *pbvh, bool full_render)
 {
   const CustomData *vdata;
   const CustomData *ldata;
@@ -1687,6 +1689,8 @@ static void pbvh_check_draw_layout(PBVH *pbvh, bool full_render)
 
   /* rebuild all draw buffers if attribute layout changed */
   if (GPU_pbvh_attribute_names_update(pbvh->type, pbvh->vbo_id, vdata, ldata, !full_render)) {
+    printf("%s: draw update\n", __func__);
+
     /* attribute layout changed; force rebuild */
     for (int i = 0; i < pbvh->totnode; i++) {
       PBVHNode *node = pbvh->nodes + i;
@@ -1701,27 +1705,8 @@ static void pbvh_check_draw_layout(PBVH *pbvh, bool full_render)
 static void pbvh_update_draw_buffers(
     PBVH *pbvh, Mesh *me, PBVHNode **nodes, int totnode, int update_flag)
 {
-  const CustomData *vdata;
-
   if (!pbvh->vbo_id) {
     pbvh->vbo_id = GPU_pbvh_make_format();
-  }
-
-  switch (pbvh->type) {
-    case PBVH_BMESH:
-      if (!pbvh->bm) {
-        /* BMesh hasn't been created yet */
-        return;
-      }
-
-      vdata = &pbvh->bm->vdata;
-      break;
-    case PBVH_FACES:
-      vdata = pbvh->vdata;
-      break;
-    case PBVH_GRIDS:
-      vdata = NULL;
-      break;
   }
 
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
@@ -3264,6 +3249,10 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
   PBVHNode **nodes;
   int totnode;
   int update_flag = 0;
+
+  if (pbvh->vbo_id) {
+    full_render |= GPU_pbvh_need_full_render_get(pbvh->vbo_id);
+  }
 
   pbvh->draw_cache_invalid = false;
 
