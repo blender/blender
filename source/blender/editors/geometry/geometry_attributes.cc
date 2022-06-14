@@ -524,12 +524,12 @@ static int geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  CustomDataLayer *newLayer = BKE_id_attribute_duplicate(id, layer->name, op->reports);
-  if (newLayer == nullptr) {
+  CustomDataLayer *new_layer = BKE_id_attribute_duplicate(id, layer->name, op->reports);
+  if (new_layer == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  BKE_id_attributes_active_color_set(id, newLayer);
+  BKE_id_attributes_active_color_set(id, new_layer);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
