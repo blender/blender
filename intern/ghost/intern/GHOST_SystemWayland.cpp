@@ -29,6 +29,7 @@
 #include "GHOST_WaylandCursorSettings.h"
 #include <pointer-constraints-client-protocol.h>
 #include <relative-pointer-client-protocol.h>
+#include <tablet-client-protocol.h>
 #include <wayland-cursor.h>
 #include <xkbcommon/xkbcommon.h>
 
@@ -60,6 +61,14 @@ static GHOST_IWindow *get_window(struct wl_surface *surface);
 #define BTN_BACK 0x116
 // #define BTN_TASK 0x117 /* UNUSED. */
 
+/**
+ * Tablet events, also from `linux/input-event-codes.h`.
+ */
+#define BTN_STYLUS 0x14b  /* Use as right-mouse. */
+#define BTN_STYLUS2 0x14c /* Use as middle-mouse. */
+/* NOTE(@campbellbarton): Map to an additional button (not sure which hardware uses this). */
+#define BTN_STYLUS3 0x149
+
 struct buffer_t {
   void *data;
   size_t size;
@@ -77,6 +86,18 @@ struct cursor_t {
   /** Outputs on which the cursor is visible. */
   std::unordered_set<const output_t *> outputs;
   int scale = 1;
+};
+
+/**
+ * A single tablet can have multiple tools (pen, eraser, brush... etc).
+ * WAYLAND exposes tools via #zwp_tablet_tool_v2.
+ * Since are no API's to access properties of the tool, store the values here.
+ */
+struct tablet_tool_input_t {
+  struct input_t *input;
+  struct wl_surface *cursor_surface;
+
+  GHOST_TabletData data;
 };
 
 struct data_offer_t {
@@ -109,8 +130,13 @@ struct input_t {
   struct wl_seat *seat;
   struct wl_pointer *pointer = nullptr;
   struct wl_keyboard *keyboard = nullptr;
+  struct zwp_tablet_seat_v2 *tablet_seat = nullptr;
+
+  /** All currently active tablet tools (needed for changing the cursor). */
+  std::unordered_set<zwp_tablet_tool_v2 *> tablet_tools;
 
   uint32_t pointer_serial;
+  uint32_t tablet_serial;
   int x, y;
   GHOST_Buttons buttons;
   struct cursor_t cursor;
@@ -130,6 +156,7 @@ struct input_t {
     GHOST_ITimerTask *timer = nullptr;
   } key_repeat;
 
+  struct wl_surface *focus_tablet = nullptr;
   struct wl_surface *focus_pointer = nullptr;
   struct wl_surface *focus_keyboard = nullptr;
   struct wl_surface *focus_dnd = nullptr;
@@ -165,6 +192,7 @@ struct display_t {
     int size;
   } cursor;
   struct wl_data_device_manager *data_device_manager = nullptr;
+  struct zwp_tablet_manager_v2 *tablet_manager = nullptr;
   struct zwp_relative_pointer_manager_v1 *relative_pointer_manager = nullptr;
   struct zwp_pointer_constraints_v1 *pointer_constraints = nullptr;
 
@@ -204,6 +232,10 @@ static void display_destroy(display_t *d)
 {
   if (d->data_device_manager) {
     wl_data_device_manager_destroy(d->data_device_manager);
+  }
+
+  if (d->tablet_manager) {
+    zwp_tablet_manager_v2_destroy(d->tablet_manager);
   }
 
   for (output_t *output : d->outputs) {
@@ -401,6 +433,27 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t &sym)
   }
 
   return gkey;
+}
+
+static GHOST_TTabletMode tablet_tool_map_type(enum zwp_tablet_tool_v2_type wl_tablet_tool_type)
+{
+  switch (wl_tablet_tool_type) {
+    case ZWP_TABLET_TOOL_V2_TYPE_ERASER: {
+      return GHOST_kTabletModeEraser;
+    }
+    case ZWP_TABLET_TOOL_V2_TYPE_PEN:
+    case ZWP_TABLET_TOOL_V2_TYPE_BRUSH:
+    case ZWP_TABLET_TOOL_V2_TYPE_PENCIL:
+    case ZWP_TABLET_TOOL_V2_TYPE_AIRBRUSH:
+    case ZWP_TABLET_TOOL_V2_TYPE_FINGER:
+    case ZWP_TABLET_TOOL_V2_TYPE_MOUSE:
+    case ZWP_TABLET_TOOL_V2_TYPE_LENS: {
+      return GHOST_kTabletModeStylus;
+    }
+  }
+
+  GHOST_PRINT("unknown tablet tool: " << wl_tablet_tool_type << std::endl);
+  return GHOST_kTabletModeStylus;
 }
 
 static const int default_cursor_size = 24;
@@ -1142,6 +1195,343 @@ static const struct wl_pointer_listener pointer_listener = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Listener (Tablet Tool), #zwp_tablet_tool_v2_listener
+ * \{ */
+
+static void tablet_tool_type(void *data,
+                             struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                             uint32_t tool_type)
+{
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+
+  tool_input->data.Active = tablet_tool_map_type((enum zwp_tablet_tool_v2_type)tool_type);
+}
+
+static void tablet_tool_hardware_serial(void * /*data*/,
+                                        struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                                        uint32_t /*hardware_serial_hi*/,
+                                        uint32_t /*hardware_serial_lo*/)
+{
+}
+
+static void tablet_tool_hardware_id_wacom(void * /*data*/,
+                                          struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                                          uint32_t /*hardware_id_hi*/,
+                                          uint32_t /*hardware_id_lo*/)
+{
+}
+
+static void tablet_tool_capability(void * /*data*/,
+                                   struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                                   uint32_t /*capability*/)
+{
+}
+
+static void tablet_tool_done(void * /*data*/, struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/)
+{
+}
+static void tablet_tool_removed(void *data, struct zwp_tablet_tool_v2 *zwp_tablet_tool_v2)
+{
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  input_t *input = tool_input->input;
+
+  if (tool_input->cursor_surface) {
+    wl_surface_destroy(tool_input->cursor_surface);
+  }
+  input->tablet_tools.erase(zwp_tablet_tool_v2);
+
+  delete tool_input;
+}
+static void tablet_tool_proximity_in(void *data,
+                                     struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                                     uint32_t serial,
+                                     struct zwp_tablet_v2 * /*tablet*/,
+                                     struct wl_surface *surface)
+{
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  input_t *input = tool_input->input;
+
+  input->focus_tablet = surface;
+  input->tablet_serial = serial;
+  input->data_source_serial = serial;
+
+  /* Update #GHOST_TabletData. */
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(input->focus_tablet));
+  if (!win) {
+    return;
+  }
+
+  win->activate();
+
+  GHOST_TabletData &td = tool_input->data;
+  /* Reset, to avoid using stale tilt/pressure. */
+  td.Xtilt = 0.0f;
+  td.Ytilt = 0.0f;
+  /* In case pressure isn't supported. */
+  td.Pressure = 1.0f;
+
+  win->setCursorShape(win->getCursorShape());
+}
+static void tablet_tool_proximity_out(void *data,
+                                      struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/)
+{
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  input_t *input = tool_input->input;
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(input->focus_tablet));
+
+  input->focus_tablet = nullptr;
+
+  win->setCursorShape(win->getCursorShape());
+}
+
+static void tablet_tool_down(void *data,
+                             struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                             uint32_t serial)
+{
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  input_t *input = tool_input->input;
+
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(input->focus_tablet));
+  if (!win) {
+    return;
+  }
+
+  const GHOST_TEventType etype = GHOST_kEventButtonDown;
+  const GHOST_TButtonMask ebutton = GHOST_kButtonMaskLeft;
+  input->data_source_serial = serial;
+  input->buttons.set(ebutton, true);
+  input->system->pushEvent(new GHOST_EventButton(
+      input->system->getMilliSeconds(), etype, win, ebutton, tool_input->data));
+}
+
+static void tablet_tool_up(void *data, struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/)
+{
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  input_t *input = tool_input->input;
+
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(input->focus_tablet));
+  if (!win) {
+    return;
+  }
+  const GHOST_TEventType etype = GHOST_kEventButtonUp;
+  const GHOST_TButtonMask ebutton = GHOST_kButtonMaskLeft;
+  input->buttons.set(ebutton, false);
+  input->system->pushEvent(new GHOST_EventButton(
+      input->system->getMilliSeconds(), etype, win, ebutton, tool_input->data));
+}
+
+static void tablet_tool_motion(void *data,
+                               struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                               wl_fixed_t x,
+                               wl_fixed_t y)
+{
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  input_t *input = tool_input->input;
+
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(input->focus_tablet));
+  if (!win) {
+    return;
+  }
+
+  input->x = win->scale() * wl_fixed_to_int(x);
+  input->y = win->scale() * wl_fixed_to_int(y);
+
+  input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
+                                                 GHOST_kEventCursorMove,
+                                                 win,
+                                                 input->x,
+                                                 input->y,
+                                                 tool_input->data));
+}
+
+static void tablet_tool_pressure(void *data,
+                                 struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                                 uint32_t pressure)
+{
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  input_t *input = tool_input->input;
+
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(input->focus_tablet));
+  if (!win) {
+    return;
+  }
+  GHOST_TabletData &td = tool_input->data;
+  td.Pressure = (float)pressure / 65535;
+}
+static void tablet_tool_distance(void * /*data*/,
+                                 struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                                 uint32_t /*distance*/)
+{
+}
+static void tablet_tool_tilt(void *data,
+                             struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                             wl_fixed_t tilt_x,
+                             wl_fixed_t tilt_y)
+{
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  input_t *input = tool_input->input;
+
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(input->focus_tablet));
+  if (!win) {
+    return;
+  }
+
+  GHOST_TabletData &td = tool_input->data;
+  /* Map degrees to `-1.0..1.0`. */
+  td.Xtilt = wl_fixed_to_double(tilt_x) / 90.0f;
+  td.Ytilt = wl_fixed_to_double(tilt_y) / 90.0f;
+  td.Xtilt = td.Xtilt < -1.0f ? -1.0f : (td.Xtilt > 1.0f ? 1.0f : td.Xtilt);
+  td.Ytilt = td.Ytilt < -1.0f ? -1.0f : (td.Ytilt > 1.0f ? 1.0f : td.Ytilt);
+}
+
+static void tablet_tool_rotation(void * /*data*/,
+                                 struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                                 wl_fixed_t /*degrees*/)
+{
+  /* Pass. */
+}
+
+static void tablet_tool_slider(void * /*data*/,
+                               struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                               int32_t /*position*/)
+{
+  /* Pass. */
+}
+static void tablet_tool_wheel(void *data,
+                              struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                              wl_fixed_t /*degrees*/,
+                              int32_t clicks)
+{
+  if (clicks == 0) {
+    return;
+  }
+
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  input_t *input = tool_input->input;
+
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(input->focus_tablet));
+  if (!win) {
+    return;
+  }
+  input->system->pushEvent(new GHOST_EventWheel(input->system->getMilliSeconds(), win, clicks));
+}
+static void tablet_tool_button(void *data,
+                               struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                               uint32_t serial,
+                               uint32_t button,
+                               uint32_t state)
+{
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  input_t *input = tool_input->input;
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(get_window(input->focus_tablet));
+  if (!win) {
+    return;
+  }
+
+  GHOST_TEventType etype = GHOST_kEventUnknown;
+  switch (state) {
+    case WL_POINTER_BUTTON_STATE_RELEASED:
+      etype = GHOST_kEventButtonUp;
+      break;
+    case WL_POINTER_BUTTON_STATE_PRESSED:
+      etype = GHOST_kEventButtonDown;
+      break;
+  }
+
+  GHOST_TButtonMask ebutton = GHOST_kButtonMaskLeft;
+  switch (button) {
+    case BTN_STYLUS:
+      ebutton = GHOST_kButtonMaskRight;
+      break;
+    case BTN_STYLUS2:
+      ebutton = GHOST_kButtonMaskMiddle;
+      break;
+    case BTN_STYLUS3:
+      ebutton = GHOST_kButtonMaskButton4;
+      break;
+  }
+
+  input->data_source_serial = serial;
+  input->buttons.set(ebutton, state == WL_POINTER_BUTTON_STATE_PRESSED);
+  input->system->pushEvent(new GHOST_EventButton(
+      input->system->getMilliSeconds(), etype, win, ebutton, tool_input->data));
+}
+static void tablet_tool_frame(void * /*data*/,
+                              struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
+                              uint32_t /*time*/)
+{
+}
+
+static const struct zwp_tablet_tool_v2_listener tablet_tool_listner = {
+    tablet_tool_type,
+    tablet_tool_hardware_serial,
+    tablet_tool_hardware_id_wacom,
+    tablet_tool_capability,
+    tablet_tool_done,
+    tablet_tool_removed,
+    tablet_tool_proximity_in,
+    tablet_tool_proximity_out,
+    tablet_tool_down,
+    tablet_tool_up,
+    tablet_tool_motion,
+    tablet_tool_pressure,
+    tablet_tool_distance,
+    tablet_tool_tilt,
+    tablet_tool_rotation,
+    tablet_tool_slider,
+    tablet_tool_wheel,
+    tablet_tool_button,
+    tablet_tool_frame,
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Table Seat), #zwp_tablet_seat_v2_listener
+ * \{ */
+
+static void tablet_seat_tablet_added(void * /*data*/,
+                                     struct zwp_tablet_seat_v2 * /*zwp_tablet_seat_v2*/,
+                                     struct zwp_tablet_v2 * /*id*/)
+{
+  /* Pass. */
+}
+
+static void tablet_seat_tool_added(void *data,
+                                   struct zwp_tablet_seat_v2 * /*zwp_tablet_seat_v2*/,
+                                   struct zwp_tablet_tool_v2 *id)
+{
+  input_t *input = static_cast<input_t *>(data);
+  tablet_tool_input_t *tool_input = new tablet_tool_input_t();
+  tool_input->input = input;
+
+  /* Every tool has it's own cursor surface. */
+  tool_input->cursor_surface = wl_compositor_create_surface(input->system->compositor());
+  wl_surface_add_listener(tool_input->cursor_surface, &cursor_surface_listener, (void *)input);
+
+  tool_input->data = GHOST_TABLET_DATA_NONE;
+
+  zwp_tablet_tool_v2_add_listener(id, &tablet_tool_listner, tool_input);
+
+  input->tablet_tools.insert(id);
+}
+
+static void tablet_seat_pad_added(void * /*data*/,
+                                  struct zwp_tablet_seat_v2 * /*zwp_tablet_seat_v2*/,
+                                  struct zwp_tablet_pad_v2 * /*id*/)
+{
+  /* Pass. */
+}
+
+const struct zwp_tablet_seat_v2_listener tablet_seat_listener = {
+    tablet_seat_tablet_added,
+    tablet_seat_tool_added,
+    tablet_seat_pad_added,
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Listener (Keyboard), #wl_keyboard_listener
  * \{ */
 
@@ -1528,6 +1918,10 @@ static void global_add(void *data,
     display->data_device_manager = static_cast<wl_data_device_manager *>(
         wl_registry_bind(wl_registry, name, &wl_data_device_manager_interface, 3));
   }
+  else if (!strcmp(interface, zwp_tablet_manager_v2_interface.name)) {
+    display->tablet_manager = static_cast<zwp_tablet_manager_v2 *>(
+        wl_registry_bind(wl_registry, name, &zwp_tablet_manager_v2_interface, 1));
+  }
   else if (!strcmp(interface, zwp_relative_pointer_manager_v1_interface.name)) {
     display->relative_pointer_manager = static_cast<zwp_relative_pointer_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zwp_relative_pointer_manager_v1_interface, 1));
@@ -1596,6 +1990,13 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new display_t)
       input->data_device = wl_data_device_manager_get_data_device(d->data_device_manager,
                                                                   input->seat);
       wl_data_device_add_listener(input->data_device, &data_device_listener, input);
+    }
+  }
+
+  if (d->tablet_manager) {
+    for (input_t *input : d->inputs) {
+      input->tablet_seat = zwp_tablet_manager_v2_get_tablet_seat(d->tablet_manager, input->seat);
+      zwp_tablet_seat_v2_add_listener(input->tablet_seat, &tablet_seat_listener, input);
     }
   }
 }
@@ -1715,7 +2116,8 @@ uint8_t GHOST_SystemWayland::getNumDisplays() const
 
 GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) const
 {
-  if (d->inputs.empty() || (d->inputs[0]->focus_pointer == nullptr)) {
+  if (d->inputs.empty() ||
+      (d->inputs[0]->focus_pointer == nullptr && d->inputs[0]->focus_tablet == nullptr)) {
     return GHOST_kFailure;
   }
 
@@ -1902,6 +2304,25 @@ static void set_cursor_buffer(input_t *input, wl_buffer *buffer)
                         hotspot_y);
 
   wl_surface_commit(c->surface);
+
+  /* Set the cursor for all tablet tools as well. */
+  for (struct zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : input->tablet_tools) {
+    tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(
+        zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
+    /* FIXME: for some reason cursor scale is applied twice (when the scale isn't 1x),
+     * this happens both in gnome-shell & KDE. Setting the surface scale here doesn't help. */
+    // wl_surface_set_buffer_scale(tool_input->cursor_surface, 1);
+    wl_surface_attach(tool_input->cursor_surface, buffer, 0, 0);
+    wl_surface_damage(tool_input->cursor_surface, 0, 0, image_size_x, image_size_y);
+
+    zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2,
+                                  input->tablet_serial,
+                                  c->visible ? tool_input->cursor_surface : nullptr,
+                                  hotspot_x,
+                                  hotspot_y);
+
+    wl_surface_commit(tool_input->cursor_surface);
+  }
 }
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)

@@ -344,6 +344,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       relative-pointer
       "${WAYLAND_PROTOCOLS_DIR}/unstable/relative-pointer/relative-pointer-unstable-v1.xml"
     )
+    # Tablet.
+    generate_protocol_bindings(
+      tablet
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/tablet/tablet-unstable-v2.xml"
+    )
 
     add_definitions(-DWITH_GHOST_WAYLAND)
   endif()
