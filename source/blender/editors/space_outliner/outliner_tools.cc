@@ -228,6 +228,12 @@ static void unlink_material_fn(bContext *UNUSED(C),
                                TreeStoreElem *UNUSED(tselem),
                                void *UNUSED(user_data))
 {
+  if (!tsep || !TSE_IS_REAL_ID(tsep)) {
+    /* Valid case, no parent element of the material or it is not an ID (could be a #TSE_ID_BASE
+     * for example) so there's no data to unlink from. */
+    return;
+  }
+
   Material **matar = nullptr;
   int a, totcol = 0;
 
