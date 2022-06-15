@@ -23,12 +23,31 @@ struct display_t;
 
 struct output_t {
   struct wl_output *output;
+  struct zxdg_output_v1 *xdg_output;
   /** Dimensions in pixels. */
   int32_t size_native[2];
   /** Dimensions in millimeter. */
   int32_t size_mm[2];
+
+  int32_t size_logical[2];
+  bool has_size_logical;
+
+  int32_t position_logical[2];
+  bool has_position_logical;
+
   int transform;
   int scale;
+  /**
+   * The integer `scale` value should be used in almost all cases,
+   * as this is what is used for most API calls.
+   * Only use fractional scaling to calculate the DPI.
+   *
+   * \note Internally an #wl_fixed_t is used to store the scale of the display,
+   * so use the same value here (avoid floating point arithmetic in general).
+   */
+  wl_fixed_t scale_fractional;
+  bool has_scale_fractional;
+
   std::string make;
   std::string model;
 };

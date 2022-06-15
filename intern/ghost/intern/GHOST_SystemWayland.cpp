@@ -31,6 +31,8 @@
 #include <relative-pointer-client-protocol.h>
 #include <tablet-client-protocol.h>
 #include <wayland-cursor.h>
+#include <xdg-output-client-protocol.h>
+
 #include <xkbcommon/xkbcommon.h>
 
 #include <fcntl.h>
@@ -201,6 +203,7 @@ struct display_t {
   struct wl_compositor *compositor = nullptr;
   struct xdg_wm_base *xdg_shell = nullptr;
   struct zxdg_decoration_manager_v1 *xdg_decoration_manager = nullptr;
+  struct zxdg_output_manager_v1 *xdg_output_manager = nullptr;
   struct wl_shm *shm = nullptr;
   std::vector<output_t *> outputs;
   std::vector<input_t *> inputs;
@@ -1815,6 +1818,79 @@ static const struct wl_seat_listener seat_listener = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Listener (XDG Output), #zxdg_output_v1_listener
+ * \{ */
+
+static void xdg_output_handle_logical_position(void *data,
+                                               struct zxdg_output_v1 * /*xdg_output*/,
+                                               int32_t x,
+                                               int32_t y)
+{
+  output_t *output = static_cast<output_t *>(data);
+  output->position_logical[0] = x;
+  output->position_logical[1] = y;
+  output->has_position_logical = true;
+}
+
+static void xdg_output_handle_logical_size(void *data,
+                                           struct zxdg_output_v1 * /*xdg_output*/,
+                                           int32_t width,
+                                           int32_t height)
+{
+  output_t *output = static_cast<output_t *>(data);
+
+  if (output->size_logical[0] != 0 && output->size_logical[1] != 0) {
+    /* Original comment from SDL. */
+    /* FIXME: GNOME has a bug where the logical size does not account for
+     * scale, resulting in bogus viewport sizes.
+     *
+     * Until this is fixed, validate that _some_ kind of scaling is being
+     * done (we can't match exactly because fractional scaling can't be
+     * detected otherwise), then override if necessary.
+     * -flibit
+     */
+    if ((output->size_logical[0] == width) && (output->scale_fractional == wl_fixed_from_int(1))) {
+      GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale");
+      return;
+    }
+  }
+
+  output->size_logical[0] = width;
+  output->size_logical[1] = height;
+  output->has_size_logical = true;
+}
+
+static void xdg_output_handle_done(void * /*data*/, struct zxdg_output_v1 * /*xdg_output*/)
+{
+  /* NOTE: `xdg-output.done` events are deprecated and only apply below version 3 of the protocol.
+   * `wl-output.done` event will be emitted in version 3 or higher. */
+}
+
+static void xdg_output_handle_name(void * /*data*/,
+                                   struct zxdg_output_v1 * /*xdg_output*/,
+                                   const char * /*name*/)
+{
+  /* Pass. */
+}
+
+static void xdg_output_handle_description(void * /*data*/,
+                                          struct zxdg_output_v1 * /*xdg_output*/,
+                                          const char * /*description*/)
+{
+  /* Pass. */
+}
+
+static const struct zxdg_output_v1_listener xdg_output_listener = {
+    xdg_output_handle_logical_position,
+    xdg_output_handle_logical_size,
+    xdg_output_handle_done,
+    xdg_output_handle_name,
+    xdg_output_handle_description,
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Listener (Output), #wl_output_listener
  * \{ */
 
@@ -1839,14 +1915,24 @@ static void output_geometry(void *data,
 
 static void output_mode(void *data,
                         struct wl_output * /*wl_output*/,
-                        uint32_t /*flags*/,
+                        uint32_t flags,
                         int32_t width,
                         int32_t height,
                         int32_t /*refresh*/)
 {
   output_t *output = static_cast<output_t *>(data);
-  output->size_native[0] = width;
-  output->size_native[1] = height;
+
+  if (flags & WL_OUTPUT_MODE_CURRENT) {
+    output->size_native[0] = width;
+    output->size_native[1] = height;
+
+    /* Don't rotate this yet, `wl-output` coordinates are transformed in
+     * handle_done and `xdg-output` coordinates are pre-transformed. */
+    if (!output->has_size_logical) {
+      output->size_logical[0] = width;
+      output->size_logical[1] = height;
+    }
+  }
 }
 
 /**
@@ -1857,8 +1943,31 @@ static void output_mode(void *data,
  * changes done after that. This allows changes to the output
  * properties to be seen as atomic, even if they happen via multiple events.
  */
-static void output_done(void * /*data*/, struct wl_output * /*wl_output*/)
+static void output_done(void *data, struct wl_output * /*wl_output*/)
 {
+  output_t *output = static_cast<output_t *>(data);
+  int32_t size_native[2];
+  if (output->transform & WL_OUTPUT_TRANSFORM_90) {
+    size_native[0] = output->size_native[1];
+    size_native[1] = output->size_native[1];
+  }
+  else {
+    size_native[0] = output->size_native[0];
+    size_native[1] = output->size_native[1];
+  }
+
+  /* If `xdg-output` is present, calculate the true scale of the desktop */
+  if (output->has_size_logical) {
+
+    /* NOTE: it's not necessary to divide these values by their greatest-common-denominator
+     * as even a 64k screen resolution doesn't approach overflowing an `int32_t`. */
+
+    GHOST_ASSERT(size_native[0] && output->size_logical[0],
+                 "Screen size values were not set when they were expected to be.");
+
+    output->scale_fractional = wl_fixed_from_int(size_native[0]) / output->size_logical[0];
+    output->has_scale_fractional = true;
+  }
 }
 
 static void output_scale(void *data, struct wl_output * /*wl_output*/, int32_t factor)
@@ -1914,13 +2023,35 @@ static void global_add(void *data,
     display->xdg_decoration_manager = static_cast<zxdg_decoration_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zxdg_decoration_manager_v1_interface, 1));
   }
+  else if (!strcmp(interface, zxdg_output_manager_v1_interface.name)) {
+    display->xdg_output_manager = static_cast<zxdg_output_manager_v1 *>(
+        wl_registry_bind(wl_registry, name, &zxdg_output_manager_v1_interface, 3));
+    for (output_t *output : display->outputs) {
+      output->xdg_output = zxdg_output_manager_v1_get_xdg_output(display->xdg_output_manager,
+                                                                 output->output);
+      zxdg_output_v1_add_listener(output->xdg_output, &xdg_output_listener, output);
+    }
+  }
   else if (!strcmp(interface, wl_output_interface.name)) {
     output_t *output = new output_t;
+
     output->scale = 1;
+    output->has_scale_fractional = false;
+    output->scale_fractional = wl_fixed_from_int(1);
+
+    output->has_size_logical = false;
+    output->has_position_logical = false;
+
     output->output = static_cast<wl_output *>(
         wl_registry_bind(wl_registry, name, &wl_output_interface, 2));
     display->outputs.push_back(output);
     wl_output_add_listener(output->output, &output_listener, output);
+
+    if (display->xdg_output_manager) {
+      output->xdg_output = zxdg_output_manager_v1_get_xdg_output(display->xdg_output_manager,
+                                                                 output->output);
+      zxdg_output_v1_add_listener(output->xdg_output, &xdg_output_listener, output);
+    }
   }
   else if (!strcmp(interface, wl_seat_interface.name)) {
     input_t *input = new input_t;

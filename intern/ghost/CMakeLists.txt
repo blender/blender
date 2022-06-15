@@ -334,6 +334,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       xdg-decoration
       "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
     )
+    # xdg-output.
+    generate_protocol_bindings(
+      xdg-output
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-output/xdg-output-unstable-v1.xml"
+    )
     # Pointer-constraints.
     generate_protocol_bindings(
       pointer-constraints

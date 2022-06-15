@@ -32,8 +32,13 @@ struct window_t {
 
   /** The scale value written to #wl_surface_set_buffer_scale. */
   int scale;
-  /** The DPI (currently always `scale * base_dpi`). */
-  uint16_t dpi;
+  /**
+   * The DPI, either:
+   * - `scale * base_dpi`
+   * - `wl_fixed_to_int(scale_fractional * base_dpi)`
+   * When fractional scaling is available.
+   */
+  uint32_t dpi;
 
   struct xdg_surface *xdg_surface;
   struct xdg_toplevel *xdg_toplevel;
@@ -54,13 +59,33 @@ struct window_t {
  * \{ */
 
 static int outputs_max_scale_or_default(const std::vector<output_t *> &outputs,
-                                        const int scale_default)
+                                        const int32_t scale_default,
+                                        uint32_t *r_dpi)
 {
   int scale_max = 0;
+  const output_t *output_max = nullptr;
   for (const output_t *reg_output : outputs) {
-    scale_max = std::max(scale_max, reg_output->scale);
+    if (scale_max < reg_output->scale) {
+      scale_max = reg_output->scale;
+      output_max = reg_output;
+    }
   }
-  return scale_max ? scale_max : scale_default;
+
+  if (scale_max != 0) {
+    if (r_dpi) {
+      *r_dpi = output_max->has_scale_fractional ?
+                   /* Fractional DPI. */
+                   wl_fixed_to_int(output_max->scale_fractional * base_dpi) :
+                   /* Simple non-fractional DPI. */
+                   (scale_max * base_dpi);
+    }
+    return scale_max;
+  }
+
+  if (r_dpi) {
+    *r_dpi = scale_default * base_dpi;
+  }
+  return scale_default;
 }
 
 /** \} */
@@ -242,8 +267,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    *
    * Using the maximum scale is best as it results in the window first being smaller,
    * avoiding a large window flashing before it's made smaller. */
-  w->scale = outputs_max_scale_or_default(this->m_system->outputs(), 1);
-  w->dpi = w->scale * base_dpi;
+  w->scale = outputs_max_scale_or_default(this->m_system->outputs(), 1, &w->dpi);
 
   /* Window surfaces. */
   w->surface = wl_compositor_create_surface(m_system->compositor());
@@ -356,28 +380,35 @@ output_t *GHOST_WindowWayland::output_find_by_wl(struct wl_output *output)
 
 bool GHOST_WindowWayland::outputs_changed_update_scale()
 {
-  const int scale_next = outputs_max_scale_or_default(this->m_system->outputs(), 0);
+  uint32_t dpi_next;
+  const int scale_next = outputs_max_scale_or_default(this->m_system->outputs(), 0, &dpi_next);
   if (scale_next == 0) {
     return false;
   }
+
   window_t *win = this->w;
+  const uint32_t dpi_curr = win->dpi;
   const int scale_curr = win->scale;
-  if (scale_next == scale_curr) {
-    return false;
+  bool changed = false;
+
+  if (scale_next != scale_curr) {
+    /* Unlikely but possible there is a pending size change is set. */
+    win->size_pending[0] = (win->size_pending[0] / scale_curr) * scale_next;
+    win->size_pending[1] = (win->size_pending[1] / scale_curr) * scale_next;
+
+    win->scale = scale_next;
+    wl_surface_set_buffer_scale(this->surface(), scale_next);
+    changed = true;
   }
 
-  /* Unlikely but possible there is a pending size change is set. */
-  win->size_pending[0] = (win->size_pending[0] / scale_curr) * scale_next;
-  win->size_pending[1] = (win->size_pending[1] / scale_curr) * scale_next;
+  if (dpi_next != dpi_curr) {
+    /* Using the real DPI will cause wrong scaling of the UI
+     * use a multiplier for the default DPI as workaround. */
+    win->dpi = dpi_next;
+    changed = true;
+  }
 
-  win->scale = scale_next;
-  wl_surface_set_buffer_scale(this->surface(), scale_next);
-
-  /* Using the real DPI will cause wrong scaling of the UI
-   * use a multiplier for the default DPI as workaround. */
-  win->dpi = scale_next * base_dpi;
-
-  return true;
+  return changed;
 }
 
 uint16_t GHOST_WindowWayland::dpi()
