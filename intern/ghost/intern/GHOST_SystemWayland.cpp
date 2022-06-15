@@ -122,7 +122,6 @@ struct data_source_t {
 struct key_repeat_payload_t {
   GHOST_SystemWayland *system = nullptr;
   GHOST_IWindow *window = nullptr;
-  GHOST_TKey key = GHOST_kKeyUnknown;
   GHOST_TEventKeyData key_data = {GHOST_kKeyUnknown};
 };
 
@@ -1677,7 +1676,6 @@ static void keyboard_handle_key(void *data,
   if (sym == XKB_KEY_NoSymbol) {
     return;
   }
-  const GHOST_TKey gkey = xkb_map_gkey(sym);
 
   /* Delete previous timer. */
   if (xkb_keymap_key_repeats(xkb_state_get_keymap(input->xkb_state), key + 8) &&
@@ -1687,7 +1685,9 @@ static void keyboard_handle_key(void *data,
     input->key_repeat.timer = nullptr;
   }
 
-  GHOST_TEventKeyData key_data;
+  GHOST_TEventKeyData key_data = {
+      .key = xkb_map_gkey(sym),
+  };
 
   if (etype == GHOST_kEventKeyDown) {
     xkb_state_key_get_utf8(
@@ -1702,7 +1702,7 @@ static void keyboard_handle_key(void *data,
   GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
       wl_surface_get_user_data(input->focus_keyboard));
   input->system->pushEvent(new GHOST_EventKey(
-      input->system->getMilliSeconds(), etype, win, gkey, '\0', key_data.utf8_buf, false));
+      input->system->getMilliSeconds(), etype, win, key_data.key, '\0', key_data.utf8_buf, false));
 
   /* Start timer for repeating key, if applicable. */
   if (input->key_repeat.rate > 0 &&
@@ -1712,7 +1712,6 @@ static void keyboard_handle_key(void *data,
     key_repeat_payload_t *payload = new key_repeat_payload_t({
         .system = input->system,
         .window = win,
-        .key = gkey,
         .key_data = key_data,
     });
 
@@ -1722,7 +1721,7 @@ static void keyboard_handle_key(void *data,
       payload->system->pushEvent(new GHOST_EventKey(payload->system->getMilliSeconds(),
                                                     GHOST_kEventKeyDown,
                                                     payload->window,
-                                                    payload->key,
+                                                    payload->key_data.key,
                                                     '\0',
                                                     payload->key_data.utf8_buf,
                                                     true));
