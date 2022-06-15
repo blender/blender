@@ -20,8 +20,8 @@
 static constexpr size_t base_dpi = 96;
 
 struct window_t {
-  GHOST_WindowWayland *w;
-  wl_surface *surface;
+  GHOST_WindowWayland *w = nullptr;
+  struct wl_surface *wl_surface = nullptr;
   /**
    * Outputs on which the window is currently shown on.
    *
@@ -31,27 +31,27 @@ struct window_t {
   std::vector<const output_t *> outputs;
 
   /** The scale value written to #wl_surface_set_buffer_scale. */
-  int scale;
+  int scale = 0;
   /**
    * The DPI, either:
    * - `scale * base_dpi`
    * - `wl_fixed_to_int(scale_fractional * base_dpi)`
    * When fractional scaling is available.
    */
-  uint32_t dpi;
+  uint32_t dpi = 0;
 
-  struct xdg_surface *xdg_surface;
-  struct xdg_toplevel *xdg_toplevel;
+  struct xdg_surface *xdg_surface = nullptr;
+  struct xdg_toplevel *xdg_toplevel = nullptr;
   struct zxdg_toplevel_decoration_v1 *xdg_toplevel_decoration = nullptr;
-  enum zxdg_toplevel_decoration_v1_mode decoration_mode;
-  wl_egl_window *egl_window;
-  bool is_maximised;
-  bool is_fullscreen;
-  bool is_active;
-  bool is_dialog;
+  enum zxdg_toplevel_decoration_v1_mode decoration_mode = (enum zxdg_toplevel_decoration_v1_mode)0;
+  wl_egl_window *egl_window = nullptr;
+  bool is_maximised = false;
+  bool is_fullscreen = false;
+  bool is_active = false;
+  bool is_dialog = false;
 
-  int32_t size[2];
-  int32_t size_pending[2];
+  int32_t size[2] = {0, 0};
+  int32_t size_pending[2] = {0, 0};
 };
 
 /* -------------------------------------------------------------------- */
@@ -91,13 +91,10 @@ static int outputs_max_scale_or_default(const std::vector<output_t *> &outputs,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Wayland Interface Callbacks
- *
- * These callbacks are registered for Wayland interfaces and called when
- * an event is received from the compositor.
+/** \name Listener (XDG Top Level), #xdg_toplevel_listener
  * \{ */
 
-static void toplevel_configure(
+static void xdg_toplevel_handle_configure(
     void *data, xdg_toplevel * /*xdg_toplevel*/, int32_t width, int32_t height, wl_array *states)
 {
   window_t *win = static_cast<window_t *>(data);
@@ -130,17 +127,23 @@ static void toplevel_configure(
   }
 }
 
-static void toplevel_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
+static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
 {
   static_cast<window_t *>(data)->w->close();
 }
 
 static const xdg_toplevel_listener toplevel_listener = {
-    toplevel_configure,
-    toplevel_close,
+    xdg_toplevel_handle_configure,
+    xdg_toplevel_handle_close,
 };
 
-static void toplevel_decoration_configure(
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (XDG Decoration Listener), #zxdg_toplevel_decoration_v1_listener
+ * \{ */
+
+static void xdg_toplevel_decoration_handle_configure(
     void *data,
     struct zxdg_toplevel_decoration_v1 * /*zxdg_toplevel_decoration_v1*/,
     uint32_t mode)
@@ -149,10 +152,16 @@ static void toplevel_decoration_configure(
 }
 
 static const zxdg_toplevel_decoration_v1_listener toplevel_decoration_v1_listener = {
-    toplevel_decoration_configure,
+    xdg_toplevel_decoration_handle_configure,
 };
 
-static void surface_configure(void *data, xdg_surface *xdg_surface, uint32_t serial)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (XDG Surface Handle Configure), #xdg_surface_listener
+ * \{ */
+
+static void xdg_surface_handle_configure(void *data, xdg_surface *xdg_surface, uint32_t serial)
 {
   window_t *win = static_cast<window_t *>(data);
 
@@ -179,11 +188,19 @@ static void surface_configure(void *data, xdg_surface *xdg_surface, uint32_t ser
   xdg_surface_ack_configure(xdg_surface, serial);
 }
 
-static const xdg_surface_listener surface_listener = {
-    surface_configure,
+static const xdg_surface_listener xdg_surface_listener = {
+    xdg_surface_handle_configure,
 };
 
-static void surface_enter(void *data, struct wl_surface * /*wl_surface*/, struct wl_output *output)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (Surface), #wl_surface_listener
+ * \{ */
+
+static void surface_handle_enter(void *data,
+                                 struct wl_surface * /*wl_surface*/,
+                                 struct wl_output *output)
 {
   GHOST_WindowWayland *w = static_cast<GHOST_WindowWayland *>(data);
   output_t *reg_output = w->output_find_by_wl(output);
@@ -200,7 +217,9 @@ static void surface_enter(void *data, struct wl_surface * /*wl_surface*/, struct
   w->outputs_changed_update_scale();
 }
 
-static void surface_leave(void *data, struct wl_surface * /*wl_surface*/, struct wl_output *output)
+static void surface_handle_leave(void *data,
+                                 struct wl_surface * /*wl_surface*/,
+                                 struct wl_output *output)
 {
   GHOST_WindowWayland *w = static_cast<GHOST_WindowWayland *>(data);
   output_t *reg_output = w->output_find_by_wl(output);
@@ -218,8 +237,8 @@ static void surface_leave(void *data, struct wl_surface * /*wl_surface*/, struct
 }
 
 struct wl_surface_listener wl_surface_listener = {
-    surface_enter,
-    surface_leave,
+    surface_handle_enter,
+    surface_handle_leave,
 };
 
 /** \} */
@@ -270,14 +289,14 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   w->scale = outputs_max_scale_or_default(this->m_system->outputs(), 1, &w->dpi);
 
   /* Window surfaces. */
-  w->surface = wl_compositor_create_surface(m_system->compositor());
+  w->wl_surface = wl_compositor_create_surface(m_system->compositor());
   wl_surface_set_buffer_scale(this->surface(), w->scale);
 
-  wl_surface_add_listener(w->surface, &wl_surface_listener, this);
+  wl_surface_add_listener(w->wl_surface, &wl_surface_listener, this);
 
-  w->egl_window = wl_egl_window_create(w->surface, int(w->size[0]), int(w->size[1]));
+  w->egl_window = wl_egl_window_create(w->wl_surface, int(w->size[0]), int(w->size[1]));
 
-  w->xdg_surface = xdg_wm_base_get_xdg_surface(m_system->shell(), w->surface);
+  w->xdg_surface = xdg_wm_base_get_xdg_surface(m_system->xdg_shell(), w->wl_surface);
   w->xdg_toplevel = xdg_surface_get_toplevel(w->xdg_surface);
 
   /* NOTE: The limit is in points (not pixels) so Hi-DPI will limit to larger number of pixels.
@@ -286,18 +305,18 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
    * when the `w->scale` changed. */
   xdg_toplevel_set_min_size(w->xdg_toplevel, 320, 240);
 
-  if (m_system->decoration_manager()) {
+  if (m_system->xdg_decoration_manager()) {
     w->xdg_toplevel_decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
-        m_system->decoration_manager(), w->xdg_toplevel);
+        m_system->xdg_decoration_manager(), w->xdg_toplevel);
     zxdg_toplevel_decoration_v1_add_listener(
         w->xdg_toplevel_decoration, &toplevel_decoration_v1_listener, w);
     zxdg_toplevel_decoration_v1_set_mode(w->xdg_toplevel_decoration,
                                          ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
   }
 
-  wl_surface_set_user_data(w->surface, this);
+  wl_surface_set_user_data(w->wl_surface, this);
 
-  xdg_surface_add_listener(w->xdg_surface, &surface_listener, w);
+  xdg_surface_add_listener(w->xdg_surface, &xdg_surface_listener, w);
   xdg_toplevel_add_listener(w->xdg_toplevel, &toplevel_listener, w);
 
   if (parentWindow && is_dialog) {
@@ -306,7 +325,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   }
 
   /* Call top-level callbacks. */
-  wl_surface_commit(w->surface);
+  wl_surface_commit(w->wl_surface);
   wl_display_roundtrip(m_system->display());
 
 #ifdef GHOST_OPENGL_ALPHA
@@ -360,7 +379,7 @@ GHOST_TSuccess GHOST_WindowWayland::notify_size()
 
 wl_surface *GHOST_WindowWayland::surface() const
 {
-  return w->surface;
+  return w->wl_surface;
 }
 
 std::vector<const output_t *> &GHOST_WindowWayland::outputs()
@@ -371,7 +390,7 @@ std::vector<const output_t *> &GHOST_WindowWayland::outputs()
 output_t *GHOST_WindowWayland::output_find_by_wl(struct wl_output *output)
 {
   for (output_t *reg_output : this->m_system->outputs()) {
-    if (reg_output->output == output) {
+    if (reg_output->wl_output == output) {
       return reg_output;
     }
   }
@@ -423,7 +442,7 @@ int GHOST_WindowWayland::scale()
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
 {
-  return m_system->setCursorGrab(mode, m_cursorGrab, w->surface);
+  return m_system->setCursorGrab(mode, m_cursorGrab, w->wl_surface);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor shape)
@@ -515,7 +534,7 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
   }
   xdg_toplevel_destroy(w->xdg_toplevel);
   xdg_surface_destroy(w->xdg_surface);
-  wl_surface_destroy(w->surface);
+  wl_surface_destroy(w->wl_surface);
 
   delete w;
 }

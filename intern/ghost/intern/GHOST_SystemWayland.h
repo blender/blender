@@ -22,21 +22,21 @@ class GHOST_WindowWayland;
 struct display_t;
 
 struct output_t {
-  struct wl_output *output;
-  struct zxdg_output_v1 *xdg_output;
+  struct wl_output *wl_output = nullptr;
+  struct zxdg_output_v1 *xdg_output = nullptr;
   /** Dimensions in pixels. */
-  int32_t size_native[2];
+  int32_t size_native[2] = {0, 0};
   /** Dimensions in millimeter. */
-  int32_t size_mm[2];
+  int32_t size_mm[2] = {0, 0};
 
-  int32_t size_logical[2];
-  bool has_size_logical;
+  int32_t size_logical[2] = {0, 0};
+  bool has_size_logical = false;
 
-  int32_t position_logical[2];
-  bool has_position_logical;
+  int32_t position_logical[2] = {0, 0};
+  bool has_position_logical = false;
 
-  int transform;
-  int scale;
+  int transform = 0;
+  int scale = 1;
   /**
    * The integer `scale` value should be used in almost all cases,
    * as this is what is used for most API calls.
@@ -45,8 +45,8 @@ struct output_t {
    * \note Internally an #wl_fixed_t is used to store the scale of the display,
    * so use the same value here (avoid floating point arithmetic in general).
    */
-  wl_fixed_t scale_fractional;
-  bool has_scale_fractional;
+  wl_fixed_t scale_fractional = wl_fixed_from_int(1);
+  bool has_scale_fractional = false;
 
   std::string make;
   std::string model;
@@ -100,9 +100,9 @@ class GHOST_SystemWayland : public GHOST_System {
 
   wl_compositor *compositor();
 
-  xdg_wm_base *shell();
+  xdg_wm_base *xdg_shell();
 
-  zxdg_decoration_manager_v1 *decoration_manager();
+  zxdg_decoration_manager_v1 *xdg_decoration_manager();
 
   const std::vector<output_t *> &outputs() const;
 
