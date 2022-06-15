@@ -340,7 +340,7 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
   tracking->dopesheet.sort_method = TRACKING_DOPE_SORT_AVERAGE_ERROR;
   tracking->dopesheet.flag |= TRACKING_DOPE_SORT_INVERSE;
 
-  BKE_tracking_object_add(tracking, "Camera");
+  BKE_tracking_object_add(tracking, DATA_("Camera"));
 }
 
 ListBase *BKE_tracking_get_active_tracks(MovieTracking *tracking)
