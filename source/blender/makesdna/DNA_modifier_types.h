@@ -2299,6 +2299,8 @@ typedef struct NodesModifierData {
    */
   void *runtime_eval_log;
   void *_pad1;
+  /* Runtime bCallbackFuncStore storage */
+  int runtime_callback_store[12];
 } NodesModifierData;
 
 typedef struct MeshToVolumeModifierData {

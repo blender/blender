@@ -35,6 +35,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_callbacks.h"
 #include "BKE_customdata.h"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set_instances.hh"
@@ -298,6 +299,49 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
+BLI_STATIC_ASSERT(sizeof(NodesModifierData::runtime_callback_store) >= sizeof(bCallbackFuncStore), "Callback storage must be large enough");
+
+static void on_depsgraph_update_pre(struct Main *main,
+                                    struct PointerRNA **pointers,
+                                    const int num_pointers,
+                                    void *arg)
+{
+  //AssetLibrary *asset_lib = static_cast<AssetLibrary *>(arg);
+  //asset_lib->on_blend_save_post(main, pointers, num_pointers);
+}
+
+static void clear_timestep_handler(struct NodesModifierData *nmd)
+{
+  bCallbackFuncStore *callback_store =
+      (bCallbackFuncStore *)&nmd->runtime_callback_store[0];
+  if (callback_store->func != nullptr) {
+    BKE_callback_remove(callback_store, BKE_CB_EVT_FRAME_CHANGE_PRE);
+    *callback_store = bCallbackFuncStore{};
+  }
+}
+
+static void add_timestep_handler(struct NodesModifierData *nmd)
+{
+  bCallbackFuncStore *callback_store =
+      (bCallbackFuncStore *)&nmd->runtime_callback_store[0];
+  if (callback_store->func == nullptr) {
+    callback_store->alloc = false;
+    callback_store->func = on_depsgraph_update_pre;
+    callback_store->arg = nmd;
+    BKE_callback_add(callback_store, BKE_CB_EVT_DEPSGRAPH_UPDATE_PRE);
+  }
+}
+
+void MOD_nodes_update_handlers(struct NodesModifierData *nmd)
+{
+  if (nmd->node_group && nmd->node_group->type == NTREE_PARTICLES) {
+    add_timestep_handler(nmd);
+  }
+  else {
+    clear_timestep_handler(nmd);
+  }
+}
+
 static bool check_tree_for_time_node(const bNodeTree &tree,
                                      Set<const bNodeTree *> &r_checked_trees)
 {
@@ -325,8 +369,13 @@ static bool dependsOnTime(struct Scene *UNUSED(scene), ModifierData *md)
   if (tree == nullptr) {
     return false;
   }
-  Set<const bNodeTree *> checked_trees;
-  return check_tree_for_time_node(*tree, checked_trees);
+  if (tree->type == NTREE_PARTICLES) {
+    return true;
+  }
+  else {
+    Set<const bNodeTree *> checked_trees;
+    return check_tree_for_time_node(*tree, checked_trees);
+  }
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -912,6 +961,8 @@ static void clear_runtime_data(NodesModifierData *nmd)
     delete (geo_log::ModifierLog *)nmd->runtime_eval_log;
     nmd->runtime_eval_log = nullptr;
   }
+
+  clear_timestep_handler(nmd);
 }
 
 struct OutputAttributeInfo {
@@ -1769,6 +1820,8 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
     IDP_BlendDataRead(reader, &nmd->settings.properties);
   }
   nmd->runtime_eval_log = nullptr;
+
+  (bCallbackFuncStore &)nmd->runtime_callback_store = bCallbackFuncStore{};
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -1779,6 +1832,9 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   BKE_modifier_copydata_generic(md, target, flag);
 
   tnmd->runtime_eval_log = nullptr;
+
+  (bCallbackFuncStore &)tnmd->runtime_callback_store = bCallbackFuncStore{};
+  MOD_nodes_update_handlers(tnmd);
 
   if (nmd->settings.properties != nullptr) {
     tnmd->settings.properties = IDP_CopyProperty_ex(nmd->settings.properties, flag);

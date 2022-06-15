@@ -45,7 +45,7 @@ bool geo_node_poll_default(bNodeType *UNUSED(ntype),
                            bNodeTree *ntree,
                            const char **r_disabled_hint)
 {
-  if (!STREQ(ntree->idname, "GeometryNodeTree")) {
+  if (!STR_ELEM(ntree->idname, "GeometryNodeTree", "ParticleNodeTree")) {
     *r_disabled_hint = TIP_("Not a geometry node tree");
     return false;
   }
