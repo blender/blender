@@ -689,7 +689,7 @@ static void gpencil_copy_visible_frames_to_eval(Depsgraph *depsgraph, Scene *sce
     /* Always copy active frame to eval, because the modifiers always evaluate the active frame,
      * even if it's not visible (e.g. the layer is hidden).*/
     if (gpl_eval->actframe != NULL) {
-      copy_frame_to_eval_ex(gpf_eval->runtime.gpf_orig, gpl_eval->actframe);
+      copy_frame_to_eval_ex(gpl_eval->actframe->runtime.gpf_orig, gpl_eval->actframe);
     }
   }
 
