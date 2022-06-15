@@ -35,8 +35,8 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_attribute_math.hh"
-#include "BKE_callbacks.h"
 #include "BKE_customdata.h"
+#include "BKE_geometry_cache.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_global.h"
@@ -122,6 +122,27 @@ using namespace blender::fn::multi_function_types;
 using namespace blender::nodes::derived_node_tree_types;
 using geo_log::eNamedAttrUsage;
 using geo_log::GeometryAttributeInfo;
+
+static bool isIterativeModifier(ModifierData *md)
+{
+  NodesModifierData *nmd = (NodesModifierData *)md;
+  return nmd->node_group && nmd->node_group->type == NTREE_PARTICLES;
+}
+
+static GeometryCache *ensureGeometryCache(ModifierData *md)
+{
+  NodesModifierData *nmd = (NodesModifierData *)md;
+  if (isIterativeModifier(md)) {
+    if (nmd->geometry_cache == nullptr) {
+      nmd->geometry_cache = MEM_new<GeometryCache>("geometry cache");
+    }
+  }
+  else {
+    MEM_delete(nmd->geometry_cache);
+    nmd->geometry_cache = nullptr;
+  }
+  return (GeometryCache *)nmd->geometry_cache;
+}
 
 static void initData(ModifierData *md)
 {
@@ -296,53 +317,6 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
   if (needs_own_transform_relation) {
     DEG_add_modifier_to_transform_relation(ctx->node, "Nodes Modifier");
-  }
-}
-
-BLI_STATIC_ASSERT(sizeof(NodesModifierData::runtime_callback_store) >= sizeof(bCallbackFuncStore), "Callback storage must be large enough");
-
-static void on_frame_change_pre(struct Main *main,
-                                struct PointerRNA **pointers,
-                                const int num_pointers,
-                                void *arg)
-{
-  BLI_assert(num_pointers == 1);
-  BLI_assert(pointers[0]->type == &RNA_Scene);
-  Scene *scene = (Scene *)pointers[0]->data;
-  NodesModifierData *nmd = (NodesModifierData *)arg;
-
-  BKE_scene_get_depsgraph()
-}
-
-static void clear_timestep_handler(struct NodesModifierData *nmd)
-{
-  bCallbackFuncStore *callback_store =
-      (bCallbackFuncStore *)&nmd->runtime_callback_store[0];
-  if (callback_store->func != nullptr) {
-    BKE_callback_remove(callback_store, BKE_CB_EVT_FRAME_CHANGE_PRE);
-    *callback_store = bCallbackFuncStore{};
-  }
-}
-
-static void add_timestep_handler(struct NodesModifierData *nmd)
-{
-  bCallbackFuncStore *callback_store =
-      (bCallbackFuncStore *)&nmd->runtime_callback_store[0];
-  if (callback_store->func == nullptr) {
-    callback_store->alloc = false;
-    callback_store->func = on_frame_change_pre;
-    callback_store->arg = nmd;
-    BKE_callback_add(callback_store, BKE_CB_EVT_FRAME_CHANGE_PRE);
-  }
-}
-
-void MOD_nodes_update_handlers(struct NodesModifierData *nmd)
-{
-  if (nmd->node_group && nmd->node_group->type == NTREE_PARTICLES) {
-    add_timestep_handler(nmd);
-  }
-  else {
-    clear_timestep_handler(nmd);
   }
 }
 
@@ -1349,6 +1323,11 @@ static void modifyGeometrySet(ModifierData *md,
                               GeometrySet *geometry_set)
 {
   modifyGeometry(md, ctx, *geometry_set);
+
+  NodesModifierData *nmd = (NodesModifierData *)md;
+  if (GeometryCache *cache = ensureGeometryCache(md)) {
+    cache->append(*geometry_set);
+  }
 }
 
 struct AttributeSearchData {
@@ -1822,8 +1801,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
     IDP_BlendDataRead(reader, &nmd->settings.properties);
   }
   nmd->runtime_eval_log = nullptr;
-
-  (bCallbackFuncStore &)nmd->runtime_callback_store = bCallbackFuncStore{};
+  nmd->geometry_cache = nullptr;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -1834,9 +1812,7 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   BKE_modifier_copydata_generic(md, target, flag);
 
   tnmd->runtime_eval_log = nullptr;
-
-  (bCallbackFuncStore &)tnmd->runtime_callback_store = bCallbackFuncStore{};
-  MOD_nodes_update_handlers(tnmd);
+  tnmd->geometry_cache = nullptr;
 
   if (nmd->settings.properties != nullptr) {
     tnmd->settings.properties = IDP_CopyProperty_ex(nmd->settings.properties, flag);
@@ -1851,7 +1827,8 @@ static void freeData(ModifierData *md)
     nmd->settings.properties = nullptr;
   }
 
-  clear_timestep_handler(nmd);
+  GeometryCache *cache = (GeometryCache *)nmd->geometry_cache;
+  MEM_delete(cache);
 
   clear_runtime_data(nmd);
 }

@@ -17,11 +17,6 @@ extern "C" {
  */
 void MOD_nodes_update_interface(struct Object *object, struct NodesModifierData *nmd);
 
-/**
- * Register event handlers needed for the nodes modifier.
- */
-void MOD_nodes_update_handlers(struct NodesModifierData *nmd);
-
 #ifdef __cplusplus
 }
 #endif

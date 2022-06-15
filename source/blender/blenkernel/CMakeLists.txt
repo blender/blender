@@ -136,6 +136,7 @@ set(SRC
   intern/fluid.c
   intern/fmodifier.c
   intern/freestyle.c
+  intern/geometry_cache.cc
   intern/geometry_component_curve.cc
   intern/geometry_component_curves.cc
   intern/geometry_component_instances.cc
@@ -375,6 +376,7 @@ set(SRC
   BKE_fcurve_driver.h
   BKE_fluid.h
   BKE_freestyle.h
+  BKE_geometry_cache.hh
   BKE_geometry_fields.hh
   BKE_geometry_set.h
   BKE_geometry_set.hh

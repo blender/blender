@@ -2298,9 +2298,9 @@ typedef struct NodesModifierData {
    * This can be used to help the user to debug a node tree.
    */
   void *runtime_eval_log;
-  void *_pad1;
-  /* Runtime bCallbackFuncStore storage */
-  int runtime_callback_store[12];
+
+  /* Runtime cache for iterative geometry */
+  void *geometry_cache;
 } NodesModifierData;
 
 typedef struct MeshToVolumeModifierData {
