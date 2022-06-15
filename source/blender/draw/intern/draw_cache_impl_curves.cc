@@ -163,7 +163,7 @@ void DRW_curves_batch_cache_dirty_tag(Curves *curves, int mode)
       cache->is_dirty = true;
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
   }
 }
 
@@ -530,8 +530,6 @@ static bool curves_ensure_attributes(const Curves &curves,
     }
 
     switch (type) {
-      default:
-        break;
       case CD_PROP_BOOL:
       case CD_PROP_INT8:
       case CD_PROP_INT32:
@@ -548,6 +546,8 @@ static bool curves_ensure_attributes(const Curves &curves,
         }
         break;
       }
+      default:
+        break;
     }
   }
 
