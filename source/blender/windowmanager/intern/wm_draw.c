@@ -1153,9 +1153,17 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
 
   if (wm_software_cursor_needed()) {
     struct GrabState grab_state;
-    if (wm_software_cursor_needed_for_window(win, &grab_state) &&
-        wm_software_cursor_motion_test(win)) {
-      return true;
+    if (wm_software_cursor_needed_for_window(win, &grab_state)) {
+      if (wm_software_cursor_motion_test(win)) {
+        return true;
+      }
+    }
+    else {
+      /* Detect the edge case when the previous draw used the software cursor but this one doesn't,
+       * it's important to redraw otherwise the software cursor will remain displayed. */
+      if (g_software_cursor.winid != -1) {
+        return true;
+      }
     }
   }
 
