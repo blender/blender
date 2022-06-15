@@ -301,13 +301,17 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
 BLI_STATIC_ASSERT(sizeof(NodesModifierData::runtime_callback_store) >= sizeof(bCallbackFuncStore), "Callback storage must be large enough");
 
-static void on_depsgraph_update_pre(struct Main *main,
-                                    struct PointerRNA **pointers,
-                                    const int num_pointers,
-                                    void *arg)
+static void on_frame_change_pre(struct Main *main,
+                                struct PointerRNA **pointers,
+                                const int num_pointers,
+                                void *arg)
 {
-  //AssetLibrary *asset_lib = static_cast<AssetLibrary *>(arg);
-  //asset_lib->on_blend_save_post(main, pointers, num_pointers);
+  BLI_assert(num_pointers == 1);
+  BLI_assert(pointers[0]->type == &RNA_Scene);
+  Scene *scene = (Scene *)pointers[0]->data;
+  NodesModifierData *nmd = (NodesModifierData *)arg;
+
+  BKE_scene_get_depsgraph()
 }
 
 static void clear_timestep_handler(struct NodesModifierData *nmd)
@@ -326,7 +330,7 @@ static void add_timestep_handler(struct NodesModifierData *nmd)
       (bCallbackFuncStore *)&nmd->runtime_callback_store[0];
   if (callback_store->func == nullptr) {
     callback_store->alloc = false;
-    callback_store->func = on_depsgraph_update_pre;
+    callback_store->func = on_frame_change_pre;
     callback_store->arg = nmd;
     BKE_callback_add(callback_store, BKE_CB_EVT_FRAME_CHANGE_PRE);
   }
