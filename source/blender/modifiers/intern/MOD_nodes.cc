@@ -961,8 +961,6 @@ static void clear_runtime_data(NodesModifierData *nmd)
     delete (geo_log::ModifierLog *)nmd->runtime_eval_log;
     nmd->runtime_eval_log = nullptr;
   }
-
-  clear_timestep_handler(nmd);
 }
 
 struct OutputAttributeInfo {
@@ -1829,12 +1827,11 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
   NodesModifierData *tnmd = reinterpret_cast<NodesModifierData *>(target);
 
-  (bCallbackFuncStore &)tnmd->runtime_callback_store = bCallbackFuncStore{};
-
   BKE_modifier_copydata_generic(md, target, flag);
 
   tnmd->runtime_eval_log = nullptr;
 
+  (bCallbackFuncStore &)tnmd->runtime_callback_store = bCallbackFuncStore{};
   MOD_nodes_update_handlers(tnmd);
 
   if (nmd->settings.properties != nullptr) {
@@ -1849,6 +1846,8 @@ static void freeData(ModifierData *md)
     IDP_FreeProperty_ex(nmd->settings.properties, false);
     nmd->settings.properties = nullptr;
   }
+
+  clear_timestep_handler(nmd);
 
   clear_runtime_data(nmd);
 }
