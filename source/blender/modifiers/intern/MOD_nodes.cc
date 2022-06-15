@@ -328,7 +328,7 @@ static void add_timestep_handler(struct NodesModifierData *nmd)
     callback_store->alloc = false;
     callback_store->func = on_depsgraph_update_pre;
     callback_store->arg = nmd;
-    BKE_callback_add(callback_store, BKE_CB_EVT_DEPSGRAPH_UPDATE_PRE);
+    BKE_callback_add(callback_store, BKE_CB_EVT_FRAME_CHANGE_PRE);
   }
 }
 
@@ -1829,11 +1829,12 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   const NodesModifierData *nmd = reinterpret_cast<const NodesModifierData *>(md);
   NodesModifierData *tnmd = reinterpret_cast<NodesModifierData *>(target);
 
+  (bCallbackFuncStore &)tnmd->runtime_callback_store = bCallbackFuncStore{};
+
   BKE_modifier_copydata_generic(md, target, flag);
 
   tnmd->runtime_eval_log = nullptr;
 
-  (bCallbackFuncStore &)tnmd->runtime_callback_store = bCallbackFuncStore{};
   MOD_nodes_update_handlers(tnmd);
 
   if (nmd->settings.properties != nullptr) {
