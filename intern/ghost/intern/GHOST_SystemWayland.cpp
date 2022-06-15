@@ -1833,8 +1833,8 @@ static void output_geometry(void *data,
   output->transform = transform;
   output->make = std::string(make);
   output->model = std::string(model);
-  output->width_mm = physical_width;
-  output->height_mm = physical_height;
+  output->size_mm[0] = physical_width;
+  output->size_mm[1] = physical_height;
 }
 
 static void output_mode(void *data,
@@ -1845,8 +1845,8 @@ static void output_mode(void *data,
                         int32_t /*refresh*/)
 {
   output_t *output = static_cast<output_t *>(data);
-  output->width_pxl = width;
-  output->height_pxl = height;
+  output->size_native[0] = width;
+  output->size_native[1] = height;
 }
 
 /**
@@ -2182,8 +2182,8 @@ void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &he
 {
   if (getNumDisplays() > 0) {
     /* We assume first output as main. */
-    width = uint32_t(d->outputs[0]->width_pxl) / d->outputs[0]->scale;
-    height = uint32_t(d->outputs[0]->height_pxl) / d->outputs[0]->scale;
+    width = uint32_t(d->outputs[0]->size_native[0]) / d->outputs[0]->scale;
+    height = uint32_t(d->outputs[0]->size_native[1]) / d->outputs[0]->scale;
   }
 }
 

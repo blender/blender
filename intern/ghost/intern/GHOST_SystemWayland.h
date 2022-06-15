@@ -23,8 +23,10 @@ struct display_t;
 
 struct output_t {
   struct wl_output *output;
-  int32_t width_pxl, height_pxl; /* Dimensions in pixel. */
-  int32_t width_mm, height_mm;   /* Dimensions in millimeter. */
+  /** Dimensions in pixels. */
+  int32_t size_native[2];
+  /** Dimensions in millimeter. */
+  int32_t size_mm[2];
   int transform;
   int scale;
   std::string make;
