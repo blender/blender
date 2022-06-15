@@ -657,11 +657,13 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
 
   ED_region_tag_redraw(region);
 
-  if (event->type == EVT_LEFTCTRLKEY && event->val == KM_PRESS) {
-    cd->sample_mode = true;
-  }
-  if (event->type == EVT_LEFTCTRLKEY && event->val == KM_RELEASE) {
-    cd->sample_mode = false;
+  if (ELEM(event->type, EVT_LEFTCTRLKEY, EVT_RIGHTCTRLKEY)) {
+    if (event->val == KM_PRESS) {
+      cd->sample_mode = true;
+    }
+    else if (event->val == KM_RELEASE) {
+      cd->sample_mode = false;
+    }
   }
 
   /* Sample mode sets the detail size sampling the average edge length under the surface. */

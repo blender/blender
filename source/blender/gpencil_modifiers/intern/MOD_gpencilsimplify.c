@@ -16,7 +16,6 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_vec_types.h"
 
 #include "BKE_context.h"
 #include "BKE_gpencil_geom.h"

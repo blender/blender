@@ -5,6 +5,8 @@
  * of data the CPU has to precompute and transfer for each update.
  */
 
+#define COMMON_HAIR_LIB
+
 /* TODO(fclem): Keep documentation but remove the uniform declaration. */
 #ifndef USE_GPU_SHADER_CREATE_INFO
 

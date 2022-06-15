@@ -41,7 +41,7 @@ class ShadingView {
   /** Matrix to apply to the viewmat. */
   const float (*face_matrix_)[4];
 
-  /** Post-fx modules. */
+  /** Post-FX modules. */
   // DepthOfField dof_;
   // MotionBlur mb_;
   VelocityView velocity_;

@@ -711,14 +711,14 @@ static bool animedit_poll_channels_active(bContext *C)
   /* channels region test */
   /* TODO: could enhance with actually testing if channels region? */
   if (ELEM(NULL, area, CTX_wm_region(C))) {
-    return 0;
+    return false;
   }
   /* animation editor test */
   if (ELEM(area->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA) == 0) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 /* Poll callback for Animation Editor channels list region + not in NLA-tweak-mode for NLA. */
@@ -730,21 +730,21 @@ static bool animedit_poll_channels_nla_tweakmode_off(bContext *C)
   /* channels region test */
   /* TODO: could enhance with actually testing if channels region? */
   if (ELEM(NULL, area, CTX_wm_region(C))) {
-    return 0;
+    return false;
   }
   /* animation editor test */
   if (ELEM(area->spacetype, SPACE_ACTION, SPACE_GRAPH, SPACE_NLA) == 0) {
-    return 0;
+    return false;
   }
 
   /* NLA tweak-mode test. */
   if (area->spacetype == SPACE_NLA) {
     if ((scene == NULL) || (scene->flag & SCE_NLA_EDIT_ON)) {
-      return 0;
+      return false;
     }
   }
 
-  return 1;
+  return true;
 }
 
 /* ****************** Rearrange Channels Operator ******************* */
@@ -791,7 +791,7 @@ static bool rearrange_island_ok(tReorderChannelIsland *island)
 {
   /* island must not be untouchable */
   if (island->flag & REORDER_ISLAND_UNTOUCHABLE) {
-    return 0;
+    return false;
   }
 
   /* island should be selected to be moved */
@@ -809,10 +809,10 @@ static bool rearrange_island_top(ListBase *list, tReorderChannelIsland *island)
     /* make it first element */
     BLI_insertlinkbefore(list, list->first, island);
 
-    return 1;
+    return true;
   }
 
-  return 0;
+  return false;
 }
 
 static bool rearrange_island_up(ListBase *list, tReorderChannelIsland *island)
@@ -833,11 +833,11 @@ static bool rearrange_island_up(ListBase *list, tReorderChannelIsland *island)
       /* push it up */
       BLI_insertlinkbefore(list, prev, island);
 
-      return 1;
+      return true;
     }
   }
 
-  return 0;
+  return false;
 }
 
 static bool rearrange_island_down(ListBase *list, tReorderChannelIsland *island)
@@ -1083,7 +1083,7 @@ static bool rearrange_animchannel_islands(ListBase *list,
 
   /* don't waste effort on an empty list */
   if (BLI_listbase_is_empty(list)) {
-    return 0;
+    return false;
   }
 
   /* group channels into islands */
@@ -1589,7 +1589,7 @@ static bool animchannels_grouping_poll(bContext *C)
   /* channels region test */
   /* TODO: could enhance with actually testing if channels region? */
   if (ELEM(NULL, area, CTX_wm_region(C))) {
-    return 0;
+    return false;
   }
 
   /* animation editor test - must be suitable modes only */
@@ -1602,7 +1602,7 @@ static bool animchannels_grouping_poll(bContext *C)
 
       /* dopesheet and action only - all others are for other datatypes or have no groups */
       if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_DOPESHEET) == 0) {
-        return 0;
+        return false;
       }
 
       break;
@@ -1612,17 +1612,17 @@ static bool animchannels_grouping_poll(bContext *C)
 
       /* drivers can't have groups... */
       if (sipo->mode != SIPO_MODE_ANIMATION) {
-        return 0;
+        return false;
       }
 
       break;
     }
     /* unsupported... */
     default:
-      return 0;
+      return false;
   }
 
-  return 1;
+  return true;
 }
 
 /* ----------------------------------------------------------- */
@@ -2428,15 +2428,15 @@ static bool animchannels_enable_poll(bContext *C)
   /* channels region test */
   /* TODO: could enhance with actually testing if channels region? */
   if (ELEM(NULL, area, CTX_wm_region(C))) {
-    return 0;
+    return false;
   }
 
   /* animation editor test - Action/Dopesheet/etc. and Graph only */
   if (ELEM(area->spacetype, SPACE_ACTION, SPACE_GRAPH) == 0) {
-    return 0;
+    return false;
   }
 
-  return 1;
+  return true;
 }
 
 static int animchannels_enable_exec(bContext *C, wmOperator *UNUSED(op))
@@ -2504,7 +2504,7 @@ static bool animchannels_select_filter_poll(bContext *C)
   ScrArea *area = CTX_wm_area(C);
 
   if (area == NULL) {
-    return 0;
+    return false;
   }
 
   /* animation editor with dopesheet */
@@ -2791,12 +2791,34 @@ static bool rename_anim_channels(bAnimContext *ac, int channel_index)
     return false;
   }
 
-  /* don't allow renaming linked channels */
-  if ((ale->fcurve_owner_id != NULL &&
-       (ID_IS_LINKED(ale->fcurve_owner_id) || ID_IS_OVERRIDE_LIBRARY(ale->fcurve_owner_id))) ||
-      (ale->id != NULL && (ID_IS_LINKED(ale->id) || ID_IS_OVERRIDE_LIBRARY(ale->id)))) {
+  /* Don't allow renaming linked/liboverride channels. */
+  if (ale->fcurve_owner_id != NULL &&
+      (ID_IS_LINKED(ale->fcurve_owner_id) || ID_IS_OVERRIDE_LIBRARY(ale->fcurve_owner_id))) {
     ANIM_animdata_freelist(&anim_data);
     return false;
+  }
+  if (ale->id != NULL) {
+    if (ID_IS_LINKED(ale->id)) {
+      ANIM_animdata_freelist(&anim_data);
+      return false;
+    }
+    /* There is one exception to not allowing renaming on liboverride channels: locally-inserted
+     * NLA tracks. */
+    if (ID_IS_OVERRIDE_LIBRARY(ale->id)) {
+      switch (ale->type) {
+        case ANIMTYPE_NLATRACK: {
+          NlaTrack *nlt = (NlaTrack *)ale->data;
+          if ((nlt->flag & NLATRACK_OVERRIDELIBRARY_LOCAL) == 0) {
+            ANIM_animdata_freelist(&anim_data);
+            return false;
+          }
+          break;
+        }
+        default:
+          ANIM_animdata_freelist(&anim_data);
+          return false;
+      }
+    }
   }
 
   /* check that channel can be renamed */

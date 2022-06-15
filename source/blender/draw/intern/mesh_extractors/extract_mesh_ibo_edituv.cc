@@ -7,7 +7,7 @@
 
 #include "BLI_bitmap.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_subdivision.h"
 
@@ -584,9 +584,7 @@ constexpr MeshExtract create_extractor_edituv_fdots()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_edituv_tris = blender::draw::create_extractor_edituv_tris();
 const MeshExtract extract_edituv_lines = blender::draw::create_extractor_edituv_lines();
 const MeshExtract extract_edituv_points = blender::draw::create_extractor_edituv_points();
 const MeshExtract extract_edituv_fdots = blender::draw::create_extractor_edituv_fdots();
-}

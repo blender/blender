@@ -39,7 +39,10 @@ GPU_SHADER_CREATE_INFO(eevee_geom_curves)
     .additional_info("eevee_shared")
     .define("MAT_GEOM_CURVES")
     .vertex_source("eevee_geom_curves_vert.glsl")
-    .additional_info("draw_hair", "draw_resource_id_varying", "draw_resource_handle");
+    .additional_info("draw_hair",
+                     "draw_curves_infos",
+                     "draw_resource_id_varying",
+                     "draw_resource_handle");
 
 GPU_SHADER_CREATE_INFO(eevee_geom_world)
     .additional_info("eevee_shared")
@@ -166,7 +169,7 @@ GPU_SHADER_CREATE_INFO(eevee_material_stub).define("EEVEE_MATERIAL_STUBS");
 #  define EEVEE_MAT_GEOM_VARIATIONS(prefix, ...) \
     EEVEE_MAT_FINAL_VARIATION(prefix##_world, "eevee_geom_world", __VA_ARGS__) \
     EEVEE_MAT_FINAL_VARIATION(prefix##_gpencil, "eevee_geom_gpencil", __VA_ARGS__) \
-    EEVEE_MAT_FINAL_VARIATION(prefix##_hair, "eevee_geom_curves", __VA_ARGS__) \
+    EEVEE_MAT_FINAL_VARIATION(prefix##_curves, "eevee_geom_curves", __VA_ARGS__) \
     EEVEE_MAT_FINAL_VARIATION(prefix##_mesh, "eevee_geom_mesh", __VA_ARGS__)
 
 #  define EEVEE_MAT_PIPE_VARIATIONS(name, ...) \

@@ -132,7 +132,7 @@ static void ED_keylist_runtime_init_listbase(AnimKeylist *keylist)
     return;
   }
 
-  keylist->runtime.list_wrapper.first = &keylist->runtime.key_columns[0];
+  keylist->runtime.list_wrapper.first = keylist->runtime.key_columns.data();
   keylist->runtime.list_wrapper.last = &keylist->runtime.key_columns[keylist->column_len - 1];
 }
 
@@ -309,7 +309,7 @@ static void keylist_first_last(const struct AnimKeylist *keylist,
                                const struct ActKeyColumn **last_column)
 {
   if (keylist->is_runtime_initialized) {
-    *first_column = &keylist->runtime.key_columns[0];
+    *first_column = keylist->runtime.key_columns.data();
     *last_column = &keylist->runtime.key_columns[keylist->column_len - 1];
   }
   else {

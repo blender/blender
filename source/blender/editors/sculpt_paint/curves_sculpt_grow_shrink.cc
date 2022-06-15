@@ -151,49 +151,9 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
         const float3 direction = math::normalize(old_last_pos_cu - direction_reference_point);
 
         const float3 new_last_pos_cu = old_last_pos_cu + direction * move_distance_cu;
-        this->move_last_point_and_resample(positions_cu, curve_points, new_last_pos_cu);
+        move_last_point_and_resample(positions_cu.slice(curve_points), new_last_pos_cu);
       }
     });
-  }
-
-  void move_last_point_and_resample(MutableSpan<float3> positions,
-                                    const IndexRange curve_points,
-                                    const float3 &new_last_point_position) const
-  {
-    Vector<float> old_lengths;
-    old_lengths.append(0.0f);
-    /* Used to (1) normalize the segment sizes over time and (2) support making zero-length
-     * segments */
-    const float extra_length = 0.001f;
-    for (const int segment_i : IndexRange(curve_points.size() - 1)) {
-      const float3 &p1 = positions[curve_points[segment_i]];
-      const float3 &p2 = positions[curve_points[segment_i] + 1];
-      const float length = math::distance(p1, p2);
-      old_lengths.append(old_lengths.last() + length + extra_length);
-    }
-    Vector<float> point_factors;
-    for (float &old_length : old_lengths) {
-      point_factors.append(old_length / old_lengths.last());
-    }
-
-    PolySpline new_spline;
-    new_spline.resize(curve_points.size());
-    MutableSpan<float3> new_spline_positions = new_spline.positions();
-    for (const int i : IndexRange(curve_points.size() - 1)) {
-      new_spline_positions[i] = positions[curve_points[i]];
-    }
-    new_spline_positions.last() = new_last_point_position;
-    new_spline.mark_cache_invalid();
-
-    for (const int i : IndexRange(curve_points.size())) {
-      const float factor = point_factors[i];
-      const Spline::LookupResult lookup = new_spline.lookup_evaluated_factor(factor);
-      const float index_factor = lookup.evaluated_index + lookup.factor;
-      float3 p;
-      new_spline.sample_with_index_factors<float3>(
-          new_spline_positions, {&index_factor, 1}, {&p, 1});
-      positions[curve_points[i]] = p;
-    }
   }
 };
 
@@ -270,11 +230,7 @@ class CurvesEffectOperation : public CurvesSculptStrokeOperation {
  */
 struct CurvesEffectOperationExecutor {
   CurvesEffectOperation *self_ = nullptr;
-  const Depsgraph *depsgraph_ = nullptr;
-  const Scene *scene_ = nullptr;
-  ARegion *region_ = nullptr;
-  const View3D *v3d_ = nullptr;
-  const RegionView3D *rv3d_ = nullptr;
+  CurvesSculptCommonContext ctx_;
 
   Object *object_ = nullptr;
   Curves *curves_id_ = nullptr;
@@ -302,6 +258,10 @@ struct CurvesEffectOperationExecutor {
     Vector<float> move_distances_cu;
   };
 
+  CurvesEffectOperationExecutor(const bContext &C) : ctx_(C)
+  {
+  }
+
   void execute(CurvesEffectOperation &self,
                const bContext &C,
                const StrokeExtension &stroke_extension)
@@ -309,12 +269,7 @@ struct CurvesEffectOperationExecutor {
     BLI_SCOPED_DEFER([&]() { self.last_mouse_position_ = stroke_extension.mouse_position; });
 
     self_ = &self;
-    depsgraph_ = CTX_data_depsgraph_pointer(&C);
-    scene_ = CTX_data_scene(&C);
     object_ = CTX_data_active_object(&C);
-    region_ = CTX_wm_region(&C);
-    v3d_ = CTX_wm_view3d(&C);
-    rv3d_ = CTX_wm_region_view3d(&C);
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
@@ -325,13 +280,13 @@ struct CurvesEffectOperationExecutor {
     curve_selection_factors_ = get_curves_selection(*curves_id_);
     curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
-    const CurvesSculpt &curves_sculpt = *scene_->toolsettings->curves_sculpt;
+    const CurvesSculpt &curves_sculpt = *ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt.paint);
-    brush_strength_ = brush_strength_get(*scene_, *brush_, stroke_extension);
+    brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
 
-    brush_radius_base_re_ = BKE_brush_size_get(scene_, brush_);
+    brush_radius_base_re_ = BKE_brush_size_get(ctx_.scene, brush_);
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
-    brush_strength_ = brush_strength_get(*scene_, *brush_, stroke_extension);
+    brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
 
     falloff_shape_ = eBrushFalloffShape(brush_->falloff_shape);
 
@@ -344,10 +299,10 @@ struct CurvesEffectOperationExecutor {
     if (stroke_extension.is_first) {
       if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
         if (std::optional<CurvesBrush3D> brush_3d = sample_curves_3d_brush(
-                *depsgraph_,
-                *region_,
-                *v3d_,
-                *rv3d_,
+                *ctx_.depsgraph,
+                *ctx_.region,
+                *ctx_.v3d,
+                *ctx_.rv3d,
                 *object_,
                 stroke_extension.mouse_position,
                 brush_radius_base_re_)) {
@@ -376,7 +331,7 @@ struct CurvesEffectOperationExecutor {
     curves_->tag_positions_changed();
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
-    ED_region_tag_redraw(region_);
+    ED_region_tag_redraw(ctx_.region);
   }
 
   void gather_influences_projected(
@@ -385,7 +340,7 @@ struct CurvesEffectOperationExecutor {
     const Span<float3> positions_cu = curves_->positions();
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
@@ -412,8 +367,8 @@ struct CurvesEffectOperationExecutor {
             const float3 p2_cu = brush_transform_inv * positions_cu[segment_i + 1];
 
             float2 p1_re, p2_re;
-            ED_view3d_project_float_v2_m4(region_, p1_cu, p1_re, projection.values);
-            ED_view3d_project_float_v2_m4(region_, p2_cu, p2_re, projection.values);
+            ED_view3d_project_float_v2_m4(ctx_.region, p1_cu, p1_re, projection.values);
+            ED_view3d_project_float_v2_m4(ctx_.region, p2_cu, p2_re, projection.values);
 
             float2 closest_on_brush_re;
             float2 closest_on_segment_re;
@@ -441,13 +396,13 @@ struct CurvesEffectOperationExecutor {
                 p1_cu, p2_cu, lambda_on_segment);
 
             float3 brush_start_pos_wo, brush_end_pos_wo;
-            ED_view3d_win_to_3d(v3d_,
-                                region_,
+            ED_view3d_win_to_3d(ctx_.v3d,
+                                ctx_.region,
                                 curves_to_world_mat_ * closest_on_segment_cu,
                                 brush_pos_start_re_,
                                 brush_start_pos_wo);
-            ED_view3d_win_to_3d(v3d_,
-                                region_,
+            ED_view3d_win_to_3d(ctx_.v3d,
+                                ctx_.region,
                                 curves_to_world_mat_ * closest_on_segment_cu,
                                 brush_pos_end_re_,
                                 brush_end_pos_wo);
@@ -473,13 +428,13 @@ struct CurvesEffectOperationExecutor {
     const Span<float3> positions_cu = curves_->positions();
 
     float3 brush_pos_start_wo, brush_pos_end_wo;
-    ED_view3d_win_to_3d(v3d_,
-                        region_,
+    ED_view3d_win_to_3d(ctx_.v3d,
+                        ctx_.region,
                         curves_to_world_mat_ * self_->brush_3d_.position_cu,
                         brush_pos_start_re_,
                         brush_pos_start_wo);
-    ED_view3d_win_to_3d(v3d_,
-                        region_,
+    ED_view3d_win_to_3d(ctx_.v3d,
+                        ctx_.region,
                         curves_to_world_mat_ * self_->brush_3d_.position_cu,
                         brush_pos_end_re_,
                         brush_pos_end_wo);
@@ -547,7 +502,7 @@ struct CurvesEffectOperationExecutor {
 void CurvesEffectOperation::on_stroke_extended(const bContext &C,
                                                const StrokeExtension &stroke_extension)
 {
-  CurvesEffectOperationExecutor executor;
+  CurvesEffectOperationExecutor executor{C};
   executor.execute(*this, C, stroke_extension);
 }
 

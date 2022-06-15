@@ -278,7 +278,7 @@ class IndexMask {
    * before each range in the return value starts.
    */
   Vector<IndexRange> extract_ranges_invert(const IndexRange full_range,
-                                           Vector<int64_t> *r_skip_amounts) const;
+                                           Vector<int64_t> *r_skip_amounts = nullptr) const;
 };
 
 }  // namespace blender

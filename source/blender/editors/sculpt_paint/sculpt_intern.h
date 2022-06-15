@@ -247,6 +247,10 @@ typedef struct SculptThreadedTaskData {
   float (*mat)[4];
   float (*vertCos)[3];
 
+  /* When true, the displacement stored in the proxies will be aplied to the original coordinates
+   * instead of to the current coordinates. */
+  bool use_proxies_orco;
+
   /* X and Z vectors aligned to the stroke direction for operations where perpendicular vectors to
    * the stroke direction are needed. */
   float (*stroke_xz)[3];
@@ -290,6 +294,10 @@ typedef struct SculptThreadedTaskData {
   bool mask_expand_create_face_set;
 
   float transform_mats[8][4][4];
+  float elastic_transform_mat[4][4];
+  float elastic_transform_pivot[3];
+  float elastic_transform_pivot_init[3];
+  float elastic_transform_radius;
 
   /* Boundary brush */
   float boundary_deform_strength;
@@ -372,6 +380,14 @@ typedef enum SculptFilterOrientation {
   SCULPT_FILTER_ORIENTATION_VIEW = 2,
 } SculptFilterOrientation;
 
+/* Defines how transform tools are going to apply its displacement. */
+typedef enum SculptTransformDisplacementMode {
+  /* Displaces the elements from their original coordinates. */
+  SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL = 0,
+  /* Displaces the elements incrementally from their previous position. */
+  SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL = 1,
+} SculptTransformDisplacementMode;
+
 #define SCULPT_CLAY_STABILIZER_LEN 10
 
 typedef struct AutomaskingSettings {
@@ -439,6 +455,8 @@ typedef struct FilterCache {
   int *prev_face_set;
 
   int active_face_set;
+
+  SculptTransformDisplacementMode transform_displacement_mode;
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
@@ -1137,12 +1155,15 @@ bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v);
  */
 bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v);
 
+void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob);
+
 /**
  * Initialize a point-in-brush test with a given falloff shape.
  *
  * \param falloff_shape: #PAINT_FALLOFF_SHAPE_SPHERE or #PAINT_FALLOFF_SHAPE_TUBE.
  * \return The brush falloff function.
  */
+
 SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
                                                             SculptBrushTest *test,
                                                             char falloff_shape);

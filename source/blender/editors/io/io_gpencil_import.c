@@ -5,34 +5,36 @@
  * \ingroup editor/io
  */
 
-#include "BLI_path_util.h"
+#ifdef WITH_IO_GPENCIL
 
-#include "DNA_gpencil_types.h"
-#include "DNA_space_types.h"
+#  include "BLI_path_util.h"
 
-#include "BKE_context.h"
-#include "BKE_gpencil.h"
-#include "BKE_report.h"
+#  include "DNA_gpencil_types.h"
+#  include "DNA_space_types.h"
 
-#include "BLT_translation.h"
+#  include "BKE_context.h"
+#  include "BKE_gpencil.h"
+#  include "BKE_report.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#  include "BLT_translation.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#  include "RNA_access.h"
+#  include "RNA_define.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#  include "UI_interface.h"
+#  include "UI_resources.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#  include "WM_api.h"
+#  include "WM_types.h"
 
-#include "ED_gpencil.h"
+#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph_query.h"
 
-#include "io_gpencil.h"
+#  include "ED_gpencil.h"
 
-#include "gpencil_io.h"
+#  include "io_gpencil.h"
+
+#  include "gpencil_io.h"
 
 /* <-------- SVG single frame import. --------> */
 static bool wm_gpencil_import_svg_common_check(bContext *UNUSED(C), wmOperator *op)
@@ -174,3 +176,5 @@ void WM_OT_gpencil_import_svg(wmOperatorType *ot)
                 0.001f,
                 100.0f);
 }
+
+#endif /* WITH_IO_GPENCIL */

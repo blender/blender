@@ -241,6 +241,11 @@ class OBJMesh : NonCopyable {
     return i < 0 || i >= poly_order_.size() ? i : poly_order_[i];
   }
 
+  Mesh *get_mesh() const
+  {
+    return export_mesh_eval_;
+  }
+
  private:
   /**
    * Free the mesh if _the exporter_ created it.
@@ -256,6 +261,6 @@ class OBJMesh : NonCopyable {
   /**
    * Set the final transform after applying axes settings and an Object's world transform.
    */
-  void set_world_axes_transform(eTransformAxisForward forward, eTransformAxisUp up);
+  void set_world_axes_transform(eIOAxis forward, eIOAxis up);
 };
 }  // namespace blender::io::obj

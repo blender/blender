@@ -1167,7 +1167,9 @@ static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Copy to Selected";
   ot->idname = "UI_OT_copy_to_selected_button";
-  ot->description = "Copy property from this object to selected objects or bones";
+  ot->description =
+      "Copy the property's value from the active item to the same property of all selected items "
+      "if the same property exists";
 
   /* callbacks */
   ot->poll = copy_to_selected_button_poll;
@@ -1940,6 +1942,24 @@ static void UI_OT_drop_color(wmOperatorType *ot)
 /** \name Drop Name Operator
  * \{ */
 
+static bool drop_name_poll(bContext *C)
+{
+  if (!ED_operator_regionactive(C)) {
+    return false;
+  }
+
+  const uiBut *but = UI_but_active_drop_name_button(C);
+  if (!but) {
+    return false;
+  }
+
+  if (but->flag & UI_BUT_DISABLED) {
+    return false;
+  }
+
+  return true;
+}
+
 static int drop_name_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   uiBut *but = UI_but_active_drop_name_button(C);
@@ -1959,7 +1979,7 @@ static void UI_OT_drop_name(wmOperatorType *ot)
   ot->idname = "UI_OT_drop_name";
   ot->description = "Drop name to button";
 
-  ot->poll = ED_operator_regionactive;
+  ot->poll = drop_name_poll;
   ot->invoke = drop_name_invoke;
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 

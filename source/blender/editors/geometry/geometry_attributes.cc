@@ -44,9 +44,9 @@ namespace blender::ed::geometry {
 
 static bool geometry_attributes_poll(bContext *C)
 {
-  Object *ob = ED_object_context(C);
-  Main *bmain = CTX_data_main(C);
-  ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
+  const Object *ob = ED_object_context(C);
+  const Main *bmain = CTX_data_main(C);
+  const ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
   return (ob && BKE_id_is_editable(bmain, &ob->id) && data && BKE_id_is_editable(bmain, data)) &&
          BKE_id_attributes_supported(data);
 }
@@ -106,7 +106,7 @@ static int geometry_attribute_add_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static void next_color_attribute(struct ID *id, CustomDataLayer *layer, bool is_render)
+static void next_color_attribute(ID *id, CustomDataLayer *layer, bool is_render)
 {
   int index = BKE_id_attribute_to_index(id, layer, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 
@@ -129,7 +129,7 @@ static void next_color_attribute(struct ID *id, CustomDataLayer *layer, bool is_
   }
 }
 
-static void next_color_attributes(struct ID *id, CustomDataLayer *layer)
+static void next_color_attributes(ID *id, CustomDataLayer *layer)
 {
   next_color_attribute(id, layer, false); /* active */
   next_color_attribute(id, layer, true);  /* render */
@@ -182,7 +182,7 @@ static int geometry_attribute_remove_exec(bContext *C, wmOperator *op)
 
   next_color_attributes(id, layer);
 
-  if (!BKE_id_attribute_remove(id, layer, op->reports)) {
+  if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -261,8 +261,11 @@ static bool geometry_attribute_convert_poll(bContext *C)
   if (GS(data->name) != ID_ME) {
     return false;
   }
-  CustomDataLayer *layer = BKE_id_attributes_active_get(data);
-  if (layer == nullptr) {
+  if (CTX_data_edit_object(C) != nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "Operation is not allowed in edit mode");
+    return false;
+  }
+  if (BKE_id_attributes_active_get(data) == nullptr) {
     return false;
   }
   return true;
@@ -465,7 +468,7 @@ static int geometry_color_attribute_remove_exec(bContext *C, wmOperator *op)
 
   next_color_attributes(id, layer);
 
-  if (!BKE_id_attribute_remove(id, layer, op->reports)) {
+  if (!BKE_id_attribute_remove(id, layer->name, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -495,6 +498,7 @@ static bool geometry_color_attributes_remove_poll(bContext *C)
 
   return false;
 }
+
 void GEOMETRY_OT_color_attribute_remove(wmOperatorType *ot)
 {
   /* identifiers */
@@ -505,6 +509,64 @@ void GEOMETRY_OT_color_attribute_remove(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = geometry_color_attribute_remove_exec;
   ot->poll = geometry_color_attributes_remove_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
+{
+  Object *ob = ED_object_context(C);
+  ID *id = static_cast<ID *>(ob->data);
+  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
+
+  if (layer == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  CustomDataLayer *new_layer = BKE_id_attribute_duplicate(id, layer->name, op->reports);
+  if (new_layer == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_id_attributes_active_color_set(id, new_layer);
+
+  DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+  WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool geometry_color_attributes_duplicate_poll(bContext *C)
+{
+  if (!geometry_attributes_poll(C)) {
+    return false;
+  }
+  if (CTX_data_edit_object(C) != nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "Operation is not allowed in edit mode");
+    return false;
+  }
+
+  Object *ob = ED_object_context(C);
+  ID *data = ob ? static_cast<ID *>(ob->data) : nullptr;
+
+  if (BKE_id_attributes_active_color_get(data) != nullptr) {
+    return true;
+  }
+
+  return false;
+}
+
+void GEOMETRY_OT_color_attribute_duplicate(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Duplicate Color Attribute";
+  ot->description = "Duplicate color attribute";
+  ot->idname = "GEOMETRY_OT_color_attribute_duplicate";
+
+  /* api callbacks */
+  ot->exec = geometry_color_attribute_duplicate_exec;
+  ot->poll = geometry_color_attributes_duplicate_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

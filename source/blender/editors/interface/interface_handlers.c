@@ -1480,9 +1480,9 @@ static void ui_multibut_states_create(uiBut *but_active, uiHandleButtonData *dat
     }
   }
 
-  /* edit buttons proportionally to eachother
+  /* Edit buttons proportionally to each other.
    * NOTE: if we mix buttons which are proportional and others which are not,
-   * this may work a bit strangely */
+   * this may work a bit strangely. */
   if ((but_active->rnaprop && (RNA_property_flag(but_active->rnaprop) & PROP_PROPORTIONAL)) ||
       ELEM(but_active->unit_type, RNA_SUBTYPE_UNIT_VALUE(PROP_UNIT_LENGTH))) {
     if (data->origvalue != 0.0) {
@@ -2135,25 +2135,7 @@ static bool ui_but_drag_init(bContext *C,
       }
     }
     else {
-      wmDrag *drag = WM_event_start_drag(
-          C,
-          but->icon,
-          but->dragtype,
-          but->dragpoin,
-          ui_but_value_get(but),
-          (but->dragflag & UI_BUT_DRAGPOIN_FREE) ? WM_DRAG_FREE_DATA : WM_DRAG_NOP);
-      /* wmDrag has ownership over dragpoin now, stop messing with it. */
-      but->dragpoin = NULL;
-
-      if (but->imb) {
-        WM_event_drag_image(drag, but->imb, but->imb_scale);
-      }
-
-      /* Special feature for assets: We add another drag item that supports multiple assets. It
-       * gets the assets from context. */
-      if (ELEM(but->dragtype, WM_DRAG_ASSET, WM_DRAG_ID)) {
-        WM_event_start_drag(C, ICON_NONE, WM_DRAG_ASSET_LIST, NULL, 0, WM_DRAG_NOP);
-      }
+      ui_but_drag_start(C, but);
     }
     return true;
   }
@@ -2966,6 +2948,9 @@ void ui_but_text_password_hide(char password_str[UI_MAX_PASSWORD_STR],
 
 void ui_but_set_string_interactive(bContext *C, uiBut *but, const char *value)
 {
+  /* Caller should check. */
+  BLI_assert((but->flag & UI_BUT_DISABLED) == 0);
+
   button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
   ui_textedit_string_set(but, but->active, value);
 
@@ -3510,7 +3495,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
   WM_cursor_modal_set(win, WM_CURSOR_TEXT_EDIT);
 
 #ifdef WITH_INPUT_IME
-  if (is_num_but == false && BLT_lang_is_ime_supported()) {
+  if (!is_num_but) {
     ui_textedit_ime_begin(win, but);
   }
 #endif
@@ -3914,7 +3899,7 @@ static void ui_do_but_textedit(
 
     if ((event->ascii || event->utf8_buf[0]) && (retval == WM_UI_HANDLER_CONTINUE)
 #ifdef WITH_INPUT_IME
-        && !is_ime_composing && (!WM_event_is_ime_switch(event) || !BLT_lang_is_ime_supported())
+        && !is_ime_composing && !WM_event_is_ime_switch(event)
 #endif
     ) {
       char ascii = event->ascii;
@@ -4874,7 +4859,7 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
 
     /* First handle click on icon-drag type button. */
-    if ((event->type == LEFTMOUSE) && (event->val == KM_PRESS) && but->dragpoin) {
+    if ((event->type == LEFTMOUSE) && (event->val == KM_PRESS) && ui_but_drag_is_draggable(but)) {
       if (ui_but_contains_point_px_icon(but, data->region, event)) {
 
         /* tell the button to wait and keep checking further events to
@@ -4897,7 +4882,8 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
     if (ELEM(event->type, LEFTMOUSE, EVT_PADENTER, EVT_RETKEY) && event->val == KM_PRESS) {
       int ret = WM_UI_HANDLER_BREAK;
       /* XXX: (a bit ugly) Special case handling for file-browser drag button. */
-      if (but->dragpoin && but->imb && ui_but_contains_point_px_icon(but, data->region, event)) {
+      if (ui_but_drag_is_draggable(but) && but->imb &&
+          ui_but_contains_point_px_icon(but, data->region, event)) {
         ret = WM_UI_HANDLER_CONTINUE;
       }
       /* Same special case handling for UI lists. Return CONTINUE so that a tweak or CLICK event
@@ -6055,7 +6041,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
 
     /* First handle click on icon-drag type button. */
-    if (event->type == LEFTMOUSE && but->dragpoin && event->val == KM_PRESS) {
+    if (event->type == LEFTMOUSE && ui_but_drag_is_draggable(but) && event->val == KM_PRESS) {
       if (ui_but_contains_point_px_icon(but, data->region, event)) {
         button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
         data->dragstartx = event->xy[0];
@@ -6241,7 +6227,7 @@ static int ui_do_but_COLOR(bContext *C, uiBut *but, uiHandleButtonData *data, co
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     /* First handle click on icon-drag type button. */
-    if (event->type == LEFTMOUSE && but->dragpoin && event->val == KM_PRESS) {
+    if (event->type == LEFTMOUSE && ui_but_drag_is_draggable(but) && event->val == KM_PRESS) {
       ui_palette_set_active(color_but);
       if (ui_but_contains_point_px_icon(but, data->region, event)) {
         button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
@@ -7456,8 +7442,7 @@ static bool ui_numedit_but_CURVEPROFILE(uiBlock *block,
   const float zoomy = BLI_rctf_size_y(&but->rect) / BLI_rctf_size_y(&profile->view_rect);
 
   if (snap) {
-    float d[2] = {mx - data->dragstartx, data->dragstarty};
-
+    const float d[2] = {mx - data->dragstartx, data->dragstarty};
     if (len_squared_v2(d) < (9.0f * U.dpi_fac)) {
       snap = false;
     }
@@ -9528,7 +9513,7 @@ static bool ui_list_is_hovering_draggable_but(bContext *C,
     }
   }
 
-  return (hovered_but && hovered_but->dragpoin);
+  return (hovered_but && ui_but_drag_is_draggable(hovered_but));
 }
 
 static int ui_list_handle_click_drag(bContext *C,

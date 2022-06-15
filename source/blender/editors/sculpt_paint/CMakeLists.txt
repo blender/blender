@@ -10,6 +10,7 @@ set(INC
   ../../depsgraph
   ../../draw
   ../../functions
+  ../../geometry
   ../../gpu
   ../../imbuf
   ../../makesdna
@@ -57,7 +58,7 @@ set(SRC
   paint_vertex_weight_ops.c
   paint_vertex_weight_utils.c
   sculpt.c
-  sculpt_automasking.c
+  sculpt_automasking.cc
   sculpt_boundary.c
   sculpt_brush_types.c
   sculpt_cloth.c

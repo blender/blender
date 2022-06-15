@@ -34,6 +34,8 @@
 #include "WM_toolsystem.h"
 #include "WM_types.h"
 
+#include "ED_image.h"
+
 #include "paint_intern.h"
 
 namespace blender::ed::sculpt_paint::image::ops::paint {
@@ -316,7 +318,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 
   if ((brush->imagepaint_tool == PAINT_TOOL_FILL) && (brush->flag & BRUSH_USE_GRADIENT)) {
     pop->cursor = WM_paint_cursor_activate(
-        SPACE_TYPE_ANY, RGN_TYPE_ANY, image_paint_poll, gradient_draw_line, pop);
+        SPACE_TYPE_ANY, RGN_TYPE_ANY, ED_image_tools_paint_poll, gradient_draw_line, pop);
   }
 
   settings->imapaint.flag |= IMAGEPAINT_DRAWING;
@@ -520,7 +522,7 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
   ot->invoke = paint_invoke;
   ot->modal = paint_modal;
   ot->exec = paint_exec;
-  ot->poll = image_paint_poll;
+  ot->poll = ED_image_tools_paint_poll;
   ot->cancel = paint_cancel;
 
   /* flags */

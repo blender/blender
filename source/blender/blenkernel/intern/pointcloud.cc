@@ -315,9 +315,9 @@ void BKE_pointcloud_update_customdata_pointers(PointCloud *pointcloud)
       CustomData_get_layer_named(&pointcloud->pdata, CD_PROP_FLOAT, POINTCLOUD_ATTR_RADIUS));
 }
 
-bool BKE_pointcloud_customdata_required(PointCloud *UNUSED(pointcloud), CustomDataLayer *layer)
+bool BKE_pointcloud_customdata_required(const PointCloud *UNUSED(pointcloud), const char *name)
 {
-  return layer->type == CD_PROP_FLOAT3 && STREQ(layer->name, POINTCLOUD_ATTR_POSITION);
+  return STREQ(name, POINTCLOUD_ATTR_POSITION);
 }
 
 /* Dependency Graph */

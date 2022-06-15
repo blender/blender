@@ -314,28 +314,23 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
     return me;
   }
 
+  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
+  if (runtime_data == nullptr || runtime_data->settings.level == 0) {
+    return me;
+  }
+
   /* Initialize the settings before ensuring the descriptor as this is checked to decide whether
    * subdivision is needed at all, and checking the descriptor status might involve checking if the
    * data is out-of-date, which is a very expensive operation. */
   SubdivToMeshSettings mesh_settings;
-  mesh_settings.resolution = me->runtime.subsurf_resolution;
-  mesh_settings.use_optimal_display = me->runtime.subsurf_use_optimal_display;
+  mesh_settings.resolution = runtime_data->resolution;
+  mesh_settings.use_optimal_display = runtime_data->use_optimal_display;
 
   if (mesh_settings.resolution < 3) {
     return me;
   }
 
-  const bool apply_render = me->runtime.subsurf_apply_render;
-
-  SubdivSettings subdiv_settings;
-  BKE_subsurf_modifier_subdiv_settings_init(&subdiv_settings, smd, apply_render);
-  if (subdiv_settings.level == 0) {
-    return me;
-  }
-
-  SubsurfRuntimeData *runtime_data = BKE_subsurf_modifier_ensure_runtime(smd);
-
-  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(smd, &subdiv_settings, me, false);
+  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(runtime_data, me, false);
   if (subdiv == nullptr) {
     /* Happens on bad topology, but also on empty input mesh. */
     return me;
@@ -358,7 +353,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
     CustomData_set_layer_flag(&me->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
     CustomData_set_layer_flag(&subdiv_mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
-  else if (me->runtime.subsurf_do_loop_normals) {
+  else if (runtime_data->calc_loop_normals) {
     BKE_mesh_calc_normals_split(subdiv_mesh);
   }
 

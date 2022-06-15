@@ -97,7 +97,7 @@ typedef struct BrushGpencilSettings {
   /** Simplify adaptive factor */
   float simplify_f;
 
-  /** Mix colorfactor */
+  /** Mix color-factor. */
   float vertex_factor;
   int vertex_mode;
 

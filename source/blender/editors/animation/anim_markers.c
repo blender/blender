@@ -543,7 +543,6 @@ void ED_markers_draw(const bContext *C, int flag)
   View2D *v2d = UI_view2d_fromcontext(C);
   int cfra = CTX_data_scene(C)->r.cfra;
 
-  const float line_width = GPU_line_width_get();
   GPU_line_width(1.0f);
 
   rctf markers_region_rect;
@@ -578,7 +577,6 @@ void ED_markers_draw(const bContext *C, int flag)
     }
   }
 
-  GPU_line_width(line_width);
   GPU_matrix_pop();
 }
 

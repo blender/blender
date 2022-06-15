@@ -977,7 +977,7 @@ static void write_libraries(WriteData *wd, Main *main)
       if (main->curlib->packedfile) {
         BKE_packedfile_blend_write(&writer, main->curlib->packedfile);
         if (wd->use_memfile == false) {
-          CLOG_INFO(&LOG, 2, "Write packed .blend: %s\n", main->curlib->filepath);
+          CLOG_INFO(&LOG, 2, "Write packed .blend: %s", main->curlib->filepath);
         }
       }
 
@@ -990,7 +990,7 @@ static void write_libraries(WriteData *wd, Main *main)
             if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
               CLOG_ERROR(&LOG,
                          "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
-                         "directly linked\n",
+                         "directly linked",
                          id->name,
                          main->curlib->filepath_abs);
             }
@@ -1498,7 +1498,7 @@ void BLO_write_struct_array_by_name(BlendWriter *writer,
 {
   int struct_id = BLO_get_struct_id_by_name(writer, struct_name);
   if (UNLIKELY(struct_id == -1)) {
-    CLOG_ERROR(&LOG, "Can't find SDNA code <%s>\n", struct_name);
+    CLOG_ERROR(&LOG, "Can't find SDNA code <%s>", struct_name);
     return;
   }
   BLO_write_struct_array_by_id(writer, struct_id, array_size, data_ptr);
@@ -1546,7 +1546,7 @@ void BLO_write_struct_list_by_name(BlendWriter *writer, const char *struct_name,
 {
   int struct_id = BLO_get_struct_id_by_name(writer, struct_name);
   if (UNLIKELY(struct_id == -1)) {
-    CLOG_ERROR(&LOG, "Can't find SDNA code <%s>\n", struct_name);
+    CLOG_ERROR(&LOG, "Can't find SDNA code <%s>", struct_name);
     return;
   }
   BLO_write_struct_list_by_id(writer, struct_id, list);

@@ -187,7 +187,7 @@ class GHOST_Wintab {
   bool m_focused = false;
 
   /** Pressed button map. */
-  uint8_t m_buttons = 0;
+  DWORD m_buttons = 0;
 
   /** Range of a coordinate space. */
   struct Range {

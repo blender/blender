@@ -139,20 +139,20 @@ void set_vertex_pos(inout PosNorLoop vertex_data, vec3 pos)
   vertex_data.z = pos.z;
 }
 
-void set_vertex_nor(inout PosNorLoop vertex_data, vec3 nor, uint flag)
-{
-  vertex_data.nx = nor.x;
-  vertex_data.ny = nor.y;
-  vertex_data.nz = nor.z;
-  vertex_data.flag = float(flag);
-}
-
 /* Set the vertex normal but preserve the existing flag. This is for when we compute manually the
  * vertex normals when we cannot use the limit surface, in which case the flag and the normal are
  * set by two separate compute pass. */
 void set_vertex_nor(inout PosNorLoop vertex_data, vec3 nor)
 {
-  set_vertex_nor(vertex_data, nor, 0);
+  vertex_data.nx = nor.x;
+  vertex_data.ny = nor.y;
+  vertex_data.nz = nor.z;
+}
+
+void set_vertex_nor(inout PosNorLoop vertex_data, vec3 nor, float flag)
+{
+  set_vertex_nor(vertex_data, nor);
+  vertex_data.flag = flag;
 }
 
 void add_newell_cross_v3_v3v3(inout vec3 n, vec3 v_prev, vec3 v_curr)

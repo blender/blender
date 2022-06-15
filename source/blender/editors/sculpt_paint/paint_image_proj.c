@@ -3132,7 +3132,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
               }
             }
 
-            /* Is this UV visible from the view? - raytrace */
+            /* Is this UV visible from the view? - ray-trace */
             /* project_paint_PickFace is less complex, use for testing */
             // if (project_paint_PickFace(ps, pixelScreenCo, w, &side) == tri_index) {
             if ((ps->do_occlude == false) ||
@@ -3222,7 +3222,7 @@ static void project_paint_face_init(const ProjPaintState *ps,
       float seam_subsection[4][2];
       float fac1, fac2;
 
-      /* Pixelspace UVs. */
+      /* Pixel-space UV's. */
       float lt_puv[3][2];
 
       lt_puv[0][0] = lt_uv_pxoffset[0][0] * ibuf->x;

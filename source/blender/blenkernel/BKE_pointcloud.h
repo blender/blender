@@ -30,8 +30,7 @@ struct BoundBox *BKE_pointcloud_boundbox_get(struct Object *ob);
 bool BKE_pointcloud_minmax(const struct PointCloud *pointcloud, float r_min[3], float r_max[3]);
 
 void BKE_pointcloud_update_customdata_pointers(struct PointCloud *pointcloud);
-bool BKE_pointcloud_customdata_required(struct PointCloud *pointcloud,
-                                        struct CustomDataLayer *layer);
+bool BKE_pointcloud_customdata_required(const struct PointCloud *pointcloud, const char *name);
 
 /* Dependency Graph */
 

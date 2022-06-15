@@ -223,7 +223,7 @@ static BMesh *BMD_mesh_bm_create(
     Mesh *mesh, Object *object, Mesh *mesh_operand_ob, Object *operand_ob, bool *r_is_flip)
 {
 #ifdef DEBUG_TIME
-  SCOPED_TIMER(__func__)
+  SCOPED_TIMER(__func__);
 #endif
 
   *r_is_flip = (is_negative_m4(object->obmat) != is_negative_m4(operand_ob->obmat));
@@ -270,7 +270,7 @@ static void BMD_mesh_intersection(BMesh *bm,
                                   bool is_flip)
 {
 #ifdef DEBUG_TIME
-  SCOPED_TIMER(__func__)
+  SCOPED_TIMER(__func__);
 #endif
 
   BooleanModifierData *bmd = (BooleanModifierData *)md;
@@ -399,7 +399,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   Vector<Array<short>> material_remaps;
 
 #  ifdef DEBUG_TIME
-  SCOPED_TIMER(__func__)
+  SCOPED_TIMER(__func__);
 #  endif
 
   if ((bmd->flag & eBooleanModifierFlag_Object) && bmd->object == nullptr) {
@@ -470,7 +470,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #endif
 
 #ifdef DEBUG_TIME
-  SCOPED_TIMER(__func__)
+  SCOPED_TIMER(__func__);
 #endif
 
   if (bmd->flag & eBooleanModifierFlag_Object) {
@@ -518,24 +518,29 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
         Mesh *mesh_operand_ob = BKE_modifier_get_evaluated_mesh_from_evaluated_object(operand_ob,
                                                                                       false);
 
-        if (mesh_operand_ob) {
-          /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
-           * But for 2.90 better not try to be smart here. */
-          BKE_mesh_wrapper_ensure_mdata(mesh_operand_ob);
+        if (mesh_operand_ob == nullptr) {
+          continue;
+        }
 
-          bool is_flip;
-          BMesh *bm = BMD_mesh_bm_create(mesh, object, mesh_operand_ob, operand_ob, &is_flip);
+        /* XXX This is utterly non-optimal, we may go from a bmesh to a mesh back to a bmesh!
+         * But for 2.90 better not try to be smart here. */
+        BKE_mesh_wrapper_ensure_mdata(mesh_operand_ob);
 
-          BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
+        bool is_flip;
+        BMesh *bm = BMD_mesh_bm_create(result, object, mesh_operand_ob, operand_ob, &is_flip);
 
-          /* Needed for multiple objects to work. */
+        BMD_mesh_intersection(bm, md, ctx, mesh_operand_ob, object, operand_ob, is_flip);
+
+        /* Needed for multiple objects to work. */
+        if (result == mesh) {
+          result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
+        }
+        else {
           BMeshToMeshParams bmesh_to_mesh_params{};
           bmesh_to_mesh_params.calc_object_remap = false;
-          BM_mesh_bm_to_me(nullptr, bm, mesh, &bmesh_to_mesh_params);
-
-          result = BKE_mesh_from_bmesh_for_eval_nomain(bm, nullptr, mesh);
-          BM_mesh_free(bm);
+          BM_mesh_bm_to_me(nullptr, bm, result, &bmesh_to_mesh_params);
         }
+        BM_mesh_free(bm);
       }
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;

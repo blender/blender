@@ -171,7 +171,7 @@ static void depthdropper_depth_sample_pt(bContext *C,
         CTX_wm_area_set(C, area);
         CTX_wm_region_set(C, region);
 
-        /* grr, always draw else we leave stale text */
+        /* Unfortunately it's necessary to always draw otherwise we leave stale text. */
         ED_region_tag_redraw(region);
 
         view3d_operator_needs_opengl(C);

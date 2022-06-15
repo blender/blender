@@ -109,13 +109,10 @@ static void constraint_bone_name_fix(Object *ob,
   bConstraintTarget *ct;
 
   for (curcon = conlist->first; curcon; curcon = curcon->next) {
-    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(curcon);
     ListBase targets = {NULL, NULL};
 
     /* constraint targets */
-    if (cti && cti->get_constraint_targets) {
-      cti->get_constraint_targets(curcon, &targets);
-
+    if (BKE_constraint_targets_get(curcon, &targets)) {
       for (ct = targets.first; ct; ct = ct->next) {
         if (ct->tar == ob) {
           if (STREQ(ct->subtarget, oldname)) {
@@ -124,9 +121,7 @@ static void constraint_bone_name_fix(Object *ob,
         }
       }
 
-      if (cti->flush_constraint_targets) {
-        cti->flush_constraint_targets(curcon, &targets, 0);
-      }
+      BKE_constraint_targets_flush(curcon, &targets, 0);
     }
 
     /* action constraints */

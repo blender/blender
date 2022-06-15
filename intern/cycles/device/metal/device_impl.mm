@@ -86,6 +86,10 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     use_metalrt = (atoi(metalrt) != 0);
   }
 
+  if (getenv("CYCLES_DEBUG_METAL_CAPTURE_KERNEL")) {
+    capture_enabled = true;
+  }
+
   MTLArgumentDescriptor *arg_desc_params = [[MTLArgumentDescriptor alloc] init];
   arg_desc_params.dataType = MTLDataTypePointer;
   arg_desc_params.access = MTLArgumentAccessReadOnly;
@@ -394,7 +398,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
   }
 
   if (size > 0) {
-    if (mem.type == MEM_DEVICE_ONLY) {
+    if (mem.type == MEM_DEVICE_ONLY && !capture_enabled) {
       options = MTLResourceStorageModePrivate;
     }
 

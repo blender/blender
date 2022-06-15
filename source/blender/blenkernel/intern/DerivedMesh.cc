@@ -52,6 +52,7 @@
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
+#include "BKE_subdiv_modifier.h"
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
@@ -598,10 +599,10 @@ static bool mesh_has_modifier_final_normals(const Mesh *mesh_input,
   /* Test if mesh has the required loop normals, in case an additional modifier
    * evaluation from another instance or from an operator requests it but the
    * initial normals were not loop normals. */
-  const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
-                                (final_datamask->lmask & CD_MASK_NORMAL) != 0);
+  const bool calc_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
+                                  (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
-  return (!do_loop_normals || CustomData_has_layer(&mesh_final->ldata, CD_NORMAL));
+  return (!calc_loop_normals || CustomData_has_layer(&mesh_final->ldata, CD_NORMAL));
 }
 
 static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
@@ -610,16 +611,19 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
                                              Mesh *mesh_final)
 {
   /* Compute normals. */
-  const bool do_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
-                                (final_datamask->lmask & CD_MASK_NORMAL) != 0);
+  const bool calc_loop_normals = ((mesh_input->flag & ME_AUTOSMOOTH) != 0 ||
+                                  (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
   /* Needed as `final_datamask` is not preserved outside modifier stack evaluation. */
-  mesh_final->runtime.subsurf_do_loop_normals = do_loop_normals;
+  SubsurfRuntimeData *subsurf_runtime_data = mesh_final->runtime.subsurf_runtime_data;
+  if (subsurf_runtime_data) {
+    subsurf_runtime_data->calc_loop_normals = calc_loop_normals;
+  }
 
-  if (do_loop_normals) {
+  if (calc_loop_normals) {
     /* Compute loop normals (NOTE: will compute poly and vert normals as well, if needed!). In case
      * of deferred CPU subdivision, this will be computed when the wrapper is generated. */
-    if (mesh_final->runtime.subsurf_resolution == 0) {
+    if (!subsurf_runtime_data || subsurf_runtime_data->resolution == 0) {
       BKE_mesh_calc_normals_split(mesh_final);
     }
   }
@@ -628,14 +632,14 @@ static void mesh_calc_modifier_final_normals(const Mesh *mesh_input,
       /* without this, drawing ngon tri's faces will show ugly tessellated face
        * normals and will also have to calculate normals on the fly, try avoid
        * this where possible since calculating polygon normals isn't fast,
-       * note that this isn't a problem for subsurf (only quads) or editmode
+       * note that this isn't a problem for subsurf (only quads) or edit-mode
        * which deals with drawing differently. */
       BKE_mesh_ensure_normals_for_display(mesh_final);
     }
 
     /* Some modifiers, like data-transfer, may generate those data as temp layer,
      * we do not want to keep them, as they are used by display code when available
-     * (i.e. even if autosmooth is disabled). */
+     * (i.e. even if auto-smooth is disabled). */
     if (CustomData_has_layer(&mesh_final->ldata, CD_NORMAL)) {
       CustomData_free_layers(&mesh_final->ldata, CD_NORMAL, mesh_final->totloop);
     }
@@ -1266,15 +1270,18 @@ static void editbmesh_calc_modifier_final_normals(Mesh *mesh_final,
     return;
   }
 
-  const bool do_loop_normals = ((mesh_final->flag & ME_AUTOSMOOTH) != 0 ||
-                                (final_datamask->lmask & CD_MASK_NORMAL) != 0);
+  const bool calc_loop_normals = ((mesh_final->flag & ME_AUTOSMOOTH) != 0 ||
+                                  (final_datamask->lmask & CD_MASK_NORMAL) != 0);
 
-  mesh_final->runtime.subsurf_do_loop_normals = do_loop_normals;
+  SubsurfRuntimeData *subsurf_runtime_data = mesh_final->runtime.subsurf_runtime_data;
+  if (subsurf_runtime_data) {
+    subsurf_runtime_data->calc_loop_normals = calc_loop_normals;
+  }
 
-  if (do_loop_normals) {
+  if (calc_loop_normals) {
     /* Compute loop normals. In case of deferred CPU subdivision, this will be computed when the
      * wrapper is generated. */
-    if (mesh_final->runtime.subsurf_resolution == 0) {
+    if (!subsurf_runtime_data || subsurf_runtime_data->resolution == 0) {
       BKE_mesh_calc_normals_split(mesh_final);
     }
   }

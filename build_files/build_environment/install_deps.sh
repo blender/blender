@@ -36,19 +36,19 @@ getopt \
 -o s:i:t:h \
 --long source:,install:,tmp:,info:,threads:,help,show-deps,no-sudo,no-build,no-confirm,\
 with-all,with-opencollada,with-jack,with-pulseaudio,with-embree,with-oidn,with-nanovdb,\
-ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,ver-xr-openxr:,\
+ver-ocio:,ver-oiio:,ver-llvm:,ver-osl:,ver-osd:,ver-openvdb:,ver-xr-openxr:,ver-level-zero:\
 force-all,force-python,force-boost,force-tbb,\
 force-ocio,force-imath,force-openexr,force-oiio,force-llvm,force-osl,force-osd,force-openvdb,\
 force-ffmpeg,force-opencollada,force-alembic,force-embree,force-oidn,force-usd,\
-force-xr-openxr,\
+force-xr-openxr,force-level-zero,\
 build-all,build-python,build-boost,build-tbb,\
 build-ocio,build-imath,build-openexr,build-oiio,build-llvm,build-osl,build-osd,build-openvdb,\
 build-ffmpeg,build-opencollada,build-alembic,build-embree,build-oidn,build-usd,\
-build-xr-openxr,\
+build-xr-openxr,build-level-zero,\
 skip-python,skip-boost,skip-tbb,\
 skip-ocio,skip-imath,skip-openexr,skip-oiio,skip-llvm,skip-osl,skip-osd,skip-openvdb,\
 skip-ffmpeg,skip-opencollada,skip-alembic,skip-embree,skip-oidn,skip-usd,\
-skip-xr-openxr \
+skip-xr-openxr,skip-level-zero \
 -- "$@" \
 )
 
@@ -165,6 +165,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --ver-xr-openxr=<ver>
         Force version of OpenXR-SDK.
 
+    --ver-level-zero=<ver>
+        Force version of OneAPI Level Zero library.
+
     Note about the --ver-foo options:
         It may not always work as expected (some libs are actually checked out from a git rev...), yet it might help
         to fix some build issues (like LLVM mismatch with the version used by your graphic system).
@@ -225,6 +228,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --build-xr-openxr
         Force the build of OpenXR-SDK.
+
+    --build-level-zero=<ver>
+        Force the build of OneAPI Level Zero library.
 
     Note about the --build-foo options:
         * They force the script to prefer building dependencies rather than using available packages.
@@ -293,6 +299,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --force-xr-openxr
         Force the rebuild of OpenXR-SDK.
 
+    --force-level-zero=<ver>
+        Force the rebuild of OneAPI Level Zero library.
+
     Note about the --force-foo options:
         * They obviously only have an effect if those libraries are built by this script
           (i.e. if there is no available and satisfactory package)!
@@ -351,7 +360,10 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Unconditionally skip Universal Scene Description installation/building.
 
     --skip-xr-openxr
-        Unconditionally skip OpenXR-SDK installation/building.\""
+        Unconditionally skip OpenXR-SDK installation/building.
+
+    --skip-level-zero=<ver>
+        Unconditionally skip OneAPI Level Zero installation/building.\""
 
 # ----------------------------------------------------------------------------
 # Main Vars
@@ -573,14 +585,13 @@ OIDN_SKIP=false
 
 ISPC_VERSION="1.17.0"
 
-FFMPEG_VERSION="4.4"
-FFMPEG_VERSION_SHORT="4.4"
-FFMPEG_VERSION_MIN="3.0"
-FFMPEG_VERSION_MEX="5.0"
-FFMPEG_FORCE_BUILD=false
-FFMPEG_FORCE_REBUILD=false
-FFMPEG_SKIP=false
-_ffmpeg_list_sep=";"
+LEVEL_ZERO_VERSION="1.7.15"
+LEVEL_ZERO_VERSION_SHORT="1.7"
+LEVEL_ZERO_VERSION_MIN="1.7"
+LEVEL_ZERO_VERSION_MEX="2.0"
+LEVEL_ZERO_FORCE_BUILD=false
+LEVEL_ZERO_FORCE_REBUILD=false
+LEVEL_ZERO_SKIP=false
 
 XR_OPENXR_VERSION="1.0.22"
 XR_OPENXR_VERSION_SHORT="1.0"
@@ -589,6 +600,15 @@ XR_OPENXR_VERSION_MEX="2.0"
 XR_OPENXR_FORCE_BUILD=false
 XR_OPENXR_FORCE_REBUILD=false
 XR_OPENXR_SKIP=false
+
+FFMPEG_VERSION="5.0"
+FFMPEG_VERSION_SHORT="5.0"
+FFMPEG_VERSION_MIN="4.0"
+FFMPEG_VERSION_MEX="6.0"
+FFMPEG_FORCE_BUILD=false
+FFMPEG_FORCE_REBUILD=false
+FFMPEG_SKIP=false
+_ffmpeg_list_sep=";"
 
 # FFMPEG optional libs.
 VORBIS_USE=false
@@ -781,6 +801,12 @@ while true; do
       XR_OPENXR_VERSION_SHORT=$XR_OPENXR_VERSION
       shift; shift; continue
     ;;
+    --ver-level-zero)
+      LEVEL_ZERO_VERSION="$2"
+      LEVEL_ZERO_VERSION_MIN=$LEVEL_ZERO_VERSION
+      LEVEL_ZERO_VERSION_SHORT=$LEVEL_ZERO_VERSION
+      shift; shift; continue
+    ;;
     --build-all)
       PYTHON_FORCE_BUILD=true
       BOOST_FORCE_BUILD=true
@@ -800,6 +826,7 @@ while true; do
       ALEMBIC_FORCE_BUILD=true
       USD_FORCE_BUILD=true
       XR_OPENXR_FORCE_BUILD=true
+      LEVEL_ZERO_FORCE_BUILD=true
       shift; continue
     ;;
     --build-python)
@@ -857,6 +884,9 @@ while true; do
     --build-xr-openxr)
       XR_OPENXR_FORCE_BUILD=true; shift; continue
     ;;
+    --build-level-zero)
+      LEVEL_ZERO_FORCE_BUILD=true; shift; continue
+    ;;
     --force-all)
       PYTHON_FORCE_REBUILD=true
       BOOST_FORCE_REBUILD=true
@@ -876,6 +906,7 @@ while true; do
       ALEMBIC_FORCE_REBUILD=true
       USD_FORCE_REBUILD=true
       XR_OPENXR_FORCE_REBUILD=true
+      LEVEL_ZERO_FORCE_REBUILD=true
       shift; continue
     ;;
     --force-python)
@@ -933,6 +964,9 @@ while true; do
     --force-xr-openxr)
       XR_OPENXR_FORCE_REBUILD=true; shift; continue
     ;;
+    --force-level-zero)
+      LEVEL_ZERO_FORCE_REBUILD=true; shift; continue
+    ;;
     --skip-python)
       PYTHON_SKIP=true; shift; continue
     ;;
@@ -986,6 +1020,9 @@ while true; do
     ;;
     --skip-xr-openxr)
       XR_OPENXR_SKIP=true; shift; continue
+    ;;
+    --skip-level-zero)
+      LEVEL_ZERO_SKIP=true; shift; continue
     ;;
     --)
       # no more arguments to parse
@@ -1128,13 +1165,15 @@ OIDN_SOURCE=( "https://github.com/OpenImageDenoise/oidn/releases/download/v${OID
 
 ISPC_BINARY=( "https://github.com/ispc/ispc/releases/download/v${ISPC_VERSION}/ispc-v${ISPC_VERSION}-linux.tar.gz" )
 
-FFMPEG_SOURCE=( "http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2" )
-
 XR_OPENXR_USE_REPO=false
 XR_OPENXR_SOURCE=("https://github.com/KhronosGroup/OpenXR-SDK/archive/release-${XR_OPENXR_VERSION}.tar.gz")
 XR_OPENXR_SOURCE_REPO=("https://github.com/KhronosGroup/OpenXR-SDK.git")
 XR_OPENXR_REPO_UID="458984d7f59d1ae6dc1b597d94b02e4f7132eaba"
 XR_OPENXR_REPO_BRANCH="master"
+
+LEVEL_ZERO_SOURCE=("https://github.com/oneapi-src/level-zero/archive/refs/tags/v${LEVEL_ZERO_VERSION}.tar.gz")
+
+FFMPEG_SOURCE=( "http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2" )
 
 # C++11 is required now
 CXXFLAGS_BACK=$CXXFLAGS
@@ -1187,7 +1226,8 @@ You may also want to build them yourself (optional ones are [between brackets]):
     * [OpenImageDenoise $OIDN_VERSION] (from $OIDN_SOURCE).
     * [Alembic $ALEMBIC_VERSION] (from $ALEMBIC_SOURCE).
     * [Universal Scene Description $USD_VERSION] (from $USD_SOURCE).
-    * [OpenXR-SDK $XR_OPENXR_VERSION] (from $XR_OPENXR_SOURCE).\""
+    * [OpenXR-SDK $XR_OPENXR_VERSION] (from $XR_OPENXR_SOURCE).
+    * [OneAPI Level Zero $LEVEL_ZERO_VERSION] (from $LEVEL_ZERO_SOURCE).\""
 
 if [ "$DO_SHOW_DEPS" = true ]; then
   PRINT ""
@@ -3823,6 +3863,103 @@ compile_XR_OpenXR_SDK() {
 
 
 # ----------------------------------------------------------------------------
+# Build OneAPI Level Zero library.
+
+_init_level_zero() {
+  _src=$SRC/level-zero-$LEVEL_ZERO_VERSION
+  _git=false
+  _inst=$INST/level-zero-$LEVEL_ZERO_VERSION_SHORT
+  _inst_shortcut=$INST/level-zero
+}
+
+_update_deps_level_zero() {
+  :
+}
+
+clean_Level_Zero() {
+  _init_level_zero
+  if [ -d $_inst ]; then
+    # Force rebuilding the dependencies if needed.
+    _update_deps_level_zero false true
+  fi
+  _clean
+}
+
+compile_Level_Zero() {
+  if [ "$NO_BUILD" = true ]; then
+    WARNING "--no-build enabled, Level Zero will not be compiled!"
+    return
+  fi
+
+  # To be changed each time we make edits that would modify the compiled result!
+  level_zero_magic=1
+  _init_level_zero
+
+  # Force having own builds for the dependencies.
+  _update_deps_level_zero true false
+
+  # Clean install if needed!
+  magic_compile_check level-zero-$LEVEL_ZERO_VERSION $level_zero_magic
+  if [ $? -eq 1 -o "$LEVEL_ZERO_FORCE_REBUILD" = true ]; then
+    clean_Level_Zero
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building Level-Zero-$LEVEL_ZERO_VERSION"
+
+    # Force rebuilding the dependencies.
+    _update_deps_level_zero true true
+
+    prepare_inst
+
+    if [ ! -d $_src ]; then
+      mkdir -p $SRC
+
+      download LEVEL_ZERO_SOURCE[@] "$_src.tar.gz"
+      INFO "Unpacking Level-Zero-$LEVEL_ZERO_VERSION"
+      tar -C $SRC -xf $_src.tar.gz
+    fi
+
+    cd $_src
+
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi
+    mkdir build
+    cd build
+
+    # Keep flags in sync with LEVEL_ZERO_EXTRA_ARGS in level-zero.cmake!
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+
+    cmake $cmake_d ..
+
+    make -j$THREADS && make install
+    make clean
+
+    if [ ! -d $_inst ]; then
+      ERROR "Level-Zero-$LEVEL_ZERO_VERSION failed to compile, exiting"
+      exit 1
+    fi
+
+    magic_compile_set level-zero-$LEVEL_ZERO_VERSION $level_zero_magic
+
+    cd $CWD
+    INFO "Done compiling Level-Zero-$LEVEL_ZERO_VERSION!"
+  else
+    INFO "Own Level-Zero-$LEVEL_ZERO_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, use the --force-level-zero option."
+  fi
+
+  if [ -d $_inst ]; then
+    _create_inst_shortcut
+  fi
+  run_ldconfig "level-zero"
+}
+
+
+# ----------------------------------------------------------------------------
 # Install on DEB-like
 
 get_package_version_DEB() {
@@ -4457,6 +4594,18 @@ install_DEB() {
     # No package currently!
     PRINT ""
     compile_XR_OpenXR_SDK
+  fi
+
+  PRINT ""
+  if [ "$LEVEL_ZERO_SKIP" = true ]; then
+    WARNING "Skipping Level Zero installation, as requested..."
+  elif [ "$LEVEL_ZERO_FORCE_BUILD" = true ]; then
+    INFO "Forced Level Zero building, as requested..."
+    compile_Level_Zero
+  else
+    # No package currently!
+    PRINT ""
+    compile_Level_Zero
   fi
 }
 
@@ -5144,6 +5293,18 @@ install_RPM() {
     # No package currently!
     compile_XR_OpenXR_SDK
   fi
+
+  PRINT ""
+  if [ "$LEVEL_ZERO_SKIP" = true ]; then
+    WARNING "Skipping Level Zero installation, as requested..."
+  elif [ "$LEVEL_ZERO_FORCE_BUILD" = true ]; then
+    INFO "Forced Level Zero building, as requested..."
+    compile_Level_Zero
+  else
+    # No package currently!
+    PRINT ""
+    compile_Level_Zero
+  fi
 }
 
 
@@ -5721,6 +5882,18 @@ install_ARCH() {
     # No package currently!
     compile_XR_OpenXR_SDK
   fi
+
+  PRINT ""
+  if [ "$LEVEL_ZERO_SKIP" = true ]; then
+    WARNING "Skipping Level Zero installation, as requested..."
+  elif [ "$LEVEL_ZERO_FORCE_BUILD" = true ]; then
+    INFO "Forced Level Zero building, as requested..."
+    compile_Level_Zero
+  else
+    # No package currently!
+    PRINT ""
+    compile_Level_Zero
+  fi
 }
 
 
@@ -5894,6 +6067,14 @@ install_OTHER() {
   elif [ "$XR_OPENXR_FORCE_BUILD" = true ]; then
     INFO "Forced OpenXR-SDK building, as requested..."
     compile_XR_OpenXR_SDK
+  fi
+
+  PRINT ""
+  if [ "$LEVEL_ZERO_SKIP" = true ]; then
+    WARNING "Skipping Level Zero installation, as requested..."
+  elif [ "$LEVEL_ZERO_FORCE_BUILD" = true ]; then
+    INFO "Forced Level Zero building, as requested..."
+    compile_Level_Zero
   fi
 }
 
@@ -6136,6 +6317,18 @@ print_info() {
       _buildargs="$_buildargs $_1"
     fi
   fi
+
+  # Not yet available in Blender.
+  #~ if [ "$LEVEL_ZERO_SKIP" = false ]; then
+    #~ _1="-D WITH_LEVEL_ZERO=ON"
+    #~ PRINT "  $_1"
+    #~ _buildargs="$_buildargs $_1"
+    #~ if [ -d $INST/level-zero ]; then
+      #~ _1="-D LEVEL_ZERO_ROOT_DIR=$INST/level-zero"
+      #~ PRINT "  $_1"
+      #~ _buildargs="$_buildargs $_1"
+    #~ fi
+  #~ fi
 
   PRINT ""
   PRINT "Or even simpler, just run (in your blender-source dir):"

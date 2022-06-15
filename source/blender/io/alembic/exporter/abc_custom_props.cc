@@ -150,7 +150,7 @@ void CustomPropertiesExporter::write_idparray_of_strings(const IDProperty *idp_a
   }
 
   /* Alembic needs a pointer to the first value of the array. */
-  const std::string *array_of_strings = &strings[0];
+  const std::string *array_of_strings = strings.data();
   set_array_property<OStringArrayProperty, std::string>(
       idp_array->name, array_of_strings, strings.size());
 }
@@ -204,7 +204,7 @@ void CustomPropertiesExporter::write_idparray_flattened_typed(const IDProperty *
   }
 
   set_array_property<ABCPropertyType, BlenderValueType>(
-      idp_array->name, &matrix_values[0], matrix_values.size());
+      idp_array->name, matrix_values.data(), matrix_values.size());
 }
 
 template<typename ABCPropertyType, typename BlenderValueType>

@@ -1701,7 +1701,7 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
   const bool select = (sel_op != SEL_OP_SUB);
 
   bool changed = false;
-  /* for bounding rect around circle (for quicky intersection testing) */
+  /* For bounding `rect` around circle (for quickly intersection testing). */
   rcti rect = {0};
   rect.xmin = mx - radius;
   rect.ymin = my - radius;

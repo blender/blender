@@ -364,12 +364,9 @@ static int select_exec(bContext *C, wmOperator *op)
     return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
   }
   if (deselect_all) {
-    /* For clip editor tracks, leave deselect all to clip editor. */
-    if (!ED_clip_can_select(C)) {
-      ED_mask_deselect_all(C);
-      ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
-      return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
-    }
+    ED_mask_deselect_all(C);
+    ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
+    return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
   }
 
   return OPERATOR_PASS_THROUGH;

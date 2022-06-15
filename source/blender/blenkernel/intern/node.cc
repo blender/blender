@@ -4764,6 +4764,8 @@ static void registerGeometryNodes()
   register_node_type_geo_input_curve_tilt();
   register_node_type_geo_input_id();
   register_node_type_geo_input_index();
+  register_node_type_geo_input_instance_rotation();
+  register_node_type_geo_input_instance_scale();
   register_node_type_geo_input_material_index();
   register_node_type_geo_input_material();
   register_node_type_geo_input_mesh_edge_angle();

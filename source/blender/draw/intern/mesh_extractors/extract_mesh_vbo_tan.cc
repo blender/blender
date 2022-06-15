@@ -14,7 +14,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_subdivision.h"
 
@@ -367,7 +367,5 @@ constexpr MeshExtract create_extractor_tan_hq()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_tan = blender::draw::create_extractor_tan();
 const MeshExtract extract_tan_hq = blender::draw::create_extractor_tan_hq();
-}

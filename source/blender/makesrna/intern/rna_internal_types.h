@@ -532,7 +532,7 @@ struct StructRNA {
   /* property to iterate over properties */
   PropertyRNA *iteratorproperty;
 
-  /* struct this is derivedfrom */
+  /** Struct this is derived from. */
   struct StructRNA *base;
 
   /* only use for nested structs, where both the parent and child access

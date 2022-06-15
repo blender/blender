@@ -119,6 +119,125 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Draw Software Cursor
+ *
+ * Draw the cursor instead of relying on the graphical environment.
+ * Needed when setting the cursor position (warping) isn't supported (GHOST/WAYLAND).
+ * \{ */
+
+/**
+ * Track the state of the last drawn cursor.
+ */
+static struct {
+  int8_t enabled;
+  int winid;
+  int xy[2];
+} g_software_cursor = {
+    .enabled = -1,
+    .winid = -1,
+};
+
+/** Reuse the result from #GHOST_GetCursorGrabState. */
+struct GrabState {
+  GHOST_TGrabCursorMode mode;
+  GHOST_TAxisFlag wrap_axis;
+  int bounds[4];
+};
+
+static bool wm_software_cursor_needed(void)
+{
+  if (UNLIKELY(g_software_cursor.enabled == -1)) {
+    g_software_cursor.enabled = !GHOST_SupportsCursorWarp();
+  }
+  return g_software_cursor.enabled;
+}
+
+static bool wm_software_cursor_needed_for_window(const wmWindow *win, struct GrabState *grab_state)
+{
+  BLI_assert(wm_software_cursor_needed());
+  if (GHOST_GetCursorVisibility(win->ghostwin)) {
+    /* NOTE: The value in `win->grabcursor` can't be used as it
+     * doesn't always match GHOST's value in the case of tablet events. */
+    GHOST_GetCursorGrabState(
+        win->ghostwin, &grab_state->mode, &grab_state->wrap_axis, grab_state->bounds);
+    if (grab_state->mode == GHOST_kGrabWrap) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool wm_software_cursor_motion_test(const wmWindow *win)
+{
+  return (g_software_cursor.winid != win->winid) ||
+         (g_software_cursor.xy[0] != win->eventstate->xy[0]) ||
+         (g_software_cursor.xy[1] != win->eventstate->xy[1]);
+}
+
+static void wm_software_cursor_motion_update(const wmWindow *win)
+{
+
+  g_software_cursor.winid = win->winid;
+  g_software_cursor.xy[0] = win->eventstate->xy[0];
+  g_software_cursor.xy[1] = win->eventstate->xy[1];
+}
+
+static void wm_software_cursor_motion_clear(void)
+{
+  g_software_cursor.winid = -1;
+  g_software_cursor.xy[0] = -1;
+  g_software_cursor.xy[1] = -1;
+}
+
+static void wm_software_cursor_draw(wmWindow *win, const struct GrabState *grab_state)
+{
+  int x = win->eventstate->xy[0];
+  int y = win->eventstate->xy[1];
+
+  if (grab_state->wrap_axis & GHOST_kAxisX) {
+    const int min = grab_state->bounds[0];
+    const int max = grab_state->bounds[2];
+    if (min != max) {
+      x = mod_i(x - min, max - min) + min;
+    }
+  }
+  if (grab_state->wrap_axis & GHOST_kGrabAxisY) {
+    const int height = WM_window_pixels_y(win);
+    const int min = height - grab_state->bounds[1];
+    const int max = height - grab_state->bounds[3];
+    if (min != max) {
+      y = mod_i(y - max, min - max) + max;
+    }
+  }
+
+  /* Draw a primitive cross-hair cursor.
+   * NOTE: the `win->cursor` could be used for drawing although it's complicated as some cursors
+   * are set by the operating-system, where the pixel information isn't easily available. */
+  const float unit = max_ff(U.dpi_fac, 1.0f);
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+  immUniformColor4f(1, 1, 1, 1);
+  {
+    const int ofs_line = (8 * unit);
+    const int ofs_size = (2 * unit);
+    immRecti(pos, x - ofs_line, y - ofs_size, x + ofs_line, y + ofs_size);
+    immRecti(pos, x - ofs_size, y - ofs_line, x + ofs_size, y + ofs_line);
+  }
+  immUniformColor4f(0, 0, 0, 1);
+  {
+    const int ofs_line = (7 * unit);
+    const int ofs_size = (1 * unit);
+    immRecti(pos, x - ofs_line, y - ofs_size, x + ofs_line, y + ofs_size);
+    immRecti(pos, x - ofs_size, y - ofs_line, x + ofs_size, y + ofs_line);
+  }
+  immUnbindProgram();
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Post Draw Region on display handlers
  * \{ */
 
@@ -862,12 +981,24 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
   /* always draw, not only when screen tagged */
   if (win->gesture.first) {
     wm_gesture_draw(win);
+    wmWindowViewport(win);
   }
 
   /* Needs pixel coords in screen. */
   if (wm->drags.first) {
     wm_drags_draw(C, win);
     wmWindowViewport(win);
+  }
+
+  if (wm_software_cursor_needed()) {
+    struct GrabState grab_state;
+    if (wm_software_cursor_needed_for_window(win, &grab_state)) {
+      wm_software_cursor_draw(win, &grab_state);
+      wm_software_cursor_motion_update(win);
+    }
+    else {
+      wm_software_cursor_motion_clear();
+    }
   }
 
   GPU_debug_group_end();
@@ -1018,6 +1149,22 @@ static bool wm_draw_update_test_window(Main *bmain, bContext *C, wmWindow *win)
   }
   if (screen->do_draw_drag) {
     return true;
+  }
+
+  if (wm_software_cursor_needed()) {
+    struct GrabState grab_state;
+    if (wm_software_cursor_needed_for_window(win, &grab_state)) {
+      if (wm_software_cursor_motion_test(win)) {
+        return true;
+      }
+    }
+    else {
+      /* Detect the edge case when the previous draw used the software cursor but this one doesn't,
+       * it's important to redraw otherwise the software cursor will remain displayed. */
+      if (g_software_cursor.winid != -1) {
+        return true;
+      }
+    }
   }
 
 #ifndef WITH_XR_OPENXR

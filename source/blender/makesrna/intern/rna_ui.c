@@ -393,7 +393,14 @@ static StructRNA *rna_Panel_register(Main *bmain,
 
   if (parent) {
     pt->parent = parent;
-    BLI_addtail(&parent->children, BLI_genericNodeN(pt));
+    LinkData *pt_child_iter = parent->children.last;
+    for (; pt_child_iter; pt_child_iter = pt_child_iter->prev) {
+      PanelType *pt_child = pt_child_iter->data;
+      if (pt_child->order <= pt->order) {
+        break;
+      }
+    }
+    BLI_insertlinkafter(&parent->children, pt_child_iter, BLI_genericNodeN(pt));
   }
 
   {

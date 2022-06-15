@@ -19,6 +19,10 @@ struct UnitSettings;
  */
 size_t BKE_unit_value_as_string_adaptive(
     char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad);
+/**
+ * Representation of a value in units. Negative precision is used to disable stripping of zeroes.
+ * This reduces text jumping when changing values.
+ */
 size_t BKE_unit_value_as_string(char *str,
                                 int len_max,
                                 double value,

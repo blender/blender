@@ -5,7 +5,7 @@
  * \ingroup draw
  */
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_cache_impl.h"
 
@@ -367,6 +367,4 @@ constexpr MeshExtract create_extractor_edit_data()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_edit_data = blender::draw::create_extractor_edit_data();
-}

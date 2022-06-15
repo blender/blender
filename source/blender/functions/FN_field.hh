@@ -476,6 +476,8 @@ template<typename T> T evaluate_constant_field(const Field<T> &field)
   return value;
 }
 
+Field<bool> invert_boolean_field(const Field<bool> &field);
+
 GField make_constant_field(const CPPType &type, const void *value);
 
 template<typename T> Field<T> make_constant_field(T value)

@@ -164,7 +164,10 @@ static void rna_Image_scale(Image *image, ReportList *reports, int width, int he
 {
   if (!BKE_image_scale(image, width, height)) {
     BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
+    return;
   }
+  BKE_image_partial_update_mark_full_update(image);
+  WM_main_add_notifier(NC_IMAGE | NA_EDITED, image);
 }
 
 static int rna_Image_gl_load(

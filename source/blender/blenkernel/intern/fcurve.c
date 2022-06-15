@@ -256,12 +256,11 @@ FCurve *BKE_fcurve_find(ListBase *list, const char rna_path[], const int array_i
 
   /* Check paths of curves, then array indices... */
   for (fcu = list->first; fcu; fcu = fcu->next) {
+    /* Check indices first, much cheaper than a string comparison. */
     /* Simple string-compare (this assumes that they have the same root...) */
-    if (fcu->rna_path && STREQ(fcu->rna_path, rna_path)) {
-      /* Now check indices. */
-      if (fcu->array_index == array_index) {
-        return fcu;
-      }
+    if (UNLIKELY(fcu->array_index == array_index && fcu->rna_path &&
+                 fcu->rna_path[0] == rna_path[0] && STREQ(fcu->rna_path, rna_path))) {
+      return fcu;
     }
   }
 
@@ -1025,9 +1024,8 @@ static void UNUSED_FUNCTION(bezt_add_to_cfra_elem)(ListBase *lb, BezTriple *bezt
  * \{ */
 
 /* Some utilities for working with FPoints (i.e. 'sampled' animation curve data, such as
- * data imported from BVH/Mocap files), which are specialized for use with high density datasets,
- * which BezTriples/Keyframe data are ill equipped to do.
- */
+ * data imported from BVH/motion-capture files), which are specialized for use with high density
+ * datasets, which BezTriples/Keyframe data are ill equipped to do. */
 
 float fcurve_samplingcb_evalcurve(FCurve *fcu, void *UNUSED(data), float evaltime)
 {

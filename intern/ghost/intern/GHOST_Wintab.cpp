@@ -310,7 +310,7 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
   outWintabInfo.reserve(numPackets);
 
   for (int i = 0; i < numPackets; i++) {
-    PACKET pkt = m_pkts[i];
+    const PACKET pkt = m_pkts[i];
     GHOST_WintabInfoWin32 out;
 
     /* % 3 for multiple devices ("DualTrack"). */
@@ -367,11 +367,12 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
     /* Some Wintab libraries don't handle relative button input, so we track button presses
      * manually. */
     DWORD buttonsChanged = m_buttons ^ pkt.pkButtons;
-    WORD buttonIndex = 0;
+    /* We only needed the prior button state to compare to current, so we can overwrite it now. */
+    m_buttons = pkt.pkButtons;
 
-    while (buttonsChanged) {
+    /* Iterate over button flag indices until all flags are clear. */
+    for (WORD buttonIndex = 0; buttonsChanged; buttonIndex++, buttonsChanged >>= 1) {
       if (buttonsChanged & 1) {
-        /* Find the index for the changed button from the button map. */
         GHOST_TButtonMask button = mapWintabToGhostButton(pkt.pkCursor, buttonIndex);
 
         if (button != GHOST_kButtonMaskNone) {
@@ -381,15 +382,11 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
           }
 
           out.button = button;
-          out.type = buttonsChanged & pkt.pkButtons ? GHOST_kEventButtonDown :
-                                                      GHOST_kEventButtonUp;
+
+          DWORD buttonFlag = 1 << buttonIndex;
+          out.type = pkt.pkButtons & buttonFlag ? GHOST_kEventButtonDown : GHOST_kEventButtonUp;
         }
-
-        m_buttons ^= 1 << buttonIndex;
       }
-
-      buttonsChanged >>= 1;
-      buttonIndex++;
     }
 
     outWintabInfo.push_back(out);

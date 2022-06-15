@@ -267,6 +267,11 @@ void AbstractHierarchyIterator::export_graph_construct()
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph_);
 
+  /* Add a "null" root node with no children immediately for the case where the top-most node in
+   * the scene is not being exported and a root node otherwise wouldn't get added. */
+  ExportGraph::key_type root_node_id = ObjectIdentifier::for_real_object(nullptr);
+  export_graph_[root_node_id] = ExportChildren();
+
   DEG_OBJECT_ITER_BEGIN (depsgraph_,
                          object,
                          DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |

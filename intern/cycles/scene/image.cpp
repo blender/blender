@@ -272,17 +272,12 @@ void ImageMetaData::detect_colorspace()
     compress_as_srgb = true;
   }
   else {
-    /* Always compress non-raw 8bit images as scene linear + sRGB, as a
-     * heuristic to keep memory usage the same without too much data loss
-     * due to quantization in common cases. */
-    compress_as_srgb = (type == IMAGE_DATA_TYPE_BYTE || type == IMAGE_DATA_TYPE_BYTE4);
-
     /* If colorspace conversion needed, use half instead of short so we can
      * represent HDR values that might result from conversion. */
-    if (type == IMAGE_DATA_TYPE_USHORT) {
+    if (type == IMAGE_DATA_TYPE_BYTE || type == IMAGE_DATA_TYPE_USHORT) {
       type = IMAGE_DATA_TYPE_HALF;
     }
-    else if (type == IMAGE_DATA_TYPE_USHORT4) {
+    else if (type == IMAGE_DATA_TYPE_BYTE4 || type == IMAGE_DATA_TYPE_USHORT4) {
       type = IMAGE_DATA_TYPE_HALF4;
     }
   }

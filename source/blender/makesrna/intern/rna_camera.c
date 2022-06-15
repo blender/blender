@@ -125,6 +125,24 @@ static char *rna_Camera_background_image_path(const PointerRNA *ptr)
   return NULL;
 }
 
+char *rna_CameraBackgroundImage_image_or_movieclip_user_path(const PointerRNA *ptr)
+{
+  const char *user = ptr->data;
+  Camera *camera = (Camera *)ptr->owner_id;
+
+  int bgpic_index = BLI_findindex(&camera->bg_images, user - offsetof(CameraBGImage, iuser));
+  if (bgpic_index >= 0) {
+    return BLI_sprintfN("background_images[%d].image_user", bgpic_index);
+  }
+
+  bgpic_index = BLI_findindex(&camera->bg_images, user - offsetof(CameraBGImage, cuser));
+  if (bgpic_index >= 0) {
+    return BLI_sprintfN("background_images[%d].clip_user", bgpic_index);
+  }
+
+  return NULL;
+}
+
 static bool rna_Camera_background_images_override_apply(Main *bmain,
                                                         PointerRNA *ptr_dst,
                                                         PointerRNA *ptr_src,
@@ -272,6 +290,7 @@ static void rna_def_camera_background_image(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
   RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "ImageUser");
   RNA_def_property_pointer_sdna(prop, NULL, "iuser");
   RNA_def_property_ui_text(
       prop,

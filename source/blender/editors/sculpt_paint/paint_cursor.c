@@ -38,6 +38,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "ED_image.h"
 #include "ED_view3d.h"
 
 #include "DEG_depsgraph.h"
@@ -1932,7 +1933,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 /* Public API */
 
-void paint_cursor_start(Paint *p, bool (*poll)(bContext *C))
+void ED_paint_cursor_start(Paint *p, bool (*poll)(bContext *C))
 {
   if (p && !p->paint_cursor) {
     p->paint_cursor = WM_paint_cursor_activate(

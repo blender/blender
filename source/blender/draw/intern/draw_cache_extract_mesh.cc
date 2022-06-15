@@ -24,11 +24,11 @@
 
 #include "GPU_capabilities.h"
 
-#include "draw_cache_extract.h"
+#include "draw_cache_extract.hh"
 #include "draw_cache_inline.h"
 #include "draw_subdivision.h"
 
-#include "mesh_extractors/extract_mesh.h"
+#include "mesh_extractors/extract_mesh.hh"
 
 // #define DEBUG_TIME
 
@@ -551,21 +551,21 @@ static struct TaskNode *mesh_extract_render_data_node_create(struct TaskGraph *t
 /** \name Extract Loop
  * \{ */
 
-static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
-                                               MeshBatchCache *cache,
-                                               MeshBufferCache *mbc,
-                                               Object *object,
-                                               Mesh *me,
+void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
+                                        MeshBatchCache *cache,
+                                        MeshBufferCache *mbc,
+                                        Object *object,
+                                        Mesh *me,
 
-                                               const bool is_editmode,
-                                               const bool is_paint_mode,
-                                               const bool is_mode_active,
-                                               const float obmat[4][4],
-                                               const bool do_final,
-                                               const bool do_uvedit,
-                                               const Scene *scene,
-                                               const ToolSettings *ts,
-                                               const bool use_hide)
+                                        const bool is_editmode,
+                                        const bool is_paint_mode,
+                                        const bool is_mode_active,
+                                        const float obmat[4][4],
+                                        const bool do_final,
+                                        const bool do_uvedit,
+                                        const Scene *scene,
+                                        const ToolSettings *ts,
+                                        const bool use_hide)
 {
   /* For each mesh where batches needs to be updated a sub-graph will be added to the task_graph.
    * This sub-graph starts with an extract_render_data_node. This fills/converts the required
@@ -772,10 +772,10 @@ static void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
 /** \name Subdivision Extract Loop
  * \{ */
 
-static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
-                                                      MeshBufferCache *mbc,
-                                                      DRWSubdivCache *subdiv_cache,
-                                                      MeshRenderData *mr)
+void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
+                                               MeshBufferCache *mbc,
+                                               DRWSubdivCache *subdiv_cache,
+                                               MeshRenderData *mr)
 {
   /* Create an array containing all the extractors that needs to be executed. */
   ExtractorRunDatas extractors;
@@ -908,46 +908,3 @@ static void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
 /** \} */
 
 }  // namespace blender::draw
-
-extern "C" {
-void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
-                                        MeshBatchCache *cache,
-                                        MeshBufferCache *mbc,
-                                        Object *object,
-                                        Mesh *me,
-
-                                        const bool is_editmode,
-                                        const bool is_paint_mode,
-                                        const bool is_mode_active,
-                                        const float obmat[4][4],
-                                        const bool do_final,
-                                        const bool do_uvedit,
-                                        const Scene *scene,
-                                        const ToolSettings *ts,
-                                        const bool use_hide)
-{
-  blender::draw::mesh_buffer_cache_create_requested(task_graph,
-                                                    cache,
-                                                    mbc,
-                                                    object,
-                                                    me,
-                                                    is_editmode,
-                                                    is_paint_mode,
-                                                    is_mode_active,
-                                                    obmat,
-                                                    do_final,
-                                                    do_uvedit,
-                                                    scene,
-                                                    ts,
-                                                    use_hide);
-}
-
-void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache *cache,
-                                               MeshBufferCache *mbc,
-                                               DRWSubdivCache *subdiv_cache,
-                                               MeshRenderData *mr)
-{
-  blender::draw::mesh_buffer_cache_create_requested_subdiv(cache, mbc, subdiv_cache, mr);
-}
-
-}  // extern "C"

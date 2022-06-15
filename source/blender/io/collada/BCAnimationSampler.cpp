@@ -225,24 +225,26 @@ bool BCAnimationSampler::is_animated_by_constraint(Object *ob,
   for (con = (bConstraint *)conlist->first; con; con = con->next) {
     ListBase targets = {nullptr, nullptr};
 
-    const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-
     if (!bc_validateConstraints(con)) {
       continue;
     }
 
-    if (cti && cti->get_constraint_targets) {
+    if (BKE_constraint_targets_get(con, &targets)) {
       bConstraintTarget *ct;
       Object *obtar;
-      cti->get_constraint_targets(con, &targets);
+      bool found = false;
+
       for (ct = (bConstraintTarget *)targets.first; ct; ct = ct->next) {
         obtar = ct->tar;
         if (obtar) {
           if (animated_objects.find(obtar) != animated_objects.end()) {
-            return true;
+            found = true;
+            break;
           }
         }
       }
+      BKE_constraint_targets_flush(con, &targets, true);
+      return found;
     }
   }
   return false;

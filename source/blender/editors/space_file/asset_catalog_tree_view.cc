@@ -407,8 +407,15 @@ std::string AssetCatalogDropController::drop_tooltip_asset_list(const wmDrag &dr
   std::string basic_tip = is_multiple_assets ? TIP_("Move assets to catalog") :
                                                TIP_("Move asset to catalog");
 
-  return basic_tip + ": " + catalog_item_.get_name() + " (" + catalog_item_.catalog_path().str() +
-         ")";
+  basic_tip += ": " + catalog_item_.get_name();
+
+  /* Display the full catalog path, but only if it's not exactly the same as the already shown name
+   * (i.e. not a root level catalog with no parent). */
+  if (catalog_item_.get_name() != catalog_item_.catalog_path().str()) {
+    basic_tip += " (" + catalog_item_.catalog_path().str() + ")";
+  }
+
+  return basic_tip;
 }
 
 bool AssetCatalogDropController::on_drop(struct bContext *C, const wmDrag &drag)

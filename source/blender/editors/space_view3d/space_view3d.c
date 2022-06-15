@@ -594,7 +594,7 @@ static char *view3d_mat_drop_tooltip(bContext *C,
 {
   const char *name = WM_drag_get_item_name(drag);
   ARegion *region = CTX_wm_region(C);
-  int mval[2] = {
+  const int mval[2] = {
       xy[0] - region->winrct.xmin,
       xy[1] - region->winrct.ymin,
   };

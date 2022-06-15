@@ -2117,7 +2117,7 @@ void BKE_sculpt_ensure_orig_mesh_data(Scene *scene, Object *object)
   /* Copy the current mesh visibility to the Face Sets. */
   BKE_sculpt_face_sets_ensure_from_base_mesh_visibility(mesh);
   if (object->sculpt != NULL) {
-    /* If a sculpt session is active, ensure we have its faceset data porperly up-to-date. */
+    /* If a sculpt session is active, ensure we have its face-set data properly up-to-date. */
     object->sculpt->face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
 
     /* NOTE: In theory we could add that on the fly when required by sculpt code.
@@ -2284,7 +2284,7 @@ void BKE_sculpt_bvh_update_from_ccg(PBVH *pbvh, SubdivCCG *subdiv_ccg)
                         subdiv_ccg->grid_hidden);
 }
 
-bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *v3d)
+bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *UNUSED(v3d))
 {
   SculptSession *ss = ob->sculpt;
   if (ss == NULL || ss->pbvh == NULL || ss->mode_type != OB_MODE_SCULPT) {
@@ -2293,8 +2293,8 @@ bool BKE_sculptsession_use_pbvh_draw(const Object *ob, const View3D *v3d)
 
   if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES) {
     /* Regular mesh only draws from PBVH without modifiers and shape keys. */
-    const bool full_shading = (v3d && (v3d->shading.type > OB_SOLID));
-    return !(ss->shapekey_active || ss->deform_modifiers_active || full_shading);
+
+    return !(ss->shapekey_active || ss->deform_modifiers_active);
   }
 
   /* Multires and dyntopo always draw directly from the PBVH. */

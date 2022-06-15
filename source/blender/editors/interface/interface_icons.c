@@ -546,6 +546,7 @@ static void init_brush_icons(void)
   INIT_BRUSH_ICON(ICON_BRUSH_MASK, mask);
   INIT_BRUSH_ICON(ICON_BRUSH_MIX, mix);
   INIT_BRUSH_ICON(ICON_BRUSH_NUDGE, nudge);
+  INIT_BRUSH_ICON(ICON_BRUSH_PAINT_SELECT, paint_select);
   INIT_BRUSH_ICON(ICON_BRUSH_PINCH, pinch);
   INIT_BRUSH_ICON(ICON_BRUSH_SCRAPE, scrape);
   INIT_BRUSH_ICON(ICON_BRUSH_SMEAR, smear);
@@ -583,6 +584,19 @@ static void init_brush_icons(void)
   INIT_BRUSH_ICON(ICON_GPBRUSH_ERASE_SOFT, gp_brush_erase_soft);
   INIT_BRUSH_ICON(ICON_GPBRUSH_ERASE_HARD, gp_brush_erase_hard);
   INIT_BRUSH_ICON(ICON_GPBRUSH_ERASE_STROKE, gp_brush_erase_stroke);
+
+  /* Curves sculpt. */
+  INIT_BRUSH_ICON(ICON_BRUSH_CURVES_ADD, curves_sculpt_add);
+  INIT_BRUSH_ICON(ICON_BRUSH_CURVES_COMB, curves_sculpt_comb);
+  INIT_BRUSH_ICON(ICON_BRUSH_CURVES_CUT, curves_sculpt_cut);
+  INIT_BRUSH_ICON(ICON_BRUSH_CURVES_DELETE, curves_sculpt_delete);
+  INIT_BRUSH_ICON(ICON_BRUSH_CURVES_DENSITY, curves_sculpt_density);
+  INIT_BRUSH_ICON(ICON_BRUSH_CURVES_GROW_SHRINK, curves_sculpt_grow_shrink);
+  INIT_BRUSH_ICON(ICON_BRUSH_CURVES_PINCH, curves_sculpt_pinch);
+  INIT_BRUSH_ICON(ICON_BRUSH_CURVES_PUFF, curves_sculpt_puff);
+  INIT_BRUSH_ICON(ICON_BRUSH_CURVES_SLIDE, curves_sculpt_slide);
+  INIT_BRUSH_ICON(ICON_BRUSH_CURVES_SMOOTH, curves_sculpt_smooth);
+  INIT_BRUSH_ICON(ICON_BRUSH_CURVES_SNAKE_HOOK, curves_sculpt_snake_hook);
 
 #  undef INIT_BRUSH_ICON
 }
@@ -2033,6 +2047,9 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
       }
       else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
         paint_mode = PAINT_MODE_TEXTURE_3D;
+      }
+      else if (ob->mode & OB_MODE_SCULPT_CURVES) {
+        paint_mode = PAINT_MODE_SCULPT_CURVES;
       }
     }
     else if (space_type == SPACE_IMAGE) {

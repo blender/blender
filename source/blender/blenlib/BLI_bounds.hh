@@ -28,10 +28,11 @@ template<typename T> static std::optional<MinMaxResult<T>> min_max(Span<T> value
   if (values.is_empty()) {
     return std::nullopt;
   }
+  const MinMaxResult<T> init{values.first(), values.first()};
   return threading::parallel_reduce(
       values.index_range(),
       1024,
-      MinMaxResult<T>(),
+      init,
       [&](IndexRange range, const MinMaxResult<T> &init) {
         MinMaxResult<T> result = init;
         for (const int i : range) {
@@ -55,10 +56,11 @@ static std::optional<MinMaxResult<T>> min_max_with_radii(Span<T> values, Span<Ra
   if (values.is_empty()) {
     return std::nullopt;
   }
+  const MinMaxResult<T> init{values.first(), values.first()};
   return threading::parallel_reduce(
       values.index_range(),
       1024,
-      MinMaxResult<T>(),
+      init,
       [&](IndexRange range, const MinMaxResult<T> &init) {
         MinMaxResult<T> result = init;
         for (const int i : range) {

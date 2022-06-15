@@ -64,6 +64,18 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
 
 
+class MESH_MT_color_attribute_context_menu(Menu):
+    bl_label = "Color Attribute Specials"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator(
+            "geometry.color_attribute_duplicate",
+            icon='DUPLICATE',
+        )
+
+
 class MESH_MT_attribute_context_menu(Menu):
     bl_label = "Attribute Specials"
 
@@ -495,12 +507,12 @@ class MESH_UL_attributes(UIList):
         'CORNER': "Face Corner",
     }
 
-    def filter_items(self, context, data, property):
+    def filter_items(self, _context, data, property):
         attributes = getattr(data, property)
         flags = []
         indices = [i for i in range(len(attributes))]
 
-        for index, item in enumerate(attributes):
+        for item in attributes:
             flags.append(self.bitflag_filter_item if item.is_internal else 0)
 
         return flags, indices
@@ -584,7 +596,7 @@ class ColorAttributesListBase():
         'CORNER': "Face Corner",
     }
 
-    def filter_items(self, context, data, property):
+    def filter_items(self, _context, data, property):
         attrs = getattr(data, property)
         ret = []
         idxs = []
@@ -660,12 +672,17 @@ class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
         col.operator("geometry.color_attribute_add", icon='ADD', text="")
         col.operator("geometry.color_attribute_remove", icon='REMOVE', text="")
 
+        col.separator()
+
+        col.menu("MESH_MT_color_attribute_context_menu", icon='DOWNARROW_HLT', text="")
+
         self.draw_attribute_warnings(context, layout)
 
 
 classes = (
     MESH_MT_vertex_group_context_menu,
     MESH_MT_shape_key_context_menu,
+    MESH_MT_color_attribute_context_menu,
     MESH_MT_attribute_context_menu,
     MESH_UL_vgroups,
     MESH_UL_fmaps,

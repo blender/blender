@@ -11,6 +11,7 @@
 #  include "util/progress.h"
 
 #  include "device/metal/bvh.h"
+#  include "device/metal/util.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -18,6 +19,7 @@ CCL_NAMESPACE_BEGIN
     { \
       string str = string_printf(__VA_ARGS__); \
       progress.set_substatus(str); \
+      metal_printf("%s\n", str.c_str()); \
     }
 
 BVHMetal::BVHMetal(const BVHParams &params_,

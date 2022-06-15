@@ -183,6 +183,24 @@ def geometry_input_node_items(context):
     yield NodeItem("GeometryNodeInputSceneTime")
 
 
+# Custom Menu for Geometry Node Instance Nodes.
+def geometry_instance_node_items(context):
+    if context is None:
+        return
+    space = context.space_data
+    if not space:
+        return
+    yield NodeItem("GeometryNodeInstanceOnPoints")
+    yield NodeItem("GeometryNodeInstancesToPoints")
+    yield NodeItem("GeometryNodeRealizeInstances")
+    yield NodeItem("GeometryNodeRotateInstances")
+    yield NodeItem("GeometryNodeScaleInstances")
+    yield NodeItem("GeometryNodeTranslateInstances")
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeInputInstanceRotation")
+    yield NodeItem("GeometryNodeInputInstanceScale")
+
+
 # Custom Menu for Material Nodes.
 def geometry_material_node_items(context):
     if context is None:
@@ -635,14 +653,7 @@ geometry_node_categories = [
     ]),
     GeometryNodeCategory("GEO_GEOMETRY", "Geometry", items=geometry_node_items),
     GeometryNodeCategory("GEO_INPUT", "Input", items=geometry_input_node_items),
-    GeometryNodeCategory("GEO_INSTANCE", "Instances", items=[
-        NodeItem("GeometryNodeInstanceOnPoints"),
-        NodeItem("GeometryNodeInstancesToPoints"),
-        NodeItem("GeometryNodeRealizeInstances"),
-        NodeItem("GeometryNodeRotateInstances"),
-        NodeItem("GeometryNodeScaleInstances"),
-        NodeItem("GeometryNodeTranslateInstances"),
-    ]),
+    GeometryNodeCategory("GEO_INSTANCE", "Instances", items=geometry_instance_node_items),
     GeometryNodeCategory("GEO_MATERIAL", "Material", items=geometry_material_node_items),
     GeometryNodeCategory("GEO_MESH", "Mesh", items=mesh_node_items),
     GeometryNodeCategory("GEO_PRIMITIVES_MESH", "Mesh Primitives", items=[

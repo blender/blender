@@ -60,11 +60,7 @@ class DeleteOperation : public CurvesSculptStrokeOperation {
 
 struct DeleteOperationExecutor {
   DeleteOperation *self_ = nullptr;
-  const Depsgraph *depsgraph_ = nullptr;
-  const Scene *scene_ = nullptr;
-  ARegion *region_ = nullptr;
-  const View3D *v3d_ = nullptr;
-  const RegionView3D *rv3d_ = nullptr;
+  CurvesSculptCommonContext ctx_;
 
   Object *object_ = nullptr;
   Curves *curves_id_ = nullptr;
@@ -83,16 +79,14 @@ struct DeleteOperationExecutor {
   float4x4 curves_to_world_mat_;
   float4x4 world_to_curves_mat_;
 
+  DeleteOperationExecutor(const bContext &C) : ctx_(C)
+  {
+  }
+
   void execute(DeleteOperation &self, const bContext &C, const StrokeExtension &stroke_extension)
   {
-
     self_ = &self;
-    depsgraph_ = CTX_data_depsgraph_pointer(&C);
-    scene_ = CTX_data_scene(&C);
     object_ = CTX_data_active_object(&C);
-    region_ = CTX_wm_region(&C);
-    v3d_ = CTX_wm_view3d(&C);
-    rv3d_ = CTX_wm_region_view3d(&C);
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
@@ -100,9 +94,9 @@ struct DeleteOperationExecutor {
     selected_curve_indices_.clear();
     curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
-    curves_sculpt_ = scene_->toolsettings->curves_sculpt;
+    curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
-    brush_radius_base_re_ = BKE_brush_size_get(scene_, brush_);
+    brush_radius_base_re_ = BKE_brush_size_get(ctx_.scene, brush_);
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
 
     brush_pos_re_ = stroke_extension.mouse_position;
@@ -140,7 +134,7 @@ struct DeleteOperationExecutor {
 
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
-    ED_region_tag_redraw(region_);
+    ED_region_tag_redraw(ctx_.region);
   }
 
   void delete_projected_with_symmetry(MutableSpan<bool> curves_to_delete)
@@ -157,7 +151,7 @@ struct DeleteOperationExecutor {
     const float4x4 brush_transform_inv = brush_transform.inverted();
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
 
     Span<float3> positions_cu = curves_->positions();
 
@@ -170,7 +164,7 @@ struct DeleteOperationExecutor {
         if (points.size() == 1) {
           const float3 pos_cu = brush_transform_inv * positions_cu[points.first()];
           float2 pos_re;
-          ED_view3d_project_float_v2_m4(region_, pos_cu, pos_re, projection.values);
+          ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.values);
 
           if (math::distance_squared(brush_pos_re_, pos_re) <= brush_radius_sq_re) {
             curves_to_delete[curve_i] = true;
@@ -183,8 +177,8 @@ struct DeleteOperationExecutor {
           const float3 pos2_cu = brush_transform_inv * positions_cu[segment_i + 1];
 
           float2 pos1_re, pos2_re;
-          ED_view3d_project_float_v2_m4(region_, pos1_cu, pos1_re, projection.values);
-          ED_view3d_project_float_v2_m4(region_, pos2_cu, pos2_re, projection.values);
+          ED_view3d_project_float_v2_m4(ctx_.region, pos1_cu, pos1_re, projection.values);
+          ED_view3d_project_float_v2_m4(ctx_.region, pos2_cu, pos2_re, projection.values);
 
           const float dist_sq_re = dist_squared_to_line_segment_v2(
               brush_pos_re_, pos1_re, pos2_re);
@@ -200,11 +194,11 @@ struct DeleteOperationExecutor {
   void delete_spherical_with_symmetry(MutableSpan<bool> curves_to_delete)
   {
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
 
     float3 brush_wo;
-    ED_view3d_win_to_3d(v3d_,
-                        region_,
+    ED_view3d_win_to_3d(ctx_.v3d,
+                        ctx_.region,
                         curves_to_world_mat_ * self_->brush_3d_.position_cu,
                         brush_pos_re_,
                         brush_wo);
@@ -255,8 +249,13 @@ struct DeleteOperationExecutor {
 
   void initialize_spherical_brush_reference_point()
   {
-    std::optional<CurvesBrush3D> brush_3d = sample_curves_3d_brush(
-        *depsgraph_, *region_, *v3d_, *rv3d_, *object_, brush_pos_re_, brush_radius_base_re_);
+    std::optional<CurvesBrush3D> brush_3d = sample_curves_3d_brush(*ctx_.depsgraph,
+                                                                   *ctx_.region,
+                                                                   *ctx_.v3d,
+                                                                   *ctx_.rv3d,
+                                                                   *object_,
+                                                                   brush_pos_re_,
+                                                                   brush_radius_base_re_);
     if (brush_3d.has_value()) {
       self_->brush_3d_ = *brush_3d;
     }
@@ -266,7 +265,7 @@ struct DeleteOperationExecutor {
 void DeleteOperation::on_stroke_extended(const bContext &C,
                                          const StrokeExtension &stroke_extension)
 {
-  DeleteOperationExecutor executor;
+  DeleteOperationExecutor executor{C};
   executor.execute(*this, C, stroke_extension);
 }
 

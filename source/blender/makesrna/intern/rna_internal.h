@@ -404,6 +404,7 @@ bool rna_GPencil_datablocks_obdata_poll(struct PointerRNA *ptr, const struct Poi
 
 char *rna_TextureSlot_path(const struct PointerRNA *ptr);
 char *rna_Node_ImageUser_path(const struct PointerRNA *ptr);
+char *rna_CameraBackgroundImage_image_or_movieclip_user_path(const struct PointerRNA *ptr);
 
 /* Set U.is_dirty and redraw. */
 

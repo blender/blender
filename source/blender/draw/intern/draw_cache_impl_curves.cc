@@ -52,11 +52,14 @@ struct CurvesBatchCache {
 
   GPUBatch *edit_points;
 
-  /* To determine if cache is invalid. */
+  /* Whether the cache is invalid. */
   bool is_dirty;
 
-  /** Needed when updating material data (e.g. attributes) as the same curves might be used for
-   * multiple objects with different materials. */
+  /**
+   * The draw cache extraction is currently not multi-threaded for multiple objects, but if it was,
+   * some locking would be necessary because multiple objects can use the same curves data with
+   * different materials, etc. This is a placeholder to make multi-threading easier in the future.
+   */
   ThreadMutex render_mutex;
 };
 
@@ -160,7 +163,7 @@ void DRW_curves_batch_cache_dirty_tag(Curves *curves, int mode)
       cache->is_dirty = true;
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
   }
 }
 
@@ -512,7 +515,7 @@ static bool curves_ensure_attributes(const Curves &curves,
   ListBase gpu_attrs = GPU_material_attributes(gpu_material);
   LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
     const char *name = gpu_attr->name;
-    int type = gpu_attr->type;
+    eCustomDataType type = static_cast<eCustomDataType>(gpu_attr->type);
     int layer = -1;
     eAttrDomain domain;
 
@@ -527,8 +530,6 @@ static bool curves_ensure_attributes(const Curves &curves,
     }
 
     switch (type) {
-      default:
-        break;
       case CD_PROP_BOOL:
       case CD_PROP_INT8:
       case CD_PROP_INT32:
@@ -545,6 +546,8 @@ static bool curves_ensure_attributes(const Curves &curves,
         }
         break;
       }
+      default:
+        break;
     }
   }
 

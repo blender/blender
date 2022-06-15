@@ -460,11 +460,20 @@ static size_t unit_as_string(char *str,
   }
 
   double value_conv = (value / unit->scalar) - unit->bias;
+  bool strip_skip = false;
+
+  /* Negative precision is used to disable stripping of zeroes.
+   * This reduces text jumping when changing values. */
+  if (prec < 0) {
+    strip_skip = true;
+    prec *= -1;
+  }
 
   /* Adjust precision to expected number of significant digits.
    * Note that here, we shall not have to worry about very big/small numbers, units are expected
    * to replace 'scientific notation' in those cases. */
   prec -= integer_digits_d(value_conv);
+
   CLAMP(prec, 0, 6);
 
   /* Convert to a string. */
@@ -478,12 +487,14 @@ static size_t unit_as_string(char *str,
   size_t i = len - 1;
 
   if (prec > 0) {
-    while (i > 0 && str[i] == '0') { /* 4.300 -> 4.3 */
-      str[i--] = pad;
-    }
+    if (!strip_skip) {
+      while (i > 0 && str[i] == '0') { /* 4.300 -> 4.3 */
+        str[i--] = pad;
+      }
 
-    if (i > 0 && str[i] == '.') { /* 10. -> 10 */
-      str[i--] = pad;
+      if (i > 0 && str[i] == '.') { /* 10. -> 10 */
+        str[i--] = pad;
+      }
     }
   }
 

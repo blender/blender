@@ -23,7 +23,6 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
-#include "BKE_spline.hh"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
@@ -72,11 +71,7 @@ class SnakeHookOperation : public CurvesSculptStrokeOperation {
  */
 struct SnakeHookOperatorExecutor {
   SnakeHookOperation *self_ = nullptr;
-  const Depsgraph *depsgraph_ = nullptr;
-  const Scene *scene_ = nullptr;
-  ARegion *region_ = nullptr;
-  const View3D *v3d_ = nullptr;
-  const RegionView3D *rv3d_ = nullptr;
+  CurvesSculptCommonContext ctx_;
 
   const CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;
@@ -101,6 +96,10 @@ struct SnakeHookOperatorExecutor {
   float2 brush_pos_re_;
   float2 brush_pos_diff_re_;
 
+  SnakeHookOperatorExecutor(const bContext &C) : ctx_(C)
+  {
+  }
+
   void execute(SnakeHookOperation &self,
                const bContext &C,
                const StrokeExtension &stroke_extension)
@@ -108,20 +107,14 @@ struct SnakeHookOperatorExecutor {
     BLI_SCOPED_DEFER([&]() { self.last_mouse_position_re_ = stroke_extension.mouse_position; });
 
     self_ = &self;
-    depsgraph_ = CTX_data_depsgraph_pointer(&C);
-    scene_ = CTX_data_scene(&C);
-    scene_ = CTX_data_scene(&C);
     object_ = CTX_data_active_object(&C);
-    region_ = CTX_wm_region(&C);
-    v3d_ = CTX_wm_view3d(&C);
-    rv3d_ = CTX_wm_region_view3d(&C);
 
-    curves_sculpt_ = scene_->toolsettings->curves_sculpt;
+    curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
 
-    brush_radius_base_re_ = BKE_brush_size_get(scene_, brush_);
+    brush_radius_base_re_ = BKE_brush_size_get(ctx_.scene, brush_);
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
-    brush_strength_ = brush_strength_get(*scene_, *brush_, stroke_extension);
+    brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
 
     falloff_shape_ = static_cast<eBrushFalloffShape>(brush_->falloff_shape);
 
@@ -143,8 +136,13 @@ struct SnakeHookOperatorExecutor {
 
     if (stroke_extension.is_first) {
       if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
-        std::optional<CurvesBrush3D> brush_3d = sample_curves_3d_brush(
-            *depsgraph_, *region_, *v3d_, *rv3d_, *object_, brush_pos_re_, brush_radius_base_re_);
+        std::optional<CurvesBrush3D> brush_3d = sample_curves_3d_brush(*ctx_.depsgraph,
+                                                                       *ctx_.region,
+                                                                       *ctx_.v3d,
+                                                                       *ctx_.rv3d,
+                                                                       *object_,
+                                                                       brush_pos_re_,
+                                                                       brush_radius_base_re_);
         if (brush_3d.has_value()) {
           self_->brush_3d_ = *brush_3d;
         }
@@ -165,7 +163,7 @@ struct SnakeHookOperatorExecutor {
     curves_->tag_positions_changed();
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
-    ED_region_tag_redraw(region_);
+    ED_region_tag_redraw(ctx_.region);
   }
 
   void projected_snake_hook_with_symmetry()
@@ -184,7 +182,7 @@ struct SnakeHookOperatorExecutor {
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
 
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
@@ -196,7 +194,7 @@ struct SnakeHookOperatorExecutor {
         const float3 old_pos_cu = brush_transform_inv * positions_cu[last_point_i];
 
         float2 old_pos_re;
-        ED_view3d_project_float_v2_m4(region_, old_pos_cu, old_pos_re, projection.values);
+        ED_view3d_project_float_v2_m4(ctx_.region, old_pos_cu, old_pos_re, projection.values);
 
         const float distance_to_brush_sq_re = math::distance_squared(old_pos_re,
                                                                      brush_pos_prev_re_);
@@ -210,11 +208,14 @@ struct SnakeHookOperatorExecutor {
 
         const float2 new_position_re = old_pos_re + brush_pos_diff_re_ * weight;
         float3 new_position_wo;
-        ED_view3d_win_to_3d(
-            v3d_, region_, curves_to_world_mat_ * old_pos_cu, new_position_re, new_position_wo);
+        ED_view3d_win_to_3d(ctx_.v3d,
+                            ctx_.region,
+                            curves_to_world_mat_ * old_pos_cu,
+                            new_position_re,
+                            new_position_wo);
         const float3 new_position_cu = brush_transform * (world_to_curves_mat_ * new_position_wo);
 
-        this->move_last_point_and_resample(positions_cu.slice(points), new_position_cu);
+        move_last_point_and_resample(positions_cu.slice(points), new_position_cu);
       }
     });
   }
@@ -222,16 +223,16 @@ struct SnakeHookOperatorExecutor {
   void spherical_snake_hook_with_symmetry()
   {
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
 
     float3 brush_start_wo, brush_end_wo;
-    ED_view3d_win_to_3d(v3d_,
-                        region_,
+    ED_view3d_win_to_3d(ctx_.v3d,
+                        ctx_.region,
                         curves_to_world_mat_ * self_->brush_3d_.position_cu,
                         brush_pos_prev_re_,
                         brush_start_wo);
-    ED_view3d_win_to_3d(v3d_,
-                        region_,
+    ED_view3d_win_to_3d(ctx_.v3d,
+                        ctx_.region,
                         curves_to_world_mat_ * self_->brush_3d_.position_cu,
                         brush_pos_re_,
                         brush_end_wo);
@@ -276,48 +277,16 @@ struct SnakeHookOperatorExecutor {
 
         const float3 new_pos_cu = old_pos_cu + weight * brush_diff_cu;
 
-        this->move_last_point_and_resample(positions_cu.slice(points), new_pos_cu);
+        move_last_point_and_resample(positions_cu.slice(points), new_pos_cu);
       }
     });
-  }
-
-  void move_last_point_and_resample(MutableSpan<float3> positions,
-                                    const float3 &new_last_position) const
-  {
-    /* Find the accumulated length of each point in the original curve,
-     * treating it as a poly curve for performance reasons and simplicity. */
-    Array<float> orig_lengths(length_parameterize::lengths_num(positions.size(), false));
-    length_parameterize::accumulate_lengths<float3>(positions, false, orig_lengths);
-    const float orig_total_length = orig_lengths.last();
-
-    /* Find the factor by which the new curve is shorter or longer than the original. */
-    const float new_last_segment_length = math::distance(positions.last(1), new_last_position);
-    const float new_total_length = orig_lengths.last(1) + new_last_segment_length;
-    const float length_factor = new_total_length / orig_total_length;
-
-    /* Calculate the lengths to sample the original curve with by scaling the original lengths. */
-    Array<float> new_lengths(positions.size() - 1);
-    new_lengths.first() = 0.0f;
-    for (const int i : new_lengths.index_range().drop_front(1)) {
-      new_lengths[i] = orig_lengths[i - 1] * length_factor;
-    }
-
-    Array<int> indices(positions.size() - 1);
-    Array<float> factors(positions.size() - 1);
-    length_parameterize::create_samples_from_sorted_lengths(
-        orig_lengths, new_lengths, false, indices, factors);
-
-    Array<float3> new_positions(positions.size() - 1);
-    length_parameterize::linear_interpolation<float3>(positions, indices, factors, new_positions);
-    positions.drop_back(1).copy_from(new_positions);
-    positions.last() = new_last_position;
   }
 };
 
 void SnakeHookOperation::on_stroke_extended(const bContext &C,
                                             const StrokeExtension &stroke_extension)
 {
-  SnakeHookOperatorExecutor executor;
+  SnakeHookOperatorExecutor executor{C};
   executor.execute(*this, C, stroke_extension);
 }
 

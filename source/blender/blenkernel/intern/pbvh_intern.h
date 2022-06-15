@@ -2,6 +2,8 @@
 
 #pragma once
 
+struct PBVHGPUFormat;
+
 /** \file
  * \ingroup bke
  */
@@ -123,9 +125,7 @@ struct PBVHNode {
   PBVHPixelsNode pixels;
 };
 
-typedef enum {
-  PBVH_DYNTOPO_SMOOTH_SHADING = 1,
-} PBVHFlags;
+typedef enum { PBVH_DYNTOPO_SMOOTH_SHADING = 1 } PBVHFlags;
 
 typedef struct PBVHBMeshLog PBVHBMeshLog;
 
@@ -204,6 +204,8 @@ struct PBVH {
 
   /* Used by DynTopo to invalidate the draw cache. */
   bool draw_cache_invalid;
+
+  struct PBVHGPUFormat *vbo_id;
 };
 
 /* pbvh.c */

@@ -1641,21 +1641,22 @@ void EDBM_project_snap_verts(
       float mval[2], co_proj[3];
       if (ED_view3d_project_float_object(region, eve->co, mval, V3D_PROJ_TEST_NOP) ==
           V3D_PROJ_RET_OK) {
-        if (ED_transform_snap_object_project_view3d(snap_context,
-                                                    depsgraph,
-                                                    region,
-                                                    CTX_wm_view3d(C),
-                                                    SCE_SNAP_MODE_FACE,
-                                                    &(const struct SnapObjectParams){
-                                                        .snap_select = SNAP_NOT_ACTIVE,
-                                                        .edit_mode_type = SNAP_GEOM_FINAL,
-                                                        .use_occlusion_test = true,
-                                                    },
-                                                    mval,
-                                                    NULL,
-                                                    NULL,
-                                                    co_proj,
-                                                    NULL)) {
+        if (ED_transform_snap_object_project_view3d(
+                snap_context,
+                depsgraph,
+                region,
+                CTX_wm_view3d(C),
+                SCE_SNAP_MODE_FACE,
+                &(const struct SnapObjectParams){
+                    .snap_target_select = SCE_SNAP_TARGET_NOT_ACTIVE,
+                    .edit_mode_type = SNAP_GEOM_FINAL,
+                    .use_occlusion_test = true,
+                },
+                mval,
+                NULL,
+                NULL,
+                co_proj,
+                NULL)) {
           mul_v3_m4v3(eve->co, obedit->imat, co_proj);
         }
       }

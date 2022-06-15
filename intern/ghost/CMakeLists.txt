@@ -324,15 +324,20 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${CMAKE_CURRENT_BINARY_DIR}
     )
 
-    # xdg-shell.
+    # `xdg-shell`.
     generate_protocol_bindings(
       xdg-shell
       "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
     )
-    # xdg-decoration.
+    # `xdg-decoration`.
     generate_protocol_bindings(
       xdg-decoration
       "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
+    )
+    # `xdg-output`.
+    generate_protocol_bindings(
+      xdg-output
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-output/xdg-output-unstable-v1.xml"
     )
     # Pointer-constraints.
     generate_protocol_bindings(
@@ -343,6 +348,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     generate_protocol_bindings(
       relative-pointer
       "${WAYLAND_PROTOCOLS_DIR}/unstable/relative-pointer/relative-pointer-unstable-v1.xml"
+    )
+    # Tablet.
+    generate_protocol_bindings(
+      tablet
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/tablet/tablet-unstable-v2.xml"
     )
 
     add_definitions(-DWITH_GHOST_WAYLAND)

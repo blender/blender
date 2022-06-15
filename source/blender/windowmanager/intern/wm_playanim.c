@@ -33,6 +33,7 @@
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_system.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.h"
@@ -673,7 +674,7 @@ static void build_pict_list_ex(
      *
      * If set, all reads and writes on the resulting file descriptor will
      * be performed directly to or from the user program buffer, provided
-     * appropriate size and alignment restrictions are met.  Refer to the
+     * appropriate size and alignment restrictions are met. Refer to the
      * F_SETFL and F_DIOINFO commands in the fcntl(2) manual entry for
      * information about how to determine the alignment constraints.
      * O_DIRECT is a Silicon Graphics extension and is only supported on
@@ -1535,6 +1536,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   {
 
     GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(ghost_event_proc, &ps);
+
+    GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
 
     g_WS.ghost_system = GHOST_CreateSystem();
     GHOST_AddEventConsumer(g_WS.ghost_system, consumer);

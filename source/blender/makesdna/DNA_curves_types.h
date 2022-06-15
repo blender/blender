@@ -157,6 +157,13 @@ typedef struct Curves {
    */
   struct Object *surface;
 
+  /**
+   * The name of the attribute on the surface #Mesh used to give meaning to the UV attachment
+   * coordinates stored on each curve. Expected to be a 2D vector attribute on the face corner
+   * domain.
+   */
+  char *surface_uv_map;
+
   /* Draw Cache. */
   void *batch_cache;
 } Curves;

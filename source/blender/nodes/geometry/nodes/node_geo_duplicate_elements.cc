@@ -98,7 +98,7 @@ static void threaded_slice_fill(Span<int> offsets,
                                 MutableSpan<T> dst)
 {
   BLI_assert(offsets.last() == dst.size());
-  BLI_assert(selection.size() == offsets.size());
+  BLI_assert(selection.size() == offsets.size() - 1);
   threading::parallel_for(IndexRange(offsets.size() - 1), 512, [&](IndexRange range) {
     for (const int i : range) {
       dst.slice(range_for_offsets_index(offsets, i)).fill(src[selection[i]]);

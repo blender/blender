@@ -132,7 +132,9 @@ int curves_attribute_element_id()
 {
   int id = interp.curves_strand_id;
   if (drw_curves.is_point_attribute[g_curves_attr_id] != 0) {
+#  ifdef COMMON_HAIR_LIB
     id = hair_get_base_id();
+#  endif
   }
 
   g_curves_attr_id += 1;
@@ -285,7 +287,7 @@ vec3 attr_load_uv(vec3 attr)
 /** \name Volume Attribute post
  *
  * TODO(@fclem): These implementation details should concern the DRWManager and not be a fix on
- * the engine side. But as of now, the engines are reponsible for loading the attributes.
+ * the engine side. But as of now, the engines are responsible for loading the attributes.
  *
  * \{ */
 

@@ -24,6 +24,7 @@ struct Scene;
 struct SpaceImage;
 struct View2D;
 struct bContext;
+struct Paint;
 struct wmOperator;
 struct wmWindowManager;
 
@@ -63,8 +64,11 @@ bool ED_space_image_get_position(struct SpaceImage *sima,
 /**
  * Returns color in linear space, matching #ED_space_node_color_sample().
  */
-bool ED_space_image_color_sample(
-    struct SpaceImage *sima, struct ARegion *region, int mval[2], float r_col[3], bool *r_is_data);
+bool ED_space_image_color_sample(struct SpaceImage *sima,
+                                 struct ARegion *region,
+                                 const int mval[2],
+                                 float r_col[3],
+                                 bool *r_is_data);
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock, int tile);
 /**
  * Get the #SpaceImage flag that is valid for the given ibuf.
@@ -186,6 +190,9 @@ typedef struct ImageFrameRange {
 ListBase ED_image_filesel_detect_sequences(struct Main *bmain,
                                            struct wmOperator *op,
                                            bool detect_udim);
+
+bool ED_image_tools_paint_poll(struct bContext *C);
+void ED_paint_cursor_start(struct Paint *p, bool (*poll)(struct bContext *C));
 
 #ifdef __cplusplus
 }

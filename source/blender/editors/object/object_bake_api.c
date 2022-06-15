@@ -1536,7 +1536,7 @@ static int bake(const BakeAPIRender *bkr,
                                           ob_low_eval->obmat);
         }
         else {
-          /* from multiresolution */
+          /* From multi-resolution. */
           Mesh *me_nores = NULL;
           ModifierData *md = NULL;
           int mode;

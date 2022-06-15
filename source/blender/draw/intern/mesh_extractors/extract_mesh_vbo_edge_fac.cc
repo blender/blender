@@ -10,7 +10,7 @@
 #include "GPU_capabilities.h"
 
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -303,6 +303,4 @@ constexpr MeshExtract create_extractor_edge_fac()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_edge_fac = blender::draw::create_extractor_edge_fac();
-}

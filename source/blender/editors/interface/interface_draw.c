@@ -130,7 +130,7 @@ void UI_draw_roundbox_4fv_ex(const rctf *rect,
 void UI_draw_roundbox_3ub_alpha(
     const rctf *rect, bool filled, float rad, const uchar col[3], uchar alpha)
 {
-  float colv[4] = {
+  const float colv[4] = {
       ((float)col[0]) / 255,
       ((float)col[1]) / 255,
       ((float)col[2]) / 255,
@@ -142,7 +142,7 @@ void UI_draw_roundbox_3ub_alpha(
 void UI_draw_roundbox_3fv_alpha(
     const rctf *rect, bool filled, float rad, const float col[3], float alpha)
 {
-  float colv[4] = {col[0], col[1], col[2], alpha};
+  const float colv[4] = {col[0], col[1], col[2], alpha};
   UI_draw_roundbox_4fv_ex(rect, (filled) ? colv : NULL, NULL, 1.0f, colv, U.pixelsize, rad);
 }
 

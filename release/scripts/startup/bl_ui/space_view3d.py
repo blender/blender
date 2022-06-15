@@ -510,30 +510,27 @@ class _draw_tool_settings_context_mode:
                 header=True,
             )
 
-        if brush.curves_sculpt_tool == 'COMB':
+        curves_tool = brush.curves_sculpt_tool
+
+        if curves_tool == 'COMB':
             layout.prop(brush, "falloff_shape", expand=True)
             layout.popover("VIEW3D_PT_tools_brush_falloff")
-
-        if brush.curves_sculpt_tool == 'ADD':
+        elif curves_tool == 'ADD':
             layout.prop(brush, "falloff_shape", expand=True)
             layout.prop(brush.curves_sculpt_settings, "add_amount")
             layout.popover("VIEW3D_PT_curves_sculpt_add_shape", text="Curve Shape")
             layout.prop(brush, "use_frontface", text="Front Faces Only")
-
-        if brush.curves_sculpt_tool == 'GROW_SHRINK':
+        elif curves_tool == 'GROW_SHRINK':
             layout.prop(brush, "direction", expand=True, text="")
             layout.prop(brush, "falloff_shape", expand=True)
             layout.popover("VIEW3D_PT_curves_sculpt_grow_shrink_scaling", text="Scaling")
             layout.popover("VIEW3D_PT_tools_brush_falloff")
-
-        if brush.curves_sculpt_tool == 'SNAKE_HOOK':
+        elif curves_tool == 'SNAKE_HOOK':
             layout.prop(brush, "falloff_shape", expand=True)
             layout.popover("VIEW3D_PT_tools_brush_falloff")
-
-        if brush.curves_sculpt_tool == 'DELETE':
+        elif curves_tool == 'DELETE':
             layout.prop(brush, "falloff_shape", expand=True)
-
-        if brush.curves_sculpt_tool == 'SELECTION_PAINT':
+        elif curves_tool == 'SELECTION_PAINT':
             layout.prop(brush, "direction", expand=True, text="")
             layout.prop(brush, "falloff_shape", expand=True)
             layout.popover("VIEW3D_PT_tools_brush_falloff")

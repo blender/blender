@@ -57,8 +57,6 @@
 #include "BKE_tracking.h"
 #include "BKE_workspace.h"
 
-#include "DEG_depsgraph.h"
-
 #include "WM_api.h"
 #include "WM_toolsystem.h"
 #include "WM_types.h"

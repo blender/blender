@@ -174,14 +174,14 @@ class IMMapStream : public Imf::IStream {
     imb_mmap_lock();
     _mmap_file = BLI_mmap_open(file);
     imb_mmap_unlock();
-    if (_mmap_file == NULL) {
+    if (_mmap_file == nullptr) {
       throw IEX_NAMESPACE::InputExc("BLI_mmap_open failed");
     }
     close(file);
     _exrbuf = (unsigned char *)BLI_mmap_get_pointer(_mmap_file);
   }
 
-  ~IMMapStream()
+  ~IMMapStream() override
   {
     imb_mmap_lock();
     BLI_mmap_free(_mmap_file);
@@ -512,7 +512,7 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *name, const int flags
 
     /* we store first everything in half array */
     std::vector<RGBAZ> pixels(height * width);
-    RGBAZ *to = &pixels[0];
+    RGBAZ *to = pixels.data();
     int xstride = sizeof(RGBAZ);
     int ystride = xstride * width;
 
@@ -1010,7 +1010,7 @@ void IMB_exrtile_begin_write(
   /* manually create ofstream, so we can handle utf-8 filepaths on windows */
   try {
     data->ofile_stream = new OFileStream(filepath);
-    data->mpofile = new MultiPartOutputFile(*(data->ofile_stream), &headers[0], headers.size());
+    data->mpofile = new MultiPartOutputFile(*(data->ofile_stream), headers.data(), headers.size());
   }
   catch (const std::exception &) {
     delete data->mpofile;
@@ -2209,7 +2209,7 @@ struct ImBuf *imb_load_filepath_thumbnail_openexr(const char *filepath,
     if (file->header().hasPreviewImage()) {
       const Imf::PreviewImage &preview = file->header().previewImage();
       ImBuf *ibuf = IMB_allocFromBuffer(
-          (unsigned int *)preview.pixels(), NULL, preview.width(), preview.height(), 4);
+          (unsigned int *)preview.pixels(), nullptr, preview.width(), preview.height(), 4);
       delete file;
       delete stream;
       IMB_flipy(ibuf);

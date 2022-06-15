@@ -750,6 +750,9 @@ void GPU_material_compile(GPUMaterial *mat)
       mat->status = GPU_MAT_SUCCESS;
       gpu_node_graph_free_nodes(&mat->graph);
     }
+    else {
+      mat->status = GPU_MAT_FAILED;
+    }
   }
   else {
     mat->status = GPU_MAT_FAILED;

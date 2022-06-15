@@ -31,7 +31,9 @@
 
 #include "mask_intern.h" /* own include */
 
-/******************** add vertex *********************/
+/* -------------------------------------------------------------------- */
+/** \name Add Vertex
+ * \{ */
 
 static void setup_vertex_point(Mask *mask,
                                MaskSpline *spline,
@@ -160,7 +162,11 @@ static void setup_vertex_point(Mask *mask,
   ED_mask_select_flush_all(mask);
 }
 
-/* **** add extrude vertex **** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Extrude Vertex
+ * \{ */
 
 static void finSelectedSplinePoint(MaskLayer *mask_layer,
                                    MaskSpline **spline,
@@ -206,7 +212,11 @@ static void finSelectedSplinePoint(MaskLayer *mask_layer,
   }
 }
 
-/* **** add subdivide vertex **** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Subdivide Vertex
+ * \{ */
 
 static void mask_spline_add_point_at_index(MaskSpline *spline, int point_index)
 {
@@ -390,7 +400,7 @@ static bool add_vertex_new(const bContext *C, Mask *mask, MaskLayer *mask_layer,
   MaskSplinePoint *new_point = NULL, *ref_point = NULL;
 
   if (!mask_layer) {
-    /* if there's no mask layer currently operationg on, create new one */
+    /* If there's no mask layer currently operating on, create new one. */
     mask_layer = BKE_mask_layer_new(mask, "");
     mask->masklay_act = mask->masklay_tot - 1;
   }
@@ -492,6 +502,12 @@ static int add_vertex_handle_cyclic(
   return OPERATOR_PASS_THROUGH;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Vertex Operator
+ * \{ */
+
 static int add_vertex_exec(bContext *C, wmOperator *op)
 {
   MaskViewLockState lock_state;
@@ -585,7 +601,11 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
                        1.0f);
 }
 
-/******************** add feather vertex *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add Feather Vertex Operator
+ * \{ */
 
 static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 {
@@ -677,7 +697,11 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
                        1.0f);
 }
 
-/******************** common primitive functions *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Common Primitive Functions
+ * \{ */
 
 static BezTriple *points_to_bezier(const float (*points)[2],
                                    const int num_points,
@@ -812,7 +836,11 @@ static void define_primitive_add_properties(wmOperatorType *ot)
                        FLT_MAX);
 }
 
-/******************** primitive add circle *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Primitive Add Circle Operator
+ * \{ */
 
 static int primitive_circle_add_exec(bContext *C, wmOperator *op)
 {
@@ -843,7 +871,11 @@ void MASK_OT_primitive_circle_add(wmOperatorType *ot)
   define_primitive_add_properties(ot);
 }
 
-/******************** primitive add suqare *********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Primitive Add Suqare Operator
+ * \{ */
 
 static int primitive_square_add_exec(bContext *C, wmOperator *op)
 {
@@ -873,3 +905,5 @@ void MASK_OT_primitive_square_add(wmOperatorType *ot)
   /* properties */
   define_primitive_add_properties(ot);
 }
+
+/** \} */

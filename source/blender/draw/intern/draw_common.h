@@ -93,7 +93,7 @@ void DRW_curves_free(void);
 /**
  * Add attributes bindings of volume grids to an existing shading group.
  * No draw call is added so the caller can decide how to use the data.
- * \return nullptr if there is something to draw.
+ * \return nullptr if there is nothing to draw.
  */
 struct DRWShadingGroup *DRW_shgroup_volume_create_sub(struct Scene *scene,
                                                       struct Object *ob,

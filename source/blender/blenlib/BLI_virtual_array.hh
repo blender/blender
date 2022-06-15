@@ -1138,6 +1138,8 @@ template<typename T> class VArray_Span final : public Span<T> {
   Array<T> owned_data_;
 
  public:
+  VArray_Span() = default;
+
   VArray_Span(VArray<T> varray) : Span<T>(), varray_(std::move(varray))
   {
     this->size_ = varray_.size();
@@ -1150,6 +1152,30 @@ template<typename T> class VArray_Span final : public Span<T> {
       varray_.materialize_to_uninitialized(owned_data_);
       this->data_ = owned_data_.data();
     }
+  }
+
+  VArray_Span(VArray_Span &&other)
+      : varray_(std::move(other.varray_)), owned_data_(std::move(other.owned_data_))
+  {
+    this->size_ = varray_.size();
+    if (varray_.is_span()) {
+      this->data_ = varray_.get_internal_span().data();
+    }
+    else {
+      this->data_ = owned_data_.data();
+    }
+    other.data_ = nullptr;
+    other.size_ = 0;
+  }
+
+  VArray_Span &operator=(VArray_Span &&other)
+  {
+    if (this == &other) {
+      return *this;
+    }
+    std::destroy_at(this);
+    new (this) VArray_Span(std::move(other));
+    return *this;
   }
 };
 

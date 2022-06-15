@@ -714,6 +714,10 @@ void BKE_pbvh_free(PBVH *pbvh)
 
   MEM_SAFE_FREE(pbvh->vert_bitmap);
 
+  if (pbvh->vbo_id) {
+    GPU_pbvh_free_format(pbvh->vbo_id);
+  }
+
   MEM_freeN(pbvh);
 }
 
@@ -1299,6 +1303,17 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   PBVH *pbvh = data->pbvh;
   PBVHNode *node = data->nodes[n];
 
+  CustomData *vdata, *ldata;
+
+  if (!pbvh->bm) {
+    vdata = pbvh->vdata;
+    ldata = pbvh->ldata;
+  }
+  else {
+    vdata = &pbvh->bm->vdata;
+    ldata = &pbvh->bm->ldata;
+  }
+
   if (node->flag & PBVH_RebuildDrawBuffers) {
     switch (pbvh->type) {
       case PBVH_GRIDS:
@@ -1326,7 +1341,8 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
     const int update_flags = pbvh_get_buffers_update_flags(pbvh);
     switch (pbvh->type) {
       case PBVH_GRIDS:
-        GPU_pbvh_grid_buffers_update(node->draw_buffers,
+        GPU_pbvh_grid_buffers_update(pbvh->vbo_id,
+                                     node->draw_buffers,
                                      pbvh->subdiv_ccg,
                                      pbvh->grids,
                                      pbvh->grid_flag_mats,
@@ -1339,26 +1355,22 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      update_flags);
         break;
       case PBVH_FACES: {
-        CustomDataLayer *layer = NULL;
-        eAttrDomain domain;
-
-        BKE_pbvh_get_color_layer(pbvh->mesh, &layer, &domain);
-
-        GPU_pbvh_mesh_buffers_update(node->draw_buffers,
+        GPU_pbvh_mesh_buffers_update(pbvh->vbo_id,
+                                     node->draw_buffers,
                                      pbvh->verts,
-                                     pbvh->vert_normals,
+                                     vdata,
+                                     ldata,
                                      CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK),
-                                     layer ? layer->data : NULL,
-                                     layer ? layer->type : -1,
-                                     layer ? domain : ATTR_DOMAIN_AUTO,
                                      CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
                                      pbvh->face_sets_color_seed,
                                      pbvh->face_sets_color_default,
-                                     update_flags);
+                                     update_flags,
+                                     pbvh->vert_normals);
         break;
       }
       case PBVH_BMESH:
-        GPU_pbvh_bmesh_buffers_update(node->draw_buffers,
+        GPU_pbvh_bmesh_buffers_update(pbvh->vbo_id,
+                                      node->draw_buffers,
                                       pbvh->bm,
                                       node->bm_faces,
                                       node->bm_unique_verts,
@@ -1379,8 +1391,79 @@ void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
+static void pbvh_check_draw_layout(PBVH *pbvh)
+{
+  const CustomData *vdata;
+  const CustomData *ldata;
+
+  if (!pbvh->vbo_id) {
+    pbvh->vbo_id = GPU_pbvh_make_format();
+  }
+
+  switch (pbvh->type) {
+    case PBVH_BMESH:
+      if (!pbvh->bm) {
+        /* BMesh hasn't been created yet */
+        return;
+      }
+
+      vdata = &pbvh->bm->vdata;
+      ldata = &pbvh->bm->ldata;
+      break;
+    case PBVH_FACES:
+      vdata = pbvh->vdata;
+      ldata = pbvh->ldata;
+      break;
+    case PBVH_GRIDS:
+      ldata = vdata = NULL;
+      break;
+  }
+
+  /* Rebuild all draw buffers if attribute layout changed.
+   *
+   * NOTE: The optimization where we only send active attributes
+   * to the GPU in workbench mode is disabled due to bugs
+   * (there's no guarantee there isn't another EEVEE viewport which would
+   *  free the draw buffers and corrupt the draw cache).
+   */
+  if (GPU_pbvh_attribute_names_update(pbvh->type, pbvh->vbo_id, vdata, ldata, false)) {
+    /* attribute layout changed; force rebuild */
+    for (int i = 0; i < pbvh->totnode; i++) {
+      PBVHNode *node = pbvh->nodes + i;
+
+      if (node->flag & PBVH_Leaf) {
+        node->flag |= PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers | PBVH_UpdateRedraw;
+      }
+    }
+  }
+}
+
 static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
 {
+  const CustomData *vdata;
+
+  if (!pbvh->vbo_id) {
+    pbvh->vbo_id = GPU_pbvh_make_format();
+  }
+
+  switch (pbvh->type) {
+    case PBVH_BMESH:
+      if (!pbvh->bm) {
+        /* BMesh hasn't been created yet */
+        return;
+      }
+
+      vdata = &pbvh->bm->vdata;
+      break;
+    case PBVH_FACES:
+      vdata = pbvh->vdata;
+      break;
+    case PBVH_GRIDS:
+      vdata = NULL;
+      break;
+  }
+  UNUSED_VARS(vdata);
+
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
     /* Free buffers uses OpenGL, so not in parallel. */
     for (int n = 0; n < totnode; n++) {
@@ -2540,7 +2623,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
     }
 
     if (origco) {
-      /* intersect with backuped original coordinates */
+      /* Intersect with backed-up original coordinates. */
       hit |= ray_face_nearest_tri(ray_start,
                                   ray_normal,
                                   origco[face_verts[0]],
@@ -2783,7 +2866,8 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       PBVHFrustumPlanes *update_frustum,
                       PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
-                      void *user_data)
+                      void *user_data,
+                      bool UNUSED(full_render))
 {
   PBVHNode **nodes;
   int totnode;
@@ -2805,6 +2889,8 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
         pbvh, update_search_cb, POINTER_FROM_INT(search_flag), &nodes, &totnode);
     update_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
   }
+
+  pbvh_check_draw_layout(pbvh);
 
   /* Update draw buffers. */
   if (totnode != 0 && (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers))) {
@@ -3156,6 +3242,11 @@ bool BKE_pbvh_is_drawing(const PBVH *pbvh)
   return pbvh->is_drawing;
 }
 
+bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh)
+{
+  return pbvh->draw_cache_invalid;
+}
+
 void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val)
 {
   pbvh->is_drawing = val;
@@ -3228,9 +3319,4 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
   }
 
   MEM_SAFE_FREE(visit);
-}
-
-bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh)
-{
-  return pbvh->draw_cache_invalid;
 }

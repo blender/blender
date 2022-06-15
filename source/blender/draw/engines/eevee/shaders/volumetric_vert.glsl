@@ -77,3 +77,13 @@ vec3 coordinate_incoming(vec3 P)
 {
   return vec3(0.0);
 }
+
+float attr_load_temperature_post(float attr)
+{
+  return attr;
+}
+
+vec4 attr_load_color_post(vec4 attr)
+{
+  return attr;
+}

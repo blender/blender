@@ -12,7 +12,7 @@ namespace blender::io::usd {
  * Thus function must be called before instantiating a USD
  * stage to avoid errors.  The returned string is the path to
  * the USD data files directory from which the plugins were
- * loaded.  If the USD data files directory can't be determined,
+ * loaded. If the USD data files directory can't be determined,
  * plugin registration is skipped and the empty string is
  * returned. */
 std::string register_usd_plugins_for_tests();

@@ -581,21 +581,13 @@ static int sequencer_slip_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 
 static void sequencer_slip_recursively(Scene *scene, SlipData *data, int offset)
 {
-  /* Iterate in reverse so meta-strips are iterated after their children. */
   for (int i = data->num_seq - 1; i >= 0; i--) {
     Sequence *seq = data->seq_array[i];
-    int endframe;
 
-    /* Offset seq start. */
     seq->start = data->ts[i].start + offset;
-
     if (data->trim[i]) {
-      /* Find the end-frame. */
-      endframe = seq->start + seq->len;
-
-      /* Compute the sequence offsets. */
-      seq->endofs = endframe - SEQ_time_right_handle_frame_get(seq);
-      seq->startofs = SEQ_time_left_handle_frame_get(seq) - seq->start;
+      seq->startofs = data->ts[i].startofs - offset;
+      seq->endofs = data->ts[i].endofs + offset;
     }
   }
 
@@ -2397,6 +2389,13 @@ static void sequencer_copy_animation(Scene *scene, Sequence *seq)
     return;
   }
 
+  /* Add curves for strips inside meta strip. */
+  if (seq->type == SEQ_TYPE_META) {
+    LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
+      sequencer_copy_animation(scene, meta_child);
+    }
+  }
+
   GSet *fcurves = SEQ_fcurves_by_strip_get(seq, &scene->adt->action->curves);
   if (fcurves == NULL) {
     return;
@@ -2406,6 +2405,7 @@ static void sequencer_copy_animation(Scene *scene, Sequence *seq)
     BLI_addtail(&fcurves_clipboard, BKE_fcurve_copy(fcu));
   }
   GSET_FOREACH_END();
+
   BLI_gset_free(fcurves, NULL);
 }
 

@@ -148,7 +148,7 @@ const float *SCULPT_vertex_co_get(SculptSession *ss, int index)
 bool SCULPT_has_loop_colors(const Object *ob)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
+  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
 
   return layer && BKE_id_attribute_domain(&me->id, layer) == ATTR_DOMAIN_CORNER;
 }
@@ -3535,15 +3535,7 @@ static void sculpt_combine_proxies_task_cb(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   Sculpt *sd = data->sd;
   Object *ob = data->ob;
-
-  /* These brushes start from original coordinates. */
-  const bool use_orco = ELEM(data->brush->sculpt_tool,
-                             SCULPT_TOOL_GRAB,
-                             SCULPT_TOOL_ROTATE,
-                             SCULPT_TOOL_THUMB,
-                             SCULPT_TOOL_ELASTIC_DEFORM,
-                             SCULPT_TOOL_BOUNDARY,
-                             SCULPT_TOOL_POSE);
+  const bool use_orco = data->use_proxies_orco;
 
   PBVHVertexIter vd;
   PBVHProxyNode *proxies;
@@ -3598,17 +3590,49 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
     return;
   }
 
+  /* First line is tools that don't support proxies. */
+  const bool use_orco = ELEM(brush->sculpt_tool,
+                             SCULPT_TOOL_GRAB,
+                             SCULPT_TOOL_ROTATE,
+                             SCULPT_TOOL_THUMB,
+                             SCULPT_TOOL_ELASTIC_DEFORM,
+                             SCULPT_TOOL_BOUNDARY,
+                             SCULPT_TOOL_POSE);
+
   BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
+
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
       .brush = brush,
       .nodes = nodes,
+      .use_proxies_orco = use_orco,
   };
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
   BLI_task_parallel_range(0, totnode, &data, sculpt_combine_proxies_task_cb, &settings);
+  MEM_SAFE_FREE(nodes);
+}
+
+void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob)
+{
+  SculptSession *ss = ob->sculpt;
+  PBVHNode **nodes;
+  int totnode;
+
+  BKE_pbvh_gather_proxies(ss->pbvh, &nodes, &totnode);
+  SculptThreadedTaskData data = {
+      .sd = sd,
+      .ob = ob,
+      .nodes = nodes,
+      .use_proxies_orco = false,
+  };
+
+  TaskParallelSettings settings;
+  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BLI_task_parallel_range(0, totnode, &data, sculpt_combine_proxies_task_cb, &settings);
+
   MEM_SAFE_FREE(nodes);
 }
 
@@ -4319,7 +4343,8 @@ static bool sculpt_needs_delta_from_anchored_origin(Brush *brush)
            SCULPT_TOOL_POSE,
            SCULPT_TOOL_BOUNDARY,
            SCULPT_TOOL_THUMB,
-           SCULPT_TOOL_ELASTIC_DEFORM)) {
+           SCULPT_TOOL_ELASTIC_DEFORM,
+           SCULPT_TOOL_SMEAR)) {
     return true;
   }
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
@@ -4368,6 +4393,7 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
             SCULPT_TOOL_SNAKE_HOOK,
             SCULPT_TOOL_POSE,
             SCULPT_TOOL_BOUNDARY,
+            SCULPT_TOOL_SMEAR,
             SCULPT_TOOL_THUMB) &&
       !sculpt_brush_use_topology_rake(ss, brush)) {
     return;

@@ -247,7 +247,7 @@ bool BKE_subdiv_eval_refine_from_mesh(Subdiv *subdiv,
   }
   /* Set coordinates of base mesh vertices. */
   set_coarse_positions(subdiv, mesh, coarse_vertex_cos);
-  /* Set face-varyign data to UV maps. */
+  /* Set face-varying data to UV maps. */
   const int num_uv_layers = CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV);
   for (int layer_index = 0; layer_index < num_uv_layers; layer_index++) {
     const MLoopUV *mloopuv = CustomData_get_layer_n(&mesh->ldata, CD_MLOOPUV, layer_index);

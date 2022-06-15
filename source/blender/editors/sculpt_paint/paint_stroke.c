@@ -912,8 +912,13 @@ PaintStroke *paint_stroke_new(bContext *C,
     rv3d->rflag |= RV3D_PAINTING;
   }
 
-  zero_v3(ups->average_stroke_accum);
-  ups->average_stroke_counter = 0;
+  /* Preserve location from last stroke while applying and resetting
+   * ups->average_stroke_counter to 1.
+   */
+  if (ups->average_stroke_counter) {
+    mul_v3_fl(ups->average_stroke_accum, 1.0f / (float)ups->average_stroke_counter);
+    ups->average_stroke_counter = 1;
+  }
 
   /* initialize here to avoid initialization conflict with threaded strokes */
   BKE_curvemapping_init(br->curve);

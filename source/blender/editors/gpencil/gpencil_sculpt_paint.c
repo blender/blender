@@ -829,7 +829,7 @@ static bool gpencil_brush_randomize_apply(tGP_BrushEditData *gso,
       mul_v2_fl(svec, fac);
     }
 
-    /* convert to dataspace */
+    /* Convert to data-space. */
     if (gps->flag & GP_STROKE_3DSPACE) {
       /* 3D: Project to 3D space */
       bool flip;

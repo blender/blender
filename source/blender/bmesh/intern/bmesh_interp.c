@@ -894,6 +894,27 @@ void BM_data_layer_free(BMesh *bm, CustomData *data, int type)
   }
 }
 
+bool BM_data_layer_free_named(BMesh *bm, CustomData *data, const char *name)
+{
+  CustomData olddata = *data;
+  olddata.layers = (olddata.layers) ? MEM_dupallocN(olddata.layers) : NULL;
+
+  /* the pool is now owned by olddata and must not be shared */
+  data->pool = NULL;
+
+  const bool has_layer = CustomData_free_layer_named(data, name, 0);
+
+  if (has_layer) {
+    update_data_blocks(bm, &olddata, data);
+  }
+
+  if (olddata.layers) {
+    MEM_freeN(olddata.layers);
+  }
+
+  return has_layer;
+}
+
 void BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n)
 {
   CustomData olddata;

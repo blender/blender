@@ -8,7 +8,7 @@
 #include "BLI_string.h"
 
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -168,6 +168,4 @@ constexpr MeshExtract create_extractor_uv()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_uv = blender::draw::create_extractor_uv();
-}

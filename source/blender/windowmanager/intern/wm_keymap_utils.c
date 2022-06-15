@@ -270,6 +270,12 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
         break;
     }
   }
+  else if (STRPREFIX(opname, "CURVES_OT")) {
+    km = WM_keymap_find_all(wm, "Curves", 0, 0);
+  }
+  else if (STRPREFIX(opname, "SCULPT_CURVES_OT")) {
+    km = WM_keymap_find_all(wm, "Sculpt Curves", 0, 0);
+  }
   else if (STRPREFIX(opname, "MBALL_OT")) {
     km = WM_keymap_find_all(wm, "Metaball", 0, 0);
 
