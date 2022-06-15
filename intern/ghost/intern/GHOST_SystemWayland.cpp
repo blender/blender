@@ -120,17 +120,17 @@ struct data_source_t {
 };
 
 struct key_repeat_payload_t {
-  GHOST_SystemWayland *system;
-  GHOST_IWindow *window;
-  GHOST_TKey key;
-  GHOST_TEventKeyData key_data;
+  GHOST_SystemWayland *system = nullptr;
+  GHOST_IWindow *window = nullptr;
+  GHOST_TKey key = GHOST_kKeyUnknown;
+  GHOST_TEventKeyData key_data = {GHOST_kKeyUnknown};
 };
 
 struct input_t {
-  GHOST_SystemWayland *system;
+  GHOST_SystemWayland *system = nullptr;
 
   std::string name;
-  struct wl_seat *wl_seat;
+  struct wl_seat *wl_seat = nullptr;
   struct wl_pointer *wl_pointer = nullptr;
   struct wl_keyboard *wl_keyboard = nullptr;
   struct zwp_tablet_seat_v2 *tablet_seat = nullptr;
@@ -138,11 +138,11 @@ struct input_t {
   /** All currently active tablet tools (needed for changing the cursor). */
   std::unordered_set<zwp_tablet_tool_v2 *> tablet_tools;
 
-  uint32_t pointer_serial;
-  uint32_t tablet_serial;
+  uint32_t pointer_serial = 0;
+  uint32_t tablet_serial = 0;
 
   /** Use to check if the last cursor input was tablet or pointer. */
-  uint32_t cursor_serial;
+  uint32_t cursor_serial = 0;
 
   /**
    * High precision mouse coordinates (pointer or tablet).
@@ -156,7 +156,7 @@ struct input_t {
    * };
    * \endocde
    */
-  wl_fixed_t xy[2];
+  wl_fixed_t xy[2] = {0, 0};
   GHOST_Buttons buttons = GHOST_Buttons();
   struct cursor_t cursor;
 
@@ -168,9 +168,9 @@ struct input_t {
   struct xkb_state *xkb_state = nullptr;
   struct {
     /** Key repetition in character per second. */
-    int32_t rate;
+    int32_t rate = 0;
     /** Time (milliseconds) after which to start repeating keys. */
-    int32_t delay;
+    int32_t delay = 0;
     /** Timer for key repeats. */
     GHOST_ITimerTask *timer = nullptr;
   } key_repeat;
@@ -193,7 +193,7 @@ struct input_t {
   std::mutex data_source_mutex;
 
   /** Last device that was active. */
-  uint32_t data_source_serial;
+  uint32_t data_source_serial = 0;
 };
 
 struct display_t {
