@@ -565,7 +565,7 @@ static void relative_pointer_handle_relative_motion(
 {
   input_t *input = static_cast<input_t *>(data);
   GHOST_WindowWayland *win = window_from_surface(input->focus_pointer);
-  if (win == nullptr) {
+  if (!win) {
     return;
   }
   const wl_fixed_t scale = win->scale();
@@ -1288,19 +1288,18 @@ static void tablet_tool_handle_proximity_in(void *data,
   input->data_source_serial = serial;
 
   /* Update #GHOST_TabletData. */
-  GHOST_WindowWayland *win = window_from_surface(input->focus_tablet);
-  if (!win) {
-    return;
-  }
-
-  win->activate();
-
   GHOST_TabletData &td = tool_input->data;
   /* Reset, to avoid using stale tilt/pressure. */
   td.Xtilt = 0.0f;
   td.Ytilt = 0.0f;
   /* In case pressure isn't supported. */
   td.Pressure = 1.0f;
+
+  GHOST_WindowWayland *win = window_from_surface(input->focus_tablet);
+  if (!win) {
+    return;
+  }
+  win->activate();
 
   win->setCursorShape(win->getCursorShape());
 }
@@ -1309,10 +1308,12 @@ static void tablet_tool_handle_proximity_out(void *data,
 {
   tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
   input_t *input = tool_input->input;
-  GHOST_WindowWayland *win = window_from_surface(input->focus_tablet);
-
   input->focus_tablet = nullptr;
 
+  GHOST_WindowWayland *win = window_from_surface(input->focus_tablet);
+  if (!win) {
+    return;
+  }
   win->setCursorShape(win->getCursorShape());
 }
 
@@ -2714,39 +2715,45 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
     if (input->locked_pointer) {
       /* Request location to restore to. */
       if (mode_current == GHOST_kGrabWrap) {
+        /* The chance this fails is _very_ low. */
         GHOST_WindowWayland *win = window_from_surface(surface);
-        GHOST_Rect bounds;
-        int32_t xy_new[2] = {input->xy[0], input->xy[1]};
-
-        /* Fallback to window bounds. */
-        if (win->getCursorGrabBounds(bounds) == GHOST_kFailure) {
-          win->getClientBounds(bounds);
+        if (!win) {
+          GHOST_PRINT("could not find window from surface when un-grabbing!" << std::endl);
         }
+        else {
+          GHOST_Rect bounds;
+          int32_t xy_new[2] = {input->xy[0], input->xy[1]};
 
-        const int scale = win->scale();
+          /* Fallback to window bounds. */
+          if (win->getCursorGrabBounds(bounds) == GHOST_kFailure) {
+            win->getClientBounds(bounds);
+          }
 
-        bounds.m_l = wl_fixed_from_int(bounds.m_l) / scale;
-        bounds.m_t = wl_fixed_from_int(bounds.m_t) / scale;
-        bounds.m_r = wl_fixed_from_int(bounds.m_r) / scale;
-        bounds.m_b = wl_fixed_from_int(bounds.m_b) / scale;
+          const int scale = win->scale();
 
-        bounds.wrapPoint(xy_new[0], xy_new[1], 0, win->getCursorGrabAxis());
+          bounds.m_l = wl_fixed_from_int(bounds.m_l) / scale;
+          bounds.m_t = wl_fixed_from_int(bounds.m_t) / scale;
+          bounds.m_r = wl_fixed_from_int(bounds.m_r) / scale;
+          bounds.m_b = wl_fixed_from_int(bounds.m_b) / scale;
 
-        /* Push an event so the new location is registered. */
-        if ((xy_new[0] != input->xy[0]) || (xy_new[1] != input->xy[1])) {
-          input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
-                                                         GHOST_kEventCursorMove,
-                                                         win,
-                                                         wl_fixed_to_int(scale * xy_new[0]),
-                                                         wl_fixed_to_int(scale * xy_new[1]),
-                                                         GHOST_TABLET_DATA_NONE));
+          bounds.wrapPoint(xy_new[0], xy_new[1], 0, win->getCursorGrabAxis());
+
+          /* Push an event so the new location is registered. */
+          if ((xy_new[0] != input->xy[0]) || (xy_new[1] != input->xy[1])) {
+            input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
+                                                           GHOST_kEventCursorMove,
+                                                           win,
+                                                           wl_fixed_to_int(scale * xy_new[0]),
+                                                           wl_fixed_to_int(scale * xy_new[1]),
+                                                           GHOST_TABLET_DATA_NONE));
+          }
+          input->xy[0] = xy_new[0];
+          input->xy[1] = xy_new[1];
+
+          zwp_locked_pointer_v1_set_cursor_position_hint(
+              input->locked_pointer, xy_new[0], xy_new[1]);
+          wl_surface_commit(surface);
         }
-        input->xy[0] = xy_new[0];
-        input->xy[1] = xy_new[1];
-
-        zwp_locked_pointer_v1_set_cursor_position_hint(
-            input->locked_pointer, xy_new[0], xy_new[1]);
-        wl_surface_commit(surface);
       }
 
       zwp_locked_pointer_v1_destroy(input->locked_pointer);
