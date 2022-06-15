@@ -1391,7 +1391,7 @@ void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_check_draw_layout(PBVH *pbvh, bool full_render)
+static void pbvh_check_draw_layout(PBVH *pbvh)
 {
   const CustomData *vdata;
   const CustomData *ldata;
@@ -2867,7 +2867,7 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
                       void *user_data,
-                      bool full_render)
+                      bool UNUSED(full_render))
 {
   PBVHNode **nodes;
   int totnode;
@@ -2890,7 +2890,7 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
     update_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
   }
 
-  pbvh_check_draw_layout(pbvh, full_render);
+  pbvh_check_draw_layout(pbvh);
 
   /* Update draw buffers. */
   if (totnode != 0 && (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers))) {
