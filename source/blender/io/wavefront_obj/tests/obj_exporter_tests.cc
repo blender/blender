@@ -436,8 +436,6 @@ TEST_F(obj_exporter_regression_test, cubes_positioned)
                                _export.params);
 }
 
-/* Disabled until sRGB<->Linear conversion produces close enough results between
- * SSE2 and non-SSE2.
 TEST_F(obj_exporter_regression_test, cubes_vertex_colors)
 {
   OBJExportParamsDefault _export;
@@ -450,7 +448,6 @@ TEST_F(obj_exporter_regression_test, cubes_vertex_colors)
                                "",
                                _export.params);
 }
-*/
 
 TEST_F(obj_exporter_regression_test, cubes_with_textures_strip)
 {
@@ -510,7 +507,7 @@ TEST_F(obj_exporter_regression_test, all_objects)
   _export.params.forward_axis = IO_AXIS_Y;
   _export.params.up_axis = IO_AXIS_Z;
   _export.params.export_smooth_groups = true;
-  //_export.params.export_colors = true;
+  _export.params.export_colors = true;
   compare_obj_export_to_golden("io_tests/blend_scene/all_objects.blend",
                                "io_tests/obj/all_objects.obj",
                                "io_tests/obj/all_objects.mtl",

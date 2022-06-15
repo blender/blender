@@ -132,7 +132,7 @@ constexpr FormattingSyntax syntax_elem_to_formatting(const eOBJSyntaxElement key
       return {"v {:.6f} {:.6f} {:.6f}\n", 3, is_type_float<T...>};
     }
     case eOBJSyntaxElement::vertex_coords_color: {
-      return {"v {:.6f} {:.6f} {:.6f} {:.6f} {:.6f} {:.6f}\n", 6, is_type_float<T...>};
+      return {"v {:.6f} {:.6f} {:.6f} {:.4f} {:.4f} {:.4f}\n", 6, is_type_float<T...>};
     }
     case eOBJSyntaxElement::uv_vertex_coords: {
       return {"vt {:.6f} {:.6f}\n", 2, is_type_float<T...>};
