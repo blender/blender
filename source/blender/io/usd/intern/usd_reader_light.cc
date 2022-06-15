@@ -279,6 +279,11 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
       break;
   }
 
+  const float meters_per_unit = static_cast<float>(
+      pxr::UsdGeomGetStageMetersPerUnit(prim_.GetStage()));
+
+  const float radius_scale = meters_per_unit * usd_world_scale_;
+
   float intensity;
   if (get_authored_value(light_api.GetIntensityAttr(), motionSampleTime, &intensity) ||
       prim_.GetAttribute(usdtokens::intensity).Get(&intensity, motionSampleTime)) {
@@ -286,18 +291,14 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
     float intensity_scale = this->import_params_.light_intensity_scale;
 
     if (import_params_.convert_light_from_nits) {
-      /* It's important that we perform the light unit conversion before applying any scaling to
-       * the light size, so we can use the USD's meters per unit value. */
-      const float meters_per_unit = static_cast<float>(
-          pxr::UsdGeomGetStageMetersPerUnit(prim_.GetStage()));
-      intensity_scale *= nits_to_energy_scale_factor(blight, meters_per_unit * usd_world_scale_);
+      intensity_scale *= nits_to_energy_scale_factor(blight, radius_scale);
     }
 
     blight->energy = intensity * intensity_scale;
   }
 
   if ((blight->type == LA_SPOT || blight->type == LA_LOCAL) && import_params_.scale_light_radius) {
-    blight->area_size *= settings_->scale;
+    blight->area_size *= radius_scale;
   }
 
   USDXformReader::read_object_data(bmain, motionSampleTime);

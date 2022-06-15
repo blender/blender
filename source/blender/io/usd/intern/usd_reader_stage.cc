@@ -77,7 +77,7 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
 #else
   if (params_.import_lights && prim.IsA<pxr::UsdLuxLight>()) {
 #endif
-    return new USDLightReader(prim, params_, settings_);
+    return new USDLightReader(prim, params_, settings_, xf_cache);
   }
   if (params_.import_volumes && prim.IsA<pxr::UsdVolVolume>()) {
     return new USDVolumeReader(prim, params_, settings_);
@@ -116,7 +116,7 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim,
 #else
   if (prim.IsA<pxr::UsdLuxLight>()) {
 #endif
-    return new USDLightReader(prim, params_, settings_);
+    return new USDLightReader(prim, params_, settings_, xf_cache);
   }
   if (prim.IsA<pxr::UsdVolVolume>()) {
     return new USDVolumeReader(prim, params_, settings_);
