@@ -2034,6 +2034,9 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
       else if (ob->mode & OB_MODE_TEXTURE_PAINT) {
         paint_mode = PAINT_MODE_TEXTURE_3D;
       }
+      else if (ob->mode & OB_MODE_SCULPT_CURVES) {
+        paint_mode = PAINT_MODE_SCULPT_CURVES;
+      }
     }
     else if (space_type == SPACE_IMAGE) {
       if (area->spacetype == space_type) {
