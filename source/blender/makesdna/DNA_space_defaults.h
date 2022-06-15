@@ -18,6 +18,7 @@
     .draw_flag = 0, \
     .draw_type = MASK_DT_OUTLINE, \
     .overlay_mode = MASK_OVERLAY_ALPHACHANNEL, \
+    .blend_factor = 0.7f, \
   }
 
 #define _DNA_DEFAULT_SpaceClip \

@@ -184,6 +184,7 @@ static void blo_update_defaults_screen(bScreen *screen,
     else if (area->spacetype == SPACE_CLIP) {
       SpaceClip *sclip = area->spacedata.first;
       sclip->around = V3D_AROUND_CENTER_MEDIAN;
+      sclip->mask_info.blend_factor = 0.7f;
     }
   }
 

@@ -3493,6 +3493,13 @@ static void rna_def_space_mask_info(StructRNA *srna, int noteflag, const char *m
   RNA_def_property_enum_items(prop, overlay_mode_items);
   RNA_def_property_ui_text(prop, "Overlay Mode", "Overlay mode of rasterized mask");
   RNA_def_property_update(prop, noteflag, NULL);
+
+  prop = RNA_def_property(srna, "blend_factor", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, NULL, "mask_info.blend_factor");
+  RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_ui_range(prop, 0, 1., 0.1, 1);
+  RNA_def_property_ui_text(prop, "Blending Factor", "Overlay blending factor of rasterized mask");
+  RNA_def_property_update(prop, noteflag, NULL);
 }
 
 static void rna_def_space_image_uv(BlenderRNA *brna)

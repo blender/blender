@@ -732,7 +732,8 @@ typedef struct MaskSpaceInfo {
   char draw_flag;
   char draw_type;
   char overlay_mode;
-  char _pad3[5];
+  char _pad3[1];
+  float blend_factor;
 } MaskSpaceInfo;
 
 /** #SpaceSeq.gizmo_flag */

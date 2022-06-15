@@ -663,6 +663,7 @@ void ED_mask_draw_region(
     const char draw_flag,
     const char draw_type,
     const eMaskOverlayMode overlay_mode,
+    const float blend_factor,
     /* convert directly into aspect corrected vars */
     const int width_i,
     const int height_i,
@@ -721,12 +722,14 @@ void ED_mask_draw_region(
   }
 
   if (draw_flag & MASK_DRAWFLAG_OVERLAY) {
-    const float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
+    float buf_col[4] = {1.0f, 0.0f, 0.0f, 0.0f};
     float *buffer = mask_rasterize(mask_eval, width, height);
 
     if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
       /* More blending types could be supported in the future. */
-      GPU_blend(GPU_BLEND_MULTIPLY);
+      GPU_blend(GPU_BLEND_ALPHA);
+      buf_col[0] = -1.0f;
+      buf_col[3] = 1.0f;
     }
 
     GPU_matrix_push();
@@ -737,10 +740,18 @@ void ED_mask_draw_region(
     }
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
     GPU_shader_uniform_vector(
-        state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
-    immDrawPixelsTexTiled(
-        &state, 0.0f, 0.0f, width, height, GPU_R16F, false, buffer, 1.0f, 1.0f, NULL);
+        state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, buf_col);
 
+    if (overlay_mode == MASK_OVERLAY_COMBINED) {
+      const float blend_col[4] = {0.0f, 0.0f, 0.0f, blend_factor};
+
+      immDrawPixelsTexTiled(
+          &state, 0.0f, 0.0f, width, height, GPU_R16F, false, buffer, 1.0f, 1.0f, blend_col);
+    }
+    else {
+      immDrawPixelsTexTiled(
+          &state, 0.0f, 0.0f, width, height, GPU_R16F, false, buffer, 1.0f, 1.0f, NULL);
+    }
     GPU_matrix_pop();
 
     if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {

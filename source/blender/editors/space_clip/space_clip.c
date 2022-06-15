@@ -860,6 +860,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
                           sc->mask_info.draw_flag,
                           sc->mask_info.draw_type,
                           sc->mask_info.overlay_mode,
+                          sc->mask_info.blend_factor,
                           mask_width,
                           mask_height,
                           aspx,

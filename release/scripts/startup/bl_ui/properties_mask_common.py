@@ -239,6 +239,9 @@ class MASK_PT_display:
         sub = row.row()
         sub.active = space_data.show_mask_overlay
         sub.prop(space_data, "mask_overlay_mode", text="")
+        row = layout.row()
+        row.active = (space_data.mask_overlay_mode in ['COMBINED'] and space_data.show_mask_overlay)
+        row.prop(space_data, "blend_factor", text="Blending Factor")
 
 
 class MASK_PT_transforms:
