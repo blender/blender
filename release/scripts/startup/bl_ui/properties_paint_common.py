@@ -1317,6 +1317,8 @@ def brush_basic_gpencil_paint_settings(layout, context, brush, *, compact=False)
 
 def brush_basic_gpencil_sculpt_settings(layout, _context, brush, *, compact=False):
     gp_settings = brush.gpencil_settings
+    if gp_settings is None:
+        return
     tool = brush.gpencil_sculpt_tool
 
     row = layout.row(align=True)
