@@ -270,6 +270,10 @@ static void display_destroy(display_t *d)
       }
       delete input->data_source;
     }
+    if (input->data_offer_dnd) {
+      wl_data_offer_destroy(input->data_offer_dnd->id);
+      delete input->data_offer_dnd;
+    }
     if (input->data_offer_copy_paste) {
       wl_data_offer_destroy(input->data_offer_copy_paste->id);
       delete input->data_offer_copy_paste;
