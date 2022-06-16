@@ -1607,8 +1607,13 @@ static void keyboard_handle_keymap(
     return;
   }
 
-  input->xkb_state = xkb_state_new(keymap);
-
+  struct xkb_state *xkb_state_next = xkb_state_new(keymap);
+  if (xkb_state_next) {
+    if (input->xkb_state) {
+      xkb_state_unref(input->xkb_state);
+    }
+    input->xkb_state = xkb_state_next;
+  }
   xkb_keymap_unref(keymap);
 }
 
