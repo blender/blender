@@ -263,21 +263,36 @@ static void display_destroy(display_t *d)
   }
 
   for (input_t *input : d->inputs) {
-    if (input->data_source) {
-      free(input->data_source->buffer_out);
-      if (input->data_source->data_source) {
-        wl_data_source_destroy(input->data_source->data_source);
+
+    /* First handle members that require locking.
+     * While highly unlikely, it's possible they are being used while this function runs. */
+    {
+      std::lock_guard lock{input->data_source_mutex};
+      if (input->data_source) {
+        free(input->data_source->buffer_out);
+        if (input->data_source->data_source) {
+          wl_data_source_destroy(input->data_source->data_source);
+        }
+        delete input->data_source;
       }
-      delete input->data_source;
     }
-    if (input->data_offer_dnd) {
-      wl_data_offer_destroy(input->data_offer_dnd->id);
-      delete input->data_offer_dnd;
+
+    {
+      std::lock_guard lock{input->data_offer_dnd_mutex};
+      if (input->data_offer_dnd) {
+        wl_data_offer_destroy(input->data_offer_dnd->id);
+        delete input->data_offer_dnd;
+      }
     }
-    if (input->data_offer_copy_paste) {
-      wl_data_offer_destroy(input->data_offer_copy_paste->id);
-      delete input->data_offer_copy_paste;
+
+    {
+      std::lock_guard lock{input->data_offer_copy_paste_mutex};
+      if (input->data_offer_copy_paste) {
+        wl_data_offer_destroy(input->data_offer_copy_paste->id);
+        delete input->data_offer_copy_paste;
+      }
     }
+
     if (input->data_device) {
       wl_data_device_release(input->data_device);
     }
