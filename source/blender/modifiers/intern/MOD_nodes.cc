@@ -1322,11 +1322,20 @@ static void modifyGeometrySet(ModifierData *md,
                               const ModifierEvalContext *ctx,
                               GeometrySet *geometry_set)
 {
+  const Scene *scene = DEG_get_input_scene(ctx->depsgraph);
+  GeometryCache::Timestamp timestamp{scene->r.cfra};
+
+  if (GeometryCache *cache = ensureGeometryCache(md)) {
+    GeometrySet *cached_geometry_set = cache->get_before(timestamp);
+    if (cached_geometry_set) {
+      *geometry_set = *cached_geometry_set;
+    }
+  }
+
   modifyGeometry(md, ctx, *geometry_set);
 
-  NodesModifierData *nmd = (NodesModifierData *)md;
   if (GeometryCache *cache = ensureGeometryCache(md)) {
-    cache->append(*geometry_set);
+    cache->append(timestamp, *geometry_set);
   }
 }
 

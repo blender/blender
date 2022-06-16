@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <limits>
+
 /** \file
  * \ingroup bke
  */
@@ -10,6 +12,10 @@ struct GeometrySet;
 
 class GeometryCache {
  public:
+  using Timestamp = int;
+
+  static const int TimestampInvalid = INT_MIN;
+
   GeometryCache();
   ~GeometryCache();
 
@@ -20,14 +26,15 @@ class GeometryCache {
   GeometryCache &operator=(GeometryCache &&other) = default;
 
   void clear();
-  void append(const GeometrySet &geometry_set);
-  GeometrySet *last() const
-  {
-    return last_;
-  }
+  void append(Timestamp timestamp, const GeometrySet &geometry_set);
+  GeometrySet *get_exact(Timestamp timestamp) const;
+  GeometrySet *get_before(Timestamp timestamp) const;
 
  private:
-  /* Placeholders */
-  GeometrySet *first_ = nullptr;
-  GeometrySet *last_ = nullptr;
+  struct KeyValuePair {
+    Timestamp timestamp = TimestampInvalid;
+    GeometrySet *geometry_set = nullptr;
+  };
+  /* Placeholder, just one frame cached for now */
+  KeyValuePair last_ = {TimestampInvalid, nullptr};
 };
