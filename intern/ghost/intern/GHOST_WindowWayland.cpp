@@ -233,14 +233,10 @@ static void surface_handle_enter(void *data,
   if (reg_output == nullptr) {
     return;
   }
-  std::vector<output_t *> &outputs = w->outputs();
-  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
-  if (it != outputs.end()) {
-    return;
-  }
-  outputs.push_back(reg_output);
 
-  w->outputs_changed_update_scale();
+  if (w->outputs_enter(reg_output)) {
+    w->outputs_changed_update_scale();
+  }
 }
 
 static void surface_handle_leave(void *data,
@@ -252,14 +248,10 @@ static void surface_handle_leave(void *data,
   if (reg_output == nullptr) {
     return;
   }
-  std::vector<output_t *> &outputs = w->outputs();
-  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
-  if (it == outputs.end()) {
-    return;
-  }
-  outputs.erase(it);
 
-  w->outputs_changed_update_scale();
+  if (w->outputs_leave(reg_output)) {
+    w->outputs_changed_update_scale();
+  }
 }
 
 struct wl_surface_listener wl_surface_listener = {
@@ -408,7 +400,7 @@ wl_surface *GHOST_WindowWayland::surface() const
   return w->wl_surface;
 }
 
-std::vector<output_t *> &GHOST_WindowWayland::outputs()
+const std::vector<output_t *> &GHOST_WindowWayland::outputs()
 {
   return w->outputs;
 }
@@ -454,6 +446,28 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
   }
 
   return changed;
+}
+
+bool GHOST_WindowWayland::outputs_enter(output_t *reg_output)
+{
+  std::vector<output_t *> &outputs = w->outputs;
+  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
+  if (it != outputs.end()) {
+    return false;
+  }
+  outputs.push_back(reg_output);
+  return true;
+}
+
+bool GHOST_WindowWayland::outputs_leave(output_t *reg_output)
+{
+  std::vector<output_t *> &outputs = w->outputs;
+  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
+  if (it == outputs.end()) {
+    return false;
+  }
+  outputs.erase(it);
+  return true;
 }
 
 uint16_t GHOST_WindowWayland::dpi()

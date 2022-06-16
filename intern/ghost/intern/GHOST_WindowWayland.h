@@ -103,10 +103,12 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   struct wl_surface *surface() const;
 
-  std::vector<output_t *> &outputs();
-
   output_t *output_find_by_wl(struct wl_output *output);
 
+  const std::vector<output_t *> &outputs();
+
+  bool outputs_enter(output_t *reg_output);
+  bool outputs_leave(output_t *reg_output);
   bool outputs_changed_update_scale();
 
   uint16_t dpi();
