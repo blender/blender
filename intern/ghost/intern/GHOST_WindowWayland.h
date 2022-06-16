@@ -103,7 +103,7 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   struct wl_surface *surface() const;
 
-  std::vector<const output_t *> &outputs();
+  std::vector<output_t *> &outputs();
 
   output_t *output_find_by_wl(struct wl_output *output);
 

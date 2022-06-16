@@ -28,7 +28,7 @@ struct window_t {
    * This is an ordered set (whoever adds to this is responsible for keeping members unique).
    * In practice this is rarely manipulated and is limited by the number of physical displays.
    */
-  std::vector<const output_t *> outputs;
+  std::vector<output_t *> outputs;
 
   /** The scale value written to #wl_surface_set_buffer_scale. */
   int scale = 0;
@@ -233,7 +233,7 @@ static void surface_handle_enter(void *data,
   if (reg_output == nullptr) {
     return;
   }
-  std::vector<const output_t *> &outputs = w->outputs();
+  std::vector<output_t *> &outputs = w->outputs();
   auto it = std::find(outputs.begin(), outputs.end(), reg_output);
   if (it != outputs.end()) {
     return;
@@ -252,7 +252,7 @@ static void surface_handle_leave(void *data,
   if (reg_output == nullptr) {
     return;
   }
-  std::vector<const output_t *> &outputs = w->outputs();
+  std::vector<output_t *> &outputs = w->outputs();
   auto it = std::find(outputs.begin(), outputs.end(), reg_output);
   if (it == outputs.end()) {
     return;
@@ -408,7 +408,7 @@ wl_surface *GHOST_WindowWayland::surface() const
   return w->wl_surface;
 }
 
-std::vector<const output_t *> &GHOST_WindowWayland::outputs()
+std::vector<output_t *> &GHOST_WindowWayland::outputs()
 {
   return w->outputs;
 }
@@ -426,7 +426,7 @@ output_t *GHOST_WindowWayland::output_find_by_wl(struct wl_output *output)
 bool GHOST_WindowWayland::outputs_changed_update_scale()
 {
   uint32_t dpi_next;
-  const int scale_next = outputs_max_scale_or_default(this->m_system->outputs(), 0, &dpi_next);
+  const int scale_next = outputs_max_scale_or_default(this->outputs(), 0, &dpi_next);
   if (scale_next == 0) {
     return false;
   }
