@@ -354,7 +354,8 @@ PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src, bool
 static void pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,
                                           struct Scene *scene,
                                           Object *object,
-                                          GeometrySet &geometry_set)
+                                          GeometrySet &geometry_set,
+                                          bool *r_need_caching)
 {
   /* Modifier evaluation modes. */
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
@@ -373,6 +374,10 @@ static void pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,
 
     if (!BKE_modifier_is_enabled(scene, md, required_mode)) {
       continue;
+    }
+
+    if (mti->flags & eModifierTypeFlag_NeedCaching) {
+      *r_need_caching = true;
     }
 
     if (mti->modifyGeometrySet) {
@@ -409,7 +414,8 @@ void BKE_pointcloud_data_update(struct Depsgraph *depsgraph, struct Scene *scene
   PointCloud *pointcloud = static_cast<PointCloud *>(object->data);
   GeometrySet geometry_set = GeometrySet::create_with_pointcloud(pointcloud,
                                                                  GeometryOwnershipType::ReadOnly);
-  pointcloud_evaluate_modifiers(depsgraph, scene, object, geometry_set);
+  bool need_caching = false;
+  pointcloud_evaluate_modifiers(depsgraph, scene, object, geometry_set, &need_caching);
 
   PointCloud *pointcloud_eval = take_pointcloud_ownership_from_geometry_set(geometry_set);
 
@@ -422,6 +428,7 @@ void BKE_pointcloud_data_update(struct Depsgraph *depsgraph, struct Scene *scene
   const bool eval_is_owned = pointcloud_eval != pointcloud;
   BKE_object_eval_assign_data(object, &pointcloud_eval->id, eval_is_owned);
   object->runtime.geometry_set_eval = new GeometrySet(std::move(geometry_set));
+  object->runtime.last_need_caching = need_caching;
 }
 
 /* Draw Cache */

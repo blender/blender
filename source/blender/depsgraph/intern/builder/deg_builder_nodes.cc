@@ -1453,6 +1453,14 @@ void DepsgraphNodeBuilder::build_object_data_geometry(Object *object)
                                  BKE_object_eval_uber_data(depsgraph, scene_cow, object_cow);
                                });
   op_node->set_as_exit();
+  /* Geometry caching. */
+  op_node = add_operation_node(&object->id,
+                               NodeType::GEOMETRY,
+                               OperationCode::GEOMETRY_WRITE_CACHE,
+                               [scene_cow, object_cow](::Depsgraph *depsgraph) {
+                                 BKE_object_write_geometry_cache(depsgraph, scene_cow, object_cow);
+                               });
+  op_node->set_as_exit();
   /* Materials. */
   build_materials(object->mat, object->totcol);
   /* Point caches. */

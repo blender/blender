@@ -433,7 +433,10 @@ void BKE_object_eval_uber_transform(struct Depsgraph *depsgraph, struct Object *
 void BKE_object_eval_uber_data(struct Depsgraph *depsgraph,
                                struct Scene *scene,
                                struct Object *ob);
-/**
+void BKE_object_write_geometry_cache(struct Depsgraph *depsgraph,
+                                     struct Scene *scene,
+                                     struct Object *ob);
+    /**
  * Assign #Object.data after modifier stack evaluation.
  */
 void BKE_object_eval_assign_data(struct Object *object, struct ID *data, bool is_owned);

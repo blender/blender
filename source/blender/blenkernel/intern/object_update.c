@@ -332,6 +332,78 @@ void BKE_object_eval_uber_data(Depsgraph *depsgraph, Scene *scene, Object *ob)
   BKE_object_batch_cache_dirty_tag(ob);
 }
 
+void BKE_object_write_geometry_cache(Depsgraph *depsgraph, Scene *scene, Object *ob)
+{
+  DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
+
+  /* includes all keys and modifiers */
+  switch (ob->type) {
+    case OB_MESH: {
+    case OB_CURVES:
+      break;
+    }
+    case OB_ARMATURE:
+      break;
+
+    case OB_MBALL:
+      break;
+
+    case OB_CURVES_LEGACY:
+    case OB_SURF:
+    case OB_FONT: {
+      break;
+    }
+
+    case OB_LATTICE:
+      break;
+    case OB_GPENCIL: {
+      BKE_gpencil_prepare_eval_data(depsgraph, scene, ob);
+      BKE_gpencil_modifiers_calc(depsgraph, scene, ob);
+      BKE_gpencil_update_layer_transforms(depsgraph, ob);
+      break;
+    }
+    case OB_CURVES:
+      BKE_curves_data_update(depsgraph, scene, ob);
+      break;
+    case OB_POINTCLOUD:
+      BKE_pointcloud_data_update(depsgraph, scene, ob);
+      break;
+    case OB_VOLUME:
+      BKE_volume_data_update(depsgraph, scene, ob);
+      break;
+  }
+
+  /* particles */
+  if (!(ob->mode & OB_MODE_EDIT) && ob->particlesystem.first) {
+    const bool use_render_params = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+    ParticleSystem *tpsys, *psys;
+    ob->transflag &= ~OB_DUPLIPARTS;
+    psys = ob->particlesystem.first;
+    while (psys) {
+      if (psys_check_enabled(ob, psys, use_render_params)) {
+        /* check use of dupli objects here */
+        if (psys->part && (psys->part->draw_as == PART_DRAW_REND || use_render_params) &&
+            ((psys->part->ren_as == PART_DRAW_OB && psys->part->instance_object) ||
+             (psys->part->ren_as == PART_DRAW_GR && psys->part->instance_collection))) {
+          ob->transflag |= OB_DUPLIPARTS;
+        }
+
+        particle_system_update(depsgraph, scene, ob, psys, use_render_params);
+        psys = psys->next;
+      }
+      else if (psys->flag & PSYS_DELETE) {
+        tpsys = psys->next;
+        BLI_remlink(&ob->particlesystem, psys);
+        psys_free(ob, psys);
+        psys = tpsys;
+      }
+      else {
+        psys = psys->next;
+      }
+    }
+  }
+}
+
 void BKE_object_eval_ptcache_reset(Depsgraph *depsgraph, Scene *scene, Object *object)
 {
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);

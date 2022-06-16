@@ -91,6 +91,8 @@ enum class OperationCode {
   /* Evaluation of a shape key.
    * NOTE: Currently only for object data data-blocks. */
   GEOMETRY_SHAPEKEY,
+  /* Write geometry output into the runtime cache. */
+  GEOMETRY_WRITE_CACHE,
 
   /* Object data. --------------------------------------------------------- */
   LIGHT_PROBE_EVAL,

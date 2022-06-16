@@ -88,6 +88,8 @@ const char *operationCodeAsString(OperationCode opcode)
       return "GEOMETRY_EVAL_DONE";
     case OperationCode::GEOMETRY_SHAPEKEY:
       return "GEOMETRY_SHAPEKEY";
+    case OperationCode::GEOMETRY_WRITE_CACHE:
+      return "GEOMETRY_WRITE_CACHE";
     /* Object data. */
     case OperationCode::LIGHT_PROBE_EVAL:
       return "LIGHT_PROBE_EVAL";

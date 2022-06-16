@@ -111,6 +111,9 @@ typedef struct Object_Runtime {
   /** Did last modifier stack generation need mapping support? */
   char last_need_mapping;
 
+  /** Does generated geometry need to be cached for next iteration? */
+  char last_need_caching;
+
   /** Opaque data reserved for management of objects in collection context.
    *  E.g. used currently to check for potential duplicates of objects in a collection, after
    * remapping process. */

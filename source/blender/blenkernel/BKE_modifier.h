@@ -101,6 +101,9 @@ typedef enum {
 
   /** Accepts #BMesh input (without conversion). */
   eModifierTypeFlag_AcceptsBMesh = (1 << 11),
+
+  /** Modifier output needs to be cached. */
+  eModifierTypeFlag_NeedCaching = (1 << 12),
 } ModifierTypeFlag;
 ENUM_OPERATORS(ModifierTypeFlag, eModifierTypeFlag_AcceptsBMesh)
 
