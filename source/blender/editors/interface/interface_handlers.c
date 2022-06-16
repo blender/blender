@@ -2289,6 +2289,9 @@ static void ui_apply_but(
     case UI_BTYPE_ROW:
       ui_apply_but_ROW(C, block, but, data);
       break;
+    case UI_BTYPE_GRID_TILE:
+      ui_apply_but_ROW(C, block, but, data);
+      break;
     case UI_BTYPE_TREEROW:
       ui_apply_but_TREEROW(C, block, but, data);
       break;
@@ -4810,6 +4813,47 @@ static int ui_do_but_TREEROW(bContext *C,
   return WM_UI_HANDLER_CONTINUE;
 }
 
+static int ui_do_but_GRIDTILE(bContext *C,
+                              uiBut *but,
+                              uiHandleButtonData *data,
+                              const wmEvent *event)
+{
+  uiButGridTile *grid_tile_but = (uiButGridTile *)but;
+  BLI_assert(grid_tile_but->but.type == UI_BTYPE_GRID_TILE);
+
+  if (data->state == BUTTON_STATE_HIGHLIGHT) {
+    if (event->type == LEFTMOUSE) {
+      switch (event->val) {
+        case KM_PRESS:
+          /* Extra icons have priority, don't mess with them. */
+          if (ui_but_extra_operator_icon_mouse_over_get(but, data->region, event)) {
+            return WM_UI_HANDLER_BREAK;
+          }
+          button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
+          data->dragstartx = event->xy[0];
+          data->dragstarty = event->xy[1];
+          return WM_UI_HANDLER_CONTINUE;
+
+        case KM_CLICK:
+          button_activate_state(C, but, BUTTON_STATE_EXIT);
+          return WM_UI_HANDLER_BREAK;
+
+        case KM_DBL_CLICK:
+          data->cancel = true;
+          //          UI_tree_view_item_begin_rename(grid_tile_but->tree_item);
+          ED_region_tag_redraw(CTX_wm_region(C));
+          return WM_UI_HANDLER_BREAK;
+      }
+    }
+  }
+  else if (data->state == BUTTON_STATE_WAIT_DRAG) {
+    /* Let "default" button handling take care of the drag logic. */
+    return ui_do_but_EXIT(C, but, data, event);
+  }
+
+  return WM_UI_HANDLER_CONTINUE;
+}
+
 static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
@@ -4850,6 +4894,10 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
         if (ui_list && ui_list->dyn_data->custom_drag_optype) {
           ret = WM_UI_HANDLER_CONTINUE;
         }
+      }
+      const uiBut *view_but = ui_view_item_find_mouse_over(data->region, event->xy);
+      if (view_but) {
+        ret = WM_UI_HANDLER_CONTINUE;
       }
       button_activate_state(C, but, BUTTON_STATE_EXIT);
       return ret;
@@ -8005,6 +8053,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
     case UI_BTYPE_ROW:
       retval = ui_do_but_TOG(C, but, data, event);
       break;
+    case UI_BTYPE_GRID_TILE:
+      retval = ui_do_but_GRIDTILE(C, but, data, event);
+      break;
     case UI_BTYPE_TREEROW:
       retval = ui_do_but_TREEROW(C, but, data, event);
       break;
@@ -9672,33 +9723,48 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *regi
   return retval;
 }
 
-static int ui_handle_tree_hover(const wmEvent *event, const ARegion *region)
+static int ui_handle_view_items_hover(const wmEvent *event, const ARegion *region)
 {
-  bool has_treerows = false;
+  bool has_view_item = false;
   LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
-    /* Avoid unnecessary work: Tree-rows are assumed to be inside tree-views. */
+    /* Avoid unnecessary work: view item buttons are assumed to be inside views. */
     if (BLI_listbase_is_empty(&block->views)) {
       continue;
     }
 
     LISTBASE_FOREACH (uiBut *, but, &block->buttons) {
-      if (but->type == UI_BTYPE_TREEROW) {
+      if (ui_but_is_view_item(but)) {
         but->flag &= ~UI_ACTIVE;
-        has_treerows = true;
+        has_view_item = true;
       }
     }
   }
 
-  if (!has_treerows) {
+  if (!has_view_item) {
     /* Avoid unnecessary lookup. */
     return WM_UI_HANDLER_CONTINUE;
   }
 
-  /* Always highlight the hovered tree-row, even if the mouse hovers another button inside of it.
+  /* Always highlight the hovered view item, even if the mouse hovers another button inside of it.
    */
-  uiBut *hovered_row_but = ui_tree_row_find_mouse_over(region, event->xy);
+  uiBut *hovered_row_but = ui_view_item_find_mouse_over(region, event->xy);
   if (hovered_row_but) {
     hovered_row_but->flag |= UI_ACTIVE;
+  }
+
+  return WM_UI_HANDLER_CONTINUE;
+}
+
+static int ui_handle_view_item_event(bContext *C,
+                                     const wmEvent *event,
+                                     ARegion *region,
+                                     uiBut *view_but)
+{
+  BLI_assert(ui_but_is_view_item(view_but));
+  if (event->type == LEFTMOUSE) {
+    /* Will free active button if there already is one. */
+    ui_handle_button_activate(C, region, view_but, BUTTON_ACTIVATE_OVER);
+    return ui_do_button(C, view_but->block, view_but, event);
   }
 
   return WM_UI_HANDLER_CONTINUE;
@@ -11304,9 +11370,15 @@ static int ui_region_handler(bContext *C, const wmEvent *event, void *UNUSED(use
     ui_blocks_set_tooltips(region, true);
   }
 
-  /* Always do this, to reliably update tree-row highlighting, even if the mouse hovers a button
-   * inside the row (it's an overlapping layout). */
-  ui_handle_tree_hover(event, region);
+  /* Always do this, to reliably update view item highlighting, even if the mouse hovers a button
+   * nested in the item (it's an overlapping layout). */
+  ui_handle_view_items_hover(event, region);
+  if (retval == WM_UI_HANDLER_CONTINUE) {
+    uiBut *view_item = ui_view_item_find_mouse_over(region, event->xy);
+    if (view_item) {
+      retval = ui_handle_view_item_event(C, event, region, view_item);
+    }
+  }
 
   /* delayed apply callbacks */
   ui_apply_but_funcs_after(C);

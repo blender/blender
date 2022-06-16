@@ -145,6 +145,10 @@ void ED_region_do_listen(wmRegionListenerParams *params)
     region->type->listener(params);
   }
 
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    UI_block_views_listen(block, params);
+  }
+
   LISTBASE_FOREACH (uiList *, list, &region->ui_lists) {
     if (list->type && list->type->listener) {
       list->type->listener(list, params);

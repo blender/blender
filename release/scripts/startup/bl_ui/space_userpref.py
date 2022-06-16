@@ -1196,6 +1196,8 @@ class ThemeGenericClassGenerator:
             ("Scroll Bar", "wcol_scroll"),
             ("Progress Bar", "wcol_progress"),
             ("List Item", "wcol_list_item"),
+            # Not used yet, so hide this from the UI.
+            # ("Data-View Item", "wcol_view_item"),
             ("Tab", "wcol_tab"),
         ]
 

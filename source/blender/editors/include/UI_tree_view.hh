@@ -28,6 +28,7 @@ struct uiButTreeRow;
 struct uiLayout;
 struct wmDrag;
 struct wmEvent;
+struct wmNotifier;
 
 namespace blender::ui {
 
@@ -128,6 +129,9 @@ class AbstractTreeView : public TreeViewItemContainer {
 
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
 
+  /** Listen to a notifier, returning true if a redraw is needed. */
+  virtual bool listen(const wmNotifier &) const;
+
   /** Only one item can be renamed at a time. */
   bool is_renaming() const;
 
@@ -185,7 +189,7 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
   bool is_renaming_ = false;
 
  protected:
-  /** This label is used for identifying an item within its parent. */
+  /** This label is used as the default way to identifying an item within its parent. */
   std::string label_{};
   /** Every visible item gets a button of type #UI_BTYPE_TREEROW during the layout building. */
   uiButTreeRow *tree_row_but_ = nullptr;
