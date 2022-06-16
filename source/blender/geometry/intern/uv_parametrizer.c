@@ -3862,7 +3862,7 @@ ParamKey GEO_uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const
     return bmvertindex; /* No verts pinned. */
   }
 
-  GeoUVPinIndex *pinuvlist = BLI_ghash_lookup(handle->pin_hash, bmvertindex);
+  GeoUVPinIndex *pinuvlist = BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex));
   if (!pinuvlist) {
     return bmvertindex; /* Vert not pinned. */
   }
@@ -3897,9 +3897,10 @@ void GEO_uv_prepare_pin_index(ParamHandle *handle, const int bmvertindex, const 
     handle->pin_hash = BLI_ghash_int_new("uv pin reindex");
   }
 
-  GeoUVPinIndex *pinuvlist = BLI_ghash_lookup(handle->pin_hash, bmvertindex);
+  GeoUVPinIndex *pinuvlist = BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex));
   if (!pinuvlist) {
-    BLI_ghash_insert(handle->pin_hash, bmvertindex, new_geo_uv_pinindex(handle, uv));
+    BLI_ghash_insert(
+        handle->pin_hash, POINTER_FROM_INT(bmvertindex), new_geo_uv_pinindex(handle, uv));
     return;
   }
 
