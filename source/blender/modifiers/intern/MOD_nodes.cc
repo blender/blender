@@ -202,7 +202,8 @@ static bool node_needs_own_transform_relation(const bNode &node)
 
 static void process_nodes_for_depsgraph(const bNodeTree &tree,
                                         Set<ID *> &ids,
-                                        bool &needs_own_transform_relation)
+                                        bool &needs_own_transform_relation,
+                                        bool &needs_rigid_body_sim)
 {
   Set<const bNodeTree *> handled_groups;
 
@@ -213,11 +214,15 @@ static void process_nodes_for_depsgraph(const bNodeTree &tree,
     if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       const bNodeTree *group = (bNodeTree *)node->id;
       if (group != nullptr && handled_groups.add(group)) {
-        process_nodes_for_depsgraph(*group, ids, needs_own_transform_relation);
+        process_nodes_for_depsgraph(
+            *group, ids, needs_own_transform_relation, needs_rigid_body_sim);
       }
     }
     needs_own_transform_relation |= node_needs_own_transform_relation(*node);
   }
+
+  /* XXX dummy */
+  needs_rigid_body_sim = true;
 }
 
 static void find_used_ids_from_settings(const NodesModifierSettings &settings, Set<ID *> &ids)
@@ -273,9 +278,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   DEG_add_node_tree_output_relation(ctx->node, nmd->node_group, "Nodes Modifier");
 
   bool needs_own_transform_relation = false;
+  bool needs_rigid_body_sim = false;
   Set<ID *> used_ids;
   find_used_ids_from_settings(nmd->settings, used_ids);
-  process_nodes_for_depsgraph(*nmd->node_group, used_ids, needs_own_transform_relation);
+  process_nodes_for_depsgraph(
+      *nmd->node_group, used_ids, needs_own_transform_relation, needs_rigid_body_sim);
   for (ID *id : used_ids) {
     switch ((ID_Type)GS(id->name)) {
       case ID_OB: {
@@ -302,6 +309,10 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
   if (needs_own_transform_relation) {
     DEG_add_modifier_to_transform_relation(ctx->node, "Nodes Modifier");
+  }
+
+  if (needs_rigid_body_sim) {
+    DEG_add_
   }
 }
 

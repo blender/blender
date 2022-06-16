@@ -178,6 +178,8 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
    * Takes care of checking for possible physics solvers modifying position
    * of this object. */
   void add_modifier_to_transform_relation(const DepsNodeHandle *handle, const char *description);
+  void add_modifier_to_rigid_body_sim_relation(const DepsNodeHandle *handle,
+                                               const char *description);
 
   void add_customdata_mask(Object *object, const DEGCustomDataMeshMasks &customdata_masks);
   void add_special_eval_flag(ID *id, uint32_t flag);

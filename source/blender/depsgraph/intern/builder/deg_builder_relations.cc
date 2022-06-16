@@ -307,6 +307,20 @@ void DepsgraphRelationBuilder::add_modifier_to_transform_relation(const DepsNode
   add_depends_on_transform_relation(id, geometry_key, description);
 }
 
+void DepsgraphRelationBuilder::add_modifier_to_rigid_body_sim_relation(const DepsNodeHandle *handle,
+                                                                       const char *description)
+{
+  IDNode *id_node = handle->node->owner->owner;
+  ID *id = id_node->id_orig;
+  ComponentKey geometry_key(id, NodeType::GEOMETRY);
+  OperationKey rb_simulate_key(&scene_->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_SIM);
+  OperationKey rb_sync_key(
+      &scene_->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
+  /* Wire up the actual relation. */
+  add_relation(geometry_key, rb_simulate_key, description);
+  add_relation()
+}
+
 void DepsgraphRelationBuilder::add_customdata_mask(Object *object,
                                                    const DEGCustomDataMeshMasks &customdata_masks)
 {
