@@ -89,7 +89,7 @@ const EnumPropertyItem rna_enum_property_type_items[] = {
   {PROP_XYZ, "XYZ", 0, "XYZ", ""}, \
   {PROP_XYZ_LENGTH, "XYZ_LENGTH", 0, "XYZ Length", ""}, \
   {PROP_COLOR_GAMMA, "COLOR_GAMMA", 0, "Color", ""}, \
-  {PROP_COORDS, "COORDS", 0, "Coordinates", ""}, \
+  {PROP_COORDS, "COORDINATES", 0, "Coordinates", ""}, \
   /* Boolean. */ \
   {PROP_LAYER, "LAYER", 0, "Layer", ""}, \
   {PROP_LAYER_MEMBER, "LAYER_MEMBER", 0, "Layer Member", ""}
