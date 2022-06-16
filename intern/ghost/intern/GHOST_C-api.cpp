@@ -835,6 +835,12 @@ int GHOST_SupportsCursorWarp(void)
   return system->supportsCursorWarp();
 }
 
+int GHOST_SupportsWindowPosition(void)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->supportsWindowPosition();
+}
+
 void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn)
 {
   GHOST_ISystem::setBacktraceFn(backtrace_fn);

@@ -125,6 +125,7 @@ class GHOST_SystemWayland : public GHOST_System {
   GHOST_TSuccess setCursorVisibility(bool visible);
 
   bool supportsCursorWarp();
+  bool supportsWindowPosition();
 
   GHOST_TSuccess setCursorGrab(const GHOST_TGrabCursorMode mode,
                                const GHOST_TGrabCursorMode mode_current,

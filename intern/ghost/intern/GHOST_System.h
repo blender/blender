@@ -152,6 +152,7 @@ class GHOST_System : public GHOST_ISystem {
   bool m_nativePixel;
 
   bool supportsCursorWarp(void);
+  bool supportsWindowPosition(void);
 
   /**
    * Focus window after opening, or put them in the background.

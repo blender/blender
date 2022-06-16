@@ -907,6 +907,11 @@ extern int GHOST_UseNativePixels(void);
 extern int GHOST_SupportsCursorWarp(void);
 
 /**
+ * Support positioning windows (when false `wmWindow.x,y` are meaningless).
+ */
+extern int GHOST_SupportsWindowPosition(void);
+
+/**
  * Assign the callback which generates a back-trace (may be NULL).
  */
 extern void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn);

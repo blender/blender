@@ -2682,6 +2682,14 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(bool visible)
 
 bool GHOST_SystemWayland::supportsCursorWarp()
 {
+  /* WAYLAND doesn't support setting the cursor position directly,
+   * this is an intentional choice, forcing us to use a software cursor in this case. */
+  return false;
+}
+
+bool GHOST_SystemWayland::supportsWindowPosition()
+{
+  /* WAYLAND doesn't support accessing the window position. */
   return false;
 }
 
