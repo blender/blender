@@ -872,7 +872,7 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
-    if (mti->flags & eModifierTypeFlag_NeedCaching) {
+    if (r_need_caching && (mti->flags & eModifierTypeFlag_NeedCaching)) {
       *r_need_caching = true;
     }
 
@@ -1647,7 +1647,7 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
   ob->runtime.mesh_deform_eval = mesh_deform_eval;
   ob->runtime.last_data_mask = *dataMask;
   ob->runtime.last_need_mapping = need_mapping;
-  ob->runtime.last_need_caching = need_caching;
+  BKE_object_runtime_ensure_geometry_cache(ob, need_caching);
 
   BKE_object_boundbox_calc_from_mesh(ob, mesh_eval);
 
@@ -1877,7 +1877,7 @@ Mesh *mesh_create_eval_final(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, true, false, dataMask, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, true, false, dataMask, false, false, nullptr, &result, nullptr, nullptr);
   return result;
 }
 
@@ -1888,7 +1888,7 @@ Mesh *mesh_create_eval_no_deform(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, false, false, dataMask, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, false, false, dataMask, false, false, nullptr, &result, nullptr, nullptr);
   return result;
 }
 
@@ -1899,7 +1899,7 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
 {
   Mesh *result;
   mesh_calc_modifiers(
-      depsgraph, scene, ob, false, false, dataMask, false, false, nullptr, &result, nullptr);
+      depsgraph, scene, ob, false, false, dataMask, false, false, nullptr, &result, nullptr, nullptr);
   return result;
 }
 

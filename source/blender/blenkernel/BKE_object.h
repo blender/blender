@@ -571,6 +571,7 @@ struct MovieClip *BKE_object_movieclip_get(struct Scene *scene,
                                            struct Object *ob,
                                            bool use_default);
 
+void BKE_object_runtime_ensure_geometry_cache(struct Object *ob, bool enable_cache);
 void BKE_object_runtime_reset(struct Object *object);
 /**
  * Reset all pointers which we don't want to be shared when copying the object.

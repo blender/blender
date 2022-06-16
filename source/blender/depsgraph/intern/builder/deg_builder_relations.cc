@@ -2214,6 +2214,9 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
       }
     }
   }
+  /* Geometry Cache. */
+  OperationKey write_cache_key(&object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_WRITE_CACHE);
+  add_relation(geom_key, write_cache_key, "Object Geometry Write Cache");
   /* Shader FX. */
   if (object->shader_fx.first != nullptr) {
     ModifierUpdateDepsgraphContext ctx = {};

@@ -10,7 +10,7 @@
 
 struct GeometrySet;
 
-class GeometryCache {
+struct GeometryCache {
  public:
   using Timestamp = int;
 

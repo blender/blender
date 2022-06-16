@@ -129,21 +129,6 @@ static bool isIterativeModifier(ModifierData *md)
   return nmd->node_group && nmd->node_group->type == NTREE_PARTICLES;
 }
 
-static GeometryCache *ensureGeometryCache(ModifierData *md)
-{
-  NodesModifierData *nmd = (NodesModifierData *)md;
-  if (isIterativeModifier(md)) {
-    if (nmd->geometry_cache == nullptr) {
-      nmd->geometry_cache = MEM_new<GeometryCache>("geometry cache");
-    }
-  }
-  else {
-    MEM_delete(nmd->geometry_cache);
-    nmd->geometry_cache = nullptr;
-  }
-  return (GeometryCache *)nmd->geometry_cache;
-}
-
 static void initData(ModifierData *md)
 {
   NodesModifierData *nmd = (NodesModifierData *)md;
@@ -1325,18 +1310,18 @@ static void modifyGeometrySet(ModifierData *md,
   const Scene *scene = DEG_get_input_scene(ctx->depsgraph);
   GeometryCache::Timestamp timestamp{scene->r.cfra};
 
-  if (GeometryCache *cache = ensureGeometryCache(md)) {
-    GeometrySet *cached_geometry_set = cache->get_before(timestamp);
-    if (cached_geometry_set) {
-      *geometry_set = *cached_geometry_set;
+  if (isIterativeModifier(md)) {
+    BLI_assert(ctx->object->id.orig_id);
+    Object *orig_ob = (Object *)ctx->object->id.orig_id;
+    if (GeometryCache *cache = orig_ob->runtime.geometry_cache) {
+      GeometrySet *cached_geometry_set = cache->get_before(timestamp);
+      if (cached_geometry_set) {
+        *geometry_set = *cached_geometry_set;
+      }
     }
   }
 
   modifyGeometry(md, ctx, *geometry_set);
-
-  if (GeometryCache *cache = ensureGeometryCache(md)) {
-    cache->append(timestamp, *geometry_set);
-  }
 }
 
 struct AttributeSearchData {
@@ -1810,7 +1795,6 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
     IDP_BlendDataRead(reader, &nmd->settings.properties);
   }
   nmd->runtime_eval_log = nullptr;
-  nmd->geometry_cache = nullptr;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -1821,7 +1805,6 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   BKE_modifier_copydata_generic(md, target, flag);
 
   tnmd->runtime_eval_log = nullptr;
-  tnmd->geometry_cache = nullptr;
 
   if (nmd->settings.properties != nullptr) {
     tnmd->settings.properties = IDP_CopyProperty_ex(nmd->settings.properties, flag);
@@ -1835,9 +1818,6 @@ static void freeData(ModifierData *md)
     IDP_FreeProperty_ex(nmd->settings.properties, false);
     nmd->settings.properties = nullptr;
   }
-
-  GeometryCache *cache = (GeometryCache *)nmd->geometry_cache;
-  MEM_delete(cache);
 
   clear_runtime_data(nmd);
 }
@@ -1859,10 +1839,10 @@ ModifierTypeInfo modifierType_Nodes = {
     /* srna */ &RNA_NodesModifier,
     /* type */ eModifierTypeType_Constructive,
     /* flags */
-    static_cast<ModifierTypeFlag>(eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
-                                  eModifierTypeFlag_SupportsEditmode |
-                                  eModifierTypeFlag_EnableInEditmode |
-                                  eModifierTypeFlag_SupportsMapping),
+    static_cast<ModifierTypeFlag>(
+        eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_AcceptsCVs |
+        eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode |
+        eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_NeedCaching),
     /* icon */ ICON_GEOMETRY_NODES,
 
     /* copyData */ copyData,

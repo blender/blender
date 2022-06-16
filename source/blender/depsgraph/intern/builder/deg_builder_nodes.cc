@@ -1460,7 +1460,6 @@ void DepsgraphNodeBuilder::build_object_data_geometry(Object *object)
                                [scene_cow, object_cow](::Depsgraph *depsgraph) {
                                  BKE_object_write_geometry_cache(depsgraph, scene_cow, object_cow);
                                });
-  op_node->set_as_exit();
   /* Materials. */
   build_materials(object->mat, object->totcol);
   /* Point caches. */

@@ -376,7 +376,7 @@ static void pointcloud_evaluate_modifiers(struct Depsgraph *depsgraph,
       continue;
     }
 
-    if (mti->flags & eModifierTypeFlag_NeedCaching) {
+    if (r_need_caching && (mti->flags & eModifierTypeFlag_NeedCaching)) {
       *r_need_caching = true;
     }
 
@@ -428,7 +428,7 @@ void BKE_pointcloud_data_update(struct Depsgraph *depsgraph, struct Scene *scene
   const bool eval_is_owned = pointcloud_eval != pointcloud;
   BKE_object_eval_assign_data(object, &pointcloud_eval->id, eval_is_owned);
   object->runtime.geometry_set_eval = new GeometrySet(std::move(geometry_set));
-  object->runtime.last_need_caching = need_caching;
+  BKE_object_runtime_ensure_geometry_cache(object, need_caching);
 }
 
 /* Draw Cache */

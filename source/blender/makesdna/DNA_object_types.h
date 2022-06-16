@@ -111,9 +111,6 @@ typedef struct Object_Runtime {
   /** Did last modifier stack generation need mapping support? */
   char last_need_mapping;
 
-  /** Does generated geometry need to be cached for next iteration? */
-  char last_need_caching;
-
   /** Opaque data reserved for management of objects in collection context.
    *  E.g. used currently to check for potential duplicates of objects in a collection, after
    * remapping process. */
@@ -169,6 +166,9 @@ typedef struct Object_Runtime {
    */
   struct Mesh *mesh_deform_eval;
 
+  /* Runtime cache for iterative geometry */
+  struct GeometryCache *geometry_cache;
+
   /* Evaluated mesh cage in edit mode. */
   struct Mesh *editmesh_eval_cage;
 
@@ -202,14 +202,16 @@ typedef struct Object_Runtime {
   /** Runtime evaluated curve-specific data, not stored in the file. */
   struct CurveCache *curve_cache;
 
+  void *_pad2;
+
   unsigned short local_collections_bits;
-  short _pad2[3];
+  short _pad3[3];
 
   float (*crazyspace_deform_imats)[3][3];
   float (*crazyspace_deform_cos)[3];
   int crazyspace_verts_num;
 
-  int _pad3[3];
+  int _pad4[3];
 } Object_Runtime;
 
 typedef struct ObjectLineArt {

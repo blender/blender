@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_geometry_cache.h"
 #include "BKE_geometry_cache.hh"
 #include "BKE_geometry_set.hh"
 
@@ -28,6 +29,7 @@ void GeometryCache::append(Timestamp timestamp, const GeometrySet &geometry_set)
 
   MEM_delete(last_.geometry_set);
   last_ = KeyValuePair{timestamp, MEM_new<GeometrySet>("geometry set", geometry_set)};
+  last_.geometry_set->ensure_owns_direct_data();
 }
 
 GeometrySet *GeometryCache::get_exact(Timestamp timestamp) const
@@ -48,6 +50,29 @@ GeometrySet *GeometryCache::get_before(Timestamp timestamp) const
     return last_.geometry_set;
   }
   return nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name C API
+ * \{ */
+
+GeometryCache *BKE_geometry_cache_new()
+{
+  return MEM_new<GeometryCache>("geometry cache");
+}
+
+void BKE_geometry_cache_free(GeometryCache *cache)
+{
+  MEM_delete(cache);
+}
+
+void BKE_geometry_cache_append(GeometryCache *cache,
+                               int cfra,
+                               const GeometrySet *geometry_set)
+{
+  cache->append(GeometryCache::Timestamp{cfra}, *geometry_set);
 }
 
 /** \} */
