@@ -153,7 +153,7 @@ struct input_t {
    *   wl_fixed_to_int(scale * input->xy[0]),
    *   wl_fixed_to_int(scale * input->xy[1]),
    * };
-   * \endocde
+   * \endcode
    */
   wl_fixed_t xy[2] = {0, 0};
   GHOST_Buttons buttons = GHOST_Buttons();
@@ -1860,14 +1860,12 @@ static void xdg_output_handle_logical_size(void *data,
 
   if (output->size_logical[0] != 0 && output->size_logical[1] != 0) {
     /* Original comment from SDL. */
-    /* FIXME: GNOME has a bug where the logical size does not account for
+    /* FIXME(@flibit): GNOME has a bug where the logical size does not account for
      * scale, resulting in bogus viewport sizes.
      *
      * Until this is fixed, validate that _some_ kind of scaling is being
      * done (we can't match exactly because fractional scaling can't be
-     * detected otherwise), then override if necessary.
-     * -flibit
-     */
+     * detected otherwise), then override if necessary. */
     if ((output->size_logical[0] == width) && (output->scale_fractional == wl_fixed_from_int(1))) {
       GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale");
       return;

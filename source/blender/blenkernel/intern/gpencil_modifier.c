@@ -678,7 +678,7 @@ static void copy_frame_to_eval_cb(bGPDlayer *gpl,
 
 static void gpencil_copy_visible_frames_to_eval(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-  /* Remap layers'active frame with time modifiers applied. */
+  /* Remap layers active frame with time modifiers applied. */
   bGPdata *gpd_eval = ob->data;
   LISTBASE_FOREACH (bGPDlayer *, gpl_eval, &gpd_eval->layers) {
     bGPDframe *gpf_eval = gpl_eval->actframe;
