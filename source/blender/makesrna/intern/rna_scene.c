@@ -2712,7 +2712,8 @@ static char *rna_FFmpegSettings_path(const PointerRNA *UNUSED(ptr))
   return BLI_strdup("render.ffmpeg");
 }
 
-/* FFMpeg Codec setting update hook */
+#  ifdef WITH_FFMPEG
+/* FFMpeg Codec setting update hook. */
 static void rna_FFmpegSettings_codec_update(Main *UNUSED(bmain),
                                             Scene *UNUSED(scene),
                                             PointerRNA *ptr)
@@ -2721,11 +2722,12 @@ static void rna_FFmpegSettings_codec_update(Main *UNUSED(bmain),
   if (!ELEM(codec_data->codec, AV_CODEC_ID_H264, AV_CODEC_ID_MPEG4, AV_CODEC_ID_VP9)) {
     /* Constant Rate Factor (CRF) setting is only available for H264,
      * MPEG4 and WEBM/VP9 codecs. So changing encoder quality mode to
-     * CBR as CRF is not supported
+     * CBR as CRF is not supported.
      */
     codec_data->constant_rate_factor = FFM_CRF_NONE;
   }
 }
+#  endif
 
 #else
 
