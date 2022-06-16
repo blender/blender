@@ -142,6 +142,26 @@ def handle_args():
     )
 
     parser.add_argument(
+        "--api-changelog-generate",
+        dest="changelog",
+        default=False,
+        action='store_true',
+        help="Generate the API changelog RST file "
+        "(default=False, requires `--api-dump-index-path` parameter)",
+        required=False,
+    )
+
+    parser.add_argument(
+        "--api-dump-index-path",
+        dest="api_dump_index_path",
+        metavar='FILE',
+        default=None,
+        help="Path to the API dump index JSON file "
+        "(required when `--api-changelog-generate` is True)",
+        required=False,
+    )
+
+    parser.add_argument(
         "-o", "--output",
         dest="output_dir",
         type=str,
@@ -513,6 +533,27 @@ if ARGS.sphinx_build_pdf:
         ]
         sphinx_make_pdf_log = os.path.join(ARGS.output_dir, ".latex_make.log")
         SPHINX_MAKE_PDF_STDOUT = open(sphinx_make_pdf_log, "w", encoding="utf-8")
+
+
+# --------------------------------CHANGELOG GENERATION--------------------------------------
+
+API_DUMP_INDEX_FILEPATH = ARGS.api_dump_index_path
+API_DUMP_ROOT = os.path.dirname(API_DUMP_INDEX_FILEPATH)
+API_DUMP_FILEPATH = os.path.abspath(os.path.join(API_DUMP_ROOT, BLENDER_VERSION_DOTS, "api_dump.json"))
+
+API_CHANGELOG_FILEPATH = os.path.abspath(os.path.join(SPHINX_IN_TMP, "change_log.rst"))
+
+def generate_changelog():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("sphinx_changelog_gen",
+                                                  os.path.abspath(os.path.join(SCRIPT_DIR, "sphinx_changelog_gen.py")))
+    sphinx_changelog_gen = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sphinx_changelog_gen)
+
+    sphinx_changelog_gen.main(("--", "--indexpath", API_DUMP_INDEX_FILEPATH, "dump", "--filepath-out", API_DUMP_FILEPATH))
+
+    sphinx_changelog_gen.main(("--", "--indexpath", API_DUMP_INDEX_FILEPATH, "changelog", "--filepath-out", API_CHANGELOG_FILEPATH))
+
 
 # --------------------------------API DUMP--------------------------------------
 
@@ -2472,6 +2513,9 @@ def main():
         shutil.rmtree(SPHINX_IN_TMP, True)
 
     rna2sphinx(SPHINX_IN_TMP)
+
+    if ARGS.changelog:
+        generate_changelog()
 
     if ARGS.full_rebuild:
         # Only for full updates.
