@@ -261,16 +261,8 @@ void createTransMaskingData(bContext *C, TransInfo *t)
 
   tc->data_len = 0;
 
-  if (!mask) {
+  if (!ED_maskedit_mask_visible_splines_poll(C)) {
     return;
-  }
-
-  if (t->spacetype == SPACE_CLIP) {
-    SpaceClip *sc = t->area->spacedata.first;
-    MovieClip *clip = ED_space_clip_get_clip(sc);
-    if (!clip) {
-      return;
-    }
   }
 
   /* count */

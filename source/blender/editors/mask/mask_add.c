@@ -583,7 +583,7 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = add_vertex_exec;
   ot->invoke = add_vertex_invoke;
-  ot->poll = ED_maskedit_poll;
+  ot->poll = ED_maskedit_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -862,7 +862,7 @@ void MASK_OT_primitive_circle_add(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = primitive_circle_add_exec;
   ot->invoke = primitive_add_invoke;
-  ot->poll = ED_maskedit_poll;
+  ot->poll = ED_maskedit_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -897,7 +897,7 @@ void MASK_OT_primitive_square_add(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = primitive_square_add_exec;
   ot->invoke = primitive_add_invoke;
-  ot->poll = ED_maskedit_poll;
+  ot->poll = ED_maskedit_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

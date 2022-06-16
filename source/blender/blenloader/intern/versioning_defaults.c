@@ -23,6 +23,7 @@
 #include "DNA_curveprofile_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_light_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -185,6 +186,7 @@ static void blo_update_defaults_screen(bScreen *screen,
       SpaceClip *sclip = area->spacedata.first;
       sclip->around = V3D_AROUND_CENTER_MEDIAN;
       sclip->mask_info.blend_factor = 0.7f;
+      sclip->mask_info.draw_flag = MASK_DRAWFLAG_SPLINE;
     }
   }
 

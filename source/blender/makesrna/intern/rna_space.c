@@ -3483,6 +3483,11 @@ static void rna_def_space_mask_info(StructRNA *srna, int noteflag, const char *m
   RNA_def_property_ui_text(prop, "Display Smooth Splines", "");
   RNA_def_property_update(prop, noteflag, NULL);
 
+  prop = RNA_def_property(srna, "show_mask_spline", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "mask_info.draw_flag", MASK_DRAWFLAG_SPLINE);
+  RNA_def_property_ui_text(prop, "Show Mask Spline", "");
+  RNA_def_property_update(prop, noteflag, NULL);
+
   prop = RNA_def_property(srna, "show_mask_overlay", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "mask_info.draw_flag", MASK_DRAWFLAG_OVERLAY);
   RNA_def_property_ui_text(prop, "Show Mask Overlay", "");

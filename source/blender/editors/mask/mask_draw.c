@@ -776,7 +776,9 @@ void ED_mask_draw_region(
   }
 
   /* draw! */
-  draw_mask_layers(C, mask_eval, draw_flag, draw_type, width, height);
+  if (draw_flag & MASK_DRAWFLAG_SPLINE) {
+    draw_mask_layers(C, mask_eval, draw_flag, draw_type, width, height);
+  }
 
   if (do_draw_cb) {
     ED_region_draw_cb_draw(C, region, REGION_DRAW_POST_VIEW);

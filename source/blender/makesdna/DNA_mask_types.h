@@ -198,6 +198,7 @@ enum {
 /* SpaceClip->mask_draw_flag */
 #define MASK_DRAWFLAG_SMOOTH (1 << 0)
 #define MASK_DRAWFLAG_OVERLAY (1 << 1)
+#define MASK_DRAWFLAG_SPLINE (1 << 2)
 
 /* copy of eSpaceImage_UVDT */
 /* SpaceClip->mask_draw_type */

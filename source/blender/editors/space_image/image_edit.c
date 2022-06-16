@@ -483,6 +483,16 @@ bool ED_space_image_maskedit_poll(bContext *C)
   return false;
 }
 
+bool ED_space_image_maskedit_visible_splines_poll(bContext *C)
+{
+  if (!ED_space_image_maskedit_poll(C)) {
+    return false;
+  }
+
+  const SpaceImage *space_image = CTX_wm_space_image(C);
+  return space_image->mask_info.draw_flag & MASK_DRAWFLAG_SPLINE;
+}
+
 bool ED_space_image_paint_curve(const bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -506,6 +516,16 @@ bool ED_space_image_maskedit_mask_poll(bContext *C)
   }
 
   return false;
+}
+
+bool ED_space_image_maskedit_mask_visible_splines_poll(bContext *C)
+{
+  if (!ED_space_image_maskedit_mask_poll(C)) {
+    return false;
+  }
+
+  const SpaceImage *space_image = CTX_wm_space_image(C);
+  return space_image->mask_info.draw_flag & MASK_DRAWFLAG_SPLINE;
 }
 
 bool ED_space_image_cursor_poll(bContext *C)

@@ -51,8 +51,23 @@ bool ED_space_clip_maskedit_poll(struct bContext *C);
 /* Returns true when the following conditions are met:
  * - Current space is Space Clip.
  * - It is set to Mask mode.
+ * - Mask has visible and editable splines.
+ *
+ * It is not required to have mask opened for editing. */
+bool ED_space_clip_maskedit_visible_splines_poll(struct bContext *C);
+
+/* Returns true when the following conditions are met:
+ * - Current space is Space Clip.
+ * - It is set to Mask mode.
  * - The space has mask opened. */
 bool ED_space_clip_maskedit_mask_poll(struct bContext *C);
+
+/* Returns true when the following conditions are met:
+ * - Current space is Space Clip.
+ * - It is set to Mask mode.
+ * - The space has mask opened.
+ * - Mask has visible and editable splines. */
+bool ED_space_clip_maskedit_mask_visible_splines_poll(struct bContext *C);
 
 void ED_space_clip_get_size(struct SpaceClip *sc, int *width, int *height);
 void ED_space_clip_get_size_fl(struct SpaceClip *sc, float size[2]);

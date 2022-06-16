@@ -15,7 +15,7 @@
 
 #define _DNA_DEFAULT_MaskSpaceInfo \
   { \
-    .draw_flag = 0, \
+    .draw_flag = MASK_DRAWFLAG_SPLINE, \
     .draw_type = MASK_DT_OUTLINE, \
     .overlay_mode = MASK_OVERLAY_ALPHACHANNEL, \
     .blend_factor = 0.7f, \

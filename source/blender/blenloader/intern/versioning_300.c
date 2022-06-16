@@ -30,6 +30,7 @@
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_lineart_types.h"
 #include "DNA_listBase.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -3090,6 +3091,21 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
           if (sl->spacetype == SPACE_CLIP) {
             ((SpaceClip *)sl)->mask_info.blend_factor = 1.0;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 3)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_CLIP) {
+            ((SpaceClip *)sl)->mask_info.draw_flag |= MASK_DRAWFLAG_SPLINE;
+          }
+          else if (sl->spacetype == SPACE_IMAGE) {
+            ((SpaceImage *)sl)->mask_info.draw_flag |= MASK_DRAWFLAG_SPLINE;
           }
         }
       }
