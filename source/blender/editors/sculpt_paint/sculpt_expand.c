@@ -1450,13 +1450,11 @@ static void sculpt_expand_update_for_vertex(bContext *C, Object *ob, const int v
  * Updates the #SculptSession cursor data and gets the active vertex
  * if the cursor is over the mesh.
  */
-static int sculpt_expand_target_vertex_update_and_get(bContext *C,
-                                                      Object *ob,
-                                                      const float mouse[2])
+static int sculpt_expand_target_vertex_update_and_get(bContext *C, Object *ob, const float mval[2])
 {
   SculptSession *ss = ob->sculpt;
   SculptCursorGeometryInfo sgi;
-  if (SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false)) {
+  if (SCULPT_cursor_geometry_info_update(C, &sgi, mval, false)) {
     return SCULPT_active_vertex_get(ss);
   }
   return SCULPT_EXPAND_VERTEX_NONE;
@@ -1588,16 +1586,16 @@ static void sculpt_expand_find_active_connected_components_from_vert(Object *ob,
 static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
                                                            Object *ob,
                                                            ExpandCache *expand_cache,
-                                                           const float mouse[2])
+                                                           const float mval[2])
 {
   SculptSession *ss = ob->sculpt;
-  int initial_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mouse);
+  int initial_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mval);
   if (initial_vertex == SCULPT_EXPAND_VERTEX_NONE) {
     /* Cursor not over the mesh, for creating valid initial falloffs, fallback to the last active
      * vertex in the sculpt session. */
     initial_vertex = SCULPT_active_vertex_get(ss);
   }
-  copy_v2_v2(ss->expand_cache->initial_mouse, mouse);
+  copy_v2_v2(ss->expand_cache->initial_mouse, mval);
   expand_cache->initial_active_vertex = initial_vertex;
   expand_cache->initial_active_face_set = SCULPT_active_face_set_get(ss);
 
@@ -1629,14 +1627,14 @@ static void sculpt_expand_move_propagation_origin(bContext *C,
 {
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
-  const float mouse[2] = {event->mval[0], event->mval[1]};
+  const float mval_fl[2] = {UNPACK2(event->mval)};
   float move_disp[2];
-  sub_v2_v2v2(move_disp, mouse, expand_cache->initial_mouse_move);
+  sub_v2_v2v2(move_disp, mval_fl, expand_cache->initial_mouse_move);
 
-  float new_mouse[2];
-  add_v2_v2v2(new_mouse, move_disp, expand_cache->original_mouse_move);
+  float new_mval[2];
+  add_v2_v2v2(new_mval, move_disp, expand_cache->original_mouse_move);
 
-  sculpt_expand_set_initial_components_for_mouse(C, ob, expand_cache, new_mouse);
+  sculpt_expand_set_initial_components_for_mouse(C, ob, expand_cache, new_mval);
   sculpt_expand_falloff_factors_from_vertex_and_symm_create(
       expand_cache,
       sd,
@@ -1697,8 +1695,8 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
   sculpt_expand_ensure_sculptsession_data(ob);
 
   /* Update and get the active vertex (and face) from the cursor. */
-  const float mouse[2] = {event->mval[0], event->mval[1]};
-  const int target_expand_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mouse);
+  const float mval_fl[2] = {UNPACK2(event->mval)};
+  const int target_expand_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mval_fl);
 
   /* Handle the modal keymap state changes. */
   ExpandCache *expand_cache = ss->expand_cache;
@@ -1756,7 +1754,7 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
         }
         expand_cache->move = true;
         expand_cache->move_original_falloff_type = expand_cache->falloff_type;
-        copy_v2_v2(expand_cache->initial_mouse_move, mouse);
+        copy_v2_v2(expand_cache->initial_mouse_move, mval_fl);
         copy_v2_v2(expand_cache->original_mouse_move, expand_cache->initial_mouse);
         if (expand_cache->falloff_type == SCULPT_EXPAND_FALLOFF_GEODESIC &&
             SCULPT_vertex_count_get(ss) > expand_cache->max_geodesic_move_preview) {

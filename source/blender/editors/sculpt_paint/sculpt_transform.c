@@ -422,10 +422,11 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
   /* Pivot to ray-cast surface. */
   else if (mode == SCULPT_PIVOT_POSITION_CURSOR_SURFACE) {
     float stroke_location[3];
-    float mouse[2];
-    mouse[0] = RNA_float_get(op->ptr, "mouse_x");
-    mouse[1] = RNA_float_get(op->ptr, "mouse_y");
-    if (SCULPT_stroke_get_location(C, stroke_location, mouse)) {
+    const float mval[2] = {
+        RNA_float_get(op->ptr, "mouse_x"),
+        RNA_float_get(op->ptr, "mouse_y"),
+    };
+    if (SCULPT_stroke_get_location(C, stroke_location, mval)) {
       copy_v3_v3(ss->pivot_pos, stroke_location);
     }
   }
