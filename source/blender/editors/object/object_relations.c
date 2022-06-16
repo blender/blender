@@ -2290,27 +2290,19 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     user_overrides_from_selected_objects = false;
   }
   else if (!make_override_library_object_overridable_check(bmain, obact)) {
-    const int i = RNA_property_enum_get(op->ptr, op->type->prop);
-    const uint collection_session_uuid = *((uint *)&i);
+    const int i = RNA_property_int_get(op->ptr, op->type->prop);
+    const uint collection_session_uuid = *((const uint *)&i);
     if (collection_session_uuid == MAIN_ID_SESSION_UUID_UNSET) {
       BKE_reportf(op->reports,
                   RPT_ERROR_INVALID_INPUT,
-                  "Active object '%s' is not overridable",
+                  "Could not find an overridable root hierarchy for object '%s'",
                   obact->id.name + 2);
       return OPERATOR_CANCELLED;
     }
-
     Collection *collection = BLI_listbase_bytes_find(&bmain->collections,
                                                      &collection_session_uuid,
                                                      sizeof(collection_session_uuid),
                                                      offsetof(ID, session_uuid));
-    if (!ID_IS_OVERRIDABLE_LIBRARY(collection)) {
-      BKE_reportf(op->reports,
-                  RPT_ERROR_INVALID_INPUT,
-                  "Could not find an overridable collection containing object '%s'",
-                  obact->id.name + 2);
-      return OPERATOR_CANCELLED;
-    }
     id_root = &collection->id;
     user_overrides_from_selected_objects = true;
   }
@@ -2372,10 +2364,36 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
     BLI_gset_free(user_overrides_objects_uids, NULL);
   }
 
-  /* Remove the instance empty from this scene, the items now have an overridden collection
-   * instead. */
-  if (success && is_override_instancing_object) {
-    ED_object_base_free_and_unlink(bmain, scene, obact);
+  if (success) {
+    if (is_override_instancing_object) {
+      /* Remove the instance empty from this scene, the items now have an overridden collection
+       * instead. */
+      ED_object_base_free_and_unlink(bmain, scene, obact);
+    }
+    else {
+      /* Remove the found root ID from the view layer. */
+      switch (GS(id_root->name)) {
+        case ID_GR: {
+          Collection *collection_root = (Collection *)id_root;
+          LISTBASE_FOREACH_MUTABLE (
+              CollectionParent *, collection_parent, &collection_root->parents) {
+            if (ID_IS_LINKED(collection_parent->collection) ||
+                !BKE_view_layer_has_collection(view_layer, collection_parent->collection)) {
+              continue;
+            }
+            BKE_collection_child_remove(bmain, collection_parent->collection, collection_root);
+          }
+          break;
+        }
+        case ID_OB: {
+          /* TODO: Not sure how well we can handle this case, when we don't have the collections as
+           * reference containers... */
+          break;
+        }
+        default:
+          break;
+      }
+    }
   }
 
   DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
@@ -2385,10 +2403,11 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
 }
 
 /* Set the object to override. */
-static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *obact = ED_object_active_context(C);
 
   /* Sanity checks. */
@@ -2402,16 +2421,37 @@ static int make_override_library_invoke(bContext *C, wmOperator *op, const wmEve
     return make_override_library_exec(C, op);
   }
 
-  if (ID_IS_LINKED(obact)) {
-    /* Show menu with list of directly linked collections containing the active object. */
-    WM_enum_search_invoke(C, op, event);
+  if (!ID_IS_LINKED(obact)) {
+    BKE_report(op->reports, RPT_ERROR, "Cannot make library override from a local object");
     return OPERATOR_CANCELLED;
   }
 
-  /* Error.. cannot continue. */
-  BKE_report(op->reports,
-             RPT_ERROR,
-             "Can only make library override for a referenced object or collection");
+  int potential_root_collections_num = 0;
+  uint collection_session_uuid = MAIN_ID_SESSION_UUID_UNSET;
+  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
+    /* Only check for directly linked collections. */
+    if (!ID_IS_LINKED(&collection->id) || (collection->id.tag & LIB_TAG_INDIRECT) != 0 ||
+        !BKE_view_layer_has_collection(view_layer, collection)) {
+      continue;
+    }
+    if (BKE_collection_has_object_recursive(collection, obact)) {
+      if (potential_root_collections_num == 0) {
+        collection_session_uuid = collection->id.session_uuid;
+      }
+      potential_root_collections_num++;
+    }
+  }
+
+  if (potential_root_collections_num <= 1) {
+    RNA_property_int_set(op->ptr, op->type->prop, *((int *)&collection_session_uuid));
+    return make_override_library_exec(C, op);
+  }
+
+  BKE_reportf(op->reports,
+              RPT_ERROR,
+              "Too many potential root collections (%d) for the override hierarchy, "
+              "please use the Outliner instead",
+              potential_root_collections_num);
   return OPERATOR_CANCELLED;
 }
 
@@ -2424,37 +2464,6 @@ static bool make_override_library_poll(bContext *C)
           (ID_IS_LINKED(obact) || (obact->instance_collection != NULL &&
                                    ID_IS_OVERRIDABLE_LIBRARY(obact->instance_collection) &&
                                    !ID_IS_OVERRIDE_LIBRARY(obact))));
-}
-
-static const EnumPropertyItem *make_override_collections_of_linked_object_itemf(
-    bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
-{
-  EnumPropertyItem item_tmp = {0}, *item = NULL;
-  int totitem = 0;
-
-  Object *object = ED_object_active_context(C);
-  Main *bmain = CTX_data_main(C);
-
-  if (!object || !ID_IS_LINKED(object)) {
-    return DummyRNA_DEFAULT_items;
-  }
-
-  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    /* Only check for directly linked collections. */
-    if (!ID_IS_LINKED(&collection->id) || (collection->id.tag & LIB_TAG_INDIRECT) != 0) {
-      continue;
-    }
-    if (BKE_collection_has_object_recursive(collection, object)) {
-      item_tmp.identifier = item_tmp.name = collection->id.name + 2;
-      item_tmp.value = *((int *)&collection->id.session_uuid);
-      RNA_enum_item_add(&item, &totitem, &item_tmp);
-    }
-  }
-
-  RNA_enum_item_end(&item, &totitem);
-  *r_free = true;
-
-  return item;
 }
 
 void OBJECT_OT_make_override_library(wmOperatorType *ot)
@@ -2474,15 +2483,17 @@ void OBJECT_OT_make_override_library(wmOperatorType *ot)
 
   /* properties */
   PropertyRNA *prop;
-  prop = RNA_def_enum(ot->srna,
-                      "collection",
-                      DummyRNA_DEFAULT_items,
-                      MAIN_ID_SESSION_UUID_UNSET,
-                      "Override Collection",
-                      "Name of directly linked collection containing the selected object, to make "
-                      "an override from");
-  RNA_def_enum_funcs(prop, make_override_collections_of_linked_object_itemf);
-  RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
+  prop = RNA_def_int(ot->srna,
+                     "collection",
+                     MAIN_ID_SESSION_UUID_UNSET,
+                     INT_MIN,
+                     INT_MAX,
+                     "Override Collection",
+                     "Session UUID of the directly linked collection containing the selected "
+                     "object, to make an override from",
+                     INT_MIN,
+                     INT_MAX);
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   ot->prop = prop;
 
   prop = RNA_def_boolean(ot->srna,
