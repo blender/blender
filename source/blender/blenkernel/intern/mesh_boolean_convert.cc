@@ -853,7 +853,8 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
               target_transform,
               use_self,
               hole_tolerant,
-              boolean_mode);
+              boolean_mode,
+              r_intersecting_edges);
   return nullptr;
 #endif  // WITH_GMP
 }
