@@ -58,8 +58,8 @@ bool Denoiser::load_kernels(Progress *progress)
     return false;
   }
 
-  VLOG(3) << "Will denoise on " << denoiser_device->info.description << " ("
-          << denoiser_device->info.id << ")";
+  VLOG_WORK << "Will denoise on " << denoiser_device->info.description << " ("
+            << denoiser_device->info.id << ")";
 
   return true;
 }

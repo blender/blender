@@ -30,8 +30,8 @@ bool ConstantFolder::all_inputs_constant() const
 
 void ConstantFolder::make_constant(float value) const
 {
-  VLOG(3) << "Folding " << node->name << "::" << output->name() << " to constant (" << value
-          << ").";
+  VLOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant (" << value
+             << ").";
 
   foreach (ShaderInput *sock, output->links) {
     sock->set(value);
@@ -43,7 +43,8 @@ void ConstantFolder::make_constant(float value) const
 
 void ConstantFolder::make_constant(float3 value) const
 {
-  VLOG(3) << "Folding " << node->name << "::" << output->name() << " to constant " << value << ".";
+  VLOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant " << value
+             << ".";
 
   foreach (ShaderInput *sock, output->links) {
     sock->set(value);
@@ -99,8 +100,8 @@ void ConstantFolder::bypass(ShaderOutput *new_output) const
 {
   assert(new_output);
 
-  VLOG(3) << "Folding " << node->name << "::" << output->name() << " to socket "
-          << new_output->parent->name << "::" << new_output->name() << ".";
+  VLOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to socket "
+             << new_output->parent->name << "::" << new_output->name() << ".";
 
   /* Remove all outgoing links from socket and connect them to new_output instead.
    * The graph->relink method affects node inputs, so it's not safe to use in constant
@@ -118,7 +119,7 @@ void ConstantFolder::discard() const
 {
   assert(output->type() == SocketType::CLOSURE);
 
-  VLOG(3) << "Discarding closure " << node->name << ".";
+  VLOG_DEBUG << "Discarding closure " << node->name << ".";
 
   graph->disconnect(output);
 }

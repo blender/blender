@@ -285,7 +285,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
 
   free_data_after_sync(b_depsgraph);
 
-  VLOG(1) << "Total time spent synchronizing data: " << timer.get_time();
+  VLOG_INFO << "Total time spent synchronizing data: " << timer.get_time();
 
   has_updates_ = false;
 }
@@ -390,7 +390,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
   }
 
   if (scrambling_distance != 1.0f) {
-    VLOG(3) << "Using scrambling distance: " << scrambling_distance;
+    VLOG_INFO << "Using scrambling distance: " << scrambling_distance;
   }
   integrator->set_scrambling_distance(scrambling_distance);
 

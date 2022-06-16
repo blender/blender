@@ -70,7 +70,7 @@ struct ToNanoOp {
         nanogrid = nanovdb::openToNanoVDB(floatgrid);
       }
       catch (const std::exception &e) {
-        VLOG(1) << "Error converting OpenVDB to NanoVDB grid: " << e.what();
+        VLOG_WARNING << "Error converting OpenVDB to NanoVDB grid: " << e.what();
       }
       return true;
     }

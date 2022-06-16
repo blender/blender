@@ -1292,7 +1292,7 @@ void GeometryManager::device_update_bvh(Device *device,
   bparams.bvh_type = scene->params.bvh_type;
   bparams.curve_subdivisions = scene->params.curve_subdivisions();
 
-  VLOG(1) << "Using " << bvh_layout_name(bparams.bvh_layout) << " layout.";
+  VLOG_INFO << "Using " << bvh_layout_name(bparams.bvh_layout) << " layout.";
 
   const bool can_refit = scene->bvh != nullptr &&
                          (bparams.bvh_layout == BVHLayout::BVH_LAYOUT_OPTIX ||
@@ -1803,7 +1803,7 @@ void GeometryManager::device_update(Device *device,
   if (!need_update())
     return;
 
-  VLOG(1) << "Total " << scene->geometry.size() << " meshes.";
+  VLOG_INFO << "Total " << scene->geometry.size() << " meshes.";
 
   bool true_displacement_used = false;
   bool curve_shadow_transparency_used = false;
@@ -2042,7 +2042,7 @@ void GeometryManager::device_update(Device *device,
 
     TaskPool::Summary summary;
     pool.wait_work(&summary);
-    VLOG(2) << "Objects BVH build pool statistics:\n" << summary.full_report();
+    VLOG_WORK << "Objects BVH build pool statistics:\n" << summary.full_report();
   }
 
   foreach (Shader *shader, scene->shaders) {

@@ -1212,17 +1212,17 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
           memcmp(mP, &mesh->get_verts()[0], sizeof(float3) * numverts) == 0) {
         /* no motion, remove attributes again */
         if (b_mesh.vertices.length() != numverts) {
-          VLOG(1) << "Topology differs, disabling motion blur for object " << ob_name;
+          VLOG_WARNING << "Topology differs, disabling motion blur for object " << ob_name;
         }
         else {
-          VLOG(1) << "No actual deformation motion for object " << ob_name;
+          VLOG_DEBUG << "No actual deformation motion for object " << ob_name;
         }
         mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
         if (attr_mN)
           mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_NORMAL);
       }
       else if (motion_step > 0) {
-        VLOG(1) << "Filling deformation motion for object " << ob_name;
+        VLOG_DEBUG << "Filling deformation motion for object " << ob_name;
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
         float3 *P = &mesh->get_verts()[0];
@@ -1236,8 +1236,8 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     }
     else {
       if (b_mesh.vertices.length() != numverts) {
-        VLOG(1) << "Topology differs, discarding motion blur for object " << ob_name << " at time "
-                << motion_step;
+        VLOG_WARNING << "Topology differs, discarding motion blur for object " << ob_name
+                     << " at time " << motion_step;
         memcpy(mP, &mesh->get_verts()[0], sizeof(float3) * numverts);
         if (mN != NULL) {
           memcpy(mN, attr_N->data_float3(), sizeof(float3) * numverts);
