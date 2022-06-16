@@ -5525,7 +5525,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   /* For tablet rotation. */
   ignore_background_click = RNA_boolean_get(op->ptr, "ignore_background_click");
 
-  if (ignore_background_click && !over_mesh(C, op, event->xy[0], event->xy[1])) {
+  if (ignore_background_click && !over_mesh(C, op, event->mval[0], event->mval[1])) {
     paint_stroke_free(C, op, op->customdata);
     return OPERATOR_PASS_THROUGH;
   }

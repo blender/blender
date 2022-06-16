@@ -169,7 +169,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, int mx, int my)
   SCULPT_vertex_random_access_ensure(ss);
 
   /* Update the active vertex. */
-  const float mouse[2] = {mx, my};
+  const float mouse[2] = {mx - vc->region->winrct.xmin, my - vc->region->winrct.ymin};
   SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
