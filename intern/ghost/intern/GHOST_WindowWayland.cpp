@@ -58,28 +58,54 @@ struct window_t {
 /** \name Internal Utilities
  * \{ */
 
+/**
+ * Return -1 if `output_a` has a scale smaller than `output_b`, 0 when there equal, otherwise 1.
+ */
+static int output_scale_cmp(const output_t *output_a, const output_t *output_b)
+{
+  if (output_a->scale < output_b->scale) {
+    return -1;
+  }
+  if (output_a->scale > output_b->scale) {
+    return 1;
+  }
+  if (output_a->has_scale_fractional || output_b->has_scale_fractional) {
+    const wl_fixed_t scale_fractional_a = output_a->has_scale_fractional ?
+                                              output_a->scale_fractional :
+                                              wl_fixed_from_int(output_a->scale);
+    const wl_fixed_t scale_fractional_b = output_b->has_scale_fractional ?
+                                              output_b->scale_fractional :
+                                              wl_fixed_from_int(output_b->scale);
+    if (scale_fractional_a < scale_fractional_b) {
+      return -1;
+    }
+    if (scale_fractional_a > scale_fractional_b) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int outputs_max_scale_or_default(const std::vector<output_t *> &outputs,
                                         const int32_t scale_default,
                                         uint32_t *r_dpi)
 {
-  int scale_max = 0;
   const output_t *output_max = nullptr;
   for (const output_t *reg_output : outputs) {
-    if (scale_max < reg_output->scale) {
-      scale_max = reg_output->scale;
+    if (!output_max || (output_scale_cmp(output_max, reg_output) == -1)) {
       output_max = reg_output;
     }
   }
 
-  if (scale_max != 0) {
+  if (output_max) {
     if (r_dpi) {
       *r_dpi = output_max->has_scale_fractional ?
                    /* Fractional DPI. */
                    wl_fixed_to_int(output_max->scale_fractional * base_dpi) :
                    /* Simple non-fractional DPI. */
-                   (scale_max * base_dpi);
+                   (output_max->scale * base_dpi);
     }
-    return scale_max;
+    return output_max->scale;
   }
 
   if (r_dpi) {
