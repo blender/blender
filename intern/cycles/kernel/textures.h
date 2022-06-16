@@ -47,7 +47,7 @@ KERNEL_TEX(float4, __points)
 KERNEL_TEX(uint, __points_shader)
 
 /* attributes */
-KERNEL_TEX(uint4, __attributes_map)
+KERNEL_TEX(AttributeMap, __attributes_map)
 KERNEL_TEX(float, __attributes_float)
 KERNEL_TEX(float2, __attributes_float2)
 KERNEL_TEX(packed_float3, __attributes_float3)

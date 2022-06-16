@@ -111,16 +111,16 @@ ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
                                                   const uint id)
 {
   uint attr_offset = kernel_tex_fetch(__objects, object).attribute_map_offset;
-  uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+  AttributeMap attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 
-  while (attr_map.x != id) {
-    if (UNLIKELY(attr_map.x == ATTR_STD_NONE)) {
-      if (UNLIKELY(attr_map.y == 0)) {
+  while (attr_map.id != id) {
+    if (UNLIKELY(attr_map.id == ATTR_STD_NONE)) {
+      if (UNLIKELY(attr_map.element == 0)) {
         return (int)ATTR_STD_NOT_FOUND;
       }
       else {
         /* Chain jump to a different part of the table. */
-        attr_offset = attr_map.z;
+        attr_offset = attr_map.offset;
       }
     }
     else {
@@ -130,7 +130,7 @@ ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
   }
 
   /* return result */
-  return (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
+  return (attr_map.element == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.offset;
 }
 
 /* Transparent Shadows */
