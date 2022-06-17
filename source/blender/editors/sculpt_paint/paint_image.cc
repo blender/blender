@@ -272,7 +272,7 @@ static bool image_paint_poll_ex(bContext *C, bool check_tool)
     SpaceImage *sima = CTX_wm_space_image(C);
 
     if (sima) {
-      if (sima->image != NULL &&
+      if (sima->image != nullptr &&
           (ID_IS_LINKED(sima->image) || ID_IS_OVERRIDE_LIBRARY(sima->image))) {
         return false;
       }

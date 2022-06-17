@@ -195,7 +195,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
       auto &fh = buffers[i];
 
       obj_writer.write_object_name(fh, obj);
-      obj_writer.write_vertex_coords(fh, obj);
+      obj_writer.write_vertex_coords(fh, obj, export_params.export_colors);
 
       if (obj.tot_polygons() > 0) {
         if (export_params.export_smooth_groups) {

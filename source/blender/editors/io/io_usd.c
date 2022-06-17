@@ -57,6 +57,20 @@ const EnumPropertyItem rna_enum_usd_export_evaluation_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
+    {USD_MTL_NAME_COLLISION_MAKE_UNIQUE,
+     "MAKE_UNIQUE",
+     0,
+     "Make Unique",
+     "Import each USD material as a unique Blender material"},
+    {USD_MTL_NAME_COLLISION_REFERENCE_EXISTING,
+     "REFERENCE_EXISTING",
+     0,
+     "Reference Existing",
+     "If a material with the same name already exists, reference that instead of importing"},
+    {0, NULL, 0, NULL, NULL},
+};
+
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
 enum { AS_BACKGROUND_JOB = 1 };
@@ -371,6 +385,9 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const float light_intensity_scale = RNA_float_get(op->ptr, "light_intensity_scale");
 
+  const eUSDMtlNameCollisionMode mtl_name_collision_mode = RNA_enum_get(op->ptr,
+                                                                        "mtl_name_collision_mode");
+
   /* TODO(makowalski): Add support for sequences. */
   const bool is_sequence = false;
   int offset = 0;
@@ -409,7 +426,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
                                    .use_instancing = use_instancing,
                                    .import_usd_preview = import_usd_preview,
                                    .set_material_blend = set_material_blend,
-                                   .light_intensity_scale = light_intensity_scale};
+                                   .light_intensity_scale = light_intensity_scale,
+                                   .mtl_name_collision_mode = mtl_name_collision_mode};
 
   const bool ok = USD_import(C, filename, &params, as_background_job);
 
@@ -452,6 +470,7 @@ static void wm_usd_import_draw(bContext *UNUSED(C), wmOperator *op)
   uiItemR(col, ptr, "relative_path", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "create_collection", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "light_intensity_scale", 0, NULL, ICON_NONE);
+  uiItemR(box, ptr, "mtl_name_collision_mode", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
   col = uiLayoutColumnWithHeading(box, true, IFACE_("Experimental"));
@@ -575,6 +594,14 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
                 "Scale for the intensity of imported lights",
                 0.0001f,
                 1000.0f);
+
+  RNA_def_enum(
+      ot->srna,
+      "mtl_name_collision_mode",
+      rna_enum_usd_mtl_name_collision_mode_items,
+      USD_MTL_NAME_COLLISION_MAKE_UNIQUE,
+      "Material Name Collision",
+      "Behavior when the name of an imported material conflicts with an existing material");
 }
 
 #endif /* WITH_USD */

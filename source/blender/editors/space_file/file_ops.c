@@ -2914,9 +2914,9 @@ void FILE_OT_delete(struct wmOperatorType *ot)
 
 static int file_start_filter_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  ScrArea *area = CTX_wm_area(C);
-  SpaceFile *sfile = CTX_wm_space_file(C);
-  FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+  const ScrArea *area = CTX_wm_area(C);
+  const SpaceFile *sfile = CTX_wm_space_file(C);
+  const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
   ARegion *region_ctx = CTX_wm_region(C);
 
@@ -2944,6 +2944,46 @@ void FILE_OT_start_filter(struct wmOperatorType *ot)
   /* api callbacks */
   ot->exec = file_start_filter_exec;
   /* Operator works for file or asset browsing */
+  ot->poll = ED_operator_file_active;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Edit Directory Path Operator
+ * \{ */
+
+static int file_edit_directory_path_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  const ScrArea *area = CTX_wm_area(C);
+  const SpaceFile *sfile = CTX_wm_space_file(C);
+  const FileSelectParams *params = ED_fileselect_get_active_params(sfile);
+
+  ARegion *region_ctx = CTX_wm_region(C);
+
+  if (area) {
+    LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+      CTX_wm_region_set(C, region);
+      if (UI_textbutton_activate_rna(C, region, params, "directory")) {
+        break;
+      }
+    }
+  }
+
+  CTX_wm_region_set(C, region_ctx);
+
+  return OPERATOR_FINISHED;
+}
+
+void FILE_OT_edit_directory_path(struct wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Edit Directory Path";
+  ot->description = "Start editing directory field";
+  ot->idname = "FILE_OT_edit_directory_path";
+
+  /* api callbacks */
+  ot->exec = file_edit_directory_path_exec;
   ot->poll = ED_operator_file_active;
 }
 

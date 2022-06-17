@@ -160,15 +160,14 @@ static void rna_Image_update(Image *image, ReportList *reports)
   BKE_image_release_ibuf(image, ibuf, NULL);
 }
 
-static void rna_Image_scale(Image *image, bContext *C, ReportList *reports, int width, int height)
+static void rna_Image_scale(Image *image, ReportList *reports, int width, int height)
 {
   if (!BKE_image_scale(image, width, height)) {
     BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
+    return;
   }
-  else {
-    BKE_image_partial_update_mark_full_update(image);
-    WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
-  }
+  BKE_image_partial_update_mark_full_update(image);
+  WM_main_add_notifier(NC_IMAGE | NA_EDITED, image);
 }
 
 static int rna_Image_gl_load(
@@ -285,7 +284,7 @@ void RNA_api_image(StructRNA *srna)
 
   func = RNA_def_function(srna, "scale", "rna_Image_scale");
   RNA_def_function_ui_description(func, "Scale the buffer of the image, in pixels");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_int(func, "width", 1, 1, INT_MAX, "", "Width", 1, INT_MAX);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_int(func, "height", 1, 1, INT_MAX, "", "Height", 1, INT_MAX);

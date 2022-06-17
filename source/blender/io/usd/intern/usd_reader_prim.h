@@ -7,6 +7,9 @@
 
 #include <pxr/usd/usd/prim.h>
 
+#include <map>
+#include <string>
+
 struct Main;
 struct Object;
 
@@ -32,6 +35,13 @@ struct ImportSettings {
   bool validate_meshes;
 
   CacheFile *cache_file;
+
+  /* Map a USD material prim path to a Blender material name.
+   * This map is updated by readers during stage traversal.
+   * This field is mutable because it is used to keep track
+   * of what the importer is doing. This is necessary even
+   * when all the other import settings are to remain const. */
+  mutable std::map<std::string, std::string> usd_path_to_mat_name;
 
   ImportSettings()
       : do_convert_mat(false),

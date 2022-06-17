@@ -665,8 +665,8 @@ bool ED_operator_mask(bContext *C)
   if (area && area->spacedata.first) {
     switch (area->spacetype) {
       case SPACE_CLIP: {
-        SpaceClip *screen = area->spacedata.first;
-        return ED_space_clip_check_show_maskedit(screen);
+        SpaceClip *space_clip = area->spacedata.first;
+        return ED_space_clip_check_show_maskedit(space_clip);
       }
       case SPACE_SEQ: {
         SpaceSeq *sseq = area->spacedata.first;

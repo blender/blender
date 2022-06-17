@@ -669,7 +669,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUNodeGraph.used_libraries");
   mat->refcount = 1;
 #ifndef NDEBUG
-  BLI_snprintf(mat->name, sizeof(mat->name), "%s", name);
+  STRNCPY(mat->name, name);
 #else
   UNUSED_VARS(name);
 #endif

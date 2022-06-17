@@ -336,7 +336,11 @@ void BKE_tracking_settings_init(MovieTracking *tracking)
   tracking->stabilization.filter = TRACKING_FILTER_BILINEAR;
   tracking->stabilization.flag |= TRACKING_SHOW_STAB_TRACKS;
 
-  BKE_tracking_object_add(tracking, "Camera");
+  /* Descending order of average error: tracks with the highest error are on top. */
+  tracking->dopesheet.sort_method = TRACKING_DOPE_SORT_AVERAGE_ERROR;
+  tracking->dopesheet.flag |= TRACKING_DOPE_SORT_INVERSE;
+
+  BKE_tracking_object_add(tracking, DATA_("Camera"));
 }
 
 ListBase *BKE_tracking_get_active_tracks(MovieTracking *tracking)
@@ -2902,6 +2906,10 @@ static int channels_average_error_sort(const void *a, const void *b)
 
   if (channel_a->track->error > channel_b->track->error) {
     return 1;
+  }
+
+  if (channel_a->track->error == channel_b->track->error) {
+    return channels_alpha_sort(a, b);
   }
 
   return 0;

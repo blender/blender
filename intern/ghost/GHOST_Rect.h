@@ -190,26 +190,34 @@ inline bool GHOST_Rect::isValid() const
 
 inline void GHOST_Rect::unionRect(const GHOST_Rect &r)
 {
-  if (r.m_l < m_l)
+  if (r.m_l < m_l) {
     m_l = r.m_l;
-  if (r.m_r > m_r)
+  }
+  if (r.m_r > m_r) {
     m_r = r.m_r;
-  if (r.m_t < m_t)
+  }
+  if (r.m_t < m_t) {
     m_t = r.m_t;
-  if (r.m_b > m_b)
+  }
+  if (r.m_b > m_b) {
     m_b = r.m_b;
+  }
 }
 
 inline void GHOST_Rect::unionPoint(int32_t x, int32_t y)
 {
-  if (x < m_l)
+  if (x < m_l) {
     m_l = x;
-  if (x > m_r)
+  }
+  if (x > m_r) {
     m_r = x;
-  if (y < m_t)
+  }
+  if (y < m_t) {
     m_t = y;
-  if (y > m_b)
+  }
+  if (y > m_b) {
     m_b = y;
+  }
 }
 
 inline void GHOST_Rect::wrapPoint(int32_t &x, int32_t &y, int32_t ofs, GHOST_TAxisFlag axis)
@@ -223,16 +231,20 @@ inline void GHOST_Rect::wrapPoint(int32_t &x, int32_t &y, int32_t ofs, GHOST_TAx
   }
 
   if (axis & GHOST_kAxisX) {
-    while (x - ofs < m_l)
+    while (x - ofs < m_l) {
       x += w - (ofs * 2);
-    while (x + ofs > m_r)
+    }
+    while (x + ofs > m_r) {
       x -= w - (ofs * 2);
+    }
   }
   if (axis & GHOST_kGrabAxisY) {
-    while (y - ofs < m_t)
+    while (y - ofs < m_t) {
       y += h - (ofs * 2);
-    while (y + ofs > m_b)
+    }
+    while (y + ofs > m_b) {
       y -= h - (ofs * 2);
+    }
   }
 }
 

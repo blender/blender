@@ -199,7 +199,8 @@ class CLIP_HT_header(Header):
                 row = layout.row(align=True)
                 row.prop(dopesheet, "sort_method", text="")
                 row.prop(dopesheet, "use_invert_sort",
-                         text="Invert", toggle=True)
+                         text="", toggle=True,
+                         icon='SORT_DESC' if dopesheet.use_invert_sort else 'SORT_ASC')
 
     def _draw_masking(self, context):
         layout = self.layout

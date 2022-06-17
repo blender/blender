@@ -772,17 +772,17 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.curve.pen
   ops.curve.radius
   ops.curve.vertex_random
-  ops.curves.density
   ops.curves.sculpt_add
   ops.curves.sculpt_comb
   ops.curves.sculpt_cut
   ops.curves.sculpt_delete
+  ops.curves.sculpt_density
   ops.curves.sculpt_grow_shrink
   ops.curves.sculpt_pinch
   ops.curves.sculpt_puff
+  ops.curves.sculpt_slide
   ops.curves.sculpt_smooth
   ops.curves.sculpt_snake_hook
-  ops.curves.slide
   ops.generic.cursor
   ops.generic.select
   ops.generic.select_box
@@ -933,6 +933,7 @@ if(WITH_BLENDER)
     data_to_c_simple(../../../../release/datafiles/brushicons/mask.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/mix.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/nudge.png SRC)
+    data_to_c_simple(../../../../release/datafiles/brushicons/paint_select.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/pinch.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/scrape.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/smear.png SRC)
@@ -969,6 +970,19 @@ if(WITH_BLENDER)
     data_to_c_simple(../../../../release/datafiles/brushicons/gp_brush_erase_soft.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/gp_brush_erase_hard.png SRC)
     data_to_c_simple(../../../../release/datafiles/brushicons/gp_brush_erase_stroke.png SRC)
+
+    # curve sculpt
+    data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_add.png SRC)
+    data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_comb.png SRC)
+    data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_cut.png SRC)
+    data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_delete.png SRC)
+    data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_density.png SRC)
+    data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_grow_shrink.png SRC)
+    data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_pinch.png SRC)
+    data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_puff.png SRC)
+    data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_slide.png SRC)
+    data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_smooth.png SRC)
+    data_to_c_simple(../../../../release/datafiles/brushicons/curves_sculpt_snake_hook.png SRC)
 
   endif()
 

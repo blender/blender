@@ -518,15 +518,18 @@ static int geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
   ID *id = static_cast<ID *>(ob->data);
-  CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
+  const CustomDataLayer *layer = BKE_id_attributes_active_color_get(id);
 
   if (layer == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  CustomDataLayer *newLayer = BKE_id_attribute_duplicate(id, layer, op->reports);
+  CustomDataLayer *new_layer = BKE_id_attribute_duplicate(id, layer->name, op->reports);
+  if (new_layer == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
 
-  BKE_id_attributes_active_color_set(id, newLayer);
+  BKE_id_attributes_active_color_set(id, new_layer);
 
   DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
@@ -537,6 +540,10 @@ static int geometry_color_attribute_duplicate_exec(bContext *C, wmOperator *op)
 static bool geometry_color_attributes_duplicate_poll(bContext *C)
 {
   if (!geometry_attributes_poll(C)) {
+    return false;
+  }
+  if (CTX_data_edit_object(C) != nullptr) {
+    CTX_wm_operator_poll_msg_set(C, "Operation is not allowed in edit mode");
     return false;
   }
 

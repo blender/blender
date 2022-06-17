@@ -15,41 +15,117 @@
 
 #include <wayland-egl.h>
 
+#include <algorithm> /* For `std::find`. */
+
 static constexpr size_t base_dpi = 96;
 
 struct window_t {
-  GHOST_WindowWayland *w;
-  wl_surface *surface;
-  /* Outputs on which the window is currently shown on. */
-  std::unordered_set<const output_t *> outputs;
-  uint16_t dpi = 0;
-  int scale = 1;
-  struct xdg_surface *xdg_surface;
-  struct xdg_toplevel *xdg_toplevel;
+  GHOST_WindowWayland *w = nullptr;
+  struct wl_surface *wl_surface = nullptr;
+  /**
+   * Outputs on which the window is currently shown on.
+   *
+   * This is an ordered set (whoever adds to this is responsible for keeping members unique).
+   * In practice this is rarely manipulated and is limited by the number of physical displays.
+   */
+  std::vector<output_t *> outputs;
+
+  /** The scale value written to #wl_surface_set_buffer_scale. */
+  int scale = 0;
+  /**
+   * The DPI, either:
+   * - `scale * base_dpi`
+   * - `wl_fixed_to_int(scale_fractional * base_dpi)`
+   * When fractional scaling is available.
+   */
+  uint32_t dpi = 0;
+
+  struct xdg_surface *xdg_surface = nullptr;
+  struct xdg_toplevel *xdg_toplevel = nullptr;
   struct zxdg_toplevel_decoration_v1 *xdg_toplevel_decoration = nullptr;
-  enum zxdg_toplevel_decoration_v1_mode decoration_mode;
-  wl_egl_window *egl_window;
-  int32_t pending_width, pending_height;
-  bool is_maximised;
-  bool is_fullscreen;
-  bool is_active;
-  bool is_dialog;
-  int32_t width, height;
+  enum zxdg_toplevel_decoration_v1_mode decoration_mode = (enum zxdg_toplevel_decoration_v1_mode)0;
+  wl_egl_window *egl_window = nullptr;
+  bool is_maximised = false;
+  bool is_fullscreen = false;
+  bool is_active = false;
+  bool is_dialog = false;
+
+  int32_t size[2] = {0, 0};
+  int32_t size_pending[2] = {0, 0};
 };
 
 /* -------------------------------------------------------------------- */
-/** \name Wayland Interface Callbacks
- *
- * These callbacks are registered for Wayland interfaces and called when
- * an event is received from the compositor.
+/** \name Internal Utilities
  * \{ */
 
-static void toplevel_configure(
+/**
+ * Return -1 if `output_a` has a scale smaller than `output_b`, 0 when there equal, otherwise 1.
+ */
+static int output_scale_cmp(const output_t *output_a, const output_t *output_b)
+{
+  if (output_a->scale < output_b->scale) {
+    return -1;
+  }
+  if (output_a->scale > output_b->scale) {
+    return 1;
+  }
+  if (output_a->has_scale_fractional || output_b->has_scale_fractional) {
+    const wl_fixed_t scale_fractional_a = output_a->has_scale_fractional ?
+                                              output_a->scale_fractional :
+                                              wl_fixed_from_int(output_a->scale);
+    const wl_fixed_t scale_fractional_b = output_b->has_scale_fractional ?
+                                              output_b->scale_fractional :
+                                              wl_fixed_from_int(output_b->scale);
+    if (scale_fractional_a < scale_fractional_b) {
+      return -1;
+    }
+    if (scale_fractional_a > scale_fractional_b) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int outputs_max_scale_or_default(const std::vector<output_t *> &outputs,
+                                        const int32_t scale_default,
+                                        uint32_t *r_dpi)
+{
+  const output_t *output_max = nullptr;
+  for (const output_t *reg_output : outputs) {
+    if (!output_max || (output_scale_cmp(output_max, reg_output) == -1)) {
+      output_max = reg_output;
+    }
+  }
+
+  if (output_max) {
+    if (r_dpi) {
+      *r_dpi = output_max->has_scale_fractional ?
+                   /* Fractional DPI. */
+                   wl_fixed_to_int(output_max->scale_fractional * base_dpi) :
+                   /* Simple non-fractional DPI. */
+                   (output_max->scale * base_dpi);
+    }
+    return output_max->scale;
+  }
+
+  if (r_dpi) {
+    *r_dpi = scale_default * base_dpi;
+  }
+  return scale_default;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (XDG Top Level), #xdg_toplevel_listener
+ * \{ */
+
+static void xdg_toplevel_handle_configure(
     void *data, xdg_toplevel * /*xdg_toplevel*/, int32_t width, int32_t height, wl_array *states)
 {
   window_t *win = static_cast<window_t *>(data);
-  win->pending_width = width;
-  win->pending_height = height;
+  win->size_pending[0] = win->scale * width;
+  win->size_pending[1] = win->scale * height;
 
   win->is_maximised = false;
   win->is_fullscreen = false;
@@ -77,17 +153,23 @@ static void toplevel_configure(
   }
 }
 
-static void toplevel_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
+static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
 {
   static_cast<window_t *>(data)->w->close();
 }
 
 static const xdg_toplevel_listener toplevel_listener = {
-    toplevel_configure,
-    toplevel_close,
+    xdg_toplevel_handle_configure,
+    xdg_toplevel_handle_close,
 };
 
-static void toplevel_decoration_configure(
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (XDG Decoration Listener), #zxdg_toplevel_decoration_v1_listener
+ * \{ */
+
+static void xdg_toplevel_decoration_handle_configure(
     void *data,
     struct zxdg_toplevel_decoration_v1 * /*zxdg_toplevel_decoration_v1*/,
     uint32_t mode)
@@ -96,10 +178,16 @@ static void toplevel_decoration_configure(
 }
 
 static const zxdg_toplevel_decoration_v1_listener toplevel_decoration_v1_listener = {
-    toplevel_decoration_configure,
+    xdg_toplevel_decoration_handle_configure,
 };
 
-static void surface_configure(void *data, xdg_surface *xdg_surface, uint32_t serial)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (XDG Surface Handle Configure), #xdg_surface_listener
+ * \{ */
+
+static void xdg_surface_handle_configure(void *data, xdg_surface *xdg_surface, uint32_t serial)
 {
   window_t *win = static_cast<window_t *>(data);
 
@@ -107,12 +195,12 @@ static void surface_configure(void *data, xdg_surface *xdg_surface, uint32_t ser
     return;
   }
 
-  if (win->pending_width != 0 && win->pending_height != 0) {
-    win->width = win->scale * win->pending_width;
-    win->height = win->scale * win->pending_height;
-    wl_egl_window_resize(win->egl_window, win->width, win->height, 0, 0);
-    win->pending_width = 0;
-    win->pending_height = 0;
+  if (win->size_pending[0] != 0 && win->size_pending[1] != 0) {
+    win->size[0] = win->size_pending[0];
+    win->size[1] = win->size_pending[1];
+    wl_egl_window_resize(win->egl_window, win->size[0], win->size[1], 0, 0);
+    win->size_pending[0] = 0;
+    win->size_pending[1] = 0;
     win->w->notify_size();
   }
 
@@ -126,55 +214,49 @@ static void surface_configure(void *data, xdg_surface *xdg_surface, uint32_t ser
   xdg_surface_ack_configure(xdg_surface, serial);
 }
 
-static const xdg_surface_listener surface_listener = {
-    surface_configure,
+static const xdg_surface_listener xdg_surface_listener = {
+    xdg_surface_handle_configure,
 };
 
-static bool update_scale(GHOST_WindowWayland *window)
-{
-  int scale = 0;
-  for (const output_t *output : window->outputs_active()) {
-    if (output->scale > scale) {
-      scale = output->scale;
-    }
-  }
+/** \} */
 
-  if (scale > 0 && window->scale() != scale) {
-    window->scale() = scale;
-    /* Using the real DPI will cause wrong scaling of the UI
-     * use a multiplier for the default DPI as workaround. */
-    window->dpi() = scale * base_dpi;
-    wl_surface_set_buffer_scale(window->surface(), scale);
-    return true;
-  }
-  return false;
-}
+/* -------------------------------------------------------------------- */
+/** \name Listener (Surface), #wl_surface_listener
+ * \{ */
 
-static void surface_enter(void *data, struct wl_surface * /*wl_surface*/, struct wl_output *output)
+static void surface_handle_enter(void *data,
+                                 struct wl_surface * /*wl_surface*/,
+                                 struct wl_output *output)
 {
   GHOST_WindowWayland *w = static_cast<GHOST_WindowWayland *>(data);
-  for (const output_t *reg_output : w->outputs()) {
-    if (reg_output->output == output) {
-      w->outputs_active().insert(reg_output);
-    }
+  output_t *reg_output = w->output_find_by_wl(output);
+  if (reg_output == nullptr) {
+    return;
   }
-  update_scale(w);
+
+  if (w->outputs_enter(reg_output)) {
+    w->outputs_changed_update_scale();
+  }
 }
 
-static void surface_leave(void *data, struct wl_surface * /*wl_surface*/, struct wl_output *output)
+static void surface_handle_leave(void *data,
+                                 struct wl_surface * /*wl_surface*/,
+                                 struct wl_output *output)
 {
   GHOST_WindowWayland *w = static_cast<GHOST_WindowWayland *>(data);
-  for (const output_t *reg_output : w->outputs()) {
-    if (reg_output->output == output) {
-      w->outputs_active().erase(reg_output);
-    }
+  output_t *reg_output = w->output_find_by_wl(output);
+  if (reg_output == nullptr) {
+    return;
   }
-  update_scale(w);
+
+  if (w->outputs_leave(reg_output)) {
+    w->outputs_changed_update_scale();
+  }
 }
 
 struct wl_surface_listener wl_surface_listener = {
-    surface_enter,
-    surface_leave,
+    surface_handle_enter,
+    surface_handle_leave,
 };
 
 /** \} */
@@ -208,32 +290,51 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 {
   w->w = this;
 
-  w->width = int32_t(width);
-  w->height = int32_t(height);
+  w->size[0] = int32_t(width);
+  w->size[1] = int32_t(height);
 
   w->is_dialog = is_dialog;
 
+  /* NOTE(@campbellbarton): The scale set here to avoid flickering on startup.
+   * When all monitors use the same scale (which is quite common) there aren't any problems.
+   *
+   * When monitors have different scales there may still be a visible window resize on startup.
+   * Ideally it would be possible to know the scale this window will use however that's only
+   * known once #surface_enter callback runs (which isn't guaranteed to run at all).
+   *
+   * Using the maximum scale is best as it results in the window first being smaller,
+   * avoiding a large window flashing before it's made smaller. */
+  w->scale = outputs_max_scale_or_default(this->m_system->outputs(), 1, &w->dpi);
+
   /* Window surfaces. */
-  w->surface = wl_compositor_create_surface(m_system->compositor());
-  wl_surface_add_listener(w->surface, &wl_surface_listener, this);
+  w->wl_surface = wl_compositor_create_surface(m_system->compositor());
+  wl_surface_set_buffer_scale(this->surface(), w->scale);
 
-  w->egl_window = wl_egl_window_create(w->surface, int(width), int(height));
+  wl_surface_add_listener(w->wl_surface, &wl_surface_listener, this);
 
-  w->xdg_surface = xdg_wm_base_get_xdg_surface(m_system->shell(), w->surface);
+  w->egl_window = wl_egl_window_create(w->wl_surface, int(w->size[0]), int(w->size[1]));
+
+  w->xdg_surface = xdg_wm_base_get_xdg_surface(m_system->xdg_shell(), w->wl_surface);
   w->xdg_toplevel = xdg_surface_get_toplevel(w->xdg_surface);
 
-  if (m_system->decoration_manager()) {
+  /* NOTE: The limit is in points (not pixels) so Hi-DPI will limit to larger number of pixels.
+   * This has the advantage that the size limit is the same when moving the window between monitors
+   * with different scales set. If it was important to limit in pixels it could be re-calculated
+   * when the `w->scale` changed. */
+  xdg_toplevel_set_min_size(w->xdg_toplevel, 320, 240);
+
+  if (m_system->xdg_decoration_manager()) {
     w->xdg_toplevel_decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
-        m_system->decoration_manager(), w->xdg_toplevel);
+        m_system->xdg_decoration_manager(), w->xdg_toplevel);
     zxdg_toplevel_decoration_v1_add_listener(
         w->xdg_toplevel_decoration, &toplevel_decoration_v1_listener, w);
     zxdg_toplevel_decoration_v1_set_mode(w->xdg_toplevel_decoration,
                                          ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
   }
 
-  wl_surface_set_user_data(w->surface, this);
+  wl_surface_set_user_data(w->wl_surface, this);
 
-  xdg_surface_add_listener(w->xdg_surface, &surface_listener, w);
+  xdg_surface_add_listener(w->xdg_surface, &xdg_surface_listener, w);
   xdg_toplevel_add_listener(w->xdg_toplevel, &toplevel_listener, w);
 
   if (parentWindow && is_dialog) {
@@ -242,7 +343,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   }
 
   /* Call top-level callbacks. */
-  wl_surface_commit(w->surface);
+  wl_surface_commit(w->wl_surface);
   wl_display_roundtrip(m_system->display());
 
 #ifdef GHOST_OPENGL_ALPHA
@@ -296,32 +397,92 @@ GHOST_TSuccess GHOST_WindowWayland::notify_size()
 
 wl_surface *GHOST_WindowWayland::surface() const
 {
-  return w->surface;
+  return w->wl_surface;
 }
 
-const std::vector<output_t *> &GHOST_WindowWayland::outputs() const
-{
-  return m_system->outputs();
-}
-
-std::unordered_set<const output_t *> &GHOST_WindowWayland::outputs_active()
+const std::vector<output_t *> &GHOST_WindowWayland::outputs()
 {
   return w->outputs;
 }
 
-uint16_t &GHOST_WindowWayland::dpi()
+output_t *GHOST_WindowWayland::output_find_by_wl(struct wl_output *output)
+{
+  for (output_t *reg_output : this->m_system->outputs()) {
+    if (reg_output->wl_output == output) {
+      return reg_output;
+    }
+  }
+  return nullptr;
+}
+
+bool GHOST_WindowWayland::outputs_changed_update_scale()
+{
+  uint32_t dpi_next;
+  const int scale_next = outputs_max_scale_or_default(this->outputs(), 0, &dpi_next);
+  if (scale_next == 0) {
+    return false;
+  }
+
+  window_t *win = this->w;
+  const uint32_t dpi_curr = win->dpi;
+  const int scale_curr = win->scale;
+  bool changed = false;
+
+  if (scale_next != scale_curr) {
+    /* Unlikely but possible there is a pending size change is set. */
+    win->size_pending[0] = (win->size_pending[0] / scale_curr) * scale_next;
+    win->size_pending[1] = (win->size_pending[1] / scale_curr) * scale_next;
+
+    win->scale = scale_next;
+    wl_surface_set_buffer_scale(this->surface(), scale_next);
+    changed = true;
+  }
+
+  if (dpi_next != dpi_curr) {
+    /* Using the real DPI will cause wrong scaling of the UI
+     * use a multiplier for the default DPI as workaround. */
+    win->dpi = dpi_next;
+    changed = true;
+  }
+
+  return changed;
+}
+
+bool GHOST_WindowWayland::outputs_enter(output_t *reg_output)
+{
+  std::vector<output_t *> &outputs = w->outputs;
+  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
+  if (it != outputs.end()) {
+    return false;
+  }
+  outputs.push_back(reg_output);
+  return true;
+}
+
+bool GHOST_WindowWayland::outputs_leave(output_t *reg_output)
+{
+  std::vector<output_t *> &outputs = w->outputs;
+  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
+  if (it == outputs.end()) {
+    return false;
+  }
+  outputs.erase(it);
+  return true;
+}
+
+uint16_t GHOST_WindowWayland::dpi()
 {
   return w->dpi;
 }
 
-int &GHOST_WindowWayland::scale()
+int GHOST_WindowWayland::scale()
 {
   return w->scale;
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
 {
-  return m_system->setCursorGrab(mode, m_cursorGrab, w->surface);
+  return m_system->setCursorGrab(mode, m_cursorGrab, w->wl_surface);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor shape)
@@ -356,22 +517,32 @@ void GHOST_WindowWayland::getWindowBounds(GHOST_Rect &bounds) const
 
 void GHOST_WindowWayland::getClientBounds(GHOST_Rect &bounds) const
 {
-  bounds.set(0, 0, w->width, w->height);
+  bounds.set(0, 0, w->size[0], w->size[1]);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientWidth(uint32_t width)
 {
-  return setClientSize(width, uint32_t(w->height));
+  return setClientSize(width, uint32_t(w->size[1]));
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientHeight(uint32_t height)
 {
-  return setClientSize(uint32_t(w->width), height);
+  return setClientSize(uint32_t(w->size[0]), height);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientSize(uint32_t width, uint32_t height)
 {
   wl_egl_window_resize(w->egl_window, int(width), int(height), 0, 0);
+
+  /* Override any pending size that may be set. */
+  w->size_pending[0] = 0;
+  w->size_pending[1] = 0;
+
+  w->size[0] = width;
+  w->size[1] = height;
+
+  notify_size();
+
   return GHOST_kSuccess;
 }
 
@@ -403,7 +574,7 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
   }
   xdg_toplevel_destroy(w->xdg_toplevel);
   xdg_surface_destroy(w->xdg_surface);
-  wl_surface_destroy(w->surface);
+  wl_surface_destroy(w->wl_surface);
 
   delete w;
 }
@@ -494,7 +665,7 @@ void GHOST_WindowWayland::setOpaque() const
 
   /* Make the window opaque. */
   region = wl_compositor_create_region(m_system->compositor());
-  wl_region_add(region, 0, 0, w->width, w->height);
+  wl_region_add(region, 0, 0, w->size[0], w->size[1]);
   wl_surface_set_opaque_region(w->surface, region);
   wl_region_destroy(region);
 }

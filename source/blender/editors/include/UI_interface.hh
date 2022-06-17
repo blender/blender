@@ -23,6 +23,7 @@ struct uiSearchItems;
 
 namespace blender::ui {
 
+class AbstractGridView;
 class AbstractTreeView;
 
 /**
@@ -55,6 +56,10 @@ void attribute_search_add_items(
 /**
  * Override this for all available tree types.
  */
+blender::ui::AbstractGridView *UI_block_add_view(
+    uiBlock &block,
+    blender::StringRef idname,
+    std::unique_ptr<blender::ui::AbstractGridView> tree_view);
 blender::ui::AbstractTreeView *UI_block_add_view(
     uiBlock &block,
     blender::StringRef idname,

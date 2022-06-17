@@ -1391,8 +1391,7 @@ void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_update_draw_buffers(
-    PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag, bool full_render)
+static void pbvh_check_draw_layout(PBVH *pbvh)
 {
   const CustomData *vdata;
   const CustomData *ldata;
@@ -1420,10 +1419,14 @@ static void pbvh_update_draw_buffers(
       break;
   }
 
-  const bool active_attrs_only = !full_render;
-
-  /* rebuild all draw buffers if attribute layout changed */
-  if (GPU_pbvh_attribute_names_update(pbvh->type, pbvh->vbo_id, vdata, ldata, active_attrs_only)) {
+  /* Rebuild all draw buffers if attribute layout changed.
+   *
+   * NOTE: The optimization where we only send active attributes
+   * to the GPU in workbench mode is disabled due to bugs
+   * (there's no guarantee there isn't another EEVEE viewport which would
+   *  free the draw buffers and corrupt the draw cache).
+   */
+  if (GPU_pbvh_attribute_names_update(pbvh->type, pbvh->vbo_id, vdata, ldata, false)) {
     /* attribute layout changed; force rebuild */
     for (int i = 0; i < pbvh->totnode; i++) {
       PBVHNode *node = pbvh->nodes + i;
@@ -1433,6 +1436,33 @@ static void pbvh_update_draw_buffers(
       }
     }
   }
+}
+
+static void pbvh_update_draw_buffers(PBVH *pbvh, PBVHNode **nodes, int totnode, int update_flag)
+{
+  const CustomData *vdata;
+
+  if (!pbvh->vbo_id) {
+    pbvh->vbo_id = GPU_pbvh_make_format();
+  }
+
+  switch (pbvh->type) {
+    case PBVH_BMESH:
+      if (!pbvh->bm) {
+        /* BMesh hasn't been created yet */
+        return;
+      }
+
+      vdata = &pbvh->bm->vdata;
+      break;
+    case PBVH_FACES:
+      vdata = pbvh->vdata;
+      break;
+    case PBVH_GRIDS:
+      vdata = NULL;
+      break;
+  }
+  UNUSED_VARS(vdata);
 
   if ((update_flag & PBVH_RebuildDrawBuffers) || ELEM(pbvh->type, PBVH_GRIDS, PBVH_BMESH)) {
     /* Free buffers uses OpenGL, so not in parallel. */
@@ -2837,10 +2867,8 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
                       void *user_data,
-                      bool full_render)
+                      bool UNUSED(full_render))
 {
-  pbvh->draw_cache_invalid = false;
-
   PBVHNode **nodes;
   int totnode;
   int update_flag = 0;
@@ -2862,9 +2890,11 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
     update_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
   }
 
+  pbvh_check_draw_layout(pbvh);
+
   /* Update draw buffers. */
   if (totnode != 0 && (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers))) {
-    pbvh_update_draw_buffers(pbvh, nodes, totnode, update_flag, full_render);
+    pbvh_update_draw_buffers(pbvh, nodes, totnode, update_flag);
   }
   MEM_SAFE_FREE(nodes);
 

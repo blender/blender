@@ -50,8 +50,6 @@
 
 #include "RE_pipeline.h"
 
-#include "RE_pipeline.h"
-
 #include "interface_eyedropper_intern.h"
 
 typedef struct Eyedropper {

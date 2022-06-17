@@ -1730,7 +1730,7 @@ static void stampdata_from_template(StampData *stamp_data,
     stamp_data->file[0] = '\0';
   }
   if (scene->r.stamp & R_STAMP_NOTE) {
-    SNPRINTF(stamp_data->note, "%s", stamp_data_template->note);
+    STRNCPY(stamp_data->note, stamp_data_template->note);
   }
   else {
     stamp_data->note[0] = '\0';
@@ -3895,7 +3895,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
     }
 
     if (BKE_image_is_stereo(ima) && ima->views_format == R_IMF_VIEWS_STEREO_3D) {
-      IMB_ImBufFromStereo3d(ima->stereo3d_format, ibuf_arr[0], &ibuf_arr[0], &ibuf_arr[1]);
+      IMB_ImBufFromStereo3d(ima->stereo3d_format, ibuf_arr[0], ibuf_arr.data(), &ibuf_arr[1]);
     }
 
     for (int i = 0; i < totviews; i++) {
@@ -4064,7 +4064,7 @@ static ImBuf *image_load_image_file(
     /* multi-views/multi-layers OpenEXR files directly populate ima, and return null ibuf... */
     if (BKE_image_is_stereo(ima) && ima->views_format == R_IMF_VIEWS_STEREO_3D && ibuf_arr[0] &&
         tot_viewfiles == 1 && totviews >= 2) {
-      IMB_ImBufFromStereo3d(ima->stereo3d_format, ibuf_arr[0], &ibuf_arr[0], &ibuf_arr[1]);
+      IMB_ImBufFromStereo3d(ima->stereo3d_format, ibuf_arr[0], ibuf_arr.data(), &ibuf_arr[1]);
     }
 
     /* return the original requested ImBuf */

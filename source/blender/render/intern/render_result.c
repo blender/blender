@@ -825,7 +825,7 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
         if (rpass->rect == NULL || rpassp->rect == NULL) {
           continue;
         }
-        /* Renderresult have all passes, renderpart only the active view's passes. */
+        /* Render-result have all passes, render-part only the active view's passes. */
         if (!STREQ(rpassp->fullname, rpass->fullname)) {
           continue;
         }

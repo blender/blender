@@ -20,12 +20,17 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>(N_("Self Intersection"));
   b.add_input<decl::Bool>(N_("Hole Tolerant"));
   b.add_output<decl::Geometry>(N_("Mesh"));
+  b.add_output<decl::Bool>(N_("Intersecting Edges")).field_source();
 }
 
 static void node_layout(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "operation", 0, "", ICON_NONE);
 }
+
+struct AttributeOutputs {
+  StrongAnonymousAttributeID intersecting_edges_id;
+};
 
 static void node_update(bNodeTree *ntree, bNode *node)
 {
@@ -121,13 +126,21 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
   }
 
-  Mesh *result = blender::meshintersect::direct_mesh_boolean(meshes,
-                                                             transforms,
-                                                             float4x4::identity(),
-                                                             material_remaps,
-                                                             use_self,
-                                                             hole_tolerant,
-                                                             operation);
+  AttributeOutputs attribute_outputs;
+  if (params.output_is_required("Intersecting Edges")) {
+    attribute_outputs.intersecting_edges_id = StrongAnonymousAttributeID("Intersecting Edges");
+  }
+
+  Vector<int> intersecting_edges;
+  Mesh *result = blender::meshintersect::direct_mesh_boolean(
+      meshes,
+      transforms,
+      float4x4::identity(),
+      material_remaps,
+      use_self,
+      hole_tolerant,
+      operation,
+      attribute_outputs.intersecting_edges_id ? &intersecting_edges : nullptr);
   if (!result) {
     params.set_default_remaining_outputs();
     return;
@@ -137,6 +150,26 @@ static void node_geo_exec(GeoNodeExecParams params)
   result->mat = (Material **)MEM_malloc_arrayN(materials.size(), sizeof(Material *), __func__);
   result->totcol = materials.size();
   MutableSpan(result->mat, result->totcol).copy_from(materials);
+
+  /* Store intersecting edges in attribute. */
+  if (attribute_outputs.intersecting_edges_id) {
+    MeshComponent mesh_component;
+    mesh_component.replace(result, GeometryOwnershipType::Editable);
+    OutputAttribute_Typed<bool> attribute = mesh_component.attribute_try_get_for_output_only<bool>(
+        attribute_outputs.intersecting_edges_id.get(), ATTR_DOMAIN_EDGE);
+    MutableSpan<bool> selection = attribute.as_span();
+    selection.fill(false);
+    for (const int i : intersecting_edges) {
+      selection[i] = true;
+    }
+
+    attribute.save();
+
+    params.set_output(
+        "Intersecting Edges",
+        AnonymousAttributeFieldInput::Create<bool>(
+            std::move(attribute_outputs.intersecting_edges_id), params.attribute_producer_name()));
+  }
 
   params.set_output("Mesh", GeometrySet::create_with_mesh(result));
 #else

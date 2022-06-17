@@ -79,7 +79,7 @@ static void TargetSnapActive(TransInfo *t);
 /** \name Implementations
  * \{ */
 
-static bool snapNodeTest(View2D *v2d, bNode *node, eSnapTargetSelect snap_select);
+static bool snapNodeTest(View2D *v2d, bNode *node, eSnapTargetSelect snap_target_select);
 static NodeBorder snapNodeBorder(eSnapMode snap_node_mode);
 
 #if 0

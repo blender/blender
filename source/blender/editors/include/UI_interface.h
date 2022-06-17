@@ -64,6 +64,7 @@ struct wmKeyMapItem;
 struct wmMsgBus;
 struct wmOperator;
 struct wmOperatorType;
+struct wmRegionListenerParams;
 struct wmWindow;
 
 typedef struct uiBlock uiBlock;
@@ -75,6 +76,10 @@ typedef struct uiPopupBlockHandle uiPopupBlockHandle;
 typedef struct uiTreeViewHandle uiTreeViewHandle;
 /* C handle for C++ #ui::AbstractTreeViewItem type. */
 typedef struct uiTreeViewItemHandle uiTreeViewItemHandle;
+/* C handle for C++ #ui::AbstractGridView type. */
+typedef struct uiGridViewHandle uiGridViewHandle;
+/* C handle for C++ #ui::AbstractGridViewItem type. */
+typedef struct uiGridViewItemHandle uiGridViewItemHandle;
 
 /* Defines */
 
@@ -390,6 +395,8 @@ typedef enum {
   UI_BTYPE_DECORATOR = 58 << 9,
   /* An item in a tree view. Parent items may be collapsible. */
   UI_BTYPE_TREEROW = 59 << 9,
+  /* An item in a grid view. */
+  UI_BTYPE_GRID_TILE = 60 << 9,
 } eButType;
 
 #define BUTTYPE (63 << 9)
@@ -850,33 +857,6 @@ void UI_block_flag_disable(uiBlock *block, int flag);
 void UI_block_translate(uiBlock *block, int x, int y);
 
 int UI_but_return_value_get(uiBut *but);
-
-void UI_but_drag_set_id(uiBut *but, struct ID *id);
-/**
- * Set an image to display while dragging. This works for any drag type (`WM_DRAG_XXX`).
- * Not to be confused with #UI_but_drag_set_image(), which sets up dragging of an image.
- */
-void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, float scale);
-/**
- * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
- */
-void UI_but_drag_set_asset(uiBut *but,
-                           const struct AssetHandle *asset,
-                           const char *path,
-                           struct AssetMetaData *metadata,
-                           int import_type, /* eFileAssetImportType */
-                           int icon,
-                           struct ImBuf *imb,
-                           float scale);
-void UI_but_drag_set_rna(uiBut *but, struct PointerRNA *ptr);
-void UI_but_drag_set_path(uiBut *but, const char *path, bool use_free);
-void UI_but_drag_set_name(uiBut *but, const char *name);
-/**
- * Value from button itself.
- */
-void UI_but_drag_set_value(uiBut *but);
-void UI_but_drag_set_image(
-    uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale, bool use_free);
 
 uiBut *UI_but_active_drop_name_button(const struct bContext *C);
 /**
@@ -1767,6 +1747,14 @@ struct PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
 struct wmOperatorType *UI_but_extra_operator_icon_optype_get(struct uiButExtraOpIcon *extra_icon);
 struct PointerRNA *UI_but_extra_operator_icon_opptr_get(struct uiButExtraOpIcon *extra_icon);
 
+/**
+ * A decent size for a button (typically #UI_BTYPE_PREVIEW_TILE) to display a nicely readable
+ * preview with label in.
+ */
+int UI_preview_tile_size_x(void);
+int UI_preview_tile_size_y(void);
+int UI_preview_tile_size_y_no_label(void);
+
 /* Autocomplete
  *
  * Tab complete helper functions, for use in uiButCompleteFunc callbacks.
@@ -1782,6 +1770,38 @@ typedef struct AutoComplete AutoComplete;
 AutoComplete *UI_autocomplete_begin(const char *startname, size_t maxlen);
 void UI_autocomplete_update_name(AutoComplete *autocpl, const char *name);
 int UI_autocomplete_end(AutoComplete *autocpl, char *autoname);
+
+/* Button drag-data (interface_drag.cc).
+ *
+ * Functions to set drag data for buttons. This enables dragging support, whereby the drag data is
+ * "dragged", not the button itself. */
+
+void UI_but_drag_set_id(uiBut *but, struct ID *id);
+/**
+ * Set an image to display while dragging. This works for any drag type (`WM_DRAG_XXX`).
+ * Not to be confused with #UI_but_drag_set_image(), which sets up dragging of an image.
+ */
+void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, float scale);
+/**
+ * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
+ */
+void UI_but_drag_set_asset(uiBut *but,
+                           const struct AssetHandle *asset,
+                           const char *path,
+                           struct AssetMetaData *metadata,
+                           int import_type, /* eFileAssetImportType */
+                           int icon,
+                           struct ImBuf *imb,
+                           float scale);
+void UI_but_drag_set_rna(uiBut *but, struct PointerRNA *ptr);
+void UI_but_drag_set_path(uiBut *but, const char *path, bool use_free);
+void UI_but_drag_set_name(uiBut *but, const char *name);
+/**
+ * Value from button itself.
+ */
+void UI_but_drag_set_value(uiBut *but);
+void UI_but_drag_set_image(
+    uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale, bool use_free);
 
 /* Panels
  *
@@ -3181,7 +3201,12 @@ void UI_interface_tag_script_reload(void);
 /* Support click-drag motion which presses the button and closes a popover (like a menu). */
 #define USE_UI_POPOVER_ONCE
 
+void UI_block_views_listen(const uiBlock *block,
+                           const struct wmRegionListenerParams *listener_params);
+
+bool UI_grid_view_item_is_active(const uiGridViewItemHandle *item_handle);
 bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item);
+bool UI_grid_view_item_matches(const uiGridViewItemHandle *a, const uiGridViewItemHandle *b);
 bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a, const uiTreeViewItemHandle *b);
 /**
  * Attempt to start dragging the tree-item \a item_. This will not work if the tree item doesn't
@@ -3218,6 +3243,15 @@ void UI_tree_view_item_context_menu_build(struct bContext *C,
 uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region,
                                                       const int xy[2]) ATTR_NONNULL(1, 2);
 uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const struct ARegion *region);
+
+/**
+ * Listen to \a notifier, returning true if the region should redraw.
+ */
+bool UI_tree_view_listen_should_redraw(const uiTreeViewHandle *view, const wmNotifier *notifier);
+/**
+ * Listen to \a notifier, returning true if the region should redraw.
+ */
+bool UI_grid_view_listen_should_redraw(const uiGridViewHandle *view, const wmNotifier *notifier);
 
 #ifdef __cplusplus
 }

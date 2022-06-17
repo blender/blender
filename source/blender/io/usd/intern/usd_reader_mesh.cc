@@ -62,11 +62,56 @@ static void build_mat_map(const Main *bmain, std::map<std::string, Material *> *
   }
 }
 
+static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim)
+{
+  return pxr::UsdShadeMaterialBindingAPI(prim).ComputeBoundMaterial();
+}
+
+/* Returns an existing Blender material that corresponds to the USD
+ * material with with the given path.  Returns null if no such material
+ * exists. */
+static Material *find_existing_material(
+    const pxr::SdfPath &usd_mat_path,
+    const USDImportParams &params,
+    const std::map<std::string, Material *> &mat_map,
+    const std::map<std::string, std::string> &usd_path_to_mat_name)
+{
+  if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
+    /* Check if we've already created the Blender material with a modified name. */
+    std::map<std::string, std::string>::const_iterator path_to_name_iter =
+        usd_path_to_mat_name.find(usd_mat_path.GetAsString());
+
+    if (path_to_name_iter != usd_path_to_mat_name.end()) {
+      std::string mat_name = path_to_name_iter->second;
+      std::map<std::string, Material *>::const_iterator mat_iter = mat_map.find(mat_name);
+      if (mat_iter != mat_map.end()) {
+        return mat_iter->second;
+      }
+      else {
+        /* We can't find the Blender material which was previously created for this USD
+         * material, which should never happen.  */
+        BLI_assert_unreachable();
+      }
+    }
+  }
+  else {
+    std::string mat_name = usd_mat_path.GetName();
+    std::map<std::string, Material *>::const_iterator mat_iter = mat_map.find(mat_name);
+
+    if (mat_iter != mat_map.end()) {
+      return mat_iter->second;
+    }
+  }
+
+  return nullptr;
+}
+
 static void assign_materials(Main *bmain,
                              Object *ob,
                              const std::map<pxr::SdfPath, int> &mat_index_map,
                              const USDImportParams &params,
-                             pxr::UsdStageRefPtr stage)
+                             pxr::UsdStageRefPtr stage,
+                             std::map<std::string, std::string> &usd_path_to_mat_name)
 {
   if (!(stage && bmain && ob)) {
     return;
@@ -94,13 +139,10 @@ static void assign_materials(Main *bmain,
   blender::io::usd::USDMaterialReader mat_reader(params, bmain);
 
   for (it = mat_index_map.begin(); it != mat_index_map.end(); ++it) {
-    std::string mat_name = it->first.GetName();
 
-    std::map<std::string, Material *>::iterator mat_iter = mat_map.find(mat_name);
-
-    Material *assigned_mat = nullptr;
-
-    if (mat_iter == mat_map.end()) {
+    Material *assigned_mat = find_existing_material(
+        it->first, params, mat_map, usd_path_to_mat_name);
+    if (!assigned_mat) {
       /* Blender material doesn't exist, so create it now. */
 
       /* Look up the USD material. */
@@ -122,11 +164,14 @@ static void assign_materials(Main *bmain,
         continue;
       }
 
+      const std::string mat_name = pxr::TfMakeValidIdentifier(assigned_mat->id.name + 2);
       mat_map[mat_name] = assigned_mat;
-    }
-    else {
-      /* We found an existing Blender material. */
-      assigned_mat = mat_iter->second;
+
+      if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
+        /* Record the name of the Blender material we created for the USD material
+         * with the given path. */
+        usd_path_to_mat_name[it->first.GetAsString()] = mat_name;
+      }
     }
 
     if (assigned_mat) {
@@ -134,7 +179,7 @@ static void assign_materials(Main *bmain,
     }
     else {
       /* This shouldn't happen. */
-      std::cout << "WARNING: Couldn't assign material " << mat_name << std::endl;
+      std::cout << "WARNING: Couldn't assign material " << it->first << std::endl;
     }
   }
 }
@@ -710,11 +755,8 @@ void USDMeshReader::assign_facesets_to_mpoly(double motionSampleTime,
   int current_mat = 0;
   if (!subsets.empty()) {
     for (const pxr::UsdGeomSubset &subset : subsets) {
-      pxr::UsdShadeMaterialBindingAPI subset_api = pxr::UsdShadeMaterialBindingAPI(
-          subset.GetPrim());
 
-      pxr::UsdShadeMaterial subset_mtl = subset_api.ComputeBoundMaterial();
-
+      pxr::UsdShadeMaterial subset_mtl = utils::compute_bound_material(subset.GetPrim());
       if (!subset_mtl) {
         continue;
       }
@@ -743,10 +785,9 @@ void USDMeshReader::assign_facesets_to_mpoly(double motionSampleTime,
   }
 
   if (r_mat_map->empty()) {
-    pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(prim_);
 
-    if (pxr::UsdShadeMaterial mtl = api.ComputeBoundMaterial()) {
-
+    pxr::UsdShadeMaterial mtl = utils::compute_bound_material(prim_);
+    if (mtl) {
       pxr::SdfPath mtl_path = mtl.GetPath();
 
       if (!mtl_path.IsEmpty()) {
@@ -764,7 +805,12 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
 
   std::map<pxr::SdfPath, int> mat_map;
   assign_facesets_to_mpoly(motionSampleTime, mesh->mpoly, mesh->totpoly, &mat_map);
-  utils::assign_materials(bmain, object_, mat_map, this->import_params_, this->prim_.GetStage());
+  utils::assign_materials(bmain,
+                          object_,
+                          mat_map,
+                          this->import_params_,
+                          this->prim_.GetStage(),
+                          this->settings_->usd_path_to_mat_name);
 }
 
 Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,

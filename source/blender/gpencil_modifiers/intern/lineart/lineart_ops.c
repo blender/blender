@@ -141,8 +141,8 @@ static bool bake_strokes(Object *ob,
     if (!is_first) {
       MOD_lineart_clear_cache(&local_lc);
     }
-    /* Restore the original cache pointer so the modifiers below still have access to the
-     * "global" cache. */
+    /* Restore the original cache pointer so the modifiers below still have access to the "global"
+     * cache. */
     lmd->cache = gpd->runtime.lineart_cache;
   }
 

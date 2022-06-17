@@ -21,8 +21,10 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_armature.h"
 #include "BKE_collection.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
@@ -312,12 +314,39 @@ bool BKE_lib_override_library_is_user_edited(const ID *id)
 
 bool BKE_lib_override_library_is_system_defined(const Main *bmain, const ID *id)
 {
-
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     const ID *override_owner_id;
     lib_override_get(bmain, id, &override_owner_id);
     return (override_owner_id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) !=
            0;
+  }
+  return false;
+}
+
+bool BKE_lib_override_library_property_is_animated(const ID *id,
+                                                   const IDOverrideLibraryProperty *override_prop,
+                                                   const PropertyRNA *override_rna_prop,
+                                                   const int rnaprop_index)
+{
+  AnimData *anim_data = BKE_animdata_from_id(id);
+  if (anim_data != nullptr) {
+    struct FCurve *fcurve;
+    char *index_token_start = const_cast<char *>(
+        RNA_path_array_index_token_find(override_prop->rna_path, override_rna_prop));
+    if (index_token_start != nullptr) {
+      const char index_token_start_backup = *index_token_start;
+      *index_token_start = '\0';
+      fcurve = BKE_animadata_fcurve_find_by_rna_path(
+          anim_data, override_prop->rna_path, rnaprop_index, nullptr, nullptr);
+      *index_token_start = index_token_start_backup;
+    }
+    else {
+      fcurve = BKE_animadata_fcurve_find_by_rna_path(
+          anim_data, override_prop->rna_path, 0, nullptr, nullptr);
+    }
+    if (fcurve != nullptr) {
+      return true;
+    }
   }
   return false;
 }
@@ -2677,11 +2706,12 @@ IDOverrideLibraryProperty *BKE_lib_override_library_property_get(IDOverrideLibra
 bool BKE_lib_override_rna_property_find(PointerRNA *idpoin,
                                         const IDOverrideLibraryProperty *library_prop,
                                         PointerRNA *r_override_poin,
-                                        PropertyRNA **r_override_prop)
+                                        PropertyRNA **r_override_prop,
+                                        int *r_index)
 {
   BLI_assert(RNA_struct_is_ID(idpoin->type) && ID_IS_OVERRIDE_LIBRARY(idpoin->data));
-  return RNA_path_resolve_property(
-      idpoin, library_prop->rna_path, r_override_poin, r_override_prop);
+  return RNA_path_resolve_property_full(
+      idpoin, library_prop->rna_path, r_override_poin, r_override_prop, r_index);
 }
 
 void lib_override_library_property_copy(IDOverrideLibraryProperty *op_dst,

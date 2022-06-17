@@ -105,7 +105,7 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
   GHOST_X11_ERROR_HANDLERS_OVERRIDE(handler_store);
 
   /* -------------------------------------------------------------------- */
-  /* Begin Inline Glew */
+  /* Begin Inline GLEW. */
 
 #ifdef USE_GLXEW_INIT_WORKAROUND
   const GLubyte *extStart = (GLubyte *)"";
@@ -142,11 +142,11 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
       "GLX_EXT_create_context_es2_profile", extStart, extEnd);
 #  endif /* WITH_GLEW_ES */
 
-  /* End Inline Glew */
+  /* End Inline GLEW. */
   /* -------------------------------------------------------------------- */
 #else
-  /* important to initialize only glxew (_not_ glew),
-   * since this breaks w/ Mesa's `swrast`, see: T46431 */
+  /* Important to initialize only glxew (_not_ GLEW),
+   * since this breaks w/ Mesa's `swrast`, see: T46431. */
   glxewInit();
 #endif /* USE_GLXEW_INIT_WORKAROUND */
 
@@ -395,7 +395,7 @@ int GHOST_X11_GL_GetAttributes(
   return i;
 }
 
-/* excuse inlining part of glew */
+/* Excuse inlining part of GLEW. */
 #ifdef USE_GLXEW_INIT_WORKAROUND
 static GLuint _glewStrLen(const GLubyte *s)
 {

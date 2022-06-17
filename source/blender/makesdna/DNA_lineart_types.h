@@ -14,7 +14,7 @@
  * Edge flags and usage flags are used by with scene/object/gpencil modifier bits, and those values
  * needs to stay consistent throughout. */
 
-/* These flags are used for 1 time calculation, not stroke selection afterwards. */
+/** These flags are used for 1 time calculation, not stroke selection afterwards. */
 typedef enum eLineartMainFlags {
   LRT_INTERSECTION_AS_CONTOUR = (1 << 0),
   LRT_EVERYTHING_AS_CONTOUR = (1 << 1),
@@ -48,9 +48,11 @@ typedef enum eLineartEdgeFlag {
   LRT_EDGE_FLAG_INTERSECTION = (1 << 4),
   LRT_EDGE_FLAG_LOOSE = (1 << 5),
   /* LRT_EDGE_FLAG_FOR_FUTURE = (1 << 7), */
-  /* Limited to 8 bits for edge type flag, don't add anymore because `BMEdge->head.eflag` only has
-   * 8 bits. So unless we changed this into a non-single-bit flag thing, we keep it this way. */
-  /** Also used as discarded line mark. */
+  /**
+   * It's a legacy limit of 8 bits for feature lines that come from original mesh edges. It should
+   * not be needed in current object loading scheme, but might still be relevant if we are to
+   * implement edit-mesh loading, so don't exceed 8 bits just yet.
+   */
   LRT_EDGE_FLAG_CHAIN_PICKED = (1 << 8),
   LRT_EDGE_FLAG_CLIPPED = (1 << 9),
   /** Limited to 16 bits for the entire thing. */

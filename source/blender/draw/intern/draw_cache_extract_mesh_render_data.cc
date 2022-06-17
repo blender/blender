@@ -117,7 +117,7 @@ static void mesh_render_data_lverts_bm(const MeshRenderData *mr, MeshBufferCache
   cache->loose_geom.verts = static_cast<int *>(
       MEM_mallocN(mr->vert_len * sizeof(*cache->loose_geom.verts), __func__));
   BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, elem_id) {
-    if (eve->e == NULL) {
+    if (eve->e == nullptr) {
       cache->loose_geom.verts[cache->loose_geom.vert_len++] = elem_id;
     }
   }
@@ -135,7 +135,7 @@ static void mesh_render_data_ledges_bm(const MeshRenderData *mr, MeshBufferCache
   cache->loose_geom.edges = static_cast<int *>(
       MEM_mallocN(mr->edge_len * sizeof(*cache->loose_geom.edges), __func__));
   BM_ITER_MESH_INDEX (ede, &iter, bm, BM_EDGES_OF_MESH, elem_id) {
-    if (ede->l == NULL) {
+    if (ede->l == nullptr) {
       cache->loose_geom.edges[cache->loose_geom.edge_len++] = elem_id;
     }
   }
@@ -337,7 +337,7 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
        * The overall advantage is small (around 1%), so keep this as-is. */
       mr->mlooptri = static_cast<MLoopTri *>(
           MEM_mallocN(sizeof(*mr->mlooptri) * mr->tri_len, "MR_DATATYPE_LOOPTRI"));
-      if (mr->poly_normals != NULL) {
+      if (mr->poly_normals != nullptr) {
         BKE_mesh_recalc_looptri_with_normals(me->mloop,
                                              me->mpoly,
                                              me->mvert,
@@ -356,7 +356,7 @@ void mesh_render_data_update_looptris(MeshRenderData *mr,
     /* #BMesh */
     if ((iter_type & MR_ITER_LOOPTRI) || (data_flag & MR_DATA_LOOPTRI)) {
       /* Edit mode ensures this is valid, no need to calculate. */
-      BLI_assert((mr->bm->totloop == 0) || (mr->edit_bmesh->looptris != NULL));
+      BLI_assert((mr->bm->totloop == 0) || (mr->edit_bmesh->looptris != nullptr));
     }
   }
 }
@@ -391,9 +391,9 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
                                   mr->poly_len,
                                   is_auto_smooth,
                                   split_angle,
-                                  NULL,
+                                  nullptr,
                                   clnors,
-                                  NULL);
+                                  nullptr);
     }
   }
   else {
@@ -403,9 +403,9 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
     }
     if (((data_flag & MR_DATA_LOOP_NOR) && is_auto_smooth) || (data_flag & MR_DATA_TAN_LOOP_NOR)) {
 
-      const float(*vert_coords)[3] = NULL;
-      const float(*vert_normals)[3] = NULL;
-      const float(*poly_normals)[3] = NULL;
+      const float(*vert_coords)[3] = nullptr;
+      const float(*vert_normals)[3] = nullptr;
+      const float(*poly_normals)[3] = nullptr;
 
       if (mr->edit_data && mr->edit_data->vertexCos) {
         vert_coords = mr->bm_vert_coords;
@@ -423,8 +423,8 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
                                 is_auto_smooth,
                                 split_angle,
                                 mr->loop_normals,
-                                NULL,
-                                NULL,
+                                nullptr,
+                                nullptr,
                                 clnors_offset,
                                 false);
     }
@@ -455,7 +455,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->bm = me->edit_mesh->bm;
     mr->edit_bmesh = me->edit_mesh;
     mr->me = (do_final) ? editmesh_eval_final : editmesh_eval_cage;
-    mr->edit_data = is_mode_active ? mr->me->runtime.edit_data : NULL;
+    mr->edit_data = is_mode_active ? mr->me->runtime.edit_data : nullptr;
 
     if (mr->edit_data) {
       EditMeshData *emd = mr->edit_data;
@@ -515,13 +515,13 @@ MeshRenderData *mesh_render_data_create(Object *object,
     /* Seems like the mesh_eval_final do not have the right origin indices.
      * Force not mapped in this case. */
     if (has_mdata && do_final && editmesh_eval_final != editmesh_eval_cage) {
-      // mr->edit_bmesh = NULL;
+      // mr->edit_bmesh = nullptr;
       mr->extract_type = MR_EXTRACT_MESH;
     }
   }
   else {
     mr->me = me;
-    mr->edit_bmesh = NULL;
+    mr->edit_bmesh = nullptr;
 
     bool use_mapped = is_paint_mode && mr->me && !mr->me->runtime.is_original;
     if (use_mapped) {
@@ -575,8 +575,8 @@ void mesh_render_data_free(MeshRenderData *mr)
   MEM_SAFE_FREE(mr->loop_normals);
 
   /* Loose geometry are owned by #MeshBufferCache. */
-  mr->ledges = NULL;
-  mr->lverts = NULL;
+  mr->ledges = nullptr;
+  mr->lverts = nullptr;
 
   MEM_freeN(mr);
 }

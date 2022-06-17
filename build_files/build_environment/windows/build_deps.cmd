@@ -48,10 +48,13 @@ if "%4" == "nobuild" set dobuild=0
 
 REM If Python is be available certain deps may try to 
 REM to use this over the version we build, to prevent that
-REM make sure python is NOT in the path
-for %%X in (python.exe) do (set PYTHON=%%~$PATH:X)
-if EXIST "%PYTHON%" (
-  echo PYTHON found at %PYTHON% dependencies cannot be build with python available in the path
+REM make sure pythonw is NOT in the path. We look for pythonw.exe
+REM since windows apparently ships a python.exe that just opens up
+REM the windows store but does not ship any actual python files that
+REM could cause issues.  
+for %%X in (pythonw.exe) do (set PYTHONW=%%~$PATH:X)
+if EXIST "%PYTHONW%" (
+  echo PYTHON found at %PYTHONW% dependencies cannot be build with python available in the path
   goto exit
 )
 

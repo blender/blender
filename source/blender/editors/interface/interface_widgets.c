@@ -105,6 +105,7 @@ typedef enum {
   UI_WTYPE_PROGRESSBAR,
   UI_WTYPE_NODESOCKET,
   UI_WTYPE_TREEROW,
+  UI_WTYPE_GRID_TILE,
 } uiWidgetTypeEnum;
 
 /**
@@ -1419,7 +1420,7 @@ static void widget_draw_icon(
     const bool has_theme = UI_icon_get_theme_color(icon, color);
 
     /* to indicate draggable */
-    if (but->dragpoin && (but->flag & UI_ACTIVE)) {
+    if (ui_but_drag_is_draggable(but) && (but->flag & UI_ACTIVE)) {
       UI_icon_draw_ex(xs, ys, icon, aspect, 1.25f, 0.0f, color, has_theme);
     }
     else if ((but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW))) {
@@ -3706,6 +3707,16 @@ static void widget_treerow(uiBut *but,
   widget_treerow_exec(wcol, rect, state, roundboxalign, tree_row->indentation, zoom);
 }
 
+static void widget_gridtile(uiWidgetColors *wcol,
+                            rcti *rect,
+                            const uiWidgetStateInfo *state,
+                            int roundboxalign,
+                            const float zoom)
+{
+  /* TODO Reuse tree-row drawing. */
+  widget_treerow_exec(wcol, rect, state, roundboxalign, 0, zoom);
+}
+
 static void widget_nodesocket(uiBut *but,
                               uiWidgetColors *wcol,
                               rcti *rect,
@@ -4598,7 +4609,13 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       break;
 
     case UI_WTYPE_TREEROW:
+      wt.wcol_theme = &btheme->tui.wcol_view_item;
       wt.custom = widget_treerow;
+      break;
+
+    case UI_WTYPE_GRID_TILE:
+      wt.wcol_theme = &btheme->tui.wcol_view_item;
+      wt.draw = widget_gridtile;
       break;
 
     case UI_WTYPE_NODESOCKET:
@@ -4934,6 +4951,11 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
 
       case UI_BTYPE_TREEROW:
         wt = widget_type(UI_WTYPE_TREEROW);
+        fstyle = &style->widgetlabel;
+        break;
+
+      case UI_BTYPE_GRID_TILE:
+        wt = widget_type(UI_WTYPE_GRID_TILE);
         fstyle = &style->widgetlabel;
         break;
 

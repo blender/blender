@@ -57,8 +57,6 @@ typedef struct ButtonGizmo2D {
   GPUBatch *shape_batch[2];
 } ButtonGizmo2D;
 
-#define CIRCLE_RESOLUTION 32
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -68,10 +66,16 @@ typedef struct ButtonGizmo2D {
 static void button2d_geom_draw_backdrop(const wmGizmo *gz,
                                         const float color[4],
                                         const float fill_alpha,
-                                        const bool select)
+                                        const bool select,
+                                        const float screen_scale)
 {
   float viewport[4];
   GPU_viewport_size_get_f(viewport);
+
+  const float max_pixel_error = 0.25f;
+  int nsegments = (int)(ceilf(M_PI / acosf(1.0f - max_pixel_error / screen_scale)));
+  nsegments = max_ff(nsegments, 8);
+  nsegments = min_ff(nsegments, 1000);
 
   GPUVertFormat *format = immVertexFormat();
   /* NOTE(Metal): Prefer 3D coordinate for 2D rendering when using 3D shader. */
@@ -81,14 +85,14 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
   if (color[3] == 1.0 && fill_alpha == 1.0 && select == false) {
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4fv(color);
-    imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, 1.0f, CIRCLE_RESOLUTION);
+    imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, 1.0f, nsegments);
     immUnbindProgram();
 
     immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
     immUniform2fv("viewportSize", &viewport[2]);
     immUniform1f("lineWidth", gz->line_width * U.pixelsize);
     immUniformColor4fv(color);
-    imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, 1.0f, CIRCLE_RESOLUTION);
+    imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, 1.0f, nsegments);
     immUnbindProgram();
   }
   else {
@@ -97,7 +101,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
       const float fill_color[4] = {UNPACK3(color), fill_alpha * color[3]};
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor4fv(fill_color);
-      imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, 1.0f, CIRCLE_RESOLUTION);
+      imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, 1.0f, nsegments);
       immUnbindProgram();
     }
 
@@ -107,7 +111,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
       immUniform2fv("viewportSize", &viewport[2]);
       immUniform1f("lineWidth", gz->line_width * U.pixelsize);
       immUniformColor4fv(color);
-      imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, 1.0f, CIRCLE_RESOLUTION);
+      imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, 1.0f, nsegments);
       immUnbindProgram();
     }
   }
@@ -184,9 +188,11 @@ static void button2d_draw_intern(const bContext *C,
     GPU_matrix_mul(matrix_align);
   }
 
+  const float screen_scale = mat4_to_scale(matrix_final);
+
   if (select) {
     BLI_assert(is_3d);
-    button2d_geom_draw_backdrop(gz, color, 1.0, select);
+    button2d_geom_draw_backdrop(gz, color, 1.0, select, screen_scale);
   }
   else {
 
@@ -194,7 +200,7 @@ static void button2d_draw_intern(const bContext *C,
 
     if (draw_options & ED_GIZMO_BUTTON_SHOW_BACKDROP) {
       const float fill_alpha = RNA_float_get(gz->ptr, "backdrop_fill_alpha");
-      button2d_geom_draw_backdrop(gz, color, fill_alpha, select);
+      button2d_geom_draw_backdrop(gz, color, fill_alpha, select, screen_scale);
     }
 
     if (button->shape_batch[0] != NULL) {
@@ -315,10 +321,11 @@ static int gizmo_button2d_cursor_get(wmGizmo *gz)
   return WM_CURSOR_DEFAULT;
 }
 
+#define CIRCLE_RESOLUTION_3D 32
 static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box)
 {
   ScrArea *area = CTX_wm_area(C);
-  float rad = CIRCLE_RESOLUTION * U.dpi_fac / 2.0f;
+  float rad = CIRCLE_RESOLUTION_3D * U.dpi_fac / 2.0f;
   const float *co = NULL;
   float matrix_final[4][4];
   float co_proj[3];
@@ -342,6 +349,7 @@ static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box
     }
   }
   else {
+    rad = mat4_to_scale(matrix_final);
     co = matrix_final[3];
   }
 

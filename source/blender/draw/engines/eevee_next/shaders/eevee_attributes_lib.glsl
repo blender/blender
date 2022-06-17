@@ -287,7 +287,7 @@ vec3 attr_load_uv(vec3 attr)
 /** \name Volume Attribute post
  *
  * TODO(@fclem): These implementation details should concern the DRWManager and not be a fix on
- * the engine side. But as of now, the engines are reponsible for loading the attributes.
+ * the engine side. But as of now, the engines are responsible for loading the attributes.
  *
  * \{ */
 

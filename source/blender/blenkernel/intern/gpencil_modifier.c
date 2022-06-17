@@ -647,32 +647,38 @@ static bGPdata *gpencil_copy_structure_for_eval(bGPdata *gpd)
   return gpd_eval;
 }
 
-static void copy_frame_to_eval_cb(bGPDlayer *UNUSED(gpl),
+static void copy_frame_to_eval_ex(bGPDframe *gpf_orig, bGPDframe *gpf_eval)
+{
+  /* Free any existing eval stroke data. This happens in case we have a single user on the data
+   * block and the strokes have not been deleted. */
+  if (!BLI_listbase_is_empty(&gpf_eval->strokes)) {
+    BKE_gpencil_free_strokes(gpf_eval);
+  }
+  /* Copy strokes to eval frame and update internal orig pointers. */
+  BKE_gpencil_frame_copy_strokes(gpf_orig, gpf_eval);
+  BKE_gpencil_frame_original_pointers_update(gpf_orig, gpf_eval);
+}
+
+static void copy_frame_to_eval_cb(bGPDlayer *gpl,
                                   bGPDframe *gpf,
                                   bGPDstroke *UNUSED(gps),
                                   void *UNUSED(thunk))
 {
-  /* Early return when callback is not provided with a frame. */
-  if (gpf == NULL) {
+  /* Early return when callback:
+   * - Is not provided with a frame.
+   * - When the frame is the layer's active frame (already handled in
+   * gpencil_copy_visible_frames_to_eval).
+   */
+  if (gpf == NULL || gpf == gpl->actframe) {
     return;
   }
 
-  /* Free any existing eval stroke data. This happens in case we have a single user on the data
-   * block and the strokes have not been deleted. */
-  if (!BLI_listbase_is_empty(&gpf->strokes)) {
-    BKE_gpencil_free_strokes(gpf);
-  }
-
-  /* Get original frame. */
-  bGPDframe *gpf_orig = gpf->runtime.gpf_orig;
-  /* Copy strokes to eval frame and update internal orig pointers. */
-  BKE_gpencil_frame_copy_strokes(gpf_orig, gpf);
-  BKE_gpencil_frame_original_pointers_update(gpf_orig, gpf);
+  copy_frame_to_eval_ex(gpf->runtime.gpf_orig, gpf);
 }
 
 static void gpencil_copy_visible_frames_to_eval(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-  /* Remap layers' active frame with time modifiers applied. */
+  /* Remap layers active frame with time modifiers applied. */
   bGPdata *gpd_eval = ob->data;
   LISTBASE_FOREACH (bGPDlayer *, gpl_eval, &gpd_eval->layers) {
     bGPDframe *gpf_eval = gpl_eval->actframe;
@@ -680,9 +686,14 @@ static void gpencil_copy_visible_frames_to_eval(Depsgraph *depsgraph, Scene *sce
     if (gpf_eval == NULL || gpf_eval->framenum != remap_cfra) {
       gpl_eval->actframe = BKE_gpencil_layer_frame_get(gpl_eval, remap_cfra, GP_GETFRAME_USE_PREV);
     }
+    /* Always copy active frame to eval, because the modifiers always evaluate the active frame,
+     * even if it's not visible (e.g. the layer is hidden).*/
+    if (gpl_eval->actframe != NULL) {
+      copy_frame_to_eval_ex(gpl_eval->actframe->runtime.gpf_orig, gpl_eval->actframe);
+    }
   }
 
-  /* Copy only visible frames to evaluated version. */
+  /* Copy visible frames that are not the active one to evaluated version. */
   BKE_gpencil_visible_stroke_advanced_iter(
       NULL, ob, copy_frame_to_eval_cb, NULL, NULL, true, scene->r.cfra);
 }

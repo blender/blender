@@ -128,7 +128,7 @@ void mesh_render_data_loop_flag(const MeshRenderData *mr,
     return;
   }
   MLoopUV *luv = (MLoopUV *)BM_ELEM_CD_GET_VOID_P(l, cd_ofs);
-  if (luv != NULL && (luv->flag & MLOOPUV_PINNED)) {
+  if (luv != nullptr && (luv->flag & MLOOPUV_PINNED)) {
     eattr->v_flag |= VFLAG_VERT_UV_PINNED;
   }
   if (uvedit_uv_select_test_ex(mr->toolsettings, l, cd_ofs)) {

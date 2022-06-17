@@ -347,6 +347,7 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
    */
   {
     /* Keep this block, even when empty. */
+    btheme->tui.wcol_view_item = U_theme_default.tui.wcol_view_item;
   }
 
 #undef FROM_DEFAULT_V4_UCHAR

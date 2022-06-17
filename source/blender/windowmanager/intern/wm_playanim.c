@@ -33,6 +33,7 @@
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_system.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.h"
@@ -211,7 +212,7 @@ static void playanim_gl_matrix(void)
 /* implementation */
 static void playanim_event_qual_update(void)
 {
-  int val;
+  bool val;
 
   /* Shift */
   GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyLeftShift, &val);
@@ -870,7 +871,7 @@ static void change_frame(PlayState *ps)
   ps->need_frame_update = false;
 }
 
-static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
+static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 {
   PlayState *ps = (PlayState *)ps_void;
   const GHOST_TEventType type = GHOST_GetEventType(evt);
@@ -901,7 +902,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       default:
         break;
     }
-    return 1;
+    return true;
   }
 
   if (ps->wait2 && ps->stopped == false) {
@@ -1334,7 +1335,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       break;
   }
 
-  return 1;
+  return true;
 }
 
 static void playanim_window_open(const char *title, int posx, int posy, int sizex, int sizey)
@@ -1535,6 +1536,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   {
 
     GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(ghost_event_proc, &ps);
+
+    GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
 
     g_WS.ghost_system = GHOST_CreateSystem();
     GHOST_AddEventConsumer(g_WS.ghost_system, consumer);

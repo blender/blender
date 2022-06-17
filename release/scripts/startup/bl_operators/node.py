@@ -130,7 +130,7 @@ class NodeAddOperator:
         return result
 
     @classmethod
-    def description(cls, context, properties):
+    def description(cls, _context, properties):
         nodetype = properties["type"]
         bl_rna = bpy.types.Node.bl_rna_get_subclass(nodetype)
         if bl_rna is not None:

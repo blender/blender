@@ -2962,7 +2962,7 @@ void ED_gpencil_projected_2d_bound_box(const GP_SpaceConversion *gsc,
 
 bool ED_gpencil_stroke_check_collision(const GP_SpaceConversion *gsc,
                                        bGPDstroke *gps,
-                                       const float mouse[2],
+                                       const float mval[2],
                                        const int radius,
                                        const float diff_mat[4][4])
 {
@@ -2980,7 +2980,7 @@ bool ED_gpencil_stroke_check_collision(const GP_SpaceConversion *gsc,
   rcti rect_stroke = {boundbox_min[0], boundbox_max[0], boundbox_min[1], boundbox_max[1]};
 
   /* For mouse, add a small offset to avoid false negative in corners. */
-  rcti rect_mouse = {mouse[0] - offset, mouse[0] + offset, mouse[1] - offset, mouse[1] + offset};
+  rcti rect_mouse = {mval[0] - offset, mval[0] + offset, mval[1] - offset, mval[1] + offset};
 
   /* Check collision between both rectangles. */
   return BLI_rcti_isect(&rect_stroke, &rect_mouse, NULL);
@@ -2988,7 +2988,7 @@ bool ED_gpencil_stroke_check_collision(const GP_SpaceConversion *gsc,
 
 bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
                                        const GP_SpaceConversion *gsc,
-                                       const int mouse[2],
+                                       const int mval[2],
                                        const float diff_mat[4][4])
 {
   bool hit = false;
@@ -3014,9 +3014,8 @@ bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
   BLI_lasso_boundbox(&rect, mcoords, len);
 
   /* Test if point inside stroke. */
-  hit = ((!ELEM(V2D_IS_CLIPPED, mouse[0], mouse[1])) &&
-         BLI_rcti_isect_pt(&rect, mouse[0], mouse[1]) &&
-         BLI_lasso_is_point_inside(mcoords, len, mouse[0], mouse[1], INT_MAX));
+  hit = ((!ELEM(V2D_IS_CLIPPED, mval[0], mval[1])) && BLI_rcti_isect_pt(&rect, mval[0], mval[1]) &&
+         BLI_lasso_is_point_inside(mcoords, len, mval[0], mval[1], INT_MAX));
 
   /* Free memory. */
   MEM_SAFE_FREE(mcoords);

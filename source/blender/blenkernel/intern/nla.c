@@ -244,24 +244,42 @@ void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, const ListBase *src, const 
   }
 }
 
-static void update_active_strip_from_listbase(AnimData *adt_dest,
-                                              NlaTrack *track_dest,
-                                              const NlaStrip *active_strip,
-                                              const ListBase /* NlaStrip */ *strips_source)
+/**
+ * Find `active_strip` in `strips_source`, then return the strip with the same
+ * index from `strips_dest`.
+ */
+static NlaStrip *find_active_strip_from_listbase(const NlaStrip *active_strip,
+                                                 const ListBase /* NlaStrip */ *strips_source,
+                                                 const ListBase /* NlaStrip */ *strips_dest)
 {
-  NlaStrip *strip_dest = track_dest->strips.first;
+  NlaStrip *strip_dest = strips_dest->first;
   LISTBASE_FOREACH (const NlaStrip *, strip_source, strips_source) {
+    if (strip_dest == NULL) {
+      /* The tracks are assumed to have an equal number of strips, but this is not the case when
+       * dragging multiple strips. The transform system merges the selected strips into one
+       * meta-strip, reducing the number of strips in `track_dest`. */
+      break;
+    }
     if (strip_source == active_strip) {
-      adt_dest->actstrip = strip_dest;
-      return;
+      return strip_dest;
     }
 
-    if (strip_source->type == NLASTRIP_TYPE_META) {
-      update_active_strip_from_listbase(adt_dest, track_dest, active_strip, &strip_source->strips);
+    const bool src_is_meta = strip_source->type == NLASTRIP_TYPE_META;
+    const bool dst_is_meta = strip_dest->type == NLASTRIP_TYPE_META;
+    BLI_assert_msg(src_is_meta == dst_is_meta,
+                   "Expecting topology of source and destination strips to be equal");
+    if (src_is_meta && dst_is_meta) {
+      NlaStrip *found_in_meta = find_active_strip_from_listbase(
+          active_strip, &strip_source->strips, &strip_dest->strips);
+      if (found_in_meta != NULL) {
+        return found_in_meta;
+      }
     }
 
     strip_dest = strip_dest->next;
   }
+
+  return NULL;
 }
 
 /* Set adt_dest->actstrip to the strip with the same index as adt_source->actstrip. */
@@ -272,8 +290,9 @@ static void update_active_strip(AnimData *adt_dest,
 {
   BLI_assert(BLI_listbase_count(&track_source->strips) == BLI_listbase_count(&track_dest->strips));
 
-  update_active_strip_from_listbase(
-      adt_dest, track_dest, adt_source->actstrip, &track_source->strips);
+  NlaStrip *active_strip = find_active_strip_from_listbase(
+      adt_source->actstrip, &track_source->strips, &track_dest->strips);
+  adt_dest->actstrip = active_strip;
 }
 
 /* Set adt_dest->act_track to the track with the same index as adt_source->act_track. */

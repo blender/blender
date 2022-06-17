@@ -67,21 +67,38 @@ void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
 
   for (auto *override_prop :
        ListBaseWrapper<IDOverrideLibraryProperty>(id.override_library->properties)) {
+    int rnaprop_index = 0;
     const bool is_rna_path_valid = BKE_lib_override_rna_property_find(
-        &idpoin, override_prop, &override_rna_ptr, &override_rna_prop);
-    if (is_rna_path_valid && !show_system_overrides &&
-        ELEM(override_prop->rna_prop_type, PROP_POINTER, PROP_COLLECTION) &&
-        RNA_struct_is_ID(RNA_property_pointer_type(&override_rna_ptr, override_rna_prop))) {
-      bool do_continue = true;
-      for (auto *override_prop_op :
-           ListBaseWrapper<IDOverrideLibraryPropertyOperation>(override_prop->operations)) {
-        if ((override_prop_op->flag & IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE) == 0) {
-          do_continue = false;
-          break;
+        &idpoin, override_prop, &override_rna_ptr, &override_rna_prop, &rnaprop_index);
+
+    /* Check for conditions where the liboverride property should be considered as a system
+     * override, if needed. */
+    if (is_rna_path_valid && !show_system_overrides) {
+      bool do_skip = true;
+      bool is_system_override = false;
+
+      /* Matching ID pointers are considered as system overrides. */
+      if (ELEM(override_prop->rna_prop_type, PROP_POINTER, PROP_COLLECTION) &&
+          RNA_struct_is_ID(RNA_property_pointer_type(&override_rna_ptr, override_rna_prop))) {
+        for (auto *override_prop_op :
+             ListBaseWrapper<IDOverrideLibraryPropertyOperation>(override_prop->operations)) {
+          if ((override_prop_op->flag & IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE) == 0) {
+            do_skip = false;
+            break;
+          }
+          else {
+            is_system_override = true;
+          }
         }
       }
 
-      if (do_continue) {
+      /* Animated/driven properties are considered as system overrides. */
+      if (!is_system_override && !BKE_lib_override_library_property_is_animated(
+                                     &id, override_prop, override_rna_prop, rnaprop_index)) {
+        do_skip = false;
+      }
+
+      if (do_skip) {
         continue;
       }
     }

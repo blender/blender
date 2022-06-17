@@ -945,13 +945,8 @@ static void ui_template_list_layout_draw(bContext *C,
 
       const bool show_names = (flags & UI_TEMPLATE_LIST_NO_NAMES) == 0;
 
-      /* TODO ED_fileselect_init_layout(). Share somehow? */
-      float size_x = (96.0f / 20.0f) * UI_UNIT_X;
-      float size_y = (96.0f / 20.0f) * UI_UNIT_Y;
-
-      if (!show_names) {
-        size_y -= UI_UNIT_Y;
-      }
+      const int size_x = UI_preview_tile_size_x();
+      const int size_y = show_names ? UI_preview_tile_size_y() : UI_preview_tile_size_y_no_label();
 
       const int cols_per_row = MAX2((uiLayoutGetWidth(box) - V2D_SCROLL_WIDTH) / size_x, 1);
       uiLayout *grid = uiLayoutGridFlow(row, true, cols_per_row, true, true, true);

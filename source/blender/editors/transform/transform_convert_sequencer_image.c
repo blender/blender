@@ -223,6 +223,7 @@ void recalcData_sequencer_image(TransInfo *t)
     copy_v2_v2(translation, tdseq->orig_origin_position);
     sub_v2_v2(translation, origin);
     mul_v2_v2(translation, mirror);
+    translation[0] *= t->scene->r.yasp / t->scene->r.xasp;
 
     transform->xofs = tdseq->orig_translation[0] - translation[0];
     transform->yofs = tdseq->orig_translation[1] - translation[1];

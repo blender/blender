@@ -778,6 +778,15 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     }
   }
 
+  if ((but->type == UI_BTYPE_GRID_TILE) && (oldbut->type == UI_BTYPE_GRID_TILE)) {
+    uiButGridTile *but_gridtile = (uiButGridTile *)but;
+    uiButGridTile *oldbut_gridtile = (uiButGridTile *)oldbut;
+    if (!but_gridtile->view_item || !oldbut_gridtile->view_item ||
+        !UI_grid_view_item_matches(but_gridtile->view_item, oldbut_gridtile->view_item)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -904,6 +913,12 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
       SWAP(uiTreeViewItemHandle *, treerow_newbut->tree_item, treerow_oldbut->tree_item);
       break;
     }
+    case UI_BTYPE_GRID_TILE: {
+      uiButGridTile *gridtile_oldbut = (uiButGridTile *)oldbut;
+      uiButGridTile *gridtile_newbut = (uiButGridTile *)but;
+      SWAP(uiGridViewItemHandle *, gridtile_newbut->view_item, gridtile_oldbut->view_item);
+      break;
+    }
     default:
       break;
   }
@@ -996,9 +1011,9 @@ static bool ui_but_update_from_old_block(const bContext *C,
   else {
     int flag_copy = UI_BUT_DRAG_MULTI;
 
-    /* Stupid special case: The active button may be inside (as in, overlapped on top) a tree-row
+    /* Stupid special case: The active button may be inside (as in, overlapped on top) a view-item
      * button which we also want to keep highlighted then. */
-    if (but->type == UI_BTYPE_TREEROW) {
+    if (ui_but_is_view_item(but)) {
       flag_copy |= UI_ACTIVE;
     }
 
@@ -2239,6 +2254,15 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
         }
         break;
       }
+      case UI_BTYPE_GRID_TILE: {
+        uiButGridTile *grid_tile_but = (uiButGridTile *)but;
+
+        is_push = -1;
+        if (grid_tile_but->view_item) {
+          is_push = UI_grid_view_item_is_active(grid_tile_but->view_item);
+        }
+        break;
+      }
       default:
         is_push = -1;
         break;
@@ -3445,9 +3469,7 @@ static void ui_but_free(const bContext *C, uiBut *but)
     IMB_freeImBuf((struct ImBuf *)but->poin);
   }
 
-  if (but->dragpoin && (but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-  }
+  ui_but_drag_free(but);
   ui_but_extra_operator_icons_free(but);
 
   BLI_assert(UI_butstore_is_registered(but->block, but) == false);
@@ -3996,6 +4018,10 @@ static void ui_but_alloc_info(const eButType type,
     case UI_BTYPE_HOTKEY_EVENT:
       alloc_size = sizeof(uiButHotkeyEvent);
       alloc_str = "uiButHotkeyEvent";
+      break;
+    case UI_BTYPE_GRID_TILE:
+      alloc_size = sizeof(uiButGridTile);
+      alloc_str = "uiButGridTile";
       break;
     default:
       alloc_size = sizeof(uiBut);
@@ -4971,6 +4997,33 @@ int UI_autocomplete_end(AutoComplete *autocpl, char *autoname)
   return match;
 }
 
+#define PREVIEW_TILE_PAD (0.15f * UI_UNIT_X)
+
+int UI_preview_tile_size_x(void)
+{
+  const float pad = PREVIEW_TILE_PAD;
+  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_X + 2.0f * pad);
+}
+
+int UI_preview_tile_size_y(void)
+{
+  const uiStyle *style = UI_style_get();
+  const float font_height = style->widget.points * UI_DPI_FAC;
+  const float pad = PREVIEW_TILE_PAD;
+
+  return round_fl_to_int(UI_preview_tile_size_y_no_label() + font_height +
+                         /* Add some extra padding to make things less tight vertically. */
+                         pad);
+}
+
+int UI_preview_tile_size_y_no_label(void)
+{
+  const float pad = PREVIEW_TILE_PAD;
+  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_Y + 2.0f * pad);
+}
+
+#undef PREVIEW_TILE_PAD
+
 static void ui_but_update_and_icon_set(uiBut *but, int icon)
 {
   if (icon) {
@@ -5879,104 +5932,6 @@ void UI_but_type_set_menu_from_pulldown(uiBut *but)
 int UI_but_return_value_get(uiBut *but)
 {
   return but->retval;
-}
-
-void UI_but_drag_set_id(uiBut *but, ID *id)
-{
-  but->dragtype = WM_DRAG_ID;
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-    but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
-  }
-  but->dragpoin = (void *)id;
-}
-
-void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, const float scale)
-{
-  but->imb = imb;
-  but->imb_scale = scale;
-}
-
-void UI_but_drag_set_asset(uiBut *but,
-                           const AssetHandle *asset,
-                           const char *path,
-                           struct AssetMetaData *metadata,
-                           int import_type,
-                           int icon,
-                           struct ImBuf *imb,
-                           float scale)
-{
-  wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, metadata, path, import_type);
-
-  /* FIXME: This is temporary evil solution to get scene/viewlayer/etc in the copy callback of the
-   * #wmDropBox.
-   * TODO: Handle link/append in operator called at the end of the drop process, and NOT in its
-   * copy callback.
-   * */
-  asset_drag->evil_C = static_cast<bContext *>(but->block->evil_C);
-
-  but->dragtype = WM_DRAG_ASSET;
-  ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-  }
-  but->dragpoin = asset_drag;
-  but->dragflag |= UI_BUT_DRAGPOIN_FREE;
-  UI_but_drag_attach_image(but, imb, scale);
-}
-
-void UI_but_drag_set_rna(uiBut *but, PointerRNA *ptr)
-{
-  but->dragtype = WM_DRAG_RNA;
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-    but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
-  }
-  but->dragpoin = (void *)ptr;
-}
-
-void UI_but_drag_set_path(uiBut *but, const char *path, const bool use_free)
-{
-  but->dragtype = WM_DRAG_PATH;
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-    but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
-  }
-  but->dragpoin = (void *)path;
-  if (use_free) {
-    but->dragflag |= UI_BUT_DRAGPOIN_FREE;
-  }
-}
-
-void UI_but_drag_set_name(uiBut *but, const char *name)
-{
-  but->dragtype = WM_DRAG_NAME;
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-    but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
-  }
-  but->dragpoin = (void *)name;
-}
-
-void UI_but_drag_set_value(uiBut *but)
-{
-  but->dragtype = WM_DRAG_VALUE;
-}
-
-void UI_but_drag_set_image(
-    uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale, const bool use_free)
-{
-  but->dragtype = WM_DRAG_PATH;
-  ui_def_but_icon(but, icon, 0); /* no flag UI_HAS_ICON, so icon doesn't draw in button */
-  if (but->dragflag & UI_BUT_DRAGPOIN_FREE) {
-    WM_drag_data_free(but->dragtype, but->dragpoin);
-    but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;
-  }
-  but->dragpoin = (void *)path;
-  if (use_free) {
-    but->dragflag |= UI_BUT_DRAGPOIN_FREE;
-  }
-  UI_but_drag_attach_image(but, imb, scale);
 }
 
 PointerRNA *UI_but_operator_ptr_get(uiBut *but)

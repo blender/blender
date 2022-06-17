@@ -65,12 +65,12 @@ class POINTCLOUD_MT_add_attribute(Menu):
 
 
 class POINTCLOUD_UL_attributes(UIList):
-    def filter_items(self, context, data, property):
+    def filter_items(self, _context, data, property):
         attributes = getattr(data, property)
         flags = []
         indices = [i for i in range(len(attributes))]
 
-        for index, item in enumerate(attributes):
+        for item in attributes:
             flags.append(self.bitflag_filter_item if item.is_internal else 0)
 
         return flags, indices

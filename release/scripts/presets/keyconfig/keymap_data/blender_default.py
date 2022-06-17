@@ -2223,6 +2223,7 @@ def km_file_browser(params):
         ("file.smoothscroll", {"type": 'TIMER1', "value": 'ANY', "any": True}, None),
         ("file.bookmark_add", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
         ("file.start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        ("file.edit_directory_path", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("file.filenum", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "repeat": True},
          {"properties": [("increment", 1)]}),
         ("file.filenum", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "shift": True, "repeat": True},
@@ -3013,7 +3014,7 @@ def km_sequencerpreview(params):
     return keymap
 
 
-def km_sequencer_channels(params):
+def km_sequencer_channels(_params):
     items = []
     keymap = (
         "Sequencer Channels",
@@ -5588,6 +5589,17 @@ def km_font(params):
 
     return keymap
 
+# Curves edit mode.
+def km_curves(params):
+    items = []
+    keymap = (
+        "Curves",
+        {"space_type": 'EMPTY', "region_type": 'WINDOW'},
+        {"items": items},
+    )
+
+    return keymap
+
 
 def km_sculpt_curves(params):
     items = []
@@ -8013,6 +8025,7 @@ def generate_keymaps(params=None):
         km_lattice(params),
         km_particle(params),
         km_font(params),
+        km_curves(params),
         km_sculpt_curves(params),
         km_object_non_modal(params),
 

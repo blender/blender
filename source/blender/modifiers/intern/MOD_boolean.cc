@@ -447,7 +447,8 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
                                                      material_remaps,
                                                      use_self,
                                                      hole_tolerant,
-                                                     bmd->operation);
+                                                     bmd->operation,
+                                                     nullptr);
 }
 #endif
 

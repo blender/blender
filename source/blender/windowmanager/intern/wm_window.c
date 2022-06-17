@@ -23,6 +23,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_system.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -982,7 +983,7 @@ static int query_qual(modifierKeyType qual)
       break;
   }
 
-  int val = 0;
+  bool val = false;
   GHOST_GetModifierKeyState(g_system, left, &val);
   if (!val) {
     GHOST_GetModifierKeyState(g_system, right, &val);
@@ -1052,7 +1053,7 @@ void wm_window_reset_drawable(void)
  *
  * Mouse coordinate conversion happens here.
  */
-static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr)
+static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr)
 {
   bContext *C = C_void_ptr;
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -1090,17 +1091,17 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
      * but it should return if WM didn't initialize yet.
      * Can happen on file read (especially full size window). */
     if ((wm->initialized & WM_WINDOW_IS_INIT) == 0) {
-      return 1;
+      return true;
     }
     if (!ghostwin) {
       /* XXX: should be checked, why are we getting an event here, and what is it? */
       puts("<!> event has no window");
-      return 1;
+      return true;
     }
     if (!GHOST_ValidWindow(g_system, ghostwin)) {
       /* XXX: should be checked, why are we getting an event here, and what is it? */
       puts("<!> event has invalid window");
-      return 1;
+      return true;
     }
     wmWindow *win = GHOST_GetWindowUserData(ghostwin);
 
@@ -1443,7 +1444,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
       }
     }
   }
-  return 1;
+  return true;
 }
 
 /**
@@ -1542,6 +1543,8 @@ void wm_ghost_init(bContext *C)
     if (C != NULL) {
       consumer = GHOST_CreateEventConsumer(ghost_event_proc, C);
     }
+
+    GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
 
     g_system = GHOST_CreateSystem();
 
@@ -1869,11 +1872,10 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mv
     return NULL;
   }
 
-  wmWindow *r_win = GHOST_GetWindowUserData(ghostwin);
-  wm_cursor_position_from_ghost(r_win, &tmp[0], &tmp[1]);
+  wmWindow *win_other = GHOST_GetWindowUserData(ghostwin);
+  wm_cursor_position_from_ghost(win_other, &tmp[0], &tmp[1]);
   copy_v2_v2_int(r_mval, tmp);
-
-  return r_win;
+  return win_other;
 }
 
 void WM_window_pixel_sample_read(const wmWindowManager *wm,

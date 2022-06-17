@@ -70,7 +70,7 @@ class MESH_MT_color_attribute_context_menu(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        props = layout.operator(
+        layout.operator(
             "geometry.color_attribute_duplicate",
             icon='DUPLICATE',
         )
@@ -507,12 +507,12 @@ class MESH_UL_attributes(UIList):
         'CORNER': "Face Corner",
     }
 
-    def filter_items(self, context, data, property):
+    def filter_items(self, _context, data, property):
         attributes = getattr(data, property)
         flags = []
         indices = [i for i in range(len(attributes))]
 
-        for index, item in enumerate(attributes):
+        for item in attributes:
             flags.append(self.bitflag_filter_item if item.is_internal else 0)
 
         return flags, indices
@@ -596,7 +596,7 @@ class ColorAttributesListBase():
         'CORNER': "Face Corner",
     }
 
-    def filter_items(self, context, data, property):
+    def filter_items(self, _context, data, property):
         attrs = getattr(data, property)
         ret = []
         idxs = []

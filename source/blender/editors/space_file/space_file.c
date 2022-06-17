@@ -695,6 +695,7 @@ static void file_operatortypes(void)
   WM_operatortype_append(FILE_OT_smoothscroll);
   WM_operatortype_append(FILE_OT_filepath_drop);
   WM_operatortype_append(FILE_OT_start_filter);
+  WM_operatortype_append(FILE_OT_edit_directory_path);
   WM_operatortype_append(FILE_OT_view_selected);
 }
 

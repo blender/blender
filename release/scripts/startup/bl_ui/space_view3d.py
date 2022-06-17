@@ -95,7 +95,7 @@ class VIEW3D_HT_tool_header(Header):
         elif tool_mode == 'PAINT_GPENCIL':
             if is_valid_context:
                 brush = context.tool_settings.gpencil_paint.brush
-                if brush.gpencil_tool != 'ERASE':
+                if brush and brush.gpencil_tool != 'ERASE':
                     if brush.gpencil_tool != 'TINT':
                         layout.popover("VIEW3D_PT_tools_grease_pencil_brush_advanced")
 
@@ -106,10 +106,11 @@ class VIEW3D_HT_tool_header(Header):
         elif tool_mode == 'SCULPT_GPENCIL':
             if is_valid_context:
                 brush = context.tool_settings.gpencil_sculpt_paint.brush
-                tool = brush.gpencil_sculpt_tool
-                if tool != 'CLONE':
-                    layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover")
-                layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_appearance")
+                if brush:
+                    tool = brush.gpencil_sculpt_tool
+                    if tool != 'CLONE':
+                        layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover")
+                    layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_appearance")
         elif tool_mode == 'WEIGHT_GPENCIL':
             if is_valid_context:
                 layout.popover("VIEW3D_PT_tools_grease_pencil_weight_appearance")
