@@ -146,7 +146,7 @@ void MASK_OT_layer_new(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = mask_layer_new_exec;
-  ot->poll = ED_maskedit_poll;
+  ot->poll = ED_maskedit_mask_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -181,7 +181,7 @@ void MASK_OT_layer_remove(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = mask_layer_remove_exec;
-  ot->poll = ED_maskedit_poll;
+  ot->poll = ED_maskedit_mask_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
