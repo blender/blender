@@ -28,6 +28,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
@@ -52,6 +53,8 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+
+#include "MOD_nodes.h"
 
 #ifdef WITH_BULLET
 static CLG_LogRef LOG = {"bke.rigidbody"};
@@ -1887,6 +1890,15 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
 
       /* update simulation object... */
       rigidbody_update_sim_ob(depsgraph, scene, rbw, ob, rbo);
+    }
+
+    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+      if (md->type == eModifierType_Nodes) {
+        NodesModifierData *nmd = (NodesModifierData *)md;
+        if (MOD_nodes_needs_rigid_body_sim(ob, nmd)) {
+          MOD_nodes_update_simulation(scene, rbw, ob, nmd);
+        }
+      }
     }
   }
   FOREACH_COLLECTION_OBJECT_RECURSIVE_END;

@@ -142,6 +142,16 @@ bool MOD_nodes_needs_rigid_body_sim(Object *object, NodesModifierData *nmd)
   return nmd->node_group && nodes_need_rigid_body_sim(*nmd->node_group);
 }
 
+void MOD_nodes_update_simulation(Scene *scene,
+                                 RigidBodyWorld *rbw,
+                                 Object *object,
+                                 NodesModifierData *nmd)
+{
+  /* XXX should have some kind of point group feature to make bodies for relevant points only */
+  if (object->runtime.geometry_set_eval) {
+    GeometrySet *geometry_set = object->runtime.geometry_set_eval;
+  }
+}
 
 static void initData(ModifierData *md)
 {

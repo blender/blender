@@ -26,6 +26,11 @@ void MOD_nodes_update_simulation(struct Main *bmain,
 /* Modifier needs rigid body simulation depsgraph nodes. */
 bool MOD_nodes_needs_rigid_body_sim(struct Object *object, struct NodesModifierData *nmd);
 
+void MOD_nodes_update_simulation(struct Scene *scene,
+                                 struct RigidBodyWorld *rbw,
+                                 struct Object *object,
+                                 struct NodesModifierData *nmd);
+
 #ifdef __cplusplus
 }
 #endif
