@@ -22,9 +22,9 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_mesh_sample.hh"
 #include "BKE_paint.h"
 #include "BKE_report.h"
-#include "BKE_spline.hh"
 
 #include "DNA_brush_enums.h"
 #include "DNA_brush_types.h"
@@ -38,10 +38,12 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "GEO_add_curves_on_mesh.hh"
+
 #include "WM_api.h"
 
 /**
- * The code below uses a prefix naming convention to indicate the coordinate space:
+ * The code below uses a suffix naming convention to indicate the coordinate space:
  * cu: Local space of the curves object that is being edited.
  * su: Local space of the surface object.
  * wo: World space.
@@ -69,16 +71,6 @@ class AddOperation : public CurvesSculptStrokeOperation {
 
   void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
 };
-
-static void initialize_straight_curve_positions(const float3 &p1,
-                                                const float3 &p2,
-                                                MutableSpan<float3> r_positions)
-{
-  const float step = 1.0f / (float)(r_positions.size() - 1);
-  for (const int i : r_positions.index_range()) {
-    r_positions[i] = math::interpolate(p1, p2, i * step);
-  }
-}
 
 /**
  * Utility class that actually executes the update when the stroke is updated. That's useful
@@ -241,28 +233,28 @@ struct AddOperationExecutor {
       return;
     }
 
-    Array<NeighborsVector> neighbors_per_curve;
     if (use_interpolation_) {
       this->ensure_curve_roots_kdtree();
-      neighbors_per_curve = this->find_curve_neighbors(added_points);
     }
 
-    /* Resize to add the new curves, building the offsets in the array owned by the curves. */
-    const int tot_added_curves = added_points.bary_coords.size();
-    curves_->resize(curves_->points_num(), curves_->curves_num() + tot_added_curves);
-    if (interpolate_point_count_) {
-      this->initialize_curve_offsets_with_interpolation(neighbors_per_curve);
-    }
-    else {
-      this->initialize_curve_offsets_without_interpolation(constant_points_per_curve_);
-    }
-
-    /* Resize to add the correct point count calculated as part of building the offsets. */
-    curves_->resize(curves_->offsets().last(), curves_->curves_num());
-
-    this->initialize_attributes(added_points, neighbors_per_curve);
-
-    curves_->update_curve_types();
+    geometry::AddCurvesOnMeshInputs add_inputs;
+    add_inputs.root_positions_cu = added_points.positions_cu;
+    add_inputs.bary_coords = added_points.bary_coords;
+    add_inputs.looptri_indices = added_points.looptri_indices;
+    add_inputs.interpolate_length = interpolate_length_;
+    add_inputs.interpolate_shape = interpolate_shape_;
+    add_inputs.interpolate_point_count = interpolate_point_count_;
+    add_inputs.fallback_curve_length = new_curve_length_;
+    add_inputs.fallback_point_count = constant_points_per_curve_;
+    add_inputs.surface = surface_;
+    add_inputs.surface_bvh = &surface_bvh_;
+    add_inputs.surface_looptris = surface_looptris_;
+    add_inputs.surface_uv_map = surface_uv_map_;
+    add_inputs.corner_normals_su = corner_normals_su_;
+    add_inputs.curves_to_surface_mat = curves_to_surface_mat_;
+    add_inputs.surface_to_curves_normal_mat = surface_to_curves_normal_mat_;
+    add_inputs.old_roots_kdtree = self_->curve_roots_kdtree_;
+    geometry::add_curves_on_mesh(*curves_, add_inputs);
 
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
@@ -312,7 +304,7 @@ struct AddOperationExecutor {
 
     const int looptri_index = ray_hit.index;
     const float3 brush_pos_su = ray_hit.co;
-    const float3 bary_coords = compute_bary_coord_in_triangle(
+    const float3 bary_coords = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
         *surface_, surface_looptris_[looptri_index], brush_pos_su);
 
     const float3 brush_pos_cu = surface_to_curves_mat_ * brush_pos_su;
@@ -339,60 +331,37 @@ struct AddOperationExecutor {
                         const float4x4 &brush_transform)
   {
     const int old_amount = r_added_points.bary_coords.size();
-    const int max_iterations = std::max(100'000, add_amount_ * 10);
+    const int max_iterations = 100;
     int current_iteration = 0;
     while (r_added_points.bary_coords.size() < old_amount + add_amount_) {
       if (current_iteration++ >= max_iterations) {
         break;
       }
-
-      const float r = brush_radius_re_ * std::sqrt(rng.get_float());
-      const float angle = rng.get_float() * 2.0f * M_PI;
-      const float2 pos_re = brush_pos_re_ + r * float2(std::cos(angle), std::sin(angle));
-
-      float3 ray_start_wo, ray_end_wo;
-      ED_view3d_win_to_segment_clipped(
-          ctx_.depsgraph, ctx_.region, ctx_.v3d, pos_re, ray_start_wo, ray_end_wo, true);
-      const float3 ray_start_cu = brush_transform * (world_to_curves_mat_ * ray_start_wo);
-      const float3 ray_end_cu = brush_transform * (world_to_curves_mat_ * ray_end_wo);
-
-      const float3 ray_start_su = curves_to_surface_mat_ * ray_start_cu;
-      const float3 ray_end_su = curves_to_surface_mat_ * ray_end_cu;
-      const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
-
-      BVHTreeRayHit ray_hit;
-      ray_hit.dist = FLT_MAX;
-      ray_hit.index = -1;
-      BLI_bvhtree_ray_cast(surface_bvh_.tree,
-                           ray_start_su,
-                           ray_direction_su,
-                           0.0f,
-                           &ray_hit,
-                           surface_bvh_.raycast_callback,
-                           &surface_bvh_);
-
-      if (ray_hit.index == -1) {
-        continue;
+      const int missing_amount = add_amount_ + old_amount - r_added_points.bary_coords.size();
+      const int new_points = bke::mesh_surface_sample::sample_surface_points_projected(
+          rng,
+          *surface_,
+          surface_bvh_,
+          brush_pos_re_,
+          brush_radius_re_,
+          [&](const float2 &pos_re, float3 &r_start_su, float3 &r_end_su) {
+            float3 start_wo, end_wo;
+            ED_view3d_win_to_segment_clipped(
+                ctx_.depsgraph, ctx_.region, ctx_.v3d, pos_re, start_wo, end_wo, true);
+            const float3 start_cu = brush_transform * (world_to_curves_mat_ * start_wo);
+            const float3 end_cu = brush_transform * (world_to_curves_mat_ * end_wo);
+            r_start_su = curves_to_surface_mat_ * start_cu;
+            r_end_su = curves_to_surface_mat_ * end_cu;
+          },
+          use_front_face_,
+          add_amount_,
+          missing_amount,
+          r_added_points.bary_coords,
+          r_added_points.looptri_indices,
+          r_added_points.positions_cu);
+      for (float3 &pos : r_added_points.positions_cu.as_mutable_span().take_back(new_points)) {
+        pos = surface_to_curves_mat_ * pos;
       }
-
-      if (use_front_face_) {
-        const float3 normal_su = ray_hit.no;
-        if (math::dot(ray_direction_su, normal_su) >= 0.0f) {
-          continue;
-        }
-      }
-
-      const int looptri_index = ray_hit.index;
-      const float3 pos_su = ray_hit.co;
-
-      const float3 bary_coords = compute_bary_coord_in_triangle(
-          *surface_, surface_looptris_[looptri_index], pos_su);
-
-      const float3 pos_cu = surface_to_curves_mat_ * pos_su;
-
-      r_added_points.positions_cu.append(pos_cu);
-      r_added_points.bary_coords.append(bary_coords);
-      r_added_points.looptri_indices.append(looptri_index);
     }
   }
 
@@ -505,9 +474,6 @@ struct AddOperationExecutor {
     const float brush_plane_area_su = M_PI * brush_radius_sq_su;
     const float approximate_density_su = add_amount_ / brush_plane_area_su;
 
-    /* Used for switching between two triangle sampling strategies. */
-    const float area_threshold = brush_plane_area_su;
-
     /* Usually one or two iterations should be enough. */
     const int max_iterations = 5;
     int current_iteration = 0;
@@ -517,78 +483,18 @@ struct AddOperationExecutor {
       if (current_iteration++ >= max_iterations) {
         break;
       }
-
-      for (const int looptri_index : looptri_indices) {
-        const MLoopTri &looptri = surface_looptris_[looptri_index];
-
-        const float3 v0_su = surface_->mvert[surface_->mloop[looptri.tri[0]].v].co;
-        const float3 v1_su = surface_->mvert[surface_->mloop[looptri.tri[1]].v].co;
-        const float3 v2_su = surface_->mvert[surface_->mloop[looptri.tri[2]].v].co;
-
-        const float looptri_area_su = area_tri_v3(v0_su, v1_su, v2_su);
-
-        if (looptri_area_su < area_threshold) {
-          /* The triangle is small compared to the brush radius. Sample by generating random
-           * barycentric coordinates. */
-          const int amount = rng.round_probabilistic(approximate_density_su * looptri_area_su);
-          for ([[maybe_unused]] const int i : IndexRange(amount)) {
-            const float3 bary_coord = rng.get_barycentric_coordinates();
-            const float3 point_pos_su = attribute_math::mix3(bary_coord, v0_su, v1_su, v2_su);
-            const float distance_to_brush_sq_su = math::distance_squared(point_pos_su,
-                                                                         brush_pos_su);
-            if (distance_to_brush_sq_su > brush_radius_sq_su) {
-              continue;
-            }
-
-            r_added_points.bary_coords.append(bary_coord);
-            r_added_points.looptri_indices.append(looptri_index);
-            r_added_points.positions_cu.append(surface_to_curves_mat_ * point_pos_su);
-          }
-        }
-        else {
-          /* The triangle is large compared to the brush radius. Sample by generating random points
-           * on the triangle plane within the brush radius. */
-          float3 normal_su;
-          normal_tri_v3(normal_su, v0_su, v1_su, v2_su);
-
-          float3 brush_pos_proj_su = brush_pos_su;
-          project_v3_plane(brush_pos_proj_su, normal_su, v0_su);
-
-          const float proj_distance_sq_su = math::distance_squared(brush_pos_proj_su,
-                                                                   brush_pos_su);
-          const float brush_radius_factor_sq = 1.0f -
-                                               std::min(1.0f,
-                                                        proj_distance_sq_su / brush_radius_sq_su);
-          const float radius_proj_sq_su = brush_radius_sq_su * brush_radius_factor_sq;
-          const float radius_proj_su = std::sqrt(radius_proj_sq_su);
-          const float circle_area_su = M_PI * radius_proj_su;
-
-          const int amount = rng.round_probabilistic(approximate_density_su * circle_area_su);
-
-          const float3 axis_1_su = math::normalize(v1_su - v0_su) * radius_proj_su;
-          const float3 axis_2_su = math::normalize(math::cross(
-                                       axis_1_su, math::cross(axis_1_su, v2_su - v0_su))) *
-                                   radius_proj_su;
-
-          for ([[maybe_unused]] const int i : IndexRange(amount)) {
-            const float r = std::sqrt(rng.get_float());
-            const float angle = rng.get_float() * 2.0f * M_PI;
-            const float x = r * std::cos(angle);
-            const float y = r * std::sin(angle);
-            const float3 point_pos_su = brush_pos_proj_su + axis_1_su * x + axis_2_su * y;
-            if (!isect_point_tri_prism_v3(point_pos_su, v0_su, v1_su, v2_su)) {
-              /* Sampled point is not in the triangle. */
-              continue;
-            }
-
-            float3 bary_coord;
-            interp_weights_tri_v3(bary_coord, v0_su, v1_su, v2_su, point_pos_su);
-
-            r_added_points.bary_coords.append(bary_coord);
-            r_added_points.looptri_indices.append(looptri_index);
-            r_added_points.positions_cu.append(surface_to_curves_mat_ * point_pos_su);
-          }
-        }
+      const int new_points = bke::mesh_surface_sample::sample_surface_points_spherical(
+          rng,
+          *surface_,
+          looptri_indices,
+          brush_pos_su,
+          brush_radius_su,
+          approximate_density_su,
+          r_added_points.bary_coords,
+          r_added_points.looptri_indices,
+          r_added_points.positions_cu);
+      for (float3 &pos : r_added_points.positions_cu.as_mutable_span().take_back(new_points)) {
+        pos = surface_to_curves_mat_ * pos;
       }
     }
 
@@ -612,312 +518,6 @@ struct AddOperationExecutor {
       }
       BLI_kdtree_3d_balance(self_->curve_roots_kdtree_);
     }
-  }
-
-  void initialize_curve_offsets_with_interpolation(const Span<NeighborsVector> neighbors_per_curve)
-  {
-    MutableSpan<int> new_offsets = curves_->offsets_for_write().drop_front(tot_old_curves_);
-
-    attribute_math::DefaultMixer<int> mixer{new_offsets};
-    threading::parallel_for(neighbors_per_curve.index_range(), 1024, [&](IndexRange curves_range) {
-      for (const int i : curves_range) {
-        if (neighbors_per_curve[i].is_empty()) {
-          mixer.mix_in(i, constant_points_per_curve_, 1.0f);
-        }
-        else {
-          for (const NeighborInfo &neighbor : neighbors_per_curve[i]) {
-            const int neighbor_points_num = curves_->points_for_curve(neighbor.index).size();
-            mixer.mix_in(i, neighbor_points_num, neighbor.weight);
-          }
-        }
-      }
-    });
-    mixer.finalize();
-
-    bke::curves::accumulate_counts_to_offsets(new_offsets, tot_old_points_);
-  }
-
-  void initialize_curve_offsets_without_interpolation(const int points_per_curve)
-  {
-    MutableSpan<int> new_offsets = curves_->offsets_for_write().drop_front(tot_old_curves_);
-    int offset = tot_old_points_;
-    for (const int i : new_offsets.index_range()) {
-      new_offsets[i] = offset;
-      offset += points_per_curve;
-    }
-  }
-
-  void initialize_attributes(const AddedPoints &added_points,
-                             const Span<NeighborsVector> neighbors_per_curve)
-  {
-    Array<float> new_lengths_cu(added_points.bary_coords.size());
-    if (interpolate_length_) {
-      this->interpolate_lengths(neighbors_per_curve, new_lengths_cu);
-    }
-    else {
-      new_lengths_cu.fill(new_curve_length_);
-    }
-
-    Array<float3> new_normals_su = this->compute_normals_for_added_curves_su(added_points);
-    if (!surface_uv_map_.is_empty()) {
-      this->initialize_surface_attachment(added_points);
-    }
-
-    this->fill_new_selection();
-
-    if (interpolate_shape_) {
-      this->initialize_position_with_interpolation(
-          added_points, neighbors_per_curve, new_normals_su, new_lengths_cu);
-    }
-    else {
-      this->initialize_position_without_interpolation(
-          added_points, new_lengths_cu, new_normals_su);
-    }
-  }
-
-  /**
-   * Select newly created points or curves in new curves if necessary.
-   */
-  void fill_new_selection()
-  {
-    switch (curves_id_->selection_domain) {
-      case ATTR_DOMAIN_CURVE: {
-        const VArray<float> selection = curves_->selection_curve_float();
-        if (selection.is_single() && selection.get_internal_single() >= 1.0f) {
-          return;
-        }
-        curves_->selection_curve_float_for_write().drop_front(tot_old_curves_).fill(1.0f);
-        break;
-      }
-      case ATTR_DOMAIN_POINT: {
-        const VArray<float> selection = curves_->selection_point_float();
-        if (selection.is_single() && selection.get_internal_single() >= 1.0f) {
-          return;
-        }
-        curves_->selection_point_float_for_write().drop_front(tot_old_points_).fill(1.0f);
-        break;
-      }
-      default:
-        BLI_assert_unreachable();
-    }
-  }
-
-  Array<NeighborsVector> find_curve_neighbors(const AddedPoints &added_points)
-  {
-    const int tot_added_curves = added_points.bary_coords.size();
-    Array<NeighborsVector> neighbors_per_curve(tot_added_curves);
-    threading::parallel_for(IndexRange(tot_added_curves), 128, [&](const IndexRange range) {
-      for (const int i : range) {
-        const float3 root_cu = added_points.positions_cu[i];
-        std::array<KDTreeNearest_3d, max_neighbors> nearest_n;
-        const int found_neighbors = BLI_kdtree_3d_find_nearest_n(
-            self_->curve_roots_kdtree_, root_cu, nearest_n.data(), max_neighbors);
-        float tot_weight = 0.0f;
-        for (const int neighbor_i : IndexRange(found_neighbors)) {
-          KDTreeNearest_3d &nearest = nearest_n[neighbor_i];
-          const float weight = 1.0f / std::max(nearest.dist, 0.00001f);
-          tot_weight += weight;
-          neighbors_per_curve[i].append({nearest.index, weight});
-        }
-        /* Normalize weights. */
-        for (NeighborInfo &neighbor : neighbors_per_curve[i]) {
-          neighbor.weight /= tot_weight;
-        }
-      }
-    });
-    return neighbors_per_curve;
-  }
-
-  void interpolate_lengths(const Span<NeighborsVector> neighbors_per_curve,
-                           MutableSpan<float> r_lengths)
-  {
-    const Span<float3> positions_cu = curves_->positions();
-
-    threading::parallel_for(r_lengths.index_range(), 128, [&](const IndexRange range) {
-      for (const int added_curve_i : range) {
-        const Span<NeighborInfo> neighbors = neighbors_per_curve[added_curve_i];
-        float length_sum = 0.0f;
-        for (const NeighborInfo &neighbor : neighbors) {
-          const IndexRange neighbor_points = curves_->points_for_curve(neighbor.index);
-          float neighbor_length = 0.0f;
-          for (const int segment_i : neighbor_points.drop_back(1)) {
-            const float3 &p1 = positions_cu[segment_i];
-            const float3 &p2 = positions_cu[segment_i + 1];
-            neighbor_length += math::distance(p1, p2);
-          }
-          length_sum += neighbor.weight * neighbor_length;
-        }
-        const float length = neighbors.is_empty() ? new_curve_length_ : length_sum;
-        r_lengths[added_curve_i] = length;
-      }
-    });
-  }
-
-  float3 compute_point_normal_su(const int looptri_index, const float3 &bary_coord)
-  {
-    const MLoopTri &looptri = surface_looptris_[looptri_index];
-    const int l0 = looptri.tri[0];
-    const int l1 = looptri.tri[1];
-    const int l2 = looptri.tri[2];
-
-    const float3 &l0_normal_su = corner_normals_su_[l0];
-    const float3 &l1_normal_su = corner_normals_su_[l1];
-    const float3 &l2_normal_su = corner_normals_su_[l2];
-
-    const float3 normal_su = math::normalize(
-        attribute_math::mix3(bary_coord, l0_normal_su, l1_normal_su, l2_normal_su));
-    return normal_su;
-  }
-
-  Array<float3> compute_normals_for_added_curves_su(const AddedPoints &added_points)
-  {
-    Array<float3> normals_su(added_points.bary_coords.size());
-    threading::parallel_for(normals_su.index_range(), 256, [&](const IndexRange range) {
-      for (const int i : range) {
-        const int looptri_index = added_points.looptri_indices[i];
-        const float3 &bary_coord = added_points.bary_coords[i];
-        normals_su[i] = compute_surface_point_normal(
-            surface_looptris_[looptri_index], bary_coord, corner_normals_su_);
-      }
-    });
-    return normals_su;
-  }
-
-  void initialize_surface_attachment(const AddedPoints &added_points)
-  {
-    MutableSpan<float2> surface_uv_coords = curves_->surface_uv_coords_for_write();
-    threading::parallel_for(
-        added_points.bary_coords.index_range(), 1024, [&](const IndexRange range) {
-          for (const int i : range) {
-            const int curve_i = tot_old_curves_ + i;
-            const MLoopTri &looptri = surface_looptris_[added_points.looptri_indices[i]];
-            const float2 &uv0 = surface_uv_map_[looptri.tri[0]];
-            const float2 &uv1 = surface_uv_map_[looptri.tri[1]];
-            const float2 &uv2 = surface_uv_map_[looptri.tri[2]];
-            const float3 &bary_coords = added_points.bary_coords[i];
-            const float2 uv = attribute_math::mix3(bary_coords, uv0, uv1, uv2);
-            surface_uv_coords[curve_i] = uv;
-          }
-        });
-  }
-
-  /**
-   * Initialize new curves so that they are just a straight line in the normal direction.
-   */
-  void initialize_position_without_interpolation(const AddedPoints &added_points,
-                                                 const Span<float> lengths_cu,
-                                                 const MutableSpan<float3> normals_su)
-  {
-    MutableSpan<float3> positions_cu = curves_->positions_for_write();
-
-    threading::parallel_for(
-        added_points.bary_coords.index_range(), 256, [&](const IndexRange range) {
-          for (const int i : range) {
-            const IndexRange points = curves_->points_for_curve(tot_old_curves_ + i);
-            const float3 &root_cu = added_points.positions_cu[i];
-            const float length = lengths_cu[i];
-            const float3 &normal_su = normals_su[i];
-            const float3 normal_cu = math::normalize(surface_to_curves_normal_mat_ * normal_su);
-            const float3 tip_cu = root_cu + length * normal_cu;
-
-            initialize_straight_curve_positions(root_cu, tip_cu, positions_cu.slice(points));
-          }
-        });
-  }
-
-  /**
-   * Use neighboring curves to determine the shape.
-   */
-  void initialize_position_with_interpolation(const AddedPoints &added_points,
-                                              const Span<NeighborsVector> neighbors_per_curve,
-                                              const Span<float3> new_normals_su,
-                                              const Span<float> new_lengths_cu)
-  {
-    MutableSpan<float3> positions_cu = curves_->positions_for_write();
-
-    threading::parallel_for(
-        added_points.bary_coords.index_range(), 256, [&](const IndexRange range) {
-          for (const int i : range) {
-            const Span<NeighborInfo> neighbors = neighbors_per_curve[i];
-            const IndexRange points = curves_->points_for_curve(tot_old_curves_ + i);
-
-            const float length_cu = new_lengths_cu[i];
-            const float3 &normal_su = new_normals_su[i];
-            const float3 normal_cu = math::normalize(surface_to_curves_normal_mat_ * normal_su);
-
-            const float3 &root_cu = added_points.positions_cu[i];
-
-            if (neighbors.is_empty()) {
-              /* If there are no neighbors, just make a straight line. */
-              const float3 tip_cu = root_cu + length_cu * normal_cu;
-              initialize_straight_curve_positions(root_cu, tip_cu, positions_cu.slice(points));
-              continue;
-            }
-
-            positions_cu.slice(points).fill(root_cu);
-
-            for (const NeighborInfo &neighbor : neighbors) {
-              const int neighbor_curve_i = neighbor.index;
-              const float3 &neighbor_first_pos_cu =
-                  positions_cu[curves_->offsets()[neighbor_curve_i]];
-              const float3 neighbor_first_pos_su = curves_to_surface_mat_ * neighbor_first_pos_cu;
-
-              BVHTreeNearest nearest;
-              nearest.dist_sq = FLT_MAX;
-              BLI_bvhtree_find_nearest(surface_bvh_.tree,
-                                       neighbor_first_pos_su,
-                                       &nearest,
-                                       surface_bvh_.nearest_callback,
-                                       &surface_bvh_);
-              const int neighbor_looptri_index = nearest.index;
-              const MLoopTri &neighbor_looptri = surface_looptris_[neighbor_looptri_index];
-
-              const float3 neighbor_bary_coord = compute_bary_coord_in_triangle(
-                  *surface_, neighbor_looptri, nearest.co);
-
-              const float3 neighbor_normal_su = compute_surface_point_normal(
-                  surface_looptris_[neighbor_looptri_index],
-                  neighbor_bary_coord,
-                  corner_normals_su_);
-              const float3 neighbor_normal_cu = math::normalize(surface_to_curves_normal_mat_ *
-                                                                neighbor_normal_su);
-
-              /* The rotation matrix used to transform relative coordinates of the neighbor curve
-               * to the new curve. */
-              float normal_rotation_cu[3][3];
-              rotation_between_vecs_to_mat3(normal_rotation_cu, neighbor_normal_cu, normal_cu);
-
-              const IndexRange neighbor_points = curves_->points_for_curve(neighbor_curve_i);
-              const float3 &neighbor_root_cu = positions_cu[neighbor_points[0]];
-
-              /* Use a temporary #PolySpline, because that's the easiest way to resample an
-               * existing curve right now. Resampling is necessary if the length of the new curve
-               * does not match the length of the neighbors or the number of handle points is
-               * different. */
-              PolySpline neighbor_spline;
-              neighbor_spline.resize(neighbor_points.size());
-              neighbor_spline.positions().copy_from(positions_cu.slice(neighbor_points));
-              neighbor_spline.mark_cache_invalid();
-
-              const float neighbor_length_cu = neighbor_spline.length();
-              const float length_factor = std::min(1.0f, length_cu / neighbor_length_cu);
-
-              const float resample_factor = (1.0f / (points.size() - 1.0f)) * length_factor;
-              for (const int j : IndexRange(points.size())) {
-                const Spline::LookupResult lookup = neighbor_spline.lookup_evaluated_factor(
-                    j * resample_factor);
-                const float index_factor = lookup.evaluated_index + lookup.factor;
-                float3 p;
-                neighbor_spline.sample_with_index_factors<float3>(
-                    neighbor_spline.positions(), {&index_factor, 1}, {&p, 1});
-                const float3 relative_coord = p - neighbor_root_cu;
-                float3 rotated_relative_coord = relative_coord;
-                mul_m3_v3(normal_rotation_cu, rotated_relative_coord);
-                positions_cu[points[j]] += neighbor.weight * rotated_relative_coord;
-              }
-            }
-          }
-        });
   }
 };
 
