@@ -38,6 +38,10 @@ namespace draco {
 PredictionSchemeMethod SelectPredictionMethod(int att_id,
                                               const PointCloudEncoder *encoder);
 
+PredictionSchemeMethod SelectPredictionMethod(int att_id,
+                                              const EncoderOptions &options,
+                                              const PointCloudEncoder *encoder);
+
 // Factory class for creating mesh prediction schemes.
 template <typename DataTypeT>
 struct MeshPredictionSchemeEncoderFactory {

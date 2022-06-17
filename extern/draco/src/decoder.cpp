@@ -17,7 +17,6 @@
  * @date   2020-11-18
  */
 
-
 #include "decoder.h"
 
 #include <memory>
@@ -30,7 +29,8 @@
 
 #define LOG_PREFIX "DracoDecoder | "
 
-struct Decoder {
+struct Decoder
+{
     std::unique_ptr<draco::Mesh> mesh;
     std::vector<uint8_t> indexBuffer;
     std::map<uint32_t, std::vector<uint8_t>> buffers;
@@ -54,20 +54,20 @@ bool decoderDecode(Decoder *decoder, void *data, size_t byteLength)
     draco::Decoder dracoDecoder;
     draco::DecoderBuffer dracoDecoderBuffer;
     dracoDecoderBuffer.Init(reinterpret_cast<char *>(data), byteLength);
-    
+
     auto decoderStatus = dracoDecoder.DecodeMeshFromBuffer(&dracoDecoderBuffer);
     if (!decoderStatus.ok())
     {
         printf(LOG_PREFIX "Error during Draco decoding: %s\n", decoderStatus.status().error_msg());
         return false;
     }
-    
+
     decoder->mesh = std::move(decoderStatus).value();
     decoder->vertexCount = decoder->mesh->num_points();
     decoder->indexCount = decoder->mesh->num_faces() * 3;
-    
+
     printf(LOG_PREFIX "Decoded %" PRIu32 " vertices, %" PRIu32 " indices\n", decoder->vertexCount, decoder->indexCount);
-    
+
     return true;
 }
 
@@ -83,32 +83,32 @@ uint32_t decoderGetIndexCount(Decoder *decoder)
 
 bool decoderAttributeIsNormalized(Decoder *decoder, uint32_t id)
 {
-    const draco::PointAttribute* attribute = decoder->mesh->GetAttributeByUniqueId(id);
+    const draco::PointAttribute *attribute = decoder->mesh->GetAttributeByUniqueId(id);
     return attribute != nullptr && attribute->normalized();
 }
 
 bool decoderReadAttribute(Decoder *decoder, uint32_t id, size_t componentType, char *dataType)
 {
-    const draco::PointAttribute* attribute = decoder->mesh->GetAttributeByUniqueId(id);
-    
+    const draco::PointAttribute *attribute = decoder->mesh->GetAttributeByUniqueId(id);
+
     if (attribute == nullptr)
     {
         printf(LOG_PREFIX "Attribute with id=%" PRIu32 " does not exist in Draco data\n", id);
         return false;
     }
-    
+
     size_t stride = getAttributeStride(componentType, dataType);
-    
+
     std::vector<uint8_t> decodedData;
     decodedData.resize(stride * decoder->vertexCount);
-    
+
     for (uint32_t i = 0; i < decoder->vertexCount; ++i)
     {
         auto index = attribute->mapped_index(draco::PointIndex(i));
         uint8_t *value = decodedData.data() + i * stride;
-        
+
         bool converted = false;
-        
+
         switch (componentType)
         {
         case ComponentType::Byte:
@@ -139,7 +139,7 @@ bool decoderReadAttribute(Decoder *decoder, uint32_t id, size_t componentType, c
             return false;
         }
     }
-    
+
     decoder->buffers[id] = decodedData;
     return true;
 }
@@ -166,13 +166,13 @@ void decoderCopyAttribute(Decoder *decoder, size_t id, void *output)
     }
 }
 
-template<class T>
+template <class T>
 void decodeIndices(Decoder *decoder)
 {
     std::vector<uint8_t> decodedIndices;
     decodedIndices.resize(decoder->indexCount * sizeof(T));
     T *typedView = reinterpret_cast<T *>(decodedIndices.data());
-    
+
     for (uint32_t faceIndex = 0; faceIndex < decoder->mesh->num_faces(); ++faceIndex)
     {
         const draco::Mesh::Face &face = decoder->mesh->face(draco::FaceIndex(faceIndex));
@@ -180,7 +180,7 @@ void decodeIndices(Decoder *decoder)
         typedView[faceIndex * 3 + 1] = face[1].value();
         typedView[faceIndex * 3 + 2] = face[2].value();
     }
-    
+
     decoder->indexBuffer = decodedIndices;
 }
 
@@ -188,26 +188,26 @@ bool decoderReadIndices(Decoder *decoder, size_t indexComponentType)
 {
     switch (indexComponentType)
     {
-        case ComponentType::Byte:
-            decodeIndices<int8_t>(decoder);
-            break;
-        case ComponentType::UnsignedByte:
-            decodeIndices<uint8_t>(decoder);
-            break;
-        case ComponentType::Short:
-            decodeIndices<int16_t>(decoder);
-            break;
-        case ComponentType::UnsignedShort:
-            decodeIndices<uint16_t>(decoder);
-            break;
-        case ComponentType::UnsignedInt:
-            decodeIndices<uint32_t>(decoder);
-            break;
-        default:
-            printf(LOG_PREFIX "Index component type %zu not supported\n", indexComponentType);
-            return false;
+    case ComponentType::Byte:
+        decodeIndices<int8_t>(decoder);
+        break;
+    case ComponentType::UnsignedByte:
+        decodeIndices<uint8_t>(decoder);
+        break;
+    case ComponentType::Short:
+        decodeIndices<int16_t>(decoder);
+        break;
+    case ComponentType::UnsignedShort:
+        decodeIndices<uint16_t>(decoder);
+        break;
+    case ComponentType::UnsignedInt:
+        decodeIndices<uint32_t>(decoder);
+        break;
+    default:
+        printf(LOG_PREFIX "Index component type %zu not supported\n", indexComponentType);
+        return false;
     }
-    
+
     return true;
 }
 
