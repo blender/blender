@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline uint subd_triangle_patch(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
-  return (sd->prim != PRIM_NONE) ? kernel_tex_fetch(__tri_patch, sd->prim) : ~0;
+  return (sd->prim != PRIM_NONE) ? kernel_data_fetch(tri_patch, sd->prim) : ~0;
 }
 
 ccl_device_inline uint attribute_primitive_type(KernelGlobals kg, ccl_private const ShaderData *sd)
@@ -42,7 +42,7 @@ ccl_device_inline AttributeDescriptor attribute_not_found()
 
 ccl_device_inline uint object_attribute_map_offset(KernelGlobals kg, int object)
 {
-  return kernel_tex_fetch(__objects, object).attribute_map_offset;
+  return kernel_data_fetch(objects, object).attribute_map_offset;
 }
 
 ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
@@ -56,7 +56,7 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
   /* for SVM, find attribute by unique id */
   uint attr_offset = object_attribute_map_offset(kg, sd->object);
   attr_offset += attribute_primitive_type(kg, sd);
-  AttributeMap attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+  AttributeMap attr_map = kernel_data_fetch(attributes_map, attr_offset);
 
   while (attr_map.id != id) {
     if (UNLIKELY(attr_map.id == ATTR_STD_NONE)) {
@@ -71,7 +71,7 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
     else {
       attr_offset += ATTR_PRIM_TYPES;
     }
-    attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+    attr_map = kernel_data_fetch(attributes_map, attr_offset);
   }
 
   AttributeDescriptor desc;
@@ -99,9 +99,9 @@ ccl_device Transform primitive_attribute_matrix(KernelGlobals kg,
 {
   Transform tfm;
 
-  tfm.x = kernel_tex_fetch(__attributes_float4, desc.offset + 0);
-  tfm.y = kernel_tex_fetch(__attributes_float4, desc.offset + 1);
-  tfm.z = kernel_tex_fetch(__attributes_float4, desc.offset + 2);
+  tfm.x = kernel_data_fetch(attributes_float4, desc.offset + 0);
+  tfm.y = kernel_data_fetch(attributes_float4, desc.offset + 1);
+  tfm.z = kernel_data_fetch(attributes_float4, desc.offset + 2);
 
   return tfm;
 }

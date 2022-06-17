@@ -141,7 +141,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   {
     if (ls.lamp != LAMP_NONE) {
       /* Is this a caustic light? */
-      const bool use_caustics = kernel_tex_fetch(__lights, ls.lamp).use_caustics;
+      const bool use_caustics = kernel_data_fetch(lights, ls.lamp).use_caustics;
       if (use_caustics) {
         /* Are we on a caustic caster? */
         if (is_transmission && (sd->object_flag & SD_OBJECT_CAUSTICS_CASTER))

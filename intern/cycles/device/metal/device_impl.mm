@@ -35,7 +35,7 @@ void MetalDevice::set_error(const string &error)
 }
 
 MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
-    : Device(info, stats, profiler), texture_info(this, "__texture_info", MEM_GLOBAL)
+    : Device(info, stats, profiler), texture_info(this, "texture_info", MEM_GLOBAL)
 {
   mtlDevId = info.num;
 
@@ -625,7 +625,7 @@ device_ptr MetalDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, siz
 
 void MetalDevice::const_copy_to(const char *name, void *host, size_t size)
 {
-  if (strcmp(name, "__data") == 0) {
+  if (strcmp(name, "data") == 0) {
     assert(size == sizeof(KernelData));
     memcpy((uint8_t *)&launch_params + offsetof(KernelParamsMetal, data), host, size);
     return;
@@ -646,19 +646,19 @@ void MetalDevice::const_copy_to(const char *name, void *host, size_t size)
       };
 
   /* Update data storage pointers in launch parameters. */
-  if (strcmp(name, "__integrator_state") == 0) {
+  if (strcmp(name, "integrator_state") == 0) {
     /* IntegratorStateGPU is contiguous pointers */
     const size_t pointer_block_size = sizeof(IntegratorStateGPU);
     update_launch_pointers(
-        offsetof(KernelParamsMetal, __integrator_state), host, size, pointer_block_size);
+        offsetof(KernelParamsMetal, integrator_state), host, size, pointer_block_size);
   }
-#  define KERNEL_TEX(data_type, tex_name) \
+#  define KERNEL_DATA_ARRAY(data_type, tex_name) \
     else if (strcmp(name, #tex_name) == 0) \
     { \
       update_launch_pointers(offsetof(KernelParamsMetal, tex_name), host, size, size); \
     }
-#  include "kernel/textures.h"
-#  undef KERNEL_TEX
+#  include "kernel/data_arrays.h"
+#  undef KERNEL_DATA_ARRAY
 }
 
 void MetalDevice::global_alloc(device_memory &mem)

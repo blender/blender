@@ -32,7 +32,7 @@ ccl_device uint sobol_dimension(KernelGlobals kg, int index, int dimension)
   uint i = index + SOBOL_SKIP;
   for (int j = 0, x; (x = find_first_set(i)); i >>= x) {
     j += x;
-    result ^= __float_as_uint(kernel_tex_fetch(__sample_pattern_lut, 32 * dimension + j - 1));
+    result ^= __float_as_uint(kernel_data_fetch(sample_pattern_lut, 32 * dimension + j - 1));
   }
   return result;
 }

@@ -250,7 +250,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
         *isect = current_isect;
         /* Only primitives from volume object. */
         uint tri_object = isect->object;
-        int object_flag = kernel_tex_fetch(__object_flag, tri_object);
+        int object_flag = kernel_data_fetch(object_flag, tri_object);
         if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
           --ctx->num_hits;
         }

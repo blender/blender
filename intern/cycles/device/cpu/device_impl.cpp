@@ -51,7 +51,7 @@
 CCL_NAMESPACE_BEGIN
 
 CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_)
-    : Device(info_, stats_, profiler_), texture_info(this, "__texture_info", MEM_GLOBAL)
+    : Device(info_, stats_, profiler_), texture_info(this, "texture_info", MEM_GLOBAL)
 {
   /* Pick any kernel, all of them are supposed to have same level of microarchitecture
    * optimization. */
@@ -192,7 +192,7 @@ device_ptr CPUDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_
 void CPUDevice::const_copy_to(const char *name, void *host, size_t size)
 {
 #ifdef WITH_EMBREE
-  if (strcmp(name, "__data") == 0) {
+  if (strcmp(name, "data") == 0) {
     assert(size <= sizeof(KernelData));
 
     // Update scene handle (since it is different for each device on multi devices)

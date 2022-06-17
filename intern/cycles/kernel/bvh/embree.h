@@ -146,14 +146,14 @@ ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
 
   const bool is_hair = hit->geomID & 1;
   if (is_hair) {
-    const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, isect->prim);
+    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, isect->prim);
     isect->type = segment.type;
     isect->prim = segment.prim;
     isect->u = hit->u;
     isect->v = hit->v;
   }
   else {
-    isect->type = kernel_tex_fetch(__objects, isect->object).primitive_type;
+    isect->type = kernel_data_fetch(objects, isect->object).primitive_type;
     isect->u = 1.0f - hit->v - hit->u;
     isect->v = hit->u;
   }
@@ -170,7 +170,7 @@ ccl_device_inline void kernel_embree_convert_sss_hit(
   isect->prim = hit->primID +
                 (intptr_t)rtcGetGeometryUserData(rtcGetGeometry(inst_scene, hit->geomID));
   isect->object = object;
-  isect->type = kernel_tex_fetch(__objects, object).primitive_type;
+  isect->type = kernel_data_fetch(objects, object).primitive_type;
 }
 
 CCL_NAMESPACE_END

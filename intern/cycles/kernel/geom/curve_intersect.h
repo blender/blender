@@ -624,7 +624,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
 {
   const bool is_motion = (type & PRIMITIVE_MOTION);
 
-  KernelCurve kcurve = kernel_tex_fetch(__curves, prim);
+  KernelCurve kcurve = kernel_data_fetch(curves, prim);
 
   int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(type);
   int k1 = k0 + 1;
@@ -633,10 +633,10 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
 
   float4 curve[4];
   if (!is_motion) {
-    curve[0] = kernel_tex_fetch(__curve_keys, ka);
-    curve[1] = kernel_tex_fetch(__curve_keys, k0);
-    curve[2] = kernel_tex_fetch(__curve_keys, k1);
-    curve[3] = kernel_tex_fetch(__curve_keys, kb);
+    curve[0] = kernel_data_fetch(curve_keys, ka);
+    curve[1] = kernel_data_fetch(curve_keys, k0);
+    curve[2] = kernel_data_fetch(curve_keys, k1);
+    curve[3] = kernel_data_fetch(curve_keys, kb);
   }
   else {
     motion_curve_keys(kg, object, prim, time, ka, k0, k1, kb, curve);
@@ -682,7 +682,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
     D = safe_normalize_len(D, &t);
   }
 
-  KernelCurve kcurve = kernel_tex_fetch(__curves, isect_prim);
+  KernelCurve kcurve = kernel_data_fetch(curves, isect_prim);
 
   int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
   int k1 = k0 + 1;
@@ -692,10 +692,10 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
   float4 P_curve[4];
 
   if (!(sd->type & PRIMITIVE_MOTION)) {
-    P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
-    P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
-    P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
-    P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
+    P_curve[0] = kernel_data_fetch(curve_keys, ka);
+    P_curve[1] = kernel_data_fetch(curve_keys, k0);
+    P_curve[2] = kernel_data_fetch(curve_keys, k1);
+    P_curve[3] = kernel_data_fetch(curve_keys, kb);
   }
   else {
     motion_curve_keys(kg, sd->object, sd->prim, sd->time, ka, k0, k1, kb, P_curve);
@@ -750,7 +750,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
   sd->P = P;
   sd->Ng = (sd->type & PRIMITIVE_CURVE_RIBBON) ? sd->I : sd->N;
   sd->dPdv = cross(sd->dPdu, sd->Ng);
-  sd->shader = kernel_tex_fetch(__curves, sd->prim).shader_id;
+  sd->shader = kernel_data_fetch(curves, sd->prim).shader_id;
 }
 
 #endif

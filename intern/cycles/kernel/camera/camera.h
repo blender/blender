@@ -90,7 +90,7 @@ ccl_device void camera_sample_perspective(KernelGlobals kg,
 #ifdef __CAMERA_MOTION__
   if (kernel_data.cam.num_motion_steps) {
     transform_motion_array_interpolate(&cameratoworld,
-                                       kernel_tex_array(__camera_motion),
+                                       kernel_data_array(camera_motion),
                                        kernel_data.cam.num_motion_steps,
                                        ray->time);
   }
@@ -210,7 +210,7 @@ ccl_device void camera_sample_orthographic(KernelGlobals kg,
 #ifdef __CAMERA_MOTION__
   if (kernel_data.cam.num_motion_steps) {
     transform_motion_array_interpolate(&cameratoworld,
-                                       kernel_tex_array(__camera_motion),
+                                       kernel_data_array(camera_motion),
                                        kernel_data.cam.num_motion_steps,
                                        ray->time);
   }
@@ -421,7 +421,7 @@ ccl_device_inline void camera_sample(KernelGlobals kg,
   }
   else {
 #ifdef __CAMERA_MOTION__
-    ccl_global const DecomposedTransform *cam_motion = kernel_tex_array(__camera_motion);
+    ccl_global const DecomposedTransform *cam_motion = kernel_data_array(camera_motion);
     camera_sample_panorama(&kernel_data.cam, cam_motion, raster_x, raster_y, lens_u, lens_v, ray);
 #else
     camera_sample_panorama(&kernel_data.cam, raster_x, raster_y, lens_u, lens_v, ray);

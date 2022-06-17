@@ -31,7 +31,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
                                                       bool is_local)
 {
   /* Get shader. */
-  sd->shader = kernel_tex_fetch(__tri_shader, sd->prim);
+  sd->shader = kernel_data_fetch(tri_shader, sd->prim);
   /* Get motion info. */
   /* TODO(sergey): This logic is really similar to motion_triangle_vertices(),
    * can we de-duplicate something here?
@@ -47,7 +47,7 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg,
   kernel_assert(offset != ATTR_STD_NOT_FOUND);
   /* Fetch vertex coordinates. */
   float3 verts[3], next_verts[3];
-  uint4 tri_vindex = kernel_tex_fetch(__tri_vindex, sd->prim);
+  uint4 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step, verts);
   motion_triangle_verts_for_step(kg, tri_vindex, offset, numverts, numsteps, step + 1, next_verts);
   /* Interpolate between steps. */

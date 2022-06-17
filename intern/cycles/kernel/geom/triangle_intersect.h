@@ -23,17 +23,17 @@ ccl_device_inline bool triangle_intersect(KernelGlobals kg,
                                           int prim,
                                           int prim_addr)
 {
-  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
-  const float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
-               tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
-               tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
+  const uint tri_vindex = kernel_data_fetch(tri_vindex, prim).w;
+  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0),
+               tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1),
+               tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
   float t, u, v;
   if (ray_triangle_intersect(P, dir, tmax, tri_a, tri_b, tri_c, &u, &v, &t)) {
 #ifdef __VISIBILITY_FLAG__
     /* Visibility flag test. we do it here under the assumption
      * that most triangles are culled by node flags.
      */
-    if (kernel_tex_fetch(__prim_visibility, prim_addr) & visibility)
+    if (kernel_data_fetch(prim_visibility, prim_addr) & visibility)
 #endif
     {
       isect->object = object;
@@ -66,10 +66,10 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
                                                 ccl_private uint *lcg_state,
                                                 int max_hits)
 {
-  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
-  const float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
-               tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
-               tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
+  const uint tri_vindex = kernel_data_fetch(tri_vindex, prim).w;
+  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0),
+               tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1),
+               tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
   float t, u, v;
   if (!ray_triangle_intersect(P, dir, tmax, tri_a, tri_b, tri_c, &u, &v, &t)) {
     return false;
@@ -139,10 +139,10 @@ ccl_device_inline float3 triangle_point_from_uv(KernelGlobals kg,
                                                 const float u,
                                                 const float v)
 {
-  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, isect_prim).w;
-  const packed_float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0),
-                      tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1),
-                      tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
+  const uint tri_vindex = kernel_data_fetch(tri_vindex, isect_prim).w;
+  const packed_float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0),
+                      tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1),
+                      tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
   float w = 1.0f - u - v;
 
   float3 P = u * tri_a + v * tri_b + w * tri_c;

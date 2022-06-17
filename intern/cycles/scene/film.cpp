@@ -152,7 +152,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
   KernelFilm *kfilm = &dscene->data.film;
 
-  /* update __data */
+  /* update data */
   kfilm->exposure = exposure;
   kfilm->pass_alpha_threshold = pass_alpha_threshold;
   kfilm->pass_flag = 0;

@@ -222,7 +222,7 @@ ccl_device float3 svm_bevel(
       /* Get geometric normal. */
       float3 hit_Ng = isect.Ng[hit];
       int object = isect.hits[hit].object;
-      int object_flag = kernel_tex_fetch(__object_flag, object);
+      int object_flag = kernel_data_fetch(object_flag, object);
       if (object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
         hit_Ng = -hit_Ng;
       }
@@ -230,7 +230,7 @@ ccl_device float3 svm_bevel(
       /* Compute smooth normal. */
       float3 N = hit_Ng;
       int prim = isect.hits[hit].prim;
-      int shader = kernel_tex_fetch(__tri_shader, prim);
+      int shader = kernel_data_fetch(tri_shader, prim);
 
       if (shader & SHADER_SMOOTH_NORMAL) {
         float u = isect.hits[hit].u;

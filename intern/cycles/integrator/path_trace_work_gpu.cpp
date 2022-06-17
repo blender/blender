@@ -239,7 +239,7 @@ void PathTraceWorkGPU::init_execution()
 
   /* Copy to device side struct in constant memory. */
   device_->const_copy_to(
-      "__integrator_state", &integrator_state_gpu_, sizeof(integrator_state_gpu_));
+      "integrator_state", &integrator_state_gpu_, sizeof(integrator_state_gpu_));
 }
 
 void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,

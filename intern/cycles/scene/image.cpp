@@ -697,7 +697,7 @@ void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Pro
   ImageDataType type = img->metadata.type;
 
   /* Name for debugging. */
-  img->mem_name = string_printf("__tex_image_%s_%03d", name_from_type(type), slot);
+  img->mem_name = string_printf("tex_image_%s_%03d", name_from_type(type), slot);
 
   /* Free previous texture in slot. */
   if (img->mem) {

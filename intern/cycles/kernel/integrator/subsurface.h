@@ -147,7 +147,7 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   /* Update volume stack if needed. */
   if (kernel_data.integrator.use_volumes) {
     const int object = ss_isect.hits[0].object;
-    const int object_flag = kernel_tex_fetch(__object_flag, object);
+    const int object_flag = kernel_data_fetch(object_flag, object);
 
     if (object_flag & SD_OBJECT_INTERSECTS_VOLUME) {
       float3 P = INTEGRATOR_STATE(state, ray, P);
@@ -170,7 +170,7 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   INTEGRATOR_STATE_WRITE(state, path, rng_offset) += PRNG_BOUNCE_NUM;
 
   const int shader = intersection_get_shader(kg, &ss_isect.hits[0]);
-  const int shader_flags = kernel_tex_fetch(__shaders, shader).flags;
+  const int shader_flags = kernel_data_fetch(shaders, shader).flags;
   const int object_flags = intersection_get_object_flags(kg, &ss_isect.hits[0]);
   const bool use_caustics = kernel_data.integrator.use_caustics &&
                             (object_flags & SD_OBJECT_CAUSTICS);

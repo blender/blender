@@ -15,11 +15,11 @@ ccl_device float lookup_table_read(KernelGlobals kg, float x, int offset, int si
   int nindex = min(index + 1, size - 1);
   float t = x - index;
 
-  float data0 = kernel_tex_fetch(__lookup_table, index + offset);
+  float data0 = kernel_data_fetch(lookup_table, index + offset);
   if (t == 0.0f)
     return data0;
 
-  float data1 = kernel_tex_fetch(__lookup_table, nindex + offset);
+  float data1 = kernel_data_fetch(lookup_table, nindex + offset);
   return (1.0f - t) * data0 + t * data1;
 }
 

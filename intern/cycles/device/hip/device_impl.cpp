@@ -24,6 +24,8 @@
 #  include "util/types.h"
 #  include "util/windows.h"
 
+#  include "kernel/device/hip/globals.h"
+
 CCL_NAMESPACE_BEGIN
 
 class HIPDevice;
@@ -52,7 +54,7 @@ void HIPDevice::set_error(const string &error)
 }
 
 HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
-    : Device(info, stats, profiler), texture_info(this, "__texture_info", MEM_GLOBAL)
+    : Device(info, stats, profiler), texture_info(this, "texture_info", MEM_GLOBAL)
 {
   first_error = true;
 
@@ -856,8 +858,19 @@ void HIPDevice::const_copy_to(const char *name, void *host, size_t size)
   hipDeviceptr_t mem;
   size_t bytes;
 
-  hip_assert(hipModuleGetGlobal(&mem, &bytes, hipModule, name));
-  hip_assert(hipMemcpyHtoD(mem, host, size));
+  hip_assert(hipModuleGetGlobal(&mem, &bytes, hipModule, "kernel_params"));
+  assert(bytes == sizeof(KernelParamsHIP));
+
+  /* Update data storage pointers in launch parameters. */
+#  define KERNEL_DATA_ARRAY(data_type, data_name) \
+    if (strcmp(name, #data_name) == 0) { \
+      hip_assert(hipMemcpyHtoD(mem + offsetof(KernelParamsHIP, data_name), host, size)); \
+      return; \
+    }
+  KERNEL_DATA_ARRAY(KernelData, data)
+  KERNEL_DATA_ARRAY(IntegratorStateGPU, integrator_state)
+#  include "kernel/data_arrays.h"
+#  undef KERNEL_DATA_ARRAY
 }
 
 void HIPDevice::global_alloc(device_memory &mem)
@@ -881,7 +894,6 @@ void HIPDevice::tex_alloc(device_texture &mem)
 {
   HIPContextScope scope(this);
 
-  string bind_name = mem.name;
   size_t dsize = datatype_size(mem.data_type);
   size_t size = mem.memory_size();
 

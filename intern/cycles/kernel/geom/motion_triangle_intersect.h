@@ -63,7 +63,7 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals kg,
     /* Visibility flag test. we do it here under the assumption
      * that most triangles are culled by node flags.
      */
-    if (kernel_tex_fetch(__prim_visibility, prim_addr) & visibility)
+    if (kernel_data_fetch(prim_visibility, prim_addr) & visibility)
 #endif
     {
       isect->t = t;

@@ -528,12 +528,12 @@ ccl_device bool shader_constant_emission_eval(KernelGlobals kg,
                                               ccl_private float3 *eval)
 {
   int shader_index = shader & SHADER_MASK;
-  int shader_flag = kernel_tex_fetch(__shaders, shader_index).flags;
+  int shader_flag = kernel_data_fetch(shaders, shader_index).flags;
 
   if (shader_flag & SD_HAS_CONSTANT_EMISSION) {
-    *eval = make_float3(kernel_tex_fetch(__shaders, shader_index).constant_emission[0],
-                        kernel_tex_fetch(__shaders, shader_index).constant_emission[1],
-                        kernel_tex_fetch(__shaders, shader_index).constant_emission[2]);
+    *eval = make_float3(kernel_data_fetch(shaders, shader_index).constant_emission[0],
+                        kernel_data_fetch(shaders, shader_index).constant_emission[1],
+                        kernel_data_fetch(shaders, shader_index).constant_emission[2]);
 
     return true;
   }
@@ -821,11 +821,11 @@ ccl_device_inline void shader_eval_volume(KernelGlobals kg,
     sd->shader = entry.shader;
 
     sd->flag &= ~SD_SHADER_FLAGS;
-    sd->flag |= kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
+    sd->flag |= kernel_data_fetch(shaders, (sd->shader & SHADER_MASK)).flags;
     sd->object_flag &= ~SD_OBJECT_FLAGS;
 
     if (sd->object != OBJECT_NONE) {
-      sd->object_flag |= kernel_tex_fetch(__object_flag, sd->object);
+      sd->object_flag |= kernel_data_fetch(object_flag, sd->object);
 
 #  ifdef __OBJECT_MOTION__
       /* todo: this is inefficient for motion blur, we should be
@@ -837,7 +837,7 @@ ccl_device_inline void shader_eval_volume(KernelGlobals kg,
         kernel_assert(v_desc.offset != ATTR_STD_NOT_FOUND);
 
         const float3 P = sd->P;
-        const float velocity_scale = kernel_tex_fetch(__objects, sd->object).velocity_scale;
+        const float velocity_scale = kernel_data_fetch(objects, sd->object).velocity_scale;
         const float time_offset = kernel_data.cam.motion_position == MOTION_POSITION_CENTER ?
                                       0.5f :
                                       0.0f;
@@ -946,7 +946,7 @@ ccl_device void shader_eval_displacement(KernelGlobals kg,
 
 ccl_device float shader_cryptomatte_id(KernelGlobals kg, int shader)
 {
-  return kernel_tex_fetch(__shaders, (shader & SHADER_MASK)).cryptomatte_id;
+  return kernel_data_fetch(shaders, (shader & SHADER_MASK)).cryptomatte_id;
 }
 
 CCL_NAMESPACE_END

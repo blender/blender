@@ -9,9 +9,9 @@ ccl_device_forceinline Transform bvh_unaligned_node_fetch_space(KernelGlobals kg
 {
   Transform space;
   const int child_addr = node_addr + child * 3;
-  space.x = kernel_tex_fetch(__bvh_nodes, child_addr + 1);
-  space.y = kernel_tex_fetch(__bvh_nodes, child_addr + 2);
-  space.z = kernel_tex_fetch(__bvh_nodes, child_addr + 3);
+  space.x = kernel_data_fetch(bvh_nodes, child_addr + 1);
+  space.y = kernel_data_fetch(bvh_nodes, child_addr + 2);
+  space.z = kernel_data_fetch(bvh_nodes, child_addr + 3);
   return space;
 }
 
@@ -26,11 +26,11 @@ ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals kg,
 
   /* fetch node data */
 #ifdef __VISIBILITY_FLAG__
-  float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
+  float4 cnodes = kernel_data_fetch(bvh_nodes, node_addr + 0);
 #endif
-  float4 node0 = kernel_tex_fetch(__bvh_nodes, node_addr + 1);
-  float4 node1 = kernel_tex_fetch(__bvh_nodes, node_addr + 2);
-  float4 node2 = kernel_tex_fetch(__bvh_nodes, node_addr + 3);
+  float4 node0 = kernel_data_fetch(bvh_nodes, node_addr + 1);
+  float4 node1 = kernel_data_fetch(bvh_nodes, node_addr + 2);
+  float4 node2 = kernel_data_fetch(bvh_nodes, node_addr + 3);
 
   /* intersect ray against child nodes */
   float c0lox = (node0.x - P.x) * idir.x;
@@ -100,7 +100,7 @@ ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals kg,
 {
   int mask = 0;
 #ifdef __VISIBILITY_FLAG__
-  float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
+  float4 cnodes = kernel_data_fetch(bvh_nodes, node_addr + 0);
 #endif
   if (bvh_unaligned_node_intersect_child(kg, P, dir, t, node_addr, 0, &dist[0])) {
 #ifdef __VISIBILITY_FLAG__
@@ -130,7 +130,7 @@ ccl_device_forceinline int bvh_node_intersect(KernelGlobals kg,
                                               const uint visibility,
                                               float dist[2])
 {
-  float4 node = kernel_tex_fetch(__bvh_nodes, node_addr);
+  float4 node = kernel_data_fetch(bvh_nodes, node_addr);
   if (__float_as_uint(node.x) & PATH_RAY_NODE_UNALIGNED) {
     return bvh_unaligned_node_intersect(kg, P, dir, idir, t, node_addr, visibility, dist);
   }

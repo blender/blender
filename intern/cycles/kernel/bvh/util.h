@@ -53,20 +53,20 @@ ccl_device_forceinline int intersection_get_shader_flags(KernelGlobals kg,
   int shader = 0;
 
   if (type & PRIMITIVE_TRIANGLE) {
-    shader = kernel_tex_fetch(__tri_shader, prim);
+    shader = kernel_data_fetch(tri_shader, prim);
   }
 #ifdef __POINTCLOUD__
   else if (type & PRIMITIVE_POINT) {
-    shader = kernel_tex_fetch(__points_shader, prim);
+    shader = kernel_data_fetch(points_shader, prim);
   }
 #endif
 #ifdef __HAIR__
   else if (type & PRIMITIVE_CURVE) {
-    shader = kernel_tex_fetch(__curves, prim).shader_id;
+    shader = kernel_data_fetch(curves, prim).shader_id;
   }
 #endif
 
-  return kernel_tex_fetch(__shaders, (shader & SHADER_MASK)).flags;
+  return kernel_data_fetch(shaders, (shader & SHADER_MASK)).flags;
 }
 
 ccl_device_forceinline int intersection_get_shader_from_isect_prim(KernelGlobals kg,
@@ -76,16 +76,16 @@ ccl_device_forceinline int intersection_get_shader_from_isect_prim(KernelGlobals
   int shader = 0;
 
   if (isect_type & PRIMITIVE_TRIANGLE) {
-    shader = kernel_tex_fetch(__tri_shader, prim);
+    shader = kernel_data_fetch(tri_shader, prim);
   }
 #ifdef __POINTCLOUD__
   else if (isect_type & PRIMITIVE_POINT) {
-    shader = kernel_tex_fetch(__points_shader, prim);
+    shader = kernel_data_fetch(points_shader, prim);
   }
 #endif
 #ifdef __HAIR__
   else if (isect_type & PRIMITIVE_CURVE) {
-    shader = kernel_tex_fetch(__curves, prim).shader_id;
+    shader = kernel_data_fetch(curves, prim).shader_id;
   }
 #endif
 
@@ -101,7 +101,7 @@ ccl_device_forceinline int intersection_get_shader(
 ccl_device_forceinline int intersection_get_object_flags(
     KernelGlobals kg, ccl_private const Intersection *ccl_restrict isect)
 {
-  return kernel_tex_fetch(__object_flag, isect->object);
+  return kernel_data_fetch(object_flag, isect->object);
 }
 
 /* TODO: find a better (faster) solution for this. Maybe store offset per object for
@@ -110,8 +110,8 @@ ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
                                                   const int object,
                                                   const uint id)
 {
-  uint attr_offset = kernel_tex_fetch(__objects, object).attribute_map_offset;
-  AttributeMap attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+  uint attr_offset = kernel_data_fetch(objects, object).attribute_map_offset;
+  AttributeMap attr_map = kernel_data_fetch(attributes_map, attr_offset);
 
   while (attr_map.id != id) {
     if (UNLIKELY(attr_map.id == ATTR_STD_NONE)) {
@@ -126,7 +126,7 @@ ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
     else {
       attr_offset += ATTR_PRIM_TYPES;
     }
-    attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+    attr_map = kernel_data_fetch(attributes_map, attr_offset);
   }
 
   /* return result */
@@ -151,12 +151,12 @@ ccl_device_inline float intersection_curve_shadow_transparency(KernelGlobals kg,
   }
 
   /* Interpolate transparency between curve keys. */
-  const KernelCurve kcurve = kernel_tex_fetch(__curves, prim);
+  const KernelCurve kcurve = kernel_data_fetch(curves, prim);
   const int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(kcurve.type);
   const int k1 = k0 + 1;
 
-  const float f0 = kernel_tex_fetch(__attributes_float, offset + k0);
-  const float f1 = kernel_tex_fetch(__attributes_float, offset + k1);
+  const float f0 = kernel_data_fetch(attributes_float, offset + k0);
+  const float f1 = kernel_data_fetch(attributes_float, offset + k1);
 
   return (1.0f - u) * f0 + u * f1;
 }

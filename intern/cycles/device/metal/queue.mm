@@ -358,7 +358,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
 
   /* Prepare any non-pointer (i.e. plain-old-data) KernelParamsMetal data */
   /* The plain-old-data is contiguous, continuing to the end of KernelParamsMetal */
-  size_t plain_old_launch_data_offset = offsetof(KernelParamsMetal, __integrator_state) +
+  size_t plain_old_launch_data_offset = offsetof(KernelParamsMetal, integrator_state) +
                                         sizeof(IntegratorStateGPU);
   size_t plain_old_launch_data_size = sizeof(KernelParamsMetal) - plain_old_launch_data_offset;
   memcpy(init_arg_buffer + globals_offsets + plain_old_launch_data_offset,
@@ -415,7 +415,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
   }
 
   /* this relies on IntegratorStateGPU layout being contiguous device_ptrs  */
-  const size_t pointer_block_end = offsetof(KernelParamsMetal, __integrator_state) +
+  const size_t pointer_block_end = offsetof(KernelParamsMetal, integrator_state) +
                                    sizeof(IntegratorStateGPU);
   for (size_t offset = 0; offset < pointer_block_end; offset += sizeof(device_ptr)) {
     int pointer_index = int(offset / sizeof(device_ptr));

@@ -34,7 +34,7 @@ static void shade_background_pixels(Device *device,
                                     Progress &progress)
 {
   /* Needs to be up to data for attribute access. */
-  device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
+  device->const_copy_to("data", &dscene->data, sizeof(dscene->data));
 
   const int size = width * height;
   const int num_channels = 3;

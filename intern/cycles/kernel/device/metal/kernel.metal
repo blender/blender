@@ -59,7 +59,7 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
   TReturn result;
   
 #ifdef __BVH_LOCAL__
-  uint prim = primitive_id + kernel_tex_fetch(__object_prim_offset, object);
+  uint prim = primitive_id + kernel_data_fetch(object_prim_offset, object);
 
   if ((object != payload.local_object) || intersection_skip_self_local(payload.self, prim)) {
     /* Only intersect with matching object and skip self-intersecton. */
@@ -113,16 +113,16 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
   isect->t = ray_tmax;
   isect->prim = prim;
   isect->object = object;
-  isect->type = kernel_tex_fetch(__objects, object).primitive_type;
+  isect->type = kernel_data_fetch(objects, object).primitive_type;
 
   isect->u = 1.0f - barycentrics.y - barycentrics.x;
   isect->v = barycentrics.x;
 
   /* Record geometric normal */
-  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, isect->prim).w;
-  const float3 tri_a = float3(kernel_tex_fetch(__tri_verts, tri_vindex + 0));
-  const float3 tri_b = float3(kernel_tex_fetch(__tri_verts, tri_vindex + 1));
-  const float3 tri_c = float3(kernel_tex_fetch(__tri_verts, tri_vindex + 2));
+  const uint tri_vindex = kernel_data_fetch(tri_vindex, isect->prim).w;
+  const float3 tri_a = float3(kernel_data_fetch(tri_verts, tri_vindex + 0));
+  const float3 tri_b = float3(kernel_data_fetch(tri_verts, tri_vindex + 1));
+  const float3 tri_c = float3(kernel_data_fetch(tri_verts, tri_vindex + 2));
   payload.local_isect.Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
   /* Continue tracing (without this the trace call would return after the first hit) */
@@ -168,7 +168,7 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
 #ifdef __SHADOW_RECORD_ALL__
 #  ifdef __VISIBILITY_FLAG__
   const uint visibility = payload.visibility;
-  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
+  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     /* continue search */
     return true;
   }
@@ -184,14 +184,14 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
   if (intersection_type == METALRT_HIT_TRIANGLE) {
     u = 1.0f - barycentrics.y - barycentrics.x;
     v = barycentrics.x;
-    type = kernel_tex_fetch(__objects, object).primitive_type;
+    type = kernel_data_fetch(objects, object).primitive_type;
   }
 #  ifdef __HAIR__
   else {
     u = barycentrics.x;
     v = barycentrics.y;
     
-    const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, prim);
+    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
     type = segment.type;
     prim = segment.prim;
 
@@ -294,7 +294,7 @@ __anyhit__cycles_metalrt_shadow_all_hit_tri(constant KernelParamsMetal &launch_p
                                             float2 barycentrics [[barycentric_coord]],
                                             float ray_tmax [[distance]])
 {
-  uint prim = primitive_id + kernel_tex_fetch(__object_prim_offset, object);
+  uint prim = primitive_id + kernel_data_fetch(object_prim_offset, object);
 
   TriangleIntersectionResult result;
   result.continue_search = metalrt_shadow_all_hit<METALRT_HIT_TRIANGLE>(
@@ -337,7 +337,7 @@ inline TReturnType metalrt_visibility_test(constant KernelParamsMetal &launch_pa
 
   uint visibility = payload.visibility;
 #  ifdef __VISIBILITY_FLAG__
-  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
+  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     result.accept = false;
     result.continue_search = true;
     return result;
@@ -377,12 +377,12 @@ __anyhit__cycles_metalrt_visibility_test_tri(constant KernelParamsMetal &launch_
                                              unsigned int object [[user_instance_id]],
                                              unsigned int primitive_id [[primitive_id]])
 {
-  uint prim = primitive_id + kernel_tex_fetch(__object_prim_offset, object);
+  uint prim = primitive_id + kernel_data_fetch(object_prim_offset, object);
   TriangleIntersectionResult result = metalrt_visibility_test<TriangleIntersectionResult, METALRT_HIT_TRIANGLE>(
             launch_params_metal, payload, object, prim, 0.0f);
   if (result.accept) {
     payload.prim = prim;
-    payload.type = kernel_tex_fetch(__objects, object).primitive_type;
+    payload.type = kernel_data_fetch(objects, object).primitive_type;
   }
   return result;
 }
@@ -414,7 +414,7 @@ void metalrt_intersection_curve(constant KernelParamsMetal &launch_params_metal,
 {
 #  ifdef __VISIBILITY_FLAG__
   const uint visibility = payload.visibility;
-  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
+  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     return;
   }
 #  endif
@@ -495,8 +495,8 @@ __intersection__curve_ribbon(constant KernelParamsMetal &launch_params_metal [[b
                              const float3 ray_direction [[direction]],
                              const float ray_tmax [[max_distance]])
 {
-  uint prim = primitive_id + kernel_tex_fetch(__object_prim_offset, object);
-  const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, prim);
+  uint prim = primitive_id + kernel_data_fetch(object_prim_offset, object);
+  const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
 
   BoundingBoxIntersectionResult result;
   result.accept = false;
@@ -526,8 +526,8 @@ __intersection__curve_ribbon_shadow(constant KernelParamsMetal &launch_params_me
                                     const float3 ray_direction [[direction]],
                                     const float ray_tmax [[max_distance]])
 {
-  uint prim = primitive_id + kernel_tex_fetch(__object_prim_offset, object);
-  const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, prim);
+  uint prim = primitive_id + kernel_data_fetch(object_prim_offset, object);
+  const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
 
   BoundingBoxIntersectionResult result;
   result.accept = false;
@@ -557,8 +557,8 @@ __intersection__curve_all(constant KernelParamsMetal &launch_params_metal [[buff
                           const float3 ray_direction [[direction]],
                           const float ray_tmax [[max_distance]])
 {
-  uint prim = primitive_id + kernel_tex_fetch(__object_prim_offset, object);
-  const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, prim);
+  uint prim = primitive_id + kernel_data_fetch(object_prim_offset, object);
+  const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
     
   BoundingBoxIntersectionResult result;
   result.accept = false;
@@ -585,8 +585,8 @@ __intersection__curve_all_shadow(constant KernelParamsMetal &launch_params_metal
                                  const float3 ray_direction [[direction]],
                                  const float ray_tmax [[max_distance]])
 {
-  uint prim = primitive_id + kernel_tex_fetch(__object_prim_offset, object);
-  const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, prim);
+  uint prim = primitive_id + kernel_data_fetch(object_prim_offset, object);
+  const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
 
   BoundingBoxIntersectionResult result;
   result.accept = false;
@@ -620,7 +620,7 @@ void metalrt_intersection_point(constant KernelParamsMetal &launch_params_metal,
 {
 #  ifdef __VISIBILITY_FLAG__
   const uint visibility = payload.visibility;
-  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
+  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     return;
   }
 #  endif
@@ -701,8 +701,8 @@ __intersection__point(constant KernelParamsMetal &launch_params_metal [[buffer(1
                              const float3 ray_direction [[direction]],
                              const float ray_tmax [[max_distance]])
 {
-  const uint prim = primitive_id + kernel_tex_fetch(__object_prim_offset, object);
-  const int type = kernel_tex_fetch(__objects, object).primitive_type;
+  const uint prim = primitive_id + kernel_data_fetch(object_prim_offset, object);
+  const int type = kernel_data_fetch(objects, object).primitive_type;
 
   BoundingBoxIntersectionResult result;
   result.accept = false;
@@ -730,8 +730,8 @@ __intersection__point_shadow(constant KernelParamsMetal &launch_params_metal [[b
                                     const float3 ray_direction [[direction]],
                                     const float ray_tmax [[max_distance]])
 {
-  const uint prim = primitive_id + kernel_tex_fetch(__object_prim_offset, object);
-  const int type = kernel_tex_fetch(__objects, object).primitive_type;
+  const uint prim = primitive_id + kernel_data_fetch(object_prim_offset, object);
+  const int type = kernel_data_fetch(objects, object).primitive_type;
 
   BoundingBoxIntersectionResult result;
   result.accept = false;

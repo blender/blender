@@ -160,7 +160,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
   int shader;
   triangle_point_normal(kg, object, prim, u, v, &P, &Ng, &shader);
 
-  const int object_flag = kernel_tex_fetch(__object_flag, object);
+  const int object_flag = kernel_data_fetch(object_flag, object);
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
     P = transform_point_auto(&tfm, P);
@@ -193,7 +193,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     }
 
     const int shader_index = shader & SHADER_MASK;
-    const int shader_flags = kernel_tex_fetch(__shaders, shader_index).flags;
+    const int shader_flags = kernel_data_fetch(shaders, shader_index).flags;
 
     /* Fast path for position and normal passes not affected by shaders. */
     if (kernel_data.film.pass_position != PASS_UNUSED) {
