@@ -25,11 +25,14 @@ set(LLVM_EXTRA_ARGS
   -DLLVM_BUILD_LLVM_C_DYLIB=OFF
   -DLLVM_ENABLE_UNWIND_TABLES=OFF
   -DLLVM_ENABLE_PROJECTS=clang${LLVM_BUILD_CLANG_TOOLS_EXTRA}
+  -DPython3_ROOT_DIR=${LIBDIR}/python/
+  -DPython3_EXECUTABLE=${PYTHON_BINARY}
   ${LLVM_XML2_ARGS}
 )
 
 if(WIN32)
   set(LLVM_GENERATOR "Ninja")
+  list(APPEND LLVM_EXTRA_ARGS -DPython3_FIND_REGISTRY=NEVER)
 else()
   set(LLVM_GENERATOR "Unix Makefiles")
 endif()
@@ -74,3 +77,9 @@ if(APPLE)
     external_xml2
   )
 endif()
+
+add_dependencies(
+  ll
+  external_python
+)
+
