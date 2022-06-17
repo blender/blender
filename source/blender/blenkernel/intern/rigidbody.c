@@ -2254,11 +2254,11 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
   /* RB_TODO deal with interpolated, old and baked results */
   bool can_simulate = (ctime == rbw->ltime + 1) && !(cache->flag & PTCACHE_BAKED);
 
-  if (BKE_ptcache_read(&pid, ctime, can_simulate) == PTCACHE_READ_EXACT) {
-    BKE_ptcache_validate(cache, (int)ctime);
-    rbw->ltime = ctime;
-    return;
-  }
+  //if (BKE_ptcache_read(&pid, ctime, can_simulate) == PTCACHE_READ_EXACT) {
+  //  BKE_ptcache_validate(cache, (int)ctime);
+  //  rbw->ltime = ctime;
+  //  return;
+  //}
 
   if (!DEG_is_active(depsgraph)) {
     /* When the depsgraph is inactive we should neither write to the cache

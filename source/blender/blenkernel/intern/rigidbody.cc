@@ -75,14 +75,14 @@ void BKE_rigidbody_update_simulation_nodes(Scene *scene,
                                        ->attribute_try_get_for_read(
                                            rot_attribute_name, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3)
                                        .typed<float3>();
-    if (id_attribute) {
+    if (id_attribute && pos_attribute) {
       BLI_assert(id_attribute.size() == component->attribute_domain_num(ATTR_DOMAIN_POINT));
       BLI_assert(pos_attribute.size() == component->attribute_domain_num(ATTR_DOMAIN_POINT));
-      BLI_assert(rot_attribute.size() == component->attribute_domain_num(ATTR_DOMAIN_POINT));
+      //BLI_assert(rot_attribute.size() == component->attribute_domain_num(ATTR_DOMAIN_POINT));
       for (int i : id_attribute.index_range()) {
         int uid = id_attribute[i];
         const float3 &pos = pos_attribute[i];
-        const float3 &rot_eul = rot_attribute[i];
+        const float3 &rot_eul = rot_attribute ? rot_attribute[i] : float3(0, 0, 0);
         float rot_qt[4];
         eul_to_quat(rot_qt, rot_eul);
 
