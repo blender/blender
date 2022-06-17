@@ -97,14 +97,7 @@ struct AddOperationExecutor {
   float brush_radius_re_;
   float2 brush_pos_re_;
 
-  /** Various matrices to convert between coordinate spaces. */
-  float4x4 curves_to_world_mat_;
-  float4x4 curves_to_surface_mat_;
-  float4x4 world_to_curves_mat_;
-  float4x4 world_to_surface_mat_;
-  float4x4 surface_to_world_mat_;
-  float4x4 surface_to_curves_mat_;
-  float4x4 surface_to_curves_normal_mat_;
+  CurvesSculptTransforms transforms_;
 
   BVHTreeFromMesh surface_bvh_;
 
@@ -130,16 +123,10 @@ struct AddOperationExecutor {
       return;
     }
 
-    curves_to_world_mat_ = object_->obmat;
-    world_to_curves_mat_ = curves_to_world_mat_.inverted();
+    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
 
     surface_ob_ = curves_id_->surface;
     surface_ = static_cast<Mesh *>(surface_ob_->data);
-    surface_to_world_mat_ = surface_ob_->obmat;
-    world_to_surface_mat_ = surface_to_world_mat_.inverted();
-    surface_to_curves_mat_ = world_to_curves_mat_ * surface_to_world_mat_;
-    surface_to_curves_normal_mat_ = surface_to_curves_mat_.inverted().transposed();
-    curves_to_surface_mat_ = world_to_surface_mat_ * curves_to_world_mat_;
 
     curves_sculpt_ = ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
@@ -222,8 +209,8 @@ struct AddOperationExecutor {
     add_inputs.surface_looptris = surface_looptris_;
     add_inputs.surface_uv_map = surface_uv_map;
     add_inputs.corner_normals_su = corner_normals_su;
-    add_inputs.curves_to_surface_mat = curves_to_surface_mat_;
-    add_inputs.surface_to_curves_normal_mat = surface_to_curves_normal_mat_;
+    add_inputs.curves_to_surface_mat = transforms_.curves_to_surface;
+    add_inputs.surface_to_curves_normal_mat = transforms_.surface_to_curves_normal;
 
     if (add_inputs.interpolate_length || add_inputs.interpolate_shape ||
         add_inputs.interpolate_point_count) {
@@ -246,14 +233,14 @@ struct AddOperationExecutor {
     float3 ray_start_wo, ray_end_wo;
     ED_view3d_win_to_segment_clipped(
         ctx_.depsgraph, ctx_.region, ctx_.v3d, brush_pos_re_, ray_start_wo, ray_end_wo, true);
-    const float3 ray_start_cu = world_to_curves_mat_ * ray_start_wo;
-    const float3 ray_end_cu = world_to_curves_mat_ * ray_end_wo;
+    const float3 ray_start_cu = transforms_.world_to_curves * ray_start_wo;
+    const float3 ray_end_cu = transforms_.world_to_curves * ray_end_wo;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
 
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      const float4x4 transform = curves_to_surface_mat_ * brush_transform;
+      const float4x4 transform = transforms_.curves_to_surface * brush_transform;
       this->sample_in_center(r_added_points, transform * ray_start_cu, transform * ray_end_cu);
     }
   }
@@ -284,7 +271,7 @@ struct AddOperationExecutor {
     const float3 bary_coords = bke::mesh_surface_sample::compute_bary_coord_in_triangle(
         *surface_, surface_looptris_[looptri_index], brush_pos_su);
 
-    const float3 brush_pos_cu = surface_to_curves_mat_ * brush_pos_su;
+    const float3 brush_pos_cu = transforms_.surface_to_curves * brush_pos_su;
 
     r_added_points.positions_cu.append(brush_pos_cu);
     r_added_points.bary_coords.append(bary_coords);
@@ -325,10 +312,10 @@ struct AddOperationExecutor {
             float3 start_wo, end_wo;
             ED_view3d_win_to_segment_clipped(
                 ctx_.depsgraph, ctx_.region, ctx_.v3d, pos_re, start_wo, end_wo, true);
-            const float3 start_cu = brush_transform * (world_to_curves_mat_ * start_wo);
-            const float3 end_cu = brush_transform * (world_to_curves_mat_ * end_wo);
-            r_start_su = curves_to_surface_mat_ * start_cu;
-            r_end_su = curves_to_surface_mat_ * end_cu;
+            const float3 start_cu = brush_transform * (transforms_.world_to_curves * start_wo);
+            const float3 end_cu = brush_transform * (transforms_.world_to_curves * end_wo);
+            r_start_su = transforms_.curves_to_surface * start_cu;
+            r_end_su = transforms_.curves_to_surface * end_cu;
           },
           use_front_face_,
           add_amount_,
@@ -337,7 +324,7 @@ struct AddOperationExecutor {
           r_added_points.looptri_indices,
           r_added_points.positions_cu);
       for (float3 &pos : r_added_points.positions_cu.as_mutable_span().take_back(new_points)) {
-        pos = surface_to_curves_mat_ * pos;
+        pos = transforms_.surface_to_curves * pos;
       }
     }
   }
@@ -356,8 +343,8 @@ struct AddOperationExecutor {
                                      brush_ray_start_wo,
                                      brush_ray_end_wo,
                                      true);
-    const float3 brush_ray_start_cu = world_to_curves_mat_ * brush_ray_start_wo;
-    const float3 brush_ray_end_cu = world_to_curves_mat_ * brush_ray_end_wo;
+    const float3 brush_ray_start_cu = transforms_.world_to_curves * brush_ray_start_wo;
+    const float3 brush_ray_end_cu = transforms_.world_to_curves * brush_ray_end_wo;
 
     /* Find ray that starts on the boundary of the brush. That is used to compute the brush radius
      * in 3D. */
@@ -369,13 +356,14 @@ struct AddOperationExecutor {
                                      brush_radius_ray_start_wo,
                                      brush_radius_ray_end_wo,
                                      true);
-    const float3 brush_radius_ray_start_cu = world_to_curves_mat_ * brush_radius_ray_start_wo;
-    const float3 brush_radius_ray_end_cu = world_to_curves_mat_ * brush_radius_ray_end_wo;
+    const float3 brush_radius_ray_start_cu = transforms_.world_to_curves *
+                                             brush_radius_ray_start_wo;
+    const float3 brush_radius_ray_end_cu = transforms_.world_to_curves * brush_radius_ray_end_wo;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      const float4x4 transform = curves_to_surface_mat_ * brush_transform;
+      const float4x4 transform = transforms_.curves_to_surface * brush_transform;
       this->sample_spherical(rng,
                              r_added_points,
                              transform * brush_ray_start_cu,
@@ -471,7 +459,7 @@ struct AddOperationExecutor {
           r_added_points.looptri_indices,
           r_added_points.positions_cu);
       for (float3 &pos : r_added_points.positions_cu.as_mutable_span().take_back(new_points)) {
-        pos = surface_to_curves_mat_ * pos;
+        pos = transforms_.surface_to_curves * pos;
       }
     }
 

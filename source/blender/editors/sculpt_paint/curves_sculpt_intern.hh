@@ -108,4 +108,17 @@ class CurvesSculptCommonContext {
   CurvesSculptCommonContext(const bContext &C);
 };
 
+struct CurvesSculptTransforms {
+  float4x4 curves_to_world;
+  float4x4 curves_to_surface;
+  float4x4 world_to_curves;
+  float4x4 world_to_surface;
+  float4x4 surface_to_world;
+  float4x4 surface_to_curves;
+  float4x4 surface_to_curves_normal;
+
+  CurvesSculptTransforms() = default;
+  CurvesSculptTransforms(const Object &curves_ob, const Object *surface_ob);
+};
+
 }  // namespace blender::ed::sculpt_paint
