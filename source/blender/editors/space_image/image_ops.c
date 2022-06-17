@@ -964,7 +964,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 static bool image_view_selected_poll(bContext *C)
 {
-  return (space_image_main_region_poll(C) && (ED_operator_uvedit(C) || ED_operator_mask(C)));
+  return (space_image_main_region_poll(C) && (ED_operator_uvedit(C) || ED_maskedit_poll(C)));
 }
 
 void IMAGE_OT_view_selected(wmOperatorType *ot)

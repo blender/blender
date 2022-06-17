@@ -113,7 +113,7 @@ void MASK_OT_new(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = mask_new_exec;
-  ot->poll = ED_operator_mask;
+  ot->poll = ED_maskedit_poll;
 
   /* properties */
   RNA_def_string(ot->srna, "name", NULL, MAX_ID_NAME - 2, "Name", "Name of new mask");
@@ -907,7 +907,7 @@ void MASK_OT_slide_point(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = slide_point_invoke;
   ot->modal = slide_point_modal;
-  ot->poll = ED_operator_mask;
+  ot->poll = ED_maskedit_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1297,7 +1297,7 @@ void MASK_OT_slide_spline_curvature(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = slide_spline_curvature_invoke;
   ot->modal = slide_spline_curvature_modal;
-  ot->poll = ED_operator_mask;
+  ot->poll = ED_maskedit_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
