@@ -41,7 +41,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       .make_available([](bNode &node) {
         node_storage(node).resolution_mode = VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT;
       });
-  b.add_input<decl::Float>(N_("Threshold")).default_value(0.1f).min(0.0f);
+  b.add_input<decl::Float>(N_("Threshold"))
+      .default_value(0.1f)
+      .description(N_("Values larger than the threshold are inside the generated mesh"));
   b.add_input<decl::Float>(N_("Adaptivity")).min(0.0f).max(1.0f).subtype(PROP_FACTOR);
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
