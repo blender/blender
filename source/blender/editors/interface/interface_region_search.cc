@@ -451,15 +451,16 @@ void ui_searchbox_update(bContext *C, ARegion *region, uiBut *but, const bool re
   /* reset vars */
   data->items.totitem = 0;
   data->items.more = 0;
-  if (reset == false) {
+  if (!reset) {
     data->items.offset_i = data->items.offset;
   }
   else {
     data->items.offset_i = data->items.offset = 0;
     data->active = -1;
 
-    /* handle active */
-    if (search_but->items_update_fn && search_but->item_active) {
+    /* On init, find and center active item. */
+    const bool is_first_search = !search_but->but.changed;
+    if (is_first_search && search_but->items_update_fn && search_but->item_active) {
       data->items.active = search_but->item_active;
       ui_searchbox_update_fn(C, search_but, but->editstr, &data->items);
       data->items.active = nullptr;
