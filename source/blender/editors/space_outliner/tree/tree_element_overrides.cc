@@ -74,7 +74,8 @@ void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
     /* Check for conditions where the liboverride property should be considered as a system
      * override, if needed. */
     if (is_rna_path_valid && !show_system_overrides) {
-      bool do_continue = true;
+      bool do_skip = true;
+      bool is_system_override = false;
 
       /* Matching ID pointers are considered as system overrides. */
       if (ELEM(override_prop->rna_prop_type, PROP_POINTER, PROP_COLLECTION) &&
@@ -82,19 +83,22 @@ void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
         for (auto *override_prop_op :
              ListBaseWrapper<IDOverrideLibraryPropertyOperation>(override_prop->operations)) {
           if ((override_prop_op->flag & IDOVERRIDE_LIBRARY_FLAG_IDPOINTER_MATCH_REFERENCE) == 0) {
-            do_continue = false;
+            do_skip = false;
             break;
+          }
+          else {
+            is_system_override = true;
           }
         }
       }
 
       /* Animated/driven properties are considered as system overrides. */
-      if (!BKE_lib_override_library_property_is_animated(
-              &id, override_prop, override_rna_prop, rnaprop_index)) {
-        do_continue = false;
+      if (!is_system_override && !BKE_lib_override_library_property_is_animated(
+                                     &id, override_prop, override_rna_prop, rnaprop_index)) {
+        do_skip = false;
       }
 
-      if (do_continue) {
+      if (do_skip) {
         continue;
       }
     }

@@ -2068,8 +2068,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   }
 
   if (do_subdivision) {
-    DRW_create_subdivision(scene,
-                           ob,
+    DRW_create_subdivision(ob,
                            me,
                            cache,
                            &cache->final,

@@ -244,9 +244,9 @@ string CUDADevice::compile_kernel(const uint kernel_features,
   if (!use_adaptive_compilation()) {
     if (!force_ptx) {
       const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin", name, major, minor));
-      VLOG(1) << "Testing for pre-compiled kernel " << cubin << ".";
+      VLOG_INFO << "Testing for pre-compiled kernel " << cubin << ".";
       if (path_exists(cubin)) {
-        VLOG(1) << "Using precompiled kernel.";
+        VLOG_INFO << "Using precompiled kernel.";
         return cubin;
       }
     }
@@ -256,9 +256,9 @@ string CUDADevice::compile_kernel(const uint kernel_features,
     while (ptx_major >= 3) {
       const string ptx = path_get(
           string_printf("lib/%s_compute_%d%d.ptx", name, ptx_major, ptx_minor));
-      VLOG(1) << "Testing for pre-compiled kernel " << ptx << ".";
+      VLOG_INFO << "Testing for pre-compiled kernel " << ptx << ".";
       if (path_exists(ptx)) {
-        VLOG(1) << "Using precompiled kernel.";
+        VLOG_INFO << "Using precompiled kernel.";
         return ptx;
       }
 
@@ -287,9 +287,9 @@ string CUDADevice::compile_kernel(const uint kernel_features,
   const string cubin_file = string_printf(
       "cycles_%s_%s_%d%d_%s.%s", name, kernel_arch, major, minor, kernel_md5.c_str(), kernel_ext);
   const string cubin = path_cache_get(path_join("kernels", cubin_file));
-  VLOG(1) << "Testing for locally compiled kernel " << cubin << ".";
+  VLOG_INFO << "Testing for locally compiled kernel " << cubin << ".";
   if (path_exists(cubin)) {
-    VLOG(1) << "Using locally compiled kernel.";
+    VLOG_INFO << "Using locally compiled kernel.";
     return cubin;
   }
 
@@ -323,7 +323,7 @@ string CUDADevice::compile_kernel(const uint kernel_features,
   }
 
   const int nvcc_cuda_version = cuewCompilerVersion();
-  VLOG(1) << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
+  VLOG_INFO << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
   if (nvcc_cuda_version < 101) {
     printf(
         "Unsupported CUDA version %d.%d detected, "
@@ -399,7 +399,8 @@ bool CUDADevice::load_kernels(const uint kernel_features)
    */
   if (cuModule) {
     if (use_adaptive_compilation()) {
-      VLOG(1) << "Skipping CUDA kernel reload for adaptive compilation, not currently supported.";
+      VLOG_INFO
+          << "Skipping CUDA kernel reload for adaptive compilation, not currently supported.";
     }
     return true;
   }
@@ -481,8 +482,8 @@ void CUDADevice::reserve_local_memory(const uint kernel_features)
     cuMemGetInfo(&free_after, &total);
   }
 
-  VLOG(1) << "Local memory reserved " << string_human_readable_number(free_before - free_after)
-          << " bytes. (" << string_human_readable_size(free_before - free_after) << ")";
+  VLOG_INFO << "Local memory reserved " << string_human_readable_number(free_before - free_after)
+            << " bytes. (" << string_human_readable_size(free_before - free_after) << ")";
 
 #  if 0
   /* For testing mapped host memory, fill up device memory. */
@@ -513,7 +514,7 @@ void CUDADevice::init_host_memory()
     }
   }
   else {
-    VLOG(1) << "Mapped host memory disabled, failed to get system RAM";
+    VLOG_WARNING << "Mapped host memory disabled, failed to get system RAM";
     map_host_limit = 0;
   }
 
@@ -524,8 +525,8 @@ void CUDADevice::init_host_memory()
   device_working_headroom = 32 * 1024 * 1024LL;   // 32MB
   device_texture_headroom = 128 * 1024 * 1024LL;  // 128MB
 
-  VLOG(1) << "Mapped host memory limit set to " << string_human_readable_number(map_host_limit)
-          << " bytes. (" << string_human_readable_size(map_host_limit) << ")";
+  VLOG_INFO << "Mapped host memory limit set to " << string_human_readable_number(map_host_limit)
+            << " bytes. (" << string_human_readable_size(map_host_limit) << ")";
 }
 
 void CUDADevice::load_texture_info()
@@ -593,7 +594,7 @@ void CUDADevice::move_textures_to_host(size_t size, bool for_texture)
      * multiple CUDA devices could be moving the memory. The
      * first one will do it, and the rest will adopt the pointer. */
     if (max_mem) {
-      VLOG(1) << "Move memory from device to host: " << max_mem->name;
+      VLOG_WORK << "Move memory from device to host: " << max_mem->name;
 
       static thread_mutex move_mutex;
       thread_scoped_lock lock(move_mutex);
@@ -701,9 +702,9 @@ CUDADevice::CUDAMem *CUDADevice::generic_alloc(device_memory &mem, size_t pitch_
   }
 
   if (mem.name) {
-    VLOG(1) << "Buffer allocate: " << mem.name << ", "
-            << string_human_readable_number(mem.memory_size()) << " bytes. ("
-            << string_human_readable_size(mem.memory_size()) << ")" << status;
+    VLOG_WORK << "Buffer allocate: " << mem.name << ", "
+              << string_human_readable_number(mem.memory_size()) << " bytes. ("
+              << string_human_readable_size(mem.memory_size()) << ")" << status;
   }
 
   mem.device_pointer = (device_ptr)device_pointer;
@@ -1008,9 +1009,9 @@ void CUDADevice::tex_alloc(device_texture &mem)
     desc.NumChannels = mem.data_elements;
     desc.Flags = 0;
 
-    VLOG(1) << "Array 3D allocate: " << mem.name << ", "
-            << string_human_readable_number(mem.memory_size()) << " bytes. ("
-            << string_human_readable_size(mem.memory_size()) << ")";
+    VLOG_WORK << "Array 3D allocate: " << mem.name << ", "
+              << string_human_readable_number(mem.memory_size()) << " bytes. ("
+              << string_human_readable_size(mem.memory_size()) << ")";
 
     cuda_assert(cuArray3DCreate(&array_3d, &desc));
 

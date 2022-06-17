@@ -278,7 +278,7 @@ OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   };
 #  endif
   if (DebugFlags().optix.use_debug) {
-    VLOG(1) << "Using OptiX debug mode.";
+    VLOG_INFO << "Using OptiX debug mode.";
     options.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL;
   }
   optix_assert(optixDeviceContextCreate(cuContext, &options, &context));
@@ -1392,11 +1392,11 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
       /* The build flags have to match the ones used to query the built-in curve intersection
          program (see optixBuiltinISModuleGet above) */
       build_input.type == OPTIX_BUILD_INPUT_TYPE_CURVES) {
-    VLOG(2) << "Using fast to trace OptiX BVH";
+    VLOG_INFO << "Using fast to trace OptiX BVH";
     options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
   }
   else {
-    VLOG(2) << "Using fast to update OptiX BVH";
+    VLOG_INFO << "Using fast to update OptiX BVH";
     options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_BUILD | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
   }
 

@@ -4102,7 +4102,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_DataTransfer) {
-          /* Now datatransfer's mix factor is multiplied with weights when any,
+          /* Now data-transfer's mix factor is multiplied with weights when any,
            * instead of being ignored,
            * we need to take care of that to keep 'old' files compatible. */
           DataTransferModifierData *dtmd = (DataTransferModifierData *)md;

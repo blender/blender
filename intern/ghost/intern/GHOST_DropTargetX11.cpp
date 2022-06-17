@@ -31,7 +31,7 @@ int GHOST_DropTargetX11::m_refCounter = 0;
 #define dndTypePlainText m_dndTypes[dndTypePlainTextID]
 #define dndTypeOctetStream m_dndTypes[dndTypeOctetStreamID]
 
-void GHOST_DropTargetX11::Initialize(void)
+void GHOST_DropTargetX11::Initialize()
 {
   Display *display = m_system->getXDisplay();
   int dndTypesCount = sizeof(m_dndMimeTypes) / sizeof(char *);
@@ -60,7 +60,7 @@ void GHOST_DropTargetX11::Initialize(void)
   m_dndActions[counter++] = 0;
 }
 
-void GHOST_DropTargetX11::Uninitialize(void)
+void GHOST_DropTargetX11::Uninitialize()
 {
   xdnd_shut(&m_dndClass);
 
@@ -98,12 +98,12 @@ GHOST_DropTargetX11::~GHOST_DropTargetX11()
 
 /* Based on: https://stackoverflow.com/a/2766963/432509 */
 
-typedef enum DecodeState_e {
+using DecodeState_e = enum DecodeState_e {
   /** Searching for an ampersand to convert. */
   STATE_SEARCH = 0,
   /** Convert the two proceeding characters from hex. */
   STATE_CONVERTING
-} DecodeState_e;
+};
 
 void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char *encodedIn)
 {
@@ -122,7 +122,7 @@ void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char
       case STATE_SEARCH:
         if (encodedIn[i] != '%') {
           strncat(decodedOut, &encodedIn[i], 1);
-          assert(strlen(decodedOut) < bufferSize);
+          assert((int)strlen(decodedOut) < bufferSize);
           break;
         }
 
@@ -145,18 +145,19 @@ void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char
         /* Ensure both characters are hexadecimal */
 
         for (j = 0; j < 2; ++j) {
-          if (!isxdigit(tempNumBuf[j]))
+          if (!isxdigit(tempNumBuf[j])) {
             bothDigits = false;
+          }
         }
 
-        if (!bothDigits)
+        if (!bothDigits) {
           break;
-
+        }
         /* Convert two hexadecimal characters into one character */
         sscanf(tempNumBuf, "%x", &asciiCharacter);
 
         /* Ensure we aren't going to overflow */
-        assert(strlen(decodedOut) < bufferSize);
+        assert((int)strlen(decodedOut) < bufferSize);
 
         /* Concatenate this character onto the output */
         strncat(decodedOut, (char *)&asciiCharacter, 1);

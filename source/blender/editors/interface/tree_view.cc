@@ -68,6 +68,12 @@ void AbstractTreeView::foreach_item(ItemIterFn iter_fn, IterOptions options) con
   foreach_item_recursive(iter_fn, options);
 }
 
+bool AbstractTreeView::listen(const wmNotifier &) const
+{
+  /* Nothing by default. */
+  return false;
+}
+
 bool AbstractTreeView::is_renaming() const
 {
   return rename_buffer_ != nullptr;
@@ -82,7 +88,7 @@ void AbstractTreeView::update_from_old(uiBlock &new_block)
     return;
   }
 
-  uiTreeViewHandle *old_view_handle = ui_block_view_find_matching_in_old_block(
+  uiTreeViewHandle *old_view_handle = ui_block_tree_view_find_matching_in_old_block(
       &new_block, reinterpret_cast<uiTreeViewHandle *>(this));
   if (old_view_handle == nullptr) {
     is_reconstructed_ = true;
@@ -804,6 +810,13 @@ class TreeViewItemAPIWrapper {
 /* C-API */
 
 using namespace blender::ui;
+
+bool UI_tree_view_listen_should_redraw(const uiTreeViewHandle *view_handle,
+                                       const wmNotifier *notifier)
+{
+  const AbstractTreeView &view = *reinterpret_cast<const AbstractTreeView *>(view_handle);
+  return view.listen(*notifier);
+}
 
 bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item_handle)
 {

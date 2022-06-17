@@ -15,6 +15,7 @@ set(INC
 )
 
 set(SRC
+  intern/add_curves_on_mesh.cc
   intern/mesh_merge_by_distance.cc
   intern/mesh_primitive_cuboid.cc
   intern/mesh_to_curve_convert.cc
@@ -24,6 +25,7 @@ set(SRC
   intern/reverse_uv_sampler.cc
   intern/uv_parametrizer.c
 
+  GEO_add_curves_on_mesh.hh
   GEO_mesh_merge_by_distance.hh
   GEO_mesh_primitive_cuboid.hh
   GEO_mesh_to_curve.hh

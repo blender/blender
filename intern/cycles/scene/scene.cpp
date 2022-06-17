@@ -373,11 +373,11 @@ void Scene::device_update(Device *device_, Progress &progress)
     size_t mem_used = util_guarded_get_mem_used();
     size_t mem_peak = util_guarded_get_mem_peak();
 
-    VLOG(1) << "System memory statistics after full device sync:\n"
-            << "  Usage: " << string_human_readable_number(mem_used) << " ("
-            << string_human_readable_size(mem_used) << ")\n"
-            << "  Peak: " << string_human_readable_number(mem_peak) << " ("
-            << string_human_readable_size(mem_peak) << ")";
+    VLOG_INFO << "System memory statistics after full device sync:\n"
+              << "  Usage: " << string_human_readable_number(mem_used) << " ("
+              << string_human_readable_size(mem_used) << ")\n"
+              << "  Peak: " << string_human_readable_number(mem_peak) << " ("
+              << string_human_readable_size(mem_peak) << ")";
   }
 }
 
@@ -586,35 +586,38 @@ bool Scene::update(Progress &progress)
 
 static void log_kernel_features(const uint features)
 {
-  VLOG(2) << "Requested features:\n";
-  VLOG(2) << "Use BSDF " << string_from_bool(features & KERNEL_FEATURE_NODE_BSDF) << "\n";
-  VLOG(2) << "Use Principled BSDF " << string_from_bool(features & KERNEL_FEATURE_PRINCIPLED)
-          << "\n";
-  VLOG(2) << "Use Emission " << string_from_bool(features & KERNEL_FEATURE_NODE_EMISSION) << "\n";
-  VLOG(2) << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_NODE_VOLUME) << "\n";
-  VLOG(2) << "Use Bump " << string_from_bool(features & KERNEL_FEATURE_NODE_BUMP) << "\n";
-  VLOG(2) << "Use Voronoi " << string_from_bool(features & KERNEL_FEATURE_NODE_VORONOI_EXTRA)
-          << "\n";
-  VLOG(2) << "Use Shader Raytrace " << string_from_bool(features & KERNEL_FEATURE_NODE_RAYTRACE)
-          << "\n";
-  VLOG(2) << "Use MNEE" << string_from_bool(features & KERNEL_FEATURE_MNEE) << "\n";
-  VLOG(2) << "Use Transparent " << string_from_bool(features & KERNEL_FEATURE_TRANSPARENT) << "\n";
-  VLOG(2) << "Use Denoising " << string_from_bool(features & KERNEL_FEATURE_DENOISING) << "\n";
-  VLOG(2) << "Use Path Tracing " << string_from_bool(features & KERNEL_FEATURE_PATH_TRACING)
-          << "\n";
-  VLOG(2) << "Use Hair " << string_from_bool(features & KERNEL_FEATURE_HAIR) << "\n";
-  VLOG(2) << "Use Pointclouds " << string_from_bool(features & KERNEL_FEATURE_POINTCLOUD) << "\n";
-  VLOG(2) << "Use Object Motion " << string_from_bool(features & KERNEL_FEATURE_OBJECT_MOTION)
-          << "\n";
-  VLOG(2) << "Use Camera Motion " << string_from_bool(features & KERNEL_FEATURE_CAMERA_MOTION)
-          << "\n";
-  VLOG(2) << "Use Baking " << string_from_bool(features & KERNEL_FEATURE_BAKING) << "\n";
-  VLOG(2) << "Use Subsurface " << string_from_bool(features & KERNEL_FEATURE_SUBSURFACE) << "\n";
-  VLOG(2) << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_VOLUME) << "\n";
-  VLOG(2) << "Use Patch Evaluation "
-          << string_from_bool(features & KERNEL_FEATURE_PATCH_EVALUATION) << "\n";
-  VLOG(2) << "Use Shadow Catcher " << string_from_bool(features & KERNEL_FEATURE_SHADOW_CATCHER)
-          << "\n";
+  VLOG_INFO << "Requested features:\n";
+  VLOG_INFO << "Use BSDF " << string_from_bool(features & KERNEL_FEATURE_NODE_BSDF) << "\n";
+  VLOG_INFO << "Use Principled BSDF " << string_from_bool(features & KERNEL_FEATURE_PRINCIPLED)
+            << "\n";
+  VLOG_INFO << "Use Emission " << string_from_bool(features & KERNEL_FEATURE_NODE_EMISSION)
+            << "\n";
+  VLOG_INFO << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_NODE_VOLUME) << "\n";
+  VLOG_INFO << "Use Bump " << string_from_bool(features & KERNEL_FEATURE_NODE_BUMP) << "\n";
+  VLOG_INFO << "Use Voronoi " << string_from_bool(features & KERNEL_FEATURE_NODE_VORONOI_EXTRA)
+            << "\n";
+  VLOG_INFO << "Use Shader Raytrace " << string_from_bool(features & KERNEL_FEATURE_NODE_RAYTRACE)
+            << "\n";
+  VLOG_INFO << "Use MNEE" << string_from_bool(features & KERNEL_FEATURE_MNEE) << "\n";
+  VLOG_INFO << "Use Transparent " << string_from_bool(features & KERNEL_FEATURE_TRANSPARENT)
+            << "\n";
+  VLOG_INFO << "Use Denoising " << string_from_bool(features & KERNEL_FEATURE_DENOISING) << "\n";
+  VLOG_INFO << "Use Path Tracing " << string_from_bool(features & KERNEL_FEATURE_PATH_TRACING)
+            << "\n";
+  VLOG_INFO << "Use Hair " << string_from_bool(features & KERNEL_FEATURE_HAIR) << "\n";
+  VLOG_INFO << "Use Pointclouds " << string_from_bool(features & KERNEL_FEATURE_POINTCLOUD)
+            << "\n";
+  VLOG_INFO << "Use Object Motion " << string_from_bool(features & KERNEL_FEATURE_OBJECT_MOTION)
+            << "\n";
+  VLOG_INFO << "Use Camera Motion " << string_from_bool(features & KERNEL_FEATURE_CAMERA_MOTION)
+            << "\n";
+  VLOG_INFO << "Use Baking " << string_from_bool(features & KERNEL_FEATURE_BAKING) << "\n";
+  VLOG_INFO << "Use Subsurface " << string_from_bool(features & KERNEL_FEATURE_SUBSURFACE) << "\n";
+  VLOG_INFO << "Use Volume " << string_from_bool(features & KERNEL_FEATURE_VOLUME) << "\n";
+  VLOG_INFO << "Use Patch Evaluation "
+            << string_from_bool(features & KERNEL_FEATURE_PATCH_EVALUATION) << "\n";
+  VLOG_INFO << "Use Shadow Catcher " << string_from_bool(features & KERNEL_FEATURE_SHADOW_CATCHER)
+            << "\n";
 }
 
 bool Scene::load_kernels(Progress &progress, bool lock_scene)
@@ -675,8 +678,8 @@ int Scene::get_max_closure_count()
      * closures discarded due to mixing or low weights. We need to limit
      * to MAX_CLOSURE as this is hardcoded in CPU/mega kernels, and it
      * avoids excessive memory usage for split kernels. */
-    VLOG(2) << "Maximum number of closures exceeded: " << max_closure_global << " > "
-            << MAX_CLOSURE;
+    VLOG_WARNING << "Maximum number of closures exceeded: " << max_closure_global << " > "
+                 << MAX_CLOSURE;
 
     max_closure_global = MAX_CLOSURE;
   }
@@ -723,7 +726,7 @@ int Scene::get_volume_stack_size() const
 
   volume_stack_size = min(volume_stack_size, MAX_VOLUME_STACK_SIZE);
 
-  VLOG(3) << "Detected required volume stack size " << volume_stack_size;
+  VLOG_WORK << "Detected required volume stack size " << volume_stack_size;
 
   return volume_stack_size;
 }

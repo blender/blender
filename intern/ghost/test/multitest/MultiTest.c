@@ -812,7 +812,7 @@ struct _MultiTestApp {
   int exit;
 };
 
-static int multitest_event_handler(GHOST_EventHandle evt, GHOST_TUserDataPtr data)
+static bool multitest_event_handler(GHOST_EventHandle evt, GHOST_TUserDataPtr data)
 {
   MultiTestApp *app = data;
   GHOST_WindowHandle win;
@@ -820,7 +820,7 @@ static int multitest_event_handler(GHOST_EventHandle evt, GHOST_TUserDataPtr dat
   win = GHOST_GetEventWindow(evt);
   if (win && !GHOST_ValidWindow(app->sys, win)) {
     loggerwindow_log(app->logger, "WARNING: bad event, non-valid window\n");
-    return 1;
+    return true;
   }
 
   if (win) {
@@ -845,7 +845,7 @@ static int multitest_event_handler(GHOST_EventHandle evt, GHOST_TUserDataPtr dat
     }
   }
 
-  return 1;
+  return true;
 }
 
 /**/

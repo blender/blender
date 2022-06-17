@@ -97,14 +97,6 @@ IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_i
 
 void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &new_last_position);
 
-float3 compute_surface_point_normal(const MLoopTri &looptri,
-                                    const float3 &bary_coord,
-                                    const Span<float3> corner_normals);
-
-float3 compute_bary_coord_in_triangle(const Mesh &mesh,
-                                      const MLoopTri &looptri,
-                                      const float3 &position);
-
 class CurvesSculptCommonContext {
  public:
   const Depsgraph *depsgraph = nullptr;
@@ -114,6 +106,19 @@ class CurvesSculptCommonContext {
   const RegionView3D *rv3d = nullptr;
 
   CurvesSculptCommonContext(const bContext &C);
+};
+
+struct CurvesSculptTransforms {
+  float4x4 curves_to_world;
+  float4x4 curves_to_surface;
+  float4x4 world_to_curves;
+  float4x4 world_to_surface;
+  float4x4 surface_to_world;
+  float4x4 surface_to_curves;
+  float4x4 surface_to_curves_normal;
+
+  CurvesSculptTransforms() = default;
+  CurvesSculptTransforms(const Object &curves_ob, const Object *surface_ob);
 };
 
 }  // namespace blender::ed::sculpt_paint

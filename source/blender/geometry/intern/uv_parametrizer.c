@@ -8,6 +8,7 @@
 
 #include "BLI_boxpack_2d.h"
 #include "BLI_convexhull_2d.h"
+#include "BLI_ghash.h"
 #include "BLI_heap.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
@@ -189,6 +190,9 @@ typedef struct ParamHandle {
   PHash *hash_verts;
   PHash *hash_edges;
   PHash *hash_faces;
+
+  struct GHash *pin_hash;
+  int unique_pin_count;
 
   PChart **charts;
   int ncharts;
@@ -3817,8 +3821,11 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
     p_chart_delete(phandle->charts[i]);
   }
 
-  if (phandle->charts) {
-    MEM_freeN(phandle->charts);
+  MEM_SAFE_FREE(phandle->charts);
+
+  if (phandle->pin_hash) {
+    BLI_ghash_free(phandle->pin_hash, NULL, NULL);
+    phandle->pin_hash = NULL;
   }
 
   if (phandle->construction_chart) {
@@ -3833,6 +3840,80 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
   BLI_memarena_free(phandle->polyfill_arena);
   BLI_heap_free(phandle->polyfill_heap, NULL);
   MEM_freeN(phandle);
+}
+
+typedef struct GeoUVPinIndex {
+  struct GeoUVPinIndex *next;
+  float uv[2];
+  ParamKey reindex;
+} GeoUVPinIndex;
+
+/* Find a (mostly) unique ParamKey given a BMVert index and UV co-ordinates.
+ * For each unique pinned UVs, return a unique ParamKey, starting with
+ *  a very large number, and decreasing steadily from there.
+ * For non-pinned UVs which share a BMVert with a pinned UV,
+ *  return the index corresponding to the closest pinned UV.
+ * For everything else, just return the BMVert index.
+ * Note that ParamKeys will eventually be hashed, so they don't need to be contiguous.
+ */
+ParamKey GEO_uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2])
+{
+  if (!handle->pin_hash) {
+    return bmvertindex; /* No verts pinned. */
+  }
+
+  GeoUVPinIndex *pinuvlist = BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex));
+  if (!pinuvlist) {
+    return bmvertindex; /* Vert not pinned. */
+  }
+
+  /* At least one of the UVs associated with bmvertindex is pinned. Find the best one. */
+  float bestdistsquared = len_squared_v2v2(pinuvlist->uv, uv);
+  ParamKey bestkey = pinuvlist->reindex;
+  pinuvlist = pinuvlist->next;
+  while (pinuvlist) {
+    const float distsquared = len_squared_v2v2(pinuvlist->uv, uv);
+    if (bestdistsquared > distsquared) {
+      bestdistsquared = distsquared;
+      bestkey = pinuvlist->reindex;
+    }
+    pinuvlist = pinuvlist->next;
+  }
+  return bestkey;
+}
+
+static GeoUVPinIndex *new_geo_uv_pinindex(ParamHandle *handle, const float uv[2])
+{
+  GeoUVPinIndex *pinuv = BLI_memarena_alloc(handle->arena, sizeof(*pinuv));
+  pinuv->next = NULL;
+  copy_v2_v2(pinuv->uv, uv);
+  pinuv->reindex = PARAM_KEY_MAX - (handle->unique_pin_count++);
+  return pinuv;
+}
+
+void GEO_uv_prepare_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2])
+{
+  if (!handle->pin_hash) {
+    handle->pin_hash = BLI_ghash_int_new("uv pin reindex");
+  }
+
+  GeoUVPinIndex *pinuvlist = BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex));
+  if (!pinuvlist) {
+    BLI_ghash_insert(
+        handle->pin_hash, POINTER_FROM_INT(bmvertindex), new_geo_uv_pinindex(handle, uv));
+    return;
+  }
+
+  while (true) {
+    if (equals_v2v2(pinuvlist->uv, uv)) {
+      return;
+    }
+    if (!pinuvlist->next) {
+      pinuvlist->next = new_geo_uv_pinindex(handle, uv);
+      return;
+    }
+    pinuvlist = pinuvlist->next;
+  }
 }
 
 static void p_add_ngon(ParamHandle *handle,

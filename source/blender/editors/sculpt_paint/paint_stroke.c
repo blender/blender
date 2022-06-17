@@ -506,7 +506,7 @@ static bool paint_stroke_use_jitter(ePaintMode mode, Brush *brush, bool invert)
 
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
 static void paint_brush_stroke_add_step(
-    bContext *C, wmOperator *op, PaintStroke *stroke, const float mouse_in[2], float pressure)
+    bContext *C, wmOperator *op, PaintStroke *stroke, const float mval[2], float pressure)
 {
   Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_context(C);
@@ -546,7 +546,7 @@ static void paint_brush_stroke_add_step(
 
   /* copy last position -before- jittering, or space fill code
    * will create too many dabs */
-  copy_v2_v2(stroke->last_mouse_position, mouse_in);
+  copy_v2_v2(stroke->last_mouse_position, mval);
   stroke->last_pressure = pressure;
 
   if (paint_stroke_use_scene_spacing(brush, mode)) {
@@ -562,24 +562,24 @@ static void paint_brush_stroke_add_step(
       factor *= pressure;
     }
 
-    BKE_brush_jitter_pos(scene, brush, mouse_in, mouse_out);
+    BKE_brush_jitter_pos(scene, brush, mval, mouse_out);
 
     /* XXX: meh, this is round about because
      * BKE_brush_jitter_pos isn't written in the best way to
      * be reused here */
     if (factor != 1.0f) {
-      sub_v2_v2v2(delta, mouse_out, mouse_in);
+      sub_v2_v2v2(delta, mouse_out, mval);
       mul_v2_fl(delta, factor);
-      add_v2_v2v2(mouse_out, mouse_in, delta);
+      add_v2_v2v2(mouse_out, mval, delta);
     }
   }
   else {
-    copy_v2_v2(mouse_out, mouse_in);
+    copy_v2_v2(mouse_out, mval);
   }
 
   bool is_location_is_set;
   ups->last_hit = paint_brush_update(
-      C, brush, mode, stroke, mouse_in, mouse_out, pressure, location, &is_location_is_set);
+      C, brush, mode, stroke, mval, mouse_out, pressure, location, &is_location_is_set);
   if (is_location_is_set) {
     copy_v3_v3(ups->last_location, location);
   }
@@ -605,7 +605,7 @@ static void paint_brush_stroke_add_step(
     /* Mouse coordinates modified by the stroke type options. */
     RNA_float_set_array(&itemptr, "mouse", mouse_out);
     /* Original mouse coordinates. */
-    RNA_float_set_array(&itemptr, "mouse_event", mouse_in);
+    RNA_float_set_array(&itemptr, "mouse_event", mval);
     RNA_boolean_set(&itemptr, "pen_flip", stroke->pen_flip);
     RNA_float_set(&itemptr, "pressure", pressure);
     RNA_float_set(&itemptr, "x_tilt", stroke->x_tilt);

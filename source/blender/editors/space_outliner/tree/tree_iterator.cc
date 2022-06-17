@@ -43,13 +43,14 @@ void all_open(const SpaceOutliner &space_outliner,
 {
   LISTBASE_FOREACH_MUTABLE (TreeElement *, element, &subtree) {
     /* Get needed data out in case element gets freed. */
-    const bool is_open = TSELEM_OPEN(element->store_elem, &space_outliner);
+    const TreeStoreElem *tselem = TREESTORE(element);
     const ListBase subtree = element->subtree;
 
     visitor(element);
-    /* Don't access element from now on, it may be freed. */
+    /* Don't access element from now on, it may be freed. Note that the open/collapsed state may
+     * also have been changed in the visitor callback. */
 
-    if (is_open) {
+    if (TSELEM_OPEN(tselem, &space_outliner)) {
       all_open(space_outliner, subtree, visitor);
     }
   }

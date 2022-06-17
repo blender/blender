@@ -208,53 +208,36 @@ CustomDataLayer *BKE_id_attribute_new(
   return (index == -1) ? nullptr : &(customdata->layers[index]);
 }
 
-CustomDataLayer *BKE_id_attribute_duplicate(ID *id, CustomDataLayer *layer, ReportList *reports)
+CustomDataLayer *BKE_id_attribute_duplicate(ID *id, const char *name, ReportList *reports)
 {
-  DomainInfo info[ATTR_DOMAIN_NUM];
-  get_domains(id, info);
-
-  eCustomDataType type = (eCustomDataType)layer->type;
-  eAttrDomain domain = BKE_id_attribute_domain(id, layer);
-
-  CustomData *customdata = info[domain].customdata;
-  if (customdata == nullptr) {
-    BKE_report(reports, RPT_ERROR, "Attribute domain not supported by this geometry type");
+  const CustomDataLayer *src_layer = BKE_id_attribute_search(
+      id, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+  if (src_layer == nullptr) {
+    BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
     return nullptr;
   }
 
-  char name[MAX_CUSTOMDATA_LAYER_NAME];
-  char uniquename[MAX_CUSTOMDATA_LAYER_NAME];
+  const eCustomDataType type = (eCustomDataType)src_layer->type;
+  const eAttrDomain domain = BKE_id_attribute_domain(id, src_layer);
 
   /* Make a copy of name in case CustomData API reallocates the layers. */
-  BLI_strncpy(name, layer->name, MAX_CUSTOMDATA_LAYER_NAME);
-  BKE_id_attribute_calc_unique_name(id, layer->name, uniquename);
+  const std::string name_copy = name;
 
-  switch (GS(id->name)) {
-    case ID_ME: {
-      Mesh *me = (Mesh *)id;
-      BMEditMesh *em = me->edit_mesh;
-      if (em != nullptr) {
-        BM_data_layer_add_named(em->bm, customdata, type, uniquename);
-      }
-      else {
-        CustomData_add_layer_named(
-            customdata, type, CD_DEFAULT, nullptr, info[domain].length, uniquename);
-      }
-      break;
-    }
-    default: {
-      CustomData_add_layer_named(
-          customdata, type, CD_DEFAULT, nullptr, info[domain].length, uniquename);
-      break;
-    }
+  DomainInfo info[ATTR_DOMAIN_NUM];
+  get_domains(id, info);
+  CustomData *customdata = info[domain].customdata;
+
+  CustomDataLayer *new_layer = BKE_id_attribute_new(id, name_copy.c_str(), type, domain, reports);
+  if (new_layer == nullptr) {
+    return nullptr;
   }
 
-  int from_index = CustomData_get_named_layer_index(customdata, type, name);
-  int to_index = CustomData_get_named_layer_index(customdata, type, uniquename);
+  const int from_index = CustomData_get_named_layer_index(customdata, type, name_copy.c_str());
+  const int to_index = CustomData_get_named_layer_index(customdata, type, new_layer->name);
   CustomData_copy_data_layer(
       customdata, customdata, from_index, to_index, 0, 0, info[domain].length);
 
-  return (to_index == -1) ? nullptr : &(customdata->layers[to_index]);
+  return new_layer;
 }
 
 bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
@@ -317,7 +300,7 @@ CustomDataLayer *BKE_id_attribute_find(const ID *id,
   return nullptr;
 }
 
-CustomDataLayer *BKE_id_attribute_search(const ID *id,
+CustomDataLayer *BKE_id_attribute_search(ID *id,
                                          const char *name,
                                          const eCustomDataMask type_mask,
                                          const eAttrDomainMask domain_mask)

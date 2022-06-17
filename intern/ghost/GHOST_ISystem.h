@@ -313,6 +313,11 @@ class GHOST_ISystem {
   virtual bool supportsCursorWarp() = 0;
 
   /**
+   * Return true getting/setting the window position is supported.
+   */
+  virtual bool supportsWindowPosition() = 0;
+
+  /**
    * Focus window after opening, or put them in the background.
    */
   virtual void useWindowFocus(const bool use_focus) = 0;

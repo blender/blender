@@ -2712,6 +2712,23 @@ static char *rna_FFmpegSettings_path(const PointerRNA *UNUSED(ptr))
   return BLI_strdup("render.ffmpeg");
 }
 
+#  ifdef WITH_FFMPEG
+/* FFMpeg Codec setting update hook. */
+static void rna_FFmpegSettings_codec_update(Main *UNUSED(bmain),
+                                            Scene *UNUSED(scene),
+                                            PointerRNA *ptr)
+{
+  FFMpegCodecData *codec_data = (FFMpegCodecData *)ptr->data;
+  if (!ELEM(codec_data->codec, AV_CODEC_ID_H264, AV_CODEC_ID_MPEG4, AV_CODEC_ID_VP9)) {
+    /* Constant Rate Factor (CRF) setting is only available for H264,
+     * MPEG4 and WEBM/VP9 codecs. So changing encoder quality mode to
+     * CBR as CRF is not supported.
+     */
+    codec_data->constant_rate_factor = FFM_CRF_NONE;
+  }
+}
+#  endif
+
 #else
 
 /* Grease Pencil Interpolation tool settings */
@@ -5922,6 +5939,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, ffmpeg_codec_items);
   RNA_def_property_enum_default(prop, AV_CODEC_ID_H264);
   RNA_def_property_ui_text(prop, "Video Codec", "FFmpeg codec to use for video output");
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_FFmpegSettings_codec_update");
 
   prop = RNA_def_property(srna, "video_bitrate", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "video_bitrate");

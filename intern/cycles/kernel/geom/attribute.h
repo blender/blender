@@ -56,16 +56,16 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
   /* for SVM, find attribute by unique id */
   uint attr_offset = object_attribute_map_offset(kg, sd->object);
   attr_offset += attribute_primitive_type(kg, sd);
-  uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+  AttributeMap attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 
-  while (attr_map.x != id) {
-    if (UNLIKELY(attr_map.x == ATTR_STD_NONE)) {
-      if (UNLIKELY(attr_map.y == 0)) {
+  while (attr_map.id != id) {
+    if (UNLIKELY(attr_map.id == ATTR_STD_NONE)) {
+      if (UNLIKELY(attr_map.element == 0)) {
         return attribute_not_found();
       }
       else {
         /* Chain jump to a different part of the table. */
-        attr_offset = attr_map.z;
+        attr_offset = attr_map.offset;
       }
     }
     else {
@@ -75,7 +75,7 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
   }
 
   AttributeDescriptor desc;
-  desc.element = (AttributeElement)attr_map.y;
+  desc.element = (AttributeElement)attr_map.element;
 
   if (sd->prim == PRIM_NONE && desc.element != ATTR_ELEMENT_MESH &&
       desc.element != ATTR_ELEMENT_VOXEL && desc.element != ATTR_ELEMENT_OBJECT) {
@@ -83,9 +83,10 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
   }
 
   /* return result */
-  desc.offset = (attr_map.y == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.z;
-  desc.type = (NodeAttributeType)(attr_map.w & 0xff);
-  desc.flags = (AttributeFlag)(attr_map.w >> 8);
+  desc.offset = (attr_map.element == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND :
+                                                          (int)attr_map.offset;
+  desc.type = (NodeAttributeType)attr_map.type;
+  desc.flags = (AttributeFlag)attr_map.flags;
 
   return desc;
 }

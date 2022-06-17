@@ -105,7 +105,7 @@ void ParticleSystemManager::device_update(Device *device,
     }
   });
 
-  VLOG(1) << "Total " << scene->particle_systems.size() << " particle systems.";
+  VLOG_INFO << "Total " << scene->particle_systems.size() << " particle systems.";
 
   device_free(device, dscene);
 

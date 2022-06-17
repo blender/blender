@@ -800,7 +800,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
                                                .style = UI_TIP_STYLE_HEADER,
                                                .color_id = UI_TIP_LC_NORMAL,
                                            });
-    field->text = BLI_sprintfN("%s", but_label.strinfo);
+    field->text = BLI_strdup(but_label.strinfo);
   }
 
   /* Tip */

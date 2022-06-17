@@ -29,30 +29,31 @@ bool device_hip_init()
   initialized = true;
   int hipew_result = hipewInit(HIPEW_INIT_HIP);
   if (hipew_result == HIPEW_SUCCESS) {
-    VLOG(1) << "HIPEW initialization succeeded";
+    VLOG_INFO << "HIPEW initialization succeeded";
     if (HIPDevice::have_precompiled_kernels()) {
-      VLOG(1) << "Found precompiled kernels";
+      VLOG_INFO << "Found precompiled kernels";
       result = true;
     }
     else if (hipewCompilerPath() != NULL) {
-      VLOG(1) << "Found HIPCC " << hipewCompilerPath();
+      VLOG_INFO << "Found HIPCC " << hipewCompilerPath();
       result = true;
     }
     else {
-      VLOG(1) << "Neither precompiled kernels nor HIPCC was found,"
-              << " unable to use HIP";
+      VLOG_INFO << "Neither precompiled kernels nor HIPCC was found,"
+                << " unable to use HIP";
     }
   }
   else {
     if (hipew_result == HIPEW_ERROR_ATEXIT_FAILED) {
-      VLOG(1) << "HIPEW initialization failed: Error setting up atexit() handler";
+      VLOG_WARNING << "HIPEW initialization failed: Error setting up atexit() handler";
     }
     else if (hipew_result == HIPEW_ERROR_OLD_DRIVER) {
-      VLOG(1) << "HIPEW initialization failed: Driver version too old, requires AMD Radeon Pro "
-                 "21.Q4 driver or newer";
+      VLOG_WARNING
+          << "HIPEW initialization failed: Driver version too old, requires AMD Radeon Pro "
+             "21.Q4 driver or newer";
     }
     else {
-      VLOG(1) << "HIPEW initialization failed: Error opening HIP dynamic library";
+      VLOG_WARNING << "HIPEW initialization failed: Error opening HIP dynamic library";
     }
   }
 
@@ -165,16 +166,16 @@ void device_hip_info(vector<DeviceInfo> &devices)
     hipDeviceGetAttribute(&timeout_attr, hipDeviceAttributeKernelExecTimeout, num);
 
     if (timeout_attr && !preempt_attr) {
-      VLOG(1) << "Device is recognized as display.";
+      VLOG_INFO << "Device is recognized as display.";
       info.description += " (Display)";
       info.display_device = true;
       display_devices.push_back(info);
     }
     else {
-      VLOG(1) << "Device has compute preemption or is not used for display.";
+      VLOG_INFO << "Device has compute preemption or is not used for display.";
       devices.push_back(info);
     }
-    VLOG(1) << "Added device \"" << name << "\" with id \"" << info.id << "\".";
+    VLOG_INFO << "Added device \"" << name << "\" with id \"" << info.id << "\".";
   }
 
   if (!display_devices.empty())

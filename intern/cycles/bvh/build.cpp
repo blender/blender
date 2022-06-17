@@ -529,7 +529,7 @@ BVHNode *BVHBuild::run()
     if (progress.get_cancel()) {
       rootnode->deleteSubtree();
       rootnode = NULL;
-      VLOG(1) << "BVH build cancelled.";
+      VLOG_WORK << "BVH build cancelled.";
     }
     else {
       /*rotate(rootnode, 4, 5);*/
@@ -537,26 +537,26 @@ BVHNode *BVHBuild::run()
       rootnode->update_time();
     }
     if (rootnode != NULL) {
-      VLOG(1) << "BVH build statistics:\n"
-              << "  Build time: " << time_dt() - build_start_time << "\n"
-              << "  Total number of nodes: "
-              << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_NODE_COUNT))
-              << "\n"
-              << "  Number of inner nodes: "
-              << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_INNER_COUNT))
-              << "\n"
-              << "  Number of leaf nodes: "
-              << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_LEAF_COUNT))
-              << "\n"
-              << "  Number of unaligned nodes: "
-              << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_UNALIGNED_COUNT))
-              << "\n"
-              << "  Allocation slop factor: "
-              << ((prim_type.capacity() != 0) ? (float)prim_type.size() / prim_type.capacity() :
-                                                1.0f)
-              << "\n"
-              << "  Maximum depth: "
-              << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_DEPTH)) << "\n";
+      VLOG_WORK << "BVH build statistics:\n"
+                << "  Build time: " << time_dt() - build_start_time << "\n"
+                << "  Total number of nodes: "
+                << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_NODE_COUNT))
+                << "\n"
+                << "  Number of inner nodes: "
+                << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_INNER_COUNT))
+                << "\n"
+                << "  Number of leaf nodes: "
+                << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_LEAF_COUNT))
+                << "\n"
+                << "  Number of unaligned nodes: "
+                << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_UNALIGNED_COUNT))
+                << "\n"
+                << "  Allocation slop factor: "
+                << ((prim_type.capacity() != 0) ? (float)prim_type.size() / prim_type.capacity() :
+                                                  1.0f)
+                << "\n"
+                << "  Maximum depth: "
+                << string_human_readable_number(rootnode->getSubtreeSize(BVH_STAT_DEPTH)) << "\n";
     }
   }
 

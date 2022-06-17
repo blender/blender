@@ -145,6 +145,10 @@ void ED_region_do_listen(wmRegionListenerParams *params)
     region->type->listener(params);
   }
 
+  LISTBASE_FOREACH (uiBlock *, block, &region->uiblocks) {
+    UI_block_views_listen(block, params);
+  }
+
   LISTBASE_FOREACH (uiList *, list, &region->ui_lists) {
     if (list->type && list->type->listener) {
       list->type->listener(list, params);
@@ -3454,9 +3458,9 @@ ScrArea *ED_area_find_under_cursor(const bContext *C, int spacetype, const int x
   if (!area) {
     /* Check all windows except the active one. */
     int scr_pos[2];
-    wmWindow *r_win = WM_window_find_under_cursor(win, xy, scr_pos);
-    if (r_win && r_win != win) {
-      win = r_win;
+    wmWindow *win_other = WM_window_find_under_cursor(win, xy, scr_pos);
+    if (win_other && win_other != win) {
+      win = win_other;
       screen = WM_window_get_active_screen(win);
       area = BKE_screen_find_area_xy(screen, spacetype, scr_pos);
     }

@@ -1308,6 +1308,10 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
     return id;
   }
 
+  if (!WM_operator_properties_id_lookup_is_set(op->ptr)) {
+    return NULL;
+  }
+
   /* Lookup an already existing ID. */
   id = WM_operator_properties_id_lookup_from_name_or_session_uuid(bmain, op->ptr, idcode);
 
@@ -2068,7 +2072,7 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 
 static int wm_console_toggle_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
-  setConsoleWindowState(GHOST_kConsoleWindowStateToggle);
+  GHOST_setConsoleWindowState(GHOST_kConsoleWindowStateToggle);
   return OPERATOR_FINISHED;
 }
 

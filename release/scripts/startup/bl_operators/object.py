@@ -596,6 +596,8 @@ class MakeDupliFace(Operator):
         for obj in context.selected_objects:
             if obj.type == 'MESH':
                 linked[obj.data].append(obj)
+            elif obj.type == 'EMPTY' and obj.instance_type == 'COLLECTION' and obj.instance_collection:
+                linked[obj.instance_collection].append(obj)
 
         for data, objects in linked.items():
             face_verts = [axis for obj in objects
@@ -621,7 +623,12 @@ class MakeDupliFace(Operator):
             ob_new = bpy.data.objects.new(mesh.name, mesh)
             context.collection.objects.link(ob_new)
 
-            ob_inst = bpy.data.objects.new(data.name, data)
+            if type(data) is bpy.types.Collection:
+                ob_inst = bpy.data.objects.new(data.name, None)
+                ob_inst.instance_type = 'COLLECTION'
+                ob_inst.instance_collection = data
+            else:
+                ob_inst = bpy.data.objects.new(data.name, data)
             context.collection.objects.link(ob_inst)
 
             ob_new.instance_type = 'FACES'

@@ -55,8 +55,8 @@ CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_
 {
   /* Pick any kernel, all of them are supposed to have same level of microarchitecture
    * optimization. */
-  VLOG(1) << "Using " << get_cpu_kernels().integrator_init_from_camera.get_uarch_name()
-          << " CPU kernels.";
+  VLOG_INFO << "Using " << get_cpu_kernels().integrator_init_from_camera.get_uarch_name()
+            << " CPU kernels.";
 
   if (info.cpu_threads == 0) {
     info.cpu_threads = TaskScheduler::max_concurrency();
@@ -111,9 +111,9 @@ void CPUDevice::mem_alloc(device_memory &mem)
   }
   else {
     if (mem.name) {
-      VLOG(1) << "Buffer allocate: " << mem.name << ", "
-              << string_human_readable_number(mem.memory_size()) << " bytes. ("
-              << string_human_readable_size(mem.memory_size()) << ")";
+      VLOG_WORK << "Buffer allocate: " << mem.name << ", "
+                << string_human_readable_number(mem.memory_size()) << " bytes. ("
+                << string_human_readable_size(mem.memory_size()) << ")";
     }
 
     if (mem.type == MEM_DEVICE_ONLY || !mem.host_pointer) {
@@ -205,9 +205,9 @@ void CPUDevice::const_copy_to(const char *name, void *host, size_t size)
 
 void CPUDevice::global_alloc(device_memory &mem)
 {
-  VLOG(1) << "Global memory allocate: " << mem.name << ", "
-          << string_human_readable_number(mem.memory_size()) << " bytes. ("
-          << string_human_readable_size(mem.memory_size()) << ")";
+  VLOG_WORK << "Global memory allocate: " << mem.name << ", "
+            << string_human_readable_number(mem.memory_size()) << " bytes. ("
+            << string_human_readable_size(mem.memory_size()) << ")";
 
   kernel_global_memory_copy(&kernel_globals, mem.name, mem.host_pointer, mem.data_size);
 
@@ -227,9 +227,9 @@ void CPUDevice::global_free(device_memory &mem)
 
 void CPUDevice::tex_alloc(device_texture &mem)
 {
-  VLOG(1) << "Texture allocate: " << mem.name << ", "
-          << string_human_readable_number(mem.memory_size()) << " bytes. ("
-          << string_human_readable_size(mem.memory_size()) << ")";
+  VLOG_WORK << "Texture allocate: " << mem.name << ", "
+            << string_human_readable_number(mem.memory_size()) << " bytes. ("
+            << string_human_readable_size(mem.memory_size()) << ")";
 
   mem.device_pointer = (device_ptr)mem.host_pointer;
   mem.device_size = mem.memory_size();

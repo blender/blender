@@ -158,7 +158,7 @@ GHOST_TSuccess GHOST_System::updateFullScreen(const GHOST_DisplaySetting &settin
   return success;
 }
 
-GHOST_TSuccess GHOST_System::endFullScreen(void)
+GHOST_TSuccess GHOST_System::endFullScreen()
 {
   GHOST_TSuccess success = GHOST_kFailure;
   GHOST_ASSERT(m_windowManager, "GHOST_System::endFullScreen(): invalid window manager");
@@ -177,7 +177,7 @@ GHOST_TSuccess GHOST_System::endFullScreen(void)
   return success;
 }
 
-bool GHOST_System::getFullScreen(void)
+bool GHOST_System::getFullScreen()
 {
   bool fullScreen;
   if (m_windowManager) {
@@ -289,7 +289,7 @@ void GHOST_System::setTabletAPI(GHOST_TTabletAPI api)
   m_tabletAPI = api;
 }
 
-GHOST_TTabletAPI GHOST_System::getTabletAPI(void)
+GHOST_TTabletAPI GHOST_System::getTabletAPI()
 {
   return m_tabletAPI;
 }
@@ -319,9 +319,7 @@ GHOST_TSuccess GHOST_System::init()
   if (m_timerManager && m_windowManager && m_eventManager) {
     return GHOST_kSuccess;
   }
-  else {
-    return GHOST_kFailure;
-  }
+  return GHOST_kFailure;
 }
 
 GHOST_TSuccess GHOST_System::exit()
@@ -357,10 +355,12 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
 {
   GHOST_GLSettings glSettings = {0};
 
-  if (stereoVisual)
+  if (stereoVisual) {
     glSettings.flags |= GHOST_glStereoVisual;
-  if (alphaBackground)
+  }
+  if (alphaBackground) {
     glSettings.flags |= GHOST_glAlphaBackground;
+  }
 
   /* NOTE: don't use #getCurrentDisplaySetting() because on X11 we may
    * be zoomed in and the desktop may be bigger than the viewport. */
@@ -391,6 +391,11 @@ void GHOST_System::useWindowFocus(const bool use_focus)
 }
 
 bool GHOST_System::supportsCursorWarp()
+{
+  return true;
+}
+
+bool GHOST_System::supportsWindowPosition()
 {
   return true;
 }

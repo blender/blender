@@ -1001,6 +1001,9 @@ static void do_version_subsurface_methods(bNode *node)
 
 static void version_geometry_nodes_add_attribute_input_settings(NodesModifierData *nmd)
 {
+  if (nmd->settings.properties == NULL) {
+    return;
+  }
   /* Before versioning the properties, make sure it hasn't been done already. */
   LISTBASE_FOREACH (const IDProperty *, property, &nmd->settings.properties->data.group) {
     if (strstr(property->name, "_use_attribute") || strstr(property->name, "_attribute_name")) {

@@ -340,7 +340,7 @@ static void seq_load_apply_generic_options(bContext *C, wmOperator *op, Sequence
     ScrArea *area = CTX_wm_area(C);
     const bool use_sync_markers = (((SpaceSeq *)area->spacedata.first)->flag & SEQ_MARKER_TRANS) !=
                                   0;
-    SEQ_transform_handle_overlap(scene, ed->seqbasep, strip_col, use_sync_markers);
+    SEQ_transform_handle_overlap(scene, ed->seqbasep, strip_col, NULL, use_sync_markers);
 
     SEQ_collection_free(strip_col);
   }
@@ -863,7 +863,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
       ScrArea *area = CTX_wm_area(C);
       const bool use_sync_markers = (((SpaceSeq *)area->spacedata.first)->flag &
                                      SEQ_MARKER_TRANS) != 0;
-      SEQ_transform_handle_overlap(scene, ed->seqbasep, strip_col, use_sync_markers);
+      SEQ_transform_handle_overlap(scene, ed->seqbasep, strip_col, NULL, use_sync_markers);
     }
 
     SEQ_collection_free(strip_col);
@@ -913,7 +913,7 @@ static bool sequencer_add_movie_single_strip(bContext *C,
       ScrArea *area = CTX_wm_area(C);
       const bool use_sync_markers = (((SpaceSeq *)area->spacedata.first)->flag &
                                      SEQ_MARKER_TRANS) != 0;
-      SEQ_transform_handle_overlap(scene, ed->seqbasep, strip_col, use_sync_markers);
+      SEQ_transform_handle_overlap(scene, ed->seqbasep, strip_col, NULL, use_sync_markers);
     }
 
     SEQ_collection_free(strip_col);

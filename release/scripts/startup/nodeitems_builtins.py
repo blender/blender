@@ -714,6 +714,7 @@ geometry_node_categories = [
         NodeItem("ShaderNodeVectorRotate"),
     ]),
     GeometryNodeCategory("GEO_VOLUME", "Volume", items=[
+        NodeItem("GeometryNodeVolumeCube"),
         NodeItem("GeometryNodeVolumeToMesh"),
     ]),
     GeometryNodeCategory("GEO_GROUP", "Group", items=node_group_items),

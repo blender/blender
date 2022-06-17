@@ -177,11 +177,11 @@ void GHOST_SetWindowUserData(GHOST_WindowHandle windowhandle, GHOST_TUserDataPtr
   window->setUserData(userdata);
 }
 
-int GHOST_IsDialogWindow(GHOST_WindowHandle windowhandle)
+bool GHOST_IsDialogWindow(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
-  return (int)window->isDialog();
+  return window->isDialog();
 }
 
 GHOST_TSuccess GHOST_DisposeWindow(GHOST_SystemHandle systemhandle,
@@ -193,17 +193,17 @@ GHOST_TSuccess GHOST_DisposeWindow(GHOST_SystemHandle systemhandle,
   return system->disposeWindow(window);
 }
 
-int GHOST_ValidWindow(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windowhandle)
+bool GHOST_ValidWindow(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windowhandle)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
-  return (int)system->validWindow(window);
+  return system->validWindow(window);
 }
 
 GHOST_WindowHandle GHOST_BeginFullScreen(GHOST_SystemHandle systemhandle,
                                          GHOST_DisplaySetting *setting,
-                                         const int stereoVisual)
+                                         const bool stereoVisual)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
   GHOST_IWindow *window = nullptr;
@@ -228,11 +228,11 @@ GHOST_TSuccess GHOST_EndFullScreen(GHOST_SystemHandle systemhandle)
   return system->endFullScreen();
 }
 
-int GHOST_GetFullScreen(GHOST_SystemHandle systemhandle)
+bool GHOST_GetFullScreen(GHOST_SystemHandle systemhandle)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
-  return (int)system->getFullScreen();
+  return system->getFullScreen();
 }
 
 GHOST_WindowHandle GHOST_GetWindowUnderCursor(GHOST_SystemHandle systemhandle,
@@ -326,18 +326,18 @@ GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle,
   return window->setCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
 }
 
-int GHOST_GetCursorVisibility(GHOST_WindowHandle windowhandle)
+bool GHOST_GetCursorVisibility(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
-  return (int)window->getCursorVisibility();
+  return window->getCursorVisibility();
 }
 
-GHOST_TSuccess GHOST_SetCursorVisibility(GHOST_WindowHandle windowhandle, int visible)
+GHOST_TSuccess GHOST_SetCursorVisibility(GHOST_WindowHandle windowhandle, bool visible)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
-  return window->setCursorVisibility(visible ? true : false);
+  return window->setCursorVisibility(visible);
 }
 
 GHOST_TSuccess GHOST_GetCursorPosition(GHOST_SystemHandle systemhandle, int32_t *x, int32_t *y)
@@ -392,28 +392,28 @@ void GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
 
 GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
                                          GHOST_TModifierKeyMask mask,
-                                         int *isDown)
+                                         bool *r_is_down)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
   GHOST_TSuccess result;
-  bool isdown = false;
+  bool is_down = false;
 
-  result = system->getModifierKeyState(mask, isdown);
-  *isDown = (int)isdown;
+  result = system->getModifierKeyState(mask, is_down);
+  *r_is_down = is_down;
 
   return result;
 }
 
 GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
                                     GHOST_TButtonMask mask,
-                                    int *isDown)
+                                    bool *r_is_down)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
   GHOST_TSuccess result;
-  bool isdown = false;
+  bool is_down = false;
 
-  result = system->getButtonState(mask, isdown);
-  *isDown = (int)isdown;
+  result = system->getButtonState(mask, is_down);
+  *r_is_down = is_down;
 
   return result;
 }
@@ -426,11 +426,11 @@ void GHOST_setNDOFDeadZone(float deadzone)
 }
 #endif
 
-void GHOST_setAcceptDragOperation(GHOST_WindowHandle windowhandle, bool canAccept)
+void GHOST_setAcceptDragOperation(GHOST_WindowHandle windowhandle, bool can_accept)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
-  window->setAcceptDragOperation(canAccept);
+  window->setAcceptDragOperation(can_accept);
 }
 
 GHOST_TEventType GHOST_GetEventType(GHOST_EventHandle eventhandle)
@@ -489,11 +489,11 @@ void GHOST_SetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle, GHOST_TUs
   timertask->setUserData(userdata);
 }
 
-int GHOST_GetValid(GHOST_WindowHandle windowhandle)
+bool GHOST_GetValid(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 
-  return (int)window->getValid();
+  return window->getValid();
 }
 
 GHOST_TDrawingContextType GHOST_GetDrawingContextType(GHOST_WindowHandle windowhandle)
@@ -817,22 +817,29 @@ void GHOST_putClipboard(const char *buffer, bool selection)
   system->putClipboard(buffer, selection);
 }
 
-int setConsoleWindowState(GHOST_TConsoleWindowState action)
+bool GHOST_setConsoleWindowState(GHOST_TConsoleWindowState action)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
-  return system->setConsoleWindowState(action);
+  /* FIXME: use `bool` instead of int for this value. */
+  return (bool)system->setConsoleWindowState(action);
 }
 
-int GHOST_UseNativePixels(void)
+bool GHOST_UseNativePixels(void)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->useNativePixel();
 }
 
-int GHOST_SupportsCursorWarp(void)
+bool GHOST_SupportsCursorWarp(void)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->supportsCursorWarp();
+}
+
+bool GHOST_SupportsWindowPosition(void)
+{
+  GHOST_ISystem *system = GHOST_ISystem::getSystem();
+  return system->supportsWindowPosition();
 }
 
 void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn)
@@ -840,7 +847,7 @@ void GHOST_SetBacktraceHandler(GHOST_TBacktraceFn backtrace_fn)
   GHOST_ISystem::setBacktraceFn(backtrace_fn);
 }
 
-void GHOST_UseWindowFocus(int use_focus)
+void GHOST_UseWindowFocus(bool use_focus)
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->useWindowFocus(use_focus);

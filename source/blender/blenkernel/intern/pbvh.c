@@ -1391,7 +1391,7 @@ void pbvh_free_draw_buffers(PBVH *pbvh, PBVHNode *node)
   }
 }
 
-static void pbvh_check_draw_layout(PBVH *pbvh, bool full_render)
+static void pbvh_check_draw_layout(PBVH *pbvh)
 {
   const CustomData *vdata;
   const CustomData *ldata;
@@ -1419,8 +1419,14 @@ static void pbvh_check_draw_layout(PBVH *pbvh, bool full_render)
       break;
   }
 
-  /* rebuild all draw buffers if attribute layout changed */
-  if (GPU_pbvh_attribute_names_update(pbvh->type, pbvh->vbo_id, vdata, ldata, !full_render)) {
+  /* Rebuild all draw buffers if attribute layout changed.
+   *
+   * NOTE: The optimization where we only send active attributes
+   * to the GPU in workbench mode is disabled due to bugs
+   * (there's no guarantee there isn't another EEVEE viewport which would
+   *  free the draw buffers and corrupt the draw cache).
+   */
+  if (GPU_pbvh_attribute_names_update(pbvh->type, pbvh->vbo_id, vdata, ldata, false)) {
     /* attribute layout changed; force rebuild */
     for (int i = 0; i < pbvh->totnode; i++) {
       PBVHNode *node = pbvh->nodes + i;
@@ -2861,7 +2867,7 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
                       PBVHFrustumPlanes *draw_frustum,
                       void (*draw_fn)(void *user_data, GPU_PBVH_Buffers *buffers),
                       void *user_data,
-                      bool full_render)
+                      bool UNUSED(full_render))
 {
   PBVHNode **nodes;
   int totnode;
@@ -2884,7 +2890,7 @@ void BKE_pbvh_draw_cb(PBVH *pbvh,
     update_flag = PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers;
   }
 
-  pbvh_check_draw_layout(pbvh, full_render);
+  pbvh_check_draw_layout(pbvh);
 
   /* Update draw buffers. */
   if (totnode != 0 && (update_flag & (PBVH_RebuildDrawBuffers | PBVH_UpdateDrawBuffers))) {

@@ -1730,7 +1730,7 @@ static void stampdata_from_template(StampData *stamp_data,
     stamp_data->file[0] = '\0';
   }
   if (scene->r.stamp & R_STAMP_NOTE) {
-    SNPRINTF(stamp_data->note, "%s", stamp_data_template->note);
+    STRNCPY(stamp_data->note, stamp_data_template->note);
   }
   else {
     stamp_data->note[0] = '\0';

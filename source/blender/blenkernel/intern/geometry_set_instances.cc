@@ -32,9 +32,7 @@ static void add_final_mesh_as_geometry_component(const Object &object, GeometryS
 
   if (mesh != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh);
-
-    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-    mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
+    geometry_set.replace_mesh(mesh, GeometryOwnershipType::ReadOnly);
   }
 }
 

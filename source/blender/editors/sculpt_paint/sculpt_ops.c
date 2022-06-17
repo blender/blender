@@ -1061,10 +1061,8 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
    * so it needs to be updated here. */
   SculptCursorGeometryInfo sgi;
-  float mouse[2];
-  mouse[0] = event->mval[0];
-  mouse[1] = event->mval[1];
-  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  const float mval_fl[2] = {UNPACK2(event->mval)};
+  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
   SCULPT_undo_push_begin(ob, "Mask by color");
   BKE_sculpt_color_layer_create_if_needed(ob);

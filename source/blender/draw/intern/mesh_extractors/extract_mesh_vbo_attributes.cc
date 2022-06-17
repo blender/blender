@@ -27,21 +27,16 @@ namespace blender::draw {
 static CustomData *get_custom_data_for_domain(const MeshRenderData *mr, eAttrDomain domain)
 {
   switch (domain) {
-    default: {
-      return nullptr;
-    }
-    case ATTR_DOMAIN_POINT: {
+    case ATTR_DOMAIN_POINT:
       return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->vdata : &mr->me->vdata;
-    }
-    case ATTR_DOMAIN_CORNER: {
+    case ATTR_DOMAIN_CORNER:
       return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->ldata : &mr->me->ldata;
-    }
-    case ATTR_DOMAIN_FACE: {
+    case ATTR_DOMAIN_FACE:
       return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->pdata : &mr->me->pdata;
-    }
-    case ATTR_DOMAIN_EDGE: {
+    case ATTR_DOMAIN_EDGE:
       return (mr->extract_type == MR_EXTRACT_BMESH) ? &mr->bm->edata : &mr->me->edata;
-    }
+    default:
+      return nullptr;
   }
 }
 
@@ -50,7 +45,7 @@ static CustomData *get_custom_data_for_domain(const MeshRenderData *mr, eAttrDom
  * etc.) directly map to available GPU types. Booleans are still converted as attributes are vec4
  * in the shader.
  */
-template<typename AttributeType, typename VBOType> struct attribute_type_converter {
+template<typename AttributeType, typename VBOType> struct AttributeTypeConverter {
   static VBOType convert_value(AttributeType value)
   {
     if constexpr (std::is_same_v<AttributeType, VBOType>) {
@@ -67,7 +62,7 @@ struct gpuMeshCol {
   ushort r, g, b, a;
 };
 
-template<> struct attribute_type_converter<MPropCol, gpuMeshCol> {
+template<> struct AttributeTypeConverter<MPropCol, gpuMeshCol> {
   static gpuMeshCol convert_value(MPropCol value)
   {
     gpuMeshCol result;
@@ -86,53 +81,42 @@ static uint gpu_component_size_for_attribute_type(eCustomDataType type)
     case CD_PROP_BOOL:
     case CD_PROP_INT8:
     case CD_PROP_INT32:
-    case CD_PROP_FLOAT: {
+    case CD_PROP_FLOAT:
       /* TODO(@kevindietrich): should be 1 when scalar attributes conversion is handled by us. See
        * comment #extract_attr_init. */
       return 3;
-    }
-    case CD_PROP_FLOAT2: {
+    case CD_PROP_FLOAT2:
       return 2;
-    }
-    case CD_PROP_FLOAT3: {
+    case CD_PROP_FLOAT3:
       return 3;
-    }
-    case CD_PROP_COLOR: {
+    case CD_PROP_COLOR:
       return 4;
-    }
-    default: {
+    default:
       return 0;
-    }
   }
 }
 
 static GPUVertFetchMode get_fetch_mode_for_type(eCustomDataType type)
 {
   switch (type) {
-    case CD_PROP_INT32: {
+    case CD_PROP_INT32:
       return GPU_FETCH_INT_TO_FLOAT;
-    }
-    case CD_PROP_COLOR: {
+    case CD_PROP_COLOR:
       return GPU_FETCH_INT_TO_FLOAT_UNIT;
-    }
-    default: {
+    default:
       return GPU_FETCH_FLOAT;
-    }
   }
 }
 
 static GPUVertCompType get_comp_type_for_type(eCustomDataType type)
 {
   switch (type) {
-    case CD_PROP_INT32: {
+    case CD_PROP_INT32:
       return GPU_COMP_I32;
-    }
-    case CD_PROP_COLOR: {
+    case CD_PROP_COLOR:
       return GPU_COMP_U16;
-    }
-    default: {
+    default:
       return GPU_COMP_F32;
-    }
   }
 }
 
@@ -184,41 +168,36 @@ static void fill_vertbuf_with_attribute(const MeshRenderData *mr,
   const AttributeType *attr_data = static_cast<const AttributeType *>(
       CustomData_get_layer_n(custom_data, request.cd_type, layer_index));
 
-  using converter = attribute_type_converter<AttributeType, VBOType>;
+  using Converter = AttributeTypeConverter<AttributeType, VBOType>;
 
   switch (request.domain) {
-    default: {
-      BLI_assert(false);
-      break;
-    }
-    case ATTR_DOMAIN_POINT: {
+    case ATTR_DOMAIN_POINT:
       for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, vbo_data++, mloop++) {
-        *vbo_data = converter::convert_value(attr_data[mloop->v]);
+        *vbo_data = Converter::convert_value(attr_data[mloop->v]);
       }
       break;
-    }
-    case ATTR_DOMAIN_CORNER: {
+    case ATTR_DOMAIN_CORNER:
       for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, vbo_data++) {
-        *vbo_data = converter::convert_value(attr_data[ml_index]);
+        *vbo_data = Converter::convert_value(attr_data[ml_index]);
       }
       break;
-    }
-    case ATTR_DOMAIN_EDGE: {
+    case ATTR_DOMAIN_EDGE:
       for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, vbo_data++, mloop++) {
-        *vbo_data = converter::convert_value(attr_data[mloop->e]);
+        *vbo_data = Converter::convert_value(attr_data[mloop->e]);
       }
       break;
-    }
-    case ATTR_DOMAIN_FACE: {
+    case ATTR_DOMAIN_FACE:
       for (int mp_index = 0; mp_index < mr->poly_len; mp_index++) {
         const MPoly &poly = mpoly[mp_index];
-        const VBOType value = converter::convert_value(attr_data[mp_index]);
+        const VBOType value = Converter::convert_value(attr_data[mp_index]);
         for (int l = 0; l < poly.totloop; l++) {
           *vbo_data++ = value;
         }
       }
       break;
-    }
+    default:
+      BLI_assert_unreachable();
+      break;
   }
 }
 
@@ -231,9 +210,9 @@ static void fill_vertbuf_with_attribute_bm(const MeshRenderData *mr,
   BLI_assert(custom_data);
   const int layer_index = request.layer_index;
 
-  int cd_ofs = CustomData_get_n_offset(custom_data, request.cd_type, layer_index);
+  const int cd_ofs = CustomData_get_n_offset(custom_data, request.cd_type, layer_index);
 
-  using converter = attribute_type_converter<AttributeType, VBOType>;
+  using Converter = AttributeTypeConverter<AttributeType, VBOType>;
 
   BMIter f_iter;
   BMFace *efa;
@@ -255,10 +234,10 @@ static void fill_vertbuf_with_attribute_bm(const MeshRenderData *mr,
         attr_data = static_cast<const AttributeType *>(BM_ELEM_CD_GET_VOID_P(l_iter->e, cd_ofs));
       }
       else {
-        BLI_assert(false);
+        BLI_assert_unreachable();
         continue;
       }
-      *vbo_data = converter::convert_value(*attr_data);
+      *vbo_data = Converter::convert_value(*attr_data);
       vbo_data++;
     } while ((l_iter = l_iter->next) != l_first);
   }
@@ -297,37 +276,29 @@ static void extract_attr_init(const MeshRenderData *mr,
    * Blender convention, it should be `vec4(s, s, s, 1)`. This could be resolved using a similar
    * texture as for volume attribute, so we can control the conversion ourselves. */
   switch (request.cd_type) {
-    case CD_PROP_BOOL: {
+    case CD_PROP_BOOL:
       extract_attr_generic<bool, float3>(mr, vbo, request);
       break;
-    }
-    case CD_PROP_INT8: {
+    case CD_PROP_INT8:
       extract_attr_generic<int8_t, float3>(mr, vbo, request);
       break;
-    }
-    case CD_PROP_INT32: {
+    case CD_PROP_INT32:
       extract_attr_generic<int32_t, float3>(mr, vbo, request);
       break;
-    }
-    case CD_PROP_FLOAT: {
+    case CD_PROP_FLOAT:
       extract_attr_generic<float, float3>(mr, vbo, request);
       break;
-    }
-    case CD_PROP_FLOAT2: {
+    case CD_PROP_FLOAT2:
       extract_attr_generic<float2>(mr, vbo, request);
       break;
-    }
-    case CD_PROP_FLOAT3: {
+    case CD_PROP_FLOAT3:
       extract_attr_generic<float3>(mr, vbo, request);
       break;
-    }
-    case CD_PROP_COLOR: {
+    case CD_PROP_COLOR:
       extract_attr_generic<MPropCol, gpuMeshCol>(mr, vbo, request);
       break;
-    }
-    default: {
-      BLI_assert(false);
-    }
+    default:
+      BLI_assert_unreachable();
   }
 }
 
@@ -353,37 +324,29 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
   GPU_vertbuf_data_alloc(src_data, static_cast<uint32_t>(coarse_mesh->totloop));
 
   switch (request.cd_type) {
-    case CD_PROP_BOOL: {
+    case CD_PROP_BOOL:
       extract_attr_generic<bool, float3>(mr, src_data, request);
       break;
-    }
-    case CD_PROP_INT8: {
+    case CD_PROP_INT8:
       extract_attr_generic<int8_t, float3>(mr, src_data, request);
       break;
-    }
-    case CD_PROP_INT32: {
+    case CD_PROP_INT32:
       extract_attr_generic<int32_t, float3>(mr, src_data, request);
       break;
-    }
-    case CD_PROP_FLOAT: {
+    case CD_PROP_FLOAT:
       extract_attr_generic<float, float3>(mr, src_data, request);
       break;
-    }
-    case CD_PROP_FLOAT2: {
+    case CD_PROP_FLOAT2:
       extract_attr_generic<float2>(mr, src_data, request);
       break;
-    }
-    case CD_PROP_FLOAT3: {
+    case CD_PROP_FLOAT3:
       extract_attr_generic<float3>(mr, src_data, request);
       break;
-    }
-    case CD_PROP_COLOR: {
+    case CD_PROP_COLOR:
       extract_attr_generic<MPropCol, gpuMeshCol>(mr, src_data, request);
       break;
-    }
-    default: {
-      BLI_assert(false);
-    }
+    default:
+      BLI_assert_unreachable();
   }
 
   GPUVertBuf *dst_buffer = static_cast<GPUVertBuf *>(buffer);
@@ -430,7 +393,7 @@ EXTRACT_INIT_WRAPPER(12)
 EXTRACT_INIT_WRAPPER(13)
 EXTRACT_INIT_WRAPPER(14)
 
-template<int index>
+template<int Index>
 constexpr MeshExtract create_extractor_attr(ExtractInitFn fn, ExtractInitSubdivFn subdiv_fn)
 {
   MeshExtract extractor = {nullptr};
@@ -439,7 +402,7 @@ constexpr MeshExtract create_extractor_attr(ExtractInitFn fn, ExtractInitSubdivF
   extractor.data_type = MR_DATA_NONE;
   extractor.data_size = 0;
   extractor.use_threading = false;
-  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.attr[index]);
+  extractor.mesh_buffer_offset = offsetof(MeshBufferList, vbo.attr[Index]);
   return extractor;
 }
 

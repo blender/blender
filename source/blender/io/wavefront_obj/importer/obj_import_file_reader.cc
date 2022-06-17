@@ -78,7 +78,7 @@ static void geom_add_vertex(Geometry *geom,
   p = parse_floats(p, end, 0.0f, vert, 3);
   r_global_vertices.vertices.append(vert);
   geom->vertex_count_++;
-  /* OBJ extension: "xyzrgb" vertex colors, when the vertex position
+  /* OBJ extension: `xyzrgb` vertex colors, when the vertex position
    * is followed by 3 more RGB color components. See
    * http://paulbourke.net/dataformats/obj/colour.html */
   if (p < end) {

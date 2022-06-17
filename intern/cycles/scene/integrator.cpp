@@ -338,7 +338,7 @@ AdaptiveSampling Integrator::get_adaptive_sampling() const
 
   if (aa_samples > 0 && adaptive_threshold == 0.0f) {
     adaptive_sampling.threshold = max(0.001f, 1.0f / (float)aa_samples);
-    VLOG(1) << "Cycles adaptive sampling: automatic threshold = " << adaptive_sampling.threshold;
+    VLOG_INFO << "Cycles adaptive sampling: automatic threshold = " << adaptive_sampling.threshold;
   }
   else {
     adaptive_sampling.threshold = adaptive_threshold;
@@ -350,8 +350,8 @@ AdaptiveSampling Integrator::get_adaptive_sampling() const
      * in various test scenes. */
     const int min_samples = (int)ceilf(16.0f / powf(adaptive_sampling.threshold, 0.3f));
     adaptive_sampling.min_samples = max(4, min_samples);
-    VLOG(1) << "Cycles adaptive sampling: automatic min samples = "
-            << adaptive_sampling.min_samples;
+    VLOG_INFO << "Cycles adaptive sampling: automatic min samples = "
+              << adaptive_sampling.min_samples;
   }
   else {
     adaptive_sampling.min_samples = max(4, adaptive_min_samples);

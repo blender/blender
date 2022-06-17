@@ -983,6 +983,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
 
   if (params->display == FILE_IMGDISPLAY) {
     const float pad_fac = compact ? 0.15f : 0.3f;
+    /* Matches UI_preview_tile_size_x()/_y() by default. */
     layout->prv_w = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_X;
     layout->prv_h = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_Y;
     layout->tile_border_x = pad_fac * UI_UNIT_X;
@@ -1009,6 +1010,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
   else if (params->display == FILE_VERTICALDISPLAY) {
     int rowcount;
 
+    /* Matches UI_preview_tile_size_x()/_y() by default. */
     layout->prv_w = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_X;
     layout->prv_h = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_Y;
     layout->tile_border_x = 0.4f * UI_UNIT_X;
@@ -1030,6 +1032,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *region)
     layout->flag = FILE_LAYOUT_VER;
   }
   else if (params->display == FILE_HORIZONTALDISPLAY) {
+    /* Matches UI_preview_tile_size_x()/_y() by default. */
     layout->prv_w = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_X;
     layout->prv_h = ((float)params->thumbnail_size / 20.0f) * UI_UNIT_Y;
     layout->tile_border_x = 0.4f * UI_UNIT_X;

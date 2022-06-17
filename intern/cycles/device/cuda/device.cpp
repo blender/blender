@@ -29,24 +29,25 @@ bool device_cuda_init()
   initialized = true;
   int cuew_result = cuewInit(CUEW_INIT_CUDA);
   if (cuew_result == CUEW_SUCCESS) {
-    VLOG(1) << "CUEW initialization succeeded";
+    VLOG_INFO << "CUEW initialization succeeded";
     if (CUDADevice::have_precompiled_kernels()) {
-      VLOG(1) << "Found precompiled kernels";
+      VLOG_INFO << "Found precompiled kernels";
       result = true;
     }
     else if (cuewCompilerPath() != NULL) {
-      VLOG(1) << "Found CUDA compiler " << cuewCompilerPath();
+      VLOG_INFO << "Found CUDA compiler " << cuewCompilerPath();
       result = true;
     }
     else {
-      VLOG(1) << "Neither precompiled kernels nor CUDA compiler was found,"
-              << " unable to use CUDA";
+      VLOG_INFO << "Neither precompiled kernels nor CUDA compiler was found,"
+                << " unable to use CUDA";
     }
   }
   else {
-    VLOG(1) << "CUEW initialization failed: "
-            << ((cuew_result == CUEW_ERROR_ATEXIT_FAILED) ? "Error setting up atexit() handler" :
-                                                            "Error opening the library");
+    VLOG_WARNING << "CUEW initialization failed: "
+                 << ((cuew_result == CUEW_ERROR_ATEXIT_FAILED) ?
+                         "Error setting up atexit() handler" :
+                         "Error opening the library");
   }
 
   return result;
@@ -121,7 +122,8 @@ void device_cuda_info(vector<DeviceInfo> &devices)
     int major;
     cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, num);
     if (major < 3) {
-      VLOG(1) << "Ignoring device \"" << name << "\", this graphics card is no longer supported.";
+      VLOG_INFO << "Ignoring device \"" << name
+                << "\", this graphics card is no longer supported.";
       continue;
     }
 
@@ -166,21 +168,21 @@ void device_cuda_info(vector<DeviceInfo> &devices)
      * Windows 10 even when it is, due to an issue in application profiles.
      * Detect case where we expect it to be available and override. */
     if (preempt_attr == 0 && (major >= 6) && system_windows_version_at_least(10, 17134)) {
-      VLOG(1) << "Assuming device has compute preemption on Windows 10.";
+      VLOG_INFO << "Assuming device has compute preemption on Windows 10.";
       preempt_attr = 1;
     }
 
     if (timeout_attr && !preempt_attr) {
-      VLOG(1) << "Device is recognized as display.";
+      VLOG_INFO << "Device is recognized as display.";
       info.description += " (Display)";
       info.display_device = true;
       display_devices.push_back(info);
     }
     else {
-      VLOG(1) << "Device has compute preemption or is not used for display.";
+      VLOG_INFO << "Device has compute preemption or is not used for display.";
       devices.push_back(info);
     }
-    VLOG(1) << "Added device \"" << name << "\" with id \"" << info.id << "\".";
+    VLOG_INFO << "Added device \"" << name << "\" with id \"" << info.id << "\".";
   }
 
   if (!display_devices.empty())

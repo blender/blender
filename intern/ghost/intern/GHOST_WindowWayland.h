@@ -17,7 +17,6 @@ class GHOST_SystemWayland;
 
 struct output_t;
 struct window_t;
-struct wl_surface;
 
 class GHOST_WindowWayland : public GHOST_Window {
  public:
@@ -102,12 +101,14 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   GHOST_TSuccess notify_size();
 
-  wl_surface *surface() const;
-
-  std::vector<const output_t *> &outputs();
+  struct wl_surface *surface() const;
 
   output_t *output_find_by_wl(struct wl_output *output);
 
+  const std::vector<output_t *> &outputs();
+
+  bool outputs_enter(output_t *reg_output);
+  bool outputs_leave(output_t *reg_output);
   bool outputs_changed_update_scale();
 
   uint16_t dpi();

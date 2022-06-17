@@ -14,6 +14,7 @@ extern "C" {
 
 typedef struct ParamHandle ParamHandle; /* Handle to an array of charts. */
 typedef intptr_t ParamKey;              /* Key (hash) for identifying verts and faces. */
+#define PARAM_KEY_MAX INTPTR_MAX
 
 /* -------------------------------------------------------------------- */
 /** \name Chart Construction:
@@ -33,6 +34,10 @@ typedef intptr_t ParamKey;              /* Key (hash) for identifying verts and 
 ParamHandle *GEO_uv_parametrizer_construct_begin(void);
 
 void GEO_uv_parametrizer_aspect_ratio(ParamHandle *handle, float aspx, float aspy);
+
+void GEO_uv_prepare_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2]);
+
+ParamKey GEO_uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2]);
 
 void GEO_uv_parametrizer_face_add(ParamHandle *handle,
                                   const ParamKey key,

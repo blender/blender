@@ -738,6 +738,7 @@ void WM_operator_last_properties_ensure(struct wmOperatorType *ot, struct Pointe
 wmOperator *WM_operator_last_redo(const struct bContext *C);
 /**
  * Use for drag & drop a path or name with operators invoke() function.
+ * Returns null if no operator property is set to identify the file or ID to use.
  */
 ID *WM_operator_drop_load_path(struct bContext *C, struct wmOperator *op, short idcode);
 

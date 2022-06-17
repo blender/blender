@@ -77,8 +77,16 @@ typedef struct MainIDRelationsEntry {
 typedef enum eMainIDRelationsEntryTags {
   /* Generic tag marking the entry as to be processed. */
   MAINIDRELATIONS_ENTRY_TAGS_DOIT = 1 << 0,
+
+  /* Generic tag marking the entry as processed in the `to` direction (i.e. we processed the IDs
+   * used by this item). */
+  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO = 1 << 1,
+  /* Generic tag marking the entry as processed in the `from` direction (i.e. we processed the IDs
+   * using by this item). */
+  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM = 1 << 2,
   /* Generic tag marking the entry as processed. */
-  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED = 1 << 1,
+  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED = MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO |
+                                         MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM,
 } eMainIDRelationsEntryTags;
 
 typedef struct MainIDRelations {

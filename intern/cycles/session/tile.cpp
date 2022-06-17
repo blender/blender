@@ -335,7 +335,7 @@ int TileManager::compute_render_tile_size(const int suggested_tile_size) const
 
 void TileManager::reset_scheduling(const BufferParams &params, int2 tile_size)
 {
-  VLOG(3) << "Using tile size of " << tile_size;
+  VLOG_WORK << "Using tile size of " << tile_size;
 
   close_tile_output();
 
@@ -466,7 +466,7 @@ bool TileManager::open_tile_output()
 
   write_state_.num_tiles_written = 0;
 
-  VLOG(3) << "Opened tile file " << write_state_.filename;
+  VLOG_WORK << "Opened tile file " << write_state_.filename;
 
   return true;
 }
@@ -485,7 +485,7 @@ bool TileManager::close_tile_output()
     return false;
   }
 
-  VLOG(3) << "Tile output is closed.";
+  VLOG_WORK << "Tile output is closed.";
 
   return true;
 }
@@ -536,7 +536,7 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
     pixels = pixel_storage.data();
   }
 
-  VLOG(3) << "Write tile at " << tile_x << ", " << tile_y;
+  VLOG_WORK << "Write tile at " << tile_x << ", " << tile_y;
 
   /* The image tile sizes in the OpenEXR file are different from the size of our big tiles. The
    * write_tiles() method expects a contiguous image region that will be split into tiles
@@ -567,7 +567,7 @@ bool TileManager::write_tile(const RenderBuffers &tile_buffers)
 
   ++write_state_.num_tiles_written;
 
-  VLOG(3) << "Tile written in " << time_dt() - time_start << " seconds.";
+  VLOG_WORK << "Tile written in " << time_dt() - time_start << " seconds.";
 
   return true;
 }
@@ -591,7 +591,7 @@ void TileManager::finish_write_tiles()
       const int tile_x = tile.x + tile.window_x;
       const int tile_y = tile.y + tile.window_y;
 
-      VLOG(3) << "Write dummy tile at " << tile_x << ", " << tile_y;
+      VLOG_WORK << "Write dummy tile at " << tile_x << ", " << tile_y;
 
       write_state_.tile_out->write_tiles(tile_x,
                                          tile_x + tile.window_width,
@@ -610,8 +610,8 @@ void TileManager::finish_write_tiles()
     full_buffer_written_cb(write_state_.filename);
   }
 
-  VLOG(3) << "Tile file size is "
-          << string_human_readable_number(path_file_size(write_state_.filename)) << " bytes.";
+  VLOG_WORK << "Tile file size is "
+            << string_human_readable_number(path_file_size(write_state_.filename)) << " bytes.";
 
   /* Advance the counter upon explicit finish of the file.
    * Makes it possible to re-use tile manager for another scene, and avoids unnecessary increments
