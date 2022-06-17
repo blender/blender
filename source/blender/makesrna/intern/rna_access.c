@@ -6108,7 +6108,7 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
   }
 
   if ((index == -1) || (RNA_property_array_check(prop) == false)) {
-    ret = BLI_sprintfN("%s", data_path);
+    ret = BLI_strdup(data_path);
   }
   else {
     ret = BLI_sprintfN("%s[%d]", data_path, index);
