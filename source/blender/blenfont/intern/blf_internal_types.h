@@ -226,6 +226,11 @@ typedef struct FontBLF {
   /** File-path or NULL. */
   char *filepath;
 
+  /* Copied from the SFNT OS/2 table. Bit flags for unicode blocks and ranges
+   * considered "functional". Cached here because face might not always exist.
+   * See: https://docs.microsoft.com/en-us/typography/opentype/spec/os2#ur */
+  uint UnicodeRanges[4];
+
   /* aspect ratio or scale. */
   float aspect[3];
 

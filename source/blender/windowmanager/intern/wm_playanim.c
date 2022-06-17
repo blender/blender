@@ -1555,6 +1555,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   /* initialize the font */
   BLF_init();
+  BLF_load_font_stack();
   ps.fontid = BLF_load_mono_default(false);
   BLF_size(ps.fontid, 11.0f, 72);
 

@@ -14,6 +14,15 @@
 extern "C" {
 #endif
 
+/* Name of subfolder inside BLENDER_DATAFILES that contains font files. */
+#define BLF_DATAFILES_FONTS_DIR "fonts"
+
+/* File name of the default variable-width font. */
+#define BLF_DEFAULT_PROPORTIONAL_FONT "droidsans.ttf"
+
+/* File name of the default fixed-pitch font. */
+#define BLF_DEFAULT_MONOSPACED_FONT "bmonofont-i18n.ttf"
+
 /* enable this only if needed (unused circa 2016) */
 #define BLF_BLUR_ENABLE 0
 
@@ -37,12 +46,14 @@ void BLF_cache_flush_set_fn(void (*cache_flush_fn)(void));
  */
 int BLF_load(const char *name) ATTR_NONNULL();
 int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size) ATTR_NONNULL();
+bool BLF_is_loaded(const char *name) ATTR_NONNULL();
 
 int BLF_load_unique(const char *name) ATTR_NONNULL();
 int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size) ATTR_NONNULL();
 
 void BLF_unload(const char *name) ATTR_NONNULL();
 void BLF_unload_id(int fontid);
+void BLF_unload_all(void);
 
 char *BLF_display_name_from_file(const char *filepath);
 
@@ -312,6 +323,7 @@ int BLF_set_default(void);
 
 int BLF_load_default(bool unique);
 int BLF_load_mono_default(bool unique);
+void BLF_load_font_stack(void);
 
 #ifdef DEBUG
 void BLF_state_print(int fontid);
@@ -331,6 +343,9 @@ void BLF_state_print(int fontid);
 #define BLF_HINTING_FULL (1 << 10)
 #define BLF_BOLD (1 << 11)
 #define BLF_ITALIC (1 << 12)
+#define BLF_MONOSPACED (1 << 13) /* Intended USE is monospaced, regardless of font type. */
+#define BLF_DEFAULT (1 << 14) /* A font within the default stack of fonts. */
+#define BLF_LAST_RESORT (1 << 15) /* Must only be used as last font in the stack. */
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024
 

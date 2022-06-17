@@ -363,6 +363,10 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
 
 int BLI_wcwidth(char32_t ucs)
 {
+  /* Treat private use areas (icon fonts), symbols, and emoticons as double-width. */
+  if (ucs >= 0xf0000 || (ucs >= 0xe000 && ucs < 0xf8ff) || (ucs >= 0x1f300 && ucs < 0x1fbff)) {
+    return 2;
+  }
   return mk_wcwidth(ucs);
 }
 
