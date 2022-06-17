@@ -445,6 +445,7 @@ if(WITH_GTESTS)
     tests/BLI_index_range_test.cc
     tests/BLI_inplace_priority_queue_test.cc
     tests/BLI_kdopbvh_test.cc
+    tests/BLI_kdtree_test.cc
     tests/BLI_length_parameterize_test.cc
     tests/BLI_linear_allocator_test.cc
     tests/BLI_linklist_lockfree_test.cc
