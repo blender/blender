@@ -4818,8 +4818,7 @@ static int ui_do_but_GRIDTILE(bContext *C,
                               uiHandleButtonData *data,
                               const wmEvent *event)
 {
-  uiButGridTile *grid_tile_but = (uiButGridTile *)but;
-  BLI_assert(grid_tile_but->but.type == UI_BTYPE_GRID_TILE);
+  BLI_assert(but->type == UI_BTYPE_GRID_TILE);
 
   if (data->state == BUTTON_STATE_HIGHLIGHT) {
     if (event->type == LEFTMOUSE) {
@@ -4840,7 +4839,8 @@ static int ui_do_but_GRIDTILE(bContext *C,
 
         case KM_DBL_CLICK:
           data->cancel = true;
-          //          UI_tree_view_item_begin_rename(grid_tile_but->tree_item);
+          // uiButGridTile *grid_tile_but = (uiButGridTile *)but;
+          // UI_tree_view_item_begin_rename(grid_tile_but->tree_item);
           ED_region_tag_redraw(CTX_wm_region(C));
           return WM_UI_HANDLER_BREAK;
       }

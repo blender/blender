@@ -18,7 +18,7 @@ struct Mesh;
 struct BVHTreeFromMesh;
 
 namespace blender {
-struct RandomNumberGenerator;
+class RandomNumberGenerator;
 }
 
 namespace blender::bke {
