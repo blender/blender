@@ -164,6 +164,9 @@ void DEG_add_generic_id_relation(struct DepsNodeHandle *node_handle,
 void DEG_add_modifier_to_transform_relation(struct DepsNodeHandle *node_handle,
                                             const char *description);
 
+void DEG_add_modifier_to_rigid_body_sim_relation(struct DepsNodeHandle *node_handle,
+                                                 const char *description);
+
 /**
  * Adds relations from the given component of a given object to the given node
  * handle AND the component to the point cache component of the node's ID.

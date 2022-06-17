@@ -1408,7 +1408,7 @@ RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene)
   return scene->rigidbody_world;
 }
 
-static bool rigidbody_add_object_to_scene(Main *bmain, Scene *scene, Object *ob)
+static bool rigidbody_add_object_to_world(Main *bmain, Scene *scene, Object *ob)
 {
   /* Add rigid body world and group if they don't exist for convenience */
   RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
@@ -1437,7 +1437,63 @@ static bool rigidbody_add_object_to_scene(Main *bmain, Scene *scene, Object *ob)
   return true;
 }
 
-static bool rigidbody_add_constraint_to_scene(Main *bmain, Scene *scene, Object *ob)
+static void rigidbody_remove_object_from_world(Main *bmain,
+                                               Scene *scene,
+                                               Object *ob,
+                                               const bool free_us)
+{
+  RigidBodyWorld *rbw = scene->rigidbody_world;
+  if (rbw == NULL) {
+    return;
+  }
+
+  /* remove object from array */
+  if (rbw->objects) {
+    for (int i = 0; i < rbw->numbodies; i++) {
+      if (rbw->objects[i] == ob) {
+        rbw->objects[i] = NULL;
+        break;
+      }
+    }
+  }
+
+  /* remove object from rigid body constraints */
+  if (rbw->constraints) {
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->constraints, obt) {
+      if (obt && obt->rigidbody_constraint) {
+        RigidBodyCon *rbc = obt->rigidbody_constraint;
+        if (rbc->ob1 == ob) {
+          rbc->ob1 = NULL;
+          DEG_id_tag_update(&obt->id, ID_RECALC_COPY_ON_WRITE);
+        }
+        if (rbc->ob2 == ob) {
+          rbc->ob2 = NULL;
+          DEG_id_tag_update(&obt->id, ID_RECALC_COPY_ON_WRITE);
+        }
+      }
+    }
+    FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+  }
+
+  /* Relying on usercount of the object should be OK, and it is much cheaper than looping in all
+    * collections to check whether the object is already in another one... */
+  if (ID_REAL_USERS(&ob->id) == 1) {
+    /* Some users seems to find it funny to use a view-layer instancing collection
+      * as RBW collection... Despite this being a bad (ab)use of the system, avoid losing objects
+      * when we remove them from RB simulation. */
+    BKE_collection_object_add(bmain, scene->master_collection, ob);
+  }
+  BKE_collection_object_remove(bmain, rbw->group, ob, free_us);
+
+  /* flag cache as outdated */
+  BKE_rigidbody_cache_reset(rbw);
+  /* Reset cache as the object order probably changed after freeing the object. */
+  PTCacheID pid;
+  BKE_ptcache_id_from_rigidbody(&pid, NULL, rbw);
+  BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+}
+
+static bool rigidbody_add_constraint_to_world(Main *bmain, Scene *scene, Object *ob)
 {
   /* Add rigid body world and group if they don't exist for convenience */
   RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
@@ -1472,7 +1528,7 @@ void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob)
     /* Add newly local object to scene. */
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       if (BKE_scene_object_find(scene, ob)) {
-        rigidbody_add_object_to_scene(bmain, scene, ob);
+        rigidbody_add_object_to_world(bmain, scene, ob);
       }
     }
   }
@@ -1480,7 +1536,7 @@ void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob)
     /* Add newly local object to scene. */
     for (Scene *scene = bmain->scenes.first; scene; scene = scene->id.next) {
       if (BKE_scene_object_find(scene, ob)) {
-        rigidbody_add_constraint_to_scene(bmain, scene, ob);
+        rigidbody_add_constraint_to_world(bmain, scene, ob);
       }
     }
   }
@@ -1489,13 +1545,17 @@ void BKE_rigidbody_ensure_local_object(Main *bmain, Object *ob)
 bool BKE_rigidbody_add_object(Main *bmain, Scene *scene, Object *ob, int type, ReportList *reports)
 {
   if (ob->type != OB_MESH) {
-    BKE_report(reports, RPT_ERROR, "Can't add Rigid Body to non mesh object");
+    if (reports) {
+      BKE_report(reports, RPT_ERROR, "Can't add Rigid Body to non mesh object");
+    }
     return false;
   }
 
   /* Add object to rigid body world in scene. */
-  if (!rigidbody_add_object_to_scene(bmain, scene, ob)) {
-    BKE_report(reports, RPT_ERROR, "Can't create Rigid Body world");
+  if (!rigidbody_add_object_to_world(bmain, scene, ob)) {
+    if (reports) {
+      BKE_report(reports, RPT_ERROR, "Can't create Rigid Body world");
+    }
     return false;
   }
 
@@ -1514,64 +1574,36 @@ bool BKE_rigidbody_add_object(Main *bmain, Scene *scene, Object *ob, int type, R
 
 void BKE_rigidbody_remove_object(Main *bmain, Scene *scene, Object *ob, const bool free_us)
 {
+  rigidbody_remove_object_from_world(bmain, scene, ob, free_us);
+
   RigidBodyWorld *rbw = scene->rigidbody_world;
-  RigidBodyCon *rbc;
-  int i;
-
-  if (rbw) {
-
-    /* remove object from array */
-    if (rbw->objects) {
-      for (i = 0; i < rbw->numbodies; i++) {
-        if (rbw->objects[i] == ob) {
-          rbw->objects[i] = NULL;
-          break;
-        }
-      }
-    }
-
-    /* remove object from rigid body constraints */
-    if (rbw->constraints) {
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->constraints, obt) {
-        if (obt && obt->rigidbody_constraint) {
-          rbc = obt->rigidbody_constraint;
-          if (rbc->ob1 == ob) {
-            rbc->ob1 = NULL;
-            DEG_id_tag_update(&obt->id, ID_RECALC_COPY_ON_WRITE);
-          }
-          if (rbc->ob2 == ob) {
-            rbc->ob2 = NULL;
-            DEG_id_tag_update(&obt->id, ID_RECALC_COPY_ON_WRITE);
-          }
-        }
-      }
-      FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-    }
-
-    /* Relying on usercount of the object should be OK, and it is much cheaper than looping in all
-     * collections to check whether the object is already in another one... */
-    if (ID_REAL_USERS(&ob->id) == 1) {
-      /* Some users seems to find it funny to use a view-layer instancing collection
-       * as RBW collection... Despite this being a bad (ab)use of the system, avoid losing objects
-       * when we remove them from RB simulation. */
-      BKE_collection_object_add(bmain, scene->master_collection, ob);
-    }
-    BKE_collection_object_remove(bmain, rbw->group, ob, free_us);
-
-    /* flag cache as outdated */
-    BKE_rigidbody_cache_reset(rbw);
-    /* Reset cache as the object order probably changed after freeing the object. */
-    PTCacheID pid;
-    BKE_ptcache_id_from_rigidbody(&pid, NULL, rbw);
-    BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-  }
-
   /* remove object's settings */
   BKE_rigidbody_free_object(ob, rbw);
 
   /* Dependency graph update */
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+}
+
+bool BKE_rigidbody_add_nodes(Main *bmain, Scene *scene, Object *ob, ReportList *reports)
+{
+  /* Add object to rigid body world in scene. */
+  if (!rigidbody_add_object_to_world(bmain, scene, ob)) {
+    if (reports) {
+      BKE_report(reports, RPT_ERROR, "Can't create Rigid Body world");
+    }
+    return false;
+  }
+
+  DEG_relations_tag_update(bmain);
+  DEG_id_tag_update(&ob->id, ID_RECALC_TRANSFORM);
+
+  return true;
+}
+
+void BKE_rigidbody_remove_nodes(Main *bmain, Scene *scene, Object *ob, const bool free_us)
+{
+  rigidbody_remove_object_from_world(bmain, scene, ob, free_us);
 }
 
 void BKE_rigidbody_remove_constraint(Main *bmain, Scene *scene, Object *ob, const bool free_us)

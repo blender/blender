@@ -157,6 +157,15 @@ void BKE_rigidbody_remove_constraint(struct Main *bmain,
                                      struct Object *ob,
                                      bool free_us);
 
+bool BKE_rigidbody_add_nodes(struct Main *bmain,
+                             struct Scene *scene,
+                             struct Object *ob,
+                             struct ReportList *reports);
+void BKE_rigidbody_remove_nodes(struct Main *bmain,
+                                struct Scene *scene,
+                                struct Object *ob,
+                                const bool free_us);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

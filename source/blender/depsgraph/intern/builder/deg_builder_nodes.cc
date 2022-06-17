@@ -98,6 +98,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+#include "MOD_nodes.h"
+
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
 
@@ -1278,27 +1280,34 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
   if (rbw->group != nullptr) {
     build_collection(nullptr, rbw->group);
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, object) {
-      if (object->type != OB_MESH) {
-        continue;
-      }
-      if (object->rigidbody_object == nullptr) {
-        continue;
-      }
-
-      if (object->rigidbody_object->type == RBO_TYPE_PASSIVE) {
-        continue;
+      bool needs_transform_copy = false;
+      if (object->rigidbody_object && object->type == OB_MESH &&
+          object->rigidbody_object->type != RBO_TYPE_PASSIVE) {
+        needs_transform_copy = true;
       }
 
-      /* Create operation for flushing results. */
-      /* Object's transform component - where the rigidbody operation
-       * lives. */
-      Object *object_cow = get_cow_datablock(object);
-      add_operation_node(&object->id,
-                         NodeType::TRANSFORM,
-                         OperationCode::RIGIDBODY_TRANSFORM_COPY,
-                         [scene_cow, object_cow](::Depsgraph *depsgraph) {
-                           BKE_rigidbody_object_sync_transforms(depsgraph, scene_cow, object_cow);
-                         });
+      LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+        if (md->type == eModifierType_Nodes) {
+          NodesModifierData *nmd = (NodesModifierData *)md;
+          if (MOD_nodes_needs_rigid_body_sim(object, nmd)) {
+            needs_transform_copy = true;
+          }
+        }
+      }
+
+      if (needs_transform_copy) {
+        /* Create operation for flushing results. */
+        /* Object's transform component - where the rigidbody operation
+         * lives. */
+        Object *object_cow = get_cow_datablock(object);
+        add_operation_node(&object->id,
+                           NodeType::TRANSFORM,
+                           OperationCode::RIGIDBODY_TRANSFORM_COPY,
+                           [scene_cow, object_cow](::Depsgraph *depsgraph) {
+                             BKE_rigidbody_object_sync_transforms(
+                                 depsgraph, scene_cow, object_cow);
+                           });
+      }
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }

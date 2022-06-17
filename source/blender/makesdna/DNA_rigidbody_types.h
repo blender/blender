@@ -44,7 +44,7 @@ typedef struct RigidBodyWorld {
 
   /** Group containing objects to use for Rigid Bodies. */
   struct Collection *group;
-  /** Array to access group objects by index, only used at runtime. */
+  /** Array for the point cache to access group objects by index, only used at runtime. */
   struct Object **objects;
 
   /** Group containing objects to use for Rigid Body Constraints. */

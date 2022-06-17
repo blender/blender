@@ -313,12 +313,16 @@ void DepsgraphRelationBuilder::add_modifier_to_rigid_body_sim_relation(const Dep
   IDNode *id_node = handle->node->owner->owner;
   ID *id = id_node->id_orig;
   ComponentKey geometry_key(id, NodeType::GEOMETRY);
+  OperationKey write_cache_key(id, NodeType::GEOMETRY, OperationCode::GEOMETRY_WRITE_CACHE); 
   OperationKey rb_simulate_key(&scene_->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_SIM);
-  OperationKey rb_sync_key(
-      &scene_->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
-  /* Wire up the actual relation. */
+  OperationKey rb_transform_copy_key(
+      id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_TRANSFORM_COPY);
+  /* Simulation only after evaluating nodes. */
   add_relation(geometry_key, rb_simulate_key, description);
-  add_relation()
+  /* Rigid body synchronization depends on the actual simulation. */
+  add_relation(rb_simulate_key, rb_transform_copy_key, "Rigidbody Sim Eval -> RBO Sync");
+  /* Wait for simulation results to be copied before writing to cache. */
+  add_relation(rb_transform_copy_key, write_cache_key, description);
 }
 
 void DepsgraphRelationBuilder::add_customdata_mask(Object *object,

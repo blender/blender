@@ -29,12 +29,14 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_attribute_math.hh"
+#include "BKE_collection.h"
 #include "BKE_customdata.h"
 #include "BKE_geometry_cache.hh"
 #include "BKE_geometry_fields.hh"
@@ -50,6 +52,7 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_object.h"
 #include "BKE_pointcloud.h"
+#include "BKE_rigidbody.h"
 #include "BKE_screen.h"
 #include "BKE_simulation.h"
 #include "BKE_workspace.h"
@@ -123,11 +126,22 @@ using namespace blender::nodes::derived_node_tree_types;
 using geo_log::eNamedAttrUsage;
 using geo_log::GeometryAttributeInfo;
 
-static bool isIterativeModifier(ModifierData *md)
+static bool nodes_need_cache(const bNodeTree &tree)
 {
-  NodesModifierData *nmd = (NodesModifierData *)md;
-  return nmd->node_group && nmd->node_group->type == NTREE_PARTICLES;
+  return tree.type == NTREE_PARTICLES;
 }
+
+static bool nodes_need_rigid_body_sim(const bNodeTree &tree)
+{
+  /* XXX Dummy, should be based on existence of certain nodes */
+  return tree.type == NTREE_PARTICLES;
+}
+
+bool MOD_nodes_needs_rigid_body_sim(Object *object, NodesModifierData *nmd)
+{
+  return nmd->node_group && nodes_need_rigid_body_sim(*nmd->node_group);
+}
+
 
 static void initData(ModifierData *md)
 {
@@ -222,7 +236,7 @@ static void process_nodes_for_depsgraph(const bNodeTree &tree,
   }
 
   /* XXX dummy */
-  needs_rigid_body_sim = true;
+  needs_rigid_body_sim = nodes_need_rigid_body_sim(tree);
 }
 
 static void find_used_ids_from_settings(const NodesModifierSettings &settings, Set<ID *> &ids)
@@ -312,7 +326,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   if (needs_rigid_body_sim) {
-    DEG_add_
+    DEG_add_modifier_to_rigid_body_sim_relation(ctx->node, "Nodes Modifier");
   }
 }
 
@@ -770,6 +784,16 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
   }
 
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
+}
+
+void MOD_nodes_update_simulation(Main *bmain, Scene *scene, Object *object, NodesModifierData *nmd)
+{
+  if (nmd->node_group && nodes_need_rigid_body_sim(*nmd->node_group)) {
+    BKE_rigidbody_add_nodes(bmain, scene, object, nullptr);
+  }
+  else {
+    BKE_rigidbody_remove_nodes(bmain, scene, object, false);
+  }
 }
 
 static void initialize_group_input(NodesModifierData &nmd,
@@ -1321,7 +1345,8 @@ static void modifyGeometrySet(ModifierData *md,
   const Scene *scene = DEG_get_input_scene(ctx->depsgraph);
   GeometryCache::Timestamp timestamp{scene->r.cfra};
 
-  if (isIterativeModifier(md)) {
+  NodesModifierData *nmd = (NodesModifierData *)md;
+  if (nmd->node_group && nodes_need_cache(*nmd->node_group)) {
     BLI_assert(ctx->object->id.orig_id);
     Object *orig_ob = (Object *)ctx->object->id.orig_id;
     if (GeometryCache *cache = orig_ob->runtime.geometry_cache) {
