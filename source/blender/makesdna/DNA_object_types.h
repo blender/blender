@@ -166,8 +166,11 @@ typedef struct Object_Runtime {
    */
   struct Mesh *mesh_deform_eval;
 
-  /* Runtime cache for iterative geometry */
+  /* Runtime cache for iterative geometry. */
   struct GeometryCache *geometry_cache;
+
+  /* Maps identifier values to rigid bodies in the simulation world. */
+  struct RigidBodyMap *rigid_body_map;
 
   /* Evaluated mesh cage in edit mode. */
   struct Mesh *editmesh_eval_cage;
@@ -202,10 +205,8 @@ typedef struct Object_Runtime {
   /** Runtime evaluated curve-specific data, not stored in the file. */
   struct CurveCache *curve_cache;
 
-  void *_pad2;
-
   unsigned short local_collections_bits;
-  short _pad3[3];
+  short _pad2[3];
 
   float (*crazyspace_deform_imats)[3][3];
   float (*crazyspace_deform_cos)[3];

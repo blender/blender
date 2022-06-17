@@ -119,6 +119,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_pointcloud.h"
 #include "BKE_rigidbody.h"
+#include "BKE_rigidbody.hh"
 #include "BKE_scene.h"
 #include "BKE_shader_fx.h"
 #include "BKE_softbody.h"
@@ -1829,6 +1830,11 @@ void BKE_object_free_derived_caches(Object *ob)
   if (ob->runtime.geometry_cache) {
     MEM_delete(ob->runtime.geometry_cache);
     ob->runtime.geometry_cache = nullptr;
+  }
+
+  if (ob->runtime.rigid_body_map) {
+    MEM_delete(ob->runtime.rigid_body_map);
+    ob->runtime.rigid_body_map = nullptr;
   }
 
   MEM_SAFE_FREE(ob->runtime.editmesh_bb_cage);
@@ -5006,12 +5012,12 @@ bool BKE_object_supports_material_slots(struct Object *ob)
 /** \name Object Runtime
  * \{ */
 
-void BKE_object_runtime_ensure_geometry_cache(Object *ob, bool enable_cache)
+void BKE_object_runtime_ensure_geometry_cache(Object *ob, bool enable)
 {
   BLI_assert(ob->id.orig_id);
   Object *orig_ob = (Object *)ob->id.orig_id;
 
-  if (enable_cache) {
+  if (enable) {
     if (!orig_ob->runtime.geometry_cache) {
       orig_ob->runtime.geometry_cache = MEM_new<GeometryCache>("geometry cache");
     }
@@ -5019,6 +5025,22 @@ void BKE_object_runtime_ensure_geometry_cache(Object *ob, bool enable_cache)
   else {
     MEM_delete(orig_ob->runtime.geometry_cache);
     orig_ob->runtime.geometry_cache = nullptr;
+  }
+}
+
+void BKE_object_runtime_ensure_rigid_body_map(Object *ob, bool enable)
+{
+  BLI_assert(ob->id.orig_id);
+  Object *orig_ob = (Object *)ob->id.orig_id;
+
+  if (enable) {
+    if (!orig_ob->runtime.rigid_body_map) {
+      orig_ob->runtime.rigid_body_map = MEM_new<RigidBodyMap>("rigid body map");
+    }
+  }
+  else {
+    MEM_delete(orig_ob->runtime.rigid_body_map);
+    orig_ob->runtime.rigid_body_map = nullptr;
   }
 }
 

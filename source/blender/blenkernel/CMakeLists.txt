@@ -253,6 +253,7 @@ set(SRC
   intern/preferences.c
   intern/report.c
   intern/rigidbody.c
+  intern/rigidbody.cc
   intern/scene.cc
   intern/screen.c
   intern/shader_fx.c
@@ -450,6 +451,7 @@ set(SRC
   BKE_preferences.h
   BKE_report.h
   BKE_rigidbody.h
+  BKE_rigidbody.hh
   BKE_scene.h
   BKE_screen.h
   BKE_sequencer_offscreen.h

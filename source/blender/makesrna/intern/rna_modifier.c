@@ -1671,7 +1671,7 @@ static void rna_NodesModifier_node_group_update(Main *bmain, Scene *scene, Point
   NodesModifierData *nmd = ptr->data;
   rna_Modifier_dependency_update(bmain, scene, ptr);
   MOD_nodes_update_interface(object, nmd);
-  MOD_nodes_update_simulation(bmain, scene, object, nmd);
+  MOD_nodes_update_world(bmain, scene, object, nmd);
 }
 
 static IDProperty **rna_NodesModifier_properties(PointerRNA *ptr)

@@ -142,17 +142,6 @@ bool MOD_nodes_needs_rigid_body_sim(Object *object, NodesModifierData *nmd)
   return nmd->node_group && nodes_need_rigid_body_sim(*nmd->node_group);
 }
 
-void MOD_nodes_update_simulation(Scene *scene,
-                                 RigidBodyWorld *rbw,
-                                 Object *object,
-                                 NodesModifierData *nmd)
-{
-  /* XXX should have some kind of point group feature to make bodies for relevant points only */
-  if (object->runtime.geometry_set_eval) {
-    GeometrySet *geometry_set = object->runtime.geometry_set_eval;
-  }
-}
-
 static void initData(ModifierData *md)
 {
   NodesModifierData *nmd = (NodesModifierData *)md;
@@ -796,7 +785,7 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
   DEG_id_tag_update(&object->id, ID_RECALC_GEOMETRY);
 }
 
-void MOD_nodes_update_simulation(Main *bmain, Scene *scene, Object *object, NodesModifierData *nmd)
+void MOD_nodes_update_world(Main *bmain, Scene *scene, Object *object, NodesModifierData *nmd)
 {
   if (nmd->node_group && nodes_need_rigid_body_sim(*nmd->node_group)) {
     BKE_rigidbody_add_nodes(bmain, scene, object, nullptr);
