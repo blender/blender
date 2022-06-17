@@ -27,8 +27,8 @@
 #endif
 
 static const char *id_attribute_name = "id";
-static const char *pos_attribute_name = "pos";
-static const char *rot_attribute_name = "rot";
+static const char *pos_attribute_name = "position";
+static const char *rot_attribute_name = "rotation";
 
 void BKE_rigidbody_update_simulation_nodes(Scene *scene,
                                            RigidBodyWorld *rbw,
@@ -80,14 +80,14 @@ void BKE_rigidbody_update_simulation_nodes(Scene *scene,
       BLI_assert(pos_attribute.size() == component->attribute_domain_num(ATTR_DOMAIN_POINT));
       BLI_assert(rot_attribute.size() == component->attribute_domain_num(ATTR_DOMAIN_POINT));
       for (int i : id_attribute.index_range()) {
-        int id = id_attribute[i];
+        int uid = id_attribute[i];
         const float3 &pos = pos_attribute[i];
         const float3 &rot_eul = rot_attribute[i];
         float rot_qt[4];
         eul_to_quat(rot_qt, rot_eul);
 
         RigidBodyMap::BodyPointer &body_ptr = rb_map.map_.lookup_or_add_cb(
-            id, [physics_world, pos, rot_qt]() {
+            uid, [physics_world, pos, rot_qt]() {
           /* Callback to add a new body */
           RigidBodyMap::BodyFlag flag = RigidBodyMap::Used;
           rbRigidBody *body = RB_body_new(generic_shape, pos, rot_qt);
@@ -112,6 +112,56 @@ void BKE_rigidbody_update_simulation_nodes(Scene *scene,
     }
     for (RigidBodyMap::UID uid : bodies_to_remove) {
       rb_map.map_.remove(uid);
+    }
+  }
+}
+
+void BKE_rigidbody_update_simulation_nodes_post_step(RigidBodyWorld *rbw,
+                                                     Object *object,
+                                                     NodesModifierData *nmd)
+{
+  using namespace blender;
+
+  Object *orig_ob = (Object *)object->id.orig_id;
+  if (orig_ob->runtime.rigid_body_map == nullptr) {
+    return;
+  }
+  const RigidBodyMap &rb_map = *orig_ob->runtime.rigid_body_map;
+
+  PointCloudComponent *component = nullptr;
+  if (object->runtime.geometry_set_eval) {
+    if (GeometrySet *geometry_set = object->runtime.geometry_set_eval) {
+      component = &geometry_set->get_component_for_write<PointCloudComponent>();
+    }
+  }
+
+  if (component) {
+    VArray<int> id_attribute = component
+                                   ->attribute_try_get_for_read(
+                                       id_attribute_name, ATTR_DOMAIN_POINT, CD_PROP_INT32)
+                                   .typed<int>();
+    bke::WriteAttributeLookup pos_attribute = component->attribute_try_get_for_write(
+        pos_attribute_name);
+    bke::WriteAttributeLookup rot_attribute = component->attribute_try_get_for_write(
+        rot_attribute_name);
+
+    if (id_attribute) {
+      BLI_assert(id_attribute.size() == component->attribute_domain_num(ATTR_DOMAIN_POINT));
+
+      VMutableArray<float3> pos_data = pos_attribute.varray.typed<float3>();
+      VMutableArray<float3> rot_data = pos_attribute.varray.typed<float3>();
+
+      for (int i : id_attribute.index_range()) {
+        int uid = id_attribute[i];
+
+        const RigidBodyMap::BodyPointer *body_ptr = rb_map.map_.lookup_ptr(uid);
+        if (body_ptr) {
+          RB_body_get_position(body_ptr->body, pos_data[i]);
+          float rot_qt[4];
+          RB_body_get_orientation(body_ptr->body, rot_qt);
+          eul_to_quat(rot_qt, rot_data[i]);
+        }
+      }
     }
   }
 }

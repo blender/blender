@@ -2057,6 +2057,15 @@ static void rigidbody_update_simulation_post_step(Depsgraph *depsgraph, RigidBod
         RB_body_deactivate(rbo->shared->physics_object);
       }
     }
+
+    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+      if (md->type == eModifierType_Nodes) {
+        NodesModifierData *nmd = (NodesModifierData *)md;
+        if (MOD_nodes_needs_rigid_body_sim(ob, nmd)) {
+          BKE_rigidbody_update_simulation_nodes_post_step(rbw, ob, nmd);
+        }
+      }
+    }
   }
   FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 }

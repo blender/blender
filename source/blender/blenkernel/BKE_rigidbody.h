@@ -248,6 +248,10 @@ void BKE_rigidbody_update_simulation_nodes(struct Scene *scene,
                                            struct Object *object,
                                            struct NodesModifierData *nmd);
 
+void BKE_rigidbody_update_simulation_nodes_post_step(struct RigidBodyWorld *rbw,
+                                                     struct Object *object,
+                                                     struct NodesModifierData *nmd);
+
 /** \} */
 
 #ifdef __cplusplus
