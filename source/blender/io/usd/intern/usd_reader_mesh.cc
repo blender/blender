@@ -111,6 +111,7 @@ static void assign_materials(Main *bmain,
                              const std::map<pxr::SdfPath, int> &mat_index_map,
                              const USDImportParams &params,
                              pxr::UsdStageRefPtr stage,
+                             std::map<std::string, Material *> &mat_name_to_mat,
                              std::map<std::string, std::string> &usd_path_to_mat_name)
 {
   if (!(stage && bmain && ob)) {
@@ -132,16 +133,12 @@ static void assign_materials(Main *bmain,
     return;
   }
 
-  /* TODO(kevin): use global map? */
-  std::map<std::string, Material *> mat_map;
-  build_mat_map(bmain, &mat_map);
-
   blender::io::usd::USDMaterialReader mat_reader(params, bmain);
 
   for (it = mat_index_map.begin(); it != mat_index_map.end(); ++it) {
 
     Material *assigned_mat = find_existing_material(
-        it->first, params, mat_map, usd_path_to_mat_name);
+        it->first, params, mat_name_to_mat, usd_path_to_mat_name);
     if (!assigned_mat) {
       /* Blender material doesn't exist, so create it now. */
 
@@ -165,7 +162,7 @@ static void assign_materials(Main *bmain,
       }
 
       const std::string mat_name = pxr::TfMakeValidIdentifier(assigned_mat->id.name + 2);
-      mat_map[mat_name] = assigned_mat;
+      mat_name_to_mat[mat_name] = assigned_mat;
 
       if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
         /* Record the name of the Blender material we created for the USD material
@@ -805,11 +802,16 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
 
   std::map<pxr::SdfPath, int> mat_map;
   assign_facesets_to_mpoly(motionSampleTime, mesh->mpoly, mesh->totpoly, &mat_map);
+  /* Build material name map if it's not built yet. */
+  if (this->settings_->mat_name_to_mat.empty()) {
+    utils::build_mat_map(bmain, &this->settings_->mat_name_to_mat);
+  }
   utils::assign_materials(bmain,
                           object_,
                           mat_map,
                           this->import_params_,
                           this->prim_.GetStage(),
+                          this->settings_->mat_name_to_mat,
                           this->settings_->usd_path_to_mat_name);
 }
 
