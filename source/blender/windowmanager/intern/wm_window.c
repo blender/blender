@@ -1872,11 +1872,10 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mv
     return NULL;
   }
 
-  wmWindow *r_win = GHOST_GetWindowUserData(ghostwin);
-  wm_cursor_position_from_ghost(r_win, &tmp[0], &tmp[1]);
+  wmWindow *win_other = GHOST_GetWindowUserData(ghostwin);
+  wm_cursor_position_from_ghost(win_other, &tmp[0], &tmp[1]);
   copy_v2_v2_int(r_mval, tmp);
-
-  return r_win;
+  return win_other;
 }
 
 void WM_window_pixel_sample_read(const wmWindowManager *wm,
