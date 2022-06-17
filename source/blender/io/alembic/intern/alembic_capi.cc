@@ -573,12 +573,10 @@ static void import_endjob(void *user_data)
 
   ImportJobData *data = static_cast<ImportJobData *>(user_data);
 
-  std::vector<AbcObjectReader *>::iterator iter;
-
   /* Delete objects on cancellation. */
   if (data->was_cancelled) {
-    for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
-      Object *ob = (*iter)->object();
+    for (AbcObjectReader *reader : data->readers) {
+      Object *ob = reader->object();
 
       /* It's possible that cancellation occurred between the creation of
        * the reader and the creation of the Blender object. */
@@ -590,7 +588,6 @@ static void import_endjob(void *user_data)
     }
   }
   else {
-    /* Add object to scene. */
     Base *base;
     LayerCollection *lc;
     ViewLayer *view_layer = data->view_layer;
@@ -599,11 +596,17 @@ static void import_endjob(void *user_data)
 
     lc = BKE_layer_collection_get_active(view_layer);
 
-    for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
-      Object *ob = (*iter)->object();
-
+    /* Add all objects to the collection (don't do sync for each object). */
+    BKE_layer_collection_resync_forbid();
+    for (AbcObjectReader *reader : data->readers) {
+      Object *ob = reader->object();
       BKE_collection_object_add(data->bmain, lc->collection, ob);
-
+    }
+    /* Sync the collection, and do view layer operations. */
+    BKE_layer_collection_resync_allow();
+    BKE_main_collection_sync(data->bmain);
+    for (AbcObjectReader *reader : data->readers) {
+      Object *ob = reader->object();
       base = BKE_view_layer_base_find(view_layer, ob);
       /* TODO: is setting active needed? */
       BKE_view_layer_base_select_and_set_active(view_layer, base);
@@ -625,8 +628,7 @@ static void import_endjob(void *user_data)
     }
   }
 
-  for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
-    AbcObjectReader *reader = *iter;
+  for (AbcObjectReader *reader : data->readers) {
     reader->decref();
 
     if (reader->refcount() == 0) {

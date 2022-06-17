@@ -277,7 +277,6 @@ static void import_endjob(void *customdata)
     }
   }
   else if (data->archive) {
-    /* Add object to scene. */
     Base *base;
     LayerCollection *lc;
     ViewLayer *view_layer = data->view_layer;
@@ -286,20 +285,30 @@ static void import_endjob(void *customdata)
 
     lc = BKE_layer_collection_get_active(view_layer);
 
+    /* Add all objects to the collection (don't do sync for each object). */
+    BKE_layer_collection_resync_forbid();
     for (USDPrimReader *reader : data->archive->readers()) {
-
       if (!reader) {
         continue;
       }
-
       Object *ob = reader->object();
-
       if (!ob) {
         continue;
       }
-
       BKE_collection_object_add(data->bmain, lc->collection, ob);
+    }
 
+    /* Sync the collection, and do view layer operations. */
+    BKE_layer_collection_resync_allow();
+    BKE_main_collection_sync(data->bmain);
+    for (USDPrimReader *reader : data->archive->readers()) {
+      if (!reader) {
+        continue;
+      }
+      Object *ob = reader->object();
+      if (!ob) {
+        continue;
+      }
       base = BKE_view_layer_base_find(view_layer, ob);
       /* TODO: is setting active needed? */
       BKE_view_layer_base_select_and_set_active(view_layer, base);
