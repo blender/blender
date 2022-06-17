@@ -638,7 +638,7 @@ GPUBatch *DRW_curves_batch_cache_get_edit_points(Curves *curves)
   return DRW_batch_request(&cache.edit_points);
 }
 
-void DRW_curves_batch_cache_create_requested(const Object *ob)
+void DRW_curves_batch_cache_create_requested(Object *ob)
 {
   Curves *curves = static_cast<Curves *>(ob->data);
   CurvesBatchCache &cache = curves_batch_cache_get(*curves);
