@@ -549,7 +549,7 @@ static bool blf_font_has_coverage_bit(FontBLF *font, int coverage_bit)
   if (coverage_bit < 0) {
     return false;
   }
-  return (font->UnicodeRanges[(uint)coverage_bit >> 5] & (1 << ((uint)coverage_bit % 32)));
+  return (font->UnicodeRanges[(uint)coverage_bit >> 5] & (1u << ((uint)coverage_bit % 32)));
 }
 
 /**
