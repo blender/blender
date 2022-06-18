@@ -1161,12 +1161,13 @@ static void pointer_handle_leave(void *data,
                                  uint32_t /*serial*/,
                                  struct wl_surface *surface)
 {
+  /* First clear the `focus_pointer`, since the window won't exist when closing the window. */
+  static_cast<input_t *>(data)->focus_pointer = nullptr;
+
   GHOST_IWindow *win = window_from_surface(surface);
   if (!win) {
     return;
   }
-
-  static_cast<input_t *>(data)->focus_pointer = nullptr;
   static_cast<GHOST_WindowWayland *>(win)->deactivate();
 }
 
