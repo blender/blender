@@ -243,8 +243,7 @@ void BKE_rigidbody_object_sync_transforms(struct Depsgraph *depsgraph,
 /** \name Internal
  * \{ */
 
-void BKE_rigidbody_update_simulation_nodes(struct Scene *scene,
-                                           struct RigidBodyWorld *rbw,
+void BKE_rigidbody_update_simulation_nodes(struct RigidBodyWorld *rbw,
                                            struct Object *object,
                                            struct NodesModifierData *nmd);
 

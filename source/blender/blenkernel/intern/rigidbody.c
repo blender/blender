@@ -1896,7 +1896,7 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = (NodesModifierData *)md;
         if (MOD_nodes_needs_rigid_body_sim(ob, nmd)) {
-          BKE_rigidbody_update_simulation_nodes(scene, rbw, ob, nmd);
+          BKE_rigidbody_update_simulation_nodes(rbw, ob, nmd);
         }
       }
     }
