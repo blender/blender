@@ -2013,7 +2013,7 @@ static void output_handle_done(void *data, struct wl_output * /*wl_output*/)
   int32_t size_native[2];
   if (output->transform & WL_OUTPUT_TRANSFORM_90) {
     size_native[0] = output->size_native[1];
-    size_native[1] = output->size_native[1];
+    size_native[1] = output->size_native[0];
   }
   else {
     size_native[0] = output->size_native[0];
@@ -2362,11 +2362,12 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(int32_t /*x*/, int32_t /*y
 
 void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
-  if (getNumDisplays() > 0) {
-    /* We assume first output as main. */
-    width = uint32_t(d->outputs[0]->size_native[0]) / d->outputs[0]->scale;
-    height = uint32_t(d->outputs[0]->size_native[1]) / d->outputs[0]->scale;
+  if (getNumDisplays() == 0) {
+    return;
   }
+  /* We assume first output as main. */
+  width = uint32_t(d->outputs[0]->size_native[0]);
+  height = uint32_t(d->outputs[0]->size_native[1]);
 }
 
 void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
