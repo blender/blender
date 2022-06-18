@@ -339,7 +339,7 @@ void BKE_object_write_geometry_cache(Depsgraph *depsgraph, Scene *scene, Object 
   BLI_assert(ob->id.orig_id);
   Object *orig_ob = (Object *)ob->id.orig_id;
   if (orig_ob->runtime.geometry_cache && ob->runtime.geometry_set_eval) {
-    BKE_geometry_cache_append(
+    BKE_geometry_cache_insert_and_continue_from(
         orig_ob->runtime.geometry_cache, scene->r.cfra, ob->runtime.geometry_set_eval);
   }
 }

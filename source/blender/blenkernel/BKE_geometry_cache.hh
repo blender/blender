@@ -26,7 +26,7 @@ struct GeometryCache {
   GeometryCache &operator=(GeometryCache &&other) = default;
 
   void clear();
-  void append(Timestamp timestamp, const GeometrySet &geometry_set);
+  void insert_and_continue_from(Timestamp timestamp, const GeometrySet &geometry_set);
   GeometrySet *get_exact(Timestamp timestamp) const;
   GeometrySet *get_before(Timestamp timestamp) const;
 
@@ -34,7 +34,18 @@ struct GeometryCache {
   struct KeyValuePair {
     Timestamp timestamp = TimestampInvalid;
     GeometrySet *geometry_set = nullptr;
+
+    bool is_valid() const
+    {
+      return timestamp != TimestampInvalid;
+    }
+
+    operator bool() const
+    {
+      return is_valid();
+    }
   };
-  /* Placeholder, just one frame cached for now */
+  /* Placeholder, just two frames cached for now */
+  KeyValuePair first_ = {TimestampInvalid, nullptr};
   KeyValuePair last_ = {TimestampInvalid, nullptr};
 };
