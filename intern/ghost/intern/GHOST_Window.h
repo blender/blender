@@ -117,6 +117,8 @@ class GHOST_Window : public GHOST_IWindow {
                                       int hotY,
                                       bool canInvertColor);
 
+  GHOST_TSuccess getCursorBitmap(GHOST_CursorBitmapRef *bitmap);
+
   /**
    * Returns the visibility state of the cursor.
    * \return The visibility state of the cursor.

@@ -208,6 +208,12 @@ GHOST_TSuccess GHOST_Window::setCustomCursorShape(
   return GHOST_kFailure;
 }
 
+GHOST_TSuccess GHOST_Window::getCursorBitmap(GHOST_CursorBitmapRef * /*bitmap*/)
+{
+  /* Sub-classes may override. */
+  return GHOST_kFailure;
+}
+
 void GHOST_Window::setAcceptDragOperation(bool canAccept)
 {
   m_canAcceptDragOperation = canAccept;

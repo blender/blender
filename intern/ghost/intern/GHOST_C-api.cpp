@@ -326,6 +326,14 @@ GHOST_TSuccess GHOST_SetCustomCursorShape(GHOST_WindowHandle windowhandle,
   return window->setCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
 }
 
+GHOST_TSuccess GHOST_GetCursorBitmap(GHOST_WindowHandle windowhandle,
+                                     GHOST_CursorBitmapRef *bitmap)
+{
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+
+  return window->getCursorBitmap(bitmap);
+}
+
 bool GHOST_GetCursorVisibility(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;

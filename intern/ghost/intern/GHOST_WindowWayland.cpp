@@ -503,6 +503,11 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(
   return m_system->setCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
 }
 
+GHOST_TSuccess GHOST_WindowWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitmap)
+{
+  return m_system->getCursorBitmap(bitmap);
+}
+
 void GHOST_WindowWayland::setTitle(const char *title)
 {
   xdg_toplevel_set_title(w->xdg_toplevel, title);

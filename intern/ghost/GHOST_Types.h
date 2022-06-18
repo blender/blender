@@ -44,6 +44,16 @@ GHOST_DECLARE_HANDLE(GHOST_XrContextHandle);
 
 typedef void (*GHOST_TBacktraceFn)(void *file_handle);
 
+/**
+ * A reference to cursor bitmap data.
+ */
+typedef struct {
+  /** `RGBA` bytes. */
+  const uint8_t *data;
+  int data_size[2];
+  int hot_spot[2];
+} GHOST_CursorBitmapRef;
+
 typedef struct {
   int flags;
 } GHOST_GLSettings;

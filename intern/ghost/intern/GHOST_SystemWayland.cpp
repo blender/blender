@@ -96,6 +96,7 @@ struct buffer_t {
 
 struct cursor_t {
   bool visible = false;
+  bool is_custom = false;
   struct wl_surface *wl_surface = nullptr;
   struct wl_buffer *wl_buffer = nullptr;
   struct wl_cursor_image wl_image = {0};
@@ -2587,6 +2588,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)
     return GHOST_kFailure;
   }
 
+  c->is_custom = false;
   c->wl_buffer = buffer;
   c->wl_image = *image;
 
@@ -2650,6 +2652,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
       nullptr, cursor->file_buffer->size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
   if (cursor->file_buffer->data == MAP_FAILED) {
+    cursor->file_buffer->data = nullptr;
     close(fd);
     return GHOST_kFailure;
   }
@@ -2694,6 +2697,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
     }
   }
 
+  cursor->is_custom = true;
   cursor->wl_buffer = buffer;
   cursor->wl_image.width = uint32_t(sizex);
   cursor->wl_image.height = uint32_t(sizey);
@@ -2701,6 +2705,27 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   cursor->wl_image.hotspot_y = uint32_t(hotY);
 
   set_cursor_buffer(d->inputs[0], buffer);
+
+  return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_SystemWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitmap)
+{
+  cursor_t *cursor = &d->inputs[0]->cursor;
+  if (cursor->file_buffer->data == nullptr) {
+    return GHOST_kFailure;
+  }
+  if (!cursor->is_custom) {
+    return GHOST_kFailure;
+  }
+
+  bitmap->data_size[0] = cursor->wl_image.width;
+  bitmap->data_size[1] = cursor->wl_image.height;
+
+  bitmap->hot_spot[0] = cursor->wl_image.hotspot_x;
+  bitmap->hot_spot[1] = cursor->wl_image.hotspot_y;
+
+  bitmap->data = (uint8_t *)static_cast<void *>(cursor->file_buffer->data);
 
   return GHOST_kSuccess;
 }
