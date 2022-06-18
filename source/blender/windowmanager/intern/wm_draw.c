@@ -158,9 +158,13 @@ static bool wm_software_cursor_needed_for_window(const wmWindow *win, struct Gra
   if (GHOST_GetCursorVisibility(win->ghostwin)) {
     /* NOTE: The value in `win->grabcursor` can't be used as it
      * doesn't always match GHOST's value in the case of tablet events. */
-    GHOST_GetCursorGrabState(
-        win->ghostwin, &grab_state->mode, &grab_state->wrap_axis, grab_state->bounds);
-    if (grab_state->mode == GHOST_kGrabWrap) {
+    bool use_software_cursor;
+    GHOST_GetCursorGrabState(win->ghostwin,
+                             &grab_state->mode,
+                             &grab_state->wrap_axis,
+                             grab_state->bounds,
+                             &use_software_cursor);
+    if (use_software_cursor) {
       return true;
     }
   }

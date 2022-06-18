@@ -52,6 +52,7 @@ class GHOST_WindowWayland : public GHOST_Window {
                                             int hotX,
                                             int hotY,
                                             bool canInvertColor) override;
+  bool getCursorGrabUseSoftwareDisplay() override;
 
   void setTitle(const char *title) override;
 

@@ -492,6 +492,11 @@ GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor s
   return ok;
 }
 
+bool GHOST_WindowWayland::getCursorGrabUseSoftwareDisplay()
+{
+  return m_system->getCursorGrabUseSoftwareDisplay(m_cursorGrab);
+}
+
 GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(
     uint8_t *bitmap, uint8_t *mask, int sizex, int sizey, int hotX, int hotY, bool canInvertColor)
 {

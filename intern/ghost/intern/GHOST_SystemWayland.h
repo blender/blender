@@ -127,6 +127,8 @@ class GHOST_SystemWayland : public GHOST_System {
   bool supportsCursorWarp();
   bool supportsWindowPosition();
 
+  bool getCursorGrabUseSoftwareDisplay(const GHOST_TGrabCursorMode mode);
+
   GHOST_TSuccess setCursorGrab(const GHOST_TGrabCursorMode mode,
                                const GHOST_TGrabCursorMode mode_current,
                                wl_surface *surface);

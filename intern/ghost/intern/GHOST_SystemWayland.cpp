@@ -44,6 +44,24 @@
 
 static GHOST_WindowWayland *window_from_surface(struct wl_surface *surface);
 
+/**
+ * GNOME (mutter 42.2 had a bug with confine not respecting scale - Hi-DPI), See: T98793.
+ * Even though this has been fixed, at time of writing it's not yet in a release.
+ * Workaround the problem by implementing confine with a software cursor.
+ * While this isn't ideal, it's not adding a lot of overhead as software
+ * cursors are already used for warping (which WAYLAND doesn't support).
+ */
+#define USE_GNOME_CONFINE_HACK
+/**
+ * Always use software confine (not just in GNOME).
+ * Useful for developing with compositors that don't need this workaround.
+ */
+// #define USE_GNOME_CONFINE_HACK_ALWAYS_ON
+
+#ifdef USE_GNOME_CONFINE_HACK
+static bool use_gnome_confine_hack = false;
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name Private Types & Defines
  * \{ */
@@ -156,6 +174,11 @@ struct input_t {
    * \endcode
    */
   wl_fixed_t xy[2] = {0, 0};
+
+#ifdef USE_GNOME_CONFINE_HACK
+  bool xy_software_confine = false;
+#endif
+
   GHOST_Buttons buttons = GHOST_Buttons();
   struct cursor_t cursor;
 
@@ -590,6 +613,21 @@ static void relative_pointer_handle_relative_motion(
   input->xy[0] += dx / scale;
   input->xy[1] += dy / scale;
 
+#ifdef USE_GNOME_CONFINE_HACK
+  if (input->xy_software_confine) {
+    GHOST_Rect bounds;
+    win->getClientBounds(bounds);
+    /* Needed or the cursor is considered outside the window and doesn't restore the location. */
+    bounds.m_r -= 1;
+    bounds.m_b -= 1;
+
+    bounds.m_l = wl_fixed_from_int(bounds.m_l) / scale;
+    bounds.m_t = wl_fixed_from_int(bounds.m_t) / scale;
+    bounds.m_r = wl_fixed_from_int(bounds.m_r) / scale;
+    bounds.m_b = wl_fixed_from_int(bounds.m_b) / scale;
+    bounds.clampPoint(input->xy[0], input->xy[1]);
+  }
+#endif
   input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
                                                  GHOST_kEventCursorMove,
                                                  win,
@@ -1868,6 +1906,13 @@ static void xdg_output_handle_logical_size(void *data,
      * detected otherwise), then override if necessary. */
     if ((output->size_logical[0] == width) && (output->scale_fractional == wl_fixed_from_int(1))) {
       GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale");
+
+#ifdef USE_GNOME_CONFINE_HACK
+      /* Use a bug in GNOME to check GNOME is in use. If the bug is fixed this won't cause an issue
+       * as T98793 has been fixed up-stream too, but not in a release at time of writing. */
+      use_gnome_confine_hack = true;
+#endif
+
       return;
     }
   }
@@ -2695,6 +2740,49 @@ bool GHOST_SystemWayland::supportsWindowPosition()
   return false;
 }
 
+bool GHOST_SystemWayland::getCursorGrabUseSoftwareDisplay(const GHOST_TGrabCursorMode mode)
+{
+  if (d->inputs.empty()) {
+    return false;
+  }
+  if (mode == GHOST_kGrabWrap) {
+    return true;
+  }
+#ifdef USE_GNOME_CONFINE_HACK
+  if (mode == GHOST_kGrabNormal) {
+    const input_t *input = d->inputs[0];
+    return input->xy_software_confine;
+  }
+#endif
+  return false;
+}
+
+#ifdef USE_GNOME_CONFINE_HACK
+static bool setCursorGrab_use_software_confine(const GHOST_TGrabCursorMode mode,
+                                               wl_surface *surface)
+{
+#  ifndef USE_GNOME_CONFINE_HACK_ALWAYS_ON
+  if (use_gnome_confine_hack == false) {
+    return false;
+  }
+#  endif
+  if (mode != GHOST_kGrabNormal) {
+    return false;
+  }
+  GHOST_WindowWayland *win = window_from_surface(surface);
+  if (!win) {
+    return false;
+  }
+
+#  ifndef USE_GNOME_CONFINE_HACK_ALWAYS_ON
+  if (win->scale() <= 1) {
+    return false;
+  }
+#  endif
+  return true;
+}
+#endif
+
 GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mode,
                                                   const GHOST_TGrabCursorMode mode_current,
                                                   wl_surface *surface)
@@ -2715,19 +2803,28 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
 
   input_t *input = d->inputs[0];
 
+#ifdef USE_GNOME_CONFINE_HACK
+  const bool was_software_confine = input->xy_software_confine;
+  const bool use_software_confine = setCursorGrab_use_software_confine(mode, surface);
+#else
+  const bool was_software_confine = false;
+  const bool use_software_confine = false;
+#endif
+
+  /* Warping happens to require software cursor which also hides. */
 #define MODE_NEEDS_LOCK(m) ((m) == GHOST_kGrabWrap || (m) == GHOST_kGrabHide)
-#define MODE_NEEDS_HIDE(m) ((m) == GHOST_kGrabHide)
+#define MODE_NEEDS_HIDE(m) (((m) == GHOST_kGrabHide) || ((m) == GHOST_kGrabWrap))
 #define MODE_NEEDS_CONFINE(m) ((m) == GHOST_kGrabNormal)
 
-  const bool was_lock = MODE_NEEDS_LOCK(mode_current);
-  const bool use_lock = MODE_NEEDS_LOCK(mode);
+  const bool was_lock = MODE_NEEDS_LOCK(mode_current) || was_software_confine;
+  const bool use_lock = MODE_NEEDS_LOCK(mode) || use_software_confine;
 
   /* Check for wrap as #supportsCursorWarp isn't supported. */
-  const bool was_hide = MODE_NEEDS_HIDE(mode_current) || (mode_current == GHOST_kGrabWrap);
-  const bool use_hide = MODE_NEEDS_HIDE(mode) || (mode == GHOST_kGrabWrap);
+  const bool was_hide = MODE_NEEDS_HIDE(mode_current) || was_software_confine;
+  const bool use_hide = MODE_NEEDS_HIDE(mode) || use_software_confine;
 
-  const bool was_confine = MODE_NEEDS_CONFINE(mode_current);
-  const bool use_confine = MODE_NEEDS_CONFINE(mode);
+  const bool was_confine = MODE_NEEDS_CONFINE(mode_current) && (was_software_confine == false);
+  const bool use_confine = MODE_NEEDS_CONFINE(mode) && (use_software_confine == false);
 
 #undef MODE_NEEDS_LOCK
 #undef MODE_NEEDS_HIDE
@@ -2788,6 +2885,15 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
           wl_surface_commit(surface);
         }
       }
+#ifdef USE_GNOME_CONFINE_HACK
+      else if (mode_current == GHOST_kGrabNormal) {
+        if (input->xy_software_confine) {
+          zwp_locked_pointer_v1_set_cursor_position_hint(
+              input->locked_pointer, input->xy[0], input->xy[1]);
+          wl_surface_commit(surface);
+        }
+      }
+#endif
 
       zwp_locked_pointer_v1_destroy(input->locked_pointer);
       input->locked_pointer = nullptr;
@@ -2835,6 +2941,10 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
       setCursorVisibility(false);
     }
   }
+
+#ifdef USE_GNOME_CONFINE_HACK
+  input->xy_software_confine = use_software_confine;
+#endif
 
   return GHOST_kSuccess;
 }

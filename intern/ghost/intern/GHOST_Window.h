@@ -154,7 +154,12 @@ class GHOST_Window : public GHOST_IWindow {
 
   void getCursorGrabState(GHOST_TGrabCursorMode &mode,
                           GHOST_TAxisFlag &axis_flag,
-                          GHOST_Rect &bounds);
+                          GHOST_Rect &bounds,
+                          bool &use_software_cursor);
+  /**
+   * Return true when a software cursor should be used.
+   */
+  bool getCursorGrabUseSoftwareDisplay();
 
   /**
    * Sets the progress bar value displayed in the window/application icon
