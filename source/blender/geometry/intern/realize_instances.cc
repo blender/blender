@@ -134,6 +134,12 @@ struct RealizeCurveInfo {
    * doesn't exist on some (but not all) of the input curves data-blocks.
    */
   Span<float> radius;
+
+  /**
+   * The resolution attribute must be filled with the default value if it does not exist on some
+   * curves.
+   */
+  VArray<int> resolution;
 };
 
 /** Start indices in the final output curves data-block. */
@@ -185,6 +191,7 @@ struct AllCurvesInfo {
   bool create_id_attribute = false;
   bool create_handle_postion_attributes = false;
   bool create_radius_attribute = false;
+  bool create_resolution_attribute = false;
 };
 
 /** Collects all tasks that need to be executed to realize all instances. */
@@ -1037,6 +1044,7 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
       src_component_types, GEO_COMPONENT_TYPE_CURVE, true, attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("radius");
+  attributes_to_propagate.remove("resolution");
   attributes_to_propagate.remove("handle_right");
   attributes_to_propagate.remove("handle_left");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
@@ -1075,12 +1083,13 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
   info.realize_info.reinitialize(info.order.size());
   for (const int curve_index : info.realize_info.index_range()) {
     RealizeCurveInfo &curve_info = info.realize_info[curve_index];
-    const Curves *curves = info.order[curve_index];
-    curve_info.curves = curves;
+    const Curves *curves_id = info.order[curve_index];
+    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+    curve_info.curves = curves_id;
 
     /* Access attributes. */
     CurveComponent component;
-    component.replace(const_cast<Curves *>(curves), GeometryOwnershipType::ReadOnly);
+    component.replace(const_cast<Curves *>(curves_id), GeometryOwnershipType::ReadOnly);
     curve_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
@@ -1104,6 +1113,12 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
                               .attribute_get_for_read<float>("radius", ATTR_DOMAIN_POINT, 0.0f)
                               .get_internal_span();
       info.create_radius_attribute = true;
+    }
+
+    /* Retrieve the resolution attribute, if it exists. */
+    curve_info.resolution = curves.resolution();
+    if (component.attribute_exists("resolution")) {
+      info.create_resolution_attribute = true;
     }
 
     /* Retrieve handle position attributes, if they exist. */
@@ -1131,7 +1146,8 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
                                        MutableSpan<int> all_dst_ids,
                                        MutableSpan<float3> all_handle_left,
                                        MutableSpan<float3> all_handle_right,
-                                       MutableSpan<float> all_radii)
+                                       MutableSpan<float> all_radii,
+                                       MutableSpan<int> all_resolutions)
 {
   const RealizeCurveInfo &curves_info = *task.curve_info;
   const Curves &curves_id = *curves_info.curves;
@@ -1169,6 +1185,10 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
     else {
       all_radii.slice(dst_point_range).copy_from(curves_info.radius);
     }
+  }
+
+  if (all_curves_info.create_resolution_attribute) {
+    curves_info.resolution.materialize(all_resolutions.slice(dst_curve_range));
   }
 
   /* Copy curve offsets. */
@@ -1268,6 +1288,15 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
     radius_span = radius.as_span();
   }
 
+  /* Prepare resolution attribute if necessary. */
+  OutputAttribute_Typed<int> resolution;
+  MutableSpan<int> resolution_span;
+  if (all_curves_info.create_resolution_attribute) {
+    resolution = dst_component.attribute_try_get_for_output_only<int>("resolution",
+                                                                      ATTR_DOMAIN_CURVE);
+    resolution_span = resolution.as_span();
+  }
+
   /* Actually execute all tasks. */
   threading::parallel_for(tasks.index_range(), 100, [&](const IndexRange task_range) {
     for (const int task_index : task_range) {
@@ -1281,7 +1310,8 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
                                  point_ids_span,
                                  handle_left_span,
                                  handle_right_span,
-                                 radius_span);
+                                 radius_span,
+                                 resolution_span);
     }
   });
 
@@ -1294,6 +1324,9 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
   }
   if (radius) {
     radius.save();
+  }
+  if (resolution) {
+    resolution.save();
   }
   if (all_curves_info.create_handle_postion_attributes) {
     handle_left.save();
