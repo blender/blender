@@ -132,11 +132,8 @@ static void init_vbo_for_attribute(const MeshRenderData *mr,
   /* We should not be here if the attribute type is not supported. */
   BLI_assert(comp_size != 0);
 
-  const CustomData *custom_data = get_custom_data_for_domain(mr, request.domain);
   char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
-  const char *layer_name = CustomData_get_layer_name(
-      custom_data, request.cd_type, request.layer_index);
-  GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
+  GPU_vertformat_safe_attr_name(request.attribute_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
   /* Attributes use auto-name. */
   BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
 

@@ -529,11 +529,7 @@ static bool curves_ensure_attributes(const Curves &curves,
       continue;
     }
 
-    DRW_AttributeRequest *request = drw_attributes_add_request(
-        &attrs_needed, type, layer_index, domain);
-    if (request) {
-      BLI_strncpy(request->attribute_name, name, sizeof(request->attribute_name));
-    }
+    drw_attributes_add_request(&attrs_needed, name, type, layer_index, domain);
   }
 
   CurvesEvalFinalCache &final_cache = cache.curves_cache.final[subdiv];
