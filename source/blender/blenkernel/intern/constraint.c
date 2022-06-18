@@ -5844,9 +5844,12 @@ static bConstraint *add_new_constraint(Object *ob,
   return con;
 }
 
-bool BKE_constraint_target_uses_bbone(struct bConstraint *con,
-                                      struct bConstraintTarget *UNUSED(ct))
+bool BKE_constraint_target_uses_bbone(struct bConstraint *con, struct bConstraintTarget *ct)
 {
+  if (ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE) {
+    return false;
+  }
+
   return (con->flag & CONSTRAINT_BBONE_SHAPE) || (con->type == CONSTRAINT_TYPE_ARMATURE);
 }
 

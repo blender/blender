@@ -1319,7 +1319,10 @@ static void OVERLAY_relationship_lines(OVERLAY_ExtraCallBuffers *cb,
 
           for (ct = targets.first; ct; ct = ct->next) {
             /* calculate target's matrix */
-            if (cti->get_target_matrix) {
+            if (ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE) {
+              copy_m4_m4(ct->matrix, cob->space_obj_world_matrix);
+            }
+            else if (cti->get_target_matrix) {
               cti->get_target_matrix(depsgraph, curcon, cob, ct, DEG_get_ctime(depsgraph));
             }
             else {
