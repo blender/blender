@@ -32,6 +32,7 @@ struct output_t {
   int32_t size_logical[2] = {0, 0};
   bool has_size_logical = false;
 
+  /** Monitor position in pixels. */
   int32_t position_logical[2] = {0, 0};
   bool has_position_logical = false;
 

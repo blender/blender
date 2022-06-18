@@ -2372,7 +2372,23 @@ void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &he
 
 void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &height) const
 {
-  getMainDisplayDimensions(width, height);
+  int32_t xy_min[2] = {INT32_MAX, INT32_MAX};
+  int32_t xy_max[2] = {INT32_MIN, INT32_MIN};
+
+  for (const output_t *output : d->outputs) {
+    int32_t xy[2] = {0, 0};
+    if (output->has_position_logical) {
+      xy[0] = output->position_logical[0];
+      xy[1] = output->position_logical[1];
+    }
+    xy_min[0] = std::min(xy_min[0], xy[0]);
+    xy_min[1] = std::min(xy_min[1], xy[1]);
+    xy_max[0] = std::max(xy_max[0], xy[0] + output->size_native[0]);
+    xy_max[1] = std::max(xy_max[1], xy[1] + output->size_native[1]);
+  }
+
+  width = xy_max[0] - xy_min[0];
+  height = xy_max[1] - xy_min[1];
 }
 
 GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*glSettings*/)
