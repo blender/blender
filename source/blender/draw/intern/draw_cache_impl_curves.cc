@@ -529,24 +529,10 @@ static bool curves_ensure_attributes(const Curves &curves,
       continue;
     }
 
-    switch (type) {
-      case CD_PROP_BOOL:
-      case CD_PROP_INT8:
-      case CD_PROP_INT32:
-      case CD_PROP_FLOAT:
-      case CD_PROP_FLOAT2:
-      case CD_PROP_FLOAT3:
-      case CD_PROP_COLOR: {
-        DRW_AttributeRequest *request = drw_attributes_add_request(
-            &attrs_needed, type, layer_index, domain);
-        if (request) {
-          BLI_strncpy(request->attribute_name, name, sizeof(request->attribute_name));
-        }
-
-        break;
-      }
-      default:
-        break;
+    DRW_AttributeRequest *request = drw_attributes_add_request(
+        &attrs_needed, type, layer_index, domain);
+    if (request) {
+      BLI_strncpy(request->attribute_name, name, sizeof(request->attribute_name));
     }
   }
 
