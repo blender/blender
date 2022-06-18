@@ -30,7 +30,7 @@ static void extract_select_idx_init_impl(const MeshRenderData *UNUSED(mr),
 }
 
 static void extract_select_idx_init(const MeshRenderData *mr,
-                                    struct MeshBatchCache *UNUSED(cache),
+                                    MeshBatchCache *UNUSED(cache),
                                     void *buf,
                                     void *tls_data)
 {
@@ -366,7 +366,7 @@ constexpr MeshExtract create_extractor_vert_idx()
 }
 
 static void extract_fdot_idx_init(const MeshRenderData *mr,
-                                  struct MeshBatchCache *UNUSED(cache),
+                                  MeshBatchCache *UNUSED(cache),
                                   void *buf,
                                   void *tls_data)
 {

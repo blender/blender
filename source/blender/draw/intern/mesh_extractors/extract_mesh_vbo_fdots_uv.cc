@@ -22,7 +22,7 @@ struct MeshExtract_FdotUV_Data {
 };
 
 static void extract_fdots_uv_init(const MeshRenderData *mr,
-                                  struct MeshBatchCache *UNUSED(cache),
+                                  MeshBatchCache *UNUSED(cache),
                                   void *buf,
                                   void *tls_data)
 {

@@ -22,7 +22,7 @@ struct MeshExtract_EditUvElem_Data {
 };
 
 static void extract_edituv_tris_init(const MeshRenderData *mr,
-                                     struct MeshBatchCache *UNUSED(cache),
+                                     MeshBatchCache *UNUSED(cache),
                                      void *UNUSED(ibo),
                                      void *tls_data)
 {
@@ -69,7 +69,7 @@ static void extract_edituv_tris_iter_looptri_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edituv_tris_finish(const MeshRenderData *UNUSED(mr),
-                                       struct MeshBatchCache *UNUSED(cache),
+                                       MeshBatchCache *UNUSED(cache),
                                        void *buf,
                                        void *_data)
 {
@@ -142,7 +142,7 @@ static void extract_edituv_tris_iter_subdiv_mesh(const DRWSubdivCache *UNUSED(su
 
 static void extract_edituv_tris_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
                                               const MeshRenderData *UNUSED(mr),
-                                              struct MeshBatchCache *UNUSED(cache),
+                                              MeshBatchCache *UNUSED(cache),
                                               void *buf,
                                               void *_data)
 {
@@ -176,7 +176,7 @@ constexpr MeshExtract create_extractor_edituv_tris()
  * \{ */
 
 static void extract_edituv_lines_init(const MeshRenderData *mr,
-                                      struct MeshBatchCache *UNUSED(cache),
+                                      MeshBatchCache *UNUSED(cache),
                                       void *UNUSED(ibo),
                                       void *tls_data)
 {
@@ -236,7 +236,7 @@ static void extract_edituv_lines_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edituv_lines_finish(const MeshRenderData *UNUSED(mr),
-                                        struct MeshBatchCache *UNUSED(cache),
+                                        MeshBatchCache *UNUSED(cache),
                                         void *buf,
                                         void *_data)
 {
@@ -307,7 +307,7 @@ static void extract_edituv_lines_iter_subdiv_mesh(const DRWSubdivCache *subdiv_c
 
 static void extract_edituv_lines_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
                                                const MeshRenderData *UNUSED(mr),
-                                               struct MeshBatchCache *UNUSED(cache),
+                                               MeshBatchCache *UNUSED(cache),
                                                void *buf,
                                                void *_data)
 {
@@ -341,7 +341,7 @@ constexpr MeshExtract create_extractor_edituv_lines()
  * \{ */
 
 static void extract_edituv_points_init(const MeshRenderData *mr,
-                                       struct MeshBatchCache *UNUSED(cache),
+                                       MeshBatchCache *UNUSED(cache),
                                        void *UNUSED(ibo),
                                        void *tls_data)
 {
@@ -394,7 +394,7 @@ static void extract_edituv_points_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edituv_points_finish(const MeshRenderData *UNUSED(mr),
-                                         struct MeshBatchCache *UNUSED(cache),
+                                         MeshBatchCache *UNUSED(cache),
                                          void *buf,
                                          void *_data)
 {
@@ -459,7 +459,7 @@ static void extract_edituv_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_
 
 static void extract_edituv_points_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
                                                 const MeshRenderData *UNUSED(mr),
-                                                struct MeshBatchCache *UNUSED(cache),
+                                                MeshBatchCache *UNUSED(cache),
                                                 void *buf,
                                                 void *_data)
 {
@@ -493,7 +493,7 @@ constexpr MeshExtract create_extractor_edituv_points()
  * \{ */
 
 static void extract_edituv_fdots_init(const MeshRenderData *mr,
-                                      struct MeshBatchCache *UNUSED(cache),
+                                      MeshBatchCache *UNUSED(cache),
                                       void *UNUSED(ibo),
                                       void *tls_data)
 {
@@ -557,7 +557,7 @@ static void extract_edituv_fdots_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edituv_fdots_finish(const MeshRenderData *UNUSED(mr),
-                                        struct MeshBatchCache *UNUSED(cache),
+                                        MeshBatchCache *UNUSED(cache),
                                         void *buf,
                                         void *_data)
 {

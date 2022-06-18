@@ -43,7 +43,7 @@ static void extract_edituv_data_init_common(const MeshRenderData *mr,
 }
 
 static void extract_edituv_data_init(const MeshRenderData *mr,
-                                     struct MeshBatchCache *UNUSED(cache),
+                                     MeshBatchCache *UNUSED(cache),
                                      void *buf,
                                      void *tls_data)
 {

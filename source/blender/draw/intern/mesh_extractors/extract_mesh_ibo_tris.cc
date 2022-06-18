@@ -25,7 +25,7 @@ static void extract_tris_mat_task_reduce(void *_userdata_to, void *_userdata_fro
  * \{ */
 
 static void extract_tris_init(const MeshRenderData *mr,
-                              struct MeshBatchCache *UNUSED(cache),
+                              MeshBatchCache *UNUSED(cache),
                               void *UNUSED(ibo),
                               void *tls_data)
 {
@@ -81,7 +81,7 @@ static void extract_tris_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_tris_finish(const MeshRenderData *mr,
-                                struct MeshBatchCache *cache,
+                                MeshBatchCache *cache,
                                 void *buf,
                                 void *_data)
 {
@@ -111,7 +111,7 @@ static void extract_tris_finish(const MeshRenderData *mr,
 
 static void extract_tris_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                      const MeshRenderData *UNUSED(mr),
-                                     struct MeshBatchCache *cache,
+                                     MeshBatchCache *cache,
                                      void *buffer,
                                      void *UNUSED(data))
 {
@@ -157,7 +157,7 @@ constexpr MeshExtract create_extractor_tris()
  * \{ */
 
 static void extract_tris_single_mat_init(const MeshRenderData *mr,
-                                         struct MeshBatchCache *UNUSED(cache),
+                                         MeshBatchCache *UNUSED(cache),
                                          void *UNUSED(ibo),
                                          void *tls_data)
 {
@@ -199,7 +199,7 @@ static void extract_tris_single_mat_iter_looptri_mesh(const MeshRenderData *mr,
 }
 
 static void extract_tris_single_mat_finish(const MeshRenderData *mr,
-                                           struct MeshBatchCache *cache,
+                                           MeshBatchCache *cache,
                                            void *buf,
                                            void *_data)
 {

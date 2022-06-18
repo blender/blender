@@ -120,8 +120,7 @@ static GPUVertCompType get_comp_type_for_type(eCustomDataType type)
   }
 }
 
-static void init_vbo_for_attribute(const MeshRenderData *mr,
-                                   GPUVertBuf *vbo,
+static void init_vbo_for_attribute(GPUVertBuf *vbo,
                                    const DRW_AttributeRequest &request,
                                    bool build_on_device,
                                    uint32_t len)
@@ -255,18 +254,15 @@ static void extract_attr_generic(const MeshRenderData *mr,
   }
 }
 
-static void extract_attr_init(const MeshRenderData *mr,
-                              struct MeshBatchCache *cache,
-                              void *buf,
-                              void *UNUSED(tls_data),
-                              int index)
+static void extract_attr_init(
+    const MeshRenderData *mr, MeshBatchCache *cache, void *buf, void *UNUSED(tls_data), int index)
 {
   const DRW_Attributes *attrs_used = &cache->attr_used;
   const DRW_AttributeRequest &request = attrs_used->requests[index];
 
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
 
-  init_vbo_for_attribute(mr, vbo, request, false, static_cast<uint32_t>(mr->loop_len));
+  init_vbo_for_attribute(vbo, request, false, static_cast<uint32_t>(mr->loop_len));
 
   /* TODO(@kevindietrich): float3 is used for scalar attributes as the implicit conversion done by
    * OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following the
@@ -347,7 +343,7 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
   }
 
   GPUVertBuf *dst_buffer = static_cast<GPUVertBuf *>(buffer);
-  init_vbo_for_attribute(mr, dst_buffer, request, true, subdiv_cache->num_subdiv_loops);
+  init_vbo_for_attribute(dst_buffer, request, true, subdiv_cache->num_subdiv_loops);
 
   /* Ensure data is uploaded properly. */
   GPU_vertbuf_tag_dirty(src_data);
@@ -361,13 +357,13 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
  * extract. The overall API does not allow us to pass this in a convenient way. */
 #define EXTRACT_INIT_WRAPPER(index) \
   static void extract_attr_init##index( \
-      const MeshRenderData *mr, struct MeshBatchCache *cache, void *buf, void *tls_data) \
+      const MeshRenderData *mr, MeshBatchCache *cache, void *buf, void *tls_data) \
   { \
     extract_attr_init(mr, cache, buf, tls_data, index); \
   } \
   static void extract_attr_init_subdiv##index(const DRWSubdivCache *subdiv_cache, \
                                               const MeshRenderData *mr, \
-                                              struct MeshBatchCache *cache, \
+                                              MeshBatchCache *cache, \
                                               void *buf, \
                                               void *tls_data) \
   { \

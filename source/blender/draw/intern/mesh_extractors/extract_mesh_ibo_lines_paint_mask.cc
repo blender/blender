@@ -26,7 +26,7 @@ struct MeshExtract_LinePaintMask_Data {
 };
 
 static void extract_lines_paint_mask_init(const MeshRenderData *mr,
-                                          struct MeshBatchCache *UNUSED(cache),
+                                          MeshBatchCache *UNUSED(cache),
                                           void *UNUSED(ibo),
                                           void *tls_data)
 {
@@ -78,7 +78,7 @@ static void extract_lines_paint_mask_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_lines_paint_mask_finish(const MeshRenderData *UNUSED(mr),
-                                            struct MeshBatchCache *UNUSED(cache),
+                                            MeshBatchCache *UNUSED(cache),
                                             void *buf,
                                             void *_data)
 {
@@ -154,7 +154,7 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache *subd
 static void extract_lines_paint_mask_finish_subdiv(
     const struct DRWSubdivCache *UNUSED(subdiv_cache),
     const MeshRenderData *mr,
-    struct MeshBatchCache *cache,
+    MeshBatchCache *cache,
     void *buf,
     void *_data)
 {

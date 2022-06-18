@@ -28,7 +28,7 @@ struct MeshExtract_PosNor_Data {
 };
 
 static void extract_pos_nor_init(const MeshRenderData *mr,
-                                 struct MeshBatchCache *UNUSED(cache),
+                                 MeshBatchCache *UNUSED(cache),
                                  void *buf,
                                  void *tls_data)
 {
@@ -171,7 +171,7 @@ static void extract_pos_nor_iter_lvert_mesh(const MeshRenderData *mr,
 }
 
 static void extract_pos_nor_finish(const MeshRenderData *UNUSED(mr),
-                                   struct MeshBatchCache *UNUSED(cache),
+                                   MeshBatchCache *UNUSED(cache),
                                    void *UNUSED(buf),
                                    void *_data)
 {
@@ -201,7 +201,7 @@ static GPUVertFormat *get_custom_normals_format()
 
 static void extract_pos_nor_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                         const MeshRenderData *UNUSED(mr),
-                                        struct MeshBatchCache *cache,
+                                        MeshBatchCache *cache,
                                         void *buffer,
                                         void *UNUSED(data))
 {
@@ -372,7 +372,7 @@ struct MeshExtract_PosNorHQ_Data {
 };
 
 static void extract_pos_nor_hq_init(const MeshRenderData *mr,
-                                    struct MeshBatchCache *UNUSED(cache),
+                                    MeshBatchCache *UNUSED(cache),
                                     void *buf,
                                     void *tls_data)
 {
@@ -521,7 +521,7 @@ static void extract_pos_nor_hq_iter_lvert_mesh(const MeshRenderData *mr,
 }
 
 static void extract_pos_nor_hq_finish(const MeshRenderData *UNUSED(mr),
-                                      struct MeshBatchCache *UNUSED(cache),
+                                      MeshBatchCache *UNUSED(cache),
                                       void *UNUSED(buf),
                                       void *_data)
 {

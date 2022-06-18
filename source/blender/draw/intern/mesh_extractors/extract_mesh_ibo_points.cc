@@ -19,7 +19,7 @@ namespace blender::draw {
  * \{ */
 
 static void extract_points_init(const MeshRenderData *mr,
-                                struct MeshBatchCache *UNUSED(cache),
+                                MeshBatchCache *UNUSED(cache),
                                 void *UNUSED(buf),
                                 void *tls_data)
 {
@@ -131,7 +131,7 @@ static void extract_points_task_reduce(void *_userdata_to, void *_userdata_from)
 }
 
 static void extract_points_finish(const MeshRenderData *UNUSED(mr),
-                                  struct MeshBatchCache *UNUSED(cache),
+                                  MeshBatchCache *UNUSED(cache),
                                   void *buf,
                                   void *_userdata)
 {
@@ -142,7 +142,7 @@ static void extract_points_finish(const MeshRenderData *UNUSED(mr),
 
 static void extract_points_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                        const MeshRenderData *mr,
-                                       struct MeshBatchCache *UNUSED(cache),
+                                       MeshBatchCache *UNUSED(cache),
                                        void *UNUSED(buffer),
                                        void *data)
 {
@@ -285,7 +285,7 @@ static void extract_points_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
 
 static void extract_points_finish_subdiv(const DRWSubdivCache *UNUSED(subdiv_cache),
                                          const MeshRenderData *UNUSED(mr),
-                                         struct MeshBatchCache *UNUSED(cache),
+                                         MeshBatchCache *UNUSED(cache),
                                          void *buf,
                                          void *_userdata)
 {

@@ -2004,7 +2004,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache *cache,
 
 static bool draw_subdiv_create_requested_buffers(Object *ob,
                                                  Mesh *mesh,
-                                                 struct MeshBatchCache *batch_cache,
+                                                 MeshBatchCache *batch_cache,
                                                  MeshBufferCache *mbc,
                                                  const bool is_editmode,
                                                  const bool is_paint_mode,
@@ -2195,7 +2195,7 @@ static OpenSubdiv_EvaluatorCache *g_evaluator_cache = nullptr;
 
 void DRW_create_subdivision(Object *ob,
                             Mesh *mesh,
-                            struct MeshBatchCache *batch_cache,
+                            MeshBatchCache *batch_cache,
                             MeshBufferCache *mbc,
                             const bool is_editmode,
                             const bool is_paint_mode,

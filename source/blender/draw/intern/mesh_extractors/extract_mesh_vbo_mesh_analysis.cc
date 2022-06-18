@@ -23,7 +23,7 @@ namespace blender::draw {
  * \{ */
 
 static void extract_mesh_analysis_init(const MeshRenderData *mr,
-                                       struct MeshBatchCache *UNUSED(cache),
+                                       MeshBatchCache *UNUSED(cache),
                                        void *buf,
                                        void *UNUSED(tls_data))
 {
@@ -587,7 +587,7 @@ static void statvis_calc_sharp(const MeshRenderData *mr, float *r_sharp)
 }
 
 static void extract_analysis_iter_finish_mesh(const MeshRenderData *mr,
-                                              struct MeshBatchCache *UNUSED(cache),
+                                              MeshBatchCache *UNUSED(cache),
                                               void *buf,
                                               void *UNUSED(data))
 {
