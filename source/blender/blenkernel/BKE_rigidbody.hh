@@ -21,5 +21,17 @@ struct RigidBodyMap {
     struct rbRigidBody *body;
   };
 
-  blender::Map<UID, BodyPointer> map_;
+  struct ShapePointer {
+    struct ID *id_key;
+    struct rbCollisionShape *shape;
+    int users;
+  };
+
+  blender::Map<UID, BodyPointer> body_map_;
+  blender::Vector<ShapePointer> shape_list_;
+
+  void clear(struct RigidBodyWorld *rbw);
+
+  void add_shape(struct ID *id_key, struct rbCollisionShape *shape);
+  void clear_shapes();
 };

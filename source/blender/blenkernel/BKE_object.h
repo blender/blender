@@ -572,7 +572,7 @@ struct MovieClip *BKE_object_movieclip_get(struct Scene *scene,
                                            bool use_default);
 
 void BKE_object_runtime_ensure_geometry_cache(struct Object *ob, bool enable);
-void BKE_object_runtime_ensure_rigid_body_map(struct Object *ob, bool enable);
+void BKE_object_runtime_ensure_rigid_body_map(struct RigidBodyWorld *rbw, struct Object *ob, bool enable);
 void BKE_object_runtime_reset(struct Object *object);
 /**
  * Reset all pointers which we don't want to be shared when copying the object.

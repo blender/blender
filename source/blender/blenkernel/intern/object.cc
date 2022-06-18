@@ -5028,7 +5028,7 @@ void BKE_object_runtime_ensure_geometry_cache(Object *ob, bool enable)
   }
 }
 
-void BKE_object_runtime_ensure_rigid_body_map(Object *ob, bool enable)
+void BKE_object_runtime_ensure_rigid_body_map(RigidBodyWorld *rbw, Object *ob, bool enable)
 {
   BLI_assert(ob->id.orig_id);
   Object *orig_ob = (Object *)ob->id.orig_id;
@@ -5039,6 +5039,7 @@ void BKE_object_runtime_ensure_rigid_body_map(Object *ob, bool enable)
     }
   }
   else {
+    orig_ob->runtime.rigid_body_map->clear(rbw);
     MEM_delete(orig_ob->runtime.rigid_body_map);
     orig_ob->runtime.rigid_body_map = nullptr;
   }

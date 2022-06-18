@@ -27,7 +27,35 @@
 #  include "RBI_api.h"
 #endif
 
+void RigidBodyMap::clear(RigidBodyWorld *rbw)
+{
+  rbDynamicsWorld *physics_world = (rbDynamicsWorld *)rbw->shared->physics_world;
+
+  for (const RigidBodyMap::BodyPointer &body_ptr : body_map_.values()) {
+    RB_dworld_remove_body(physics_world, body_ptr.body);
+    RB_body_delete(body_ptr.body);
+  }
+  body_map_.clear();
+
+  clear_shapes();
+}
+
+void RigidBodyMap::add_shape(ID *id_key, rbCollisionShape *shape)
+{
+  shape_list_.append(ShapePointer{id_key, shape, 0});
+}
+
+void RigidBodyMap::clear_shapes()
+{
+  for (const RigidBodyMap::ShapePointer &shape_ptr : shape_list_) {
+    RB_shape_delete(shape_ptr.shape);
+  }
+  shape_list_.clear();
+}
+
+
 static const char *id_attribute_name = "id";
+static const char *shape_index_attribute_name = "shape_index";
 static const char *pos_attribute_name = "position";
 static const char *rot_attribute_name = "rotation";
 
@@ -41,6 +69,7 @@ static void update_simulation_nodes_component(struct RigidBodyWorld *rbw,
 {
   static rbCollisionShape *generic_shape = RB_shape_new_sphere(0.05f);
   static int generic_collision_groups = 0xFFFFFFFF;
+  static RigidBodyMap::ShapePointer fallback_shape_ptr{nullptr, generic_shape, 0};
 
   rbDynamicsWorld *physics_world = (rbDynamicsWorld *)rbw->shared->physics_world;
   Object *orig_ob = (Object *)object->id.orig_id;
@@ -53,6 +82,8 @@ static void update_simulation_nodes_component(struct RigidBodyWorld *rbw,
 
   bke::ReadAttributeLookup id_attribute =
       component->attribute_try_get_for_read(id_attribute_name, CD_PROP_INT32);
+  bke::ReadAttributeLookup shape_index_attribute = component->attribute_try_get_for_read(
+      shape_index_attribute_name, CD_PROP_INT32);
   bke::ReadAttributeLookup pos_attribute = component->attribute_try_get_for_read(
       pos_attribute_name, CD_PROP_FLOAT3);
   bke::ReadAttributeLookup rot_attribute = component->attribute_try_get_for_read(
@@ -65,21 +96,28 @@ static void update_simulation_nodes_component(struct RigidBodyWorld *rbw,
 
     /* XXX should have some kind of point group feature to make bodies for relevant points only */
     VArray<int> id_data = id_attribute.varray.typed<int>();
+    VArray<int> shape_index_data = shape_index_attribute.varray.typed<int>();
     VArray<float3> pos_data = pos_attribute.varray.typed<float3>();
     VArray<float3> rot_data = rot_attribute.varray.typed<float3>();
     for (int i : id_data.index_range()) {
       int uid = id_data[i];
-      const float3 &pos = pos_data[i];
-      const float3 &rot_eul = rot_data ? rot_data[i] : float3(0, 0, 0);
-      float rot_qt[4];
-      eul_to_quat(rot_qt, rot_eul);
+      int shape_index = shape_index_data ? shape_index_data[i] : -1;
+      RigidBodyMap::ShapePointer &shape_ptr = rb_map.shape_list_.index_range().contains(
+                                                  shape_index) ?
+                                                  rb_map.shape_list_[shape_index] :
+                                                  fallback_shape_ptr;
+      ++shape_ptr.users;
 
       /* Add new bodies */
-      RigidBodyMap::BodyPointer &body_ptr = rb_map.map_.lookup_or_add_cb(
-          uid, [physics_world, pos, rot_qt]() {
+      RigidBodyMap::BodyPointer &body_ptr = rb_map.body_map_.lookup_or_add_cb(
+          uid, [=]() {
             /* Callback to add a new body */
+            const float3 &pos = pos_data[i];
+            const float3 &rot_eul = rot_data ? rot_data[i] : float3(0, 0, 0);
+            float rot_qt[4];
+            eul_to_quat(rot_qt, rot_eul);
             RigidBodyMap::BodyFlag flag = RigidBodyMap::Used;
-            rbRigidBody *body = RB_body_new(generic_shape, pos, rot_qt);
+            rbRigidBody *body = RB_body_new(shape_ptr.shape, pos, rot_qt);
             RB_dworld_add_body(physics_world, body, generic_collision_groups);
             return RigidBodyMap::BodyPointer{flag, body};
           });
@@ -92,7 +130,7 @@ static void update_simulation_nodes_component(struct RigidBodyWorld *rbw,
 
 }  // namespace blender
 
-void BKE_rigidbody_update_simulation_nodes(struct RigidBodyWorld *rbw,
+void BKE_rigidbody_update_simulation_nodes(RigidBodyWorld *rbw,
                                            Object *object,
                                            NodesModifierData *nmd)
 {
@@ -100,14 +138,17 @@ void BKE_rigidbody_update_simulation_nodes(struct RigidBodyWorld *rbw,
 
   rbDynamicsWorld *physics_world = (rbDynamicsWorld *)rbw->shared->physics_world;
 
-  BKE_object_runtime_ensure_rigid_body_map(object, MOD_nodes_needs_rigid_body_sim(object, nmd));
+  BKE_object_runtime_ensure_rigid_body_map(rbw, object, MOD_nodes_needs_rigid_body_sim(object, nmd));
   Object *orig_ob = (Object *)object->id.orig_id;
   RigidBodyMap &rb_map = *orig_ob->runtime.rigid_body_map;
 
   /* Update flags for used bodies */
-  const int num_existing_bodies = rb_map.map_.size();
-  for (RigidBodyMap::BodyPointer &body_ptr : rb_map.map_.values()) {
+  const int num_existing_bodies = rb_map.body_map_.size();
+  for (RigidBodyMap::BodyPointer &body_ptr : rb_map.body_map_.values()) {
     body_ptr.flag &= ~RigidBodyMap::BodyFlag::Used;
+  }
+  for (RigidBodyMap::ShapePointer &shape_ptr : rb_map.shape_list_) {
+    shape_ptr.users = 0;
   }
 
   int num_used_bodies = 0;
@@ -120,7 +161,7 @@ void BKE_rigidbody_update_simulation_nodes(struct RigidBodyWorld *rbw,
   /* Remove unused bodies */
   Vector<RigidBodyMap::UID> bodies_to_remove;
   bodies_to_remove.reserve(num_existing_bodies - num_used_bodies);
-  for (const auto &item : rb_map.map_.items()) {
+  for (const auto &item : rb_map.body_map_.items()) {
     if (!(item.value.flag & RigidBodyMap::BodyFlag::Used)) {
       RB_dworld_remove_body(physics_world, item.value.body);
       RB_body_delete(item.value.body);
@@ -128,7 +169,7 @@ void BKE_rigidbody_update_simulation_nodes(struct RigidBodyWorld *rbw,
     }
   }
   for (RigidBodyMap::UID uid : bodies_to_remove) {
-    rb_map.map_.remove(uid);
+    rb_map.body_map_.remove(uid);
   }
 }
 
@@ -167,7 +208,7 @@ static void update_simulation_nodes_component_post_step(RigidBodyWorld *rbw,
     for (int i : id_data.index_range()) {
       int uid = id_data[i];
 
-      const RigidBodyMap::BodyPointer *body_ptr = rb_map.map_.lookup_ptr(uid);
+      const RigidBodyMap::BodyPointer *body_ptr = rb_map.body_map_.lookup_ptr(uid);
       if (body_ptr) {
         RB_body_get_position(body_ptr->body, pos_data[i]);
         float rot_qt[4];
