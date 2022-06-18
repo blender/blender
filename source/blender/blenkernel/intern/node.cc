@@ -4841,6 +4841,11 @@ static void registerGeometryNodes()
   register_node_type_geo_volume_to_mesh();
 }
 
+static void registerParticleNodes()
+{
+  register_node_type_particles_add_shape();
+}
+
 static void registerFunctionNodes()
 {
   register_node_type_fn_align_euler_to_vector();
@@ -4888,6 +4893,7 @@ void BKE_node_system_init()
   registerShaderNodes();
   registerTextureNodes();
   registerGeometryNodes();
+  registerParticleNodes();
   registerFunctionNodes();
 }
 

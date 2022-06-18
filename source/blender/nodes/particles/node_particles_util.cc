@@ -1,0 +1,25 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
+#include "node_particles_util.hh"
+#include "node_util.h"
+
+#include "NOD_socket_search_link.hh"
+
+bool particle_node_poll_default(bNodeType *UNUSED(ntype),
+                                bNodeTree *ntree,
+                                const char **r_disabled_hint)
+{
+  if (!STR_ELEM(ntree->idname, "ParticleNodeTree")) {
+    *r_disabled_hint = TIP_("Not a particle node tree");
+    return false;
+  }
+  return true;
+}
+
+void particle_node_type_base(bNodeType *ntype, int type, const char *name, short nclass)
+{
+  node_type_base(ntype, type, name, nclass);
+  ntype->poll = particle_node_poll_default;
+  ntype->insert_link = node_insert_link_default;
+  ntype->gather_link_search_ops = blender::nodes::search_link_ops_for_basic_node;
+}

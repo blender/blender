@@ -717,6 +717,9 @@ geometry_node_categories = [
         NodeItem("GeometryNodeVolumeCube"),
         NodeItem("GeometryNodeVolumeToMesh"),
     ]),
+    GeometryNodeCategory("GEO_PARTICLES", "Particles", items=[
+        NodeItem("ParticleNodeSetShape"),
+    ]),
     GeometryNodeCategory("GEO_GROUP", "Group", items=node_group_items),
     GeometryNodeCategory("GEO_LAYOUT", "Layout", items=[
         NodeItem("NodeFrame"),

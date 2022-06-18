@@ -400,6 +400,8 @@ DefNode(GeometryNode, GEO_NODE_VIEWER, def_geo_viewer, "VIEWER", Viewer, "Viewer
 DefNode(GeometryNode, GEO_NODE_VOLUME_CUBE, 0, "VOLUME_CUBE", VolumeCube, "Volume Cube", "")
 DefNode(GeometryNode, GEO_NODE_VOLUME_TO_MESH, def_geo_volume_to_mesh, "VOLUME_TO_MESH", VolumeToMesh, "Volume to Mesh", "")
 
+DefNode(ParticleNode, PARTICLE_NODE_SET_SHAPE, def_particles_set_shape, "SET_SHAPE", SetShape, "Set Shape", "")
+
 /* undefine macros */
 #undef DefNode
 

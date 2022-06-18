@@ -12,6 +12,8 @@ extern struct bNodeTreeType *ntreeType_Particles;
 
 void register_node_tree_type_particles(void);
 
+void register_node_type_particles_add_shape(void);
+
 #ifdef __cplusplus
 }
 #endif

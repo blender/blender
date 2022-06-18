@@ -54,12 +54,7 @@ void RigidBodyMap::clear_shapes()
 }
 
 
-static const char *id_attribute_name = "id";
-static const char *shape_index_attribute_name = "shape_index";
-static const char *pos_attribute_name = "position";
-static const char *rot_attribute_name = "rotation";
-
-namespace blender {
+namespace blender::particles {
 
 static void update_simulation_nodes_component(struct RigidBodyWorld *rbw,
                                               Object *object,
@@ -138,7 +133,8 @@ void BKE_rigidbody_update_simulation_nodes(RigidBodyWorld *rbw,
 
   rbDynamicsWorld *physics_world = (rbDynamicsWorld *)rbw->shared->physics_world;
 
-  BKE_object_runtime_ensure_rigid_body_map(rbw, object, MOD_nodes_needs_rigid_body_sim(object, nmd));
+  BKE_object_runtime_ensure_rigid_body_map(
+      rbw, object, MOD_nodes_needs_rigid_body_sim(object, nmd));
   Object *orig_ob = (Object *)object->id.orig_id;
   RigidBodyMap &rb_map = *orig_ob->runtime.rigid_body_map;
 
@@ -154,7 +150,7 @@ void BKE_rigidbody_update_simulation_nodes(RigidBodyWorld *rbw,
   int num_used_bodies = 0;
   if (GeometrySet *geometry_set = object->runtime.geometry_set_eval) {
     for (const GeometryComponent *component : geometry_set->get_components_for_read()) {
-      update_simulation_nodes_component(rbw, object, nmd, component, num_used_bodies);
+      particles::update_simulation_nodes_component(rbw, object, nmd, component, num_used_bodies);
     }
   }
 
@@ -173,7 +169,7 @@ void BKE_rigidbody_update_simulation_nodes(RigidBodyWorld *rbw,
   }
 }
 
-namespace blender {
+namespace blender::particles {
 
 static void update_simulation_nodes_component_post_step(RigidBodyWorld *rbw,
                                                         Object *object,
@@ -235,11 +231,11 @@ void BKE_rigidbody_update_simulation_nodes_post_step(RigidBodyWorld *rbw,
   using namespace blender;
 
   if (GeometrySet *geometry_set = object->runtime.geometry_set_eval) {
-    update_simulation_nodes_component_post_step(
+    particles::update_simulation_nodes_component_post_step(
         rbw, object, nmd, &geometry_set->get_component_for_write<MeshComponent>());
-    update_simulation_nodes_component_post_step(
+    particles::update_simulation_nodes_component_post_step(
         rbw, object, nmd, &geometry_set->get_component_for_write<PointCloudComponent>());
-    update_simulation_nodes_component_post_step(
+    particles::update_simulation_nodes_component_post_step(
         rbw, object, nmd, &geometry_set->get_component_for_write<InstancesComponent>());
   }
 }

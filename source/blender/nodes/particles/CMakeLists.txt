@@ -24,8 +24,13 @@ set(INC
 
 
 set(SRC
+  nodes/node_particles_add_shape.cc
+
   node_particles_exec.cc
   node_particles_tree.cc
+  node_particles_util.cc
+
+  node_particles_util.hh
 )
 
 set(LIB

@@ -1525,6 +1525,14 @@ struct TexResult;
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Particle Nodes
+ * \{ */
+
+#define PARTICLE_NODE_SET_SHAPE 1300
+
+/** \} */
+
 void BKE_node_system_init(void);
 void BKE_node_system_exit(void);
 

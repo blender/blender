@@ -1451,6 +1451,10 @@ typedef struct NodeGeometryViewer {
   int8_t data_type;
 } NodeGeometryViewer;
 
+typedef struct NodeParticlesSetShape {
+  int shape_type;
+} NodeParticlesSetShape;
+
 typedef struct NodeFunctionCompare {
   /* NodeCompareOperation */
   int8_t operation;
@@ -2119,6 +2123,17 @@ typedef enum GeometryNodeScaleElementsMode {
   GEO_NODE_SCALE_ELEMENTS_UNIFORM = 0,
   GEO_NODE_SCALE_ELEMENTS_SINGLE_AXIS = 1,
 } GeometryNodeScaleElementsMode;
+
+typedef enum ParticleNodeShapeType {
+  PARTICLE_SHAPE_BOX,
+  PARTICLE_SHAPE_SPHERE,
+  PARTICLE_SHAPE_CAPSULE,
+  PARTICLE_SHAPE_CYLINDER,
+  PARTICLE_SHAPE_CONE,
+  PARTICLE_SHAPE_CONVEX_HULL,
+  PARTICLE_SHAPE_TRIMESH,
+  // PARTICLE_SHAPE_COMPOUND,
+} ParticleNodeShapeType;
 
 typedef enum NodeCombSepColorMode {
   NODE_COMBSEP_COLOR_RGB = 0,

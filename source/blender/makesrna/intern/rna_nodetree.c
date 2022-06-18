@@ -2318,6 +2318,28 @@ static StructRNA *rna_FunctionNode_register(Main *bmain,
   return nt->rna_ext.srna;
 }
 
+static StructRNA *rna_ParticleNode_register(Main *bmain,
+                                            ReportList *reports,
+                                            void *data,
+                                            const char *identifier,
+                                            StructValidateFunc validate,
+                                            StructCallbackFunc call,
+                                            StructFreeFunc free)
+{
+  bNodeType *nt = rna_Node_register_base(
+      bmain, reports, &RNA_ParticleNode, data, identifier, validate, call, free);
+  if (!nt) {
+    return NULL;
+  }
+
+  nodeRegisterType(nt);
+
+  /* update while blender is running */
+  WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+
+  return nt->rna_ext.srna;
+}
+
 static IDProperty **rna_Node_idprops(PointerRNA *ptr)
 {
   bNode *node = ptr->data;
@@ -10749,6 +10771,50 @@ static void def_geo_scale_elements(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
 }
 
+static void def_particles_set_shape(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  static const EnumPropertyItem shape_type_items[] = {
+      {PARTICLE_SHAPE_BOX,
+       "BOX",
+       ICON_MESH_CUBE,
+       "Box",
+       "Box-like shapes (i.e. cubes), including planes (i.e. ground planes)"},
+      {PARTICLE_SHAPE_SPHERE, "SPHERE", ICON_MESH_UVSPHERE, "Sphere", ""},
+      {PARTICLE_SHAPE_CAPSULE, "CAPSULE", ICON_MESH_CAPSULE, "Capsule", ""},
+      {PARTICLE_SHAPE_CYLINDER, "CYLINDER", ICON_MESH_CYLINDER, "Cylinder", ""},
+      {PARTICLE_SHAPE_CONE, "CONE", ICON_MESH_CONE, "Cone", ""},
+      {PARTICLE_SHAPE_CONVEX_HULL,
+       "CONVEX_HULL",
+       ICON_MESH_ICOSPHERE,
+       "Convex Hull",
+       "A mesh-like surface encompassing (i.e. shrinkwrap over) all vertices (best results with "
+       "fewer vertices)"},
+      {PARTICLE_SHAPE_TRIMESH,
+       "MESH",
+       ICON_MESH_MONKEY,
+       "Mesh",
+       "Mesh consisting of triangles only, allowing for more detailed interactions than convex "
+       "hulls"},
+      //{PARTICLE_SHAPE_COMPOUND,
+      // "COMPOUND",
+      // ICON_MESH_DATA,
+      // "Compound Parent",
+      // "Combines all of its direct rigid body children into one rigid object"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  RNA_def_struct_sdna_from(srna, "NodeParticlesSetShape", "storage");
+
+  prop = RNA_def_property(srna, "shape_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "shape_type");
+  RNA_def_property_enum_items(prop, shape_type_items);
+  RNA_def_property_enum_default(prop, PARTICLE_SHAPE_SPHERE);
+  RNA_def_property_ui_text(prop, "Shape", "Collision shape of the particle");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
+}
+
 /* -------------------------------------------------------------------------- */
 
 static void rna_def_shader_node(BlenderRNA *brna)
@@ -10806,6 +10872,16 @@ static void rna_def_function_node(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Function Node", "");
   RNA_def_struct_sdna(srna, "bNode");
   RNA_def_struct_register_funcs(srna, "rna_FunctionNode_register", "rna_Node_unregister", NULL);
+}
+
+static void rna_def_particle_node(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "ParticleNode", "GeometryNode");
+  RNA_def_struct_ui_text(srna, "Particle Node", "");
+  RNA_def_struct_sdna(srna, "bNode");
+  RNA_def_struct_register_funcs(srna, "rna_ParticleNode_register", "rna_Node_unregister", NULL);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -12781,6 +12857,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
   rna_def_texture_node(brna);
   rna_def_geometry_node(brna);
   rna_def_function_node(brna);
+  rna_def_particle_node(brna);
 
   rna_def_nodetree(brna);
 

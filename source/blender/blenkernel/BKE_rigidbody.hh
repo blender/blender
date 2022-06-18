@@ -8,6 +8,15 @@
 
 #pragma once
 
+namespace blender::particles {
+
+static const char *id_attribute_name = "id";
+static const char *shape_index_attribute_name = "shape_index";
+static const char *pos_attribute_name = "position";
+static const char *rot_attribute_name = "rotation";
+
+}  // namespace blender::particles
+
 struct RigidBodyMap {
   using UID = int;
 
