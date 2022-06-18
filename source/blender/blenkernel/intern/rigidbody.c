@@ -352,10 +352,7 @@ static Mesh *rigidbody_get_mesh(Object *ob)
     }
   }
   else {
-    /* This mesh may be used for computing looptris, which should be done
-      * on the original; otherwise every time the CoW is recreated it will
-      * have to be recomputed. */
-    return (Mesh *)ob->runtime.data_orig;
+    return (Mesh *)ob->data;
   }
 
   /* Just return something sensible so that at least Blender won't crash. */

@@ -194,15 +194,13 @@ static void update_simulation_nodes_component(struct RigidBodyWorld *rbw,
       rot_attribute_name, CD_PROP_FLOAT3);
 
   if (id_attribute && pos_attribute) {
-    BLI_assert(id_attribute.size() == component->attribute_domain_num(id_attribute.domain));
-    BLI_assert(pos_attribute.size() == component->attribute_domain_num(id_attribute.domain));
-    // BLI_assert(rot_attribute.size() == component->attribute_domain_num(ATTR_DOMAIN_POINT));
-
     /* XXX should have some kind of point group feature to make bodies for relevant points only */
     VArray<int> id_data = id_attribute.varray.typed<int>();
     VArray<int> shape_index_data = shape_index_attribute.varray.typed<int>();
     VArray<float3> pos_data = pos_attribute.varray.typed<float3>();
     VArray<float3> rot_data = rot_attribute.varray.typed<float3>();
+    BLI_assert(id_data.size() == component->attribute_domain_num(id_attribute.domain));
+    BLI_assert(pos_data.size() == component->attribute_domain_num(id_attribute.domain));
     for (int i : id_data.index_range()) {
       int uid = id_data[i];
       int shape_index = shape_index_data ? shape_index_data[i] : -1;
@@ -222,6 +220,10 @@ static void update_simulation_nodes_component(struct RigidBodyWorld *rbw,
             eul_to_quat(rot_qt, rot_eul);
             RigidBodyMap::BodyFlag flag = RigidBodyMap::Used;
             rbRigidBody *body = RB_body_new(shape_ptr.shape, pos, rot_qt);
+            /* This also computes local moment of inertia, which is needed for rotations! */
+            RB_body_set_friction(body, 0.5f);
+            RB_body_set_restitution(body, 0.05f);
+            RB_body_set_mass(body, 1.0f);
             RB_dworld_add_body(physics_world, body, generic_collision_groups);
             return RigidBodyMap::BodyPointer{flag, body};
           });
@@ -314,11 +316,11 @@ static void update_simulation_nodes_component_post_step(RigidBodyWorld *rbw,
 
   if (id_attribute) {
     const int num_points = component->attribute_domain_num(id_attribute.domain);
-    BLI_assert(id_attribute.size() == num_points);
 
     VArray<int> id_data = id_attribute.varray.typed<int>();
     Array<float3> pos_data(num_points);
     Array<float3> rot_data(num_points);
+    BLI_assert(id_data.size() == num_points);
 
     for (int i : id_data.index_range()) {
       int uid = id_data[i];
