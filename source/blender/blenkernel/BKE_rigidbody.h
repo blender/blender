@@ -243,6 +243,12 @@ void BKE_rigidbody_object_sync_transforms(struct Depsgraph *depsgraph,
 /** \name Internal
  * \{ */
 
+struct rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(struct Object *ob,
+                                                                  float margin,
+                                                                  bool *can_embed);
+
+struct rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(struct Object *ob);
+
 void BKE_rigidbody_update_simulation_nodes(struct RigidBodyWorld *rbw,
                                            struct Object *object,
                                            struct NodesModifierData *nmd);

@@ -89,7 +89,7 @@ static void node_exec(GeoNodeExecParams params)
   const NodeParticlesSetShape &storage = node_storage(params.node());
   const ParticleNodeShapeType shape_type = static_cast<ParticleNodeShapeType>(storage.shape_type);
 
-  const int shape_index = 12345;
+  const int shape_index = 0;
   Field<int> shape_index_field{std::make_shared<fn::FieldConstant>(CPPType::get<int>(), &shape_index)};
 
   /* Run on the instances component separately to only affect the top level of instances. */

@@ -10,12 +10,15 @@
 #include "BLI_map.hh"
 #include "BLI_math_rotation.h"
 
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_geometry_set.hh"
+#include "BKE_global.h"
+#include "BKE_lib_id.h"
 #include "BKE_object.h"
 #include "BKE_pointcloud.h"
 #include "BKE_rigidbody.h"
@@ -55,6 +58,112 @@ void RigidBodyMap::clear_shapes()
 
 
 namespace blender::particles {
+
+static rbCollisionShape *get_collision_shape_from_object(Object *object,
+                                                         ParticleNodeShapeType shape_type)
+{
+  rbCollisionShape *new_shape = NULL;
+  float size[3] = {1.0f, 1.0f, 1.0f};
+  float radius = 1.0f;
+  float height = 1.0f;
+  float capsule_height;
+  float hull_margin = 0.0f;
+  float margin = 0.0f;
+  bool can_embed = true;
+  bool has_volume;
+
+  const bool use_margin = false;
+
+  /* if automatically determining dimensions, use the Object's boundbox
+   * - assume that all quadrics are standing upright on local z-axis
+   * - assume even distribution of mass around the Object's pivot
+   *   (i.e. Object pivot is centralized in boundbox)
+   */
+  /* XXX: all dimensions are auto-determined now... later can add stored settings for this */
+  /* get object dimensions without scaling */
+  const BoundBox *bb = BKE_object_boundbox_get(object);
+  if (bb) {
+    size[0] = (bb->vec[4][0] - bb->vec[0][0]);
+    size[1] = (bb->vec[2][1] - bb->vec[0][1]);
+    size[2] = (bb->vec[1][2] - bb->vec[0][2]);
+  }
+  mul_v3_fl(size, 0.5f);
+
+  if (ELEM(shape_type, PARTICLE_SHAPE_CAPSULE, PARTICLE_SHAPE_CYLINDER, PARTICLE_SHAPE_CONE)) {
+    /* take radius as largest x/y dimension, and height as z-dimension */
+    radius = MAX2(size[0], size[1]);
+    height = size[2];
+  }
+  else if (shape_type == PARTICLE_SHAPE_SPHERE) {
+    /* take radius to the largest dimension to try and encompass everything */
+    radius = MAX3(size[0], size[1], size[2]);
+  }
+
+  /* create new shape */
+  switch (shape_type) {
+    case PARTICLE_SHAPE_BOX:
+      new_shape = RB_shape_new_box(size[0], size[1], size[2]);
+      break;
+
+    case PARTICLE_SHAPE_SPHERE:
+      new_shape = RB_shape_new_sphere(radius);
+      break;
+
+    case PARTICLE_SHAPE_CAPSULE:
+      capsule_height = (height - radius) * 2.0f;
+      new_shape = RB_shape_new_capsule(radius, (capsule_height > 0.0f) ? capsule_height : 0.0f);
+      break;
+    case PARTICLE_SHAPE_CYLINDER:
+      new_shape = RB_shape_new_cylinder(radius, height);
+      break;
+    case PARTICLE_SHAPE_CONE:
+      new_shape = RB_shape_new_cone(radius, height * 2.0f);
+      break;
+
+    case PARTICLE_SHAPE_CONVEX_HULL:
+      /* try to embed collision margin */
+      has_volume = (MIN3(size[0], size[1], size[2]) > 0.0f);
+
+      if (!use_margin && has_volume) {
+        hull_margin = 0.04f;
+      }
+      new_shape = rigidbody_get_shape_convexhull_from_mesh(object, hull_margin, &can_embed);
+      if (!use_margin) {
+        margin = (can_embed && has_volume) ? 0.04f : 0.0f;
+      }
+      break;
+    case PARTICLE_SHAPE_TRIMESH:
+      new_shape = rigidbody_get_shape_trimesh_from_mesh(object);
+      break;
+    //case PARTICLE_SHAPE_COMPOUND:
+    //  new_shape = RB_shape_new_compound();
+    //  rbCollisionShape *childShape = NULL;
+    //  float loc[3], rot[4];
+    //  float mat[4][4];
+    //  /* Add children to the compound shape */
+    //  FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, childObject) {
+    //    if (childObject->parent == ob) {
+    //      childShape = rigidbody_validate_sim_shape_helper(rbw, childObject);
+    //      if (childShape) {
+    //        BKE_object_matrix_local_get(childObject, mat);
+    //        mat4_to_loc_quat(loc, rot, mat);
+    //        RB_compound_add_child_shape(new_shape, childShape, loc, rot);
+    //      }
+    //    }
+    //  }
+    //  FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+    //  break;
+  }
+  /* use box shape if it failed to create new shape */
+  if (new_shape == NULL) {
+    new_shape = RB_shape_new_box(size[0], size[1], size[2]);
+  }
+  if (new_shape) {
+    RB_shape_set_margin(new_shape, margin);
+  }
+
+  return new_shape;
+}
 
 static void update_simulation_nodes_component(struct RigidBodyWorld *rbw,
                                               Object *object,
@@ -137,6 +246,16 @@ void BKE_rigidbody_update_simulation_nodes(RigidBodyWorld *rbw,
       rbw, object, MOD_nodes_needs_rigid_body_sim(object, nmd));
   Object *orig_ob = (Object *)object->id.orig_id;
   RigidBodyMap &rb_map = *orig_ob->runtime.rigid_body_map;
+
+  /* XXX Placeholder */
+  if (rb_map.shape_list_.size() < 1) {
+    if (Object *suzanne = (Object *)BKE_libblock_find_name(G_MAIN, ID_OB, "Suzanne")) {
+      if (rbCollisionShape *shape = particles::get_collision_shape_from_object(
+              suzanne, PARTICLE_SHAPE_CONVEX_HULL)) {
+        rb_map.add_shape(&suzanne->id, shape);
+      }
+    }
+  }
 
   /* Update flags for used bodies */
   const int num_existing_bodies = rb_map.body_map_.size();

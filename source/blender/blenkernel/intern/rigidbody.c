@@ -337,17 +337,25 @@ static Mesh *rigidbody_get_mesh(Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
 
-  switch (ob->rigidbody_object->mesh_source) {
-    case RBO_MESH_DEFORM:
-      return ob->runtime.mesh_deform_eval;
-    case RBO_MESH_FINAL:
-      return BKE_object_get_evaluated_mesh(ob);
-    case RBO_MESH_BASE:
-      /* This mesh may be used for computing looptris, which should be done
-       * on the original; otherwise every time the CoW is recreated it will
-       * have to be recomputed. */
-      BLI_assert(ob->rigidbody_object->mesh_source == RBO_MESH_BASE);
-      return (Mesh *)ob->runtime.data_orig;
+  if (ob->rigidbody_object) {
+    switch (ob->rigidbody_object->mesh_source) {
+      case RBO_MESH_DEFORM:
+        return ob->runtime.mesh_deform_eval;
+      case RBO_MESH_FINAL:
+        return BKE_object_get_evaluated_mesh(ob);
+      case RBO_MESH_BASE:
+        /* This mesh may be used for computing looptris, which should be done
+         * on the original; otherwise every time the CoW is recreated it will
+         * have to be recomputed. */
+        BLI_assert(ob->rigidbody_object->mesh_source == RBO_MESH_BASE);
+        return (Mesh *)ob->runtime.data_orig;
+    }
+  }
+  else {
+    /* This mesh may be used for computing looptris, which should be done
+      * on the original; otherwise every time the CoW is recreated it will
+      * have to be recomputed. */
+    return (Mesh *)ob->runtime.data_orig;
   }
 
   /* Just return something sensible so that at least Blender won't crash. */
@@ -356,9 +364,9 @@ static Mesh *rigidbody_get_mesh(Object *ob)
 }
 
 /* create collision shape of mesh - convex hull */
-static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob,
-                                                                  float margin,
-                                                                  bool *can_embed)
+rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob,
+                                                           float margin,
+                                                           bool *can_embed)
 {
   rbCollisionShape *shape = NULL;
   Mesh *mesh = NULL;
@@ -387,7 +395,7 @@ static rbCollisionShape *rigidbody_get_shape_convexhull_from_mesh(Object *ob,
 /* create collision shape of mesh - triangulated mesh
  * returns NULL if creation fails.
  */
-static rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
+rbCollisionShape *rigidbody_get_shape_trimesh_from_mesh(Object *ob)
 {
   rbCollisionShape *shape = NULL;
 
