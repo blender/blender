@@ -101,6 +101,12 @@ class GHOST_Rect {
    * \param y: The y-coordinate of the point.
    */
   virtual inline void wrapPoint(int32_t &x, int32_t &y, int32_t ofs, GHOST_TAxisFlag axis);
+  /**
+   * Confine x & y within the rectangle (inclusive).
+   * \param x: The x-coordinate of the point.
+   * \param y: The y-coordinate of the point.
+   */
+  virtual inline void clampPoint(int32_t &x, int32_t &y);
 
   /**
    * Returns whether the point is inside this rectangle.
@@ -245,6 +251,23 @@ inline void GHOST_Rect::wrapPoint(int32_t &x, int32_t &y, int32_t ofs, GHOST_TAx
     while (y + ofs > m_b) {
       y -= h - (ofs * 2);
     }
+  }
+}
+
+inline void GHOST_Rect::clampPoint(int32_t &x, int32_t &y)
+{
+  if (x < m_l) {
+    x = m_l;
+  }
+  else if (x > m_r) {
+    x = m_r;
+  }
+
+  if (y < m_t) {
+    y = m_t;
+  }
+  else if (y > m_b) {
+    y = m_b;
   }
 }
 
