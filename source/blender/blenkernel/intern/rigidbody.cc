@@ -146,10 +146,11 @@ void BKE_rigidbody_update_simulation_nodes_post_step(RigidBodyWorld *rbw,
         rot_attribute_name);
 
     if (id_attribute) {
-      BLI_assert(id_attribute.size() == component->attribute_domain_num(ATTR_DOMAIN_POINT));
+      const int num_points = component->attribute_domain_num(ATTR_DOMAIN_POINT);
+      BLI_assert(id_attribute.size() == num_points);
 
-      VMutableArray<float3> pos_data = pos_attribute.varray.typed<float3>();
-      VMutableArray<float3> rot_data = pos_attribute.varray.typed<float3>();
+      Array<float3> pos_data(num_points);
+      Array<float3> rot_data(num_points);
 
       for (int i : id_attribute.index_range()) {
         int uid = id_attribute[i];
@@ -159,8 +160,15 @@ void BKE_rigidbody_update_simulation_nodes_post_step(RigidBodyWorld *rbw,
           RB_body_get_position(body_ptr->body, pos_data[i]);
           float rot_qt[4];
           RB_body_get_orientation(body_ptr->body, rot_qt);
-          eul_to_quat(rot_qt, rot_data[i]);
+          quat_to_eul(rot_data[i], rot_qt);
         }
+      }
+
+      if (pos_attribute) {
+        pos_attribute.varray.set_all(pos_data.data());
+      }
+      if (rot_attribute) {
+        rot_attribute.varray.set_all(rot_data.data());
       }
     }
   }
