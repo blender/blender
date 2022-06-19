@@ -10,6 +10,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_customdata.h"
+#include "BKE_deform.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node_tree_update.h"
@@ -47,7 +48,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   obj->data = BKE_object_obdata_add_from_type(bmain, OB_MESH, ob_name.c_str());
 
   create_vertices(mesh);
-  create_polys_loops(obj, mesh);
+  create_polys_loops(obj, mesh, import_params.import_vertex_groups);
   create_edges(mesh);
   create_uv_verts(mesh);
   create_normals(mesh);
@@ -68,6 +69,9 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   Mesh *dst = static_cast<Mesh *>(obj->data);
   BKE_mesh_nomain_to_mesh(mesh, dst, obj, &CD_MASK_EVERYTHING, true);
   dst->flag |= autosmooth;
+
+  /* Note: vertex groups have to be created after final mesh is assigned to the object. */
+  create_vertex_groups(obj);
 
   return obj;
 }
@@ -163,19 +167,13 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
   }
 }
 
-void MeshFromGeometry::create_polys_loops(Object *obj, Mesh *mesh)
+void MeshFromGeometry::create_polys_loops(Object *obj, Mesh *mesh, bool use_vertex_groups)
 {
-  /* Will not be used if vertex groups are not imported. */
   mesh->dvert = nullptr;
-  float weight = 0.0f;
   const int64_t total_verts = mesh_geometry_.vertex_count_;
-  if (total_verts && mesh_geometry_.use_vertex_groups_) {
+  if (use_vertex_groups && total_verts && mesh_geometry_.has_vertex_groups_) {
     mesh->dvert = static_cast<MDeformVert *>(
         CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, nullptr, total_verts));
-    weight = 1.0f / total_verts;
-  }
-  else {
-    UNUSED_VARS(weight);
   }
 
   const int64_t tot_face_elems{mesh->totpoly};
@@ -208,28 +206,23 @@ void MeshFromGeometry::create_polys_loops(Object *obj, Mesh *mesh)
       tot_loop_idx++;
       mloop.v = curr_corner.vert_index;
 
+      /* Setup vertex group data, if needed. */
       if (!mesh->dvert) {
         continue;
       }
-      /* Iterating over mloop results in finding the same vertex multiple times.
-       * Another way is to allocate memory for dvert while creating vertices and fill them here.
-       */
-      MDeformVert &def_vert = mesh->dvert[mloop.v];
-      if (!def_vert.dw) {
-        def_vert.dw = static_cast<MDeformWeight *>(
-            MEM_callocN(sizeof(MDeformWeight), "OBJ Import Deform Weight"));
-      }
-      /* Every vertex in a face is assigned the same deform group. */
-      int group_idx = curr_face.vertex_group_index;
-      /* Deform group number (def_nr) must behave like an index into the names' list. */
-      *(def_vert.dw) = {static_cast<unsigned int>(group_idx), weight};
+      const int group_index = curr_face.vertex_group_index;
+      MDeformWeight *dw = BKE_defvert_ensure_index(mesh->dvert + mloop.v, group_index);
+      dw->weight = 1.0f;
     }
   }
+}
 
-  if (!mesh->dvert) {
+void MeshFromGeometry::create_vertex_groups(Object *obj)
+{
+  Mesh *mesh = static_cast<Mesh *>(obj->data);
+  if (mesh->dvert == nullptr) {
     return;
   }
-  /* Add deform group names. */
   for (const std::string &name : mesh_geometry_.group_order_) {
     BKE_object_defgroup_add_name(obj, name.data());
   }

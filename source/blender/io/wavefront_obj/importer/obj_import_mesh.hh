@@ -45,10 +45,9 @@ class MeshFromGeometry : NonMovable, NonCopyable {
   void fixup_invalid_faces();
   void create_vertices(Mesh *mesh);
   /**
-   * Create polygons for the Mesh, set smooth shading flags, deform group names,
-   * Materials.
+   * Create polygons for the Mesh, set smooth shading flags, Materials.
    */
-  void create_polys_loops(Object *obj, Mesh *mesh);
+  void create_polys_loops(Object *obj, Mesh *mesh, bool use_vertex_groups);
   /**
    * Add explicitly imported OBJ edges to the mesh.
    */
@@ -66,6 +65,7 @@ class MeshFromGeometry : NonMovable, NonCopyable {
                         Object *obj);
   void create_normals(Mesh *mesh);
   void create_colors(Mesh *mesh);
+  void create_vertex_groups(Object *obj);
 };
 
 }  // namespace blender::io::obj
