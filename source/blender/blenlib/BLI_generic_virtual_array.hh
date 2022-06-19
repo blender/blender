@@ -934,14 +934,14 @@ template<typename T> inline GVArray::GVArray(const VArray<T> &varray)
   if (varray.try_assign_GVArray(*this)) {
     return;
   }
-  /* Need to check this before the span/single special cases, because otherwise we might loose
-   * ownership to the referenced data when #varray goes out of scope. */
-  if (varray.may_have_ownership()) {
-    *this = GVArray::For<GVArrayImpl_For_VArray<T>>(varray);
-  }
-  else if (varray.is_single()) {
+  if (varray.is_single()) {
     T value = varray.get_internal_single();
     *this = GVArray::ForSingle(CPPType::get<T>(), varray.size(), &value);
+  }
+  /* Need to check this before the span special case, because otherwise we might loose
+   * ownership to the referenced data when #varray goes out of scope. */
+  else if (varray.may_have_ownership()) {
+    *this = GVArray::For<GVArrayImpl_For_VArray<T>>(varray);
   }
   else if (varray.is_span()) {
     Span<T> data = varray.get_internal_span();
@@ -962,13 +962,13 @@ template<typename T> inline VArray<T> GVArray::typed() const
   if (this->try_assign_VArray(varray)) {
     return varray;
   }
-  if (this->may_have_ownership()) {
-    return VArray<T>::template For<VArrayImpl_For_GVArray<T>>(*this);
-  }
   if (this->is_single()) {
     T value;
     this->get_internal_single(&value);
     return VArray<T>::ForSingle(value, this->size());
+  }
+  if (this->may_have_ownership()) {
+    return VArray<T>::template For<VArrayImpl_For_GVArray<T>>(*this);
   }
   if (this->is_span()) {
     const Span<T> span = this->get_internal_span().typed<T>();
