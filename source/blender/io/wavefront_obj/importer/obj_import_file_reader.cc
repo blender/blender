@@ -126,7 +126,7 @@ static void geom_add_polygon(Geometry *geom,
   curr_face.material_index = material_index;
   if (group_index >= 0) {
     curr_face.vertex_group_index = group_index;
-    geom->use_vertex_groups_ = true;
+    geom->has_vertex_groups_ = true;
   }
 
   const int orig_corners_size = geom->face_corners_.size();
