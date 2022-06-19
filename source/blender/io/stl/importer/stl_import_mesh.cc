@@ -63,11 +63,11 @@ void STLMeshHelper::add_triangle(const float3 &a,
 Mesh *STLMeshHelper::to_mesh(Main *bmain, char *mesh_name)
 {
   if (degenerate_tris_num_ > 0) {
-    std::cout << "STL Importer: " << degenerate_tris_num_ << "degenerate triangles were removed"
+    std::cout << "STL Importer: " << degenerate_tris_num_ << " degenerate triangles were removed"
               << std::endl;
   }
   if (duplicate_tris_num_ > 0) {
-    std::cout << "STL Importer: " << duplicate_tris_num_ << "duplicate triangles were removed"
+    std::cout << "STL Importer: " << duplicate_tris_num_ << " duplicate triangles were removed"
               << std::endl;
   }
 
