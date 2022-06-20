@@ -126,7 +126,8 @@ static void extract_lines_paint_mask_iter_subdiv_mesh(const DRWSubdivCache *subd
       if (!((mr->use_hide && (me->flag & ME_HIDE)) ||
             ((mr->extract_type == MR_EXTRACT_MAPPED) && (mr->e_origindex) &&
              (mr->e_origindex[coarse_edge_index] == ORIGINDEX_NONE)))) {
-        const uint ml_index_other = (loop_idx == end_loop_idx) ? start_loop_idx : loop_idx + 1;
+        const uint ml_index_other = (loop_idx == (end_loop_idx - 1)) ? start_loop_idx :
+                                                                       loop_idx + 1;
         if (coarse_quad->flag & ME_FACE_SEL) {
           if (BLI_BITMAP_TEST_AND_SET_ATOMIC(data->select_map, coarse_edge_index)) {
             /* Hide edge as it has more than 2 selected loop. */
