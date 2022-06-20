@@ -43,6 +43,7 @@ set(ISPC_EXTRA_ARGS
     -DISPC_INCLUDE_TESTS=Off
     -DCLANG_LIBRARY_DIR=${LIBDIR}/llvm/lib
     -DCLANG_INCLUDE_DIRS=${LIBDIR}/llvm/include
+    -DPython3_EXECUTABLE=${PYTHON_BINARY}
     ${ISPC_EXTRA_ARGS_WIN}
     ${ISPC_EXTRA_ARGS_APPLE}
     ${ISPC_EXTRA_ARGS_UNIX}
@@ -61,6 +62,7 @@ ExternalProject_Add(external_ispc
 add_dependencies(
   external_ispc
   ll
+  external_python
 )
 
 if(WIN32)
