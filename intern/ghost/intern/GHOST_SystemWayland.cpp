@@ -96,6 +96,13 @@ struct buffer_t {
 
 struct cursor_t {
   bool visible = false;
+  /**
+   * When false, hide the hardware cursor, while the cursor is still considered to be `visible`,
+   * since the grab-mode determines the state of the software cursor,
+   * this may change - removing the need for a software cursor and in this case it's important
+   * the hardware cursor is used.
+   */
+  bool is_hardware = true;
   bool is_custom = false;
   struct wl_surface *wl_surface = nullptr;
   struct wl_buffer *wl_buffer = nullptr;
@@ -142,6 +149,12 @@ struct key_repeat_payload_t {
   GHOST_SystemWayland *system = nullptr;
   GHOST_IWindow *window = nullptr;
   GHOST_TEventKeyData key_data = {GHOST_kKeyUnknown};
+};
+
+/** Internal variables used to track grab-state. */
+struct input_grab_state_t {
+  bool use_lock = false;
+  bool use_confine = false;
 };
 
 struct input_t {
@@ -2528,11 +2541,48 @@ void GHOST_SystemWayland::setSelection(const std::string &selection)
   this->selection = selection;
 }
 
-static void set_cursor_buffer(input_t *input, wl_buffer *buffer)
+/**
+ * Show the buffer defined by #cursor_buffer_set without changing anything else,
+ * so #cursor_buffer_hide can be used to display it again.
+ *
+ * The caller is responsible for setting `input->cursor.visible`.
+ */
+static void cursor_buffer_show(const input_t *input)
 {
-  cursor_t *c = &input->cursor;
+  const cursor_t *c = &input->cursor;
+  const int32_t hotspot_x = int32_t(c->wl_image.hotspot_x) / c->scale;
+  const int32_t hotspot_y = int32_t(c->wl_image.hotspot_y) / c->scale;
+  wl_pointer_set_cursor(
+      input->wl_pointer, input->pointer_serial, c->wl_surface, hotspot_x, hotspot_y);
+  for (struct zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : input->tablet_tools) {
+    tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(
+        zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
+    zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2,
+                                  input->tablet_serial,
+                                  tool_input->cursor_surface,
+                                  hotspot_x,
+                                  hotspot_y);
+  }
+}
 
-  c->visible = (buffer != nullptr);
+/**
+ * Hide the buffer defined by #cursor_buffer_set without changing anything else,
+ * so #cursor_buffer_show can be used to display it again.
+ *
+ * The caller is responsible for setting `input->cursor.visible`.
+ */
+static void cursor_buffer_hide(const input_t *input)
+{
+  wl_pointer_set_cursor(input->wl_pointer, input->pointer_serial, nullptr, 0, 0);
+  for (struct zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : input->tablet_tools) {
+    zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2, input->tablet_serial, nullptr, 0, 0);
+  }
+}
+
+static void cursor_buffer_set(const input_t *input, wl_buffer *buffer)
+{
+  const cursor_t *c = &input->cursor;
+  const bool visible = (c->visible && c->is_hardware);
 
   const int32_t image_size_x = int32_t(c->wl_image.width);
   const int32_t image_size_y = int32_t(c->wl_image.height);
@@ -2540,16 +2590,14 @@ static void set_cursor_buffer(input_t *input, wl_buffer *buffer)
   const int32_t hotspot_x = int32_t(c->wl_image.hotspot_x) / c->scale;
   const int32_t hotspot_y = int32_t(c->wl_image.hotspot_y) / c->scale;
 
-  if (buffer) {
-    wl_surface_set_buffer_scale(c->wl_surface, c->scale);
-    wl_surface_attach(c->wl_surface, buffer, 0, 0);
-    wl_surface_damage(c->wl_surface, 0, 0, image_size_x, image_size_y);
-    wl_surface_commit(c->wl_surface);
-  }
+  wl_surface_set_buffer_scale(c->wl_surface, c->scale);
+  wl_surface_attach(c->wl_surface, buffer, 0, 0);
+  wl_surface_damage(c->wl_surface, 0, 0, image_size_x, image_size_y);
+  wl_surface_commit(c->wl_surface);
 
   wl_pointer_set_cursor(input->wl_pointer,
                         input->pointer_serial,
-                        c->visible ? c->wl_surface : nullptr,
+                        visible ? c->wl_surface : nullptr,
                         hotspot_x,
                         hotspot_y);
 
@@ -2558,21 +2606,79 @@ static void set_cursor_buffer(input_t *input, wl_buffer *buffer)
     tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(
         zwp_tablet_tool_v2_get_user_data(zwp_tablet_tool_v2));
 
-    if (buffer) {
-      /* FIXME: for some reason cursor scale is applied twice (when the scale isn't 1x),
-       * this happens both in gnome-shell & KDE. Setting the surface scale here doesn't help. */
-      wl_surface_set_buffer_scale(tool_input->cursor_surface, c->scale);
-      wl_surface_attach(tool_input->cursor_surface, buffer, 0, 0);
-      wl_surface_damage(tool_input->cursor_surface, 0, 0, image_size_x, image_size_y);
-      wl_surface_commit(tool_input->cursor_surface);
-    }
+    /* FIXME: for some reason cursor scale is applied twice (when the scale isn't 1x),
+     * this happens both in gnome-shell & KDE. Setting the surface scale here doesn't help. */
+    wl_surface_set_buffer_scale(tool_input->cursor_surface, c->scale);
+    wl_surface_attach(tool_input->cursor_surface, buffer, 0, 0);
+    wl_surface_damage(tool_input->cursor_surface, 0, 0, image_size_x, image_size_y);
+    wl_surface_commit(tool_input->cursor_surface);
 
     zwp_tablet_tool_v2_set_cursor(zwp_tablet_tool_v2,
                                   input->tablet_serial,
-                                  c->visible ? tool_input->cursor_surface : nullptr,
+                                  visible ? tool_input->cursor_surface : nullptr,
                                   hotspot_x,
                                   hotspot_y);
   }
+}
+
+enum eCursorSetMode {
+  CURSOR_VISIBLE_ALWAYS_SET = 1,
+  CURSOR_VISIBLE_ONLY_HIDE,
+  CURSOR_VISIBLE_ONLY_SHOW,
+};
+
+static void cursor_visible_set(input_t *input,
+                               const bool visible,
+                               const bool is_hardware,
+                               const enum eCursorSetMode set_mode)
+{
+  cursor_t *cursor = &input->cursor;
+  const bool was_visible = cursor->is_hardware && cursor->visible;
+  const bool use_visible = is_hardware && visible;
+
+  if (set_mode == CURSOR_VISIBLE_ALWAYS_SET) {
+    /* Pass. */
+  }
+  else if ((set_mode == CURSOR_VISIBLE_ONLY_SHOW)) {
+    if (!use_visible) {
+      return;
+    }
+  }
+  else if ((set_mode == CURSOR_VISIBLE_ONLY_HIDE)) {
+    if (use_visible) {
+      return;
+    }
+  }
+
+  if (use_visible) {
+    if (!was_visible) {
+      cursor_buffer_show(input);
+    }
+  }
+  else {
+    if (was_visible) {
+      cursor_buffer_hide(input);
+    }
+  }
+  cursor->visible = visible;
+  cursor->is_hardware = is_hardware;
+}
+
+static bool cursor_is_software(const GHOST_TGrabCursorMode mode, const bool use_software_confine)
+{
+  if (mode == GHOST_kGrabWrap) {
+    return true;
+  }
+#ifdef USE_GNOME_CONFINE_HACK
+  if (mode == GHOST_kGrabNormal) {
+    if (use_software_confine) {
+      return true;
+    }
+  }
+#else
+  (void)use_software_confine;
+#endif
+  return false;
 }
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)
@@ -2605,11 +2711,12 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)
     return GHOST_kFailure;
   }
 
+  c->visible = true;
   c->is_custom = false;
   c->wl_buffer = buffer;
   c->wl_image = *image;
 
-  set_cursor_buffer(input, buffer);
+  cursor_buffer_set(input, buffer);
 
   return GHOST_kSuccess;
 }
@@ -2714,6 +2821,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
     }
   }
 
+  cursor->visible = true;
   cursor->is_custom = true;
   cursor->wl_buffer = buffer;
   cursor->wl_image.width = uint32_t(sizex);
@@ -2721,7 +2829,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   cursor->wl_image.hotspot_x = uint32_t(hotX);
   cursor->wl_image.hotspot_y = uint32_t(hotY);
 
-  set_cursor_buffer(d->inputs[0], buffer);
+  cursor_buffer_set(d->inputs[0], buffer);
 
   return GHOST_kSuccess;
 }
@@ -2754,19 +2862,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(bool visible)
   }
 
   input_t *input = d->inputs[0];
-
-  cursor_t *cursor = &input->cursor;
-  if (visible) {
-    if (!cursor->visible) {
-      set_cursor_buffer(input, cursor->wl_buffer);
-    }
-  }
-  else {
-    if (cursor->visible) {
-      set_cursor_buffer(input, nullptr);
-    }
-  }
-
+  cursor_visible_set(input, visible, input->cursor.is_hardware, CURSOR_VISIBLE_ALWAYS_SET);
   return GHOST_kSuccess;
 }
 
@@ -2788,16 +2884,15 @@ bool GHOST_SystemWayland::getCursorGrabUseSoftwareDisplay(const GHOST_TGrabCurso
   if (d->inputs.empty()) {
     return false;
   }
-  if (mode == GHOST_kGrabWrap) {
-    return true;
-  }
+
 #ifdef USE_GNOME_CONFINE_HACK
-  if (mode == GHOST_kGrabNormal) {
-    const input_t *input = d->inputs[0];
-    return input->xy_software_confine;
-  }
+  input_t *input = d->inputs[0];
+  const bool use_software_confine = input->xy_software_confine;
+#else
+  const bool use_software_confine = false;
 #endif
-  return false;
+
+  return cursor_is_software(mode, use_software_confine);
 }
 
 #ifdef USE_GNOME_CONFINE_HACK
@@ -2826,6 +2921,18 @@ static bool setCursorGrab_use_software_confine(const GHOST_TGrabCursorMode mode,
 }
 #endif
 
+static input_grab_state_t input_grab_state_from_mode(const GHOST_TGrabCursorMode mode,
+                                                     const bool use_software_confine)
+{
+  /* Initialize all members. */
+  const struct input_grab_state_t grab_state = {
+      /* Warping happens to require software cursor which also hides. */
+      .use_lock = (mode == GHOST_kGrabWrap || mode == GHOST_kGrabHide) || use_software_confine,
+      .use_confine = (mode == GHOST_kGrabNormal) && (use_software_confine == false),
+  };
+  return grab_state;
+}
+
 GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mode,
                                                   const GHOST_TGrabCursorMode mode_current,
                                                   wl_surface *surface)
@@ -2838,7 +2945,6 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
   if (d->inputs.empty()) {
     return GHOST_kFailure;
   }
-
   /* No change, success. */
   if (mode == mode_current) {
     return GHOST_kSuccess;
@@ -2854,33 +2960,25 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
   const bool use_software_confine = false;
 #endif
 
-  /* Warping happens to require software cursor which also hides. */
-#define MODE_NEEDS_LOCK(m) ((m) == GHOST_kGrabWrap || (m) == GHOST_kGrabHide)
-#define MODE_NEEDS_HIDE(m) (((m) == GHOST_kGrabHide) || ((m) == GHOST_kGrabWrap))
-#define MODE_NEEDS_CONFINE(m) ((m) == GHOST_kGrabNormal)
-
-  const bool was_lock = MODE_NEEDS_LOCK(mode_current) || was_software_confine;
-  const bool use_lock = MODE_NEEDS_LOCK(mode) || use_software_confine;
+  const struct input_grab_state_t grab_state_prev = input_grab_state_from_mode(
+      mode_current, was_software_confine);
+  const struct input_grab_state_t grab_state_next = input_grab_state_from_mode(
+      mode, use_software_confine);
 
   /* Check for wrap as #supportsCursorWarp isn't supported. */
-  const bool was_hide = MODE_NEEDS_HIDE(mode_current) || was_software_confine;
-  const bool use_hide = MODE_NEEDS_HIDE(mode) || use_software_confine;
+  const bool use_visible = !(((mode == GHOST_kGrabHide) || (mode == GHOST_kGrabWrap)) ||
+                             use_software_confine);
 
-  const bool was_confine = MODE_NEEDS_CONFINE(mode_current) && (was_software_confine == false);
-  const bool use_confine = MODE_NEEDS_CONFINE(mode) && (use_software_confine == false);
+  const bool is_hardware_cursor = !cursor_is_software(mode, use_software_confine);
 
-#undef MODE_NEEDS_LOCK
-#undef MODE_NEEDS_HIDE
-#undef MODE_NEEDS_CONFINE
-
-  if (!use_hide) {
-    setCursorVisibility(true);
-  }
+  /* Only hide so the cursor is not made visible before it's location is restored.
+   * This function is called again at the end of this function which only shows. */
+  cursor_visible_set(input, use_visible, is_hardware_cursor, CURSOR_VISIBLE_ONLY_HIDE);
 
   /* Switching from one grab mode to another,
    * in this case disable the current locks as it makes logic confusing,
    * postpone changing the cursor to avoid flickering. */
-  if (!use_lock) {
+  if (!grab_state_next.use_lock) {
     if (input->relative_pointer) {
       zwp_relative_pointer_v1_destroy(input->relative_pointer);
       input->relative_pointer = nullptr;
@@ -2930,7 +3028,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
       }
 #ifdef USE_GNOME_CONFINE_HACK
       else if (mode_current == GHOST_kGrabNormal) {
-        if (input->xy_software_confine) {
+        if (was_software_confine) {
           zwp_locked_pointer_v1_set_cursor_position_hint(
               input->locked_pointer, input->xy[0], input->xy[1]);
           wl_surface_commit(surface);
@@ -2943,7 +3041,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
     }
   }
 
-  if (!use_confine) {
+  if (!grab_state_next.use_confine) {
     if (input->confined_pointer) {
       zwp_confined_pointer_v1_destroy(input->confined_pointer);
       input->confined_pointer = nullptr;
@@ -2951,8 +3049,8 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
   }
 
   if (mode != GHOST_kGrabDisable) {
-    if (use_lock) {
-      if (!was_lock) {
+    if (grab_state_next.use_lock) {
+      if (!grab_state_prev.use_lock) {
         /* TODO(@campbellbarton): As WAYLAND does not support warping the pointer it may not be
          * possible to support #GHOST_kGrabWrap by pragmatically settings it's coordinates.
          * An alternative could be to draw the cursor in software (and hide the real cursor),
@@ -2969,8 +3067,8 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
             ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
       }
     }
-    else if (use_confine) {
-      if (!was_confine) {
+    else if (grab_state_next.use_confine) {
+      if (!grab_state_prev.use_confine) {
         input->confined_pointer = zwp_pointer_constraints_v1_confine_pointer(
             d->pointer_constraints,
             surface,
@@ -2979,11 +3077,10 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
             ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
       }
     }
-
-    if (use_hide && !was_hide) {
-      setCursorVisibility(false);
-    }
   }
+
+  /* Only show so the cursor is made visible as the last step. */
+  cursor_visible_set(input, use_visible, is_hardware_cursor, CURSOR_VISIBLE_ONLY_SHOW);
 
 #ifdef USE_GNOME_CONFINE_HACK
   input->xy_software_confine = use_software_confine;
