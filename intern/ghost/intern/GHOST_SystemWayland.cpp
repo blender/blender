@@ -113,7 +113,9 @@ struct cursor_t {
   std::string theme_name;
   /** Outputs on which the cursor is visible. */
   std::unordered_set<const output_t *> outputs;
-  int scale = 1;
+
+  int theme_scale = 1;
+  int custom_scale = 1;
 };
 
 /**
@@ -1091,9 +1093,11 @@ static bool update_cursor_scale(cursor_t &cursor, wl_shm *shm)
     }
   }
 
-  if (scale > 0 && cursor.scale != scale) {
-    cursor.scale = scale;
-    wl_surface_set_buffer_scale(cursor.wl_surface, scale);
+  if (scale > 0 && cursor.theme_scale != scale) {
+    cursor.theme_scale = scale;
+    if (!cursor.is_custom) {
+      wl_surface_set_buffer_scale(cursor.wl_surface, scale);
+    }
     wl_cursor_theme_destroy(cursor.wl_theme);
     cursor.wl_theme = wl_cursor_theme_load(cursor.theme_name.c_str(), scale * cursor.size, shm);
     return true;
@@ -2550,8 +2554,9 @@ void GHOST_SystemWayland::setSelection(const std::string &selection)
 static void cursor_buffer_show(const input_t *input)
 {
   const cursor_t *c = &input->cursor;
-  const int32_t hotspot_x = int32_t(c->wl_image.hotspot_x) / c->scale;
-  const int32_t hotspot_y = int32_t(c->wl_image.hotspot_y) / c->scale;
+  const int scale = c->is_custom ? c->custom_scale : c->theme_scale;
+  const int32_t hotspot_x = int32_t(c->wl_image.hotspot_x) / scale;
+  const int32_t hotspot_y = int32_t(c->wl_image.hotspot_y) / scale;
   wl_pointer_set_cursor(
       input->wl_pointer, input->pointer_serial, c->wl_surface, hotspot_x, hotspot_y);
   for (struct zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : input->tablet_tools) {
@@ -2582,15 +2587,22 @@ static void cursor_buffer_hide(const input_t *input)
 static void cursor_buffer_set(const input_t *input, wl_buffer *buffer)
 {
   const cursor_t *c = &input->cursor;
+  const int scale = c->is_custom ? c->custom_scale : c->theme_scale;
+
   const bool visible = (c->visible && c->is_hardware);
 
   const int32_t image_size_x = int32_t(c->wl_image.width);
   const int32_t image_size_y = int32_t(c->wl_image.height);
 
-  const int32_t hotspot_x = int32_t(c->wl_image.hotspot_x) / c->scale;
-  const int32_t hotspot_y = int32_t(c->wl_image.hotspot_y) / c->scale;
+  /* This is a requirement of WAYLAND, when this isn't the case,
+   * it causes Blender's window to close intermittently. */
+  GHOST_ASSERT((image_size_x % size) == 0 && (image_size_y % size) == 0,
+               "The size must be a multiple of the scale!");
 
-  wl_surface_set_buffer_scale(c->wl_surface, c->scale);
+  const int32_t hotspot_x = int32_t(c->wl_image.hotspot_x) / scale;
+  const int32_t hotspot_y = int32_t(c->wl_image.hotspot_y) / scale;
+
+  wl_surface_set_buffer_scale(c->wl_surface, scale);
   wl_surface_attach(c->wl_surface, buffer, 0, 0);
   wl_surface_damage(c->wl_surface, 0, 0, image_size_x, image_size_y);
   wl_surface_commit(c->wl_surface);
@@ -2608,7 +2620,7 @@ static void cursor_buffer_set(const input_t *input, wl_buffer *buffer)
 
     /* FIXME: for some reason cursor scale is applied twice (when the scale isn't 1x),
      * this happens both in gnome-shell & KDE. Setting the surface scale here doesn't help. */
-    wl_surface_set_buffer_scale(tool_input->cursor_surface, c->scale);
+    wl_surface_set_buffer_scale(tool_input->cursor_surface, scale);
     wl_surface_attach(tool_input->cursor_surface, buffer, 0, 0);
     wl_surface_damage(tool_input->cursor_surface, 0, 0, image_size_x, image_size_y);
     wl_surface_commit(tool_input->cursor_surface);
@@ -2823,6 +2835,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
 
   cursor->visible = true;
   cursor->is_custom = true;
+  cursor->custom_scale = 1; /* TODO: support Hi-DPI custom cursors. */
   cursor->wl_buffer = buffer;
   cursor->wl_image.width = uint32_t(sizex);
   cursor->wl_image.height = uint32_t(sizey);
