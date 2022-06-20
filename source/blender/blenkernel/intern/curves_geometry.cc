@@ -1370,6 +1370,7 @@ void CurvesGeometry::remove_curves(const IndexMask curves_to_delete)
   }
   if (curves_to_delete.size() == this->curves_num()) {
     *this = {};
+    return;
   }
   *this = copy_with_removed_curves(*this, curves_to_delete);
 }
