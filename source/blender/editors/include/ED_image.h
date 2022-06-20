@@ -137,8 +137,22 @@ bool ED_space_image_paint_curve(const struct bContext *C);
  * Matches clip function.
  */
 bool ED_space_image_check_show_maskedit(struct SpaceImage *sima, struct Object *obedit);
+
+/* Returns true when the following conditions are met:
+ * - Current space is Image Editor.
+ * - The image editor is not an UV Editor.
+ * - It is set to Mask mode.
+ *
+ * It is not required to have mask opened for editing. */
 bool ED_space_image_maskedit_poll(struct bContext *C);
+
+/* Returns true when the following conditions are met:
+ * - Current space is Image Editor.
+ * - The image editor is not an UV Editor.
+ * - It is set to Mask mode.
+ * - The space has mask opened. */
 bool ED_space_image_maskedit_mask_poll(struct bContext *C);
+
 bool ED_space_image_cursor_poll(struct bContext *C);
 
 /**
