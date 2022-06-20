@@ -153,6 +153,16 @@ static Mesh *create_mesh_from_volume(GeometrySet &geometry_set, GeoNodeExecParam
   }
 
   const bke::VolumeToMeshResolution resolution = get_resolution_param(params);
+
+  if (resolution.mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE &&
+      resolution.settings.voxel_size <= 0.0f) {
+    return nullptr;
+  }
+  if (resolution.mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT &&
+      resolution.settings.voxel_amount <= 0) {
+    return nullptr;
+  }
+
   const Main *bmain = DEG_get_bmain(params.depsgraph());
   BKE_volume_load(volume, bmain);
 
