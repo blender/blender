@@ -41,7 +41,7 @@ void node_eevee_specular(vec4 diffuse,
     vec2 split_sum = brdf_lut(NV, roughness);
     vec3 brdf = F_brdf_single_scatter(specular.rgb, vec3(1.0), split_sum);
 
-    reflection_data.color = specular.rgb * brdf;
+    reflection_data.color = brdf;
     reflection_data.N = N;
     reflection_data.roughness = roughness;
   }
