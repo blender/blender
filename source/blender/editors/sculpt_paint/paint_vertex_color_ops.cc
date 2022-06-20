@@ -11,6 +11,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_array.hh"
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 
@@ -30,6 +31,8 @@
 
 #include "paint_intern.h" /* own include */
 
+using blender::Array;
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Utility Functions
  * \{ */
@@ -45,7 +48,7 @@ static bool vertex_weight_paint_mode_poll(bContext *C)
 static void tag_object_after_update(Object *object)
 {
   BLI_assert(object->type == OB_MESH);
-  Mesh *mesh = object->data;
+  Mesh *mesh = static_cast<Mesh *>(object->data);
   DEG_id_tag_update(&mesh->id, ID_RECALC_COPY_ON_WRITE);
   /* NOTE: Original mesh is used for display, so tag it directly here. */
   BKE_mesh_batch_cache_dirty_tag(mesh, BKE_MESH_BATCH_DIRTY_ALL);
@@ -63,7 +66,8 @@ static bool vertex_paint_from_weight(Object *ob)
   const MPoly *mp;
   int vgroup_active;
 
-  if (((me = BKE_mesh_from_object(ob)) == NULL || (ED_mesh_color_ensure(me, NULL)) == false)) {
+  if (((me = BKE_mesh_from_object(ob)) == nullptr ||
+       (ED_mesh_color_ensure(me, nullptr)) == false)) {
     return false;
   }
 
@@ -128,14 +132,13 @@ static void vertex_color_smooth_looptag(Mesh *me, const bool *mlooptag)
 {
   const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const MPoly *mp;
-  int(*scol)[4];
   bool has_shared = false;
 
-  if (me->mloopcol == NULL || me->totvert == 0 || me->totpoly == 0) {
+  if (me->mloopcol == nullptr || me->totvert == 0 || me->totpoly == 0) {
     return;
   }
 
-  scol = MEM_callocN(sizeof(int) * me->totvert * 5, "scol");
+  int(*scol)[4] = static_cast<int(*)[4]>(MEM_callocN(sizeof(int) * me->totvert * 5, "scol"));
 
   int i;
   for (i = 0, mp = me->mpoly; i < me->totpoly; i++, mp++) {
@@ -185,16 +188,15 @@ static bool vertex_color_smooth(Object *ob)
   const MPoly *mp;
   int i, j;
 
-  bool *mlooptag;
-
-  if (((me = BKE_mesh_from_object(ob)) == NULL) || (ED_mesh_color_ensure(me, NULL) == false)) {
+  if (((me = BKE_mesh_from_object(ob)) == nullptr) ||
+      (ED_mesh_color_ensure(me, nullptr) == false)) {
     return false;
   }
 
   const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
-  mlooptag = MEM_callocN(sizeof(bool) * me->totloop, "VPaintData mlooptag");
+  Array<bool> loop_tag(me->totloop, false);
 
   /* simply tag loops of selected faces */
   mp = me->mpoly;
@@ -208,7 +210,7 @@ static bool vertex_color_smooth(Object *ob)
     j = 0;
     do {
       if (!(use_vert_sel && !(me->mvert[ml->v].flag & SELECT))) {
-        mlooptag[mp->loopstart + j] = true;
+        loop_tag[mp->loopstart + j] = true;
       }
       ml++;
       j++;
@@ -218,9 +220,7 @@ static bool vertex_color_smooth(Object *ob)
   /* remove stale me->mcol, will be added later */
   BKE_mesh_tessface_clear(me);
 
-  vertex_color_smooth_looptag(me, mlooptag);
-
-  MEM_freeN(mlooptag);
+  vertex_color_smooth_looptag(me, loop_tag.data());
 
   tag_object_after_update(ob);
 
@@ -268,7 +268,8 @@ static void vpaint_tx_brightness_contrast(const float col[3],
                                           const void *user_data,
                                           float r_col[3])
 {
-  const struct VPaintTx_BrightContrastData *data = user_data;
+  const VPaintTx_BrightContrastData *data = static_cast<const VPaintTx_BrightContrastData *>(
+      user_data);
 
   for (int i = 0; i < 3; i++) {
     r_col[i] = data->gain * col[i] + data->offset;
@@ -302,10 +303,9 @@ static int vertex_color_brightness_contrast_exec(bContext *C, wmOperator *op)
     }
   }
 
-  const struct VPaintTx_BrightContrastData user_data = {
-      .gain = gain,
-      .offset = offset,
-  };
+  VPaintTx_BrightContrastData user_data{};
+  user_data.gain = gain;
+  user_data.offset = offset;
 
   if (ED_vpaint_color_transform(obact, vpaint_tx_brightness_contrast, &user_data)) {
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
@@ -345,7 +345,7 @@ struct VPaintTx_HueSatData {
 
 static void vpaint_tx_hsv(const float col[3], const void *user_data, float r_col[3])
 {
-  const struct VPaintTx_HueSatData *data = user_data;
+  const VPaintTx_HueSatData *data = static_cast<const VPaintTx_HueSatData *>(user_data);
   float hsv[3];
   rgb_to_hsv_v(col, hsv);
 
@@ -366,11 +366,10 @@ static int vertex_color_hsv_exec(bContext *C, wmOperator *op)
 {
   Object *obact = CTX_data_active_object(C);
 
-  const struct VPaintTx_HueSatData user_data = {
-      .hue = RNA_float_get(op->ptr, "h"),
-      .sat = RNA_float_get(op->ptr, "s"),
-      .val = RNA_float_get(op->ptr, "v"),
-  };
+  VPaintTx_HueSatData user_data{};
+  user_data.hue = RNA_float_get(op->ptr, "h");
+  user_data.sat = RNA_float_get(op->ptr, "s");
+  user_data.val = RNA_float_get(op->ptr, "v");
 
   if (ED_vpaint_color_transform(obact, vpaint_tx_hsv, &user_data)) {
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
@@ -410,7 +409,7 @@ static int vertex_color_invert_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Object *obact = CTX_data_active_object(C);
 
-  if (ED_vpaint_color_transform(obact, vpaint_tx_invert, NULL)) {
+  if (ED_vpaint_color_transform(obact, vpaint_tx_invert, nullptr)) {
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
     return OPERATOR_FINISHED;
   }
@@ -439,7 +438,7 @@ struct VPaintTx_LevelsData {
 
 static void vpaint_tx_levels(const float col[3], const void *user_data, float r_col[3])
 {
-  const struct VPaintTx_LevelsData *data = user_data;
+  const VPaintTx_LevelsData *data = static_cast<const VPaintTx_LevelsData *>(user_data);
   for (int i = 0; i < 3; i++) {
     r_col[i] = data->gain * (col[i] + data->offset);
   }
@@ -449,10 +448,9 @@ static int vertex_color_levels_exec(bContext *C, wmOperator *op)
 {
   Object *obact = CTX_data_active_object(C);
 
-  const struct VPaintTx_LevelsData user_data = {
-      .gain = RNA_float_get(op->ptr, "gain"),
-      .offset = RNA_float_get(op->ptr, "offset"),
-  };
+  VPaintTx_LevelsData user_data{};
+  user_data.gain = RNA_float_get(op->ptr, "gain");
+  user_data.offset = RNA_float_get(op->ptr, "offset");
 
   if (ED_vpaint_color_transform(obact, vpaint_tx_levels, &user_data)) {
     WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obact);
