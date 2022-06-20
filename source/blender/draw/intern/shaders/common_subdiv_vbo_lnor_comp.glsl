@@ -26,6 +26,11 @@ bool is_face_selected(uint coarse_quad_index)
   return (extra_coarse_face_data[coarse_quad_index] & coarse_face_select_mask) != 0;
 }
 
+bool is_face_hidden(uint coarse_quad_index)
+{
+  return (extra_coarse_face_data[coarse_quad_index] & coarse_face_hidden_mask) != 0;
+}
+
 void main()
 {
   /* We execute for each quad. */
@@ -69,8 +74,12 @@ void main()
     for (int i = 0; i < 4; i++) {
       int origindex = input_vert_origindex[start_loop_index + i];
       float flag = 0.0;
-      if (origindex == -1) {
+      /* Flag for paint mode overlay and normals drawing in edit-mode. */
+      if (is_face_hidden(coarse_quad_index) || (is_edit_mode && origindex == -1)) {
         flag = -1.0;
+      }
+      else if (is_face_selected(coarse_quad_index)) {
+        flag = 1.0;
       }
       loop_normal.flag = flag;
 
