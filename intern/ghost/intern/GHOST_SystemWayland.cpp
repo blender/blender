@@ -535,7 +535,7 @@ static GHOST_TTabletMode tablet_tool_map_type(enum zwp_tablet_tool_v2_type wl_ta
 
 static const int default_cursor_size = 24;
 
-static const std::unordered_map<GHOST_TStandardCursor, std::string> cursors = {
+static const std::unordered_map<GHOST_TStandardCursor, const char *> cursors = {
     {GHOST_kStandardCursorDefault, "left_ptr"},
     {GHOST_kStandardCursorRightArrow, "right_ptr"},
     {GHOST_kStandardCursorLeftArrow, "left_ptr"},
@@ -2698,8 +2698,10 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)
   if (d->inputs.empty()) {
     return GHOST_kFailure;
   }
-  const std::string cursor_name = cursors.count(shape) ? cursors.at(shape) :
-                                                         cursors.at(GHOST_kStandardCursorDefault);
+  auto cursor_find = cursors.find(shape);
+  const char *cursor_name = (cursor_find == cursors.end()) ?
+                                cursors.at(GHOST_kStandardCursorDefault) :
+                                (*cursor_find).second;
 
   input_t *input = d->inputs[0];
   cursor_t *c = &input->cursor;
@@ -2710,7 +2712,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)
         c->theme_name.c_str(), c->size, d->inputs[0]->system->shm());
   }
 
-  wl_cursor *cursor = wl_cursor_theme_get_cursor(c->wl_theme, cursor_name.c_str());
+  wl_cursor *cursor = wl_cursor_theme_get_cursor(c->wl_theme, cursor_name);
 
   if (!cursor) {
     GHOST_PRINT("cursor '" << cursor_name << "' does not exist" << std::endl);
@@ -2735,7 +2737,15 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorShape(GHOST_TStandardCursor shape)
 
 GHOST_TSuccess GHOST_SystemWayland::hasCursorShape(GHOST_TStandardCursor cursorShape)
 {
-  return GHOST_TSuccess(cursors.count(cursorShape) && !cursors.at(cursorShape).empty());
+  auto cursor_find = cursors.find(cursorShape);
+  if (cursor_find == cursors.end()) {
+    return GHOST_kFailure;
+  }
+  const char *value = (*cursor_find).second;
+  if (*value == '\0') {
+    return GHOST_kFailure;
+  }
+  return GHOST_kSuccess;
 }
 
 GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
