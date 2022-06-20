@@ -334,73 +334,47 @@ struct AddOperationExecutor {
    */
   void sample_spherical_with_symmetry(RandomNumberGenerator &rng, AddedPoints &r_added_points)
   {
-    /* Find ray that starts in the center of the brush. */
-    float3 brush_ray_start_wo, brush_ray_end_wo;
+    const std::optional<CurvesBrush3D> brush_3d = sample_curves_surface_3d_brush(*ctx_.depsgraph,
+                                                                                 *ctx_.region,
+                                                                                 *ctx_.v3d,
+                                                                                 transforms_,
+                                                                                 surface_bvh_,
+                                                                                 brush_pos_re_,
+                                                                                 brush_radius_re_);
+    if (!brush_3d.has_value()) {
+      return;
+    }
+
+    float3 view_ray_start_wo, view_ray_end_wo;
     ED_view3d_win_to_segment_clipped(ctx_.depsgraph,
                                      ctx_.region,
                                      ctx_.v3d,
                                      brush_pos_re_,
-                                     brush_ray_start_wo,
-                                     brush_ray_end_wo,
+                                     view_ray_start_wo,
+                                     view_ray_end_wo,
                                      true);
-    const float3 brush_ray_start_cu = transforms_.world_to_curves * brush_ray_start_wo;
-    const float3 brush_ray_end_cu = transforms_.world_to_curves * brush_ray_end_wo;
-
-    /* Find ray that starts on the boundary of the brush. That is used to compute the brush radius
-     * in 3D. */
-    float3 brush_radius_ray_start_wo, brush_radius_ray_end_wo;
-    ED_view3d_win_to_segment_clipped(ctx_.depsgraph,
-                                     ctx_.region,
-                                     ctx_.v3d,
-                                     brush_pos_re_ + float2(brush_radius_re_, 0),
-                                     brush_radius_ray_start_wo,
-                                     brush_radius_ray_end_wo,
-                                     true);
-    const float3 brush_radius_ray_start_cu = transforms_.world_to_curves *
-                                             brush_radius_ray_start_wo;
-    const float3 brush_radius_ray_end_cu = transforms_.world_to_curves * brush_radius_ray_end_wo;
+    const float3 view_direction_su = math::normalize(
+        transforms_.world_to_surface * view_ray_end_wo -
+        transforms_.world_to_surface * view_ray_start_wo);
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       const float4x4 transform = transforms_.curves_to_surface * brush_transform;
-      this->sample_spherical(rng,
-                             r_added_points,
-                             transform * brush_ray_start_cu,
-                             transform * brush_ray_end_cu,
-                             transform * brush_radius_ray_start_cu,
-                             transform * brush_radius_ray_end_cu);
+      const float3 brush_pos_su = transform * brush_3d->position_cu;
+      const float brush_radius_su = transform_brush_radius(
+          transform, brush_3d->position_cu, brush_3d->radius_cu);
+      this->sample_spherical(
+          rng, r_added_points, brush_pos_su, brush_radius_su, view_direction_su);
     }
   }
 
   void sample_spherical(RandomNumberGenerator &rng,
                         AddedPoints &r_added_points,
-                        const float3 &brush_ray_start_su,
-                        const float3 &brush_ray_end_su,
-                        const float3 &brush_radius_ray_start_su,
-                        const float3 &brush_radius_ray_end_su)
+                        const float3 &brush_pos_su,
+                        const float brush_radius_su,
+                        const float3 &view_direction_su)
   {
-    const float3 brush_ray_direction_su = math::normalize(brush_ray_end_su - brush_ray_start_su);
-
-    BVHTreeRayHit ray_hit;
-    ray_hit.dist = FLT_MAX;
-    ray_hit.index = -1;
-    BLI_bvhtree_ray_cast(surface_bvh_.tree,
-                         brush_ray_start_su,
-                         brush_ray_direction_su,
-                         0.0f,
-                         &ray_hit,
-                         surface_bvh_.raycast_callback,
-                         &surface_bvh_);
-
-    if (ray_hit.index == -1) {
-      return;
-    }
-
-    /* Compute brush radius. */
-    const float3 brush_pos_su = ray_hit.co;
-    const float brush_radius_su = dist_to_line_v3(
-        brush_pos_su, brush_radius_ray_start_su, brush_radius_ray_end_su);
     const float brush_radius_sq_su = pow2f(brush_radius_su);
 
     /* Find surface triangles within brush radius. */
@@ -417,7 +391,7 @@ struct AddOperationExecutor {
             const float3 v2_su = surface_->mvert[surface_->mloop[looptri.tri[2]].v].co;
             float3 normal_su;
             normal_tri_v3(normal_su, v0_su, v1_su, v2_su);
-            if (math::dot(normal_su, brush_ray_direction_su) >= 0.0f) {
+            if (math::dot(normal_su, view_direction_su) >= 0.0f) {
               return;
             }
             looptri_indices.append(index);
