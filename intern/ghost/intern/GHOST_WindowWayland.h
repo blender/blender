@@ -10,7 +10,6 @@
 
 #include "GHOST_Window.h"
 
-#include <unordered_set>
 #include <vector>
 
 class GHOST_SystemWayland;
