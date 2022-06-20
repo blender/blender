@@ -6,6 +6,7 @@ if(WIN32)
     -DBISON_EXECUTABLE=${LIBDIR}/flexbison/win_bison.exe
     -DM4_EXECUTABLE=${DOWNLOAD_DIR}/mingw/mingw64/msys/1.0/bin/m4.exe
     -DARM_ENABLED=Off
+    -DPython3_FIND_REGISTRY=NEVER
   )
 elseif(APPLE)
   # Use bison and flex installed via Homebrew.
