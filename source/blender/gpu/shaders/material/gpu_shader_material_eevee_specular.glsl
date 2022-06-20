@@ -34,6 +34,13 @@ void node_eevee_specular(vec4 diffuse,
   diffuse_data.N = N;
   diffuse_data.sss_id = 0u;
 
+  /* WORKAROUND: Nasty workaround to the current interface with the closure evaluation.
+   * Ideally the occlusion input should be move to the output node or removed all-together.
+   * This is temporary to avoid a regression in 3.2 and should be removed after EEVEE-Next rewrite.
+   */
+  diffuse_data.sss_radius.r = occlusion;
+  diffuse_data.sss_radius.g = -1.0; /* Flag */
+
   ClosureReflection reflection_data;
   reflection_data.weight = alpha;
   if (true) {
