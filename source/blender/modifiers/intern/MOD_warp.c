@@ -302,7 +302,6 @@ static void warpModifier_do(WarpModifierData *wmd,
       if (tex_co) {
         struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
         TexResult texres;
-        texres.nor = NULL;
         BKE_texture_get_value(scene, tex_target, tex_co[i], &texres, false);
         fac *= texres.tin;
       }

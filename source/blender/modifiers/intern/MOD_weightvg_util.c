@@ -162,7 +162,6 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
 
       do_color_manage = tex_use_channel != MOD_WVG_MASK_TEX_USE_INT;
 
-      texres.nor = NULL;
       BKE_texture_get_value(scene, texture, tex_co[idx], &texres, do_color_manage);
       /* Get the good channel value... */
       switch (tex_use_channel) {

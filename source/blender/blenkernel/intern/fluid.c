@@ -1942,7 +1942,6 @@ static void sample_mesh(FluidFlowSettings *ffs,
           tex_co[1] = tex_co[1] * 2.0f - 1.0f;
           tex_co[2] = ffs->texture_offset;
         }
-        texres.nor = NULL;
         BKE_texture_get_value(NULL, ffs->noise_texture, tex_co, &texres, false);
         emission_strength *= texres.tin;
       }

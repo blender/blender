@@ -88,14 +88,13 @@ int imagewrap(Tex *tex,
               struct ImagePool *pool,
               const bool skip_load_image)
 {
-  float fx, fy, val1, val2, val3;
+  float fx, fy;
   int x, y, retval;
   int xi, yi; /* original values */
 
   texres->tin = texres->trgba[3] = texres->trgba[0] = texres->trgba[1] = texres->trgba[2] = 0.0f;
 
-  /* we need to set retval OK, otherwise texture code generates normals itself... */
-  retval = texres->nor ? (TEX_RGB | TEX_NOR) : TEX_RGB;
+  retval = TEX_RGB;
 
   /* quick tests */
   if (ima == NULL) {
@@ -254,47 +253,6 @@ int imagewrap(Tex *tex,
   }
   else { /* no filtering */
     ibuf_get_color(texres->trgba, ibuf, x, y);
-  }
-
-  if (texres->nor) {
-    if (tex->imaflag & TEX_NORMALMAP) {
-      /* Normal from color:
-       * The invert of the red channel is to make
-       * the normal map compliant with the outside world.
-       * It needs to be done because in Blender
-       * the normal used in the renderer points inward. It is generated
-       * this way in calc_vertexnormals(). Should this ever change
-       * this negate must be removed. */
-      texres->nor[0] = -2.0f * (texres->trgba[0] - 0.5f);
-      texres->nor[1] = 2.0f * (texres->trgba[1] - 0.5f);
-      texres->nor[2] = 2.0f * (texres->trgba[2] - 0.5f);
-    }
-    else {
-      /* bump: take three samples */
-      val1 = texres->trgba[0] + texres->trgba[1] + texres->trgba[2];
-
-      if (x < ibuf->x - 1) {
-        float col[4];
-        ibuf_get_color(col, ibuf, x + 1, y);
-        val2 = (col[0] + col[1] + col[2]);
-      }
-      else {
-        val2 = val1;
-      }
-
-      if (y < ibuf->y - 1) {
-        float col[4];
-        ibuf_get_color(col, ibuf, x, y + 1);
-        val3 = (col[0] + col[1] + col[2]);
-      }
-      else {
-        val3 = val1;
-      }
-
-      /* do not mix up x and y here! */
-      texres->nor[0] = (val1 - val2);
-      texres->nor[1] = (val1 - val3);
-    }
   }
 
   if (texres->talpha) {
@@ -989,7 +947,7 @@ static int imagewraposa_aniso(Tex *tex,
 {
   TexResult texr;
   float fx, fy, minx, maxx, miny, maxy;
-  float maxd, val1, val2, val3;
+  float maxd;
   int curmap, retval, intpol, extflag = 0;
   afdata_t AFD;
 
@@ -1008,8 +966,7 @@ static int imagewraposa_aniso(Tex *tex,
 
   texres->tin = texres->trgba[3] = texres->trgba[0] = texres->trgba[1] = texres->trgba[2] = 0.0f;
 
-  /* we need to set retval OK, otherwise texture code generates normals itself... */
-  retval = texres->nor ? (TEX_RGB | TEX_NOR) : TEX_RGB;
+  retval = TEX_RGB;
 
   /* quick tests */
   if (ibuf == NULL && ima == NULL) {
@@ -1040,7 +997,7 @@ static int imagewraposa_aniso(Tex *tex,
   if (ima) {
     if ((tex->imaflag & TEX_USEALPHA) && (ima->alpha_mode != IMA_ALPHA_IGNORE)) {
       if ((tex->imaflag & TEX_CALCALPHA) == 0) {
-        texres->talpha = 1;
+        texres->talpha = true;
       }
     }
   }
@@ -1301,48 +1258,17 @@ static int imagewraposa_aniso(Tex *tex,
     }
 
     /* filter functions take care of interpolation themselves, no need to modify dxt/dyt here */
-
-    if (texres->nor && ((tex->imaflag & TEX_NORMALMAP) == 0)) {
-      /* color & normal */
-      filterfunc(texres, curibuf, fx, fy, &AFD);
-      val1 = texres->trgba[0] + texres->trgba[1] + texres->trgba[2];
-      filterfunc(&texr, curibuf, fx + dxt[0], fy + dxt[1], &AFD);
-      val2 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
-      filterfunc(&texr, curibuf, fx + dyt[0], fy + dyt[1], &AFD);
-      val3 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
-      /* don't switch x or y! */
-      texres->nor[0] = val1 - val2;
-      texres->nor[1] = val1 - val3;
-      if (previbuf != curibuf) { /* interpolate */
-        filterfunc(&texr, previbuf, fx, fy, &AFD);
-        /* rgb */
-        texres->trgba[0] += levf * (texr.trgba[0] - texres->trgba[0]);
-        texres->trgba[1] += levf * (texr.trgba[1] - texres->trgba[1]);
-        texres->trgba[2] += levf * (texr.trgba[2] - texres->trgba[2]);
-        texres->trgba[3] += levf * (texr.trgba[3] - texres->trgba[3]);
-        /* normal */
-        val1 += levf * ((texr.trgba[0] + texr.trgba[1] + texr.trgba[2]) - val1);
-        filterfunc(&texr, previbuf, fx + dxt[0], fy + dxt[1], &AFD);
-        val2 += levf * ((texr.trgba[0] + texr.trgba[1] + texr.trgba[2]) - val2);
-        filterfunc(&texr, previbuf, fx + dyt[0], fy + dyt[1], &AFD);
-        val3 += levf * ((texr.trgba[0] + texr.trgba[1] + texr.trgba[2]) - val3);
-        texres->nor[0] = val1 - val2; /* vals have been interpolated above! */
-        texres->nor[1] = val1 - val3;
-      }
+    filterfunc(texres, curibuf, fx, fy, &AFD);
+    if (previbuf != curibuf) { /* interpolate */
+      filterfunc(&texr, previbuf, fx, fy, &AFD);
+      texres->trgba[0] += levf * (texr.trgba[0] - texres->trgba[0]);
+      texres->trgba[1] += levf * (texr.trgba[1] - texres->trgba[1]);
+      texres->trgba[2] += levf * (texr.trgba[2] - texres->trgba[2]);
+      texres->trgba[3] += levf * (texr.trgba[3] - texres->trgba[3]);
     }
-    else { /* color */
-      filterfunc(texres, curibuf, fx, fy, &AFD);
-      if (previbuf != curibuf) { /* interpolate */
-        filterfunc(&texr, previbuf, fx, fy, &AFD);
-        texres->trgba[0] += levf * (texr.trgba[0] - texres->trgba[0]);
-        texres->trgba[1] += levf * (texr.trgba[1] - texres->trgba[1]);
-        texres->trgba[2] += levf * (texr.trgba[2] - texres->trgba[2]);
-        texres->trgba[3] += levf * (texr.trgba[3] - texres->trgba[3]);
-      }
 
-      if (tex->texfilter != TXF_EWA) {
-        alpha_clip_aniso(ibuf, fx - minx, fy - miny, fx + minx, fy + miny, extflag, texres);
-      }
+    if (tex->texfilter != TXF_EWA) {
+      alpha_clip_aniso(ibuf, fx - minx, fy - miny, fx + minx, fy + miny, extflag, texres);
     }
   }
   else { /* no mipmap */
@@ -1372,23 +1298,9 @@ static int imagewraposa_aniso(Tex *tex,
       AFD.dusc = 1.0f / ff;
       AFD.dvsc = ff / (float)ibuf->y;
     }
-    if (texres->nor && ((tex->imaflag & TEX_NORMALMAP) == 0)) {
-      /* color & normal */
-      filterfunc(texres, ibuf, fx, fy, &AFD);
-      val1 = texres->trgba[0] + texres->trgba[1] + texres->trgba[2];
-      filterfunc(&texr, ibuf, fx + dxt[0], fy + dxt[1], &AFD);
-      val2 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
-      filterfunc(&texr, ibuf, fx + dyt[0], fy + dyt[1], &AFD);
-      val3 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
-      /* don't switch x or y! */
-      texres->nor[0] = val1 - val2;
-      texres->nor[1] = val1 - val3;
-    }
-    else {
-      filterfunc(texres, ibuf, fx, fy, &AFD);
-      if (tex->texfilter != TXF_EWA) {
-        alpha_clip_aniso(ibuf, fx - minx, fy - miny, fx + minx, fy + miny, extflag, texres);
-      }
+    filterfunc(texres, ibuf, fx, fy, &AFD);
+    if (tex->texfilter != TXF_EWA) {
+      alpha_clip_aniso(ibuf, fx - minx, fy - miny, fx + minx, fy + miny, extflag, texres);
     }
   }
 
@@ -1401,18 +1313,6 @@ static int imagewraposa_aniso(Tex *tex,
   }
   if (tex->flag & TEX_NEGALPHA) {
     texres->trgba[3] = 1.0f - texres->trgba[3];
-  }
-
-  if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) { /* normal from color */
-    /* The invert of the red channel is to make
-     * the normal map compliant with the outside world.
-     * It needs to be done because in Blender
-     * the normal used in the renderer points inward. It is generated
-     * this way in calc_vertexnormals(). Should this ever change
-     * this negate must be removed. */
-    texres->nor[0] = -2.0f * (texres->trgba[0] - 0.5f);
-    texres->nor[1] = 2.0f * (texres->trgba[1] - 0.5f);
-    texres->nor[2] = 2.0f * (texres->trgba[2] - 0.5f);
   }
 
   /* de-premul, this is being pre-multiplied in shade_input_do_shade()
@@ -1451,7 +1351,7 @@ int imagewraposa(Tex *tex,
 {
   TexResult texr;
   float fx, fy, minx, maxx, miny, maxy, dx, dy, dxt[2], dyt[2];
-  float maxd, pixsize, val1, val2, val3;
+  float maxd, pixsize;
   int curmap, retval, imaprepeat, imapextend;
 
   /* TXF: since dxt/dyt might be modified here and since they might be needed after imagewraposa()
@@ -1466,8 +1366,7 @@ int imagewraposa(Tex *tex,
 
   texres->tin = texres->trgba[3] = texres->trgba[0] = texres->trgba[1] = texres->trgba[2] = 0.0f;
 
-  /* we need to set retval OK, otherwise texture code generates normals itself... */
-  retval = texres->nor ? (TEX_RGB | TEX_NOR) : TEX_RGB;
+  retval = TEX_RGB;
 
   /* quick tests */
   if (ibuf == NULL && ima == NULL) {
@@ -1762,118 +1661,30 @@ int imagewraposa(Tex *tex,
       }
     }
 
-    if (texres->nor && (tex->imaflag & TEX_NORMALMAP) == 0) {
-      /* a bit extra filter */
-      // minx*= 1.35f;
-      // miny*= 1.35f;
+    maxx = fx + minx;
+    minx = fx - minx;
+    maxy = fy + miny;
+    miny = fy - miny;
 
-      boxsample(
-          curibuf, fx - minx, fy - miny, fx + minx, fy + miny, texres, imaprepeat, imapextend);
-      val1 = texres->trgba[0] + texres->trgba[1] + texres->trgba[2];
-      boxsample(curibuf,
-                fx - minx + dxt[0],
-                fy - miny + dxt[1],
-                fx + minx + dxt[0],
-                fy + miny + dxt[1],
-                &texr,
-                imaprepeat,
-                imapextend);
-      val2 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
-      boxsample(curibuf,
-                fx - minx + dyt[0],
-                fy - miny + dyt[1],
-                fx + minx + dyt[0],
-                fy + miny + dyt[1],
-                &texr,
-                imaprepeat,
-                imapextend);
-      val3 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
+    boxsample(curibuf, minx, miny, maxx, maxy, texres, imaprepeat, imapextend);
 
-      /* don't switch x or y! */
-      texres->nor[0] = (val1 - val2);
-      texres->nor[1] = (val1 - val3);
+    if (previbuf != curibuf) { /* interpolate */
+      boxsample(previbuf, minx, miny, maxx, maxy, &texr, imaprepeat, imapextend);
 
-      if (previbuf != curibuf) { /* interpolate */
+      fx = 2.0f * (pixsize - maxd) / pixsize;
 
-        boxsample(
-            previbuf, fx - minx, fy - miny, fx + minx, fy + miny, &texr, imaprepeat, imapextend);
-
-        /* calc rgb */
-        dx = 2.0f * (pixsize - maxd) / pixsize;
-        if (dx >= 1.0f) {
-          texres->trgba[3] = texr.trgba[3];
-          texres->trgba[2] = texr.trgba[2];
-          texres->trgba[1] = texr.trgba[1];
-          texres->trgba[0] = texr.trgba[0];
-        }
-        else {
-          dy = 1.0f - dx;
-          texres->trgba[2] = dy * texres->trgba[2] + dx * texr.trgba[2];
-          texres->trgba[1] = dy * texres->trgba[1] + dx * texr.trgba[1];
-          texres->trgba[0] = dy * texres->trgba[0] + dx * texr.trgba[0];
-          texres->trgba[3] = dy * texres->trgba[3] + dx * texr.trgba[3];
-        }
-
-        val1 = dy * val1 + dx * (texr.trgba[0] + texr.trgba[1] + texr.trgba[2]);
-        boxsample(previbuf,
-                  fx - minx + dxt[0],
-                  fy - miny + dxt[1],
-                  fx + minx + dxt[0],
-                  fy + miny + dxt[1],
-                  &texr,
-                  imaprepeat,
-                  imapextend);
-        val2 = dy * val2 + dx * (texr.trgba[0] + texr.trgba[1] + texr.trgba[2]);
-        boxsample(previbuf,
-                  fx - minx + dyt[0],
-                  fy - miny + dyt[1],
-                  fx + minx + dyt[0],
-                  fy + miny + dyt[1],
-                  &texr,
-                  imaprepeat,
-                  imapextend);
-        val3 = dy * val3 + dx * (texr.trgba[0] + texr.trgba[1] + texr.trgba[2]);
-
-        texres->nor[0] = (val1 - val2); /* vals have been interpolated above! */
-        texres->nor[1] = (val1 - val3);
-
-        if (dx < 1.0f) {
-          dy = 1.0f - dx;
-          texres->trgba[2] = dy * texres->trgba[2] + dx * texr.trgba[2];
-          texres->trgba[1] = dy * texres->trgba[1] + dx * texr.trgba[1];
-          texres->trgba[0] = dy * texres->trgba[0] + dx * texr.trgba[0];
-          texres->trgba[3] = dy * texres->trgba[3] + dx * texr.trgba[3];
-        }
+      if (fx >= 1.0f) {
+        texres->trgba[3] = texr.trgba[3];
+        texres->trgba[2] = texr.trgba[2];
+        texres->trgba[1] = texr.trgba[1];
+        texres->trgba[0] = texr.trgba[0];
       }
-      texres->nor[0] *= bumpscale;
-      texres->nor[1] *= bumpscale;
-    }
-    else {
-      maxx = fx + minx;
-      minx = fx - minx;
-      maxy = fy + miny;
-      miny = fy - miny;
-
-      boxsample(curibuf, minx, miny, maxx, maxy, texres, imaprepeat, imapextend);
-
-      if (previbuf != curibuf) { /* interpolate */
-        boxsample(previbuf, minx, miny, maxx, maxy, &texr, imaprepeat, imapextend);
-
-        fx = 2.0f * (pixsize - maxd) / pixsize;
-
-        if (fx >= 1.0f) {
-          texres->trgba[3] = texr.trgba[3];
-          texres->trgba[2] = texr.trgba[2];
-          texres->trgba[1] = texr.trgba[1];
-          texres->trgba[0] = texr.trgba[0];
-        }
-        else {
-          fy = 1.0f - fx;
-          texres->trgba[2] = fy * texres->trgba[2] + fx * texr.trgba[2];
-          texres->trgba[1] = fy * texres->trgba[1] + fx * texr.trgba[1];
-          texres->trgba[0] = fy * texres->trgba[0] + fx * texr.trgba[0];
-          texres->trgba[3] = fy * texres->trgba[3] + fx * texr.trgba[3];
-        }
+      else {
+        fy = 1.0f - fx;
+        texres->trgba[2] = fy * texres->trgba[2] + fx * texr.trgba[2];
+        texres->trgba[1] = fy * texres->trgba[1] + fx * texr.trgba[1];
+        texres->trgba[0] = fy * texres->trgba[0] + fx * texr.trgba[0];
+        texres->trgba[3] = fy * texres->trgba[3] + fx * texr.trgba[3];
       }
     }
   }
@@ -1889,35 +1700,7 @@ int imagewraposa(Tex *tex,
       }
     }
 
-    if (texres->nor && (tex->imaflag & TEX_NORMALMAP) == 0) {
-      boxsample(ibuf, fx - minx, fy - miny, fx + minx, fy + miny, texres, imaprepeat, imapextend);
-      val1 = texres->trgba[0] + texres->trgba[1] + texres->trgba[2];
-      boxsample(ibuf,
-                fx - minx + dxt[0],
-                fy - miny + dxt[1],
-                fx + minx + dxt[0],
-                fy + miny + dxt[1],
-                &texr,
-                imaprepeat,
-                imapextend);
-      val2 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
-      boxsample(ibuf,
-                fx - minx + dyt[0],
-                fy - miny + dyt[1],
-                fx + minx + dyt[0],
-                fy + miny + dyt[1],
-                &texr,
-                imaprepeat,
-                imapextend);
-      val3 = texr.trgba[0] + texr.trgba[1] + texr.trgba[2];
-
-      /* don't switch x or y! */
-      texres->nor[0] = (val1 - val2);
-      texres->nor[1] = (val1 - val3);
-    }
-    else {
-      boxsample(ibuf, fx - minx, fy - miny, fx + minx, fy + miny, texres, imaprepeat, imapextend);
-    }
+    boxsample(ibuf, fx - minx, fy - miny, fx + minx, fy + miny, texres, imaprepeat, imapextend);
   }
 
   if (tex->imaflag & TEX_CALCALPHA) {
@@ -1930,17 +1713,6 @@ int imagewraposa(Tex *tex,
 
   if (tex->flag & TEX_NEGALPHA) {
     texres->trgba[3] = 1.0f - texres->trgba[3];
-  }
-
-  if (texres->nor && (tex->imaflag & TEX_NORMALMAP)) {
-    /* Normal from color:
-     * The invert of the red channel is to make the normal map compliant with the outside world.
-     * It needs to be done because in Blender the normal used in the renderer points inward.
-     * It is generated this way in #calc_vertexnormals().
-     * Should this ever change this negate must be removed. */
-    texres->nor[0] = -2.0f * (texres->trgba[0] - 0.5f);
-    texres->nor[1] = 2.0f * (texres->trgba[1] - 0.5f);
-    texres->nor[2] = 2.0f * (texres->trgba[2] - 0.5f);
   }
 
   /* de-premul, this is being pre-multiplied in shade_input_do_shade() */

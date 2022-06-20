@@ -45,13 +45,11 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
   else if (nodetex) {
     TexResult texres;
     int textype;
-    float nor[] = {0, 0, 0};
     float col1[4], col2[4];
 
     tex_input_rgba(col1, in[0], p, thread);
     tex_input_rgba(col2, in[1], p, thread);
 
-    texres.nor = nor;
     textype = multitex_nodes(nodetex, co, dxt, dyt, p->osatex, &texres, thread, 0, p->mtex, NULL);
 
     if (textype & TEX_RGB) {
