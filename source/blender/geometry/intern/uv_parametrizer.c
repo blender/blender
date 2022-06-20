@@ -4,27 +4,18 @@
  * \ingroup eduv
  */
 
+#include "GEO_uv_parametrizer.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_boxpack_2d.h"
 #include "BLI_convexhull_2d.h"
 #include "BLI_ghash.h"
 #include "BLI_heap.h"
-#include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_rand.h"
-#include "BLI_utildefines.h"
-
-#include "GEO_uv_parametrizer.h"
-
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "BLI_sys_types.h" /* for intptr_t support */
 
 #include "eigen_capi.h"
 
@@ -51,11 +42,6 @@ typedef struct PHash {
   PHashLink **buckets;
   int size, cursize, cursize_id;
 } PHash;
-
-struct PChart;
-struct PEdge;
-struct PFace;
-struct PVert;
 
 /* Simplices */
 
@@ -318,54 +304,14 @@ static PHashLink *phash_next(PHash *ph, PHashKey key, PHashLink *link)
 
 /* Geometry */
 
-static float p_vec_angle_cos(const float v1[3], const float v2[3], const float v3[3])
-{
-  float d1[3], d2[3];
-
-  d1[0] = v1[0] - v2[0];
-  d1[1] = v1[1] - v2[1];
-  d1[2] = v1[2] - v2[2];
-
-  d2[0] = v3[0] - v2[0];
-  d2[1] = v3[1] - v2[1];
-  d2[2] = v3[2] - v2[2];
-
-  normalize_v3(d1);
-  normalize_v3(d2);
-
-  return d1[0] * d2[0] + d1[1] * d2[1] + d1[2] * d2[2];
-}
-
 static float p_vec_angle(const float v1[3], const float v2[3], const float v3[3])
 {
-  float dot = p_vec_angle_cos(v1, v2, v3);
-
-  if (dot <= -1.0f) {
-    return (float)M_PI;
-  }
-  if (dot >= 1.0f) {
-    return 0.0f;
-  }
-  return acosf(dot);
+  return angle_v3v3v3(v1, v2, v3);
 }
-
 static float p_vec2_angle(const float v1[2], const float v2[2], const float v3[2])
 {
-  float u1[3], u2[3], u3[3];
-
-  u1[0] = v1[0];
-  u1[1] = v1[1];
-  u1[2] = 0.0f;
-  u2[0] = v2[0];
-  u2[1] = v2[1];
-  u2[2] = 0.0f;
-  u3[0] = v3[0];
-  u3[1] = v3[1];
-  u3[2] = 0.0f;
-
-  return p_vec_angle(u1, u2, u3);
+  return angle_v2v2v2(v1, v2, v3);
 }
-
 static void p_triangle_angles(
     const float v1[3], const float v2[3], const float v3[3], float *r_a1, float *r_a2, float *r_a3)
 {
@@ -406,25 +352,12 @@ static float p_face_uv_area_signed(PFace *f)
 
 static float p_edge_length(PEdge *e)
 {
-  PVert *v1 = e->vert, *v2 = e->next->vert;
-  float d[3];
-
-  d[0] = v2->co[0] - v1->co[0];
-  d[1] = v2->co[1] - v1->co[1];
-  d[2] = v2->co[2] - v1->co[2];
-
-  return sqrtf(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
+  return len_v3v3(e->vert->co, e->next->vert->co);
 }
 
 static float p_edge_uv_length(PEdge *e)
 {
-  PVert *v1 = e->vert, *v2 = e->next->vert;
-  float d[3];
-
-  d[0] = v2->uv[0] - v1->uv[0];
-  d[1] = v2->uv[1] - v1->uv[1];
-
-  return sqrtf(d[0] * d[0] + d[1] * d[1]);
+  return len_v2v2(e->vert->uv, e->next->vert->uv);
 }
 
 static void p_chart_uv_bbox(PChart *chart, float minv[2], float maxv[2])
@@ -495,16 +428,6 @@ static void p_chart_uv_to_array(PChart *chart, float (*points)[2])
 
   for (v = chart->verts; v; v = v->nextlink) {
     copy_v2_v2(points[i++], v->uv);
-  }
-}
-
-static void UNUSED_FUNCTION(p_chart_uv_from_array)(PChart *chart, float (*points)[2])
-{
-  PVert *v;
-  uint i = 0;
-
-  for (v = chart->verts; v; v = v->nextlink) {
-    copy_v2_v2(v->uv, points[i++]);
   }
 }
 
