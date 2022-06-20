@@ -349,7 +349,7 @@ class MTLTexture : public Texture {
    *    - Per-component size matches (e.g. GPU_DATA_UBYTE)
    *                                OR GPU_DATA_10_11_11_REV && GPU_R11G11B10 (equiv)
    *                                OR D24S8 and GPU_DATA_UINT_24_8
-   *    We can Use BLIT ENCODER.
+   *    We can use BLIT ENCODER.
    *
    * OTHERWISE TRIGGER COMPUTE:
    *  - Compute sizes will vary. Threads per grid WILL match 'extent'.
