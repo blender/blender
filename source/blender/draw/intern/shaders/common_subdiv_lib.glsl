@@ -36,6 +36,8 @@ layout(std140) uniform shader_data
 
   /* Total number of elements to process. */
   uint total_dispatch_size;
+
+  bool is_edit_mode;
 };
 
 uint get_global_invocation_index()
