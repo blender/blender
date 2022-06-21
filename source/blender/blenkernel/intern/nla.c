@@ -303,6 +303,12 @@ static void update_active_strip(AnimData *adt_dest,
 /* Set adt_dest->act_track to the track with the same index as adt_source->act_track. */
 static void update_active_track(AnimData *adt_dest, const AnimData *adt_source)
 {
+  adt_dest->act_track = NULL;
+  adt_dest->actstrip = NULL;
+  if (adt_source->act_track == NULL && adt_source->actstrip == NULL) {
+    return;
+  }
+
   BLI_assert(BLI_listbase_count(&adt_source->nla_tracks) ==
              BLI_listbase_count(&adt_dest->nla_tracks));
 
