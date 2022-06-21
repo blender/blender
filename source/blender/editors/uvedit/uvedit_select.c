@@ -4446,10 +4446,10 @@ void UV_OT_select_overlap(wmOperatorType *ot)
  * \{ */
 
 static float get_uv_vert_needle(const eUVSelectSimilar type,
-                             BMVert *vert,
-                             const float ob_m3[3][3],
-                             MLoopUV *luv,
-                             const int cd_loop_uv_offset)
+                                BMVert *vert,
+                                const float ob_m3[3][3],
+                                MLoopUV *luv,
+                                const int cd_loop_uv_offset)
 {
   float result = 0.0f;
   switch (type) {
@@ -4485,11 +4485,11 @@ static float get_uv_vert_needle(const eUVSelectSimilar type,
 }
 
 static float get_uv_edge_needle(const eUVSelectSimilar type,
-                             BMEdge *edge,
-                             const float ob_m3[3][3],
-                             MLoopUV *luv_a,
-                             MLoopUV *luv_b,
-                             const int cd_loop_uv_offset)
+                                BMEdge *edge,
+                                const float ob_m3[3][3],
+                                MLoopUV *luv_a,
+                                MLoopUV *luv_b,
+                                const int cd_loop_uv_offset)
 {
   float result = 0.0f;
   switch (type) {
@@ -4535,9 +4535,9 @@ static float get_uv_edge_needle(const eUVSelectSimilar type,
 }
 
 static float get_uv_face_needle(const eUVSelectSimilar type,
-                             BMFace *face,
-                             const float ob_m3[3][3],
-                             const int cd_loop_uv_offset)
+                                BMFace *face,
+                                const float ob_m3[3][3],
+                                const int cd_loop_uv_offset)
 {
   float result = 0.0f;
   switch (type) {
@@ -4924,8 +4924,7 @@ static int uv_select_similar_exec(bContext *C, wmOperator *op)
   return uv_select_similar_vert_exec(C, op);
 }
 
-static EnumPropertyItem prop_vert_similar_types[] = {
-    {UV_SSIM_PIN, "PIN", 0, "Pinned", ""}, {0}};
+static EnumPropertyItem prop_vert_similar_types[] = {{UV_SSIM_PIN, "PIN", 0, "Pinned", ""}, {0}};
 
 static EnumPropertyItem prop_edge_similar_types[] = {
     {UV_SSIM_LENGTH_UV, "LENGTH", 0, "Length", ""},
