@@ -66,15 +66,18 @@ eSelectOp ED_select_op_modal(const eSelectOp sel_op, const bool is_first)
   return sel_op;
 }
 
-int ED_select_similar_compare_float(const float delta, const float thresh, const int compare)
+bool ED_select_similar_compare_float(const float delta,
+                                     const float thresh,
+                                     const eSimilarCmp compare)
 {
+  BLI_assert(thresh >= 0.0f);
   switch (compare) {
     case SIM_CMP_EQ:
       return (fabsf(delta) <= thresh);
     case SIM_CMP_GT:
-      return ((delta + thresh) >= 0.0);
+      return ((delta + thresh) >= 0.0f);
     case SIM_CMP_LT:
-      return ((delta - thresh) <= 0.0);
+      return ((delta - thresh) <= 0.0f);
     default:
       BLI_assert_unreachable();
       return 0;
@@ -84,8 +87,10 @@ int ED_select_similar_compare_float(const float delta, const float thresh, const
 bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
                                           const float length,
                                           const float thresh,
-                                          const int compare)
+                                          const eSimilarCmp compare)
 {
+  BLI_assert(compare == SIM_CMP_EQ || length >= 0.0f); /* See precision note below. */
+
   /* Length of the edge we want to compare against. */
   float nearest_edge_length;
 
@@ -112,6 +117,7 @@ bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
 
   KDTreeNearest_1d nearest;
   if (BLI_kdtree_1d_find_nearest(tree, &nearest_edge_length, &nearest) != -1) {
+    BLI_assert(compare == SIM_CMP_EQ || nearest.co[0] >= 0.0f); /* See precision note above. */
     float delta = length - nearest.co[0];
     return ED_select_similar_compare_float(delta, thresh, compare);
   }
