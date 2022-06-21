@@ -310,14 +310,13 @@ void EEVEE_bloom_output_init(EEVEE_ViewLayerData *UNUSED(sldata),
                                 {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(txl->bloom_accum)});
 
   /* Create Pass and shgroup. */
-  DRWShadingGroup *grp = eevee_create_bloom_pass("Bloom Accumulate",
-                                                 effects,
-                                                 EEVEE_shaders_bloom_resolve_get(use_highres),
-                                                 &psl->bloom_accum_ps,
-                                                 true,
-                                                 true,
-                                                 false);
-  DRW_shgroup_uniform_bool_copy(grp, "bloomAddBase", false);
+  eevee_create_bloom_pass("Bloom Accumulate",
+                          effects,
+                          EEVEE_shaders_bloom_resolve_get(use_highres),
+                          &psl->bloom_accum_ps,
+                          true,
+                          true,
+                          false);
 }
 
 void EEVEE_bloom_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
