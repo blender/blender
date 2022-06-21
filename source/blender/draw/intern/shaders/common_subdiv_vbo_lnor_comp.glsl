@@ -31,6 +31,18 @@ bool is_face_hidden(uint coarse_quad_index)
   return (extra_coarse_face_data[coarse_quad_index] & coarse_face_hidden_mask) != 0;
 }
 
+/* Flag for paint mode overlay and normals drawing in edit-mode. */
+float get_loop_flag(uint coarse_quad_index, int vert_origindex)
+{
+  if (is_face_hidden(coarse_quad_index) || (is_edit_mode && vert_origindex == -1)) {
+    return -1.0;
+  }
+  if (is_face_selected(coarse_quad_index)) {
+    return 1.0;
+  }
+  return 0.0;
+}
+
 void main()
 {
   /* We execute for each quad. */
@@ -49,7 +61,11 @@ void main()
     /* Face is smooth, use vertex normals. */
     for (int i = 0; i < 4; i++) {
       PosNorLoop pos_nor_loop = pos_nor[start_loop_index + i];
-      output_lnor[start_loop_index + i] = get_normal_and_flag(pos_nor_loop);
+      int origindex = input_vert_origindex[start_loop_index + i];
+      LoopNormal loop_normal = get_normal_and_flag(pos_nor_loop);
+      loop_normal.flag = get_loop_flag(coarse_quad_index, origindex);
+
+      output_lnor[start_loop_index + i] = loop_normal;
     }
   }
   else {
@@ -73,15 +89,7 @@ void main()
 
     for (int i = 0; i < 4; i++) {
       int origindex = input_vert_origindex[start_loop_index + i];
-      float flag = 0.0;
-      /* Flag for paint mode overlay and normals drawing in edit-mode. */
-      if (is_face_hidden(coarse_quad_index) || (is_edit_mode && origindex == -1)) {
-        flag = -1.0;
-      }
-      else if (is_face_selected(coarse_quad_index)) {
-        flag = 1.0;
-      }
-      loop_normal.flag = flag;
+      loop_normal.flag = get_loop_flag(coarse_quad_index, origindex);
 
       output_lnor[start_loop_index + i] = loop_normal;
     }
