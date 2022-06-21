@@ -2596,7 +2596,7 @@ static void cursor_buffer_set(const input_t *input, wl_buffer *buffer)
 
   /* This is a requirement of WAYLAND, when this isn't the case,
    * it causes Blender's window to close intermittently. */
-  GHOST_ASSERT((image_size_x % size) == 0 && (image_size_y % size) == 0,
+  GHOST_ASSERT((image_size_x % scale) == 0 && (image_size_y % scale) == 0,
                "The size must be a multiple of the scale!");
 
   const int32_t hotspot_x = int32_t(c->wl_image.hotspot_x) / scale;
