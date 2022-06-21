@@ -1007,6 +1007,7 @@ static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_OUTPUT_AOV) {
+      node->tmp_flag = 1;
       nodeChainIterBackwards(ntree, node, ntree_branch_node_tag, nullptr, 0);
     }
   }
