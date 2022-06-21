@@ -252,6 +252,9 @@ static NlaStrip *find_active_strip_from_listbase(const NlaStrip *active_strip,
                                                  const ListBase /* NlaStrip */ *strips_source,
                                                  const ListBase /* NlaStrip */ *strips_dest)
 {
+  BLI_assert_msg(BLI_listbase_count(strips_source) == BLI_listbase_count(strips_dest),
+                 "Expecting the same number of source and destination strips");
+
   NlaStrip *strip_dest = strips_dest->first;
   LISTBASE_FOREACH (const NlaStrip *, strip_source, strips_source) {
     if (strip_dest == NULL) {
