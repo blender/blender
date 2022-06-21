@@ -1265,6 +1265,7 @@ def km_uv_editor(params):
          {"properties": [("deselect", True)]}),
         ("uv.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("uv.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
+        ("uv.select_similar", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         *_template_items_select_actions(params, "uv.select_all"),
         *_template_items_hide_reveal_actions("uv.hide", "uv.reveal"),
         ("uv.select_pinned", {"type": 'P', "value": 'PRESS', "shift": True}, None),
