@@ -388,6 +388,17 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C,
 
   /* Create new layer */
   /* TODO: have some way of specifying that we don't want this? */
+  {
+    /* "New Layer" entry */
+    item_tmp.identifier = "__CREATE__";
+    item_tmp.name = "New Layer";
+    item_tmp.value = -1;
+    item_tmp.icon = ICON_ADD;
+    RNA_enum_item_add(&item, &totitem, &item_tmp);
+
+    /* separator */
+    RNA_enum_item_add_separator(&item, &totitem);
+  }
 
   const int tot = BLI_listbase_count(&gpd->layers);
   /* Existing layers */
@@ -403,17 +414,6 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C,
       item_tmp.icon = ICON_NONE;
     }
 
-    RNA_enum_item_add(&item, &totitem, &item_tmp);
-  }
-  {
-    /* separator */
-    RNA_enum_item_add_separator(&item, &totitem);
-
-    /* "New Layer" entry */
-    item_tmp.identifier = "__CREATE__";
-    item_tmp.name = "New Layer";
-    item_tmp.value = -1;
-    item_tmp.icon = ICON_ADD;
     RNA_enum_item_add(&item, &totitem, &item_tmp);
   }
 
