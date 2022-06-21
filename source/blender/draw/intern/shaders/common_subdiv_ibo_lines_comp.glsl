@@ -35,7 +35,7 @@ void emit_line(uint line_offset, uint quad_index, uint start_loop_index, uint co
   uint coarse_quad_index = coarse_polygon_index_from_subdiv_quad_index(quad_index,
                                                                        coarse_poly_count);
 
-  if (is_face_hidden(coarse_quad_index) ||
+  if (use_hide && is_face_hidden(coarse_quad_index) ||
       (input_origindex[vertex_index] == ORIGINDEX_NONE && optimal_display)) {
     output_lines[line_offset + 0] = 0xffffffff;
     output_lines[line_offset + 1] = 0xffffffff;

@@ -1205,7 +1205,7 @@ struct DRWSubdivUboStorage {
   uint total_dispatch_size;
 
   int is_edit_mode;
-  int _pad2;
+  int use_hide;
   int _pad3;
 };
 
@@ -1237,6 +1237,7 @@ static void draw_subdiv_init_ubo_storage(const DRWSubdivCache *cache,
   ubo->coarse_face_loopstart_mask = SUBDIV_COARSE_FACE_LOOP_START_MASK;
   ubo->total_dispatch_size = total_dispatch_size;
   ubo->is_edit_mode = cache->is_edit_mode;
+  ubo->use_hide = cache->use_hide;
 }
 
 static void draw_subdiv_ubo_update_and_bind(const DRWSubdivCache *cache,
@@ -2084,6 +2085,7 @@ static bool draw_subdiv_create_requested_buffers(Object *ob,
   MeshRenderData *mr = mesh_render_data_create(
       ob, mesh, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
   mr->use_hide = use_hide;
+  draw_cache->use_hide = use_hide;
 
   /* Used for setting loop normals flags. Mapped extraction is only used during edit mode.
    * See comments in #extract_lnor_iter_poly_mesh.
