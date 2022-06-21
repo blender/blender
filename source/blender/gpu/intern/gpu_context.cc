@@ -177,7 +177,7 @@ void GPU_render_step()
 /** \name Backend selection
  * \{ */
 
-static GPUBackend *g_backend;
+static GPUBackend *g_backend = nullptr;
 
 bool GPU_backend_supported(eGPUBackendType type)
 {

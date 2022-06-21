@@ -702,7 +702,11 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *r_size)
 
 void GPU_samplers_update()
 {
-  GPUBackend::get()->samplers_update();
+  /* Backend may not exist when we are updating preferences from background mode. */
+  GPUBackend *backend = GPUBackend::get();
+  if (backend) {
+    backend->samplers_update();
+  }
 }
 
 /** \} */
