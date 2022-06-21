@@ -306,7 +306,11 @@ static void update_active_track(AnimData *adt_dest, const AnimData *adt_source)
     if (track_source == adt_source->act_track) {
       adt_dest->act_track = track_dest;
     }
-    update_active_strip(adt_dest, track_dest, adt_source, track_source);
+
+    /* Only search for the active strip if it hasn't been found yet. */
+    if (adt_dest->actstrip == NULL && adt_source->actstrip != NULL) {
+      update_active_strip(adt_dest, track_dest, adt_source, track_source);
+    }
 
     track_dest = track_dest->next;
   }
