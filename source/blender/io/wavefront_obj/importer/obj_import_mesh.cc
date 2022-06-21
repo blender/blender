@@ -48,7 +48,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   obj->data = BKE_object_obdata_add_from_type(bmain, OB_MESH, ob_name.c_str());
 
   create_vertices(mesh);
-  create_polys_loops(obj, mesh, import_params.import_vertex_groups);
+  create_polys_loops(mesh, import_params.import_vertex_groups);
   create_edges(mesh);
   create_uv_verts(mesh);
   create_normals(mesh);
@@ -167,7 +167,7 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
   }
 }
 
-void MeshFromGeometry::create_polys_loops(Object *obj, Mesh *mesh, bool use_vertex_groups)
+void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
 {
   mesh->dvert = nullptr;
   const int64_t total_verts = mesh_geometry_.vertex_count_;
