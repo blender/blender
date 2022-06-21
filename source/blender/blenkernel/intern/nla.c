@@ -258,9 +258,9 @@ static NlaStrip *find_active_strip_from_listbase(const NlaStrip *active_strip,
   NlaStrip *strip_dest = strips_dest->first;
   LISTBASE_FOREACH (const NlaStrip *, strip_source, strips_source) {
     if (strip_dest == NULL) {
-      /* The tracks are assumed to have an equal number of strips, but this is not the case when
-       * dragging multiple strips. The transform system merges the selected strips into one
-       * meta-strip, reducing the number of strips in `track_dest`. */
+      /* The tracks are assumed to have an equal number of strips, but this is
+       * not the case. Not sure when this might happen, but it's better to not
+       * crash. */
       break;
     }
     if (strip_source == active_strip) {
@@ -285,7 +285,9 @@ static NlaStrip *find_active_strip_from_listbase(const NlaStrip *active_strip,
   return NULL;
 }
 
-/* Set adt_dest->actstrip to the strip with the same index as adt_source->actstrip. */
+/* Set adt_dest->actstrip to the strip with the same index as
+ * adt_source->actstrip. Note that this always sets `adt_dest->actstrip`; sets
+ * to NULL when `adt_source->actstrip` cannot be found. */
 static void update_active_strip(AnimData *adt_dest,
                                 NlaTrack *track_dest,
                                 const AnimData *adt_source,
