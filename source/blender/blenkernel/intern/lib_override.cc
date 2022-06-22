@@ -687,51 +687,6 @@ static void lib_override_group_tag_data_clear(LibOverrideGroupTagData *data)
   memset(data, 0, sizeof(*data));
 }
 
-static void lib_override_hierarchy_dependencies_recursive_tag_from(LibOverrideGroupTagData *data)
-{
-  Main *bmain = data->bmain;
-  ID *id = data->id_root;
-  const bool is_override = data->is_override;
-
-  if ((*(uint *)&id->tag & data->tag) == 0) {
-    /* This ID is not tagged, no reason to proceed further to its parents. */
-    return;
-  }
-
-  MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
-      BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
-  BLI_assert(entry != nullptr);
-
-  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM) {
-    /* This ID has already been processed. */
-    return;
-  }
-  /* This way we won't process again that ID, should we encounter it again through another
-   * relationship hierarchy. */
-  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM;
-
-  for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != nullptr;
-       from_id_entry = from_id_entry->next) {
-    if ((from_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
-      /* Never consider non-overridable relationships ('from', 'parents', 'owner' etc. pointers)
-       * as actual dependencies. */
-      continue;
-    }
-    /* We only consider IDs from the same library. */
-    ID *from_id = from_id_entry->id_pointer.from;
-    if (from_id == nullptr || from_id->lib != id->lib ||
-        (is_override && !ID_IS_OVERRIDE_LIBRARY(from_id))) {
-      /* IDs from different libraries, or non-override IDs in case we are processing overrides,
-       * are both barriers of dependency. */
-      continue;
-    }
-    from_id->tag |= data->tag;
-    LibOverrideGroupTagData sub_data = *data;
-    sub_data.id_root = from_id;
-    lib_override_hierarchy_dependencies_recursive_tag_from(&sub_data);
-  }
-}
-
 /* Tag all IDs in dependency relationships within an override hierarchy/group.
  *
  * Requires existing `Main.relations`.
@@ -748,13 +703,13 @@ static bool lib_override_hierarchy_dependencies_recursive_tag(LibOverrideGroupTa
       BLI_ghash_lookup(bmain->relations->relations_from_pointers, id));
   BLI_assert(entry != nullptr);
 
-  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO) {
+  if (entry->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) {
     /* This ID has already been processed. */
     return (*(uint *)&id->tag & data->tag) != 0;
   }
   /* This way we won't process again that ID, should we encounter it again through another
    * relationship hierarchy. */
-  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO;
+  entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
 
   for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != nullptr;
        to_id_entry = to_id_entry->next) {
@@ -776,15 +731,6 @@ static bool lib_override_hierarchy_dependencies_recursive_tag(LibOverrideGroupTa
     if (lib_override_hierarchy_dependencies_recursive_tag(&sub_data)) {
       id->tag |= data->tag;
     }
-  }
-
-  /* If the current ID is/has been tagged for override above, then check its reversed dependencies
-   * (i.e. IDs that depend on the current one).
-   *
-   * This will cover e.g. the case where user override an armature, and would expect the mesh
-   * object deformed by that armature to also be overridden. */
-  if ((*(uint *)&id->tag & data->tag) != 0) {
-    lib_override_hierarchy_dependencies_recursive_tag_from(data);
   }
 
   return (*(uint *)&id->tag & data->tag) != 0;
