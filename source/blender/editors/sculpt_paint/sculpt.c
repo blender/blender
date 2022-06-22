@@ -1181,6 +1181,12 @@ void SCULPT_floodfill_free(SculptFloodFill *flood)
 
 /** \} */
 
+static bool sculpt_tool_has_cube_tip(const char sculpt_tool)
+{
+  return ELEM(
+      sculpt_tool, SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_PAINT, SCULPT_TOOL_MULTIPLANE_SCRAPE);
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Tool Capabilities
  *
@@ -1623,7 +1629,7 @@ bool SCULPT_brush_test_cube(SculptBrushTest *test,
                             const float local[4][4],
                             const float roundness)
 {
-  float side = M_SQRT1_2;
+  float side = 1.0f;
   float local_co[3];
 
   if (sculpt_brush_test_clipping(test, co)) {
@@ -3253,6 +3259,11 @@ static void do_brush_action(Sculpt *sd,
     const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) ? true :
                                                                                ss->cache->original;
     float radius_scale = 1.0f;
+
+    /* Corners of square brushes can go outside the brush radius. */
+    if (sculpt_tool_has_cube_tip(brush->sculpt_tool)) {
+      radius_scale = M_SQRT2;
+    }
 
     /* With these options enabled not all required nodes are inside the original brush radius, so
      * the brush can produce artifacts in some situations. */
