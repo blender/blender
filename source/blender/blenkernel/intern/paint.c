@@ -1485,8 +1485,6 @@ void BKE_sculptsession_free(Object *ob)
       BM_log_free(ss->bm_log);
     }
 
-    MEM_SAFE_FREE(ss->texcache);
-
     if (ss->tex_pool) {
       BKE_image_pool_free(ss->tex_pool);
     }

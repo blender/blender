@@ -119,10 +119,6 @@ float BKE_brush_sample_masktex(const struct Scene *scene,
                                int thread,
                                struct ImagePool *pool);
 
-/* Texture. */
-
-unsigned int *BKE_brush_gen_texture_cache(struct Brush *br, int half_side, bool use_secondary);
-
 /**
  * Radial control.
  */

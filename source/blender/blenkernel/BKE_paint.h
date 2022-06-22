@@ -552,8 +552,7 @@ typedef struct SculptSession {
   float (*deform_cos)[3];       /* Coords of deformed mesh but without stroke displacement. */
   float (*deform_imats)[3][3];  /* Crazy-space deformation matrices. */
 
-  /* Used to cache the render of the active texture */
-  unsigned int texcache_side, *texcache, texcache_actual;
+  /* Pool for texture evaluations. */
   struct ImagePool *tex_pool;
 
   struct StrokeCache *cache;

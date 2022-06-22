@@ -2469,71 +2469,55 @@ float BKE_brush_curve_strength_clamped(const Brush *br, float p, const float len
 }
 
 /* TODO: should probably be unified with BrushPainter stuff? */
-unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side, bool use_secondary)
+static bool brush_gen_texture(const Brush *br,
+                              const int side,
+                              const bool use_secondary,
+                              float *rect)
 {
-  unsigned int *texcache = NULL;
-  MTex *mtex = (use_secondary) ? &br->mask_mtex : &br->mtex;
-  float intensity;
-  float rgba_dummy[4];
+  const MTex *mtex = (use_secondary) ? &br->mask_mtex : &br->mtex;
+  if (mtex->tex == NULL) {
+    return false;
+  }
+
+  const float step = 2.0 / side;
   int ix, iy;
-  int side = half_side * 2;
+  float x, y;
 
-  if (mtex->tex) {
-    float x, y, step = 2.0 / side, co[3];
+  /* Do normalized canonical view coords for texture. */
+  for (y = -1.0, iy = 0; iy < side; iy++, y += step) {
+    for (x = -1.0, ix = 0; ix < side; ix++, x += step) {
+      const float co[3] = {x, y, 0.0f};
 
-    texcache = MEM_callocN(sizeof(int) * side * side, "Brush texture cache");
+      float intensity;
+      float rgba_dummy[4];
+      RE_texture_evaluate(mtex, co, 0, NULL, false, false, &intensity, rgba_dummy);
 
-    /* do normalized canonical view coords for texture */
-    for (y = -1.0, iy = 0; iy < side; iy++, y += step) {
-      for (x = -1.0, ix = 0; ix < side; ix++, x += step) {
-        co[0] = x;
-        co[1] = y;
-        co[2] = 0.0f;
-
-        /* This is copied from displace modifier code */
-        /* TODO(sergey): brush are always caching with CM enabled for now. */
-        RE_texture_evaluate(mtex, co, 0, NULL, false, false, &intensity, rgba_dummy);
-        copy_v4_uchar((uchar *)&texcache[iy * side + ix], (char)(intensity * 255.0f));
-      }
+      rect[iy * side + ix] = intensity;
     }
   }
 
-  return texcache;
+  return true;
 }
 
 struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool display_gradient)
 {
   ImBuf *im = MEM_callocN(sizeof(ImBuf), "radial control texture");
-  unsigned int *texcache;
   int side = 512;
   int half = side / 2;
-  int i, j;
 
   BKE_curvemapping_init(br->curve);
-  texcache = BKE_brush_gen_texture_cache(br, half, secondary);
   im->rect_float = MEM_callocN(sizeof(float) * side * side, "radial control rect");
   im->x = im->y = side;
 
-  if (display_gradient || texcache) {
-    for (i = 0; i < side; i++) {
-      for (j = 0; j < side; j++) {
-        float magn = sqrtf(pow2f(i - half) + pow2f(j - half));
-        im->rect_float[i * side + j] = BKE_brush_curve_strength_clamped(br, magn, half);
-      }
-    }
-  }
+  const bool have_texture = brush_gen_texture(br, side, secondary, im->rect_float);
 
-  if (texcache) {
-    /* Modulate curve with texture */
-    for (i = 0; i < side; i++) {
-      for (j = 0; j < side; j++) {
-        const int col = texcache[i * side + j];
-        im->rect_float[i * side + j] *= (((char *)&col)[0] + ((char *)&col)[1] +
-                                         ((char *)&col)[2]) /
-                                        3.0f / 255.0f;
+  if (display_gradient || have_texture) {
+    for (int i = 0; i < side; i++) {
+      for (int j = 0; j < side; j++) {
+        float magn = sqrtf(pow2f(i - half) + pow2f(j - half));
+        im->rect_float[i * side + j] *= BKE_brush_curve_strength_clamped(br, magn, half);
       }
     }
-    MEM_freeN(texcache);
   }
 
   return im;

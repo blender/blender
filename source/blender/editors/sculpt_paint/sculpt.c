@@ -2381,7 +2381,7 @@ float SCULPT_brush_strength_factor(SculptSession *ss,
     /* Get strength by feeding the vertex location directly into a texture. */
     avg = BKE_brush_sample_tex_3d(scene, br, point, rgba, 0, ss->tex_pool);
   }
-  else if (ss->texcache) {
+  else {
     float symm_point[3], point_2d[2];
     /* Quite warnings. */
     float x = 0.0f, y = 0.0f;
@@ -3937,27 +3937,6 @@ static void do_symmetrical_brush_actions(Sculpt *sd,
   }
 }
 
-static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
-{
-  Brush *brush = BKE_paint_brush(&sd->paint);
-  const int radius = BKE_brush_size_get(scene, brush);
-
-  MEM_SAFE_FREE(ss->texcache);
-
-  if (ss->tex_pool) {
-    BKE_image_pool_free(ss->tex_pool);
-    ss->tex_pool = NULL;
-  }
-
-  /* Need to allocate a bigger buffer for bigger brush size. */
-  ss->texcache_side = 2 * radius;
-  if (!ss->texcache || ss->texcache_side > ss->texcache_actual) {
-    ss->texcache = BKE_brush_gen_texture_cache(brush, radius, false);
-    ss->texcache_actual = ss->texcache_side;
-    ss->tex_pool = BKE_image_pool_new();
-  }
-}
-
 bool SCULPT_mode_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
@@ -5040,7 +5019,7 @@ bool SCULPT_stroke_get_location(bContext *C, float out[3], const float mval[2])
   return hit;
 }
 
-static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
+static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
   MTex *mtex = &brush->mtex;
@@ -5051,14 +5030,13 @@ static void sculpt_brush_init_tex(const Scene *scene, Sculpt *sd, SculptSession 
     ntreeTexBeginExecTree(mtex->tex->nodetree);
   }
 
-  /* TODO: Shouldn't really have to do this at the start of every stroke, but sculpt would need
-   * some sort of notification when changes are made to the texture. */
-  sculpt_update_tex(scene, sd, ss);
+  if (ss->tex_pool == NULL) {
+    ss->tex_pool = BKE_image_pool_new();
+  }
 }
 
 static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 {
-  Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   SculptSession *ss = CTX_data_active_object(C)->sculpt;
@@ -5077,7 +5055,7 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   }
 
   view3d_operator_needs_opengl(C);
-  sculpt_brush_init_tex(scene, sd, ss);
+  sculpt_brush_init_tex(sd, ss);
 
   need_pmap = sculpt_needs_connectivity_info(sd, brush, ss, mode);
   needs_colors = SCULPT_TOOL_NEEDS_COLOR(brush->sculpt_tool);
