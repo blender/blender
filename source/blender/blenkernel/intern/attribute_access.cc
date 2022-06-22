@@ -367,7 +367,7 @@ bool BuiltinCustomDataLayerProvider::try_delete(GeometryComponent &component) co
   }
 
   const int domain_size = component.attribute_domain_size(domain_);
-  int layer_index;
+  int layer_index = -1;
   if (stored_as_named_attribute_) {
     for (const int i : IndexRange(custom_data->totlayer)) {
       if (custom_data_layer_matches_attribute_id(custom_data->layers[i], name_)) {
@@ -378,6 +378,10 @@ bool BuiltinCustomDataLayerProvider::try_delete(GeometryComponent &component) co
   }
   else {
     layer_index = CustomData_get_layer_index(custom_data, stored_type_);
+  }
+
+  if (layer_index == -1) {
+    return false;
   }
 
   const bool delete_success = CustomData_free_layer(
