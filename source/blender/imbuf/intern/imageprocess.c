@@ -22,7 +22,6 @@
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include <math.h>
 
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 {

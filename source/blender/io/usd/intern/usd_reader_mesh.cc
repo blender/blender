@@ -87,11 +87,9 @@ static Material *find_existing_material(
       if (mat_iter != mat_map.end()) {
         return mat_iter->second;
       }
-      else {
-        /* We can't find the Blender material which was previously created for this USD
-         * material, which should never happen.  */
-        BLI_assert_unreachable();
-      }
+      /* We can't find the Blender material which was previously created for this USD
+       * material, which should never happen.  */
+      BLI_assert_unreachable();
     }
   }
   else {

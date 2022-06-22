@@ -9,8 +9,6 @@
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 
-#include "DNA_meshdata_types.h"
-
 #include "ED_view3d.h"
 
 #include "UI_interface.h"

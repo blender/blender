@@ -90,13 +90,13 @@ static eGPBrush_Presets gpencil_get_brush_preset_from_tool(bToolRef *tool,
       if (STREQ(tool->runtime->data_block, "DRAW")) {
         return GP_BRUSH_PRESET_PENCIL;
       }
-      else if (STREQ(tool->runtime->data_block, "FILL")) {
+      if (STREQ(tool->runtime->data_block, "FILL")) {
         return GP_BRUSH_PRESET_FILL_AREA;
       }
-      else if (STREQ(tool->runtime->data_block, "ERASE")) {
+      if (STREQ(tool->runtime->data_block, "ERASE")) {
         return GP_BRUSH_PRESET_ERASER_SOFT;
       }
-      else if (STREQ(tool->runtime->data_block, "TINT")) {
+      if (STREQ(tool->runtime->data_block, "TINT")) {
         return GP_BRUSH_PRESET_TINT;
       }
       break;
@@ -105,28 +105,28 @@ static eGPBrush_Presets gpencil_get_brush_preset_from_tool(bToolRef *tool,
       if (STREQ(tool->runtime->data_block, "SMOOTH")) {
         return GP_BRUSH_PRESET_SMOOTH_STROKE;
       }
-      else if (STREQ(tool->runtime->data_block, "STRENGTH")) {
+      if (STREQ(tool->runtime->data_block, "STRENGTH")) {
         return GP_BRUSH_PRESET_STRENGTH_STROKE;
       }
-      else if (STREQ(tool->runtime->data_block, "THICKNESS")) {
+      if (STREQ(tool->runtime->data_block, "THICKNESS")) {
         return GP_BRUSH_PRESET_THICKNESS_STROKE;
       }
-      else if (STREQ(tool->runtime->data_block, "GRAB")) {
+      if (STREQ(tool->runtime->data_block, "GRAB")) {
         return GP_BRUSH_PRESET_GRAB_STROKE;
       }
-      else if (STREQ(tool->runtime->data_block, "PUSH")) {
+      if (STREQ(tool->runtime->data_block, "PUSH")) {
         return GP_BRUSH_PRESET_PUSH_STROKE;
       }
-      else if (STREQ(tool->runtime->data_block, "TWIST")) {
+      if (STREQ(tool->runtime->data_block, "TWIST")) {
         return GP_BRUSH_PRESET_TWIST_STROKE;
       }
-      else if (STREQ(tool->runtime->data_block, "PINCH")) {
+      if (STREQ(tool->runtime->data_block, "PINCH")) {
         return GP_BRUSH_PRESET_PINCH_STROKE;
       }
-      else if (STREQ(tool->runtime->data_block, "RANDOMIZE")) {
+      if (STREQ(tool->runtime->data_block, "RANDOMIZE")) {
         return GP_BRUSH_PRESET_RANDOMIZE_STROKE;
       }
-      else if (STREQ(tool->runtime->data_block, "CLONE")) {
+      if (STREQ(tool->runtime->data_block, "CLONE")) {
         return GP_BRUSH_PRESET_CLONE_STROKE;
       }
       break;
@@ -138,23 +138,22 @@ static eGPBrush_Presets gpencil_get_brush_preset_from_tool(bToolRef *tool,
       if (STREQ(tool->runtime->data_block, "DRAW")) {
         return GP_BRUSH_PRESET_VERTEX_DRAW;
       }
-      else if (STREQ(tool->runtime->data_block, "BLUR")) {
+      if (STREQ(tool->runtime->data_block, "BLUR")) {
         return GP_BRUSH_PRESET_VERTEX_BLUR;
       }
-      else if (STREQ(tool->runtime->data_block, "AVERAGE")) {
+      if (STREQ(tool->runtime->data_block, "AVERAGE")) {
         return GP_BRUSH_PRESET_VERTEX_AVERAGE;
       }
-      else if (STREQ(tool->runtime->data_block, "SMEAR")) {
+      if (STREQ(tool->runtime->data_block, "SMEAR")) {
         return GP_BRUSH_PRESET_VERTEX_SMEAR;
       }
-      else if (STREQ(tool->runtime->data_block, "REPLACE")) {
+      if (STREQ(tool->runtime->data_block, "REPLACE")) {
         return GP_BRUSH_PRESET_VERTEX_REPLACE;
       }
       break;
     }
     default:
       return GP_BRUSH_PRESET_UNKNOWN;
-      break;
   }
   return GP_BRUSH_PRESET_UNKNOWN;
 }

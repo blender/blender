@@ -86,9 +86,7 @@ void TreeElementOverridesBase::expand(SpaceOutliner &space_outliner) const
             do_skip = false;
             break;
           }
-          else {
-            is_system_override = true;
-          }
+          is_system_override = true;
         }
       }
 

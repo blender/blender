@@ -25,8 +25,6 @@
 #include "BLI_polyfill_2d.h"
 #include "BLI_span.hh"
 
-#include "BLT_translation.h"
-
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_material_types.h"

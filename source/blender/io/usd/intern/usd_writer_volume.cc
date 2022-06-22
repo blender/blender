@@ -100,7 +100,7 @@ std::optional<std::string> USDVolumeWriter::resolve_vdb_file(const Volume *volum
 
     vdb_file_path = construct_vdb_file_path(volume);
     if (!BKE_volume_save(
-            volume, usd_export_context_.bmain, NULL, vdb_file_path.value_or("").c_str())) {
+            volume, usd_export_context_.bmain, nullptr, vdb_file_path.value_or("").c_str())) {
       return std::nullopt;
     }
   }

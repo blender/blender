@@ -858,7 +858,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, struct SculptSession *ss,
 
 void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush);
 float SCULPT_raycast_init(struct ViewContext *vc,
-                          const float mouse[2],
+                          const float mval[2],
                           float ray_start[3],
                           float ray_end[3],
                           float ray_normal[3],

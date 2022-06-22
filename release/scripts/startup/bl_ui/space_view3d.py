@@ -6621,6 +6621,29 @@ class VIEW3D_PT_overlay_sculpt(Panel):
         row.prop(overlay, "sculpt_mode_face_sets_opacity", text="Face Sets")
 
 
+class VIEW3D_PT_overlay_sculpt_curves(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_context = ".curves_sculpt"
+    bl_region_type = 'HEADER'
+    bl_parent_id = 'VIEW3D_PT_overlay'
+    bl_label = "Sculpt"
+
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'SCULPT_CURVES' and (context.object)
+
+    def draw(self, context):
+        layout = self.layout
+        tool_settings = context.tool_settings
+        sculpt = tool_settings.sculpt
+
+        view = context.space_data
+        overlay = view.overlay
+
+        row = layout.row(align=True)
+        row.prop(overlay, "sculpt_mode_mask_opacity", text="Selection Opacity")
+
+
 class VIEW3D_PT_overlay_bones(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -7908,6 +7931,7 @@ classes = (
     VIEW3D_PT_overlay_weight_paint,
     VIEW3D_PT_overlay_bones,
     VIEW3D_PT_overlay_sculpt,
+    VIEW3D_PT_overlay_sculpt_curves,
     VIEW3D_PT_snapping,
     VIEW3D_PT_proportional_edit,
     VIEW3D_PT_gpencil_origin,

@@ -2481,22 +2481,21 @@ static ImBuf *imbuf_ensure_editable(ImBuf *ibuf, ImBuf *colormanaged_ibuf, bool 
     IMB_metadata_copy(colormanaged_ibuf, ibuf);
     return colormanaged_ibuf;
   }
-  else {
-    /* Render pipeline is constructing image buffer itself,
-     * but it's re-using byte and float buffers from render result make copy of this buffers
-     * here sine this buffers would be transformed to other color space here. */
-    if (ibuf->rect && (ibuf->mall & IB_rect) == 0) {
-      ibuf->rect = MEM_dupallocN(ibuf->rect);
-      ibuf->mall |= IB_rect;
-    }
 
-    if (ibuf->rect_float && (ibuf->mall & IB_rectfloat) == 0) {
-      ibuf->rect_float = MEM_dupallocN(ibuf->rect_float);
-      ibuf->mall |= IB_rectfloat;
-    }
-
-    return ibuf;
+  /* Render pipeline is constructing image buffer itself,
+   * but it's re-using byte and float buffers from render result make copy of this buffers
+   * here sine this buffers would be transformed to other color space here. */
+  if (ibuf->rect && (ibuf->mall & IB_rect) == 0) {
+    ibuf->rect = MEM_dupallocN(ibuf->rect);
+    ibuf->mall |= IB_rect;
   }
+
+  if (ibuf->rect_float && (ibuf->mall & IB_rectfloat) == 0) {
+    ibuf->rect_float = MEM_dupallocN(ibuf->rect_float);
+    ibuf->mall |= IB_rectfloat;
+  }
+
+  return ibuf;
 }
 
 ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf,

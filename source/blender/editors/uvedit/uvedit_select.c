@@ -4914,7 +4914,7 @@ static int uv_select_similar_exec(bContext *C, wmOperator *op)
   if (selectmode & UV_SELECT_EDGE) {
     return uv_select_similar_edge_exec(C, op);
   }
-  else if (selectmode & UV_SELECT_FACE) {
+  if (selectmode & UV_SELECT_FACE) {
     return uv_select_similar_face_exec(C, op);
   }
   if (selectmode & UV_SELECT_ISLAND) {
