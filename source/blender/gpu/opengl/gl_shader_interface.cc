@@ -9,7 +9,6 @@
 
 #include "BLI_bitmap.h"
 
-#include "gl_backend.hh"
 #include "gl_batch.hh"
 #include "gl_context.hh"
 

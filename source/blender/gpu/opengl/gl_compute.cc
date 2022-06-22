@@ -8,8 +8,6 @@
 
 #include "gl_debug.hh"
 
-#include "glew-mx.h"
-
 namespace blender::gpu {
 
 void GLCompute::dispatch(int group_x_len, int group_y_len, int group_z_len)

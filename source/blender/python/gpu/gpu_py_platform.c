@@ -13,7 +13,7 @@
 
 #include "GPU_platform.h"
 
-#include "gpu_py_platform.h" /* own include */
+#include "gpu_py_platform.h" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name Functions

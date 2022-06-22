@@ -6,7 +6,6 @@
  */
 
 #include "BLI_assert.h"
-#include "BLI_system.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"

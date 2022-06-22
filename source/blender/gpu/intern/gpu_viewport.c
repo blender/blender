@@ -9,16 +9,13 @@
 
 #include <string.h>
 
-#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_memblock.h"
 #include "BLI_rect.h"
 
 #include "BKE_colortools.h"
 
 #include "IMB_colormanagement.h"
 
-#include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"
 
 #include "GPU_capabilities.h"

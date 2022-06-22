@@ -7,7 +7,6 @@
 #include "GPU_compute.h"
 
 #include "gpu_backend.hh"
-#include "gpu_storage_buffer_private.hh"
 
 void GPU_compute_dispatch(GPUShader *shader,
                           uint groups_x_len,

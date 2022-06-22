@@ -15,8 +15,6 @@
 #include "gpu_shader_dependency_private.h"
 #include "gpu_shader_private.hh"
 
-#include "GPU_platform.h"
-
 #include "CLG_log.h"
 
 static CLG_LogRef LOG = {"gpu.shader"};

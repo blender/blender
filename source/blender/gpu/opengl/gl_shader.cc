@@ -13,7 +13,6 @@
 #include "GPU_capabilities.h"
 #include "GPU_platform.h"
 
-#include "gl_backend.hh"
 #include "gl_debug.hh"
 #include "gl_vertex_buffer.hh"
 

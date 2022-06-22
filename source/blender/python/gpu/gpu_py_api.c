@@ -14,8 +14,6 @@
 
 #include "BLI_utildefines.h"
 
-#include "../generic/python_utildefines.h"
-
 #include "gpu_py_capabilities.h"
 #include "gpu_py_matrix.h"
 #include "gpu_py_platform.h"
@@ -23,7 +21,7 @@
 #include "gpu_py_state.h"
 #include "gpu_py_types.h"
 
-#include "gpu_py_api.h" /* own include */
+#include "gpu_py_api.h" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name GPU Module

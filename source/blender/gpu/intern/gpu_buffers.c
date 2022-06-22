@@ -14,26 +14,18 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
-#include "BLI_array.h"
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
-#include "BLI_hash.h"
-#include "BLI_math.h"
 #include "BLI_math_color.h"
-#include "BLI_math_color_blend.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
 #include "BKE_customdata.h"
-#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"

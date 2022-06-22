@@ -11,12 +11,9 @@
 
 #include "BLI_assert.h"
 
-#include "glew-mx.h"
-
 #include "gpu_batch_private.hh"
 #include "gpu_shader_private.hh"
 
-#include "gl_backend.hh"
 #include "gl_context.hh"
 #include "gl_debug.hh"
 #include "gl_index_buffer.hh"

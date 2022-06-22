@@ -8,7 +8,6 @@
 
 #include "BLI_math.h"
 #include "BLI_polyfill_2d.h"
-#include "BLI_rect.h"
 #include "BLI_sort_utils.h"
 #include "BLI_utildefines.h"
 

@@ -7,7 +7,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
@@ -18,7 +17,6 @@
 
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
-#include "gpu_private.h"
 #include "gpu_texture_private.hh"
 
 #include "gpu_framebuffer_private.hh"

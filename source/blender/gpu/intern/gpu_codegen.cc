@@ -12,8 +12,6 @@
 #include "DNA_customdata_types.h"
 #include "DNA_image_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_hash_mm2a.h"
 #include "BLI_link_utils.h"
@@ -23,7 +21,6 @@
 #include "PIL_time.h"
 
 #include "BKE_material.h"
-#include "BKE_world.h"
 
 #include "GPU_capabilities.h"
 #include "GPU_material.h"
@@ -35,7 +32,6 @@
 #include "BLI_vector.hh"
 
 #include "gpu_codegen.h"
-#include "gpu_material_library.h"
 #include "gpu_node_graph.h"
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_dependency_private.h"
