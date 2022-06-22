@@ -231,7 +231,6 @@ class MASK_PT_display:
         layout = self.layout
 
         space_data = context.space_data
-        layout.prop(space_data, "show_mask_smooth", text="Smooth")
 
         row = layout.row(align=True)
         row.prop(space_data, "show_mask_spline", text="Spline")
