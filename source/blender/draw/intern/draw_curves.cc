@@ -246,13 +246,14 @@ static void drw_curves_cache_update_transform_feedback(CurvesEvalCache *cache, c
   }
 }
 
-static CurvesEvalCache *drw_curves_cache_get(Object *object,
+static CurvesEvalCache *drw_curves_cache_get(Curves &curves,
                                              GPUMaterial *gpu_material,
                                              int subdiv,
                                              int thickness_res)
 {
   CurvesEvalCache *cache;
-  bool update = curves_ensure_procedural_data(object, &cache, gpu_material, subdiv, thickness_res);
+  const bool update = curves_ensure_procedural_data(
+      &curves, &cache, gpu_material, subdiv, thickness_res);
 
   if (update) {
     if (drw_curves_shader_type_get() == PART_REFINE_SHADER_COMPUTE) {
@@ -268,12 +269,13 @@ static CurvesEvalCache *drw_curves_cache_get(Object *object,
 GPUVertBuf *DRW_curves_pos_buffer_get(Object *object)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  Scene *scene = draw_ctx->scene;
+  const Scene *scene = draw_ctx->scene;
 
-  int subdiv = scene->r.hair_subdiv;
-  int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
+  const int subdiv = scene->r.hair_subdiv;
+  const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
 
-  CurvesEvalCache *cache = drw_curves_cache_get(object, nullptr, subdiv, thickness_res);
+  Curves &curves = *static_cast<Curves *>(object->data);
+  CurvesEvalCache *cache = drw_curves_cache_get(curves, nullptr, subdiv, thickness_res);
 
   return cache->final[subdiv].proc_buf;
 }
@@ -303,15 +305,16 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
                                                GPUMaterial *gpu_material)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  Scene *scene = draw_ctx->scene;
+  const Scene *scene = draw_ctx->scene;
   CurvesUniformBufPool *pool = DST.vmempool->curves_ubos;
   CurvesInfosBuf &curves_infos = pool->alloc();
+  Curves &curves_id = *static_cast<Curves *>(object->data);
 
-  int subdiv = scene->r.hair_subdiv;
-  int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
+  const int subdiv = scene->r.hair_subdiv;
+  const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
 
   CurvesEvalCache *curves_cache = drw_curves_cache_get(
-      object, gpu_material, subdiv, thickness_res);
+      curves_id, gpu_material, subdiv, thickness_res);
 
   DRWShadingGroup *shgrp = DRW_shgroup_create_sub(shgrp_parent);
 
@@ -330,7 +333,6 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
 
   /* Use the radius of the root and tip of the first curve for now. This is a workaround that we
    * use for now because we can't use a per-point radius yet. */
-  Curves &curves_id = *static_cast<Curves *>(object->data);
   const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
       curves_id.geometry);
   if (curves.curves_num() >= 1) {
