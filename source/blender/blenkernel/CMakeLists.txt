@@ -88,7 +88,7 @@ set(SRC
   intern/blendfile_link_append.c
   intern/boids.c
   intern/bpath.c
-  intern/brush.c
+  intern/brush.cc
   intern/bvhutils.cc
   intern/cachefile.c
   intern/callbacks.c
