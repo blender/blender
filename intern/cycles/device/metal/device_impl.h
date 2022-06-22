@@ -42,7 +42,6 @@ class MetalDevice : public Device {
       nil; /* encoder used for fetching device pointers from MTLAccelerationStructure */
   /*---------------------------------------------------*/
 
-  string device_name;
   MetalGPUVendor device_vendor;
 
   uint kernel_features;

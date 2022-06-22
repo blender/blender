@@ -9,6 +9,7 @@
 #  include "util/debug.h"
 #  include "util/md5.h"
 #  include "util/path.h"
+#  include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -43,10 +44,9 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   auto usable_devices = MetalInfo::get_usable_devices();
   assert(mtlDevId < usable_devices.size());
   mtlDevice = usable_devices[mtlDevId];
-  device_name = [mtlDevice.name UTF8String];
-  device_vendor = MetalInfo::get_vendor_from_device_name(device_name);
+  device_vendor = MetalInfo::get_device_vendor(mtlDevice);
   assert(device_vendor != METAL_GPU_UNKNOWN);
-  metal_printf("Creating new Cycles device for Metal: %s\n", device_name.c_str());
+  metal_printf("Creating new Cycles device for Metal: %s\n", info.description.c_str());
 
   /* determine default storage mode based on whether UMA is supported */
 
