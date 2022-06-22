@@ -627,7 +627,7 @@ void MetalDevice::const_copy_to(const char *name, void *host, size_t size)
 {
   if (strcmp(name, "data") == 0) {
     assert(size == sizeof(KernelData));
-    memcpy((uint8_t *)&launch_params + offsetof(KernelParamsMetal, data), host, size);
+    memcpy((uint8_t *)&launch_params.data, host, sizeof(KernelData));
     return;
   }
 
