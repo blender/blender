@@ -1660,8 +1660,7 @@ static void rigidbody_update_sim_world(Scene *scene, RigidBodyWorld *rbw)
   rigidbody_update_ob_array(rbw);
 }
 
-static void rigidbody_update_sim_ob(
-    Depsgraph *depsgraph, Scene *scene, RigidBodyWorld *rbw, Object *ob, RigidBodyOb *rbo)
+static void rigidbody_update_sim_ob(Depsgraph *depsgraph, Object *ob, RigidBodyOb *rbo)
 {
   /* only update if rigid body exists */
   if (rbo->shared->physics_object == NULL) {
@@ -1806,7 +1805,7 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
       rbo->flag &= ~(RBO_FLAG_NEEDS_VALIDATE | RBO_FLAG_NEEDS_RESHAPE);
 
       /* update simulation object... */
-      rigidbody_update_sim_ob(depsgraph, scene, rbw, ob, rbo);
+      rigidbody_update_sim_ob(depsgraph, ob, rbo);
     }
   }
   FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
