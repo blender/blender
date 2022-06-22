@@ -5590,6 +5590,7 @@ def km_font(params):
 
     return keymap
 
+
 # Curves edit mode.
 def km_curves(params):
     items = []

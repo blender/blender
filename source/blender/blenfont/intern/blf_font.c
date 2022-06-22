@@ -1289,7 +1289,7 @@ FontBLF *blf_font_new(const char *name, const char *filepath)
   font->filepath = BLI_strdup(filepath);
   blf_font_fill(font);
 
-    /* Save TrueType table with bits to quickly test most unicode block coverage. */
+  /* Save TrueType table with bits to quickly test most unicode block coverage. */
   TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
   if (os2_table) {
     font->UnicodeRanges[0] = (uint)os2_table->ulUnicodeRange1;

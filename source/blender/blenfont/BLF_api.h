@@ -329,23 +329,29 @@ void BLF_load_font_stack(void);
 void BLF_state_print(int fontid);
 #endif
 
-/* font->flags. */
-#define BLF_ROTATION (1 << 0)
-#define BLF_CLIPPING (1 << 1)
-#define BLF_SHADOW (1 << 2)
-// #define BLF_FLAG_UNUSED_3 (1 << 3) /* dirty */
-#define BLF_MATRIX (1 << 4)
-#define BLF_ASPECT (1 << 5)
-#define BLF_WORD_WRAP (1 << 6)
-#define BLF_MONOCHROME (1 << 7) /* no-AA */
-#define BLF_HINTING_NONE (1 << 8)
-#define BLF_HINTING_SLIGHT (1 << 9)
-#define BLF_HINTING_FULL (1 << 10)
-#define BLF_BOLD (1 << 11)
-#define BLF_ITALIC (1 << 12)
-#define BLF_MONOSPACED (1 << 13) /* Intended USE is monospaced, regardless of font type. */
-#define BLF_DEFAULT (1 << 14) /* A font within the default stack of fonts. */
-#define BLF_LAST_RESORT (1 << 15) /* Must only be used as last font in the stack. */
+/** #FontBLF.flags. */
+enum {
+  BLF_ROTATION = 1 << 0,
+  BLF_CLIPPING = 1 << 1,
+  BLF_SHADOW = 1 << 2,
+  // BLF_FLAG_UNUSED_3 = 1 << 3, /* dirty */
+  BLF_MATRIX = 1 << 4,
+  BLF_ASPECT = 1 << 5,
+  BLF_WORD_WRAP = 1 << 6,
+  /** No anti-aliasing. */
+  BLF_MONOCHROME = 1 << 7,
+  BLF_HINTING_NONE = 1 << 8,
+  BLF_HINTING_SLIGHT = 1 << 9,
+  BLF_HINTING_FULL = 1 << 10,
+  BLF_BOLD = 1 << 11,
+  BLF_ITALIC = 1 << 12,
+  /** Intended USE is monospaced, regardless of font type. */
+  BLF_MONOSPACED = 1 << 13,
+  /** A font within the default stack of fonts. */
+  BLF_DEFAULT = 1 << 14,
+  /** Must only be used as last font in the stack. */
+  BLF_LAST_RESORT = 1 << 15,
+};
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024
 
