@@ -4421,6 +4421,16 @@ int rna_parameter_size(PropertyRNA *parm)
   return sizeof(void *);
 }
 
+int rna_parameter_size_pad(const int size)
+{
+  /* Pad parameters in memory so the next parameter is properly aligned.
+   * This silences warnings in ubsan. More complicated logic to pack parameters
+   * more tightly in memory is unlikely to improve performance, and aligning
+   * to the requirements for pointers is enough for all data types we use. */
+  const int alignment = sizeof(void *);
+  return (size + alignment - 1) & ~(alignment - 1);
+}
+
 /* Dynamic Enums */
 
 void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropertyItem *item)

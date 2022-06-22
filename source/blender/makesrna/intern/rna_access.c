@@ -7130,7 +7130,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
 
   /* allocate data */
   for (parm = func->cont.properties.first; parm; parm = parm->next) {
-    alloc_size += rna_parameter_size(parm);
+    alloc_size += rna_parameter_size_pad(rna_parameter_size(parm));
 
     if (parm->flag_parameter & PARM_OUTPUT) {
       parms->ret_count++;
@@ -7206,7 +7206,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms,
       }
     }
 
-    data = ((char *)data) + rna_parameter_size(parm);
+    data = ((char *)data) + rna_parameter_size_pad(size);
   }
 
   return parms;
@@ -7230,7 +7230,7 @@ void RNA_parameter_list_free(ParameterList *parms)
       }
     }
 
-    tot += rna_parameter_size(parm);
+    tot += rna_parameter_size_pad(rna_parameter_size(parm));
   }
 
   MEM_freeN(parms->data);
@@ -7272,7 +7272,7 @@ void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 
 void RNA_parameter_list_next(ParameterIterator *iter)
 {
-  iter->offset += iter->size;
+  iter->offset += rna_parameter_size_pad(iter->size);
   iter->parm = iter->parm->next;
   iter->valid = iter->parm != NULL;
 
