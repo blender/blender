@@ -167,7 +167,7 @@ typedef struct LineartEdgeChainItem {
   float gpos[3];
   float normal[3];
   uint16_t line_type;
-  int8_t occlusion;
+  uint8_t occlusion;
   uint8_t material_mask_bits;
   uint8_t intersection_mask;
   size_t index;
@@ -330,7 +330,7 @@ typedef struct LineartCache {
   ListBase chains;
 
   /** Cache only contains edge types specified in this variable. */
-  int8_t rb_edge_types;
+  uint16_t all_enabled_edge_types;
 } LineartCache;
 
 #define DBL_TRIANGLE_LIM 1e-8

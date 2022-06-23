@@ -2701,7 +2701,7 @@ static bool lineart_triangle_edge_image_space_occlusion(SpinLock *UNUSED(spl),
   int isec_e1, isec_e2, isec_e3;
   /* If edge is parallel to one of the edges in the triangle. */
   bool para_e1, para_e2, para_e3;
-  enum LineartPointTri state_v1 = 0, state_v2 = 0;
+  enum LineartPointTri state_v1 = LRT_OUTSIDE_TRIANGLE, state_v2 = LRT_OUTSIDE_TRIANGLE;
 
   double dir_v1[3];
   double dir_v2[3];
@@ -3038,7 +3038,7 @@ static LineartVert *lineart_triangle_share_point(const LineartTriangle *l,
 }
 
 static bool lineart_triangle_2v_intersection_math(
-    LineartVert *v1, LineartVert *v2, LineartTriangle *tri, double *last, double *rv)
+    LineartVert *v1, LineartVert *v2, LineartTriangle *tri, const double *last, double *rv)
 {
   /* Direction vectors for the edge verts. We will check if the verts are on the same side of the
    * triangle or not. */
@@ -3390,7 +3390,7 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
 
   lmd->cache = lc;
   lmd->la_data_ptr = ld;
-  lc->rb_edge_types = lmd->edge_types_override;
+  lc->all_enabled_edge_types = lmd->edge_types_override;
 
   if (!scene || !camera || !lc) {
     return NULL;
@@ -4829,7 +4829,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
 
   /* (!orig_col && !orig_ob) means the whole scene is selected. */
 
-  int enabled_types = cache->rb_edge_types;
+  int enabled_types = cache->all_enabled_edge_types;
   bool invert_input = modifier_flags & LRT_GPENCIL_INVERT_SOURCE_VGROUP;
   bool match_output = modifier_flags & LRT_GPENCIL_MATCH_OUTPUT_VGROUP;
 
