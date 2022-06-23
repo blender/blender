@@ -2822,10 +2822,6 @@ struct VPaintData : public VPaintDataBase {
   struct VertProjHandle *vp_handle;
   CoNo *vertexcosnos;
 
-  /* loops tagged as having been painted, to apply shared vertex color
-   * blending only to modified loops */
-  bool *mlooptag;
-
   bool is_texbrush;
 
   /* Special storage for smear brush, avoid feedback loop - update each step. */
@@ -2870,11 +2866,6 @@ static void *vpaint_init_vpaint(bContext *C,
       scene, vp, (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT));
 
   vpd->is_texbrush = !(brush->vertexpaint_tool == VPAINT_TOOL_BLUR) && brush->mtex.tex;
-
-  /* to keep tracked of modified loops for shared vertex color blending */
-  if (brush->vertexpaint_tool == VPAINT_TOOL_BLUR) {
-    vpd->mlooptag = (bool *)MEM_mallocN(sizeof(bool) * elem_num, "VPaintData mlooptag");
-  }
 
   if (brush->vertexpaint_tool == VPAINT_TOOL_SMEAR) {
     CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
@@ -3911,9 +3902,6 @@ static void vpaint_free_vpaintdata(Object *UNUSED(ob), void *_vpd)
     ED_vpaint_proj_handle_free(vpd->vp_handle);
   }
 
-  if (vpd->mlooptag) {
-    MEM_freeN(vpd->mlooptag);
-  }
   if (vpd->smear.color_prev) {
     MEM_freeN(vpd->smear.color_prev);
   }
