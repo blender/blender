@@ -263,19 +263,11 @@ if(WITH_GHOST_X11)
 endif()
 
 if(UNIX AND NOT APPLE)
-  option(WITH_SYSTEM_GLEW "Use GLEW OpenGL wrapper library provided by the operating system" OFF)
-  option(WITH_SYSTEM_GLES "Use OpenGL ES library provided by the operating system"           ON)
   option(WITH_SYSTEM_FREETYPE "Use the freetype library provided by the operating system" OFF)
-else()
-  # not an option for other OS's
-  set(WITH_SYSTEM_GLEW OFF)
-  set(WITH_SYSTEM_GLES OFF)
-  set(WITH_SYSTEM_FREETYPE OFF)
-endif()
-
-
-if(UNIX AND NOT APPLE)
   option(WITH_SYSTEM_EIGEN3 "Use the systems Eigen3 library" OFF)
+else()
+  set(WITH_SYSTEM_FREETYPE OFF)
+  set(WITH_SYSTEM_EIGEN3 OFF)
 endif()
 
 
@@ -526,16 +518,40 @@ endif()
 
 # OpenGL
 
+# Experimental EGL option.
+option(WITH_GL_EGL "Use the EGL OpenGL system library instead of the platform specific OpenGL system library (CGL, GLX or WGL)" OFF)
+mark_as_advanced(WITH_GL_EGL)
+
+if(WITH_GHOST_WAYLAND)
+  # Wayland can only use EGL to create OpenGL contexts, not GLX.
+  set(WITH_GL_EGL ON)
+endif()
+
+if(UNIX AND NOT APPLE)
+  if(WITH_GL_EGL)
+    # GLEW can only be built with either GLX or EGL support. Most binary distributions are
+    # built with GLX support and we have no automated way to detect this. So always build
+    # GLEW from source to be sure it has EGL support.
+    set(WITH_SYSTEM_GLEW OFF)
+  else()
+    option(WITH_SYSTEM_GLEW "Use GLEW OpenGL wrapper library provided by the operating system" OFF)
+  endif()
+
+  option(WITH_SYSTEM_GLES "Use OpenGL ES library provided by the operating system" ON)
+else()
+  # System GLEW and GLES not an option on other platforms.
+  set(WITH_SYSTEM_GLEW OFF)
+  set(WITH_SYSTEM_GLES OFF)
+endif()
+
 option(WITH_OPENGL              "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
 option(WITH_GLEW_ES             "Switches to experimental copy of GLEW that has support for OpenGL ES. (temporary option for development purposes)" OFF)
-option(WITH_GL_EGL              "Use the EGL OpenGL system library instead of the platform specific OpenGL system library (CGL, glX, or WGL)"       OFF)
 option(WITH_GL_PROFILE_ES20     "Support using OpenGL ES 2.0. (through either EGL or the AGL/WGL/XGL 'es20' profile)"                               OFF)
 option(WITH_GPU_SHADER_BUILDER  "Shader builder is a developer option enabling linting on GLSL during compilation"                                  OFF)
 
 mark_as_advanced(
   WITH_OPENGL
   WITH_GLEW_ES
-  WITH_GL_EGL
   WITH_GL_PROFILE_ES20
   WITH_GPU_SHADER_BUILDER
 )

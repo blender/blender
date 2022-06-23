@@ -622,8 +622,6 @@ if(WITH_GHOST_WAYLAND)
     pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
   endif()
 
-  set(WITH_GL_EGL ON)
-
   list(APPEND PLATFORM_LINKLIBS
     ${wayland-client_LINK_LIBRARIES}
     ${wayland-egl_LINK_LIBRARIES}
