@@ -340,12 +340,12 @@ float Object::compute_volume_step_size() const
           if (metadata.use_transform_3d) {
             voxel_tfm = tfm * transform_inverse(metadata.transform_3d);
           }
-          voxel_step_size = min3(fabs(transform_direction(&voxel_tfm, size)));
+          voxel_step_size = reduce_min(fabs(transform_direction(&voxel_tfm, size)));
         }
         else if (volume->get_object_space()) {
           /* User specified step size in object space. */
           float3 size = make_float3(voxel_step_size, voxel_step_size, voxel_step_size);
-          voxel_step_size = min3(fabs(transform_direction(&tfm, size)));
+          voxel_step_size = reduce_min(fabs(transform_direction(&tfm, size)));
         }
 
         if (voxel_step_size > 0.0f) {

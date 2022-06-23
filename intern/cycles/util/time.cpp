@@ -102,7 +102,7 @@ double time_human_readable_to_seconds(const string &time_string)
   }
   else if (fraction_tokens.size() == 2) {
     result = atof(fraction_tokens[1].c_str());
-    result *= pow(0.1, fraction_tokens[1].length());
+    result *= ::pow(0.1, fraction_tokens[1].length());
   }
   else {
     /* This is not a valid string, the result can not be reliable. */

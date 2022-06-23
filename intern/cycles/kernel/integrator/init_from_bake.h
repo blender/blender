@@ -49,7 +49,8 @@ ccl_device const float2 bake_offset_towards_center(KernelGlobals kg,
   const float3 to_center = center - P;
 
   const float3 offset_P = P + normalize(to_center) *
-                                  min(len(to_center), max(max3(fabs(P)), 1.0f) * position_offset);
+                                  min(len(to_center),
+                                      max(reduce_max(fabs(P)), 1.0f) * position_offset);
 
   /* Compute barycentric coordinates at new position. */
   const float3 v1 = tri_verts[1] - tri_verts[0];

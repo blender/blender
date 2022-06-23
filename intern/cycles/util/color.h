@@ -318,14 +318,14 @@ ccl_device float3 color_highlight_compress(float3 color, ccl_private float3 *var
 {
   color += one_float3();
   if (variance) {
-    *variance *= sqr3(one_float3() / color);
+    *variance *= sqr(one_float3() / color);
   }
-  return log3(color);
+  return log(color);
 }
 
 ccl_device float3 color_highlight_uncompress(float3 color)
 {
-  return exp3(color) - one_float3();
+  return exp(color) - one_float3();
 }
 
 CCL_NAMESPACE_END

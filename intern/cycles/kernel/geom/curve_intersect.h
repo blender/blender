@@ -555,7 +555,7 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
   /* Evaluate first point and radius scaled normal direction. */
   float4 p0 = catmull_rom_basis_eval(curve, 0.0f);
   float3 dp0dt = float4_to_float3(catmull_rom_basis_derivative(curve, 0.0f));
-  if (max3(fabs(dp0dt)) < eps) {
+  if (reduce_max(fabs(dp0dt)) < eps) {
     const float4 p1 = catmull_rom_basis_eval(curve, step_size);
     dp0dt = float4_to_float3(p1 - p0);
   }
@@ -570,7 +570,7 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
 
     /* Evaluate next point. */
     float3 dp1dt = float4_to_float3(catmull_rom_basis_derivative(curve, u + step_size));
-    dp1dt = (max3(fabs(dp1dt)) < eps) ? float4_to_float3(p1 - p0) : dp1dt;
+    dp1dt = (reduce_max(fabs(dp1dt)) < eps) ? float4_to_float3(p1 - p0) : dp1dt;
     const float3 wn1 = normalize(make_float3(dp1dt.y, -dp1dt.x, 0.0f)) * p1.w;
 
     if (valid) {
@@ -729,7 +729,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
     /* NOTE: It is possible that P will be the same as P_inside (precision issues, or very small
      * radius). In this case use the view direction to approximate the normal. */
     const float3 P_inside = float4_to_float3(catmull_rom_basis_eval(P_curve, sd->u));
-    const float3 N = (!isequal_float3(P, P_inside)) ? normalize(P - P_inside) : -sd->I;
+    const float3 N = (!isequal(P, P_inside)) ? normalize(P - P_inside) : -sd->I;
 
     sd->N = N;
     sd->v = 0.0f;

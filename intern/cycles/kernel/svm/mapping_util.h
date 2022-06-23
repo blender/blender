@@ -13,13 +13,12 @@ svm_mapping(NodeMappingType type, float3 vector, float3 location, float3 rotatio
     case NODE_MAPPING_TYPE_POINT:
       return transform_direction(&rotationTransform, (vector * scale)) + location;
     case NODE_MAPPING_TYPE_TEXTURE:
-      return safe_divide_float3_float3(
-          transform_direction_transposed(&rotationTransform, (vector - location)), scale);
+      return safe_divide(transform_direction_transposed(&rotationTransform, (vector - location)),
+                         scale);
     case NODE_MAPPING_TYPE_VECTOR:
       return transform_direction(&rotationTransform, (vector * scale));
     case NODE_MAPPING_TYPE_NORMAL:
-      return safe_normalize(
-          transform_direction(&rotationTransform, safe_divide_float3_float3(vector, scale)));
+      return safe_normalize(transform_direction(&rotationTransform, safe_divide(vector, scale)));
     default:
       return make_float3(0.0f, 0.0f, 0.0f);
   }

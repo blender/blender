@@ -55,7 +55,7 @@ ccl_device_inline float4 floor(const float4 &a);
 ccl_device_inline float4 mix(const float4 &a, const float4 &b, float t);
 #endif /* !__KERNEL_METAL__*/
 
-ccl_device_inline float4 safe_divide_float4_float(const float4 a, const float b);
+ccl_device_inline float4 safe_divide(const float4 a, const float b);
 
 #ifdef __KERNEL_SSE__
 template<size_t index_0, size_t index_1, size_t index_2, size_t index_3>
@@ -500,17 +500,17 @@ ccl_device_inline float4 load_float4(ccl_private const float *v)
 
 #endif /* !__KERNEL_GPU__ */
 
-ccl_device_inline float4 safe_divide_float4_float(const float4 a, const float b)
+ccl_device_inline float4 safe_divide(const float4 a, const float b)
 {
   return (b != 0.0f) ? a / b : zero_float4();
 }
 
-ccl_device_inline bool isfinite4_safe(float4 v)
+ccl_device_inline bool isfinite_safe(float4 v)
 {
   return isfinite_safe(v.x) && isfinite_safe(v.y) && isfinite_safe(v.z) && isfinite_safe(v.w);
 }
 
-ccl_device_inline float4 ensure_finite4(float4 v)
+ccl_device_inline float4 ensure_finite(float4 v)
 {
   if (!isfinite_safe(v.x))
     v.x = 0.0f;

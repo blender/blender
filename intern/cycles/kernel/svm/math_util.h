@@ -24,7 +24,7 @@ ccl_device void svm_vector_math(ccl_private float *value,
       *vector = a * b;
       break;
     case NODE_VECTOR_MATH_DIVIDE:
-      *vector = safe_divide_float3_float3(a, b);
+      *vector = safe_divide(a, b);
       break;
     case NODE_VECTOR_MATH_CROSS_PRODUCT:
       *vector = cross(a, b);
@@ -60,7 +60,7 @@ ccl_device void svm_vector_math(ccl_private float *value,
       *vector = safe_normalize(a);
       break;
     case NODE_VECTOR_MATH_SNAP:
-      *vector = floor(safe_divide_float3_float3(a, b)) * b;
+      *vector = floor(safe_divide(a, b)) * b;
       break;
     case NODE_VECTOR_MATH_FLOOR:
       *vector = floor(a);

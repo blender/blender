@@ -297,8 +297,15 @@ ccl_device_inline float4 __int4_as_float4(int4 i)
 #endif /* !defined(__KERNEL_METAL__) */
 
 #if defined(__KERNEL_METAL__)
-#  define isnan_safe(v) isnan(v)
-#  define isfinite_safe(v) isfinite(v)
+ccl_device_forceinline bool isnan_safe(float f)
+{
+  return isnan(f);
+}
+
+ccl_device_forceinline bool isfinite_safe(float f)
+{
+  return isfinite(f);
+}
 #else
 template<typename T> ccl_device_inline uint pointer_pack_to_uint_0(T *ptr)
 {

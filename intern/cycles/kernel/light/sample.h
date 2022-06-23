@@ -106,7 +106,7 @@ ccl_device_inline bool light_sample_terminate(KernelGlobals kg,
   }
 
   if (kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
-    float probability = max3(fabs(bsdf_eval_sum(eval))) *
+    float probability = reduce_max(fabs(bsdf_eval_sum(eval))) *
                         kernel_data.integrator.light_inv_rr_threshold;
     if (probability < 1.0f) {
       if (rand_terminate >= probability) {

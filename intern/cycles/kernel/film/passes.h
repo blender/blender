@@ -108,15 +108,14 @@ ccl_device_forceinline void kernel_write_denoising_features_surface(
       const Transform worldtocamera = kernel_data.cam.worldtocamera;
       normal = transform_direction(&worldtocamera, normal);
 
-      const float3 denoising_normal = ensure_finite3(normal);
+      const float3 denoising_normal = ensure_finite(normal);
       kernel_write_pass_float3(buffer + kernel_data.film.pass_denoising_normal, denoising_normal);
     }
 
     if (kernel_data.film.pass_denoising_albedo != PASS_UNUSED) {
       const float3 denoising_feature_throughput = INTEGRATOR_STATE(
           state, path, denoising_feature_throughput);
-      const float3 denoising_albedo = ensure_finite3(denoising_feature_throughput *
-                                                     diffuse_albedo);
+      const float3 denoising_albedo = ensure_finite(denoising_feature_throughput * diffuse_albedo);
       kernel_write_pass_float3(buffer + kernel_data.film.pass_denoising_albedo, denoising_albedo);
     }
 
@@ -149,7 +148,7 @@ ccl_device_forceinline void kernel_write_denoising_features_volume(KernelGlobals
 
   if (kernel_data.film.pass_denoising_albedo != PASS_UNUSED) {
     /* Write albedo. */
-    const float3 denoising_albedo = ensure_finite3(denoising_feature_throughput * albedo);
+    const float3 denoising_albedo = ensure_finite(denoising_feature_throughput * albedo);
     kernel_write_pass_float3(buffer + kernel_data.film.pass_denoising_albedo, denoising_albedo);
   }
 }

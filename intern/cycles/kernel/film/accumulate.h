@@ -62,7 +62,7 @@ ccl_device_inline void bsdf_eval_mul(ccl_private BsdfEval *eval, float value)
   eval->sum *= value;
 }
 
-ccl_device_inline void bsdf_eval_mul3(ccl_private BsdfEval *eval, float3 value)
+ccl_device_inline void bsdf_eval_mul(ccl_private BsdfEval *eval, float3 value)
 {
   eval->diffuse *= value;
   eval->glossy *= value;
@@ -78,14 +78,14 @@ ccl_device_inline float3 bsdf_eval_pass_diffuse_weight(ccl_private const BsdfEva
 {
   /* Ratio of diffuse weight to recover proportions for writing to render pass.
    * We assume reflection, transmission and volume scatter to be exclusive. */
-  return safe_divide_float3_float3(eval->diffuse, eval->sum);
+  return safe_divide(eval->diffuse, eval->sum);
 }
 
 ccl_device_inline float3 bsdf_eval_pass_glossy_weight(ccl_private const BsdfEval *eval)
 {
   /* Ratio of glossy weight to recover proportions for writing to render pass.
    * We assume reflection, transmission and volume scatter to be exclusive. */
-  return safe_divide_float3_float3(eval->glossy, eval->sum);
+  return safe_divide(eval->glossy, eval->sum);
 }
 
 /* --------------------------------------------------------------------
@@ -98,14 +98,14 @@ ccl_device_inline float3 bsdf_eval_pass_glossy_weight(ccl_private const BsdfEval
 ccl_device_forceinline void kernel_accum_clamp(KernelGlobals kg, ccl_private float3 *L, int bounce)
 {
 #ifdef __KERNEL_DEBUG_NAN__
-  if (!isfinite3_safe(*L)) {
+  if (!isfinite_safe(*L)) {
     kernel_assert(!"Cycles sample with non-finite value detected");
   }
 #endif
   /* Make sure all components are finite, allowing the contribution to be usable by adaptive
    * sampling convergence check, but also to make it so render result never causes issues with
    * post-processing. */
-  *L = ensure_finite3(*L);
+  *L = ensure_finite(*L);
 
 #ifdef __CLAMP_SAMPLE__
   float limit = (bounce > 0) ? kernel_data.integrator.sample_clamp_indirect :
@@ -518,7 +518,7 @@ ccl_device_inline void kernel_accum_light(KernelGlobals kg,
       const float3 unshadowed_throughput = INTEGRATOR_STATE(
           state, shadow_path, unshadowed_throughput);
       const float3 shadowed_throughput = INTEGRATOR_STATE(state, shadow_path, throughput);
-      const float3 shadow = safe_divide_float3_float3(shadowed_throughput, unshadowed_throughput) *
+      const float3 shadow = safe_divide(shadowed_throughput, unshadowed_throughput) *
                             kernel_data.film.pass_shadow_scale;
       kernel_write_pass_float3(buffer + kernel_data.film.pass_shadow, shadow);
     }
