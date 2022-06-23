@@ -153,7 +153,17 @@ struct data_source_t {
 struct key_repeat_payload_t {
   GHOST_SystemWayland *system = nullptr;
   GHOST_IWindow *window = nullptr;
-  GHOST_TEventKeyData key_data = {GHOST_kKeyUnknown};
+  struct input_t *input = nullptr;
+
+  xkb_keycode_t key_code;
+
+  /**
+   * Don't cache the `utf8_buf` as this changes based on modifiers which may be pressed
+   * while key repeat is enabled.
+   */
+  struct {
+    GHOST_TKey gkey;
+  } key_data;
 };
 
 /** Internal variables used to track grab-state. */
@@ -1736,6 +1746,24 @@ static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(struct xkb_state
   return sym;
 }
 
+/**
+ * Restart the key-repeat timer.
+ * \param use_delay: When false, use the interval
+ * (prevents pause when the setting changes while the key is held).
+ */
+static void keyboard_handle_key_repeat_reset(input_t *input, const bool use_delay)
+{
+  GHOST_ASSERT(input->key_repeat.timer != nullptr, "Caller much check for timer");
+  GHOST_SystemWayland *system = input->system;
+  GHOST_ITimerTask *timer = input->key_repeat.timer;
+  GHOST_TimerProcPtr key_repeat_fn = timer->getTimerProc();
+  GHOST_TUserDataPtr payload = input->key_repeat.timer->getUserData();
+  input->system->removeTimer(input->key_repeat.timer);
+  const uint64_t time_step = 1000 / input->key_repeat.rate;
+  const uint64_t time_start = use_delay ? input->key_repeat.delay : time_step;
+  input->key_repeat.timer = system->installTimer(time_start, time_step, key_repeat_fn, payload);
+}
+
 static void keyboard_handle_key(void *data,
                                 struct wl_keyboard * /*wl_keyboard*/,
                                 uint32_t serial,
@@ -1744,6 +1772,12 @@ static void keyboard_handle_key(void *data,
                                 uint32_t state)
 {
   input_t *input = static_cast<input_t *>(data);
+  const xkb_keycode_t key_code = key + 8;
+
+  const xkb_keysym_t sym = xkb_state_key_get_one_sym_without_modifiers(input->xkb_state, key_code);
+  if (sym == XKB_KEY_NoSymbol) {
+    return;
+  }
 
   GHOST_TEventType etype = GHOST_kEventUnknown;
   switch (state) {
@@ -1755,30 +1789,64 @@ static void keyboard_handle_key(void *data,
       break;
   }
 
-  const xkb_keysym_t sym = xkb_state_key_get_one_sym_without_modifiers(input->xkb_state, key + 8);
-
-  if (sym == XKB_KEY_NoSymbol) {
-    return;
-  }
+  struct key_repeat_payload_t *key_repeat_payload = nullptr;
 
   /* Delete previous timer. */
-  if (xkb_keymap_key_repeats(xkb_state_get_keymap(input->xkb_state), key + 8) &&
-      input->key_repeat.timer) {
-    delete static_cast<key_repeat_payload_t *>(input->key_repeat.timer->getUserData());
-    input->system->removeTimer(input->key_repeat.timer);
-    input->key_repeat.timer = nullptr;
+  if (input->key_repeat.timer) {
+    enum { NOP = 1, RESET, CANCEL } timer_action = NOP;
+    key_repeat_payload = static_cast<key_repeat_payload_t *>(
+        input->key_repeat.timer->getUserData());
+
+    if (input->key_repeat.rate == 0) {
+      /* Repeat was disabled (unlikely but possible). */
+      timer_action = CANCEL;
+    }
+    else if (key_code == key_repeat_payload->key_code) {
+      /* Releasing the key that was held always cancels. */
+      timer_action = CANCEL;
+    }
+    else if (xkb_keymap_key_repeats(xkb_state_get_keymap(input->xkb_state), key_code)) {
+      if (etype == GHOST_kEventKeyDown) {
+        /* Any other key-down always cancels (and may start it's own repeat timer). */
+        timer_action = CANCEL;
+      }
+      else {
+        /* Key-up from keys that were not repeating cause the repeat timer to pause.
+         *
+         * NOTE(@campbellbarton): This behavior isn't universal, some text input systems will
+         * stop the repeat entirely. Choose to pause repeat instead as this is what GTK/WIN32 do,
+         * and it fits better for keyboard input that isn't related to text entry. */
+        timer_action = RESET;
+      }
+    }
+
+    switch (timer_action) {
+      case NOP: {
+        /* Don't add a new timer, leave the existing timer owning this `key_repeat_payload`. */
+        key_repeat_payload = nullptr;
+        break;
+      }
+      case RESET: {
+        /* The payload will be added again. */
+        input->system->removeTimer(input->key_repeat.timer);
+        input->key_repeat.timer = nullptr;
+        break;
+      }
+      case CANCEL: {
+        delete key_repeat_payload;
+        key_repeat_payload = nullptr;
+
+        input->system->removeTimer(input->key_repeat.timer);
+        input->key_repeat.timer = nullptr;
+        break;
+      }
+    }
   }
 
-  GHOST_TEventKeyData key_data = {
-      .key = xkb_map_gkey(sym),
-  };
-
+  const GHOST_TKey gkey = xkb_map_gkey(sym);
+  char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
   if (etype == GHOST_kEventKeyDown) {
-    xkb_state_key_get_utf8(
-        input->xkb_state, key + 8, key_data.utf8_buf, sizeof(GHOST_TEventKeyData::utf8_buf));
-  }
-  else {
-    key_data.utf8_buf[0] = '\0';
+    xkb_state_key_get_utf8(input->xkb_state, key_code, utf8_buf, sizeof(utf8_buf));
   }
 
   input->data_source_serial = serial;
@@ -1786,32 +1854,43 @@ static void keyboard_handle_key(void *data,
   GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
       wl_surface_get_user_data(input->focus_keyboard));
   input->system->pushEvent(new GHOST_EventKey(
-      input->system->getMilliSeconds(), etype, win, key_data.key, '\0', key_data.utf8_buf, false));
+      input->system->getMilliSeconds(), etype, win, gkey, '\0', utf8_buf, false));
 
-  /* Start timer for repeating key, if applicable. */
-  if (input->key_repeat.rate > 0 &&
-      xkb_keymap_key_repeats(xkb_state_get_keymap(input->xkb_state), key + 8) &&
-      etype == GHOST_kEventKeyDown) {
+  /* An existing payload means the key repeat timer is reset and will be added again. */
+  if (key_repeat_payload == nullptr) {
+    /* Start timer for repeating key, if applicable. */
+    if ((input->key_repeat.rate > 0) && (etype == GHOST_kEventKeyDown) &&
+        xkb_keymap_key_repeats(xkb_state_get_keymap(input->xkb_state), key_code)) {
+      key_repeat_payload = new key_repeat_payload_t({
+          .system = input->system,
+          .window = win,
+          .input = input,
+          .key_code = key_code,
+          .key_data = {.gkey = gkey},
+      });
+    }
+  }
 
-    key_repeat_payload_t *payload = new key_repeat_payload_t({
-        .system = input->system,
-        .window = win,
-        .key_data = key_data,
-    });
-
+  if (key_repeat_payload) {
     auto key_repeat_fn = [](GHOST_ITimerTask *task, uint64_t /*time*/) {
       struct key_repeat_payload_t *payload = static_cast<key_repeat_payload_t *>(
           task->getUserData());
+
+      input_t *input = payload->input;
+      /* Calculate this value every time in case modifier keys are pressed. */
+      char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
+      xkb_state_key_get_utf8(input->xkb_state, payload->key_code, utf8_buf, sizeof(utf8_buf));
+
       payload->system->pushEvent(new GHOST_EventKey(payload->system->getMilliSeconds(),
                                                     GHOST_kEventKeyDown,
                                                     payload->window,
-                                                    payload->key_data.key,
+                                                    payload->key_data.gkey,
                                                     '\0',
-                                                    payload->key_data.utf8_buf,
+                                                    utf8_buf,
                                                     true));
     };
     input->key_repeat.timer = input->system->installTimer(
-        input->key_repeat.delay, 1000 / input->key_repeat.rate, key_repeat_fn, payload);
+        input->key_repeat.delay, 1000 / input->key_repeat.rate, key_repeat_fn, key_repeat_payload);
   }
 }
 
@@ -1823,13 +1902,14 @@ static void keyboard_handle_modifiers(void *data,
                                       uint32_t mods_locked,
                                       uint32_t group)
 {
-  xkb_state_update_mask(static_cast<input_t *>(data)->xkb_state,
-                        mods_depressed,
-                        mods_latched,
-                        mods_locked,
-                        0,
-                        0,
-                        group);
+  input_t *input = static_cast<input_t *>(data);
+  xkb_state_update_mask(input->xkb_state, mods_depressed, mods_latched, mods_locked, 0, 0, group);
+
+  /* A modifier changed so reset the timer,
+   * see comment in #keyboard_handle_key regarding this behavior. */
+  if (input->key_repeat.timer) {
+    keyboard_handle_key_repeat_reset(input, true);
+  }
 }
 
 static void keyboard_repeat_handle_info(void *data,
@@ -1841,6 +1921,11 @@ static void keyboard_repeat_handle_info(void *data,
 
   input->key_repeat.rate = rate;
   input->key_repeat.delay = delay;
+
+  /* Unlikely possible this setting changes while repeating. */
+  if (input->key_repeat.timer) {
+    keyboard_handle_key_repeat_reset(input, false);
+  }
 }
 
 static const struct wl_keyboard_listener keyboard_listener = {
