@@ -130,7 +130,8 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
   ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
 
   if (im_format) {
-    sockdata->format = *im_format;
+    BKE_image_format_copy(&sockdata->format, im_format);
+    sockdata->format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
     if (BKE_imtype_is_movie(sockdata->format.imtype)) {
       sockdata->format.imtype = R_IMF_IMTYPE_OPENEXR;
     }
@@ -198,7 +199,8 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
     RenderData *rd = &scene->r;
 
     BLI_strncpy(nimf->base_path, rd->pic, sizeof(nimf->base_path));
-    nimf->format = rd->im_format;
+    BKE_image_format_copy(&nimf->format, &rd->im_format);
+    nimf->format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
     if (BKE_imtype_is_movie(nimf->format.imtype)) {
       nimf->format.imtype = R_IMF_IMTYPE_OPENEXR;
     }
