@@ -138,7 +138,7 @@ static void mesh_loops_to_tessdata(CustomData *fdata,
   }
 }
 
-int BKE_mesh_tessface_calc_ex(CustomData *fdata,
+static int mesh_tessface_calc(CustomData *fdata,
                               CustomData *ldata,
                               CustomData *pdata,
                               MVert *mvert,
@@ -382,13 +382,13 @@ int BKE_mesh_tessface_calc_ex(CustomData *fdata,
 
 void BKE_mesh_tessface_calc(Mesh *mesh)
 {
-  mesh->totface = BKE_mesh_tessface_calc_ex(&mesh->fdata,
-                                            &mesh->ldata,
-                                            &mesh->pdata,
-                                            mesh->mvert,
-                                            mesh->totface,
-                                            mesh->totloop,
-                                            mesh->totpoly);
+  mesh->totface = mesh_tessface_calc(&mesh->fdata,
+                                     &mesh->ldata,
+                                     &mesh->pdata,
+                                     mesh->mvert,
+                                     mesh->totface,
+                                     mesh->totloop,
+                                     mesh->totpoly);
 
   BKE_mesh_update_customdata_pointers(mesh, true);
 }
