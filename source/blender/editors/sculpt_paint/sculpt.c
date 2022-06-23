@@ -3116,7 +3116,7 @@ void SCULPT_vertcos_to_key(Object *ob, KeyBlock *kb, const float (*vertCos)[3])
     for (a = 0; a < me->totvert; a++, mvert++) {
       copy_v3_v3(mvert->co, vertCos[a]);
     }
-    BKE_mesh_normals_tag_dirty(me);
+    BKE_mesh_tag_coords_changed(me);
   }
 
   /* Apply new coords on active key block, no need to re-allocate kb->data here! */

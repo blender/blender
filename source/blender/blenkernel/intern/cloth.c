@@ -1171,7 +1171,7 @@ static Mesh *cloth_make_rest_mesh(ClothModifierData *clmd, Mesh *mesh)
   for (unsigned i = 0; i < mesh->totvert; i++, verts++) {
     copy_v3_v3(mvert[i].co, verts->xrest);
   }
-  BKE_mesh_normals_tag_dirty(new_mesh);
+  BKE_mesh_tag_coords_changed(new_mesh);
 
   return new_mesh;
 }

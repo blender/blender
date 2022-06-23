@@ -52,6 +52,18 @@ extern "C" {
 #  define BKE_MESH_OMP_LIMIT 10000
 #endif
 
+/*  mesh_runtime.cc  */
+
+/**
+ * Call after changing vertex positions to tag lazily calculated caches for recomputation.
+ */
+void BKE_mesh_tag_coords_changed(struct Mesh *mesh);
+
+/**
+ * Call after moving every mesh vertex by the same translation.
+ */
+void BKE_mesh_tag_coords_changed_uniformly(struct Mesh *mesh);
+
 /* *** mesh.c *** */
 
 struct BMesh *BKE_mesh_to_bmesh_ex(const struct Mesh *me,

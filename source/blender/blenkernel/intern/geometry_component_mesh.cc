@@ -864,11 +864,11 @@ static void set_vertex_position(MVert &vert, float3 position)
   copy_v3_v3(vert.co, position);
 }
 
-static void tag_normals_dirty_when_writing_position(GeometryComponent &component)
+static void tag_component_positions_changed(GeometryComponent &component)
 {
   Mesh *mesh = get_mesh_from_component_for_write(component);
   if (mesh != nullptr) {
-    BKE_mesh_normals_tag_dirty(mesh);
+    BKE_mesh_tag_coords_changed(mesh);
   }
 }
 
@@ -1213,7 +1213,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
       point_access,
       make_derived_read_attribute<MVert, float3, get_vertex_position>,
       make_derived_write_attribute<MVert, float3, get_vertex_position, set_vertex_position>,
-      tag_normals_dirty_when_writing_position);
+      tag_component_positions_changed);
 
   static NormalAttributeProvider normal;
 

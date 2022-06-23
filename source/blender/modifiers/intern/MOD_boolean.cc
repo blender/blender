@@ -146,7 +146,7 @@ static Mesh *get_quick_mesh(
             mul_m4_v3(omat, mv->co);
           }
 
-          BKE_mesh_normals_tag_dirty(result);
+          BKE_mesh_tag_coords_changed(result);
         }
 
         break;

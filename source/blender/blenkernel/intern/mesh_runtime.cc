@@ -244,11 +244,8 @@ bool BKE_mesh_runtime_clear_edit_data(Mesh *mesh)
 
 void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 {
-  if (mesh->runtime.bvh_cache) {
-    bvhcache_free(mesh->runtime.bvh_cache);
-    mesh->runtime.bvh_cache = nullptr;
-  }
-  MEM_SAFE_FREE(mesh->runtime.looptris.array);
+  BKE_mesh_tag_coords_changed(mesh);
+
   /* TODO(sergey): Does this really belong here? */
   if (mesh->runtime.subdiv_ccg != nullptr) {
     BKE_subdiv_ccg_destroy(mesh->runtime.subdiv_ccg);
@@ -257,6 +254,24 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   BKE_shrinkwrap_discard_boundary_data(mesh);
 
   MEM_SAFE_FREE(mesh->runtime.subsurf_face_dot_tags);
+}
+
+void BKE_mesh_tag_coords_changed(Mesh *mesh)
+{
+  BKE_mesh_normals_tag_dirty(mesh);
+  MEM_SAFE_FREE(mesh->runtime.looptris.array);
+  if (mesh->runtime.bvh_cache) {
+    bvhcache_free(mesh->runtime.bvh_cache);
+    mesh->runtime.bvh_cache = nullptr;
+  }
+}
+
+void BKE_mesh_tag_coords_changed_uniformly(Mesh *mesh)
+{
+  BKE_mesh_tag_coords_changed(mesh);
+  /* The normals didn't change, since all vertices moved by the same amount. */
+  BKE_mesh_poly_normals_clear_dirty(mesh);
+  BKE_mesh_vertex_normals_clear_dirty(mesh);
 }
 
 /** \} */
