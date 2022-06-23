@@ -47,6 +47,8 @@
 
 static GHOST_WindowWayland *window_from_surface(struct wl_surface *surface);
 
+static void keyboard_handle_key_repeat_cancel(struct input_t *input);
+
 /**
  * GNOME (mutter 42.2 had a bug with confine not respecting scale - Hi-DPI), See: T98793.
  * Even though this has been fixed, at time of writing it's not yet in a release.
@@ -365,9 +367,7 @@ static void display_destroy(display_t *d)
     }
     if (input->wl_keyboard) {
       if (input->key_repeat.timer) {
-        delete static_cast<key_repeat_payload_t *>(input->key_repeat.timer->getUserData());
-        input->system->removeTimer(input->key_repeat.timer);
-        input->key_repeat.timer = nullptr;
+        keyboard_handle_key_repeat_cancel(input);
       }
       wl_keyboard_destroy(input->wl_keyboard);
     }
@@ -1699,9 +1699,8 @@ static void keyboard_handle_enter(void *data,
                                   struct wl_surface *surface,
                                   struct wl_array * /*keys*/)
 {
-  if (surface != nullptr) {
-    static_cast<input_t *>(data)->focus_keyboard = surface;
-  }
+  input_t *input = static_cast<input_t *>(data);
+  input->focus_keyboard = surface;
 }
 
 /**
@@ -1713,10 +1712,14 @@ static void keyboard_handle_enter(void *data,
 static void keyboard_handle_leave(void *data,
                                   struct wl_keyboard * /*wl_keyboard*/,
                                   uint32_t /*serial*/,
-                                  struct wl_surface *surface)
+                                  struct wl_surface * /*surface*/)
 {
-  if (surface != nullptr) {
-    static_cast<input_t *>(data)->focus_keyboard = nullptr;
+  input_t *input = static_cast<input_t *>(data);
+  input->focus_keyboard = nullptr;
+
+  /* Losing focus must stop repeating text. */
+  if (input->key_repeat.timer) {
+    keyboard_handle_key_repeat_cancel(input);
   }
 }
 
@@ -1744,6 +1747,14 @@ static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(struct xkb_state
   const xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state_empty, key);
   xkb_state_unref(xkb_state_empty);
   return sym;
+}
+
+static void keyboard_handle_key_repeat_cancel(input_t *input)
+{
+  GHOST_ASSERT(input->key_repeat.timer != nullptr, "Caller much check for timer");
+  delete static_cast<key_repeat_payload_t *>(input->key_repeat.timer->getUserData());
+  input->system->removeTimer(input->key_repeat.timer);
+  input->key_repeat.timer = nullptr;
 }
 
 /**
