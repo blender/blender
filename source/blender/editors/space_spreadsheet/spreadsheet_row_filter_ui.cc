@@ -41,9 +41,7 @@ static std::string operation_string(const eSpreadsheetColumnValueType data_type,
 {
   if (ELEM(data_type,
            SPREADSHEET_VALUE_TYPE_BOOL,
-           SPREADSHEET_VALUE_TYPE_INSTANCES,
-           SPREADSHEET_VALUE_TYPE_COLOR,
-           SPREADSHEET_VALUE_TYPE_BYTE_COLOR)) {
+           SPREADSHEET_VALUE_TYPE_INSTANCES)) {
     return "=";
   }
 
@@ -237,15 +235,21 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
       uiItemR(layout, filter_ptr, "value_string", 0, IFACE_("Value"), ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_COLOR:
+      uiItemR(layout, filter_ptr, "operation", 0, nullptr, ICON_NONE);
       uiItemR(layout, filter_ptr, "value_color", 0, IFACE_("Value"), ICON_NONE);
-      uiItemR(layout, filter_ptr, "threshold", 0, nullptr, ICON_NONE);
+      if (operation == SPREADSHEET_ROW_FILTER_EQUAL) {
+        uiItemR(layout, filter_ptr, "threshold", 0, nullptr, ICON_NONE);
+      }
       break;
     case SPREADSHEET_VALUE_TYPE_STRING:
       uiItemR(layout, filter_ptr, "value_string", 0, IFACE_("Value"), ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_BYTE_COLOR:
+      uiItemR(layout, filter_ptr, "operation", 0, nullptr, ICON_NONE);
       uiItemR(layout, filter_ptr, "value_byte_color", 0, IFACE_("Value"), ICON_NONE);
-      uiItemR(layout, filter_ptr, "threshold", 0, nullptr, ICON_NONE);
+      if (operation == SPREADSHEET_ROW_FILTER_EQUAL) {
+        uiItemR(layout, filter_ptr, "threshold", 0, nullptr, ICON_NONE);
+      }
       break;
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
       uiItemL(layout, IFACE_("Unknown column type"), ICON_ERROR);
