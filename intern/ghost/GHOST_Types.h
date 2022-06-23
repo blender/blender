@@ -610,7 +610,7 @@ typedef int GHOST_TEmbedderWindowID;
 /**
  * A timer task callback routine.
  * \param task: The timer task object.
- * \param time: The current time.
+ * \param time: Time since this timer started (in milliseconds).
  */
 #ifdef __cplusplus
 class GHOST_ITimerTask;
