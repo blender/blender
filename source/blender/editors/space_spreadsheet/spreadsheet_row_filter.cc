@@ -200,7 +200,9 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
         const float threshold_sq = pow2f(row_filter.threshold);
         apply_filter_operation(
             column_data.typed<ColorGeometry4f>(),
-            [&](const ColorGeometry4f cell) { return len_squared_v4v4(cell, value) <= threshold_sq; },
+            [&](const ColorGeometry4f cell) {
+              return len_squared_v4v4(cell, value) <= threshold_sq;
+            },
             prev_mask,
             new_indices);
         break;
@@ -231,16 +233,18 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
     const ColorGeometry4b value = row_filter.value_byte_color;
     switch (row_filter.operation) {
       case SPREADSHEET_ROW_FILTER_EQUAL: {
-        const float4 value_floats = {(float)value.r, (float)value.g, (float)value.b, (float)value.a};
+        const float4 value_floats = {
+            (float)value.r, (float)value.g, (float)value.b, (float)value.a};
         const float threshold_sq = pow2f(row_filter.threshold);
         apply_filter_operation(
             column_data.typed<ColorGeometry4b>(),
             [&](const ColorGeometry4b cell) {
-            const float4 cell_floats = {(float)cell.r, (float)cell.g, (float)cell.b, (float)cell.a};
-            return len_squared_v4v4(value_floats, cell_floats) <= threshold_sq;
+              const float4 cell_floats = {
+                  (float)cell.r, (float)cell.g, (float)cell.b, (float)cell.a};
+              return len_squared_v4v4(value_floats, cell_floats) <= threshold_sq;
             },
-        prev_mask,
-        new_indices);
+            prev_mask,
+            new_indices);
         break;
       }
       case SPREADSHEET_ROW_FILTER_GREATER: {

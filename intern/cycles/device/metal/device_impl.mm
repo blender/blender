@@ -285,7 +285,8 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
 
   mtlLibrary[PSO_GENERIC] = compile(source[PSO_GENERIC]);
 
-  metal_printf("Front-end compilation finished in %.1f seconds (generic)\n", time_dt() - starttime);
+  metal_printf("Front-end compilation finished in %.1f seconds (generic)\n",
+               time_dt() - starttime);
 
   MD5Hash md5;
   md5.append(source[PSO_GENERIC]);

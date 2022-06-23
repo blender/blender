@@ -39,9 +39,7 @@ static void filter_panel_id_fn(void *UNUSED(row_filter_v), char *r_name)
 static std::string operation_string(const eSpreadsheetColumnValueType data_type,
                                     const eSpreadsheetFilterOperation operation)
 {
-  if (ELEM(data_type,
-           SPREADSHEET_VALUE_TYPE_BOOL,
-           SPREADSHEET_VALUE_TYPE_INSTANCES)) {
+  if (ELEM(data_type, SPREADSHEET_VALUE_TYPE_BOOL, SPREADSHEET_VALUE_TYPE_INSTANCES)) {
     return "=";
   }
 

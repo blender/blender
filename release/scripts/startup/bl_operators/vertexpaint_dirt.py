@@ -7,6 +7,7 @@ def ensure_active_color_attribute(me):
         return me.attributes.active_color
     return me.color_attributes.new("Color", 'BYTE_COLOR', 'FACE_CORNER')
 
+
 def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean, dirt_only, normalize):
     from mathutils import Vector
     from math import acos
