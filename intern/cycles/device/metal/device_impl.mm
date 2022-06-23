@@ -280,13 +280,16 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
   motion_blur = kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
 
   source[PSO_GENERIC] = get_source(kernel_features);
+
+  const double starttime = time_dt();
+
   mtlLibrary[PSO_GENERIC] = compile(source[PSO_GENERIC]);
+
+  metal_printf("Front-end compilation finished in %.1f seconds (generic)\n", time_dt() - starttime);
 
   MD5Hash md5;
   md5.append(source[PSO_GENERIC]);
   source_md5[PSO_GENERIC] = md5.get_hex();
-
-  metal_printf("Front-end compilation finished (generic)\n");
 
   bool result = MetalDeviceKernels::load(this, false);
 
