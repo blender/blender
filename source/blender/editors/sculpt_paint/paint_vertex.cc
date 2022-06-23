@@ -227,22 +227,6 @@ static MDeformVert *defweight_prev_init(MDeformVert *dvert_prev,
   return dv_prev;
 }
 
-/* check if we can do partial updates and have them draw realtime
- * (without evaluating modifiers) */
-static bool vertex_paint_use_fast_update_check(Object *ob)
-{
-  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
-
-  if (me_eval != nullptr) {
-    const Mesh *me = BKE_mesh_from_object(ob);
-    if (me && me->mloopcol) {
-      return (me->mloopcol == CustomData_get_layer(&me_eval->ldata, CD_PROP_BYTE_COLOR));
-    }
-  }
-
-  return false;
-}
-
 static void paint_last_stroke_update(Scene *scene, const float location[3])
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
@@ -2838,12 +2822,6 @@ struct VPaintData : public VPaintDataBase {
   struct VertProjHandle *vp_handle;
   CoNo *vertexcosnos;
 
-  /**
-   * Modify #Mesh.mloopcol directly, since the derived mesh is drawing from this
-   * array, otherwise we need to refresh the modifier stack.
-   */
-  bool use_fast_update;
-
   /* loops tagged as having been painted, to apply shared vertex color
    * blending only to modified loops */
   bool *mlooptag;
@@ -2892,15 +2870,6 @@ static void *vpaint_init_vpaint(bContext *C,
       scene, vp, (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT));
 
   vpd->is_texbrush = !(brush->vertexpaint_tool == VPAINT_TOOL_BLUR) && brush->mtex.tex;
-
-  /* are we painting onto a modified mesh?,
-   * if not we can skip face map trickiness */
-  if (vertex_paint_use_fast_update_check(ob)) {
-    vpd->use_fast_update = true;
-  }
-  else {
-    vpd->use_fast_update = false;
-  }
 
   /* to keep tracked of modified loops for shared vertex color blending */
   if (brush->vertexpaint_tool == VPAINT_TOOL_BLUR) {
@@ -3901,15 +3870,7 @@ static void vpaint_stroke_update_step_intern(bContext *C, PaintStroke *stroke, P
 
   ED_region_tag_redraw(vc->region);
 
-  if (vpd->use_fast_update == false) {
-    /* recalculate modifier stack to get new colors, slow,
-     * avoid this if we can! */
-    DEG_id_tag_update((ID *)ob->data, 0);
-  }
-  else {
-    /* Flush changes through DEG. */
-    DEG_id_tag_update((ID *)ob->data, ID_RECALC_COPY_ON_WRITE);
-  }
+  DEG_id_tag_update((ID *)ob->data, ID_RECALC_GEOMETRY);
 }
 
 static void vpaint_stroke_update_step(bContext *C,
