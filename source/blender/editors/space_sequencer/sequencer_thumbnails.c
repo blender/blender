@@ -427,6 +427,11 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   float image_height, image_width, thumb_width;
   rcti crop;
 
+  StripElem *se = seq->strip->stripdata;
+  if (se->orig_height == 0 || se->orig_width == 0) {
+    return;
+  }
+
   /* If width of the strip too small ignore drawing thumbnails. */
   if ((y2 - y1) / pixely <= 20 * U.dpi_fac) {
     return;
