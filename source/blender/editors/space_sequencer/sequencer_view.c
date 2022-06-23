@@ -373,7 +373,7 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 
   /* Api callbacks. */
   ot->exec = sequencer_view_selected_exec;
-  ot->poll = ED_operator_sequencer_active;
+  ot->poll = sequencer_editing_initialized_and_active;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER;

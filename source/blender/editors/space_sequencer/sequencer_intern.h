@@ -133,6 +133,7 @@ int seq_effect_find_selected(struct Scene *scene,
 
 /* Operator helpers. */
 bool sequencer_edit_poll(struct bContext *C);
+bool sequencer_editing_initialized_and_active(struct bContext *C);
 /* UNUSED */
 /* bool sequencer_strip_poll(struct bContext *C); */
 bool sequencer_strip_has_path_poll(struct bContext *C);

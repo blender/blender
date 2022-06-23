@@ -173,6 +173,11 @@ bool sequencer_edit_poll(bContext *C)
   return (SEQ_editing_get(CTX_data_scene(C)) != NULL);
 }
 
+bool sequencer_editing_initialized_and_active(bContext *C)
+{
+  return ED_operator_sequencer_active(C) && sequencer_edit_poll(C);
+}
+
 #if 0 /* UNUSED */
 bool sequencer_strip_poll(bContext *C)
 {
