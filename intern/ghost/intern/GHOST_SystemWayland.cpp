@@ -260,10 +260,7 @@ struct display_t {
   struct wl_shm *shm = nullptr;
   std::vector<output_t *> outputs;
   std::vector<input_t *> inputs;
-  struct {
-    std::string theme;
-    int size = 0;
-  } cursor;
+
   struct wl_data_device_manager *data_device_manager = nullptr;
   struct zwp_tablet_manager_v2 *tablet_manager = nullptr;
   struct zwp_relative_pointer_manager_v1 *relative_pointer_manager = nullptr;
