@@ -42,6 +42,7 @@
 static bool pose_group_poll(bContext *C)
 {
   if (!ED_operator_posemode_context(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Bone groups can only be edited in pose mode");
     return false;
   }
 
