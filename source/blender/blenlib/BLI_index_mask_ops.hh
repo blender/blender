@@ -13,6 +13,7 @@
 #include "BLI_index_mask.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
+#include "BLI_virtual_array.hh"
 
 namespace blender::index_mask_ops {
 
@@ -56,5 +57,18 @@ inline IndexMask find_indices_based_on_predicate(const IndexMask indices_to_chec
   /* This part doesn't have to be in the header. */
   return detail::find_indices_based_on_predicate__merge(indices_to_check, sub_masks, r_indices);
 }
+
+/**
+ * Find the true indices in a virtual array. This is a version of
+ * #find_indices_based_on_predicate optimised for a virtual array input.
+ *
+ * \param parallel_grain_size: The grain size for when the virtual array isn't a span or a single
+ * value internally. This should be adjusted based on the expected cost of evaluating the virtual
+ * array-- more expensive virtual arrays should have smaller grain sizes.
+ */
+IndexMask find_indices_from_virtual_array(IndexMask indices_to_check,
+                                          const VArray<bool> &virtual_array,
+                                          int64_t parallel_grain_size,
+                                          Vector<int64_t> &r_indices);
 
 }  // namespace blender::index_mask_ops

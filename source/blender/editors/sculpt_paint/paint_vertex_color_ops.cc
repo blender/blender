@@ -177,10 +177,8 @@ static IndexMask get_selected_indices(const Mesh &mesh,
         ATTR_DOMAIN_FACE,
         domain);
 
-    return index_mask_ops::find_indices_based_on_predicate(
-        IndexMask(component.attribute_domain_num(domain)), 4096, indices, [&](const int i) {
-          return selection[i];
-        });
+    return index_mask_ops::find_indices_from_virtual_array(
+        IndexMask(component.attribute_domain_num(domain)), selection, 4096, indices);
   }
   if (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) {
     const VArray<bool> selection = component.attribute_try_adapt_domain(
@@ -188,10 +186,8 @@ static IndexMask get_selected_indices(const Mesh &mesh,
         ATTR_DOMAIN_POINT,
         domain);
 
-    return index_mask_ops::find_indices_based_on_predicate(
-        IndexMask(component.attribute_domain_num(domain)), 4096, indices, [&](const int i) {
-          return selection[i];
-        });
+    return index_mask_ops::find_indices_from_virtual_array(
+        IndexMask(component.attribute_domain_num(domain)), selection, 4096, indices);
   }
   return IndexMask(component.attribute_domain_num(domain));
 }
