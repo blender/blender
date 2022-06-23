@@ -1447,21 +1447,11 @@ static void tablet_tool_handle_motion(void *data,
 {
   tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
   input_t *input = tool_input->input;
-  GHOST_WindowWayland *win = window_from_surface(input->focus_tablet);
-  if (!win) {
-    return;
-  }
 
   input->xy[0] = x;
   input->xy[1] = y;
 
-  const wl_fixed_t scale = win->scale();
-  input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
-                                                 GHOST_kEventCursorMove,
-                                                 win,
-                                                 wl_fixed_to_int(scale * input->xy[0]),
-                                                 wl_fixed_to_int(scale * input->xy[1]),
-                                                 tool_input->data));
+  /* NOTE: #tablet_tool_handle_frame generates the event (with updated pressure, tilt... etc). */
 }
 
 static void tablet_tool_handle_pressure(void *data,
@@ -1575,10 +1565,24 @@ static void tablet_tool_handle_button(void *data,
   input->system->pushEvent(new GHOST_EventButton(
       input->system->getMilliSeconds(), etype, win, ebutton, tool_input->data));
 }
-static void tablet_tool_handle_frame(void * /*data*/,
+static void tablet_tool_handle_frame(void *data,
                                      struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/,
                                      uint32_t /*time*/)
 {
+  tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  input_t *input = tool_input->input;
+  GHOST_WindowWayland *win = window_from_surface(input->focus_tablet);
+  if (!win) {
+    return;
+  }
+
+  const wl_fixed_t scale = win->scale();
+  input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
+                                                 GHOST_kEventCursorMove,
+                                                 win,
+                                                 wl_fixed_to_int(scale * input->xy[0]),
+                                                 wl_fixed_to_int(scale * input->xy[1]),
+                                                 tool_input->data));
 }
 
 static const struct zwp_tablet_tool_v2_listener tablet_tool_listner = {
