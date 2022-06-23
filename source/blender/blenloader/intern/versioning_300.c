@@ -44,6 +44,7 @@
 #include "BKE_asset.h"
 #include "BKE_attribute.h"
 #include "BKE_collection.h"
+#include "BKE_colortools.h"
 #include "BKE_curve.h"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
@@ -1364,6 +1365,31 @@ static void version_liboverride_rnacollections_insertion_animdata(ID *id)
       opop->subitem_local_name = NULL;
       opop->subitem_reference_index = opop->subitem_local_index;
       opop->subitem_local_index++;
+    }
+  }
+}
+
+static void version_fix_image_format_copy(Main *bmain, ImageFormatData *format)
+{
+  /* Fix bug where curves in image format were not properly copied to file output
+   * node, incorrectly sharing a pointer with the scene settings. Copy the data
+   * structure now as it should have been done in the first place. */
+  if (format->view_settings.curve_mapping) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (format != &scene->r.im_format && ELEM(format->view_settings.curve_mapping,
+                                                scene->view_settings.curve_mapping,
+                                                scene->r.im_format.view_settings.curve_mapping)) {
+        format->view_settings.curve_mapping = BKE_curvemapping_copy(
+            format->view_settings.curve_mapping);
+        break;
+      }
+    }
+
+    /* Remove any invalid curves with missing data. */
+    if (format->view_settings.curve_mapping->cm[0].curve == NULL) {
+      BKE_curvemapping_free(format->view_settings.curve_mapping);
+      format->view_settings.curve_mapping = NULL;
+      format->view_settings.flag &= ~COLORMANAGE_VIEW_USE_CURVES;
     }
   }
 }
@@ -2767,6 +2793,33 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       if (settings->curve_length == 0.0f) {
         settings->curve_length = 0.3f;
       }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 4)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == CMP_NODE_OUTPUT_FILE) {
+            LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+              if (sock->storage) {
+                NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
+                version_fix_image_format_copy(bmain, &sockdata->format);
+              }
+            }
+
+            if (node->storage) {
+              NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
+              version_fix_image_format_copy(bmain, &nimf->format);
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      version_fix_image_format_copy(bmain, &scene->r.im_format);
     }
   }
 
