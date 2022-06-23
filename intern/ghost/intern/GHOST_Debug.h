@@ -15,12 +15,12 @@
 #  endif
 #endif
 
-#ifdef WITH_GHOST_DEBUG
+#if defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))
 #  include <iostream>
 #  include <stdio.h>  //for printf()
 #endif                // WITH_GHOST_DEBUG
 
-#ifdef WITH_GHOST_DEBUG
+#if defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))
 #  define GHOST_PRINT(x) \
     { \
       std::cout << x; \
@@ -31,10 +31,10 @@
       printf(x, __VA_ARGS__); \
     } \
     (void)0
-#else  // WITH_GHOST_DEBUG
+#else
 #  define GHOST_PRINT(x)
 #  define GHOST_PRINTF(x, ...)
-#endif  // WITH_GHOST_DEBUG
+#endif /* `defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))` */
 
 #ifdef WITH_ASSERT_ABORT
 #  include <stdio.h>   //for fprintf()
@@ -49,7 +49,8 @@
       } \
     } \
     (void)0
-#elif defined(WITH_GHOST_DEBUG)
+/* Assert in non-release builds too. */
+#elif defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))
 #  define GHOST_ASSERT(x, info) \
     { \
       if (!(x)) { \
@@ -59,6 +60,6 @@
       } \
     } \
     (void)0
-#else  // WITH_GHOST_DEBUG
+#else /* `defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))` */
 #  define GHOST_ASSERT(x, info) ((void)0)
-#endif  // WITH_GHOST_DEBUG
+#endif /* `defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))` */
