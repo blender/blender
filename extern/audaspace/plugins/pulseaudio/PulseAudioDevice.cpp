@@ -41,7 +41,7 @@ double PulseAudioDevice::PulseAudioSynchronizer::getPosition(std::shared_ptr<IHa
 
 void PulseAudioDevice::updateRingBuffer()
 {
-	unsigned int samplesize = AUD_SAMPLE_SIZE(m_specs);
+	unsigned int samplesize = AUD_DEVICE_SAMPLE_SIZE(m_specs);
 
 	std::unique_lock<std::mutex> lock(m_mixingLock);
 
