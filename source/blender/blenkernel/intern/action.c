@@ -1983,3 +1983,16 @@ void BKE_pose_blend_read_expand(BlendExpander *expander, bPose *pose)
     BLO_expand(expander, chan->custom);
   }
 }
+
+void BKE_action_fcurves_clear(bAction *act)
+{
+  if (!act) {
+    return;
+  }
+  while (act->curves.first) {
+    FCurve *fcu = act->curves.first;
+    action_groups_remove_channel(act, fcu);
+    BKE_fcurve_free(fcu);
+  }
+  DEG_id_tag_update(&act->id, ID_RECALC_ANIMATION_NO_FLUSH);
+}

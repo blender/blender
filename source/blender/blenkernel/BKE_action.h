@@ -92,6 +92,11 @@ bool action_has_motion(const struct bAction *act);
  */
 bool BKE_action_is_cyclic(const struct bAction *act);
 
+/**
+ * Remove all fcurves from the action.
+ */
+void BKE_action_fcurves_clear(struct bAction *act);
+
 /* Action Groups API ----------------- */
 
 /**
