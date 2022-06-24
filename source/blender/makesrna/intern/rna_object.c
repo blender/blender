@@ -511,7 +511,7 @@ static PointerRNA rna_Object_data_get(PointerRNA *ptr)
   Object *ob = (Object *)ptr->data;
   if (ob->type == OB_MESH) {
     Mesh *me = (Mesh *)ob->data;
-    me = BKE_mesh_wrapper_ensure_subdivision(ob, me);
+    me = BKE_mesh_wrapper_ensure_subdivision(me);
     return rna_pointer_inherit_refine(ptr, &RNA_Mesh, me);
   }
   return rna_pointer_inherit_refine(ptr, &RNA_ID, ob->data);

@@ -4318,7 +4318,7 @@ Mesh *BKE_object_get_evaluated_mesh(const Object *object)
   }
 
   if (object->data && GS(((const ID *)object->data)->name) == ID_ME) {
-    mesh = BKE_mesh_wrapper_ensure_subdivision(object, mesh);
+    mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
   }
 
   return mesh;

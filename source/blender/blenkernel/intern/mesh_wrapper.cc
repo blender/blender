@@ -307,7 +307,7 @@ int BKE_mesh_wrapper_poly_len(const Mesh *me)
 /** \name CPU Subdivision Evaluation
  * \{ */
 
-static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
+static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
 {
   SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)me->runtime.subsurf_runtime_data;
   if (runtime_data == nullptr || runtime_data->settings.level == 0) {
@@ -367,7 +367,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   return me->runtime.mesh_eval;
 }
 
-Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
+Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *me)
 {
   ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
   BLI_mutex_lock(mesh_eval_mutex);
@@ -380,7 +380,7 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   Mesh *result;
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
-  blender::threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(ob, me); });
+  blender::threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(me); });
 
   BLI_mutex_unlock(mesh_eval_mutex);
   return result;
