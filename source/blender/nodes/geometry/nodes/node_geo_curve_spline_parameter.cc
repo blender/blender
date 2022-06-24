@@ -119,10 +119,20 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
       for (const int i_curve : range) {
         const float total_length = curves.evaluated_length_total_for_curve(i_curve,
                                                                            cyclic[i_curve]);
-        const float factor = total_length == 0.0f ? 0.0f : 1.0f / total_length;
         MutableSpan<float> curve_lengths = lengths.slice(curves.points_for_curve(i_curve));
-        for (float &value : curve_lengths) {
-          value *= factor;
+        if (total_length > 0.0f) {
+          const float factor = 1.0f / total_length;
+          for (float &value : curve_lengths) {
+            value *= factor;
+          }
+        }
+        else {
+          /* It is arbitrary what to do in those rare cases when all the points are
+           * in the same position. In this case we are just arbitrarily giving a valid
+           * value in the range based on the point index. */
+          for (const int i : curve_lengths.index_range()) {
+            curve_lengths[i] = i / (curve_lengths.size() - 1.0f);
+          }
         }
       }
     });
@@ -135,9 +145,19 @@ static VArray<float> construct_curve_parameter_varray(const bke::CurvesGeometry 
     const int last_index = curves.curves_num() - 1;
     const int total_length = lengths.last() + curves.evaluated_length_total_for_curve(
                                                   last_index, cyclic[last_index]);
-    const float factor = total_length == 0.0f ? 0.0f : 1.0f / total_length;
-    for (float &value : lengths) {
-      value *= factor;
+    if (total_length > 0.0f) {
+      const float factor = 1.0f / total_length;
+      for (float &value : lengths) {
+        value *= factor;
+      }
+    }
+    else {
+      /* It is arbitrary what to do in those rare cases when all the points are
+       * in the same position. In this case we are just arbitrarily giving a valid
+       * value in the range based on the curve index. */
+      for (const int i : lengths.index_range()) {
+        lengths[i] = i / (lengths.size() - 1.0f);
+      }
     }
     return VArray<float>::ForContainer(std::move(lengths));
   }
