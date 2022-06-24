@@ -798,13 +798,16 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
             continue;
           }
           SpaceSeq *sseq = (SpaceSeq *)sl;
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
           sseq->flag |= SEQ_CLAMP_VIEW;
 
           if (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {
             continue;
           }
 
-          ARegion *timeline_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+          ARegion *timeline_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                         RGN_TYPE_WINDOW);
 
           if (timeline_region == NULL) {
             continue;
@@ -2869,16 +2872,19 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
           ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                  &sl->regionbase;
-          ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
+          ARegion *region = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_CHANNELS);
           if (!region) {
-            ARegion *tools_region = BKE_area_find_region_type(area, RGN_TYPE_TOOLS);
+            /* Find sequencer tools region. */
+            ARegion *tools_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                        RGN_TYPE_TOOLS);
             region = do_versions_add_region(RGN_TYPE_CHANNELS, "channels region");
             BLI_insertlinkafter(regionbase, tools_region, region);
             region->alignment = RGN_ALIGN_LEFT;
             region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
           }
 
-          ARegion *timeline_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+          ARegion *timeline_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                         RGN_TYPE_WINDOW);
           if (timeline_region != NULL) {
             timeline_region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
           }
@@ -3176,5 +3182,24 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Fix for T98925 - remove channels region, that was initialized in incorrect editor types. */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (ELEM(sl->spacetype, SPACE_ACTION, SPACE_CLIP, SPACE_GRAPH, SPACE_NLA, SPACE_SEQ)) {
+            continue;
+          }
+
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+          ARegion *channels_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                         RGN_TYPE_CHANNELS);
+          if (channels_region) {
+            BLI_freelinkN(regionbase, channels_region);
+          }
+        }
+      }
+    }
   }
 }
