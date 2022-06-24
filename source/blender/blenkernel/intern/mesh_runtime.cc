@@ -268,10 +268,17 @@ void BKE_mesh_tag_coords_changed(Mesh *mesh)
 
 void BKE_mesh_tag_coords_changed_uniformly(Mesh *mesh)
 {
+  const bool vert_normals_were_dirty = BKE_mesh_vertex_normals_are_dirty(mesh);
+  const bool poly_normals_were_dirty = BKE_mesh_poly_normals_are_dirty(mesh);
+
   BKE_mesh_tag_coords_changed(mesh);
   /* The normals didn't change, since all vertices moved by the same amount. */
-  BKE_mesh_poly_normals_clear_dirty(mesh);
-  BKE_mesh_vertex_normals_clear_dirty(mesh);
+  if (!vert_normals_were_dirty) {
+    BKE_mesh_poly_normals_clear_dirty(mesh);
+  }
+  if (!poly_normals_were_dirty) {
+    BKE_mesh_vertex_normals_clear_dirty(mesh);
+  }
 }
 
 /** \} */
