@@ -6,6 +6,7 @@
 
 #include "GHOST_WindowWayland.h"
 #include "GHOST_SystemWayland.h"
+#include "GHOST_WaylandUtils.h"
 #include "GHOST_WindowManager.h"
 
 #include "GHOST_Event.h"
@@ -134,12 +135,8 @@ static void xdg_toplevel_handle_configure(void *data,
   win->is_fullscreen = false;
   win->is_active = false;
 
-  /* Note that the macro 'wl_array_for_each' would typically be used to simplify this logic,
-   * however it's not compatible with C++, so perform casts instead.
-   * If this needs to be done more often we could define our own C++ compatible macro. */
-  for (enum xdg_toplevel_state *state = static_cast<xdg_toplevel_state *>(states->data);
-       reinterpret_cast<uint8_t *>(state) < (static_cast<uint8_t *>(states->data) + states->size);
-       state++) {
+  enum xdg_toplevel_state *state;
+  WL_ARRAY_FOR_EACH (state, states) {
     switch (*state) {
       case XDG_TOPLEVEL_STATE_MAXIMIZED:
         win->is_maximised = true;
