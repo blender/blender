@@ -309,12 +309,7 @@ int BKE_mesh_wrapper_poly_len(const Mesh *me)
 
 static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
 {
-  SubsurfModifierData *smd = BKE_object_get_last_subsurf_modifier(ob);
-  if (!smd) {
-    return me;
-  }
-
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
+  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)me->runtime.subsurf_runtime_data;
   if (runtime_data == nullptr || runtime_data->settings.level == 0) {
     return me;
   }
@@ -335,7 +330,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
     /* Happens on bad topology, but also on empty input mesh. */
     return me;
   }
-  const bool use_clnors = BKE_subsurf_modifier_use_custom_loop_normals(smd, me);
+  const bool use_clnors = runtime_data->use_loop_normals;
   if (use_clnors) {
     /* If custom normals are present and the option is turned on calculate the split
      * normals and clear flag so the normals get interpolated to the result mesh. */
