@@ -115,7 +115,7 @@ class WrapperRegistry {
   void construct(const std::string &scriptname, const vector<string> &args);
   void cleanup();
   void renameObjects();
-  void runPreInit();
+  void runPreInit(PyObject *name_space);
   PyObject *initModule();
   ClassData *lookup(const std::string &name);
   bool canConvert(ClassData *from, ClassData *to);
@@ -505,7 +505,7 @@ void WrapperRegistry::addConstants(PyObject *module)
   }
 }
 
-void WrapperRegistry::runPreInit()
+void WrapperRegistry::runPreInit(PyObject *name_space)
 {
   // add python directories to path
   PyObject *sys_path = PySys_GetObject((char *)"path");
@@ -518,7 +518,15 @@ void WrapperRegistry::runPreInit()
   }
   if (!mCode.empty()) {
     mCode = "from manta import *\n" + mCode;
-    PyRun_SimpleString(mCode.c_str());
+    PyObject *return_value = PyRun_String(mCode.c_str(), Py_file_input, name_space, name_space);
+    if (return_value == nullptr) {
+      if (PyErr_Occurred()) {
+        PyErr_Print();
+      }
+    }
+    else {
+      Py_DECREF(return_value);
+    }
   }
 }
 
@@ -698,11 +706,11 @@ PyObject *WrapperRegistry::initModule()
 //******************************************************
 // Register members and exposed functions
 
-void setup(const std::string &filename, const std::vector<std::string> &args)
+void setup(const std::string &filename, const std::vector<std::string> &args, PyObject *name_space)
 {
   WrapperRegistry::instance().construct(filename, args);
   Py_Initialize();
-  WrapperRegistry::instance().runPreInit();
+  WrapperRegistry::instance().runPreInit(name_space);
 }
 
 void finalize()
