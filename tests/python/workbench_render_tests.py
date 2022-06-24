@@ -3,10 +3,12 @@
 
 import argparse
 import os
+import platform
 import shlex
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 
 def setup():
@@ -73,6 +75,11 @@ def main():
     report.set_pixelated(True)
     report.set_reference_dir("workbench_renders")
     report.set_compare_engine('eevee')
+
+    test_dir_name = Path(test_dir).name
+    if test_dir_name.startswith('hair') and platform.system() == "Darwin":
+        report.set_fail_threshold(0.050)
+
     ok = report.run(test_dir, blender, get_arguments, batch=True)
 
     sys.exit(not ok)
