@@ -271,6 +271,12 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${dbus_INCLUDE_DIRS}
     )
 
+    if(WITH_GHOST_WAYLAND_LIBDECOR)
+      list(APPEND INC_SYS
+        ${libdecor_INCLUDE_DIRS}
+      )
+    endif()
+
     include(CheckSymbolExists)
     set(CMAKE_REQUIRED_DEFINITIONS "-D_GNU_SOURCE")
     check_symbol_exists(memfd_create "sys/mman.h" HAVE_MEMFD_CREATE)
@@ -332,14 +338,17 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${INC_DST}
     )
 
-    # `xdg-shell`.
-    generate_protocol_bindings(
-      "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
-    )
-    # `xdg-decoration`.
-    generate_protocol_bindings(
-      "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
-    )
+    if(NOT WITH_GHOST_WAYLAND_LIBDECOR)
+      # `xdg-shell`.
+      generate_protocol_bindings(
+        "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
+      )
+      # `xdg-decoration`.
+      generate_protocol_bindings(
+        "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
+      )
+    endif()
+
     # `xdg-output`.
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-output/xdg-output-unstable-v1.xml"

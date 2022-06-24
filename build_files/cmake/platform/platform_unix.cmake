@@ -615,6 +615,10 @@ if(WITH_GHOST_WAYLAND)
   pkg_check_modules(wayland-cursor REQUIRED wayland-cursor)
   pkg_check_modules(dbus REQUIRED dbus-1)
 
+  if(WITH_GHOST_WAYLAND_LIBDECOR)
+    pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
+  endif()
+
   set(WITH_GL_EGL ON)
 
   list(APPEND PLATFORM_LINKLIBS
@@ -624,6 +628,13 @@ if(WITH_GHOST_WAYLAND)
     ${wayland-cursor_LINK_LIBRARIES}
     ${dbus_LINK_LIBRARIES}
   )
+
+  if(WITH_GHOST_WAYLAND_LIBDECOR)
+    list(APPEND PLATFORM_LINKLIBS
+      ${libdecor_LIBRARIES}
+    )
+    add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
+  endif()
 endif()
 
 if(WITH_GHOST_X11)

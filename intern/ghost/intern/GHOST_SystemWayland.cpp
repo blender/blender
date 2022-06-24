@@ -254,8 +254,14 @@ struct display_t {
 
   struct wl_display *display = nullptr;
   struct wl_compositor *compositor = nullptr;
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  struct libdecor *decor_context = nullptr;
+#else
   struct xdg_wm_base *xdg_shell = nullptr;
   struct zxdg_decoration_manager_v1 *xdg_decoration_manager = nullptr;
+#endif
+
   struct zxdg_output_manager_v1 *xdg_output_manager = nullptr;
   struct wl_shm *shm = nullptr;
   std::vector<output_t *> outputs;
@@ -402,6 +408,11 @@ static void display_destroy(display_t *d)
     wl_compositor_destroy(d->compositor);
   }
 
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  if (d->decor_context) {
+    libdecor_unref(d->decor_context);
+  }
+#else
   if (d->xdg_decoration_manager) {
     zxdg_decoration_manager_v1_destroy(d->xdg_decoration_manager);
   }
@@ -409,6 +420,7 @@ static void display_destroy(display_t *d)
   if (d->xdg_shell) {
     xdg_wm_base_destroy(d->xdg_shell);
   }
+#endif /* !WITH_GHOST_WAYLAND_LIBDECOR */
 
   if (eglGetDisplay) {
     ::eglTerminate(eglGetDisplay(EGLNativeDisplayType(d->display)));
@@ -2190,6 +2202,8 @@ static const struct wl_output_listener output_listener = {
 /** \name Listener (XDG WM Base), #xdg_wm_base_listener
  * \{ */
 
+#ifndef WITH_GHOST_WAYLAND_LIBDECOR
+
 static void shell_handle_ping(void * /*data*/,
                               struct xdg_wm_base *xdg_wm_base,
                               const uint32_t serial)
@@ -2200,6 +2214,32 @@ static void shell_handle_ping(void * /*data*/,
 static const struct xdg_wm_base_listener shell_listener = {
     shell_handle_ping,
 };
+
+#endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (LibDecor), #libdecor_interface
+ * \{ */
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+
+static void decor_handle_error(struct libdecor * /*context*/,
+                               enum libdecor_error error,
+                               const char *message)
+{
+  (void)(error);
+  (void)(message);
+  GHOST_PRINT("decoration error (" << error << "): " << message << std::endl);
+  exit(EXIT_FAILURE);
+}
+
+static struct libdecor_interface libdecor_interface = {
+    decor_handle_error,
+};
+
+#endif /* WITH_GHOST_WAYLAND_LIBDECOR. */
 
 /** \} */
 
@@ -2218,6 +2258,9 @@ static void global_handle_add(void *data,
     display->compositor = static_cast<wl_compositor *>(
         wl_registry_bind(wl_registry, name, &wl_compositor_interface, 3));
   }
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  /* Pass. */
+#else
   else if (!strcmp(interface, xdg_wm_base_interface.name)) {
     display->xdg_shell = static_cast<xdg_wm_base *>(
         wl_registry_bind(wl_registry, name, &xdg_wm_base_interface, 1));
@@ -2227,6 +2270,7 @@ static void global_handle_add(void *data,
     display->xdg_decoration_manager = static_cast<zxdg_decoration_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zxdg_decoration_manager_v1_interface, 1));
   }
+#endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
   else if (!strcmp(interface, zxdg_output_manager_v1_interface.name)) {
     display->xdg_output_manager = static_cast<zxdg_output_manager_v1 *>(
         wl_registry_bind(wl_registry, name, &zxdg_output_manager_v1_interface, 3));
@@ -2330,10 +2374,18 @@ GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new display_t)
   wl_display_roundtrip(d->display);
   wl_registry_destroy(registry);
 
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  d->decor_context = libdecor_new(d->display, &libdecor_interface);
+  if (!d->decor_context) {
+    display_destroy(d);
+    throw std::runtime_error("Wayland: unable to create window decorations!");
+  }
+#else
   if (!d->xdg_shell) {
     display_destroy(d);
     throw std::runtime_error("Wayland: unable to access xdg_shell!");
   }
+#endif
 
   /* Register data device per seat for IPC between Wayland clients. */
   if (d->data_device_manager) {
@@ -2667,6 +2719,15 @@ wl_compositor *GHOST_SystemWayland::compositor()
   return d->compositor;
 }
 
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+
+libdecor *GHOST_SystemWayland::decor_context()
+{
+  return d->decor_context;
+}
+
+#else /* WITH_GHOST_WAYLAND_LIBDECOR */
+
 xdg_wm_base *GHOST_SystemWayland::xdg_shell()
 {
   return d->xdg_shell;
@@ -2676,6 +2737,8 @@ zxdg_decoration_manager_v1 *GHOST_SystemWayland::xdg_decoration_manager()
 {
   return d->xdg_decoration_manager;
 }
+
+#endif /* !WITH_GHOST_WAYLAND_LIBDECOR */
 
 const std::vector<output_t *> &GHOST_SystemWayland::outputs() const
 {

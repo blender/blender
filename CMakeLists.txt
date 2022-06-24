@@ -222,6 +222,11 @@ if(UNIX AND NOT (APPLE OR HAIKU))
 
   option(WITH_GHOST_WAYLAND "Enable building Blender against Wayland for windowing (under development)" OFF)
   mark_as_advanced(WITH_GHOST_WAYLAND)
+
+  if (WITH_GHOST_WAYLAND)
+    option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" OFF)
+    mark_as_advanced(WITH_GHOST_WAYLAND_LIBDECOR)
+  endif()
 endif()
 
 if(WITH_GHOST_X11)
