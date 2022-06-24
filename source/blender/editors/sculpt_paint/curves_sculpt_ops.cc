@@ -2,17 +2,10 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_attribute_math.hh"
 #include "BKE_brush.h"
-#include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_geometry_set.hh"
-#include "BKE_lib_id.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_runtime.h"
 #include "BKE_paint.h"
-#include "BKE_spline.hh"
 
 #include "WM_api.h"
 #include "WM_toolsystem.h"
@@ -27,18 +20,9 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
 
 #include "RNA_access.h"
-
-#include "BLI_index_mask_ops.hh"
-#include "BLI_kdtree.h"
-#include "BLI_math_vector.hh"
-#include "BLI_rand.hh"
-
-#include "PIL_time.h"
 
 #include "curves_sculpt_intern.h"
 #include "curves_sculpt_intern.hh"
