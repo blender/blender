@@ -550,7 +550,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
     /* Enhanced command buffer errors are only available in 11.0+ */
     if (@available(macos 11.0, *)) {
       if (command_buffer.status == MTLCommandBufferStatusError && command_buffer.error != nil) {
-        printf("CommandBuffer Failed: %s\n", [kernel_name UTF8String]);
+        metal_device_->set_error(string("CommandBuffer Failed: ") + [kernel_name UTF8String]);
         NSArray<id<MTLCommandBufferEncoderInfo>> *encoderInfos = [command_buffer.error.userInfo
             valueForKey:MTLCommandBufferEncoderInfoErrorKey];
         if (encoderInfos != nil) {
@@ -564,7 +564,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
         }
       }
       else if (command_buffer.error) {
-        printf("CommandBuffer Failed: %s\n", [kernel_name UTF8String]);
+        metal_device_->set_error(string("CommandBuffer Failed: ") + [kernel_name UTF8String]);
       }
     }
   }];
