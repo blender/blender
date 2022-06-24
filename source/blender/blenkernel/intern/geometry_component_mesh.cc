@@ -1092,6 +1092,11 @@ class VertexGroupsAttributeProvider final : public DynamicAttributesProvider {
     for (MDeformVert &dvert : MutableSpan(mesh->dvert, mesh->totvert)) {
       MDeformWeight *weight = BKE_defvert_find_index(&dvert, index);
       BKE_defvert_remove_group(&dvert, weight);
+      for (MDeformWeight &weight : MutableSpan(dvert.dw, dvert.totweight)) {
+        if (weight.def_nr > index) {
+          weight.def_nr--;
+        }
+      }
     }
     return true;
   }
