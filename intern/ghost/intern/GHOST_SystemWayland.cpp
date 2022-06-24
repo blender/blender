@@ -620,24 +620,17 @@ static const std::vector<std::string> mime_send = {
  * an event is received from the compositor.
  * \{ */
 
-static void relative_pointer_handle_relative_motion(
-    void *data,
-    struct zwp_relative_pointer_v1 * /*zwp_relative_pointer_v1*/,
-    const uint32_t /*utime_hi*/,
-    const uint32_t /*utime_lo*/,
-    const wl_fixed_t dx,
-    const wl_fixed_t dy,
-    const wl_fixed_t /*dx_unaccel*/,
-    const wl_fixed_t /*dy_unaccel*/)
+/**
+ * The caller is responsible for setting the value of `input->xy`.
+ */
+static void relative_pointer_handle_relative_motion_impl(input_t *input,
+                                                         GHOST_WindowWayland *win,
+                                                         const wl_fixed_t xy[2])
 {
-  input_t *input = static_cast<input_t *>(data);
-  GHOST_WindowWayland *win = window_from_surface(input->focus_pointer);
-  if (!win) {
-    return;
-  }
   const wl_fixed_t scale = win->scale();
-  input->xy[0] += dx / scale;
-  input->xy[1] += dy / scale;
+
+  input->xy[0] = xy[0];
+  input->xy[1] = xy[1];
 
 #ifdef USE_GNOME_CONFINE_HACK
   if (input->xy_software_confine) {
@@ -660,6 +653,29 @@ static void relative_pointer_handle_relative_motion(
                                                  wl_fixed_to_int(scale * input->xy[0]),
                                                  wl_fixed_to_int(scale * input->xy[1]),
                                                  GHOST_TABLET_DATA_NONE));
+}
+
+static void relative_pointer_handle_relative_motion(
+    void *data,
+    struct zwp_relative_pointer_v1 * /*zwp_relative_pointer_v1*/,
+    const uint32_t /*utime_hi*/,
+    const uint32_t /*utime_lo*/,
+    const wl_fixed_t dx,
+    const wl_fixed_t dy,
+    const wl_fixed_t /*dx_unaccel*/,
+    const wl_fixed_t /*dy_unaccel*/)
+{
+  input_t *input = static_cast<input_t *>(data);
+  GHOST_WindowWayland *win = window_from_surface(input->focus_pointer);
+  if (!win) {
+    return;
+  }
+  const wl_fixed_t scale = win->scale();
+  const wl_fixed_t xy_next[2] = {
+      input->xy[0] + dx / scale,
+      input->xy[1] + dy / scale,
+  };
+  relative_pointer_handle_relative_motion_impl(input, win, xy_next);
 }
 
 static const zwp_relative_pointer_v1_listener relative_pointer_listener = {
@@ -2479,9 +2495,33 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) co
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t /*x*/, const int32_t /*y*/)
+GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t x, const int32_t y)
 {
-  return GHOST_kFailure;
+  /* NOTE: WAYLAND doesn't support warping the cursor.
+   * However when grab is enabled, we already simulate a cursor location
+   * so that can be set to a new location. */
+  if (d->inputs.empty()) {
+    return GHOST_kFailure;
+  }
+  input_t *input = d->inputs[0];
+  if (!input->relative_pointer) {
+    return GHOST_kFailure;
+  }
+
+  GHOST_WindowWayland *win = window_from_surface(input->focus_pointer);
+  if (!win) {
+    return GHOST_kFailure;
+  }
+  const wl_fixed_t scale = win->scale();
+  const wl_fixed_t xy_next[2] = {
+      wl_fixed_from_int(x) / scale,
+      wl_fixed_from_int(y) / scale,
+  };
+
+  /* As the cursor was "warped" generate an event at the new location. */
+  relative_pointer_handle_relative_motion_impl(input, win, xy_next);
+
+  return GHOST_kSuccess;
 }
 
 void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
