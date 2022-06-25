@@ -30,6 +30,7 @@
 
 #include "BKE_anim_path.h"
 #include "BKE_curve.h"
+#include "BKE_curve_legacy_convert.hh"
 #include "BKE_displist.h"
 #include "BKE_geometry_set.hh"
 #include "BKE_key.h"
@@ -40,7 +41,6 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_spline.hh"
 #include "BKE_vfont.h"
 
 #include "BLI_sys_types.h" /* For #intptr_t support. */
@@ -863,9 +863,8 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     geometry_set.replace_mesh(mesh);
   }
   else {
-    std::unique_ptr<CurveEval> curve_eval = curve_eval_from_dna_curve(
-        *cu, ob->runtime.curve_cache->deformed_nurbs);
-    geometry_set.replace_curves(curve_eval_to_curves(*curve_eval));
+    geometry_set.replace_curves(
+        blender::bke::curve_legacy_to_curves(*cu, ob->runtime.curve_cache->deformed_nurbs));
   }
 
   for (; md; md = md->next) {
