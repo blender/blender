@@ -147,10 +147,10 @@ class ValueAllocator : NonCopyable, NonMovable {
   Map<int, Stack<void *>> span_buffers_free_list_;
 
   /** Cache buffers for single values of different types. */
+  static constexpr inline int small_value_max_size = 16;
+  static constexpr inline int small_value_max_alignment = 8;
+  Stack<void *> small_single_value_free_list_;
   Map<const CPPType *, Stack<void *>> single_value_free_lists_;
-
-  /** The cached memory buffers can hold #VariableState values. */
-  Stack<void *> variable_state_free_list_;
 
  public:
   ValueAllocator(LinearAllocator<> &linear_allocator) : linear_allocator_(linear_allocator)
@@ -210,10 +210,15 @@ class ValueAllocator : NonCopyable, NonMovable {
 
   VariableValue_OneSingle *obtain_OneSingle(const CPPType &type)
   {
-    Stack<void *> &stack = single_value_free_lists_.lookup_or_add_default(&type);
+    const bool is_small = type.can_exist_in_buffer(small_value_max_size,
+                                                   small_value_max_alignment);
+    Stack<void *> &stack = is_small ? small_single_value_free_list_ :
+                                      single_value_free_lists_.lookup_or_add_default(&type);
     void *buffer;
     if (stack.is_empty()) {
-      buffer = linear_allocator_.allocate(type.size(), type.alignment());
+      buffer = linear_allocator_.allocate(
+          std::max<int>(small_value_max_size, type.size()),
+          std::max<int>(small_value_max_alignment, type.alignment()));
     }
     else {
       buffer = stack.pop();
@@ -259,7 +264,14 @@ class ValueAllocator : NonCopyable, NonMovable {
         if (value_typed->is_initialized) {
           type.destruct(value_typed->data);
         }
-        single_value_free_lists_.lookup_or_add_default(&type).push(value_typed->data);
+        const bool is_small = type.can_exist_in_buffer(small_value_max_size,
+                                                       small_value_max_alignment);
+        if (is_small) {
+          small_single_value_free_list_.push(value_typed->data);
+        }
+        else {
+          single_value_free_lists_.lookup_or_add_default(&type).push(value_typed->data);
+        }
         break;
       }
       case ValueType::OneVector: {
