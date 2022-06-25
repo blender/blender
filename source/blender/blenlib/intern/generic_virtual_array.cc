@@ -394,7 +394,7 @@ class GVArrayImpl_For_SlicedGVArray : public GVArrayImpl {
     varray_.get_to_uninitialized(index + offset_, r_value);
   }
 
-  CommonVArrayInfo common_info() const
+  CommonVArrayInfo common_info() const override
   {
     const CommonVArrayInfo internal_info = varray_.common_info();
     switch (internal_info.type) {
