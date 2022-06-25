@@ -105,6 +105,10 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
 
   curves.update_curve_types();
 
+  if (curves.curves_num() == 0) {
+    return curves_id;
+  }
+
   MutableSpan<float3> positions = curves.positions_for_write();
   OutputAttribute_Typed<float> radius_attribute =
       component.attribute_try_get_for_output_only<float>("radius", ATTR_DOMAIN_POINT);
