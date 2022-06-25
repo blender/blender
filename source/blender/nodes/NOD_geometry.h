@@ -102,6 +102,7 @@ void register_node_type_geo_mesh_subdivide(void);
 void register_node_type_geo_mesh_to_curve(void);
 void register_node_type_geo_mesh_to_points(void);
 void register_node_type_geo_object_info(void);
+void register_node_type_geo_points(void);
 void register_node_type_geo_points_to_vertices(void);
 void register_node_type_geo_points_to_volume(void);
 void register_node_type_geo_proximity(void);

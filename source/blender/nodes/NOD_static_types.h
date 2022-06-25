@@ -357,6 +357,7 @@ DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, 0, "MESH_PRIMITIVE_UV_S
 DefNode(GeometryNode, GEO_NODE_MESH_TO_CURVE, 0, "MESH_TO_CURVE", MeshToCurve, "Mesh to Curve", "")
 DefNode(GeometryNode, GEO_NODE_MESH_TO_POINTS, def_geo_mesh_to_points, "MESH_TO_POINTS", MeshToPoints, "Mesh to Points", "")
 DefNode(GeometryNode, GEO_NODE_OBJECT_INFO, def_geo_object_info, "OBJECT_INFO", ObjectInfo, "Object Info", "")
+DefNode(GeometryNode, GEO_NODE_POINTS, 0, "POINTS", Points, "Points", "")
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_VERTICES, 0, "POINTS_TO_VERTICES", PointsToVertices, "Points to Vertices", "")
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_VOLUME, def_geo_points_to_volume, "POINTS_TO_VOLUME", PointsToVolume, "Points to Volume", "")
 DefNode(GeometryNode, GEO_NODE_PROXIMITY, def_geo_proximity, "PROXIMITY", Proximity, "Geometry Proximity", "")
