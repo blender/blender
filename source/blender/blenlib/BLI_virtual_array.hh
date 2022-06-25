@@ -319,6 +319,9 @@ template<typename T> class VArrayImpl_For_Span_final final : public VArrayImpl_F
   }
 };
 
+template<typename T>
+inline constexpr bool is_trivial_extended_v<VArrayImpl_For_Span_final<T>> = true;
+
 /**
  * A variant of `VArrayImpl_For_Span` that owns the underlying data.
  * The `Container` type has to implement a `size()` and `data()` method.
@@ -378,6 +381,9 @@ template<typename T> class VArrayImpl_For_Single final : public VArrayImpl<T> {
     uninitialized_fill_n(r_span.data(), mask.size(), value_);
   }
 };
+
+template<typename T>
+inline constexpr bool is_trivial_extended_v<VArrayImpl_For_Single<T>> = is_trivial_extended_v<T>;
 
 /**
  * This class makes it easy to create a virtual array for an existing function or lambda. The
@@ -521,6 +527,13 @@ class VArrayImpl_For_DerivedSpan final : public VMutableArrayImpl<ElemT> {
     return false;
   }
 };
+
+template<typename StructT,
+         typename ElemT,
+         ElemT (*GetFunc)(const StructT &),
+         void (*SetFunc)(StructT &, ElemT)>
+inline constexpr bool
+    is_trivial_extended_v<VArrayImpl_For_DerivedSpan<StructT, ElemT, GetFunc, SetFunc>> = true;
 
 namespace detail {
 

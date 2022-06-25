@@ -600,6 +600,8 @@ class GVArrayImpl_For_GSpan_final final : public GVArrayImpl_For_GSpan {
   CommonVArrayInfo common_info() const override;
 };
 
+template<> inline constexpr bool is_trivial_extended_v<GVArrayImpl_For_GSpan_final> = true;
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -637,6 +639,9 @@ class GVArrayImpl_For_SingleValueRef_final final : public GVArrayImpl_For_Single
  private:
   CommonVArrayInfo common_info() const override;
 };
+
+template<>
+inline constexpr bool is_trivial_extended_v<GVArrayImpl_For_SingleValueRef_final> = true;
 
 /** \} */
 
