@@ -54,6 +54,7 @@ void register_node_type_geo_dual_mesh(void);
 void register_node_type_geo_edge_split(void);
 void register_node_type_geo_extrude_mesh(void);
 void register_node_type_geo_field_at_index(void);
+void register_node_type_geo_field_on_domain(void);
 void register_node_type_geo_flip_faces(void);
 void register_node_type_geo_geometry_to_instance(void);
 void register_node_type_geo_image_texture(void);

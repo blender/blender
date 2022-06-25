@@ -308,6 +308,7 @@ DefNode(GeometryNode, GEO_NODE_ACCUMULATE_FIELD, def_geo_accumulate_field, "ACCU
 DefNode(GeometryNode, GEO_NODE_DUAL_MESH, 0, "DUAL_MESH", DualMesh, "Dual Mesh", "")
 DefNode(GeometryNode, GEO_NODE_EXTRUDE_MESH, def_geo_extrude_mesh, "EXTRUDE_MESH", ExtrudeMesh, "Extrude Mesh", "")
 DefNode(GeometryNode, GEO_NODE_FIELD_AT_INDEX, def_geo_field_at_index, "FIELD_AT_INDEX", FieldAtIndex, "Field at Index", "")
+DefNode(GeometryNode, GEO_NODE_FIELD_ON_DOMAIN, def_geo_field_on_domain, "FIELD_ON_DOMAIN", FieldOnDomain, "Field on Domain", "")
 DefNode(GeometryNode, GEO_NODE_FILL_CURVE, def_geo_curve_fill, "FILL_CURVE", FillCurve, "Fill Curve", "")
 DefNode(GeometryNode, GEO_NODE_FILLET_CURVE, def_geo_curve_fillet, "FILLET_CURVE", FilletCurve, "Fillet Curve", "")
 DefNode(GeometryNode, GEO_NODE_FLIP_FACES, 0, "FLIP_FACES", FlipFaces, "Flip Faces", "")
