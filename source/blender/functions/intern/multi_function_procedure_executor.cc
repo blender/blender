@@ -144,7 +144,8 @@ class ValueAllocator : NonCopyable, NonMovable {
    * The integer key is the size of one element (e.g. 4 for an integer buffer). All buffers are
    * aligned to #min_alignment bytes.
    */
-  Map<int, Stack<void *>> span_buffers_free_list_;
+  Stack<void *> small_span_buffers_free_list_;
+  Map<int, Stack<void *>> span_buffers_free_lists_;
 
   /** Cache buffers for single values of different types. */
   static constexpr inline int small_value_max_size = 16;
@@ -184,9 +185,13 @@ class ValueAllocator : NonCopyable, NonMovable {
       buffer = linear_allocator_.allocate(element_size * size, alignment);
     }
     else {
-      Stack<void *> *stack = span_buffers_free_list_.lookup_ptr(element_size);
+      Stack<void *> *stack = type.can_exist_in_buffer(small_value_max_size,
+                                                      small_value_max_alignment) ?
+                                 &small_span_buffers_free_list_ :
+                                 span_buffers_free_lists_.lookup_ptr(element_size);
       if (stack == nullptr || stack->is_empty()) {
-        buffer = linear_allocator_.allocate(element_size * size, min_alignment);
+        buffer = linear_allocator_.allocate(
+            std::max<int64_t>(element_size, small_value_max_size) * size, min_alignment);
       }
       else {
         /* Reuse existing buffer. */
@@ -243,7 +248,10 @@ class ValueAllocator : NonCopyable, NonMovable {
         if (value_typed->owned) {
           const CPPType &type = data_type.single_type();
           /* Assumes all values in the buffer are uninitialized already. */
-          Stack<void *> &buffers = span_buffers_free_list_.lookup_or_add_default(type.size());
+          Stack<void *> &buffers = type.can_exist_in_buffer(small_value_max_size,
+                                                            small_value_max_alignment) ?
+                                       small_span_buffers_free_list_ :
+                                       span_buffers_free_lists_.lookup_or_add_default(type.size());
           buffers.push(value_typed->data);
         }
         break;
