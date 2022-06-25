@@ -35,6 +35,33 @@ class GVArray;
 class GVMutableArray;
 
 /**
+ * Is used to quickly check if a varray is a span or single value. This struct also allows
+ * retrieving multiple pieces of data with a single virtual method call.
+ */
+struct CommonVArrayInfo {
+  enum class Type : uint8_t {
+    /* Is not one of the common special types below. */
+    Any,
+    Span,
+    Single,
+  };
+
+  Type type = Type::Any;
+
+  /** True when the #data becomes a dangling pointer when the virtual array is destructed. */
+  bool may_have_ownership = true;
+
+  /** Points either to nothing, a single value or array of values, depending on #type. */
+  const void *data;
+
+  CommonVArrayInfo() = default;
+  CommonVArrayInfo(const Type _type, const bool _may_have_ownership, const void *_data)
+      : type(_type), may_have_ownership(_may_have_ownership), data(_data)
+  {
+  }
+};
+
+/**
  * Implements the specifics of how the elements of a virtual array are accessed. It contains a
  * bunch of virtual methods that are wrapped by #VArray.
  */
@@ -65,44 +92,9 @@ template<typename T> class VArrayImpl {
    */
   virtual T get(int64_t index) const = 0;
 
-  /**
-   * Return true when the virtual array is a plain array internally.
-   */
-  virtual bool is_span() const
+  virtual CommonVArrayInfo common_info() const
   {
-    return false;
-  }
-
-  /**
-   * Return the span of the virtual array.
-   * This invokes undefined behavior when #is_span returned false.
-   */
-  virtual Span<T> get_internal_span() const
-  {
-    /* Provide a default implementation, so that subclasses don't have to provide it. This method
-     * should never be called because #is_span returns false by default. */
-    BLI_assert_unreachable();
     return {};
-  }
-
-  /**
-   * Return true when the virtual array has the same value at every index.
-   */
-  virtual bool is_single() const
-  {
-    return false;
-  }
-
-  /**
-   * Return the value that is used at every index.
-   * This invokes undefined behavior when #is_single returned false.
-   */
-  virtual T get_internal_single() const
-  {
-    /* Provide a default implementation, so that subclasses don't have to provide it. This method
-     * should never be called because #is_single returns false by default. */
-    BLI_assert_unreachable();
-    return T();
   }
 
   /**
@@ -113,16 +105,22 @@ template<typename T> class VArrayImpl {
   {
     T *dst = r_span.data();
     /* Optimize for a few different common cases. */
-    if (this->is_span()) {
-      const T *src = this->get_internal_span().data();
-      mask.foreach_index([&](const int64_t i) { dst[i] = src[i]; });
-    }
-    else if (this->is_single()) {
-      const T single = this->get_internal_single();
-      mask.foreach_index([&](const int64_t i) { dst[i] = single; });
-    }
-    else {
-      mask.foreach_index([&](const int64_t i) { dst[i] = this->get(i); });
+    const CommonVArrayInfo info = this->common_info();
+    switch (info.type) {
+      case CommonVArrayInfo::Type::Any: {
+        mask.foreach_index([&](const int64_t i) { dst[i] = this->get(i); });
+        break;
+      }
+      case CommonVArrayInfo::Type::Span: {
+        const T *src = static_cast<const T *>(info.data);
+        mask.foreach_index([&](const int64_t i) { dst[i] = src[i]; });
+        break;
+      }
+      case CommonVArrayInfo::Type::Single: {
+        const T single = *static_cast<const T *>(info.data);
+        mask.foreach_index([&](const int64_t i) { dst[i] = single; });
+        break;
+      }
     }
   }
 
@@ -133,16 +131,22 @@ template<typename T> class VArrayImpl {
   {
     T *dst = r_span.data();
     /* Optimize for a few different common cases. */
-    if (this->is_span()) {
-      const T *src = this->get_internal_span().data();
-      mask.foreach_index([&](const int64_t i) { new (dst + i) T(src[i]); });
-    }
-    else if (this->is_single()) {
-      const T single = this->get_internal_single();
-      mask.foreach_index([&](const int64_t i) { new (dst + i) T(single); });
-    }
-    else {
-      mask.foreach_index([&](const int64_t i) { new (dst + i) T(this->get(i)); });
+    const CommonVArrayInfo info = this->common_info();
+    switch (info.type) {
+      case CommonVArrayInfo::Type::Any: {
+        mask.foreach_index([&](const int64_t i) { new (dst + i) T(this->get(i)); });
+        break;
+      }
+      case CommonVArrayInfo::Type::Span: {
+        const T *src = static_cast<const T *>(info.data);
+        mask.foreach_index([&](const int64_t i) { new (dst + i) T(src[i]); });
+        break;
+      }
+      case CommonVArrayInfo::Type::Single: {
+        const T single = *static_cast<const T *>(info.data);
+        mask.foreach_index([&](const int64_t i) { new (dst + i) T(single); });
+        break;
+      }
     }
   }
 
@@ -187,17 +191,6 @@ template<typename T> class VArrayImpl {
   }
 
   /**
-   * Return true when this virtual array may own any of the memory it references. This can be used
-   * for optimization purposes when converting or copying the virtual array.
-   */
-  virtual bool may_have_ownership() const
-  {
-    /* Use true by default to be on the safe side. Subclasses that know for sure that they don't
-     * own anything can overwrite this with false. */
-    return true;
-  }
-
-  /**
    * Return true when the other virtual array should be considered to be the same, e.g. because it
    * shares the same underlying memory.
    */
@@ -222,10 +215,10 @@ template<typename T> class VMutableArrayImpl : public VArrayImpl<T> {
    */
   virtual void set_all(Span<T> src)
   {
-    if (this->is_span()) {
-      const Span<T> const_span = this->get_internal_span();
-      const MutableSpan<T> span{(T *)const_span.data(), const_span.size()};
-      initialized_copy_n(src.data(), this->size_, span.data());
+    const CommonVArrayInfo info = this->common_info();
+    if (info.type == CommonVArrayInfo::Type::Span) {
+      initialized_copy_n(
+          src.data(), this->size_, const_cast<T *>(static_cast<const T *>(info.data)));
     }
     else {
       const int64_t size = this->size_;
@@ -273,14 +266,9 @@ template<typename T> class VArrayImpl_For_Span : public VMutableArrayImpl<T> {
     data_[index] = value;
   }
 
-  bool is_span() const override
+  CommonVArrayInfo common_info() const override
   {
-    return true;
-  }
-
-  Span<T> get_internal_span() const override
-  {
-    return Span<T>(data_, this->size_);
+    return CommonVArrayInfo(CommonVArrayInfo::Type::Span, true, data_);
   }
 
   bool is_same(const VArrayImpl<T> &other) const final
@@ -288,11 +276,11 @@ template<typename T> class VArrayImpl_For_Span : public VMutableArrayImpl<T> {
     if (other.size() != this->size_) {
       return false;
     }
-    if (!other.is_span()) {
+    const CommonVArrayInfo other_info = other.common_info();
+    if (other_info.type != CommonVArrayInfo::Type::Span) {
       return false;
     }
-    const Span<T> other_span = other.get_internal_span();
-    return data_ == other_span.data();
+    return data_ == static_cast<const T *>(other_info.data);
   }
 
   void materialize_compressed(IndexMask mask, MutableSpan<T> r_span) const override
@@ -325,9 +313,9 @@ template<typename T> class VArrayImpl_For_Span_final final : public VArrayImpl_F
   using VArrayImpl_For_Span<T>::VArrayImpl_For_Span;
 
  private:
-  bool may_have_ownership() const override
+  CommonVArrayInfo common_info() const final
   {
-    return false;
+    return CommonVArrayInfo(CommonVArrayInfo::Type::Span, false, this->data_);
   }
 };
 
@@ -371,24 +359,9 @@ template<typename T> class VArrayImpl_For_Single final : public VArrayImpl<T> {
     return value_;
   }
 
-  bool is_span() const override
+  CommonVArrayInfo common_info() const override
   {
-    return this->size_ == 1;
-  }
-
-  Span<T> get_internal_span() const override
-  {
-    return Span<T>(&value_, 1);
-  }
-
-  bool is_single() const override
-  {
-    return true;
-  }
-
-  T get_internal_single() const override
-  {
-    return value_;
+    return CommonVArrayInfo(CommonVArrayInfo::Type::Single, true, &value_);
   }
 
   void materialize_compressed(IndexMask mask, MutableSpan<T> r_span) const override
@@ -529,11 +502,6 @@ class VArrayImpl_For_DerivedSpan final : public VMutableArrayImpl<ElemT> {
         new (dst + i) ElemT(GetFunc(data_[best_mask[i]]));
       }
     });
-  }
-
-  bool may_have_ownership() const override
-  {
-    return false;
   }
 
   bool is_same(const VArrayImpl<ElemT> &other) const override
@@ -768,11 +736,18 @@ template<typename T> class VArrayCommon {
     return IndexRange(this->size());
   }
 
+  CommonVArrayInfo common_info() const
+  {
+    BLI_assert(*this);
+    return impl_->common_info();
+  }
+
   /** Return true when the virtual array is stored as a span internally. */
   bool is_span() const
   {
     BLI_assert(*this);
-    return impl_->is_span();
+    const CommonVArrayInfo info = impl_->common_info();
+    return info.type == CommonVArrayInfo::Type::Span;
   }
 
   /**
@@ -782,14 +757,16 @@ template<typename T> class VArrayCommon {
   Span<T> get_internal_span() const
   {
     BLI_assert(this->is_span());
-    return impl_->get_internal_span();
+    const CommonVArrayInfo info = impl_->common_info();
+    return Span<T>(static_cast<const T *>(info.data), this->size());
   }
 
   /** Return true when the virtual array returns the same value for every index. */
   bool is_single() const
   {
     BLI_assert(*this);
-    return impl_->is_single();
+    const CommonVArrayInfo info = impl_->common_info();
+    return info.type == CommonVArrayInfo::Type::Single;
   }
 
   /**
@@ -799,7 +776,8 @@ template<typename T> class VArrayCommon {
   T get_internal_single() const
   {
     BLI_assert(this->is_single());
-    return impl_->get_internal_single();
+    const CommonVArrayInfo info = impl_->common_info();
+    return *static_cast<const T *>(info.data);
   }
 
   /**
@@ -860,12 +838,6 @@ template<typename T> class VArrayCommon {
   bool try_assign_GVArray(GVArray &varray) const
   {
     return impl_->try_assign_GVArray(varray);
-  }
-
-  /** See #GVArrayImpl::may_have_ownership. */
-  bool may_have_ownership() const
-  {
-    return impl_->may_have_ownership();
   }
 };
 
@@ -1076,8 +1048,8 @@ template<typename T> class VMutableArray : public VArrayCommon<T> {
   MutableSpan<T> get_internal_span() const
   {
     BLI_assert(this->is_span());
-    const Span<T> span = this->impl_->get_internal_span();
-    return MutableSpan<T>(const_cast<T *>(span.data()), span.size());
+    const CommonVArrayInfo info = this->get_impl()->common_info();
+    return MutableSpan<T>(const_cast<T *>(static_cast<const T *>(info.data)), this->size());
   }
 
   /**
@@ -1143,8 +1115,9 @@ template<typename T> class VArray_Span final : public Span<T> {
   VArray_Span(VArray<T> varray) : Span<T>(), varray_(std::move(varray))
   {
     this->size_ = varray_.size();
-    if (varray_.is_span()) {
-      this->data_ = varray_.get_internal_span().data();
+    const CommonVArrayInfo info = varray_.common_info();
+    if (info.type == CommonVArrayInfo::Type::Span) {
+      this->data_ = static_cast<const T *>(info.data);
     }
     else {
       owned_data_.~Array();
@@ -1158,8 +1131,9 @@ template<typename T> class VArray_Span final : public Span<T> {
       : varray_(std::move(other.varray_)), owned_data_(std::move(other.owned_data_))
   {
     this->size_ = varray_.size();
-    if (varray_.is_span()) {
-      this->data_ = varray_.get_internal_span().data();
+    const CommonVArrayInfo info = varray_.common_info();
+    if (info.type == CommonVArrayInfo::Type::Span) {
+      this->data_ = static_cast<const T *>(info.data);
     }
     else {
       this->data_ = owned_data_.data();
@@ -1200,8 +1174,9 @@ template<typename T> class VMutableArray_Span final : public MutableSpan<T> {
       : MutableSpan<T>(), varray_(std::move(varray))
   {
     this->size_ = varray_.size();
-    if (varray_.is_span()) {
-      this->data_ = varray_.get_internal_span().data();
+    const CommonVArrayInfo info = varray_.common_info();
+    if (info.type == CommonVArrayInfo::Type::Span) {
+      this->data_ = const_cast<T *>(static_cast<const T *>(info.data));
     }
     else {
       if (copy_values_to_span) {
