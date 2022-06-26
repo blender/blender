@@ -1029,7 +1029,10 @@ void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible);
  * Initialize a #SculptOrigVertData for accessing original vertex data;
  * handles #BMesh, #Mesh, and multi-resolution.
  */
-void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node);
+void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
+                                Object *ob,
+                                PBVHNode *node,
+                                SculptUndoType type);
 /**
  * Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
  */
@@ -1467,7 +1470,7 @@ void SCULPT_cache_free(StrokeCache *cache);
  * \{ */
 
 SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
-SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node);
+SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_first_node(void);
 
 /**

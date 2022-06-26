@@ -961,7 +961,7 @@ static bool sculpt_undo_cleanup(bContext *C, ListBase *lb)
 }
 #endif
 
-SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node)
+SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
 
@@ -969,7 +969,13 @@ SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node)
     return NULL;
   }
 
-  return BLI_findptr(&usculpt->nodes, node, offsetof(SculptUndoNode, node));
+  LISTBASE_FOREACH (SculptUndoNode *, unode, &usculpt->nodes) {
+    if (unode->node == node && unode->type == type) {
+      return unode;
+    }
+  }
+
+  return NULL;
 }
 
 SculptUndoNode *SCULPT_undo_get_first_node()
@@ -1381,7 +1387,7 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
-  if ((unode = SCULPT_undo_get_node(node))) {
+  if ((unode = SCULPT_undo_get_node(node, type))) {
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }

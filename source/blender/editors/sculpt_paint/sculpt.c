@@ -1288,10 +1288,10 @@ void SCULPT_orig_vert_data_unode_init(SculptOrigVertData *data, Object *ob, Scul
   }
 }
 
-void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node)
+void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node, SculptUndoType type)
 {
   SculptUndoNode *unode;
-  unode = SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COORDS);
+  unode = SCULPT_undo_push_node(ob, node, type);
   SCULPT_orig_vert_data_unode_init(data, ob, unode);
 }
 
@@ -1382,7 +1382,7 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     unode = SCULPT_undo_push_node(data->ob, data->nodes[n], type);
   }
   else {
-    unode = SCULPT_undo_get_node(data->nodes[n]);
+    unode = SCULPT_undo_get_node(data->nodes[n], type);
   }
 
   if (!unode) {
@@ -3202,13 +3202,14 @@ static void do_brush_action_task_cb(void *__restrict userdata,
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
 
+  bool need_coords = ss->cache->supports_gravity;
+
   /* Face Sets modifications do a single undo push */
   if (data->brush->sculpt_tool == SCULPT_TOOL_DRAW_FACE_SETS) {
     BKE_pbvh_node_mark_redraw(data->nodes[n]);
     /* Draw face sets in smooth mode moves the vertices. */
     if (ss->cache->alt_smooth) {
-      SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
-      BKE_pbvh_node_mark_update(data->nodes[n]);
+      need_coords = true;
     }
   }
   else if (data->brush->sculpt_tool == SCULPT_TOOL_MASK) {
@@ -3220,6 +3221,10 @@ static void do_brush_action_task_cb(void *__restrict userdata,
     BKE_pbvh_node_mark_update_color(data->nodes[n]);
   }
   else {
+    need_coords = true;
+  }
+
+  if (need_coords) {
     SCULPT_undo_push_node(data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
     BKE_pbvh_node_mark_update(data->nodes[n]);
   }
@@ -4718,7 +4723,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
     }
     else {
       /* Intersect with coordinates from before we started stroke. */
-      SculptUndoNode *unode = SCULPT_undo_get_node(node);
+      SculptUndoNode *unode = SCULPT_undo_get_node(node, SCULPT_UNDO_COORDS);
       origco = (unode) ? unode->co : NULL;
       use_origco = origco ? true : false;
     }
@@ -4755,7 +4760,7 @@ static void sculpt_find_nearest_to_ray_cb(PBVHNode *node, void *data_v, float *t
     }
     else {
       /* Intersect with coordinates from before we started stroke. */
-      SculptUndoNode *unode = SCULPT_undo_get_node(node);
+      SculptUndoNode *unode = SCULPT_undo_get_node(node, SCULPT_UNDO_COORDS);
       origco = (unode) ? unode->co : NULL;
       use_origco = origco ? true : false;
     }
