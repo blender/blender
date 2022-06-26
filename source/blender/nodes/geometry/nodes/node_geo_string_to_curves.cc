@@ -4,7 +4,8 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_curve.h"
-#include "BKE_spline.hh"
+#include "BKE_curve_legacy_convert.hh"
+#include "BKE_curves.hh"
 #include "BKE_vfont.h"
 
 #include "BLI_hash.h"
@@ -101,7 +102,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
       ntree, height_socket, overflow != GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW);
 }
 
-static float3 get_pivot_point(GeoNodeExecParams &params, CurveEval &curve)
+static float3 get_pivot_point(GeoNodeExecParams &params, bke::CurvesGeometry &curves)
 {
   const NodeGeometryStringToCurves &storage = node_storage(params.node());
   const GeometryNodeStringToCurvesPivotMode pivot_mode = (GeometryNodeStringToCurvesPivotMode)
@@ -110,7 +111,7 @@ static float3 get_pivot_point(GeoNodeExecParams &params, CurveEval &curve)
   float3 min(FLT_MAX), max(FLT_MIN);
 
   /* Check if curve is empty. */
-  if (!curve.bounds_min_max(min, max, false)) {
+  if (!curves.bounds_min_max(min, max)) {
     return {0.0f, 0.0f, 0.0f};
   }
 
@@ -264,7 +265,7 @@ static TextLayout get_text_layout(GeoNodeExecParams &params)
 /* Returns a mapping of UTF-32 character code to instance handle. */
 static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
                                             TextLayout &layout,
-                                            InstancesComponent &instance_component)
+                                            InstancesComponent &instances)
 {
   VFont *vfont = (VFont *)params.node().id;
   Map<int, int> handles;
@@ -282,22 +283,29 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
     charinfo.mat_nr = 1;
 
     BKE_vfont_build_char(&cu, &cu.nurb, layout.char_codes[i], &charinfo, 0, 0, 0, i, 1);
-    std::unique_ptr<CurveEval> curve_eval = curve_eval_from_dna_curve(cu);
+    Curves *curves_id = bke::curve_legacy_to_curves(cu);
+    if (curves_id == nullptr) {
+      if (pivot_required) {
+        layout.pivot_points.add_new(layout.char_codes[i], float3(0));
+      }
+      handles.add_new(layout.char_codes[i], instances.add_reference({}));
+      continue;
+    }
+
+    bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
     BKE_nurbList_free(&cu.nurb);
 
     float4x4 size_matrix = float4x4::identity();
     size_matrix.apply_scale(layout.final_font_size);
-    curve_eval->transform(size_matrix);
+    curves.transform(size_matrix);
 
     if (pivot_required) {
-      float3 pivot_point = get_pivot_point(params, *curve_eval);
+      float3 pivot_point = get_pivot_point(params, curves);
       layout.pivot_points.add_new(layout.char_codes[i], pivot_point);
     }
 
-    GeometrySet geometry_set_curve = GeometrySet::create_with_curves(
-        curve_eval_to_curves(*curve_eval));
-    handles.add_new(layout.char_codes[i],
-                    instance_component.add_reference(std::move(geometry_set_curve)));
+    GeometrySet geometry_set = GeometrySet::create_with_curves(curves_id);
+    handles.add_new(layout.char_codes[i], instances.add_reference(std::move(geometry_set)));
   }
   return handles;
 }
