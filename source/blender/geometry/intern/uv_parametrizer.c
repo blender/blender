@@ -187,7 +187,6 @@ typedef struct ParamHandle {
 
   RNG *rng;
   float blend;
-  bool do_aspect;
 } ParamHandle;
 
 /* PHash
@@ -3718,7 +3717,6 @@ ParamHandle *GEO_uv_parametrizer_construct_begin(void)
   handle->polyfill_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
   handle->aspx = 1.0f;
   handle->aspy = 1.0f;
-  handle->do_aspect = false;
 
   handle->hash_verts = phash_new((PHashLink **)&handle->construction_chart->verts, 1);
   handle->hash_edges = phash_new((PHashLink **)&handle->construction_chart->edges, 1);
@@ -3731,7 +3729,6 @@ void GEO_uv_parametrizer_aspect_ratio(ParamHandle *phandle, float aspx, float as
 {
   phandle->aspx = aspx;
   phandle->aspy = aspy;
-  phandle->do_aspect = true;
 }
 
 void GEO_uv_parametrizer_delete(ParamHandle *phandle)
