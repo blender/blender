@@ -68,7 +68,7 @@ void AbstractTreeView::foreach_item(ItemIterFn iter_fn, IterOptions options) con
   foreach_item_recursive(iter_fn, options);
 }
 
-bool AbstractTreeView::listen(const wmNotifier &) const
+bool AbstractTreeView::listen(const wmNotifier & /*notifier*/) const
 {
   /* Nothing by default. */
   return false;

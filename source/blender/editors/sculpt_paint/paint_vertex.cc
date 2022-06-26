@@ -1788,7 +1788,8 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   /* set up auto-normalize, and generate map for detecting which
    * vgroups affect deform bones */
   wpd->lock_flags = BKE_object_defgroup_lock_flags_get(ob, wpd->defbase_tot);
-  if (ts->auto_normalize || ts->multipaint || wpd->lock_flags || ts->wpaint_lock_relative) {
+  if (ts->auto_normalize || ts->multipaint || wpd->lock_flags != nullptr ||
+      ts->wpaint_lock_relative) {
     wpd->vgroup_validmap = BKE_object_defgroup_validmap_get(ob, wpd->defbase_tot);
   }
 
@@ -2577,31 +2578,14 @@ static void wpaint_stroke_done(const bContext *C, PaintStroke *stroke)
   WPaintData *wpd = (WPaintData *)paint_stroke_mode_data(stroke);
 
   if (wpd) {
-    if (wpd->defbase_sel) {
-      MEM_freeN((void *)wpd->defbase_sel);
-    }
-    if (wpd->vgroup_validmap) {
-      MEM_freeN((void *)wpd->vgroup_validmap);
-    }
-    if (wpd->vgroup_locked) {
-      MEM_freeN((void *)wpd->vgroup_locked);
-    }
-    if (wpd->vgroup_unlocked) {
-      MEM_freeN((void *)wpd->vgroup_unlocked);
-    }
-    if (wpd->lock_flags) {
-      MEM_freeN((void *)wpd->lock_flags);
-    }
-    if (wpd->active.lock) {
-      MEM_freeN((void *)wpd->active.lock);
-    }
-    if (wpd->mirror.lock) {
-      MEM_freeN((void *)wpd->mirror.lock);
-    }
-    if (wpd->precomputed_weight) {
-      MEM_freeN(wpd->precomputed_weight);
-    }
-
+    MEM_SAFE_FREE(wpd->defbase_sel);
+    MEM_SAFE_FREE(wpd->vgroup_validmap);
+    MEM_SAFE_FREE(wpd->vgroup_locked);
+    MEM_SAFE_FREE(wpd->vgroup_unlocked);
+    MEM_SAFE_FREE(wpd->lock_flags);
+    MEM_SAFE_FREE(wpd->active.lock);
+    MEM_SAFE_FREE(wpd->mirror.lock);
+    MEM_SAFE_FREE(wpd->precomputed_weight);
     MEM_freeN(wpd);
   }
 
