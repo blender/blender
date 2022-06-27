@@ -232,7 +232,7 @@ static void frame_handle_close(struct libdecor_frame * /*frame*/, void *data)
 
 static void frame_handle_commit(struct libdecor_frame * /*frame*/, void *data)
 {
-  /* we have to swap twice to keep any pop-up menues alive */
+  /* We have to swap twice to keep any pop-up menus alive. */
   static_cast<window_t *>(data)->w->swapBuffers();
   static_cast<window_t *>(data)->w->swapBuffers();
 }
@@ -469,7 +469,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   setOpaque();
 #endif
 
-#ifndef WITH_GHOST_WAYLAND_LIBDECOR /* Causes a glicth with libdecor for some reason. */
+#ifndef WITH_GHOST_WAYLAND_LIBDECOR /* Causes a glitch with `libdecor` for some reason. */
   setState(state);
 #endif
 
@@ -480,7 +480,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     GHOST_PRINT("Failed to create EGL context" << std::endl);
   }
 
-  /* set swap interval to 0 to prevent blocking */
+  /* Set swap interval to 0 to prevent blocking. */
   setSwapInterval(0);
 }
 

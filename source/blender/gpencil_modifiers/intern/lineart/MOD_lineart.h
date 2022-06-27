@@ -309,7 +309,7 @@ typedef struct LineartData {
   LineartElementLinkNode *isect_scheduled_up_to;
   int isect_scheduled_up_to_index;
 
-  /* Note: Data inside #pending_edges are allocated with MEM_xxx call instead of in pool. */
+  /* NOTE: Data inside #pending_edges are allocated with MEM_xxx call instead of in pool. */
   struct LineartPendingEdges pending_edges;
   int scheduled_count;
 
@@ -382,7 +382,7 @@ typedef struct LineartObjectInfo {
 
   bool free_use_mesh;
 
-  /* Note: Data inside #pending_edges are allocated with MEM_xxx call instead of in pool. */
+  /** NOTE: Data inside #pending_edges are allocated with MEM_xxx call instead of in pool. */
   struct LineartPendingEdges pending_edges;
 
 } LineartObjectInfo;

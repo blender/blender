@@ -1137,7 +1137,7 @@ static void cursor_buffer_handle_release(void *data, struct wl_buffer *wl_buffer
   wl_buffer_destroy(wl_buffer);
 
   if (wl_buffer == cursor->wl_buffer) {
-    /* the mapped buffer was from a custom cursor */
+    /* The mapped buffer was from a custom cursor. */
     cursor->wl_buffer = nullptr;
   }
 }
@@ -2724,7 +2724,7 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
                                                  const bool is_dialog,
                                                  const GHOST_IWindow *parentWindow)
 {
-  /* globally store pointer to window manager */
+  /* Globally store pointer to window manager. */
   if (!window_manager) {
     window_manager = getWindowManager();
   }
@@ -3219,7 +3219,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
                                                   const GHOST_TGrabCursorMode mode_current,
                                                   wl_surface *surface)
 {
-  /* ignore, if the required protocols are not supported */
+  /* Ignore, if the required protocols are not supported. */
   if (!d->relative_pointer_manager || !d->pointer_constraints) {
     return GHOST_kFailure;
   }

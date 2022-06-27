@@ -1772,7 +1772,7 @@ static void lineart_add_edge_to_array_thread(LineartObjectInfo *obi, LineartEdge
   lineart_add_edge_to_array(&obi->pending_edges, e);
 }
 
-/* Note: For simplicity, this function doesn't actually do anything if you already have data in
+/* NOTE: For simplicity, this function doesn't actually do anything if you already have data in
  * #pe.  */
 static void lineart_finalize_object_edge_array_reserve(LineartPendingEdges *pe, int count)
 {

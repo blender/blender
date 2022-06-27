@@ -132,7 +132,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
     });
   };
 
-  /* Note: For curve handles, legacy curves can end up in invalid situations where the handle
+  /* NOTE: For curve handles, legacy curves can end up in invalid situations where the handle
    * positions don't agree with the types because of evaluation, or because one-sided aligned
    * handles weren't considered. While recalculating automatic handles to fix those situations
    * is an option, currently this opts not to for the sake of flexibility. */

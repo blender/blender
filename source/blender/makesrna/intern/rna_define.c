@@ -4424,7 +4424,7 @@ int rna_parameter_size(PropertyRNA *parm)
 int rna_parameter_size_pad(const int size)
 {
   /* Pad parameters in memory so the next parameter is properly aligned.
-   * This silences warnings in ubsan. More complicated logic to pack parameters
+   * This silences warnings in UBSAN. More complicated logic to pack parameters
    * more tightly in memory is unlikely to improve performance, and aligning
    * to the requirements for pointers is enough for all data types we use. */
   const int alignment = sizeof(void *);
@@ -4445,7 +4445,7 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, const EnumPropert
 #endif
   }
   else if (tot >= 8 && (tot & (tot - 1)) == 0) {
-    /* power of two > 8 */
+    /* Power of two > 8. */
     *items = MEM_recallocN_id(*items, sizeof(EnumPropertyItem) * tot * 2, __func__);
 #ifdef DEBUG
     memset((*items) + tot, 0xff, sizeof(EnumPropertyItem) * tot);
@@ -4477,8 +4477,8 @@ void RNA_enum_items_add_value(EnumPropertyItem **items,
   for (; item->identifier; item++) {
     if (item->value == value) {
       RNA_enum_item_add(items, totitem, item);
-      /* break on first match - does this break anything?
-       * (is quick hack to get object->parent_type working ok for armature/lattice) */
+      /* Break on first match - does this break anything?
+       * (is quick hack to get `object->parent_type` working ok for armature/lattice). */
       break;
     }
   }

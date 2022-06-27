@@ -70,7 +70,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   BKE_mesh_nomain_to_mesh(mesh, dst, obj, &CD_MASK_EVERYTHING, true);
   dst->flag |= autosmooth;
 
-  /* Note: vertex groups have to be created after final mesh is assigned to the object. */
+  /* NOTE: vertex groups have to be created after final mesh is assigned to the object. */
   create_vertex_groups(obj);
 
   return obj;

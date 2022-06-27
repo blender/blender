@@ -60,7 +60,7 @@ inline IndexMask find_indices_based_on_predicate(const IndexMask indices_to_chec
 
 /**
  * Find the true indices in a virtual array. This is a version of
- * #find_indices_based_on_predicate optimised for a virtual array input.
+ * #find_indices_based_on_predicate optimized for a virtual array input.
  *
  * \param parallel_grain_size: The grain size for when the virtual array isn't a span or a single
  * value internally. This should be adjusted based on the expected cost of evaluating the virtual
