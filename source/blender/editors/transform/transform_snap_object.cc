@@ -3180,10 +3180,6 @@ static short transform_snap_context_project_view3d_mixed_impl(SnapObjectContext 
       if (r_index) {
         *r_index = index;
       }
-      if (r_face_nor && !has_hit) {
-        /* Fallback. */
-        copy_v3_v3(r_face_nor, no);
-      }
 
       *dist_px = dist_px_tmp;
     }
