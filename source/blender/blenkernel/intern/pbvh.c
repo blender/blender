@@ -2394,16 +2394,16 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
 
         const float *co[4];
         if (origco) {
-          co[0] = origco[y * gridsize + x];
-          co[1] = origco[y * gridsize + x + 1];
-          co[2] = origco[(y + 1) * gridsize + x + 1];
-          co[3] = origco[(y + 1) * gridsize + x];
+          co[0] = origco[(y + 1) * gridsize + x];
+          co[1] = origco[(y + 1) * gridsize + x + 1];
+          co[2] = origco[y * gridsize + x + 1];
+          co[3] = origco[y * gridsize + x];
         }
         else {
-          co[0] = CCG_grid_elem_co(gridkey, grid, x, y);
-          co[1] = CCG_grid_elem_co(gridkey, grid, x + 1, y);
-          co[2] = CCG_grid_elem_co(gridkey, grid, x + 1, y + 1);
-          co[3] = CCG_grid_elem_co(gridkey, grid, x, y + 1);
+          co[0] = CCG_grid_elem_co(gridkey, grid, x, y + 1);
+          co[1] = CCG_grid_elem_co(gridkey, grid, x + 1, y + 1);
+          co[2] = CCG_grid_elem_co(gridkey, grid, x + 1, y);
+          co[3] = CCG_grid_elem_co(gridkey, grid, x, y);
         }
 
         if (ray_face_intersection_quad(
