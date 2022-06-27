@@ -296,7 +296,7 @@ class GPENCIL_MT_material_active(Menu):
 
         for slot in ob.material_slots:
             mat = slot.material
-            if mat:
+            if mat and mat.id_data and mat.id_data.preview:
                 icon = mat.id_data.preview.icon_id
                 layout.operator("gpencil.material_set", text=mat.name, icon_value=icon).slot = mat.name
 
