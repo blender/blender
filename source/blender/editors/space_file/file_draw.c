@@ -202,7 +202,7 @@ static void file_draw_string(int sx,
   }
 
   const uiStyle *style = UI_style_get();
-  fs = style->widgetlabel;
+  fs = style->widget;
 
   BLI_strncpy(fname, string, FILE_MAXFILE);
   UI_text_clip_middle_ex(&fs, fname, width, UI_DPI_ICON_SIZE, sizeof(fname), '\0');
@@ -245,7 +245,7 @@ static void file_draw_string_multiline(int sx,
   }
 
   const uiStyle *style = UI_style_get();
-  int font_id = style->widgetlabel.uifont_id;
+  int font_id = style->widget.uifont_id;
   int len = strlen(string);
 
   rcti textbox;
