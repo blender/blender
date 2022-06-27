@@ -268,8 +268,13 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${wayland-egl_INCLUDE_DIRS}
       ${xkbcommon_INCLUDE_DIRS}
       ${wayland-cursor_INCLUDE_DIRS}
-      ${dbus_INCLUDE_DIRS}
     )
+
+    if(WITH_GHOST_WAYLAND_DBUS)
+      list(APPEND INC_SYS
+        ${dbus_INCLUDE_DIRS}
+      )
+    endif()
 
     if(WITH_GHOST_WAYLAND_LIBDECOR)
       list(APPEND INC_SYS

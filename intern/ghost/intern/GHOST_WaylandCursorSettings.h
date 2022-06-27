@@ -5,9 +5,13 @@
  */
 
 #pragma once
-#include <dbus/dbus.h>
 #include <string>
 
+#ifdef WITH_GHOST_WAYLAND_DBUS
+#  include <dbus/dbus.h>
+#endif
+
+#ifdef WITH_GHOST_WAYLAND_DBUS
 static DBusMessage *get_setting_sync(DBusConnection *const connection,
                                      const char *key,
                                      const char *value)
@@ -66,9 +70,11 @@ static bool parse_type(DBusMessage *const reply, const int type, void *value)
 
   return true;
 }
+#endif /* WITH_GHOST_WAYLAND_DBUS */
 
 static bool get_cursor_settings(std::string &theme, int &size)
 {
+#ifdef WITH_GHOST_WAYLAND_DBUS
   static const char name[] = "org.gnome.desktop.interface";
   static const char key_theme[] = "cursor-theme";
   static const char key_size[] = "cursor-size";
@@ -113,4 +119,11 @@ static bool get_cursor_settings(std::string &theme, int &size)
   dbus_message_unref(reply);
 
   return true;
+#else
+  /* NOTE: eventually we could have alternative ways to access the theme,
+   * this uses the "default" theme which is functional (instead of a user-defined theme). */
+  (void)theme;
+  (void)size;
+  return false;
+#endif /* !WITH_GHOST_WAYLAND_DBUS */
 }

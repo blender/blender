@@ -226,6 +226,9 @@ if(UNIX AND NOT (APPLE OR HAIKU))
   if (WITH_GHOST_WAYLAND)
     option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" OFF)
     mark_as_advanced(WITH_GHOST_WAYLAND_LIBDECOR)
+
+    option(WITH_GHOST_WAYLAND_DBUS "Optionally build with DBUS support (used for Cursor themes). May hang on startup systems where DBUS is not used." OFF)
+    mark_as_advanced(WITH_GHOST_WAYLAND_DBUS)
   endif()
 endif()
 

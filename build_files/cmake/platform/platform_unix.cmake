@@ -613,7 +613,10 @@ if(WITH_GHOST_WAYLAND)
   pkg_check_modules(wayland-scanner REQUIRED wayland-scanner)
   pkg_check_modules(xkbcommon REQUIRED xkbcommon)
   pkg_check_modules(wayland-cursor REQUIRED wayland-cursor)
-  pkg_check_modules(dbus REQUIRED dbus-1)
+
+  if(WITH_GHOST_WAYLAND_DBUS)
+    pkg_check_modules(dbus REQUIRED dbus-1)
+  endif()
 
   if(WITH_GHOST_WAYLAND_LIBDECOR)
     pkg_check_modules(libdecor REQUIRED libdecor-0>=0.1)
@@ -626,8 +629,14 @@ if(WITH_GHOST_WAYLAND)
     ${wayland-egl_LINK_LIBRARIES}
     ${xkbcommon_LINK_LIBRARIES}
     ${wayland-cursor_LINK_LIBRARIES}
-    ${dbus_LINK_LIBRARIES}
   )
+
+  if(WITH_GHOST_WAYLAND_DBUS)
+    list(APPEND PLATFORM_LINKLIBS
+      ${dbus_LINK_LIBRARIES}
+    )
+    add_definitions(-DWITH_GHOST_WAYLAND_DBUS)
+  endif()
 
   if(WITH_GHOST_WAYLAND_LIBDECOR)
     list(APPEND PLATFORM_LINKLIBS
