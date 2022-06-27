@@ -10,6 +10,10 @@
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
 
+#include FT_MULTIPLE_MASTERS_H /* Variable font support. */
+
+#define BLF_VARIATIONS_MAX 16 /* Maximum variation axes per font. */
+
 /* -------------------------------------------------------------------- */
 /** \name Sub-Pixel Offset & Utilities
  *
@@ -125,6 +129,10 @@ typedef struct GlyphCacheBLF {
 
   /* and DPI. */
   unsigned int dpi;
+  float char_weight;
+  float char_slant;
+  float char_width;
+  float char_spacing;
 
   bool bold;
   bool italic;
@@ -274,6 +282,15 @@ typedef struct FontBLF {
 
   /* font size. */
   float size;
+
+  /* Axes data for Adobe MM, TrueType GX, or OpenType variation fonts.  */
+  FT_MM_Var *variations;
+
+  /* Character variation; 0=default, -1=min, +1=max. */
+  float char_weight;
+  float char_slant;
+  float char_width;
+  float char_spacing;
 
   /* max texture size. */
   int tex_size_max;
