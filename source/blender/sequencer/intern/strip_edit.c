@@ -192,19 +192,6 @@ void SEQ_edit_remove_flagged_sequences(Scene *scene, ListBase *seqbase)
   }
 }
 
-static bool seq_exists_in_seqbase(Sequence *seq, ListBase *seqbase)
-{
-  LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
-    if (seq_test->type == SEQ_TYPE_META && seq_exists_in_seqbase(seq, &seq_test->seqbase)) {
-      return true;
-    }
-    if (seq_test == seq) {
-      return true;
-    }
-  }
-  return false;
-}
-
 bool SEQ_edit_move_strip_to_seqbase(Scene *scene,
                                     ListBase *seqbase,
                                     Sequence *seq,
@@ -247,12 +234,12 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
     return false;
   }
 
-  if (src_seq->type == SEQ_TYPE_META && seq_exists_in_seqbase(dst_seqm, &src_seq->seqbase)) {
+  if (src_seq->type == SEQ_TYPE_META && SEQ_exists_in_seqbase(dst_seqm, &src_seq->seqbase)) {
     *error_str = N_("Moved strip is parent of provided meta strip");
     return false;
   }
 
-  if (!seq_exists_in_seqbase(dst_seqm, &ed->seqbase)) {
+  if (!SEQ_exists_in_seqbase(dst_seqm, &ed->seqbase)) {
     *error_str = N_("Can not move strip to different scene");
     return false;
   }

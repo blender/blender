@@ -457,3 +457,16 @@ struct Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Sequence *met
 
   return NULL;
 }
+
+bool SEQ_exists_in_seqbase(const Sequence *seq, const ListBase *seqbase)
+{
+  LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
+    if (seq_test->type == SEQ_TYPE_META && SEQ_exists_in_seqbase(seq, &seq_test->seqbase)) {
+      return true;
+    }
+    if (seq_test == seq) {
+      return true;
+    }
+  }
+  return false;
+}

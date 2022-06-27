@@ -43,6 +43,7 @@
 #include "SEQ_prefetch.h"
 #include "SEQ_proxy.h"
 #include "SEQ_relations.h"
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_sound.h"
 #include "SEQ_time.h"
@@ -1107,6 +1108,26 @@ static void rna_SequenceEditor_overlay_frame_set(PointerRNA *ptr, int value)
   }
 }
 
+static void rna_SequenceEditor_display_stack(ID *id,
+                                             Editing *ed,
+                                             ReportList *reports,
+                                             Sequence *seqm)
+{
+  /* Check for non-meta sequence */
+  if (seqm != NULL && seqm->type != SEQ_TYPE_META && SEQ_exists_in_seqbase(seqm, &ed->seqbase)) {
+    BKE_report(reports, RPT_ERROR, "Sequence type must be 'META'");
+    return;
+  }
+
+  /* Get editing base of meta sequence */
+  Scene *scene = (Scene *)id;
+  SEQ_meta_stack_set(scene, seqm);
+  /* De-activate strip. This is to prevent strip from different timeline being drawn. */
+  SEQ_select_active_set(scene, NULL);
+
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+}
+
 static bool modifier_seq_cmp_fn(Sequence *seq, void *arg_pt)
 {
   SequenceSearchData *data = arg_pt;
@@ -2116,6 +2137,8 @@ static void rna_def_channel(BlenderRNA *brna)
 static void rna_def_editor(BlenderRNA *brna)
 {
   StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
   PropertyRNA *prop;
 
   static const EnumPropertyItem editing_storage_items[] = {
@@ -2259,6 +2282,15 @@ static void rna_def_editor(BlenderRNA *brna)
       "Prefetch Frames",
       "Render frames ahead of current frame in the background for faster playback");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
+
+  /* functions */
+
+  func = RNA_def_function(srna, "display_stack", "rna_SequenceEditor_display_stack");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func, "Display sequences stack");
+  parm = RNA_def_pointer(
+      func, "meta_sequence", "Sequence", "Meta Sequence", "Meta to display its stack");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
 static void rna_def_filter_video(StructRNA *srna)

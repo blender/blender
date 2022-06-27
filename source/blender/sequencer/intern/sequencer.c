@@ -397,21 +397,21 @@ void SEQ_seqbase_active_set(Editing *ed, ListBase *seqbase)
   ed->seqbasep = seqbase;
 }
 
-MetaStack *SEQ_meta_stack_alloc(Editing *ed, Sequence *seq_meta)
+static MetaStack *seq_meta_stack_alloc(const Scene *scene, Sequence *seq_meta)
 {
+  Editing *ed = SEQ_editing_get(scene);
+
   MetaStack *ms = MEM_mallocN(sizeof(MetaStack), "metastack");
-  BLI_addtail(&ed->metastack, ms);
+  BLI_addhead(&ed->metastack, ms);
   ms->parseq = seq_meta;
-  ms->oldbasep = ed->seqbasep;
-  ms->old_channels = ed->displayed_channels;
+
+  /* Reference to previously displayed timeline data. */
+  Sequence *higher_level_meta = seq_sequence_lookup_meta_by_seq(scene, seq_meta);
+  ms->oldbasep = higher_level_meta ? &higher_level_meta->seqbase : &ed->seqbase;
+  ms->old_channels = higher_level_meta ? &higher_level_meta->channels : &ed->channels;
+
   copy_v2_v2_int(ms->disp_range, &ms->parseq->startdisp);
   return ms;
-}
-
-void SEQ_meta_stack_free(Editing *ed, MetaStack *ms)
-{
-  BLI_remlink(&ed->metastack, ms);
-  MEM_freeN(ms);
 }
 
 MetaStack *SEQ_meta_stack_active_get(const Editing *ed)
@@ -421,6 +421,41 @@ MetaStack *SEQ_meta_stack_active_get(const Editing *ed)
   }
 
   return ed->metastack.last;
+}
+
+void SEQ_meta_stack_set(const Scene *scene, Sequence *seqm)
+{
+  Editing *ed = SEQ_editing_get(scene);
+  /* Clear metastack */
+  BLI_freelistN(&ed->metastack);
+
+  if (seqm != NULL) {
+    /* Allocate meta stack in a way, that represents meta hierarchy in timeline. */
+    seq_meta_stack_alloc(scene, seqm);
+    Sequence *meta_parent = seqm;
+    while (meta_parent = seq_sequence_lookup_meta_by_seq(scene, meta_parent)) {
+      seq_meta_stack_alloc(scene, meta_parent);
+    }
+
+    SEQ_seqbase_active_set(ed, &seqm->seqbase);
+    SEQ_channels_displayed_set(ed, &seqm->channels);
+  }
+  else {
+    /* Go to top level, exiting meta strip. */
+    SEQ_seqbase_active_set(ed, &ed->seqbase);
+    SEQ_channels_displayed_set(ed, &ed->channels);
+  }
+}
+
+Sequence *SEQ_meta_stack_pop(Editing *ed)
+{
+  MetaStack *ms = SEQ_meta_stack_active_get(ed);
+  Sequence *meta_parent = ms->parseq;
+  SEQ_seqbase_active_set(ed, ms->oldbasep);
+  SEQ_channels_displayed_set(ed, ms->old_channels);
+  BLI_remlink(&ed->metastack, ms);
+  MEM_freeN(ms);
+  return meta_parent;
 }
 
 /** \} */
