@@ -297,7 +297,7 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Mesh_update_positions_tag(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-  Mesh *mesh = (Mesh *)ptr->data;
+  Mesh *mesh = rna_mesh(ptr);
   BKE_mesh_tag_coords_changed(mesh);
   rna_Mesh_update_data_legacy_deg_tag_all(bmain, scene, ptr);
 }
