@@ -493,13 +493,13 @@ void gpu::MTLTexture::update_sub_depth_2d(
     int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data)
 {
   /* Verify we are in a valid configuration. */
-  BLI_assert(ELEM(this->format_,
+  BLI_assert(ELEM(format_,
                   GPU_DEPTH_COMPONENT24,
                   GPU_DEPTH_COMPONENT32F,
                   GPU_DEPTH_COMPONENT16,
                   GPU_DEPTH24_STENCIL8,
                   GPU_DEPTH32F_STENCIL8));
-  BLI_assert(validate_data_format_mtl(this->format_, type));
+  BLI_assert(validate_data_format_mtl(format_, type));
   BLI_assert(ELEM(type, GPU_DATA_FLOAT, GPU_DATA_UINT_24_8, GPU_DATA_UINT));
 
   /* Determine whether we are in GPU_DATA_UINT_24_8 or GPU_DATA_FLOAT mode. */
@@ -528,7 +528,7 @@ void gpu::MTLTexture::update_sub_depth_2d(
 
   /* Push contents into an r32_tex and render contents to depth using a shader. */
   GPUTexture *r32_tex_tmp = GPU_texture_create_2d(
-      "depth_intermediate_copy_tex", this->w_, this->h_, 1, format, nullptr);
+      "depth_intermediate_copy_tex", w_, h_, 1, format, nullptr);
   GPU_texture_filter_mode(r32_tex_tmp, false);
   GPU_texture_wrap_mode(r32_tex_tmp, false, true);
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(unwrap(r32_tex_tmp));
@@ -538,7 +538,7 @@ void gpu::MTLTexture::update_sub_depth_2d(
   GPUFrameBuffer *depth_fb_temp = GPU_framebuffer_create("depth_intermediate_copy_fb");
   GPU_framebuffer_texture_attach(depth_fb_temp, wrap(static_cast<Texture *>(this)), 0, mip);
   GPU_framebuffer_bind(depth_fb_temp);
-  if (extent[0] == this->w_ && extent[1] == this->h_) {
+  if (extent[0] == w_ && extent[1] == h_) {
     /* Skip load if the whole texture is being updated. */
     GPU_framebuffer_clear_depth(depth_fb_temp, 0.0);
     GPU_framebuffer_clear_stencil(depth_fb_temp, 0);
@@ -553,7 +553,7 @@ void gpu::MTLTexture::update_sub_depth_2d(
   GPU_batch_uniform_1i(quad, "mip", mip);
   GPU_batch_uniform_2f(quad, "extent", (float)extent[0], (float)extent[1]);
   GPU_batch_uniform_2f(quad, "offset", (float)offset[0], (float)offset[1]);
-  GPU_batch_uniform_2f(quad, "size", (float)this->w_, (float)this->h_);
+  GPU_batch_uniform_2f(quad, "size", (float)w_, (float)h_);
 
   bool depth_write_prev = GPU_depth_mask_get();
   uint stencil_mask_prev = GPU_stencil_mask_get();
@@ -624,11 +624,11 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(
           depth_scale_factor = 1;
           break;
         case 2:
-          /* D24 unsigned int */
+          /* D24 uint */
           depth_scale_factor = 0xFFFFFFu;
           break;
         case 4:
-          /* D32 unsigned int */
+          /* D32 uint */
           depth_scale_factor = 0xFFFFFFFFu;
           break;
         default:

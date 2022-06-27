@@ -8,6 +8,7 @@
 #include "GPU_framebuffer.h"
 
 #include "mtl_context.hh"
+#include "mtl_framebuffer.hh"
 #include "mtl_state.hh"
 
 namespace blender::gpu {
@@ -18,14 +19,14 @@ namespace blender::gpu {
 
 void MTLStateManager::mtl_state_init(void)
 {
-  BLI_assert(this->context_);
-  this->context_->pipeline_state_init();
+  BLI_assert(context_);
+  context_->pipeline_state_init();
 }
 
 MTLStateManager::MTLStateManager(MTLContext *ctx) : StateManager()
 {
   /* Initialize State. */
-  this->context_ = ctx;
+  context_ = ctx;
   mtl_state_init();
 
   /* Force update using default state. */
@@ -39,8 +40,9 @@ void MTLStateManager::apply_state(void)
 {
   this->set_state(this->state);
   this->set_mutable_state(this->mutable_state);
-  /* TODO(Metal): Enable after integration of MTLFrameBuffer. */
-  /* static_cast<MTLFrameBuffer *>(this->context_->active_fb)->apply_state(); */
+
+  /* Apply active FrameBuffer state. */
+  static_cast<MTLFrameBuffer *>(context_->active_fb)->apply_state();
 };
 
 void MTLStateManager::force_state(void)
@@ -103,10 +105,10 @@ void MTLStateManager::set_state(const GPUState &state)
 
 void MTLStateManager::mtl_depth_range(float near, float far)
 {
-  BLI_assert(this->context_);
+  BLI_assert(context_);
   BLI_assert(near >= 0.0 && near < 1.0);
   BLI_assert(far > 0.0 && far <= 1.0);
-  MTLContextGlobalShaderPipelineState &pipeline_state = this->context_->pipeline_state;
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
   MTLContextDepthStencilState &ds_state = pipeline_state.depth_stencil_state;
 
   ds_state.depth_range_near = near;
@@ -117,7 +119,7 @@ void MTLStateManager::mtl_depth_range(float near, float far)
 void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
 {
   GPUStateMutable changed = state ^ current_mutable_;
-  MTLContextGlobalShaderPipelineState &pipeline_state = this->context_->pipeline_state;
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
 
   if (float_as_uint(changed.point_size) != 0) {
     pipeline_state.point_size = state.point_size;
@@ -150,8 +152,8 @@ void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
 
 void MTLStateManager::set_write_mask(const eGPUWriteMask value)
 {
-  BLI_assert(this->context_);
-  MTLContextGlobalShaderPipelineState &pipeline_state = this->context_->pipeline_state;
+  BLI_assert(context_);
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
   pipeline_state.depth_stencil_state.depth_write_enable = ((value & GPU_WRITE_DEPTH) != 0);
   pipeline_state.color_write_mask =
       (((value & GPU_WRITE_RED) != 0) ? MTLColorWriteMaskRed : MTLColorWriteMaskNone) |
@@ -205,8 +207,8 @@ static MTLCompareFunction gpu_stencil_func_to_metal(eGPUStencilTest stencil_func
 
 void MTLStateManager::set_depth_test(const eGPUDepthTest value)
 {
-  BLI_assert(this->context_);
-  MTLContextGlobalShaderPipelineState &pipeline_state = this->context_->pipeline_state;
+  BLI_assert(context_);
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
   MTLContextDepthStencilState &ds_state = pipeline_state.depth_stencil_state;
 
   ds_state.depth_test_enabled = (value != GPU_DEPTH_NONE);
@@ -214,20 +216,18 @@ void MTLStateManager::set_depth_test(const eGPUDepthTest value)
   pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_DEPTHSTENCIL_FLAG;
 }
 
-void MTLStateManager::mtl_stencil_mask(unsigned int mask)
+void MTLStateManager::mtl_stencil_mask(uint mask)
 {
-  BLI_assert(this->context_);
-  MTLContextGlobalShaderPipelineState &pipeline_state = this->context_->pipeline_state;
+  BLI_assert(context_);
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
   pipeline_state.depth_stencil_state.stencil_write_mask = mask;
   pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_DEPTHSTENCIL_FLAG;
 }
 
-void MTLStateManager::mtl_stencil_set_func(eGPUStencilTest stencil_func,
-                                           int ref,
-                                           unsigned int mask)
+void MTLStateManager::mtl_stencil_set_func(eGPUStencilTest stencil_func, int ref, uint mask)
 {
-  BLI_assert(this->context_);
-  MTLContextGlobalShaderPipelineState &pipeline_state = this->context_->pipeline_state;
+  BLI_assert(context_);
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
   MTLContextDepthStencilState &ds_state = pipeline_state.depth_stencil_state;
 
   ds_state.stencil_func = gpu_stencil_func_to_metal(stencil_func);
@@ -275,19 +275,17 @@ void MTLStateManager::set_stencil_test(const eGPUStencilTest test, const eGPUSte
 {
   switch (operation) {
     case GPU_STENCIL_OP_REPLACE:
-      mtl_stencil_set_op(this->context_,
-                         MTLStencilOperationKeep,
-                         MTLStencilOperationKeep,
-                         MTLStencilOperationReplace);
+      mtl_stencil_set_op(
+          context_, MTLStencilOperationKeep, MTLStencilOperationKeep, MTLStencilOperationReplace);
       break;
     case GPU_STENCIL_OP_COUNT_DEPTH_PASS:
       /* Winding inversed due to flipped Y coordinate system in Metal. */
-      mtl_stencil_set_op_separate(this->context_,
+      mtl_stencil_set_op_separate(context_,
                                   GPU_CULL_FRONT,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationIncrementWrap);
-      mtl_stencil_set_op_separate(this->context_,
+      mtl_stencil_set_op_separate(context_,
                                   GPU_CULL_BACK,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationKeep,
@@ -295,12 +293,12 @@ void MTLStateManager::set_stencil_test(const eGPUStencilTest test, const eGPUSte
       break;
     case GPU_STENCIL_OP_COUNT_DEPTH_FAIL:
       /* Winding inversed due to flipped Y coordinate system in Metal. */
-      mtl_stencil_set_op_separate(this->context_,
+      mtl_stencil_set_op_separate(context_,
                                   GPU_CULL_FRONT,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationDecrementWrap,
                                   MTLStencilOperationKeep);
-      mtl_stencil_set_op_separate(this->context_,
+      mtl_stencil_set_op_separate(context_,
                                   GPU_CULL_BACK,
                                   MTLStencilOperationKeep,
                                   MTLStencilOperationIncrementWrap,
@@ -308,14 +306,12 @@ void MTLStateManager::set_stencil_test(const eGPUStencilTest test, const eGPUSte
       break;
     case GPU_STENCIL_OP_NONE:
     default:
-      mtl_stencil_set_op(this->context_,
-                         MTLStencilOperationKeep,
-                         MTLStencilOperationKeep,
-                         MTLStencilOperationKeep);
+      mtl_stencil_set_op(
+          context_, MTLStencilOperationKeep, MTLStencilOperationKeep, MTLStencilOperationKeep);
   }
 
-  BLI_assert(this->context_);
-  MTLContextGlobalShaderPipelineState &pipeline_state = this->context_->pipeline_state;
+  BLI_assert(context_);
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
   pipeline_state.depth_stencil_state.stencil_test_enabled = (test != GPU_STENCIL_NONE);
   pipeline_state.dirty_flags |= MTL_PIPELINE_STATE_DEPTHSTENCIL_FLAG;
 }
@@ -347,8 +343,8 @@ void MTLStateManager::set_logic_op(const bool enable)
 void MTLStateManager::set_facing(const bool invert)
 {
   /* Check Current Context. */
-  BLI_assert(this->context_);
-  MTLContextGlobalShaderPipelineState &pipeline_state = this->context_->pipeline_state;
+  BLI_assert(context_);
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
 
   /* Apply State -- opposite of GL, as METAL default is GPU_CLOCKWISE, GL default is
    * COUNTERCLOCKWISE. This needs to be the inverse of the default. */
@@ -362,8 +358,8 @@ void MTLStateManager::set_facing(const bool invert)
 void MTLStateManager::set_backface_culling(const eGPUFaceCullTest test)
 {
   /* Check Current Context. */
-  BLI_assert(this->context_);
-  MTLContextGlobalShaderPipelineState &pipeline_state = this->context_->pipeline_state;
+  BLI_assert(context_);
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
 
   /* Apply State. */
   pipeline_state.culling_enabled = (test != GPU_CULL_NONE);
@@ -386,8 +382,8 @@ void MTLStateManager::set_provoking_vert(const eGPUProvokingVertex vert)
 void MTLStateManager::set_shadow_bias(const bool enable)
 {
   /* Check Current Context. */
-  BLI_assert(this->context_);
-  MTLContextGlobalShaderPipelineState &pipeline_state = this->context_->pipeline_state;
+  BLI_assert(context_);
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
   MTLContextDepthStencilState &ds_state = pipeline_state.depth_stencil_state;
 
   /* Apply State. */
@@ -500,8 +496,8 @@ void MTLStateManager::set_blend(const eGPUBlend value)
   }
 
   /* Check Current Context. */
-  BLI_assert(this->context_);
-  MTLContextGlobalShaderPipelineState &pipeline_state = this->context_->pipeline_state;
+  BLI_assert(context_);
+  MTLContextGlobalShaderPipelineState &pipeline_state = context_->pipeline_state;
 
   if (value == GPU_BLEND_SUBTRACT) {
     pipeline_state.rgb_blend_op = MTLBlendOperationReverseSubtract;
@@ -549,58 +545,18 @@ void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits)
 
   MTLContext *ctx = reinterpret_cast<MTLContext *>(GPU_context_active_get());
   BLI_assert(ctx);
-  if (ctx->is_render_pass_active()) {
 
-    /* Apple Silicon does not support memory barriers.
-     * We do not currently need these due to implicit API guarantees.
-     * NOTE(Metal): MTLFence/MTLEvent may be required to synchronize work if
-     * untracked resources are ever used. */
-    if ([ctx->device hasUnifiedMemory]) {
-      return;
-    }
-
-    /* Issue barrier. */
-    /* TODO(Metal): To be completed pending implementation of RenderCommandEncoder management. */
-    id<MTLRenderCommandEncoder> rec = nil;  // ctx->get_active_render_command_encoder();
-    BLI_assert(rec);
-
-    /* Only supporting Metal on 10.15 onward anyway - Check required for warnings. */
-    if (@available(macOS 10.14, *)) {
-      MTLBarrierScope scope = 0;
-      if (barrier_bits & GPU_BARRIER_SHADER_IMAGE_ACCESS ||
-          barrier_bits & GPU_BARRIER_TEXTURE_FETCH) {
-        scope = scope | MTLBarrierScopeTextures | MTLBarrierScopeRenderTargets;
-      }
-      if (barrier_bits & GPU_BARRIER_SHADER_STORAGE ||
-          barrier_bits & GPU_BARRIER_VERTEX_ATTRIB_ARRAY ||
-          barrier_bits & GPU_BARRIER_ELEMENT_ARRAY) {
-        scope = scope | MTLBarrierScopeBuffers;
-      }
-
-      MTLRenderStages before_stage_flags = 0;
-      MTLRenderStages after_stage_flags = 0;
-      if (before_stages & GPU_BARRIER_STAGE_VERTEX &&
-          !(before_stages & GPU_BARRIER_STAGE_FRAGMENT)) {
-        before_stage_flags = before_stage_flags | MTLRenderStageVertex;
-      }
-      if (before_stages & GPU_BARRIER_STAGE_FRAGMENT) {
-        before_stage_flags = before_stage_flags | MTLRenderStageFragment;
-      }
-      if (after_stages & GPU_BARRIER_STAGE_VERTEX) {
-        after_stage_flags = after_stage_flags | MTLRenderStageVertex;
-      }
-      if (after_stages & GPU_BARRIER_STAGE_FRAGMENT) {
-        after_stage_flags = MTLRenderStageFragment;
-      }
-
-      if (scope != 0) {
-        [rec memoryBarrierWithScope:scope
-                        afterStages:after_stage_flags
-                       beforeStages:before_stage_flags];
-      }
-    }
+  /* Apple Silicon does not support memory barriers.
+   * We do not currently need these due to implicit API guarantees.
+   * Note(Metal): MTLFence/MTLEvent may be required to synchronize work if
+   * untracked resources are ever used. */
+  if ([ctx->device hasUnifiedMemory]) {
+    return;
   }
+
+  ctx->main_command_buffer.insert_memory_barrier(barrier_bits, before_stages, after_stages);
 }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

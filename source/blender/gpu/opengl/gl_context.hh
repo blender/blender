@@ -106,6 +106,8 @@ class GLContext : public Context {
 
   void activate() override;
   void deactivate() override;
+  void begin_frame() override;
+  void end_frame() override;
 
   void flush() override;
   void finish() override;

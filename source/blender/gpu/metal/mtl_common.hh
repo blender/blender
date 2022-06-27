@@ -6,5 +6,6 @@
 // -- Renderer Options --
 #define MTL_MAX_SET_BYTES_SIZE 4096
 #define MTL_FORCE_WAIT_IDLE 0
+#define MTL_MAX_COMMAND_BUFFERS 64
 
 #endif

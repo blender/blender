@@ -23,13 +23,6 @@
 
 #include "GHOST_C-api.h"
 
-/* Debug assistance. */
-/* Capture texture update routine for analysis in XCode GPU Frame Debugger. */
-#define DEBUG_TEXTURE_UPDATE_CAPTURE false
-
-/* Capture texture read routine for analysis in XCode GPU Frame Debugger. */
-#define DEBUG_TEXTURE_READ_CAPTURE false
-
 namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
@@ -41,34 +34,34 @@ void gpu::MTLTexture::mtl_texture_init()
   BLI_assert(MTLContext::get() != nullptr);
 
   /* Status. */
-  this->is_baked_ = false;
-  this->is_dirty_ = false;
-  this->resource_mode_ = MTL_TEXTURE_MODE_DEFAULT;
-  this->mtl_max_mips_ = 1;
+  is_baked_ = false;
+  is_dirty_ = false;
+  resource_mode_ = MTL_TEXTURE_MODE_DEFAULT;
+  mtl_max_mips_ = 1;
 
   /* Metal properties. */
-  this->texture_ = nil;
-  this->texture_buffer_ = nil;
-  this->mip_swizzle_view_ = nil;
+  texture_ = nil;
+  texture_buffer_ = nil;
+  mip_swizzle_view_ = nil;
 
   /* Binding information. */
-  this->is_bound_ = false;
+  is_bound_ = false;
 
   /* VBO. */
-  this->vert_buffer_ = nullptr;
-  this->vert_buffer_mtl_ = nil;
-  this->vert_buffer_offset_ = -1;
+  vert_buffer_ = nullptr;
+  vert_buffer_mtl_ = nil;
+  vert_buffer_offset_ = -1;
 
   /* Default Swizzle. */
-  this->tex_swizzle_mask_[0] = 'r';
-  this->tex_swizzle_mask_[1] = 'g';
-  this->tex_swizzle_mask_[2] = 'b';
-  this->tex_swizzle_mask_[3] = 'a';
-  this->mtl_swizzle_mask_ = MTLTextureSwizzleChannelsMake(
+  tex_swizzle_mask_[0] = 'r';
+  tex_swizzle_mask_[1] = 'g';
+  tex_swizzle_mask_[2] = 'b';
+  tex_swizzle_mask_[3] = 'a';
+  mtl_swizzle_mask_ = MTLTextureSwizzleChannelsMake(
       MTLTextureSwizzleRed, MTLTextureSwizzleGreen, MTLTextureSwizzleBlue, MTLTextureSwizzleAlpha);
 
   /* TODO(Metal): Find a way of specifying texture usage externally. */
-  this->gpu_image_usage_flags_ = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+  gpu_image_usage_flags_ = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
 }
 
 gpu::MTLTexture::MTLTexture(const char *name) : Texture(name)
@@ -89,23 +82,23 @@ gpu::MTLTexture::MTLTexture(const char *name,
   /* Prep texture from METAL handle. */
   BLI_assert(metal_texture != nil);
   BLI_assert(type == GPU_TEXTURE_2D);
-  this->type_ = type;
+  type_ = type;
   init_2D(metal_texture.width, metal_texture.height, 0, 1, format);
 
   /* Assign MTLTexture. */
-  this->texture_ = metal_texture;
-  [this->texture_ retain];
+  texture_ = metal_texture;
+  [texture_ retain];
 
   /* Flag as Baked. */
-  this->is_baked_ = true;
-  this->is_dirty_ = false;
-  this->resource_mode_ = MTL_TEXTURE_MODE_EXTERNAL;
+  is_baked_ = true;
+  is_dirty_ = false;
+  resource_mode_ = MTL_TEXTURE_MODE_EXTERNAL;
 }
 
 gpu::MTLTexture::~MTLTexture()
 {
   /* Unbind if bound. */
-  if (this->is_bound_) {
+  if (is_bound_) {
     MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
     if (ctx != nullptr) {
       ctx->state_manager->texture_unbind(this);
@@ -123,49 +116,49 @@ void gpu::MTLTexture::bake_mip_swizzle_view()
 {
   if (texture_view_dirty_flags_) {
     /* if a texture view was previously created we release it. */
-    if (this->mip_swizzle_view_ != nil) {
-      [this->mip_swizzle_view_ release];
+    if (mip_swizzle_view_ != nil) {
+      [mip_swizzle_view_ release];
+      mip_swizzle_view_ = nil;
     }
 
     /* Determine num slices */
     int num_slices = 1;
-    switch (this->type_) {
+    switch (type_) {
       case GPU_TEXTURE_1D_ARRAY:
-        num_slices = this->h_;
+        num_slices = h_;
         break;
       case GPU_TEXTURE_2D_ARRAY:
-        num_slices = this->d_;
+        num_slices = d_;
         break;
       case GPU_TEXTURE_CUBE:
         num_slices = 6;
         break;
       case GPU_TEXTURE_CUBE_ARRAY:
         /* d_ is equal to array levels * 6, including face count. */
-        num_slices = this->d_;
+        num_slices = d_;
         break;
       default:
         num_slices = 1;
         break;
     }
 
-    int range_len = min_ii((this->mip_texture_max_level_ - this->mip_texture_base_level_) + 1,
-                           this->texture_.mipmapLevelCount);
+    int range_len = min_ii((mip_texture_max_level_ - mip_texture_base_level_) + 1,
+                           texture_.mipmapLevelCount);
     BLI_assert(range_len > 0);
-    BLI_assert(mip_texture_base_level_ < this->texture_.mipmapLevelCount);
-    BLI_assert(this->mip_texture_base_layer_ < num_slices);
-    this->mip_swizzle_view_ = [this->texture_
-        newTextureViewWithPixelFormat:this->texture_.pixelFormat
-                          textureType:this->texture_.textureType
-                               levels:NSMakeRange(this->mip_texture_base_level_, range_len)
-                               slices:NSMakeRange(this->mip_texture_base_layer_, num_slices)
-                              swizzle:this->mtl_swizzle_mask_];
+    BLI_assert(mip_texture_base_level_ < texture_.mipmapLevelCount);
+    BLI_assert(mip_texture_base_layer_ < num_slices);
+    mip_swizzle_view_ = [texture_
+        newTextureViewWithPixelFormat:texture_.pixelFormat
+                          textureType:texture_.textureType
+                               levels:NSMakeRange(mip_texture_base_level_, range_len)
+                               slices:NSMakeRange(mip_texture_base_layer_, num_slices)
+                              swizzle:mtl_swizzle_mask_];
     MTL_LOG_INFO(
         "Updating texture view - MIP TEXTURE BASE LEVEL: %d, MAX LEVEL: %d (Range len: %d)\n",
-        this->mip_texture_base_level_,
-        min_ii(this->mip_texture_max_level_, this->texture_.mipmapLevelCount),
+        mip_texture_base_level_,
+        min_ii(mip_texture_max_level_, texture_.mipmapLevelCount),
         range_len);
-    [this->mip_swizzle_view_ retain];
-    this->mip_swizzle_view_.label = [this->texture_ label];
+    mip_swizzle_view_.label = [texture_ label];
     texture_view_dirty_flags_ = TEXTURE_VIEW_NOT_DIRTY;
   }
 }
@@ -180,29 +173,29 @@ id<MTLTexture> gpu::MTLTexture::get_metal_handle()
   this->ensure_baked();
 
   /* Verify VBO texture shares same buffer. */
-  if (this->resource_mode_ == MTL_TEXTURE_MODE_VBO) {
+  if (resource_mode_ == MTL_TEXTURE_MODE_VBO) {
     int r_offset = -1;
 
     /* TODO(Metal): Fetch buffer from MTLVertBuf when implemented. */
     id<MTLBuffer> buf = nil; /*vert_buffer_->get_metal_buffer(&r_offset);*/
-    BLI_assert(this->vert_buffer_mtl_ != nil);
-    BLI_assert(buf == this->vert_buffer_mtl_ && r_offset == this->vert_buffer_offset_);
+    BLI_assert(vert_buffer_mtl_ != nil);
+    BLI_assert(buf == vert_buffer_mtl_ && r_offset == vert_buffer_offset_);
 
     UNUSED_VARS(buf);
     UNUSED_VARS_NDEBUG(r_offset);
   }
 
-  if (this->is_baked_) {
+  if (is_baked_) {
     /* For explicit texture views, ensure we always return the texture view. */
-    if (this->resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW) {
-      BLI_assert(this->mip_swizzle_view_ && "Texture view should always have a valid handle.");
+    if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW) {
+      BLI_assert(mip_swizzle_view_ && "Texture view should always have a valid handle.");
     }
 
-    if (this->mip_swizzle_view_ != nil || texture_view_dirty_flags_) {
+    if (mip_swizzle_view_ != nil || texture_view_dirty_flags_) {
       bake_mip_swizzle_view();
-      return this->mip_swizzle_view_;
+      return mip_swizzle_view_;
     }
-    return this->texture_;
+    return texture_;
   }
   return nil;
 }
@@ -214,36 +207,36 @@ id<MTLTexture> gpu::MTLTexture::get_metal_handle_base()
   this->ensure_baked();
 
   /* For explicit texture views, always return the texture view. */
-  if (this->resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW) {
-    BLI_assert(this->mip_swizzle_view_ && "Texture view should always have a valid handle.");
-    if (this->mip_swizzle_view_ != nil || texture_view_dirty_flags_) {
+  if (resource_mode_ == MTL_TEXTURE_MODE_TEXTURE_VIEW) {
+    BLI_assert(mip_swizzle_view_ && "Texture view should always have a valid handle.");
+    if (mip_swizzle_view_ != nil || texture_view_dirty_flags_) {
       bake_mip_swizzle_view();
     }
-    return this->mip_swizzle_view_;
+    return mip_swizzle_view_;
   }
 
   /* Return base handle. */
-  if (this->is_baked_) {
-    return this->texture_;
+  if (is_baked_) {
+    return texture_;
   }
   return nil;
 }
 
 void gpu::MTLTexture::blit(id<MTLBlitCommandEncoder> blit_encoder,
-                           unsigned int src_x_offset,
-                           unsigned int src_y_offset,
-                           unsigned int src_z_offset,
-                           unsigned int src_slice,
-                           unsigned int src_mip,
+                           uint src_x_offset,
+                           uint src_y_offset,
+                           uint src_z_offset,
+                           uint src_slice,
+                           uint src_mip,
                            gpu::MTLTexture *dest,
-                           unsigned int dst_x_offset,
-                           unsigned int dst_y_offset,
-                           unsigned int dst_z_offset,
-                           unsigned int dst_slice,
-                           unsigned int dst_mip,
-                           unsigned int width,
-                           unsigned int height,
-                           unsigned int depth)
+                           uint dst_x_offset,
+                           uint dst_y_offset,
+                           uint dst_z_offset,
+                           uint dst_slice,
+                           uint dst_mip,
+                           uint width,
+                           uint height,
+                           uint depth)
 {
 
   BLI_assert(this && dest);
@@ -273,13 +266,13 @@ void gpu::MTLTexture::blit(id<MTLBlitCommandEncoder> blit_encoder,
 }
 
 void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
-                           unsigned int src_x_offset,
-                           unsigned int src_y_offset,
-                           unsigned int dst_x_offset,
-                           unsigned int dst_y_offset,
-                           unsigned int src_mip,
-                           unsigned int dst_mip,
-                           unsigned int dst_slice,
+                           uint src_x_offset,
+                           uint src_y_offset,
+                           uint dst_x_offset,
+                           uint dst_y_offset,
+                           uint src_mip,
+                           uint dst_mip,
+                           uint dst_slice,
                            int width,
                            int height)
 {
@@ -348,19 +341,19 @@ void gpu::MTLTexture::blit(gpu::MTLTexture *dst,
   }
 }
 
-GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(unsigned int dst_slice, unsigned int dst_mip)
+GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(uint dst_slice, uint dst_mip)
 {
 
   /* Check if layer has changed. */
   bool update_attachments = false;
-  if (!this->blit_fb_) {
-    this->blit_fb_ = GPU_framebuffer_create("gpu_blit");
+  if (!blit_fb_) {
+    blit_fb_ = GPU_framebuffer_create("gpu_blit");
     update_attachments = true;
   }
 
   /* Check if current blit FB has the correct attachment properties. */
-  if (this->blit_fb_) {
-    if (this->blit_fb_slice_ != dst_slice || this->blit_fb_mip_ != dst_mip) {
+  if (blit_fb_) {
+    if (blit_fb_slice_ != dst_slice || blit_fb_mip_ != dst_mip) {
       update_attachments = true;
     }
   }
@@ -369,7 +362,7 @@ GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(unsigned int dst_slice, un
     if (format_flag_ & GPU_FORMAT_DEPTH || format_flag_ & GPU_FORMAT_STENCIL) {
       /* DEPTH TEX */
       GPU_framebuffer_ensure_config(
-          &this->blit_fb_,
+          &blit_fb_,
           {GPU_ATTACHMENT_TEXTURE_LAYER_MIP(wrap(static_cast<Texture *>(this)),
                                             static_cast<int>(dst_slice),
                                             static_cast<int>(dst_mip)),
@@ -378,18 +371,18 @@ GPUFrameBuffer *gpu::MTLTexture::get_blit_framebuffer(unsigned int dst_slice, un
     else {
       /* COLOR TEX */
       GPU_framebuffer_ensure_config(
-          &this->blit_fb_,
+          &blit_fb_,
           {GPU_ATTACHMENT_NONE,
            GPU_ATTACHMENT_TEXTURE_LAYER_MIP(wrap(static_cast<Texture *>(this)),
                                             static_cast<int>(dst_slice),
                                             static_cast<int>(dst_mip))});
     }
-    this->blit_fb_slice_ = dst_slice;
-    this->blit_fb_mip_ = dst_mip;
+    blit_fb_slice_ = dst_slice;
+    blit_fb_mip_ = dst_mip;
   }
 
-  BLI_assert(this->blit_fb_);
-  return this->blit_fb_;
+  BLI_assert(blit_fb_);
+  return blit_fb_;
 }
 
 MTLSamplerState gpu::MTLTexture::get_sampler_state()
@@ -408,7 +401,7 @@ void gpu::MTLTexture::update_sub(
   BLI_assert(ctx);
 
   /* Do not update texture view. */
-  BLI_assert(this->resource_mode_ != MTL_TEXTURE_MODE_TEXTURE_VIEW);
+  BLI_assert(resource_mode_ != MTL_TEXTURE_MODE_TEXTURE_VIEW);
 
   /* Ensure mipmaps. */
   this->ensure_mipmaps(mip);
@@ -418,16 +411,16 @@ void gpu::MTLTexture::update_sub(
 
   /* Safety checks. */
 #if TRUST_NO_ONE
-  BLI_assert(mip >= this->mip_min_ && mip <= this->mip_max_);
-  BLI_assert(mip < this->texture_.mipmapLevelCount);
-  BLI_assert(this->texture_.mipmapLevelCount >= this->mip_max_);
+  BLI_assert(mip >= mip_min_ && mip <= mip_max_);
+  BLI_assert(mip < texture_.mipmapLevelCount);
+  BLI_assert(texture_.mipmapLevelCount >= mip_max_);
 #endif
 
   /* DEPTH FLAG - Depth formats cannot use direct BLIT - pass off to their own routine which will
    * do a depth-only render. */
-  bool is_depth_format = (this->format_flag_ & GPU_FORMAT_DEPTH);
+  bool is_depth_format = (format_flag_ & GPU_FORMAT_DEPTH);
   if (is_depth_format) {
-    switch (this->type_) {
+    switch (type_) {
 
       case GPU_TEXTURE_2D: {
         update_sub_depth_2d(mip, offset, extent, type, data);
@@ -444,7 +437,7 @@ void gpu::MTLTexture::update_sub(
 
   @autoreleasepool {
     /* Determine totalsize of INPUT Data. */
-    int num_channels = to_component_len(this->format_);
+    int num_channels = to_component_len(format_);
     int input_bytes_per_pixel = num_channels * to_bytesize(type);
     int totalsize = 0;
 
@@ -482,7 +475,7 @@ void gpu::MTLTexture::update_sub(
     BLI_assert(totalsize > 0);
 
     /* Determine expected destination data size. */
-    MTLPixelFormat destination_format = gpu_texture_format_to_metal(this->format_);
+    MTLPixelFormat destination_format = gpu_texture_format_to_metal(format_);
     int expected_dst_bytes_per_pixel = get_mtl_format_bytesize(destination_format);
     int destination_num_channels = get_mtl_format_num_components(destination_format);
     int destination_totalsize = 0;
@@ -517,21 +510,21 @@ void gpu::MTLTexture::update_sub(
       can_use_direct_blit = false;
     }
 
-#if MTL_VALIDATION_CRASH_DEPTH_1_1_1_WA
-    if (this->type_ == GPU_TEXTURE_2D || this->type_ == GPU_TEXTURE_2D_ARRAY) {
-      /* Workaround for crash in validation layer when blitting to depth2D target with
-       * dimensions (1, 1, 1); */
-      if (extent[0] == 1 && extent[1] == 1 && extent[2] == 1 && totalsize == 4) {
-        can_use_direct_blit = false;
+    if (is_depth_format) {
+      if (type_ == GPU_TEXTURE_2D || type_ == GPU_TEXTURE_2D_ARRAY) {
+        /* Workaround for crash in validation layer when blitting to depth2D target with
+         * dimensions (1, 1, 1); */
+        if (extent[0] == 1 && extent[1] == 1 && extent[2] == 1 && totalsize == 4) {
+          can_use_direct_blit = false;
+        }
       }
     }
-#endif
 
-    if (this->format_ == GPU_SRGB8_A8 && !can_use_direct_blit) {
+    if (format_ == GPU_SRGB8_A8 && !can_use_direct_blit) {
       MTL_LOG_WARNING(
           "SRGB data upload does not work correctly using compute upload. "
           "texname '%s'\n",
-          this->name_);
+          name_);
     }
 
     /* Safety Checks. */
@@ -573,35 +566,6 @@ void gpu::MTLTexture::update_sub(
       }
     }
 
-    /* Debug hook for performing GPU capture of routine. */
-    bool DO_CAPTURE = false;
-#if DEBUG_TEXTURE_UPDATE_CAPTURE == 1
-    DO_CAPTURE = true;
-    if (DO_CAPTURE) {
-      MTLCaptureManager *capture_manager = [MTLCaptureManager sharedCaptureManager];
-      MTLCaptureDescriptor *capture_descriptor = [[MTLCaptureDescriptor alloc] init];
-      capture_descriptor.captureObject = ctx->device;
-      NSError *error;
-      if (![capture_manager startCaptureWithDescriptor:capture_descriptor error:&error]) {
-        NSString *error_str = [NSString stringWithFormat:@"%@", error];
-        const char *error_c_str = [error_str UTF8String];
-        MTL_LOG_ERROR("Failed to start capture. Error: %s\n", error_c_str);
-      }
-    }
-#endif
-
-    /* Fetch or Create command buffer. */
-    id<MTLCommandBuffer> cmd_buffer = ctx->get_active_command_buffer();
-    bool own_command_buffer = false;
-    if (cmd_buffer == nil || DO_CAPTURE) {
-      cmd_buffer = [ctx->queue commandBuffer];
-      own_command_buffer = true;
-    }
-    else {
-      /* Finish graphics work. */
-      ctx->end_render_pass();
-    }
-
     /* Prepare staging buffer for data. */
     id<MTLBuffer> staging_buffer = nil;
     unsigned long long staging_buffer_offset = 0;
@@ -611,11 +575,6 @@ void gpu::MTLTexture::update_sub(
     /* = ctx->get_memory_manager().scratch_buffer_allocate_range_aligned(totalsize, 256);*/
     memcpy(allocation.host_ptr, data, totalsize);
     staging_buffer = allocation.metal_buffer;
-    if (own_command_buffer) {
-      if (allocation.requires_flush()) {
-        [staging_buffer didModifyRange:NSMakeRange(allocation.buffer_offset, allocation.size)];
-      }
-    }
     staging_buffer_offset = allocation.buffer_offset;
 
     /* Common Properties. */
@@ -629,23 +588,23 @@ void gpu::MTLTexture::update_sub(
       return;
     }
     id<MTLTexture> texture_handle = ((compatible_write_format == destination_format)) ?
-                                        this->texture_ :
-                                        [this->texture_
+                                        texture_ :
+                                        [texture_
                                             newTextureViewWithPixelFormat:compatible_write_format];
 
-    /* Prepare encoders */
+    /* Prepare command encoders. */
     id<MTLBlitCommandEncoder> blit_encoder = nil;
     id<MTLComputeCommandEncoder> compute_encoder = nil;
     if (can_use_direct_blit) {
-      blit_encoder = [cmd_buffer blitCommandEncoder];
+      blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
       BLI_assert(blit_encoder != nil);
     }
     else {
-      compute_encoder = [cmd_buffer computeCommandEncoder];
+      compute_encoder = ctx->main_command_buffer.ensure_begin_compute_encoder();
       BLI_assert(compute_encoder != nil);
     }
 
-    switch (this->type_) {
+    switch (type_) {
 
       /* 1D */
       case GPU_TEXTURE_1D:
@@ -657,26 +616,26 @@ void gpu::MTLTexture::update_sub(
                                    extent[0] :
                                    ctx->pipeline_state.unpack_row_length);
           int bytes_per_image = bytes_per_row;
-          int max_array_index = ((this->type_ == GPU_TEXTURE_1D_ARRAY) ? extent[1] : 1);
+          int max_array_index = ((type_ == GPU_TEXTURE_1D_ARRAY) ? extent[1] : 1);
           for (int array_index = 0; array_index < max_array_index; array_index++) {
 
             int buffer_array_offset = staging_buffer_offset + (bytes_per_image * array_index);
-            [blit_encoder copyFromBuffer:staging_buffer
-                            sourceOffset:buffer_array_offset
-                       sourceBytesPerRow:bytes_per_row
-                     sourceBytesPerImage:bytes_per_image
-                              sourceSize:MTLSizeMake(extent[0], 1, 1)
-                               toTexture:texture_handle
-                        destinationSlice:((this->type_ == GPU_TEXTURE_1D_ARRAY) ?
-                                              (array_index + offset[1]) :
-                                              0)
-                        destinationLevel:mip
-                       destinationOrigin:MTLOriginMake(offset[0], 0, 0)];
+            [blit_encoder
+                     copyFromBuffer:staging_buffer
+                       sourceOffset:buffer_array_offset
+                  sourceBytesPerRow:bytes_per_row
+                sourceBytesPerImage:bytes_per_image
+                         sourceSize:MTLSizeMake(extent[0], 1, 1)
+                          toTexture:texture_handle
+                   destinationSlice:((type_ == GPU_TEXTURE_1D_ARRAY) ? (array_index + offset[1]) :
+                                                                       0)
+                   destinationLevel:mip
+                  destinationOrigin:MTLOriginMake(offset[0], 0, 0)];
           }
         }
         else {
           /* Use Compute Based update. */
-          if (this->type_ == GPU_TEXTURE_1D) {
+          if (type_ == GPU_TEXTURE_1D) {
             id<MTLComputePipelineState> pso = texture_update_1d_get_kernel(
                 compute_specialisation_kernel);
             TextureUpdateParams params = {mip,
@@ -693,7 +652,7 @@ void gpu::MTLTexture::update_sub(
                       dispatchThreads:MTLSizeMake(extent[0], 1, 1) /* Width, Height, Layer */
                 threadsPerThreadgroup:MTLSizeMake(64, 1, 1)];
           }
-          else if (this->type_ == GPU_TEXTURE_1D_ARRAY) {
+          else if (type_ == GPU_TEXTURE_1D_ARRAY) {
             id<MTLComputePipelineState> pso = texture_update_1d_array_get_kernel(
                 compute_specialisation_kernel);
             TextureUpdateParams params = {mip,
@@ -725,14 +684,14 @@ void gpu::MTLTexture::update_sub(
           int bytes_per_image = bytes_per_row * extent[1];
 
           int texture_array_relative_offset = 0;
-          int base_slice = (this->type_ == GPU_TEXTURE_2D_ARRAY) ? offset[2] : 0;
-          int final_slice = base_slice + ((this->type_ == GPU_TEXTURE_2D_ARRAY) ? extent[2] : 1);
+          int base_slice = (type_ == GPU_TEXTURE_2D_ARRAY) ? offset[2] : 0;
+          int final_slice = base_slice + ((type_ == GPU_TEXTURE_2D_ARRAY) ? extent[2] : 1);
 
           for (int array_slice = base_slice; array_slice < final_slice; array_slice++) {
 
             if (array_slice > 0) {
-              BLI_assert(this->type_ == GPU_TEXTURE_2D_ARRAY);
-              BLI_assert(array_slice < this->d_);
+              BLI_assert(type_ == GPU_TEXTURE_2D_ARRAY);
+              BLI_assert(array_slice < d_);
             }
 
             [blit_encoder copyFromBuffer:staging_buffer
@@ -750,7 +709,7 @@ void gpu::MTLTexture::update_sub(
         }
         else {
           /* Use Compute texture update. */
-          if (this->type_ == GPU_TEXTURE_2D) {
+          if (type_ == GPU_TEXTURE_2D) {
             id<MTLComputePipelineState> pso = texture_update_2d_get_kernel(
                 compute_specialisation_kernel);
             TextureUpdateParams params = {mip,
@@ -768,7 +727,7 @@ void gpu::MTLTexture::update_sub(
                                           extent[0], extent[1], 1) /* Width, Height, Layer */
                 threadsPerThreadgroup:MTLSizeMake(8, 8, 1)];
           }
-          else if (this->type_ == GPU_TEXTURE_2D_ARRAY) {
+          else if (type_ == GPU_TEXTURE_2D_ARRAY) {
             id<MTLComputePipelineState> pso = texture_update_2d_array_get_kernel(
                 compute_specialisation_kernel);
             TextureUpdateParams params = {mip,
@@ -918,35 +877,15 @@ void gpu::MTLTexture::update_sub(
       if (texture_.storageMode == MTLStorageModeManaged) {
         [blit_encoder synchronizeResource:texture_buffer_];
       }
-
-      /* End Encoding. */
-      [blit_encoder endEncoding];
     }
     else {
-
-      /* End Encoding. */
-      [compute_encoder endEncoding];
-
       /* Textures which use MTLStorageModeManaged need to have updated contents
        * synced back to CPU to avoid an automatic flush overwriting contents. */
       if (texture_.storageMode == MTLStorageModeManaged) {
-        blit_encoder = [cmd_buffer blitCommandEncoder];
+        blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
         [blit_encoder synchronizeResource:texture_buffer_];
-        [blit_encoder endEncoding];
       }
     }
-
-    if (own_command_buffer) {
-      [cmd_buffer commit];
-    }
-
-#if DEBUG_TEXTURE_UPDATE_CAPTURE == 1
-    if (DO_CAPTURE) {
-      [cmd_buffer waitUntilCompleted];
-      MTLCaptureManager *capture_manager = [MTLCaptureManager sharedCaptureManager];
-      [capture_manager stopCapture];
-    }
-#endif
   }
 }
 
@@ -954,12 +893,12 @@ void gpu::MTLTexture::ensure_mipmaps(int miplvl)
 {
 
   /* Do not update texture view. */
-  BLI_assert(this->resource_mode_ != MTL_TEXTURE_MODE_TEXTURE_VIEW);
+  BLI_assert(resource_mode_ != MTL_TEXTURE_MODE_TEXTURE_VIEW);
 
   /* Clamp level to maximum. */
-  int effective_h = (this->type_ == GPU_TEXTURE_1D_ARRAY) ? 0 : this->h_;
-  int effective_d = (this->type_ != GPU_TEXTURE_3D) ? 0 : this->d_;
-  int max_dimension = max_iii(this->w_, effective_h, effective_d);
+  int effective_h = (type_ == GPU_TEXTURE_1D_ARRAY) ? 0 : h_;
+  int effective_d = (type_ != GPU_TEXTURE_3D) ? 0 : d_;
+  int max_dimension = max_iii(w_, effective_h, effective_d);
   int max_miplvl = floor(log2(max_dimension));
   miplvl = min_ii(max_miplvl, miplvl);
 
@@ -968,8 +907,8 @@ void gpu::MTLTexture::ensure_mipmaps(int miplvl)
     mipmaps_ = miplvl;
 
     /* Check if baked. */
-    if (this->is_baked_ && mipmaps_ > mtl_max_mips_) {
-      this->is_dirty_ = true;
+    if (is_baked_ && mipmaps_ > mtl_max_mips_) {
+      is_dirty_ = true;
       MTL_LOG_WARNING("Texture requires regenerating due to increase in mip-count\n");
     }
   }
@@ -993,44 +932,29 @@ void gpu::MTLTexture::generate_mipmap(void)
 
   /* Ensure texture is baked. */
   this->ensure_baked();
-  BLI_assert(this->is_baked_ && this->texture_ && "MTLTexture is not valid");
+  BLI_assert(is_baked_ && texture_ && "MTLTexture is not valid");
 
-  if (this->mipmaps_ == 1 || this->mtl_max_mips_ == 1) {
+  if (mipmaps_ == 1 || mtl_max_mips_ == 1) {
     MTL_LOG_WARNING("Call to generate mipmaps on texture with 'mipmaps_=1\n'");
     return;
   }
 
   /* Verify if we can perform mipmap generation. */
-  if (this->format_ == GPU_DEPTH_COMPONENT32F || this->format_ == GPU_DEPTH_COMPONENT24 ||
-      this->format_ == GPU_DEPTH_COMPONENT16 || this->format_ == GPU_DEPTH32F_STENCIL8 ||
-      this->format_ == GPU_DEPTH24_STENCIL8) {
+  if (format_ == GPU_DEPTH_COMPONENT32F || format_ == GPU_DEPTH_COMPONENT24 ||
+      format_ == GPU_DEPTH_COMPONENT16 || format_ == GPU_DEPTH32F_STENCIL8 ||
+      format_ == GPU_DEPTH24_STENCIL8) {
     MTL_LOG_WARNING("Cannot generate mipmaps for textures using DEPTH formats\n");
     return;
   }
 
   @autoreleasepool {
 
-    id<MTLCommandBuffer> cmd_buffer = ctx->get_active_command_buffer();
-    bool own_command_buffer = false;
-    if (cmd_buffer == nil) {
-      cmd_buffer = [ctx->queue commandBuffer];
-      own_command_buffer = true;
+    /* Fetch active BlitCommandEncoder. */
+    id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+    if (G.debug & G_DEBUG_GPU) {
+      [enc insertDebugSignpost:@"Generate MipMaps"];
     }
-    else {
-      /* End active graphics work. */
-      ctx->end_render_pass();
-    }
-
-    id<MTLBlitCommandEncoder> enc = [cmd_buffer blitCommandEncoder];
-#if MTL_DEBUG_COMMAND_BUFFER_EXECUTION
-    [enc insertDebugSignpost:@"Generate MipMaps"];
-#endif
-    [enc generateMipmapsForTexture:this->texture_];
-    [enc endEncoding];
-
-    if (own_command_buffer) {
-      [cmd_buffer commit];
-    }
+    [enc generateMipmapsForTexture:texture_];
   }
   return;
 }
@@ -1055,13 +979,8 @@ void gpu::MTLTexture::copy_to(Texture *dst)
   this->ensure_baked();
 
   @autoreleasepool {
-    /* End render pass. */
-    ctx->end_render_pass();
-
     /* Setup blit encoder. */
-    id<MTLCommandBuffer> cmd_buffer = ctx->get_active_command_buffer();
-    BLI_assert(cmd_buffer != nil);
-    id<MTLBlitCommandEncoder> blit_encoder = [cmd_buffer blitCommandEncoder];
+    id<MTLBlitCommandEncoder> blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
     BLI_assert(blit_encoder != nil);
 
     /* TODO(Metal): Consider supporting multiple mip levels IF the GL implementation
@@ -1077,7 +996,7 @@ void gpu::MTLTexture::copy_to(Texture *dst)
       case GPU_TEXTURE_CUBE_ARRAY:
       case GPU_TEXTURE_3D: {
         /* Do full texture copy for 3D textures */
-        BLI_assert(mt_dst->d_ == this->d_);
+        BLI_assert(mt_dst->d_ == d_);
         [blit_encoder copyFromTexture:this->get_metal_handle_base()
                             toTexture:mt_dst->get_metal_handle_base()];
       } break;
@@ -1100,9 +1019,6 @@ void gpu::MTLTexture::copy_to(Texture *dst)
                    extent[2]);
       } break;
     }
-
-    /* End encoding */
-    [blit_encoder endEncoding];
   }
 }
 
@@ -1144,8 +1060,8 @@ static MTLTextureSwizzle swizzle_to_mtl(const char swizzle)
 
 void gpu::MTLTexture::swizzle_set(const char swizzle_mask[4])
 {
-  if (memcmp(this->tex_swizzle_mask_, swizzle_mask, 4) != 0) {
-    memcpy(this->tex_swizzle_mask_, swizzle_mask, 4);
+  if (memcmp(tex_swizzle_mask_, swizzle_mask, 4) != 0) {
+    memcpy(tex_swizzle_mask_, swizzle_mask, 4);
 
     /* Creating the swizzle mask and flagging as dirty if changed. */
     MTLTextureSwizzleChannels new_swizzle_mask = MTLTextureSwizzleChannelsMake(
@@ -1154,8 +1070,8 @@ void gpu::MTLTexture::swizzle_set(const char swizzle_mask[4])
         swizzle_to_mtl(swizzle_mask[2]),
         swizzle_to_mtl(swizzle_mask[3]));
 
-    this->mtl_swizzle_mask_ = new_swizzle_mask;
-    this->texture_view_dirty_flags_ |= TEXTURE_VIEW_SWIZZLE_DIRTY;
+    mtl_swizzle_mask_ = new_swizzle_mask;
+    texture_view_dirty_flags_ |= TEXTURE_VIEW_SWIZZLE_DIRTY;
   }
 }
 
@@ -1172,25 +1088,24 @@ void gpu::MTLTexture::mip_range_set(int min, int max)
    *
    *   TODO(Metal): Add texture initialization flag to determine whether mipmaps are used
    *   or not. Will be important for saving memory for big textures. */
-  this->mip_min_ = min;
-  this->mip_max_ = max;
+  mip_min_ = min;
+  mip_max_ = max;
 
-  if ((this->type_ == GPU_TEXTURE_1D || this->type_ == GPU_TEXTURE_1D_ARRAY ||
-       this->type_ == GPU_TEXTURE_BUFFER) &&
+  if ((type_ == GPU_TEXTURE_1D || type_ == GPU_TEXTURE_1D_ARRAY || type_ == GPU_TEXTURE_BUFFER) &&
       max > 1) {
 
     MTL_LOG_ERROR(
         " MTLTexture of type TEXTURE_1D_ARRAY or TEXTURE_BUFFER cannot have a mipcount "
         "greater than 1\n");
-    this->mip_min_ = 0;
-    this->mip_max_ = 0;
-    this->mipmaps_ = 0;
+    mip_min_ = 0;
+    mip_max_ = 0;
+    mipmaps_ = 0;
     BLI_assert(false);
   }
 
   /* Mip range for texture view. */
-  this->mip_texture_base_level_ = this->mip_min_;
-  this->mip_texture_max_level_ = this->mip_max_;
+  mip_texture_base_level_ = mip_min_;
+  mip_texture_max_level_ = mip_max_;
   texture_view_dirty_flags_ |= TEXTURE_VIEW_MIP_DIRTY;
 }
 
@@ -1199,7 +1114,7 @@ void *gpu::MTLTexture::read(int mip, eGPUDataFormat type)
   /* Prepare Array for return data. */
   BLI_assert(!(format_flag_ & GPU_FORMAT_COMPRESSED));
   BLI_assert(mip <= mipmaps_);
-  BLI_assert(validate_data_format_mtl(this->format_, type));
+  BLI_assert(validate_data_format_mtl(format_, type));
 
   /* NOTE: mip_size_get() won't override any dimension that is equal to 0. */
   int extent[3] = {1, 1, 1};
@@ -1208,12 +1123,12 @@ void *gpu::MTLTexture::read(int mip, eGPUDataFormat type)
   size_t sample_len = extent[0] * extent[1] * extent[2];
   size_t sample_size = to_bytesize(format_, type);
   size_t texture_size = sample_len * sample_size;
-  int num_channels = to_component_len(this->format_);
+  int num_channels = to_component_len(format_);
 
   void *data = MEM_mallocN(texture_size + 8, "GPU_texture_read");
 
   /* Ensure texture is baked. */
-  if (this->is_baked_) {
+  if (is_baked_) {
     this->read_internal(
         mip, 0, 0, 0, extent[0], extent[1], extent[2], type, num_channels, texture_size + 8, data);
   }
@@ -1239,7 +1154,7 @@ void gpu::MTLTexture::read_internal(int mip,
                                     void *r_data)
 {
   /* Verify textures are baked. */
-  if (!this->is_baked_) {
+  if (!is_baked_) {
     MTL_LOG_WARNING("gpu::MTLTexture::read_internal - Trying to read from a non-baked texture!\n");
     return;
   }
@@ -1248,14 +1163,14 @@ void gpu::MTLTexture::read_internal(int mip,
   BLI_assert(ctx);
 
   /* Calculate Desired output size. */
-  int num_channels = to_component_len(this->format_);
+  int num_channels = to_component_len(format_);
   BLI_assert(num_output_components <= num_channels);
-  unsigned int desired_output_bpp = num_output_components * to_bytesize(desired_output_format);
+  uint desired_output_bpp = num_output_components * to_bytesize(desired_output_format);
 
   /* Calculate Metal data output for trivial copy. */
-  unsigned int image_bpp = get_mtl_format_bytesize(this->texture_.pixelFormat);
-  unsigned int image_components = get_mtl_format_num_components(this->texture_.pixelFormat);
-  bool is_depth_format = (this->format_flag_ & GPU_FORMAT_DEPTH);
+  uint image_bpp = get_mtl_format_bytesize(texture_.pixelFormat);
+  uint image_components = get_mtl_format_num_components(texture_.pixelFormat);
+  bool is_depth_format = (format_flag_ & GPU_FORMAT_DEPTH);
 
   /* Verify if we need to use compute read. */
   eGPUDataFormat data_format = to_mtl_internal_data_format(this->format_get());
@@ -1272,12 +1187,12 @@ void gpu::MTLTexture::read_internal(int mip,
     BLI_assert(num_output_components == 1);
     BLI_assert(image_components == 1);
     BLI_assert(data_format == GPU_DATA_FLOAT || data_format == GPU_DATA_UINT_24_8);
-    BLI_assert(validate_data_format_mtl(this->format_, data_format));
+    BLI_assert(validate_data_format_mtl(format_, data_format));
   }
 
   /* SPECIAL Workaround for R11G11B10 textures requesting a read using: GPU_DATA_10_11_11_REV. */
   if (desired_output_format == GPU_DATA_10_11_11_REV) {
-    BLI_assert(this->format_ == GPU_R11F_G11F_B10F);
+    BLI_assert(format_ == GPU_R11F_G11F_B10F);
 
     /* override parameters - we'll be able to use simple copy, as bpp will match at 4 bytes. */
     image_bpp = sizeof(int);
@@ -1291,9 +1206,9 @@ void gpu::MTLTexture::read_internal(int mip,
   }
 
   /* Determine size of output data. */
-  unsigned int bytes_per_row = desired_output_bpp * width;
-  unsigned int bytes_per_image = bytes_per_row * height;
-  unsigned int total_bytes = bytes_per_image * depth;
+  uint bytes_per_row = desired_output_bpp * width;
+  uint bytes_per_image = bytes_per_row * height;
+  uint total_bytes = bytes_per_image * depth;
 
   if (can_use_simple_read) {
     /* DEBUG check that if direct copy is being used, then both the expected output size matches
@@ -1307,7 +1222,7 @@ void gpu::MTLTexture::read_internal(int mip,
 
   /* Fetch allocation from scratch buffer. */
   id<MTLBuffer> destination_buffer = nil;
-  unsigned int destination_offset = 0;
+  uint destination_offset = 0;
   void *destination_buffer_host_ptr = nullptr;
 
   /* TODO(Metal): Optimize buffer allocation. */
@@ -1348,53 +1263,25 @@ void gpu::MTLTexture::read_internal(int mip,
   bool copy_successful = false;
   @autoreleasepool {
 
-    bool DO_CAPTURE = false;
-#if DEBUG_TEXTURE_READ_CAPTURE == 1
-    DO_CAPTURE = true;
-    if (DO_CAPTURE) {
-      MTLCaptureManager *capture_manager = [MTLCaptureManager sharedCaptureManager];
-      MTLCaptureDescriptor *capture_descriptor = [[MTLCaptureDescriptor alloc] init];
-      capture_descriptor.captureObject = ctx->device;
-      NSError *error;
-      if (![capture_manager startCaptureWithDescriptor:capture_descriptor error:&error]) {
-        NSString *error_str = [NSString stringWithFormat:@"%@", error];
-        const char *error_c_str = [error_str UTF8String];
-        MTL_LOG_ERROR("Failed to start capture. Error: %s\n", error_c_str);
-      }
-    }
-#endif
-
     /* TODO(Metal): Verify whether we need some form of barrier here to ensure reads
      * happen after work with associated texture is finished. */
     GPU_finish();
 
-    /* Fetch or Create command buffer. */
-    id<MTLCommandBuffer> cmd_buffer = ctx->get_active_command_buffer();
-    bool own_command_buffer = false;
-    if (cmd_buffer == nil || DO_CAPTURE || true) {
-      cmd_buffer = [ctx->queue commandBuffer];
-      own_command_buffer = true;
-    }
-    else {
-      /* End any graphics workloads. */
-      ctx->end_render_pass();
-    }
-
     /* Texture View for SRGB special case. */
-    id<MTLTexture> read_texture = this->texture_;
-    if (this->format_ == GPU_SRGB8_A8) {
-      read_texture = [this->texture_ newTextureViewWithPixelFormat:MTLPixelFormatRGBA8Unorm];
+    id<MTLTexture> read_texture = texture_;
+    if (format_ == GPU_SRGB8_A8) {
+      read_texture = [texture_ newTextureViewWithPixelFormat:MTLPixelFormatRGBA8Unorm];
     }
 
     /* Perform per-texture type read. */
-    switch (this->type_) {
+    switch (type_) {
       case GPU_TEXTURE_2D: {
         if (can_use_simple_read) {
           /* Use Blit Encoder READ. */
-          id<MTLBlitCommandEncoder> enc = [cmd_buffer blitCommandEncoder];
-#if MTL_DEBUG_COMMAND_BUFFER_EXECUTION
-          [enc insertDebugSignpost:@"GPUTextureRead"];
-#endif
+          id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+          if (G.debug & G_DEBUG_GPU) {
+            [enc insertDebugSignpost:@"GPUTextureRead"];
+          }
           [enc copyFromTexture:read_texture
                            sourceSlice:0
                            sourceLevel:mip
@@ -1405,13 +1292,13 @@ void gpu::MTLTexture::read_internal(int mip,
                 destinationBytesPerRow:bytes_per_row
               destinationBytesPerImage:bytes_per_image];
           [enc synchronizeResource:destination_buffer];
-          [enc endEncoding];
           copy_successful = true;
         }
         else {
 
           /* Use Compute READ. */
-          id<MTLComputeCommandEncoder> compute_encoder = [cmd_buffer computeCommandEncoder];
+          id<MTLComputeCommandEncoder> compute_encoder =
+              ctx->main_command_buffer.ensure_begin_compute_encoder();
           id<MTLComputePipelineState> pso = texture_read_2d_get_kernel(
               compute_specialisation_kernel);
           TextureReadParams params = {
@@ -1425,15 +1312,13 @@ void gpu::MTLTexture::read_internal(int mip,
           [compute_encoder setTexture:read_texture atIndex:0];
           [compute_encoder dispatchThreads:MTLSizeMake(width, height, 1) /* Width, Height, Layer */
                      threadsPerThreadgroup:MTLSizeMake(8, 8, 1)];
-          [compute_encoder endEncoding];
 
           /* Use Blit encoder to synchronize results back to CPU. */
-          id<MTLBlitCommandEncoder> enc = [cmd_buffer blitCommandEncoder];
-#if MTL_DEBUG_COMMAND_BUFFER_EXECUTION
-          [enc insertDebugSignpost:@"GPUTextureRead-syncResource"];
-#endif
+          id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+          if (G.debug & G_DEBUG_GPU) {
+            [enc insertDebugSignpost:@"GPUTextureRead-syncResource"];
+          }
           [enc synchronizeResource:destination_buffer];
-          [enc endEncoding];
           copy_successful = true;
         }
       } break;
@@ -1441,10 +1326,10 @@ void gpu::MTLTexture::read_internal(int mip,
       case GPU_TEXTURE_2D_ARRAY: {
         if (can_use_simple_read) {
           /* Use Blit Encoder READ. */
-          id<MTLBlitCommandEncoder> enc = [cmd_buffer blitCommandEncoder];
-#if MTL_DEBUG_COMMAND_BUFFER_EXECUTION
-          [enc insertDebugSignpost:@"GPUTextureRead"];
-#endif
+          id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+          if (G.debug & G_DEBUG_GPU) {
+            [enc insertDebugSignpost:@"GPUTextureRead"];
+          }
           int base_slice = z_off;
           int final_slice = base_slice + depth;
           int texture_array_relative_offset = 0;
@@ -1463,13 +1348,13 @@ void gpu::MTLTexture::read_internal(int mip,
 
             texture_array_relative_offset += bytes_per_image;
           }
-          [enc endEncoding];
           copy_successful = true;
         }
         else {
 
           /* Use Compute READ */
-          id<MTLComputeCommandEncoder> compute_encoder = [cmd_buffer computeCommandEncoder];
+          id<MTLComputeCommandEncoder> compute_encoder =
+              ctx->main_command_buffer.ensure_begin_compute_encoder();
           id<MTLComputePipelineState> pso = texture_read_2d_array_get_kernel(
               compute_specialisation_kernel);
           TextureReadParams params = {
@@ -1484,25 +1369,23 @@ void gpu::MTLTexture::read_internal(int mip,
           [compute_encoder
                     dispatchThreads:MTLSizeMake(width, height, depth) /* Width, Height, Layer */
               threadsPerThreadgroup:MTLSizeMake(8, 8, 1)];
-          [compute_encoder endEncoding];
 
           /* Use Blit encoder to synchronize results back to CPU. */
-          id<MTLBlitCommandEncoder> enc = [cmd_buffer blitCommandEncoder];
-#if MTL_DEBUG_COMMAND_BUFFER_EXECUTION
-          [enc insertDebugSignpost:@"GPUTextureRead-syncResource"];
-#endif
+          id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+          if (G.debug & G_DEBUG_GPU) {
+            [enc insertDebugSignpost:@"GPUTextureRead-syncResource"];
+          }
           [enc synchronizeResource:destination_buffer];
-          [enc endEncoding];
           copy_successful = true;
         }
       } break;
 
       case GPU_TEXTURE_CUBE_ARRAY: {
         if (can_use_simple_read) {
-          id<MTLBlitCommandEncoder> enc = [cmd_buffer blitCommandEncoder];
-#if MTL_DEBUG_COMMAND_BUFFER_EXECUTION
-          [enc insertDebugSignpost:@"GPUTextureRead"];
-#endif
+          id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+          if (G.debug & G_DEBUG_GPU) {
+            [enc insertDebugSignpost:@"GPUTextureRead"];
+          }
           int base_slice = z_off;
           int final_slice = base_slice + depth;
           int texture_array_relative_offset = 0;
@@ -1522,7 +1405,6 @@ void gpu::MTLTexture::read_internal(int mip,
             texture_array_relative_offset += bytes_per_image;
           }
           MTL_LOG_INFO("Copying texture data to buffer GPU_TEXTURE_CUBE_ARRAY\n");
-          [enc endEncoding];
           copy_successful = true;
         }
         else {
@@ -1534,27 +1416,13 @@ void gpu::MTLTexture::read_internal(int mip,
         MTL_LOG_WARNING(
             "[Warning] gpu::MTLTexture::read_internal simple-copy not yet supported for texture "
             "type: %d\n",
-            (int)this->type_);
+            (int)type_);
         break;
     }
 
     if (copy_successful) {
-      /* Ensure GPU copy from texture to host-accessible buffer is complete. */
-      if (own_command_buffer) {
-        [cmd_buffer commit];
-        [cmd_buffer waitUntilCompleted];
-      }
-      else {
-        /* Ensure GPU copy commands have completed. */
-        GPU_finish();
-      }
-
-#if DEBUG_TEXTURE_READ_CAPTURE == 1
-      if (DO_CAPTURE) {
-        MTLCaptureManager *capture_manager = [MTLCaptureManager sharedCaptureManager];
-        [capture_manager stopCapture];
-      }
-#endif
+      /* Ensure GPU copy commands have completed. */
+      GPU_finish();
 
       /* Copy data from Shared Memory into ptr. */
       memcpy(r_data, destination_buffer_host_ptr, total_bytes);
@@ -1583,9 +1451,9 @@ uint gpu::MTLTexture::gl_bindcode_get(void) const
 
 bool gpu::MTLTexture::init_internal(void)
 {
-  if (this->format_ == GPU_DEPTH24_STENCIL8) {
+  if (format_ == GPU_DEPTH24_STENCIL8) {
     /* Apple Silicon requires GPU_DEPTH32F_STENCIL8 instead of GPU_DEPTH24_STENCIL8. */
-    this->format_ = GPU_DEPTH32F_STENCIL8;
+    format_ = GPU_DEPTH32F_STENCIL8;
   }
 
   this->prepare_internal();
@@ -1609,20 +1477,20 @@ bool gpu::MTLTexture::init_internal(const GPUTexture *src, int mip_offset, int l
   this->prepare_internal();
 
   /* Flag as using texture view. */
-  this->resource_mode_ = MTL_TEXTURE_MODE_TEXTURE_VIEW;
-  this->source_texture_ = src;
-  this->mip_texture_base_level_ = mip_offset;
-  this->mip_texture_base_layer_ = layer_offset;
+  resource_mode_ = MTL_TEXTURE_MODE_TEXTURE_VIEW;
+  source_texture_ = src;
+  mip_texture_base_level_ = mip_offset;
+  mip_texture_base_layer_ = layer_offset;
 
   /* Assign texture as view. */
   const gpu::MTLTexture *mtltex = static_cast<const gpu::MTLTexture *>(unwrap(src));
-  this->texture_ = mtltex->texture_;
-  BLI_assert(this->texture_);
-  [this->texture_ retain];
+  texture_ = mtltex->texture_;
+  BLI_assert(texture_);
+  [texture_ retain];
 
   /* Flag texture as baked -- we do not need explicit initialization. */
-  this->is_baked_ = true;
-  this->is_dirty_ = false;
+  is_baked_ = true;
+  is_dirty_ = false;
 
   /* Bake mip swizzle view. */
   bake_mip_swizzle_view();
@@ -1637,7 +1505,7 @@ bool gpu::MTLTexture::init_internal(const GPUTexture *src, int mip_offset, int l
 
 bool gpu::MTLTexture::texture_is_baked()
 {
-  return this->is_baked_;
+  return is_baked_;
 }
 
 /* Prepare texture parameters after initialization, but before baking. */
@@ -1645,22 +1513,21 @@ void gpu::MTLTexture::prepare_internal()
 {
 
   /* Derive implicit usage flags for Depth/Stencil attachments. */
-  if (this->format_flag_ & GPU_FORMAT_DEPTH || this->format_flag_ & GPU_FORMAT_STENCIL) {
-    this->gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
+  if (format_flag_ & GPU_FORMAT_DEPTH || format_flag_ & GPU_FORMAT_STENCIL) {
+    gpu_image_usage_flags_ |= GPU_TEXTURE_USAGE_ATTACHMENT;
   }
 
   /* Derive maximum number of mip levels by default.
    * TODO(Metal): This can be removed if max mip counts are specified upfront. */
-  if (this->type_ == GPU_TEXTURE_1D || this->type_ == GPU_TEXTURE_1D_ARRAY ||
-      this->type_ == GPU_TEXTURE_BUFFER) {
-    this->mtl_max_mips_ = 1;
+  if (type_ == GPU_TEXTURE_1D || type_ == GPU_TEXTURE_1D_ARRAY || type_ == GPU_TEXTURE_BUFFER) {
+    mtl_max_mips_ = 1;
   }
   else {
-    int effective_h = (this->type_ == GPU_TEXTURE_1D_ARRAY) ? 0 : this->h_;
-    int effective_d = (this->type_ != GPU_TEXTURE_3D) ? 0 : this->d_;
-    int max_dimension = max_iii(this->w_, effective_h, effective_d);
+    int effective_h = (type_ == GPU_TEXTURE_1D_ARRAY) ? 0 : h_;
+    int effective_d = (type_ != GPU_TEXTURE_3D) ? 0 : d_;
+    int max_dimension = max_iii(w_, effective_h, effective_d);
     int max_miplvl = max_ii(floor(log2(max_dimension)) + 1, 1);
-    this->mtl_max_mips_ = max_miplvl;
+    mtl_max_mips_ = max_miplvl;
   }
 }
 
@@ -1669,101 +1536,91 @@ void gpu::MTLTexture::ensure_baked()
 
   /* If properties have changed, re-bake. */
   bool copy_previous_contents = false;
-  if (this->is_baked_ && this->is_dirty_) {
+  if (is_baked_ && is_dirty_) {
     copy_previous_contents = true;
-    id<MTLTexture> previous_texture = this->texture_;
+    id<MTLTexture> previous_texture = texture_;
     [previous_texture retain];
 
     this->reset();
   }
 
-  if (!this->is_baked_) {
+  if (!is_baked_) {
     MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
     BLI_assert(ctx);
 
     /* Ensure texture mode is valid. */
-    BLI_assert(this->resource_mode_ != MTL_TEXTURE_MODE_EXTERNAL);
-    BLI_assert(this->resource_mode_ != MTL_TEXTURE_MODE_TEXTURE_VIEW);
-    BLI_assert(this->resource_mode_ != MTL_TEXTURE_MODE_VBO);
+    BLI_assert(resource_mode_ != MTL_TEXTURE_MODE_EXTERNAL);
+    BLI_assert(resource_mode_ != MTL_TEXTURE_MODE_TEXTURE_VIEW);
+    BLI_assert(resource_mode_ != MTL_TEXTURE_MODE_VBO);
 
     /* Format and mip levels (TODO(Metal): Optimize mipmaps counts, specify up-front). */
-    MTLPixelFormat mtl_format = gpu_texture_format_to_metal(this->format_);
+    MTLPixelFormat mtl_format = gpu_texture_format_to_metal(format_);
 
     /* Create texture descriptor. */
-    switch (this->type_) {
+    switch (type_) {
 
       /* 1D */
       case GPU_TEXTURE_1D:
       case GPU_TEXTURE_1D_ARRAY: {
-        BLI_assert(this->w_ > 0);
-        this->texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
-        this->texture_descriptor_.pixelFormat = mtl_format;
-        this->texture_descriptor_.textureType = (this->type_ == GPU_TEXTURE_1D_ARRAY) ?
-                                                    MTLTextureType1DArray :
-                                                    MTLTextureType1D;
-        this->texture_descriptor_.width = this->w_;
-        this->texture_descriptor_.height = 1;
-        this->texture_descriptor_.depth = 1;
-        this->texture_descriptor_.arrayLength = (this->type_ == GPU_TEXTURE_1D_ARRAY) ? this->h_ :
-                                                                                        1;
-        this->texture_descriptor_.mipmapLevelCount = (this->mtl_max_mips_ > 0) ?
-                                                         this->mtl_max_mips_ :
-                                                         1;
-        this->texture_descriptor_.usage =
+        BLI_assert(w_ > 0);
+        texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
+        texture_descriptor_.pixelFormat = mtl_format;
+        texture_descriptor_.textureType = (type_ == GPU_TEXTURE_1D_ARRAY) ? MTLTextureType1DArray :
+                                                                            MTLTextureType1D;
+        texture_descriptor_.width = w_;
+        texture_descriptor_.height = 1;
+        texture_descriptor_.depth = 1;
+        texture_descriptor_.arrayLength = (type_ == GPU_TEXTURE_1D_ARRAY) ? h_ : 1;
+        texture_descriptor_.mipmapLevelCount = (mtl_max_mips_ > 0) ? mtl_max_mips_ : 1;
+        texture_descriptor_.usage =
             MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
             MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
-        this->texture_descriptor_.storageMode = MTLStorageModePrivate;
-        this->texture_descriptor_.sampleCount = 1;
-        this->texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
-        this->texture_descriptor_.hazardTrackingMode = MTLHazardTrackingModeDefault;
+        texture_descriptor_.storageMode = MTLStorageModePrivate;
+        texture_descriptor_.sampleCount = 1;
+        texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
+        texture_descriptor_.hazardTrackingMode = MTLHazardTrackingModeDefault;
       } break;
 
       /* 2D */
       case GPU_TEXTURE_2D:
       case GPU_TEXTURE_2D_ARRAY: {
-        BLI_assert(this->w_ > 0 && this->h_ > 0);
-        this->texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
-        this->texture_descriptor_.pixelFormat = mtl_format;
-        this->texture_descriptor_.textureType = (this->type_ == GPU_TEXTURE_2D_ARRAY) ?
-                                                    MTLTextureType2DArray :
-                                                    MTLTextureType2D;
-        this->texture_descriptor_.width = this->w_;
-        this->texture_descriptor_.height = this->h_;
-        this->texture_descriptor_.depth = 1;
-        this->texture_descriptor_.arrayLength = (this->type_ == GPU_TEXTURE_2D_ARRAY) ? this->d_ :
-                                                                                        1;
-        this->texture_descriptor_.mipmapLevelCount = (this->mtl_max_mips_ > 0) ?
-                                                         this->mtl_max_mips_ :
-                                                         1;
-        this->texture_descriptor_.usage =
+        BLI_assert(w_ > 0 && h_ > 0);
+        texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
+        texture_descriptor_.pixelFormat = mtl_format;
+        texture_descriptor_.textureType = (type_ == GPU_TEXTURE_2D_ARRAY) ? MTLTextureType2DArray :
+                                                                            MTLTextureType2D;
+        texture_descriptor_.width = w_;
+        texture_descriptor_.height = h_;
+        texture_descriptor_.depth = 1;
+        texture_descriptor_.arrayLength = (type_ == GPU_TEXTURE_2D_ARRAY) ? d_ : 1;
+        texture_descriptor_.mipmapLevelCount = (mtl_max_mips_ > 0) ? mtl_max_mips_ : 1;
+        texture_descriptor_.usage =
             MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
             MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
-        this->texture_descriptor_.storageMode = MTLStorageModePrivate;
-        this->texture_descriptor_.sampleCount = 1;
-        this->texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
-        this->texture_descriptor_.hazardTrackingMode = MTLHazardTrackingModeDefault;
+        texture_descriptor_.storageMode = MTLStorageModePrivate;
+        texture_descriptor_.sampleCount = 1;
+        texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
+        texture_descriptor_.hazardTrackingMode = MTLHazardTrackingModeDefault;
       } break;
 
       /* 3D */
       case GPU_TEXTURE_3D: {
-        BLI_assert(this->w_ > 0 && this->h_ > 0 && this->d_ > 0);
-        this->texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
-        this->texture_descriptor_.pixelFormat = mtl_format;
-        this->texture_descriptor_.textureType = MTLTextureType3D;
-        this->texture_descriptor_.width = this->w_;
-        this->texture_descriptor_.height = this->h_;
-        this->texture_descriptor_.depth = this->d_;
-        this->texture_descriptor_.arrayLength = 1;
-        this->texture_descriptor_.mipmapLevelCount = (this->mtl_max_mips_ > 0) ?
-                                                         this->mtl_max_mips_ :
-                                                         1;
-        this->texture_descriptor_.usage =
+        BLI_assert(w_ > 0 && h_ > 0 && d_ > 0);
+        texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
+        texture_descriptor_.pixelFormat = mtl_format;
+        texture_descriptor_.textureType = MTLTextureType3D;
+        texture_descriptor_.width = w_;
+        texture_descriptor_.height = h_;
+        texture_descriptor_.depth = d_;
+        texture_descriptor_.arrayLength = 1;
+        texture_descriptor_.mipmapLevelCount = (mtl_max_mips_ > 0) ? mtl_max_mips_ : 1;
+        texture_descriptor_.usage =
             MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
             MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
-        this->texture_descriptor_.storageMode = MTLStorageModePrivate;
-        this->texture_descriptor_.sampleCount = 1;
-        this->texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
-        this->texture_descriptor_.hazardTrackingMode = MTLHazardTrackingModeDefault;
+        texture_descriptor_.storageMode = MTLStorageModePrivate;
+        texture_descriptor_.sampleCount = 1;
+        texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
+        texture_descriptor_.hazardTrackingMode = MTLHazardTrackingModeDefault;
       } break;
 
       /* CUBE TEXTURES */
@@ -1771,69 +1628,63 @@ void gpu::MTLTexture::ensure_baked()
       case GPU_TEXTURE_CUBE_ARRAY: {
         /* NOTE: For a cube-map 'Texture::d_' refers to total number of faces,
          * not just array slices. */
-        BLI_assert(this->w_ > 0 && this->h_ > 0);
-        this->texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
-        this->texture_descriptor_.pixelFormat = mtl_format;
-        this->texture_descriptor_.textureType = (this->type_ == GPU_TEXTURE_CUBE_ARRAY) ?
-                                                    MTLTextureTypeCubeArray :
-                                                    MTLTextureTypeCube;
-        this->texture_descriptor_.width = this->w_;
-        this->texture_descriptor_.height = this->h_;
-        this->texture_descriptor_.depth = 1;
-        this->texture_descriptor_.arrayLength = (this->type_ == GPU_TEXTURE_CUBE_ARRAY) ?
-                                                    this->d_ / 6 :
-                                                    1;
-        this->texture_descriptor_.mipmapLevelCount = (this->mtl_max_mips_ > 0) ?
-                                                         this->mtl_max_mips_ :
-                                                         1;
-        this->texture_descriptor_.usage =
+        BLI_assert(w_ > 0 && h_ > 0);
+        texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
+        texture_descriptor_.pixelFormat = mtl_format;
+        texture_descriptor_.textureType = (type_ == GPU_TEXTURE_CUBE_ARRAY) ?
+                                              MTLTextureTypeCubeArray :
+                                              MTLTextureTypeCube;
+        texture_descriptor_.width = w_;
+        texture_descriptor_.height = h_;
+        texture_descriptor_.depth = 1;
+        texture_descriptor_.arrayLength = (type_ == GPU_TEXTURE_CUBE_ARRAY) ? d_ / 6 : 1;
+        texture_descriptor_.mipmapLevelCount = (mtl_max_mips_ > 0) ? mtl_max_mips_ : 1;
+        texture_descriptor_.usage =
             MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
             MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
-        this->texture_descriptor_.storageMode = MTLStorageModePrivate;
-        this->texture_descriptor_.sampleCount = 1;
-        this->texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
-        this->texture_descriptor_.hazardTrackingMode = MTLHazardTrackingModeDefault;
+        texture_descriptor_.storageMode = MTLStorageModePrivate;
+        texture_descriptor_.sampleCount = 1;
+        texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
+        texture_descriptor_.hazardTrackingMode = MTLHazardTrackingModeDefault;
       } break;
 
       /* GPU_TEXTURE_BUFFER */
       case GPU_TEXTURE_BUFFER: {
-        this->texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
-        this->texture_descriptor_.pixelFormat = mtl_format;
-        this->texture_descriptor_.textureType = MTLTextureTypeTextureBuffer;
-        this->texture_descriptor_.width = this->w_;
-        this->texture_descriptor_.height = 1;
-        this->texture_descriptor_.depth = 1;
-        this->texture_descriptor_.arrayLength = 1;
-        this->texture_descriptor_.mipmapLevelCount = (this->mtl_max_mips_ > 0) ?
-                                                         this->mtl_max_mips_ :
-                                                         1;
-        this->texture_descriptor_.usage =
+        texture_descriptor_ = [[MTLTextureDescriptor alloc] init];
+        texture_descriptor_.pixelFormat = mtl_format;
+        texture_descriptor_.textureType = MTLTextureTypeTextureBuffer;
+        texture_descriptor_.width = w_;
+        texture_descriptor_.height = 1;
+        texture_descriptor_.depth = 1;
+        texture_descriptor_.arrayLength = 1;
+        texture_descriptor_.mipmapLevelCount = (mtl_max_mips_ > 0) ? mtl_max_mips_ : 1;
+        texture_descriptor_.usage =
             MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite |
             MTLTextureUsagePixelFormatView; /* TODO(Metal): Optimize usage flags. */
-        this->texture_descriptor_.storageMode = MTLStorageModePrivate;
-        this->texture_descriptor_.sampleCount = 1;
-        this->texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
-        this->texture_descriptor_.hazardTrackingMode = MTLHazardTrackingModeDefault;
+        texture_descriptor_.storageMode = MTLStorageModePrivate;
+        texture_descriptor_.sampleCount = 1;
+        texture_descriptor_.cpuCacheMode = MTLCPUCacheModeDefaultCache;
+        texture_descriptor_.hazardTrackingMode = MTLHazardTrackingModeDefault;
       } break;
 
       default: {
-        MTL_LOG_ERROR("[METAL] Error: Cannot create texture with unknown type: %d\n", this->type_);
+        MTL_LOG_ERROR("[METAL] Error: Cannot create texture with unknown type: %d\n", type_);
         return;
       } break;
     }
 
     /* Determine Resource Mode. */
-    this->resource_mode_ = MTL_TEXTURE_MODE_DEFAULT;
+    resource_mode_ = MTL_TEXTURE_MODE_DEFAULT;
 
     /* Create texture. */
-    this->texture_ = [ctx->device newTextureWithDescriptor:this->texture_descriptor_];
+    texture_ = [ctx->device newTextureWithDescriptor:texture_descriptor_];
 
-    [this->texture_descriptor_ release];
-    this->texture_descriptor_ = nullptr;
-    this->texture_.label = [NSString stringWithUTF8String:this->get_name()];
-    BLI_assert(this->texture_);
-    this->is_baked_ = true;
-    this->is_dirty_ = false;
+    [texture_descriptor_ release];
+    texture_descriptor_ = nullptr;
+    texture_.label = [NSString stringWithUTF8String:this->get_name()];
+    BLI_assert(texture_);
+    is_baked_ = true;
+    is_dirty_ = false;
   }
 
   /* Re-apply previous contents. */
@@ -1850,30 +1701,30 @@ void gpu::MTLTexture::reset()
 
   MTL_LOG_INFO("Texture %s reset. Size %d, %d, %d\n", this->get_name(), w_, h_, d_);
   /* Delete associated METAL resources. */
-  if (this->texture_ != nil) {
-    [this->texture_ release];
-    this->texture_ = nil;
-    this->is_baked_ = false;
-    this->is_dirty_ = true;
+  if (texture_ != nil) {
+    [texture_ release];
+    texture_ = nil;
+    is_baked_ = false;
+    is_dirty_ = true;
   }
 
-  if (this->mip_swizzle_view_ != nil) {
-    [this->mip_swizzle_view_ release];
-    this->mip_swizzle_view_ = nil;
+  if (mip_swizzle_view_ != nil) {
+    [mip_swizzle_view_ release];
+    mip_swizzle_view_ = nil;
   }
 
-  if (this->texture_buffer_ != nil) {
-    [this->texture_buffer_ release];
+  if (texture_buffer_ != nil) {
+    [texture_buffer_ release];
   }
 
   /* Blit framebuffer. */
-  if (this->blit_fb_) {
-    GPU_framebuffer_free(this->blit_fb_);
-    this->blit_fb_ = nullptr;
+  if (blit_fb_) {
+    GPU_framebuffer_free(blit_fb_);
+    blit_fb_ = nullptr;
   }
 
-  BLI_assert(this->texture_ == nil);
-  BLI_assert(this->mip_swizzle_view_ == nil);
+  BLI_assert(texture_ == nil);
+  BLI_assert(mip_swizzle_view_ == nil);
 }
 
 /** \} */

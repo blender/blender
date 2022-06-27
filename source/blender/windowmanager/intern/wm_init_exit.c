@@ -310,6 +310,7 @@ void WM_init(bContext *C, int argc, const char **argv)
   IMB_thumb_clear_translations();
 
   if (!G.background) {
+    GPU_render_begin();
 
 #ifdef WITH_INPUT_NDOF
     /* Sets 3D mouse dead-zone. */
@@ -322,7 +323,10 @@ void WM_init(bContext *C, int argc, const char **argv)
       exit(-1);
     }
 
+    GPU_context_begin_frame(GPU_context_active_get());
     UI_init();
+    GPU_context_end_frame(GPU_context_active_get());
+    GPU_render_end();
   }
 
   BKE_subdiv_init();

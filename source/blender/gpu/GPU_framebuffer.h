@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "GPU_common_types.h"
 #include "GPU_texture.h"
 
 typedef enum eGPUFrameBufferBits {
@@ -51,6 +52,44 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb);
  */
 void GPU_framebuffer_bind_no_srgb(GPUFrameBuffer *fb);
 void GPU_framebuffer_restore(void);
+
+/* Advanced binding control. */
+typedef struct GPULoadStore {
+  eGPULoadOp load_action;
+  eGPUStoreOp store_action;
+} GPULoadStore;
+#define NULL_LOAD_STORE \
+  { \
+    GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_DONT_CARE \
+  }
+
+/* Load store config array (load_store_actions) matches attachment structure of
+ * GPU_framebuffer_config_array. This allows us to explicitly specify whether attachment data needs
+ * to be loaded and stored on a per-attachment basis. This enables a number of bandwidth
+ * optimisations:
+ *  - No need to load contents if subsequent work is over-writing every pixel.
+ *  - No need to store attachments whose contents are not used beyond this pass e.g. depth buffer.
+ *  - State can be customised at bind-time rather than applying to the framebuffer object as a
+ * whole.
+ *
+ * Example:
+ * \code{.c}
+ * GPU_framebuffer_bind_loadstore(&fb, {
+ *         {GPU_LOADACTION_LOAD, GPU_STOREACTION_DONT_CARE} // must be depth buffer
+ *         {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE}, // Colour attachment 0
+ *         {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, // Colour attachment 1
+ *         {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE} // Colour attachment 2
+ * })
+ * \encode
+ */
+void GPU_framebuffer_bind_loadstore(GPUFrameBuffer *fb,
+                                    const GPULoadStore *load_store_actions,
+                                    uint actions_len);
+#define GPU_framebuffer_bind_ex(_fb, ...) \
+  { \
+    GPULoadStore actions[] = __VA_ARGS__; \
+    GPU_framebuffer_bind_loadstore(_fb, actions, (sizeof(actions) / sizeof(GPULoadStore))); \
+  }
 
 bool GPU_framebuffer_bound(GPUFrameBuffer *fb);
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256]);

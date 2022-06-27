@@ -62,10 +62,10 @@ class MTLStateManager : public StateManager {
   void set_mutable_state(const GPUStateMutable &state);
 
   /* METAL State utility functions. */
-  void mtl_state_init(void);
+  void mtl_state_init();
   void mtl_depth_range(float near, float far);
-  void mtl_stencil_mask(unsigned int mask);
-  void mtl_stencil_set_func(eGPUStencilTest stencil_func, int ref, unsigned int mask);
+  void mtl_stencil_mask(uint mask);
+  void mtl_stencil_set_func(eGPUStencilTest stencil_func, int ref, uint mask);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLStateManager")
 };

@@ -149,6 +149,16 @@ void GLContext::deactivate()
   is_active_ = false;
 }
 
+void GLContext::begin_frame()
+{
+  /* No-op. */
+}
+
+void GLContext::end_frame()
+{
+  /* No-op. */
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

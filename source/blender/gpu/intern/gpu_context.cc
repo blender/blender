@@ -123,6 +123,22 @@ GPUContext *GPU_context_active_get()
   return wrap(Context::get());
 }
 
+void GPU_context_begin_frame(GPUContext *ctx)
+{
+  blender::gpu::Context *_ctx = unwrap(ctx);
+  if (_ctx) {
+    _ctx->begin_frame();
+  }
+}
+
+void GPU_context_end_frame(GPUContext *ctx)
+{
+  blender::gpu::Context *_ctx = unwrap(ctx);
+  if (_ctx) {
+    _ctx->end_frame();
+  }
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Main context global mutex
  *
