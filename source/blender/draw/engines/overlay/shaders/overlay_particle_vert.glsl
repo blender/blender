@@ -23,7 +23,7 @@ void main()
 #ifdef USE_DOTS
   gl_Position = point_world_to_ndc(world_pos);
   /* World sized points. */
-  gl_PointSize = sizePixel * draw_size * ProjectionMatrix[1][1] * sizeViewport.y / gl_Position.w;
+  gl_PointSize = sizePixel * draw_size * drw_view.winmat[1][1] * sizeViewport.y / gl_Position.w;
 #else
 
   if ((vclass & VCLASS_SCREENALIGNED) != 0) {

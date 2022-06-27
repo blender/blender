@@ -5,7 +5,7 @@ void main()
 {
   const float sphere_radius = 0.05;
 
-  bool is_perp = (ProjectionMatrix[3][3] == 0.0);
+  bool is_perp = (drw_view.winmat[3][3] == 0.0);
   vec3 ray_ori_view = (is_perp) ? vec3(0.0) : viewPosition.xyz;
   vec3 ray_dir_view = (is_perp) ? viewPosition : vec3(0.0, 0.0, -1.0);
 

@@ -53,7 +53,7 @@ void main()
   P += cameraPos * plane_axes;
 
   float dist, fade;
-  bool is_persp = ProjectionMatrix[3][3] == 0.0;
+  bool is_persp = drw_view.winmat[3][3] == 0.0;
   if (is_persp) {
     vec3 V = cameraPos - P;
     dist = length(V);
@@ -83,7 +83,7 @@ void main()
     dist = 1.0; /* Avoid branch after. */
 
     if (flag_test(grid_flag, PLANE_XY)) {
-      float angle = 1.0 - abs(ViewMatrixInverse[2].z);
+      float angle = 1.0 - abs(drw_view.viewinv[2].z);
       dist = 1.0 + angle * 2.0;
       angle *= angle;
       fade *= 1.0 - angle * angle;
