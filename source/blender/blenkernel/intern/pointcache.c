@@ -2980,6 +2980,15 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
         }
       }
     }
+    if (md->type == eModifierType_Fluid) {
+      FluidModifierData *fmd = (FluidModifierData *)md;
+      FluidDomainSettings *fds = fmd->domain;
+      if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fds &&
+          fds->cache_type == FLUID_DOMAIN_CACHE_REPLAY) {
+        BKE_ptcache_id_from_smoke(&pid, ob, fmd);
+        reset |= BKE_ptcache_id_reset(scene, &pid, mode);
+      }
+    }
   }
 
   if (scene->rigidbody_world && (ob->rigidbody_object || ob->rigidbody_constraint)) {
