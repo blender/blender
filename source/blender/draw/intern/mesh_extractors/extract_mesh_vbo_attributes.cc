@@ -347,8 +347,12 @@ static void extract_attr_init_subdiv(const DRWSubdivCache *subdiv_cache,
 
   /* Ensure data is uploaded properly. */
   GPU_vertbuf_tag_dirty(src_data);
-  draw_subdiv_interp_custom_data(
-      subdiv_cache, src_data, dst_buffer, static_cast<int>(dimensions), 0, false);
+  draw_subdiv_interp_custom_data(subdiv_cache,
+                                 src_data,
+                                 dst_buffer,
+                                 static_cast<int>(dimensions),
+                                 0,
+                                 request.cd_type == CD_PROP_COLOR);
 
   GPU_vertbuf_discard(src_data);
 }
