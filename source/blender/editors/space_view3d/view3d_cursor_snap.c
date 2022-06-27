@@ -660,10 +660,6 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
         face_nor);
   }
 
-  if (is_zero_v3(face_nor)) {
-    face_nor[state->plane_axis] = 1.0f;
-  }
-
   if (calc_plane_omat) {
     RegionView3D *rv3d = region->regiondata;
     bool orient_surface = (snap_elem != SCE_SNAP_MODE_NONE) &&
@@ -691,8 +687,28 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     orthogonalize_m3(omat, state->plane_axis);
 
     if (orient_surface) {
-      if (dot_v3v3(rv3d->viewinv[2], face_nor) < 0.0f) {
-        negate_v3(face_nor);
+      if (!is_zero_v3(face_nor)) {
+        /* Negate the face normal according to the view. */
+        float ray_dir[3];
+        if (rv3d->is_persp) {
+          BLI_assert_msg(snap_elem != SCE_SNAP_MODE_NONE,
+                         "Use of variable `co` without it being computed");
+
+          sub_v3_v3v3(ray_dir, co, rv3d->viewinv[3]); /* No need to normalize. */
+        }
+        else {
+          negate_v3_v3(ray_dir, rv3d->viewinv[2]);
+        }
+
+        if (dot_v3v3(ray_dir, face_nor) >= 0.0f) {
+          negate_v3(face_nor);
+        }
+      }
+      else if (!is_zero_v3(no)) {
+        copy_v3_v3(face_nor, no);
+      }
+      else {
+        face_nor[state->plane_axis] = 1.0f;
       }
       v3d_cursor_poject_surface_normal(face_nor, obmat, omat);
     }
@@ -700,7 +716,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 
   float *co_depth = (snap_elem != SCE_SNAP_MODE_NONE) ? co : scene->cursor.location;
   snap_elem &= ~data_intern->snap_elem_hidden;
-  if (snap_elem == 0) {
+  if (snap_elem == SCE_SNAP_MODE_NONE) {
     RegionView3D *rv3d = region->regiondata;
     const float *plane_normal = omat[state->plane_axis];
     bool do_plane_isect = (state->plane_depth != V3D_PLACE_DEPTH_CURSOR_VIEW) &&
