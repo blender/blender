@@ -143,6 +143,11 @@ static void hud_panels_register(ARegionType *art, int space_type, int region_typ
 static void hud_region_init(wmWindowManager *wm, ARegion *region)
 {
   ED_region_panels_init(wm, region);
+
+  /* Reset zoom from panels init because we don't want zoom allowed for redo panel. */
+  region->v2d.maxzoom = 1.0f;
+  region->v2d.minzoom = 1.0f;
+
   UI_region_handlers_add(&region->handlers);
   region->flag |= RGN_FLAG_TEMP_REGIONDATA;
 }
@@ -251,7 +256,7 @@ static ARegion *hud_region_add(ScrArea *area)
   if (region_win) {
     float x, y;
 
-    UI_view2d_scroller_size_get(&region_win->v2d, &x, &y);
+    UI_view2d_scroller_size_get(&region_win->v2d, true, &x, &y);
     region->runtime.offset_x = x;
     region->runtime.offset_y = y;
   }

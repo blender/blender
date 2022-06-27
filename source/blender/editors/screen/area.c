@@ -1075,6 +1075,7 @@ static void region_azone_scrollbar_init(ScrArea *area,
 {
   rcti scroller_vert = (direction == AZ_SCROLL_VERT) ? region->v2d.vert : region->v2d.hor;
   AZone *az = MEM_callocN(sizeof(*az), __func__);
+  float hide_width;
 
   BLI_addtail(&area->actionzones, az);
   az->type = AZONE_REGION_SCROLL;
@@ -1083,16 +1084,18 @@ static void region_azone_scrollbar_init(ScrArea *area,
 
   if (direction == AZ_SCROLL_VERT) {
     az->region->v2d.alpha_vert = 0;
+    hide_width = V2D_SCROLL_HIDE_HEIGHT;
   }
   else if (direction == AZ_SCROLL_HOR) {
     az->region->v2d.alpha_hor = 0;
+    hide_width = V2D_SCROLL_HIDE_WIDTH;
   }
 
   BLI_rcti_translate(&scroller_vert, region->winrct.xmin, region->winrct.ymin);
-  az->x1 = scroller_vert.xmin - AZONEFADEIN;
-  az->y1 = scroller_vert.ymin - AZONEFADEIN;
-  az->x2 = scroller_vert.xmax + AZONEFADEIN;
-  az->y2 = scroller_vert.ymax + AZONEFADEIN;
+  az->x1 = scroller_vert.xmin - ((direction == AZ_SCROLL_VERT) ? hide_width : 0);
+  az->y1 = scroller_vert.ymin - ((direction == AZ_SCROLL_HOR) ? hide_width : 0);
+  az->x2 = scroller_vert.xmax + ((direction == AZ_SCROLL_VERT) ? hide_width : 0);
+  az->y2 = scroller_vert.ymax + ((direction == AZ_SCROLL_HOR) ? hide_width : 0);
 
   BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
@@ -3125,7 +3128,12 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
     UI_view2d_mask_from_win(v2d, &mask);
     mask.xmax -= UI_PANEL_CATEGORY_MARGIN_WIDTH;
   }
-  UI_view2d_scrollers_draw(v2d, use_mask ? &mask : NULL);
+  bool use_full_hide = false;
+  if (region->overlap) {
+    /* Don't always show scrollbars for transparent regions as it's distracting. */
+    use_full_hide = true;
+  }
+  UI_view2d_scrollers_draw_ex(v2d, use_mask ? &mask : NULL, use_full_hide);
 }
 
 void ED_region_panels_ex(const bContext *C, ARegion *region, const char *contexts[])
