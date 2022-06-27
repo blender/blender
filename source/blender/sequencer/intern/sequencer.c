@@ -37,6 +37,7 @@
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_sound.h"
+#include "SEQ_time.h"
 #include "SEQ_utils.h"
 
 #include "BLO_read_write.h"
