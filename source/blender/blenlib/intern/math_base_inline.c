@@ -370,6 +370,14 @@ MINLINE uint divide_ceil_u(uint a, uint b)
   return (a + b - 1) / b;
 }
 
+/**
+ * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
+ */
+MINLINE uint ceil_to_multiple_u(uint a, uint b)
+{
+  return divide_ceil_u(a, b) * b;
+}
+
 MINLINE int mod_i(int i, int n)
 {
   return (i % n + n) % n;
