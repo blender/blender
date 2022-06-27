@@ -548,6 +548,7 @@ class DopesheetActionPanelBase:
 
 class DOPESHEET_PT_custom_props_action(PropertyPanel, Panel):
     bl_space_type = 'DOPESHEET_EDITOR'
+    bl_category = "Item"
     bl_region_type = 'UI'
     bl_context = 'data'
     _context_path = "active_object.animation_data.action"
