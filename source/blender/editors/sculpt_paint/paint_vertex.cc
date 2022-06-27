@@ -36,6 +36,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
+#include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -4032,7 +4033,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
  * \{ */
 
 template<typename Color, typename Traits, eAttrDomain domain>
-static bool vertex_color_set(Object *ob, ColorPaint4f paintcol_in, Color *color_layer)
+static bool vertex_color_set(Object *ob, ColorPaint4f paintcol_in, CustomDataLayer *layer)
 {
   Mesh *me;
   if (((me = BKE_mesh_from_object(ob)) == nullptr) ||
@@ -4045,30 +4046,70 @@ static bool vertex_color_set(Object *ob, ColorPaint4f paintcol_in, Color *color_
   const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
-  const MPoly *mp = me->mpoly;
-  for (int i = 0; i < me->totpoly; i++, mp++) {
-    if (use_face_sel && !(mp->flag & ME_FACE_SEL)) {
-      continue;
+  if (me->edit_mesh) {
+    BMesh *bm = me->edit_mesh->bm;
+    BMFace *f;
+    BMIter iter;
+
+    int cd_offset = -1;
+
+    /* Find customdata offset inside of bmesh. */
+    CustomData *cdata = domain == ATTR_DOMAIN_POINT ? &bm->vdata : &bm->ldata;
+
+    for (int i = 0; i < cdata->totlayer; i++) {
+      if (STREQ(cdata->layers[i].name, layer->name)) {
+        cd_offset = layer->offset;
+      }
     }
 
-    int j = 0;
-    do {
-      uint vidx = me->mloop[mp->loopstart + j].v;
+    BLI_assert(cd_offset != -1);
 
-      if (!(use_vert_sel && !(me->mvert[vidx].flag & SELECT))) {
-        if constexpr (domain == ATTR_DOMAIN_CORNER) {
-          color_layer[mp->loopstart + j] = paintcol;
+    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+      Color *color;
+      BMLoop *l = f->l_first;
+
+      do {
+        if (!(use_vert_sel && !(BM_elem_flag_test(l->v, BM_ELEM_SELECT)))) {
+          if constexpr (domain == ATTR_DOMAIN_CORNER) {
+            color = static_cast<Color *>(BM_ELEM_CD_GET_VOID_P(l, cd_offset));
+          }
+          else {
+            color = static_cast<Color *>(BM_ELEM_CD_GET_VOID_P(l->v, cd_offset));
+          }
+
+          *color = paintcol;
         }
-        else {
-          color_layer[vidx] = paintcol;
-        }
-      }
-      j++;
-    } while (j < mp->totloop);
+      } while ((l = l->next) != f->l_first);
+    }
   }
+  else {
+    Color *color_layer = static_cast<Color *>(layer->data);
 
-  /* remove stale me->mcol, will be added later */
-  BKE_mesh_tessface_clear(me);
+    const MPoly *mp = me->mpoly;
+    for (int i = 0; i < me->totpoly; i++, mp++) {
+      if (use_face_sel && !(mp->flag & ME_FACE_SEL)) {
+        continue;
+      }
+
+      int j = 0;
+      do {
+        uint vidx = me->mloop[mp->loopstart + j].v;
+
+        if (!(use_vert_sel && !(me->mvert[vidx].flag & SELECT))) {
+          if constexpr (domain == ATTR_DOMAIN_CORNER) {
+            color_layer[mp->loopstart + j] = paintcol;
+          }
+          else {
+            color_layer[vidx] = paintcol;
+          }
+        }
+        j++;
+      } while (j < mp->totloop);
+    }
+
+    /* remove stale me->mcol, will be added later */
+    BKE_mesh_tessface_clear(me);
+  }
 
   DEG_id_tag_update(&me->id, ID_RECALC_COPY_ON_WRITE);
 
@@ -4103,22 +4144,18 @@ static bool paint_object_attributes_active_color_fill_ex(Object *ob,
   bool ok = false;
   if (domain == ATTR_DOMAIN_POINT) {
     if (layer->type == CD_PROP_COLOR) {
-      ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_POINT>(
-          ob, fill_color, static_cast<ColorPaint4f *>(layer->data));
+      ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_POINT>(ob, fill_color, layer);
     }
     else if (layer->type == CD_PROP_BYTE_COLOR) {
-      ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_POINT>(
-          ob, fill_color, static_cast<ColorPaint4b *>(layer->data));
+      ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_POINT>(ob, fill_color, layer);
     }
   }
   else {
     if (layer->type == CD_PROP_COLOR) {
-      ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_CORNER>(
-          ob, fill_color, static_cast<ColorPaint4f *>(layer->data));
+      ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_CORNER>(ob, fill_color, layer);
     }
     else if (layer->type == CD_PROP_BYTE_COLOR) {
-      ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_CORNER>(
-          ob, fill_color, static_cast<ColorPaint4b *>(layer->data));
+      ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_CORNER>(ob, fill_color, layer);
     }
   }
   /* Restore #Mesh.editflag. */
