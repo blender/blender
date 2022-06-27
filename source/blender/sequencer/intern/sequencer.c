@@ -410,7 +410,8 @@ static MetaStack *seq_meta_stack_alloc(const Scene *scene, Sequence *seq_meta)
   ms->oldbasep = higher_level_meta ? &higher_level_meta->seqbase : &ed->seqbase;
   ms->old_channels = higher_level_meta ? &higher_level_meta->channels : &ed->channels;
 
-  copy_v2_v2_int(ms->disp_range, &ms->parseq->startdisp);
+  ms->disp_range[0] = SEQ_time_left_handle_frame_get(ms->parseq);
+  ms->disp_range[1] = SEQ_time_right_handle_frame_get(ms->parseq);
   return ms;
 }
 
