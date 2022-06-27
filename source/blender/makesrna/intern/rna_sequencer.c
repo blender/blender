@@ -312,6 +312,16 @@ static void rna_Sequence_frame_change_update(Main *UNUSED(bmain),
   do_sequence_frame_change_update(scene, (Sequence *)ptr->data);
 }
 
+static int rna_Sequence_frame_final_start_get(PointerRNA *ptr)
+{
+  return SEQ_time_left_handle_frame_get((Sequence *)ptr->data);
+}
+
+static int rna_Sequence_frame_final_end_get(PointerRNA *ptr)
+{
+  return SEQ_time_right_handle_frame_get((Sequence *)ptr->data);
+}
+
 static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
 {
   Sequence *seq = (Sequence *)ptr->data;
@@ -1971,7 +1981,8 @@ static void rna_def_sequence(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "frame_final_start", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "startdisp");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_int_funcs(prop, "rna_Sequence_frame_final_start_get", NULL, NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop,
       "Start Frame",
@@ -1985,7 +1996,8 @@ static void rna_def_sequence(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "frame_final_end", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "enddisp");
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_int_funcs(prop, "rna_Sequence_frame_final_end_get", NULL, NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "End Frame", "End frame displayed in the sequence editor after offsets are applied");
   /* overlap tests and calc_seq_disp */
