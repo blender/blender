@@ -367,6 +367,45 @@ static void construct_param_handle_face_add(ParamHandle *handle,
   GEO_uv_parametrizer_face_add(handle, face_index, i, vkeys, co, uv, pin, select);
 }
 
+/* Set seams on UV Parametrizer based on options. */
+static void construct_param_edge_set_seams(ParamHandle *handle,
+                                           BMesh *bm,
+                                           const UnwrapOptions *options)
+{
+  if (options->topology_from_uvs && !options->topology_from_uvs_use_seams) {
+    return; /* Seams are not required with these options. */
+  }
+
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  if (cd_loop_uv_offset == -1) {
+    return; /* UVs aren't present on BMesh. Nothing to do. */
+  }
+
+  BMEdge *edge;
+  BMIter iter;
+  BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
+    if (!BM_elem_flag_test(edge, BM_ELEM_SEAM)) {
+      continue; /* No seam on this edge, nothing to do. */
+    }
+
+    /* Pinned vertices might have more than one ParamKey per BMVert.
+     * Check all the BM_LOOPS_OF_EDGE to find all the ParamKeys.
+     */
+    BMLoop *l;
+    BMIter liter;
+    BM_ITER_ELEM (l, &liter, edge, BM_LOOPS_OF_EDGE) {
+      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+      MLoopUV *luv_next = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
+      ParamKey vkeys[2];
+      vkeys[0] = GEO_uv_find_pin_index(handle, BM_elem_index_get(l->v), luv->uv);
+      vkeys[1] = GEO_uv_find_pin_index(handle, BM_elem_index_get(l->next->v), luv_next->uv);
+
+      /* Set the seam. */
+      GEO_uv_parametrizer_edge_set_seam(handle, vkeys);
+    }
+  }
+}
+
 /* See: construct_param_handle_multi to handle multiple objects at once. */
 static ParamHandle *construct_param_handle(const Scene *scene,
                                            Object *ob,
@@ -375,7 +414,6 @@ static ParamHandle *construct_param_handle(const Scene *scene,
                                            UnwrapResultInfo *result_info)
 {
   BMFace *efa;
-  BMEdge *eed;
   BMIter iter;
   int i;
 
@@ -407,16 +445,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
     }
   }
 
-  if (!options->topology_from_uvs || options->topology_from_uvs_use_seams) {
-    BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-      if (BM_elem_flag_test(eed, BM_ELEM_SEAM)) {
-        ParamKey vkeys[2];
-        vkeys[0] = (ParamKey)BM_elem_index_get(eed->v1);
-        vkeys[1] = (ParamKey)BM_elem_index_get(eed->v2);
-        GEO_uv_parametrizer_edge_set_seam(handle, vkeys);
-      }
-    }
-  }
+  construct_param_edge_set_seams(handle, bm, options);
 
   GEO_uv_parametrizer_construct_end(handle,
                                     options->fill_holes,
@@ -436,7 +465,6 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
                                                  int *count_fail)
 {
   BMFace *efa;
-  BMEdge *eed;
   BMIter iter;
   int i;
 
@@ -480,16 +508,8 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
       }
     }
 
-    if (!options->topology_from_uvs || options->topology_from_uvs_use_seams) {
-      BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-        if (BM_elem_flag_test(eed, BM_ELEM_SEAM)) {
-          ParamKey vkeys[2];
-          vkeys[0] = (ParamKey)BM_elem_index_get(eed->v1);
-          vkeys[1] = (ParamKey)BM_elem_index_get(eed->v2);
-          GEO_uv_parametrizer_edge_set_seam(handle, vkeys);
-        }
-      }
-    }
+    construct_param_edge_set_seams(handle, bm, options);
+
     offset += bm->totface;
   }
 
