@@ -309,7 +309,7 @@ static void wm_software_cursor_draw(wmWindow *win, const struct GrabState *grab_
       event_xy[0] = mod_i(event_xy[0] - min, max - min) + min;
     }
   }
-  if (grab_state->wrap_axis & GHOST_kGrabAxisY) {
+  if (grab_state->wrap_axis & GHOST_kAxisY) {
     const int height = WM_window_pixels_y(win);
     const int min = height - grab_state->bounds[1];
     const int max = height - grab_state->bounds[3];

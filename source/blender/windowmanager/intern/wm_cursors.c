@@ -228,7 +228,7 @@ void WM_cursor_grab_enable(wmWindow *win, int wrap, bool hide, int bounds[4])
   /* Only grab cursor when not running debug.
    * It helps not to get a stuck WM when hitting a break-point. */
   GHOST_TGrabCursorMode mode = GHOST_kGrabNormal;
-  GHOST_TAxisFlag mode_axis = GHOST_kAxisX | GHOST_kGrabAxisY;
+  GHOST_TAxisFlag mode_axis = GHOST_kAxisX | GHOST_kAxisY;
 
   if (bounds) {
     wm_cursor_position_to_ghost(win, &bounds[0], &bounds[1]);
@@ -245,7 +245,7 @@ void WM_cursor_grab_enable(wmWindow *win, int wrap, bool hide, int bounds[4])
       mode_axis = GHOST_kAxisX;
     }
     else if (wrap == WM_CURSOR_WRAP_Y) {
-      mode_axis = GHOST_kGrabAxisY;
+      mode_axis = GHOST_kAxisY;
     }
   }
 
@@ -267,11 +267,10 @@ void WM_cursor_grab_disable(wmWindow *win, const int mouse_ungrab_xy[2])
       if (mouse_ungrab_xy) {
         int mouse_xy[2] = {mouse_ungrab_xy[0], mouse_ungrab_xy[1]};
         wm_cursor_position_to_ghost(win, &mouse_xy[0], &mouse_xy[1]);
-        GHOST_SetCursorGrab(
-            win->ghostwin, GHOST_kGrabDisable, GHOST_kGrabAxisNone, NULL, mouse_xy);
+        GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, GHOST_kAxisNone, NULL, mouse_xy);
       }
       else {
-        GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, GHOST_kGrabAxisNone, NULL, NULL);
+        GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, GHOST_kAxisNone, NULL, NULL);
       }
 
       win->grabcursor = GHOST_kGrabDisable;

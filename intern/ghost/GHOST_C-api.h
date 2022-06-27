@@ -439,7 +439,7 @@ extern GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
-                                                GHOST_TModifierKeyMask mask,
+                                                GHOST_TModifierKey mask,
                                                 bool *r_is_down);
 
 /**
@@ -450,7 +450,7 @@ extern GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
-                                           GHOST_TButtonMask mask,
+                                           GHOST_TButton mask,
                                            bool *r_is_down);
 
 #ifdef WITH_INPUT_NDOF

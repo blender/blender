@@ -1231,7 +1231,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     case ButtonPress:
     case ButtonRelease: {
       XButtonEvent &xbe = xe->xbutton;
-      GHOST_TButtonMask gbmask = GHOST_kButtonMaskLeft;
+      GHOST_TButton gbmask = GHOST_kButtonMaskLeft;
       GHOST_TEventType type = (xbe.type == ButtonPress) ? GHOST_kEventButtonDown :
                                                           GHOST_kEventButtonUp;
 

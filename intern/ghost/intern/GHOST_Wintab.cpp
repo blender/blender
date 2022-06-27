@@ -373,7 +373,7 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
     /* Iterate over button flag indices until all flags are clear. */
     for (WORD buttonIndex = 0; buttonsChanged; buttonIndex++, buttonsChanged >>= 1) {
       if (buttonsChanged & 1) {
-        GHOST_TButtonMask button = mapWintabToGhostButton(pkt.pkCursor, buttonIndex);
+        GHOST_TButton button = mapWintabToGhostButton(pkt.pkCursor, buttonIndex);
 
         if (button != GHOST_kButtonMaskNone) {
           /* If this is not the first button found, push info for the prior Wintab button. */
@@ -397,7 +397,7 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
   }
 }
 
-GHOST_TButtonMask GHOST_Wintab::mapWintabToGhostButton(UINT cursor, WORD physicalButton)
+GHOST_TButton GHOST_Wintab::mapWintabToGhostButton(UINT cursor, WORD physicalButton)
 {
   const WORD numButtons = 32;
   BYTE logicalButtons[numButtons] = {0};

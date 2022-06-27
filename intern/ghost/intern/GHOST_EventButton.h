@@ -27,7 +27,7 @@ class GHOST_EventButton : public GHOST_Event {
   GHOST_EventButton(uint64_t time,
                     GHOST_TEventType type,
                     GHOST_IWindow *window,
-                    GHOST_TButtonMask button,
+                    GHOST_TButton button,
                     const GHOST_TabletData &tablet)
       : GHOST_Event(time, type, window), m_buttonEventData({button, tablet})
   {

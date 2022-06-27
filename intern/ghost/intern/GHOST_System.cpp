@@ -260,7 +260,7 @@ GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent *event)
   return success;
 }
 
-GHOST_TSuccess GHOST_System::getModifierKeyState(GHOST_TModifierKeyMask mask, bool &isDown) const
+GHOST_TSuccess GHOST_System::getModifierKeyState(GHOST_TModifierKey mask, bool &isDown) const
 {
   GHOST_ModifierKeys keys;
   /* Get the state of all modifier keys. */
@@ -272,7 +272,7 @@ GHOST_TSuccess GHOST_System::getModifierKeyState(GHOST_TModifierKeyMask mask, bo
   return success;
 }
 
-GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButtonMask mask, bool &isDown) const
+GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButton mask, bool &isDown) const
 {
   GHOST_Buttons buttons;
   /* Get the state of all mouse buttons. */

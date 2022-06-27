@@ -123,8 +123,8 @@ typedef enum {
   GHOST_kModifierKeyLeftControl,
   GHOST_kModifierKeyRightControl,
   GHOST_kModifierKeyOS,
-  GHOST_kModifierKeyNumMasks
-} GHOST_TModifierKeyMask;
+  GHOST_kModifierKeyNum
+} GHOST_TModifierKey;
 
 typedef enum {
   GHOST_kWindowStateNormal = 0,
@@ -163,8 +163,8 @@ typedef enum {
   /* Trackballs and programmable buttons. */
   GHOST_kButtonMaskButton6,
   GHOST_kButtonMaskButton7,
-  GHOST_kButtonNumMasks
-} GHOST_TButtonMask;
+  GHOST_kButtonNum
+} GHOST_TButton;
 
 typedef enum {
   GHOST_kEventUnknown = 0,
@@ -419,9 +419,9 @@ typedef enum {
 
 typedef enum {
   /** Axis that cursor grab will wrap. */
-  GHOST_kGrabAxisNone = 0,
+  GHOST_kAxisNone = 0,
   GHOST_kAxisX = (1 << 0),
-  GHOST_kGrabAxisY = (1 << 1),
+  GHOST_kAxisY = (1 << 1),
 } GHOST_TAxisFlag;
 
 typedef void *GHOST_TEventDataPtr;
@@ -437,7 +437,7 @@ typedef struct {
 
 typedef struct {
   /** The mask of the mouse button. */
-  GHOST_TButtonMask button;
+  GHOST_TButton button;
   /** Associated tablet data. */
   GHOST_TabletData tablet;
 } GHOST_TEventButtonData;

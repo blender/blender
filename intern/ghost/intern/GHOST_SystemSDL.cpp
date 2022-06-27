@@ -410,7 +410,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
     case SDL_MOUSEBUTTONUP:
     case SDL_MOUSEBUTTONDOWN: {
       SDL_MouseButtonEvent &sdl_sub_evt = sdl_event->button;
-      GHOST_TButtonMask gbmask = GHOST_kButtonMaskLeft;
+      GHOST_TButton gbmask = GHOST_kButtonMaskLeft;
       GHOST_TEventType type = (sdl_sub_evt.state == SDL_PRESSED) ? GHOST_kEventButtonDown :
                                                                    GHOST_kEventButtonUp;
 

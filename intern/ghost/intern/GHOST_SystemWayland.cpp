@@ -1312,7 +1312,7 @@ static void pointer_handle_button(void *data,
       break;
   }
 
-  GHOST_TButtonMask ebutton = GHOST_kButtonMaskLeft;
+  GHOST_TButton ebutton = GHOST_kButtonMaskLeft;
   switch (button) {
     case BTN_LEFT:
       ebutton = GHOST_kButtonMaskLeft;
@@ -1480,7 +1480,7 @@ static void tablet_tool_handle_down(void *data,
 {
   tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
   input_t *input = tool_input->input;
-  const GHOST_TButtonMask ebutton = GHOST_kButtonMaskLeft;
+  const GHOST_TButton ebutton = GHOST_kButtonMaskLeft;
   const GHOST_TEventType etype = GHOST_kEventButtonDown;
 
   input->data_source_serial = serial;
@@ -1498,7 +1498,7 @@ static void tablet_tool_handle_up(void *data, struct zwp_tablet_tool_v2 * /*zwp_
 {
   tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
   input_t *input = tool_input->input;
-  const GHOST_TButtonMask ebutton = GHOST_kButtonMaskLeft;
+  const GHOST_TButton ebutton = GHOST_kButtonMaskLeft;
   const GHOST_TEventType etype = GHOST_kEventButtonUp;
 
   input->tablet.buttons.set(ebutton, false);
@@ -1614,7 +1614,7 @@ static void tablet_tool_handle_button(void *data,
       break;
   }
 
-  GHOST_TButtonMask ebutton = GHOST_kButtonMaskLeft;
+  GHOST_TButton ebutton = GHOST_kButtonMaskLeft;
   switch (button) {
     case BTN_STYLUS:
       ebutton = GHOST_kButtonMaskRight;
@@ -2507,7 +2507,7 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
   keys.set(GHOST_kModifierKeyOS, val);
 
   val = xkb_state_mod_name_is_active(d->inputs[0]->xkb_state, XKB_MOD_NAME_NUM, mods_all) == 1;
-  keys.set(GHOST_kModifierKeyNumMasks, val);
+  keys.set(GHOST_kModifierKeyNum, val);
 
   return GHOST_kSuccess;
 }

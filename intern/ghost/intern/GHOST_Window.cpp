@@ -177,7 +177,7 @@ void GHOST_Window::getCursorGrabState(GHOST_TGrabCursorMode &mode,
     bounds.m_r = -1;
     bounds.m_t = -1;
     bounds.m_b = -1;
-    wrap_axis = GHOST_kGrabAxisNone;
+    wrap_axis = GHOST_kAxisNone;
   }
   use_software_cursor = (m_cursorGrab != GHOST_kGrabDisable) ? getCursorGrabUseSoftwareDisplay() :
                                                                false;

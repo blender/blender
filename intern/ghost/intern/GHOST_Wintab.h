@@ -54,7 +54,7 @@ struct GHOST_WintabInfoWin32 {
   int32_t x = 0;
   int32_t y = 0;
   GHOST_TEventType type = GHOST_kEventCursorMove;
-  GHOST_TButtonMask button = GHOST_kButtonMaskNone;
+  GHOST_TButton button = GHOST_kButtonMaskNone;
   uint64_t time = 0;
   GHOST_TabletData tabletData = GHOST_TABLET_DATA_NONE;
 };
@@ -243,7 +243,7 @@ class GHOST_Wintab {
    * \param physicalButton: The physical button ID to inspect.
    * \return The system mapped button.
    */
-  GHOST_TButtonMask mapWintabToGhostButton(UINT cursor, WORD physicalButton);
+  GHOST_TButton mapWintabToGhostButton(UINT cursor, WORD physicalButton);
 
   /**
    * Applies common modifications to Wintab context.

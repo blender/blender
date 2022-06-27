@@ -402,7 +402,7 @@ void GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
 }
 
 GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
-                                         GHOST_TModifierKeyMask mask,
+                                         GHOST_TModifierKey mask,
                                          bool *r_is_down)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
@@ -416,7 +416,7 @@ GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
 }
 
 GHOST_TSuccess GHOST_GetButtonState(GHOST_SystemHandle systemhandle,
-                                    GHOST_TButtonMask mask,
+                                    GHOST_TButton mask,
                                     bool *r_is_down)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;

@@ -221,7 +221,7 @@ class GHOST_System : public GHOST_ISystem {
    * \param isDown: The state of a modifier key (true == pressed).
    * \return Indication of success.
    */
-  GHOST_TSuccess getModifierKeyState(GHOST_TModifierKeyMask mask, bool &isDown) const;
+  GHOST_TSuccess getModifierKeyState(GHOST_TModifierKey mask, bool &isDown) const;
 
   /**
    * Returns the state of a mouse button (outside the message queue).
@@ -229,7 +229,7 @@ class GHOST_System : public GHOST_ISystem {
    * \param isDown: Button state.
    * \return Indication of success.
    */
-  GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool &isDown) const;
+  GHOST_TSuccess getButtonState(GHOST_TButton mask, bool &isDown) const;
 
   /**
    * Set which tablet API to use. Only affects Windows, other platforms have a single API.

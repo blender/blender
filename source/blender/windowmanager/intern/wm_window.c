@@ -963,7 +963,7 @@ typedef enum {
 /* check if specified modifier key type is pressed */
 static int query_qual(modifierKeyType qual)
 {
-  GHOST_TModifierKeyMask left, right;
+  GHOST_TModifierKey left, right;
   switch (qual) {
     case SHIFT:
       left = GHOST_kModifierKeyLeftShift;

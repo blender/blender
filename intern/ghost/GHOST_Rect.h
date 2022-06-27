@@ -244,7 +244,7 @@ inline void GHOST_Rect::wrapPoint(int32_t &x, int32_t &y, int32_t ofs, GHOST_TAx
       x -= w - (ofs * 2);
     }
   }
-  if (axis & GHOST_kGrabAxisY) {
+  if (axis & GHOST_kAxisY) {
     while (y - ofs < m_t) {
       y += h - (ofs * 2);
     }
