@@ -1024,9 +1024,8 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
         }
 
         /* Add the action to the output list if not already added. */
-        if (!BLI_gset_haskey(seen_set, action)) {
+        if (BLI_gset_add(seen_set, action)) {
           CTX_data_id_list_add(result, &action->id);
-          BLI_gset_add(seen_set, action);
         }
       }
     }

@@ -1864,10 +1864,8 @@ static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event
   /* Add new Face Sets IDs to the snapping gset if enabled. */
   if (expand_cache->snap) {
     const int active_face_set_id = sculpt_expand_active_face_set_id_get(ss, expand_cache);
-    if (!BLI_gset_haskey(expand_cache->snap_enabled_face_sets,
-                         POINTER_FROM_INT(active_face_set_id))) {
-      BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(active_face_set_id));
-    }
+    /* The key may exist, in that case this does nothing. */
+    BLI_gset_add(expand_cache->snap_enabled_face_sets, POINTER_FROM_INT(active_face_set_id));
   }
 
   /* Update the sculpt data with the current state of the #ExpandCache. */
