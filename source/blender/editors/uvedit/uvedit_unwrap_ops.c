@@ -204,6 +204,8 @@ typedef struct UnwrapOptions {
   bool fill_holes;
   /** Correct for mapped image texture aspect ratio. */
   bool correct_aspect;
+  /** Treat unselected uvs as if they were pinned. */
+  bool pin_unselected;
 } UnwrapOptions;
 
 typedef struct UnwrapResultInfo {
@@ -240,7 +242,7 @@ static bool uvedit_have_selection(const Scene *scene, BMEditMesh *em, const Unwr
       }
     }
 
-    if (options->topology_from_uvs && !l) {
+    if (options->only_selected_uvs && !l) {
       continue;
     }
 
@@ -311,8 +313,14 @@ static bool uvedit_is_face_affected(const Scene *scene,
     return false;
   }
 
-  if (options->topology_from_uvs && options->only_selected_uvs &&
-      !uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
+  if (options->only_selected_uvs) {
+    BMLoop *l;
+    BMIter iter;
+    BM_ITER_ELEM (l, &iter, efa, BM_LOOPS_OF_FACE) {
+      if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+        return true;
+      }
+    }
     return false;
   }
 
@@ -322,14 +330,20 @@ static bool uvedit_is_face_affected(const Scene *scene,
 /* Prepare unique indices for each unique pinned UV, even if it shares a BMVert.
  */
 static void uvedit_prepare_pinned_indices(ParamHandle *handle,
+                                          const Scene *scene,
                                           BMFace *efa,
+                                          const UnwrapOptions *options,
                                           const int cd_loop_uv_offset)
 {
   BMIter liter;
   BMLoop *l;
   BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
     MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-    if (luv->flag & MLOOPUV_PINNED) {
+    bool pin = luv->flag & MLOOPUV_PINNED;
+    if (options->pin_unselected && !pin) {
+      pin = !uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
+    }
+    if (pin) {
       int bmvertindex = BM_elem_index_get(l->v);
       GEO_uv_prepare_pin_index(handle, bmvertindex, luv->uv);
     }
@@ -340,6 +354,7 @@ static void construct_param_handle_face_add(ParamHandle *handle,
                                             const Scene *scene,
                                             BMFace *efa,
                                             ParamKey face_index,
+                                            const UnwrapOptions *options,
                                             const int cd_loop_uv_offset)
 {
   ParamKey *vkeys = BLI_array_alloca(vkeys, efa->len);
@@ -362,6 +377,9 @@ static void construct_param_handle_face_add(ParamHandle *handle,
     uv[i] = luv->uv;
     pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
     select[i] = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
+    if (options->pin_unselected && !select[i]) {
+      pin[i] = true;
+    }
   }
 
   GEO_uv_parametrizer_face_add(handle, face_index, i, vkeys, co, uv, pin, select);
@@ -435,13 +453,13 @@ static ParamHandle *construct_param_handle(const Scene *scene,
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
     if (uvedit_is_face_affected(scene, efa, options, cd_loop_uv_offset)) {
-      uvedit_prepare_pinned_indices(handle, efa, cd_loop_uv_offset);
+      uvedit_prepare_pinned_indices(handle, scene, efa, options, cd_loop_uv_offset);
     }
   }
 
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
     if (uvedit_is_face_affected(scene, efa, options, cd_loop_uv_offset)) {
-      construct_param_handle_face_add(handle, scene, efa, i, cd_loop_uv_offset);
+      construct_param_handle_face_add(handle, scene, efa, i, options, cd_loop_uv_offset);
     }
   }
 
@@ -498,13 +516,14 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
 
     BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
       if (uvedit_is_face_affected(scene, efa, options, cd_loop_uv_offset)) {
-        uvedit_prepare_pinned_indices(handle, efa, cd_loop_uv_offset);
+        uvedit_prepare_pinned_indices(handle, scene, efa, options, cd_loop_uv_offset);
       }
     }
 
     BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
       if (uvedit_is_face_affected(scene, efa, options, cd_loop_uv_offset)) {
-        construct_param_handle_face_add(handle, scene, efa, i + offset, cd_loop_uv_offset);
+        construct_param_handle_face_add(
+            handle, scene, efa, i + offset, options, cd_loop_uv_offset);
       }
     }
 
@@ -1257,7 +1276,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
   const UnwrapOptions options = {
       .topology_from_uvs = false,
       .only_selected_faces = false,
-      .only_selected_uvs = true,
+      .only_selected_uvs = false,
       .fill_holes = (scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES) != 0,
       .correct_aspect = (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) == 0,
   };
@@ -1853,7 +1872,7 @@ void ED_uvedit_live_unwrap(const Scene *scene, Object **objects, int objects_len
     const UnwrapOptions options = {
         .topology_from_uvs = false,
         .only_selected_faces = false,
-        .only_selected_uvs = true,
+        .only_selected_uvs = false,
         .fill_holes = (scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES) != 0,
         .correct_aspect = (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) == 0,
     };
@@ -1886,16 +1905,22 @@ static int unwrap_exec(bContext *C, wmOperator *op)
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       view_layer, CTX_wm_view3d(C), &objects_len);
 
-  const UnwrapOptions options = {
+  UnwrapOptions options = {
       .topology_from_uvs = false,
-      .only_selected_faces = true,
-      .only_selected_uvs = true,
+      .only_selected_faces = false,
+      .only_selected_uvs = false,
       .fill_holes = RNA_boolean_get(op->ptr, "fill_holes"),
       .correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect"),
   };
 
   bool rotate = true;
   bool ignore_pinned = true;
+  if (CTX_wm_space_image(C)) {
+    /* Inside the UV Editor, only unwrap selected UVs. */
+    options.only_selected_uvs = true;
+    options.only_selected_faces = true;
+    options.pin_unselected = true;
+  }
 
   if (!uvedit_have_selection_multi(scene, objects, objects_len, &options)) {
     MEM_freeN(objects);
