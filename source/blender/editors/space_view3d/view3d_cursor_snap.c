@@ -693,7 +693,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
         /* Negate the face normal according to the view. */
         float ray_dir[3];
         if (rv3d->is_persp) {
-          BLI_assert_msg(snap_elem != SCE_SNAP_MODE_NONE,
+          BLI_assert_msg(snap_elem != 0,
                          "Use of variable `co` without it being computed");
 
           sub_v3_v3v3(ray_dir, co, rv3d->viewinv[3]); /* No need to normalize. */
@@ -718,7 +718,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 
   float *co_depth = snap_elem ? co : scene->cursor.location;
   snap_elem &= ~data_intern->snap_elem_hidden;
-  if (snap_elem == SCE_SNAP_MODE_NONE) {
+  if (snap_elem == 0) {
     RegionView3D *rv3d = region->regiondata;
     const float *plane_normal = omat[state->plane_axis];
     bool do_plane_isect = (state->plane_depth != V3D_PLACE_DEPTH_CURSOR_VIEW) &&
