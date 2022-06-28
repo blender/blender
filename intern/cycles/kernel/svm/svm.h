@@ -264,11 +264,11 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         svm_node_mix_closure(sd, stack, node);
         break;
       case NODE_JUMP_IF_ZERO:
-        if (stack_load_float(stack, node.z) == 0.0f)
+        if (stack_load_float(stack, node.z) <= 0.0f)
           offset += node.y;
         break;
       case NODE_JUMP_IF_ONE:
-        if (stack_load_float(stack, node.z) == 1.0f)
+        if (stack_load_float(stack, node.z) >= 1.0f)
           offset += node.y;
         break;
       case NODE_GEOMETRY:
