@@ -94,6 +94,11 @@ static bool use_gnome_confine_hack = false;
 /* NOTE(@campbellbarton): Map to an additional button (not sure which hardware uses this). */
 #define BTN_STYLUS3 0x149
 
+/**
+ * Keyboard scan-codes, also from `linux/input-event-codes.h`.
+ */
+#define KEY_GRAVE 41
+
 struct buffer_t {
   void *data = nullptr;
   size_t size = 0;
@@ -567,11 +572,45 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t &sym)
       GXMAP(gkey, XKB_KEY_XF86AudioPrev, GHOST_kKeyMediaFirst);
       GXMAP(gkey, XKB_KEY_XF86AudioNext, GHOST_kKeyMediaLast);
       default:
-        GHOST_PRINT("unhandled key: " << std::hex << std::showbase << sym << std::dec << " ("
-                                      << sym << ")" << std::endl);
+        /* Rely on #xkb_map_gkey_or_scan_code to report when no key can be found. */
         gkey = GHOST_kKeyUnknown;
     }
 #undef GXMAP
+  }
+
+  return gkey;
+}
+
+/**
+ * Map the keys using the users keyboard layout, if that fails fall back to physical locations.
+ * This is needed so users with keyboard layouts that don't expose #GHOST_kKeyAccentGrave
+ * (typically the key under escape) in the layout can still use this key in keyboard shortcuts.
+ *
+ * \param key: The key's scan-code, compatible with values in `linux/input-event-codes.h`.
+ */
+static GHOST_TKey xkb_map_gkey_or_scan_code(const xkb_keysym_t &sym, const uint32_t key)
+{
+  GHOST_TKey gkey = xkb_map_gkey(sym);
+
+  if (gkey == GHOST_kKeyUnknown) {
+    /* Fall back to physical location for keys that would otherwise do nothing. */
+    switch (key) {
+      case KEY_GRAVE: {
+        gkey = GHOST_kKeyAccentGrave;
+        break;
+      }
+      default: {
+        GHOST_PRINT(
+            /* Key-code. */
+            "unhandled key: " << std::hex << std::showbase << sym << /* Hex. */
+            std::dec << " (" << sym << "), " <<                      /* Decimal. */
+            /* Scan-code. */
+            "scan-code: " << std::hex << std::showbase << key << /* Hex. */
+            std::dec << " (" << key << ")" <<                    /* Decimal. */
+            std::endl);
+        break;
+      }
+    }
   }
 
   return gkey;
@@ -1934,7 +1973,7 @@ static void keyboard_handle_key(void *data,
     }
   }
 
-  const GHOST_TKey gkey = xkb_map_gkey(sym);
+  const GHOST_TKey gkey = xkb_map_gkey_or_scan_code(sym, key);
   char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
   if (etype == GHOST_kEventKeyDown) {
     xkb_state_key_get_utf8(input->xkb_state, key_code, utf8_buf, sizeof(utf8_buf));
