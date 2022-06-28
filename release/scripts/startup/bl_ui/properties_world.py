@@ -46,12 +46,7 @@ class EEVEE_WORLD_PT_mist(WorldButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         engine = context.engine
-        if context.world and (engine in cls.COMPAT_ENGINES):
-            for view_layer in context.scene.view_layers:
-                if view_layer.use_pass_mist:
-                    return True
-
-        return False
+        return context.world and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
