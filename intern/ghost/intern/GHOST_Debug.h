@@ -20,7 +20,7 @@
 #  include <stdio.h>  //for printf()
 #endif                // WITH_GHOST_DEBUG
 
-#if defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))
+#if defined(WITH_GHOST_DEBUG)
 #  define GHOST_PRINT(x) \
     { \
       std::cout << x; \
@@ -34,7 +34,7 @@
 #else
 #  define GHOST_PRINT(x)
 #  define GHOST_PRINTF(x, ...)
-#endif /* `defined(WITH_GHOST_DEBUG) || (!defined(NDEBUG))` */
+#endif /* `!defined(WITH_GHOST_DEBUG)` */
 
 #ifdef WITH_ASSERT_ABORT
 #  include <stdio.h>   //for fprintf()
