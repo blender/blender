@@ -613,10 +613,10 @@ MINLINE void mul_v2_v2_cw(float r[2], const float mat[2], const float vec[2])
 
 MINLINE void mul_v2_v2_ccw(float r[2], const float mat[2], const float vec[2])
 {
-  BLI_assert(r != vec);
-
-  r[0] = mat[0] * vec[0] + (-mat[1]) * vec[1];
-  r[1] = mat[1] * vec[0] + (+mat[0]) * vec[1];
+  float r0 = mat[0] * vec[0] + (-mat[1]) * vec[1];
+  float r1 = mat[1] * vec[0] + (+mat[0]) * vec[1];
+  r[0] = r0;
+  r[1] = r1;
 }
 
 MINLINE float mul_project_m4_v3_zfac(const float mat[4][4], const float co[3])
