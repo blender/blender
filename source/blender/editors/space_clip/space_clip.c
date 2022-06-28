@@ -515,6 +515,9 @@ static void clip_operatortypes(void)
   WM_operatortype_append(CLIP_OT_keyframe_insert);
   WM_operatortype_append(CLIP_OT_keyframe_delete);
 
+  WM_operatortype_append(CLIP_OT_new_image_from_plane_marker);
+  WM_operatortype_append(CLIP_OT_update_image_from_plane_marker);
+
   /* ** clip_graph_ops.c  ** */
 
   /* graph editing */

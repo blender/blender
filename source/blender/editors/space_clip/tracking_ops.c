@@ -16,6 +16,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_image.h"
 #include "BKE_movieclip.h"
 #include "BKE_report.h"
 #include "BKE_tracking.h"
@@ -32,6 +33,9 @@
 #include "RNA_define.h"
 
 #include "BLT_translation.h"
+
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "clip_intern.h"
 #include "tracking_ops_intern.h"
@@ -2207,6 +2211,147 @@ void CLIP_OT_keyframe_delete(wmOperatorType *ot)
   /* api callbacks */
   ot->poll = ED_space_clip_tracking_poll;
   ot->exec = keyframe_delete_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Image from plane track marker
+ * \{ */
+
+static ImBuf *sample_plane_marker_image_for_operator(bContext *C)
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  const int clip_frame_number = ED_space_clip_get_clip_frame_number(space_clip);
+
+  MovieClip *clip = ED_space_clip_get_clip(space_clip);
+
+  MovieTracking *tracking = &clip->tracking;
+  MovieTrackingPlaneTrack *plane_track = tracking->act_plane_track;
+  const MovieTrackingPlaneMarker *plane_marker = BKE_tracking_plane_marker_get(plane_track,
+                                                                               clip_frame_number);
+
+  ImBuf *frame_ibuf = ED_space_clip_get_buffer(space_clip);
+  if (frame_ibuf == NULL) {
+    return NULL;
+  }
+
+  ImBuf *plane_ibuf = BKE_tracking_get_plane_imbuf(frame_ibuf, plane_marker);
+
+  IMB_freeImBuf(frame_ibuf);
+
+  return plane_ibuf;
+}
+
+static bool new_image_from_plane_marker_poll(bContext *C)
+{
+  if (!ED_space_clip_tracking_poll(C)) {
+    return false;
+  }
+
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  MovieClip *clip = ED_space_clip_get_clip(space_clip);
+  const MovieTracking *tracking = &clip->tracking;
+
+  if (tracking->act_plane_track == NULL) {
+    return false;
+  }
+
+  return true;
+}
+
+static int new_image_from_plane_marker_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  MovieClip *clip = ED_space_clip_get_clip(space_clip);
+  MovieTracking *tracking = &clip->tracking;
+  MovieTrackingPlaneTrack *plane_track = tracking->act_plane_track;
+
+  ImBuf *plane_ibuf = sample_plane_marker_image_for_operator(C);
+  if (plane_ibuf == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  plane_track->image = BKE_image_add_from_imbuf(CTX_data_main(C), plane_ibuf, plane_track->name);
+
+  IMB_freeImBuf(plane_ibuf);
+
+  WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
+
+  return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_new_image_from_plane_marker(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "New Image from Plane Marker";
+  ot->description = "Create new image from the content of the plane marker";
+  ot->idname = "CLIP_OT_new_image_from_plane_marker";
+
+  /* api callbacks */
+  ot->poll = new_image_from_plane_marker_poll;
+  ot->exec = new_image_from_plane_marker_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static bool update_image_from_plane_marker_poll(bContext *C)
+{
+  if (!ED_space_clip_tracking_poll(C)) {
+    return false;
+  }
+
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  MovieClip *clip = ED_space_clip_get_clip(space_clip);
+  const MovieTracking *tracking = &clip->tracking;
+
+  if (tracking->act_plane_track == NULL || tracking->act_plane_track->image == NULL) {
+    return false;
+  }
+
+  const Image *image = tracking->act_plane_track->image;
+  return image->type == IMA_TYPE_IMAGE && ELEM(image->source, IMA_SRC_FILE, IMA_SRC_GENERATED);
+}
+
+static int update_image_from_plane_marker_exec(bContext *C, wmOperator *UNUSED(op))
+{
+  SpaceClip *space_clip = CTX_wm_space_clip(C);
+  MovieClip *clip = ED_space_clip_get_clip(space_clip);
+  MovieTracking *tracking = &clip->tracking;
+  MovieTrackingPlaneTrack *plane_track = tracking->act_plane_track;
+
+  ImBuf *plane_ibuf = sample_plane_marker_image_for_operator(C);
+  if (plane_ibuf == NULL) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_image_replace_imbuf(plane_track->image, plane_ibuf);
+
+  IMB_freeImBuf(plane_ibuf);
+
+  WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
+  WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, plane_track->image);
+
+  BKE_image_partial_update_mark_full_update(plane_track->image);
+
+  return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_update_image_from_plane_marker(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Update Image from Plane Marker";
+  ot->description =
+      "Update current image used by plane marker from the content of the plane marker";
+  ot->idname = "CLIP_OT_update_image_from_plane_marker";
+
+  /* api callbacks */
+  ot->poll = update_image_from_plane_marker_poll;
+  ot->exec = update_image_from_plane_marker_exec;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

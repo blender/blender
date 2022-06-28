@@ -560,6 +560,11 @@ struct ImBuf *BKE_tracking_get_search_imbuf(struct ImBuf *ibuf,
                                             bool anchored,
                                             bool disable_channels);
 
+/* Create a new image buffer which consists of pixels which the plane marker "sees".
+ * The function will choose best image resolution based on the plane marker size. */
+struct ImBuf *BKE_tracking_get_plane_imbuf(const struct ImBuf *frame_ibuf,
+                                           const struct MovieTrackingPlaneMarker *plane_marker);
+
 /**
  * Zap channels from the imbuf that are disabled by the user. this can lead to
  * better tracks sometimes. however, instead of simply zeroing the channels
