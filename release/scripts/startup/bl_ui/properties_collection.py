@@ -1,5 +1,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-from bpy.types import Panel, Menu
+
+from bpy.types import (
+    Collection,
+    Menu,
+    Panel,
+)
+
+from rna_prop_ui import PropertyPanel
 
 
 class CollectionButtonsPanel:
@@ -90,11 +97,17 @@ class COLLECTION_PT_lineart_collection(CollectionButtonsPanel, Panel):
                 row = col.row(align=True)
 
 
+class COLLECTION_PT_collection_custom_props(CollectionButtonsPanel, PropertyPanel, Panel):
+    _context_path = "collection"
+    _property_type = Collection
+
+
 classes = (
     COLLECTION_MT_context_menu_instance_offset,
     COLLECTION_PT_collection_flags,
     COLLECTION_PT_instancing,
     COLLECTION_PT_lineart_collection,
+    COLLECTION_PT_collection_custom_props,
 )
 
 if __name__ == "__main__":  # only for live edit.
