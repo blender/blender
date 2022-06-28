@@ -265,7 +265,17 @@ struct input_t {
   struct zwp_confined_pointer_v1 *confined_pointer = nullptr;
 
   struct xkb_context *xkb_context = nullptr;
+
   struct xkb_state *xkb_state = nullptr;
+  /**
+   * Keep a state with no modifiers active, use for symbol lookups.
+   */
+  struct xkb_state *xkb_state_empty = nullptr;
+  /**
+   * Keep a state with num-lock enabled, use to access predictable key-pad symbols.
+   * If number-lock is not supported by the key-map, this is set to NULL.
+   */
+  struct xkb_state *xkb_state_empty_with_numlock = nullptr;
 
   struct {
     /** Key repetition in character per second. */
@@ -430,12 +440,14 @@ static void display_destroy(display_t *d)
       }
       wl_keyboard_destroy(input->wl_keyboard);
     }
-    if (input->xkb_state) {
-      xkb_state_unref(input->xkb_state);
-    }
-    if (input->xkb_context) {
-      xkb_context_unref(input->xkb_context);
-    }
+
+    /* Un-referencing checks for NULL case. */
+    xkb_state_unref(input->xkb_state);
+    xkb_state_unref(input->xkb_state_empty);
+    xkb_state_unref(input->xkb_state_empty_with_numlock);
+
+    xkb_context_unref(input->xkb_context);
+
     wl_seat_destroy(input->wl_seat);
     delete input;
   }
@@ -1803,13 +1815,26 @@ static void keyboard_handle_keymap(void *data,
     return;
   }
 
-  struct xkb_state *xkb_state_next = xkb_state_new(keymap);
-  if (xkb_state_next) {
-    if (input->xkb_state) {
-      xkb_state_unref(input->xkb_state);
+  /* In practice we can assume `xkb_state_new` always succeeds. */
+  xkb_state_unref(input->xkb_state);
+  input->xkb_state = xkb_state_new(keymap);
+
+  xkb_state_unref(input->xkb_state_empty);
+  input->xkb_state_empty = xkb_state_new(keymap);
+
+  xkb_state_unref(input->xkb_state_empty_with_numlock);
+  input->xkb_state_empty_with_numlock = nullptr;
+
+  {
+    const xkb_mod_index_t mod2 = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
+    const xkb_mod_index_t num = xkb_keymap_mod_get_index(keymap, "NumLock");
+    if (num != XKB_MOD_INVALID && mod2 != XKB_MOD_INVALID) {
+      input->xkb_state_empty_with_numlock = xkb_state_new(keymap);
+      xkb_state_update_mask(
+          input->xkb_state_empty_with_numlock, (1 << mod2), 0, (1 << num), 0, 0, 0);
     }
-    input->xkb_state = xkb_state_next;
   }
+
   xkb_keymap_unref(keymap);
 }
 
@@ -1854,14 +1879,12 @@ static void keyboard_handle_leave(void *data,
  * A version of #xkb_state_key_get_one_sym which returns the key without any modifiers pressed.
  * Needed because #GHOST_TKey uses these values as key-codes.
  */
-static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(struct xkb_state *xkb_state,
-                                                                const xkb_keycode_t key)
+static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(
+    struct xkb_state *xkb_state_empty,
+    struct xkb_state *xkb_state_empty_with_numlock,
+    const xkb_keycode_t key)
 {
   /* Use an empty keyboard state to access key symbol without modifiers. */
-  xkb_state_get_keymap(xkb_state);
-  struct xkb_keymap *keymap = xkb_state_get_keymap(xkb_state);
-  struct xkb_state *xkb_state_empty = xkb_state_new(keymap);
-
   xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state_empty, key);
 
   /* NOTE(@campbellbarton): Only perform the number-locked lookup as a fallback
@@ -1870,21 +1893,15 @@ static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(struct xkb_state
    * Alternative solutions could be to inspect the layout however this could get involved
    * and turning on the number-lock is only needed for a limited set of keys. */
 
-  /* Accounts for 11 key-pad keys typically swapped for numbers when number-lock is enabled:
+  /* Accounts for key-pad keys typically swapped for numbers when number-lock is enabled:
    * `Home Left Up Right Down Prior Page_Up Next Page_Dow End Begin Insert Delete`. */
-  if (sym >= XKB_KEY_KP_Home && sym <= XKB_KEY_KP_Delete) {
-    const xkb_mod_index_t mod2 = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
-    const xkb_mod_index_t num = xkb_keymap_mod_get_index(keymap, "NumLock");
-    if (num != XKB_MOD_INVALID && mod2 != XKB_MOD_INVALID) {
-      xkb_state_update_mask(xkb_state_empty, (1 << mod2), 0, (1 << num), 0, 0, 0);
-      xkb_keysym_t sym_test = xkb_state_key_get_one_sym(xkb_state_empty, key);
-      if (sym_test != XKB_KEY_NoSymbol) {
-        sym = sym_test;
-      }
+  if (xkb_state_empty_with_numlock && (sym >= XKB_KEY_KP_Home && sym <= XKB_KEY_KP_Delete)) {
+    const xkb_keysym_t sym_test = xkb_state_key_get_one_sym(xkb_state_empty_with_numlock, key);
+    if (sym_test != XKB_KEY_NoSymbol) {
+      sym = sym_test;
     }
   }
 
-  xkb_state_unref(xkb_state_empty);
   return sym;
 }
 
@@ -1924,7 +1941,8 @@ static void keyboard_handle_key(void *data,
   input_t *input = static_cast<input_t *>(data);
   const xkb_keycode_t key_code = key + 8;
 
-  const xkb_keysym_t sym = xkb_state_key_get_one_sym_without_modifiers(input->xkb_state, key_code);
+  const xkb_keysym_t sym = xkb_state_key_get_one_sym_without_modifiers(
+      input->xkb_state_empty, input->xkb_state_empty_with_numlock, key_code);
   if (sym == XKB_KEY_NoSymbol) {
     return;
   }
