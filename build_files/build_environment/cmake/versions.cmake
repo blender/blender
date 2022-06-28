@@ -147,7 +147,7 @@ set(OPENIMAGEIO_HASH de45fb38501c4581062b522b53b6141c)
 set(OPENIMAGEIO_HASH_TYPE MD5)
 set(OPENIMAGEIO_FILE OpenImageIO-${OPENIMAGEIO_VERSION}.tar.gz)
 
-# 8.0.0 is currently oiio's preferred vesion although never versions may be available.
+# 8.0.0 is currently oiio's preferred version although never versions may be available.
 # the preferred version can be found in oiio's externalpackages.cmake
 set(FMT_VERSION 8.0.0)
 set(FMT_URI https://github.com/fmtlib/fmt/archive/refs/tags/${FMT_VERSION}.tar.gz)
@@ -155,7 +155,7 @@ set(FMT_HASH 7bce0e9e022e586b178b150002e7c2339994e3c2bbe44027e9abb0d60f9cce83)
 set(FMT_HASH_TYPE SHA256)
 set(FMT_FILE fmt-${FMT_VERSION}.tar.gz)
 
-# 0.6.2 is currently oiio's preferred vesion although never versions may be available.
+# 0.6.2 is currently oiio's preferred version although never versions may be available.
 # the preferred version can be found in oiio's externalpackages.cmake
 set(ROBINMAP_VERSION v0.6.2)
 set(ROBINMAP_URI https://github.com/Tessil/robin-map/archive/refs/tags/${ROBINMAP_VERSION}.tar.gz)

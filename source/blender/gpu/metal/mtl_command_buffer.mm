@@ -21,7 +21,7 @@ namespace blender::gpu {
 id<MTLEvent> MTLCommandBufferManager::sync_event = nil;
 unsigned long long MTLCommandBufferManager::event_signal_val = 0;
 
-/* Counter for active comand buffers. */
+/* Counter for active command buffers. */
 int MTLCommandBufferManager::num_active_cmd_bufs = 0;
 
 /* -------------------------------------------------------------------- */
@@ -121,7 +121,7 @@ bool MTLCommandBufferManager::submit(bool wait)
     [active_command_buffer_ waitUntilCompleted];
 
     /* Command buffer execution debugging can return an error message if
-     * execution has failed or encoutered GPU-side errors. */
+     * execution has failed or encountered GPU-side errors. */
     if (G.debug & G_DEBUG_GPU) {
 
       NSError *error = [active_command_buffer_ error];

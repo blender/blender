@@ -247,7 +247,7 @@ typedef struct SculptThreadedTaskData {
   float (*mat)[4];
   float (*vertCos)[3];
 
-  /* When true, the displacement stored in the proxies will be aplied to the original coordinates
+  /* When true, the displacement stored in the proxies will be applied to the original coordinates
    * instead of to the current coordinates. */
   bool use_proxies_orco;
 

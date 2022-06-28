@@ -124,7 +124,7 @@ void MTLContext::end_frame()
 {
   BLI_assert(is_inside_frame_);
 
-  /* Ensure pre-present work is commited. */
+  /* Ensure pre-present work is committed. */
   this->flush();
 
   /* Increment frame counter. */
