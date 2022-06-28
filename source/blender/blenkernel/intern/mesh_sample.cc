@@ -322,7 +322,7 @@ int sample_surface_points_spherical(RandomNumberGenerator &rng,
                                             std::min(1.0f, proj_distance_sq / sample_radius_sq);
       const float radius_proj_sq = sample_radius_sq * sample_radius_factor_sq;
       const float radius_proj = std::sqrt(radius_proj_sq);
-      const float circle_area = M_PI * radius_proj;
+      const float circle_area = M_PI * radius_proj_sq;
 
       const int amount = rng.round_probabilistic(approximate_density * circle_area);
 
