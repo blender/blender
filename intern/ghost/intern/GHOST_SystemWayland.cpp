@@ -278,7 +278,7 @@ struct input_t {
    */
   struct xkb_state *xkb_state_empty = nullptr;
   /**
-   * Keep a state with num-lock enabled, use to access predictable key-pad symbols.
+   * Keep a state with number-lock enabled, use to access predictable key-pad symbols.
    * If number-lock is not supported by the key-map, this is set to NULL.
    */
   struct xkb_state *xkb_state_empty_with_numlock = nullptr;

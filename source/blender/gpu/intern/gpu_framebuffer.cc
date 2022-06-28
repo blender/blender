@@ -191,7 +191,7 @@ void FrameBuffer::recursive_downsample(int max_lvl,
     dirty_attachments_ = true;
     this->bind(true);
 
-    /* Optimise load-store state. */
+    /* Optimize load-store state. */
     GPUAttachmentType type = GPU_FB_DEPTH_ATTACHMENT;
     for (GPUAttachment &attachment : attachments_) {
       Texture *tex = reinterpret_cast<Texture *>(attachment.tex);

@@ -16,7 +16,7 @@ namespace blender::gpu {
 
 /* Global sync event used across MTLContext's.
  * This resolves flickering artifacts from command buffer
- * dependencies not being honoured for work submitted between
+ * dependencies not being honored for work submitted between
  * different GPUContext's. */
 id<MTLEvent> MTLCommandBufferManager::sync_event = nil;
 unsigned long long MTLCommandBufferManager::event_signal_val = 0;
@@ -305,7 +305,7 @@ id<MTLRenderCommandEncoder> MTLCommandBufferManager::ensure_begin_render_command
     active_frame_buffer_->apply_state();
 
     /* FLAG FRAMEBUFFER AS CLEARED -- A clear only lasts as long as one has been specified.
-     * After this, resets to Load attachments to parallel GL behaviour. */
+     * After this, resets to Load attachments to parallel GL behavior. */
     active_frame_buffer_->mark_cleared();
 
     /* Reset RenderPassState to ensure resource bindings are re-applied. */
@@ -404,7 +404,7 @@ bool MTLCommandBufferManager::do_break_submission()
     return false;
   }
 
-  /* Use optimised heuristic to split heavy command buffer submissions to better saturate the
+  /* Use optimized heuristic to split heavy command buffer submissions to better saturate the
    * hardware and also reduce stalling from individual large submissions. */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY) ||
       GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
@@ -440,12 +440,12 @@ void MTLCommandBufferManager::pop_debug_group()
   }
 }
 
-/* Workload Synchronisation. */
+/* Workload Synchronization. */
 bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
                                                     eGPUStageBarrierBits before_stages,
                                                     eGPUStageBarrierBits after_stages)
 {
-  /* Only supporting Metal on 10.14 onwards anyway - Check required for warnings. */
+  /* Only supporting Metal on 10.14 onward anyway - Check required for warnings. */
   if (@available(macOS 10.14, *)) {
 
     /* Resolve scope. */
@@ -527,7 +527,7 @@ void MTLRenderPassState::prepare(MTLCommandBufferManager *cmd, MTLContext *mtl_c
 
 /* Reset binding state when a new RenderCommandEncoder is bound, to ensure
  * pipeline resources are re-applied to the new Encoder.
- * Note: In Metal, state is only persistent within an MTLCommandEncoder,
+ * NOTE: In Metal, state is only persistent within an MTLCommandEncoder,
  * not globally. */
 void MTLRenderPassState::reset_state()
 {

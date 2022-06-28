@@ -1,7 +1,7 @@
 /** \file
  * \ingroup gpu
  *
- * Encapsulation of Framebuffer states (attached textures, viewport, scissors).
+ * Encapsulation of Frame-buffer states (attached textures, viewport, scissors).
  */
 
 #pragma once
@@ -64,17 +64,17 @@ class MTLFrameBuffer : public FrameBuffer {
   MTLContext *dirty_state_ctx_;
 
   /* Whether a clear is pending -- Used to toggle between clear and load FB configurations
-   * (without dirtying the state) - Framebuffer load config is used if no GPU_clear_* command
+   * (without dirtying the state) - Frame-buffer load config is used if no `GPU_clear_*` command
    * was issued after binding the FrameBuffer. */
   bool has_pending_clear_;
 
   /* Render Pass Descriptors:
-   * There are 3 MTLRenderPassDescriptors for different ways in which a framebuffer
+   * There are 3 MTLRenderPassDescriptors for different ways in which a frame-buffer
    * can be configured:
    * [0] = CLEAR CONFIG -- Used when a GPU_framebuffer_clear_* command has been issued.
    * [1] = LOAD CONFIG -- Used if bound, but no clear is required.
    * [2] = CUSTOM CONFIG -- When using GPU_framebuffer_bind_ex to manually specify
-   * load-store configuration for optimal bandwidth utilisation.
+   * load-store configuration for optimal bandwidth utilization.
    * -- We cache these different configs to avoid re-generation --
    */
   typedef enum {
@@ -91,7 +91,7 @@ class MTLFrameBuffer : public FrameBuffer {
   bool descriptor_dirty_[MTL_FB_CONFIG_MAX];
   /* Whether SRGB is enabled for this framebuffer configuration. */
   bool srgb_enabled_;
-  /* Whether the primary Framebuffer attachment is an SRGB target or not. */
+  /* Whether the primary Frame-buffer attachment is an SRGB target or not. */
   bool is_srgb_;
 
  public:

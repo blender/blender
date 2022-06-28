@@ -508,7 +508,7 @@ class MTLCommandBufferManager {
   MTLFrameBuffer *active_frame_buffer_ = nullptr;
   MTLRenderPassDescriptor *active_pass_descriptor_ = nullptr;
 
-  /* Workload heuristics - We may need to split command buffers to optimise workload and balancing.
+  /* Workload heuristics - We may need to split command buffers to optimize workload and balancing.
    */
   int current_draw_call_count_ = 0;
   int encoder_count_ = 0;
@@ -552,7 +552,7 @@ class MTLCommandBufferManager {
   id<MTLBlitCommandEncoder> ensure_begin_blit_encoder();
   id<MTLComputeCommandEncoder> ensure_begin_compute_encoder();
 
-  /* Workload Synchronisation. */
+  /* Workload Synchronization. */
   bool insert_memory_barrier(eGPUBarrier barrier_bits,
                              eGPUStageBarrierBits before_stages,
                              eGPUStageBarrierBits after_stages);
@@ -634,13 +634,13 @@ class MTLContext : public Context {
 
   /** Metal Context Core functions. **/
 
-  /* Bind framebuffer to context. */
+  /* Bind frame-buffer to context. */
   void framebuffer_bind(MTLFrameBuffer *framebuffer);
 
-  /* Restore framebuffer used by active context to default backbuffer. */
+  /* Restore frame-buffer used by active context to default back-buffer. */
   void framebuffer_restore();
 
-  /* Ensure a render-pass using the Context framebuffer (active_fb_) is in progress. */
+  /* Ensure a render-pass using the Context frame-buffer (active_fb_) is in progress. */
   id<MTLRenderCommandEncoder> ensure_begin_render_pass();
 
   MTLFrameBuffer *get_current_framebuffer();

@@ -796,7 +796,7 @@ static double ffmpeg_steps_per_frame_get(struct anim *anim)
 
 /* Store backup frame.
  * With VFR movies, if PTS is not matched perfectly, scanning continues to look for next PTS.
- * It is likely to overshoot and scaning stops. Having previous frame backed up, it is possible
+ * It is likely to overshoot and scanning stops. Having previous frame backed up, it is possible
  * to use it when overshoot happens.
  */
 static void ffmpeg_double_buffer_backup_frame_store(struct anim *anim, int64_t pts_to_search)
@@ -1158,7 +1158,7 @@ static void ffmpeg_decode_video_frame_scan(struct anim *anim, int64_t pts_to_sea
 
     /* We should not get a new GOP keyframe while scanning if seeking is working as intended.
      * If this condition triggers, there may be and error in our seeking code.
-     * Note: This seems to happen if DTS value is used for seeking in ffmpeg internally. There
+     * NOTE: This seems to happen if DTS value is used for seeking in ffmpeg internally. There
      * seems to be no good way to handle such case. */
     if (anim->seek_before_decode && start_gop_frame != anim->cur_key_frame_pts) {
       av_log(anim->pFormatCtx, AV_LOG_ERROR, "SCAN: Frame belongs to an unexpected GOP!\n");

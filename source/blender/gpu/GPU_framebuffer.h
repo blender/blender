@@ -66,19 +66,19 @@ typedef struct GPULoadStore {
 /* Load store config array (load_store_actions) matches attachment structure of
  * GPU_framebuffer_config_array. This allows us to explicitly specify whether attachment data needs
  * to be loaded and stored on a per-attachment basis. This enables a number of bandwidth
- * optimisations:
+ * optimizations:
  *  - No need to load contents if subsequent work is over-writing every pixel.
  *  - No need to store attachments whose contents are not used beyond this pass e.g. depth buffer.
- *  - State can be customised at bind-time rather than applying to the framebuffer object as a
+ *  - State can be customized at bind-time rather than applying to the frame-buffer object as a
  * whole.
  *
  * Example:
  * \code{.c}
  * GPU_framebuffer_bind_loadstore(&fb, {
  *         {GPU_LOADACTION_LOAD, GPU_STOREACTION_DONT_CARE} // must be depth buffer
- *         {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE}, // Colour attachment 0
- *         {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, // Colour attachment 1
- *         {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE} // Colour attachment 2
+ *         {GPU_LOADACTION_LOAD, GPU_STOREACTION_STORE}, // Color attachment 0
+ *         {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE}, // Color attachment 1
+ *         {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_STORE} // Color attachment 2
  * })
  * \encode
  */

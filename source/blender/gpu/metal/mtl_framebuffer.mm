@@ -59,7 +59,7 @@ MTLFrameBuffer::~MTLFrameBuffer()
   /* Restore default frame-buffer if this frame-buffer was bound. */
   if (context_->active_fb == this && context_->back_left != this) {
     /* If this assert triggers it means the frame-buffer is being freed while in use by another
-     * context which, by the way, is TOTALLY UNSAFE!!!  (Copy from GL behaviour). */
+     * context which, by the way, is TOTALLY UNSAFE!!!  (Copy from GL behavior). */
     BLI_assert(context_ == static_cast<MTLContext *>(unwrap(GPU_context_active_get())));
     GPU_framebuffer_restore();
   }
@@ -129,7 +129,7 @@ bool MTLFrameBuffer::check(char err_out[256])
   /* Ensure local MTLAttachment data is up to date. */
   this->update_attachments(true);
 
-  /* Ensure there is atleast one attachment. */
+  /* Ensure there is at least one attachment. */
   bool valid = (this->get_attachment_count() > 0 ||
                 this->has_depth_attachment() | this->has_stencil_attachment());
   if (!valid) {
@@ -144,7 +144,7 @@ bool MTLFrameBuffer::check(char err_out[256])
   }
 
   /* Ensure all attachments have identical dimensions. */
-  /* Ensure all attachments are rendertargets. */
+  /* Ensure all attachments are render-targets. */
   bool first = true;
   uint dim_x = 0;
   uint dim_y = 0;
@@ -160,7 +160,7 @@ bool MTLFrameBuffer::check(char err_out[256])
         else {
           if (dim_x != att.texture->width_get() || dim_y != att.texture->height_get()) {
             const char *format =
-                "Framebuffer %s:Colour attachment dimensions do not match those of previous "
+                "Framebuffer %s: Color attachment dimensions do not match those of previous "
                 "attachment\n";
             if (err_out) {
               BLI_snprintf(err_out, 256, format, name_);
@@ -175,7 +175,7 @@ bool MTLFrameBuffer::check(char err_out[256])
       }
       else {
         const char *format =
-            "Framebuffer %s: Colour attachment texture does not have usage flag "
+            "Framebuffer %s: Color attachment texture does not have usage flag "
             "'GPU_TEXTURE_USAGE_ATTACHMENT'\n";
         if (err_out) {
           BLI_snprintf(err_out, 256, format, name_);
@@ -276,7 +276,7 @@ void MTLFrameBuffer::force_clear()
   MTLFrameBuffer *current_framebuffer = mtl_context->get_current_framebuffer();
   if (current_framebuffer) {
     BLI_assert(current_framebuffer == this);
-    /* End current renderpass. */
+    /* End current render-pass. */
     if (mtl_context->main_command_buffer.is_inside_render_pass()) {
       mtl_context->main_command_buffer.end_active_command_encoder();
     }
@@ -326,10 +326,10 @@ void MTLFrameBuffer::clear(eGPUFrameBufferBits buffers,
     /* Apply state before clear. */
     this->apply_state();
 
-    /* TODO(Metal): Optimise - Currently force-clear always used. Consider moving clear state to
+    /* TODO(Metal): Optimize - Currently force-clear always used. Consider moving clear state to
      * MTLTexture instead. */
     /* Force clear if RP is not yet active -- not the most efficient, but there is no distinction
-     * between clears where no draws occur. Can optimise at the high-level by using explicit
+     * between clears where no draws occur. Can optimize at the high-level by using explicit
      * load-store flags. */
     this->force_clear();
   }
@@ -356,10 +356,10 @@ void MTLFrameBuffer::clear_multi(const float (*clear_cols)[4])
     /* Apply state before clear. */
     this->apply_state();
 
-    /* TODO(Metal): Optimise - Currently force-clear always used. Consider moving clear state to
+    /* TODO(Metal): Optimize - Currently force-clear always used. Consider moving clear state to
      * MTLTexture instead. */
     /* Force clear if RP is not yet active -- not the most efficient, but there is no distinction
-     * between clears where no draws occur. Can optimise at the high-level by using explicit
+     * between clears where no draws occur. Can optimize at the high-level by using explicit
      * load-store flags. */
     this->force_clear();
   }
@@ -442,10 +442,10 @@ void MTLFrameBuffer::clear_attachment(GPUAttachmentType type,
     /* Apply state before clear. */
     this->apply_state();
 
-    /* TODO(Metal): Optimise - Currently force-clear always used. Consider moving clear state to
+    /* TODO(Metal): Optimize - Currently force-clear always used. Consider moving clear state to
      * MTLTexture instead. */
     /* Force clear if RP is not yet active -- not the most efficient, but there is no distinction
-     * between clears where no draws occur. Can optimise at the high-level by using explicit
+     * between clears where no draws occur. Can optimize at the high-level by using explicit
      * load-store flags. */
     this->force_clear();
   }
@@ -676,7 +676,7 @@ void MTLFrameBuffer::update_attachments(bool update_viewport)
             }
           }
 
-          /* Flag depth as added -- mirrors the behaviour in gl_framebuffer.cc to exit the for-loop
+          /* Flag depth as added -- mirrors the behavior in gl_framebuffer.cc to exit the for-loop
            * after GPU_FB_DEPTH_STENCIL_ATTACHMENT has executed. */
           depth_added = true;
 
@@ -765,7 +765,7 @@ void MTLFrameBuffer::apply_state(void)
       return;
     }
 
-    /* Ensure viewport has been set. Note: This should no longer happen, but kept for safety to
+    /* Ensure viewport has been set. NOTE: This should no longer happen, but kept for safety to
      * track bugs. */
     if (viewport_[2] == 0 || viewport_[3] == 0) {
       MTL_LOG_WARNING(
@@ -1538,7 +1538,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
 
 #if defined(MAC_OS_X_VERSION_11_0) && __MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_11_0
     if (@available(macOS 11.00, *)) {
-      /* Optimisation: Use smaller tile size on Apple Silicon if exceeding a certain bpp limit. */
+      /* Optimization: Use smaller tile size on Apple Silicon if exceeding a certain bpp limit. */
       bool is_tile_based_gpu = [metal_ctx->device hasUnifiedMemory];
       if (is_tile_based_gpu) {
         uint framebuffer_bpp = this->get_bits_per_pixel();
@@ -1597,7 +1597,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
       framebuffer_descriptor_[descriptor_config].renderTargetArrayLength = 0;
     }
 
-    /* Colour attachments. */
+    /* Color attachments. */
     int colour_attachments = 0;
     for (int attachment_ind = 0; attachment_ind < GPU_FB_MAX_COLOR_ATTACHMENT; attachment_ind++) {
 
