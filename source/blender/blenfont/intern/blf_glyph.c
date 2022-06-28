@@ -682,7 +682,9 @@ static bool blf_glyph_render_bitmap(FontBLF *font, FT_GlyphSlot glyph)
  *
  * \param factor: -1 (min stroke width) <= 0 (normal) => 1 (max boldness).
  */
-static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float factor, bool monospaced)
+static bool UNUSED_FUNCTION(blf_glyph_transform_weight)(FT_GlyphSlot glyph,
+                                                        float factor,
+                                                        bool monospaced)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
     /* Fake bold if the font does not have this variable axis. */
@@ -711,7 +713,7 @@ static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float factor, bool mo
  *
  * \note that left-leaning italics are possible in some RTL writing systems.
  */
-static bool blf_glyph_transform_slant(FT_GlyphSlot glyph, float factor)
+static bool UNUSED_FUNCTION(blf_glyph_transform_slant)(FT_GlyphSlot glyph, float factor)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
     FT_Matrix transform = {to_16dot16(1), to_16dot16(factor / 2.0f), 0, to_16dot16(1)};

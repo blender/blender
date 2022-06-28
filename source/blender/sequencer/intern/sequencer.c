@@ -435,7 +435,7 @@ void SEQ_meta_stack_set(const Scene *scene, Sequence *seqm)
     /* Allocate meta stack in a way, that represents meta hierarchy in timeline. */
     seq_meta_stack_alloc(scene, seqm);
     Sequence *meta_parent = seqm;
-    while (meta_parent = seq_sequence_lookup_meta_by_seq(scene, meta_parent)) {
+    while ((meta_parent = seq_sequence_lookup_meta_by_seq(scene, meta_parent))) {
       seq_meta_stack_alloc(scene, meta_parent);
     }
 
