@@ -2935,12 +2935,14 @@ void UV_OT_select_edge_ring(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit; /* requires space image */
 
   /* properties */
-  RNA_def_boolean(ot->srna,
-                  "extend",
-                  0,
-                  "Extend",
-                  "Extend selection rather than clearing the existing selection");
-  RNA_def_float_vector(
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna,
+                         "extend",
+                         0,
+                         "Extend",
+                         "Extend selection rather than clearing the existing selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_float_vector(
       ot->srna,
       "location",
       2,
@@ -2951,6 +2953,7 @@ void UV_OT_select_edge_ring(wmOperatorType *ot)
       "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds",
       -100.0f,
       100.0f);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
