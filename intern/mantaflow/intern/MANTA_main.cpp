@@ -562,6 +562,8 @@ MANTA::~MANTA()
   pythonCommands.push_back(finalString);
   result = runPythonString(pythonCommands);
 
+  MANTA::terminateMantaflow();
+
   BLI_assert(result);
   UNUSED_VARS(result);
 }
@@ -692,7 +694,7 @@ void MANTA::initializeMantaflow()
 
   PyObject *manta_main_module = manta_python_main_module_ensure();
   PyObject *globals_dict = PyModule_GetDict(manta_main_module);
-  Pb::setup(filename, fill, globals_dict); /* Namespace from Mantaflow (registry). */
+  Pb::setup(false, filename, fill, globals_dict); /* Namespace from Mantaflow (registry). */
   PyGILState_Release(gilstate);
 }
 
@@ -702,7 +704,7 @@ void MANTA::terminateMantaflow()
     cout << "Fluid: Releasing Mantaflow framework" << endl;
 
   PyGILState_STATE gilstate = PyGILState_Ensure();
-  Pb::finalize(); /* Namespace from Mantaflow (registry). */
+  Pb::finalize(false); /* Namespace from Mantaflow (registry). */
   manta_python_main_module_clear();
   PyGILState_Release(gilstate);
 }

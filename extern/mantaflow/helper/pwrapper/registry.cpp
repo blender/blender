@@ -706,16 +706,23 @@ PyObject *WrapperRegistry::initModule()
 //******************************************************
 // Register members and exposed functions
 
-void setup(const std::string &filename, const std::vector<std::string> &args, PyObject *name_space)
+void setup(const bool python_lifecycle,
+           const std::string &filename,
+           const std::vector<std::string> &args,
+           PyObject *name_space)
 {
   WrapperRegistry::instance().construct(filename, args);
-  Py_Initialize();
+  if (python_lifecycle) {
+    Py_Initialize();
+  }
   WrapperRegistry::instance().runPreInit(name_space);
 }
 
-void finalize()
+void finalize(const bool python_lifecycle)
 {
-  Py_Finalize();
+  if (python_lifecycle) {
+    Py_Finalize();
+  }
   WrapperRegistry::instance().cleanup();
 }
 
