@@ -162,7 +162,7 @@ bool VelocityModule::step_object_sync(Object *ob,
   }
 
   /* TODO(@fclem): Reset sampling here? Should ultimately be covered by depsgraph update tags. */
-  // inst_.sampling.reset();
+  inst_.sampling.reset();
 
   return true;
 }
@@ -264,7 +264,7 @@ void VelocityModule::end_sync()
   }
 
   if (deleted_obj.size() > 0) {
-    // inst_.sampling.reset();
+    inst_.sampling.reset();
   }
 
   for (auto key : deleted_obj) {

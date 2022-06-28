@@ -47,7 +47,7 @@ ObjectHandle &SyncModule::sync_object(Object *ob)
   const int recalc_flags = ID_RECALC_COPY_ON_WRITE | ID_RECALC_TRANSFORM | ID_RECALC_SHADING |
                            ID_RECALC_GEOMETRY;
   if ((eevee_dd.recalc & recalc_flags) != 0) {
-    // inst_.sampling.reset();
+    inst_.sampling.reset();
     UNUSED_VARS(inst_);
   }
 
@@ -63,7 +63,7 @@ WorldHandle &SyncModule::sync_world(::World *world)
 
   const int recalc_flags = ID_RECALC_ALL;
   if ((eevee_dd.recalc & recalc_flags) != 0) {
-    // inst_.sampling.reset();
+    inst_.sampling.reset();
   }
   return eevee_dd;
 }
@@ -253,7 +253,10 @@ static void gpencil_stroke_sync(bGPDlayer *UNUSED(gpl),
 void SyncModule::sync_gpencil(Object *ob, ObjectHandle &ob_handle)
 {
   /* TODO(fclem): Waiting for a user option to use the render engine instead of gpencil engine. */
-  return;
+  if (true) {
+    inst_.gpencil_engine_enabled = true;
+    return;
+  }
 
   gpIterData iter(inst_, ob, ob_handle);
 
@@ -280,7 +283,12 @@ static void shgroup_curves_call(MaterialPass &matpass,
   if (matpass.shgrp == nullptr) {
     return;
   }
-  DRW_shgroup_hair_create_sub(ob, part_sys, modifier_data, matpass.shgrp, matpass.gpumat);
+  if (part_sys != nullptr) {
+    DRW_shgroup_hair_create_sub(ob, part_sys, modifier_data, matpass.shgrp, matpass.gpumat);
+  }
+  else {
+    DRW_shgroup_curves_create_sub(ob, matpass.shgrp, matpass.gpumat);
+  }
 }
 
 void SyncModule::sync_curves(Object *ob, ObjectHandle &ob_handle, ModifierData *modifier_data)

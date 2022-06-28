@@ -43,3 +43,5 @@
 
 /* Minimum visibility size. */
 #define LIGHTPROBE_FILTER_VIS_GROUP_SIZE 16
+
+#define FILM_GROUP_SIZE 16

@@ -70,6 +70,14 @@ GPU_SHADER_INTERFACE_INFO(eevee_surf_iface, "interp")
 
 #define image_out(slot, qualifier, format, name) \
   image(slot, format, qualifier, ImageType::FLOAT_2D, name, Frequency::PASS)
+#define image_array_out(slot, qualifier, format, name) \
+  image(slot, format, qualifier, ImageType::FLOAT_2D_ARRAY, name, Frequency::PASS)
+
+GPU_SHADER_CREATE_INFO(eevee_aov_out)
+    .define("MAT_AOV_SUPPORT")
+    .image_array_out(6, Qualifier::WRITE, GPU_RGBA16F, "aov_color_img")
+    .image_array_out(7, Qualifier::WRITE, GPU_R16F, "aov_value_img")
+    .storage_buf(7, Qualifier::READ, "AOVsInfoData", "aov_buf");
 
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     .vertex_out(eevee_surf_iface)
@@ -89,27 +97,34 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     // .image_out(6, Qualifier::READ_WRITE, GPU_RGBA16F, "rpass_volume_light")
     /* TODO: AOVs maybe? */
     .fragment_source("eevee_surf_deferred_frag.glsl")
-    // .additional_info("eevee_sampling_data", "eevee_utility_texture")
+    // .additional_info("eevee_aov_out", "eevee_sampling_data", "eevee_utility_texture")
     ;
-
-#undef image_out
 
 GPU_SHADER_CREATE_INFO(eevee_surf_forward)
     .auto_resource_location(true)
     .vertex_out(eevee_surf_iface)
+    /* Early fragment test is needed for render passes support for forward surfaces. */
+    /* NOTE: This removes the possibility of using gl_FragDepth. */
+    .early_fragment_test(true)
     .fragment_out(0, Type::VEC4, "out_radiance", DualBlend::SRC_0)
     .fragment_out(0, Type::VEC4, "out_transmittance", DualBlend::SRC_1)
     .fragment_source("eevee_surf_forward_frag.glsl")
-    // .additional_info("eevee_sampling_data",
-    //  "eevee_lightprobe_data",
-    /* Optionally added depending on the material. */
-    // "eevee_raytrace_data",
-    // "eevee_transmittance_data",
-    //  "eevee_utility_texture",
-    //  "eevee_light_data",
-    //  "eevee_shadow_data"
-    // )
-    ;
+    .image_out(0, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_normal_img")
+    .image_out(1, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_diffuse_light_img")
+    .image_out(2, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_diffuse_color_img")
+    .image_out(3, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_specular_light_img")
+    .image_out(4, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_specular_color_img")
+    .image_out(5, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_emission_img")
+    .additional_info("eevee_aov_out"
+                     //  "eevee_sampling_data",
+                     //  "eevee_lightprobe_data",
+                     /* Optionally added depending on the material. */
+                     // "eevee_raytrace_data",
+                     // "eevee_transmittance_data",
+                     //  "eevee_utility_texture",
+                     //  "eevee_light_data",
+                     //  "eevee_shadow_data"
+    );
 
 GPU_SHADER_CREATE_INFO(eevee_surf_depth)
     .vertex_out(eevee_surf_iface)
@@ -119,10 +134,20 @@ GPU_SHADER_CREATE_INFO(eevee_surf_depth)
 
 GPU_SHADER_CREATE_INFO(eevee_surf_world)
     .vertex_out(eevee_surf_iface)
+    .image_out(0, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_normal_img")
+    .image_out(1, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_diffuse_light_img")
+    .image_out(2, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_diffuse_color_img")
+    .image_out(3, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_specular_light_img")
+    .image_out(4, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_specular_color_img")
+    .image_out(5, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_emission_img")
     .fragment_out(0, Type::VEC4, "out_background")
     .fragment_source("eevee_surf_world_frag.glsl")
-    // .additional_info("eevee_utility_texture")
-    ;
+    .additional_info("eevee_aov_out"
+                     //"eevee_utility_texture"
+    );
+
+#undef image_out
+#undef image_array_out
 
 /** \} */
 

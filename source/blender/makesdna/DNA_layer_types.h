@@ -35,6 +35,7 @@ typedef enum eViewLayerEEVEEPassType {
   EEVEE_RENDER_PASS_BLOOM = (1 << 14),
   EEVEE_RENDER_PASS_AOV = (1 << 15),
   EEVEE_RENDER_PASS_CRYPTOMATTE = (1 << 16),
+  EEVEE_RENDER_PASS_VECTOR = (1 << 17),
 } eViewLayerEEVEEPassType;
 #define EEVEE_RENDER_PASS_MAX_BIT 17
 
