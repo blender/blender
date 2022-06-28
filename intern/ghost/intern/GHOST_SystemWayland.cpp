@@ -1862,16 +1862,28 @@ static xkb_keysym_t xkb_state_key_get_one_sym_without_modifiers(struct xkb_state
   struct xkb_keymap *keymap = xkb_state_get_keymap(xkb_state);
   struct xkb_state *xkb_state_empty = xkb_state_new(keymap);
 
-  /* Enable number-lock. */
-  {
+  xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state_empty, key);
+
+  /* NOTE(@campbellbarton): Only perform the number-locked lookup as a fallback
+   * when a number-pad key has been pressed. This is important as some key-maps use number lock
+   * for switching other layers (in particular `de(neo_qwertz)` turns on layer-4), see: T96170.
+   * Alternative solutions could be to inspect the layout however this could get involved
+   * and turning on the number-lock is only needed for a limited set of keys. */
+
+  /* Accounts for 11 key-pad keys typically swapped for numbers when number-lock is enabled:
+   * `Home Left Up Right Down Prior Page_Up Next Page_Dow End Begin Insert Delete`. */
+  if (sym >= XKB_KEY_KP_Home && sym <= XKB_KEY_KP_Delete) {
     const xkb_mod_index_t mod2 = xkb_keymap_mod_get_index(keymap, XKB_MOD_NAME_NUM);
     const xkb_mod_index_t num = xkb_keymap_mod_get_index(keymap, "NumLock");
     if (num != XKB_MOD_INVALID && mod2 != XKB_MOD_INVALID) {
       xkb_state_update_mask(xkb_state_empty, (1 << mod2), 0, (1 << num), 0, 0, 0);
+      xkb_keysym_t sym_test = xkb_state_key_get_one_sym(xkb_state_empty, key);
+      if (sym_test != XKB_KEY_NoSymbol) {
+        sym = sym_test;
+      }
     }
   }
 
-  const xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state_empty, key);
   xkb_state_unref(xkb_state_empty);
   return sym;
 }
