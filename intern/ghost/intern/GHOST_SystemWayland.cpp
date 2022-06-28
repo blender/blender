@@ -107,6 +107,12 @@ static bool use_gnome_confine_hack = false;
 /** \name Private Types & Defines
  * \{ */
 
+/**
+ * From XKB internals, use for converting a scan-code from WAYLAND to a #xkb_keycode_t.
+ * Ideally this wouldn't need a local define.
+ */
+#define EVDEV_OFFSET 8
+
 struct buffer_t {
   void *data = nullptr;
   size_t size = 0;
@@ -1939,7 +1945,7 @@ static void keyboard_handle_key(void *data,
                                 const uint32_t state)
 {
   input_t *input = static_cast<input_t *>(data);
-  const xkb_keycode_t key_code = key + 8;
+  const xkb_keycode_t key_code = key + EVDEV_OFFSET;
 
   const xkb_keysym_t sym = xkb_state_key_get_one_sym_without_modifiers(
       input->xkb_state_empty, input->xkb_state_empty_with_numlock, key_code);
