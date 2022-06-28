@@ -8,6 +8,7 @@
 #include "BKE_paint.h"
 
 #include "WM_api.h"
+#include "WM_message.h"
 #include "WM_toolsystem.h"
 
 #include "ED_curves_sculpt.h"
@@ -250,6 +251,8 @@ static bool curves_sculptmode_toggle_poll(bContext *C)
 static void curves_sculptmode_enter(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
+
   Object *ob = CTX_data_active_object(C);
   BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->curves_sculpt);
   CurvesSculpt *curves_sculpt = scene->toolsettings->curves_sculpt;
@@ -258,8 +261,9 @@ static void curves_sculptmode_enter(bContext *C)
 
   ED_paint_cursor_start(&curves_sculpt->paint, CURVES_SCULPT_mode_poll_view3d);
 
-  /* Update for mode change. */
+  /* Necessary to change the object mode on the evaluated object. */
   DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
 }
 
@@ -272,6 +276,8 @@ static void curves_sculptmode_exit(bContext *C)
 static int curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
+
   const bool is_mode_set = ob->mode == OB_MODE_SCULPT_CURVES;
 
   if (is_mode_set) {
@@ -288,6 +294,10 @@ static int curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
   }
 
   WM_toolsystem_update_from_context_view3d(C);
+
+  /* Necessary to change the object mode on the evaluated object. */
+  DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+  WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
   WM_event_add_notifier(C, NC_SCENE | ND_MODE, nullptr);
   return OPERATOR_FINISHED;
 }
