@@ -68,13 +68,15 @@ static bool use_gnome_confine_hack = false;
 #endif
 
 /* -------------------------------------------------------------------- */
-/** \name Private Types & Defines
+/** \name Inline Event Codes
+ *
+ * Selected input event code defines from `linux/input-event-codes.h`
+ * We include some of the button input event codes here, since the header is
+ * only available in more recent kernel versions.
  * \{ */
 
 /**
- * Selected input event code defines from `linux/input-event-codes.h`
- * We include some of the button input event codes here, since the header is
- * only available in more recent kernel versions. The event codes are used to
+ * The event codes are used to
  * to differentiate from which mouse button an event comes from.
  */
 #define BTN_LEFT 0x110
@@ -87,7 +89,7 @@ static bool use_gnome_confine_hack = false;
 // #define BTN_TASK 0x117 /* UNUSED. */
 
 /**
- * Tablet events, also from `linux/input-event-codes.h`.
+ * Tablet events.
  */
 #define BTN_STYLUS 0x14b  /* Use as right-mouse. */
 #define BTN_STYLUS2 0x14c /* Use as middle-mouse. */
@@ -95,9 +97,15 @@ static bool use_gnome_confine_hack = false;
 #define BTN_STYLUS3 0x149
 
 /**
- * Keyboard scan-codes, also from `linux/input-event-codes.h`.
+ * Keyboard scan-codes.
  */
 #define KEY_GRAVE 41
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Private Types & Defines
+ * \{ */
 
 struct buffer_t {
   void *data = nullptr;
@@ -481,7 +489,7 @@ static void display_destroy(display_t *d)
   delete d;
 }
 
-static GHOST_TKey xkb_map_gkey(const xkb_keysym_t &sym)
+static GHOST_TKey xkb_map_gkey(const xkb_keysym_t sym)
 {
 
   GHOST_TKey gkey;
@@ -588,7 +596,7 @@ static GHOST_TKey xkb_map_gkey(const xkb_keysym_t &sym)
  *
  * \param key: The key's scan-code, compatible with values in `linux/input-event-codes.h`.
  */
-static GHOST_TKey xkb_map_gkey_or_scan_code(const xkb_keysym_t &sym, const uint32_t key)
+static GHOST_TKey xkb_map_gkey_or_scan_code(const xkb_keysym_t sym, const uint32_t key)
 {
   GHOST_TKey gkey = xkb_map_gkey(sym);
 
