@@ -465,7 +465,7 @@ TBB_VERSION="2020"
 TBB_VERSION_SHORT="2020"
 TBB_VERSION_UPDATE="_U3"  # Used for source packages...
 TBB_VERSION_MIN="2018"
-TBB_VERSION_MEX="2022"
+TBB_VERSION_MEX="2021"  # 2021 introduces 'oneTBB', which has lots of compatibility breakage with previous versions
 TBB_FORCE_BUILD=false
 TBB_FORCE_REBUILD=false
 TBB_SKIP=false
@@ -1687,7 +1687,7 @@ compile_TBB() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  tbb_magic=0
+  tbb_magic=1
   _init_tbb
 
   # Force having own builds for the dependencies.
@@ -2696,10 +2696,10 @@ compile_OSD() {
     mkdir build
     cd build
 
-    if [ -d $INST/tbb ]; then
-      cmake_d="$cmake_d $cmake_d -D TBB_LOCATION=$INST/tbb"
-    fi
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    if [ -d $INST/tbb ]; then
+      cmake_d="$cmake_d -D TBB_LOCATION=$INST/tbb"
+    fi
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     # ptex is only needed when nicholas bishop is ready
     cmake_d="$cmake_d -D NO_PTEX=1"
@@ -3326,7 +3326,7 @@ compile_Embree() {
   fi
 
   # To be changed each time we make edits that would modify the compiled results!
-  embree_magic=10
+  embree_magic=11
   _init_embree
 
   # Force having own builds for the dependencies.
@@ -3386,7 +3386,7 @@ compile_Embree() {
 
     cmake_d="$cmake_d -D EMBREE_TASKING_SYSTEM=TBB"
     if [ -d $INST/tbb ]; then
-      make_d="$make_d EMBREE_TBB_ROOT=$INST/tbb"
+      cmake_d="$cmake_d -D EMBREE_TBB_ROOT=$INST/tbb"
     fi
 
     cmake $cmake_d ../
@@ -3525,7 +3525,7 @@ compile_OIDN() {
   install_ISPC
 
   # To be changed each time we make edits that would modify the compiled results!
-  oidn_magic=9
+  oidn_magic=10
   _init_oidn
 
   # Force having own builds for the dependencies.
@@ -3581,7 +3581,7 @@ compile_OIDN() {
     cmake_d="$cmake_d -D ISPC_DIR_HINT=$_ispc_path_bin"
 
     if [ -d $INST/tbb ]; then
-      make_d="$make_d TBB_ROOT=$INST/tbb"
+      cmake_d="$cmake_d -D TBB_ROOT=$INST/tbb"
     fi
 
     cmake $cmake_d ../
