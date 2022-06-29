@@ -402,6 +402,8 @@ DefNode(GeometryNode, GEO_NODE_TRIM_CURVE, def_geo_curve_trim, "TRIM_CURVE", Tri
 DefNode(GeometryNode, GEO_NODE_VIEWER, def_geo_viewer, "VIEWER", Viewer, "Viewer", "")
 DefNode(GeometryNode, GEO_NODE_VOLUME_CUBE, 0, "VOLUME_CUBE", VolumeCube, "Volume Cube", "")
 DefNode(GeometryNode, GEO_NODE_VOLUME_TO_MESH, def_geo_volume_to_mesh, "VOLUME_TO_MESH", VolumeToMesh, "Volume to Mesh", "")
+DefNode(GeometryNode, GEO_NODE_UV_PACK_ISLANDS, 0, "UV_PACK_ISLANDS", UVPackIslands, "Pack UV Islands", "")
+DefNode(GeometryNode, GEO_NODE_UV_UNWRAP, def_geo_uv_unwrap, "UV_UNWRAP", UVUnwrap, "UV Unwrap", "")
 
 /* undefine macros */
 #undef DefNode

@@ -157,6 +157,17 @@ def geometry_node_items(context):
     yield NodeItem("GeometryNodeSetPosition")
 
 
+# Custom Menu for UV Nodes.
+def uv_node_items(context):
+    if context is None:
+        return
+    space = context.space_data
+    if not space:
+        return
+    yield NodeItem("GeometryNodeUVUnwrap")
+    yield NodeItem("GeometryNodeUVPackIslands")
+
+
 # Custom Menu for Geometry Node Input Nodes.
 def geometry_input_node_items(context):
     if context is None:
@@ -654,6 +665,7 @@ geometry_node_categories = [
         NodeItem("GeometryNodeCurvePrimitiveBezierSegment"),
     ]),
     GeometryNodeCategory("GEO_GEOMETRY", "Geometry", items=geometry_node_items),
+    GeometryNodeCategory("GEO_UV", "UV", items=uv_node_items),
     GeometryNodeCategory("GEO_INPUT", "Input", items=geometry_input_node_items),
     GeometryNodeCategory("GEO_INSTANCE", "Instances", items=geometry_instance_node_items),
     GeometryNodeCategory("GEO_MATERIAL", "Material", items=geometry_material_node_items),
