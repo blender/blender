@@ -680,7 +680,7 @@ void BKE_sculpt_update_object_for_edit(struct Depsgraph *depsgraph,
                                        bool need_pmap,
                                        bool need_mask,
                                        bool need_colors);
-void BKE_sculpt_update_object_before_eval(struct Object *ob_eval);
+void BKE_sculpt_update_object_before_eval(const struct Scene *scene, struct Object *ob_eval);
 void BKE_sculpt_update_object_after_eval(struct Depsgraph *depsgraph, struct Object *ob_eval);
 
 /**

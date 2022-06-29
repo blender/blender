@@ -1771,7 +1771,7 @@ void makeDerivedMesh(struct Depsgraph *depsgraph,
 
   BKE_object_free_derived_caches(ob);
   if (DEG_is_active(depsgraph)) {
-    BKE_sculpt_update_object_before_eval(ob);
+    BKE_sculpt_update_object_before_eval(scene, ob);
   }
 
   /* NOTE: Access the `edit_mesh` after freeing the derived caches, so that `ob->data` is restored
