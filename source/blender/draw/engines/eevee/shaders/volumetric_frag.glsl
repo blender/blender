@@ -86,6 +86,8 @@ void main()
     discard;
     return;
   }
+#else /* WORLD_SHADER */
+  volumeOrco = worldPosition;
 #endif
 
 #ifdef CLEAR
