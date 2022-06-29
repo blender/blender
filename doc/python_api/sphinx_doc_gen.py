@@ -539,8 +539,10 @@ if ARGS.sphinx_build_pdf:
 
 def generate_changelog():
     import importlib.util
-    spec = importlib.util.spec_from_file_location("sphinx_changelog_gen",
-                                                  os.path.abspath(os.path.join(SCRIPT_DIR, "sphinx_changelog_gen.py")))
+    spec = importlib.util.spec_from_file_location(
+        "sphinx_changelog_gen",
+        os.path.abspath(os.path.join(SCRIPT_DIR, "sphinx_changelog_gen.py")),
+    )
     sphinx_changelog_gen = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(sphinx_changelog_gen)
 
@@ -549,9 +551,23 @@ def generate_changelog():
     API_DUMP_FILEPATH = os.path.abspath(os.path.join(API_DUMP_ROOT, BLENDER_VERSION_DOTS, "api_dump.json"))
     API_CHANGELOG_FILEPATH = os.path.abspath(os.path.join(SPHINX_IN_TMP, "change_log.rst"))
 
-    sphinx_changelog_gen.main(("--", "--indexpath", API_DUMP_INDEX_FILEPATH, "dump", "--filepath-out", API_DUMP_FILEPATH))
+    sphinx_changelog_gen.main((
+        "--",
+        "--indexpath",
+        API_DUMP_INDEX_FILEPATH,
+        "dump",
+        "--filepath-out",
+        API_DUMP_FILEPATH,
+    ))
 
-    sphinx_changelog_gen.main(("--", "--indexpath", API_DUMP_INDEX_FILEPATH, "changelog", "--filepath-out", API_CHANGELOG_FILEPATH))
+    sphinx_changelog_gen.main((
+        "--",
+        "--indexpath",
+        API_DUMP_INDEX_FILEPATH,
+        "changelog",
+        "--filepath-out",
+        API_CHANGELOG_FILEPATH,
+    ))
 
 
 # --------------------------------API DUMP--------------------------------------

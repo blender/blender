@@ -255,14 +255,14 @@ def api_changelog(args):
     with open(indexpath, 'r', encoding='utf-8') as file_handle:
         index = json.load(file_handle)
 
-    if filepath_in_to == None:
+    if filepath_in_to is None:
         filepath_in_to = index.get(version_key, None)
-    if filepath_in_to == None:
+    if filepath_in_to is None:
         raise(ValueError("Cannot find API dump file for Blender version " + str(version) + " in index file."))
 
     print("Found to file: %r" % filepath_in_to)
 
-    if filepath_in_from == None:
+    if filepath_in_from is None:
         version_from, version_from_key = api_version_previous_in_index(index, version)
         if version_from is None:
             raise(ValueError("No previous version of Blender could be found in the index."))
@@ -423,7 +423,10 @@ def main(argv=None):
         help="Path of the JSON file containing the dump of the API.")
     parser_dump.set_defaults(func=api_dump)
 
-    parser_changelog = parser_commands.add_parser('changelog', help="Generate the RST changelog page based on two Blender Python API JSON dumps.")
+    parser_changelog = parser_commands.add_parser(
+        'changelog',
+        help="Generate the RST changelog page based on two Blender Python API JSON dumps.",
+    )
 
     parser_changelog.add_argument(
         "--filepath-in-from", dest="filepath_in_from", metavar='FILE', default=None,
