@@ -138,6 +138,7 @@ const EnumPropertyItem rna_enum_wm_job_type_items[] = {
     {WM_JOB_TYPE_RENDER_PREVIEW, "RENDER_PREVIEW", 0, "Rendering previews", ""},
     {WM_JOB_TYPE_OBJECT_BAKE, "OBJECT_BAKE", 0, "Object Baking", ""},
     {WM_JOB_TYPE_COMPOSITE, "COMPOSITE", 0, "Compositing", ""},
+    {WM_JOB_TYPE_SHADER_COMPILATION, "SHADER_COMPILATION", 0, "Shader compilation", ""},
     {0, NULL, 0, NULL, NULL},
 };
 
