@@ -1116,7 +1116,6 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
 
         break;
       case GHOST_kEventWindowActivate: {
-        GHOST_TEventKeyData kdata;
         const int keymodifier = ((query_qual(SHIFT) ? KM_SHIFT : 0) |
                                  (query_qual(CONTROL) ? KM_CTRL : 0) |
                                  (query_qual(ALT) ? KM_ALT : 0) | (query_qual(OS) ? KM_OSKEY : 0));
@@ -1139,9 +1138,12 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
          *
          * For now don't send GHOST_kEventKeyDown events, just set the 'eventstate'.
          */
-        kdata.ascii = '\0';
-        kdata.utf8_buf[0] = '\0';
-
+        GHOST_TEventKeyData kdata = {
+            .key = GHOST_kKeyUnknown,
+            .ascii = '\0',
+            .utf8_buf = {'\0'},
+            .is_repeat = false,
+        };
         if (win->eventstate->modifier & KM_SHIFT) {
           if ((keymodifier & KM_SHIFT) == 0) {
             kdata.key = GHOST_kKeyLeftShift;
