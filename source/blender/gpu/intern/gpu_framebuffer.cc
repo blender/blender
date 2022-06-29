@@ -148,7 +148,7 @@ void FrameBuffer::load_store_config_array(const GPULoadStore *load_store_actions
   }
 }
 
-unsigned int FrameBuffer::get_bits_per_pixel(void)
+unsigned int FrameBuffer::get_bits_per_pixel()
 {
   unsigned int total_bits = 0;
   for (GPUAttachment &attachment : attachments_) {
