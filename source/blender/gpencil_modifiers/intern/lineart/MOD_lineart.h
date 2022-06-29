@@ -41,6 +41,12 @@ typedef struct LineartTriangle {
   uint8_t mat_occlusion;
   uint8_t flags; /* #eLineartTriangleFlags */
 
+  /* target_reference = (obi->obindex | triangle_index) */
+  /*        higher 12 bits-------^         ^-----index in object, lower 20 bits */
+  uint32_t target_reference;
+
+  uint8_t intersection_priority;
+
   /**
    * Only use single link list, because we don't need to go back in order.
    * This variable is also reused to store the pointer to adjacent lines of this triangle before
@@ -66,6 +72,7 @@ typedef enum eLineArtElementNodeFlag {
   LRT_ELEMENT_IS_ADDITIONAL = (1 << 0),
   LRT_ELEMENT_BORDER_ONLY = (1 << 1),
   LRT_ELEMENT_NO_INTERSECTION = (1 << 2),
+  LRT_ELEMENT_INTERSECTION_DATA = (1 << 3),
 } eLineArtElementNodeFlag;
 
 typedef struct LineartElementLinkNode {
@@ -75,20 +82,64 @@ typedef struct LineartElementLinkNode {
   void *object_ref;
   eLineArtElementNodeFlag flags;
 
+  /* For edge element link nodes, used for shadow edge matching. */
+  int obindex;
+
   /** Per object value, always set, if not enabled by #ObjectLineArt, then it's set to global. */
   float crease_threshold;
 } LineartElementLinkNode;
 
 typedef struct LineartEdgeSegment {
   struct LineartEdgeSegment *next, *prev;
-  /** at==0: left  at==1: right  (this is in 2D projected space) */
-  double at;
-  /** Occlusion level after "at" point */
+  /** The point after which a property of the segment is changed, e.g. occlusion/material mask etc.
+   * ratio==0: v1  ratio==1: v2 (this is in 2D projected space), */
+  double ratio;
+  /** Occlusion level after "ratio" point */
   uint8_t occlusion;
 
   /* Used to filter line art occlusion edges */
   uint8_t material_mask_bits;
+
+  /* Lit/shaded flag for shadow is stored here.
+   * TODO(Yiming): Transfer material masks from shadow results
+   * onto here so then we can even filter transparent shadows. */
+  uint32_t shadow_mask_bits;
 } LineartEdgeSegment;
+
+typedef struct LineartShadowEdge {
+  struct LineartShadowEdge *next, *prev;
+  /* Two end points in framebuffer coordinates viewed from the light source. */
+  double fbc1[4], fbc2[4];
+  double g1[3], g2[3];
+  bool orig1, orig2;
+  struct LineartEdge *e_ref;
+  struct LineartEdge *e_ref_light_contour;
+  struct LineartEdgeSegment *es_ref; /* Only for 3rd stage casting. */
+  ListBase shadow_segments;
+} LineartShadowEdge;
+
+enum eLineartShadowSegmentFlag {
+  LRT_SHADOW_CASTED = 1,
+  LRT_SHADOW_FACING_LIGHT = 2,
+};
+
+/* Represents a cutting point on a #LineartShadowEdge */
+typedef struct LineartShadowSegment {
+  struct LineartShadowSegment *next, *prev;
+  /* eLineartShadowSegmentFlag */
+  int flag;
+  /* The point after which a property of the segment is changed. e.g. shadow mask/target_ref etc.
+   * Coordinates in NDC during shadow caluclation but transformed to global linear before cutting
+   * onto edges during the loading stage of the "actual" rendering. */
+  double ratio;
+  /* Left and right pos, because when casting shadows at some point there will be
+   * non-continuous cuts, see #lineart_shadow_edge_cut for detailed explaination. */
+  double fbc1[4], fbc2[4];
+  /* Global position. */
+  double g1[4], g2[4];
+  uint32_t target_reference;
+  uint32_t shadow_mask_bits;
+} LineartShadowSegment;
 
 typedef struct LineartVert {
   double gloc[3];
@@ -96,37 +147,34 @@ typedef struct LineartVert {
 
   /* Scene global index. */
   int index;
-
-  /**
-   * Intersection data flag is here, when LRT_VERT_HAS_INTERSECTION_DATA is set,
-   * size of the struct is extended to include intersection data.
-   * See #eLineArtVertFlags.
-   */
-  uint8_t flag;
-
 } LineartVert;
-
-typedef struct LineartVertIntersection {
-  struct LineartVert base;
-  /** Use vert index because we only use this to check vertex equal. This way we save 8 Bytes. */
-  int isec1, isec2;
-  struct LineartTriangle *intersecting_with;
-} LineartVertIntersection;
-
-typedef enum eLineArtVertFlags {
-  LRT_VERT_HAS_INTERSECTION_DATA = (1 << 0),
-  LRT_VERT_EDGE_USED = (1 << 1),
-} eLineArtVertFlags;
 
 typedef struct LineartEdge {
   struct LineartVert *v1, *v2;
+
+  /** These two variables are also used to specify original edge and segment during 3rd stage
+   * reprojection, So we can easily find out the line which results come from. */
   struct LineartTriangle *t1, *t2;
+
   ListBase segments;
   int8_t min_occ;
 
   /** Also for line type determination on chaining. */
   uint16_t flags;
   uint8_t intersection_mask;
+
+  /** Matches the shadow result, used to determine whether a line is in the shadow or not.
+   * #edge_identifier usages:
+   * - Intersection lines:
+   *    ((e->t1->target_reference << 32) | e->t2->target_reference);
+   * - Other lines: LRT_EDGE_IDENTIFIER(obi, e);
+   * - After shadow calculation: (search the shadow result and set reference to that);
+   */
+  uint64_t edge_identifier;
+
+  /** - Light contour: original_e->t1->target_reference | original_e->t2->target_reference.
+   *  - Cast shadow: triangle_projected_onto->target_reference. */
+  uint64_t target_reference;
 
   /**
    * Still need this entry because culled lines will not add to object
@@ -146,8 +194,8 @@ typedef struct LineartEdgeChain {
   float length;
 
   /** Used when re-connecting and grease-pencil stroke generation. */
-  int8_t picked;
-  int8_t level;
+  uint8_t picked;
+  uint8_t level;
 
   /** Chain now only contains one type of segments */
   int type;
@@ -155,8 +203,10 @@ typedef struct LineartEdgeChain {
   int loop_id;
   uint8_t material_mask_bits;
   uint8_t intersection_mask;
+  uint32_t shadow_mask_bits;
 
   struct Object *object_ref;
+  struct Object *silhouette_backdrop;
 } LineartEdgeChain;
 
 typedef struct LineartEdgeChainItem {
@@ -170,6 +220,7 @@ typedef struct LineartEdgeChainItem {
   uint8_t occlusion;
   uint8_t material_mask_bits;
   uint8_t intersection_mask;
+  uint32_t shadow_mask_bits;
   size_t index;
 } LineartEdgeChainItem;
 
@@ -201,6 +252,11 @@ enum eLineArtTileRecursiveLimit {
 #define LRT_TILE_SPLITTING_TRIANGLE_LIMIT 100
 #define LRT_TILE_EDGE_COUNT_INITIAL 32
 
+enum eLineartShadowCameraType {
+  LRT_SHADOW_CAMERA_DIRECTIONAL = 1,
+  LRT_SHADOW_CAMERA_POINT = 2,
+};
+
 typedef struct LineartPendingEdges {
   LineartEdge **array;
   int max;
@@ -216,6 +272,14 @@ typedef struct LineartData {
   LineartStaticMemPool render_data_pool;
   /* A pointer to LineartCache::chain_data_pool, which acts as a cache for edge chains. */
   LineartStaticMemPool *chain_data_pool;
+  /* Reference to LineartCache::shadow_data_pool, stay available until the final round of line art
+   * calculation is finished. */
+  LineartStaticMemPool *shadow_data_pool;
+
+  /* Storing shadow edge eln, array, and cuts for shadow information, so it's avaliable when line
+   * art runs the second time for occlusion. Either a reference to LineartCache::shadow_data_pool
+   * (shadow stage) or a reference to LineartData::render_data_pool (final stage). */
+  LineartStaticMemPool *edge_data_pool;
 
   struct _qtree {
 
@@ -230,7 +294,7 @@ typedef struct LineartData {
 
     struct LineartBoundingArea *initials;
 
-    uint32_t tile_count;
+    uint32_t initial_tile_count;
 
   } qtree;
 
@@ -267,6 +331,14 @@ typedef struct LineartData {
     bool use_edge_marks;
     bool use_intersections;
     bool use_loose;
+    bool use_light_contour;
+    bool use_shadow;
+    bool use_contour_secondary; /* From viewing camera, during shadow calculation. */
+
+    int shadow_selection; /* Needs to be numeric because it's not just on/off. */
+    bool shadow_enclose_shapes;
+    bool shadow_use_silhouette;
+
     bool fuzzy_intersections;
     bool fuzzy_everything;
     bool allow_boundaries;
@@ -289,13 +361,21 @@ typedef struct LineartData {
 
     bool chain_preserve_details;
 
+    bool do_shadow_cast;
+    bool light_reference_available;
+
     /* Keep an copy of these data so when line art is running it's self-contained. */
     bool cam_is_persp;
+    bool cam_is_persp_secondary; /* "Secondary" ones are from viewing camera (as opposed to shadow
+                                    camera), during shadow calculation. */
     float cam_obmat[4][4];
+    float cam_obmat_secondary[4][4];
     double camera_pos[3];
+    double camera_pos_secondary[3];
     double active_camera_pos[3]; /* Stroke offset calculation may use active or selected camera. */
     double near_clip, far_clip;
     float shift_x, shift_y;
+
     float crease_threshold;
     float chaining_image_threshold;
     float angle_splitting_threshold;
@@ -303,7 +383,7 @@ typedef struct LineartData {
     float chain_smooth_tolerance;
 
     double view_vector[3];
-
+    double view_vector_secondary[3]; /* For shadow. */
   } conf;
 
   LineartElementLinkNode *isect_scheduled_up_to;
@@ -313,21 +393,31 @@ typedef struct LineartData {
   struct LineartPendingEdges pending_edges;
   int scheduled_count;
 
+  /* Intermediate shadow results, list of LineartShadowEdge */
+  LineartShadowEdge *shadow_edges;
+  int shadow_edges_count;
+
   ListBase chains;
 
   ListBase wasted_cuts;
+  ListBase wasted_shadow_cuts;
   SpinLock lock_cuts;
   SpinLock lock_task;
 
 } LineartData;
 
 typedef struct LineartCache {
-  /** Separate memory pool for chain data, this goes to the cache, so when we free the main pool,
-   * chains will still be available. */
+  /** Separate memory pool for chain data and shadow, this goes to the cache, so when we free the
+   * main pool, chains and shadows will still be available. */
   LineartStaticMemPool chain_data_pool;
+  LineartStaticMemPool shadow_data_pool;
 
   /** A copy of ld->chains so we have that data available after ld has been destroyed. */
   ListBase chains;
+
+  /** Shadow-computed feature lines from original meshes to be matched with the second load of
+   * meshes thus providing lit/shade info in the second run of line art. */
+  ListBase shadow_elns;
 
   /** Cache only contains edge types specified in this variable. */
   uint16_t all_enabled_edge_types;
@@ -347,6 +437,14 @@ typedef enum eLineartTriangleFlags {
   LRT_TRIANGLE_NO_INTERSECTION = (1 << 4),
   LRT_TRIANGLE_MAT_BACK_FACE_CULLING = (1 << 5),
 } eLineartTriangleFlags;
+
+#define LRT_SHADOW_MASK_UNDEFINED 0
+#define LRT_SHADOW_MASK_LIT (1 << 0)
+#define LRT_SHADOW_MASK_SHADED (1 << 1)
+#define LRT_SHADOW_MASK_ENCLOSED_SHAPE (1 << 2)
+#define LRT_SHADOW_MASK_INHIBITED (1 << 3)
+#define LRT_SHADOW_SILHOUETTE_ERASED_GROUP (1 << 4)
+#define LRT_SHADOW_SILHOUETTE_ERASED_OBJECT (1 << 5)
 
 /**
  * Controls how many edges a worker thread is processing at one request.
@@ -368,6 +466,14 @@ typedef struct LineartRenderTaskInfo {
 
 } LineartRenderTaskInfo;
 
+#define LRT_OBINDEX_SHIFT 20
+#define LRT_OBINDEX_LOWER 0x0FFFFF    /* Lower 20 bits. */
+#define LRT_OBINDEX_HIGHER 0xFFF00000 /* Higher 12 bits. */
+#define LRT_EDGE_IDENTIFIER(obi, e) \
+  (((uint64_t)(obi->obindex | (e->v1->index & LRT_OBINDEX_LOWER)) << 32) | \
+   (obi->obindex | (e->v2->index & LRT_OBINDEX_LOWER)))
+#define LRT_LIGHT_CONTOUR_TARGET 0xFFFFFFFF
+
 typedef struct LineartObjectInfo {
   struct LineartObjectInfo *next;
   struct Object *original_ob;
@@ -378,7 +484,11 @@ typedef struct LineartObjectInfo {
   LineartElementLinkNode *v_eln;
   int usage;
   uint8_t override_intersection_mask;
+  uint8_t intersection_priority;
   int global_i_offset;
+
+  /* Shifted LRT_OBINDEX_SHIFT bits to be combined with object triangle index. */
+  int obindex;
 
   bool free_use_mesh;
 
@@ -394,6 +504,7 @@ typedef struct LineartObjectLoadTaskInfo {
   LineartObjectInfo *pending;
   /* Used to spread the load across several threads. This can not overflow. */
   uint64_t total_faces;
+  ListBase *shadow_elns;
 } LineartObjectLoadTaskInfo;
 
 /**
@@ -466,6 +577,10 @@ typedef struct LineartBoundingArea {
 #define LRT_DOUBLE_CLOSE_ENOUGH_TRI(a, b) \
   (((a) + DBL_TRIANGLE_LIM) >= (b) && ((a)-DBL_TRIANGLE_LIM) <= (b))
 
+#define LRT_CLOSE_LOOSER_v3(a, b) \
+  (LRT_DOUBLE_CLOSE_LOOSER(a[0], b[0]) && LRT_DOUBLE_CLOSE_LOOSER(a[1], b[1]) && \
+   LRT_DOUBLE_CLOSE_LOOSER(a[2], b[2]))
+
 /* Notes on this function:
  *
  * r_ratio: The ratio on segment a1-a2. When r_ratio is very close to zero or one, it
@@ -478,10 +593,10 @@ typedef struct LineartBoundingArea {
  * segment a is shared with segment b. If it's a1 then r_ratio is 0, else then r_ratio is 1. This
  * extra information is needed for line art occlusion stage to work correctly in such cases.
  */
-BLI_INLINE int lineart_intersect_seg_seg(const double *a1,
-                                         const double *a2,
-                                         const double *b1,
-                                         const double *b2,
+BLI_INLINE int lineart_intersect_seg_seg(const double a1[2],
+                                         const double a2[2],
+                                         const double b1[2],
+                                         const double b2[2],
                                          double *r_ratio,
                                          bool *r_aligned)
 {
@@ -622,6 +737,99 @@ BLI_INLINE int lineart_intersect_seg_seg(const double *a1,
 #endif
 }
 
+/* This is a special convenience function to lineart_intersect_seg_seg which will return true when
+ * the intersection point falls in the range of a1-a2 but not necessarily in the range of b1-b2. */
+BLI_INLINE int lineart_line_isec_2d_ignore_line2pos(const double a1[2],
+                                                    const double a2[2],
+                                                    const double b1[2],
+                                                    const double b2[2],
+                                                    double *r_a_ratio)
+{
+  /* The define here is used to check how vector or slope method handles boundary cases. The result
+   * of lim(div->0) and lim(k->0) could both produce some unwanted flickers in line art, the
+   * influence of which is still not fully understood, so keep the switch there for futher
+   * investigations. */
+#define USE_VECTOR_LINE_INTERSECTION_IGN
+#ifdef USE_VECTOR_LINE_INTERSECTION_IGN
+
+  /* from isect_line_line_v2_point() */
+
+  double s10[2], s32[2];
+  double div;
+
+  sub_v2_v2v2_db(s10, a2, a1);
+  sub_v2_v2v2_db(s32, b2, b1);
+
+  div = cross_v2v2_db(s10, s32);
+  if (div != 0.0f) {
+    const double u = cross_v2v2_db(a2, a1);
+    const double v = cross_v2v2_db(b2, b1);
+
+    const double rx = ((s32[0] * u) - (s10[0] * v)) / div;
+    const double ry = ((s32[1] * u) - (s10[1] * v)) / div;
+
+    if (fabs(a2[0] - a1[0]) > fabs(a2[1] - a1[1])) {
+      *r_a_ratio = ratiod(a1[0], a2[0], rx);
+      if ((*r_a_ratio) >= -DBL_EDGE_LIM && (*r_a_ratio) <= 1 + DBL_EDGE_LIM) {
+        return 1;
+      }
+      return 0;
+    }
+
+    *r_a_ratio = ratiod(a1[1], a2[1], ry);
+    if ((*r_a_ratio) >= -DBL_EDGE_LIM && (*r_a_ratio) <= 1 + DBL_EDGE_LIM) {
+      return 1;
+    }
+    return 0;
+  }
+  return 0;
+
+#else
+  double k1, k2;
+  double x;
+  double y;
+  double ratio;
+  double x_diff = (a2[0] - a1[0]);
+  double x_diff2 = (b2[0] - b1[0]);
+
+  if (LRT_DOUBLE_CLOSE_ENOUGH(x_diff, 0)) {
+    if (LRT_DOUBLE_CLOSE_ENOUGH(x_diff2, 0)) {
+      *r_a_ratio = 0;
+      return 0;
+    }
+    double r2 = ratiod(b1[0], b2[0], a1[0]);
+    x = interpd(b2[0], b1[0], r2);
+    y = interpd(b2[1], b1[1], r2);
+    *r_a_ratio = ratio = ratiod(a1[1], a2[1], y);
+  }
+  else {
+    if (LRT_DOUBLE_CLOSE_ENOUGH(x_diff2, 0)) {
+      ratio = ratiod(a1[0], a2[0], b1[0]);
+      x = interpd(a2[0], a1[0], ratio);
+      *r_a_ratio = ratio;
+    }
+    else {
+      k1 = (a2[1] - a1[1]) / x_diff;
+      k2 = (b2[1] - b1[1]) / x_diff2;
+
+      if ((k1 == k2))
+        return 0;
+
+      x = (a1[1] - b1[1] - k1 * a1[0] + k2 * b1[0]) / (k2 - k1);
+
+      ratio = (x - a1[0]) / x_diff;
+
+      *r_a_ratio = ratio;
+    }
+  }
+
+  if (ratio <= 0 || ratio >= 1)
+    return 0;
+
+  return 1;
+#endif
+}
+
 struct Depsgraph;
 struct LineartGpencilModifierData;
 struct LineartData;
@@ -646,6 +854,7 @@ void MOD_lineart_chain_clip_at_border(LineartData *ld);
 void MOD_lineart_chain_split_angle(LineartData *ld, float angle_threshold_rad);
 void MOD_lineart_smooth_chains(LineartData *ld, float tolerance);
 void MOD_lineart_chain_offset_towards_camera(LineartData *ld, float dist, bool use_custom_camera);
+void MOD_lineart_chain_find_silhouette_backdrop_objects(LineartData *ld);
 
 int MOD_lineart_chain_count(const LineartEdgeChain *ec);
 void MOD_lineart_chain_clear_picked_flag(LineartCache *lc);
@@ -694,6 +903,8 @@ void MOD_lineart_gpencil_generate(LineartCache *cache,
                                   uint8_t intersection_mask,
                                   int16_t thickness,
                                   float opacity,
+                                  uint8_t shadow_selection,
+                                  uint8_t silhouette_mode,
                                   const char *source_vgname,
                                   const char *vgname,
                                   int modifier_flags);

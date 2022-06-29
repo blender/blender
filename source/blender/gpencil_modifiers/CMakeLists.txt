@@ -68,6 +68,7 @@ set(SRC
   intern/lineart/lineart_cpp_bridge.cc
   intern/lineart/lineart_cpu.c
   intern/lineart/lineart_ops.c
+  intern/lineart/lineart_shadow.c
   intern/lineart/lineart_util.c
 
   intern/lineart/MOD_lineart.h

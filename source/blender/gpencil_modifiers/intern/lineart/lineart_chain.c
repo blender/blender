@@ -17,13 +17,16 @@
 
 #define LRT_OTHER_VERT(e, vt) ((vt) == (e)->v1 ? (e)->v2 : ((vt) == (e)->v2 ? (e)->v1 : NULL))
 
+struct Object;
+
 /* Get a connected line, only for lines who has the exact given vert, or (in the case of
  * intersection lines) who has a vert that has the exact same position. */
 static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
                                                LineartVert *vt,
                                                LineartVert **new_vt,
                                                int match_flag,
-                                               uint8_t match_isec_mask)
+                                               uint8_t match_isec_mask,
+                                               struct Object *match_isec_object)
 {
   for (int i = 0; i < ba->line_count; i++) {
     LineartEdge *n_e = ba->linked_lines[i];
@@ -46,6 +49,9 @@ static LineartEdge *lineart_line_get_connected(LineartBoundingArea *ba,
     }
 
     if (n_e->flags & LRT_EDGE_FLAG_INTERSECTION) {
+      if (n_e->object_ref != match_isec_object) {
+        continue;
+      }
       if (vt->fbcoord[0] == n_e->v1->fbcoord[0] && vt->fbcoord[1] == n_e->v1->fbcoord[1]) {
         *new_vt = LRT_OTHER_VERT(n_e, n_e->v1);
         return n_e;
@@ -87,12 +93,13 @@ static bool lineart_point_overlapping(LineartEdgeChainItem *eci,
 
 static LineartEdgeChainItem *lineart_chain_append_point(LineartData *ld,
                                                         LineartEdgeChain *ec,
-                                                        float *fbcoord,
-                                                        float *gpos,
-                                                        float *normal,
+                                                        float fbcoord[4],
+                                                        float gpos[3],
+                                                        float normal[3],
                                                         uint8_t type,
                                                         int level,
                                                         uint8_t material_mask_bits,
+                                                        uint32_t shadow_mask_bits,
                                                         size_t index)
 {
   LineartEdgeChainItem *eci;
@@ -105,6 +112,7 @@ static LineartEdgeChainItem *lineart_chain_append_point(LineartData *ld,
     old_eci->line_type = type;
     old_eci->occlusion = level;
     old_eci->material_mask_bits = material_mask_bits;
+    old_eci->shadow_mask_bits = shadow_mask_bits;
     return old_eci;
   }
 
@@ -117,6 +125,7 @@ static LineartEdgeChainItem *lineart_chain_append_point(LineartData *ld,
   eci->line_type = type & LRT_EDGE_FLAG_ALL_TYPE;
   eci->occlusion = level;
   eci->material_mask_bits = material_mask_bits;
+  eci->shadow_mask_bits = shadow_mask_bits;
   BLI_addtail(&ec->chain, eci);
 
   return eci;
@@ -124,12 +133,13 @@ static LineartEdgeChainItem *lineart_chain_append_point(LineartData *ld,
 
 static LineartEdgeChainItem *lineart_chain_prepend_point(LineartData *ld,
                                                          LineartEdgeChain *ec,
-                                                         float *fbcoord,
-                                                         float *gpos,
-                                                         float *normal,
+                                                         float fbcoord[4],
+                                                         float gpos[3],
+                                                         float normal[3],
                                                          uint8_t type,
                                                          int level,
                                                          uint8_t material_mask_bits,
+                                                         uint32_t shadow_mask_bits,
                                                          size_t index)
 {
   LineartEdgeChainItem *eci;
@@ -147,6 +157,7 @@ static LineartEdgeChainItem *lineart_chain_prepend_point(LineartData *ld,
   eci->line_type = type & LRT_EDGE_FLAG_ALL_TYPE;
   eci->occlusion = level;
   eci->material_mask_bits = material_mask_bits;
+  eci->shadow_mask_bits = shadow_mask_bits;
   BLI_addhead(&ec->chain, eci);
 
   return eci;
@@ -160,6 +171,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
   LineartEdgeSegment *es;
   int last_occlusion;
   uint8_t last_transparency;
+  uint32_t last_shadow;
   /* Used when converting from double. */
   float use_fbcoord[4];
   float use_gpos[3];
@@ -219,9 +231,10 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                 e->flags,
                                 es->occlusion,
                                 es->material_mask_bits,
+                                es->shadow_mask_bits,
                                 e->v1->index);
     while (ba && (new_e = lineart_line_get_connected(
-                      ba, new_vt, &new_vt, e->flags, e->intersection_mask))) {
+                      ba, new_vt, &new_vt, e->flags, ec->intersection_mask, ec->object_ref))) {
       new_e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
 
       if (new_e->t1 || new_e->t2) {
@@ -243,8 +256,8 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
         for (es = new_e->segments.last; es; es = es->prev) {
           double gpos[3], lpos[3];
           double *lfb = new_e->v1->fbcoord, *rfb = new_e->v2->fbcoord;
-          double global_at = lfb[3] * es->at / (es->at * lfb[3] + (1 - es->at) * rfb[3]);
-          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->at);
+          double global_at = lfb[3] * es->ratio / (es->ratio * lfb[3] + (1 - es->ratio) * rfb[3]);
+          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->ratio);
           interp_v3_v3v3_db(gpos, new_e->v1->gloc, new_e->v2->gloc, global_at);
           use_fbcoord[3] = interpf(new_e->v2->fbcoord[3], new_e->v1->fbcoord[3], global_at);
           POS_TO_FLOAT(lpos, gpos)
@@ -256,21 +269,24 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                       new_e->flags,
                                       es->occlusion,
                                       es->material_mask_bits,
+                                      es->shadow_mask_bits,
                                       new_e->v1->index);
           last_occlusion = es->occlusion;
           last_transparency = es->material_mask_bits;
+          last_shadow = es->shadow_mask_bits;
         }
       }
       else if (new_vt == new_e->v2) {
         es = new_e->segments.first;
         last_occlusion = es->occlusion;
         last_transparency = es->material_mask_bits;
+        last_shadow = es->shadow_mask_bits;
         es = es->next;
         for (; es; es = es->next) {
           double gpos[3], lpos[3];
           double *lfb = new_e->v1->fbcoord, *rfb = new_e->v2->fbcoord;
-          double global_at = lfb[3] * es->at / (es->at * lfb[3] + (1 - es->at) * rfb[3]);
-          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->at);
+          double global_at = lfb[3] * es->ratio / (es->ratio * lfb[3] + (1 - es->ratio) * rfb[3]);
+          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->ratio);
           interp_v3_v3v3_db(gpos, new_e->v1->gloc, new_e->v2->gloc, global_at);
           use_fbcoord[3] = interpf(new_e->v2->fbcoord[3], new_e->v1->fbcoord[3], global_at);
           POS_TO_FLOAT(lpos, gpos)
@@ -282,9 +298,11 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                       new_e->flags,
                                       last_occlusion,
                                       last_transparency,
+                                      last_shadow,
                                       new_e->v2->index);
           last_occlusion = es->occlusion;
           last_transparency = es->material_mask_bits;
+          last_shadow = es->shadow_mask_bits;
         }
         VERT_COORD_TO_FLOAT(new_e->v2);
         lineart_chain_prepend_point(ld,
@@ -295,6 +313,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                     new_e->flags,
                                     last_occlusion,
                                     last_transparency,
+                                    last_shadow,
                                     new_e->v2->index);
       }
       ba = MOD_lineart_get_bounding_area(ld, new_vt->fbcoord[0], new_vt->fbcoord[1]);
@@ -318,13 +337,14 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
     /*  Step 2: Adding all cuts from the given line, so we can continue connecting the right side
      * of the line. */
     es = e->segments.first;
-    last_occlusion = ((LineartEdgeSegment *)es)->occlusion;
-    last_transparency = ((LineartEdgeSegment *)es)->material_mask_bits;
+    last_occlusion = es->occlusion;
+    last_transparency = es->material_mask_bits;
+    last_shadow = es->shadow_mask_bits;
     for (es = es->next; es; es = es->next) {
       double gpos[3], lpos[3];
       double *lfb = e->v1->fbcoord, *rfb = e->v2->fbcoord;
-      double global_at = lfb[3] * es->at / (es->at * lfb[3] + (1 - es->at) * rfb[3]);
-      interp_v3_v3v3_db(lpos, e->v1->fbcoord, e->v2->fbcoord, es->at);
+      double global_at = lfb[3] * es->ratio / (es->ratio * lfb[3] + (1 - es->ratio) * rfb[3]);
+      interp_v3_v3v3_db(lpos, e->v1->fbcoord, e->v2->fbcoord, es->ratio);
       interp_v3_v3v3_db(gpos, e->v1->gloc, e->v2->gloc, global_at);
       use_fbcoord[3] = interpf(e->v2->fbcoord[3], e->v1->fbcoord[3], global_at);
       POS_TO_FLOAT(lpos, gpos)
@@ -336,9 +356,11 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                  e->flags,
                                  es->occlusion,
                                  es->material_mask_bits,
+                                 es->shadow_mask_bits,
                                  e->v1->index);
       last_occlusion = es->occlusion;
       last_transparency = es->material_mask_bits;
+      last_shadow = es->shadow_mask_bits;
     }
     VERT_COORD_TO_FLOAT(e->v2)
     lineart_chain_append_point(ld,
@@ -349,13 +371,14 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                e->flags,
                                last_occlusion,
                                last_transparency,
+                               last_shadow,
                                e->v2->index);
 
     /*  Step 3: grow right. */
     ba = MOD_lineart_get_bounding_area(ld, e->v2->fbcoord[0], e->v2->fbcoord[1]);
     new_vt = e->v2;
     while (ba && (new_e = lineart_line_get_connected(
-                      ba, new_vt, &new_vt, e->flags, e->intersection_mask))) {
+                      ba, new_vt, &new_vt, e->flags, ec->intersection_mask, ec->object_ref))) {
       new_e->flags |= LRT_EDGE_FLAG_CHAIN_PICKED;
 
       if (new_e->t1 || new_e->t2) {
@@ -381,18 +404,21 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
         es = new_e->segments.last;
         last_occlusion = es->occlusion;
         last_transparency = es->material_mask_bits;
+        last_shadow = es->shadow_mask_bits;
         /* Fix leading vertex occlusion. */
         eci->occlusion = last_occlusion;
         eci->material_mask_bits = last_transparency;
+        eci->shadow_mask_bits = last_shadow;
         for (es = new_e->segments.last; es; es = es->prev) {
           double gpos[3], lpos[3];
           double *lfb = new_e->v1->fbcoord, *rfb = new_e->v2->fbcoord;
-          double global_at = lfb[3] * es->at / (es->at * lfb[3] + (1 - es->at) * rfb[3]);
-          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->at);
+          double global_at = lfb[3] * es->ratio / (es->ratio * lfb[3] + (1 - es->ratio) * rfb[3]);
+          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->ratio);
           interp_v3_v3v3_db(gpos, new_e->v1->gloc, new_e->v2->gloc, global_at);
           use_fbcoord[3] = interpf(new_e->v2->fbcoord[3], new_e->v1->fbcoord[3], global_at);
           last_occlusion = es->prev ? es->prev->occlusion : last_occlusion;
           last_transparency = es->prev ? es->prev->material_mask_bits : last_transparency;
+          last_shadow = es->prev ? es->prev->shadow_mask_bits : last_shadow;
           POS_TO_FLOAT(lpos, gpos)
           lineart_chain_append_point(ld,
                                      ec,
@@ -402,6 +428,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                      new_e->flags,
                                      last_occlusion,
                                      last_transparency,
+                                     last_shadow,
                                      new_e->v1->index);
         }
       }
@@ -409,14 +436,16 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
         es = new_e->segments.first;
         last_occlusion = es->occlusion;
         last_transparency = es->material_mask_bits;
+        last_shadow = es->shadow_mask_bits;
         eci->occlusion = last_occlusion;
         eci->material_mask_bits = last_transparency;
+        eci->shadow_mask_bits = last_shadow;
         es = es->next;
         for (; es; es = es->next) {
           double gpos[3], lpos[3];
           double *lfb = new_e->v1->fbcoord, *rfb = new_e->v2->fbcoord;
-          double global_at = lfb[3] * es->at / (es->at * lfb[3] + (1 - es->at) * rfb[3]);
-          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->at);
+          double global_at = lfb[3] * es->ratio / (es->ratio * lfb[3] + (1 - es->ratio) * rfb[3]);
+          interp_v3_v3v3_db(lpos, new_e->v1->fbcoord, new_e->v2->fbcoord, es->ratio);
           interp_v3_v3v3_db(gpos, new_e->v1->gloc, new_e->v2->gloc, global_at);
           use_fbcoord[3] = interpf(new_e->v2->fbcoord[3], new_e->v1->fbcoord[3], global_at);
           POS_TO_FLOAT(lpos, gpos)
@@ -428,9 +457,11 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                      new_e->flags,
                                      es->occlusion,
                                      es->material_mask_bits,
+                                     es->shadow_mask_bits,
                                      new_e->v2->index);
           last_occlusion = es->occlusion;
           last_transparency = es->material_mask_bits;
+          last_shadow = es->shadow_mask_bits;
         }
         VERT_COORD_TO_FLOAT(new_e->v2)
         lineart_chain_append_point(ld,
@@ -441,6 +472,7 @@ void MOD_lineart_chain_feature_lines(LineartData *ld)
                                    new_e->flags,
                                    last_occlusion,
                                    last_transparency,
+                                   last_shadow,
                                    new_e->v2->index);
       }
       ba = MOD_lineart_get_bounding_area(ld, new_vt->fbcoord[0], new_vt->fbcoord[1]);
@@ -509,7 +541,7 @@ static void lineart_bounding_area_link_point_recursive(LineartData *ld,
 {
   if (root->child == NULL) {
     LineartChainRegisterEntry *cre = lineart_list_append_pointer_pool_sized(
-        &root->linked_chains, &ld->render_data_pool, ec, sizeof(LineartChainRegisterEntry));
+        &root->linked_chains, ld->chain_data_pool, ec, sizeof(LineartChainRegisterEntry));
 
     cre->eci = eci;
 
@@ -565,6 +597,7 @@ static bool lineart_chain_fix_ambiguous_segments(LineartEdgeChain *ec,
 
   int fixed_occ = last_matching_eci->occlusion;
   uint8_t fixed_mask = last_matching_eci->material_mask_bits;
+  uint32_t fixed_shadow = last_matching_eci->shadow_mask_bits;
 
   LineartEdgeChainItem *can_skip_to = NULL;
   LineartEdgeChainItem *last_eci = last_matching_eci;
@@ -579,7 +612,8 @@ static bool lineart_chain_fix_ambiguous_segments(LineartEdgeChain *ec,
     if (eci->occlusion < fixed_occ) {
       break;
     }
-    if (eci->material_mask_bits == fixed_mask && eci->occlusion == fixed_occ) {
+    if (eci->material_mask_bits == fixed_mask && eci->occlusion == fixed_occ &&
+        eci->shadow_mask_bits == fixed_shadow) {
       can_skip_to = eci;
     }
   }
@@ -589,12 +623,14 @@ static bool lineart_chain_fix_ambiguous_segments(LineartEdgeChain *ec,
     LineartEdgeChainItem *next_eci;
     for (LineartEdgeChainItem *eci = last_matching_eci->next; eci != can_skip_to; eci = next_eci) {
       next_eci = eci->next;
-      if (eci->material_mask_bits == fixed_mask && eci->occlusion == fixed_occ) {
+      if (eci->material_mask_bits == fixed_mask && eci->occlusion == fixed_occ &&
+          eci->shadow_mask_bits == fixed_shadow) {
         continue;
       }
       if (preserve_details) {
         eci->material_mask_bits = fixed_mask;
         eci->occlusion = fixed_occ;
+        eci->shadow_mask_bits = fixed_shadow;
       }
       else {
         BLI_remlink(&ec->chain, eci);
@@ -628,11 +664,14 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
     LineartEdgeChainItem *first_eci = (LineartEdgeChainItem *)ec->chain.first;
     int fixed_occ = first_eci->occlusion;
     uint8_t fixed_mask = first_eci->material_mask_bits;
+    uint32_t fixed_shadow = first_eci->shadow_mask_bits;
     ec->level = fixed_occ;
     ec->material_mask_bits = fixed_mask;
+    ec->shadow_mask_bits = fixed_shadow;
     for (eci = first_eci->next; eci; eci = next_eci) {
       next_eci = eci->next;
-      if (eci->occlusion != fixed_occ || eci->material_mask_bits != fixed_mask) {
+      if (eci->occlusion != fixed_occ || eci->material_mask_bits != fixed_mask ||
+          eci->shadow_mask_bits != fixed_shadow) {
         if (next_eci) {
           if (lineart_point_overlapping(next_eci, eci->pos[0], eci->pos[1], 1e-5)) {
             continue;
@@ -649,6 +688,7 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
           /* Set the same occlusion level for the end vertex, so when further connection is needed
            * the backwards occlusion info is also correct. */
           eci->occlusion = fixed_occ;
+          eci->shadow_mask_bits = fixed_shadow;
           eci->material_mask_bits = fixed_mask;
           /* No need to split at the last point anyway. */
           break;
@@ -670,6 +710,7 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
                                    eci->line_type,
                                    fixed_occ,
                                    fixed_mask,
+                                   fixed_shadow,
                                    eci->index);
         new_ec->object_ref = ec->object_ref;
         new_ec->type = ec->type;
@@ -677,8 +718,10 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
         ec = new_ec;
         fixed_occ = eci->occlusion;
         fixed_mask = eci->material_mask_bits;
+        fixed_shadow = eci->shadow_mask_bits;
         ec->level = fixed_occ;
         ec->material_mask_bits = fixed_mask;
+        ec->shadow_mask_bits = fixed_shadow;
       }
     }
   }
@@ -749,6 +792,7 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
                                                                 int occlusion,
                                                                 uint8_t material_mask_bits,
                                                                 uint8_t isec_mask,
+                                                                uint32_t shadow_mask,
                                                                 int loop_id,
                                                                 float dist,
                                                                 float *result_new_len,
@@ -779,7 +823,7 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
     }
     if (cre->ec == ec || (!cre->ec->chain.first) || (cre->ec->level != occlusion) ||
         (cre->ec->material_mask_bits != material_mask_bits) ||
-        (cre->ec->intersection_mask != isec_mask)) {
+        (cre->ec->intersection_mask != isec_mask) || (cre->ec->shadow_mask_bits != shadow_mask)) {
       continue;
     }
     if (!ld->conf.fuzzy_everything) {
@@ -826,6 +870,7 @@ static LineartChainRegisterEntry *lineart_chain_get_closest_cre(LineartData *ld,
                                                        occlusion, \
                                                        material_mask_bits, \
                                                        isec_mask, \
+                                                       shadow_mask, \
                                                        loop_id, \
                                                        dist, \
                                                        &adjacent_new_len, \
@@ -856,8 +901,9 @@ void MOD_lineart_chain_connect(LineartData *ld)
   LineartChainRegisterEntry *closest_cre_l, *closest_cre_r, *closest_cre;
   float dist = ld->conf.chaining_image_threshold;
   float dist_l, dist_r;
-  int occlusion, reverse_main, loop_id;
-  uint8_t material_mask_bits, isec_mask;
+  int reverse_main, loop_id;
+  uint8_t occlusion, material_mask_bits, isec_mask;
+  uint32_t shadow_mask;
   ListBase swap = {0};
 
   if (ld->conf.chaining_image_threshold < 0.0001) {
@@ -871,7 +917,7 @@ void MOD_lineart_chain_connect(LineartData *ld)
 
   while ((ec = BLI_pophead(&swap)) != NULL) {
     ec->next = ec->prev = NULL;
-    if (ec->picked) {
+    if (ec->picked || ec->chain.first == ec->chain.last) {
       continue;
     }
     BLI_addtail(&ld->chains, ec);
@@ -884,6 +930,7 @@ void MOD_lineart_chain_connect(LineartData *ld)
     occlusion = ec->level;
     material_mask_bits = ec->material_mask_bits;
     isec_mask = ec->intersection_mask;
+    shadow_mask = ec->shadow_mask_bits;
 
     eci_l = ec->chain.first;
     eci_r = ec->chain.last;
@@ -896,6 +943,7 @@ void MOD_lineart_chain_connect(LineartData *ld)
                                                     occlusion,
                                                     material_mask_bits,
                                                     isec_mask,
+                                                    shadow_mask,
                                                     loop_id,
                                                     dist,
                                                     &dist_l,
@@ -907,6 +955,7 @@ void MOD_lineart_chain_connect(LineartData *ld)
                                                     occlusion,
                                                     material_mask_bits,
                                                     isec_mask,
+                                                    shadow_mask,
                                                     loop_id,
                                                     dist,
                                                     &dist_r,
@@ -1072,20 +1121,22 @@ static LineartEdgeChainItem *lineart_chain_create_crossing_point(LineartData *ld
                                                                  LineartEdgeChainItem *eci_outside)
 {
   float isec[2];
-  float LU[2] = {-1.0f, 1.0f}, LB[2] = {-1.0f, -1.0f}, RU[2] = {1.0f, 1.0f}, RB[2] = {1.0f, -1.0f};
+  /* l: left, r: right, b: bottom, u: top. */
+  float ref_lu[2] = {-1.0f, 1.0f}, ref_lb[2] = {-1.0f, -1.0f}, ref_ru[2] = {1.0f, 1.0f},
+        ref_rb[2] = {1.0f, -1.0f};
   bool found = false;
   LineartEdgeChainItem *eci2 = eci_outside, *eci1 = eci_inside;
   if (eci2->pos[0] < -1.0f) {
-    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, LU, LB, isec) > 0);
+    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, ref_lu, ref_lb, isec) > 0);
   }
   if (!found && eci2->pos[0] > 1.0f) {
-    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, RU, RB, isec) > 0);
+    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, ref_ru, ref_rb, isec) > 0);
   }
   if (!found && eci2->pos[1] < -1.0f) {
-    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, LB, RB, isec) > 0);
+    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, ref_lb, ref_rb, isec) > 0);
   }
   if (!found && eci2->pos[1] > 1.0f) {
-    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, LU, RU, isec) > 0);
+    found = (isect_seg_seg_v2_point(eci1->pos, eci2->pos, ref_lu, ref_ru, isec) > 0);
   }
 
   if (UNLIKELY(!found)) {
@@ -1126,7 +1177,7 @@ void MOD_lineart_chain_clip_at_border(LineartData *ld)
     LineartEdgeChainItem *first_eci = (LineartEdgeChainItem *)ec->chain.first;
     is_inside = LRT_ECI_INSIDE(first_eci) ? true : false;
     if (!is_inside) {
-      ec->picked = true;
+      ec->picked = 1;
     }
     for (eci = first_eci->next; eci; eci = next_eci) {
       next_eci = eci->next;
@@ -1219,6 +1270,7 @@ void MOD_lineart_chain_split_angle(LineartData *ld, float angle_threshold_rad)
                                    eci->line_type,
                                    ec->level,
                                    eci->material_mask_bits,
+                                   eci->shadow_mask_bits,
                                    eci->index);
         new_ec->object_ref = ec->object_ref;
         new_ec->type = ec->type;
@@ -1226,6 +1278,7 @@ void MOD_lineart_chain_split_angle(LineartData *ld, float angle_threshold_rad)
         new_ec->loop_id = ec->loop_id;
         new_ec->intersection_mask = ec->intersection_mask;
         new_ec->material_mask_bits = ec->material_mask_bits;
+        new_ec->shadow_mask_bits = ec->shadow_mask_bits;
         ec = new_ec;
       }
     }
@@ -1267,6 +1320,22 @@ void MOD_lineart_chain_offset_towards_camera(LineartData *ld, float dist, bool u
         mul_v3_fl(view_clamp, MIN2(dist, len_lim));
         add_v3_v3(eci->gpos, view_clamp);
       }
+    }
+  }
+}
+
+void MOD_lineart_chain_find_silhouette_backdrop_objects(LineartData *ld)
+{
+  LISTBASE_FOREACH (LineartEdgeChain *, ec, &ld->chains) {
+    if (ec->type == LRT_EDGE_FLAG_CONTOUR &&
+        ec->shadow_mask_bits & LRT_SHADOW_SILHOUETTE_ERASED_GROUP) {
+      uint32_t target = ec->shadow_mask_bits & LRT_OBINDEX_HIGHER;
+      LineartElementLinkNode *eln = lineart_find_matching_eln(&ld->geom.line_buffer_pointers,
+                                                              target);
+      if (!eln) {
+        continue;
+      }
+      ec->silhouette_backdrop = eln->object_ref;
     }
   }
 }
