@@ -59,21 +59,23 @@ static int cmp_fn(const void *a, const void *b)
   return (*(int *)a - *(int *)b);
 }
 
-static void seq_snap_source_points_build(TransSeqSnapData *snap_data, SeqCollection *snap_sources)
+static void seq_snap_source_points_build(const Scene *scene,
+                                         TransSeqSnapData *snap_data,
+                                         SeqCollection *snap_sources)
 {
   int i = 0;
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, snap_sources) {
     int left = 0, right = 0;
     if (seq->flag & SEQ_LEFTSEL) {
-      left = right = SEQ_time_left_handle_frame_get(seq);
+      left = right = SEQ_time_left_handle_frame_get(scene, seq);
     }
     else if (seq->flag & SEQ_RIGHTSEL) {
-      left = right = SEQ_time_right_handle_frame_get(seq);
+      left = right = SEQ_time_right_handle_frame_get(scene, seq);
     }
     else {
-      left = SEQ_time_left_handle_frame_get(seq);
-      right = SEQ_time_right_handle_frame_get(seq);
+      left = SEQ_time_left_handle_frame_get(scene, seq);
+      right = SEQ_time_right_handle_frame_get(scene, seq);
     }
 
     snap_data->source_snap_points[i] = left;
@@ -92,7 +94,8 @@ static void seq_snap_source_points_build(TransSeqSnapData *snap_data, SeqCollect
  * \{ */
 
 /* Add effect strips directly or indirectly connected to `seq_reference` to `collection`. */
-static void query_strip_effects_fn(Sequence *seq_reference,
+static void query_strip_effects_fn(const Scene *scene,
+                                   Sequence *seq_reference,
                                    ListBase *seqbase,
                                    SeqCollection *collection)
 {
@@ -103,7 +106,7 @@ static void query_strip_effects_fn(Sequence *seq_reference,
   /* Find all strips connected to `seq_reference`. */
   LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
     if (SEQ_relation_is_effect_of_strip(seq_test, seq_reference)) {
-      query_strip_effects_fn(seq_test, seqbase, collection);
+      query_strip_effects_fn(scene, seq_test, seqbase, collection);
     }
   }
 }
@@ -145,7 +148,7 @@ static SeqCollection *query_snap_targets(Scene *scene,
   /* Effects will always change position with strip to which they are connected and they don't have
    * to be selected. Remove such strips from `snap_targets` collection. */
   SeqCollection *snap_sources_temp = SEQ_collection_duplicate(snap_sources);
-  SEQ_collection_expand(seqbase, snap_sources_temp, query_strip_effects_fn);
+  SEQ_collection_expand(scene, seqbase, snap_sources_temp, query_strip_effects_fn);
   SeqCollection *snap_sources_effects = seq_collection_extract_effects(snap_sources_temp);
   SEQ_collection_exclude(snap_targets, snap_sources_effects);
   SEQ_collection_free(snap_sources_temp);
@@ -194,24 +197,25 @@ static void seq_snap_target_points_build(Scene *scene,
 
   Sequence *seq;
   SEQ_ITERATOR_FOREACH (seq, snap_targets) {
-    snap_data->target_snap_points[i] = SEQ_time_left_handle_frame_get(seq);
-    snap_data->target_snap_points[i + 1] = SEQ_time_right_handle_frame_get(seq);
+    snap_data->target_snap_points[i] = SEQ_time_left_handle_frame_get(scene, seq);
+    snap_data->target_snap_points[i + 1] = SEQ_time_right_handle_frame_get(scene, seq);
     i += 2;
 
     if (snap_mode & SEQ_SNAP_TO_STRIP_HOLD) {
-      int content_start = min_ii(SEQ_time_right_handle_frame_get(seq), seq->start);
-      int content_end = max_ii(SEQ_time_left_handle_frame_get(seq), seq->start + seq->len);
+      int content_start = min_ii(SEQ_time_right_handle_frame_get(scene, seq), seq->start);
+      int content_end = max_ii(SEQ_time_left_handle_frame_get(scene, seq), seq->start + seq->len);
       /* Effects and single image strips produce incorrect content length. Skip these strips. */
       if ((seq->type & SEQ_TYPE_EFFECT) != 0 || seq->len == 1) {
-        content_start = SEQ_time_left_handle_frame_get(seq);
-        content_end = SEQ_time_right_handle_frame_get(seq);
+        content_start = SEQ_time_left_handle_frame_get(scene, seq);
+        content_end = SEQ_time_right_handle_frame_get(scene, seq);
       }
 
       CLAMP(content_start,
-            SEQ_time_left_handle_frame_get(seq),
-            SEQ_time_right_handle_frame_get(seq));
-      CLAMP(
-          content_end, SEQ_time_left_handle_frame_get(seq), SEQ_time_right_handle_frame_get(seq));
+            SEQ_time_left_handle_frame_get(scene, seq),
+            SEQ_time_right_handle_frame_get(scene, seq));
+      CLAMP(content_end,
+            SEQ_time_left_handle_frame_get(scene, seq),
+            SEQ_time_right_handle_frame_get(scene, seq));
 
       snap_data->target_snap_points[i] = content_start;
       snap_data->target_snap_points[i + 1] = content_end;
@@ -260,7 +264,7 @@ TransSeqSnapData *transform_snap_sequencer_data_alloc(const TransInfo *t)
 
   /* Build arrays of snap points. */
   seq_snap_source_points_alloc(snap_data, snap_sources);
-  seq_snap_source_points_build(snap_data, snap_sources);
+  seq_snap_source_points_build(scene, snap_data, snap_sources);
   SEQ_collection_free(snap_sources);
 
   short snap_mode = t->tsnap.mode;

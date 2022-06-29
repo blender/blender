@@ -29,6 +29,7 @@
 #include "SEQ_relations.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
+#include "SEQ_transform.h"
 
 #include "effects.h"
 #include "image_cache.h"
@@ -40,15 +41,15 @@ bool SEQ_relation_is_effect_of_strip(const Sequence *effect, const Sequence *inp
 }
 
 /* check whether sequence cur depends on seq */
-static bool seq_relations_check_depend(Sequence *seq, Sequence *cur)
+static bool seq_relations_check_depend(const Scene *scene, Sequence *seq, Sequence *cur)
 {
   if (SEQ_relation_is_effect_of_strip(cur, seq)) {
     return true;
   }
 
   /* sequences are not intersecting in time, assume no dependency exists between them */
-  if (SEQ_time_right_handle_frame_get(cur) < SEQ_time_left_handle_frame_get(seq) ||
-      SEQ_time_left_handle_frame_get(cur) > SEQ_time_right_handle_frame_get(seq)) {
+  if (SEQ_time_right_handle_frame_get(scene, cur) < SEQ_time_left_handle_frame_get(scene, seq) ||
+      SEQ_time_left_handle_frame_get(scene, cur) > SEQ_time_right_handle_frame_get(scene, seq)) {
     return false;
   }
 
@@ -78,7 +79,7 @@ static void sequence_do_invalidate_dependent(Scene *scene, Sequence *seq, ListBa
       continue;
     }
 
-    if (seq_relations_check_depend(seq, cur)) {
+    if (seq_relations_check_depend(scene, seq, cur)) {
       /* Effect must be invalidated completely if they depend on invalidated seq. */
       if ((cur->type & SEQ_TYPE_EFFECT) != 0) {
         seq_cache_cleanup_sequence(scene, cur, seq, SEQ_CACHE_ALL_TYPES, false);
@@ -249,7 +250,7 @@ void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
   SEQ_prefetch_stop(scene);
 
   for (seq = seqbase->first; seq; seq = seq->next) {
-    if (for_render && SEQ_time_strip_intersects_frame(seq, CFRA)) {
+    if (for_render && SEQ_time_strip_intersects_frame(scene, seq, CFRA)) {
       continue;
     }
 
@@ -271,13 +272,14 @@ void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
   }
 }
 
-static void sequencer_all_free_anim_ibufs(Editing *ed,
+static void sequencer_all_free_anim_ibufs(const Scene *scene,
                                           ListBase *seqbase,
                                           int timeline_frame,
                                           const int frame_range[2])
 {
+  Editing *ed = SEQ_editing_get(scene);
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
-    if (!SEQ_time_strip_intersects_frame(seq, timeline_frame) ||
+    if (!SEQ_time_strip_intersects_frame(scene, seq, timeline_frame) ||
         !((frame_range[0] <= timeline_frame) && (frame_range[1] > timeline_frame))) {
       SEQ_relations_sequence_free_anim(seq);
     }
@@ -291,11 +293,11 @@ static void sequencer_all_free_anim_ibufs(Editing *ed,
       }
       else {
         /* Limit frame range to meta strip. */
-        meta_range[0] = max_ii(frame_range[0], SEQ_time_left_handle_frame_get(seq));
-        meta_range[1] = min_ii(frame_range[1], SEQ_time_right_handle_frame_get(seq));
+        meta_range[0] = max_ii(frame_range[0], SEQ_time_left_handle_frame_get(scene, seq));
+        meta_range[1] = min_ii(frame_range[1], SEQ_time_right_handle_frame_get(scene, seq));
       }
 
-      sequencer_all_free_anim_ibufs(ed, &seq->seqbase, timeline_frame, meta_range);
+      sequencer_all_free_anim_ibufs(scene, &seq->seqbase, timeline_frame, meta_range);
     }
   }
 }
@@ -308,7 +310,7 @@ void SEQ_relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
   }
 
   const int frame_range[2] = {-MAXFRAME, MAXFRAME};
-  sequencer_all_free_anim_ibufs(ed, &ed->seqbase, timeline_frame, frame_range);
+  sequencer_all_free_anim_ibufs(scene, &ed->seqbase, timeline_frame, frame_range);
 }
 
 static Sequence *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase)
@@ -346,7 +348,7 @@ bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports)
                 RPT_WARNING,
                 "Recursion detected in video sequencer. Strip %s at frame %d will not be rendered",
                 recursive_seq->name + 2,
-                SEQ_time_left_handle_frame_get(recursive_seq));
+                SEQ_time_left_handle_frame_get(scene, recursive_seq));
 
     LISTBASE_FOREACH (Sequence *, seq, &ed->seqbase) {
       if (seq->type != SEQ_TYPE_SCENE && sequencer_seq_generates_image(seq)) {

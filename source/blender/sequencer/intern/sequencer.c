@@ -127,9 +127,10 @@ Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int 
   seq->mul = 1.0;
   seq->blend_opacity = 100.0;
   seq->volume = 1.0f;
-  seq->pitch = 1.0f;
   seq->scene_sound = NULL;
   seq->type = type;
+  seq->media_playback_rate = 0.0f;
+  seq->speed_factor = 1.0f;
 
   if (seq->type == SEQ_TYPE_ADJUSTMENT) {
     seq->blend_mode = SEQ_TYPE_CROSS;
@@ -411,8 +412,8 @@ static MetaStack *seq_meta_stack_alloc(const Scene *scene, Sequence *seq_meta)
   ms->oldbasep = higher_level_meta ? &higher_level_meta->seqbase : &ed->seqbase;
   ms->old_channels = higher_level_meta ? &higher_level_meta->channels : &ed->channels;
 
-  ms->disp_range[0] = SEQ_time_left_handle_frame_get(ms->parseq);
-  ms->disp_range[1] = SEQ_time_right_handle_frame_get(ms->parseq);
+  ms->disp_range[0] = SEQ_time_left_handle_frame_get(scene, ms->parseq);
+  ms->disp_range[1] = SEQ_time_right_handle_frame_get(scene, ms->parseq);
   return ms;
 }
 
@@ -965,8 +966,9 @@ static bool seq_update_seq_cb(Sequence *seq, void *user_data)
     }
     BKE_sound_set_scene_sound_volume(
         seq->scene_sound, seq->volume, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
-    BKE_sound_set_scene_sound_pitch(
-        seq->scene_sound, seq->pitch, (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
+    BKE_sound_set_scene_sound_pitch(seq->scene_sound,
+                                    SEQ_sound_pitch_get(scene, seq),
+                                    (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
     BKE_sound_set_scene_sound_pan(
         seq->scene_sound, seq->pan, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
   }

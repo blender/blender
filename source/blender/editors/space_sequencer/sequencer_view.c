@@ -84,7 +84,7 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *op)
     box.xmin = ms->disp_range[0] - 1;
     box.xmax = ms->disp_range[1] + 1;
   }
-  SEQ_timeline_expand_boundbox(SEQ_active_seqbase_get(ed), &box);
+  SEQ_timeline_expand_boundbox(scene, SEQ_active_seqbase_get(ed), &box);
 
   View2D *v2d = &region->v2d;
   rcti scrub_rect;
@@ -306,8 +306,8 @@ static void seq_view_collection_rect_timeline(Scene *scene, SeqCollection *strip
   int xmargin = FPS;
 
   SEQ_ITERATOR_FOREACH (seq, strips) {
-    xmin = min_ii(xmin, SEQ_time_left_handle_frame_get(seq));
-    xmax = max_ii(xmax, SEQ_time_right_handle_frame_get(seq));
+    xmin = min_ii(xmin, SEQ_time_left_handle_frame_get(scene, seq));
+    xmax = max_ii(xmax, SEQ_time_right_handle_frame_get(scene, seq));
 
     ymin = min_ii(ymin, seq->machine);
     ymax = max_ii(ymax, seq->machine);

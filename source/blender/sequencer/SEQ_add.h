@@ -50,6 +50,7 @@ typedef struct SeqLoadData {
   struct Stereo3dFormat *stereo3d_format;
   bool allow_invalid_file;     /* Used by RNA API to create placeholder strips. */
   double r_video_stream_start; /* For AV synchronization. Set by `SEQ_add_movie_strip`. */
+  bool adjust_playback_rate;
 } SeqLoadData;
 
 /**
@@ -176,7 +177,10 @@ void SEQ_add_image_set_directory(struct Sequence *seq, char *path);
  * \param strip_frame: frame index of strip to be changed
  * \param filename: image filename (only filename, not complete path)
  */
-void SEQ_add_image_load_file(struct Sequence *seq, size_t strip_frame, char *filename);
+void SEQ_add_image_load_file(struct Scene *scene,
+                             struct Sequence *seq,
+                             size_t strip_frame,
+                             char *filename);
 /**
  * Set image strip alpha mode
  *

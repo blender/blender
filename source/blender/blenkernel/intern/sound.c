@@ -720,8 +720,8 @@ void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Sequence *sequence)
 {
   return BKE_sound_scene_add_scene_sound(scene,
                                          sequence,
-                                         SEQ_time_left_handle_frame_get(sequence),
-                                         SEQ_time_right_handle_frame_get(sequence),
+                                         SEQ_time_left_handle_frame_get(scene, sequence),
+                                         SEQ_time_right_handle_frame_get(scene, sequence),
                                          sequence->startofs + sequence->anim_startofs);
 }
 
@@ -746,8 +746,8 @@ void *BKE_sound_add_scene_sound_defaults(Scene *scene, Sequence *sequence)
 {
   return BKE_sound_add_scene_sound(scene,
                                    sequence,
-                                   SEQ_time_left_handle_frame_get(sequence),
-                                   SEQ_time_right_handle_frame_get(sequence),
+                                   SEQ_time_left_handle_frame_get(scene, sequence),
+                                   SEQ_time_right_handle_frame_get(scene, sequence),
                                    sequence->startofs + sequence->anim_startofs);
 }
 
@@ -779,8 +779,8 @@ void BKE_sound_move_scene_sound_defaults(Scene *scene, Sequence *sequence)
   if (sequence->scene_sound) {
     BKE_sound_move_scene_sound(scene,
                                sequence->scene_sound,
-                               SEQ_time_left_handle_frame_get(sequence),
-                               SEQ_time_right_handle_frame_get(sequence),
+                               SEQ_time_left_handle_frame_get(scene, sequence),
+                               SEQ_time_right_handle_frame_get(scene, sequence),
                                sequence->startofs + sequence->anim_startofs,
                                0.0);
   }

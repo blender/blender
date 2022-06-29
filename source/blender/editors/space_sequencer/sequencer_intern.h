@@ -70,7 +70,9 @@ void color3ubv_from_seq(const struct Scene *curscene,
 
 void sequencer_special_update_set(Sequence *seq);
 /* Get handle width in 2d-View space. */
-float sequence_handle_size_get_clamped(struct Sequence *seq, float pixelx);
+float sequence_handle_size_get_clamped(const struct Scene *scene,
+                                       struct Sequence *seq,
+                                       float pixelx);
 
 /* UNUSED */
 /* void seq_reset_imageofs(struct SpaceSeq *sseq); */
@@ -113,7 +115,7 @@ void channel_draw_context_init(const struct bContext *C,
 /* sequencer_edit.c */
 
 struct View2D;
-void seq_rectf(struct Sequence *seq, struct rctf *rectf);
+void seq_rectf(const struct Scene *scene, struct Sequence *seq, struct rctf *rectf);
 struct Sequence *find_nearest_seq(struct Scene *scene,
                                   struct View2D *v2d,
                                   int *hand,

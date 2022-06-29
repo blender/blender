@@ -44,7 +44,8 @@ struct ImBuf *seq_render_effect_execute_threaded(struct SeqEffectHandle *sh,
                                                  struct ImBuf *ibuf2,
                                                  struct ImBuf *ibuf3);
 void seq_imbuf_to_sequencer_space(struct Scene *scene, struct ImBuf *ibuf, bool make_float);
-int seq_get_shown_sequences(struct ListBase *channels,
+int seq_get_shown_sequences(const struct Scene *scene,
+                            struct ListBase *channels,
                             struct ListBase *seqbase,
                             int timeline_frame,
                             int chanshown,

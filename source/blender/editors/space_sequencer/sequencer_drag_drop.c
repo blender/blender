@@ -167,7 +167,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       SpaceSeq *sseq = CTX_wm_space_seq(C);
 
       SeqCollection *strips = SEQ_query_rendered_strips(
-          channels, seqbase, scene->r.cfra, sseq->chanshown);
+          scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
       /* Get the top most strip channel that is in view.*/
       Sequence *seq;
@@ -236,7 +236,7 @@ static void update_overlay_strip_poistion_data(bContext *C, const int mval[2])
     Editing *ed = SEQ_editing_get(scene);
 
     for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
-      coords->is_intersecting = SEQ_transform_test_overlap(ed->seqbasep, &dummy_seq);
+      coords->is_intersecting = SEQ_transform_test_overlap(scene, ed->seqbasep, &dummy_seq);
       dummy_seq.machine++;
     }
   }

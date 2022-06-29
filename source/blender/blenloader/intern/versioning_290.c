@@ -160,7 +160,7 @@ static void seq_convert_transform_crop(const Scene *scene,
   const uint32_t use_transform_flag = (1 << 16);
   const uint32_t use_crop_flag = (1 << 17);
 
-  const StripElem *s_elem = SEQ_render_give_stripelem(seq, seq->start);
+  const StripElem *s_elem = SEQ_render_give_stripelem(scene, seq, seq->start);
   if (s_elem != NULL) {
     image_size_x = s_elem->orig_width;
     image_size_y = s_elem->orig_height;
@@ -285,7 +285,7 @@ static void seq_convert_transform_crop_2(const Scene *scene,
                                          Sequence *seq,
                                          const eSpaceSeq_Proxy_RenderSize render_size)
 {
-  const StripElem *s_elem = SEQ_render_give_stripelem(seq, seq->start);
+  const StripElem *s_elem = SEQ_render_give_stripelem(scene, seq, seq->start);
   if (s_elem == NULL) {
     return;
   }
@@ -350,6 +350,7 @@ static void seq_convert_transform_crop_lb_2(const Scene *scene,
 static void seq_update_meta_disp_range(Scene *scene)
 {
   Editing *ed = SEQ_editing_get(scene);
+
   if (ed == NULL) {
     return;
   }
@@ -357,14 +358,22 @@ static void seq_update_meta_disp_range(Scene *scene)
   LISTBASE_FOREACH_BACKWARD (MetaStack *, ms, &ed->metastack) {
     /* Update ms->disp_range from meta. */
     if (ms->disp_range[0] == ms->disp_range[1]) {
-      ms->disp_range[0] = SEQ_time_left_handle_frame_get(ms->parseq);
-      ms->disp_range[1] = SEQ_time_right_handle_frame_get(ms->parseq);
+      ms->disp_range[0] = SEQ_time_left_handle_frame_get(scene, ms->parseq);
+      ms->disp_range[1] = SEQ_time_right_handle_frame_get(scene, ms->parseq);
     }
 
     /* Update meta strip endpoints. */
     SEQ_time_left_handle_frame_set(scene, ms->parseq, ms->disp_range[0]);
     SEQ_time_right_handle_frame_set(scene, ms->parseq, ms->disp_range[1]);
     SEQ_transform_fix_single_image_seq_offsets(scene, ms->parseq);
+
+    /* Recalculate effects using meta strip. */
+    LISTBASE_FOREACH (Sequence *, seq, ms->oldbasep) {
+      if (seq->seq2) {
+        seq->start = seq->startdisp = max_ii(seq->seq1->startdisp, seq->seq2->startdisp);
+        seq->enddisp = min_ii(seq->seq1->enddisp, seq->seq2->enddisp);
+      }
+    }
 
     /* Ensure that active seqbase points to active meta strip seqbase. */
     MetaStack *active_ms = SEQ_meta_stack_active_get(ed);
