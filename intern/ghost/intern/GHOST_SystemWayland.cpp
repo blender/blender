@@ -49,6 +49,8 @@ static GHOST_WindowWayland *window_from_surface(struct wl_surface *surface);
 
 static void keyboard_handle_key_repeat_cancel(struct input_t *input);
 
+static void output_handle_done(void *data, struct wl_output *wl_output);
+
 /**
  * GNOME (mutter 42.2 had a bug with confine not respecting scale - Hi-DPI), See: T98793.
  * Even though this has been fixed, at time of writing it's not yet in a release.
@@ -2205,10 +2207,14 @@ static void xdg_output_handle_logical_size(void *data,
   output->has_size_logical = true;
 }
 
-static void xdg_output_handle_done(void * /*data*/, struct zxdg_output_v1 * /*xdg_output*/)
+static void xdg_output_handle_done(void *data, struct zxdg_output_v1 * /*xdg_output*/)
 {
   /* NOTE: `xdg-output.done` events are deprecated and only apply below version 3 of the protocol.
    * `wl-output.done` event will be emitted in version 3 or higher. */
+  output_t *output = static_cast<output_t *>(data);
+  if (zxdg_output_v1_get_version(output->xdg_output) < 3) {
+    output_handle_done(data, output->wl_output);
+  }
 }
 
 static void xdg_output_handle_name(void * /*data*/,
@@ -2404,7 +2410,7 @@ static void global_handle_add(void *data,
 #endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
   else if (!strcmp(interface, zxdg_output_manager_v1_interface.name)) {
     display->xdg_output_manager = static_cast<zxdg_output_manager_v1 *>(
-        wl_registry_bind(wl_registry, name, &zxdg_output_manager_v1_interface, 3));
+        wl_registry_bind(wl_registry, name, &zxdg_output_manager_v1_interface, 2));
     for (output_t *output : display->outputs) {
       output->xdg_output = zxdg_output_manager_v1_get_xdg_output(display->xdg_output_manager,
                                                                  output->wl_output);
