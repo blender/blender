@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_float4x4.hh"
+#include "BLI_function_ref.hh"
 #include "BLI_string_ref.hh"
 
 #include "DNA_mesh_types.h"
@@ -28,9 +29,13 @@ struct MeshToVolumeResolution {
 };
 
 #ifdef WITH_OPENVDB
+
+/**
+ * \param bounds_fn: Return the bounds of the mesh positions,
+ * used for deciding the voxel size in "Amount" mode.
+ */
 float volume_compute_voxel_size(const Depsgraph *depsgraph,
-                                const float3 &bb_min,
-                                const float3 &bb_max,
+                                FunctionRef<void(float3 &r_min, float3 &r_max)> bounds_fn,
                                 const MeshToVolumeResolution resolution,
                                 float exterior_band_width,
                                 const float4x4 &transform);

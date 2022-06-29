@@ -133,7 +133,6 @@ static Volume *mesh_to_volume(ModifierData *md,
 
   const float4x4 mesh_to_own_object_space_transform = float4x4(ctx->object->imat) *
                                                       float4x4(object_to_convert->obmat);
-  const BoundBox *bb = BKE_object_boundbox_get(mvmd->object);
   geometry::MeshToVolumeResolution resolution;
   resolution.mode = (MeshToVolumeModifierResolutionMode)mvmd->resolution_mode;
   if (resolution.mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT) {
@@ -149,9 +148,14 @@ static Volume *mesh_to_volume(ModifierData *md,
     }
   }
 
+  auto bounds_fn = [&](float3 &r_min, float3 &r_max) {
+    const BoundBox *bb = BKE_object_boundbox_get(mvmd->object);
+    r_min = bb->vec[0];
+    r_max = bb->vec[6];
+  };
+
   const float voxel_size = geometry::volume_compute_voxel_size(ctx->depsgraph,
-                                                               bb->vec[0],
-                                                               bb->vec[6],
+                                                               bounds_fn,
                                                                resolution,
                                                                mvmd->exterior_band_width,
                                                                mesh_to_own_object_space_transform);

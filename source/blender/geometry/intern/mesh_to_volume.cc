@@ -64,8 +64,7 @@ void OpenVDBMeshAdapter::getIndexSpacePoint(size_t polygon_index,
 }
 
 float volume_compute_voxel_size(const Depsgraph *depsgraph,
-                                const float3 &bb_min,
-                                const float3 &bb_max,
+                                FunctionRef<void(float3 &r_min, float3 &r_max)> bounds_fn,
                                 const MeshToVolumeResolution res,
                                 const float exterior_band_width,
                                 const float4x4 &transform)
@@ -81,6 +80,11 @@ float volume_compute_voxel_size(const Depsgraph *depsgraph,
   if (res.settings.voxel_amount <= 0) {
     return 0;
   }
+
+  float3 bb_min;
+  float3 bb_max;
+  bounds_fn(bb_min, bb_max);
+
   /* Compute the voxel size based on the desired number of voxels and the approximated bounding
    * box of the volume. */
   const float diagonal = math::distance(transform * bb_max, transform * bb_min);
