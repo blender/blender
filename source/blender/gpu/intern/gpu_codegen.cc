@@ -52,16 +52,19 @@ using namespace blender::gpu::shader;
  */
 struct GPUCodegenCreateInfo : ShaderCreateInfo {
   struct NameBuffer {
+    using NameEntry = std::array<char, 32>;
+
     /** Duplicate attribute names to avoid reference the GPUNodeGraph directly. */
     char attr_names[16][GPU_MAX_SAFE_ATTR_NAME + 1];
     char var_names[16][8];
-    blender::Vector<std::array<char, 32>, 16> sampler_names;
+    blender::Vector<std::unique_ptr<NameEntry>, 16> sampler_names;
 
     /* Returns the appended name memory location */
     const char *append_sampler_name(const char name[32])
     {
-      auto index = sampler_names.append_and_get_index(std::array<char, 32>());
-      char *name_buffer = sampler_names[index].data();
+      auto index = sampler_names.size();
+      sampler_names.append(std::make_unique<NameEntry>());
+      char *name_buffer = sampler_names[index]->data();
       memcpy(name_buffer, name, 32);
       return name_buffer;
     }
