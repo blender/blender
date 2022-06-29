@@ -424,7 +424,9 @@ static void construct_param_edge_set_seams(ParamHandle *handle,
   }
 }
 
-/* See: construct_param_handle_multi to handle multiple objects at once. */
+/*
+ * Version of #construct_param_handle_multi with a separate BMesh parameter.
+ */
 static ParamHandle *construct_param_handle(const Scene *scene,
                                            Object *ob,
                                            BMesh *bm,
@@ -474,13 +476,12 @@ static ParamHandle *construct_param_handle(const Scene *scene,
 }
 
 /**
- * Version of #construct_param_handle_single that handles multiple objects.
+ * Version of #construct_param_handle that handles multiple objects.
  */
 static ParamHandle *construct_param_handle_multi(const Scene *scene,
                                                  Object **objects,
                                                  const uint objects_len,
-                                                 const UnwrapOptions *options,
-                                                 int *count_fail)
+                                                 const UnwrapOptions *options)
 {
   BMFace *efa;
   BMIter iter;
@@ -532,8 +533,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
     offset += bm->totface;
   }
 
-  GEO_uv_parametrizer_construct_end(
-      handle, options->fill_holes, options->topology_from_uvs, count_fail);
+  GEO_uv_parametrizer_construct_end(handle, options->fill_holes, options->topology_from_uvs, NULL);
 
   return handle;
 }
@@ -812,7 +812,7 @@ static bool minimize_stretch_init(bContext *C, wmOperator *op)
   ms->blend = RNA_float_get(op->ptr, "blend");
   ms->iterations = RNA_int_get(op->ptr, "iterations");
   ms->i = 0;
-  ms->handle = construct_param_handle_multi(scene, objects, objects_len, &options, NULL);
+  ms->handle = construct_param_handle_multi(scene, objects, objects_len, &options);
   ms->lasttime = PIL_check_seconds_timer();
 
   GEO_uv_parametrizer_stretch_begin(ms->handle);
@@ -1082,7 +1082,7 @@ static void uvedit_pack_islands_multi(const Scene *scene,
                                       bool rotate,
                                       bool ignore_pinned)
 {
-  ParamHandle *handle = construct_param_handle_multi(scene, objects, objects_len, options, NULL);
+  ParamHandle *handle = construct_param_handle_multi(scene, objects, objects_len, options);
   GEO_uv_parametrizer_pack(handle, scene->toolsettings->uvcalc_margin, rotate, ignore_pinned);
   GEO_uv_parametrizer_flush(handle);
   GEO_uv_parametrizer_delete(handle);
@@ -1215,7 +1215,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
-  ParamHandle *handle = construct_param_handle_multi(scene, objects, objects_len, &options, NULL);
+  ParamHandle *handle = construct_param_handle_multi(scene, objects, objects_len, &options);
   GEO_uv_parametrizer_average(handle, false);
   GEO_uv_parametrizer_flush(handle);
   GEO_uv_parametrizer_delete(handle);
