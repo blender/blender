@@ -131,6 +131,7 @@ typedef struct PChart {
   PEdge *edges;
   PFace *faces;
   int nverts, nedges, nfaces;
+  int nboundaries;
 
   PVert *collapsed_verts;
   PEdge *collapsed_edges;
@@ -1138,14 +1139,12 @@ static bool p_quad_split_direction(ParamHandle *handle, const float **co, const 
 
 /* Construction: boundary filling */
 
-static void p_chart_boundaries(PChart *chart, int *r_nboundaries, PEdge **r_outer)
+static void p_chart_boundaries(PChart *chart, PEdge **r_outer)
 {
   PEdge *e, *be;
   float len, maxlen = -1.0;
 
-  if (r_nboundaries) {
-    *r_nboundaries = 0;
-  }
+  chart->nboundaries = 0;
   if (r_outer) {
     *r_outer = NULL;
   }
@@ -1155,9 +1154,7 @@ static void p_chart_boundaries(PChart *chart, int *r_nboundaries, PEdge **r_oute
       continue;
     }
 
-    if (r_nboundaries) {
-      (*r_nboundaries)++;
-    }
+    chart->nboundaries++;
 
     len = 0.0f;
 
@@ -3079,7 +3076,7 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
       /* No pins, let's find some ourself. */
       PEdge *outer;
 
-      p_chart_boundaries(chart, NULL, &outer);
+      p_chart_boundaries(chart, &outer);
 
       /* Outer can be NULL with non-finite coords. */
       if (!(outer && p_chart_symmetry_pins(chart, outer, &pin1, &pin2))) {
@@ -3465,7 +3462,7 @@ static bool p_chart_convex_hull(PChart *chart, PVert ***r_verts, int *r_nverts, 
   int npoints = 0, i, ulen, llen;
   PVert **U, **L, **points, **p;
 
-  p_chart_boundaries(chart, NULL, &be);
+  p_chart_boundaries(chart, &be);
 
   if (!be) {
     return false;
@@ -3949,7 +3946,7 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
                                        int *count_fail)
 {
   PChart *chart = phandle->construction_chart;
-  int i, j, nboundaries = 0;
+  int i, j;
   PEdge *outer;
 
   param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
@@ -3969,9 +3966,9 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
     PVert *v;
     chart = phandle->charts[i];
 
-    p_chart_boundaries(chart, &nboundaries, &outer);
+    p_chart_boundaries(chart, &outer);
 
-    if (!topology_from_uvs && nboundaries == 0) {
+    if (!topology_from_uvs && chart->nboundaries == 0) {
       p_chart_delete(chart);
       if (count_fail != NULL) {
         *count_fail += 1;
@@ -3982,7 +3979,7 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
     phandle->charts[j] = chart;
     j++;
 
-    if (fill && (nboundaries > 1)) {
+    if (fill && (chart->nboundaries > 1)) {
       p_chart_fill_boundaries(chart, outer);
     }
 
