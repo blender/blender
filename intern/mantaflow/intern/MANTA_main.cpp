@@ -562,7 +562,13 @@ MANTA::~MANTA()
   pythonCommands.push_back(finalString);
   result = runPythonString(pythonCommands);
 
+  /* WARNING: this causes crash on exit in the `cycles_volume_cpu/smoke_color` test,
+   * freeing a single modifier ends up clearing the shared module.
+   * For this to be handled properly there would need to be a initialize/free
+   * function for global data. */
+#if 0
   MANTA::terminateMantaflow();
+#endif
 
   BLI_assert(result);
   UNUSED_VARS(result);
