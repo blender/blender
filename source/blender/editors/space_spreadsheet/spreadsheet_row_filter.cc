@@ -230,7 +230,7 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
     }
   }
   else if (column_data.type().is<ColorGeometry4b>()) {
-    const ColorGeometry4b value = row_filter.value_byte_color;
+    const ColorGeometry4f value = row_filter.value_color;
     switch (row_filter.operation) {
       case SPREADSHEET_ROW_FILTER_EQUAL: {
         const float4 value_floats = {
@@ -238,7 +238,8 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
         const float threshold_sq = pow2f(row_filter.threshold);
         apply_filter_operation(
             column_data.typed<ColorGeometry4b>(),
-            [&](const ColorGeometry4b cell) {
+            [&](const ColorGeometry4b cell_bytes) {
+              const ColorGeometry4f cell = cell_bytes.decode();
               const float4 cell_floats = {
                   (float)cell.r, (float)cell.g, (float)cell.b, (float)cell.a};
               return len_squared_v4v4(value_floats, cell_floats) <= threshold_sq;
@@ -250,7 +251,8 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
       case SPREADSHEET_ROW_FILTER_GREATER: {
         apply_filter_operation(
             column_data.typed<ColorGeometry4b>(),
-            [&](const ColorGeometry4b cell) {
+            [&](const ColorGeometry4b cell_bytes) {
+              const ColorGeometry4f cell = cell_bytes.decode();
               return cell.r > value.r && cell.g > value.g && cell.b > value.b && cell.a > value.a;
             },
             prev_mask,
@@ -260,7 +262,8 @@ static void apply_row_filter(const SpreadsheetRowFilter &row_filter,
       case SPREADSHEET_ROW_FILTER_LESS: {
         apply_filter_operation(
             column_data.typed<ColorGeometry4b>(),
-            [&](const ColorGeometry4b cell) {
+            [&](const ColorGeometry4b cell_bytes) {
+              const ColorGeometry4f cell = cell_bytes.decode();
               return cell.r < value.r && cell.g < value.g && cell.b < value.b && cell.a < value.a;
             },
             prev_mask,

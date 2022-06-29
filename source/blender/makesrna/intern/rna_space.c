@@ -7805,12 +7805,6 @@ static void rna_def_spreadsheet_row_filter(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Color Value", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
 
-  prop = RNA_def_property(srna, "value_byte_color", PROP_INT, PROP_NONE);
-  RNA_def_property_array(prop, 4);
-  RNA_def_property_range(prop, 0, 255);
-  RNA_def_property_ui_text(prop, "Byte Color Value", "");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
-
   prop = RNA_def_property(srna, "value_string", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Text Value", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, NULL);
