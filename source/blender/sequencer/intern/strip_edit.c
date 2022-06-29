@@ -80,9 +80,9 @@ int SEQ_edit_sequence_swap(Scene *scene, Sequence *seq_a, Sequence *seq_b, const
 
   SWAP(Sequence *, seq_a->prev, seq_b->prev);
   SWAP(Sequence *, seq_a->next, seq_b->next);
-  SWAP(int, seq_a->start, seq_b->start);
-  SWAP(int, seq_a->startofs, seq_b->startofs);
-  SWAP(int, seq_a->endofs, seq_b->endofs);
+  SWAP(float, seq_a->start, seq_b->start);
+  SWAP(float, seq_a->startofs, seq_b->startofs);
+  SWAP(float, seq_a->endofs, seq_b->endofs);
   SWAP(int, seq_a->machine, seq_b->machine);
   seq_time_effect_range_set(scene, seq_a);
   seq_time_effect_range_set(scene, seq_b);
