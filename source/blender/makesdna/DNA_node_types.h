@@ -1248,6 +1248,11 @@ typedef struct NodeGeometryVolumeToMesh {
   uint8_t resolution_mode;
 } NodeGeometryVolumeToMesh;
 
+typedef struct NodeGeometryMeshToVolume {
+  /* MeshToVolumeModifierResolutionMode */
+  uint8_t resolution_mode;
+} NodeGeometryMeshToVolume;
+
 typedef struct NodeGeometrySubdivisionSurface {
   /* eSubsurfUVSmooth. */
   uint8_t uv_smooth;

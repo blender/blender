@@ -113,6 +113,7 @@ def mesh_node_items(context):
     yield NodeItem("GeometryNodeMeshBoolean")
     yield NodeItem("GeometryNodeMeshToCurve")
     yield NodeItem("GeometryNodeMeshToPoints")
+    yield NodeItem("GeometryNodeMeshToVolume")
     yield NodeItem("GeometryNodeSplitEdges")
     yield NodeItem("GeometryNodeSubdivideMesh")
     yield NodeItem("GeometryNodeSubdivisionSurface")

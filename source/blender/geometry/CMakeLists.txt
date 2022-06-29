@@ -19,6 +19,7 @@ set(SRC
   intern/mesh_merge_by_distance.cc
   intern/mesh_primitive_cuboid.cc
   intern/mesh_to_curve_convert.cc
+  intern/mesh_to_volume.cc
   intern/point_merge_by_distance.cc
   intern/realize_instances.cc
   intern/resample_curves.cc
@@ -29,6 +30,7 @@ set(SRC
   GEO_mesh_merge_by_distance.hh
   GEO_mesh_primitive_cuboid.hh
   GEO_mesh_to_curve.hh
+  GEO_mesh_to_volume.hh
   GEO_point_merge_by_distance.hh
   GEO_realize_instances.hh
   GEO_resample_curves.hh
@@ -40,6 +42,20 @@ set(LIB
   bf_blenkernel
   bf_blenlib
 )
+
+if(WITH_OPENVDB)
+  list(APPEND INC
+    ../../../intern/openvdb
+  )
+  list(APPEND INC_SYS
+    ${OPENVDB_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    bf_intern_openvdb
+    ${OPENVDB_LIBRARIES}
+  )
+  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
+endif()
 
 if(WITH_TBB)
   add_definitions(-DWITH_TBB)

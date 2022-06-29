@@ -1498,6 +1498,7 @@ struct TexResult;
 #define GEO_NODE_VOLUME_CUBE 1161
 #define GEO_NODE_POINTS 1162
 #define GEO_NODE_FIELD_ON_DOMAIN 1163
+#define GEO_NODE_MESH_TO_VOLUME 1164
 
 /** \} */
 
