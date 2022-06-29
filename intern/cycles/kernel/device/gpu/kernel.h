@@ -14,6 +14,8 @@
 
 #ifdef __KERNEL_METAL__
 #  include "kernel/device/metal/context_begin.h"
+#elif defined(__KERNEL_ONEAPI__)
+#  include "kernel/device/oneapi/context_begin.h"
 #endif
 
 #include "kernel/device/gpu/work_stealing.h"
@@ -40,6 +42,8 @@
 
 #ifdef __KERNEL_METAL__
 #  include "kernel/device/metal/context_end.h"
+#elif defined(__KERNEL_ONEAPI__)
+#  include "kernel/device/oneapi/context_end.h"
 #endif
 
 #include "kernel/film/read.h"

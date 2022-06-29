@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_GPU__
+#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
 struct uint3 {
   uint x, y, z;
 
@@ -19,7 +19,7 @@ struct uint3 {
 };
 
 ccl_device_inline uint3 make_uint3(uint x, uint y, uint z);
-#endif /* __KERNEL_GPU__ */
+#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
 
 CCL_NAMESPACE_END
 

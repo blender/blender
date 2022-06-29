@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_GPU__
+#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
 struct int2 {
   int x, y;
 
@@ -19,7 +19,7 @@ struct int2 {
 };
 
 ccl_device_inline int2 make_int2(int x, int y);
-#endif /* __KERNEL_GPU__ */
+#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
 
 CCL_NAMESPACE_END
 

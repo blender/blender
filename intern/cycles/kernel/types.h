@@ -1571,7 +1571,7 @@ static_assert_align(KernelShaderEvalInput, 16);
  * If the kernel uses shared CUDA memory, `CUDADeviceQueue::enqueue` is to be modified.
  * The path iteration kernels are handled in `PathTraceWorkGPU::enqueue_path_iteration`. */
 
-typedef enum DeviceKernel {
+typedef enum DeviceKernel : int {
   DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA = 0,
   DEVICE_KERNEL_INTEGRATOR_INIT_FROM_BAKE,
   DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST,

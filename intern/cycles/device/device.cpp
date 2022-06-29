@@ -16,6 +16,7 @@
 #include "device/hip/device.h"
 #include "device/metal/device.h"
 #include "device/multi/device.h"
+#include "device/oneapi/device.h"
 #include "device/optix/device.h"
 
 #include "util/foreach.h"
@@ -39,6 +40,7 @@ vector<DeviceInfo> Device::optix_devices;
 vector<DeviceInfo> Device::cpu_devices;
 vector<DeviceInfo> Device::hip_devices;
 vector<DeviceInfo> Device::metal_devices;
+vector<DeviceInfo> Device::oneapi_devices;
 uint Device::devices_initialized_mask = 0;
 
 /* Device */
@@ -101,6 +103,13 @@ Device *Device::create(const DeviceInfo &info, Stats &stats, Profiler &profiler)
         device = device_metal_create(info, stats, profiler);
       break;
 #endif
+
+#ifdef WITH_ONEAPI
+    case DEVICE_ONEAPI:
+      device = device_oneapi_create(info, stats, profiler);
+      break;
+#endif
+
     default:
       break;
   }
@@ -126,6 +135,8 @@ DeviceType Device::type_from_string(const char *name)
     return DEVICE_HIP;
   else if (strcmp(name, "METAL") == 0)
     return DEVICE_METAL;
+  else if (strcmp(name, "ONEAPI") == 0)
+    return DEVICE_ONEAPI;
 
   return DEVICE_NONE;
 }
@@ -144,6 +155,8 @@ string Device::string_from_type(DeviceType type)
     return "HIP";
   else if (type == DEVICE_METAL)
     return "METAL";
+  else if (type == DEVICE_ONEAPI)
+    return "ONEAPI";
 
   return "";
 }
@@ -163,6 +176,9 @@ vector<DeviceType> Device::available_types()
 #endif
 #ifdef WITH_METAL
   types.push_back(DEVICE_METAL);
+#endif
+#ifdef WITH_ONEAPI
+  types.push_back(DEVICE_ONEAPI);
 #endif
   return types;
 }
@@ -214,6 +230,20 @@ vector<DeviceInfo> Device::available_devices(uint mask)
       devices_initialized_mask |= DEVICE_MASK_HIP;
     }
     foreach (DeviceInfo &info, hip_devices) {
+      devices.push_back(info);
+    }
+  }
+#endif
+
+#ifdef WITH_ONEAPI
+  if (mask & DEVICE_MASK_ONEAPI) {
+    if (!(devices_initialized_mask & DEVICE_MASK_ONEAPI)) {
+      if (device_oneapi_init()) {
+        device_oneapi_info(oneapi_devices);
+      }
+      devices_initialized_mask |= DEVICE_MASK_ONEAPI;
+    }
+    foreach (DeviceInfo &info, oneapi_devices) {
       devices.push_back(info);
     }
   }
@@ -278,6 +308,15 @@ string Device::device_capabilities(uint mask)
     if (device_hip_init()) {
       capabilities += "\nHIP device capabilities:\n";
       capabilities += device_hip_capabilities();
+    }
+  }
+#endif
+
+#ifdef WITH_ONEAPI
+  if (mask & DEVICE_MASK_ONEAPI) {
+    if (device_oneapi_init()) {
+      capabilities += "\noneAPI device capabilities:\n";
+      capabilities += device_oneapi_capabilities();
     }
   }
 #endif
@@ -380,6 +419,7 @@ void Device::free_memory()
   cuda_devices.free_memory();
   optix_devices.free_memory();
   hip_devices.free_memory();
+  oneapi_devices.free_memory();
   cpu_devices.free_memory();
   metal_devices.free_memory();
 }

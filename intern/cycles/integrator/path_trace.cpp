@@ -1103,6 +1103,8 @@ static const char *device_type_for_description(const DeviceType type)
       return "OptiX";
     case DEVICE_HIP:
       return "HIP";
+    case DEVICE_ONEAPI:
+      return "oneAPI";
     case DEVICE_DUMMY:
       return "Dummy";
     case DEVICE_MULTI:

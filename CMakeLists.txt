@@ -454,6 +454,21 @@ if(APPLE)
   option(WITH_CYCLES_DEVICE_METAL       "Enable Cycles Apple Metal compute support" ON)
 endif()
 
+# oneAPI
+if(NOT APPLE)
+  option(WITH_CYCLES_DEVICE_ONEAPI "Enable Cycles oneAPI compute support" OFF)
+  option(WITH_CYCLES_ONEAPI_BINARIES "Enable Ahead-Of-Time compilation for Cycles oneAPI device" OFF)
+  option(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED "Enable use of SYCL host (CPU) device execution by oneAPI implementation. This option is for debugging purposes and impacts GPU execution." OFF)
+
+  # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
+  SET (CYCLES_ONEAPI_SPIR64_GEN_DEVICES "dg2" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
+  SET (CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "oneAPI targets to build AOT binaries for")
+
+  mark_as_advanced(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED)
+  mark_as_advanced(CYCLES_ONEAPI_SPIR64_GEN_DEVICES)
+  mark_as_advanced(CYCLES_ONEAPI_SYCL_TARGETS)
+endif()
+
 # Draw Manager
 option(WITH_DRAW_DEBUG "Add extra debug capabilities to Draw Manager" OFF)
 mark_as_advanced(WITH_DRAW_DEBUG)

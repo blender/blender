@@ -15,7 +15,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_GPU__
+#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
 #  ifdef __KERNEL_AVX2__
 __forceinline float8::float8()
 {
@@ -81,7 +81,7 @@ make_float8(float a, float b, float c, float d, float e, float f, float g, float
   return r;
 }
 
-#endif /* __KERNEL_GPU__ */
+#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
 
 CCL_NAMESPACE_END
 

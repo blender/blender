@@ -38,9 +38,15 @@ if(EXISTS ${LIBDIR})
   message(STATUS "Using pre-compiled LIBDIR: ${LIBDIR}")
 
   file(GLOB LIB_SUBDIRS ${LIBDIR}/*)
+
   # Ignore Mesa software OpenGL libraries, they are not intended to be
   # linked against but to optionally override at runtime.
   list(REMOVE_ITEM LIB_SUBDIRS ${LIBDIR}/mesa)
+
+  # Ignore DPC++ as it contains its own copy of LLVM/CLang which we do
+  # not need to be ever discovered for the Blender linking.
+  list(REMOVE_ITEM LIB_SUBDIRS ${LIBDIR}/dpcpp)
+
   # NOTE: Make sure "proper" compiled zlib comes first before the one
   # which is a part of OpenCollada. They have different ABI, and we
   # do need to use the official one.
@@ -268,6 +274,18 @@ if(WITH_CYCLES AND WITH_CYCLES_OSL)
   else()
     message(STATUS "OSL not found, disabling it from Cycles")
     set(WITH_CYCLES_OSL OFF)
+  endif()
+endif()
+
+if(WITH_CYCLES_DEVICE_ONEAPI)
+  set(CYCLES_LEVEL_ZERO ${LIBDIR}/level-zero CACHE PATH "Path to Level Zero installation")
+  if(EXISTS ${CYCLES_LEVEL_ZERO} AND NOT LEVEL_ZERO_ROOT_DIR)
+    set(LEVEL_ZERO_ROOT_DIR ${CYCLES_LEVEL_ZERO})
+  endif()
+
+  set(CYCLES_SYCL ${LIBDIR}/dpcpp CACHE PATH "Path to DPC++ and SYCL installation")
+  if(EXISTS ${CYCLES_SYCL} AND NOT SYCL_ROOT_DIR)
+    set(SYCL_ROOT_DIR ${CYCLES_SYCL})
   endif()
 endif()
 

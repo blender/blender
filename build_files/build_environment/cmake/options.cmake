@@ -38,6 +38,7 @@ message("BUILD_DIR = ${BUILD_DIR}")
 if(WIN32)
   set(PATCH_CMD ${DOWNLOAD_DIR}/mingw/mingw64/msys/1.0/bin/patch.exe)
   set(LIBEXT ".lib")
+  set(SHAREDLIBEXT ".lib")
   set(LIBPREFIX "")
 
   # For OIIO and OSL
@@ -96,6 +97,7 @@ if(WIN32)
 else()
   set(PATCH_CMD patch)
   set(LIBEXT ".a")
+  set(SHAREDLIBEXT ".so")
   set(LIBPREFIX "lib")
 
   if(APPLE)
