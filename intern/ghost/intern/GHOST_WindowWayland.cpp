@@ -449,6 +449,8 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
 #endif /* !WITH_GHOST_WAYLAND_LIBDECOR */
 
+  setTitle(title);
+
   wl_surface_set_user_data(w->wl_surface, this);
 
   /* Call top-level callbacks. */
@@ -472,8 +474,6 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 #ifndef WITH_GHOST_WAYLAND_LIBDECOR /* Causes a glitch with `libdecor` for some reason. */
   setState(state);
 #endif
-
-  setTitle(title);
 
   /* EGL context. */
   if (setDrawingContextType(type) == GHOST_kFailure) {
