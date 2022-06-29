@@ -1749,11 +1749,16 @@ static bool lib_override_library_resync(Main *bmain,
         id->tag |= LIB_TAG_MISSING;
       }
 
-      if (id->tag & LIB_TAG_DOIT && (id->lib == id_root->lib) && ID_IS_OVERRIDE_LIBRARY(id)) {
+      if ((id->lib == id_root->lib) && ID_IS_OVERRIDE_LIBRARY(id)) {
         /* While this should not happen in typical cases (and won't be properly supported here),
          * user is free to do all kind of very bad things, including having different local
          * overrides of a same linked ID in a same hierarchy. */
         IDOverrideLibrary *id_override_library = lib_override_get(bmain, id, nullptr);
+
+        if (id_override_library->hierarchy_root != id_root->override_library->hierarchy_root) {
+          continue;
+        }
+
         ID *reference_id = id_override_library->reference;
         if (GS(reference_id->name) != GS(id->name)) {
           switch (GS(id->name)) {
@@ -1775,7 +1780,7 @@ static bool lib_override_library_resync(Main *bmain,
 
         if (!BLI_ghash_haskey(linkedref_to_old_override, reference_id)) {
           BLI_ghash_insert(linkedref_to_old_override, reference_id, id);
-          if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+          if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) || (id->tag & LIB_TAG_DOIT) == 0) {
             continue;
           }
           if ((id->override_library->reference->tag & LIB_TAG_DOIT) == 0) {
