@@ -2623,7 +2623,8 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
   float target_frame = 0;
   for (int frame_index = 1; frame_index < effect_strip_length; frame_index++) {
     target_frame += evaluate_fcurve(fcu, SEQ_time_left_handle_frame_get(scene, seq) + frame_index);
-    CLAMP(target_frame, 0, SEQ_time_strip_length_get(seq->seq1));
+    const int target_frame_max = SEQ_time_strip_length_get(scene, seq->seq1);
+    CLAMP(target_frame, 0, target_frame_max);
     v->frameMap[frame_index] = target_frame;
   }
 }
