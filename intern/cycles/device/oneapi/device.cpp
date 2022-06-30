@@ -76,7 +76,7 @@ bool device_oneapi_init()
   /* NOTE(@nsirgien): we need to enable JIT cache from here and
    * right now this cache policy is controlled by env. variables. */
   /* NOTE(hallade) we also disable use of copy engine as it
-   * improves stability as of intel/llvm sycl-nightly/20220529.
+   * improves stability as of intel/LLVM SYCL-nightly/20220529.
    * All these env variable can be set beforehand by end-users and
    * will in that case -not- be overwritten. */
 #  ifdef _WIN32

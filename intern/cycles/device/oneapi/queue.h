@@ -17,7 +17,7 @@ CCL_NAMESPACE_BEGIN
 class OneapiDevice;
 class device_memory;
 
-/* Base class for Oneapi queues. */
+/* Base class for OneAPI queues. */
 class OneapiDeviceQueue : public DeviceQueue {
  public:
   explicit OneapiDeviceQueue(OneapiDevice *device);

@@ -328,8 +328,8 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
     int num_states = *((int *)(args[0]));
     /* Round up to the next work-group. */
     size_t groups_count = (num_states + local_size - 1) / local_size;
-    /* NOTE(@nsirgien): As for now non-uniform workgroups don't work on most oneAPI devices, we
-     * extend work size to fit uniformity requirements. */
+    /* NOTE(@nsirgien): As for now non-uniform work-groups don't work on most oneAPI devices,
+     * we extend work size to fit uniformity requirements. */
     global_size = groups_count * local_size;
 
 #  ifdef WITH_ONEAPI_SYCL_HOST_ENABLED

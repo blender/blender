@@ -2355,7 +2355,7 @@ static int wm_handler_operator_call(bContext *C,
           }
         }
 
-        /* Important to run 'wm_operator_finished' before nullptr-ing the context members. */
+        /* Important to run 'wm_operator_finished' before setting the context members to null. */
         if (retval & OPERATOR_FINISHED) {
           wm_operator_finished(C, op, false, true);
           handler->op = nullptr;

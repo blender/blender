@@ -193,10 +193,12 @@ static void lineart_shadow_segment_slice_get(double *fb_co_1,
   interp_v3_v3v3_db(r_gloc, gloc_1, gloc_2, ga);
 }
 
-/* This function tries to get the closest projected segments along two end points.
- * The x,y of s1, s2 are aligned in framebuffer coordinates, only z,w are different.
+/**
+ * This function tries to get the closest projected segments along two end points.
+ * The x,y of s1, s2 are aligned in frame-buffer coordinates, only z,w are different.
  * We will get the closest z/w as well as the corresponding global coordinates.
  *
+ * \code{.unparsed}
  *             (far side)
  * l-------r [s1]  ^
  *       _-r [s2]  |    In this situation it will essentially return the coordinates of s2.
@@ -209,9 +211,11 @@ static void lineart_shadow_segment_slice_get(double *fb_co_1,
  * l-----_c`-----r [s1]   |   and `r_new` will be assigned coordinates of `c`.
  *    _-`                 |
  * l-`                    |
+ * \endcode
  *
  * Returns true when a new cut (`c`) is needed in the middle, otherwise returns false, and
- * `*r_new_xxx` are not touched. */
+ * `*r_new_xxx` are not touched.
+ */
 static bool lineart_do_closest_segment(bool is_persp,
                                        double *s1_fb_co_1,
                                        double *s1_fb_co_2,
@@ -309,7 +313,7 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
   LRT_ITER_ALL_LINES_BEGIN
   {
     /* Only contour and loose edges can actually cast shadows. We allow light contour here because
-     * we want to see if it also doubles as a view contouror, in that case we also need to project
+     * we want to see if it also doubles as a view contour, in that case we also need to project
      * them. */
     if (!(e->flags & accept_types)) {
       continue;
@@ -383,7 +387,7 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
       interp_v3_v3v3_db(sedge[i].g2, e->v1->gloc, e->v2->gloc, ga2);
 
       /* Assign an absurdly big W for initial distance so when triangles show up to catch the
-       * shadow, their w must certainlly be smaller than this value so the shadow catches
+       * shadow, their w must certainly be smaller than this value so the shadow catches
        * successfully. */
       sedge[i].fbc1[3] = 1e30;
       sedge[i].fbc2[3] = 1e30;
@@ -712,7 +716,7 @@ static bool lineart_shadow_cast_onto_triangle(LineartData *ld,
 
   /* Bound box check. Because we have already done occlusion in the shadow camera, so any visual
    * intersection found in this function must mean that the triangle is behind the given line so it
-   * will always project a shadow, hence no need to do depth boundbox check. */
+   * will always project a shadow, hence no need to do depth bound-box check. */
   if ((MAX3(FBC0[0], FBC1[0], FBC2[0]) < MIN2(LFBC[0], RFBC[0])) ||
       (MIN3(FBC0[0], FBC1[0], FBC2[0]) > MAX2(LFBC[0], RFBC[0])) ||
       (MAX3(FBC0[1], FBC1[1], FBC2[1]) < MIN2(LFBC[1], RFBC[1])) ||
@@ -1055,7 +1059,7 @@ static void lineart_shadow_register_enclosed_shapes(LineartData *ld, LineartData
     e = shadow_ld->pending_edges.array[i];
 
     /* Only care about shade-on-light and light-on-light situations, hence we only need
-     * non-occludded segments in shadow buffer. */
+     * non-occluded segments in shadow buffer. */
     if (e->min_occ > 0) {
       continue;
     }
@@ -1103,7 +1107,7 @@ static void lineart_shadow_register_enclosed_shapes(LineartData *ld, LineartData
   }
 }
 
-/* This call would internally duplicate #original_ld, override necessary configureations for shadow
+/* This call would internally duplicate #original_ld, override necessary configurations for shadow
  * computations. It will return:
  *
  * 1) Generated shadow edges in format of `LineartElementLinkNode` which can be directly loaded
@@ -1151,7 +1155,7 @@ bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
   ld->conf.do_shadow_cast = true;
   ld->shadow_data_pool = shadow_data_pool;
 
-  /* See LineartData::edge_data_pool for explaination. */
+  /* See LineartData::edge_data_pool for explanation. */
   if (ld->conf.shadow_selection) {
     ld->edge_data_pool = shadow_data_pool;
   }
@@ -1180,7 +1184,7 @@ bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
   }
   ld->qtree.recursive_level = is_persp ? LRT_TILE_RECURSIVE_PERSPECTIVE : LRT_TILE_RECURSIVE_ORTHO;
 
-  /* Contour and loose edge from light viewing direction will be casted as shadow, so only
+  /* Contour and loose edge from light viewing direction will be cast as shadow, so only
    * force them on. If we need lit/shaded information for other line types, they are then
    * enabled as-is so that cutting positions can also be calculated through shadow projection.
    */
@@ -1250,7 +1254,7 @@ bool lineart_main_try_generate_shadow(Depsgraph *depsgraph,
   }
 
   if (ld->conf.shadow_enclose_shapes) {
-    /* Need loaded data for reprojecting the 3rd time to get shape boundary against lit/shaded
+    /* Need loaded data for re-projecting the 3rd time to get shape boundary against lit/shaded
      * region. */
     (*r_shadow_ld_if_reproject) = ld;
   }
@@ -1342,7 +1346,7 @@ void lineart_main_transform_and_add_shadow(LineartData *ld,
 }
 
 /* Does the 3rd stage reprojection, will not re-load objects because #shadow_ld is not deleted.
- * Only reprojects view camera edges and check visibility in light camera, then we can determine
+ * Only re-projects view camera edges and check visibility in light camera, then we can determine
  * whether an edge landed on a lit or shaded area. */
 void lineart_main_make_enclosed_shapes(LineartData *ld, LineartData *shadow_ld)
 {

@@ -235,7 +235,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
     /* strips and backdrops */
     draw_nla_main_data(&ac, snla, region);
 
-    /* text draw cached, in pixelspace now */
+    /* Text draw cached, in pixel-space now. */
     UI_view2d_text_cache_draw(region);
   }
 

@@ -1950,7 +1950,7 @@ void BKE_image_stamp_buf(Scene *scene,
     y -= BUFF_MARGIN_Y * 2;
   }
 
-  /* Top left corner, below File, Date, Rendertime */
+  /* Top left corner, below File, Date, Render-time */
   if (TEXT_SIZE_CHECK(stamp_data.memory, w, h)) {
     y -= h;
 
@@ -1973,7 +1973,7 @@ void BKE_image_stamp_buf(Scene *scene,
     y -= BUFF_MARGIN_Y * 2;
   }
 
-  /* Top left corner, below File, Date, Rendertime, Memory */
+  /* Top left corner, below: File, Date, Render-time, Memory. */
   if (TEXT_SIZE_CHECK(stamp_data.hostname, w, h)) {
     y -= h;
 
@@ -1996,7 +1996,7 @@ void BKE_image_stamp_buf(Scene *scene,
     y -= BUFF_MARGIN_Y * 2;
   }
 
-  /* Top left corner, below File, Date, Memory, Rendertime, Hostname */
+  /* Top left corner, below: File, Date, Memory, Render-time, Host-name. */
   BLF_enable(mono, BLF_WORD_WRAP);
   if (TEXT_SIZE_CHECK_WORD_WRAP(stamp_data.note, w, h)) {
     y -= h;

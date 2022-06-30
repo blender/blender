@@ -3,7 +3,7 @@
 
 #pragma once
 
-/* Include kernel header to get access to sycl-specific types, like SyclQueue and
+/* Include kernel header to get access to SYCL-specific types, like SyclQueue and
  * OneAPIDeviceIteratorCallback. */
 #include "kernel/device/oneapi/kernel.h"
 

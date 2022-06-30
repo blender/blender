@@ -27,7 +27,7 @@ DLL_INTERFACE_CALL(oneapi_usm_memset,
 DLL_INTERFACE_CALL(oneapi_run_test_kernel, bool, SyclQueue *queue)
 
 /* Operation with Kernel globals structure - map of global/constant allocation - filled before
- * render/kernel execution As we don't know in cycles sizeof this - Cycles will manage just as
+ * render/kernel execution As we don't know in cycles `sizeof` this - Cycles will manage just as
  * pointer. */
 DLL_INTERFACE_CALL(oneapi_kernel_globals_size, bool, SyclQueue *queue, size_t &kernel_global_size)
 DLL_INTERFACE_CALL(oneapi_set_global_memory,

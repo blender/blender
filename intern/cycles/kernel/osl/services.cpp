@@ -1710,12 +1710,12 @@ bool OSLRenderServices::trace(TraceOpt &options,
 
   const KernelGlobalsCPU *kg = sd->osl_globals;
 
-  /* Can't raytrace from shaders like displacement, before BVH exists. */
+  /* Can't ray-trace from shaders like displacement, before BVH exists. */
   if (kernel_data.bvh.bvh_layout == BVH_LAYOUT_NONE) {
     return false;
   }
 
-  /* Raytrace, leaving out shadow opaque to avoid early exit. */
+  /* Ray-trace, leaving out shadow opaque to avoid early exit. */
   uint visibility = PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE;
   tracedata->hit = scene_intersect(kg, &ray, visibility, &tracedata->isect);
   return tracedata->hit;

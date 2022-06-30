@@ -3658,7 +3658,7 @@ static LineartData *lineart_create_render_buffer(Scene *scene,
 
   ld->chain_data_pool = &lc->chain_data_pool;
 
-  /* See LineartData::edge_data_pool for explaination. */
+  /* See #LineartData::edge_data_pool for explanation. */
   ld->edge_data_pool = &ld->render_data_pool;
 
   BLI_spin_init(&ld->lock_task);
@@ -4494,7 +4494,7 @@ static void lineart_create_edges_from_isec_data(LineartIsecData *d)
     return;
   }
 
-  /* We don't care about removing duplicated vert in this method, chaning can handle that,
+  /* We don't care about removing duplicated vert in this method, chaining can handle that,
    * and it saves us from using locks and look up tables. */
   LineartVert *v = lineart_mem_acquire(ld->edge_data_pool, sizeof(LineartVert) * total_lines * 2);
   LineartEdge *e = lineart_mem_acquire(ld->edge_data_pool, sizeof(LineartEdge) * total_lines);
@@ -4565,7 +4565,7 @@ static void lineart_create_edges_from_isec_data(LineartIsecData *d)
       }
       else { /* equal priority */
         if (ob1 == ob2) {
-          /* object_ref should be ambigious if intersection lines comes from different objects. */
+          /* object_ref should be ambiguous if intersection lines comes from different objects. */
           e->object_ref = ob1;
         }
       }
@@ -5165,7 +5165,7 @@ static void lineart_gpencil_generate(LineartCache *cache,
     }
     if (shaodow_selection) {
       if (ec->shadow_mask_bits != LRT_SHADOW_MASK_UNDEFINED) {
-        /* TODO(Yiming): Give a behaviour option for how to display undefined shadow info. */
+        /* TODO(@Yiming): Give a behavior option for how to display undefined shadow info. */
         if ((shaodow_selection == LRT_SHADOW_FILTER_LIT &&
              (!(ec->shadow_mask_bits & LRT_SHADOW_MASK_LIT))) ||
             (shaodow_selection == LRT_SHADOW_FILTER_SHADED &&

@@ -108,7 +108,7 @@ typedef struct LineartEdgeSegment {
 
 typedef struct LineartShadowEdge {
   struct LineartShadowEdge *next, *prev;
-  /* Two end points in framebuffer coordinates viewed from the light source. */
+  /* Two end points in frame-buffer coordinates viewed from the light source. */
   double fbc1[4], fbc2[4];
   double g1[3], g2[3];
   bool orig1, orig2;
@@ -129,11 +129,11 @@ typedef struct LineartShadowSegment {
   /* eLineartShadowSegmentFlag */
   int flag;
   /* The point after which a property of the segment is changed. e.g. shadow mask/target_ref etc.
-   * Coordinates in NDC during shadow caluclation but transformed to global linear before cutting
+   * Coordinates in NDC during shadow calculation but transformed to global linear before cutting
    * onto edges during the loading stage of the "actual" rendering. */
   double ratio;
   /* Left and right pos, because when casting shadows at some point there will be
-   * non-continuous cuts, see #lineart_shadow_edge_cut for detailed explaination. */
+   * non-continuous cuts, see #lineart_shadow_edge_cut for detailed explanation. */
   double fbc1[4], fbc2[4];
   /* Global position. */
   double g1[4], g2[4];
@@ -276,7 +276,7 @@ typedef struct LineartData {
    * calculation is finished. */
   LineartStaticMemPool *shadow_data_pool;
 
-  /* Storing shadow edge eln, array, and cuts for shadow information, so it's avaliable when line
+  /* Storing shadow edge eln, array, and cuts for shadow information, so it's available when line
    * art runs the second time for occlusion. Either a reference to LineartCache::shadow_data_pool
    * (shadow stage) or a reference to LineartData::render_data_pool (final stage). */
   LineartStaticMemPool *edge_data_pool;
@@ -746,8 +746,8 @@ BLI_INLINE int lineart_line_isec_2d_ignore_line2pos(const double a1[2],
                                                     double *r_a_ratio)
 {
   /* The define here is used to check how vector or slope method handles boundary cases. The result
-   * of lim(div->0) and lim(k->0) could both produce some unwanted flickers in line art, the
-   * influence of which is still not fully understood, so keep the switch there for futher
+   * of `lim(div->0)` and `lim(k->0)` could both produce some unwanted flickers in line art, the
+   * influence of which is still not fully understood, so keep the switch there for further
    * investigations. */
 #define USE_VECTOR_LINE_INTERSECTION_IGN
 #ifdef USE_VECTOR_LINE_INTERSECTION_IGN

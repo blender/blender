@@ -193,7 +193,7 @@ ccl_always_inline float3 make_float3(float x)
 #include "util/types.h"
 
 /* NOTE(@nsirgien): Declaring these functions after types headers is very important because they
- * include oneAPI headers, which transitively include math.h headers which will cause redefintions
+ * include oneAPI headers, which transitively include math.h headers which will cause redefinitions
  * of the math defines because math.h also uses them and having them defined before math.h include
  * is actually UB. */
 /* Use fast math functions - get them from sycl::native namespace for native math function

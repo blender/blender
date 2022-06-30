@@ -35,7 +35,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info,
 
   oneapi_dll_.oneapi_set_error_cb(queue_error_cb, &oneapi_error_string_);
 
-  /* Oneapi calls should be initialised on this moment. */
+  /* OneAPI calls should be initialized on this moment. */
   assert(oneapi_dll_.oneapi_create_queue != nullptr);
 
   bool is_finished_ok = oneapi_dll_.oneapi_create_queue(device_queue_, info.num);
@@ -93,7 +93,7 @@ BVHLayoutMask OneapiDevice::get_bvh_layout_mask() const
 bool OneapiDevice::load_kernels(const uint requested_features)
 {
   assert(device_queue_);
-  /* NOTE(@nsirgien): oneAPI can support compilation of kernel code with sertain feature set
+  /* NOTE(@nsirgien): oneAPI can support compilation of kernel code with certain feature set
    * with specialization constants, but it hasn't been implemented yet. */
   (void)requested_features;
 

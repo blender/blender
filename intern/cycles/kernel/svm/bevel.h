@@ -103,7 +103,7 @@ ccl_device float3 svm_bevel(
     return sd->N;
   }
 
-  /* Can't raytrace from shaders like displacement, before BVH exists. */
+  /* Can't ray-trace from shaders like displacement, before BVH exists. */
   if (kernel_data.bvh.bvh_layout == BVH_LAYOUT_NONE) {
     return sd->N;
   }

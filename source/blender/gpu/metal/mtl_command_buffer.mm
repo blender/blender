@@ -25,7 +25,7 @@ unsigned long long MTLCommandBufferManager::event_signal_val = 0;
 int MTLCommandBufferManager::num_active_cmd_bufs = 0;
 
 /* -------------------------------------------------------------------- */
-/** \name MTLCommandBuffer initialisation and render coordination.
+/** \name MTLCommandBuffer initialization and render coordination.
  * \{ */
 
 void MTLCommandBufferManager::prepare(MTLContext *ctx, bool supports_render)

@@ -216,7 +216,7 @@ template<typename T> struct NanoVDBInterpolator {
     int nix, niy, niz;
     int pix, piy, piz;
     int nnix, nniy, nniz;
-    /* Tricubic b-spline interpolation. */
+    /* Tri-cubic b-spline interpolation. */
     const float tx = svm_image_texture_frac(x - 0.5f, &ix);
     const float ty = svm_image_texture_frac(y - 0.5f, &iy);
     const float tz = svm_image_texture_frac(z - 0.5f, &iz);
@@ -355,7 +355,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals, int id, float3 P, in
     return r;
   }
   else {
-    /* Tricubic interpolation. */
+    /* Tri-cubic interpolation. */
     int ix, iy, iz;
     float tx = svm_image_texture_frac(x - 0.5f, &ix);
     float ty = svm_image_texture_frac(y - 0.5f, &iy);

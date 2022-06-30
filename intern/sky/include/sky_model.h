@@ -25,7 +25,7 @@ Version history:
 
 1.4a  February 22nd, 2013
       Removed unnecessary and counter-intuitive solar radius parameters
-      from the interface of the colourspace sky dome initialisation functions.
+      from the interface of the colourspace sky dome initialization functions.
 
 1.4   February 11th, 2013
       Fixed a bug which caused the relative brightness of the solar disc
@@ -76,7 +76,7 @@ Usage information:
 ==================
 
 
-Model initialisation
+Model initialization
 --------------------
 
 A separate ArHosekSkyModelState has to be maintained for each spectral
@@ -101,12 +101,12 @@ is given in radians.
                   solarElevation
                 );
 
-Note that starting with version 1.3, there is also a second initialisation
+Note that starting with version 1.3, there is also a second initialization
 function which generates skydome states for different solar emission spectra
 and solar radii: 'arhosekskymodelstate_alienworld_alloc_init()'.
 
 See the notes about the "Alien World" functionality provided further down for a
-discussion of the usefulness and limits of that second initialisation function.
+discussion of the usefulness and limits of that second initialization function.
 Sky model states that have been initialized with either function behave in a
 completely identical fashion during use and cleanup.
 
@@ -236,7 +236,7 @@ CAVEAT #3: you have to provide a value for the solar intensity of the star
            fairly different in size from it, to still provide a reasonable and
            inhabitable amount of irradiance. Red stars will need to be much
            larger than our sun, while white or blue stars will have to be
-           comparatively tiny. The initialisation function handles this and
+           comparatively tiny. The initialization function handles this and
            computes a plausible solar radius for a given emission spectrum. In
            terms of absolute radiometric values, you should probably not stray
            all too far from a solar intensity value of 1.0.

@@ -874,7 +874,7 @@ void MASK_OT_primitive_circle_add(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Primitive Add Suqare Operator
+/** \name Primitive Add Square Operator
  * \{ */
 
 static int primitive_square_add_exec(bContext *C, wmOperator *op)

@@ -85,7 +85,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
     // .image_out(3, Qualifier::WRITE, GPU_R11F_G11F_B10F, "gbuff_reflection_color")
     // .image_out(4, Qualifier::WRITE, GPU_RGBA16F, "gbuff_reflection_normal")
     // .image_out(5, Qualifier::WRITE, GPU_R11F_G11F_B10F, "gbuff_emission")
-    /* Renderpasses. */
+    /* Render-passes. */
     // .image_out(6, Qualifier::READ_WRITE, GPU_RGBA16F, "rpass_volume_light")
     /* TODO: AOVs maybe? */
     .fragment_source("eevee_surf_deferred_frag.glsl")

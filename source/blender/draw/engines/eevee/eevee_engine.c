@@ -312,12 +312,12 @@ static void eevee_draw_scene(void *vedata)
     /* Volumetrics Resolve Opaque */
     EEVEE_volumes_resolve(sldata, vedata);
 
-    /* Renderpasses */
+    /* Render-passes. */
     EEVEE_renderpasses_output_accumulate(sldata, vedata, false);
 
     /* Transparent */
-    /* TODO(fclem): should be its own Frame-buffer.
-     * This is needed because dualsource blending only works with 1 color buffer. */
+    /* TODO(@fclem): should be its own Frame-buffer.
+     * This is needed because dual-source blending only works with 1 color buffer. */
     GPU_framebuffer_texture_attach(fbl->main_color_fb, dtxl->depth, 0, 0);
     GPU_framebuffer_bind(fbl->main_color_fb);
     DRW_draw_pass(psl->transparent_pass);

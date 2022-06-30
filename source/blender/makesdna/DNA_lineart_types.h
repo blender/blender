@@ -51,16 +51,18 @@ typedef enum eLineartEdgeFlag {
   LRT_EDGE_FLAG_LOOSE = (1 << 5),
   LRT_EDGE_FLAG_LIGHT_CONTOUR = (1 << 6),
   /* LRT_EDGE_FLAG_FOR_FUTURE = (1 << 7), */
-  /* It's a legacy limit of 8 bits for feature lines that come from original mesh edges. It should
-     not be needed in current object loading scheme, but might still be relevant if we are to
-     impelment EditMesh loading, so don't exceed 8 bits just yet. */
+  /**
+   * It's a legacy limit of 8 bits for feature lines that come from original mesh edges. It should
+   * not be needed in current object loading scheme, but might still be relevant if we are to
+   * implement edit-mesh loading, so don't exceed 8 bits just yet.
+   */
   LRT_EDGE_FLAG_PROJECTED_SHADOW = (1 << 8),
   /* To determine an edge to be occluded from the front or back face it's lying on. */
   LRT_EDGE_FLAG_SHADOW_FACING_LIGHT = (1 << 9),
   /** Also used as discarded line mark. */
   LRT_EDGE_FLAG_CHAIN_PICKED = (1 << 10),
   LRT_EDGE_FLAG_CLIPPED = (1 << 11),
-  /** Used to specify contor from viewing camera when computing shadows. */
+  /** Used to specify contour from viewing camera when computing shadows. */
   LRT_EDGE_FLAG_CONTOUR_SECONDARY = (1 << 12),
   /** Limited to 16 bits for the entire thing. */
 

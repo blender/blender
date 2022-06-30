@@ -239,7 +239,7 @@ void ED_annotation_draw_ex(
 
 /* ----------- Grease-Pencil AnimEdit API ------------------ */
 /**
- * Loops over the gp-frames for a gp-layer, and applies the given callback.
+ * Loops over the GP-frames for a GP-layer, and applies the given callback.
  */
 bool ED_gpencil_layer_frames_looper(struct bGPDlayer *gpl,
                                     struct Scene *scene,

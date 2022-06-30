@@ -617,7 +617,7 @@ static void nla_draw_strip(SpaceNla *snla,
   immUnbindProgram();
 }
 
-/* add the relevant text to the cache of text-strings to draw in pixelspace */
+/** Add the relevant text to the cache of text-strings to draw in pixel-space. */
 static void nla_draw_strip_text(AnimData *adt,
                                 NlaTrack *nlt,
                                 NlaStrip *strip,

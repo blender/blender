@@ -499,9 +499,9 @@ void Scene::update_kernel_features()
     kernel_features |= KERNEL_FEATURE_CAMERA_MOTION;
   }
 
-  /* Figure out whether the scene will use shader raytrace we need at least
+  /* Figure out whether the scene will use shader ray-trace we need at least
    * one caustic light, one caustic caster and one caustic receiver to use
-   * and enable the mnee code path. */
+   * and enable the MNEE code path. */
   bool has_caustics_receiver = false;
   bool has_caustics_caster = false;
   bool has_caustics_light = false;
