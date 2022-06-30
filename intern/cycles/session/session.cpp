@@ -146,11 +146,11 @@ void Session::run_main_render_loop()
     RenderWork render_work = run_update_for_next_iteration();
 
     if (!render_work) {
-      if (VLOG_WORK_IS_ON) {
+      if (VLOG_INFO_IS_ON) {
         double total_time, render_time;
         progress.get_time(total_time, render_time);
-        VLOG_WORK << "Rendering in main loop is done in " << render_time << " seconds.";
-        VLOG_WORK << path_trace_->full_report();
+        VLOG_INFO << "Rendering in main loop is done in " << render_time << " seconds.";
+        VLOG_INFO << path_trace_->full_report();
       }
 
       if (params.background) {
