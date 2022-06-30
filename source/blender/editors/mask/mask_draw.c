@@ -802,7 +802,7 @@ void ED_mask_draw_frames(
        mask_layer_shape = mask_layer_shape->next) {
     int frame = mask_layer_shape->frame;
 
-    // draw_keyframe(i, CFRA, sfra, framelen, 1);
+    // draw_keyframe(i, scene->r.cfra, sfra, framelen, 1);
     int height = (frame == cfra) ? 22 : 10;
     int x = (frame - sfra) * framelen;
     immVertex2i(pos, x, region_bottom);

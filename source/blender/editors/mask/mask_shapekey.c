@@ -33,7 +33,7 @@
 static int mask_shape_key_insert_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  const int frame = CFRA;
+  const int frame = scene->r.cfra;
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
 
@@ -76,7 +76,7 @@ void MASK_OT_shape_key_insert(wmOperatorType *ot)
 static int mask_shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  const int frame = CFRA;
+  const int frame = scene->r.cfra;
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
 
@@ -122,7 +122,7 @@ void MASK_OT_shape_key_clear(wmOperatorType *ot)
 static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Scene *scene = CTX_data_scene(C);
-  const int frame = CFRA;
+  const int frame = scene->r.cfra;
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
 
@@ -214,7 +214,7 @@ void MASK_OT_shape_key_feather_reset(wmOperatorType *ot)
 static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  const int frame = CFRA;
+  const int frame = scene->r.cfra;
   Mask *mask = CTX_data_edit_mask(C);
   bool changed = false;
 

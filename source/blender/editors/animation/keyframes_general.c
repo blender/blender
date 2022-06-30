@@ -921,7 +921,7 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
   }
 
   /* in case 'relative' paste method is used */
-  animcopy_cfra = CFRA;
+  animcopy_cfra = scene->r.cfra;
 
   /* everything went fine */
   return 0;
@@ -1245,13 +1245,13 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   /* methods of offset */
   switch (offset_mode) {
     case KEYFRAME_PASTE_OFFSET_CFRA_START:
-      offset = (float)(CFRA - animcopy_firstframe);
+      offset = (float)(scene->r.cfra - animcopy_firstframe);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_END:
-      offset = (float)(CFRA - animcopy_lastframe);
+      offset = (float)(scene->r.cfra - animcopy_lastframe);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE:
-      offset = (float)(CFRA - animcopy_cfra);
+      offset = (float)(scene->r.cfra - animcopy_cfra);
       break;
     case KEYFRAME_PASTE_OFFSET_NONE:
       offset = 0.0f;

@@ -117,7 +117,7 @@ static void MaskPointToTransData(Scene *scene,
   const bool is_sel_any = MASKPOINT_ISSEL_ANY(point);
   float parent_matrix[3][3], parent_inverse_matrix[3][3];
 
-  BKE_mask_point_parent_matrix_get(point, CFRA, parent_matrix);
+  BKE_mask_point_parent_matrix_get(point, scene->r.cfra, parent_matrix);
   invert_m3_m3(parent_inverse_matrix, parent_matrix);
 
   if (is_prop_edit || is_sel_point) {
@@ -455,7 +455,7 @@ void special_aftertrans_update__mask(bContext *C, TransInfo *t)
   if (IS_AUTOKEY_ON(t->scene)) {
     Scene *scene = t->scene;
 
-    if (ED_mask_layer_shape_auto_key_select(mask, CFRA)) {
+    if (ED_mask_layer_shape_auto_key_select(mask, scene->r.cfra)) {
       WM_event_add_notifier(C, NC_MASK | ND_DATA, &mask->id);
       DEG_id_tag_update(&mask->id, 0);
     }

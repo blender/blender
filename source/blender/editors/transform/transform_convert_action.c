@@ -326,7 +326,7 @@ void createTransActionData(bContext *C, TransInfo *t)
 
   /* which side of the current frame should be allowed */
   if (t->mode == TFM_TIME_EXTEND) {
-    t->frame_side = transform_convert_frame_side_dir_get(t, (float)CFRA);
+    t->frame_side = transform_convert_frame_side_dir_get(t, (float)scene->r.cfra);
   }
   else {
     /* normal transform - both sides of current frame are considered */
@@ -341,10 +341,10 @@ void createTransActionData(bContext *C, TransInfo *t)
      * higher scaling ratios, but is faster than converting all points)
      */
     if (adt) {
-      cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+      cfra = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
     }
     else {
-      cfra = (float)CFRA;
+      cfra = (float)scene->r.cfra;
     }
 
     if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
@@ -399,7 +399,7 @@ void createTransActionData(bContext *C, TransInfo *t)
       continue;
     }
 
-    cfra = (float)CFRA;
+    cfra = (float)scene->r.cfra;
 
     {
       AnimData *adt;
@@ -447,10 +447,10 @@ void createTransActionData(bContext *C, TransInfo *t)
 
       adt = ANIM_nla_mapping_get(&ac, ale);
       if (adt) {
-        cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+        cfra = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
       }
       else {
-        cfra = (float)CFRA;
+        cfra = (float)scene->r.cfra;
       }
 
       if (ale->type == ANIMTYPE_GPLAYER) {

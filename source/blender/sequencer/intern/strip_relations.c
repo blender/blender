@@ -250,7 +250,7 @@ void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
   SEQ_prefetch_stop(scene);
 
   for (seq = seqbase->first; seq; seq = seq->next) {
-    if (for_render && SEQ_time_strip_intersects_frame(scene, seq, CFRA)) {
+    if (for_render && SEQ_time_strip_intersects_frame(scene, seq, scene->r.cfra)) {
       continue;
     }
 

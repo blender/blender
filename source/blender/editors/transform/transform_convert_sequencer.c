@@ -90,7 +90,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
   if (t->mode == TFM_TIME_EXTEND) {
 
     /* *** Extend Transform *** */
-    int cfra = CFRA;
+    int cfra = scene->r.cfra;
     int left = SEQ_time_left_handle_frame_get(scene, seq);
     int right = SEQ_time_right_handle_frame_get(scene, seq);
 
@@ -489,7 +489,7 @@ void createTransSeqData(TransInfo *t)
   }
 
   tc->custom.type.free_cb = freeSeqData;
-  t->frame_side = transform_convert_frame_side_dir_get(t, (float)CFRA);
+  t->frame_side = transform_convert_frame_side_dir_get(t, (float)scene->r.cfra);
 
   count = SeqTransCount(t, ed->seqbasep);
 

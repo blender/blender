@@ -191,7 +191,7 @@ static void seq_snap_target_points_build(Scene *scene,
   int i = 0;
 
   if (snap_mode & SEQ_SNAP_TO_CURRENT_FRAME) {
-    snap_data->target_snap_points[i] = CFRA;
+    snap_data->target_snap_points[i] = scene->r.cfra;
     i++;
   }
 

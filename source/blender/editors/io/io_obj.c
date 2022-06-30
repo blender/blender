@@ -208,11 +208,11 @@ static bool wm_obj_export_check(bContext *C, wmOperator *op)
     int end = RNA_int_get(op->ptr, "end_frame");
     /* Set the defaults. */
     if (start == INT_MIN) {
-      start = SFRA;
+      start = scene->r.sfra;
       changed = true;
     }
     if (end == INT_MAX) {
-      end = EFRA;
+      end = scene->r.efra;
       changed = true;
     }
     /* Fix user errors. */
@@ -266,7 +266,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                   "Export multiple frames instead of the current frame only");
   RNA_def_int(ot->srna,
               "start_frame",
-              INT_MIN, /* wm_obj_export_check uses this to set SFRA. */
+              INT_MIN, /* wm_obj_export_check uses this to set scene->r.sfra. */
               INT_MIN,
               INT_MAX,
               "Start Frame",
@@ -275,7 +275,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
               INT_MAX);
   RNA_def_int(ot->srna,
               "end_frame",
-              INT_MAX, /* wm_obj_export_check uses this to set EFRA. */
+              INT_MAX, /* wm_obj_export_check uses this to set scene->r.efra. */
               INT_MIN,
               INT_MAX,
               "End Frame",

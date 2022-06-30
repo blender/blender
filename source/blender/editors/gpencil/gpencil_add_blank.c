@@ -76,7 +76,7 @@ void ED_gpencil_create_blank(bContext *C, Object *ob, float UNUSED(mat[4][4]))
   bGPDlayer *layer = BKE_gpencil_layer_addnew(gpd, "GP_Layer", true, false);
 
   /* frames */
-  BKE_gpencil_frame_addnew(layer, CFRA);
+  BKE_gpencil_frame_addnew(layer, scene->r.cfra);
 
   /* update depsgraph */
   DEG_id_tag_update(&gpd->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);

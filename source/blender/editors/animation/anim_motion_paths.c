@@ -391,7 +391,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     return;
   }
 
-  const int cfra = CFRA;
+  const int cfra = scene->r.cfra;
   int sfra = INT_MAX, efra = INT_MIN;
   switch (range) {
     case ANIMVIZ_CALC_RANGE_CURRENT_FRAME:
@@ -485,7 +485,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
             sfra,
             efra,
             efra - sfra + 1);
-  for (CFRA = sfra; CFRA <= efra; CFRA++) {
+  for (scene->r.cfra = sfra; scene->r.cfra <= efra; scene->r.cfra++) {
     if (range == ANIMVIZ_CALC_RANGE_CURRENT_FRAME) {
       /* For current frame, only update tagged. */
       BKE_scene_graph_update_tagged(depsgraph, bmain);
@@ -496,14 +496,14 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
     }
 
     /* perform baking for targets */
-    motionpaths_calc_bake_targets(targets, CFRA);
+    motionpaths_calc_bake_targets(targets, scene->r.cfra);
   }
 
   /* reset original environment */
   /* NOTE: We don't always need to reevaluate the main scene, as the depsgraph
    * may be a temporary one that works on a subset of the data.
    * We always have to restore the current frame though. */
-  CFRA = cfra;
+  scene->r.cfra = cfra;
   if (range != ANIMVIZ_CALC_RANGE_CURRENT_FRAME && restore) {
     motionpaths_calc_update_scene(depsgraph);
   }

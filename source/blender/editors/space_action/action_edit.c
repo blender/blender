@@ -730,7 +730,7 @@ static void insert_gpencil_key(bAnimContext *ac,
   Scene *scene = ac->scene;
   bGPdata *gpd = (bGPdata *)ale->id;
   bGPDlayer *gpl = (bGPDlayer *)ale->data;
-  BKE_gpencil_layer_frame_get(gpl, CFRA, add_frame_mode);
+  BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, add_frame_mode);
   /* Check if the gpd changes to tag only once. */
   if (gpd != *gpd_old) {
     BKE_gpencil_tag(gpd);
@@ -827,8 +827,8 @@ static void insert_action_keys(bAnimContext *ac, short mode)
   }
 
   /* insert keyframes */
-  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(ac->depsgraph,
-                                                                                    (float)CFRA);
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+      ac->depsgraph, (float)scene->r.cfra);
   for (ale = anim_data.first; ale; ale = ale->next) {
     switch (ale->type) {
       case ANIMTYPE_GPLAYER:
@@ -1696,8 +1696,8 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
   /* set the new current frame value, based on the average time */
   if (ked.i1) {
     Scene *scene = ac.scene;
-    CFRA = round_fl_to_int(ked.f1 / ked.i1);
-    SUBFRA = 0.0f;
+    scene->r.cfra = round_fl_to_int(ked.f1 / ked.i1);
+    scene->r.subframe = 0.0f;
   }
 
   /* set notifier that things have changed */

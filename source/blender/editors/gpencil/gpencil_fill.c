@@ -1748,7 +1748,7 @@ static tGPDfill *gpencil_session_init_fill(bContext *C, wmOperator *op)
   tgpf->v3d = tgpf->area->spacedata.first;
   tgpf->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   tgpf->win = CTX_wm_window(C);
-  tgpf->active_cfra = CFRA;
+  tgpf->active_cfra = scene->r.cfra;
   tgpf->reports = op->reports;
 
   /* Setup space conversions. */
@@ -2222,8 +2222,8 @@ static int gpencil_fill_modal(bContext *C, wmOperator *op, const wmEvent *event)
             /* Hash of selected frames. */
             GHash *frame_list = BLI_ghash_int_new_ex(__func__, 64);
 
-            /* If not multi-frame and there is no frame in CFRA for the active layer, create
-             * a new frame. */
+            /* If not multi-frame and there is no frame in scene->r.cfra for the active layer,
+             * create a new frame. */
             if (!is_multiedit) {
               tgpf->gpf = BKE_gpencil_layer_frame_get(
                   tgpf->gpl,

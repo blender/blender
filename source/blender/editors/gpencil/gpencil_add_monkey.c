@@ -844,8 +844,8 @@ void ED_gpencil_create_monkey(bContext *C, Object *ob, float mat[4][4])
 
   /* frames */
   /* NOTE: No need to check for existing, as this will take care of it for us */
-  bGPDframe *frameFills = BKE_gpencil_frame_addnew(Fills, CFRA);
-  bGPDframe *frameLines = BKE_gpencil_frame_addnew(Lines, CFRA);
+  bGPDframe *frameFills = BKE_gpencil_frame_addnew(Fills, scene->r.cfra);
+  bGPDframe *frameLines = BKE_gpencil_frame_addnew(Lines, scene->r.cfra);
 
   /* generate strokes */
   gps = BKE_gpencil_stroke_add(frameFills, color_Skin, 270, 75, false);

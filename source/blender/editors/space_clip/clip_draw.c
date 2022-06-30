@@ -131,7 +131,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
 {
   float x;
   int *points, totseg, i, a;
-  float sfra = SFRA, efra = EFRA, framelen = region->winx / (efra - sfra + 1);
+  float sfra = scene->r.sfra, efra = scene->r.efra, framelen = region->winx / (efra - sfra + 1);
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingObject *act_object = BKE_tracking_object_get_active(tracking);
   MovieTrackingTrack *act_track = BKE_tracking_track_get_active(&clip->tracking);
@@ -245,14 +245,16 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
 
   /* solver keyframes */
   immUniformColor4ub(175, 255, 0, 255);
-  draw_keyframe(act_object->keyframe1 + clip->start_frame - 1, CFRA, sfra, framelen, 2, pos);
-  draw_keyframe(act_object->keyframe2 + clip->start_frame - 1, CFRA, sfra, framelen, 2, pos);
+  draw_keyframe(
+      act_object->keyframe1 + clip->start_frame - 1, scene->r.cfra, sfra, framelen, 2, pos);
+  draw_keyframe(
+      act_object->keyframe2 + clip->start_frame - 1, scene->r.cfra, sfra, framelen, 2, pos);
 
   immUnbindProgram();
 
   /* movie clip animation */
   if ((sc->mode == SC_MODE_MASKEDIT) && sc->mask_info.mask) {
-    ED_mask_draw_frames(sc->mask_info.mask, region, CFRA, sfra, efra);
+    ED_mask_draw_frames(sc->mask_info.mask, region, scene->r.cfra, sfra, efra);
   }
 }
 

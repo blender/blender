@@ -156,10 +156,10 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
         x = sipo->cursorTime;
       }
       else if (adt) {
-        x = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+        x = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
       }
       else {
-        x = (float)CFRA;
+        x = (float)scene->r.cfra;
       }
 
       /* Normalize units of cursor's value. */
@@ -178,7 +178,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
   }
   else {
     const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-        ac->depsgraph, (float)CFRA);
+        ac->depsgraph, (float)scene->r.cfra);
     for (ale = anim_data.first; ale; ale = ale->next) {
       FCurve *fcu = (FCurve *)ale->key_data;
 
@@ -211,12 +211,12 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
         AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
         /* Adjust current frame for NLA-mapping. */
-        float cfra = (float)CFRA;
+        float cfra = (float)scene->r.cfra;
         if ((sipo) && (sipo->mode == SIPO_MODE_DRIVERS)) {
           cfra = sipo->cursorTime;
         }
         else if (adt) {
-          cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+          cfra = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
         }
 
         const float curval = evaluate_fcurve_only_curve(fcu, cfra);
@@ -1106,8 +1106,8 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
   }
 
   /* Determine extents of the baking. */
-  sbi.cfra = start = CFRA;
-  end = CFRA + sbi.length - 1;
+  sbi.cfra = start = scene->r.cfra;
+  end = scene->r.cfra + sbi.length - 1;
 
   /* Filter anim channels. */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
@@ -2130,8 +2130,8 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
   }
   else {
     /* Animation Mode - Affects current frame (int) */
-    CFRA = round_fl_to_int(sum_time / num_keyframes);
-    SUBFRA = 0.0f;
+    scene->r.cfra = round_fl_to_int(sum_time / num_keyframes);
+    scene->r.subframe = 0.0f;
   }
   sipo->cursorVal = sum_value / (float)num_keyframes;
 

@@ -685,7 +685,7 @@ void createTransGPencil(bContext *C, TransInfo *t)
   bGPdata *gpd = obact->data;
   BLI_assert(gpd != NULL);
 
-  const int cfra_scene = CFRA;
+  const int cfra_scene = scene->r.cfra;
 
   const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const bool use_multiframe_falloff = (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) !=

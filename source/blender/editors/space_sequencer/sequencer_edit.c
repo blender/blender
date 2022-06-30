@@ -265,7 +265,7 @@ static int sequencer_gap_remove_exec(bContext *C, wmOperator *op)
   const bool do_all = RNA_boolean_get(op->ptr, "all");
   const Editing *ed = SEQ_editing_get(scene);
 
-  SEQ_edit_remove_gaps(scene, ed->seqbasep, CFRA, do_all);
+  SEQ_edit_remove_gaps(scene, ed->seqbasep, scene->r.cfra, do_all);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
@@ -304,7 +304,7 @@ static int sequencer_gap_insert_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   const int frames = RNA_int_get(op->ptr, "frames");
   const Editing *ed = SEQ_editing_get(scene);
-  SEQ_transform_offset_after_frame(scene, ed->seqbasep, frames, CFRA);
+  SEQ_transform_offset_after_frame(scene, ed->seqbasep, frames, scene->r.cfra);
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -423,7 +423,7 @@ static int sequencer_snap_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
 
   int snap_frame;
 
-  snap_frame = CFRA;
+  snap_frame = scene->r.cfra;
 
   RNA_int_set(op->ptr, "frame", snap_frame);
   return sequencer_snap_exec(C, op);
@@ -1465,7 +1465,7 @@ static int sequencer_split_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   View2D *v2d = UI_view2d_fromcontext(C);
 
   int split_side = RNA_enum_get(op->ptr, "side");
-  int split_frame = CFRA;
+  int split_frame = scene->r.cfra;
 
   if (split_side == SEQ_SIDE_MOUSE) {
     if (ED_operator_sequencer_active(C) && v2d) {
@@ -2091,12 +2091,12 @@ static bool strip_jump_internal(Scene *scene,
                                 const bool do_center)
 {
   bool changed = false;
-  int timeline_frame = CFRA;
+  int timeline_frame = scene->r.cfra;
   int next_frame = SEQ_time_find_next_prev_edit(
       scene, timeline_frame, side, do_skip_mute, do_center, false);
 
   if (next_frame != timeline_frame) {
-    CFRA = next_frame;
+    scene->r.cfra = next_frame;
     changed = true;
   }
 
@@ -3408,7 +3408,7 @@ static int sequencer_strip_transform_fit_exec(bContext *C, wmOperator *op)
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if (seq->flag & SELECT && seq->type != SEQ_TYPE_SOUND_RAM) {
-      const int timeline_frame = CFRA;
+      const int timeline_frame = scene->r.cfra;
       StripElem *strip_elem = SEQ_render_give_stripelem(scene, seq, timeline_frame);
 
       if (strip_elem == NULL) {

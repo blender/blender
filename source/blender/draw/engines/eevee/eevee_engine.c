@@ -451,8 +451,8 @@ static void eevee_render_to_image(void *vedata,
   }
   EEVEE_PrivateData *g_data = ved->stl->g_data;
 
-  int initial_frame = CFRA;
-  float initial_subframe = SUBFRA;
+  int initial_frame = scene->r.cfra;
+  float initial_subframe = scene->r.subframe;
   float shuttertime = (do_motion_blur) ? scene->eevee.motion_blur_shutter : 0.0f;
   int time_steps_tot = (do_motion_blur) ? max_ii(1, scene->eevee.motion_blur_steps) : 1;
   g_data->render_timesteps = time_steps_tot;
@@ -588,7 +588,7 @@ static void eevee_render_to_image(void *vedata,
   /* Restore original viewport size. */
   DRW_render_viewport_size_set((int[2]){g_data->size_orig[0], g_data->size_orig[1]});
 
-  if (CFRA != initial_frame || SUBFRA != initial_subframe) {
+  if (scene->r.cfra != initial_frame || scene->r.subframe != initial_subframe) {
     /* Restore original frame number. This is because the render pipeline expects it. */
     RE_engine_frame_set(engine, initial_frame, initial_subframe);
   }

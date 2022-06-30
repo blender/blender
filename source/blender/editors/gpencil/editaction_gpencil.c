@@ -371,7 +371,7 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
   }
 
   /* in case 'relative' paste method is used */
-  gpencil_anim_copy_cfra = CFRA;
+  gpencil_anim_copy_cfra = scene->r.cfra;
 
   /* clean up */
   ANIM_animdata_freelist(&anim_data);
@@ -403,13 +403,13 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
   /* methods of offset (eKeyPasteOffset) */
   switch (offset_mode) {
     case KEYFRAME_PASTE_OFFSET_CFRA_START:
-      offset = (CFRA - gpencil_anim_copy_firstframe);
+      offset = (scene->r.cfra - gpencil_anim_copy_firstframe);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_END:
-      offset = (CFRA - gpencil_anim_copy_lastframe);
+      offset = (scene->r.cfra - gpencil_anim_copy_lastframe);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE:
-      offset = (CFRA - gpencil_anim_copy_cfra);
+      offset = (scene->r.cfra - gpencil_anim_copy_cfra);
       break;
     case KEYFRAME_PASTE_OFFSET_NONE:
       offset = 0;
@@ -518,7 +518,7 @@ static bool gpencil_frame_snap_nearestsec(bGPDframe *gpf, Scene *scene)
 static bool gpencil_frame_snap_cframe(bGPDframe *gpf, Scene *scene)
 {
   if (gpf->flag & GP_FRAME_SELECT) {
-    gpf->framenum = (int)CFRA;
+    gpf->framenum = (int)scene->r.cfra;
   }
   return false;
 }
@@ -560,8 +560,8 @@ static bool gpencil_frame_mirror_cframe(bGPDframe *gpf, Scene *scene)
   int diff;
 
   if (gpf->flag & GP_FRAME_SELECT) {
-    diff = CFRA - gpf->framenum;
-    gpf->framenum = CFRA + diff;
+    diff = scene->r.cfra - gpf->framenum;
+    gpf->framenum = scene->r.cfra + diff;
   }
 
   return false;

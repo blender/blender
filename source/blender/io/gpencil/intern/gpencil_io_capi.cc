@@ -112,7 +112,7 @@ static bool gpencil_io_export_pdf(Depsgraph *depsgraph,
           continue;
         }
 
-        CFRA = i;
+        scene->r.cfra = i;
         BKE_scene_graph_update_for_newframe(depsgraph);
         exporter->prepare_camera_params(scene, iparams);
         exporter->frame_number_set(i);
@@ -122,7 +122,7 @@ static bool gpencil_io_export_pdf(Depsgraph *depsgraph,
       result = exporter->write();
       /* Back to original frame. */
       exporter->frame_number_set(iparams->frame_cur);
-      CFRA = iparams->frame_cur;
+      scene->r.cfra = iparams->frame_cur;
       BKE_scene_camera_switch_update(scene);
       BKE_scene_graph_update_for_newframe(depsgraph);
       break;

@@ -192,7 +192,7 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   Sequence *seq;
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_ensure(scene);
-  int timeline_frame = (int)CFRA;
+  int timeline_frame = (int)scene->r.cfra;
   int proximity = INT_MAX;
 
   if (!ed || !ed->seqbasep) {
@@ -218,7 +218,7 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, i
 {
   Scene *scene = CTX_data_scene(C);
 
-  int timeline_frame = (int)CFRA;
+  int timeline_frame = (int)scene->r.cfra;
 
   /* Effect strips don't need a channel initialized from the mouse. */
   if (!(flag & SEQPROP_NOCHAN) && RNA_struct_property_is_set(op->ptr, "channel") == 0) {

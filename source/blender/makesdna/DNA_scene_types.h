@@ -2054,10 +2054,6 @@ extern const char *RE_engine_id_CYCLES;
 #define V3D_CAMERA_SCENE(scene, v3d) \
   ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)
 
-#define CFRA (scene->r.cfra)
-#define SUBFRA (scene->r.subframe)
-#define SFRA (scene->r.sfra)
-#define EFRA (scene->r.efra)
 #define PRVRANGEON (scene->r.flag & SCER_PRV_RANGE)
 #define PSFRA ((PRVRANGEON) ? (scene->r.psfra) : (scene->r.sfra))
 #define PEFRA ((PRVRANGEON) ? (scene->r.pefra) : (scene->r.efra))

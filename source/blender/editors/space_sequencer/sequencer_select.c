@@ -589,8 +589,8 @@ static void sequencer_select_side_of_frame(const bContext *C,
 
   const float x = UI_view2d_region_to_view_x(v2d, mval[0]);
   LISTBASE_FOREACH (Sequence *, seq_iter, SEQ_active_seqbase_get(ed)) {
-    if (((x < CFRA) && (SEQ_time_right_handle_frame_get(scene, seq_iter) <= CFRA)) ||
-        ((x >= CFRA) && (SEQ_time_left_handle_frame_get(scene, seq_iter) >= CFRA))) {
+    if (((x < scene->r.cfra) && (SEQ_time_right_handle_frame_get(scene, seq_iter) <= scene->r.cfra)) ||
+        ((x >= scene->r.cfra) && (SEQ_time_left_handle_frame_get(scene, seq_iter) >= scene->r.cfra))) {
       /* Select left or right. */
       seq_iter->flag |= SELECT;
       recurs_sel_seq(seq_iter);
@@ -603,8 +603,8 @@ static void sequencer_select_side_of_frame(const bContext *C,
       TimeMarker *tmarker;
 
       for (tmarker = scene->markers.first; tmarker; tmarker = tmarker->next) {
-        if (((x < CFRA) && (tmarker->frame <= CFRA)) ||
-            ((x >= CFRA) && (tmarker->frame >= CFRA))) {
+        if (((x < scene->r.cfra) && (tmarker->frame <= scene->r.cfra)) ||
+            ((x >= scene->r.cfra) && (tmarker->frame >= scene->r.cfra))) {
           tmarker->flag |= SELECT;
         }
         else {
@@ -1443,7 +1443,7 @@ static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
   if (extend == false) {
     ED_sequencer_deselect_all(scene);
   }
-  const int timeline_frame = CFRA;
+  const int timeline_frame = scene->r.cfra;
   LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     bool test = false;
     switch (side) {

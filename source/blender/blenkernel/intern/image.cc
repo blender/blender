@@ -1582,7 +1582,7 @@ static void stampdata(
   }
 
   if (use_dynamic && scene->r.stamp & R_STAMP_MARKER) {
-    const char *name = BKE_scene_find_last_marker_name(scene, CFRA);
+    const char *name = BKE_scene_find_last_marker_name(scene, scene->r.cfra);
 
     if (name) {
       STRNCPY(text, name);

@@ -1353,7 +1353,7 @@ static void OVERLAY_volume_extra(OVERLAY_ExtraCallBuffers *cb,
 
   /* Don't show smoke before simulation starts, this could be made an option in the future. */
   const bool draw_velocity = (fds->draw_velocity && fds->fluid &&
-                              CFRA >= fds->point_cache[0]->startframe);
+                              scene->r.cfra >= fds->point_cache[0]->startframe);
 
   /* Show gridlines only for slices with no interpolation. */
   const bool show_gridlines = (fds->show_gridlines && fds->fluid &&
@@ -1546,8 +1546,9 @@ void OVERLAY_extra_cache_populate(OVERLAY_Data *vedata, Object *ob)
                            (md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
                            (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) &&
                            (((FluidModifierData *)md)->domain != NULL) &&
-                           (CFRA >= (((FluidModifierData *)md)->domain->cache_frame_start)) &&
-                           (CFRA <= (((FluidModifierData *)md)->domain->cache_frame_end));
+                           (scene->r.cfra >=
+                            (((FluidModifierData *)md)->domain->cache_frame_start)) &&
+                           (scene->r.cfra <= (((FluidModifierData *)md)->domain->cache_frame_end));
 
   float *color;
   int theme_id = DRW_object_wire_theme_get(ob, view_layer, &color);

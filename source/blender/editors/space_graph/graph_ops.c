@@ -72,21 +72,21 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
      * NOTE: sync this part of the code with ANIM_OT_change_frame
      */
     /* 1) frame is rounded to the nearest int, since frames are ints */
-    CFRA = round_fl_to_int(frame);
+    scene->r.cfra = round_fl_to_int(frame);
 
     if (scene->r.flag & SCER_LOCK_FRAME_SELECTION) {
       /* Clip to preview range
        * NOTE: Preview range won't go into negative values,
        *       so only clamping once should be fine.
        */
-      CLAMP(CFRA, PSFRA, PEFRA);
+      CLAMP(scene->r.cfra, PSFRA, PEFRA);
     }
     else {
       /* Prevent negative frames */
-      FRAMENUMBER_MIN_CLAMP(CFRA);
+      FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
     }
 
-    SUBFRA = 0.0f;
+    scene->r.subframe = 0.0f;
     DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
   }
 

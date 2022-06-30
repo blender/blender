@@ -1209,7 +1209,7 @@ static void columnselect_graph_keys(bAnimContext *ac, short mode)
       ce = MEM_callocN(sizeof(CfraElem), "cfraElem");
       BLI_addtail(&ked.list, ce);
 
-      ce->cfra = (float)CFRA;
+      ce->cfra = (float)scene->r.cfra;
       break;
 
     case GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
@@ -1521,10 +1521,10 @@ static void graphkeys_select_leftright(bAnimContext *ac, short leftright, short 
 
   if (leftright == GRAPHKEYS_LRSEL_LEFT) {
     ked.f1 = MINAFRAMEF;
-    ked.f2 = (float)(CFRA + 0.1f);
+    ked.f2 = (float)(scene->r.cfra + 0.1f);
   }
   else {
-    ked.f1 = (float)(CFRA - 0.1f);
+    ked.f1 = (float)(scene->r.cfra - 0.1f);
     ked.f2 = MAXFRAMEF;
   }
 
@@ -1605,7 +1605,7 @@ static int graphkeys_select_leftright_invoke(bContext *C, wmOperator *op, const 
 
     /* determine which side of the current frame mouse is on */
     x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
-    if (x < CFRA) {
+    if (x < scene->r.cfra) {
       RNA_enum_set(op->ptr, "mode", GRAPHKEYS_LRSEL_LEFT);
     }
     else {

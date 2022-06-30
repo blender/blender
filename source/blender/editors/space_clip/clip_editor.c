@@ -1046,7 +1046,7 @@ static int prefetch_get_start_frame(const bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
 
-  return SFRA;
+  return scene->r.sfra;
 }
 
 static int prefetch_get_final_frame(const bContext *C)
@@ -1057,10 +1057,10 @@ static int prefetch_get_final_frame(const bContext *C)
   int end_frame;
 
   /* check whether all the frames from prefetch range are cached */
-  end_frame = EFRA;
+  end_frame = scene->r.efra;
 
   if (clip->len) {
-    end_frame = min_ii(end_frame, SFRA + clip->len - 1);
+    end_frame = min_ii(end_frame, scene->r.sfra + clip->len - 1);
   }
 
   return end_frame;

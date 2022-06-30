@@ -292,7 +292,7 @@ static void gpencil_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
   Brush *brush = tgpi->brush;
-  int cfra = CFRA;
+  int cfra = scene->r.cfra;
 
   bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
 
@@ -1195,7 +1195,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
   tgpi->orign_type = RNA_enum_get(op->ptr, "type");
 
   /* set current frame number */
-  tgpi->cframe = CFRA;
+  tgpi->cframe = scene->r.cfra;
 
   /* set GP datablock */
   tgpi->gpd = gpd;

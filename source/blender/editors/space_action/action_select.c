@@ -1026,7 +1026,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
       ce = MEM_callocN(sizeof(CfraElem), "cfraElem");
       BLI_addtail(&ked.list, ce);
 
-      ce->cfra = (float)CFRA;
+      ce->cfra = (float)scene->r.cfra;
       break;
 
     case ACTKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
@@ -1352,10 +1352,10 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 
   if (leftright == ACTKEYS_LRSEL_LEFT) {
     ked.f1 = MINAFRAMEF;
-    ked.f2 = (float)(CFRA + 0.1f);
+    ked.f2 = (float)(scene->r.cfra + 0.1f);
   }
   else {
-    ked.f1 = (float)(CFRA - 0.1f);
+    ked.f1 = (float)(scene->r.cfra - 0.1f);
     ked.f2 = MAXFRAMEF;
   }
 
@@ -1402,8 +1402,8 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
       TimeMarker *marker;
 
       for (marker = markers->first; marker; marker = marker->next) {
-        if (((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < CFRA)) ||
-            ((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= CFRA))) {
+        if (((leftright == ACTKEYS_LRSEL_LEFT) && (marker->frame < scene->r.cfra)) ||
+            ((leftright == ACTKEYS_LRSEL_RIGHT) && (marker->frame >= scene->r.cfra))) {
           marker->flag |= SELECT;
         }
         else {
@@ -1473,7 +1473,7 @@ static int actkeys_select_leftright_invoke(bContext *C, wmOperator *op, const wm
 
     /* determine which side of the current frame mouse is on */
     x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
-    if (x < CFRA) {
+    if (x < scene->r.cfra) {
       RNA_enum_set(op->ptr, "mode", ACTKEYS_LRSEL_LEFT);
     }
     else {

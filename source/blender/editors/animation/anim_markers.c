@@ -104,7 +104,7 @@ int ED_markers_post_apply_transform(
     ListBase *markers, Scene *scene, int mode, float value, char side)
 {
   TimeMarker *marker;
-  float cfra = (float)CFRA;
+  float cfra = (float)scene->r.cfra;
   int changed_tot = 0;
 
   /* sanity check - no markers, or locked markers */
@@ -1497,8 +1497,8 @@ static void ED_markers_select_leftright(bAnimContext *ac,
   }
 
   LISTBASE_FOREACH (TimeMarker *, marker, markers) {
-    if ((mode == MARKERS_LRSEL_LEFT && marker->frame <= CFRA) ||
-        (mode == MARKERS_LRSEL_RIGHT && marker->frame >= CFRA)) {
+    if ((mode == MARKERS_LRSEL_LEFT && marker->frame <= scene->r.cfra) ||
+        (mode == MARKERS_LRSEL_RIGHT && marker->frame >= scene->r.cfra)) {
       marker->flag |= SELECT;
     }
   }
@@ -1754,11 +1754,11 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  marker = ED_markers_find_nearest_marker(markers, CFRA);
-  if ((marker == NULL) || (marker->frame != CFRA)) {
+  marker = ED_markers_find_nearest_marker(markers, scene->r.cfra);
+  if ((marker == NULL) || (marker->frame != scene->r.cfra)) {
     marker = MEM_callocN(sizeof(TimeMarker), "Camera TimeMarker");
     marker->flag = SELECT;
-    marker->frame = CFRA;
+    marker->frame = scene->r.cfra;
     BLI_addtail(markers, marker);
 
     /* deselect all others, so that the user can then move it without problems */

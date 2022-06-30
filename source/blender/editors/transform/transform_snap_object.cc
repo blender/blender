@@ -2623,7 +2623,7 @@ static eSnapMode snapCamera(const SnapObjectContext *sctx,
 
       if ((tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0) {
         BKE_tracking_camera_get_reconstructed_interpolate(
-            tracking, tracking_object, CFRA, reconstructed_camera_mat);
+            tracking, tracking_object, scene->r.cfra, reconstructed_camera_mat);
 
         invert_m4_m4(reconstructed_camera_imat, reconstructed_camera_mat);
       }

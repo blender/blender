@@ -1267,7 +1267,8 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
     }
 
     delta = pos == 1 ? 1 : -1;
-    while (sc->user.framenr + delta >= SFRA && sc->user.framenr + delta <= EFRA) {
+    while (sc->user.framenr + delta >= scene->r.sfra &&
+           sc->user.framenr + delta <= scene->r.efra) {
       int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, sc->user.framenr + delta);
       MovieTrackingMarker *marker = BKE_tracking_marker_get_exact(track, framenr);
 
@@ -1286,7 +1287,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
       delta = pos == 3 ? 1 : -1;
       framenr += delta;
 
-      while (framenr + delta >= SFRA && framenr + delta <= EFRA) {
+      while (framenr + delta >= scene->r.sfra && framenr + delta <= scene->r.efra) {
         MovieReconstructedCamera *cam = BKE_tracking_camera_get_reconstructed(
             tracking, object, framenr);
 
@@ -1300,8 +1301,8 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
     }
   }
 
-  if (CFRA != sc->user.framenr) {
-    CFRA = sc->user.framenr;
+  if (scene->r.cfra != sc->user.framenr) {
+    scene->r.cfra = sc->user.framenr;
     DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
     WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);

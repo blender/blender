@@ -258,7 +258,7 @@ static bool add_vertex_subdivide(const bContext *C, Mask *mask, const float co[2
                                       &u,
                                       NULL)) {
     Scene *scene = CTX_data_scene(C);
-    const float ctime = CFRA;
+    const float ctime = scene->r.cfra;
 
     MaskSplinePoint *new_point;
     int point_index = point - spline->points;
@@ -295,7 +295,7 @@ static bool add_vertex_extrude(const bContext *C,
                                const float co[2])
 {
   Scene *scene = CTX_data_scene(C);
-  const float ctime = CFRA;
+  const float ctime = scene->r.cfra;
 
   MaskSpline *spline;
   MaskSplinePoint *point;
@@ -394,7 +394,7 @@ static bool add_vertex_extrude(const bContext *C,
 static bool add_vertex_new(const bContext *C, Mask *mask, MaskLayer *mask_layer, const float co[2])
 {
   Scene *scene = CTX_data_scene(C);
-  const float ctime = CFRA;
+  const float ctime = scene->r.cfra;
 
   MaskSpline *spline;
   MaskSplinePoint *new_point = NULL, *ref_point = NULL;
