@@ -3464,7 +3464,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
                            "affect cast shadow and light contour since they are at the border");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_dependency_update");
 
-  prop = RNA_def_property(srna, "shadow_enclosed_shapes", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_shadow_enclosed_shapes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "calculation_flags", LRT_SHADOW_ENCLOSED_SHAPES);
   RNA_def_property_ui_text(prop,
                            "Shadow Enclosed Shapes",
