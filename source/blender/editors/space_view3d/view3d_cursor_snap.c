@@ -597,9 +597,9 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   eSnapMode snap_elements = v3d_cursor_snap_elements(state, scene);
   data_intern->snap_elem_hidden = SCE_SNAP_MODE_NONE;
   const bool calc_plane_omat = v3d_cursor_snap_calc_plane();
-  if (calc_plane_omat && !(snap_elements & SCE_SNAP_MODE_FACE)) {
-    data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
-    snap_elements |= SCE_SNAP_MODE_FACE;
+  if (calc_plane_omat && !(snap_elements & SCE_SNAP_MODE_FACE_RAYCAST)) {
+    data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE_RAYCAST;
+    snap_elements |= SCE_SNAP_MODE_FACE_RAYCAST;
   }
 
   snap_data->is_enabled = true;
@@ -614,7 +614,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
         snap_data->snap_elem = SCE_SNAP_MODE_NONE;
         return;
       }
-      snap_elements = data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
+      snap_elements = data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE_RAYCAST;
     }
   }
 #endif
@@ -649,6 +649,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
             .edit_mode_type = edit_mode_type,
             .use_occlusion_test = use_occlusion_test,
         },
+        NULL,
         mval_fl,
         prev_co,
         &dist_px,
@@ -744,7 +745,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
            (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
     snap_elem_index[1] = index;
   }
-  else if (snap_elem == SCE_SNAP_MODE_FACE) {
+  else if (snap_elem == SCE_SNAP_MODE_FACE_RAYCAST) {
     snap_elem_index[2] = index;
   }
 

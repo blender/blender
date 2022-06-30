@@ -305,7 +305,7 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
     final = large_rotation_limit(final);
   }
   else {
-    applySnapping(t, &final);
+    applySnappingAsGroup(t, &final);
     if (!(activeSnap(t) && validSnap(t))) {
       transform_snap_increment(t, &final);
     }

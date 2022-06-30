@@ -105,7 +105,7 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
       constraintNumInput(t, t->values_final);
     }
 
-    applySnapping(t, t->values_final);
+    applySnappingAsGroup(t, t->values_final);
   }
 
   size_to_mat3(mat, t->values_final);

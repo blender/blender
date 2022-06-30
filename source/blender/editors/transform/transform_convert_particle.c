@@ -238,7 +238,7 @@ static void flushTransParticles(TransInfo *t)
 void recalcData_particles(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
-    applyProject(t);
+    applySnappingIndividual(t);
   }
   flushTransParticles(t);
 }

@@ -60,6 +60,10 @@ struct SnapObjectParams {
   bool use_occlusion_test : true;
   /* exclude back facing geometry from snapping */
   bool use_backface_culling : true;
+  /* Break nearest face snapping into steps to improve transformations across U-shaped targets. */
+  short face_nearest_steps;
+  /* Enable to force nearest face snapping to snap to target the source was initially near. */
+  bool keep_on_same_target;
 };
 
 typedef struct SnapObjectContext SnapObjectContext;
@@ -114,12 +118,33 @@ bool ED_transform_snap_object_project_ray_all(SnapObjectContext *sctx,
                                               bool sort,
                                               struct ListBase *r_hit_list);
 
+/**
+ * Perform snapping.
+ *
+ * Given a 2D region value, snap to vert/edge/face/grid.
+ *
+ * \param sctx: Snap context.
+ * \param snap_to: Target elements to snap source to.
+ * \param params: Addition snapping options.
+ * \param init_co: Initial world-space coordinate of source (optional).
+ * \param mval: Current transformed screen-space coordinate or mouse position (optional).
+ * \param prev_co: Current transformed world-space coordinate of source (optional).
+ * \param dist_px: Maximum distance to snap (in pixels).
+ * \param r_loc: Snapped world-space coordinate.
+ * \param r_no: Snapped world-space normal (optional).
+ * \param r_index: Index of snapped-to target element (optional).
+ * \param r_ob: Snapped-to target object (optional).
+ * \param r_obmat: Matrix of snapped-to target object (optional).
+ * \param r_face_nor: World-space normal of snapped-to target face (optional).
+ * \return Snapped-to element, #eSnapMode.
+ */
 eSnapMode ED_transform_snap_object_project_view3d_ex(struct SnapObjectContext *sctx,
                                                      struct Depsgraph *depsgraph,
                                                      const ARegion *region,
                                                      const View3D *v3d,
-                                                     eSnapMode snap_to,
+                                                     const eSnapMode snap_to,
                                                      const struct SnapObjectParams *params,
+                                                     const float init_co[3],
                                                      const float mval[2],
                                                      const float prev_co[3],
                                                      float *dist_px,
@@ -135,19 +160,23 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(struct SnapObjectContext *s
  * Given a 2D region value, snap to vert/edge/face.
  *
  * \param sctx: Snap context.
- * \param mval: Screenspace coordinate.
- * \param prev_co: Coordinate for perpendicular point calculation (optional).
+ * \param snap_to: Target elements to snap source to.
+ * \param params: Addition snapping options.
+ * \param init_co: Initial world-space coordinate of source (optional).
+ * \param mval: Current transformed screen-space coordinate or mouse position (optional).
+ * \param prev_co: Current transformed world-space coordinate of source (optional).
  * \param dist_px: Maximum distance to snap (in pixels).
- * \param r_loc: hit location.
- * \param r_no: hit normal (optional).
- * \return Snap success.
+ * \param r_loc: Snapped world-space coordinate.
+ * \param r_no: Snapped world-space normal (optional).
+ * \return Snapped-to element, #eSnapMode.
  */
 eSnapMode ED_transform_snap_object_project_view3d(struct SnapObjectContext *sctx,
                                                   struct Depsgraph *depsgraph,
                                                   const ARegion *region,
                                                   const View3D *v3d,
-                                                  eSnapMode snap_to,
+                                                  const eSnapMode snap_to,
                                                   const struct SnapObjectParams *params,
+                                                  const float init_co[3],
                                                   const float mval[2],
                                                   const float prev_co[3],
                                                   float *dist_px,

@@ -865,7 +865,7 @@ void recalcData_objects(TransInfo *t)
   bool motionpath_update = false;
 
   if (t->state != TRANS_CANCEL) {
-    applyProject(t);
+    applySnappingIndividual(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
