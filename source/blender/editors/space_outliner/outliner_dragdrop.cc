@@ -1157,9 +1157,6 @@ static bool collection_drop_init(
   /* Get collection to drag out of. */
   ID *parent = drag_id->from_parent;
   Collection *from_collection = collection_parent_from_ID(parent);
-  if (is_link) {
-    from_collection = nullptr;
-  }
 
   /* Currently this should not be allowed, cannot edit items in an override of a Collection. */
   if (from_collection != nullptr && ID_IS_OVERRIDE_LIBRARY(from_collection)) {
@@ -1201,25 +1198,19 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
       collection_drop_init(C, drag, event->xy, event->modifier & KM_CTRL, &data)) {
     TreeElement *te = data.te;
     TreeStoreElem *tselem = TREESTORE(te);
-    if (!data.from || event->modifier & KM_CTRL) {
-      tselem->flag |= TSE_DRAG_INTO;
-      changed = true;
-    }
-    else {
-      switch (data.insert_type) {
-        case TE_INSERT_BEFORE:
-          tselem->flag |= TSE_DRAG_BEFORE;
-          changed = true;
-          break;
-        case TE_INSERT_AFTER:
-          tselem->flag |= TSE_DRAG_AFTER;
-          changed = true;
-          break;
-        case TE_INSERT_INTO: {
-          tselem->flag |= TSE_DRAG_INTO;
-          changed = true;
-          break;
-        }
+    switch (data.insert_type) {
+      case TE_INSERT_BEFORE:
+        tselem->flag |= TSE_DRAG_BEFORE;
+        changed = true;
+        break;
+      case TE_INSERT_AFTER:
+        tselem->flag |= TSE_DRAG_AFTER;
+        changed = true;
+        break;
+      case TE_INSERT_INTO: {
+        tselem->flag |= TSE_DRAG_INTO;
+        changed = true;
+        break;
       }
     }
     if (changed) {
@@ -1244,28 +1235,48 @@ static char *collection_drop_tooltip(bContext *C,
   CollectionDrop data;
   if (event && ((event->modifier & KM_SHIFT) == 0) &&
       collection_drop_init(C, drag, xy, event->modifier & KM_CTRL, &data)) {
-    TreeElement *te = data.te;
-    if (!data.from || event->modifier & KM_CTRL) {
-      return BLI_strdup(TIP_("Link inside Collection"));
+    const bool is_link = !data.from || (event->modifier & KM_CTRL);
+
+    /* Test if we are moving within same parent collection. */
+    bool same_level = false;
+    LISTBASE_FOREACH (CollectionParent *, parent, &data.to->parents) {
+      if (data.from == parent->collection) {
+        same_level = true;
+      }
     }
+
+    /* Tooltips when not moving directly into another collection i.e. mouse on border of
+     * collections. Later we will decide which tooltip to return. */
+    const bool tooltip_link = (is_link && !same_level);
+    const char *tooltip_before = tooltip_link ? TIP_("Link before collection") :
+                                                TIP_("Move before collection");
+    const char *tooltip_between = tooltip_link ? TIP_("Link between collections") :
+                                                 TIP_("Move between collections");
+    const char *tooltip_after = tooltip_link ? TIP_("Link after collection") :
+                                               TIP_("Move after collection");
+
+    TreeElement *te = data.te;
     switch (data.insert_type) {
       case TE_INSERT_BEFORE:
         if (te->prev && outliner_is_collection_tree_element(te->prev)) {
-          return BLI_strdup(TIP_("Move between collections"));
+          return BLI_strdup(tooltip_between);
         }
         else {
-          return BLI_strdup(TIP_("Move before collection"));
+          return BLI_strdup(tooltip_before);
         }
         break;
       case TE_INSERT_AFTER:
         if (te->next && outliner_is_collection_tree_element(te->next)) {
-          return BLI_strdup(TIP_("Move between collections"));
+          return BLI_strdup(tooltip_between);
         }
         else {
-          return BLI_strdup(TIP_("Move after collection"));
+          return BLI_strdup(tooltip_after);
         }
         break;
       case TE_INSERT_INTO: {
+        if (is_link) {
+          return BLI_strdup(TIP_("Link inside collection"));
+        }
 
         /* Check the type of the drag IDs to avoid the incorrect "Shift to parent"
          * for collections. Checking the type of the first ID works fine here since
