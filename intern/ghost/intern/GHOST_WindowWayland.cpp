@@ -721,7 +721,7 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
 
   /* NOTE(@campbellbarton): This is needed so the appropriate handlers event
    * (#wl_surface_listener.leave in particular) run to prevent access to the freed surfaces.
-   * Without this round-trip, calling #getCursorPosition immediately after closing a window
+   * Without flushing the display, calling #getCursorPosition immediately after closing a window
    * causes dangling #wl_surface pointers to be accessed
    * (since the window is used for scaling the cursor position).
    *
@@ -731,7 +731,7 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
    * Any information requested in this state (such as the cursor position) won't be valid and
    * could cause difficult to reproduce bugs. So perform a round-trip as closing a window isn't
    * an action that runs continuously & isn't likely to cause unnecessary overhead. See: T99078. */
-  wl_display_roundtrip(m_system->display());
+  wl_display_flush(m_system->display());
 
   delete w;
 }
