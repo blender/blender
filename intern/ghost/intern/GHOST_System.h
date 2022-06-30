@@ -209,10 +209,8 @@ class GHOST_System : public GHOST_ISystem {
 
   GHOST_TSuccess getCursorPositionClientRelative(const GHOST_IWindow *window,
                                                  int32_t &x,
-                                                 int32_t &y) const override;
-  GHOST_TSuccess setCursorPositionClientRelative(GHOST_IWindow *window,
-                                                 int32_t x,
-                                                 int32_t y) override;
+                                                 int32_t &y) const;
+  GHOST_TSuccess setCursorPositionClientRelative(GHOST_IWindow *window, int32_t x, int32_t y);
 
   /**
    * Inherited from GHOST_ISystem but left pure virtual
