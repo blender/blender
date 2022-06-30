@@ -365,6 +365,25 @@ class GHOST_ISystem {
    ***************************************************************************************/
 
   /**
+   * Returns the current location of the cursor (location in window coordinates)
+   * \param x: The x-coordinate of the cursor.
+   * \param y: The y-coordinate of the cursor.
+   * \return Indication of success.
+   */
+  virtual GHOST_TSuccess getCursorPositionClientRelative(const GHOST_IWindow *window,
+                                                         int32_t &x,
+                                                         int32_t &y) const = 0;
+  /**
+   * Updates the location of the cursor (location in window coordinates).
+   * \param x: The x-coordinate of the cursor.
+   * \param y: The y-coordinate of the cursor.
+   * \return Indication of success.
+   */
+  virtual GHOST_TSuccess setCursorPositionClientRelative(GHOST_IWindow *window,
+                                                         int32_t x,
+                                                         int32_t y) = 0;
+
+  /**
    * Returns the current location of the cursor (location in screen coordinates)
    * \param x: The x-coordinate of the cursor.
    * \param y: The y-coordinate of the cursor.

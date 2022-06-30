@@ -383,27 +383,28 @@ extern bool GHOST_GetCursorVisibility(GHOST_WindowHandle windowhandle);
 extern GHOST_TSuccess GHOST_SetCursorVisibility(GHOST_WindowHandle windowhandle, bool visible);
 
 /**
- * Returns the current location of the cursor (location in screen coordinates)
+ * Returns the current location of the cursor (location in client relative coordinates)
  * \param systemhandle: The handle to the system.
  * \param x: The x-coordinate of the cursor.
  * \param y: The y-coordinate of the cursor.
  * \return Indication of success.
  */
-extern GHOST_TSuccess GHOST_GetCursorPosition(GHOST_SystemHandle systemhandle,
-                                              int32_t *x,
-                                              int32_t *y);
-
+GHOST_TSuccess GHOST_GetCursorPosition(const GHOST_SystemHandle systemhandle,
+                                       const GHOST_WindowHandle windowhandle,
+                                       int32_t *x,
+                                       int32_t *y);
 /**
- * Updates the location of the cursor (location in screen coordinates).
+ * Updates the location of the cursor (location in client relative coordinates).
  * Not all operating systems allow the cursor to be moved (without the input device being moved).
  * \param systemhandle: The handle to the system.
  * \param x: The x-coordinate of the cursor.
  * \param y: The y-coordinate of the cursor.
  * \return Indication of success.
  */
-extern GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
-                                              int32_t x,
-                                              int32_t y);
+GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
+                                       GHOST_WindowHandle windowhandle,
+                                       int32_t x,
+                                       int32_t y);
 
 void GHOST_GetCursorGrabState(GHOST_WindowHandle windowhandle,
                               GHOST_TGrabCursorMode *r_mode,

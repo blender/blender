@@ -1217,8 +1217,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       GHOST_TEventButtonData *bd = GHOST_GetEventData(evt);
       int cx, cy, sizex, sizey, inside_window;
 
-      GHOST_GetCursorPosition(g_WS.ghost_system, &cx, &cy);
-      GHOST_ScreenToClient(g_WS.ghost_window, cx, cy, &cx, &cy);
+      GHOST_GetCursorPosition(g_WS.ghost_system, g_WS.ghost_window, &cx, &cy);
       playanim_window_get_size(&sizex, &sizey);
 
       inside_window = (cx >= 0 && cx < sizex && cy >= 0 && cy <= sizey);
@@ -1267,14 +1266,14 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
          * however the API currently doesn't support this. */
         {
           int x_test, y_test;
-          GHOST_GetCursorPosition(g_WS.ghost_system, &x_test, &y_test);
-          if (x_test != cd->x || y_test != cd->y) {
+          GHOST_GetCursorPosition(g_WS.ghost_system, g_WS.ghost_window, &cx, &cy);
+          GHOST_ScreenToClient(g_WS.ghost_window, cd->x, cd->y, &x_test, &y_test);
+
+          if (cx != x_test || cy != y_test) {
             /* we're not the last event... skipping */
             break;
           }
         }
-
-        GHOST_ScreenToClient(g_WS.ghost_window, cd->x, cd->y, &cx, &cy);
 
         tag_change_frame(ps, cx);
       }

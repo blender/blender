@@ -231,8 +231,8 @@ void WM_cursor_grab_enable(wmWindow *win, int wrap, bool hide, int bounds[4])
   GHOST_TAxisFlag mode_axis = GHOST_kAxisX | GHOST_kAxisY;
 
   if (bounds) {
-    wm_cursor_position_to_ghost(win, &bounds[0], &bounds[1]);
-    wm_cursor_position_to_ghost(win, &bounds[2], &bounds[3]);
+    wm_cursor_position_to_ghost_screen_coords(win, &bounds[0], &bounds[1]);
+    wm_cursor_position_to_ghost_screen_coords(win, &bounds[2], &bounds[3]);
   }
 
   if (hide) {
@@ -266,7 +266,7 @@ void WM_cursor_grab_disable(wmWindow *win, const int mouse_ungrab_xy[2])
     if (win && win->ghostwin) {
       if (mouse_ungrab_xy) {
         int mouse_xy[2] = {mouse_ungrab_xy[0], mouse_ungrab_xy[1]};
-        wm_cursor_position_to_ghost(win, &mouse_xy[0], &mouse_xy[1]);
+        wm_cursor_position_to_ghost_screen_coords(win, &mouse_xy[0], &mouse_xy[1]);
         GHOST_SetCursorGrab(win->ghostwin, GHOST_kGrabDisable, GHOST_kAxisNone, NULL, mouse_xy);
       }
       else {

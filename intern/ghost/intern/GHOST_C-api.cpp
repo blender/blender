@@ -348,18 +348,48 @@ GHOST_TSuccess GHOST_SetCursorVisibility(GHOST_WindowHandle windowhandle, bool v
   return window->setCursorVisibility(visible);
 }
 
-GHOST_TSuccess GHOST_GetCursorPosition(GHOST_SystemHandle systemhandle, int32_t *x, int32_t *y)
+/* Unused, can expose again if needed although WAYLAND
+ * can only properly use client relative coordinates, so leave disabled if possible. */
+#if 0
+GHOST_TSuccess GHOST_GetCursorPositionScreenCoords(GHOST_SystemHandle systemhandle,
+                                                   int32_t *x,
+                                                   int32_t *y)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
   return system->getCursorPosition(*x, *y);
 }
 
-GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle, int32_t x, int32_t y)
+GHOST_TSuccess GHOST_SetCursorPositionScreenCoords(GHOST_SystemHandle systemhandle,
+                                                   int32_t x,
+                                                   int32_t y)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
   return system->setCursorPosition(x, y);
+}
+#endif
+
+GHOST_TSuccess GHOST_GetCursorPosition(const GHOST_SystemHandle systemhandle,
+                                       const GHOST_WindowHandle windowhandle,
+                                       int32_t *x,
+                                       int32_t *y)
+{
+  const GHOST_ISystem *system = (const GHOST_ISystem *)systemhandle;
+  const GHOST_IWindow *window = (const GHOST_IWindow *)windowhandle;
+
+  return system->getCursorPositionClientRelative(window, *x, *y);
+}
+
+GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
+                                       GHOST_WindowHandle windowhandle,
+                                       int32_t x,
+                                       int32_t y)
+{
+  GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
+  GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
+
+  return system->setCursorPositionClientRelative(window, x, y);
 }
 
 GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,

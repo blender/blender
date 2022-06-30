@@ -203,6 +203,17 @@ class GHOST_System : public GHOST_ISystem {
    * Cursor management functionality
    ***************************************************************************************/
 
+  /* Client relative functions use a default implementation
+   * that converts from screen-coordinates to client coordinates.
+   * Implementations may override. */
+
+  GHOST_TSuccess getCursorPositionClientRelative(const GHOST_IWindow *window,
+                                                 int32_t &x,
+                                                 int32_t &y) const override;
+  GHOST_TSuccess setCursorPositionClientRelative(GHOST_IWindow *window,
+                                                 int32_t x,
+                                                 int32_t y) override;
+
   /**
    * Inherited from GHOST_ISystem but left pure virtual
    * <pre>

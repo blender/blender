@@ -260,6 +260,29 @@ GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent *event)
   return success;
 }
 
+GHOST_TSuccess GHOST_System::getCursorPositionClientRelative(const GHOST_IWindow *window,
+                                                             int32_t &x,
+                                                             int32_t &y) const
+{
+  /* Sub-classes that can implement this directly should do so. */
+  int32_t screen_x, screen_y;
+  GHOST_TSuccess success = getCursorPosition(screen_x, screen_y);
+  if (success == GHOST_kSuccess) {
+    window->screenToClient(screen_x, screen_y, x, y);
+  }
+  return success;
+}
+
+GHOST_TSuccess GHOST_System::setCursorPositionClientRelative(GHOST_IWindow *window,
+                                                             int32_t x,
+                                                             int32_t y)
+{
+  /* Sub-classes that can implement this directly should do so. */
+  int32_t screen_x, screen_y;
+  window->clientToScreen(x, y, screen_x, screen_y);
+  return setCursorPosition(screen_x, screen_y);
+}
+
 GHOST_TSuccess GHOST_System::getModifierKeyState(GHOST_TModifierKey mask, bool &isDown) const
 {
   GHOST_ModifierKeys keys;
