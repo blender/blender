@@ -535,6 +535,31 @@ class _draw_tool_settings_context_mode:
             layout.prop(brush, "direction", expand=True, text="")
             layout.prop(brush, "falloff_shape", expand=True)
             layout.popover("VIEW3D_PT_tools_brush_falloff")
+        elif curves_tool == 'PINCH':
+            layout.prop(brush, "direction", expand=True, text="")
+            layout.prop(brush, "falloff_shape", expand=True)
+            layout.popover("VIEW3D_PT_tools_brush_falloff")
+        elif curves_tool == 'SMOOTH':
+            layout.prop(brush, "falloff_shape", expand=True)
+            layout.popover("VIEW3D_PT_tools_brush_falloff")
+        elif curves_tool == 'PUFF':
+            layout.prop(brush, "falloff_shape", expand=True)
+            layout.popover("VIEW3D_PT_tools_brush_falloff")
+        elif curves_tool == 'DENSITY':
+            layout.prop(brush, "falloff_shape", expand=True)
+            row = layout.row(align=True)
+            row.prop(brush.curves_sculpt_settings, "density_mode", text="", expand=True)
+            row = layout.row(align=True)
+            row.prop(brush.curves_sculpt_settings, "minimum_distance")
+            row.operator_context = 'INVOKE_REGION_WIN'
+            row.operator("sculpt_curves.min_distance_edit", text="", icon='DRIVER_DISTANCE')
+            row = layout.row(align=True)
+            row.enabled = brush.curves_sculpt_settings.density_mode != 'REMOVE'
+            row.prop(brush.curves_sculpt_settings, "density_add_attempts", text="Max Count")
+            layout.popover("VIEW3D_PT_tools_brush_falloff")
+            layout.popover("VIEW3D_PT_curves_sculpt_add_shape", text="Curve Shape")
+        elif curves_tool == "SLIDE":
+            layout.popover("VIEW3D_PT_tools_brush_falloff")
 
 
 class VIEW3D_HT_header(Header):
@@ -2005,6 +2030,9 @@ class VIEW3D_MT_select_sculpt_curves(Menu):
         layout.operator("sculpt_curves.select_all", text="All").action = 'SELECT'
         layout.operator("sculpt_curves.select_all", text="None").action = 'DESELECT'
         layout.operator("sculpt_curves.select_all", text="Invert").action = 'INVERT'
+        layout.operator("sculpt_curves.select_random", text="Random")
+        layout.operator("sculpt_curves.select_end", text="Endpoints")
+        layout.operator("sculpt_curves.select_grow", text="Grow")
 
 
 class VIEW3D_MT_angle_control(Menu):

@@ -5624,6 +5624,7 @@ def km_sculpt_curves(params):
         ("curves.disable_selection", {"type": 'TWO', "value": 'PRESS', "alt": True}, None),
         *_template_paint_radial_control("curves_sculpt"),
         *_template_items_select_actions(params, "sculpt_curves.select_all"),
+        ("sculpt_curves.min_distance_edit", {"type": 'R', "value": 'PRESS', "shift": True}, {}),
     ])
 
     return keymap

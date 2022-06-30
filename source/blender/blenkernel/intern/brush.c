@@ -1562,6 +1562,7 @@ void BKE_brush_init_curves_sculpt_settings(Brush *brush)
   settings->points_per_curve = 8;
   settings->minimum_length = 0.01f;
   settings->curve_length = 0.3f;
+  settings->density_add_attempts = 100;
 }
 
 struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode)

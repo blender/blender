@@ -72,7 +72,7 @@ static bool object_has_editable_curves(const Main &bmain, const Object &object)
   return true;
 }
 
-static VectorSet<Curves *> get_unique_editable_curves(const bContext &C)
+VectorSet<Curves *> get_unique_editable_curves(const bContext &C)
 {
   VectorSet<Curves *> unique_curves;
 
@@ -715,7 +715,7 @@ static void CURVES_OT_snap_curves_to_surface(wmOperatorType *ot)
                "How to find the point on the surface to attach to");
 }
 
-static bool selection_poll(bContext *C)
+bool selection_operator_poll(bContext *C)
 {
   const Object *object = CTX_data_active_object(C);
   if (object == nullptr) {
@@ -784,7 +784,7 @@ static void CURVES_OT_set_selection_domain(wmOperatorType *ot)
   ot->description = "Change the mode used for selection masking in curves sculpt mode";
 
   ot->exec = set_selection_domain::curves_set_selection_domain_exec;
-  ot->poll = selection_poll;
+  ot->poll = selection_operator_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -820,12 +820,10 @@ static void CURVES_OT_disable_selection(wmOperatorType *ot)
   ot->description = "Disable the drawing of influence of selection in sculpt mode";
 
   ot->exec = disable_selection::curves_disable_selection_exec;
-  ot->poll = selection_poll;
+  ot->poll = selection_operator_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-
-namespace select_all {
 
 static bool varray_contains_nonzero(const VArray<float> &data)
 {
@@ -839,6 +837,19 @@ static bool varray_contains_nonzero(const VArray<float> &data)
     }
   });
   return contains_nonzero;
+}
+
+bool has_anything_selected(const Curves &curves_id)
+{
+  const CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+  switch (curves_id.selection_domain) {
+    case ATTR_DOMAIN_POINT:
+      return varray_contains_nonzero(curves.selection_point_float());
+    case ATTR_DOMAIN_CURVE:
+      return varray_contains_nonzero(curves.selection_curve_float());
+  }
+  BLI_assert_unreachable();
+  return false;
 }
 
 static bool any_point_selected(const CurvesGeometry &curves)
@@ -855,6 +866,8 @@ static bool any_point_selected(const Span<Curves *> curves_ids)
   }
   return false;
 }
+
+namespace select_all {
 
 static void invert_selection(MutableSpan<float> selection)
 {
@@ -924,7 +937,7 @@ static void SCULPT_CURVES_OT_select_all(wmOperatorType *ot)
   ot->description = "(De)select all control points";
 
   ot->exec = select_all::select_all_exec;
-  ot->poll = selection_poll;
+  ot->poll = selection_operator_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

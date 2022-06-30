@@ -66,7 +66,7 @@ std::unique_ptr<CurvesSculptStrokeOperation> new_pinch_operation(const BrushStro
 std::unique_ptr<CurvesSculptStrokeOperation> new_smooth_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_puff_operation();
 std::unique_ptr<CurvesSculptStrokeOperation> new_density_operation(
-    const BrushStrokeMode brush_mode, const bContext &C);
+    const BrushStrokeMode brush_mode, const bContext &C, const StrokeExtension &stroke_start);
 std::unique_ptr<CurvesSculptStrokeOperation> new_slide_operation();
 
 struct CurvesBrush3D {

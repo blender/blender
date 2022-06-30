@@ -995,7 +995,7 @@ static void stroke_done(bContext *C, wmOperator *op, PaintStroke *stroke)
 
 static bool curves_sculpt_brush_uses_spacing(const eBrushCurvesSculptTool tool)
 {
-  return ELEM(tool, CURVES_SCULPT_TOOL_ADD);
+  return ELEM(tool, CURVES_SCULPT_TOOL_ADD, CURVES_SCULPT_TOOL_DENSITY);
 }
 
 bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
