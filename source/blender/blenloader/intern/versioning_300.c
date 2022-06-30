@@ -600,7 +600,7 @@ static void seq_speed_factor_fix_rna_path(Sequence *seq, ListBase *fcurves)
   char name_esc[(sizeof(seq->name) - 2) * 2];
   BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
   char *path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].pitch", name_esc);
-  FCurve *fcu = BKE_fcurve_find(&fcurves, path, 0);
+  FCurve *fcu = BKE_fcurve_find(fcurves, path, 0);
   if (fcu != NULL) {
     MEM_freeN(fcu->rna_path);
     fcu->rna_path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].speed_factor", name_esc);
