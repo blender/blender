@@ -1216,23 +1216,37 @@ Image *BKE_image_add_from_imbuf(Main *bmain, ImBuf *ibuf, const char *name)
     return nullptr;
   }
 
-  if (source == IMA_SRC_FILE) {
-    STRNCPY(ima->filepath, ibuf->name);
-  }
-  else if (ibuf->rect_float) {
-    /* For the consistency with manual image creation: when the image buffer is float reflect it in
-     * the generated flags. */
-    ima->gen_flag |= IMA_GEN_FLOAT;
-  }
+  BKE_image_replace_imbuf(ima, ibuf);
 
-  image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
-  image_colorspace_from_imbuf(ima, ibuf);
+  return ima;
+}
+
+void BKE_image_replace_imbuf(Image *image, ImBuf *ibuf)
+{
+  BLI_assert(image->type == IMA_TYPE_IMAGE &&
+             ELEM(image->source, IMA_SRC_FILE, IMA_SRC_GENERATED));
+
+  BKE_image_free_buffers(image);
+
+  image_assign_ibuf(image, ibuf, IMA_NO_INDEX, 0);
+  image_colorspace_from_imbuf(image, ibuf);
+
+  /* Keep generated image type flags consistent with the image buffer. */
+  if (image->source == IMA_SRC_GENERATED) {
+    if (ibuf->rect_float) {
+      image->gen_flag |= IMA_GEN_FLOAT;
+    }
+    else {
+      image->gen_flag &= ~IMA_GEN_FLOAT;
+    }
+
+    image->gen_x = ibuf->x;
+    image->gen_y = ibuf->y;
+  }
 
   /* Consider image dirty since its content can not be re-created unless the image is explicitly
    * saved. */
-  BKE_image_mark_dirty(ima, ibuf);
-
-  return ima;
+  BKE_image_mark_dirty(image, ibuf);
 }
 
 /** Pack image buffer to memory as PNG or EXR. */
