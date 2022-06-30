@@ -1316,9 +1316,14 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
 
   if (node->flag & PBVH_RebuildDrawBuffers) {
     switch (pbvh->type) {
-      case PBVH_GRIDS:
-        node->draw_buffers = GPU_pbvh_grid_buffers_build(node->totprim, pbvh->grid_hidden);
+      case PBVH_GRIDS: {
+        bool smooth = node->totprim > 0 ?
+                          pbvh->grid_flag_mats[node->prim_indices[0]].flag & ME_SMOOTH :
+                          false;
+
+        node->draw_buffers = GPU_pbvh_grid_buffers_build(node->totprim, pbvh->grid_hidden, smooth);
         break;
+      }
       case PBVH_FACES:
         node->draw_buffers = GPU_pbvh_mesh_buffers_build(
             pbvh->mpoly,

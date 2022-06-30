@@ -881,13 +881,14 @@ void GPU_pbvh_grid_buffers_update(PBVHGPUFormat *vbo_id,
   buffers->show_overlay = !empty_mask || !default_face_set;
 }
 
-GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hidden)
+GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hidden, bool smooth)
 {
   GPU_PBVH_Buffers *buffers;
 
   buffers = MEM_callocN(sizeof(GPU_PBVH_Buffers), "GPU_Buffers");
   buffers->grid_hidden = grid_hidden;
   buffers->totgrid = totgrid;
+  buffers->smooth = smooth;
 
   buffers->show_overlay = false;
 
