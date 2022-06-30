@@ -113,9 +113,9 @@ class GHOST_WindowWayland : public GHOST_Window {
   bool outputs_leave(output_t *reg_output);
   bool outputs_changed_update_scale();
 
-  uint16_t dpi();
+  uint16_t dpi() const;
 
-  int scale();
+  int scale() const;
 
  private:
   GHOST_SystemWayland *m_system;

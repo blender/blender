@@ -591,12 +591,12 @@ bool GHOST_WindowWayland::outputs_leave(output_t *reg_output)
   return true;
 }
 
-uint16_t GHOST_WindowWayland::dpi()
+uint16_t GHOST_WindowWayland::dpi() const
 {
   return w->dpi;
 }
 
-int GHOST_WindowWayland::scale()
+int GHOST_WindowWayland::scale() const
 {
   return w->scale;
 }
