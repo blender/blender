@@ -14,6 +14,7 @@
 #include "GHOST_ContextEGL.h"
 #include "GHOST_ContextNone.h"
 
+#include <wayland-client-protocol.h>
 #include <wayland-egl.h>
 
 #include <algorithm> /* For `std::find`. */
@@ -23,6 +24,8 @@
 #endif
 
 static constexpr size_t base_dpi = 96;
+
+static GHOST_WindowManager *window_manager = nullptr;
 
 struct window_t {
   GHOST_WindowWayland *w = nullptr;
@@ -380,6 +383,11 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
       m_system(system),
       w(new window_t)
 {
+  /* Globally store pointer to window manager. */
+  if (!window_manager) {
+    window_manager = m_system->getWindowManager();
+  }
+
   w->w = this;
 
   w->size[0] = int32_t(width);
@@ -519,6 +527,40 @@ GHOST_TSuccess GHOST_WindowWayland::notify_size()
 wl_surface *GHOST_WindowWayland::surface() const
 {
   return w->wl_surface;
+}
+
+GHOST_WindowWayland *GHOST_WindowWayland::from_surface_find_mut(const wl_surface *surface)
+{
+  GHOST_ASSERT(surface, "argument must not be NULL");
+  for (GHOST_IWindow *iwin : window_manager->getWindows()) {
+    GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
+    if (surface == win->surface()) {
+      return win;
+    }
+  }
+  return nullptr;
+}
+
+const GHOST_WindowWayland *GHOST_WindowWayland::from_surface_find(const wl_surface *surface)
+{
+  return GHOST_WindowWayland::from_surface_find_mut(surface);
+}
+
+GHOST_WindowWayland *GHOST_WindowWayland::from_surface_mut(wl_surface *surface)
+{
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(wl_surface_get_user_data(surface));
+  GHOST_ASSERT(win == GHOST_WindowWayland::from_surface_find_mut(surface),
+               "Inconsistent window state, consider using \"from_surface_find_mut\"");
+  return win;
+}
+
+const GHOST_WindowWayland *GHOST_WindowWayland::from_surface(const wl_surface *surface)
+{
+  const GHOST_WindowWayland *win = static_cast<const GHOST_WindowWayland *>(
+      wl_surface_get_user_data(const_cast<wl_surface *>(surface)));
+  GHOST_ASSERT(win == GHOST_WindowWayland::from_surface_find(surface),
+               "Inconsistent window state, consider using \"from_surface_find\"");
+  return win;
 }
 
 const std::vector<output_t *> &GHOST_WindowWayland::outputs()

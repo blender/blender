@@ -45,8 +45,6 @@
 #include <cstring>
 #include <mutex>
 
-static GHOST_WindowWayland *window_from_surface(struct wl_surface *surface);
-
 static void keyboard_handle_key_repeat_cancel(struct input_t *input);
 
 static void output_handle_done(void *data, struct wl_output *wl_output);
@@ -152,6 +150,8 @@ struct cursor_t {
 struct tablet_tool_input_t {
   struct input_t *input = nullptr;
   struct wl_surface *cursor_surface = nullptr;
+  /** Used to delay clearing tablet focused surface until the frame is handled. */
+  bool proximity = false;
 
   GHOST_TabletData data = GHOST_TABLET_DATA_NONE;
 };
@@ -783,10 +783,7 @@ static void relative_pointer_handle_relative_motion(
     const wl_fixed_t /*dy_unaccel*/)
 {
   input_t *input = static_cast<input_t *>(data);
-  GHOST_WindowWayland *win = window_from_surface(input->pointer.wl_surface);
-  if (!win) {
-    return;
-  }
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(input->pointer.wl_surface);
   const wl_fixed_t scale = win->scale();
   const wl_fixed_t xy_next[2] = {
       input->pointer.xy[0] + (dx / scale),
@@ -809,10 +806,7 @@ static void dnd_events(const input_t *const input, const GHOST_TEventType event)
 {
   /* NOTE: `input->data_offer_dnd_mutex` must already be locked. */
   const uint64_t time = input->system->getMilliSeconds();
-  GHOST_WindowWayland *const win = window_from_surface(input->focus_dnd);
-  if (!win) {
-    return;
-  }
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(input->focus_dnd);
   const wl_fixed_t scale = win->scale();
   const int event_xy[2] = {
       wl_fixed_to_int(scale * input->data_offer_dnd->dnd.xy[0]),
@@ -1077,7 +1071,7 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
       static constexpr const char *file_proto = "file://";
       static constexpr const char *crlf = "\r\n";
 
-      GHOST_WindowWayland *win = window_from_surface(surface);
+      GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(surface);
       GHOST_ASSERT(win != nullptr, "Unable to find window for drop event from surface");
 
       std::vector<std::string> uris;
@@ -1213,19 +1207,6 @@ const struct wl_buffer_listener cursor_buffer_listener = {
 /** \name Listener (Surface), #wl_surface_listener
  * \{ */
 
-static GHOST_WindowWayland *window_from_surface(struct wl_surface *surface)
-{
-  if (surface) {
-    for (GHOST_IWindow *iwin : window_manager->getWindows()) {
-      GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
-      if (surface == win->surface()) {
-        return win;
-      }
-    }
-  }
-  return nullptr;
-}
-
 static bool update_cursor_scale(cursor_t &cursor, wl_shm *shm)
 {
   int scale = 0;
@@ -1291,10 +1272,7 @@ static void pointer_handle_enter(void *data,
                                  const wl_fixed_t surface_x,
                                  const wl_fixed_t surface_y)
 {
-  GHOST_WindowWayland *win = window_from_surface(surface);
-  if (!win) {
-    return;
-  }
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(surface);
 
   win->activate();
 
@@ -1310,7 +1288,7 @@ static void pointer_handle_enter(void *data,
   const wl_fixed_t scale = win->scale();
   input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
                                                  GHOST_kEventCursorMove,
-                                                 static_cast<GHOST_WindowWayland *>(win),
+                                                 win,
                                                  wl_fixed_to_int(scale * input->pointer.xy[0]),
                                                  wl_fixed_to_int(scale * input->pointer.xy[1]),
                                                  GHOST_TABLET_DATA_NONE));
@@ -1323,12 +1301,12 @@ static void pointer_handle_leave(void *data,
 {
   /* First clear the `pointer.wl_surface`, since the window won't exist when closing the window. */
   static_cast<input_t *>(data)->pointer.wl_surface = nullptr;
-
-  GHOST_IWindow *win = window_from_surface(surface);
-  if (!win) {
+  /* Use `from_surface_find_mut` because this callback runs when the window is has been closed. */
+  if (!surface) {
     return;
   }
-  static_cast<GHOST_WindowWayland *>(win)->deactivate();
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(surface);
+  win->deactivate();
 }
 
 static void pointer_handle_motion(void *data,
@@ -1341,10 +1319,7 @@ static void pointer_handle_motion(void *data,
   input->pointer.xy[0] = surface_x;
   input->pointer.xy[1] = surface_y;
 
-  GHOST_WindowWayland *win = window_from_surface(input->pointer.wl_surface);
-  if (!win) {
-    return;
-  }
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(input->pointer.wl_surface);
   const wl_fixed_t scale = win->scale();
   input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
                                                  GHOST_kEventCursorMove,
@@ -1401,11 +1376,7 @@ static void pointer_handle_button(void *data,
   input->data_source_serial = serial;
   input->pointer.buttons.set(ebutton, state == WL_POINTER_BUTTON_STATE_PRESSED);
 
-  GHOST_IWindow *win = window_from_surface(input->pointer.wl_surface);
-  if (!win) {
-    return;
-  }
-
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(input->pointer.wl_surface);
   input->system->pushEvent(new GHOST_EventButton(
       input->system->getMilliSeconds(), etype, win, ebutton, GHOST_TABLET_DATA_NONE));
 }
@@ -1422,10 +1393,7 @@ static void pointer_handle_axis(void *data,
     return;
   }
 
-  GHOST_IWindow *win = window_from_surface(input->pointer.wl_surface);
-  if (!win) {
-    return;
-  }
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(input->pointer.wl_surface);
   input->system->pushEvent(
       new GHOST_EventWheel(input->system->getMilliSeconds(), win, std::signbit(value) ? +1 : -1));
 }
@@ -1497,6 +1465,7 @@ static void tablet_tool_handle_proximity_in(void *data,
                                             struct wl_surface *surface)
 {
   tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
+  tool_input->proximity = true;
 
   input_t *input = tool_input->input;
   input->cursor_source_serial = serial;
@@ -1513,10 +1482,8 @@ static void tablet_tool_handle_proximity_in(void *data,
   /* In case pressure isn't supported. */
   td.Pressure = 1.0f;
 
-  GHOST_WindowWayland *win = window_from_surface(input->tablet.wl_surface);
-  if (!win) {
-    return;
-  }
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(input->tablet.wl_surface);
+
   win->activate();
 
   win->setCursorShape(win->getCursorShape());
@@ -1525,14 +1492,9 @@ static void tablet_tool_handle_proximity_out(void *data,
                                              struct zwp_tablet_tool_v2 * /*zwp_tablet_tool_v2*/)
 {
   tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
-  input_t *input = tool_input->input;
-  input->tablet.wl_surface = nullptr;
-
-  GHOST_WindowWayland *win = window_from_surface(input->tablet.wl_surface);
-  if (!win) {
-    return;
-  }
-  win->setCursorShape(win->getCursorShape());
+  /* Defer clearing the surface until the frame is handled.
+   * Without this, the frame can not access the surface. */
+  tool_input->proximity = false;
 }
 
 static void tablet_tool_handle_down(void *data,
@@ -1547,10 +1509,7 @@ static void tablet_tool_handle_down(void *data,
   input->data_source_serial = serial;
   input->tablet.buttons.set(ebutton, true);
 
-  GHOST_WindowWayland *win = window_from_surface(input->tablet.wl_surface);
-  if (!win) {
-    return;
-  }
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(input->tablet.wl_surface);
   input->system->pushEvent(new GHOST_EventButton(
       input->system->getMilliSeconds(), etype, win, ebutton, tool_input->data));
 }
@@ -1564,10 +1523,7 @@ static void tablet_tool_handle_up(void *data, struct zwp_tablet_tool_v2 * /*zwp_
 
   input->tablet.buttons.set(ebutton, false);
 
-  GHOST_WindowWayland *win = window_from_surface(input->tablet.wl_surface);
-  if (!win) {
-    return;
-  }
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(input->tablet.wl_surface);
   input->system->pushEvent(new GHOST_EventButton(
       input->system->getMilliSeconds(), etype, win, ebutton, tool_input->data));
 }
@@ -1591,12 +1547,6 @@ static void tablet_tool_handle_pressure(void *data,
                                         const uint32_t pressure)
 {
   tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
-  input_t *input = tool_input->input;
-  GHOST_WindowWayland *win = window_from_surface(input->tablet.wl_surface);
-  if (!win) {
-    return;
-  }
-
   GHOST_TabletData &td = tool_input->data;
   td.Pressure = (float)pressure / 65535;
 }
@@ -1611,12 +1561,6 @@ static void tablet_tool_handle_tilt(void *data,
                                     const wl_fixed_t tilt_y)
 {
   tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
-  input_t *input = tool_input->input;
-  GHOST_WindowWayland *win = window_from_surface(input->tablet.wl_surface);
-  if (!win) {
-    return;
-  }
-
   GHOST_TabletData &td = tool_input->data;
   /* Map degrees to `-1.0..1.0`. */
   td.Xtilt = wl_fixed_to_double(tilt_x) / 90.0f;
@@ -1649,11 +1593,7 @@ static void tablet_tool_handle_wheel(void *data,
 
   tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
   input_t *input = tool_input->input;
-  GHOST_WindowWayland *win = window_from_surface(input->tablet.wl_surface);
-  if (!win) {
-    return;
-  }
-
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(input->tablet.wl_surface);
   input->system->pushEvent(new GHOST_EventWheel(input->system->getMilliSeconds(), win, clicks));
 }
 static void tablet_tool_handle_button(void *data,
@@ -1691,10 +1631,7 @@ static void tablet_tool_handle_button(void *data,
   input->data_source_serial = serial;
   input->tablet.buttons.set(ebutton, state == WL_POINTER_BUTTON_STATE_PRESSED);
 
-  GHOST_WindowWayland *win = window_from_surface(input->tablet.wl_surface);
-  if (!win) {
-    return;
-  }
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(input->tablet.wl_surface);
   input->system->pushEvent(new GHOST_EventButton(
       input->system->getMilliSeconds(), etype, win, ebutton, tool_input->data));
 }
@@ -1704,18 +1641,26 @@ static void tablet_tool_handle_frame(void *data,
 {
   tablet_tool_input_t *tool_input = static_cast<tablet_tool_input_t *>(data);
   input_t *input = tool_input->input;
-  GHOST_WindowWayland *win = window_from_surface(input->tablet.wl_surface);
-  if (!win) {
-    return;
+
+  /* Use "find", unlike most other handlers because the window
+   * may have been closed before this handler is called. */
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_find_mut(input->tablet.wl_surface);
+  if (win) {
+    const wl_fixed_t scale = win->scale();
+    input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
+                                                   GHOST_kEventCursorMove,
+                                                   win,
+                                                   wl_fixed_to_int(scale * input->tablet.xy[0]),
+                                                   wl_fixed_to_int(scale * input->tablet.xy[1]),
+                                                   tool_input->data));
   }
 
-  const wl_fixed_t scale = win->scale();
-  input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
-                                                 GHOST_kEventCursorMove,
-                                                 win,
-                                                 wl_fixed_to_int(scale * input->tablet.xy[0]),
-                                                 wl_fixed_to_int(scale * input->tablet.xy[1]),
-                                                 tool_input->data));
+  if (tool_input->proximity == false) {
+    if (win) {
+      win->setCursorShape(win->getCursorShape());
+    }
+    input->tablet.wl_surface = nullptr;
+  }
 }
 
 static const struct zwp_tablet_tool_v2_listener tablet_tool_listner = {
@@ -2021,8 +1966,7 @@ static void keyboard_handle_key(void *data,
 
   input->data_source_serial = serial;
 
-  GHOST_IWindow *win = static_cast<GHOST_WindowWayland *>(
-      wl_surface_get_user_data(input->keyboard.wl_surface));
+  GHOST_IWindow *win = GHOST_WindowWayland::from_surface_mut(input->keyboard.wl_surface);
   input->system->pushEvent(new GHOST_EventKey(
       input->system->getMilliSeconds(), etype, win, gkey, '\0', utf8_buf, false));
 
@@ -2045,7 +1989,8 @@ static void keyboard_handle_key(void *data,
           task->getUserData());
 
       input_t *input = payload->input;
-      if (GHOST_IWindow *win = window_from_surface(input->keyboard.wl_surface)) {
+      if (GHOST_IWindow *win = GHOST_WindowWayland::from_surface_find_mut(
+              input->keyboard.wl_surface)) {
         GHOST_SystemWayland *system = input->system;
         /* Calculate this value every time in case modifier keys are pressed. */
         char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
@@ -2727,7 +2672,8 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) co
   if (!input_state || !input_state->wl_surface) {
     return GHOST_kFailure;
   }
-  GHOST_WindowWayland *win = window_from_surface(input->pointer.wl_surface);
+  /* Use 'from_surface_find_mut' because this can be called outside WAYLAND's event loop. */
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_find_mut(input->pointer.wl_surface);
   if (!win) {
     return GHOST_kFailure;
   }
@@ -2743,7 +2689,8 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t x, const int
   if (!input->pointer.wl_surface) {
     return GHOST_kFailure;
   }
-  GHOST_WindowWayland *win = window_from_surface(input->pointer.wl_surface);
+  /* Use 'from_surface_find_mut' because this can be called outside WAYLAND's event loop. */
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_find_mut(input->pointer.wl_surface);
   if (!win) {
     return GHOST_kFailure;
   }
@@ -3333,7 +3280,8 @@ static bool setCursorGrab_use_software_confine(const GHOST_TGrabCursorMode mode,
   if (mode != GHOST_kGrabNormal) {
     return false;
   }
-  GHOST_WindowWayland *win = window_from_surface(surface);
+  /* Use 'from_surface_find_mut' because this can be called outside WAYLAND's event loop. */
+  GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_find_mut(surface);
   if (!win) {
     return false;
   }
@@ -3412,8 +3360,8 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
     if (input->locked_pointer) {
       /* Request location to restore to. */
       if (mode_current == GHOST_kGrabWrap) {
-        /* The chance this fails is _very_ low. */
-        GHOST_WindowWayland *win = window_from_surface(surface);
+        /* The chance this fails is _very_ low, it may be called outside WAYLAND's event loop. */
+        GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_find_mut(surface);
         if (!win) {
           GHOST_PRINT("could not find window from surface when un-grabbing!" << std::endl);
         }
