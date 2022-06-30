@@ -1613,7 +1613,7 @@ static void sculpt_update_object(Depsgraph *depsgraph,
                                  Mesh *me_eval,
                                  bool need_pmap,
                                  bool need_mask,
-                                 bool UNUSED(need_colors))
+                                 bool is_paint_tool)
 {
   Scene *scene = DEG_get_input_scene(depsgraph);
   Sculpt *sd = scene->toolsettings->sculpt;
@@ -1903,7 +1903,7 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
 }
 
 void BKE_sculpt_update_object_for_edit(
-    Depsgraph *depsgraph, Object *ob_orig, bool need_pmap, bool need_mask, bool need_colors)
+    Depsgraph *depsgraph, Object *ob_orig, bool need_pmap, bool need_mask, bool is_paint_tool)
 {
   BLI_assert(ob_orig == DEG_get_original_object(ob_orig));
 
@@ -1911,7 +1911,7 @@ void BKE_sculpt_update_object_for_edit(
   Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
   BLI_assert(me_eval != NULL);
 
-  sculpt_update_object(depsgraph, ob_orig, me_eval, need_pmap, need_mask, need_colors);
+  sculpt_update_object(depsgraph, ob_orig, me_eval, need_pmap, need_mask, is_paint_tool);
 }
 
 int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
