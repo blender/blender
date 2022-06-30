@@ -1174,18 +1174,35 @@ Image *BKE_image_add_generated(Main *bmain,
 
 Image *BKE_image_add_from_imbuf(Main *bmain, ImBuf *ibuf, const char *name)
 {
-  Image *ima;
-
   if (name == nullptr) {
     name = BLI_path_basename(ibuf->name);
   }
 
-  ima = image_alloc(bmain, name, IMA_SRC_FILE, IMA_TYPE_IMAGE);
+  /* When the image buffer has valid path create a new image with "file" source and copy the path
+   * from the image buffer.
+   * Otherwise create "generated" image, avoiding invalid configuration with an empty file path. */
+  const eImageSource source = ibuf->name[0] != '\0' ? IMA_SRC_FILE : IMA_SRC_GENERATED;
 
-  if (ima) {
-    STRNCPY(ima->filepath, ibuf->name);
-    image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+  Image *ima = image_alloc(bmain, name, source, IMA_TYPE_IMAGE);
+
+  if (!ima) {
+    return nullptr;
   }
+
+  if (source == IMA_SRC_FILE) {
+    STRNCPY(ima->filepath, ibuf->name);
+  }
+  else if (ibuf->rect_float) {
+    /* For the consistency with manual image creation: when the image buffer is float reflect it in
+     * the generated flags. */
+    ima->gen_flag |= IMA_GEN_FLOAT;
+  }
+
+  image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+
+  /* Consider image dirty since its content can not be re-created unless the image is explicitly
+   * saved. */
+  BKE_image_mark_dirty(ima, ibuf);
 
   return ima;
 }
