@@ -173,9 +173,15 @@ struct data_source_t {
   char *buffer_out = nullptr;
 };
 
+/**
+ * Data used to implement client-side key-repeat.
+ *
+ * \note it's important not to store the target window here
+ * as it can be closed while the key is repeating,
+ * instead use the focused keyboard from #intput_t which is cleared when windows are closed.
+ * Therefor keyboard events must always check the window has not been cleared.
+ */
 struct key_repeat_payload_t {
-  GHOST_SystemWayland *system = nullptr;
-  GHOST_IWindow *window = nullptr;
   struct input_t *input = nullptr;
 
   xkb_keycode_t key_code;
@@ -803,8 +809,7 @@ static void dnd_events(const input_t *const input, const GHOST_TEventType event)
 {
   /* NOTE: `input->data_offer_dnd_mutex` must already be locked. */
   const uint64_t time = input->system->getMilliSeconds();
-  GHOST_WindowWayland *const win = static_cast<GHOST_WindowWayland *>(
-      wl_surface_get_user_data(input->focus_dnd));
+  GHOST_WindowWayland *const win = window_from_surface(input->focus_dnd);
   if (!win) {
     return;
   }
@@ -2027,8 +2032,6 @@ static void keyboard_handle_key(void *data,
     if ((input->key_repeat.rate > 0) && (etype == GHOST_kEventKeyDown) &&
         xkb_keymap_key_repeats(xkb_state_get_keymap(input->xkb_state), key_code)) {
       key_repeat_payload = new key_repeat_payload_t({
-          .system = input->system,
-          .window = win,
           .input = input,
           .key_code = key_code,
           .key_data = {.gkey = gkey},
@@ -2042,17 +2045,19 @@ static void keyboard_handle_key(void *data,
           task->getUserData());
 
       input_t *input = payload->input;
-      /* Calculate this value every time in case modifier keys are pressed. */
-      char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
-      xkb_state_key_get_utf8(input->xkb_state, payload->key_code, utf8_buf, sizeof(utf8_buf));
-
-      payload->system->pushEvent(new GHOST_EventKey(payload->system->getMilliSeconds(),
-                                                    GHOST_kEventKeyDown,
-                                                    payload->window,
-                                                    payload->key_data.gkey,
-                                                    '\0',
-                                                    utf8_buf,
-                                                    true));
+      if (GHOST_IWindow *win = window_from_surface(input->keyboard.wl_surface)) {
+        GHOST_SystemWayland *system = input->system;
+        /* Calculate this value every time in case modifier keys are pressed. */
+        char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
+        xkb_state_key_get_utf8(input->xkb_state, payload->key_code, utf8_buf, sizeof(utf8_buf));
+        system->pushEvent(new GHOST_EventKey(system->getMilliSeconds(),
+                                             GHOST_kEventKeyDown,
+                                             win,
+                                             payload->key_data.gkey,
+                                             '\0',
+                                             utf8_buf,
+                                             true));
+      }
     };
     input->key_repeat.timer = input->system->installTimer(
         input->key_repeat.delay, 1000 / input->key_repeat.rate, key_repeat_fn, key_repeat_payload);
