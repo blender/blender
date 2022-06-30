@@ -15,6 +15,7 @@
 
 #include "DNA_mesh_types.h"
 
+#include "stl_import.hh"
 #include "stl_import_binary_reader.hh"
 #include "stl_import_mesh.hh"
 
@@ -33,7 +34,11 @@ Mesh *read_stl_binary(FILE *file, Main *bmain, char *mesh_name, bool use_custom_
   const int chunk_size = 1024;
   uint32_t num_tris = 0;
   fseek(file, BINARY_HEADER_SIZE, SEEK_SET);
-  fread(&num_tris, sizeof(uint32_t), 1, file);
+  if (fread(&num_tris, sizeof(uint32_t), 1, file) != 1) {
+    stl_import_report_error(file);
+    return nullptr;
+  }
+
   if (num_tris == 0) {
     return BKE_mesh_add(bmain, mesh_name);
   }

@@ -29,6 +29,17 @@
 
 namespace blender::io::stl {
 
+void stl_import_report_error(FILE *file)
+{
+  fprintf(stderr, "STL Importer: failed to read file");
+  if (feof(file)) {
+    fprintf(stderr, ", end of file reached.\n");
+  }
+  else if (ferror(file)) {
+    perror("Error");
+  }
+}
+
 void importer_main(bContext *C, const STLImportParams &import_params)
 {
   Main *bmain = CTX_data_main(C);
@@ -56,7 +67,10 @@ void importer_main(Main *bmain,
   uint32_t num_tri = 0;
   size_t file_size = BLI_file_size(import_params.filepath);
   fseek(file, BINARY_HEADER_SIZE, SEEK_SET);
-  fread(&num_tri, sizeof(uint32_t), 1, file);
+  if (fread(&num_tri, sizeof(uint32_t), 1, file) != 1) {
+    stl_import_report_error(file);
+    return;
+  }
   bool is_ascii_stl = (file_size != (BINARY_HEADER_SIZE + 4 + BINARY_STRIDE * num_tri));
 
   /* Name used for both mesh and object. */
@@ -64,12 +78,17 @@ void importer_main(Main *bmain,
   BLI_strncpy(ob_name, BLI_path_basename(import_params.filepath), FILE_MAX);
   BLI_path_extension_replace(ob_name, FILE_MAX, "");
 
-  Mesh *mesh;
+  Mesh *mesh = nullptr;
   if (is_ascii_stl) {
     mesh = read_stl_ascii(import_params.filepath, bmain, ob_name, import_params.use_facet_normal);
   }
   else {
     mesh = read_stl_binary(file, bmain, ob_name, import_params.use_facet_normal);
+  }
+
+  if (mesh == nullptr) {
+    fprintf(stderr, "STL Importer: Failed to import mesh '%s'\n", import_params.filepath);
+    return;
   }
 
   if (import_params.use_mesh_validate) {

@@ -10,6 +10,8 @@
 
 namespace blender::io::stl {
 
+void stl_import_report_error(FILE *file);
+
 /* Main import function used from within Blender. */
 void importer_main(bContext *C, const STLImportParams &import_params);
 
