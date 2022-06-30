@@ -1175,17 +1175,9 @@ static void draw_plane_marker_image(Scene *scene,
   ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
 
   if (ibuf) {
-    uchar *display_buffer;
     void *cache_handle;
-
-    if (image->flag & IMA_VIEW_AS_RENDER) {
-      display_buffer = IMB_display_buffer_acquire(
-          ibuf, &scene->view_settings, &scene->display_settings, &cache_handle);
-    }
-    else {
-      display_buffer = IMB_display_buffer_acquire(
-          ibuf, NULL, &scene->display_settings, &cache_handle);
-    }
+    uchar *display_buffer = IMB_display_buffer_acquire(
+        ibuf, &scene->view_settings, &scene->display_settings, &cache_handle);
 
     if (display_buffer) {
       float frame_corners[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
