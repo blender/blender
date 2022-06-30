@@ -1703,8 +1703,10 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 static int sequencer_delete_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
+  Scene *scene = CTX_data_scene(C);
+  ListBase *markers = &scene->markers;
 
-  if (region->regiontype == RGN_TYPE_WINDOW) {
+  if (region->regiontype == RGN_TYPE_WINDOW && !BLI_listbase_is_empty(markers)) {
     /* Bounding box of 30 pixels is used for markers shortcuts,
      * prevent conflict with markers shortcuts here.
      */
