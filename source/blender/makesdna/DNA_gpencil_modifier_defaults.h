@@ -312,7 +312,6 @@
     .shadow_camera_near = 0.1f, \
     .shadow_camera_far = 200.0f, \
     .shadow_camera_size = 200.0f, \
-    .stroke_depth_offset = 0.05,\
   }
 
 #define _DNA_DEFAULT_LengthGpencilModifierData \

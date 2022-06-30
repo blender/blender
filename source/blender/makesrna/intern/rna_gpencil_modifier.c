@@ -3268,7 +3268,7 @@ static void rna_def_modifier_gpencillineart(BlenderRNA *brna)
                            "Crease Threshold",
                            "Angles smaller than this will be treated as creases. Crease angle "
                            "priority: object line art crease override > mesh auto smooth angle > "
-                           "line art default crease.");
+                           "line art default crease");
   RNA_def_property_update(prop, NC_SCENE, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "split_angle", PROP_FLOAT, PROP_ANGLE);
