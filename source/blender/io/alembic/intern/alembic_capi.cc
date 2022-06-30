@@ -526,14 +526,14 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
     Scene *scene = data->scene;
 
     if (data->settings.is_sequence) {
-      SFRA = data->settings.sequence_offset;
-      EFRA = SFRA + (data->settings.sequence_len - 1);
-      CFRA = SFRA;
+      scene->r.sfra = data->settings.sequence_offset;
+      scene->r.efra = scene->r.sfra + (data->settings.sequence_len - 1);
+      scene->r.cfra = scene->r.sfra;
     }
     else if (min_time < max_time) {
-      SFRA = static_cast<int>(round(min_time * FPS));
-      EFRA = static_cast<int>(round(max_time * FPS));
-      CFRA = SFRA;
+      scene->r.sfra = static_cast<int>(round(min_time * FPS));
+      scene->r.efra = static_cast<int>(round(max_time * FPS));
+      scene->r.cfra = scene->r.sfra;
     }
   }
 

@@ -85,7 +85,7 @@ static void export_startjob(void *customdata,
 
   /* For restoring the current frame after exporting animation is done. */
   Scene *scene = DEG_get_input_scene(data->depsgraph);
-  const int orig_frame = CFRA;
+  const int orig_frame = scene->r.cfra;
   const bool export_animation = (data->params.frame_start != data->params.frame_end);
 
   /* Create the Alembic archive. */
@@ -154,8 +154,8 @@ static void export_startjob(void *customdata,
   iter.release_writers();
 
   /* Finish up by going back to the keyframe that was current before we started. */
-  if (CFRA != orig_frame) {
-    CFRA = orig_frame;
+  if (scene->r.cfra != orig_frame) {
+    scene->r.cfra = orig_frame;
     BKE_scene_graph_update_for_newframe(data->depsgraph);
   }
 

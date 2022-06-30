@@ -72,7 +72,7 @@ static void export_startjob(void *customdata,
   *do_update = true;
 
   /* For restoring the current frame after exporting animation is done. */
-  const int orig_frame = CFRA;
+  const int orig_frame = scene->r.cfra;
 
   pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(data->filepath);
   if (!usd_stage) {
@@ -129,8 +129,8 @@ static void export_startjob(void *customdata,
   usd_stage->GetRootLayer()->Save();
 
   /* Finish up by going back to the keyframe that was current before we started. */
-  if (CFRA != orig_frame) {
-    CFRA = orig_frame;
+  if (scene->r.cfra != orig_frame) {
+    scene->r.cfra = orig_frame;
     BKE_scene_graph_update_for_newframe(data->depsgraph);
   }
 
