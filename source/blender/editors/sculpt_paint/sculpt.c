@@ -4710,7 +4710,8 @@ void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *b
   if (ss->shapekey_active || ss->deform_modifiers_active ||
       (!BKE_sculptsession_use_pbvh_draw(ob, v3d) && need_pmap)) {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-    BKE_sculpt_update_object_for_edit(depsgraph, ob, need_pmap, false, false);
+    BKE_sculpt_update_object_for_edit(
+        depsgraph, ob, need_pmap, false, SCULPT_tool_is_paint(brush->sculpt_tool));
   }
 }
 
@@ -5049,7 +5050,8 @@ static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
 static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  ToolSettings *tool_settings = CTX_data_tool_settings(C);
+  Sculpt *sd = tool_settings->sculpt;
   SculptSession *ss = CTX_data_active_object(C)->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
   int mode = RNA_enum_get(op->ptr, "mode");
@@ -5069,7 +5071,8 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   sculpt_brush_init_tex(sd, ss);
 
   need_pmap = sculpt_needs_connectivity_info(sd, brush, ss, mode);
-  needs_colors = SCULPT_tool_is_paint(brush->sculpt_tool);
+  needs_colors = SCULPT_tool_is_paint(brush->sculpt_tool) &&
+                 !SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob);
 
   if (needs_colors) {
     BKE_sculpt_color_layer_create_if_needed(ob);
@@ -5316,7 +5319,8 @@ static bool sculpt_stroke_test_start(bContext *C, struct wmOperator *op, const f
 
     /* NOTE: This should be removed when paint mode is available. Paint mode can force based on the
      * canvas it is painting on. (ref. use_sculpt_texture_paint). */
-    if (brush && SCULPT_tool_is_paint(brush->sculpt_tool)) {
+    if (brush && SCULPT_tool_is_paint(brush->sculpt_tool) &&
+        !SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
       View3D *v3d = CTX_wm_view3d(C);
       if (v3d->shading.type == OB_SOLID) {
         v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
@@ -5408,7 +5412,7 @@ static void sculpt_stroke_update_step(bContext *C,
   if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
     SCULPT_flush_update_step(C, SCULPT_UPDATE_MASK);
   }
-  else if (ELEM(brush->sculpt_tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)) {
+  else if (SCULPT_tool_is_paint(brush->sculpt_tool)) {
     if (SCULPT_use_image_paint_brush(&tool_settings->paint_mode, ob)) {
       SCULPT_flush_update_step(C, SCULPT_UPDATE_IMAGE);
     }
