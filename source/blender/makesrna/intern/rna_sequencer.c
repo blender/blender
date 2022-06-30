@@ -2331,7 +2331,6 @@ static void rna_def_speed_factor(StructRNA *srna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0.1f, FLT_MAX);
   RNA_def_property_ui_range(prop, 1.0f, 100.0f, 10.0, 3);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Speed Factor", "Multiply playback speed");
   RNA_def_property_float_funcs(
       prop, NULL, "rna_Sequence_speed_factor_set", NULL); /* overlap test */
