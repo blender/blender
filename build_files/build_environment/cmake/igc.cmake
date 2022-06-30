@@ -7,7 +7,7 @@ unpack_only(igc_spirv_tools)
 #
 # igc_opencl_clang contains patches that need to be applied
 # to external_igc_llvm and igc_spirv_translator, we unpack
-# igc_opencl_clang first, then have the patch stages of 
+# igc_opencl_clang first, then have the patch stages of
 # external_igc_llvm and igc_spirv_translator apply them.
 #
 

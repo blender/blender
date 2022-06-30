@@ -11,4 +11,3 @@ ExternalProject_Add(external_gmmlib
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/gmmlib ${DEFAULT_CMAKE_FLAGS} ${GMMLIB_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/gmmlib
 )
-

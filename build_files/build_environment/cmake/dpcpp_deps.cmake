@@ -59,4 +59,3 @@ ExternalProject_Add(external_spirvheaders
   BUILD_COMMAND echo .
   INSTALL_COMMAND echo .
 )
-

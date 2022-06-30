@@ -29,10 +29,10 @@ def _run(args):
     bpy.app.handlers.frame_change_post.append(frame_change_handler)
     bpy.ops.screen.animation_play()
 
-    
+
 def frame_change_handler(scene):
     import bpy
-    
+
     global record_stage
     global start_time
     global start_record_time
@@ -40,7 +40,7 @@ def frame_change_handler(scene):
     global warmup_frame
     global stop_record_time
     global playback_iteration
-    
+
     if record_stage == RecordStage.INIT:
         screen = bpy.context.window_manager.windows[0].screen
         bpy.context.scene.sync_mode = 'NONE'
@@ -50,10 +50,10 @@ def frame_change_handler(scene):
                 space = area.spaces[0]
                 space.shading.type = 'RENDERED'
                 space.overlay.show_overlays = False
-        
+
         start_time = time.perf_counter()
         record_stage = RecordStage.WAIT_SHADERS
-    
+
     elif record_stage == RecordStage.WAIT_SHADERS:
         shaders_compiled = False
         if hasattr(bpy.app, 'is_job_running'):
@@ -61,12 +61,12 @@ def frame_change_handler(scene):
         else:
             # Fallback when is_job_running doesn't exists by waiting for a time.
             shaders_compiled = time.perf_counter() - start_time > SHADER_FALLBACK_SECONDS
-        
+
         if shaders_compiled:
             start_warmup_time = time.perf_counter()
             warmup_frame = 0
             record_stage = RecordStage.WARMUP
-    
+
     elif record_stage == RecordStage.WARMUP:
         warmup_frame += 1
         if time.perf_counter() - start_warmup_time > WARMUP_SECONDS and warmup_frame > WARMUP_FRAMES:
@@ -75,13 +75,13 @@ def frame_change_handler(scene):
             scene = bpy.context.scene
             scene.frame_set(scene.frame_start)
             record_stage = RecordStage.RECORD
-    
+
     elif record_stage == RecordStage.RECORD:
         current_time = time.perf_counter()
         scene = bpy.context.scene
         if scene.frame_current == scene.frame_end:
             playback_iteration += 1
-        
+
         if playback_iteration >= RECORD_PLAYBACK_ITER:
             stop_record_time = current_time
             record_stage = RecordStage.FINISHED
@@ -95,13 +95,14 @@ def frame_change_handler(scene):
         print(f"{LOG_KEY}{{'time': {avg_frame_time}, 'fps': {fps} }}")
         bpy.app.handlers.frame_change_post.remove(frame_change_handler)
         bpy.ops.wm.quit_blender()
-    
+
 
 if __name__ == '__main__':
     _run(None)
-    
+
 else:
     import api
+
     class EeveeTest(api.Test):
         def __init__(self, filepath):
             self.filepath = filepath
@@ -123,7 +124,6 @@ else:
 
             raise Exception("No playback performance result found in log.")
 
-        
     def generate(env):
         filepaths = env.find_blend_files('eevee/*')
         return [EeveeTest(filepath) for filepath in filepaths]

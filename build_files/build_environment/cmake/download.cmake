@@ -116,4 +116,3 @@ download_source(IGC_SPIRV_TOOLS)
 download_source(IGC_SPIRV_TRANSLATOR)
 download_source(GMMLIB)
 download_source(OCLOC)
-
