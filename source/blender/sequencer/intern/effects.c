@@ -2600,7 +2600,10 @@ static FCurve *seq_effect_speed_speed_factor_curve_get(Scene *scene, Sequence *s
 
 void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
 {
-  if ((seq->seq1 == NULL) || (seq->len < 1)) {
+  const int effect_strip_length = SEQ_time_right_handle_frame_get(scene, seq) -
+                                  SEQ_time_left_handle_frame_get(scene, seq);
+
+  if ((seq->seq1 == NULL) || (effect_strip_length < 1)) {
     return; /* Make coverity happy and check for (CID 598) input strip... */
   }
 
@@ -2614,15 +2617,13 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
     MEM_freeN(v->frameMap);
   }
 
-  const int effect_strip_length = SEQ_time_right_handle_frame_get(scene, seq) -
-                                  SEQ_time_left_handle_frame_get(scene, seq);
   v->frameMap = MEM_mallocN(sizeof(float) * effect_strip_length, __func__);
   v->frameMap[0] = 0.0f;
 
   float target_frame = 0;
   for (int frame_index = 1; frame_index < effect_strip_length; frame_index++) {
     target_frame += evaluate_fcurve(fcu, SEQ_time_left_handle_frame_get(scene, seq) + frame_index);
-    CLAMP(target_frame, 0, seq->seq1->len);
+    CLAMP(target_frame, 0, SEQ_time_strip_length_get(seq->seq1));
     v->frameMap[frame_index] = target_frame;
   }
 }
