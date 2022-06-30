@@ -1176,12 +1176,12 @@ static void vertex_paint_init_session(Depsgraph *depsgraph,
   BLI_assert(ob->sculpt == nullptr);
   ob->sculpt = (SculptSession *)MEM_callocN(sizeof(SculptSession), "sculpt session");
   ob->sculpt->mode_type = object_mode;
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
 }
 
 static void vwpaint_init_stroke(Depsgraph *depsgraph, Object *ob)
 {
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
   SculptSession *ss = ob->sculpt;
 
   /* Ensure ss->cache is allocated.  It will mostly be initialized in

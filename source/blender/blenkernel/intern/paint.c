@@ -1773,28 +1773,31 @@ static void sculpt_update_object(Depsgraph *depsgraph,
     }
   }
 
-  /*
-   * We should rebuild the PBVH_pixels when painting canvas changes.
-   *
-   * The relevant changes are stored/encoded in the paint canvas key.
-   * These include the active uv map, and resolutions.
-   */
-  if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
-    char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
-    if (ss->last_paint_canvas_key == NULL || !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
-      MEM_SAFE_FREE(ss->last_paint_canvas_key);
-      ss->last_paint_canvas_key = paint_canvas_key;
-      BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
+  if (is_paint_tool) {
+    /*
+     * We should rebuild the PBVH_pixels when painting canvas changes.
+     *
+     * The relevant changes are stored/encoded in the paint canvas key.
+     * These include the active uv map, and resolutions.
+     */
+    if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
+      char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
+      if (ss->last_paint_canvas_key == NULL ||
+          !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
+        MEM_SAFE_FREE(ss->last_paint_canvas_key);
+        ss->last_paint_canvas_key = paint_canvas_key;
+        BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
+      }
+      else {
+        MEM_freeN(paint_canvas_key);
+      }
     }
-    else {
-      MEM_freeN(paint_canvas_key);
-    }
-  }
 
-  /* We could be more precise when we have access to the active tool. */
-  const bool use_paint_slots = (ob->mode & OB_MODE_SCULPT) != 0;
-  if (use_paint_slots) {
-    BKE_texpaint_slots_refresh_object(scene, ob);
+    /* We could be more precise when we have access to the active tool. */
+    const bool use_paint_slots = (ob->mode & OB_MODE_SCULPT) != 0;
+    if (use_paint_slots) {
+      BKE_texpaint_slots_refresh_object(scene, ob);
+    }
   }
 }
 

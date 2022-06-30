@@ -5081,7 +5081,8 @@ static void sculpt_brush_stroke_init(bContext *C, wmOperator *op)
   /* CTX_data_ensure_evaluated_depsgraph should be used at the end to include the updates of
    * earlier steps modifying the data. */
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, need_pmap, need_mask, needs_colors);
+  BKE_sculpt_update_object_for_edit(
+      depsgraph, ob, need_pmap, need_mask, SCULPT_tool_is_paint(brush->sculpt_tool));
 
   ED_paint_tool_update_sticky_shading_color(C, ob);
 }
