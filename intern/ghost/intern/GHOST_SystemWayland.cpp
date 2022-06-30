@@ -334,9 +334,6 @@ struct display_t {
   struct zwp_tablet_manager_v2 *tablet_manager = nullptr;
   struct zwp_relative_pointer_manager_v1 *relative_pointer_manager = nullptr;
   struct zwp_pointer_constraints_v1 *pointer_constraints = nullptr;
-
-  std::vector<struct wl_surface *> os_surfaces;
-  std::vector<struct wl_egl_window *> os_egl_windows;
 };
 
 /** \} */
@@ -470,14 +467,6 @@ static void display_destroy(display_t *d)
 
   if (d->pointer_constraints) {
     zwp_pointer_constraints_v1_destroy(d->pointer_constraints);
-  }
-
-  for (wl_egl_window *os_egl_window : d->os_egl_windows) {
-    wl_egl_window_destroy(os_egl_window);
-  }
-
-  for (wl_surface *os_surface : d->os_surfaces) {
-    wl_surface_destroy(os_surface);
   }
 
   if (d->compositor) {
@@ -2745,22 +2734,17 @@ void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &hei
   height = xy_max[1] - xy_min[1];
 }
 
-GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*glSettings*/)
+static GHOST_Context *createOffscreenContext_impl(GHOST_SystemWayland *system,
+                                                  struct wl_display *wl_display,
+                                                  wl_egl_window *egl_window)
 {
-  /* Create new off-screen window. */
-  wl_surface *os_surface = wl_compositor_create_surface(compositor());
-  wl_egl_window *os_egl_window = wl_egl_window_create(os_surface, int(1), int(1));
-
-  d->os_surfaces.push_back(os_surface);
-  d->os_egl_windows.push_back(os_egl_window);
-
   GHOST_Context *context;
 
   for (int minor = 6; minor >= 0; --minor) {
-    context = new GHOST_ContextEGL(this,
+    context = new GHOST_ContextEGL(system,
                                    false,
-                                   EGLNativeWindowType(os_egl_window),
-                                   EGLNativeDisplayType(d->display),
+                                   EGLNativeWindowType(egl_window),
+                                   EGLNativeDisplayType(wl_display),
                                    EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
                                    4,
                                    minor,
@@ -2774,10 +2758,10 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*g
     delete context;
   }
 
-  context = new GHOST_ContextEGL(this,
+  context = new GHOST_ContextEGL(system,
                                  false,
-                                 EGLNativeWindowType(os_egl_window),
-                                 EGLNativeDisplayType(d->display),
+                                 EGLNativeWindowType(egl_window),
+                                 EGLNativeDisplayType(wl_display),
                                  EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
                                  3,
                                  3,
@@ -2789,15 +2773,39 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*g
     return context;
   }
   delete context;
-
-  GHOST_PRINT("Cannot create off-screen EGL context" << std::endl);
-
   return nullptr;
+}
+
+GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*glSettings*/)
+{
+  /* Create new off-screen window. */
+  wl_surface *wl_surface = wl_compositor_create_surface(compositor());
+  wl_egl_window *egl_window = wl_egl_window_create(wl_surface, int(1), int(1));
+
+  GHOST_Context *context = createOffscreenContext_impl(this, d->display, egl_window);
+
+  if (!context) {
+    GHOST_PRINT("Cannot create off-screen EGL context" << std::endl);
+    wl_surface_destroy(wl_surface);
+    wl_egl_window_destroy(egl_window);
+    return nullptr;
+  }
+
+  wl_surface_set_user_data(wl_surface, egl_window);
+  context->setUserData(wl_surface);
+
+  return context;
 }
 
 GHOST_TSuccess GHOST_SystemWayland::disposeContext(GHOST_IContext *context)
 {
+  struct wl_surface *wl_surface = (struct wl_surface *)((GHOST_Context *)context)->getUserData();
+  wl_egl_window *egl_window = (wl_egl_window *)wl_surface_get_user_data(wl_surface);
+  wl_egl_window_destroy(egl_window);
+  wl_surface_destroy(wl_surface);
+
   delete context;
+
   return GHOST_kSuccess;
 }
 
