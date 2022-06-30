@@ -66,9 +66,18 @@ void PlaneDistortWarpImageOperation::calculate_corners(const float corners[4][2]
   const NodeOperation *image = get_input_operation(0);
   const int width = image->get_width();
   const int height = image->get_height();
+
+  MotionSample *sample_data = &samples_[sample];
+
+  /* If the image which is to be warped empty assume unit transform and don't attempt to calculate
+   * actual homography (otherwise homography solver will attempt to deal with singularity). */
+  if (width == 0 || height == 0) {
+    unit_m3(sample_data->perspective_matrix);
+    return;
+  }
+
   float frame_corners[4][2] = {
       {0.0f, 0.0f}, {(float)width, 0.0f}, {(float)width, (float)height}, {0.0f, (float)height}};
-  MotionSample *sample_data = &samples_[sample];
   BKE_tracking_homography_between_two_quads(
       sample_data->frame_space_corners, frame_corners, sample_data->perspective_matrix);
 }
