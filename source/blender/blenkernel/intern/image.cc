@@ -1172,6 +1172,33 @@ Image *BKE_image_add_generated(Main *bmain,
   return ima;
 }
 
+static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
+{
+  const char *colorspace_name = NULL;
+
+  if (ibuf->rect_float) {
+    if (ibuf->float_colorspace) {
+      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->float_colorspace);
+    }
+    else {
+      colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT);
+    }
+  }
+
+  if (ibuf->rect && !colorspace_name) {
+    if (ibuf->rect_colorspace) {
+      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->rect_colorspace);
+    }
+    else {
+      colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+    }
+  }
+
+  if (colorspace_name) {
+    STRNCPY(image->colorspace_settings.name, colorspace_name);
+  }
+}
+
 Image *BKE_image_add_from_imbuf(Main *bmain, ImBuf *ibuf, const char *name)
 {
   if (name == nullptr) {
@@ -1199,6 +1226,7 @@ Image *BKE_image_add_from_imbuf(Main *bmain, ImBuf *ibuf, const char *name)
   }
 
   image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+  image_colorspace_from_imbuf(ima, ibuf);
 
   /* Consider image dirty since its content can not be re-created unless the image is explicitly
    * saved. */

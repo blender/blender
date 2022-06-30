@@ -3174,6 +3174,11 @@ const char *IMB_colormanagement_colorspace_get_indexed_name(int index)
   return "";
 }
 
+const char *IMB_colormanagement_colorspace_get_name(const ColorSpace *colorspace)
+{
+  return colorspace->name;
+}
+
 void IMB_colormanagement_colorspace_from_ibuf_ftype(
     ColorManagedColorspaceSettings *colorspace_settings, ImBuf *ibuf)
 {
