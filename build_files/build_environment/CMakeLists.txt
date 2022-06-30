@@ -29,8 +29,9 @@ cmake_minimum_required(VERSION 3.5)
 
 include(ExternalProject)
 include(cmake/check_software.cmake)
-include(cmake/versions.cmake)
 include(cmake/options.cmake)
+# versions.cmake needs to be included after options.cmake due to the BLENDER_PLATFORM_ARM variable being needed.
+include(cmake/versions.cmake)
 include(cmake/boost_build_options.cmake)
 include(cmake/download.cmake)
 include(cmake/macros.cmake)

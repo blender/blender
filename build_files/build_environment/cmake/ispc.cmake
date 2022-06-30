@@ -28,7 +28,7 @@ elseif(UNIX)
   set(ISPC_EXTRA_ARGS_UNIX
     -DCMAKE_C_COMPILER=${LIBDIR}/llvm/bin/clang
     -DCMAKE_CXX_COMPILER=${LIBDIR}/llvm/bin/clang++
-    -DARM_ENABLED=Off
+    -DARM_ENABLED=${BLENDER_PLATFORM_ARM}
     -DFLEX_EXECUTABLE=${LIBDIR}/flex/bin/flex
   )
 endif()
