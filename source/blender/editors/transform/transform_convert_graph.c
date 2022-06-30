@@ -232,7 +232,8 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
   anim_map_flag |= ANIM_get_normalization_flags(&ac);
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* which side of the current frame should be allowed */
@@ -915,7 +916,8 @@ void recalcData_graphedit(TransInfo *t)
   flushTransGraphData(t);
 
   /* get curves to check if a re-sort is needed */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* now test if there is a need to re-sort */
@@ -975,7 +977,8 @@ void special_aftertrans_update__graph(bContext *C, TransInfo *t)
   if (ac.datatype) {
     ListBase anim_data = {NULL, NULL};
     bAnimListElem *ale;
-    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
+    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
+                    ANIMFILTER_FCURVESONLY);
 
     /* get channels to work on */
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);

@@ -281,6 +281,11 @@ void ED_gpencil_select_frames(struct bGPDlayer *gpl, short select_mode);
 void ED_gpencil_select_frame(struct bGPDlayer *gpl, int selx, short select_mode);
 
 /**
+ * Set the layer's channel as active
+ */
+void ED_gpencil_set_active_channel(struct bGPdata *gpd, struct bGPDlayer *gpl);
+
+/**
  * Delete selected frames.
  */
 bool ED_gpencil_layer_frames_delete(struct bGPDlayer *gpl);

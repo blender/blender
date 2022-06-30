@@ -3123,7 +3123,7 @@ static bAnimChannelType ACF_DSSIMULATION = {
 /* TODO: just get this from RNA? */
 static int acf_dsgpencil_icon(bAnimListElem *UNUSED(ale))
 {
-  return ICON_GREASEPENCIL;
+  return ICON_OUTLINER_DATA_GREASEPENCIL;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */

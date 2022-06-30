@@ -131,7 +131,7 @@ bool graphop_visible_keyframes_poll(bContext *C)
   /* loop over the visible (selection doesn't matter) F-Curves, and see if they're suitable
    * stopping on the first successful match
    */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
   if (items == 0) {
     return found;
@@ -183,7 +183,8 @@ bool graphop_editable_keyframes_poll(bContext *C)
   /* loop over the editable F-Curves, and see if they're suitable
    * stopping on the first successful match
    */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
+            ANIMFILTER_FCURVESONLY);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
   if (items == 0) {
     CTX_wm_operator_poll_msg_set(C, "There is no animation data to operate on");
@@ -286,7 +287,8 @@ bool graphop_selected_fcurve_poll(bContext *C)
   /* Get the editable + selected F-Curves, and as long as we got some, we can return.
    * NOTE: curve-visible flag isn't included,
    * otherwise selecting a curve via list to edit is too cumbersome. */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT |
+            ANIMFILTER_FCURVESONLY);
   items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
   if (items == 0) {
     return false;

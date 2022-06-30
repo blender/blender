@@ -2033,7 +2033,7 @@ static void setflag_anim_channels(bAnimContext *ac,
   if ((ac->spacetype == SPACE_GRAPH) && (ac->regiontype != RGN_TYPE_CHANNELS)) {
     /* graph editor (case 2) */
     filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_CURVE_VISIBLE |
-              ANIMFILTER_NODUPLIS);
+              ANIMFILTER_FCURVESONLY | ANIMFILTER_NODUPLIS);
   }
   else {
     /* standard case */
