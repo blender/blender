@@ -2649,46 +2649,27 @@ uint8_t GHOST_SystemWayland::getNumDisplays() const
   return d ? uint8_t(d->outputs.size()) : 0;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) const
+static GHOST_TSuccess getCursorPositionClientRelative_impl(
+    const input_state_pointer_t *input_state,
+    const GHOST_WindowWayland *win,
+    int32_t &x,
+    int32_t &y)
 {
-  if (d->inputs.empty()) {
-    return GHOST_kFailure;
-  }
-
-  input_t *input = d->inputs[0];
-  input_state_pointer_t *input_state = input_state_pointer_active(input);
-
-  if (!input_state || !input_state->wl_surface) {
-    return GHOST_kFailure;
-  }
-
-  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(
-      wl_surface_get_user_data(input_state->wl_surface));
-  if (!win) {
-    return GHOST_kFailure;
-  }
-
   const wl_fixed_t scale = win->scale();
   x = wl_fixed_to_int(scale * input_state->xy[0]);
   y = wl_fixed_to_int(scale * input_state->xy[1]);
   return GHOST_kSuccess;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t x, const int32_t y)
+static GHOST_TSuccess setCursorPositionClientRelative_impl(input_t *input,
+                                                           GHOST_WindowWayland *win,
+                                                           const int32_t x,
+                                                           const int32_t y)
 {
   /* NOTE: WAYLAND doesn't support warping the cursor.
    * However when grab is enabled, we already simulate a cursor location
    * so that can be set to a new location. */
-  if (d->inputs.empty()) {
-    return GHOST_kFailure;
-  }
-  input_t *input = d->inputs[0];
   if (!input->relative_pointer) {
-    return GHOST_kFailure;
-  }
-
-  GHOST_WindowWayland *win = window_from_surface(input->pointer.wl_surface);
-  if (!win) {
     return GHOST_kFailure;
   }
   const wl_fixed_t scale = win->scale();
@@ -2701,6 +2682,67 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t x, const int
   relative_pointer_handle_relative_motion_impl(input, win, xy_next);
 
   return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_SystemWayland::getCursorPositionClientRelative(const GHOST_IWindow *window,
+                                                                    int32_t &x,
+                                                                    int32_t &y) const
+{
+  if (d->inputs.empty()) {
+    return GHOST_kFailure;
+  }
+  input_t *input = d->inputs[0];
+  input_state_pointer_t *input_state = input_state_pointer_active(input);
+  if (!input_state || !input_state->wl_surface) {
+    return GHOST_kFailure;
+  }
+  const GHOST_WindowWayland *win = static_cast<const GHOST_WindowWayland *>(window);
+  return getCursorPositionClientRelative_impl(input_state, win, x, y);
+}
+
+GHOST_TSuccess GHOST_SystemWayland::setCursorPositionClientRelative(GHOST_IWindow *window,
+                                                                    const int32_t x,
+                                                                    const int32_t y)
+{
+  if (d->inputs.empty()) {
+    return GHOST_kFailure;
+  }
+  input_t *input = d->inputs[0];
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(window);
+  return setCursorPositionClientRelative_impl(input, win, x, y);
+}
+
+GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) const
+{
+  if (d->inputs.empty()) {
+    return GHOST_kFailure;
+  }
+  input_t *input = d->inputs[0];
+  input_state_pointer_t *input_state = input_state_pointer_active(input);
+  if (!input_state || !input_state->wl_surface) {
+    return GHOST_kFailure;
+  }
+  GHOST_WindowWayland *win = window_from_surface(input->pointer.wl_surface);
+  if (!win) {
+    return GHOST_kFailure;
+  }
+  return getCursorPositionClientRelative_impl(input_state, win, x, y);
+}
+
+GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t x, const int32_t y)
+{
+  if (d->inputs.empty()) {
+    return GHOST_kFailure;
+  }
+  input_t *input = d->inputs[0];
+  if (!input->pointer.wl_surface) {
+    return GHOST_kFailure;
+  }
+  GHOST_WindowWayland *win = window_from_surface(input->pointer.wl_surface);
+  if (!win) {
+    return GHOST_kFailure;
+  }
+  return setCursorPositionClientRelative_impl(input, win, x, y);
 }
 
 void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const

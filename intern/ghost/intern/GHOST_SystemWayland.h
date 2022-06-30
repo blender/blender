@@ -79,8 +79,14 @@ class GHOST_SystemWayland : public GHOST_System {
 
   uint8_t getNumDisplays() const override;
 
-  GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const override;
+  GHOST_TSuccess getCursorPositionClientRelative(const GHOST_IWindow *window,
+                                                 int32_t &x,
+                                                 int32_t &y) const override;
+  GHOST_TSuccess setCursorPositionClientRelative(GHOST_IWindow *window,
+                                                 int32_t x,
+                                                 int32_t y) override;
 
+  GHOST_TSuccess getCursorPosition(int32_t &x, int32_t &y) const override;
   GHOST_TSuccess setCursorPosition(int32_t x, int32_t y) override;
 
   void getMainDisplayDimensions(uint32_t &width, uint32_t &height) const override;
