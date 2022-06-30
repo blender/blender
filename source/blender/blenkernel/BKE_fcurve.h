@@ -323,8 +323,9 @@ struct FCurve *BKE_fcurve_find_by_rna(struct PointerRNA *ptr,
  * Same as above, but takes a context data,
  * temp hack needed for complex paths like texture ones.
  *
- * \param r_special Optional, ignored when NULL. Set to `true` if the given RNA `ptr` is a NLA
- * strip, and the returned F-curve comes from this NLA strip. */
+ * \param r_special: Optional, ignored when NULL. Set to `true` if the given RNA `ptr` is a NLA
+ * strip, and the returned F-curve comes from this NLA strip.
+ */
 struct FCurve *BKE_fcurve_find_by_rna_context_ui(struct bContext *C,
                                                  const struct PointerRNA *ptr,
                                                  struct PropertyRNA *prop,

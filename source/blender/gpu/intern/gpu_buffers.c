@@ -1182,9 +1182,9 @@ GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading)
  * Builds a list of attributes from a set of domains and a set of
  * customdata types.
  *
- * \param active_only Returns only one item, a GPUAttrRef to active_layer
- * \param active_layer CustomDataLayer to use for the active layer
- * \param active_layer CustomDataLayer to use for the render layer
+ * \param active_only: Returns only one item, a #GPUAttrRef to active_layer.
+ * \param active_layer: #CustomDataLayer to use for the active layer.
+ * \param active_layer: #CustomDataLayer to use for the render layer.
  */
 static int gpu_pbvh_make_attr_offs(eAttrDomainMask domain_mask,
                                    eCustomDataMask type_mask,

@@ -116,7 +116,6 @@ void BKE_constraint_unique_name(bConstraint *con, ListBase *list)
 
 /* ----------------- Evaluation Loop Preparation --------------- */
 
-/* package an object/bone for use in constraint evaluation */
 bConstraintOb *BKE_constraints_make_evalob(
     Depsgraph *depsgraph, Scene *scene, Object *ob, void *subdata, short datatype)
 {
@@ -6323,7 +6322,6 @@ void BKE_constraint_targets_for_solving_get(struct Depsgraph *depsgraph,
   }
 }
 
-/** Initialize the Custom Space matrix inside cob. */
 void BKE_constraint_custom_object_space_init(bConstraintOb *cob, bConstraint *con)
 {
   if (con && con->space_object && is_custom_space_needed(con)) {

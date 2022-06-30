@@ -740,7 +740,7 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
 
   threading::parallel_invoke(
       [&]() {
-        /* Build kd-tree for the selected points. */
+        /* Build KD-tree for the selected points. */
         KDTree_3d *kdtree = BLI_kdtree_3d_new(curve_op_data.selected_point_indices.size());
         BLI_SCOPED_DEFER([&]() { BLI_kdtree_3d_free(kdtree); });
         for (const int point_i : curve_op_data.selected_point_indices) {
@@ -765,7 +765,7 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
                                 });
       },
       [&]() {
-        /* Build kd-tree for the unselected points. */
+        /* Build KD-tree for the unselected points. */
         KDTree_3d *kdtree = BLI_kdtree_3d_new(curve_op_data.unselected_point_indices.size());
         BLI_SCOPED_DEFER([&]() { BLI_kdtree_3d_free(kdtree); });
         for (const int point_i : curve_op_data.unselected_point_indices) {
@@ -1011,7 +1011,7 @@ static int calculate_points_per_side(bContext *C, MinDistanceEditData &op_data)
     }
   }
 
-  /* Limit to a harcoded number since it only adds noise at some point. */
+  /* Limit to a hard-coded number since it only adds noise at some point. */
   return std::min(300, needed_points);
 }
 
