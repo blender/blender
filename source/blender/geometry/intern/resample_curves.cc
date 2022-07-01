@@ -77,8 +77,8 @@ static bool interpolate_attribute_to_poly_curve(const bke::AttributeIDRef &attri
   static const Set<StringRef> no_interpolation{{
       "handle_type_left",
       "handle_type_right",
-      "handle_position_right",
-      "handle_position_left",
+      "handle_right",
+      "handle_left",
       "nurbs_weight",
   }};
   return !(attribute_id.is_named() && no_interpolation.contains(attribute_id.name()));
