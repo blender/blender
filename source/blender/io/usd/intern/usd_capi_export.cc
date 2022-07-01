@@ -27,6 +27,7 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_timeit.hh"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -42,7 +43,16 @@ struct ExportJobData {
   USDExportParams params;
 
   bool export_ok;
+  timeit::TimePoint start_time;
 };
+
+static void report_job_duration(const ExportJobData *data)
+{
+  timeit::Nanoseconds duration = timeit::Clock::now() - data->start_time;
+  std::cout << "USD export of '" << data->filepath << "' took ";
+  timeit::print_duration(duration);
+  std::cout << '\n';
+}
 
 static void export_startjob(void *customdata,
                             /* Cannot be const, this function implements wm_jobs_start_callback.
@@ -53,6 +63,7 @@ static void export_startjob(void *customdata,
 {
   ExportJobData *data = static_cast<ExportJobData *>(customdata);
   data->export_ok = false;
+  data->start_time = timeit::Clock::now();
 
   G.is_rendering = true;
   WM_set_locked_interface(data->wm, true);
@@ -151,6 +162,7 @@ static void export_endjob(void *customdata)
 
   G.is_rendering = false;
   WM_set_locked_interface(data->wm, false);
+  report_job_duration(data);
 }
 
 }  // namespace blender::io::usd

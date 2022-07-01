@@ -50,6 +50,7 @@
 #include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_timeit.hh"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -434,7 +435,16 @@ struct ImportJobData {
   bool was_cancelled;
   bool import_ok;
   bool is_background_job;
+  blender::timeit::TimePoint start_time;
 };
+
+static void report_job_duration(const ImportJobData *data)
+{
+  blender::timeit::Nanoseconds duration = blender::timeit::Clock::now() - data->start_time;
+  std::cout << "Alembic import of '" << data->filename << "' took ";
+  blender::timeit::print_duration(duration);
+  std::cout << '\n';
+}
 
 static void import_startjob(void *user_data, short *stop, short *do_update, float *progress)
 {
@@ -445,6 +455,7 @@ static void import_startjob(void *user_data, short *stop, short *do_update, floa
   data->stop = stop;
   data->do_update = do_update;
   data->progress = progress;
+  data->start_time = blender::timeit::Clock::now();
 
   WM_set_locked_interface(data->wm, true);
 
@@ -649,6 +660,7 @@ static void import_endjob(void *user_data)
   }
 
   WM_main_add_notifier(NC_SCENE | ND_FRAME, data->scene);
+  report_job_duration(data);
 }
 
 static void import_freejob(void *user_data)

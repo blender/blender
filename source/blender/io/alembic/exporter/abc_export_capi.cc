@@ -24,6 +24,7 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_timeit.hh"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -44,6 +45,7 @@ struct ExportJobData {
 
   bool was_canceled;
   bool export_ok;
+  blender::timeit::TimePoint start_time;
 };
 
 namespace blender::io::alembic {
@@ -59,6 +61,14 @@ static void build_depsgraph(Depsgraph *depsgraph, const bool visible_objects_onl
   }
 }
 
+static void report_job_duration(const ExportJobData *data)
+{
+  blender::timeit::Nanoseconds duration = blender::timeit::Clock::now() - data->start_time;
+  std::cout << "Alembic export of '" << data->filename << "' took ";
+  blender::timeit::print_duration(duration);
+  std::cout << '\n';
+}
+
 static void export_startjob(void *customdata,
                             /* Cannot be const, this function implements wm_jobs_start_callback.
                              * NOLINTNEXTLINE: readability-non-const-parameter. */
@@ -68,6 +78,7 @@ static void export_startjob(void *customdata,
 {
   ExportJobData *data = static_cast<ExportJobData *>(customdata);
   data->was_canceled = false;
+  data->start_time = blender::timeit::Clock::now();
 
   G.is_rendering = true;
   WM_set_locked_interface(data->wm, true);
@@ -177,6 +188,7 @@ static void export_endjob(void *customdata)
 
   G.is_rendering = false;
   WM_set_locked_interface(data->wm, false);
+  report_job_duration(data);
 }
 
 }  // namespace blender::io::alembic
