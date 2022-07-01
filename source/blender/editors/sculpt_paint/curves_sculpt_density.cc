@@ -416,9 +416,6 @@ void DensityAddOperation::on_stroke_extended(const bContext &C,
 
 class DensitySubtractOperation : public CurvesSculptStrokeOperation {
  private:
-  /** Only used when a 3D brush is used. */
-  CurvesBrush3D brush_3d_;
-
   friend struct DensitySubtractOperationExecutor;
 
  public:
