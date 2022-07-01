@@ -100,19 +100,6 @@ class GHOST_WindowWayland : public GHOST_Window {
   struct wl_surface *surface() const;
   const std::vector<output_t *> &outputs();
 
-  /* WAYLAND query access. */
-
-  /**
-   * Use window find function when the window may have been closed.
-   * Typically this is needed when accessing surfaces outside WAYLAND handlers.
-   */
-  static GHOST_WindowWayland *from_surface_find(const wl_surface *surface);
-  /**
-   * Use direct access when from WAYLAND handlers.
-   */
-  static const GHOST_WindowWayland *from_surface(const wl_surface *surface);
-  static GHOST_WindowWayland *from_surface_mut(wl_surface *surface);
-
   /* WAYLAND window-level functions. */
 
   GHOST_TSuccess close();
@@ -124,8 +111,6 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   bool outputs_enter(output_t *reg_output);
   bool outputs_leave(output_t *reg_output);
-  bool outputs_enter_wl(const struct wl_output *output);
-  bool outputs_leave_wl(const struct wl_output *output);
 
   bool outputs_changed_update_scale();
 

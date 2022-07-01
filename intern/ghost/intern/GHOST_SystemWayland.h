@@ -27,6 +27,14 @@ class GHOST_WindowWayland;
 
 struct display_t;
 
+bool ghost_wl_output_own(const struct wl_output *output);
+void ghost_wl_output_tag(struct wl_output *output);
+struct output_t *ghost_wl_output_user_data(struct wl_output *output);
+
+bool ghost_wl_surface_own(const struct wl_surface *surface);
+void ghost_wl_surface_tag(struct wl_surface *surface);
+GHOST_WindowWayland *ghost_wl_surface_user_data(struct wl_surface *surface);
+
 struct output_t {
   struct wl_output *wl_output = nullptr;
   struct zxdg_output_v1 *xdg_output = nullptr;
@@ -146,10 +154,6 @@ class GHOST_SystemWayland : public GHOST_System {
   const std::vector<output_t *> &outputs() const;
 
   wl_shm *shm() const;
-
-  /* WAYLAND query access. */
-
-  output_t *output_find_by_wl(const struct wl_output *output) const;
 
   /* WAYLAND utility functions. */
 

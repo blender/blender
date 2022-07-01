@@ -323,8 +323,12 @@ static void surface_handle_enter(void *data,
                                  struct wl_surface * /*wl_surface*/,
                                  struct wl_output *output)
 {
+  if (!ghost_wl_output_own(output)) {
+    return;
+  }
+  output_t *reg_output = ghost_wl_output_user_data(output);
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(data);
-  if (win->outputs_enter_wl(output)) {
+  if (win->outputs_enter(reg_output)) {
     win->outputs_changed_update_scale();
   }
 }
@@ -333,9 +337,13 @@ static void surface_handle_leave(void *data,
                                  struct wl_surface * /*wl_surface*/,
                                  struct wl_output *output)
 {
-  GHOST_WindowWayland *w = static_cast<GHOST_WindowWayland *>(data);
-  if (w->outputs_leave_wl(output)) {
-    w->outputs_changed_update_scale();
+  if (!ghost_wl_output_own(output)) {
+    return;
+  }
+  output_t *reg_output = ghost_wl_output_user_data(output);
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(data);
+  if (win->outputs_leave(reg_output)) {
+    win->outputs_changed_update_scale();
   }
 }
 
@@ -398,7 +406,9 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
   /* Window surfaces. */
   w->wl_surface = wl_compositor_create_surface(m_system->compositor());
-  wl_surface_set_buffer_scale(this->surface(), w->scale);
+  ghost_wl_surface_tag(w->wl_surface);
+
+  wl_surface_set_buffer_scale(w->wl_surface, w->scale);
 
   wl_surface_add_listener(w->wl_surface, &wl_surface_listener, this);
 
@@ -810,42 +820,6 @@ const std::vector<output_t *> &GHOST_WindowWayland::outputs()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Public WAYLAND Query Access
- * \{ */
-
-GHOST_WindowWayland *GHOST_WindowWayland::from_surface_find(const wl_surface *surface)
-{
-  GHOST_ASSERT(surface, "argument must not be NULL");
-  for (GHOST_IWindow *iwin : window_manager->getWindows()) {
-    GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
-    if (surface == win->surface()) {
-      return win;
-    }
-  }
-  return nullptr;
-}
-
-GHOST_WindowWayland *GHOST_WindowWayland::from_surface_mut(wl_surface *surface)
-{
-  GHOST_ASSERT(surface, "argument must not be NULL");
-  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(wl_surface_get_user_data(surface));
-  GHOST_ASSERT(win == GHOST_WindowWayland::from_surface_find(surface),
-               "Inconsistent window state, consider using \"from_surface_find\"");
-  return win;
-}
-
-const GHOST_WindowWayland *GHOST_WindowWayland::from_surface(const wl_surface *surface)
-{
-  const GHOST_WindowWayland *win = static_cast<const GHOST_WindowWayland *>(
-      wl_surface_get_user_data(const_cast<wl_surface *>(surface)));
-  GHOST_ASSERT(win == GHOST_WindowWayland::from_surface_find(surface),
-               "Inconsistent window state, consider using \"from_surface_find\"");
-  return win;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Public WAYLAND Window Level Functions
  *
  * High Level Windowing Utilities.
@@ -910,7 +884,7 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
     win->size_pending[1] = (win->size_pending[1] / scale_curr) * scale_next;
 
     win->scale = scale_next;
-    wl_surface_set_buffer_scale(this->surface(), scale_next);
+    wl_surface_set_buffer_scale(w->wl_surface, scale_next);
     changed = true;
   }
 
@@ -944,24 +918,6 @@ bool GHOST_WindowWayland::outputs_leave(output_t *reg_output)
   }
   outputs.erase(it);
   return true;
-}
-
-bool GHOST_WindowWayland::outputs_enter_wl(const wl_output *output)
-{
-  output_t *reg_output = m_system->output_find_by_wl(output);
-  if (!reg_output) {
-    return false;
-  }
-  return outputs_enter(reg_output);
-}
-
-bool GHOST_WindowWayland::outputs_leave_wl(const wl_output *output)
-{
-  output_t *reg_output = m_system->output_find_by_wl(output);
-  if (!reg_output) {
-    return false;
-  }
-  return outputs_leave(reg_output);
 }
 
 /** \} */
