@@ -862,6 +862,9 @@ void oneapi_iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_ptr)
         device.get_platform().get_info<sycl::info::platform::name>();
     std::string name = device.get_info<sycl::info::device::name>();
     std::string id = "ONEAPI_" + platform_name + "_" + name;
+    if (device.has(sycl::aspect::ext_intel_pci_address)) {
+      id.append("_" + device.get_info<sycl::info::device::ext_intel_pci_address>());
+    }
     (cb)(id.c_str(), name.c_str(), num, user_ptr);
     num++;
   }
