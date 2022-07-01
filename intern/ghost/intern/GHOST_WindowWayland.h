@@ -36,9 +36,9 @@ class GHOST_WindowWayland : public GHOST_Window {
 
   ~GHOST_WindowWayland() override;
 
-  uint16_t getDPIHint() override;
-
   /* Ghost API */
+
+  uint16_t getDPIHint() override;
 
   GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) override;
 
@@ -106,8 +106,7 @@ class GHOST_WindowWayland : public GHOST_Window {
    * Use window find function when the window may have been closed.
    * Typically this is needed when accessing surfaces outside WAYLAND handlers.
    */
-  static const GHOST_WindowWayland *from_surface_find(const wl_surface *surface);
-  static GHOST_WindowWayland *from_surface_find_mut(const wl_surface *surface);
+  static GHOST_WindowWayland *from_surface_find(const wl_surface *surface);
   /**
    * Use direct access when from WAYLAND handlers.
    */

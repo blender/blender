@@ -598,20 +598,15 @@ GHOST_WindowWayland::~GHOST_WindowWayland()
   xdg_surface_destroy(w->xdg_surface);
 #endif
 
+  /* Clear any pointers to this window. This is needed because there are no guarantees
+   * that flushing the display will the "leave" handlers before handling events. */
+  m_system->window_surface_unref(w->wl_surface);
+
   wl_surface_destroy(w->wl_surface);
 
-  /* NOTE(@campbellbarton): This is needed so the appropriate handlers event
-   * (#wl_surface_listener.leave in particular) run to prevent access to the freed surfaces.
-   * Without flushing the display, calling #getCursorPosition immediately after closing a window
-   * causes dangling #wl_surface pointers to be accessed
-   * (since the window is used for scaling the cursor position).
-   *
-   * An alternative solution would be to clear all internal pointers that reference this window.
-   * Even though this is reasonable it introduces a 3rd state that needs to be accounted for,
-   * where values are cleared before they have been set to their new values.
-   * Any information requested in this state (such as the cursor position) won't be valid and
-   * could cause difficult to reproduce bugs. So perform a round-trip as closing a window isn't
-   * an action that runs continuously & isn't likely to cause unnecessary overhead. See: T99078. */
+  /* NOTE(@campbellbarton): Flushing will often run the appropriate handlers event
+   * (#wl_surface_listener.leave in particular) to avoid attempted access to the freed surfaces.
+   * This is not fool-proof though, hence the call to #window_surface_unref, see: T99078. */
   wl_display_flush(m_system->display());
 
   delete w;
@@ -815,7 +810,7 @@ const std::vector<output_t *> &GHOST_WindowWayland::outputs()
 /** \name Public WAYLAND Query Access
  * \{ */
 
-GHOST_WindowWayland *GHOST_WindowWayland::from_surface_find_mut(const wl_surface *surface)
+GHOST_WindowWayland *GHOST_WindowWayland::from_surface_find(const wl_surface *surface)
 {
   GHOST_ASSERT(surface, "argument must not be NULL");
   for (GHOST_IWindow *iwin : window_manager->getWindows()) {
@@ -827,16 +822,12 @@ GHOST_WindowWayland *GHOST_WindowWayland::from_surface_find_mut(const wl_surface
   return nullptr;
 }
 
-const GHOST_WindowWayland *GHOST_WindowWayland::from_surface_find(const wl_surface *surface)
-{
-  return GHOST_WindowWayland::from_surface_find_mut(surface);
-}
-
 GHOST_WindowWayland *GHOST_WindowWayland::from_surface_mut(wl_surface *surface)
 {
+  GHOST_ASSERT(surface, "argument must not be NULL");
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(wl_surface_get_user_data(surface));
-  GHOST_ASSERT(win == GHOST_WindowWayland::from_surface_find_mut(surface),
-               "Inconsistent window state, consider using \"from_surface_find_mut\"");
+  GHOST_ASSERT(win == GHOST_WindowWayland::from_surface_find(surface),
+               "Inconsistent window state, consider using \"from_surface_find\"");
   return win;
 }
 

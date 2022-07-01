@@ -159,6 +159,9 @@ class GHOST_SystemWayland : public GHOST_System {
 
   void selection_set(const std::string &selection);
 
+  /** Clear all references to this surface to prevent accessing NULL pointers. */
+  void window_surface_unref(const wl_surface *surface);
+
  private:
   struct display_t *d;
   std::string selection;
