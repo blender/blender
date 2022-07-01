@@ -271,6 +271,8 @@ struct input_t {
 #ifdef USE_GNOME_CONFINE_HACK
   bool use_pointer_software_confine = false;
 #endif
+  /** The cursor location (in pixel-space) when hidden grab started (#GHOST_kGrabHide). */
+  wl_fixed_t grab_lock_xy[2] = {0, 0};
 
   struct cursor_t cursor;
 
@@ -3281,6 +3283,7 @@ static input_grab_state_t input_grab_state_from_mode(const GHOST_TGrabCursorMode
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mode,
                                                   const GHOST_TGrabCursorMode mode_current,
+                                                  int32_t init_grab_xy[2],
                                                   wl_surface *surface)
 {
   /* Ignore, if the required protocols are not supported. */
@@ -3370,6 +3373,20 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
             input->locked_pointer, xy_new[0], xy_new[1]);
         wl_surface_commit(surface);
       }
+      else if (mode_current == GHOST_kGrabHide) {
+        if ((init_grab_xy[0] != input->grab_lock_xy[0]) ||
+            (init_grab_xy[1] != input->grab_lock_xy[1])) {
+          GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(surface);
+          const int scale = win->scale();
+          const wl_fixed_t xy_next[2] = {
+              wl_fixed_from_int(init_grab_xy[0]) / scale,
+              wl_fixed_from_int(init_grab_xy[1]) / scale,
+          };
+          zwp_locked_pointer_v1_set_cursor_position_hint(
+              input->locked_pointer, xy_next[0], xy_next[1]);
+          wl_surface_commit(surface);
+        }
+      }
 #ifdef USE_GNOME_CONFINE_HACK
       else if (mode_current == GHOST_kGrabNormal) {
         if (was_software_confine) {
@@ -3409,6 +3426,16 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
             input->wl_pointer,
             nullptr,
             ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+      }
+      if (mode == GHOST_kGrabHide) {
+        /* Set the initial position to detect any changes when un-grabbing,
+         * otherwise the unlocked cursor defaults to un-locking in-place. */
+        GHOST_WindowWayland *win = GHOST_WindowWayland::from_surface_mut(surface);
+        const int scale = win->scale();
+        init_grab_xy[0] = wl_fixed_to_int(scale * input->pointer.xy[0]);
+        init_grab_xy[1] = wl_fixed_to_int(scale * input->pointer.xy[1]);
+        input->grab_lock_xy[0] = init_grab_xy[0];
+        input->grab_lock_xy[1] = init_grab_xy[1];
       }
     }
     else if (grab_state_next.use_confine) {

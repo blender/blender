@@ -484,7 +484,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
 {
-  return m_system->setCursorGrab(mode, m_cursorGrab, w->wl_surface);
+  return m_system->setCursorGrab(mode, m_cursorGrab, m_cursorGrabInitPos, w->wl_surface);
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor shape)

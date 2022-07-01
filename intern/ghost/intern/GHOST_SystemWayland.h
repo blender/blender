@@ -132,6 +132,7 @@ class GHOST_SystemWayland : public GHOST_System {
 
   GHOST_TSuccess setCursorGrab(const GHOST_TGrabCursorMode mode,
                                const GHOST_TGrabCursorMode mode_current,
+                               int32_t init_grab_xy[2],
                                wl_surface *surface);
 
   /* WAYLAND direct-data access. */
