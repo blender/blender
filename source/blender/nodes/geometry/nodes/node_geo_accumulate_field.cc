@@ -223,8 +223,8 @@ template<typename T> class AccumulateFieldInput final : public GeometryFieldInpu
     evaluator.add(input_);
     evaluator.add(group_index_);
     evaluator.evaluate();
-    const VArray<T> &values = evaluator.get_evaluated<T>(0);
-    const VArray<int> &group_indices = evaluator.get_evaluated<int>(1);
+    const VArray<T> values = evaluator.get_evaluated<T>(0);
+    const VArray<int> group_indices = evaluator.get_evaluated<int>(1);
 
     Array<T> accumulations_out(domain_num);
 
@@ -309,8 +309,8 @@ template<typename T> class TotalFieldInput final : public GeometryFieldInput {
     evaluator.add(input_);
     evaluator.add(group_index_);
     evaluator.evaluate();
-    const VArray<T> &values = evaluator.get_evaluated<T>(0);
-    const VArray<int> &group_indices = evaluator.get_evaluated<int>(1);
+    const VArray<T> values = evaluator.get_evaluated<T>(0);
+    const VArray<int> group_indices = evaluator.get_evaluated<int>(1);
 
     if (group_indices.is_single()) {
       T accumulation = T();

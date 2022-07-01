@@ -59,7 +59,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
 
   const VArray<float3> &positions = evaluator.get_evaluated<float3>(0);
   copy_attribute_to_points(positions, selection, {(float3 *)pointcloud->co, pointcloud->totpoint});
-  const VArray<float> &radii = evaluator.get_evaluated<float>(1);
+  const VArray<float> radii = evaluator.get_evaluated<float>(1);
   copy_attribute_to_points(radii, selection, {pointcloud->radius, pointcloud->totpoint});
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;

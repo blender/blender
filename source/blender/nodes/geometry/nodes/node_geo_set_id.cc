@@ -42,7 +42,7 @@ static void set_id_in_component(GeometryComponent &component,
     evaluator.add(id_field);
     evaluator.evaluate();
     const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-    const VArray<int> &result_ids = evaluator.get_evaluated<int>(0);
+    const VArray<int> result_ids = evaluator.get_evaluated<int>(0);
     OutputAttribute_Typed<int> id_attribute = component.attribute_try_get_for_output_only<int>(
         "id", domain);
     result_ids.materialize(selection, id_attribute.as_span());

@@ -37,7 +37,7 @@ class HandlePositionFieldInput final : public GeometryFieldInput {
     fn::FieldEvaluator evaluator(field_context, &mask);
     evaluator.add(relative_);
     evaluator.evaluate();
-    const VArray<bool> &relative = evaluator.get_evaluated<bool>(0);
+    const VArray<bool> relative = evaluator.get_evaluated<bool>(0);
 
     VArray<float3> positions = component.attribute_get_for_read<float3>(
         "position", ATTR_DOMAIN_POINT, {0, 0, 0});

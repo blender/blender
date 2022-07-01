@@ -31,9 +31,9 @@ static void scale_instances(GeoNodeExecParams &params, InstancesComponent &insta
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  const VArray<float3> &scales = evaluator.get_evaluated<float3>(0);
-  const VArray<float3> &pivots = evaluator.get_evaluated<float3>(1);
-  const VArray<bool> &local_spaces = evaluator.get_evaluated<bool>(2);
+  const VArray<float3> scales = evaluator.get_evaluated<float3>(0);
+  const VArray<float3> pivots = evaluator.get_evaluated<float3>(1);
+  const VArray<bool> local_spaces = evaluator.get_evaluated<bool>(2);
 
   MutableSpan<float4x4> instance_transforms = instances_component.instance_transforms();
 
