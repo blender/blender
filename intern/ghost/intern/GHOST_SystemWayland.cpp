@@ -2789,14 +2789,18 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GLSettings /*g
 {
   /* Create new off-screen window. */
   wl_surface *wl_surface = wl_compositor_create_surface(compositor());
-  wl_egl_window *egl_window = wl_egl_window_create(wl_surface, int(1), int(1));
+  wl_egl_window *egl_window = wl_surface ? wl_egl_window_create(wl_surface, 1, 1) : nullptr;
 
   GHOST_Context *context = createOffscreenContext_impl(this, d->display, egl_window);
 
   if (!context) {
     GHOST_PRINT("Cannot create off-screen EGL context" << std::endl);
-    wl_surface_destroy(wl_surface);
-    wl_egl_window_destroy(egl_window);
+    if (wl_surface) {
+      wl_surface_destroy(wl_surface);
+    }
+    if (egl_window) {
+      wl_egl_window_destroy(egl_window);
+    }
     return nullptr;
   }
 
