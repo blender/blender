@@ -62,7 +62,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 {
   const int count = params.extract_input<int>("Count");
   if (count <= 0) {
-    params.error_message_add(NodeWarningType::Warning, TIP_("Point count should be at least 1"));
     params.set_default_remaining_outputs();
     return;
   }
