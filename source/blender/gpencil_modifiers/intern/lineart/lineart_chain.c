@@ -725,8 +725,9 @@ void MOD_lineart_chain_split_for_fixed_occlusion(LineartData *ld)
       }
     }
   }
-  /* Get rid of those very short "zig-zag" lines that jumps around visibility. */
-  MOD_lineart_chain_discard_short(ld, DBL_EDGE_LIM);
+
+  MOD_lineart_chain_discard_unused(ld, DBL_EDGE_LIM, ld->conf.max_occlusion_level);
+
   LISTBASE_FOREACH (LineartEdgeChain *, iec, &ld->chains) {
     lineart_bounding_area_link_chain(ld, iec);
   }
@@ -1018,12 +1019,14 @@ float MOD_lineart_chain_compute_length(LineartEdgeChain *ec)
   return offset_accum;
 }
 
-void MOD_lineart_chain_discard_short(LineartData *ld, const float threshold)
+void MOD_lineart_chain_discard_unused(LineartData *ld,
+                                      const float threshold,
+                                      uint8_t max_occlusion)
 {
   LineartEdgeChain *ec, *next_ec;
   for (ec = ld->chains.first; ec; ec = next_ec) {
     next_ec = ec->next;
-    if (MOD_lineart_chain_compute_length(ec) < threshold) {
+    if (ec->level > max_occlusion || MOD_lineart_chain_compute_length(ec) < threshold) {
       BLI_remlink(&ld->chains, ec);
     }
   }

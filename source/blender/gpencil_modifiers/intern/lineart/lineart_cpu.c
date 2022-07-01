@@ -494,10 +494,10 @@ static bool lineart_point_inside_triangle(const double v[2],
                                           const double v1[2],
                                           const double v2[2])
 {
-  double cl, c;
+  double cl, c, cl0;
 
   cl = (v0[0] - v[0]) * (v1[1] - v[1]) - (v0[1] - v[1]) * (v1[0] - v[0]);
-  c = cl;
+  c = cl0 = cl;
 
   cl = (v1[0] - v[0]) * (v2[1] - v[1]) - (v1[1] - v[1]) * (v2[0] - v[0]);
   if (c * cl <= 0) {
@@ -513,8 +513,7 @@ static bool lineart_point_inside_triangle(const double v[2],
 
   c = cl;
 
-  cl = (v0[0] - v[0]) * (v1[1] - v[1]) - (v0[1] - v[1]) * (v1[0] - v[0]);
-  if (c * cl <= 0) {
+  if (c * cl0 <= 0) {
     return false;
   }
 
@@ -3972,7 +3971,7 @@ static void lineart_bounding_area_split(LineartData *ld,
     BLI_spin_init(&ba[i].lock);
   }
 
-  for (int i = 0; i < root->triangle_count; i++) {
+  for (uint32_t i = 0; i < root->triangle_count; i++) {
     LineartTriangle *tri = root->linked_triangles[i];
 
     double b[4];
@@ -4011,10 +4010,8 @@ static bool lineart_bounding_area_edge_intersect(LineartData *UNUSED(fb),
   double converted[4];
   double c1, c;
 
-  if (((converted[0] = (double)ba->l) > MAX2(l[0], r[0])) ||
-      ((converted[1] = (double)ba->r) < MIN2(l[0], r[0])) ||
-      ((converted[2] = (double)ba->b) > MAX2(l[1], r[1])) ||
-      ((converted[3] = (double)ba->u) < MIN2(l[1], r[1]))) {
+  if (((converted[0] = ba->l) > MAX2(l[0], r[0])) || ((converted[1] = ba->r) < MIN2(l[0], r[0])) ||
+      ((converted[2] = ba->b) > MAX2(l[1], r[1])) || ((converted[3] = ba->u) < MIN2(l[1], r[1]))) {
     return false;
   }
 
@@ -4047,21 +4044,25 @@ static bool lineart_bounding_area_edge_intersect(LineartData *UNUSED(fb),
 
 static bool lineart_bounding_area_triangle_intersect(LineartData *fb,
                                                      LineartTriangle *tri,
-                                                     LineartBoundingArea *ba)
+                                                     LineartBoundingArea *ba,
+                                                     bool *r_triangle_vert_inside)
 {
   double p1[2], p2[2], p3[2], p4[2];
   double *FBC1 = tri->v[0]->fbcoord, *FBC2 = tri->v[1]->fbcoord, *FBC3 = tri->v[2]->fbcoord;
 
-  p3[0] = p1[0] = (double)ba->l;
-  p2[1] = p1[1] = (double)ba->b;
-  p2[0] = p4[0] = (double)ba->r;
-  p3[1] = p4[1] = (double)ba->u;
+  p3[0] = p1[0] = ba->l;
+  p2[1] = p1[1] = ba->b;
+  p2[0] = p4[0] = ba->r;
+  p3[1] = p4[1] = ba->u;
 
   if ((FBC1[0] >= p1[0] && FBC1[0] <= p2[0] && FBC1[1] >= p1[1] && FBC1[1] <= p3[1]) ||
       (FBC2[0] >= p1[0] && FBC2[0] <= p2[0] && FBC2[1] >= p1[1] && FBC2[1] <= p3[1]) ||
       (FBC3[0] >= p1[0] && FBC3[0] <= p2[0] && FBC3[1] >= p1[1] && FBC3[1] <= p3[1])) {
+    *r_triangle_vert_inside = true;
     return true;
   }
+
+  *r_triangle_vert_inside = false;
 
   if (lineart_point_inside_triangle(p1, FBC1, FBC2, FBC3) ||
       lineart_point_inside_triangle(p2, FBC1, FBC2, FBC3) ||
@@ -4101,7 +4102,8 @@ static void lineart_bounding_area_link_triangle(LineartData *ld,
                                                 bool do_intersection,
                                                 struct LineartIsecThread *th)
 {
-  if (!lineart_bounding_area_triangle_intersect(ld, tri, root_ba)) {
+  bool triangle_vert_inside;
+  if (!lineart_bounding_area_triangle_intersect(ld, tri, root_ba, &triangle_vert_inside)) {
     return;
   }
 
@@ -4138,7 +4140,12 @@ static void lineart_bounding_area_link_triangle(LineartData *ld,
   if (old_ba->triangle_count < old_ba->max_triangle_count) {
     const uint32_t old_tri_count = old_ba->triangle_count;
 
-    old_ba->linked_triangles[old_ba->triangle_count++] = tri;
+    old_ba->linked_triangles[old_tri_count] = tri;
+
+    if (triangle_vert_inside) {
+      old_ba->insider_triangle_count++;
+    }
+    old_ba->triangle_count++;
 
     /* Do intersections in place. */
     if (do_intersection && ld->conf.use_intersections) {
@@ -4151,7 +4158,8 @@ static void lineart_bounding_area_link_triangle(LineartData *ld,
   }
   else { /* We need to wait for either splitting or array extension to be done. */
 
-    if (recursive_level < ld->qtree.recursive_level) {
+    if (recursive_level < ld->qtree.recursive_level &&
+        old_ba->insider_triangle_count >= LRT_TILE_SPLITTING_TRIANGLE_LIMIT) {
       if (!old_ba->child) {
         /* old_ba->child==NULL, means we are the thread that's doing the splitting. */
         lineart_bounding_area_split(ld, old_ba, recursive_level);
@@ -4269,6 +4277,62 @@ void lineart_main_link_lines(LineartData *ld)
     }
   }
   LRT_ITER_ALL_LINES_END
+}
+
+static void lineart_main_remove_unused_lines_recursive(LineartBoundingArea *ba,
+                                                       uint8_t max_occlusion)
+{
+  if (ba->child) {
+    for (int i = 0; i < 4; i++) {
+      lineart_main_remove_unused_lines_recursive(&ba->child[i], max_occlusion);
+    }
+    return;
+  }
+
+  if (!ba->line_count) {
+    return;
+  }
+
+  int usable_count = 0;
+  for (int i = 0; i < ba->line_count; i++) {
+    LineartEdge *e = ba->linked_lines[i];
+    if (e->min_occ > max_occlusion) {
+      continue;
+    }
+    usable_count++;
+  }
+
+  if (!usable_count) {
+    ba->line_count = 0;
+    return;
+  }
+
+  LineartEdge **new_array = MEM_callocN(sizeof(LineartEdge *) * usable_count,
+                                        "cleaned lineart edge array");
+
+  int new_i = 0;
+  for (int i = 0; i < ba->line_count; i++) {
+    LineartEdge *e = ba->linked_lines[i];
+    if (e->min_occ > max_occlusion) {
+      continue;
+    }
+    new_array[new_i] = e;
+    new_i++;
+  }
+
+  MEM_freeN(ba->linked_lines);
+  ba->linked_lines = new_array;
+  ba->max_line_count = ba->line_count = usable_count;
+}
+
+static void lineart_main_remove_unused_lines_from_tiles(LineartData *ld)
+{
+  for (int row = 0; row < ld->qtree.count_y; row++) {
+    for (int col = 0; col < ld->qtree.count_x; col++) {
+      lineart_main_remove_unused_lines_recursive(
+          &ld->qtree.initials[row * ld->qtree.count_x + col], ld->conf.max_occlusion_level);
+    }
+  }
 }
 
 static bool lineart_get_triangle_bounding_areas(
@@ -4997,6 +5061,8 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
 
     lineart_main_make_enclosed_shapes(ld, shadow_rb);
 
+    lineart_main_remove_unused_lines_from_tiles(ld);
+
     /* Chaining is all single threaded. See lineart_chain.c
      * In this particular call, only lines that are geometrically connected (share the _exact_
      * same end point) will be chained together. */
@@ -5009,10 +5075,6 @@ bool MOD_lineart_compute_feature_lines(Depsgraph *depsgraph,
     /* Then we connect chains based on the _proximity_ of their end points in image space, here's
      * the place threshold value gets involved. */
     MOD_lineart_chain_connect(ld);
-
-    float *t_image = &lmd->chaining_image_threshold;
-    /* This configuration ensures there won't be accidental lost of short unchained segments. */
-    MOD_lineart_chain_discard_short(ld, MIN2(*t_image, 0.001f) - FLT_EPSILON);
 
     if (ld->conf.chain_smooth_tolerance > FLT_EPSILON) {
       /* Keeping UI range of 0-1 for ease of read while scaling down the actual value for best
