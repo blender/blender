@@ -61,13 +61,11 @@ struct IndexAttributes {
  * \{ */
 
 static Map<AttributeIDRef, AttributeKind> gather_attributes_without_id(
-    const GeometrySet &geometry_set,
-    const GeometryComponentType component_type,
-    const bool include_instances)
+    const GeometrySet &geometry_set, const GeometryComponentType component_type)
 {
   Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set.gather_attributes_for_propagation(
-      {component_type}, component_type, include_instances, attributes);
+      {component_type}, component_type, false, attributes);
   attributes.remove("id");
   return attributes;
 };
@@ -186,26 +184,21 @@ static void copy_stable_id_point(const Span<int> offsets,
   dst_attribute.save();
 }
 
-/* The attributes for the point (also instance) duplicated elements are stored sequentially
- * (1,1,1,2,2,2,3,3,3,etc) They can be copied by using a simple offset array. For each domain, if
- * elements are ordered differently a custom function is called to copy the attributes.
- */
-
-static void copy_point_attributes_without_id(GeometrySet &geometry_set,
-                                             const GeometryComponentType component_type,
-                                             const bool include_instances,
-                                             const Span<int> offsets,
-                                             const IndexMask selection,
-                                             const GeometryComponent &src_component,
-                                             GeometryComponent &dst_component)
+static void copy_attributes_without_id(GeometrySet &geometry_set,
+                                       const GeometryComponentType component_type,
+                                       const eAttrDomain domain,
+                                       const Span<int> offsets,
+                                       const IndexMask selection,
+                                       const GeometryComponent &src_component,
+                                       GeometryComponent &dst_component)
 {
-  Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
-      geometry_set, component_type, include_instances);
+  const Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
+      geometry_set, component_type);
 
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     ReadAttributeLookup src_attribute = src_component.attribute_try_get_for_read(attribute_id);
-    if (!src_attribute || src_attribute.domain != ATTR_DOMAIN_POINT) {
+    if (!src_attribute || src_attribute.domain != domain) {
       continue;
     }
     eAttrDomain out_domain = src_attribute.domain;
@@ -245,7 +238,7 @@ static void copy_curve_attributes_without_id(const GeometrySet &geometry_set,
                                              CurveComponent &dst_component)
 {
   Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
-      geometry_set, GEO_COMPONENT_TYPE_CURVE, false);
+      geometry_set, GEO_COMPONENT_TYPE_CURVE);
 
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
@@ -426,7 +419,7 @@ static void copy_face_attributes_without_id(GeometrySet &geometry_set,
                                             GeometryComponent &dst_component)
 {
   Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
-      geometry_set, GEO_COMPONENT_TYPE_MESH, false);
+      geometry_set, GEO_COMPONENT_TYPE_MESH);
 
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
@@ -639,7 +632,7 @@ static void copy_edge_attributes_without_id(GeometrySet &geometry_set,
                                             GeometryComponent &dst_component)
 {
   Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
-      geometry_set, GEO_COMPONENT_TYPE_MESH, false);
+      geometry_set, GEO_COMPONENT_TYPE_MESH);
 
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
@@ -840,7 +833,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   dst_component.replace(new_curves_id, GeometryOwnershipType::Editable);
 
   Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
-      geometry_set, GEO_COMPONENT_TYPE_CURVE, false);
+      geometry_set, GEO_COMPONENT_TYPE_CURVE);
 
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
@@ -925,13 +918,13 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
 
   MeshComponent dst_component;
   dst_component.replace(new_mesh, GeometryOwnershipType::Editable);
-  copy_point_attributes_without_id(geometry_set,
-                                   GEO_COMPONENT_TYPE_MESH,
-                                   false,
-                                   offsets,
-                                   selection,
-                                   src_component,
-                                   dst_component);
+  copy_attributes_without_id(geometry_set,
+                             GEO_COMPONENT_TYPE_MESH,
+                             ATTR_DOMAIN_POINT,
+                             offsets,
+                             selection,
+                             src_component,
+                             dst_component);
 
   copy_stable_id_point(offsets, src_component, dst_component);
 
@@ -972,13 +965,13 @@ static void duplicate_points_pointcloud(GeometrySet &geometry_set,
   PointCloudComponent dst_component;
   dst_component.replace(pointcloud, GeometryOwnershipType::Editable);
 
-  copy_point_attributes_without_id(geometry_set,
-                                   GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                   false,
-                                   offsets,
-                                   selection,
-                                   src_points,
-                                   dst_component);
+  copy_attributes_without_id(geometry_set,
+                             GEO_COMPONENT_TYPE_POINT_CLOUD,
+                             ATTR_DOMAIN_POINT,
+                             offsets,
+                             selection,
+                             src_points,
+                             dst_component);
 
   copy_stable_id_point(offsets, src_points, dst_component);
 
@@ -1076,13 +1069,13 @@ static void duplicate_instances(GeometrySet &geometry_set,
     dst_instances.instance_reference_handles().slice(range).fill(new_handle);
   }
 
-  copy_point_attributes_without_id(geometry_set,
-                                   GEO_COMPONENT_TYPE_INSTANCES,
-                                   true,
-                                   offsets,
-                                   selection,
-                                   src_instances,
-                                   dst_instances);
+  copy_attributes_without_id(geometry_set,
+                             GEO_COMPONENT_TYPE_INSTANCES,
+                             ATTR_DOMAIN_INSTANCE,
+                             offsets,
+                             selection,
+                             src_instances,
+                             dst_instances);
 
   if (attribute_outputs.duplicate_index) {
     create_duplicate_index_attribute(
