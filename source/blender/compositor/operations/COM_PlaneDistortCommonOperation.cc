@@ -43,6 +43,11 @@ BLI_INLINE void warp_coord(float x, float y, float matrix[3][3], float uv[2], fl
   uv[0] = vec[0] / vec[2];
   uv[1] = vec[1] / vec[2];
 
+  /* Offset so that pixel center corresponds to a (0.5, 0.5), which helps keeping transformed
+   * image sharp. */
+  uv[0] += 0.5f;
+  uv[1] += 0.5f;
+
   deriv[0][0] = (matrix[0][0] - matrix[0][2] * uv[0]) / vec[2];
   deriv[1][0] = (matrix[0][1] - matrix[0][2] * uv[1]) / vec[2];
   deriv[0][1] = (matrix[1][0] - matrix[1][2] * uv[0]) / vec[2];
