@@ -302,7 +302,7 @@ void GPUCodegen::generate_attribs()
   info.vertex_out(iface);
 
   /* Input declaration, loading / assignment to interface and geometry shader passthrough. */
-  std::stringstream decl_ss, iface_ss, load_ss;
+  std::stringstream load_ss;
 
   int slot = 15;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph.attributes) {
