@@ -300,7 +300,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data_.value_len += data_.aov_value_len;
   }
   {
-    /* TODO(fclem): Overscans. */
+    /* TODO(@fclem): Over-scans. */
 
     render_extent_ = math::divide_ceil(extent, int2(data_.scaling_factor));
     int2 weight_extent = inst_.camera.is_panoramic() ? data_.extent : int2(data_.scaling_factor);

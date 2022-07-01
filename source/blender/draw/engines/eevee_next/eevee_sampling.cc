@@ -83,7 +83,7 @@ void Sampling::step()
     /* TODO(fclem) we could use some persistent states to speedup the computation. */
     double2 r, offset = {0, 0};
     /* Using 2,3 primes as per UE4 Temporal AA presentation.
-     * advances.realtimerendering.com/s2014/epic/TemporalAA.pptx (slide 14) */
+     * http://advances.realtimerendering.com/s2014/epic/TemporalAA.pptx (slide 14) */
     uint2 primes = {2, 3};
     BLI_halton_2d(primes, offset, sample_ + 1, r);
     /* WORKAROUND: We offset the distribution to make the first sample (0,0). This way, we are
@@ -196,12 +196,12 @@ void Sampling::dof_disk_sample_get(float *r_radius, float *r_theta) const
   s = s % dof_sample_count_;
 
   /* Choosing sample to we get faster convergence.
-   * The issue here is that we cannot map a low descripency sequence to this sampling pattern
-   * because the same sample could be choosen twice in relatively short intervals. */
+   * The issue here is that we cannot map a low discrepancy sequence to this sampling pattern
+   * because the same sample could be chosen twice in relatively short intervals. */
   /* For now just use an ascending sequence with an offset. This gives us relatively quick
    * initial coverage and relatively high distance between samples. */
-  /* TODO(fclem) We can try to order samples based on a LDS into a table to avoid duplicates.
-   * The drawback would be some memory consumption and init time. */
+  /* TODO(@fclem) We can try to order samples based on a LDS into a table to avoid duplicates.
+   * The drawback would be some memory consumption and initialize time. */
   int samples_passed = 1;
   while (s >= samples_passed) {
     ring++;

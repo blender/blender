@@ -182,7 +182,7 @@ void Instance::render_sync()
   end_sync();
 
   DRW_render_instance_buffer_finish();
-  /* Also we weed to have a correct fbo bound for DRW_hair_update */
+  /* Also we weed to have a correct FBO bound for #DRW_hair_update */
   // GPU_framebuffer_bind();
   // DRW_hair_update();
 }

@@ -59,9 +59,9 @@ enum eSamplingDimension : uint32_t {
  */
 #define SAMPLING_DIMENSION_COUNT 20
 
-/* NOTE(fclem): Needs to be used in StorageBuffer because of arrays of scalar. */
+/* NOTE(@fclem): Needs to be used in #StorageBuffer because of arrays of scalar. */
 struct SamplingData {
-  /** Array containing random values from Low Discrepency Sequence in [0..1) range. */
+  /** Array containing random values from Low Discrepancy Sequence in [0..1) range. */
   float dimensions[SAMPLING_DIMENSION_COUNT];
 };
 BLI_STATIC_ASSERT_ALIGN(SamplingData, 16)
@@ -149,7 +149,7 @@ struct FilmData {
   int2 extent;
   /** Offset of the film in the full-res frame, in pixels. */
   int2 offset;
-  /** Subpixel offset applied to the window matrix.
+  /** Sub-pixel offset applied to the window matrix.
    * NOTE: In final film pixel unit.
    * NOTE: Positive values makes the view translate in the negative axes direction.
    * NOTE: The origin is the center of the lower left film pixel of the area covered by a render
@@ -236,7 +236,7 @@ static inline float film_filter_weight(float filter_size, float sample_distance_
  * If we find a way to avoid this we could bump this number up. */
 #define AOV_MAX 16
 
-/* NOTE(fclem): Needs to be used in StorageBuffer because of arrays of scalar. */
+/* NOTE(@fclem): Needs to be used in #StorageBuffer because of arrays of scalar. */
 struct AOVsInfoData {
   uint hash_value[AOV_MAX];
   uint hash_color[AOV_MAX];
