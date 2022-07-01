@@ -47,7 +47,7 @@ void create_uniform_samples(const Span<float> lengths,
     const int segment_samples_num = std::ceil(next_length * step_length_inv - i_dst);
     indices.slice(i_dst, segment_samples_num).fill(i_src);
 
-    for (const int i : factors.index_range().slice(i_dst, segment_samples_num)) {
+    for (const int i : IndexRange(i_dst, segment_samples_num)) {
       const float length_in_segment = step_length * i - prev_length;
       factors[i] = length_in_segment * segment_length_inv;
     }
