@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2021-2022 Intel Corporation */
+
 #pragma once
 
 /* Some macro magic to generate templates for kernel arguments.
