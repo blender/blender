@@ -550,12 +550,12 @@ class _draw_tool_settings_context_mode:
             row = layout.row(align=True)
             row.prop(brush.curves_sculpt_settings, "density_mode", text="", expand=True)
             row = layout.row(align=True)
-            row.prop(brush.curves_sculpt_settings, "minimum_distance")
+            row.prop(brush.curves_sculpt_settings, "minimum_distance", text="Distance Min")
             row.operator_context = 'INVOKE_REGION_WIN'
             row.operator("sculpt_curves.min_distance_edit", text="", icon='DRIVER_DISTANCE')
             row = layout.row(align=True)
             row.enabled = brush.curves_sculpt_settings.density_mode != 'REMOVE'
-            row.prop(brush.curves_sculpt_settings, "density_add_attempts", text="Max Count")
+            row.prop(brush.curves_sculpt_settings, "density_add_attempts", text="Count Max")
             layout.popover("VIEW3D_PT_tools_brush_falloff")
             layout.popover("VIEW3D_PT_curves_sculpt_add_shape", text="Curve Shape")
         elif curves_tool == "SLIDE":
