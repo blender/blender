@@ -2,6 +2,7 @@
 
 #include "DNA_mesh_types.h"
 
+#include "BKE_geometry_set_instances.hh"
 #include "BKE_mesh_boolean_convert.hh"
 
 #include "UI_interface.h"

@@ -8,14 +8,11 @@
 #include "BKE_attribute_access.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
-#include "BKE_geometry_set_instances.hh"
 
 #include "DNA_node_types.h"
 
 #include "NOD_derived_node_tree.hh"
 #include "NOD_geometry_nodes_eval_log.hh"
-
-#include "GEO_realize_instances.hh"
 
 struct Depsgraph;
 struct ModifierData;
