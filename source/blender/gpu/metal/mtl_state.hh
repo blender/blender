@@ -30,18 +30,18 @@ class MTLStateManager : public StateManager {
  public:
   MTLStateManager(MTLContext *ctx);
 
-  void apply_state(void) override;
-  void force_state(void) override;
+  void apply_state() override;
+  void force_state() override;
 
   void issue_barrier(eGPUBarrier barrier_bits) override;
 
   void texture_bind(Texture *tex, eGPUSamplerState sampler, int unit) override;
   void texture_unbind(Texture *tex) override;
-  void texture_unbind_all(void) override;
+  void texture_unbind_all() override;
 
   void image_bind(Texture *tex, int unit) override;
   void image_unbind(Texture *tex) override;
-  void image_unbind_all(void) override;
+  void image_unbind_all() override;
 
   void texture_unpack_row_length_set(uint len) override;
 

@@ -194,6 +194,7 @@ set(METAL_SRC
   metal/mtl_command_buffer.mm
   metal/mtl_debug.mm
   metal/mtl_framebuffer.mm
+  metal/mtl_memory.mm
   metal/mtl_state.mm
   metal/mtl_texture.mm
   metal/mtl_texture_util.mm
@@ -204,6 +205,7 @@ set(METAL_SRC
   metal/mtl_context.hh
   metal/mtl_debug.hh
   metal/mtl_framebuffer.hh
+  metal/mtl_memory.hh
   metal/mtl_state.hh
   metal/mtl_texture.hh
 )

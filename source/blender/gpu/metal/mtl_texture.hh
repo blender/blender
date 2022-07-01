@@ -237,7 +237,7 @@ class MTLTexture : public Texture {
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data) override;
 
-  void generate_mipmap(void) override;
+  void generate_mipmap() override;
   void copy_to(Texture *dst) override;
   void clear(eGPUDataFormat format, const void *data) override;
   void swizzle_set(const char swizzle_mask[4]) override;
@@ -248,7 +248,7 @@ class MTLTexture : public Texture {
   void *read(int mip, eGPUDataFormat type) override;
 
   /* Remove once no longer required -- will just return 0 for now in MTL path*/
-  uint gl_bindcode_get(void) const override;
+  uint gl_bindcode_get() const override;
 
   bool texture_is_baked();
   const char *get_name()
@@ -257,7 +257,7 @@ class MTLTexture : public Texture {
   }
 
  protected:
-  bool init_internal(void) override;
+  bool init_internal() override;
   bool init_internal(GPUVertBuf *vbo) override;
   bool init_internal(const GPUTexture *src,
                      int mip_offset,

@@ -19,7 +19,7 @@ namespace blender::gpu {
  * dependencies not being honored for work submitted between
  * different GPUContext's. */
 id<MTLEvent> MTLCommandBufferManager::sync_event = nil;
-unsigned long long MTLCommandBufferManager::event_signal_val = 0;
+uint64_t MTLCommandBufferManager::event_signal_val = 0;
 
 /* Counter for active command buffers. */
 int MTLCommandBufferManager::num_active_cmd_bufs = 0;
@@ -28,10 +28,9 @@ int MTLCommandBufferManager::num_active_cmd_bufs = 0;
 /** \name MTLCommandBuffer initialization and render coordination.
  * \{ */
 
-void MTLCommandBufferManager::prepare(MTLContext *ctx, bool supports_render)
+void MTLCommandBufferManager::prepare(bool supports_render)
 {
-  context_ = ctx;
-  render_pass_state_.prepare(this, ctx);
+  render_pass_state_.reset_state();
 }
 
 void MTLCommandBufferManager::register_encoder_counters()
@@ -54,10 +53,10 @@ id<MTLCommandBuffer> MTLCommandBufferManager::ensure_begin()
       MTLCommandBufferDescriptor *desc = [[MTLCommandBufferDescriptor alloc] init];
       desc.errorOptions = MTLCommandBufferErrorOptionEncoderExecutionStatus;
       desc.retainedReferences = YES;
-      active_command_buffer_ = [context_->queue commandBufferWithDescriptor:desc];
+      active_command_buffer_ = [context_.queue commandBufferWithDescriptor:desc];
     }
     else {
-      active_command_buffer_ = [context_->queue commandBuffer];
+      active_command_buffer_ = [context_.queue commandBuffer];
     }
     [active_command_buffer_ retain];
     MTLCommandBufferManager::num_active_cmd_bufs++;
@@ -66,6 +65,10 @@ id<MTLCommandBuffer> MTLCommandBufferManager::ensure_begin()
     if (this->sync_event != nil) {
       [active_command_buffer_ encodeWaitForEvent:this->sync_event value:this->event_signal_val];
     }
+
+    /* Ensure we begin new Scratch Buffer if we are on a new frame. */
+    MTLScratchBufferManager &mem = context_.memory_manager;
+    mem.ensure_increment_scratch_buffer();
 
     /* Reset Command buffer heuristics. */
     this->reset_counters();
@@ -86,12 +89,15 @@ bool MTLCommandBufferManager::submit(bool wait)
   this->end_active_command_encoder();
   BLI_assert(active_command_encoder_type_ == MTL_NO_COMMAND_ENCODER);
 
+  /* Flush active ScratchBuffer associated with parent MTLContext. */
+  context_.memory_manager.flush_active_scratch_buffer();
+
   /*** Submit Command Buffer. ***/
   /* Strict ordering ensures command buffers are guaranteed to execute after a previous
    * one has completed. Resolves flickering when command buffers are submitted from
    * different MTLContext's. */
   if (MTLCommandBufferManager::sync_event == nil) {
-    MTLCommandBufferManager::sync_event = [context_->device newEvent];
+    MTLCommandBufferManager::sync_event = [context_.device newEvent];
     BLI_assert(MTLCommandBufferManager::sync_event);
     [MTLCommandBufferManager::sync_event retain];
   }
@@ -102,14 +108,27 @@ bool MTLCommandBufferManager::submit(bool wait)
                                       value:MTLCommandBufferManager::event_signal_val];
 
   /* Command buffer lifetime tracking. */
-  /* TODO(Metal): This routine will later be used to track released memory allocations within the
-   * lifetime of a command buffer such that memory is only released once no longer in use. */
-  id<MTLCommandBuffer> cmd_buffer_ref = [active_command_buffer_ retain];
+  /* Increment current MTLSafeFreeList reference counter to flag MTLBuffers freed within
+   * the current command buffer lifetime as used.
+   * This ensures that in-use resources are not prematurely de-referenced and returned to the
+   * available buffer pool while they are in-use by the GPU. */
+  MTLSafeFreeList *cmd_free_buffer_list =
+      MTLContext::get_global_memory_manager().get_current_safe_list();
+  BLI_assert(cmd_free_buffer_list);
+  cmd_free_buffer_list->increment_reference();
+
+  id<MTLCommandBuffer> cmd_buffer_ref = active_command_buffer_;
+  [cmd_buffer_ref retain];
+
   [cmd_buffer_ref addCompletedHandler:^(id<MTLCommandBuffer> cb) {
+    /* Upon command buffer completion, decrement MTLSafeFreeList reference count
+     * to allow buffers no longer in use by this CommandBuffer to be freed. */
+    cmd_free_buffer_list->decrement_reference();
+
     /* Release command buffer after completion callback handled. */
     [cmd_buffer_ref release];
 
-    /* Decrement active cmd buffer count. */
+    /* Decrement count. */
     MTLCommandBufferManager::num_active_cmd_bufs--;
   }];
 
@@ -516,15 +535,6 @@ bool MTLCommandBufferManager::insert_memory_barrier(eGPUBarrier barrier_bits,
 /* -------------------------------------------------------------------- */
 /** \name Render Pass State for active RenderCommandEncoder
  * \{ */
-
-/* Metal Render Pass State. */
-void MTLRenderPassState::prepare(MTLCommandBufferManager *cmd, MTLContext *mtl_ctx)
-{
-  this->cmd = cmd;
-  this->ctx = mtl_ctx;
-  this->reset_state();
-}
-
 /* Reset binding state when a new RenderCommandEncoder is bound, to ensure
  * pipeline resources are re-applied to the new Encoder.
  * NOTE: In Metal, state is only persistent within an MTLCommandEncoder,
@@ -539,12 +549,12 @@ void MTLRenderPassState::reset_state()
   this->last_bound_shader_state.set(nullptr, 0);
 
   /* Other states. */
-  MTLFrameBuffer *fb = this->cmd->get_active_framebuffer();
+  MTLFrameBuffer *fb = this->cmd.get_active_framebuffer();
   this->last_used_stencil_ref_value = 0;
   this->last_scissor_rect = {0,
                              0,
-                             (unsigned long)((fb != nullptr) ? fb->get_width() : 0),
-                             (unsigned long)((fb != nullptr) ? fb->get_height() : 0)};
+                             (uint)((fb != nullptr) ? fb->get_width() : 0),
+                             (uint)((fb != nullptr) ? fb->get_height() : 0)};
 
   /* Reset cached resource binding state */
   for (int ubo = 0; ubo < MTL_MAX_UNIFORM_BUFFER_BINDINGS; ubo++) {
@@ -573,7 +583,7 @@ void MTLRenderPassState::reset_state()
 void MTLRenderPassState::bind_vertex_texture(id<MTLTexture> tex, uint slot)
 {
   if (this->cached_vertex_texture_bindings[slot].metal_texture != tex) {
-    id<MTLRenderCommandEncoder> rec = this->cmd->get_active_render_command_encoder();
+    id<MTLRenderCommandEncoder> rec = this->cmd.get_active_render_command_encoder();
     BLI_assert(rec != nil);
     [rec setVertexTexture:tex atIndex:slot];
     this->cached_vertex_texture_bindings[slot].metal_texture = tex;
@@ -583,7 +593,7 @@ void MTLRenderPassState::bind_vertex_texture(id<MTLTexture> tex, uint slot)
 void MTLRenderPassState::bind_fragment_texture(id<MTLTexture> tex, uint slot)
 {
   if (this->cached_fragment_texture_bindings[slot].metal_texture != tex) {
-    id<MTLRenderCommandEncoder> rec = this->cmd->get_active_render_command_encoder();
+    id<MTLRenderCommandEncoder> rec = this->cmd.get_active_render_command_encoder();
     BLI_assert(rec != nil);
     [rec setFragmentTexture:tex atIndex:slot];
     this->cached_fragment_texture_bindings[slot].metal_texture = tex;

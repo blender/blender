@@ -478,23 +478,6 @@ void gpu::MTLTexture::update_sub(
     MTLPixelFormat destination_format = gpu_texture_format_to_metal(format_);
     int expected_dst_bytes_per_pixel = get_mtl_format_bytesize(destination_format);
     int destination_num_channels = get_mtl_format_num_components(destination_format);
-    int destination_totalsize = 0;
-    switch (this->dimensions_count()) {
-      case 1:
-        destination_totalsize = expected_dst_bytes_per_pixel * max_ii(expected_update_w, 1);
-        break;
-      case 2:
-        destination_totalsize = expected_dst_bytes_per_pixel * max_ii(expected_update_w, 1) *
-                                max_ii(extent[1], 1);
-        break;
-      case 3:
-        destination_totalsize = expected_dst_bytes_per_pixel * max_ii(expected_update_w, 1) *
-                                max_ii(extent[1], 1) * max_ii(extent[2], 1);
-        break;
-      default:
-        BLI_assert(false);
-        break;
-    }
 
     /* Prepare specialisation struct (For texture update routine). */
     TextureUpdateRoutineSpecialisation compute_specialisation_kernel = {
@@ -568,12 +551,12 @@ void gpu::MTLTexture::update_sub(
 
     /* Prepare staging buffer for data. */
     id<MTLBuffer> staging_buffer = nil;
-    unsigned long long staging_buffer_offset = 0;
+    uint64_t staging_buffer_offset = 0;
 
     /* Fetch allocation from scratch buffer. */
-    MTLTemporaryBufferRange allocation; /* TODO(Metal): Metal Memory manager. */
-    /* = ctx->get_memory_manager().scratch_buffer_allocate_range_aligned(totalsize, 256);*/
-    memcpy(allocation.host_ptr, data, totalsize);
+    MTLTemporaryBuffer allocation =
+        ctx->get_scratchbuffer_manager().scratch_buffer_allocate_range_aligned(totalsize, 256);
+    memcpy(allocation.data, data, totalsize);
     staging_buffer = allocation.metal_buffer;
     staging_buffer_offset = allocation.buffer_offset;
 
@@ -915,7 +898,7 @@ void gpu::MTLTexture::ensure_mipmaps(int miplvl)
   this->mip_range_set(0, mipmaps_);
 }
 
-void gpu::MTLTexture::generate_mipmap(void)
+void gpu::MTLTexture::generate_mipmap()
 {
   /* Fetch Active Context. */
   MTLContext *ctx = reinterpret_cast<MTLContext *>(GPU_context_active_get());
@@ -1230,7 +1213,7 @@ void gpu::MTLTexture::read_internal(int mip,
   destination_buffer = [ctx->device newBufferWithLength:max_ii(total_bytes, 256)
                                                 options:bufferOptions];
   destination_offset = 0;
-  destination_buffer_host_ptr = (void *)((unsigned char *)([destination_buffer contents]) +
+  destination_buffer_host_ptr = (void *)((uint8_t *)([destination_buffer contents]) +
                                          destination_offset);
 
   /* Prepare specialisation struct (For non-trivial texture read routine). */
@@ -1444,12 +1427,12 @@ void gpu::MTLTexture::read_internal(int mip,
 }
 
 /* Remove once no longer required -- will just return 0 for now in MTL path. */
-uint gpu::MTLTexture::gl_bindcode_get(void) const
+uint gpu::MTLTexture::gl_bindcode_get() const
 {
   return 0;
 }
 
-bool gpu::MTLTexture::init_internal(void)
+bool gpu::MTLTexture::init_internal()
 {
   if (format_ == GPU_DEPTH24_STENCIL8) {
     /* Apple Silicon requires GPU_DEPTH32F_STENCIL8 instead of GPU_DEPTH24_STENCIL8. */

@@ -756,7 +756,7 @@ void MTLFrameBuffer::update_attachments(bool update_viewport)
   dirty_attachments_ = false;
 }
 
-void MTLFrameBuffer::apply_state(void)
+void MTLFrameBuffer::apply_state()
 {
   MTLContext *mtl_ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   BLI_assert(mtl_ctx);
