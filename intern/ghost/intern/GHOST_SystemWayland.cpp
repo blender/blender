@@ -1162,7 +1162,7 @@ static void data_device_handle_selection(void *data,
 
     {
       std::lock_guard lock{system_selection_mutex};
-      system->setSelection(data);
+      system->selection_set(data);
     }
   };
 
@@ -2424,9 +2424,9 @@ static const struct wl_registry_listener registry_listener = {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Ghost Implementation
+/** \name GHOST Implementation
  *
- * Wayland specific implementation of the GHOST_System interface.
+ * WAYLAND specific implementation of the #GHOST_System interface.
  * \{ */
 
 GHOST_SystemWayland::GHOST_SystemWayland() : GHOST_System(), d(new display_t)
@@ -2847,52 +2847,6 @@ GHOST_IWindow *GHOST_SystemWayland::createWindow(const char *title,
   }
 
   return window;
-}
-
-wl_display *GHOST_SystemWayland::display()
-{
-  return d->display;
-}
-
-wl_compositor *GHOST_SystemWayland::compositor()
-{
-  return d->compositor;
-}
-
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-
-libdecor *GHOST_SystemWayland::decor_context()
-{
-  return d->decor_context;
-}
-
-#else /* WITH_GHOST_WAYLAND_LIBDECOR */
-
-xdg_wm_base *GHOST_SystemWayland::xdg_shell()
-{
-  return d->xdg_shell;
-}
-
-zxdg_decoration_manager_v1 *GHOST_SystemWayland::xdg_decoration_manager()
-{
-  return d->xdg_decoration_manager;
-}
-
-#endif /* !WITH_GHOST_WAYLAND_LIBDECOR */
-
-const std::vector<output_t *> &GHOST_SystemWayland::outputs() const
-{
-  return d->outputs;
-}
-
-wl_shm *GHOST_SystemWayland::shm() const
-{
-  return d->shm;
-}
-
-void GHOST_SystemWayland::setSelection(const std::string &selection)
-{
-  this->selection = selection;
 }
 
 /**
@@ -3461,6 +3415,84 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
 #endif
 
   return GHOST_kSuccess;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public WAYLAND Direct Data Access
+ *
+ * Expose some members via methods.
+ * \{ */
+
+wl_display *GHOST_SystemWayland::display()
+{
+  return d->display;
+}
+
+wl_compositor *GHOST_SystemWayland::compositor()
+{
+  return d->compositor;
+}
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+
+libdecor *GHOST_SystemWayland::decor_context()
+{
+  return d->decor_context;
+}
+
+#else /* WITH_GHOST_WAYLAND_LIBDECOR */
+
+xdg_wm_base *GHOST_SystemWayland::xdg_shell()
+{
+  return d->xdg_shell;
+}
+
+zxdg_decoration_manager_v1 *GHOST_SystemWayland::xdg_decoration_manager()
+{
+  return d->xdg_decoration_manager;
+}
+
+#endif /* !WITH_GHOST_WAYLAND_LIBDECOR */
+
+const std::vector<output_t *> &GHOST_SystemWayland::outputs() const
+{
+  return d->outputs;
+}
+
+wl_shm *GHOST_SystemWayland::shm() const
+{
+  return d->shm;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public WAYLAND Query Access
+ * \{ */
+
+output_t *GHOST_SystemWayland::output_find_by_wl(const struct wl_output *output) const
+{
+  for (output_t *reg_output : this->outputs()) {
+    if (reg_output->wl_output == output) {
+      return reg_output;
+    }
+  }
+  return nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public WAYLAND Utility Functions
+ *
+ * Functionality only used for the WAYLAND implementation.
+ * \{ */
+
+void GHOST_SystemWayland::selection_set(const std::string &selection)
+{
+  this->selection = selection;
 }
 
 /** \} */

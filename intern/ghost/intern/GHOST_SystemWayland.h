@@ -109,23 +109,6 @@ class GHOST_SystemWayland : public GHOST_System {
                               const bool is_dialog,
                               const GHOST_IWindow *parentWindow) override;
 
-  wl_display *display();
-
-  wl_compositor *compositor();
-
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-  libdecor *decor_context();
-#else
-  xdg_wm_base *xdg_shell();
-  zxdg_decoration_manager_v1 *xdg_decoration_manager();
-#endif
-
-  const std::vector<output_t *> &outputs() const;
-
-  wl_shm *shm() const;
-
-  void setSelection(const std::string &selection);
-
   GHOST_TSuccess setCursorShape(GHOST_TStandardCursor shape);
 
   GHOST_TSuccess hasCursorShape(GHOST_TStandardCursor cursorShape);
@@ -150,6 +133,31 @@ class GHOST_SystemWayland : public GHOST_System {
   GHOST_TSuccess setCursorGrab(const GHOST_TGrabCursorMode mode,
                                const GHOST_TGrabCursorMode mode_current,
                                wl_surface *surface);
+
+  /* WAYLAND direct-data access. */
+
+  wl_display *display();
+
+  wl_compositor *compositor();
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  libdecor *decor_context();
+#else
+  xdg_wm_base *xdg_shell();
+  zxdg_decoration_manager_v1 *xdg_decoration_manager();
+#endif
+
+  const std::vector<output_t *> &outputs() const;
+
+  wl_shm *shm() const;
+
+  /* WAYLAND query access. */
+
+  output_t *output_find_by_wl(const struct wl_output *output) const;
+
+  /* WAYLAND utility functions. */
+
+  void selection_set(const std::string &selection);
 
  private:
   struct display_t *d;

@@ -93,17 +93,14 @@ class GHOST_WindowWayland : public GHOST_Window {
   void setOpaque() const;
 #endif
 
-  /* WAYLAND utility functions. */
+  /* WAYLAND direct-data access. */
 
-  GHOST_TSuccess close();
-
-  GHOST_TSuccess activate();
-
-  GHOST_TSuccess deactivate();
-
-  GHOST_TSuccess notify_size();
-
+  uint16_t dpi() const;
+  int scale() const;
   struct wl_surface *surface() const;
+  const std::vector<output_t *> &outputs();
+
+  /* WAYLAND query access. */
 
   /**
    * Use window find function when the window may have been closed.
@@ -117,17 +114,21 @@ class GHOST_WindowWayland : public GHOST_Window {
   static const GHOST_WindowWayland *from_surface(const wl_surface *surface);
   static GHOST_WindowWayland *from_surface_mut(wl_surface *surface);
 
-  output_t *output_find_by_wl(struct wl_output *output);
+  /* WAYLAND window-level functions. */
 
-  const std::vector<output_t *> &outputs();
+  GHOST_TSuccess close();
+  GHOST_TSuccess activate();
+  GHOST_TSuccess deactivate();
+  GHOST_TSuccess notify_size();
+
+  /* WAYLAND utility functions. */
 
   bool outputs_enter(output_t *reg_output);
   bool outputs_leave(output_t *reg_output);
+  bool outputs_enter_wl(const struct wl_output *output);
+  bool outputs_leave_wl(const struct wl_output *output);
+
   bool outputs_changed_update_scale();
-
-  uint16_t dpi() const;
-
-  int scale() const;
 
  private:
   GHOST_SystemWayland *m_system;
