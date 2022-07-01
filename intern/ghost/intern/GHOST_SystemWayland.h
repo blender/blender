@@ -130,11 +130,6 @@ class GHOST_SystemWayland : public GHOST_System {
 
   bool getCursorGrabUseSoftwareDisplay(const GHOST_TGrabCursorMode mode);
 
-  GHOST_TSuccess setCursorGrab(const GHOST_TGrabCursorMode mode,
-                               const GHOST_TGrabCursorMode mode_current,
-                               int32_t init_grab_xy[2],
-                               wl_surface *surface);
-
   /* WAYLAND direct-data access. */
 
   wl_display *display();
@@ -162,6 +157,11 @@ class GHOST_SystemWayland : public GHOST_System {
 
   /** Clear all references to this surface to prevent accessing NULL pointers. */
   void window_surface_unref(const wl_surface *surface);
+
+  bool window_cursor_grab_set(const GHOST_TGrabCursorMode mode,
+                              const GHOST_TGrabCursorMode mode_current,
+                              int32_t init_grab_xy[2],
+                              wl_surface *surface);
 
  private:
   struct display_t *d;

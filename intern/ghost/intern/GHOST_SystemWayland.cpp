@@ -3281,10 +3281,106 @@ static input_grab_state_t input_grab_state_from_mode(const GHOST_TGrabCursorMode
   return grab_state;
 }
 
-GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mode,
-                                                  const GHOST_TGrabCursorMode mode_current,
-                                                  int32_t init_grab_xy[2],
-                                                  wl_surface *surface)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public WAYLAND Direct Data Access
+ *
+ * Expose some members via methods.
+ * \{ */
+
+wl_display *GHOST_SystemWayland::display()
+{
+  return d->display;
+}
+
+wl_compositor *GHOST_SystemWayland::compositor()
+{
+  return d->compositor;
+}
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+
+libdecor *GHOST_SystemWayland::decor_context()
+{
+  return d->decor_context;
+}
+
+#else /* WITH_GHOST_WAYLAND_LIBDECOR */
+
+xdg_wm_base *GHOST_SystemWayland::xdg_shell()
+{
+  return d->xdg_shell;
+}
+
+zxdg_decoration_manager_v1 *GHOST_SystemWayland::xdg_decoration_manager()
+{
+  return d->xdg_decoration_manager;
+}
+
+#endif /* !WITH_GHOST_WAYLAND_LIBDECOR */
+
+const std::vector<output_t *> &GHOST_SystemWayland::outputs() const
+{
+  return d->outputs;
+}
+
+wl_shm *GHOST_SystemWayland::shm() const
+{
+  return d->shm;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public WAYLAND Query Access
+ * \{ */
+
+output_t *GHOST_SystemWayland::output_find_by_wl(const struct wl_output *output) const
+{
+  for (output_t *reg_output : this->outputs()) {
+    if (reg_output->wl_output == output) {
+      return reg_output;
+    }
+  }
+  return nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public WAYLAND Utility Functions
+ *
+ * Functionality only used for the WAYLAND implementation.
+ * \{ */
+
+void GHOST_SystemWayland::selection_set(const std::string &selection)
+{
+  this->selection = selection;
+}
+
+void GHOST_SystemWayland::window_surface_unref(const wl_surface *surface)
+{
+#define SURFACE_CLEAR_PTR(surface_test) \
+  if (surface_test == surface) { \
+    surface_test = nullptr; \
+  } \
+  ((void)0);
+
+  /* Only clear window surfaces (not cursors, off-screen surfaces etc). */
+  for (input_t *input : d->inputs) {
+    SURFACE_CLEAR_PTR(input->pointer.wl_surface);
+    SURFACE_CLEAR_PTR(input->tablet.wl_surface);
+    SURFACE_CLEAR_PTR(input->keyboard.wl_surface);
+    SURFACE_CLEAR_PTR(input->focus_dnd);
+  }
+#undef SURFACE_CLEAR_PTR
+}
+
+bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mode,
+                                                 const GHOST_TGrabCursorMode mode_current,
+                                                 int32_t init_grab_xy[2],
+                                                 wl_surface *surface)
 {
   /* Ignore, if the required protocols are not supported. */
   if (!d->relative_pointer_manager || !d->pointer_constraints) {
@@ -3458,102 +3554,6 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorGrab(const GHOST_TGrabCursorMode mo
 #endif
 
   return GHOST_kSuccess;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Public WAYLAND Direct Data Access
- *
- * Expose some members via methods.
- * \{ */
-
-wl_display *GHOST_SystemWayland::display()
-{
-  return d->display;
-}
-
-wl_compositor *GHOST_SystemWayland::compositor()
-{
-  return d->compositor;
-}
-
-#ifdef WITH_GHOST_WAYLAND_LIBDECOR
-
-libdecor *GHOST_SystemWayland::decor_context()
-{
-  return d->decor_context;
-}
-
-#else /* WITH_GHOST_WAYLAND_LIBDECOR */
-
-xdg_wm_base *GHOST_SystemWayland::xdg_shell()
-{
-  return d->xdg_shell;
-}
-
-zxdg_decoration_manager_v1 *GHOST_SystemWayland::xdg_decoration_manager()
-{
-  return d->xdg_decoration_manager;
-}
-
-#endif /* !WITH_GHOST_WAYLAND_LIBDECOR */
-
-const std::vector<output_t *> &GHOST_SystemWayland::outputs() const
-{
-  return d->outputs;
-}
-
-wl_shm *GHOST_SystemWayland::shm() const
-{
-  return d->shm;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Public WAYLAND Query Access
- * \{ */
-
-output_t *GHOST_SystemWayland::output_find_by_wl(const struct wl_output *output) const
-{
-  for (output_t *reg_output : this->outputs()) {
-    if (reg_output->wl_output == output) {
-      return reg_output;
-    }
-  }
-  return nullptr;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Public WAYLAND Utility Functions
- *
- * Functionality only used for the WAYLAND implementation.
- * \{ */
-
-void GHOST_SystemWayland::selection_set(const std::string &selection)
-{
-  this->selection = selection;
-}
-
-void GHOST_SystemWayland::window_surface_unref(const wl_surface *surface)
-{
-#define SURFACE_CLEAR_PTR(surface_test) \
-  if (surface_test == surface) { \
-    surface_test = nullptr; \
-  } \
-  ((void)0);
-
-  /* Only clear window surfaces (not cursors, off-screen surfaces etc). */
-  for (input_t *input : d->inputs) {
-    SURFACE_CLEAR_PTR(input->pointer.wl_surface);
-    SURFACE_CLEAR_PTR(input->tablet.wl_surface);
-    SURFACE_CLEAR_PTR(input->keyboard.wl_surface);
-    SURFACE_CLEAR_PTR(input->focus_dnd);
-  }
-#undef SURFACE_CLEAR_PTR
 }
 
 /** \} */
