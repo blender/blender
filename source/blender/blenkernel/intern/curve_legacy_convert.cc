@@ -196,7 +196,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
       curves.curve_types(),
       curves.curve_type_counts(),
       curves.curves_range(),
-      [&](IndexMask /* selection */) {},
+      [&](IndexMask /*selection*/) { BLI_assert_unreachable(); },
       create_poly,
       create_bezier,
       create_nurbs);
