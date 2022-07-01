@@ -71,11 +71,6 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
     return geometry_set;
   }
 
-  /* TODO: Cover the case of point clouds without modifiers-- they may not be covered by the
-   * #geometry_set_eval case above. */
-
-  /* TODO: Add volume support. */
-
   /* Return by value since there is not always an existing geometry set owned elsewhere to use. */
   return {};
 }
