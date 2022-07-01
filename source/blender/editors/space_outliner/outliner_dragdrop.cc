@@ -1124,8 +1124,7 @@ static Collection *collection_parent_from_ID(ID *id)
   return nullptr;
 }
 
-static bool collection_drop_init(
-    bContext *C, wmDrag *drag, const int xy[2], const bool is_link, CollectionDrop *data)
+static bool collection_drop_init(bContext *C, wmDrag *drag, const int xy[2], CollectionDrop *data)
 {
   /* Get collection to drop into. */
   TreeElementInsertType insert_type;
@@ -1194,8 +1193,7 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
   bool changed = outliner_flag_set(*space_outliner, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
 
   CollectionDrop data;
-  if (((event->modifier & KM_SHIFT) == 0) &&
-      collection_drop_init(C, drag, event->xy, event->modifier & KM_CTRL, &data)) {
+  if (((event->modifier & KM_SHIFT) == 0) && collection_drop_init(C, drag, event->xy, &data)) {
     TreeElement *te = data.te;
     TreeStoreElem *tselem = TREESTORE(te);
     switch (data.insert_type) {
@@ -1233,8 +1231,7 @@ static char *collection_drop_tooltip(bContext *C,
   const wmEvent *event = win ? win->eventstate : nullptr;
 
   CollectionDrop data;
-  if (event && ((event->modifier & KM_SHIFT) == 0) &&
-      collection_drop_init(C, drag, xy, event->modifier & KM_CTRL, &data)) {
+  if (event && ((event->modifier & KM_SHIFT) == 0) && collection_drop_init(C, drag, xy, &data)) {
     const bool is_link = !data.from || (event->modifier & KM_CTRL);
 
     /* Test if we are moving within same parent collection. */
@@ -1307,7 +1304,7 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
   wmDrag *drag = reinterpret_cast<wmDrag *>(lb->first);
 
   CollectionDrop data;
-  if (!collection_drop_init(C, drag, event->xy, event->modifier & KM_CTRL, &data)) {
+  if (!collection_drop_init(C, drag, event->xy, &data)) {
     return OPERATOR_CANCELLED;
   }
 
