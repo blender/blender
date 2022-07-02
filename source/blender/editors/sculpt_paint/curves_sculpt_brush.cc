@@ -345,7 +345,7 @@ void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &n
 {
   /* Find the accumulated length of each point in the original curve,
    * treating it as a poly curve for performance reasons and simplicity. */
-  Array<float> orig_lengths(length_parameterize::lengths_num(positions.size(), false));
+  Array<float> orig_lengths(length_parameterize::segments_num(positions.size(), false));
   length_parameterize::accumulate_lengths<float3>(positions, false, orig_lengths);
   const float orig_total_length = orig_lengths.last();
 
@@ -363,8 +363,7 @@ void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &n
 
   Array<int> indices(positions.size() - 1);
   Array<float> factors(positions.size() - 1);
-  length_parameterize::create_samples_from_sorted_lengths(
-      orig_lengths, new_lengths, false, indices, factors);
+  length_parameterize::sample_at_lengths(orig_lengths, new_lengths, indices, factors);
 
   Array<float3> new_positions(positions.size() - 1);
   length_parameterize::linear_interpolation<float3>(positions, indices, factors, new_positions);
