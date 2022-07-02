@@ -1221,11 +1221,6 @@ typedef struct NodeGeometryExtrudeMesh {
   uint8_t mode;
 } NodeGeometryExtrudeMesh;
 
-typedef struct NodeGeometryBevelMesh {
-  /* GeometryNodeBevelMode */
-  uint8_t mode;
-} NodeGeometryBevelMesh;
-
 typedef struct NodeGeometryObjectInfo {
   /* GeometryNodeTransformSpace. */
   uint8_t transform_space;
@@ -1970,12 +1965,6 @@ typedef enum GeometryNodeExtrudeMeshMode {
   GEO_NODE_EXTRUDE_MESH_EDGES = 1,
   GEO_NODE_EXTRUDE_MESH_FACES = 2,
 } GeometryNodeExtrudeMeshMode;
-
-typedef enum GeometryNodeBevelMeshMode {
-  GEO_NODE_BEVEL_MESH_VERTICES = 0,
-  GEO_NODE_BEVEL_MESH_EDGES = 1,
-  GEO_NODE_BEVEL_MESH_FACES = 2,
-} GeometryNodeBevelMeshMode;
 
 typedef enum FunctionNodeRotateEulerType {
   FN_NODE_ROTATE_EULER_TYPE_EULER = 0,

@@ -9551,27 +9551,6 @@ static void def_geo_extrude_mesh(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_geo_bevel_mesh(StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  static const EnumPropertyItem mode_items[] = {
-      {GEO_NODE_BEVEL_MESH_VERTICES, "VERTICES", 0, "Vertices", ""},
-      {GEO_NODE_BEVEL_MESH_EDGES, "EDGES", 0, "Edges", ""},
-      {GEO_NODE_BEVEL_MESH_FACES, "FACES", 0, "Faces", ""},
-      {0, NULL, 0, NULL, NULL},
-  };
-
-  RNA_def_struct_sdna_from(srna, "NodeGeometryBevelMesh", "storage");
-
-  prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "mode");
-  RNA_def_property_enum_items(prop, mode_items);
-  RNA_def_property_enum_default(prop, GEO_NODE_BEVEL_MESH_FACES);
-  RNA_def_property_ui_text(prop, "Mode", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
 static void def_geo_distribute_points_on_faces(StructRNA *srna)
 {
   PropertyRNA *prop;

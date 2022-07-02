@@ -4722,7 +4722,6 @@ static void registerGeometryNodes()
   register_node_type_geo_attribute_capture();
   register_node_type_geo_attribute_domain_size();
   register_node_type_geo_attribute_statistic();
-  register_node_type_geo_bevel_mesh();
   register_node_type_geo_boolean();
   register_node_type_geo_bounding_box();
   register_node_type_geo_collection_info();

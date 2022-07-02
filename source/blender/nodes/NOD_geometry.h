@@ -20,7 +20,6 @@ void register_node_type_geo_attribute_capture(void);
 void register_node_type_geo_attribute_domain_size(void);
 void register_node_type_geo_attribute_separate_xyz(void);
 void register_node_type_geo_attribute_statistic(void);
-void register_node_type_geo_bevel_mesh(void);
 void register_node_type_geo_boolean(void);
 void register_node_type_geo_bounding_box(void);
 void register_node_type_geo_collection_info(void);
