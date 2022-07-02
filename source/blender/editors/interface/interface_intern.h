@@ -1543,10 +1543,9 @@ void ui_interface_tag_script_reload_queries(void);
 /* interface_view.cc */
 
 void ui_block_free_views(struct uiBlock *block);
-uiTreeViewHandle *ui_block_tree_view_find_matching_in_old_block(const uiBlock *new_block,
-                                                                const uiTreeViewHandle *new_view);
-uiGridViewHandle *ui_block_grid_view_find_matching_in_old_block(
-    const uiBlock *new_block, const uiGridViewHandle *new_view_handle);
+uiViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
+                                                       const uiViewHandle *new_view);
+
 uiButTreeRow *ui_block_view_find_treerow_in_old_block(const uiBlock *new_block,
                                                       const uiTreeViewItemHandle *new_item_handle);
 

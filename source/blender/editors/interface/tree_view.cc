@@ -68,45 +68,25 @@ void AbstractTreeView::foreach_item(ItemIterFn iter_fn, IterOptions options) con
   foreach_item_recursive(iter_fn, options);
 }
 
-bool AbstractTreeView::listen(const wmNotifier & /*notifier*/) const
-{
-  /* Nothing by default. */
-  return false;
-}
-
 bool AbstractTreeView::is_renaming() const
 {
   return rename_buffer_ != nullptr;
 }
 
-void AbstractTreeView::update_from_old(uiBlock &new_block)
+void AbstractTreeView::update_children_from_old(const AbstractView &old_view)
 {
-  uiBlock *old_block = new_block.oldblock;
-  if (!old_block) {
-    /* Initial construction, nothing to update. */
-    is_reconstructed_ = true;
-    return;
-  }
+  /* TODO: Get rid of const cast. */
+  AbstractTreeView &old_tree_view = const_cast<AbstractTreeView &>(
+      dynamic_cast<const AbstractTreeView &>(old_view));
 
-  uiTreeViewHandle *old_view_handle = ui_block_tree_view_find_matching_in_old_block(
-      &new_block, reinterpret_cast<uiTreeViewHandle *>(this));
-  if (old_view_handle == nullptr) {
-    is_reconstructed_ = true;
-    return;
-  }
-
-  AbstractTreeView &old_view = reinterpret_cast<AbstractTreeView &>(*old_view_handle);
-
+  /* TODO: Move to AbstractView. */
   /* Update own persistent data. */
   /* Keep the rename buffer persistent while renaming! The rename button uses the buffer's
    * pointer to identify itself over redraws. */
-  rename_buffer_ = std::move(old_view.rename_buffer_);
-  old_view.rename_buffer_ = nullptr;
+  rename_buffer_ = std::move(old_tree_view.rename_buffer_);
+  old_tree_view.rename_buffer_ = nullptr;
 
-  update_children_from_old_recursive(*this, old_view);
-
-  /* Finished (re-)constructing the tree. */
-  is_reconstructed_ = true;
+  update_children_from_old_recursive(*this, old_tree_view);
 }
 
 void AbstractTreeView::update_children_from_old_recursive(const TreeViewOrItem &new_items,
@@ -136,11 +116,6 @@ AbstractTreeViewItem *AbstractTreeView::find_matching_child(
   }
 
   return nullptr;
-}
-
-bool AbstractTreeView::is_reconstructed() const
-{
-  return is_reconstructed_;
 }
 
 void AbstractTreeView::change_state_delayed()
@@ -810,13 +785,6 @@ class TreeViewItemAPIWrapper {
 /* C-API */
 
 using namespace blender::ui;
-
-bool UI_tree_view_listen_should_redraw(const uiTreeViewHandle *view_handle,
-                                       const wmNotifier *notifier)
-{
-  const AbstractTreeView &view = *reinterpret_cast<const AbstractTreeView *>(view_handle);
-  return view.listen(*notifier);
-}
 
 bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item_handle)
 {
