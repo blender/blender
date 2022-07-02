@@ -1340,6 +1340,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 
 struct TexResult;
 
+#define GEO_NODE_BEVEL_MESH 1400
 #define TEX_NODE_OUTPUT 401
 #define TEX_NODE_CHECKER 402
 #define TEX_NODE_TEXTURE 403

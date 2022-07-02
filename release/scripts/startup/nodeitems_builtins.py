@@ -107,6 +107,7 @@ def mesh_node_items(context):
     space = context.space_data
     if not space:
         return
+    yield NodeItem("GeometryNodeBevelMesh")
     yield NodeItem("GeometryNodeDualMesh")
     yield NodeItem("GeometryNodeExtrudeMesh")
     yield NodeItem("GeometryNodeFlipFaces")
