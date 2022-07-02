@@ -22,8 +22,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Convex Hull"));
 }
 
-using bke::GeometryInstanceGroup;
-
 #ifdef WITH_BULLET
 
 static Mesh *hull_from_bullet(const Mesh *mesh, Span<float3> coords)
