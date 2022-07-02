@@ -68,23 +68,9 @@ void AbstractTreeView::foreach_item(ItemIterFn iter_fn, IterOptions options) con
   foreach_item_recursive(iter_fn, options);
 }
 
-bool AbstractTreeView::is_renaming() const
-{
-  return rename_buffer_ != nullptr;
-}
-
 void AbstractTreeView::update_children_from_old(const AbstractView &old_view)
 {
-  /* TODO: Get rid of const cast. */
-  AbstractTreeView &old_tree_view = const_cast<AbstractTreeView &>(
-      dynamic_cast<const AbstractTreeView &>(old_view));
-
-  /* TODO: Move to AbstractView. */
-  /* Update own persistent data. */
-  /* Keep the rename buffer persistent while renaming! The rename button uses the buffer's
-   * pointer to identify itself over redraws. */
-  rename_buffer_ = std::move(old_tree_view.rename_buffer_);
-  old_tree_view.rename_buffer_ = nullptr;
+  const AbstractTreeView &old_tree_view = dynamic_cast<const AbstractTreeView &>(old_view);
 
   update_children_from_old_recursive(*this, old_tree_view);
 }
@@ -233,7 +219,7 @@ AbstractTreeViewItem *AbstractTreeViewItem::find_tree_item_from_rename_button(
     AbstractTreeViewItem *item = reinterpret_cast<AbstractTreeViewItem *>(tree_row_but->tree_item);
     const AbstractTreeView &tree_view = item->get_tree_view();
 
-    if (item->is_renaming() && (tree_view.rename_buffer_->data() == rename_but.poin)) {
+    if (item->is_renaming() && (tree_view.get_rename_buffer().data() == rename_but.poin)) {
       return item;
     }
   }
@@ -248,7 +234,7 @@ void AbstractTreeViewItem::rename_button_fn(bContext *UNUSED(C), void *arg, char
   BLI_assert(item);
 
   const AbstractTreeView &tree_view = item->get_tree_view();
-  item->rename(tree_view.rename_buffer_->data());
+  item->rename(tree_view.get_rename_buffer().data());
   item->end_renaming();
 }
 
@@ -270,9 +256,9 @@ void AbstractTreeViewItem::add_rename_button(uiLayout &row)
                                0,
                                UI_UNIT_X * 10,
                                UI_UNIT_Y,
-                               tree_view.rename_buffer_->data(),
+                               tree_view.get_rename_buffer().data(),
                                1.0f,
-                               tree_view.rename_buffer_->max_size(),
+                               tree_view.get_rename_buffer().size(),
                                0,
                                0,
                                "");
@@ -372,10 +358,11 @@ void AbstractTreeViewItem::begin_renaming()
     return;
   }
 
-  is_renaming_ = true;
+  if (tree_view.begin_renaming()) {
+    is_renaming_ = true;
+  }
 
-  tree_view.rename_buffer_ = std::make_unique<decltype(tree_view.rename_buffer_)::element_type>();
-  std::copy(std::begin(label_), std::end(label_), std::begin(*tree_view.rename_buffer_));
+  std::copy(std::begin(label_), std::end(label_), std::begin(tree_view.get_rename_buffer()));
 }
 
 void AbstractTreeViewItem::end_renaming()
@@ -387,7 +374,7 @@ void AbstractTreeViewItem::end_renaming()
   is_renaming_ = false;
 
   AbstractTreeView &tree_view = get_tree_view();
-  tree_view.rename_buffer_ = nullptr;
+  tree_view.end_renaming();
 }
 
 AbstractTreeView &AbstractTreeViewItem::get_tree_view() const

@@ -117,19 +117,10 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   friend class AbstractTreeViewItem;
   friend class TreeViewBuilder;
 
-  /**
-   * Only one item can be renamed at a time. So the tree is informed about the renaming state to
-   * enforce that.
-   */
-  std::unique_ptr<std::array<char, MAX_NAME>> rename_buffer_;
-
  public:
   virtual ~AbstractTreeView() = default;
 
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
-
-  /** Only one item can be renamed at a time. */
-  bool is_renaming() const;
 
  protected:
   virtual void build_tree() = 0;

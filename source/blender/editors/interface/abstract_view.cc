@@ -27,7 +27,7 @@ void AbstractView::update_from_old(uiBlock &new_block)
     return;
   }
 
-  const uiViewHandle *old_view_handle = ui_block_view_find_matching_in_old_block(
+  uiViewHandle *old_view_handle = ui_block_view_find_matching_in_old_block(
       &new_block, reinterpret_cast<uiViewHandle *>(this));
   if (old_view_handle == nullptr) {
     /* Initial construction, nothing to update. */
@@ -35,7 +35,15 @@ void AbstractView::update_from_old(uiBlock &new_block)
     return;
   }
 
-  update_children_from_old(reinterpret_cast<const AbstractView &>(*old_view_handle));
+  AbstractView &old_view = reinterpret_cast<AbstractView &>(*old_view_handle);
+
+  /* Update own persistent data. */
+  /* Keep the rename buffer persistent while renaming! The rename button uses the buffer's
+   * pointer to identify itself over redraws. */
+  rename_buffer_ = std::move(old_view.rename_buffer_);
+  old_view.rename_buffer_ = nullptr;
+
+  update_children_from_old(old_view);
 
   /* Finished (re-)constructing the tree. */
   is_reconstructed_ = true;
@@ -43,10 +51,52 @@ void AbstractView::update_from_old(uiBlock &new_block)
 
 /** \} */
 
+/* ---------------------------------------------------------------------- */
+/** \name Default implementations of virtual functions
+ * \{ */
+
 bool AbstractView::listen(const wmNotifier & /*notifier*/) const
 {
   /* Nothing by default. */
   return false;
 }
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name Renaming
+ * \{ */
+
+bool AbstractView::is_renaming() const
+{
+  return rename_buffer_ != nullptr;
+}
+
+bool AbstractView::begin_renaming()
+{
+  if (is_renaming()) {
+    return false;
+  }
+
+  rename_buffer_ = std::make_unique<decltype(rename_buffer_)::element_type>();
+  return true;
+}
+
+void AbstractView::end_renaming()
+{
+  BLI_assert(is_renaming());
+  rename_buffer_ = nullptr;
+}
+
+Span<char> AbstractView::get_rename_buffer() const
+{
+  return *rename_buffer_;
+}
+MutableSpan<char> AbstractView::get_rename_buffer()
+{
+  return *rename_buffer_;
+}
+
+/** \} */
 
 }  // namespace blender::ui
