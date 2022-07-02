@@ -178,7 +178,7 @@ static void copy_stable_id_point(const Span<int> offsets,
     return;
   }
 
-  VArray_Span<int> src{src_attribute.varray.typed<int>()};
+  VArraySpan<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.as_span<int>();
   threaded_id_offset_copy(offsets, src, dst);
   dst_attribute.save();
@@ -211,7 +211,7 @@ static void copy_attributes_without_id(GeometrySet &geometry_set,
     }
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      VArray_Span<T> src = src_attribute.varray.typed<T>();
+      VArraySpan<T> src = src_attribute.varray.typed<T>();
       MutableSpan<T> dst = dst_attribute.as_span<T>();
       threaded_slice_fill<T>(offsets, selection, src, dst);
     });
@@ -258,7 +258,7 @@ static void copy_curve_attributes_without_id(const GeometrySet &geometry_set,
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      VArray_Span<T> src{src_attribute.varray.typed<T>()};
+      VArraySpan<T> src{src_attribute.varray.typed<T>()};
       MutableSpan<T> dst = dst_attribute.as_span<T>();
 
       switch (out_domain) {
@@ -307,7 +307,7 @@ static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
     return;
   }
 
-  VArray_Span<int> src{src_attribute.varray.typed<int>()};
+  VArraySpan<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.as_span<int>();
 
   threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
@@ -439,7 +439,7 @@ static void copy_face_attributes_without_id(GeometrySet &geometry_set,
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      VArray_Span<T> src{src_attribute.varray.typed<T>()};
+      VArraySpan<T> src{src_attribute.varray.typed<T>()};
       MutableSpan<T> dst = dst_attribute.as_span<T>();
 
       switch (out_domain) {
@@ -487,7 +487,7 @@ static void copy_stable_id_faces(const Mesh &mesh,
     return;
   }
 
-  VArray_Span<int> src{src_attribute.varray.typed<int>()};
+  VArraySpan<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.as_span<int>();
 
   Span<MPoly> polys(mesh.mpoly, mesh.totpoly);
@@ -651,7 +651,7 @@ static void copy_edge_attributes_without_id(GeometrySet &geometry_set,
     }
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      VArray_Span<T> src{src_attribute.varray.typed<T>()};
+      VArraySpan<T> src{src_attribute.varray.typed<T>()};
       MutableSpan<T> dst = dst_attribute.as_span<T>();
 
       switch (out_domain) {
@@ -691,7 +691,7 @@ static void copy_stable_id_edges(const Mesh &mesh,
 
   Span<MEdge> edges(mesh.medge, mesh.totedge);
 
-  VArray_Span<int> src{src_attribute.varray.typed<int>()};
+  VArraySpan<int> src{src_attribute.varray.typed<int>()};
   MutableSpan<int> dst = dst_attribute.as_span<int>();
   threading::parallel_for(IndexRange(selection.size()), 1024, [&](IndexRange range) {
     for (const int i_selection : range) {
@@ -853,7 +853,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      VArray_Span<T> src{src_attribute.varray.typed<T>()};
+      VArraySpan<T> src{src_attribute.varray.typed<T>()};
       MutableSpan<T> dst = dst_attribute.as_span<T>();
 
       switch (domain) {

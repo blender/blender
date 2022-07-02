@@ -64,7 +64,7 @@ struct DensityAddOperationExecutor {
   Mesh *surface_ = nullptr;
   Span<MLoopTri> surface_looptris_;
   Span<float3> corner_normals_su_;
-  VArray_Span<float2> surface_uv_map_;
+  VArraySpan<float2> surface_uv_map_;
 
   const CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;
@@ -226,7 +226,7 @@ struct DensityAddOperationExecutor {
     }
 
     /* Find UV map. */
-    VArray_Span<float2> surface_uv_map;
+    VArraySpan<float2> surface_uv_map;
     if (curves_id_->surface_uv_map != nullptr) {
       MeshComponent surface_component;
       surface_component.replace(surface_, GeometryOwnershipType::ReadOnly);

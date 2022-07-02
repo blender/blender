@@ -87,7 +87,7 @@ struct SlideOperationExecutor {
   Object *surface_ob_ = nullptr;
   Mesh *surface_ = nullptr;
   Span<MLoopTri> surface_looptris_;
-  VArray_Span<float2> surface_uv_map_;
+  VArraySpan<float2> surface_uv_map_;
 
   VArray<float> curve_factors_;
   VArray<float> point_factors_;

@@ -174,7 +174,7 @@ struct AddOperationExecutor {
     }
 
     /* Find UV map. */
-    VArray_Span<float2> surface_uv_map;
+    VArraySpan<float2> surface_uv_map;
     if (curves_id_->surface_uv_map != nullptr) {
       MeshComponent surface_component;
       surface_component.replace(surface_, GeometryOwnershipType::ReadOnly);

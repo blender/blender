@@ -175,7 +175,7 @@ static void transfer_attributes(
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      VArray_Span<T> span{src_attribute.varray.typed<T>()};
+      VArraySpan<T> span{src_attribute.varray.typed<T>()};
       MutableSpan<T> dst_span = dst_attribute.as_span<T>();
       if (src_attribute.domain == ATTR_DOMAIN_FACE) {
         dst_span.take_front(span.size()).copy_from(span);

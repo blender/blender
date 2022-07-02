@@ -410,8 +410,8 @@ static void convert_to_bezier(const CurveComponent &src_component,
   };
 
   auto bezier_to_bezier = [&](IndexMask selection) {
-    const VArray_Span<int8_t> src_types_l = src_curves.handle_types_left();
-    const VArray_Span<int8_t> src_types_r = src_curves.handle_types_right();
+    const VArraySpan<int8_t> src_types_l = src_curves.handle_types_left();
+    const VArraySpan<int8_t> src_types_r = src_curves.handle_types_right();
     const Span<float3> src_handles_l = src_curves.handle_positions_left();
     const Span<float3> src_handles_r = src_curves.handle_positions_right();
 
@@ -569,7 +569,7 @@ static void convert_to_nurbs(const CurveComponent &src_component,
           src_cyclic.get_internal_single() ? NURBS_KNOT_MODE_NORMAL : NURBS_KNOT_MODE_ENDPOINT);
     }
     else {
-      VArray_Span<bool> cyclic{src_cyclic};
+      VArraySpan<bool> cyclic{src_cyclic};
       MutableSpan<int8_t> knots_modes = dst_curves.nurbs_knots_modes_for_write();
       threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
         for (const int i : selection.slice(range)) {

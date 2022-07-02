@@ -66,7 +66,7 @@ struct AttributeFallbacksArray {
 struct PointCloudRealizeInfo {
   const PointCloud *pointcloud = nullptr;
   /** Matches the order stored in #AllPointCloudsInfo.attributes. */
-  Array<std::optional<GVArray_GSpan>> attributes;
+  Array<std::optional<GVArraySpan>> attributes;
   /** Id attribute on the point cloud. If there are no ids, this #Span is empty. */
   Span<int> stored_ids;
 };
@@ -96,7 +96,7 @@ struct MeshRealizeInfo {
   /** Maps old material indices to new material indices. */
   Array<int> material_index_map;
   /** Matches the order in #AllMeshesInfo.attributes. */
-  Array<std::optional<GVArray_GSpan>> attributes;
+  Array<std::optional<GVArraySpan>> attributes;
   /** Vertex ids stored on the mesh. If there are no ids, this #Span is empty. */
   Span<int> stored_vertex_ids;
 };
@@ -116,7 +116,7 @@ struct RealizeCurveInfo {
   /**
    * Matches the order in #AllCurvesInfo.attributes.
    */
-  Array<std::optional<GVArray_GSpan>> attributes;
+  Array<std::optional<GVArraySpan>> attributes;
 
   /** ID attribute on the curves. If there are no ids, this #Span is empty. */
   Span<int> stored_ids;
@@ -283,7 +283,7 @@ static void threaded_fill(const GPointer value, GMutableSpan dst)
 }
 
 static void copy_generic_attributes_to_result(
-    const Span<std::optional<GVArray_GSpan>> src_attributes,
+    const Span<std::optional<GVArraySpan>> src_attributes,
     const AttributeFallbacksArray &attribute_fallbacks,
     const OrderedAttributes &ordered_attributes,
     const FunctionRef<IndexRange(eAttrDomain)> &range_fn,

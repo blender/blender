@@ -257,22 +257,24 @@ class GVMutableArray : public GVArrayCommon {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #GVArray_GSpan and #GVMutableArray_GSpan.
+/** \name #GVArraySpan and #GMutableVArraySpan.
  * \{ */
 
-/* A generic version of VArray_Span. */
-class GVArray_GSpan : public GSpan {
+/* A generic version of VArraySpan. */
+class GVArraySpan : public GSpan {
  private:
   GVArray varray_;
   void *owned_data_ = nullptr;
 
  public:
-  GVArray_GSpan(GVArray varray);
-  ~GVArray_GSpan();
+  GVArraySpan(GVArray varray);
+  GVArraySpan(GVArraySpan &&other);
+  ~GVArraySpan();
+  GVArraySpan &operator=(GVArraySpan &&other);
 };
 
-/* A generic version of VMutableArray_Span. */
-class GVMutableArray_GSpan : public GMutableSpan, NonCopyable, NonMovable {
+/* A generic version of MutableVArraySpan. */
+class GMutableVArraySpan : public GMutableSpan, NonCopyable, NonMovable {
  private:
   GVMutableArray varray_;
   void *owned_data_ = nullptr;
@@ -280,8 +282,10 @@ class GVMutableArray_GSpan : public GMutableSpan, NonCopyable, NonMovable {
   bool show_not_saved_warning_ = true;
 
  public:
-  GVMutableArray_GSpan(GVMutableArray varray, bool copy_values_to_span = true);
-  ~GVMutableArray_GSpan();
+  GMutableVArraySpan(GVMutableArray varray, bool copy_values_to_span = true);
+  GMutableVArraySpan(GMutableVArraySpan &&other);
+  ~GMutableVArraySpan();
+  GMutableVArraySpan &operator=(GMutableVArraySpan &&other);
 
   void save();
   void disable_not_applied_warning();

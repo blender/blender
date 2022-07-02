@@ -477,8 +477,8 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
   VArray<int> resolution = curves.resolution();
   VArray<bool> cyclic = curves.cyclic();
 
-  VArray_Span<int8_t> handle_types_left{curves.handle_types_left()};
-  VArray_Span<int8_t> handle_types_right{curves.handle_types_right()};
+  VArraySpan<int8_t> handle_types_left{curves.handle_types_left()};
+  VArraySpan<int8_t> handle_types_right{curves.handle_types_right()};
 
   VArray<int8_t> nurbs_orders = curves.nurbs_orders();
   VArray<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes();
@@ -1013,8 +1013,8 @@ void CurvesGeometry::calculate_bezier_auto_handles()
     return;
   }
   const VArray<bool> cyclic = this->cyclic();
-  const VArray_Span<int8_t> types_left{this->handle_types_left()};
-  const VArray_Span<int8_t> types_right{this->handle_types_right()};
+  const VArraySpan<int8_t> types_left{this->handle_types_left()};
+  const VArraySpan<int8_t> types_right{this->handle_types_right()};
   const Span<float3> positions = this->positions();
   MutableSpan<float3> positions_left = this->handle_positions_left_for_write();
   MutableSpan<float3> positions_right = this->handle_positions_right_for_write();

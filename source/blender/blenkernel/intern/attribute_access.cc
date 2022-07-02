@@ -155,10 +155,9 @@ GMutableSpan OutputAttribute::as_span()
 {
   if (!optional_span_varray_) {
     const bool materialize_old_values = !ignore_old_values_;
-    optional_span_varray_ = std::make_unique<GVMutableArray_GSpan>(varray_,
-                                                                   materialize_old_values);
+    optional_span_varray_ = std::make_unique<GMutableVArraySpan>(varray_, materialize_old_values);
   }
-  GVMutableArray_GSpan &span_varray = *optional_span_varray_;
+  GMutableVArraySpan &span_varray = *optional_span_varray_;
   return span_varray;
 }
 

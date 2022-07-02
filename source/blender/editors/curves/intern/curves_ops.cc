@@ -544,7 +544,7 @@ static int snap_curves_to_surface_exec(bContext *C, wmOperator *op)
     MeshComponent surface_mesh_component;
     surface_mesh_component.replace(&surface_mesh, GeometryOwnershipType::ReadOnly);
 
-    VArray_Span<float2> surface_uv_map;
+    VArraySpan<float2> surface_uv_map;
     if (curves_id.surface_uv_map != nullptr) {
       surface_uv_map = surface_mesh_component
                            .attribute_try_get_for_read(

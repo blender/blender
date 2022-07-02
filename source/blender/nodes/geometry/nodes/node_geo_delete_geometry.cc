@@ -69,7 +69,7 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      VArray_Span<T> span{attribute.varray.typed<T>()};
+      VArraySpan<T> span{attribute.varray.typed<T>()};
       MutableSpan<T> out_span = result_attribute.as_span<T>();
       out_span.copy_from(span);
     });
@@ -109,7 +109,7 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      VArray_Span<T> span{attribute.varray.typed<T>()};
+      VArraySpan<T> span{attribute.varray.typed<T>()};
       MutableSpan<T> out_span = result_attribute.as_span<T>();
       copy_data_based_on_mask(span, out_span, mask);
     });
@@ -145,7 +145,7 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      VArray_Span<T> span{attribute.varray.typed<T>()};
+      VArraySpan<T> span{attribute.varray.typed<T>()};
       MutableSpan<T> out_span = result_attribute.as_span<T>();
       copy_data_based_on_map(span, out_span, index_map);
     });
@@ -1067,7 +1067,7 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
     return;
   }
 
-  const VArray_Span<bool> selection_span{selection};
+  const VArraySpan<bool> selection_span{selection};
 
   do_mesh_separation(geometry_set, src_component, selection_span, selection_domain, mode);
 }

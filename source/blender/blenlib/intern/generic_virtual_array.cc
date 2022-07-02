@@ -284,10 +284,10 @@ template<int BufferSize> class GVArrayImpl_For_SmallTrivialSingleValue : public 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #GVArray_GSpan
+/** \name #GVArraySpan
  * \{ */
 
-GVArray_GSpan::GVArray_GSpan(GVArray varray) : GSpan(varray.type()), varray_(std::move(varray))
+GVArraySpan::GVArraySpan(GVArray varray) : GSpan(varray.type()), varray_(std::move(varray))
 {
   size_ = varray_.size();
   const CommonVArrayInfo info = varray_.common_info();
@@ -301,7 +301,22 @@ GVArray_GSpan::GVArray_GSpan(GVArray varray) : GSpan(varray.type()), varray_(std
   }
 }
 
-GVArray_GSpan::~GVArray_GSpan()
+GVArraySpan::GVArraySpan(GVArraySpan &&other)
+    : GSpan(other.type()), varray_(std::move(other.varray_)), owned_data_(other.owned_data_)
+{
+  size_ = varray_.size();
+  const CommonVArrayInfo info = varray_.common_info();
+  if (info.type == CommonVArrayInfo::Type::Span) {
+    data_ = info.data;
+  }
+  else {
+    data_ = owned_data_;
+  }
+  other.data_ = nullptr;
+  other.size_ = 0;
+}
+
+GVArraySpan::~GVArraySpan()
 {
   if (owned_data_ != nullptr) {
     type_->destruct_n(owned_data_, size_);
@@ -309,13 +324,23 @@ GVArray_GSpan::~GVArray_GSpan()
   }
 }
 
+GVArraySpan &GVArraySpan::operator=(GVArraySpan &&other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  std::destroy_at(this);
+  new (this) GVArraySpan(std::move(other));
+  return *this;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name #GVMutableArray_GSpan
+/** \name #GMutableVArraySpan
  * \{ */
 
-GVMutableArray_GSpan::GVMutableArray_GSpan(GVMutableArray varray, const bool copy_values_to_span)
+GMutableVArraySpan::GMutableVArraySpan(GVMutableArray varray, const bool copy_values_to_span)
     : GMutableSpan(varray.type()), varray_(std::move(varray))
 {
   size_ = varray_.size();
@@ -335,11 +360,31 @@ GVMutableArray_GSpan::GVMutableArray_GSpan(GVMutableArray varray, const bool cop
   }
 }
 
-GVMutableArray_GSpan::~GVMutableArray_GSpan()
+GMutableVArraySpan::GMutableVArraySpan(GMutableVArraySpan &&other)
+    : GMutableSpan(other.type()),
+      varray_(std::move(other.varray_)),
+      owned_data_(other.owned_data_),
+      show_not_saved_warning_(other.show_not_saved_warning_)
 {
-  if (show_not_saved_warning_) {
-    if (!save_has_been_called_) {
-      std::cout << "Warning: Call `apply()` to make sure that changes persist in all cases.\n";
+  size_ = varray_.size();
+  const CommonVArrayInfo info = varray_.common_info();
+  if (info.type == CommonVArrayInfo::Type::Span) {
+    data_ = const_cast<void *>(info.data);
+  }
+  else {
+    data_ = owned_data_;
+  }
+  other.data_ = nullptr;
+  other.size_ = 0;
+}
+
+GMutableVArraySpan::~GMutableVArraySpan()
+{
+  if (varray_) {
+    if (show_not_saved_warning_) {
+      if (!save_has_been_called_) {
+        std::cout << "Warning: Call `apply()` to make sure that changes persist in all cases.\n";
+      }
     }
   }
   if (owned_data_ != nullptr) {
@@ -348,7 +393,17 @@ GVMutableArray_GSpan::~GVMutableArray_GSpan()
   }
 }
 
-void GVMutableArray_GSpan::save()
+GMutableVArraySpan &GMutableVArraySpan::operator=(GMutableVArraySpan &&other)
+{
+  if (this == &other) {
+    return *this;
+  }
+  std::destroy_at(this);
+  new (this) GMutableVArraySpan(std::move(other));
+  return *this;
+}
+
+void GMutableVArraySpan::save()
 {
   save_has_been_called_ = true;
   if (data_ != owned_data_) {
@@ -357,7 +412,7 @@ void GVMutableArray_GSpan::save()
   varray_.set_all(owned_data_);
 }
 
-void GVMutableArray_GSpan::disable_not_applied_warning()
+void GMutableVArraySpan::disable_not_applied_warning()
 {
   show_not_saved_warning_ = false;
 }

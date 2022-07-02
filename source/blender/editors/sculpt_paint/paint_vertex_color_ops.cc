@@ -113,7 +113,7 @@ static bool vertex_paint_from_weight(Object *ob)
     return false;
   }
 
-  GVArray_GSpan interpolated{component.attribute_try_adapt_domain(
+  GVArraySpan interpolated{component.attribute_try_adapt_domain(
       vertex_group, ATTR_DOMAIN_POINT, color_attribute.domain)};
 
   color_attribute.varray.set_all(interpolated.data());
