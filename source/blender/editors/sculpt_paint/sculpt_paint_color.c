@@ -532,7 +532,7 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
 
-  if (!SCULPT_has_colors(ss)) {
+  if (!SCULPT_has_colors(ss) || ss->cache->bstrength == 0.0f) {
     return;
   }
 
