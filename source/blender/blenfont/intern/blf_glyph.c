@@ -378,7 +378,7 @@ static eUnicodeBlock unicode_blocks[] = {
     {0xFE30, 0xFE4F, 65},     /* CJK Compatibility Forms. */
     {0xFE50, 0xFE6F, 66},     /* Small Form Variants. */
     {0xFE70, 0xFEFF, 67},     /* Arabic Presentation Forms-B. */
-    {0xFF00, 0xFFEF, 68},     /* Halfwidth And Fullwidth Forms. */
+    {0xFF00, 0xFFEF, 68},     /* Half-width And Full-width Forms. */
     {0xFFF0, 0xFFFF, 69},     /* Specials. */
     {0x10000, 0x1013F, 101},  /* Linear B. */
     {0x10140, 0x1018F, 102},  /* Ancient Greek Numbers. */

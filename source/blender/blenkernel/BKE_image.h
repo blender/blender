@@ -198,7 +198,7 @@ struct Image *BKE_image_add_from_imbuf(struct Main *bmain, struct ImBuf *ibuf, c
  * For a non-viewer single-buffer image (single frame file, or generated image) replace its image
  * buffer with the given one.
  * If an unsupported image type (multi-layer, image sequence, ...) the function will assert in the
- * debug mode and will have an underfined behavior in the release mode.
+ * debug mode and will have an undefined behavior in the release mode.
  */
 void BKE_image_replace_imbuf(struct Image *image, struct ImBuf *ibuf);
 

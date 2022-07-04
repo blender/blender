@@ -411,7 +411,7 @@ static bool uvedit_uv_align_weld(Scene *scene,
   return changed;
 }
 
-/* Bitwise-or together, then choose MLoopUV with highest value. */
+/** Bitwise-or together, then choose #MLoopUV with highest value. */
 typedef enum eUVEndPointPrecedence {
   UVEP_INVALID = 0,
   UVEP_SELECTED = (1 << 0),
@@ -427,7 +427,8 @@ static eUVEndPointPrecedence uvedit_line_update_get_precedence(const MLoopUV *lu
   return precedence;
 }
 
-/* Helper to find two endpoints (`a` and `b`) which have higher precedence, and are far apart.
+/**
+ * Helper to find two endpoints (`a` and `b`) which have higher precedence, and are far apart.
  * Note that is only a heuristic and won't always find the best two endpoints.
  */
 static bool uvedit_line_update_endpoint(const MLoopUV *luv,
@@ -442,7 +443,7 @@ static bool uvedit_line_update_endpoint(const MLoopUV *luv,
   float len_sq_b = len_squared_v2v2(uv_b, luv->uv);
 
   /* Caching the value of `len_sq_ab` is unlikely to be faster than recalculating.
-   * Profile before optmizing. */
+   * Profile before optimizing. */
   float len_sq_ab = len_squared_v2v2(uv_a, uv_b);
 
   if ((*prec_a < flags && 0.0f < len_sq_b) || (*prec_a == flags && len_sq_ab < len_sq_b)) {
@@ -460,7 +461,8 @@ static bool uvedit_line_update_endpoint(const MLoopUV *luv,
   return false;
 }
 
-/* Find two end extreme points to specify a line, then straighten `len` elements
+/**
+ * Find two end extreme points to specify a line, then straighten `len` elements
  * by moving UVs on the X-axis, Y-axis, or the closest point on the line segment.
  */
 static bool uvedit_uv_straighten_elements(const UvElement *element,
@@ -532,7 +534,9 @@ static bool uvedit_uv_straighten_elements(const UvElement *element,
   return changed;
 }
 
-/* Group selected UVs into islands, then apply uvedit_uv_straighten_elements to each island. */
+/**
+ * Group selected UVs into islands, then apply uvedit_uv_straighten_elements to each island.
+ */
 static bool uvedit_uv_straighten(Scene *scene, BMesh *bm, eUVWeldAlign tool)
 {
   const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);

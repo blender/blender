@@ -37,8 +37,8 @@ Node *COM_convert_bnode(bNode *b_node);
 bool COM_bnode_is_fast_node(const bNode &b_node);
 
 /**
- * \brief This function will add a datetype conversion rule when the to-socket does not support the
- * from-socket actual data type.
+ * \brief This function will add a date-type conversion rule when the to-socket does not support
+ * the from-socket actual data type.
  */
 NodeOperation *COM_convert_data_type(const NodeOperationOutput &from,
                                      const NodeOperationInput &to);
