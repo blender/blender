@@ -69,9 +69,6 @@ void BKE_object_free_caches(struct Object *object);
 void BKE_object_modifier_hook_reset(struct Object *ob, struct HookModifierData *hmd);
 void BKE_object_modifier_gpencil_hook_reset(struct Object *ob,
                                             struct HookGpencilModifierData *hmd);
-bool BKE_object_modifier_gpencil_use_time(struct Object *ob, struct GpencilModifierData *md);
-
-bool BKE_object_shaderfx_use_time(struct Object *ob, struct ShaderFxData *fx);
 
 /**
  * \return True if the object's type supports regular modifiers (not grease pencil modifiers).
@@ -632,8 +629,6 @@ void BKE_object_groups_clear(struct Main *bmain, struct Scene *scene, struct Obj
  * \return The KD-tree or nullptr if it can't be created.
  */
 struct KDTree_3d *BKE_object_as_kdtree(struct Object *ob, int *r_tot);
-
-bool BKE_object_modifier_use_time(struct Scene *scene, struct Object *ob, struct ModifierData *md);
 
 /**
  * \note this function should eventually be replaced by depsgraph functionality.
