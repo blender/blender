@@ -423,7 +423,7 @@ namespace curves {
  * The number of segments between control points, accounting for the last segment of cyclic
  * curves. The logic is simple, but this function should be used to make intentions clearer.
  */
-inline int curve_segment_num(const int points_num, const bool cyclic)
+inline int segments_num(const int points_num, const bool cyclic)
 {
   BLI_assert(points_num > 0);
   return (cyclic && points_num > 1) ? points_num : points_num - 1;
@@ -782,7 +782,7 @@ inline IndexRange CurvesGeometry::lengths_range_for_curve(const int curve_index,
   BLI_assert(cyclic == this->cyclic()[curve_index]);
   const IndexRange points = this->evaluated_points_for_curve(curve_index);
   const int start = points.start() + curve_index;
-  return {start, curves::curve_segment_num(points.size(), cyclic)};
+  return {start, curves::segments_num(points.size(), cyclic)};
 }
 
 inline Span<float> CurvesGeometry::evaluated_lengths_for_curve(const int curve_index,

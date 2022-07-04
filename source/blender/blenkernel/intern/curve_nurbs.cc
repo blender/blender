@@ -38,7 +38,7 @@ int calculate_evaluated_num(const int points_num,
   if (!check_valid_num_and_order(points_num, order, cyclic, knots_mode)) {
     return points_num;
   }
-  return resolution * curve_segment_num(points_num, cyclic);
+  return resolution * segments_num(points_num, cyclic);
 }
 
 int knots_num(const int points_num, const int8_t order, const bool cyclic)
@@ -168,7 +168,7 @@ void calculate_basis_cache(const int points_num,
   MutableSpan<int> basis_start_indices(basis_cache.start_indices);
 
   const int last_control_point_index = cyclic ? points_num + degree : points_num;
-  const int evaluated_segment_num = curve_segment_num(evaluated_num, cyclic);
+  const int evaluated_segment_num = segments_num(evaluated_num, cyclic);
 
   const float start = knots[degree];
   const float end = knots[last_control_point_index];

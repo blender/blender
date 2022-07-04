@@ -11,7 +11,7 @@ namespace blender::bke::curves::catmull_rom {
 
 int calculate_evaluated_num(const int points_num, const bool cyclic, const int resolution)
 {
-  const int eval_num = resolution * curve_segment_num(points_num, cyclic);
+  const int eval_num = resolution * segments_num(points_num, cyclic);
   /* If the curve isn't cyclic, one last point is added to the final point. */
   return cyclic ? eval_num : eval_num + 1;
 }
