@@ -583,7 +583,13 @@ void BevelVertexData::construct_vertex_bevel(int vert, float amount, const MeshT
 }
 
 class BevelData {
+  /* BevelVertexData for just the affected vertices. */
   Array<BevelVertexData> bevel_vert_data_;
+  /* A map from mesh vertex index to index in bevel_vert_data_.
+   * If we wanted  more speed at expense of space, we could also use
+   * an Array of size equal to the number of mesh vertices here.
+   */
+  Map<int, int> vert_to_bvd_index_;
 
  public:
   MeshTopology topo;
@@ -595,10 +601,34 @@ class BevelData {
   {
   }
 
+  /* Initial calculation of position of boundary and edge attachments for vertex bevel. */
   void calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> amounts);
+
+  /* Sets up internal Map for fast access to the BevelVertexData for a given mesh vert. */
+  void setup_vert_map();
+
+  /* What is the BevelVertexData for mesh vertex `vert`? May return nullptr if `vert` isn't
+   * involved in beveling. */
+  BevelVertexData *bevel_vertex_data(int vert)
+  {
+    int slot = vert_to_bvd_index_.lookup_default(vert, -1);
+    if (slot != -1) {
+      return &bevel_vert_data_[slot];
+    }
+    return nullptr;
+  }
 
   void print(const std::string &label) const;
 };
+
+/* Make a transation map from mesh vertex index to indices in bevel_vert_data_. */
+void BevelData::setup_vert_map()
+{
+  vert_to_bvd_index_.reserve(bevel_vert_data_.size());
+  for (const int i : bevel_vert_data_.index_range()) {
+    vert_to_bvd_index_.add_new(bevel_vert_data_[i].vertex_cap().vert, i);
+  }
+}
 
 void BevelData::print(const std::string &label) const
 {
@@ -627,6 +657,7 @@ void BevelData::calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> 
       bevel_vert_data_[i].construct_vertex_bevel(vert, amounts[vert], topo);
     }
   });
+  setup_vert_map();
 }
 
 static void bevel_mesh_vertices(MeshComponent &component,
