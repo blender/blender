@@ -155,7 +155,7 @@ struct ExtractTaskData {
   bool use_threading = false;
 
   ExtractTaskData(const MeshRenderData *mr,
-                  struct MeshBatchCache *cache,
+                  MeshBatchCache *cache,
                   ExtractorRunDatas *extractors,
                   MeshBufferList *mbuflist,
                   const bool use_threading)
@@ -193,7 +193,7 @@ static void extract_task_data_free(void *data)
  * \{ */
 
 BLI_INLINE void extract_init(const MeshRenderData *mr,
-                             struct MeshBatchCache *cache,
+                             MeshBatchCache *cache,
                              ExtractorRunDatas &extractors,
                              MeshBufferList *mbuflist,
                              void *data_stack)
@@ -209,7 +209,7 @@ BLI_INLINE void extract_init(const MeshRenderData *mr,
 }
 
 BLI_INLINE void extract_finish(const MeshRenderData *mr,
-                               struct MeshBatchCache *cache,
+                               MeshBatchCache *cache,
                                const ExtractorRunDatas &extractors,
                                void *data_stack)
 {

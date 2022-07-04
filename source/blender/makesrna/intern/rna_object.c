@@ -511,7 +511,7 @@ static PointerRNA rna_Object_data_get(PointerRNA *ptr)
   Object *ob = (Object *)ptr->data;
   if (ob->type == OB_MESH) {
     Mesh *me = (Mesh *)ob->data;
-    me = BKE_mesh_wrapper_ensure_subdivision(ob, me);
+    me = BKE_mesh_wrapper_ensure_subdivision(me);
     return rna_pointer_inherit_refine(ptr, &RNA_Mesh, me);
   }
   return rna_pointer_inherit_refine(ptr, &RNA_ID, ob->data);
@@ -2950,6 +2950,22 @@ static void rna_def_object_lineart(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0f, DEG2RAD(180.0f), 0.01f, 1);
   RNA_def_property_ui_text(prop, "Crease", "Angles smaller than this will be treated as creases");
   RNA_def_property_update(prop, 0, "rna_object_lineart_update");
+
+  prop = RNA_def_property(srna, "use_intersection_priority_override", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", OBJECT_LRT_OWN_INTERSECTION_PRIORITY);
+  RNA_def_property_ui_text(
+      prop,
+      "Use Intersection Priority",
+      "Use this object's intersection priority to override collection setting");
+  RNA_def_property_update(prop, 0, "rna_object_lineart_update");
+
+  prop = RNA_def_property(srna, "intersection_priority", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 0, 255);
+  RNA_def_property_ui_text(prop,
+                           "Intersection Priority",
+                           "The intersection line will be included into the object with the "
+                           "higher intersection priority value");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_object_lineart_update");
 }
 
 static void rna_def_object_visibility(StructRNA *srna)

@@ -22,7 +22,7 @@
 
 namespace draco {
 
-// TODO(hemmer): Make this a stable bounding box.
+// TODO(b/199760123): Make this a stable bounding box.
 struct QuantizationInfo {
   uint32_t quantization_bits;
   float range;

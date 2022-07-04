@@ -303,15 +303,6 @@ static int to_nurbs_size(const CurveType src_type, const int src_size)
   }
 }
 
-static void retrieve_curve_sizes(const bke::CurvesGeometry &curves, MutableSpan<int> sizes)
-{
-  threading::parallel_for(curves.curves_range(), 4096, [&](IndexRange range) {
-    for (const int i : range) {
-      sizes[i] = curves.points_for_curve(i).size();
-    }
-  });
-}
-
 struct GenericAttributes : NonCopyable, NonMovable {
   Vector<GSpan> src;
   Vector<GMutableSpan> dst;
@@ -354,17 +345,22 @@ static void convert_to_bezier(const CurveComponent &src_component,
                               CurveComponent &dst_component,
                               bke::CurvesGeometry &dst_curves)
 {
+  const Vector<IndexRange> unselected_ranges = selection.extract_ranges_invert(
+      src_curves.curves_range());
+
   const VArray<int8_t> src_knot_modes = src_curves.nurbs_knots_modes();
   const VArray<int8_t> src_types = src_curves.curve_types();
   const VArray<bool> src_cyclic = src_curves.cyclic();
   const Span<float3> src_positions = src_curves.positions();
 
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
-  retrieve_curve_sizes(src_curves, dst_curves.offsets_for_write());
+  bke::curves::fill_curve_counts(src_curves, unselected_ranges, dst_curves.offsets_for_write());
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
     for (const int i : selection.slice(range)) {
-      dst_offsets[i] = to_bezier_size(
-          CurveType(src_types[i]), src_cyclic[i], KnotsMode(src_knot_modes[i]), dst_offsets[i]);
+      const CurveType type = CurveType(src_types[i]);
+      const KnotsMode knots_mode = KnotsMode(src_knot_modes[i]);
+      const IndexRange points = src_curves.points_for_curve(i);
+      dst_offsets[i] = to_bezier_size(type, src_cyclic[i], knots_mode, points.size());
     }
   });
   bke::curves::accumulate_counts_to_offsets(dst_offsets);
@@ -414,8 +410,8 @@ static void convert_to_bezier(const CurveComponent &src_component,
   };
 
   auto bezier_to_bezier = [&](IndexMask selection) {
-    const VArray_Span<int8_t> src_types_l = src_curves.handle_types_left();
-    const VArray_Span<int8_t> src_types_r = src_curves.handle_types_right();
+    const VArraySpan<int8_t> src_types_l = src_curves.handle_types_left();
+    const VArraySpan<int8_t> src_types_r = src_curves.handle_types_right();
     const Span<float3> src_handles_l = src_curves.handle_positions_left();
     const Span<float3> src_handles_r = src_curves.handle_positions_right();
 
@@ -489,9 +485,6 @@ static void convert_to_bezier(const CurveComponent &src_component,
                                      bezier_to_bezier,
                                      nurbs_to_bezier);
 
-  const Vector<IndexRange> unselected_ranges = selection.extract_ranges_invert(
-      src_curves.curves_range());
-
   for (const int i : attributes.src.index_range()) {
     bke::curves::copy_point_data(
         src_curves, dst_curves, unselected_ranges, attributes.src[i], attributes.dst[i]);
@@ -508,15 +501,19 @@ static void convert_to_nurbs(const CurveComponent &src_component,
                              CurveComponent &dst_component,
                              bke::CurvesGeometry &dst_curves)
 {
+  const Vector<IndexRange> unselected_ranges = selection.extract_ranges_invert(
+      src_curves.curves_range());
+
   const VArray<int8_t> src_types = src_curves.curve_types();
   const VArray<bool> src_cyclic = src_curves.cyclic();
   const Span<float3> src_positions = src_curves.positions();
 
   MutableSpan<int> dst_offsets = dst_curves.offsets_for_write();
-  retrieve_curve_sizes(src_curves, dst_curves.offsets_for_write());
+  bke::curves::fill_curve_counts(src_curves, unselected_ranges, dst_curves.offsets_for_write());
   threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
     for (const int i : selection.slice(range)) {
-      dst_offsets[i] = to_nurbs_size(CurveType(src_types[i]), dst_offsets[i]);
+      const IndexRange points = src_curves.points_for_curve(i);
+      dst_offsets[i] = to_nurbs_size(CurveType(src_types[i]), points.size());
     }
   });
   bke::curves::accumulate_counts_to_offsets(dst_offsets);
@@ -572,7 +569,7 @@ static void convert_to_nurbs(const CurveComponent &src_component,
           src_cyclic.get_internal_single() ? NURBS_KNOT_MODE_NORMAL : NURBS_KNOT_MODE_ENDPOINT);
     }
     else {
-      VArray_Span<bool> cyclic{src_cyclic};
+      VArraySpan<bool> cyclic{src_cyclic};
       MutableSpan<int8_t> knots_modes = dst_curves.nurbs_knots_modes_for_write();
       threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
         for (const int i : selection.slice(range)) {
@@ -648,9 +645,6 @@ static void convert_to_nurbs(const CurveComponent &src_component,
                                      poly_to_nurbs,
                                      bezier_to_nurbs,
                                      nurbs_to_nurbs);
-
-  const Vector<IndexRange> unselected_ranges = selection.extract_ranges_invert(
-      src_curves.curves_range());
 
   for (const int i : attributes.src.index_range()) {
     bke::curves::copy_point_data(

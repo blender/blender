@@ -791,7 +791,8 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
                           Span<Array<short>> material_remaps,
                           const bool use_self,
                           const bool hole_tolerant,
-                          const int boolean_mode)
+                          const int boolean_mode,
+                          Vector<int> *r_intersecting_edges)
 {
 #ifdef WITH_GMP
   BLI_assert(meshes.size() == transforms.size());
@@ -828,7 +829,23 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
     write_obj_mesh(m_out, "m_out");
   }
 
-  return imesh_to_mesh(&m_out, mim);
+  Mesh *result = imesh_to_mesh(&m_out, mim);
+
+  /* Store intersecting edge indices. */
+  if (r_intersecting_edges != nullptr) {
+    for (int fi : m_out.face_index_range()) {
+      const Face &face = *m_out.face(fi);
+      const MPoly &poly = result->mpoly[fi];
+      for (int corner_i : face.index_range()) {
+        if (face.is_intersect[corner_i]) {
+          int e_index = result->mloop[poly.loopstart + corner_i].e;
+          r_intersecting_edges->append(e_index);
+        }
+      }
+    }
+  }
+
+  return result;
 #else   // WITH_GMP
   UNUSED_VARS(meshes,
               transforms,
@@ -836,7 +853,8 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
               target_transform,
               use_self,
               hole_tolerant,
-              boolean_mode);
+              boolean_mode,
+              r_intersecting_edges);
   return nullptr;
 #endif  // WITH_GMP
 }

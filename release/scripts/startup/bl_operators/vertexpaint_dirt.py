@@ -2,14 +2,10 @@
 # Copyright Campbell Barton.
 
 
-def get_vcolor_layer_data(me):
-    for lay in me.vertex_colors:
-        if lay.active:
-            return lay.data
-
-    lay = me.vertex_colors.new()
-    lay.active = True
-    return lay.data
+def ensure_active_color_attribute(me):
+    if me.attributes.active_color:
+        return me.attributes.active_color
+    return me.color_attributes.new("Color", 'BYTE_COLOR', 'FACE_CORNER')
 
 
 def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean, dirt_only, normalize):
@@ -99,9 +95,13 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
     else:
         tone_range = 1.0 / tone_range
 
-    active_col_layer = get_vcolor_layer_data(me)
-    if not active_col_layer:
+    active_color_attribute = ensure_active_color_attribute(me)
+    if not active_color_attribute:
         return {'CANCELLED'}
+
+    point_domain = active_color_attribute.domain == 'POINT'
+
+    attribute_data = active_color_attribute.data
 
     use_paint_mask = me.use_paint_mask
     for i, p in enumerate(me.polygons):
@@ -109,7 +109,7 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
             for loop_index in p.loop_indices:
                 loop = me.loops[loop_index]
                 v = loop.vertex_index
-                col = active_col_layer[loop_index].color
+                col = attribute_data[v if point_domain else loop_index].color
                 tone = vert_tone[v]
                 tone = (tone - min_tone) * tone_range
 

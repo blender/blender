@@ -2044,6 +2044,7 @@ void ED_operatortypes_uvedit(void)
   WM_operatortype_append(UV_OT_select_pinned);
   WM_operatortype_append(UV_OT_select_box);
   WM_operatortype_append(UV_OT_select_lasso);
+  WM_operatortype_append(UV_OT_select_similar);
   WM_operatortype_append(UV_OT_select_circle);
   WM_operatortype_append(UV_OT_select_more);
   WM_operatortype_append(UV_OT_select_less);

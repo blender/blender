@@ -63,7 +63,7 @@ ccl_device_forceinline bool point_intersect(KernelGlobals kg,
                                             const int type)
 {
   const float4 point = (type & PRIMITIVE_MOTION) ? motion_point(kg, object, prim, time) :
-                                                   kernel_tex_fetch(__points, prim);
+                                                   kernel_data_fetch(points, prim);
 
   if (!point_intersect_test(point, P, dir, tmax, &isect->t)) {
     return false;
@@ -82,7 +82,7 @@ ccl_device_inline void point_shader_setup(KernelGlobals kg,
                                           ccl_private const Intersection *isect,
                                           ccl_private const Ray *ray)
 {
-  sd->shader = kernel_tex_fetch(__points_shader, isect->prim);
+  sd->shader = kernel_data_fetch(points_shader, isect->prim);
   sd->P = ray->P + ray->D * isect->t;
 
   /* Texture coordinates, zero for now. */
@@ -94,7 +94,7 @@ ccl_device_inline void point_shader_setup(KernelGlobals kg,
   /* Compute point center for normal. */
   float3 center = float4_to_float3((isect->type & PRIMITIVE_MOTION) ?
                                        motion_point(kg, sd->object, sd->prim, sd->time) :
-                                       kernel_tex_fetch(__points, sd->prim));
+                                       kernel_data_fetch(points, sd->prim));
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     object_position_transform_auto(kg, sd, &center);
   }

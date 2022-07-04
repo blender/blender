@@ -9,6 +9,9 @@ global:
   *;
   *_boost*;
 local:
+  __once_proxy;
+  _ZSt11__once_call;
+  _ZSt15__once_callable;
   al*;
   *Alembic*;
   av*;

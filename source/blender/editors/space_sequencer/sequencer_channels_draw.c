@@ -97,7 +97,7 @@ static void displayed_channel_range_get(const SeqChannelDrawContext *context,
 
   rctf strip_boundbox;
   BLI_rctf_init(&strip_boundbox, 0.0f, 0.0f, 1.0f, r_channel_range[1]);
-  SEQ_timeline_expand_boundbox(context->seqbase, &strip_boundbox);
+  SEQ_timeline_expand_boundbox(context->scene, context->seqbase, &strip_boundbox);
   CLAMP(r_channel_range[0], strip_boundbox.ymin, strip_boundbox.ymax);
   CLAMP(r_channel_range[1], strip_boundbox.ymin, MAXSEQ);
 }

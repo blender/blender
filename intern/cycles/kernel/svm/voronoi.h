@@ -1079,7 +1079,7 @@ ccl_device_noinline int svm_node_tex_voronoi(KernelGlobals kg,
         default:
           kernel_assert(0);
       }
-      position_out = safe_divide_float3_float(position_out, scale);
+      position_out = safe_divide(position_out, scale);
       break;
     }
 
@@ -1126,7 +1126,7 @@ ccl_device_noinline int svm_node_tex_voronoi(KernelGlobals kg,
           default:
             kernel_assert(0);
         }
-        position_out_4d = safe_divide_float4_float(position_out_4d, scale);
+        position_out_4d = safe_divide(position_out_4d, scale);
         position_out = make_float3(position_out_4d.x, position_out_4d.y, position_out_4d.z);
         w_out = position_out_4d.w;
       }

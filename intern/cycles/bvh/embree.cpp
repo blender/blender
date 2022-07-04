@@ -250,7 +250,7 @@ static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
         *isect = current_isect;
         /* Only primitives from volume object. */
         uint tri_object = isect->object;
-        int object_flag = kernel_tex_fetch(__object_flag, tri_object);
+        int object_flag = kernel_data_fetch(object_flag, tri_object);
         if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
           --ctx->num_hits;
         }
@@ -332,7 +332,7 @@ static bool rtc_memory_monitor_func(void *userPtr, const ssize_t bytes, const bo
 
 static void rtc_error_func(void *, enum RTCError, const char *str)
 {
-  VLOG(1) << str;
+  VLOG_WARNING << str;
 }
 
 static double progress_start_time = 0.0;
@@ -521,8 +521,8 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
       geom_id, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT3, sizeof(int) * 3, num_triangles);
   assert(rtc_indices);
   if (!rtc_indices) {
-    VLOG(1) << "Embree could not create new geometry buffer for mesh " << mesh->name.c_str()
-            << ".\n";
+    VLOG_WARNING << "Embree could not create new geometry buffer for mesh " << mesh->name.c_str()
+                 << ".\n";
     return;
   }
   for (size_t j = 0; j < num_triangles; ++j) {

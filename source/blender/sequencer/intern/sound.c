@@ -23,6 +23,7 @@
 #include "SEQ_sound.h"
 #include "SEQ_time.h"
 
+#include "sequencer.h"
 #include "strip_time.h"
 
 /* Unlike _update_sound_ funcs, these ones take info from audaspace to update sequence length! */
@@ -99,8 +100,8 @@ void SEQ_sound_update_bounds(Scene *scene, Sequence *seq)
 
       BKE_sound_move_scene_sound(scene,
                                  seq->scene_sound,
-                                 SEQ_time_left_handle_frame_get(seq),
-                                 SEQ_time_right_handle_frame_get(seq),
+                                 SEQ_time_left_handle_frame_get(scene, seq),
+                                 SEQ_time_right_handle_frame_get(scene, seq),
                                  startofs,
                                  0.0);
     }
@@ -132,4 +133,13 @@ void SEQ_sound_update(Scene *scene, bSound *sound)
   if (scene->ed) {
     seq_update_sound_recursive(scene, &scene->ed->seqbase, sound);
   }
+}
+
+float SEQ_sound_pitch_get(const Scene *scene, const Sequence *seq)
+{
+  Sequence *meta_parent = seq_sequence_lookup_meta_by_seq(scene, seq);
+  if (meta_parent != NULL) {
+    return seq->speed_factor * SEQ_sound_pitch_get(scene, meta_parent);
+  }
+  return seq->speed_factor;
 }

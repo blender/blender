@@ -113,7 +113,7 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
   for (int hit = 0; hit < num_eval_hits; hit++) {
     /* Get geometric normal. */
     const int object = ss_isect.hits[hit].object;
-    const int object_flag = kernel_tex_fetch(__object_flag, object);
+    const int object_flag = kernel_data_fetch(object_flag, object);
     float3 hit_Ng = ss_isect.Ng[hit];
     if (path_flag & PATH_RAY_SUBSURFACE_BACKFACING) {
       hit_Ng = -hit_Ng;

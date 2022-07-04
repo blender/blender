@@ -34,7 +34,7 @@ typedef BOOL(API *GHOST_WIN32_AdjustWindowRectExForDpi)(
 struct GHOST_PointerInfoWin32 {
   int32_t pointerId;
   int32_t isPrimary;
-  GHOST_TButtonMask buttonMask;
+  GHOST_TButton buttonMask;
   POINT pixelLocation;
   uint64_t time;
   GHOST_TabletData tabletData;

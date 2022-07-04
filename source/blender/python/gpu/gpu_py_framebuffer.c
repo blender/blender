@@ -21,11 +21,9 @@
 #include "../mathutils/mathutils.h"
 
 #include "gpu_py.h"
-#include "gpu_py_texture.h"
-
-#include "gpu_py.h"
 #include "gpu_py_buffer.h"
 #include "gpu_py_framebuffer.h" /* own include */
+#include "gpu_py_texture.h"
 
 /* -------------------------------------------------------------------- */
 /** \name GPUFrameBuffer Common Utilities

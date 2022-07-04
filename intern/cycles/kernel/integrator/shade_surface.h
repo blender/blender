@@ -48,7 +48,7 @@ ccl_device_forceinline bool integrate_surface_holdout(KernelGlobals kg,
       const float transparent = average(holdout_weight * throughput);
       kernel_accum_holdout(kg, state, path_flag, transparent, render_buffer);
     }
-    if (isequal_float3(holdout_weight, one_float3())) {
+    if (isequal(holdout_weight, one_float3())) {
       return false;
     }
   }
@@ -141,7 +141,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   {
     if (ls.lamp != LAMP_NONE) {
       /* Is this a caustic light? */
-      const bool use_caustics = kernel_tex_fetch(__lights, ls.lamp).use_caustics;
+      const bool use_caustics = kernel_data_fetch(lights, ls.lamp).use_caustics;
       if (use_caustics) {
         /* Are we on a caustic caster? */
         if (is_transmission && (sd->object_flag & SD_OBJECT_CAUSTICS_CASTER))
@@ -170,7 +170,7 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
 
     /* Evaluate BSDF. */
     const float bsdf_pdf = shader_bsdf_eval(kg, sd, ls.D, is_transmission, &bsdf_eval, ls.shader);
-    bsdf_eval_mul3(&bsdf_eval, light_eval / ls.pdf);
+    bsdf_eval_mul(&bsdf_eval, light_eval / ls.pdf);
 
     if (ls.shader & SHADER_USE_MIS) {
       const float mis_weight = light_sample_mis_weight_nee(kg, ls.pdf, bsdf_pdf);

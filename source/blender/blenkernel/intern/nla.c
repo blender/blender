@@ -244,27 +244,50 @@ void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, const ListBase *src, const 
   }
 }
 
-static void update_active_strip_from_listbase(AnimData *adt_dest,
-                                              NlaTrack *track_dest,
-                                              const NlaStrip *active_strip,
-                                              const ListBase /* NlaStrip */ *strips_source)
+/**
+ * Find `active_strip` in `strips_source`, then return the strip with the same
+ * index from `strips_dest`.
+ */
+static NlaStrip *find_active_strip_from_listbase(const NlaStrip *active_strip,
+                                                 const ListBase /* NlaStrip */ *strips_source,
+                                                 const ListBase /* NlaStrip */ *strips_dest)
 {
-  NlaStrip *strip_dest = track_dest->strips.first;
+  BLI_assert_msg(BLI_listbase_count(strips_source) == BLI_listbase_count(strips_dest),
+                 "Expecting the same number of source and destination strips");
+
+  NlaStrip *strip_dest = strips_dest->first;
   LISTBASE_FOREACH (const NlaStrip *, strip_source, strips_source) {
+    if (strip_dest == NULL) {
+      /* The tracks are assumed to have an equal number of strips, but this is
+       * not the case. Not sure when this might happen, but it's better to not
+       * crash. */
+      break;
+    }
     if (strip_source == active_strip) {
-      adt_dest->actstrip = strip_dest;
-      return;
+      return strip_dest;
     }
 
-    if (strip_source->type == NLASTRIP_TYPE_META) {
-      update_active_strip_from_listbase(adt_dest, track_dest, active_strip, &strip_source->strips);
+    const bool src_is_meta = strip_source->type == NLASTRIP_TYPE_META;
+    const bool dst_is_meta = strip_dest->type == NLASTRIP_TYPE_META;
+    BLI_assert_msg(src_is_meta == dst_is_meta,
+                   "Expecting topology of source and destination strips to be equal");
+    if (src_is_meta && dst_is_meta) {
+      NlaStrip *found_in_meta = find_active_strip_from_listbase(
+          active_strip, &strip_source->strips, &strip_dest->strips);
+      if (found_in_meta != NULL) {
+        return found_in_meta;
+      }
     }
 
     strip_dest = strip_dest->next;
   }
+
+  return NULL;
 }
 
-/* Set adt_dest->actstrip to the strip with the same index as adt_source->actstrip. */
+/* Set adt_dest->actstrip to the strip with the same index as
+ * adt_source->actstrip. Note that this always sets `adt_dest->actstrip`; sets
+ * to NULL when `adt_source->actstrip` cannot be found. */
 static void update_active_strip(AnimData *adt_dest,
                                 NlaTrack *track_dest,
                                 const AnimData *adt_source,
@@ -272,13 +295,20 @@ static void update_active_strip(AnimData *adt_dest,
 {
   BLI_assert(BLI_listbase_count(&track_source->strips) == BLI_listbase_count(&track_dest->strips));
 
-  update_active_strip_from_listbase(
-      adt_dest, track_dest, adt_source->actstrip, &track_source->strips);
+  NlaStrip *active_strip = find_active_strip_from_listbase(
+      adt_source->actstrip, &track_source->strips, &track_dest->strips);
+  adt_dest->actstrip = active_strip;
 }
 
 /* Set adt_dest->act_track to the track with the same index as adt_source->act_track. */
 static void update_active_track(AnimData *adt_dest, const AnimData *adt_source)
 {
+  adt_dest->act_track = NULL;
+  adt_dest->actstrip = NULL;
+  if (adt_source->act_track == NULL && adt_source->actstrip == NULL) {
+    return;
+  }
+
   BLI_assert(BLI_listbase_count(&adt_source->nla_tracks) ==
              BLI_listbase_count(&adt_dest->nla_tracks));
 
@@ -287,7 +317,11 @@ static void update_active_track(AnimData *adt_dest, const AnimData *adt_source)
     if (track_source == adt_source->act_track) {
       adt_dest->act_track = track_dest;
     }
-    update_active_strip(adt_dest, track_dest, adt_source, track_source);
+
+    /* Only search for the active strip if it hasn't been found yet. */
+    if (adt_dest->actstrip == NULL && adt_source->actstrip != NULL) {
+      update_active_strip(adt_dest, track_dest, adt_source, track_source);
+    }
 
     track_dest = track_dest->next;
   }

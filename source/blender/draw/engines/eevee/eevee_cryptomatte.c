@@ -94,7 +94,7 @@ BLI_INLINE int eevee_cryptomatte_pixel_stride(const ViewLayer *view_layer)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Init Renderpasses
+/** \name Init Render-Passes
  * \{ */
 
 void EEVEE_cryptomatte_renderpasses_init(EEVEE_Data *vedata)

@@ -51,15 +51,15 @@ ccl_device_forceinline int get_object_id()
 extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_closest()
 {
   const int global_index = optixGetLaunchIndex().x;
-  const int path_index = (__params.path_index_array) ? __params.path_index_array[global_index] :
+  const int path_index = (kernel_params.path_index_array) ? kernel_params.path_index_array[global_index] :
                                                        global_index;
-  integrator_intersect_closest(nullptr, path_index, __params.render_buffer);
+  integrator_intersect_closest(nullptr, path_index, kernel_params.render_buffer);
 }
 
 extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_shadow()
 {
   const int global_index = optixGetLaunchIndex().x;
-  const int path_index = (__params.path_index_array) ? __params.path_index_array[global_index] :
+  const int path_index = (kernel_params.path_index_array) ? kernel_params.path_index_array[global_index] :
                                                        global_index;
   integrator_intersect_shadow(nullptr, path_index);
 }
@@ -67,7 +67,7 @@ extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_shadow()
 extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_subsurface()
 {
   const int global_index = optixGetLaunchIndex().x;
-  const int path_index = (__params.path_index_array) ? __params.path_index_array[global_index] :
+  const int path_index = (kernel_params.path_index_array) ? kernel_params.path_index_array[global_index] :
                                                        global_index;
   integrator_intersect_subsurface(nullptr, path_index);
 }
@@ -75,7 +75,7 @@ extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_subsurfac
 extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_volume_stack()
 {
   const int global_index = optixGetLaunchIndex().x;
-  const int path_index = (__params.path_index_array) ? __params.path_index_array[global_index] :
+  const int path_index = (kernel_params.path_index_array) ? kernel_params.path_index_array[global_index] :
                                                        global_index;
   integrator_intersect_volume_stack(nullptr, path_index);
 }
@@ -151,17 +151,17 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
   isect->t = optixGetRayTmax();
   isect->prim = prim;
   isect->object = get_object_id();
-  isect->type = kernel_tex_fetch(__objects, isect->object).primitive_type;
+  isect->type = kernel_data_fetch(objects, isect->object).primitive_type;
 
   const float2 barycentrics = optixGetTriangleBarycentrics();
   isect->u = 1.0f - barycentrics.y - barycentrics.x;
   isect->v = barycentrics.x;
 
   /* Record geometric normal. */
-  const uint tri_vindex = kernel_tex_fetch(__tri_vindex, prim).w;
-  const float3 tri_a = kernel_tex_fetch(__tri_verts, tri_vindex + 0);
-  const float3 tri_b = kernel_tex_fetch(__tri_verts, tri_vindex + 1);
-  const float3 tri_c = kernel_tex_fetch(__tri_verts, tri_vindex + 2);
+  const uint tri_vindex = kernel_data_fetch(tri_vindex, prim).w;
+  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0);
+  const float3 tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1);
+  const float3 tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
   local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
   /* Continue tracing (without this the trace call would return after the first hit). */
@@ -176,7 +176,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   const uint object = get_object_id();
 #  ifdef __VISIBILITY_FLAG__
   const uint visibility = optixGetPayload_4();
-  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
+  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     return optixIgnoreIntersection();
   }
 #  endif
@@ -192,14 +192,14 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     const float2 barycentrics = optixGetTriangleBarycentrics();
     u = 1.0f - barycentrics.y - barycentrics.x;
     v = barycentrics.x;
-    type = kernel_tex_fetch(__objects, object).primitive_type;
+    type = kernel_data_fetch(objects, object).primitive_type;
   }
 #  ifdef __HAIR__
   else if ((optixGetHitKind() & (~PRIMITIVE_MOTION)) != PRIMITIVE_POINT) {
     u = __uint_as_float(optixGetAttribute_0());
     v = __uint_as_float(optixGetAttribute_1());
 
-    const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, prim);
+    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
     type = segment.type;
     prim = segment.prim;
 
@@ -212,7 +212,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
   }
 #  endif
   else {
-    type = kernel_tex_fetch(__objects, object).primitive_type;
+    type = kernel_data_fetch(objects, object).primitive_type;
     u = 0.0f;
     v = 0.0f;
   }
@@ -307,12 +307,12 @@ extern "C" __global__ void __anyhit__kernel_optix_volume_test()
   const uint object = get_object_id();
 #ifdef __VISIBILITY_FLAG__
   const uint visibility = optixGetPayload_4();
-  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
+  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     return optixIgnoreIntersection();
   }
 #endif
 
-  if ((kernel_tex_fetch(__object_flag, object) & SD_OBJECT_HAS_VOLUME) == 0) {
+  if ((kernel_data_fetch(object_flag, object) & SD_OBJECT_HAS_VOLUME) == 0) {
     return optixIgnoreIntersection();
   }
 
@@ -340,7 +340,7 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
   const uint object = get_object_id();
   const uint visibility = optixGetPayload_4();
 #ifdef __VISIBILITY_FLAG__
-  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
+  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     return optixIgnoreIntersection();
   }
 #endif
@@ -377,10 +377,10 @@ extern "C" __global__ void __closesthit__kernel_optix_hit()
     optixSetPayload_1(__float_as_uint(1.0f - barycentrics.y - barycentrics.x));
     optixSetPayload_2(__float_as_uint(barycentrics.x));
     optixSetPayload_3(prim);
-    optixSetPayload_5(kernel_tex_fetch(__objects, object).primitive_type);
+    optixSetPayload_5(kernel_data_fetch(objects, object).primitive_type);
   }
   else if ((optixGetHitKind() & (~PRIMITIVE_MOTION)) != PRIMITIVE_POINT) {
-    const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, prim);
+    const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
     optixSetPayload_1(optixGetAttribute_0()); /* Same as 'optixGetCurveParameter()' */
     optixSetPayload_2(optixGetAttribute_1());
     optixSetPayload_3(segment.prim);
@@ -390,7 +390,7 @@ extern "C" __global__ void __closesthit__kernel_optix_hit()
     optixSetPayload_1(0);
     optixSetPayload_2(0);
     optixSetPayload_3(prim);
-    optixSetPayload_5(kernel_tex_fetch(__objects, object).primitive_type);
+    optixSetPayload_5(kernel_data_fetch(objects, object).primitive_type);
   }
 }
 
@@ -401,7 +401,7 @@ ccl_device_inline void optix_intersection_curve(const int prim, const int type)
 
 #  ifdef __VISIBILITY_FLAG__
   const uint visibility = optixGetPayload_4();
-  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
+  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     return;
   }
 #  endif
@@ -436,7 +436,7 @@ ccl_device_inline void optix_intersection_curve(const int prim, const int type)
 
 extern "C" __global__ void __intersection__curve_ribbon()
 {
-  const KernelCurveSegment segment = kernel_tex_fetch(__curve_segments, optixGetPrimitiveIndex());
+  const KernelCurveSegment segment = kernel_data_fetch(curve_segments, optixGetPrimitiveIndex());
   const int prim = segment.prim;
   const int type = segment.type;
   if (type & PRIMITIVE_CURVE_RIBBON) {
@@ -451,11 +451,11 @@ extern "C" __global__ void __intersection__point()
 {
   const int prim = optixGetPrimitiveIndex();
   const int object = get_object_id();
-  const int type = kernel_tex_fetch(__objects, object).primitive_type;
+  const int type = kernel_data_fetch(objects, object).primitive_type;
 
 #  ifdef __VISIBILITY_FLAG__
   const uint visibility = optixGetPayload_4();
-  if ((kernel_tex_fetch(__objects, object).visibility & visibility) == 0) {
+  if ((kernel_data_fetch(objects, object).visibility & visibility) == 0) {
     return;
   }
 #  endif

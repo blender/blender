@@ -87,7 +87,7 @@ class MFVariable : NonCopyable, NonMovable {
   MFDataType data_type_;
   Vector<MFInstruction *> users_;
   std::string name_;
-  int id_;
+  int index_in_graph_;
 
   friend MFProcedure;
   friend MFCallInstruction;
@@ -101,7 +101,7 @@ class MFVariable : NonCopyable, NonMovable {
   StringRefNull name() const;
   void set_name(std::string name);
 
-  int id() const;
+  int index_in_procedure() const;
 };
 
 /** Base class for all instruction types. */
@@ -376,9 +376,9 @@ inline StringRefNull MFVariable::name() const
   return name_;
 }
 
-inline int MFVariable::id() const
+inline int MFVariable::index_in_procedure() const
 {
-  return id_;
+  return index_in_graph_;
 }
 
 /** \} */

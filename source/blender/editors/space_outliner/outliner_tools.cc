@@ -222,13 +222,33 @@ static void unlink_action_fn(bContext *C,
 }
 
 static void unlink_material_fn(bContext *UNUSED(C),
-                               ReportList *UNUSED(reports),
+                               ReportList *reports,
                                Scene *UNUSED(scene),
                                TreeElement *te,
                                TreeStoreElem *tsep,
-                               TreeStoreElem *UNUSED(tselem),
+                               TreeStoreElem *tselem,
                                void *UNUSED(user_data))
 {
+  const bool te_is_material = TSE_IS_REAL_ID(tselem) && (GS(tselem->id->name) == ID_MA);
+
+  if (!te_is_material) {
+    /* Just fail silently. Another element may be selected that is a material, we don't want to
+     * confuse users with an error in that case. */
+    return;
+  }
+
+  if (!tsep || !TSE_IS_REAL_ID(tsep)) {
+    /* Valid case, no parent element of the material or it is not an ID (could be a #TSE_ID_BASE
+     * for example) so there's no data to unlink from. */
+    BKE_reportf(reports,
+                RPT_WARNING,
+                "Cannot unlink material '%s'. It's not clear which object or object-data it "
+                "should be unlinked from, there's no object or object-data as parent in the "
+                "Outliner tree",
+                tselem->id->name + 2);
+    return;
+  }
+
   Material **matar = nullptr;
   int a, totcol = 0;
 

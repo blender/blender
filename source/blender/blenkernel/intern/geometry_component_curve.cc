@@ -17,7 +17,7 @@
 using blender::GMutableSpan;
 using blender::GSpan;
 using blender::GVArray;
-using blender::GVArray_GSpan;
+using blender::GVArraySpan;
 
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation
@@ -231,7 +231,7 @@ template<typename T> class VArray_For_SplineToPoint final : public VArrayImpl<T>
   GVArray original_varray_;
   /* Store existing data materialized if it was not already a span. This is expected
    * to be worth it because a single spline's value will likely be accessed many times. */
-  VArray_Span<T> original_data_;
+  VArraySpan<T> original_data_;
   Array<int> offsets_;
 
  public:
@@ -645,8 +645,8 @@ static bool create_point_attribute(GeometryComponent &component,
   GVArray source_varray = varray_from_initializer(initializer, data_type, splines);
   /* TODO: When we can call a variant of #set_all with a virtual array argument,
    * this theoretically unnecessary materialize step could be removed. */
-  GVArray_GSpan source_varray_span{source_varray};
-  write_attribute.varray.set_all(source_varray_span.data());
+  GVArraySpan source_VArraySpan{source_varray};
+  write_attribute.varray.set_all(source_VArraySpan.data());
 
   if (initializer.type == AttributeInit::Type::MoveArray) {
     MEM_freeN(static_cast<const AttributeInitMove &>(initializer).data);

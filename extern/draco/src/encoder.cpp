@@ -59,7 +59,8 @@ void encoderRelease(Encoder *encoder)
     delete encoder;
 }
 
-void encoderSetCompressionLevel(Encoder *encoder, uint32_t compressionLevel) {
+void encoderSetCompressionLevel(Encoder *encoder, uint32_t compressionLevel)
+{
     encoder->compressionLevel = compressionLevel;
 }
 
@@ -75,7 +76,7 @@ void encoderSetQuantizationBits(Encoder *encoder, uint32_t position, uint32_t no
 bool encoderEncode(Encoder *encoder, uint8_t preserveTriangleOrder)
 {
     printf(LOG_PREFIX "Preserve triangle order: %s\n", preserveTriangleOrder ? "yes" : "no");
-    
+
     draco::Encoder dracoEncoder;
 
     int speed = 10 - static_cast<int>(encoder->compressionLevel);
@@ -87,12 +88,12 @@ bool encoderEncode(Encoder *encoder, uint8_t preserveTriangleOrder)
     dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::COLOR, encoder->quantization.color);
     dracoEncoder.SetAttributeQuantization(draco::GeometryAttribute::GENERIC, encoder->quantization.generic);
     dracoEncoder.SetTrackEncodedProperties(true);
-    
+
     if (preserveTriangleOrder)
     {
         dracoEncoder.SetEncodingMethod(draco::MESH_SEQUENTIAL_ENCODING);
     }
-    
+
     auto encoderStatus = dracoEncoder.EncodeMeshToBuffer(encoder->mesh, &encoder->encoderBuffer);
     if (encoderStatus.ok())
     {
@@ -130,20 +131,19 @@ void encoderCopy(Encoder *encoder, uint8_t *data)
     memcpy(data, encoder->encoderBuffer.data(), encoder->encoderBuffer.size());
 }
 
-template<class T>
+template <class T>
 void encodeIndices(Encoder *encoder, uint32_t indexCount, T *indices)
 {
     int face_count = indexCount / 3;
     encoder->mesh.SetNumFaces(static_cast<size_t>(face_count));
     encoder->rawSize += indexCount * sizeof(T);
-    
+
     for (int i = 0; i < face_count; ++i)
     {
         draco::Mesh::Face face = {
             draco::PointIndex(indices[3 * i + 0]),
             draco::PointIndex(indices[3 * i + 1]),
-            draco::PointIndex(indices[3 * i + 2])
-        };
+            draco::PointIndex(indices[3 * i + 2])};
         encoder->mesh.SetFace(draco::FaceIndex(static_cast<uint32_t>(i)), face);
     }
 }
@@ -152,23 +152,23 @@ void encoderSetIndices(Encoder *encoder, size_t indexComponentType, uint32_t ind
 {
     switch (indexComponentType)
     {
-        case ComponentType::Byte:
-            encodeIndices(encoder, indexCount, reinterpret_cast<int8_t *>(indices));
-            break;
-        case ComponentType::UnsignedByte:
-            encodeIndices(encoder, indexCount, reinterpret_cast<uint8_t *>(indices));
-            break;
-        case ComponentType::Short:
-            encodeIndices(encoder, indexCount, reinterpret_cast<int16_t *>(indices));
-            break;
-        case ComponentType::UnsignedShort:
-            encodeIndices(encoder, indexCount, reinterpret_cast<uint16_t *>(indices));
-            break;
-        case ComponentType::UnsignedInt:
-            encodeIndices(encoder, indexCount, reinterpret_cast<uint32_t *>(indices));
-            break;
-        default:
-            printf(LOG_PREFIX "Index component type %zu not supported\n", indexComponentType);
+    case ComponentType::Byte:
+        encodeIndices(encoder, indexCount, reinterpret_cast<int8_t *>(indices));
+        break;
+    case ComponentType::UnsignedByte:
+        encodeIndices(encoder, indexCount, reinterpret_cast<uint8_t *>(indices));
+        break;
+    case ComponentType::Short:
+        encodeIndices(encoder, indexCount, reinterpret_cast<int16_t *>(indices));
+        break;
+    case ComponentType::UnsignedShort:
+        encodeIndices(encoder, indexCount, reinterpret_cast<uint16_t *>(indices));
+        break;
+    case ComponentType::UnsignedInt:
+        encodeIndices(encoder, indexCount, reinterpret_cast<uint32_t *>(indices));
+        break;
+    default:
+        printf(LOG_PREFIX "Index component type %zu not supported\n", indexComponentType);
     }
 }
 
@@ -190,7 +190,7 @@ draco::GeometryAttribute::Type getAttributeSemantics(char *attribute)
     {
         return draco::GeometryAttribute::COLOR;
     }
-    
+
     return draco::GeometryAttribute::GENERIC;
 }
 
@@ -198,37 +198,38 @@ draco::DataType getDataType(size_t componentType)
 {
     switch (componentType)
     {
-        case ComponentType::Byte:
-            return draco::DataType::DT_INT8;
-            
-        case ComponentType::UnsignedByte:
-            return draco::DataType::DT_UINT8;
-            
-        case ComponentType::Short:
-            return draco::DataType::DT_INT16;
-            
-        case ComponentType::UnsignedShort:
-            return draco::DataType::DT_UINT16;
-            
-        case ComponentType::UnsignedInt:
-            return draco::DataType::DT_UINT32;
-            
-        case ComponentType::Float:
-            return draco::DataType::DT_FLOAT32;
-            
-        default:
-            return draco::DataType::DT_INVALID;
+    case ComponentType::Byte:
+        return draco::DataType::DT_INT8;
+
+    case ComponentType::UnsignedByte:
+        return draco::DataType::DT_UINT8;
+
+    case ComponentType::Short:
+        return draco::DataType::DT_INT16;
+
+    case ComponentType::UnsignedShort:
+        return draco::DataType::DT_UINT16;
+
+    case ComponentType::UnsignedInt:
+        return draco::DataType::DT_UINT32;
+
+    case ComponentType::Float:
+        return draco::DataType::DT_FLOAT32;
+
+    default:
+        return draco::DataType::DT_INVALID;
     }
 }
 
-API(uint32_t) encoderSetAttribute(Encoder *encoder, char *attributeName, size_t componentType, char *dataType, void *data)
+API(uint32_t)
+encoderSetAttribute(Encoder *encoder, char *attributeName, size_t componentType, char *dataType, void *data)
 {
     auto buffer = std::make_unique<draco::DataBuffer>();
     uint32_t count = encoder->mesh.num_points();
     size_t componentCount = getNumberOfComponents(dataType);
     size_t stride = getAttributeStride(componentType, dataType);
     draco::DataType dracoDataType = getDataType(componentType);
-    
+
     draco::GeometryAttribute::Type semantics = getAttributeSemantics(attributeName);
     draco::GeometryAttribute attribute;
     attribute.Init(semantics, &*buffer, componentCount, getDataType(componentType), false, stride, 0);

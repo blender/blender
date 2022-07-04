@@ -203,7 +203,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           data_evaluator.add(input_field);
           data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();
-          const VArray<float> &component_data = data_evaluator.get_evaluated<float>(0);
+          const VArray<float> component_data = data_evaluator.get_evaluated<float>(0);
           const IndexMask selection = data_evaluator.get_evaluated_selection_as_mask();
 
           const int next_data_index = data.size();
@@ -281,7 +281,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           data_evaluator.add(input_field);
           data_evaluator.set_selection(selection_field);
           data_evaluator.evaluate();
-          const VArray<float3> &component_data = data_evaluator.get_evaluated<float3>(0);
+          const VArray<float3> component_data = data_evaluator.get_evaluated<float3>(0);
           const IndexMask selection = data_evaluator.get_evaluated_selection_as_mask();
 
           const int next_data_index = data.size();

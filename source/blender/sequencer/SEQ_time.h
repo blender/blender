@@ -29,7 +29,9 @@ void SEQ_timeline_init_boundbox(const struct Scene *scene, struct rctf *rect);
  * \param seqbase: ListBase in which strips are located
  * \param rect: output parameter to be filled with strips' boundaries
  */
-void SEQ_timeline_expand_boundbox(const struct ListBase *seqbase, struct rctf *rect);
+void SEQ_timeline_expand_boundbox(const struct Scene *scene,
+                                  const struct ListBase *seqbase,
+                                  struct rctf *rect);
 /**
  * Define boundary rectangle of sequencer timeline and fill in rect data
  *
@@ -56,15 +58,23 @@ int SEQ_time_find_next_prev_edit(struct Scene *scene,
  * \param timeline_frame: absolute frame position
  * \return true if strip intersects with timeline frame.
  */
-bool SEQ_time_strip_intersects_frame(const struct Sequence *seq, int timeline_frame);
-bool SEQ_time_has_still_frames(const struct Sequence *seq);
-bool SEQ_time_has_left_still_frames(const struct Sequence *seq);
-bool SEQ_time_has_right_still_frames(const struct Sequence *seq);
+bool SEQ_time_strip_intersects_frame(const struct Scene *scene,
+                                     const struct Sequence *seq,
+                                     int timeline_frame);
+bool SEQ_time_has_still_frames(const struct Scene *scene, const struct Sequence *seq);
+bool SEQ_time_has_left_still_frames(const struct Scene *scene, const struct Sequence *seq);
+bool SEQ_time_has_right_still_frames(const struct Scene *scene, const struct Sequence *seq);
 
-int SEQ_time_left_handle_frame_get(const struct Sequence *seq);
-int SEQ_time_right_handle_frame_get(const struct Sequence *seq);
+int SEQ_time_left_handle_frame_get(const struct Scene *scene, const struct Sequence *seq);
+int SEQ_time_right_handle_frame_get(const struct Scene *scene, const struct Sequence *seq);
 void SEQ_time_left_handle_frame_set(const struct Scene *scene, struct Sequence *seq, int val);
 void SEQ_time_right_handle_frame_set(const struct Scene *scene, struct Sequence *seq, int val);
+int SEQ_time_strip_length_get(const struct Scene *scene, const struct Sequence *seq);
+void SEQ_time_speed_factor_set(const struct Scene *scene,
+                               struct Sequence *seq,
+                               const float speed_factor);
+float SEQ_time_start_frame_get(const struct Sequence *seq);
+void SEQ_time_start_frame_set(const struct Scene *scene, struct Sequence *seq, int timeline_frame);
 void SEQ_time_update_meta_strip_range(const struct Scene *scene, struct Sequence *seq_meta);
 
 #ifdef __cplusplus

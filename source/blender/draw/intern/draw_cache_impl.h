@@ -156,10 +156,14 @@ struct GPUBatch *DRW_lattice_batch_cache_get_edit_verts(struct Lattice *lt);
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Hair
+/** \name Curves
  * \{ */
 
 int DRW_curves_material_count_get(struct Curves *curves);
+
+struct GPUBatch *DRW_curves_batch_cache_get_edit_points(struct Curves *curves);
+
+void DRW_curves_batch_cache_create_requested(struct Object *ob);
 
 /** \} */
 
@@ -349,16 +353,6 @@ struct GPUBatch *DRW_particles_batch_cache_get_edit_inner_points(struct Object *
 struct GPUBatch *DRW_particles_batch_cache_get_edit_tip_points(struct Object *object,
                                                                struct ParticleSystem *psys,
                                                                struct PTCacheEdit *edit);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Curves
- * \{ */
-
-struct GPUBatch *DRW_curves_batch_cache_get_edit_points(struct Curves *curves);
-
-void DRW_curves_batch_cache_create_requested(const struct Object *ob);
 
 /** \} */
 

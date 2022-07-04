@@ -5,8 +5,6 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.h"
-
 #include "DNA_userdef_types.h"
 
 #include "GPU_capabilities.h"

@@ -12,7 +12,7 @@
 #include "GHOST_EventKey.h"
 #include <iostream>
 
-#include <stdio.h>
+#include <cstdio>
 
 bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
 {
@@ -20,9 +20,9 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
 
   GHOST_ASSERT(event, "event==0");
 
-  if (event->getType() == GHOST_kEventWindowUpdate)
+  if (event->getType() == GHOST_kEventWindowUpdate) {
     return false;
-
+  }
   std::cout << "GHOST_EventPrinter::processEvent, time: " << (int32_t)event->getTime()
             << ", type: ";
   switch (event->getType()) {
@@ -106,8 +106,9 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
           std::cout << " type : GHOST_kDragnDropTypeFilenames,";
           std::cout << "\n  Received " << strArray->count << " filename"
                     << (strArray->count > 1 ? "s:" : ":");
-          for (i = 0; i < strArray->count; i++)
+          for (i = 0; i < strArray->count; i++) {
             std::cout << "\n    File[" << i << "] : " << strArray->strings[i];
+          }
         } break;
         default:
           break;
@@ -117,10 +118,12 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent *event)
     case GHOST_kEventOpenMainFile: {
       GHOST_TEventDataPtr eventData = ((GHOST_IEvent *)event)->getData();
 
-      if (eventData)
+      if (eventData) {
         std::cout << "GHOST_kEventOpenMainFile for path : " << (char *)eventData;
-      else
+      }
+      else {
         std::cout << "GHOST_kEventOpenMainFile with no path specified!!";
+      }
     } break;
 
     case GHOST_kEventQuitRequest:
@@ -167,7 +170,7 @@ void GHOST_EventPrinter::getKeyString(GHOST_TKey key, char str[32]) const
     sprintf(str, "F%d", key - GHOST_kKeyF1 + 1);
   }
   else {
-    const char *tstr = NULL;
+    const char *tstr = nullptr;
     switch (key) {
       case GHOST_kKeyBackSpace:
         tstr = "BackSpace";

@@ -307,10 +307,10 @@ int BKE_mesh_wrapper_poly_len(const Mesh *me)
 /** \name CPU Subdivision Evaluation
  * \{ */
 
-static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
+static Mesh *mesh_wrapper_ensure_subdivision(Mesh *me)
 {
-  SubsurfModifierData *smd = BKE_object_get_last_subsurf_modifier(ob);
-  if (!smd) {
+  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)me->runtime.subsurf_runtime_data;
+  if (runtime_data == nullptr || runtime_data->settings.level == 0) {
     return me;
   }
 
@@ -318,29 +318,19 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
    * subdivision is needed at all, and checking the descriptor status might involve checking if the
    * data is out-of-date, which is a very expensive operation. */
   SubdivToMeshSettings mesh_settings;
-  mesh_settings.resolution = me->runtime.subsurf_resolution;
-  mesh_settings.use_optimal_display = me->runtime.subsurf_use_optimal_display;
+  mesh_settings.resolution = runtime_data->resolution;
+  mesh_settings.use_optimal_display = runtime_data->use_optimal_display;
 
   if (mesh_settings.resolution < 3) {
     return me;
   }
 
-  const bool apply_render = me->runtime.subsurf_apply_render;
-
-  SubdivSettings subdiv_settings;
-  BKE_subsurf_modifier_subdiv_settings_init(&subdiv_settings, smd, apply_render);
-  if (subdiv_settings.level == 0) {
-    return me;
-  }
-
-  SubsurfRuntimeData *runtime_data = BKE_subsurf_modifier_ensure_runtime(smd);
-
-  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(smd, &subdiv_settings, me, false);
+  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(runtime_data, me, false);
   if (subdiv == nullptr) {
     /* Happens on bad topology, but also on empty input mesh. */
     return me;
   }
-  const bool use_clnors = BKE_subsurf_modifier_use_custom_loop_normals(smd, me);
+  const bool use_clnors = runtime_data->use_loop_normals;
   if (use_clnors) {
     /* If custom normals are present and the option is turned on calculate the split
      * normals and clear flag so the normals get interpolated to the result mesh. */
@@ -358,7 +348,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
     CustomData_set_layer_flag(&me->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
     CustomData_set_layer_flag(&subdiv_mesh->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
-  else if (me->runtime.subsurf_do_loop_normals) {
+  else if (runtime_data->calc_loop_normals) {
     BKE_mesh_calc_normals_split(subdiv_mesh);
   }
 
@@ -377,7 +367,7 @@ static Mesh *mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   return me->runtime.mesh_eval;
 }
 
-Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
+Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *me)
 {
   ThreadMutex *mesh_eval_mutex = (ThreadMutex *)me->runtime.eval_mutex;
   BLI_mutex_lock(mesh_eval_mutex);
@@ -390,7 +380,7 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(const Object *ob, Mesh *me)
   Mesh *result;
 
   /* Must isolate multithreaded tasks while holding a mutex lock. */
-  blender::threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(ob, me); });
+  blender::threading::isolate_task([&]() { result = mesh_wrapper_ensure_subdivision(me); });
 
   BLI_mutex_unlock(mesh_eval_mutex);
   return result;

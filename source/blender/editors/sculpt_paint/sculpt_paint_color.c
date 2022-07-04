@@ -148,7 +148,6 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
                  brush->mtex.brush_map_mode != MTEX_MAP_MODE_ROLL;
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    // SCULPT_orig_vert_data_update(&orig_data, vd.vertex);
     SCULPT_vertex_check_origdata(ss, vd.vertex);
 
     // check if we have a new stroke, in which we need to zero

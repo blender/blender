@@ -1984,7 +1984,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
     AnimData *adt = BKE_animdata_ensure_id(&ob->id);
     NlaTrack *nlt = BKE_nlatrack_add(adt, nullptr, is_liboverride);
     NlaStrip *strip = BKE_nla_add_soundstrip(bmain, scene, static_cast<Speaker *>(ob->data));
-    strip->start = CFRA;
+    strip->start = scene->r.cfra;
     strip->end += strip->start;
 
     /* hook them up */

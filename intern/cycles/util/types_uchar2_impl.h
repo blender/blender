@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_GPU__
+#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
 uchar uchar2::operator[](int i) const
 {
   util_assert(i >= 0);
@@ -30,7 +30,7 @@ ccl_device_inline uchar2 make_uchar2(uchar x, uchar y)
   uchar2 a = {x, y};
   return a;
 }
-#endif /* __KERNEL_GPU__ */
+#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
 
 CCL_NAMESPACE_END
 

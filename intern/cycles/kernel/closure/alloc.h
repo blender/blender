@@ -51,7 +51,7 @@ ccl_device_inline ccl_private ShaderClosure *bsdf_alloc(ccl_private ShaderData *
                                                         int size,
                                                         float3 weight)
 {
-  kernel_assert(isfinite3_safe(weight));
+  kernel_assert(isfinite_safe(weight));
 
   const float sample_weight = fabsf(average(weight));
 
@@ -77,7 +77,7 @@ ccl_device_inline ShaderClosure *bsdf_alloc_osl(ShaderData *sd,
                                                 float3 weight,
                                                 void *data)
 {
-  kernel_assert(isfinite3_safe(weight));
+  kernel_assert(isfinite_safe(weight));
 
   const float sample_weight = fabsf(average(weight));
 

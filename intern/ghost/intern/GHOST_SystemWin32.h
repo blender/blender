@@ -310,7 +310,7 @@ class GHOST_SystemWin32 : public GHOST_System {
    */
   static GHOST_EventButton *processButtonEvent(GHOST_TEventType type,
                                                GHOST_WindowWin32 *window,
-                                               GHOST_TButtonMask mask);
+                                               GHOST_TButton mask);
 
   /**
    * Creates tablet events from Wintab events.

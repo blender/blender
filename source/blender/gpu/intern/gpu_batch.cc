@@ -14,7 +14,6 @@
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
-#include "GPU_matrix.h"
 #include "GPU_platform.h"
 #include "GPU_shader.h"
 

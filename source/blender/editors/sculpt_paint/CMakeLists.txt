@@ -32,10 +32,15 @@ set(SRC
   curves_sculpt_brush.cc
   curves_sculpt_comb.cc
   curves_sculpt_delete.cc
+  curves_sculpt_density.cc
   curves_sculpt_grow_shrink.cc
   curves_sculpt_ops.cc
-  curves_sculpt_selection.cc
+  curves_sculpt_pinch.cc
+  curves_sculpt_puff.cc
   curves_sculpt_selection_paint.cc
+  curves_sculpt_selection.cc
+  curves_sculpt_slide.cc
+  curves_sculpt_smooth.cc
   curves_sculpt_snake_hook.cc
   paint_canvas.cc
   paint_cursor.c
@@ -52,8 +57,7 @@ set(SRC
   paint_stroke.c
   paint_utils.c
   paint_vertex.cc
-  paint_vertex_color_ops.c
-  paint_vertex_color_utils.c
+  paint_vertex_color_ops.cc
   paint_vertex_proj.c
   paint_vertex_weight_ops.c
   paint_vertex_weight_utils.c

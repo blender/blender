@@ -1052,14 +1052,10 @@ static void build_vertex_face_adjacency_maps(DRWSubdivCache *cache)
 static bool draw_subdiv_build_cache(DRWSubdivCache *cache,
                                     Subdiv *subdiv,
                                     Mesh *mesh_eval,
-                                    const Scene *scene,
-                                    const SubsurfModifierData *smd,
-                                    const bool is_final_render)
+                                    const SubsurfRuntimeData *runtime_data)
 {
-  const int requested_levels = (is_final_render) ? smd->renderLevels : smd->levels;
-  const int level = get_render_subsurf_level(&scene->r, requested_levels, is_final_render);
   SubdivToMeshSettings to_mesh_settings;
-  to_mesh_settings.resolution = (1 << level) + 1;
+  to_mesh_settings.resolution = runtime_data->resolution;
   to_mesh_settings.use_optimal_display = false;
 
   if (cache->resolution != to_mesh_settings.resolution) {
@@ -1208,8 +1204,8 @@ struct DRWSubdivUboStorage {
    * of out of bond accesses as compute dispatch are of fixed size. */
   uint total_dispatch_size;
 
-  int _pad0;
-  int _pad2;
+  int is_edit_mode;
+  int use_hide;
   int _pad3;
 };
 
@@ -1240,6 +1236,8 @@ static void draw_subdiv_init_ubo_storage(const DRWSubdivCache *cache,
   ubo->coarse_face_hidden_mask = SUBDIV_COARSE_FACE_FLAG_HIDDEN_MASK;
   ubo->coarse_face_loopstart_mask = SUBDIV_COARSE_FACE_LOOP_START_MASK;
   ubo->total_dispatch_size = total_dispatch_size;
+  ubo->is_edit_mode = cache->is_edit_mode;
+  ubo->use_hide = cache->use_hide;
 }
 
 static void draw_subdiv_ubo_update_and_bind(const DRWSubdivCache *cache,
@@ -2006,10 +2004,9 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache *cache,
   MEM_freeN(per_polygon_mat_offset);
 }
 
-static bool draw_subdiv_create_requested_buffers(const Scene *scene,
-                                                 Object *ob,
+static bool draw_subdiv_create_requested_buffers(Object *ob,
                                                  Mesh *mesh,
-                                                 struct MeshBatchCache *batch_cache,
+                                                 MeshBatchCache *batch_cache,
                                                  MeshBufferCache *mbc,
                                                  const bool is_editmode,
                                                  const bool is_paint_mode,
@@ -2021,20 +2018,10 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
                                                  const bool use_hide,
                                                  OpenSubdiv_EvaluatorCache *evaluator_cache)
 {
-  SubsurfModifierData *smd = reinterpret_cast<SubsurfModifierData *>(
-      BKE_modifiers_findby_session_uuid(ob, &mesh->runtime.subsurf_session_uuid));
-  BLI_assert(smd);
+  SubsurfRuntimeData *runtime_data = mesh->runtime.subsurf_runtime_data;
+  BLI_assert(runtime_data && runtime_data->has_gpu_subdiv);
 
-  if (!smd) {
-    return false;
-  }
-
-  const bool is_final_render = DRW_state_is_scene_render();
-
-  SubdivSettings settings;
-  BKE_subsurf_modifier_subdiv_settings_init(&settings, smd, is_final_render);
-
-  if (settings.level == 0) {
+  if (runtime_data->settings.level == 0) {
     return false;
   }
 
@@ -2045,9 +2032,7 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
     bm = mesh->edit_mesh->bm;
   }
 
-  BKE_subsurf_modifier_ensure_runtime(smd);
-
-  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(smd, &settings, mesh_eval, true);
+  Subdiv *subdiv = BKE_subsurf_modifier_subdiv_descriptor_ensure(runtime_data, mesh_eval, true);
   if (!subdiv) {
     return false;
   }
@@ -2068,13 +2053,13 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
   }
 
   DRWSubdivCache *draw_cache = mesh_batch_cache_ensure_subdiv_cache(batch_cache);
-  if (!draw_subdiv_build_cache(draw_cache, subdiv, mesh_eval, scene, smd, is_final_render)) {
+  if (!draw_subdiv_build_cache(draw_cache, subdiv, mesh_eval, runtime_data)) {
     return false;
   }
 
   /* Edges which do not come from coarse edges should not be drawn in edit mode, only in object
    * mode when optimal display in turned off. */
-  const bool optimal_display = (smd->flags & eSubsurfModifierFlag_ControlEdges) || is_editmode;
+  const bool optimal_display = runtime_data->use_optimal_display || is_editmode;
 
   draw_cache->bm = bm;
   draw_cache->mesh = mesh_eval;
@@ -2082,14 +2067,13 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
   draw_cache->optimal_display = optimal_display;
   draw_cache->num_subdiv_triangles = tris_count_from_number_of_loops(draw_cache->num_subdiv_loops);
 
-  /* Copy topology information for stats display. Use `mesh` directly, as `mesh_eval` could be the
-   * edit mesh. */
-  mesh->runtime.subsurf_totvert = draw_cache->num_subdiv_verts;
-  mesh->runtime.subsurf_totedge = draw_cache->num_subdiv_edges;
-  mesh->runtime.subsurf_totpoly = draw_cache->num_subdiv_quads;
-  mesh->runtime.subsurf_totloop = draw_cache->num_subdiv_loops;
+  /* Copy topology information for stats display. */
+  runtime_data->stats_totvert = draw_cache->num_subdiv_verts;
+  runtime_data->stats_totedge = draw_cache->num_subdiv_edges;
+  runtime_data->stats_totpoly = draw_cache->num_subdiv_quads;
+  runtime_data->stats_totloop = draw_cache->num_subdiv_loops;
 
-  draw_cache->use_custom_loop_normals = (smd->flags & eSubsurfModifierFlag_UseCustomNormals) &&
+  draw_cache->use_custom_loop_normals = (runtime_data->use_loop_normals) &&
                                         (mesh_eval->flag & ME_AUTOSMOOTH) &&
                                         CustomData_has_layer(&mesh_eval->ldata,
                                                              CD_CUSTOMLOOPNORMAL);
@@ -2101,6 +2085,12 @@ static bool draw_subdiv_create_requested_buffers(const Scene *scene,
   MeshRenderData *mr = mesh_render_data_create(
       ob, mesh, is_editmode, is_paint_mode, is_mode_active, obmat, do_final, do_uvedit, ts);
   mr->use_hide = use_hide;
+  draw_cache->use_hide = use_hide;
+
+  /* Used for setting loop normals flags. Mapped extraction is only used during edit mode.
+   * See comments in #extract_lnor_iter_poly_mesh.
+   */
+  draw_cache->is_edit_mode = mr->edit_bmesh != nullptr;
 
   draw_subdiv_cache_update_extra_coarse_face_data(draw_cache, mesh_eval, mr);
 
@@ -2211,10 +2201,9 @@ blender::Span<DRWSubdivLooseVertex> draw_subdiv_cache_get_loose_verts(const DRWS
 
 static OpenSubdiv_EvaluatorCache *g_evaluator_cache = nullptr;
 
-void DRW_create_subdivision(const Scene *scene,
-                            Object *ob,
+void DRW_create_subdivision(Object *ob,
                             Mesh *mesh,
-                            struct MeshBatchCache *batch_cache,
+                            MeshBatchCache *batch_cache,
                             MeshBufferCache *mbc,
                             const bool is_editmode,
                             const bool is_paint_mode,
@@ -2235,8 +2224,7 @@ void DRW_create_subdivision(const Scene *scene,
   const double begin_time = PIL_check_seconds_timer();
 #endif
 
-  if (!draw_subdiv_create_requested_buffers(scene,
-                                            ob,
+  if (!draw_subdiv_create_requested_buffers(ob,
                                             mesh,
                                             batch_cache,
                                             mbc,

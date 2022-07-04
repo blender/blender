@@ -10,8 +10,6 @@
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
 
-#include "glew-mx.h"
-
 #include "gl_debug.hh"
 
 #include "gl_backend.hh"

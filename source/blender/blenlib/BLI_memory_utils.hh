@@ -19,6 +19,21 @@
 namespace blender {
 
 /**
+ * Under some circumstances #std::is_trivial_v<T> is false even though we know that the type is
+ * actually trivial. Using that extra knowledge allows for some optimizations.
+ */
+template<typename T> inline constexpr bool is_trivial_extended_v = std::is_trivial_v<T>;
+template<typename T>
+inline constexpr bool is_trivially_destructible_extended_v = is_trivial_extended_v<T> ||
+                                                             std::is_trivially_destructible_v<T>;
+template<typename T>
+inline constexpr bool is_trivially_copy_constructible_extended_v =
+    is_trivial_extended_v<T> || std::is_trivially_copy_constructible_v<T>;
+template<typename T>
+inline constexpr bool is_trivially_move_constructible_extended_v =
+    is_trivial_extended_v<T> || std::is_trivially_move_constructible_v<T>;
+
+/**
  * Call the destructor on n consecutive values. For trivially destructible types, this does
  * nothing.
  *
@@ -38,7 +53,7 @@ template<typename T> void destruct_n(T *ptr, int64_t n)
 
   /* This is not strictly necessary, because the loop below will be optimized away anyway. It is
    * nice to make behavior this explicitly, though. */
-  if (std::is_trivially_destructible_v<T>) {
+  if (is_trivially_destructible_extended_v<T>) {
     return;
   }
 

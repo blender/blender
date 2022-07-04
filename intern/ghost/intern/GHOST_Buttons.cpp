@@ -12,7 +12,7 @@ GHOST_Buttons::GHOST_Buttons()
   clear();
 }
 
-bool GHOST_Buttons::get(GHOST_TButtonMask mask) const
+bool GHOST_Buttons::get(GHOST_TButton mask) const
 {
   switch (mask) {
     case GHOST_kButtonMaskLeft:
@@ -34,7 +34,7 @@ bool GHOST_Buttons::get(GHOST_TButtonMask mask) const
   }
 }
 
-void GHOST_Buttons::set(GHOST_TButtonMask mask, bool down)
+void GHOST_Buttons::set(GHOST_TButton mask, bool down)
 {
   switch (mask) {
     case GHOST_kButtonMaskLeft:

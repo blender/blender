@@ -350,7 +350,7 @@ template<typename T> class device_only_memory : public device_memory {
  *
  * When using memory type MEM_GLOBAL, a pointer to this memory will be
  * automatically attached to kernel globals, using the provided name
- * matching an entry in kernel_textures.h. */
+ * matching an entry in kernel/data_arrays.h. */
 
 template<typename T> class device_vector : public device_memory {
  public:

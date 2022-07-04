@@ -33,7 +33,7 @@
 #define API(returnType) extern "C" returnType
 #endif
 
-enum ComponentType: size_t
+enum ComponentType : size_t
 {
     Byte = 5120,
     UnsignedByte = 5121,

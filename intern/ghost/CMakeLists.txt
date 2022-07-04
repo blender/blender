@@ -268,8 +268,19 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${wayland-egl_INCLUDE_DIRS}
       ${xkbcommon_INCLUDE_DIRS}
       ${wayland-cursor_INCLUDE_DIRS}
-      ${dbus_INCLUDE_DIRS}
     )
+
+    if(WITH_GHOST_WAYLAND_DBUS)
+      list(APPEND INC_SYS
+        ${dbus_INCLUDE_DIRS}
+      )
+    endif()
+
+    if(WITH_GHOST_WAYLAND_LIBDECOR)
+      list(APPEND INC_SYS
+        ${libdecor_INCLUDE_DIRS}
+      )
+    endif()
 
     include(CheckSymbolExists)
     set(CMAKE_REQUIRED_DEFINITIONS "-D_GNU_SOURCE")
@@ -303,49 +314,66 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       message(FATAL_ERROR "path to wayland-protocols not found")
     endif()
 
+    set(INC_DST ${CMAKE_CURRENT_BINARY_DIR}/libwayland)
+
     # Generate protocols bindings.
-    macro(generate_protocol_bindings NAME PROT_DEF)
+    macro(generate_protocol_bindings PROT_DEF)
+      # File name without directory or extension (use for header name).
+      get_filename_component(_name ${PROT_DEF} NAME_WLE)
       add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NAME}-client-protocol.h
-        COMMAND ${WAYLAND_SCANNER} client-header ${PROT_DEF} ${NAME}-client-protocol.h
+        OUTPUT ${INC_DST}/${_name}-client-protocol.h
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${INC_DST}
+        COMMAND ${WAYLAND_SCANNER} client-header ${PROT_DEF} ${INC_DST}/${_name}-client-protocol.h
       )
       add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${NAME}-client-protocol.c
-        COMMAND ${WAYLAND_SCANNER} private-code ${PROT_DEF} ${NAME}-client-protocol.c
-        DEPENDS ${NAME}-client-protocol.h
+        OUTPUT ${INC_DST}/${_name}-client-protocol.c
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${INC_DST}
+        COMMAND ${WAYLAND_SCANNER} private-code ${PROT_DEF} ${INC_DST}/${_name}-client-protocol.c
+        DEPENDS ${INC_DST}/${_name}-client-protocol.h
       )
       list(APPEND SRC
-        ${CMAKE_CURRENT_BINARY_DIR}/${NAME}-client-protocol.c
-        ${CMAKE_CURRENT_BINARY_DIR}/${NAME}-client-protocol.h
+        ${INC_DST}/${_name}-client-protocol.c
+        ${INC_DST}/${_name}-client-protocol.h
       )
+      unset(_name)
     endmacro()
 
+
     list(APPEND INC_SYS
-      ${CMAKE_CURRENT_BINARY_DIR}
+      ${INC_DST}
     )
 
-    # xdg-shell.
+    if(NOT WITH_GHOST_WAYLAND_LIBDECOR)
+      # `xdg-shell`.
+      generate_protocol_bindings(
+        "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
+      )
+      # `xdg-decoration`.
+      generate_protocol_bindings(
+        "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
+      )
+    endif()
+
+    # `xdg-output`.
     generate_protocol_bindings(
-      xdg-shell
-      "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml"
-    )
-    # xdg-decoration.
-    generate_protocol_bindings(
-      xdg-decoration
-      "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml"
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-output/xdg-output-unstable-v1.xml"
     )
     # Pointer-constraints.
     generate_protocol_bindings(
-      pointer-constraints
       "${WAYLAND_PROTOCOLS_DIR}/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml"
     )
     # Relative-pointer.
     generate_protocol_bindings(
-      relative-pointer
       "${WAYLAND_PROTOCOLS_DIR}/unstable/relative-pointer/relative-pointer-unstable-v1.xml"
+    )
+    # Tablet.
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/unstable/tablet/tablet-unstable-v2.xml"
     )
 
     add_definitions(-DWITH_GHOST_WAYLAND)
+
+    unset(INC_DST)
   endif()
 
   if(WITH_INPUT_NDOF)

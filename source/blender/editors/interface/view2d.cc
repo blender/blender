@@ -149,7 +149,9 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
     }
   }
 
-  scroll = view2d_scroll_mapped(v2d->scroll);
+  /* Do not use mapped scroll here because we want to update scroller rects
+   * even if they are not displayed.  For init purposes.  See T75003.*/
+  scroll = v2d->scroll;
 
   /* Scrollers are based off region-size:
    * - they can only be on one to two edges of the region they define
@@ -158,7 +160,7 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
   if (scroll) {
     float scroll_width, scroll_height;
 
-    UI_view2d_scroller_size_get(v2d, &scroll_width, &scroll_height);
+    UI_view2d_scroller_size_get(v2d, false, &scroll_width, &scroll_height);
 
     /* vertical scroller */
     if (scroll & V2D_SCROLL_LEFT) {
@@ -190,18 +192,6 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
       /* on upper edge of region */
       v2d->hor = *mask_scroll;
       v2d->hor.ymin = v2d->hor.ymax - scroll_height;
-    }
-
-    /* adjust vertical scroller if there's a horizontal scroller, to leave corner free */
-    if (scroll & V2D_SCROLL_VERTICAL) {
-      if (scroll & V2D_SCROLL_BOTTOM) {
-        /* on bottom edge of region */
-        v2d->vert.ymin = v2d->hor.ymax;
-      }
-      else if (scroll & V2D_SCROLL_TOP) {
-        /* on upper edge of region */
-        v2d->vert.ymax = v2d->hor.ymin;
-      }
     }
   }
 }
@@ -260,6 +250,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
       /* tot rect has strictly regulated placement, and must only occur in +/- quadrant */
       v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
       v2d->keeptot = V2D_KEEPTOT_STRICT;
+      v2d->keepofs = (V2D_KEEPOFS_X | V2D_KEEPOFS_Y);
       tot_changed = do_init;
 
       /* scroller settings are currently not set here... that is left for regions... */
@@ -276,6 +267,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
       /* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
       v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y);
       v2d->keeptot = V2D_KEEPTOT_STRICT;
+      v2d->keepofs = (V2D_KEEPOFS_X | V2D_KEEPOFS_Y);
       tot_changed = do_init;
 
       /* scroller settings are currently not set here... that is left for regions... */
@@ -493,8 +485,8 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
   }
 
   /* check if we should restore aspect ratio (if view size changed) */
-  if (v2d->keepzoom & V2D_KEEPASPECT) {
-    bool do_x = false, do_y = false, do_cur /* , do_win */ /* UNUSED */;
+  if (v2d->keepzoom & V2D_KEEPASPECT && !(v2d->keeptot == V2D_KEEPTOT_STRICT)) {
+    bool do_x = false, do_y = false, do_cur;
     float curRatio, winRatio;
 
     /* when a window edge changes, the aspect ratio can't be used to
@@ -532,53 +524,12 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
     /* do_win = do_y; */ /* UNUSED */
 
     if (do_cur) {
-      if ((v2d->keeptot == V2D_KEEPTOT_STRICT) && (winx != v2d->oldwinx)) {
-        /* Special exception for Outliner (and later channel-lists):
-         * - The view may be moved left to avoid contents
-         *   being pushed out of view when view shrinks.
-         * - The keeptot code will make sure cur->xmin will not be less than tot->xmin
-         *   (which cannot be allowed).
-         * - width is not adjusted for changed ratios here.
-         */
-        if (winx < v2d->oldwinx) {
-          const float temp = v2d->oldwinx - winx;
-
-          cur->xmin -= temp;
-          cur->xmax -= temp;
-
-          /* width does not get modified, as keepaspect here is just set to make
-           * sure visible area adjusts to changing view shape!
-           */
-        }
-      }
-      else {
-        /* portrait window: correct for x */
-        width = height / winRatio;
-      }
+      /* portrait window: correct for x */
+      width = height / winRatio;
     }
     else {
-      if ((v2d->keeptot == V2D_KEEPTOT_STRICT) && (winy != v2d->oldwiny)) {
-        /* special exception for Outliner (and later channel-lists):
-         * - Currently, no actions need to be taken here...
-         */
-
-        if (winy < v2d->oldwiny) {
-          const float temp = v2d->oldwiny - winy;
-
-          if (v2d->align & V2D_ALIGN_NO_NEG_Y) {
-            cur->ymin -= temp;
-            cur->ymax -= temp;
-          }
-          else { /* Assume V2D_ALIGN_NO_POS_Y or combination */
-            cur->ymin += temp;
-            cur->ymax += temp;
-          }
-        }
-      }
-      else {
-        /* landscape window: correct for y */
-        height = width * winRatio;
-      }
+      /* landscape window: correct for y */
+      height = width * winRatio;
     }
 
     /* store region size for next time */
@@ -1510,7 +1461,7 @@ void UI_view2d_scrollers_calc(View2D *v2d,
   }
 }
 
-void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
+void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_full_hide)
 {
   View2DScrollers scrollers;
   UI_view2d_scrollers_calc(v2d, mask_custom, &scrollers);
@@ -1518,6 +1469,8 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
   rcti vert, hor;
   const int scroll = view2d_scroll_mapped(v2d->scroll);
   const char emboss_alpha = btheme->tui.widget_emboss[3];
+  const float alpha_min = use_full_hide ? 0.0f : V2D_SCROLL_MIN_ALPHA;
+
   uchar scrollers_back_color[4];
 
   /* Color for scrollbar backs */
@@ -1530,7 +1483,8 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
   /* horizontal scrollbar */
   if (scroll & V2D_SCROLL_HORIZONTAL) {
     uiWidgetColors wcol = btheme->tui.wcol_scroll;
-    const float alpha_fac = v2d->alpha_hor / 255.0f;
+    /* 0..255 -> min...1 */
+    const float alpha_fac = ((v2d->alpha_hor / 255.0f) * (1.0f - alpha_min)) + alpha_min;
     rcti slider;
     int state;
 
@@ -1543,8 +1497,8 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 
     wcol.inner[3] *= alpha_fac;
     wcol.item[3] *= alpha_fac;
-    wcol.outline[3] *= alpha_fac;
-    btheme->tui.widget_emboss[3] *= alpha_fac; /* will be reset later */
+    wcol.outline[3] = 0;
+    btheme->tui.widget_emboss[3] = 0; /* will be reset later */
 
     /* show zoom handles if:
      * - zooming on x-axis is allowed (no scroll otherwise)
@@ -1565,7 +1519,8 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
   if (scroll & V2D_SCROLL_VERTICAL) {
     uiWidgetColors wcol = btheme->tui.wcol_scroll;
     rcti slider;
-    const float alpha_fac = v2d->alpha_vert / 255.0f;
+    /* 0..255 -> min...1 */
+    const float alpha_fac = ((v2d->alpha_vert / 255.0f) * (1.0f - alpha_min)) + alpha_min;
     int state;
 
     slider.xmin = vert.xmin;
@@ -1577,8 +1532,8 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 
     wcol.inner[3] *= alpha_fac;
     wcol.item[3] *= alpha_fac;
-    wcol.outline[3] *= alpha_fac;
-    btheme->tui.widget_emboss[3] *= alpha_fac; /* will be reset later */
+    wcol.outline[3] = 0;
+    btheme->tui.widget_emboss[3] = 0; /* will be reset later */
 
     /* show zoom handles if:
      * - zooming on y-axis is allowed (no scroll otherwise)
@@ -1597,6 +1552,11 @@ void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 
   /* Was changed above, so reset. */
   btheme->tui.widget_emboss[3] = emboss_alpha;
+}
+
+void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
+{
+  UI_view2d_scrollers_draw_ex(v2d, mask_custom, false);
 }
 
 /** \} */
@@ -1835,13 +1795,14 @@ View2D *UI_view2d_fromcontext_rwin(const bContext *C)
   return &(region->v2d);
 }
 
-void UI_view2d_scroller_size_get(const View2D *v2d, float *r_x, float *r_y)
+void UI_view2d_scroller_size_get(const View2D *v2d, bool mapped, float *r_x, float *r_y)
 {
-  const int scroll = view2d_scroll_mapped(v2d->scroll);
+  const int scroll = (mapped) ? view2d_scroll_mapped(v2d->scroll) : v2d->scroll;
 
   if (r_x) {
     if (scroll & V2D_SCROLL_VERTICAL) {
       *r_x = (scroll & V2D_SCROLL_VERTICAL_HANDLES) ? V2D_SCROLL_HANDLE_WIDTH : V2D_SCROLL_WIDTH;
+      *r_x = ((*r_x - V2D_SCROLL_MIN_WIDTH) * (v2d->alpha_vert / 255.0f)) + V2D_SCROLL_MIN_WIDTH;
     }
     else {
       *r_x = 0;
@@ -1851,6 +1812,7 @@ void UI_view2d_scroller_size_get(const View2D *v2d, float *r_x, float *r_y)
     if (scroll & V2D_SCROLL_HORIZONTAL) {
       *r_y = (scroll & V2D_SCROLL_HORIZONTAL_HANDLES) ? V2D_SCROLL_HANDLE_HEIGHT :
                                                         V2D_SCROLL_HEIGHT;
+      *r_y = ((*r_y - V2D_SCROLL_MIN_WIDTH) * (v2d->alpha_hor / 255.0f)) + V2D_SCROLL_MIN_WIDTH;
     }
     else {
       *r_y = 0;

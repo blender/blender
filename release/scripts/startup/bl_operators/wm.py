@@ -1352,7 +1352,7 @@ class WM_OT_properties_edit(Operator):
         items=rna_custom_property_type_items,
     )
     is_overridable_library: BoolProperty(
-        name="Is Library Overridable",
+        name="Library Overridable",
         description="Allow the property to be overridden when the data-block is linked",
         default=False,
     )
@@ -1363,7 +1363,7 @@ class WM_OT_properties_edit(Operator):
     # Shared for integer and string properties.
 
     use_soft_limits: BoolProperty(
-        name="Use Soft Limits",
+        name="Soft Limits",
         description=(
             "Limits the Property Value slider to a range, "
             "values outside the range must be inputted numerically"

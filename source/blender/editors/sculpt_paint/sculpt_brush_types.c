@@ -307,9 +307,9 @@ static void sculpt_project_v3_normal_align(SculptSession *ss,
 /** \name Sculpt Draw Brush
  * \{ */
 
-static void do_draw_brush_task_cb_ex(void *__restrict userdata,
-                                     const int n,
-                                     const TaskParallelTLS *__restrict tls)
+ATTR_NO_OPT static void do_draw_brush_task_cb_ex(void *__restrict userdata,
+                                                 const int n,
+                                                 const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;

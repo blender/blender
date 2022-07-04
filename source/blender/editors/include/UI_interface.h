@@ -64,6 +64,7 @@ struct wmKeyMapItem;
 struct wmMsgBus;
 struct wmOperator;
 struct wmOperatorType;
+struct wmRegionListenerParams;
 struct wmWindow;
 
 typedef struct uiBlock uiBlock;
@@ -71,10 +72,12 @@ typedef struct uiBut uiBut;
 typedef struct uiButExtraOpIcon uiButExtraOpIcon;
 typedef struct uiLayout uiLayout;
 typedef struct uiPopupBlockHandle uiPopupBlockHandle;
-/* C handle for C++ #ui::AbstractTreeView type. */
-typedef struct uiTreeViewHandle uiTreeViewHandle;
+/* C handle for C++ #ui::AbstractView type. */
+typedef struct uiViewHandle uiViewHandle;
 /* C handle for C++ #ui::AbstractTreeViewItem type. */
 typedef struct uiTreeViewItemHandle uiTreeViewItemHandle;
+/* C handle for C++ #ui::AbstractGridViewItem type. */
+typedef struct uiGridViewItemHandle uiGridViewItemHandle;
 
 /* Defines */
 
@@ -390,6 +393,8 @@ typedef enum {
   UI_BTYPE_DECORATOR = 58 << 9,
   /* An item in a tree view. Parent items may be collapsible. */
   UI_BTYPE_TREEROW = 59 << 9,
+  /* An item in a grid view. */
+  UI_BTYPE_GRID_TILE = 60 << 9,
 } eButType;
 
 #define BUTTYPE (63 << 9)
@@ -1739,6 +1744,14 @@ struct PointerRNA *UI_but_extra_operator_icon_add(uiBut *but,
                                                   int icon);
 struct wmOperatorType *UI_but_extra_operator_icon_optype_get(struct uiButExtraOpIcon *extra_icon);
 struct PointerRNA *UI_but_extra_operator_icon_opptr_get(struct uiButExtraOpIcon *extra_icon);
+
+/**
+ * A decent size for a button (typically #UI_BTYPE_PREVIEW_TILE) to display a nicely readable
+ * preview with label in.
+ */
+int UI_preview_tile_size_x(void);
+int UI_preview_tile_size_y(void);
+int UI_preview_tile_size_y_no_label(void);
 
 /* Autocomplete
  *
@@ -3185,7 +3198,12 @@ void UI_interface_tag_script_reload(void);
 /* Support click-drag motion which presses the button and closes a popover (like a menu). */
 #define USE_UI_POPOVER_ONCE
 
+void UI_block_views_listen(const uiBlock *block,
+                           const struct wmRegionListenerParams *listener_params);
+
+bool UI_grid_view_item_is_active(const uiGridViewItemHandle *item_handle);
 bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item);
+bool UI_grid_view_item_matches(const uiGridViewItemHandle *a, const uiGridViewItemHandle *b);
 bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a, const uiTreeViewItemHandle *b);
 /**
  * Attempt to start dragging the tree-item \a item_. This will not work if the tree item doesn't

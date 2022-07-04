@@ -345,7 +345,7 @@ static void GIZMO_GT_snap_3d(wmGizmoType *gzt)
   prop = RNA_def_enum_flag(gzt->srna,
                            "snap_elements_force",
                            rna_enum_snap_element_items,
-                           SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE,
+                           SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST,
                            "Snap Elements",
                            "");
   RNA_def_property_enum_funcs_runtime(prop,

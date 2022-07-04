@@ -39,11 +39,7 @@ static void filter_panel_id_fn(void *UNUSED(row_filter_v), char *r_name)
 static std::string operation_string(const eSpreadsheetColumnValueType data_type,
                                     const eSpreadsheetFilterOperation operation)
 {
-  if (ELEM(data_type,
-           SPREADSHEET_VALUE_TYPE_BOOL,
-           SPREADSHEET_VALUE_TYPE_INSTANCES,
-           SPREADSHEET_VALUE_TYPE_COLOR,
-           SPREADSHEET_VALUE_TYPE_BYTE_COLOR)) {
+  if (ELEM(data_type, SPREADSHEET_VALUE_TYPE_BOOL, SPREADSHEET_VALUE_TYPE_INSTANCES)) {
     return "=";
   }
 
@@ -94,7 +90,8 @@ static std::string value_string(const SpreadsheetRowFilter &row_filter,
         return row_filter.value_string;
       }
       return "";
-    case SPREADSHEET_VALUE_TYPE_COLOR: {
+    case SPREADSHEET_VALUE_TYPE_COLOR:
+    case SPREADSHEET_VALUE_TYPE_BYTE_COLOR: {
       std::ostringstream result;
       result.precision(3);
       result << std::fixed << "(" << row_filter.value_color[0] << ", " << row_filter.value_color[1]
@@ -103,14 +100,6 @@ static std::string value_string(const SpreadsheetRowFilter &row_filter,
     }
     case SPREADSHEET_VALUE_TYPE_STRING:
       return row_filter.value_string;
-    case SPREADSHEET_VALUE_TYPE_BYTE_COLOR: {
-      std::ostringstream result;
-      result.precision(3);
-      result << std::fixed << "(" << (int)row_filter.value_byte_color[0] << ", "
-             << (int)row_filter.value_byte_color[1] << ", " << (int)row_filter.value_byte_color[2]
-             << ", " << (int)row_filter.value_byte_color[3] << ")";
-      return result.str();
-    }
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
       return "";
   }
@@ -237,15 +226,15 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
       uiItemR(layout, filter_ptr, "value_string", 0, IFACE_("Value"), ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_COLOR:
+    case SPREADSHEET_VALUE_TYPE_BYTE_COLOR:
+      uiItemR(layout, filter_ptr, "operation", 0, nullptr, ICON_NONE);
       uiItemR(layout, filter_ptr, "value_color", 0, IFACE_("Value"), ICON_NONE);
-      uiItemR(layout, filter_ptr, "threshold", 0, nullptr, ICON_NONE);
+      if (operation == SPREADSHEET_ROW_FILTER_EQUAL) {
+        uiItemR(layout, filter_ptr, "threshold", 0, nullptr, ICON_NONE);
+      }
       break;
     case SPREADSHEET_VALUE_TYPE_STRING:
       uiItemR(layout, filter_ptr, "value_string", 0, IFACE_("Value"), ICON_NONE);
-      break;
-    case SPREADSHEET_VALUE_TYPE_BYTE_COLOR:
-      uiItemR(layout, filter_ptr, "value_byte_color", 0, IFACE_("Value"), ICON_NONE);
-      uiItemR(layout, filter_ptr, "threshold", 0, nullptr, ICON_NONE);
       break;
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
       uiItemL(layout, IFACE_("Unknown column type"), ICON_ERROR);

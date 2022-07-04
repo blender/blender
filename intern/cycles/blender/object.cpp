@@ -762,7 +762,7 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
       continue;
     }
 
-    VLOG(1) << "Synchronizing motion for the relative time " << relative_time << ".";
+    VLOG_WORK << "Synchronizing motion for the relative time " << relative_time << ".";
 
     /* fixed shutter time to get previous and next frame for motion pass */
     float shuttertime = scene->motion_shutter_time();

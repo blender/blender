@@ -7,9 +7,6 @@
  * Implementation of Multi Draw Indirect.
  */
 
-#include "MEM_guardedalloc.h"
-
-#include "GPU_batch.h"
 #include "GPU_drawlist.h"
 
 #include "gpu_backend.hh"

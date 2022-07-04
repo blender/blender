@@ -54,6 +54,7 @@ void register_node_type_geo_dual_mesh(void);
 void register_node_type_geo_edge_split(void);
 void register_node_type_geo_extrude_mesh(void);
 void register_node_type_geo_field_at_index(void);
+void register_node_type_geo_field_on_domain(void);
 void register_node_type_geo_flip_faces(void);
 void register_node_type_geo_geometry_to_instance(void);
 void register_node_type_geo_image_texture(void);
@@ -101,7 +102,9 @@ void register_node_type_geo_mesh_primitive_uv_sphere(void);
 void register_node_type_geo_mesh_subdivide(void);
 void register_node_type_geo_mesh_to_curve(void);
 void register_node_type_geo_mesh_to_points(void);
+void register_node_type_geo_mesh_to_volume(void);
 void register_node_type_geo_object_info(void);
+void register_node_type_geo_points(void);
 void register_node_type_geo_points_to_vertices(void);
 void register_node_type_geo_points_to_volume(void);
 void register_node_type_geo_proximity(void);
@@ -135,7 +138,10 @@ void register_node_type_geo_transform(void);
 void register_node_type_geo_translate_instances(void);
 void register_node_type_geo_triangulate(void);
 void register_node_type_geo_viewer(void);
+void register_node_type_geo_volume_cube(void);
 void register_node_type_geo_volume_to_mesh(void);
+void register_node_type_geo_uv_pack_islands(void);
+void register_node_type_geo_uv_unwrap(void);
 
 #ifdef __cplusplus
 }

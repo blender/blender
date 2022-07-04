@@ -61,34 +61,6 @@ void RE_texture_rng_exit(void)
 
 /* ------------------------------------------------------------------------- */
 
-/* This allows color-banded textures to control normals as well. */
-static void tex_normal_derivate(const Tex *tex, TexResult *texres)
-{
-  if (tex->flag & TEX_COLORBAND) {
-    float col[4];
-    if (BKE_colorband_evaluate(tex->coba, texres->tin, col)) {
-      float fac0, fac1, fac2, fac3;
-
-      fac0 = (col[0] + col[1] + col[2]);
-      BKE_colorband_evaluate(tex->coba, texres->nor[0], col);
-      fac1 = (col[0] + col[1] + col[2]);
-      BKE_colorband_evaluate(tex->coba, texres->nor[1], col);
-      fac2 = (col[0] + col[1] + col[2]);
-      BKE_colorband_evaluate(tex->coba, texres->nor[2], col);
-      fac3 = (col[0] + col[1] + col[2]);
-
-      texres->nor[0] = (fac0 - fac1) / 3.0f;
-      texres->nor[1] = (fac0 - fac2) / 3.0f;
-      texres->nor[2] = (fac0 - fac3) / 3.0f;
-
-      return;
-    }
-  }
-  texres->nor[0] = texres->tin - texres->nor[0];
-  texres->nor[1] = texres->tin - texres->nor[1];
-  texres->nor[2] = texres->tin - texres->nor[2];
-}
-
 static int blend(const Tex *tex, const float texvec[3], TexResult *texres)
 {
   float x, y, t;
@@ -165,37 +137,7 @@ static int clouds(const Tex *tex, const float texvec[3], TexResult *texres)
                                              (tex->noisetype != TEX_NOISESOFT),
                                              tex->noisebasis);
 
-  if (texres->nor != NULL) {
-    /* calculate bumpnormal */
-    texres->nor[0] = BLI_noise_generic_turbulence(tex->noisesize,
-                                                  texvec[0] + tex->nabla,
-                                                  texvec[1],
-                                                  texvec[2],
-                                                  tex->noisedepth,
-                                                  (tex->noisetype != TEX_NOISESOFT),
-                                                  tex->noisebasis);
-    texres->nor[1] = BLI_noise_generic_turbulence(tex->noisesize,
-                                                  texvec[0],
-                                                  texvec[1] + tex->nabla,
-                                                  texvec[2],
-                                                  tex->noisedepth,
-                                                  (tex->noisetype != TEX_NOISESOFT),
-                                                  tex->noisebasis);
-    texres->nor[2] = BLI_noise_generic_turbulence(tex->noisesize,
-                                                  texvec[0],
-                                                  texvec[1],
-                                                  texvec[2] + tex->nabla,
-                                                  tex->noisedepth,
-                                                  (tex->noisetype != TEX_NOISESOFT),
-                                                  tex->noisebasis);
-
-    tex_normal_derivate(tex, texres);
-    rv |= TEX_NOR;
-  }
-
   if (tex->stype == TEX_COLOR) {
-    /* in this case, int. value should really be computed from color,
-     * and bumpnormal from that, would be too slow, looks ok as is */
     texres->trgba[0] = texres->tin;
     texres->trgba[1] = BLI_noise_generic_turbulence(tex->noisesize,
                                                     texvec[1],
@@ -298,15 +240,6 @@ static int wood(const Tex *tex, const float texvec[3], TexResult *texres)
   int rv = TEX_INT;
 
   texres->tin = wood_int(tex, texvec[0], texvec[1], texvec[2]);
-  if (texres->nor != NULL) {
-    /* calculate bumpnormal */
-    texres->nor[0] = wood_int(tex, texvec[0] + tex->nabla, texvec[1], texvec[2]);
-    texres->nor[1] = wood_int(tex, texvec[0], texvec[1] + tex->nabla, texvec[2]);
-    texres->nor[2] = wood_int(tex, texvec[0], texvec[1], texvec[2] + tex->nabla);
-
-    tex_normal_derivate(tex, texres);
-    rv |= TEX_NOR;
-  }
 
   BRICONT;
 
@@ -357,17 +290,6 @@ static int marble(const Tex *tex, const float texvec[3], TexResult *texres)
   int rv = TEX_INT;
 
   texres->tin = marble_int(tex, texvec[0], texvec[1], texvec[2]);
-
-  if (texres->nor != NULL) {
-    /* calculate bumpnormal */
-    texres->nor[0] = marble_int(tex, texvec[0] + tex->nabla, texvec[1], texvec[2]);
-    texres->nor[1] = marble_int(tex, texvec[0], texvec[1] + tex->nabla, texvec[2]);
-    texres->nor[2] = marble_int(tex, texvec[0], texvec[1], texvec[2] + tex->nabla);
-
-    tex_normal_derivate(tex, texres);
-
-    rv |= TEX_NOR;
-  }
 
   BRICONT;
 
@@ -454,7 +376,7 @@ static int magic(const Tex *tex, const float texvec[3], TexResult *texres)
 /* newnoise: stucci also modified to use different noisebasis */
 static int stucci(const Tex *tex, const float texvec[3], TexResult *texres)
 {
-  float nor[3], b2, ofs;
+  float b2, ofs;
   int retval = TEX_INT;
 
   b2 = BLI_noise_generic_noise(tex->noisesize,
@@ -469,40 +391,13 @@ static int stucci(const Tex *tex, const float texvec[3], TexResult *texres)
   if (tex->stype) {
     ofs *= (b2 * b2);
   }
-  nor[0] = BLI_noise_generic_noise(tex->noisesize,
-                                   texvec[0] + ofs,
-                                   texvec[1],
-                                   texvec[2],
-                                   (tex->noisetype != TEX_NOISESOFT),
-                                   tex->noisebasis);
-  nor[1] = BLI_noise_generic_noise(tex->noisesize,
-                                   texvec[0],
-                                   texvec[1] + ofs,
-                                   texvec[2],
-                                   (tex->noisetype != TEX_NOISESOFT),
-                                   tex->noisebasis);
-  nor[2] = BLI_noise_generic_noise(tex->noisesize,
-                                   texvec[0],
-                                   texvec[1],
-                                   texvec[2] + ofs,
-                                   (tex->noisetype != TEX_NOISESOFT),
-                                   tex->noisebasis);
 
-  texres->tin = nor[2];
-
-  if (texres->nor) {
-
-    copy_v3_v3(texres->nor, nor);
-    tex_normal_derivate(tex, texres);
-
-    if (tex->stype == TEX_WALLOUT) {
-      texres->nor[0] = -texres->nor[0];
-      texres->nor[1] = -texres->nor[1];
-      texres->nor[2] = -texres->nor[2];
-    }
-
-    retval |= TEX_NOR;
-  }
+  texres->tin = BLI_noise_generic_noise(tex->noisesize,
+                                        texvec[0],
+                                        texvec[1],
+                                        texvec[2] + ofs,
+                                        (tex->noisetype != TEX_NOISESOFT),
+                                        tex->noisebasis);
 
   if (tex->stype == TEX_WALLOUT) {
     texres->tin = 1.0f - texres->tin;
@@ -538,36 +433,6 @@ static int mg_mFractalOrfBmTex(const Tex *tex, const float texvec[3], TexResult 
                                               tex->mg_octaves,
                                               tex->noisebasis);
 
-  if (texres->nor != NULL) {
-    float ofs = tex->nabla / tex->noisesize; /* also scaling of texvec */
-
-    /* calculate bumpnormal */
-    texres->nor[0] = tex->ns_outscale * mgravefunc(texvec[0] + ofs,
-                                                   texvec[1],
-                                                   texvec[2],
-                                                   tex->mg_H,
-                                                   tex->mg_lacunarity,
-                                                   tex->mg_octaves,
-                                                   tex->noisebasis);
-    texres->nor[1] = tex->ns_outscale * mgravefunc(texvec[0],
-                                                   texvec[1] + ofs,
-                                                   texvec[2],
-                                                   tex->mg_H,
-                                                   tex->mg_lacunarity,
-                                                   tex->mg_octaves,
-                                                   tex->noisebasis);
-    texres->nor[2] = tex->ns_outscale * mgravefunc(texvec[0],
-                                                   texvec[1],
-                                                   texvec[2] + ofs,
-                                                   tex->mg_H,
-                                                   tex->mg_lacunarity,
-                                                   tex->mg_octaves,
-                                                   tex->noisebasis);
-
-    tex_normal_derivate(tex, texres);
-    rv |= TEX_NOR;
-  }
-
   BRICONT;
 
   return rv;
@@ -595,42 +460,6 @@ static int mg_ridgedOrHybridMFTex(const Tex *tex, const float texvec[3], TexResu
                                               tex->mg_gain,
                                               tex->noisebasis);
 
-  if (texres->nor != NULL) {
-    float ofs = tex->nabla / tex->noisesize; /* also scaling of texvec */
-
-    /* calculate bumpnormal */
-    texres->nor[0] = tex->ns_outscale * mgravefunc(texvec[0] + ofs,
-                                                   texvec[1],
-                                                   texvec[2],
-                                                   tex->mg_H,
-                                                   tex->mg_lacunarity,
-                                                   tex->mg_octaves,
-                                                   tex->mg_offset,
-                                                   tex->mg_gain,
-                                                   tex->noisebasis);
-    texres->nor[1] = tex->ns_outscale * mgravefunc(texvec[0],
-                                                   texvec[1] + ofs,
-                                                   texvec[2],
-                                                   tex->mg_H,
-                                                   tex->mg_lacunarity,
-                                                   tex->mg_octaves,
-                                                   tex->mg_offset,
-                                                   tex->mg_gain,
-                                                   tex->noisebasis);
-    texres->nor[2] = tex->ns_outscale * mgravefunc(texvec[0],
-                                                   texvec[1],
-                                                   texvec[2] + ofs,
-                                                   tex->mg_H,
-                                                   tex->mg_lacunarity,
-                                                   tex->mg_octaves,
-                                                   tex->mg_offset,
-                                                   tex->mg_gain,
-                                                   tex->noisebasis);
-
-    tex_normal_derivate(tex, texres);
-    rv |= TEX_NOR;
-  }
-
   BRICONT;
 
   return rv;
@@ -649,39 +478,6 @@ static int mg_HTerrainTex(const Tex *tex, const float texvec[3], TexResult *texr
                                                                tex->mg_offset,
                                                                tex->noisebasis);
 
-  if (texres->nor != NULL) {
-    float ofs = tex->nabla / tex->noisesize; /* also scaling of texvec */
-
-    /* calculate bumpnormal */
-    texres->nor[0] = tex->ns_outscale * BLI_noise_mg_hetero_terrain(texvec[0] + ofs,
-                                                                    texvec[1],
-                                                                    texvec[2],
-                                                                    tex->mg_H,
-                                                                    tex->mg_lacunarity,
-                                                                    tex->mg_octaves,
-                                                                    tex->mg_offset,
-                                                                    tex->noisebasis);
-    texres->nor[1] = tex->ns_outscale * BLI_noise_mg_hetero_terrain(texvec[0],
-                                                                    texvec[1] + ofs,
-                                                                    texvec[2],
-                                                                    tex->mg_H,
-                                                                    tex->mg_lacunarity,
-                                                                    tex->mg_octaves,
-                                                                    tex->mg_offset,
-                                                                    tex->noisebasis);
-    texres->nor[2] = tex->ns_outscale * BLI_noise_mg_hetero_terrain(texvec[0],
-                                                                    texvec[1],
-                                                                    texvec[2] + ofs,
-                                                                    tex->mg_H,
-                                                                    tex->mg_lacunarity,
-                                                                    tex->mg_octaves,
-                                                                    tex->mg_offset,
-                                                                    tex->noisebasis);
-
-    tex_normal_derivate(tex, texres);
-    rv |= TEX_NOR;
-  }
-
   BRICONT;
 
   return rv;
@@ -693,33 +489,6 @@ static int mg_distNoiseTex(const Tex *tex, const float texvec[3], TexResult *tex
 
   texres->tin = BLI_noise_mg_variable_lacunarity(
       texvec[0], texvec[1], texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
-
-  if (texres->nor != NULL) {
-    float ofs = tex->nabla / tex->noisesize; /* also scaling of texvec */
-
-    /* calculate bumpnormal */
-    texres->nor[0] = BLI_noise_mg_variable_lacunarity(texvec[0] + ofs,
-                                                      texvec[1],
-                                                      texvec[2],
-                                                      tex->dist_amount,
-                                                      tex->noisebasis,
-                                                      tex->noisebasis2);
-    texres->nor[1] = BLI_noise_mg_variable_lacunarity(texvec[0],
-                                                      texvec[1] + ofs,
-                                                      texvec[2],
-                                                      tex->dist_amount,
-                                                      tex->noisebasis,
-                                                      tex->noisebasis2);
-    texres->nor[2] = BLI_noise_mg_variable_lacunarity(texvec[0],
-                                                      texvec[1],
-                                                      texvec[2] + ofs,
-                                                      tex->dist_amount,
-                                                      tex->noisebasis,
-                                                      tex->noisebasis2);
-
-    tex_normal_derivate(tex, texres);
-    rv |= TEX_NOR;
-  }
 
   BRICONT;
 
@@ -786,21 +555,6 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
       texres->trgba[1] *= sc;
       texres->trgba[2] *= sc;
     }
-  }
-
-  if (texres->nor != NULL) {
-    float ofs = tex->nabla / tex->noisesize; /* also scaling of texvec */
-
-    /* calculate bumpnormal */
-    BLI_noise_voronoi(texvec[0] + ofs, texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
-    texres->nor[0] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
-    BLI_noise_voronoi(texvec[0], texvec[1] + ofs, texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
-    texres->nor[1] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
-    BLI_noise_voronoi(texvec[0], texvec[1], texvec[2] + ofs, da, pa, tex->vn_mexp, tex->vn_distm);
-    texres->nor[2] = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
-
-    tex_normal_derivate(tex, texres);
-    rv |= TEX_NOR;
   }
 
   if (tex->vn_coltype) {
@@ -1148,7 +902,7 @@ static int multitex(Tex *tex,
                     const bool use_nodes)
 {
   float tmpvec[3];
-  int retval = 0; /* return value, int:0, col:1, nor:2, everything:3 */
+  int retval = 0; /* return value, TEX_INT or TEX_RGB. */
 
   texres->talpha = false; /* is set when image texture returns alpha (considered premul) */
 
@@ -1283,14 +1037,14 @@ static int multitex_nodes_intern(Tex *tex,
   }
 
   if (tex->type == TEX_IMAGE) {
-    int rgbnor;
+    int retval;
 
     if (mtex) {
       float texvec_l[3];
       copy_v3_v3(texvec_l, texvec);
       /* we have mtex, use it for 2d mapping images only */
       do_2d_mapping(mtex, texvec_l, NULL, dxt, dyt);
-      rgbnor = multitex(tex,
+      retval = multitex(tex,
                         texvec_l,
                         dxt,
                         dyt,
@@ -1307,7 +1061,7 @@ static int multitex_nodes_intern(Tex *tex,
         ImBuf *ibuf = BKE_image_pool_acquire_ibuf(tex->ima, &tex->iuser, pool);
 
         /* don't linearize float buffers, assumed to be linear */
-        if (ibuf != NULL && ibuf->rect_float == NULL && (rgbnor & TEX_RGB) && scene_color_manage) {
+        if (ibuf != NULL && ibuf->rect_float == NULL && (retval & TEX_RGB) && scene_color_manage) {
           IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba, ibuf->rect_colorspace);
         }
 
@@ -1335,7 +1089,7 @@ static int multitex_nodes_intern(Tex *tex,
       }
 
       do_2d_mapping(&localmtex, texvec_l, NULL, dxt_l, dyt_l);
-      rgbnor = multitex(tex,
+      retval = multitex(tex,
                         texvec_l,
                         dxt_l,
                         dyt_l,
@@ -1352,7 +1106,7 @@ static int multitex_nodes_intern(Tex *tex,
         ImBuf *ibuf = BKE_image_pool_acquire_ibuf(tex->ima, &tex->iuser, pool);
 
         /* don't linearize float buffers, assumed to be linear */
-        if (ibuf != NULL && ibuf->rect_float == NULL && (rgbnor & TEX_RGB) && scene_color_manage) {
+        if (ibuf != NULL && ibuf->rect_float == NULL && (retval & TEX_RGB) && scene_color_manage) {
           IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba, ibuf->rect_colorspace);
         }
 
@@ -1360,7 +1114,7 @@ static int multitex_nodes_intern(Tex *tex,
       }
     }
 
-    return rgbnor;
+    return retval;
   }
 
   return multitex(tex,
@@ -1455,145 +1209,6 @@ int multitex_ext_safe(Tex *tex,
 }
 
 /* ------------------------------------------------------------------------- */
-
-void texture_rgb_blend(
-    float in[3], const float tex[3], const float out[3], float fact, float facg, int blendtype)
-{
-  float facm;
-
-  switch (blendtype) {
-    case MTEX_BLEND:
-      fact *= facg;
-      facm = 1.0f - fact;
-
-      in[0] = (fact * tex[0] + facm * out[0]);
-      in[1] = (fact * tex[1] + facm * out[1]);
-      in[2] = (fact * tex[2] + facm * out[2]);
-      break;
-
-    case MTEX_MUL:
-      fact *= facg;
-      facm = 1.0f - fact;
-      in[0] = (facm + fact * tex[0]) * out[0];
-      in[1] = (facm + fact * tex[1]) * out[1];
-      in[2] = (facm + fact * tex[2]) * out[2];
-      break;
-
-    case MTEX_SCREEN:
-      fact *= facg;
-      facm = 1.0f - fact;
-      in[0] = 1.0f - (facm + fact * (1.0f - tex[0])) * (1.0f - out[0]);
-      in[1] = 1.0f - (facm + fact * (1.0f - tex[1])) * (1.0f - out[1]);
-      in[2] = 1.0f - (facm + fact * (1.0f - tex[2])) * (1.0f - out[2]);
-      break;
-
-    case MTEX_OVERLAY:
-      fact *= facg;
-      facm = 1.0f - fact;
-
-      if (out[0] < 0.5f) {
-        in[0] = out[0] * (facm + 2.0f * fact * tex[0]);
-      }
-      else {
-        in[0] = 1.0f - (facm + 2.0f * fact * (1.0f - tex[0])) * (1.0f - out[0]);
-      }
-      if (out[1] < 0.5f) {
-        in[1] = out[1] * (facm + 2.0f * fact * tex[1]);
-      }
-      else {
-        in[1] = 1.0f - (facm + 2.0f * fact * (1.0f - tex[1])) * (1.0f - out[1]);
-      }
-      if (out[2] < 0.5f) {
-        in[2] = out[2] * (facm + 2.0f * fact * tex[2]);
-      }
-      else {
-        in[2] = 1.0f - (facm + 2.0f * fact * (1.0f - tex[2])) * (1.0f - out[2]);
-      }
-      break;
-
-    case MTEX_SUB:
-      fact = -fact;
-      ATTR_FALLTHROUGH;
-    case MTEX_ADD:
-      fact *= facg;
-      in[0] = (fact * tex[0] + out[0]);
-      in[1] = (fact * tex[1] + out[1]);
-      in[2] = (fact * tex[2] + out[2]);
-      break;
-
-    case MTEX_DIV:
-      fact *= facg;
-      facm = 1.0f - fact;
-
-      if (tex[0] != 0.0f) {
-        in[0] = facm * out[0] + fact * out[0] / tex[0];
-      }
-      if (tex[1] != 0.0f) {
-        in[1] = facm * out[1] + fact * out[1] / tex[1];
-      }
-      if (tex[2] != 0.0f) {
-        in[2] = facm * out[2] + fact * out[2] / tex[2];
-      }
-
-      break;
-
-    case MTEX_DIFF:
-      fact *= facg;
-      facm = 1.0f - fact;
-      in[0] = facm * out[0] + fact * fabsf(tex[0] - out[0]);
-      in[1] = facm * out[1] + fact * fabsf(tex[1] - out[1]);
-      in[2] = facm * out[2] + fact * fabsf(tex[2] - out[2]);
-      break;
-
-    case MTEX_DARK:
-      fact *= facg;
-      facm = 1.0f - fact;
-
-      in[0] = min_ff(out[0], tex[0]) * fact + out[0] * facm;
-      in[1] = min_ff(out[1], tex[1]) * fact + out[1] * facm;
-      in[2] = min_ff(out[2], tex[2]) * fact + out[2] * facm;
-      break;
-
-    case MTEX_LIGHT:
-      fact *= facg;
-
-      in[0] = max_ff(fact * tex[0], out[0]);
-      in[1] = max_ff(fact * tex[1], out[1]);
-      in[2] = max_ff(fact * tex[2], out[2]);
-      break;
-
-    case MTEX_BLEND_HUE:
-      fact *= facg;
-      copy_v3_v3(in, out);
-      ramp_blend(MA_RAMP_HUE, in, fact, tex);
-      break;
-    case MTEX_BLEND_SAT:
-      fact *= facg;
-      copy_v3_v3(in, out);
-      ramp_blend(MA_RAMP_SAT, in, fact, tex);
-      break;
-    case MTEX_BLEND_VAL:
-      fact *= facg;
-      copy_v3_v3(in, out);
-      ramp_blend(MA_RAMP_VAL, in, fact, tex);
-      break;
-    case MTEX_BLEND_COLOR:
-      fact *= facg;
-      copy_v3_v3(in, out);
-      ramp_blend(MA_RAMP_COLOR, in, fact, tex);
-      break;
-    case MTEX_SOFT_LIGHT:
-      fact *= facg;
-      copy_v3_v3(in, out);
-      ramp_blend(MA_RAMP_SOFT, in, fact, tex);
-      break;
-    case MTEX_LIN_LIGHT:
-      fact *= facg;
-      copy_v3_v3(in, out);
-      ramp_blend(MA_RAMP_LINEAR, in, fact, tex);
-      break;
-  }
-}
 
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype)
 {
@@ -1703,7 +1318,6 @@ bool RE_texture_evaluate(const MTex *mtex,
   if (tex == NULL) {
     return 0;
   }
-  texr.nor = NULL;
 
   /* placement */
   if (mtex->projx) {

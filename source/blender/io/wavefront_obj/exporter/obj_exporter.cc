@@ -195,7 +195,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
       auto &fh = buffers[i];
 
       obj_writer.write_object_name(fh, obj);
-      obj_writer.write_vertex_coords(fh, obj);
+      obj_writer.write_vertex_coords(fh, obj, export_params.export_colors);
 
       if (obj.tot_polygons() > 0) {
         if (export_params.export_smooth_groups) {
@@ -323,7 +323,7 @@ void exporter_main(bContext *C, const OBJExportParams &export_params)
 
   char filepath_with_frames[FILE_MAX];
   /* Used to reset the Scene to its original state. */
-  const int original_frame = CFRA;
+  const int original_frame = scene->r.cfra;
 
   for (int frame = export_params.start_frame; frame <= export_params.end_frame; frame++) {
     const bool filepath_ok = append_frame_to_filename(filepath, frame, filepath_with_frames);
@@ -332,11 +332,11 @@ void exporter_main(bContext *C, const OBJExportParams &export_params)
       return;
     }
 
-    CFRA = frame;
+    scene->r.cfra = frame;
     obj_depsgraph.update_for_newframe();
     fprintf(stderr, "Writing to %s\n", filepath_with_frames);
     export_frame(obj_depsgraph.get(), export_params, filepath_with_frames);
   }
-  CFRA = original_frame;
+  scene->r.cfra = original_frame;
 }
 }  // namespace blender::io::obj

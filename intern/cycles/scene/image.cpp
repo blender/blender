@@ -653,8 +653,8 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
     while (max_size * scale_factor > texture_limit) {
       scale_factor *= 0.5f;
     }
-    VLOG(1) << "Scaling image " << img->loader->name() << " by a factor of " << scale_factor
-            << ".";
+    VLOG_WORK << "Scaling image " << img->loader->name() << " by a factor of " << scale_factor
+              << ".";
     vector<StorageType> scaled_pixels;
     size_t scaled_width, scaled_height, scaled_depth;
     util_image_resize_pixels(pixels_storage,
@@ -697,7 +697,7 @@ void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Pro
   ImageDataType type = img->metadata.type;
 
   /* Name for debugging. */
-  img->mem_name = string_printf("__tex_image_%s_%03d", name_from_type(type), slot);
+  img->mem_name = string_printf("tex_image_%s_%03d", name_from_type(type), slot);
 
   /* Free previous texture in slot. */
   if (img->mem) {

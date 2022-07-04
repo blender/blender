@@ -15,7 +15,6 @@
 
 #include "BLI_ghash.h"
 #include "BLI_map.hh"
-#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
 #include "gpu_material_library.h"

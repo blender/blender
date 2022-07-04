@@ -306,11 +306,17 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
     return;
   }
 
+  GPUShader *sh = GPU_material_get_shader(mat);
+  if (sh == NULL) {
+    return;
+  }
+
   /* TODO(fclem): Reuse main shading group to avoid shading binding cost just like for surface
    * shaders. */
-  DRWShadingGroup *grp = DRW_shgroup_material_create(mat, vedata->psl->volumetric_objects_ps);
+  DRWShadingGroup *grp = DRW_shgroup_create(sh, vedata->psl->volumetric_objects_ps);
 
   grp = DRW_shgroup_volume_create_sub(scene, ob, grp, mat);
+  DRW_shgroup_add_material_resources(grp, mat);
 
   if (grp == NULL) {
     return;

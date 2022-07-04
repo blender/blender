@@ -27,8 +27,11 @@
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
 
+#include "DRW_gpu_wrapper.hh"
+
 #include "draw_hair_private.h"
 #include "draw_shader.h"
+#include "draw_shader_shared.h"
 
 #ifndef __APPLE__
 #  define USE_TRANSFORM_FEEDBACK
@@ -65,6 +68,7 @@ static int g_tf_target_height;
 static GPUVertBuf *g_dummy_vbo = nullptr;
 static GPUTexture *g_dummy_texture = nullptr;
 static DRWPass *g_tf_pass; /* XXX can be a problem with multiple DRWManager in the future */
+static blender::draw::UniformBuffer<CurvesInfos> *g_dummy_curves_info = nullptr;
 
 static GPUShader *hair_refine_shader_get(ParticleRefineShader refinement)
 {
@@ -93,6 +97,13 @@ void DRW_hair_init(void)
     GPU_vertbuf_use(g_dummy_vbo);
 
     g_dummy_texture = GPU_texture_create_from_vertbuf("hair_dummy_attr", g_dummy_vbo);
+
+    g_dummy_curves_info = MEM_new<blender::draw::UniformBuffer<CurvesInfos>>(
+        "g_dummy_curves_info");
+    memset(g_dummy_curves_info->is_point_attribute,
+           0,
+           sizeof(g_dummy_curves_info->is_point_attribute));
+    g_dummy_curves_info->push_update();
   }
 }
 
@@ -276,6 +287,8 @@ DRWShadingGroup *DRW_shgroup_hair_create_sub(Object *object,
   if (hair_cache->length_tex) {
     DRW_shgroup_uniform_texture(shgrp, "l", hair_cache->length_tex);
   }
+
+  DRW_shgroup_uniform_block(shgrp, "drw_curves", *g_dummy_curves_info);
   DRW_shgroup_uniform_int(shgrp, "hairStrandsRes", &hair_cache->final[subdiv].strands_res, 1);
   DRW_shgroup_uniform_int_copy(shgrp, "hairThicknessRes", thickness_res);
   DRW_shgroup_uniform_float_copy(shgrp, "hairRadShape", hair_rad_shape);
@@ -374,4 +387,5 @@ void DRW_hair_free(void)
 {
   GPU_VERTBUF_DISCARD_SAFE(g_dummy_vbo);
   DRW_TEXTURE_FREE_SAFE(g_dummy_texture);
+  MEM_delete(g_dummy_curves_info);
 }

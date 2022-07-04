@@ -13,7 +13,6 @@
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 #include "gpu_framebuffer_private.hh"
-#include "gpu_vertex_buffer_private.hh"
 
 #include "gpu_texture_private.hh"
 
@@ -702,7 +701,11 @@ void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *r_size)
 
 void GPU_samplers_update()
 {
-  GPUBackend::get()->samplers_update();
+  /* Backend may not exist when we are updating preferences from background mode. */
+  GPUBackend *backend = GPUBackend::get();
+  if (backend) {
+    backend->samplers_update();
+  }
 }
 
 /** \} */

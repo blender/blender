@@ -16,7 +16,6 @@
 #include "GPU_uniform_buffer.h"
 
 #include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
 #include "../mathutils/mathutils.h"
 
 #include "gpu_py.h"

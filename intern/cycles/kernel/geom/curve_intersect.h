@@ -555,7 +555,7 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
   /* Evaluate first point and radius scaled normal direction. */
   float4 p0 = catmull_rom_basis_eval(curve, 0.0f);
   float3 dp0dt = float4_to_float3(catmull_rom_basis_derivative(curve, 0.0f));
-  if (max3(fabs(dp0dt)) < eps) {
+  if (reduce_max(fabs(dp0dt)) < eps) {
     const float4 p1 = catmull_rom_basis_eval(curve, step_size);
     dp0dt = float4_to_float3(p1 - p0);
   }
@@ -570,7 +570,7 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
 
     /* Evaluate next point. */
     float3 dp1dt = float4_to_float3(catmull_rom_basis_derivative(curve, u + step_size));
-    dp1dt = (max3(fabs(dp1dt)) < eps) ? float4_to_float3(p1 - p0) : dp1dt;
+    dp1dt = (reduce_max(fabs(dp1dt)) < eps) ? float4_to_float3(p1 - p0) : dp1dt;
     const float3 wn1 = normalize(make_float3(dp1dt.y, -dp1dt.x, 0.0f)) * p1.w;
 
     if (valid) {
@@ -624,7 +624,7 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
 {
   const bool is_motion = (type & PRIMITIVE_MOTION);
 
-  KernelCurve kcurve = kernel_tex_fetch(__curves, prim);
+  KernelCurve kcurve = kernel_data_fetch(curves, prim);
 
   int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(type);
   int k1 = k0 + 1;
@@ -633,10 +633,10 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
 
   float4 curve[4];
   if (!is_motion) {
-    curve[0] = kernel_tex_fetch(__curve_keys, ka);
-    curve[1] = kernel_tex_fetch(__curve_keys, k0);
-    curve[2] = kernel_tex_fetch(__curve_keys, k1);
-    curve[3] = kernel_tex_fetch(__curve_keys, kb);
+    curve[0] = kernel_data_fetch(curve_keys, ka);
+    curve[1] = kernel_data_fetch(curve_keys, k0);
+    curve[2] = kernel_data_fetch(curve_keys, k1);
+    curve[3] = kernel_data_fetch(curve_keys, kb);
   }
   else {
     motion_curve_keys(kg, object, prim, time, ka, k0, k1, kb, curve);
@@ -682,7 +682,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
     D = safe_normalize_len(D, &t);
   }
 
-  KernelCurve kcurve = kernel_tex_fetch(__curves, isect_prim);
+  KernelCurve kcurve = kernel_data_fetch(curves, isect_prim);
 
   int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
   int k1 = k0 + 1;
@@ -692,10 +692,10 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
   float4 P_curve[4];
 
   if (!(sd->type & PRIMITIVE_MOTION)) {
-    P_curve[0] = kernel_tex_fetch(__curve_keys, ka);
-    P_curve[1] = kernel_tex_fetch(__curve_keys, k0);
-    P_curve[2] = kernel_tex_fetch(__curve_keys, k1);
-    P_curve[3] = kernel_tex_fetch(__curve_keys, kb);
+    P_curve[0] = kernel_data_fetch(curve_keys, ka);
+    P_curve[1] = kernel_data_fetch(curve_keys, k0);
+    P_curve[2] = kernel_data_fetch(curve_keys, k1);
+    P_curve[3] = kernel_data_fetch(curve_keys, kb);
   }
   else {
     motion_curve_keys(kg, sd->object, sd->prim, sd->time, ka, k0, k1, kb, P_curve);
@@ -729,7 +729,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
     /* NOTE: It is possible that P will be the same as P_inside (precision issues, or very small
      * radius). In this case use the view direction to approximate the normal. */
     const float3 P_inside = float4_to_float3(catmull_rom_basis_eval(P_curve, sd->u));
-    const float3 N = (!isequal_float3(P, P_inside)) ? normalize(P - P_inside) : -sd->I;
+    const float3 N = (!isequal(P, P_inside)) ? normalize(P - P_inside) : -sd->I;
 
     sd->N = N;
     sd->v = 0.0f;
@@ -750,7 +750,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
   sd->P = P;
   sd->Ng = (sd->type & PRIMITIVE_CURVE_RIBBON) ? sd->I : sd->N;
   sd->dPdv = cross(sd->dPdu, sd->Ng);
-  sd->shader = kernel_tex_fetch(__curves, sd->prim).shader_id;
+  sd->shader = kernel_data_fetch(curves, sd->prim).shader_id;
 }
 
 #endif

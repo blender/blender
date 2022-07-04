@@ -1271,7 +1271,7 @@ static void gpencil_layer_to_curve(bContext *C,
   Collection *collection = CTX_data_collection(C);
   Scene *scene = CTX_data_scene(C);
 
-  bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_USE_PREV);
+  bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
   bGPDstroke *prev_gps = NULL;
   Object *ob;
   Curve *cu;
@@ -1414,7 +1414,7 @@ static bool gpencil_convert_check_has_valid_timing(bContext *C, bGPDlayer *gpl, 
   int i;
   bool valid = true;
 
-  if (!gpl || !(gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_USE_PREV)) ||
+  if (!gpl || !(gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV)) ||
       !(gps = gpf->strokes.first)) {
     return false;
   }
@@ -1481,7 +1481,7 @@ static bool gpencil_convert_poll(bContext *C)
    * and if we are not in edit mode!
    */
   return ((area && area->spacetype == SPACE_VIEW3D) && (gpl = BKE_gpencil_layer_active_get(gpd)) &&
-          (gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_USE_PREV)) &&
+          (gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV)) &&
           (gpf->strokes.first) && (!GPENCIL_ANY_EDIT_MODE(gpd)));
 }
 
@@ -1811,7 +1811,7 @@ static int image_to_gpencil_exec(bContext *C, wmOperator *op)
   /* Add layer and frame. */
   bGPdata *gpd = (bGPdata *)ob->data;
   bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, "Image Layer", true, false);
-  bGPDframe *gpf = BKE_gpencil_frame_addnew(gpl, CFRA);
+  bGPDframe *gpf = BKE_gpencil_frame_addnew(gpl, scene->r.cfra);
   done = BKE_gpencil_from_image(sima, gpd, gpf, size, is_mask);
 
   if (done) {

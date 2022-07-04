@@ -38,7 +38,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
                                     const uint32_t path_flag,
                                     ccl_private LightSample *ls)
 {
-  const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
+  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
   if (path_flag & PATH_RAY_SHADOW_CATCHER_PASS) {
     if (klight->shader_id & SHADER_EXCLUDE_SHADOW_CATCHER) {
       return false;
@@ -237,7 +237,7 @@ ccl_device bool lights_intersect(KernelGlobals kg,
                                  const uint32_t path_flag)
 {
   for (int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
-    const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
+    const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
 
     if (path_flag & PATH_RAY_CAMERA) {
       if (klight->shader_id & SHADER_EXCLUDE_CAMERA) {
@@ -358,7 +358,7 @@ ccl_device bool light_sample_from_distant_ray(KernelGlobals kg,
                                               const int lamp,
                                               ccl_private LightSample *ccl_restrict ls)
 {
-  ccl_global const KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
+  ccl_global const KernelLight *klight = &kernel_data_fetch(lights, lamp);
   const int shader = klight->shader_id;
   const float radius = klight->distant.radius;
   const LightType type = (LightType)klight->type;
@@ -433,7 +433,7 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
                                                ccl_private LightSample *ccl_restrict ls)
 {
   const int lamp = isect->prim;
-  ccl_global const KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
+  ccl_global const KernelLight *klight = &kernel_data_fetch(lights, lamp);
   LightType type = (LightType)klight->type;
   ls->type = type;
   ls->shader = klight->shader_id;
@@ -562,7 +562,7 @@ ccl_device_inline bool triangle_world_space_vertices(
     KernelGlobals kg, int object, int prim, float time, float3 V[3])
 {
   bool has_motion = false;
-  const int object_flag = kernel_tex_fetch(__object_flag, object);
+  const int object_flag = kernel_data_fetch(object_flag, object);
 
   if (object_flag & SD_OBJECT_HAS_VERTEX_MOTION && time >= 0.0f) {
     motion_triangle_vertices(kg, object, prim, time, V);
@@ -699,12 +699,12 @@ ccl_device_forceinline void triangle_light_sample(KernelGlobals kg,
   float area = 0.5f * Nl;
 
   /* flip normal if necessary */
-  const int object_flag = kernel_tex_fetch(__object_flag, object);
+  const int object_flag = kernel_data_fetch(object_flag, object);
   if (object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
     ls->Ng = -ls->Ng;
   }
   ls->eval_fac = 1.0f;
-  ls->shader = kernel_tex_fetch(__tri_shader, prim);
+  ls->shader = kernel_data_fetch(tri_shader, prim);
   ls->object = object;
   ls->prim = prim;
   ls->lamp = LAMP_NONE;
@@ -845,7 +845,7 @@ ccl_device int light_distribution_sample(KernelGlobals kg, ccl_private float *ra
     int half_len = len >> 1;
     int middle = first + half_len;
 
-    if (r < kernel_tex_fetch(__light_distribution, middle).totarea) {
+    if (r < kernel_data_fetch(light_distribution, middle).totarea) {
       len = half_len;
     }
     else {
@@ -860,8 +860,8 @@ ccl_device int light_distribution_sample(KernelGlobals kg, ccl_private float *ra
 
   /* Rescale to reuse random number. this helps the 2D samples within
    * each area light be stratified as well. */
-  float distr_min = kernel_tex_fetch(__light_distribution, index).totarea;
-  float distr_max = kernel_tex_fetch(__light_distribution, index + 1).totarea;
+  float distr_min = kernel_data_fetch(light_distribution, index).totarea;
+  float distr_max = kernel_data_fetch(light_distribution, index + 1).totarea;
   *randu = (r - distr_min) / (distr_max - distr_min);
 
   return index;
@@ -871,7 +871,7 @@ ccl_device int light_distribution_sample(KernelGlobals kg, ccl_private float *ra
 
 ccl_device_inline bool light_select_reached_max_bounces(KernelGlobals kg, int index, int bounce)
 {
-  return (bounce > kernel_tex_fetch(__lights, index).max_bounces);
+  return (bounce > kernel_data_fetch(lights, index).max_bounces);
 }
 
 template<bool in_volume_segment>
@@ -886,8 +886,8 @@ ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
 {
   /* Sample light index from distribution. */
   const int index = light_distribution_sample(kg, &randu);
-  ccl_global const KernelLightDistribution *kdistribution = &kernel_tex_fetch(__light_distribution,
-                                                                              index);
+  ccl_global const KernelLightDistribution *kdistribution = &kernel_data_fetch(light_distribution,
+                                                                               index);
   const int prim = kdistribution->prim;
 
   if (prim >= 0) {
@@ -896,7 +896,7 @@ ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
 
     /* Exclude synthetic meshes from shadow catcher pass. */
     if ((path_flag & PATH_RAY_SHADOW_CATCHER_PASS) &&
-        !(kernel_tex_fetch(__object_flag, object) & SD_OBJECT_SHADOW_CATCHER)) {
+        !(kernel_data_fetch(object_flag, object) & SD_OBJECT_SHADOW_CATCHER)) {
       return false;
     }
 

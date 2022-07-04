@@ -639,10 +639,10 @@ void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
     DRW_shgroup_uniform_block_ex(shgroup, name, ubo, __FILE__, __LINE__)
 #  define DRW_shgroup_uniform_block_ref(shgroup, name, ubo) \
     DRW_shgroup_uniform_block_ref_ex(shgroup, name, ubo, __FILE__, __LINE__)
-#  define DRW_shgroup_storage_block(shgroup, name, ubo) \
-    DRW_shgroup_storage_block_ex(shgroup, name, ubo, __FILE__, __LINE__)
-#  define DRW_shgroup_storage_block_ref(shgroup, name, ubo) \
-    DRW_shgroup_storage_block_ref_ex(shgroup, name, ubo, __FILE__, __LINE__)
+#  define DRW_shgroup_storage_block(shgroup, name, ssbo) \
+    DRW_shgroup_storage_block_ex(shgroup, name, ssbo, __FILE__, __LINE__)
+#  define DRW_shgroup_storage_block_ref(shgroup, name, ssbo) \
+    DRW_shgroup_storage_block_ref_ex(shgroup, name, ssbo, __FILE__, __LINE__)
 #else
 #  define DRW_shgroup_vertex_buffer(shgroup, name, vert) \
     DRW_shgroup_vertex_buffer_ex(shgroup, name, vert)
@@ -652,10 +652,10 @@ void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
     DRW_shgroup_uniform_block_ex(shgroup, name, ubo)
 #  define DRW_shgroup_uniform_block_ref(shgroup, name, ubo) \
     DRW_shgroup_uniform_block_ref_ex(shgroup, name, ubo)
-#  define DRW_shgroup_storage_block(shgroup, name, ubo) \
-    DRW_shgroup_storage_block_ex(shgroup, name, ubo)
-#  define DRW_shgroup_storage_block_ref(shgroup, name, ubo) \
-    DRW_shgroup_storage_block_ref_ex(shgroup, name, ubo)
+#  define DRW_shgroup_storage_block(shgroup, name, ssbo) \
+    DRW_shgroup_storage_block_ex(shgroup, name, ssbo)
+#  define DRW_shgroup_storage_block_ref(shgroup, name, ssbo) \
+    DRW_shgroup_storage_block_ref_ex(shgroup, name, ssbo)
 #endif
 
 bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup);

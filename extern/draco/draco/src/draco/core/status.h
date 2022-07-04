@@ -15,6 +15,7 @@
 #ifndef DRACO_CORE_STATUS_H_
 #define DRACO_CORE_STATUS_H_
 
+#include <ostream>
 #include <string>
 
 namespace draco {
@@ -61,6 +62,9 @@ inline std::ostream &operator<<(std::ostream &os, const Status &status) {
 }
 
 inline Status OkStatus() { return Status(Status::OK); }
+inline Status ErrorStatus(const std::string &msg) {
+  return Status(Status::DRACO_ERROR, msg);
+}
 
 // Evaluates an expression that returns draco::Status. If the status is not OK,
 // the macro returns the status object.

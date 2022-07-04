@@ -296,7 +296,7 @@
 
 #define _DNA_DEFAULT_LineartGpencilModifierData \
   { \
-    .edge_types = LRT_EDGE_FLAG_ALL_TYPE, \
+    .edge_types = LRT_EDGE_FLAG_INIT_TYPE, \
     .thickness = 25, \
     .opacity = 1.0f, \
     .flags = LRT_GPENCIL_MATCH_OUTPUT_VGROUP, \
@@ -306,8 +306,12 @@
     /* Do not split by default, this is for better chaining quality. */ \
     .angle_splitting_threshold = 0.0f, \
     .chaining_image_threshold = 0.001f, \
-    .chain_smooth_tolerance = 0.2f,\
     .stroke_depth_offset = 0.05,\
+    .chain_smooth_tolerance = 0.0f,\
+    .overscan = 0.1f,\
+    .shadow_camera_near = 0.1f, \
+    .shadow_camera_far = 200.0f, \
+    .shadow_camera_size = 200.0f, \
   }
 
 #define _DNA_DEFAULT_LengthGpencilModifierData \

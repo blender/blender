@@ -3,8 +3,6 @@
 
 #include "BKE_subdiv_modifier.h"
 
-#include "BLI_session_uuid.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
@@ -21,22 +19,39 @@
 
 #include "opensubdiv_capi.h"
 
-void BKE_subsurf_modifier_subdiv_settings_init(SubdivSettings *settings,
-                                               const SubsurfModifierData *smd,
-                                               const bool use_render_params)
+bool BKE_subsurf_modifier_runtime_init(SubsurfModifierData *smd, const bool use_render_params)
 {
   const int requested_levels = (use_render_params) ? smd->renderLevels : smd->levels;
 
-  settings->is_simple = (smd->subdivType == SUBSURF_TYPE_SIMPLE);
-  settings->is_adaptive = !(smd->flags & eSubsurfModifierFlag_UseRecursiveSubdivision);
-  settings->level = settings->is_simple ?
-                        1 :
-                        (settings->is_adaptive ? smd->quality : requested_levels);
-  settings->use_creases = (smd->flags & eSubsurfModifierFlag_UseCrease);
-  settings->vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
+  SubdivSettings settings;
+  settings.is_simple = (smd->subdivType == SUBSURF_TYPE_SIMPLE);
+  settings.is_adaptive = !(smd->flags & eSubsurfModifierFlag_UseRecursiveSubdivision);
+  settings.level = settings.is_simple ? 1 :
+                                        (settings.is_adaptive ? smd->quality : requested_levels);
+  settings.use_creases = (smd->flags & eSubsurfModifierFlag_UseCrease);
+  settings.vtx_boundary_interpolation = BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
       smd->boundary_smooth);
-  settings->fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
+  settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(
       smd->uv_smooth);
+
+  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
+  if (settings.level == 0) {
+    /* Modifier is effectively disabled, but still update settings if runtime data
+     * was already allocated. */
+    if (runtime_data) {
+      runtime_data->settings = settings;
+    }
+
+    return false;
+  }
+
+  /* Allocate runtime data if it did not exist yet. */
+  if (runtime_data == NULL) {
+    runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
+    smd->modifier.runtime = runtime_data;
+  }
+  runtime_data->settings = settings;
+  return true;
 }
 
 static ModifierData *modifier_get_last_enabled_for_mode(const Scene *scene,
@@ -133,35 +148,25 @@ bool BKE_subsurf_modifier_can_do_gpu_subdiv(const Scene *scene,
 
 bool BKE_subsurf_modifier_has_gpu_subdiv(const Mesh *mesh)
 {
-  return BLI_session_uuid_is_generated(&mesh->runtime.subsurf_session_uuid);
+  SubsurfRuntimeData *runtime_data = mesh->runtime.subsurf_runtime_data;
+  return runtime_data && runtime_data->has_gpu_subdiv;
 }
 
 void (*BKE_subsurf_modifier_free_gpu_cache_cb)(Subdiv *subdiv) = NULL;
 
-Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(const SubsurfModifierData *smd,
-                                                      const SubdivSettings *subdiv_settings,
+Subdiv *BKE_subsurf_modifier_subdiv_descriptor_ensure(SubsurfRuntimeData *runtime_data,
                                                       const Mesh *mesh,
                                                       const bool for_draw_code)
 {
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
   if (runtime_data->subdiv && runtime_data->set_by_draw_code != for_draw_code) {
     BKE_subdiv_free(runtime_data->subdiv);
     runtime_data->subdiv = NULL;
   }
-  Subdiv *subdiv = BKE_subdiv_update_from_mesh(runtime_data->subdiv, subdiv_settings, mesh);
+  Subdiv *subdiv = BKE_subdiv_update_from_mesh(
+      runtime_data->subdiv, &runtime_data->settings, mesh);
   runtime_data->subdiv = subdiv;
   runtime_data->set_by_draw_code = for_draw_code;
   return subdiv;
-}
-
-SubsurfRuntimeData *BKE_subsurf_modifier_ensure_runtime(SubsurfModifierData *smd)
-{
-  SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)smd->modifier.runtime;
-  if (runtime_data == NULL) {
-    runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
-    smd->modifier.runtime = runtime_data;
-  }
-  return runtime_data;
 }
 
 int BKE_subsurf_modifier_eval_required_mode(bool is_final_render, bool is_edit_mode)

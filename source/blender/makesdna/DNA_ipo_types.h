@@ -338,7 +338,7 @@ typedef struct Ipo {
 #define CAM_STA 2
 #define CAM_END 3
 
-/* yafray aperture & focal distance curves */
+/* YAFRAY aperture & focal distance curves. */
 #define CAM_YF_APERT 4
 #define CAM_YF_FDIST 5
 

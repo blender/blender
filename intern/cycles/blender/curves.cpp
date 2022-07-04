@@ -341,7 +341,7 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
 
   /* check allocation */
   if ((hair->get_curve_keys().size() != num_keys) || (hair->num_curves() != num_curves)) {
-    VLOG(1) << "Hair memory allocation failed, clearing data.";
+    VLOG_WARNING << "Hair memory allocation failed, clearing data.";
     hair->clear(true);
   }
 }
@@ -397,7 +397,7 @@ static void export_hair_motion_validate_attribute(Hair *hair,
   if (num_motion_keys != num_keys || !have_motion) {
     /* No motion or hair "topology" changed, remove attributes again. */
     if (num_motion_keys != num_keys) {
-      VLOG(1) << "Hair topology changed, removing motion attribute.";
+      VLOG_WORK << "Hair topology changed, removing motion attribute.";
     }
     hair->attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
   }

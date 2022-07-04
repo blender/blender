@@ -25,6 +25,8 @@ set(INC
 )
 
 set(SRC
+  abstract_view.cc
+  grid_view.cc
   interface.cc
   interface_align.c
   interface_anim.c

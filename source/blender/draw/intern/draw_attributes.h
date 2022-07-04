@@ -46,8 +46,9 @@ void drw_attributes_merge(DRW_Attributes *dst,
 bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b);
 
 DRW_AttributeRequest *drw_attributes_add_request(DRW_Attributes *attrs,
-                                                 eCustomDataType type,
-                                                 int layer,
+                                                 const char *name,
+                                                 eCustomDataType data_type,
+                                                 int layer_index,
                                                  eAttrDomain domain);
 
 bool drw_custom_data_match_attribute(const CustomData *custom_data,

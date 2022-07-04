@@ -132,6 +132,8 @@ static bool bake_strokes(Object *ob,
       lmd->intersection_mask,
       lmd->thickness,
       lmd->opacity,
+      lmd->shadow_selection,
+      lmd->silhouette_selection,
       lmd->source_vertex_group,
       lmd->vgname,
       lmd->flags);
@@ -141,8 +143,8 @@ static bool bake_strokes(Object *ob,
     if (!is_first) {
       MOD_lineart_clear_cache(&local_lc);
     }
-    /* Restore the original cache pointer so the modifiers below still have access to the
-     * "global" cache. */
+    /* Restore the original cache pointer so the modifiers below still have access to the "global"
+     * cache. */
     lmd->cache = gpd->runtime.lineart_cache;
   }
 

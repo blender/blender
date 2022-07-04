@@ -31,8 +31,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "DEG_depsgraph.h"
-
 #include "mask_intern.h" /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -222,7 +220,7 @@ void MASK_OT_select_all(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = select_all_exec;
-  ot->poll = ED_maskedit_mask_poll;
+  ot->poll = ED_maskedit_mask_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -364,12 +362,9 @@ static int select_exec(bContext *C, wmOperator *op)
     return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
   }
   if (deselect_all) {
-    /* For clip editor tracks, leave deselect all to clip editor. */
-    if (!ED_clip_can_select(C)) {
-      ED_mask_deselect_all(C);
-      ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
-      return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
-    }
+    ED_mask_deselect_all(C);
+    ED_mask_view_lock_state_restore_no_jump(C, &lock_state);
+    return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
   }
 
   return OPERATOR_PASS_THROUGH;
@@ -401,7 +396,7 @@ void MASK_OT_select(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = select_exec;
   ot->invoke = select_invoke;
-  ot->poll = ED_maskedit_mask_poll;
+  ot->poll = ED_maskedit_mask_visible_splines_poll;
   ot->get_name = ED_select_pick_get_name;
 
   /* flags */
@@ -507,7 +502,7 @@ void MASK_OT_select_box(wmOperatorType *ot)
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = box_select_exec;
   ot->modal = WM_gesture_box_modal;
-  ot->poll = ED_maskedit_mask_poll;
+  ot->poll = ED_maskedit_mask_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_UNDO;
@@ -630,7 +625,7 @@ void MASK_OT_select_lasso(wmOperatorType *ot)
   ot->invoke = WM_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
   ot->exec = clip_lasso_select_exec;
-  ot->poll = ED_maskedit_mask_poll;
+  ot->poll = ED_maskedit_mask_visible_splines_poll;
   ot->cancel = WM_gesture_lasso_cancel;
 
   /* flags */
@@ -748,7 +743,7 @@ void MASK_OT_select_circle(wmOperatorType *ot)
   ot->invoke = WM_gesture_circle_invoke;
   ot->modal = WM_gesture_circle_modal;
   ot->exec = circle_select_exec;
-  ot->poll = ED_maskedit_mask_poll;
+  ot->poll = ED_maskedit_mask_visible_splines_poll;
   ot->get_name = ED_select_circle_get_name;
 
   /* flags */
@@ -812,7 +807,7 @@ void MASK_OT_select_linked_pick(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = mask_select_linked_pick_invoke;
-  ot->poll = ED_maskedit_mask_poll;
+  ot->poll = ED_maskedit_mask_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -867,7 +862,7 @@ void MASK_OT_select_linked(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = mask_select_linked_exec;
-  ot->poll = ED_maskedit_mask_poll;
+  ot->poll = ED_maskedit_mask_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -966,7 +961,7 @@ void MASK_OT_select_more(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = mask_select_more_exec;
-  ot->poll = ED_maskedit_mask_poll;
+  ot->poll = ED_maskedit_mask_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -986,7 +981,7 @@ void MASK_OT_select_less(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = mask_select_less_exec;
-  ot->poll = ED_maskedit_mask_poll;
+  ot->poll = ED_maskedit_mask_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

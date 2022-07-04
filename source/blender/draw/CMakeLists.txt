@@ -136,9 +136,12 @@ set(SRC
   engines/eevee/eevee_volumes.c
   engines/eevee_next/eevee_camera.cc
   engines/eevee_next/eevee_engine.cc
+  engines/eevee_next/eevee_film.cc
   engines/eevee_next/eevee_instance.cc
   engines/eevee_next/eevee_material.cc
   engines/eevee_next/eevee_pipeline.cc
+  engines/eevee_next/eevee_renderbuffers.cc
+  engines/eevee_next/eevee_sampling.cc
   engines/eevee_next/eevee_shader.cc
   engines/eevee_next/eevee_sync.cc
   engines/eevee_next/eevee_velocity.cc
@@ -357,6 +360,9 @@ set(GLSL_SRC
 
   engines/eevee_next/shaders/eevee_attributes_lib.glsl
   engines/eevee_next/shaders/eevee_camera_lib.glsl
+  engines/eevee_next/shaders/eevee_film_comp.glsl
+  engines/eevee_next/shaders/eevee_film_frag.glsl
+  engines/eevee_next/shaders/eevee_film_lib.glsl
   engines/eevee_next/shaders/eevee_geom_curves_vert.glsl
   engines/eevee_next/shaders/eevee_geom_gpencil_vert.glsl
   engines/eevee_next/shaders/eevee_geom_mesh_vert.glsl

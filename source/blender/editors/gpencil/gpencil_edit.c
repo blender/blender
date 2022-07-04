@@ -1718,7 +1718,7 @@ static int gpencil_strokes_paste_exec(bContext *C, wmOperator *op)
          *       we are obliged to add a new frame if one
          *       doesn't exist already
          */
-        gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_NEW);
+        gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_NEW);
         if (gpf) {
           /* Create new stroke */
           bGPDstroke *new_stroke = BKE_gpencil_stroke_duplicate(gps, true, true);
@@ -1971,7 +1971,7 @@ static int gpencil_blank_frame_add_exec(bContext *C, wmOperator *op)
 {
   bGPdata *gpd = ED_gpencil_data_get_active(C);
   Scene *scene = CTX_data_scene(C);
-  int cfra = CFRA;
+  int cfra = scene->r.cfra;
 
   bGPDlayer *active_gpl = BKE_gpencil_layer_active_get(gpd);
 
@@ -2075,7 +2075,7 @@ static int gpencil_actframe_delete_exec(bContext *C, wmOperator *op)
 
   Scene *scene = CTX_data_scene(C);
 
-  bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_USE_PREV);
+  bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
 
   /* if there's no existing Grease-Pencil data there, add some */
   if (gpd == NULL) {
@@ -2150,7 +2150,7 @@ static int gpencil_actframe_delete_all_exec(bContext *C, wmOperator *op)
 
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
     /* try to get the "active" frame - but only if it actually occurs on this frame */
-    bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_USE_PREV);
+    bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_USE_PREV);
 
     if (gpf == NULL) {
       continue;
@@ -3818,7 +3818,7 @@ static int gpencil_strokes_reproject_exec(bContext *C, wmOperator *op)
             /* update frame to get the new location of objects */
             if ((mode == GP_REPROJECT_SURFACE) && (cfra_prv != gpf->framenum)) {
               cfra_prv = gpf->framenum;
-              CFRA = gpf->framenum;
+              scene->r.cfra = gpf->framenum;
               BKE_scene_graph_update_for_newframe(depsgraph);
             }
 
@@ -3846,7 +3846,7 @@ static int gpencil_strokes_reproject_exec(bContext *C, wmOperator *op)
   CTX_DATA_END;
 
   /* return frame state and DB to original state */
-  CFRA = oldframe;
+  scene->r.cfra = oldframe;
   BKE_scene_graph_update_for_newframe(depsgraph);
 
   if (sctx != NULL) {

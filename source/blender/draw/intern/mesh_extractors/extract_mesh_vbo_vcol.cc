@@ -123,7 +123,7 @@ struct gpuMeshVcol {
 };
 
 static void extract_vcol_init(const MeshRenderData *mr,
-                              struct MeshBatchCache *cache,
+                              MeshBatchCache *cache,
                               void *buf,
                               void *UNUSED(tls_data))
 {
@@ -234,7 +234,7 @@ static void extract_vcol_init(const MeshRenderData *mr,
 
 static void extract_vcol_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                      const MeshRenderData *mr,
-                                     struct MeshBatchCache *cache,
+                                     MeshBatchCache *cache,
                                      void *buffer,
                                      void *UNUSED(data))
 {

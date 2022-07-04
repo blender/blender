@@ -427,7 +427,7 @@ void main()
   output_nors[coarse_quad_index] = fnor;
 #  endif
 
-  if (is_face_hidden(coarse_quad_index)) {
+  if (use_hide && is_face_hidden(coarse_quad_index)) {
     output_indices[coarse_quad_index] = 0xffffffff;
   }
   else {

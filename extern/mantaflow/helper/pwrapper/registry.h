@@ -48,8 +48,11 @@ template<class T> struct Namify {
 namespace Pb {
 
 // internal registry access
-void setup(const std::string &filename, const std::vector<std::string> &args);
-void finalize();
+void setup(bool python_lifecycle,
+           const std::string &filename,
+           const std::vector<std::string> &args,
+           PyObject *name_space);
+void finalize(bool python_lifecycle);
 bool canConvert(PyObject *obj, const std::string &to);
 Manta::PbClass *objFromPy(PyObject *obj);
 Manta::PbClass *createPy(const std::string &classname,

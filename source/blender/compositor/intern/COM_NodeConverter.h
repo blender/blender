@@ -90,7 +90,7 @@ class NodeConverter {
 
   /**
    * When a node has no valid data
-   * \note missing image / group pointer, or missing renderlayer from EXR
+   * \note missing image / group pointer, or missing render-layer from EXR.
    */
   NodeOperation *set_invalid_output(NodeOutput *output);
 

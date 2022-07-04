@@ -41,6 +41,7 @@
 #  define floorf floor
 #  define ceilf ceil
 #  define sqrtf sqrt
+#  define expf exp
 
 #  define float2 vec2
 #  define float3 vec3

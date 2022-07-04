@@ -20,7 +20,7 @@ GHOST_ModifierKeys::~GHOST_ModifierKeys()
 {
 }
 
-GHOST_TKey GHOST_ModifierKeys::getModifierKeyCode(GHOST_TModifierKeyMask mask)
+GHOST_TKey GHOST_ModifierKeys::getModifierKeyCode(GHOST_TModifierKey mask)
 {
   GHOST_TKey key;
   switch (mask) {
@@ -53,7 +53,7 @@ GHOST_TKey GHOST_ModifierKeys::getModifierKeyCode(GHOST_TModifierKeyMask mask)
   return key;
 }
 
-bool GHOST_ModifierKeys::get(GHOST_TModifierKeyMask mask) const
+bool GHOST_ModifierKeys::get(GHOST_TModifierKey mask) const
 {
   switch (mask) {
     case GHOST_kModifierKeyLeftShift:
@@ -75,7 +75,7 @@ bool GHOST_ModifierKeys::get(GHOST_TModifierKeyMask mask) const
   }
 }
 
-void GHOST_ModifierKeys::set(GHOST_TModifierKeyMask mask, bool down)
+void GHOST_ModifierKeys::set(GHOST_TModifierKey mask, bool down)
 {
   switch (mask) {
     case GHOST_kModifierKeyLeftShift:

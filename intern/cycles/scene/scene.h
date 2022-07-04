@@ -98,7 +98,7 @@ class DeviceScene {
   device_vector<DecomposedTransform> camera_motion;
 
   /* attributes */
-  device_vector<uint4> attributes_map;
+  device_vector<AttributeMap> attributes_map;
   device_vector<float> attributes_float;
   device_vector<float2> attributes_float2;
   device_vector<packed_float3> attributes_float3;

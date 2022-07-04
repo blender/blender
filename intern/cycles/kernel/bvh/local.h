@@ -41,7 +41,7 @@ ccl_device_inline
 
   /* traversal variables in registers */
   int stack_ptr = 0;
-  int node_addr = kernel_tex_fetch(__object_node, local_object);
+  int node_addr = kernel_data_fetch(object_node, local_object);
 
   /* ray parameters in registers */
   float3 P = ray->P;
@@ -55,7 +55,7 @@ ccl_device_inline
   }
   kernel_assert((local_isect == NULL) == (max_hits == 0));
 
-  const int object_flag = kernel_tex_fetch(__object_flag, local_object);
+  const int object_flag = kernel_data_fetch(object_flag, local_object);
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #if BVH_FEATURE(BVH_MOTION)
     Transform ob_itfm;
@@ -73,7 +73,7 @@ ccl_device_inline
       while (node_addr >= 0 && node_addr != ENTRYPOINT_SENTINEL) {
         int node_addr_child1, traverse_mask;
         float dist[2];
-        float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
+        float4 cnodes = kernel_data_fetch(bvh_nodes, node_addr + 0);
 
         traverse_mask = NODE_INTERSECT(kg,
                                        P,
@@ -117,7 +117,7 @@ ccl_device_inline
 
       /* if node is leaf, fetch triangle list */
       if (node_addr < 0) {
-        float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-node_addr - 1));
+        float4 leaf = kernel_data_fetch(bvh_leaf_nodes, (-node_addr - 1));
         int prim_addr = __float_as_int(leaf.x);
 
         const int prim_addr2 = __float_as_int(leaf.y);
@@ -132,18 +132,18 @@ ccl_device_inline
           case PRIMITIVE_TRIANGLE: {
             /* intersect ray against primitive */
             for (; prim_addr < prim_addr2; prim_addr++) {
-              kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
+              kernel_assert(kernel_data_fetch(prim_type, prim_addr) == type);
 
               /* Only intersect with matching object, for instanced objects we
                * already know we are only intersecting the right object. */
               if (object == OBJECT_NONE) {
-                if (kernel_tex_fetch(__prim_object, prim_addr) != local_object) {
+                if (kernel_data_fetch(prim_object, prim_addr) != local_object) {
                   continue;
                 }
               }
 
               /* Skip self intersection. */
-              const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+              const int prim = kernel_data_fetch(prim_index, prim_addr);
               if (intersection_skip_self_local(ray->self, prim)) {
                 continue;
               }
@@ -167,18 +167,18 @@ ccl_device_inline
           case PRIMITIVE_MOTION_TRIANGLE: {
             /* intersect ray against primitive */
             for (; prim_addr < prim_addr2; prim_addr++) {
-              kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
+              kernel_assert(kernel_data_fetch(prim_type, prim_addr) == type);
 
               /* Only intersect with matching object, for instanced objects we
                * already know we are only intersecting the right object. */
               if (object == OBJECT_NONE) {
-                if (kernel_tex_fetch(__prim_object, prim_addr) != local_object) {
+                if (kernel_data_fetch(prim_object, prim_addr) != local_object) {
                   continue;
                 }
               }
 
               /* Skip self intersection. */
-              const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+              const int prim = kernel_data_fetch(prim_index, prim_addr);
               if (intersection_skip_self_local(ray->self, prim)) {
                 continue;
               }

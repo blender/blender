@@ -42,7 +42,7 @@ void BKE_mesh_remap_free(MeshPairRemap *map);
 void BKE_mesh_remap_item_define_invalid(MeshPairRemap *map, int index);
 
 /* TODO:
- * Add other 'from/to' mapping sources, like e.g. using an UVMap, etc.
+ * Add other 'from/to' mapping sources, like e.g. using a UVMap, etc.
  * https://blenderartists.org/t/619105
  *
  * We could also use similar topology mappings inside a same mesh

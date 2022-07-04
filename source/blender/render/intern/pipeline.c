@@ -1222,7 +1222,7 @@ static void do_render_compositor(Render *re)
     }
   }
 
-  /* weak... the display callback wants an active renderlayer pointer... */
+  /* Weak: the display callback wants an active render-layer pointer. */
   if (re->result != NULL) {
     re->result->renlay = render_get_active_layer(re, re->result);
     re->display_update(re->duh, re->result, NULL);

@@ -14,8 +14,6 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
-
 #include "GPU_state.h"
 
 #include "gpu_context_private.hh"

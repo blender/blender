@@ -97,7 +97,7 @@ ccl_device float pmj_sample_1D(KernelGlobals kg, uint sample, uint rng_hash, uin
    *  the x part is used for even dims and the y for odd. */
   int index = 2 * ((dim >> 1) * NUM_PMJ_SAMPLES + (s % NUM_PMJ_SAMPLES)) + (dim & 1);
 
-  float fx = kernel_tex_fetch(__sample_pattern_lut, index);
+  float fx = kernel_data_fetch(sample_pattern_lut, index);
 
 #ifndef _NO_CRANLEY_PATTERSON_ROTATION_
   /* Use Cranley-Patterson rotation to displace the sample pattern. */
@@ -154,8 +154,8 @@ ccl_device void pmj_sample_2D(KernelGlobals kg,
   uint dim = d % NUM_PMJ_PATTERNS;
   int index = 2 * (dim * NUM_PMJ_SAMPLES + (s % NUM_PMJ_SAMPLES));
 
-  float fx = kernel_tex_fetch(__sample_pattern_lut, index);
-  float fy = kernel_tex_fetch(__sample_pattern_lut, index + 1);
+  float fx = kernel_data_fetch(sample_pattern_lut, index);
+  float fy = kernel_data_fetch(sample_pattern_lut, index + 1);
 
 #ifndef _NO_CRANLEY_PATTERSON_ROTATION_
   /* Use Cranley-Patterson rotation to displace the sample pattern. */

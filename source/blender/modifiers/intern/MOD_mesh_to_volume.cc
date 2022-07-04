@@ -22,6 +22,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "GEO_mesh_to_volume.hh"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -38,59 +40,6 @@
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
-
-#ifdef WITH_OPENVDB
-#  include <openvdb/openvdb.h>
-#  include <openvdb/tools/MeshToVolume.h>
-#endif
-
-#ifdef WITH_OPENVDB
-namespace blender {
-/* This class follows the MeshDataAdapter interface from openvdb. */
-class OpenVDBMeshAdapter {
- private:
-  Span<MVert> vertices_;
-  Span<MLoop> loops_;
-  Span<MLoopTri> looptris_;
-  float4x4 transform_;
-
- public:
-  OpenVDBMeshAdapter(Mesh &mesh, float4x4 transform)
-      : vertices_(mesh.mvert, mesh.totvert),
-        loops_(mesh.mloop, mesh.totloop),
-        transform_(transform)
-  {
-    const MLoopTri *looptries = BKE_mesh_runtime_looptri_ensure(&mesh);
-    const int looptries_len = BKE_mesh_runtime_looptri_len(&mesh);
-    looptris_ = Span(looptries, looptries_len);
-  }
-
-  size_t polygonCount() const
-  {
-    return static_cast<size_t>(looptris_.size());
-  }
-
-  size_t pointCount() const
-  {
-    return static_cast<size_t>(vertices_.size());
-  }
-
-  size_t vertexCount(size_t UNUSED(polygon_index)) const
-  {
-    /* All polygons are triangles. */
-    return 3;
-  }
-
-  void getIndexSpacePoint(size_t polygon_index, size_t vertex_index, openvdb::Vec3d &pos) const
-  {
-    const MLoopTri &looptri = looptris_[polygon_index];
-    const MVert &vertex = vertices_[loops_[looptri.tri[vertex_index]].v];
-    const float3 transformed_co = transform_ * float3(vertex.co);
-    pos = &transformed_co.x;
-  }
-};
-}  // namespace blender
-#endif
 
 static void initData(ModifierData *md)
 {
@@ -163,35 +112,6 @@ static void panelRegister(ARegionType *region_type)
   modifier_panel_register(region_type, eModifierType_MeshToVolume, panel_draw);
 }
 
-#ifdef WITH_OPENVDB
-static float compute_voxel_size(const ModifierEvalContext *ctx,
-                                const MeshToVolumeModifierData *mvmd,
-                                const blender::float4x4 &transform)
-{
-  using namespace blender;
-
-  float volume_simplify = BKE_volume_simplify_factor(ctx->depsgraph);
-  if (volume_simplify == 0.0f) {
-    return 0.0f;
-  }
-
-  if (mvmd->resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_SIZE) {
-    return mvmd->voxel_size / volume_simplify;
-  }
-  if (mvmd->voxel_amount <= 0) {
-    return 0;
-  }
-  /* Compute the voxel size based on the desired number of voxels and the approximated bounding box
-   * of the volume. */
-  const BoundBox *bb = BKE_object_boundbox_get(mvmd->object);
-  const float diagonal = math::distance(transform * float3(bb->vec[6]),
-                                        transform * float3(bb->vec[0]));
-  const float approximate_volume_side_length = diagonal + mvmd->exterior_band_width * 2.0f;
-  const float voxel_size = approximate_volume_side_length / mvmd->voxel_amount / volume_simplify;
-  return voxel_size;
-}
-#endif
-
 static Volume *mesh_to_volume(ModifierData *md,
                               const ModifierEvalContext *ctx,
                               Volume *input_volume)
@@ -213,51 +133,46 @@ static Volume *mesh_to_volume(ModifierData *md,
 
   const float4x4 mesh_to_own_object_space_transform = float4x4(ctx->object->imat) *
                                                       float4x4(object_to_convert->obmat);
-  const float voxel_size = compute_voxel_size(ctx, mvmd, mesh_to_own_object_space_transform);
-  if (voxel_size == 0.0f) {
-    return input_volume;
+  geometry::MeshToVolumeResolution resolution;
+  resolution.mode = (MeshToVolumeModifierResolutionMode)mvmd->resolution_mode;
+  if (resolution.mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT) {
+    resolution.settings.voxel_amount = mvmd->voxel_amount;
+    if (resolution.settings.voxel_amount <= 0.0f) {
+      return input_volume;
+    }
+  }
+  else if (resolution.mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_SIZE) {
+    resolution.settings.voxel_size = mvmd->voxel_size;
+    if (resolution.settings.voxel_size <= 0.0f) {
+      return input_volume;
+    }
   }
 
-  float4x4 mesh_to_index_space_transform;
-  scale_m4_fl(mesh_to_index_space_transform.values, 1.0f / voxel_size);
-  mul_m4_m4_post(mesh_to_index_space_transform.values, mesh_to_own_object_space_transform.values);
-  /* Better align generated grid with the source mesh. */
-  add_v3_fl(mesh_to_index_space_transform.values[3], -0.5f);
+  auto bounds_fn = [&](float3 &r_min, float3 &r_max) {
+    const BoundBox *bb = BKE_object_boundbox_get(mvmd->object);
+    r_min = bb->vec[0];
+    r_max = bb->vec[6];
+  };
 
-  OpenVDBMeshAdapter mesh_adapter{*mesh, mesh_to_index_space_transform};
+  const float voxel_size = geometry::volume_compute_voxel_size(ctx->depsgraph,
+                                                               bounds_fn,
+                                                               resolution,
+                                                               mvmd->exterior_band_width,
+                                                               mesh_to_own_object_space_transform);
 
-  /* Convert the bandwidths from object in index space. */
-  const float exterior_band_width = MAX2(0.001f, mvmd->exterior_band_width / voxel_size);
-  const float interior_band_width = MAX2(0.001f, mvmd->interior_band_width / voxel_size);
-
-  openvdb::FloatGrid::Ptr new_grid;
-  if (mvmd->fill_volume) {
-    /* Setting the interior bandwidth to FLT_MAX, will make it fill the entire volume. */
-    new_grid = openvdb::tools::meshToVolume<openvdb::FloatGrid>(
-        mesh_adapter, {}, exterior_band_width, FLT_MAX);
-  }
-  else {
-    new_grid = openvdb::tools::meshToVolume<openvdb::FloatGrid>(
-        mesh_adapter, {}, exterior_band_width, interior_band_width);
-  }
-
-  /* Create a new volume object and add the density grid. */
+  /* Create a new volume. */
   Volume *volume = BKE_volume_new_for_eval(input_volume);
-  VolumeGrid *c_density_grid = BKE_volume_grid_add(volume, "density", VOLUME_GRID_FLOAT);
-  openvdb::FloatGrid::Ptr density_grid = openvdb::gridPtrCast<openvdb::FloatGrid>(
-      BKE_volume_grid_openvdb_for_write(volume, c_density_grid, false));
 
-  /* Merge the generated grid into the density grid. Should be cheap because density_grid has just
-   * been created as well. */
-  density_grid->merge(*new_grid);
-
-  /* Change transform so that the index space is correctly transformed to object space. */
-  density_grid->transform().postScale(voxel_size);
-
-  /* Give each grid cell a fixed density for now. */
-  openvdb::tools::foreach (
-      density_grid->beginValueOn(),
-      [&](const openvdb::FloatGrid::ValueOnIter &iter) { iter.setValue(mvmd->density); });
+  /* Convert mesh to grid and add to volume. */
+  geometry::volume_grid_add_from_mesh(volume,
+                                      "density",
+                                      mesh,
+                                      mesh_to_own_object_space_transform,
+                                      voxel_size,
+                                      mvmd->fill_volume,
+                                      mvmd->exterior_band_width,
+                                      mvmd->interior_band_width,
+                                      mvmd->density);
 
   return volume;
 

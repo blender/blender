@@ -46,6 +46,7 @@
 #include "BKE_pbvh.h"
 #include "BKE_scene.h"
 #include "BKE_subdiv_ccg.h"
+#include "BKE_subdiv_modifier.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -92,15 +93,18 @@ static bool stats_mesheval(const Mesh *me_eval, bool is_selected, SceneStats *st
   }
 
   int totvert, totedge, totface, totloop;
-  if (me_eval->runtime.subdiv_ccg != nullptr) {
-    const SubdivCCG *subdiv_ccg = me_eval->runtime.subdiv_ccg;
+
+  const SubdivCCG *subdiv_ccg = me_eval->runtime.subdiv_ccg;
+  const SubsurfRuntimeData *subsurf_runtime_data = me_eval->runtime.subsurf_runtime_data;
+
+  if (subdiv_ccg != nullptr) {
     BKE_subdiv_ccg_topology_counters(subdiv_ccg, &totvert, &totedge, &totface, &totloop);
   }
-  else if (me_eval->runtime.subsurf_resolution != 0) {
-    totvert = me_eval->runtime.subsurf_totvert;
-    totedge = me_eval->runtime.subsurf_totedge;
-    totface = me_eval->runtime.subsurf_totpoly;
-    totloop = me_eval->runtime.subsurf_totloop;
+  else if (subsurf_runtime_data && subsurf_runtime_data->resolution != 0) {
+    totvert = subsurf_runtime_data->stats_totvert;
+    totedge = subsurf_runtime_data->stats_totedge;
+    totface = subsurf_runtime_data->stats_totpoly;
+    totloop = subsurf_runtime_data->stats_totloop;
   }
   else {
     totvert = me_eval->totvert;

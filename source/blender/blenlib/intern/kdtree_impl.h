@@ -927,6 +927,14 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
 /** \name BLI_kdtree_3d_deduplicate
  * \{ */
 
+static int kdtree_cmp_bool(const bool a, const bool b)
+{
+  if (a == b) {
+    return 0;
+  }
+  return b ? -1 : 1;
+}
+
 static int kdtree_node_cmp_deduplicate(const void *n0_p, const void *n1_p)
 {
   const KDTreeNode *n0 = n0_p;
@@ -939,17 +947,16 @@ static int kdtree_node_cmp_deduplicate(const void *n0_p, const void *n1_p)
       return 1;
     }
   }
-  /* Sort by pointer so the first added will be used.
-   * assignment below ignores const correctness,
-   * however the values aren't used for sorting and are to be discarded. */
-  if (n0 < n1) {
-    ((KDTreeNode *)n1)->d = KD_DIMS; /* tag invalid */
-    return -1;
+
+  if (n0->d != KD_DIMS && n1->d != KD_DIMS) {
+    /* Two nodes share identical `co`
+     * Both are still valid.
+     * Cast away `const` and tag one of them as invalid. */
+    ((KDTreeNode *)n1)->d = KD_DIMS;
   }
-  else {
-    ((KDTreeNode *)n0)->d = KD_DIMS; /* tag invalid */
-    return 1;
-  }
+
+  /* Keep sorting until each unique value has one and only one valid node. */
+  return kdtree_cmp_bool(n0->d == KD_DIMS, n1->d == KD_DIMS);
 }
 
 /**

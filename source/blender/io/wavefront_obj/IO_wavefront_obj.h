@@ -45,6 +45,7 @@ struct OBJExportParams {
   eEvaluationMode export_eval_mode;
   bool export_uv;
   bool export_normals;
+  bool export_colors;
   bool export_materials;
   bool export_triangulated_mesh;
   bool export_curves_as_nurbs;
@@ -71,6 +72,7 @@ struct OBJImportParams {
   float clamp_size;
   eIOAxis forward_axis;
   eIOAxis up_axis;
+  bool import_vertex_groups;
   bool validate_meshes;
 };
 

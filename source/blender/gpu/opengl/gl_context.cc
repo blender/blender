@@ -6,7 +6,6 @@
  */
 
 #include "BLI_assert.h"
-#include "BLI_system.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
@@ -148,6 +147,16 @@ void GLContext::deactivate()
 {
   immDeactivate();
   is_active_ = false;
+}
+
+void GLContext::begin_frame()
+{
+  /* No-op. */
+}
+
+void GLContext::end_frame()
+{
+  /* No-op. */
 }
 
 /** \} */

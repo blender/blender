@@ -27,21 +27,21 @@ struct GHOST_ModifierKeys {
    * \param mask: The mask of the modifier key.
    * \return The modifier key's key code.
    */
-  static GHOST_TKey getModifierKeyCode(GHOST_TModifierKeyMask mask);
+  static GHOST_TKey getModifierKeyCode(GHOST_TModifierKey mask);
 
   /**
    * Returns the state of a single modifier key.
    * \param mask: Key state to return.
    * \return The state of the key (pressed == true).
    */
-  bool get(GHOST_TModifierKeyMask mask) const;
+  bool get(GHOST_TModifierKey mask) const;
 
   /**
    * Updates the state of a single modifier key.
    * \param mask: Key state to update.
    * \param down: The new state of the key.
    */
-  void set(GHOST_TModifierKeyMask mask, bool down);
+  void set(GHOST_TModifierKey mask, bool down);
 
   /**
    * Sets the state of all modifier keys to up.

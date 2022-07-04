@@ -86,8 +86,8 @@ static void set_position_in_component(CurveComponent &component,
   evaluator.add(offset_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  const VArray<float3> &new_positions = evaluator.get_evaluated<float3>(0);
-  const VArray<float3> &new_offsets = evaluator.get_evaluated<float3>(1);
+  const VArray<float3> new_positions = evaluator.get_evaluated<float3>(0);
+  const VArray<float3> new_offsets = evaluator.get_evaluated<float3>(1);
 
   Curves &curves_id = *component.get_for_write();
   bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);

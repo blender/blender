@@ -800,7 +800,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
                                                .style = UI_TIP_STYLE_HEADER,
                                                .color_id = UI_TIP_LC_NORMAL,
                                            });
-    field->text = BLI_sprintfN("%s", but_label.strinfo);
+    field->text = BLI_strdup(but_label.strinfo);
   }
 
   /* Tip */
@@ -1005,7 +1005,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       /* this could get its own 'BUT_GET_...' type */
 
       /* never fails */
-      /* move ownership (no need for re-alloc) */
+      /* Move ownership (no need for re-allocation). */
       if (rnaprop) {
         field->text = RNA_path_full_property_py_ex(
             CTX_data_main(C), &but->rnapoin, rnaprop, but->rnaindex, true);

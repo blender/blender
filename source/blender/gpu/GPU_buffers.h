@@ -80,7 +80,9 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(PBVHGPUFormat *vbo_id,
 /**
  * Threaded: do not call any functions that use OpenGL calls!
  */
-GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, unsigned int **grid_hidden);
+GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid,
+                                              unsigned int **grid_hidden,
+                                              bool smooth);
 
 /**
  * Threaded: do not call any functions that use OpenGL calls!

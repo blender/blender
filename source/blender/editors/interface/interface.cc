@@ -778,6 +778,15 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     }
   }
 
+  if ((but->type == UI_BTYPE_GRID_TILE) && (oldbut->type == UI_BTYPE_GRID_TILE)) {
+    uiButGridTile *but_gridtile = (uiButGridTile *)but;
+    uiButGridTile *oldbut_gridtile = (uiButGridTile *)oldbut;
+    if (!but_gridtile->view_item || !oldbut_gridtile->view_item ||
+        !UI_grid_view_item_matches(but_gridtile->view_item, oldbut_gridtile->view_item)) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -904,6 +913,12 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
       SWAP(uiTreeViewItemHandle *, treerow_newbut->tree_item, treerow_oldbut->tree_item);
       break;
     }
+    case UI_BTYPE_GRID_TILE: {
+      uiButGridTile *gridtile_oldbut = (uiButGridTile *)oldbut;
+      uiButGridTile *gridtile_newbut = (uiButGridTile *)but;
+      SWAP(uiGridViewItemHandle *, gridtile_newbut->view_item, gridtile_oldbut->view_item);
+      break;
+    }
     default:
       break;
   }
@@ -996,9 +1011,9 @@ static bool ui_but_update_from_old_block(const bContext *C,
   else {
     int flag_copy = UI_BUT_DRAG_MULTI;
 
-    /* Stupid special case: The active button may be inside (as in, overlapped on top) a tree-row
+    /* Stupid special case: The active button may be inside (as in, overlapped on top) a view-item
      * button which we also want to keep highlighted then. */
-    if (but->type == UI_BTYPE_TREEROW) {
+    if (ui_but_is_view_item(but)) {
       flag_copy |= UI_ACTIVE;
     }
 
@@ -2236,6 +2251,15 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
         is_push = -1;
         if (tree_row_but->tree_item) {
           is_push = UI_tree_view_item_is_active(tree_row_but->tree_item);
+        }
+        break;
+      }
+      case UI_BTYPE_GRID_TILE: {
+        uiButGridTile *grid_tile_but = (uiButGridTile *)but;
+
+        is_push = -1;
+        if (grid_tile_but->view_item) {
+          is_push = UI_grid_view_item_is_active(grid_tile_but->view_item);
         }
         break;
       }
@@ -3995,6 +4019,10 @@ static void ui_but_alloc_info(const eButType type,
       alloc_size = sizeof(uiButHotkeyEvent);
       alloc_str = "uiButHotkeyEvent";
       break;
+    case UI_BTYPE_GRID_TILE:
+      alloc_size = sizeof(uiButGridTile);
+      alloc_str = "uiButGridTile";
+      break;
     default:
       alloc_size = sizeof(uiBut);
       alloc_str = "uiBut";
@@ -4968,6 +4996,33 @@ int UI_autocomplete_end(AutoComplete *autocpl, char *autoname)
   MEM_freeN(autocpl);
   return match;
 }
+
+#define PREVIEW_TILE_PAD (0.15f * UI_UNIT_X)
+
+int UI_preview_tile_size_x(void)
+{
+  const float pad = PREVIEW_TILE_PAD;
+  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_X + 2.0f * pad);
+}
+
+int UI_preview_tile_size_y(void)
+{
+  const uiStyle *style = UI_style_get();
+  const float font_height = style->widget.points * UI_DPI_FAC;
+  const float pad = PREVIEW_TILE_PAD;
+
+  return round_fl_to_int(UI_preview_tile_size_y_no_label() + font_height +
+                         /* Add some extra padding to make things less tight vertically. */
+                         pad);
+}
+
+int UI_preview_tile_size_y_no_label(void)
+{
+  const float pad = PREVIEW_TILE_PAD;
+  return round_fl_to_int((96.0f / 20.0f) * UI_UNIT_Y + 2.0f * pad);
+}
+
+#undef PREVIEW_TILE_PAD
 
 static void ui_but_update_and_icon_set(uiBut *but, int icon)
 {

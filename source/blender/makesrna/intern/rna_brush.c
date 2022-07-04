@@ -254,15 +254,22 @@ const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
+/* clang-format off */
 const EnumPropertyItem rna_enum_brush_curves_sculpt_tool_items[] = {
-    {CURVES_SCULPT_TOOL_COMB, "COMB", ICON_NONE, "Comb Curves", ""},
-    {CURVES_SCULPT_TOOL_DELETE, "DELETE", ICON_NONE, "Delete Curves", ""},
-    {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_NONE, "Curves Snake Hook", ""},
-    {CURVES_SCULPT_TOOL_ADD, "ADD", ICON_NONE, "Add Curves", ""},
-    {CURVES_SCULPT_TOOL_GROW_SHRINK, "GROW_SHRINK", ICON_NONE, "Grow / Shrink Curves", ""},
-    {CURVES_SCULPT_TOOL_SELECTION_PAINT, "SELECTION_PAINT", ICON_NONE, "Paint Selection", ""},
+    {CURVES_SCULPT_TOOL_COMB, "COMB", ICON_BRUSH_CURVES_COMB, "Comb Curves", ""},
+    {CURVES_SCULPT_TOOL_DELETE, "DELETE", ICON_BRUSH_CURVES_DELETE, "Delete Curves", ""},
+    {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_BRUSH_CURVES_SNAKE_HOOK, "Curves Snake Hook", ""},
+    {CURVES_SCULPT_TOOL_ADD, "ADD", ICON_BRUSH_CURVES_ADD, "Add Curves", ""},
+    {CURVES_SCULPT_TOOL_GROW_SHRINK, "GROW_SHRINK", ICON_BRUSH_CURVES_GROW_SHRINK, "Grow / Shrink Curves", ""},
+    {CURVES_SCULPT_TOOL_SELECTION_PAINT, "SELECTION_PAINT", ICON_BRUSH_PAINT_SELECT, "Paint Selection", ""},
+    {CURVES_SCULPT_TOOL_PINCH, "PINCH", ICON_BRUSH_CURVES_PINCH, "Pinch Curves", ""},
+    {CURVES_SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_CURVES_SMOOTH, "Smooth Curves", ""},
+    {CURVES_SCULPT_TOOL_PUFF, "PUFF", ICON_BRUSH_CURVES_PUFF, "Puff Curves", ""},
+    {CURVES_SCULPT_TOOL_DENSITY, "DENSITY", ICON_BRUSH_CURVES_DENSITY, "Density Curves", ""},
+    {CURVES_SCULPT_TOOL_SLIDE, "SLIDE", ICON_BRUSH_CURVES_SLIDE, "Slide Curves", ""},
     {0, NULL, 0, NULL, NULL},
 };
+/* clang-format on */
 
 #ifndef RNA_RUNTIME
 static EnumPropertyItem rna_enum_gpencil_brush_eraser_modes_items[] = {
@@ -961,6 +968,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
       switch (me->curves_sculpt_tool) {
         case CURVES_SCULPT_TOOL_GROW_SHRINK:
         case CURVES_SCULPT_TOOL_SELECTION_PAINT:
+        case CURVES_SCULPT_TOOL_PINCH:
           return prop_direction_items;
         default:
           return DummyRNA_DEFAULT_items;
@@ -2154,6 +2162,26 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static const EnumPropertyItem density_mode_items[] = {
+      {BRUSH_CURVES_SCULPT_DENSITY_MODE_AUTO,
+       "AUTO",
+       ICON_AUTO,
+       "Auto",
+       "Either add or remove curves depending on the minimum distance of the curves under the "
+       "cursor"},
+      {BRUSH_CURVES_SCULPT_DENSITY_MODE_ADD,
+       "ADD",
+       ICON_ADD,
+       "Add",
+       "Add new curves between existing curves, taking the minimum distance into account"},
+      {BRUSH_CURVES_SCULPT_DENSITY_MODE_REMOVE,
+       "REMOVE",
+       ICON_REMOVE,
+       "Remove",
+       "Remove curves whose root points are too close"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   srna = RNA_def_struct(brna, "BrushCurvesSculptSettings", NULL);
   RNA_def_struct_sdna(srna, "BrushCurvesSculptSettings");
   RNA_def_struct_ui_text(srna, "Curves Sculpt Brush Settings", "");
@@ -2202,6 +2230,22 @@ static void rna_def_curves_sculpt_options(BlenderRNA *brna)
       prop,
       "Curve Length",
       "Length of newly added curves when it is not interpolated from other curves");
+
+  prop = RNA_def_property(srna, "minimum_distance", PROP_FLOAT, PROP_DISTANCE);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.0, 1000.0f, 0.001, 2);
+  RNA_def_property_ui_text(
+      prop, "Minimum Distance", "Goal distance between curve roots for the Density brush");
+
+  prop = RNA_def_property(srna, "density_add_attempts", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 0, INT32_MAX);
+  RNA_def_property_ui_text(
+      prop, "Density Add Attempts", "How many times the Density brush tries to add a new curve");
+
+  prop = RNA_def_property(srna, "density_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, density_mode_items);
+  RNA_def_property_ui_text(
+      prop, "Density Mode", "Determines whether the brush adds or removes curves");
 }
 
 static void rna_def_brush(BlenderRNA *brna)

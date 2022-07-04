@@ -40,11 +40,11 @@ typedef enum {
 } eSelectOp;
 
 /* Select Similar */
-enum {
+typedef enum {
   SIM_CMP_EQ = 0,
   SIM_CMP_GT,
   SIM_CMP_LT,
-};
+} eSimilarCmp;
 
 #define SEL_OP_USE_OUTSIDE(sel_op) (ELEM(sel_op, SEL_OP_AND))
 #define SEL_OP_USE_PRE_DESELECT(sel_op) (ELEM(sel_op, SEL_OP_SET))
@@ -63,11 +63,11 @@ int ED_select_op_action(eSelectOp sel_op, bool is_select, bool is_inside);
  */
 int ED_select_op_action_deselected(eSelectOp sel_op, bool is_select, bool is_inside);
 
-int ED_select_similar_compare_float(float delta, float thresh, int compare);
+bool ED_select_similar_compare_float(float delta, float thresh, eSimilarCmp compare);
 bool ED_select_similar_compare_float_tree(const struct KDTree_1d *tree,
                                           float length,
                                           float thresh,
-                                          int compare);
+                                          eSimilarCmp compare);
 
 /**
  * Utility to use for selection operations that run multiple times (circle select).

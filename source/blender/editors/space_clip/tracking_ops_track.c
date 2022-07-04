@@ -131,10 +131,10 @@ static bool track_markers_initjob(bContext *C, TrackMarkersJob *tmj, bool backwa
 
   if (sequence) {
     if (backwards) {
-      tmj->efra = SFRA;
+      tmj->efra = scene->r.sfra;
     }
     else {
-      tmj->efra = EFRA;
+      tmj->efra = scene->r.efra;
     }
     tmj->efra = BKE_movieclip_remap_scene_to_clip_frame(clip, tmj->efra);
   }

@@ -718,7 +718,7 @@ GPUShader *EEVEE_shaders_cryptomatte_sh_get(bool is_hair)
   if (e_data.cryptomatte_sh[index] == NULL) {
     DynStr *ds = BLI_dynstr_new();
     BLI_dynstr_append(ds, SHADER_DEFINES);
-    BLI_dynstr_append(ds, "#define attrib_load(a) \n");
+    BLI_dynstr_append(ds, "#define attrib_load() \n");
     if (is_hair) {
       BLI_dynstr_append(ds, "#define HAIR_SHADER\n");
     }

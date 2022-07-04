@@ -960,8 +960,8 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
     const double time = PIL_check_seconds_timer();
     const float time_step = (float)(time - vzd->timer_lastdraw);
 
-    dx *= time_step * 0.5f;
-    dy *= time_step * 0.5f;
+    dx *= time_step * 5.0f;
+    dy *= time_step * 5.0f;
 
     vzd->timer_lastdraw = time;
   }

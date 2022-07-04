@@ -19,7 +19,6 @@
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
 #include "gpu_shader_dependency_private.h"
-#include "gpu_shader_private.hh"
 
 #undef GPU_SHADER_INTERFACE_INFO
 #undef GPU_SHADER_CREATE_INFO
@@ -155,13 +154,13 @@ std::string ShaderCreateInfo::check_error() const
   }
   else {
     if (!this->vertex_source_.is_empty()) {
-      error += "Compute shader has vertex_source_ shader attached in" + this->name_ + ".\n";
+      error += "Compute shader has vertex_source_ shader attached in " + this->name_ + ".\n";
     }
     if (!this->geometry_source_.is_empty()) {
-      error += "Compute shader has geometry_source_ shader attached in" + this->name_ + ".\n";
+      error += "Compute shader has geometry_source_ shader attached in " + this->name_ + ".\n";
     }
     if (!this->fragment_source_.is_empty()) {
-      error += "Compute shader has fragment_source_ shader attached in" + this->name_ + ".\n";
+      error += "Compute shader has fragment_source_ shader attached in " + this->name_ + ".\n";
     }
   }
 

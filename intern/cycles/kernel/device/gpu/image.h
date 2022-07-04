@@ -181,7 +181,7 @@ ccl_device_noinline typename nanovdb::NanoGrid<T>::ValueType kernel_tex_image_in
 
 ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, float y)
 {
-  ccl_global const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
+  ccl_global const TextureInfo &info = kernel_data_fetch(texture_info, id);
 
   /* float4, byte4, ushort4 and half4 */
   const int texture_type = info.data_type;
@@ -216,7 +216,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
                                              float3 P,
                                              InterpolationType interp)
 {
-  ccl_global const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
+  ccl_global const TextureInfo &info = kernel_data_fetch(texture_info, id);
 
   if (info.use_transform_3d) {
     P = transform_point(&info.transform_3d, P);

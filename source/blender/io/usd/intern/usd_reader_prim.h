@@ -11,6 +11,7 @@
 #include <string>
 
 struct Main;
+struct Material;
 struct Object;
 
 namespace blender::io::usd {
@@ -42,6 +43,10 @@ struct ImportSettings {
    * of what the importer is doing. This is necessary even
    * when all the other import settings are to remain const. */
   mutable std::map<std::string, std::string> usd_path_to_mat_name;
+  /* Map a material name to Blender material.
+   * This map is updated by readers during stage traversal,
+   * and is mutable similar to the map above. */
+  mutable std::map<std::string, Material *> mat_name_to_mat;
 
   ImportSettings()
       : do_convert_mat(false),

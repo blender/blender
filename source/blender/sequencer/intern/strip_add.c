@@ -181,7 +181,7 @@ Sequence *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, struct SeqLoadDa
 
   seq_add_set_name(scene, seq, load_data);
   seq_add_generic_update(scene, seq);
-  seq_time_effect_range_set(seq);
+  seq_time_effect_range_set(scene, seq);
 
   return seq;
 }
@@ -191,9 +191,10 @@ void SEQ_add_image_set_directory(Sequence *seq, char *path)
   BLI_strncpy(seq->strip->dir, path, sizeof(seq->strip->dir));
 }
 
-void SEQ_add_image_load_file(Sequence *seq, size_t strip_frame, char *filename)
+void SEQ_add_image_load_file(Scene *scene, Sequence *seq, size_t strip_frame, char *filename)
 {
-  StripElem *se = SEQ_render_give_stripelem(seq, seq->start + strip_frame);
+  StripElem *se = SEQ_render_give_stripelem(
+      scene, seq, SEQ_time_start_frame_get(seq) + strip_frame);
   BLI_strncpy(se->name, filename, sizeof(se->name));
 }
 
@@ -468,9 +469,19 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     orig_height = IMB_anim_get_image_height(anim_arr[0]);
     SEQ_set_scale_to_fit(
         seq, orig_width, orig_height, scene->r.xsch, scene->r.ysch, load_data->fit_method);
+
+    short frs_sec;
+    float frs_sec_base;
+    if (IMB_anim_get_fps(anim_arr[0], &frs_sec, &frs_sec_base, true)) {
+      seq->media_playback_rate = (float)frs_sec / frs_sec_base;
+    }
   }
 
   seq->len = MAX2(1, seq->len);
+  if (load_data->adjust_playback_rate) {
+    seq->flag |= SEQ_AUTO_PLAYBACK_RATE;
+  }
+
   BLI_strncpy(seq->strip->colorspace_settings.name,
               colorspace,
               sizeof(seq->strip->colorspace_settings.name));
@@ -511,8 +522,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
   if (lock_range) {
     /* keep so we don't have to move the actual start and end points (only the data) */
-    prev_startdisp = SEQ_time_left_handle_frame_get(seq);
-    prev_enddisp = SEQ_time_right_handle_frame_get(seq);
+    prev_startdisp = SEQ_time_left_handle_frame_get(scene, seq);
+    prev_enddisp = SEQ_time_right_handle_frame_get(scene, seq);
   }
 
   switch (seq->type) {

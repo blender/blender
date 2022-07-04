@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_GPU__
+#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
 struct uchar4 {
   uchar x, y, z, w;
 
@@ -19,7 +19,7 @@ struct uchar4 {
 };
 
 ccl_device_inline uchar4 make_uchar4(uchar x, uchar y, uchar z, uchar w);
-#endif /* __KERNEL_GPU__ */
+#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
 
 CCL_NAMESPACE_END
 

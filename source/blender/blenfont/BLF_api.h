@@ -14,6 +14,15 @@
 extern "C" {
 #endif
 
+/* Name of subfolder inside BLENDER_DATAFILES that contains font files. */
+#define BLF_DATAFILES_FONTS_DIR "fonts"
+
+/* File name of the default variable-width font. */
+#define BLF_DEFAULT_PROPORTIONAL_FONT "droidsans.ttf"
+
+/* File name of the default fixed-pitch font. */
+#define BLF_DEFAULT_MONOSPACED_FONT "bmonofont-i18n.ttf"
+
 /* enable this only if needed (unused circa 2016) */
 #define BLF_BLUR_ENABLE 0
 
@@ -37,12 +46,14 @@ void BLF_cache_flush_set_fn(void (*cache_flush_fn)(void));
  */
 int BLF_load(const char *name) ATTR_NONNULL();
 int BLF_load_mem(const char *name, const unsigned char *mem, int mem_size) ATTR_NONNULL();
+bool BLF_is_loaded(const char *name) ATTR_NONNULL();
 
 int BLF_load_unique(const char *name) ATTR_NONNULL();
 int BLF_load_mem_unique(const char *name, const unsigned char *mem, int mem_size) ATTR_NONNULL();
 
 void BLF_unload(const char *name) ATTR_NONNULL();
 void BLF_unload_id(int fontid);
+void BLF_unload_all(void);
 
 char *BLF_display_name_from_file(const char *filepath);
 
@@ -312,25 +323,35 @@ int BLF_set_default(void);
 
 int BLF_load_default(bool unique);
 int BLF_load_mono_default(bool unique);
+void BLF_load_font_stack(void);
 
 #ifdef DEBUG
 void BLF_state_print(int fontid);
 #endif
 
-/* font->flags. */
-#define BLF_ROTATION (1 << 0)
-#define BLF_CLIPPING (1 << 1)
-#define BLF_SHADOW (1 << 2)
-// #define BLF_FLAG_UNUSED_3 (1 << 3) /* dirty */
-#define BLF_MATRIX (1 << 4)
-#define BLF_ASPECT (1 << 5)
-#define BLF_WORD_WRAP (1 << 6)
-#define BLF_MONOCHROME (1 << 7) /* no-AA */
-#define BLF_HINTING_NONE (1 << 8)
-#define BLF_HINTING_SLIGHT (1 << 9)
-#define BLF_HINTING_FULL (1 << 10)
-#define BLF_BOLD (1 << 11)
-#define BLF_ITALIC (1 << 12)
+/** #FontBLF.flags. */
+enum {
+  BLF_ROTATION = 1 << 0,
+  BLF_CLIPPING = 1 << 1,
+  BLF_SHADOW = 1 << 2,
+  // BLF_FLAG_UNUSED_3 = 1 << 3, /* dirty */
+  BLF_MATRIX = 1 << 4,
+  BLF_ASPECT = 1 << 5,
+  BLF_WORD_WRAP = 1 << 6,
+  /** No anti-aliasing. */
+  BLF_MONOCHROME = 1 << 7,
+  BLF_HINTING_NONE = 1 << 8,
+  BLF_HINTING_SLIGHT = 1 << 9,
+  BLF_HINTING_FULL = 1 << 10,
+  BLF_BOLD = 1 << 11,
+  BLF_ITALIC = 1 << 12,
+  /** Intended USE is monospaced, regardless of font type. */
+  BLF_MONOSPACED = 1 << 13,
+  /** A font within the default stack of fonts. */
+  BLF_DEFAULT = 1 << 14,
+  /** Must only be used as last font in the stack. */
+  BLF_LAST_RESORT = 1 << 15,
+};
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024
 

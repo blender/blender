@@ -1577,7 +1577,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     if (transformModeUseSnap(t)) {
       if (!(t->modifiers & MOD_SNAP) != !(t->tsnap.flag & SCE_SNAP)) {
         /* Type is #eSnapFlag, but type must match various snap attributes in #ToolSettings. */
-        char *snap_flag_ptr;
+        short *snap_flag_ptr;
 
         wmMsgParams_RNA msg_key_params = {{0}};
         RNA_pointer_create(&t->scene->id, &RNA_ToolSettings, ts, &msg_key_params.ptr);

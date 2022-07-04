@@ -6,15 +6,10 @@
  */
 
 #include "GPU_init_exit.h" /* interface */
-#include "BKE_global.h"
 #include "BLI_sys_types.h"
 #include "GPU_batch.h"
-#include "GPU_buffers.h"
-#include "GPU_context.h"
-#include "GPU_immediate.h"
 
 #include "intern/gpu_codegen.h"
-#include "intern/gpu_material_library.h"
 #include "intern/gpu_private.h"
 #include "intern/gpu_shader_create_info_private.hh"
 #include "intern/gpu_shader_dependency_private.h"

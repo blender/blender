@@ -6,10 +6,10 @@
 #include "GHOST_EventNDOF.h"
 #include "GHOST_WindowManager.h"
 
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>  /* For error/info reporting. */
-#include <string.h> /* For memory functions. */
+#include <climits>
+#include <cmath>
+#include <cstdio>  /* For error/info reporting. */
+#include <cstring> /* For memory functions. */
 
 #ifdef DEBUG_NDOF_MOTION
 /* Printable version of each GHOST_TProgress value. */
@@ -255,8 +255,9 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
       printf("ndof: unknown device %04hx:%04hx\n", vendor_id, product_id);
   }
 
-  if (m_buttonMask == 0)
+  if (m_buttonMask == 0) {
     m_buttonMask = (int)~(UINT_MAX << m_buttonCount);
+  }
 
 #ifdef DEBUG_NDOF_BUTTONS
   printf("ndof: %d buttons -> hex:%X\n", m_buttonCount, m_buttonMask);

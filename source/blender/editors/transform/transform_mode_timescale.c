@@ -59,7 +59,7 @@ static void applyTimeScaleValue(TransInfo *t, float value)
        * (this is only valid when not in NLA)
        */
       AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
-      float startx = CFRA;
+      float startx = scene->r.cfra;
       float fac = value;
 
       /* take proportional editing into account */
@@ -107,7 +107,7 @@ void initTimeScale(TransInfo *t)
   t->mode = TFM_TIME_SCALE;
   t->transform = applyTimeScale;
 
-  /* recalculate center2d to use CFRA and mouse Y, since that's
+  /* recalculate center2d to use scene->r.cfra and mouse Y, since that's
    * what is used in time scale */
   if ((t->flag & T_OVERRIDE_CENTER) == 0) {
     t->center_global[0] = t->scene->r.cfra;

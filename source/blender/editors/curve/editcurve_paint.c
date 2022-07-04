@@ -105,7 +105,7 @@ struct CurveDrawData {
   } radius;
 
   struct {
-    float mouse[2];
+    float mval[2];
     /* Used in case we can't calculate the depth. */
     float location_world[3];
 
@@ -463,8 +463,8 @@ static void curve_draw_event_add(wmOperator *op, const wmEvent *event)
   }
   copy_v3_v3(cdd->prev.location_world, selem->location_world);
 
-  float len_sq = len_squared_v2v2(cdd->prev.mouse, selem->mval);
-  copy_v2_v2(cdd->prev.mouse, selem->mval);
+  float len_sq = len_squared_v2v2(cdd->prev.mval, selem->mval);
+  copy_v2_v2(cdd->prev.mval, selem->mval);
 
   if (cdd->sample.use_substeps && cdd->prev.selem) {
     const struct StrokeElem selem_target = *selem;
@@ -1165,7 +1165,7 @@ static int curve_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
   else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
     if (cdd->state == CURVE_DRAW_PAINTING) {
       const float mval_fl[2] = {UNPACK2(event->mval)};
-      if (len_squared_v2v2(mval_fl, cdd->prev.mouse) > square_f(STROKE_SAMPLE_DIST_MIN_PX)) {
+      if (len_squared_v2v2(mval_fl, cdd->prev.mval) > square_f(STROKE_SAMPLE_DIST_MIN_PX)) {
         curve_draw_event_add(op, event);
       }
     }

@@ -1361,7 +1361,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
     if (tag_update) {
       Mesh *mesh = ob->data;
-      BKE_mesh_normals_tag_dirty(mesh);
+      BKE_mesh_tag_coords_changed(mesh);
 
       BKE_sculptsession_free_deformMats(ss);
     }
@@ -1505,10 +1505,8 @@ SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type)
     return BLI_findptr(&usculpt->nodes, node, offsetof(SculptUndoNode, node));
   }
 
-  SculptUndoNode *unode;
-
-  for (unode = usculpt->nodes.first; unode; unode = unode->next) {
-    if (unode->node == node && type == unode->type) {
+  LISTBASE_FOREACH (SculptUndoNode *, unode, &usculpt->nodes) {
+    if (unode->node == node && unode->type == type) {
       return unode;
     }
   }

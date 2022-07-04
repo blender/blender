@@ -841,7 +841,8 @@ void ED_annotation_draw_2dimage(const bContext *C)
   }
 
   /* draw it! */
-  annotation_draw_data_all(scene, gpd, offsx, offsy, sizex, sizey, CFRA, dflag, area->spacetype);
+  annotation_draw_data_all(
+      scene, gpd, offsx, offsy, sizex, sizey, scene->r.cfra, dflag, area->spacetype);
 }
 
 void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
@@ -877,7 +878,7 @@ void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
   }
 
   annotation_draw_data_all(
-      scene, gpd, 0, 0, region->winx, region->winy, CFRA, dflag, area->spacetype);
+      scene, gpd, 0, 0, region->winx, region->winy, scene->r.cfra, dflag, area->spacetype);
 }
 
 void ED_annotation_draw_view3d(
@@ -928,7 +929,8 @@ void ED_annotation_draw_view3d(
   }
 
   /* draw it! */
-  annotation_draw_data_all(scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
+  annotation_draw_data_all(
+      scene, gpd, offsx, offsy, winx, winy, scene->r.cfra, dflag, v3d->spacetype);
 }
 
 void ED_annotation_draw_ex(

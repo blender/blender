@@ -55,8 +55,8 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
     }
     catch (OCIO::Exception &exception) {
       cached_processors[colorspace] = OCIO::ConstProcessorRcPtr();
-      VLOG(1) << "Colorspace " << colorspace.c_str()
-              << " can't be converted to scene_linear: " << exception.what();
+      VLOG_WARNING << "Colorspace " << colorspace.c_str()
+                   << " can't be converted to scene_linear: " << exception.what();
     }
   }
 
@@ -132,12 +132,12 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
 
     thread_scoped_lock cache_lock(cache_colorspaces_mutex);
     if (is_scene_linear) {
-      VLOG(1) << "Colorspace " << colorspace.string() << " is no-op";
+      VLOG_INFO << "Colorspace " << colorspace.string() << " is no-op";
       cached_colorspaces[colorspace] = u_colorspace_raw;
       return u_colorspace_raw;
     }
     else if (is_srgb) {
-      VLOG(1) << "Colorspace " << colorspace.string() << " is sRGB";
+      VLOG_INFO << "Colorspace " << colorspace.string() << " is sRGB";
       cached_colorspaces[colorspace] = u_colorspace_srgb;
       return u_colorspace_srgb;
     }
@@ -146,22 +146,23 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
     if (!get_processor(colorspace)) {
       OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
       if (!config || !config->getColorSpace(colorspace.c_str())) {
-        VLOG(1) << "Colorspace " << colorspace.c_str() << " not found, using raw instead";
+        VLOG_WARNING << "Colorspace " << colorspace.c_str() << " not found, using raw instead";
       }
       else {
-        VLOG(1) << "Colorspace " << colorspace.c_str()
-                << " can't be converted to scene_linear, using raw instead";
+        VLOG_WARNING << "Colorspace " << colorspace.c_str()
+                     << " can't be converted to scene_linear, using raw instead";
       }
       cached_colorspaces[colorspace] = u_colorspace_raw;
       return u_colorspace_raw;
     }
 
     /* Convert to/from colorspace with OpenColorIO. */
-    VLOG(1) << "Colorspace " << colorspace.string() << " handled through OpenColorIO";
+    VLOG_INFO << "Colorspace " << colorspace.string() << " handled through OpenColorIO";
     cached_colorspaces[colorspace] = colorspace;
     return colorspace;
 #else
-    VLOG(1) << "Colorspace " << colorspace.c_str() << " not available, built without OpenColorIO";
+    VLOG_WARNING << "Colorspace " << colorspace.c_str()
+                 << " not available, built without OpenColorIO";
     return u_colorspace_raw;
 #endif
   }

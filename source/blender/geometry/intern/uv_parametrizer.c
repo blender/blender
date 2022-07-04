@@ -4,26 +4,18 @@
  * \ingroup eduv
  */
 
+#include "GEO_uv_parametrizer.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_boxpack_2d.h"
 #include "BLI_convexhull_2d.h"
+#include "BLI_ghash.h"
 #include "BLI_heap.h"
-#include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_rand.h"
-#include "BLI_utildefines.h"
-
-#include "GEO_uv_parametrizer.h"
-
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "BLI_sys_types.h" /* for intptr_t support */
 
 #include "eigen_capi.h"
 
@@ -50,11 +42,6 @@ typedef struct PHash {
   PHashLink **buckets;
   int size, cursize, cursize_id;
 } PHash;
-
-struct PChart;
-struct PEdge;
-struct PFace;
-struct PVert;
 
 /* Simplices */
 
@@ -144,6 +131,7 @@ typedef struct PChart {
   PEdge *edges;
   PFace *faces;
   int nverts, nedges, nfaces;
+  int nboundaries;
 
   PVert *collapsed_verts;
   PEdge *collapsed_edges;
@@ -190,6 +178,9 @@ typedef struct ParamHandle {
   PHash *hash_edges;
   PHash *hash_faces;
 
+  struct GHash *pin_hash;
+  int unique_pin_count;
+
   PChart **charts;
   int ncharts;
 
@@ -197,7 +188,6 @@ typedef struct ParamHandle {
 
   RNG *rng;
   float blend;
-  bool do_aspect;
 } ParamHandle;
 
 /* PHash
@@ -314,54 +304,14 @@ static PHashLink *phash_next(PHash *ph, PHashKey key, PHashLink *link)
 
 /* Geometry */
 
-static float p_vec_angle_cos(const float v1[3], const float v2[3], const float v3[3])
-{
-  float d1[3], d2[3];
-
-  d1[0] = v1[0] - v2[0];
-  d1[1] = v1[1] - v2[1];
-  d1[2] = v1[2] - v2[2];
-
-  d2[0] = v3[0] - v2[0];
-  d2[1] = v3[1] - v2[1];
-  d2[2] = v3[2] - v2[2];
-
-  normalize_v3(d1);
-  normalize_v3(d2);
-
-  return d1[0] * d2[0] + d1[1] * d2[1] + d1[2] * d2[2];
-}
-
 static float p_vec_angle(const float v1[3], const float v2[3], const float v3[3])
 {
-  float dot = p_vec_angle_cos(v1, v2, v3);
-
-  if (dot <= -1.0f) {
-    return (float)M_PI;
-  }
-  if (dot >= 1.0f) {
-    return 0.0f;
-  }
-  return acosf(dot);
+  return angle_v3v3v3(v1, v2, v3);
 }
-
 static float p_vec2_angle(const float v1[2], const float v2[2], const float v3[2])
 {
-  float u1[3], u2[3], u3[3];
-
-  u1[0] = v1[0];
-  u1[1] = v1[1];
-  u1[2] = 0.0f;
-  u2[0] = v2[0];
-  u2[1] = v2[1];
-  u2[2] = 0.0f;
-  u3[0] = v3[0];
-  u3[1] = v3[1];
-  u3[2] = 0.0f;
-
-  return p_vec_angle(u1, u2, u3);
+  return angle_v2v2v2(v1, v2, v3);
 }
-
 static void p_triangle_angles(
     const float v1[3], const float v2[3], const float v3[3], float *r_a1, float *r_a2, float *r_a3)
 {
@@ -402,25 +352,12 @@ static float p_face_uv_area_signed(PFace *f)
 
 static float p_edge_length(PEdge *e)
 {
-  PVert *v1 = e->vert, *v2 = e->next->vert;
-  float d[3];
-
-  d[0] = v2->co[0] - v1->co[0];
-  d[1] = v2->co[1] - v1->co[1];
-  d[2] = v2->co[2] - v1->co[2];
-
-  return sqrtf(d[0] * d[0] + d[1] * d[1] + d[2] * d[2]);
+  return len_v3v3(e->vert->co, e->next->vert->co);
 }
 
 static float p_edge_uv_length(PEdge *e)
 {
-  PVert *v1 = e->vert, *v2 = e->next->vert;
-  float d[3];
-
-  d[0] = v2->uv[0] - v1->uv[0];
-  d[1] = v2->uv[1] - v1->uv[1];
-
-  return sqrtf(d[0] * d[0] + d[1] * d[1]);
+  return len_v2v2(e->vert->uv, e->next->vert->uv);
 }
 
 static void p_chart_uv_bbox(PChart *chart, float minv[2], float maxv[2])
@@ -491,16 +428,6 @@ static void p_chart_uv_to_array(PChart *chart, float (*points)[2])
 
   for (v = chart->verts; v; v = v->nextlink) {
     copy_v2_v2(points[i++], v->uv);
-  }
-}
-
-static void UNUSED_FUNCTION(p_chart_uv_from_array)(PChart *chart, float (*points)[2])
-{
-  PVert *v;
-  uint i = 0;
-
-  for (v = chart->verts; v; v = v->nextlink) {
-    copy_v2_v2(v->uv, points[i++]);
   }
 }
 
@@ -1212,14 +1139,12 @@ static bool p_quad_split_direction(ParamHandle *handle, const float **co, const 
 
 /* Construction: boundary filling */
 
-static void p_chart_boundaries(PChart *chart, int *r_nboundaries, PEdge **r_outer)
+static void p_chart_boundaries(PChart *chart, PEdge **r_outer)
 {
   PEdge *e, *be;
   float len, maxlen = -1.0;
 
-  if (r_nboundaries) {
-    *r_nboundaries = 0;
-  }
+  chart->nboundaries = 0;
   if (r_outer) {
     *r_outer = NULL;
   }
@@ -1229,9 +1154,7 @@ static void p_chart_boundaries(PChart *chart, int *r_nboundaries, PEdge **r_oute
       continue;
     }
 
-    if (r_nboundaries) {
-      (*r_nboundaries)++;
-    }
+    chart->nboundaries++;
 
     len = 0.0f;
 
@@ -3153,7 +3076,7 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
       /* No pins, let's find some ourself. */
       PEdge *outer;
 
-      p_chart_boundaries(chart, NULL, &outer);
+      p_chart_boundaries(chart, &outer);
 
       /* Outer can be NULL with non-finite coords. */
       if (!(outer && p_chart_symmetry_pins(chart, outer, &pin1, &pin2))) {
@@ -3539,7 +3462,7 @@ static bool p_chart_convex_hull(PChart *chart, PVert ***r_verts, int *r_nverts, 
   int npoints = 0, i, ulen, llen;
   PVert **U, **L, **points, **p;
 
-  p_chart_boundaries(chart, NULL, &be);
+  p_chart_boundaries(chart, &be);
 
   if (!be) {
     return false;
@@ -3791,7 +3714,6 @@ ParamHandle *GEO_uv_parametrizer_construct_begin(void)
   handle->polyfill_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
   handle->aspx = 1.0f;
   handle->aspy = 1.0f;
-  handle->do_aspect = false;
 
   handle->hash_verts = phash_new((PHashLink **)&handle->construction_chart->verts, 1);
   handle->hash_edges = phash_new((PHashLink **)&handle->construction_chart->edges, 1);
@@ -3804,7 +3726,6 @@ void GEO_uv_parametrizer_aspect_ratio(ParamHandle *phandle, float aspx, float as
 {
   phandle->aspx = aspx;
   phandle->aspy = aspy;
-  phandle->do_aspect = true;
 }
 
 void GEO_uv_parametrizer_delete(ParamHandle *phandle)
@@ -3817,8 +3738,11 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
     p_chart_delete(phandle->charts[i]);
   }
 
-  if (phandle->charts) {
-    MEM_freeN(phandle->charts);
+  MEM_SAFE_FREE(phandle->charts);
+
+  if (phandle->pin_hash) {
+    BLI_ghash_free(phandle->pin_hash, NULL, NULL);
+    phandle->pin_hash = NULL;
   }
 
   if (phandle->construction_chart) {
@@ -3833,6 +3757,80 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
   BLI_memarena_free(phandle->polyfill_arena);
   BLI_heap_free(phandle->polyfill_heap, NULL);
   MEM_freeN(phandle);
+}
+
+typedef struct GeoUVPinIndex {
+  struct GeoUVPinIndex *next;
+  float uv[2];
+  ParamKey reindex;
+} GeoUVPinIndex;
+
+/* Find a (mostly) unique ParamKey given a BMVert index and UV co-ordinates.
+ * For each unique pinned UVs, return a unique ParamKey, starting with
+ *  a very large number, and decreasing steadily from there.
+ * For non-pinned UVs which share a BMVert with a pinned UV,
+ *  return the index corresponding to the closest pinned UV.
+ * For everything else, just return the BMVert index.
+ * Note that ParamKeys will eventually be hashed, so they don't need to be contiguous.
+ */
+ParamKey GEO_uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2])
+{
+  if (!handle->pin_hash) {
+    return bmvertindex; /* No verts pinned. */
+  }
+
+  GeoUVPinIndex *pinuvlist = BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex));
+  if (!pinuvlist) {
+    return bmvertindex; /* Vert not pinned. */
+  }
+
+  /* At least one of the UVs associated with bmvertindex is pinned. Find the best one. */
+  float bestdistsquared = len_squared_v2v2(pinuvlist->uv, uv);
+  ParamKey bestkey = pinuvlist->reindex;
+  pinuvlist = pinuvlist->next;
+  while (pinuvlist) {
+    const float distsquared = len_squared_v2v2(pinuvlist->uv, uv);
+    if (bestdistsquared > distsquared) {
+      bestdistsquared = distsquared;
+      bestkey = pinuvlist->reindex;
+    }
+    pinuvlist = pinuvlist->next;
+  }
+  return bestkey;
+}
+
+static GeoUVPinIndex *new_geo_uv_pinindex(ParamHandle *handle, const float uv[2])
+{
+  GeoUVPinIndex *pinuv = BLI_memarena_alloc(handle->arena, sizeof(*pinuv));
+  pinuv->next = NULL;
+  copy_v2_v2(pinuv->uv, uv);
+  pinuv->reindex = PARAM_KEY_MAX - (handle->unique_pin_count++);
+  return pinuv;
+}
+
+void GEO_uv_prepare_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2])
+{
+  if (!handle->pin_hash) {
+    handle->pin_hash = BLI_ghash_int_new("uv pin reindex");
+  }
+
+  GeoUVPinIndex *pinuvlist = BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex));
+  if (!pinuvlist) {
+    BLI_ghash_insert(
+        handle->pin_hash, POINTER_FROM_INT(bmvertindex), new_geo_uv_pinindex(handle, uv));
+    return;
+  }
+
+  while (true) {
+    if (equals_v2v2(pinuvlist->uv, uv)) {
+      return;
+    }
+    if (!pinuvlist->next) {
+      pinuvlist->next = new_geo_uv_pinindex(handle, uv);
+      return;
+    }
+    pinuvlist = pinuvlist->next;
+  }
 }
 
 static void p_add_ngon(ParamHandle *handle,
@@ -3948,7 +3946,7 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
                                        int *count_fail)
 {
   PChart *chart = phandle->construction_chart;
-  int i, j, nboundaries = 0;
+  int i, j;
   PEdge *outer;
 
   param_assert(phandle->state == PHANDLE_STATE_ALLOCATED);
@@ -3968,9 +3966,9 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
     PVert *v;
     chart = phandle->charts[i];
 
-    p_chart_boundaries(chart, &nboundaries, &outer);
+    p_chart_boundaries(chart, &outer);
 
-    if (!topology_from_uvs && nboundaries == 0) {
+    if (!topology_from_uvs && chart->nboundaries == 0) {
       p_chart_delete(chart);
       if (count_fail != NULL) {
         *count_fail += 1;
@@ -3981,7 +3979,7 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
     phandle->charts[j] = chart;
     j++;
 
-    if (fill && (nboundaries > 1)) {
+    if (fill && (chart->nboundaries > 1)) {
       p_chart_fill_boundaries(chart, outer);
     }
 

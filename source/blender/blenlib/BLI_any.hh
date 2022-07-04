@@ -13,6 +13,7 @@
  */
 
 #include <algorithm>
+#include <cstring>
 #include <utility>
 
 #include "BLI_memory_utils.hh"
@@ -26,6 +27,7 @@ namespace detail {
  * Additional type specific #ExtraInfo can be embedded here as well.
  */
 template<typename ExtraInfo> struct AnyTypeInfo {
+  /* The pointers are allowed to be null, which means that the implementation is trivial. */
   void (*copy_construct)(void *dst, const void *src);
   void (*move_construct)(void *dst, void *src);
   void (*destruct)(void *src);
@@ -38,10 +40,15 @@ template<typename ExtraInfo> struct AnyTypeInfo {
  */
 template<typename ExtraInfo, typename T>
 static constexpr AnyTypeInfo<ExtraInfo> info_for_inline = {
-    [](void *dst, const void *src) { new (dst) T(*(const T *)src); },
-    [](void *dst, void *src) { new (dst) T(std::move(*(T *)src)); },
-    [](void *src) { std::destroy_at(((T *)src)); },
-    [](const void *src) { return src; },
+    is_trivially_copy_constructible_extended_v<T> ?
+        nullptr :
+        +[](void *dst, const void *src) { new (dst) T(*(const T *)src); },
+    is_trivially_move_constructible_extended_v<T> ?
+        nullptr :
+        +[](void *dst, void *src) { new (dst) T(std::move(*(T *)src)); },
+    is_trivially_destructible_extended_v<T> ? nullptr :
+                                              +[](void *src) { std::destroy_at(((T *)src)); },
+    nullptr,
     ExtraInfo::template get<T>()};
 
 /**
@@ -92,12 +99,14 @@ class Any {
   using RealExtraInfo =
       std::conditional_t<std::is_void_v<ExtraInfo>, detail::NoExtraInfo, ExtraInfo>;
   using Info = detail::AnyTypeInfo<RealExtraInfo>;
+  static constexpr size_t RealInlineBufferCapacity = std::max(InlineBufferCapacity,
+                                                              sizeof(std::unique_ptr<int>));
 
   /**
    * Inline buffer that either contains nothing, the stored value directly, or a #std::unique_ptr
    * to the value.
    */
-  AlignedBuffer<std::max(InlineBufferCapacity, sizeof(std::unique_ptr<int>)), Alignment> buffer_{};
+  AlignedBuffer<RealInlineBufferCapacity, Alignment> buffer_{};
 
   /**
    * Information about the type that is currently stored.
@@ -144,7 +153,12 @@ class Any {
   Any(const Any &other) : info_(other.info_)
   {
     if (info_ != nullptr) {
-      info_->copy_construct(&buffer_, &other.buffer_);
+      if (info_->copy_construct != nullptr) {
+        info_->copy_construct(&buffer_, &other.buffer_);
+      }
+      else {
+        memcpy(&buffer_, &other.buffer_, RealInlineBufferCapacity);
+      }
     }
   }
 
@@ -155,7 +169,12 @@ class Any {
   Any(Any &&other) noexcept : info_(other.info_)
   {
     if (info_ != nullptr) {
-      info_->move_construct(&buffer_, &other.buffer_);
+      if (info_->move_construct != nullptr) {
+        info_->move_construct(&buffer_, &other.buffer_);
+      }
+      else {
+        memcpy(&buffer_, &other.buffer_, RealInlineBufferCapacity);
+      }
     }
   }
 
@@ -179,7 +198,9 @@ class Any {
   ~Any()
   {
     if (info_ != nullptr) {
-      info_->destruct(&buffer_);
+      if (info_->destruct != nullptr) {
+        info_->destruct(&buffer_);
+      }
     }
   }
 
@@ -213,7 +234,9 @@ class Any {
   void reset()
   {
     if (info_ != nullptr) {
-      info_->destruct(&buffer_);
+      if (info_->destruct != nullptr) {
+        info_->destruct(&buffer_);
+      }
     }
     info_ = nullptr;
   }
@@ -265,14 +288,20 @@ class Any {
   void *get()
   {
     BLI_assert(info_ != nullptr);
-    return const_cast<void *>(info_->get(&buffer_));
+    if (info_->get != nullptr) {
+      return const_cast<void *>(info_->get(&buffer_));
+    }
+    return &buffer_;
   }
 
   /** Get a pointer to the stored value. */
   const void *get() const
   {
     BLI_assert(info_ != nullptr);
-    return info_->get(&buffer_);
+    if (info_->get != nullptr) {
+      return info_->get(&buffer_);
+    }
+    return &buffer_;
   }
 
   /**

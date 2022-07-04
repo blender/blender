@@ -76,8 +76,7 @@ struct DeleteOperationExecutor {
 
   float2 brush_pos_re_;
 
-  float4x4 curves_to_world_mat_;
-  float4x4 world_to_curves_mat_;
+  CurvesSculptTransforms transforms_;
 
   DeleteOperationExecutor(const bContext &C) : ctx_(C)
   {
@@ -101,8 +100,7 @@ struct DeleteOperationExecutor {
 
     brush_pos_re_ = stroke_extension.mouse_position;
 
-    curves_to_world_mat_ = object_->obmat;
-    world_to_curves_mat_ = curves_to_world_mat_.inverted();
+    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
 
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
         brush_->falloff_shape);
@@ -199,10 +197,10 @@ struct DeleteOperationExecutor {
     float3 brush_wo;
     ED_view3d_win_to_3d(ctx_.v3d,
                         ctx_.region,
-                        curves_to_world_mat_ * self_->brush_3d_.position_cu,
+                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
                         brush_pos_re_,
                         brush_wo);
-    const float3 brush_cu = world_to_curves_mat_ * brush_wo;
+    const float3 brush_cu = transforms_.world_to_curves * brush_wo;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));

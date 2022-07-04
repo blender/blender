@@ -229,17 +229,17 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
   /* extract scale and shear first */
   float3 scale, shear;
   scale.x = len(colx);
-  colx = safe_divide_float3_float(colx, scale.x);
+  colx = safe_divide(colx, scale.x);
   shear.z = dot(colx, coly);
   coly -= shear.z * colx;
   scale.y = len(coly);
-  coly = safe_divide_float3_float(coly, scale.y);
+  coly = safe_divide(coly, scale.y);
   shear.y = dot(colx, colz);
   colz -= shear.y * colx;
   shear.x = dot(coly, colz);
   colz -= shear.x * coly;
   scale.z = len(colz);
-  colz = safe_divide_float3_float(colz, scale.z);
+  colz = safe_divide(colz, scale.z);
 
   transform_set_column(&M, 0, colx);
   transform_set_column(&M, 1, coly);

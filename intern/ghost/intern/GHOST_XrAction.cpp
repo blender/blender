@@ -332,23 +332,26 @@ void GHOST_XrAction::updateState(XrSession session,
         break;
       }
       case GHOST_kXrActionTypePoseInput: {
-        XrActionStatePose state{XR_TYPE_ACTION_STATE_POSE};
-        CHECK_XR(
-            xrGetActionStatePose(session, &state_info, &state),
-            (std::string("Failed to get state for pose action \"") + action_name + "\".").data());
-        if (state.isActive) {
-          XrSpace pose_space = ((subaction != nullptr) && (subaction->space != nullptr)) ?
-                                   subaction->space->getSpace() :
-                                   XR_NULL_HANDLE;
-          if (pose_space != XR_NULL_HANDLE) {
-            XrSpaceLocation space_location{XR_TYPE_SPACE_LOCATION};
-            CHECK_XR(
-                xrLocateSpace(
-                    pose_space, reference_space, predicted_display_time, &space_location),
-                (std::string("Failed to query pose space for action \"") + action_name + "\".")
-                    .data());
-            copy_openxr_pose_to_ghost_pose(space_location.pose,
-                                           ((GHOST_XrPose *)m_states)[subaction_idx]);
+        /* Check for valid display time to avoid an error in #xrLocateSpace(). */
+        if (predicted_display_time > 0) {
+          XrActionStatePose state{XR_TYPE_ACTION_STATE_POSE};
+          CHECK_XR(xrGetActionStatePose(session, &state_info, &state),
+                   (std::string("Failed to get state for pose action \"") + action_name + "\".")
+                       .data());
+          if (state.isActive) {
+            XrSpace pose_space = ((subaction != nullptr) && (subaction->space != nullptr)) ?
+                                     subaction->space->getSpace() :
+                                     XR_NULL_HANDLE;
+            if (pose_space != XR_NULL_HANDLE) {
+              XrSpaceLocation space_location{XR_TYPE_SPACE_LOCATION};
+              CHECK_XR(
+                  xrLocateSpace(
+                      pose_space, reference_space, predicted_display_time, &space_location),
+                  (std::string("Failed to query pose space for action \"") + action_name + "\".")
+                      .data());
+              copy_openxr_pose_to_ghost_pose(space_location.pose,
+                                             ((GHOST_XrPose *)m_states)[subaction_idx]);
+            }
           }
         }
         break;

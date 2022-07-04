@@ -301,7 +301,7 @@ RenderResult *render_result_new(Render *re,
     } \
   } while (false)
 
-      /* A renderlayer should always have a Combined pass. */
+      /* A render-layer should always have a "Combined" pass. */
       render_layer_add_pass(rr, rl, 4, "Combined", view, "RGBA", false);
 
       if (view_layer->passflag & SCE_PASS_Z) {
@@ -398,7 +398,7 @@ RenderResult *render_result_new(Render *re,
         }
       }
 
-      /* a renderlayer should always have a Combined pass */
+      /* A render-layer should always have a "Combined" pass. */
       render_layer_add_pass(rr, rl, 4, RE_PASSNAME_COMBINED, view, "RGBA", false);
     }
 
@@ -825,7 +825,7 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
         if (rpass->rect == NULL || rpassp->rect == NULL) {
           continue;
         }
-        /* Renderresult have all passes, renderpart only the active view's passes. */
+        /* Render-result have all passes, render-part only the active view's passes. */
         if (!STREQ(rpassp->fullname, rpass->fullname)) {
           continue;
         }

@@ -23,6 +23,8 @@ namespace blender::meshintersect {
  * \param material_remaps: An array of maps from material slot numbers in the corresponding mesh
  * to the material slot in the first mesh. It is OK for material_remaps or any of its constituent
  * arrays to be empty.
+ * \param r_intersecting_edges: Array to store indices of edges on the resulting mesh in. These
+ * 'new' edges are the result of the intersections.
  */
 Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
                           Span<const float4x4 *> transforms,
@@ -30,6 +32,7 @@ Mesh *direct_mesh_boolean(Span<const Mesh *> meshes,
                           Span<Array<short>> material_remaps,
                           bool use_self,
                           bool hole_tolerant,
-                          int boolean_mode);
+                          int boolean_mode,
+                          Vector<int> *r_intersecting_edges);
 
 }  // namespace blender::meshintersect

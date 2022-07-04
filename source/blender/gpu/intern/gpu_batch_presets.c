@@ -11,15 +11,8 @@
 #include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
-#include "DNA_userdef_types.h"
-
-#include "UI_interface.h"
-#include "UI_resources.h"
-
 #include "GPU_batch.h"
-#include "GPU_batch_presets.h" /* own include */
-#include "GPU_batch_utils.h"
-#include "GPU_context.h"
+#include "GPU_batch_presets.h" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name Local Structures
@@ -139,7 +132,7 @@ GPUBatch *GPU_batch_preset_sphere_wire(int lod)
 /** \name Create Sphere (3D)
  * \{ */
 
-GPUBatch *gpu_batch_sphere(int lat_res, int lon_res)
+static GPUBatch *gpu_batch_sphere(int lat_res, int lon_res)
 {
   const float lon_inc = 2 * M_PI / lon_res;
   const float lat_inc = M_PI / lat_res;

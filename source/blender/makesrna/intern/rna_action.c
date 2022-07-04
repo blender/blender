@@ -168,6 +168,12 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, PointerR
   WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 }
 
+static void rna_Action_fcurve_clear(bAction *act)
+{
+  BKE_action_fcurves_clear(act);
+  WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+}
+
 static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
 {
   TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
@@ -788,6 +794,10 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_pointer(func, "fcurve", "FCurve", "", "F-Curve to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+
+  /* Action.fcurves.clear() */
+  func = RNA_def_function(srna, "clear", "rna_Action_fcurve_clear");
+  RNA_def_function_ui_description(func, "Remove all F-Curves");
 }
 
 static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)

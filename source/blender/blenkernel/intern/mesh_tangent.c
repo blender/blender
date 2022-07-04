@@ -167,7 +167,7 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
   if (!loopuvs) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Tangent space computation needs an UVMap, \"%s\" not found, aborting",
+                "Tangent space computation needs a UV Map, \"%s\" not found, aborting",
                 uvmap);
     return;
   }

@@ -105,8 +105,10 @@ typedef struct bConstraintTarget {
 
 /* bConstraintTarget -> flag */
 typedef enum eConstraintTargetFlag {
-  /** temporary target-struct that needs to be freed after use */
+  /** Temporary target-struct that needs to be freed after use. */
   CONSTRAINT_TAR_TEMP = (1 << 0),
+  /** Temporary target for the custom space reference. */
+  CONSTRAINT_TAR_CUSTOM_SPACE = (1 << 1),
 } eConstraintTargetFlag;
 
 /* bConstraintTarget/bConstraintOb -> type */
@@ -247,10 +249,9 @@ typedef struct bArmatureConstraint {
 typedef struct bTrackToConstraint {
   struct Object *tar;
   /**
-   * I'll be using reserved1 and reserved2 as Track and Up flags,
+   * NOTE(@theeth): I'll be using reserved1 and reserved2 as Track and Up flags,
    * not sure if that's what they were intended for anyway.
    * Not sure either if it would create backward incompatibility if I were to rename them.
-   * - theeth
    */
   int reserved1;
   int reserved2;

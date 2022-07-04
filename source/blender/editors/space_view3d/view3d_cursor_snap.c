@@ -597,9 +597,9 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   eSnapMode snap_elements = v3d_cursor_snap_elements(state, scene);
   data_intern->snap_elem_hidden = SCE_SNAP_MODE_NONE;
   const bool calc_plane_omat = v3d_cursor_snap_calc_plane();
-  if (calc_plane_omat && !(snap_elements & SCE_SNAP_MODE_FACE)) {
-    data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
-    snap_elements |= SCE_SNAP_MODE_FACE;
+  if (calc_plane_omat && !(snap_elements & SCE_SNAP_MODE_FACE_RAYCAST)) {
+    data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE_RAYCAST;
+    snap_elements |= SCE_SNAP_MODE_FACE_RAYCAST;
   }
 
   snap_data->is_enabled = true;
@@ -614,7 +614,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
         snap_data->snap_elem = SCE_SNAP_MODE_NONE;
         return;
       }
-      snap_elements = data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
+      snap_elements = data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE_RAYCAST;
     }
   }
 #endif
@@ -649,6 +649,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
             .edit_mode_type = edit_mode_type,
             .use_occlusion_test = use_occlusion_test,
         },
+        NULL,
         mval_fl,
         prev_co,
         &dist_px,
@@ -658,10 +659,6 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
         NULL,
         obmat,
         face_nor);
-  }
-
-  if (is_zero_v3(face_nor)) {
-    face_nor[state->plane_axis] = 1.0f;
   }
 
   if (calc_plane_omat) {
@@ -691,8 +688,28 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
     orthogonalize_m3(omat, state->plane_axis);
 
     if (orient_surface) {
-      if (dot_v3v3(rv3d->viewinv[2], face_nor) < 0.0f) {
-        negate_v3(face_nor);
+      if (!is_zero_v3(face_nor)) {
+        /* Negate the face normal according to the view. */
+        float ray_dir[3];
+        if (rv3d->is_persp) {
+          BLI_assert_msg(snap_elem != SCE_SNAP_MODE_NONE,
+                         "Use of variable `co` without it being computed");
+
+          sub_v3_v3v3(ray_dir, co, rv3d->viewinv[3]); /* No need to normalize. */
+        }
+        else {
+          negate_v3_v3(ray_dir, rv3d->viewinv[2]);
+        }
+
+        if (dot_v3v3(ray_dir, face_nor) >= 0.0f) {
+          negate_v3(face_nor);
+        }
+      }
+      else if (!is_zero_v3(no)) {
+        copy_v3_v3(face_nor, no);
+      }
+      else {
+        face_nor[state->plane_axis] = 1.0f;
       }
       v3d_cursor_poject_surface_normal(face_nor, obmat, omat);
     }
@@ -700,7 +717,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 
   float *co_depth = (snap_elem != SCE_SNAP_MODE_NONE) ? co : scene->cursor.location;
   snap_elem &= ~data_intern->snap_elem_hidden;
-  if (snap_elem == 0) {
+  if (snap_elem == SCE_SNAP_MODE_NONE) {
     RegionView3D *rv3d = region->regiondata;
     const float *plane_normal = omat[state->plane_axis];
     bool do_plane_isect = (state->plane_depth != V3D_PLACE_DEPTH_CURSOR_VIEW) &&
@@ -728,7 +745,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
            (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
     snap_elem_index[1] = index;
   }
-  else if (snap_elem == SCE_SNAP_MODE_FACE) {
+  else if (snap_elem == SCE_SNAP_MODE_FACE_RAYCAST) {
     snap_elem_index[2] = index;
   }
 

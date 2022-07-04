@@ -79,7 +79,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Scalar */
 
-#ifndef __HIP__
+#if !defined(__HIP__) && !defined(__KERNEL_ONEAPI__)
 #  ifdef _WIN32
 ccl_device_inline float fmaxf(float a, float b)
 {
@@ -92,12 +92,18 @@ ccl_device_inline float fminf(float a, float b)
 }
 
 #  endif /* _WIN32 */
-#endif   /* __HIP__ */
+#endif   /* __HIP__, __KERNEL_ONEAPI__ */
 
-#ifndef __KERNEL_GPU__
+#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
+#  ifndef __KERNEL_ONEAPI__
 using std::isfinite;
 using std::isnan;
 using std::sqrt;
+#  else
+using sycl::sqrt;
+#    define isfinite(x) sycl::isfinite((x))
+#    define isnan(x) sycl::isnan((x))
+#  endif
 
 ccl_device_inline int abs(int x)
 {
@@ -297,8 +303,15 @@ ccl_device_inline float4 __int4_as_float4(int4 i)
 #endif /* !defined(__KERNEL_METAL__) */
 
 #if defined(__KERNEL_METAL__)
-#  define isnan_safe(v) isnan(v)
-#  define isfinite_safe(v) isfinite(v)
+ccl_device_forceinline bool isnan_safe(float f)
+{
+  return isnan(f);
+}
+
+ccl_device_forceinline bool isfinite_safe(float f)
+{
+  return isfinite(f);
+}
 #else
 template<typename T> ccl_device_inline uint pointer_pack_to_uint_0(T *ptr)
 {
@@ -786,6 +799,11 @@ ccl_device_inline uint popcount(uint x)
   return i & 1;
 }
 #  endif
+#elif defined(__KERNEL_ONEAPI__)
+#  define popcount(x) sycl::popcount(x)
+#elif defined(__KERNEL_HIP__)
+/* Use popcll to support 64-bit wave for pre-RDNA AMD GPUs */
+#  define popcount(x) __popcll(x)
 #elif !defined(__KERNEL_METAL__)
 #  define popcount(x) __popc(x)
 #endif
@@ -796,6 +814,8 @@ ccl_device_inline uint count_leading_zeros(uint x)
   return __clz(x);
 #elif defined(__KERNEL_METAL__)
   return clz(x);
+#elif defined(__KERNEL_ONEAPI__)
+  return sycl::clz(x);
 #else
   assert(x != 0);
 #  ifdef _MSC_VER
@@ -814,6 +834,8 @@ ccl_device_inline uint count_trailing_zeros(uint x)
   return (__ffs(x) - 1);
 #elif defined(__KERNEL_METAL__)
   return ctz(x);
+#elif defined(__KERNEL_ONEAPI__)
+  return sycl::ctz(x);
 #else
   assert(x != 0);
 #  ifdef _MSC_VER

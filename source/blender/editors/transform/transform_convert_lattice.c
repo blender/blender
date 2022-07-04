@@ -101,7 +101,7 @@ void createTransLatticeVerts(TransInfo *t)
 void recalcData_lattice(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
-    applyProject(t);
+    applySnappingIndividual(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {

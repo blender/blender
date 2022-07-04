@@ -1248,6 +1248,11 @@ typedef struct NodeGeometryVolumeToMesh {
   uint8_t resolution_mode;
 } NodeGeometryVolumeToMesh;
 
+typedef struct NodeGeometryMeshToVolume {
+  /* MeshToVolumeModifierResolutionMode */
+  uint8_t resolution_mode;
+} NodeGeometryMeshToVolume;
+
 typedef struct NodeGeometrySubdivisionSurface {
   /* eSubsurfUVSmooth. */
   uint8_t uv_smooth;
@@ -1449,6 +1454,11 @@ typedef struct NodeGeometryViewer {
   /* eCustomDataType. */
   int8_t data_type;
 } NodeGeometryViewer;
+
+typedef struct NodeGeometryUVUnwrap {
+  /* GeometryNodeUVUnwrapMethod. */
+  uint8_t method;
+} NodeGeometryUVUnwrap;
 
 typedef struct NodeFunctionCompare {
   /* NodeCompareOperation */
@@ -1999,6 +2009,11 @@ typedef enum GeometryNodeMergeByDistanceMode {
   GEO_NODE_MERGE_BY_DISTANCE_MODE_ALL = 0,
   GEO_NODE_MERGE_BY_DISTANCE_MODE_CONNECTED = 1,
 } GeometryNodeMergeByDistanceMode;
+
+typedef enum GeometryNodeUVUnwrapMethod {
+  GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED = 0,
+  GEO_NODE_UV_UNWRAP_METHOD_CONFORMAL = 1,
+} GeometryNodeUVUnwrapMethod;
 
 typedef enum GeometryNodeMeshLineMode {
   GEO_NODE_MESH_LINE_MODE_END_POINTS = 0,

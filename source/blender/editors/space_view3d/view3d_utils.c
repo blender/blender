@@ -633,7 +633,7 @@ bool ED_view3d_camera_autokey(const Scene *scene,
                               const bool do_translate)
 {
   if (autokeyframe_cfra_can_key(scene, id_key)) {
-    const float cfra = (float)CFRA;
+    const float cfra = (float)scene->r.cfra;
     ListBase dsources = {NULL, NULL};
 
     /* add data-source override for the camera object */

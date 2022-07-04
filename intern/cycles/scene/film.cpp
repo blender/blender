@@ -152,7 +152,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
   KernelFilm *kfilm = &dscene->data.film;
 
-  /* update __data */
+  /* update data */
   kfilm->exposure = exposure;
   kfilm->pass_alpha_threshold = pass_alpha_threshold;
   kfilm->pass_flag = 0;
@@ -580,10 +580,10 @@ void Film::update_passes(Scene *scene, bool add_sample_count_pass)
   tag_modified();
 
   /* Debug logging. */
-  if (VLOG_IS_ON(2)) {
-    VLOG(2) << "Effective scene passes:";
+  if (VLOG_INFO_IS_ON) {
+    VLOG_INFO << "Effective scene passes:";
     for (const Pass *pass : scene->passes) {
-      VLOG(2) << "- " << *pass;
+      VLOG_INFO << "- " << *pass;
     }
   }
 }

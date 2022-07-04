@@ -524,8 +524,8 @@ struct ImBuf *imb_thumbnail_jpeg(const char *filepath,
     unsigned int i = JPEG_APP1_MAX;
     /* All EXIF data is within this 64K header segment. Skip ahead until next SOI for thumbnail. */
     while (!((fgetc(infile) == JPEG_MARKER_MSB) && (fgetc(infile) == JPEG_MARKER_SOI)) &&
-           !feof(infile) && i--)
-      ;
+           !feof(infile) && i--) {
+    }
     if (i > 0 && !feof(infile)) {
       /* We found a JPEG thumbnail inside this image. */
       ImBuf *ibuf = NULL;

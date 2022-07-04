@@ -118,7 +118,9 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
     MEM_freeN(buffer);
   }
   else {
-    component.attribute_try_create(name, domain, data_type, AttributeInitMove{buffer});
+    if (!component.attribute_try_create(name, domain, data_type, AttributeInitMove{buffer})) {
+      MEM_freeN(buffer);
+    }
   }
 }
 

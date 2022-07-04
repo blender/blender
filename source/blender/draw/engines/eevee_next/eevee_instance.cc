@@ -17,6 +17,7 @@
 #include "DNA_ID.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
+#include "RE_pipeline.h"
 
 #include "eevee_instance.hh"
 
@@ -43,7 +44,7 @@ void Instance::init(const int2 &output_res,
                     const View3D *v3d_,
                     const RegionView3D *rv3d_)
 {
-  UNUSED_VARS(light_probe_, output_rect);
+  UNUSED_VARS(light_probe_);
   render = render_;
   depsgraph = depsgraph_;
   camera_orig_object = camera_object_;
@@ -56,7 +57,10 @@ void Instance::init(const int2 &output_res,
 
   update_eval_members();
 
-  main_view.init(output_res);
+  sampling.init(scene);
+  camera.init();
+  film.init(output_res, output_rect);
+  main_view.init();
 }
 
 void Instance::set_time(float time)
@@ -90,9 +94,14 @@ void Instance::begin_sync()
   materials.begin_sync();
   velocity.begin_sync();
 
+  gpencil_engine_enabled = false;
+
+  render_buffers.sync();
   pipelines.sync();
   main_view.sync();
   world.sync();
+  camera.sync();
+  film.sync();
 }
 
 void Instance::object_sync(Object *ob)
@@ -146,13 +155,36 @@ void Instance::object_sync(Object *ob)
   ob_handle.reset_recalc_flag();
 }
 
+/* Wrapper to use with DRW_render_object_iter. */
+void Instance::object_sync_render(void *instance_,
+                                  Object *ob,
+                                  RenderEngine *engine,
+                                  Depsgraph *depsgraph)
+{
+  UNUSED_VARS(engine, depsgraph);
+  Instance &inst = *reinterpret_cast<Instance *>(instance_);
+  inst.object_sync(ob);
+}
+
 void Instance::end_sync()
 {
   velocity.end_sync();
+  sampling.end_sync();
+  film.end_sync();
 }
 
 void Instance::render_sync()
 {
+  DRW_cache_restart();
+
+  begin_sync();
+  DRW_render_object_iter(this, render, depsgraph, object_sync_render);
+  end_sync();
+
+  DRW_render_instance_buffer_finish();
+  /* Also we weed to have a correct FBO bound for #DRW_hair_update */
+  // GPU_framebuffer_bind();
+  // DRW_hair_update();
 }
 
 /** \} */
@@ -167,6 +199,18 @@ void Instance::render_sync()
  **/
 void Instance::render_sample()
 {
+  if (sampling.finished()) {
+    film.display();
+    return;
+  }
+
+  /* Motion blur may need to do re-sync after a certain number of sample. */
+  if (!is_viewport() && sampling.do_render_sync()) {
+    render_sync();
+  }
+
+  sampling.step();
+
   main_view.render();
 }
 
@@ -178,7 +222,36 @@ void Instance::render_sample()
 
 void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
 {
-  UNUSED_VARS(render_layer, view_name);
+  while (!sampling.finished()) {
+    this->render_sample();
+    /* TODO(fclem) print progression. */
+  }
+
+  /* Read Results. */
+  eViewLayerEEVEEPassType pass_bits = film.enabled_passes_get();
+  for (auto i : IndexRange(EEVEE_RENDER_PASS_MAX_BIT)) {
+    eViewLayerEEVEEPassType pass_type = eViewLayerEEVEEPassType(pass_bits & (1 << i));
+    if (pass_type == 0) {
+      continue;
+    }
+
+    const char *pass_name = Film::pass_to_render_pass_name(pass_type);
+    RenderPass *rp = RE_pass_find_by_name(render_layer, pass_name, view_name);
+    if (rp) {
+      float *result = film.read_pass(pass_type);
+      if (result) {
+        std::cout << "read " << pass_name << std::endl;
+        BLI_mutex_lock(&render->update_render_passes_mutex);
+        /* WORKAROUND: We use texture read to avoid using a framebuffer to get the render result.
+         * However, on some implementation, we need a buffer with a few extra bytes for the read to
+         * happen correctly (see GLTexture::read()). So we need a custom memory allocation. */
+        /* Avoid memcpy(), replace the pointer directly. */
+        MEM_SAFE_FREE(rp->rect);
+        rp->rect = result;
+        BLI_mutex_unlock(&render->update_render_passes_mutex);
+      }
+    }
+  }
 }
 
 void Instance::draw_viewport(DefaultFramebufferList *dfbl)
@@ -186,6 +259,10 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
   UNUSED_VARS(dfbl);
   render_sample();
   velocity.step_swap();
+
+  if (!sampling.finished_viewport()) {
+    DRW_viewport_request_redraw();
+  }
 
   if (materials.queued_shaders_count > 0) {
     std::stringstream ss;

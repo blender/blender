@@ -38,6 +38,13 @@ void GPU_context_discard(GPUContext *);
 void GPU_context_active_set(GPUContext *);
 GPUContext *GPU_context_active_get(void);
 
+/* Begin and end frame are used to mark the singular boundary representing the lifetime of a whole
+ * frame. This also acts as a divisor for ensuring workload submission and flushing, especially for
+ * background rendering when there is no call to present.
+ * This is required by explicit-API's where there is no implicit workload flushing. */
+void GPU_context_begin_frame(GPUContext *ctx);
+void GPU_context_end_frame(GPUContext *ctx);
+
 /* Legacy GPU (Intel HD4000 series) do not support sharing GPU objects between GPU
  * contexts. EEVEE/Workbench can create different contexts for image/preview rendering, baking or
  * compiling. When a legacy GPU is detected (`GPU_use_main_context_workaround()`) any worker

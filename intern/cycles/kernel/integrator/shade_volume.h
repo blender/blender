@@ -222,7 +222,7 @@ ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
        * check then. */
       sum += (-sigma_t * dt);
       if ((i & 0x07) == 0) { /* TODO: Other interval? */
-        tp = *throughput * exp3(sum);
+        tp = *throughput * exp(sum);
 
         /* stop if nearly all light is blocked */
         if (tp.x < VOLUME_THROUGHPUT_EPSILON && tp.y < VOLUME_THROUGHPUT_EPSILON &&
@@ -235,7 +235,7 @@ ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
     t = new_t;
     if (t == ray->t) {
       /* Update throughput in case we haven't done it above */
-      tp = *throughput * exp3(sum);
+      tp = *throughput * exp(sum);
       break;
     }
   }
@@ -626,13 +626,13 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 
         /* Stop if nearly all light blocked. */
         if (!result.indirect_scatter) {
-          if (max3(result.indirect_throughput) < VOLUME_THROUGHPUT_EPSILON) {
+          if (reduce_max(result.indirect_throughput) < VOLUME_THROUGHPUT_EPSILON) {
             result.indirect_throughput = zero_float3();
             break;
           }
         }
         else if (!result.direct_scatter) {
-          if (max3(result.direct_throughput) < VOLUME_THROUGHPUT_EPSILON) {
+          if (reduce_max(result.direct_throughput) < VOLUME_THROUGHPUT_EPSILON) {
             break;
           }
         }
@@ -760,7 +760,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
     bsdf_eval_mul(&phase_eval, mis_weight);
   }
 
-  bsdf_eval_mul3(&phase_eval, light_eval / ls->pdf);
+  bsdf_eval_mul(&phase_eval, light_eval / ls->pdf);
 
   /* Path termination. */
   const float terminate = path_state_rng_light_termination(kg, rng_state);

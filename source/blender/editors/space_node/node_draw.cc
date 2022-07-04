@@ -749,14 +749,13 @@ static void node_socket_outline_color_get(const bool selected,
   if (selected) {
     UI_GetThemeColor4fv(TH_ACTIVE, r_outline_color);
   }
+  else if (socket_type == SOCK_CUSTOM) {
+    /* Until there is a better place for per socket color,
+     * the outline color for virtual sockets is set  here. */
+    copy_v4_v4(r_outline_color, virtual_node_socket_outline_color);
+  }
   else {
     UI_GetThemeColor4fv(TH_WIRE, r_outline_color);
-  }
-
-  /* Until there is a better place for per socket color,
-   * the outline color for virtual sockets is set  here. */
-  if (socket_type == SOCK_CUSTOM) {
-    copy_v4_v4(r_outline_color, virtual_node_socket_outline_color);
   }
 }
 

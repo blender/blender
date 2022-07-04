@@ -47,15 +47,15 @@ class Triangle {
 
 class STLMeshHelper {
  private:
-  VectorSet<float3> m_verts;
-  VectorSet<Triangle> m_tris;
-  Vector<float3> m_loop_normals;
-  int m_num_degenerate_tris;
-  int m_num_duplicate_tris;
-  const bool m_use_custom_normals;
+  VectorSet<float3> verts_;
+  VectorSet<Triangle> tris_;
+  Vector<float3> loop_normals_;
+  int degenerate_tris_num_;
+  int duplicate_tris_num_;
+  const bool use_custom_normals_;
 
  public:
-  STLMeshHelper(int num_tris, bool use_custom_normals);
+  STLMeshHelper(int tris_num, bool use_custom_normals);
 
   /* Creates a new triangle from specified vertex locations,
    * duplicate vertices and triangles are merged.

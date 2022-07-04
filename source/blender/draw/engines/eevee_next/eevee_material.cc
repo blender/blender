@@ -195,7 +195,7 @@ MaterialPass MaterialModule::material_pass_get(::Material *blender_mat,
   BLI_assert(GPU_material_status(matpass.gpumat) == GPU_MAT_SUCCESS);
 
   if (GPU_material_recalc_flag_get(matpass.gpumat)) {
-    // inst_.sampling.reset();
+    inst_.sampling.reset();
   }
 
   if ((pipeline_type == MAT_PIPE_DEFERRED) &&

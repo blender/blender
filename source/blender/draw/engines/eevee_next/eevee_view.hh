@@ -52,8 +52,6 @@ class ShadingView {
 
   Framebuffer prepass_fb_;
   Framebuffer combined_fb_;
-  Texture depth_tx_;
-  TextureFromPool combined_tx_;
   TextureFromPool postfx_tx_;
 
   /** Main views is created from the camera (or is from the viewport). It is not jittered. */
@@ -77,7 +75,7 @@ class ShadingView {
 
   void init();
 
-  void sync(int2 render_extent_);
+  void sync();
 
   void render();
 
@@ -94,7 +92,7 @@ class ShadingView {
  *
  * Container for all views needed to render the final image.
  * We might need up to 6 views for panoramic cameras.
- * All views are always available but only enabled for if need.
+ * All views are always available but only enabled for if needed.
  * \{ */
 
 class MainView {
@@ -109,8 +107,6 @@ class MainView {
   ShadingView shading_views_4;
   ShadingView shading_views_5;
 #define shading_views_ (&shading_views_0)
-  /** Internal render size. */
-  int render_extent_[2];
 
  public:
   MainView(Instance &inst)
@@ -123,15 +119,8 @@ class MainView {
   {
   }
 
-  void init(const int2 full_extent_)
+  void init()
   {
-    /* TODO(fclem) parameter hidden in experimental. We need to figure out mipmap bias to preserve
-     * texture crispiness. */
-    float resolution_scale = 1.0f;
-    for (int i = 0; i < 2; i++) {
-      render_extent_[i] = max_ii(1, roundf(full_extent_[i] * resolution_scale));
-    }
-
     for (auto i : IndexRange(6)) {
       shading_views_[i].init();
     }
@@ -140,7 +129,7 @@ class MainView {
   void sync()
   {
     for (auto i : IndexRange(6)) {
-      shading_views_[i].sync(render_extent_);
+      shading_views_[i].sync();
     }
   }
 

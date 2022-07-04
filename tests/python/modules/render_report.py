@@ -253,8 +253,11 @@ class Report:
         failed = len(failed_tests) > 0
         if failed:
             message = """<div class="alert alert-danger" role="alert">"""
-            message += """Run this command to update reference images for failed tests, or create images for new tests:<br>"""
-            message += """<tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt>""" % self.title.lower()
+            message += """<p>Run this command to regenerate reference (ground truth) images:</p>"""
+            message += """<p><tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt></p>""" % self.title.lower()
+            message += """<p>This then happens for new and failing tests; reference images of """ \
+                       """passing test cases will not be updated. Be sure to commit the new reference """ \
+                       """images to the SVN repository afterwards.</p>"""
             message += """</div>"""
         else:
             message = ""
@@ -294,6 +297,7 @@ class Report:
             background-position:0 0, 25px 0, 25px -25px, 0px 25px;
         }}
         table td:first-child {{ width: 256px; }}
+        p {{ margin-bottom: 0.5rem; }}
     </style>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>

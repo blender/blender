@@ -95,14 +95,14 @@ ccl_device_inline bool stack_valid(uint a)
 
 ccl_device_inline uint4 read_node(KernelGlobals kg, ccl_private int *offset)
 {
-  uint4 node = kernel_tex_fetch(__svm_nodes, *offset);
+  uint4 node = kernel_data_fetch(svm_nodes, *offset);
   (*offset)++;
   return node;
 }
 
 ccl_device_inline float4 read_node_float(KernelGlobals kg, ccl_private int *offset)
 {
-  uint4 node = kernel_tex_fetch(__svm_nodes, *offset);
+  uint4 node = kernel_data_fetch(svm_nodes, *offset);
   float4 f = make_float4(__uint_as_float(node.x),
                          __uint_as_float(node.y),
                          __uint_as_float(node.z),
@@ -113,7 +113,7 @@ ccl_device_inline float4 read_node_float(KernelGlobals kg, ccl_private int *offs
 
 ccl_device_inline float4 fetch_node_float(KernelGlobals kg, int offset)
 {
-  uint4 node = kernel_tex_fetch(__svm_nodes, offset);
+  uint4 node = kernel_data_fetch(svm_nodes, offset);
   return make_float4(__uint_as_float(node.x),
                      __uint_as_float(node.y),
                      __uint_as_float(node.z),
@@ -264,11 +264,11 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
         svm_node_mix_closure(sd, stack, node);
         break;
       case NODE_JUMP_IF_ZERO:
-        if (stack_load_float(stack, node.z) == 0.0f)
+        if (stack_load_float(stack, node.z) <= 0.0f)
           offset += node.y;
         break;
       case NODE_JUMP_IF_ONE:
-        if (stack_load_float(stack, node.z) == 1.0f)
+        if (stack_load_float(stack, node.z) >= 1.0f)
           offset += node.y;
         break;
       case NODE_GEOMETRY:

@@ -470,7 +470,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
     }
 
     t->tsnap.snapElem = SCE_SNAP_MODE_NONE;
-    applySnapping(t, global_dir);
+    applySnappingAsGroup(t, global_dir);
     transform_snap_grid(t, global_dir);
 
     if (t->con.mode & CON_APPLY) {

@@ -55,7 +55,10 @@ struct SeqEffectHandle {
   int (*early_out)(struct Sequence *seq, float fac);
 
   /* sets the default `fac` value */
-  void (*get_default_fac)(struct Sequence *seq, float timeline_frame, float *fac);
+  void (*get_default_fac)(const struct Scene *scene,
+                          struct Sequence *seq,
+                          float timeline_frame,
+                          float *fac);
 
   /* execute the effect
    * sequence effects are only required to either support

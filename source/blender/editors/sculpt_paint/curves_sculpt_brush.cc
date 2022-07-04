@@ -9,8 +9,6 @@
 #include "BKE_context.h"
 #include "BKE_curves.hh"
 
-#include "DNA_meshdata_types.h"
-
 #include "ED_view3d.h"
 
 #include "UI_interface.h"
@@ -256,6 +254,55 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
   return brush_3d;
 }
 
+std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
+    const Depsgraph &depsgraph,
+    const ARegion &region,
+    const View3D &v3d,
+    const CurvesSculptTransforms &transforms,
+    const BVHTreeFromMesh &surface_bvh,
+    const float2 &brush_pos_re,
+    const float brush_radius_re)
+{
+  float3 brush_ray_start_wo, brush_ray_end_wo;
+  ED_view3d_win_to_segment_clipped(
+      &depsgraph, &region, &v3d, brush_pos_re, brush_ray_start_wo, brush_ray_end_wo, true);
+  const float3 brush_ray_start_su = transforms.world_to_surface * brush_ray_start_wo;
+  const float3 brush_ray_end_su = transforms.world_to_surface * brush_ray_end_wo;
+
+  const float3 brush_ray_direction_su = math::normalize(brush_ray_end_su - brush_ray_start_su);
+
+  BVHTreeRayHit ray_hit;
+  ray_hit.dist = FLT_MAX;
+  ray_hit.index = -1;
+  BLI_bvhtree_ray_cast(surface_bvh.tree,
+                       brush_ray_start_su,
+                       brush_ray_direction_su,
+                       0.0f,
+                       &ray_hit,
+                       surface_bvh.raycast_callback,
+                       const_cast<void *>(static_cast<const void *>(&surface_bvh)));
+  if (ray_hit.index == -1) {
+    return std::nullopt;
+  }
+
+  float3 brush_radius_ray_start_wo, brush_radius_ray_end_wo;
+  ED_view3d_win_to_segment_clipped(&depsgraph,
+                                   &region,
+                                   &v3d,
+                                   brush_pos_re + float2(brush_radius_re, 0),
+                                   brush_radius_ray_start_wo,
+                                   brush_radius_ray_end_wo,
+                                   true);
+  const float3 brush_radius_ray_start_cu = transforms.world_to_curves * brush_radius_ray_start_wo;
+  const float3 brush_radius_ray_end_cu = transforms.world_to_curves * brush_radius_ray_end_wo;
+
+  const float3 brush_pos_su = ray_hit.co;
+  const float3 brush_pos_cu = transforms.surface_to_curves * brush_pos_su;
+  const float brush_radius_cu = dist_to_line_v3(
+      brush_pos_cu, brush_radius_ray_start_cu, brush_radius_ray_end_cu);
+  return CurvesBrush3D{brush_pos_cu, brush_radius_cu};
+}
+
 Vector<float4x4> get_symmetry_brush_transforms(const eCurvesSymmetryType symmetry)
 {
   Vector<float4x4> matrices;
@@ -284,11 +331,21 @@ Vector<float4x4> get_symmetry_brush_transforms(const eCurvesSymmetryType symmetr
   return matrices;
 }
 
+float transform_brush_radius(const float4x4 &transform,
+                             const float3 &brush_position,
+                             const float old_radius)
+{
+  const float3 offset_position = brush_position + float3(old_radius, 0.0f, 0.0f);
+  const float3 new_position = transform * brush_position;
+  const float3 new_offset_position = transform * offset_position;
+  return math::distance(new_position, new_offset_position);
+}
+
 void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &new_last_position)
 {
   /* Find the accumulated length of each point in the original curve,
    * treating it as a poly curve for performance reasons and simplicity. */
-  Array<float> orig_lengths(length_parameterize::lengths_num(positions.size(), false));
+  Array<float> orig_lengths(length_parameterize::segments_num(positions.size(), false));
   length_parameterize::accumulate_lengths<float3>(positions, false, orig_lengths);
   const float orig_total_length = orig_lengths.last();
 
@@ -306,8 +363,7 @@ void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &n
 
   Array<int> indices(positions.size() - 1);
   Array<float> factors(positions.size() - 1);
-  length_parameterize::create_samples_from_sorted_lengths(
-      orig_lengths, new_lengths, false, indices, factors);
+  length_parameterize::sample_at_lengths(orig_lengths, new_lengths, indices, factors);
 
   Array<float3> new_positions(positions.size() - 1);
   length_parameterize::linear_interpolation<float3>(positions, indices, factors, new_positions);
@@ -324,33 +380,18 @@ CurvesSculptCommonContext::CurvesSculptCommonContext(const bContext &C)
   this->rv3d = CTX_wm_region_view3d(&C);
 }
 
-float3 compute_surface_point_normal(const MLoopTri &looptri,
-                                    const float3 &bary_coord,
-                                    const Span<float3> corner_normals)
+CurvesSculptTransforms::CurvesSculptTransforms(const Object &curves_ob, const Object *surface_ob)
 {
-  const int l0 = looptri.tri[0];
-  const int l1 = looptri.tri[1];
-  const int l2 = looptri.tri[2];
+  this->curves_to_world = curves_ob.obmat;
+  this->world_to_curves = this->curves_to_world.inverted();
 
-  const float3 &l0_normal = corner_normals[l0];
-  const float3 &l1_normal = corner_normals[l1];
-  const float3 &l2_normal = corner_normals[l2];
-
-  const float3 normal = math::normalize(
-      attribute_math::mix3(bary_coord, l0_normal, l1_normal, l2_normal));
-  return normal;
-}
-
-float3 compute_bary_coord_in_triangle(const Mesh &mesh,
-                                      const MLoopTri &looptri,
-                                      const float3 &position)
-{
-  const float3 &v0 = mesh.mvert[mesh.mloop[looptri.tri[0]].v].co;
-  const float3 &v1 = mesh.mvert[mesh.mloop[looptri.tri[1]].v].co;
-  const float3 &v2 = mesh.mvert[mesh.mloop[looptri.tri[2]].v].co;
-  float3 bary_coords;
-  interp_weights_tri_v3(bary_coords, v0, v1, v2, position);
-  return bary_coords;
+  if (surface_ob != nullptr) {
+    this->surface_to_world = surface_ob->obmat;
+    this->world_to_surface = this->surface_to_world.inverted();
+    this->surface_to_curves = this->world_to_curves * this->surface_to_world;
+    this->curves_to_surface = this->world_to_surface * this->curves_to_world;
+    this->surface_to_curves_normal = this->surface_to_curves.inverted().transposed();
+  }
 }
 
 }  // namespace blender::ed::sculpt_paint

@@ -181,9 +181,118 @@ class TestLibraryTemplate(TestHelper, unittest.TestCase):
         assert(operation.operation == 'NOOP')
 
 
+class TestLibraryOverridesResync(TestHelper, unittest.TestCase):
+    DATA_NAME_CONTAINER = "LibCollection"
+    DATA_NAME_RIGGED = "LibRigged"
+    DATA_NAME_RIG = "LibRig"
+    DATA_NAME_CONTROLLER_1 = "LibController1"
+    DATA_NAME_CONTROLLER_2 = "LibController2"
+
+    def __init__(self, args):
+        self.args = args
+
+        output_dir = pathlib.Path(self.args.output_dir)
+        self.ensure_path(str(output_dir))
+        self.output_path = output_dir / "blendlib_overrides.blend"
+        self.test_output_path = output_dir / "blendlib_overrides_test.blend"
+
+        bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
+
+        collection_container = bpy.data.collections.new(TestLibraryOverridesResync.DATA_NAME_CONTAINER)
+        bpy.context.collection.children.link(collection_container)
+
+        mesh = bpy.data.meshes.new(TestLibraryOverridesResync.DATA_NAME_RIGGED)
+        obj_child = bpy.data.objects.new(TestLibraryOverridesResync.DATA_NAME_RIGGED, object_data=mesh)
+        collection_container.objects.link(obj_child)
+        armature = bpy.data.armatures.new(TestLibraryOverridesResync.DATA_NAME_RIG)
+        obj_armature = bpy.data.objects.new(TestLibraryOverridesResync.DATA_NAME_RIG, object_data=armature)
+        obj_child.parent = obj_armature
+        collection_container.objects.link(obj_armature)
+
+        obj_child_modifier = obj_child.modifiers.new("", 'ARMATURE')
+        obj_child_modifier.object = obj_armature
+
+        obj_ctrl1 = bpy.data.objects.new(TestLibraryOverridesResync.DATA_NAME_CONTROLLER_1, object_data=None)
+        collection_container.objects.link(obj_ctrl1)
+
+        obj_armature_constraint = obj_armature.constraints.new('COPY_LOCATION')
+        obj_armature_constraint.target = obj_ctrl1
+
+        collection_sub = bpy.data.collections.new(TestLibraryOverridesResync.DATA_NAME_CONTROLLER_2)
+        collection_container.children.link(collection_sub)
+        obj_ctrl2 = bpy.data.objects.new(TestLibraryOverridesResync.DATA_NAME_CONTROLLER_2, object_data=None)
+        collection_sub.objects.link(obj_ctrl2)
+
+        bpy.ops.wm.save_as_mainfile(filepath=str(self.output_path), check_existing=False, compress=False)
+
+    def test_link_and_override_resync(self):
+        bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
+        bpy.data.orphans_purge()
+
+        link_dir = self.output_path / "Collection"
+        bpy.ops.wm.link(directory=str(link_dir), filename=TestLibraryOverridesResync.DATA_NAME_CONTAINER, instance_collections=False)
+
+        linked_collection_container = bpy.data.collections[TestLibraryOverridesResync.DATA_NAME_CONTAINER]
+        assert(linked_collection_container.library is not None)
+        assert(linked_collection_container.override_library is None)
+        assert(len(bpy.data.collections) == 2)
+        assert(all(id_.library is not None for id_ in bpy.data.collections))
+        assert(len(bpy.data.objects) == 4)
+        assert(all(id_.library is not None for id_ in bpy.data.objects))
+        assert(len(bpy.data.meshes) == 1)
+        assert(all(id_.library is not None for id_ in bpy.data.meshes))
+        assert(len(bpy.data.armatures) == 1)
+        assert(all(id_.library is not None for id_ in bpy.data.armatures))
+
+        override_collection_container = linked_collection_container.override_hierarchy_create(bpy.context.scene, bpy.context.view_layer)
+        assert(override_collection_container.library is None)
+        assert(override_collection_container.override_library is not None)
+        # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
+        assert(len(bpy.data.collections) == 4)
+        assert(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.collections[:2]))
+        assert(len(bpy.data.objects) == 8)
+        assert(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4]))
+        assert(len(bpy.data.meshes) == 1)
+        assert(len(bpy.data.armatures) == 1)
+
+        bpy.ops.wm.save_as_mainfile(filepath=str(self.test_output_path), check_existing=False, compress=False)
+
+        # Re-open the lib file, and change its ID relationships.
+        bpy.ops.wm.open_mainfile(filepath=str(self.output_path))
+
+        obj_armature = bpy.data.objects[TestLibraryOverridesResync.DATA_NAME_RIG]
+        obj_armature_constraint = obj_armature.constraints[0]
+        obj_ctrl2 = bpy.data.objects[TestLibraryOverridesResync.DATA_NAME_CONTROLLER_2]
+        obj_armature_constraint.target = obj_ctrl2
+
+        bpy.ops.wm.save_as_mainfile(filepath=str(self.output_path), check_existing=False, compress=False)
+
+        # Re-open the main file, and check that automatic resync did its work correctly, remapping the target of the
+        # armature constraint to controller 2, without creating unexpected garbage IDs along the line.
+        bpy.ops.wm.open_mainfile(filepath=str(self.test_output_path))
+
+        override_collection_container = bpy.data.collections[TestLibraryOverridesResync.DATA_NAME_CONTAINER]
+        assert(override_collection_container.library is None)
+        assert(override_collection_container.override_library is not None)
+        # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
+        assert(len(bpy.data.collections) == 4)
+        assert(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.collections[:2]))
+        assert(len(bpy.data.objects) == 8)
+        assert(all((id_.library is None and id_.override_library is not None) for id_ in bpy.data.objects[:4]))
+        assert(len(bpy.data.meshes) == 1)
+        assert(len(bpy.data.armatures) == 1)
+
+        obj_armature = bpy.data.objects[TestLibraryOverridesResync.DATA_NAME_RIG]
+        obj_ctrl2 = bpy.data.objects[TestLibraryOverridesResync.DATA_NAME_CONTROLLER_2]
+        assert(obj_armature.library is None and obj_armature.override_library is not None)
+        assert(obj_ctrl2.library is None and obj_ctrl2.override_library is not None)
+        assert(obj_armature.constraints[0].target == obj_ctrl2)
+
+
 TESTS = (
     TestLibraryOverrides,
     TestLibraryTemplate,
+    TestLibraryOverridesResync,
 )
 
 

@@ -35,19 +35,19 @@ class MTLBackend : public GPUBackend {
     return MTLBackend::capabilities;
   }
 
-  inline ~MTLBackend()
+  ~MTLBackend()
   {
     MTLBackend::platform_exit();
   }
 
   static bool metal_is_supported();
-  inline static MTLBackend *get()
+  static MTLBackend *get()
   {
     return static_cast<MTLBackend *>(GPUBackend::get());
   }
 
   void samplers_update() override;
-  inline void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) override
+  void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) override
   {
     /* Placeholder */
   }

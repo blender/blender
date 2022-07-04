@@ -17,14 +17,6 @@ struct Scene;
 struct SeqCollection;
 struct Sequence;
 
-/**
- * Use to impose limits when dragging/extending - so impossible situations don't happen.
- * Can't use the #SEQ_LEFTSEL and #SEQ_LEFTSEL directly because the strip may be in a meta-strip.
- */
-void SEQ_transform_handle_xlimits(const struct Scene *scene,
-                                  struct Sequence *seq,
-                                  int leftflag,
-                                  int rightflag);
 bool SEQ_transform_sequence_can_be_translated(struct Sequence *seq);
 /**
  * Used so we can do a quick check for single image seq
@@ -32,8 +24,12 @@ bool SEQ_transform_sequence_can_be_translated(struct Sequence *seq);
  */
 bool SEQ_transform_single_image_check(struct Sequence *seq);
 void SEQ_transform_fix_single_image_seq_offsets(const struct Scene *scene, struct Sequence *seq);
-bool SEQ_transform_test_overlap(struct ListBase *seqbasep, struct Sequence *test);
-bool SEQ_transform_test_overlap_seq_seq(struct Sequence *seq1, struct Sequence *seq2);
+bool SEQ_transform_test_overlap(const struct Scene *scene,
+                                struct ListBase *seqbasep,
+                                struct Sequence *test);
+bool SEQ_transform_test_overlap_seq_seq(const struct Scene *scene,
+                                        struct Sequence *seq1,
+                                        struct Sequence *seq2);
 void SEQ_transform_translate_sequence(struct Scene *scene, struct Sequence *seq, int delta);
 /**
  * \return 0 if there weren't enough space.
@@ -46,6 +42,7 @@ bool SEQ_transform_seqbase_shuffle(struct ListBase *seqbasep,
                                    struct Sequence *test,
                                    struct Scene *evil_scene);
 bool SEQ_transform_seqbase_shuffle_time(struct SeqCollection *strips_to_shuffle,
+                                        struct SeqCollection *time_dependent_strips,
                                         struct ListBase *seqbasep,
                                         struct Scene *evil_scene,
                                         struct ListBase *markers,
@@ -54,6 +51,7 @@ bool SEQ_transform_seqbase_shuffle_time(struct SeqCollection *strips_to_shuffle,
 void SEQ_transform_handle_overlap(struct Scene *scene,
                                   struct ListBase *seqbasep,
                                   struct SeqCollection *transformed_strips,
+                                  struct SeqCollection *time_dependent_strips,
                                   bool use_sync_markers);
 /**
  * Check if the selected seq's reference unselected seq's.

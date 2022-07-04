@@ -5,8 +5,6 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.h"
-
 #include "BLI_string.h"
 
 #include "gpu_backend.hh"

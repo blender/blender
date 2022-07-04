@@ -55,9 +55,6 @@
 
 #define USE_TABLET_SUPPORT
 
-/* ensure the target position is one we can reach, see: T45771 */
-#define USE_PIXELSIZE_NATIVE_SUPPORT
-
 /* -------------------------------------------------------------------- */
 /** \name Modal Key-map
  * \{ */
@@ -226,8 +223,8 @@ typedef struct WalkInfo {
 
   /** Previous 2D mouse values. */
   int prev_mval[2];
-  /** Center mouse values. */
-  int center_mval[2];
+  /** Initial mouse location. */
+  int init_mval[2];
 
   int moffset[2];
 
@@ -271,9 +268,6 @@ typedef struct WalkInfo {
   bool is_reversed;
 
 #ifdef USE_TABLET_SUPPORT
-  /** Check if we had a cursor event before. */
-  bool is_cursor_first;
-
   /** Tablet devices (we can't relocate the cursor). */
   bool is_cursor_absolute;
 #endif
@@ -484,7 +478,7 @@ enum {
 static float base_speed = -1.0f;
 static float userdef_speed = -1.0f;
 
-static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
+static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int mval[2])
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win = CTX_wm_window(C);
@@ -565,8 +559,6 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
   walk->is_reversed = ((U.walk_navigation.flag & USER_WALK_MOUSE_REVERSE) != 0);
 
 #ifdef USE_TABLET_SUPPORT
-  walk->is_cursor_first = true;
-
   walk->is_cursor_absolute = false;
 #endif
 
@@ -599,28 +591,10 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
   walk->v3d_camera_control = ED_view3d_cameracontrol_acquire(
       walk->depsgraph, walk->scene, walk->v3d, walk->rv3d);
 
-  /* center the mouse */
-  walk->center_mval[0] = walk->region->winx * 0.5f;
-  walk->center_mval[1] = walk->region->winy * 0.5f;
+  copy_v2_v2_int(walk->init_mval, mval);
+  copy_v2_v2_int(walk->prev_mval, mval);
 
-#ifdef USE_PIXELSIZE_NATIVE_SUPPORT
-  walk->center_mval[0] += walk->region->winrct.xmin;
-  walk->center_mval[1] += walk->region->winrct.ymin;
-
-  WM_cursor_compatible_xy(win, &walk->center_mval[0], &walk->center_mval[1]);
-
-  walk->center_mval[0] -= walk->region->winrct.xmin;
-  walk->center_mval[1] -= walk->region->winrct.ymin;
-#endif
-
-  copy_v2_v2_int(walk->prev_mval, walk->center_mval);
-
-  WM_cursor_warp(win,
-                 walk->region->winrct.xmin + walk->center_mval[0],
-                 walk->region->winrct.ymin + walk->center_mval[1]);
-
-  /* remove the mouse cursor temporarily */
-  WM_cursor_modal_set(win, WM_CURSOR_NONE);
+  WM_cursor_grab_enable(win, 0, true, NULL);
 
   return 1;
 }
@@ -669,18 +643,7 @@ static int walkEnd(bContext *C, WalkInfo *walk)
   }
 #endif
 
-  /* restore the cursor */
-  WM_cursor_modal_restore(win);
-
-#ifdef USE_TABLET_SUPPORT
-  if (walk->is_cursor_absolute == false)
-#endif
-  {
-    /* center the mouse */
-    WM_cursor_warp(win,
-                   walk->region->winrct.xmin + walk->center_mval[0],
-                   walk->region->winrct.ymin + walk->center_mval[1]);
-  }
+  WM_cursor_grab_enable(win, 0, true, NULL);
 
   if (walk->state == WALK_CONFIRM) {
     MEM_freeN(walk);
@@ -691,7 +654,7 @@ static int walkEnd(bContext *C, WalkInfo *walk)
   return OPERATOR_CANCELLED;
 }
 
-static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
+static void walkEvent(WalkInfo *walk, const wmEvent *event)
 {
   if (event->type == TIMER && event->customdata == walk->timer) {
     walk->redraw = true;
@@ -699,26 +662,8 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
   else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
 
 #ifdef USE_TABLET_SUPPORT
-    if (walk->is_cursor_first) {
-      /* wait until we get the 'warp' event */
-      if ((walk->center_mval[0] == event->mval[0]) && (walk->center_mval[1] == event->mval[1])) {
-        walk->is_cursor_first = false;
-      }
-      else {
-        /* NOTE: its possible the system isn't giving us the warp event
-         * ideally we shouldn't have to worry about this, see: T45361 */
-        wmWindow *win = CTX_wm_window(C);
-        WM_cursor_warp(win,
-                       walk->region->winrct.xmin + walk->center_mval[0],
-                       walk->region->winrct.ymin + walk->center_mval[1]);
-      }
-      return;
-    }
-
     if ((walk->is_cursor_absolute == false) && event->tablet.is_motion_absolute) {
       walk->is_cursor_absolute = true;
-      copy_v2_v2_int(walk->prev_mval, event->mval);
-      copy_v2_v2_int(walk->center_mval, event->mval);
     }
 #endif /* USE_TABLET_SUPPORT */
 
@@ -727,29 +672,8 @@ static void walkEvent(bContext *C, WalkInfo *walk, const wmEvent *event)
 
     copy_v2_v2_int(walk->prev_mval, event->mval);
 
-    if ((walk->center_mval[0] != event->mval[0]) || (walk->center_mval[1] != event->mval[1])) {
+    if (walk->moffset[0] || walk->moffset[1]) {
       walk->redraw = true;
-
-#ifdef USE_TABLET_SUPPORT
-      if (walk->is_cursor_absolute) {
-        /* pass */
-      }
-      else
-#endif
-          if (WM_event_is_last_mousemove(event)) {
-        wmWindow *win = CTX_wm_window(C);
-
-#ifdef __APPLE__
-        if ((abs(walk->prev_mval[0] - walk->center_mval[0]) > walk->center_mval[0] / 2) ||
-            (abs(walk->prev_mval[1] - walk->center_mval[1]) > walk->center_mval[1] / 2))
-#endif
-        {
-          WM_cursor_warp(win,
-                         walk->region->winrct.xmin + walk->center_mval[0],
-                         walk->region->winrct.ymin + walk->center_mval[1]);
-          copy_v2_v2_int(walk->prev_mval, walk->center_mval);
-        }
-      }
     }
   }
 #ifdef WITH_INPUT_NDOF
@@ -1436,12 +1360,12 @@ static int walk_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   op->customdata = walk;
 
-  if (initWalkInfo(C, walk, op) == false) {
+  if (initWalkInfo(C, walk, op, event->mval) == false) {
     MEM_freeN(op->customdata);
     return OPERATOR_CANCELLED;
   }
 
-  walkEvent(C, walk, event);
+  walkEvent(walk, event);
 
   WM_event_add_modal_handler(C, op);
 
@@ -1467,7 +1391,7 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   walk->redraw = false;
 
-  walkEvent(C, walk, event);
+  walkEvent(walk, event);
 
 #ifdef WITH_INPUT_NDOF
   if (walk->ndof) { /* 3D mouse overrules [2D mouse + timer] */
@@ -1515,7 +1439,9 @@ void VIEW3D_OT_walk(wmOperatorType *ot)
   ot->poll = ED_operator_region_view3d_active;
 
   /* flags */
-  ot->flag = OPTYPE_BLOCKING;
+  /* NOTE: #OPTYPE_BLOCKING isn't used because this needs to grab & hide the cursor.
+   * where as blocking confines the cursor to the window bounds, even when hidden. */
+  ot->flag = 0;
 }
 
 /** \} */

@@ -693,7 +693,7 @@ static const EnumPropertyItem WT_vertex_group_select_item[] = {
 
 const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *C,
                                                                 PointerRNA *UNUSED(ptr),
-                                                                PropertyRNA *UNUSED(prop),
+                                                                PropertyRNA *prop,
                                                                 bool *r_free,
                                                                 const uint selection_mask)
 {
@@ -730,6 +730,10 @@ const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *
   if (selection_mask & (1 << WT_VGROUP_ALL)) {
     RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_ALL);
   }
+
+  /* Set `Deform Bone` as default selection if armature is present. */
+  RNA_def_property_enum_default(
+    prop, BKE_modifiers_is_deformed_by_armature(ob) ? WT_VGROUP_BONE_DEFORM : WT_VGROUP_ALL);
 
   RNA_enum_item_end(&item, &totitem);
   *r_free = true;

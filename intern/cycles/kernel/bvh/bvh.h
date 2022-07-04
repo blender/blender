@@ -452,7 +452,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 
 #    ifdef __EMBREE__
   if (kernel_data.bvh.scene) {
-    const bool has_bvh = !(kernel_tex_fetch(__object_flag, local_object) &
+    const bool has_bvh = !(kernel_data_fetch(object_flag, local_object) &
                            SD_OBJECT_TRANSFORM_APPLIED);
     CCLIntersectContext ctx(
         kg, has_bvh ? CCLIntersectContext::RAY_SSS : CCLIntersectContext::RAY_LOCAL);

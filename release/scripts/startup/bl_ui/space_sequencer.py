@@ -1870,6 +1870,12 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         split.label(text="Channel")
         split.prop(strip, "channel", text="")
 
+        if not is_effect:
+            split = layout.split(factor=0.5 + max_factor)
+            split.alignment = 'RIGHT'
+            split.label(text="Speed Factor")
+            split.prop(strip, "speed_factor", text="")
+
         sub = layout.column(align=True)
         split = sub.split(factor=0.5 + max_factor, align=True)
         split.alignment = 'RIGHT'
@@ -1981,11 +1987,6 @@ class SEQUENCER_PT_adjust_sound(SequencerButtonsPanel, Panel):
             split.alignment = 'RIGHT'
             split.label(text="Volume")
             split.prop(strip, "volume", text="")
-
-            split = col.split(factor=0.4)
-            split.alignment = 'RIGHT'
-            split.label(text="Pitch")
-            split.prop(strip, "pitch", text="")
 
             audio_channels = context.scene.render.ffmpeg.audio_channels
             pan_enabled = sound.use_mono and audio_channels != 'MONO'

@@ -712,9 +712,7 @@ void WM_drag_add_asset_list_item(
     const AssetLibraryReference *asset_library_ref,
     const AssetHandle *asset)
 {
-  if (drag->type != WM_DRAG_ASSET_LIST) {
-    return;
-  }
+  BLI_assert(drag->type == WM_DRAG_ASSET_LIST);
 
   /* No guarantee that the same asset isn't added twice. */
 

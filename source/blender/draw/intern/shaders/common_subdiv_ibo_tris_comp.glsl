@@ -45,7 +45,7 @@ void main()
   int triangle_loop_index = (int(quad_index) + mat_offset) * 6;
 #endif
 
-  if (is_face_hidden(coarse_quad_index)) {
+  if (use_hide && is_face_hidden(coarse_quad_index)) {
     output_tris[triangle_loop_index + 0] = 0xffffffff;
     output_tris[triangle_loop_index + 1] = 0xffffffff;
     output_tris[triangle_loop_index + 2] = 0xffffffff;

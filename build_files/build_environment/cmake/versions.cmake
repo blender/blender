@@ -147,7 +147,7 @@ set(OPENIMAGEIO_HASH de45fb38501c4581062b522b53b6141c)
 set(OPENIMAGEIO_HASH_TYPE MD5)
 set(OPENIMAGEIO_FILE OpenImageIO-${OPENIMAGEIO_VERSION}.tar.gz)
 
-# 8.0.0 is currently oiio's preferred vesion although never versions may be available.
+# 8.0.0 is currently oiio's preferred version although never versions may be available.
 # the preferred version can be found in oiio's externalpackages.cmake
 set(FMT_VERSION 8.0.0)
 set(FMT_URI https://github.com/fmtlib/fmt/archive/refs/tags/${FMT_VERSION}.tar.gz)
@@ -155,7 +155,7 @@ set(FMT_HASH 7bce0e9e022e586b178b150002e7c2339994e3c2bbe44027e9abb0d60f9cce83)
 set(FMT_HASH_TYPE SHA256)
 set(FMT_FILE fmt-${FMT_VERSION}.tar.gz)
 
-# 0.6.2 is currently oiio's preferred vesion although never versions may be available.
+# 0.6.2 is currently oiio's preferred version although never versions may be available.
 # the preferred version can be found in oiio's externalpackages.cmake
 set(ROBINMAP_VERSION v0.6.2)
 set(ROBINMAP_URI https://github.com/Tessil/robin-map/archive/refs/tags/${ROBINMAP_VERSION}.tar.gz)
@@ -502,3 +502,134 @@ set(LEVEL_ZERO_URI https://github.com/oneapi-src/level-zero/archive/refs/tags/${
 set(LEVEL_ZERO_HASH c39bb05a8e5898aa6c444e1704105b93d3f1888b9c333f8e7e73825ffbfb2617)
 set(LEVEL_ZERO_HASH_TYPE SHA256)
 set(LEVEL_ZERO_FILE level-zero-${LEVEL_ZERO_VERSION}.tar.gz)
+
+set(DPCPP_VERSION 20220620)
+set(DPCPP_URI https://github.com/intel/llvm/archive/refs/tags/sycl-nightly/${DPCPP_VERSION}.tar.gz)
+set(DPCPP_HASH a5f41abd5229d28afa92cbd8a5d8d786ee698bf239f722929fd686276bad692c)
+set(DPCPP_HASH_TYPE SHA256)
+set(DPCPP_FILE DPCPP-${DPCPP_VERSION}.tar.gz)
+
+########################
+### DPCPP DEPS BEGIN ###
+########################
+# The following deps are build time requirements for dpcpp, when possible
+# the source in the dpcpp source tree for the version chosen is documented
+# by each dep, these will only have to be downloaded and unpacked, dpcpp
+# will take care of building them, unpack is being done in dpcpp_deps.cmake
+
+# Source llvm/lib/SYCLLowerIR/CMakeLists.txt
+set(VCINTRINSICS_VERSION 984bb27baacce6ee5c716c2e64845f2a1928025b)
+set(VCINTRINSICS_URI https://github.com/intel/vc-intrinsics/archive/${VCINTRINSICS_VERSION}.tar.gz)
+set(VCINTRINSICS_HASH abea415a15a0dd11fdc94dee8fb462910f2548311b787e02f42509789e1b0d7b)
+set(VCINTRINSICS_HASH_TYPE SHA256)
+set(VCINTRINSICS_FILE vc-intrinsics-${VCINTRINSICS_VERSION}.tar.gz)
+
+# Source opencl/CMakeLists.txt
+set(OPENCLHEADERS_VERSION dcd5bede6859d26833cd85f0d6bbcee7382dc9b3)
+set(OPENCLHEADERS_URI https://github.com/KhronosGroup/OpenCL-Headers/archive/${OPENCLHEADERS_VERSION}.tar.gz)
+set(OPENCLHEADERS_HASH ca8090359654e94f2c41e946b7e9d826253d795ae809ce7c83a7d3c859624693)
+set(OPENCLHEADERS_HASH_TYPE SHA256)
+set(OPENCLHEADERS_FILE opencl_headers-${OPENCLHEADERS_VERSION}.tar.gz)
+
+# Source opencl/CMakeLists.txt
+set(ICDLOADER_VERSION aec3952654832211636fc4af613710f80e203b0a)
+set(ICDLOADER_URI https://github.com/KhronosGroup/OpenCL-ICD-Loader/archive/${ICDLOADER_VERSION}.tar.gz)
+set(ICDLOADER_HASH e1880551d67bd8dc31d13de63b94bbfd6b1f315b6145dad1ffcd159b89bda93c)
+set(ICDLOADER_HASH_TYPE SHA256)
+set(ICDLOADER_FILE icdloader-${ICDLOADER_VERSION}.tar.gz)
+
+# Source sycl/cmake/modules/AddBoostMp11Headers.cmake
+# Using external MP11 here, getting AddBoostMp11Headers.cmake to recognize
+# our copy in boost directly was more trouble than it was worth.
+set(MP11_VERSION 7bc4e1ae9b36ec8ee635c3629b59ec525bbe82b9)
+set(MP11_URI https://github.com/boostorg/mp11/archive/${MP11_VERSION}.tar.gz)
+set(MP11_HASH 071ee2bd3952ec89882edb3af25dd1816f6b61723f66e42eea32f4d02ceef426)
+set(MP11_HASH_TYPE SHA256)
+set(MP11_FILE mp11-${MP11_VERSION}.tar.gz)
+
+# Source llvm-spirv/CMakeLists.txt (repo)
+# Source llvm-spirv/spirv-headers-tag.conf (hash)
+set(SPIRV_HEADERS_VERSION 36c0c1596225e728bd49abb7ef56a3953e7ed468)
+set(SPIRV_HEADERS_URI https://github.com/KhronosGroup/SPIRV-Headers/archive/${SPIRV_HEADERS_VERSION}.tar.gz)
+set(SPIRV_HEADERS_HASH 7a5c89633f8740456fe8adee052033e134476d267411d1336c0cb1e587a9229a)
+set(SPIRV_HEADERS_HASH_TYPE SHA256)
+set(SPIRV_HEADERS_FILE SPIR-V-Headers-${SPIRV_HEADERS_VERSION}.tar.gz)
+
+######################
+### DPCPP DEPS END ###
+######################
+
+##########################################
+### Intel Graphics Compiler DEPS BEGIN ###
+##########################################
+# The following deps are build time requirements for the intel graphics
+# compiler, the versions used are taken from the following location
+# https://github.com/intel/intel-graphics-compiler/releases
+
+set(IGC_VERSION 1.0.11222)
+set(IGC_URI https://github.com/intel/intel-graphics-compiler/archive/refs/tags/igc-${IGC_VERSION}.tar.gz)
+set(IGC_HASH d92f0608dcbb52690855685f9447282e5c09c0ba98ae35fabf114fcf8b1e9fcf)
+set(IGC_HASH_TYPE SHA256)
+set(IGC_FILE igc-${IGC_VERSION}.tar.gz)
+
+set(IGC_LLVM_VERSION llvmorg-11.1.0)
+set(IGC_LLVM_URI https://github.com/llvm/llvm-project/archive/refs/tags/${IGC_LLVM_VERSION}.tar.gz)
+set(IGC_LLVM_HASH 53a0719f3f4b0388013cfffd7b10c7d5682eece1929a9553c722348d1f866e79)
+set(IGC_LLVM_HASH_TYPE SHA256)
+set(IGC_LLVM_FILE ${IGC_LLVM_VERSION}.tar.gz)
+
+# WARNING WARNING WARNING
+#
+# IGC_OPENCL_CLANG contains patches for some of its dependencies.
+#
+# Whenever IGC_OPENCL_CLANG_VERSION changes, one *MUST* inspect
+# IGC_OPENCL_CLANG's patches folder and update igc.cmake to account for
+# any added or removed patches.
+#
+# WARNING WARNING WARNING
+
+set(IGC_OPENCL_CLANG_VERSION bbdd1587f577397a105c900be114b56755d1f7dc)
+set(IGC_OPENCL_CLANG_URI https://github.com/intel/opencl-clang/archive/${IGC_OPENCL_CLANG_VERSION}.tar.gz)
+set(IGC_OPENCL_CLANG_HASH d08315f1b0d8a6fef33de2b3e6aa7356534c324910634962c72523d970773efc)
+set(IGC_OPENCL_CLANG_HASH_TYPE SHA256)
+set(IGC_OPENCL_CLANG_FILE opencl-clang-${IGC_OPENCL_CLANG_VERSION}.tar.gz)
+
+set(IGC_VCINTRINSICS_VERSION v0.4.0)
+set(IGC_VCINTRINSICS_URI https://github.com/intel/vc-intrinsics/archive/refs/tags/${IGC_VCINTRINSICS_VERSION}.tar.gz)
+set(IGC_VCINTRINSICS_HASH c8b92682ad5031cf9d5b82a40e7d5c0e763cd9278660adbcaa69aab988e4b589)
+set(IGC_VCINTRINSICS_HASH_TYPE SHA256)
+set(IGC_VCINTRINSICS_FILE vc-intrinsics-${IGC_VCINTRINSICS_VERSION}.tar.gz)
+
+set(IGC_SPIRV_HEADERS_VERSION sdk-1.3.204.1)
+set(IGC_SPIRV_HEADERS_URI https://github.com/KhronosGroup/SPIRV-Headers/archive/refs/tags/${IGC_SPIRV_HEADERS_VERSION}.tar.gz)
+set(IGC_SPIRV_HEADERS_HASH 262864053968c217d45b24b89044a7736a32361894743dd6cfe788df258c746c)
+set(IGC_SPIRV_HEADERS_HASH_TYPE SHA256)
+set(IGC_SPIRV_HEADERS_FILE SPIR-V-Headers-${IGC_SPIRV_HEADERS_VERSION}.tar.gz)
+
+set(IGC_SPIRV_TOOLS_VERSION sdk-1.3.204.1)
+set(IGC_SPIRV_TOOLS_URI https://github.com/KhronosGroup/SPIRV-Tools/archive/refs/tags/${IGC_SPIRV_TOOLS_VERSION}.tar.gz)
+set(IGC_SPIRV_TOOLS_HASH 6e19900e948944243024aedd0a201baf3854b377b9cc7a386553bc103b087335)
+set(IGC_SPIRV_TOOLS_HASH_TYPE SHA256)
+set(IGC_SPIRV_TOOLS_FILE SPIR-V-Tools-${IGC_SPIRV_TOOLS_VERSION}.tar.gz)
+
+set(IGC_SPIRV_TRANSLATOR_VERSION 99420daab98998a7e36858befac9c5ed109d4920)
+set(IGC_SPIRV_TRANSLATOR_URI https://github.com/KhronosGroup/SPIRV-LLVM-Translator/archive/${IGC_SPIRV_TRANSLATOR_VERSION}.tar.gz)
+set(IGC_SPIRV_TRANSLATOR_HASH 77dfb4ddb6bfb993535562c02ddea23f0a0d1c5a0258c1afe7e27c894ff783a8)
+set(IGC_SPIRV_TRANSLATOR_HASH_TYPE SHA256)
+set(IGC_SPIRV_TRANSLATOR_FILE SPIR-V-Translator-${IGC_SPIRV_TRANSLATOR_VERSION}.tar.gz)
+
+########################################
+### Intel Graphics Compiler DEPS END ###
+########################################
+
+set(GMMLIB_VERSION intel-gmmlib-22.1.2)
+set(GMMLIB_URI https://github.com/intel/gmmlib/archive/refs/tags/${GMMLIB_VERSION}.tar.gz)
+set(GMMLIB_HASH 3b9a6d5e7e3f5748b3d0a2fb0e980ae943907fece0980bd9c0508e71c838e334)
+set(GMMLIB_HASH_TYPE SHA256)
+set(GMMLIB_FILE ${GMMLIB_VERSION}.tar.gz)
+
+set(OCLOC_VERSION 22.20.23198)
+set(OCLOC_URI https://github.com/intel/compute-runtime/archive/refs/tags/${OCLOC_VERSION}.tar.gz)
+set(OCLOC_HASH ab22b8bf2560a57fdd3def0e35a62ca75991406f959c0263abb00cd6cd9ae998)
+set(OCLOC_HASH_TYPE SHA256)
+set(OCLOC_FILE ocloc-${OCLOC_VERSION}.tar.gz)

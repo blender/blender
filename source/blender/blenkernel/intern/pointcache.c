@@ -2920,7 +2920,7 @@ int BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
     BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
   }
   else if (after) {
-    BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, CFRA);
+    BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_AFTER, scene->r.cfra);
   }
 
   return (reset || clear || after);
@@ -2978,6 +2978,15 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
           BKE_ptcache_id_from_dynamicpaint(&pid, ob, surface);
           reset |= BKE_ptcache_id_reset(scene, &pid, mode);
         }
+      }
+    }
+    if (md->type == eModifierType_Fluid) {
+      FluidModifierData *fmd = (FluidModifierData *)md;
+      FluidDomainSettings *fds = fmd->domain;
+      if ((fmd->type & MOD_FLUID_TYPE_DOMAIN) && fds &&
+          fds->cache_type == FLUID_DOMAIN_CACHE_REPLAY) {
+        BKE_ptcache_id_from_smoke(&pid, ob, fmd);
+        reset |= BKE_ptcache_id_reset(scene, &pid, mode);
       }
     }
   }
@@ -3153,8 +3162,8 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
   PTCacheID *pid = &baker->pid;
   PointCache *cache = NULL;
   float frameleno = scene->r.framelen;
-  int cfrao = CFRA;
-  int startframe = MAXFRAME, endframe = baker->anim_init ? scene->r.sfra : CFRA;
+  int cfrao = scene->r.cfra;
+  int startframe = MAXFRAME, endframe = baker->anim_init ? scene->r.sfra : scene->r.cfra;
   int bake = baker->bake;
   int render = baker->render;
 
@@ -3261,7 +3270,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
     }
   }
 
-  CFRA = startframe;
+  scene->r.cfra = startframe;
   scene->r.framelen = 1.0;
 
   /* bake */
@@ -3273,21 +3282,21 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 
   stime = ptime = PIL_check_seconds_timer();
 
-  for (int fr = CFRA; fr <= endframe; fr += baker->quick_step, CFRA = fr) {
+  for (int fr = scene->r.cfra; fr <= endframe; fr += baker->quick_step, scene->r.cfra = fr) {
     BKE_scene_graph_update_for_newframe(depsgraph);
 
     if (baker->update_progress) {
-      float progress = ((float)(CFRA - startframe) / (float)(endframe - startframe));
+      float progress = ((float)(scene->r.cfra - startframe) / (float)(endframe - startframe));
       baker->update_progress(baker->bake_job, progress, &cancel);
     }
 
     if (G.background) {
-      printf("bake: frame %d :: %d\n", CFRA, endframe);
+      printf("bake: frame %d :: %d\n", scene->r.cfra, endframe);
     }
     else {
       ctime = PIL_check_seconds_timer();
 
-      fetd = (ctime - ptime) * (endframe - CFRA) / baker->quick_step;
+      fetd = (ctime - ptime) * (endframe - scene->r.cfra) / baker->quick_step;
 
       if (use_timer || fetd > 60.0) {
         use_timer = true;
@@ -3298,7 +3307,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 
         printf("Baked for %s, current frame: %i/%i (%.3fs), ETC: %s\r",
                run,
-               CFRA - startframe + 1,
+               scene->r.cfra - startframe + 1,
                endframe - startframe + 1,
                ctime - ptime,
                etd);
@@ -3312,7 +3321,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
       break;
     }
 
-    CFRA += 1;
+    scene->r.cfra += 1;
   }
 
   if (use_timer) {
@@ -3321,7 +3330,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
     printf("\nBake %s %s (%i frames simulated).\n",
            (cancel ? "canceled after" : "finished in"),
            run,
-           CFRA - startframe);
+           scene->r.cfra - startframe);
   }
 
   /* clear baking flag */
@@ -3370,7 +3379,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
   }
 
   scene->r.framelen = frameleno;
-  CFRA = cfrao;
+  scene->r.cfra = cfrao;
 
   if (bake) { /* already on cfra unless baking */
     BKE_scene_graph_update_for_newframe(depsgraph);

@@ -247,8 +247,7 @@ struct CurvesEffectOperationExecutor {
 
   eBrushFalloffShape falloff_shape_;
 
-  float4x4 curves_to_world_mat_;
-  float4x4 world_to_curves_mat_;
+  CurvesSculptTransforms transforms_;
 
   float2 brush_pos_start_re_;
   float2 brush_pos_end_re_;
@@ -290,8 +289,7 @@ struct CurvesEffectOperationExecutor {
 
     falloff_shape_ = eBrushFalloffShape(brush_->falloff_shape);
 
-    curves_to_world_mat_ = object_->obmat;
-    world_to_curves_mat_ = curves_to_world_mat_.inverted();
+    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
 
     brush_pos_start_re_ = self.last_mouse_position_;
     brush_pos_end_re_ = stroke_extension.mouse_position;
@@ -398,16 +396,16 @@ struct CurvesEffectOperationExecutor {
             float3 brush_start_pos_wo, brush_end_pos_wo;
             ED_view3d_win_to_3d(ctx_.v3d,
                                 ctx_.region,
-                                curves_to_world_mat_ * closest_on_segment_cu,
+                                transforms_.curves_to_world * closest_on_segment_cu,
                                 brush_pos_start_re_,
                                 brush_start_pos_wo);
             ED_view3d_win_to_3d(ctx_.v3d,
                                 ctx_.region,
-                                curves_to_world_mat_ * closest_on_segment_cu,
+                                transforms_.curves_to_world * closest_on_segment_cu,
                                 brush_pos_end_re_,
                                 brush_end_pos_wo);
-            const float3 brush_start_pos_cu = world_to_curves_mat_ * brush_start_pos_wo;
-            const float3 brush_end_pos_cu = world_to_curves_mat_ * brush_end_pos_wo;
+            const float3 brush_start_pos_cu = transforms_.world_to_curves * brush_start_pos_wo;
+            const float3 brush_end_pos_cu = transforms_.world_to_curves * brush_end_pos_wo;
 
             const float move_distance_cu = weight *
                                            math::distance(brush_start_pos_cu, brush_end_pos_cu);
@@ -430,16 +428,16 @@ struct CurvesEffectOperationExecutor {
     float3 brush_pos_start_wo, brush_pos_end_wo;
     ED_view3d_win_to_3d(ctx_.v3d,
                         ctx_.region,
-                        curves_to_world_mat_ * self_->brush_3d_.position_cu,
+                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
                         brush_pos_start_re_,
                         brush_pos_start_wo);
     ED_view3d_win_to_3d(ctx_.v3d,
                         ctx_.region,
-                        curves_to_world_mat_ * self_->brush_3d_.position_cu,
+                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
                         brush_pos_end_re_,
                         brush_pos_end_wo);
-    const float3 brush_pos_start_cu = world_to_curves_mat_ * brush_pos_start_wo;
-    const float3 brush_pos_end_cu = world_to_curves_mat_ * brush_pos_end_wo;
+    const float3 brush_pos_start_cu = transforms_.world_to_curves * brush_pos_start_wo;
+    const float3 brush_pos_end_cu = transforms_.world_to_curves * brush_pos_end_wo;
     const float3 brush_pos_diff_cu = brush_pos_end_cu - brush_pos_start_cu;
     const float brush_pos_diff_length_cu = math::length(brush_pos_diff_cu);
     const float brush_radius_cu = self_->brush_3d_.radius_cu * brush_radius_factor_;

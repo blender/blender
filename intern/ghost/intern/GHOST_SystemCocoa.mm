@@ -37,7 +37,7 @@
 
 #pragma mark KeyMap, mouse converters
 
-static GHOST_TButtonMask convertButton(int button)
+static GHOST_TButton convertButton(int button)
 {
   switch (button) {
     case 0:

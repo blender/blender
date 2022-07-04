@@ -3030,7 +3030,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
     }
 
     if (dparm->next) {
-      fprintf(f, "\t_data += %d;\n", rna_parameter_size(dparm->prop));
+      fprintf(f, "\t_data += %d;\n", rna_parameter_size_pad(rna_parameter_size(dparm->prop)));
     }
   }
 
