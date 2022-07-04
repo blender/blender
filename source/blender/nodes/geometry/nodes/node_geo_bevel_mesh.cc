@@ -8,6 +8,8 @@
 #include "BKE_mesh_runtime.h"
 
 #include "BLI_array.hh"
+#include "BLI_math_vec_types.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_set.hh"
 #include "BLI_sort.hh"
 #include "BLI_task.hh"
@@ -51,8 +53,13 @@ static void node_update(bNodeTree *UNUSED(ntree), bNode *UNUSED(node))
 {
 }
 
-/* While Mesh uses the term 'poly' for polygon, most of Blender uses the term 'face',
+/* MeshTopology encapsulates data needed to answer topological queries about a mesh,
+ * such as "which edges are adjacent to a given vertex?".
+ * While Mesh uses the term 'poly' for polygon, most of Blender uses the term 'face',
  * so we'll go with 'face' in this code except in the final to/from mesh routines.
+ * This structure will also give some basic access to information about the Mesh elements
+ * themselves, in order to keep open the possibility that this code could be adapted
+ * for use with BMesh at some point in the future.
  */
 class MeshTopology {
   MeshElemMap *vert_edge_map_;
@@ -108,6 +115,24 @@ class MeshTopology {
   {
     return mesh_.totpoly;
   }
+
+  float3 vert_co(int v) const
+  {
+    return float3(mesh_.mvert[v].co);
+  }
+
+  int edge_v1(int e) const
+  {
+    return mesh_.medge[e].v1;
+  }
+
+  int edge_v2(int e) const
+  {
+    return mesh_.medge[e].v2;
+  }
+
+  float3 edge_dir_from_vert(int e, int v) const;
+  float3 edge_dir_from_vert_normalized(int e, int v) const;
 };
 
 MeshTopology::MeshTopology(const Mesh &mesh) : mesh_(mesh)
@@ -185,6 +210,23 @@ bool MeshTopology::edge_is_successor_in_face(const int e0, const int e1, const i
   return false;
 }
 
+float3 MeshTopology::edge_dir_from_vert(int e, int v) const
+{
+  const MEdge &medge = mesh_.medge[e];
+  if (medge.v1 == v) {
+    return vert_co(medge.v2) - vert_co(medge.v1);
+  }
+  else {
+    BLI_assert(medge.v2 == v);
+    return vert_co(medge.v1) - vert_co(medge.v2);
+  }
+}
+
+float3 MeshTopology::edge_dir_from_vert_normalized(int e, int v) const
+{
+  return math::normalize(edge_dir_from_vert(e, v));
+}
+
 /* A Vertex Cap consists of a vertex in a mesh and an CCW ordering of
  * alternating edges and faces around it, as viewed from the face's
  * normal side. Some faces may be missing (i.e., gaps).
@@ -206,6 +248,9 @@ class VertexCap {
   VertexCap(int vert, Span<int> edges, Span<int> faces) : edges_(edges), faces_(faces), vert(vert)
   {
   }
+
+  /* Initialize for vertex v, given a mesh topo. */
+  void init_from_topo(const int vert, const MeshTopology &topo);
 
   /* The number of edges around the cap. */
   int size() const
@@ -257,34 +302,16 @@ class VertexCap {
   {
     return face(i) == -1;
   }
-
-  /* Debug printing on std::cout. */
-  void print() const;
-};
-
-class BevelData {
-  Array<VertexCap> bevel_vert_caps_;
-
- public:
-  MeshTopology topo;
-
-  BevelData(const Mesh &mesh) : topo(mesh)
-  {
-  }
-  ~BevelData()
-  {
-  }
-
-  void init_caps_from_vertex_selection(const IndexMask selection);
 };
 
 /* Construct and return the VertexCap for vertex vert. */
-static VertexCap construct_cap(const int vert, const MeshTopology &topo)
+void VertexCap::init_from_topo(const int vert, const MeshTopology &topo)
 {
+  this->vert = vert;
   Span<int> incident_edges = topo.vert_edges(vert);
   const int num_edges = incident_edges.size();
   if (num_edges == 0) {
-    return VertexCap(vert, Span<int>(), Span<int>());
+    return;
   }
 
   /* First check for the most common case: a complete manifold cap:
@@ -350,35 +377,254 @@ static VertexCap construct_cap(const int vert, const MeshTopology &topo)
           std::reverse(ordered_faces.begin(), ordered_faces.end());
         }
       }
-      return VertexCap(vert, ordered_edges.as_span(), ordered_faces.as_span());
+      this->edges_ = ordered_edges;
+      this->faces_ = ordered_faces;
+      return;
     }
   }
   std::cout << "to implement: VertexCap for non-manifold edges\n";
-  BLI_assert(false);
-  return VertexCap();
 }
 
-void VertexCap::print() const
+static std::ostream &operator<<(std::ostream &os, const VertexCap &cap)
 {
-  std::cout << "cap at v" << vert << ": ";
-  for (const int i : edges_.index_range()) {
-    std::cout << "e" << edges_[i] << " ";
-    if (faces_[i] == -1) {
-      std::cout << "<gap> ";
+  os << "cap at v" << cap.vert << ": ";
+  for (const int i : cap.edges().index_range()) {
+    os << "e" << cap.edge(i) << " ";
+    if (cap.face(i) == -1) {
+      os << "<gap> ";
     }
     else {
-      std::cout << "f" << faces_[i] << " ";
+      os << "f" << cap.face(i) << " ";
     }
   }
-  std::cout << "\n";
+  os << "\n";
+  return os;
 }
 
-void BevelData::init_caps_from_vertex_selection(const IndexMask selection)
+/* The different types of BoundaryVerts (see below). */
+typedef enum eBoundaryVertType {
+  BV_ON_EDGE = 0,
+  BV_ON_FACE = 1,
+  BV_ABOVE_FACE = 2,
+  BV_OTHER = 3,
+} eBoundaryVertType;
+
+static const char *bv_type_name[4] = {"on_edge", "on_face", "above_face", "other"};
+
+/* A BoundaryVert is a vertex placed somewhere around a vertex involved
+ * in a bevel. BoundaryVerts will be joined with line or arcs (depending on the
+ * number of segments in the bevel).
+ */
+class BoundaryVert {
+ public:
+  /* The position of the Boundary Vertex. */
+  float3 co;
+  /* If the type references an edge or a face.
+   * the index of the corresponding edge or face in the VertexCap. */
+  int vc_index;
+  /* Mesh index of this vertex in the output mesh. */
+  int mesh_index;
+  /* The type of this Boundary Vertex. */
+  eBoundaryVertType type;
+
+  BoundaryVert() : co(0.0, 0.0, 0.0), vc_index(-1), mesh_index(-1), type(BV_OTHER)
+  {
+  }
+};
+
+static std::ostream &operator<<(std::ostream &os, const BoundaryVert &bv)
 {
-  bevel_vert_caps_.reinitialize(selection.size());
-  threading::parallel_for(selection.index_range(), 1024, [&](const IndexRange range) {
+  os << "bv{" << bv_type_name[bv.type] << " "
+     << "vc#=" << bv.vc_index << " "
+     << "mesh#" << bv.mesh_index << " "
+     << "co=" << bv.co << "}";
+  return os;
+}
+
+/* The different types of BoundaryEdges (see below). */
+typedef enum eBoundaryEdgeType {
+  BE_UNBEVELED = 0,
+  BE_BEVELED = 1,
+  BE_FACE_BEVEL_BOTH = 2,
+  BE_FACE_BEVEL_LEFT = 3,
+  BE_FACE_BEVEL_RIGHT = 4,
+  BE_OTHER = 5,
+} eBoundaryEdgeType;
+
+static const char *be_type_name[6] = {
+    "unbev", "bev", "facebev_both", "facebev_l", "facebev_r", "other"};
+
+/* A BoundaryEdge is one end of an edge, attached to a vertex in a VertexCap.
+ * This data describes how it is involved in beveling, and how it is attached
+ * to BoundaryVerts.
+ * Note: when the descriptors "left" and "right" are used to refer to sides of
+ * edges, these are to be taken as left and right when looking down the edge
+ * towards the VertexCap's vertex.
+ */
+class BoundaryEdge {
+ public:
+  /* The mesh index of the edge. */
+  int edge;
+  /* Where it is found in the list of edges in the VertexCap. */
+  int vc_index;
+  /* The boundary vertex index where the edge is attached,
+   * only used for BE_UNBEVELED and BE_FACE_BEVEL_* types. */
+  int bv_index;
+  /* The boundary vertex index where the left half of a BE_BEVELED,
+   * BE_FACE_BEVEL_BOTH, or BE_FACE_BEVEL_LEFT attached. */
+  int bv_left_index;
+  /* The boundary vertex index where the left half of a BE_BEVELED,
+   * BE_FACE_BEVEL_BOTH, or BE_FACE_BEVEL_RIGHT attached. */
+  int bv_right_index;
+  /* The type of this BoundaryEdge. */
+  eBoundaryEdgeType type;
+
+  BoundaryEdge()
+      : edge(-1), vc_index(-1), bv_index(-1), bv_left_index(-1), bv_right_index(-1), type(BE_OTHER)
+  {
+  }
+};
+
+static std::ostream &operator<<(std::ostream &os, const BoundaryEdge &be)
+{
+  os << "be{" << be_type_name[be.type] << " "
+     << "edge=" << be.edge << " "
+     << "vc#=" << be.vc_index << " "
+     << "bv#=" << be.bv_index << " "
+     << "bvl#=" << be.bv_left_index << " "
+     << "bvr#=" << be.bv_right_index << "}";
+  return os;
+}
+
+class BevelVertexData {
+  VertexCap vertex_cap_;
+  Array<BoundaryVert> boundary_vert_;
+  Array<BoundaryEdge> boundary_edge_;
+
+ public:
+  BevelVertexData()
+  {
+  }
+  ~BevelVertexData()
+  {
+  }
+
+  void construct_vertex_cap(int vert, const MeshTopology &topo)
+  {
+    vertex_cap_.init_from_topo(vert, topo);
+  }
+
+  void construct_vertex_bevel(int vert, float amount, const MeshTopology &topo);
+
+  const VertexCap &vertex_cap() const
+  {
+    return vertex_cap_;
+  }
+
+  Span<BoundaryVert> boundary_verts() const
+  {
+    return boundary_vert_.as_span();
+  }
+
+  Span<BoundaryEdge> boundary_edges() const
+  {
+    return boundary_edge_.as_span();
+  }
+};
+
+static std::ostream &operator<<(std::ostream &os, const BevelVertexData &bvd)
+{
+  const VertexCap &vc = bvd.vertex_cap();
+  os << "bevel vertex data for vertex " << vc.vert << "\n";
+  os << vc;
+  Span<BoundaryVert> bvs = bvd.boundary_verts();
+  os << "boundary verts:\n";
+  for (const int i : bvs.index_range()) {
+    os << "[" << i << "] " << bvs[i] << "\n";
+  }
+  Span<BoundaryEdge> bes = bvd.boundary_edges();
+  os << "boundary edges:\n";
+  for (const int i : bes.index_range()) {
+    os << "[" << i << "] " << bes[i] << "\n";
+  }
+  return os;
+}
+
+/* Calculate the BevelVertexData for one vertex, `vert`, by the given `amount`.
+ * This doesn't calculate limits to the bevel caused by collisions with vertex bevels
+ * at adjacent vertices; that needs to done after all of these are calculated,
+ * so that this operation can be done in parallel with all other vertex constructions.
+ */
+void BevelVertexData::construct_vertex_bevel(int vert, float amount, const MeshTopology &topo)
+{
+  construct_vertex_cap(vert, topo);
+
+  const int num_edges = vertex_cap().size();
+
+  /* There will be one boundary vertex on each edge attached to `vert`. */
+  boundary_edge_.reinitialize(num_edges);
+  boundary_vert_.reinitialize(num_edges);
+
+  const float3 vert_co = topo.vert_co(vertex_cap().vert);
+  for (const int i : IndexRange(num_edges)) {
+    BoundaryVert &bv = boundary_vert_[i];
+    bv.type = BV_ON_EDGE;
+    bv.vc_index = i;
+    BoundaryEdge &be = boundary_edge_[i];
+    be.edge = vertex_cap().edge(i);
+    be.type = BE_UNBEVELED;
+    be.bv_index = i;
+    be.vc_index = i;
+
+    /* Set the position of the boundary vertex by sliding at distance `amount` along the edge. */
+    float3 dir = topo.edge_dir_from_vert_normalized(be.edge, vert);
+    bv.co = vert_co + amount * dir;
+  }
+}
+
+class BevelData {
+  Array<BevelVertexData> bevel_vert_data_;
+
+ public:
+  MeshTopology topo;
+
+  BevelData(const Mesh &mesh) : topo(mesh)
+  {
+  }
+  ~BevelData()
+  {
+  }
+
+  void calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> amounts);
+
+  void print(const std::string &label) const;
+};
+
+void BevelData::print(const std::string &label) const
+{
+  if (label.size() > 0) {
+    std::cout << label << " ";
+  }
+  std::cout << "BevelData\n";
+  for (const BevelVertexData &bvd : bevel_vert_data_.as_span()) {
+    std::cout << bvd;
+  }
+}
+
+/* Calculate the BevelData for a vertex bevel of all specified vertices of the mesh.
+ * `to_bevel` gives the mesh indices of vertices to be beveled.
+ * `amounts` should have (virtual) length that matches the number of vertices in the mesh,
+ * and gives, per vertex, the magnitude of the bevel at that vertex.
+ */
+void BevelData::calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> amounts)
+{
+  BLI_assert(amounts.size() == topo.num_verts());
+
+  bevel_vert_data_.reinitialize(to_bevel.size());
+  threading::parallel_for(to_bevel.index_range(), 1024, [&](const IndexRange range) {
     for (const int i : range) {
-      bevel_vert_caps_[i] = construct_cap(selection[i], topo);
+      const int vert = to_bevel[i];
+      bevel_vert_data_[i].construct_vertex_bevel(vert, amounts[vert], topo);
     }
   });
 }
@@ -398,7 +644,8 @@ static void bevel_mesh_vertices(MeshComponent &component,
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   BevelData bdata(mesh);
-  bdata.init_caps_from_vertex_selection(selection);
+  bdata.calculate_vertex_bevels(selection, amounts);
+  bdata.print("After calculate_vertex_bevels");  // DEBUG
 }
 
 static void bevel_mesh_edges(MeshComponent &UNUSED(component),
