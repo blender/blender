@@ -33,8 +33,7 @@ using namespace blender;
 using namespace blender::ui;
 
 /**
- * Wrapper to store views in a #ListBase. There's no `uiView` base class, we just store views as a
- * #std::variant.
+ * Wrapper to store views in a #ListBase, addressable via an identifier.
  */
 struct ViewLink : public Link {
   std::string idname;

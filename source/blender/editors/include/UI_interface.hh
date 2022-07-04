@@ -54,7 +54,7 @@ void attribute_search_add_items(
 }  // namespace blender::ui
 
 /**
- * Override this for all available tree types.
+ * Override this for all available view types.
  */
 blender::ui::AbstractGridView *UI_block_add_view(
     uiBlock &block,
