@@ -393,8 +393,8 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
 
   /* strip extents */
   column = uiLayoutColumn(layout, true);
-  uiItemR(column, &strip_ptr, "frame_start", 0, IFACE_("Frame Start"), ICON_NONE);
-  uiItemR(column, &strip_ptr, "frame_end", 0, IFACE_("End"), ICON_NONE);
+  uiItemR(column, &strip_ptr, "frame_start_ui", 0, IFACE_("Frame Start"), ICON_NONE);
+  uiItemR(column, &strip_ptr, "frame_end_ui", 0, IFACE_("End"), ICON_NONE);
 
   /* Evaluation-Related Strip Properties ------------------ */
 
