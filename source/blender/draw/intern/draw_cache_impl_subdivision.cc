@@ -1424,6 +1424,11 @@ void draw_subdiv_interp_custom_data(const DRWSubdivCache *cache,
 {
   GPUShader *shader = nullptr;
 
+  if (!draw_subdiv_cache_need_polygon_data(cache)) {
+    /* Happens on meshes with only loose geometry. */
+    return;
+  }
+
   if (dimensions == 1) {
     shader = get_subdiv_shader(SHADER_COMP_CUSTOM_DATA_INTERP_1D,
                                "#define SUBDIV_POLYGON_OFFSET\n"
