@@ -183,17 +183,43 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
 
   uint *flags_data = static_cast<uint *>(GPU_vertbuf_get_data(flags));
 
-  if (mr->extract_type == MR_EXTRACT_MESH) {
-    const MEdge *medge = mr->medge;
-    for (DRWSubdivLooseEdge edge : loose_edges) {
-      *flags_data++ = (medge[edge.coarse_edge_index].flag & ME_HIDE) != 0;
+  switch (mr->extract_type) {
+    case MR_EXTRACT_MESH: {
+      const MEdge *medge = mr->medge;
+      for (DRWSubdivLooseEdge edge : loose_edges) {
+        *flags_data++ = (medge[edge.coarse_edge_index].flag & ME_HIDE) != 0;
+      }
+      break;
     }
-  }
-  else {
-    BMesh *bm = mr->bm;
-    for (DRWSubdivLooseEdge edge : loose_edges) {
-      const BMEdge *bm_edge = BM_edge_at_index(bm, edge.coarse_edge_index);
-      *flags_data++ = BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) != 0;
+    case MR_EXTRACT_MAPPED: {
+      if (mr->bm) {
+        for (DRWSubdivLooseEdge edge : loose_edges) {
+          const BMEdge *bm_edge = bm_original_edge_get(mr, edge.coarse_edge_index);
+          *flags_data++ = BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) != 0;
+        }
+      }
+      else {
+        for (DRWSubdivLooseEdge edge : loose_edges) {
+          int e = edge.coarse_edge_index;
+
+          if (mr->e_origindex && mr->e_origindex[e] != ORIGINDEX_NONE) {
+            *flags_data++ = (mr->medge[mr->e_origindex[e]].flag & ME_HIDE) != 0;
+          }
+          else {
+            *flags_data++ = false;
+          }
+        }
+      }
+
+      break;
+    }
+    case MR_EXTRACT_BMESH: {
+      BMesh *bm = mr->bm;
+      for (DRWSubdivLooseEdge edge : loose_edges) {
+        const BMEdge *bm_edge = BM_edge_at_index(bm, edge.coarse_edge_index);
+        *flags_data++ = BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) != 0;
+      }
+      break;
     }
   }
 
