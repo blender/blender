@@ -1378,22 +1378,20 @@ static int wm_operator_invoke(bContext *C,
     }
 
     if (op->type->invoke && event) {
-      /* Temporarily write into `mval` (not technically `const` correct) but this is restored. */
-      const int mval_prev[2] = {UNPACK2(event->mval)};
-      wm_region_mouse_co(C, (wmEvent *)event);
+      /* Make a copy of the event as it's `const` and the #wmEvent.mval to be written into. */
+      wmEvent event_temp = *event;
+      wm_region_mouse_co(C, &event_temp);
 
       if (op->type->flag & OPTYPE_UNDO) {
         wm->op_undo_depth++;
       }
 
-      retval = op->type->invoke(C, op, event);
+      retval = op->type->invoke(C, op, &event_temp);
       OPERATOR_RETVAL_CHECK(retval);
 
       if (op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm) {
         wm->op_undo_depth--;
       }
-
-      copy_v2_v2_int(((wmEvent *)event)->mval, mval_prev);
     }
     else if (op->type->exec) {
       if (op->type->flag & OPTYPE_UNDO) {
