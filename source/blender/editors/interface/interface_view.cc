@@ -57,9 +57,9 @@ static T *ui_block_add_view_impl(uiBlock &block,
 
 AbstractGridView *UI_block_add_view(uiBlock &block,
                                     StringRef idname,
-                                    std::unique_ptr<AbstractView> tree_view)
+                                    std::unique_ptr<AbstractGridView> grid_view)
 {
-  return ui_block_add_view_impl<AbstractGridView>(block, idname, std::move(tree_view));
+  return ui_block_add_view_impl<AbstractGridView>(block, idname, std::move(grid_view));
 }
 
 AbstractTreeView *UI_block_add_view(uiBlock &block,
