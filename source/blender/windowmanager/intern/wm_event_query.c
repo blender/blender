@@ -254,16 +254,6 @@ bool WM_event_is_modal_drag_exit(const wmEvent *event,
   return 0;
 }
 
-bool WM_event_is_last_mousemove(const wmEvent *event)
-{
-  while ((event = event->next)) {
-    if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 bool WM_event_is_mouse_drag(const wmEvent *event)
 {
   return (ISMOUSE_BUTTON(event->type) && (event->val == KM_CLICK_DRAG));

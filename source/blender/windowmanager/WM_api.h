@@ -1527,7 +1527,6 @@ void WM_event_print(const struct wmEvent *event);
 bool WM_event_is_modal_drag_exit(const struct wmEvent *event,
                                  short init_event_type,
                                  short init_event_val);
-bool WM_event_is_last_mousemove(const struct wmEvent *event);
 bool WM_event_is_mouse_drag(const struct wmEvent *event);
 bool WM_event_is_mouse_drag_or_press(const wmEvent *event);
 int WM_event_drag_direction(const wmEvent *event);
