@@ -516,6 +516,14 @@ void calculate_evaluated_offsets(Span<int8_t> handle_types_left,
                                  MutableSpan<int> evaluated_offsets);
 
 /**
+ * Calculate the automatically defined positions for a vector handle (#BEZIER_HANDLE_VECTOR). While
+ * this can be calculated automatically with #calculate_auto_handles, when more context is
+ * available, it can be preferable for performance reasons to calculate it for a single segment
+ * when necessary.
+ */
+float3 calculate_vector_handle(const float3 &point, const float3 &next_point);
+
+/**
  * Recalculate all auto (#BEZIER_HANDLE_AUTO) and vector (#BEZIER_HANDLE_VECTOR) handles with
  * positions automatically derived from the neighboring control points, and update aligned
  * (#BEZIER_HANDLE_ALIGN) handles to line up with neighboring non-aligned handles. The choices
@@ -817,6 +825,11 @@ inline bool point_is_sharp(const Span<int8_t> handle_types_left,
 {
   return ELEM(handle_types_left[index], BEZIER_HANDLE_VECTOR, BEZIER_HANDLE_FREE) ||
          ELEM(handle_types_right[index], BEZIER_HANDLE_VECTOR, BEZIER_HANDLE_FREE);
+}
+
+inline float3 calculate_vector_handle(const float3 &point, const float3 &next_point)
+{
+  return math::interpolate(point, next_point, 1.0f / 3.0f);
 }
 
 /** \} */

@@ -106,11 +106,11 @@ static void calculate_point_handles(const HandleType type_left,
   }
 
   if (type_left == BEZIER_HANDLE_VECTOR) {
-    left = math::interpolate(position, prev_position, 1.0f / 3.0f);
+    left = calculate_vector_handle(position, prev_position);
   }
 
   if (type_right == BEZIER_HANDLE_VECTOR) {
-    right = math::interpolate(position, next_position, 1.0f / 3.0f);
+    right = calculate_vector_handle(position, next_position);
   }
 
   /* When one of the handles is "aligned" handle, it must be aligned with the other, i.e. point in
