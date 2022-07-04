@@ -1518,7 +1518,8 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
 
           /* To each point individually... */
           pt = &gps->points[i];
-          if ((pt->runtime.pt_orig == NULL) && (tool != GPSCULPT_TOOL_GRAB)) {
+          if ((i != gps->totpoints - 2) && (pt->runtime.pt_orig == NULL) &&
+              (tool != GPSCULPT_TOOL_GRAB)) {
             continue;
           }
           pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
