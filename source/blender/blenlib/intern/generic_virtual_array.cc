@@ -688,6 +688,15 @@ GVArray GVArray::ForEmpty(const CPPType &type)
 
 GVArray GVArray::slice(IndexRange slice) const
 {
+  const CommonVArrayInfo info = this->common_info();
+  if (info.type == CommonVArrayInfo::Type::Single) {
+    return GVArray::ForSingle(this->type(), slice.size(), info.data);
+  }
+  /* Need to check for ownership, because otherwise the referenced data can be destructed when
+   * #this is destructed. */
+  if (info.type == CommonVArrayInfo::Type::Span && !info.may_have_ownership) {
+    return GVArray::ForSpan(GSpan(this->type(), info.data, this->size()).slice(slice));
+  }
   return GVArray::For<GVArrayImpl_For_SlicedGVArray>(*this, slice);
 }
 
