@@ -1256,7 +1256,7 @@ float BKE_nlastrip_compute_frame_from_previous_strip(NlaStrip *strip)
   return limit_prev;
 }
 
-float BKE_nlastrip_compute_frame_to_next_strip(NlaStrip* strip)
+float BKE_nlastrip_compute_frame_to_next_strip(NlaStrip *strip)
 {
   float limit_next = MAXFRAMEF;
 

@@ -337,7 +337,6 @@ static void rna_NlaStrip_frame_end_ui_set(PointerRNA *ptr, float value)
     else {
       data->repeat -= (action_length_delta / actlen);
     }
-
   }
 }
 
@@ -749,9 +748,9 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "start");
   RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_frame_start_ui_set", NULL);
   RNA_def_property_ui_text(
-    prop,
-    "Start Frame (manipulated from UI)",
-    "Start frame of the NLA strip. Note : changing this value also updates the value of "
+      prop,
+      "Start Frame (manipulated from UI)",
+      "Start frame of the NLA strip. Note : changing this value also updates the value of "
       "the strip's end frame. If only the start frame should be changed, see the \"frame_start\" "
       "property instead.");
   RNA_def_property_update(
@@ -761,8 +760,8 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "end");
   RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_frame_end_ui_set", NULL);
   RNA_def_property_ui_text(
-    prop,
-    "End Frame (manipulated from UI)",
+      prop,
+      "End Frame (manipulated from UI)",
       "End frame of the NLA strip. Note : changing this value also updates the value of "
       "the strip's start frame. If only the end frame should be changed, see the \"frame_end\" "
       "property instead.");

@@ -8,7 +8,7 @@
  */
 
 /* temp constant defined for these funcs only... */
-#  define NLASTRIP_MIN_LEN_THRESH 0.1f
+#define NLASTRIP_MIN_LEN_THRESH 0.1f
 
 #ifdef __cplusplus
 extern "C" {
@@ -229,7 +229,8 @@ bool BKE_nlatrack_is_nonlocal_in_liboverride(const struct ID *id, const struct N
  * - the macro MINFRAMEF, if no strips are to the left of this strip in its track
  *
  * \param strip The strip to compute the left-hand-side 'frame limit' of.
- * \return The beginning frame of the previous strip, or MINFRAMEF if no strips are next in that track.
+ * \return The beginning frame of the previous strip, or MINFRAMEF if no strips are next in that
+ * track.
  */
 float BKE_nlastrip_compute_frame_from_previous_strip(struct NlaStrip *strip);
 /**
