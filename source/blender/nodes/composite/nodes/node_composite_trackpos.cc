@@ -5,6 +5,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_tracking.h"
 
 #include "RNA_access.h"
@@ -24,11 +26,16 @@ static void cmp_node_trackpos_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>(N_("Speed")).subtype(PROP_VELOCITY);
 }
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(const bContext *C, PointerRNA *ptr)
 {
-  NodeTrackPosData *data = MEM_cnew<NodeTrackPosData>(__func__);
+  bNode *node = (bNode *)ptr->data;
 
+  NodeTrackPosData *data = MEM_cnew<NodeTrackPosData>(__func__);
   node->storage = data;
+
+  const Scene *scene = CTX_data_scene(C);
+  node->id = (ID *)scene->clip;
+  id_us_plus(node->id);
 }
 
 static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -90,7 +97,7 @@ void register_node_type_cmp_trackpos()
   cmp_node_type_base(&ntype, CMP_NODE_TRACKPOS, "Track Position", NODE_CLASS_INPUT);
   ntype.declare = file_ns::cmp_node_trackpos_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_trackpos;
-  node_type_init(&ntype, file_ns::init);
+  ntype.initfunc_api = file_ns::init;
   node_type_storage(
       &ntype, "NodeTrackPosData", node_free_standard_storage, node_copy_standard_storage);
 

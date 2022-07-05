@@ -22,12 +22,18 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>(N_("Plane"));
 }
 
-static void init(bNodeTree *UNUSED(ntree), bNode *node)
+static void init(const bContext *C, PointerRNA *ptr)
 {
+  bNode *node = (bNode *)ptr->data;
+
   NodePlaneTrackDeformData *data = MEM_cnew<NodePlaneTrackDeformData>(__func__);
   data->motion_blur_samples = 16;
   data->motion_blur_shutter = 0.5f;
   node->storage = data;
+
+  const Scene *scene = CTX_data_scene(C);
+  node->id = (ID *)scene->clip;
+  id_us_plus(node->id);
 }
 
 static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -90,7 +96,7 @@ void register_node_type_cmp_planetrackdeform()
   cmp_node_type_base(&ntype, CMP_NODE_PLANETRACKDEFORM, "Plane Track Deform", NODE_CLASS_DISTORT);
   ntype.declare = file_ns::cmp_node_planetrackdeform_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_planetrackdeform;
-  node_type_init(&ntype, file_ns::init);
+  ntype.initfunc_api = file_ns::init;
   node_type_storage(
       &ntype, "NodePlaneTrackDeformData", node_free_standard_storage, node_copy_standard_storage);
 
