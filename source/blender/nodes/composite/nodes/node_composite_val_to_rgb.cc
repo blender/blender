@@ -7,6 +7,8 @@
 
 #include "node_composite_util.hh"
 
+#include "BKE_colorband.h"
+
 /* **************** VALTORGB ******************** */
 
 namespace blender::nodes::node_composite_val_to_rgb_cc {

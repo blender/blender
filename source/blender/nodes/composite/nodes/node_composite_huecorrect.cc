@@ -7,6 +7,8 @@
 
 #include "node_composite_util.hh"
 
+#include "BKE_colortools.h"
+
 namespace blender::nodes::node_composite_huecorrect_cc {
 
 static void cmp_node_huecorrect_declare(NodeDeclarationBuilder &b)
