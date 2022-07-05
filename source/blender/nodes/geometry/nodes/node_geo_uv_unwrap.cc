@@ -82,7 +82,7 @@ static VArray<float3> construct_uv_gvarray(const MeshComponent &component,
   edge_evaluator.evaluate();
   const IndexMask seam = edge_evaluator.get_evaluated_as_mask(0);
 
-  Array<float3> uv(mesh->totloop);
+  Array<float3> uv(mesh->totloop, float3(0));
 
   ParamHandle *handle = GEO_uv_parametrizer_construct_begin();
   for (const int mp_index : selection) {
