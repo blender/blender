@@ -937,11 +937,6 @@ static void lib_override_linked_group_tag(LibOverrideGroupTagData *data)
     id_root->tag |= data->tag;
   }
 
-  /* Only objects and groups are currently considered as 'keys' in override hierarchies. */
-  if (!ELEM(GS(id_root->name), ID_OB, ID_GR)) {
-    return;
-  }
-
   /* Tag all collections and objects recursively. */
   lib_override_linked_group_tag_recursive(data);
 
