@@ -25,6 +25,7 @@ set(SRC
   intern/resample_curves.cc
   intern/reverse_uv_sampler.cc
   intern/set_curve_type.cc
+  intern/subdivide_curves.cc
   intern/uv_parametrizer.c
 
   GEO_add_curves_on_mesh.hh
@@ -37,6 +38,7 @@ set(SRC
   GEO_resample_curves.hh
   GEO_reverse_uv_sampler.hh
   GEO_set_curve_type.hh
+  GEO_subdivide_curves.hh
   GEO_uv_parametrizer.h
 )
 
