@@ -243,17 +243,14 @@ static void try_convert_single_object(Object &curves_ob,
   }
 
   /* Prepare transformation matrices. */
-  const float4x4 curves_to_world_mat = curves_ob.obmat;
-  const float4x4 surface_to_world_mat = surface_ob.obmat;
-  const float4x4 world_to_surface_mat = surface_to_world_mat.inverted();
-  const float4x4 curves_to_surface_mat = world_to_surface_mat * curves_to_world_mat;
+  const bke::CurvesSurfaceTransforms transforms{curves_ob, &surface_ob};
 
   for (const int new_hair_i : IndexRange(hair_num)) {
     const int curve_i = new_hair_i;
     const IndexRange points = curves.points_for_curve(curve_i);
 
     const float3 &root_pos_cu = positions_cu[points.first()];
-    const float3 root_pos_su = curves_to_surface_mat * root_pos_cu;
+    const float3 root_pos_su = transforms.curves_to_surface * root_pos_cu;
 
     BVHTreeNearest nearest;
     nearest.dist_sq = FLT_MAX;
@@ -293,7 +290,7 @@ static void try_convert_single_object(Object &curves_ob,
 
     for (const int key_i : hair_keys.index_range()) {
       const float3 &key_pos_cu = positions_cu[points[key_i]];
-      const float3 key_pos_su = curves_to_surface_mat * key_pos_cu;
+      const float3 key_pos_su = transforms.curves_to_surface * key_pos_cu;
       const float3 key_pos_ha = surface_to_hair_mat * key_pos_su;
 
       HairKey &key = hair_keys[key_i];
@@ -558,12 +555,7 @@ static int snap_curves_to_surface_exec(bContext *C, wmOperator *op)
     const Span<MLoopTri> surface_looptris = {BKE_mesh_runtime_looptri_ensure(&surface_mesh),
                                              BKE_mesh_runtime_looptri_len(&surface_mesh)};
 
-    const float4x4 curves_to_world_mat = curves_ob->obmat;
-    const float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
-    const float4x4 surface_to_world_mat = surface_ob.obmat;
-    const float4x4 world_to_surface_mat = surface_to_world_mat.inverted();
-    const float4x4 curves_to_surface_mat = world_to_surface_mat * curves_to_world_mat;
-    const float4x4 surface_to_curves_mat = world_to_curves_mat * surface_to_world_mat;
+    const bke::CurvesSurfaceTransforms transforms{*curves_ob, &surface_ob};
 
     switch (attach_mode) {
       case AttachMode::Nearest: {
@@ -576,7 +568,8 @@ static int snap_curves_to_surface_exec(bContext *C, wmOperator *op)
             const IndexRange points = curves.points_for_curve(curve_i);
             const int first_point_i = points.first();
             const float3 old_first_point_pos_cu = positions_cu[first_point_i];
-            const float3 old_first_point_pos_su = curves_to_surface_mat * old_first_point_pos_cu;
+            const float3 old_first_point_pos_su = transforms.curves_to_surface *
+                                                  old_first_point_pos_cu;
 
             BVHTreeNearest nearest;
             nearest.index = -1;
@@ -592,7 +585,8 @@ static int snap_curves_to_surface_exec(bContext *C, wmOperator *op)
             }
 
             const float3 new_first_point_pos_su = nearest.co;
-            const float3 new_first_point_pos_cu = surface_to_curves_mat * new_first_point_pos_su;
+            const float3 new_first_point_pos_cu = transforms.surface_to_curves *
+                                                  new_first_point_pos_su;
             const float3 pos_diff_cu = new_first_point_pos_cu - old_first_point_pos_cu;
 
             for (float3 &pos_cu : positions_cu.slice(points)) {
@@ -651,7 +645,8 @@ static int snap_curves_to_surface_exec(bContext *C, wmOperator *op)
 
             float3 new_first_point_pos_su;
             interp_v3_v3v3v3(new_first_point_pos_su, p0_su, p1_su, p2_su, bary_coords);
-            const float3 new_first_point_pos_cu = surface_to_curves_mat * new_first_point_pos_su;
+            const float3 new_first_point_pos_cu = transforms.surface_to_curves *
+                                                  new_first_point_pos_su;
 
             const float3 pos_diff_cu = new_first_point_pos_cu - old_first_point_pos_cu;
             for (float3 &pos_cu : positions_cu.slice(points)) {
