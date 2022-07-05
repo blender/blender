@@ -16,7 +16,7 @@ static CurvesGeometry create_basic_curves(const int points_size, const int curve
 
   const int curve_length = points_size / curves_size;
   for (const int i : curves.curves_range()) {
-    curves.offsets_for_write()[i] = points_size * curve_length;
+    curves.offsets_for_write()[i] = curve_length * i;
   }
   curves.offsets_for_write().last() = points_size;
 
