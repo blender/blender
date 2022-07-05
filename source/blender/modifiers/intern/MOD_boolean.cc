@@ -14,6 +14,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "BLT_translation.h"
 
@@ -62,7 +63,11 @@
 
 using blender::Array;
 using blender::float4x4;
+using blender::IndexRange;
+using blender::MutableSpan;
+using blender::Span;
 using blender::Vector;
+using blender::VectorSet;
 
 static void initData(ModifierData *md)
 {
@@ -375,19 +380,20 @@ static void BMD_mesh_intersection(BMesh *bm,
 
 #ifdef WITH_GMP
 
-/* Get a mapping from material slot numbers in the src_ob to slot numbers in the dst_ob.
- * If a material doesn't exist in the dst_ob, the mapping just goes to the same slot
- * or to zero if there aren't enough slots in the destination.
+/* Get a mapping from material slot numbers in the source geometry to slot numbers in the result
+ * geometry. The material is added to the result geometry if it doesn't already use it.
  * Caller owns the returned array. */
-static Array<short> get_material_remap(Object *dest_ob, Object *src_ob)
+static Array<short> get_material_remap(const Mesh &mesh, VectorSet<Material *> &materials)
 {
-  int n = src_ob->totcol;
-  if (n <= 0) {
-    n = 1;
+  if (mesh.totcol == 0) {
+    /* Necessary for faces using the default material when there are no material slots. */
+    return Array<short>({materials.index_of_or_add(nullptr)});
   }
-  Array<short> remap(n);
-  BKE_object_material_remap_calc(dest_ob, src_ob, remap.data());
-  return remap;
+  Array<short> map(mesh.totcol);
+  for (const int i : IndexRange(mesh.totcol)) {
+    map[i] = materials.index_of_or_add(mesh.mat[i]);
+  }
+  return map;
 }
 
 static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
@@ -396,6 +402,8 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 {
   Vector<const Mesh *> meshes;
   Vector<float4x4 *> obmats;
+
+  VectorSet<Material *> materials;
   Vector<Array<short>> material_remaps;
 
 #  ifdef DEBUG_TIME
@@ -409,6 +417,14 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
   meshes.append(mesh);
   obmats.append((float4x4 *)&ctx->object->obmat);
   material_remaps.append({});
+  if (mesh->totcol == 0) {
+    /* Necessary for faces using the default material when there are no material slots. */
+    materials.add(nullptr);
+  }
+  else {
+    materials.add_multiple({mesh->mat, mesh->totcol});
+  }
+
   if (bmd->flag & eBooleanModifierFlag_Object) {
     Mesh *mesh_operand = BKE_modifier_get_evaluated_mesh_from_evaluated_object(bmd->object, false);
     if (!mesh_operand) {
@@ -417,7 +433,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
     BKE_mesh_wrapper_ensure_mdata(mesh_operand);
     meshes.append(mesh_operand);
     obmats.append((float4x4 *)&bmd->object->obmat);
-    material_remaps.append(get_material_remap(ctx->object, bmd->object));
+    material_remaps.append(get_material_remap(*mesh_operand, materials));
   }
   else if (bmd->flag & eBooleanModifierFlag_Collection) {
     Collection *collection = bmd->collection;
@@ -432,7 +448,7 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
           BKE_mesh_wrapper_ensure_mdata(collection_mesh);
           meshes.append(collection_mesh);
           obmats.append((float4x4 *)&ob->obmat);
-          material_remaps.append(get_material_remap(ctx->object, ob));
+          material_remaps.append(get_material_remap(*collection_mesh, materials));
         }
       }
       FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
@@ -441,13 +457,18 @@ static Mesh *exact_boolean_mesh(BooleanModifierData *bmd,
 
   const bool use_self = (bmd->flag & eBooleanModifierFlag_Self) != 0;
   const bool hole_tolerant = (bmd->flag & eBooleanModifierFlag_HoleTolerant) != 0;
-  return blender::meshintersect::direct_mesh_boolean(meshes,
-                                                     obmats,
-                                                     *(float4x4 *)&ctx->object->obmat,
-                                                     material_remaps,
-                                                     use_self,
-                                                     hole_tolerant,
-                                                     bmd->operation);
+  Mesh *result = blender::meshintersect::direct_mesh_boolean(meshes,
+                                                             obmats,
+                                                             *(float4x4 *)&ctx->object->obmat,
+                                                             material_remaps,
+                                                             use_self,
+                                                             hole_tolerant,
+                                                             bmd->operation);
+  MEM_SAFE_FREE(result->mat);
+  result->mat = (Material **)MEM_malloc_arrayN(materials.size(), sizeof(Material *), __func__);
+  result->totcol = materials.size();
+  MutableSpan(result->mat, result->totcol).copy_from(materials);
+  return result;
 }
 #endif
 
