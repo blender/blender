@@ -641,6 +641,7 @@ void PyC_StackSpit(void)
 void PyC_FileAndNum(const char **r_filename, int *r_lineno)
 {
   PyFrameObject *frame;
+  PyCodeObject *code;
 
   if (r_filename) {
     *r_filename = NULL;
@@ -649,13 +650,16 @@ void PyC_FileAndNum(const char **r_filename, int *r_lineno)
     *r_lineno = -1;
   }
 
-  if (!(frame = PyThreadState_GET()->frame)) {
+  if (!(frame = PyEval_GetFrame())) {
+    return;
+  }
+  if (!(code = PyFrame_GetCode(frame))) {
     return;
   }
 
   /* when executing a script */
   if (r_filename) {
-    *r_filename = PyUnicode_AsUTF8(frame->f_code->co_filename);
+    *r_filename = PyUnicode_AsUTF8(code->co_filename);
   }
 
   /* when executing a module */
