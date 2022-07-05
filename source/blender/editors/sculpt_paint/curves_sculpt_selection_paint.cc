@@ -66,7 +66,7 @@ struct SelectionPaintOperationExecutor {
 
   float2 brush_pos_re_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
 
   SelectionPaintOperationExecutor(const bContext &C) : ctx_(C)
   {
@@ -104,7 +104,7 @@ struct SelectionPaintOperationExecutor {
       }
     }
 
-    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
         brush_->falloff_shape);

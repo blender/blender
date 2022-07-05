@@ -836,4 +836,17 @@ inline float3 calculate_vector_handle(const float3 &point, const float3 &next_po
 
 }  // namespace curves::bezier
 
+struct CurvesSurfaceTransforms {
+  float4x4 curves_to_world;
+  float4x4 curves_to_surface;
+  float4x4 world_to_curves;
+  float4x4 world_to_surface;
+  float4x4 surface_to_world;
+  float4x4 surface_to_curves;
+  float4x4 surface_to_curves_normal;
+
+  CurvesSurfaceTransforms() = default;
+  CurvesSurfaceTransforms(const Object &curves_ob, const Object *surface_ob);
+};
+
 }  // namespace blender::bke

@@ -258,7 +258,7 @@ std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
     const Depsgraph &depsgraph,
     const ARegion &region,
     const View3D &v3d,
-    const CurvesSculptTransforms &transforms,
+    const CurvesSurfaceTransforms &transforms,
     const BVHTreeFromMesh &surface_bvh,
     const float2 &brush_pos_re,
     const float brush_radius_re)
@@ -378,20 +378,6 @@ CurvesSculptCommonContext::CurvesSculptCommonContext(const bContext &C)
   this->region = CTX_wm_region(&C);
   this->v3d = CTX_wm_view3d(&C);
   this->rv3d = CTX_wm_region_view3d(&C);
-}
-
-CurvesSculptTransforms::CurvesSculptTransforms(const Object &curves_ob, const Object *surface_ob)
-{
-  this->curves_to_world = curves_ob.obmat;
-  this->world_to_curves = this->curves_to_world.inverted();
-
-  if (surface_ob != nullptr) {
-    this->surface_to_world = surface_ob->obmat;
-    this->world_to_surface = this->surface_to_world.inverted();
-    this->surface_to_curves = this->world_to_curves * this->surface_to_world;
-    this->curves_to_surface = this->world_to_surface * this->curves_to_world;
-    this->surface_to_curves_normal = this->surface_to_curves.inverted().transposed();
-  }
 }
 
 }  // namespace blender::ed::sculpt_paint

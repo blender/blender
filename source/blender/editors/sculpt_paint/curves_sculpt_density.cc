@@ -74,7 +74,7 @@ struct DensityAddOperationExecutor {
   float brush_radius_re_;
   float2 brush_pos_re_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
 
   BVHTreeFromMesh surface_bvh_;
 
@@ -105,7 +105,7 @@ struct DensityAddOperationExecutor {
     surface_looptris_ = {BKE_mesh_runtime_looptri_ensure(surface_),
                          BKE_mesh_runtime_looptri_len(surface_)};
 
-    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     if (!CustomData_has_layer(&surface_->ldata, CD_NORMAL)) {
       BKE_mesh_calc_normals_split(surface_);
@@ -449,7 +449,7 @@ struct DensitySubtractOperationExecutor {
 
   float minimum_distance_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
   BVHTreeFromMesh surface_bvh_;
 
   KDTree_3d *root_points_kdtree_;
@@ -489,7 +489,7 @@ struct DensitySubtractOperationExecutor {
 
     curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
 
-    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
         brush_->falloff_shape);
     BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_LOOPTRI, 2);
@@ -743,7 +743,7 @@ static bool use_add_density_mode(const BrushStrokeMode brush_mode,
     return true;
   }
 
-  const CurvesSculptTransforms transforms(curves_ob, curves_id.surface);
+  const CurvesSurfaceTransforms transforms(curves_ob, curves_id.surface);
   BVHTreeFromMesh surface_bvh;
   BKE_bvhtree_from_mesh_get(
       &surface_bvh, static_cast<const Mesh *>(curves_id.surface->data), BVHTREE_FROM_LOOPTRI, 2);

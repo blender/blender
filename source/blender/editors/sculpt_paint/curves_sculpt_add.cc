@@ -97,7 +97,7 @@ struct AddOperationExecutor {
   float brush_radius_re_;
   float2 brush_pos_re_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
 
   BVHTreeFromMesh surface_bvh_;
 
@@ -123,7 +123,7 @@ struct AddOperationExecutor {
       return;
     }
 
-    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     surface_ob_ = curves_id_->surface;
     surface_ = static_cast<Mesh *>(surface_ob_->data);
