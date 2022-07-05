@@ -660,6 +660,144 @@ void BevelData::calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> 
   setup_vert_map();
 }
 
+/* IndexAlloc allocates sequential integers, starting from a given start value. */
+class IndexAlloc {
+  int start_;
+  int first_free_;
+
+ public:
+  IndexAlloc(int start) : start_(start), first_free_(start)
+  {
+  }
+
+  int alloc()
+  {
+    return first_free_++;
+  }
+  int start() const
+  {
+    return start_;
+  }
+  int allocated_size() const
+  {
+    return first_free_ - start_;
+  }
+};
+
+/* MeshDelta represents a delta to a Mesh: additions and deletions
+ * of Mesh elements.
+ */
+class MeshDelta {
+  Mesh &mesh_;
+  IndexAlloc vert_alloc_;
+  IndexAlloc edge_alloc_;
+  IndexAlloc poly_alloc_;
+  IndexAlloc loop_alloc_;
+  Set<int> vert_deletes_;
+  Set<int> edge_deletes_;
+  Set<int> poly_deletes_;
+  Set<int> loop_deletes_;
+  Vector<MVert> new_verts_;
+  Vector<MEdge> new_edges_;
+  Vector<MPoly> new_polys_;
+  Vector<MLoop> new_loops_;
+
+ public:
+  MeshDelta(Mesh &mesh);
+
+  /* TODO: provide arguments or methods to set the attributes. */
+  int new_vert(const float3 &co);
+  int new_edge(int v1, int v2);
+  int new_loop(int v, int e);
+  int new_face(int loopstart, int totloop);
+
+  void delete_vert(int v)
+  {
+    vert_deletes_.add(v);
+  }
+  void delete_edge(int e)
+  {
+    edge_deletes_.add(e);
+  }
+  void delete_face(int f);
+
+  /* Change Mesh in place to delete and add what is required, closing up the
+   * gaps in the index spaces. */
+  void apply_delta_to_mesh();
+};
+
+MeshDelta::MeshDelta(Mesh &mesh)
+    : mesh_(mesh),
+      vert_alloc_(mesh_.totvert),
+      edge_alloc_(mesh_.totedge),
+      poly_alloc_(mesh_.totpoly),
+      loop_alloc_(mesh_.totloop)
+{
+}
+
+int MeshDelta::new_vert(const float3 &co)
+{
+  int v = vert_alloc_.alloc();
+  MVert mvert;
+  copy_v3_v3(mvert.co, co);
+  mvert.flag = 0;
+  mvert.bweight = 0;
+  new_verts_.append(mvert);
+  BLI_assert(v == new_verts_.size() - 1);
+  return v;
+}
+
+int MeshDelta::new_edge(int v1, int v2)
+{
+  int e = edge_alloc_.alloc();
+  MEdge medge;
+  medge.v1 = v1;
+  medge.v2 = v2;
+  medge.crease = 0;
+  medge.bweight = 0;
+  medge.flag = ME_EDGEDRAW;
+  new_edges_.append(medge);
+  BLI_assert(e == new_edges_.size() - 1);
+  return e;
+}
+
+int MeshDelta::new_loop(int v, int e)
+{
+  int l = loop_alloc_.alloc();
+  MLoop mloop;
+  mloop.v = v;
+  mloop.e = e;
+  new_loops_.append(mloop);
+  BLI_assert(l == new_loops_.size() - 1);
+  return l;
+}
+
+int MeshDelta::new_face(int loopstart, int totloop)
+{
+  int f = poly_alloc_.alloc();
+  MPoly mpoly;
+  mpoly.loopstart = loopstart;
+  mpoly.totloop = totloop;
+  mpoly.mat_nr = 0;
+  mpoly.flag = 0;
+  new_polys_.append(mpoly);
+  BLI_assert(f = new_polys_.size() - 1);
+  return f;
+}
+
+/* Delete the MPoly and the loops.
+ * The edges and vertices need to be deleted elsewhere, if necessary
+ */
+void MeshDelta::delete_face(int f)
+{
+  poly_deletes_.add(f);
+  BLI_assert(f >= 0 && f < mesh_.totpoly);
+  const MPoly &mpoly = mesh_.mpoly[f];
+  for (int l = mpoly.loopstart; l < mpoly.loopstart + mpoly.totloop; l++) {
+    loop_deletes_.add(l);
+  }
+}
+
 static void bevel_mesh_vertices(MeshComponent &component,
                                 const Field<bool> &selection_field,
                                 const Field<float> &amount_field)
