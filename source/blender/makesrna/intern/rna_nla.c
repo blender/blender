@@ -750,9 +750,9 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Start Frame (manipulated from UI)",
-      "Start frame of the NLA strip. Note : changing this value also updates the value of "
+      "Start frame of the NLA strip. Note: changing this value also updates the value of "
       "the strip's end frame. If only the start frame should be changed, see the \"frame_start\" "
-      "property instead.");
+      "property instead");
   RNA_def_property_update(
       prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
 
@@ -762,9 +762,9 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "End Frame (manipulated from UI)",
-      "End frame of the NLA strip. Note : changing this value also updates the value of "
+      "End frame of the NLA strip. Note: changing this value also updates the value of "
       "the strip's start frame. If only the end frame should be changed, see the \"frame_end\" "
-      "property instead.");
+      "property instead");
   RNA_def_property_update(
       prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
 
