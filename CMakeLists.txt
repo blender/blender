@@ -229,6 +229,9 @@ if(UNIX AND NOT (APPLE OR HAIKU))
 
     option(WITH_GHOST_WAYLAND_DBUS "Optionally build with DBUS support (used for Cursor themes). May hang on startup systems where DBUS is not used." OFF)
     mark_as_advanced(WITH_GHOST_WAYLAND_DBUS)
+
+    option(WITH_GHOST_WAYLAND_DYNLOAD  "Enable runtime dynamic WAYLAND libraries loading" OFF)
+    mark_as_advanced(WITH_GHOST_WAYLAND_DYNLOAD)
   endif()
 endif()
 

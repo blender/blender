@@ -270,6 +270,16 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${wayland-cursor_INCLUDE_DIRS}
     )
 
+    if(WITH_GHOST_WAYLAND_DYNLOAD)
+      list(APPEND INC_SYS
+        ../../intern/wayland_dynload/extern
+      )
+      list(APPEND LIB
+        bf_intern_wayland_dynload
+      )
+      add_definitions(-DWITH_GHOST_WAYLAND_DYNLOAD)
+    endif()
+
     if(WITH_GHOST_WAYLAND_DBUS)
       list(APPEND INC_SYS
         ${dbus_INCLUDE_DIRS}

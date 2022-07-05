@@ -15,11 +15,18 @@
 #include "GHOST_ContextNone.h"
 
 #include <wayland-client-protocol.h>
+
+#ifdef WITH_GHOST_WAYLAND_DYNLOAD
+#  include <wayland_dynload_egl.h>
+#endif
 #include <wayland-egl.h>
 
 #include <algorithm> /* For `std::find`. */
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
+#  ifdef WITH_GHOST_WAYLAND_DYNLOAD
+#    include <wayland_dynload_libdecor.h>
+#  endif
 #  include <libdecor.h>
 #endif
 
@@ -347,7 +354,7 @@ static void surface_handle_leave(void *data,
   }
 }
 
-struct wl_surface_listener wl_surface_listener = {
+static struct wl_surface_listener wl_surface_listener = {
     surface_handle_enter,
     surface_handle_leave,
 };

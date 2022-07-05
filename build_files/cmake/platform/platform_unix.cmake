@@ -641,11 +641,16 @@ if(WITH_GHOST_WAYLAND)
   endif()
 
   list(APPEND PLATFORM_LINKLIBS
-    ${wayland-client_LINK_LIBRARIES}
-    ${wayland-egl_LINK_LIBRARIES}
     ${xkbcommon_LINK_LIBRARIES}
-    ${wayland-cursor_LINK_LIBRARIES}
   )
+
+  if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
+    list(APPEND PLATFORM_LINKLIBS
+      ${wayland-client_LINK_LIBRARIES}
+      ${wayland-egl_LINK_LIBRARIES}
+      ${wayland-cursor_LINK_LIBRARIES}
+    )
+  endif()
 
   if(WITH_GHOST_WAYLAND_DBUS)
     list(APPEND PLATFORM_LINKLIBS
@@ -655,9 +660,11 @@ if(WITH_GHOST_WAYLAND)
   endif()
 
   if(WITH_GHOST_WAYLAND_LIBDECOR)
-    list(APPEND PLATFORM_LINKLIBS
-      ${libdecor_LIBRARIES}
-    )
+    if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
+      list(APPEND PLATFORM_LINKLIBS
+        ${libdecor_LIBRARIES}
+      )
+    endif()
     add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
   endif()
 endif()
