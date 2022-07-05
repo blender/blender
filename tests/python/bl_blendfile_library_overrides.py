@@ -230,7 +230,11 @@ class TestLibraryOverridesResync(TestHelper, unittest.TestCase):
         bpy.data.orphans_purge()
 
         link_dir = self.output_path / "Collection"
-        bpy.ops.wm.link(directory=str(link_dir), filename=TestLibraryOverridesResync.DATA_NAME_CONTAINER, instance_collections=False)
+        bpy.ops.wm.link(
+            directory=str(link_dir),
+            filename=TestLibraryOverridesResync.DATA_NAME_CONTAINER,
+            instance_collections=False,
+        )
 
         linked_collection_container = bpy.data.collections[TestLibraryOverridesResync.DATA_NAME_CONTAINER]
         assert(linked_collection_container.library is not None)
@@ -244,7 +248,10 @@ class TestLibraryOverridesResync(TestHelper, unittest.TestCase):
         assert(len(bpy.data.armatures) == 1)
         assert(all(id_.library is not None for id_ in bpy.data.armatures))
 
-        override_collection_container = linked_collection_container.override_hierarchy_create(bpy.context.scene, bpy.context.view_layer)
+        override_collection_container = linked_collection_container.override_hierarchy_create(
+            bpy.context.scene,
+            bpy.context.view_layer,
+        )
         assert(override_collection_container.library is None)
         assert(override_collection_container.override_library is not None)
         # Objects and collections are duplicated as overrides, but meshes and armatures remain only linked data.
