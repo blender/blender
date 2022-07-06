@@ -306,8 +306,7 @@ void MeshFromGeometry::create_materials(Main *bmain,
     if (mat == nullptr) {
       continue;
     }
-    BKE_object_material_slot_add(bmain, obj);
-    BKE_object_material_assign(bmain, obj, mat, obj->totcol, BKE_MAT_ASSIGN_USERPREF);
+    BKE_object_material_assign_single_obdata(bmain, obj, mat, obj->totcol + 1);
   }
 }
 
