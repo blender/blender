@@ -165,9 +165,9 @@ static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
   /* Simply set the frame start in a valid range : if there are any NLA strips before/after, clamp
    * the start value. If the new start value is past-the-end, clamp it. Otherwise, set it.
    *
-   * NOTE : Unless neighbouring strips are transitions, NLASTRIP_MIN_LEN_THRESH is not needed, as
+   * NOTE: Unless neighboring strips are transitions, NLASTRIP_MIN_LEN_THRESH is not needed, as
    * strips can be 'glued' to one another. If they are however, ensure transitions have a bit of
-   * time alloted in order to be performed.
+   * time allotted in order to be performed.
    */
   NlaStrip *data = (NlaStrip *)ptr->data;
 
@@ -255,11 +255,11 @@ static void rna_NlaStrip_end_frame_set(PointerRNA *ptr, float value)
   data->end = value;
 
   /* The ONLY case where we actively modify the value set by the user, is in case the start value
-   * value is past the old end frame (here delta = NLASTRIP_MIN_LEN_THRESH) :
+   * value is past the old end frame (here delta = NLASTRIP_MIN_LEN_THRESH):
    * - if there's no "room" for the end frame to be placed at (new_start + delta), move old_end to
-   *     the limit, and new_start to (limit - delta)
+   *   the limit, and new_start to (limit - delta)
    * - otherwise, do _not_ change the end frame. This property is not accessible from the UI, and
-   *     can only be set via scripts. The script should be responsable for setting the end frame.
+   *   can only be set via scripts. The script should be responsible for setting the end frame.
    */
   if (data->end < (data->start + NLASTRIP_MIN_LEN_THRESH)) {
     /* If before-the-allowed-start : */
@@ -269,7 +269,7 @@ static void rna_NlaStrip_end_frame_set(PointerRNA *ptr, float value)
     }
   }
 
-  /* Ensure transitions are kept "glued" to the strip : */
+  /* Ensure transitions are kept "glued" to the strip: */
   if (data->next && data->next->type == NLASTRIP_TYPE_TRANSITION) {
     data->next->start = data->end;
   }
@@ -280,7 +280,7 @@ static void rna_NlaStrip_frame_end_ui_set(PointerRNA *ptr, float value)
   NlaStrip *data = (NlaStrip *)ptr->data;
 
   /* Changing the strip's end frame will update its action 'range' (defined by actstart->actend) to
-   * accomodate the extra length of the strip. No other parameters of the strip will change. But
+   * accommodate the extra length of the strip. No other parameters of the strip will change. But
    * this means we have to get the current strip's end frame right now :
    */
   const float old_strip_end = data->end;
@@ -312,10 +312,10 @@ static void rna_NlaStrip_frame_end_ui_set(PointerRNA *ptr, float value)
 
     /* Modify the strip's action end frame, or repeat based on :
      * - if data->repeat == 1.0f, modify the action end frame :
-     *   - if the number of frames to substract is the number of frames, set the action end frame
+     *   - if the number of frames to subtract is the number of frames, set the action end frame
      *     to the action start + 1 and modify the end of the strip to add that frame
      *   - if the number of frames
-     * - otherwise, modify the repeat property to accomodate for the new length
+     * - otherwise, modify the repeat property to accommodate for the new length
      */
     float action_length_delta = (old_strip_end - data->end) / data->scale;
     /* If no repeats are used, then modify the action end frame : */

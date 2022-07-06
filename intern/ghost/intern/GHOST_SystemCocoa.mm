@@ -787,7 +787,7 @@ GHOST_IWindow *GHOST_SystemCocoa::getWindowUnderCursor(int32_t x, int32_t y)
 }
 
 /**
- * \note : returns coordinates in Cocoa screen coordinates
+ * \note returns coordinates in Cocoa screen coordinates.
  */
 GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(int32_t &x, int32_t &y) const
 {
@@ -800,7 +800,7 @@ GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(int32_t &x, int32_t &y) cons
 }
 
 /**
- * \note : expect Cocoa screen coordinates
+ * \note expect Cocoa screen coordinates.
  */
 GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(int32_t x, int32_t y)
 {
