@@ -86,7 +86,6 @@ set(SRC_KERNEL_DEVICE_ONEAPI_HEADERS
   device/oneapi/compat.h
   device/oneapi/context_begin.h
   device/oneapi/context_end.h
-  device/oneapi/device_id.h
   device/oneapi/globals.h
   device/oneapi/image.h
   device/oneapi/kernel.h
@@ -732,8 +731,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       -O2
       -o ${cycles_kernel_oneapi_lib}
       -I${CMAKE_CURRENT_SOURCE_DIR}/..
-      -I${LEVEL_ZERO_INCLUDE_DIR}
-      ${LEVEL_ZERO_LIBRARY}
       ${SYCL_CPP_FLAGS}
       )
 
