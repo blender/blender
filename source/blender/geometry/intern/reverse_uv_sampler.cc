@@ -45,6 +45,11 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
 {
   const int2 cell_key = uv_to_cell_key(query_uv, resolution_);
   const Span<int> looptri_indices = looptris_by_cell_.lookup(cell_key);
+
+  float best_dist = FLT_MAX;
+  float3 best_bary_weights;
+  const MLoopTri *best_looptri;
+
   for (const int looptri_index : looptri_indices) {
     const MLoopTri &looptri = looptris_[looptri_index];
     const float2 &uv_0 = uv_map_[looptri.tri[0]];
@@ -54,11 +59,31 @@ ReverseUVSampler::Result ReverseUVSampler::sample(const float2 &query_uv) const
     if (!barycentric_coords_v2(uv_0, uv_1, uv_2, query_uv, bary_weights)) {
       continue;
     }
-    if (IN_RANGE_INCL(bary_weights.x, 0.0f, 1.0f) && IN_RANGE_INCL(bary_weights.y, 0.0f, 1.0f) &&
-        IN_RANGE_INCL(bary_weights.z, 0.0f, 1.0f)) {
+
+    /* If #query_uv is in the triangle, the distance is <= 0. Otherwise, the larger the distance,
+     * the further away the uv is from the triangle. */
+    const float x_dist = std::max(-bary_weights.x, bary_weights.x - 1.0f);
+    const float y_dist = std::max(-bary_weights.y, bary_weights.y - 1.0f);
+    const float z_dist = std::max(-bary_weights.z, bary_weights.z - 1.0f);
+    const float dist = MAX3(x_dist, y_dist, z_dist);
+
+    if (dist <= 0.0f) {
+      /* Return early if the uv coordinate is in the triangle. */
       return Result{ResultType::Ok, &looptri, bary_weights};
     }
+
+    if (dist < best_dist) {
+      best_dist = dist;
+      best_bary_weights = bary_weights;
+      best_looptri = &looptri;
+    }
   }
+
+  /* Allow for a small epsilon in case the uv is on th edge. */
+  if (best_dist < 0.00001f) {
+    return Result{ResultType::Ok, best_looptri, math::clamp(best_bary_weights, 0.0f, 1.0f)};
+  }
+
   return Result{};
 }
 
