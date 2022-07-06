@@ -7,7 +7,7 @@
 
 #include "BKE_curves.hh"
 
-struct CurveComponent;
+class CurveComponent;
 
 namespace blender::geometry {
 

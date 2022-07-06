@@ -8,7 +8,7 @@
 #include "BLI_index_mask.hh"
 
 struct Curves;
-struct CurveComponent;
+class CurveComponent;
 
 namespace blender::bke {
 class CurvesGeometry;
