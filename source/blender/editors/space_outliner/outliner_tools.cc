@@ -2185,6 +2185,7 @@ static const EnumPropertyItem *outliner_id_operation_itemf(bContext *C,
 
 static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   Scene *scene = CTX_data_scene(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
@@ -2381,8 +2382,10 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
     }
     case OUTLINER_IDOP_DELETE: {
       if (idlevel > 0) {
+        BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
         outliner_do_libdata_operation(
-            C, op->reports, scene, space_outliner, id_delete_fn, nullptr);
+            C, op->reports, scene, space_outliner, id_delete_tag_fn, nullptr);
+        BKE_id_multi_tagged_delete(bmain);
         ED_undo_push(C, "Delete");
       }
       break;
@@ -2507,6 +2510,7 @@ static const EnumPropertyItem outliner_lib_op_type_items[] = {
 
 static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
 {
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
@@ -2522,7 +2526,10 @@ static int outliner_lib_operation_exec(bContext *C, wmOperator *op)
   eOutlinerLibOpTypes event = (eOutlinerLibOpTypes)RNA_enum_get(op->ptr, "type");
   switch (event) {
     case OL_LIB_DELETE: {
-      outliner_do_libdata_operation(C, op->reports, scene, space_outliner, id_delete_fn, nullptr);
+      BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+      outliner_do_libdata_operation(
+          C, op->reports, scene, space_outliner, id_delete_tag_fn, nullptr);
+      BKE_id_multi_tagged_delete(bmain);
       ED_undo_push(C, "Delete Library");
       break;
     }
