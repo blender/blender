@@ -36,6 +36,7 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BLT_translation.h"
 
@@ -3600,7 +3601,8 @@ static Base *object_add_duplicate_internal(Main *bmain,
                                            ViewLayer *view_layer,
                                            Object *ob,
                                            const eDupli_ID_Flags dupflag,
-                                           const eLibIDDuplicateFlags duplicate_options)
+                                           const eLibIDDuplicateFlags duplicate_options,
+                                           Object **r_ob_new)
 {
   Base *base, *basen = nullptr;
   Object *obn;
@@ -3611,6 +3613,9 @@ static Base *object_add_duplicate_internal(Main *bmain,
   else {
     obn = static_cast<Object *>(
         ID_NEW_SET(ob, BKE_object_duplicate(bmain, ob, dupflag, duplicate_options)));
+    if (r_ob_new) {
+      *r_ob_new = obn;
+    }
     DEG_id_tag_update(&obn->id, ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY);
 
     base = BKE_view_layer_base_find(view_layer, ob);
@@ -3623,7 +3628,7 @@ static Base *object_add_duplicate_internal(Main *bmain,
     }
 
     basen = BKE_view_layer_base_find(view_layer, obn);
-    if (base != nullptr) {
+    if (base != nullptr && basen != nullptr) {
       basen->local_view_bits = base->local_view_bits;
     }
 
@@ -3654,7 +3659,8 @@ Base *ED_object_add_duplicate(
                                         base->object,
                                         dupflag,
                                         LIB_ID_DUPLICATE_IS_SUBPROCESS |
-                                            LIB_ID_DUPLICATE_IS_ROOT_ID);
+                                            LIB_ID_DUPLICATE_IS_ROOT_ID,
+                                        nullptr);
   if (basen == nullptr) {
     return nullptr;
   }
@@ -3687,44 +3693,72 @@ static int duplicate_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   const bool linked = RNA_boolean_get(op->ptr, "linked");
   const eDupli_ID_Flags dupflag = (linked) ? (eDupli_ID_Flags)0 : (eDupli_ID_Flags)U.dupflag;
-  bool changed = false;
 
   /* We need to handle that here ourselves, because we may duplicate several objects, in which case
    * we also want to remap pointers between those... */
   BKE_main_id_newptr_and_tag_clear(bmain);
 
+  /* Do not do collection re-syncs for each object; will do it once afterwards.
+   * However this means we can't get to new duplicated Base's immediately, will
+   * have to process them after the sync. */
+  BKE_layer_collection_resync_forbid();
+
+  /* Duplicate the selected objects, remember data needed to process
+   * after the sync (the base of the original object, and the copy of the
+   * original object). */
+  blender::Vector<std::pair<Base *, Object *>> source_bases_new_objects;
+  Object *ob_new_active = nullptr;
+
   CTX_DATA_BEGIN (C, Base *, base, selected_bases) {
-    Base *basen = object_add_duplicate_internal(bmain,
-                                                scene,
-                                                view_layer,
-                                                base->object,
-                                                dupflag,
-                                                LIB_ID_DUPLICATE_IS_SUBPROCESS |
-                                                    LIB_ID_DUPLICATE_IS_ROOT_ID);
+    Object *ob_new = NULL;
+    object_add_duplicate_internal(bmain,
+                                  scene,
+                                  view_layer,
+                                  base->object,
+                                  dupflag,
+                                  LIB_ID_DUPLICATE_IS_SUBPROCESS | LIB_ID_DUPLICATE_IS_ROOT_ID,
+                                  &ob_new);
+    if (ob_new == nullptr) {
+      continue;
+    }
+    source_bases_new_objects.append({base, ob_new});
 
     /* note that this is safe to do with this context iterator,
      * the list is made in advance */
     ED_object_base_select(base, BA_DESELECT);
-    ED_object_base_select(basen, BA_SELECT);
-    changed = true;
 
-    if (basen == nullptr) {
-      continue;
-    }
-
-    /* new object becomes active */
+    /* new object will become active */
     if (BASACT(view_layer) == base) {
-      ED_object_base_activate(C, basen);
-    }
-
-    if (basen->object->data) {
-      DEG_id_tag_update(static_cast<ID *>(basen->object->data), 0);
+      ob_new_active = ob_new;
     }
   }
   CTX_DATA_END;
 
-  if (!changed) {
+  if (source_bases_new_objects.is_empty()) {
     return OPERATOR_CANCELLED;
+  }
+  /* Sync the collection now, after everything is duplicated. */
+  BKE_layer_collection_resync_allow();
+  BKE_main_collection_sync(bmain);
+
+  /* After sync we can get to the new Base data, process it here. */
+  for (const auto &item : source_bases_new_objects) {
+    Object *ob_new = item.second;
+    Base *base_source = item.first;
+    Base *base_new = BKE_view_layer_base_find(view_layer, ob_new);
+    if (base_new == nullptr) {
+      continue;
+    }
+    ED_object_base_select(base_new, BA_SELECT);
+    if (ob_new == ob_new_active) {
+      ED_object_base_activate(C, base_new);
+    }
+    if (base_new->object->data) {
+      DEG_id_tag_update(static_cast<ID *>(base_new->object->data), 0);
+    }
+    /* #object_add_duplicate_internal will not have done this, since
+     * before the collection sync it would not have found the new base yet. */
+    base_new->local_view_bits = base_source->local_view_bits;
   }
 
   /* Note that this will also clear newid pointers and tags. */
@@ -3808,7 +3842,8 @@ static int object_add_named_exec(bContext *C, wmOperator *op)
        * the case here. So we have to do the new-ID relinking ourselves
        * (#copy_object_set_idnew()).
        */
-      LIB_ID_DUPLICATE_IS_SUBPROCESS | LIB_ID_DUPLICATE_IS_ROOT_ID);
+      LIB_ID_DUPLICATE_IS_SUBPROCESS | LIB_ID_DUPLICATE_IS_ROOT_ID,
+      nullptr);
 
   if (basen == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "Object could not be duplicated");
