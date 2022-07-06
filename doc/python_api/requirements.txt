@@ -1,2 +1,12 @@
 Sphinx==3.5.3
+
+# Sphinx dependencies that are important
+Jinja2==2.11.3
+docutils==0.16
+
+# Only needed for building translations.
+sphinx-intl==2.0.1
+
+# Only needed to match the theme used for the official documentation.
+# Without this theme, the default theme will be used.
 sphinx_rtd_theme==0.5.2
