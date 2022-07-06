@@ -103,8 +103,13 @@ bool oneapi_usm_memcpy(SyclQueue *queue_, void *dest, void *src, size_t num_byte
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
   oneapi_check_usm(queue_, dest, true);
   oneapi_check_usm(queue_, src, true);
+  sycl::event mem_event = queue->memcpy(dest, src, num_bytes);
+#ifdef WITH_CYCLES_DEBUG
   try {
-    sycl::event mem_event = queue->memcpy(dest, src, num_bytes);
+    /* NOTE(@nsirgien) Waiting on memory operation may give more preciese error
+     * messages in case of the problems, but due to impact on occupancy
+     * make sense enable it only during cycles debugging
+     */
     mem_event.wait_and_throw();
     return true;
   }
@@ -114,6 +119,20 @@ bool oneapi_usm_memcpy(SyclQueue *queue_, void *dest, void *src, size_t num_byte
     }
     return false;
   }
+#else
+  sycl::usm::alloc dest_type = get_pointer_type(dest, queue->get_context());
+  sycl::usm::alloc src_type = get_pointer_type(src, queue->get_context());
+  bool from_device_to_host
+    = dest_type == sycl::usm::alloc::host && src_type == sycl::usm::alloc::device;
+  bool host_or_device_memop_with_offset
+    = dest_type == sycl::usm::alloc::unknown || src_type == sycl::usm::alloc::unknown;
+  /* NOTE(@sirgienko) Host-side blocking wait on this operations is mandatory, host
+   * may don't wait until end of transfer before using the memory.
+   */
+  if(from_device_to_host || host_or_device_memop_with_offset)
+    mem_event.wait();
+  return true;
+#endif
 }
 
 bool oneapi_usm_memset(SyclQueue *queue_, void *usm_ptr, unsigned char value, size_t num_bytes)
@@ -121,8 +140,13 @@ bool oneapi_usm_memset(SyclQueue *queue_, void *usm_ptr, unsigned char value, si
   assert(queue_);
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
   oneapi_check_usm(queue_, usm_ptr, true);
+  sycl::event mem_event = queue->memset(usm_ptr, value, num_bytes);
+#ifdef WITH_CYCLES_DEBUG
   try {
-    sycl::event mem_event = queue->memset(usm_ptr, value, num_bytes);
+    /* NOTE(@nsirgien) Waiting on memory operation may give more preciese error
+     * messages in case of the problems, but due to impact on occupancy
+     * make sense enable it only during cycles debugging
+     */
     mem_event.wait_and_throw();
     return true;
   }
@@ -132,6 +156,10 @@ bool oneapi_usm_memset(SyclQueue *queue_, void *usm_ptr, unsigned char value, si
     }
     return false;
   }
+#else
+  (void)mem_event;
+  return true;
+#endif
 }
 
 bool oneapi_queue_synchronize(SyclQueue *queue_)
