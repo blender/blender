@@ -1205,7 +1205,7 @@ static void cursor_buffer_handle_release(void *data, struct wl_buffer *wl_buffer
   }
 }
 
-const struct wl_buffer_listener cursor_buffer_listener = {
+static const struct wl_buffer_listener cursor_buffer_listener = {
     cursor_buffer_handle_release,
 };
 
@@ -1264,7 +1264,7 @@ static void cursor_surface_handle_leave(void *data,
   update_cursor_scale(input->cursor, input->system->shm());
 }
 
-struct wl_surface_listener cursor_surface_listener = {
+static const struct wl_surface_listener cursor_surface_listener = {
     cursor_surface_handle_enter,
     cursor_surface_handle_leave,
 };
@@ -1750,7 +1750,7 @@ static void tablet_seat_handle_pad_added(void * /*data*/,
   /* Pass. */
 }
 
-const struct zwp_tablet_seat_v2_listener tablet_seat_listener = {
+static const struct zwp_tablet_seat_v2_listener tablet_seat_listener = {
     tablet_seat_handle_tablet_added,
     tablet_seat_handle_tool_added,
     tablet_seat_handle_pad_added,
