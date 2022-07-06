@@ -353,17 +353,21 @@ struct AddOperationExecutor {
                                      view_ray_start_wo,
                                      view_ray_end_wo,
                                      true);
-    const float3 view_direction_su = math::normalize(
-        transforms_.world_to_surface * view_ray_end_wo -
-        transforms_.world_to_surface * view_ray_start_wo);
+
+    const float3 view_ray_start_cu = transforms_.world_to_curves * view_ray_start_wo;
+    const float3 view_ray_end_cu = transforms_.world_to_curves * view_ray_end_wo;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       const float4x4 transform = transforms_.curves_to_surface * brush_transform;
+
       const float3 brush_pos_su = transform * brush_3d->position_cu;
+      const float3 view_direction_su = math::normalize(transform * view_ray_end_cu -
+                                                       transform * view_ray_start_cu);
       const float brush_radius_su = transform_brush_radius(
           transform, brush_3d->position_cu, brush_3d->radius_cu);
+
       this->sample_spherical(
           rng, r_added_points, brush_pos_su, brush_radius_su, view_direction_su);
     }
