@@ -503,9 +503,11 @@ def generate_changelog():
     sphinx_changelog_gen = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(sphinx_changelog_gen)
 
+    _version_dot = "%d.%d" % (bpy.app.version[0], bpy.app.version[1])
+
     API_DUMP_INDEX_FILEPATH = ARGS.api_dump_index_path
     API_DUMP_ROOT = os.path.dirname(API_DUMP_INDEX_FILEPATH)
-    API_DUMP_FILEPATH = os.path.abspath(os.path.join(API_DUMP_ROOT, BLENDER_VERSION_DOTS, "api_dump.json"))
+    API_DUMP_FILEPATH = os.path.abspath(os.path.join(API_DUMP_ROOT, _version_dot, "api_dump.json"))
     API_CHANGELOG_FILEPATH = os.path.abspath(os.path.join(SPHINX_IN_TMP, "change_log.rst"))
 
     sphinx_changelog_gen.main(("--", "--indexpath", API_DUMP_INDEX_FILEPATH, "dump", "--filepath-out", API_DUMP_FILEPATH))
