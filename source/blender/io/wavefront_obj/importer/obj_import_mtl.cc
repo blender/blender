@@ -320,7 +320,7 @@ void ShaderNodetreeWrap::set_bsdf_socket_values(Material *mat)
   if (alpha != -1) {
     set_property_of_socket(SOCK_FLOAT, "Alpha", {alpha}, bsdf_);
   }
-  if (do_tranparency) {
+  if (do_tranparency || (alpha >= 0.0f && alpha < 1.0f)) {
     mat->blend_method = MA_BM_BLEND;
   }
 }
