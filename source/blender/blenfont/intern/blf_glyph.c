@@ -843,7 +843,7 @@ static bool blf_glyph_transform_width(FT_GlyphSlot glyph, float factor)
 static bool blf_glyph_transform_spacing(FT_GlyphSlot glyph, float factor)
 {
   if (glyph->advance.x > 0) {
-    const int size = glyph->face->size->metrics.height;
+    const long int size = glyph->face->size->metrics.height;
     glyph->advance.x += (FT_Pos)(factor * (float)size / 6.0f);
     return true;
   }
