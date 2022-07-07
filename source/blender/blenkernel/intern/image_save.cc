@@ -253,6 +253,21 @@ void BKE_image_save_options_free(ImageSaveOptions *opts)
   BKE_image_format_free(&opts->im_format);
 }
 
+static void image_save_update_filepath(Image *ima,
+                                       const char *filepath,
+                                       const ImageSaveOptions *opts)
+{
+  if (opts->do_newpath) {
+    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
+
+    /* only image path, never ibuf */
+    if (opts->relative) {
+      const char *relbase = ID_BLEND_PATH(opts->bmain, &ima->id);
+      BLI_path_rel(ima->filepath, relbase); /* only after saving */
+    }
+  }
+}
+
 static void image_save_post(ReportList *reports,
                             Image *ima,
                             ImBuf *ibuf,
@@ -273,13 +288,11 @@ static void image_save_post(ReportList *reports,
 
   if (opts->do_newpath) {
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
-    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
+  }
 
-    /* only image path, never ibuf */
-    if (opts->relative) {
-      const char *relbase = ID_BLEND_PATH(opts->bmain, &ima->id);
-      BLI_path_rel(ima->filepath, relbase); /* only after saving */
-    }
+  /* The tiled image codepath must call this on its own. */
+  if (ima->source != IMA_SRC_TILED) {
+    image_save_update_filepath(ima, filepath, opts);
   }
 
   ibuf->userflags &= ~IB_BITMAPDIRTY;
@@ -640,22 +653,23 @@ bool BKE_image_save(
     ok = image_save_single(reports, ima, iuser, opts, &colorspace_changed);
   }
   else {
-    char filepath[FILE_MAX];
-    BLI_strncpy(filepath, opts->filepath, sizeof(filepath));
-
     /* Save all the tiles. */
     LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      ImageSaveOptions tile_opts = *opts;
       BKE_image_set_filepath_from_tile_number(
-          opts->filepath, udim_pattern, tile_format, tile->tile_number);
+          tile_opts.filepath, udim_pattern, tile_format, tile->tile_number);
 
       iuser->tile = tile->tile_number;
-      ok = image_save_single(reports, ima, iuser, opts, &colorspace_changed);
+      ok = image_save_single(reports, ima, iuser, &tile_opts, &colorspace_changed);
       if (!ok) {
         break;
       }
     }
-    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
-    BLI_strncpy(opts->filepath, filepath, sizeof(opts->filepath));
+
+    /* Set the image path only if all tiles were ok. */
+    if (ok) {
+      image_save_update_filepath(ima, opts->filepath, opts);
+    }
     MEM_freeN(udim_pattern);
   }
 
