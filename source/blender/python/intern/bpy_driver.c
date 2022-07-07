@@ -282,9 +282,9 @@ static void pydriver_error(ChannelDriver *driver)
 
 #ifdef USE_BYTECODE_WHITELIST
 
-#  define OK_OP(op) [op] = 1
+#  define OK_OP(op) [op] = true
 
-static const char secure_opcodes[255] = {
+static const bool secure_opcodes[255] = {
 #  if PY_VERSION_HEX >= 0x030b0000 /* Python 3.11 & newer. */
 
     OK_OP(CACHE),
@@ -408,7 +408,9 @@ static const char secure_opcodes[255] = {
 
 #  undef OK_OP
 
-static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *dict_arr[])
+static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code,
+                                                PyObject *dict_arr[],
+                                                const char *error_prefix)
 {
   PyCodeObject *py_code = (PyCodeObject *)expr_code;
 
@@ -427,8 +429,9 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
 
       if (contains_name == false) {
         fprintf(stderr,
-                "\tBPY_driver_eval() - restricted access disallows name '%s', "
+                "\t%s: restricted access disallows name '%s', "
                 "enable auto-execution to support\n",
+                error_prefix,
                 PyUnicode_AsUTF8(name));
         return false;
       }
@@ -457,12 +460,14 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
     code_len /= sizeof(*codestr);
     bool ok = true;
 
+    /* Loop over op-code's, the op-code arguments are ignored. */
     for (Py_ssize_t i = 0; i < code_len; i++) {
       const int opcode = _Py_OPCODE(codestr[i]);
-      if (secure_opcodes[opcode] == 0) {
+      if (secure_opcodes[opcode] == false) {
         fprintf(stderr,
-                "\tBPY_driver_eval() - restricted access disallows opcode '%d', "
+                "\t%s: restricted access disallows opcode '%d', "
                 "enable auto-execution to support\n",
+                error_prefix,
                 opcode);
         ok = false;
         break;
@@ -512,7 +517,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   DriverVar *dvar;
   double result = 0.0; /* Default return. */
   const char *expr;
-  short targets_ok = 1;
+  bool targets_ok = true;
   int i;
 
   /* Get the python expression to be evaluated. */
@@ -547,7 +552,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   /* Initialize global dictionary for Python driver evaluation settings. */
   if (!bpy_pydriver_Dict) {
     if (bpy_pydriver_create_dict() != 0) {
-      fprintf(stderr, "PyDriver error: couldn't create Python dictionary\n");
+      fprintf(stderr, "%s: couldn't create Python dictionary\n", __func__);
       if (use_gil) {
         PyGILState_Release(gilstate);
       }
@@ -656,12 +661,11 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
       /* This target failed - bad name. */
       if (targets_ok) {
         /* First one, print some extra info for easier identification. */
-        fprintf(stderr, "\nBPY_driver_eval() - Error while evaluating PyDriver:\n");
-        targets_ok = 0;
+        fprintf(stderr, "\n%s: Error while evaluating PyDriver:\n", __func__);
+        targets_ok = false;
       }
 
-      fprintf(
-          stderr, "\tBPY_driver_eval() - couldn't add variable '%s' to namespace\n", dvar->name);
+      fprintf(stderr, "\t%s: couldn't add variable '%s' to namespace\n", __func__, dvar->name);
       // BPy_errors_to_report(NULL); /* TODO: reports. */
       PyErr_Print();
       PyErr_Clear();
@@ -678,7 +682,8 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
                                                    bpy_pydriver_Dict__whitelist,
                                                    driver_vars,
                                                    NULL,
-                                               })) {
+                                               },
+                                               __func__)) {
         if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
           G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
           BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", expr);
@@ -710,7 +715,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     pydriver_error(driver);
   }
   else {
-    if ((result = PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred()) {
+    if (UNLIKELY((result = PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred())) {
       pydriver_error(driver);
       result = 0.0;
     }
@@ -725,11 +730,10 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     PyGILState_Release(gilstate);
   }
 
-  if (isfinite(result)) {
-    return (float)result;
+  if (UNLIKELY(!isfinite(result))) {
+    fprintf(stderr, "\t%s: driver '%s' evaluates to '%f'\n", __func__, driver->expression, result);
+    return 0.0f;
   }
 
-  fprintf(
-      stderr, "\tBPY_driver_eval() - driver '%s' evaluates to '%f'\n", driver->expression, result);
-  return 0.0f;
+  return (float)result;
 }
