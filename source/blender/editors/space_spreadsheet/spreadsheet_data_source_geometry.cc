@@ -513,7 +513,7 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
   const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
   const int domain_num = component.attribute_domain_num(domain);
   for (const auto item : fields_to_show.items()) {
-    StringRef name = item.key;
+    const StringRef name = item.key;
     const GField &field = item.value;
 
     /* Use the cached evaluated array if it exists, otherwise evaluate the field now. */
@@ -527,7 +527,7 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
       return evaluated_array;
     });
 
-    r_extra_columns.add(std::move(name), evaluated_array.as_span());
+    r_extra_columns.add(name, evaluated_array.as_span());
   }
 }
 
@@ -538,7 +538,6 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   const GeometryComponentType component_type = GeometryComponentType(
       sspreadsheet->geometry_component_type);
   GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);
-
   if (!geometry_set.has(component_type)) {
     return {};
   }
@@ -548,10 +547,10 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   add_fields_as_extra_columns(sspreadsheet, component, extra_columns);
 
   if (component_type == GEO_COMPONENT_TYPE_VOLUME) {
-    return std::make_unique<VolumeDataSource>(geometry_set);
+    return std::make_unique<VolumeDataSource>(std::move(geometry_set));
   }
   return std::make_unique<GeometryDataSource>(
-      object_eval, geometry_set, component_type, domain, std::move(extra_columns));
+      object_eval, std::move(geometry_set), component_type, domain, std::move(extra_columns));
 }
 
 }  // namespace blender::ed::spreadsheet
