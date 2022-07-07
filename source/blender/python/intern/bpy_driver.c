@@ -443,13 +443,19 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
     PyObject *co_code;
 
 #  if PY_VERSION_HEX >= 0x030b0000 /* Python 3.11 & newer. */
-    co_code = py_code->_co_code;
+    co_code = PyCode_GetCode(py_code);
+    if (UNLIKELY(!co_code)) {
+      PyErr_Print();
+      PyErr_Clear();
+      return false;
+    }
 #  else
     co_code = py_code->co_code;
 #  endif
 
     PyBytes_AsStringAndSize(co_code, (char **)&codestr, &code_len);
     code_len /= sizeof(*codestr);
+    bool ok = true;
 
     for (Py_ssize_t i = 0; i < code_len; i++) {
       const int opcode = _Py_OPCODE(codestr[i]);
@@ -458,11 +464,17 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
                 "\tBPY_driver_eval() - restricted access disallows opcode '%d', "
                 "enable auto-execution to support\n",
                 opcode);
-        return false;
+        ok = false;
+        break;
       }
     }
 
-#  undef CODESIZE
+#  if PY_VERSION_HEX >= 0x030b0000 /* Python 3.11 & newer. */
+    Py_DECREF(co_code);
+#  endif
+    if (!ok) {
+      return false;
+    }
   }
 
   return true;
