@@ -438,12 +438,12 @@ void lib_reload_fn(struct bContext *C,
                    void *user_data);
 
 void id_delete_tag_fn(struct bContext *C,
-                  struct ReportList *reports,
-                  struct Scene *scene,
-                  struct TreeElement *te,
-                  struct TreeStoreElem *tsep,
-                  struct TreeStoreElem *tselem,
-                  void *user_data);
+                      struct ReportList *reports,
+                      struct Scene *scene,
+                      struct TreeElement *te,
+                      struct TreeStoreElem *tsep,
+                      struct TreeStoreElem *tselem,
+                      void *user_data);
 void id_remap_fn(struct bContext *C,
                  struct ReportList *reports,
                  struct Scene *scene,
