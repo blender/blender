@@ -81,6 +81,8 @@ static void window_manager_foreach_id(ID *id, LibraryForeachIDData *data)
       if (BKE_lib_query_foreachid_iter_stop(data)) {
         return;
       }
+
+      BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, win->unpinned_scene, IDWALK_CB_NOP);
     }
 
     if (BKE_lib_query_foreachid_process_flags_get(data) & IDWALK_INCLUDE_UI) {
@@ -224,6 +226,7 @@ static void lib_link_workspace_instance_hook(BlendLibReader *reader,
 {
   WorkSpace *workspace = BKE_workspace_active_get(hook);
   BLO_read_id_address(reader, id->lib, &workspace);
+
   BKE_workspace_active_set(hook, workspace);
 }
 
@@ -238,6 +241,11 @@ static void window_manager_blend_read_lib(BlendLibReader *reader, ID *id)
     BLO_read_id_address(reader, wm->id.lib, &win->scene);
     /* deprecated, but needed for versioning (will be NULL'ed then) */
     BLO_read_id_address(reader, NULL, &win->screen);
+
+    /* The unpinned scene is a UI->Scene-data pointer, and should be NULL'ed on linking (like
+     * WorkSpace.pin_scene). But the WindowManager ID (owning the window) is never linked. */
+    BLI_assert(!ID_IS_LINKED(id));
+    BLO_read_id_address(reader, id->lib, &win->unpinned_scene);
 
     LISTBASE_FOREACH (ScrArea *, area, &win->global_areas.areabase) {
       BKE_screen_area_blend_read_lib(reader, &wm->id, area);

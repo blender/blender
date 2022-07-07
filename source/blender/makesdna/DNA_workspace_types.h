@@ -123,6 +123,10 @@ typedef struct WorkSpace {
   /** List of #bToolRef */
   ListBase tools;
 
+  /** Optional, scene to switch to when enabling this workspace (NULL to disable). Cleared on
+   * link/append. */
+  struct Scene *pin_scene;
+
   char _pad[4];
 
   int object_mode;
@@ -195,6 +199,7 @@ typedef struct WorkSpaceInstanceHook {
 
 typedef enum eWorkSpaceFlags {
   WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
+  WORKSPACE_USE_PIN_SCENE = (1 << 2),
 } eWorkSpaceFlags;
 
 #ifdef __cplusplus
