@@ -3985,6 +3985,70 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const Re
   return true;
 }
 
+bool BKE_object_minmax_empty_drawtype(const struct Object *ob, float r_min[3], float r_max[3])
+{
+  BLI_assert(ob->type == OB_EMPTY);
+  float3 min(0), max(0);
+
+  bool ok = false;
+  const float radius = ob->empty_drawsize;
+
+  switch (ob->empty_drawtype) {
+    case OB_ARROWS: {
+      max = float3(radius);
+      ok = true;
+      break;
+    }
+    case OB_PLAINAXES:
+    case OB_CUBE:
+    case OB_EMPTY_SPHERE: {
+      min = float3(-radius);
+      max = float3(radius);
+      ok = true;
+      break;
+    }
+    case OB_CIRCLE: {
+      max[0] = max[2] = radius;
+      min[0] = min[2] = -radius;
+      ok = true;
+      break;
+    }
+    case OB_SINGLE_ARROW: {
+      max[2] = radius;
+      ok = true;
+      break;
+    }
+    case OB_EMPTY_CONE: {
+      min = float3(-radius, 0.0f, -radius);
+      max = float3(radius, radius * 2.0f, radius);
+      ok = true;
+      break;
+    }
+    case OB_EMPTY_IMAGE: {
+      const float *ofs = ob->ima_ofs;
+      /* NOTE: this is the best approximation that can be calculated without loading the image. */
+      min[0] = ofs[0] * radius;
+      min[1] = ofs[1] * radius;
+      max[0] = radius + (ofs[0] * radius);
+      max[1] = radius + (ofs[1] * radius);
+      /* Since the image aspect can shrink the bounds towards the object origin,
+       * adjust the min/max to account for that.  */
+      for (int i = 0; i < 2; i++) {
+        CLAMP_MAX(min[i], 0.0f);
+        CLAMP_MIN(max[i], 0.0f);
+      }
+      ok = true;
+      break;
+    }
+  }
+
+  if (ok) {
+    copy_v3_v3(r_min, min);
+    copy_v3_v3(r_max, max);
+  }
+  return ok;
+}
+
 bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
                              Scene *scene,
                              Object *ob,
