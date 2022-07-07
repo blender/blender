@@ -233,15 +233,8 @@ static void bpy_pydriver_namespace_update_depsgraph(struct Depsgraph *depsgraph)
   }
 }
 
-void BPY_driver_reset(void)
+void BPY_driver_exit(void)
 {
-  PyGILState_STATE gilstate;
-  const bool use_gil = true; /* !PyC_IsInterpreterActive(); */
-
-  if (use_gil) {
-    gilstate = PyGILState_Ensure();
-  }
-
   if (bpy_pydriver_Dict) { /* Free the global dict used by python-drivers. */
     PyDict_Clear(bpy_pydriver_Dict);
     Py_DECREF(bpy_pydriver_Dict);
@@ -261,6 +254,19 @@ void BPY_driver_reset(void)
   /* Freed when clearing driver dictionary. */
   g_pydriver_state_prev.self = NULL;
   g_pydriver_state_prev.depsgraph = NULL;
+}
+
+void BPY_driver_reset(void)
+{
+  PyGILState_STATE gilstate;
+  const bool use_gil = true; /* !PyC_IsInterpreterActive(); */
+
+  if (use_gil) {
+    gilstate = PyGILState_Ensure();
+  }
+
+  /* Currently exit/reset are practically the same besides the GIL check. */
+  BPY_driver_exit();
 
   if (use_gil) {
     PyGILState_Release(gilstate);

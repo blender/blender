@@ -512,6 +512,9 @@ void BPY_python_end(void)
   /* finalizing, no need to grab the state, except when we are a module */
   gilstate = PyGILState_Ensure();
 
+  /* Frees the python-driver name-space & cached data. */
+  BPY_driver_exit();
+
   /* Clear Python values in the context so freeing the context after Python exits doesn't crash. */
   bpy_context_end(BPY_context_get());
 
