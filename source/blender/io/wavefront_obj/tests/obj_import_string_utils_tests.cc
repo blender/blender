@@ -29,9 +29,14 @@ static StringRef parse_int(StringRef s, int fallback, int &dst, bool skip_space 
 {
   return StringRef(parse_int(s.begin(), s.end(), fallback, dst, skip_space), s.end());
 }
-static StringRef parse_float(StringRef s, float fallback, float &dst, bool skip_space = true)
+static StringRef parse_float(StringRef s,
+                             float fallback,
+                             float &dst,
+                             bool skip_space = true,
+                             bool require_trailing_space = false)
 {
-  return StringRef(parse_float(s.begin(), s.end(), fallback, dst, skip_space), s.end());
+  return StringRef(
+      parse_float(s.begin(), s.end(), fallback, dst, skip_space, require_trailing_space), s.end());
 }
 
 TEST(obj_import_string_utils, drop_whitespace)
@@ -126,6 +131,9 @@ TEST(obj_import_string_utils, parse_float_invalid)
   /* Has leading white-space when we don't expect it */
   EXPECT_STRREF_EQ(" 1", parse_float(" 1", -4.0f, val, false));
   EXPECT_EQ(val, -4.0f);
+  /* Has trailing non-number characters when we don't want them */
+  EXPECT_STRREF_EQ("123.5.png", parse_float("  123.5.png", -5.0f, val, true, true));
+  EXPECT_EQ(val, -5.0f);
 }
 
 }  // namespace blender::io::obj

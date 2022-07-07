@@ -247,7 +247,7 @@ TEST_F(obj_mtl_parser_test, materials)
     ks.image_path = "ScaleOffsetBothTwovalues.png";
     tex_map_XX &ns = mat[5].tex_map_of_type(eMTLSyntaxElement::map_Ns);
     ns.scale = {0.5f, 1.0f, 1.0f};
-    ns.image_path = "ScaleOneValue.png";
+    ns.image_path = "1.Value.png";
   }
 
   check("materials.mtl", mat, ARRAY_SIZE(mat));

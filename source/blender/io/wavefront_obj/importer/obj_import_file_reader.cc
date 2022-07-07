@@ -626,15 +626,15 @@ static bool parse_texture_option(const char *&p,
 {
   p = drop_whitespace(p, end);
   if (parse_keyword(p, end, "-o")) {
-    p = parse_floats(p, end, 0.0f, tex_map.translation, 3);
+    p = parse_floats(p, end, 0.0f, tex_map.translation, 3, true);
     return true;
   }
   if (parse_keyword(p, end, "-s")) {
-    p = parse_floats(p, end, 1.0f, tex_map.scale, 3);
+    p = parse_floats(p, end, 1.0f, tex_map.scale, 3, true);
     return true;
   }
   if (parse_keyword(p, end, "-bm")) {
-    p = parse_float(p, end, 1.0f, material->map_Bump_strength);
+    p = parse_float(p, end, 1.0f, material->map_Bump_strength, true, true);
     return true;
   }
   if (parse_keyword(p, end, "-type")) {

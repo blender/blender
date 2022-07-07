@@ -62,8 +62,12 @@ static const char *drop_plus(const char *p, const char *end)
   return p;
 }
 
-const char *parse_float(
-    const char *p, const char *end, float fallback, float &dst, bool skip_space)
+const char *parse_float(const char *p,
+                        const char *end,
+                        float fallback,
+                        float &dst,
+                        bool skip_space,
+                        bool require_trailing_space)
 {
   if (skip_space) {
     p = drop_whitespace(p, end);
@@ -73,13 +77,23 @@ const char *parse_float(
   if (res.ec == std::errc::invalid_argument || res.ec == std::errc::result_out_of_range) {
     dst = fallback;
   }
+  else if (require_trailing_space && res.ptr < end && !is_whitespace(*res.ptr)) {
+    /* If there are trailing non-space characters, do not eat up the number. */
+    dst = fallback;
+    return p;
+  }
   return res.ptr;
 }
 
-const char *parse_floats(const char *p, const char *end, float fallback, float *dst, int count)
+const char *parse_floats(const char *p,
+                         const char *end,
+                         float fallback,
+                         float *dst,
+                         int count,
+                         bool require_trailing_space)
 {
   for (int i = 0; i < count; ++i) {
-    p = parse_float(p, end, fallback, dst[i]);
+    p = parse_float(p, end, fallback, dst[i], true, require_trailing_space);
   }
   return p;
 }
