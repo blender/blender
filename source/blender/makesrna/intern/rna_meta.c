@@ -84,7 +84,6 @@ static void rna_MetaBall_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 static void rna_MetaBall_update_data(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
   MetaBall *mb = (MetaBall *)ptr->owner_id;
-  Object *ob;
 
   /* NOTE: The check on the number of users allows to avoid many repetitive (slow) updates in some
    * cases, like e.g. importers. Calling `BKE_mball_properties_copy` on an obdata with no users
