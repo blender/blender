@@ -693,6 +693,13 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
    * First recursively check all its valid users, if all of them can be tagged as
    * unused, then we can tag this ID as such too. */
   bool has_valid_from_users = false;
+  /* Preemptively consider this ID as unused. That way if there is a loop of dependency leading
+   * back to it, it won't create a fake 'valid user' detection.
+   * NOTE: This can only only be done for a subset of IDs, some types are never 'indirectly
+   * unused', same for IDs with a fake user. */
+  if ((id->flag & LIB_FAKEUSER) == 0 && !ELEM(GS(id->name), ID_SCE, ID_WM, ID_SCR, ID_WS, ID_LI)) {
+    id->tag |= tag;
+  }
   for (MainIDRelationsEntryItem *id_from_item = id_relations->from_ids; id_from_item != NULL;
        id_from_item = id_from_item->next) {
     if ((id_from_item->usage_flag & ignored_usages) != 0 ||
@@ -715,7 +722,11 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
       break;
     }
   }
-  if (!has_valid_from_users) {
+  if (has_valid_from_users) {
+    /* This ID has 'valid' users, clear the 'tag as unused' preemptively set above. */
+    id->tag &= ~tag;
+  }
+  else {
     /* This ID has no 'valid' users, tag it as unused. */
     id->tag |= tag;
     if (r_num_tagged != NULL) {
