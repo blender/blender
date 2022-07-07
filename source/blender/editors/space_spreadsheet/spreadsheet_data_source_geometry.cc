@@ -398,6 +398,11 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
           geometry_set.get_component_for_write<PointCloudComponent>();
       pointcloud_component.replace(pointcloud, GeometryOwnershipType::ReadOnly);
     }
+    else if (object_orig->type == OB_CURVES) {
+      const Curves &curves_id = *(const Curves *)object_orig->data;
+      CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
+      curve_component.replace(&const_cast<Curves &>(curves_id), GeometryOwnershipType::ReadOnly);
+    }
   }
   else {
     if (object_eval->mode == OB_MODE_EDIT && object_eval->type == OB_MESH) {
@@ -472,18 +477,6 @@ static void find_fields_to_evaluate(const SpaceSpreadsheet *sspreadsheet,
   }
 }
 
-static GeometryComponentType get_display_component_type(const bContext *C, Object *object_eval)
-{
-  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  if (sspreadsheet->object_eval_state != SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
-    return (GeometryComponentType)sspreadsheet->geometry_component_type;
-  }
-  if (object_eval->type == OB_POINTCLOUD) {
-    return GEO_COMPONENT_TYPE_POINT_CLOUD;
-  }
-  return GEO_COMPONENT_TYPE_MESH;
-}
-
 class GeometryComponentCacheKey : public SpreadsheetCache::Key {
  public:
   /* Use the pointer to the geometry component as a key to detect when the geometry changed. */
@@ -551,7 +544,8 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
-  const GeometryComponentType component_type = get_display_component_type(C, object_eval);
+  const GeometryComponentType component_type = GeometryComponentType(
+      sspreadsheet->geometry_component_type);
   GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);
 
   if (!geometry_set.has(component_type)) {
