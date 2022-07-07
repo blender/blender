@@ -267,6 +267,7 @@ class GVArraySpan : public GSpan {
   void *owned_data_ = nullptr;
 
  public:
+  GVArraySpan();
   GVArraySpan(GVArray varray);
   GVArraySpan(GVArraySpan &&other);
   ~GVArraySpan();
@@ -282,10 +283,13 @@ class GMutableVArraySpan : public GMutableSpan, NonCopyable, NonMovable {
   bool show_not_saved_warning_ = true;
 
  public:
+  GMutableVArraySpan();
   GMutableVArraySpan(GVMutableArray varray, bool copy_values_to_span = true);
   GMutableVArraySpan(GMutableVArraySpan &&other);
   ~GMutableVArraySpan();
   GMutableVArraySpan &operator=(GMutableVArraySpan &&other);
+
+  const GVMutableArray &varray() const;
 
   void save();
   void disable_not_applied_warning();

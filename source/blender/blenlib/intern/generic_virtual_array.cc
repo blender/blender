@@ -287,8 +287,15 @@ template<int BufferSize> class GVArrayImpl_For_SmallTrivialSingleValue : public 
 /** \name #GVArraySpan
  * \{ */
 
-GVArraySpan::GVArraySpan(GVArray varray) : GSpan(varray.type()), varray_(std::move(varray))
+GVArraySpan::GVArraySpan() = default;
+
+GVArraySpan::GVArraySpan(GVArray varray)
+    : GSpan(varray ? &varray.type() : nullptr), varray_(std::move(varray))
 {
+  if (!varray_) {
+    return;
+  }
+
   size_ = varray_.size();
   const CommonVArrayInfo info = varray_.common_info();
   if (info.type == CommonVArrayInfo::Type::Span) {
@@ -302,8 +309,12 @@ GVArraySpan::GVArraySpan(GVArray varray) : GSpan(varray.type()), varray_(std::mo
 }
 
 GVArraySpan::GVArraySpan(GVArraySpan &&other)
-    : GSpan(other.type()), varray_(std::move(other.varray_)), owned_data_(other.owned_data_)
+    : GSpan(other.type_ptr()), varray_(std::move(other.varray_)), owned_data_(other.owned_data_)
 {
+  if (!varray_) {
+    return;
+  }
+
   size_ = varray_.size();
   const CommonVArrayInfo info = varray_.common_info();
   if (info.type == CommonVArrayInfo::Type::Span) {
@@ -340,9 +351,14 @@ GVArraySpan &GVArraySpan::operator=(GVArraySpan &&other)
 /** \name #GMutableVArraySpan
  * \{ */
 
+GMutableVArraySpan::GMutableVArraySpan() = default;
+
 GMutableVArraySpan::GMutableVArraySpan(GVMutableArray varray, const bool copy_values_to_span)
-    : GMutableSpan(varray.type()), varray_(std::move(varray))
+    : GMutableSpan(varray ? &varray.type() : nullptr), varray_(std::move(varray))
 {
+  if (!varray_) {
+    return;
+  }
   size_ = varray_.size();
   const CommonVArrayInfo info = varray_.common_info();
   if (info.type == CommonVArrayInfo::Type::Span) {
@@ -361,11 +377,14 @@ GMutableVArraySpan::GMutableVArraySpan(GVMutableArray varray, const bool copy_va
 }
 
 GMutableVArraySpan::GMutableVArraySpan(GMutableVArraySpan &&other)
-    : GMutableSpan(other.type()),
+    : GMutableSpan(other.type_ptr()),
       varray_(std::move(other.varray_)),
       owned_data_(other.owned_data_),
       show_not_saved_warning_(other.show_not_saved_warning_)
 {
+  if (!varray_) {
+    return;
+  }
   size_ = varray_.size();
   const CommonVArrayInfo info = varray_.common_info();
   if (info.type == CommonVArrayInfo::Type::Span) {
@@ -415,6 +434,11 @@ void GMutableVArraySpan::save()
 void GMutableVArraySpan::disable_not_applied_warning()
 {
   show_not_saved_warning_ = false;
+}
+
+const GVMutableArray &GMutableVArraySpan::varray() const
+{
+  return varray_;
 }
 
 /** \} */
