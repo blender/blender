@@ -465,6 +465,7 @@ set(SRC_SHADER_CREATE_INFOS
   ../draw/engines/overlay/shaders/infos/overlay_outline_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_paint_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_sculpt_info.hh
+  ../draw/engines/overlay/shaders/infos/overlay_sculpt_curves_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_volume_info.hh
   ../draw/engines/overlay/shaders/infos/overlay_wireframe_info.hh
   ../draw/engines/select/shaders/infos/select_id_info.hh

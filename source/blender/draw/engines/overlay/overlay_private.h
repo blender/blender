@@ -116,6 +116,7 @@ typedef struct OVERLAY_PassList {
   DRWPass *particle_ps;
   DRWPass *pointcloud_ps;
   DRWPass *sculpt_mask_ps;
+  DRWPass *sculpt_curves_selection_ps;
   DRWPass *volume_ps;
   DRWPass *wireframe_ps;
   DRWPass *wireframe_xray_ps;
@@ -279,6 +280,7 @@ typedef struct OVERLAY_PrivateData {
   DRWShadingGroup *particle_shapes_grp;
   DRWShadingGroup *pointcloud_dots_grp;
   DRWShadingGroup *sculpt_mask_grp;
+  DRWShadingGroup *sculpt_curves_selection_grp;
   DRWShadingGroup *volume_selection_surface_grp;
   DRWShadingGroup *wires_grp[2][2];      /* With and without coloring. */
   DRWShadingGroup *wires_all_grp[2][2];  /* With and without coloring. */
@@ -669,6 +671,10 @@ void OVERLAY_sculpt_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_sculpt_cache_populate(OVERLAY_Data *vedata, Object *ob);
 void OVERLAY_sculpt_draw(OVERLAY_Data *vedata);
 
+void OVERLAY_sculpt_curves_cache_init(OVERLAY_Data *vedata);
+void OVERLAY_sculpt_curves_cache_populate(OVERLAY_Data *vedata, Object *ob);
+void OVERLAY_sculpt_curves_draw(OVERLAY_Data *vedata);
+
 void OVERLAY_wireframe_init(OVERLAY_Data *vedata);
 void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata);
 void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
@@ -750,6 +756,7 @@ GPUShader *OVERLAY_shader_paint_wire(void);
 GPUShader *OVERLAY_shader_particle_dot(void);
 GPUShader *OVERLAY_shader_particle_shape(void);
 GPUShader *OVERLAY_shader_sculpt_mask(void);
+GPUShader *OVERLAY_shader_sculpt_curves_selection(void);
 GPUShader *OVERLAY_shader_volume_velocity(bool use_needle, bool use_mac);
 GPUShader *OVERLAY_shader_volume_gridlines(bool color_with_flags, bool color_range);
 GPUShader *OVERLAY_shader_wireframe(bool custom_bias);

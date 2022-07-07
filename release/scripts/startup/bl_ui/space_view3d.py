@@ -6669,6 +6669,7 @@ class VIEW3D_PT_overlay_sculpt_curves(Panel):
         overlay = view.overlay
 
         row = layout.row(align=True)
+        row.active = overlay.show_overlays
         row.prop(overlay, "sculpt_mode_mask_opacity", text="Selection Opacity")
 
 
