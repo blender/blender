@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_index_mask_ops.hh"
 #include "BLI_virtual_array.hh"
 
 #include "BKE_context.h"
@@ -235,20 +236,10 @@ bool GeometryDataSource::has_selection_filter() const
   return true;
 }
 
-static IndexMask index_mask_from_bool_array(const VArray<bool> &selection,
-                                            Vector<int64_t> &indices)
-{
-  for (const int i : selection.index_range()) {
-    if (selection[i]) {
-      indices.append(i);
-    }
-  }
-  return IndexMask(indices);
-}
-
 IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) const
 {
   std::lock_guard lock{mutex_};
+  const IndexMask full_range(this->tot_rows());
 
   BLI_assert(object_eval_->mode == OB_MODE_EDIT);
   BLI_assert(component_->type() == GEO_COMPONENT_TYPE_MESH);
@@ -277,7 +268,7 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
                               }),
         ATTR_DOMAIN_POINT,
         domain_);
-    return index_mask_from_bool_array(selection, indices);
+    return index_mask_ops::find_indices_from_virtual_array(full_range, selection, 1024, indices);
   }
 
   if (mesh_eval->totvert == bm->totvert) {
@@ -290,10 +281,10 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
                               }),
         ATTR_DOMAIN_POINT,
         domain_);
-    return index_mask_from_bool_array(selection, indices);
+    return index_mask_ops::find_indices_from_virtual_array(full_range, selection, 2048, indices);
   }
 
-  return IndexMask(mesh_eval->totvert);
+  return full_range;
 }
 
 void VolumeDataSource::foreach_default_column_ids(
