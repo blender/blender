@@ -19,6 +19,7 @@
 #include "BKE_animsys.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
+#include "BKE_idtype.h"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
@@ -273,13 +274,27 @@ void BPY_driver_reset(void)
   }
 }
 
-/** Error return function for #BPY_eval_pydriver. */
-static void pydriver_error(ChannelDriver *driver)
+/**
+ * Error return function for #BPY_eval_pydriver.
+ *
+ * \param anim_rna: Used to show the target when printing the error to give additional context.
+ */
+static void pydriver_error(ChannelDriver *driver, const struct PathResolvedRNA *anim_rna)
 {
   driver->flag |= DRIVER_FLAG_INVALID; /* Python expression failed. */
+
+  const char *null_str = "<null>";
+  const ID *id = anim_rna->ptr.owner_id;
   fprintf(stderr,
-          "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n",
-          driver->expression);
+          "\n"
+          "Error in PyDriver: expression failed: %s\n"
+          "For target: (type=%s, name=\"%s\", property=%s, property_index=%d)\n"
+          "\n",
+          driver->expression,
+          id ? BKE_idtype_idcode_to_name(GS(id->name)) : null_str,
+          id ? id->name + 2 : null_str,
+          anim_rna->prop ? RNA_property_identifier(anim_rna->prop) : null_str,
+          anim_rna->prop_index);
 
   // BPy_errors_to_report(NULL); /* TODO: reports. */
   PyErr_Print();
@@ -718,11 +733,11 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
 
   /* Process the result. */
   if (retval == NULL) {
-    pydriver_error(driver);
+    pydriver_error(driver, anim_rna);
   }
   else {
     if (UNLIKELY((result = PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred())) {
-      pydriver_error(driver);
+      pydriver_error(driver, anim_rna);
       result = 0.0;
     }
     else {
