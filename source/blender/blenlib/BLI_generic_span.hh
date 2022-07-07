@@ -28,7 +28,8 @@ class GSpan {
   {
     BLI_assert(size >= 0);
     BLI_assert(buffer != nullptr || size == 0);
-    BLI_assert(type->pointer_has_valid_alignment(buffer));
+    BLI_assert(size == 0 || type != nullptr);
+    BLI_assert(type == nullptr || type->pointer_has_valid_alignment(buffer));
   }
 
   GSpan(const CPPType &type, const void *buffer, int64_t size) : GSpan(&type, buffer, size)
@@ -119,7 +120,8 @@ class GMutableSpan {
   {
     BLI_assert(size >= 0);
     BLI_assert(buffer != nullptr || size == 0);
-    BLI_assert(type->pointer_has_valid_alignment(buffer));
+    BLI_assert(size == 0 || type != nullptr);
+    BLI_assert(type == nullptr || type->pointer_has_valid_alignment(buffer));
   }
 
   GMutableSpan(const CPPType &type, void *buffer, int64_t size) : GMutableSpan(&type, buffer, size)
