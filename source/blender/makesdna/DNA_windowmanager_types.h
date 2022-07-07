@@ -240,7 +240,7 @@ typedef struct wmWindow {
   /** Active view layer displayed in this window. */
   char view_layer_name[64];
   /** The workspace may temporarily override the window's scene with scene pinning. This is the
-   * "overriden" or "default" scene to restore when entering a workspace with no scene pinned. */
+   * "overridden" or "default" scene to restore when entering a workspace with no scene pinned. */
   struct Scene *unpinned_scene;
 
   struct WorkSpaceInstanceHook *workspace_hook;

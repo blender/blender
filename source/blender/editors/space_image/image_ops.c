@@ -199,7 +199,7 @@ static ImageUser *image_user_from_context(const bContext *C)
 
 static ImageUser image_user_from_context_and_active_tile(const bContext *C, Image *ima)
 {
-  /* Try to get image user from contexrt if available, otherwise use default. */
+  /* Try to get image user from context if available, otherwise use default. */
   ImageUser *iuser_context = image_user_from_context(C);
   ImageUser iuser;
   if (iuser_context) {

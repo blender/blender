@@ -275,7 +275,7 @@ void BPY_driver_reset(void)
 }
 
 /**
- * Error return function for #BPY_eval_pydriver.
+ * Error return function for #BPY_driver_exec.
  *
  * \param anim_rna: Used to show the target when printing the error to give additional context.
  */

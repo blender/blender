@@ -434,13 +434,16 @@ static void mball_data_properties_copy(MetaBall *mb_dst, MetaBall *mb_src)
 
 void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
 {
-  /* WARNING: This code does not cover all potential corner-cases. E.g. if:
-   *   |   Object   |   ObData   |
-   *   | ---------- | ---------- |
-   *   | Meta_A     | Meta_A     |
-   *   | Meta_A.001 | Meta_A.001 |
-   *   | Meta_B     | Meta_A     |
-   *   | Meta_B.001 | Meta_B.001 |
+  /**
+   * WARNING: This code does not cover all potential corner-cases. E.g. if:
+   * <pre>
+   * |   Object   |   ObData   |
+   * | ---------- | ---------- |
+   * | Meta_A     | Meta_A     |
+   * | Meta_A.001 | Meta_A.001 |
+   * | Meta_B     | Meta_A     |
+   * | Meta_B.001 | Meta_B.001 |
+   * </pre>
    *
    * Calling this function with `metaball_src` being `Meta_A.001` will update `Meta_A`, but NOT
    * `Meta_B.001`. So in the 'Meta_B' family, the two metaballs will have unmatching settings now.

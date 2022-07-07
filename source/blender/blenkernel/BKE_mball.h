@@ -75,7 +75,8 @@ float *BKE_mball_make_orco(struct Object *ob, struct ListBase *dispbase);
  * When some properties (wire-size, threshold, update flags) of meta-ball are changed, then this
  * properties are copied to all meta-balls in same "group" (meta-balls with same base name:
  * `MBall`, `MBall.001`, `MBall.002`, etc). The most important is to copy properties to the base
- * meta-ball, because this meta-ball influences polygonization of meta-balls. */
+ * meta-ball, because this meta-ball influences polygonization of meta-balls.
+ */
 void BKE_mball_properties_copy(struct Main *bmain, struct MetaBall *active_metaball);
 
 bool BKE_mball_minmax_ex(

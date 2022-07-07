@@ -366,9 +366,6 @@ void BKE_object_empty_draw_type_set(struct Object *ob, int value);
 
 void BKE_object_boundbox_calc_from_mesh(struct Object *ob, const struct Mesh *me_eval);
 bool BKE_object_boundbox_calc_from_evaluated_geometry(struct Object *ob);
-/**
- * Calculate visual bounds from an empty objects draw-type.
- */
 void BKE_object_minmax(struct Object *ob, float r_min[3], float r_max[3], bool use_hidden);
 bool BKE_object_minmax_dupli(struct Depsgraph *depsgraph,
                              struct Scene *scene,
@@ -376,6 +373,12 @@ bool BKE_object_minmax_dupli(struct Depsgraph *depsgraph,
                              float r_min[3],
                              float r_max[3],
                              bool use_hidden);
+/**
+ * Calculate visual bounds from an empty objects draw-type.
+ *
+ * \note This is not part of the calculation used by #BKE_object_boundbox_get
+ * as these bounds represent the extents of visual guides (use for viewport culling for e.g.)
+ */
 bool BKE_object_minmax_empty_drawtype(const struct Object *ob, float r_min[3], float r_max[3]);
 
 /**

@@ -908,12 +908,12 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   bool spacing_done = false;
 
   /* 70% of maximum weight results in the same amount of boldness and horizontal
-   * expansion as the bold version (DejaVuSans-Bold.ttf) of our default font.
+   * expansion as the bold version `DejaVuSans-Bold.ttf` of our default font.
    * Worth reevaluating if we change default font. */
   float weight = (settings_font->flags & BLF_BOLD) ? 0.7f : settings_font->char_weight;
 
   /* 37.5% of maximum rightward slant results in 6 degree slope, matching italic
-   * version (DejaVuSans-Oblique.ttf) of our current font. But a nice median when
+   * version `DejaVuSans-Oblique.ttf` of our current font. But a nice median when
    * checking others. Worth reevaluating if we change default font. We could also
    * narrow the glyph slightly as most italics do, but this one does not. */
   float slant = (settings_font->flags & BLF_ITALIC) ? 0.375f : settings_font->char_slant;

@@ -290,7 +290,7 @@ static void image_save_post(ReportList *reports,
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
   }
 
-  /* The tiled image codepath must call this on its own. */
+  /* The tiled image code-path must call this on its own. */
   if (ima->source != IMA_SRC_TILED) {
     image_save_update_filepath(ima, filepath, opts);
   }
