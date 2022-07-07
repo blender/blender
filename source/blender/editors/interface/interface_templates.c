@@ -1024,6 +1024,26 @@ static const char *template_id_browse_tip(const StructRNA *type)
 }
 
 /**
+ * Add a superimposed extra icon to \a but, for workspace pinning.
+ * Rather ugly special handling, but this is really a special case at this point, nothing worth
+ * generalizing.
+ */
+static void template_id_workspace_pin_extra_icon(const TemplateID *template_ui, uiBut *but)
+{
+  if ((template_ui->idcode != ID_SCE) || (template_ui->ptr.type != &RNA_Window)) {
+    return;
+  }
+
+  const wmWindow *win = template_ui->ptr.data;
+  const WorkSpace *workspace = WM_window_get_active_workspace(win);
+  UI_but_extra_operator_icon_add(but,
+                                 "WORKSPACE_OT_scene_pin_toggle",
+                                 WM_OP_INVOKE_DEFAULT,
+                                 (workspace->flags & WORKSPACE_USE_PIN_SCENE) ? ICON_PINNED :
+                                                                                ICON_UNPINNED);
+}
+
+/**
  * \return a type-based i18n context, needed e.g. by "New" button.
  * In most languages, this adjective takes different form based on gender of type name...
  */
@@ -1219,6 +1239,8 @@ static void template_ID(const bContext *C,
     if (user_alert) {
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
+
+    template_id_workspace_pin_extra_icon(template_ui, but);
 
     if (ID_IS_LINKED(id)) {
       const bool disabled = !BKE_idtype_idcode_is_localizable(GS(id->name));

@@ -419,6 +419,7 @@ static void rna_def_workspace(BlenderRNA *brna)
                            "Pin Scene",
                            "Remember the last used scene for the workspace and switch to it "
                            "whenever this workspace is activated again");
+  RNA_def_property_update(prop, NC_WORKSPACE, NULL);
 
   /* Flags */
   prop = RNA_def_property(srna, "use_filter_by_owner", PROP_BOOLEAN, PROP_NONE);

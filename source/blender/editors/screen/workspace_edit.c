@@ -585,6 +585,35 @@ static void WORKSPACE_OT_reorder_to_front(wmOperatorType *ot)
   ot->exec = workspace_reorder_to_front_exec;
 }
 
+static int workspace_scene_pin_toggle(bContext *C, wmOperator *UNUSED(op))
+{
+  WorkSpace *workspace = workspace_context_get(C);
+
+  /* Trivial. The operator is only needed to display a superimposed extra icon, which
+   * requires an operator. */
+  workspace->flags ^= WORKSPACE_USE_PIN_SCENE;
+
+  WM_event_add_notifier(C, NC_WORKSPACE, NULL);
+
+  return OPERATOR_FINISHED;
+}
+
+static void WORKSPACE_OT_scene_pin_toggle(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Pin Scene to Workspace";
+  ot->description =
+      "Remember the last used scene for the current workspace and switch to it whenever this "
+      "workspace is activated again";
+  ot->idname = "WORKSPACE_OT_scene_pin_toggle";
+
+  /* api callbacks */
+  ot->poll = workspace_context_poll;
+  ot->exec = workspace_scene_pin_toggle;
+
+  ot->flag = OPTYPE_INTERNAL;
+}
+
 void ED_operatortypes_workspace(void)
 {
   WM_operatortype_append(WORKSPACE_OT_duplicate);
@@ -593,6 +622,7 @@ void ED_operatortypes_workspace(void)
   WM_operatortype_append(WORKSPACE_OT_append_activate);
   WM_operatortype_append(WORKSPACE_OT_reorder_to_back);
   WM_operatortype_append(WORKSPACE_OT_reorder_to_front);
+  WM_operatortype_append(WORKSPACE_OT_scene_pin_toggle);
 }
 
 /** \} Workspace Operators */
