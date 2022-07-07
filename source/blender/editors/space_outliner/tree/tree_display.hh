@@ -161,7 +161,6 @@ class TreeDisplayOverrideLibraryHierarchies final : public AbstractTreeDisplay {
   ListBase build_hierarchy_for_lib_or_main(Main *bmain,
                                            TreeElement &parent_te,
                                            Library *lib = nullptr);
-  void build_hierarchy_for_ID(Main *bmain, ID &override_root_id, TreeElementID &te_id) const;
 };
 
 /* -------------------------------------------------------------------- */
