@@ -6,12 +6,14 @@
  */
 
 #include "DNA_movieclip_types.h"
+#include "DNA_tracking_types.h"
 
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+#include "BKE_tracking.h"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
@@ -38,8 +40,15 @@ static void node_composit_init_keyingscreen(const bContext *C, PointerRNA *ptr)
   node->storage = data;
 
   const Scene *scene = CTX_data_scene(C);
-  node->id = (ID *)scene->clip;
-  id_us_plus(node->id);
+  if (scene->clip) {
+    MovieClip *clip = scene->clip;
+
+    node->id = &clip->id;
+    id_us_plus(&clip->id);
+
+    const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(&clip->tracking);
+    BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
+  }
 }
 
 static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, PointerRNA *ptr)

@@ -5,6 +5,11 @@
  * \ingroup cmpnodes
  */
 
+#include "DNA_movieclip_types.h"
+#include "DNA_tracking_types.h"
+
+#include "BKE_tracking.h"
+
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
@@ -32,8 +37,23 @@ static void init(const bContext *C, PointerRNA *ptr)
   node->storage = data;
 
   const Scene *scene = CTX_data_scene(C);
-  node->id = (ID *)scene->clip;
-  id_us_plus(node->id);
+  if (scene->clip) {
+    MovieClip *clip = scene->clip;
+    MovieTracking *tracking = &clip->tracking;
+
+    node->id = &clip->id;
+    id_us_plus(&clip->id);
+
+    const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
+    BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
+
+    const MovieTrackingPlaneTrack *active_plane_track = BKE_tracking_plane_track_get_active(
+        tracking);
+    if (active_plane_track) {
+      BLI_strncpy(
+          data->plane_track_name, active_plane_track->name, sizeof(data->plane_track_name));
+    }
+  }
 }
 
 static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, PointerRNA *ptr)
