@@ -68,7 +68,8 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, 
 
   /* get the channel that was clicked on */
   /* filter channels */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* get channel from index */
@@ -394,7 +395,8 @@ static int nlachannels_pushdown_exec(bContext *C, wmOperator *op)
     int filter;
 
     /* filter channels */
-    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
+              ANIMFILTER_FCURVESONLY);
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
     /* get channel from index */
@@ -561,7 +563,7 @@ bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
 
   /* get a list of the (selected) NLA Tracks being shown in the NLA */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL |
-            ANIMFILTER_NODUPLIS);
+            ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* add tracks... */
@@ -608,7 +610,7 @@ bool nlaedit_add_tracks_empty(bAnimContext *ac)
 
   /* get a list of the selected AnimData blocks in the NLA */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA |
-            ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
+            ANIMFILTER_SEL | ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* check if selected AnimData blocks are empty, and add tracks if so... */
@@ -710,7 +712,7 @@ static int nlaedit_delete_tracks_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* get a list of the AnimData blocks being shown in the NLA */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL |
-            ANIMFILTER_NODUPLIS);
+            ANIMFILTER_NODUPLIS | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* delete tracks */

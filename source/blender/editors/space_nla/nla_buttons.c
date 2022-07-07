@@ -79,7 +79,7 @@ bool nla_panel_context(const bContext *C,
    */
   /* XXX: double-check active! */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ACTIVE |
-            ANIMFILTER_LIST_CHANNELS);
+            ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   for (ale = anim_data.first; ale; ale = ale->next) {
