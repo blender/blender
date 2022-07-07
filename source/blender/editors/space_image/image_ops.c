@@ -2391,7 +2391,7 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
         if (image_has_valid_path(ima)) {
           ImageSaveOptions opts;
           Scene *scene = CTX_data_scene(C);
-          if (!BKE_image_save_options_init(&opts, bmain, scene, ima, NULL, false, false)) {
+          if (BKE_image_save_options_init(&opts, bmain, scene, ima, NULL, false, false)) {
             bool saved_successfully = BKE_image_save(reports, bmain, ima, NULL, &opts);
             ok = ok && saved_successfully;
           }
