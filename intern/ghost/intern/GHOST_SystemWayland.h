@@ -179,7 +179,10 @@ class GHOST_SystemWayland : public GHOST_System {
   bool window_cursor_grab_set(const GHOST_TGrabCursorMode mode,
                               const GHOST_TGrabCursorMode mode_current,
                               int32_t init_grab_xy[2],
-                              wl_surface *surface);
+                              const GHOST_Rect *wrap_bounds,
+                              GHOST_TAxisFlag wrap_axis,
+                              wl_surface *surface,
+                              int scale);
 
  private:
   struct display_t *d;

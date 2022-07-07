@@ -3449,7 +3449,10 @@ void GHOST_SystemWayland::window_surface_unref(const wl_surface *surface)
 bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mode,
                                                  const GHOST_TGrabCursorMode mode_current,
                                                  int32_t init_grab_xy[2],
-                                                 wl_surface *surface)
+                                                 const GHOST_Rect *wrap_bounds,
+                                                 const GHOST_TAxisFlag wrap_axis,
+                                                 wl_surface *surface,
+                                                 const int scale)
 {
   /* Ignore, if the required protocols are not supported. */
   if (!d->relative_pointer_manager || !d->pointer_constraints) {
@@ -3502,31 +3505,22 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
       if (mode_current == GHOST_kGrabWrap) {
         /* Since this call is initiated by Blender, we can be sure the window wasn't closed
          * by logic outside this function - as the window was needed to make this call. */
-        GHOST_WindowWayland *win = ghost_wl_surface_user_data(surface);
-        GHOST_ASSERT(win, "could not find window from surface when un-grabbing!");
-
-        GHOST_Rect bounds;
         int32_t xy_new[2] = {input->pointer.xy[0], input->pointer.xy[1]};
 
-        /* Fallback to window bounds. */
-        if (win->getCursorGrabBounds(bounds) == GHOST_kFailure) {
-          win->getClientBounds(bounds);
-        }
+        GHOST_Rect bounds_scale;
 
-        const int scale = win->scale();
+        bounds_scale.m_l = wl_fixed_from_int(wrap_bounds->m_l) / scale;
+        bounds_scale.m_t = wl_fixed_from_int(wrap_bounds->m_t) / scale;
+        bounds_scale.m_r = wl_fixed_from_int(wrap_bounds->m_r) / scale;
+        bounds_scale.m_b = wl_fixed_from_int(wrap_bounds->m_b) / scale;
 
-        bounds.m_l = wl_fixed_from_int(bounds.m_l) / scale;
-        bounds.m_t = wl_fixed_from_int(bounds.m_t) / scale;
-        bounds.m_r = wl_fixed_from_int(bounds.m_r) / scale;
-        bounds.m_b = wl_fixed_from_int(bounds.m_b) / scale;
-
-        bounds.wrapPoint(xy_new[0], xy_new[1], 0, win->getCursorGrabAxis());
+        bounds_scale.wrapPoint(xy_new[0], xy_new[1], 0, wrap_axis);
 
         /* Push an event so the new location is registered. */
         if ((xy_new[0] != input->pointer.xy[0]) || (xy_new[1] != input->pointer.xy[1])) {
           input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
                                                          GHOST_kEventCursorMove,
-                                                         win,
+                                                         ghost_wl_surface_user_data(surface),
                                                          wl_fixed_to_int(scale * xy_new[0]),
                                                          wl_fixed_to_int(scale * xy_new[1]),
                                                          GHOST_TABLET_DATA_NONE));
@@ -3541,8 +3535,6 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
       else if (mode_current == GHOST_kGrabHide) {
         if ((init_grab_xy[0] != input->grab_lock_xy[0]) ||
             (init_grab_xy[1] != input->grab_lock_xy[1])) {
-          GHOST_WindowWayland *win = ghost_wl_surface_user_data(surface);
-          const int scale = win->scale();
           const wl_fixed_t xy_next[2] = {
               wl_fixed_from_int(init_grab_xy[0]) / scale,
               wl_fixed_from_int(init_grab_xy[1]) / scale,
@@ -3595,8 +3587,6 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
       if (mode == GHOST_kGrabHide) {
         /* Set the initial position to detect any changes when un-grabbing,
          * otherwise the unlocked cursor defaults to un-locking in-place. */
-        GHOST_WindowWayland *win = ghost_wl_surface_user_data(surface);
-        const int scale = win->scale();
         init_grab_xy[0] = wl_fixed_to_int(scale * input->pointer.xy[0]);
         init_grab_xy[1] = wl_fixed_to_int(scale * input->pointer.xy[1]);
         input->grab_lock_xy[0] = init_grab_xy[0];

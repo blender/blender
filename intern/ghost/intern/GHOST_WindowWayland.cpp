@@ -501,7 +501,21 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
 
 GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
 {
-  if (m_system->window_cursor_grab_set(mode, m_cursorGrab, m_cursorGrabInitPos, w->wl_surface)) {
+  GHOST_Rect bounds_buf;
+  GHOST_Rect *bounds = nullptr;
+  if (m_cursorGrab == GHOST_kGrabWrap) {
+    if (getCursorGrabBounds(bounds_buf) == GHOST_kFailure) {
+      getClientBounds(bounds_buf);
+    }
+    bounds = &bounds_buf;
+  }
+  if (m_system->window_cursor_grab_set(mode,
+                                       m_cursorGrab,
+                                       m_cursorGrabInitPos,
+                                       bounds,
+                                       m_cursorGrabAxis,
+                                       w->wl_surface,
+                                       w->scale)) {
     return GHOST_kSuccess;
   }
   return GHOST_kFailure;
