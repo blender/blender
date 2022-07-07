@@ -197,10 +197,17 @@ static ImageUser *image_user_from_context(const bContext *C)
   return (sima) ? &sima->iuser : NULL;
 }
 
-static ImageUser image_user_from_active_tile(Image *ima)
+static ImageUser image_user_from_context_and_active_tile(const bContext *C, Image *ima)
 {
+  /* Try to get image user from contexrt if available, otherwise use default. */
+  ImageUser *iuser_context = image_user_from_context(C);
   ImageUser iuser;
-  BKE_imageuser_default(&iuser);
+  if (iuser_context) {
+    iuser = *iuser_context;
+  }
+  else {
+    BKE_imageuser_default(&iuser);
+  }
 
   /* Use the file associated with the active tile. Otherwise use the first tile. */
   if (ima && ima->source == IMA_SRC_TILED) {
@@ -233,7 +240,7 @@ static bool image_from_context_has_data_poll(bContext *C)
 static bool image_from_context_has_data_poll_active_tile(bContext *C)
 {
   Image *ima = image_from_context(C);
-  ImageUser iuser = image_user_from_active_tile(ima);
+  ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
 
   return BKE_image_has_ibuf(ima, &iuser);
 }
@@ -1602,7 +1609,7 @@ static int image_file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *
       }
     }
     else if (ima->source == IMA_SRC_TILED) {
-      ImageUser iuser = image_user_from_active_tile(ima);
+      ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
       BKE_image_user_file_path(&iuser, ima, filepath);
     }
 
@@ -2698,7 +2705,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 static int image_flip_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
-  ImageUser iuser = image_user_from_active_tile(ima);
+  ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   SpaceImage *sima = CTX_wm_space_image(C);
   const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
@@ -2716,7 +2723,7 @@ static int image_flip_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &sima->iuser);
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &iuser);
 
   if (is_paint) {
     ED_imapaint_clear_partial_redraw();
@@ -2819,7 +2826,7 @@ void IMAGE_OT_flip(wmOperatorType *ot)
 static int image_invert_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
-  ImageUser iuser = image_user_from_active_tile(ima);
+  ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   SpaceImage *sima = CTX_wm_space_image(C);
   const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
@@ -2837,7 +2844,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &sima->iuser);
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &iuser);
 
   if (is_paint) {
     ED_imapaint_clear_partial_redraw();
@@ -2943,7 +2950,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 static int image_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   Image *ima = image_from_context(C);
-  ImageUser iuser = image_user_from_active_tile(ima);
+  ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "size");
   if (!RNA_property_is_set(op->ptr, prop)) {
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
@@ -2957,7 +2964,7 @@ static int image_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 static int image_scale_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
-  ImageUser iuser = image_user_from_active_tile(ima);
+  ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   SpaceImage *sima = CTX_wm_space_image(C);
   const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
@@ -2982,7 +2989,7 @@ static int image_scale_exec(bContext *C, wmOperator *op)
     RNA_property_int_set_array(op->ptr, prop, size);
   }
 
-  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &sima->iuser);
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &iuser);
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   IMB_scaleImBuf(ibuf, size[0], size[1]);
@@ -3464,10 +3471,10 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 
 static int image_clear_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  SpaceImage *sima = CTX_wm_space_image(C);
   Image *ima = image_from_context(C);
+  ImageUser *iuser = image_user_from_context(C);
 
-  if (!BKE_image_clear_renderslot(ima, &sima->iuser, ima->render_slot)) {
+  if (!BKE_image_clear_renderslot(ima, iuser, ima->render_slot)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3532,10 +3539,10 @@ void IMAGE_OT_add_render_slot(wmOperatorType *ot)
 
 static int image_remove_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  SpaceImage *sima = CTX_wm_space_image(C);
   Image *ima = image_from_context(C);
+  ImageUser *iuser = image_user_from_context(C);
 
-  if (!BKE_image_remove_renderslot(ima, &sima->iuser, ima->render_slot)) {
+  if (!BKE_image_remove_renderslot(ima, iuser, ima->render_slot)) {
     return OPERATOR_CANCELLED;
   }
 
