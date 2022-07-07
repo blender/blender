@@ -46,7 +46,7 @@ void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path);
 
 void attribute_search_add_items(
     StringRefNull str,
-    bool is_output,
+    bool can_create_attribute,
     Span<const nodes::geometry_nodes_eval_log::GeometryAttributeInfo *> infos,
     uiSearchItems *items,
     bool is_first);
