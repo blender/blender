@@ -2,7 +2,6 @@
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-
 float retrieve_selection()
 {
   if (is_point_domain) {
