@@ -183,14 +183,6 @@ void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totver
  */
 void BKE_mesh_orco_ensure(struct Object *ob, struct Mesh *mesh);
 
-/**
- * Rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.
- * this is necessary to make the if #MFace.v4 check for quads work.
- */
-int BKE_mesh_mface_index_validate(struct MFace *mface,
-                                  struct CustomData *mfdata,
-                                  int mfindex,
-                                  int nr);
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
 void BKE_mesh_assign_object(struct Main *bmain, struct Object *ob, struct Mesh *me);
 void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
@@ -304,7 +296,6 @@ bool BKE_mesh_minmax(const struct Mesh *me, float r_min[3], float r_max[3]);
 void BKE_mesh_transform(struct Mesh *me, const float mat[4][4], bool do_keys);
 void BKE_mesh_translate(struct Mesh *me, const float offset[3], bool do_keys);
 
-void BKE_mesh_tessface_ensure(struct Mesh *mesh);
 void BKE_mesh_tessface_clear(struct Mesh *mesh);
 
 void BKE_mesh_do_versions_cd_flag_init(struct Mesh *mesh);
@@ -332,15 +323,6 @@ void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
 void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
 
 /* *** mesh_tessellate.c *** */
-
-/**
- * Recreate #MFace Tessellation.
- *
- * \note This doesn't use multi-threading like #BKE_mesh_recalc_looptri since
- * it's not used in many places and #MFace should be phased out.
- */
-
-void BKE_mesh_tessface_calc(struct Mesh *mesh);
 
 /**
  * Calculate tessellation into #MLoopTri which exist only for this purpose.
@@ -789,37 +771,6 @@ void BKE_mesh_calc_volume(const struct MVert *mverts,
                           float *r_volume,
                           float r_center[3]);
 
-/* tessface */
-void BKE_mesh_convert_mfaces_to_mpolys(struct Mesh *mesh);
-/**
- * The same as #BKE_mesh_convert_mfaces_to_mpolys
- * but oriented to be used in #do_versions from `readfile.c`
- * the difference is how active/render/clone/stencil indices are handled here.
- *
- * normally they're being set from `pdata` which totally makes sense for meshes which are already
- * converted to #BMesh structures, but when loading older files indices shall be updated in other
- * way around, so newly added `pdata` and `ldata` would have this indices set
- * based on `fdata`  layer.
- *
- * this is normally only needed when reading older files,
- * in all other cases #BKE_mesh_convert_mfaces_to_mpolys shall be always used.
- */
-void BKE_mesh_do_versions_convert_mfaces_to_mpolys(struct Mesh *mesh);
-void BKE_mesh_convert_mfaces_to_mpolys_ex(struct ID *id,
-                                          struct CustomData *fdata,
-                                          struct CustomData *ldata,
-                                          struct CustomData *pdata,
-                                          int totedge_i,
-                                          int totface_i,
-                                          int totloop_i,
-                                          int totpoly_i,
-                                          struct MEdge *medge,
-                                          struct MFace *mface,
-                                          int *r_totloop,
-                                          int *r_totpoly,
-                                          struct MLoop **r_mloop,
-                                          struct MPoly **r_mpoly);
-
 /**
  * Flip a single MLoop's #MDisps structure,
  * low level function to be called from face-flipping code which re-arranged the mdisps themselves.
@@ -1071,18 +1022,6 @@ char *BKE_mesh_debug_info(const struct Mesh *me)
     ATTR_NONNULL(1) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 void BKE_mesh_debug_print(const struct Mesh *me) ATTR_NONNULL(1);
 #endif
-
-/* Inlines */
-
-/* NOTE(@sybren): Instead of -1 that function uses ORIGINDEX_NONE as defined in BKE_customdata.h,
- * but I don't want to force every user of BKE_mesh.h to also include that file. */
-BLI_INLINE int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
-                                              const int *index_mp_to_orig,
-                                              const int i)
-{
-  const int j = index_mf_to_mpoly[i];
-  return (j != -1) ? (index_mp_to_orig ? index_mp_to_orig[j] : j) : -1;
-}
 
 #ifdef __cplusplus
 }

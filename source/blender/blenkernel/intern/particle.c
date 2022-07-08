@@ -64,6 +64,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
+#include "BKE_mesh_legacy_convert.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
