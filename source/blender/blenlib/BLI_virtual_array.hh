@@ -1221,7 +1221,7 @@ template<typename T> class MutableVArraySpan final : public MutableSpan<T> {
 
   MutableVArraySpan(MutableVArraySpan &&other)
       : varray_(std::move(other.varray_)),
-        owned_data_(std::move(owned_data_)),
+        owned_data_(std::move(other.owned_data_)),
         show_not_saved_warning_(other.show_not_saved_warning_)
   {
     if (!varray_) {
