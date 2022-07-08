@@ -8,6 +8,8 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_tracking_types.h"
 
+#include "BKE_context.h"
+#include "BKE_lib_id.h"
 #include "BKE_tracking.h"
 
 #include "RNA_access.h"
