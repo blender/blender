@@ -217,16 +217,20 @@ template<typename T> class AccumulateFieldInput final : public GeometryFieldInpu
                                  IndexMask UNUSED(mask)) const final
   {
     const GeometryComponentFieldContext field_context{component, source_domain_};
-    const int domain_num = component.attribute_domain_num(field_context.domain());
+    const int domain_size = component.attribute_domain_size(field_context.domain());
+    if (domain_size == 0) {
+      return {};
+    }
+    const AttributeAccessor attributes = *component.attributes();
 
-    fn::FieldEvaluator evaluator{field_context, domain_num};
+    fn::FieldEvaluator evaluator{field_context, domain_size};
     evaluator.add(input_);
     evaluator.add(group_index_);
     evaluator.evaluate();
     const VArray<T> values = evaluator.get_evaluated<T>(0);
     const VArray<int> group_indices = evaluator.get_evaluated<int>(1);
 
-    Array<T> accumulations_out(domain_num);
+    Array<T> accumulations_out(domain_size);
 
     if (group_indices.is_single()) {
       T accumulation = T();
@@ -261,7 +265,7 @@ template<typename T> class AccumulateFieldInput final : public GeometryFieldInpu
       }
     }
 
-    return component.attribute_try_adapt_domain<T>(
+    return attributes.adapt_domain<T>(
         VArray<T>::ForContainer(std::move(accumulations_out)), source_domain_, domain);
   }
 
@@ -303,9 +307,13 @@ template<typename T> class TotalFieldInput final : public GeometryFieldInput {
                                  IndexMask UNUSED(mask)) const final
   {
     const GeometryComponentFieldContext field_context{component, source_domain_};
-    const int domain_num = component.attribute_domain_num(field_context.domain());
+    const int domain_size = component.attribute_domain_size(field_context.domain());
+    if (domain_size == 0) {
+      return {};
+    }
+    const AttributeAccessor attributes = *component.attributes();
 
-    fn::FieldEvaluator evaluator{field_context, domain_num};
+    fn::FieldEvaluator evaluator{field_context, domain_size};
     evaluator.add(input_);
     evaluator.add(group_index_);
     evaluator.evaluate();
@@ -317,10 +325,10 @@ template<typename T> class TotalFieldInput final : public GeometryFieldInput {
       for (const int i : values.index_range()) {
         accumulation = values[i] + accumulation;
       }
-      return VArray<T>::ForSingle(accumulation, domain_num);
+      return VArray<T>::ForSingle(accumulation, domain_size);
     }
 
-    Array<T> accumulations_out(domain_num);
+    Array<T> accumulations_out(domain_size);
     Map<int, T> accumulations;
     for (const int i : values.index_range()) {
       T &value = accumulations.lookup_or_add_default(group_indices[i]);
@@ -330,7 +338,7 @@ template<typename T> class TotalFieldInput final : public GeometryFieldInput {
       accumulations_out[i] = accumulations.lookup(group_indices[i]);
     }
 
-    return component.attribute_try_adapt_domain<T>(
+    return attributes.adapt_domain<T>(
         VArray<T>::ForContainer(std::move(accumulations_out)), source_domain_, domain);
   }
 

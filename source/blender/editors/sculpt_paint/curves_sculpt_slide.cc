@@ -148,12 +148,9 @@ struct SlideOperationExecutor {
                          BKE_mesh_runtime_looptri_len(surface_)};
 
     if (curves_id_->surface_uv_map != nullptr) {
-      MeshComponent surface_component;
-      surface_component.replace(surface_, GeometryOwnershipType::ReadOnly);
-      surface_uv_map_ = surface_component
-                            .attribute_try_get_for_read(curves_id_->surface_uv_map,
-                                                        ATTR_DOMAIN_CORNER)
-                            .typed<float2>();
+      const bke::AttributeAccessor surface_attributes = bke::mesh_attributes(*surface_);
+      surface_uv_map_ = surface_attributes.lookup<float2>(curves_id_->surface_uv_map,
+                                                          ATTR_DOMAIN_CORNER);
     }
 
     if (stroke_extension.is_first) {

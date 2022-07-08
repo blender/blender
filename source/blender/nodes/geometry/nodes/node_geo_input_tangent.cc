@@ -75,7 +75,7 @@ static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &comp
 
   const VArray<int8_t> types = curves.curve_types();
   if (curves.is_single_type(CURVE_TYPE_POLY)) {
-    return component.attribute_try_adapt_domain<float3>(
+    return component.attributes()->adapt_domain<float3>(
         VArray<float3>::ForSpan(curves.evaluated_tangents()), ATTR_DOMAIN_POINT, domain);
   }
 
@@ -86,7 +86,7 @@ static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &comp
   }
 
   if (domain == ATTR_DOMAIN_CURVE) {
-    return component.attribute_try_adapt_domain<float3>(
+    return component.attributes()->adapt_domain<float3>(
         VArray<float3>::ForContainer(std::move(tangents)), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
   }
 

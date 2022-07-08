@@ -533,9 +533,9 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
 
   VArraySpan<float2> surface_uv_map;
   if (curves_id.surface_uv_map != nullptr) {
-    surface_uv_map = surface_mesh_component
-                         .attribute_try_get_for_read(
-                             curves_id.surface_uv_map, ATTR_DOMAIN_CORNER, CD_PROP_FLOAT2)
+    const bke::AttributeAccessor surface_attributes = bke::mesh_attributes(surface_mesh);
+    surface_uv_map = surface_attributes
+                         .lookup(curves_id.surface_uv_map, ATTR_DOMAIN_CORNER, CD_PROP_FLOAT2)
                          .typed<float2>();
   }
 
@@ -756,21 +756,20 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
     curves_id->selection_domain = domain;
     curves_id->flag |= CV_SCULPT_SELECTION_ENABLED;
 
-    CurveComponent component;
-    component.replace(curves_id, GeometryOwnershipType::Editable);
     CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
     if (old_domain == ATTR_DOMAIN_POINT && domain == ATTR_DOMAIN_CURVE) {
       VArray<float> curve_selection = curves.adapt_domain(
           curves.selection_point_float(), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
       curve_selection.materialize(curves.selection_curve_float_for_write());
-      component.attribute_try_delete(".selection_point_float");
+      attributes.remove(".selection_point_float");
     }
     else if (old_domain == ATTR_DOMAIN_CURVE && domain == ATTR_DOMAIN_POINT) {
       VArray<float> point_selection = curves.adapt_domain(
           curves.selection_curve_float(), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
       point_selection.materialize(curves.selection_point_float_for_write());
-      component.attribute_try_delete(".selection_curve_float");
+      attributes.remove(".selection_curve_float");
     }
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -900,15 +899,14 @@ static int select_all_exec(bContext *C, wmOperator *op)
   }
 
   for (Curves *curves_id : unique_curves) {
+    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
     if (action == SEL_SELECT) {
       /* As an optimization, just remove the selection attributes when everything is selected. */
-      CurveComponent component;
-      component.replace(curves_id, GeometryOwnershipType::Editable);
-      component.attribute_try_delete(".selection_point_float");
-      component.attribute_try_delete(".selection_curve_float");
+      bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+      attributes.remove(".selection_point_float");
+      attributes.remove(".selection_curve_float");
     }
     else {
-      CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
       MutableSpan<float> selection = curves_id->selection_domain == ATTR_DOMAIN_POINT ?
                                          curves.selection_point_float_for_write() :
                                          curves.selection_curve_float_for_write();

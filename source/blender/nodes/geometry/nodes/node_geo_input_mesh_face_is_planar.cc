@@ -80,7 +80,7 @@ class PlanarFieldInput final : public GeometryFieldInput {
       return max - min < thresholds[i_poly] / 2.0f;
     };
 
-    return component.attribute_try_adapt_domain<bool>(
+    return component.attributes()->adapt_domain<bool>(
         VArray<bool>::ForFunc(mesh->totpoly, planar_fn), ATTR_DOMAIN_FACE, domain);
   }
 

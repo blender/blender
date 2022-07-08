@@ -20,7 +20,7 @@
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
-#include "BKE_attribute_access.hh"
+#include "BKE_attribute.hh"
 
 namespace blender::bke {
 
@@ -400,6 +400,9 @@ class CurvesGeometry : public ::CurvesGeometry {
    * Remove any attributes that are unused based on the types in the curves.
    */
   void remove_attributes_based_on_types();
+
+  AttributeAccessor attributes() const;
+  MutableAttributeAccessor attributes_for_write();
 
   /* --------------------------------------------------------------------
    * Attributes.

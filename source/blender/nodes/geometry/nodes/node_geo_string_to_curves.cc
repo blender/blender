@@ -335,13 +335,14 @@ static void create_attributes(GeoNodeExecParams &params,
                               const TextLayout &layout,
                               InstancesComponent &instances)
 {
+  MutableAttributeAccessor attributes = *instances.attributes_for_write();
+
   if (params.output_is_required("Line")) {
     StrongAnonymousAttributeID line_id = StrongAnonymousAttributeID("Line");
-    OutputAttribute_Typed<int> line_attribute = instances.attribute_try_get_for_output_only<int>(
+    SpanAttributeWriter<int> line_attribute = attributes.lookup_or_add_for_write_only_span<int>(
         line_id.get(), ATTR_DOMAIN_INSTANCE);
-    MutableSpan<int> lines = line_attribute.as_span();
-    lines.copy_from(layout.line_numbers);
-    line_attribute.save();
+    line_attribute.span.copy_from(layout.line_numbers);
+    line_attribute.finish();
     params.set_output("Line",
                       AnonymousAttributeFieldInput::Create<int>(std::move(line_id),
                                                                 params.attribute_producer_name()));
@@ -349,15 +350,14 @@ static void create_attributes(GeoNodeExecParams &params,
 
   if (params.output_is_required("Pivot Point")) {
     StrongAnonymousAttributeID pivot_id = StrongAnonymousAttributeID("Pivot");
-    OutputAttribute_Typed<float3> pivot_attribute =
-        instances.attribute_try_get_for_output_only<float3>(pivot_id.get(), ATTR_DOMAIN_INSTANCE);
-    MutableSpan<float3> pivots = pivot_attribute.as_span();
+    SpanAttributeWriter<float3> pivot_attribute =
+        attributes.lookup_or_add_for_write_only_span<float3>(pivot_id.get(), ATTR_DOMAIN_INSTANCE);
 
     for (const int i : layout.char_codes.index_range()) {
-      pivots[i] = layout.pivot_points.lookup(layout.char_codes[i]);
+      pivot_attribute.span[i] = layout.pivot_points.lookup(layout.char_codes[i]);
     }
 
-    pivot_attribute.save();
+    pivot_attribute.finish();
     params.set_output("Pivot Point",
                       AnonymousAttributeFieldInput::Create<float3>(
                           std::move(pivot_id), params.attribute_producer_name()));

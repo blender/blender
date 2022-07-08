@@ -5,7 +5,6 @@
 #include "DNA_ID_enums.h"
 #include "DNA_curve_types.h"
 
-#include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curve.h"
 #include "BKE_geometry_set.hh"
@@ -113,24 +112,6 @@ void CurveComponentLegacy::ensure_owns_direct_data()
 /* -------------------------------------------------------------------- */
 /** \name Attribute Access Helper Functions
  * \{ */
-
-int CurveComponentLegacy::attribute_domain_num(const eAttrDomain domain) const
-{
-  if (curve_ == nullptr) {
-    return 0;
-  }
-  if (domain == ATTR_DOMAIN_POINT) {
-    int total = 0;
-    for (const SplinePtr &spline : curve_->splines()) {
-      total += spline->size();
-    }
-    return total;
-  }
-  if (domain == ATTR_DOMAIN_CURVE) {
-    return curve_->splines().size();
-  }
-  return 0;
-}
 
 namespace blender::bke {
 
@@ -308,9 +289,10 @@ static GVArray adapt_curve_domain_spline_to_point(const CurveEval &curve, GVArra
 
 }  // namespace blender::bke
 
-GVArray CurveComponentLegacy::attribute_try_adapt_domain_impl(const GVArray &varray,
-                                                              const eAttrDomain from_domain,
-                                                              const eAttrDomain to_domain) const
+static GVArray adapt_curve_attribute_domain(const CurveEval &curve,
+                                            const GVArray &varray,
+                                            const eAttrDomain from_domain,
+                                            const eAttrDomain to_domain)
 {
   if (!varray) {
     return {};
@@ -323,28 +305,13 @@ GVArray CurveComponentLegacy::attribute_try_adapt_domain_impl(const GVArray &var
   }
 
   if (from_domain == ATTR_DOMAIN_POINT && to_domain == ATTR_DOMAIN_CURVE) {
-    return blender::bke::adapt_curve_domain_point_to_spline(*curve_, std::move(varray));
+    return blender::bke::adapt_curve_domain_point_to_spline(curve, std::move(varray));
   }
   if (from_domain == ATTR_DOMAIN_CURVE && to_domain == ATTR_DOMAIN_POINT) {
-    return blender::bke::adapt_curve_domain_spline_to_point(*curve_, std::move(varray));
+    return blender::bke::adapt_curve_domain_spline_to_point(curve, std::move(varray));
   }
 
   return {};
-}
-
-static CurveEval *get_curve_from_component_for_write(GeometryComponent &component)
-{
-  BLI_assert(component.type() == GEO_COMPONENT_TYPE_CURVE);
-  CurveComponentLegacy &curve_component = static_cast<CurveComponentLegacy &>(component);
-  return curve_component.get_for_write();
-}
-
-static const CurveEval *get_curve_from_component_for_read(const GeometryComponent &component)
-{
-  BLI_assert(component.type() == GEO_COMPONENT_TYPE_CURVE);
-  const CurveComponentLegacy &curve_component = static_cast<const CurveComponentLegacy &>(
-      component);
-  return curve_component.get_for_read();
 }
 
 /** \} */
@@ -380,41 +347,41 @@ class BuiltinSplineAttributeProvider final : public BuiltinAttributeProvider {
   {
   }
 
-  GVArray try_get_for_read(const GeometryComponent &component) const final
+  GVArray try_get_for_read(const void *owner) const final
   {
-    const CurveEval *curve = get_curve_from_component_for_read(component);
+    const CurveEval *curve = static_cast<const CurveEval *>(owner);
     if (curve == nullptr) {
       return {};
     }
     return as_read_attribute_(*curve);
   }
 
-  WriteAttributeLookup try_get_for_write(GeometryComponent &component) const final
+  GAttributeWriter try_get_for_write(void *owner) const final
   {
     if (writable_ != Writable) {
       return {};
     }
-    CurveEval *curve = get_curve_from_component_for_write(component);
+    CurveEval *curve = static_cast<CurveEval *>(owner);
     if (curve == nullptr) {
       return {};
     }
     return {as_write_attribute_(*curve), domain_};
   }
 
-  bool try_delete(GeometryComponent &UNUSED(component)) const final
+  bool try_delete(void *UNUSED(owner)) const final
   {
     return false;
   }
 
-  bool try_create(GeometryComponent &UNUSED(component),
-                  const AttributeInit &UNUSED(initializer)) const final
+  bool try_create(void *UNUSED(owner), const AttributeInit &UNUSED(initializer)) const final
   {
     return false;
   }
 
-  bool exists(const GeometryComponent &component) const final
+  bool exists(const void *owner) const final
   {
-    return component.attribute_domain_num(ATTR_DOMAIN_CURVE) != 0;
+    const CurveEval *curve = static_cast<const CurveEval *>(owner);
+    return !curve->splines().is_empty();
   }
 };
 
@@ -600,12 +567,11 @@ static GVArray varray_from_initializer(const AttributeInit &initializer,
   return {};
 }
 
-static bool create_point_attribute(GeometryComponent &component,
+static bool create_point_attribute(CurveEval *curve,
                                    const AttributeIDRef &attribute_id,
                                    const AttributeInit &initializer,
                                    const eCustomDataType data_type)
 {
-  CurveEval *curve = get_curve_from_component_for_write(component);
   if (curve == nullptr || curve->splines().size() == 0) {
     return false;
   }
@@ -638,7 +604,7 @@ static bool create_point_attribute(GeometryComponent &component,
     return true;
   }
 
-  WriteAttributeLookup write_attribute = component.attribute_try_get_for_write(attribute_id);
+  GAttributeWriter write_attribute = curve->attributes_for_write().lookup_for_write(attribute_id);
   /* We just created the attribute, it should exist. */
   BLI_assert(write_attribute);
 
@@ -647,6 +613,7 @@ static bool create_point_attribute(GeometryComponent &component,
    * this theoretically unnecessary materialize step could be removed. */
   GVArraySpan source_VArraySpan{source_varray};
   write_attribute.varray.set_all(source_VArraySpan.data());
+  write_attribute.finish();
 
   if (initializer.type == AttributeInit::Type::MoveArray) {
     MEM_freeN(static_cast<const AttributeInitMove &>(initializer).data);
@@ -655,10 +622,8 @@ static bool create_point_attribute(GeometryComponent &component,
   return true;
 }
 
-static bool remove_point_attribute(GeometryComponent &component,
-                                   const AttributeIDRef &attribute_id)
+static bool remove_point_attribute(CurveEval *curve, const AttributeIDRef &attribute_id)
 {
-  CurveEval *curve = get_curve_from_component_for_write(component);
   if (curve == nullptr) {
     return false;
   }
@@ -934,14 +899,14 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
   {
   }
 
-  GVArray try_get_for_read(const GeometryComponent &component) const override
+  GVArray try_get_for_read(const void *owner) const override
   {
-    const CurveEval *curve = get_curve_from_component_for_read(component);
+    const CurveEval *curve = static_cast<const CurveEval *>(owner);
     if (curve == nullptr) {
       return {};
     }
 
-    if (!this->exists(component)) {
+    if (!this->exists(owner)) {
       return {};
     }
 
@@ -962,14 +927,14 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
     return point_data_varray(spans, offsets);
   }
 
-  WriteAttributeLookup try_get_for_write(GeometryComponent &component) const override
+  GAttributeWriter try_get_for_write(void *owner) const override
   {
-    CurveEval *curve = get_curve_from_component_for_write(component);
+    CurveEval *curve = static_cast<CurveEval *>(owner);
     if (curve == nullptr) {
       return {};
     }
 
-    if (!this->exists(component)) {
+    if (!this->exists(owner)) {
       return {};
     }
 
@@ -998,25 +963,27 @@ template<typename T> class BuiltinPointAttributeProvider : public BuiltinAttribu
     return {point_data_varray_mutable(spans, offsets), domain_, tag_modified_fn};
   }
 
-  bool try_delete(GeometryComponent &component) const final
+  bool try_delete(void *owner) const final
   {
     if (deletable_ == DeletableEnum::NonDeletable) {
       return false;
     }
-    return remove_point_attribute(component, name_);
+    CurveEval *curve = static_cast<CurveEval *>(owner);
+    return remove_point_attribute(curve, name_);
   }
 
-  bool try_create(GeometryComponent &component, const AttributeInit &initializer) const final
+  bool try_create(void *owner, const AttributeInit &initializer) const final
   {
     if (createable_ == CreatableEnum::NonCreatable) {
       return false;
     }
-    return create_point_attribute(component, name_, initializer, CD_PROP_INT32);
+    CurveEval *curve = static_cast<CurveEval *>(owner);
+    return create_point_attribute(curve, name_, initializer, CD_PROP_INT32);
   }
 
-  bool exists(const GeometryComponent &component) const final
+  bool exists(const void *owner) const final
   {
-    const CurveEval *curve = get_curve_from_component_for_read(component);
+    const CurveEval *curve = static_cast<const CurveEval *>(owner);
     if (curve == nullptr) {
       return false;
     }
@@ -1067,9 +1034,9 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
   {
   }
 
-  WriteAttributeLookup try_get_for_write(GeometryComponent &component) const final
+  GAttributeWriter try_get_for_write(void *owner) const final
   {
-    CurveEval *curve = get_curve_from_component_for_write(component);
+    CurveEval *curve = static_cast<CurveEval *>(owner);
     if (curve == nullptr) {
       return {};
     }
@@ -1077,7 +1044,7 @@ class PositionAttributeProvider final : public BuiltinPointAttributeProvider<flo
     /* Use the regular position virtual array when there aren't any Bezier splines
      * to avoid the overhead of checking the spline type for every point. */
     if (!curve->has_spline_with_type(CURVE_TYPE_BEZIER)) {
-      return BuiltinPointAttributeProvider<float3>::try_get_for_write(component);
+      return BuiltinPointAttributeProvider<float3>::try_get_for_write(owner);
     }
 
     auto tag_modified_fn = [curve]() {
@@ -1110,9 +1077,9 @@ class BezierHandleAttributeProvider : public BuiltinAttributeProvider {
   {
   }
 
-  GVArray try_get_for_read(const GeometryComponent &component) const override
+  GVArray try_get_for_read(const void *owner) const override
   {
-    const CurveEval *curve = get_curve_from_component_for_read(component);
+    const CurveEval *curve = static_cast<const CurveEval *>(owner);
     if (curve == nullptr) {
       return {};
     }
@@ -1128,9 +1095,9 @@ class BezierHandleAttributeProvider : public BuiltinAttributeProvider {
         const_cast<CurveEval *>(curve)->splines(), std::move(offsets), is_right_);
   }
 
-  WriteAttributeLookup try_get_for_write(GeometryComponent &component) const override
+  GAttributeWriter try_get_for_write(void *owner) const override
   {
-    CurveEval *curve = get_curve_from_component_for_write(component);
+    CurveEval *curve = static_cast<CurveEval *>(owner);
     if (curve == nullptr) {
       return {};
     }
@@ -1148,26 +1115,27 @@ class BezierHandleAttributeProvider : public BuiltinAttributeProvider {
             tag_modified_fn};
   }
 
-  bool try_delete(GeometryComponent &UNUSED(component)) const final
+  bool try_delete(void *UNUSED(owner)) const final
   {
     return false;
   }
 
-  bool try_create(GeometryComponent &UNUSED(component),
-                  const AttributeInit &UNUSED(initializer)) const final
+  bool try_create(void *UNUSED(owner), const AttributeInit &UNUSED(initializer)) const final
   {
     return false;
   }
 
-  bool exists(const GeometryComponent &component) const final
+  bool exists(const void *owner) const final
   {
-    const CurveEval *curve = get_curve_from_component_for_read(component);
+    const CurveEval *curve = static_cast<const CurveEval *>(owner);
     if (curve == nullptr) {
       return false;
     }
 
-    return curve->has_spline_with_type(CURVE_TYPE_BEZIER) &&
-           component.attribute_domain_num(ATTR_DOMAIN_POINT) != 0;
+    CurveComponentLegacy component;
+    component.replace(const_cast<CurveEval *>(curve), GeometryOwnershipType::ReadOnly);
+
+    return curve->has_spline_with_type(CURVE_TYPE_BEZIER) && !curve->splines().is_empty();
   }
 };
 
@@ -1190,10 +1158,10 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
                                                    CD_MASK_PROP_INT8;
 
  public:
-  ReadAttributeLookup try_get_for_read(const GeometryComponent &component,
-                                       const AttributeIDRef &attribute_id) const final
+  GAttributeReader try_get_for_read(const void *owner,
+                                    const AttributeIDRef &attribute_id) const final
   {
-    const CurveEval *curve = get_curve_from_component_for_read(component);
+    const CurveEval *curve = static_cast<const CurveEval *>(owner);
     if (curve == nullptr || curve->splines().size() == 0) {
       return {};
     }
@@ -1228,7 +1196,7 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
       return {GVArray::ForSpan(spans.first()), ATTR_DOMAIN_POINT};
     }
 
-    ReadAttributeLookup attribute = {};
+    GAttributeReader attribute = {};
     Array<int> offsets = curve->control_point_offsets();
     attribute_math::convert_to_static_type(spans[0].type(), [&](auto dummy) {
       using T = decltype(dummy);
@@ -1246,10 +1214,9 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
   }
 
   /* This function is almost the same as #try_get_for_read, but without const. */
-  WriteAttributeLookup try_get_for_write(GeometryComponent &component,
-                                         const AttributeIDRef &attribute_id) const final
+  GAttributeWriter try_get_for_write(void *owner, const AttributeIDRef &attribute_id) const final
   {
-    CurveEval *curve = get_curve_from_component_for_write(component);
+    CurveEval *curve = static_cast<CurveEval *>(owner);
     if (curve == nullptr || curve->splines().size() == 0) {
       return {};
     }
@@ -1284,7 +1251,7 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
       return {GVMutableArray::ForSpan(spans.first()), ATTR_DOMAIN_POINT};
     }
 
-    WriteAttributeLookup attribute = {};
+    GAttributeWriter attribute = {};
     Array<int> offsets = curve->control_point_offsets();
     attribute_math::convert_to_static_type(spans[0].type(), [&](auto dummy) {
       using T = decltype(dummy);
@@ -1298,12 +1265,13 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
     return attribute;
   }
 
-  bool try_delete(GeometryComponent &component, const AttributeIDRef &attribute_id) const final
+  bool try_delete(void *owner, const AttributeIDRef &attribute_id) const final
   {
-    return remove_point_attribute(component, attribute_id);
+    CurveEval *curve = static_cast<CurveEval *>(owner);
+    return remove_point_attribute(curve, attribute_id);
   }
 
-  bool try_create(GeometryComponent &component,
+  bool try_create(void *owner,
                   const AttributeIDRef &attribute_id,
                   const eAttrDomain domain,
                   const eCustomDataType data_type,
@@ -1313,13 +1281,13 @@ class DynamicPointAttributeProvider final : public DynamicAttributesProvider {
     if (domain != ATTR_DOMAIN_POINT) {
       return false;
     }
-    return create_point_attribute(component, attribute_id, initializer, data_type);
+    CurveEval *curve = static_cast<CurveEval *>(owner);
+    return create_point_attribute(curve, attribute_id, initializer, data_type);
   }
 
-  bool foreach_attribute(const GeometryComponent &component,
-                         const AttributeForeachCallback callback) const final
+  bool foreach_attribute(const void *owner, const AttributeForeachCallback callback) const final
   {
-    const CurveEval *curve = get_curve_from_component_for_read(component);
+    const CurveEval *curve = static_cast<const CurveEval *>(owner);
     if (curve == nullptr || curve->splines().size() == 0) {
       return false;
     }
@@ -1371,13 +1339,17 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
                                                make_cyclic_write_attribute);
 
   static CustomDataAccessInfo spline_custom_data_access = {
-      [](GeometryComponent &component) -> CustomData * {
-        CurveEval *curve = get_curve_from_component_for_write(component);
+      [](void *owner) -> CustomData * {
+        CurveEval *curve = static_cast<CurveEval *>(owner);
         return curve ? &curve->attributes.data : nullptr;
       },
-      [](const GeometryComponent &component) -> const CustomData * {
-        const CurveEval *curve = get_curve_from_component_for_read(component);
+      [](const void *owner) -> const CustomData * {
+        const CurveEval *curve = static_cast<const CurveEval *>(owner);
         return curve ? &curve->attributes.data : nullptr;
+      },
+      [](const void *owner) -> int {
+        const CurveEval *curve = static_cast<const CurveEval *>(owner);
+        return curve->splines().size();
       },
       nullptr};
 
@@ -1430,12 +1402,62 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
 
 /** \} */
 
+static AttributeAccessorFunctions get_curve_accessor_functions()
+{
+  static const ComponentAttributeProviders providers = create_attribute_providers_for_curve();
+  AttributeAccessorFunctions fn =
+      attribute_accessor_functions::accessor_functions_for_providers<providers>();
+  fn.domain_size = [](const void *owner, const eAttrDomain domain) -> int {
+    if (owner == nullptr) {
+      return 0;
+    }
+    const CurveEval &curve_eval = *static_cast<const CurveEval *>(owner);
+    switch (domain) {
+      case ATTR_DOMAIN_POINT:
+        return curve_eval.total_control_point_num();
+      case ATTR_DOMAIN_CURVE:
+        return curve_eval.splines().size();
+      default:
+        return 0;
+    }
+  };
+  fn.domain_supported = [](const void *UNUSED(owner), const eAttrDomain domain) {
+    return ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
+  };
+  fn.adapt_domain = [](const void *owner,
+                       const blender::GVArray &varray,
+                       const eAttrDomain from_domain,
+                       const eAttrDomain to_domain) -> GVArray {
+    if (owner == nullptr) {
+      return {};
+    }
+    const CurveEval &curve_eval = *static_cast<const CurveEval *>(owner);
+    return adapt_curve_attribute_domain(curve_eval, varray, from_domain, to_domain);
+  };
+  return fn;
+}
+
+static const AttributeAccessorFunctions &get_curve_accessor_functions_ref()
+{
+  static const AttributeAccessorFunctions fn = get_curve_accessor_functions();
+  return fn;
+}
+
 }  // namespace blender::bke
 
-const blender::bke::ComponentAttributeProviders *CurveComponentLegacy::get_attribute_providers()
-    const
+std::optional<blender::bke::AttributeAccessor> CurveComponentLegacy::attributes() const
 {
-  static blender::bke::ComponentAttributeProviders providers =
-      blender::bke::create_attribute_providers_for_curve();
-  return &providers;
+  return blender::bke::AttributeAccessor(curve_, blender::bke::get_curve_accessor_functions_ref());
+}
+
+std::optional<blender::bke::MutableAttributeAccessor> CurveComponentLegacy::attributes_for_write()
+{
+  return blender::bke::MutableAttributeAccessor(curve_,
+                                                blender::bke::get_curve_accessor_functions_ref());
+}
+
+blender::bke::MutableAttributeAccessor CurveEval::attributes_for_write()
+{
+  return blender::bke::MutableAttributeAccessor(this,
+                                                blender::bke::get_curve_accessor_functions_ref());
 }

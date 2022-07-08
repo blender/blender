@@ -49,7 +49,7 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
 {
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    ReadAttributeLookup attribute = in_component.attribute_try_get_for_read(attribute_id);
+    GAttributeReader attribute = in_component.attributes()->lookup(attribute_id);
     if (!attribute) {
       continue;
     }
@@ -60,8 +60,9 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
     }
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
 
-    OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
-        attribute_id, attribute.domain, data_type);
+    GSpanAttributeWriter result_attribute =
+        result_component.attributes_for_write()->lookup_or_add_for_write_only_span(
+            attribute_id, attribute.domain, data_type);
 
     if (!result_attribute) {
       continue;
@@ -70,10 +71,10 @@ static void copy_attributes(const Map<AttributeIDRef, AttributeKind> &attributes
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
       VArraySpan<T> span{attribute.varray.typed<T>()};
-      MutableSpan<T> out_span = result_attribute.as_span<T>();
+      MutableSpan<T> out_span = result_attribute.span.typed<T>();
       out_span.copy_from(span);
     });
-    result_attribute.save();
+    result_attribute.finish();
   }
 }
 
@@ -89,7 +90,7 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
 {
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    ReadAttributeLookup attribute = in_component.attribute_try_get_for_read(attribute_id);
+    GAttributeReader attribute = in_component.attributes()->lookup(attribute_id);
     if (!attribute) {
       continue;
     }
@@ -100,8 +101,9 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
     }
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
 
-    OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
-        attribute_id, attribute.domain, data_type);
+    GSpanAttributeWriter result_attribute =
+        result_component.attributes_for_write()->lookup_or_add_for_write_only_span(
+            attribute_id, attribute.domain, data_type);
 
     if (!result_attribute) {
       continue;
@@ -110,10 +112,10 @@ static void copy_attributes_based_on_mask(const Map<AttributeIDRef, AttributeKin
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
       VArraySpan<T> span{attribute.varray.typed<T>()};
-      MutableSpan<T> out_span = result_attribute.as_span<T>();
+      MutableSpan<T> out_span = result_attribute.span.typed<T>();
       copy_data_based_on_mask(span, out_span, mask);
     });
-    result_attribute.save();
+    result_attribute.finish();
   }
 }
 
@@ -125,7 +127,7 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
 {
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    ReadAttributeLookup attribute = in_component.attribute_try_get_for_read(attribute_id);
+    GAttributeReader attribute = in_component.attributes()->lookup(attribute_id);
     if (!attribute) {
       continue;
     }
@@ -136,8 +138,9 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
     }
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
 
-    OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
-        attribute_id, attribute.domain, data_type);
+    GSpanAttributeWriter result_attribute =
+        result_component.attributes_for_write()->lookup_or_add_for_write_only_span(
+            attribute_id, attribute.domain, data_type);
 
     if (!result_attribute) {
       continue;
@@ -146,10 +149,10 @@ static void copy_attributes_based_on_map(const Map<AttributeIDRef, AttributeKind
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
       VArraySpan<T> span{attribute.varray.typed<T>()};
-      MutableSpan<T> out_span = result_attribute.as_span<T>();
+      MutableSpan<T> out_span = result_attribute.span.typed<T>();
       copy_data_based_on_map(span, out_span, index_map);
     });
-    result_attribute.save();
+    result_attribute.finish();
   }
 }
 
@@ -319,7 +322,7 @@ static void delete_curves_selection(GeometrySet &geometry_set,
   const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
   GeometryComponentFieldContext field_context{src_component, selection_domain};
 
-  const int domain_num = src_component.attribute_domain_num(selection_domain);
+  const int domain_num = src_component.attribute_domain_size(selection_domain);
   fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
@@ -351,7 +354,7 @@ static void separate_point_cloud_selection(GeometrySet &geometry_set,
       *geometry_set.get_component_for_read<PointCloudComponent>();
   GeometryComponentFieldContext field_context{src_points, ATTR_DOMAIN_POINT};
 
-  fn::FieldEvaluator evaluator{field_context, src_points.attribute_domain_num(ATTR_DOMAIN_POINT)};
+  fn::FieldEvaluator evaluator{field_context, src_points.attribute_domain_size(ATTR_DOMAIN_POINT)};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
@@ -379,8 +382,7 @@ static void delete_selected_instances(GeometrySet &geometry_set,
   InstancesComponent &instances = geometry_set.get_component_for_write<InstancesComponent>();
   GeometryComponentFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
 
-  fn::FieldEvaluator evaluator{field_context,
-                               instances.attribute_domain_num(ATTR_DOMAIN_INSTANCE)};
+  fn::FieldEvaluator evaluator{field_context, instances.instances_num()};
   evaluator.set_selection(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
@@ -1058,7 +1060,7 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
   GeometryComponentFieldContext field_context{src_component, selection_domain};
 
   fn::FieldEvaluator evaluator{field_context,
-                               src_component.attribute_domain_num(selection_domain)};
+                               src_component.attribute_domain_size(selection_domain)};
   evaluator.add(selection_field);
   evaluator.evaluate();
   const VArray<bool> selection = evaluator.get_evaluated<bool>(0);

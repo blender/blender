@@ -29,7 +29,7 @@ static VArray<float> construct_face_area_gvarray(const MeshComponent &component,
     return BKE_mesh_calc_poly_area(mp, &mesh->mloop[mp->loopstart], mesh->mvert);
   };
 
-  return component.attribute_try_adapt_domain<float>(
+  return component.attributes()->adapt_domain<float>(
       VArray<float>::ForFunc(mesh->totpoly, area_fn), ATTR_DOMAIN_FACE, domain);
 }
 

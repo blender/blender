@@ -290,32 +290,32 @@ struct GenericAttributes : NonCopyable, NonMovable {
   Vector<GSpan> src;
   Vector<GMutableSpan> dst;
 
-  Vector<bke::OutputAttribute> attributes;
+  Vector<bke::GSpanAttributeWriter> attributes;
 };
 
-static void retrieve_generic_point_attributes(const CurveComponent &src_component,
-                                              CurveComponent &dst_component,
+static void retrieve_generic_point_attributes(const bke::AttributeAccessor &src_attributes,
+                                              bke::MutableAttributeAccessor &dst_attributes,
                                               GenericAttributes &attributes)
 {
-  src_component.attribute_foreach(
-      [&](const bke::AttributeIDRef &id, const AttributeMetaData meta_data) {
+  src_attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
         if (meta_data.domain != ATTR_DOMAIN_POINT) {
           /* Curve domain attributes are all copied directly to the result in one step. */
           return true;
         }
-        if (src_component.attribute_is_builtin(id)) {
+        if (src_attributes.is_builtin(id)) {
           if (!(id.is_named() && ELEM(id, "tilt", "radius"))) {
             return true;
           }
         }
 
-        GVArray src_attribute = src_component.attribute_try_get_for_read(id, ATTR_DOMAIN_POINT);
+        GVArray src_attribute = src_attributes.lookup(id, ATTR_DOMAIN_POINT);
         BLI_assert(src_attribute);
         attributes.src.append(src_attribute.get_internal_span());
 
-        bke::OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
+        bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_span(
             id, ATTR_DOMAIN_POINT, meta_data.data_type);
-        attributes.dst.append(dst_attribute.as_span());
+        attributes.dst.append(dst_attribute.span);
         attributes.attributes.append(std::move(dst_attribute));
 
         return true;
@@ -367,8 +367,11 @@ static Curves *convert_curves_to_bezier(const CurveComponent &src_component,
   bke::curves::accumulate_counts_to_offsets(dst_offsets);
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 
+  const bke::AttributeAccessor src_attributes = *src_component.attributes();
+  bke::MutableAttributeAccessor dst_attributes = *dst_component.attributes_for_write();
+
   GenericAttributes attributes;
-  retrieve_generic_point_attributes(src_component, dst_component, attributes);
+  retrieve_generic_point_attributes(src_attributes, dst_attributes, attributes);
 
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
   MutableSpan<float3> dst_handles_l = dst_curves.handle_positions_left_for_write();
@@ -494,8 +497,8 @@ static Curves *convert_curves_to_bezier(const CurveComponent &src_component,
         src_curves, dst_curves, unselected_ranges, attributes.src[i], attributes.dst[i]);
   }
 
-  for (bke::OutputAttribute &attribute : attributes.attributes) {
-    attribute.save();
+  for (bke::GSpanAttributeWriter &attribute : attributes.attributes) {
+    attribute.finish();
   }
 
   return dst_curves_id;
@@ -524,8 +527,11 @@ static Curves *convert_curves_to_nurbs(const CurveComponent &src_component,
   bke::curves::accumulate_counts_to_offsets(dst_offsets);
   dst_curves.resize(dst_offsets.last(), dst_curves.curves_num());
 
+  const bke::AttributeAccessor src_attributes = *src_component.attributes();
+  bke::MutableAttributeAccessor dst_attributes = *dst_component.attributes_for_write();
+
   GenericAttributes attributes;
-  retrieve_generic_point_attributes(src_component, dst_component, attributes);
+  retrieve_generic_point_attributes(src_attributes, dst_attributes, attributes);
 
   MutableSpan<float3> dst_positions = dst_curves.positions_for_write();
 
@@ -659,8 +665,8 @@ static Curves *convert_curves_to_nurbs(const CurveComponent &src_component,
         src_curves, dst_curves, unselected_ranges, attributes.src[i], attributes.dst[i]);
   }
 
-  for (bke::OutputAttribute &attribute : attributes.attributes) {
-    attribute.save();
+  for (bke::GSpanAttributeWriter &attribute : attributes.attributes) {
+    attribute.finish();
   }
 
   return dst_curves_id;

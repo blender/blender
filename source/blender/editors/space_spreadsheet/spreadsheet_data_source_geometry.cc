@@ -3,6 +3,7 @@
 #include "BLI_index_mask_ops.hh"
 #include "BLI_virtual_array.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_geometry_fields.hh"
@@ -65,7 +66,12 @@ std::unique_ptr<ColumnValues> ExtraColumns::get_column_values(
 void GeometryDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
-  if (component_->attribute_domain_num(domain_) == 0) {
+  if (!component_->attributes().has_value()) {
+    return;
+  }
+  const bke::AttributeAccessor attributes = *component_->attributes();
+
+  if (attributes.domain_size(domain_) == 0) {
     return;
   }
 
@@ -74,8 +80,9 @@ void GeometryDataSource::foreach_default_column_ids(
   }
 
   extra_columns_.foreach_default_column_ids(fn);
-  component_->attribute_foreach(
-      [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+
+  attributes.for_all(
+      [&](const bke::AttributeIDRef &attribute_id, const bke::AttributeMetaData &meta_data) {
         if (meta_data.domain != domain_) {
           return true;
         }
@@ -114,7 +121,11 @@ void GeometryDataSource::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
-  const int domain_num = component_->attribute_domain_num(domain_);
+  if (!component_->attributes().has_value()) {
+    return {};
+  }
+  const bke::AttributeAccessor attributes = *component_->attributes();
+  const int domain_num = attributes.domain_size(domain_);
   if (domain_num == 0) {
     return {};
   }
@@ -200,7 +211,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     }
   }
 
-  bke::ReadAttributeLookup attribute = component_->attribute_try_get_for_read(column_id.name);
+  bke::GAttributeReader attribute = attributes.lookup(column_id.name);
   if (!attribute) {
     return {};
   }
@@ -214,7 +225,11 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
 
 int GeometryDataSource::tot_rows() const
 {
-  return component_->attribute_domain_num(domain_);
+  if (!component_->attributes().has_value()) {
+    return {};
+  }
+  const bke::AttributeAccessor attributes = *component_->attributes();
+  return attributes.domain_size(domain_);
 }
 
 /**
@@ -253,7 +268,7 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
   const int *orig_indices = (int *)CustomData_get_layer(&mesh_eval->vdata, CD_ORIGINDEX);
   if (orig_indices != nullptr) {
     /* Use CD_ORIGINDEX layer if it exists. */
-    VArray<bool> selection = mesh_component->attribute_try_adapt_domain<bool>(
+    VArray<bool> selection = mesh_component->attributes()->adapt_domain<bool>(
         VArray<bool>::ForFunc(mesh_eval->totvert,
                               [bm, orig_indices](int vertex_index) -> bool {
                                 const int i_orig = orig_indices[vertex_index];
@@ -273,7 +288,7 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
 
   if (mesh_eval->totvert == bm->totvert) {
     /* Use a simple heuristic to match original vertices to evaluated ones. */
-    VArray<bool> selection = mesh_component->attribute_try_adapt_domain<bool>(
+    VArray<bool> selection = mesh_component->attributes()->adapt_domain<bool>(
         VArray<bool>::ForFunc(mesh_eval->totvert,
                               [bm](int vertex_index) -> bool {
                                 BMVert *vert = bm->vtable[vertex_index];
@@ -511,7 +526,7 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
           std::make_unique<GeometryComponentCacheKey>(component));
 
   const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
-  const int domain_num = component.attribute_domain_num(domain);
+  const int domain_num = component.attributes()->domain_size(domain);
   for (const auto item : fields_to_show.items()) {
     const StringRef name = item.key;
     const GField &field = item.value;

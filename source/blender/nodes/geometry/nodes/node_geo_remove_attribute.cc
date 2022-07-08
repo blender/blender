@@ -39,7 +39,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         /* First check if the attribute exists before getting write access,
          * to avoid potentially expensive unnecessary copies. */
         const GeometryComponent &read_only_component = *geometry_set.get_component_for_read(type);
-        if (read_only_component.attribute_exists(name)) {
+        if (read_only_component.attributes()->contains(name)) {
           attribute_exists = true;
         }
         else {
@@ -47,7 +47,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         }
 
         GeometryComponent &component = geometry_set.get_component_for_write(type);
-        if (!component.attribute_try_delete(name)) {
+        if (!component.attributes_for_write()->remove(name)) {
           cannot_delete = true;
         }
       }

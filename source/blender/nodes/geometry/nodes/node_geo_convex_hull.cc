@@ -143,7 +143,8 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   if (geometry_set.has_mesh()) {
     count++;
     const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>();
-    total_num += component->attribute_domain_num(ATTR_DOMAIN_POINT);
+    const Mesh *mesh = component->get_for_read();
+    total_num += mesh->totvert;
   }
 
   if (geometry_set.has_pointcloud()) {
@@ -151,10 +152,9 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
     span_count++;
     const PointCloudComponent *component =
         geometry_set.get_component_for_read<PointCloudComponent>();
-    VArray<float3> varray = component->attribute_get_for_read<float3>(
-        "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-    total_num += varray.size();
-    positions_span = varray.get_internal_span();
+    const PointCloud *pointcloud = component->get_for_read();
+    positions_span = {reinterpret_cast<const float3 *>(pointcloud->co), pointcloud->totpoint};
+    total_num += pointcloud->totpoint;
   }
 
   if (geometry_set.has_curves()) {
@@ -181,8 +181,8 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
 
   if (geometry_set.has_mesh()) {
     const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>();
-    VArray<float3> varray = component->attribute_get_for_read<float3>(
-        "position", ATTR_DOMAIN_POINT, {0, 0, 0});
+    const VArray<float3> varray = component->attributes()->lookup<float3>("position",
+                                                                          ATTR_DOMAIN_POINT);
     varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
     offset += varray.size();
   }
@@ -190,8 +190,8 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   if (geometry_set.has_pointcloud()) {
     const PointCloudComponent *component =
         geometry_set.get_component_for_read<PointCloudComponent>();
-    VArray<float3> varray = component->attribute_get_for_read<float3>(
-        "position", ATTR_DOMAIN_POINT, {0, 0, 0});
+    const VArray<float3> varray = component->attributes()->lookup<float3>("position",
+                                                                          ATTR_DOMAIN_POINT);
     varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
     offset += varray.size();
   }

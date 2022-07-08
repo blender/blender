@@ -506,9 +506,9 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
 
   CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_CURVE};
-  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_CURVE);
+  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_CURVE);
 
-  fn::FieldEvaluator evaluator{field_context, domain_num};
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.add(start_field);
   evaluator.add(end_field);
   evaluator.evaluate();

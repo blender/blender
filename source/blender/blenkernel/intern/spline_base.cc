@@ -6,7 +6,6 @@
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
-#include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_spline.hh"
 
@@ -21,6 +20,7 @@ using blender::Span;
 using blender::VArray;
 using blender::attribute_math::convert_to_static_type;
 using blender::bke::AttributeIDRef;
+using blender::bke::AttributeMetaData;
 
 CurveType Spline::type() const
 {

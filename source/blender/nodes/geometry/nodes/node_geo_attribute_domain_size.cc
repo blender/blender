@@ -72,11 +72,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     case GEO_COMPONENT_TYPE_MESH: {
       if (geometry_set.has_mesh()) {
         const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>();
-        params.set_output("Point Count", component->attribute_domain_num(ATTR_DOMAIN_POINT));
-        params.set_output("Edge Count", component->attribute_domain_num(ATTR_DOMAIN_EDGE));
-        params.set_output("Face Count", component->attribute_domain_num(ATTR_DOMAIN_FACE));
-        params.set_output("Face Corner Count",
-                          component->attribute_domain_num(ATTR_DOMAIN_CORNER));
+        const AttributeAccessor attributes = *component->attributes();
+        params.set_output("Point Count", attributes.domain_size(ATTR_DOMAIN_POINT));
+        params.set_output("Edge Count", attributes.domain_size(ATTR_DOMAIN_EDGE));
+        params.set_output("Face Count", attributes.domain_size(ATTR_DOMAIN_FACE));
+        params.set_output("Face Corner Count", attributes.domain_size(ATTR_DOMAIN_CORNER));
       }
       else {
         params.set_default_remaining_outputs();
@@ -86,8 +86,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     case GEO_COMPONENT_TYPE_CURVE: {
       if (geometry_set.has_curves()) {
         const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>();
-        params.set_output("Point Count", component->attribute_domain_num(ATTR_DOMAIN_POINT));
-        params.set_output("Spline Count", component->attribute_domain_num(ATTR_DOMAIN_CURVE));
+        const AttributeAccessor attributes = *component->attributes();
+        params.set_output("Point Count", attributes.domain_size(ATTR_DOMAIN_POINT));
+        params.set_output("Spline Count", attributes.domain_size(ATTR_DOMAIN_CURVE));
       }
       else {
         params.set_default_remaining_outputs();
@@ -98,7 +99,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (geometry_set.has_pointcloud()) {
         const PointCloudComponent *component =
             geometry_set.get_component_for_read<PointCloudComponent>();
-        params.set_output("Point Count", component->attribute_domain_num(ATTR_DOMAIN_POINT));
+        params.set_output("Point Count", component->attributes()->domain_size(ATTR_DOMAIN_POINT));
       }
       else {
         params.set_default_remaining_outputs();
@@ -109,7 +110,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (geometry_set.has_instances()) {
         const InstancesComponent *component =
             geometry_set.get_component_for_read<InstancesComponent>();
-        params.set_output("Instance Count", component->attribute_domain_num(ATTR_DOMAIN_INSTANCE));
+        params.set_output("Instance Count",
+                          component->attributes()->domain_size(ATTR_DOMAIN_INSTANCE));
       }
       else {
         params.set_default_remaining_outputs();

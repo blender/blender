@@ -757,9 +757,7 @@ static bool modifier_apply_obdata(
       BKE_mesh_nomain_to_mesh(mesh_applied, me, ob, &CD_MASK_MESH, true);
 
       /* Anonymous attributes shouldn't be available on the applied geometry. */
-      MeshComponent component;
-      component.replace(me, GeometryOwnershipType::Editable);
-      component.attributes_remove_anonymous();
+      blender::bke::mesh_attributes_for_write(*me).remove_anonymous();
 
       if (md_eval->type == eModifierType_Multires) {
         multires_customdata_delete(me);
@@ -828,11 +826,12 @@ static bool modifier_apply_obdata(
       BKE_report(reports, RPT_ERROR, "Evaluated geometry from modifier does not contain curves");
       return false;
     }
-    CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
     Curves &curves_eval = *geometry_set.get_curves_for_write();
 
     /* Anonymous attributes shouldn't be available on the applied geometry. */
-    component.attributes_remove_anonymous();
+    blender::bke::CurvesGeometry::wrap(curves_eval.geometry)
+        .attributes_for_write()
+        .remove_anonymous();
 
     /* If the modifier's output is a different curves data-block, copy the relevant information to
      * the original. */

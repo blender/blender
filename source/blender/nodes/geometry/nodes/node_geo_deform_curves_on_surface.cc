@@ -252,10 +252,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   BKE_mesh_wrapper_ensure_mdata(surface_mesh_eval);
 
-  MeshComponent mesh_eval;
-  mesh_eval.replace(surface_mesh_eval, GeometryOwnershipType::ReadOnly);
-  MeshComponent mesh_orig;
-  mesh_orig.replace(surface_mesh_orig, GeometryOwnershipType::ReadOnly);
+  const AttributeAccessor mesh_attributes_eval = bke::mesh_attributes(*surface_mesh_eval);
+  const AttributeAccessor mesh_attributes_orig = bke::mesh_attributes(*surface_mesh_orig);
 
   Curves &curves_id = *curves_geometry.get_curves_for_write();
   CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
@@ -266,7 +264,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     params.error_message_add(NodeWarningType::Error, message);
     return;
   }
-  if (!mesh_eval.attribute_exists(uv_map_name)) {
+  if (!mesh_attributes_eval.contains(uv_map_name)) {
     pass_through_input();
     char *message = BLI_sprintfN(TIP_("Evaluated surface missing UV map: %s."),
                                  uv_map_name.c_str());
@@ -274,7 +272,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     MEM_freeN(message);
     return;
   }
-  if (!mesh_orig.attribute_exists(uv_map_name)) {
+  if (!mesh_attributes_orig.contains(uv_map_name)) {
     pass_through_input();
     char *message = BLI_sprintfN(TIP_("Original surface missing UV map: %s."),
                                  uv_map_name.c_str());
@@ -282,7 +280,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     MEM_freeN(message);
     return;
   }
-  if (!mesh_eval.attribute_exists(rest_position_name)) {
+  if (!mesh_attributes_eval.contains(rest_position_name)) {
     pass_through_input();
     params.error_message_add(NodeWarningType::Error,
                              TIP_("Evaluated surface missing attribute: rest_position."));
@@ -294,12 +292,12 @@ static void node_geo_exec(GeoNodeExecParams params)
                              TIP_("Curves are not attached to any UV map."));
     return;
   }
-  const VArraySpan<float2> uv_map_orig = mesh_orig.attribute_get_for_read<float2>(
-      uv_map_name, ATTR_DOMAIN_CORNER, {0.0f, 0.0f});
-  const VArraySpan<float2> uv_map_eval = mesh_eval.attribute_get_for_read<float2>(
-      uv_map_name, ATTR_DOMAIN_CORNER, {0.0f, 0.0f});
-  const VArraySpan<float3> rest_positions = mesh_eval.attribute_get_for_read<float3>(
-      rest_position_name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f});
+  const VArraySpan<float2> uv_map_orig = mesh_attributes_orig.lookup<float2>(uv_map_name,
+                                                                             ATTR_DOMAIN_CORNER);
+  const VArraySpan<float2> uv_map_eval = mesh_attributes_eval.lookup<float2>(uv_map_name,
+                                                                             ATTR_DOMAIN_CORNER);
+  const VArraySpan<float3> rest_positions = mesh_attributes_eval.lookup<float3>(rest_position_name,
+                                                                                ATTR_DOMAIN_POINT);
   const Span<float2> surface_uv_coords = curves.surface_uv_coords();
 
   const Span<MLoopTri> looptris_orig{BKE_mesh_runtime_looptri_ensure(surface_mesh_orig),

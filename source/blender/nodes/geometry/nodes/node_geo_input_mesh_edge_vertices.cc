@@ -93,14 +93,14 @@ static VArray<float3> construct_edge_positions_gvarray(const MeshComponent &comp
   }
 
   if (vertex == VERTEX_ONE) {
-    return component.attribute_try_adapt_domain<float3>(
+    return component.attributes()->adapt_domain<float3>(
         VArray<float3>::ForFunc(
             mesh->totedge,
             [mesh](const int i) { return float3(mesh->mvert[mesh->medge[i].v1].co); }),
         ATTR_DOMAIN_EDGE,
         domain);
   }
-  return component.attribute_try_adapt_domain<float3>(
+  return component.attributes()->adapt_domain<float3>(
       VArray<float3>::ForFunc(
           mesh->totedge,
           [mesh](const int i) { return float3(mesh->mvert[mesh->medge[i].v2].co); }),

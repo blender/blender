@@ -16,21 +16,23 @@ static void set_resolution_in_component(GeometryComponent &component,
                                         const Field<bool> &selection_field,
                                         const Field<int> &resolution_field)
 {
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_CURVE};
-  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_CURVE);
-  if (domain_num == 0) {
+  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_CURVE);
+  if (domain_size == 0) {
     return;
   }
+  MutableAttributeAccessor attributes = *component.attributes_for_write();
 
-  OutputAttribute_Typed<int> resolutions = component.attribute_try_get_for_output_only<int>(
-      "resolution", ATTR_DOMAIN_CURVE);
+  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_CURVE};
 
-  fn::FieldEvaluator evaluator{field_context, domain_num};
+  AttributeWriter<int> resolutions = attributes.lookup_or_add_for_write<int>("resolution",
+                                                                             ATTR_DOMAIN_CURVE);
+
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
-  evaluator.add_with_destination(resolution_field, resolutions.varray());
+  evaluator.add_with_destination(resolution_field, resolutions.varray);
   evaluator.evaluate();
 
-  resolutions.save();
+  resolutions.finish();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

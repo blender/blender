@@ -282,8 +282,7 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
       RNA_enum_get(op->ptr, "mode"));
 
   Mesh *mesh = reinterpret_cast<Mesh *>(ob_data);
-  MeshComponent mesh_component;
-  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
+  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
 
   /* General conversion steps are always the same:
    * 1. Convert old data to right domain and data type.
@@ -301,33 +300,33 @@ static int geometry_attribute_convert_exec(bContext *C, wmOperator *op)
         return OPERATOR_CANCELLED;
       }
 
-      GVArray src_varray = mesh_component.attribute_get_for_read(name, dst_domain, dst_type);
+      GVArray src_varray = attributes.lookup_or_default(name, dst_domain, dst_type);
       const CPPType &cpp_type = src_varray.type();
       void *new_data = MEM_malloc_arrayN(src_varray.size(), cpp_type.size(), __func__);
       src_varray.materialize_to_uninitialized(new_data);
-      mesh_component.attribute_try_delete(name);
-      mesh_component.attribute_try_create(name, dst_domain, dst_type, AttributeInitMove(new_data));
+      attributes.remove(name);
+      attributes.add(name, dst_domain, dst_type, blender::bke::AttributeInitMove(new_data));
       break;
     }
     case ConvertAttributeMode::UVMap: {
       MLoopUV *dst_uvs = static_cast<MLoopUV *>(
           MEM_calloc_arrayN(mesh->totloop, sizeof(MLoopUV), __func__));
-      VArray<float2> src_varray = mesh_component.attribute_get_for_read<float2>(
+      VArray<float2> src_varray = attributes.lookup_or_default<float2>(
           name, ATTR_DOMAIN_CORNER, {0.0f, 0.0f});
       for (const int i : IndexRange(mesh->totloop)) {
         copy_v2_v2(dst_uvs[i].uv, src_varray[i]);
       }
-      mesh_component.attribute_try_delete(name);
+      attributes.remove(name);
       CustomData_add_layer_named(
           &mesh->ldata, CD_MLOOPUV, CD_ASSIGN, dst_uvs, mesh->totloop, name.c_str());
       break;
     }
     case ConvertAttributeMode::VertexGroup: {
       Array<float> src_weights(mesh->totvert);
-      VArray<float> src_varray = mesh_component.attribute_get_for_read<float>(
+      VArray<float> src_varray = attributes.lookup_or_default<float>(
           name, ATTR_DOMAIN_POINT, 0.0f);
       src_varray.materialize(src_weights);
-      mesh_component.attribute_try_delete(name);
+      attributes.remove(name);
 
       bDeformGroup *defgroup = BKE_object_defgroup_new(ob, name.c_str());
       const int defgroup_index = BLI_findindex(BKE_id_defgroup_list_get(&mesh->id), defgroup);
@@ -652,15 +651,16 @@ bool ED_geometry_attribute_convert(Mesh *mesh,
     return false;
   }
 
-  MeshComponent mesh_component;
-  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
-  GVArray src_varray = mesh_component.attribute_get_for_read(name, new_domain, new_type);
+  blender::bke::MutableAttributeAccessor attributes = blender::bke::mesh_attributes_for_write(
+      *mesh);
+
+  GVArray src_varray = attributes.lookup_or_default(name, new_domain, new_type);
 
   const CPPType &cpp_type = src_varray.type();
   void *new_data = MEM_malloc_arrayN(src_varray.size(), cpp_type.size(), __func__);
   src_varray.materialize_to_uninitialized(new_data);
-  mesh_component.attribute_try_delete(name);
-  mesh_component.attribute_try_create(name, new_domain, new_type, AttributeInitMove(new_data));
+  attributes.remove(name);
+  attributes.add(name, new_domain, new_type, blender::bke::AttributeInitMove(new_data));
 
   int *active_index = BKE_id_attributes_active_index_p(&mesh->id);
   if (*active_index > 0) {

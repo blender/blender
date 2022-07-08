@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <iostream>
+#include <mutex>
 
 #include "BLI_float4x4.hh"
 #include "BLI_function_ref.hh"
@@ -19,7 +20,7 @@
 #include "BLI_vector_set.hh"
 
 #include "BKE_anonymous_attribute.hh"
-#include "BKE_attribute_access.hh"
+#include "BKE_attribute.hh"
 #include "BKE_geometry_set.h"
 
 struct Curves;
@@ -63,6 +64,15 @@ class GeometryComponent {
   virtual ~GeometryComponent() = default;
   static GeometryComponent *create(GeometryComponentType component_type);
 
+  int attribute_domain_size(eAttrDomain domain) const;
+
+  /**
+   * Get access to the attributes in this geometry component. May return none if the geometry does
+   * not support the attribute system.
+   */
+  virtual std::optional<blender::bke::AttributeAccessor> attributes() const;
+  virtual std::optional<blender::bke::MutableAttributeAccessor> attributes_for_write();
+
   /* The returned component should be of the same type as the type this is called on. */
   virtual GeometryComponent *copy() const = 0;
 
@@ -78,203 +88,7 @@ class GeometryComponent {
 
   GeometryComponentType type() const;
 
-  /**
-   * Return true when any attribute with this name exists, including built in attributes.
-   */
-  bool attribute_exists(const blender::bke::AttributeIDRef &attribute_id) const;
-
-  /**
-   * Return the data type and domain of an attribute with the given name if it exists.
-   */
-  std::optional<AttributeMetaData> attribute_get_meta_data(
-      const blender::bke::AttributeIDRef &attribute_id) const;
-
-  /**
-   * Return true when the geometry component supports this attribute domain.
-   * \note Conceptually this function is static, the result is always the same for different
-   * instances of the same geometry component type.
-   */
-  bool attribute_domain_supported(eAttrDomain domain) const;
-  /**
-   * Return the length of a specific domain, or 0 if the domain is not supported.
-   */
-  virtual int attribute_domain_num(eAttrDomain domain) const;
-
-  /**
-   * Return true if the attribute name corresponds to a built-in attribute with a hardcoded domain
-   * and data type.
-   */
-  bool attribute_is_builtin(const blender::StringRef attribute_name) const;
-  bool attribute_is_builtin(const blender::bke::AttributeIDRef &attribute_id) const;
-
-  /**
-   * Get read-only access to an attribute with the given name or id, on the highest priority domain
-   * if there is a name collision.
-   * \return null if the attribute does not exist.
-   */
-  blender::bke::ReadAttributeLookup attribute_try_get_for_read(
-      const blender::bke::AttributeIDRef &attribute_id) const;
-
-  /**
-   * Get read and write access to an attribute with the given name or id, on the highest priority
-   * domain if there is a name collision.
-   * \note #WriteAttributeLookup.tag_modified_fn must be called after modifying data.
-   * \return null if the attribute does not exist
-   */
-  blender::bke::WriteAttributeLookup attribute_try_get_for_write(
-      const blender::bke::AttributeIDRef &attribute_id);
-
-  /**
-   * Get a read-only attribute for the domain based on the given attribute. This can be used to
-   * interpolate from one domain to another.
-   * \return null if the interpolation is not implemented.
-   */
-  blender::GVArray attribute_try_adapt_domain(const blender::GVArray &varray,
-                                              const eAttrDomain from_domain,
-                                              const eAttrDomain to_domain) const
-  {
-    return this->attribute_try_adapt_domain_impl(varray, from_domain, to_domain);
-  }
-  /* Use instead of the method above when the type is known at compile time for type safety. */
-  template<typename T>
-  blender::VArray<T> attribute_try_adapt_domain(const blender::VArray<T> &varray,
-                                                const eAttrDomain from_domain,
-                                                const eAttrDomain to_domain) const
-  {
-    return this->attribute_try_adapt_domain_impl(varray, from_domain, to_domain)
-        .template typed<T>();
-  }
-
-  /** Returns true when the attribute has been deleted. */
-  bool attribute_try_delete(const blender::bke::AttributeIDRef &attribute_id);
-
-  /**
-   * Remove any anonymous attributes on the geometry (they generally shouldn't exist on original
-   * geometry).
-   */
-  void attributes_remove_anonymous();
-
-  /** Returns true when the attribute has been created. */
-  bool attribute_try_create(const blender::bke::AttributeIDRef &attribute_id,
-                            eAttrDomain domain,
-                            eCustomDataType data_type,
-                            const AttributeInit &initializer);
-
-  /**
-   * Try to create the builtin attribute with the given name. No data type or domain has to be
-   * provided, because those are fixed for builtin attributes.
-   */
-  bool attribute_try_create_builtin(const blender::StringRef attribute_name,
-                                    const AttributeInit &initializer);
-
-  blender::Set<blender::bke::AttributeIDRef> attribute_ids() const;
-  /**
-   * \return False if the callback explicitly returned false at any point, otherwise true,
-   * meaning the callback made it all the way through.
-   */
-  bool attribute_foreach(const AttributeForeachCallback callback) const;
-
   virtual bool is_empty() const;
-
-  /**
-   * Get a virtual array that refers to the data of an attribute, interpolated to the given domain
-   * and converted to the data type. Returns null when the attribute does not exist or cannot be
-   * interpolated or converted.
-   */
-  blender::GVArray attribute_try_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
-                                              eAttrDomain domain,
-                                              eCustomDataType data_type) const;
-
-  /**
-   * Get a virtual array that refers to the data of an attribute, interpolated to the given domain.
-   * The data type is left unchanged. Returns null when the attribute does not exist or cannot be
-   * interpolated.
-   */
-  blender::GVArray attribute_try_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
-                                              eAttrDomain domain) const;
-
-  /**
-   * Get a virtual array that refers to the data of an attribute converted to the given data type.
-   * The attribute's domain is left unchanged. Returns null when the attribute does not exist or
-   * cannot be converted.
-   */
-  blender::bke::ReadAttributeLookup attribute_try_get_for_read(
-      const blender::bke::AttributeIDRef &attribute_id, eCustomDataType data_type) const;
-
-  /**
-   * Get a virtual array that refers to the data of an attribute, interpolated to the given domain
-   * and converted to the data type. If that is not possible, the returned virtual array will
-   * contain a default value. This never returns null.
-   */
-  blender::GVArray attribute_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
-                                          eAttrDomain domain,
-                                          eCustomDataType data_type,
-                                          const void *default_value = nullptr) const;
-  /* Use instead of the method above when the type is known at compile time for type safety. */
-  template<typename T>
-  blender::VArray<T> attribute_get_for_read(const blender::bke::AttributeIDRef &attribute_id,
-                                            const eAttrDomain domain,
-                                            const T &default_value) const
-  {
-    const blender::CPPType &cpp_type = blender::CPPType::get<T>();
-    const eCustomDataType type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
-    return this->attribute_get_for_read(attribute_id, domain, type, &default_value)
-        .template typed<T>();
-  }
-
-  /**
-   * Returns an "output attribute", which is essentially a mutable virtual array with some commonly
-   * used convince features. The returned output attribute might be empty if requested attribute
-   * cannot exist on the geometry.
-   *
-   * The included convenience features are:
-   * - Implicit type conversion when writing to builtin attributes.
-   * - If the attribute name exists already, but has a different type/domain, a temporary attribute
-   *   is created that will overwrite the existing attribute in the end.
-   */
-  blender::bke::OutputAttribute attribute_try_get_for_output(
-      const blender::bke::AttributeIDRef &attribute_id,
-      eAttrDomain domain,
-      eCustomDataType data_type,
-      const void *default_value = nullptr);
-  /* Use instead of the method above when the type is known at compile time for type safety. */
-  template<typename T>
-  blender::bke::OutputAttribute_Typed<T> attribute_try_get_for_output(
-      const blender::bke::AttributeIDRef &attribute_id,
-      const eAttrDomain domain,
-      const T default_value)
-  {
-    const blender::CPPType &cpp_type = blender::CPPType::get<T>();
-    const eCustomDataType data_type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
-    return this->attribute_try_get_for_output(attribute_id, domain, data_type, &default_value);
-  }
-
-  /**
-   * Same as #attribute_try_get_for_output, but should be used when the original values in the
-   * attributes are not read, i.e. the attribute is used only for output. The can be faster because
-   * it can avoid interpolation and conversion of existing values. Since values are not read from
-   * this attribute, no default value is necessary.
-   */
-  blender::bke::OutputAttribute attribute_try_get_for_output_only(
-      const blender::bke::AttributeIDRef &attribute_id,
-      eAttrDomain domain,
-      eCustomDataType data_type);
-  /* Use instead of the method above when the type is known at compile time for type safety. */
-  template<typename T>
-  blender::bke::OutputAttribute_Typed<T> attribute_try_get_for_output_only(
-      const blender::bke::AttributeIDRef &attribute_id, const eAttrDomain domain)
-  {
-    const blender::CPPType &cpp_type = blender::CPPType::get<T>();
-    const eCustomDataType data_type = blender::bke::cpp_type_to_custom_data_type(cpp_type);
-    return this->attribute_try_get_for_output_only(attribute_id, domain, data_type);
-  }
-
- private:
-  virtual const blender::bke::ComponentAttributeProviders *get_attribute_providers() const;
-
-  virtual blender::GVArray attribute_try_adapt_domain_impl(const blender::GVArray &varray,
-                                                           eAttrDomain from_domain,
-                                                           eAttrDomain to_domain) const;
 };
 
 template<typename T>
@@ -381,7 +195,7 @@ struct GeometrySet {
 
   using AttributeForeachCallback =
       blender::FunctionRef<void(const blender::bke::AttributeIDRef &attribute_id,
-                                const AttributeMetaData &meta_data,
+                                const blender::bke::AttributeMetaData &meta_data,
                                 const GeometryComponent &component)>;
 
   void attribute_foreach(blender::Span<GeometryComponentType> component_types,
@@ -392,7 +206,7 @@ struct GeometrySet {
       blender::Span<GeometryComponentType> component_types,
       GeometryComponentType dst_component_type,
       bool include_instances,
-      blender::Map<blender::bke::AttributeIDRef, AttributeKind> &r_attributes) const;
+      blender::Map<blender::bke::AttributeIDRef, blender::bke::AttributeKind> &r_attributes) const;
 
   blender::Vector<GeometryComponentType> gather_component_types(bool include_instances,
                                                                 bool ignore_empty) const;
@@ -565,8 +379,6 @@ class MeshComponent : public GeometryComponent {
    */
   Mesh *get_for_write();
 
-  int attribute_domain_num(eAttrDomain domain) const final;
-
   bool is_empty() const final;
 
   bool owns_direct_data() const override;
@@ -574,12 +386,8 @@ class MeshComponent : public GeometryComponent {
 
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_MESH;
 
- private:
-  const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
-
-  blender::GVArray attribute_try_adapt_domain_impl(const blender::GVArray &varray,
-                                                   eAttrDomain from_domain,
-                                                   eAttrDomain to_domain) const final;
+  std::optional<blender::bke::AttributeAccessor> attributes() const final;
+  std::optional<blender::bke::MutableAttributeAccessor> attributes_for_write() final;
 };
 
 /**
@@ -628,17 +436,17 @@ class PointCloudComponent : public GeometryComponent {
    */
   PointCloud *get_for_write();
 
-  int attribute_domain_num(eAttrDomain domain) const final;
-
   bool is_empty() const final;
 
   bool owns_direct_data() const override;
   void ensure_owns_direct_data() override;
 
+  std::optional<blender::bke::AttributeAccessor> attributes() const final;
+  std::optional<blender::bke::MutableAttributeAccessor> attributes_for_write() final;
+
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_POINT_CLOUD;
 
  private:
-  const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
 };
 
 /**
@@ -669,21 +477,15 @@ class CurveComponentLegacy : public GeometryComponent {
   const CurveEval *get_for_read() const;
   CurveEval *get_for_write();
 
-  int attribute_domain_num(eAttrDomain domain) const final;
-
   bool is_empty() const final;
 
   bool owns_direct_data() const override;
   void ensure_owns_direct_data() override;
 
+  std::optional<blender::bke::AttributeAccessor> attributes() const final;
+  std::optional<blender::bke::MutableAttributeAccessor> attributes_for_write() final;
+
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_CURVE;
-
- private:
-  const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
-
-  blender::GVArray attribute_try_adapt_domain_impl(const blender::GVArray &varray,
-                                                   eAttrDomain from_domain,
-                                                   eAttrDomain to_domain) const final;
 };
 
 /**
@@ -721,8 +523,6 @@ class CurveComponent : public GeometryComponent {
   const Curves *get_for_read() const;
   Curves *get_for_write();
 
-  int attribute_domain_num(eAttrDomain domain) const final;
-
   bool is_empty() const final;
 
   bool owns_direct_data() const override;
@@ -734,14 +534,10 @@ class CurveComponent : public GeometryComponent {
    */
   const Curve *get_curve_for_render() const;
 
+  std::optional<blender::bke::AttributeAccessor> attributes() const final;
+  std::optional<blender::bke::MutableAttributeAccessor> attributes_for_write() final;
+
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_CURVE;
-
- private:
-  const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
-
-  blender::GVArray attribute_try_adapt_domain_impl(const blender::GVArray &varray,
-                                                   eAttrDomain from_domain,
-                                                   eAttrDomain to_domain) const final;
 };
 
 /**
@@ -966,10 +762,11 @@ class InstancesComponent : public GeometryComponent {
 
   blender::Span<int> almost_unique_ids() const;
 
-  blender::bke::CustomDataAttributes &attributes();
-  const blender::bke::CustomDataAttributes &attributes() const;
+  blender::bke::CustomDataAttributes &instance_attributes();
+  const blender::bke::CustomDataAttributes &instance_attributes() const;
 
-  int attribute_domain_num(eAttrDomain domain) const final;
+  std::optional<blender::bke::AttributeAccessor> attributes() const final;
+  std::optional<blender::bke::MutableAttributeAccessor> attributes_for_write() final;
 
   void foreach_referenced_geometry(
       blender::FunctionRef<void(const GeometrySet &geometry_set)> callback) const;
@@ -982,7 +779,6 @@ class InstancesComponent : public GeometryComponent {
   static constexpr inline GeometryComponentType static_type = GEO_COMPONENT_TYPE_INSTANCES;
 
  private:
-  const blender::bke::ComponentAttributeProviders *get_attribute_providers() const final;
 };
 
 /**

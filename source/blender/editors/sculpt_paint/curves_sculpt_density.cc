@@ -64,7 +64,6 @@ struct DensityAddOperationExecutor {
   Mesh *surface_ = nullptr;
   Span<MLoopTri> surface_looptris_;
   Span<float3> corner_normals_su_;
-  VArraySpan<float2> surface_uv_map_;
 
   const CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;
@@ -228,12 +227,9 @@ struct DensityAddOperationExecutor {
     /* Find UV map. */
     VArraySpan<float2> surface_uv_map;
     if (curves_id_->surface_uv_map != nullptr) {
-      MeshComponent surface_component;
-      surface_component.replace(surface_, GeometryOwnershipType::ReadOnly);
-      surface_uv_map = surface_component
-                           .attribute_try_get_for_read(curves_id_->surface_uv_map,
-                                                       ATTR_DOMAIN_CORNER)
-                           .typed<float2>();
+      bke::AttributeAccessor surface_attributes = bke::mesh_attributes(*surface_);
+      surface_uv_map = surface_attributes.lookup<float2>(curves_id_->surface_uv_map,
+                                                         ATTR_DOMAIN_CORNER);
     }
 
     /* Find normals. */

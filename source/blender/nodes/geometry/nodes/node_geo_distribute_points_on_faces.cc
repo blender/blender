@@ -290,31 +290,32 @@ BLI_NOINLINE static void propagate_existing_attributes(
     const Span<int> looptri_indices)
 {
   const Mesh &mesh = *mesh_component.get_for_read();
+  const AttributeAccessor mesh_attributes = *mesh_component.attributes();
+  MutableAttributeAccessor point_attributes = *point_component.attributes_for_write();
 
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const eCustomDataType output_data_type = entry.value.data_type;
 
-    ReadAttributeLookup source_attribute = mesh_component.attribute_try_get_for_read(attribute_id);
+    GAttributeReader source_attribute = mesh_attributes.lookup(attribute_id);
     if (!source_attribute) {
       continue;
     }
 
     /* The output domain is always #ATTR_DOMAIN_POINT, since we are creating a point cloud. */
-    OutputAttribute attribute_out = point_component.attribute_try_get_for_output_only(
+    GSpanAttributeWriter attribute_out = point_attributes.lookup_or_add_for_write_only_span(
         attribute_id, ATTR_DOMAIN_POINT, output_data_type);
     if (!attribute_out) {
       continue;
     }
 
-    GMutableSpan out_span = attribute_out.as_span();
     interpolate_attribute(mesh,
                           bary_coords,
                           looptri_indices,
                           source_attribute.domain,
                           source_attribute.varray,
-                          out_span);
-    attribute_out.save();
+                          attribute_out.span);
+    attribute_out.finish();
   }
 }
 
@@ -331,25 +332,21 @@ BLI_NOINLINE static void compute_attribute_outputs(const MeshComponent &mesh_com
                                                    const Span<int> looptri_indices,
                                                    const AttributeOutputs &attribute_outputs)
 {
-  OutputAttribute_Typed<int> id_attribute = point_component.attribute_try_get_for_output_only<int>(
+  MutableAttributeAccessor pointcloud_attributes = *point_component.attributes_for_write();
+
+  SpanAttributeWriter<int> ids = pointcloud_attributes.lookup_or_add_for_write_only_span<int>(
       "id", ATTR_DOMAIN_POINT);
-  MutableSpan<int> ids = id_attribute.as_span();
 
-  OutputAttribute_Typed<float3> normal_attribute;
-  OutputAttribute_Typed<float3> rotation_attribute;
-
-  MutableSpan<float3> normals;
-  MutableSpan<float3> rotations;
+  SpanAttributeWriter<float3> normals;
+  SpanAttributeWriter<float3> rotations;
 
   if (attribute_outputs.normal_id) {
-    normal_attribute = point_component.attribute_try_get_for_output_only<float3>(
+    normals = pointcloud_attributes.lookup_or_add_for_write_only_span<float3>(
         attribute_outputs.normal_id.get(), ATTR_DOMAIN_POINT);
-    normals = normal_attribute.as_span();
   }
   if (attribute_outputs.rotation_id) {
-    rotation_attribute = point_component.attribute_try_get_for_output_only<float3>(
+    rotations = pointcloud_attributes.lookup_or_add_for_write_only_span<float3>(
         attribute_outputs.rotation_id.get(), ATTR_DOMAIN_POINT);
-    rotations = rotation_attribute.as_span();
   }
 
   const Mesh &mesh = *mesh_component.get_for_read();
@@ -368,27 +365,27 @@ BLI_NOINLINE static void compute_attribute_outputs(const MeshComponent &mesh_com
     const float3 v1_pos = float3(mesh.mvert[v1_index].co);
     const float3 v2_pos = float3(mesh.mvert[v2_index].co);
 
-    ids[i] = noise::hash(noise::hash_float(bary_coord), looptri_index);
+    ids.span[i] = noise::hash(noise::hash_float(bary_coord), looptri_index);
 
     float3 normal;
-    if (!normals.is_empty() || !rotations.is_empty()) {
+    if (!normals.span.is_empty() || !rotations.span.is_empty()) {
       normal_tri_v3(normal, v0_pos, v1_pos, v2_pos);
     }
-    if (!normals.is_empty()) {
-      normals[i] = normal;
+    if (!normals.span.is_empty()) {
+      normals.span[i] = normal;
     }
-    if (!rotations.is_empty()) {
-      rotations[i] = normal_to_euler_rotation(normal);
+    if (!rotations.span.is_empty()) {
+      rotations.span[i] = normal_to_euler_rotation(normal);
     }
   }
 
-  id_attribute.save();
+  ids.finish();
 
-  if (normal_attribute) {
-    normal_attribute.save();
+  if (normals) {
+    normals.finish();
   }
-  if (rotation_attribute) {
-    rotation_attribute.save();
+  if (rotations) {
+    rotations.finish();
   }
 }
 
@@ -398,11 +395,11 @@ static Array<float> calc_full_density_factors_with_selection(const MeshComponent
 {
   const eAttrDomain attribute_domain = ATTR_DOMAIN_CORNER;
   GeometryComponentFieldContext field_context{component, attribute_domain};
-  const int domain_num = component.attribute_domain_num(attribute_domain);
+  const int domain_size = component.attribute_domain_size(attribute_domain);
 
-  Array<float> densities(domain_num, 0.0f);
+  Array<float> densities(domain_size, 0.0f);
 
-  fn::FieldEvaluator evaluator{field_context, domain_num};
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(density_field, densities.as_mutable_span());
   evaluator.evaluate();

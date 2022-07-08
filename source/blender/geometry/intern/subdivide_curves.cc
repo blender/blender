@@ -79,16 +79,17 @@ static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
 struct AttributeTransferData {
   /* Expect that if an attribute exists, it is stored as a contiguous array internally anyway. */
   GVArraySpan src;
-  bke::OutputAttribute dst;
+  bke::GSpanAttributeWriter dst;
 };
 
-static Vector<AttributeTransferData> retrieve_point_attributes(const CurveComponent &src_component,
-                                                               CurveComponent &dst_component,
-                                                               const Set<std::string> &skip = {})
+static Vector<AttributeTransferData> retrieve_point_attributes(
+    const bke::AttributeAccessor &src_attributes,
+    bke::MutableAttributeAccessor &dst_attributes,
+    const Set<std::string> &skip = {})
 {
   Vector<AttributeTransferData> attributes;
-  src_component.attribute_foreach(
-      [&](const bke::AttributeIDRef &id, const AttributeMetaData meta_data) {
+  src_attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
         if (meta_data.domain != ATTR_DOMAIN_POINT) {
           /* Curve domain attributes are all copied directly to the result in one step. */
           return true;
@@ -97,9 +98,9 @@ static Vector<AttributeTransferData> retrieve_point_attributes(const CurveCompon
           return true;
         }
 
-        GVArray src = src_component.attribute_try_get_for_read(id, ATTR_DOMAIN_POINT);
+        GVArray src = src_attributes.lookup(id, ATTR_DOMAIN_POINT);
         BLI_assert(src);
-        bke::OutputAttribute dst = dst_component.attribute_try_get_for_output_only(
+        bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
             id, ATTR_DOMAIN_POINT, meta_data.data_type);
         BLI_assert(dst);
         attributes.append({std::move(src), std::move(dst)});
@@ -384,28 +385,27 @@ Curves *subdivide_curves(const CurveComponent &src_component,
 
   dst_curves.resize(dst_curves.offsets().last(), dst_curves.curves_num());
 
+  const bke::AttributeAccessor src_attributes = *src_component.attributes();
+  bke::MutableAttributeAccessor dst_attributes = *dst_component.attributes_for_write();
+
   auto subdivide_catmull_rom = [&](IndexMask selection) {
-    for (auto &attribute : retrieve_point_attributes(src_component, dst_component)) {
+    for (auto &attribute : retrieve_point_attributes(src_attributes, dst_attributes)) {
       subdivide_attribute_catmull_rom(src_curves,
                                       dst_curves,
                                       selection,
                                       point_offsets,
                                       cyclic,
                                       attribute.src,
-                                      attribute.dst.as_span());
-      attribute.dst.save();
+                                      attribute.dst.span);
+      attribute.dst.finish();
     }
   };
 
   auto subdivide_poly = [&](IndexMask selection) {
-    for (auto &attribute : retrieve_point_attributes(src_component, dst_component)) {
-      subdivide_attribute_linear(src_curves,
-                                 dst_curves,
-                                 selection,
-                                 point_offsets,
-                                 attribute.src,
-                                 attribute.dst.as_span());
-      attribute.dst.save();
+    for (auto &attribute : retrieve_point_attributes(src_attributes, dst_attributes)) {
+      subdivide_attribute_linear(
+          src_curves, dst_curves, selection, point_offsets, attribute.src, attribute.dst.span);
+      attribute.dst.finish();
     }
   };
 
@@ -443,20 +443,16 @@ Curves *subdivide_curves(const CurveComponent &src_component,
       }
     });
 
-    for (auto &attribute : retrieve_point_attributes(src_component,
-                                                     dst_component,
+    for (auto &attribute : retrieve_point_attributes(src_attributes,
+                                                     dst_attributes,
                                                      {"position",
                                                       "handle_type_left",
                                                       "handle_type_right",
                                                       "handle_right",
                                                       "handle_left"})) {
-      subdivide_attribute_linear(src_curves,
-                                 dst_curves,
-                                 selection,
-                                 point_offsets,
-                                 attribute.src,
-                                 attribute.dst.as_span());
-      attribute.dst.save();
+      subdivide_attribute_linear(
+          src_curves, dst_curves, selection, point_offsets, attribute.src, attribute.dst.span);
+      attribute.dst.finish();
     }
   };
 
@@ -473,10 +469,10 @@ Curves *subdivide_curves(const CurveComponent &src_component,
                                      subdivide_nurbs);
 
   if (!unselected_ranges.is_empty()) {
-    for (auto &attribute : retrieve_point_attributes(src_component, dst_component)) {
+    for (auto &attribute : retrieve_point_attributes(src_attributes, dst_attributes)) {
       bke::curves::copy_point_data(
-          src_curves, dst_curves, unselected_ranges, attribute.src, attribute.dst.as_span());
-      attribute.dst.save();
+          src_curves, dst_curves, unselected_ranges, attribute.src, attribute.dst.span);
+      attribute.dst.finish();
     }
   }
 

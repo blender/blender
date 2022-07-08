@@ -38,7 +38,7 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
   }
 
   GeometryComponentFieldContext field_context{*point_component, ATTR_DOMAIN_POINT};
-  const int domain_num = point_component->attribute_domain_num(ATTR_DOMAIN_POINT);
+  const int domain_num = point_component->attribute_domain_size(ATTR_DOMAIN_POINT);
   if (domain_num == 0) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     return;
@@ -60,18 +60,19 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const eCustomDataType data_type = entry.value.data_type;
-    GVArray src = point_component->attribute_get_for_read(
+    GVArray src = point_component->attributes()->lookup_or_default(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
-    OutputAttribute dst = mesh_component.attribute_try_get_for_output_only(
-        attribute_id, ATTR_DOMAIN_POINT, data_type);
+    GSpanAttributeWriter dst =
+        mesh_component.attributes_for_write()->lookup_or_add_for_write_only_span(
+            attribute_id, ATTR_DOMAIN_POINT, data_type);
     if (dst && src) {
       attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
         using T = decltype(dummy);
         VArray<T> src_typed = src.typed<T>();
         VArraySpan<T> src_typed_span{src_typed};
-        copy_attribute_to_vertices(src_typed_span, selection, dst.as_span().typed<T>());
+        copy_attribute_to_vertices(src_typed_span, selection, dst.span.typed<T>());
       });
-      dst.save();
+      dst.finish();
     }
   }
 

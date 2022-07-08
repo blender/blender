@@ -194,7 +194,7 @@ std::optional<int> GeometryDataSetTreeViewItem::count() const
   }
 
   if (const GeometryComponent *component = geometry.get_component_for_read(component_type_)) {
-    return component->attribute_domain_num(*domain_);
+    return component->attribute_domain_size(*domain_);
   }
 
   return 0;

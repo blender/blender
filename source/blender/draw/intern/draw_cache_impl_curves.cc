@@ -357,20 +357,20 @@ static void curves_batch_ensure_attribute(const Curves &curves,
                          request.domain == ATTR_DOMAIN_POINT ? curves.geometry.point_num :
                                                                curves.geometry.curve_num);
 
-  CurveComponent component;
-  component.replace(const_cast<Curves *>(&curves), GeometryOwnershipType::ReadOnly);
+  const blender::bke::AttributeAccessor attributes =
+      blender::bke::CurvesGeometry::wrap(curves.geometry).attributes();
 
   /* TODO(@kevindietrich): float4 is used for scalar attributes as the implicit conversion done
    * by OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following
    * the Blender convention, it should be `vec4(s, s, s, 1)`. This could be resolved using a
    * similar texture state swizzle to map the attribute correctly as for volume attributes, so we
    * can control the conversion ourselves. */
-  blender::VArray<ColorGeometry4f> attribute = component.attribute_get_for_read<ColorGeometry4f>(
+  blender::VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
       request.attribute_name, request.domain, {0.0f, 0.0f, 0.0f, 1.0f});
 
   MutableSpan<ColorGeometry4f> vbo_span{
       static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(attr_vbo)),
-      component.attribute_domain_num(request.domain)};
+      attributes.domain_size(request.domain)};
 
   attribute.materialize(vbo_span);
 
@@ -629,9 +629,10 @@ static void request_attribute(Curves &curves, const char *name)
 
   DRW_Attributes attributes{};
 
-  CurveComponent component;
-  component.replace(&curves, GeometryOwnershipType::ReadOnly);
-  std::optional<AttributeMetaData> meta_data = component.attribute_get_meta_data(name);
+  blender::bke::CurvesGeometry &curves_geometry = blender::bke::CurvesGeometry::wrap(
+      curves.geometry);
+  std::optional<blender::bke::AttributeMetaData> meta_data =
+      curves_geometry.attributes().lookup_meta_data(name);
   if (!meta_data) {
     return;
   }

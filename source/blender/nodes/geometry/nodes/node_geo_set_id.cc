@@ -19,34 +19,34 @@ static void set_id_in_component(GeometryComponent &component,
   const eAttrDomain domain = (component.type() == GEO_COMPONENT_TYPE_INSTANCES) ?
                                  ATTR_DOMAIN_INSTANCE :
                                  ATTR_DOMAIN_POINT;
-  GeometryComponentFieldContext field_context{component, domain};
-  const int domain_num = component.attribute_domain_num(domain);
-  if (domain_num == 0) {
+  const int domain_size = component.attribute_domain_size(domain);
+  if (domain_size == 0) {
     return;
   }
+  MutableAttributeAccessor attributes = *component.attributes_for_write();
+  GeometryComponentFieldContext field_context{component, domain};
 
-  fn::FieldEvaluator evaluator{field_context, domain_num};
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
 
   /* Since adding the ID attribute can change the result of the field evaluation (the random value
    * node uses the index if the ID is unavailable), make sure that it isn't added before evaluating
    * the field. However, as an optimization, use a faster code path when it already exists. */
-  if (component.attribute_exists("id")) {
-    OutputAttribute_Typed<int> id_attribute = component.attribute_try_get_for_output_only<int>(
-        "id", domain);
-    evaluator.add_with_destination(id_field, id_attribute.varray());
+  if (attributes.contains("id")) {
+    AttributeWriter<int> id_attribute = attributes.lookup_or_add_for_write<int>("id", domain);
+    evaluator.add_with_destination(id_field, id_attribute.varray);
     evaluator.evaluate();
-    id_attribute.save();
+    id_attribute.finish();
   }
   else {
     evaluator.add(id_field);
     evaluator.evaluate();
     const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
     const VArray<int> result_ids = evaluator.get_evaluated<int>(0);
-    OutputAttribute_Typed<int> id_attribute = component.attribute_try_get_for_output_only<int>(
-        "id", domain);
-    result_ids.materialize(selection, id_attribute.as_span());
-    id_attribute.save();
+    SpanAttributeWriter<int> id_attribute = attributes.lookup_or_add_for_write_span<int>("id",
+                                                                                         domain);
+    result_ids.materialize(selection, id_attribute.span);
+    id_attribute.finish();
   }
 }
 

@@ -85,12 +85,12 @@ class FieldOnDomain final : public GeometryFieldInput {
                                  IndexMask /* mask */) const final
   {
     const GeometryComponentFieldContext context{component, src_domain_};
-    FieldEvaluator value_evaluator{context, component.attribute_domain_num(src_domain_)};
+    FieldEvaluator value_evaluator{context, component.attribute_domain_size(src_domain_)};
     value_evaluator.add(src_field_);
     value_evaluator.evaluate();
     const GVArray &values = value_evaluator.get_evaluated(0);
 
-    return component.attribute_try_adapt_domain(values, src_domain_, domain);
+    return component.attributes()->adapt_domain(values, src_domain_, domain);
   }
 };
 

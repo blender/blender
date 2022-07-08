@@ -40,7 +40,7 @@ static VArray<int> construct_neighbor_count_gvarray(const MeshComponent &compone
     }
   }
 
-  return component.attribute_try_adapt_domain<int>(
+  return component.attributes()->adapt_domain<int>(
       VArray<int>::ForContainer(std::move(poly_count)), ATTR_DOMAIN_FACE, domain);
 }
 
@@ -83,7 +83,7 @@ static VArray<int> construct_vertex_count_gvarray(const MeshComponent &component
     return {};
   }
 
-  return component.attribute_try_adapt_domain<int>(
+  return component.attributes()->adapt_domain<int>(
       VArray<int>::ForFunc(mesh->totpoly,
                            [mesh](const int i) -> float { return mesh->mpoly[i].totloop; }),
       ATTR_DOMAIN_FACE,
