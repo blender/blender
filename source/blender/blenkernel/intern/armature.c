@@ -2668,20 +2668,21 @@ void BKE_pchan_minmax(const Object *ob,
                       float r_max[3])
 {
   const bArmature *arm = ob->data;
-  const bPoseChannel *pchan_tx = (pchan->custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
+  Object *ob_custom = (arm->flag & ARM_NO_CUSTOM) ? NULL : pchan->custom;
+  const bPoseChannel *pchan_tx = (ob_custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
   const BoundBox *bb_custom = NULL;
   BoundBox bb_custom_buf;
 
-  if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
+  if (ob_custom) {
     float min[3], max[3];
-    if (use_empty_drawtype && (pchan->custom->type == OB_EMPTY) &&
-        BKE_object_minmax_empty_drawtype(pchan->custom, min, max)) {
+    if (use_empty_drawtype && (ob_custom->type == OB_EMPTY) &&
+        BKE_object_minmax_empty_drawtype(ob_custom, min, max)) {
       memset(&bb_custom_buf, 0x0, sizeof(bb_custom_buf));
       BKE_boundbox_init_from_minmax(&bb_custom_buf, min, max);
       bb_custom = &bb_custom_buf;
     }
     else {
-      bb_custom = BKE_object_boundbox_get(pchan->custom);
+      bb_custom = BKE_object_boundbox_get(ob_custom);
     }
   }
 
