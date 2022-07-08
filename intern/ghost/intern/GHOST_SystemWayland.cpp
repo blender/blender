@@ -13,6 +13,7 @@
 #include "GHOST_EventWheel.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
+#include "GHOST_utildefines.h"
 
 #include "GHOST_ContextEGL.h"
 
@@ -628,7 +629,7 @@ static GHOST_TKey xkb_map_gkey_or_scan_code(const xkb_keysym_t sym, const uint32
 {
   GHOST_TKey gkey = xkb_map_gkey(sym);
 
-  if (gkey == GHOST_kKeyUnknown) {
+  if (UNLIKELY(gkey == GHOST_kKeyUnknown)) {
     /* Fall back to physical location for keys that would otherwise do nothing. */
     switch (key) {
       case KEY_GRAVE: {
@@ -774,7 +775,7 @@ static void relative_pointer_handle_relative_motion_impl(input_t *input,
     bounds.m_t = wl_fixed_from_int(bounds.m_t) / scale;
     bounds.m_r = wl_fixed_from_int(bounds.m_r) / scale;
     bounds.m_b = wl_fixed_from_int(bounds.m_b) / scale;
-    bounds.clampPoint(input->pointer.xy[0], input->pointer.xy[1]);
+    bounds.clampPoint(UNPACK2(input->pointer.xy));
   }
 #endif
   input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
@@ -831,7 +832,7 @@ static void dnd_events(const input_t *const input, const GHOST_TEventType event)
     const uint64_t time = input->system->getMilliSeconds();
     for (const std::string &type : mime_preference_order) {
       input->system->pushEvent(new GHOST_EventDragnDrop(
-          time, event, mime_dnd.at(type), win, event_xy[0], event_xy[1], nullptr));
+          time, event, mime_dnd.at(type), win, UNPACK2(event_xy), nullptr));
     }
   }
 }
@@ -841,7 +842,7 @@ static std::string read_pipe(data_offer_t *data_offer,
                              std::mutex *mutex)
 {
   int pipefd[2];
-  if (pipe(pipefd) != 0) {
+  if (UNLIKELY(pipe(pipefd) != 0)) {
     return {};
   }
   wl_data_offer_receive(data_offer->id, mime_receive.c_str(), pipefd[1]);
@@ -1076,7 +1077,7 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
                          data_offer_t *data_offer,
                          wl_surface *surface,
                          const std::string mime_receive) {
-    const wl_fixed_t xy[2] = {data_offer->dnd.xy[0], data_offer->dnd.xy[1]};
+    const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
     const std::string data = read_pipe(data_offer, mime_receive, nullptr);
 
@@ -1126,7 +1127,7 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
                                                  wl_fixed_to_int(scale * xy[1]),
                                                  flist));
     }
-    else if (mime_receive == mime_text_plain || mime_receive == mime_text_utf8) {
+    else if (ELEM(mime_receive, mime_text_plain, mime_text_utf8)) {
       /* TODO: enable use of internal functions 'txt_insert_buf' and
        * 'text_update_edited' to behave like dropped text was pasted. */
     }
@@ -1602,8 +1603,8 @@ static void tablet_tool_handle_tilt(void *data,
   /* Map degrees to `-1.0..1.0`. */
   td.Xtilt = wl_fixed_to_double(tilt_x) / 90.0f;
   td.Ytilt = wl_fixed_to_double(tilt_y) / 90.0f;
-  td.Xtilt = td.Xtilt < -1.0f ? -1.0f : (td.Xtilt > 1.0f ? 1.0f : td.Xtilt);
-  td.Ytilt = td.Ytilt < -1.0f ? -1.0f : (td.Ytilt > 1.0f ? 1.0f : td.Ytilt);
+  CLAMP(td.Xtilt, -1.0f, 1.0f);
+  CLAMP(td.Ytilt, -1.0f, 1.0f);
 }
 
 static void tablet_tool_handle_rotation(void * /*data*/,
@@ -2559,7 +2560,7 @@ int GHOST_SystemWayland::setConsoleWindowState(GHOST_TConsoleWindowState /*actio
 
 GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
-  if (d->inputs.empty()) {
+  if (UNLIKELY(d->inputs.empty())) {
     return GHOST_kFailure;
   }
 
@@ -2594,7 +2595,7 @@ GHOST_TSuccess GHOST_SystemWayland::getModifierKeys(GHOST_ModifierKeys &keys) co
 
 GHOST_TSuccess GHOST_SystemWayland::getButtons(GHOST_Buttons &buttons) const
 {
-  if (d->inputs.empty()) {
+  if (UNLIKELY(d->inputs.empty())) {
     return GHOST_kFailure;
   }
   input_t *input = d->inputs[0];
@@ -2616,7 +2617,7 @@ char *GHOST_SystemWayland::getClipboard(bool /*selection*/) const
 
 void GHOST_SystemWayland::putClipboard(const char *buffer, bool /*selection*/) const
 {
-  if (!d->data_device_manager || d->inputs.empty()) {
+  if (UNLIKELY(!d->data_device_manager || d->inputs.empty())) {
     return;
   }
 
@@ -2690,7 +2691,7 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPositionClientRelative(const GHOST_
                                                                     int32_t &x,
                                                                     int32_t &y) const
 {
-  if (d->inputs.empty()) {
+  if (UNLIKELY(d->inputs.empty())) {
     return GHOST_kFailure;
   }
   input_t *input = d->inputs[0];
@@ -2706,7 +2707,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorPositionClientRelative(GHOST_IWindo
                                                                     const int32_t x,
                                                                     const int32_t y)
 {
-  if (d->inputs.empty()) {
+  if (UNLIKELY(d->inputs.empty())) {
     return GHOST_kFailure;
   }
   input_t *input = d->inputs[0];
@@ -2716,7 +2717,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCursorPositionClientRelative(GHOST_IWindo
 
 GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) const
 {
-  if (d->inputs.empty()) {
+  if (UNLIKELY(d->inputs.empty())) {
     return GHOST_kFailure;
   }
   input_t *input = d->inputs[0];
@@ -2734,7 +2735,7 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorPosition(int32_t &x, int32_t &y) co
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorPosition(const int32_t x, const int32_t y)
 {
-  if (d->inputs.empty()) {
+  if (UNLIKELY(d->inputs.empty())) {
     return GHOST_kFailure;
   }
   input_t *input = d->inputs[0];
@@ -3054,7 +3055,7 @@ static bool cursor_is_software(const GHOST_TGrabCursorMode mode, const bool use_
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorShape(const GHOST_TStandardCursor shape)
 {
-  if (d->inputs.empty()) {
+  if (UNLIKELY(d->inputs.empty())) {
     return GHOST_kFailure;
   }
   auto cursor_find = cursors.find(shape);
@@ -3115,7 +3116,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
                                                          const int hotY,
                                                          const bool /*canInvertColor*/)
 {
-  if (d->inputs.empty()) {
+  if (UNLIKELY(d->inputs.empty())) {
     return GHOST_kFailure;
   }
 
@@ -3145,18 +3146,18 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   free(tmpname);
 #endif
 
-  if (fd < 0) {
+  if (UNLIKELY(fd < 0)) {
     return GHOST_kFailure;
   }
 
-  if (posix_fallocate(fd, 0, int32_t(cursor->file_buffer->size)) != 0) {
+  if (UNLIKELY(posix_fallocate(fd, 0, int32_t(cursor->file_buffer->size)) != 0)) {
     return GHOST_kFailure;
   }
 
   cursor->file_buffer->data = mmap(
       nullptr, cursor->file_buffer->size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
-  if (cursor->file_buffer->data == MAP_FAILED) {
+  if (UNLIKELY(cursor->file_buffer->data == MAP_FAILED)) {
     cursor->file_buffer->data = nullptr;
     close(fd);
     return GHOST_kFailure;
@@ -3239,7 +3240,7 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitma
 
 GHOST_TSuccess GHOST_SystemWayland::setCursorVisibility(const bool visible)
 {
-  if (d->inputs.empty()) {
+  if (UNLIKELY(d->inputs.empty())) {
     return GHOST_kFailure;
   }
 
@@ -3263,7 +3264,7 @@ bool GHOST_SystemWayland::supportsWindowPosition()
 
 bool GHOST_SystemWayland::getCursorGrabUseSoftwareDisplay(const GHOST_TGrabCursorMode mode)
 {
-  if (d->inputs.empty()) {
+  if (UNLIKELY(d->inputs.empty())) {
     return false;
   }
 
@@ -3309,7 +3310,7 @@ static input_grab_state_t input_grab_state_from_mode(const GHOST_TGrabCursorMode
   /* Initialize all members. */
   const struct input_grab_state_t grab_state = {
       /* Warping happens to require software cursor which also hides. */
-      .use_lock = (mode == GHOST_kGrabWrap || mode == GHOST_kGrabHide) || use_software_confine,
+      .use_lock = ELEM(mode, GHOST_kGrabWrap, GHOST_kGrabHide) || use_software_confine,
       .use_confine = (mode == GHOST_kGrabNormal) && (use_software_confine == false),
   };
   return grab_state;
@@ -3455,11 +3456,11 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
                                                  const int scale)
 {
   /* Ignore, if the required protocols are not supported. */
-  if (!d->relative_pointer_manager || !d->pointer_constraints) {
+  if (UNLIKELY(!d->relative_pointer_manager || !d->pointer_constraints)) {
     return GHOST_kFailure;
   }
 
-  if (d->inputs.empty()) {
+  if (UNLIKELY(d->inputs.empty())) {
     return GHOST_kFailure;
   }
   /* No change, success. */
@@ -3483,9 +3484,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
       mode, use_software_confine);
 
   /* Check for wrap as #supportsCursorWarp isn't supported. */
-  const bool use_visible = !(((mode == GHOST_kGrabHide) || (mode == GHOST_kGrabWrap)) ||
-                             use_software_confine);
-
+  const bool use_visible = !(ELEM(mode, GHOST_kGrabHide, GHOST_kGrabWrap) || use_software_confine);
   const bool is_hardware_cursor = !cursor_is_software(mode, use_software_confine);
 
   /* Only hide so the cursor is not made visible before it's location is restored.
@@ -3505,7 +3504,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
       if (mode_current == GHOST_kGrabWrap) {
         /* Since this call is initiated by Blender, we can be sure the window wasn't closed
          * by logic outside this function - as the window was needed to make this call. */
-        int32_t xy_new[2] = {input->pointer.xy[0], input->pointer.xy[1]};
+        int32_t xy_new[2] = {UNPACK2(input->pointer.xy)};
 
         GHOST_Rect bounds_scale;
 
@@ -3514,7 +3513,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
         bounds_scale.m_r = wl_fixed_from_int(wrap_bounds->m_r) / scale;
         bounds_scale.m_b = wl_fixed_from_int(wrap_bounds->m_b) / scale;
 
-        bounds_scale.wrapPoint(xy_new[0], xy_new[1], 0, wrap_axis);
+        bounds_scale.wrapPoint(UNPACK2(xy_new), 0, wrap_axis);
 
         /* Push an event so the new location is registered. */
         if ((xy_new[0] != input->pointer.xy[0]) || (xy_new[1] != input->pointer.xy[1])) {
@@ -3528,8 +3527,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
         input->pointer.xy[0] = xy_new[0];
         input->pointer.xy[1] = xy_new[1];
 
-        zwp_locked_pointer_v1_set_cursor_position_hint(
-            input->locked_pointer, xy_new[0], xy_new[1]);
+        zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer, UNPACK2(xy_new));
         wl_surface_commit(surface);
       }
       else if (mode_current == GHOST_kGrabHide) {
@@ -3539,16 +3537,15 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
               wl_fixed_from_int(init_grab_xy[0]) / scale,
               wl_fixed_from_int(init_grab_xy[1]) / scale,
           };
-          zwp_locked_pointer_v1_set_cursor_position_hint(
-              input->locked_pointer, xy_next[0], xy_next[1]);
+          zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer, UNPACK2(xy_next));
           wl_surface_commit(surface);
         }
       }
 #ifdef USE_GNOME_CONFINE_HACK
       else if (mode_current == GHOST_kGrabNormal) {
         if (was_software_confine) {
-          zwp_locked_pointer_v1_set_cursor_position_hint(
-              input->locked_pointer, input->pointer.xy[0], input->pointer.xy[1]);
+          zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer,
+                                                         UNPACK2(input->pointer.xy));
           wl_surface_commit(surface);
         }
       }

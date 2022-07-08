@@ -8,6 +8,7 @@
 #include "GHOST_SystemWayland.h"
 #include "GHOST_WaylandUtils.h"
 #include "GHOST_WindowManager.h"
+#include "GHOST_utildefines.h"
 
 #include "GHOST_Event.h"
 
@@ -215,7 +216,7 @@ static void frame_handle_configure(struct libdecor_frame *frame,
   win->size[0] = win->scale * size_next[0];
   win->size[1] = win->scale * size_next[1];
 
-  wl_egl_window_resize(win->egl_window, win->size[0], win->size[1], 0, 0);
+  wl_egl_window_resize(win->egl_window, UNPACK2(win->size), 0, 0);
   win->w->notify_size();
 
   if (!libdecor_configuration_get_window_state(configuration, &window_state)) {
@@ -228,7 +229,7 @@ static void frame_handle_configure(struct libdecor_frame *frame,
 
   win->is_active ? win->w->activate() : win->w->deactivate();
 
-  state = libdecor_state_new(size_next[0], size_next[1]);
+  state = libdecor_state_new(UNPACK2(size_next));
   libdecor_frame_commit(frame, state, configuration);
   libdecor_state_free(state);
 
@@ -298,7 +299,7 @@ static void xdg_surface_handle_configure(void *data,
   if (win->size_pending[0] != 0 && win->size_pending[1] != 0) {
     win->size[0] = win->size_pending[0];
     win->size[1] = win->size_pending[1];
-    wl_egl_window_resize(win->egl_window, win->size[0], win->size[1], 0, 0);
+    wl_egl_window_resize(win->egl_window, UNPACK2(win->size), 0, 0);
     win->size_pending[0] = 0;
     win->size_pending[1] = 0;
     win->w->notify_size();
@@ -433,7 +434,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
       m_system->decor_context(), w->wl_surface, &libdecor_frame_iface, w);
   libdecor_frame_map(w->decor_frame);
 
-  libdecor_frame_set_min_content_size(w->decor_frame, size_min[0], size_min[1]);
+  libdecor_frame_set_min_content_size(w->decor_frame, UNPACK2(size_min));
 
   if (parentWindow) {
     libdecor_frame_set_parent(
@@ -443,7 +444,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   w->xdg_surface = xdg_wm_base_get_xdg_surface(m_system->xdg_shell(), w->wl_surface);
   w->xdg_toplevel = xdg_surface_get_toplevel(w->xdg_surface);
 
-  xdg_toplevel_set_min_size(w->xdg_toplevel, size_min[0], size_min[1]);
+  xdg_toplevel_set_min_size(w->xdg_toplevel, UNPACK2(size_min));
 
   if (m_system->xdg_decoration_manager()) {
     w->xdg_toplevel_decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
@@ -569,7 +570,7 @@ void GHOST_WindowWayland::getWindowBounds(GHOST_Rect &bounds) const
 
 void GHOST_WindowWayland::getClientBounds(GHOST_Rect &bounds) const
 {
-  bounds.set(0, 0, w->size[0], w->size[1]);
+  bounds.set(0, 0, UNPACK2(w->size));
 }
 
 GHOST_TSuccess GHOST_WindowWayland::setClientWidth(const uint32_t width)
@@ -760,7 +761,7 @@ void GHOST_WindowWayland::setOpaque() const
 
   /* Make the window opaque. */
   region = wl_compositor_create_region(m_system->compositor());
-  wl_region_add(region, 0, 0, w->size[0], w->size[1]);
+  wl_region_add(region, 0, 0, UNPACK2(w->size));
   wl_surface_set_opaque_region(w->surface, region);
   wl_region_destroy(region);
 }
@@ -890,7 +891,7 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
 {
   uint32_t dpi_next;
   const int scale_next = outputs_max_scale_or_default(this->outputs(), 0, &dpi_next);
-  if (scale_next == 0) {
+  if (UNLIKELY(scale_next == 0)) {
     return false;
   }
 

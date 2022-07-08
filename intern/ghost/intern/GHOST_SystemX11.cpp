@@ -25,6 +25,7 @@
 #ifdef WITH_INPUT_NDOF
 #  include "GHOST_NDOFManagerUnix.h"
 #endif
+#include "GHOST_utildefines.h"
 
 #ifdef WITH_XDND
 #  include "GHOST_DropTargetX11.h"
@@ -663,7 +664,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
       /* open connection to XIM server and create input context (XIC)
        * when receiving the first FocusIn or KeyPress event after startup,
        * or recover XIM and XIC when the XIM server has been restarted */
-      if (xevent.type == FocusIn || xevent.type == KeyPress) {
+      if (ELEM(xevent.type, FocusIn, KeyPress)) {
         if (!m_xim && openX11_IM()) {
           GHOST_PRINT("Connected to XIM server\n");
         }
@@ -724,9 +725,9 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
              * in order to confirm the window is active. */
             XPeekEvent(m_display, &xev_next);
 
-            if (xev_next.type == KeyPress || xev_next.type == KeyRelease) {
-              /* XK_Hyper_L/R currently unused */
-              const static KeySym modifiers[8] = {
+            if (ELEM(xev_next.type, KeyPress, KeyRelease)) {
+              /* XK_Hyper_L/R currently unused. */
+              const static KeySym modifiers[] = {
                   XK_Shift_L,
                   XK_Shift_R,
                   XK_Control_L,
@@ -737,7 +738,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
                   XK_Super_R,
               };
 
-              for (int i = 0; i < (int)(sizeof(modifiers) / sizeof(*modifiers)); i++) {
+              for (int i = 0; i < (int)ARRAY_SIZE(modifiers); i++) {
                 KeyCode kc = XKeysymToKeycode(m_display, modifiers[i]);
                 if (kc != 0 && ((xevent.xkeymap.key_vector[kc >> 3] >> (kc & 7)) & 1) != 0) {
                   pushEvent(new GHOST_EventKey(getMilliSeconds(),
@@ -822,7 +823,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
   /* Detect auto-repeat. */
   bool is_repeat = false;
-  if (xe->type == KeyPress || xe->type == KeyRelease) {
+  if (ELEM(xe->type, KeyPress, KeyRelease)) {
     XKeyEvent *xke = &(xe->xkey);
 
     /* Set to true if this key will repeat. */
@@ -889,9 +890,11 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
     if (xe->type == xi_presence) {
       XDevicePresenceNotifyEvent *notify_event = (XDevicePresenceNotifyEvent *)xe;
-      if ((notify_event->devchange == DeviceEnabled) ||
-          (notify_event->devchange == DeviceDisabled) ||
-          (notify_event->devchange == DeviceAdded) || (notify_event->devchange == DeviceRemoved)) {
+      if (ELEM(notify_event->devchange,
+               DeviceEnabled,
+               DeviceDisabled,
+               DeviceAdded,
+               DeviceRemoved)) {
         refreshXInputDevices();
 
         /* update all window events */
@@ -1164,7 +1167,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           len = Xutf8LookupString(xic, xke, utf8_buf, len, &key_sym, &status);
         }
 
-        if ((status == XLookupChars || status == XLookupBoth)) {
+        if (ELEM(status, XLookupChars, XLookupBoth)) {
           if ((unsigned char)utf8_buf[0] >= 32) { /* not an ascii control character */
             /* do nothing for now, this is valid utf8 */
           }
@@ -1449,8 +1452,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       nxe.xselection.time = xse->time;
 
       /* Check to see if the requester is asking for String */
-      if (xse->target == utf8_string || xse->target == string || xse->target == compound_text ||
-          xse->target == c_string) {
+      if (ELEM(xse->target, utf8_string, string, compound_text, c_string)) {
         if (xse->selection == XInternAtom(m_display, "PRIMARY", False)) {
           XChangeProperty(m_display,
                           xse->requestor,
@@ -1503,7 +1505,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     default: {
 #ifdef WITH_X11_XINPUT
       for (GHOST_TabletX11 &xtablet : m_xtablets) {
-        if (xe->type == xtablet.MotionEvent || xe->type == xtablet.PressEvent) {
+        if (ELEM(xe->type, xtablet.MotionEvent, xtablet.PressEvent)) {
           XDeviceMotionEvent *data = (XDeviceMotionEvent *)xe;
           if (data->deviceid != xtablet.ID) {
             continue;
@@ -2574,7 +2576,7 @@ int GHOST_X11_ApplicationIOErrorHandler(Display * /*display*/)
 
 static bool is_filler_char(char c)
 {
-  return isspace(c) || c == '_' || c == '-' || c == ';' || c == ':';
+  return isspace(c) || ELEM(c, '_', '-', ';', ':');
 }
 
 /* These C functions are copied from Wine 3.12's `wintab.c` */
@@ -2674,7 +2676,7 @@ void GHOST_SystemX11::refreshXInputDevices()
           XFree((void *)device_type);
         }
 
-        if (!(tablet_mode == GHOST_kTabletModeStylus || tablet_mode == GHOST_kTabletModeEraser)) {
+        if (!ELEM(tablet_mode, GHOST_kTabletModeStylus, GHOST_kTabletModeEraser)) {
           continue;
         }
 

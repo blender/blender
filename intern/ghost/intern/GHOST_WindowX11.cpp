@@ -17,6 +17,7 @@
 #include "GHOST_IconX11.h"
 #include "GHOST_SystemX11.h"
 #include "GHOST_WindowX11.h"
+#include "GHOST_utildefines.h"
 
 #ifdef WITH_XDND
 #  include "GHOST_DropTargetX11.h"
@@ -296,7 +297,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
   GHOST_PRINT("Set drop target\n");
 #endif
 
-  if (state == GHOST_kWindowStateMaximized || state == GHOST_kWindowStateFullScreen) {
+  if (ELEM(state, GHOST_kWindowStateMaximized, GHOST_kWindowStateFullScreen)) {
     Atom atoms[2];
     int count = 0;
     if (state == GHOST_kWindowStateMaximized) {
@@ -412,7 +413,7 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
                     32,
                     PropModeReplace,
                     (unsigned char *)BLENDER_ICONS_WM_X11,
-                    sizeof(BLENDER_ICONS_WM_X11) / sizeof(unsigned long));
+                    ARRAY_SIZE(BLENDER_ICONS_WM_X11));
   }
 
   /* set the process ID (_NET_WM_PID) */
@@ -984,7 +985,7 @@ GHOST_TWindowState GHOST_WindowX11::getState() const
    * In the Iconic and Withdrawn state, the window
    * is unmapped, so only need return a Minimized state.
    */
-  if ((state == IconicState) || (state == WithdrawnState)) {
+  if (ELEM(state, IconicState, WithdrawnState)) {
     state_ret = GHOST_kWindowStateMinimized;
   }
   else if (netwmIsFullScreen() == True) {
@@ -1514,7 +1515,7 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
 {
   if (mode != GHOST_kGrabDisable) {
     if (mode != GHOST_kGrabNormal) {
-      m_system->getCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
+      m_system->getCursorPosition(UNPACK2(m_cursorGrabInitPos));
       setCursorGrabAccum(0, 0);
 
       if (mode == GHOST_kGrabHide) {
@@ -1535,7 +1536,7 @@ GHOST_TSuccess GHOST_WindowX11::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
   }
   else {
     if (m_cursorGrab == GHOST_kGrabHide) {
-      m_system->setCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
+      m_system->setCursorPosition(UNPACK2(m_cursorGrabInitPos));
     }
 
     if (m_cursorGrab != GHOST_kGrabNormal) {
