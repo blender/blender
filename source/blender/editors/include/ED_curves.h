@@ -29,6 +29,7 @@ bke::CurvesGeometry primitive_random_sphere(int curves_size, int points_per_curv
 bool selection_operator_poll(bContext *C);
 bool has_anything_selected(const Curves &curves_id);
 VectorSet<Curves *> get_unique_editable_curves(const bContext &C);
+void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob);
 
 }  // namespace blender::ed::curves
 #endif

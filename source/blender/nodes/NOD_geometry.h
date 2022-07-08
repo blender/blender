@@ -47,6 +47,7 @@ void register_node_type_geo_curve_subdivide(void);
 void register_node_type_geo_curve_to_mesh(void);
 void register_node_type_geo_curve_to_points(void);
 void register_node_type_geo_curve_trim(void);
+void register_node_type_geo_deform_curves_on_surface(void);
 void register_node_type_geo_delete_geometry(void);
 void register_node_type_geo_duplicate_elements(void);
 void register_node_type_geo_distribute_points_on_faces(void);

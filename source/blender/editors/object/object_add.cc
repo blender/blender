@@ -24,6 +24,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
@@ -72,6 +73,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_nla.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcloud.h"
@@ -113,6 +115,10 @@
 #include "UI_resources.h"
 
 #include "object_intern.h"
+
+using blender::float3;
+using blender::float4x4;
+using blender::Vector;
 
 /* -------------------------------------------------------------------- */
 /** \name Local Enum Declarations
@@ -2070,28 +2076,41 @@ void OBJECT_OT_curves_random_add(wmOperatorType *ot)
 
 static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
 {
+  Scene *scene = CTX_data_scene(C);
+
   ushort local_view_bits;
-  float loc[3], rot[3];
+  blender::float3 loc, rot;
   if (!ED_object_add_generic_get_opts(
           C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr)) {
     return OPERATOR_CANCELLED;
   }
 
   Object *surface_ob = CTX_data_active_object(C);
+  BLI_assert(surface_ob != nullptr);
 
-  Object *object = ED_object_add_type(C, OB_CURVES, nullptr, loc, rot, false, local_view_bits);
+  Object *curves_ob = ED_object_add_type(C, OB_CURVES, nullptr, loc, rot, false, local_view_bits);
 
-  if (surface_ob != nullptr && surface_ob->type == OB_MESH) {
-    Curves *curves_id = static_cast<Curves *>(object->data);
-    curves_id->surface = surface_ob;
-    id_us_plus(&surface_ob->id);
+  /* Set surface object. */
+  Curves *curves_id = static_cast<Curves *>(curves_ob->data);
+  curves_id->surface = surface_ob;
 
-    Mesh *surface_mesh = static_cast<Mesh *>(surface_ob->data);
-    const char *uv_name = CustomData_get_active_layer_name(&surface_mesh->ldata, CD_MLOOPUV);
-    if (uv_name != nullptr) {
-      curves_id->surface_uv_map = BLI_strdup(uv_name);
-    }
+  /* Parent to surface object. */
+  ED_object_parent_set(
+      op->reports, C, scene, curves_ob, surface_ob, PAR_OBJECT, false, true, nullptr);
+
+  /* Decide which UV map to use for attachment. */
+  Mesh *surface_mesh = static_cast<Mesh *>(surface_ob->data);
+  const char *uv_name = CustomData_get_active_layer_name(&surface_mesh->ldata, CD_MLOOPUV);
+  if (uv_name != nullptr) {
+    curves_id->surface_uv_map = BLI_strdup(uv_name);
   }
+
+  /* Add deformation modifier. */
+  blender::ed::curves::ensure_surface_deformation_node_exists(*C, *curves_ob);
+
+  /* Make sure the surface object has a rest position attribute which is necessary for
+   * deformations. */
+  surface_ob->modifier_flag |= OB_MODIFIER_FLAG_ADD_REST_POSITION;
 
   return OPERATOR_FINISHED;
 }

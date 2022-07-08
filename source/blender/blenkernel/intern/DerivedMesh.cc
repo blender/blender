@@ -66,6 +66,9 @@
 #  include "DNA_userdef_types.h"
 #endif
 
+using blender::float3;
+using blender::IndexRange;
+
 /* very slow! enable for testing only! */
 //#define USE_MODIFIER_VALIDATE
 
@@ -813,6 +816,25 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
 
   /* Clear errors before evaluation. */
   BKE_modifiers_clear_errors(ob);
+
+  if (ob->modifier_flag & OB_MODIFIER_FLAG_ADD_REST_POSITION) {
+    if (mesh_final == nullptr) {
+      mesh_final = BKE_mesh_copy_for_eval(mesh_input, true);
+      ASSERT_IS_VALID_MESH(mesh_final);
+    }
+    float3 *rest_positions = static_cast<float3 *>(CustomData_add_layer_named(&mesh_final->vdata,
+                                                                              CD_PROP_FLOAT3,
+                                                                              CD_DEFAULT,
+                                                                              nullptr,
+                                                                              mesh_final->totvert,
+                                                                              "rest_position"));
+    blender::threading::parallel_for(
+        IndexRange(mesh_final->totvert), 1024, [&](const IndexRange range) {
+          for (const int i : range) {
+            rest_positions[i] = mesh_final->mvert[i].co;
+          }
+        });
+  }
 
   /* Apply all leading deform modifiers. */
   if (use_deform) {

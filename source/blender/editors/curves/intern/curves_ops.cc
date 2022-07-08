@@ -681,7 +681,8 @@ static int snap_curves_to_surface_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_INFO, "Could not snap some curves to the surface");
   }
 
-  WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
+  /* Refresh the entire window to also clear eventual modifier and nodes editor warnings.*/
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -944,6 +945,88 @@ static void SCULPT_CURVES_OT_select_all(wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
+namespace surface_set {
+
+static bool surface_set_poll(bContext *C)
+{
+  const Object *object = CTX_data_active_object(C);
+  if (object == nullptr) {
+    return false;
+  }
+  if (object->type != OB_MESH) {
+    return false;
+  }
+  return true;
+}
+
+static int surface_set_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+
+  Object &new_surface_ob = *CTX_data_active_object(C);
+
+  Mesh &new_surface_mesh = *static_cast<Mesh *>(new_surface_ob.data);
+  const char *new_uv_map_name = CustomData_get_active_layer_name(&new_surface_mesh.ldata,
+                                                                 CD_MLOOPUV);
+
+  CTX_DATA_BEGIN (C, Object *, selected_ob, selected_objects) {
+    if (selected_ob->type != OB_CURVES) {
+      continue;
+    }
+    Object &curves_ob = *selected_ob;
+    Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
+
+    MEM_SAFE_FREE(curves_id.surface_uv_map);
+    if (new_uv_map_name != nullptr) {
+      curves_id.surface_uv_map = BLI_strdup(new_uv_map_name);
+    }
+
+    bool missing_uvs;
+    bool invalid_uvs;
+    snap_curves_to_surface::snap_curves_to_surface_exec_object(
+        curves_ob,
+        new_surface_ob,
+        snap_curves_to_surface::AttachMode::Nearest,
+        &invalid_uvs,
+        &missing_uvs);
+
+    /* Add deformation modifier if necessary. */
+    blender::ed::curves::ensure_surface_deformation_node_exists(*C, curves_ob);
+
+    curves_id.surface = &new_surface_ob;
+    ED_object_parent_set(
+        op->reports, C, scene, &curves_ob, &new_surface_ob, PAR_OBJECT, false, true, nullptr);
+
+    DEG_id_tag_update(&curves_ob.id, ID_RECALC_TRANSFORM);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &curves_id);
+
+    /* Required for deformation. */
+    new_surface_ob.modifier_flag |= OB_MODIFIER_FLAG_ADD_REST_POSITION;
+    DEG_id_tag_update(&new_surface_ob.id, ID_RECALC_GEOMETRY);
+  }
+  CTX_DATA_END;
+
+  DEG_relations_tag_update(bmain);
+
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace surface_set
+
+static void CURVES_OT_surface_set(wmOperatorType *ot)
+{
+  ot->name = "Set Curves Surface Object";
+  ot->idname = __func__;
+  ot->description =
+      "Use the active object as surface for selected curves objects and set it as the parent";
+
+  ot->exec = surface_set::surface_set_exec;
+  ot->poll = surface_set::surface_set_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 }  // namespace blender::ed::curves
 
 void ED_operatortypes_curves()
@@ -955,4 +1038,5 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_set_selection_domain);
   WM_operatortype_append(SCULPT_CURVES_OT_select_all);
   WM_operatortype_append(CURVES_OT_disable_selection);
+  WM_operatortype_append(CURVES_OT_surface_set);
 }

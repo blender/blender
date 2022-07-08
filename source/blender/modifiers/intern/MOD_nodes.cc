@@ -21,6 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_collection_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_defaults.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -190,6 +191,10 @@ static bool node_needs_own_transform_relation(const bNode &node)
     return storage.transform_space == GEO_NODE_TRANSFORM_SPACE_RELATIVE;
   }
 
+  if (node.type == GEO_NODE_DEFORM_CURVES_ON_SURFACE) {
+    return true;
+  }
+
   return false;
 }
 
@@ -269,6 +274,14 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   Set<ID *> used_ids;
   find_used_ids_from_settings(nmd->settings, used_ids);
   process_nodes_for_depsgraph(*nmd->node_group, used_ids, needs_own_transform_relation);
+
+  if (ctx->object->type == OB_CURVES) {
+    Curves *curves_id = static_cast<Curves *>(ctx->object->data);
+    if (curves_id->surface != nullptr) {
+      used_ids.add(&curves_id->surface->id);
+    }
+  }
+
   for (ID *id : used_ids) {
     switch ((ID_Type)GS(id->name)) {
       case ID_OB: {

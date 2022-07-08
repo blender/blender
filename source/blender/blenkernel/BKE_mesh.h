@@ -692,7 +692,8 @@ void BKE_mesh_calc_normals_split(struct Mesh *mesh);
  * to split geometry along sharp edges.
  */
 void BKE_mesh_calc_normals_split_ex(struct Mesh *mesh,
-                                    struct MLoopNorSpaceArray *r_lnors_spacearr);
+                                    struct MLoopNorSpaceArray *r_lnors_spacearr,
+                                    float (*r_corner_normals)[3]);
 
 /**
  * Higher level functions hiding most of the code needed around call to
