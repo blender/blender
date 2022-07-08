@@ -659,7 +659,7 @@ GPUShader *OVERLAY_shader_outline_prepass_curves()
   if (!sh_data->outline_prepass_curves) {
     sh_data->outline_prepass_curves = GPU_shader_create_from_info_name(
         draw_ctx->sh_cfg ? "overlay_outline_prepass_curves_clipped" :
-        "overlay_outline_prepass_curves");
+                           "overlay_outline_prepass_curves");
   }
   return sh_data->outline_prepass_curves;
 }

@@ -3550,8 +3550,6 @@ void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *ldata)
   }
 }
 
-
-
 void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 {
   int chunksize;
