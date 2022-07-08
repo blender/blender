@@ -2094,7 +2094,7 @@ class StudioLightPanelMixin:
             for studio_light in lights:
                 self.draw_studio_light(flow, studio_light)
         else:
-            layout.label(text="No custom %s configured" % self.bl_label)
+            layout.label(text=iface_("No custom %s configured") % self.bl_label)
 
     def draw_studio_light(self, layout, studio_light):
         box = layout.box()
