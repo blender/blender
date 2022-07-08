@@ -2030,14 +2030,6 @@ void OBJECT_OT_speaker_add(wmOperatorType *ot)
 /** \name Add Curves Operator
  * \{ */
 
-static bool object_curves_add_poll(bContext *C)
-{
-  if (!U.experimental.use_new_curves_type) {
-    return false;
-  }
-  return ED_operator_objectmode(C);
-}
-
 static int object_curves_random_add_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
@@ -2066,7 +2058,7 @@ void OBJECT_OT_curves_random_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = object_curves_random_add_exec;
-  ot->poll = object_curves_add_poll;
+  ot->poll = ED_operator_objectmode;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2117,9 +2109,6 @@ static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
 
 static bool object_curves_empty_hair_add_poll(bContext *C)
 {
-  if (!U.experimental.use_new_curves_type) {
-    return false;
-  }
   if (!ED_operator_objectmode(C)) {
     return false;
   }
@@ -2780,28 +2769,6 @@ static const EnumPropertyItem convert_target_items[] = {
     {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Curves", "Curves from evaluated curve data"},
     {0, nullptr, 0, nullptr, nullptr},
 };
-
-static const EnumPropertyItem *convert_target_items_fn(bContext *UNUSED(C),
-                                                       PointerRNA *UNUSED(ptr),
-                                                       PropertyRNA *UNUSED(prop),
-                                                       bool *r_free)
-{
-  EnumPropertyItem *items = nullptr;
-  int items_num = 0;
-  for (const EnumPropertyItem *item = convert_target_items; item->identifier != nullptr; item++) {
-    if (item->value == OB_CURVES) {
-      if (U.experimental.use_new_curves_type) {
-        RNA_enum_item_add(&items, &items_num, item);
-      }
-    }
-    else {
-      RNA_enum_item_add(&items, &items_num, item);
-    }
-  }
-  RNA_enum_item_end(&items, &items_num);
-  *r_free = true;
-  return items;
-}
 
 static void object_data_convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
@@ -3562,7 +3529,6 @@ void OBJECT_OT_convert(wmOperatorType *ot)
   /* properties */
   ot->prop = RNA_def_enum(
       ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to");
-  RNA_def_enum_funcs(ot->prop, convert_target_items_fn);
   RNA_def_boolean(ot->srna,
                   "keep_original",
                   false,

@@ -72,7 +72,7 @@ class PARTICLE_MT_context_menu(Menu):
         props.use_active = False
         props.remove_target_particles = True
 
-        if experimental.use_new_curves_type and psys.settings.type == 'HAIR':
+        if psys.settings.type == 'HAIR':
             layout.operator(
                 "curves.convert_from_particle_system",
                 text="Convert to Curves")
