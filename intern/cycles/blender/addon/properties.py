@@ -1560,7 +1560,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 if sys.platform.startswith("win"):
                     col.label(text="and Windows driver version 101.1660 or newer", icon='BLANK1')
                 elif sys.platform.startswith("linux"):
-                    col.label(text="and Linux driver version xx.xx.20066 or newer", icon='BLANK1')
+                    col.label(text="and Linux driver version xx.xx.28000 or newer", icon='BLANK1')
             elif device_type == 'METAL':
                 col.label(text="Requires Apple Silicon with macOS 12.2 or newer", icon='BLANK1')
                 col.label(text="or AMD with macOS 12.3 or newer", icon='BLANK1')
