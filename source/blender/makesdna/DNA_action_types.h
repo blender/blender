@@ -251,12 +251,18 @@ typedef struct bPoseChannel {
 
   /** Motion path cache for this bone. */
   bMotionPath *mpath;
-  /** Draws custom object instead of default bone shape. */
+  /**
+   * Draws custom object instead of default bone shape.
+   *
+   * \note For the purpose of user interaction (selection, display etc),
+   * it's important this value is treated as NULL when #ARM_NO_CUSTOM is set.
+   */
   struct Object *custom;
   /**
-   * Odd feature, display with another bones transform.
-   * needed in rare cases for advanced rigs,
-   * since the alternative is highly complicated - campbell
+   * This is a specific feature to display with another bones transform.
+   * Needed in rare cases for advanced rigs, since alternative solutions are highly complicated.
+   *
+   * \note This depends #bPoseChannel.custom being set and the #ARM_NO_CUSTOM flag being unset.
    */
   struct bPoseChannel *custom_tx;
   float custom_scale; /* Deprecated */
