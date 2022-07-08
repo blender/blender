@@ -528,9 +528,6 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
 
   Mesh &surface_mesh = *static_cast<Mesh *>(surface_ob.data);
 
-  MeshComponent surface_mesh_component;
-  surface_mesh_component.replace(&surface_mesh, GeometryOwnershipType::ReadOnly);
-
   VArraySpan<float2> surface_uv_map;
   if (curves_id.surface_uv_map != nullptr) {
     const bke::AttributeAccessor surface_attributes = bke::mesh_attributes(surface_mesh);
