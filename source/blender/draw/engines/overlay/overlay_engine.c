@@ -310,6 +310,8 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
                                      (pd->ctx_mode == CTX_MODE_PARTICLE);
   const bool in_paint_mode = (ob == draw_ctx->obact) &&
                              (draw_ctx->object_mode & OB_MODE_ALL_PAINT);
+  const bool in_sculpt_curve_mode = (ob == draw_ctx->obact) &&
+                                    (draw_ctx->object_mode & OB_MODE_SCULPT_CURVES);
   const bool in_sculpt_mode = (ob == draw_ctx->obact) && (ob->sculpt != NULL) &&
                               (ob->sculpt->mode_type == OB_MODE_SCULPT);
   const bool in_curves_sculpt_mode = (ob == draw_ctx->obact) &&
@@ -333,8 +335,8 @@ static void OVERLAY_cache_populate(void *vedata, Object *ob)
   const bool draw_bones = (pd->overlay.flag & V3D_OVERLAY_HIDE_BONES) == 0;
   const bool draw_wires = draw_surface && has_surface &&
                           (pd->wireframe_mode || !pd->hide_overlays);
-  const bool draw_outlines = !in_edit_mode && !in_paint_mode && renderable && has_surface &&
-                             !instance_parent_in_edit_mode &&
+  const bool draw_outlines = !in_edit_mode && !in_paint_mode && !in_sculpt_curve_mode &&
+                             renderable && has_surface && !instance_parent_in_edit_mode &&
                              (pd->v3d_flag & V3D_SELECT_OUTLINE) &&
                              (ob->base_flag & BASE_SELECTED);
   const bool draw_bone_selection = (ob->type == OB_MESH) && pd->armature.do_pose_fade_geom &&

@@ -2044,7 +2044,6 @@ static int object_curves_random_add_exec(bContext *C, wmOperator *op)
   }
 
   Object *object = ED_object_add_type(C, OB_CURVES, nullptr, loc, rot, false, local_view_bits);
-  object->dtx |= OB_DRAWBOUNDOX; /* TODO: remove once there is actual drawing. */
 
   Curves *curves_id = static_cast<Curves *>(object->data);
   bke::CurvesGeometry::wrap(curves_id->geometry) = ed::curves::primitive_random_sphere(500, 8);
@@ -2081,7 +2080,6 @@ static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
   Object *surface_ob = CTX_data_active_object(C);
 
   Object *object = ED_object_add_type(C, OB_CURVES, nullptr, loc, rot, false, local_view_bits);
-  object->dtx |= OB_DRAWBOUNDOX; /* TODO: remove once there is actual drawing. */
 
   if (surface_ob != nullptr && surface_ob->type == OB_MESH) {
     Curves *curves_id = static_cast<Curves *>(object->data);

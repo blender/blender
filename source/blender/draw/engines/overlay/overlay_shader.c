@@ -76,6 +76,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *motion_path_line;
   GPUShader *motion_path_vert;
   GPUShader *outline_prepass;
+  GPUShader *outline_prepass_curves;
   GPUShader *outline_prepass_gpencil;
   GPUShader *outline_prepass_pointcloud;
   GPUShader *outline_prepass_wire;
@@ -649,6 +650,18 @@ GPUShader *OVERLAY_shader_outline_prepass(bool use_wire)
                            "overlay_outline_prepass_mesh");
   }
   return use_wire ? sh_data->outline_prepass_wire : sh_data->outline_prepass;
+}
+
+GPUShader *OVERLAY_shader_outline_prepass_curves()
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->outline_prepass_curves) {
+    sh_data->outline_prepass_curves = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_outline_prepass_curves_clipped" :
+        "overlay_outline_prepass_curves");
+  }
+  return sh_data->outline_prepass_curves;
 }
 
 GPUShader *OVERLAY_shader_outline_prepass_gpencil(void)

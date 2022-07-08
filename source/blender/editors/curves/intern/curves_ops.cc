@@ -465,7 +465,6 @@ static int curves_convert_from_particle_system_exec(bContext *C, wmOperator *UNU
   }
 
   Object *ob_new = BKE_object_add(&bmain, &view_layer, OB_CURVES, psys_eval->name);
-  ob_new->dtx |= OB_DRAWBOUNDOX; /* TODO: Remove once there is actual drawing. */
   Curves *curves_id = static_cast<Curves *>(ob_new->data);
   BKE_object_apply_mat4(ob_new, ob_from_orig->obmat, true, false);
   bke::CurvesGeometry::wrap(curves_id->geometry) = particles_to_curves(*ob_from_eval, *psys_eval);

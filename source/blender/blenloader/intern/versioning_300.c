@@ -3276,5 +3276,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
       brush->curves_sculpt_settings->density_add_attempts = 100;
     }
+
+    /* Disable 'show_bounds' option of curve objects. Option was set as there was no object mode
+     * outline implementation. See T95933. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type == OB_CURVES) {
+        ob->dtx &= ~OB_DRAWBOUNDOX;
+      }
+    }
   }
 }
