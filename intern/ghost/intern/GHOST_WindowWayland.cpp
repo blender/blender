@@ -31,6 +31,9 @@
 #  include <libdecor.h>
 #endif
 
+/* Logging, use `ghost.wl.*` prefix. */
+#include "CLG_log.h"
+
 static constexpr size_t base_dpi = 96;
 
 static GHOST_WindowManager *window_manager = nullptr;
@@ -145,12 +148,18 @@ static int outputs_max_scale_or_default(const std::vector<output_t *> &outputs,
 
 #ifndef WITH_GHOST_WAYLAND_LIBDECOR
 
+static CLG_LogRef LOG_WL_XDG_TOPLEVEL = {"ghost.wl.handle.xdg_toplevel"};
+#  define LOG (&LOG_WL_XDG_TOPLEVEL)
+
 static void xdg_toplevel_handle_configure(void *data,
                                           xdg_toplevel * /*xdg_toplevel*/,
                                           const int32_t width,
                                           const int32_t height,
                                           wl_array *states)
 {
+  /* TODO: log `states`, not urgent. */
+  CLOG_INFO(LOG, 2, "configure (size=[%d, %d])", width, height);
+
   window_t *win = static_cast<window_t *>(data);
   win->size_pending[0] = win->scale * width;
   win->size_pending[1] = win->scale * height;
@@ -179,6 +188,7 @@ static void xdg_toplevel_handle_configure(void *data,
 
 static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
 {
+  CLOG_INFO(LOG, 2, "close");
   static_cast<window_t *>(data)->w->close();
 }
 
@@ -186,6 +196,8 @@ static const xdg_toplevel_listener toplevel_listener = {
     xdg_toplevel_handle_configure,
     xdg_toplevel_handle_close,
 };
+
+#  undef LOG
 
 #endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
 
@@ -197,10 +209,15 @@ static const xdg_toplevel_listener toplevel_listener = {
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
 
+static CLG_LogRef LOG_WL_LIBDECOR_FRAME = {"ghost.wl.handle.libdecor_frame"};
+#  define LOG (&LOG_WL_LIBDECOR_FRAME)
+
 static void frame_handle_configure(struct libdecor_frame *frame,
                                    struct libdecor_configuration *configuration,
                                    void *data)
 {
+  CLOG_INFO(LOG, 2, "configure");
+
   window_t *win = static_cast<window_t *>(data);
 
   int size_next[2];
@@ -238,11 +255,15 @@ static void frame_handle_configure(struct libdecor_frame *frame,
 
 static void frame_handle_close(struct libdecor_frame * /*frame*/, void *data)
 {
+  CLOG_INFO(LOG, 2, "close");
+
   static_cast<window_t *>(data)->w->close();
 }
 
 static void frame_handle_commit(struct libdecor_frame * /*frame*/, void *data)
 {
+  CLOG_INFO(LOG, 2, "commit");
+
   /* We have to swap twice to keep any pop-up menus alive. */
   static_cast<window_t *>(data)->w->swapBuffers();
   static_cast<window_t *>(data)->w->swapBuffers();
@@ -254,6 +275,8 @@ static struct libdecor_frame_interface libdecor_frame_iface = {
     frame_handle_commit,
 };
 
+#  undef LOG
+
 #endif /* WITH_GHOST_WAYLAND_LIBDECOR. */
 
 /** \} */
@@ -264,17 +287,23 @@ static struct libdecor_frame_interface libdecor_frame_iface = {
 
 #ifndef WITH_GHOST_WAYLAND_LIBDECOR
 
+static CLG_LogRef LOG_WL_XDG_TOPLEVEL_DECORATION = {"ghost.wl.handle.xdg_toplevel_decoration"};
+#  define LOG (&LOG_WL_XDG_TOPLEVEL_DECORATION)
+
 static void xdg_toplevel_decoration_handle_configure(
     void *data,
     struct zxdg_toplevel_decoration_v1 * /*zxdg_toplevel_decoration_v1*/,
     const uint32_t mode)
 {
-  static_cast<window_t *>(data)->decoration_mode = zxdg_toplevel_decoration_v1_mode(mode);
+  CLOG_INFO(LOG, 2, "configure (mode=%u)", mode);
+  static_cast<window_t *>(data)->decoration_mode = (zxdg_toplevel_decoration_v1_mode)mode;
 }
 
 static const zxdg_toplevel_decoration_v1_listener toplevel_decoration_v1_listener = {
     xdg_toplevel_decoration_handle_configure,
 };
+
+#  undef LOG
 
 #endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
 
@@ -286,6 +315,9 @@ static const zxdg_toplevel_decoration_v1_listener toplevel_decoration_v1_listene
 
 #ifndef WITH_GHOST_WAYLAND_LIBDECOR
 
+static CLG_LogRef LOG_WL_XDG_SURFACE = {"ghost.wl.handle.xdg_surface"};
+#  define LOG (&LOG_WL_XDG_SURFACE)
+
 static void xdg_surface_handle_configure(void *data,
                                          xdg_surface *xdg_surface,
                                          const uint32_t serial)
@@ -293,10 +325,13 @@ static void xdg_surface_handle_configure(void *data,
   window_t *win = static_cast<window_t *>(data);
 
   if (win->xdg_surface != xdg_surface) {
+    CLOG_INFO(LOG, 2, "configure (skipped)");
     return;
   }
+  const bool do_resize = win->size_pending[0] != 0 && win->size_pending[1] != 0;
+  CLOG_INFO(LOG, 2, "configure (do_resize=%d)", do_resize);
 
-  if (win->size_pending[0] != 0 && win->size_pending[1] != 0) {
+  if (do_resize) {
     win->size[0] = win->size_pending[0];
     win->size[1] = win->size_pending[1];
     wl_egl_window_resize(win->egl_window, UNPACK2(win->size), 0, 0);
@@ -319,6 +354,8 @@ static const xdg_surface_listener xdg_surface_listener = {
     xdg_surface_handle_configure,
 };
 
+#  undef LOG
+
 #endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
 
 /** \} */
@@ -327,13 +364,19 @@ static const xdg_surface_listener xdg_surface_listener = {
 /** \name Listener (Surface), #wl_surface_listener
  * \{ */
 
+static CLG_LogRef LOG_WL_SURFACE = {"ghost.wl.handle.surface"};
+#define LOG (&LOG_WL_SURFACE)
+
 static void surface_handle_enter(void *data,
                                  struct wl_surface * /*wl_surface*/,
                                  struct wl_output *output)
 {
   if (!ghost_wl_output_own(output)) {
+    CLOG_INFO(LOG, 2, "enter (skipped)");
     return;
   }
+  CLOG_INFO(LOG, 2, "enter");
+
   output_t *reg_output = ghost_wl_output_user_data(output);
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(data);
   if (win->outputs_enter(reg_output)) {
@@ -346,8 +389,11 @@ static void surface_handle_leave(void *data,
                                  struct wl_output *output)
 {
   if (!ghost_wl_output_own(output)) {
+    CLOG_INFO(LOG, 2, "leave (skipped)");
     return;
   }
+  CLOG_INFO(LOG, 2, "leave");
+
   output_t *reg_output = ghost_wl_output_user_data(output);
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(data);
   if (win->outputs_leave(reg_output)) {
@@ -359,6 +405,8 @@ static struct wl_surface_listener wl_surface_listener = {
     surface_handle_enter,
     surface_handle_leave,
 };
+
+#undef LOG
 
 /** \} */
 

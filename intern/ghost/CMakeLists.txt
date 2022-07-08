@@ -3,6 +3,7 @@
 
 set(INC
   .
+  ../clog
   ../glew-mx
   ../../source/blender/imbuf
   ../../source/blender/makesdna
