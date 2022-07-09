@@ -3347,6 +3347,11 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
 
   cursor_t *cursor = &d->inputs[0]->cursor;
 
+  if (cursor->file_buffer->data) {
+    munmap(cursor->file_buffer->data, cursor->file_buffer->size);
+    cursor->file_buffer->data = nullptr;
+  }
+
   static const int32_t stride = sizex * 4; /* ARGB */
   cursor->file_buffer->size = (size_t)stride * sizey;
 
@@ -3376,6 +3381,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   }
 
   if (UNLIKELY(posix_fallocate(fd, 0, int32_t(cursor->file_buffer->size)) != 0)) {
+    close(fd);
     return GHOST_kFailure;
   }
 
