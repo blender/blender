@@ -747,7 +747,30 @@ static const std::vector<std::string> mime_send = {
     "text/plain",
 };
 
-#undef LOG
+static int memfd_create_sealed(const char *name)
+{
+#ifdef HAVE_MEMFD_CREATE
+  const int fd = memfd_create(name, MFD_CLOEXEC | MFD_ALLOW_SEALING);
+  if (fd >= 0) {
+    fcntl(fd, F_ADD_SEALS, F_SEAL_SHRINK | F_SEAL_SEAL);
+  }
+  return fd;
+#else  /* HAVE_MEMFD_CREATE */
+  char *path = getenv("XDG_RUNTIME_DIR");
+  if (!path) {
+    errno = ENOENT;
+    return -1;
+  }
+  char *tmpname;
+  asprintf(&tmpname, "%s/%s-XXXXXX", path, name);
+  const int fd = mkostemp(tmpname, O_CLOEXEC);
+  if (fd >= 0) {
+    unlink(tmpname);
+  }
+  free(tmpname);
+  return fd;
+#endif /* !HAVE_MEMFD_CREATE */
+}
 
 /** \} */
 
@@ -3355,27 +3378,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   static const int32_t stride = sizex * 4; /* ARGB */
   cursor->file_buffer->size = (size_t)stride * sizey;
 
-#ifdef HAVE_MEMFD_CREATE
-  const int fd = memfd_create("blender-cursor-custom", MFD_CLOEXEC | MFD_ALLOW_SEALING);
-  if (fd >= 0) {
-    fcntl(fd, F_ADD_SEALS, F_SEAL_SHRINK | F_SEAL_SEAL);
-  }
-#else
-  char *path = getenv("XDG_RUNTIME_DIR");
-  if (!path) {
-    errno = ENOENT;
-    return GHOST_kFailure;
-  }
-
-  char *tmpname;
-  asprintf(&tmpname, "%s/%s", path, "blender-XXXXXX");
-  const int fd = mkostemp(tmpname, O_CLOEXEC);
-  if (fd >= 0) {
-    unlink(tmpname);
-  }
-  free(tmpname);
-#endif
-
+  const int fd = memfd_create_sealed("blender-cursor-custom");
   if (UNLIKELY(fd < 0)) {
     return GHOST_kFailure;
   }
