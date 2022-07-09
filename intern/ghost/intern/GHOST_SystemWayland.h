@@ -41,6 +41,12 @@ bool ghost_wl_surface_own(const struct wl_surface *surface);
 void ghost_wl_surface_tag(struct wl_surface *surface);
 GHOST_WindowWayland *ghost_wl_surface_user_data(struct wl_surface *surface);
 
+bool ghost_wl_surface_own_cursor_pointer(const struct wl_surface *surface);
+void ghost_wl_surface_tag_cursor_pointer(struct wl_surface *surface);
+
+bool ghost_wl_surface_own_cursor_tablet(const struct wl_surface *surface);
+void ghost_wl_surface_tag_cursor_tablet(struct wl_surface *surface);
+
 #ifdef WITH_GHOST_WAYLAND_DYNLOAD
 /**
  * Return true when all required WAYLAND libraries are present,
