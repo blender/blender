@@ -769,6 +769,59 @@ static int memfd_create_sealed(const char *name)
 #endif /* !HAVE_MEMFD_CREATE */
 }
 
+static size_t ghost_wl_shm_format_as_size(enum wl_shm_format format)
+{
+  switch (format) {
+    case WL_SHM_FORMAT_ARGB8888: {
+      return 4;
+    }
+    default: {
+      /* Support other formats as needed. */
+      GHOST_ASSERT(0, "Unexpected format passed in!");
+      return 4;
+    }
+  }
+}
+
+/**
+ * Return a #wl_buffer, ready to have it's data filled in or NULL in case of failure.
+ * The caller is responsible for calling `unmap(buffer_data, buffer_size)`.
+ *
+ * \param r_buffer_data: The buffer to be filled.
+ * \param r_buffer_data_size: The size of `r_buffer_data` in bytes.
+ */
+static wl_buffer *ghost_wl_buffer_create_for_image(struct wl_shm *shm,
+                                                   const int32_t size_xy[2],
+                                                   enum wl_shm_format format,
+                                                   void **r_buffer_data,
+                                                   size_t *r_buffer_data_size)
+{
+  const int fd = memfd_create_sealed("ghost-wl-buffer");
+  wl_buffer *buffer = nullptr;
+  if (fd >= 0) {
+    const int32_t buffer_stride = size_xy[0] * ghost_wl_shm_format_as_size(format);
+    const int32_t buffer_size = buffer_stride * size_xy[1];
+    if (posix_fallocate(fd, 0, buffer_size) == 0) {
+      void *buffer_data = mmap(nullptr, buffer_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      if (buffer_data != MAP_FAILED) {
+        struct wl_shm_pool *pool = wl_shm_create_pool(shm, fd, buffer_size);
+        buffer = wl_shm_pool_create_buffer(pool, 0, UNPACK2(size_xy), buffer_stride, format);
+        wl_shm_pool_destroy(pool);
+        if (buffer) {
+          *r_buffer_data = buffer_data;
+          *r_buffer_data_size = (size_t)buffer_size;
+        }
+        else {
+          /* Highly unlikely. */
+          munmap(buffer_data, buffer_size);
+        }
+      }
+    }
+    close(fd);
+  }
+  return buffer;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -3372,35 +3425,12 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
     cursor->custom_data_size = 0; /* Not needed, but the value is no longer meaningful. */
   }
 
-  static const int32_t stride = sizex * 4; /* ARGB */
-  cursor->custom_data_size = (size_t)stride * sizey;
-
-  const int fd = memfd_create_sealed("blender-cursor-custom");
-  if (UNLIKELY(fd < 0)) {
+  const int32_t size_xy[2] = {sizex, sizey};
+  wl_buffer *buffer = ghost_wl_buffer_create_for_image(
+      d->shm, size_xy, WL_SHM_FORMAT_ARGB8888, &cursor->custom_data, &cursor->custom_data_size);
+  if (buffer == nullptr) {
     return GHOST_kFailure;
   }
-
-  if (UNLIKELY(posix_fallocate(fd, 0, int32_t(cursor->custom_data_size)) != 0)) {
-    close(fd);
-    return GHOST_kFailure;
-  }
-
-  cursor->custom_data = mmap(
-      nullptr, cursor->custom_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-
-  if (UNLIKELY(cursor->custom_data == MAP_FAILED)) {
-    cursor->custom_data = nullptr;
-    close(fd);
-    return GHOST_kFailure;
-  }
-
-  struct wl_shm_pool *pool = wl_shm_create_pool(d->shm, fd, int32_t(cursor->custom_data_size));
-
-  wl_buffer *buffer = wl_shm_pool_create_buffer(
-      pool, 0, sizex, sizey, stride, WL_SHM_FORMAT_ARGB8888);
-
-  wl_shm_pool_destroy(pool);
-  close(fd);
 
   wl_buffer_add_listener(buffer, &cursor_buffer_listener, cursor);
 
