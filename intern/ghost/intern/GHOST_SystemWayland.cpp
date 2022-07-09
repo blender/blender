@@ -128,11 +128,6 @@ static bool use_gnome_confine_hack = false;
  */
 #define EVDEV_OFFSET 8
 
-struct buffer_t {
-  void *data = nullptr;
-  size_t size = 0;
-};
-
 struct cursor_t {
   bool visible = false;
   /**
@@ -147,7 +142,8 @@ struct cursor_t {
   struct wl_buffer *wl_buffer = nullptr;
   struct wl_cursor_image wl_image = {0};
   struct wl_cursor_theme *wl_theme = nullptr;
-  struct buffer_t *file_buffer = nullptr;
+  void *custom_data = nullptr;
+  size_t custom_data_size = 0;
   int size = 0;
   std::string theme_name;
   /** Outputs on which the cursor is visible. */
@@ -449,11 +445,12 @@ static void display_destroy(display_t *d)
     if (input->data_device) {
       wl_data_device_release(input->data_device);
     }
+
+    if (input->cursor.custom_data) {
+      munmap(input->cursor.custom_data, input->cursor.custom_data_size);
+    }
+
     if (input->wl_pointer) {
-      if (input->cursor.file_buffer) {
-        munmap(input->cursor.file_buffer->data, input->cursor.file_buffer->size);
-        delete input->cursor.file_buffer;
-      }
       if (input->cursor.wl_surface) {
         wl_surface_destroy(input->cursor.wl_surface);
       }
@@ -2305,7 +2302,6 @@ static void seat_handle_capabilities(void *data,
     input->cursor.wl_surface = wl_compositor_create_surface(input->system->compositor());
     input->cursor.visible = true;
     input->cursor.wl_buffer = nullptr;
-    input->cursor.file_buffer = new buffer_t;
     if (!get_cursor_settings(input->cursor.theme_name, input->cursor.size)) {
       input->cursor.theme_name = std::string();
       input->cursor.size = default_cursor_size;
@@ -3370,34 +3366,35 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
 
   cursor_t *cursor = &d->inputs[0]->cursor;
 
-  if (cursor->file_buffer->data) {
-    munmap(cursor->file_buffer->data, cursor->file_buffer->size);
-    cursor->file_buffer->data = nullptr;
+  if (cursor->custom_data) {
+    munmap(cursor->custom_data, cursor->custom_data_size);
+    cursor->custom_data = nullptr;
+    cursor->custom_data_size = 0; /* Not needed, but the value is no longer meaningful. */
   }
 
   static const int32_t stride = sizex * 4; /* ARGB */
-  cursor->file_buffer->size = (size_t)stride * sizey;
+  cursor->custom_data_size = (size_t)stride * sizey;
 
   const int fd = memfd_create_sealed("blender-cursor-custom");
   if (UNLIKELY(fd < 0)) {
     return GHOST_kFailure;
   }
 
-  if (UNLIKELY(posix_fallocate(fd, 0, int32_t(cursor->file_buffer->size)) != 0)) {
+  if (UNLIKELY(posix_fallocate(fd, 0, int32_t(cursor->custom_data_size)) != 0)) {
     close(fd);
     return GHOST_kFailure;
   }
 
-  cursor->file_buffer->data = mmap(
-      nullptr, cursor->file_buffer->size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  cursor->custom_data = mmap(
+      nullptr, cursor->custom_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
-  if (UNLIKELY(cursor->file_buffer->data == MAP_FAILED)) {
-    cursor->file_buffer->data = nullptr;
+  if (UNLIKELY(cursor->custom_data == MAP_FAILED)) {
+    cursor->custom_data = nullptr;
     close(fd);
     return GHOST_kFailure;
   }
 
-  struct wl_shm_pool *pool = wl_shm_create_pool(d->shm, fd, int32_t(cursor->file_buffer->size));
+  struct wl_shm_pool *pool = wl_shm_create_pool(d->shm, fd, int32_t(cursor->custom_data_size));
 
   wl_buffer *buffer = wl_shm_pool_create_buffer(
       pool, 0, sizex, sizey, stride, WL_SHM_FORMAT_ARGB8888);
@@ -3415,7 +3412,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
   uint32_t *pixel;
 
   for (int y = 0; y < sizey; ++y) {
-    pixel = &static_cast<uint32_t *>(cursor->file_buffer->data)[y * sizex];
+    pixel = &static_cast<uint32_t *>(cursor->custom_data)[y * sizex];
     for (int x = 0; x < sizex; ++x) {
       if ((x % 8) == 0) {
         datab = *bitmap++;
@@ -3454,7 +3451,7 @@ GHOST_TSuccess GHOST_SystemWayland::setCustomCursorShape(uint8_t *bitmap,
 GHOST_TSuccess GHOST_SystemWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitmap)
 {
   cursor_t *cursor = &d->inputs[0]->cursor;
-  if (cursor->file_buffer->data == nullptr) {
+  if (cursor->custom_data == nullptr) {
     return GHOST_kFailure;
   }
   if (!cursor->is_custom) {
@@ -3467,7 +3464,7 @@ GHOST_TSuccess GHOST_SystemWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitma
   bitmap->hot_spot[0] = cursor->wl_image.hotspot_x;
   bitmap->hot_spot[1] = cursor->wl_image.hotspot_y;
 
-  bitmap->data = (uint8_t *)static_cast<void *>(cursor->file_buffer->data);
+  bitmap->data = (uint8_t *)static_cast<void *>(cursor->custom_data);
 
   return GHOST_kSuccess;
 }
