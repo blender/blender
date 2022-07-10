@@ -567,10 +567,10 @@ class DOPESHEET_PT_action(DopesheetActionPanelBase, Panel):
 
     @classmethod
     def poll(cls, context):
-        return bool(context.selected_visible_actions)
+        return bool(context.active_action)
 
     def draw(self, context):
-        action = context.selected_visible_actions[0]
+        action = context.active_action
         self.draw_generic_panel(context, self.layout, action)
 
 
