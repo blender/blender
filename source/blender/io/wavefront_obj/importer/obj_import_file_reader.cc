@@ -427,6 +427,11 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
       break; /* No more data to read. */
     }
 
+    /* Take care of line continuations now (turn them into spaces);
+     * the rest of the parsing code does not need to worry about them anymore. */
+    fixup_line_continuations(buffer.data() + buffer_offset,
+                             buffer.data() + buffer_offset + bytes_read);
+
     /* Ensure buffer ends in a newline. */
     if (bytes_read < read_buffer_size_) {
       if (bytes_read == 0 || buffer[buffer_offset + bytes_read - 1] != '\n') {
@@ -445,9 +450,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     while (last_nl > 0) {
       --last_nl;
       if (buffer[last_nl] == '\n') {
-        if (last_nl < 1 || buffer[last_nl - 1] != '\\') {
-          break;
-        }
+        break;
       }
     }
     if (buffer[last_nl] != '\n') {

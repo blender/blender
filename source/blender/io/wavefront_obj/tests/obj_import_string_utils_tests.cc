@@ -10,15 +10,32 @@ namespace blender::io::obj {
 
 TEST(obj_import_string_utils, read_next_line)
 {
-  std::string str = "abc\n  \n\nline with \\\ncontinuation\nCRLF ending:\r\na";
+  std::string str = "abc\n  \n\nline with \t spaces\nCRLF ending:\r\na";
   StringRef s = str;
   EXPECT_STRREF_EQ("abc", read_next_line(s));
   EXPECT_STRREF_EQ("  ", read_next_line(s));
   EXPECT_STRREF_EQ("", read_next_line(s));
-  EXPECT_STRREF_EQ("line with \\\ncontinuation", read_next_line(s));
+  EXPECT_STRREF_EQ("line with \t spaces", read_next_line(s));
   EXPECT_STRREF_EQ("CRLF ending:\r", read_next_line(s));
   EXPECT_STRREF_EQ("a", read_next_line(s));
   EXPECT_TRUE(s.is_empty());
+}
+
+TEST(obj_import_string_utils, fixup_line_continuations)
+{
+  const char *str =
+      "backslash \\\n eol\n"
+      "backslash spaces \\   \n eol\n"
+      "without eol \\ is \\\\ \\ left intact\n"
+      "\\";
+  const char *exp =
+      "backslash    eol\n"
+      "backslash spaces       eol\n"
+      "without eol \\ is \\\\ \\ left intact\n"
+      "\\";
+  std::string buf(str);
+  fixup_line_continuations(buf.data(), buf.data() + buf.size());
+  EXPECT_STRREF_EQ(exp, buf);
 }
 
 static StringRef drop_whitespace(StringRef s)
@@ -54,7 +71,7 @@ TEST(obj_import_string_utils, drop_whitespace)
   /* No leading whitespace */
   EXPECT_STRREF_EQ("c", drop_whitespace("c"));
   /* Case with backslash, should be treated as whitespace */
-  EXPECT_STRREF_EQ("d", drop_whitespace(" \\ d"));
+  EXPECT_STRREF_EQ("d", drop_whitespace(" \t d"));
 }
 
 TEST(obj_import_string_utils, parse_int_valid)
