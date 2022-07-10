@@ -16,21 +16,22 @@ namespace blender::io {
  * The returned line will not have '\n' characters at the end;
  * the `buffer` is modified to contain remaining text without
  * the input line.
- *
- * Note that backslash (\) character is treated as a line
- * continuation, similar to OBJ file format or a C preprocessor.
  */
 StringRef read_next_line(StringRef &buffer);
 
 /**
+ * Fix up OBJ line continuations by replacing backslash (\) and the
+ * following newline with spaces.
+ */
+void fixup_line_continuations(char *p, char *end);
+
+/**
  * Drop leading white-space from a StringRef.
- * Note that backslash character is considered white-space.
  */
 StringRef drop_whitespace(StringRef str);
 
 /**
  * Drop leading non-white-space from a StringRef.
- * Note that backslash character is considered white-space.
  */
 StringRef drop_non_whitespace(StringRef str);
 
