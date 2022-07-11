@@ -26,10 +26,12 @@ struct GlobalVertices {
   Vector<float2> uv_vertices;
   Vector<float3> vertex_normals;
 
-  /* Vertex colors might not be present in the file at all, or only
+  /**
+   * Vertex colors might not be present in the file at all, or only
    * provided for some meshes. Store them in chunks as they are
    * spelled out in the file, e.g. if there are 10 vertices in sequence, all
-   * with "xyzrgb" colors, they will be one block. */
+   * with `xyzrgb` colors, they will be one block.
+   */
   struct VertexColorsBlock {
     Vector<float3> colors;
     int start_vertex_index;

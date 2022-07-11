@@ -986,7 +986,7 @@ void BKE_mesh_strip_loose_edges(struct Mesh *me);
 
 /**
  * If the mesh is from a very old blender version,
- * convert mface->edcode to edge drawflags
+ * convert #MFace.edcode to edge #ME_EDGEDRAW.
  */
 void BKE_mesh_calc_edges_legacy(struct Mesh *me, bool use_old);
 void BKE_mesh_calc_edges_loose(struct Mesh *mesh);

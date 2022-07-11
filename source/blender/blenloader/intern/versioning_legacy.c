@@ -1468,7 +1468,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     for (me = bmain->meshes.first; me; me = me->id.next) {
       if (!me->medge) {
-        BKE_mesh_calc_edges_legacy(me, true); /* true = use mface->edcode */
+        BKE_mesh_calc_edges_legacy(me, true); /* true = use #MFace.edcode. */
       }
       else {
         BKE_mesh_strip_loose_faces(me);

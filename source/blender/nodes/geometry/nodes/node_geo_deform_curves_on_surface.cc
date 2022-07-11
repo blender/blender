@@ -136,7 +136,7 @@ static void deform_curves(CurvesGeometry &curves,
        *
        * TODO: Figure out if this can be smoothly interpolated across the surface as well.
        * Currently, this is a source of discontinuity in the deformation, because the vector
-       * changes intantly from one triangle to the next. */
+       * changes instantly from one triangle to the next. */
       const float3 tangent_reference_dir_old = rest_pos_1 - rest_pos_0;
       const float3 tangent_reference_dir_new = pos_1_new - pos_0_new;
 
