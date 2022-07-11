@@ -774,7 +774,7 @@ static bool dash_segment_name_exists_fn(void *arg, const char *name)
 {
   const DashGpencilModifierData *dmd = (const DashGpencilModifierData *)arg;
   for (int i = 0; i < dmd->segments_len; i++) {
-    if (STREQ(dmd->segments[i].name, name)) {
+    if (STREQ(dmd->segments[i].name, name) && dmd->segments[i].name != name) {
       return true;
     }
   }
