@@ -9487,7 +9487,7 @@ static int ui_list_activate_hovered_row(bContext *C,
     }
 
     /* Simulate click on listrow button itself (which may be overlapped by another button). Also
-     * calls the custom activate operator (ui_list->custom_activate_opname). */
+     * calls the custom activate operator (#uiListDyn::custom_activate_optype). */
     UI_but_execute(C, region, listrow);
 
     ((uiList *)ui_list)->dyn_data->custom_activate_optype = custom_activate_optype;
@@ -9558,13 +9558,13 @@ static void ui_list_activate_row_from_index(
   uiBut *new_active_row = ui_list_row_find_from_index(region, index, listbox);
   if (new_active_row) {
     /* Preferred way to update the active item, also calls the custom activate operator
-     * (#uiList.custom_activate_opname). */
+     * (#uiListDyn::custom_activate_optype). */
     UI_but_execute(C, region, new_active_row);
   }
   else {
     /* A bit ugly, set the active index in RNA directly. That's because a button that's
      * scrolled away in the list box isn't created at all.
-     * The custom activate operator (#uiList.custom_activate_opname) is not called in this case
+     * The custom activate operator (#uiListDyn::custom_activate_optype) is not called in this case
      * (which may need the row button context). */
     RNA_property_int_set(&listbox->rnapoin, listbox->rnaprop, index);
     RNA_property_update(C, &listbox->rnapoin, listbox->rnaprop);

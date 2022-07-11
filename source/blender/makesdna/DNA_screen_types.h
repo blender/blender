@@ -305,12 +305,6 @@ typedef struct uiList { /* some list UI data need to be saved in file */
   int filter_flag;
   int filter_sort_flag;
 
-  /** Operator executed when activating an item. */
-  const char *custom_activate_opname;
-  /** Operator executed when dragging an item (item gets activated too, without running
-   * custom_activate_opname above). */
-  const char *custom_drag_opname;
-
   /* Custom sub-classes properties. */
   IDProperty *properties;
 
