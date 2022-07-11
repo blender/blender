@@ -1771,6 +1771,11 @@ static bool lib_override_library_resync(Main *bmain,
               break;
           }
         }
+        if (reference_id == nullptr) {
+          /* Can happen e.g. when there is a local override of a shapekey, but the matching linked
+           * obdata (mesh etc.) does not have any shapekey anymore. */
+          continue;
+        }
         BLI_assert(GS(reference_id->name) == GS(id->name));
 
         if (!BLI_ghash_haskey(linkedref_to_old_override, reference_id)) {
