@@ -561,7 +561,7 @@ endif()
 
 
 
-if(WITH_GPU_SHADER_BUILDER)
+if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
   # TODO(@fclem) Fix this mess.
   if(APPLE)
     add_executable(shader_builder
