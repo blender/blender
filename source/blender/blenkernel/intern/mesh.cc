@@ -1190,6 +1190,11 @@ static void ensure_orig_index_layer(CustomData &data, const int size)
 void BKE_mesh_ensure_default_orig_index_customdata(Mesh *mesh)
 {
   BLI_assert(mesh->runtime.wrapper_type == ME_WRAPPER_TYPE_MDATA);
+  BKE_mesh_ensure_default_orig_index_customdata_no_check(mesh);
+}
+
+void BKE_mesh_ensure_default_orig_index_customdata_no_check(Mesh *mesh)
+{
   ensure_orig_index_layer(mesh->vdata, mesh->totvert);
   ensure_orig_index_layer(mesh->edata, mesh->totedge);
   ensure_orig_index_layer(mesh->pdata, mesh->totpoly);
