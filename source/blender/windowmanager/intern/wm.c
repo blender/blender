@@ -257,7 +257,7 @@ static void window_manager_blend_read_lib(BlendLibReader *reader, ID *id)
 
 IDTypeInfo IDType_ID_WM = {
     .id_code = ID_WM,
-    .id_filter = 0,
+    .id_filter = FILTER_ID_WM,
     .main_listbase_index = INDEX_ID_WM,
     .struct_size = sizeof(wmWindowManager),
     .name = "WindowManager",

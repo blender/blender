@@ -191,7 +191,7 @@ static void shapekey_blend_read_expand(BlendExpander *expander, ID *id)
 
 IDTypeInfo IDType_ID_KE = {
     .id_code = ID_KE,
-    .id_filter = 0,
+    .id_filter = FILTER_ID_KE,
     .main_listbase_index = INDEX_ID_KE,
     .struct_size = sizeof(Key),
     .name = "Key",
