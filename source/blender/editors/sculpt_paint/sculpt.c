@@ -5499,10 +5499,23 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   struct PaintStroke *stroke;
   int ignore_background_click;
   int retval;
+  Object *ob = CTX_data_active_object(C);
+
+  /* Test that ob is visible; otherwise we won't be able to get evaluated data
+   * from the depsgraph. We do this here instead of SCULPT_mode_poll
+   * to avoid falling through to the translate operator in the
+   * global view3d keymap.
+   *
+   * Note: BKE_object_is_visible_in_viewport is not working here (it returns false
+   * if the object is in local view); instead, test for OB_HIDE_VIEWPORT directly.
+   */
+
+  if (ob->visibility_flag & OB_HIDE_VIEWPORT) {
+    return OPERATOR_CANCELLED;
+  }
 
   sculpt_brush_stroke_init(C, op);
 
-  Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
