@@ -1202,7 +1202,7 @@ class CYCLES_OBJECT_PT_lightgroup(CyclesButtonsPanel, Panel):
         sub.prop_search(ob, "lightgroup", view_layer, "lightgroups", text="Light Group", results_are_suggestions=True)
 
         sub = row.column(align=True)
-        sub.active = bool(ob.lightgroup) and not any(lg.name == ob.lightgroup for lg in view_layer.lightgroups)
+        sub.enabled = bool(ob.lightgroup) and not any(lg.name == ob.lightgroup for lg in view_layer.lightgroups)
         sub.operator("scene.view_layer_add_lightgroup", icon='ADD', text="").name = ob.lightgroup
 
 
@@ -1640,7 +1640,7 @@ class CYCLES_WORLD_PT_settings_light_group(CyclesButtonsPanel, Panel):
         )
 
         sub = row.column(align=True)
-        sub.active = bool(world.lightgroup) and not any(lg.name == world.lightgroup for lg in view_layer.lightgroups)
+        sub.enabled = bool(world.lightgroup) and not any(lg.name == world.lightgroup for lg in view_layer.lightgroups)
         sub.operator("scene.view_layer_add_lightgroup", icon='ADD', text="").name = world.lightgroup
 
 
