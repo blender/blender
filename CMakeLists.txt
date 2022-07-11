@@ -1340,6 +1340,12 @@ else()
   list(APPEND GL_DEFINITIONS -DWITH_GL_PROFILE_CORE)
 endif()
 
+if (WITH_GPU_SHADER_BUILDER AND WITH_USD)
+  message(FATAL_ERROR
+    "Unable to compile WITH_GPU_SHADER_BUILDER and WITH_USD."
+  )
+endif()
+
 #-----------------------------------------------------------------------------
 # Configure Metal.
 if (WITH_METAL_BACKEND)
