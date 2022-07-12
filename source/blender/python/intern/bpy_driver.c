@@ -318,6 +318,7 @@ static const bool secure_opcodes[255] = {
     OK_OP(UNARY_INVERT),
     OK_OP(BINARY_SUBSCR),
     OK_OP(GET_LEN),
+    OK_OP(LIST_TO_TUPLE),
     OK_OP(RETURN_VALUE),
     OK_OP(SWAP),
     OK_OP(BUILD_TUPLE),
@@ -332,6 +333,7 @@ static const bool secure_opcodes[255] = {
     OK_OP(POP_JUMP_FORWARD_IF_TRUE),
     OK_OP(LOAD_GLOBAL),
     OK_OP(IS_OP),
+    OK_OP(CONTAINS_OP),
     OK_OP(BINARY_OP),
     OK_OP(LOAD_FAST),
     OK_OP(STORE_FAST),
@@ -342,6 +344,14 @@ static const bool secure_opcodes[255] = {
     OK_OP(LOAD_DEREF),
     OK_OP(STORE_DEREF),
     OK_OP(RESUME),
+    OK_OP(LIST_EXTEND),
+    OK_OP(SET_UPDATE),
+/* NOTE(@campbellbarton): Don't enable dict manipulation, unless we can prove there is not way it
+ * can be used to manipulate the name-space (potentially allowing malicious code). */
+#    if 0
+    OK_OP(DICT_MERGE),
+    OK_OP(DICT_UPDATE),
+#    endif
     OK_OP(POP_JUMP_BACKWARD_IF_NOT_NONE),
     OK_OP(POP_JUMP_BACKWARD_IF_NONE),
     OK_OP(POP_JUMP_BACKWARD_IF_FALSE),
@@ -395,6 +405,7 @@ static const bool secure_opcodes[255] = {
     OK_OP(INPLACE_AND),
     OK_OP(INPLACE_XOR),
     OK_OP(INPLACE_OR),
+    OK_OP(LIST_TO_TUPLE),
     OK_OP(RETURN_VALUE),
     OK_OP(ROT_N),
     OK_OP(BUILD_TUPLE),
@@ -410,12 +421,21 @@ static const bool secure_opcodes[255] = {
     OK_OP(POP_JUMP_IF_TRUE),
     OK_OP(LOAD_GLOBAL),
     OK_OP(IS_OP),
+    OK_OP(CONTAINS_OP),
     OK_OP(LOAD_FAST),
     OK_OP(STORE_FAST),
     OK_OP(DELETE_FAST),
     OK_OP(BUILD_SLICE),
     OK_OP(LOAD_DEREF),
     OK_OP(STORE_DEREF),
+    OK_OP(LIST_EXTEND),
+    OK_OP(SET_UPDATE),
+/* NOTE(@campbellbarton): Don't enable dict manipulation, unless we can prove there is not way it
+ * can be used to manipulate the name-space (potentially allowing malicious code). */
+#    if 0
+    OK_OP(DICT_MERGE),
+    OK_OP(DICT_UPDATE),
+#    endif
 
     /* Special cases. */
     OK_OP(LOAD_CONST),    /* Ok because constants are accepted. */
@@ -429,9 +449,10 @@ static const bool secure_opcodes[255] = {
 
 #  undef OK_OP
 
-static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code,
-                                                PyObject *dict_arr[],
-                                                const char *error_prefix)
+bool BPY_driver_secure_bytecode_test_ex(PyObject *expr_code,
+                                        PyObject *namespace_array[],
+                                        const bool verbose,
+                                        const char *error_prefix)
 {
   PyCodeObject *py_code = (PyCodeObject *)expr_code;
 
@@ -439,21 +460,23 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code,
   {
     for (int i = 0; i < PyTuple_GET_SIZE(py_code->co_names); i++) {
       PyObject *name = PyTuple_GET_ITEM(py_code->co_names, i);
-
+      const char *name_str = PyUnicode_AsUTF8(name);
       bool contains_name = false;
-      for (int j = 0; dict_arr[j]; j++) {
-        if (PyDict_Contains(dict_arr[j], name)) {
+      for (int j = 0; namespace_array[j]; j++) {
+        if (PyDict_Contains(namespace_array[j], name)) {
           contains_name = true;
           break;
         }
       }
 
-      if (contains_name == false) {
-        fprintf(stderr,
-                "\t%s: restricted access disallows name '%s', "
-                "enable auto-execution to support\n",
-                error_prefix,
-                PyUnicode_AsUTF8(name));
+      if ((contains_name == false) || (name_str[0] == '_')) {
+        if (verbose) {
+          fprintf(stderr,
+                  "\t%s: restricted access disallows name '%s', "
+                  "enable auto-execution to support\n",
+                  error_prefix,
+                  name_str);
+        }
         return false;
       }
     }
@@ -485,11 +508,13 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code,
     for (Py_ssize_t i = 0; i < code_len; i++) {
       const int opcode = _Py_OPCODE(codestr[i]);
       if (secure_opcodes[opcode] == false) {
-        fprintf(stderr,
-                "\t%s: restricted access disallows opcode '%d', "
-                "enable auto-execution to support\n",
-                error_prefix,
-                opcode);
+        if (verbose) {
+          fprintf(stderr,
+                  "\t%s: restricted access disallows opcode '%d', "
+                  "enable auto-execution to support\n",
+                  error_prefix,
+                  opcode);
+        }
         ok = false;
         break;
       }
@@ -504,6 +529,26 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code,
   }
 
   return true;
+}
+
+bool BPY_driver_secure_bytecode_test(PyObject *expr_code, PyObject *namespace, const bool verbose)
+{
+
+  if (!bpy_pydriver_Dict) {
+    if (bpy_pydriver_create_dict() != 0) {
+      fprintf(stderr, "%s: couldn't create Python dictionary\n", __func__);
+      return false;
+    }
+  }
+  return BPY_driver_secure_bytecode_test_ex(expr_code,
+                                            (PyObject *[]){
+                                                bpy_pydriver_Dict,
+                                                bpy_pydriver_Dict__whitelist,
+                                                namespace,
+                                                NULL,
+                                            },
+                                            verbose,
+                                            __func__);
 }
 
 #endif /* USE_BYTECODE_WHITELIST */
@@ -697,14 +742,17 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
 #ifdef USE_BYTECODE_WHITELIST
   if (is_recompile && expr_code) {
     if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
-      if (!bpy_driver_secure_bytecode_validate(expr_code,
-                                               (PyObject *[]){
-                                                   bpy_pydriver_Dict,
-                                                   bpy_pydriver_Dict__whitelist,
-                                                   driver_vars,
-                                                   NULL,
-                                               },
-                                               __func__)) {
+      if (!BPY_driver_secure_bytecode_test_ex(
+              expr_code,
+              (PyObject *[]){
+                  bpy_pydriver_Dict,
+                  bpy_pydriver_Dict__whitelist,
+                  driver_vars,
+                  NULL,
+              },
+              /* Always be verbose since this can give hints to why evaluation fails. */
+              true,
+              __func__)) {
         if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
           G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
           BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", expr);
