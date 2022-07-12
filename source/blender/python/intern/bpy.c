@@ -32,6 +32,7 @@
 #include "bpy.h"
 #include "bpy_app.h"
 #include "bpy_capi_utils.h"
+#include "bpy_driver.h"
 #include "bpy_library.h"
 #include "bpy_operator.h"
 #include "bpy_props.h"
@@ -326,6 +327,49 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
   return PyC_UnicodeFromByte(path ? path : "");
 }
 
+/* This is only exposed for tests, see: `tests/python/bl_pyapi_bpy_driver_secure_eval.py`. */
+PyDoc_STRVAR(bpy_driver_secure_code_test_doc,
+             ".. function:: _driver_secure_code_test(code)\n"
+             "\n"
+             "   Test if the script should be considered trusted.\n"
+             "\n"
+             "   :arg code: The code to test.\n"
+             "   :type code: code\n"
+             "   :arg namespace: The namespace of values which are allowed.\n"
+             "   :type namespace: dict\n"
+             "   :arg verbose: Print the reason for considering insecure to the ``stderr``.\n"
+             "   :type verbose: bool\n"
+             "   :return: True when the script is considered trusted.\n"
+             "   :rtype: bool\n");
+static PyObject *bpy_driver_secure_code_test(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
+{
+  PyObject *py_code;
+  PyObject *py_namespace = NULL;
+  const bool verbose = false;
+  static const char *_keywords[] = {"code", "namespace", "verbose", NULL};
+  static _PyArg_Parser _parser = {
+      "O!" /* `expression` */
+      "|$" /* Optional keyword only arguments. */
+      "O!" /* `namespace` */
+      "O&" /* `verbose` */
+      ":driver_secure_code_test",
+      _keywords,
+      0,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args,
+                                        kw,
+                                        &_parser,
+                                        &PyCode_Type,
+                                        &py_code,
+                                        &PyDict_Type,
+                                        &py_namespace,
+                                        PyC_ParseBool,
+                                        &verbose)) {
+    return NULL;
+  }
+  return PyBool_FromLong(BPY_driver_secure_bytecode_test(py_code, py_namespace, verbose));
+}
+
 PyDoc_STRVAR(bpy_escape_identifier_doc,
              ".. function:: escape_identifier(string)\n"
              "\n"
@@ -528,6 +572,12 @@ static PyMethodDef meth_bpy_resource_path = {
     METH_VARARGS | METH_KEYWORDS,
     bpy_resource_path_doc,
 };
+static PyMethodDef meth_bpy_driver_secure_code_test = {
+    "_driver_secure_code_test",
+    (PyCFunction)bpy_driver_secure_code_test,
+    METH_VARARGS | METH_KEYWORDS,
+    bpy_driver_secure_code_test_doc,
+};
 static PyMethodDef meth_bpy_escape_identifier = {
     "escape_identifier",
     (PyCFunction)bpy_escape_identifier,
@@ -647,6 +697,9 @@ void BPy_init_modules(struct bContext *C)
   PyModule_AddObject(mod,
                      meth_bpy_resource_path.ml_name,
                      (PyObject *)PyCFunction_New(&meth_bpy_resource_path, NULL));
+  PyModule_AddObject(mod,
+                     meth_bpy_driver_secure_code_test.ml_name,
+                     (PyObject *)PyCFunction_New(&meth_bpy_driver_secure_code_test, NULL));
   PyModule_AddObject(mod,
                      meth_bpy_escape_identifier.ml_name,
                      (PyObject *)PyCFunction_New(&meth_bpy_escape_identifier, NULL));
