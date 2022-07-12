@@ -351,8 +351,9 @@ class AttributeAccessor {
   /**
    * The data that actually owns the attributes, for example, a pointer to a #Mesh or #PointCloud
    * Most commonly this is a pointer to a #Mesh or #PointCloud.
-   * Under some circumstances this can be null. In that case most methods can't be used. Just e.g.
-   * the #domain_size method works and returns 0 for every domain.
+   * Under some circumstances this can be null. In that case most methods can't be used. Allowed
+   * methods are #domain_size, #for_all and #is_builtin. We could potentially make these methods
+   * accessible without #AttributeAccessor and then #owner_ could always be non-null.
    *
    * \note This class cannot modify the owner's attributes, but the pointer is still non-const, so
    * this class can be a base class for the mutable version.
@@ -509,7 +510,10 @@ class AttributeAccessor {
    */
   bool for_all(const AttributeForeachCallback fn) const
   {
-    return fn_->for_all(owner_, fn);
+    if (owner_ != nullptr) {
+      return fn_->for_all(owner_, fn);
+    }
+    return true;
   }
 
   /**
