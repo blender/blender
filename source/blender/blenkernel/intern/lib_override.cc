@@ -455,8 +455,10 @@ static void lib_override_remapper_overrides_add(IDRemapper *id_remapper,
 
   Key *reference_key, *local_key = nullptr;
   if ((reference_key = BKE_key_from_id(reference_id)) != nullptr) {
-    local_key = BKE_key_from_id(reference_id->newid);
-    BLI_assert(local_key != nullptr);
+    if (reference_id->newid != nullptr) {
+      local_key = BKE_key_from_id(reference_id->newid);
+      BLI_assert(local_key != nullptr);
+    }
 
     BKE_id_remapper_add(id_remapper, &reference_key->id, &local_key->id);
   }
@@ -599,8 +601,9 @@ bool BKE_lib_override_library_create_from_tag(Main *bmain,
             other_id->override_library->hierarchy_root == id_hierarchy_root) {
           reference_id = other_id->override_library->reference;
           ID *local_id = reference_id->newid;
-          BLI_assert(other_id == local_id);
-          lib_override_remapper_overrides_add(id_remapper, reference_id, local_id);
+          if (other_id == local_id) {
+            lib_override_remapper_overrides_add(id_remapper, reference_id, local_id);
+          }
         }
       }
       if (other_id != id) {
