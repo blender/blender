@@ -670,10 +670,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
 }
 
 static const int lowest_supported_driver_version_win = 1011660;
-/* TODO: once Linux JIT compilation crash from CentOS generated spv is fixed, adjust version below.
- * Until then, set CYCLES_ONEAPI_ALL_DEVICES environment variable to avoid getting it filtered out.
- */
-static const int lowest_supported_driver_version_neo = 28000;
+static const int lowest_supported_driver_version_neo = 23570;
 
 static int parse_driver_build_version(const sycl::device &device)
 {

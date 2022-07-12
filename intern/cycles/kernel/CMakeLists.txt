@@ -844,10 +844,9 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   else()
     list(APPEND sycl_compiler_flags -fPIC)
 
-    # avoid getting __FAST_MATH__ to be defined for the graphics compiler on CentOS 7 until the compile-time issue it triggers gets fixed.
-    if(WITH_CYCLES_ONEAPI_BINARIES)
-      list(APPEND sycl_compiler_flags -fhonor-nans)
-    endif()
+    # We avoid getting __FAST_MATH__ to be defined when building on CentOS 7 until the compilation crash
+    # it triggers at either AoT or JIT stages gets fixed.
+    list(APPEND sycl_compiler_flags -fhonor-nans)
 
     # add $ORIGIN to cycles_kernel_oneapi.so rpath so libsycl.so and
     # libpi_level_zero.so can be placed next to it and get found.
