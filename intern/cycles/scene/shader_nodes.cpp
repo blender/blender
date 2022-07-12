@@ -6671,7 +6671,7 @@ void CurvesNode::compile(SVMCompiler &compiler,
 
   ShaderInput *fac_in = input("Fac");
 
-  compiler.add_node(type,
+  compiler.add_node(ShaderNodeType(type),
                     compiler.encode_uchar4(compiler.stack_assign(fac_in),
                                            compiler.stack_assign(value_in),
                                            compiler.stack_assign(value_out),
@@ -6736,7 +6736,7 @@ void RGBCurvesNode::constant_fold(const ConstantFolder &folder)
 
 void RGBCurvesNode::compile(SVMCompiler &compiler)
 {
-  CurvesNode::compile(compiler, NODE_RGB_CURVES, input("Color"), output("Color"));
+  CurvesNode::compile(compiler, NODE_CURVES, input("Color"), output("Color"));
 }
 
 void RGBCurvesNode::compile(OSLCompiler &compiler)
@@ -6774,7 +6774,7 @@ void VectorCurvesNode::constant_fold(const ConstantFolder &folder)
 
 void VectorCurvesNode::compile(SVMCompiler &compiler)
 {
-  CurvesNode::compile(compiler, NODE_VECTOR_CURVES, input("Vector"), output("Vector"));
+  CurvesNode::compile(compiler, NODE_CURVES, input("Vector"), output("Vector"));
 }
 
 void VectorCurvesNode::compile(OSLCompiler &compiler)

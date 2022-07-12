@@ -194,6 +194,13 @@ KERNEL_STRUCT_MEMBER(integrator, int, direct_light_sampling_type)
 KERNEL_STRUCT_MEMBER(integrator, int, pad1)
 KERNEL_STRUCT_END(KernelIntegrator)
 
+/* SVM. For shader specialization. */
+
+KERNEL_STRUCT_BEGIN(KernelSVMUsage, svm_usage)
+#define SHADER_NODE_TYPE(type) KERNEL_STRUCT_MEMBER(svm_usage, int, type)
+#include "kernel/svm/node_types_template.h"
+KERNEL_STRUCT_END(KernelSVMUsage)
+
 #undef KERNEL_STRUCT_BEGIN
 #undef KERNEL_STRUCT_MEMBER
 #undef KERNEL_STRUCT_END
