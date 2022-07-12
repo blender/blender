@@ -238,7 +238,6 @@ void createTransUVs(bContext *C, TransInfo *t)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = t->scene;
-  ToolSettings *ts = CTX_data_tool_settings(C);
 
   const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
   const bool is_prop_connected = (t->flag & T_PROP_CONNECTED) != 0;
@@ -266,8 +265,7 @@ void createTransUVs(bContext *C, TransInfo *t)
     /* count */
     if (is_island_center) {
       /* create element map with island information */
-      const bool use_facesel = (ts->uv_flag & UV_SYNC_SELECTION) == 0;
-      elementmap = BM_uv_element_map_create(em->bm, scene, use_facesel, true, false, true);
+      elementmap = BM_uv_element_map_create(em->bm, scene, true, false, true);
       if (elementmap == NULL) {
         continue;
       }

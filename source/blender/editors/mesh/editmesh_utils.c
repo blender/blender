@@ -593,13 +593,17 @@ UvMapVert *BM_uv_vert_map_at_index(UvVertMap *vmap, uint v)
   return vmap->vert[v];
 }
 
+#define INVALID_ISLAND ((unsigned int)-1)
+
 UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                        const Scene *scene,
-                                       const bool face_selected,
                                        const bool uv_selected,
                                        const bool use_winding,
                                        const bool do_islands)
 {
+  /* In uv sync selection, all UVs are visible. */
+  const bool face_selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION);
+
   BMVert *ev;
   BMFace *efa;
   BMLoop *l;
@@ -623,15 +627,21 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
 
   /* generate UvElement array */
   BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    if (!face_selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-      if (!uv_selected) {
-        totuv += efa->len;
-      }
-      else {
-        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-            totuv++;
-          }
+    if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+      continue;
+    }
+
+    if (face_selected && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+      continue;
+    }
+
+    if (!uv_selected) {
+      totuv += efa->len;
+    }
+    else {
+      BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+        if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+          totuv++;
         }
       }
     }
@@ -649,46 +659,48 @@ UvElementMap *BM_uv_element_map_create(BMesh *bm,
                                                     "UvElement");
 
   if (use_winding) {
-    winding = MEM_mallocN(sizeof(*winding) * totfaces, "winding");
+    winding = MEM_callocN(sizeof(*winding) * totfaces, "winding");
   }
 
   BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, j) {
 
-    if (use_winding) {
-      winding[j] = false;
+    if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+      continue;
     }
 
-    if (!face_selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-      float(*tf_uv)[2] = NULL;
+    if (face_selected && !BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+      continue;
+    }
+
+    float(*tf_uv)[2] = NULL;
+
+    if (use_winding) {
+      tf_uv = (float(*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, efa->len);
+    }
+
+    BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
+      if (uv_selected && !uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+        continue;
+      }
+
+      buf->l = l;
+      buf->separate = 0;
+      buf->island = INVALID_ISLAND;
+      buf->loop_of_poly_index = i;
+
+      buf->next = element_map->vert[BM_elem_index_get(l->v)];
+      element_map->vert[BM_elem_index_get(l->v)] = buf;
 
       if (use_winding) {
-        tf_uv = (float(*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, efa->len);
+        luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+        copy_v2_v2(tf_uv[i], luv->uv);
       }
 
-      BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-        if (uv_selected && !uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-          continue;
-        }
+      buf++;
+    }
 
-        buf->l = l;
-        buf->separate = 0;
-        buf->island = INVALID_ISLAND;
-        buf->loop_of_poly_index = i;
-
-        buf->next = element_map->vert[BM_elem_index_get(l->v)];
-        element_map->vert[BM_elem_index_get(l->v)] = buf;
-
-        if (use_winding) {
-          luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-          copy_v2_v2(tf_uv[i], luv->uv);
-        }
-
-        buf++;
-      }
-
-      if (use_winding) {
-        winding[j] = cross_poly_v2(tf_uv, efa->len) > 0;
-      }
+    if (winding) {
+      winding[j] = cross_poly_v2(tf_uv, efa->len) > 0;
     }
   }
 
