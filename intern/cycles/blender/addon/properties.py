@@ -693,7 +693,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     debug_use_compact_bvh: BoolProperty(
         name="Use Compact BVH",
         description="Use compact BVH structure (uses less ram but renders slower)",
-        default=True,
+        default=False,
     )
     debug_bvh_time_steps: IntProperty(
         name="BVH Time Steps",
