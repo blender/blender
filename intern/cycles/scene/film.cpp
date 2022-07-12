@@ -394,7 +394,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
   vector<float> table = filter_table(filter_type, filter_width);
   scene->lookup_tables->remove_table(&filter_table_offset_);
   filter_table_offset_ = scene->lookup_tables->add_table(dscene, table);
-  kfilm->filter_table_offset = (int)filter_table_offset_;
+  dscene->data.tables.filter_table_offset = (int)filter_table_offset_;
 
   /* mist pass parameters */
   kfilm->mist_start = mist_start;

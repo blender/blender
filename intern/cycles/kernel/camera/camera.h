@@ -368,7 +368,7 @@ ccl_device_inline void camera_sample(KernelGlobals kg,
                                      ccl_private Ray *ray)
 {
   /* pixel filter */
-  int filter_table_offset = kernel_data.film.filter_table_offset;
+  int filter_table_offset = kernel_data.tables.filter_table_offset;
   float raster_x = x + lookup_table_read(kg, filter_u, filter_table_offset, FILTER_TABLE_SIZE);
   float raster_y = y + lookup_table_read(kg, filter_v, filter_table_offset, FILTER_TABLE_SIZE);
 

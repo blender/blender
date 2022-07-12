@@ -282,6 +282,7 @@ set(SRC_KERNEL_UTIL_HEADERS
 
 set(SRC_KERNEL_TYPES_HEADERS
   data_arrays.h
+  data_template.h
   tables.h
   types.h
 )

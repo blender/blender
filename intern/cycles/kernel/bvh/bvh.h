@@ -172,7 +172,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     ray_flags |= OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT;
   }
 
-  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
              0.0f,
@@ -295,14 +295,14 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   }
 
 #  ifdef __EMBREE__
-  if (kernel_data.bvh.scene) {
+  if (kernel_data.device_bvh) {
     isect->t = ray->t;
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_REGULAR);
     IntersectContext rtc_ctx(&ctx);
     RTCRayHit ray_hit;
     ctx.ray = ray;
     kernel_embree_setup_rayhit(*ray, ray_hit, visibility);
-    rtcIntersect1(kernel_data.bvh.scene, &rtc_ctx.context, &ray_hit);
+    rtcIntersect1(kernel_data.device_bvh, &rtc_ctx.context, &ray_hit);
     if (ray_hit.hit.geomID != RTC_INVALID_GEOMETRY_ID &&
         ray_hit.hit.primID != RTC_INVALID_GEOMETRY_ID) {
       kernel_embree_convert_hit(kg, &ray_hit.ray, &ray_hit.hit, isect);
@@ -357,7 +357,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   if (local_isect) {
     local_isect->num_hits = 0; /* Initialize hit count to zero. */
   }
-  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
              0.0f,
@@ -451,7 +451,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   }
 
 #    ifdef __EMBREE__
-  if (kernel_data.bvh.scene) {
+  if (kernel_data.device_bvh) {
     const bool has_bvh = !(kernel_data_fetch(object_flag, local_object) &
                            SD_OBJECT_TRANSFORM_APPLIED);
     CCLIntersectContext ctx(
@@ -470,7 +470,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 
     /* If this object has its own BVH, use it. */
     if (has_bvh) {
-      RTCGeometry geom = rtcGetGeometry(kernel_data.bvh.scene, local_object * 2);
+      RTCGeometry geom = rtcGetGeometry(kernel_data.device_bvh, local_object * 2);
       if (geom) {
         float3 P = ray->P;
         float3 dir = ray->D;
@@ -496,7 +496,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
       }
     }
     else {
-      rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
+      rtcOccluded1(kernel_data.device_bvh, &rtc_ctx.context, &rtc_ray);
     }
 
     /* rtcOccluded1 sets tfar to -inf if a hit was found. */
@@ -539,7 +539,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
     ray_mask = 0xFF;
   }
 
-  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
              0.0f,
@@ -633,7 +633,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   }
 
 #    ifdef __EMBREE__
-  if (kernel_data.bvh.scene) {
+  if (kernel_data.device_bvh) {
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SHADOW_ALL);
     Intersection *isect_array = (Intersection *)state->shadow_isect;
     ctx.isect_s = isect_array;
@@ -642,7 +642,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
     IntersectContext rtc_ctx(&ctx);
     RTCRay rtc_ray;
     kernel_embree_setup_ray(*ray, rtc_ray, visibility);
-    rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
+    rtcOccluded1(kernel_data.device_bvh, &rtc_ctx.context, &rtc_ray);
 
     *num_recorded_hits = ctx.num_recorded_hits;
     *throughput = ctx.throughput;
@@ -698,7 +698,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
     ray_mask = 0xFF;
   }
 
-  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
              0.0f,
@@ -825,7 +825,7 @@ ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals kg,
   }
 
 #  ifdef __EMBREE__
-  if (kernel_data.bvh.scene) {
+  if (kernel_data.device_bvh) {
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_VOLUME_ALL);
     ctx.isect_s = isect;
     ctx.max_hits = max_hits;
@@ -834,7 +834,7 @@ ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals kg,
     IntersectContext rtc_ctx(&ctx);
     RTCRay rtc_ray;
     kernel_embree_setup_ray(*ray, rtc_ray, visibility);
-    rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
+    rtcOccluded1(kernel_data.device_bvh, &rtc_ctx.context, &rtc_ray);
     return ctx.num_hits;
   }
 #  endif /* __EMBREE__ */
