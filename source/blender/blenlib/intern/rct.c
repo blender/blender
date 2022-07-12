@@ -265,7 +265,7 @@ bool BLI_rcti_isect_segment(const rcti *rect, const int s1[2], const int s2[2])
   /* diagonal: [/] */
   tvec1[0] = rect->xmin;
   tvec1[1] = rect->ymin;
-  tvec2[0] = rect->xmin;
+  tvec2[0] = rect->xmax;
   tvec2[1] = rect->ymax;
   if (isect_segments_i(s1, s2, tvec1, tvec2)) {
     return true;
@@ -311,7 +311,7 @@ bool BLI_rctf_isect_segment(const rctf *rect, const float s1[2], const float s2[
   /* diagonal: [/] */
   tvec1[0] = rect->xmin;
   tvec1[1] = rect->ymin;
-  tvec2[0] = rect->xmin;
+  tvec2[0] = rect->xmax;
   tvec2[1] = rect->ymax;
   if (isect_segments_fl(s1, s2, tvec1, tvec2)) {
     return true;
