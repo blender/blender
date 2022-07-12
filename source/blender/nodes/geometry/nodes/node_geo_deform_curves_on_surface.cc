@@ -218,6 +218,12 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
   const Curves *self_curves_eval = static_cast<const Curves *>(self_ob_eval->data);
+  if (self_curves_eval->surface_uv_map == nullptr || self_curves_eval->surface_uv_map[0] == '\0') {
+    pass_through_input();
+    const char *message = TIP_("Surface UV map not defined");
+    params.error_message_add(NodeWarningType::Error, message);
+    return;
+  }
   /* Take surface information from self-object. */
   Object *surface_ob_eval = self_curves_eval->surface;
   const StringRefNull uv_map_name = self_curves_eval->surface_uv_map;
@@ -258,12 +264,6 @@ static void node_geo_exec(GeoNodeExecParams params)
   Curves &curves_id = *curves_geometry.get_curves_for_write();
   CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
 
-  if (uv_map_name.is_empty()) {
-    pass_through_input();
-    const char *message = TIP_("Surface UV map not defined");
-    params.error_message_add(NodeWarningType::Error, message);
-    return;
-  }
   if (!mesh_attributes_eval.contains(uv_map_name)) {
     pass_through_input();
     char *message = BLI_sprintfN(TIP_("Evaluated surface missing UV map: %s"),
@@ -285,7 +285,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                              TIP_("Evaluated surface missing attribute: rest_position"));
     return;
   }
-  if (curves.surface_uv_coords().is_empty()) {
+  if (curves.surface_uv_coords().is_empty() && curves.curves_num() > 0) {
     pass_through_input();
     params.error_message_add(NodeWarningType::Error,
                              TIP_("Curves are not attached to any UV map"));
