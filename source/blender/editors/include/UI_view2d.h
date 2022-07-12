@@ -309,6 +309,12 @@ float UI_view2d_view_to_region_y(const struct View2D *v2d, float y);
 bool UI_view2d_view_to_region_clip(
     const struct View2D *v2d, float x, float y, int *r_region_x, int *r_region_y) ATTR_NONNULL();
 
+bool UI_view2d_view_to_region_segment_clip(const View2D *v2d,
+                                           const float xy_a[2],
+                                           const float xy_b[2],
+                                           int r_region_a[2],
+                                           int r_region_b[2]) ATTR_NONNULL();
+
 /**
  * Convert from 2d-view space to screen/region space
  *
