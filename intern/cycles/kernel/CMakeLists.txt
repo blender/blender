@@ -79,6 +79,7 @@ set(SRC_KERNEL_DEVICE_METAL_HEADERS
   device/metal/compat.h
   device/metal/context_begin.h
   device/metal/context_end.h
+  device/metal/function_constants.h
   device/metal/globals.h
 )
 

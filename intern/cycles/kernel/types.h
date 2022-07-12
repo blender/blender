@@ -1136,7 +1136,13 @@ typedef enum KernelBVHLayout {
   } \
   ; \
   static_assert_align(name, 16);
-#define KERNEL_STRUCT_MEMBER(parent, type, name) type name;
+
+#ifdef __KERNEL_USE_DATA_CONSTANTS__
+#  define KERNEL_STRUCT_MEMBER(parent, type, name) type __unused_##name;
+#else
+#  define KERNEL_STRUCT_MEMBER(parent, type, name) type name;
+#endif
+
 #include "kernel/data_template.h"
 
 typedef struct KernelTables {

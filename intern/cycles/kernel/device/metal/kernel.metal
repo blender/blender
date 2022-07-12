@@ -5,6 +5,7 @@
 
 #include "kernel/device/metal/compat.h"
 #include "kernel/device/metal/globals.h"
+#include "kernel/device/metal/function_constants.h"
 #include "kernel/device/gpu/kernel.h"
 
 /* MetalRT intersection handlers */
