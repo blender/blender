@@ -323,6 +323,7 @@ GVArraySpan::GVArraySpan(GVArraySpan &&other)
   else {
     data_ = owned_data_;
   }
+  other.owned_data_ = nullptr;
   other.data_ = nullptr;
   other.size_ = 0;
 }
@@ -393,6 +394,7 @@ GMutableVArraySpan::GMutableVArraySpan(GMutableVArraySpan &&other)
   else {
     data_ = owned_data_;
   }
+  other.owned_data_ = nullptr;
   other.data_ = nullptr;
   other.size_ = 0;
 }
