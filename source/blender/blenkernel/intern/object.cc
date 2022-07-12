@@ -1402,6 +1402,7 @@ bool BKE_object_supports_modifiers(const Object *ob)
 {
   return (ELEM(ob->type,
                OB_MESH,
+               OB_CURVES,
                OB_CURVES_LEGACY,
                OB_SURF,
                OB_FONT,
