@@ -644,6 +644,7 @@ std::optional<blender::bke::AttributeAccessor> CurveComponent::attributes() cons
 
 std::optional<blender::bke::MutableAttributeAccessor> CurveComponent::attributes_for_write()
 {
-  return blender::bke::MutableAttributeAccessor(curves_ ? &curves_->geometry : nullptr,
+  Curves *curves = this->get_for_write();
+  return blender::bke::MutableAttributeAccessor(curves ? &curves->geometry : nullptr,
                                                 blender::bke::get_curves_accessor_functions_ref());
 }

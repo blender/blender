@@ -1324,7 +1324,8 @@ std::optional<blender::bke::AttributeAccessor> MeshComponent::attributes() const
 
 std::optional<blender::bke::MutableAttributeAccessor> MeshComponent::attributes_for_write()
 {
-  return blender::bke::MutableAttributeAccessor(mesh_,
+  Mesh *mesh = this->get_for_write();
+  return blender::bke::MutableAttributeAccessor(mesh,
                                                 blender::bke::get_mesh_accessor_functions_ref());
 }
 

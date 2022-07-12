@@ -1452,7 +1452,8 @@ std::optional<blender::bke::AttributeAccessor> CurveComponentLegacy::attributes(
 
 std::optional<blender::bke::MutableAttributeAccessor> CurveComponentLegacy::attributes_for_write()
 {
-  return blender::bke::MutableAttributeAccessor(curve_,
+  CurveEval *curve = this->get_for_write();
+  return blender::bke::MutableAttributeAccessor(curve,
                                                 blender::bke::get_curve_accessor_functions_ref());
 }
 

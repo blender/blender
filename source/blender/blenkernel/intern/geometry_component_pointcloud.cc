@@ -226,8 +226,9 @@ std::optional<blender::bke::AttributeAccessor> PointCloudComponent::attributes()
 
 std::optional<blender::bke::MutableAttributeAccessor> PointCloudComponent::attributes_for_write()
 {
+  PointCloud *pointcloud = this->get_for_write();
   return blender::bke::MutableAttributeAccessor(
-      pointcloud_, blender::bke::get_pointcloud_accessor_functions_ref());
+      pointcloud, blender::bke::get_pointcloud_accessor_functions_ref());
 }
 
 /** \} */
