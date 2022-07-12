@@ -536,71 +536,37 @@ static PyObject *bpy_rna_enum_items_static(PyObject *UNUSED(self))
   return result;
 }
 
-static PyMethodDef meth_bpy_script_paths = {
-    "script_paths",
-    (PyCFunction)bpy_script_paths,
-    METH_NOARGS,
-    bpy_script_paths_doc,
-};
-static PyMethodDef meth_bpy_blend_paths = {
-    "blend_paths",
-    (PyCFunction)bpy_blend_paths,
-    METH_VARARGS | METH_KEYWORDS,
-    bpy_blend_paths_doc,
-};
-static PyMethodDef meth_bpy_flip_name = {
-    "flip_name",
-    (PyCFunction)bpy_flip_name,
-    METH_VARARGS | METH_KEYWORDS,
-    bpy_flip_name_doc,
-};
-static PyMethodDef meth_bpy_user_resource = {
-    "user_resource",
-    (PyCFunction)bpy_user_resource,
-    METH_VARARGS | METH_KEYWORDS,
-    NULL,
-};
-static PyMethodDef meth_bpy_system_resource = {
-    "system_resource",
-    (PyCFunction)bpy_system_resource,
-    METH_VARARGS | METH_KEYWORDS,
-    bpy_system_resource_doc,
-};
-static PyMethodDef meth_bpy_resource_path = {
-    "resource_path",
-    (PyCFunction)bpy_resource_path,
-    METH_VARARGS | METH_KEYWORDS,
-    bpy_resource_path_doc,
-};
-static PyMethodDef meth_bpy_driver_secure_code_test = {
-    "_driver_secure_code_test",
-    (PyCFunction)bpy_driver_secure_code_test,
-    METH_VARARGS | METH_KEYWORDS,
-    bpy_driver_secure_code_test_doc,
-};
-static PyMethodDef meth_bpy_escape_identifier = {
-    "escape_identifier",
-    (PyCFunction)bpy_escape_identifier,
-    METH_O,
-    bpy_escape_identifier_doc,
-};
-static PyMethodDef meth_bpy_unescape_identifier = {
-    "unescape_identifier",
-    (PyCFunction)bpy_unescape_identifier,
-    METH_O,
-    bpy_unescape_identifier_doc,
-};
-static PyMethodDef meth_bpy_context_members = {
-    "context_members",
-    (PyCFunction)bpy_context_members,
-    METH_NOARGS,
-    bpy_context_members_doc,
-};
-static PyMethodDef meth_bpy_rna_enum_items_static = {
-    "rna_enum_items_static",
-    (PyCFunction)bpy_rna_enum_items_static,
-    METH_NOARGS,
-    bpy_rna_enum_items_static_doc,
+static PyMethodDef bpy_methods[] = {
+    {"script_paths", (PyCFunction)bpy_script_paths, METH_NOARGS, bpy_script_paths_doc},
+    {"blend_paths",
+     (PyCFunction)bpy_blend_paths,
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_blend_paths_doc},
+    {"flip_name", (PyCFunction)bpy_flip_name, METH_VARARGS | METH_KEYWORDS, bpy_flip_name_doc},
+    {"user_resource", (PyCFunction)bpy_user_resource, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"system_resource",
+     (PyCFunction)bpy_system_resource,
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_system_resource_doc},
+    {"resource_path",
+     (PyCFunction)bpy_resource_path,
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_resource_path_doc},
+    {"_driver_secure_code_test",
+     (PyCFunction)bpy_driver_secure_code_test,
+     METH_VARARGS | METH_KEYWORDS,
+     bpy_driver_secure_code_test_doc},
+    {"escape_identifier", (PyCFunction)bpy_escape_identifier, METH_O, bpy_escape_identifier_doc},
+    {"unescape_identifier",
+     (PyCFunction)bpy_unescape_identifier,
+     METH_O,
+     bpy_unescape_identifier_doc},
+    {"context_members", (PyCFunction)bpy_context_members, METH_NOARGS, bpy_context_members_doc},
+    {"rna_enum_items_static",
+     (PyCFunction)bpy_rna_enum_items_static,
+     METH_NOARGS,
+     bpy_rna_enum_items_static_doc},
+    {NULL, NULL, 0, NULL},
 };
 
 static PyObject *bpy_import_test(const char *modname)
@@ -682,38 +648,12 @@ void BPy_init_modules(struct bContext *C)
   /* Register methods and property get/set for RNA types. */
   BPY_rna_types_extend_capi();
 
-  /* utility func's that have nowhere else to go */
-  PyModule_AddObject(mod,
-                     meth_bpy_script_paths.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_script_paths, NULL));
-  PyModule_AddObject(
-      mod, meth_bpy_blend_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_blend_paths, NULL));
-  PyModule_AddObject(mod,
-                     meth_bpy_user_resource.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_user_resource, NULL));
-  PyModule_AddObject(mod,
-                     meth_bpy_system_resource.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_system_resource, NULL));
-  PyModule_AddObject(mod,
-                     meth_bpy_resource_path.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_resource_path, NULL));
-  PyModule_AddObject(mod,
-                     meth_bpy_driver_secure_code_test.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_driver_secure_code_test, NULL));
-  PyModule_AddObject(mod,
-                     meth_bpy_escape_identifier.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_escape_identifier, NULL));
-  PyModule_AddObject(mod,
-                     meth_bpy_unescape_identifier.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_unescape_identifier, NULL));
-  PyModule_AddObject(
-      mod, meth_bpy_flip_name.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_flip_name, NULL));
-  PyModule_AddObject(mod,
-                     meth_bpy_context_members.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_context_members, NULL));
-  PyModule_AddObject(mod,
-                     meth_bpy_rna_enum_items_static.ml_name,
-                     (PyObject *)PyCFunction_New(&meth_bpy_rna_enum_items_static, NULL));
+  for (int i = 0; bpy_methods[i].ml_name; i++) {
+    PyMethodDef *m = &bpy_methods[i];
+    /* Currently there is no need to support these. */
+    BLI_assert((m->ml_flags & (METH_CLASS | METH_STATIC)) == 0);
+    PyModule_AddObject(mod, m->ml_name, (PyObject *)PyCFunction_New(m, NULL));
+  }
 
   /* register funcs (bpy_rna.c) */
   PyModule_AddObject(mod,
