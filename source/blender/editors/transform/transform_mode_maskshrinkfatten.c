@@ -90,7 +90,7 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
         }
 
         /* apply PET */
-        *td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
+        *td->val = interpf(*td->val, td->ival, td->factor);
         if (*td->val <= 0.0f) {
           *td->val = 0.001f;
         }
