@@ -457,6 +457,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       SDL_Keycode sym = sdl_sub_evt.keysym.sym;
       GHOST_TEventType type = (sdl_sub_evt.state == SDL_PRESSED) ? GHOST_kEventKeyDown :
                                                                    GHOST_kEventKeyUp;
+      const bool is_repeat = sdl_sub_evt.repeat != 0;
 
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
@@ -596,7 +597,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
         }
       }
 
-      g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, sym, nullptr, false);
+      g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, sym, nullptr, is_repeat);
       break;
     }
   }
