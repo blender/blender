@@ -324,7 +324,7 @@ ccl_device void integrator_intersect_closest(KernelGlobals kg,
   /* Read ray from integrator state into local memory. */
   Ray ray ccl_optional_struct_init;
   integrator_state_read_ray(kg, state, &ray);
-  kernel_assert(ray.t != 0.0f);
+  kernel_assert(ray.tmax != 0.0f);
 
   const uint visibility = path_state_ray_visibility(state);
   const int last_isect_prim = INTEGRATOR_STATE(state, isect, prim);
@@ -332,12 +332,12 @@ ccl_device void integrator_intersect_closest(KernelGlobals kg,
 
   /* Trick to use short AO rays to approximate indirect light at the end of the path. */
   if (path_state_ao_bounce(kg, state)) {
-    ray.t = kernel_data.integrator.ao_bounces_distance;
+    ray.tmax = kernel_data.integrator.ao_bounces_distance;
 
     if (last_isect_object != OBJECT_NONE) {
       const float object_ao_distance = kernel_data_fetch(objects, last_isect_object).ao_distance;
       if (object_ao_distance != 0.0f) {
-        ray.t = object_ao_distance;
+        ray.tmax = object_ao_distance;
       }
     }
   }

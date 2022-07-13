@@ -75,13 +75,9 @@ ccl_device_inline void integrate_transparent_volume_shadow(KernelGlobals kg,
   ray.self.light_object = OBJECT_NONE;
   ray.self.light_prim = PRIM_NONE;
   /* Modify ray position and length to match current segment. */
-  const float start_t = (hit == 0) ? 0.0f :
-                                     INTEGRATOR_STATE_ARRAY(state, shadow_isect, hit - 1, t);
-  const float end_t = (hit < num_recorded_hits) ?
-                          INTEGRATOR_STATE_ARRAY(state, shadow_isect, hit, t) :
-                          ray.t;
-  ray.P += start_t * ray.D;
-  ray.t = end_t - start_t;
+  ray.tmin = (hit == 0) ? ray.tmin : INTEGRATOR_STATE_ARRAY(state, shadow_isect, hit - 1, t);
+  ray.tmax = (hit < num_recorded_hits) ? INTEGRATOR_STATE_ARRAY(state, shadow_isect, hit, t) :
+                                         ray.tmax;
 
   shader_setup_from_volume(kg, shadow_sd, &ray);
 
@@ -137,10 +133,7 @@ ccl_device_inline bool integrate_transparent_shadow(KernelGlobals kg,
     /* There are more hits that we could not recorded due to memory usage,
      * adjust ray to intersect again from the last hit. */
     const float last_hit_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, num_recorded_hits - 1, t);
-    const float3 ray_P = INTEGRATOR_STATE(state, shadow_ray, P);
-    const float3 ray_D = INTEGRATOR_STATE(state, shadow_ray, D);
-    INTEGRATOR_STATE_WRITE(state, shadow_ray, P) = ray_P + last_hit_t * ray_D;
-    INTEGRATOR_STATE_WRITE(state, shadow_ray, t) -= last_hit_t;
+    INTEGRATOR_STATE_WRITE(state, shadow_ray, tmin) = intersection_t_offset(last_hit_t);
   }
 
   return false;

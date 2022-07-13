@@ -17,7 +17,8 @@ ccl_device_forceinline void integrator_state_write_ray(KernelGlobals kg,
 {
   INTEGRATOR_STATE_WRITE(state, ray, P) = ray->P;
   INTEGRATOR_STATE_WRITE(state, ray, D) = ray->D;
-  INTEGRATOR_STATE_WRITE(state, ray, t) = ray->t;
+  INTEGRATOR_STATE_WRITE(state, ray, tmin) = ray->tmin;
+  INTEGRATOR_STATE_WRITE(state, ray, tmax) = ray->tmax;
   INTEGRATOR_STATE_WRITE(state, ray, time) = ray->time;
   INTEGRATOR_STATE_WRITE(state, ray, dP) = ray->dP;
   INTEGRATOR_STATE_WRITE(state, ray, dD) = ray->dD;
@@ -29,7 +30,8 @@ ccl_device_forceinline void integrator_state_read_ray(KernelGlobals kg,
 {
   ray->P = INTEGRATOR_STATE(state, ray, P);
   ray->D = INTEGRATOR_STATE(state, ray, D);
-  ray->t = INTEGRATOR_STATE(state, ray, t);
+  ray->tmin = INTEGRATOR_STATE(state, ray, tmin);
+  ray->tmax = INTEGRATOR_STATE(state, ray, tmax);
   ray->time = INTEGRATOR_STATE(state, ray, time);
   ray->dP = INTEGRATOR_STATE(state, ray, dP);
   ray->dD = INTEGRATOR_STATE(state, ray, dD);
@@ -42,7 +44,8 @@ ccl_device_forceinline void integrator_state_write_shadow_ray(
 {
   INTEGRATOR_STATE_WRITE(state, shadow_ray, P) = ray->P;
   INTEGRATOR_STATE_WRITE(state, shadow_ray, D) = ray->D;
-  INTEGRATOR_STATE_WRITE(state, shadow_ray, t) = ray->t;
+  INTEGRATOR_STATE_WRITE(state, shadow_ray, tmin) = ray->tmin;
+  INTEGRATOR_STATE_WRITE(state, shadow_ray, tmax) = ray->tmax;
   INTEGRATOR_STATE_WRITE(state, shadow_ray, time) = ray->time;
   INTEGRATOR_STATE_WRITE(state, shadow_ray, dP) = ray->dP;
 }
@@ -53,7 +56,8 @@ ccl_device_forceinline void integrator_state_read_shadow_ray(KernelGlobals kg,
 {
   ray->P = INTEGRATOR_STATE(state, shadow_ray, P);
   ray->D = INTEGRATOR_STATE(state, shadow_ray, D);
-  ray->t = INTEGRATOR_STATE(state, shadow_ray, t);
+  ray->tmin = INTEGRATOR_STATE(state, shadow_ray, tmin);
+  ray->tmax = INTEGRATOR_STATE(state, shadow_ray, tmax);
   ray->time = INTEGRATOR_STATE(state, shadow_ray, time);
   ray->dP = INTEGRATOR_STATE(state, shadow_ray, dP);
   ray->dD = differential_zero_compact();

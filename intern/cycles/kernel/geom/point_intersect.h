@@ -9,8 +9,12 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __POINTCLOUD__
 
-ccl_device_forceinline bool point_intersect_test(
-    const float4 point, const float3 P, const float3 dir, const float tmax, ccl_private float *t)
+ccl_device_forceinline bool point_intersect_test(const float4 point,
+                                                 const float3 P,
+                                                 const float3 dir,
+                                                 const float tmin,
+                                                 const float tmax,
+                                                 ccl_private float *t)
 {
   const float3 center = float4_to_float3(point);
   const float radius = point.w;
@@ -28,12 +32,12 @@ ccl_device_forceinline bool point_intersect_test(
 
   const float td = sqrt((r2 - l2) * rd2);
   const float t_front = projC0 - td;
-  const bool valid_front = (0.0f <= t_front) & (t_front <= tmax);
+  const bool valid_front = (tmin <= t_front) & (t_front <= tmax);
 
   /* Always back-face culling for now. */
 #  if 0
   const float t_back = projC0 + td;
-  const bool valid_back = (0.0f <= t_back) & (t_back <= tmax);
+  const bool valid_back = (tmin <= t_back) & (t_back <= tmax);
 
   /* check if there is a first hit */
   const bool valid_first = valid_front | valid_back;
@@ -56,6 +60,7 @@ ccl_device_forceinline bool point_intersect(KernelGlobals kg,
                                             ccl_private Intersection *isect,
                                             const float3 P,
                                             const float3 dir,
+                                            const float tmin,
                                             const float tmax,
                                             const int object,
                                             const int prim,
@@ -65,7 +70,7 @@ ccl_device_forceinline bool point_intersect(KernelGlobals kg,
   const float4 point = (type & PRIMITIVE_MOTION) ? motion_point(kg, object, prim, time) :
                                                    kernel_data_fetch(points, prim);
 
-  if (!point_intersect_test(point, P, dir, tmax, &isect->t)) {
+  if (!point_intersect_test(point, P, dir, tmin, tmax, &isect->t)) {
     return false;
   }
 

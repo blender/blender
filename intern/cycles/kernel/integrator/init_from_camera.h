@@ -86,7 +86,7 @@ ccl_device bool integrator_init_from_camera(KernelGlobals kg,
     /* Generate camera ray. */
     Ray ray;
     integrate_camera_sample(kg, sample, x, y, rng_hash, &ray);
-    if (ray.t == 0.0f) {
+    if (ray.tmax == 0.0f) {
       return true;
     }
 

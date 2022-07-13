@@ -175,8 +175,8 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
-             0.0f,
-             ray->t,
+             ray->tmin,
+             ray->tmax,
              ray->time,
              ray_mask,
              ray_flags,
@@ -203,28 +203,28 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 #elif defined(__METALRT__)
 
   if (!scene_intersect_valid(ray)) {
-    isect->t = ray->t;
+    isect->t = ray->tmax;
     isect->type = PRIMITIVE_NONE;
     return false;
   }
 
 #  if defined(__KERNEL_DEBUG__)
   if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
-    isect->t = ray->t;
+    isect->t = ray->tmax;
     isect->type = PRIMITIVE_NONE;
     kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
     return false;
   }
 
   if (is_null_intersection_function_table(metal_ancillaries->ift_default)) {
-    isect->t = ray->t;
+    isect->t = ray->tmax;
     isect->type = PRIMITIVE_NONE;
     kernel_assert(!"Invalid ift_default");
     return false;
   }
 #  endif
 
-  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
 
   if (!kernel_data.bvh.have_curves) {
@@ -263,7 +263,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 #  endif
 
   if (intersection.type == intersection_type::none) {
-    isect->t = ray->t;
+    isect->t = ray->tmax;
     isect->type = PRIMITIVE_NONE;
 
     return false;
@@ -296,7 +296,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 
 #  ifdef __EMBREE__
   if (kernel_data.device_bvh) {
-    isect->t = ray->t;
+    isect->t = ray->tmax;
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_REGULAR);
     IntersectContext rtc_ctx(&ctx);
     RTCRayHit ray_hit;
@@ -360,8 +360,8 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
-             0.0f,
-             ray->t,
+             ray->tmin,
+             ray->tmax,
              ray->time,
              0xFF,
              /* Need to always call into __anyhit__kernel_optix_local_hit. */
@@ -405,7 +405,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   }
 #    endif
 
-  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
 
   metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
@@ -476,7 +476,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
         float3 dir = ray->D;
         float3 idir = ray->D;
         Transform ob_itfm;
-        rtc_ray.tfar = ray->t *
+        rtc_ray.tfar = ray->tmax *
                        bvh_instance_motion_push(kg, local_object, ray, &P, &dir, &idir, &ob_itfm);
         /* bvh_instance_motion_push() returns the inverse transform but
          * it's not needed here. */
@@ -542,8 +542,8 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
-             0.0f,
-             ray->t,
+             ray->tmin,
+             ray->tmax,
              ray->time,
              ray_mask,
              /* Need to always call into __anyhit__kernel_optix_shadow_all_hit. */
@@ -582,7 +582,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   }
 #    endif
 
-  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
 
   metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
@@ -701,8 +701,8 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
   optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
-             0.0f,
-             ray->t,
+             ray->tmin,
+             ray->tmax,
              ray->time,
              ray_mask,
              /* Need to always call into __anyhit__kernel_optix_volume_test. */
@@ -744,7 +744,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
   }
 #    endif
 
-  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
 
   metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);

@@ -18,7 +18,8 @@ ccl_device_forceinline Transform bvh_unaligned_node_fetch_space(KernelGlobals kg
 ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals kg,
                                                       const float3 P,
                                                       const float3 idir,
-                                                      const float t,
+                                                      const float tmin,
+                                                      const float tmax,
                                                       const int node_addr,
                                                       const uint visibility,
                                                       float dist[2])
@@ -39,8 +40,8 @@ ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals kg,
   float c0hiy = (node1.z - P.y) * idir.y;
   float c0loz = (node2.x - P.z) * idir.z;
   float c0hiz = (node2.z - P.z) * idir.z;
-  float c0min = max4(0.0f, min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz));
-  float c0max = min4(t, max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz));
+  float c0min = max4(tmin, min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz));
+  float c0max = min4(tmax, max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz));
 
   float c1lox = (node0.y - P.x) * idir.x;
   float c1hix = (node0.w - P.x) * idir.x;
@@ -48,8 +49,8 @@ ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals kg,
   float c1hiy = (node1.w - P.y) * idir.y;
   float c1loz = (node2.y - P.z) * idir.z;
   float c1hiz = (node2.w - P.z) * idir.z;
-  float c1min = max4(0.0f, min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz));
-  float c1max = min4(t, max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz));
+  float c1min = max4(tmin, min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz));
+  float c1max = min4(tmax, max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz));
 
   dist[0] = c0min;
   dist[1] = c1min;
@@ -66,7 +67,8 @@ ccl_device_forceinline int bvh_aligned_node_intersect(KernelGlobals kg,
 ccl_device_forceinline bool bvh_unaligned_node_intersect_child(KernelGlobals kg,
                                                                const float3 P,
                                                                const float3 dir,
-                                                               const float t,
+                                                               const float tmin,
+                                                               const float tmax,
                                                                int node_addr,
                                                                int child,
                                                                float dist[2])
@@ -83,8 +85,8 @@ ccl_device_forceinline bool bvh_unaligned_node_intersect_child(KernelGlobals kg,
   const float far_x = max(lower_xyz.x, upper_xyz.x);
   const float far_y = max(lower_xyz.y, upper_xyz.y);
   const float far_z = max(lower_xyz.z, upper_xyz.z);
-  const float tnear = max4(0.0f, near_x, near_y, near_z);
-  const float tfar = min4(t, far_x, far_y, far_z);
+  const float tnear = max4(tmin, near_x, near_y, near_z);
+  const float tfar = min4(tmax, far_x, far_y, far_z);
   *dist = tnear;
   return tnear <= tfar;
 }
@@ -93,7 +95,8 @@ ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals kg,
                                                         const float3 P,
                                                         const float3 dir,
                                                         const float3 idir,
-                                                        const float t,
+                                                        const float tmin,
+                                                        const float tmax,
                                                         const int node_addr,
                                                         const uint visibility,
                                                         float dist[2])
@@ -102,7 +105,7 @@ ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals kg,
 #ifdef __VISIBILITY_FLAG__
   float4 cnodes = kernel_data_fetch(bvh_nodes, node_addr + 0);
 #endif
-  if (bvh_unaligned_node_intersect_child(kg, P, dir, t, node_addr, 0, &dist[0])) {
+  if (bvh_unaligned_node_intersect_child(kg, P, dir, tmin, tmax, node_addr, 0, &dist[0])) {
 #ifdef __VISIBILITY_FLAG__
     if ((__float_as_uint(cnodes.x) & visibility))
 #endif
@@ -110,7 +113,7 @@ ccl_device_forceinline int bvh_unaligned_node_intersect(KernelGlobals kg,
       mask |= 1;
     }
   }
-  if (bvh_unaligned_node_intersect_child(kg, P, dir, t, node_addr, 1, &dist[1])) {
+  if (bvh_unaligned_node_intersect_child(kg, P, dir, tmin, tmax, node_addr, 1, &dist[1])) {
 #ifdef __VISIBILITY_FLAG__
     if ((__float_as_uint(cnodes.y) & visibility))
 #endif
@@ -125,16 +128,17 @@ ccl_device_forceinline int bvh_node_intersect(KernelGlobals kg,
                                               const float3 P,
                                               const float3 dir,
                                               const float3 idir,
-                                              const float t,
+                                              const float tmin,
+                                              const float tmax,
                                               const int node_addr,
                                               const uint visibility,
                                               float dist[2])
 {
   float4 node = kernel_data_fetch(bvh_nodes, node_addr);
   if (__float_as_uint(node.x) & PATH_RAY_NODE_UNALIGNED) {
-    return bvh_unaligned_node_intersect(kg, P, dir, idir, t, node_addr, visibility, dist);
+    return bvh_unaligned_node_intersect(kg, P, dir, idir, tmin, tmax, node_addr, visibility, dist);
   }
   else {
-    return bvh_aligned_node_intersect(kg, P, idir, t, node_addr, visibility, dist);
+    return bvh_aligned_node_intersect(kg, P, idir, tmin, tmax, node_addr, visibility, dist);
   }
 }

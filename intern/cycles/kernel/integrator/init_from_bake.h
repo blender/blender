@@ -174,7 +174,8 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     Ray ray ccl_optional_struct_init;
     ray.P = zero_float3();
     ray.D = normalize(P);
-    ray.t = FLT_MAX;
+    ray.tmin = 0.0f;
+    ray.tmax = FLT_MAX;
     ray.time = 0.5f;
     ray.dP = differential_zero_compact();
     ray.dD = differential_zero_compact();
@@ -210,7 +211,8 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     Ray ray ccl_optional_struct_init;
     ray.P = P + N;
     ray.D = -N;
-    ray.t = FLT_MAX;
+    ray.tmin = 0.0f;
+    ray.tmax = FLT_MAX;
     ray.time = 0.5f;
 
     /* Setup differentials. */

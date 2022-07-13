@@ -49,6 +49,7 @@ ccl_device_inline
   float3 P = ray->P;
   float3 dir = bvh_clamp_direction(ray->D);
   float3 idir = bvh_inverse_direction(dir);
+  float tmin = ray->tmin;
   int object = OBJECT_NONE;
   uint num_hits = 0;
 
@@ -59,12 +60,12 @@ ccl_device_inline
   /* Max distance in world space. May be dynamically reduced when max number of
    * recorded hits is exceeded and we no longer need to find hits beyond the max
    * distance found. */
-  float t_max_world = ray->t;
+  float t_max_world = ray->tmax;
 
   /* Current maximum distance to the intersection.
    * Is calculated as a ray length, transformed to an object space when entering
    * instance node. */
-  float t_max_current = ray->t;
+  float t_max_current = ray->tmax;
 
   /* Conversion from world to local space for the current instance if any, 1.0
    * otherwise. */
@@ -88,6 +89,7 @@ ccl_device_inline
                                        dir,
 #endif
                                        idir,
+                                       tmin,
                                        t_max_current,
                                        node_addr,
                                        visibility,
@@ -156,8 +158,16 @@ ccl_device_inline
 
             switch (type & PRIMITIVE_ALL) {
               case PRIMITIVE_TRIANGLE: {
-                hit = triangle_intersect(
-                    kg, &isect, P, dir, t_max_current, visibility, prim_object, prim, prim_addr);
+                hit = triangle_intersect(kg,
+                                         &isect,
+                                         P,
+                                         dir,
+                                         tmin,
+                                         t_max_current,
+                                         visibility,
+                                         prim_object,
+                                         prim,
+                                         prim_addr);
                 break;
               }
 #if BVH_FEATURE(BVH_MOTION)
@@ -166,6 +176,7 @@ ccl_device_inline
                                                 &isect,
                                                 P,
                                                 dir,
+                                                tmin,
                                                 t_max_current,
                                                 ray->time,
                                                 visibility,
@@ -189,8 +200,16 @@ ccl_device_inline
                 }
 
                 const int curve_type = kernel_data_fetch(prim_type, prim_addr);
-                hit = curve_intersect(
-                    kg, &isect, P, dir, t_max_current, prim_object, prim, ray->time, curve_type);
+                hit = curve_intersect(kg,
+                                      &isect,
+                                      P,
+                                      dir,
+                                      tmin,
+                                      t_max_current,
+                                      prim_object,
+                                      prim,
+                                      ray->time,
+                                      curve_type);
 
                 break;
               }
@@ -207,8 +226,16 @@ ccl_device_inline
                 }
 
                 const int point_type = kernel_data_fetch(prim_type, prim_addr);
-                hit = point_intersect(
-                    kg, &isect, P, dir, t_max_current, prim_object, prim, ray->time, point_type);
+                hit = point_intersect(kg,
+                                      &isect,
+                                      P,
+                                      dir,
+                                      tmin,
+                                      t_max_current,
+                                      prim_object,
+                                      prim,
+                                      ray->time,
+                                      point_type);
                 break;
               }
 #endif /* BVH_FEATURE(BVH_POINTCLOUD) */
@@ -302,6 +329,7 @@ ccl_device_inline
 
           /* Convert intersection to object space. */
           t_max_current *= t_world_to_instance;
+          tmin *= t_world_to_instance;
 
           ++stack_ptr;
           kernel_assert(stack_ptr < BVH_STACK_SIZE);
@@ -323,7 +351,8 @@ ccl_device_inline
 #endif
 
       /* Restore world space ray length. */
-      t_max_current = ray->t;
+      tmin = ray->tmin;
+      t_max_current = ray->tmax;
 
       object = OBJECT_NONE;
       t_world_to_instance = 1.0f;

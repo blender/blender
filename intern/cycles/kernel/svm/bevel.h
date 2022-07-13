@@ -179,7 +179,8 @@ ccl_device float3 svm_bevel(
     Ray ray ccl_optional_struct_init;
     ray.P = sd->P + disk_N * disk_height + disk_P;
     ray.D = -disk_N;
-    ray.t = 2.0f * disk_height;
+    ray.tmin = 0.0f;
+    ray.tmax = 2.0f * disk_height;
     ray.dP = differential_zero_compact();
     ray.dD = differential_zero_compact();
     ray.time = sd->time;

@@ -535,7 +535,8 @@ typedef struct RaySelfPrimitives {
 typedef struct Ray {
   float3 P;   /* origin */
   float3 D;   /* direction */
-  float t;    /* length of the ray */
+  float tmin; /* start distance */
+  float tmax; /* end distance */
   float time; /* time (for motion blur) */
 
   RaySelfPrimitives self;
