@@ -63,7 +63,7 @@ static void library_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
 IDTypeInfo IDType_ID_LI = {
     .id_code = ID_LI,
-    .id_filter = 0,
+    .id_filter = FILTER_ID_LI,
     .main_listbase_index = INDEX_ID_LI,
     .struct_size = sizeof(Library),
     .name = "Library",

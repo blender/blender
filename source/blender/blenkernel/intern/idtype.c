@@ -227,7 +227,8 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
     CASE_IDFILTER_NONE(IP);
     CASE_IDFILTER(KE);
     CASE_IDFILTER(LA);
-    CASE_IDFILTER_NONE(LI);
+    CASE_IDFILTER(LI);
+    CASE_IDFILTER(LP);
     CASE_IDFILTER(LS);
     CASE_IDFILTER(LT);
     CASE_IDFILTER(MA);
@@ -241,12 +242,11 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
     CASE_IDFILTER(PAL);
     CASE_IDFILTER(PC);
     CASE_IDFILTER(PT);
-    CASE_IDFILTER(LP);
     CASE_IDFILTER(SCE);
     CASE_IDFILTER(SCR);
     CASE_IDFILTER(SIM);
-    CASE_IDFILTER(SPK);
     CASE_IDFILTER(SO);
+    CASE_IDFILTER(SPK);
     CASE_IDFILTER(TE);
     CASE_IDFILTER(TXT);
     CASE_IDFILTER(VF);
@@ -269,6 +269,8 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
   case FILTER_ID_##_id: \
     return ID_##_id
 
+#define CASE_IDFILTER_NONE(_id) (void)0
+
   switch (idfilter) {
     CASE_IDFILTER(AC);
     CASE_IDFILTER(AR);
@@ -280,8 +282,11 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
     CASE_IDFILTER(GR);
     CASE_IDFILTER(CV);
     CASE_IDFILTER(IM);
+    CASE_IDFILTER_NONE(IP);
     CASE_IDFILTER(KE);
     CASE_IDFILTER(LA);
+    CASE_IDFILTER(LI);
+    CASE_IDFILTER(LP);
     CASE_IDFILTER(LS);
     CASE_IDFILTER(LT);
     CASE_IDFILTER(MA);
@@ -295,12 +300,11 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
     CASE_IDFILTER(PAL);
     CASE_IDFILTER(PC);
     CASE_IDFILTER(PT);
-    CASE_IDFILTER(LP);
     CASE_IDFILTER(SCE);
     CASE_IDFILTER(SCR);
     CASE_IDFILTER(SIM);
-    CASE_IDFILTER(SPK);
     CASE_IDFILTER(SO);
+    CASE_IDFILTER(SPK);
     CASE_IDFILTER(TE);
     CASE_IDFILTER(TXT);
     CASE_IDFILTER(VF);
@@ -314,6 +318,7 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
   return 0;
 
 #undef CASE_IDFILTER
+#undef CASE_IDFILTER_NONE
 }
 
 int BKE_idtype_idcode_to_index(const short idcode)
