@@ -559,6 +559,11 @@ void BKE_camera_view_frame(const Scene *scene, const Camera *camera, float r_vec
 
 #define CAMERA_VIEWFRAME_NUM_PLANES 4
 
+#define Y_MAX 0
+#define Z_MIN 1
+#define Y_MIN 2
+#define Z_MAX 3
+
 typedef struct CameraViewFrameData {
   float plane_tx[CAMERA_VIEWFRAME_NUM_PLANES][4]; /* 4 planes normalized */
   float dist_vals[CAMERA_VIEWFRAME_NUM_PLANES];   /* distance (signed) */
@@ -623,10 +628,10 @@ static void camera_frame_fit_data_init(const Scene *scene,
 
   /* Extract frustum planes from projection matrix. */
   planes_from_projmat(params->winmat,
-                      data->plane_tx[2],
-                      data->plane_tx[0],
-                      data->plane_tx[1],
-                      data->plane_tx[3],
+                      data->plane_tx[Y_MIN],
+                      data->plane_tx[Y_MAX],
+                      data->plane_tx[Z_MIN],
+                      data->plane_tx[Z_MAX],
                       NULL,
                       NULL);
 
@@ -670,19 +675,21 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
     const float *dists = data->dist_vals;
     float scale_diff;
 
-    if ((dists[0] + dists[2]) > (dists[1] + dists[3])) {
-      scale_diff = (dists[1] + dists[3]) *
+    if ((dists[Y_MAX] + dists[Y_MIN]) > (dists[Z_MIN] + dists[Z_MAX])) {
+      scale_diff = (dists[Z_MIN] + dists[Z_MAX]) *
                    (BLI_rctf_size_x(&params->viewplane) / BLI_rctf_size_y(&params->viewplane));
     }
     else {
-      scale_diff = (dists[0] + dists[2]) *
+      scale_diff = (dists[Y_MAX] + dists[Y_MIN]) *
                    (BLI_rctf_size_y(&params->viewplane) / BLI_rctf_size_x(&params->viewplane));
     }
     *r_scale = params->ortho_scale - scale_diff;
 
     zero_v3(r_co);
-    madd_v3_v3fl(r_co, cam_axis_x, (dists[2] - dists[0]) * 0.5f + params->shiftx * scale_diff);
-    madd_v3_v3fl(r_co, cam_axis_y, (dists[1] - dists[3]) * 0.5f + params->shifty * scale_diff);
+    madd_v3_v3fl(
+        r_co, cam_axis_x, (dists[Y_MIN] - dists[Y_MAX]) * 0.5f + params->shiftx * scale_diff);
+    madd_v3_v3fl(
+        r_co, cam_axis_y, (dists[Z_MIN] - dists[Z_MAX]) * 0.5f + params->shifty * scale_diff);
     madd_v3_v3fl(r_co, cam_axis_z, -(data->z_range[0] - 1.0f - params->clip_start));
   }
   else {
@@ -698,8 +705,10 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
       plane_from_point_normal_v3(plane_tx[i], co, data->plane_tx[i]);
     }
 
-    if ((!isect_plane_plane_v3(plane_tx[0], plane_tx[2], plane_isect_1, plane_isect_1_no)) ||
-        (!isect_plane_plane_v3(plane_tx[1], plane_tx[3], plane_isect_2, plane_isect_2_no))) {
+    if ((!isect_plane_plane_v3(
+            plane_tx[Y_MAX], plane_tx[Y_MIN], plane_isect_1, plane_isect_1_no)) ||
+        (!isect_plane_plane_v3(
+            plane_tx[Z_MIN], plane_tx[Z_MAX], plane_isect_2, plane_isect_2_no))) {
       return false;
     }
 
@@ -752,6 +761,11 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
   }
   return true;
 }
+
+#undef Y_MIN
+#undef Y_MAX
+#undef Z_MIN
+#undef Z_MAX
 
 bool BKE_camera_view_frame_fit_to_scene(Depsgraph *depsgraph,
                                         const Scene *scene,
