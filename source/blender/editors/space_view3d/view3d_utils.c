@@ -1492,10 +1492,12 @@ static bool view3d_camera_to_view_selected_impl(struct Main *bmain,
           depsgraph, scene, camera_ob_eval, co, &scale, r_clip_start, r_clip_end)) {
     ObjectTfmProtectedChannels obtfm;
     float obmat_new[4][4];
+    bool is_ortho_camera = false;
 
     if ((camera_ob_eval->type == OB_CAMERA) &&
         (((Camera *)camera_ob_eval->data)->type == CAM_ORTHO)) {
       ((Camera *)camera_ob->data)->ortho_scale = scale;
+      is_ortho_camera = true;
     }
 
     copy_m4_m4(obmat_new, camera_ob_eval->obmat);
@@ -1508,6 +1510,9 @@ static bool view3d_camera_to_view_selected_impl(struct Main *bmain,
 
     /* notifiers */
     DEG_id_tag_update_ex(bmain, &camera_ob->id, ID_RECALC_TRANSFORM);
+    if (is_ortho_camera) {
+      DEG_id_tag_update_ex(bmain, camera_ob->data, ID_RECALC_PARAMETERS);
+    }
 
     return true;
   }
