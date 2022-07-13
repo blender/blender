@@ -82,8 +82,6 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_film_frag";
     case FILM_COMP:
       return "eevee_film_comp";
-    case VELOCITY_RESOLVE:
-      return "eevee_velocity_resolve";
     /* To avoid compiler warning about missing case. */
     case MAX_SHADER_TYPE:
       return "";

@@ -56,8 +56,13 @@ void RenderBuffers::acquire(int2 extent, void *owner)
   depth_tx.acquire(extent, GPU_DEPTH24_STENCIL8, owner);
   combined_tx.acquire(extent, color_format, owner);
 
+  bool do_vector_render_pass = inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR;
+  /* Only RG16F when only doing only reprojection or motion blur. */
+  eGPUTextureFormat vector_format = do_vector_render_pass ? GPU_RGBA16F : GPU_RG16F;
+  /* TODO(fclem): Make vector pass allocation optional if no TAA or motion blur is needed. */
+  vector_tx.acquire(extent, vector_format, owner);
+
   normal_tx.acquire(pass_extent(EEVEE_RENDER_PASS_NORMAL), color_format, owner);
-  vector_tx.acquire(pass_extent(EEVEE_RENDER_PASS_VECTOR), color_format, owner);
   diffuse_light_tx.acquire(pass_extent(EEVEE_RENDER_PASS_DIFFUSE_LIGHT), color_format, owner);
   diffuse_color_tx.acquire(pass_extent(EEVEE_RENDER_PASS_DIFFUSE_COLOR), color_format, owner);
   specular_light_tx.acquire(pass_extent(EEVEE_RENDER_PASS_SPECULAR_LIGHT), color_format, owner);

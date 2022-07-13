@@ -27,8 +27,6 @@ namespace blender::eevee {
 
 /** Container for scene velocity data. */
 class VelocityModule {
-  friend class VelocityView;
-
  public:
   struct VelocityObjectData : public VelocityIndex {
     /** ID to retrieve the corresponding #VelocityGeometryData after copy. */
@@ -69,15 +67,6 @@ class VelocityModule {
 
   eVelocityStep step_ = STEP_CURRENT;
 
-  DRWPass *resolve_ps_ = nullptr;
-
-  /** Reference only. Not owned. */
-  GPUTexture *input_depth_tx_;
-  GPUTexture *velocity_view_tx_;
-  GPUTexture *velocity_camera_tx_;
-
-  int3 resolve_dispatch_size_ = int3(1, 1, 1);
-
  public:
   VelocityModule(Instance &inst) : inst_(inst)
   {
@@ -89,6 +78,7 @@ class VelocityModule {
     }
     for (CameraDataBuf *&step_buf : camera_steps) {
       step_buf = new CameraDataBuf();
+      /*  */
     }
   };
 
@@ -121,56 +111,11 @@ class VelocityModule {
 
   void bind_resources(DRWShadingGroup *grp);
 
+  bool camera_has_motion() const;
+
  private:
   bool object_has_velocity(const Object *ob);
   bool object_is_deform(const Object *ob);
-
-  void resolve_camera_motion(GPUTexture *depth_tx,
-                             GPUTexture *velocity_view_tx,
-                             GPUTexture *velocity_camera_tx);
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Velocity
- *
- * \{ */
-
-/**
- * Per view module.
- */
-class VelocityView {
- private:
-  Instance &inst_;
-
-  StringRefNull view_name_;
-
-  TextureFromPool velocity_camera_tx_ = {"velocity_camera_tx_"};
-  TextureFromPool velocity_view_tx_ = {"velocity_view_tx_"};
-
- public:
-  VelocityView(Instance &inst, const char *name) : inst_(inst), view_name_(name){};
-  ~VelocityView(){};
-
-  void sync();
-
-  void acquire(int2 extent);
-  void release();
-
-  void resolve(GPUTexture *depth_tx);
-
-  /**
-   * Getters
-   **/
-  GPUTexture *view_vectors_get() const
-  {
-    return velocity_view_tx_;
-  }
-  GPUTexture *camera_vectors_get() const
-  {
-    return (velocity_camera_tx_.is_valid()) ? velocity_camera_tx_ : velocity_view_tx_;
-  }
 };
 
 /** \} */

@@ -375,7 +375,6 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_surf_lib.glsl
   engines/eevee_next/shaders/eevee_surf_world_frag.glsl
   engines/eevee_next/shaders/eevee_velocity_lib.glsl
-  engines/eevee_next/shaders/eevee_velocity_resolve_comp.glsl
 
   engines/eevee_next/eevee_defines.hh
   engines/eevee_next/eevee_shader_shared.hh

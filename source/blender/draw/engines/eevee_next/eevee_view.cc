@@ -80,7 +80,6 @@ void ShadingView::sync()
 
   // dof_.sync(winmat_p, extent_);
   // mb_.sync(extent_);
-  velocity_.sync();
   // rt_buffer_opaque_.sync(extent_);
   // rt_buffer_refract_.sync(extent_);
   // inst_.hiz_back.view_sync(extent_);
@@ -103,18 +102,20 @@ void ShadingView::render()
 
   RenderBuffers &rbufs = inst_.render_buffers;
   rbufs.acquire(extent_, owner);
-  velocity_.acquire(extent_);
   combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
                       GPU_ATTACHMENT_TEXTURE(rbufs.combined_tx));
   prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
-                     GPU_ATTACHMENT_TEXTURE(velocity_.view_vectors_get()));
+                     GPU_ATTACHMENT_TEXTURE(rbufs.vector_tx));
 
   update_view();
 
   DRW_stats_group_start(name_);
   DRW_view_set_active(render_view_);
 
-  float4 clear_velocity(VELOCITY_INVALID);
+  /* If camera has any motion, compute motion vector in the film pass. Otherwise, we avoid float
+   * precision issue by setting the motion of all static geometry to 0. */
+  float4 clear_velocity = float4(inst_.velocity.camera_has_motion() ? VELOCITY_INVALID : 0.0f);
+
   GPU_framebuffer_bind(prepass_fb_);
   GPU_framebuffer_clear_color(prepass_fb_, clear_velocity);
   /* Alpha stores transmittance. So start at 1. */
@@ -137,18 +138,14 @@ void ShadingView::render()
   // inst_.lights.debug_draw(view_fb_);
   // inst_.shadows.debug_draw(view_fb_);
 
-  velocity_.resolve(rbufs.depth_tx);
-
   // GPUTexture *final_radiance_tx = render_post(combined_tx_);
 
   inst_.film.accumulate(sub_view_);
 
   rbufs.release();
+  postfx_tx_.release();
 
   DRW_stats_group_end();
-
-  postfx_tx_.release();
-  velocity_.release();
 }
 
 GPUTexture *ShadingView::render_post(GPUTexture *input_tx)

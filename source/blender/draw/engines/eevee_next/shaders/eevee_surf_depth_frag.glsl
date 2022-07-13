@@ -72,14 +72,7 @@ void main()
 #endif
 
 #ifdef MAT_VELOCITY
-  vec4 out_velocity_camera; /* TODO(fclem): Panoramic cameras. */
-  velocity_camera(interp.P + motion.prev,
-                  interp.P,
-                  interp.P - motion.next,
-                  out_velocity_camera,
-                  out_velocity_view);
-
-  /* For testing in viewport. */
-  out_velocity_view.zw = vec2(0.0);
+  out_velocity = velocity_surface(interp.P + motion.prev, interp.P, interp.P - motion.next);
+  out_velocity = velocity_pack(out_velocity);
 #endif
 }

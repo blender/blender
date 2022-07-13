@@ -11,7 +11,7 @@ void main()
     out_depth = imageLoad(depth_img, texel_film).r;
 
     if (film_buf.display_id == -1) {
-      out_color = imageLoad(in_combined_img, texel_film);
+      out_color = texelFetch(in_combined_tx, texel_film, 0);
     }
     else if (film_buf.display_is_value) {
       out_color.rgb = imageLoad(value_accum_img, ivec3(texel_film, film_buf.display_id)).rrr;

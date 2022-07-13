@@ -8,6 +8,12 @@
  * The film class handles accumulation of samples with any distorted camera_type
  * using a pixel filter. Inputs needs to be jittered so that the filter converges to the right
  * result.
+ *
+ * In viewport, we switch between 2 accumulation mode depending on the scene state.
+ * - For static scene, we use a classic weighted accumulation.
+ * - For dynamic scene (if an update is detected), we use a more temporally stable accumulation
+ *   following the Temporal Anti-Aliasing method (a.k.a. Temporal Super-Sampling). This does
+ *   history reprojection and rectification to avoid most of the flickering.
  */
 
 #pragma once
@@ -75,10 +81,7 @@ class Film {
 
   float2 pixel_jitter_get() const;
 
-  eViewLayerEEVEEPassType enabled_passes_get() const
-  {
-    return enabled_passes_;
-  }
+  eViewLayerEEVEEPassType enabled_passes_get() const;
 
   static bool pass_is_value(eViewLayerEEVEEPassType pass_type)
   {
