@@ -5133,6 +5133,53 @@ static void wm_event_state_update_and_click_set(wmEvent *event,
   wm_event_state_update_and_click_set_ex(event, event_state, is_keyboard, check_double_click);
 }
 
+/* Returns true when the two events corresponds to a press of the same key with the same modifiers.
+ */
+static bool wm_event_is_same_key_press(const wmEvent &event_a, const wmEvent &event_b)
+{
+  if (event_a.val != KM_PRESS || event_b.val != KM_PRESS) {
+    return false;
+  }
+
+  if (event_a.modifier != event_b.modifier || event_a.type != event_b.type) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Returns true if the event is a key press event which is to be ignored and not added to the event
+ * queue.
+ *
+ * A key press event will be ignored if there is already matched key press in the queue.
+ * This avoids the event queue "clogging" in the situations when there is an operator bound to a
+ * key press event and the execution time of the operator is longer than the key repeat.
+ */
+static bool wm_event_is_ignorable_key_press(const wmWindow *win, const wmEvent &event)
+{
+  if (BLI_listbase_is_empty(&win->event_queue)) {
+    /* If the queue is empty never ignore the event.
+     * Empty queue at this point means that the events are handled fast enough, and there is no
+     * reason to ignore anything. */
+    return false;
+  }
+
+  if ((event.flag & WM_EVENT_IS_REPEAT) == 0) {
+    /* Only ignore repeat events from the keyboard, and allow accumulation of non-repeat events.
+     *
+     * The goal of this check is to allow events coming from a keyboard macro software, which can
+     * generate events quicker than the main loop handles them. In this case we want all events to
+     * be handled (unless the keyboard macro software tags them as repeat) because otherwise it
+     * will become impossible to get reliable results of automated events testing. */
+    return false;
+  }
+
+  const wmEvent &last_event = *reinterpret_cast<const wmEvent *>(win->event_queue.last);
+
+  return wm_event_is_same_key_press(last_event, event);
+}
+
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata)
 {
   if (UNLIKELY(G.f & G_FLAG_EVENT_SIMULATE)) {
@@ -5439,7 +5486,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         G.is_break = true;
       }
 
-      wm_event_add(win, &event);
+      if (!wm_event_is_ignorable_key_press(win, event)) {
+        wm_event_add(win, &event);
+      }
 
       break;
     }
