@@ -190,8 +190,8 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   const bool is_light = light_sample_is_light(&ls);
 
   /* Branch off shadow kernel. */
-  INTEGRATOR_SHADOW_PATH_INIT(
-      shadow_state, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, shadow);
+  IntegratorShadowState shadow_state = integrator_shadow_path_init(
+      kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, false);
 
   /* Copy volume stack and enter/exit volume. */
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
@@ -442,7 +442,8 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   ray.dD = differential_zero_compact();
 
   /* Branch off shadow kernel. */
-  INTEGRATOR_SHADOW_PATH_INIT(shadow_state, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, ao);
+  IntegratorShadowState shadow_state = integrator_shadow_path_init(
+      kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, true);
 
   /* Copy volume stack and enter/exit volume. */
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
@@ -604,22 +605,23 @@ ccl_device bool integrate_surface(KernelGlobals kg,
 }
 
 template<uint node_feature_mask = KERNEL_FEATURE_NODE_MASK_SURFACE & ~KERNEL_FEATURE_NODE_RAYTRACE,
-         int current_kernel = DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE>
+         DeviceKernel current_kernel = DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE>
 ccl_device_forceinline void integrator_shade_surface(KernelGlobals kg,
                                                      IntegratorState state,
                                                      ccl_global float *ccl_restrict render_buffer)
 {
   if (integrate_surface<node_feature_mask>(kg, state, render_buffer)) {
     if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SUBSURFACE) {
-      INTEGRATOR_PATH_NEXT(current_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE);
+      integrator_path_next(
+          kg, state, current_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE);
     }
     else {
       kernel_assert(INTEGRATOR_STATE(state, ray, t) != 0.0f);
-      INTEGRATOR_PATH_NEXT(current_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
+      integrator_path_next(kg, state, current_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
     }
   }
   else {
-    INTEGRATOR_PATH_TERMINATE(current_kernel);
+    integrator_path_terminate(kg, state, current_kernel);
   }
 }
 

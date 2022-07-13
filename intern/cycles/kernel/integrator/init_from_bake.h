@@ -181,7 +181,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     integrator_state_write_ray(kg, state, &ray);
 
     /* Setup next kernel to execute. */
-    INTEGRATOR_PATH_INIT(DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
+    integrator_path_init(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
   }
   else {
     /* Surface baking. */
@@ -247,13 +247,13 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE);
 
     if (use_caustics) {
-      INTEGRATOR_PATH_INIT_SORTED(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE, shader_index);
+      integrator_path_init_sorted(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE, shader_index);
     }
     else if (use_raytrace_kernel) {
-      INTEGRATOR_PATH_INIT_SORTED(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE, shader_index);
+      integrator_path_init_sorted(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE, shader_index);
     }
     else {
-      INTEGRATOR_PATH_INIT_SORTED(DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE, shader_index);
+      integrator_path_init_sorted(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE, shader_index);
     }
   }
 

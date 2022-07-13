@@ -222,7 +222,7 @@ ccl_device void integrator_intersect_volume_stack(KernelGlobals kg, IntegratorSt
   }
   else {
     /* Volume stack init for camera rays, continue with intersection of camera ray. */
-    INTEGRATOR_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK,
+    integrator_path_next(kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK,
                          DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
   }
 }

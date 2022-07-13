@@ -158,20 +158,20 @@ ccl_device void integrator_shade_shadow(KernelGlobals kg,
   /* Evaluate transparent shadows. */
   const bool opaque = integrate_transparent_shadow(kg, state, num_hits);
   if (opaque) {
-    INTEGRATOR_SHADOW_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
+    integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;
   }
 #endif
 
   if (shadow_intersections_has_remaining(num_hits)) {
     /* More intersections to find, continue shadow ray. */
-    INTEGRATOR_SHADOW_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW,
+    integrator_shadow_path_next(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW,
                                 DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
     return;
   }
   else {
     kernel_accum_light(kg, state, render_buffer);
-    INTEGRATOR_SHADOW_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
+    integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;
   }
 }

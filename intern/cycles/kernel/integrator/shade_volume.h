@@ -774,8 +774,8 @@ ccl_device_forceinline void integrate_volume_direct_light(
   const bool is_light = light_sample_is_light(ls);
 
   /* Branch off shadow kernel. */
-  INTEGRATOR_SHADOW_PATH_INIT(
-      shadow_state, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, shadow);
+  IntegratorShadowState shadow_state = integrator_shadow_path_init(
+      kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, false);
 
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(kg, shadow_state, &ray);
@@ -1032,13 +1032,15 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
 
   if (event == VOLUME_PATH_SCATTERED) {
     /* Queue intersect_closest kernel. */
-    INTEGRATOR_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME,
+    integrator_path_next(kg,
+                         state,
+                         DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME,
                          DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
     return;
   }
   else if (event == VOLUME_PATH_MISSED) {
     /* End path. */
-    INTEGRATOR_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
+    integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
     return;
   }
   else {

@@ -213,7 +213,7 @@ ccl_device void integrator_shade_background(KernelGlobals kg,
   }
 #endif
 
-  INTEGRATOR_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
+  integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
 }
 
 CCL_NAMESPACE_END

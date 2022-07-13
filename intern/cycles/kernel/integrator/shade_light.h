@@ -99,11 +99,11 @@ ccl_device void integrator_shade_light(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, transparent_bounce) = transparent_bounce;
 
   if (transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
-    INTEGRATOR_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT);
+    integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT);
     return;
   }
   else {
-    INTEGRATOR_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT,
+    integrator_path_next(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT,
                          DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
     return;
   }
