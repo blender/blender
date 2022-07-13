@@ -622,15 +622,13 @@ static void camera_frame_fit_data_init(const Scene *scene,
   invert_m4(camera_rotmat_transposed_inversed);
 
   /* Extract frustum planes from projection matrix. */
-  planes_from_projmat(
-      params->winmat,
-      /*   left              right                 top              bottom        near  far */
-      data->plane_tx[2],
-      data->plane_tx[0],
-      data->plane_tx[3],
-      data->plane_tx[1],
-      NULL,
-      NULL);
+  planes_from_projmat(params->winmat,
+                      data->plane_tx[2],
+                      data->plane_tx[0],
+                      data->plane_tx[1],
+                      data->plane_tx[3],
+                      NULL,
+                      NULL);
 
   /* Rotate planes and get normals from them */
   for (uint i = 0; i < CAMERA_VIEWFRAME_NUM_PLANES; i++) {
