@@ -90,6 +90,23 @@ float line_unit_box_intersect_dist_safe(vec3 lineorigin, vec3 linedirection)
   return line_unit_box_intersect_dist(lineorigin, safe_linedirection);
 }
 
+/**
+ * Returns clipping distance (intersection with the nearest plane) with the given axis-aligned
+ * bound box along \a line_direction.
+ * Safe even if \a line_direction is degenerate.
+ * It assumes that an intersection exists (i.e: that \a line_direction points towards the AABB).
+ */
+float line_aabb_clipping_dist(vec3 line_origin, vec3 line_direction, vec3 aabb_min, vec3 aabb_max)
+{
+  vec3 safe_dir = select(line_direction, vec3(1e-5), lessThan(abs(line_direction), vec3(1e-5)));
+  vec3 dir_inv = 1.0 / safe_dir;
+
+  vec3 first_plane = (aabb_min - line_origin) * dir_inv;
+  vec3 second_plane = (aabb_max - line_origin) * dir_inv;
+  vec3 nearest_plane = min(first_plane, second_plane);
+  return max_v3(nearest_plane);
+}
+
 /** \} */
 
 /* ---------------------------------------------------------------------- */
