@@ -559,9 +559,9 @@ void BKE_camera_view_frame(const Scene *scene, const Camera *camera, float r_vec
 
 #define CAMERA_VIEWFRAME_NUM_PLANES 4
 
-#define Y_MAX 0
-#define Z_MIN 1
-#define Y_MIN 2
+#define Y_MIN 0
+#define Y_MAX 1
+#define Z_MIN 2
 #define Z_MAX 3
 
 typedef struct CameraViewFrameData {
@@ -673,23 +673,21 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
     const float *cam_axis_y = data->camera_rotmat[1];
     const float *cam_axis_z = data->camera_rotmat[2];
     const float *dists = data->dist_vals;
-    float scale_diff;
+    const float dist_span_y = dists[Y_MIN] + dists[Y_MAX];
+    const float dist_span_z = dists[Z_MIN] + dists[Z_MAX];
+    const float dist_mid_y = (dists[Y_MIN] - dists[Y_MAX]) * 0.5f;
+    const float dist_mid_z = (dists[Z_MIN] - dists[Z_MAX]) * 0.5f;
+    const float scale_diff = (dist_span_z < dist_span_y) ?
+                                 (dist_span_z * (BLI_rctf_size_x(&params->viewplane) /
+                                                 BLI_rctf_size_y(&params->viewplane))) :
+                                 (dist_span_y * (BLI_rctf_size_y(&params->viewplane) /
+                                                 BLI_rctf_size_x(&params->viewplane)));
 
-    if ((dists[Y_MAX] + dists[Y_MIN]) > (dists[Z_MIN] + dists[Z_MAX])) {
-      scale_diff = (dists[Z_MIN] + dists[Z_MAX]) *
-                   (BLI_rctf_size_x(&params->viewplane) / BLI_rctf_size_y(&params->viewplane));
-    }
-    else {
-      scale_diff = (dists[Y_MAX] + dists[Y_MIN]) *
-                   (BLI_rctf_size_y(&params->viewplane) / BLI_rctf_size_x(&params->viewplane));
-    }
     *r_scale = params->ortho_scale - scale_diff;
 
     zero_v3(r_co);
-    madd_v3_v3fl(
-        r_co, cam_axis_x, (dists[Y_MIN] - dists[Y_MAX]) * 0.5f + params->shiftx * scale_diff);
-    madd_v3_v3fl(
-        r_co, cam_axis_y, (dists[Z_MIN] - dists[Z_MAX]) * 0.5f + params->shifty * scale_diff);
+    madd_v3_v3fl(r_co, cam_axis_x, dist_mid_y + (params->shiftx * scale_diff));
+    madd_v3_v3fl(r_co, cam_axis_y, dist_mid_z + (params->shifty * scale_diff));
     madd_v3_v3fl(r_co, cam_axis_z, -(data->z_range[0] - 1.0f - params->clip_start));
   }
   else {
