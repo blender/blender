@@ -43,6 +43,12 @@ class CYCLES_PT_integrator_presets(CyclesPresetPanel):
     preset_add_operator = "render.cycles_integrator_preset_add"
 
 
+class CYCLES_PT_performance_presets(CyclesPresetPanel):
+    bl_label = "Performance Presets"
+    preset_subdir = "cycles/performance"
+    preset_add_operator = "render.cycles_performance_preset_add"
+
+
 class CyclesButtonsPanel:
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
@@ -623,6 +629,9 @@ class CYCLES_RENDER_PT_film_pixel_filter(CyclesButtonsPanel, Panel):
 class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
     bl_label = "Performance"
     bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header_preset(self, context):
+        CYCLES_PT_performance_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         pass
@@ -2269,6 +2278,7 @@ classes = (
     CYCLES_PT_sampling_presets,
     CYCLES_PT_viewport_sampling_presets,
     CYCLES_PT_integrator_presets,
+    CYCLES_PT_performance_presets,
     CYCLES_RENDER_PT_sampling,
     CYCLES_RENDER_PT_sampling_viewport,
     CYCLES_RENDER_PT_sampling_viewport_denoise,
