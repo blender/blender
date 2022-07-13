@@ -293,6 +293,23 @@ int MetalDeviceQueue::num_concurrent_busy_states() const
   return result;
 }
 
+int MetalDeviceQueue::num_sort_partitions(const size_t state_size) const
+{
+  /* Sort partitioning becomes less effective when more shaders are in the wavefront. In lieu of a
+   * more sophisticated heuristic we simply disable sort partitioning if the shader count is high.
+   */
+  if (metal_device_->launch_params.data.max_shaders >= 300) {
+    return 1;
+  }
+
+  const int optimal_partition_elements = MetalInfo::optimal_sort_partition_elements(
+      metal_device_->mtlDevice);
+  if (optimal_partition_elements) {
+    return num_concurrent_states(state_size) / optimal_partition_elements;
+  }
+  return 1;
+}
+
 void MetalDeviceQueue::init_execution()
 {
   /* Synchronize all textures and memory copies before executing task. */
@@ -359,7 +376,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
   /* Prepare any non-pointer (i.e. plain-old-data) KernelParamsMetal data */
   /* The plain-old-data is contiguous, continuing to the end of KernelParamsMetal */
   size_t plain_old_launch_data_offset = offsetof(KernelParamsMetal, integrator_state) +
-                                        sizeof(IntegratorStateGPU);
+                                        offsetof(IntegratorStateGPU, sort_partition_divisor);
   size_t plain_old_launch_data_size = sizeof(KernelParamsMetal) - plain_old_launch_data_offset;
   memcpy(init_arg_buffer + globals_offsets + plain_old_launch_data_offset,
          (uint8_t *)&metal_device_->launch_params + plain_old_launch_data_offset,
@@ -416,7 +433,7 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
 
   /* this relies on IntegratorStateGPU layout being contiguous device_ptrs  */
   const size_t pointer_block_end = offsetof(KernelParamsMetal, integrator_state) +
-                                   sizeof(IntegratorStateGPU);
+                                   offsetof(IntegratorStateGPU, sort_partition_divisor);
   for (size_t offset = 0; offset < pointer_block_end; offset += sizeof(device_ptr)) {
     int pointer_index = int(offset / sizeof(device_ptr));
     MetalDevice::MetalMem *mmem = *(

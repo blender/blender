@@ -182,18 +182,19 @@ void PathTraceWorkGPU::alloc_integrator_queue()
 void PathTraceWorkGPU::alloc_integrator_sorting()
 {
   /* Allocate arrays for shader sorting. */
-  const int max_shaders = device_scene_->data.max_shaders;
-  if (integrator_shader_sort_counter_.size() < max_shaders) {
-    integrator_shader_sort_counter_.alloc(max_shaders);
+  num_sort_partitions_ = queue_->num_sort_partitions(estimate_single_state_size());
+  const int sort_buckets = device_scene_->data.max_shaders * num_sort_partitions_;
+  if (integrator_shader_sort_counter_.size() < sort_buckets) {
+    integrator_shader_sort_counter_.alloc(sort_buckets);
     integrator_shader_sort_counter_.zero_to_device();
 
-    integrator_shader_raytrace_sort_counter_.alloc(max_shaders);
+    integrator_shader_raytrace_sort_counter_.alloc(sort_buckets);
     integrator_shader_raytrace_sort_counter_.zero_to_device();
 
-    integrator_shader_mnee_sort_counter_.alloc(max_shaders);
+    integrator_shader_mnee_sort_counter_.alloc(sort_buckets);
     integrator_shader_mnee_sort_counter_.zero_to_device();
 
-    integrator_shader_sort_prefix_sum_.alloc(max_shaders);
+    integrator_shader_sort_prefix_sum_.alloc(sort_buckets);
     integrator_shader_sort_prefix_sum_.zero_to_device();
 
     integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] =
@@ -236,6 +237,10 @@ void PathTraceWorkGPU::alloc_work_memory()
 void PathTraceWorkGPU::init_execution()
 {
   queue_->init_execution();
+
+  /* Setup sort partitioning divisor for better cache utilization. */
+  integrator_state_gpu_.sort_partition_divisor = (int)divide_up(max_num_paths_,
+                                                                num_sort_partitions_);
 
   /* Copy to device side struct in constant memory. */
   device_->const_copy_to(
@@ -486,9 +491,9 @@ void PathTraceWorkGPU::compute_sorted_queued_paths(DeviceKernel kernel,
   /* Compute prefix sum of number of active paths with each shader. */
   {
     const int work_size = 1;
-    int max_shaders = device_scene_->data.max_shaders;
+    int sort_buckets = device_scene_->data.max_shaders * num_sort_partitions_;
 
-    DeviceKernelArguments args(&d_counter, &d_prefix_sum, &max_shaders);
+    DeviceKernelArguments args(&d_counter, &d_prefix_sum, &sort_buckets);
 
     queue_->enqueue(DEVICE_KERNEL_PREFIX_SUM, work_size, args);
   }

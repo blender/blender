@@ -67,9 +67,17 @@ CCL_NAMESPACE_BEGIN
         &kernel_integrator_state.queue_counter->num_queued[current_kernel], 1); \
     INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;
 
+#  ifdef __KERNEL_SORT_PARTITIONING__
+/* Sort first by truncated state index (for good locality), then by key (for good coherence). */
+#    define INTEGRATOR_SORT_KEY(key, state) \
+      (key + kernel_data.max_shaders * (state / kernel_integrator_state.sort_partition_divisor))
+#  else
+#    define INTEGRATOR_SORT_KEY(key, state) (key)
+#  endif
+
 #  define INTEGRATOR_PATH_INIT_SORTED(next_kernel, key) \
     { \
-      const int key_ = key; \
+      const int key_ = INTEGRATOR_SORT_KEY(key, state); \
       atomic_fetch_and_add_uint32( \
           &kernel_integrator_state.queue_counter->num_queued[next_kernel], 1); \
       INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel; \
@@ -79,7 +87,7 @@ CCL_NAMESPACE_BEGIN
     }
 #  define INTEGRATOR_PATH_NEXT_SORTED(current_kernel, next_kernel, key) \
     { \
-      const int key_ = key; \
+      const int key_ = INTEGRATOR_SORT_KEY(key, state); \
       atomic_fetch_and_sub_uint32( \
           &kernel_integrator_state.queue_counter->num_queued[current_kernel], 1); \
       atomic_fetch_and_add_uint32( \

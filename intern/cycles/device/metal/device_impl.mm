@@ -217,6 +217,10 @@ string MetalDevice::get_source(const uint kernel_features)
     build_options += " -D__KERNEL_FEATURES__=" + to_string(kernel_features);
   }
 
+  if (MetalInfo::optimal_sort_partition_elements(mtlDevice) > 0) {
+    build_options += " -D__KERNEL_SORT_PARTITIONING__ ";
+  }
+
   if (use_metalrt) {
     build_options += "-D__METALRT__ ";
     if (motion_blur) {
@@ -652,7 +656,7 @@ void MetalDevice::const_copy_to(const char *name, void *host, size_t size)
   /* Update data storage pointers in launch parameters. */
   if (strcmp(name, "integrator_state") == 0) {
     /* IntegratorStateGPU is contiguous pointers */
-    const size_t pointer_block_size = sizeof(IntegratorStateGPU);
+    const size_t pointer_block_size = offsetof(IntegratorStateGPU, sort_partition_divisor);
     update_launch_pointers(
         offsetof(KernelParamsMetal, integrator_state), host, size, pointer_block_size);
   }

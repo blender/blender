@@ -105,6 +105,14 @@ class DeviceQueue {
    * value. */
   virtual int num_concurrent_busy_states() const = 0;
 
+  /* Number of partitions within which active indices are sorted by material ID.
+   * Using more partitions lets us trade off material coherence for better integrator state fetch
+   * locality. */
+  virtual int num_sort_partitions(const size_t /*state_size*/) const
+  {
+    return 1;
+  }
+
   /* Initialize execution of kernels on this queue.
    *
    * Will, for example, load all data required by the kernels from Device to global or path state.
