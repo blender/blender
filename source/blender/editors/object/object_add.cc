@@ -1349,7 +1349,7 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
       case GP_LRT_OBJECT:
       case GP_LRT_SCENE:
       case GP_LRT_COLLECTION: {
-        ob_name = "Line Art";
+        ob_name = "LineArt";
         break;
       }
       default: {
