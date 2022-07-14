@@ -327,13 +327,16 @@ void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
   for (const int poly_index : IndexRange(mesh.totpoly)) {
     const MPoly &poly = mesh.mpoly[poly_index];
 
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const int loop_index_next = (loop_index == poly.totloop) ? poly.loopstart : (loop_index + 1);
-      const MLoop &loop = mesh.mloop[loop_index];
+    for (const int i : IndexRange(poly.totloop)) {
+      const int next_i = (i + 1) % poly.totloop;
+      const int loop_i = poly.loopstart + i;
+      const int next_loop_i = poly.loopstart + next_i;
+      const MLoop &loop = mesh.mloop[loop_i];
       const int edge_index = loop.e;
+
       loose_edges[edge_index] = false;
 
-      if (!old_values[loop_index] || !old_values[loop_index_next]) {
+      if (!old_values[loop_i] || !old_values[next_loop_i]) {
         r_values[edge_index] = false;
       }
     }
