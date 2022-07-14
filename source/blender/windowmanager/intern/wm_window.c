@@ -1148,7 +1148,6 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
          */
         GHOST_TEventKeyData kdata = {
             .key = GHOST_kKeyUnknown,
-            .ascii = '\0',
             .utf8_buf = {'\0'},
             .is_repeat = false,
         };

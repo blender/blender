@@ -3172,21 +3172,6 @@ static bool ui_textedit_insert_buf(uiBut *but,
   return changed;
 }
 
-static bool ui_textedit_insert_ascii(uiBut *but, uiHandleButtonData *data, char ascii)
-{
-  const char buf[2] = {ascii, '\0'};
-
-  if (UI_but_is_utf8(but) && (BLI_str_utf8_size(buf) == -1)) {
-    printf(
-        "%s: entering invalid ascii char into an ascii key (%d)\n", __func__, (int)(uchar)ascii);
-
-    return false;
-  }
-
-  /* in some cases we want to allow invalid utf8 chars */
-  return ui_textedit_insert_buf(but, data, buf, 1);
-}
-
 static void ui_textedit_move(uiBut *but,
                              uiHandleButtonData *data,
                              eStrCursorJumpDirection direction,
@@ -3897,30 +3882,27 @@ static void ui_do_but_textedit(
       }
     }
 
-    if ((event->ascii || event->utf8_buf[0]) && (retval == WM_UI_HANDLER_CONTINUE)
+    if ((event->utf8_buf[0]) && (retval == WM_UI_HANDLER_CONTINUE)
 #ifdef WITH_INPUT_IME
         && !is_ime_composing && !WM_event_is_ime_switch(event)
 #endif
     ) {
-      char ascii = event->ascii;
+      char utf8_buf_override[2] = {'\0', '\0'};
       const char *utf8_buf = event->utf8_buf;
 
       /* Exception that's useful for number buttons, some keyboard
        * numpads have a comma instead of a period. */
       if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) { /* Could use `data->min`. */
-        if (event->type == EVT_PADPERIOD && ascii == ',') {
-          ascii = '.';
-          utf8_buf = NULL; /* force ascii fallback */
+        if ((event->type == EVT_PADPERIOD) && (utf8_buf[0] == ',')) {
+          utf8_buf_override[0] = '.';
+          utf8_buf = utf8_buf_override;
         }
       }
 
-      if (utf8_buf && utf8_buf[0]) {
+      if (utf8_buf[0]) {
         const int utf8_buf_len = BLI_str_utf8_size(utf8_buf);
         BLI_assert(utf8_buf_len != -1);
-        changed = ui_textedit_insert_buf(but, data, event->utf8_buf, utf8_buf_len);
-      }
-      else {
-        changed = ui_textedit_insert_ascii(but, data, ascii);
+        changed = ui_textedit_insert_buf(but, data, utf8_buf, utf8_buf_len);
       }
 
       retval = WM_UI_HANDLER_BREAK;

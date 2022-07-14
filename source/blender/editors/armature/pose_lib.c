@@ -1578,7 +1578,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
     case EVT_PADMINUS:
       if (pld->searchstr[0]) {
         /* searching... */
-        poselib_preview_handle_search(pld, event->type, event->ascii);
+        poselib_preview_handle_search(pld, event->type, WM_event_utf8_to_ascii(event));
       }
       else {
         /* view manipulation (see above) */
@@ -1589,7 +1589,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, con
 
     /* otherwise, assume that searching might be able to handle it */
     default:
-      poselib_preview_handle_search(pld, event->type, event->ascii);
+      poselib_preview_handle_search(pld, event->type, WM_event_utf8_to_ascii(event));
       break;
   }
 

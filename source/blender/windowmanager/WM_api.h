@@ -1530,6 +1530,7 @@ bool WM_event_is_modal_drag_exit(const struct wmEvent *event,
 bool WM_event_is_mouse_drag(const struct wmEvent *event);
 bool WM_event_is_mouse_drag_or_press(const wmEvent *event);
 int WM_event_drag_direction(const wmEvent *event);
+char WM_event_utf8_to_ascii(const struct wmEvent *event) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Detect motion between selection (callers should only use this for selection picking),

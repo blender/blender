@@ -2088,7 +2088,7 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
     if (winevent->val == KM_PRESS) { /* Prevent double clicks. */
       /* Not using #ISTEXTINPUT anymore because (at least on Windows) some key codes above 255
        * could have printable ascii keys, See T30479. */
-      if (ISKEYBOARD(winevent->type) && (winevent->ascii || winevent->utf8_buf[0])) {
+      if (ISKEYBOARD(winevent->type) && winevent->utf8_buf[0]) {
         return true;
       }
     }
@@ -5042,7 +5042,6 @@ static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win)
     tevent = *event_last;
 
     tevent.flag = (eWM_EventFlag)0;
-    tevent.ascii = '\0';
     tevent.utf8_buf[0] = '\0';
 
     wm_event_custom_clear(&tevent);
@@ -5329,7 +5328,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         break;
       }
 
-      event.ascii = kd->ascii;
       /* Might be not nullptr terminated. */
       memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf));
       if (kd->is_repeat) {
@@ -5341,8 +5339,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
       /* Exclude arrow keys, escape, etc from text input. */
       if (type == GHOST_kEventKeyUp) {
-        event.ascii = '\0';
-
         /* Ghost should do this already for key up. */
         if (event.utf8_buf[0]) {
           CLOG_ERROR(WM_LOG_EVENTS,
@@ -5351,15 +5347,28 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         event.utf8_buf[0] = '\0';
       }
       else {
-        if (event.ascii < 32 && event.ascii > 0) {
-          event.ascii = '\0';
-        }
         if (event.utf8_buf[0] < 32 && event.utf8_buf[0] > 0) {
           event.utf8_buf[0] = '\0';
         }
       }
 
       if (event.utf8_buf[0]) {
+        /* NOTE(@campbellbarton): Detect non-ASCII characters stored in `utf8_buf`,
+         * ideally this would never happen but it can't be ruled out for X11 which has
+         * special handling of Latin1 when building without UTF8 support.
+         * Avoid regressions by adding this conversions, it should eventually be removed. */
+        if ((event.utf8_buf[0] >= 0x80) && (event.utf8_buf[1] == '\0')) {
+          const uint c = (uint)event.utf8_buf[0];
+          int utf8_buf_len = BLI_str_utf8_from_unicode(c, event.utf8_buf, sizeof(event.utf8_buf));
+          CLOG_ERROR(WM_LOG_EVENTS,
+                     "ghost detected non-ASCII single byte character '%u', converting to utf8 "
+                     "('%.*s', length=%d)",
+                     c,
+                     utf8_buf_len,
+                     event.utf8_buf,
+                     utf8_buf_len);
+        }
+
         if (BLI_str_utf8_size(event.utf8_buf) == -1) {
           CLOG_ERROR(WM_LOG_EVENTS,
                      "ghost detected an invalid unicode character '%d'",

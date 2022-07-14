@@ -683,13 +683,11 @@ typedef struct wmEvent {
   /** Region relative mouse position (name convention before Blender 2.5). */
   int mval[2];
   /**
-   * From, ghost if utf8 is enabled for the platform,
-   * #BLI_str_utf8_size() must _always_ be valid, check
-   * when assigning s we don't need to check on every access after.
+   * A single UTF8 encoded character.
+   * #BLI_str_utf8_size() must _always_ return a valid value,
+   * check when assigning so we don't need to check on every access after.
    */
   char utf8_buf[6];
-  /** From ghost, fallback if utf8 isn't set. */
-  char ascii;
 
   /** Modifier states: #KM_SHIFT, #KM_CTRL, #KM_ALT & #KM_OSKEY. */
   uint8_t modifier;

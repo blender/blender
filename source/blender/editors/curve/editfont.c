@@ -1639,7 +1639,7 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   Curve *cu = obedit->data;
   EditFont *ef = cu->editfont;
   static int accentcode = 0;
-  uintptr_t ascii = event->ascii;
+  uintptr_t ascii = WM_event_utf8_to_ascii(event);
   const bool alt = event->modifier & KM_ALT;
   const bool shift = event->modifier & KM_SHIFT;
   const bool ctrl = event->modifier & KM_CTRL;
