@@ -3733,38 +3733,52 @@ static int render_border_exec(bContext *C, wmOperator *op)
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   Render *re = RE_GetSceneRender(scene);
-  RenderData *rd;
-  rctf border;
+  SpaceImage *sima = CTX_wm_space_image(C);
 
   if (re == NULL) {
     /* Shouldn't happen, but better be safe close to the release. */
     return OPERATOR_CANCELLED;
   }
 
-  rd = RE_engine_get_render_data(re);
-  if ((rd->mode & (R_BORDER | R_CROP)) == (R_BORDER | R_CROP)) {
-    BKE_report(op->reports, RPT_INFO, "Can not set border from a cropped render");
-    return OPERATOR_CANCELLED;
-  }
+  /* Get information about the previous render, or current scene if no render yet. */
+  int width, height;
+  BKE_render_resolution(&scene->r, false, &width, &height);
+  const RenderData *rd = ED_space_image_has_buffer(sima) ? RE_engine_get_render_data(re) :
+                                                           &scene->r;
 
-  /* get rectangle from operator */
+  /* Get rectangle from the operator. */
+  rctf border;
   WM_operator_properties_border_to_rctf(op, &border);
   UI_view2d_region_to_view_rctf(&region->v2d, &border, &border);
 
-  /* actually set border */
+  /* Adjust for cropping. */
+  if ((rd->mode & (R_BORDER | R_CROP)) == (R_BORDER | R_CROP)) {
+    border.xmin = rd->border.xmin + border.xmin * (rd->border.xmax - rd->border.xmin);
+    border.xmax = rd->border.xmin + border.xmax * (rd->border.xmax - rd->border.xmin);
+    border.ymin = rd->border.ymin + border.ymin * (rd->border.ymax - rd->border.ymin);
+    border.ymax = rd->border.ymin + border.ymax * (rd->border.ymax - rd->border.ymin);
+  }
+
   CLAMP(border.xmin, 0.0f, 1.0f);
   CLAMP(border.ymin, 0.0f, 1.0f);
   CLAMP(border.xmax, 0.0f, 1.0f);
   CLAMP(border.ymax, 0.0f, 1.0f);
-  scene->r.border = border;
 
-  /* drawing a border surrounding the entire camera view switches off border rendering
-   * or the border covers no pixels */
+  /* Drawing a border surrounding the entire camera view switches off border rendering
+   * or the border covers no pixels. */
   if ((border.xmin <= 0.0f && border.xmax >= 1.0f && border.ymin <= 0.0f && border.ymax >= 1.0f) ||
       (border.xmin == border.xmax || border.ymin == border.ymax)) {
     scene->r.mode &= ~R_BORDER;
   }
   else {
+    /* Snap border to pixel boundaries, so drawing a border within a pixel selects that pixel. */
+    border.xmin = floorf(border.xmin * width) / width;
+    border.xmax = ceilf(border.xmax * width) / width;
+    border.ymin = floorf(border.ymin * height) / height;
+    border.ymax = ceilf(border.ymax * height) / height;
+
+    /* Set border. */
+    scene->r.border = border;
     scene->r.mode |= R_BORDER;
   }
 
