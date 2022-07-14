@@ -682,8 +682,7 @@ void ED_mask_get_size(ScrArea *area, int *width, int *height)
       }
       case SPACE_SEQ: {
         //              Scene *scene = CTX_data_scene(C);
-        //              *width = (scene->r.size * scene->r.xsch) / 100;
-        //              *height = (scene->r.size * scene->r.ysch) / 100;
+        //              BKE_render_resolution(&scene->r, false, width, height);
         break;
       }
       case SPACE_IMAGE: {

@@ -758,8 +758,7 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   WM_jobs_kill_all_except(wm, CTX_wm_screen(C));
 
   /* create offscreen buffer */
-  sizex = (scene->r.size * scene->r.xsch) / 100;
-  sizey = (scene->r.size * scene->r.ysch) / 100;
+  BKE_render_resolution(&scene->r, false, &sizex, &sizey);
 
   /* corrects render size with actual size, not every card supports non-power-of-two dimensions */
   DRW_opengl_context_enable(); /* Off-screen creation needs to be done in DRW context. */

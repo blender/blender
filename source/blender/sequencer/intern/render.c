@@ -1447,8 +1447,8 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
 
   if ((sequencer_view3d_fn && do_seq_gl && camera) && is_thread_main) {
     char err_out[256] = "unknown";
-    const int width = (scene->r.xsch * scene->r.size) / 100;
-    const int height = (scene->r.ysch * scene->r.size) / 100;
+    int width, height;
+    BKE_render_resolution(&scene->r, false, &width, &height);
     const char *viewname = BKE_scene_multiview_render_view_name_get(&scene->r, context->view_id);
 
     unsigned int draw_flags = V3D_OFSDRAW_NONE;

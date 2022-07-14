@@ -5,6 +5,7 @@
 
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_scene.h"
 
 #include "RE_pipeline.h"
 
@@ -164,8 +165,8 @@ void CompositorOperation::execute_region(rcti *rect, unsigned int /*tile_number*
      *                      Full frame
      */
 
-    int full_width = rd->xsch * rd->size / 100;
-    int full_height = rd->ysch * rd->size / 100;
+    int full_width, full_height;
+    BKE_render_resolution(rd, false, &full_width, &full_height);
 
     dx = rd->border.xmin * full_width - (full_width - this->get_width()) / 2.0f;
     dy = rd->border.ymin * full_height - (full_height - this->get_height()) / 2.0f;
@@ -214,8 +215,8 @@ void CompositorOperation::update_memory_buffer_partial(MemoryBuffer *UNUSED(outp
 
 void CompositorOperation::determine_canvas(const rcti &UNUSED(preferred_area), rcti &r_area)
 {
-  int width = rd_->xsch * rd_->size / 100;
-  int height = rd_->ysch * rd_->size / 100;
+  int width, height;
+  BKE_render_resolution(rd_, false, &width, &height);
 
   /* Check actual render resolution with cropping it may differ with cropped border.rendering
    * Fix for T31777 Border Crop gives black (easy). */

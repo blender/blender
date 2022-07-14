@@ -109,8 +109,8 @@ void RenderLayersProg::execute_pixel_sampled(float output[4],
     /* see comment in execute_region describing coordinate mapping,
      * here it simply goes other way around
      */
-    int full_width = rd->xsch * rd->size / 100;
-    int full_height = rd->ysch * rd->size / 100;
+    int full_width, full_height;
+    BKE_render_resolution(rd, false, &full_width, &full_height);
 
     dx = rd->border.xmin * full_width - (full_width - this->get_width()) / 2.0f;
     dy = rd->border.ymin * full_height - (full_height - this->get_height()) / 2.0f;

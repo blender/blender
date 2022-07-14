@@ -1762,8 +1762,7 @@ void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *region, S
       // ED_mask_get_size(C, &width, &height);
 
       //Scene *scene = CTX_data_scene(C);
-      width = (scene->r.size * scene->r.xsch) / 100;
-      height = (scene->r.size * scene->r.ysch) / 100;
+      BKE_render_resolution(&scene->r, false, &width, &height);
 
       ED_mask_draw_region(mask,
                           region,

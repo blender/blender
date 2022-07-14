@@ -2952,6 +2952,20 @@ int BKE_scene_num_threads(const Scene *scene)
   return BKE_render_num_threads(&scene->r);
 }
 
+void BKE_render_resolution(const struct RenderData *r,
+                           const bool use_crop,
+                           int *r_width,
+                           int *r_height)
+{
+  *r_width = (r->xsch * r->size) / 100;
+  *r_height = (r->ysch * r->size) / 100;
+
+  if (use_crop && (r->mode & R_BORDER) && (r->mode & R_CROP)) {
+    *r_width *= BLI_rctf_size_x(&r->border);
+    *r_height *= BLI_rctf_size_y(&r->border);
+  }
+}
+
 int BKE_render_preview_pixel_size(const RenderData *r)
 {
   if (r->preview_pixel_size == 0) {

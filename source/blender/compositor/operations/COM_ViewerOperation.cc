@@ -104,8 +104,8 @@ void ViewerOperation::execute_region(rcti *rect, unsigned int /*tile_number*/)
 
 void ViewerOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
 {
-  const int scene_render_width = rd_->xsch * rd_->size / 100;
-  const int scene_render_height = rd_->ysch * rd_->size / 100;
+  int scene_render_width, scene_render_height;
+  BKE_render_resolution(rd_, false, &scene_render_width, &scene_render_height);
 
   rcti local_preferred = preferred_area;
   local_preferred.xmax = local_preferred.xmin + scene_render_width;

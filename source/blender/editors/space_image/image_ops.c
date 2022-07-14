@@ -45,6 +45,7 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 
