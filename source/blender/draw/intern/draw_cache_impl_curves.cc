@@ -75,12 +75,13 @@ static void curves_batch_cache_init(Curves &curves)
 
   if (!cache) {
     cache = MEM_cnew<CurvesBatchCache>(__func__);
-    BLI_mutex_init(&cache->render_mutex);
     curves.batch_cache = cache;
   }
   else {
     memset(cache, 0, sizeof(*cache));
   }
+
+  BLI_mutex_init(&cache->render_mutex);
 
   cache->is_dirty = false;
 }
