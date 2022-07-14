@@ -1295,6 +1295,15 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
     }
   });
 
+  /* Type counts have to be updated eagerly. */
+  dst_curves.runtime->type_counts.fill(0);
+  for (const RealizeCurveTask &task : tasks) {
+    for (const int i : IndexRange(CURVE_TYPES_NUM)) {
+      dst_curves.runtime->type_counts[i] +=
+          task.curve_info->curves->geometry.runtime->type_counts[i];
+    }
+  }
+
   /* Tag modified attributes. */
   for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
     dst_attribute.finish();
