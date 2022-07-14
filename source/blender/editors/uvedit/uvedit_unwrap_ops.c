@@ -1191,7 +1191,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 /** \name Average UV Islands Scale Operator
  * \{ */
 
-static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
+static int average_islands_scale_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1215,8 +1215,12 @@ static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
     return OPERATOR_CANCELLED;
   }
 
+  /* RNA props */
+  const bool scale_uv = RNA_boolean_get(op->ptr, "scale_uv");
+  const bool shear = RNA_boolean_get(op->ptr, "shear");
+
   ParamHandle *handle = construct_param_handle_multi(scene, objects, objects_len, &options);
-  GEO_uv_parametrizer_average(handle, false);
+  GEO_uv_parametrizer_average(handle, false, scale_uv, shear);
   GEO_uv_parametrizer_flush(handle);
   GEO_uv_parametrizer_delete(handle);
 
@@ -1247,6 +1251,10 @@ void UV_OT_average_islands_scale(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = average_islands_scale_exec;
   ot->poll = ED_operator_uvedit;
+
+  /* properties */
+  RNA_def_boolean(ot->srna, "scale_uv", false, "Non-Uniform", "Scale U and V independently");
+  RNA_def_boolean(ot->srna, "shear", false, "Shear", "Reduce shear within islands");
 }
 
 /** \} */
@@ -1845,7 +1853,7 @@ static void uvedit_unwrap(const Scene *scene,
                                  result_info ? &result_info->count_failed : NULL);
   GEO_uv_parametrizer_lscm_end(handle);
 
-  GEO_uv_parametrizer_average(handle, true);
+  GEO_uv_parametrizer_average(handle, true, false, false);
 
   GEO_uv_parametrizer_flush(handle);
 

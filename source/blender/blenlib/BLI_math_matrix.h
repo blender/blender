@@ -238,6 +238,7 @@ bool invert_m3_ex(float m[3][3], float epsilon);
 bool invert_m3_m3_ex(float m1[3][3], const float m2[3][3], float epsilon);
 
 bool invert_m3(float R[3][3]);
+bool invert_m2_m2(float R[2][2], const float A[2][2]);
 bool invert_m3_m3(float R[3][3], const float A[3][3]);
 bool invert_m4(float R[4][4]);
 bool invert_m4_m4(float R[4][4], const float A[4][4]);

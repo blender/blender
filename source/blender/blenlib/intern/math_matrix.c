@@ -1116,6 +1116,22 @@ double determinant_m3_array_db(const double m[3][3])
           m[2][0] * (m[0][1] * m[1][2] - m[0][2] * m[1][1]));
 }
 
+bool invert_m2_m2(float m1[2][2], const float m2[2][2])
+{
+  adjoint_m2_m2(m1, m2);
+  float det = determinant_m2(m2[0][0], m2[1][0], m2[0][1], m2[1][1]);
+
+  bool success = (det != 0.0f);
+  if (success) {
+    m1[0][0] /= det;
+    m1[1][0] /= det;
+    m1[0][1] /= det;
+    m1[1][1] /= det;
+  }
+
+  return success;
+}
+
 bool invert_m3_ex(float m[3][3], const float epsilon)
 {
   float tmp[3][3];
