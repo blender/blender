@@ -137,8 +137,14 @@ ccl_device_forceinline void mnee_update_light_sample(KernelGlobals kg,
     }
   }
   else if (ls->type == LIGHT_AREA) {
+    float invarea = fabsf(klight->area.invarea);
     ls->D = normalize_len(ls->P - P, &ls->t);
-    ls->pdf = fabsf(klight->area.invarea);
+    ls->pdf = invarea;
+    if (klight->area.tan_spread > 0.f) {
+      ls->eval_fac = 0.25f * invarea;
+      ls->eval_fac *= light_spread_attenuation(
+          ls->D, ls->Ng, klight->area.tan_spread, klight->area.normalize_spread);
+    }
   }
 
   ls->pdf *= kernel_data.integrator.pdf_lights;
