@@ -1194,6 +1194,11 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       }
 #endif
 
+      if (type != GHOST_kEventKeyDown) {
+        ascii = 0;
+        utf8_buf = nullptr;
+      }
+
       g_event = new GHOST_EventKey(
           getMilliSeconds(), type, window, gkey, ascii, utf8_buf, is_repeat);
 
