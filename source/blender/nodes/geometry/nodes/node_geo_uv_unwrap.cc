@@ -121,7 +121,7 @@ static VArray<float3> construct_uv_gvarray(const MeshComponent &component,
   GEO_uv_parametrizer_lscm_begin(handle, false, method == GEO_NODE_UV_UNWRAP_METHOD_ANGLE_BASED);
   GEO_uv_parametrizer_lscm_solve(handle, nullptr, nullptr);
   GEO_uv_parametrizer_lscm_end(handle);
-  GEO_uv_parametrizer_average(handle, true);
+  GEO_uv_parametrizer_average(handle, true, false, false);
   GEO_uv_parametrizer_pack(handle, margin, true, true);
   GEO_uv_parametrizer_flush(handle);
   GEO_uv_parametrizer_delete(handle);

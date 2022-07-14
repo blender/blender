@@ -4260,7 +4260,6 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
   }
 
   for (i = 0; i < phandle->ncharts; i++) {
-    PFace *f;
     chart = phandle->charts[i];
 
     if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
@@ -4298,9 +4297,9 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
             continue;
           }
           float cou[3], cov[3]; /* i.e. Texture "U" and texture "V" in 3D co-ordinates.*/
-          for (int i = 0; i < 3; i++) {
-            cou[i] = m[0][0] * (va->co[i] - vc->co[i]) + m[0][1] * (vb->co[i] - vc->co[i]);
-            cov[i] = m[1][0] * (va->co[i] - vc->co[i]) + m[1][1] * (vb->co[i] - vc->co[i]);
+          for (int k = 0; k < 3; k++) {
+            cou[k] = m[0][0] * (va->co[k] - vc->co[k]) + m[0][1] * (vb->co[k] - vc->co[k]);
+            cov[k] = m[1][0] * (va->co[k] - vc->co[k]) + m[1][1] * (vb->co[k] - vc->co[k]);
           }
           const float weight = p_face_area(f);
           scale_cou += len_v3(cou) * weight;
@@ -4347,7 +4346,7 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
     chart->u.pack.area = 0.0f;    /* 3d area */
     chart->u.pack.rescale = 0.0f; /* UV area, abusing rescale for tmp storage, oh well :/ */
 
-    for (f = chart->faces; f; f = f->nextlink) {
+    for (PFace *f = chart->faces; f; f = f->nextlink) {
       chart->u.pack.area += p_face_area(f);
       chart->u.pack.rescale += fabsf(p_face_uv_area_signed(f));
     }
