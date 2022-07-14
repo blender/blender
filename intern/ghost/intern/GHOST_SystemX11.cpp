@@ -1159,7 +1159,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
         /* Setting unicode on key-up events gives #XLookupNone status. */
         xic = window->getX11_XIC();
-        if (xic && xke->type == KeyPress) {
+        if (xic) {
           Status status;
 
           /* Use utf8 because its not locale repentant, from XORG docs. */
@@ -1213,20 +1213,21 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       if (xke->type == KeyPress && xic) {
         unsigned char c;
         int i = 0;
-        while (1) {
-          /* search character boundary */
-          if ((unsigned char)utf8_buf[i++] > 0x7f) {
+        while (true) {
+          /* Search character boundary. */
+          if ((uchar)utf8_buf[i++] > 0x7f) {
             for (; i < len; ++i) {
               c = utf8_buf[i];
-              if (c < 0x80 || c > 0xbf)
+              if (c < 0x80 || c > 0xbf) {
                 break;
+              }
             }
           }
 
-          if (i >= len)
+          if (i >= len) {
             break;
-
-          /* enqueue previous character */
+          }
+          /* Enqueue previous character. */
           pushEvent(g_event);
 
           g_event = new GHOST_EventKey(
@@ -1234,8 +1235,9 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         }
       }
 
-      if (utf8_buf != utf8_array)
+      if (utf8_buf != utf8_array) {
         free(utf8_buf);
+      }
 #endif
 
       break;
