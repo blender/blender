@@ -639,7 +639,7 @@ int insert_vert_fcurve(
    * - we may calculate twice (due to auto-handle needing to be calculated twice)
    */
   if ((flag & INSERTKEY_FAST) == 0) {
-    calchandles_fcurve(fcu);
+    BKE_fcurve_handles_recalc(fcu);
   }
 
   /* return the index at which the keyframe was added */
@@ -1282,10 +1282,12 @@ static bool insert_keyframe_value(ReportList *reports,
     /* delete keyframe immediately before/after newly added */
     switch (insert_mode) {
       case KEYNEEDED_DELPREV:
-        delete_fcurve_key(fcu, fcu->totvert - 2, 1);
+        BKE_fcurve_delete_key(fcu, fcu->totvert - 2);
+        BKE_fcurve_handles_recalc(fcu);
         break;
       case KEYNEEDED_DELNEXT:
-        delete_fcurve_key(fcu, 1, 1);
+        BKE_fcurve_delete_key(fcu, 1);
+        BKE_fcurve_handles_recalc(fcu);
         break;
     }
 
@@ -1683,7 +1685,8 @@ static bool delete_keyframe_fcurve(AnimData *adt, FCurve *fcu, float cfra)
   i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, cfra, fcu->totvert, &found);
   if (found) {
     /* delete the key at the index (will sanity check + do recalc afterwards) */
-    delete_fcurve_key(fcu, i, 1);
+    BKE_fcurve_delete_key(fcu, i);
+    BKE_fcurve_handles_recalc(fcu);
 
     /* Only delete curve too if it won't be doing anything anymore */
     if (BKE_fcurve_is_empty(fcu)) {
@@ -2709,7 +2712,8 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
           i = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, cfra, fcu->totvert, &found);
           if (found) {
             /* delete the key at the index (will sanity check + do recalc afterwards) */
-            delete_fcurve_key(fcu, i, 1);
+            BKE_fcurve_delete_key(fcu, i);
+            BKE_fcurve_handles_recalc(fcu);
             changed = true;
           }
         }

@@ -24,6 +24,7 @@
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
+#include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -615,7 +616,8 @@ static int poselib_remove_exec(bContext *C, wmOperator *op)
       for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
         /* check if remove */
         if (IS_EQF(bezt->vec[1][0], (float)marker->frame)) {
-          delete_fcurve_key(fcu, i, 1);
+          BKE_fcurve_delete_key(fcu, i);
+          BKE_fcurve_handles_recalc(fcu);
           break;
         }
       }

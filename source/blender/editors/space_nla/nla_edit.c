@@ -2205,7 +2205,7 @@ static int nlaedit_apply_scale_exec(bContext *C, wmOperator *UNUSED(op))
          * applying this scaling */
         ked.data = strip;
         ANIM_animchanneldata_keyframes_loop(
-            &ked, ac.ads, strip->act, ALE_ACT, NULL, bezt_apply_nlamapping, calchandles_fcurve);
+            &ked, ac.ads, strip->act, ALE_ACT, NULL, bezt_apply_nlamapping, BKE_fcurve_handles_recalc);
 
         /* clear scale of strip now that it has been applied,
          * and recalculate the extents of the action now that it has been scaled

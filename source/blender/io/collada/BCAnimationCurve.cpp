@@ -96,7 +96,7 @@ void BCAnimationCurve::create_bezt(float frame, float output)
   bez.f1 = bez.f2 = bez.f3 = SELECT;
   bez.h1 = bez.h2 = HD_AUTO;
   insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
-  calchandles_fcurve(fcu);
+  BKE_fcurve_handles_recalc(fcu);
 }
 
 BCAnimationCurve::~BCAnimationCurve()

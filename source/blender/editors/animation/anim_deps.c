@@ -356,7 +356,7 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
       if (ale->update & ANIM_UPDATE_HANDLES) {
         ale->update &= ~ANIM_UPDATE_HANDLES;
         if (fcu) {
-          calchandles_fcurve(fcu);
+          BKE_fcurve_handles_recalc(fcu);
         }
       }
 

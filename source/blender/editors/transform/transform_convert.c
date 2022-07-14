@@ -769,7 +769,7 @@ void posttrans_fcurve_clean(FCurve *fcu, const int sel_flag, const bool use_hand
           }
           else {
             /* Delete Keyframe */
-            delete_fcurve_key(fcu, i, 0);
+            BKE_fcurve_delete_key(fcu, i);
           }
 
           /* Update count of how many we've deleted
@@ -779,7 +779,7 @@ void posttrans_fcurve_clean(FCurve *fcu, const int sel_flag, const bool use_hand
         }
         else {
           /* Always delete - Unselected keys don't matter */
-          delete_fcurve_key(fcu, i, 0);
+          BKE_fcurve_delete_key(fcu, i);
         }
 
         /* Stop the RK search... we've found our match now */
