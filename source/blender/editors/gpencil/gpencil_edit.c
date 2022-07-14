@@ -3709,35 +3709,44 @@ static int gpencil_stroke_flip_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
   const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+
   bool changed = false;
-  /* read all selected strokes */
+  /* Read all selected strokes. */
   CTX_DATA_BEGIN (C, bGPDlayer *, gpl, editable_gpencil_layers) {
-    bGPDframe *gpf = gpl->actframe;
-    if (gpf == NULL) {
-      continue;
-    }
+    bGPDframe *init_gpf = (is_multiedit) ? gpl->frames.first : gpl->actframe;
 
-    LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
-      if (gps->flag & GP_STROKE_SELECT) {
-        /* skip strokes that are invalid for current view */
-        if (ED_gpencil_stroke_can_use(C, gps) == false) {
+    for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+      if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+        if (gpf == NULL) {
           continue;
         }
-        /* check if the color is editable */
-        if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
-          continue;
-        }
+        LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
+          if (gps->flag & GP_STROKE_SELECT) {
+            /* skip strokes that are invalid for current view */
+            if (ED_gpencil_stroke_can_use(C, gps) == false) {
+              continue;
+            }
+            /* check if the color is editable */
+            if (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false) {
+              continue;
+            }
 
-        if (is_curve_edit) {
-          BKE_report(op->reports, RPT_ERROR, "Not implemented!");
+            if (is_curve_edit) {
+              BKE_report(op->reports, RPT_ERROR, "Not implemented!");
+            }
+            else {
+              /* Flip stroke. */
+              BKE_gpencil_stroke_flip(gps);
+              changed = true;
+            }
+          }
         }
-        else {
-          /* Flip stroke. */
-          BKE_gpencil_stroke_flip(gps);
-        }
-
-        changed = true;
+      }
+      /* If not multi-edit, exit loop. */
+      if (!is_multiedit) {
+        break;
       }
     }
   }
