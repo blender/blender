@@ -1256,9 +1256,8 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
                                keyDown ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,
                                window,
                                key,
-                               ascii,
-                               utf8_char,
-                               is_repeat);
+                               is_repeat,
+                               utf8_char);
 
     // GHOST_PRINTF("%c\n", ascii); // we already get this info via EventPrinter
   }

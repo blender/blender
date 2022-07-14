@@ -2257,8 +2257,8 @@ static void keyboard_handle_key(void *data,
 
   if (wl_surface *focus_surface = input->keyboard.wl_surface) {
     GHOST_IWindow *win = ghost_wl_surface_user_data(focus_surface);
-    input->system->pushEvent(new GHOST_EventKey(
-        input->system->getMilliSeconds(), etype, win, gkey, '\0', utf8_buf, false));
+    input->system->pushEvent(
+        new GHOST_EventKey(input->system->getMilliSeconds(), etype, win, gkey, false, utf8_buf));
   }
 
   /* An existing payload means the key repeat timer is reset and will be added again. */
@@ -2290,9 +2290,8 @@ static void keyboard_handle_key(void *data,
                                              GHOST_kEventKeyDown,
                                              win,
                                              payload->key_data.gkey,
-                                             '\0',
-                                             utf8_buf,
-                                             true));
+                                             true,
+                                             utf8_buf));
       }
     };
     input->key_repeat.timer = input->system->installTimer(

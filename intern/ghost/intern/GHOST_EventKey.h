@@ -22,6 +22,7 @@ class GHOST_EventKey : public GHOST_Event {
    * \param msec: The time this event was generated.
    * \param type: The type of key event.
    * \param key: The key code of the key.
+   * \param is_repeat: Enabled for key repeat events (only for press events).
    */
   GHOST_EventKey(
       uint64_t msec, GHOST_TEventType type, GHOST_IWindow *window, GHOST_TKey key, bool is_repeat)
@@ -38,15 +39,15 @@ class GHOST_EventKey : public GHOST_Event {
    * \param msec: The time this event was generated.
    * \param type: The type of key event.
    * \param key: The key code of the key.
-   * \param ascii: The ascii code for the key event.
+   * \param is_repeat: Enabled for key repeat events (only for press events).
+   * \param utf8_buf: The text associated with this key event (only for press events).
    */
   GHOST_EventKey(uint64_t msec,
                  GHOST_TEventType type,
                  GHOST_IWindow *window,
                  GHOST_TKey key,
-                 char ascii,
-                 const char utf8_buf[6],
-                 bool is_repeat)
+                 bool is_repeat,
+                 const char utf8_buf[6])
       : GHOST_Event(msec, type, window)
   {
     m_keyEventData.key = key;
@@ -55,11 +56,6 @@ class GHOST_EventKey : public GHOST_Event {
     }
     else {
       m_keyEventData.utf8_buf[0] = '\0';
-    }
-    /* TODO(@campbellbarton): phase out `ascii` and always use `utf8_buf`, this needs to be done
-     * on all platforms though, so for now write the ascii into the utf8_buf. */
-    if (m_keyEventData.utf8_buf[0] == '\0' && ascii) {
-      m_keyEventData.utf8_buf[0] = ascii;
     }
     m_keyEventData.is_repeat = is_repeat;
     m_data = &m_keyEventData;

@@ -745,9 +745,8 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
                                                GHOST_kEventKeyDown,
                                                window,
                                                ghost_key_from_keysym(modifiers[i]),
-                                               '\0',
-                                               nullptr,
-                                               false));
+                                               false,
+                                               nullptr));
                 }
               }
             }
@@ -1206,8 +1205,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         }
       }
 
-      g_event = new GHOST_EventKey(
-          getMilliSeconds(), type, window, gkey, '\0', utf8_buf, is_repeat);
+      g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, is_repeat, utf8_buf);
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
       /* when using IM for some languages such as Japanese,
@@ -1232,7 +1230,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
           pushEvent(g_event);
 
           g_event = new GHOST_EventKey(
-              getMilliSeconds(), type, window, gkey, '\0', &utf8_buf[i], is_repeat);
+              getMilliSeconds(), type, window, gkey, is_repeat, &utf8_buf[i]);
         }
       }
 

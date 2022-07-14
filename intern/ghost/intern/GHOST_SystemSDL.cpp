@@ -608,8 +608,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
         utf8_buf[0] = convert_keyboard_event_to_ascii(sdl_sub_evt);
       }
 
-      g_event = new GHOST_EventKey(
-          getMilliSeconds(), type, window, gkey, '\0', utf8_buf, is_repeat);
+      g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, is_repeat, utf8_buf);
       break;
     }
   }
