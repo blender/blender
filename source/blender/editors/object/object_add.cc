@@ -1335,21 +1335,21 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
     const char *ob_name = nullptr;
     switch (type) {
       case GP_EMPTY: {
-        ob_name = "GPencil";
+        ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "GPencil");
         break;
       }
       case GP_MONKEY: {
-        ob_name = "Suzanne";
+        ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "Suzanne");
         break;
       }
       case GP_STROKE: {
-        ob_name = "Stroke";
+        ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "Stroke");
         break;
       }
       case GP_LRT_OBJECT:
       case GP_LRT_SCENE:
       case GP_LRT_COLLECTION: {
-        ob_name = "LineArt";
+        ob_name = CTX_DATA_(BLT_I18NCONTEXT_ID_GPENCIL, "LineArt");
         break;
       }
       default: {
