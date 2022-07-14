@@ -704,7 +704,7 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
     }
 
     if ((!isect_plane_plane_v3(
-            plane_tx[Y_MAX], plane_tx[Y_MIN], plane_isect_1, plane_isect_1_no)) ||
+            plane_tx[Y_MIN], plane_tx[Y_MAX], plane_isect_1, plane_isect_1_no)) ||
         (!isect_plane_plane_v3(
             plane_tx[Z_MIN], plane_tx[Z_MAX], plane_isect_2, plane_isect_2_no))) {
       return false;
@@ -713,28 +713,27 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
     add_v3_v3v3(plane_isect_1_other, plane_isect_1, plane_isect_1_no);
     add_v3_v3v3(plane_isect_2_other, plane_isect_2, plane_isect_2_no);
 
-    if (isect_line_line_v3(plane_isect_1,
-                           plane_isect_1_other,
-                           plane_isect_2,
-                           plane_isect_2_other,
-                           plane_isect_pt_1,
-                           plane_isect_pt_2) == 0) {
+    if (!isect_line_line_v3(plane_isect_1,
+                            plane_isect_1_other,
+                            plane_isect_2,
+                            plane_isect_2_other,
+                            plane_isect_pt_1,
+                            plane_isect_pt_2)) {
       return false;
     }
 
     float cam_plane_no[3];
     float plane_isect_delta[3];
-    float plane_isect_delta_len;
 
-    float shift_fac = BKE_camera_sensor_size(
-                          params->sensor_fit, params->sensor_x, params->sensor_y) /
-                      params->lens;
+    const float shift_fac = BKE_camera_sensor_size(
+                                params->sensor_fit, params->sensor_x, params->sensor_y) /
+                            params->lens;
 
     /* we want (0, 0, -1) transformed by camera_rotmat, this is a quicker shortcut. */
     negate_v3_v3(cam_plane_no, data->camera_rotmat[2]);
 
     sub_v3_v3v3(plane_isect_delta, plane_isect_pt_2, plane_isect_pt_1);
-    plane_isect_delta_len = len_v3(plane_isect_delta);
+    const float plane_isect_delta_len = len_v3(plane_isect_delta);
 
     if (dot_v3v3(plane_isect_delta, cam_plane_no) > 0.0f) {
       copy_v3_v3(r_co, plane_isect_pt_1);
