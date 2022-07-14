@@ -99,13 +99,9 @@ ccl_device_forceinline void integrator_shadow_path_terminate(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;
 }
 
-#  ifdef __KERNEL_SORT_PARTITIONING__
 /* Sort first by truncated state index (for good locality), then by key (for good coherence). */
-#    define INTEGRATOR_SORT_KEY(key, state) \
-      (key + kernel_data.max_shaders * (state / kernel_integrator_state.sort_partition_divisor))
-#  else
-#    define INTEGRATOR_SORT_KEY(key, state) (key)
-#  endif
+#  define INTEGRATOR_SORT_KEY(key, state) \
+    (key + kernel_data.max_shaders * (state / kernel_integrator_state.sort_partition_divisor))
 
 ccl_device_forceinline void integrator_path_init_sorted(KernelGlobals kg,
                                                         IntegratorState state,

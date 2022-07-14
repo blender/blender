@@ -229,10 +229,6 @@ void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_feat
     global_defines += "#define __KERNEL_FEATURES__ " + to_string(kernel_features) + "\n";
   }
 
-  if (MetalInfo::optimal_sort_partition_elements(mtlDevice) > 0) {
-    build_options += " -D__KERNEL_SORT_PARTITIONING__ ";
-  }
-
   if (use_metalrt) {
     global_defines += "#define __METALRT__\n";
     if (motion_blur) {

@@ -293,21 +293,9 @@ int MetalDeviceQueue::num_concurrent_busy_states() const
   return result;
 }
 
-int MetalDeviceQueue::num_sort_partitions(const size_t state_size) const
+int MetalDeviceQueue::num_sort_partition_elements() const
 {
-  /* Sort partitioning becomes less effective when more shaders are in the wavefront. In lieu of a
-   * more sophisticated heuristic we simply disable sort partitioning if the shader count is high.
-   */
-  if (metal_device_->launch_params.data.max_shaders >= 300) {
-    return 1;
-  }
-
-  const int optimal_partition_elements = MetalInfo::optimal_sort_partition_elements(
-      metal_device_->mtlDevice);
-  if (optimal_partition_elements) {
-    return num_concurrent_states(state_size) / optimal_partition_elements;
-  }
-  return 1;
+  return MetalInfo::optimal_sort_partition_elements(metal_device_->mtlDevice);
 }
 
 void MetalDeviceQueue::init_execution()

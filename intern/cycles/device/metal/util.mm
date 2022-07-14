@@ -82,10 +82,7 @@ int MetalInfo::optimal_sort_partition_elements(id<MTLDevice> device)
    * sorting each partition by material. Partitioning into chunks of 65536 elements results in an
    * overall render time speedup of up to 15%. */
   if (get_device_vendor(device) == METAL_GPU_APPLE) {
-    AppleGPUArchitecture arch = get_apple_gpu_architecture(device);
-    if (arch == APPLE_M1 || arch == APPLE_M2) {
-      return 65536;
-    }
+    return 65536;
   }
   return 0;
 }
