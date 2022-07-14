@@ -34,7 +34,6 @@ int special_transform_moving(TransInfo *t);
 void special_aftertrans_update(struct bContext *C, TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
 void createTransData(struct bContext *C, TransInfo *t);
-bool clipUVTransform(TransInfo *t, float vec[2], bool resize);
 void clipUVData(TransInfo *t);
 void transform_convert_flush_handle2D(TransData *td, TransData2D *td2d, float y_fac);
 /**
