@@ -407,13 +407,13 @@ enum {
   KMI_USER_MODIFIED = (1 << 2),
   KMI_UPDATE = (1 << 3),
   /**
-   * When set, ignore events with #wmEvent.is_repeat enabled.
+   * When set, ignore events with `wmEvent.flag & WM_EVENT_IS_REPEAT` enabled.
    *
    * \note this flag isn't cleared when editing/loading the key-map items,
    * so it may be set in cases which don't make sense (modifier-keys or mouse-motion for example).
    *
    * Knowing if an event may repeat is something set at the operating-systems event handling level
-   * so rely on #wmEvent.is_repeat being false non keyboard events instead of checking if this
+   * so rely on #WM_EVENT_IS_REPEAT being false non keyboard events instead of checking if this
    * flag makes sense.
    *
    * Only used when: `ISKEYBOARD(kmi->type) || (kmi->type == KM_TEXTINPUT)`

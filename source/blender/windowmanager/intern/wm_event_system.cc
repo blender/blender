@@ -2086,8 +2086,6 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
   /* The matching rules. */
   if (kmitype == KM_TEXTINPUT) {
     if (winevent->val == KM_PRESS) { /* Prevent double clicks. */
-      /* Not using #ISTEXTINPUT anymore because (at least on Windows) some key codes above 255
-       * could have printable ascii keys, See T30479. */
       if (ISKEYBOARD(winevent->type) && winevent->utf8_buf[0]) {
         return true;
       }
@@ -5328,7 +5326,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         break;
       }
 
-      /* Might be not nullptr terminated. */
+      /* Might be not null terminated. */
       memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf));
       if (kd->is_repeat) {
         event.flag |= WM_EVENT_IS_REPEAT;
