@@ -6623,7 +6623,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           MenuType *mt = UI_but_menutype_get(but);
           if (mt) {
             if (type == BUT_GET_RNA_LABEL) {
-              tmp = BLI_strdup(mt->label);
+              tmp = BLI_strdup(CTX_TIP_(mt->translation_context, mt->label));
             }
             else {
               /* Not all menus are from Python. */
@@ -6653,7 +6653,7 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
           PanelType *pt = UI_but_paneltype_get(but);
           if (pt) {
             if (type == BUT_GET_RNA_LABEL) {
-              tmp = BLI_strdup(pt->label);
+              tmp = BLI_strdup(CTX_TIP_(pt->translation_context, pt->label));
             }
             else {
               /* Not all panels are from Python. */
