@@ -1642,7 +1642,6 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   const bool alt = event->modifier & KM_ALT;
   const bool shift = event->modifier & KM_SHIFT;
   const bool ctrl = event->modifier & KM_CTRL;
-  int event_type = event->type, event_val = event->val;
   char32_t insert_char_override = 0;
   char32_t inserted_text[2] = {0};
 
@@ -1657,7 +1656,7 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_FINISHED;
   }
 
-  if (event_type == EVT_BACKSPACEKEY) {
+  if (event->type == EVT_BACKSPACEKEY) {
     if (alt && ef->len != 0 && ef->pos > 0) {
       accentcode = true;
     }
@@ -1665,14 +1664,14 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   /* Tab typically exit edit-mode, but we allow it to be typed using modifier keys. */
-  if (event_type == EVT_TABKEY) {
+  if (event->type == EVT_TABKEY) {
     if ((alt || ctrl || shift) == 0) {
       return OPERATOR_PASS_THROUGH;
     }
     insert_char_override = '\t';
   }
 
-  if (event_val && (insert_char_override || event->utf8_buf[0])) {
+  if (insert_char_override || event->utf8_buf[0]) {
     if (insert_char_override) {
       /* Handle case like TAB ('\t'). */
       inserted_text[0] = insert_char_override;
@@ -1712,11 +1711,6 @@ static int insert_text_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     BLI_str_utf32_as_utf8(inserted_utf8, inserted_text, sizeof(inserted_utf8));
     RNA_string_set(op->ptr, "text", inserted_utf8);
-  }
-
-  /* reset property? */
-  if (event_val == 0) {
-    accentcode = false;
   }
 
   return OPERATOR_FINISHED;
