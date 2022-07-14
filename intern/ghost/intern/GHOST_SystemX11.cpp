@@ -1017,7 +1017,9 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     case KeyRelease: {
       XKeyEvent *xke = &(xe->xkey);
       KeySym key_sym;
+      char *utf8_buf = nullptr;
       char ascii;
+
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
       /* utf8_array[] is initial buffer used for Xutf8LookupString().
        * if the length of the utf8 string exceeds this array, allocate
@@ -1026,12 +1028,10 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
        * at the end of this buffer when the constructor of GHOST_EventKey
        * reads 6 bytes regardless of the effective data length. */
       char utf8_array[16 * 6 + 5]; /* 16 utf8 characters */
-      char *utf8_buf = utf8_array;
-      int len = 1; /* at least one null character will be stored */
+      int len = 1;                 /* at least one null character will be stored */
 #else
-      char *utf8_buf = nullptr;
+      char utf8_array[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
 #endif
-
       GHOST_TEventType type = (xke->type == KeyPress) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
 
       GHOST_TKey gkey;
@@ -1151,61 +1151,68 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 #endif
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-      /* Setting unicode on key-up events gives #XLookupNone status. */
-      XIC xic = window->getX11_XIC();
-      if (xic && xke->type == KeyPress) {
-        Status status;
-
-        /* Use utf8 because its not locale repentant, from XORG docs. */
-        if (!(len = Xutf8LookupString(
-                  xic, xke, utf8_buf, sizeof(utf8_array) - 5, &key_sym, &status))) {
-          utf8_buf[0] = '\0';
-        }
-
-        if (status == XBufferOverflow) {
-          utf8_buf = (char *)malloc(len + 5);
-          len = Xutf8LookupString(xic, xke, utf8_buf, len, &key_sym, &status);
-        }
-
-        if (ELEM(status, XLookupChars, XLookupBoth)) {
-          if ((unsigned char)utf8_buf[0] >= 32) { /* not an ascii control character */
-            /* do nothing for now, this is valid utf8 */
-          }
-          else {
-            utf8_buf[0] = '\0';
-          }
-        }
-        else if (status == XLookupKeySym) {
-          /* this key doesn't have a text representation, it is a command
-           * key of some sort */
-        }
-        else {
-          printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
-                 (unsigned int)key_sym,
-                 (status == XLookupNone   ? "XLookupNone" :
-                  status == XLookupKeySym ? "XLookupKeySym" :
-                                            "Unknown status"));
-
-          printf("'%.*s' %p %p\n", len, utf8_buf, xic, m_xim);
-        }
-      }
-      else {
-        utf8_buf[0] = '\0';
-      }
+      /* Only used for key-press. */
+      XIC xic = nullptr;
 #endif
 
-      if (type != GHOST_kEventKeyDown) {
-        ascii = 0;
-        utf8_buf = nullptr;
+      if (xke->type == KeyPress) {
+        utf8_buf = utf8_array;
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+        /* Setting unicode on key-up events gives #XLookupNone status. */
+        xic = window->getX11_XIC();
+        if (xic && xke->type == KeyPress) {
+          Status status;
+
+          /* Use utf8 because its not locale repentant, from XORG docs. */
+          if (!(len = Xutf8LookupString(
+                    xic, xke, utf8_buf, sizeof(utf8_array) - 5, &key_sym, &status))) {
+            utf8_buf[0] = '\0';
+          }
+
+          if (status == XBufferOverflow) {
+            utf8_buf = (char *)malloc(len + 5);
+            len = Xutf8LookupString(xic, xke, utf8_buf, len, &key_sym, &status);
+          }
+
+          if (ELEM(status, XLookupChars, XLookupBoth)) {
+            if ((unsigned char)utf8_buf[0] >= 32) { /* not an ascii control character */
+              /* do nothing for now, this is valid utf8 */
+            }
+            else {
+              utf8_buf[0] = '\0';
+            }
+          }
+          else if (status == XLookupKeySym) {
+            /* this key doesn't have a text representation, it is a command
+             * key of some sort */
+          }
+          else {
+            printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
+                   (unsigned int)key_sym,
+                   (status == XLookupNone   ? "XLookupNone" :
+                    status == XLookupKeySym ? "XLookupKeySym" :
+                                              "Unknown status"));
+
+            printf("'%.*s' %p %p\n", len, utf8_buf, xic, m_xim);
+          }
+        }
+        else {
+          utf8_buf[0] = '\0';
+        }
+#endif
+        if (!utf8_buf[0] && ascii) {
+          utf8_buf[0] = ascii;
+          utf8_buf[1] = '\0';
+        }
       }
 
       g_event = new GHOST_EventKey(
-          getMilliSeconds(), type, window, gkey, ascii, utf8_buf, is_repeat);
+          getMilliSeconds(), type, window, gkey, '\0', utf8_buf, is_repeat);
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
       /* when using IM for some languages such as Japanese,
        * one event inserts multiple utf8 characters */
-      if (xic && xke->type == KeyPress) {
+      if (xke->type == KeyPress && xic) {
         unsigned char c;
         int i = 0;
         while (1) {
