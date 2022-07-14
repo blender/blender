@@ -298,12 +298,14 @@ static void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
     const MPoly &poly = mesh.mpoly[poly_index];
 
     /* For every edge, mix values from the two adjacent corners (the current and next corner). */
-    for (const int loop_index : IndexRange(poly.loopstart, poly.totloop)) {
-      const int loop_index_next = (loop_index + 1) % poly.totloop;
-      const MLoop &loop = mesh.mloop[loop_index];
+    for (const int i : IndexRange(poly.totloop)) {
+      const int next_i = (i + 1) % poly.totloop;
+      const int loop_i = poly.loopstart + i;
+      const int next_loop_i = poly.loopstart + next_i;
+      const MLoop &loop = mesh.mloop[loop_i];
       const int edge_index = loop.e;
-      mixer.mix_in(edge_index, old_values[loop_index]);
-      mixer.mix_in(edge_index, old_values[loop_index_next]);
+      mixer.mix_in(edge_index, old_values[loop_i]);
+      mixer.mix_in(edge_index, old_values[next_loop_i]);
     }
   }
 
