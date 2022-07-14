@@ -3172,6 +3172,13 @@ static bool ui_textedit_insert_buf(uiBut *but,
   return changed;
 }
 
+static bool ui_textedit_insert_ascii(uiBut *but, uiHandleButtonData *data, const char ascii)
+{
+  BLI_assert(isascii(ascii));
+  const char buf[2] = {ascii, '\0'};
+  return ui_textedit_insert_buf(but, data, buf, sizeof(buf) - 1);
+}
+
 static void ui_textedit_move(uiBut *but,
                              uiHandleButtonData *data,
                              eStrCursorJumpDirection direction,
@@ -3934,6 +3941,9 @@ static void ui_do_but_textedit(
   else if (event->type == WM_IME_COMPOSITE_END) {
     changed = true;
   }
+#else
+  /* Prevent the function from being unused. */
+  (void)ui_textedit_insert_ascii;
 #endif
 
   if (changed) {
