@@ -488,7 +488,8 @@ void BKE_fcurve_delete_keys_all(struct FCurve *fcu);
  */
 void BKE_fcurve_handles_recalc(struct FCurve *fcu);
 /**
- * Variant of #BKE_fcurve_handles_recalc() that allows calculating based on a different select flag.
+ * Variant of #BKE_fcurve_handles_recalc() that allows calculating based on a different select
+ * flag.
  *
  * \param handle_sel_flag: The flag (bezt.f1/2/3) value to use to determine selection.
  * Usually `SELECT`, but may want to use a different one at times

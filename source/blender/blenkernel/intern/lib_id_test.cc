@@ -57,7 +57,7 @@ TEST(lib_id_main_sort, local_ids_1)
   test_lib_id_main_sort_check_order({id_a, id_b, id_c});
 }
 
-static void change_lib(Main *bmain, ID *id, Library *lib)
+static void change_lib(Main * /*bmain*/, ID *id, Library *lib)
 {
   id->lib = lib;
 }
