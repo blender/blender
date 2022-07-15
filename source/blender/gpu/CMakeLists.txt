@@ -570,11 +570,7 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
       )
 
     setup_platform_linker_flags(shader_builder)
-
-    target_link_libraries(shader_builder PUBLIC
-      bf_blenkernel
-      buildinfoobj
-    )
+    target_link_libraries(shader_builder PUBLIC buildinfoobj)
   else()
     if(WIN32)
       # We can re-use the manifest from tests.exe here since it's
@@ -589,12 +585,14 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
       ${MANIFEST}
     )
 
-    target_link_libraries(shader_builder PUBLIC
-      bf_blenkernel
-      ${PLATFORM_LINKLIBS}
-    )
   endif()
-
+  target_link_libraries(shader_builder PUBLIC
+    bf_gpu
+    bf_intern_clog
+    bf_blenlib
+    bf_intern_ghost
+    ${PLATFORM_LINKLIBS}
+  )
   target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
 
   set(SRC_BAKED_CREATE_INFOS_FILE ${CMAKE_CURRENT_BINARY_DIR}/shader_baked.hh)
