@@ -2,6 +2,7 @@
  * Copyright 2021-2022 Blender Foundation */
 
 enum {
+  Kernel_DummyConstant,
 #define KERNEL_STRUCT_MEMBER(parent, type, name) KernelData_##parent##_##name,
 #include "kernel/data_template.h"
 };
