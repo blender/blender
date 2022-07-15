@@ -13,6 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
@@ -278,6 +279,17 @@ void ED_armature_bone_rename(Main *bmain,
           }
           default:
             break;
+        }
+      }
+
+      /* fix camera focus */
+      if (ob->type == OB_CAMERA) {
+        Camera *cam = (Camera *)ob->data;
+        if (cam->dof.focus_object->data == arm){
+          if (STREQ(cam->dof.focus_subtarget, oldname)) {
+            BLI_strncpy(cam->dof.focus_subtarget, newname, MAXBONENAME);
+            DEG_id_tag_update(&cam->id, ID_RECALC_COPY_ON_WRITE);
+          }
         }
       }
 

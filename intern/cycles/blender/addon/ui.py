@@ -952,6 +952,8 @@ class CYCLES_CAMERA_PT_dof(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(dof, "focus_object", text="Focus Object")
+        if dof.focus_object and dof.focus_object.type == 'ARMATURE':
+            col.prop_search(dof, "focus_subtarget", dof.focus_object.data, "bones", text="Focus Bone")
 
         sub = col.row()
         sub.active = dof.focus_object is None
