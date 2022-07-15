@@ -188,7 +188,7 @@ class Device {
   }
 
   /* Called after kernel texture setup, and prior to integrator state setup. */
-  virtual void optimize_for_scene(Scene *scene)
+  virtual void optimize_for_scene(Scene * /*scene*/)
   {
   }
 
