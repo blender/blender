@@ -952,7 +952,7 @@ bool RE_engine_render(Render *re, bool do_all)
     re->draw_lock(re->dlh, true);
   }
 
-  if ((type->flag & RE_USE_GPU_CONTEXT) && (GPU_backend_get_type() == GPU_BACKEND_NONE)) {
+  if ((type->flag & RE_USE_GPU_CONTEXT) && !GPU_backend_supported()) {
     /* Clear UI drawing locks. */
     if (re->draw_lock) {
       re->draw_lock(re->dlh, false);
