@@ -54,6 +54,11 @@ typedef unsigned int BLI_bitmap;
    ((BLI_bitmap *)BLI_memarena_calloc(_mem, BLI_BITMAP_SIZE(_num))))
 
 /**
+ * Declares a bitmap as a variable.
+ */
+#define BLI_BITMAP_DECLARE(_name, _num) BLI_bitmap _name[_BITMAP_NUM_BLOCKS(_num)] = {}
+
+/**
  * Get the value of a single bit at '_index'.
  */
 #define BLI_BITMAP_TEST(_bitmap, _index) \
@@ -136,6 +141,12 @@ void BLI_bitmap_and_all(BLI_bitmap *dst, const BLI_bitmap *src, size_t bits);
  * Combine two bitmaps with boolean OR.
  */
 void BLI_bitmap_or_all(BLI_bitmap *dst, const BLI_bitmap *src, size_t bits);
+
+/**
+ * Find index of the lowest unset bit.
+ * Returns -1 if all the bits are set.
+ */
+int BLI_bitmap_find_first_unset(const BLI_bitmap *bitmap, size_t bits);
 
 #ifdef __cplusplus
 }
