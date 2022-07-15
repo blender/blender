@@ -85,10 +85,7 @@ Context *Context::get()
 
 GPUContext *GPU_context_create(void *ghost_window)
 {
-  if (GPUBackend::get() == nullptr) {
-    /* TODO: move where it make sense. */
-    GPU_backend_init(GPU_BACKEND_OPENGL);
-  }
+  GPU_backend_init_once();
 
   Context *ctx = GPUBackend::get()->context_alloc(ghost_window);
 
@@ -212,6 +209,18 @@ bool GPU_backend_supported(eGPUBackendType type)
       BLI_assert(false && "No backend specified");
       return false;
   }
+}
+
+bool GPU_backend_init_once()
+{
+  if (GPUBackend::get() == nullptr) {
+    if (!GPU_backend_supported(GPU_BACKEND_OPENGL)) {
+      return false;
+    }
+    /* TODO: move where it make sense. */
+    GPU_backend_init(GPU_BACKEND_OPENGL);
+  }
+  return true;
 }
 
 void GPU_backend_init(eGPUBackendType backend_type)

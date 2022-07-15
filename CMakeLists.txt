@@ -574,6 +574,10 @@ mark_as_advanced(
   WITH_GPU_BUILDTIME_SHADER_BUILDER
 )
 
+if(WITH_HEADLESS)
+  set(WITH_OPENGL OFF)
+endif()
+
 # Metal
 
 if (APPLE)

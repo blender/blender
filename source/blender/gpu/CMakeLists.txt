@@ -5,7 +5,7 @@
 # to more easily highlight code-paths in other libraries that need to be refactored,
 # bf_gpu is allowed to have opengl regardless of this option.
 
-if(NOT WITH_OPENGL AND NOT WITH_METAL_BACKEND)
+if(NOT WITH_OPENGL AND NOT WITH_METAL_BACKEND AND NOT WITH_HEADLESS)
   add_definitions(-DWITH_OPENGL)
 endif()
 

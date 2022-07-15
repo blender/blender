@@ -169,6 +169,10 @@ void WM_init_opengl(void)
     wm_ghost_init(NULL);
   }
 
+  if (!GPU_backend_init_once()) {
+    return;
+  }
+
   /* Needs to be first to have an OpenGL context bound. */
   DRW_opengl_context_create();
 
