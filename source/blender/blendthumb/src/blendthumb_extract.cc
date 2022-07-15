@@ -121,6 +121,9 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
   while (file_read(file, bhead_data, bhead_size)) {
     /* Parse type and size from `BHead`. */
     const int32_t block_size = bytes_to_native_i32(&bhead_data[4], endian_switch);
+    if (UNLIKELY(block_size < 0)) {
+      return BT_INVALID_THUMB;
+    }
 
     /* We're looking for the thumbnail, so skip any other block. */
     switch (*((int32_t *)bhead_data)) {
