@@ -98,11 +98,6 @@ static bool is_subdivision_evaluation_possible_on_gpu(void)
     return false;
   }
 
-  const int available_evaluators = openSubdiv_getAvailableEvaluators();
-  if ((available_evaluators & OPENSUBDIV_EVALUATOR_GLSL_COMPUTE) == 0) {
-    return false;
-  }
-
   return true;
 }
 

@@ -31,9 +31,6 @@ extern "C" {
 void openSubdiv_init(void);
 void openSubdiv_cleanup(void);
 
-// Bitmask of eOpenSubdivEvaluator.
-int openSubdiv_getAvailableEvaluators(void);
-
 int openSubdiv_getVersionHex(void);
 
 #ifdef __cplusplus

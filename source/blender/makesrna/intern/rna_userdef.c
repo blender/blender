@@ -38,23 +38,6 @@
 
 #include "BLT_lang.h"
 
-#ifdef WITH_OPENSUBDIV
-static const EnumPropertyItem opensubdiv_compute_type_items[] = {
-    {USER_OPENSUBDIV_COMPUTE_NONE, "NONE", 0, "None", ""},
-    {USER_OPENSUBDIV_COMPUTE_CPU, "CPU", 0, "CPU", ""},
-    {USER_OPENSUBDIV_COMPUTE_OPENMP, "OPENMP", 0, "OpenMP", ""},
-    {USER_OPENSUBDIV_COMPUTE_OPENCL, "OPENCL", 0, "OpenCL", ""},
-    {USER_OPENSUBDIV_COMPUTE_CUDA, "CUDA", 0, "CUDA", ""},
-    {USER_OPENSUBDIV_COMPUTE_GLSL_TRANSFORM_FEEDBACK,
-     "GLSL_TRANSFORM_FEEDBACK",
-     0,
-     "GLSL Transform Feedback",
-     ""},
-    {USER_OPENSUBDIV_COMPUTE_GLSL_COMPUTE, "GLSL_COMPUTE", 0, "GLSL Compute", ""},
-    {0, NULL, 0, NULL, NULL},
-};
-#endif
-
 const EnumPropertyItem rna_enum_preference_section_items[] = {
     {USER_SECTION_INTERFACE, "INTERFACE", 0, "Interface", ""},
     {USER_SECTION_THEME, "THEMES", 0, "Themes", ""},
@@ -188,10 +171,6 @@ static const EnumPropertyItem rna_enum_userdef_viewport_aa_items[] = {
 #  include "MEM_guardedalloc.h"
 
 #  include "UI_interface.h"
-
-#  ifdef WITH_OPENSUBDIV
-#    include "opensubdiv_capi.h"
-#  endif
 
 #  ifdef WITH_SDL_DYNLOAD
 #    include "sdlew.h"
@@ -727,55 +706,6 @@ static PointerRNA rna_Theme_space_list_generic_get(PointerRNA *ptr)
 {
   return rna_pointer_inherit_refine(ptr, &RNA_ThemeSpaceListGeneric, ptr->data);
 }
-
-#  ifdef WITH_OPENSUBDIV
-static const EnumPropertyItem *rna_userdef_opensubdiv_compute_type_itemf(bContext *UNUSED(C),
-                                                                         PointerRNA *UNUSED(ptr),
-                                                                         PropertyRNA *UNUSED(prop),
-                                                                         bool *r_free)
-{
-  EnumPropertyItem *item = NULL;
-  int totitem = 0;
-  int evaluators = openSubdiv_getAvailableEvaluators();
-
-  RNA_enum_items_add_value(
-      &item, &totitem, opensubdiv_compute_type_items, USER_OPENSUBDIV_COMPUTE_NONE);
-
-#    define APPEND_COMPUTE(compute) \
-      if (evaluators & OPENSUBDIV_EVALUATOR_##compute) { \
-        RNA_enum_items_add_value( \
-            &item, &totitem, opensubdiv_compute_type_items, USER_OPENSUBDIV_COMPUTE_##compute); \
-      } \
-      ((void)0)
-
-  APPEND_COMPUTE(CPU);
-  APPEND_COMPUTE(OPENMP);
-  APPEND_COMPUTE(OPENCL);
-  APPEND_COMPUTE(CUDA);
-  APPEND_COMPUTE(GLSL_TRANSFORM_FEEDBACK);
-  APPEND_COMPUTE(GLSL_COMPUTE);
-
-#    undef APPEND_COMPUTE
-
-  RNA_enum_item_end(&item, &totitem);
-  *r_free = true;
-
-  return item;
-}
-
-static void rna_userdef_opensubdiv_update(Main *bmain,
-                                          Scene *UNUSED(scene),
-                                          PointerRNA *UNUSED(ptr))
-{
-  Object *object;
-
-  for (object = bmain->objects.first; object; object = object->id.next) {
-    DEG_id_tag_update(&object->id, ID_RECALC_TRANSFORM);
-  }
-  USERDEF_TAG_DIRTY;
-}
-
-#  endif
 
 static const EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C),
                                                               PointerRNA *UNUSED(ptr),
@@ -5698,17 +5628,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, audio_channel_items);
   RNA_def_property_ui_text(prop, "Audio Channels", "Audio channel count");
   RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
-
-#  ifdef WITH_OPENSUBDIV
-  prop = RNA_def_property(srna, "opensubdiv_compute_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
-  RNA_def_property_enum_sdna(prop, NULL, "opensubdiv_compute_type");
-  RNA_def_property_enum_items(prop, opensubdiv_compute_type_items);
-  RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_userdef_opensubdiv_compute_type_itemf");
-  RNA_def_property_ui_text(
-      prop, "OpenSubdiv Compute Type", "Type of computer back-end used with OpenSubdiv");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_userdef_opensubdiv_update");
-#  endif
 
 #  ifdef WITH_CYCLES
   prop = RNA_def_property(srna, "legacy_compute_device_type", PROP_INT, PROP_NONE);
