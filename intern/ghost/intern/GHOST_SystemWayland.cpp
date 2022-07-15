@@ -2597,7 +2597,17 @@ static void output_handle_done(void *data, struct wl_output * /*wl_output*/)
 
 static void output_handle_scale(void *data, struct wl_output * /*wl_output*/, const int32_t factor)
 {
+  CLOG_INFO(LOG, 2, "scale");
   static_cast<output_t *>(data)->scale = factor;
+
+  if (window_manager) {
+    for (GHOST_IWindow *iwin : window_manager->getWindows()) {
+      GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(iwin);
+      win->outputs_changed_update_scale();
+      /* TODO(@campbellbarton): support refreshing the UI when the DPI changes.
+       * There are glitches when resizing the monitor which would be nice to solve. */
+    }
+  }
 }
 
 static const struct wl_output_listener output_listener = {
