@@ -44,6 +44,12 @@ using namespace blender::gpu;
 
 static thread_local Context *active_ctx = nullptr;
 
+static std::mutex backend_users_mutex;
+static int num_backend_users = 0;
+
+static void gpu_backend_create();
+static void gpu_backend_discard();
+
 /* -------------------------------------------------------------------- */
 /** \name gpu::Context methods
  * \{ */
@@ -86,7 +92,14 @@ Context *Context::get()
 
 GPUContext *GPU_context_create(void *ghost_window)
 {
-  GPU_backend_init_once();
+  {
+    std::scoped_lock lock(backend_users_mutex);
+    if (num_backend_users == 0) {
+      /* Automatically create backend when first context is created. */
+      gpu_backend_create();
+    }
+    num_backend_users++;
+  }
 
   Context *ctx = GPUBackend::get()->context_alloc(ghost_window);
 
@@ -99,6 +112,16 @@ void GPU_context_discard(GPUContext *ctx_)
   Context *ctx = unwrap(ctx_);
   delete ctx;
   active_ctx = nullptr;
+
+  {
+    std::scoped_lock lock(backend_users_mutex);
+    num_backend_users--;
+    BLI_assert(num_backend_users >= 0);
+    if (num_backend_users == 0) {
+      /* Discard backend when last context is discarded. */
+      gpu_backend_discard();
+    }
+  }
 }
 
 void GPU_context_active_set(GPUContext *ctx_)
@@ -189,11 +212,12 @@ void GPU_render_step()
 /** \name Backend selection
  * \{ */
 
+static const eGPUBackendType g_backend_type = GPU_BACKEND_OPENGL;
 static GPUBackend *g_backend = nullptr;
 
-bool GPU_backend_supported(eGPUBackendType type)
+bool GPU_backend_supported(void)
 {
-  switch (type) {
+  switch (g_backend_type) {
     case GPU_BACKEND_OPENGL:
 #ifdef WITH_OPENGL_BACKEND
       return true;
@@ -212,21 +236,12 @@ bool GPU_backend_supported(eGPUBackendType type)
   }
 }
 
-bool GPU_backend_init_once()
+static void gpu_backend_create()
 {
-  if (GPUBackend::get() != nullptr) {
-    return true;
-  }
+  BLI_assert(g_backend == nullptr);
+  BLI_assert(GPU_backend_supported(g_backend_type));
 
-  const eGPUBackendType backend_type = GPU_BACKEND_OPENGL;
-  if (!GPU_backend_supported(backend_type)) {
-    return false;
-  }
-
-  static std::mutex backend_init_mutex;
-  std::scoped_lock lock(backend_init_mutex);
-
-  switch (backend_type) {
+  switch (g_backend_type) {
 #ifdef WITH_OPENGL_BACKEND
     case GPU_BACKEND_OPENGL:
       g_backend = new GLBackend;
@@ -241,8 +256,6 @@ bool GPU_backend_init_once()
       BLI_assert(0);
       break;
   }
-
-  return true;
 }
 
 void gpu_backend_delete_resources()
@@ -251,7 +264,7 @@ void gpu_backend_delete_resources()
   g_backend->delete_resources();
 }
 
-void GPU_backend_exit()
+void gpu_backend_discard()
 {
   /* TODO: assert no resource left. */
   delete g_backend;

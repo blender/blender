@@ -169,7 +169,7 @@ void WM_init_opengl(void)
     wm_ghost_init(NULL);
   }
 
-  if (!GPU_backend_init_once()) {
+  if (!GPU_backend_supported()) {
     return;
   }
 
@@ -613,7 +613,6 @@ void WM_exit_ex(bContext *C, const bool do_python)
   else {
     UI_exit();
   }
-  GPU_backend_exit();
 
   BKE_blender_userdef_data_free(&U, false);
 
