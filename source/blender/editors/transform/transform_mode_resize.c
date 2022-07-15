@@ -126,10 +126,6 @@ static void constrain_scale_to_boundary(const float numerator,
 
 static bool clip_uv_transform_resize(TransInfo *t, float vec[2])
 {
-  /* Assume no change is required. */
-  float scalex = 1.0f;
-  float scaley = 1.0f;
-
   /* Check if the current image in UV editor is a tiled image or not. */
   const SpaceImage *sima = t->area->spacedata.first;
   const Image *image = sima->image;
@@ -150,35 +146,46 @@ static bool clip_uv_transform_resize(TransInfo *t, float vec[2])
     }
   }
 
-  float min[2], max[2];
-  min[0] = min[1] = FLT_MAX;
-  max[0] = max[1] = -FLT_MAX;
+  /* Assume no change is required. */
+  float scale = 1.0f;
 
+  /* Are we scaling U and V together, or just one axis? */
+  const bool adjust_u = !(t->con.mode & CON_AXIS1);
+  const bool adjust_v = !(t->con.mode & CON_AXIS0);
+  const bool use_local_center = transdata_check_local_center(t, t->around);
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    for (TransData *td = tc->data; td < tc->data + tc->data_len; td++) {
 
-    TransData *td;
-    int a;
-    for (a = 0, td = tc->data; a < tc->data_len; a++, td++) {
-      minmax_v2v2_v2(min, max, td->loc);
+      /* Get scale origin. */
+      const float *scale_origin = use_local_center ? td->center : t->center_global;
+
+      /* Alias td->loc as min and max just in case we need to optimize later. */
+      const float *min = td->loc;
+      const float *max = td->loc;
+
+      if (adjust_u) {
+        /* Update U against the left border. */
+        constrain_scale_to_boundary(
+            scale_origin[0] - base_offset[0], scale_origin[0] - min[0], &scale);
+
+        /* Now the right border, negated, because `-1.0 / -1.0 = 1.0` */
+        constrain_scale_to_boundary(
+            base_offset[0] + t->aspect[0] - scale_origin[0], max[0] - scale_origin[0], &scale);
+      }
+
+      /* Do the same for the V co-ordinate. */
+      if (adjust_v) {
+        constrain_scale_to_boundary(
+            scale_origin[1] - base_offset[1], scale_origin[1] - min[1], &scale);
+
+        constrain_scale_to_boundary(
+            base_offset[1] + t->aspect[1] - scale_origin[1], max[1] - scale_origin[1], &scale);
+      }
     }
   }
-
-  /* Update U against the left border. */
-  constrain_scale_to_boundary(
-      t->center_global[0] - base_offset[0], t->center_global[0] - min[0], &scalex);
-  /* Now the right border, negated, because `-1.0 / -1.0 = 1.0` */
-  constrain_scale_to_boundary(
-      base_offset[0] + t->aspect[0] - t->center_global[0], max[0] - t->center_global[0], &scalex);
-
-  /* Do the same for the V co-ordinate, which is called `y`. */
-  constrain_scale_to_boundary(
-      t->center_global[1] - base_offset[1], t->center_global[1] - min[1], &scaley);
-  constrain_scale_to_boundary(
-      base_offset[1] + t->aspect[1] - t->center_global[1], max[1] - t->center_global[1], &scaley);
-
-  vec[0] *= scalex;
-  vec[1] *= scaley;
-  return (scalex != 1.0f) || (scaley != 1.0f);
+  vec[0] *= scale;
+  vec[1] *= scale;
+  return scale != 1.0f;
 }
 
 static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
