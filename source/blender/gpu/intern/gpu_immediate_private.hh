@@ -19,7 +19,7 @@ namespace blender::gpu {
 class Immediate {
  public:
   /** Pointer to the mapped buffer data for the current vertex. */
-  uchar *vertex_data = NULL;
+  uchar *vertex_data = nullptr;
   /** Current vertex index. */
   uint vertex_idx = 0;
   /** Length of the buffer in vertices. */
@@ -32,12 +32,12 @@ class Immediate {
   /** Current draw call specification. */
   GPUPrimType prim_type = GPU_PRIM_NONE;
   GPUVertFormat vertex_format = {};
-  GPUShader *shader = NULL;
+  GPUShader *shader = nullptr;
   /** Enforce strict vertex count (disabled when using #immBeginAtMost). */
   bool strict_vertex_len = true;
 
   /** Batch in construction when using #immBeginBatch. */
-  GPUBatch *batch = NULL;
+  GPUBatch *batch = nullptr;
 
   /** Wide Line workaround. */
 
