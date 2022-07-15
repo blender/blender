@@ -268,7 +268,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Remesh = {
-    /* name */ "Remesh",
+    /* name */ N_("Remesh"),
     /* structName */ "RemeshModifierData",
     /* structSize */ sizeof(RemeshModifierData),
     /* srna */ &RNA_RemeshModifier,

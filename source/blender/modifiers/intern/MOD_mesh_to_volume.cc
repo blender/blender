@@ -15,6 +15,8 @@
 #include "BKE_object.h"
 #include "BKE_volume.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -202,7 +204,7 @@ static void modifyGeometrySet(ModifierData *md,
 }
 
 ModifierTypeInfo modifierType_MeshToVolume = {
-    /* name */ "Mesh to Volume",
+    /* name */ N_("Mesh to Volume"),
     /* structName */ "MeshToVolumeModifierData",
     /* structSize */ sizeof(MeshToVolumeModifierData),
     /* srna */ &RNA_MeshToVolumeModifier,

@@ -559,7 +559,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Cast = {
-    /* name */ "Cast",
+    /* name */ N_("Cast"),
     /* structName */ "CastModifierData",
     /* structSize */ sizeof(CastModifierData),
     /* srna */ &RNA_CastModifier,

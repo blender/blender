@@ -1224,7 +1224,7 @@ static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Explode = {
-    /* name */ "Explode",
+    /* name */ N_("Explode"),
     /* structName */ "ExplodeModifierData",
     /* structSize */ sizeof(ExplodeModifierData),
     /* srna */ &RNA_ExplodeModifier,

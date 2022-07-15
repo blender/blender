@@ -639,7 +639,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Boolean = {
-    /* name */ "Boolean",
+    /* name */ N_("Boolean"),
     /* structName */ "BooleanModifierData",
     /* structSize */ sizeof(BooleanModifierData),
     /* srna */ &RNA_BooleanModifier,

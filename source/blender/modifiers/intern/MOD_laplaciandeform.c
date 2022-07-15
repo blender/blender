@@ -875,7 +875,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_LaplacianDeform = {
-    /* name */ "LaplacianDeform",
+    /* name */ N_("LaplacianDeform"),
     /* structName */ "LaplacianDeformModifierData",
     /* structSize */ sizeof(LaplacianDeformModifierData),
     /* srna */ &RNA_LaplacianDeformModifier,

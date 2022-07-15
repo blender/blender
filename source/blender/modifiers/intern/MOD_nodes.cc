@@ -1825,7 +1825,7 @@ static void requiredDataMask(Object *UNUSED(ob),
 }
 
 ModifierTypeInfo modifierType_Nodes = {
-    /* name */ "GeometryNodes",
+    /* name */ N_("GeometryNodes"),
     /* structName */ "NodesModifierData",
     /* structSize */ sizeof(NodesModifierData),
     /* srna */ &RNA_NodesModifier,
