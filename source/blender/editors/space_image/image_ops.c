@@ -1830,7 +1830,7 @@ static void image_save_options_from_op(Main *bmain, ImageSaveOptions *opts, wmOp
 }
 
 static bool save_image_op(
-    Main *bmain, Image *ima, ImageUser *iuser, wmOperator *op, ImageSaveOptions *opts)
+    Main *bmain, Image *ima, ImageUser *iuser, wmOperator *op, const ImageSaveOptions *opts)
 {
   WM_cursor_wait(true);
 

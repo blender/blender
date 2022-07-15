@@ -204,7 +204,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
   return (ibuf != nullptr);
 }
 
-void BKE_image_save_options_update(ImageSaveOptions *opts, Image *image)
+void BKE_image_save_options_update(ImageSaveOptions *opts, const Image *image)
 {
   /* Auto update color space when changing save as render and file type. */
   if (opts->save_as_render) {
@@ -272,7 +272,7 @@ static void image_save_post(ReportList *reports,
                             Image *ima,
                             ImBuf *ibuf,
                             int ok,
-                            ImageSaveOptions *opts,
+                            const ImageSaveOptions *opts,
                             int save_copy,
                             const char *filepath,
                             bool *r_colorspace_changed)
@@ -359,7 +359,7 @@ static void imbuf_save_post(ImBuf *ibuf, ImBuf *colormanaged_ibuf)
 static bool image_save_single(ReportList *reports,
                               Image *ima,
                               ImageUser *iuser,
-                              ImageSaveOptions *opts,
+                              const ImageSaveOptions *opts,
                               bool *r_colorspace_changed)
 {
   void *lock;
@@ -375,7 +375,7 @@ static bool image_save_single(ReportList *reports,
   ImBuf *colormanaged_ibuf = nullptr;
   const bool save_copy = opts->save_copy;
   const bool save_as_render = opts->save_as_render;
-  ImageFormatData *imf = &opts->im_format;
+  const ImageFormatData *imf = &opts->im_format;
 
   if (ima->type == IMA_TYPE_R_RESULT) {
     /* enforce user setting for RGB or RGBA, but skip BW */
@@ -620,7 +620,7 @@ static bool image_save_single(ReportList *reports,
 }
 
 bool BKE_image_save(
-    ReportList *reports, Main *bmain, Image *ima, ImageUser *iuser, ImageSaveOptions *opts)
+    ReportList *reports, Main *bmain, Image *ima, ImageUser *iuser, const ImageSaveOptions *opts)
 {
   /* For saving a tiled image we need an iuser, so use a local one if there isn't already one. */
   ImageUser save_iuser;

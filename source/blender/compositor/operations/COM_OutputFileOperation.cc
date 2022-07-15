@@ -204,7 +204,7 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(const Scene *scene,
                                                        const RenderData *rd,
                                                        const bNodeTree *tree,
                                                        DataType datatype,
-                                                       ImageFormatData *format,
+                                                       const ImageFormatData *format,
                                                        const char *path,
                                                        const char *view_name,
                                                        const bool save_as_render)

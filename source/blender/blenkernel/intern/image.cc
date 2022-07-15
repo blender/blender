@@ -2475,7 +2475,10 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, const ImageFormatData *imf)
   return ok;
 }
 
-int BKE_imbuf_write_as(ImBuf *ibuf, const char *name, ImageFormatData *imf, const bool save_copy)
+int BKE_imbuf_write_as(ImBuf *ibuf,
+                       const char *name,
+                       const ImageFormatData *imf,
+                       const bool save_copy)
 {
   ImBuf ibuf_back = *ibuf;
   int ok;

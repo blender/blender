@@ -97,7 +97,7 @@ int BKE_imbuf_write(struct ImBuf *ibuf, const char *name, const struct ImageForm
  */
 int BKE_imbuf_write_as(struct ImBuf *ibuf,
                        const char *name,
-                       struct ImageFormatData *imf,
+                       const struct ImageFormatData *imf,
                        bool save_copy);
 
 /**
