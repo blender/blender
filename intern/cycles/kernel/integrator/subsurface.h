@@ -177,17 +177,23 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE);
 
   if (use_caustics) {
-    integrator_path_next_sorted(kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
+    integrator_path_next_sorted(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE,
                                 shader);
   }
   else if (use_raytrace_kernel) {
-    integrator_path_next_sorted(kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
+    integrator_path_next_sorted(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE,
                                 shader);
   }
   else {
-    integrator_path_next_sorted(kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
+    integrator_path_next_sorted(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE,
                                 shader);
   }

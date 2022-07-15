@@ -103,7 +103,9 @@ ccl_device void integrator_shade_light(KernelGlobals kg,
     return;
   }
   else {
-    integrator_path_next(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT,
+    integrator_path_next(kg,
+                         state,
+                         DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT,
                          DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
     return;
   }

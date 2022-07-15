@@ -165,7 +165,9 @@ ccl_device void integrator_shade_shadow(KernelGlobals kg,
 
   if (shadow_intersections_has_remaining(num_hits)) {
     /* More intersections to find, continue shadow ray. */
-    integrator_shadow_path_next(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW,
+    integrator_shadow_path_next(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW,
                                 DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
     return;
   }
