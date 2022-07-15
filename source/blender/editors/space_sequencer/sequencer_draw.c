@@ -245,7 +245,7 @@ typedef struct WaveVizData {
   bool final_sample; /* There are no more samples. */
 } WaveVizData;
 
-static bool seq_draw_waveforms_poll(const bContext *C, SpaceSeq *sseq, Sequence *seq)
+static bool seq_draw_waveforms_poll(const bContext *UNUSED(C), SpaceSeq *sseq, Sequence *seq)
 {
   const bool strip_is_valid = seq->type == SEQ_TYPE_SOUND_RAM && seq->sound != NULL;
   const bool overlays_enabled = (sseq->flag & SEQ_SHOW_OVERLAY) != 0;
@@ -357,7 +357,7 @@ static void draw_waveform(WaveVizData *waveform_data, size_t wave_data_len)
   }
 }
 
-static float align_frame_with_pixel(const View2D *v2d, float frame_coord, float frames_per_pixel)
+static float align_frame_with_pixel(float frame_coord, float frames_per_pixel)
 {
   return round_fl_to_int(frame_coord / frames_per_pixel) * frames_per_pixel;
 }
@@ -416,7 +416,7 @@ static void draw_seq_waveform_overlay(
   float samples_per_pixel = samples_per_frame * frames_per_pixel;
 
   /* Align strip start with nearest pixel to prevent waveform flickering. */
-  const float x1_aligned = align_frame_with_pixel(v2d, x1, frames_per_pixel);
+  const float x1_aligned = align_frame_with_pixel(x1, frames_per_pixel);
   /* Offset x1 and x2 values, to match view min/max, if strip is out of bounds. */
   const float frame_start = max_ff(v2d->cur.xmin, x1_aligned);
   const float frame_end = min_ff(v2d->cur.xmax, x2);
@@ -439,8 +439,8 @@ static void draw_seq_waveform_overlay(
   size_t wave_data_len = 0;
 
   /* Offset must be also aligned, otherwise waveform flickers when moving left handle. */
-  const float strip_offset = align_frame_with_pixel(
-      v2d, seq->startofs + seq->anim_startofs, frames_per_pixel);
+  const float strip_offset = align_frame_with_pixel(seq->startofs + seq->anim_startofs,
+                                                    frames_per_pixel);
   float start_sample = strip_offset * samples_per_frame;
   start_sample += seq->sound->offset_time * SOUND_WAVE_SAMPLES_PER_SECOND;
   /* Add off-screen part of strip to offset. */
