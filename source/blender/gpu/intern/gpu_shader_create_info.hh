@@ -872,6 +872,31 @@ struct ShaderCreateInfo {
     return stream;
   }
 
+  bool has_resource_type(Resource::BindType bind_type) const
+  {
+    for (auto &res : batch_resources_) {
+      if (res.bind_type == bind_type) {
+        return true;
+      }
+    }
+    for (auto &res : pass_resources_) {
+      if (res.bind_type == bind_type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool has_resource_image() const
+  {
+    return has_resource_type(Resource::BindType::IMAGE);
+  }
+
+  bool has_resource_storage() const
+  {
+    return has_resource_type(Resource::BindType::STORAGE_BUFFER);
+  }
+
   /** \} */
 
 #undef TEST_EQUAL
