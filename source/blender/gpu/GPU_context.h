@@ -17,8 +17,11 @@
 extern "C" {
 #endif
 
+/* GPU backends abstract the differences between different APIs. These must be
+ * initialized before creating contexts, and deleted after the last context is
+ * discarded. GPU_context_create automatically initializes a backend if none
+ * exists yet. */
 bool GPU_backend_init_once(void);
-void GPU_backend_init(eGPUBackendType backend);
 void GPU_backend_exit(void);
 bool GPU_backend_supported(eGPUBackendType type);
 

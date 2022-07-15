@@ -27,6 +27,7 @@
 #include "gpu_batch_private.hh"
 #include "gpu_context_private.hh"
 #include "gpu_matrix_private.h"
+#include "gpu_private.h"
 
 #ifdef WITH_OPENGL_BACKEND
 #  include "gl_backend.hh"
@@ -213,20 +214,17 @@ bool GPU_backend_supported(eGPUBackendType type)
 
 bool GPU_backend_init_once()
 {
-  if (GPUBackend::get() == nullptr) {
-    if (!GPU_backend_supported(GPU_BACKEND_OPENGL)) {
-      return false;
-    }
-    /* TODO: move where it make sense. */
-    GPU_backend_init(GPU_BACKEND_OPENGL);
+  if (GPUBackend::get() != nullptr) {
+    return true;
   }
-  return true;
-}
 
-void GPU_backend_init(eGPUBackendType backend_type)
-{
-  BLI_assert(g_backend == nullptr);
-  BLI_assert(GPU_backend_supported(backend_type));
+  const eGPUBackendType backend_type = GPU_BACKEND_OPENGL;
+  if (!GPU_backend_supported(backend_type)) {
+    return false;
+  }
+
+  static std::mutex backend_init_mutex;
+  std::scoped_lock lock(backend_init_mutex);
 
   switch (backend_type) {
 #ifdef WITH_OPENGL_BACKEND
@@ -243,12 +241,19 @@ void GPU_backend_init(eGPUBackendType backend_type)
       BLI_assert(0);
       break;
   }
+
+  return true;
+}
+
+void gpu_backend_delete_resources()
+{
+  BLI_assert(backend);
+  g_backend->delete_resources();
 }
 
 void GPU_backend_exit()
 {
-  /* TODO: assert no resource left. Currently UI textures are still not freed in their context
-   * correctly. */
+  /* TODO: assert no resource left. */
   delete g_backend;
   g_backend = nullptr;
 }
