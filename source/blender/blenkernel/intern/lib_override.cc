@@ -1149,14 +1149,26 @@ static bool lib_override_library_create_do(Main *bmain,
   BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
   lib_override_hierarchy_dependencies_recursive_tag(&data);
 
+  /* In case the operation is on an already partially overridden hierarchy, all existing overrides
+   * in that hierarchy need to be tagged for remapping from linked reference ID usages to newly
+   * created overrides ones. */
+  if (id_hierarchy_root_reference->lib != id_root_reference->lib) {
+    BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root_reference));
+    BLI_assert(id_hierarchy_root_reference->override_library->reference->lib ==
+               id_root_reference->lib);
+
+    BKE_main_relations_tag_set(bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
+    data.hierarchy_root_id = id_hierarchy_root_reference;
+    data.id_root = id_hierarchy_root_reference;
+    data.is_override = true;
+    lib_override_overrides_group_tag(&data);
+  }
+
   BKE_main_relations_free(bmain);
   lib_override_group_tag_data_clear(&data);
 
   bool success = false;
   if (id_hierarchy_root_reference->lib != id_root_reference->lib) {
-    BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_hierarchy_root_reference));
-    BLI_assert(id_hierarchy_root_reference->override_library->reference->lib ==
-               id_root_reference->lib);
     success = BKE_lib_override_library_create_from_tag(bmain,
                                                        owner_library,
                                                        id_root_reference,

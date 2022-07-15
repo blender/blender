@@ -875,7 +875,7 @@ static void id_override_library_create_fn(bContext *C,
     /* For now, remap all local usages of linked ID to local override one here. */
     ID *id_iter;
     FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-      if (ID_IS_LINKED(id_iter)) {
+      if (ID_IS_LINKED(id_iter) || ID_IS_OVERRIDE_LIBRARY(id_iter)) {
         id_iter->tag &= ~LIB_TAG_DOIT;
       }
       else {
