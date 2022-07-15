@@ -27,7 +27,7 @@ typedef unsigned int BLI_bitmap;
 /**
  * Number of blocks needed to hold '_num' bits.
  */
-#define _BITMAP_NUM_BLOCKS(_num) (((_num) >> _BITMAP_POWER) + 1)
+#define _BITMAP_NUM_BLOCKS(_num) (((_num) + _BITMAP_MASK) >> _BITMAP_POWER)
 
 /**
  * Size (in bytes) used to hold '_num' bits.
