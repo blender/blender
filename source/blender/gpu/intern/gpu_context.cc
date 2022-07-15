@@ -247,7 +247,7 @@ bool GPU_backend_init_once()
 
 void gpu_backend_delete_resources()
 {
-  BLI_assert(backend);
+  BLI_assert(g_backend);
   g_backend->delete_resources();
 }
 
