@@ -3275,6 +3275,23 @@ static void cursor_buffer_hide(const input_t *input)
   }
 }
 
+/**
+ * Needed to ensure the cursor size is always a multiple of scale.
+ */
+static int cursor_buffer_compatible_scale_from_image(const struct wl_cursor_image *wl_image,
+                                                     int scale)
+{
+  const int32_t image_size_x = int32_t(wl_image->width);
+  const int32_t image_size_y = int32_t(wl_image->height);
+  while (scale > 1) {
+    if ((image_size_x % scale) == 0 && (image_size_y % scale) == 0) {
+      break;
+    }
+    scale -= 1;
+  }
+  return scale;
+}
+
 static void cursor_buffer_set_surface_impl(const input_t *input,
                                            wl_buffer *buffer,
                                            struct wl_surface *wl_surface,
@@ -3301,7 +3318,8 @@ static void cursor_buffer_set(const input_t *input, wl_buffer *buffer)
   /* This is a requirement of WAYLAND, when this isn't the case,
    * it causes Blender's window to close intermittently. */
   if (input->wl_pointer) {
-    const int scale = c->is_custom ? c->custom_scale : input->pointer.theme_scale;
+    const int scale = cursor_buffer_compatible_scale_from_image(
+        wl_image, c->is_custom ? c->custom_scale : input->pointer.theme_scale);
     const int32_t hotspot_x = int32_t(wl_image->hotspot_x) / scale;
     const int32_t hotspot_y = int32_t(wl_image->hotspot_y) / scale;
     cursor_buffer_set_surface_impl(input, buffer, c->wl_surface, scale);
@@ -3314,7 +3332,8 @@ static void cursor_buffer_set(const input_t *input, wl_buffer *buffer)
 
   /* Set the cursor for all tablet tools as well. */
   if (!input->tablet_tools.empty()) {
-    const int scale = c->is_custom ? c->custom_scale : input->tablet.theme_scale;
+    const int scale = cursor_buffer_compatible_scale_from_image(
+        wl_image, c->is_custom ? c->custom_scale : input->tablet.theme_scale);
     const int32_t hotspot_x = int32_t(wl_image->hotspot_x) / scale;
     const int32_t hotspot_y = int32_t(wl_image->hotspot_y) / scale;
     for (struct zwp_tablet_tool_v2 *zwp_tablet_tool_v2 : input->tablet_tools) {
