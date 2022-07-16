@@ -270,7 +270,7 @@ AUD_API int AUD_readSound(AUD_Sound* sound, float* buffer, int length, int sampl
 	return length;
 }
 
-AUD_API const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate, void(*callback)(float, void*), void* data)
+AUD_API int AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate, void(*callback)(float, void*), void* data, char* error, size_t errorsize)
 {
 	try
 	{
@@ -282,15 +282,19 @@ AUD_API const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned i
 		std::shared_ptr<IWriter> writer = FileWriter::createWriter(filename, convCToDSpec(specs), static_cast<Container>(format), static_cast<Codec>(codec), bitrate);
 		FileWriter::writeReader(reader, writer, length, buffersize, callback, data);
 
-		return nullptr;
+		return 1;
 	}
 	catch(Exception& e)
 	{
-		return e.getMessage().c_str();
+		if(error && errorsize) {
+			std::strncpy(error, e.getMessage().c_str(), errorsize);
+			error[errorsize - 1] = '\0';
+		}
+		return 0;
 	}
 }
 
-AUD_API const char* AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate, void(*callback)(float, void*), void* data)
+AUD_API int AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate, void(*callback)(float, void*), void* data, char* error, size_t errorsize)
 {
 	try
 	{
@@ -328,11 +332,15 @@ AUD_API const char* AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start
 		reader->seek(start);
 		FileWriter::writeReader(reader, writers, length, buffersize, callback, data);
 
-		return nullptr;
+		return 1;
 	}
 	catch(Exception& e)
 	{
-		return e.getMessage().c_str();
+		if(error && errorsize) {
+			std::strncpy(error, e.getMessage().c_str(), errorsize);
+			error[errorsize - 1] = '\0';
+		}
+		return 0;
 	}
 }
 
