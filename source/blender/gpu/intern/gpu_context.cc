@@ -239,7 +239,7 @@ bool GPU_backend_supported(void)
 static void gpu_backend_create()
 {
   BLI_assert(g_backend == nullptr);
-  BLI_assert(GPU_backend_supported(g_backend_type));
+  BLI_assert(GPU_backend_supported());
 
   switch (g_backend_type) {
 #ifdef WITH_OPENGL_BACKEND
