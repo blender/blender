@@ -259,9 +259,7 @@ static struct _inittab bpy_internal_modules[] = {
     {"mathutils.kdtree", PyInit_mathutils_kdtree},
 #endif
     {"_bpy_path", BPyInit__bpy_path},
-#ifdef WITH_OPENGL
     {"bgl", BPyInit_bgl},
-#endif
     {"blf", BPyInit_blf},
     {"bl_math", BPyInit_bl_math},
     {"imbuf", BPyInit_imbuf},

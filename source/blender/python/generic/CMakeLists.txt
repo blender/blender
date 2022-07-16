@@ -17,6 +17,7 @@ set(INC_SYS
 )
 
 set(SRC
+  bgl.c
   bl_math_py_api.c
   blf_py_api.c
   bpy_threads.c
@@ -26,6 +27,7 @@ set(SRC
   py_capi_rna.c
   py_capi_utils.c
 
+  bgl.h
   bl_math_py_api.h
   blf_py_api.h
   idprop_py_api.h
@@ -37,14 +39,6 @@ set(SRC
   # header-only
   python_utildefines.h
 )
-
-if(WITH_OPENGL)
-  list(APPEND SRC
-    bgl.c
-
-    bgl.h
-  )
-endif()
 
 set(LIB
   ${GLEW_LIBRARY}
