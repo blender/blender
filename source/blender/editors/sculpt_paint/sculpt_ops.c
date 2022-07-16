@@ -127,9 +127,9 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
 
   SCULPT_ensure_persistent_layers(ss, ob);
 
-  scl_co = ss->custom_layers[SCULPT_SCL_PERS_CO];
-  scl_no = ss->custom_layers[SCULPT_SCL_PERS_NO];
-  scl_disp = ss->custom_layers[SCULPT_SCL_PERS_DISP];
+  scl_co = ss->scl.persistent_co;
+  scl_no = ss->scl.persistent_no;
+  scl_disp = ss->scl.persistent_disp;
 
   const int totvert = SCULPT_vertex_count_get(ss);
 
@@ -376,7 +376,8 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
     BKE_sculptsession_free(ob);
   }
 
-  ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
+  BKE_object_sculpt_data_create(ob);
+
   ob->sculpt->mode_type = OB_MODE_SCULPT;
   ob->sculpt->active_face_index.i = SCULPT_REF_NONE;
   ob->sculpt->active_vertex_index.i = SCULPT_REF_NONE;
@@ -1352,22 +1353,16 @@ static int sculpt_set_limit_surface_exec(bContext *C, wmOperator *UNUSED(op))
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  if (!ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE]) {
-    ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                              "SculptCustomLayer");
-  }
-
   SculptLayerParams params = {.permanent = false, .simple_array = false};
 
-  SCULPT_attr_get_layer(ss,
-                        ob,
-                        ATTR_DOMAIN_POINT,
-                        CD_PROP_FLOAT3,
-                        SCULPT_SCL_GET_NAME(SCULPT_SCL_LIMIT_SURFACE),
-                        ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE],
-                        &params);
+  ss->scl.limit_surface = SCULPT_attr_get_layer(ss,
+                                                ob,
+                                                ATTR_DOMAIN_POINT,
+                                                CD_PROP_FLOAT3,
+                                                SCULPT_SCL_GET_NAME(SCULPT_SCL_LIMIT_SURFACE),
+                                                &params);
 
-  const SculptCustomLayer *scl = ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE];
+  const SculptCustomLayer *scl = ss->scl.limit_surface;
 
   const int totvert = SCULPT_vertex_count_get(ss);
   const bool weighted = false;

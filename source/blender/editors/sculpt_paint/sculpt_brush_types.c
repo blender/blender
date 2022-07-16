@@ -307,9 +307,9 @@ static void sculpt_project_v3_normal_align(SculptSession *ss,
 /** \name Sculpt Draw Brush
  * \{ */
 
-ATTR_NO_OPT static void do_draw_brush_task_cb_ex(void *__restrict userdata,
-                                                 const int n,
-                                                 const TaskParallelTLS *__restrict tls)
+static void do_draw_brush_task_cb_ex(void *__restrict userdata,
+                                     const int n,
+                                     const TaskParallelTLS *__restrict tls)
 {
   SculptThreadedTaskData *data = userdata;
   SculptSession *ss = data->ob->sculpt;
@@ -1794,7 +1794,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
   const bool is_bmesh = BKE_pbvh_type(ss->pbvh) == PBVH_BMESH;
 
   if (is_bmesh) {
-    use_persistent_base = use_persistent_base && ss->custom_layers[SCULPT_SCL_PERS_CO];
+    use_persistent_base = use_persistent_base && ss->scl.persistent_co;
 
 #if 0
     // check if we need to zero displacement factor
@@ -1820,7 +1820,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
 #endif
   }
   else {
-    use_persistent_base = use_persistent_base && ss->custom_layers[SCULPT_SCL_PERS_CO];
+    use_persistent_base = use_persistent_base && ss->scl.persistent_co;
   }
 
   SculptCustomLayer *scl_disp = data->scl;
@@ -1865,8 +1865,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
     float *disp_factor;
 
     if (use_persistent_base) {
-      disp_factor = (float *)SCULPT_attr_vertex_data(vd.vertex,
-                                                     ss->custom_layers[SCULPT_SCL_PERS_DISP]);
+      disp_factor = (float *)SCULPT_attr_vertex_data(vd.vertex, ss->scl.persistent_disp);
     }
     else {
       disp_factor = (float *)SCULPT_attr_vertex_data(vd.vertex, scl_disp);
@@ -1996,37 +1995,14 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
 
 void SCULPT_ensure_persistent_layers(SculptSession *ss, Object *ob)
 {
-  if (!ss->custom_layers[SCULPT_SCL_PERS_CO]) {
-    SculptLayerParams params = {.permanent = true, .simple_array = false};
+  SculptLayerParams params = {.permanent = true, .simple_array = false};
 
-    ss->custom_layers[SCULPT_SCL_PERS_CO] = MEM_callocN(sizeof(SculptCustomLayer), "scl_pers_co");
-    SCULPT_attr_get_layer(ss,
-                          ob,
-                          ATTR_DOMAIN_POINT,
-                          CD_PROP_FLOAT3,
-                          SCULPT_LAYER_PERS_CO,
-                          ss->custom_layers[SCULPT_SCL_PERS_CO],
-                          &params);
-
-    ss->custom_layers[SCULPT_SCL_PERS_NO] = MEM_callocN(sizeof(SculptCustomLayer), "scl_pers_no");
-    SCULPT_attr_get_layer(ss,
-                          ob,
-                          ATTR_DOMAIN_POINT,
-                          CD_PROP_FLOAT3,
-                          SCULPT_LAYER_PERS_NO,
-                          ss->custom_layers[SCULPT_SCL_PERS_NO],
-                          &params);
-
-    ss->custom_layers[SCULPT_SCL_PERS_DISP] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                          "scl_pers_disp");
-    SCULPT_attr_get_layer(ss,
-                          ob,
-                          ATTR_DOMAIN_POINT,
-                          CD_PROP_FLOAT,
-                          SCULPT_LAYER_PERS_DISP,
-                          ss->custom_layers[SCULPT_SCL_PERS_DISP],
-                          &params);
-  }
+  ss->scl.persistent_co = SCULPT_attr_get_layer(
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO, &params);
+  ss->scl.persistent_no = SCULPT_attr_get_layer(
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_NO, &params);
+  ss->scl.persistent_disp = SCULPT_attr_get_layer(
+      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, SCULPT_LAYER_PERS_DISP, &params);
 }
 
 void SCULPT_do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
@@ -2046,41 +2022,32 @@ void SCULPT_do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     SCULPT_ensure_persistent_layers(ss, ob);
   }
 
-  if (!ss->custom_layers[SCULPT_SCL_LAYER_DISP]) {
-    ss->custom_layers[SCULPT_SCL_LAYER_DISP] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                           "layer disp scl");
-    SCULPT_attr_get_layer(ss,
-                          ob,
-                          ATTR_DOMAIN_POINT,
-                          CD_PROP_FLOAT,
-                          SCULPT_LAYER_DISP,
-                          ss->custom_layers[SCULPT_SCL_LAYER_DISP],
-                          &((SculptLayerParams){.permanent = false, .simple_array = false}));
-  }
-
-  if (!ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]) {
-    ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                                "layer disp scl");
-    SCULPT_attr_get_layer(ss,
-                          ob,
-                          ATTR_DOMAIN_POINT,
-                          CD_PROP_INT32,
-                          SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_STROKE_ID),
-                          ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID],
-                          &((SculptLayerParams){.permanent = false, .simple_array = false}));
-  }
+  SculptCustomLayer *disp_scl = ss->scl.layer_disp = SCULPT_attr_get_layer(
+      ss,
+      ob,
+      ATTR_DOMAIN_POINT,
+      CD_PROP_FLOAT,
+      SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_DISP),
+      &((SculptLayerParams){.permanent = false, .simple_array = false, .stroke_only = true}));
+  SculptCustomLayer *id_scl = ss->scl.layer_id = SCULPT_attr_get_layer(
+      ss,
+      ob,
+      ATTR_DOMAIN_POINT,
+      CD_PROP_INT32,
+      SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_STROKE_ID),
+      &((SculptLayerParams){.permanent = false, .simple_array = false, .stroke_only = true}));
 
   if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
-    ss->cache->layer_displacement_factor = ss->custom_layers[SCULPT_SCL_LAYER_DISP]->data;
-    ss->cache->layer_stroke_id = ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]->data;
+    ss->cache->layer_displacement_factor = disp_scl->data;
+    ss->cache->layer_stroke_id = id_scl->data;
   }
 
   SculptThreadedTaskData data = {.sd = sd,
                                  .ob = ob,
                                  .brush = brush,
                                  .nodes = nodes,
-                                 .scl = ss->custom_layers[SCULPT_SCL_LAYER_DISP],
-                                 .scl2 = ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID],
+                                 .scl = disp_scl,
+                                 .scl2 = id_scl,
 #ifdef LAYER_FACE_SET_MODE
                                  .face_set = fset,
                                  .face_set2 = fset + 1
@@ -3443,8 +3410,7 @@ static void do_fairing_brush_tag_store_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    float *prefair = SCULPT_attr_vertex_data(vd.vertex,
-                                             ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]);
+    float *prefair = SCULPT_attr_vertex_data(vd.vertex, ss->scl.prefairing_co);
 
     const float fade = bstrength * SCULPT_brush_strength_factor(ss,
                                                                 brush,
@@ -3460,10 +3426,8 @@ static void do_fairing_brush_tag_store_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    float *fairing_fade = SCULPT_attr_vertex_data(vd.vertex,
-                                                  ss->custom_layers[SCULPT_SCL_FAIRING_FADE]);
-    uchar *fairing_mask = SCULPT_attr_vertex_data(vd.vertex,
-                                                  ss->custom_layers[SCULPT_SCL_FAIRING_MASK]);
+    float *fairing_fade = SCULPT_attr_vertex_data(vd.vertex, ss->scl.fairing_fade);
+    uchar *fairing_mask = SCULPT_attr_vertex_data(vd.vertex, ss->scl.fairing_mask);
 
     *fairing_fade = max_ff(fade, *fairing_fade);
     *fairing_mask = true;
@@ -3486,57 +3450,37 @@ void SCULPT_do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_face_random_access_ensure(ss);
 
-  if (!ss->custom_layers[SCULPT_SCL_FAIRING_MASK]) {
-    // SCULPT_attr_ensure_layer(ss, ATTR_DOMAIN_POINT, CD_PROP_BOOL, "fairing_mask");
-    // SCULPT_attr_ensure_layer(ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT, "fairing_fade");
-    // SCULPT_attr_ensure_layer(ss, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "prefairing_co");
+  SculptLayerParams params = {.permanent = false, .simple_array = true, .stroke_only = true};
 
-    ss->custom_layers[SCULPT_SCL_FAIRING_MASK] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                             "ss->Cache->fairing_mask");
-    ss->custom_layers[SCULPT_SCL_FAIRING_FADE] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                             "ss->Cache->fairing_fade");
-    ss->custom_layers[SCULPT_SCL_PREFAIRING_CO] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                              "ss->Cache->prefairing_co");
+  ss->scl.fairing_mask = SCULPT_attr_get_layer(ss,
+                                               ob,
+                                               ATTR_DOMAIN_POINT,
+                                               CD_PROP_BOOL,
+                                               SCULPT_SCL_GET_NAME(SCULPT_SCL_FAIRING_MASK),
+                                               &params);
 
-    SculptLayerParams params = {.permanent = false, .simple_array = true};
+  ss->scl.fairing_fade = SCULPT_attr_get_layer(ss,
+                                               ob,
+                                               ATTR_DOMAIN_POINT,
+                                               CD_PROP_FLOAT,
+                                               SCULPT_SCL_GET_NAME(SCULPT_SCL_FAIRING_FADE),
+                                               &params);
 
-    SCULPT_attr_get_layer(ss,
-                          ob,
-                          ATTR_DOMAIN_POINT,
-                          CD_PROP_BOOL,
-                          SCULPT_SCL_GET_NAME(SCULPT_SCL_FAIRING_MASK),
-                          ss->custom_layers[SCULPT_SCL_FAIRING_MASK],
-                          &params);
-
-    SCULPT_attr_get_layer(ss,
-                          ob,
-                          ATTR_DOMAIN_POINT,
-                          CD_PROP_FLOAT,
-                          SCULPT_SCL_GET_NAME(SCULPT_SCL_FAIRING_FADE),
-                          ss->custom_layers[SCULPT_SCL_FAIRING_FADE],
-                          &params);
-
-    SCULPT_attr_get_layer(ss,
-                          ob,
-                          ATTR_DOMAIN_POINT,
-                          CD_PROP_FLOAT3,
-                          SCULPT_SCL_GET_NAME(SCULPT_SCL_PREFAIRING_CO),
-                          ss->custom_layers[SCULPT_SCL_PREFAIRING_CO],
-                          &params);
-
-    SCULPT_update_customdata_refs(ss, ob);
-  }
+  ss->scl.prefairing_co = SCULPT_attr_get_layer(ss,
+                                                ob,
+                                                ATTR_DOMAIN_POINT,
+                                                CD_PROP_FLOAT3,
+                                                SCULPT_SCL_GET_NAME(SCULPT_SCL_PREFAIRING_CO),
+                                                &params);
 
   if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
     for (int i = 0; i < totvert; i++) {
       SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
 
-      *(uchar *)SCULPT_attr_vertex_data(vertex,
-                                        ss->custom_layers[SCULPT_SCL_FAIRING_MASK]) = false;
-      *(float *)SCULPT_attr_vertex_data(vertex, ss->custom_layers[SCULPT_SCL_FAIRING_FADE]) = 0.0f;
-      copy_v3_v3(
-          (float *)SCULPT_attr_vertex_data(vertex, ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]),
-          SCULPT_vertex_co_get(ss, vertex));
+      *(uchar *)SCULPT_attr_vertex_data(vertex, ss->scl.fairing_mask) = false;
+      *(float *)SCULPT_attr_vertex_data(vertex, ss->scl.fairing_fade) = 0.0f;
+      copy_v3_v3((float *)SCULPT_attr_vertex_data(vertex, ss->scl.prefairing_co),
+                 SCULPT_vertex_co_get(ss, vertex));
     }
   }
 
@@ -3563,19 +3507,13 @@ static void do_fairing_brush_displace_task_cb_ex(void *__restrict userdata,
   SculptSession *ss = data->ob->sculpt;
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-    if (!*(uchar *)SCULPT_attr_vertex_data(vd.vertex,
-                                           ss->custom_layers[SCULPT_SCL_FAIRING_MASK])) {
+    if (!*(uchar *)SCULPT_attr_vertex_data(vd.vertex, ss->scl.fairing_mask)) {
       continue;
     }
     float disp[3];
-    sub_v3_v3v3(disp,
-                vd.co,
-                SCULPT_attr_vertex_data(vd.vertex, ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]));
-    mul_v3_fl(
-        disp,
-        *(float *)SCULPT_attr_vertex_data(vd.vertex, ss->custom_layers[SCULPT_SCL_FAIRING_FADE]));
-    copy_v3_v3(vd.co,
-               SCULPT_attr_vertex_data(vd.vertex, ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]));
+    sub_v3_v3v3(disp, vd.co, SCULPT_attr_vertex_data(vd.vertex, ss->scl.prefairing_co));
+    mul_v3_fl(disp, *(float *)SCULPT_attr_vertex_data(vd.vertex, ss->scl.fairing_fade));
+    copy_v3_v3(vd.co, SCULPT_attr_vertex_data(vd.vertex, ss->scl.prefairing_co));
     add_v3_v3(vd.co, disp);
     if (vd.mvert) {
       BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
@@ -3592,22 +3530,20 @@ void SCULPT_fairing_brush_exec_fairing_for_cache(Sculpt *sd, Object *ob)
   Brush *brush = BKE_paint_brush(&sd->paint);
   Mesh *mesh = ob->data;
 
-  if (!ss->custom_layers[SCULPT_SCL_FAIRING_MASK]) {
+  if (!ss->scl.fairing_mask) {
     return;
   }
 
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_FACES: {
       MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-      BKE_mesh_prefair_and_fair_vertices(mesh,
-                                         mvert,
-                                         ss->custom_layers[SCULPT_SCL_FAIRING_MASK]->data,
-                                         MESH_FAIRING_DEPTH_TANGENCY);
+      BKE_mesh_prefair_and_fair_vertices(
+          mesh, mvert, ss->scl.fairing_mask->data, MESH_FAIRING_DEPTH_TANGENCY);
     } break;
     case PBVH_BMESH: {
       // note that we allocated fairing_mask.data in simple array mode
       BKE_bmesh_prefair_and_fair_vertices(
-          ss->bm, ss->custom_layers[SCULPT_SCL_FAIRING_MASK]->data, MESH_FAIRING_DEPTH_TANGENCY);
+          ss->bm, ss->scl.fairing_mask->data, MESH_FAIRING_DEPTH_TANGENCY);
     } break;
     case PBVH_GRIDS:
       BLI_assert(false);

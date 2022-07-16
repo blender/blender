@@ -4108,7 +4108,7 @@ void *BPy_bm_new_customdata_layout_pre(BMesh *bm, CustomData *cdata, char htype)
   return ptrs;
 }
 
-ATTR_NO_OPT void BPy_bm_new_customdata_layout(BMesh *bm, CustomData *cdata, void *state, char htype)
+void BPy_bm_new_customdata_layout(BMesh *bm, CustomData *cdata, void *state, char htype)
 {
   /*
    * Un-invalidate python pointers, which got invalidated when the customdata layout

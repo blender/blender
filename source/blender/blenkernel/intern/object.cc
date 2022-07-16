@@ -4245,6 +4245,10 @@ void BKE_object_sculpt_data_create(Object *ob)
   BLI_assert((ob->sculpt == nullptr) && (ob->mode & OB_MODE_ALL_SCULPT));
   ob->sculpt = MEM_cnew<SculptSession>(__func__);
   ob->sculpt->mode_type = (eObjectMode)ob->mode;
+
+  for (int i = 0; i < SCULPT_MAX_TEMP_LAYERS; i++) {
+    ob->sculpt->temp_layers[i].released = true;
+  }
 }
 
 bool BKE_object_obdata_texspace_get(Object *ob, char **r_texflag, float **r_loc, float **r_size)

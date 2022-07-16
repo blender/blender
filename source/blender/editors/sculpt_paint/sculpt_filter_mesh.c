@@ -385,15 +385,14 @@ static void mesh_filter_task_cb(void *__restrict userdata,
             ss,
             avg,
             vd.vertex,
-            &((SculptSmoothArgs){
-                .projection = 0.0f,
-                .slide_fset = slide_fset,  // 1.0f - hard_edge_fac,
-                .bound_smooth = bsmooth,
-                .preserve_fset_boundaries = preserve_fset_boundaries,
-                .do_weighted_smooth = weighted,
-                .bound_smooth_radius = bound_smooth_radius,
-                .bevel_smooth_factor = bevel_smooth_fac,
-                .bound_scl = bsmooth > 0.0f ? ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] : NULL}));
+            &((SculptSmoothArgs){.projection = 0.0f,
+                                 .slide_fset = slide_fset,  // 1.0f - hard_edge_fac,
+                                 .bound_smooth = bsmooth,
+                                 .preserve_fset_boundaries = preserve_fset_boundaries,
+                                 .do_weighted_smooth = weighted,
+                                 .bound_smooth_radius = bound_smooth_radius,
+                                 .bevel_smooth_factor = bevel_smooth_fac,
+                                 .bound_scl = bsmooth > 0.0f ? ss->scl.smooth_bdist : NULL}));
 
         sub_v3_v3v3(val, avg, orig_co);
         madd_v3_v3v3fl(val, orig_co, val, fade);
@@ -903,7 +902,6 @@ static int sculpt_mesh_filter_invoke(bContext *C, wmOperator *op, const wmEvent 
   ss->filter_cache->bevel_smooth_fac = RNA_float_get(op->ptr, "bevel_smooth_fac");
 
   if (filter_type == MESH_FILTER_SMOOTH && ss->filter_cache->bound_smooth_radius != 0.0f) {
-    /*ensure ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] exists*/
     SCULPT_bound_smooth_ensure(ss, ob);
   }
 

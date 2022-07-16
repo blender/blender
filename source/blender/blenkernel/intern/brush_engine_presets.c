@@ -1104,7 +1104,7 @@ void reset_clay_mappings(BrushChannelSet *chset, bool strips)
 }
 
 // adds any missing channels to brushes
-ATTR_NO_OPT void BKE_brush_builtin_patch(Brush *brush, int tool)
+void BKE_brush_builtin_patch(Brush *brush, int tool)
 {
   check_builtin_init();
 

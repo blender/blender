@@ -641,10 +641,16 @@ typedef struct SculptFakeNeighbors {
 /* Custom Temporary Attributes */
 
 typedef struct SculptLayerParams {
-  int simple_array : 1;  // cannot be combined with permanent
-  int permanent : 1;     // cannot be combined with simple_array
+  /* Allocate a flat array outside the CustomData system.  Cannot be combined with permanent. */
+  int simple_array : 1;
+
+  /* Do not mark CustomData layer as temporary.  Cannot be combined with simple_array.  Doesn't
+   * work with PBVH_GRIDS.
+   */
+  int permanent : 1;  // cannot be combined with simple_array
   int nocopy : 1;
   int nointerp : 1;
+  int stroke_only : 1; /* release layer at end of struct, except for PBVH_BMESH */
 } SculptLayerParams;
 
 typedef struct SculptCustomLayer {
@@ -665,10 +671,7 @@ typedef struct SculptCustomLayer {
   bool ready;
 } SculptCustomLayer;
 
-/* These custom attributes have references
-  (SculptCustomLayer pointers) inside of ss->custom_layers
-  that are kept up to date with SCULPT_update_customdata_refs.
-  */
+/* Standard names for sculpt attributes. */
 typedef enum {
   SCULPT_SCL_FAIRING_MASK,
   SCULPT_SCL_FAIRING_FADE,
@@ -687,6 +690,8 @@ typedef enum {
 } SculptStandardAttr;
 
 #define SCULPT_SCL_GET_NAME(stdattr) ("__" #stdattr)
+
+#define SCULPT_MAX_TEMP_LAYERS 64
 
 typedef struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
@@ -897,17 +902,41 @@ typedef struct SculptSession {
   struct MSculptVert *mdyntopo_verts;  // for non-bmesh
   int mdyntopo_verts_size;
 
-  /*list of up to date custom layer references,
-    note that entries can be NULL if layer doesn't
-    exist.  See SCULPT_SCL_XXX enum above.*/
-  struct SculptCustomLayer *custom_layers[SCULPT_SCL_LAYER_MAX];
+  /* This is a fixed-size array so we can pass pointers to its elements
+   * to client code. This is important to keep bmesh offsets up to date.
+   */
+  struct SculptCustomLayer temp_layers[SCULPT_MAX_TEMP_LAYERS];
 
-  /*
-  PBVH_GRIDS cannot store customdata layers in real CustomDataLayers,
-  so we queue the memory allocated for them to free later
-  */
-  struct SculptCustomLayer **layers_to_free;
-  int tot_layers_to_free;
+  /* Convienence SculptCusotmLayer pointers. */
+
+  struct {
+    /* Persistent base. */
+    SculptCustomLayer *persistent_co;
+    SculptCustomLayer *persistent_no;
+    SculptCustomLayer *persistent_disp;
+
+    /* Fairing. */
+    SculptCustomLayer *fairing_fade;
+    SculptCustomLayer *fairing_mask;
+    SculptCustomLayer *prefairing_co;
+
+    /* Automasking. */
+    SculptCustomLayer *automasking_factor;
+
+    /* Layer brush. */
+    SculptCustomLayer *layer_disp;
+    SculptCustomLayer *layer_id;
+
+    /* Limit Surface */
+    SculptCustomLayer *limit_surface;
+
+    /* Smooth */
+    SculptCustomLayer *smooth_bdist;
+    SculptCustomLayer *smooth_vel;
+
+    /* Face Sets */
+    SculptCustomLayer *orig_fsets;
+  } scl;
 
   bool save_temp_layers;
 
@@ -943,12 +972,12 @@ void BKE_sculptsession_bmesh_attr_update_internal(struct Object *ob);
 void BKE_sculptsession_sync_attributes(struct Object *ob, struct Mesh *me);
 
 void BKE_sculptsession_bmesh_add_layers(struct Object *ob);
-bool BKE_sculptsession_attr_get_layer(struct Object *ob,
-                                      eAttrDomain domain,
-                                      int proptype,
-                                      const char *name,
-                                      SculptCustomLayer *scl,
-                                      SculptLayerParams *params);
+SculptCustomLayer *BKE_sculptsession_attr_layer_get(struct Object *ob,
+                                                    eAttrDomain domain,
+                                                    int proptype,
+                                                    const char *name,
+                                                    SculptLayerParams *params,
+                                                    bool *r_is_new);
 bool BKE_sculptsession_attr_release_layer(struct Object *ob, SculptCustomLayer *scl);
 void BKE_sculptsession_update_attr_refs(struct Object *ob);
 

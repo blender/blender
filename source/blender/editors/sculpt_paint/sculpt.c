@@ -458,8 +458,7 @@ void SCULPT_vertex_normal_get(SculptSession *ss, SculptVertRef vertex, float no[
 bool SCULPT_has_persistent_base(SculptSession *ss)
 {
   if (!ss->pbvh) {
-    // just see if ss->custom_layer entries exist
-    return ss->custom_layers[SCULPT_SCL_PERS_CO] != NULL;
+    return ss->scl.persistent_co;
   }
 
   int idx = -1;
@@ -472,7 +471,7 @@ bool SCULPT_has_persistent_base(SculptSession *ss)
       idx = CustomData_get_named_layer_index(ss->vdata, CD_PROP_FLOAT3, SCULPT_LAYER_PERS_CO);
       break;
     case PBVH_GRIDS:
-      return ss->custom_layers[SCULPT_SCL_PERS_CO];
+      return ss->scl.persistent_co;
   }
 
   return idx >= 0;
@@ -480,8 +479,8 @@ bool SCULPT_has_persistent_base(SculptSession *ss)
 
 const float *SCULPT_vertex_persistent_co_get(SculptSession *ss, SculptVertRef index)
 {
-  if (ss->custom_layers[SCULPT_SCL_PERS_CO]) {
-    return (float *)SCULPT_attr_vertex_data(index, ss->custom_layers[SCULPT_SCL_PERS_CO]);
+  if (ss->scl.persistent_co) {
+    return (float *)SCULPT_attr_vertex_data(index, ss->scl.persistent_co);
   }
 
   return SCULPT_vertex_co_get(ss, index);
@@ -507,8 +506,8 @@ const float *SCULPT_vertex_co_for_grab_active_get(SculptSession *ss, SculptVertR
 void SCULPT_vertex_limit_surface_get(SculptSession *ss, SculptVertRef vertex, float r_co[3])
 {
   if (BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
-    if (ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE]) {
-      float *f = SCULPT_attr_vertex_data(vertex, ss->custom_layers[SCULPT_SCL_LIMIT_SURFACE]);
+    if (ss->scl.limit_surface) {
+      float *f = SCULPT_attr_vertex_data(vertex, ss->scl.limit_surface);
       copy_v3_v3(r_co, f);
     }
     else {
@@ -530,8 +529,8 @@ void SCULPT_vertex_limit_surface_get(SculptSession *ss, SculptVertRef vertex, fl
 
 void SCULPT_vertex_persistent_normal_get(SculptSession *ss, SculptVertRef vertex, float no[3])
 {
-  if (ss->custom_layers[SCULPT_SCL_PERS_NO]) {
-    float *no2 = SCULPT_attr_vertex_data(vertex, ss->custom_layers[SCULPT_SCL_PERS_NO]);
+  if (ss->scl.persistent_no) {
+    float *no2 = SCULPT_attr_vertex_data(vertex, ss->scl.persistent_no);
     copy_v3_v3(no, no2);
   }
   else {
@@ -574,17 +573,10 @@ bool SCULPT_attr_ensure_layer(SculptSession *ss,
                               const char *name,
                               SculptLayerParams *params)
 {
-  SculptCustomLayer scl;
+  bool is_newlayer;
+  BKE_sculptsession_attr_layer_get(ob, domain, proptype, name, params, &is_newlayer);
 
-  // call SCULPT_update_customdata_refs before and after,
-  // thoeretically it can allocate new layers
-  SCULPT_update_customdata_refs(ss, ob);
-
-  bool ret = SCULPT_attr_get_layer(ss, ob, domain, proptype, name, &scl, params);
-
-  SCULPT_update_customdata_refs(ss, ob);
-
-  return ret;
+  return is_newlayer;
 }
 
 /* TODO: thoroughly test this function */
@@ -629,15 +621,14 @@ bool SCULPT_attr_release_layer(SculptSession *ss, Object *ob, SculptCustomLayer 
   return BKE_sculptsession_attr_release_layer(ob, scl);
 }
 
-bool SCULPT_attr_get_layer(SculptSession *ss,
-                           Object *ob,
-                           eAttrDomain domain,
-                           int proptype,
-                           const char *name,
-                           SculptCustomLayer *scl,
-                           SculptLayerParams *params)
+SculptCustomLayer *SCULPT_attr_get_layer(SculptSession *ss,
+                                         Object *ob,
+                                         eAttrDomain domain,
+                                         int proptype,
+                                         const char *name,
+                                         SculptLayerParams *params)
 {
-  return BKE_sculptsession_attr_get_layer(ob, domain, proptype, name, scl, params);
+  return BKE_sculptsession_attr_layer_get(ob, domain, proptype, name, params, NULL);
 }
 
 SculptVertRef SCULPT_active_vertex_get(SculptSession *ss)
@@ -5332,13 +5323,13 @@ typedef struct BrushRunCommandData {
   float radius_max;
 } BrushRunCommandData;
 
-ATTR_NO_OPT static void get_nodes_undo(Sculpt *sd,
-                                       Object *ob,
-                                       Brush *brush,
-                                       UnifiedPaintSettings *ups,
-                                       PaintModeSettings *paint_mode_settings,
-                                       BrushRunCommandData *data,
-                                       int tool)
+static void get_nodes_undo(Sculpt *sd,
+                           Object *ob,
+                           Brush *brush,
+                           UnifiedPaintSettings *ups,
+                           PaintModeSettings *paint_mode_settings,
+                           BrushRunCommandData *data,
+                           int tool)
 {
   PBVHNode **nodes = NULL;
   int totnode = 0;
@@ -5528,12 +5519,12 @@ bool SCULPT_needs_area_normal(SculptSession *ss, Sculpt *sd, Brush *brush)
          SCULPT_get_float(ss, tip_scale_x, sd, brush) != 1.0f;
 }
 
-ATTR_NO_OPT static void SCULPT_run_command(Sculpt *sd,
-                                           Object *ob,
-                                           Brush *brush,
-                                           UnifiedPaintSettings *ups,
-                                           PaintModeSettings *paint_mode_settings,
-                                           void *userdata)
+static void SCULPT_run_command(Sculpt *sd,
+                               Object *ob,
+                               Brush *brush,
+                               UnifiedPaintSettings *ups,
+                               PaintModeSettings *paint_mode_settings,
+                               void *userdata)
 {
   SculptSession *ss = ob->sculpt;
   BrushRunCommandData *data = userdata;
@@ -6605,16 +6596,30 @@ void SCULPT_cache_free(SculptSession *ss, Object *ob, StrokeCache *cache)
   }
 #endif
 
-  if (ss->custom_layers[SCULPT_SCL_LAYER_DISP]) {
-    SCULPT_attr_release_layer(ss, ob, ss->custom_layers[SCULPT_SCL_LAYER_DISP]);
-    MEM_freeN(ss->custom_layers[SCULPT_SCL_LAYER_DISP]);
-    ss->custom_layers[SCULPT_SCL_LAYER_DISP] = NULL;
-  }
+  /* Free a few temporary attributes if it's cheap to do so, otherwise wait for sculpt mode exit.
+   */
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_BMESH) {
+    SculptCustomLayer **ptrs = (SculptCustomLayer **)&ss->scl;
+    int ptrs_num = sizeof(ss->scl) / sizeof(void *);
 
-  if (ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]) {
-    SCULPT_attr_release_layer(ss, ob, ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]);
-    MEM_freeN(ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID]);
-    ss->custom_layers[SCULPT_SCL_LAYER_STROKE_ID] = NULL;
+    /* Go over pointers inside of ss->scl first. */
+    for (int i = 0; i < ptrs_num; i++) {
+      SculptCustomLayer *scl = ptrs[i];
+
+      if (scl && !scl->released && scl->params.stroke_only) {
+        SCULPT_attr_release_layer(ss, ob, scl);
+        ptrs[i] = NULL;
+      }
+    }
+
+    /* Now go over the main attribute array and release any remaining attributes. */
+    for (int i = 0; i < SCULPT_MAX_TEMP_LAYERS; i++) {
+      SculptCustomLayer *scl = ss->temp_layers + i;
+
+      if (scl && !scl->released && scl->params.stroke_only) {
+        SCULPT_attr_release_layer(ss, ob, scl);
+      }
+    }
   }
 
   MEM_SAFE_FREE(cache->prev_colors);
@@ -6622,26 +6627,6 @@ void SCULPT_cache_free(SculptSession *ss, Object *ob, StrokeCache *cache)
 
   if (ss->cache->commandlist) {
     BKE_brush_commandlist_free(ss->cache->commandlist);
-  }
-
-  if (ss->custom_layers[SCULPT_SCL_FAIRING_MASK]) {
-    SCULPT_attr_release_layer(ss, ob, ss->custom_layers[SCULPT_SCL_FAIRING_MASK]);
-    MEM_freeN(ss->custom_layers[SCULPT_SCL_FAIRING_MASK]);
-    ss->custom_layers[SCULPT_SCL_FAIRING_MASK] = NULL;
-  }
-
-  if (ss->custom_layers[SCULPT_SCL_FAIRING_FADE]) {
-    SCULPT_attr_release_layer(ss, ob, ss->custom_layers[SCULPT_SCL_FAIRING_FADE]);
-
-    MEM_freeN(ss->custom_layers[SCULPT_SCL_FAIRING_FADE]);
-    ss->custom_layers[SCULPT_SCL_FAIRING_FADE] = NULL;
-  }
-
-  if (ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]) {
-    SCULPT_attr_release_layer(ss, ob, ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]);
-
-    MEM_freeN(ss->custom_layers[SCULPT_SCL_PREFAIRING_CO]);
-    ss->custom_layers[SCULPT_SCL_PREFAIRING_CO] = NULL;
   }
 
   if (ss->cache->channels_final) {
@@ -6687,26 +6672,22 @@ void SCULPT_cache_free(SculptSession *ss, Object *ob, StrokeCache *cache)
 
 void SCULPT_release_attributes(SculptSession *ss, Object *ob, bool non_customdata_only)
 {
-  for (int i = 0; i < SCULPT_SCL_LAYER_MAX; i++) {
-    if (ss->custom_layers[i]) {
-      if (non_customdata_only && !ss->custom_layers[i]->params.simple_array) {
-        continue;
-      }
+  for (int i = 0; i < SCULPT_MAX_TEMP_LAYERS; i++) {
+    SculptCustomLayer *scl = ss->temp_layers + i;
 
-      SCULPT_attr_release_layer(ss, ob, ss->custom_layers[i]);
-
-      MEM_freeN(ss->custom_layers[i]);
-      ss->custom_layers[i] = NULL;
+    if (scl->released || (non_customdata_only && !scl->params.simple_array)) {
+      continue;
     }
+
+    SCULPT_attr_release_layer(ss, ob, scl);
   }
+
+  memset(&ss->scl, 0, sizeof(ss->scl));
 }
 
 void SCULPT_clear_scl_pointers(SculptSession *ss)
 {
-  for (int i = 0; i < SCULPT_SCL_LAYER_MAX; i++) {
-    MEM_SAFE_FREE(ss->custom_layers[i]);
-    ss->custom_layers[i] = NULL;
-  }
+  memset(&ss->scl, 0, sizeof(ss->scl));
 }
 
 /* Initialize mirror modifier clipping. */

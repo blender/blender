@@ -2187,9 +2187,9 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
     if (SCULPT_has_persistent_base(ss)) {
       SCULPT_ensure_persistent_layers(ss, ob);
 
-      cloth_sim->cd_pers_co = ss->custom_layers[SCULPT_SCL_PERS_CO]->cd_offset;
-      cloth_sim->cd_pers_no = ss->custom_layers[SCULPT_SCL_PERS_NO]->cd_offset;
-      cloth_sim->cd_pers_disp = ss->custom_layers[SCULPT_SCL_PERS_DISP]->cd_offset;
+      cloth_sim->cd_pers_co = ss->scl.persistent_co->cd_offset;
+      cloth_sim->cd_pers_no = ss->scl.persistent_no->cd_offset;
+      cloth_sim->cd_pers_disp = ss->scl.persistent_disp->cd_offset;
     }
     else {
       cloth_sim->cd_pers_co = cloth_sim->cd_pers_no = cloth_sim->cd_pers_disp = -1;

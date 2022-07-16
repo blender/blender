@@ -117,11 +117,11 @@ const char orig_faceset_attr_name[] = "_sculpt_original_fsets";
 
 void SCULPT_face_check_origdata(SculptSession *ss, SculptFaceRef face)
 {
-  if (!ss->custom_layers[SCULPT_SCL_ORIG_FSETS]) {
+  if (!ss->scl.orig_fsets) {
     return;
   }
 
-  short *s = (short *)SCULPT_attr_face_data(face, ss->custom_layers[SCULPT_SCL_ORIG_FSETS]);
+  short *s = (short *)SCULPT_attr_face_data(face, ss->scl.orig_fsets);
 
   // pack ss->stroke_id in higher 16 bits
   if (s[1] != ss->stroke_id) {
@@ -132,11 +132,11 @@ void SCULPT_face_check_origdata(SculptSession *ss, SculptFaceRef face)
 
 int SCULPT_face_set_original_get(SculptSession *ss, SculptFaceRef face)
 {
-  if (!ss->custom_layers[SCULPT_SCL_ORIG_FSETS]) {
+  if (!ss->scl.orig_fsets) {
     return SCULPT_face_set_get(ss, face);
   }
 
-  short *s = (short *)SCULPT_attr_face_data(face, ss->custom_layers[SCULPT_SCL_ORIG_FSETS]);
+  short *s = (short *)SCULPT_attr_face_data(face, ss->scl.orig_fsets);
 
   if (s[1] != ss->stroke_id) {
     s[0] = SCULPT_face_set_get(ss, face);
@@ -148,21 +148,13 @@ int SCULPT_face_set_original_get(SculptSession *ss, SculptFaceRef face)
 
 void SCULPT_face_ensure_original(SculptSession *ss, Object *ob)
 {
-  if (ss->custom_layers[SCULPT_SCL_ORIG_FSETS]) {
-    return;
-  }
-
-  SculptCustomLayer *scl = MEM_callocN(sizeof(*scl), "orig fset scl");
-
-  SCULPT_attr_get_layer(ss,
-                        ob,
-                        ATTR_DOMAIN_FACE,
-                        CD_PROP_INT32,
-                        SCULPT_SCL_GET_NAME(SCULPT_SCL_ORIG_FSETS),
-                        scl,
-                        &((SculptLayerParams){.permanent = false, .simple_array = false}));
-
-  ss->custom_layers[SCULPT_SCL_ORIG_FSETS] = scl;
+  ss->scl.orig_fsets = SCULPT_attr_get_layer(
+      ss,
+      ob,
+      ATTR_DOMAIN_FACE,
+      CD_PROP_INT32,
+      SCULPT_SCL_GET_NAME(SCULPT_SCL_ORIG_FSETS),
+      &((SculptLayerParams){.permanent = false, .simple_array = false}));
 }
 
 int SCULPT_face_set_flag_get(SculptSession *ss, SculptFaceRef face, char flag)

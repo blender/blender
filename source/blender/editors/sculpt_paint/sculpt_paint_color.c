@@ -410,32 +410,24 @@ void SCULPT_do_paint_brush(
     }
   }
 
-  SculptCustomLayer buffer_scl;
-  SculptCustomLayer stroke_id_scl;
-  SculptLayerParams params = {.permanent = false, .simple_array = false};
-  SculptLayerParams params_id = {
-      .permanent = false, .simple_array = false, .nocopy = false, .nointerp = true};
+  SculptCustomLayer *buffer_scl;
+  SculptCustomLayer *stroke_id_scl;
 
-  // reuse smear's buffer name
+  SculptLayerParams params = {.permanent = false, .simple_array = false, .stroke_only = true};
+  SculptLayerParams params_id = {.permanent = false,
+                                 .simple_array = false,
+                                 .nocopy = false,
+                                 .nointerp = true,
+                                 .stroke_only = true};
 
-  SCULPT_attr_ensure_layer(
+  buffer_scl = SCULPT_attr_get_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &params);
-  SCULPT_attr_ensure_layer(ss,
-                           ob,
-                           ATTR_DOMAIN_POINT,
-                           CD_PROP_INT32,
-                           SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_STROKE_ID),
-                           &params_id);
-
-  SCULPT_attr_get_layer(
-      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &buffer_scl, &params);
-  SCULPT_attr_get_layer(ss,
-                        ob,
-                        ATTR_DOMAIN_POINT,
-                        CD_PROP_INT32,
-                        SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_STROKE_ID),
-                        &stroke_id_scl,
-                        &params_id);
+  stroke_id_scl = SCULPT_attr_get_layer(ss,
+                                        ob,
+                                        ATTR_DOMAIN_POINT,
+                                        CD_PROP_INT32,
+                                        SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_STROKE_ID),
+                                        &params_id);
 
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data = {
@@ -446,8 +438,8 @@ void SCULPT_do_paint_brush(
       .wet_mix_sampled_color = wet_color,
       .mat = mat,
       .hue_offset = SCULPT_get_float(ss, hue_offset, sd, brush),
-      .scl = &buffer_scl,
-      .scl2 = &stroke_id_scl,
+      .scl = buffer_scl,
+      .scl2 = stroke_id_scl,
       .brush_color = brush_color,
   };
 
@@ -639,20 +631,16 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  SculptCustomLayer prev_scl;
   SculptLayerParams params = {.permanent = false, .simple_array = false};
-
-  SCULPT_attr_ensure_layer(
+  SculptCustomLayer *prev_scl = SCULPT_attr_get_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &params);
-  SCULPT_attr_get_layer(
-      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_COLOR, "_sculpt_smear_previous", &prev_scl, &params);
 
   BKE_curvemapping_init(brush->curve);
 
   SculptThreadedTaskData data = {
       .sd = sd,
       .ob = ob,
-      .scl = &prev_scl,
+      .scl = prev_scl,
       .brush = brush,
       .nodes = nodes,
   };

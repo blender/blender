@@ -1654,7 +1654,7 @@ void SCULPT_enhance_details_brush(
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
-  SculptCustomLayer strokeid_scl;
+  SculptCustomLayer *strokeid_scl;
 
   bool use_area_weights = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT);
 
@@ -1680,28 +1680,18 @@ void SCULPT_enhance_details_brush(
 
   SCULPT_boundary_info_ensure(ob);
 
-  SculptCustomLayer scl;
+  SculptCustomLayer *scl;
   SculptLayerParams params = {.permanent = false, .simple_array = false};
   bool weighted = SCULPT_get_int(ss, use_weighted_smooth, sd, brush);
 
-  SCULPT_attr_ensure_layer(
+  scl = SCULPT_attr_get_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &params);
-  SCULPT_attr_ensure_layer(ss,
-                           ob,
-                           ATTR_DOMAIN_POINT,
-                           CD_PROP_INT32,
-                           SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_STROKE_ID),
-                           &params);
-
-  SCULPT_attr_get_layer(
-      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_detail_dir", &scl, &params);
-  SCULPT_attr_get_layer(ss,
-                        ob,
-                        ATTR_DOMAIN_POINT,
-                        CD_PROP_INT32,
-                        SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_STROKE_ID),
-                        &strokeid_scl,
-                        &params);
+  strokeid_scl = SCULPT_attr_get_layer(ss,
+                                       ob,
+                                       ATTR_DOMAIN_POINT,
+                                       CD_PROP_INT32,
+                                       SCULPT_SCL_GET_NAME(SCULPT_SCL_LAYER_STROKE_ID),
+                                       &params);
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache)) {
     SCULPT_vertex_random_access_ensure(ss);
@@ -1787,8 +1777,8 @@ void SCULPT_enhance_details_brush(
                                  .cd_temp = 0,
                                  .cd_temp2 = 0,
                                  .nodes = nodes,
-                                 .scl = &scl,
-                                 .scl2 = &strokeid_scl};
+                                 .scl = scl,
+                                 .scl2 = strokeid_scl};
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);
@@ -1997,17 +1987,13 @@ void SCULPT_bound_smooth_ensure(SculptSession *ss, Object *ob)
 {
   SculptLayerParams params = {.permanent = false, .simple_array = false};
 
-  if (!ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS]) {
-    ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                            "bound_scl");
-
-    SCULPT_attr_get_layer(ss,
-                          ob,
-                          ATTR_DOMAIN_POINT,
-                          CD_PROP_COLOR,
-                          "t__smooth_bdist",
-                          ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS],
-                          &params);
+  if (!ss->scl.smooth_bdist) {
+    ss->scl.smooth_bdist = SCULPT_attr_get_layer(ss,
+                                                 ob,
+                                                 ATTR_DOMAIN_POINT,
+                                                 CD_PROP_COLOR,
+                                                 SCULPT_SCL_GET_NAME(SCULPT_SCL_SMOOTH_BDIS),
+                                                 &params);
   }
 }
 
@@ -2048,19 +2034,13 @@ void SCULPT_smooth(Sculpt *sd,
 
   SculptLayerParams params = {.permanent = false, .simple_array = false};
 
-  if (do_vel_smooth) {
-    if (!ss->custom_layers[SCULPT_SCL_SMOOTH_VEL]) {
-      ss->custom_layers[SCULPT_SCL_SMOOTH_VEL] = MEM_callocN(sizeof(SculptCustomLayer),
-                                                             "vel_smooth_scl");
-
-      SCULPT_attr_get_layer(ss,
-                            ob,
-                            ATTR_DOMAIN_POINT,
-                            CD_PROP_FLOAT3,
-                            "__scl_smooth_vel",
-                            ss->custom_layers[SCULPT_SCL_SMOOTH_VEL],
-                            &params);
-    }
+  if (do_vel_smooth && !ss->scl.smooth_vel) {
+    ss->scl.smooth_vel = SCULPT_attr_get_layer(ss,
+                                               ob,
+                                               ATTR_DOMAIN_POINT,
+                                               CD_PROP_FLOAT3,
+                                               SCULPT_SCL_GET_NAME(SCULPT_SCL_SMOOTH_VEL),
+                                               &params);
   }
 
   float bstrength2 = bstrength;
@@ -2103,7 +2083,6 @@ void SCULPT_smooth(Sculpt *sd,
   if (bound_smooth > 0.0f) {
     bound_smooth = powf(ss->cache->brush->boundary_smooth_factor, BOUNDARY_SMOOTH_EXP);
 
-    /* ensure ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] exists */
     SCULPT_bound_smooth_ensure(ss, ob);
   }
 
@@ -2137,8 +2116,8 @@ void SCULPT_smooth(Sculpt *sd,
         .smooth_projection = projection,
         .fset_slide = fset_slide,
         .bound_smooth = bound_smooth,
-        .scl = do_vel ? ss->custom_layers[SCULPT_SCL_SMOOTH_VEL] : NULL,
-        .scl2 = bound_smooth > 0.0f ? ss->custom_layers[SCULPT_SCL_SMOOTH_BDIS] : NULL,
+        .scl = do_vel ? ss->scl.smooth_vel : NULL,
+        .scl2 = bound_smooth > 0.0f ? ss->scl.smooth_bdist : NULL,
         .vel_smooth_fac = vel_fac,
         .do_origco = do_origco,
         .iterations = count + 1,
@@ -2360,14 +2339,9 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
 
-  SculptCustomLayer scl;
-
   SculptLayerParams params = {.permanent = false, .simple_array = false};
-
-  SCULPT_attr_ensure_layer(
+  SculptCustomLayer *scl = SCULPT_attr_get_layer(
       ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth", &params);
-  SCULPT_attr_get_layer(
-      ss, ob, ATTR_DOMAIN_POINT, CD_PROP_FLOAT3, "__dyntopo_lapsmooth", &scl, &params);
 
   if (SCULPT_stroke_is_first_brush_step(ss->cache) &&
       (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT)) {
@@ -2380,7 +2354,7 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
                                  .brush = brush,
                                  .nodes = nodes,
                                  .smooth_projection = brush->autosmooth_projection,
-                                 .scl = &scl};
+                                 .scl = scl};
 
   TaskParallelSettings settings;
   BKE_pbvh_parallel_range_settings(&settings, true, totnode);

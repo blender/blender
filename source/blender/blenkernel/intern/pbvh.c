@@ -4827,6 +4827,7 @@ bool BKE_pbvh_cache_is_valid(const struct Object *ob,
 {
   if (pbvh->invalid) {
     printf("pbvh invalid!\n");
+    return false;
   }
 
   if (pbvh->type != pbvh_type) {
@@ -4836,6 +4837,19 @@ bool BKE_pbvh_cache_is_valid(const struct Object *ob,
   bool ok = true;
   int totvert = 0, totedge = 0, totloop = 0, totpoly = 0;
   const CustomData *vdata, *edata, *ldata, *pdata;
+
+  MultiresModifierData *mmd = NULL;
+
+  LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+    if (md->type == eModifierType_Multires) {
+      mmd = (MultiresModifierData *)md;
+      break;
+    }
+  }
+
+  if (mmd && (mmd->flags & eModifierMode_Realtime)) {
+    // return false;
+  }
 
   switch (pbvh_type) {
     case PBVH_BMESH:
@@ -4865,15 +4879,6 @@ bool BKE_pbvh_cache_is_valid(const struct Object *ob,
       pdata = &me->pdata;
       break;
     case PBVH_GRIDS: {
-      MultiresModifierData *mmd = NULL;
-
-      LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-        if (md->type == eModifierType_Multires) {
-          mmd = (MultiresModifierData *)md;
-          break;
-        }
-      }
-
       if (!mmd) {
         return false;
       }

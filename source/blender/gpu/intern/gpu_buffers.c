@@ -26,11 +26,11 @@
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
 #include "BKE_customdata.h"
+#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_subdiv_ccg.h"
-#include "BKE_global.h"
 
 #include "GPU_batch.h"
 #include "GPU_buffers.h"
@@ -1743,7 +1743,7 @@ static void GPU_pbvh_bmesh_buffers_update_indexed(PBVHGPUFormat *vbo_id,
     }
 
     if (have_uv) {
-      for (int j = 0; j < cd_uv_count; j++) {
+      for (int j = 0; j < vbo_id->totuv; j++) {
         MLoopUV *mu = BM_ELEM_CD_GET_VOID_P(l, cd_uvs[j].cd_offset);
         GPU_vertbuf_attr_set(buffers->vert_buf, vbo_id->uv[j], i, mu->uv);
       }
@@ -1994,7 +1994,7 @@ void GPU_pbvh_bmesh_buffers_update(PBVHGPUFormat *vbo_id, PBVHGPUBuildArgs *args
                                     cd_vcol_count);
 
       if (have_uv) {
-        for (int k = 0; k < cd_uv_count; k++) {
+        for (int k = 0; k < vbo_id->totuv; k++) {
           MLoopUV *mu = BM_ELEM_CD_GET_VOID_P(l[j], cd_uvs[k].cd_offset);
           GPU_vertbuf_attr_set(buffers->vert_buf, vbo_id->uv[k], v_index, mu->uv);
         }
@@ -2057,7 +2057,7 @@ bool GPU_pbvh_attribute_names_update(PBVHType pbvh_type,
         &vbo_id->format, "msk", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
     vbo_id->totcol = 0;
-    if (pbvh_type == PBVH_FACES) {
+    if (ELEM(pbvh_type, PBVH_FACES, PBVH_BMESH)) {
       int ci = 0;
 
       Mesh me_query;
@@ -2117,7 +2117,8 @@ bool GPU_pbvh_attribute_names_update(PBVHType pbvh_type,
         &vbo_id->format, "fset", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
     vbo_id->totuv = 0;
-    if (pbvh_type == PBVH_FACES && ldata && CustomData_has_layer(ldata, CD_MLOOPUV)) {
+    if (ELEM(pbvh_type, PBVH_FACES, PBVH_BMESH) && ldata &&
+        CustomData_has_layer(ldata, CD_MLOOPUV)) {
       GPUAttrRef uv_layers[MAX_GPU_ATTR];
       CustomDataLayer *active = NULL, *render = NULL;
 

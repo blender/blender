@@ -1037,7 +1037,7 @@ static void MemorY_ErroR(const char *block, const char *error)
   print_error("Memoryblock %s: %s\n", block, error);
 
 #ifdef WITH_ASSERT_ABORT
-  abort();
+    abort();
 #endif
 }
 

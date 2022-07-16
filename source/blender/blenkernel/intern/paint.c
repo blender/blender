@@ -1543,28 +1543,18 @@ void BKE_sculptsession_free(Object *ob)
 
     sculptsession_free_pbvh(ob);
 
-    for (int i = 0; i < SCULPT_SCL_LAYER_MAX; i++) {
-      MEM_SAFE_FREE(ss->custom_layers[i]);
-    }
-
     MEM_SAFE_FREE(ss->epmap);
     MEM_SAFE_FREE(ss->epmap_mem);
 
     MEM_SAFE_FREE(ss->vemap);
     MEM_SAFE_FREE(ss->vemap_mem);
 
-    bool SCULPT_attr_release_layer(
-        SculptSession * ss, Object * ob, struct SculptCustomLayer * scl);
+    for (int i = 0; i < SCULPT_MAX_TEMP_LAYERS; i++) {
+      SculptCustomLayer *scl = ss->temp_layers + i;
 
-    if (ss->layers_to_free) {
-      for (int i = 0; i < ss->tot_layers_to_free; i++) {
-        if (ss->layers_to_free[i]) {
-          SCULPT_attr_release_layer(ss, ob, ss->layers_to_free[i]);
-          // SCULPT_attr_release_layer frees layers_to_free[i] itself
-        }
+      if (!scl->released && !scl->is_cdlayer) {
+        BKE_sculptsession_attr_release_layer(ob, scl);
       }
-
-      MEM_freeN(ss->layers_to_free);
     }
 
     if (ss->tex_pool) {
@@ -2192,6 +2182,8 @@ void BKE_sculpt_color_layer_create_if_needed(struct Object *object)
   if (object->sculpt && object->sculpt->pbvh) {
     BKE_pbvh_update_active_vcol(object->sculpt->pbvh, orig_me);
   }
+
+  BKE_sculptsession_update_attr_refs(object);
 }
 
 void BKE_sculpt_update_object_for_edit(
@@ -3264,31 +3256,6 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
     out->elemsize = elemsize;
     out->ready = true;
 
-    /*grids cannot store normal customdata layers, and thus
-      we cannot rely on the customdata api to keep track of
-      and free their memory for us.
-
-      so instead we queue them in a dynamic array inside of
-      SculptSession.
-      */
-    if (ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-      ss->tot_layers_to_free++;
-
-      if (!ss->layers_to_free) {
-        ss->layers_to_free = MEM_calloc_arrayN(
-            ss->tot_layers_to_free, sizeof(void *), "ss->layers_to_free");
-      }
-      else {
-        ss->layers_to_free = MEM_recallocN(ss->layers_to_free,
-                                           sizeof(void *) * ss->tot_layers_to_free);
-      }
-
-      SculptCustomLayer *cpy = MEM_callocN(sizeof(SculptCustomLayer), "SculptCustomLayer cpy");
-      *cpy = *out;
-
-      ss->layers_to_free[ss->tot_layers_to_free - 1] = cpy;
-    }
-
     return true;
   }
 
@@ -3446,23 +3413,51 @@ static bool sculpt_attr_get_layer(SculptSession *ss,
   }
 
   out->ready = true;
+  out->released = false;
 
   return true;
 }
 
-bool BKE_sculptsession_attr_get_layer(Object *ob,
-                                      eAttrDomain domain,
-                                      int proptype,
-                                      const char *name,
-                                      SculptCustomLayer *scl,
-                                      SculptLayerParams *params)
+SculptCustomLayer *BKE_sculptsession_attr_layer_get(Object *ob,
+                                                    eAttrDomain domain,
+                                                    int proptype,
+                                                    const char *name,
+                                                    SculptLayerParams *params,
+                                                    bool *r_is_new)
 {
   SculptSession *ss = ob->sculpt;
 
-  bool ret = sculpt_attr_get_layer(ss, ob, domain, proptype, name, scl, true, params);
+  for (int i = 0; i < SCULPT_MAX_TEMP_LAYERS; i++) {
+    SculptCustomLayer *scl = ss->temp_layers + i;
+
+    if (!scl->released && STREQ(scl->name, name) && scl->proptype == proptype &&
+        scl->domain == domain) {
+      if (r_is_new) {
+        *r_is_new = true;
+      }
+
+      return scl;
+    }
+  }
+
+  SculptCustomLayer *scl = NULL;
+  for (int i = 0; i < SCULPT_MAX_TEMP_LAYERS; i++) {
+    if (ss->temp_layers[i].released) {
+      scl = ss->temp_layers + i;
+      break;
+    }
+  }
+
+  BLI_assert(scl != NULL);
+  bool is_newlayer = sculpt_attr_get_layer(ss, ob, domain, proptype, name, scl, true, params);
+
+  if (r_is_new) {
+    *r_is_new = is_newlayer;
+  }
+
   BKE_sculptsession_update_attr_refs(ob);
 
-  return ret;
+  return scl;
 }
 
 void BKE_sculptsession_bmesh_attr_update_internal(Object *ob)
@@ -3488,14 +3483,10 @@ void BKE_sculptsession_update_attr_refs(Object *ob)
   SculptSession *ss = ob->sculpt;
 
   /* run twice, in case SCULPT_attr_get_layer had to recreate a layer and
-     messed up the ordering. */
+     messed up the bmesh offsets. */
   for (int i = 0; i < 2; i++) {
-    for (int j = 0; j < SCULPT_SCL_LAYER_MAX; j++) {
-      SculptCustomLayer *scl = ss->custom_layers[j];
-
-      if (!scl || !scl->ready) {
-        continue;
-      }
+    for (int j = 0; j < SCULPT_MAX_TEMP_LAYERS; j++) {
+      SculptCustomLayer *scl = ss->temp_layers + j;
 
       if (!scl->released && !scl->params.simple_array) {
         sculpt_attr_get_layer(
@@ -3555,37 +3546,56 @@ bool BKE_sculptsession_attr_release_layer(Object *ob, SculptCustomLayer *scl)
   eAttrDomain domain = scl->domain;
 
   if (scl->released) {
-    return false;
+    return false; /* layer already released? */
   }
 
-  // remove from layers_to_free list if necassary
-  for (int i = 0; scl->data && i < ss->tot_layers_to_free; i++) {
-    if (ss->layers_to_free[i] && ss->layers_to_free[i]->data == scl->data) {
-      MEM_freeN(ss->layers_to_free[i]);
-      ss->layers_to_free[i] = NULL;
+  /* Remove from internal temp_layers array. */
+  for (int i = 0; i < SCULPT_MAX_TEMP_LAYERS; i++) {
+    SculptCustomLayer *scl2 = ss->temp_layers + i;
+
+    if (STREQ(scl2->name, scl->name) && scl2->domain == scl->domain &&
+        scl2->proptype == scl->proptype) {
+
+      scl2->released = true;
     }
   }
 
-  scl->released = true;
-
   if (!scl->from_bmesh) {
-    // for now, don't clean up bmesh temp layers
-    if (scl->is_cdlayer && BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
+    /* TODO: support PBVH_BMESH */
+
+    if (scl->is_cdlayer) {
       CustomData *cdata = NULL;
       int totelem = 0;
 
-      switch (domain) {
-        case ATTR_DOMAIN_POINT:
-          cdata = ss->vdata;
-          totelem = ss->totvert;
-          break;
-        case ATTR_DOMAIN_FACE:
-          cdata = ss->pdata;
-          totelem = ss->totfaces;
-          break;
-        default:
-          printf("error, unknown domain in %s\n", __func__);
-          return false;
+      if (BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
+        switch (domain) {
+          case ATTR_DOMAIN_POINT:
+            cdata = ss->vdata;
+            totelem = ss->totvert;
+            break;
+          case ATTR_DOMAIN_FACE:
+            cdata = ss->pdata;
+            totelem = ss->totfaces;
+            break;
+          default:
+            printf("error, unknown domain in %s\n", __func__);
+            return false;
+        }
+      }
+      else {
+        switch (domain) {
+          case ATTR_DOMAIN_POINT:
+            cdata = &ss->temp_vdata;
+            totelem = ss->temp_vdata_elems;
+            break;
+          case ATTR_DOMAIN_FACE:
+            cdata = &ss->temp_pdata;
+            totelem = ss->temp_pdata_elems;
+            break;
+          default:
+            printf("error, unknown domain in %s\n", __func__);
+            return false;
+        }
       }
 
       CustomData_free_layer(cdata, scl->layer->type, totelem, scl->layer - cdata->layers);
@@ -3597,5 +3607,11 @@ bool BKE_sculptsession_attr_release_layer(Object *ob, SculptCustomLayer *scl)
 
     scl->data = NULL;
   }
+  else {
+    /* TODO: implement me! */
+  }
+
+  scl->released = true;
+
   return true;
 }

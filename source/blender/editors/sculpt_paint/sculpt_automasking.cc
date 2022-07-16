@@ -260,11 +260,10 @@ void SCULPT_automasking_cache_free(SculptSession *ss, Object *ob, AutomaskingCac
     return;
   }
 
-  if (ss->custom_layers[SCULPT_SCL_AUTOMASKING]) {
-    SCULPT_attr_release_layer(ss, ob, ss->custom_layers[SCULPT_SCL_AUTOMASKING]);
-
-    MEM_SAFE_FREE(ss->custom_layers[SCULPT_SCL_AUTOMASKING]);
-    ss->custom_layers[SCULPT_SCL_AUTOMASKING] = NULL;
+  /* Not worth reallocating bmesh customdata blocks here. */
+  if (ss->scl.automasking_factor && (!ss->pbvh || BKE_pbvh_type(ss->pbvh) != PBVH_BMESH)) {
+    SCULPT_attr_release_layer(ss, ob, ss->scl.automasking_factor);
+    ss->scl.automasking_factor = nullptr;
   }
 
   MEM_SAFE_FREE(automasking);
@@ -558,33 +557,21 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_face_random_access_ensure(ss);
 
-  if (!ss->custom_layers[SCULPT_SCL_AUTOMASKING]) {
-    ss->custom_layers[SCULPT_SCL_AUTOMASKING] = (SculptCustomLayer *)MEM_callocN(
-        sizeof(SculptCustomLayer), "automasking->factorlayer");
-
+  if (!ss->scl.automasking_factor) {
     SculptLayerParams params;
     params.permanent = false;
     params.simple_array = false;
 
-    if (!SCULPT_attr_get_layer(ss,
-                               ob,
-                               ATTR_DOMAIN_POINT,
-                               CD_PROP_FLOAT,
-                               SCULPT_SCL_GET_NAME(SCULPT_SCL_AUTOMASKING),
-                               ss->custom_layers[SCULPT_SCL_AUTOMASKING],
-                               &params)) {
-      // failed
-      MEM_freeN(ss->custom_layers[SCULPT_SCL_AUTOMASKING]);
-      ss->custom_layers[SCULPT_SCL_AUTOMASKING] = NULL;
-
-      return automasking;
-    }
+    ss->scl.automasking_factor = SCULPT_attr_get_layer(ss,
+                                                       ob,
+                                                       ATTR_DOMAIN_POINT,
+                                                       CD_PROP_FLOAT,
+                                                       SCULPT_SCL_GET_NAME(SCULPT_SCL_AUTOMASKING),
+                                                       &params);
   }
 
-  automasking->factorlayer = ss->custom_layers[SCULPT_SCL_AUTOMASKING];
+  automasking->factorlayer = ss->scl.automasking_factor;
 
-  // automasking->factorlayer = SCULPT_attr_ensure_layer()
-  // automasking->factor = MEM_malloc_arrayN(totvert, sizeof(float), "automask_factor");
   for (int i : IndexRange(totvert)) {
     SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
     float *f = (float *)SCULPT_attr_vertex_data(vertex, automasking->factorlayer);
