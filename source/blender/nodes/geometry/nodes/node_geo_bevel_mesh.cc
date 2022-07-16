@@ -3,6 +3,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_attribute_math.hh"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
@@ -53,7 +54,7 @@ static void node_update(bNodeTree *UNUSED(ntree), bNode *UNUSED(node))
 {
 }
 
-/* MeshTopology encapsulates data needed to answer topological queries about a mesh,
+/** MeshTopology encapsulates data needed to answer topological queries about a mesh,
  * such as "which edges are adjacent to a given vertex?".
  * While Mesh uses the term 'poly' for polygon, most of Blender uses the term 'face',
  * so we'll go with 'face' in this code except in the final to/from mesh routines.
@@ -227,7 +228,7 @@ float3 MeshTopology::edge_dir_from_vert_normalized(int e, int v) const
   return math::normalize(edge_dir_from_vert(e, v));
 }
 
-/* A Vertex Cap consists of a vertex in a mesh and an CCW ordering of
+/** A Vertex Cap consists of a vertex in a mesh and an CCW ordering of
  * alternating edges and faces around it, as viewed from the face's
  * normal side. Some faces may be missing (i.e., gaps).
  * (If there are other edges and faces attached to the vertex that
@@ -304,7 +305,7 @@ class VertexCap {
   }
 };
 
-/* Construct and return the VertexCap for vertex vert. */
+/** Construct and return the VertexCap for vertex `vert`. */
 void VertexCap::init_from_topo(const int vert, const MeshTopology &topo)
 {
   this->vert = vert;
@@ -441,7 +442,7 @@ static std::ostream &operator<<(std::ostream &os, const BoundaryVert &bv)
   return os;
 }
 
-/* The different types of BoundaryEdges (see below). */
+/** The different types of BoundaryEdges (see below). */
 typedef enum eBoundaryEdgeType {
   BE_UNBEVELED = 0,
   BE_BEVELED = 1,
@@ -454,7 +455,7 @@ typedef enum eBoundaryEdgeType {
 static const char *be_type_name[6] = {
     "unbev", "bev", "facebev_both", "facebev_l", "facebev_r", "other"};
 
-/* A BoundaryEdge is one end of an edge, attached to a vertex in a VertexCap.
+/** A BoundaryEdge is one end of an edge, attached to a vertex in a VertexCap.
  * This data describes how it is involved in beveling, and how it is attached
  * to BoundaryVerts.
  * Note: when the descriptors "left" and "right" are used to refer to sides of
@@ -476,11 +477,37 @@ class BoundaryEdge {
   /* The boundary vertex index where the left half of a BE_BEVELED,
    * BE_FACE_BEVEL_BOTH, or BE_FACE_BEVEL_RIGHT attached. */
   int bv_right_index;
+  /* The index of this edge, if unbeveled, in output mesh. */
+  int mesh_index;
   /* The type of this BoundaryEdge. */
   eBoundaryEdgeType type;
 
   BoundaryEdge()
-      : edge(-1), vc_index(-1), bv_index(-1), bv_left_index(-1), bv_right_index(-1), type(BE_OTHER)
+      : edge(-1),
+        vc_index(-1),
+        bv_index(-1),
+        bv_left_index(-1),
+        bv_right_index(-1),
+        mesh_index(-1),
+        type(BE_OTHER)
+  {
+  }
+};
+
+/** A BoundaryConnector has the vertices and edges in the output mesh
+ * of the connection between two successive BoundaryVerts.
+ */
+class BoundaryConnector {
+ public:
+  /* Temporary: for now, just one edge. Will eventually be array
+   * of vertices with intervening edges. */
+  int edge;
+
+  BoundaryConnector() : edge(-1)
+  {
+  }
+
+  BoundaryConnector(int e) : edge(e)
   {
   }
 };
@@ -492,14 +519,18 @@ static std::ostream &operator<<(std::ostream &os, const BoundaryEdge &be)
      << "vc#=" << be.vc_index << " "
      << "bv#=" << be.bv_index << " "
      << "bvl#=" << be.bv_left_index << " "
-     << "bvr#=" << be.bv_right_index << "}";
+     << "bvr#=" << be.bv_right_index << " "
+     << "eout=" << be.mesh_index << "}";
   return os;
 }
 
+/** BevelVertexData holds the data used to bevel around a vertex. */
 class BevelVertexData {
   VertexCap vertex_cap_;
   Array<BoundaryVert> boundary_vert_;
   Array<BoundaryEdge> boundary_edge_;
+  /* boundary_conn_[i] goes from boundary_vert_[i] to the following one. */
+  Array<BoundaryConnector> boundary_conn_;
 
  public:
   BevelVertexData()
@@ -521,15 +552,50 @@ class BevelVertexData {
     return vertex_cap_;
   }
 
+  const int beveled_vert() const
+  {
+    return vertex_cap_.vert;
+  }
+
   Span<BoundaryVert> boundary_verts() const
   {
     return boundary_vert_.as_span();
+  }
+
+  MutableSpan<BoundaryVert> mutable_boundary_verts()
+  {
+    return boundary_vert_.as_mutable_span();
   }
 
   Span<BoundaryEdge> boundary_edges() const
   {
     return boundary_edge_.as_span();
   }
+
+  const BoundaryVert &boundary_vert(int boundary_vert_pos) const
+  {
+    return boundary_vert_[boundary_vert_pos];
+  }
+
+  const BoundaryVert &next_boundary_vert(int boundary_vert_pos) const
+  {
+    int n = (boundary_vert_pos + 1) % boundary_vert_.size();
+    return boundary_vert_[n];
+  }
+
+  void set_boundary_connection(int boundary_vert_pos, const BoundaryConnector conn)
+  {
+    boundary_conn_[boundary_vert_pos] = conn;
+  }
+
+  const int boundary_connector_edge(int boundary_vert_pos, int edge_index) const
+  {
+    BLI_assert(edge_index == 0);  // Temporary
+    return boundary_conn_[boundary_vert_pos].edge;
+  }
+
+  /* Find the BoundaryEdge for `edge`, returning nullptr if not found. */
+  BoundaryEdge *find_boundary_edge(int edge) const;
 };
 
 static std::ostream &operator<<(std::ostream &os, const BevelVertexData &bvd)
@@ -550,7 +616,7 @@ static std::ostream &operator<<(std::ostream &os, const BevelVertexData &bvd)
   return os;
 }
 
-/* Calculate the BevelVertexData for one vertex, `vert`, by the given `amount`.
+/** Calculate the `BevelVertexData` for one vertex, `vert`, by the given `amount`.
  * This doesn't calculate limits to the bevel caused by collisions with vertex bevels
  * at adjacent vertices; that needs to done after all of these are calculated,
  * so that this operation can be done in parallel with all other vertex constructions.
@@ -564,6 +630,7 @@ void BevelVertexData::construct_vertex_bevel(int vert, float amount, const MeshT
   /* There will be one boundary vertex on each edge attached to `vert`. */
   boundary_edge_.reinitialize(num_edges);
   boundary_vert_.reinitialize(num_edges);
+  boundary_conn_.reinitialize(num_edges);
 
   const float3 vert_co = topo.vert_co(vertex_cap().vert);
   for (const int i : IndexRange(num_edges)) {
@@ -582,6 +649,19 @@ void BevelVertexData::construct_vertex_bevel(int vert, float amount, const MeshT
   }
 }
 
+BoundaryEdge *BevelVertexData::find_boundary_edge(int edge) const
+{
+  for (int i : boundary_edge_.index_range()) {
+    if (boundary_edge_[i].edge == edge) {
+      /* There's no non-const rvalue subscripting in Array. */
+      BoundaryEdge *be = const_cast<BoundaryEdge *>(&boundary_edge_[i]);
+      return be;
+    }
+  }
+  return nullptr;
+}
+
+/** BevelData holds the global data needed for a bevel. */
 class BevelData {
   /* BevelVertexData for just the affected vertices. */
   Array<BevelVertexData> bevel_vert_data_;
@@ -618,10 +698,20 @@ class BevelData {
     return nullptr;
   }
 
+  Span<BevelVertexData> beveled_vertices_data() const
+  {
+    return bevel_vert_data_.as_span();
+  }
+
+  MutableSpan<BevelVertexData> mutable_beveled_vertices_data()
+  {
+    return bevel_vert_data_.as_mutable_span();
+  }
+
   void print(const std::string &label) const;
 };
 
-/* Make a transation map from mesh vertex index to indices in bevel_vert_data_. */
+/** Make a transation map from mesh vertex index to indices in bevel_vert_data_. */
 void BevelData::setup_vert_map()
 {
   vert_to_bvd_index_.reserve(bevel_vert_data_.size());
@@ -641,14 +731,14 @@ void BevelData::print(const std::string &label) const
   }
 }
 
-/* Calculate the BevelData for a vertex bevel of all specified vertices of the mesh.
+/** Calculate the BevelData for a vertex bevel of all specified vertices of the mesh.
  * `to_bevel` gives the mesh indices of vertices to be beveled.
  * `amounts` should have (virtual) length that matches the number of vertices in the mesh,
  * and gives, per vertex, the magnitude of the bevel at that vertex.
  */
 void BevelData::calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> amounts)
 {
-  BLI_assert(amounts.size() == topo.num_verts());
+  // BLI_assert(amounts.size() == topo.num_verts());
 
   bevel_vert_data_.reinitialize(to_bevel.size());
   threading::parallel_for(to_bevel.index_range(), 1024, [&](const IndexRange range) {
@@ -660,7 +750,7 @@ void BevelData::calculate_vertex_bevels(const IndexMask to_bevel, VArray<float> 
   setup_vert_map();
 }
 
-/* IndexAlloc allocates sequential integers, starting from a given start value. */
+/** IndexAlloc allocates sequential integers, starting from a given start value. */
 class IndexAlloc {
   int start_;
   int first_free_;
@@ -684,11 +774,11 @@ class IndexAlloc {
   }
 };
 
-/* MeshDelta represents a delta to a Mesh: additions and deletions
+/** MeshDelta represents a delta to a Mesh: additions and deletions
  * of Mesh elements.
  */
 class MeshDelta {
-  Mesh &mesh_;
+  const Mesh &mesh_;
   IndexAlloc vert_alloc_;
   IndexAlloc edge_alloc_;
   IndexAlloc poly_alloc_;
@@ -701,15 +791,19 @@ class MeshDelta {
   Vector<MEdge> new_edges_;
   Vector<MPoly> new_polys_;
   Vector<MLoop> new_loops_;
+  Vector<int> new_vert_rep_;
+  Vector<int> new_edge_rep_;
+  Vector<int> new_poly_rep_;
+  Vector<int> new_loop_rep_;
 
  public:
-  MeshDelta(Mesh &mesh);
+  MeshDelta(const Mesh &mesh);
 
-  /* TODO: provide arguments or methods to set the attributes. */
-  int new_vert(const float3 &co);
-  int new_edge(int v1, int v2);
-  int new_loop(int v, int e);
-  int new_face(int loopstart, int totloop);
+  /* In the following, `rep` is the index of the old mesh element to base attributes on.  */
+  int new_vert(const float3 &co, int rep);
+  int new_edge(int v1, int v2, int rep);
+  int new_loop(int v, int e, int rep);
+  int new_face(int loopstart, int totloop, int rep);
 
   void delete_vert(int v)
   {
@@ -721,12 +815,20 @@ class MeshDelta {
   }
   void delete_face(int f);
 
-  /* Change Mesh in place to delete and add what is required, closing up the
-   * gaps in the index spaces. */
-  void apply_delta_to_mesh();
+  void get_edge_verts(int edge, int *r_v1, int *r_v2)
+  {
+    const MEdge &medge = new_edges_[edge - edge_alloc_.start()];
+    *r_v1 = medge.v1;
+    *r_v2 = medge.v2;
+  }
+
+  /* Return a new Mesh, the result of applying delta to mesh_. */
+  Mesh *apply_delta_to_mesh(GeometrySet &geometry_set, const MeshComponent &in_component);
+
+  void print(const std::string &label) const;
 };
 
-MeshDelta::MeshDelta(Mesh &mesh)
+MeshDelta::MeshDelta(const Mesh &mesh)
     : mesh_(mesh),
       vert_alloc_(mesh_.totvert),
       edge_alloc_(mesh_.totedge),
@@ -735,7 +837,7 @@ MeshDelta::MeshDelta(Mesh &mesh)
 {
 }
 
-int MeshDelta::new_vert(const float3 &co)
+int MeshDelta::new_vert(const float3 &co, int rep)
 {
   int v = vert_alloc_.alloc();
   MVert mvert;
@@ -743,11 +845,11 @@ int MeshDelta::new_vert(const float3 &co)
   mvert.flag = 0;
   mvert.bweight = 0;
   new_verts_.append(mvert);
-  BLI_assert(v == new_verts_.size() - 1);
+  new_vert_rep_.append(rep);
   return v;
 }
 
-int MeshDelta::new_edge(int v1, int v2)
+int MeshDelta::new_edge(int v1, int v2, int rep)
 {
   int e = edge_alloc_.alloc();
   MEdge medge;
@@ -757,22 +859,22 @@ int MeshDelta::new_edge(int v1, int v2)
   medge.bweight = 0;
   medge.flag = ME_EDGEDRAW;
   new_edges_.append(medge);
-  BLI_assert(e == new_edges_.size() - 1);
+  new_edge_rep_.append(rep);
   return e;
 }
 
-int MeshDelta::new_loop(int v, int e)
+int MeshDelta::new_loop(int v, int e, int rep)
 {
   int l = loop_alloc_.alloc();
   MLoop mloop;
   mloop.v = v;
   mloop.e = e;
   new_loops_.append(mloop);
-  BLI_assert(l == new_loops_.size() - 1);
+  new_loop_rep_.append(rep);
   return l;
 }
 
-int MeshDelta::new_face(int loopstart, int totloop)
+int MeshDelta::new_face(int loopstart, int totloop, int rep)
 {
   int f = poly_alloc_.alloc();
   MPoly mpoly;
@@ -781,12 +883,12 @@ int MeshDelta::new_face(int loopstart, int totloop)
   mpoly.mat_nr = 0;
   mpoly.flag = 0;
   new_polys_.append(mpoly);
-  BLI_assert(f = new_polys_.size() - 1);
+  new_poly_rep_.append(rep);
   return f;
 }
 
-/* Delete the MPoly and the loops.
- * The edges and vertices need to be deleted elsewhere, if necessary
+/** Delete the MPoly and the loops.
+ * The edges and vertices need to be deleted elsewhere, if necessary.
  */
 void MeshDelta::delete_face(int f)
 {
@@ -798,11 +900,667 @@ void MeshDelta::delete_face(int f)
   }
 }
 
-static void bevel_mesh_vertices(MeshComponent &component,
-                                const Field<bool> &selection_field,
-                                const Field<float> &amount_field)
+#if 0
+/* For debugging. */
+static std::ostream &operator<<(std::ostream &os, const Mesh *mesh)
 {
-  Mesh &mesh = *component.get_for_write();
+  os << "Mesh, totvert=" << mesh->totvert << " totedge=" << mesh->totedge
+     << " totpoly=" << mesh->totpoly << " totloop=" << mesh->totloop << "\n";
+  for (int v : IndexRange(mesh->totvert)) {
+    os << "v" << v << " at (" << mesh->mvert[v].co[0] << "," << mesh->mvert[v].co[1] << ","
+       << mesh->mvert[v].co[2] << ")\n";
+  }
+  for (int e : IndexRange(mesh->totedge)) {
+    os << "e" << e << " = (v" << mesh->medge[e].v1 << ", v" << mesh->medge[e].v2 << ")\n";
+  }
+  for (int p : IndexRange(mesh->totpoly)) {
+    os << "p" << p << " at loopstart l" << mesh->mpoly[p].loopstart << " with "
+       << mesh->mpoly[p].totloop << " loops\n";
+  }
+  for (int l : IndexRange(mesh->totloop)) {
+    os << "l" << l << " = (v" << mesh->mloop[l].v << ", e" << mesh->mloop[l].e << ")\n";
+  }
+  return os;
+}
+#endif
+
+/** Initialze a vector keeps of ints in [0,total) that are not in the deletes set. */
+static void init_keeps_from_delete_set(Vector<int> &keeps, const Set<int> &deletes, int total)
+{
+  keeps.reserve(total);
+  for (int i : IndexRange(total)) {
+    if (!deletes.contains(i)) {
+      keeps.append(i);
+    }
+  }
+}
+
+/** Create a map from old indices to new indices, given that only the elemnts
+ * in `keeps` will be kept, and moved into a contigouus range.
+ * Old indices that don't get kept yield a map value of -1.
+ */
+static void init_map_from_keeps(Array<int> &map, const Vector<int> &keeps)
+{
+  map.fill(-1);
+  for (int i : keeps.index_range()) {
+    map[keeps[i]] = i;
+  }
+}
+
+/** Copy the vertices whose indices are in `src_verts_map` from `src` to a continous range in
+ * `dst`. The `src_verts_map` takes old vertex indices to new ones.
+ */
+static void copy_vertices_based_on_map(Span<MVert> src,
+                                       MutableSpan<MVert> dst,
+                                       Span<int> src_verts_map)
+{
+  for (const int src_v_index : src_verts_map.index_range()) {
+    const int i_dst = src_v_index;
+    const int i_src = src_verts_map[src_v_index];
+    dst[i_dst] = src[i_src];
+  }
+}
+
+/** Copy from `src` to `dst`. */
+static void copy_vertices(Span<MVert> src, MutableSpan<MVert> dst)
+{
+  for (const int i : src.index_range()) {
+    dst[i] = src[i];
+  }
+}
+
+/** Copy the edges whose indices are in `src_edges_map` from `src` to a continous range in
+ * `dst`. While doing so, use `vertex_map` to map the vertex indices within the edges.
+ */
+static void copy_mapped_edges_based_on_map(Span<MEdge> src,
+                                           MutableSpan<MEdge> dst,
+                                           Span<int> src_edges_map,
+                                           Span<int> vertex_map)
+{
+  for (const int src_e_index : src_edges_map.index_range()) {
+    const int i_dst = src_e_index;
+    const int i_src = src_edges_map[src_e_index];
+    const MEdge &e_src = src[i_src];
+    MEdge &e_dst = dst[i_dst];
+
+    e_dst = e_src;
+    e_dst.v1 = vertex_map[e_src.v1];
+    e_dst.v2 = vertex_map[e_src.v2];
+    BLI_assert(e_dst.v1 != -1 && e_dst.v2 != -1);
+  }
+}
+
+/** Copy the edges from `src` to `dst`, mapping the vertex indices in those
+ * edges using the `vmapfn` function.
+ */
+static void copy_mapped_edges(Span<MEdge> src,
+                              MutableSpan<MEdge> dst,
+                              std::function<int(int)> vmapfn)
+{
+  for (const int i : src.index_range()) {
+    const MEdge &e_src = src[i];
+    MEdge &e_dst = dst[i];
+
+    e_dst = e_src;
+    e_dst.v1 = vmapfn(e_src.v1);
+    e_dst.v2 = vmapfn(e_src.v2);
+    BLI_assert(e_dst.v1 != -1 && e_dst.v2 != -1);
+  }
+}
+
+/** Copy the loops whose indices are in `src_loops_map` from `src` to a continous range in
+ * `dst`. While doing so, use `vertex_map` to map the vertex indices within the loops,
+ * and `edge_map` to map the edge indices within the loops.
+ */
+static void copy_mapped_loops_based_on_map(Span<MLoop> src,
+                                           MutableSpan<MLoop> dst,
+                                           Span<int> src_loops_map,
+                                           Span<int> vertex_map,
+                                           Span<int> edge_map)
+{
+  for (const int src_l_index : src_loops_map.index_range()) {
+    const int i_dst = src_l_index;
+    const int i_src = src_loops_map[src_l_index];
+    const MLoop &l_src = src[i_src];
+    MLoop &l_dst = dst[i_dst];
+
+    l_dst.v = vertex_map[l_src.v];
+    l_dst.e = edge_map[l_src.e];
+    BLI_assert(l_dst.v != -1 && l_dst.e != -1);
+  }
+}
+
+/** Copy the loops from `src` to `dst`, mapping the vertex indices in those
+ * edges using the `vmapfn` function, and similarly for edge indices using `emapfn`.
+ */
+static void copy_mapped_loops(Span<MLoop> src,
+                              MutableSpan<MLoop> dst,
+                              std::function<int(int)> vmapfn,
+                              std::function<int(int)> emapfn)
+{
+  for (const int i : src.index_range()) {
+    const MLoop &l_src = src[i];
+    MLoop &l_dst = dst[i];
+
+    l_dst.e = emapfn(l_src.e);
+    l_dst.v = vmapfn(l_src.v);
+    BLI_assert(l_dst.v != -1 && l_dst.e != -1);
+  }
+}
+
+/** Copy the polys whose indices are in `src_polys_map` from `src` to a continous range in
+ * `dst`. While doing so, use `loop_map` to map the loop indices within the polys.
+ */
+static void copy_mapped_polys_based_on_map(Span<MPoly> src,
+                                           MutableSpan<MPoly> dst,
+                                           Span<int> src_polys_map,
+                                           Span<int> loop_map)
+{
+  for (const int src_p_index : src_polys_map.index_range()) {
+    const int i_dst = src_p_index;
+    const int i_src = src_polys_map[src_p_index];
+    const MPoly &p_src = src[i_src];
+    MPoly &p_dst = dst[i_dst];
+
+    p_dst = p_src;
+    p_dst.loopstart = loop_map[p_src.loopstart];
+    BLI_assert(p_dst.loopstart != -1);
+  }
+}
+
+/** Copy the polys from `src` to `dst`, mapping the loop indices in those
+ * polys using the `lmapfn` function.
+ */
+static void copy_mapped_polys(Span<MPoly> src,
+                              MutableSpan<MPoly> dst,
+                              std::function<int(int)> lmapfn)
+{
+  for (const int i : src.index_range()) {
+    const MPoly &p_src = src[i];
+    MPoly &p_dst = dst[i];
+
+    p_dst = p_src;
+    p_dst.loopstart = lmapfn(p_src.loopstart);
+    BLI_assert(p_dst.loopstart != -1);
+  }
+}
+
+/* Copy all entries in `data` that have indices that are in `mask` to be contiguous
+ * at the beginning of `r_data`.
+ */
+template<typename T>
+static void copy_data_based_on_mask(Span<T> data, MutableSpan<T> r_data, IndexMask mask)
+{
+  for (const int i_out : mask.index_range()) {
+    r_data[i_out] = data[mask[i_out]];
+  }
+}
+
+template<typename T>
+static void copy_data_based_on_map(Span<T> src, MutableSpan<T> dst, Span<int> index_map)
+{
+  for (const int i_src : index_map.index_range()) {
+    const int i_dst = index_map[i_src];
+    if (i_dst != -1) {
+      dst[i_dst] = src[i_src];
+    }
+  }
+}
+
+/**
+ * For each attribute with a domain equal to `domain`, copy the parts of that attribute which lie
+ * from the `in_component` as mapped by `mapfn` to `result_component`.
+ * If the map result is -1, use the default value for the attribute.
+ */
+static void copy_attributes_based_on_fn(Map<AttributeIDRef, AttributeKind> &attributes,
+                                        const GeometryComponent &in_component,
+                                        GeometryComponent &result_component,
+                                        const eAttrDomain domain,
+                                        std::function<int(int)> mapfn)
+{
+  for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
+    const AttributeIDRef attribute_id = entry.key;
+    ReadAttributeLookup attribute = in_component.attribute_try_get_for_read(attribute_id);
+    if (!attribute) {
+      continue;
+    }
+
+    /* Only copy if it is on a domain we want. */
+    if (domain != attribute.domain) {
+      continue;
+    }
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
+
+    OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
+        attribute_id, attribute.domain, data_type);
+
+    if (!result_attribute) {
+      continue;
+    }
+
+    attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+      using T = decltype(dummy);
+      VArraySpan<T> span{attribute.varray.typed<T>()};
+      MutableSpan<T> out_span = result_attribute.as_span<T>();
+      for (const int i : out_span.index_range()) {
+        const int src_i = mapfn(i);
+        /* The unmapped entries of `out_span` have been initialized to the default value. */
+        if (src_i != -1) {
+          out_span[i] = span[src_i];
+        }
+      }
+    });
+    result_attribute.save();
+  }
+}
+
+Mesh *MeshDelta::apply_delta_to_mesh(GeometrySet &geometry_set, const MeshComponent &in_component)
+{
+  /* The keep_... vectors hold the indices of elements in the original mesh to keep. */
+  Vector<int> keep_vertices;
+  Vector<int> keep_edges;
+  Vector<int> keep_polys;
+  Vector<int> keep_loops;
+  init_keeps_from_delete_set(keep_vertices, vert_deletes_, mesh_.totvert);
+  init_keeps_from_delete_set(keep_edges, edge_deletes_, mesh_.totedge);
+  init_keeps_from_delete_set(keep_polys, poly_deletes_, mesh_.totpoly);
+  init_keeps_from_delete_set(keep_loops, loop_deletes_, mesh_.totloop);
+
+  /* The vertex_map Array says, for vertex v, what index it maps to in the output mesh, with -1
+   * if not mapped. Similarly for the other ..._map Arrays.
+   */
+  Array<int> vertex_map(mesh_.totvert);
+  Array<int> edge_map(mesh_.totedge);
+  Array<int> poly_map(mesh_.totpoly);
+  Array<int> loop_map(mesh_.totloop);
+  init_map_from_keeps(vertex_map, keep_vertices);
+  init_map_from_keeps(edge_map, keep_edges);
+  init_map_from_keeps(poly_map, keep_polys);
+  init_map_from_keeps(loop_map, keep_loops);
+
+  Map<AttributeIDRef, AttributeKind> attributes;
+  geometry_set.gather_attributes_for_propagation(
+      {GEO_COMPONENT_TYPE_MESH}, GEO_COMPONENT_TYPE_MESH, false, attributes);
+
+  int out_totvert = keep_vertices.size() + new_verts_.size();
+  int out_totedge = keep_edges.size() + new_edges_.size();
+  int out_totpoly = keep_polys.size() + new_polys_.size();
+  int out_totloop = keep_loops.size() + new_loops_.size();
+
+  Span<MVert> mesh_verts(mesh_.mvert, mesh_.totvert);
+  Span<MEdge> mesh_edges(mesh_.medge, mesh_.totedge);
+  Span<MLoop> mesh_loops(mesh_.mloop, mesh_.totloop);
+  Span<MPoly> mesh_polys(mesh_.mpoly, mesh_.totpoly);
+
+  Mesh *mesh_out = BKE_mesh_new_nomain_from_template(
+      &mesh_, out_totvert, out_totedge, 0, out_totloop, out_totpoly);
+
+  MeshComponent out_component;
+  out_component.replace(mesh_out, GeometryOwnershipType::Editable);
+
+  MutableSpan<MVert> mesh_out_verts(mesh_out->mvert, out_totvert);
+  MutableSpan<MEdge> mesh_out_edges(mesh_out->medge, out_totedge);
+  MutableSpan<MLoop> mesh_out_loops(mesh_out->mloop, out_totloop);
+  MutableSpan<MPoly> mesh_out_polys(mesh_out->mpoly, out_totpoly);
+
+  /* Copy the kept elements to the new mesh, mapping the internal vertex, edge, and loop
+   * indices in each of those elements to their new positions.
+   */
+
+  copy_vertices_based_on_map(mesh_verts, mesh_out_verts, keep_vertices);
+  copy_mapped_edges_based_on_map(mesh_edges, mesh_out_edges, keep_edges, vertex_map);
+  copy_mapped_loops_based_on_map(mesh_loops, mesh_out_loops, keep_loops, vertex_map, edge_map);
+  copy_mapped_polys_based_on_map(mesh_polys, mesh_out_polys, keep_polys, loop_map);
+
+  /* Copy in the added elements, mapping the internal vertex, edge, and loop
+   * indices in each of those elements (which may be old elements, now in new positions,
+   * or new elements) to their new positions.
+   */
+  std::function<int(int)> vmapfn = [&](int v) -> int {
+    if (v < mesh_.totvert) {
+      return vertex_map[v];
+    }
+    else {
+      return v - mesh_.totvert + keep_vertices.size();
+    }
+  };
+  std::function<int(int)> emapfn = [&](int e) -> int {
+    if (e < mesh_.totedge) {
+      return edge_map[e];
+    }
+    else {
+      return e - mesh_.totedge + keep_edges.size();
+    }
+  };
+  std::function<int(int)> lmapfn = [&](int l) -> int {
+    if (l < mesh_.totloop) {
+      return loop_map[l];
+    }
+    else {
+      return l - mesh_.totloop + keep_loops.size();
+    }
+  };
+
+  copy_vertices(new_verts_.as_span(), mesh_out_verts.drop_front(keep_vertices.size()));
+  copy_mapped_edges(new_edges_.as_span(), mesh_out_edges.drop_front(keep_edges.size()), vmapfn);
+  copy_mapped_loops(
+      new_loops_.as_span(), mesh_out_loops.drop_front(keep_loops.size()), vmapfn, emapfn);
+  copy_mapped_polys(new_polys_.as_span(), mesh_out_polys.drop_front(keep_polys.size()), lmapfn);
+
+  /* Copy attributes, either from mapped kept ones, or mapped representatives.
+   * The map function needs to say, for an argument new element index, what old
+   * element index is to be used to copy that attribute from. Or -1 to indicate that
+   * it is copied from nowhere, but instead should have the default value for that attribute.
+   */
+  std::function<int(int)> vrepmapfn = [&](int v) -> int {
+    if (v < keep_vertices.size()) {
+      return keep_vertices[v];
+    }
+    else {
+      return new_vert_rep_[v - keep_vertices.size()];
+    }
+  };
+  std::function<int(int)> erepmapfn = [&](int e) -> int {
+    if (e < keep_edges.size()) {
+      return keep_edges[e];
+    }
+    else {
+      return new_edge_rep_[e - keep_edges.size()];
+    }
+  };
+  std::function<int(int)> prepmapfn = [&](int p) -> int {
+    if (p < keep_polys.size()) {
+      return keep_polys[p];
+    }
+    else {
+      return new_poly_rep_[p - keep_polys.size()];
+    }
+  };
+  std::function<int(int)> lrepmapfn = [&](int l) -> int {
+    if (l < keep_loops.size()) {
+      return keep_loops[l];
+    }
+    else {
+      return new_loop_rep_[l - keep_loops.size()];
+    }
+  };
+
+  copy_attributes_based_on_fn(
+      attributes, in_component, out_component, ATTR_DOMAIN_POINT, vrepmapfn);
+  copy_attributes_based_on_fn(
+      attributes, in_component, out_component, ATTR_DOMAIN_EDGE, erepmapfn);
+  copy_attributes_based_on_fn(
+      attributes, in_component, out_component, ATTR_DOMAIN_FACE, prepmapfn);
+  copy_attributes_based_on_fn(
+      attributes, in_component, out_component, ATTR_DOMAIN_CORNER, lrepmapfn);
+
+  /* Fix coordinates of new vertices. */
+  for (const int v : new_verts_.index_range()) {
+    copy_v3_v3(mesh_out->mvert[v + keep_vertices.size()].co, new_verts_[v].co);
+  }
+
+  BKE_mesh_calc_edges_loose(mesh_out);
+  return mesh_out;
+}
+
+void MeshDelta::print(const std::string &label) const
+{
+  if (label.size() > 0) {
+    std::cout << label << " ";
+  }
+  std::cout << "MeshDelta\n";
+  std::cout << "new vertices:\n";
+  const int voff = vert_alloc_.start();
+  for (int i : new_verts_.index_range()) {
+    const MVert &mv = new_verts_[i];
+    std::cout << "v" << voff + i << ": (" << mv.co[0] << "," << mv.co[1] << "," << mv.co[2]
+              << ")\n";
+  }
+  std::cout << "new edeges:\n";
+  const int eoff = edge_alloc_.start();
+  for (int i : new_edges_.index_range()) {
+    const MEdge &me = new_edges_[i];
+    std::cout << "e" << eoff + i << ": v1=" << me.v1 << " v2=" << me.v2 << "\n";
+  }
+  std::cout << "new loops:\n";
+  const int loff = loop_alloc_.start();
+  for (int i : new_loops_.index_range()) {
+    const MLoop &ml = new_loops_[i];
+    std::cout << "l" << loff + i << ": v=" << ml.v << " e=" << ml.e << "\n";
+  }
+  std::cout << "new faces:\n";
+  const int poff = poly_alloc_.start();
+  for (int i : new_polys_.index_range()) {
+    const MPoly &mp = new_polys_[i];
+    std::cout << "f" << poff + i << "; loopstart=" << mp.loopstart << " totloop=" << mp.totloop
+              << "\n";
+  }
+  /* For deleted sets, go through all and printed deleted ones, in order to get ascending order.
+   */
+  std::cout << "deleted vertices:\n";
+  for (int i : IndexRange(mesh_.totvert)) {
+    if (vert_deletes_.contains(i)) {
+      std::cout << i << " ";
+    }
+    if ((i > 0 && (i % 50) == 0)) {
+      std::cout << "\n";
+    }
+  }
+  std::cout << "\n";
+  std::cout << "deleted edges:\n";
+  for (int i : IndexRange(mesh_.totedge)) {
+    if (edge_deletes_.contains(i)) {
+      std::cout << i << " ";
+    }
+    if ((i > 0 && (i % 50) == 0)) {
+      std::cout << "\n";
+    }
+  }
+  std::cout << "\n";
+  std::cout << "deleted faces:\n";
+  for (int i : IndexRange(mesh_.totpoly)) {
+    if (poly_deletes_.contains(i)) {
+      std::cout << i << " ";
+    }
+    if ((i > 0 && (i % 50) == 0)) {
+      std::cout << "\n";
+    }
+  }
+  std::cout << "\n";
+  std::cout << "deleted loops:\n";
+  for (int i : IndexRange(mesh_.totloop)) {
+    if (loop_deletes_.contains(i)) {
+      std::cout << i << " ";
+    }
+    if ((i > 0 && (i % 50) == 0)) {
+      std::cout << "\n";
+    }
+  }
+  std::cout << "\n";
+}
+
+/** Pick a face to be a representative for a beveled vertex. */
+static int face_rep_for_beveled_vert(const BevelVertexData &bvd)
+{
+  /* For now: just pick the first face we find. */
+  for (const int f : bvd.vertex_cap().faces()) {
+    if (f != -1) {
+      return f;
+    }
+  }
+  return -1;
+}
+
+/* This function is temporary, to test the MeshDelta functions. */
+static Mesh *finish_vertex_bevel(BevelData &bd,
+                                 const Mesh &mesh,
+                                 GeometrySet geometry_set,
+                                 const MeshComponent &component)
+{
+  MeshDelta mesh_delta(mesh);
+  MutableSpan<BevelVertexData> beveled_bvds = bd.mutable_beveled_vertices_data();
+
+  /* Make the polygons that will replace the beveled vertices. */
+  for (BevelVertexData &bvd : beveled_bvds) {
+    /* Allocate vertices for the boundary vertices. */
+    MutableSpan<BoundaryVert> boundary_verts = bvd.mutable_boundary_verts();
+    int n = boundary_verts.size();
+    for (BoundaryVert &bv : boundary_verts) {
+      bv.mesh_index = mesh_delta.new_vert(bv.co, bvd.beveled_vert());
+    }
+    /* Allocate the edges and loops for the polygon. */
+    Array<int> edges(n);
+    Array<int> loops(n);
+    int lfirst = -1;
+    int lprev = -1;
+    for (int i : IndexRange(n)) {
+      const BoundaryVert &bv = boundary_verts[i];
+      const BoundaryVert &bv_next = boundary_verts[i == n - 1 ? 0 : i + 1];
+      int v1 = bv.mesh_index;
+      int v2 = bv_next.mesh_index;
+      int e = mesh_delta.new_edge(v1, v2, -1);
+      bvd.set_boundary_connection(i, BoundaryConnector(e));
+      int l = mesh_delta.new_loop(v1, e, -1);
+      if (i == 0) {
+        lfirst = l;
+      }
+      lprev = l;
+    }
+    /* Now make the face. Assert that we allocated contiguous loop indices. */
+    BLI_assert(lfirst != -1 && lprev == lfirst + n - 1);
+    mesh_delta.new_face(lfirst, n, face_rep_for_beveled_vert(bvd));
+    /* Delete the beveled vertex, which is now being replaced.
+     * TODO: only do this if there is no extra stuff attached to it.
+     */
+    mesh_delta.delete_vert(bvd.vertex_cap().vert);
+    /* We also delete any edges that were using that vertex. */
+    for (int e : bd.topo.vert_edges(bvd.vertex_cap().vert)) {
+      mesh_delta.delete_edge(e);
+    }
+  }
+
+  /* Reconstruct all faces that involve a beveled vertex.
+   * For now, go through all faces to see which ones are affected.
+   * TODO: gather affected faces via connections to beveled vertices.
+   */
+  for (int f : IndexRange(mesh.totpoly)) {
+    const MPoly &mpoly = mesh.mpoly[f];
+
+    /* Are there any beveled vertices in f? */
+    int any_affected_vert = false;
+    for (int l = mpoly.loopstart; l < mpoly.loopstart + mpoly.totloop; l++) {
+      const int v = mesh.mloop[l].v;
+      const BevelVertexData *bvd = bd.bevel_vertex_data(v);
+      if (bvd != nullptr) {
+        any_affected_vert = true;
+        break;
+      }
+    }
+    if (any_affected_vert) {
+      /* We need to reconstruct f. We can't reuse unaffected loops since they won't be
+       * contiguous.
+       */
+      int lfirst = -1;
+      int totloop = 0;
+      for (int l = mpoly.loopstart; l < mpoly.loopstart + mpoly.totloop; l++) {
+        const MLoop &mloop = mesh.mloop[l];
+        const MLoop &mloop_next =
+            mesh.mloop[l == mpoly.loopstart + mpoly.totloop - 1 ? mpoly.loopstart : l + 1];
+        int v1 = mloop.v;
+        int v2 = mloop_next.v;
+        int e = mloop.e;
+        BevelVertexData *bvd1 = bd.bevel_vertex_data(v1);
+        BevelVertexData *bvd2 = bd.bevel_vertex_data(v2);
+        BoundaryEdge *be1 = bvd1 == nullptr ? nullptr : bvd1->find_boundary_edge(e);
+        BoundaryEdge *be2 = bvd2 == nullptr ? nullptr : bvd2->find_boundary_edge(e);
+        const BoundaryVert *bv1 = be1 == nullptr ? nullptr : &bvd1->boundary_vert(be1->bv_index);
+        const BoundaryVert *bv2 = be2 == nullptr ? nullptr : &bvd2->boundary_vert(be2->bv_index);
+
+        /* If v1 is beveled, we need to add the boundary connector from the next boundary vertex
+         * CCW from bv1 (which is therefore the previous boundary vertex when going around our
+         * current face) to bv1. This is the reverse of the connector from the current edge to
+         * the next. Then after that, the new edge that replaces e. We assume the edge(s) for the
+         * connector have already been made.
+         */
+        int lnew = -1;
+        if (bvd1 != nullptr) {
+          /* Temporary: for now assume only one edge in the connector. */
+          int econn = bvd1->boundary_connector_edge(bv1->vc_index, 0);
+          BLI_assert(econn != -1);
+          int econn_v1, econn_v2;
+          mesh_delta.get_edge_verts(econn, &econn_v1, &econn_v2);
+          BLI_assert(econn_v1 == bv1->mesh_index);
+          lnew = mesh_delta.new_loop(econn_v2, econn, l);
+          if (l == mpoly.loopstart) {
+            lfirst = lnew;
+          }
+          totloop++;
+          /* Now we need an edge from bv1->mesh_index to either v2 (if v2 is not beveled)
+           * or to bv2->mesh_index. But that edge may have been made already. If so,
+           * we will find its mesh index in be2->mesh_index.
+           * It is also possible we made the edge and stored it in be1->mesh_index,
+           * while doing the adjacent face.
+           */
+          if (bvd2 == nullptr) {
+            if (be1->mesh_index != -1) {
+              e = be1->mesh_index;
+            }
+            else {
+              e = mesh_delta.new_edge(bv1->mesh_index, v2, mloop.e);
+            }
+            lnew = mesh_delta.new_loop(bv1->mesh_index, e, l);
+          }
+          else {
+            if (be1->mesh_index != -1) {
+              e = be1->mesh_index;
+            }
+            else if (be2->mesh_index != -1) {
+              e = be2->mesh_index;
+            }
+            else {
+              e = mesh_delta.new_edge(bv1->mesh_index, bv2->mesh_index, mloop.e);
+              be2->mesh_index = e;
+            }
+            lnew = mesh_delta.new_loop(bv1->mesh_index, e, l);
+          }
+          be1->mesh_index = e;
+        }
+        else if (bvd2 != nullptr) {
+          /* v1 is not beveled and v2 is. */
+          if (be2->mesh_index != -1) {
+            e = be2->mesh_index;
+          }
+          else {
+            e = mesh_delta.new_edge(v1, bv2->mesh_index, mloop.e);
+            be2->mesh_index = e;
+          }
+          lnew = mesh_delta.new_loop(v1, e, l);
+        }
+        else {
+          /* Neither v1 nor v2 is beveled, so we can use the existing e. */
+          lnew = mesh_delta.new_loop(v1, e, l);
+        }
+        totloop++;
+
+        if (lfirst == -1) {
+          lfirst = lnew;
+        }
+      }
+      mesh_delta.new_face(lfirst, totloop, f);
+      /* Delete the old face (which also deletes its loops). */
+      mesh_delta.delete_face(f);
+    }
+  }
+  Mesh *mesh_out = mesh_delta.apply_delta_to_mesh(geometry_set, component);
+  return mesh_out;
+}
+
+static Mesh *bevel_mesh_vertices(GeometrySet geometry_set,
+                                 const MeshComponent &component,
+                                 const Field<bool> &selection_field,
+                                 const Field<float> &amount_field)
+{
+  const Mesh &mesh = *component.get_for_read();
   int orig_vert_size = mesh.totvert;
   GeometryComponentFieldContext context(component, ATTR_DOMAIN_POINT);
   FieldEvaluator evaluator{context, orig_vert_size};
@@ -814,16 +1572,17 @@ static void bevel_mesh_vertices(MeshComponent &component,
 
   BevelData bdata(mesh);
   bdata.calculate_vertex_bevels(selection, amounts);
-  bdata.print("After calculate_vertex_bevels");  // DEBUG
+  // bdata.print("After calculate_vertex_bevels");  // DEBUG
+  return finish_vertex_bevel(bdata, mesh, geometry_set, component);
 }
 
-static void bevel_mesh_edges(MeshComponent &UNUSED(component),
+static void bevel_mesh_edges(const MeshComponent &UNUSED(component),
                              const Field<bool> &UNUSED(selection_field),
                              const Field<float> &UNUSED(amount_field))
 {
 }
 
-static void bevel_mesh_faces(MeshComponent &UNUSED(component),
+static void bevel_mesh_faces(const MeshComponent &UNUSED(component),
                              const Field<bool> &UNUSED(selection_field),
                              const Field<float> &UNUSED(amount_field))
 {
@@ -839,10 +1598,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (geometry_set.has_mesh()) {
-      MeshComponent &component = geometry_set.get_component_for_write<MeshComponent>();
+      const MeshComponent &component = *geometry_set.get_component_for_read<MeshComponent>();
+      Mesh *mesh_out = nullptr;
       switch (mode) {
         case GEO_NODE_BEVEL_MESH_VERTICES:
-          bevel_mesh_vertices(component, selection_field, amount_field);
+          mesh_out = bevel_mesh_vertices(geometry_set, component, selection_field, amount_field);
           break;
         case GEO_NODE_BEVEL_MESH_EDGES:
           bevel_mesh_edges(component, selection_field, amount_field);
@@ -851,7 +1611,8 @@ static void node_geo_exec(GeoNodeExecParams params)
           bevel_mesh_faces(component, selection_field, amount_field);
           break;
       }
-      BLI_assert(BKE_mesh_is_valid(component.get_for_write()));
+      BLI_assert(BKE_mesh_is_valid(mesh_out));
+      geometry_set.replace_mesh(mesh_out);
     }
   });
 
