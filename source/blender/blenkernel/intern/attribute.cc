@@ -23,7 +23,7 @@
 #include "BLI_string_utils.h"
 
 #include "BKE_attribute.h"
-#include "BKE_attribute_access.hh"
+#include "BKE_attribute.hh"
 #include "BKE_curves.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"

@@ -417,7 +417,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Bevel = {
-    /* name */ "Bevel",
+    /* name */ N_("Bevel"),
     /* structName */ "BevelModifierData",
     /* structSize */ sizeof(BevelModifierData),
     /* srna */ &RNA_BevelModifier,

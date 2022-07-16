@@ -72,12 +72,10 @@ typedef struct uiBut uiBut;
 typedef struct uiButExtraOpIcon uiButExtraOpIcon;
 typedef struct uiLayout uiLayout;
 typedef struct uiPopupBlockHandle uiPopupBlockHandle;
-/* C handle for C++ #ui::AbstractTreeView type. */
-typedef struct uiTreeViewHandle uiTreeViewHandle;
+/* C handle for C++ #ui::AbstractView type. */
+typedef struct uiViewHandle uiViewHandle;
 /* C handle for C++ #ui::AbstractTreeViewItem type. */
 typedef struct uiTreeViewItemHandle uiTreeViewItemHandle;
-/* C handle for C++ #ui::AbstractGridView type. */
-typedef struct uiGridViewHandle uiGridViewHandle;
 /* C handle for C++ #ui::AbstractGridViewItem type. */
 typedef struct uiGridViewItemHandle uiGridViewItemHandle;
 
@@ -3242,15 +3240,6 @@ void UI_tree_view_item_context_menu_build(struct bContext *C,
 uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region,
                                                       const int xy[2]) ATTR_NONNULL(1, 2);
 uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const struct ARegion *region);
-
-/**
- * Listen to \a notifier, returning true if the region should redraw.
- */
-bool UI_tree_view_listen_should_redraw(const uiTreeViewHandle *view, const wmNotifier *notifier);
-/**
- * Listen to \a notifier, returning true if the region should redraw.
- */
-bool UI_grid_view_listen_should_redraw(const uiGridViewHandle *view, const wmNotifier *notifier);
 
 #ifdef __cplusplus
 }

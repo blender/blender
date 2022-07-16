@@ -323,14 +323,14 @@ static void pygpu_vertbuf__tp_dealloc(BPyGPUVertBuf *self)
 }
 
 PyDoc_STRVAR(pygpu_vertbuf__tp_doc,
-             ".. class:: GPUVertBuf(len, format)\n"
+             ".. class:: GPUVertBuf(format, len)\n"
              "\n"
              "   Contains a VBO.\n"
              "\n"
-             "   :param len: Amount of vertices that will fit into this buffer.\n"
-             "   :type type: `int`\n"
              "   :param format: Vertex format.\n"
-             "   :type buf: :class:`gpu.types.GPUVertFormat`\n");
+             "   :type buf: :class:`gpu.types.GPUVertFormat`\n"
+             "   :param len: Amount of vertices that will fit into this buffer.\n"
+             "   :type type: `int`\n");
 PyTypeObject BPyGPUVertBuf_Type = {
     PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUVertBuf",
     .tp_basicsize = sizeof(BPyGPUVertBuf),

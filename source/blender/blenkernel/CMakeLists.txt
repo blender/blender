@@ -88,7 +88,7 @@ set(SRC
   intern/blendfile_link_append.c
   intern/boids.c
   intern/bpath.c
-  intern/brush.c
+  intern/brush.cc
   intern/bvhutils.cc
   intern/cachefile.c
   intern/callbacks.c
@@ -199,6 +199,7 @@ set(SRC
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
   intern/mesh_iterators.c
+  intern/mesh_legacy_convert.cc
   intern/mesh_mapping.c
   intern/mesh_merge.c
   intern/mesh_merge_customdata.cc
@@ -324,7 +325,7 @@ set(SRC
   BKE_asset_library.h
   BKE_asset_library.hh
   BKE_attribute.h
-  BKE_attribute_access.hh
+  BKE_attribute.hh
   BKE_attribute_math.hh
   BKE_autoexec.h
   BKE_blender.h
@@ -419,6 +420,7 @@ set(SRC
   BKE_mesh_boolean_convert.hh
   BKE_mesh_fair.h
   BKE_mesh_iterators.h
+  BKE_mesh_legacy_convert.h
   BKE_mesh_mapping.h
   BKE_mesh_mirror.h
   BKE_mesh_remap.h

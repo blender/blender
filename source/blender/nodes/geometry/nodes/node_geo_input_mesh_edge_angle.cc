@@ -91,7 +91,7 @@ class AngleFieldInput final : public GeometryFieldInput {
     };
 
     VArray<float> angles = VArray<float>::ForFunc(mesh->totedge, angle_fn);
-    return component.attribute_try_adapt_domain<float>(
+    return component.attributes()->adapt_domain<float>(
         std::move(angles), ATTR_DOMAIN_EDGE, domain);
   }
 
@@ -166,7 +166,7 @@ class SignedAngleFieldInput final : public GeometryFieldInput {
     };
 
     VArray<float> angles = VArray<float>::ForFunc(mesh->totedge, angle_fn);
-    return component.attribute_try_adapt_domain<float>(
+    return component.attributes()->adapt_domain<float>(
         std::move(angles), ATTR_DOMAIN_EDGE, domain);
   }
 

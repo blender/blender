@@ -279,6 +279,141 @@ static GHOST_TKey convertSDLKey(SDL_Scancode key)
 }
 #undef GXMAP
 
+static char convert_keyboard_event_to_ascii(const SDL_KeyboardEvent &sdl_sub_evt)
+{
+  SDL_Keycode sym = sdl_sub_evt.keysym.sym;
+  if (sym > 127) {
+    switch (sym) {
+      case SDLK_KP_DIVIDE:
+        sym = '/';
+        break;
+      case SDLK_KP_MULTIPLY:
+        sym = '*';
+        break;
+      case SDLK_KP_MINUS:
+        sym = '-';
+        break;
+      case SDLK_KP_PLUS:
+        sym = '+';
+        break;
+      case SDLK_KP_1:
+        sym = '1';
+        break;
+      case SDLK_KP_2:
+        sym = '2';
+        break;
+      case SDLK_KP_3:
+        sym = '3';
+        break;
+      case SDLK_KP_4:
+        sym = '4';
+        break;
+      case SDLK_KP_5:
+        sym = '5';
+        break;
+      case SDLK_KP_6:
+        sym = '6';
+        break;
+      case SDLK_KP_7:
+        sym = '7';
+        break;
+      case SDLK_KP_8:
+        sym = '8';
+        break;
+      case SDLK_KP_9:
+        sym = '9';
+        break;
+      case SDLK_KP_0:
+        sym = '0';
+        break;
+      case SDLK_KP_PERIOD:
+        sym = '.';
+        break;
+      default:
+        sym = 0;
+        break;
+    }
+  }
+  else {
+    if (sdl_sub_evt.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
+      /* Weak US keyboard assumptions. */
+      if (sym >= 'a' && sym <= ('a' + 32)) {
+        sym -= 32;
+      }
+      else {
+        switch (sym) {
+          case '`':
+            sym = '~';
+            break;
+          case '1':
+            sym = '!';
+            break;
+          case '2':
+            sym = '@';
+            break;
+          case '3':
+            sym = '#';
+            break;
+          case '4':
+            sym = '$';
+            break;
+          case '5':
+            sym = '%';
+            break;
+          case '6':
+            sym = '^';
+            break;
+          case '7':
+            sym = '&';
+            break;
+          case '8':
+            sym = '*';
+            break;
+          case '9':
+            sym = '(';
+            break;
+          case '0':
+            sym = ')';
+            break;
+          case '-':
+            sym = '_';
+            break;
+          case '=':
+            sym = '+';
+            break;
+          case '[':
+            sym = '{';
+            break;
+          case ']':
+            sym = '}';
+            break;
+          case '\\':
+            sym = '|';
+            break;
+          case ';':
+            sym = ':';
+            break;
+          case '\'':
+            sym = '"';
+            break;
+          case ',':
+            sym = '<';
+            break;
+          case '.':
+            sym = '>';
+            break;
+          case '/':
+            sym = '?';
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+  return (char)sym;
+}
+
 /**
  * Events don't always have valid windows,
  * but GHOST needs a window _always_. fallback to the GL window.
@@ -454,9 +589,9 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
     case SDL_KEYDOWN:
     case SDL_KEYUP: {
       SDL_KeyboardEvent &sdl_sub_evt = sdl_event->key;
-      SDL_Keycode sym = sdl_sub_evt.keysym.sym;
       GHOST_TEventType type = (sdl_sub_evt.state == SDL_PRESSED) ? GHOST_kEventKeyDown :
                                                                    GHOST_kEventKeyUp;
+      const bool is_repeat = sdl_sub_evt.repeat != 0;
 
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
@@ -465,138 +600,15 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       GHOST_TKey gkey = convertSDLKey(sdl_sub_evt.keysym.scancode);
       /* NOTE: the `sdl_sub_evt.keysym.sym` is truncated,
        * for unicode support ghost has to be modified. */
-      // printf("%d\n", sym);
-      if (sym > 127) {
-        switch (sym) {
-          case SDLK_KP_DIVIDE:
-            sym = '/';
-            break;
-          case SDLK_KP_MULTIPLY:
-            sym = '*';
-            break;
-          case SDLK_KP_MINUS:
-            sym = '-';
-            break;
-          case SDLK_KP_PLUS:
-            sym = '+';
-            break;
-          case SDLK_KP_1:
-            sym = '1';
-            break;
-          case SDLK_KP_2:
-            sym = '2';
-            break;
-          case SDLK_KP_3:
-            sym = '3';
-            break;
-          case SDLK_KP_4:
-            sym = '4';
-            break;
-          case SDLK_KP_5:
-            sym = '5';
-            break;
-          case SDLK_KP_6:
-            sym = '6';
-            break;
-          case SDLK_KP_7:
-            sym = '7';
-            break;
-          case SDLK_KP_8:
-            sym = '8';
-            break;
-          case SDLK_KP_9:
-            sym = '9';
-            break;
-          case SDLK_KP_0:
-            sym = '0';
-            break;
-          case SDLK_KP_PERIOD:
-            sym = '.';
-            break;
-          default:
-            sym = 0;
-            break;
-        }
-      }
-      else {
-        if (sdl_sub_evt.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
-          /* lame US keyboard assumptions */
-          if (sym >= 'a' && sym <= ('a' + 32)) {
-            sym -= 32;
-          }
-          else {
-            switch (sym) {
-              case '`':
-                sym = '~';
-                break;
-              case '1':
-                sym = '!';
-                break;
-              case '2':
-                sym = '@';
-                break;
-              case '3':
-                sym = '#';
-                break;
-              case '4':
-                sym = '$';
-                break;
-              case '5':
-                sym = '%';
-                break;
-              case '6':
-                sym = '^';
-                break;
-              case '7':
-                sym = '&';
-                break;
-              case '8':
-                sym = '*';
-                break;
-              case '9':
-                sym = '(';
-                break;
-              case '0':
-                sym = ')';
-                break;
-              case '-':
-                sym = '_';
-                break;
-              case '=':
-                sym = '+';
-                break;
-              case '[':
-                sym = '{';
-                break;
-              case ']':
-                sym = '}';
-                break;
-              case '\\':
-                sym = '|';
-                break;
-              case ';':
-                sym = ':';
-                break;
-              case '\'':
-                sym = '"';
-                break;
-              case ',':
-                sym = '<';
-                break;
-              case '.':
-                sym = '>';
-                break;
-              case '/':
-                sym = '?';
-                break;
-              default:
-                break;
-            }
-          }
-        }
+
+      /* TODO(@campbellbarton): support full unicode, SDL supports this but it needs to be
+       * explicitly enabled via #SDL_StartTextInput which GHOST would have to wrap. */
+      char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
+      if (type == GHOST_kEventKeyDown) {
+        utf8_buf[0] = convert_keyboard_event_to_ascii(sdl_sub_evt);
       }
 
-      g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, sym, nullptr, false);
+      g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, is_repeat, utf8_buf);
       break;
     }
   }

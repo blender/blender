@@ -7,7 +7,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_attribute_access.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_mesh.h"
 
@@ -322,11 +321,10 @@ static void calculate_polys(const CuboidConfig &config,
 
 static void calculate_uvs(const CuboidConfig &config, Mesh *mesh, const bke::AttributeIDRef &uv_id)
 {
-  MeshComponent mesh_component;
-  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
-  bke::OutputAttribute_Typed<float2> uv_attribute =
-      mesh_component.attribute_try_get_for_output_only<float2>(uv_id, ATTR_DOMAIN_CORNER);
-  MutableSpan<float2> uvs = uv_attribute.as_span();
+  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+  bke::SpanAttributeWriter<float2> uv_attribute =
+      attributes.lookup_or_add_for_write_only_span<float2>(uv_id, ATTR_DOMAIN_CORNER);
+  MutableSpan<float2> uvs = uv_attribute.span;
 
   int loop_index = 0;
 
@@ -394,7 +392,7 @@ static void calculate_uvs(const CuboidConfig &config, Mesh *mesh, const bke::Att
     }
   }
 
-  uv_attribute.save();
+  uv_attribute.finish();
 }
 
 Mesh *create_cuboid_mesh(const float3 &size,

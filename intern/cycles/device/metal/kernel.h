@@ -31,7 +31,7 @@ enum {
 enum { METALRT_TABLE_DEFAULT, METALRT_TABLE_SHADOW, METALRT_TABLE_LOCAL, METALRT_TABLE_NUM };
 
 /* Pipeline State Object types */
-enum {
+enum MetalPipelineType {
   /* A kernel that can be used with all scenes, supporting all features.
    * It is slow to compile, but only needs to be compiled once and is then
    * cached for future render sessions. This allows a render to get underway
@@ -39,28 +39,33 @@ enum {
    */
   PSO_GENERIC,
 
-  /* A kernel that is relatively quick to compile, but is specialized for the
-   * scene being rendered. It only contains the functionality and even baked in
-   * constants for values that means it needs to be recompiled whenever a
-   * dependent setting is changed. The render performance of this kernel is
-   * significantly faster though, and justifies the extra compile time.
+  /* A intersection kernel that is very quick to specialize and results in faster intersection
+   * kernel performance. It uses Metal function constants to replace several KernelData variables
+   * with fixed constants.
    */
-  /* METAL_WIP: This isn't used and will require more changes to enable. */
-  PSO_SPECIALISED,
+  PSO_SPECIALIZED_INTERSECT,
+
+  /* A shading kernel that is slow to specialize, but results in faster shading kernel performance
+   * rendered. It uses Metal function constants to replace several KernelData variables with fixed
+   * constants and short-circuit all unused SVM node case handlers.
+   */
+  PSO_SPECIALIZED_SHADE,
 
   PSO_NUM
 };
 
-const char *kernel_type_as_string(int kernel_type);
+const char *kernel_type_as_string(MetalPipelineType pso_type);
 
 struct MetalKernelPipeline {
 
   void compile();
 
   id<MTLLibrary> mtlLibrary = nil;
-  bool scene_specialized;
+  MetalPipelineType pso_type;
   string source_md5;
+  size_t usage_count = 0;
 
+  KernelData kernel_data_;
   bool use_metalrt;
   bool metalrt_hair;
   bool metalrt_hair_thick;
@@ -75,6 +80,8 @@ struct MetalKernelPipeline {
   id<MTLComputePipelineState> pipeline = nil;
   int num_threads_per_block = 0;
 
+  bool should_use_binary_archive() const;
+
   string error_str;
 
   API_AVAILABLE(macos(11.0))
@@ -85,7 +92,8 @@ struct MetalKernelPipeline {
 /* Cache of Metal kernels for each DeviceKernel. */
 namespace MetalDeviceKernels {
 
-bool load(MetalDevice *device, bool scene_specialized);
+bool should_load_kernels(MetalDevice *device, MetalPipelineType pso_type);
+bool load(MetalDevice *device, MetalPipelineType pso_type);
 const MetalKernelPipeline *get_best_pipeline(const MetalDevice *device, DeviceKernel kernel);
 
 } /* namespace MetalDeviceKernels */

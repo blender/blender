@@ -7,6 +7,8 @@
 
 #include "node_composite_util.hh"
 
+#include "BKE_colorband.h"
+
 /* **************** VALTORGB ******************** */
 
 namespace blender::nodes::node_composite_val_to_rgb_cc {
@@ -47,7 +49,7 @@ namespace blender::nodes::node_composite_val_to_rgb_cc {
 static void cmp_node_rgbtobw_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>(N_("Image")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_output<decl::Color>(N_("Val"));
+  b.add_output<decl::Float>(N_("Val"));
 }
 
 }  // namespace blender::nodes::node_composite_val_to_rgb_cc

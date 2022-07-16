@@ -566,6 +566,17 @@ static bool transform_poll_property(const bContext *UNUSED(C),
     }
   }
 
+  /* Snapping. */
+  {
+    PropertyRNA *prop_snap = RNA_struct_find_property(op->ptr, "snap");
+    if (prop_snap && (prop_snap != prop) &&
+        (RNA_property_boolean_get(op->ptr, prop_snap) == false)) {
+      if (STRPREFIX(prop_id, "snap") || STRPREFIX(prop_id, "use_snap")) {
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
@@ -644,27 +655,62 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
   }
 
   if (flags & P_SNAP) {
-    prop = RNA_def_boolean(ot->srna, "snap", 0, "Use Snapping Options", "");
+    prop = RNA_def_boolean(ot->srna, "snap", false, "Use Snapping Options", "");
     RNA_def_property_flag(prop, PROP_HIDDEN);
 
+    prop = RNA_def_enum(ot->srna,
+                        "snap_elements",
+                        rna_enum_snap_element_items,
+                        SCE_SNAP_MODE_INCREMENT,
+                        "Snap to Elements",
+                        "");
+    RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+
+    RNA_def_boolean(ot->srna, "use_snap_project", false, "Project Individual Elements", "");
+
     if (flags & P_GEO_SNAP) {
-      /* TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid
-       * previous ambiguity of "target" (now, "source" is geometry to be moved and "target" is
-       * geometry to which moved geometry is snapped).  Use "Source snap point" and "Point on
-       * source that will snap to target" for name and description, respectively. */
-      prop = RNA_def_enum(ot->srna, "snap_target", rna_enum_snap_source_items, 0, "Target", "");
+      /* TODO(@gfxcoder): Rename `snap_target` to `snap_source` to avoid previous ambiguity of
+       * "target" (now, "source" is geometry to be moved and "target" is geometry to which moved
+       * geometry is snapped).  Use "Source snap point" and "Point on source that will snap to
+       * target" for name and description, respectively. */
+      prop = RNA_def_enum(ot->srna, "snap_target", rna_enum_snap_source_items, 0, "Snap With", "");
       RNA_def_property_flag(prop, PROP_HIDDEN);
+
+      /* Target selection. */
+      prop = RNA_def_boolean(ot->srna, "use_snap_self", true, "Target: Include Active", "");
+      RNA_def_property_flag(prop, PROP_HIDDEN);
+      prop = RNA_def_boolean(ot->srna, "use_snap_edit", true, "Target: Include Edit", "");
+      RNA_def_property_flag(prop, PROP_HIDDEN);
+      prop = RNA_def_boolean(ot->srna, "use_snap_nonedit", true, "Target: Include Non-Edited", "");
+      RNA_def_property_flag(prop, PROP_HIDDEN);
+      prop = RNA_def_boolean(
+          ot->srna, "use_snap_selectable_only", false, "Target: Exclude Non-Selectable", "");
+      RNA_def_property_flag(prop, PROP_HIDDEN);
+
+      /* Face Nearest options */
+      prop = RNA_def_boolean(
+          ot->srna, "use_snap_to_same_target", false, "Snap to Same Target", "");
+      RNA_def_property_flag(prop, PROP_HIDDEN);
+      prop = RNA_def_int(
+          ot->srna, "snap_face_nearest_steps", 1, 1, 32767, "Face Nearest Steps", "", 1, 32767);
+      RNA_def_property_flag(prop, PROP_HIDDEN);
+
       prop = RNA_def_float_vector(
           ot->srna, "snap_point", 3, NULL, -FLT_MAX, FLT_MAX, "Point", "", -FLT_MAX, FLT_MAX);
       RNA_def_property_flag(prop, PROP_HIDDEN);
 
       if (flags & P_ALIGN_SNAP) {
-        prop = RNA_def_boolean(ot->srna, "snap_align", 0, "Align with Point Normal", "");
+        prop = RNA_def_boolean(ot->srna, "snap_align", false, "Align with Point Normal", "");
         RNA_def_property_flag(prop, PROP_HIDDEN);
         prop = RNA_def_float_vector(
             ot->srna, "snap_normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "", -FLT_MAX, FLT_MAX);
         RNA_def_property_flag(prop, PROP_HIDDEN);
       }
+    }
+    else {
+      prop = RNA_def_boolean(
+          ot->srna, "use_snap_selectable_only", false, "Target: Exclude Non-Selectable", "");
+      RNA_def_property_flag(prop, PROP_HIDDEN);
     }
   }
 

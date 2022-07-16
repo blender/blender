@@ -247,7 +247,7 @@ struct CurvesEffectOperationExecutor {
 
   eBrushFalloffShape falloff_shape_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
 
   float2 brush_pos_start_re_;
   float2 brush_pos_end_re_;
@@ -289,7 +289,7 @@ struct CurvesEffectOperationExecutor {
 
     falloff_shape_ = eBrushFalloffShape(brush_->falloff_shape);
 
-    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     brush_pos_start_re_ = self.last_mouse_position_;
     brush_pos_end_re_ = stroke_extension.mouse_position;

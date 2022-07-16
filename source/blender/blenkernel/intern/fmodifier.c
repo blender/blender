@@ -1127,7 +1127,7 @@ FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
 
   /* update the fcurve if the Cycles modifier is added */
   if ((owner_fcu) && (type == FMODIFIER_TYPE_CYCLES)) {
-    calchandles_fcurve(owner_fcu);
+    BKE_fcurve_handles_recalc(owner_fcu);
   }
 
   /* return modifier for further editing */
@@ -1215,7 +1215,7 @@ bool remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 
     /* update the fcurve if the Cycles modifier is removed */
     if (update_fcu) {
-      calchandles_fcurve(update_fcu);
+      BKE_fcurve_handles_recalc(update_fcu);
     }
 
     return true;

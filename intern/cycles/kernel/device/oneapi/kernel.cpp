@@ -9,12 +9,9 @@
 #  include <map>
 #  include <set>
 
-#  include <level_zero/ze_api.h>
 #  include <CL/sycl.hpp>
-#  include <ext/oneapi/backend/level_zero.hpp>
 
 #  include "kernel/device/oneapi/compat.h"
-#  include "kernel/device/oneapi/device_id.h"
 #  include "kernel/device/oneapi/globals.h"
 #  include "kernel/device/oneapi/kernel_templates.h"
 
@@ -103,8 +100,12 @@ bool oneapi_usm_memcpy(SyclQueue *queue_, void *dest, void *src, size_t num_byte
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
   oneapi_check_usm(queue_, dest, true);
   oneapi_check_usm(queue_, src, true);
+  sycl::event mem_event = queue->memcpy(dest, src, num_bytes);
+#  ifdef WITH_CYCLES_DEBUG
   try {
-    sycl::event mem_event = queue->memcpy(dest, src, num_bytes);
+    /* NOTE(@nsirgien) Waiting on memory operation may give more precise error
+     * messages. Due to impact on occupancy, it makes sense to enable it only during Cycles debug.
+     */
     mem_event.wait_and_throw();
     return true;
   }
@@ -114,6 +115,20 @@ bool oneapi_usm_memcpy(SyclQueue *queue_, void *dest, void *src, size_t num_byte
     }
     return false;
   }
+#  else
+  sycl::usm::alloc dest_type = get_pointer_type(dest, queue->get_context());
+  sycl::usm::alloc src_type = get_pointer_type(src, queue->get_context());
+  bool from_device_to_host = dest_type == sycl::usm::alloc::host &&
+                             src_type == sycl::usm::alloc::device;
+  bool host_or_device_memop_with_offset = dest_type == sycl::usm::alloc::unknown ||
+                                          src_type == sycl::usm::alloc::unknown;
+  /* NOTE(@sirgienko) Host-side blocking wait on this operation is mandatory, otherwise the host
+   * may not wait until the end of the transfer before using the memory.
+   */
+  if (from_device_to_host || host_or_device_memop_with_offset)
+    mem_event.wait();
+  return true;
+#  endif
 }
 
 bool oneapi_usm_memset(SyclQueue *queue_, void *usm_ptr, unsigned char value, size_t num_bytes)
@@ -121,8 +136,12 @@ bool oneapi_usm_memset(SyclQueue *queue_, void *usm_ptr, unsigned char value, si
   assert(queue_);
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
   oneapi_check_usm(queue_, usm_ptr, true);
+  sycl::event mem_event = queue->memset(usm_ptr, value, num_bytes);
+#  ifdef WITH_CYCLES_DEBUG
   try {
-    sycl::event mem_event = queue->memset(usm_ptr, value, num_bytes);
+    /* NOTE(@nsirgien) Waiting on memory operation may give more precise error
+     * messages. Due to impact on occupancy, it makes sense to enable it only during Cycles debug.
+     */
     mem_event.wait_and_throw();
     return true;
   }
@@ -132,6 +151,10 @@ bool oneapi_usm_memset(SyclQueue *queue_, void *usm_ptr, unsigned char value, si
     }
     return false;
   }
+#  else
+  (void)mem_event;
+  return true;
+#  endif
 }
 
 bool oneapi_queue_synchronize(SyclQueue *queue_)
@@ -647,7 +670,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
 }
 
 static const int lowest_supported_driver_version_win = 1011660;
-static const int lowest_supported_driver_version_neo = 20066;
+static const int lowest_supported_driver_version_neo = 23570;
 
 static int parse_driver_build_version(const sycl::device &device)
 {
@@ -726,21 +749,25 @@ static std::vector<sycl::device> oneapi_available_devices()
       else {
         bool filter_out = false;
 
-        /* For now we support all Intel(R) Arc(TM) devices
-         * and any future GPU with more than 128 execution units
-         * official support can be broaden to older and smaller GPUs once ready. */
+        /* For now we support all Intel(R) Arc(TM) devices and likely any future GPU,
+         * assuming they have either more than 96 Execution Units or not 7 threads per EU.
+         * Official support can be broaden to older and smaller GPUs once ready. */
         if (device.is_gpu() && platform.get_backend() == sycl::backend::ext_oneapi_level_zero) {
-          ze_device_handle_t ze_device = sycl::get_native<sycl::backend::ext_oneapi_level_zero>(
-              device);
-          ze_device_properties_t props = {ZE_STRUCTURE_TYPE_DEVICE_PROPERTIES};
-          zeDeviceGetProperties(ze_device, &props);
-          bool is_dg2 = (intel_arc_alchemist_device_ids.find(props.deviceId) !=
-                         intel_arc_alchemist_device_ids.end());
-          int number_of_eus = props.numEUsPerSubslice * props.numSubslicesPerSlice *
-                              props.numSlices;
-          if (!is_dg2 || number_of_eus < 128)
+          /* Filtered-out defaults in-case these values aren't available through too old L0
+           * runtime. */
+          int number_of_eus = 96;
+          int threads_per_eu = 7;
+          if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
+            number_of_eus = device.get_info<sycl::info::device::ext_intel_gpu_eu_count>();
+          }
+          if (device.has(sycl::aspect::ext_intel_gpu_hw_threads_per_eu)) {
+            threads_per_eu =
+                device.get_info<sycl::info::device::ext_intel_gpu_hw_threads_per_eu>();
+          }
+          /* This filters out all Level-Zero supported GPUs from older generation than Arc. */
+          if (number_of_eus <= 96 && threads_per_eu == 7) {
             filter_out = true;
-
+          }
           /* if not already filtered out, check driver version. */
           if (!filter_out) {
             int driver_build_version = parse_driver_build_version(device);

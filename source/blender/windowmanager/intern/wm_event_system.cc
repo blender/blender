@@ -1378,22 +1378,20 @@ static int wm_operator_invoke(bContext *C,
     }
 
     if (op->type->invoke && event) {
-      /* Temporarily write into `mval` (not technically `const` correct) but this is restored. */
-      const int mval_prev[2] = {UNPACK2(event->mval)};
-      wm_region_mouse_co(C, (wmEvent *)event);
+      /* Make a copy of the event as it's `const` and the #wmEvent.mval to be written into. */
+      wmEvent event_temp = *event;
+      wm_region_mouse_co(C, &event_temp);
 
       if (op->type->flag & OPTYPE_UNDO) {
         wm->op_undo_depth++;
       }
 
-      retval = op->type->invoke(C, op, event);
+      retval = op->type->invoke(C, op, &event_temp);
       OPERATOR_RETVAL_CHECK(retval);
 
       if (op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm) {
         wm->op_undo_depth--;
       }
-
-      copy_v2_v2_int(((wmEvent *)event)->mval, mval_prev);
     }
     else if (op->type->exec) {
       if (op->type->flag & OPTYPE_UNDO) {
@@ -2088,9 +2086,7 @@ static bool wm_eventmatch(const wmEvent *winevent, const wmKeyMapItem *kmi)
   /* The matching rules. */
   if (kmitype == KM_TEXTINPUT) {
     if (winevent->val == KM_PRESS) { /* Prevent double clicks. */
-      /* Not using #ISTEXTINPUT anymore because (at least on Windows) some key codes above 255
-       * could have printable ascii keys, See T30479. */
-      if (ISKEYBOARD(winevent->type) && (winevent->ascii || winevent->utf8_buf[0])) {
+      if (ISKEYBOARD(winevent->type) && winevent->utf8_buf[0]) {
         return true;
       }
     }
@@ -5044,7 +5040,6 @@ static wmEvent *wm_event_add_mousemove_to_head(wmWindow *win)
     tevent = *event_last;
 
     tevent.flag = (eWM_EventFlag)0;
-    tevent.ascii = '\0';
     tevent.utf8_buf[0] = '\0';
 
     wm_event_custom_clear(&tevent);
@@ -5136,6 +5131,53 @@ static void wm_event_state_update_and_click_set(wmEvent *event,
   const bool is_keyboard = ELEM(type, GHOST_kEventKeyDown, GHOST_kEventKeyUp);
   const bool check_double_click = true;
   wm_event_state_update_and_click_set_ex(event, event_state, is_keyboard, check_double_click);
+}
+
+/* Returns true when the two events corresponds to a press of the same key with the same modifiers.
+ */
+static bool wm_event_is_same_key_press(const wmEvent &event_a, const wmEvent &event_b)
+{
+  if (event_a.val != KM_PRESS || event_b.val != KM_PRESS) {
+    return false;
+  }
+
+  if (event_a.modifier != event_b.modifier || event_a.type != event_b.type) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Returns true if the event is a key press event which is to be ignored and not added to the event
+ * queue.
+ *
+ * A key press event will be ignored if there is already matched key press in the queue.
+ * This avoids the event queue "clogging" in the situations when there is an operator bound to a
+ * key press event and the execution time of the operator is longer than the key repeat.
+ */
+static bool wm_event_is_ignorable_key_press(const wmWindow *win, const wmEvent &event)
+{
+  if (BLI_listbase_is_empty(&win->event_queue)) {
+    /* If the queue is empty never ignore the event.
+     * Empty queue at this point means that the events are handled fast enough, and there is no
+     * reason to ignore anything. */
+    return false;
+  }
+
+  if ((event.flag & WM_EVENT_IS_REPEAT) == 0) {
+    /* Only ignore repeat events from the keyboard, and allow accumulation of non-repeat events.
+     *
+     * The goal of this check is to allow events coming from a keyboard macro software, which can
+     * generate events quicker than the main loop handles them. In this case we want all events to
+     * be handled (unless the keyboard macro software tags them as repeat) because otherwise it
+     * will become impossible to get reliable results of automated events testing. */
+    return false;
+  }
+
+  const wmEvent &last_event = *reinterpret_cast<const wmEvent *>(win->event_queue.last);
+
+  return wm_event_is_same_key_press(last_event, event);
 }
 
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void *customdata)
@@ -5331,8 +5373,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         break;
       }
 
-      event.ascii = kd->ascii;
-      /* Might be not nullptr terminated. */
+      /* Might be not null terminated. */
       memcpy(event.utf8_buf, kd->utf8_buf, sizeof(event.utf8_buf));
       if (kd->is_repeat) {
         event.flag |= WM_EVENT_IS_REPEAT;
@@ -5343,8 +5384,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
 
       /* Exclude arrow keys, escape, etc from text input. */
       if (type == GHOST_kEventKeyUp) {
-        event.ascii = '\0';
-
         /* Ghost should do this already for key up. */
         if (event.utf8_buf[0]) {
           CLOG_ERROR(WM_LOG_EVENTS,
@@ -5353,15 +5392,28 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         event.utf8_buf[0] = '\0';
       }
       else {
-        if (event.ascii < 32 && event.ascii > 0) {
-          event.ascii = '\0';
-        }
         if (event.utf8_buf[0] < 32 && event.utf8_buf[0] > 0) {
           event.utf8_buf[0] = '\0';
         }
       }
 
       if (event.utf8_buf[0]) {
+        /* NOTE(@campbellbarton): Detect non-ASCII characters stored in `utf8_buf`,
+         * ideally this would never happen but it can't be ruled out for X11 which has
+         * special handling of Latin1 when building without UTF8 support.
+         * Avoid regressions by adding this conversions, it should eventually be removed. */
+        if ((event.utf8_buf[0] >= 0x80) && (event.utf8_buf[1] == '\0')) {
+          const uint c = (uint)event.utf8_buf[0];
+          int utf8_buf_len = BLI_str_utf8_from_unicode(c, event.utf8_buf, sizeof(event.utf8_buf));
+          CLOG_ERROR(WM_LOG_EVENTS,
+                     "ghost detected non-ASCII single byte character '%u', converting to utf8 "
+                     "('%.*s', length=%d)",
+                     c,
+                     utf8_buf_len,
+                     event.utf8_buf,
+                     utf8_buf_len);
+        }
+
         if (BLI_str_utf8_size(event.utf8_buf) == -1) {
           CLOG_ERROR(WM_LOG_EVENTS,
                      "ghost detected an invalid unicode character '%d'",
@@ -5434,7 +5486,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, void 
         G.is_break = true;
       }
 
-      wm_event_add(win, &event);
+      if (!wm_event_is_ignorable_key_press(win, event)) {
+        wm_event_add(win, &event);
+      }
 
       break;
     }

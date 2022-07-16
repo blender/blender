@@ -8,7 +8,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
@@ -39,8 +38,8 @@ static void fill_mesh_topology(const int vert_offset,
                                MutableSpan<MLoop> loops,
                                MutableSpan<MPoly> polys)
 {
-  const int main_segment_num = curves::curve_segment_num(main_point_num, main_cyclic);
-  const int profile_segment_num = curves::curve_segment_num(profile_point_num, profile_cyclic);
+  const int main_segment_num = curves::segments_num(main_point_num, main_cyclic);
+  const int profile_segment_num = curves::segments_num(profile_point_num, profile_cyclic);
 
   if (profile_point_num == 1) {
     for (const int i : IndexRange(main_point_num - 1)) {
@@ -273,7 +272,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
   for (const int i_main : info.main.curves_range()) {
     const bool main_cyclic = info.main_cyclic[i_main];
     const int main_point_num = info.main.evaluated_points_for_curve(i_main).size();
-    const int main_segment_num = curves::curve_segment_num(main_point_num, main_cyclic);
+    const int main_segment_num = curves::segments_num(main_point_num, main_cyclic);
     for (const int i_profile : info.profile.curves_range()) {
       result.vert[mesh_index] = vert_offset;
       result.edge[mesh_index] = edge_offset;
@@ -285,7 +284,7 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
 
       const bool profile_cyclic = info.profile_cyclic[i_profile];
       const int profile_point_num = info.profile.evaluated_points_for_curve(i_profile).size();
-      const int profile_segment_num = curves::curve_segment_num(profile_point_num, profile_cyclic);
+      const int profile_segment_num = curves::segments_num(profile_point_num, profile_cyclic);
 
       const bool has_caps = fill_caps && !main_cyclic && profile_cyclic;
       const int tube_face_num = main_segment_num * profile_segment_num;
@@ -315,15 +314,15 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
   return result;
 }
 
-static eAttrDomain get_attribute_domain_for_mesh(const MeshComponent &mesh,
+static eAttrDomain get_attribute_domain_for_mesh(const AttributeAccessor &mesh_attributes,
                                                  const AttributeIDRef &attribute_id)
 {
   /* Only use a different domain if it is builtin and must only exist on one domain. */
-  if (!mesh.attribute_is_builtin(attribute_id)) {
+  if (!mesh_attributes.is_builtin(attribute_id)) {
     return ATTR_DOMAIN_POINT;
   }
 
-  std::optional<AttributeMetaData> meta_data = mesh.attribute_get_meta_data(attribute_id);
+  std::optional<AttributeMetaData> meta_data = mesh_attributes.lookup_meta_data(attribute_id);
   if (!meta_data) {
     return ATTR_DOMAIN_POINT;
   }
@@ -331,16 +330,17 @@ static eAttrDomain get_attribute_domain_for_mesh(const MeshComponent &mesh,
   return meta_data->domain;
 }
 
-static bool should_add_attribute_to_mesh(const CurveComponent &curve_component,
-                                         const MeshComponent &mesh_component,
+static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attributes,
+                                         const AttributeAccessor &mesh_attributes,
                                          const AttributeIDRef &id)
 {
+
   /* The position attribute has special non-generic evaluation. */
   if (id.is_named() && id.name() == "position") {
     return false;
   }
   /* Don't propagate built-in curves attributes that are not built-in on meshes. */
-  if (curve_component.attribute_is_builtin(id) && !mesh_component.attribute_is_builtin(id)) {
+  if (curve_attributes.is_builtin(id) && !mesh_attributes.is_builtin(id)) {
     return false;
   }
   if (!id.should_be_kept()) {
@@ -407,8 +407,8 @@ static void foreach_curve_combination(const CurvesInfo &info,
                          profile_points,
                          main_cyclic,
                          profile_cyclic,
-                         curves::curve_segment_num(main_points.size(), main_cyclic),
-                         curves::curve_segment_num(profile_points.size(), profile_cyclic),
+                         curves::segments_num(main_points.size(), main_cyclic),
+                         curves::segments_num(profile_points.size(), profile_cyclic),
                          offsets_to_range(offsets.vert.as_span(), i),
                          offsets_to_range(offsets.edge.as_span(), i),
                          offsets_to_range(offsets.poly.as_span(), i),
@@ -667,20 +667,13 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
   Vector<std::byte> eval_buffer;
 
-  Curves main_id = {{nullptr}};
-  main_id.geometry = reinterpret_cast<const ::CurvesGeometry &>(main);
-  CurveComponent main_component;
-  main_component.replace(&main_id, GeometryOwnershipType::Editable);
-
-  Curves profile_id = {{nullptr}};
-  profile_id.geometry = reinterpret_cast<const ::CurvesGeometry &>(profile);
-  CurveComponent profile_component;
-  profile_component.replace(&profile_id, GeometryOwnershipType::Editable);
+  const AttributeAccessor main_attributes = main.attributes();
+  const AttributeAccessor profile_attributes = profile.attributes();
 
   Span<float> radii = {};
-  if (main_component.attribute_exists("radius")) {
+  if (main_attributes.contains("radius")) {
     radii = evaluated_attribute_if_necessary(
-                main_component.attribute_get_for_read<float>("radius", ATTR_DOMAIN_POINT, 1.0f),
+                main_attributes.lookup_or_default<float>("radius", ATTR_DOMAIN_POINT, 1.0f),
                 main,
                 main.curve_type_counts(),
                 eval_buffer)
@@ -716,24 +709,23 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     });
   }
 
-  Set<AttributeIDRef> main_attributes;
+  Set<AttributeIDRef> main_attributes_set;
 
-  MeshComponent mesh_component;
-  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
+  MutableAttributeAccessor mesh_attributes = bke::mesh_attributes_for_write(*mesh);
 
-  main_component.attribute_foreach([&](const AttributeIDRef &id,
-                                       const AttributeMetaData meta_data) {
-    if (!should_add_attribute_to_mesh(main_component, mesh_component, id)) {
+  main_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
+    if (!should_add_attribute_to_mesh(main_attributes, mesh_attributes, id)) {
       return true;
     }
-    main_attributes.add_new(id);
+    main_attributes_set.add_new(id);
 
     const eAttrDomain src_domain = meta_data.domain;
     const eCustomDataType type = meta_data.data_type;
-    GVArray src = main_component.attribute_try_get_for_read(id, src_domain, type);
+    GVArray src = main_attributes.lookup(id, src_domain, type);
 
-    const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_component, id);
-    OutputAttribute dst = mesh_component.attribute_try_get_for_output_only(id, dst_domain, type);
+    const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
+    GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(
+        id, dst_domain, type);
     if (!dst) {
       return true;
     }
@@ -744,31 +736,31 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
           offsets,
           dst_domain,
           evaluated_attribute_if_necessary(src, main, main.curve_type_counts(), eval_buffer),
-          dst.as_span());
+          dst.span);
     }
     else if (src_domain == ATTR_DOMAIN_CURVE) {
       copy_curve_domain_attribute_to_mesh(
-          offsets, offsets.main_indices, dst_domain, src, dst.as_span());
+          offsets, offsets.main_indices, dst_domain, src, dst.span);
     }
 
-    dst.save();
+    dst.finish();
     return true;
   });
 
-  profile_component.attribute_foreach([&](const AttributeIDRef &id,
-                                          const AttributeMetaData meta_data) {
+  profile_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     if (main_attributes.contains(id)) {
       return true;
     }
-    if (!should_add_attribute_to_mesh(profile_component, mesh_component, id)) {
+    if (!should_add_attribute_to_mesh(profile_attributes, mesh_attributes, id)) {
       return true;
     }
     const eAttrDomain src_domain = meta_data.domain;
     const eCustomDataType type = meta_data.data_type;
-    GVArray src = profile_component.attribute_try_get_for_read(id, src_domain, type);
+    GVArray src = profile_attributes.lookup(id, src_domain, type);
 
-    const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_component, id);
-    OutputAttribute dst = mesh_component.attribute_try_get_for_output_only(id, dst_domain, type);
+    const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
+    GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(
+        id, dst_domain, type);
     if (!dst) {
       return true;
     }
@@ -779,14 +771,14 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
           offsets,
           dst_domain,
           evaluated_attribute_if_necessary(src, profile, profile.curve_type_counts(), eval_buffer),
-          dst.as_span());
+          dst.span);
     }
     else if (src_domain == ATTR_DOMAIN_CURVE) {
       copy_curve_domain_attribute_to_mesh(
-          offsets, offsets.profile_indices, dst_domain, src, dst.as_span());
+          offsets, offsets.profile_indices, dst_domain, src, dst.span);
     }
 
-    dst.save();
+    dst.finish();
     return true;
   });
 

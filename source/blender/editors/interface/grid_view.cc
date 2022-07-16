@@ -43,12 +43,6 @@ void AbstractGridView::foreach_item(ItemIterFn iter_fn) const
   }
 }
 
-bool AbstractGridView::listen(const wmNotifier & /*notifier*/) const
-{
-  /* Nothing by default. */
-  return false;
-}
-
 AbstractGridViewItem *AbstractGridView::find_matching_item(
     const AbstractGridViewItem &item_to_match, const AbstractGridView &view_to_search_in) const
 {
@@ -67,34 +61,18 @@ void AbstractGridView::change_state_delayed()
   foreach_item([](AbstractGridViewItem &item) { item.change_state_delayed(); });
 }
 
-void AbstractGridView::update_from_old(uiBlock &new_block)
+void AbstractGridView::update_children_from_old(const AbstractView &old_view)
 {
-  uiGridViewHandle *old_view_handle = ui_block_grid_view_find_matching_in_old_block(
-      &new_block, reinterpret_cast<uiGridViewHandle *>(this));
-  if (!old_view_handle) {
-    /* Initial construction, nothing to update. */
-    is_reconstructed_ = true;
-    return;
-  }
+  const AbstractGridView &old_grid_view = dynamic_cast<const AbstractGridView &>(old_view);
 
-  AbstractGridView &old_view = reinterpret_cast<AbstractGridView &>(*old_view_handle);
-
-  foreach_item([this, &old_view](AbstractGridViewItem &new_item) {
-    const AbstractGridViewItem *matching_old_item = find_matching_item(new_item, old_view);
+  foreach_item([this, &old_grid_view](AbstractGridViewItem &new_item) {
+    const AbstractGridViewItem *matching_old_item = find_matching_item(new_item, old_grid_view);
     if (!matching_old_item) {
       return;
     }
 
     new_item.update_from_old(*matching_old_item);
   });
-
-  /* Finished (re-)constructing the tree. */
-  is_reconstructed_ = true;
-}
-
-bool AbstractGridView::is_reconstructed() const
-{
-  return is_reconstructed_;
 }
 
 const GridViewStyle &AbstractGridView::get_style() const
@@ -507,13 +485,6 @@ bool UI_grid_view_item_is_active(const uiGridViewItemHandle *item_handle)
 {
   const AbstractGridViewItem &item = reinterpret_cast<const AbstractGridViewItem &>(*item_handle);
   return item.is_active();
-}
-
-bool UI_grid_view_listen_should_redraw(const uiGridViewHandle *view_handle,
-                                       const wmNotifier *notifier)
-{
-  const AbstractGridView &view = *reinterpret_cast<const AbstractGridView *>(view_handle);
-  return view.listen(*notifier);
 }
 
 bool UI_grid_view_item_matches(const uiGridViewItemHandle *a_handle,

@@ -3172,14 +3172,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
         ],
         'SCULPT_CURVES': [
-            lambda context: (
-                (
-                    _defs_curves_sculpt.selection_paint,
-                    None,
-                )
-                if context is None or context.preferences.experimental.use_new_curves_tools
-                else ()
-            ),
+            _defs_curves_sculpt.selection_paint,
+            None,
             _defs_curves_sculpt.comb,
             _defs_curves_sculpt.add,
             _defs_curves_sculpt.delete,

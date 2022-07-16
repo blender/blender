@@ -105,6 +105,13 @@ class DeviceQueue {
    * value. */
   virtual int num_concurrent_busy_states() const = 0;
 
+  /* Number of elements in a partition of sorted shaders, that improves memory locality of
+   * integrator state fetch at the cost of decreased coherence for shader kernel execution. */
+  virtual int num_sort_partition_elements() const
+  {
+    return 65536;
+  }
+
   /* Initialize execution of kernels on this queue.
    *
    * Will, for example, load all data required by the kernels from Device to global or path state.

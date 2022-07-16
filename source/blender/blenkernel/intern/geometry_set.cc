@@ -7,7 +7,6 @@
 #include "BLT_translation.h"
 
 #include "BKE_attribute.h"
-#include "BKE_attribute_access.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
@@ -57,6 +56,27 @@ GeometryComponent *GeometryComponent::create(GeometryComponentType component_typ
   }
   BLI_assert_unreachable();
   return nullptr;
+}
+
+int GeometryComponent::attribute_domain_size(const eAttrDomain domain) const
+{
+  if (this->is_empty()) {
+    return 0;
+  }
+  const std::optional<blender::bke::AttributeAccessor> attributes = this->attributes();
+  if (attributes.has_value()) {
+    return attributes->domain_size(domain);
+  }
+  return 0;
+}
+
+std::optional<blender::bke::AttributeAccessor> GeometryComponent::attributes() const
+{
+  return std::nullopt;
+};
+std::optional<blender::bke::MutableAttributeAccessor> GeometryComponent::attributes_for_write()
+{
+  return std::nullopt;
 }
 
 void GeometryComponent::user_add() const
@@ -444,11 +464,14 @@ void GeometrySet::attribute_foreach(const Span<GeometryComponentType> component_
       continue;
     }
     const GeometryComponent &component = *this->get_component_for_read(component_type);
-    component.attribute_foreach(
-        [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-          callback(attribute_id, meta_data, component);
-          return true;
-        });
+    const std::optional<AttributeAccessor> attributes = component.attributes();
+    if (attributes.has_value()) {
+      attributes->for_all(
+          [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+            callback(attribute_id, meta_data, component);
+            return true;
+          });
+    }
   }
   if (include_instances && this->has_instances()) {
     const InstancesComponent &instances = *this->get_component_for_read<InstancesComponent>();
@@ -462,7 +485,7 @@ void GeometrySet::gather_attributes_for_propagation(
     const Span<GeometryComponentType> component_types,
     const GeometryComponentType dst_component_type,
     bool include_instances,
-    blender::Map<blender::bke::AttributeIDRef, AttributeKind> &r_attributes) const
+    blender::Map<blender::bke::AttributeIDRef, blender::bke::AttributeKind> &r_attributes) const
 {
   using namespace blender;
   using namespace blender::bke;
@@ -475,8 +498,8 @@ void GeometrySet::gather_attributes_for_propagation(
       [&](const AttributeIDRef &attribute_id,
           const AttributeMetaData &meta_data,
           const GeometryComponent &component) {
-        if (component.attribute_is_builtin(attribute_id)) {
-          if (!dummy_component->attribute_is_builtin(attribute_id)) {
+        if (component.attributes()->is_builtin(attribute_id)) {
+          if (!dummy_component->attributes()->is_builtin(attribute_id)) {
             /* Don't propagate built-in attributes that are not built-in on the destination
              * component. */
             return;

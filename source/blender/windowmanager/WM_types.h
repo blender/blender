@@ -323,34 +323,35 @@ typedef struct wmNotifier {
 #define NOTE_CATEGORY 0xFF000000
 #define NC_WM (1 << 24)
 #define NC_WINDOW (2 << 24)
-#define NC_SCREEN (3 << 24)
-#define NC_SCENE (4 << 24)
-#define NC_OBJECT (5 << 24)
-#define NC_MATERIAL (6 << 24)
-#define NC_TEXTURE (7 << 24)
-#define NC_LAMP (8 << 24)
-#define NC_GROUP (9 << 24)
-#define NC_IMAGE (10 << 24)
-#define NC_BRUSH (11 << 24)
-#define NC_TEXT (12 << 24)
-#define NC_WORLD (13 << 24)
-#define NC_ANIMATION (14 << 24)
+#define NC_WORKSPACE (3 << 24)
+#define NC_SCREEN (4 << 24)
+#define NC_SCENE (5 << 24)
+#define NC_OBJECT (6 << 24)
+#define NC_MATERIAL (7 << 24)
+#define NC_TEXTURE (8 << 24)
+#define NC_LAMP (9 << 24)
+#define NC_GROUP (10 << 24)
+#define NC_IMAGE (11 << 24)
+#define NC_BRUSH (12 << 24)
+#define NC_TEXT (13 << 24)
+#define NC_WORLD (14 << 24)
+#define NC_ANIMATION (15 << 24)
 /* When passing a space as reference data with this (e.g. `WM_event_add_notifier(..., space)`),
  * the notifier will only be sent to this space. That avoids unnecessary updates for unrelated
  * spaces. */
-#define NC_SPACE (15 << 24)
-#define NC_GEOM (16 << 24)
-#define NC_NODE (17 << 24)
-#define NC_ID (18 << 24)
-#define NC_PAINTCURVE (19 << 24)
-#define NC_MOVIECLIP (20 << 24)
-#define NC_MASK (21 << 24)
-#define NC_GPENCIL (22 << 24)
-#define NC_LINESTYLE (23 << 24)
-#define NC_CAMERA (24 << 24)
-#define NC_LIGHTPROBE (25 << 24)
+#define NC_SPACE (16 << 24)
+#define NC_GEOM (17 << 24)
+#define NC_NODE (18 << 24)
+#define NC_ID (19 << 24)
+#define NC_PAINTCURVE (20 << 24)
+#define NC_MOVIECLIP (21 << 24)
+#define NC_MASK (22 << 24)
+#define NC_GPENCIL (23 << 24)
+#define NC_LINESTYLE (24 << 24)
+#define NC_CAMERA (25 << 24)
+#define NC_LIGHTPROBE (26 << 24)
 /* Changes to asset data in the current .blend. */
-#define NC_ASSET (26 << 24)
+#define NC_ASSET (27 << 24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA 0x00FF0000
@@ -682,13 +683,11 @@ typedef struct wmEvent {
   /** Region relative mouse position (name convention before Blender 2.5). */
   int mval[2];
   /**
-   * From, ghost if utf8 is enabled for the platform,
-   * #BLI_str_utf8_size() must _always_ be valid, check
-   * when assigning s we don't need to check on every access after.
+   * A single UTF8 encoded character.
+   * #BLI_str_utf8_size() must _always_ return a valid value,
+   * check when assigning so we don't need to check on every access after.
    */
   char utf8_buf[6];
-  /** From ghost, fallback if utf8 isn't set. */
-  char ascii;
 
   /** Modifier states: #KM_SHIFT, #KM_CTRL, #KM_ALT & #KM_OSKEY. */
   uint8_t modifier;

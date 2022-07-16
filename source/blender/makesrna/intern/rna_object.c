@@ -3579,6 +3579,14 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Empty Image Side", "Show front/back side");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
+  prop = RNA_def_property(srna, "add_rest_position_attribute", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "modifier_flag", OB_MODIFIER_FLAG_ADD_REST_POSITION);
+  RNA_def_property_ui_text(prop,
+                           "Add Rest Position",
+                           "Add a \"rest_position\" attribute that is a copy of the position "
+                           "attribute before shape keys and modifiers are evaluated");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_data");
+
   /* render */
   prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, NULL, "index");

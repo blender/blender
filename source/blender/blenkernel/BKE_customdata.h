@@ -550,32 +550,10 @@ void CustomData_validate_layer_name(const struct CustomData *data,
  */
 bool CustomData_verify_versions(struct CustomData *data, int index);
 
-/* BMesh specific custom-data stuff.
- *
- * Needed to convert to/from different face representation (for versioning). */
+/* BMesh specific custom-data stuff. */
 
-void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *ldata, int totloop);
-void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *ldata, int total);
 void CustomData_bmesh_update_active_layers(struct CustomData *fdata, struct CustomData *ldata);
-/**
- * Update active indices for active/render/clone/stencil custom data layers
- * based on indices from fdata layers
- * used by do_versions in `readfile.c` when creating pdata and ldata for pre-bmesh
- * meshes and needed to preserve active/render/clone/stencil flags set in pre-bmesh files.
- */
-void CustomData_bmesh_do_versions_update_active_layers(struct CustomData *fdata,
-                                                       struct CustomData *ldata);
 void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, char htype);
-
-#ifndef NDEBUG
-/**
- * Debug check, used to assert when we expect layers to be in/out of sync.
- *
- * \param fallback: Use when there are no layers to handle,
- * since callers may expect success or failure.
- */
-bool CustomData_from_bmeshpoly_test(CustomData *fdata, CustomData *ldata, bool fallback);
-#endif
 
 /**
  * Validate and fix data of \a layer,

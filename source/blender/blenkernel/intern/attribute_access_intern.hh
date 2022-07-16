@@ -15,12 +15,14 @@ namespace blender::bke {
  * components in a generic way.
  */
 struct CustomDataAccessInfo {
-  using CustomDataGetter = CustomData *(*)(GeometryComponent &component);
-  using ConstCustomDataGetter = const CustomData *(*)(const GeometryComponent &component);
-  using UpdateCustomDataPointers = void (*)(GeometryComponent &component);
+  using CustomDataGetter = CustomData *(*)(void *owner);
+  using ConstCustomDataGetter = const CustomData *(*)(const void *owner);
+  using GetElementNum = int (*)(const void *owner);
+  using UpdateCustomDataPointers = void (*)(void *owner);
 
   CustomDataGetter get_custom_data;
   ConstCustomDataGetter get_const_custom_data;
+  GetElementNum get_element_num;
   UpdateCustomDataPointers update_custom_data_pointers;
 };
 
@@ -69,12 +71,11 @@ class BuiltinAttributeProvider {
   {
   }
 
-  virtual GVArray try_get_for_read(const GeometryComponent &component) const = 0;
-  virtual WriteAttributeLookup try_get_for_write(GeometryComponent &component) const = 0;
-  virtual bool try_delete(GeometryComponent &component) const = 0;
-  virtual bool try_create(GeometryComponent &UNUSED(component),
-                          const AttributeInit &UNUSED(initializer)) const = 0;
-  virtual bool exists(const GeometryComponent &component) const = 0;
+  virtual GVArray try_get_for_read(const void *owner) const = 0;
+  virtual GAttributeWriter try_get_for_write(void *owner) const = 0;
+  virtual bool try_delete(void *owner) const = 0;
+  virtual bool try_create(void *onwer, const AttributeInit &initializer) const = 0;
+  virtual bool exists(const void *owner) const = 0;
 
   StringRefNull name() const
   {
@@ -98,23 +99,23 @@ class BuiltinAttributeProvider {
  */
 class DynamicAttributesProvider {
  public:
-  virtual ReadAttributeLookup try_get_for_read(const GeometryComponent &component,
-                                               const AttributeIDRef &attribute_id) const = 0;
-  virtual WriteAttributeLookup try_get_for_write(GeometryComponent &component,
-                                                 const AttributeIDRef &attribute_id) const = 0;
-  virtual bool try_delete(GeometryComponent &component,
-                          const AttributeIDRef &attribute_id) const = 0;
-  virtual bool try_create(GeometryComponent &UNUSED(component),
-                          const AttributeIDRef &UNUSED(attribute_id),
-                          const eAttrDomain UNUSED(domain),
-                          const eCustomDataType UNUSED(data_type),
-                          const AttributeInit &UNUSED(initializer)) const
+  virtual GAttributeReader try_get_for_read(const void *owner,
+                                            const AttributeIDRef &attribute_id) const = 0;
+  virtual GAttributeWriter try_get_for_write(void *owner,
+                                             const AttributeIDRef &attribute_id) const = 0;
+  virtual bool try_delete(void *owner, const AttributeIDRef &attribute_id) const = 0;
+  virtual bool try_create(void *owner,
+                          const AttributeIDRef &attribute_id,
+                          const eAttrDomain domain,
+                          const eCustomDataType data_type,
+                          const AttributeInit &initializer) const
   {
+    UNUSED_VARS(owner, attribute_id, domain, data_type, initializer);
     /* Some providers should not create new attributes. */
     return false;
   };
 
-  virtual bool foreach_attribute(const GeometryComponent &component,
+  virtual bool foreach_attribute(const void *owner,
                                  const AttributeForeachCallback callback) const = 0;
   virtual void foreach_domain(const FunctionRef<void(eAttrDomain)> callback) const = 0;
 };
@@ -138,22 +139,20 @@ class CustomDataAttributeProvider final : public DynamicAttributesProvider {
   {
   }
 
-  ReadAttributeLookup try_get_for_read(const GeometryComponent &component,
-                                       const AttributeIDRef &attribute_id) const final;
+  GAttributeReader try_get_for_read(const void *owner,
+                                    const AttributeIDRef &attribute_id) const final;
 
-  WriteAttributeLookup try_get_for_write(GeometryComponent &component,
-                                         const AttributeIDRef &attribute_id) const final;
+  GAttributeWriter try_get_for_write(void *owner, const AttributeIDRef &attribute_id) const final;
 
-  bool try_delete(GeometryComponent &component, const AttributeIDRef &attribute_id) const final;
+  bool try_delete(void *owner, const AttributeIDRef &attribute_id) const final;
 
-  bool try_create(GeometryComponent &component,
+  bool try_create(void *owner,
                   const AttributeIDRef &attribute_id,
                   eAttrDomain domain,
                   const eCustomDataType data_type,
                   const AttributeInit &initializer) const final;
 
-  bool foreach_attribute(const GeometryComponent &component,
-                         const AttributeForeachCallback callback) const final;
+  bool foreach_attribute(const void *owner, const AttributeForeachCallback callback) const final;
 
   void foreach_domain(const FunctionRef<void(eAttrDomain)> callback) const final
   {
@@ -197,13 +196,11 @@ class NamedLegacyCustomDataProvider final : public DynamicAttributesProvider {
   {
   }
 
-  ReadAttributeLookup try_get_for_read(const GeometryComponent &component,
-                                       const AttributeIDRef &attribute_id) const final;
-  WriteAttributeLookup try_get_for_write(GeometryComponent &component,
-                                         const AttributeIDRef &attribute_id) const final;
-  bool try_delete(GeometryComponent &component, const AttributeIDRef &attribute_id) const final;
-  bool foreach_attribute(const GeometryComponent &component,
-                         const AttributeForeachCallback callback) const final;
+  GAttributeReader try_get_for_read(const void *owner,
+                                    const AttributeIDRef &attribute_id) const final;
+  GAttributeWriter try_get_for_write(void *owner, const AttributeIDRef &attribute_id) const final;
+  bool try_delete(void *owner, const AttributeIDRef &attribute_id) const final;
+  bool foreach_attribute(const void *owner, const AttributeForeachCallback callback) const final;
   void foreach_domain(const FunctionRef<void(eAttrDomain)> callback) const final;
 };
 
@@ -226,10 +223,10 @@ template<typename T> GVMutableArray make_array_write_attribute(void *data, const
  * if the stored type is the same as the attribute type.
  */
 class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
-  using AsReadAttribute = GVArray (*)(const void *data, int domain_num);
-  using AsWriteAttribute = GVMutableArray (*)(void *data, int domain_num);
-  using UpdateOnRead = void (*)(const GeometryComponent &component);
-  using UpdateOnWrite = void (*)(GeometryComponent &component);
+  using AsReadAttribute = GVArray (*)(const void *data, int element_num);
+  using AsWriteAttribute = GVMutableArray (*)(void *data, int element_num);
+  using UpdateOnRead = void (*)(const void *owner);
+  using UpdateOnWrite = void (*)(void *owner);
   const eCustomDataType stored_type_;
   const CustomDataAccessInfo custom_data_access_;
   const AsReadAttribute as_read_attribute_;
@@ -260,11 +257,11 @@ class BuiltinCustomDataLayerProvider final : public BuiltinAttributeProvider {
   {
   }
 
-  GVArray try_get_for_read(const GeometryComponent &component) const final;
-  WriteAttributeLookup try_get_for_write(GeometryComponent &component) const final;
-  bool try_delete(GeometryComponent &component) const final;
-  bool try_create(GeometryComponent &component, const AttributeInit &initializer) const final;
-  bool exists(const GeometryComponent &component) const final;
+  GVArray try_get_for_read(const void *owner) const final;
+  GAttributeWriter try_get_for_write(void *owner) const final;
+  bool try_delete(void *owner) const final;
+  bool try_create(void *owner, const AttributeInit &initializer) const final;
+  bool exists(const void *owner) const final;
 };
 
 /**
@@ -320,5 +317,184 @@ class ComponentAttributeProviders {
     return supported_domains_;
   }
 };
+
+namespace attribute_accessor_functions {
+
+template<const ComponentAttributeProviders &providers>
+inline bool is_builtin(const void *UNUSED(owner), const AttributeIDRef &attribute_id)
+{
+  if (!attribute_id.is_named()) {
+    return false;
+  }
+  const StringRef name = attribute_id.name();
+  return providers.builtin_attribute_providers().contains_as(name);
+}
+
+template<const ComponentAttributeProviders &providers>
+inline GAttributeReader lookup(const void *owner, const AttributeIDRef &attribute_id)
+{
+  if (attribute_id.is_named()) {
+    const StringRef name = attribute_id.name();
+    if (const BuiltinAttributeProvider *provider =
+            providers.builtin_attribute_providers().lookup_default_as(name, nullptr)) {
+      return {provider->try_get_for_read(owner), provider->domain()};
+    }
+  }
+  for (const DynamicAttributesProvider *provider : providers.dynamic_attribute_providers()) {
+    GAttributeReader attribute = provider->try_get_for_read(owner, attribute_id);
+    if (attribute) {
+      return attribute;
+    }
+  }
+  return {};
+}
+
+template<const ComponentAttributeProviders &providers>
+inline bool for_all(const void *owner,
+                    FunctionRef<bool(const AttributeIDRef &, const AttributeMetaData &)> fn)
+{
+  Set<AttributeIDRef> handled_attribute_ids;
+  for (const BuiltinAttributeProvider *provider :
+       providers.builtin_attribute_providers().values()) {
+    if (provider->exists(owner)) {
+      AttributeMetaData meta_data{provider->domain(), provider->data_type()};
+      if (!fn(provider->name(), meta_data)) {
+        return false;
+      }
+      handled_attribute_ids.add_new(provider->name());
+    }
+  }
+  for (const DynamicAttributesProvider *provider : providers.dynamic_attribute_providers()) {
+    const bool continue_loop = provider->foreach_attribute(
+        owner, [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+          if (handled_attribute_ids.add(attribute_id)) {
+            return fn(attribute_id, meta_data);
+          }
+          return true;
+        });
+    if (!continue_loop) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template<const ComponentAttributeProviders &providers>
+inline bool contains(const void *owner, const blender::bke::AttributeIDRef &attribute_id)
+{
+  bool found = false;
+  for_all<providers>(
+      owner,
+      [&](const AttributeIDRef &other_attribute_id, const AttributeMetaData & /* meta_data */) {
+        if (attribute_id == other_attribute_id) {
+          found = true;
+          return false;
+        }
+        return true;
+      });
+  return found;
+}
+
+template<const ComponentAttributeProviders &providers>
+inline std::optional<AttributeMetaData> lookup_meta_data(const void *owner,
+                                                         const AttributeIDRef &attribute_id)
+{
+  std::optional<AttributeMetaData> meta_data;
+  for_all<providers>(
+      owner,
+      [&](const AttributeIDRef &other_attribute_id, const AttributeMetaData &other_meta_data) {
+        if (attribute_id == other_attribute_id) {
+          meta_data = other_meta_data;
+          return false;
+        }
+        return true;
+      });
+  return meta_data;
+}
+
+template<const ComponentAttributeProviders &providers>
+inline GAttributeWriter lookup_for_write(void *owner, const AttributeIDRef &attribute_id)
+{
+  if (attribute_id.is_named()) {
+    const StringRef name = attribute_id.name();
+    if (const BuiltinAttributeProvider *provider =
+            providers.builtin_attribute_providers().lookup_default_as(name, nullptr)) {
+      return provider->try_get_for_write(owner);
+    }
+  }
+  for (const DynamicAttributesProvider *provider : providers.dynamic_attribute_providers()) {
+    GAttributeWriter attribute = provider->try_get_for_write(owner, attribute_id);
+    if (attribute) {
+      return attribute;
+    }
+  }
+  return {};
+}
+
+template<const ComponentAttributeProviders &providers>
+inline bool remove(void *owner, const AttributeIDRef &attribute_id)
+{
+  if (attribute_id.is_named()) {
+    const StringRef name = attribute_id.name();
+    if (const BuiltinAttributeProvider *provider =
+            providers.builtin_attribute_providers().lookup_default_as(name, nullptr)) {
+      return provider->try_delete(owner);
+    }
+  }
+  bool success = false;
+  for (const DynamicAttributesProvider *provider : providers.dynamic_attribute_providers()) {
+    success = provider->try_delete(owner, attribute_id) || success;
+  }
+  return success;
+}
+
+template<const ComponentAttributeProviders &providers>
+inline bool add(void *owner,
+                const AttributeIDRef &attribute_id,
+                eAttrDomain domain,
+                eCustomDataType data_type,
+                const AttributeInit &initializer)
+{
+  if (contains<providers>(owner, attribute_id)) {
+    return false;
+  }
+  if (attribute_id.is_named()) {
+    const StringRef name = attribute_id.name();
+    if (const BuiltinAttributeProvider *provider =
+            providers.builtin_attribute_providers().lookup_default_as(name, nullptr)) {
+      if (provider->domain() != domain) {
+        return false;
+      }
+      if (provider->data_type() != data_type) {
+        return false;
+      }
+      return provider->try_create(owner, initializer);
+    }
+  }
+  for (const DynamicAttributesProvider *provider : providers.dynamic_attribute_providers()) {
+    if (provider->try_create(owner, attribute_id, domain, data_type, initializer)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+template<const ComponentAttributeProviders &providers>
+inline AttributeAccessorFunctions accessor_functions_for_providers()
+{
+  return AttributeAccessorFunctions{contains<providers>,
+                                    lookup_meta_data<providers>,
+                                    nullptr,
+                                    nullptr,
+                                    is_builtin<providers>,
+                                    lookup<providers>,
+                                    nullptr,
+                                    for_all<providers>,
+                                    lookup_for_write<providers>,
+                                    remove<providers>,
+                                    add<providers>};
+}
+
+}  // namespace attribute_accessor_functions
 
 }  // namespace blender::bke

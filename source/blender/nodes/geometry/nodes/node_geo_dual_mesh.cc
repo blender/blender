@@ -146,9 +146,12 @@ static void transfer_attributes(
     const GeometryComponent &src_component,
     GeometryComponent &dst_component)
 {
+  const AttributeAccessor src_attributes = *src_component.attributes();
+  MutableAttributeAccessor dst_attributes = *dst_component.attributes_for_write();
+
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    ReadAttributeLookup src_attribute = src_component.attribute_try_get_for_read(attribute_id);
+    GAttributeReader src_attribute = src_attributes.lookup(attribute_id);
     if (!src_attribute) {
       continue;
     }
@@ -166,7 +169,7 @@ static void transfer_attributes(
     }
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
         src_attribute.varray.type());
-    OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
+    GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
         attribute_id, out_domain, data_type);
 
     if (!dst_attribute) {
@@ -176,7 +179,7 @@ static void transfer_attributes(
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
       VArraySpan<T> span{src_attribute.varray.typed<T>()};
-      MutableSpan<T> dst_span = dst_attribute.as_span<T>();
+      MutableSpan<T> dst_span = dst_attribute.span.typed<T>();
       if (src_attribute.domain == ATTR_DOMAIN_FACE) {
         dst_span.take_front(span.size()).copy_from(span);
         if (keep_boundaries) {
@@ -193,7 +196,7 @@ static void transfer_attributes(
         copy_data_based_on_new_to_old_map(span, dst_span, new_to_old_face_corners_map);
       }
     });
-    dst_attribute.save();
+    dst_attribute.finish();
   }
 }
 

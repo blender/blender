@@ -3582,6 +3582,7 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
       }
     }
     else if (use_edge && !pinned) {
+      bool do_second_pass = true;
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (!uvedit_face_visible_test(scene, efa)) {
           continue;
@@ -3596,9 +3597,33 @@ static int uv_box_select_exec(bContext *C, wmOperator *op)
             uvedit_edge_select_set_with_sticky(
                 scene, em, l_prev, select, false, cd_loop_uv_offset);
             changed = true;
+            do_second_pass = false;
           }
           l_prev = l;
           luv_prev = luv;
+        }
+      }
+      /* Do a second pass if no complete edges could be selected.
+       * This matches wire-frame edit-mesh selection in the 3D view. */
+      if (do_second_pass) {
+        /* Second pass to check if edges partially overlap with the selection area (box). */
+        BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+          if (!uvedit_face_visible_test(scene, efa)) {
+            continue;
+          }
+          BMLoop *l_prev = BM_FACE_FIRST_LOOP(efa)->prev;
+          MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l_prev, cd_loop_uv_offset);
+
+          BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+            luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+            if (BLI_rctf_isect_segment(&rectf, luv_prev->uv, luv->uv)) {
+              uvedit_edge_select_set_with_sticky(
+                  scene, em, l_prev, select, false, cd_loop_uv_offset);
+              changed = true;
+            }
+            l_prev = l;
+            luv_prev = luv;
+          }
         }
       }
     }
@@ -3920,6 +3945,24 @@ static bool do_lasso_select_mesh_uv_is_point_inside(const ARegion *region,
   return false;
 }
 
+static bool do_lasso_select_mesh_uv_is_edge_inside(const ARegion *region,
+                                                   const rcti *clip_rect,
+                                                   const int mcoords[][2],
+                                                   const int mcoords_len,
+                                                   const float co_test_a[2],
+                                                   const float co_test_b[2])
+{
+  int co_screen_a[2], co_screen_b[2];
+  if (UI_view2d_view_to_region_segment_clip(
+          &region->v2d, co_test_a, co_test_b, co_screen_a, co_screen_b) &&
+      BLI_rcti_isect_segment(clip_rect, co_screen_a, co_screen_b) &&
+      BLI_lasso_is_edge_inside(
+          mcoords, mcoords_len, UNPACK2(co_screen_a), UNPACK2(co_screen_b), V2D_IS_CLIPPED)) {
+    return true;
+  }
+  return false;
+}
+
 static bool do_lasso_select_mesh_uv(bContext *C,
                                     const int mcoords[][2],
                                     const int mcoords_len,
@@ -3988,6 +4031,7 @@ static bool do_lasso_select_mesh_uv(bContext *C,
       }
     }
     else if (use_edge) {
+      bool do_second_pass = true;
       BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
         if (!uvedit_face_visible_test(scene, efa)) {
           continue;
@@ -4004,10 +4048,35 @@ static bool do_lasso_select_mesh_uv(bContext *C,
                   region, &rect, mcoords, mcoords_len, luv_prev->uv)) {
             uvedit_edge_select_set_with_sticky(
                 scene, em, l_prev, select, false, cd_loop_uv_offset);
+            do_second_pass = false;
             changed = true;
           }
           l_prev = l;
           luv_prev = luv;
+        }
+      }
+      /* Do a second pass if no complete edges could be selected.
+       * This matches wire-frame edit-mesh selection in the 3D view. */
+      if (do_second_pass) {
+        /* Second pass to check if edges partially overlap with the selection area (lasso). */
+        BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+          if (!uvedit_face_visible_test(scene, efa)) {
+            continue;
+          }
+          BMLoop *l_prev = BM_FACE_FIRST_LOOP(efa)->prev;
+          MLoopUV *luv_prev = BM_ELEM_CD_GET_VOID_P(l_prev, cd_loop_uv_offset);
+
+          BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+            MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+            if (do_lasso_select_mesh_uv_is_edge_inside(
+                    region, &rect, mcoords, mcoords_len, luv->uv, luv_prev->uv)) {
+              uvedit_edge_select_set_with_sticky(
+                  scene, em, l_prev, select, false, cd_loop_uv_offset);
+              changed = true;
+            }
+            l_prev = l;
+            luv_prev = luv;
+          }
         }
       }
     }
@@ -5154,7 +5223,7 @@ static void uv_isolate_selected_islands(const Scene *scene,
   BLI_assert((scene->toolsettings->uv_flag & UV_SYNC_SELECTION) == 0);
   BMFace *efa;
   BMIter iter, liter;
-  UvElementMap *elementmap = BM_uv_element_map_create(em->bm, scene, true, false, false, true);
+  UvElementMap *elementmap = BM_uv_element_map_create(em->bm, scene, false, false, true);
   if (elementmap == NULL) {
     return;
   }

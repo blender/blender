@@ -581,8 +581,8 @@ static void calculate_curve_fillet(GeometrySet &geometry_set,
 
   CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_POINT);
-  fn::FieldEvaluator field_evaluator{field_context, domain_num};
+  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  fn::FieldEvaluator field_evaluator{field_context, domain_size};
 
   field_evaluator.add(radius_field);
 

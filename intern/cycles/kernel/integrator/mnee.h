@@ -137,8 +137,14 @@ ccl_device_forceinline void mnee_update_light_sample(KernelGlobals kg,
     }
   }
   else if (ls->type == LIGHT_AREA) {
+    float invarea = fabsf(klight->area.invarea);
     ls->D = normalize_len(ls->P - P, &ls->t);
-    ls->pdf = fabsf(klight->area.invarea);
+    ls->pdf = invarea;
+    if (klight->area.tan_spread > 0.f) {
+      ls->eval_fac = 0.25f * invarea;
+      ls->eval_fac *= light_spread_attenuation(
+          ls->D, ls->Ng, klight->area.tan_spread, klight->area.normalize_spread);
+    }
   }
 
   ls->pdf *= kernel_data.integrator.pdf_lights;
@@ -436,6 +442,7 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
   projection_ray.self.light_prim = PRIM_NONE;
   projection_ray.dP = differential_make_compact(sd->dP);
   projection_ray.dD = differential_zero_compact();
+  projection_ray.tmin = 0.0f;
   projection_ray.time = sd->time;
   Intersection projection_isect;
 
@@ -499,8 +506,8 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
         projection_ray.self.prim = pv.prim;
         projection_ray.P = pv.p;
       }
-      projection_ray.D = normalize_len(tentative_p - projection_ray.P, &projection_ray.t);
-      projection_ray.t *= MNEE_PROJECTION_DISTANCE_MULTIPLIER;
+      projection_ray.D = normalize_len(tentative_p - projection_ray.P, &projection_ray.tmax);
+      projection_ray.tmax *= MNEE_PROJECTION_DISTANCE_MULTIPLIER;
 
       bool projection_success = false;
       for (int isect_count = 0; isect_count < MNEE_MAX_INTERSECTION_COUNT; isect_count++) {
@@ -519,8 +526,7 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
 
         projection_ray.self.object = projection_isect.object;
         projection_ray.self.prim = projection_isect.prim;
-        projection_ray.P += projection_isect.t * projection_ray.D;
-        projection_ray.t -= projection_isect.t;
+        projection_ray.tmin = intersection_t_offset(projection_isect.t);
       }
       if (!projection_success) {
         reduce_stepsize = true;
@@ -852,6 +858,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
   Ray probe_ray;
   probe_ray.self.light_object = ls->object;
   probe_ray.self.light_prim = ls->prim;
+  probe_ray.tmin = 0.0f;
   probe_ray.dP = differential_make_compact(sd->dP);
   probe_ray.dD = differential_zero_compact();
   probe_ray.time = sd->time;
@@ -867,13 +874,13 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
     ccl_private const ManifoldVertex &v = vertices[vi];
 
     /* Check visibility. */
-    probe_ray.D = normalize_len(v.p - probe_ray.P, &probe_ray.t);
+    probe_ray.D = normalize_len(v.p - probe_ray.P, &probe_ray.tmax);
     if (scene_intersect(kg, &probe_ray, PATH_RAY_TRANSMIT, &probe_isect)) {
       int hit_object = (probe_isect.object == OBJECT_NONE) ?
                            kernel_data_fetch(prim_object, probe_isect.prim) :
                            probe_isect.object;
       /* Test whether the ray hit the appropriate object at its intended location. */
-      if (hit_object != v.object || fabsf(probe_ray.t - probe_isect.t) > MNEE_MIN_DISTANCE)
+      if (hit_object != v.object || fabsf(probe_ray.tmax - probe_isect.t) > MNEE_MIN_DISTANCE)
         return false;
     }
     probe_ray.self.object = v.object;
@@ -952,15 +959,16 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
   probe_ray.self.light_object = ls->object;
   probe_ray.self.light_prim = ls->prim;
   probe_ray.P = sd->P;
+  probe_ray.tmin = 0.0f;
   if (ls->t == FLT_MAX) {
     /* Distant / env light. */
     probe_ray.D = ls->D;
-    probe_ray.t = ls->t;
+    probe_ray.tmax = ls->t;
   }
   else {
     /* Other lights, avoid self-intersection. */
     probe_ray.D = ls->P - probe_ray.P;
-    probe_ray.D = normalize_len(probe_ray.D, &probe_ray.t);
+    probe_ray.D = normalize_len(probe_ray.D, &probe_ray.tmax);
   }
   probe_ray.dP = differential_make_compact(sd->dP);
   probe_ray.dD = differential_zero_compact();
@@ -1042,9 +1050,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
 
     probe_ray.self.object = probe_isect.object;
     probe_ray.self.prim = probe_isect.prim;
-    probe_ray.P += probe_isect.t * probe_ray.D;
-    if (ls->t != FLT_MAX)
-      probe_ray.t -= probe_isect.t;
+    probe_ray.tmin = intersection_t_offset(probe_isect.t);
   };
 
   /* Mark the manifold walk invalid to keep mollification on by default. */

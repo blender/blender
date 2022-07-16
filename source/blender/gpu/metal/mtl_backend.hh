@@ -40,6 +40,11 @@ class MTLBackend : public GPUBackend {
     MTLBackend::platform_exit();
   }
 
+  void delete_resources()
+  {
+    /* Delete any resources with context active. */
+  }
+
   static bool metal_is_supported();
   static MTLBackend *get()
   {

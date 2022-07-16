@@ -93,7 +93,7 @@ struct TextureReadRoutineSpecialisation {
    * 0 = Not a Depth format,
    * 1 = FLOAT DEPTH,
    * 2 = 24Bit Integer Depth,
-   * 4 = 32bit uinteger Depth. */
+   * 4 = 32bit Unsigned-Integer Depth. */
   int depth_format_mode;
 
   bool operator==(const TextureReadRoutineSpecialisation &other) const

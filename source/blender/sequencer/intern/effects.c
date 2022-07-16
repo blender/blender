@@ -2578,21 +2578,6 @@ static int early_out_speed(Sequence *UNUSED(seq), float UNUSED(fac))
   return EARLY_DO_EFFECT;
 }
 
-/**
- * Generator strips with zero inputs have their length set to 1 permanently. In some cases it is
- * useful to use speed effect on these strips because they can be animated. This can be done by
- * using their length as is on timeline as content length. See T82698.
- */
-static int seq_effect_speed_get_strip_content_length(Scene *scene, const Sequence *seq)
-{
-  if ((seq->type & SEQ_TYPE_EFFECT) != 0 && SEQ_effect_get_num_inputs(seq->type) == 0) {
-    return SEQ_time_right_handle_frame_get(scene, seq) -
-           SEQ_time_left_handle_frame_get(scene, seq);
-  }
-
-  return SEQ_time_strip_length_get(scene, seq);
-}
-
 static FCurve *seq_effect_speed_speed_factor_curve_get(Scene *scene, Sequence *seq)
 {
   return id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_factor", 0, NULL);
@@ -2657,8 +2642,7 @@ float seq_speed_effect_target_frame_get(Scene *scene,
   switch (s->speed_control_type) {
     case SEQ_SPEED_STRETCH: {
       /* Only right handle controls effect speed! */
-      const float target_content_length = seq_effect_speed_get_strip_content_length(scene,
-                                                                                    source) -
+      const float target_content_length = SEQ_time_strip_length_get(scene, source) -
                                           source->startofs;
       const float speed_effetct_length = SEQ_time_right_handle_frame_get(scene, seq_speed) -
                                          SEQ_time_left_handle_frame_get(scene, seq_speed);
@@ -2678,15 +2662,14 @@ float seq_speed_effect_target_frame_get(Scene *scene,
       break;
     }
     case SEQ_SPEED_LENGTH:
-      target_frame = seq_effect_speed_get_strip_content_length(scene, source) *
-                     (s->speed_fader_length / 100.0f);
+      target_frame = SEQ_time_strip_length_get(scene, source) * (s->speed_fader_length / 100.0f);
       break;
     case SEQ_SPEED_FRAME_NUMBER:
       target_frame = s->speed_fader_frame_number;
       break;
   }
 
-  CLAMP(target_frame, 0, seq_effect_speed_get_strip_content_length(scene, source));
+  CLAMP(target_frame, 0, SEQ_time_strip_length_get(scene, source));
   target_frame += seq_speed->start;
 
   /* No interpolation. */

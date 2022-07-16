@@ -607,14 +607,14 @@ static PointerRNA rna_OperatorMacro_properties_get(PointerRNA *ptr)
 static void rna_Event_ascii_get(PointerRNA *ptr, char *value)
 {
   const wmEvent *event = ptr->data;
-  value[0] = event->ascii;
+  value[0] = WM_event_utf8_to_ascii(event);
   value[1] = '\0';
 }
 
 static int rna_Event_ascii_length(PointerRNA *ptr)
 {
   const wmEvent *event = ptr->data;
-  return (event->ascii) ? 1 : 0;
+  return WM_event_utf8_to_ascii(event) ? 1 : 0;
 }
 
 static void rna_Event_unicode_get(PointerRNA *ptr, char *value)

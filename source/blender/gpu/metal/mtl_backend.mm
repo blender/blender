@@ -127,7 +127,7 @@ void MTLBackend::render_end()
 
 void MTLBackend::render_step()
 {
-  /* NOTE(Metal): Primarily called from main thread, but below datastructures
+  /* NOTE(Metal): Primarily called from main thread, but below data-structures
    * and operations are thread-safe, and GPUContext rendering coordination
    * is also thread-safe. */
 

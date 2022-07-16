@@ -2062,11 +2062,18 @@ static void annotation_draw_apply_event(
   PointerRNA itemptr;
   float mousef[2];
 
-  /* convert from window-space to area-space mouse coordinates
-   * add any x,y override position for fake events
-   */
-  p->mval[0] = (float)event->mval[0] - x;
-  p->mval[1] = (float)event->mval[1] - y;
+  /* Convert from window-space to area-space mouse coordinates
+   * add any x,y override position for fake events. */
+  if (p->flags & GP_PAINTFLAG_FIRSTRUN) {
+    /* The first run may be a drag event, see: T99368. */
+    WM_event_drag_start_mval_fl(event, p->region, p->mval);
+    p->mval[0] -= x;
+    p->mval[1] -= y;
+  }
+  else {
+    p->mval[0] = (float)event->mval[0] - x;
+    p->mval[1] = (float)event->mval[1] - y;
+  }
 
   /* Key to toggle stabilization. */
   if ((event->modifier & KM_SHIFT) && (p->paintmode == GP_PAINTMODE_DRAW)) {

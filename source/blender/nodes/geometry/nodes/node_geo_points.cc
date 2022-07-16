@@ -72,19 +72,20 @@ static void node_geo_exec(GeoNodeExecParams params)
   PointCloud *new_point_cloud = BKE_pointcloud_new_nomain(count);
   GeometrySet geometry_set = GeometrySet::create_with_pointcloud(new_point_cloud);
   PointCloudComponent &points = geometry_set.get_component_for_write<PointCloudComponent>();
-  OutputAttribute_Typed<float3> output_position = points.attribute_try_get_for_output_only<float3>(
+  MutableAttributeAccessor attributes = *points.attributes_for_write();
+  AttributeWriter<float3> output_position = attributes.lookup_or_add_for_write<float3>(
       "position", ATTR_DOMAIN_POINT);
-  OutputAttribute_Typed<float> output_radii = points.attribute_try_get_for_output_only<float>(
+  AttributeWriter<float> output_radii = attributes.lookup_or_add_for_write<float>(
       "radius", ATTR_DOMAIN_POINT);
 
   PointsFieldContext context{count};
   fn::FieldEvaluator evaluator{context, count};
-  evaluator.add_with_destination(position_field, output_position.as_span());
-  evaluator.add_with_destination(radius_field, output_radii.as_span());
+  evaluator.add_with_destination(position_field, output_position.varray);
+  evaluator.add_with_destination(radius_field, output_radii.varray);
   evaluator.evaluate();
 
-  output_position.save();
-  output_radii.save();
+  output_position.finish();
+  output_radii.finish();
   params.set_output("Geometry", std::move(geometry_set));
 }
 

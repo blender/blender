@@ -428,10 +428,13 @@ static void libblock_remap_data_update_tags(ID *old_id, ID *new_id, void *user_d
 }
 
 static void libblock_remap_reset_remapping_status_callback(ID *old_id,
-                                                           ID *UNUSED(new_id),
+                                                           ID *new_id,
                                                            void *UNUSED(user_data))
 {
   BKE_libblock_runtime_reset_remapping_status(old_id);
+  if (new_id != NULL) {
+    BKE_libblock_runtime_reset_remapping_status(new_id);
+  }
 }
 
 /**

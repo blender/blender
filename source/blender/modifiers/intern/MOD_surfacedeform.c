@@ -1521,11 +1521,11 @@ static void surfacedeformModifier_do(ModifierData *md,
      * added after the original ones. This covers typical case when target was at the subdivision
      * level 0 and then subdivision was increased (i.e. for the render purposes). */
 
-    BKE_modifier_set_error(ob,
-                           md,
-                           "Target vertices changed from %u to %u, continuing anyway",
-                           smd->target_verts_num,
-                           target_verts_num);
+    BKE_modifier_set_warning(ob,
+                             md,
+                             "Target vertices changed from %u to %u, continuing anyway",
+                             smd->target_verts_num,
+                             target_verts_num);
 
     /* In theory we only need the `smd->verts_num` vertices in the `targetCos` for evaluation, but
      * it is not currently possible to request a subset of coordinates: the API expects that the
@@ -1741,7 +1741,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_SurfaceDeform = {
-    /* name */ "SurfaceDeform",
+    /* name */ N_("SurfaceDeform"),
     /* structName */ "SurfaceDeformModifierData",
     /* structSize */ sizeof(SurfaceDeformModifierData),
     /* srna */ &RNA_SurfaceDeformModifier,

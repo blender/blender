@@ -158,6 +158,36 @@ TEST_F(obj_importer_test, import_cube)
   import_and_check("cube.obj", expect, std::size(expect), 1);
 }
 
+TEST_F(obj_importer_test, import_cube_o_after_verts)
+{
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {
+          "OBActualCube",
+          OB_MESH,
+          8,
+          12,
+          6,
+          24,
+          float3(-1, -1, 1),
+          float3(1, -1, -1),
+          float3(0, 0, 1),
+      },
+      {
+          "OBSparseTri",
+          OB_MESH,
+          6,
+          3,
+          1,
+          3,
+          float3(1, -1, 1),
+          float3(-2, -2, 2),
+          float3(-0.2357f, 0.9428f, 0.2357f),
+      },
+  };
+  import_and_check("cube_o_after_verts.obj", expect, std::size(expect), 2);
+}
+
 TEST_F(obj_importer_test, import_suzanne_all_data)
 {
   Expectation expect[] = {
@@ -293,13 +323,13 @@ TEST_F(obj_importer_test, import_faces_invalid_or_with_holes)
        float3(1, 0, -1)},
       {"OBFaceQuadDupSomeVerts_BecomesOneQuadUsing4Verts",
        OB_MESH,
-       8,
+       4,
        4,
        1,
        4,
        float3(3, 0, -2),
-       float3(6, 0, -1)},
-      {"OBFaceTriDupVert_Becomes1Tri", OB_MESH, 8, 3, 1, 3, float3(-2, 0, 3), float3(1, 0, 4)},
+       float3(7, 0, -2)},
+      {"OBFaceTriDupVert_Becomes1Tri", OB_MESH, 3, 3, 1, 3, float3(-2, 0, 3), float3(2, 0, 7)},
       {"OBFaceAllVertsDup_BecomesOneOverlappingFaceUsingAllVerts",
        OB_MESH,
        8,
@@ -316,7 +346,7 @@ TEST_F(obj_importer_test, import_faces_invalid_or_with_holes)
        8,
        float3(8, 0, -2),
        float3(11, 0, -1)},
-      {"OBFaceJustTwoVerts_IsSkipped", OB_MESH, 8, 0, 0, 0, float3(8, 0, 3), float3(11, 0, 4)},
+      {"OBFaceJustTwoVerts_IsSkipped", OB_MESH, 2, 0, 0, 0, float3(8, 0, 3), float3(8, 0, 7)},
   };
   import_and_check("faces_invalid_or_with_holes.obj", expect, std::size(expect), 0);
 }
@@ -327,12 +357,12 @@ TEST_F(obj_importer_test, import_invalid_indices)
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
       {"OBQuad",
        OB_MESH,
-       4,
+       3,
        3,
        1,
        3,
        float3(-2, 0, -2),
-       float3(2, 0, -2),
+       float3(2, 0, 2),
        float3(0, 1, 0),
        float2(0.5f, 0.25f)},
   };
@@ -345,12 +375,12 @@ TEST_F(obj_importer_test, import_invalid_syntax)
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
       {"OBObjectWithAReallyLongNameToCheckHowImportHandlesNamesThatAreLon",
        OB_MESH,
-       10, /* NOTE: right now parses some invalid obj syntax as valid vertices. */
+       3,
        3,
        1,
        3,
        float3(1, 2, 3),
-       float3(10, 11, 12),
+       float3(7, 8, 9),
        float3(0, 1, 0),
        float2(0.5f, 0.25f)},
   };
@@ -585,29 +615,52 @@ TEST_F(obj_importer_test, import_cubes_vertex_colors)
 
 TEST_F(obj_importer_test, import_cubes_vertex_colors_mrgb)
 {
-  Expectation expect[] = {{"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
-                          {"OBCubeXYZRGB",
-                           OB_MESH,
-                           8,
-                           12,
-                           6,
-                           24,
-                           float3(1, 1, -1),
-                           float3(-1, -1, 1),
-                           float3(0, 0, 0),
-                           float2(0, 0),
-                           float4(0.6038f, 0.3185f, 0.1329f, 1.0f)},
-                          {"OBCubeMRGB",
-                           OB_MESH,
-                           8,
-                           12,
-                           6,
-                           24,
-                           float3(4, 1, -1),
-                           float3(2, -1, 1),
-                           float3(0, 0, 0),
-                           float2(0, 0),
-                           float4(0.8714f, 0.6308f, 0.5271f, 1.0f)}};
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBCubeXYZRGB",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(1, 1, -1),
+       float3(-1, -1, 1),
+       float3(0, 0, 0),
+       float2(0, 0),
+       float4(0.6038f, 0.3185f, 0.1329f, 1.0f)},
+      {"OBCubeMRGB",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(4, 1, -1),
+       float3(2, -1, 1),
+       float3(0, 0, 0),
+       float2(0, 0),
+       float4(0.8714f, 0.6308f, 0.5271f, 1.0f)},
+      {
+          "OBTriNoColors",
+          OB_MESH,
+          3,
+          3,
+          1,
+          3,
+          float3(8, 1, -1),
+          float3(6, 0, -1),
+      },
+      {"OBTriMRGB",
+       OB_MESH,
+       3,
+       3,
+       1,
+       3,
+       float3(12, 1, -1),
+       float3(10, 0, -1),
+       float3(0, 0, 0),
+       float2(0, 0),
+       float4(1.0f, 0.0f, 0.0f, 1.0f)},
+  };
   import_and_check("cubes_vertex_colors_mrgb.obj", expect, std::size(expect), 0);
 }
 

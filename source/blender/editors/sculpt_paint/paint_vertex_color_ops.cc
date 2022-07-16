@@ -92,11 +92,9 @@ static bool vertex_paint_from_weight(Object *ob)
     return false;
   }
 
-  MeshComponent component;
-  component.replace(me, GeometryOwnershipType::Editable);
+  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*me);
 
-  bke::WriteAttributeLookup color_attribute = component.attribute_try_get_for_write(
-      active_color_layer->name);
+  bke::GAttributeWriter color_attribute = attributes.lookup_for_write(active_color_layer->name);
   if (!color_attribute) {
     BLI_assert_unreachable();
     return false;
@@ -104,7 +102,7 @@ static bool vertex_paint_from_weight(Object *ob)
 
   /* Retrieve the vertex group with the domain and type of the existing color
    * attribute, in order to let the attribute API handle both conversions. */
-  const GVArray vertex_group = component.attribute_get_for_read(
+  const GVArray vertex_group = attributes.lookup(
       deform_group->name,
       ATTR_DOMAIN_POINT,
       bke::cpp_type_to_custom_data_type(color_attribute.varray.type()));
@@ -113,14 +111,11 @@ static bool vertex_paint_from_weight(Object *ob)
     return false;
   }
 
-  GVArraySpan interpolated{component.attribute_try_adapt_domain(
-      vertex_group, ATTR_DOMAIN_POINT, color_attribute.domain)};
+  GVArraySpan interpolated{
+      attributes.adapt_domain(vertex_group, ATTR_DOMAIN_POINT, color_attribute.domain)};
 
   color_attribute.varray.set_all(interpolated.data());
-
-  if (color_attribute.tag_modified_fn) {
-    color_attribute.tag_modified_fn();
-  }
+  color_attribute.finish();
   tag_object_after_update(ob);
 
   return true;
@@ -167,29 +162,28 @@ static IndexMask get_selected_indices(const Mesh &mesh,
   Span<MVert> verts(mesh.mvert, mesh.totvert);
   Span<MPoly> faces(mesh.mpoly, mesh.totpoly);
 
-  MeshComponent component;
-  component.replace(&const_cast<Mesh &>(mesh), GeometryOwnershipType::ReadOnly);
+  bke::AttributeAccessor attributes = bke::mesh_attributes(mesh);
 
   if (mesh.editflag & ME_EDIT_PAINT_FACE_SEL) {
-    const VArray<bool> selection = component.attribute_try_adapt_domain(
+    const VArray<bool> selection = attributes.adapt_domain(
         VArray<bool>::ForFunc(faces.size(),
                               [&](const int i) { return faces[i].flag & ME_FACE_SEL; }),
         ATTR_DOMAIN_FACE,
         domain);
 
     return index_mask_ops::find_indices_from_virtual_array(
-        IndexMask(component.attribute_domain_num(domain)), selection, 4096, indices);
+        IndexMask(attributes.domain_size(domain)), selection, 4096, indices);
   }
   if (mesh.editflag & ME_EDIT_PAINT_VERT_SEL) {
-    const VArray<bool> selection = component.attribute_try_adapt_domain(
+    const VArray<bool> selection = attributes.adapt_domain(
         VArray<bool>::ForFunc(verts.size(), [&](const int i) { return verts[i].flag & SELECT; }),
         ATTR_DOMAIN_POINT,
         domain);
 
     return index_mask_ops::find_indices_from_virtual_array(
-        IndexMask(component.attribute_domain_num(domain)), selection, 4096, indices);
+        IndexMask(attributes.domain_size(domain)), selection, 4096, indices);
   }
-  return IndexMask(component.attribute_domain_num(domain));
+  return IndexMask(attributes.domain_size(domain));
 }
 
 static void face_corner_color_equalize_vertices(Mesh &mesh, const IndexMask selection)
@@ -202,17 +196,15 @@ static void face_corner_color_equalize_vertices(Mesh &mesh, const IndexMask sele
     return;
   }
 
-  MeshComponent component;
-  component.replace(&mesh, GeometryOwnershipType::Editable);
+  bke::AttributeAccessor attributes = bke::mesh_attributes(mesh);
 
-  if (component.attribute_get_meta_data(active_color_layer->name)->domain == ATTR_DOMAIN_POINT) {
+  if (attributes.lookup_meta_data(active_color_layer->name)->domain == ATTR_DOMAIN_POINT) {
     return;
   }
 
-  GVArray color_attribute_point = component.attribute_try_get_for_read(active_color_layer->name,
-                                                                       ATTR_DOMAIN_POINT);
+  GVArray color_attribute_point = attributes.lookup(active_color_layer->name, ATTR_DOMAIN_POINT);
 
-  GVArray color_attribute_corner = component.attribute_try_adapt_domain(
+  GVArray color_attribute_corner = attributes.adapt_domain(
       color_attribute_point, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER);
 
   color_attribute_corner.materialize(selection, active_color_layer->data);
@@ -278,11 +270,9 @@ static bool transform_active_color(Mesh &mesh, const TransformFn &transform_fn)
     return false;
   }
 
-  MeshComponent component;
-  component.replace(&mesh, GeometryOwnershipType::Editable);
+  bke::MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(mesh);
 
-  bke::WriteAttributeLookup color_attribute = component.attribute_try_get_for_write(
-      active_color_layer->name);
+  bke::GAttributeWriter color_attribute = attributes.lookup_for_write(active_color_layer->name);
   if (!color_attribute) {
     BLI_assert_unreachable();
     return false;
@@ -309,6 +299,8 @@ static bool transform_active_color(Mesh &mesh, const TransformFn &transform_fn)
       }
     });
   });
+
+  color_attribute.finish();
 
   DEG_id_tag_update(&mesh.id, 0);
 

@@ -158,9 +158,13 @@ struct BoundBox *BKE_armature_boundbox_get(struct Object *ob);
  * or the custom object's bounds (if the bone uses a custom object).
  * Visual elements such as the envelopes radius & bendy-bone spline segments are *not* included,
  * making this not so useful for viewport culling.
+ *
+ * \param use_empty_drawtype: When enabled, the draw type of empty custom-objects is taken into
+ * account when calculating the bounds.
  */
 void BKE_pchan_minmax(const struct Object *ob,
                       const struct bPoseChannel *pchan,
+                      const bool use_empty_drawtype,
                       float r_min[3],
                       float r_max[3]);
 /**

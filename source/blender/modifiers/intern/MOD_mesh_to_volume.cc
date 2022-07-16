@@ -7,12 +7,15 @@
 #include <vector>
 
 #include "BKE_geometry_set.hh"
+#include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_volume.h"
+
+#include "BLT_translation.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -161,7 +164,13 @@ static Volume *mesh_to_volume(ModifierData *md,
                                                                mesh_to_own_object_space_transform);
 
   /* Create a new volume. */
-  Volume *volume = BKE_volume_new_for_eval(input_volume);
+  Volume *volume;
+  if (input_volume == nullptr) {
+    volume = static_cast<Volume *>(BKE_id_new_nomain(ID_VO, "Volume"));
+  }
+  else {
+    volume = BKE_volume_new_for_eval(input_volume);
+  }
 
   /* Convert mesh to grid and add to volume. */
   geometry::volume_grid_add_from_mesh(volume,
@@ -195,7 +204,7 @@ static void modifyGeometrySet(ModifierData *md,
 }
 
 ModifierTypeInfo modifierType_MeshToVolume = {
-    /* name */ "Mesh to Volume",
+    /* name */ N_("Mesh to Volume"),
     /* structName */ "MeshToVolumeModifierData",
     /* structSize */ sizeof(MeshToVolumeModifierData),
     /* srna */ &RNA_MeshToVolumeModifier,

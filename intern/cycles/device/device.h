@@ -29,6 +29,7 @@ class DeviceQueue;
 class Progress;
 class CPUKernels;
 class CPUKernelThreadGlobals;
+class Scene;
 
 /* Device Types */
 
@@ -184,6 +185,11 @@ class Device {
   virtual int device_number(Device * /*sub_device*/)
   {
     return 0;
+  }
+
+  /* Called after kernel texture setup, and prior to integrator state setup. */
+  virtual void optimize_for_scene(Scene * /*scene*/)
+  {
   }
 
   virtual bool is_resident(device_ptr /*key*/, Device *sub_device)

@@ -13,6 +13,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_rand.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_defaults.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -311,7 +313,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Build = {
-    /* name */ "Build",
+    /* name */ N_("Build"),
     /* structName */ "BuildModifierData",
     /* structSize */ sizeof(BuildModifierData),
     /* srna */ &RNA_BuildModifier,

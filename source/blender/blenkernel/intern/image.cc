@@ -2475,7 +2475,10 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, const ImageFormatData *imf)
   return ok;
 }
 
-int BKE_imbuf_write_as(ImBuf *ibuf, const char *name, ImageFormatData *imf, const bool save_copy)
+int BKE_imbuf_write_as(ImBuf *ibuf,
+                       const char *name,
+                       const ImageFormatData *imf,
+                       const bool save_copy)
 {
   ImBuf ibuf_back = *ibuf;
   int ok;
@@ -5057,13 +5060,7 @@ void BKE_image_get_size(Image *image, ImageUser *iuser, int *r_width, int *r_hei
   }
   else if (image != nullptr && image->type == IMA_TYPE_R_RESULT && iuser != nullptr &&
            iuser->scene != nullptr) {
-    Scene *scene = iuser->scene;
-    *r_width = (scene->r.xsch * scene->r.size) / 100;
-    *r_height = (scene->r.ysch * scene->r.size) / 100;
-    if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
-      *r_width *= BLI_rctf_size_x(&scene->r.border);
-      *r_height *= BLI_rctf_size_y(&scene->r.border);
-    }
+    BKE_render_resolution(&iuser->scene->r, true, r_width, r_height);
   }
   else {
     *r_width = IMG_SIZE_FALLBACK;

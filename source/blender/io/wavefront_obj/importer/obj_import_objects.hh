@@ -19,35 +19,24 @@
 namespace blender::io::obj {
 
 /**
- * List of all vertex and UV vertex coordinates in an OBJ file accessible to any
- * Geometry instance at any time.
+ * All vertex positions, normals, UVs, colors in the OBJ file.
  */
 struct GlobalVertices {
   Vector<float3> vertices;
   Vector<float2> uv_vertices;
   Vector<float3> vertex_normals;
-  Vector<float3> vertex_colors;
-};
 
-/**
- * Keeps track of the vertices that belong to other Geometries.
- * Needed only for MLoop.v and MEdge.v1 which needs vertex indices ranging from (0 to total
- * vertices in the mesh) as opposed to the other OBJ indices ranging from (0 to total vertices
- * in the global list).
- */
-struct VertexIndexOffset {
- private:
-  int offset_ = 0;
-
- public:
-  void set_index_offset(const int64_t total_vertices)
-  {
-    offset_ = total_vertices;
-  }
-  int64_t get_index_offset() const
-  {
-    return offset_;
-  }
+  /**
+   * Vertex colors might not be present in the file at all, or only
+   * provided for some meshes. Store them in chunks as they are
+   * spelled out in the file, e.g. if there are 10 vertices in sequence, all
+   * with `xyzrgb` colors, they will be one block.
+   */
+  struct VertexColorsBlock {
+    Vector<float3> colors;
+    int start_vertex_index;
+  };
+  Vector<VertexColorsBlock> vertex_colors;
 };
 
 /**
@@ -101,10 +90,8 @@ struct Geometry {
   Map<std::string, int> material_indices_;
   Vector<std::string> material_order_;
 
-  int vertex_start_ = 0;
-  int vertex_count_ = 0;
-  int vertex_color_start_ = 0;
-  int vertex_color_count_ = 0;
+  int vertex_index_min_ = INT_MAX;
+  int vertex_index_max_ = -1;
   /** Edges written in the file in addition to (or even without polygon) elements. */
   Vector<MEdge> edges_;
 
@@ -112,10 +99,21 @@ struct Geometry {
   Vector<PolyElem> face_elements_;
 
   bool has_invalid_polys_ = false;
-  bool has_vertex_normals_ = false;
   bool has_vertex_groups_ = false;
   NurbsElement nurbs_element_;
   int total_loops_ = 0;
+
+  int get_vertex_count() const
+  {
+    if (vertex_index_max_ < vertex_index_min_)
+      return 0;
+    return vertex_index_max_ - vertex_index_min_ + 1;
+  }
+  void track_vertex_index(int index)
+  {
+    vertex_index_min_ = std::min(vertex_index_min_, index);
+    vertex_index_max_ = std::max(vertex_index_max_, index);
+  }
 };
 
 }  // namespace blender::io::obj

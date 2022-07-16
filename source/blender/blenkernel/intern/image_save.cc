@@ -204,7 +204,7 @@ bool BKE_image_save_options_init(ImageSaveOptions *opts,
   return (ibuf != nullptr);
 }
 
-void BKE_image_save_options_update(ImageSaveOptions *opts, Image *image)
+void BKE_image_save_options_update(ImageSaveOptions *opts, const Image *image)
 {
   /* Auto update color space when changing save as render and file type. */
   if (opts->save_as_render) {
@@ -253,11 +253,26 @@ void BKE_image_save_options_free(ImageSaveOptions *opts)
   BKE_image_format_free(&opts->im_format);
 }
 
+static void image_save_update_filepath(Image *ima,
+                                       const char *filepath,
+                                       const ImageSaveOptions *opts)
+{
+  if (opts->do_newpath) {
+    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
+
+    /* only image path, never ibuf */
+    if (opts->relative) {
+      const char *relbase = ID_BLEND_PATH(opts->bmain, &ima->id);
+      BLI_path_rel(ima->filepath, relbase); /* only after saving */
+    }
+  }
+}
+
 static void image_save_post(ReportList *reports,
                             Image *ima,
                             ImBuf *ibuf,
                             int ok,
-                            ImageSaveOptions *opts,
+                            const ImageSaveOptions *opts,
                             int save_copy,
                             const char *filepath,
                             bool *r_colorspace_changed)
@@ -273,13 +288,11 @@ static void image_save_post(ReportList *reports,
 
   if (opts->do_newpath) {
     BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
-    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
+  }
 
-    /* only image path, never ibuf */
-    if (opts->relative) {
-      const char *relbase = ID_BLEND_PATH(opts->bmain, &ima->id);
-      BLI_path_rel(ima->filepath, relbase); /* only after saving */
-    }
+  /* The tiled image code-path must call this on its own. */
+  if (ima->source != IMA_SRC_TILED) {
+    image_save_update_filepath(ima, filepath, opts);
   }
 
   ibuf->userflags &= ~IB_BITMAPDIRTY;
@@ -346,7 +359,7 @@ static void imbuf_save_post(ImBuf *ibuf, ImBuf *colormanaged_ibuf)
 static bool image_save_single(ReportList *reports,
                               Image *ima,
                               ImageUser *iuser,
-                              ImageSaveOptions *opts,
+                              const ImageSaveOptions *opts,
                               bool *r_colorspace_changed)
 {
   void *lock;
@@ -362,7 +375,7 @@ static bool image_save_single(ReportList *reports,
   ImBuf *colormanaged_ibuf = nullptr;
   const bool save_copy = opts->save_copy;
   const bool save_as_render = opts->save_as_render;
-  ImageFormatData *imf = &opts->im_format;
+  const ImageFormatData *imf = &opts->im_format;
 
   if (ima->type == IMA_TYPE_R_RESULT) {
     /* enforce user setting for RGB or RGBA, but skip BW */
@@ -607,7 +620,7 @@ static bool image_save_single(ReportList *reports,
 }
 
 bool BKE_image_save(
-    ReportList *reports, Main *bmain, Image *ima, ImageUser *iuser, ImageSaveOptions *opts)
+    ReportList *reports, Main *bmain, Image *ima, ImageUser *iuser, const ImageSaveOptions *opts)
 {
   /* For saving a tiled image we need an iuser, so use a local one if there isn't already one. */
   ImageUser save_iuser;
@@ -640,22 +653,23 @@ bool BKE_image_save(
     ok = image_save_single(reports, ima, iuser, opts, &colorspace_changed);
   }
   else {
-    char filepath[FILE_MAX];
-    BLI_strncpy(filepath, opts->filepath, sizeof(filepath));
-
     /* Save all the tiles. */
     LISTBASE_FOREACH (ImageTile *, tile, &ima->tiles) {
+      ImageSaveOptions tile_opts = *opts;
       BKE_image_set_filepath_from_tile_number(
-          opts->filepath, udim_pattern, tile_format, tile->tile_number);
+          tile_opts.filepath, udim_pattern, tile_format, tile->tile_number);
 
       iuser->tile = tile->tile_number;
-      ok = image_save_single(reports, ima, iuser, opts, &colorspace_changed);
+      ok = image_save_single(reports, ima, iuser, &tile_opts, &colorspace_changed);
       if (!ok) {
         break;
       }
     }
-    BLI_strncpy(ima->filepath, filepath, sizeof(ima->filepath));
-    BLI_strncpy(opts->filepath, filepath, sizeof(opts->filepath));
+
+    /* Set the image path only if all tiles were ok. */
+    if (ok) {
+      image_save_update_filepath(ima, opts->filepath, opts);
+    }
     MEM_freeN(udim_pattern);
   }
 

@@ -778,6 +778,9 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
         sbuts->preview = 1;
       }
       break;
+    case NC_WORKSPACE:
+      buttons_area_redraw(area, BCONTEXT_TOOL);
+      break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_PROPERTIES) {
         ED_area_tag_redraw(area);

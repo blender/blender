@@ -316,11 +316,12 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
   DRWShadingGroup *grp = DRW_shgroup_create(sh, vedata->psl->volumetric_objects_ps);
 
   grp = DRW_shgroup_volume_create_sub(scene, ob, grp, mat);
-  DRW_shgroup_add_material_resources(grp, mat);
 
   if (grp == NULL) {
     return;
   }
+
+  DRW_shgroup_add_material_resources(grp, mat);
 
   /* TODO(fclem): remove those "unnecessary" UBOs */
   DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);

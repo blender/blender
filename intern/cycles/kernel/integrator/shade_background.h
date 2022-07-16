@@ -62,11 +62,10 @@ ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
     const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
     const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
     const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-    const float mis_ray_t = INTEGRATOR_STATE(state, path, mis_ray_t);
 
     /* multiple importance sampling, get background light pdf for ray
      * direction, and compute weight with respect to BSDF pdf */
-    const float pdf = background_light_pdf(kg, ray_P - ray_D * mis_ray_t, ray_D);
+    const float pdf = background_light_pdf(kg, ray_P, ray_D);
     const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
     L *= mis_weight;
   }
@@ -213,7 +212,7 @@ ccl_device void integrator_shade_background(KernelGlobals kg,
   }
 #endif
 
-  INTEGRATOR_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
+  integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
 }
 
 CCL_NAMESPACE_END

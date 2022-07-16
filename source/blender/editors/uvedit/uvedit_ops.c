@@ -372,6 +372,198 @@ typedef enum eUVWeldAlign {
   UV_WELD,
 } eUVWeldAlign;
 
+static bool uvedit_uv_align_weld(Scene *scene,
+                                 BMesh *bm,
+                                 const eUVWeldAlign tool,
+                                 const float cent[2])
+{
+  bool changed = false;
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+  BMIter iter;
+  BMFace *efa;
+  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+    if (!uvedit_face_visible_test(scene, efa)) {
+      continue;
+    }
+
+    BMIter liter;
+    BMLoop *l;
+    BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+      if (!uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+        continue;
+      }
+      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+      if (ELEM(tool, UV_ALIGN_X, UV_WELD)) {
+        if (luv->uv[0] != cent[0]) {
+          luv->uv[0] = cent[0];
+          changed = true;
+        }
+      }
+      if (ELEM(tool, UV_ALIGN_Y, UV_WELD)) {
+        if (luv->uv[1] != cent[1]) {
+          luv->uv[1] = cent[1];
+          changed = true;
+        }
+      }
+    }
+  }
+  return changed;
+}
+
+/** Bitwise-or together, then choose #MLoopUV with highest value. */
+typedef enum eUVEndPointPrecedence {
+  UVEP_INVALID = 0,
+  UVEP_SELECTED = (1 << 0),
+  UVEP_PINNED = (1 << 1), /* i.e. Pinned verts are preferred to selected. */
+} eUVEndPointPrecedence;
+
+static eUVEndPointPrecedence uvedit_line_update_get_precedence(const MLoopUV *luv)
+{
+  eUVEndPointPrecedence precedence = UVEP_SELECTED;
+  if (luv->flag & MLOOPUV_PINNED) {
+    precedence |= UVEP_PINNED;
+  }
+  return precedence;
+}
+
+/**
+ * Helper to find two endpoints (`a` and `b`) which have higher precedence, and are far apart.
+ * Note that is only a heuristic and won't always find the best two endpoints.
+ */
+static bool uvedit_line_update_endpoint(const MLoopUV *luv,
+                                        float uv_a[2],
+                                        eUVEndPointPrecedence *prec_a,
+                                        float uv_b[2],
+                                        eUVEndPointPrecedence *prec_b)
+{
+  eUVEndPointPrecedence flags = uvedit_line_update_get_precedence(luv);
+
+  float len_sq_a = len_squared_v2v2(uv_a, luv->uv);
+  float len_sq_b = len_squared_v2v2(uv_b, luv->uv);
+
+  /* Caching the value of `len_sq_ab` is unlikely to be faster than recalculating.
+   * Profile before optimizing. */
+  float len_sq_ab = len_squared_v2v2(uv_a, uv_b);
+
+  if ((*prec_a < flags && 0.0f < len_sq_b) || (*prec_a == flags && len_sq_ab < len_sq_b)) {
+    *prec_a = flags;
+    copy_v2_v2(uv_a, luv->uv);
+    return true;
+  }
+
+  if ((*prec_b < flags && 0.0f < len_sq_a) || (*prec_b == flags && len_sq_ab < len_sq_a)) {
+    *prec_b = flags;
+    copy_v2_v2(uv_b, luv->uv);
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Find two end extreme points to specify a line, then straighten `len` elements
+ * by moving UVs on the X-axis, Y-axis, or the closest point on the line segment.
+ */
+static bool uvedit_uv_straighten_elements(const UvElement *element,
+                                          const int len,
+                                          const int cd_loop_uv_offset,
+                                          const eUVWeldAlign tool)
+{
+  float uv_start[2];
+  float uv_end[2];
+  eUVEndPointPrecedence prec_start = UVEP_INVALID;
+  eUVEndPointPrecedence prec_end = UVEP_INVALID;
+
+  /* Find start and end of line. */
+  for (int i = 0; i < 10; i++) { /* Heuristic to prevent infinite loop. */
+    bool update = false;
+    for (int j = 0; j < len; j++) {
+      MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(element[j].l, cd_loop_uv_offset);
+      update |= uvedit_line_update_endpoint(luv, uv_start, &prec_start, uv_end, &prec_end);
+    }
+    if (!update) {
+      break;
+    }
+  }
+
+  if (prec_start == UVEP_INVALID || prec_end == UVEP_INVALID) {
+    return false; /* Unable to find two endpoints. */
+  }
+
+  float a = 0.0f; /* Similar to "slope". */
+  eUVWeldAlign tool_local = tool;
+
+  if (tool_local == UV_STRAIGHTEN_X) {
+    if (uv_start[1] == uv_end[1]) {
+      /* Caution, different behavior outside line segment. */
+      tool_local = UV_STRAIGHTEN;
+    }
+    else {
+      a = (uv_end[0] - uv_start[0]) / (uv_end[1] - uv_start[1]);
+    }
+  }
+  else if (tool_local == UV_STRAIGHTEN_Y) {
+    if (uv_start[0] == uv_end[0]) {
+      /* Caution, different behavior outside line segment. */
+      tool_local = UV_STRAIGHTEN;
+    }
+    else {
+      a = (uv_end[1] - uv_start[1]) / (uv_end[0] - uv_start[0]);
+    }
+  }
+
+  bool changed = false;
+  for (int j = 0; j < len; j++) {
+    MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(element[j].l, cd_loop_uv_offset);
+    /* Projection of point (x, y) over line (x1, y1, x2, y2) along X axis:
+     * new_y = (y2 - y1) / (x2 - x1) * (x - x1) + y1
+     * Maybe this should be a BLI func? Or is it already existing?
+     * Could use interp_v2_v2v2, but not sure it's worth it here. */
+    if (tool_local == UV_STRAIGHTEN_X) {
+      luv->uv[0] = a * (luv->uv[1] - uv_start[1]) + uv_start[0];
+    }
+    else if (tool_local == UV_STRAIGHTEN_Y) {
+      luv->uv[1] = a * (luv->uv[0] - uv_start[0]) + uv_start[1];
+    }
+    else {
+      closest_to_line_segment_v2(luv->uv, luv->uv, uv_start, uv_end);
+    }
+    changed = true; /* TODO: Did the UV actually move? */
+  }
+  return changed;
+}
+
+/**
+ * Group selected UVs into islands, then apply uvedit_uv_straighten_elements to each island.
+ */
+static bool uvedit_uv_straighten(Scene *scene, BMesh *bm, eUVWeldAlign tool)
+{
+  const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+  if (cd_loop_uv_offset == -1) {
+    return false;
+  }
+
+  UvElementMap *element_map = BM_uv_element_map_create(bm, scene, true, false, true);
+  if (element_map == NULL) {
+    return false;
+  }
+
+  bool changed = false;
+
+  /* Loop backwards to simplify logic. */
+  int j1 = element_map->totalUVs;
+  for (int i = element_map->totalIslands - 1; i >= 0; --i) {
+    int j0 = element_map->islandIndices[i];
+    changed |= uvedit_uv_straighten_elements(
+        element_map->buf + j0, j1 - j0, cd_loop_uv_offset, tool);
+    j1 = j0;
+  }
+
+  BM_uv_element_map_free(element_map);
+  return changed;
+}
+
 static void uv_weld_align(bContext *C, eUVWeldAlign tool)
 {
   Scene *scene = CTX_data_scene(C);
@@ -429,194 +621,12 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
       continue;
     }
 
-    const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-    if (ELEM(tool, UV_ALIGN_X, UV_WELD)) {
-      BMIter iter, liter;
-      BMFace *efa;
-      BMLoop *l;
-
-      BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-        if (!uvedit_face_visible_test(scene, efa)) {
-          continue;
-        }
-
-        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-            MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-            luv->uv[0] = cent[0];
-            changed = true;
-          }
-        }
-      }
-    }
-
-    if (ELEM(tool, UV_ALIGN_Y, UV_WELD)) {
-      BMIter iter, liter;
-      BMFace *efa;
-      BMLoop *l;
-
-      BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-        if (!uvedit_face_visible_test(scene, efa)) {
-          continue;
-        }
-
-        BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-          if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-            MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-            luv->uv[1] = cent[1];
-            changed = true;
-          }
-        }
-      }
+    if (ELEM(tool, UV_ALIGN_AUTO, UV_ALIGN_X, UV_ALIGN_Y, UV_WELD)) {
+      changed |= uvedit_uv_align_weld(scene, em->bm, tool, cent);
     }
 
     if (ELEM(tool, UV_STRAIGHTEN, UV_STRAIGHTEN_X, UV_STRAIGHTEN_Y)) {
-      BMEdge *eed;
-      BMLoop *l;
-      BMVert *eve;
-      BMVert *eve_start;
-      BMIter iter, liter, eiter;
-
-      /* clear tag */
-      BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
-
-      /* tag verts with a selected UV */
-      BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-        BM_ITER_ELEM (l, &liter, eve, BM_LOOPS_OF_VERT) {
-          if (!uvedit_face_visible_test(scene, l->f)) {
-            continue;
-          }
-
-          if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-            BM_elem_flag_enable(eve, BM_ELEM_TAG);
-            break;
-          }
-        }
-      }
-
-      /* flush vertex tags to edges */
-      BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-        BM_elem_flag_set(
-            eed,
-            BM_ELEM_TAG,
-            (BM_elem_flag_test(eed->v1, BM_ELEM_TAG) && BM_elem_flag_test(eed->v2, BM_ELEM_TAG)));
-      }
-
-      /* find a vertex with only one tagged edge */
-      eve_start = NULL;
-      BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-        int tot_eed_tag = 0;
-        BM_ITER_ELEM (eed, &eiter, eve, BM_EDGES_OF_VERT) {
-          if (BM_elem_flag_test(eed, BM_ELEM_TAG)) {
-            tot_eed_tag++;
-          }
-        }
-
-        if (tot_eed_tag == 1) {
-          eve_start = eve;
-          break;
-        }
-      }
-
-      if (eve_start) {
-        BMVert **eve_line = NULL;
-        BMVert *eve_next = NULL;
-        BLI_array_declare(eve_line);
-        int i;
-
-        eve = eve_start;
-
-        /* walk over edges, building an array of verts in a line */
-        while (eve) {
-          BLI_array_append(eve_line, eve);
-          /* don't touch again */
-          BM_elem_flag_disable(eve, BM_ELEM_TAG);
-
-          eve_next = NULL;
-
-          /* find next eve */
-          BM_ITER_ELEM (eed, &eiter, eve, BM_EDGES_OF_VERT) {
-            if (BM_elem_flag_test(eed, BM_ELEM_TAG)) {
-              BMVert *eve_other = BM_edge_other_vert(eed, eve);
-              if (BM_elem_flag_test(eve_other, BM_ELEM_TAG)) {
-                /* this is a tagged vert we didn't walk over yet, step onto it */
-                eve_next = eve_other;
-                break;
-              }
-            }
-          }
-
-          eve = eve_next;
-        }
-
-        /* now we have all verts, make into a line */
-        if (BLI_array_len(eve_line) > 2) {
-
-          /* we know the returns from these must be valid */
-          const float *uv_start = uvedit_first_selected_uv_from_vertex(
-              scene, eve_line[0], cd_loop_uv_offset);
-          const float *uv_end = uvedit_first_selected_uv_from_vertex(
-              scene, eve_line[BLI_array_len(eve_line) - 1], cd_loop_uv_offset);
-          /* For UV_STRAIGHTEN_X & UV_STRAIGHTEN_Y modes */
-          float a = 0.0f;
-          eUVWeldAlign tool_local = tool;
-
-          if (tool_local == UV_STRAIGHTEN_X) {
-            if (uv_start[1] == uv_end[1]) {
-              tool_local = UV_STRAIGHTEN;
-            }
-            else {
-              a = (uv_end[0] - uv_start[0]) / (uv_end[1] - uv_start[1]);
-            }
-          }
-          else if (tool_local == UV_STRAIGHTEN_Y) {
-            if (uv_start[0] == uv_end[0]) {
-              tool_local = UV_STRAIGHTEN;
-            }
-            else {
-              a = (uv_end[1] - uv_start[1]) / (uv_end[0] - uv_start[0]);
-            }
-          }
-
-          /* go over all verts except for endpoints */
-          for (i = 0; i < BLI_array_len(eve_line); i++) {
-            BM_ITER_ELEM (l, &liter, eve_line[i], BM_LOOPS_OF_VERT) {
-              if (!uvedit_face_visible_test(scene, l->f)) {
-                continue;
-              }
-
-              if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-                MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-                /* Projection of point (x, y) over line (x1, y1, x2, y2) along X axis:
-                 * new_y = (y2 - y1) / (x2 - x1) * (x - x1) + y1
-                 * Maybe this should be a BLI func? Or is it already existing?
-                 * Could use interp_v2_v2v2, but not sure it's worth it here. */
-                if (tool_local == UV_STRAIGHTEN_X) {
-                  luv->uv[0] = a * (luv->uv[1] - uv_start[1]) + uv_start[0];
-                }
-                else if (tool_local == UV_STRAIGHTEN_Y) {
-                  luv->uv[1] = a * (luv->uv[0] - uv_start[0]) + uv_start[1];
-                }
-                else {
-                  closest_to_line_segment_v2(luv->uv, luv->uv, uv_start, uv_end);
-                }
-                changed = true;
-              }
-            }
-          }
-        }
-        else {
-          /* error - not a line, needs 3+ points. */
-        }
-
-        if (eve_line) {
-          MEM_freeN(eve_line);
-        }
-      }
-      else {
-        /* error - can't find an endpoint. */
-      }
+      changed |= uvedit_uv_straighten(scene, em->bm, tool);
     }
 
     if (changed) {

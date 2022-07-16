@@ -157,12 +157,18 @@ struct TextLayout {
   float final_font_size;
 };
 
-static TextLayout get_text_layout(GeoNodeExecParams &params)
+static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
 {
+  VFont *vfont = reinterpret_cast<VFont *>(params.node().id);
+  if (!vfont) {
+    params.error_message_add(NodeWarningType::Error, TIP_("Font not specified"));
+    return std::nullopt;
+  }
+
   TextLayout layout;
   layout.text = params.extract_input<std::string>("String");
   if (layout.text.empty()) {
-    return {};
+    return std::nullopt;
   }
 
   const NodeGeometryStringToCurves &storage = node_storage(params.node());
@@ -181,7 +187,6 @@ static TextLayout get_text_layout(GeoNodeExecParams &params)
   const float textbox_h = overflow == GEO_NODE_STRING_TO_CURVES_MODE_OVERFLOW ?
                               0.0f :
                               params.extract_input<float>("Text Box Height");
-  VFont *vfont = (VFont *)params.node().id;
 
   Curve cu = dna::shallow_zero_initialize();
   cu.type = OB_FONT;
@@ -330,13 +335,14 @@ static void create_attributes(GeoNodeExecParams &params,
                               const TextLayout &layout,
                               InstancesComponent &instances)
 {
+  MutableAttributeAccessor attributes = *instances.attributes_for_write();
+
   if (params.output_is_required("Line")) {
     StrongAnonymousAttributeID line_id = StrongAnonymousAttributeID("Line");
-    OutputAttribute_Typed<int> line_attribute = instances.attribute_try_get_for_output_only<int>(
+    SpanAttributeWriter<int> line_attribute = attributes.lookup_or_add_for_write_only_span<int>(
         line_id.get(), ATTR_DOMAIN_INSTANCE);
-    MutableSpan<int> lines = line_attribute.as_span();
-    lines.copy_from(layout.line_numbers);
-    line_attribute.save();
+    line_attribute.span.copy_from(layout.line_numbers);
+    line_attribute.finish();
     params.set_output("Line",
                       AnonymousAttributeFieldInput::Create<int>(std::move(line_id),
                                                                 params.attribute_producer_name()));
@@ -344,15 +350,14 @@ static void create_attributes(GeoNodeExecParams &params,
 
   if (params.output_is_required("Pivot Point")) {
     StrongAnonymousAttributeID pivot_id = StrongAnonymousAttributeID("Pivot");
-    OutputAttribute_Typed<float3> pivot_attribute =
-        instances.attribute_try_get_for_output_only<float3>(pivot_id.get(), ATTR_DOMAIN_INSTANCE);
-    MutableSpan<float3> pivots = pivot_attribute.as_span();
+    SpanAttributeWriter<float3> pivot_attribute =
+        attributes.lookup_or_add_for_write_only_span<float3>(pivot_id.get(), ATTR_DOMAIN_INSTANCE);
 
     for (const int i : layout.char_codes.index_range()) {
-      pivots[i] = layout.pivot_points.lookup(layout.char_codes[i]);
+      pivot_attribute.span[i] = layout.pivot_points.lookup(layout.char_codes[i]);
     }
 
-    pivot_attribute.save();
+    pivot_attribute.finish();
     params.set_output("Pivot Point",
                       AnonymousAttributeFieldInput::Create<float3>(
                           std::move(pivot_id), params.attribute_producer_name()));
@@ -361,15 +366,19 @@ static void create_attributes(GeoNodeExecParams &params,
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  TextLayout layout = get_text_layout(params);
+  std::optional<TextLayout> layout = get_text_layout(params);
+  if (!layout) {
+    params.set_default_remaining_outputs();
+    return;
+  }
 
   const NodeGeometryStringToCurves &storage =
       *(const NodeGeometryStringToCurves *)params.node().storage;
   if (storage.overflow == GEO_NODE_STRING_TO_CURVES_MODE_TRUNCATE) {
-    params.set_output("Remainder", std::move(layout.truncated_text));
+    params.set_output("Remainder", std::move(layout->truncated_text));
   }
 
-  if (layout.positions.size() == 0) {
+  if (layout->positions.size() == 0) {
     params.set_output("Curve Instances", GeometrySet());
     params.set_default_remaining_outputs();
     return;
@@ -378,9 +387,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   /* Create and add instances. */
   GeometrySet geometry_set_out;
   InstancesComponent &instances = geometry_set_out.get_component_for_write<InstancesComponent>();
-  Map<int, int> char_handles = create_curve_instances(params, layout, instances);
-  add_instances_from_handles(instances, char_handles, layout);
-  create_attributes(params, layout, instances);
+  Map<int, int> char_handles = create_curve_instances(params, *layout, instances);
+  add_instances_from_handles(instances, char_handles, *layout);
+  create_attributes(params, *layout, instances);
 
   params.set_output("Curve Instances", std::move(geometry_set_out));
 }

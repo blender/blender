@@ -1455,7 +1455,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
                                        TSE_GPENCIL_EFFECT_BASE);
 
   const int wm_drag_type = use_datastack_drag ? WM_DRAG_DATASTACK : WM_DRAG_ID;
-  wmDrag *drag = WM_event_start_drag(C, data.icon, wm_drag_type, nullptr, 0.0, WM_DRAG_NOP);
+  wmDrag *drag = WM_drag_data_create(C, data.icon, wm_drag_type, nullptr, 0.0, WM_DRAG_NOP);
 
   if (use_datastack_drag) {
     TreeElement *te_bone = nullptr;
@@ -1544,6 +1544,8 @@ static int outliner_item_drag_drop_invoke(bContext *C,
     /* Add single ID. */
     WM_drag_add_local_ID(drag, data.drag_id, data.drag_parent);
   }
+
+  WM_event_start_prepared_drag(C, drag);
 
   ED_outliner_select_sync_from_outliner(C, space_outliner);
 

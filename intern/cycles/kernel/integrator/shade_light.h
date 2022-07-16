@@ -22,19 +22,8 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
   const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
   const float ray_time = INTEGRATOR_STATE(state, ray, time);
 
-  /* Advance ray beyond light. */
-  /* TODO: can we make this more numerically robust to avoid reintersecting the
-   * same light in some cases? Ray should not intersect surface anymore as the
-   * object and prim ids will prevent self intersection. */
-  const float3 new_ray_P = ray_P + ray_D * isect.t;
-  INTEGRATOR_STATE_WRITE(state, ray, P) = new_ray_P;
-  INTEGRATOR_STATE_WRITE(state, ray, t) -= isect.t;
-
-  /* Set position to where the BSDF was sampled, for correct MIS PDF. */
-  const float mis_ray_t = INTEGRATOR_STATE(state, path, mis_ray_t);
-  ray_P -= ray_D * mis_ray_t;
-  isect.t += mis_ray_t;
-  INTEGRATOR_STATE_WRITE(state, path, mis_ray_t) = isect.t;
+  /* Advance ray to new start distance. */
+  INTEGRATOR_STATE_WRITE(state, ray, tmin) = intersection_t_offset(isect.t);
 
   LightSample ls ccl_optional_struct_init;
   const bool use_light_sample = light_sample_from_intersection(kg, &isect, ray_P, ray_D, &ls);
@@ -99,11 +88,13 @@ ccl_device void integrator_shade_light(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, transparent_bounce) = transparent_bounce;
 
   if (transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
-    INTEGRATOR_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT);
+    integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT);
     return;
   }
   else {
-    INTEGRATOR_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT,
+    integrator_path_next(kg,
+                         state,
+                         DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT,
                          DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
     return;
   }

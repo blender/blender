@@ -868,7 +868,7 @@ static void export_hair_curves(Scene *scene,
     for (int i = 0; i < num_points; i++) {
       const float3 co = get_float3(b_curves.position_data[first_point_index + i].vector());
       const float radius = b_attr_radius ? b_attr_radius->data[first_point_index + i].value() :
-                                           0.0f;
+                                           0.005f;
       hair->add_curve_key(co, radius);
 
       if (attr_intercept) {

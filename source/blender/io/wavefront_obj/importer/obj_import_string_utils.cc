@@ -18,14 +18,12 @@ StringRef read_next_line(StringRef &buffer)
   const char *start = buffer.begin();
   const char *end = buffer.end();
   size_t len = 0;
-  char prev = 0;
   const char *ptr = start;
   while (ptr < end) {
     char c = *ptr++;
-    if (c == '\n' && prev != '\\') {
+    if (c == '\n') {
       break;
     }
-    prev = c;
     ++len;
   }
 
@@ -35,7 +33,27 @@ StringRef read_next_line(StringRef &buffer)
 
 static bool is_whitespace(char c)
 {
-  return c <= ' ' || c == '\\';
+  return c <= ' ';
+}
+
+void fixup_line_continuations(char *p, char *end)
+{
+  while (true) {
+    /* Find next backslash, if any. */
+    char *backslash = std::find(p, end, '\\');
+    if (backslash == end)
+      break;
+    /* Skip over possible whitespace right after it. */
+    p = backslash + 1;
+    while (p < end && is_whitespace(*p) && *p != '\n')
+      ++p;
+    /* If then we have a newline, turn both backslash
+     * and the newline into regular spaces. */
+    if (p < end && *p == '\n') {
+      *backslash = ' ';
+      *p = ' ';
+    }
+  }
 }
 
 const char *drop_whitespace(const char *p, const char *end)
@@ -62,8 +80,12 @@ static const char *drop_plus(const char *p, const char *end)
   return p;
 }
 
-const char *parse_float(
-    const char *p, const char *end, float fallback, float &dst, bool skip_space)
+const char *parse_float(const char *p,
+                        const char *end,
+                        float fallback,
+                        float &dst,
+                        bool skip_space,
+                        bool require_trailing_space)
 {
   if (skip_space) {
     p = drop_whitespace(p, end);
@@ -73,13 +95,23 @@ const char *parse_float(
   if (res.ec == std::errc::invalid_argument || res.ec == std::errc::result_out_of_range) {
     dst = fallback;
   }
+  else if (require_trailing_space && res.ptr < end && !is_whitespace(*res.ptr)) {
+    /* If there are trailing non-space characters, do not eat up the number. */
+    dst = fallback;
+    return p;
+  }
   return res.ptr;
 }
 
-const char *parse_floats(const char *p, const char *end, float fallback, float *dst, int count)
+const char *parse_floats(const char *p,
+                         const char *end,
+                         float fallback,
+                         float *dst,
+                         int count,
+                         bool require_trailing_space)
 {
   for (int i = 0; i < count; ++i) {
-    p = parse_float(p, end, fallback, dst[i]);
+    p = parse_float(p, end, fallback, dst[i], true, require_trailing_space);
   }
   return p;
 }

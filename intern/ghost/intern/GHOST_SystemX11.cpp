@@ -25,6 +25,7 @@
 #ifdef WITH_INPUT_NDOF
 #  include "GHOST_NDOFManagerUnix.h"
 #endif
+#include "GHOST_utildefines.h"
 
 #ifdef WITH_XDND
 #  include "GHOST_DropTargetX11.h"
@@ -663,7 +664,7 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
       /* open connection to XIM server and create input context (XIC)
        * when receiving the first FocusIn or KeyPress event after startup,
        * or recover XIM and XIC when the XIM server has been restarted */
-      if (xevent.type == FocusIn || xevent.type == KeyPress) {
+      if (ELEM(xevent.type, FocusIn, KeyPress)) {
         if (!m_xim && openX11_IM()) {
           GHOST_PRINT("Connected to XIM server\n");
         }
@@ -724,9 +725,9 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
              * in order to confirm the window is active. */
             XPeekEvent(m_display, &xev_next);
 
-            if (xev_next.type == KeyPress || xev_next.type == KeyRelease) {
-              /* XK_Hyper_L/R currently unused */
-              const static KeySym modifiers[8] = {
+            if (ELEM(xev_next.type, KeyPress, KeyRelease)) {
+              /* XK_Hyper_L/R currently unused. */
+              const static KeySym modifiers[] = {
                   XK_Shift_L,
                   XK_Shift_R,
                   XK_Control_L,
@@ -737,16 +738,15 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
                   XK_Super_R,
               };
 
-              for (int i = 0; i < (int)(sizeof(modifiers) / sizeof(*modifiers)); i++) {
+              for (int i = 0; i < (int)ARRAY_SIZE(modifiers); i++) {
                 KeyCode kc = XKeysymToKeycode(m_display, modifiers[i]);
                 if (kc != 0 && ((xevent.xkeymap.key_vector[kc >> 3] >> (kc & 7)) & 1) != 0) {
                   pushEvent(new GHOST_EventKey(getMilliSeconds(),
                                                GHOST_kEventKeyDown,
                                                window,
                                                ghost_key_from_keysym(modifiers[i]),
-                                               '\0',
-                                               nullptr,
-                                               false));
+                                               false,
+                                               nullptr));
                 }
               }
             }
@@ -822,7 +822,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
   /* Detect auto-repeat. */
   bool is_repeat = false;
-  if (xe->type == KeyPress || xe->type == KeyRelease) {
+  if (ELEM(xe->type, KeyPress, KeyRelease)) {
     XKeyEvent *xke = &(xe->xkey);
 
     /* Set to true if this key will repeat. */
@@ -889,9 +889,11 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 
     if (xe->type == xi_presence) {
       XDevicePresenceNotifyEvent *notify_event = (XDevicePresenceNotifyEvent *)xe;
-      if ((notify_event->devchange == DeviceEnabled) ||
-          (notify_event->devchange == DeviceDisabled) ||
-          (notify_event->devchange == DeviceAdded) || (notify_event->devchange == DeviceRemoved)) {
+      if (ELEM(notify_event->devchange,
+               DeviceEnabled,
+               DeviceDisabled,
+               DeviceAdded,
+               DeviceRemoved)) {
         refreshXInputDevices();
 
         /* update all window events */
@@ -1014,7 +1016,9 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     case KeyRelease: {
       XKeyEvent *xke = &(xe->xkey);
       KeySym key_sym;
+      char *utf8_buf = nullptr;
       char ascii;
+
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
       /* utf8_array[] is initial buffer used for Xutf8LookupString().
        * if the length of the utf8 string exceeds this array, allocate
@@ -1023,12 +1027,10 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
        * at the end of this buffer when the constructor of GHOST_EventKey
        * reads 6 bytes regardless of the effective data length. */
       char utf8_array[16 * 6 + 5]; /* 16 utf8 characters */
-      char *utf8_buf = utf8_array;
-      int len = 1; /* at least one null character will be stored */
+      int len = 1;                 /* at least one null character will be stored */
 #else
-      char *utf8_buf = nullptr;
+      char utf8_array[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
 #endif
-
       GHOST_TEventType type = (xke->type == KeyPress) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
 
       GHOST_TKey gkey;
@@ -1148,81 +1150,94 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
 #endif
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-      /* Setting unicode on key-up events gives #XLookupNone status. */
-      XIC xic = window->getX11_XIC();
-      if (xic && xke->type == KeyPress) {
-        Status status;
-
-        /* Use utf8 because its not locale repentant, from XORG docs. */
-        if (!(len = Xutf8LookupString(
-                  xic, xke, utf8_buf, sizeof(utf8_array) - 5, &key_sym, &status))) {
-          utf8_buf[0] = '\0';
-        }
-
-        if (status == XBufferOverflow) {
-          utf8_buf = (char *)malloc(len + 5);
-          len = Xutf8LookupString(xic, xke, utf8_buf, len, &key_sym, &status);
-        }
-
-        if ((status == XLookupChars || status == XLookupBoth)) {
-          if ((unsigned char)utf8_buf[0] >= 32) { /* not an ascii control character */
-            /* do nothing for now, this is valid utf8 */
-          }
-          else {
-            utf8_buf[0] = '\0';
-          }
-        }
-        else if (status == XLookupKeySym) {
-          /* this key doesn't have a text representation, it is a command
-           * key of some sort */
-        }
-        else {
-          printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
-                 (unsigned int)key_sym,
-                 (status == XLookupNone   ? "XLookupNone" :
-                  status == XLookupKeySym ? "XLookupKeySym" :
-                                            "Unknown status"));
-
-          printf("'%.*s' %p %p\n", len, utf8_buf, xic, m_xim);
-        }
-      }
-      else {
-        utf8_buf[0] = '\0';
-      }
+      /* Only used for key-press. */
+      XIC xic = nullptr;
 #endif
 
-      g_event = new GHOST_EventKey(
-          getMilliSeconds(), type, window, gkey, ascii, utf8_buf, is_repeat);
+      if (xke->type == KeyPress) {
+        utf8_buf = utf8_array;
+#if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
+        /* Setting unicode on key-up events gives #XLookupNone status. */
+        xic = window->getX11_XIC();
+        if (xic) {
+          Status status;
+
+          /* Use utf8 because its not locale repentant, from XORG docs. */
+          if (!(len = Xutf8LookupString(
+                    xic, xke, utf8_buf, sizeof(utf8_array) - 5, &key_sym, &status))) {
+            utf8_buf[0] = '\0';
+          }
+
+          if (status == XBufferOverflow) {
+            utf8_buf = (char *)malloc(len + 5);
+            len = Xutf8LookupString(xic, xke, utf8_buf, len, &key_sym, &status);
+          }
+
+          if (ELEM(status, XLookupChars, XLookupBoth)) {
+            if ((unsigned char)utf8_buf[0] >= 32) { /* not an ascii control character */
+              /* do nothing for now, this is valid utf8 */
+            }
+            else {
+              utf8_buf[0] = '\0';
+            }
+          }
+          else if (status == XLookupKeySym) {
+            /* this key doesn't have a text representation, it is a command
+             * key of some sort */
+          }
+          else {
+            printf("Bad keycode lookup. Keysym 0x%x Status: %s\n",
+                   (unsigned int)key_sym,
+                   (status == XLookupNone   ? "XLookupNone" :
+                    status == XLookupKeySym ? "XLookupKeySym" :
+                                              "Unknown status"));
+
+            printf("'%.*s' %p %p\n", len, utf8_buf, xic, m_xim);
+          }
+        }
+        else {
+          utf8_buf[0] = '\0';
+        }
+#endif
+        if (!utf8_buf[0] && ascii) {
+          utf8_buf[0] = ascii;
+          utf8_buf[1] = '\0';
+        }
+      }
+
+      g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, is_repeat, utf8_buf);
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
       /* when using IM for some languages such as Japanese,
        * one event inserts multiple utf8 characters */
-      if (xic && xke->type == KeyPress) {
+      if (xke->type == KeyPress && xic) {
         unsigned char c;
         int i = 0;
-        while (1) {
-          /* search character boundary */
-          if ((unsigned char)utf8_buf[i++] > 0x7f) {
+        while (true) {
+          /* Search character boundary. */
+          if ((uchar)utf8_buf[i++] > 0x7f) {
             for (; i < len; ++i) {
               c = utf8_buf[i];
-              if (c < 0x80 || c > 0xbf)
+              if (c < 0x80 || c > 0xbf) {
                 break;
+              }
             }
           }
 
-          if (i >= len)
+          if (i >= len) {
             break;
-
-          /* enqueue previous character */
+          }
+          /* Enqueue previous character. */
           pushEvent(g_event);
 
           g_event = new GHOST_EventKey(
-              getMilliSeconds(), type, window, gkey, '\0', &utf8_buf[i], is_repeat);
+              getMilliSeconds(), type, window, gkey, is_repeat, &utf8_buf[i]);
         }
       }
 
-      if (utf8_buf != utf8_array)
+      if (utf8_buf != utf8_array) {
         free(utf8_buf);
+      }
 #endif
 
       break;
@@ -1449,8 +1464,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       nxe.xselection.time = xse->time;
 
       /* Check to see if the requester is asking for String */
-      if (xse->target == utf8_string || xse->target == string || xse->target == compound_text ||
-          xse->target == c_string) {
+      if (ELEM(xse->target, utf8_string, string, compound_text, c_string)) {
         if (xse->selection == XInternAtom(m_display, "PRIMARY", False)) {
           XChangeProperty(m_display,
                           xse->requestor,
@@ -1503,7 +1517,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
     default: {
 #ifdef WITH_X11_XINPUT
       for (GHOST_TabletX11 &xtablet : m_xtablets) {
-        if (xe->type == xtablet.MotionEvent || xe->type == xtablet.PressEvent) {
+        if (ELEM(xe->type, xtablet.MotionEvent, xtablet.PressEvent)) {
           XDeviceMotionEvent *data = (XDeviceMotionEvent *)xe;
           if (data->deviceid != xtablet.ID) {
             continue;
@@ -2574,7 +2588,7 @@ int GHOST_X11_ApplicationIOErrorHandler(Display * /*display*/)
 
 static bool is_filler_char(char c)
 {
-  return isspace(c) || c == '_' || c == '-' || c == ';' || c == ':';
+  return isspace(c) || ELEM(c, '_', '-', ';', ':');
 }
 
 /* These C functions are copied from Wine 3.12's `wintab.c` */
@@ -2674,7 +2688,7 @@ void GHOST_SystemX11::refreshXInputDevices()
           XFree((void *)device_type);
         }
 
-        if (!(tablet_mode == GHOST_kTabletModeStylus || tablet_mode == GHOST_kTabletModeEraser)) {
+        if (!ELEM(tablet_mode, GHOST_kTabletModeStylus, GHOST_kTabletModeEraser)) {
           continue;
         }
 

@@ -79,7 +79,7 @@ bool nla_panel_context(const bContext *C,
    */
   /* XXX: double-check active! */
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ACTIVE |
-            ANIMFILTER_LIST_CHANNELS);
+            ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   for (ale = anim_data.first; ale; ale = ale->next) {
@@ -393,8 +393,8 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
 
   /* strip extents */
   column = uiLayoutColumn(layout, true);
-  uiItemR(column, &strip_ptr, "frame_start", 0, IFACE_("Frame Start"), ICON_NONE);
-  uiItemR(column, &strip_ptr, "frame_end", 0, IFACE_("End"), ICON_NONE);
+  uiItemR(column, &strip_ptr, "frame_start_ui", 0, IFACE_("Frame Start"), ICON_NONE);
+  uiItemR(column, &strip_ptr, "frame_end_ui", 0, IFACE_("End"), ICON_NONE);
 
   /* Evaluation-Related Strip Properties ------------------ */
 

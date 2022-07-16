@@ -427,7 +427,7 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
     madd_v3_v3fl(current_disp, no, -dot_v3v3(current_disp, no));
 
     normalize_v3_v3(current_disp_norm, current_disp);
-    mul_v3_v3fl(current_disp, current_disp_norm, ss->cache->bstrength);
+    mul_v3_v3fl(current_disp, current_disp_norm, bstrength);
 
     float accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     float totw = 0.0f;
@@ -457,12 +457,12 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
         sub_v3_v3v3(vertex_disp, SCULPT_vertex_co_get(ss, ni.index), vd.co);
 
         /* Weight by how close we are to our target distance from vd.co. */
-        float w = (1.0f + fabsf(len_v3(vertex_disp) / ss->cache->bstrength - 1.0f));
+        float w = (1.0f + fabsf(len_v3(vertex_disp) / bstrength - 1.0f));
 
         /* TODO: use cotangents (or at least face areas) here. */
         float len = len_v3v3(SCULPT_vertex_co_get(ss, ni.index), nco);
         if (len > 0.0f) {
-          len = ss->cache->bstrength / len;
+          len = bstrength / len;
         }
         else { /* Coincident point. */
           len = 1.0f;
@@ -532,7 +532,7 @@ void SCULPT_do_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
 
-  if (!SCULPT_has_colors(ss)) {
+  if (!SCULPT_has_colors(ss) || ss->cache->bstrength == 0.0f) {
     return;
   }
 

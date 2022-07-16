@@ -79,6 +79,7 @@ set(SRC_KERNEL_DEVICE_METAL_HEADERS
   device/metal/compat.h
   device/metal/context_begin.h
   device/metal/context_end.h
+  device/metal/function_constants.h
   device/metal/globals.h
 )
 
@@ -86,7 +87,6 @@ set(SRC_KERNEL_DEVICE_ONEAPI_HEADERS
   device/oneapi/compat.h
   device/oneapi/context_begin.h
   device/oneapi/context_end.h
-  device/oneapi/device_id.h
   device/oneapi/globals.h
   device/oneapi/image.h
   device/oneapi/kernel.h
@@ -155,6 +155,7 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/math_util.h
   svm/mix.h
   svm/musgrave.h
+  svm/node_types_template.h
   svm/noise.h
   svm/noisetex.h
   svm/normal.h
@@ -283,6 +284,7 @@ set(SRC_KERNEL_UTIL_HEADERS
 
 set(SRC_KERNEL_TYPES_HEADERS
   data_arrays.h
+  data_template.h
   tables.h
   types.h
 )
@@ -732,8 +734,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       -O2
       -o ${cycles_kernel_oneapi_lib}
       -I${CMAKE_CURRENT_SOURCE_DIR}/..
-      -I${LEVEL_ZERO_INCLUDE_DIR}
-      ${LEVEL_ZERO_LIBRARY}
       ${SYCL_CPP_FLAGS}
       )
 
@@ -847,10 +847,9 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   else()
     list(APPEND sycl_compiler_flags -fPIC)
 
-    # avoid getting __FAST_MATH__ to be defined for the graphics compiler on CentOS 7 until the compile-time issue it triggers gets fixed.
-    if(WITH_CYCLES_ONEAPI_BINARIES)
-      list(APPEND sycl_compiler_flags -fhonor-nans)
-    endif()
+    # We avoid getting __FAST_MATH__ to be defined when building on CentOS 7 until the compilation crash
+    # it triggers at either AoT or JIT stages gets fixed.
+    list(APPEND sycl_compiler_flags -fhonor-nans)
 
     # add $ORIGIN to cycles_kernel_oneapi.so rpath so libsycl.so and
     # libpi_level_zero.so can be placed next to it and get found.

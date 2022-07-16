@@ -7,6 +7,7 @@
 
 #include "GHOST_DropTargetX11.h"
 #include "GHOST_Debug.h"
+#include "GHOST_utildefines.h"
 
 #include <cassert>
 #include <cctype>
@@ -34,7 +35,7 @@ int GHOST_DropTargetX11::m_refCounter = 0;
 void GHOST_DropTargetX11::Initialize()
 {
   Display *display = m_system->getXDisplay();
-  int dndTypesCount = sizeof(m_dndMimeTypes) / sizeof(char *);
+  int dndTypesCount = ARRAY_SIZE(m_dndMimeTypes);
   int counter;
 
   xdnd_init(&m_dndClass, display);

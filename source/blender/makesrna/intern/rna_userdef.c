@@ -1101,16 +1101,6 @@ int rna_show_statusbar_vram_editable(struct PointerRNA *UNUSED(ptr), const char 
   return GPU_mem_stats_supported() ? PROP_EDITABLE : 0;
 }
 
-static int rna_userdef_experimental_use_new_curve_tools_editable(struct PointerRNA *UNUSED(ptr),
-                                                                 const char **r_info)
-{
-  if (U.experimental.use_new_curves_type) {
-    return PROP_EDITABLE;
-  }
-  *r_info = "Only available when new curves type is enabled";
-  return 0;
-}
-
 #else
 
 #  define USERDEF_TAG_DIRTY_PROPERTY_UPDATE_ENABLE \
@@ -6392,6 +6382,15 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
       "Enable library overrides automatic resync detection and process on file load. Disable when "
       "dealing with older .blend files that need manual Resync (Enforce) handling");
 
+  prop = RNA_def_property(srna, "use_override_new_fully_editable", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_override_new_fully_editable", 1);
+  RNA_def_property_ui_text(
+      prop,
+      "Override New Fully Editable",
+      "Make all override of a hierarchy fully user-editable by default when creating a new "
+      "override (if that option is disabled, most overrides created as part of a hierarchy will "
+      "not be editable by the user by default)");
+
   prop = RNA_def_property(srna, "use_new_point_cloud_type", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_point_cloud_type", 1);
   RNA_def_property_ui_text(
@@ -6405,13 +6404,8 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "reduces execution time and memory usage)");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-  prop = RNA_def_property(srna, "use_new_curves_type", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "use_new_curves_type", 1);
-  RNA_def_property_ui_text(prop, "New Curves Type", "Enable the new curves data type in the UI");
-
   prop = RNA_def_property(srna, "use_new_curves_tools", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_new_curves_tools", 1);
-  RNA_def_property_editable_func(prop, "rna_userdef_experimental_use_new_curve_tools_editable");
   RNA_def_property_ui_text(
       prop, "New Curves Tools", "Enable additional features for the new curves data block");
 

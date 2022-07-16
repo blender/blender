@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_global.h"
 
@@ -58,7 +59,7 @@ void MTLBufferPool::free()
 
 gpu::MTLBuffer *MTLBufferPool::allocate_buffer(uint64_t size, bool cpu_visible, const void *bytes)
 {
-  /* Allocate buffer with default HW-compatible alignemnt of 256 bytes.
+  /* Allocate buffer with default HW-compatible alignment of 256 bytes.
    * See https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf for more. */
   return this->allocate_buffer_aligned(size, 256, cpu_visible, bytes);
 }
@@ -342,7 +343,7 @@ void MTLBufferPool::insert_buffer_into_pool(MTLResourceOptions options, gpu::MTL
   /* Ensure pool exists. */
   this->ensure_buffer_pool(options);
 
-  /* TODO(Metal): Support purgability - Allow buffer in pool to have its memory taken back by the
+  /* TODO(Metal): Support purgeability - Allow buffer in pool to have its memory taken back by the
    * OS if needed. As we keep allocations around, they may not actually be in use, but we can
    * ensure they do not block other apps from using memory. Upon a buffer being needed again, we
    * can reset this state.
@@ -615,7 +616,7 @@ void MTLScratchBufferManager::init()
   if (!this->initialised_) {
     BLI_assert(context_.device);
 
-    /* Initialise Scratch buffers */
+    /* Initialize Scratch buffers. */
     for (int sb = 0; sb < mtl_max_scratch_buffers_; sb++) {
       scratch_buffers_[sb] = new MTLCircularBuffer(
           context_, mtl_scratch_buffer_initial_size_, true);

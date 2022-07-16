@@ -155,6 +155,9 @@ static void topbar_header_listener(const wmRegionListenerParams *params)
         ED_region_tag_redraw(region);
       }
       break;
+    case NC_WORKSPACE:
+      ED_region_tag_redraw(region);
+      break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_INFO) {
         ED_region_tag_redraw(region);

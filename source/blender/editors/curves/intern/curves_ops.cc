@@ -25,6 +25,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -243,17 +244,14 @@ static void try_convert_single_object(Object &curves_ob,
   }
 
   /* Prepare transformation matrices. */
-  const float4x4 curves_to_world_mat = curves_ob.obmat;
-  const float4x4 surface_to_world_mat = surface_ob.obmat;
-  const float4x4 world_to_surface_mat = surface_to_world_mat.inverted();
-  const float4x4 curves_to_surface_mat = world_to_surface_mat * curves_to_world_mat;
+  const bke::CurvesSurfaceTransforms transforms{curves_ob, &surface_ob};
 
   for (const int new_hair_i : IndexRange(hair_num)) {
     const int curve_i = new_hair_i;
     const IndexRange points = curves.points_for_curve(curve_i);
 
     const float3 &root_pos_cu = positions_cu[points.first()];
-    const float3 root_pos_su = curves_to_surface_mat * root_pos_cu;
+    const float3 root_pos_su = transforms.curves_to_surface * root_pos_cu;
 
     BVHTreeNearest nearest;
     nearest.dist_sq = FLT_MAX;
@@ -293,7 +291,7 @@ static void try_convert_single_object(Object &curves_ob,
 
     for (const int key_i : hair_keys.index_range()) {
       const float3 &key_pos_cu = positions_cu[points[key_i]];
-      const float3 key_pos_su = curves_to_surface_mat * key_pos_cu;
+      const float3 key_pos_su = transforms.curves_to_surface * key_pos_cu;
       const float3 key_pos_ha = surface_to_hair_mat * key_pos_su;
 
       HairKey &key = hair_keys[key_i];
@@ -467,7 +465,6 @@ static int curves_convert_from_particle_system_exec(bContext *C, wmOperator *UNU
   }
 
   Object *ob_new = BKE_object_add(&bmain, &view_layer, OB_CURVES, psys_eval->name);
-  ob_new->dtx |= OB_DRAWBOUNDOX; /* TODO: Remove once there is actual drawing. */
   Curves *curves_id = static_cast<Curves *>(ob_new->data);
   BKE_object_apply_mat4(ob_new, ob_from_orig->obmat, true, false);
   bke::CurvesGeometry::wrap(curves_id->geometry) = particles_to_curves(*ob_from_eval, *psys_eval);
@@ -520,158 +517,169 @@ static bool snap_curves_to_surface_poll(bContext *C)
   return true;
 }
 
+static void snap_curves_to_surface_exec_object(Object &curves_ob,
+                                               const Object &surface_ob,
+                                               const AttachMode attach_mode,
+                                               bool *r_invalid_uvs,
+                                               bool *r_missing_uvs)
+{
+  Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
+  CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+
+  Mesh &surface_mesh = *static_cast<Mesh *>(surface_ob.data);
+
+  VArraySpan<float2> surface_uv_map;
+  if (curves_id.surface_uv_map != nullptr) {
+    const bke::AttributeAccessor surface_attributes = bke::mesh_attributes(surface_mesh);
+    surface_uv_map = surface_attributes
+                         .lookup(curves_id.surface_uv_map, ATTR_DOMAIN_CORNER, CD_PROP_FLOAT2)
+                         .typed<float2>();
+  }
+
+  MutableSpan<float3> positions_cu = curves.positions_for_write();
+  MutableSpan<float2> surface_uv_coords = curves.surface_uv_coords_for_write();
+
+  const Span<MLoopTri> surface_looptris = {BKE_mesh_runtime_looptri_ensure(&surface_mesh),
+                                           BKE_mesh_runtime_looptri_len(&surface_mesh)};
+
+  const bke::CurvesSurfaceTransforms transforms{curves_ob, &surface_ob};
+
+  switch (attach_mode) {
+    case AttachMode::Nearest: {
+      BVHTreeFromMesh surface_bvh;
+      BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_mesh, BVHTREE_FROM_LOOPTRI, 2);
+      BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
+
+      threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
+        for (const int curve_i : curves_range) {
+          const IndexRange points = curves.points_for_curve(curve_i);
+          const int first_point_i = points.first();
+          const float3 old_first_point_pos_cu = positions_cu[first_point_i];
+          const float3 old_first_point_pos_su = transforms.curves_to_surface *
+                                                old_first_point_pos_cu;
+
+          BVHTreeNearest nearest;
+          nearest.index = -1;
+          nearest.dist_sq = FLT_MAX;
+          BLI_bvhtree_find_nearest(surface_bvh.tree,
+                                   old_first_point_pos_su,
+                                   &nearest,
+                                   surface_bvh.nearest_callback,
+                                   &surface_bvh);
+          const int looptri_index = nearest.index;
+          if (looptri_index == -1) {
+            continue;
+          }
+
+          const float3 new_first_point_pos_su = nearest.co;
+          const float3 new_first_point_pos_cu = transforms.surface_to_curves *
+                                                new_first_point_pos_su;
+          const float3 pos_diff_cu = new_first_point_pos_cu - old_first_point_pos_cu;
+
+          for (float3 &pos_cu : positions_cu.slice(points)) {
+            pos_cu += pos_diff_cu;
+          }
+
+          if (!surface_uv_map.is_empty()) {
+            const MLoopTri &looptri = surface_looptris[looptri_index];
+            const int corner0 = looptri.tri[0];
+            const int corner1 = looptri.tri[1];
+            const int corner2 = looptri.tri[2];
+            const float2 &uv0 = surface_uv_map[corner0];
+            const float2 &uv1 = surface_uv_map[corner1];
+            const float2 &uv2 = surface_uv_map[corner2];
+            const float3 &p0_su = surface_mesh.mvert[surface_mesh.mloop[corner0].v].co;
+            const float3 &p1_su = surface_mesh.mvert[surface_mesh.mloop[corner1].v].co;
+            const float3 &p2_su = surface_mesh.mvert[surface_mesh.mloop[corner2].v].co;
+            float3 bary_coords;
+            interp_weights_tri_v3(bary_coords, p0_su, p1_su, p2_su, new_first_point_pos_su);
+            const float2 uv = attribute_math::mix3(bary_coords, uv0, uv1, uv2);
+            surface_uv_coords[curve_i] = uv;
+          }
+        }
+      });
+      break;
+    }
+    case AttachMode::Deform: {
+      if (surface_uv_map.is_empty()) {
+        *r_missing_uvs = true;
+        break;
+      }
+      using geometry::ReverseUVSampler;
+      ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_looptris};
+
+      threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
+        for (const int curve_i : curves_range) {
+          const IndexRange points = curves.points_for_curve(curve_i);
+          const int first_point_i = points.first();
+          const float3 old_first_point_pos_cu = positions_cu[first_point_i];
+
+          const float2 uv = surface_uv_coords[curve_i];
+          ReverseUVSampler::Result lookup_result = reverse_uv_sampler.sample(uv);
+          if (lookup_result.type != ReverseUVSampler::ResultType::Ok) {
+            *r_invalid_uvs = true;
+            continue;
+          }
+
+          const MLoopTri &looptri = *lookup_result.looptri;
+          const float3 &bary_coords = lookup_result.bary_weights;
+
+          const float3 &p0_su = surface_mesh.mvert[surface_mesh.mloop[looptri.tri[0]].v].co;
+          const float3 &p1_su = surface_mesh.mvert[surface_mesh.mloop[looptri.tri[1]].v].co;
+          const float3 &p2_su = surface_mesh.mvert[surface_mesh.mloop[looptri.tri[2]].v].co;
+
+          float3 new_first_point_pos_su;
+          interp_v3_v3v3v3(new_first_point_pos_su, p0_su, p1_su, p2_su, bary_coords);
+          const float3 new_first_point_pos_cu = transforms.surface_to_curves *
+                                                new_first_point_pos_su;
+
+          const float3 pos_diff_cu = new_first_point_pos_cu - old_first_point_pos_cu;
+          for (float3 &pos_cu : positions_cu.slice(points)) {
+            pos_cu += pos_diff_cu;
+          }
+        }
+      });
+      break;
+    }
+  }
+
+  DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
+}
+
 static int snap_curves_to_surface_exec(bContext *C, wmOperator *op)
 {
   const AttachMode attach_mode = static_cast<AttachMode>(RNA_enum_get(op->ptr, "attach_mode"));
 
-  std::atomic<bool> found_invalid_uv = false;
+  bool found_invalid_uvs = false;
+  bool found_missing_uvs = false;
 
   CTX_DATA_BEGIN (C, Object *, curves_ob, selected_objects) {
     if (curves_ob->type != OB_CURVES) {
       continue;
     }
     Curves &curves_id = *static_cast<Curves *>(curves_ob->data);
-    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
     if (curves_id.surface == nullptr) {
       continue;
     }
-    Object &surface_ob = *curves_id.surface;
-    if (surface_ob.type != OB_MESH) {
+    if (curves_id.surface->type != OB_MESH) {
       continue;
     }
-    Mesh &surface_mesh = *static_cast<Mesh *>(surface_ob.data);
-
-    MeshComponent surface_mesh_component;
-    surface_mesh_component.replace(&surface_mesh, GeometryOwnershipType::ReadOnly);
-
-    VArraySpan<float2> surface_uv_map;
-    if (curves_id.surface_uv_map != nullptr) {
-      surface_uv_map = surface_mesh_component
-                           .attribute_try_get_for_read(
-                               curves_id.surface_uv_map, ATTR_DOMAIN_CORNER, CD_PROP_FLOAT2)
-                           .typed<float2>();
-    }
-
-    MutableSpan<float3> positions_cu = curves.positions_for_write();
-    MutableSpan<float2> surface_uv_coords = curves.surface_uv_coords_for_write();
-
-    const Span<MLoopTri> surface_looptris = {BKE_mesh_runtime_looptri_ensure(&surface_mesh),
-                                             BKE_mesh_runtime_looptri_len(&surface_mesh)};
-
-    const float4x4 curves_to_world_mat = curves_ob->obmat;
-    const float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
-    const float4x4 surface_to_world_mat = surface_ob.obmat;
-    const float4x4 world_to_surface_mat = surface_to_world_mat.inverted();
-    const float4x4 curves_to_surface_mat = world_to_surface_mat * curves_to_world_mat;
-    const float4x4 surface_to_curves_mat = world_to_curves_mat * surface_to_world_mat;
-
-    switch (attach_mode) {
-      case AttachMode::Nearest: {
-        BVHTreeFromMesh surface_bvh;
-        BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_mesh, BVHTREE_FROM_LOOPTRI, 2);
-        BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
-
-        threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
-          for (const int curve_i : curves_range) {
-            const IndexRange points = curves.points_for_curve(curve_i);
-            const int first_point_i = points.first();
-            const float3 old_first_point_pos_cu = positions_cu[first_point_i];
-            const float3 old_first_point_pos_su = curves_to_surface_mat * old_first_point_pos_cu;
-
-            BVHTreeNearest nearest;
-            nearest.index = -1;
-            nearest.dist_sq = FLT_MAX;
-            BLI_bvhtree_find_nearest(surface_bvh.tree,
-                                     old_first_point_pos_su,
-                                     &nearest,
-                                     surface_bvh.nearest_callback,
-                                     &surface_bvh);
-            const int looptri_index = nearest.index;
-            if (looptri_index == -1) {
-              continue;
-            }
-
-            const float3 new_first_point_pos_su = nearest.co;
-            const float3 new_first_point_pos_cu = surface_to_curves_mat * new_first_point_pos_su;
-            const float3 pos_diff_cu = new_first_point_pos_cu - old_first_point_pos_cu;
-
-            for (float3 &pos_cu : positions_cu.slice(points)) {
-              pos_cu += pos_diff_cu;
-            }
-
-            if (!surface_uv_map.is_empty()) {
-              const MLoopTri &looptri = surface_looptris[looptri_index];
-              const int corner0 = looptri.tri[0];
-              const int corner1 = looptri.tri[1];
-              const int corner2 = looptri.tri[2];
-              const float2 &uv0 = surface_uv_map[corner0];
-              const float2 &uv1 = surface_uv_map[corner1];
-              const float2 &uv2 = surface_uv_map[corner2];
-              const float3 &p0_su = surface_mesh.mvert[surface_mesh.mloop[corner0].v].co;
-              const float3 &p1_su = surface_mesh.mvert[surface_mesh.mloop[corner1].v].co;
-              const float3 &p2_su = surface_mesh.mvert[surface_mesh.mloop[corner2].v].co;
-              float3 bary_coords;
-              interp_weights_tri_v3(bary_coords, p0_su, p1_su, p2_su, new_first_point_pos_su);
-              const float2 uv = attribute_math::mix3(bary_coords, uv0, uv1, uv2);
-              surface_uv_coords[curve_i] = uv;
-            }
-          }
-        });
-        break;
-      }
-      case AttachMode::Deform: {
-        if (surface_uv_map.is_empty()) {
-          BKE_report(op->reports,
-                     RPT_ERROR,
-                     "Curves do not have attachment information that can be used for deformation");
-          break;
-        }
-        using geometry::ReverseUVSampler;
-        ReverseUVSampler reverse_uv_sampler{surface_uv_map, surface_looptris};
-
-        threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
-          for (const int curve_i : curves_range) {
-            const IndexRange points = curves.points_for_curve(curve_i);
-            const int first_point_i = points.first();
-            const float3 old_first_point_pos_cu = positions_cu[first_point_i];
-
-            const float2 uv = surface_uv_coords[curve_i];
-            ReverseUVSampler::Result lookup_result = reverse_uv_sampler.sample(uv);
-            if (lookup_result.type != ReverseUVSampler::ResultType::Ok) {
-              found_invalid_uv = true;
-              continue;
-            }
-
-            const MLoopTri &looptri = *lookup_result.looptri;
-            const float3 &bary_coords = lookup_result.bary_weights;
-
-            const float3 &p0_su = surface_mesh.mvert[surface_mesh.mloop[looptri.tri[0]].v].co;
-            const float3 &p1_su = surface_mesh.mvert[surface_mesh.mloop[looptri.tri[1]].v].co;
-            const float3 &p2_su = surface_mesh.mvert[surface_mesh.mloop[looptri.tri[2]].v].co;
-
-            float3 new_first_point_pos_su;
-            interp_v3_v3v3v3(new_first_point_pos_su, p0_su, p1_su, p2_su, bary_coords);
-            const float3 new_first_point_pos_cu = surface_to_curves_mat * new_first_point_pos_su;
-
-            const float3 pos_diff_cu = new_first_point_pos_cu - old_first_point_pos_cu;
-            for (float3 &pos_cu : positions_cu.slice(points)) {
-              pos_cu += pos_diff_cu;
-            }
-          }
-        });
-        break;
-      }
-    }
-
-    DEG_id_tag_update(&curves_id.id, ID_RECALC_GEOMETRY);
+    snap_curves_to_surface_exec_object(
+        *curves_ob, *curves_id.surface, attach_mode, &found_invalid_uvs, &found_missing_uvs);
   }
   CTX_DATA_END;
 
-  if (found_invalid_uv) {
+  if (found_missing_uvs) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Curves do not have attachment information that can be used for deformation");
+  }
+  if (found_invalid_uvs) {
     BKE_report(op->reports, RPT_INFO, "Could not snap some curves to the surface");
   }
 
-  WM_main_add_notifier(NC_OBJECT | ND_DRAW, nullptr);
+  /* Refresh the entire window to also clear eventual modifier and nodes editor warnings.*/
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -745,21 +753,20 @@ static int curves_set_selection_domain_exec(bContext *C, wmOperator *op)
     curves_id->selection_domain = domain;
     curves_id->flag |= CV_SCULPT_SELECTION_ENABLED;
 
-    CurveComponent component;
-    component.replace(curves_id, GeometryOwnershipType::Editable);
     CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
 
     if (old_domain == ATTR_DOMAIN_POINT && domain == ATTR_DOMAIN_CURVE) {
       VArray<float> curve_selection = curves.adapt_domain(
           curves.selection_point_float(), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
       curve_selection.materialize(curves.selection_curve_float_for_write());
-      component.attribute_try_delete(".selection_point_float");
+      attributes.remove(".selection_point_float");
     }
     else if (old_domain == ATTR_DOMAIN_CURVE && domain == ATTR_DOMAIN_POINT) {
       VArray<float> point_selection = curves.adapt_domain(
           curves.selection_curve_float(), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
       point_selection.materialize(curves.selection_point_float_for_write());
-      component.attribute_try_delete(".selection_curve_float");
+      attributes.remove(".selection_curve_float");
     }
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -889,25 +896,14 @@ static int select_all_exec(bContext *C, wmOperator *op)
   }
 
   for (Curves *curves_id : unique_curves) {
+    CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
     if (action == SEL_SELECT) {
-      /* The optimization to avoid storing the selection when everything is selected causes too
-       * many problems at the moment, since there is no proper visualization yet. Keep the code but
-       * disable it for now. */
-#if 0
-      CurveComponent component;
-      component.replace(curves_id, GeometryOwnershipType::Editable);
-      component.attribute_try_delete(".selection_point_float");
-      component.attribute_try_delete(".selection_curve_float");
-#else
-      CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
-      MutableSpan<float> selection = curves_id->selection_domain == ATTR_DOMAIN_POINT ?
-                                         curves.selection_point_float_for_write() :
-                                         curves.selection_curve_float_for_write();
-      selection.fill(1.0f);
-#endif
+      /* As an optimization, just remove the selection attributes when everything is selected. */
+      bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+      attributes.remove(".selection_point_float");
+      attributes.remove(".selection_curve_float");
     }
     else {
-      CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
       MutableSpan<float> selection = curves_id->selection_domain == ATTR_DOMAIN_POINT ?
                                          curves.selection_point_float_for_write() :
                                          curves.selection_curve_float_for_write();
@@ -944,6 +940,88 @@ static void SCULPT_CURVES_OT_select_all(wmOperatorType *ot)
   WM_operator_properties_select_all(ot);
 }
 
+namespace surface_set {
+
+static bool surface_set_poll(bContext *C)
+{
+  const Object *object = CTX_data_active_object(C);
+  if (object == nullptr) {
+    return false;
+  }
+  if (object->type != OB_MESH) {
+    return false;
+  }
+  return true;
+}
+
+static int surface_set_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+
+  Object &new_surface_ob = *CTX_data_active_object(C);
+
+  Mesh &new_surface_mesh = *static_cast<Mesh *>(new_surface_ob.data);
+  const char *new_uv_map_name = CustomData_get_active_layer_name(&new_surface_mesh.ldata,
+                                                                 CD_MLOOPUV);
+
+  CTX_DATA_BEGIN (C, Object *, selected_ob, selected_objects) {
+    if (selected_ob->type != OB_CURVES) {
+      continue;
+    }
+    Object &curves_ob = *selected_ob;
+    Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
+
+    MEM_SAFE_FREE(curves_id.surface_uv_map);
+    if (new_uv_map_name != nullptr) {
+      curves_id.surface_uv_map = BLI_strdup(new_uv_map_name);
+    }
+
+    bool missing_uvs;
+    bool invalid_uvs;
+    snap_curves_to_surface::snap_curves_to_surface_exec_object(
+        curves_ob,
+        new_surface_ob,
+        snap_curves_to_surface::AttachMode::Nearest,
+        &invalid_uvs,
+        &missing_uvs);
+
+    /* Add deformation modifier if necessary. */
+    blender::ed::curves::ensure_surface_deformation_node_exists(*C, curves_ob);
+
+    curves_id.surface = &new_surface_ob;
+    ED_object_parent_set(
+        op->reports, C, scene, &curves_ob, &new_surface_ob, PAR_OBJECT, false, true, nullptr);
+
+    DEG_id_tag_update(&curves_ob.id, ID_RECALC_TRANSFORM);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &curves_id);
+
+    /* Required for deformation. */
+    new_surface_ob.modifier_flag |= OB_MODIFIER_FLAG_ADD_REST_POSITION;
+    DEG_id_tag_update(&new_surface_ob.id, ID_RECALC_GEOMETRY);
+  }
+  CTX_DATA_END;
+
+  DEG_relations_tag_update(bmain);
+
+  return OPERATOR_FINISHED;
+}
+
+}  // namespace surface_set
+
+static void CURVES_OT_surface_set(wmOperatorType *ot)
+{
+  ot->name = "Set Curves Surface Object";
+  ot->idname = __func__;
+  ot->description =
+      "Use the active object as surface for selected curves objects and set it as the parent";
+
+  ot->exec = surface_set::surface_set_exec;
+  ot->poll = surface_set::surface_set_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 }  // namespace blender::ed::curves
 
 void ED_operatortypes_curves()
@@ -955,4 +1033,5 @@ void ED_operatortypes_curves()
   WM_operatortype_append(CURVES_OT_set_selection_domain);
   WM_operatortype_append(SCULPT_CURVES_OT_select_all);
   WM_operatortype_append(CURVES_OT_disable_selection);
+  WM_operatortype_append(CURVES_OT_surface_set);
 }

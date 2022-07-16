@@ -5,7 +5,6 @@
 #include "DNA_ID_enums.h"
 #include "DNA_curve_types.h"
 
-#include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curve.h"
 #include "BKE_curves.hh"
@@ -218,7 +217,7 @@ VArray<float3> curve_normals_varray(const CurveComponent &component, const eAttr
 
   const VArray<int8_t> types = curves.curve_types();
   if (curves.is_single_type(CURVE_TYPE_POLY)) {
-    return component.attribute_try_adapt_domain<float3>(
+    return component.attributes()->adapt_domain<float3>(
         VArray<float3>::ForSpan(curves.evaluated_normals()), ATTR_DOMAIN_POINT, domain);
   }
 
@@ -229,7 +228,7 @@ VArray<float3> curve_normals_varray(const CurveComponent &component, const eAttr
   }
 
   if (domain == ATTR_DOMAIN_CURVE) {
-    return component.attribute_try_adapt_domain<float3>(
+    return component.attributes()->adapt_domain<float3>(
         VArray<float3>::ForContainer(std::move(normals)), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
   }
 
@@ -264,7 +263,7 @@ static VArray<float> construct_curve_length_gvarray(const CurveComponent &compon
   }
 
   if (domain == ATTR_DOMAIN_POINT) {
-    return component.attribute_try_adapt_domain<float>(
+    return component.attributes()->adapt_domain<float>(
         std::move(lengths), ATTR_DOMAIN_CURVE, ATTR_DOMAIN_POINT);
   }
 
@@ -307,75 +306,29 @@ bool CurveLengthFieldInput::is_equal_to(const fn::FieldNode &other) const
 /** \name Attribute Access Helper Functions
  * \{ */
 
-int CurveComponent::attribute_domain_num(const eAttrDomain domain) const
+static void tag_component_topology_changed(void *owner)
 {
-  if (curves_ == nullptr) {
-    return 0;
-  }
-  const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
-      curves_->geometry);
-  if (domain == ATTR_DOMAIN_POINT) {
-    return curves.points_num();
-  }
-  if (domain == ATTR_DOMAIN_CURVE) {
-    return curves.curves_num();
-  }
-  return 0;
+  blender::bke::CurvesGeometry &curves = *static_cast<blender::bke::CurvesGeometry *>(owner);
+  curves.tag_topology_changed();
 }
 
-GVArray CurveComponent::attribute_try_adapt_domain_impl(const GVArray &varray,
-                                                        const eAttrDomain from_domain,
-                                                        const eAttrDomain to_domain) const
+static void tag_component_curve_types_changed(void *owner)
 {
-  return blender::bke::CurvesGeometry::wrap(curves_->geometry)
-      .adapt_domain(varray, from_domain, to_domain);
+  blender::bke::CurvesGeometry &curves = *static_cast<blender::bke::CurvesGeometry *>(owner);
+  curves.update_curve_types();
+  curves.tag_topology_changed();
 }
 
-static Curves *get_curves_from_component_for_write(GeometryComponent &component)
+static void tag_component_positions_changed(void *owner)
 {
-  BLI_assert(component.type() == GEO_COMPONENT_TYPE_CURVE);
-  CurveComponent &curve_component = static_cast<CurveComponent &>(component);
-  return curve_component.get_for_write();
+  blender::bke::CurvesGeometry &curves = *static_cast<blender::bke::CurvesGeometry *>(owner);
+  curves.tag_positions_changed();
 }
 
-static const Curves *get_curves_from_component_for_read(const GeometryComponent &component)
+static void tag_component_normals_changed(void *owner)
 {
-  BLI_assert(component.type() == GEO_COMPONENT_TYPE_CURVE);
-  const CurveComponent &curve_component = static_cast<const CurveComponent &>(component);
-  return curve_component.get_for_read();
-}
-
-static void tag_component_topology_changed(GeometryComponent &component)
-{
-  Curves *curves = get_curves_from_component_for_write(component);
-  if (curves) {
-    blender::bke::CurvesGeometry::wrap(curves->geometry).tag_topology_changed();
-  }
-}
-
-static void tag_component_curve_types_changed(GeometryComponent &component)
-{
-  Curves *curves = get_curves_from_component_for_write(component);
-  if (curves) {
-    blender::bke::CurvesGeometry::wrap(curves->geometry).update_curve_types();
-    blender::bke::CurvesGeometry::wrap(curves->geometry).tag_topology_changed();
-  }
-}
-
-static void tag_component_positions_changed(GeometryComponent &component)
-{
-  Curves *curves = get_curves_from_component_for_write(component);
-  if (curves) {
-    blender::bke::CurvesGeometry::wrap(curves->geometry).tag_positions_changed();
-  }
-}
-
-static void tag_component_normals_changed(GeometryComponent &component)
-{
-  Curves *curves = get_curves_from_component_for_write(component);
-  if (curves) {
-    blender::bke::CurvesGeometry::wrap(curves->geometry).tag_normals_changed();
-  }
+  blender::bke::CurvesGeometry &curves = *static_cast<blender::bke::CurvesGeometry *>(owner);
+  curves.tag_normals_changed();
 }
 
 /** \} */
@@ -393,34 +346,38 @@ namespace blender::bke {
 static ComponentAttributeProviders create_attribute_providers_for_curve()
 {
   static CustomDataAccessInfo curve_access = {
-      [](GeometryComponent &component) -> CustomData * {
-        Curves *curves = get_curves_from_component_for_write(component);
-        return curves ? &curves->geometry.curve_data : nullptr;
+      [](void *owner) -> CustomData * {
+        CurvesGeometry &curves = *static_cast<CurvesGeometry *>(owner);
+        return &curves.curve_data;
       },
-      [](const GeometryComponent &component) -> const CustomData * {
-        const Curves *curves = get_curves_from_component_for_read(component);
-        return curves ? &curves->geometry.curve_data : nullptr;
+      [](const void *owner) -> const CustomData * {
+        const CurvesGeometry &curves = *static_cast<const CurvesGeometry *>(owner);
+        return &curves.curve_data;
       },
-      [](GeometryComponent &component) {
-        Curves *curves = get_curves_from_component_for_write(component);
-        if (curves) {
-          blender::bke::CurvesGeometry::wrap(curves->geometry).update_customdata_pointers();
-        }
+      [](const void *owner) -> int {
+        const CurvesGeometry &curves = *static_cast<const CurvesGeometry *>(owner);
+        return curves.curves_num();
+      },
+      [](void *owner) {
+        CurvesGeometry &curves = *static_cast<CurvesGeometry *>(owner);
+        curves.update_customdata_pointers();
       }};
   static CustomDataAccessInfo point_access = {
-      [](GeometryComponent &component) -> CustomData * {
-        Curves *curves = get_curves_from_component_for_write(component);
-        return curves ? &curves->geometry.point_data : nullptr;
+      [](void *owner) -> CustomData * {
+        CurvesGeometry &curves = *static_cast<CurvesGeometry *>(owner);
+        return &curves.point_data;
       },
-      [](const GeometryComponent &component) -> const CustomData * {
-        const Curves *curves = get_curves_from_component_for_read(component);
-        return curves ? &curves->geometry.point_data : nullptr;
+      [](const void *owner) -> const CustomData * {
+        const CurvesGeometry &curves = *static_cast<const CurvesGeometry *>(owner);
+        return &curves.point_data;
       },
-      [](GeometryComponent &component) {
-        Curves *curves = get_curves_from_component_for_write(component);
-        if (curves) {
-          blender::bke::CurvesGeometry::wrap(curves->geometry).update_customdata_pointers();
-        }
+      [](const void *owner) -> int {
+        const CurvesGeometry &curves = *static_cast<const CurvesGeometry *>(owner);
+        return curves.points_num();
+      },
+      [](void *owner) {
+        CurvesGeometry &curves = *static_cast<CurvesGeometry *>(owner);
+        curves.update_customdata_pointers();
       }};
 
   static BuiltinCustomDataLayerProvider position("position",
@@ -626,11 +583,68 @@ static ComponentAttributeProviders create_attribute_providers_for_curve()
 
 /** \} */
 
+static AttributeAccessorFunctions get_curves_accessor_functions()
+{
+  static const ComponentAttributeProviders providers = create_attribute_providers_for_curve();
+  AttributeAccessorFunctions fn =
+      attribute_accessor_functions::accessor_functions_for_providers<providers>();
+  fn.domain_size = [](const void *owner, const eAttrDomain domain) {
+    if (owner == nullptr) {
+      return 0;
+    }
+    const CurvesGeometry &curves = *static_cast<const CurvesGeometry *>(owner);
+    switch (domain) {
+      case ATTR_DOMAIN_POINT:
+        return curves.points_num();
+      case ATTR_DOMAIN_CURVE:
+        return curves.curves_num();
+      default:
+        return 0;
+    }
+  };
+  fn.domain_supported = [](const void *UNUSED(owner), const eAttrDomain domain) {
+    return ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
+  };
+  fn.adapt_domain = [](const void *owner,
+                       const blender::GVArray &varray,
+                       const eAttrDomain from_domain,
+                       const eAttrDomain to_domain) -> GVArray {
+    if (owner == nullptr) {
+      return {};
+    }
+    const CurvesGeometry &curves = *static_cast<const CurvesGeometry *>(owner);
+    return curves.adapt_domain(varray, from_domain, to_domain);
+  };
+  return fn;
+}
+
+static const AttributeAccessorFunctions &get_curves_accessor_functions_ref()
+{
+  static const AttributeAccessorFunctions fn = get_curves_accessor_functions();
+  return fn;
+}
+
+AttributeAccessor CurvesGeometry::attributes() const
+{
+  return AttributeAccessor(this, get_curves_accessor_functions_ref());
+}
+
+MutableAttributeAccessor CurvesGeometry::attributes_for_write()
+{
+  return MutableAttributeAccessor(this, get_curves_accessor_functions_ref());
+}
+
 }  // namespace blender::bke
 
-const blender::bke::ComponentAttributeProviders *CurveComponent::get_attribute_providers() const
+std::optional<blender::bke::AttributeAccessor> CurveComponent::attributes() const
 {
-  static blender::bke::ComponentAttributeProviders providers =
-      blender::bke::create_attribute_providers_for_curve();
-  return &providers;
+  return blender::bke::AttributeAccessor(curves_ ? &curves_->geometry : nullptr,
+                                         blender::bke::get_curves_accessor_functions_ref());
+}
+
+std::optional<blender::bke::MutableAttributeAccessor> CurveComponent::attributes_for_write()
+{
+  Curves *curves = this->get_for_write();
+  return blender::bke::MutableAttributeAccessor(curves ? &curves->geometry : nullptr,
+                                                blender::bke::get_curves_accessor_functions_ref());
 }

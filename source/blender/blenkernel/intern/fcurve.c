@@ -1146,7 +1146,7 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
   MEM_SAFE_FREE(fcu->fpt);
 
   /* Not strictly needed since we use linear interpolation, but better be consistent here. */
-  calchandles_fcurve(fcu);
+  BKE_fcurve_handles_recalc(fcu);
 }
 
 /* ***************************** F-Curve Sanity ********************************* */
@@ -1216,7 +1216,7 @@ static BezTriple *cycle_offset_triple(
   return out;
 }
 
-void calchandles_fcurve_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
+void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
 {
   BezTriple *bezt, *prev, *next;
   int a = fcu->totvert;
@@ -1299,9 +1299,9 @@ void calchandles_fcurve_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
   }
 }
 
-void calchandles_fcurve(FCurve *fcu)
+void BKE_fcurve_handles_recalc(FCurve *fcu)
 {
-  calchandles_fcurve_ex(fcu, SELECT);
+  BKE_fcurve_handles_recalc_ex(fcu, SELECT);
 }
 
 void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_handle)
@@ -1320,7 +1320,7 @@ void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_ha
   }
 
   /* Recalculate handles. */
-  calchandles_fcurve_ex(fcu, sel_flag);
+  BKE_fcurve_handles_recalc_ex(fcu, sel_flag);
 }
 
 void sort_time_fcurve(FCurve *fcu)
@@ -1590,6 +1590,12 @@ static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
   }
 }
 
+static void fcurve_bezt_free(FCurve *fcu)
+{
+  MEM_SAFE_FREE(fcu->bezt);
+  fcu->totvert = 0;
+}
+
 bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
                                        struct BezTriple *prev,
                                        struct BezTriple *next,
@@ -1649,6 +1655,69 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
 
   *r_pdelta = diff_coords[1];
   return true;
+}
+
+void BKE_fcurve_delete_key(FCurve *fcu, int index)
+{
+  /* sanity check */
+  if (fcu == NULL) {
+    return;
+  }
+
+  /* verify the index:
+   * 1) cannot be greater than the number of available keyframes
+   * 2) negative indices are for specifying a value from the end of the array
+   */
+  if (abs(index) >= fcu->totvert) {
+    return;
+  }
+  if (index < 0) {
+    index += fcu->totvert;
+  }
+
+  /* Delete this keyframe */
+  memmove(
+      &fcu->bezt[index], &fcu->bezt[index + 1], sizeof(BezTriple) * (fcu->totvert - index - 1));
+  fcu->totvert--;
+
+  /* Free the array of BezTriples if there are not keyframes */
+  if (fcu->totvert == 0) {
+    fcurve_bezt_free(fcu);
+  }
+}
+
+bool BKE_fcurve_delete_keys_selected(FCurve *fcu)
+{
+  bool changed = false;
+
+  if (fcu->bezt == NULL) { /* ignore baked curves */
+    return false;
+  }
+
+  /* Delete selected BezTriples */
+  for (int i = 0; i < fcu->totvert; i++) {
+    if (fcu->bezt[i].f2 & SELECT) {
+      if (i == fcu->active_keyframe_index) {
+        BKE_fcurve_active_keyframe_set(fcu, NULL);
+      }
+      memmove(&fcu->bezt[i], &fcu->bezt[i + 1], sizeof(BezTriple) * (fcu->totvert - i - 1));
+      fcu->totvert--;
+      i--;
+      changed = true;
+    }
+  }
+
+  /* Free the array of BezTriples if there are not keyframes */
+  if (fcu->totvert == 0) {
+    fcurve_bezt_free(fcu);
+  }
+
+  return changed;
+}
+
+void BKE_fcurve_delete_keys_all(FCurve *fcu)
+{
+  fcurve_bezt_free(fcu);
 }
 
 /** \} */

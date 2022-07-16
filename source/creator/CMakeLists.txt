@@ -511,7 +511,7 @@ if(UNIX AND NOT APPLE)
     endif()
 
     if(EXISTS ${LIBDIR}/mesa)
-      install(DIRECTORY ${LIBDIR}/mesa/lib DESTINATION ".")
+      install(DIRECTORY ${LIBDIR}/mesa/lib/ DESTINATION "lib/mesa/")
 
       install(
         PROGRAMS

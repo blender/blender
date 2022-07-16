@@ -741,8 +741,15 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
         if (object_active != NULL) {
           object_active->id.tag |= LIB_TAG_DOIT;
         }
-        BKE_lib_override_library_create(
-            bmain, scene, view_layer, NULL, id, &collection_active->id, NULL, &id_override, false);
+        BKE_lib_override_library_create(bmain,
+                                        scene,
+                                        view_layer,
+                                        NULL,
+                                        id,
+                                        &collection_active->id,
+                                        NULL,
+                                        &id_override,
+                                        U.experimental.use_override_new_fully_editable);
       }
       else if (object_active != NULL && !ID_IS_LINKED(object_active) &&
                &object_active->instance_collection->id == id) {
@@ -755,7 +762,7 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
                                         &object_active->id,
                                         &object_active->id,
                                         &id_override,
-                                        false);
+                                        U.experimental.use_override_new_fully_editable);
       }
       break;
     case ID_OB:
@@ -765,8 +772,15 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
         if (object_active != NULL) {
           object_active->id.tag |= LIB_TAG_DOIT;
         }
-        BKE_lib_override_library_create(
-            bmain, scene, view_layer, NULL, id, &collection_active->id, NULL, &id_override, false);
+        BKE_lib_override_library_create(bmain,
+                                        scene,
+                                        view_layer,
+                                        NULL,
+                                        id,
+                                        &collection_active->id,
+                                        NULL,
+                                        &id_override,
+                                        U.experimental.use_override_new_fully_editable);
       }
       break;
     case ID_ME:
@@ -796,12 +810,19 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
                                           &collection_active->id,
                                           NULL,
                                           &id_override,
-                                          false);
+                                          U.experimental.use_override_new_fully_editable);
         }
         else {
           object_active->id.tag |= LIB_TAG_DOIT;
-          BKE_lib_override_library_create(
-              bmain, scene, view_layer, NULL, id, &object_active->id, NULL, &id_override, false);
+          BKE_lib_override_library_create(bmain,
+                                          scene,
+                                          view_layer,
+                                          NULL,
+                                          id,
+                                          &object_active->id,
+                                          NULL,
+                                          &id_override,
+                                          U.experimental.use_override_new_fully_editable);
         }
       }
       break;
@@ -1024,6 +1045,26 @@ static const char *template_id_browse_tip(const StructRNA *type)
 }
 
 /**
+ * Add a superimposed extra icon to \a but, for workspace pinning.
+ * Rather ugly special handling, but this is really a special case at this point, nothing worth
+ * generalizing.
+ */
+static void template_id_workspace_pin_extra_icon(const TemplateID *template_ui, uiBut *but)
+{
+  if ((template_ui->idcode != ID_SCE) || (template_ui->ptr.type != &RNA_Window)) {
+    return;
+  }
+
+  const wmWindow *win = template_ui->ptr.data;
+  const WorkSpace *workspace = WM_window_get_active_workspace(win);
+  UI_but_extra_operator_icon_add(but,
+                                 "WORKSPACE_OT_scene_pin_toggle",
+                                 WM_OP_INVOKE_DEFAULT,
+                                 (workspace->flags & WORKSPACE_USE_PIN_SCENE) ? ICON_PINNED :
+                                                                                ICON_UNPINNED);
+}
+
+/**
  * \return a type-based i18n context, needed e.g. by "New" button.
  * In most languages, this adjective takes different form based on gender of type name...
  */
@@ -1219,6 +1260,8 @@ static void template_ID(const bContext *C,
     if (user_alert) {
       UI_but_flag_enable(but, UI_BUT_REDALERT);
     }
+
+    template_id_workspace_pin_extra_icon(template_ui, but);
 
     if (ID_IS_LINKED(id)) {
       const bool disabled = !BKE_idtype_idcode_is_localizable(GS(id->name));

@@ -26,6 +26,7 @@
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_legacy_convert.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
@@ -1223,7 +1224,7 @@ static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Explode = {
-    /* name */ "Explode",
+    /* name */ N_("Explode"),
     /* structName */ "ExplodeModifierData",
     /* structSize */ sizeof(ExplodeModifierData),
     /* srna */ &RNA_ExplodeModifier,

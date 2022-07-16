@@ -3396,7 +3396,8 @@ static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), const wm
     return OPERATOR_PASS_THROUGH;
   }
 
-  if (!(event->ascii >= '0' && event->ascii <= '9')) {
+  const char event_ascii = WM_event_utf8_to_ascii(event);
+  if (!(event_ascii >= '0' && event_ascii <= '9')) {
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -3406,7 +3407,7 @@ static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), const wm
   }
 
   jump_to *= 10;
-  jump_to += (int)(event->ascii - '0');
+  jump_to += (int)(event_ascii - '0');
 
   txt_move_toline(text, jump_to - 1, 0);
   last_jump = time;
@@ -3495,16 +3496,8 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
 
     char str[BLI_UTF8_MAX + 1];
-    size_t len;
-
-    if (event->utf8_buf[0]) {
-      len = BLI_str_utf8_size_safe(event->utf8_buf);
-      memcpy(str, event->utf8_buf, len);
-    }
-    else {
-      /* in theory, ghost can set value to extended ascii here */
-      len = BLI_str_utf8_from_unicode(event->ascii, str, sizeof(str) - 1);
-    }
+    const size_t len = BLI_str_utf8_size_safe(event->utf8_buf);
+    memcpy(str, event->utf8_buf, len);
     str[len] = '\0';
     RNA_string_set(op->ptr, "text", str);
 

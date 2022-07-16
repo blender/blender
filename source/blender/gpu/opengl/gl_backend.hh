@@ -42,9 +42,13 @@ class GLBackend : public GPUBackend {
   }
   ~GLBackend()
   {
-    GLTexture::samplers_free();
-
     GLBackend::platform_exit();
+  }
+
+  void delete_resources() override
+  {
+    /* Delete any resources with context active. */
+    GLTexture::samplers_free();
   }
 
   static GLBackend *get()

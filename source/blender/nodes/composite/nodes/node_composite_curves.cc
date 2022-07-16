@@ -5,6 +5,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BKE_colortools.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 

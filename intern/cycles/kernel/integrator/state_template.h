@@ -37,11 +37,10 @@ KERNEL_STRUCT_MEMBER(path, uint32_t, flag, KERNEL_FEATURE_PATH_TRACING)
 /* enum PathRayMNEE */
 KERNEL_STRUCT_MEMBER(path, uint8_t, mnee, KERNEL_FEATURE_PATH_TRACING)
 /* Multiple importance sampling
- * The PDF of BSDF sampling at the last scatter point, and distance to the
- * last scatter point minus the last ray segment. This distance lets us
- * compute the complete distance through transparent surfaces and volumes. */
+ * The PDF of BSDF sampling at the last scatter point, which is at ray distance
+ * zero and distance. Note that transparency and volume attenuation increase
+ * the ray tmin but keep P unmodified so that this works. */
 KERNEL_STRUCT_MEMBER(path, float, mis_ray_pdf, KERNEL_FEATURE_PATH_TRACING)
-KERNEL_STRUCT_MEMBER(path, float, mis_ray_t, KERNEL_FEATURE_PATH_TRACING)
 /* Filter glossy. */
 KERNEL_STRUCT_MEMBER(path, float, min_ray_pdf, KERNEL_FEATURE_PATH_TRACING)
 /* Continuation probability for path termination. */
@@ -63,7 +62,8 @@ KERNEL_STRUCT_END(path)
 KERNEL_STRUCT_BEGIN(ray)
 KERNEL_STRUCT_MEMBER(ray, packed_float3, P, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(ray, packed_float3, D, KERNEL_FEATURE_PATH_TRACING)
-KERNEL_STRUCT_MEMBER(ray, float, t, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(ray, float, tmin, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(ray, float, tmax, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(ray, float, time, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(ray, float, dP, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(ray, float, dD, KERNEL_FEATURE_PATH_TRACING)

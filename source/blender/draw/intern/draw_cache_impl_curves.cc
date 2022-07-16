@@ -75,12 +75,13 @@ static void curves_batch_cache_init(Curves &curves)
 
   if (!cache) {
     cache = MEM_cnew<CurvesBatchCache>(__func__);
-    BLI_mutex_init(&cache->render_mutex);
     curves.batch_cache = cache;
   }
   else {
     memset(cache, 0, sizeof(*cache));
   }
+
+  BLI_mutex_init(&cache->render_mutex);
 
   cache->is_dirty = false;
 }
@@ -357,20 +358,20 @@ static void curves_batch_ensure_attribute(const Curves &curves,
                          request.domain == ATTR_DOMAIN_POINT ? curves.geometry.point_num :
                                                                curves.geometry.curve_num);
 
-  CurveComponent component;
-  component.replace(const_cast<Curves *>(&curves), GeometryOwnershipType::ReadOnly);
+  const blender::bke::AttributeAccessor attributes =
+      blender::bke::CurvesGeometry::wrap(curves.geometry).attributes();
 
   /* TODO(@kevindietrich): float4 is used for scalar attributes as the implicit conversion done
    * by OpenGL to vec4 for a scalar `s` will produce a `vec4(s, 0, 0, 1)`. However, following
    * the Blender convention, it should be `vec4(s, s, s, 1)`. This could be resolved using a
    * similar texture state swizzle to map the attribute correctly as for volume attributes, so we
    * can control the conversion ourselves. */
-  blender::VArray<ColorGeometry4f> attribute = component.attribute_get_for_read<ColorGeometry4f>(
+  blender::VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
       request.attribute_name, request.domain, {0.0f, 0.0f, 0.0f, 1.0f});
 
   MutableSpan<ColorGeometry4f> vbo_span{
       static_cast<ColorGeometry4f *>(GPU_vertbuf_get_data(attr_vbo)),
-      component.attribute_domain_num(request.domain)};
+      attributes.domain_size(request.domain)};
 
   attribute.materialize(vbo_span);
 
@@ -512,40 +513,41 @@ static bool curves_ensure_attributes(const Curves &curves,
   ThreadMutex *render_mutex = &cache.render_mutex;
   const CustomData *cd_curve = &curves.geometry.curve_data;
   const CustomData *cd_point = &curves.geometry.point_data;
-
-  DRW_Attributes attrs_needed;
-  drw_attributes_clear(&attrs_needed);
-  ListBase gpu_attrs = GPU_material_attributes(gpu_material);
-  LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
-    const char *name = gpu_attr->name;
-
-    int layer_index;
-    eCustomDataType type;
-    eAttrDomain domain;
-    if (drw_custom_data_match_attribute(cd_curve, name, &layer_index, &type)) {
-      domain = ATTR_DOMAIN_CURVE;
-    }
-    else if (drw_custom_data_match_attribute(cd_point, name, &layer_index, &type)) {
-      domain = ATTR_DOMAIN_POINT;
-    }
-    else {
-      continue;
-    }
-
-    drw_attributes_add_request(&attrs_needed, name, type, layer_index, domain);
-  }
-
   CurvesEvalFinalCache &final_cache = cache.curves_cache.final[subdiv];
 
-  if (!drw_attributes_overlap(&final_cache.attr_used, &attrs_needed)) {
-    /* Some new attributes have been added, free all and start over. */
-    for (const int i : IndexRange(GPU_MAX_ATTR)) {
-      GPU_VERTBUF_DISCARD_SAFE(cache.curves_cache.proc_attributes_buf[i]);
-      DRW_TEXTURE_FREE_SAFE(cache.curves_cache.proc_attributes_tex[i]);
+  if (gpu_material) {
+    DRW_Attributes attrs_needed;
+    drw_attributes_clear(&attrs_needed);
+    ListBase gpu_attrs = GPU_material_attributes(gpu_material);
+    LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
+      const char *name = gpu_attr->name;
+
+      int layer_index;
+      eCustomDataType type;
+      eAttrDomain domain;
+      if (drw_custom_data_match_attribute(cd_curve, name, &layer_index, &type)) {
+        domain = ATTR_DOMAIN_CURVE;
+      }
+      else if (drw_custom_data_match_attribute(cd_point, name, &layer_index, &type)) {
+        domain = ATTR_DOMAIN_POINT;
+      }
+      else {
+        continue;
+      }
+
+      drw_attributes_add_request(&attrs_needed, name, type, layer_index, domain);
     }
-    drw_attributes_merge(&final_cache.attr_used, &attrs_needed, render_mutex);
+
+    if (!drw_attributes_overlap(&final_cache.attr_used, &attrs_needed)) {
+      /* Some new attributes have been added, free all and start over. */
+      for (const int i : IndexRange(GPU_MAX_ATTR)) {
+        GPU_VERTBUF_DISCARD_SAFE(cache.curves_cache.proc_attributes_buf[i]);
+        DRW_TEXTURE_FREE_SAFE(cache.curves_cache.proc_attributes_tex[i]);
+      }
+      drw_attributes_merge(&final_cache.attr_used, &attrs_needed, render_mutex);
+    }
+    drw_attributes_merge(&final_cache.attr_used_over_time, &attrs_needed, render_mutex);
   }
-  drw_attributes_merge(&final_cache.attr_used_over_time, &attrs_needed, render_mutex);
 
   bool need_tf_update = false;
 
@@ -602,9 +604,7 @@ bool curves_ensure_procedural_data(Curves *curves,
         *curves, cache.curves_cache, thickness_res, subdiv);
   }
 
-  if (gpu_material) {
-    need_ft_update |= curves_ensure_attributes(*curves, cache, gpu_material, subdiv);
-  }
+  need_ft_update |= curves_ensure_attributes(*curves, cache, gpu_material, subdiv);
 
   return need_ft_update;
 }
@@ -618,6 +618,70 @@ GPUBatch *DRW_curves_batch_cache_get_edit_points(Curves *curves)
 {
   CurvesBatchCache &cache = curves_batch_cache_get(*curves);
   return DRW_batch_request(&cache.edit_points);
+}
+
+static void request_attribute(Curves &curves, const char *name)
+{
+  CurvesBatchCache &cache = curves_batch_cache_get(curves);
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const Scene *scene = draw_ctx->scene;
+  const int subdiv = scene->r.hair_subdiv;
+  CurvesEvalFinalCache &final_cache = cache.curves_cache.final[subdiv];
+
+  DRW_Attributes attributes{};
+
+  blender::bke::CurvesGeometry &curves_geometry = blender::bke::CurvesGeometry::wrap(
+      curves.geometry);
+  std::optional<blender::bke::AttributeMetaData> meta_data =
+      curves_geometry.attributes().lookup_meta_data(name);
+  if (!meta_data) {
+    return;
+  }
+  const eAttrDomain domain = meta_data->domain;
+  const eCustomDataType type = meta_data->data_type;
+  const CustomData &custom_data = domain == ATTR_DOMAIN_POINT ? curves.geometry.point_data :
+                                                                curves.geometry.curve_data;
+
+  drw_attributes_add_request(
+      &attributes, name, type, CustomData_get_named_layer(&custom_data, type, name), domain);
+
+  drw_attributes_merge(&final_cache.attr_used, &attributes, &cache.render_mutex);
+}
+
+GPUTexture **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
+                                                        const char *name,
+                                                        bool *r_is_point_domain)
+{
+  CurvesBatchCache &cache = curves_batch_cache_get(*curves);
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const Scene *scene = draw_ctx->scene;
+  const int subdiv = scene->r.hair_subdiv;
+  CurvesEvalFinalCache &final_cache = cache.curves_cache.final[subdiv];
+
+  request_attribute(*curves, name);
+
+  int request_i = -1;
+  for (const int i : IndexRange(final_cache.attr_used.num_requests)) {
+    if (STREQ(final_cache.attr_used.requests[i].attribute_name, name)) {
+      request_i = i;
+      break;
+    }
+  }
+  if (request_i == -1) {
+    *r_is_point_domain = false;
+    return nullptr;
+  }
+  switch (final_cache.attr_used.requests[request_i].domain) {
+    case ATTR_DOMAIN_POINT:
+      *r_is_point_domain = true;
+      return &final_cache.attributes_tex[request_i];
+    case ATTR_DOMAIN_CURVE:
+      *r_is_point_domain = false;
+      return &cache.curves_cache.proc_attributes_tex[request_i];
+    default:
+      BLI_assert_unreachable();
+      return nullptr;
+  }
 }
 
 void DRW_curves_batch_cache_create_requested(Object *ob)

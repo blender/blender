@@ -76,6 +76,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *motion_path_line;
   GPUShader *motion_path_vert;
   GPUShader *outline_prepass;
+  GPUShader *outline_prepass_curves;
   GPUShader *outline_prepass_gpencil;
   GPUShader *outline_prepass_pointcloud;
   GPUShader *outline_prepass_wire;
@@ -90,6 +91,7 @@ typedef struct OVERLAY_Shaders {
   GPUShader *particle_shape;
   GPUShader *pointcloud_dot;
   GPUShader *sculpt_mask;
+  GPUShader *sculpt_curves_selection;
   GPUShader *uniform_color;
   GPUShader *volume_velocity_needle_sh;
   GPUShader *volume_velocity_mac_sh;
@@ -650,6 +652,18 @@ GPUShader *OVERLAY_shader_outline_prepass(bool use_wire)
   return use_wire ? sh_data->outline_prepass_wire : sh_data->outline_prepass;
 }
 
+GPUShader *OVERLAY_shader_outline_prepass_curves()
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->outline_prepass_curves) {
+    sh_data->outline_prepass_curves = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg ? "overlay_outline_prepass_curves_clipped" :
+                           "overlay_outline_prepass_curves");
+  }
+  return sh_data->outline_prepass_curves;
+}
+
 GPUShader *OVERLAY_shader_outline_prepass_gpencil(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -790,6 +804,18 @@ GPUShader *OVERLAY_shader_sculpt_mask(void)
         draw_ctx->sh_cfg ? "overlay_sculpt_mask_clipped" : "overlay_sculpt_mask");
   }
   return sh_data->sculpt_mask;
+}
+
+GPUShader *OVERLAY_shader_sculpt_curves_selection(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->sculpt_curves_selection) {
+    sh_data->sculpt_curves_selection = GPU_shader_create_from_info_name(
+        draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED ? "overlay_sculpt_curves_selection_clipped" :
+                                                     "overlay_sculpt_curves_selection");
+  }
+  return sh_data->sculpt_curves_selection;
 }
 
 struct GPUShader *OVERLAY_shader_uniform_color(void)

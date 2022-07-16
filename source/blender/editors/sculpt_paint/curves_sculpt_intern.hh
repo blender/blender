@@ -26,6 +26,7 @@ struct BVHTreeFromMesh;
 namespace blender::ed::sculpt_paint {
 
 using bke::CurvesGeometry;
+using bke::CurvesSurfaceTransforms;
 
 struct StrokeExtension {
   bool is_first;
@@ -111,29 +112,16 @@ class CurvesSculptCommonContext {
   const Scene *scene = nullptr;
   ARegion *region = nullptr;
   const View3D *v3d = nullptr;
-  const RegionView3D *rv3d = nullptr;
+  RegionView3D *rv3d = nullptr;
 
   CurvesSculptCommonContext(const bContext &C);
-};
-
-struct CurvesSculptTransforms {
-  float4x4 curves_to_world;
-  float4x4 curves_to_surface;
-  float4x4 world_to_curves;
-  float4x4 world_to_surface;
-  float4x4 surface_to_world;
-  float4x4 surface_to_curves;
-  float4x4 surface_to_curves_normal;
-
-  CurvesSculptTransforms() = default;
-  CurvesSculptTransforms(const Object &curves_ob, const Object *surface_ob);
 };
 
 std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
     const Depsgraph &depsgraph,
     const ARegion &region,
     const View3D &v3d,
-    const CurvesSculptTransforms &transforms,
+    const CurvesSurfaceTransforms &transforms,
     const BVHTreeFromMesh &surface_bvh,
     const float2 &brush_pos_re,
     const float brush_radius_re);

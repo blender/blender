@@ -148,7 +148,8 @@ typedef struct PChart {
     } lscm;
     struct PChartPack {
       float rescale, area;
-      float size[2] /* , trans[2] */;
+      float size[2];
+      float origin[2];
     } pack;
   } u;
 
@@ -4243,7 +4244,10 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
   }
 }
 
-void GEO_uv_parametrizer_average(ParamHandle *phandle, bool ignore_pinned)
+void GEO_uv_parametrizer_average(ParamHandle *phandle,
+                                 bool ignore_pinned,
+                                 bool scale_uv,
+                                 bool shear)
 {
   PChart *chart;
   int i;
@@ -4256,17 +4260,93 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle, bool ignore_pinned)
   }
 
   for (i = 0; i < phandle->ncharts; i++) {
-    PFace *f;
     chart = phandle->charts[i];
 
     if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
       continue;
     }
 
+    p_chart_uv_bbox(chart, minv, maxv);
+    mid_v2_v2v2(chart->u.pack.origin, minv, maxv);
+
+    if (scale_uv || shear) {
+      /* It's possible that for some "bad" inputs, the following iteration will converge slowly or
+       * perhaps even diverge. Rather than infinite loop, we only iterate a maximum of `max_iter`
+       * times. (Also useful when making changes to the calculation.) */
+      int max_iter = 10;
+      for (int j = 0; j < max_iter; j++) {
+        /* An island could contain millions of polygons. When summing many small values, we need to
+         * use double precision in the accumulator to maintain accuracy. Note that the individual
+         * calculations only need to be at single precision.*/
+        double scale_cou = 0;
+        double scale_cov = 0;
+        double scale_cross = 0;
+        double weight_sum = 0;
+        for (PFace *f = chart->faces; f; f = f->nextlink) {
+          float m[2][2], s[2][2];
+          PVert *va = f->edge->vert;
+          PVert *vb = f->edge->next->vert;
+          PVert *vc = f->edge->next->next->vert;
+          s[0][0] = va->uv[0] - vc->uv[0];
+          s[0][1] = va->uv[1] - vc->uv[1];
+          s[1][0] = vb->uv[0] - vc->uv[0];
+          s[1][1] = vb->uv[1] - vc->uv[1];
+          /* Find the "U" axis and "V" axis in triangle co-ordinates. Normally this would require
+           * SVD, but in 2D we can use a cheaper matrix inversion instead.*/
+          if (!invert_m2_m2(m, s)) {
+            continue;
+          }
+          float cou[3], cov[3]; /* i.e. Texture "U" and texture "V" in 3D co-ordinates.*/
+          for (int k = 0; k < 3; k++) {
+            cou[k] = m[0][0] * (va->co[k] - vc->co[k]) + m[0][1] * (vb->co[k] - vc->co[k]);
+            cov[k] = m[1][0] * (va->co[k] - vc->co[k]) + m[1][1] * (vb->co[k] - vc->co[k]);
+          }
+          const float weight = p_face_area(f);
+          scale_cou += len_v3(cou) * weight;
+          scale_cov += len_v3(cov) * weight;
+          if (shear) {
+            normalize_v3(cov);
+            normalize_v3(cou);
+
+            /* Why is scale_cross called `cross` when we call `dot`? The next line calculates:
+             * `scale_cross += length(cross(cross(cou, face_normal), cov))`
+             * By construction, both `cou` and `cov` are orthogonal to the face normal.
+             * By definition, the normal vector has unit length. */
+            scale_cross += dot_v3v3(cou, cov) * weight;
+          }
+          weight_sum += weight;
+        }
+        if (scale_cou * scale_cov < 1e-10f) {
+          break;
+        }
+        const float scale_factor_u = scale_uv ? sqrtf(scale_cou / scale_cov) : 1.0f;
+
+        /* Compute correction transform. */
+        float t[2][2];
+        t[0][0] = scale_factor_u;
+        t[1][0] = clamp_f((float)(scale_cross / weight_sum), -0.5f, 0.5f);
+        t[0][1] = 0;
+        t[1][1] = 1.0f / scale_factor_u;
+
+        /* Apply the correction. */
+        p_chart_uv_transform(chart, t);
+
+        /* How far from the identity transform are we? [[1,0],[0,1]] */
+        const float err = fabsf(t[0][0] - 1.0f) + fabsf(t[1][0]) + fabsf(t[0][1]) +
+                          fabsf(t[1][1] - 1.0f);
+
+        const float tolerance = 1e-6f; /* Trade accuracy for performance. */
+        if (err < tolerance) {
+          /* Too slow? Use Richardson Extrapolation to accelerate the convergence.*/
+          break;
+        }
+      }
+    }
+
     chart->u.pack.area = 0.0f;    /* 3d area */
     chart->u.pack.rescale = 0.0f; /* UV area, abusing rescale for tmp storage, oh well :/ */
 
-    for (f = chart->faces; f; f = f->nextlink) {
+    for (PFace *f = chart->faces; f; f = f->nextlink) {
       chart->u.pack.area += p_face_area(f);
       chart->u.pack.rescale += fabsf(p_face_uv_area_signed(f));
     }
@@ -4292,18 +4372,16 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle, bool ignore_pinned)
     if (chart->u.pack.area != 0.0f && chart->u.pack.rescale != 0.0f) {
       fac = chart->u.pack.area / chart->u.pack.rescale;
 
-      /* Get the island center */
-      p_chart_uv_bbox(chart, minv, maxv);
-      trans[0] = (minv[0] + maxv[0]) / -2.0f;
-      trans[1] = (minv[1] + maxv[1]) / -2.0f;
-
-      /* Move center to 0,0 */
-      p_chart_uv_translate(chart, trans);
+      /* Average scale. */
       p_chart_uv_scale(chart, sqrtf(fac / tot_fac));
 
-      /* Move to original center */
-      trans[0] = -trans[0];
-      trans[1] = -trans[1];
+      /* Get the current island center. */
+      p_chart_uv_bbox(chart, minv, maxv);
+
+      /* Move to original center. */
+      mid_v2_v2v2(trans, minv, maxv);
+      negate_v2(trans);
+      add_v2_v2(trans, chart->u.pack.origin);
       p_chart_uv_translate(chart, trans);
     }
   }

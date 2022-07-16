@@ -365,7 +365,7 @@ static bool component_is_available(const GeometrySet &geometry,
   if (component.is_empty()) {
     return false;
   }
-  return component.attribute_domain_num(domain) != 0;
+  return component.attribute_domain_size(domain) != 0;
 }
 
 /**
@@ -433,7 +433,7 @@ class NearestInterpolatedTransferFunction : public fn::MultiFunction {
   {
     const MeshComponent &mesh_component = *source_.get_component_for_read<MeshComponent>();
     source_context_.emplace(GeometryComponentFieldContext{mesh_component, domain_});
-    const int domain_num = mesh_component.attribute_domain_num(domain_);
+    const int domain_num = mesh_component.attribute_domain_size(domain_);
     source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, domain_num);
     source_evaluator_->add(src_field_);
     source_evaluator_->evaluate();
@@ -578,7 +578,7 @@ class NearestTransferFunction : public fn::MultiFunction {
   {
     if (use_mesh_) {
       const MeshComponent &mesh = *source_.get_component_for_read<MeshComponent>();
-      const int domain_num = mesh.attribute_domain_num(domain_);
+      const int domain_num = mesh.attribute_domain_size(domain_);
       mesh_context_.emplace(GeometryComponentFieldContext(mesh, domain_));
       mesh_evaluator_ = std::make_unique<FieldEvaluator>(*mesh_context_, domain_num);
       mesh_evaluator_->add(src_field_);
@@ -588,7 +588,7 @@ class NearestTransferFunction : public fn::MultiFunction {
 
     if (use_points_) {
       const PointCloudComponent &points = *source_.get_component_for_read<PointCloudComponent>();
-      const int domain_num = points.attribute_domain_num(domain_);
+      const int domain_num = points.attribute_domain_size(domain_);
       point_context_.emplace(GeometryComponentFieldContext(points, domain_));
       point_evaluator_ = std::make_unique<FieldEvaluator>(*point_context_, domain_num);
       point_evaluator_->add(src_field_);
@@ -658,7 +658,7 @@ class IndexTransferFunction : public fn::MultiFunction {
     if (component == nullptr) {
       return;
     }
-    const int domain_num = component->attribute_domain_num(domain_);
+    const int domain_num = component->attribute_domain_size(domain_);
     geometry_context_.emplace(GeometryComponentFieldContext(*component, domain_));
     evaluator_ = std::make_unique<FieldEvaluator>(*geometry_context_, domain_num);
     evaluator_->add(src_field_);

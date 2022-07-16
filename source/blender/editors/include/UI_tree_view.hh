@@ -19,6 +19,7 @@
 #include "BLI_function_ref.hh"
 #include "BLI_vector.hh"
 
+#include "UI_abstract_view.hh"
 #include "UI_resources.h"
 
 struct bContext;
@@ -112,45 +113,20 @@ using TreeViewOrItem = TreeViewItemContainer;
 /** \name Tree-View Base Class
  * \{ */
 
-class AbstractTreeView : public TreeViewItemContainer {
+class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   friend class AbstractTreeViewItem;
   friend class TreeViewBuilder;
-
-  /**
-   * Only one item can be renamed at a time. So the tree is informed about the renaming state to
-   * enforce that.
-   */
-  std::unique_ptr<std::array<char, MAX_NAME>> rename_buffer_;
-
-  bool is_reconstructed_ = false;
 
  public:
   virtual ~AbstractTreeView() = default;
 
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
 
-  /** Listen to a notifier, returning true if a redraw is needed. */
-  virtual bool listen(const wmNotifier &) const;
-
-  /** Only one item can be renamed at a time. */
-  bool is_renaming() const;
-
  protected:
   virtual void build_tree() = 0;
 
-  /**
-   * Check if the tree is fully (re-)constructed. That means, both #build_tree() and
-   * #update_from_old() have finished.
-   */
-  bool is_reconstructed() const;
-
  private:
-  /**
-   * Match the tree-view against an earlier version of itself (if any) and copy the old UI state
-   * (e.g. collapsed, active, selected, renaming, etc.) to the new one. See
-   * #AbstractTreeViewItem.update_from_old().
-   */
-  void update_from_old(uiBlock &new_block);
+  void update_children_from_old(const AbstractView &old_view) override;
   static void update_children_from_old_recursive(const TreeViewOrItem &new_items,
                                                  const TreeViewOrItem &old_items);
   static AbstractTreeViewItem *find_matching_child(const AbstractTreeViewItem &lookup_item,

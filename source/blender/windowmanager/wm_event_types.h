@@ -358,12 +358,6 @@ enum {
 /** Test whether the event is timer event. */
 #define ISTIMER(event_type) ((event_type) >= TIMER && (event_type) <= TIMERF)
 
-/* for event checks */
-/* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
-/* Unused, see #wm_eventmatch, see: T30479. */
-// #define ISTEXTINPUT(event_type)  ((event_type) >= ' ' && (event_type) <= 255)
-/* NOTE: an alternative could be to check `event->utf8_buf`. */
-
 /** Test whether the event is a key on the keyboard (including modifier keys). */
 #define ISKEYBOARD(event_type) \
   (((event_type) >= _EVT_KEYBOARD_MIN && (event_type) <= _EVT_KEYBOARD_MAX) || \

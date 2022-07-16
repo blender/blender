@@ -16,7 +16,7 @@ using namespace blender::gpu;
 
 namespace blender::gpu {
 
-/* Global memory mamnager */
+/* Global memory manager. */
 MTLBufferPool MTLContext::global_memory_manager;
 
 /* -------------------------------------------------------------------- */
@@ -51,7 +51,7 @@ MTLContext::MTLContext(void *ghost_window) : memory_manager(*this), main_command
   this->memory_manager.init();
   this->state_manager = new MTLStateManager(this);
 
-  /* Ensure global memory manager is initialied */
+  /* Ensure global memory manager is initialized. */
   MTLContext::global_memory_manager.init(this->device);
 
   /* Initialize texture read/update structures. */

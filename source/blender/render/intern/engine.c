@@ -46,6 +46,8 @@
 
 #include "DRW_engine.h"
 
+#include "GPU_context.h"
+
 #include "pipeline.h"
 #include "render_result.h"
 #include "render_types.h"
@@ -948,6 +950,16 @@ bool RE_engine_render(Render *re, bool do_all)
   /* Lock drawing in UI during data phase. */
   if (re->draw_lock) {
     re->draw_lock(re->dlh, true);
+  }
+
+  if ((type->flag & RE_USE_GPU_CONTEXT) && !GPU_backend_supported()) {
+    /* Clear UI drawing locks. */
+    if (re->draw_lock) {
+      re->draw_lock(re->dlh, false);
+    }
+    BKE_report(re->reports, RPT_ERROR, "Can not initialize the GPU");
+    G.is_break = true;
+    return true;
   }
 
   /* update animation here so any render layer animation is applied before

@@ -1130,6 +1130,9 @@ template<typename T> class VArraySpan final : public Span<T> {
 
   VArraySpan(VArray<T> varray) : Span<T>(), varray_(std::move(varray))
   {
+    if (!varray_) {
+      return;
+    }
     this->size_ = varray_.size();
     const CommonVArrayInfo info = varray_.common_info();
     if (info.type == CommonVArrayInfo::Type::Span) {
@@ -1146,6 +1149,9 @@ template<typename T> class VArraySpan final : public Span<T> {
   VArraySpan(VArraySpan &&other)
       : varray_(std::move(other.varray_)), owned_data_(std::move(other.owned_data_))
   {
+    if (!varray_) {
+      return;
+    }
     this->size_ = varray_.size();
     const CommonVArrayInfo info = varray_.common_info();
     if (info.type == CommonVArrayInfo::Type::Span) {
@@ -1184,11 +1190,17 @@ template<typename T> class MutableVArraySpan final : public MutableSpan<T> {
   bool show_not_saved_warning_ = true;
 
  public:
+  MutableVArraySpan() = default;
+
   /* Create a span for any virtual array. This is cheap when the virtual array is a span itself. If
    * not, a new array has to be allocated as a wrapper for the underlying virtual array. */
   MutableVArraySpan(VMutableArray<T> varray, const bool copy_values_to_span = true)
       : MutableSpan<T>(), varray_(std::move(varray))
   {
+    if (!varray_) {
+      return;
+    }
+
     this->size_ = varray_.size();
     const CommonVArrayInfo info = varray_.common_info();
     if (info.type == CommonVArrayInfo::Type::Span) {
@@ -1209,13 +1221,17 @@ template<typename T> class MutableVArraySpan final : public MutableSpan<T> {
 
   MutableVArraySpan(MutableVArraySpan &&other)
       : varray_(std::move(other.varray_)),
-        owned_data_(std::move(owned_data_)),
+        owned_data_(std::move(other.owned_data_)),
         show_not_saved_warning_(other.show_not_saved_warning_)
   {
+    if (!varray_) {
+      return;
+    }
+
     this->size_ = varray_.size();
     const CommonVArrayInfo info = varray_.common_info();
     if (info.type == CommonVArrayInfo::Type::Span) {
-      this->data_ = reinterpret_cast<T *>(info.data);
+      this->data_ = static_cast<T *>(const_cast<void *>(info.data));
     }
     else {
       this->data_ = owned_data_.data();
@@ -1243,6 +1259,11 @@ template<typename T> class MutableVArraySpan final : public MutableSpan<T> {
     std::destroy_at(this);
     new (this) MutableVArraySpan(std::move(other));
     return *this;
+  }
+
+  const VMutableArray<T> &varray() const
+  {
+    return varray_;
   }
 
   /* Write back all values from a temporary allocated array to the underlying virtual array. */

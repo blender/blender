@@ -512,6 +512,9 @@ void BPY_python_end(void)
   /* finalizing, no need to grab the state, except when we are a module */
   gilstate = PyGILState_Ensure();
 
+  /* Frees the python-driver name-space & cached data. */
+  BPY_driver_exit();
+
   /* Clear Python values in the context so freeing the context after Python exits doesn't crash. */
   bpy_context_end(BPY_context_get());
 
@@ -582,16 +585,17 @@ void BPY_python_use_system_env(void)
 void BPY_python_backtrace(FILE *fp)
 {
   fputs("\n# Python backtrace\n", fp);
-  PyThreadState *tstate = PyGILState_GetThisThreadState();
-  if (tstate != NULL && tstate->frame != NULL) {
-    PyFrameObject *frame = tstate->frame;
-    do {
-      const int line = PyCode_Addr2Line(frame->f_code, frame->f_lasti);
-      const char *filepath = PyUnicode_AsUTF8(frame->f_code->co_filename);
-      const char *funcname = PyUnicode_AsUTF8(frame->f_code->co_name);
-      fprintf(fp, "  File \"%s\", line %d in %s\n", filepath, line, funcname);
-    } while ((frame = frame->f_back));
+  PyFrameObject *frame;
+  if (!(frame = PyEval_GetFrame())) {
+    return;
   }
+  do {
+    PyCodeObject *code = PyFrame_GetCode(frame);
+    const int line = PyFrame_GetLineNumber(frame);
+    const char *filepath = PyUnicode_AsUTF8(code->co_filename);
+    const char *funcname = PyUnicode_AsUTF8(code->co_name);
+    fprintf(fp, "  File \"%s\", line %d in %s\n", filepath, line, funcname);
+  } while ((frame = PyFrame_GetBack(frame)));
 }
 
 void BPY_DECREF(void *pyob_ptr)

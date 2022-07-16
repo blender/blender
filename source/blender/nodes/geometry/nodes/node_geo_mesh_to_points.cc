@@ -66,7 +66,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     return;
   }
   GeometryComponentFieldContext field_context{*mesh_component, domain};
-  const int domain_num = mesh_component->attribute_domain_num(domain);
+  const int domain_num = mesh_component->attribute_domain_size(domain);
   if (domain_num == 0) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     return;
@@ -83,20 +83,20 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   geometry_set.replace_pointcloud(pointcloud);
-  PointCloudComponent &point_component =
-      geometry_set.get_component_for_write<PointCloudComponent>();
+  MutableAttributeAccessor pointcloud_attributes = bke::pointcloud_attributes_for_write(
+      *pointcloud);
 
-  OutputAttribute position = point_component.attribute_try_get_for_output_only(
+  GSpanAttributeWriter position = pointcloud_attributes.lookup_or_add_for_write_only_span(
       "position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
   materialize_compressed_to_uninitialized_threaded(
-      evaluator.get_evaluated(0), selection, position.as_span());
-  position.save();
+      evaluator.get_evaluated(0), selection, position.span);
+  position.finish();
 
-  OutputAttribute radius = point_component.attribute_try_get_for_output_only(
+  GSpanAttributeWriter radius = pointcloud_attributes.lookup_or_add_for_write_only_span(
       "radius", ATTR_DOMAIN_POINT, CD_PROP_FLOAT);
   materialize_compressed_to_uninitialized_threaded(
-      evaluator.get_evaluated(1), selection, radius.as_span());
-  radius.save();
+      evaluator.get_evaluated(1), selection, radius.span);
+  radius.finish();
 
   Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set.gather_attributes_for_propagation(
@@ -106,12 +106,12 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     const eCustomDataType data_type = entry.value.data_type;
-    GVArray src = mesh_component->attribute_get_for_read(attribute_id, domain, data_type);
-    OutputAttribute dst = point_component.attribute_try_get_for_output_only(
+    GVArray src = mesh_component->attributes()->lookup_or_default(attribute_id, domain, data_type);
+    GSpanAttributeWriter dst = pointcloud_attributes.lookup_or_add_for_write_only_span(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
     if (dst && src) {
-      materialize_compressed_to_uninitialized_threaded(src, selection, dst.as_span());
-      dst.save();
+      materialize_compressed_to_uninitialized_threaded(src, selection, dst.span);
+      dst.finish();
     }
   }
 

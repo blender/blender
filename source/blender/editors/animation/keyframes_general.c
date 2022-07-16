@@ -47,77 +47,6 @@
 
 /* **************************************************** */
 
-void delete_fcurve_key(FCurve *fcu, int index, bool do_recalc)
-{
-  /* sanity check */
-  if (fcu == NULL) {
-    return;
-  }
-
-  /* verify the index:
-   * 1) cannot be greater than the number of available keyframes
-   * 2) negative indices are for specifying a value from the end of the array
-   */
-  if (abs(index) >= fcu->totvert) {
-    return;
-  }
-  if (index < 0) {
-    index += fcu->totvert;
-  }
-
-  /* Delete this keyframe */
-  memmove(
-      &fcu->bezt[index], &fcu->bezt[index + 1], sizeof(BezTriple) * (fcu->totvert - index - 1));
-  fcu->totvert--;
-
-  if (fcu->totvert == 0) {
-    MEM_SAFE_FREE(fcu->bezt);
-  }
-
-  /* recalc handles - only if it won't cause problems */
-  if (do_recalc) {
-    calchandles_fcurve(fcu);
-  }
-}
-
-bool delete_fcurve_keys(FCurve *fcu)
-{
-  bool changed = false;
-
-  if (fcu->bezt == NULL) { /* ignore baked curves */
-    return false;
-  }
-
-  /* Delete selected BezTriples */
-  for (int i = 0; i < fcu->totvert; i++) {
-    if (fcu->bezt[i].f2 & SELECT) {
-      if (i == fcu->active_keyframe_index) {
-        BKE_fcurve_active_keyframe_set(fcu, NULL);
-      }
-      memmove(&fcu->bezt[i], &fcu->bezt[i + 1], sizeof(BezTriple) * (fcu->totvert - i - 1));
-      fcu->totvert--;
-      i--;
-      changed = true;
-    }
-  }
-
-  /* Free the array of BezTriples if there are not keyframes */
-  if (fcu->totvert == 0) {
-    clear_fcurve_keys(fcu);
-  }
-
-  return changed;
-}
-
-void clear_fcurve_keys(FCurve *fcu)
-{
-  MEM_SAFE_FREE(fcu->bezt);
-
-  fcu->totvert = 0;
-}
-
-/* ---------------- */
-
 bool duplicate_fcurve_keys(FCurve *fcu)
 {
   bool changed = false;
@@ -282,7 +211,7 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
     }
 
     if (fcu->bezt->vec[1][1] == default_value) {
-      clear_fcurve_keys(fcu);
+      BKE_fcurve_delete_keys_all(fcu);
 
       /* check if curve is really unused and if it is, return signal for deletion */
       if (BKE_fcurve_is_empty(fcu)) {
@@ -679,7 +608,7 @@ void smooth_fcurve(FCurve *fcu)
   }
 
   /* recalculate handles */
-  calchandles_fcurve(fcu);
+  BKE_fcurve_handles_recalc(fcu);
 }
 
 /* ---------------- */
@@ -762,7 +691,7 @@ void sample_fcurve(FCurve *fcu)
   }
 
   /* recalculate channel's handles? */
-  calchandles_fcurve(fcu);
+  BKE_fcurve_handles_recalc(fcu);
 }
 
 /* **************************************************** */
@@ -1121,7 +1050,7 @@ static void paste_animedit_keys_fcurve(
 
     case KEYFRAME_PASTE_MERGE_OVER:
       /* remove all keys */
-      clear_fcurve_keys(fcu);
+      BKE_fcurve_delete_keys_all(fcu);
       break;
 
     case KEYFRAME_PASTE_MERGE_OVER_RANGE:
@@ -1148,7 +1077,7 @@ static void paste_animedit_keys_fcurve(
         }
 
         /* remove frames in the range */
-        delete_fcurve_keys(fcu);
+        BKE_fcurve_delete_keys_selected(fcu);
       }
       break;
     }
@@ -1182,7 +1111,7 @@ static void paste_animedit_keys_fcurve(
   }
 
   /* recalculate F-Curve's handles? */
-  calchandles_fcurve(fcu);
+  BKE_fcurve_handles_recalc(fcu);
 }
 
 const EnumPropertyItem rna_enum_keyframe_paste_offset_items[] = {

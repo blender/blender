@@ -382,7 +382,7 @@ static bool node_add_group_poll(bContext *C)
   if (snode->edittree->type == NTREE_CUSTOM) {
     CTX_wm_operator_poll_msg_set(C,
                                  "This node editor displays a custom (Python defined) node tree. "
-                                 "Dropping node groups isn't supported for this.");
+                                 "Dropping node groups isn't supported for this");
     return false;
   }
   return true;

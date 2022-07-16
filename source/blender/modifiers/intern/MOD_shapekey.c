@@ -9,6 +9,8 @@
 
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -108,7 +110,7 @@ static void deformMatricesEM(ModifierData *UNUSED(md),
 }
 
 ModifierTypeInfo modifierType_ShapeKey = {
-    /* name */ "ShapeKey",
+    /* name */ N_("ShapeKey"),
     /* structName */ "ShapeKeyModifierData",
     /* structSize */ sizeof(ShapeKeyModifierData),
     /* srna */ &RNA_Modifier,

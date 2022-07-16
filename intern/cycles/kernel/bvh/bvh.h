@@ -172,11 +172,11 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     ray_flags |= OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT;
   }
 
-  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
-             0.0f,
-             ray->t,
+             ray->tmin,
+             ray->tmax,
              ray->time,
              ray_mask,
              ray_flags,
@@ -203,28 +203,28 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 #elif defined(__METALRT__)
 
   if (!scene_intersect_valid(ray)) {
-    isect->t = ray->t;
+    isect->t = ray->tmax;
     isect->type = PRIMITIVE_NONE;
     return false;
   }
 
 #  if defined(__KERNEL_DEBUG__)
   if (is_null_instance_acceleration_structure(metal_ancillaries->accel_struct)) {
-    isect->t = ray->t;
+    isect->t = ray->tmax;
     isect->type = PRIMITIVE_NONE;
     kernel_assert(!"Invalid metal_ancillaries->accel_struct pointer");
     return false;
   }
 
   if (is_null_intersection_function_table(metal_ancillaries->ift_default)) {
-    isect->t = ray->t;
+    isect->t = ray->tmax;
     isect->type = PRIMITIVE_NONE;
     kernel_assert(!"Invalid ift_default");
     return false;
   }
 #  endif
 
-  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
 
   if (!kernel_data.bvh.have_curves) {
@@ -263,7 +263,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 #  endif
 
   if (intersection.type == intersection_type::none) {
-    isect->t = ray->t;
+    isect->t = ray->tmax;
     isect->type = PRIMITIVE_NONE;
 
     return false;
@@ -295,14 +295,14 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   }
 
 #  ifdef __EMBREE__
-  if (kernel_data.bvh.scene) {
-    isect->t = ray->t;
+  if (kernel_data.device_bvh) {
+    isect->t = ray->tmax;
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_REGULAR);
     IntersectContext rtc_ctx(&ctx);
     RTCRayHit ray_hit;
     ctx.ray = ray;
     kernel_embree_setup_rayhit(*ray, ray_hit, visibility);
-    rtcIntersect1(kernel_data.bvh.scene, &rtc_ctx.context, &ray_hit);
+    rtcIntersect1(kernel_data.device_bvh, &rtc_ctx.context, &ray_hit);
     if (ray_hit.hit.geomID != RTC_INVALID_GEOMETRY_ID &&
         ray_hit.hit.primID != RTC_INVALID_GEOMETRY_ID) {
       kernel_embree_convert_hit(kg, &ray_hit.ray, &ray_hit.hit, isect);
@@ -357,11 +357,11 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   if (local_isect) {
     local_isect->num_hits = 0; /* Initialize hit count to zero. */
   }
-  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
-             0.0f,
-             ray->t,
+             ray->tmin,
+             ray->tmax,
              ray->time,
              0xFF,
              /* Need to always call into __anyhit__kernel_optix_local_hit. */
@@ -405,7 +405,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   }
 #    endif
 
-  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
 
   metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
@@ -451,7 +451,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   }
 
 #    ifdef __EMBREE__
-  if (kernel_data.bvh.scene) {
+  if (kernel_data.device_bvh) {
     const bool has_bvh = !(kernel_data_fetch(object_flag, local_object) &
                            SD_OBJECT_TRANSFORM_APPLIED);
     CCLIntersectContext ctx(
@@ -470,13 +470,13 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 
     /* If this object has its own BVH, use it. */
     if (has_bvh) {
-      RTCGeometry geom = rtcGetGeometry(kernel_data.bvh.scene, local_object * 2);
+      RTCGeometry geom = rtcGetGeometry(kernel_data.device_bvh, local_object * 2);
       if (geom) {
         float3 P = ray->P;
         float3 dir = ray->D;
         float3 idir = ray->D;
         Transform ob_itfm;
-        rtc_ray.tfar = ray->t *
+        rtc_ray.tfar = ray->tmax *
                        bvh_instance_motion_push(kg, local_object, ray, &P, &dir, &idir, &ob_itfm);
         /* bvh_instance_motion_push() returns the inverse transform but
          * it's not needed here. */
@@ -496,7 +496,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
       }
     }
     else {
-      rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
+      rtcOccluded1(kernel_data.device_bvh, &rtc_ctx.context, &rtc_ray);
     }
 
     /* rtcOccluded1 sets tfar to -inf if a hit was found. */
@@ -539,11 +539,11 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
     ray_mask = 0xFF;
   }
 
-  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
-             0.0f,
-             ray->t,
+             ray->tmin,
+             ray->tmax,
              ray->time,
              ray_mask,
              /* Need to always call into __anyhit__kernel_optix_shadow_all_hit. */
@@ -582,7 +582,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   }
 #    endif
 
-  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
 
   metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
@@ -633,7 +633,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   }
 
 #    ifdef __EMBREE__
-  if (kernel_data.bvh.scene) {
+  if (kernel_data.device_bvh) {
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SHADOW_ALL);
     Intersection *isect_array = (Intersection *)state->shadow_isect;
     ctx.isect_s = isect_array;
@@ -642,7 +642,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
     IntersectContext rtc_ctx(&ctx);
     RTCRay rtc_ray;
     kernel_embree_setup_ray(*ray, rtc_ray, visibility);
-    rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
+    rtcOccluded1(kernel_data.device_bvh, &rtc_ctx.context, &rtc_ray);
 
     *num_recorded_hits = ctx.num_recorded_hits;
     *throughput = ctx.throughput;
@@ -698,11 +698,11 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
     ray_mask = 0xFF;
   }
 
-  optixTrace(scene_intersect_valid(ray) ? kernel_data.bvh.scene : 0,
+  optixTrace(scene_intersect_valid(ray) ? kernel_data.device_bvh : 0,
              ray->P,
              ray->D,
-             0.0f,
-             ray->t,
+             ray->tmin,
+             ray->tmax,
              ray->time,
              ray_mask,
              /* Need to always call into __anyhit__kernel_optix_volume_test. */
@@ -744,7 +744,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
   }
 #    endif
 
-  metal::raytracing::ray r(ray->P, ray->D, 0.0f, ray->t);
+  metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
   metalrt_intersector_type metalrt_intersect;
 
   metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
@@ -825,7 +825,7 @@ ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals kg,
   }
 
 #  ifdef __EMBREE__
-  if (kernel_data.bvh.scene) {
+  if (kernel_data.device_bvh) {
     CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_VOLUME_ALL);
     ctx.isect_s = isect;
     ctx.max_hits = max_hits;
@@ -834,7 +834,7 @@ ccl_device_intersect uint scene_intersect_volume_all(KernelGlobals kg,
     IntersectContext rtc_ctx(&ctx);
     RTCRay rtc_ray;
     kernel_embree_setup_ray(*ray, rtc_ray, visibility);
-    rtcOccluded1(kernel_data.bvh.scene, &rtc_ctx.context, &rtc_ray);
+    rtcOccluded1(kernel_data.device_bvh, &rtc_ctx.context, &rtc_ray);
     return ctx.num_hits;
   }
 #  endif /* __EMBREE__ */

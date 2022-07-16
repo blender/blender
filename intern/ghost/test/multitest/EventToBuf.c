@@ -218,8 +218,10 @@ void event_to_buf(GHOST_EventHandle evt, char buf[128])
     case GHOST_kEventKeyUp: {
       GHOST_TEventKeyData *kd = data;
       pos += sprintf(pos, " - key: %s (%d)", keytype_to_string(kd->key), kd->key);
-      if (kd->ascii)
-        pos += sprintf(pos, " ascii: '%c' (%d)", kd->ascii, kd->ascii);
+      /* TODO: ideally this would print the unicode character. */
+      if (kd->utf8_buf[0]) {
+        pos += sprintf(pos, " ascii: '%c' (%d)", kd->utf8_buf[0], kd->utf8_buf[0]);
+      }
       break;
     }
   }

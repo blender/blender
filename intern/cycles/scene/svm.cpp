@@ -44,8 +44,6 @@ void SVMShaderManager::device_update_shader(Scene *scene,
   }
   assert(shader->graph);
 
-  svm_nodes->push_back_slow(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
-
   SVMCompiler::Summary summary;
   SVMCompiler compiler(scene);
   compiler.background = (shader == scene->background->get_shader(scene));
@@ -170,6 +168,9 @@ SVMCompiler::SVMCompiler(Scene *scene) : scene(scene)
   background = false;
   mix_weight_offset = SVM_STACK_INVALID;
   compile_failed = false;
+
+  /* This struct has one entry for every node, in order of ShaderNodeType definition. */
+  svm_node_types_used = (std::atomic_int *)&scene->dscene.data.svm_usage;
 }
 
 int SVMCompiler::stack_size(SocketType::Type type)
@@ -378,11 +379,13 @@ void SVMCompiler::add_node(int a, int b, int c, int d)
 
 void SVMCompiler::add_node(ShaderNodeType type, int a, int b, int c)
 {
+  svm_node_types_used[type] = true;
   current_svm_nodes.push_back_slow(make_int4(type, a, b, c));
 }
 
 void SVMCompiler::add_node(ShaderNodeType type, const float3 &f)
 {
+  svm_node_types_used[type] = true;
   current_svm_nodes.push_back_slow(
       make_int4(type, __float_as_int(f.x), __float_as_int(f.y), __float_as_int(f.z)));
 }
@@ -663,6 +666,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
         /* Add instruction to skip closure and its dependencies if mix
          * weight is zero.
          */
+        svm_node_types_used[NODE_JUMP_IF_ONE] = true;
         current_svm_nodes.push_back_slow(make_int4(NODE_JUMP_IF_ONE, 0, stack_assign(facin), 0));
         int node_jump_skip_index = current_svm_nodes.size() - 1;
 
@@ -678,6 +682,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
         /* Add instruction to skip closure and its dependencies if mix
          * weight is zero.
          */
+        svm_node_types_used[NODE_JUMP_IF_ZERO] = true;
         current_svm_nodes.push_back_slow(make_int4(NODE_JUMP_IF_ZERO, 0, stack_assign(facin), 0));
         int node_jump_skip_index = current_svm_nodes.size() - 1;
 
@@ -844,6 +849,9 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 
 void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Summary *summary)
 {
+  svm_node_types_used[NODE_SHADER_JUMP] = true;
+  svm_nodes.push_back_slow(make_int4(NODE_SHADER_JUMP, 0, 0, 0));
+
   /* copy graph for shader with bump mapping */
   ShaderNode *output = shader->graph->output();
   int start_num_svm_nodes = svm_nodes.size();

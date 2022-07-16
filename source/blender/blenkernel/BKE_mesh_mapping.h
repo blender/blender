@@ -69,8 +69,6 @@ typedef struct UvElementMap {
   int *islandIndices;
 } UvElementMap;
 
-#define INVALID_ISLAND ((unsigned int)-1)
-
 /* Connectivity data */
 typedef struct MeshElemMap {
   int *indices;

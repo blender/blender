@@ -2141,6 +2141,7 @@ void RNA_property_update(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 
 void RNA_property_update_main(Main *bmain, Scene *scene, PointerRNA *ptr, PropertyRNA *prop)
 {
+  BLI_assert(bmain != NULL);
   rna_property_update(NULL, bmain, scene, ptr, prop);
 }
 

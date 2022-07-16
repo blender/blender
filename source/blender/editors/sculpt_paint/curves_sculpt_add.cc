@@ -97,7 +97,7 @@ struct AddOperationExecutor {
   float brush_radius_re_;
   float2 brush_pos_re_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
 
   BVHTreeFromMesh surface_bvh_;
 
@@ -123,7 +123,7 @@ struct AddOperationExecutor {
       return;
     }
 
-    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     surface_ob_ = curves_id_->surface;
     surface_ = static_cast<Mesh *>(surface_ob_->data);
@@ -176,12 +176,9 @@ struct AddOperationExecutor {
     /* Find UV map. */
     VArraySpan<float2> surface_uv_map;
     if (curves_id_->surface_uv_map != nullptr) {
-      MeshComponent surface_component;
-      surface_component.replace(surface_, GeometryOwnershipType::ReadOnly);
-      surface_uv_map = surface_component
-                           .attribute_try_get_for_read(curves_id_->surface_uv_map,
-                                                       ATTR_DOMAIN_CORNER)
-                           .typed<float2>();
+      const bke::AttributeAccessor surface_attributes = bke::mesh_attributes(*surface_);
+      surface_uv_map = surface_attributes.lookup<float2>(curves_id_->surface_uv_map,
+                                                         ATTR_DOMAIN_CORNER);
     }
 
     /* Find normals. */
@@ -353,17 +350,21 @@ struct AddOperationExecutor {
                                      view_ray_start_wo,
                                      view_ray_end_wo,
                                      true);
-    const float3 view_direction_su = math::normalize(
-        transforms_.world_to_surface * view_ray_end_wo -
-        transforms_.world_to_surface * view_ray_start_wo);
+
+    const float3 view_ray_start_cu = transforms_.world_to_curves * view_ray_start_wo;
+    const float3 view_ray_end_cu = transforms_.world_to_curves * view_ray_end_wo;
 
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
       const float4x4 transform = transforms_.curves_to_surface * brush_transform;
+
       const float3 brush_pos_su = transform * brush_3d->position_cu;
+      const float3 view_direction_su = math::normalize(transform * view_ray_end_cu -
+                                                       transform * view_ray_start_cu);
       const float brush_radius_su = transform_brush_radius(
           transform, brush_3d->position_cu, brush_3d->radius_cu);
+
       this->sample_spherical(
           rng, r_added_points, brush_pos_su, brush_radius_su, view_direction_su);
     }

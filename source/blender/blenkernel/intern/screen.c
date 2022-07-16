@@ -277,7 +277,7 @@ static void screen_blend_read_lib(BlendLibReader *reader, ID *id)
 
 IDTypeInfo IDType_ID_SCR = {
     .id_code = ID_SCR,
-    .id_filter = 0,
+    .id_filter = FILTER_ID_SCR,
     .main_listbase_index = INDEX_ID_SCR,
     .struct_size = sizeof(bScreen),
     .name = "Screen",

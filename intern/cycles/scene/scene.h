@@ -82,7 +82,7 @@ class DeviceScene {
 
   device_vector<uint> patches;
 
-  /* pointcloud */
+  /* point-cloud */
   device_vector<float4> points;
   device_vector<uint> points_shader;
 
@@ -124,7 +124,7 @@ class DeviceScene {
   /* integrator */
   device_vector<float> sample_pattern_lut;
 
-  /* ies lights */
+  /* IES lights */
   device_vector<float> ies_lights;
 
   KernelData data;

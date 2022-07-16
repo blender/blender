@@ -200,6 +200,11 @@ bool BKE_paint_select_vert_test(struct Object *ob);
  * (when we don't care if its face or vert)
  */
 bool BKE_paint_select_elem_test(struct Object *ob);
+/**
+ * Checks if face/vertex hiding is always applied in the current mode.
+ * Returns true in vertex/weight paint.
+ */
+bool BKE_paint_always_hide_test(struct Object *ob);
 
 /* Partial visibility. */
 

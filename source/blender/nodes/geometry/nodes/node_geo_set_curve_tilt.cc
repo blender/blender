@@ -16,21 +16,23 @@ static void set_tilt_in_component(GeometryComponent &component,
                                   const Field<bool> &selection_field,
                                   const Field<float> &tilt_field)
 {
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_POINT);
-  if (domain_num == 0) {
+  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  if (domain_size == 0) {
     return;
   }
+  MutableAttributeAccessor attributes = *component.attributes_for_write();
 
-  OutputAttribute_Typed<float> tilts = component.attribute_try_get_for_output_only<float>(
-      "tilt", ATTR_DOMAIN_POINT);
+  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
 
-  fn::FieldEvaluator evaluator{field_context, domain_num};
+  AttributeWriter<float> tilts = attributes.lookup_or_add_for_write<float>("tilt",
+                                                                           ATTR_DOMAIN_POINT);
+
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
-  evaluator.add_with_destination(tilt_field, tilts.varray());
+  evaluator.add_with_destination(tilt_field, tilts.varray);
   evaluator.evaluate();
 
-  tilts.save();
+  tilts.finish();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

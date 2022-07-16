@@ -40,9 +40,9 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   const InstancesComponent &instances = *geometry_set.get_component_for_read<InstancesComponent>();
 
   GeometryComponentFieldContext field_context{instances, ATTR_DOMAIN_INSTANCE};
-  const int domain_num = instances.attribute_domain_num(ATTR_DOMAIN_INSTANCE);
+  const int domain_size = instances.instances_num();
 
-  fn::FieldEvaluator evaluator{field_context, domain_num};
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(std::move(selection_field));
   evaluator.add(std::move(position_field));
   evaluator.add(std::move(radius_field));
@@ -75,18 +75,18 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
     const AttributeIDRef &attribute_id = item.key;
     const AttributeKind attribute_kind = item.value;
 
-    const GVArray src = instances.attribute_get_for_read(
+    const GVArray src = instances.attributes()->lookup_or_default(
         attribute_id, ATTR_DOMAIN_INSTANCE, attribute_kind.data_type);
     BLI_assert(src);
-    OutputAttribute dst = points.attribute_try_get_for_output_only(
+    GSpanAttributeWriter dst = points.attributes_for_write()->lookup_or_add_for_write_only_span(
         attribute_id, ATTR_DOMAIN_POINT, attribute_kind.data_type);
     BLI_assert(dst);
 
     attribute_math::convert_to_static_type(attribute_kind.data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      copy_attribute_to_points(src.typed<T>(), selection, dst.as_span().typed<T>());
+      copy_attribute_to_points(src.typed<T>(), selection, dst.span.typed<T>());
     });
-    dst.save();
+    dst.finish();
   }
 }
 

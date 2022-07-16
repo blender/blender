@@ -803,20 +803,21 @@ def dump_src_messages(msgs, reports, settings):
                 line += data[pos:m.start()].count('\n')
                 msgsrc = rel_path + ":" + str(line)
                 _msgid = d.get("msg_raw")
-                # First, try the "multi-contexts" stuff!
-                _msgctxts = tuple(d.get("ctxt_raw{}".format(i)) for i in range(settings.PYGETTEXT_MAX_MULTI_CTXT))
-                if _msgctxts[0]:
-                    for _msgctxt in _msgctxts:
-                        if not _msgctxt:
-                            break
+                if _msgid not in {'""', "''"}:
+                    # First, try the "multi-contexts" stuff!
+                    _msgctxts = tuple(d.get("ctxt_raw{}".format(i)) for i in range(settings.PYGETTEXT_MAX_MULTI_CTXT))
+                    if _msgctxts[0]:
+                        for _msgctxt in _msgctxts:
+                            if not _msgctxt:
+                                break
+                            msgctxt, msgid = process_entry(_msgctxt, _msgid)
+                            process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt_src, settings)
+                            reports["src_messages"].append((msgctxt, msgid, msgsrc))
+                    else:
+                        _msgctxt = d.get("ctxt_raw")
                         msgctxt, msgid = process_entry(_msgctxt, _msgid)
                         process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt_src, settings)
                         reports["src_messages"].append((msgctxt, msgid, msgsrc))
-                else:
-                    _msgctxt = d.get("ctxt_raw")
-                    msgctxt, msgid = process_entry(_msgctxt, _msgid)
-                    process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt_src, settings)
-                    reports["src_messages"].append((msgctxt, msgid, msgsrc))
 
                 pos = m.end()
                 line += data[m.start():pos].count('\n')

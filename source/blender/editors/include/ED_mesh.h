@@ -137,7 +137,6 @@ void EDBM_update_extern(struct Mesh *me, bool do_tessellation, bool is_destructi
  */
 struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
                                               const struct Scene *scene,
-                                              bool face_selected,
                                               bool uv_selected,
                                               bool use_winding,
                                               bool do_islands);
@@ -424,6 +423,9 @@ void paintvert_select_ungrouped(struct Object *ob, bool extend, bool flush_flags
  */
 void paintvert_flush_flags(struct Object *ob);
 void paintvert_tag_select_update(struct bContext *C, struct Object *ob);
+
+void paintvert_hide(struct bContext *C, struct Object *ob, bool unselected);
+void paintvert_reveal(struct bContext *C, struct Object *ob, bool select);
 
 /* mirrtopo */
 typedef struct MirrTopoStore_t {

@@ -3172,19 +3172,11 @@ static bool ui_textedit_insert_buf(uiBut *but,
   return changed;
 }
 
-static bool ui_textedit_insert_ascii(uiBut *but, uiHandleButtonData *data, char ascii)
+static bool ui_textedit_insert_ascii(uiBut *but, uiHandleButtonData *data, const char ascii)
 {
+  BLI_assert(isascii(ascii));
   const char buf[2] = {ascii, '\0'};
-
-  if (UI_but_is_utf8(but) && (BLI_str_utf8_size(buf) == -1)) {
-    printf(
-        "%s: entering invalid ascii char into an ascii key (%d)\n", __func__, (int)(uchar)ascii);
-
-    return false;
-  }
-
-  /* in some cases we want to allow invalid utf8 chars */
-  return ui_textedit_insert_buf(but, data, buf, 1);
+  return ui_textedit_insert_buf(but, data, buf, sizeof(buf) - 1);
 }
 
 static void ui_textedit_move(uiBut *but,
@@ -3897,30 +3889,27 @@ static void ui_do_but_textedit(
       }
     }
 
-    if ((event->ascii || event->utf8_buf[0]) && (retval == WM_UI_HANDLER_CONTINUE)
+    if ((event->utf8_buf[0]) && (retval == WM_UI_HANDLER_CONTINUE)
 #ifdef WITH_INPUT_IME
         && !is_ime_composing && !WM_event_is_ime_switch(event)
 #endif
     ) {
-      char ascii = event->ascii;
+      char utf8_buf_override[2] = {'\0', '\0'};
       const char *utf8_buf = event->utf8_buf;
 
       /* Exception that's useful for number buttons, some keyboard
        * numpads have a comma instead of a period. */
       if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) { /* Could use `data->min`. */
-        if (event->type == EVT_PADPERIOD && ascii == ',') {
-          ascii = '.';
-          utf8_buf = NULL; /* force ascii fallback */
+        if ((event->type == EVT_PADPERIOD) && (utf8_buf[0] == ',')) {
+          utf8_buf_override[0] = '.';
+          utf8_buf = utf8_buf_override;
         }
       }
 
-      if (utf8_buf && utf8_buf[0]) {
+      if (utf8_buf[0]) {
         const int utf8_buf_len = BLI_str_utf8_size(utf8_buf);
         BLI_assert(utf8_buf_len != -1);
-        changed = ui_textedit_insert_buf(but, data, event->utf8_buf, utf8_buf_len);
-      }
-      else {
-        changed = ui_textedit_insert_ascii(but, data, ascii);
+        changed = ui_textedit_insert_buf(but, data, utf8_buf, utf8_buf_len);
       }
 
       retval = WM_UI_HANDLER_BREAK;
@@ -3952,6 +3941,9 @@ static void ui_do_but_textedit(
   else if (event->type == WM_IME_COMPOSITE_END) {
     changed = true;
   }
+#else
+  /* Prevent the function from being unused. */
+  (void)ui_textedit_insert_ascii;
 #endif
 
   if (changed) {
@@ -9487,7 +9479,7 @@ static int ui_list_activate_hovered_row(bContext *C,
     }
 
     /* Simulate click on listrow button itself (which may be overlapped by another button). Also
-     * calls the custom activate operator (ui_list->custom_activate_opname). */
+     * calls the custom activate operator (#uiListDyn::custom_activate_optype). */
     UI_but_execute(C, region, listrow);
 
     ((uiList *)ui_list)->dyn_data->custom_activate_optype = custom_activate_optype;
@@ -9558,13 +9550,13 @@ static void ui_list_activate_row_from_index(
   uiBut *new_active_row = ui_list_row_find_from_index(region, index, listbox);
   if (new_active_row) {
     /* Preferred way to update the active item, also calls the custom activate operator
-     * (#uiList.custom_activate_opname). */
+     * (#uiListDyn::custom_activate_optype). */
     UI_but_execute(C, region, new_active_row);
   }
   else {
     /* A bit ugly, set the active index in RNA directly. That's because a button that's
      * scrolled away in the list box isn't created at all.
-     * The custom activate operator (#uiList.custom_activate_opname) is not called in this case
+     * The custom activate operator (#uiListDyn::custom_activate_optype) is not called in this case
      * (which may need the row button context). */
     RNA_property_int_set(&listbox->rnapoin, listbox->rnaprop, index);
     RNA_property_update(C, &listbox->rnapoin, listbox->rnaprop);

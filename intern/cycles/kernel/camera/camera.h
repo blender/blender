@@ -165,9 +165,11 @@ ccl_device void camera_sample_perspective(KernelGlobals kg,
   float nearclip = kernel_data.cam.nearclip * z_inv;
   ray->P += nearclip * ray->D;
   ray->dP += nearclip * ray->dD;
-  ray->t = kernel_data.cam.cliplength * z_inv;
+  ray->tmin = 0.0f;
+  ray->tmax = kernel_data.cam.cliplength * z_inv;
 #else
-  ray->t = FLT_MAX;
+  ray->tmin = 0.0f;
+  ray->tmax = FLT_MAX;
 #endif
 }
 
@@ -231,9 +233,11 @@ ccl_device void camera_sample_orthographic(KernelGlobals kg,
 
 #ifdef __CAMERA_CLIPPING__
   /* clipping */
-  ray->t = kernel_data.cam.cliplength;
+  ray->tmin = 0.0f;
+  ray->tmax = kernel_data.cam.cliplength;
 #else
-  ray->t = FLT_MAX;
+  ray->tmin = 0.0f;
+  ray->tmax = FLT_MAX;
 #endif
 }
 
@@ -258,7 +262,7 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
 
   /* indicates ray should not receive any light, outside of the lens */
   if (is_zero(D)) {
-    ray->t = 0.0f;
+    ray->tmax = 0.0f;
     return;
   }
 
@@ -349,9 +353,11 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
   float nearclip = cam->nearclip;
   ray->P += nearclip * ray->D;
   ray->dP += nearclip * ray->dD;
-  ray->t = cam->cliplength;
+  ray->tmin = 0.0f;
+  ray->tmax = cam->cliplength;
 #else
-  ray->t = FLT_MAX;
+  ray->tmin = 0.0f;
+  ray->tmax = FLT_MAX;
 #endif
 }
 
@@ -368,7 +374,7 @@ ccl_device_inline void camera_sample(KernelGlobals kg,
                                      ccl_private Ray *ray)
 {
   /* pixel filter */
-  int filter_table_offset = kernel_data.film.filter_table_offset;
+  int filter_table_offset = kernel_data.tables.filter_table_offset;
   float raster_x = x + lookup_table_read(kg, filter_u, filter_table_offset, FILTER_TABLE_SIZE);
   float raster_y = y + lookup_table_read(kg, filter_v, filter_table_offset, FILTER_TABLE_SIZE);
 

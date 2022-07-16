@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_mesh_runtime.h"
@@ -253,12 +252,12 @@ void MeshAttributeInterpolator::sample_data(const GVArray &src,
   }
 }
 
-void MeshAttributeInterpolator::sample_attribute(const ReadAttributeLookup &src_attribute,
-                                                 OutputAttribute &dst_attribute,
+void MeshAttributeInterpolator::sample_attribute(const GAttributeReader &src_attribute,
+                                                 GSpanAttributeWriter &dst_attribute,
                                                  eAttributeMapMode mode)
 {
   if (src_attribute && dst_attribute) {
-    this->sample_data(src_attribute.varray, src_attribute.domain, mode, dst_attribute.as_span());
+    this->sample_data(src_attribute.varray, src_attribute.domain, mode, dst_attribute.span);
   }
 }
 

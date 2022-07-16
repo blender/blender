@@ -54,7 +54,7 @@ class IslandFieldInput final : public GeometryFieldInput {
       output[i] = ordered_roots.index_of_or_add(root);
     }
 
-    return mesh_component.attribute_try_adapt_domain<int>(
+    return mesh_component.attributes()->adapt_domain<int>(
         VArray<int>::ForContainer(std::move(output)), ATTR_DOMAIN_POINT, domain);
   }
 
@@ -101,7 +101,8 @@ class IslandCountFieldInput final : public GeometryFieldInput {
       island_list.add(root);
     }
 
-    return VArray<int>::ForSingle(island_list.size(), mesh_component.attribute_domain_num(domain));
+    return VArray<int>::ForSingle(island_list.size(),
+                                  mesh_component.attribute_domain_size(domain));
   }
 
   uint64_t hash() const override

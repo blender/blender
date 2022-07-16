@@ -83,9 +83,6 @@ const EnumPropertyItem rna_enum_nla_mode_extend_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-/* temp constant defined for these funcs only... */
-#  define NLASTRIP_MIN_LEN_THRESH 0.1f
-
 static void rna_NlaStrip_name_set(PointerRNA *ptr, const char *value)
 {
   NlaStrip *data = (NlaStrip *)ptr->data;
@@ -165,75 +162,181 @@ static void rna_NlaStrip_transform_update(Main *bmain, Scene *scene, PointerRNA 
 
 static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
 {
+  /* Simply set the frame start in a valid range : if there are any NLA strips before/after, clamp
+   * the start value. If the new start value is past-the-end, clamp it. Otherwise, set it.
+   *
+   * NOTE: Unless neighboring strips are transitions, NLASTRIP_MIN_LEN_THRESH is not needed, as
+   * strips can be 'glued' to one another. If they are however, ensure transitions have a bit of
+   * time allotted in order to be performed.
+   */
   NlaStrip *data = (NlaStrip *)ptr->data;
 
-  /* Clamp value to lie within valid limits:
-   * - Cannot start past the end of the strip + some flexibility threshold.
-   * - Cannot start before the previous strip (if present) ends.
-   *   -> But if it was a transition,
-   *   we could go up to the start of the strip + some flexibility threshold.
-   *   as long as we re-adjust the transition afterwards.
-   * - Minimum frame is -MAXFRAME so that we don't get clipping on frame 0.
-   */
-  if (data->prev) {
-    if (data->prev->type == NLASTRIP_TYPE_TRANSITION) {
-      CLAMP(
-          value, data->prev->start + NLASTRIP_MIN_LEN_THRESH, data->end - NLASTRIP_MIN_LEN_THRESH);
+  const float limit_prev = BKE_nlastrip_compute_frame_from_previous_strip(data);
+  const float limit_next = BKE_nlastrip_compute_frame_to_next_strip(data);
+  CLAMP(value, limit_prev, limit_next);
 
-      /* re-adjust the transition to stick to the endpoints of the action-clips */
-      data->prev->end = value;
-    }
-    else {
-      CLAMP(value, data->prev->end, data->end - NLASTRIP_MIN_LEN_THRESH);
-    }
-  }
-  else {
-    CLAMP(value, MINAFRAME, data->end);
-  }
   data->start = value;
+
+  /* The ONLY case where we actively modify the value set by the user, is in case the start value
+   * value is past the old end frame (here delta = NLASTRIP_MIN_LEN_THRESH) :
+   * - if there's no "room" for the end frame to be placed at (new_start + delta), move old_end to
+   *     the limit, and new_start to (limit - delta)
+   * - otherwise, do _not_ change the end frame. This property is not accessible from the UI, and
+   *     can only be set via scripts. The script should be responsible of setting the end frame.
+   */
+  if (data->start > (data->end - NLASTRIP_MIN_LEN_THRESH)) {
+    /* If past-the-allowed-end : */
+    if ((data->start + NLASTRIP_MIN_LEN_THRESH) > limit_next) {
+      data->end = limit_next;
+      data->start = data->end - NLASTRIP_MIN_LEN_THRESH;
+    }
+  }
+
+  /* Ensure transitions are kept 'glued' to the strip : */
+  if (data->prev && data->prev->type == NLASTRIP_TYPE_TRANSITION) {
+    data->prev->end = data->start;
+  }
+}
+
+static void rna_NlaStrip_frame_start_ui_set(PointerRNA *ptr, float value)
+{
+  NlaStrip *data = (NlaStrip *)ptr->data;
+
+  /* Changing the NLA strip's start frame is exactly the same as translating it in the NLA editor.
+   * When 'translating' the clip, the length of it should stay identical. Se we also need to set
+   * this strip's end frame after modifying its start (to `start + (old_end - old_start)`).
+   * Of course, we might have a few other strips on this NLA track, so we have to respect the
+   * previous strip's end frame.
+   *
+   * Also, different types of NLA strips (*_CLIP, *_TRANSITION, *_META, *_SOUND) have their own
+   * properties to respect. Needs testing on a real-world use case for the transition, meta, and
+   * sound types.
+   */
+
+  /* The strip's total length before modifying it & also how long we'd like it to be afterwards. */
+  const float striplen = data->end - data->start;
+
+  /* We're only modifying one strip at a time. The start and end times of its neighbors should not
+   * change. As such, here are the 'bookends' (frame limits) for the start position to respect :
+   * - if a next strip exists, don't allow the strip to start after (next->end - striplen - delta),
+   *   (delta being the min length of a Nla Strip : the NLASTRIP_MIN_THRESH macro)
+   * - if a previous strip exists, don't allow this strip to start before it (data->prev) ends
+   * - otherwise, limit to the program limit macros defined in DNA_scene_types.h : {MINA|MAX}FRAMEF
+   */
+  const float limit_prev = BKE_nlastrip_compute_frame_from_previous_strip(data);
+  const float limit_next = BKE_nlastrip_compute_frame_to_next_strip(data) - striplen;
+  /* For above : we want to be able to fit the entire strip before the next frame limit, so shift
+   * the next limit by 'striplen' no matter the context. */
+
+  CLAMP(value, limit_prev, limit_next);
+  data->start = value;
+
+  if (data->type != NLASTRIP_TYPE_TRANSITION) {
+    data->end = data->start + striplen;
+  }
+
+  /* Update properties of the prev/next strips if they are transitions to ensure consistency : */
+  if (data->prev && data->prev->type == NLASTRIP_TYPE_TRANSITION) {
+    data->prev->end = data->start;
+  }
+  if (data->next && data->next->type == NLASTRIP_TYPE_TRANSITION) {
+    data->next->start = data->end;
+  }
 }
 
 static void rna_NlaStrip_end_frame_set(PointerRNA *ptr, float value)
 {
   NlaStrip *data = (NlaStrip *)ptr->data;
 
+  const float limit_prev = BKE_nlastrip_compute_frame_from_previous_strip(data);
+  const float limit_next = BKE_nlastrip_compute_frame_to_next_strip(data);
+  CLAMP(value, limit_prev, limit_next);
+
+  data->end = value;
+
+  /* The ONLY case where we actively modify the value set by the user, is in case the start value
+   * value is past the old end frame (here delta = NLASTRIP_MIN_LEN_THRESH):
+   * - if there's no "room" for the end frame to be placed at (new_start + delta), move old_end to
+   *   the limit, and new_start to (limit - delta)
+   * - otherwise, do _not_ change the end frame. This property is not accessible from the UI, and
+   *   can only be set via scripts. The script should be responsible for setting the end frame.
+   */
+  if (data->end < (data->start + NLASTRIP_MIN_LEN_THRESH)) {
+    /* If before-the-allowed-start : */
+    if ((data->end - NLASTRIP_MIN_LEN_THRESH) < limit_prev) {
+      data->start = limit_prev;
+      data->end = data->start + NLASTRIP_MIN_LEN_THRESH;
+    }
+  }
+
+  /* Ensure transitions are kept "glued" to the strip: */
+  if (data->next && data->next->type == NLASTRIP_TYPE_TRANSITION) {
+    data->next->start = data->end;
+  }
+}
+
+static void rna_NlaStrip_frame_end_ui_set(PointerRNA *ptr, float value)
+{
+  NlaStrip *data = (NlaStrip *)ptr->data;
+
+  /* Changing the strip's end frame will update its action 'range' (defined by actstart->actend) to
+   * accommodate the extra length of the strip. No other parameters of the strip will change. But
+   * this means we have to get the current strip's end frame right now :
+   */
+  const float old_strip_end = data->end;
+
   /* clamp value to lie within valid limits
    * - must not have zero or negative length strip, so cannot start before the first frame
    *   + some minimum-strip-length threshold
    * - cannot end later than the start of the next strip (if present)
-   *   -> but if it was a transition,
-   *   we could go up to the start of the end - some flexibility threshold
-   *   as long as we re-adjust the transition afterwards
+   *   -> relies on the BKE_nlastrip_compute_frame_to_next_strip() function
    */
-  if (data->next) {
-    if (data->next->type == NLASTRIP_TYPE_TRANSITION) {
-      CLAMP(
-          value, data->start + NLASTRIP_MIN_LEN_THRESH, data->next->end - NLASTRIP_MIN_LEN_THRESH);
+  const float limit_prev = data->start + NLASTRIP_MIN_LEN_THRESH;
+  const float limit_next = BKE_nlastrip_compute_frame_to_next_strip(data);
 
-      /* readjust the transition to stick to the endpoints of the action-clips */
-      data->next->start = value;
-    }
-    else {
-      CLAMP(value, data->start + NLASTRIP_MIN_LEN_THRESH, data->next->start);
-    }
-  }
-  else {
-    CLAMP(value, data->start + NLASTRIP_MIN_LEN_THRESH, MAXFRAME);
-  }
+  CLAMP(value, limit_prev, limit_next);
   data->end = value;
 
-  /* calculate the lengths the strip and its action (if applicable) */
-  if (data->type == NLASTRIP_TYPE_CLIP) {
-    float len, actlen;
+  /* Only adjust transitions at this stage : */
+  if (data->next && data->next->type == NLASTRIP_TYPE_TRANSITION) {
+    data->next->start = value;
+  }
 
-    len = data->end - data->start;
-    actlen = data->actend - data->actstart;
+  /* calculate the lengths the strip and its action : *
+   * (Meta and transitions shouldn't be updated, but clip and sound should) */
+  if (data->type == NLASTRIP_TYPE_CLIP || data->type == NLASTRIP_TYPE_SOUND) {
+    float actlen = data->actend - data->actstart;
     if (IS_EQF(actlen, 0.0f)) {
-      actlen = 1.0f;
+      actlen = 1.0f; /* Only sanity check needed : we use this as divisor later on. */
     }
 
-    /* now, adjust the 'scale' setting to reflect this (so that this change can be valid) */
-    data->scale = len / ((actlen)*data->repeat);
+    /* Modify the strip's action end frame, or repeat based on :
+     * - if data->repeat == 1.0f, modify the action end frame :
+     *   - if the number of frames to subtract is the number of frames, set the action end frame
+     *     to the action start + 1 and modify the end of the strip to add that frame
+     *   - if the number of frames
+     * - otherwise, modify the repeat property to accommodate for the new length
+     */
+    float action_length_delta = (old_strip_end - data->end) / data->scale;
+    /* If no repeats are used, then modify the action end frame : */
+    if (IS_EQF(data->repeat, 1.0f)) {
+      /* If they're equal, strip has been reduced by the same amount as the whole strip length, so
+       * clamp the action clip length to 1 frame, and add a frame to end so that len(strip)!=0 :*/
+      if (IS_EQF(action_length_delta, actlen)) {
+        data->actend = data->actstart + 1.0f;
+        data->end += 1.0f;
+      }
+      else if (action_length_delta < actlen) {
+        /* Now, adjust the new strip's actend to the value it's supposed to have : */
+        data->actend = data->actend - action_length_delta;
+      }
+      /* The case where the delta is bigger than the action length should not be possible, since
+       * data->end is guaranteed to be clamped to data->start + threshold above.
+       */
+    }
+    else {
+      data->repeat -= (action_length_delta / actlen);
+    }
   }
 }
 
@@ -637,6 +740,31 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "end");
   RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_end_frame_set", NULL);
   RNA_def_property_ui_text(prop, "End Frame", "");
+  RNA_def_property_update(
+      prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
+
+  /* Strip extents, when called from UI elements : */
+  prop = RNA_def_property(srna, "frame_start_ui", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_float_sdna(prop, NULL, "start");
+  RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_frame_start_ui_set", NULL);
+  RNA_def_property_ui_text(
+      prop,
+      "Start Frame (manipulated from UI)",
+      "Start frame of the NLA strip. Note: changing this value also updates the value of "
+      "the strip's end frame. If only the start frame should be changed, see the \"frame_start\" "
+      "property instead");
+  RNA_def_property_update(
+      prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
+
+  prop = RNA_def_property(srna, "frame_end_ui", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_float_sdna(prop, NULL, "end");
+  RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_frame_end_ui_set", NULL);
+  RNA_def_property_ui_text(
+      prop,
+      "End Frame (manipulated from UI)",
+      "End frame of the NLA strip. Note: changing this value also updates the value of "
+      "the strip's repeats or its action's end frame. If only the end frame should be "
+      "changed, see the \"frame_end\" property instead");
   RNA_def_property_update(
       prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
 

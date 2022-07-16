@@ -77,7 +77,7 @@ ccl_device_forceinline void integrate_surface_emission(KernelGlobals kg,
 #  endif
   {
     const float bsdf_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-    const float t = sd->ray_length + INTEGRATOR_STATE(state, path, mis_ray_t);
+    const float t = sd->ray_length;
 
     /* Multiple importance sampling, get triangle light pdf,
      * and compute weight with respect to BSDF pdf. */
@@ -190,8 +190,8 @@ ccl_device_forceinline void integrate_surface_direct_light(KernelGlobals kg,
   const bool is_light = light_sample_is_light(&ls);
 
   /* Branch off shadow kernel. */
-  INTEGRATOR_SHADOW_PATH_INIT(
-      shadow_state, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, shadow);
+  IntegratorShadowState shadow_state = integrator_shadow_path_init(
+      kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, false);
 
   /* Copy volume stack and enter/exit volume. */
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
@@ -323,16 +323,21 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
     return LABEL_NONE;
   }
 
-  /* Setup ray. Note that clipping works through transparent bounces. */
-  INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
-  INTEGRATOR_STATE_WRITE(state, ray, D) = normalize(bsdf_omega_in);
-  INTEGRATOR_STATE_WRITE(state, ray, t) = (label & LABEL_TRANSPARENT) ?
-                                              INTEGRATOR_STATE(state, ray, t) - sd->ray_length :
-                                              FLT_MAX;
+  if (label & LABEL_TRANSPARENT) {
+    /* Only need to modify start distance for transparent. */
+    INTEGRATOR_STATE_WRITE(state, ray, tmin) = intersection_t_offset(sd->ray_length);
+  }
+  else {
+    /* Setup ray with changed origin and direction. */
+    INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
+    INTEGRATOR_STATE_WRITE(state, ray, D) = normalize(bsdf_omega_in);
+    INTEGRATOR_STATE_WRITE(state, ray, tmin) = 0.0f;
+    INTEGRATOR_STATE_WRITE(state, ray, tmax) = FLT_MAX;
 #ifdef __RAY_DIFFERENTIALS__
-  INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
-  INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_make_compact(bsdf_domega_in);
+    INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
+    INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_make_compact(bsdf_domega_in);
 #endif
+  }
 
   /* Update throughput. */
   float3 throughput = INTEGRATOR_STATE(state, path, throughput);
@@ -349,12 +354,8 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   }
 
   /* Update path state */
-  if (label & LABEL_TRANSPARENT) {
-    INTEGRATOR_STATE_WRITE(state, path, mis_ray_t) += sd->ray_length;
-  }
-  else {
+  if (!(label & LABEL_TRANSPARENT)) {
     INTEGRATOR_STATE_WRITE(state, path, mis_ray_pdf) = bsdf_pdf;
-    INTEGRATOR_STATE_WRITE(state, path, mis_ray_t) = 0.0f;
     INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = fminf(
         bsdf_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
   }
@@ -371,17 +372,8 @@ ccl_device_forceinline int integrate_surface_volume_only_bounce(IntegratorState 
     return LABEL_NONE;
   }
 
-  /* Setup ray position, direction stays unchanged. */
-  INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
-
-  /* Clipping works through transparent. */
-  INTEGRATOR_STATE_WRITE(state, ray, t) -= sd->ray_length;
-
-#  ifdef __RAY_DIFFERENTIALS__
-  INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
-#  endif
-
-  INTEGRATOR_STATE_WRITE(state, path, mis_ray_t) += sd->ray_length;
+  /* Only modify start distance. */
+  INTEGRATOR_STATE_WRITE(state, ray, tmin) = intersection_t_offset(sd->ray_length);
 
   return LABEL_TRANSMIT | LABEL_TRANSPARENT;
 }
@@ -432,7 +424,8 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   Ray ray ccl_optional_struct_init;
   ray.P = shadow_ray_offset(kg, sd, ao_D, &skip_self);
   ray.D = ao_D;
-  ray.t = kernel_data.integrator.ao_bounces_distance;
+  ray.tmin = 0.0f;
+  ray.tmax = kernel_data.integrator.ao_bounces_distance;
   ray.time = sd->time;
   ray.self.object = (skip_self) ? sd->object : OBJECT_NONE;
   ray.self.prim = (skip_self) ? sd->prim : PRIM_NONE;
@@ -442,7 +435,8 @@ ccl_device_forceinline void integrate_surface_ao(KernelGlobals kg,
   ray.dD = differential_zero_compact();
 
   /* Branch off shadow kernel. */
-  INTEGRATOR_SHADOW_PATH_INIT(shadow_state, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, ao);
+  IntegratorShadowState shadow_state = integrator_shadow_path_init(
+      kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, true);
 
   /* Copy volume stack and enter/exit volume. */
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
@@ -604,22 +598,23 @@ ccl_device bool integrate_surface(KernelGlobals kg,
 }
 
 template<uint node_feature_mask = KERNEL_FEATURE_NODE_MASK_SURFACE & ~KERNEL_FEATURE_NODE_RAYTRACE,
-         int current_kernel = DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE>
+         DeviceKernel current_kernel = DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE>
 ccl_device_forceinline void integrator_shade_surface(KernelGlobals kg,
                                                      IntegratorState state,
                                                      ccl_global float *ccl_restrict render_buffer)
 {
   if (integrate_surface<node_feature_mask>(kg, state, render_buffer)) {
     if (INTEGRATOR_STATE(state, path, flag) & PATH_RAY_SUBSURFACE) {
-      INTEGRATOR_PATH_NEXT(current_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE);
+      integrator_path_next(
+          kg, state, current_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE);
     }
     else {
-      kernel_assert(INTEGRATOR_STATE(state, ray, t) != 0.0f);
-      INTEGRATOR_PATH_NEXT(current_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
+      kernel_assert(INTEGRATOR_STATE(state, ray, tmax) != 0.0f);
+      integrator_path_next(kg, state, current_kernel, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
     }
   }
   else {
-    INTEGRATOR_PATH_TERMINATE(current_kernel);
+    integrator_path_terminate(kg, state, current_kernel);
   }
 }
 

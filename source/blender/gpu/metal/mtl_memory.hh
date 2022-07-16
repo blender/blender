@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -23,7 +24,7 @@
  * The Metal Backend Memory manager is designed to provide an interface
  * for all other MTL_* modules where memory allocation is required.
  *
- * Different allocation strategies and datastructures are used depending
+ * Different allocation strategies and data-structures are used depending
  * on how the data is used by the backend. These aim to optimally handle
  * system memory and abstract away any complexity from the MTL_* modules
  * themselves.
@@ -107,8 +108,8 @@ class MTLBuffer {
   /* Metal resource. */
   id<MTLBuffer> metal_buffer_;
 
-  /* Host-visible mapped-memory pointer. Behaviour depends on buffer type:
-   * - Shared buffers: pointer represents base address of MTLBuffer whose data
+  /* Host-visible mapped-memory pointer. Behavior depends on buffer type:
+   * - Shared buffers: pointer represents base address of #MTLBuffer whose data
    *                   access has shared access by both the CPU and GPU on
    *                   Unified Memory Architectures (UMA).
    * - Managed buffer: Host-side mapped buffer region for CPU (Host) access. Managed buffers
@@ -350,14 +351,14 @@ class MTLBufferPool {
   bool ensure_initialised_ = false;
   id<MTLDevice> device_ = nil;
 
-  /* The buffer selection aims to pick a buffer which meets the minimum size requierments.
+  /* The buffer selection aims to pick a buffer which meets the minimum size requirements.
    * To do this, we keep an ordered set of all available buffers. If the buffer is larger than the
-   * desired allocation size, we check it aginst `mtl_buffer_size_threshold_factor_`, which defines
-   * what % larger than the original allocation the buffer can be.
+   * desired allocation size, we check it against `mtl_buffer_size_threshold_factor_`,
+   * which defines what % larger than the original allocation the buffer can be.
    * - A higher value results in greater re-use of previously allocated buffers of similar sizes.
-   * - A lower value may result in more dynamic allocations, but minimised memory usage for a given
+   * - A lower value may result in more dynamic allocations, but minimized memory usage for a given
    *   scenario.
-   * The current value of 1.26 is calibrated for optimal performance and memory utilisation. */
+   * The current value of 1.26 is calibrated for optimal performance and memory utilization. */
   static constexpr float mtl_buffer_size_threshold_factor_ = 1.26;
 
   /* Buffer pools using MTLResourceOptions as key for allocation type.
@@ -453,7 +454,8 @@ class MTLScratchBufferManager {
   MTLScratchBufferManager(MTLContext &context) : context_(context){};
   ~MTLScratchBufferManager();
 
-  /* Explicit initialisation and freeing of resources. Init must occur after device creation. */
+  /* Explicit initialization and freeing of resources.
+   * Initialization must occur after device creation. */
   void init();
   void free();
 

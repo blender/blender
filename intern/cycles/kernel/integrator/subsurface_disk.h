@@ -82,7 +82,8 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
   /* Create ray. */
   ray.P = P + disk_N * disk_height + disk_P;
   ray.D = -disk_N;
-  ray.t = 2.0f * disk_height;
+  ray.tmin = 0.0f;
+  ray.tmax = 2.0f * disk_height;
   ray.dP = ray_dP;
   ray.dD = differential_zero_compact();
   ray.time = time;
@@ -188,7 +189,8 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
 
       ray.P = ray.P + ray.D * ss_isect.hits[hit].t;
       ray.D = ss_isect.Ng[hit];
-      ray.t = 1.0f;
+      ray.tmin = 0.0f;
+      ray.tmax = 1.0f;
       return true;
     }
 

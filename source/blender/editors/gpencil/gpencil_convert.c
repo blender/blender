@@ -588,7 +588,7 @@ static void gpencil_stroke_path_animation(bContext *C,
   }
 
   /* As we used INSERTKEY_FAST mode, we need to recompute all curve's handles now */
-  calchandles_fcurve(fcu);
+  BKE_fcurve_handles_recalc(fcu);
 
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 

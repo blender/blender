@@ -2,7 +2,6 @@
 
 #include "DNA_pointcloud_types.h"
 
-#include "BKE_attribute_access.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_pointcloud.h"
@@ -104,17 +103,6 @@ void PointCloudComponent::ensure_owns_direct_data()
 /** \name Attribute Access
  * \{ */
 
-int PointCloudComponent::attribute_domain_num(const eAttrDomain domain) const
-{
-  if (pointcloud_ == nullptr) {
-    return 0;
-  }
-  if (domain != ATTR_DOMAIN_POINT) {
-    return 0;
-  }
-  return pointcloud_->totpoint;
-}
-
 namespace blender::bke {
 
 /**
@@ -123,23 +111,22 @@ namespace blender::bke {
  */
 static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
 {
-  static auto update_custom_data_pointers = [](GeometryComponent &component) {
-    PointCloudComponent &pointcloud_component = static_cast<PointCloudComponent &>(component);
-    if (PointCloud *pointcloud = pointcloud_component.get_for_write()) {
-      BKE_pointcloud_update_customdata_pointers(pointcloud);
-    }
+  static auto update_custom_data_pointers = [](void *owner) {
+    PointCloud *pointcloud = static_cast<PointCloud *>(owner);
+    BKE_pointcloud_update_customdata_pointers(pointcloud);
   };
   static CustomDataAccessInfo point_access = {
-      [](GeometryComponent &component) -> CustomData * {
-        PointCloudComponent &pointcloud_component = static_cast<PointCloudComponent &>(component);
-        PointCloud *pointcloud = pointcloud_component.get_for_write();
-        return pointcloud ? &pointcloud->pdata : nullptr;
+      [](void *owner) -> CustomData * {
+        PointCloud *pointcloud = static_cast<PointCloud *>(owner);
+        return &pointcloud->pdata;
       },
-      [](const GeometryComponent &component) -> const CustomData * {
-        const PointCloudComponent &pointcloud_component = static_cast<const PointCloudComponent &>(
-            component);
-        const PointCloud *pointcloud = pointcloud_component.get_for_read();
-        return pointcloud ? &pointcloud->pdata : nullptr;
+      [](const void *owner) -> const CustomData * {
+        const PointCloud *pointcloud = static_cast<const PointCloud *>(owner);
+        return &pointcloud->pdata;
+      },
+      [](const void *owner) -> int {
+        const PointCloud *pointcloud = static_cast<const PointCloud *>(owner);
+        return pointcloud->totpoint;
       },
       update_custom_data_pointers};
 
@@ -180,14 +167,68 @@ static ComponentAttributeProviders create_attribute_providers_for_point_cloud()
   return ComponentAttributeProviders({&position, &radius, &id}, {&point_custom_data});
 }
 
+static AttributeAccessorFunctions get_pointcloud_accessor_functions()
+{
+  static const ComponentAttributeProviders providers =
+      create_attribute_providers_for_point_cloud();
+  AttributeAccessorFunctions fn =
+      attribute_accessor_functions::accessor_functions_for_providers<providers>();
+  fn.domain_size = [](const void *owner, const eAttrDomain domain) {
+    if (owner == nullptr) {
+      return 0;
+    }
+    const PointCloud &pointcloud = *static_cast<const PointCloud *>(owner);
+    switch (domain) {
+      case ATTR_DOMAIN_POINT:
+        return pointcloud.totpoint;
+      default:
+        return 0;
+    }
+  };
+  fn.domain_supported = [](const void *UNUSED(owner), const eAttrDomain domain) {
+    return domain == ATTR_DOMAIN_POINT;
+  };
+  fn.adapt_domain = [](const void *UNUSED(owner),
+                       const blender::GVArray &varray,
+                       const eAttrDomain from_domain,
+                       const eAttrDomain to_domain) {
+    if (from_domain == to_domain && from_domain == ATTR_DOMAIN_POINT) {
+      return varray;
+    }
+    return blender::GVArray{};
+  };
+  return fn;
+}
+
+static const AttributeAccessorFunctions &get_pointcloud_accessor_functions_ref()
+{
+  static const AttributeAccessorFunctions fn = get_pointcloud_accessor_functions();
+  return fn;
+}
+
+AttributeAccessor pointcloud_attributes(const PointCloud &pointcloud)
+{
+  return AttributeAccessor(&pointcloud, get_pointcloud_accessor_functions_ref());
+}
+
+MutableAttributeAccessor pointcloud_attributes_for_write(PointCloud &pointcloud)
+{
+  return MutableAttributeAccessor(&pointcloud, get_pointcloud_accessor_functions_ref());
+}
+
 }  // namespace blender::bke
 
-const blender::bke::ComponentAttributeProviders *PointCloudComponent::get_attribute_providers()
-    const
+std::optional<blender::bke::AttributeAccessor> PointCloudComponent::attributes() const
 {
-  static blender::bke::ComponentAttributeProviders providers =
-      blender::bke::create_attribute_providers_for_point_cloud();
-  return &providers;
+  return blender::bke::AttributeAccessor(pointcloud_,
+                                         blender::bke::get_pointcloud_accessor_functions_ref());
+}
+
+std::optional<blender::bke::MutableAttributeAccessor> PointCloudComponent::attributes_for_write()
+{
+  PointCloud *pointcloud = this->get_for_write();
+  return blender::bke::MutableAttributeAccessor(
+      pointcloud, blender::bke::get_pointcloud_accessor_functions_ref());
 }
 
 /** \} */

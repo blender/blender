@@ -413,7 +413,9 @@ static void view3d_set_1_to_1_viewborder(Scene *scene,
 {
   RegionView3D *rv3d = region->regiondata;
   float size[2];
-  int im_width = (scene->r.size * scene->r.xsch) / 100;
+
+  int im_width, im_height;
+  BKE_render_resolution(&scene->r, false, &im_width, &im_height);
 
   ED_view3d_calc_camera_border_size(scene, depsgraph, region, v3d, rv3d, size);
 

@@ -1485,11 +1485,13 @@ class USERPREF_PT_saveload_file_browser(SaveLoadPanel, CenterAlignMixIn, Panel):
         prefs = context.preferences
         paths = prefs.filepaths
 
+        col = layout.column(heading="Show Locations")
+        col.prop(paths, "show_recent_locations", text="Recent")
+        col.prop(paths, "show_system_bookmarks", text="System")
+
         col = layout.column(heading="Defaults")
         col.prop(paths, "use_filter_files")
         col.prop(paths, "show_hidden_files_datablocks")
-        col.prop(paths, "show_recent_locations")
-        col.prop(paths, "show_system_bookmarks")
 
 
 # -----------------------------------------------------------------------------
@@ -2094,7 +2096,7 @@ class StudioLightPanelMixin:
             for studio_light in lights:
                 self.draw_studio_light(flow, studio_light)
         else:
-            layout.label(text="No custom %s configured" % self.bl_label)
+            layout.label(text=iface_("No custom %s configured") % self.bl_label)
 
     def draw_studio_light(self, layout, studio_light):
         box = layout.box()
@@ -2272,13 +2274,13 @@ class USERPREF_PT_experimental_prototypes(ExperimentalPanel, Panel):
     def draw(self, context):
         self._draw_items(
             context, (
-                ({"property": "use_new_curves_type"}, "T68981"),
                 ({"property": "use_new_curves_tools"}, "T68981"),
                 ({"property": "use_new_point_cloud_type"}, "T75717"),
                 ({"property": "use_sculpt_texture_paint"}, "T96225"),
                 ({"property": "use_full_frame_compositor"}, "T88150"),
                 ({"property": "enable_eevee_next"}, "T93220"),
                 ({"property": "use_draw_manager_acquire_lock"}, "T98016"),
+                ({"property": "use_override_new_fully_editable"}, None),
             ),
         )
 

@@ -139,7 +139,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Triangulate = {
-    /* name */ "Triangulate",
+    /* name */ N_("Triangulate"),
     /* structName */ "TriangulateModifierData",
     /* structSize */ sizeof(TriangulateModifierData),
     /* srna */ &RNA_TriangulateModifier,

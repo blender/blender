@@ -186,13 +186,15 @@ class IndexRange {
   }
 
   /**
-   * Get the last element in the range.
-   * Asserts when the range is empty.
+   * Get the nth last element in the range.
+   * Asserts when the range is empty or when n is negative.
    */
-  constexpr int64_t last() const
+  constexpr int64_t last(const int64_t n = 0) const
   {
+    BLI_assert(n >= 0);
+    BLI_assert(n < size_);
     BLI_assert(this->size() > 0);
-    return start_ + size_ - 1;
+    return start_ + size_ - 1 - n;
   }
 
   /**
@@ -277,6 +279,15 @@ class IndexRange {
     BLI_assert(n >= 0);
     const int64_t new_size = std::min<int64_t>(size_, n);
     return IndexRange(start_ + size_ - new_size, new_size);
+  }
+
+  /**
+   * Move the range forward or backward within the larger array. The amount may be negative,
+   * but its absolute value cannot be greater than the existing start of the range.
+   */
+  constexpr IndexRange shift(int64_t n) const
+  {
+    return IndexRange(start_ + n, size_);
   }
 
   /**
