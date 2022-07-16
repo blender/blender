@@ -1118,30 +1118,34 @@ static void copy_attributes_based_on_fn(Map<AttributeIDRef, AttributeKind> &attr
                                         const eAttrDomain domain,
                                         std::function<int(int)> mapfn)
 {
+  const AttributeAccessor src_attributes = *in_component.attributes();
+  MutableAttributeAccessor dst_attributes = *result_component.attributes_for_write();
+
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    ReadAttributeLookup attribute = in_component.attribute_try_get_for_read(attribute_id);
-    if (!attribute) {
+    GAttributeReader src_attribute = src_attributes.lookup(attribute_id);
+    if (!src_attribute) {
       continue;
     }
 
     /* Only copy if it is on a domain we want. */
-    if (domain != attribute.domain) {
+    if (domain != src_attribute.domain) {
       continue;
     }
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attribute.varray.type());
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
+        src_attribute.varray.type());
 
-    OutputAttribute result_attribute = result_component.attribute_try_get_for_output_only(
-        attribute_id, attribute.domain, data_type);
+    GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        attribute_id, domain, data_type);
 
-    if (!result_attribute) {
+    if (!dst_attribute) {
       continue;
     }
 
     attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
       using T = decltype(dummy);
-      VArraySpan<T> span{attribute.varray.typed<T>()};
-      MutableSpan<T> out_span = result_attribute.as_span<T>();
+      VArraySpan<T> span{src_attribute.varray.typed<T>()};
+      MutableSpan<T> out_span = dst_attribute.span.typed<T>();
       for (const int i : out_span.index_range()) {
         const int src_i = mapfn(i);
         /* The unmapped entries of `out_span` have been initialized to the default value. */
@@ -1150,7 +1154,7 @@ static void copy_attributes_based_on_fn(Map<AttributeIDRef, AttributeKind> &attr
         }
       }
     });
-    result_attribute.save();
+    dst_attribute.finish();
   }
 }
 
