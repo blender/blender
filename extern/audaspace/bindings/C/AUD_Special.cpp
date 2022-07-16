@@ -282,15 +282,16 @@ AUD_API int AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int lengt
 		std::shared_ptr<IWriter> writer = FileWriter::createWriter(filename, convCToDSpec(specs), static_cast<Container>(format), static_cast<Codec>(codec), bitrate);
 		FileWriter::writeReader(reader, writer, length, buffersize, callback, data);
 
-		return 1;
+		return true;
 	}
 	catch(Exception& e)
 	{
-		if(error && errorsize) {
+		if(error && errorsize)
+		{
 			std::strncpy(error, e.getMessage().c_str(), errorsize);
 			error[errorsize - 1] = '\0';
 		}
-		return 0;
+		return false;
 	}
 }
 
@@ -332,15 +333,16 @@ AUD_API int AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsign
 		reader->seek(start);
 		FileWriter::writeReader(reader, writers, length, buffersize, callback, data);
 
-		return 1;
+		return true;
 	}
 	catch(Exception& e)
 	{
-		if(error && errorsize) {
+		if(error && errorsize)
+		{
 			std::strncpy(error, e.getMessage().c_str(), errorsize);
 			error[errorsize - 1] = '\0';
 		}
-		return 0;
+		return false;
 	}
 }
 
