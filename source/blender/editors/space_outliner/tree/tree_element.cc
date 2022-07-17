@@ -100,6 +100,11 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
   return nullptr;
 }
 
+StringRefNull AbstractTreeElement::getWarning() const
+{
+  return "";
+}
+
 void AbstractTreeElement::uncollapse_by_default(TreeElement *legacy_te)
 {
   if (!TREESTORE(legacy_te)->used) {
@@ -116,41 +121,6 @@ void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner 
     return;
   }
   tree_element.expand(space_outliner);
-}
-
-bool tree_element_warnings_get(TreeElement *te, int *r_icon, const char **r_message)
-{
-  TreeStoreElem *tselem = te->store_elem;
-
-  if (tselem->type != TSE_SOME_ID) {
-    return false;
-  }
-  if (te->idcode != ID_LI) {
-    return false;
-  }
-
-  Library *library = (Library *)tselem->id;
-  if (library->tag & LIBRARY_TAG_RESYNC_REQUIRED) {
-    if (r_icon) {
-      *r_icon = ICON_ERROR;
-    }
-    if (r_message) {
-      *r_message = TIP_(
-          "Contains linked library overrides that need to be resynced, updating the library is "
-          "recommended");
-    }
-    return true;
-  }
-  if (library->id.tag & LIB_TAG_MISSING) {
-    if (r_icon) {
-      *r_icon = ICON_ERROR;
-    }
-    if (r_message) {
-      *r_message = TIP_("Missing library");
-    }
-    return true;
-  }
-  return false;
 }
 
 }  // namespace blender::ed::outliner

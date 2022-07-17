@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Module with function to extract a doctree from an reStructuredText file.
 # Named 'Mini' because we only parse the minimum data needed to check
 # Python classes, methods and attributes match up to those in existing modules.

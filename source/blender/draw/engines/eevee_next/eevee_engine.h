@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include "DRW_render.h"
+#include "RE_engine.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -373,7 +373,7 @@ void rna_ViewLayer_active_lightgroup_index_set(PointerRNA *ptr, int value);
  * `rna_path_buffer_size` should be at least `sizeof(ViewLayer.name) * 3`.
  * \return actual length of the generated RNA path.
  */
-size_t rna_ViewLayer_path_buffer_get(struct ViewLayer *view_layer,
+size_t rna_ViewLayer_path_buffer_get(const struct ViewLayer *view_layer,
                                      char *r_rna_path,
                                      const size_t rna_path_buffer_size);
 
@@ -402,8 +402,9 @@ bool rna_GPencil_datablocks_annotations_poll(struct PointerRNA *ptr,
                                              const struct PointerRNA value);
 bool rna_GPencil_datablocks_obdata_poll(struct PointerRNA *ptr, const struct PointerRNA value);
 
-char *rna_TextureSlot_path(struct PointerRNA *ptr);
-char *rna_Node_ImageUser_path(struct PointerRNA *ptr);
+char *rna_TextureSlot_path(const struct PointerRNA *ptr);
+char *rna_Node_ImageUser_path(const struct PointerRNA *ptr);
+char *rna_CameraBackgroundImage_image_or_movieclip_user_path(const struct PointerRNA *ptr);
 
 /* Set U.is_dirty and redraw. */
 
@@ -634,6 +635,7 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 /* Functions */
 
 int rna_parameter_size(struct PropertyRNA *parm);
+int rna_parameter_size_pad(const int size);
 
 /* XXX, these should not need to be defined here~! */
 struct MTex *rna_mtex_texture_slots_add(struct ID *self,

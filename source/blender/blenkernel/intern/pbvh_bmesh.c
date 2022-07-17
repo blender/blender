@@ -376,6 +376,9 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
     return false;
   }
 
+  /* Trigger draw manager cache invalidation. */
+  pbvh->draw_cache_invalid = true;
+
   /* For each BMFace, store the AABB and AABB centroid */
   BBC *bbc_array = MEM_mallocN(sizeof(BBC) * bm_faces_size, "BBC");
 

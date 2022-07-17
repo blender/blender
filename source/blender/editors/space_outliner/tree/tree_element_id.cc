@@ -27,6 +27,11 @@ namespace blender::ed::outliner {
 
 std::unique_ptr<TreeElementID> TreeElementID::createFromID(TreeElement &legacy_te, ID &id)
 {
+  if (ID_TYPE_IS_DEPRECATED(GS(id.name))) {
+    BLI_assert_msg(0, "Outliner trying to build tree-element for deprecated ID type");
+    return nullptr;
+  }
+
   switch (ID_Type type = GS(id.name); type) {
     case ID_LI:
       return std::make_unique<TreeElementIDLibrary>(legacy_te, (Library &)id);
@@ -70,10 +75,9 @@ std::unique_ptr<TreeElementID> TreeElementID::createFromID(TreeElement &legacy_t
     case ID_PC:
     case ID_CF:
       return std::make_unique<TreeElementID>(legacy_te, id);
-      /* Deprecated */
     case ID_IP:
-      BLI_assert_msg(0, "Outliner trying to build tree-element for deprecated ID type");
-      return nullptr;
+      BLI_assert_unreachable();
+      break;
   }
 
   return nullptr;

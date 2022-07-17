@@ -19,6 +19,10 @@ struct UnitSettings;
  */
 size_t BKE_unit_value_as_string_adaptive(
     char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad);
+/**
+ * Representation of a value in units. Negative precision is used to disable stripping of zeroes.
+ * This reduces text jumping when changing values.
+ */
 size_t BKE_unit_value_as_string(char *str,
                                 int len_max,
                                 double value,
@@ -91,7 +95,7 @@ const char *BKE_unit_identifier_get(const void *usys_pt, int index);
 double BKE_unit_scalar_get(const void *usys_pt, int index);
 bool BKE_unit_is_suppressed(const void *usys_pt, int index);
 
-/** Aligned with #PropertyUnit. */
+/** Aligned with #PropertyUnit and `bpyunits_ucategories_items` in `bpy_utils_units.c`. */
 enum {
   B_UNIT_NONE = 0,
   B_UNIT_LENGTH = 1,

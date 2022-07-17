@@ -7,9 +7,8 @@
 
 #include <stdio.h>
 
-#include "BLI_utildefines.h"
-
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
@@ -21,9 +20,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-
-#include "MOD_gpencil_lineart.h"
-#include "lineart/MOD_lineart.h"
 
 #include "BKE_collection.h"
 #include "BKE_context.h"
@@ -43,8 +39,10 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "MOD_gpencil_lineart.h"
 #include "MOD_gpencil_modifiertypes.h"
 #include "MOD_gpencil_ui_common.h"
+#include "lineart/MOD_lineart.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -90,6 +88,8 @@ static void generate_strokes_actual(
       lmd->intersection_mask,
       lmd->thickness,
       lmd->opacity,
+      lmd->shadow_selection,
+      lmd->silhouette_selection,
       lmd->source_vertex_group,
       lmd->vgname,
       lmd->flags);
@@ -195,6 +195,7 @@ static void bakeModifier(Main *UNUSED(bmain),
      * modifiers in the stack. */
     lmd->edge_types_override = lmd->edge_types;
     lmd->level_end_override = lmd->level_end;
+    lmd->shadow_selection_override = lmd->shadow_selection;
 
     MOD_lineart_compute_feature_lines(
         depsgraph, lmd, &gpd->runtime.lineart_cache, (!(ob->dtx & OB_DRAW_IN_FRONT)));
@@ -218,9 +219,18 @@ static void add_this_collection(Collection *c,
   if (!c) {
     return;
   }
+  bool default_add = true;
+  /* Do not do nested collection usage check, this is consistent with lineart calculation, because
+   * collection usage doesn't have a INHERIT mode. This might initially be derived from the fact
+   * that an object can be inside multiple collections, but might be irrelevant now with the way
+   * objects are iterated. Keep this logic for now. */
+  if (c->lineart_usage & COLLECTION_LRT_EXCLUDE) {
+    default_add = false;
+  }
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (c, ob, mode) {
     if (ELEM(ob->type, OB_MESH, OB_MBALL, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
-      if (ob->lineart.usage != OBJECT_LRT_EXCLUDE) {
+      if ((ob->lineart.usage == OBJECT_LRT_INHERIT && default_add) ||
+          ob->lineart.usage != OBJECT_LRT_EXCLUDE) {
         DEG_add_object_relation(ctx->node, ob, DEG_OB_COMP_GEOMETRY, "Line Art Modifier");
         DEG_add_object_relation(ctx->node, ob, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
       }
@@ -239,15 +249,11 @@ static void updateDepsgraph(GpencilModifierData *md,
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
 
   LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)md;
-  if (lmd->source_type == LRT_SOURCE_OBJECT && lmd->source_object) {
-    DEG_add_object_relation(
-        ctx->node, lmd->source_object, DEG_OB_COMP_GEOMETRY, "Line Art Modifier");
-    DEG_add_object_relation(
-        ctx->node, lmd->source_object, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
-  }
-  else {
-    add_this_collection(ctx->scene->master_collection, ctx, mode);
-  }
+
+  /* Always add whole master collection because line art will need the whole scene for
+   * visibility computation. Line art exclusion is handled inside #add_this_collection. */
+  add_this_collection(ctx->scene->master_collection, ctx, mode);
+
   if (lmd->calculation_flags & LRT_USE_CUSTOM_CAMERA && lmd->source_camera) {
     DEG_add_object_relation(
         ctx->node, lmd->source_camera, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
@@ -260,6 +266,10 @@ static void updateDepsgraph(GpencilModifierData *md,
     DEG_add_object_relation(
         ctx->node, ctx->scene->camera, DEG_OB_COMP_PARAMETERS, "Line Art Modifier");
   }
+  if (lmd->light_contour_object) {
+    DEG_add_object_relation(
+        ctx->node, lmd->light_contour_object, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
+  }
 }
 
 static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, void *userData)
@@ -271,6 +281,7 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
 
   walk(userData, ob, (ID **)&lmd->source_object, IDWALK_CB_NOP);
   walk(userData, ob, (ID **)&lmd->source_camera, IDWALK_CB_NOP);
+  walk(userData, ob, (ID **)&lmd->light_contour_object, IDWALK_CB_NOP);
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -321,6 +332,10 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemPointerR(
       row, ptr, "target_material", &obj_data_ptr, "materials", NULL, ICON_SHADING_TEXTURE);
 
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiItemR(col, ptr, "thickness", UI_ITEM_R_SLIDER, IFACE_("Line Thickness"), ICON_NONE);
+  uiItemR(col, ptr, "opacity", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
   gpencil_modifier_panel_end(layout, ptr);
 }
 
@@ -333,31 +348,107 @@ static void edge_types_panel_draw(const bContext *UNUSED(C), Panel *panel)
   const bool is_baked = RNA_boolean_get(ptr, "is_baked");
   const bool use_cache = RNA_boolean_get(ptr, "use_cache");
   const bool is_first = BKE_gpencil_is_first_lineart_in_stack(ob_ptr.data, ptr->data);
+  const bool has_light = RNA_pointer_get(ptr, "light_contour_object").data != NULL;
 
   uiLayoutSetEnabled(layout, !is_baked);
 
   uiLayoutSetPropSep(layout, true);
 
+  uiLayout *sub = uiLayoutRow(layout, false);
+  uiLayoutSetActive(sub, has_light);
+  uiItemR(sub, ptr, "shadow_region_filtering", 0, IFACE_("Illumination Filtering"), ICON_NONE);
+
   uiLayout *col = uiLayoutColumn(layout, true);
 
-  uiItemR(col, ptr, "use_contour", 0, IFACE_("Contour"), ICON_NONE);
-  uiItemR(col, ptr, "use_loose", 0, IFACE_("Loose"), ICON_NONE);
-  uiItemR(col, ptr, "use_material", 0, IFACE_("Material Borders"), ICON_NONE);
-  uiItemR(col, ptr, "use_edge_mark", 0, IFACE_("Edge Marks"), ICON_NONE);
-  uiItemR(col, ptr, "use_intersection", 0, IFACE_("Intersections"), ICON_NONE);
+  sub = uiLayoutRowWithHeading(col, false, IFACE_("Create"));
+  uiItemR(sub, ptr, "use_contour", 0, "", ICON_NONE);
 
-  uiLayout *sub = uiLayoutRowWithHeading(col, false, IFACE_("Crease"));
+  uiLayout *entry = uiLayoutRow(sub, true);
+  uiLayoutSetActive(entry, RNA_boolean_get(ptr, "use_contour"));
+  uiItemR(entry, ptr, "silhouette_filtering", 0, "", ICON_NONE);
+
+  const int silhouette_filtering = RNA_enum_get(ptr, "silhouette_filtering");
+  if (silhouette_filtering != LRT_SILHOUETTE_FILTER_NONE) {
+    uiItemR(entry, ptr, "use_invert_silhouette", 0, "", ICON_ARROW_LEFTRIGHT);
+  }
+
+  sub = uiLayoutRow(col, false);
   uiItemR(sub, ptr, "use_crease", 0, "", ICON_NONE);
-  uiLayout *entry = uiLayoutRow(sub, false);
-  uiLayoutSetEnabled(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
+  entry = uiLayoutColumn(sub, false);
+  uiItemL(entry, IFACE_("Crease"), ICON_NONE);
+  uiLayoutSetActive(entry, RNA_boolean_get(ptr, "use_crease") || is_first);
   if (use_cache && !is_first) {
-    uiItemL(entry, IFACE_("Angle Cached"), ICON_INFO);
+    uiItemL(entry, IFACE_("Crease Angle Cached"), ICON_INFO);
   }
   else {
-    uiItemR(entry, ptr, "crease_threshold", UI_ITEM_R_SLIDER, " ", ICON_NONE);
+    uiItemR(entry,
+            ptr,
+            "crease_threshold",
+            UI_ITEM_R_SLIDER | UI_ITEM_R_FORCE_BLANK_DECORATE,
+            IFACE_("Default Angle"),
+            ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "use_overlap_edge_type_support", 0, IFACE_("Allow Overlap"), ICON_NONE);
+  uiItemR(col, ptr, "use_intersection", 0, IFACE_("Intersections"), ICON_NONE);
+  uiItemR(col, ptr, "use_material", 0, IFACE_("Material Borders"), ICON_NONE);
+  uiItemR(col, ptr, "use_edge_mark", 0, IFACE_("Edge Marks"), ICON_NONE);
+  uiItemR(col, ptr, "use_loose", 0, IFACE_("Loose"), ICON_NONE);
+
+  entry = uiLayoutColumn(col, false);
+  uiLayoutSetActive(entry, has_light);
+
+  sub = uiLayoutRow(entry, false);
+  uiItemR(sub, ptr, "use_light_contour", 0, IFACE_("Light Contour"), ICON_NONE);
+
+  uiItemR(entry, ptr, "use_shadow", 0, IFACE_("Cast Shadow"), ICON_NONE);
+
+  uiItemL(layout, IFACE_("Options"), ICON_NONE);
+
+  sub = uiLayoutColumn(layout, false);
+  if (use_cache && !is_first) {
+    uiItemL(sub, IFACE_("Type overlapping cached"), ICON_INFO);
+  }
+  else {
+    uiItemR(sub,
+            ptr,
+            "use_overlap_edge_type_support",
+            0,
+            IFACE_("Allow Overlapping Types"),
+            ICON_NONE);
+  }
+}
+
+static void options_light_reference_draw(const bContext *UNUSED(C), Panel *panel)
+{
+  uiLayout *layout = panel->layout;
+  PointerRNA ob_ptr;
+  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, &ob_ptr);
+
+  const bool is_baked = RNA_boolean_get(ptr, "is_baked");
+  const bool use_cache = RNA_boolean_get(ptr, "use_cache");
+  const bool has_light = RNA_pointer_get(ptr, "light_contour_object").data != NULL;
+  const bool is_first = BKE_gpencil_is_first_lineart_in_stack(ob_ptr.data, ptr->data);
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetEnabled(layout, !is_baked);
+
+  if (use_cache && !is_first) {
+    uiItemL(layout, "Cached from the first line art modifier.", ICON_INFO);
+    return;
+  }
+
+  uiItemR(layout, ptr, "light_contour_object", 0, NULL, ICON_NONE);
+
+  uiLayout *remaining = uiLayoutColumn(layout, false);
+  uiLayoutSetActive(remaining, has_light);
+
+  uiItemR(remaining, ptr, "shadow_camera_size", 0, NULL, ICON_NONE);
+
+  uiLayout *col = uiLayoutColumn(remaining, true);
+  uiItemR(col, ptr, "shadow_camera_near", 0, "Near", ICON_NONE);
+  uiItemR(col, ptr, "shadow_camera_far", 0, "Far", ICON_NONE);
+
+  uiItemR(layout, ptr, "use_shadow_enclosed_shapes", 0, IFACE_("Enclosed Shapes"), ICON_NONE);
 }
 
 static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -387,28 +478,12 @@ static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiLayout *col = uiLayoutColumn(layout, true);
 
-  uiItemR(col, ptr, "use_remove_doubles", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_edge_overlap", 0, IFACE_("Overlapping Edges As Contour"), ICON_NONE);
   uiItemR(col, ptr, "use_object_instances", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_clip_plane_boundaries", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_crease_on_smooth", 0, IFACE_("Crease On Smooth"), ICON_NONE);
   uiItemR(col, ptr, "use_crease_on_sharp", 0, IFACE_("Crease On Sharp"), ICON_NONE);
   uiItemR(col, ptr, "use_back_face_culling", 0, IFACE_("Force Backface Culling"), ICON_NONE);
-}
-
-static void style_panel_draw(const bContext *UNUSED(C), Panel *panel)
-{
-  uiLayout *layout = panel->layout;
-  PointerRNA *ptr = gpencil_modifier_panel_get_property_pointers(panel, NULL);
-
-  const bool is_baked = RNA_boolean_get(ptr, "is_baked");
-
-  uiLayoutSetPropSep(layout, true);
-  uiLayoutSetEnabled(layout, !is_baked);
-
-  uiItemR(layout, ptr, "thickness", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-
-  uiItemR(layout, ptr, "opacity", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
 static void occlusion_panel_draw(const bContext *UNUSED(C), Panel *panel)
@@ -522,6 +597,7 @@ static void intersection_panel_draw(const bContext *UNUSED(C), Panel *panel)
 
   uiItemR(layout, ptr, "use_intersection_match", 0, IFACE_("Exact Match"), ICON_NONE);
 }
+
 static void face_mark_panel_draw_header(const bContext *UNUSED(C), Panel *panel)
 {
   uiLayout *layout = panel->layout;
@@ -592,7 +668,7 @@ static void chaining_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemR(col, ptr, "use_fuzzy_intersections", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_fuzzy_all", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_loose_edge_chain", 0, IFACE_("Loose Edges"), ICON_NONE);
-  uiItemR(col, ptr, "use_loose_as_contour", 0, NULL, ICON_NONE);
+  uiItemR(col, ptr, "use_loose_as_contour", 0, IFACE_("Loose Edges As Contour"), ICON_NONE);
   uiItemR(col, ptr, "use_detail_preserve", 0, NULL, ICON_NONE);
   uiItemR(col, ptr, "use_geometry_space_chain", 0, IFACE_("Geometry Space"), ICON_NONE);
 
@@ -703,10 +779,14 @@ static void panelRegister(ARegionType *region_type)
 
   gpencil_modifier_subpanel_register(
       region_type, "edge_types", "Edge Types", NULL, edge_types_panel_draw, panel_type);
+  gpencil_modifier_subpanel_register(region_type,
+                                     "light_reference",
+                                     "Light Reference",
+                                     NULL,
+                                     options_light_reference_draw,
+                                     panel_type);
   gpencil_modifier_subpanel_register(
       region_type, "geometry", "Geometry Processing", NULL, options_panel_draw, panel_type);
-  gpencil_modifier_subpanel_register(
-      region_type, "style", "Style", NULL, style_panel_draw, panel_type);
   PanelType *occlusion_panel = gpencil_modifier_subpanel_register(
       region_type, "occlusion", "Occlusion", NULL, occlusion_panel_draw, panel_type);
   gpencil_modifier_subpanel_register(region_type,

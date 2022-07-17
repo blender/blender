@@ -39,8 +39,8 @@
 #include "ceres/cost_function.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/fixed_array.h"
-#include "ceres/local_parameterization.h"
 #include "ceres/loss_function.h"
+#include "ceres/manifold.h"
 #include "ceres/parameter_block.h"
 #include "ceres/residual_block_utils.h"
 #include "ceres/small_blas.h"
@@ -87,7 +87,7 @@ bool ResidualBlock::Evaluate(const bool apply_loss_function,
     for (int i = 0; i < num_parameter_blocks; ++i) {
       const ParameterBlock* parameter_block = parameter_blocks_[i];
       if (jacobians[i] != nullptr &&
-          parameter_block->LocalParameterizationJacobian() != nullptr) {
+          parameter_block->PlusJacobian() != nullptr) {
         global_jacobians[i] = scratch;
         scratch += num_residuals * parameter_block->Size();
       } else {
@@ -132,27 +132,27 @@ bool ResidualBlock::Evaluate(const bool apply_loss_function,
 
   double squared_norm = VectorRef(residuals, num_residuals).squaredNorm();
 
-  // Update the jacobians with the local parameterizations.
+  // Update the plus_jacobian for the manifolds.
   if (jacobians != nullptr) {
     for (int i = 0; i < num_parameter_blocks; ++i) {
       if (jacobians[i] != nullptr) {
         const ParameterBlock* parameter_block = parameter_blocks_[i];
 
-        // Apply local reparameterization to the jacobians.
-        if (parameter_block->LocalParameterizationJacobian() != nullptr) {
+        // Apply the Manifold::PlusJacobian to the ambient jacobians.
+        if (parameter_block->PlusJacobian() != nullptr) {
           // jacobians[i] = global_jacobians[i] * global_to_local_jacobian.
           MatrixMatrixMultiply<Dynamic, Dynamic, Dynamic, Dynamic, 0>(
               global_jacobians[i],
               num_residuals,
               parameter_block->Size(),
-              parameter_block->LocalParameterizationJacobian(),
+              parameter_block->PlusJacobian(),
               parameter_block->Size(),
-              parameter_block->LocalSize(),
+              parameter_block->TangentSize(),
               jacobians[i],
               0,
               0,
               num_residuals,
-              parameter_block->LocalSize());
+              parameter_block->TangentSize());
         }
       }
     }
@@ -183,7 +183,7 @@ bool ResidualBlock::Evaluate(const bool apply_loss_function,
 
         // Correct the jacobians for the loss function.
         correct.CorrectJacobian(num_residuals,
-                                parameter_block->LocalSize(),
+                                parameter_block->TangentSize(),
                                 residuals,
                                 jacobians[i]);
       }
@@ -199,16 +199,16 @@ bool ResidualBlock::Evaluate(const bool apply_loss_function,
 
 int ResidualBlock::NumScratchDoublesForEvaluate() const {
   // Compute the amount of scratch space needed to store the full-sized
-  // jacobians. For parameters that have no local parameterization  no storage
-  // is needed and the passed-in jacobian array is used directly. Also include
-  // space to store the residuals, which is needed for cost-only evaluations.
-  // This is slightly pessimistic, since both won't be needed all the time, but
-  // the amount of excess should not cause problems for the caller.
+  // jacobians. For parameters that have no manifold no storage is needed and
+  // the passed-in jacobian array is used directly. Also include space to store
+  // the residuals, which is needed for cost-only evaluations.  This is slightly
+  // pessimistic, since both won't be needed all the time, but the amount of
+  // excess should not cause problems for the caller.
   int num_parameters = NumParameterBlocks();
   int scratch_doubles = 1;
   for (int i = 0; i < num_parameters; ++i) {
     const ParameterBlock* parameter_block = parameter_blocks_[i];
-    if (parameter_block->LocalParameterizationJacobian() != nullptr) {
+    if (parameter_block->PlusJacobian() != nullptr) {
       scratch_doubles += parameter_block->Size();
     }
   }

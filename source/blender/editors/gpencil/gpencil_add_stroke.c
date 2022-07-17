@@ -211,8 +211,8 @@ void ED_gpencil_create_stroke(bContext *C, Object *ob, float mat[4][4])
   bGPDlayer *lines = BKE_gpencil_layer_addnew(gpd, "Lines", true, false);
 
   /* frames */
-  bGPDframe *frame_color = BKE_gpencil_frame_addnew(colors, CFRA);
-  bGPDframe *frame_lines = BKE_gpencil_frame_addnew(lines, CFRA);
+  bGPDframe *frame_color = BKE_gpencil_frame_addnew(colors, scene->r.cfra);
+  bGPDframe *frame_lines = BKE_gpencil_frame_addnew(lines, scene->r.cfra);
   UNUSED_VARS(frame_color);
 
   /* generate stroke */

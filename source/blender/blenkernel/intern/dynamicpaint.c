@@ -1607,7 +1607,6 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
     const MLoop *mloop = mesh->mloop;
     const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
     const int tottri = BKE_mesh_runtime_looptri_len(mesh);
-    const MLoopUV *mloopuv = NULL;
 
     char uvname[MAX_CUSTOMDATA_LAYER_NAME];
 
@@ -1617,7 +1616,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
 
     /* get uv map */
     CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, surface->init_layername, uvname);
-    mloopuv = CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uvname);
+    const MLoopUV *mloopuv = CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uvname);
     if (!mloopuv) {
       return;
     }
@@ -1675,7 +1674,7 @@ static void dynamicPaint_setInitialColor(const Scene *scene, DynamicPaintSurface
     }
     else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
       const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
-      MLoopCol *col = CustomData_get_layer_named(
+      const MLoopCol *col = CustomData_get_layer_named(
           &mesh->ldata, CD_PROP_BYTE_COLOR, surface->init_layername);
       if (!col) {
         return;
@@ -2025,13 +2024,13 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
             settings.use_threading = (sData->total_points > 1000);
             BLI_task_parallel_range(
                 0, sData->total_points, &data, dynamic_paint_apply_surface_wave_cb, &settings);
-            BKE_mesh_normals_tag_dirty(mesh);
+            BKE_mesh_tag_coords_changed(result);
           }
 
           /* displace */
           if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
             dynamicPaint_applySurfaceDisplace(surface, result);
-            BKE_mesh_normals_tag_dirty(mesh);
+            BKE_mesh_tag_coords_changed(result);
           }
         }
       }
@@ -2553,7 +2552,7 @@ static void dynamic_paint_find_island_border(const DynamicPaintCreateUVSurfaceDa
     const int vert1 = mloop[loop_idx[(edge_idx + 1) % 3]].v;
 
     /* Use a pre-computed vert-to-looptri mapping,
-     * speeds up things a lot compared to looping over all loopti. */
+     * speeds up things a lot compared to looping over all looptri. */
     const MeshElemMap *map = &bdata->vert_to_looptri_map[vert0];
 
     bool found_other = false;

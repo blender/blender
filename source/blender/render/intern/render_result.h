@@ -44,7 +44,7 @@ struct RenderResult *render_result_new(struct Render *re,
 void render_result_passes_allocated_ensure(struct RenderResult *rr);
 
 /**
- * From imbuf, if a handle was returned and
+ * From `imbuf`, if a handle was returned and
  * it's not a single-layer multi-view we convert this to render result.
  */
 struct RenderResult *render_result_new_from_exr(

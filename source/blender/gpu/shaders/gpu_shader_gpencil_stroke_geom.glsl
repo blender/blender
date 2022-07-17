@@ -1,20 +1,3 @@
-#ifndef USE_GPU_SHADER_CREATE_INFO
-uniform mat4 ModelViewProjectionMatrix;
-uniform vec2 Viewport;
-uniform int xraymode;
-uniform int caps_start;
-uniform int caps_end;
-uniform int fill_stroke;
-
-layout(lines_adjacency) in;
-layout(triangle_strip, max_vertices = 13) out;
-
-in vec4 finalColor[4];
-in float finalThickness[4];
-
-out vec4 mColor;
-out vec2 mTexCoord;
-#endif
 
 #define GP_XRAY_FRONT 0
 #define GP_XRAY_3DSPACE 1

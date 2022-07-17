@@ -311,6 +311,7 @@ static bool editstr_is_simple_numinput(const char ascii)
 bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 {
   const char *utf8_buf = NULL;
+  const char event_ascii = WM_event_utf8_to_ascii(event);
   char ascii[2] = {'\0', '\0'};
   bool updated = false;
   short idx = n->idx, idx_max = n->idx_max;
@@ -321,8 +322,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
   if (U.flag & USER_FLAG_NUMINPUT_ADVANCED)
 #endif
   {
-    if (((event->modifier & (KM_CTRL | KM_ALT)) == 0) && (event->ascii != '\0') &&
-        strchr("01234567890@%^&*-+/{}()[]<>.|", event->ascii)) {
+    if (((event->modifier & (KM_CTRL | KM_ALT)) == 0) && (event_ascii != '\0') &&
+        strchr("01234567890@%^&*-+/{}()[]<>.|", event_ascii)) {
       if (!(n->flag & NUM_EDIT_FULL)) {
         n->flag |= NUM_EDITED;
         n->flag |= NUM_EDIT_FULL;
@@ -333,7 +334,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 
 #ifdef USE_FAKE_EDIT
   /* XXX Hack around keyboards without direct access to '=' nor '*'... */
-  if (ELEM(event->ascii, '=', '*')) {
+  if (ELEM(event_ascii, '=', '*')) {
     if (!(n->flag & NUM_EDIT_FULL)) {
       n->flag |= NUM_EDIT_FULL;
       n->val_flag[idx] |= NUM_EDITED;
@@ -357,7 +358,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       else {
         /* might be a char too... */
         utf8_buf = event->utf8_buf;
-        ascii[0] = event->ascii;
+        ascii[0] = event_ascii;
       }
       break;
     case EVT_BACKSPACEKEY:
@@ -523,9 +524,9 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       break;
   }
 
-  if (!updated && !utf8_buf && (event->utf8_buf[0] || event->ascii)) {
+  if (!updated && !utf8_buf && event->utf8_buf[0]) {
     utf8_buf = event->utf8_buf;
-    ascii[0] = event->ascii;
+    ascii[0] = event_ascii;
   }
 
   /* Up to this point, if we have a ctrl modifier, skip.

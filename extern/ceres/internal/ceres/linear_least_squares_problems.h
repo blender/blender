@@ -35,7 +35,8 @@
 #include <string>
 #include <vector>
 
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 #include "ceres/sparse_matrix.h"
 
 namespace ceres {
@@ -43,15 +44,15 @@ namespace internal {
 
 // Structure defining a linear least squares problem and if possible
 // ground truth solutions. To be used by various LinearSolver tests.
-struct CERES_EXPORT_INTERNAL LinearLeastSquaresProblem {
-  LinearLeastSquaresProblem() : num_eliminate_blocks(0) {}
+struct CERES_NO_EXPORT LinearLeastSquaresProblem {
+  LinearLeastSquaresProblem() = default;
 
   std::unique_ptr<SparseMatrix> A;
   std::unique_ptr<double[]> b;
   std::unique_ptr<double[]> D;
   // If using the schur eliminator then how many of the variable
   // blocks are e_type blocks.
-  int num_eliminate_blocks;
+  int num_eliminate_blocks{0};
 
   // Solution to min_x |Ax - b|^2
   std::unique_ptr<double[]> x;
@@ -60,17 +61,23 @@ struct CERES_EXPORT_INTERNAL LinearLeastSquaresProblem {
 };
 
 // Factories for linear least squares problem.
-CERES_EXPORT_INTERNAL LinearLeastSquaresProblem*
+CERES_NO_EXPORT std::unique_ptr<LinearLeastSquaresProblem>
 CreateLinearLeastSquaresProblemFromId(int id);
 
-LinearLeastSquaresProblem* LinearLeastSquaresProblem0();
-LinearLeastSquaresProblem* LinearLeastSquaresProblem1();
-LinearLeastSquaresProblem* LinearLeastSquaresProblem2();
-LinearLeastSquaresProblem* LinearLeastSquaresProblem3();
-LinearLeastSquaresProblem* LinearLeastSquaresProblem4();
+CERES_NO_EXPORT
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem0();
+CERES_NO_EXPORT
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem1();
+CERES_NO_EXPORT
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem2();
+CERES_NO_EXPORT
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem3();
+CERES_NO_EXPORT
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem4();
 
 // Write the linear least squares problem to disk. The exact format
 // depends on dump_format_type.
+CERES_NO_EXPORT
 bool DumpLinearLeastSquaresProblem(const std::string& filename_base,
                                    DumpFormatType dump_format_type,
                                    const SparseMatrix* A,
@@ -80,5 +87,7 @@ bool DumpLinearLeastSquaresProblem(const std::string& filename_base,
                                    int num_eliminate_blocks);
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_LINEAR_LEAST_SQUARES_PROBLEMS_H_

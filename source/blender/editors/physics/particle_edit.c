@@ -32,6 +32,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -1512,7 +1513,7 @@ static void PE_update_selection(Depsgraph *depsgraph, Scene *scene, Object *ob, 
     }
   }
 
-  psys_cache_edit_paths(depsgraph, scene, ob, edit, CFRA, G.is_rendering);
+  psys_cache_edit_paths(depsgraph, scene, ob, edit, scene->r.cfra, G.is_rendering);
 
   /* disable update flag */
   LOOP_POINTS {
@@ -1647,11 +1648,11 @@ void PE_update_object(Depsgraph *depsgraph, Scene *scene, Object *ob, int usefla
    * and flagging with PEK_HIDE will prevent selection. This might get restored once this is
    * supported in drawing (but doesn't make much sense for hair anyways). */
   if (edit->psys && edit->psys->part->type == PART_EMITTER) {
-    PE_hide_keys_time(scene, edit, CFRA);
+    PE_hide_keys_time(scene, edit, scene->r.cfra);
   }
 
   /* regenerate path caches */
-  psys_cache_edit_paths(depsgraph, scene, ob, edit, CFRA, G.is_rendering);
+  psys_cache_edit_paths(depsgraph, scene, ob, edit, scene->r.cfra, G.is_rendering);
 
   /* disable update flag */
   LOOP_POINTS {

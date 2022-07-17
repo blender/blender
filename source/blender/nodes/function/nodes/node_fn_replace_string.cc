@@ -15,19 +15,17 @@ static void fn_node_replace_string_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::String>(N_("String"));
 }
 
-static std::string replace_all(std::string str, const std::string &from, const std::string &to)
+static std::string replace_all(const StringRefNull str,
+                               const StringRefNull from,
+                               const StringRefNull to)
 {
-  if (from.length() <= 0) {
+  if (from.is_empty()) {
     return str;
   }
-  const size_t step = to.length() > 0 ? to.length() : 1;
-
-  size_t offset = 0;
-  while ((offset = str.find(from, offset)) != std::string::npos) {
-    str.replace(offset, from.length(), to);
-    offset += step;
-  }
-  return str;
+  char *new_str_ptr = BLI_str_replaceN(str.c_str(), from.c_str(), to.c_str());
+  std::string new_str{new_str_ptr};
+  MEM_freeN(new_str_ptr);
+  return new_str;
 }
 
 static void fn_node_replace_string_build_multi_function(NodeMultiFunctionBuilder &builder)

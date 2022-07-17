@@ -46,8 +46,8 @@ void ED_image_draw_cursor(ARegion *region, const float cursor[2])
   immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
 
   immUniform1i("colors_len", 2); /* "advanced" mode */
-  immUniformArray4fv(
-      "colors", (float *)(float[][4]){{1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
+  immUniform4f("color", 1.0f, 0.0f, 0.0f, 1.0f);
+  immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f);
   immUniform1f("dash_width", 8.0f);
   immUniform1f("dash_factor", 0.5f);
 
@@ -67,8 +67,8 @@ void ED_image_draw_cursor(ARegion *region, const float cursor[2])
 
   immEnd();
 
-  immUniformArray4fv(
-      "colors", (float *)(float[][4]){{1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, 2);
+  immUniform4f("color", 1.0f, 1.0f, 1.0f, 1.0f);
+  immUniform4f("color2", 0.0f, 0.0f, 0.0f, 1.0f);
   immUniform1f("dash_width", 2.0f);
   immUniform1f("dash_factor", 0.5f);
 

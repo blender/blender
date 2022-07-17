@@ -5,7 +5,7 @@
  * \ingroup draw
  */
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -19,7 +19,7 @@ struct SkinRootData {
 };
 
 static void extract_skin_roots_init(const MeshRenderData *mr,
-                                    struct MeshBatchCache *UNUSED(cache),
+                                    MeshBatchCache *UNUSED(cache),
                                     void *buf,
                                     void *UNUSED(tls_data))
 {
@@ -72,6 +72,4 @@ constexpr MeshExtract create_extractor_skin_roots()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_skin_roots = blender::draw::create_extractor_skin_roots();
-}

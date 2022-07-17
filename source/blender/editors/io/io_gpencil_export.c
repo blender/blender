@@ -5,36 +5,38 @@
  * \ingroup editor/io
  */
 
-#include "BLI_path_util.h"
-#include "BLI_string.h"
+#ifdef WITH_IO_GPENCIL
 
-#include "DNA_gpencil_types.h"
-#include "DNA_space_types.h"
+#  include "BLI_path_util.h"
+#  include "BLI_string.h"
 
-#include "BKE_gpencil.h"
-#include "BKE_main.h"
-#include "BKE_report.h"
-#include "BKE_screen.h"
+#  include "DNA_gpencil_types.h"
+#  include "DNA_space_types.h"
 
-#include "BLT_translation.h"
+#  include "BKE_gpencil.h"
+#  include "BKE_main.h"
+#  include "BKE_report.h"
+#  include "BKE_screen.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#  include "BLT_translation.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#  include "RNA_access.h"
+#  include "RNA_define.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#  include "UI_interface.h"
+#  include "UI_resources.h"
 
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
+#  include "WM_api.h"
+#  include "WM_types.h"
 
-#include "io_gpencil.h"
+#  include "DEG_depsgraph.h"
+#  include "DEG_depsgraph_query.h"
 
-#include "gpencil_io.h"
+#  include "io_gpencil.h"
 
-#if defined(WITH_PUGIXML) || defined(WITH_HARU)
+#  include "gpencil_io.h"
+
+#  if defined(WITH_PUGIXML) || defined(WITH_HARU)
 /* Definition of enum elements to export. */
 /* Common props for exporting. */
 static void gpencil_export_common_props_definition(wmOperatorType *ot)
@@ -87,10 +89,10 @@ static void set_export_filepath(bContext *C, wmOperator *op, const char *extensi
     RNA_string_set(op->ptr, "filepath", filepath);
   }
 }
-#endif
+#  endif
 
 /* <-------- SVG single frame export. --------> */
-#ifdef WITH_PUGIXML
+#  ifdef WITH_PUGIXML
 static bool wm_gpencil_export_svg_common_check(bContext *UNUSED(C), wmOperator *op)
 {
   char filepath[FILE_MAX];
@@ -151,9 +153,9 @@ static int wm_gpencil_export_svg_exec(bContext *C, wmOperator *op)
                             .v3d = v3d,
                             .ob = ob,
                             .mode = GP_EXPORT_TO_SVG,
-                            .frame_start = CFRA,
-                            .frame_end = CFRA,
-                            .frame_cur = CFRA,
+                            .frame_start = scene->r.cfra,
+                            .frame_end = scene->r.cfra,
+                            .frame_cur = scene->r.cfra,
                             .flag = flag,
                             .scale = 1.0f,
                             .select_mode = select_mode,
@@ -241,10 +243,10 @@ void WM_OT_gpencil_export_svg(wmOperatorType *ot)
                   "Clip Camera",
                   "Clip drawings to camera size when export in camera view");
 }
-#endif
+#  endif
 
 /* <-------- PDF single frame export. --------> */
-#ifdef WITH_HARU
+#  ifdef WITH_HARU
 static bool wm_gpencil_export_pdf_common_check(bContext *UNUSED(C), wmOperator *op)
 {
 
@@ -304,9 +306,9 @@ static int wm_gpencil_export_pdf_exec(bContext *C, wmOperator *op)
                             .v3d = v3d,
                             .ob = ob,
                             .mode = GP_EXPORT_TO_PDF,
-                            .frame_start = SFRA,
-                            .frame_end = EFRA,
-                            .frame_cur = CFRA,
+                            .frame_start = scene->r.sfra,
+                            .frame_end = scene->r.efra,
+                            .frame_cur = scene->r.cfra,
                             .flag = flag,
                             .scale = 1.0f,
                             .select_mode = select_mode,
@@ -406,4 +408,6 @@ void WM_OT_gpencil_export_pdf(wmOperatorType *ot)
                           "Frames",
                           "Which frames to include in the export");
 }
-#endif
+#  endif /* WITH_HARU */
+
+#endif /* WITH_IO_GPENCIL */

@@ -455,7 +455,10 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     if (flip_map) {
       for (i = 0; i < maxVerts; dvert++, i++) {
         /* merged vertices get both groups, others get flipped */
-        if (do_vtargetmap && (vtargetmap[i] != -1)) {
+        if (use_correct_order_on_merge && do_vtargetmap && (vtargetmap[i + maxVerts] != -1)) {
+          BKE_defvert_flip_merged(dvert - maxVerts, flip_map, flip_map_len);
+        }
+        else if (!use_correct_order_on_merge && do_vtargetmap && (vtargetmap[i] != -1)) {
           BKE_defvert_flip_merged(dvert, flip_map, flip_map_len);
         }
         else {

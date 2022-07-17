@@ -396,6 +396,8 @@ bool GLComputeEvaluator::EvalStencils(GLuint srcBuffer,
   if (dvvWeightsBuffer)
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 15, dvvWeightsBuffer);
 
+  GLint activeProgram;
+  glGetIntegerv(GL_CURRENT_PROGRAM, &activeProgram);
   glUseProgram(_stencilKernel.program);
 
   glUniform1i(_stencilKernel.uniformStart, start);
@@ -420,7 +422,7 @@ bool GLComputeEvaluator::EvalStencils(GLuint srcBuffer,
 
   DispatchCompute(count);
 
-  glUseProgram(0);
+  glUseProgram(activeProgram);
 
   glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT);
   for (int i = 0; i < 16; ++i) {
@@ -501,6 +503,8 @@ bool GLComputeEvaluator::EvalPatches(GLuint srcBuffer,
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, patchIndexBuffer);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, patchParamsBuffer);
 
+  GLint activeProgram;
+  glGetIntegerv(GL_CURRENT_PROGRAM, &activeProgram);
   glUseProgram(_patchKernel.program);
 
   glUniform1i(_patchKernel.uniformSrcOffset, srcDesc.offset);
@@ -534,7 +538,7 @@ bool GLComputeEvaluator::EvalPatches(GLuint srcBuffer,
 
   DispatchCompute(numPatchCoords);
 
-  glUseProgram(0);
+  glUseProgram(activeProgram);
 
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, 0);

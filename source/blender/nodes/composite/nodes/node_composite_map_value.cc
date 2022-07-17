@@ -5,6 +5,8 @@
  * \ingroup cmpnodes
  */
 
+#include "BKE_texture.h"
+
 #include "RNA_access.h"
 
 #include "UI_interface.h"

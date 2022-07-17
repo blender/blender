@@ -1143,7 +1143,7 @@ void axis_angle_to_mat3_single(float R[3][3], const char axis, const float angle
       R[2][2] = 1.0f;
       break;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
 }

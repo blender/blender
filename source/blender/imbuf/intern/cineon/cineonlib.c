@@ -35,7 +35,7 @@ void cineonSetVerbose(int verbosity)
 
 static void fillCineonMainHeader(LogImageFile *cineon,
                                  CineonMainHeader *header,
-                                 const char *filename,
+                                 const char *filepath,
                                  const char *creator)
 {
   time_t fileClock;
@@ -57,7 +57,7 @@ static void fillCineonMainHeader(LogImageFile *cineon,
                                                    getRowLength(cineon->width, cineon->element[0]),
                                            cineon->isMSB);
   strcpy(header->fileHeader.version, "v4.5");
-  strncpy(header->fileHeader.file_name, filename, 99);
+  strncpy(header->fileHeader.file_name, filepath, 99);
   header->fileHeader.file_name[99] = 0;
   fileClock = time(NULL);
   fileTime = localtime(&fileClock);
@@ -126,7 +126,7 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 {
   CineonMainHeader header;
   LogImageFile *cineon = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
-  const char *filename = (const char *)byteStuff;
+  const char *filepath = (const char *)byteStuff;
   int i;
   unsigned int dataOffset;
 
@@ -144,11 +144,11 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
   cineon->file = NULL;
 
   if (fromMemory == 0) {
-    /* byteStuff is then the filename */
-    cineon->file = BLI_fopen(filename, "rb");
+    /* byteStuff is then the filepath */
+    cineon->file = BLI_fopen(filepath, "rb");
     if (cineon->file == NULL) {
       if (verbose) {
-        printf("Cineon: Failed to open file \"%s\".\n", filename);
+        printf("Cineon: Failed to open file \"%s\".\n", filepath);
       }
       logImageClose(cineon);
       return NULL;
@@ -350,7 +350,7 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 }
 
 LogImageFile *cineonCreate(
-    const char *filename, int width, int height, int bitsPerSample, const char *creator)
+    const char *filepath, int width, int height, int bitsPerSample, const char *creator)
 {
   CineonMainHeader header;
   const char *shortFilename = NULL;
@@ -393,18 +393,18 @@ LogImageFile *cineonCreate(
   cineon->referenceBlack = 95.0f;
   cineon->gamma = 1.7f;
 
-  shortFilename = strrchr(filename, '/');
+  shortFilename = strrchr(filepath, PATHSEP_CHAR);
   if (shortFilename == NULL) {
-    shortFilename = filename;
+    shortFilename = filepath;
   }
   else {
     shortFilename++;
   }
 
-  cineon->file = BLI_fopen(filename, "wb");
+  cineon->file = BLI_fopen(filepath, "wb");
   if (cineon->file == NULL) {
     if (verbose) {
-      printf("cineon: Couldn't open file %s\n", filename);
+      printf("cineon: Couldn't open file %s\n", filepath);
     }
     logImageClose(cineon);
     return NULL;

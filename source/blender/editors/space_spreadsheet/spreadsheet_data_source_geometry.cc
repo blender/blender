@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_index_mask_ops.hh"
 #include "BLI_virtual_array.hh"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_geometry_fields.hh"
@@ -64,7 +66,12 @@ std::unique_ptr<ColumnValues> ExtraColumns::get_column_values(
 void GeometryDataSource::foreach_default_column_ids(
     FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
 {
-  if (component_->attribute_domain_size(domain_) == 0) {
+  if (!component_->attributes().has_value()) {
+    return;
+  }
+  const bke::AttributeAccessor attributes = *component_->attributes();
+
+  if (attributes.domain_size(domain_) == 0) {
     return;
   }
 
@@ -73,12 +80,16 @@ void GeometryDataSource::foreach_default_column_ids(
   }
 
   extra_columns_.foreach_default_column_ids(fn);
-  component_->attribute_foreach(
-      [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+
+  attributes.for_all(
+      [&](const bke::AttributeIDRef &attribute_id, const bke::AttributeMetaData &meta_data) {
         if (meta_data.domain != domain_) {
           return true;
         }
         if (attribute_id.is_anonymous()) {
+          return true;
+        }
+        if (!bke::allow_procedural_attribute_access(attribute_id.name())) {
           return true;
         }
         SpreadsheetColumnID column_id;
@@ -110,8 +121,12 @@ void GeometryDataSource::foreach_default_column_ids(
 std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     const SpreadsheetColumnID &column_id) const
 {
-  const int domain_size = component_->attribute_domain_size(domain_);
-  if (domain_size == 0) {
+  if (!component_->attributes().has_value()) {
+    return {};
+  }
+  const bke::AttributeAccessor attributes = *component_->attributes();
+  const int domain_num = attributes.domain_size(domain_);
+  if (domain_num == 0) {
     return {};
   }
 
@@ -129,7 +144,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       Span<InstanceReference> references = instances.references();
       return std::make_unique<ColumnValues>(
           column_id.name,
-          VArray<InstanceReference>::ForFunc(domain_size,
+          VArray<InstanceReference>::ForFunc(domain_num,
                                              [reference_handles, references](int64_t index) {
                                                return references[reference_handles[index]];
                                              }));
@@ -137,13 +152,13 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     Span<float4x4> transforms = instances.instance_transforms();
     if (STREQ(column_id.name, "Rotation")) {
       return std::make_unique<ColumnValues>(
-          column_id.name, VArray<float3>::ForFunc(domain_size, [transforms](int64_t index) {
+          column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
             return transforms[index].to_euler();
           }));
     }
     if (STREQ(column_id.name, "Scale")) {
       return std::make_unique<ColumnValues>(
-          column_id.name, VArray<float3>::ForFunc(domain_size, [transforms](int64_t index) {
+          column_id.name, VArray<float3>::ForFunc(domain_num, [transforms](int64_t index) {
             return transforms[index].scale();
           }));
     }
@@ -196,7 +211,7 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     }
   }
 
-  bke::ReadAttributeLookup attribute = component_->attribute_try_get_for_read(column_id.name);
+  bke::GAttributeReader attribute = attributes.lookup(column_id.name);
   if (!attribute) {
     return {};
   }
@@ -210,7 +225,11 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
 
 int GeometryDataSource::tot_rows() const
 {
-  return component_->attribute_domain_size(domain_);
+  if (!component_->attributes().has_value()) {
+    return {};
+  }
+  const bke::AttributeAccessor attributes = *component_->attributes();
+  return attributes.domain_size(domain_);
 }
 
 /**
@@ -232,20 +251,10 @@ bool GeometryDataSource::has_selection_filter() const
   return true;
 }
 
-static IndexMask index_mask_from_bool_array(const VArray<bool> &selection,
-                                            Vector<int64_t> &indices)
-{
-  for (const int i : selection.index_range()) {
-    if (selection[i]) {
-      indices.append(i);
-    }
-  }
-  return IndexMask(indices);
-}
-
 IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) const
 {
   std::lock_guard lock{mutex_};
+  const IndexMask full_range(this->tot_rows());
 
   BLI_assert(object_eval_->mode == OB_MODE_EDIT);
   BLI_assert(component_->type() == GEO_COMPONENT_TYPE_MESH);
@@ -256,10 +265,10 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
   BMesh *bm = mesh_orig->edit_mesh->bm;
   BM_mesh_elem_table_ensure(bm, BM_VERT);
 
-  int *orig_indices = (int *)CustomData_get_layer(&mesh_eval->vdata, CD_ORIGINDEX);
+  const int *orig_indices = (int *)CustomData_get_layer(&mesh_eval->vdata, CD_ORIGINDEX);
   if (orig_indices != nullptr) {
     /* Use CD_ORIGINDEX layer if it exists. */
-    VArray<bool> selection = mesh_component->attribute_try_adapt_domain<bool>(
+    VArray<bool> selection = mesh_component->attributes()->adapt_domain<bool>(
         VArray<bool>::ForFunc(mesh_eval->totvert,
                               [bm, orig_indices](int vertex_index) -> bool {
                                 const int i_orig = orig_indices[vertex_index];
@@ -274,12 +283,12 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
                               }),
         ATTR_DOMAIN_POINT,
         domain_);
-    return index_mask_from_bool_array(selection, indices);
+    return index_mask_ops::find_indices_from_virtual_array(full_range, selection, 1024, indices);
   }
 
   if (mesh_eval->totvert == bm->totvert) {
     /* Use a simple heuristic to match original vertices to evaluated ones. */
-    VArray<bool> selection = mesh_component->attribute_try_adapt_domain<bool>(
+    VArray<bool> selection = mesh_component->attributes()->adapt_domain<bool>(
         VArray<bool>::ForFunc(mesh_eval->totvert,
                               [bm](int vertex_index) -> bool {
                                 BMVert *vert = bm->vtable[vertex_index];
@@ -287,10 +296,10 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
                               }),
         ATTR_DOMAIN_POINT,
         domain_);
-    return index_mask_from_bool_array(selection, indices);
+    return index_mask_ops::find_indices_from_virtual_array(full_range, selection, 2048, indices);
   }
 
-  return IndexMask(mesh_eval->totvert);
+  return full_range;
 }
 
 void VolumeDataSource::foreach_default_column_ids(
@@ -395,6 +404,11 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
           geometry_set.get_component_for_write<PointCloudComponent>();
       pointcloud_component.replace(pointcloud, GeometryOwnershipType::ReadOnly);
     }
+    else if (object_orig->type == OB_CURVES) {
+      const Curves &curves_id = *(const Curves *)object_orig->data;
+      CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
+      curve_component.replace(&const_cast<Curves &>(curves_id), GeometryOwnershipType::ReadOnly);
+    }
   }
   else {
     if (object_eval->mode == OB_MODE_EDIT && object_eval->type == OB_MESH) {
@@ -469,18 +483,6 @@ static void find_fields_to_evaluate(const SpaceSpreadsheet *sspreadsheet,
   }
 }
 
-static GeometryComponentType get_display_component_type(const bContext *C, Object *object_eval)
-{
-  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  if (sspreadsheet->object_eval_state != SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
-    return (GeometryComponentType)sspreadsheet->geometry_component_type;
-  }
-  if (object_eval->type == OB_POINTCLOUD) {
-    return GEO_COMPONENT_TYPE_POINT_CLOUD;
-  }
-  return GEO_COMPONENT_TYPE_MESH;
-}
-
 class GeometryComponentCacheKey : public SpreadsheetCache::Key {
  public:
   /* Use the pointer to the geometry component as a key to detect when the geometry changed. */
@@ -509,7 +511,7 @@ class GeometryComponentCacheValue : public SpreadsheetCache::Value {
  public:
   /* Stores the result of fields evaluated on a geometry component. Without this, fields would have
    * to be reevaluated on every redraw. */
-  Map<std::pair<AttributeDomain, GField>, GArray<>> arrays;
+  Map<std::pair<eAttrDomain, GField>, GArray<>> arrays;
 };
 
 static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
@@ -523,34 +525,34 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
       sspreadsheet->runtime->cache.lookup_or_add<GeometryComponentCacheValue>(
           std::make_unique<GeometryComponentCacheKey>(component));
 
-  const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
-  const int domain_size = component.attribute_domain_size(domain);
+  const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
+  const int domain_num = component.attributes()->domain_size(domain);
   for (const auto item : fields_to_show.items()) {
-    StringRef name = item.key;
+    const StringRef name = item.key;
     const GField &field = item.value;
 
     /* Use the cached evaluated array if it exists, otherwise evaluate the field now. */
     GArray<> &evaluated_array = cache.arrays.lookup_or_add_cb({domain, field}, [&]() {
-      GArray<> evaluated_array(field.cpp_type(), domain_size);
+      GArray<> evaluated_array(field.cpp_type(), domain_num);
 
       bke::GeometryComponentFieldContext field_context{component, domain};
-      fn::FieldEvaluator field_evaluator{field_context, domain_size};
+      fn::FieldEvaluator field_evaluator{field_context, domain_num};
       field_evaluator.add_with_destination(field, evaluated_array);
       field_evaluator.evaluate();
       return evaluated_array;
     });
 
-    r_extra_columns.add(std::move(name), evaluated_array.as_span());
+    r_extra_columns.add(name, evaluated_array.as_span());
   }
 }
 
 std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object *object_eval)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  const AttributeDomain domain = (AttributeDomain)sspreadsheet->attribute_domain;
-  const GeometryComponentType component_type = get_display_component_type(C, object_eval);
+  const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
+  const GeometryComponentType component_type = GeometryComponentType(
+      sspreadsheet->geometry_component_type);
   GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);
-
   if (!geometry_set.has(component_type)) {
     return {};
   }
@@ -560,10 +562,10 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   add_fields_as_extra_columns(sspreadsheet, component, extra_columns);
 
   if (component_type == GEO_COMPONENT_TYPE_VOLUME) {
-    return std::make_unique<VolumeDataSource>(geometry_set);
+    return std::make_unique<VolumeDataSource>(std::move(geometry_set));
   }
   return std::make_unique<GeometryDataSource>(
-      object_eval, geometry_set, component_type, domain, std::move(extra_columns));
+      object_eval, std::move(geometry_set), component_type, domain, std::move(extra_columns));
 }
 
 }  // namespace blender::ed::spreadsheet

@@ -36,6 +36,7 @@
 
 #include <cstddef>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -45,7 +46,8 @@
 #include "ceres/context_impl.h"
 #include "ceres/dense_sparse_matrix.h"
 #include "ceres/execution_summary.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
@@ -101,7 +103,7 @@ class LinearOperator;
 // The Options struct configures the LinearSolver object for its
 // lifetime. The PerSolveOptions struct is used to specify options for
 // a particular Solve call.
-class CERES_EXPORT_INTERNAL LinearSolver {
+class CERES_NO_EXPORT LinearSolver {
  public:
   struct Options {
     LinearSolverType type = SPARSE_NORMAL_CHOLESKY;
@@ -284,11 +286,11 @@ class CERES_EXPORT_INTERNAL LinearSolver {
   // issues. Further, this calls are not expected to be frequent or
   // performance sensitive.
   virtual std::map<std::string, CallStatistics> Statistics() const {
-    return std::map<std::string, CallStatistics>();
+    return {};
   }
 
   // Factory
-  static LinearSolver* Create(const Options& options);
+  static std::unique_ptr<LinearSolver> Create(const Options& options);
 };
 
 // This templated subclass of LinearSolver serves as a base class for
@@ -301,12 +303,11 @@ class CERES_EXPORT_INTERNAL LinearSolver {
 template <typename MatrixType>
 class TypedLinearSolver : public LinearSolver {
  public:
-  virtual ~TypedLinearSolver() {}
-  virtual LinearSolver::Summary Solve(
+  LinearSolver::Summary Solve(
       LinearOperator* A,
       const double* b,
       const LinearSolver::PerSolveOptions& per_solve_options,
-      double* x) {
+      double* x) override {
     ScopedExecutionTimer total_time("LinearSolver::Solve", &execution_summary_);
     CHECK(A != nullptr);
     CHECK(b != nullptr);
@@ -314,7 +315,7 @@ class TypedLinearSolver : public LinearSolver {
     return SolveImpl(down_cast<MatrixType*>(A), b, per_solve_options, x);
   }
 
-  virtual std::map<std::string, CallStatistics> Statistics() const {
+  std::map<std::string, CallStatistics> Statistics() const override {
     return execution_summary_.statistics();
   }
 
@@ -339,5 +340,7 @@ typedef TypedLinearSolver<TripletSparseMatrix>       TripletSparseMatrixSolver; 
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_LINEAR_SOLVER_H_

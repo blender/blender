@@ -51,6 +51,7 @@ class VDBImageLoader : public ImageLoader {
 #endif
 #ifdef WITH_NANOVDB
   nanovdb::GridHandle<> nanogrid;
+  int precision = 0;
 #endif
 };
 

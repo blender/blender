@@ -318,7 +318,7 @@ TEST_F(AssetCatalogTest, load_catalog_path_backslashes)
   const AssetCatalog *found_by_id = service.find_catalog(UUID_POSES_ELLIE_BACKSLASHES);
   ASSERT_NE(nullptr, found_by_id);
   EXPECT_EQ(AssetCatalogPath("character/Ellie/backslashes"), found_by_id->path)
-      << "Backslashes should be normalised when loading from disk.";
+      << "Backslashes should be normalized when loading from disk.";
   EXPECT_EQ(StringRefNull("Windows For Life!"), found_by_id->simple_name);
 
   const AssetCatalog *found_by_path = service.find_catalog_by_path("character/Ellie/backslashes");

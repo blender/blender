@@ -5,7 +5,7 @@
 #pragma BLENDER_REQUIRE(closure_eval_translucent_lib.glsl)
 #pragma BLENDER_REQUIRE(renderpass_lib.glsl)
 
-#ifdef USE_SHADER_TO_RGBA
+#if defined(USE_SHADER_TO_RGBA) || defined(USE_ALPHA_BLEND)
 bool do_sss = false;
 bool do_ssr = false;
 #else
@@ -181,6 +181,8 @@ Closure closure_eval(ClosureDiffuse diffuse, ClosureReflection reflection)
   /* Glue with the old system. */
   CLOSURE_VARS_DECLARE_2(Diffuse, Glossy);
 
+  /* WORKAROUND: This is to avoid regression in 3.2 and avoid messing with EEVEE-Next. */
+  in_common.occlusion = (diffuse.sss_radius.g == -1.0) ? diffuse.sss_radius.r : 1.0;
   in_Diffuse_0.N = diffuse.N;
   in_Diffuse_0.albedo = diffuse.color;
   in_Glossy_1.N = reflection.N;
@@ -207,6 +209,8 @@ Closure closure_eval(ClosureDiffuse diffuse,
   /* Glue with the old system. */
   CLOSURE_VARS_DECLARE_3(Diffuse, Glossy, Glossy);
 
+  /* WORKAROUND: This is to avoid regression in 3.2 and avoid messing with EEVEE-Next. */
+  in_common.occlusion = (diffuse.sss_radius.g == -1.0) ? diffuse.sss_radius.r : 1.0;
   in_Diffuse_0.N = diffuse.N;
   in_Diffuse_0.albedo = diffuse.color;
   in_Glossy_1.N = reflection.N;
@@ -309,16 +313,19 @@ vec4 closure_to_rgba(Closure closure)
   return vec4(closure.radiance, 1.0 - saturate(avg(closure.transmittance)));
 }
 
-Closure closure_add(Closure cl1, Closure cl2)
+Closure closure_add(inout Closure cl1, inout Closure cl2)
 {
   Closure cl;
   cl.radiance = cl1.radiance + cl2.radiance;
   cl.transmittance = cl1.transmittance + cl2.transmittance;
   cl.holdout = cl1.holdout + cl2.holdout;
+  /* Make sure each closure is only added once to the result. */
+  cl1 = CLOSURE_DEFAULT;
+  cl2 = CLOSURE_DEFAULT;
   return cl;
 }
 
-Closure closure_mix(Closure cl1, Closure cl2, float fac)
+Closure closure_mix(inout Closure cl1, inout Closure cl2, float fac)
 {
   /* Weights have already been applied. */
   return closure_add(cl1, cl2);

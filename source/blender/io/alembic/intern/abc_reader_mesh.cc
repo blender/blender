@@ -77,10 +77,8 @@ static void assign_materials(Main *bmain,
                              const std::map<std::string, int> &mat_index_map)
 {
   std::map<std::string, int>::const_iterator it;
-  for (it = mat_index_map.begin(); it != mat_index_map.end(); ++it) {
-    if (!BKE_object_material_slot_add(bmain, ob)) {
-      return;
-    }
+  if (mat_index_map.size() > MAXMAT) {
+    return;
   }
 
   std::map<std::string, Material *> matname_to_material = build_material_map(bmain);
@@ -100,7 +98,7 @@ static void assign_materials(Main *bmain,
       assigned_mat = mat_iter->second;
     }
 
-    BKE_object_material_assign(bmain, ob, assigned_mat, mat_index, BKE_MAT_ASSIGN_OBDATA);
+    BKE_object_material_assign_single_obdata(bmain, ob, assigned_mat, mat_index);
   }
 }
 
@@ -376,26 +374,23 @@ BLI_INLINE void read_uvs_params(CDStreamConfig &config,
 
 static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
 {
-  CustomDataType cd_data_type = static_cast<CustomDataType>(data_type);
-  void *cd_ptr;
-  CustomData *loopdata;
-  int numloops;
+  eCustomDataType cd_data_type = static_cast<eCustomDataType>(data_type);
 
   /* unsupported custom data type -- don't do anything. */
   if (!ELEM(cd_data_type, CD_MLOOPUV, CD_PROP_BYTE_COLOR)) {
     return nullptr;
   }
 
-  loopdata = &mesh->ldata;
-  cd_ptr = CustomData_get_layer_named(loopdata, cd_data_type, name);
+  void *cd_ptr = CustomData_get_layer_named(&mesh->ldata, cd_data_type, name);
   if (cd_ptr != nullptr) {
     /* layer already exists, so just return it. */
     return cd_ptr;
   }
 
   /* Create a new layer. */
-  numloops = mesh->totloop;
-  cd_ptr = CustomData_add_layer_named(loopdata, cd_data_type, CD_DEFAULT, nullptr, numloops, name);
+  int numloops = mesh->totloop;
+  cd_ptr = CustomData_add_layer_named(
+      &mesh->ldata, cd_data_type, CD_DEFAULT, nullptr, numloops, name);
   return cd_ptr;
 }
 
@@ -622,7 +617,7 @@ void AbcMeshReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
   if (read_mesh != mesh) {
     /* XXX FIXME: after 2.80; mesh->flag isn't copied by #BKE_mesh_nomain_to_mesh(). */
     /* read_mesh can be freed by BKE_mesh_nomain_to_mesh(), so get the flag before that happens. */
-    short autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
+    uint16_t autosmooth = (read_mesh->flag & ME_AUTOSMOOTH);
     BKE_mesh_nomain_to_mesh(read_mesh, mesh, m_object, &CD_MASK_EVERYTHING, true);
     mesh->flag |= autosmooth;
   }

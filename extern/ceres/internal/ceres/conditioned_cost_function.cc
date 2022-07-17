@@ -98,7 +98,7 @@ bool ConditionedCostFunction::Evaluate(double const* const* parameters,
       double** conditioner_derivative_pointer2 =
           &conditioner_derivative_pointer;
       if (!jacobians) {
-        conditioner_derivative_pointer2 = NULL;
+        conditioner_derivative_pointer2 = nullptr;
       }
 
       double unconditioned_residual = residuals[r];

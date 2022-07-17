@@ -57,7 +57,7 @@ typedef struct uiFontStyle {
   /** Saved in file, 0 is default. */
   short uifont_id;
   char _pad1[2];
-  /** Actual size depends on 'global' dpi. */
+  /** Actual size depends on 'global' DPI. */
   float points;
   /** Style hint. */
   short italic, bold;
@@ -146,6 +146,7 @@ typedef struct ThemeUI {
   uiWidgetColors wcol_num, wcol_numslider, wcol_tab;
   uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item, wcol_tooltip;
   uiWidgetColors wcol_box, wcol_scroll, wcol_progress, wcol_list_item, wcol_pie_menu;
+  uiWidgetColors wcol_view_item;
 
   uiWidgetStateColors wcol_state;
 
@@ -314,7 +315,7 @@ typedef struct ThemeSpace {
   char _pad5[3];
   float dash_alpha;
 
-  /* syntax for textwindow and nodes */
+  /* Syntax for text-window and nodes. */
   unsigned char syntaxl[4], syntaxs[4]; /* in nodespace used for backdrop matte */
   unsigned char syntaxb[4], syntaxn[4]; /* in nodespace used for color input */
   unsigned char syntaxv[4], syntaxc[4]; /* in nodespace used for converter group */
@@ -636,13 +637,14 @@ typedef struct UserDef_Experimental {
   /* Debug options, always available. */
   char use_undo_legacy;
   char no_override_auto_resync;
+  char use_override_new_fully_editable;
   char use_cycles_debug;
   char show_asset_debug_info;
   char no_asset_indexing;
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
-  char use_new_curves_type;
+  char use_new_curves_tools;
   char use_new_point_cloud_type;
   char use_full_frame_compositor;
   char use_sculpt_tools_tilt;
@@ -650,7 +652,7 @@ typedef struct UserDef_Experimental {
   char use_override_templates;
   char enable_eevee_next;
   char use_sculpt_texture_paint;
-  char _pad0[2];
+  char use_draw_manager_acquire_lock;
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 
@@ -856,7 +858,7 @@ typedef struct UserDef {
 
   float glalphaclip;
 
-  /** #eAutokey_Mode, autokeying mode. */
+  /** #eAutokey_Mode, auto-keying mode. */
   short autokey_mode;
   /** Flags for autokeying. */
   short autokey_flag;

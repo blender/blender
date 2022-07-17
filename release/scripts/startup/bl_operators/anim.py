@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8-80 compliant>
 from __future__ import annotations
 
 if "bpy" in locals():

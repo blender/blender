@@ -11,8 +11,6 @@ where <path-to-blender> is the path to the Blender executable,
 and <output-filename> is where to write the generated man page.
 '''
 
-# <pep8 compliant>
-
 import argparse
 import os
 import subprocess

@@ -34,17 +34,17 @@
 #include <vector>
 
 #include "ceres/internal/disable_warnings.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 
 // A compressed row sparse matrix used primarily for communicating the
 // Jacobian matrix to the user.
 struct CERES_EXPORT CRSMatrix {
-  CRSMatrix() : num_rows(0), num_cols(0) {}
+  CRSMatrix() = default;
 
-  int num_rows;
-  int num_cols;
+  int num_rows{0};
+  int num_cols{0};
 
   // A compressed row matrix stores its contents in three arrays,
   // rows, cols and values.

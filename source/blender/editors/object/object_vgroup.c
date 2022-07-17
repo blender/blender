@@ -693,7 +693,7 @@ static const EnumPropertyItem WT_vertex_group_select_item[] = {
 
 const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *C,
                                                                 PointerRNA *UNUSED(ptr),
-                                                                PropertyRNA *UNUSED(prop),
+                                                                PropertyRNA *prop,
                                                                 bool *r_free,
                                                                 const uint selection_mask)
 {
@@ -729,6 +729,12 @@ const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *
 
   if (selection_mask & (1 << WT_VGROUP_ALL)) {
     RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_ALL);
+  }
+
+  /* Set `Deform Bone` as default selection if armature is present. */
+  if (ob) {
+    RNA_def_property_enum_default(
+        prop, BKE_modifiers_is_deformed_by_armature(ob) ? WT_VGROUP_BONE_DEFORM : WT_VGROUP_ALL);
   }
 
   RNA_enum_item_end(&item, &totitem);
@@ -4266,7 +4272,6 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
 
   Mesh *me = ob->data;
   BMEditMesh *em = me->edit_mesh;
-  float weight_act;
   int i;
 
   if (em) {
@@ -4278,18 +4283,15 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
     if (dvert_act == NULL) {
       return;
     }
-    weight_act = BKE_defvert_find_weight(dvert_act, def_nr);
 
     BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
       if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && (eve != eve_act)) {
-        MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-        MDeformWeight *dw = BKE_defvert_find_index(dv, def_nr);
-        if (dw) {
-          dw->weight = weight_act;
+        MDeformVert *dvert_dst = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 
-          if (me->symmetry & ME_SYMMETRY_X) {
-            ED_mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
-          }
+        BKE_defvert_copy_index(dvert_dst, def_nr, dvert_act, def_nr);
+
+        if (me->symmetry & ME_SYMMETRY_X) {
+          ED_mesh_defvert_mirror_update_em(ob, eve, -1, i, cd_dvert_offset);
         }
       }
     }
@@ -4306,17 +4308,15 @@ static void vgroup_copy_active_to_sel_single(Object *ob, const int def_nr)
     if (dvert_act == NULL) {
       return;
     }
-    weight_act = BKE_defvert_find_weight(dvert_act, def_nr);
 
     dv = me->dvert;
     for (i = 0; i < me->totvert; i++, dv++) {
       if ((me->mvert[i].flag & SELECT) && (dv != dvert_act)) {
-        MDeformWeight *dw = BKE_defvert_find_index(dv, def_nr);
-        if (dw) {
-          dw->weight = weight_act;
-          if (me->symmetry & ME_SYMMETRY_X) {
-            ED_mesh_defvert_mirror_update_ob(ob, -1, i);
-          }
+
+        BKE_defvert_copy_index(dv, def_nr, dvert_act, def_nr);
+
+        if (me->symmetry & ME_SYMMETRY_X) {
+          ED_mesh_defvert_mirror_update_ob(ob, -1, i);
         }
       }
     }

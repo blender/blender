@@ -13,6 +13,7 @@
 #include <Alembic/Abc/OObject.h>
 
 struct Depsgraph;
+struct Main;
 struct Object;
 
 namespace blender::io::alembic {
@@ -36,7 +37,8 @@ class ABCHierarchyIterator : public AbstractHierarchyIterator {
   const AlembicExportParams &params_;
 
  public:
-  ABCHierarchyIterator(Depsgraph *depsgraph,
+  ABCHierarchyIterator(Main *bmain,
+                       Depsgraph *depsgraph,
                        ABCArchive *abc_archive_,
                        const AlembicExportParams &params);
 

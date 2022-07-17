@@ -103,6 +103,9 @@ extern const char datatoc_multiply_png[];
 extern int datatoc_nudge_png_size;
 extern const char datatoc_nudge_png[];
 
+extern int datatoc_paint_select_png_size;
+extern const char datatoc_paint_select_png[];
+
 extern int datatoc_pinch_png_size;
 extern const char datatoc_pinch_png[];
 
@@ -283,6 +286,41 @@ extern const char datatoc_gp_brush_erase_hard_png[];
 
 extern int datatoc_gp_brush_erase_stroke_png_size;
 extern const char datatoc_gp_brush_erase_stroke_png[];
+
+/* curves sculpt brushes files */
+
+extern int datatoc_curves_sculpt_add_png_size;
+extern const char datatoc_curves_sculpt_add_png[];
+
+extern int datatoc_curves_sculpt_comb_png_size;
+extern const char datatoc_curves_sculpt_comb_png[];
+
+extern int datatoc_curves_sculpt_cut_png_size;
+extern const char datatoc_curves_sculpt_cut_png[];
+
+extern int datatoc_curves_sculpt_delete_png_size;
+extern const char datatoc_curves_sculpt_delete_png[];
+
+extern int datatoc_curves_sculpt_density_png_size;
+extern const char datatoc_curves_sculpt_density_png[];
+
+extern int datatoc_curves_sculpt_grow_shrink_png_size;
+extern const char datatoc_curves_sculpt_grow_shrink_png[];
+
+extern int datatoc_curves_sculpt_pinch_png_size;
+extern const char datatoc_curves_sculpt_pinch_png[];
+
+extern int datatoc_curves_sculpt_puff_png_size;
+extern const char datatoc_curves_sculpt_puff_png[];
+
+extern int datatoc_curves_sculpt_slide_png_size;
+extern const char datatoc_curves_sculpt_slide_png[];
+
+extern int datatoc_curves_sculpt_smooth_png_size;
+extern const char datatoc_curves_sculpt_smooth_png[];
+
+extern int datatoc_curves_sculpt_snake_hook_png_size;
+extern const char datatoc_curves_sculpt_snake_hook_png[];
 
 #ifdef __cplusplus
 }

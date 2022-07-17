@@ -12,6 +12,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -19,6 +20,7 @@
 #include "DNA_scene_types.h"
 
 #include "RE_engine.h"
+#include "RE_pipeline.h"
 
 #include "RNA_access.h"
 

@@ -35,8 +35,9 @@
 #include <utility>
 #include <vector>
 
+#include "ceres/internal/config.h"
 #include "ceres/internal/disable_warnings.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/types.h"
 
 namespace ceres {
@@ -145,7 +146,7 @@ class CovarianceImpl;
 //   a. The rank deficiency arises from overparameterization. e.g., a
 //   four dimensional quaternion used to parameterize SO(3), which is
 //   a three dimensional manifold. In cases like this, the user should
-//   use an appropriate LocalParameterization. Not only will this lead
+//   use an appropriate LocalParameterization/Manifold. Not only will this lead
 //   to better numerical behaviour of the Solver, it will also expose
 //   the rank deficiency to the Covariance object so that it can
 //   handle it correctly.

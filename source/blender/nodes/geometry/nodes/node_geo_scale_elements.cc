@@ -183,8 +183,7 @@ static void scale_vertex_islands_uniformly(Mesh &mesh,
     }
   });
 
-  /* Positions have changed, so the normals will have to be recomputed. */
-  BKE_mesh_normals_tag_dirty(&mesh);
+  BKE_mesh_tag_coords_changed(&mesh);
 }
 
 static void scale_vertex_islands_on_axis(Mesh &mesh,
@@ -228,8 +227,7 @@ static void scale_vertex_islands_on_axis(Mesh &mesh,
     }
   });
 
-  /* Positions have changed, so the normals will have to be recomputed. */
-  BKE_mesh_normals_tag_dirty(&mesh);
+  BKE_mesh_tag_coords_changed(&mesh);
 }
 
 static Vector<ElementIsland> prepare_face_islands(const Mesh &mesh, const IndexMask face_selection)
@@ -397,7 +395,7 @@ static void scale_edges_on_axis(MeshComponent &mesh_component, const AxisScaleFi
 static void node_geo_exec(GeoNodeExecParams params)
 {
   const bNode &node = params.node();
-  const AttributeDomain domain = static_cast<AttributeDomain>(node.custom1);
+  const eAttrDomain domain = static_cast<eAttrDomain>(node.custom1);
   const GeometryNodeScaleElementsMode scale_mode = static_cast<GeometryNodeScaleElementsMode>(
       node.custom2);
 

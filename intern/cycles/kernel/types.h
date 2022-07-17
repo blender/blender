@@ -535,7 +535,8 @@ typedef struct RaySelfPrimitives {
 typedef struct Ray {
   float3 P;   /* origin */
   float3 D;   /* direction */
-  float t;    /* length of the ray */
+  float tmin; /* start distance */
+  float tmax; /* end distance */
   float time; /* time (for motion blur) */
 
   RaySelfPrimitives self;
@@ -669,6 +670,16 @@ typedef struct AttributeDescriptor {
   uint flags; /* see enum AttributeFlag */
   int offset;
 } AttributeDescriptor;
+
+/* For looking up attributes on objects and geometry. */
+typedef struct AttributeMap {
+  uint id;       /* Global unique identifier. */
+  uint element;  /* AttributeElement. */
+  int offset;    /* Offset into __attributes global arrays. */
+  uint8_t type;  /* NodeAttributeType. */
+  uint8_t flags; /* AttributeFlag. */
+  uint8_t pad[2];
+} AttributeMap;
 
 /* Closure data */
 
@@ -1062,94 +1073,6 @@ typedef struct KernelCamera {
 } KernelCamera;
 static_assert_align(KernelCamera, 16);
 
-typedef struct KernelFilm {
-  float exposure;
-  int pass_flag;
-
-  int light_pass_flag;
-  int pass_stride;
-
-  int pass_combined;
-  int pass_depth;
-  int pass_position;
-  int pass_normal;
-  int pass_roughness;
-  int pass_motion;
-
-  int pass_motion_weight;
-  int pass_uv;
-  int pass_object_id;
-  int pass_material_id;
-
-  int pass_diffuse_color;
-  int pass_glossy_color;
-  int pass_transmission_color;
-
-  int pass_diffuse_indirect;
-  int pass_glossy_indirect;
-  int pass_transmission_indirect;
-  int pass_volume_indirect;
-
-  int pass_diffuse_direct;
-  int pass_glossy_direct;
-  int pass_transmission_direct;
-  int pass_volume_direct;
-
-  int pass_emission;
-  int pass_background;
-  int pass_ao;
-  float pass_alpha_threshold;
-
-  int pass_shadow;
-  float pass_shadow_scale;
-
-  int pass_shadow_catcher;
-  int pass_shadow_catcher_sample_count;
-  int pass_shadow_catcher_matte;
-
-  int filter_table_offset;
-
-  int cryptomatte_passes;
-  int cryptomatte_depth;
-  int pass_cryptomatte;
-
-  int pass_adaptive_aux_buffer;
-  int pass_sample_count;
-
-  int pass_mist;
-  float mist_start;
-  float mist_inv_depth;
-  float mist_falloff;
-
-  int pass_denoising_normal;
-  int pass_denoising_albedo;
-  int pass_denoising_depth;
-
-  int pass_aov_color;
-  int pass_aov_value;
-  int pass_lightgroup;
-
-  /* XYZ to rendering color space transform. float4 instead of float3 to
-   * ensure consistent padding/alignment across devices. */
-  float4 xyz_to_r;
-  float4 xyz_to_g;
-  float4 xyz_to_b;
-  float4 rgb_to_y;
-  /* Rec709 to rendering color space. */
-  float4 rec709_to_r;
-  float4 rec709_to_g;
-  float4 rec709_to_b;
-  int is_rec709;
-
-  int pass_bake_primitive;
-  int pass_bake_differential;
-
-  int use_approximate_shadow_catcher;
-
-  int pad1;
-} KernelFilm;
-static_assert_align(KernelFilm, 16);
-
 typedef struct KernelFilmConvert {
   int pass_offset;
   int pass_stride;
@@ -1191,108 +1114,6 @@ typedef struct KernelFilmConvert {
 } KernelFilmConvert;
 static_assert_align(KernelFilmConvert, 16);
 
-typedef struct KernelBackground {
-  /* only shader index */
-  int surface_shader;
-  int volume_shader;
-  float volume_step_size;
-  int transparent;
-  float transparent_roughness_squared_threshold;
-
-  /* portal sampling */
-  float portal_weight;
-  int num_portals;
-  int portal_offset;
-
-  /* sun sampling */
-  float sun_weight;
-  /* xyz store direction, w the angle. float4 instead of float3 is used
-   * to ensure consistent padding/alignment across devices. */
-  float4 sun;
-
-  /* map sampling */
-  float map_weight;
-  int map_res_x;
-  int map_res_y;
-
-  int use_mis;
-
-  int lightgroup;
-
-  /* Padding */
-  int pad1, pad2;
-} KernelBackground;
-static_assert_align(KernelBackground, 16);
-
-typedef struct KernelIntegrator {
-  /* emission */
-  int use_direct_light;
-  int num_distribution;
-  int num_all_lights;
-  float pdf_triangles;
-  float pdf_lights;
-  float light_inv_rr_threshold;
-
-  /* bounces */
-  int min_bounce;
-  int max_bounce;
-
-  int max_diffuse_bounce;
-  int max_glossy_bounce;
-  int max_transmission_bounce;
-  int max_volume_bounce;
-
-  /* AO bounces */
-  int ao_bounces;
-  float ao_bounces_distance;
-  float ao_bounces_factor;
-  float ao_additive_factor;
-
-  /* transparent */
-  int transparent_min_bounce;
-  int transparent_max_bounce;
-  int transparent_shadows;
-
-  /* caustics */
-  int caustics_reflective;
-  int caustics_refractive;
-  float filter_glossy;
-
-  /* seed */
-  int seed;
-
-  /* clamp */
-  float sample_clamp_direct;
-  float sample_clamp_indirect;
-
-  /* mis */
-  int use_lamp_mis;
-
-  /* caustics */
-  int use_caustics;
-
-  /* sampler */
-  int sampling_pattern;
-
-  /* volume render */
-  int use_volumes;
-  int volume_max_steps;
-  float volume_step_rate;
-
-  int has_shadow_catcher;
-  float scrambling_distance;
-
-  /* Closure filter. */
-  int filter_closures;
-
-  /* MIS debugging. */
-  int direct_light_sampling_type;
-
-  /* padding */
-  int pad1;
-} KernelIntegrator;
-static_assert_align(KernelIntegrator, 16);
-
 typedef enum KernelBVHLayout {
   BVH_LAYOUT_NONE = 0,
 
@@ -1310,36 +1131,25 @@ typedef enum KernelBVHLayout {
   BVH_LAYOUT_ALL = BVH_LAYOUT_BVH2 | BVH_LAYOUT_EMBREE | BVH_LAYOUT_OPTIX | BVH_LAYOUT_METAL,
 } KernelBVHLayout;
 
-typedef struct KernelBVH {
-  /* Own BVH */
-  int root;
-  int have_motion;
-  int have_curves;
-  int bvh_layout;
-  int use_bvh_steps;
-  int curve_subdivisions;
+/* Specialized struct that can become constants in dynamic compilation. */
+#define KERNEL_STRUCT_BEGIN(name, parent) struct name {
+#define KERNEL_STRUCT_END(name) \
+  } \
+  ; \
+  static_assert_align(name, 16);
 
-  /* Custom BVH */
-#ifdef __KERNEL_OPTIX__
-  OptixTraversableHandle scene;
-#elif defined __METALRT__
-  metalrt_as_type scene;
+#ifdef __KERNEL_USE_DATA_CONSTANTS__
+#  define KERNEL_STRUCT_MEMBER(parent, type, name) type __unused_##name;
 #else
-#  ifdef __EMBREE__
-  RTCScene scene;
-#    ifndef __KERNEL_64_BIT__
-  int pad2;
-#    endif
-#  else
-  int scene, pad2;
-#  endif
+#  define KERNEL_STRUCT_MEMBER(parent, type, name) type name;
 #endif
-} KernelBVH;
-static_assert_align(KernelBVH, 16);
+
+#include "kernel/data_template.h"
 
 typedef struct KernelTables {
   int beckmann_offset;
-  int pad1, pad2, pad3;
+  int filter_table_offset;
+  int pad1, pad2;
 } KernelTables;
 static_assert_align(KernelTables, 16);
 
@@ -1352,18 +1162,37 @@ typedef struct KernelBake {
 static_assert_align(KernelBake, 16);
 
 typedef struct KernelData {
+  /* Features and limits. */
   uint kernel_features;
   uint max_closures;
   uint max_shaders;
   uint volume_stack_size;
 
+  /* Always dynamic data mambers. */
   KernelCamera cam;
-  KernelFilm film;
-  KernelBackground background;
-  KernelIntegrator integrator;
-  KernelBVH bvh;
-  KernelTables tables;
   KernelBake bake;
+  KernelTables tables;
+
+  /* Potentially specialized data members. */
+#define KERNEL_STRUCT_BEGIN(name, parent) name parent;
+#include "kernel/data_template.h"
+
+  /* Device specific BVH. */
+#ifdef __KERNEL_OPTIX__
+  OptixTraversableHandle device_bvh;
+#elif defined __METALRT__
+  metalrt_as_type device_bvh;
+#else
+#  ifdef __EMBREE__
+  RTCScene device_bvh;
+#    ifndef __KERNEL_64_BIT__
+  int pad1;
+#    endif
+#  else
+  int device_bvh, pad1;
+#  endif
+#endif
+  int pad2, pad3;
 } KernelData;
 static_assert_align(KernelData, 16);
 
@@ -1561,7 +1390,7 @@ static_assert_align(KernelShaderEvalInput, 16);
  * If the kernel uses shared CUDA memory, `CUDADeviceQueue::enqueue` is to be modified.
  * The path iteration kernels are handled in `PathTraceWorkGPU::enqueue_path_iteration`. */
 
-typedef enum DeviceKernel {
+typedef enum DeviceKernel : int {
   DEVICE_KERNEL_INTEGRATOR_INIT_FROM_CAMERA = 0,
   DEVICE_KERNEL_INTEGRATOR_INIT_FROM_BAKE,
   DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST,
@@ -1572,6 +1401,7 @@ typedef enum DeviceKernel {
   DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT,
   DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE,
   DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE,
+  DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE,
   DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME,
   DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW,
   DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL,
@@ -1689,6 +1519,9 @@ enum KernelFeatureFlag : uint32_t {
   KERNEL_FEATURE_AO_PASS = (1U << 25U),
   KERNEL_FEATURE_AO_ADDITIVE = (1U << 26U),
   KERNEL_FEATURE_AO = (KERNEL_FEATURE_AO_PASS | KERNEL_FEATURE_AO_ADDITIVE),
+
+  /* MNEE. */
+  KERNEL_FEATURE_MNEE = (1U << 27U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */
@@ -1696,6 +1529,8 @@ enum KernelFeatureFlag : uint32_t {
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT \
   (KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VORONOI_EXTRA | \
    KERNEL_FEATURE_NODE_LIGHT_PATH)
+#define KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND \
+  (KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT | KERNEL_FEATURE_NODE_AOV)
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW \
   (KERNEL_FEATURE_NODE_BSDF | KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VOLUME | \
    KERNEL_FEATURE_NODE_BUMP | KERNEL_FEATURE_NODE_BUMP_STATE | \
@@ -1714,9 +1549,12 @@ enum KernelFeatureFlag : uint32_t {
  * are different depending on the main, shadow or null path. For GPU we don't have
  * C++17 everywhere so can't use it. */
 #ifdef __KERNEL_CPU__
+#  define IF_KERNEL_FEATURE(feature) \
+    if constexpr ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
 #  define IF_KERNEL_NODES_FEATURE(feature) \
     if constexpr ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
 #else
+#  define IF_KERNEL_FEATURE(feature) if ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
 #  define IF_KERNEL_NODES_FEATURE(feature) \
     if ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
 #endif

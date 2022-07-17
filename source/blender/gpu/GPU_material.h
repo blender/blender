@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "DNA_customdata_types.h" /* for CustomDataType */
+#include "DNA_customdata_types.h" /* for eCustomDataType */
 #include "DNA_image_types.h"
 #include "DNA_listBase.h"
 
@@ -130,9 +130,9 @@ typedef void (*GPUCodegenCallbackFn)(void *thunk, GPUMaterial *mat, GPUCodegenOu
 
 GPUNodeLink *GPU_constant(const float *num);
 GPUNodeLink *GPU_uniform(const float *num);
-GPUNodeLink *GPU_attribute(GPUMaterial *mat, CustomDataType type, const char *name);
+GPUNodeLink *GPU_attribute(GPUMaterial *mat, eCustomDataType type, const char *name);
 GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
-                                        CustomDataType type,
+                                        eCustomDataType type,
                                         const char *name,
                                         eGPUDefaultValue default_value);
 GPUNodeLink *GPU_uniform_attribute(GPUMaterial *mat, const char *name, bool use_dupli);
@@ -259,7 +259,7 @@ void GPU_pass_cache_free(void);
 
 typedef struct GPUMaterialAttribute {
   struct GPUMaterialAttribute *next, *prev;
-  int type;                /* CustomDataType */
+  int type;                /* eCustomDataType */
   char name[64];           /* MAX_CUSTOMDATA_LAYER_NAME */
   char input_name[12 + 1]; /* GPU_MAX_SAFE_ATTR_NAME + 1 */
   eGPUType gputype;

@@ -4,7 +4,7 @@
  * \ingroup GHOST
  */
 
-#include <assert.h>
+#include <cassert>
 
 #include "GHOST_ContextSDL.h"
 #include "GHOST_SystemSDL.h"
@@ -47,7 +47,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
                                              const bool /* is_dialog */,
                                              const GHOST_IWindow *parentWindow)
 {
-  GHOST_WindowSDL *window = NULL;
+  GHOST_WindowSDL *window = nullptr;
 
   window = new GHOST_WindowSDL(this,
                                title,
@@ -79,7 +79,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
     }
     else {
       delete window;
-      window = NULL;
+      window = nullptr;
     }
   }
   return window;
@@ -125,22 +125,22 @@ uint8_t GHOST_SystemSDL::getNumDisplays() const
   return SDL_GetNumVideoDisplays();
 }
 
-GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GLSettings glSettings)
+GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GLSettings /*glSettings*/)
 {
-  GHOST_Context *context = new GHOST_ContextSDL(0,
-                                                NULL,
+  GHOST_Context *context = new GHOST_ContextSDL(false,
+                                                nullptr,
                                                 0, /* Profile bit. */
                                                 3,
                                                 3,
                                                 GHOST_OPENGL_SDL_CONTEXT_FLAGS,
                                                 GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
 
-  if (context->initializeDrawingContext())
+  if (context->initializeDrawingContext()) {
     return context;
-  else
-    delete context;
+  }
+  delete context;
 
-  return NULL;
+  return nullptr;
 }
 
 GHOST_TSuccess GHOST_SystemSDL::disposeContext(GHOST_IContext *context)
@@ -279,6 +279,141 @@ static GHOST_TKey convertSDLKey(SDL_Scancode key)
 }
 #undef GXMAP
 
+static char convert_keyboard_event_to_ascii(const SDL_KeyboardEvent &sdl_sub_evt)
+{
+  SDL_Keycode sym = sdl_sub_evt.keysym.sym;
+  if (sym > 127) {
+    switch (sym) {
+      case SDLK_KP_DIVIDE:
+        sym = '/';
+        break;
+      case SDLK_KP_MULTIPLY:
+        sym = '*';
+        break;
+      case SDLK_KP_MINUS:
+        sym = '-';
+        break;
+      case SDLK_KP_PLUS:
+        sym = '+';
+        break;
+      case SDLK_KP_1:
+        sym = '1';
+        break;
+      case SDLK_KP_2:
+        sym = '2';
+        break;
+      case SDLK_KP_3:
+        sym = '3';
+        break;
+      case SDLK_KP_4:
+        sym = '4';
+        break;
+      case SDLK_KP_5:
+        sym = '5';
+        break;
+      case SDLK_KP_6:
+        sym = '6';
+        break;
+      case SDLK_KP_7:
+        sym = '7';
+        break;
+      case SDLK_KP_8:
+        sym = '8';
+        break;
+      case SDLK_KP_9:
+        sym = '9';
+        break;
+      case SDLK_KP_0:
+        sym = '0';
+        break;
+      case SDLK_KP_PERIOD:
+        sym = '.';
+        break;
+      default:
+        sym = 0;
+        break;
+    }
+  }
+  else {
+    if (sdl_sub_evt.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
+      /* Weak US keyboard assumptions. */
+      if (sym >= 'a' && sym <= ('a' + 32)) {
+        sym -= 32;
+      }
+      else {
+        switch (sym) {
+          case '`':
+            sym = '~';
+            break;
+          case '1':
+            sym = '!';
+            break;
+          case '2':
+            sym = '@';
+            break;
+          case '3':
+            sym = '#';
+            break;
+          case '4':
+            sym = '$';
+            break;
+          case '5':
+            sym = '%';
+            break;
+          case '6':
+            sym = '^';
+            break;
+          case '7':
+            sym = '&';
+            break;
+          case '8':
+            sym = '*';
+            break;
+          case '9':
+            sym = '(';
+            break;
+          case '0':
+            sym = ')';
+            break;
+          case '-':
+            sym = '_';
+            break;
+          case '=':
+            sym = '+';
+            break;
+          case '[':
+            sym = '{';
+            break;
+          case ']':
+            sym = '}';
+            break;
+          case '\\':
+            sym = '|';
+            break;
+          case ';':
+            sym = ':';
+            break;
+          case '\'':
+            sym = '"';
+            break;
+          case ',':
+            sym = '<';
+            break;
+          case '.':
+            sym = '>';
+            break;
+          case '/':
+            sym = '?';
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+  return (char)sym;
+}
+
 /**
  * Events don't always have valid windows,
  * but GHOST needs a window _always_. fallback to the GL window.
@@ -286,7 +421,7 @@ static GHOST_TKey convertSDLKey(SDL_Scancode key)
 static SDL_Window *SDL_GetWindowFromID_fallback(Uint32 id)
 {
   SDL_Window *sdl_win = SDL_GetWindowFromID(id);
-  if (sdl_win == NULL) {
+  if (sdl_win == nullptr) {
     sdl_win = SDL_GL_GetCurrentWindow();
   }
   return sdl_win;
@@ -294,16 +429,16 @@ static SDL_Window *SDL_GetWindowFromID_fallback(Uint32 id)
 
 void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 {
-  GHOST_Event *g_event = NULL;
+  GHOST_Event *g_event = nullptr;
 
   switch (sdl_event->type) {
     case SDL_WINDOWEVENT: {
       SDL_WindowEvent &sdl_sub_evt = sdl_event->window;
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
-      /* Can be NULL on close window. */
+      /* Can be nullptr on close window. */
 #if 0
-      assert(window != NULL);
+      assert(window != nullptr);
 #endif
 
       switch (sdl_sub_evt.event) {
@@ -340,7 +475,7 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       SDL_MouseMotionEvent &sdl_sub_evt = sdl_event->motion;
       SDL_Window *sdl_win = SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID);
       GHOST_WindowSDL *window = findGhostWindow(sdl_win);
-      assert(window != NULL);
+      assert(window != nullptr);
 
       int x_win, y_win;
       SDL_GetWindowPosition(sdl_win, &x_win, &y_win);
@@ -410,28 +545,34 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
     case SDL_MOUSEBUTTONUP:
     case SDL_MOUSEBUTTONDOWN: {
       SDL_MouseButtonEvent &sdl_sub_evt = sdl_event->button;
-      GHOST_TButtonMask gbmask = GHOST_kButtonMaskLeft;
+      GHOST_TButton gbmask = GHOST_kButtonMaskLeft;
       GHOST_TEventType type = (sdl_sub_evt.state == SDL_PRESSED) ? GHOST_kEventButtonDown :
                                                                    GHOST_kEventButtonUp;
 
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
-      assert(window != NULL);
+      assert(window != nullptr);
 
       /* process rest of normal mouse buttons */
-      if (sdl_sub_evt.button == SDL_BUTTON_LEFT)
+      if (sdl_sub_evt.button == SDL_BUTTON_LEFT) {
         gbmask = GHOST_kButtonMaskLeft;
-      else if (sdl_sub_evt.button == SDL_BUTTON_MIDDLE)
+      }
+      else if (sdl_sub_evt.button == SDL_BUTTON_MIDDLE) {
         gbmask = GHOST_kButtonMaskMiddle;
-      else if (sdl_sub_evt.button == SDL_BUTTON_RIGHT)
+      }
+      else if (sdl_sub_evt.button == SDL_BUTTON_RIGHT) {
         gbmask = GHOST_kButtonMaskRight;
-      /* these buttons are untested! */
-      else if (sdl_sub_evt.button == SDL_BUTTON_X1)
+        /* these buttons are untested! */
+      }
+      else if (sdl_sub_evt.button == SDL_BUTTON_X1) {
         gbmask = GHOST_kButtonMaskButton4;
-      else if (sdl_sub_evt.button == SDL_BUTTON_X2)
+      }
+      else if (sdl_sub_evt.button == SDL_BUTTON_X2) {
         gbmask = GHOST_kButtonMaskButton5;
-      else
+      }
+      else {
         break;
+      }
 
       g_event = new GHOST_EventButton(
           getMilliSeconds(), type, window, gbmask, GHOST_TABLET_DATA_NONE);
@@ -441,156 +582,33 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       SDL_MouseWheelEvent &sdl_sub_evt = sdl_event->wheel;
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
-      assert(window != NULL);
+      assert(window != nullptr);
       g_event = new GHOST_EventWheel(getMilliSeconds(), window, sdl_sub_evt.y);
       break;
     }
     case SDL_KEYDOWN:
     case SDL_KEYUP: {
       SDL_KeyboardEvent &sdl_sub_evt = sdl_event->key;
-      SDL_Keycode sym = sdl_sub_evt.keysym.sym;
       GHOST_TEventType type = (sdl_sub_evt.state == SDL_PRESSED) ? GHOST_kEventKeyDown :
                                                                    GHOST_kEventKeyUp;
+      const bool is_repeat = sdl_sub_evt.repeat != 0;
 
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
-      assert(window != NULL);
+      assert(window != nullptr);
 
       GHOST_TKey gkey = convertSDLKey(sdl_sub_evt.keysym.scancode);
       /* NOTE: the `sdl_sub_evt.keysym.sym` is truncated,
        * for unicode support ghost has to be modified. */
-      // printf("%d\n", sym);
-      if (sym > 127) {
-        switch (sym) {
-          case SDLK_KP_DIVIDE:
-            sym = '/';
-            break;
-          case SDLK_KP_MULTIPLY:
-            sym = '*';
-            break;
-          case SDLK_KP_MINUS:
-            sym = '-';
-            break;
-          case SDLK_KP_PLUS:
-            sym = '+';
-            break;
-          case SDLK_KP_1:
-            sym = '1';
-            break;
-          case SDLK_KP_2:
-            sym = '2';
-            break;
-          case SDLK_KP_3:
-            sym = '3';
-            break;
-          case SDLK_KP_4:
-            sym = '4';
-            break;
-          case SDLK_KP_5:
-            sym = '5';
-            break;
-          case SDLK_KP_6:
-            sym = '6';
-            break;
-          case SDLK_KP_7:
-            sym = '7';
-            break;
-          case SDLK_KP_8:
-            sym = '8';
-            break;
-          case SDLK_KP_9:
-            sym = '9';
-            break;
-          case SDLK_KP_0:
-            sym = '0';
-            break;
-          case SDLK_KP_PERIOD:
-            sym = '.';
-            break;
-          default:
-            sym = 0;
-            break;
-        }
-      }
-      else {
-        if (sdl_sub_evt.keysym.mod & (KMOD_LSHIFT | KMOD_RSHIFT)) {
-          /* lame US keyboard assumptions */
-          if (sym >= 'a' && sym <= ('a' + 32)) {
-            sym -= 32;
-          }
-          else {
-            switch (sym) {
-              case '`':
-                sym = '~';
-                break;
-              case '1':
-                sym = '!';
-                break;
-              case '2':
-                sym = '@';
-                break;
-              case '3':
-                sym = '#';
-                break;
-              case '4':
-                sym = '$';
-                break;
-              case '5':
-                sym = '%';
-                break;
-              case '6':
-                sym = '^';
-                break;
-              case '7':
-                sym = '&';
-                break;
-              case '8':
-                sym = '*';
-                break;
-              case '9':
-                sym = '(';
-                break;
-              case '0':
-                sym = ')';
-                break;
-              case '-':
-                sym = '_';
-                break;
-              case '=':
-                sym = '+';
-                break;
-              case '[':
-                sym = '{';
-                break;
-              case ']':
-                sym = '}';
-                break;
-              case '\\':
-                sym = '|';
-                break;
-              case ';':
-                sym = ':';
-                break;
-              case '\'':
-                sym = '"';
-                break;
-              case ',':
-                sym = '<';
-                break;
-              case '.':
-                sym = '>';
-                break;
-              case '/':
-                sym = '?';
-                break;
-              default:
-                break;
-            }
-          }
-        }
+
+      /* TODO(@campbellbarton): support full unicode, SDL supports this but it needs to be
+       * explicitly enabled via #SDL_StartTextInput which GHOST would have to wrap. */
+      char utf8_buf[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
+      if (type == GHOST_kEventKeyDown) {
+        utf8_buf[0] = convert_keyboard_event_to_ascii(sdl_sub_evt);
       }
 
-      g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, sym, NULL, false);
+      g_event = new GHOST_EventKey(getMilliSeconds(), type, window, gkey, is_repeat, utf8_buf);
       break;
     }
   }
@@ -660,14 +678,14 @@ bool GHOST_SystemSDL::processEvents(bool waitForEvent)
       uint64_t next = timerMgr->nextFireTime();
 
       if (next == GHOST_kFireTimeNever) {
-        SDL_WaitEventTimeout(NULL, -1);
+        SDL_WaitEventTimeout(nullptr, -1);
         // SleepTillEvent(m_display, -1);
       }
       else {
         int64_t maxSleep = next - getMilliSeconds();
 
         if (maxSleep >= 0) {
-          SDL_WaitEventTimeout(NULL, next - getMilliSeconds());
+          SDL_WaitEventTimeout(nullptr, next - getMilliSeconds());
           // SleepTillEvent(m_display, next - getMilliSeconds()); /* X11. */
         }
       }
@@ -693,9 +711,9 @@ bool GHOST_SystemSDL::processEvents(bool waitForEvent)
 
 GHOST_WindowSDL *GHOST_SystemSDL::findGhostWindow(SDL_Window *sdl_win)
 {
-  if (sdl_win == NULL)
-    return NULL;
-
+  if (sdl_win == nullptr) {
+    return nullptr;
+  }
   /* It is not entirely safe to do this as the backptr may point
    * to a window that has recently been removed.
    * We should always check the window manager's list of windows
@@ -712,19 +730,19 @@ GHOST_WindowSDL *GHOST_SystemSDL::findGhostWindow(SDL_Window *sdl_win)
       return window;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void GHOST_SystemSDL::addDirtyWindow(GHOST_WindowSDL *bad_wind)
 {
-  GHOST_ASSERT((bad_wind != NULL), "addDirtyWindow() NULL ptr trapped (window)");
+  GHOST_ASSERT((bad_wind != nullptr), "addDirtyWindow() nullptr ptr trapped (window)");
 
   m_dirty_windows.push_back(bad_wind);
 }
 
 GHOST_TSuccess GHOST_SystemSDL::getButtons(GHOST_Buttons &buttons) const
 {
-  Uint8 state = SDL_GetMouseState(NULL, NULL);
+  Uint8 state = SDL_GetMouseState(nullptr, nullptr);
   buttons.set(GHOST_kButtonMaskLeft, (state & SDL_BUTTON_LMASK) != 0);
   buttons.set(GHOST_kButtonMaskMiddle, (state & SDL_BUTTON_MMASK) != 0);
   buttons.set(GHOST_kButtonMaskRight, (state & SDL_BUTTON_RMASK) != 0);
@@ -732,12 +750,12 @@ GHOST_TSuccess GHOST_SystemSDL::getButtons(GHOST_Buttons &buttons) const
   return GHOST_kSuccess;
 }
 
-char *GHOST_SystemSDL::getClipboard(bool selection) const
+char *GHOST_SystemSDL::getClipboard(bool /*selection*/) const
 {
   return (char *)SDL_GetClipboardText();
 }
 
-void GHOST_SystemSDL::putClipboard(const char *buffer, bool selection) const
+void GHOST_SystemSDL::putClipboard(const char *buffer, bool /*selection*/) const
 {
   SDL_SetClipboardText(buffer);
 }

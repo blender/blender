@@ -41,7 +41,7 @@ class EndpointFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() != GEO_COMPONENT_TYPE_CURVE || domain != ATTR_DOMAIN_POINT) {
@@ -64,8 +64,8 @@ class EndpointFieldInput final : public GeometryFieldInput {
     evaluator.add(start_size_);
     evaluator.add(end_size_);
     evaluator.evaluate();
-    const VArray<int> &start_size = evaluator.get_evaluated<int>(0);
-    const VArray<int> &end_size = evaluator.get_evaluated<int>(1);
+    const VArray<int> start_size = evaluator.get_evaluated<int>(0);
+    const VArray<int> end_size = evaluator.get_evaluated<int>(1);
 
     Array<bool> selection(curves.points_num(), false);
     MutableSpan<bool> selection_span = selection.as_mutable_span();

@@ -8,7 +8,7 @@
  * This file contains access functions for the Mesh.runtime struct.
  */
 
-//#include "BKE_customdata.h"  /* for CustomDataMask */
+//#include "BKE_customdata.h"  /* for eCustomDataMask */
 
 #ifdef __cplusplus
 extern "C" {

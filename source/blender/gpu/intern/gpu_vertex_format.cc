@@ -49,7 +49,7 @@ void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat *src)
   memcpy(dest, src, sizeof(GPUVertFormat));
 }
 
-static uint comp_sz(GPUVertCompType type)
+static uint comp_size(GPUVertCompType type)
 {
 #if TRUST_NO_ONE
   assert(type <= GPU_COMP_F32); /* other types have irregular sizes (not bytes) */
@@ -58,12 +58,12 @@ static uint comp_sz(GPUVertCompType type)
   return sizes[type];
 }
 
-static uint attr_sz(const GPUVertAttr *a)
+static uint attr_size(const GPUVertAttr *a)
 {
   if (a->comp_type == GPU_COMP_I10) {
     return 4; /* always packed as 10_10_10_2 */
   }
-  return a->comp_len * comp_sz(static_cast<GPUVertCompType>(a->comp_type));
+  return a->comp_len * comp_size(static_cast<GPUVertCompType>(a->comp_type));
 }
 
 static uint attr_align(const GPUVertAttr *a)
@@ -71,7 +71,7 @@ static uint attr_align(const GPUVertAttr *a)
   if (a->comp_type == GPU_COMP_I10) {
     return 4; /* always packed as 10_10_10_2 */
   }
-  uint c = comp_sz(static_cast<GPUVertCompType>(a->comp_type));
+  uint c = comp_size(static_cast<GPUVertCompType>(a->comp_type));
   if (a->comp_len == 3 && c <= 2) {
     return 4 * c; /* AMD HW can't fetch these well, so pad it out (other vendors too?) */
   }
@@ -156,7 +156,7 @@ uint GPU_vertformat_attr_add(GPUVertFormat *format,
   attr->comp_len = (comp_type == GPU_COMP_I10) ?
                        4 :
                        comp_len; /* system needs 10_10_10_2 to be 4 or BGRA */
-  attr->sz = attr_sz(attr);
+  attr->size = attr_size(attr);
   attr->offset = 0; /* offsets & stride are calculated later (during pack) */
   attr->fetch_mode = fetch_mode;
 
@@ -294,13 +294,13 @@ uint padding(uint offset, uint alignment)
 }
 
 #if PACK_DEBUG
-static void show_pack(uint a_idx, uint sz, uint pad)
+static void show_pack(uint a_idx, uint size, uint pad)
 {
   const char c = 'A' + a_idx;
   for (uint i = 0; i < pad; i++) {
     putchar('-');
   }
-  for (uint i = 0; i < sz; i++) {
+  for (uint i = 0; i < size; i++) {
     putchar(c);
   }
 }
@@ -310,10 +310,10 @@ void VertexFormat_pack(GPUVertFormat *format)
 {
   GPUVertAttr *a0 = &format->attrs[0];
   a0->offset = 0;
-  uint offset = a0->sz;
+  uint offset = a0->size;
 
 #if PACK_DEBUG
-  show_pack(0, a0->sz, 0);
+  show_pack(0, a0->size, 0);
 #endif
 
   for (uint a_idx = 1; a_idx < format->attr_len; a_idx++) {
@@ -321,10 +321,10 @@ void VertexFormat_pack(GPUVertFormat *format)
     uint mid_padding = padding(offset, attr_align(a));
     offset += mid_padding;
     a->offset = offset;
-    offset += a->sz;
+    offset += a->size;
 
 #if PACK_DEBUG
-    show_pack(a_idx, a->sz, mid_padding);
+    show_pack(a_idx, a->size, mid_padding);
 #endif
   }
 

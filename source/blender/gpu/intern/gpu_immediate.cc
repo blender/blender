@@ -18,7 +18,6 @@
 #include "gpu_context_private.hh"
 #include "gpu_immediate_private.hh"
 #include "gpu_shader_private.hh"
-#include "gpu_vertex_buffer_private.hh"
 #include "gpu_vertex_format_private.h"
 
 using namespace blender::gpu;
@@ -490,7 +489,7 @@ static void immEndVertex() /* and move on to the next vertex */
 #endif
 
         uchar *data = imm->vertex_data + a->offset;
-        memcpy(data, data - imm->vertex_format.stride, a->sz);
+        memcpy(data, data - imm->vertex_format.stride, a->size);
         /* TODO: consolidate copy of adjacent attributes */
       }
     }

@@ -472,7 +472,7 @@ typedef struct Library {
   ushort tag;
   char _pad_0[6];
 
-  /* Temp data needed by read/write code, and liboverride recursive resync. */
+  /** Temp data needed by read/write code, and lib-override recursive re-synchronized. */
   int temp_index;
   /** See BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION, needed for do_versions. */
   short versionfile, subversionfile;
@@ -596,6 +596,8 @@ typedef struct PreviewImage {
 /* Check whether data-block type requires copy-on-write from #ID_RECALC_PARAMETERS.
  * Keep in sync with #BKE_id_eval_properties_copy. */
 #define ID_TYPE_SUPPORTS_PARAMS_WITHOUT_COW(id_type) ELEM(id_type, ID_ME)
+
+#define ID_TYPE_IS_DEPRECATED(id_type) ELEM(id_type, ID_IP)
 
 #ifdef GS
 #  undef GS
@@ -921,6 +923,10 @@ typedef enum IDRecalcFlag {
 #define FILTER_ID_PT (1ULL << 33)
 #define FILTER_ID_VO (1ULL << 34)
 #define FILTER_ID_SIM (1ULL << 35)
+#define FILTER_ID_KE (1ULL << 36)
+#define FILTER_ID_SCR (1ULL << 37)
+#define FILTER_ID_WM (1ULL << 38)
+#define FILTER_ID_LI (1ULL << 39)
 
 #define FILTER_ID_ALL \
   (FILTER_ID_AC | FILTER_ID_AR | FILTER_ID_BR | FILTER_ID_CA | FILTER_ID_CU_LEGACY | \
@@ -928,7 +934,8 @@ typedef enum IDRecalcFlag {
    FILTER_ID_MA | FILTER_ID_MB | FILTER_ID_MC | FILTER_ID_ME | FILTER_ID_MSK | FILTER_ID_NT | \
    FILTER_ID_OB | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_SCE | FILTER_ID_SPK | \
    FILTER_ID_SO | FILTER_ID_TE | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_WO | FILTER_ID_CF | \
-   FILTER_ID_WS | FILTER_ID_LP | FILTER_ID_CV | FILTER_ID_PT | FILTER_ID_VO | FILTER_ID_SIM)
+   FILTER_ID_WS | FILTER_ID_LP | FILTER_ID_CV | FILTER_ID_PT | FILTER_ID_VO | FILTER_ID_SIM | \
+   FILTER_ID_KE | FILTER_ID_SCR | FILTER_ID_WM | FILTER_ID_LI)
 
 /**
  * This enum defines the index assigned to each type of IDs in the array returned by

@@ -173,7 +173,7 @@ BLI_INLINE uint ghash_find_next_bucket_index(const GHash *gh, uint curr_bucket)
       return curr_bucket;
     }
   }
-  BLI_assert(0);
+  BLI_assert_unreachable();
   return 0;
 }
 

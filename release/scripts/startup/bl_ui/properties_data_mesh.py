@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
@@ -64,6 +62,18 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.separator()
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move to Top").type = 'TOP'
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
+
+
+class MESH_MT_color_attribute_context_menu(Menu):
+    bl_label = "Color Attribute Specials"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        layout.operator(
+            "geometry.color_attribute_duplicate",
+            icon='DUPLICATE',
+        )
 
 
 class MESH_MT_attribute_context_menu(Menu):
@@ -401,6 +411,8 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
                 row.active = enable_edit_value
                 row.prop(key, "eval_time")
 
+        layout.prop(ob, "add_rest_position_attribute")
+
 
 class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
     bl_label = "UV Maps"
@@ -497,6 +509,16 @@ class MESH_UL_attributes(UIList):
         'CORNER': "Face Corner",
     }
 
+    def filter_items(self, _context, data, property):
+        attributes = getattr(data, property)
+        flags = []
+        indices = [i for i in range(len(attributes))]
+
+        for item in attributes:
+            flags.append(self.bitflag_filter_item if item.is_internal else 0)
+
+        return flags, indices
+
     def draw_item(self, _context, layout, _data, attribute, _icon, _active_data, _active_propname, _index):
         data_type = attribute.bl_rna.properties['data_type'].enum_items[attribute.data_type]
 
@@ -584,7 +606,8 @@ class ColorAttributesListBase():
         for idx, item in enumerate(attrs):
             skip = (
                 (item.domain not in {"POINT", "CORNER"}) or
-                (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"})
+                (item.data_type not in {"FLOAT_COLOR", "BYTE_COLOR"}) or
+                (not item.is_internal)
             )
             ret.append(self.bitflag_filter_item if not skip else 0)
             idxs.append(idx)
@@ -651,12 +674,17 @@ class DATA_PT_vertex_colors(DATA_PT_mesh_attributes, Panel):
         col.operator("geometry.color_attribute_add", icon='ADD', text="")
         col.operator("geometry.color_attribute_remove", icon='REMOVE', text="")
 
+        col.separator()
+
+        col.menu("MESH_MT_color_attribute_context_menu", icon='DOWNARROW_HLT', text="")
+
         self.draw_attribute_warnings(context, layout)
 
 
 classes = (
     MESH_MT_vertex_group_context_menu,
     MESH_MT_shape_key_context_menu,
+    MESH_MT_color_attribute_context_menu,
     MESH_MT_attribute_context_menu,
     MESH_UL_vgroups,
     MESH_UL_fmaps,

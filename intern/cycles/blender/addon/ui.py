@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2011-2022 Blender Foundation
-
-# <pep8 compliant>
 from __future__ import annotations
 
 import bpy
@@ -43,6 +41,12 @@ class CYCLES_PT_integrator_presets(CyclesPresetPanel):
     bl_label = "Integrator Presets"
     preset_subdir = "cycles/integrator"
     preset_add_operator = "render.cycles_integrator_preset_add"
+
+
+class CYCLES_PT_performance_presets(CyclesPresetPanel):
+    bl_label = "Performance Presets"
+    preset_subdir = "cycles/performance"
+    preset_add_operator = "render.cycles_performance_preset_add"
 
 
 class CyclesButtonsPanel:
@@ -111,6 +115,12 @@ def use_optix(context):
     cscene = context.scene.cycles
 
     return (get_device_type(context) == 'OPTIX' and cscene.device == 'GPU')
+
+
+def use_oneapi(context):
+    cscene = context.scene.cycles
+
+    return (get_device_type(context) == 'ONEAPI' and cscene.device == 'GPU')
 
 
 def use_multi_device(context):
@@ -620,6 +630,9 @@ class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
     bl_label = "Performance"
     bl_options = {'DEFAULT_CLOSED'}
 
+    def draw_header_preset(self, context):
+        CYCLES_PT_performance_presets.draw_panel_header(self.layout)
+
     def draw(self, context):
         pass
 
@@ -755,8 +768,6 @@ class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
-
-        with_freestyle = bpy.app.build_options.freestyle
 
         scene = context.scene
         rd = scene.render
@@ -941,6 +952,8 @@ class CYCLES_CAMERA_PT_dof(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(dof, "focus_object", text="Focus Object")
+        if dof.focus_object and dof.focus_object.type == 'ARMATURE':
+            col.prop_search(dof, "focus_subtarget", dof.focus_object.data, "bones", text="Focus Bone")
 
         sub = col.row()
         sub.active = dof.focus_object is None
@@ -1082,8 +1095,18 @@ class CYCLES_OBJECT_PT_motion_blur(CyclesButtonsPanel, Panel):
 
 
 def has_geometry_visibility(ob):
-    return ob and ((ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LIGHT', 'VOLUME', 'POINTCLOUD', 'CURVES'}) or
-                   (ob.instance_type == 'COLLECTION' and ob.instance_collection))
+    return ob and (
+        (ob.type in {
+            'MESH',
+            'CURVE',
+            'SURFACE',
+            'FONT',
+            'META',
+            'LIGHT',
+            'VOLUME',
+            'POINTCLOUD',
+            'CURVES',
+        }) or (ob.instance_type == 'COLLECTION' and ob.instance_collection))
 
 
 class CYCLES_OBJECT_PT_shading(CyclesButtonsPanel, Panel):
@@ -1190,7 +1213,7 @@ class CYCLES_OBJECT_PT_lightgroup(CyclesButtonsPanel, Panel):
         sub.prop_search(ob, "lightgroup", view_layer, "lightgroups", text="Light Group", results_are_suggestions=True)
 
         sub = row.column(align=True)
-        sub.active = bool(ob.lightgroup) and not any(lg.name == ob.lightgroup for lg in view_layer.lightgroups)
+        sub.enabled = bool(ob.lightgroup) and not any(lg.name == ob.lightgroup for lg in view_layer.lightgroups)
         sub.operator("scene.view_layer_add_lightgroup", icon='ADD', text="").name = ob.lightgroup
 
 
@@ -1446,27 +1469,9 @@ class CYCLES_WORLD_PT_surface(CyclesButtonsPanel, Panel):
         layout.use_property_split = True
 
         world = context.world
-        view_layer = context.view_layer
 
         if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
             layout.prop(world, "color")
-
-        row = layout.row(align=True)
-        row.use_property_decorate = False
-
-        sub = row.column(align=True)
-        sub.prop_search(
-            world,
-            "lightgroup",
-            view_layer,
-            "lightgroups",
-            text="Light Group",
-            results_are_suggestions=True,
-        )
-
-        sub = row.column(align=True)
-        sub.active = bool(world.lightgroup) and not any(lg.name == world.lightgroup for lg in view_layer.lightgroups)
-        sub.operator("scene.view_layer_add_lightgroup", icon='ADD', text="").name = world.lightgroup
 
 
 class CYCLES_WORLD_PT_volume(CyclesButtonsPanel, Panel):
@@ -1614,6 +1619,40 @@ class CYCLES_WORLD_PT_settings_volume(CyclesButtonsPanel, Panel):
         sub = col.column()
         sub.active = not cworld.homogeneous_volume
         sub.prop(cworld, "volume_step_size")
+
+
+class CYCLES_WORLD_PT_settings_light_group(CyclesButtonsPanel, Panel):
+    bl_label = "Light Group"
+    bl_parent_id = "CYCLES_WORLD_PT_settings"
+    bl_context = "world"
+
+    @classmethod
+    def poll(cls, context):
+        return context.world and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        world = context.world
+        view_layer = context.view_layer
+
+        row = layout.row(align=True)
+
+        sub = row.column(align=True)
+        sub.prop_search(
+            world,
+            "lightgroup",
+            view_layer,
+            "lightgroups",
+            text="Light Group",
+            results_are_suggestions=True,
+        )
+
+        sub = row.column(align=True)
+        sub.enabled = bool(world.lightgroup) and not any(lg.name == world.lightgroup for lg in view_layer.lightgroups)
+        sub.operator("scene.view_layer_add_lightgroup", icon='ADD', text="").name = world.lightgroup
 
 
 class CYCLES_MATERIAL_PT_preview(CyclesButtonsPanel, Panel):
@@ -2241,6 +2280,7 @@ classes = (
     CYCLES_PT_sampling_presets,
     CYCLES_PT_viewport_sampling_presets,
     CYCLES_PT_integrator_presets,
+    CYCLES_PT_performance_presets,
     CYCLES_RENDER_PT_sampling,
     CYCLES_RENDER_PT_sampling_viewport,
     CYCLES_RENDER_PT_sampling_viewport_denoise,
@@ -2308,6 +2348,7 @@ classes = (
     CYCLES_WORLD_PT_settings,
     CYCLES_WORLD_PT_settings_surface,
     CYCLES_WORLD_PT_settings_volume,
+    CYCLES_WORLD_PT_settings_light_group,
     CYCLES_MATERIAL_PT_preview,
     CYCLES_MATERIAL_PT_surface,
     CYCLES_MATERIAL_PT_volume,

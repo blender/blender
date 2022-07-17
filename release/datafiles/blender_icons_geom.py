@@ -45,6 +45,8 @@ import bpy
 
 # Generic functions
 
+OBJECTS_TYPES_MESH_COMPATIBLE = {'CURVE', 'MESH'}
+
 
 def area_tri_signed_2x_v2(v1, v2, v3):
     return (v1[0] - v2[0]) * (v2[1] - v3[1]) + (v1[1] - v2[1]) * (v3[0] - v2[0])
@@ -70,13 +72,14 @@ class TriMesh:
     @staticmethod
     def _tri_copy_from_object(ob):
         import bmesh
-        assert(ob.type == 'MESH')
+        assert(ob.type in OBJECTS_TYPES_MESH_COMPATIBLE)
         bm = bmesh.new()
-        bm.from_mesh(ob.data)
+        bm.from_mesh(ob.to_mesh())
         bmesh.ops.triangulate(bm, faces=bm.faces)
         me = bpy.data.meshes.new(ob.name + ".copy")
         bm.to_mesh(me)
         bm.free()
+        ob.to_mesh_clear()
         return me
 
 
@@ -118,7 +121,7 @@ def object_child_map(objects):
 
 def mesh_data_lists_from_mesh(me, material_colors):
     me_loops = me.loops[:]
-    me_loops_color = me.vertex_colors.active.data[:]
+    me_loops_color = me.attributes.active_color.data[:]
     me_verts = me.vertices[:]
     me_polys = me.polygons[:]
 
@@ -164,14 +167,28 @@ def mesh_data_lists_from_mesh(me, material_colors):
                     v1.co.xy[:],
                     v2.co.xy[:],
                 ),
-                # RGBA color.
-                tuple((
-                    [int(c * b * 255) for c, b in zip(cn.color, base_color)]
-                    for cn in (c0, c1, c2)
-                )),
+                # RGBA color in sRGB color space.
+                (
+                    color_multiply_and_from_linear_to_srgb(base_color, c0),
+                    color_multiply_and_from_linear_to_srgb(base_color, c1),
+                    color_multiply_and_from_linear_to_srgb(base_color, c2),
+                ),
             ))
             i1 = i2
     return tris_data
+
+
+def color_multiply_and_from_linear_to_srgb(base_color, vertex_color):
+    """
+    Return the RGBA color in sRGB and byte format (0-255).
+
+    base_color and vertex_color are expected in linear space.
+    The final color is the product between the base color and the vertex color.
+    """
+    import mathutils
+    color_linear = [c * b for c, b in zip(vertex_color.color, base_color)]
+    color_srgb = mathutils.Color(color_linear[:3]).from_scene_linear_to_srgb()
+    return tuple(round(c * 255) for c in (*color_srgb, color_linear[3]))
 
 
 def mesh_data_lists_from_objects(ob_parent, ob_children):
@@ -203,7 +220,7 @@ def write_mesh_to_py(fh, ob, ob_children):
         assert(axis_range <= 255)
         # -1..1 -> 0..255
         f = (f + 1.0) * 0.5
-        f = int(round(f * axis_range))
+        f = round(f * axis_range)
         return min(max(f, 0), axis_range)
 
     def vert_as_byte_pair(v):
@@ -300,6 +317,7 @@ def main():
     args = parser.parse_args(argv)
 
     objects = []
+    depsgraph = bpy.context.view_layer.depsgraph
 
     if args.group:
         group = bpy.data.collections.get(args.group)
@@ -314,23 +332,25 @@ def main():
     for ob in objects_source:
 
         # Skip non-mesh objects
-        if ob.type != 'MESH':
+        if ob.type not in OBJECTS_TYPES_MESH_COMPATIBLE:
             continue
-        name = ob.name
+
+        ob_eval = ob.evaluated_get(depsgraph)
+        name = ob_eval.name
 
         # Skip copies of objects
         if name.rpartition(".")[2].isdigit():
             continue
 
-        if not ob.data.vertex_colors:
+        if not ob_eval.data.attributes.active_color:
             print("Skipping:", name, "(no vertex colors)")
             continue
 
-        objects.append((name, ob))
+        objects.append((name, ob_eval))
 
     objects.sort(key=lambda a: a[0])
 
-    objects_children = object_child_map(bpy.data.objects)
+    objects_children = object_child_map(depsgraph.objects)
 
     for name, ob in objects:
         if ob.parent:

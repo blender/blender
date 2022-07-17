@@ -967,31 +967,6 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(float epsilon,
   return tree;
 }
 
-BVHTree *bvhtree_from_mesh_faces_ex(BVHTreeFromMesh *data,
-                                    const MVert *vert,
-                                    const MFace *face,
-                                    const int numFaces,
-                                    const BLI_bitmap *faces_mask,
-                                    int faces_num_active,
-                                    float epsilon,
-                                    int tree_type,
-                                    int axis)
-{
-  BVHTree *tree = nullptr;
-  tree = bvhtree_from_mesh_faces_create_tree(
-      epsilon, tree_type, axis, vert, face, numFaces, faces_mask, faces_num_active);
-
-  bvhtree_balance(tree, false);
-
-  if (data) {
-    /* Setup BVHTreeFromMesh */
-    bvhtree_from_mesh_setup_data(
-        tree, BVHTREE_FROM_FACES, vert, nullptr, face, nullptr, nullptr, nullptr, data);
-  }
-
-  return tree;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1212,10 +1187,11 @@ static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
 
   int looptri_no_hidden_len = 0;
   int looptri_iter = 0;
-  const MPoly *mp = mpoly;
+  int i_poly = 0;
   while (looptri_iter != looptri_len) {
-    int mp_totlooptri = mp->totloop - 2;
-    if (mp->flag & ME_HIDE) {
+    int mp_totlooptri = mpoly[i_poly].totloop - 2;
+    const MPoly &mp = mpoly[i_poly];
+    if (mp.flag & ME_HIDE) {
       looptri_iter += mp_totlooptri;
     }
     else {
@@ -1225,7 +1201,7 @@ static BLI_bitmap *looptri_no_hidden_map_get(const MPoly *mpoly,
         looptri_no_hidden_len++;
       }
     }
-    mp++;
+    i_poly++;
   }
 
   *r_looptri_active_len = looptri_no_hidden_len;

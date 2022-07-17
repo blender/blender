@@ -479,95 +479,6 @@ TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTr
 /** \name UV Coordinates
  * \{ */
 
-bool clipUVTransform(TransInfo *t, float vec[2], const bool resize)
-{
-  bool clipx = true, clipy = true;
-  float min[2], max[2];
-
-  /* Check if the current image in UV editor is a tiled image or not. */
-  const SpaceImage *sima = t->area->spacedata.first;
-  const Image *image = sima->image;
-  const bool is_tiled_image = image && (image->source == IMA_SRC_TILED);
-  /* Stores the coordinates of the closest UDIM tile.
-   * Also acts as an offset to the tile from the origin of UV space. */
-  float base_offset[2] = {0.0f, 0.0f};
-
-  /* If tiled image then constrain to correct/closest UDIM tile, else 0-1 UV space. */
-  if (is_tiled_image) {
-    int nearest_tile_index = BKE_image_find_nearest_tile(image, t->center_global);
-    if (nearest_tile_index != -1) {
-      nearest_tile_index -= 1001;
-      /* Getting coordinates of nearest tile from the tile index. */
-      base_offset[0] = nearest_tile_index % 10;
-      base_offset[1] = nearest_tile_index / 10;
-    }
-  }
-
-  min[0] = min[1] = FLT_MAX;
-  max[0] = max[1] = FLT_MIN;
-
-  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-
-    TransData *td;
-    int a;
-
-    for (a = 0, td = tc->data; a < tc->data_len; a++, td++) {
-      minmax_v2v2_v2(min, max, td->loc);
-    }
-  }
-
-  if (resize) {
-    if (min[0] < base_offset[0] && t->center_global[0] > base_offset[0] &&
-        t->center_global[0] < base_offset[0] + (t->aspect[0] * 0.5f)) {
-      vec[0] *= (t->center_global[0] - base_offset[0]) / (t->center_global[0] - min[0]);
-    }
-    else if (max[0] > (base_offset[0] + t->aspect[0]) &&
-             t->center_global[0] < (base_offset[0] + t->aspect[0])) {
-      vec[0] *= (t->center_global[0] - (base_offset[0] + t->aspect[0])) /
-                (t->center_global[0] - max[0]);
-    }
-    else {
-      clipx = 0;
-    }
-
-    if (min[1] < base_offset[1] && t->center_global[1] > base_offset[1] &&
-        t->center_global[1] < base_offset[1] + (t->aspect[1] * 0.5f)) {
-      vec[1] *= (t->center_global[1] - base_offset[1]) / (t->center_global[1] - min[1]);
-    }
-    else if (max[1] > (base_offset[1] + t->aspect[1]) &&
-             t->center_global[1] < (base_offset[1] + t->aspect[1])) {
-      vec[1] *= (t->center_global[1] - (base_offset[1] + t->aspect[1])) /
-                (t->center_global[1] - max[1]);
-    }
-    else {
-      clipy = 0;
-    }
-  }
-  else {
-    if (min[0] < base_offset[0]) {
-      vec[0] += base_offset[0] - min[0];
-    }
-    else if (max[0] > base_offset[0] + t->aspect[0]) {
-      vec[0] -= max[0] - base_offset[0] - t->aspect[0];
-    }
-    else {
-      clipx = 0;
-    }
-
-    if (min[1] < base_offset[1]) {
-      vec[1] += base_offset[1] - min[1];
-    }
-    else if (max[1] > base_offset[1] + t->aspect[1]) {
-      vec[1] -= max[1] - base_offset[1] - t->aspect[1];
-    }
-    else {
-      clipy = 0;
-    }
-  }
-
-  return (clipx || clipy);
-}
-
 void clipUVData(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -732,7 +643,7 @@ void posttrans_fcurve_clean(FCurve *fcu, const int sel_flag, const bool use_hand
           }
           else {
             /* Delete Keyframe */
-            delete_fcurve_key(fcu, i, 0);
+            BKE_fcurve_delete_key(fcu, i);
           }
 
           /* Update count of how many we've deleted
@@ -742,7 +653,7 @@ void posttrans_fcurve_clean(FCurve *fcu, const int sel_flag, const bool use_hand
         }
         else {
           /* Always delete - Unselected keys don't matter */
-          delete_fcurve_key(fcu, i, 0);
+          BKE_fcurve_delete_key(fcu, i);
         }
 
         /* Stop the RK search... we've found our match now */
@@ -1570,10 +1481,9 @@ void transform_convert_clip_mirror_modifier_apply(TransDataContainer *tc)
   }
 }
 
-void animrecord_check_state(TransInfo *t, struct Object *ob)
+void animrecord_check_state(TransInfo *t, struct ID *id)
 {
   Scene *scene = t->scene;
-  ID *id = &ob->id;
   wmTimer *animtimer = t->animtimer;
   ScreenAnimData *sad = (animtimer) ? animtimer->customdata : NULL;
 

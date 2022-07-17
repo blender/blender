@@ -801,7 +801,8 @@ struct ShaderCreateInfo {
   std::string check_error() const;
 
   /** Error detection that some backend compilers do not complain about. */
-  void validate(const ShaderCreateInfo &other_info);
+  void validate_merge(const ShaderCreateInfo &other_info);
+  void validate_vertex_attributes(const ShaderCreateInfo *other_info = nullptr);
 
   /** \} */
 
@@ -869,6 +870,31 @@ struct ShaderCreateInfo {
       print_resource(res);
     }
     return stream;
+  }
+
+  bool has_resource_type(Resource::BindType bind_type) const
+  {
+    for (auto &res : batch_resources_) {
+      if (res.bind_type == bind_type) {
+        return true;
+      }
+    }
+    for (auto &res : pass_resources_) {
+      if (res.bind_type == bind_type) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool has_resource_image() const
+  {
+    return has_resource_type(Resource::BindType::IMAGE);
+  }
+
+  bool has_resource_storage() const
+  {
+    return has_resource_type(Resource::BindType::STORAGE_BUFFER);
   }
 
   /** \} */

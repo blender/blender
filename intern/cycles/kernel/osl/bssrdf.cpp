@@ -44,6 +44,8 @@ class CBSSRDFClosure : public CClosurePrimitive {
 
   void setup(ShaderData *sd, uint32_t path_flag, float3 weight)
   {
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
     if (method == u_burley) {
       alloc(sd, path_flag, weight, CLOSURE_BSSRDF_BURLEY_ID);
     }

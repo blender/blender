@@ -239,33 +239,33 @@ static StructRNA *rna_LineStyle_geometry_modifier_refine(struct PointerRNA *ptr)
   }
 }
 
-static char *rna_LineStyle_color_modifier_path(PointerRNA *ptr)
+static char *rna_LineStyle_color_modifier_path(const PointerRNA *ptr)
 {
-  LineStyleModifier *m = (LineStyleModifier *)ptr->data;
+  const LineStyleModifier *m = (LineStyleModifier *)ptr->data;
   char name_esc[sizeof(m->name) * 2];
   BLI_str_escape(name_esc, m->name, sizeof(name_esc));
   return BLI_sprintfN("color_modifiers[\"%s\"]", name_esc);
 }
 
-static char *rna_LineStyle_alpha_modifier_path(PointerRNA *ptr)
+static char *rna_LineStyle_alpha_modifier_path(const PointerRNA *ptr)
 {
-  LineStyleModifier *m = (LineStyleModifier *)ptr->data;
+  const LineStyleModifier *m = (LineStyleModifier *)ptr->data;
   char name_esc[sizeof(m->name) * 2];
   BLI_str_escape(name_esc, m->name, sizeof(name_esc));
   return BLI_sprintfN("alpha_modifiers[\"%s\"]", name_esc);
 }
 
-static char *rna_LineStyle_thickness_modifier_path(PointerRNA *ptr)
+static char *rna_LineStyle_thickness_modifier_path(const PointerRNA *ptr)
 {
-  LineStyleModifier *m = (LineStyleModifier *)ptr->data;
+  const LineStyleModifier *m = (LineStyleModifier *)ptr->data;
   char name_esc[sizeof(m->name) * 2];
   BLI_str_escape(name_esc, m->name, sizeof(name_esc));
   return BLI_sprintfN("thickness_modifiers[\"%s\"]", name_esc);
 }
 
-static char *rna_LineStyle_geometry_modifier_path(PointerRNA *ptr)
+static char *rna_LineStyle_geometry_modifier_path(const PointerRNA *ptr)
 {
-  LineStyleModifier *m = (LineStyleModifier *)ptr->data;
+  const LineStyleModifier *m = (LineStyleModifier *)ptr->data;
   char name_esc[sizeof(m->name) * 2];
   BLI_str_escape(name_esc, m->name, sizeof(name_esc));
   return BLI_sprintfN("geometry_modifiers[\"%s\"]", name_esc);

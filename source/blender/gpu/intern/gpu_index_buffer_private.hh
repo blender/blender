@@ -45,6 +45,8 @@ class IndexBuf {
   bool is_init_ = false;
   /** Is this object only a reference to a subrange of another IndexBuf. */
   bool is_subrange_ = false;
+  /** True if buffer only contains restart indices. */
+  bool is_empty_ = false;
 
   union {
     /** Mapped buffer data. non-NULL indicates not yet sent to VRAM. */
@@ -61,9 +63,12 @@ class IndexBuf {
   void init_subrange(IndexBuf *elem_src, uint start, uint length);
   void init_build_on_device(uint index_len);
 
+  /* Returns render index count (not precise). */
   uint32_t index_len_get() const
   {
-    return index_len_;
+    /* Return 0 to bypass drawing for index buffers full of restart indices.
+     * They can lead to graphical glitches on some systems. (See T96892) */
+    return is_empty_ ? 0 : index_len_;
   }
   /* Return size in byte of the drawable data buffer range. Actual buffer size might be bigger. */
   size_t size_get() const

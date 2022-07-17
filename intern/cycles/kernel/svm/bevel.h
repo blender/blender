@@ -103,7 +103,7 @@ ccl_device float3 svm_bevel(
     return sd->N;
   }
 
-  /* Can't raytrace from shaders like displacement, before BVH exists. */
+  /* Can't ray-trace from shaders like displacement, before BVH exists. */
   if (kernel_data.bvh.bvh_layout == BVH_LAYOUT_NONE) {
     return sd->N;
   }
@@ -179,7 +179,8 @@ ccl_device float3 svm_bevel(
     Ray ray ccl_optional_struct_init;
     ray.P = sd->P + disk_N * disk_height + disk_P;
     ray.D = -disk_N;
-    ray.t = 2.0f * disk_height;
+    ray.tmin = 0.0f;
+    ray.tmax = 2.0f * disk_height;
     ray.dP = differential_zero_compact();
     ray.dD = differential_zero_compact();
     ray.time = sd->time;
@@ -222,7 +223,7 @@ ccl_device float3 svm_bevel(
       /* Get geometric normal. */
       float3 hit_Ng = isect.Ng[hit];
       int object = isect.hits[hit].object;
-      int object_flag = kernel_tex_fetch(__object_flag, object);
+      int object_flag = kernel_data_fetch(object_flag, object);
       if (object_flag & SD_OBJECT_NEGATIVE_SCALE_APPLIED) {
         hit_Ng = -hit_Ng;
       }
@@ -230,7 +231,7 @@ ccl_device float3 svm_bevel(
       /* Compute smooth normal. */
       float3 N = hit_Ng;
       int prim = isect.hits[hit].prim;
-      int shader = kernel_tex_fetch(__tri_shader, prim);
+      int shader = kernel_data_fetch(tri_shader, prim);
 
       if (shader & SHADER_SMOOTH_NORMAL) {
         float u = isect.hits[hit].u;

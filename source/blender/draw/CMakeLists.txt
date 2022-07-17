@@ -39,8 +39,8 @@ set(INC
 set(SRC
   intern/draw_cache.c
   intern/draw_cache_extract_mesh.cc
-  intern/draw_cache_extract_mesh_render_data.c
-  intern/mesh_extractors/extract_mesh.c
+  intern/draw_cache_extract_mesh_render_data.cc
+  intern/mesh_extractors/extract_mesh.cc
   intern/mesh_extractors/extract_mesh_ibo_edituv.cc
   intern/mesh_extractors/extract_mesh_ibo_fdots.cc
   intern/mesh_extractors/extract_mesh_ibo_lines.cc
@@ -69,12 +69,13 @@ set(SRC
   intern/mesh_extractors/extract_mesh_vbo_uv.cc
   intern/mesh_extractors/extract_mesh_vbo_vcol.cc
   intern/mesh_extractors/extract_mesh_vbo_weights.cc
+  intern/draw_attributes.cc
   intern/draw_cache_impl_curve.cc
   intern/draw_cache_impl_curves.cc
   intern/draw_cache_impl_displist.c
   intern/draw_cache_impl_gpencil.c
   intern/draw_cache_impl_lattice.c
-  intern/draw_cache_impl_mesh.c
+  intern/draw_cache_impl_mesh.cc
   intern/draw_cache_impl_metaball.c
   intern/draw_cache_impl_particles.c
   intern/draw_cache_impl_pointcloud.c
@@ -85,7 +86,7 @@ set(SRC
   intern/draw_curves.cc
   intern/draw_debug.c
   intern/draw_fluid.c
-  intern/draw_hair.c
+  intern/draw_hair.cc
   intern/draw_instance_data.c
   intern/draw_manager.c
   intern/draw_manager_data.c
@@ -95,7 +96,7 @@ set(SRC
   intern/draw_manager_text.c
   intern/draw_manager_texture.c
   intern/draw_select_buffer.c
-  intern/draw_shader.c
+  intern/draw_shader.cc
   intern/draw_texture_pool.cc
   intern/draw_view.c
   intern/draw_view_data.cc
@@ -133,7 +134,19 @@ set(SRC
   engines/eevee/eevee_subsurface.c
   engines/eevee/eevee_temporal_sampling.c
   engines/eevee/eevee_volumes.c
+  engines/eevee_next/eevee_camera.cc
   engines/eevee_next/eevee_engine.cc
+  engines/eevee_next/eevee_film.cc
+  engines/eevee_next/eevee_instance.cc
+  engines/eevee_next/eevee_material.cc
+  engines/eevee_next/eevee_pipeline.cc
+  engines/eevee_next/eevee_renderbuffers.cc
+  engines/eevee_next/eevee_sampling.cc
+  engines/eevee_next/eevee_shader.cc
+  engines/eevee_next/eevee_sync.cc
+  engines/eevee_next/eevee_velocity.cc
+  engines/eevee_next/eevee_view.cc
+  engines/eevee_next/eevee_world.cc
   engines/workbench/workbench_data.c
   engines/workbench/workbench_effect_antialiasing.c
   engines/workbench/workbench_effect_cavity.c
@@ -181,6 +194,7 @@ set(SRC
   engines/overlay/overlay_paint.c
   engines/overlay/overlay_particle.c
   engines/overlay/overlay_sculpt.c
+  engines/overlay/overlay_sculpt_curves.cc
   engines/overlay/overlay_shader.c
   engines/overlay/overlay_volume.c
   engines/overlay/overlay_wireframe.c
@@ -189,8 +203,9 @@ set(SRC
   DRW_select_buffer.h
   intern/DRW_gpu_wrapper.hh
   intern/DRW_render.h
+  intern/draw_attributes.h
   intern/draw_cache.h
-  intern/draw_cache_extract.h
+  intern/draw_cache_extract.hh
   intern/draw_cache_impl.h
   intern/draw_cache_inline.h
   intern/draw_color_management.h
@@ -210,7 +225,7 @@ set(SRC
   intern/draw_texture_pool.h
   intern/draw_view.h
   intern/draw_view_data.h
-  intern/mesh_extractors/extract_mesh.h
+  intern/mesh_extractors/extract_mesh.hh
   intern/smaa_textures.h
   engines/basic/basic_engine.h
   engines/basic/basic_private.h
@@ -326,6 +341,7 @@ set(GLSL_SRC
   engines/eevee/shaders/renderpass_lib.glsl
   engines/eevee/shaders/renderpass_postprocess_frag.glsl
   engines/eevee/shaders/cryptomatte_frag.glsl
+  engines/eevee/shaders/cryptomatte_vert.glsl
   engines/eevee/shaders/ltc_lib.glsl
   engines/eevee/shaders/ssr_lib.glsl
   engines/eevee/shaders/surface_frag.glsl
@@ -342,6 +358,27 @@ set(GLSL_SRC
   engines/eevee/shaders/volumetric_scatter_frag.glsl
   engines/eevee/shaders/volumetric_integration_frag.glsl
   engines/eevee/shaders/world_vert.glsl
+
+  engines/eevee_next/shaders/eevee_attributes_lib.glsl
+  engines/eevee_next/shaders/eevee_camera_lib.glsl
+  engines/eevee_next/shaders/eevee_film_comp.glsl
+  engines/eevee_next/shaders/eevee_film_frag.glsl
+  engines/eevee_next/shaders/eevee_film_lib.glsl
+  engines/eevee_next/shaders/eevee_geom_curves_vert.glsl
+  engines/eevee_next/shaders/eevee_geom_gpencil_vert.glsl
+  engines/eevee_next/shaders/eevee_geom_mesh_vert.glsl
+  engines/eevee_next/shaders/eevee_geom_world_vert.glsl
+  engines/eevee_next/shaders/eevee_nodetree_lib.glsl
+  engines/eevee_next/shaders/eevee_surf_deferred_frag.glsl
+  engines/eevee_next/shaders/eevee_surf_depth_frag.glsl
+  engines/eevee_next/shaders/eevee_surf_forward_frag.glsl
+  engines/eevee_next/shaders/eevee_surf_lib.glsl
+  engines/eevee_next/shaders/eevee_surf_world_frag.glsl
+  engines/eevee_next/shaders/eevee_velocity_lib.glsl
+  engines/eevee_next/shaders/eevee_velocity_resolve_comp.glsl
+
+  engines/eevee_next/eevee_defines.hh
+  engines/eevee_next/eevee_shader_shared.hh
 
   engines/workbench/shaders/workbench_cavity_lib.glsl
   engines/workbench/shaders/workbench_common_lib.glsl
@@ -402,8 +439,8 @@ set(GLSL_SRC
   intern/shaders/common_subdiv_vbo_lnor_comp.glsl
   intern/shaders/common_subdiv_vbo_sculpt_data_comp.glsl
 
-  intern/draw_shader_shared.h
   intern/draw_common_shader_shared.h
+  intern/draw_shader_shared.h
 
   engines/gpencil/shaders/gpencil_frag.glsl
   engines/gpencil/shaders/gpencil_vert.glsl
@@ -422,107 +459,117 @@ set(GLSL_SRC
   engines/select/shaders/select_id_vert.glsl
   engines/select/shaders/select_id_frag.glsl
 
-  engines/basic/shaders/conservative_depth_geom.glsl
-  engines/basic/shaders/depth_vert.glsl
-  engines/basic/shaders/depth_frag.glsl
+  engines/basic/shaders/basic_conservative_depth_geom.glsl
+  engines/basic/shaders/basic_depth_vert.glsl
+  engines/basic/shaders/basic_depth_curves_vert.glsl
+  engines/basic/shaders/basic_depth_pointcloud_vert.glsl
+  engines/basic/shaders/basic_depth_frag.glsl
 
-  engines/overlay/shaders/common_overlay_lib.glsl
-  engines/overlay/shaders/antialiasing_frag.glsl
-  engines/overlay/shaders/armature_dof_vert.glsl
-  engines/overlay/shaders/armature_dof_solid_frag.glsl
-  engines/overlay/shaders/armature_envelope_outline_vert.glsl
-  engines/overlay/shaders/armature_envelope_solid_frag.glsl
-  engines/overlay/shaders/armature_envelope_solid_vert.glsl
-  engines/overlay/shaders/armature_shape_outline_geom.glsl
-  engines/overlay/shaders/armature_shape_outline_vert.glsl
-  engines/overlay/shaders/armature_shape_solid_frag.glsl
-  engines/overlay/shaders/armature_shape_solid_vert.glsl
-  engines/overlay/shaders/armature_shape_wire_vert.glsl
-  engines/overlay/shaders/armature_sphere_outline_vert.glsl
-  engines/overlay/shaders/armature_sphere_solid_frag.glsl
-  engines/overlay/shaders/armature_sphere_solid_vert.glsl
-  engines/overlay/shaders/armature_stick_frag.glsl
-  engines/overlay/shaders/armature_stick_vert.glsl
-  engines/overlay/shaders/armature_wire_frag.glsl
-  engines/overlay/shaders/armature_wire_vert.glsl
-  engines/overlay/shaders/background_frag.glsl
-  engines/overlay/shaders/clipbound_vert.glsl
-  engines/overlay/shaders/depth_only_vert.glsl
-  engines/overlay/shaders/edit_curve_handle_geom.glsl
-  engines/overlay/shaders/edit_curve_handle_vert.glsl
-  engines/overlay/shaders/edit_curve_point_vert.glsl
-  engines/overlay/shaders/edit_curve_wire_vert.glsl
-  engines/overlay/shaders/edit_gpencil_canvas_vert.glsl
-  engines/overlay/shaders/edit_gpencil_guide_vert.glsl
-  engines/overlay/shaders/edit_gpencil_vert.glsl
-  engines/overlay/shaders/edit_lattice_point_vert.glsl
-  engines/overlay/shaders/edit_lattice_wire_vert.glsl
-  engines/overlay/shaders/edit_mesh_common_lib.glsl
-  engines/overlay/shaders/edit_mesh_frag.glsl
-  engines/overlay/shaders/edit_mesh_geom.glsl
-  engines/overlay/shaders/edit_mesh_normal_vert.glsl
-  engines/overlay/shaders/edit_mesh_analysis_frag.glsl
-  engines/overlay/shaders/edit_mesh_analysis_vert.glsl
-  engines/overlay/shaders/edit_mesh_skin_root_vert.glsl
-  engines/overlay/shaders/edit_mesh_vert.glsl
-  engines/overlay/shaders/edit_particle_strand_vert.glsl
-  engines/overlay/shaders/edit_particle_point_vert.glsl
-  engines/overlay/shaders/edit_uv_edges_vert.glsl
-  engines/overlay/shaders/edit_uv_edges_geom.glsl
-  engines/overlay/shaders/edit_uv_edges_frag.glsl
-  engines/overlay/shaders/edit_uv_verts_vert.glsl
-  engines/overlay/shaders/edit_uv_verts_frag.glsl
-  engines/overlay/shaders/edit_uv_faces_vert.glsl
-  engines/overlay/shaders/edit_uv_face_dots_vert.glsl
-  engines/overlay/shaders/edit_uv_image_vert.glsl
-  engines/overlay/shaders/edit_uv_image_mask_frag.glsl
-  engines/overlay/shaders/edit_uv_stretching_vert.glsl
-  engines/overlay/shaders/edit_uv_tiled_image_borders_vert.glsl
-  engines/overlay/shaders/extra_frag.glsl
-  engines/overlay/shaders/extra_vert.glsl
-  engines/overlay/shaders/extra_groundline_vert.glsl
-  engines/overlay/shaders/extra_lightprobe_grid_vert.glsl
-  engines/overlay/shaders/extra_loose_point_frag.glsl
-  engines/overlay/shaders/extra_loose_point_vert.glsl
-  engines/overlay/shaders/extra_point_vert.glsl
-  engines/overlay/shaders/extra_wire_frag.glsl
-  engines/overlay/shaders/extra_wire_vert.glsl
-  engines/overlay/shaders/facing_frag.glsl
-  engines/overlay/shaders/facing_vert.glsl
-  engines/overlay/shaders/grid_background_frag.glsl
-  engines/overlay/shaders/grid_frag.glsl
-  engines/overlay/shaders/grid_vert.glsl
-  engines/overlay/shaders/image_vert.glsl
-  engines/overlay/shaders/image_frag.glsl
-  engines/overlay/shaders/motion_path_line_frag.glsl
-  engines/overlay/shaders/motion_path_line_geom.glsl
-  engines/overlay/shaders/motion_path_line_vert.glsl
-  engines/overlay/shaders/motion_path_point_vert.glsl
-  engines/overlay/shaders/outline_detect_frag.glsl
-  engines/overlay/shaders/outline_prepass_frag.glsl
-  engines/overlay/shaders/outline_prepass_gpencil_frag.glsl
-  engines/overlay/shaders/outline_prepass_geom.glsl
-  engines/overlay/shaders/outline_prepass_gpencil_vert.glsl
-  engines/overlay/shaders/outline_prepass_pointcloud_vert.glsl
-  engines/overlay/shaders/outline_prepass_vert.glsl
-  engines/overlay/shaders/paint_face_vert.glsl
-  engines/overlay/shaders/paint_point_vert.glsl
-  engines/overlay/shaders/paint_texture_frag.glsl
-  engines/overlay/shaders/paint_texture_vert.glsl
-  engines/overlay/shaders/paint_vertcol_frag.glsl
-  engines/overlay/shaders/paint_vertcol_vert.glsl
-  engines/overlay/shaders/paint_weight_frag.glsl
-  engines/overlay/shaders/paint_weight_vert.glsl
-  engines/overlay/shaders/paint_wire_vert.glsl
-  engines/overlay/shaders/particle_vert.glsl
-  engines/overlay/shaders/particle_frag.glsl
-  engines/overlay/shaders/sculpt_mask_vert.glsl
-  engines/overlay/shaders/sculpt_mask_frag.glsl
-  engines/overlay/shaders/volume_velocity_vert.glsl
-  engines/overlay/shaders/volume_gridlines_vert.glsl
-  engines/overlay/shaders/wireframe_vert.glsl
-  engines/overlay/shaders/wireframe_frag.glsl
-  engines/overlay/shaders/xray_fade_frag.glsl
+  engines/overlay/shaders/overlay_antialiasing_frag.glsl
+  engines/overlay/shaders/overlay_armature_dof_solid_frag.glsl
+  engines/overlay/shaders/overlay_armature_dof_vert.glsl
+  engines/overlay/shaders/overlay_armature_envelope_outline_vert.glsl
+  engines/overlay/shaders/overlay_armature_envelope_solid_frag.glsl
+  engines/overlay/shaders/overlay_armature_envelope_solid_vert.glsl
+  engines/overlay/shaders/overlay_armature_shape_outline_geom.glsl
+  engines/overlay/shaders/overlay_armature_shape_outline_vert.glsl
+  engines/overlay/shaders/overlay_armature_shape_solid_frag.glsl
+  engines/overlay/shaders/overlay_armature_shape_solid_vert.glsl
+  engines/overlay/shaders/overlay_armature_shape_wire_vert.glsl
+  engines/overlay/shaders/overlay_armature_sphere_outline_vert.glsl
+  engines/overlay/shaders/overlay_armature_sphere_solid_frag.glsl
+  engines/overlay/shaders/overlay_armature_sphere_solid_vert.glsl
+  engines/overlay/shaders/overlay_armature_stick_frag.glsl
+  engines/overlay/shaders/overlay_armature_stick_vert.glsl
+  engines/overlay/shaders/overlay_armature_wire_frag.glsl
+  engines/overlay/shaders/overlay_armature_wire_vert.glsl
+  engines/overlay/shaders/overlay_background_frag.glsl
+  engines/overlay/shaders/overlay_clipbound_vert.glsl
+  engines/overlay/shaders/overlay_common_lib.glsl
+  engines/overlay/shaders/overlay_depth_only_frag.glsl
+  engines/overlay/shaders/overlay_depth_only_vert.glsl
+  engines/overlay/shaders/overlay_edit_curve_handle_geom.glsl
+  engines/overlay/shaders/overlay_edit_curve_handle_vert.glsl
+  engines/overlay/shaders/overlay_edit_curve_point_vert.glsl
+  engines/overlay/shaders/overlay_edit_curve_wire_vert.glsl
+  engines/overlay/shaders/overlay_edit_gpencil_canvas_vert.glsl
+  engines/overlay/shaders/overlay_edit_gpencil_guide_vert.glsl
+  engines/overlay/shaders/overlay_edit_gpencil_vert.glsl
+  engines/overlay/shaders/overlay_edit_lattice_point_vert.glsl
+  engines/overlay/shaders/overlay_edit_lattice_wire_vert.glsl
+  engines/overlay/shaders/overlay_edit_mesh_analysis_frag.glsl
+  engines/overlay/shaders/overlay_edit_mesh_analysis_vert.glsl
+  engines/overlay/shaders/overlay_edit_mesh_common_lib.glsl
+  engines/overlay/shaders/overlay_edit_mesh_frag.glsl
+  engines/overlay/shaders/overlay_edit_mesh_geom.glsl
+  engines/overlay/shaders/overlay_edit_mesh_normal_vert.glsl
+  engines/overlay/shaders/overlay_edit_mesh_skin_root_vert.glsl
+  engines/overlay/shaders/overlay_edit_mesh_vert.glsl
+  engines/overlay/shaders/overlay_edit_particle_point_vert.glsl
+  engines/overlay/shaders/overlay_edit_particle_strand_vert.glsl
+  engines/overlay/shaders/overlay_edit_uv_edges_frag.glsl
+  engines/overlay/shaders/overlay_edit_uv_edges_geom.glsl
+  engines/overlay/shaders/overlay_edit_uv_edges_vert.glsl
+  engines/overlay/shaders/overlay_edit_uv_face_dots_vert.glsl
+  engines/overlay/shaders/overlay_edit_uv_faces_vert.glsl
+  engines/overlay/shaders/overlay_edit_uv_image_mask_frag.glsl
+  engines/overlay/shaders/overlay_edit_uv_image_vert.glsl
+  engines/overlay/shaders/overlay_edit_uv_stretching_vert.glsl
+  engines/overlay/shaders/overlay_edit_uv_tiled_image_borders_vert.glsl
+  engines/overlay/shaders/overlay_edit_uv_verts_frag.glsl
+  engines/overlay/shaders/overlay_edit_uv_verts_vert.glsl
+  engines/overlay/shaders/overlay_extra_frag.glsl
+  engines/overlay/shaders/overlay_extra_groundline_vert.glsl
+  engines/overlay/shaders/overlay_extra_lightprobe_grid_vert.glsl
+  engines/overlay/shaders/overlay_extra_loose_point_frag.glsl
+  engines/overlay/shaders/overlay_extra_loose_point_vert.glsl
+  engines/overlay/shaders/overlay_extra_point_vert.glsl
+  engines/overlay/shaders/overlay_extra_vert.glsl
+  engines/overlay/shaders/overlay_extra_wire_frag.glsl
+  engines/overlay/shaders/overlay_extra_wire_vert.glsl
+  engines/overlay/shaders/overlay_facing_frag.glsl
+  engines/overlay/shaders/overlay_facing_vert.glsl
+  engines/overlay/shaders/overlay_grid_background_frag.glsl
+  engines/overlay/shaders/overlay_grid_frag.glsl
+  engines/overlay/shaders/overlay_grid_vert.glsl
+  engines/overlay/shaders/overlay_image_frag.glsl
+  engines/overlay/shaders/overlay_image_vert.glsl
+  engines/overlay/shaders/overlay_motion_path_line_frag.glsl
+  engines/overlay/shaders/overlay_motion_path_line_geom.glsl
+  engines/overlay/shaders/overlay_motion_path_line_vert.glsl
+  engines/overlay/shaders/overlay_motion_path_point_vert.glsl
+  engines/overlay/shaders/overlay_outline_detect_frag.glsl
+  engines/overlay/shaders/overlay_outline_prepass_curves_vert.glsl
+  engines/overlay/shaders/overlay_outline_prepass_frag.glsl
+  engines/overlay/shaders/overlay_outline_prepass_geom.glsl
+  engines/overlay/shaders/overlay_outline_prepass_gpencil_frag.glsl
+  engines/overlay/shaders/overlay_outline_prepass_gpencil_vert.glsl
+  engines/overlay/shaders/overlay_outline_prepass_pointcloud_vert.glsl
+  engines/overlay/shaders/overlay_outline_prepass_vert.glsl
+  engines/overlay/shaders/overlay_paint_face_vert.glsl
+  engines/overlay/shaders/overlay_paint_point_vert.glsl
+  engines/overlay/shaders/overlay_paint_texture_frag.glsl
+  engines/overlay/shaders/overlay_paint_texture_vert.glsl
+  engines/overlay/shaders/overlay_paint_vertcol_frag.glsl
+  engines/overlay/shaders/overlay_paint_vertcol_vert.glsl
+  engines/overlay/shaders/overlay_paint_weight_frag.glsl
+  engines/overlay/shaders/overlay_paint_weight_vert.glsl
+  engines/overlay/shaders/overlay_paint_wire_vert.glsl
+  engines/overlay/shaders/overlay_particle_frag.glsl
+  engines/overlay/shaders/overlay_particle_vert.glsl
+  engines/overlay/shaders/overlay_point_varying_color_frag.glsl
+  engines/overlay/shaders/overlay_point_varying_color_varying_outline_aa_frag.glsl
+  engines/overlay/shaders/overlay_sculpt_curves_selection_frag.glsl
+  engines/overlay/shaders/overlay_sculpt_curves_selection_vert.glsl
+  engines/overlay/shaders/overlay_sculpt_mask_frag.glsl
+  engines/overlay/shaders/overlay_sculpt_mask_vert.glsl
+  engines/overlay/shaders/overlay_uniform_color_frag.glsl
+  engines/overlay/shaders/overlay_varying_color.glsl
+  engines/overlay/shaders/overlay_volume_gridlines_vert.glsl
+  engines/overlay/shaders/overlay_volume_velocity_vert.glsl
+  engines/overlay/shaders/overlay_wireframe_frag.glsl
+  engines/overlay/shaders/overlay_wireframe_vert.glsl
+  engines/overlay/shaders/overlay_xray_fade_frag.glsl
 
   engines/overlay/overlay_shader_shared.h
 

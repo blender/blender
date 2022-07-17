@@ -629,8 +629,8 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
                                      NULL);
 
   /* set extents of view to start/end frames */
-  v2d->cur.xmin = (float)SFRA;
-  v2d->cur.xmax = (float)EFRA;
+  v2d->cur.xmin = (float)scene->r.sfra;
+  v2d->cur.xmax = (float)scene->r.efra;
 
   if (userdata.min < userdata.max) {
     v2d->cur.ymin = userdata.min;
@@ -675,8 +675,8 @@ void ED_clip_graph_center_current_frame(Scene *scene, ARegion *region)
   float extra = BLI_rctf_size_x(&v2d->cur) / 2.0f;
 
   /* set extents of view to start/end frames */
-  v2d->cur.xmin = (float)CFRA - extra;
-  v2d->cur.xmax = (float)CFRA + extra;
+  v2d->cur.xmin = (float)scene->r.cfra - extra;
+  v2d->cur.xmax = (float)scene->r.cfra + extra;
 }
 
 static int center_current_frame_exec(bContext *C, wmOperator *UNUSED(op))

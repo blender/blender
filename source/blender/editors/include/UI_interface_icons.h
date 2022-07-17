@@ -92,7 +92,7 @@ void UI_icon_render_id_ex(const struct bContext *C,
 int UI_icon_preview_to_render_size(enum eIconSizes size);
 
 /**
- * Draws icon with dpi scale factor.
+ * Draws icon with DPI scale factor.
  */
 void UI_icon_draw(float x, float y, int icon_id);
 void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha);

@@ -229,16 +229,13 @@ FCurve *id_data_find_fcurve(
     return NULL;
   }
 
-  /* Animation takes priority over drivers. */
-  if (adt->action && adt->action->curves.first) {
-    fcu = BKE_fcurve_find(&adt->action->curves, path, index);
-  }
-
-  /* If not animated, check if driven. */
-  if (fcu == NULL && adt->drivers.first) {
-    fcu = BKE_fcurve_find(&adt->drivers, path, index);
-    if (fcu && r_driven) {
-      *r_driven = true;
+  /* FIXME: The way drivers are handled here (always NULL-ifying `fcu`) is very weird, this needs
+   * to be re-checked I think?. */
+  bool is_driven = false;
+  fcu = BKE_animadata_fcurve_find_by_rna_path(adt, path, index, NULL, &is_driven);
+  if (is_driven) {
+    if (r_driven != NULL) {
+      *r_driven = is_driven;
     }
     fcu = NULL;
   }
@@ -259,12 +256,11 @@ FCurve *BKE_fcurve_find(ListBase *list, const char rna_path[], const int array_i
 
   /* Check paths of curves, then array indices... */
   for (fcu = list->first; fcu; fcu = fcu->next) {
+    /* Check indices first, much cheaper than a string comparison. */
     /* Simple string-compare (this assumes that they have the same root...) */
-    if (fcu->rna_path && STREQ(fcu->rna_path, rna_path)) {
-      /* Now check indices. */
-      if (fcu->array_index == array_index) {
-        return fcu;
-      }
+    if (UNLIKELY(fcu->array_index == array_index && fcu->rna_path &&
+                 fcu->rna_path[0] == rna_path[0] && STREQ(fcu->rna_path, rna_path))) {
+      return fcu;
     }
   }
 
@@ -339,6 +335,47 @@ int BKE_fcurves_filter(ListBase *dst, ListBase *src, const char *dataPrefix, con
   return matches;
 }
 
+FCurve *BKE_animadata_fcurve_find_by_rna_path(
+    AnimData *animdata, const char *rna_path, int rna_index, bAction **r_action, bool *r_driven)
+{
+  if (r_driven != NULL) {
+    *r_driven = false;
+  }
+  if (r_action != NULL) {
+    *r_action = NULL;
+  }
+
+  const bool has_action_fcurves = animdata->action != NULL &&
+                                  !BLI_listbase_is_empty(&animdata->action->curves);
+  const bool has_drivers = !BLI_listbase_is_empty(&animdata->drivers);
+
+  /* Animation takes priority over drivers. */
+  if (has_action_fcurves) {
+    FCurve *fcu = BKE_fcurve_find(&animdata->action->curves, rna_path, rna_index);
+
+    if (fcu != NULL) {
+      if (r_action != NULL) {
+        *r_action = animdata->action;
+      }
+      return fcu;
+    }
+  }
+
+  /* If not animated, check if driven. */
+  if (has_drivers) {
+    FCurve *fcu = BKE_fcurve_find(&animdata->drivers, rna_path, rna_index);
+
+    if (fcu != NULL) {
+      if (r_driven != NULL) {
+        *r_driven = true;
+      }
+      return fcu;
+    }
+  }
+
+  return NULL;
+}
+
 FCurve *BKE_fcurve_find_by_rna(PointerRNA *ptr,
                                PropertyRNA *prop,
                                int rnaindex,
@@ -351,8 +388,8 @@ FCurve *BKE_fcurve_find_by_rna(PointerRNA *ptr,
       NULL, ptr, prop, rnaindex, r_adt, r_action, r_driven, r_special);
 }
 
-FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *C,
-                                          PointerRNA *ptr,
+FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *UNUSED(C),
+                                          const PointerRNA *ptr,
                                           PropertyRNA *prop,
                                           int rnaindex,
                                           AnimData **r_animdata,
@@ -360,17 +397,17 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *C,
                                           bool *r_driven,
                                           bool *r_special)
 {
-  FCurve *fcu = NULL;
-  PointerRNA tptr = *ptr;
-
-  *r_driven = false;
-  *r_special = false;
-
-  if (r_animdata) {
+  if (r_animdata != NULL) {
     *r_animdata = NULL;
   }
-  if (r_action) {
+  if (r_action != NULL) {
     *r_action = NULL;
+  }
+  if (r_driven != NULL) {
+    *r_driven = false;
+  }
+  if (r_special) {
+    *r_special = false;
   }
 
   /* Special case for NLA Control Curves... */
@@ -380,87 +417,46 @@ FCurve *BKE_fcurve_find_by_rna_context_ui(bContext *C,
     /* Set the special flag, since it cannot be a normal action/driver
      * if we've been told to start looking here...
      */
-    *r_special = true;
+    if (r_special) {
+      *r_special = true;
+    }
+
+    *r_driven = false;
+    if (r_animdata) {
+      *r_animdata = NULL;
+    }
+    if (r_action) {
+      *r_action = NULL;
+    }
 
     /* The F-Curve either exists or it doesn't here... */
-    fcu = BKE_fcurve_find(&strip->fcurves, RNA_property_identifier(prop), rnaindex);
-    return fcu;
+    return BKE_fcurve_find(&strip->fcurves, RNA_property_identifier(prop), rnaindex);
   }
 
   /* There must be some RNA-pointer + property combo. */
-  if (prop && tptr.owner_id && RNA_property_animateable(&tptr, prop)) {
-    AnimData *adt = BKE_animdata_from_id(tptr.owner_id);
-    int step = (
-        /* Always 1 in case we have no context (can't check in 'ancestors' of given RNA ptr). */
-        C ? 2 : 1);
-    char *path = NULL;
-
-    if (!adt && C) {
-      path = RNA_path_from_ID_to_property(&tptr, prop);
-      adt = BKE_animdata_from_id(tptr.owner_id);
-      step--;
-    }
-
-    /* Standard F-Curve - Animation (Action) or Drivers. */
-    while (adt && step--) {
-      if ((adt->action == NULL || adt->action->curves.first == NULL) &&
-          (adt->drivers.first == NULL)) {
-        continue;
-      }
-
-      /* XXX This function call can become a performance bottleneck. */
-      if (step) {
-        path = RNA_path_from_ID_to_property(&tptr, prop);
-      }
-      if (path == NULL) {
-        continue;
-      }
-
-      /* XXX: The logic here is duplicated with a function up above. */
-      /* animation takes priority over drivers. */
-      if (adt->action && adt->action->curves.first) {
-        fcu = BKE_fcurve_find(&adt->action->curves, path, rnaindex);
-
-        if (fcu && r_action) {
-          *r_action = adt->action;
-        }
-      }
-
-      /* If not animated, check if driven. */
-      if (!fcu && (adt->drivers.first)) {
-        fcu = BKE_fcurve_find(&adt->drivers, path, rnaindex);
-
-        if (fcu) {
-          if (r_animdata) {
-            *r_animdata = adt;
-          }
-          *r_driven = true;
-        }
-      }
-
-      if (fcu && r_action) {
-        if (r_animdata) {
-          *r_animdata = adt;
-        }
-        *r_action = adt->action;
-        break;
-      }
-
-      if (step) {
-        char *tpath = path ? path : RNA_path_from_ID_to_property(&tptr, prop);
-        if (tpath && tpath != path) {
-          MEM_freeN(path);
-          path = tpath;
-          adt = BKE_animdata_from_id(tptr.owner_id);
-        }
-        else {
-          adt = NULL;
-        }
-      }
-    }
-    MEM_SAFE_FREE(path);
+  if (!prop || !ptr->owner_id || !RNA_property_animateable(ptr, prop)) {
+    return NULL;
   }
 
+  AnimData *adt = BKE_animdata_from_id(ptr->owner_id);
+  if (adt == NULL) {
+    return NULL;
+  }
+
+  /* XXX This function call can become a performance bottleneck. */
+  char *rna_path = RNA_path_from_ID_to_property(ptr, prop);
+  if (rna_path == NULL) {
+    return NULL;
+  }
+
+  /* Standard F-Curve from animdata - Animation (Action) or Drivers. */
+  FCurve *fcu = BKE_animadata_fcurve_find_by_rna_path(adt, rna_path, rnaindex, r_action, r_driven);
+
+  if (fcu != NULL && r_animdata != NULL) {
+    *r_animdata = adt;
+  }
+
+  MEM_freeN(rna_path);
   return fcu;
 }
 
@@ -1028,9 +1024,8 @@ static void UNUSED_FUNCTION(bezt_add_to_cfra_elem)(ListBase *lb, BezTriple *bezt
  * \{ */
 
 /* Some utilities for working with FPoints (i.e. 'sampled' animation curve data, such as
- * data imported from BVH/Mocap files), which are specialized for use with high density datasets,
- * which BezTriples/Keyframe data are ill equipped to do.
- */
+ * data imported from BVH/motion-capture files), which are specialized for use with high density
+ * datasets, which BezTriples/Keyframe data are ill equipped to do. */
 
 float fcurve_samplingcb_evalcurve(FCurve *fcu, void *UNUSED(data), float evaltime)
 {
@@ -1151,7 +1146,7 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
   MEM_SAFE_FREE(fcu->fpt);
 
   /* Not strictly needed since we use linear interpolation, but better be consistent here. */
-  calchandles_fcurve(fcu);
+  BKE_fcurve_handles_recalc(fcu);
 }
 
 /* ***************************** F-Curve Sanity ********************************* */
@@ -1221,7 +1216,7 @@ static BezTriple *cycle_offset_triple(
   return out;
 }
 
-void calchandles_fcurve_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
+void BKE_fcurve_handles_recalc_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
 {
   BezTriple *bezt, *prev, *next;
   int a = fcu->totvert;
@@ -1304,9 +1299,9 @@ void calchandles_fcurve_ex(FCurve *fcu, eBezTriple_Flag handle_sel_flag)
   }
 }
 
-void calchandles_fcurve(FCurve *fcu)
+void BKE_fcurve_handles_recalc(FCurve *fcu)
 {
-  calchandles_fcurve_ex(fcu, SELECT);
+  BKE_fcurve_handles_recalc_ex(fcu, SELECT);
 }
 
 void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_handle)
@@ -1325,7 +1320,7 @@ void testhandles_fcurve(FCurve *fcu, eBezTriple_Flag sel_flag, const bool use_ha
   }
 
   /* Recalculate handles. */
-  calchandles_fcurve_ex(fcu, sel_flag);
+  BKE_fcurve_handles_recalc_ex(fcu, sel_flag);
 }
 
 void sort_time_fcurve(FCurve *fcu)
@@ -1595,6 +1590,12 @@ static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
   }
 }
 
+static void fcurve_bezt_free(FCurve *fcu)
+{
+  MEM_SAFE_FREE(fcu->bezt);
+  fcu->totvert = 0;
+}
+
 bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
                                        struct BezTriple *prev,
                                        struct BezTriple *next,
@@ -1654,6 +1655,69 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
 
   *r_pdelta = diff_coords[1];
   return true;
+}
+
+void BKE_fcurve_delete_key(FCurve *fcu, int index)
+{
+  /* sanity check */
+  if (fcu == NULL) {
+    return;
+  }
+
+  /* verify the index:
+   * 1) cannot be greater than the number of available keyframes
+   * 2) negative indices are for specifying a value from the end of the array
+   */
+  if (abs(index) >= fcu->totvert) {
+    return;
+  }
+  if (index < 0) {
+    index += fcu->totvert;
+  }
+
+  /* Delete this keyframe */
+  memmove(
+      &fcu->bezt[index], &fcu->bezt[index + 1], sizeof(BezTriple) * (fcu->totvert - index - 1));
+  fcu->totvert--;
+
+  /* Free the array of BezTriples if there are not keyframes */
+  if (fcu->totvert == 0) {
+    fcurve_bezt_free(fcu);
+  }
+}
+
+bool BKE_fcurve_delete_keys_selected(FCurve *fcu)
+{
+  bool changed = false;
+
+  if (fcu->bezt == NULL) { /* ignore baked curves */
+    return false;
+  }
+
+  /* Delete selected BezTriples */
+  for (int i = 0; i < fcu->totvert; i++) {
+    if (fcu->bezt[i].f2 & SELECT) {
+      if (i == fcu->active_keyframe_index) {
+        BKE_fcurve_active_keyframe_set(fcu, NULL);
+      }
+      memmove(&fcu->bezt[i], &fcu->bezt[i + 1], sizeof(BezTriple) * (fcu->totvert - i - 1));
+      fcu->totvert--;
+      i--;
+      changed = true;
+    }
+  }
+
+  /* Free the array of BezTriples if there are not keyframes */
+  if (fcu->totvert == 0) {
+    fcurve_bezt_free(fcu);
+  }
+
+  return changed;
+}
+
+void BKE_fcurve_delete_keys_all(FCurve *fcu)
+{
+  fcurve_bezt_free(fcu);
 }
 
 /** \} */

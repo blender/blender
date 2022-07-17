@@ -187,8 +187,10 @@ void clip_draw_sfra_efra(struct View2D *v2d, struct Scene *scene);
 
 /* tracking_ops.c */
 
-struct MovieTrackingTrack *tracking_marker_check_slide(
-    struct bContext *C, const struct wmEvent *event, int *r_area, int *r_action, int *r_corner);
+/* Find track which can be slid in a proximity of the given event.
+ * Uses the same distance tolerance rule as the "Slide Marker" operator. */
+struct MovieTrackingTrack *tracking_find_slidable_track_in_proximity(struct bContext *C,
+                                                                     const float co[2]);
 
 void CLIP_OT_add_marker(struct wmOperatorType *ot);
 void CLIP_OT_add_marker_at_click(struct wmOperatorType *ot);
@@ -248,6 +250,9 @@ void CLIP_OT_slide_plane_marker(struct wmOperatorType *ot);
 
 void CLIP_OT_keyframe_insert(struct wmOperatorType *ot);
 void CLIP_OT_keyframe_delete(struct wmOperatorType *ot);
+
+void CLIP_OT_new_image_from_plane_marker(struct wmOperatorType *ot);
+void CLIP_OT_update_image_from_plane_marker(struct wmOperatorType *ot);
 
 /* tracking_select.c */
 

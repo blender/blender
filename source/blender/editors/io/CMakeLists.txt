@@ -9,9 +9,11 @@ set(INC
   ../../depsgraph
   ../../io/alembic
   ../../io/collada
+  ../../io/common
   ../../io/gpencil
   ../../io/usd
   ../../io/wavefront_obj
+  ../../io/stl
   ../../makesdna
   ../../makesrna
   ../../windowmanager
@@ -32,6 +34,7 @@ set(SRC
   io_obj.c
   io_ops.c
   io_usd.c
+  io_stl_ops.c
 
   io_alembic.h
   io_cache.h
@@ -40,12 +43,12 @@ set(SRC
   io_obj.h
   io_ops.h
   io_usd.h
+  io_stl_ops.h
 )
 
 set(LIB
   bf_blenkernel
   bf_blenlib
-  bf_wavefront_obj
 )
 
 if(WITH_OPENCOLLADA)
@@ -53,6 +56,27 @@ if(WITH_OPENCOLLADA)
     bf_collada
   )
   add_definitions(-DWITH_COLLADA)
+endif()
+
+if(WITH_IO_WAVEFRONT_OBJ)
+  list(APPEND LIB
+    bf_wavefront_obj
+  )
+  add_definitions(-DWITH_IO_WAVEFRONT_OBJ)
+endif()
+
+if(WITH_IO_STL)
+  list(APPEND LIB
+    bf_stl
+  )
+  add_definitions(-DWITH_IO_STL)
+endif()
+
+if(WITH_IO_GPENCIL)
+  list(APPEND LIB
+    bf_gpencil
+  )
+  add_definitions(-DWITH_IO_GPENCIL)
 endif()
 
 if(WITH_ALEMBIC)
@@ -76,7 +100,5 @@ endif()
 if(WITH_HARU)
   add_definitions(-DWITH_HARU)
 endif()
-
-list(APPEND LIB bf_gpencil)
 
 blender_add_lib(bf_editor_io "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

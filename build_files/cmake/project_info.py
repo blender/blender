@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 """
 Module for accessing project file data for Blender.
 
@@ -170,7 +168,7 @@ def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tupl
     project_path = create_eclipse_project()
 
     if not exists(project_path):
-        print("Generating Eclipse Prokect File Failed: %r not found" % project_path)
+        print("Generating Eclipse Project File Failed: %r not found" % project_path)
         return None, None
 
     from xml.dom.minidom import parse

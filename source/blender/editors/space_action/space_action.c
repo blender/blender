@@ -98,9 +98,9 @@ static SpaceLink *action_create(const ScrArea *area, const Scene *scene)
   BLI_addtail(&saction->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  region->v2d.tot.xmin = (float)(SFRA - 10);
+  region->v2d.tot.xmin = (float)(scene->r.sfra - 10);
   region->v2d.tot.ymin = (float)(-area->winy) / 3.0f;
-  region->v2d.tot.xmax = (float)(EFRA + 10);
+  region->v2d.tot.xmax = (float)(scene->r.efra + 10);
   region->v2d.tot.ymax = 0.0f;
 
   region->v2d.cur = region->v2d.tot;
@@ -506,8 +506,8 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
   /* context changes */
   switch (wmn->category) {
     case NC_GPENCIL:
-      /* only handle these events in GPencil mode for performance considerations */
-      if (saction->mode == SACTCONT_GPENCIL) {
+      /* only handle these events for containers in which GPencil frames are displayed */
+      if (ELEM(saction->mode, SACTCONT_GPENCIL, SACTCONT_DOPESHEET, SACTCONT_TIMELINE)) {
         if (wmn->action == NA_EDITED) {
           ED_area_tag_redraw(area);
         }
@@ -561,8 +561,8 @@ static void action_listener(const wmSpaceTypeListenerParams *params)
           LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
             if (region->regiontype == RGN_TYPE_WINDOW) {
               Scene *scene = wmn->reference;
-              region->v2d.tot.xmin = (float)(SFRA - 4);
-              region->v2d.tot.xmax = (float)(EFRA + 4);
+              region->v2d.tot.xmin = (float)(scene->r.sfra - 4);
+              region->v2d.tot.xmax = (float)(scene->r.efra + 4);
               break;
             }
           }

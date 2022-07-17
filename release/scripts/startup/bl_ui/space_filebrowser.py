@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 import bpy
 
 from bpy.types import Header, Panel, Menu, UIList
@@ -696,11 +694,12 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
 
         prefs = context.preferences
         show_asset_debug_info = prefs.view.show_developer_ui and prefs.experimental.show_asset_debug_info
+        is_local_asset = bool(asset_file_handle.local_id)
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
 
-        if asset_file_handle.local_id:
+        if is_local_asset:
             # If the active file is an ID, use its name directly so renaming is possible from right here.
             layout.prop(asset_file_handle.local_id, "name")
 
@@ -720,7 +719,7 @@ class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
                 col.prop(asset_file_handle.asset_data, "catalog_simple_name", text="Simple Name")
 
         row = layout.row(align=True)
-        row.prop(wm, "asset_path_dummy", text="Source")
+        row.prop(wm, "asset_path_dummy", text="Source", icon='CURRENT_FILE' if is_local_asset else 'NONE')
         row.operator("asset.open_containing_blend_file", text="", icon='TOOL_SETTINGS')
 
         layout.prop(asset_file_handle.asset_data, "description")

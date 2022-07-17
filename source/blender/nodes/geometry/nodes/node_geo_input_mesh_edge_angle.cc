@@ -61,7 +61,7 @@ class AngleFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() != GEO_COMPONENT_TYPE_MESH) {
@@ -91,7 +91,7 @@ class AngleFieldInput final : public GeometryFieldInput {
     };
 
     VArray<float> angles = VArray<float>::ForFunc(mesh->totedge, angle_fn);
-    return component.attribute_try_adapt_domain<float>(
+    return component.attributes()->adapt_domain<float>(
         std::move(angles), ATTR_DOMAIN_EDGE, domain);
   }
 
@@ -115,7 +115,7 @@ class SignedAngleFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() != GEO_COMPONENT_TYPE_MESH) {
@@ -166,7 +166,7 @@ class SignedAngleFieldInput final : public GeometryFieldInput {
     };
 
     VArray<float> angles = VArray<float>::ForFunc(mesh->totedge, angle_fn);
-    return component.attribute_try_adapt_domain<float>(
+    return component.attributes()->adapt_domain<float>(
         std::move(angles), ATTR_DOMAIN_EDGE, domain);
   }
 

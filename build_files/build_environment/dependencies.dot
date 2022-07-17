@@ -37,10 +37,6 @@ graph[autosize = false, size = "25.7,8.3!", resolution = 300, overlap = false, s
 	external_openimageio -- external_webp;
 	external_openimageio -- external_opencolorio_extra;
 	external_openmp -- external_clang;
-	external_opensubdiv -- external_glew;
-	external_opensubdiv -- external_glfw;
-	external_opensubdiv -- external_clew;
-	external_opensubdiv -- external_cuew;
 	external_opensubdiv -- external_tbb;
 	openvdb -- external_tbb;
 	openvdb -- external_boost;

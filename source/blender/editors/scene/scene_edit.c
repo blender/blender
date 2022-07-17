@@ -67,7 +67,10 @@ static Scene *scene_add(Main *bmain, Scene *scene_old, eSceneCopyMethod method)
 }
 
 /** Add a new scene in the sequence editor. */
-static Scene *ED_scene_sequencer_add(Main *bmain, bContext *C, eSceneCopyMethod method)
+Scene *ED_scene_sequencer_add(Main *bmain,
+                              bContext *C,
+                              eSceneCopyMethod method,
+                              const bool assign_strip)
 {
   Sequence *seq = NULL;
   Scene *scene_active = CTX_data_scene(C);
@@ -87,6 +90,11 @@ static Scene *ED_scene_sequencer_add(Main *bmain, bContext *C, eSceneCopyMethod 
   }
 
   Scene *scene_new = scene_add(bmain, scene_strip, method);
+
+  /* If don't need assign the scene to the strip, nothing else to do. */
+  if (!assign_strip) {
+    return scene_new;
+  }
 
   /* As the scene is created in sequencer, do not set the new scene as active.
    * This is useful for story-boarding where we want to keep actual scene active.
@@ -291,7 +299,7 @@ static int scene_new_sequencer_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   int type = RNA_enum_get(op->ptr, "type");
 
-  if (ED_scene_sequencer_add(bmain, C, type) == NULL) {
+  if (ED_scene_sequencer_add(bmain, C, type, true) == NULL) {
     return OPERATOR_CANCELLED;
   }
 

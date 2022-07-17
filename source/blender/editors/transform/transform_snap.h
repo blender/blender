@@ -19,12 +19,12 @@ bool peelObjectsTransform(struct TransInfo *t,
                           float r_no[3],
                           float *r_thickness);
 
-short snapObjectsTransform(struct TransInfo *t,
-                           const float mval[2],
-                           float *dist_px,
-                           /* return args */
-                           float r_loc[3],
-                           float r_no[3]);
+eSnapMode snapObjectsTransform(struct TransInfo *t,
+                               const float mval[2],
+                               float *dist_px,
+                               /* return args */
+                               float r_loc[3],
+                               float r_no[3]);
 bool snapNodesTransform(struct TransInfo *t,
                         const int mval[2],
                         /* return args */
@@ -36,18 +36,20 @@ bool transformModeUseSnap(const TransInfo *t);
 
 bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float *r_val);
 bool transform_snap_increment(const TransInfo *t, float *val);
+float transform_snap_increment_get(const TransInfo *t);
 bool transform_snap_grid(TransInfo *t, float *val);
 
 bool activeSnap(const TransInfo *t);
-bool activeSnap_with_project(const TransInfo *t);
+bool activeSnap_SnappingIndividual(const TransInfo *t);
+bool activeSnap_SnappingAsGroup(const TransInfo *t);
 
 bool validSnap(const TransInfo *t);
 
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void freeSnapping(struct TransInfo *t);
-void applyProject(TransInfo *t);
+void applySnappingIndividual(TransInfo *t);
 void applyGridAbsolute(TransInfo *t);
-void applySnapping(TransInfo *t, float *vec);
+void applySnappingAsGroup(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 eRedrawFlag handleSnapping(TransInfo *t, const struct wmEvent *event);
 void drawSnapping(const struct bContext *C, TransInfo *t);

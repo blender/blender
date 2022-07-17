@@ -84,6 +84,12 @@ void GpuEvalOutput::wrapSrcBuffer(OpenSubdiv_Buffer *src_buffer)
   src_buffer->wrap_device_handle(src_buffer, vertex_buffer->BindVBO());
 }
 
+void GpuEvalOutput::wrapSrcVertexDataBuffer(OpenSubdiv_Buffer *src_buffer)
+{
+  GLVertexBuffer *vertex_buffer = getSrcVertexDataBuffer();
+  src_buffer->wrap_device_handle(src_buffer, vertex_buffer->BindVBO());
+}
+
 void GpuEvalOutput::fillFVarPatchArraysBuffer(const int face_varying_channel,
                                               OpenSubdiv_Buffer *patch_arrays_buffer)
 {

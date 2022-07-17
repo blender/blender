@@ -22,11 +22,11 @@ bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
 {
   /* Perform preliminary checks, with meaningful logging. */
   if (!path_exists(filepath.string())) {
-    VLOG(1) << "File '" << filepath.string() << "' does not exist.";
+    VLOG_WARNING << "File '" << filepath.string() << "' does not exist.";
     return false;
   }
   if (path_is_directory(filepath.string())) {
-    VLOG(1) << "File '" << filepath.string() << "' is a directory, can't use as image.";
+    VLOG_WARNING << "File '" << filepath.string() << "' is a directory, can't use as image.";
     return false;
   }
 
@@ -94,10 +94,11 @@ bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
 template<TypeDesc::BASETYPE FileFormat, typename StorageType>
 static void oiio_load_pixels(const ImageMetaData &metadata,
                              const unique_ptr<ImageInput> &in,
+                             const bool associate_alpha,
                              StorageType *pixels)
 {
-  const int width = metadata.width;
-  const int height = metadata.height;
+  const size_t width = metadata.width;
+  const size_t height = metadata.height;
   const int depth = metadata.depth;
   const int components = metadata.channels;
 
@@ -105,12 +106,12 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
   StorageType *readpixels = pixels;
   vector<StorageType> tmppixels;
   if (components > 4) {
-    tmppixels.resize(((size_t)width) * height * components);
+    tmppixels.resize(width * height * components);
     readpixels = &tmppixels[0];
   }
 
   if (depth <= 1) {
-    size_t scanlinesize = ((size_t)width) * components * sizeof(StorageType);
+    size_t scanlinesize = width * components * sizeof(StorageType);
     in->read_image(FileFormat,
                    (uchar *)readpixels + (height - 1) * scanlinesize,
                    AutoStride,
@@ -122,7 +123,7 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
   }
 
   if (components > 4) {
-    size_t dimensions = ((size_t)width) * height;
+    size_t dimensions = width * height;
     for (size_t i = dimensions - 1, pixel = 0; pixel < dimensions; pixel++, i--) {
       pixels[i * 4 + 3] = tmppixels[i * components + 3];
       pixels[i * 4 + 2] = tmppixels[i * components + 2];
@@ -137,7 +138,7 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
   if (cmyk) {
     const StorageType one = util_image_cast_from_float<StorageType>(1.0f);
 
-    const size_t num_pixels = ((size_t)width) * height * depth;
+    const size_t num_pixels = width * height * depth;
     for (size_t i = num_pixels - 1, pixel = 0; pixel < num_pixels; pixel++, i--) {
       float c = util_image_cast_to_float(pixels[i * 4 + 0]);
       float m = util_image_cast_to_float(pixels[i * 4 + 1]);
@@ -147,6 +148,16 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
       pixels[i * 4 + 1] = util_image_cast_from_float<StorageType>((1.0f - m) * (1.0f - k));
       pixels[i * 4 + 2] = util_image_cast_from_float<StorageType>((1.0f - y) * (1.0f - k));
       pixels[i * 4 + 3] = one;
+    }
+  }
+
+  if (components == 4 && associate_alpha) {
+    size_t dimensions = width * height;
+    for (size_t i = dimensions - 1, pixel = 0; pixel < dimensions; pixel++, i--) {
+      const StorageType alpha = pixels[i * 4 + 3];
+      pixels[i * 4 + 0] = util_image_multiply_native(pixels[i * 4 + 0], alpha);
+      pixels[i * 4 + 1] = util_image_multiply_native(pixels[i * 4 + 1], alpha);
+      pixels[i * 4 + 2] = util_image_multiply_native(pixels[i * 4 + 2], alpha);
     }
   }
 }
@@ -172,33 +183,41 @@ bool OIIOImageLoader::load_pixels(const ImageMetaData &metadata,
   ImageSpec spec = ImageSpec();
   ImageSpec config = ImageSpec();
 
-  if (!associate_alpha) {
-    config.attribute("oiio:UnassociatedAlpha", 1);
-  }
+  /* Load without automatic OIIO alpha conversion, we do it ourselves. OIIO
+   * will associate alpha in the the 8bit buffer for PNGs, which leads to too
+   * much precision loss when we load it as half float to do a colorspace
+   * transform. */
+  config.attribute("oiio:UnassociatedAlpha", 1);
 
   if (!in->open(filepath.string(), spec, config)) {
     return false;
   }
 
+  const bool do_associate_alpha = associate_alpha &&
+                                  spec.get_int_attribute("oiio:UnassociatedAlpha", 0);
+
   switch (metadata.type) {
     case IMAGE_DATA_TYPE_BYTE:
     case IMAGE_DATA_TYPE_BYTE4:
-      oiio_load_pixels<TypeDesc::UINT8, uchar>(metadata, in, (uchar *)pixels);
+      oiio_load_pixels<TypeDesc::UINT8, uchar>(metadata, in, do_associate_alpha, (uchar *)pixels);
       break;
     case IMAGE_DATA_TYPE_USHORT:
     case IMAGE_DATA_TYPE_USHORT4:
-      oiio_load_pixels<TypeDesc::USHORT, uint16_t>(metadata, in, (uint16_t *)pixels);
+      oiio_load_pixels<TypeDesc::USHORT, uint16_t>(
+          metadata, in, do_associate_alpha, (uint16_t *)pixels);
       break;
     case IMAGE_DATA_TYPE_HALF:
     case IMAGE_DATA_TYPE_HALF4:
-      oiio_load_pixels<TypeDesc::HALF, half>(metadata, in, (half *)pixels);
+      oiio_load_pixels<TypeDesc::HALF, half>(metadata, in, do_associate_alpha, (half *)pixels);
       break;
     case IMAGE_DATA_TYPE_FLOAT:
     case IMAGE_DATA_TYPE_FLOAT4:
-      oiio_load_pixels<TypeDesc::FLOAT, float>(metadata, in, (float *)pixels);
+      oiio_load_pixels<TypeDesc::FLOAT, float>(metadata, in, do_associate_alpha, (float *)pixels);
       break;
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT:
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
+    case IMAGE_DATA_TYPE_NANOVDB_FPN:
+    case IMAGE_DATA_TYPE_NANOVDB_FP16:
     case IMAGE_DATA_NUM_TYPES:
       break;
   }

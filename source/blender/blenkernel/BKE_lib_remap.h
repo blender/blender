@@ -57,7 +57,9 @@ enum {
   ID_REMAP_FORCE_NEVER_NULL_USAGE = 1 << 3,
   /** Do not remap library override pointers. */
   ID_REMAP_SKIP_OVERRIDE_LIBRARY = 1 << 5,
-  /** Don't touch the user count (use for low level actions such as swapping pointers). */
+  /** Don't touch the special user counts (use when the 'old' remapped ID remains in use):
+   * - Do not transfer 'fake user' status from old to new ID.
+   * - Do not clear 'extra user' from old ID. */
   ID_REMAP_SKIP_USER_CLEAR = 1 << 6,
   /**
    * Force internal ID runtime pointers (like `ID.newid`, `ID.orig_id` etc.) to also be processed.
@@ -93,11 +95,11 @@ typedef enum eIDRemapType {
  */
 void BKE_libblock_remap_multiple_locked(struct Main *bmain,
                                         struct IDRemapper *mappings,
-                                        const short remap_flags);
+                                        short remap_flags);
 
 void BKE_libblock_remap_multiple(struct Main *bmain,
                                  struct IDRemapper *mappings,
-                                 const short remap_flags);
+                                 short remap_flags);
 
 /**
  * Replace all references in given Main to \a old_id by \a new_id
@@ -140,9 +142,9 @@ void BKE_libblock_relink_ex(struct Main *bmain,
  */
 void BKE_libblock_relink_multiple(struct Main *bmain,
                                   struct LinkNode *ids,
-                                  const eIDRemapType remap_type,
+                                  eIDRemapType remap_type,
                                   struct IDRemapper *id_remapper,
-                                  const short remap_flags);
+                                  short remap_flags);
 
 /**
  * Remaps ID usages of given ID to their `id->newid` pointer if not None, and proceeds recursively

@@ -7,6 +7,8 @@
 
 #include "../gizmo_geometry.h"
 
+/* The numerical values in the `verts` array are used in arrow3d_gizmo.c
+ * If you change this mesh geometry, update the selection code also. */
 static float verts[][3] = {
     {-0.000000, 0.012320, 0.000000},  {-0.000000, 0.012320, 0.974306},
     {0.008711, 0.008711, 0.000000},   {0.008711, 0.008711, 0.974306},

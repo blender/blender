@@ -97,7 +97,7 @@ static void displayed_channel_range_get(const SeqChannelDrawContext *context,
 
   rctf strip_boundbox;
   BLI_rctf_init(&strip_boundbox, 0.0f, 0.0f, 1.0f, r_channel_range[1]);
-  SEQ_timeline_expand_boundbox(context->seqbase, &strip_boundbox);
+  SEQ_timeline_expand_boundbox(context->scene, context->seqbase, &strip_boundbox);
   CLAMP(r_channel_range[0], strip_boundbox.ymin, strip_boundbox.ymax);
   CLAMP(r_channel_range[1], strip_boundbox.ymin, MAXSEQ);
 }
@@ -200,7 +200,7 @@ static float text_size_get(const SeqChannelDrawContext *context)
   return UI_fontstyle_height_max(&style->widget) * 1.5f * context->scale;
 }
 
-/* Todo: decide what gets priority - label or buttons */
+/* TODO: decide what gets priority - label or buttons. */
 static rctf label_rect_init(const SeqChannelDrawContext *context,
                             const int channel_index,
                             const float used_width)
@@ -286,7 +286,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
   }
 }
 
-/* Todo: different text/buttons alignment */
+/* TODO: different text/buttons alignment. */
 static void draw_channel_header(const SeqChannelDrawContext *context,
                                 uiBlock *block,
                                 const int channel_index)

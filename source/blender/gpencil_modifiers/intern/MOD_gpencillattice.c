@@ -129,7 +129,7 @@ static void bakeModifier(Main *UNUSED(bmain),
       /* Apply lattice effects on this frame
        * NOTE: this assumes that we don't want lattice animation on non-keyframed frames.
        */
-      CFRA = gpf->framenum;
+      scene->r.cfra = gpf->framenum;
       BKE_scene_graph_update_for_newframe(depsgraph);
 
       /* Recalculate lattice data. */
@@ -153,7 +153,7 @@ static void bakeModifier(Main *UNUSED(bmain),
   }
 
   /* Return frame state and DB to original state. */
-  CFRA = oldframe;
+  scene->r.cfra = oldframe;
   BKE_scene_graph_update_for_newframe(depsgraph);
 }
 

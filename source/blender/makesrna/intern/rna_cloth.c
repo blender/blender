@@ -436,10 +436,10 @@ static void rna_ClothSettings_gravity_set(PointerRNA *ptr, const float *values)
   sim->gravity[2] = values[2];
 }
 
-static char *rna_ClothSettings_path(PointerRNA *ptr)
+static char *rna_ClothSettings_path(const PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
-  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
+  const Object *ob = (Object *)ptr->owner_id;
+  const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
 
   if (md) {
     char name_esc[sizeof(md->name) * 2];
@@ -451,10 +451,10 @@ static char *rna_ClothSettings_path(PointerRNA *ptr)
   }
 }
 
-static char *rna_ClothCollisionSettings_path(PointerRNA *ptr)
+static char *rna_ClothCollisionSettings_path(const PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
-  ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
+  const Object *ob = (Object *)ptr->owner_id;
+  const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Cloth);
 
   if (md) {
     char name_esc[sizeof(md->name) * 2];

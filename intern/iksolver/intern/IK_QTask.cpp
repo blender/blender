@@ -116,7 +116,7 @@ void IK_QOrientationTask::ComputeJacobian(IK_QJacobian &jacobian)
 }
 
 // IK_QCenterOfMassTask
-// Note: implementation not finished!
+// NOTE: implementation not finished!
 
 IK_QCenterOfMassTask::IK_QCenterOfMassTask(bool primary,
                                            const IK_QSegment *segment,

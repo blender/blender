@@ -19,6 +19,21 @@
 namespace blender {
 
 /**
+ * Under some circumstances #std::is_trivial_v<T> is false even though we know that the type is
+ * actually trivial. Using that extra knowledge allows for some optimizations.
+ */
+template<typename T> inline constexpr bool is_trivial_extended_v = std::is_trivial_v<T>;
+template<typename T>
+inline constexpr bool is_trivially_destructible_extended_v = is_trivial_extended_v<T> ||
+                                                             std::is_trivially_destructible_v<T>;
+template<typename T>
+inline constexpr bool is_trivially_copy_constructible_extended_v =
+    is_trivial_extended_v<T> || std::is_trivially_copy_constructible_v<T>;
+template<typename T>
+inline constexpr bool is_trivially_move_constructible_extended_v =
+    is_trivial_extended_v<T> || std::is_trivially_move_constructible_v<T>;
+
+/**
  * Call the destructor on n consecutive values. For trivially destructible types, this does
  * nothing.
  *
@@ -38,7 +53,7 @@ template<typename T> void destruct_n(T *ptr, int64_t n)
 
   /* This is not strictly necessary, because the loop below will be optimized away anyway. It is
    * nice to make behavior this explicitly, though. */
-  if (std::is_trivially_destructible_v<T>) {
+  if (is_trivially_destructible_extended_v<T>) {
     return;
   }
 
@@ -317,30 +332,36 @@ template<typename T> using destruct_ptr = std::unique_ptr<T, DestructValueAtAddr
  * An `AlignedBuffer` is a byte array with at least the given size and alignment. The buffer will
  * not be initialized by the default constructor.
  */
-template<size_t Size, size_t Alignment> class alignas(Alignment) AlignedBuffer {
- private:
-  /* Don't create an empty array. This causes problems with some compilers. */
-  char buffer_[(Size > 0) ? Size : 1];
+template<size_t Size, size_t Alignment> class AlignedBuffer {
+  struct Empty {
+  };
+  struct alignas(Alignment) Sized {
+    /* Don't create an empty array. This causes problems with some compilers. */
+    std::byte buffer_[Size > 0 ? Size : 1];
+  };
+
+  using BufferType = std::conditional_t<Size == 0, Empty, Sized>;
+  BLI_NO_UNIQUE_ADDRESS BufferType buffer_;
 
  public:
   operator void *()
   {
-    return buffer_;
+    return this;
   }
 
   operator const void *() const
   {
-    return buffer_;
+    return this;
   }
 
   void *ptr()
   {
-    return buffer_;
+    return this;
   }
 
   const void *ptr() const
   {
-    return buffer_;
+    return this;
   }
 };
 
@@ -351,7 +372,7 @@ template<size_t Size, size_t Alignment> class alignas(Alignment) AlignedBuffer {
  */
 template<typename T, int64_t Size = 1> class TypedBuffer {
  private:
-  AlignedBuffer<sizeof(T) * (size_t)Size, alignof(T)> buffer_;
+  BLI_NO_UNIQUE_ADDRESS AlignedBuffer<sizeof(T) * (size_t)Size, alignof(T)> buffer_;
 
  public:
   operator T *()
@@ -541,6 +562,18 @@ Container &move_assign_container(Container &dst, Container &&src) noexcept(
     }
   }
   return dst;
+}
+
+/**
+ * Returns true if the value is different and was assigned.
+ */
+template<typename T> inline bool assign_if_different(T &old_value, T new_value)
+{
+  if (old_value != new_value) {
+    old_value = std::move(new_value);
+    return true;
+  }
+  return false;
 }
 
 }  // namespace blender

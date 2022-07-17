@@ -31,7 +31,7 @@
 #ifndef CERES_PUBLIC_FIRST_ORDER_FUNCTION_H_
 #define CERES_PUBLIC_FIRST_ORDER_FUNCTION_H_
 
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 
@@ -39,7 +39,7 @@ namespace ceres {
 // and its gradient.
 class CERES_EXPORT FirstOrderFunction {
  public:
-  virtual ~FirstOrderFunction() {}
+  virtual ~FirstOrderFunction();
 
   // cost is never null. gradient may be null. The return value
   // indicates whether the evaluation was successful or not.

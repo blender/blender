@@ -57,3 +57,33 @@ float F_eta(float a, float b)
 {
   return 0.0;
 }
+
+vec3 coordinate_camera(vec3 P)
+{
+  return vec3(0.0);
+}
+
+vec3 coordinate_screen(vec3 P)
+{
+  return vec3(0.0);
+}
+
+vec3 coordinate_reflect(vec3 P, vec3 N)
+{
+  return vec3(0.0);
+}
+
+vec3 coordinate_incoming(vec3 P)
+{
+  return vec3(0.0);
+}
+
+float attr_load_temperature_post(float attr)
+{
+  return attr;
+}
+
+vec4 attr_load_color_post(vec4 attr)
+{
+  return attr;
+}

@@ -16,20 +16,31 @@ namespace blender {
  */
 class GSpan {
  protected:
-  const CPPType *type_;
-  const void *data_;
-  int64_t size_;
+  const CPPType *type_ = nullptr;
+  const void *data_ = nullptr;
+  int64_t size_ = 0;
 
  public:
-  GSpan(const CPPType &type, const void *buffer, int64_t size)
-      : type_(&type), data_(buffer), size_(size)
+  GSpan() = default;
+
+  GSpan(const CPPType *type, const void *buffer, int64_t size)
+      : type_(type), data_(buffer), size_(size)
   {
     BLI_assert(size >= 0);
     BLI_assert(buffer != nullptr || size == 0);
-    BLI_assert(type.pointer_has_valid_alignment(buffer));
+    BLI_assert(size == 0 || type != nullptr);
+    BLI_assert(type == nullptr || type->pointer_has_valid_alignment(buffer));
   }
 
-  GSpan(const CPPType &type) : GSpan(type, nullptr, 0)
+  GSpan(const CPPType &type, const void *buffer, int64_t size) : GSpan(&type, buffer, size)
+  {
+  }
+
+  GSpan(const CPPType &type) : type_(&type)
+  {
+  }
+
+  GSpan(const CPPType *type) : type_(type)
   {
   }
 
@@ -41,7 +52,13 @@ class GSpan {
 
   const CPPType &type() const
   {
+    BLI_assert(type_ != nullptr);
     return *type_;
+  }
+
+  const CPPType *type_ptr() const
+  {
+    return type_;
   }
 
   bool is_empty() const
@@ -76,7 +93,7 @@ class GSpan {
     BLI_assert(start >= 0);
     BLI_assert(size >= 0);
     const int64_t new_size = std::max<int64_t>(0, std::min(size, size_ - start));
-    return GSpan(*type_, POINTER_OFFSET(data_, type_->size() * start), new_size);
+    return GSpan(type_, POINTER_OFFSET(data_, type_->size() * start), new_size);
   }
 
   GSpan slice(const IndexRange range) const
@@ -91,20 +108,31 @@ class GSpan {
  */
 class GMutableSpan {
  protected:
-  const CPPType *type_;
-  void *data_;
-  int64_t size_;
+  const CPPType *type_ = nullptr;
+  void *data_ = nullptr;
+  int64_t size_ = 0;
 
  public:
-  GMutableSpan(const CPPType &type, void *buffer, int64_t size)
-      : type_(&type), data_(buffer), size_(size)
+  GMutableSpan() = default;
+
+  GMutableSpan(const CPPType *type, void *buffer, int64_t size)
+      : type_(type), data_(buffer), size_(size)
   {
     BLI_assert(size >= 0);
     BLI_assert(buffer != nullptr || size == 0);
-    BLI_assert(type.pointer_has_valid_alignment(buffer));
+    BLI_assert(size == 0 || type != nullptr);
+    BLI_assert(type == nullptr || type->pointer_has_valid_alignment(buffer));
   }
 
-  GMutableSpan(const CPPType &type) : GMutableSpan(type, nullptr, 0)
+  GMutableSpan(const CPPType &type, void *buffer, int64_t size) : GMutableSpan(&type, buffer, size)
+  {
+  }
+
+  GMutableSpan(const CPPType &type) : type_(&type)
+  {
+  }
+
+  GMutableSpan(const CPPType *type) : type_(type)
   {
   }
 
@@ -116,12 +144,18 @@ class GMutableSpan {
 
   operator GSpan() const
   {
-    return GSpan(*type_, data_, size_);
+    return GSpan(type_, data_, size_);
   }
 
   const CPPType &type() const
   {
+    BLI_assert(type_ != nullptr);
     return *type_;
+  }
+
+  const CPPType *type_ptr() const
+  {
+    return type_;
   }
 
   bool is_empty() const

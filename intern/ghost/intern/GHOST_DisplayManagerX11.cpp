@@ -39,8 +39,9 @@ GHOST_TSuccess GHOST_DisplayManagerX11::getNumDisplaySettings(uint8_t display,
 
   GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
 
-  if (dpy == NULL)
+  if (dpy == nullptr) {
     return GHOST_kFailure;
+  }
 
   majorVersion = minorVersion = 0;
   if (!XF86VidModeQueryVersion(dpy, &majorVersion, &minorVersion)) {
@@ -77,8 +78,9 @@ GHOST_TSuccess GHOST_DisplayManagerX11::getDisplaySetting(uint8_t display,
 {
   Display *dpy = m_system->getXDisplay();
 
-  if (dpy == NULL)
+  if (dpy == nullptr) {
     return GHOST_kFailure;
+  }
 
   (void)display;
 
@@ -143,8 +145,9 @@ GHOST_TSuccess GHOST_DisplayManagerX11::setCurrentDisplaySetting(
   Display *dpy = m_system->getXDisplay();
   int scrnum, num_vidmodes;
 
-  if (dpy == NULL)
+  if (dpy == nullptr) {
     return GHOST_kFailure;
+  }
 
   scrnum = DefaultScreen(dpy);
 

@@ -6,61 +6,170 @@
 
 #include "GHOST_WindowWayland.h"
 #include "GHOST_SystemWayland.h"
+#include "GHOST_WaylandUtils.h"
 #include "GHOST_WindowManager.h"
+#include "GHOST_utildefines.h"
 
 #include "GHOST_Event.h"
 
 #include "GHOST_ContextEGL.h"
 #include "GHOST_ContextNone.h"
 
+#include <wayland-client-protocol.h>
+
+#ifdef WITH_GHOST_WAYLAND_DYNLOAD
+#  include <wayland_dynload_egl.h>
+#endif
 #include <wayland-egl.h>
+
+#include <algorithm> /* For `std::find`. */
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+#  ifdef WITH_GHOST_WAYLAND_DYNLOAD
+#    include <wayland_dynload_libdecor.h>
+#  endif
+#  include <libdecor.h>
+#endif
+
+/* Logging, use `ghost.wl.*` prefix. */
+#include "CLG_log.h"
 
 static constexpr size_t base_dpi = 96;
 
+static GHOST_WindowManager *window_manager = nullptr;
+
 struct window_t {
-  GHOST_WindowWayland *w;
-  wl_surface *surface;
-  /* Outputs on which the window is currently shown on. */
-  std::unordered_set<const output_t *> outputs;
-  uint16_t dpi = 0;
-  int scale = 1;
-  struct xdg_surface *xdg_surface;
-  struct xdg_toplevel *xdg_toplevel;
+  GHOST_WindowWayland *w = nullptr;
+  struct wl_surface *wl_surface = nullptr;
+  /**
+   * Outputs on which the window is currently shown on.
+   *
+   * This is an ordered set (whoever adds to this is responsible for keeping members unique).
+   * In practice this is rarely manipulated and is limited by the number of physical displays.
+   */
+  std::vector<output_t *> outputs;
+
+  /** The scale value written to #wl_surface_set_buffer_scale. */
+  int scale = 0;
+  /**
+   * The DPI, either:
+   * - `scale * base_dpi`
+   * - `wl_fixed_to_int(scale_fractional * base_dpi)`
+   * When fractional scaling is available.
+   */
+  uint32_t dpi = 0;
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  struct libdecor_frame *decor_frame = nullptr;
+  bool decor_configured = false;
+#else
+  struct xdg_surface *xdg_surface = nullptr;
   struct zxdg_toplevel_decoration_v1 *xdg_toplevel_decoration = nullptr;
-  enum zxdg_toplevel_decoration_v1_mode decoration_mode;
-  wl_egl_window *egl_window;
-  int32_t pending_width, pending_height;
-  bool is_maximised;
-  bool is_fullscreen;
-  bool is_active;
-  bool is_dialog;
-  int32_t width, height;
+  struct xdg_toplevel *xdg_toplevel = nullptr;
+
+  enum zxdg_toplevel_decoration_v1_mode decoration_mode = (enum zxdg_toplevel_decoration_v1_mode)0;
+#endif
+
+  wl_egl_window *egl_window = nullptr;
+  bool is_maximised = false;
+  bool is_fullscreen = false;
+  bool is_active = false;
+  bool is_dialog = false;
+
+  int32_t size[2] = {0, 0};
+  int32_t size_pending[2] = {0, 0};
 };
 
 /* -------------------------------------------------------------------- */
-/** \name Wayland Interface Callbacks
- *
- * These callbacks are registered for Wayland interfaces and called when
- * an event is received from the compositor.
+/** \name Internal Utilities
  * \{ */
 
-static void toplevel_configure(
-    void *data, xdg_toplevel * /*xdg_toplevel*/, int32_t width, int32_t height, wl_array *states)
+/**
+ * Return -1 if `output_a` has a scale smaller than `output_b`, 0 when there equal, otherwise 1.
+ */
+static int output_scale_cmp(const output_t *output_a, const output_t *output_b)
 {
+  if (output_a->scale < output_b->scale) {
+    return -1;
+  }
+  if (output_a->scale > output_b->scale) {
+    return 1;
+  }
+  if (output_a->has_scale_fractional || output_b->has_scale_fractional) {
+    const wl_fixed_t scale_fractional_a = output_a->has_scale_fractional ?
+                                              output_a->scale_fractional :
+                                              wl_fixed_from_int(output_a->scale);
+    const wl_fixed_t scale_fractional_b = output_b->has_scale_fractional ?
+                                              output_b->scale_fractional :
+                                              wl_fixed_from_int(output_b->scale);
+    if (scale_fractional_a < scale_fractional_b) {
+      return -1;
+    }
+    if (scale_fractional_a > scale_fractional_b) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int outputs_max_scale_or_default(const std::vector<output_t *> &outputs,
+                                        const int32_t scale_default,
+                                        uint32_t *r_dpi)
+{
+  const output_t *output_max = nullptr;
+  for (const output_t *reg_output : outputs) {
+    if (!output_max || (output_scale_cmp(output_max, reg_output) == -1)) {
+      output_max = reg_output;
+    }
+  }
+
+  if (output_max) {
+    if (r_dpi) {
+      *r_dpi = output_max->has_scale_fractional ?
+                   /* Fractional DPI. */
+                   wl_fixed_to_int(output_max->scale_fractional * base_dpi) :
+                   /* Simple non-fractional DPI. */
+                   (output_max->scale * base_dpi);
+    }
+    return output_max->scale;
+  }
+
+  if (r_dpi) {
+    *r_dpi = scale_default * base_dpi;
+  }
+  return scale_default;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (XDG Top Level), #xdg_toplevel_listener
+ * \{ */
+
+#ifndef WITH_GHOST_WAYLAND_LIBDECOR
+
+static CLG_LogRef LOG_WL_XDG_TOPLEVEL = {"ghost.wl.handle.xdg_toplevel"};
+#  define LOG (&LOG_WL_XDG_TOPLEVEL)
+
+static void xdg_toplevel_handle_configure(void *data,
+                                          xdg_toplevel * /*xdg_toplevel*/,
+                                          const int32_t width,
+                                          const int32_t height,
+                                          wl_array *states)
+{
+  /* TODO: log `states`, not urgent. */
+  CLOG_INFO(LOG, 2, "configure (size=[%d, %d])", width, height);
+
   window_t *win = static_cast<window_t *>(data);
-  win->pending_width = width;
-  win->pending_height = height;
+  win->size_pending[0] = win->scale * width;
+  win->size_pending[1] = win->scale * height;
 
   win->is_maximised = false;
   win->is_fullscreen = false;
   win->is_active = false;
 
-  /* Note that the macro 'wl_array_for_each' would typically be used to simplify this logic,
-   * however it's not compatible with C++, so perform casts instead.
-   * If this needs to be done more often we could define our own C++ compatible macro. */
-  for (enum xdg_toplevel_state *state = static_cast<xdg_toplevel_state *>(states->data);
-       reinterpret_cast<uint8_t *>(state) < (static_cast<uint8_t *>(states->data) + states->size);
-       state++) {
+  enum xdg_toplevel_state *state;
+  WL_ARRAY_FOR_EACH (state, states) {
     switch (*state) {
       case XDG_TOPLEVEL_STATE_MAXIMIZED:
         win->is_maximised = true;
@@ -77,42 +186,157 @@ static void toplevel_configure(
   }
 }
 
-static void toplevel_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
+static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
 {
+  CLOG_INFO(LOG, 2, "close");
   static_cast<window_t *>(data)->w->close();
 }
 
 static const xdg_toplevel_listener toplevel_listener = {
-    toplevel_configure,
-    toplevel_close,
+    xdg_toplevel_handle_configure,
+    xdg_toplevel_handle_close,
 };
 
-static void toplevel_decoration_configure(
+#  undef LOG
+
+#endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (LibDecor Frame), #libdecor_frame_interface
+ * \{ */
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+
+static CLG_LogRef LOG_WL_LIBDECOR_FRAME = {"ghost.wl.handle.libdecor_frame"};
+#  define LOG (&LOG_WL_LIBDECOR_FRAME)
+
+static void frame_handle_configure(struct libdecor_frame *frame,
+                                   struct libdecor_configuration *configuration,
+                                   void *data)
+{
+  CLOG_INFO(LOG, 2, "configure");
+
+  window_t *win = static_cast<window_t *>(data);
+
+  int size_next[2];
+  enum libdecor_window_state window_state;
+  struct libdecor_state *state;
+
+  if (!libdecor_configuration_get_content_size(
+          configuration, frame, &size_next[0], &size_next[1])) {
+    size_next[0] = win->size[0] / win->scale;
+    size_next[1] = win->size[1] / win->scale;
+  }
+
+  win->size[0] = win->scale * size_next[0];
+  win->size[1] = win->scale * size_next[1];
+
+  wl_egl_window_resize(win->egl_window, UNPACK2(win->size), 0, 0);
+  win->w->notify_size();
+
+  if (!libdecor_configuration_get_window_state(configuration, &window_state)) {
+    window_state = LIBDECOR_WINDOW_STATE_NONE;
+  }
+
+  win->is_maximised = window_state & LIBDECOR_WINDOW_STATE_MAXIMIZED;
+  win->is_fullscreen = window_state & LIBDECOR_WINDOW_STATE_FULLSCREEN;
+  win->is_active = window_state & LIBDECOR_WINDOW_STATE_ACTIVE;
+
+  win->is_active ? win->w->activate() : win->w->deactivate();
+
+  state = libdecor_state_new(UNPACK2(size_next));
+  libdecor_frame_commit(frame, state, configuration);
+  libdecor_state_free(state);
+
+  win->decor_configured = true;
+}
+
+static void frame_handle_close(struct libdecor_frame * /*frame*/, void *data)
+{
+  CLOG_INFO(LOG, 2, "close");
+
+  static_cast<window_t *>(data)->w->close();
+}
+
+static void frame_handle_commit(struct libdecor_frame * /*frame*/, void *data)
+{
+  CLOG_INFO(LOG, 2, "commit");
+
+  /* We have to swap twice to keep any pop-up menus alive. */
+  static_cast<window_t *>(data)->w->swapBuffers();
+  static_cast<window_t *>(data)->w->swapBuffers();
+}
+
+static struct libdecor_frame_interface libdecor_frame_iface = {
+    frame_handle_configure,
+    frame_handle_close,
+    frame_handle_commit,
+};
+
+#  undef LOG
+
+#endif /* WITH_GHOST_WAYLAND_LIBDECOR. */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (XDG Decoration Listener), #zxdg_toplevel_decoration_v1_listener
+ * \{ */
+
+#ifndef WITH_GHOST_WAYLAND_LIBDECOR
+
+static CLG_LogRef LOG_WL_XDG_TOPLEVEL_DECORATION = {"ghost.wl.handle.xdg_toplevel_decoration"};
+#  define LOG (&LOG_WL_XDG_TOPLEVEL_DECORATION)
+
+static void xdg_toplevel_decoration_handle_configure(
     void *data,
     struct zxdg_toplevel_decoration_v1 * /*zxdg_toplevel_decoration_v1*/,
-    uint32_t mode)
+    const uint32_t mode)
 {
-  static_cast<window_t *>(data)->decoration_mode = zxdg_toplevel_decoration_v1_mode(mode);
+  CLOG_INFO(LOG, 2, "configure (mode=%u)", mode);
+  static_cast<window_t *>(data)->decoration_mode = (zxdg_toplevel_decoration_v1_mode)mode;
 }
 
 static const zxdg_toplevel_decoration_v1_listener toplevel_decoration_v1_listener = {
-    toplevel_decoration_configure,
+    xdg_toplevel_decoration_handle_configure,
 };
 
-static void surface_configure(void *data, xdg_surface *xdg_surface, uint32_t serial)
+#  undef LOG
+
+#endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Listener (XDG Surface Handle Configure), #xdg_surface_listener
+ * \{ */
+
+#ifndef WITH_GHOST_WAYLAND_LIBDECOR
+
+static CLG_LogRef LOG_WL_XDG_SURFACE = {"ghost.wl.handle.xdg_surface"};
+#  define LOG (&LOG_WL_XDG_SURFACE)
+
+static void xdg_surface_handle_configure(void *data,
+                                         xdg_surface *xdg_surface,
+                                         const uint32_t serial)
 {
   window_t *win = static_cast<window_t *>(data);
 
   if (win->xdg_surface != xdg_surface) {
+    CLOG_INFO(LOG, 2, "configure (skipped)");
     return;
   }
+  const bool do_resize = win->size_pending[0] != 0 && win->size_pending[1] != 0;
+  CLOG_INFO(LOG, 2, "configure (do_resize=%d)", do_resize);
 
-  if (win->pending_width != 0 && win->pending_height != 0) {
-    win->width = win->scale * win->pending_width;
-    win->height = win->scale * win->pending_height;
-    wl_egl_window_resize(win->egl_window, win->width, win->height, 0, 0);
-    win->pending_width = 0;
-    win->pending_height = 0;
+  if (do_resize) {
+    win->size[0] = win->size_pending[0];
+    win->size[1] = win->size_pending[1];
+    wl_egl_window_resize(win->egl_window, UNPACK2(win->size), 0, 0);
+    win->size_pending[0] = 0;
+    win->size_pending[1] = 0;
     win->w->notify_size();
   }
 
@@ -126,62 +350,70 @@ static void surface_configure(void *data, xdg_surface *xdg_surface, uint32_t ser
   xdg_surface_ack_configure(xdg_surface, serial);
 }
 
-static const xdg_surface_listener surface_listener = {
-    surface_configure,
+static const xdg_surface_listener xdg_surface_listener = {
+    xdg_surface_handle_configure,
 };
 
-static bool update_scale(GHOST_WindowWayland *window)
-{
-  int scale = 0;
-  for (const output_t *output : window->outputs_active()) {
-    if (output->scale > scale)
-      scale = output->scale;
-  }
+#  undef LOG
 
-  if (scale > 0 && window->scale() != scale) {
-    window->scale() = scale;
-    /* Using the real DPI will cause wrong scaling of the UI
-     * use a multiplier for the default DPI as workaround. */
-    window->dpi() = scale * base_dpi;
-    wl_surface_set_buffer_scale(window->surface(), scale);
-    return true;
-  }
-  return false;
-}
-
-static void surface_enter(void *data, struct wl_surface * /*wl_surface*/, struct wl_output *output)
-{
-  GHOST_WindowWayland *w = static_cast<GHOST_WindowWayland *>(data);
-  for (const output_t *reg_output : w->outputs()) {
-    if (reg_output->output == output) {
-      w->outputs_active().insert(reg_output);
-    }
-  }
-  update_scale(w);
-}
-
-static void surface_leave(void *data, struct wl_surface * /*wl_surface*/, struct wl_output *output)
-{
-  GHOST_WindowWayland *w = static_cast<GHOST_WindowWayland *>(data);
-  for (const output_t *reg_output : w->outputs()) {
-    if (reg_output->output == output) {
-      w->outputs_active().erase(reg_output);
-    }
-  }
-  update_scale(w);
-}
-
-struct wl_surface_listener wl_surface_listener = {
-    surface_enter,
-    surface_leave,
-};
+#endif /* !WITH_GHOST_WAYLAND_LIBDECOR. */
 
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Ghost Implementation
+/** \name Listener (Surface), #wl_surface_listener
+ * \{ */
+
+static CLG_LogRef LOG_WL_SURFACE = {"ghost.wl.handle.surface"};
+#define LOG (&LOG_WL_SURFACE)
+
+static void surface_handle_enter(void *data,
+                                 struct wl_surface * /*wl_surface*/,
+                                 struct wl_output *output)
+{
+  if (!ghost_wl_output_own(output)) {
+    CLOG_INFO(LOG, 2, "enter (skipped)");
+    return;
+  }
+  CLOG_INFO(LOG, 2, "enter");
+
+  output_t *reg_output = ghost_wl_output_user_data(output);
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(data);
+  if (win->outputs_enter(reg_output)) {
+    win->outputs_changed_update_scale();
+  }
+}
+
+static void surface_handle_leave(void *data,
+                                 struct wl_surface * /*wl_surface*/,
+                                 struct wl_output *output)
+{
+  if (!ghost_wl_output_own(output)) {
+    CLOG_INFO(LOG, 2, "leave (skipped)");
+    return;
+  }
+  CLOG_INFO(LOG, 2, "leave");
+
+  output_t *reg_output = ghost_wl_output_user_data(output);
+  GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(data);
+  if (win->outputs_leave(reg_output)) {
+    win->outputs_changed_update_scale();
+  }
+}
+
+static struct wl_surface_listener wl_surface_listener = {
+    surface_handle_enter,
+    surface_handle_leave,
+};
+
+#undef LOG
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name GHOST Implementation
  *
- * Wayland specific implementation of the GHOST_Window interface.
+ * WAYLAND specific implementation of the #GHOST_Window interface.
  * \{ */
 
 GHOST_TSuccess GHOST_WindowWayland::hasCursorShape(GHOST_TStandardCursor cursorShape)
@@ -191,13 +423,13 @@ GHOST_TSuccess GHOST_WindowWayland::hasCursorShape(GHOST_TStandardCursor cursorS
 
 GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
                                          const char *title,
-                                         int32_t /*left*/,
-                                         int32_t /*top*/,
-                                         uint32_t width,
-                                         uint32_t height,
-                                         GHOST_TWindowState state,
+                                         const int32_t /*left*/,
+                                         const int32_t /*top*/,
+                                         const uint32_t width,
+                                         const uint32_t height,
+                                         const GHOST_TWindowState state,
                                          const GHOST_IWindow *parentWindow,
-                                         GHOST_TDrawingContextType type,
+                                         const GHOST_TDrawingContextType type,
                                          const bool is_dialog,
                                          const bool stereoVisual,
                                          const bool exclusive)
@@ -205,34 +437,73 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
       m_system(system),
       w(new window_t)
 {
+  /* Globally store pointer to window manager. */
+  if (!window_manager) {
+    window_manager = m_system->getWindowManager();
+  }
+
   w->w = this;
 
-  w->width = int32_t(width);
-  w->height = int32_t(height);
+  w->size[0] = int32_t(width);
+  w->size[1] = int32_t(height);
 
   w->is_dialog = is_dialog;
 
+  /* NOTE(@campbellbarton): The scale set here to avoid flickering on startup.
+   * When all monitors use the same scale (which is quite common) there aren't any problems.
+   *
+   * When monitors have different scales there may still be a visible window resize on startup.
+   * Ideally it would be possible to know the scale this window will use however that's only
+   * known once #surface_enter callback runs (which isn't guaranteed to run at all).
+   *
+   * Using the maximum scale is best as it results in the window first being smaller,
+   * avoiding a large window flashing before it's made smaller. */
+  w->scale = outputs_max_scale_or_default(this->m_system->outputs(), 1, &w->dpi);
+
   /* Window surfaces. */
-  w->surface = wl_compositor_create_surface(m_system->compositor());
-  wl_surface_add_listener(w->surface, &wl_surface_listener, this);
+  w->wl_surface = wl_compositor_create_surface(m_system->compositor());
+  ghost_wl_surface_tag(w->wl_surface);
 
-  w->egl_window = wl_egl_window_create(w->surface, int(width), int(height));
+  wl_surface_set_buffer_scale(w->wl_surface, w->scale);
 
-  w->xdg_surface = xdg_wm_base_get_xdg_surface(m_system->shell(), w->surface);
+  wl_surface_add_listener(w->wl_surface, &wl_surface_listener, this);
+
+  w->egl_window = wl_egl_window_create(w->wl_surface, int(w->size[0]), int(w->size[1]));
+
+  /* NOTE: The limit is in points (not pixels) so Hi-DPI will limit to larger number of pixels.
+   * This has the advantage that the size limit is the same when moving the window between monitors
+   * with different scales set. If it was important to limit in pixels it could be re-calculated
+   * when the `w->scale` changed. */
+  const int32_t size_min[2] = {320, 240};
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  /* create window decorations */
+  w->decor_frame = libdecor_decorate(
+      m_system->decor_context(), w->wl_surface, &libdecor_frame_iface, w);
+  libdecor_frame_map(w->decor_frame);
+
+  libdecor_frame_set_min_content_size(w->decor_frame, UNPACK2(size_min));
+
+  if (parentWindow) {
+    libdecor_frame_set_parent(
+        w->decor_frame, dynamic_cast<const GHOST_WindowWayland *>(parentWindow)->w->decor_frame);
+  }
+#else
+  w->xdg_surface = xdg_wm_base_get_xdg_surface(m_system->xdg_shell(), w->wl_surface);
   w->xdg_toplevel = xdg_surface_get_toplevel(w->xdg_surface);
 
-  if (m_system->decoration_manager()) {
+  xdg_toplevel_set_min_size(w->xdg_toplevel, UNPACK2(size_min));
+
+  if (m_system->xdg_decoration_manager()) {
     w->xdg_toplevel_decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
-        m_system->decoration_manager(), w->xdg_toplevel);
+        m_system->xdg_decoration_manager(), w->xdg_toplevel);
     zxdg_toplevel_decoration_v1_add_listener(
         w->xdg_toplevel_decoration, &toplevel_decoration_v1_listener, w);
     zxdg_toplevel_decoration_v1_set_mode(w->xdg_toplevel_decoration,
                                          ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
   }
 
-  wl_surface_set_user_data(w->surface, this);
-
-  xdg_surface_add_listener(w->xdg_surface, &surface_listener, w);
+  xdg_surface_add_listener(w->xdg_surface, &xdg_surface_listener, w);
   xdg_toplevel_add_listener(w->xdg_toplevel, &toplevel_listener, w);
 
   if (parentWindow && is_dialog) {
@@ -240,26 +511,389 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
         w->xdg_toplevel, dynamic_cast<const GHOST_WindowWayland *>(parentWindow)->w->xdg_toplevel);
   }
 
+#endif /* !WITH_GHOST_WAYLAND_LIBDECOR */
+
+  setTitle(title);
+
+  wl_surface_set_user_data(w->wl_surface, this);
+
   /* Call top-level callbacks. */
-  wl_surface_commit(w->surface);
+  wl_surface_commit(w->wl_surface);
   wl_display_roundtrip(m_system->display());
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  /* It's important not to return until the window is configured or
+   * calls to `setState` from Blender will crash `libdecor`. */
+  while (!w->decor_configured) {
+    if (libdecor_dispatch(m_system->decor_context(), 0) < 0) {
+      break;
+    }
+  }
+#endif
 
 #ifdef GHOST_OPENGL_ALPHA
   setOpaque();
 #endif
 
+#ifndef WITH_GHOST_WAYLAND_LIBDECOR /* Causes a glitch with `libdecor` for some reason. */
   setState(state);
-
-  setTitle(title);
+#endif
 
   /* EGL context. */
   if (setDrawingContextType(type) == GHOST_kFailure) {
     GHOST_PRINT("Failed to create EGL context" << std::endl);
   }
 
-  /* set swap interval to 0 to prevent blocking */
+  /* Set swap interval to 0 to prevent blocking. */
   setSwapInterval(0);
 }
+
+GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
+{
+  GHOST_Rect bounds_buf;
+  GHOST_Rect *bounds = nullptr;
+  if (m_cursorGrab == GHOST_kGrabWrap) {
+    if (getCursorGrabBounds(bounds_buf) == GHOST_kFailure) {
+      getClientBounds(bounds_buf);
+    }
+    bounds = &bounds_buf;
+  }
+  if (m_system->window_cursor_grab_set(mode,
+                                       m_cursorGrab,
+                                       m_cursorGrabInitPos,
+                                       bounds,
+                                       m_cursorGrabAxis,
+                                       w->wl_surface,
+                                       w->scale)) {
+    return GHOST_kSuccess;
+  }
+  return GHOST_kFailure;
+}
+
+GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor shape)
+{
+  const GHOST_TSuccess ok = m_system->setCursorShape(shape);
+  m_cursorShape = (ok == GHOST_kSuccess) ? shape : GHOST_kStandardCursorDefault;
+  return ok;
+}
+
+bool GHOST_WindowWayland::getCursorGrabUseSoftwareDisplay()
+{
+  return m_system->getCursorGrabUseSoftwareDisplay(m_cursorGrab);
+}
+
+GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(
+    uint8_t *bitmap, uint8_t *mask, int sizex, int sizey, int hotX, int hotY, bool canInvertColor)
+{
+  return m_system->setCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
+}
+
+GHOST_TSuccess GHOST_WindowWayland::getCursorBitmap(GHOST_CursorBitmapRef *bitmap)
+{
+  return m_system->getCursorBitmap(bitmap);
+}
+
+void GHOST_WindowWayland::setTitle(const char *title)
+{
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  libdecor_frame_set_app_id(w->decor_frame, title);
+  libdecor_frame_set_title(w->decor_frame, title);
+#else
+  xdg_toplevel_set_title(w->xdg_toplevel, title);
+  xdg_toplevel_set_app_id(w->xdg_toplevel, title);
+#endif
+
+  this->title = title;
+}
+
+std::string GHOST_WindowWayland::getTitle() const
+{
+  return this->title.empty() ? "untitled" : this->title;
+}
+
+void GHOST_WindowWayland::getWindowBounds(GHOST_Rect &bounds) const
+{
+  getClientBounds(bounds);
+}
+
+void GHOST_WindowWayland::getClientBounds(GHOST_Rect &bounds) const
+{
+  bounds.set(0, 0, UNPACK2(w->size));
+}
+
+GHOST_TSuccess GHOST_WindowWayland::setClientWidth(const uint32_t width)
+{
+  return setClientSize(width, uint32_t(w->size[1]));
+}
+
+GHOST_TSuccess GHOST_WindowWayland::setClientHeight(const uint32_t height)
+{
+  return setClientSize(uint32_t(w->size[0]), height);
+}
+
+GHOST_TSuccess GHOST_WindowWayland::setClientSize(const uint32_t width, const uint32_t height)
+{
+  wl_egl_window_resize(w->egl_window, int(width), int(height), 0, 0);
+
+  /* Override any pending size that may be set. */
+  w->size_pending[0] = 0;
+  w->size_pending[1] = 0;
+
+  w->size[0] = width;
+  w->size[1] = height;
+
+  notify_size();
+
+  return GHOST_kSuccess;
+}
+
+void GHOST_WindowWayland::screenToClient(int32_t inX,
+                                         int32_t inY,
+                                         int32_t &outX,
+                                         int32_t &outY) const
+{
+  outX = inX;
+  outY = inY;
+}
+
+void GHOST_WindowWayland::clientToScreen(int32_t inX,
+                                         int32_t inY,
+                                         int32_t &outX,
+                                         int32_t &outY) const
+{
+  outX = inX;
+  outY = inY;
+}
+
+GHOST_WindowWayland::~GHOST_WindowWayland()
+{
+  releaseNativeHandles();
+
+  wl_egl_window_destroy(w->egl_window);
+
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  libdecor_frame_unref(w->decor_frame);
+#else
+  if (w->xdg_toplevel_decoration) {
+    zxdg_toplevel_decoration_v1_destroy(w->xdg_toplevel_decoration);
+  }
+  xdg_toplevel_destroy(w->xdg_toplevel);
+  xdg_surface_destroy(w->xdg_surface);
+#endif
+
+  /* Clear any pointers to this window. This is needed because there are no guarantees
+   * that flushing the display will the "leave" handlers before handling events. */
+  m_system->window_surface_unref(w->wl_surface);
+
+  wl_surface_destroy(w->wl_surface);
+
+  /* NOTE(@campbellbarton): Flushing will often run the appropriate handlers event
+   * (#wl_surface_listener.leave in particular) to avoid attempted access to the freed surfaces.
+   * This is not fool-proof though, hence the call to #window_surface_unref, see: T99078. */
+  wl_display_flush(m_system->display());
+
+  delete w;
+}
+
+uint16_t GHOST_WindowWayland::getDPIHint()
+{
+  return w->dpi;
+}
+
+GHOST_TSuccess GHOST_WindowWayland::setWindowCursorVisibility(bool visible)
+{
+  return m_system->setCursorVisibility(visible);
+}
+
+GHOST_TSuccess GHOST_WindowWayland::setState(GHOST_TWindowState state)
+{
+  switch (state) {
+    case GHOST_kWindowStateNormal:
+      /* Unset states. */
+      switch (getState()) {
+        case GHOST_kWindowStateMaximized:
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+          libdecor_frame_unset_maximized(w->decor_frame);
+#else
+          xdg_toplevel_unset_maximized(w->xdg_toplevel);
+#endif
+          break;
+        case GHOST_kWindowStateFullScreen:
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+          libdecor_frame_unset_fullscreen(w->decor_frame);
+#else
+          xdg_toplevel_unset_fullscreen(w->xdg_toplevel);
+#endif
+          break;
+        default:
+          break;
+      }
+      break;
+    case GHOST_kWindowStateMaximized:
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+      libdecor_frame_set_maximized(w->decor_frame);
+#else
+      xdg_toplevel_set_maximized(w->xdg_toplevel);
+#endif
+      break;
+    case GHOST_kWindowStateMinimized:
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+      libdecor_frame_set_minimized(w->decor_frame);
+#else
+      xdg_toplevel_set_minimized(w->xdg_toplevel);
+#endif
+      break;
+    case GHOST_kWindowStateFullScreen:
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+      libdecor_frame_set_fullscreen(w->decor_frame, nullptr);
+#else
+      xdg_toplevel_set_fullscreen(w->xdg_toplevel, nullptr);
+#endif
+      break;
+    case GHOST_kWindowStateEmbedded:
+      return GHOST_kFailure;
+  }
+  return GHOST_kSuccess;
+}
+
+GHOST_TWindowState GHOST_WindowWayland::getState() const
+{
+  if (w->is_fullscreen) {
+    return GHOST_kWindowStateFullScreen;
+  }
+  if (w->is_maximised) {
+    return GHOST_kWindowStateMaximized;
+  }
+  return GHOST_kWindowStateNormal;
+}
+
+GHOST_TSuccess GHOST_WindowWayland::invalidate()
+{
+  return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_WindowWayland::setOrder(GHOST_TWindowOrder /*order*/)
+{
+  return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_WindowWayland::beginFullScreen() const
+{
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  libdecor_frame_set_fullscreen(w->decor_frame, nullptr);
+#else
+  xdg_toplevel_set_fullscreen(w->xdg_toplevel, nullptr);
+#endif
+  return GHOST_kSuccess;
+}
+
+GHOST_TSuccess GHOST_WindowWayland::endFullScreen() const
+{
+#ifdef WITH_GHOST_WAYLAND_LIBDECOR
+  libdecor_frame_unset_fullscreen(w->decor_frame);
+#else
+  xdg_toplevel_unset_fullscreen(w->xdg_toplevel);
+#endif
+  return GHOST_kSuccess;
+}
+
+bool GHOST_WindowWayland::isDialog() const
+{
+  return w->is_dialog;
+}
+
+#ifdef GHOST_OPENGL_ALPHA
+void GHOST_WindowWayland::setOpaque() const
+{
+  struct wl_region *region;
+
+  /* Make the window opaque. */
+  region = wl_compositor_create_region(m_system->compositor());
+  wl_region_add(region, 0, 0, UNPACK2(w->size));
+  wl_surface_set_opaque_region(w->surface, region);
+  wl_region_destroy(region);
+}
+#endif
+
+/**
+ * \param type: The type of rendering context create.
+ * \return Indication of success.
+ */
+GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType type)
+{
+  GHOST_Context *context;
+  switch (type) {
+    case GHOST_kDrawingContextTypeNone:
+      context = new GHOST_ContextNone(m_wantStereoVisual);
+      break;
+    case GHOST_kDrawingContextTypeOpenGL:
+      for (int minor = 6; minor >= 0; --minor) {
+        context = new GHOST_ContextEGL(this->m_system,
+                                       m_wantStereoVisual,
+                                       EGLNativeWindowType(w->egl_window),
+                                       EGLNativeDisplayType(m_system->display()),
+                                       EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+                                       4,
+                                       minor,
+                                       GHOST_OPENGL_EGL_CONTEXT_FLAGS,
+                                       GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                       EGL_OPENGL_API);
+
+        if (context->initializeDrawingContext()) {
+          return context;
+        }
+        delete context;
+      }
+      context = new GHOST_ContextEGL(this->m_system,
+                                     m_wantStereoVisual,
+                                     EGLNativeWindowType(w->egl_window),
+                                     EGLNativeDisplayType(m_system->display()),
+                                     EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+                                     3,
+                                     3,
+                                     GHOST_OPENGL_EGL_CONTEXT_FLAGS,
+                                     GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                     EGL_OPENGL_API);
+  }
+
+  return (context->initializeDrawingContext() == GHOST_kSuccess) ? context : nullptr;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public WAYLAND Direct Data Access
+ *
+ * Expose some members via methods.
+ * \{ */
+
+uint16_t GHOST_WindowWayland::dpi() const
+{
+  return w->dpi;
+}
+
+int GHOST_WindowWayland::scale() const
+{
+  return w->scale;
+}
+
+wl_surface *GHOST_WindowWayland::surface() const
+{
+  return w->wl_surface;
+}
+
+const std::vector<output_t *> &GHOST_WindowWayland::outputs()
+{
+  return w->outputs;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public WAYLAND Window Level Functions
+ *
+ * High Level Windowing Utilities.
+ * \{ */
 
 GHOST_TSuccess GHOST_WindowWayland::close()
 {
@@ -293,256 +927,67 @@ GHOST_TSuccess GHOST_WindowWayland::notify_size()
       new GHOST_Event(m_system->getMilliSeconds(), GHOST_kEventWindowSize, this));
 }
 
-wl_surface *GHOST_WindowWayland::surface() const
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public WAYLAND Utility Functions
+ *
+ * Functionality only used for the WAYLAND implementation.
+ * \{ */
+
+bool GHOST_WindowWayland::outputs_changed_update_scale()
 {
-  return w->surface;
-}
-
-const std::vector<output_t *> &GHOST_WindowWayland::outputs() const
-{
-  return m_system->outputs();
-}
-
-std::unordered_set<const output_t *> &GHOST_WindowWayland::outputs_active()
-{
-  return w->outputs;
-}
-
-uint16_t &GHOST_WindowWayland::dpi()
-{
-  return w->dpi;
-}
-
-int &GHOST_WindowWayland::scale()
-{
-  return w->scale;
-}
-
-GHOST_TSuccess GHOST_WindowWayland::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
-{
-  return m_system->setCursorGrab(mode, w->surface);
-}
-
-GHOST_TSuccess GHOST_WindowWayland::setWindowCursorShape(GHOST_TStandardCursor shape)
-{
-  const GHOST_TSuccess ok = m_system->setCursorShape(shape);
-  m_cursorShape = (ok == GHOST_kSuccess) ? shape : GHOST_kStandardCursorDefault;
-  return ok;
-}
-
-GHOST_TSuccess GHOST_WindowWayland::setWindowCustomCursorShape(
-    uint8_t *bitmap, uint8_t *mask, int sizex, int sizey, int hotX, int hotY, bool canInvertColor)
-{
-  return m_system->setCustomCursorShape(bitmap, mask, sizex, sizey, hotX, hotY, canInvertColor);
-}
-
-void GHOST_WindowWayland::setTitle(const char *title)
-{
-  xdg_toplevel_set_title(w->xdg_toplevel, title);
-  xdg_toplevel_set_app_id(w->xdg_toplevel, title);
-  this->title = title;
-}
-
-std::string GHOST_WindowWayland::getTitle() const
-{
-  return this->title.empty() ? "untitled" : this->title;
-}
-
-void GHOST_WindowWayland::getWindowBounds(GHOST_Rect &bounds) const
-{
-  getClientBounds(bounds);
-}
-
-void GHOST_WindowWayland::getClientBounds(GHOST_Rect &bounds) const
-{
-  bounds.set(0, 0, w->width, w->height);
-}
-
-GHOST_TSuccess GHOST_WindowWayland::setClientWidth(uint32_t width)
-{
-  return setClientSize(width, uint32_t(w->height));
-}
-
-GHOST_TSuccess GHOST_WindowWayland::setClientHeight(uint32_t height)
-{
-  return setClientSize(uint32_t(w->width), height);
-}
-
-GHOST_TSuccess GHOST_WindowWayland::setClientSize(uint32_t width, uint32_t height)
-{
-  wl_egl_window_resize(w->egl_window, int(width), int(height), 0, 0);
-  return GHOST_kSuccess;
-}
-
-void GHOST_WindowWayland::screenToClient(int32_t inX,
-                                         int32_t inY,
-                                         int32_t &outX,
-                                         int32_t &outY) const
-{
-  outX = inX;
-  outY = inY;
-}
-
-void GHOST_WindowWayland::clientToScreen(int32_t inX,
-                                         int32_t inY,
-                                         int32_t &outX,
-                                         int32_t &outY) const
-{
-  outX = inX;
-  outY = inY;
-}
-
-GHOST_WindowWayland::~GHOST_WindowWayland()
-{
-  releaseNativeHandles();
-
-  wl_egl_window_destroy(w->egl_window);
-  if (w->xdg_toplevel_decoration) {
-    zxdg_toplevel_decoration_v1_destroy(w->xdg_toplevel_decoration);
-  }
-  xdg_toplevel_destroy(w->xdg_toplevel);
-  xdg_surface_destroy(w->xdg_surface);
-  wl_surface_destroy(w->surface);
-
-  delete w;
-}
-
-uint16_t GHOST_WindowWayland::getDPIHint()
-{
-  return w->dpi;
-}
-
-GHOST_TSuccess GHOST_WindowWayland::setWindowCursorVisibility(bool visible)
-{
-  return m_system->setCursorVisibility(visible);
-}
-
-GHOST_TSuccess GHOST_WindowWayland::setState(GHOST_TWindowState state)
-{
-  switch (state) {
-    case GHOST_kWindowStateNormal:
-      /* Unset states. */
-      switch (getState()) {
-        case GHOST_kWindowStateMaximized:
-          xdg_toplevel_unset_maximized(w->xdg_toplevel);
-          break;
-        case GHOST_kWindowStateFullScreen:
-          xdg_toplevel_unset_fullscreen(w->xdg_toplevel);
-          break;
-        default:
-          break;
-      }
-      break;
-    case GHOST_kWindowStateMaximized:
-      xdg_toplevel_set_maximized(w->xdg_toplevel);
-      break;
-    case GHOST_kWindowStateMinimized:
-      xdg_toplevel_set_minimized(w->xdg_toplevel);
-      break;
-    case GHOST_kWindowStateFullScreen:
-      xdg_toplevel_set_fullscreen(w->xdg_toplevel, nullptr);
-      break;
-    case GHOST_kWindowStateEmbedded:
-      return GHOST_kFailure;
-  }
-  return GHOST_kSuccess;
-}
-
-GHOST_TWindowState GHOST_WindowWayland::getState() const
-{
-  if (w->is_fullscreen) {
-    return GHOST_kWindowStateFullScreen;
-  }
-  else if (w->is_maximised) {
-    return GHOST_kWindowStateMaximized;
-  }
-  else {
-    return GHOST_kWindowStateNormal;
-  }
-}
-
-GHOST_TSuccess GHOST_WindowWayland::invalidate()
-{
-  return GHOST_kSuccess;
-}
-
-GHOST_TSuccess GHOST_WindowWayland::setOrder(GHOST_TWindowOrder /*order*/)
-{
-  return GHOST_kSuccess;
-}
-
-GHOST_TSuccess GHOST_WindowWayland::beginFullScreen() const
-{
-  xdg_toplevel_set_fullscreen(w->xdg_toplevel, nullptr);
-  return GHOST_kSuccess;
-}
-
-GHOST_TSuccess GHOST_WindowWayland::endFullScreen() const
-{
-  xdg_toplevel_unset_fullscreen(w->xdg_toplevel);
-  return GHOST_kSuccess;
-}
-
-bool GHOST_WindowWayland::isDialog() const
-{
-  return w->is_dialog;
-}
-
-#ifdef GHOST_OPENGL_ALPHA
-void GHOST_WindowWayland::setOpaque() const
-{
-  struct wl_region *region;
-
-  /* Make the window opaque. */
-  region = wl_compositor_create_region(m_system->compositor());
-  wl_region_add(region, 0, 0, w->width, w->height);
-  wl_surface_set_opaque_region(w->surface, region);
-  wl_region_destroy(region);
-}
-#endif
-
-/**
- * \param type: The type of rendering context create.
- * \return Indication of success.
- */
-GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType type)
-{
-  GHOST_Context *context;
-  switch (type) {
-    case GHOST_kDrawingContextTypeNone:
-      context = new GHOST_ContextNone(m_wantStereoVisual);
-      break;
-    case GHOST_kDrawingContextTypeOpenGL:
-      for (int minor = 6; minor >= 0; --minor) {
-        context = new GHOST_ContextEGL(this->m_system,
-                                       m_wantStereoVisual,
-                                       EGLNativeWindowType(w->egl_window),
-                                       EGLNativeDisplayType(m_system->display()),
-                                       EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                       4,
-                                       minor,
-                                       GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                       GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                       EGL_OPENGL_API);
-
-        if (context->initializeDrawingContext())
-          return context;
-        else
-          delete context;
-      }
-      context = new GHOST_ContextEGL(this->m_system,
-                                     m_wantStereoVisual,
-                                     EGLNativeWindowType(w->egl_window),
-                                     EGLNativeDisplayType(m_system->display()),
-                                     EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                     3,
-                                     3,
-                                     GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                     GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                     EGL_OPENGL_API);
+  uint32_t dpi_next;
+  const int scale_next = outputs_max_scale_or_default(this->outputs(), 0, &dpi_next);
+  if (UNLIKELY(scale_next == 0)) {
+    return false;
   }
 
-  return (context->initializeDrawingContext() == GHOST_kSuccess) ? context : nullptr;
+  window_t *win = this->w;
+  const uint32_t dpi_curr = win->dpi;
+  const int scale_curr = win->scale;
+  bool changed = false;
+
+  if (scale_next != scale_curr) {
+    /* Unlikely but possible there is a pending size change is set. */
+    win->size_pending[0] = (win->size_pending[0] / scale_curr) * scale_next;
+    win->size_pending[1] = (win->size_pending[1] / scale_curr) * scale_next;
+
+    win->scale = scale_next;
+    wl_surface_set_buffer_scale(w->wl_surface, scale_next);
+    changed = true;
+  }
+
+  if (dpi_next != dpi_curr) {
+    /* Using the real DPI will cause wrong scaling of the UI
+     * use a multiplier for the default DPI as workaround. */
+    win->dpi = dpi_next;
+    changed = true;
+  }
+
+  return changed;
+}
+
+bool GHOST_WindowWayland::outputs_enter(output_t *reg_output)
+{
+  std::vector<output_t *> &outputs = w->outputs;
+  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
+  if (it != outputs.end()) {
+    return false;
+  }
+  outputs.push_back(reg_output);
+  return true;
+}
+
+bool GHOST_WindowWayland::outputs_leave(output_t *reg_output)
+{
+  std::vector<output_t *> &outputs = w->outputs;
+  auto it = std::find(outputs.begin(), outputs.end(), reg_output);
+  if (it == outputs.end()) {
+    return false;
+  }
+  outputs.erase(it);
+  return true;
 }
 
 /** \} */

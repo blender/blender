@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Used for generating API diffs between releases
 #  ./blender.bin --background -noaudio --python tests/python/rna_info_dump.py
 

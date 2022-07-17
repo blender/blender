@@ -49,27 +49,21 @@
 
 #  include "WM_api.h"
 
-static void rna_Sequence_update_rnafunc(ID *id, Sequence *self, bool do_data)
+static StripElem *rna_Sequence_strip_elem_from_frame(ID *id, Sequence *self, int timeline_frame)
 {
   Scene *scene = (Scene *)id;
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, self);
-
-  if (do_data) {
-    SEQ_time_update_recursive(scene, self);
-    // new_tstripdata(self); /* need 2.6x version of this. */
-  }
-
-  SEQ_time_update_sequence(scene, seqbase, self);
+  return SEQ_render_give_stripelem(scene, self, timeline_frame);
 }
 
-static void rna_Sequence_swap_internal(Sequence *seq_self,
+static void rna_Sequence_swap_internal(ID *id,
+                                       Sequence *seq_self,
                                        ReportList *reports,
                                        Sequence *seq_other)
 {
   const char *error_msg;
+  Scene *scene = (Scene *)id;
 
-  if (SEQ_edit_sequence_swap(seq_self, seq_other, &error_msg) == 0) {
+  if (SEQ_edit_sequence_swap(scene, seq_self, seq_other, &error_msg) == 0) {
     BKE_report(reports, RPT_ERROR, error_msg);
   }
 }
@@ -96,8 +90,7 @@ static Sequence *rna_Sequence_split(
     ID *id, Sequence *seq, Main *bmain, ReportList *reports, int frame, int split_method)
 {
   Scene *scene = (Scene *)id;
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
+  ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, seq);
 
   const char *error_msg = NULL;
   Sequence *r_seq = SEQ_edit_strip_split(
@@ -262,7 +255,7 @@ static Sequence *rna_Sequences_new_image(ID *id,
   char dir[FILE_MAX], filename[FILE_MAX];
   BLI_split_dirfile(file, dir, filename, sizeof(dir), sizeof(filename));
   SEQ_add_image_set_directory(seq, dir);
-  SEQ_add_image_load_file(seq, 0, filename);
+  SEQ_add_image_load_file(scene, seq, 0, filename);
   SEQ_add_image_init_alpha_mode(seq);
 
   DEG_relations_tag_update(bmain);
@@ -576,8 +569,6 @@ static void rna_Sequences_meta_remove(
 static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char *filename)
 {
   Scene *scene = (Scene *)id;
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
   StripElem *se;
 
   seq->strip->stripdata = se = MEM_reallocN(seq->strip->stripdata,
@@ -586,7 +577,6 @@ static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char 
   BLI_strncpy(se->name, filename, sizeof(se->name));
   seq->len++;
 
-  SEQ_time_update_sequence(scene, seqbase, seq);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
   return se;
@@ -595,8 +585,6 @@ static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char 
 static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports, int index)
 {
   Scene *scene = (Scene *)id;
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_get_seqbase_by_seq(&ed->seqbase, seq);
   StripElem *new_seq, *se;
 
   if (seq->len == 1) {
@@ -628,8 +616,6 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
 
   MEM_freeN(seq->strip->stripdata);
   seq->strip->stripdata = new_seq;
-
-  SEQ_time_update_sequence(scene, seqbase, seq);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
@@ -669,12 +655,8 @@ void RNA_api_sequence_strip(StructRNA *srna)
       {0, NULL, 0, NULL, NULL},
   };
 
-  func = RNA_def_function(srna, "update", "rna_Sequence_update_rnafunc");
+  func = RNA_def_function(srna, "strip_elem_from_frame", "rna_Sequence_strip_elem_from_frame");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-  RNA_def_function_ui_description(func, "Update the strip dimensions");
-  parm = RNA_def_boolean(func, "data", false, "Data", "Update strip data");
-
-  func = RNA_def_function(srna, "strip_elem_from_frame", "SEQ_render_give_stripelem");
   RNA_def_function_ui_description(func, "Return the strip element from a given frame or None");
   parm = RNA_def_int(func,
                      "frame",
@@ -691,6 +673,7 @@ void RNA_api_sequence_strip(StructRNA *srna)
       RNA_def_pointer(func, "elem", "SequenceElement", "", "strip element of the current frame"));
 
   func = RNA_def_function(srna, "swap", "rna_Sequence_swap_internal");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "other", "Sequence", "Other", "");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);

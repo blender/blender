@@ -1167,7 +1167,9 @@ static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Copy to Selected";
   ot->idname = "UI_OT_copy_to_selected_button";
-  ot->description = "Copy property from this object to selected objects or bones";
+  ot->description =
+      "Copy the property's value from the active item to the same property of all selected items "
+      "if the same property exists";
 
   /* callbacks */
   ot->poll = copy_to_selected_button_poll;
@@ -1895,14 +1897,14 @@ static int drop_color_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
     if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
       if (!gamma) {
-        IMB_colormanagement_scene_linear_to_srgb_v3(color);
+        IMB_colormanagement_scene_linear_to_srgb_v3(color, color);
       }
       RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
       RNA_property_update(C, &but->rnapoin, but->rnaprop);
     }
     else if (RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
       if (gamma) {
-        IMB_colormanagement_srgb_to_scene_linear_v3(color);
+        IMB_colormanagement_srgb_to_scene_linear_v3(color, color);
       }
       RNA_property_float_set_array(&but->rnapoin, but->rnaprop, color);
       RNA_property_update(C, &but->rnapoin, but->rnaprop);
@@ -1940,6 +1942,24 @@ static void UI_OT_drop_color(wmOperatorType *ot)
 /** \name Drop Name Operator
  * \{ */
 
+static bool drop_name_poll(bContext *C)
+{
+  if (!ED_operator_regionactive(C)) {
+    return false;
+  }
+
+  const uiBut *but = UI_but_active_drop_name_button(C);
+  if (!but) {
+    return false;
+  }
+
+  if (but->flag & UI_BUT_DISABLED) {
+    return false;
+  }
+
+  return true;
+}
+
 static int drop_name_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   uiBut *but = UI_but_active_drop_name_button(C);
@@ -1959,7 +1979,7 @@ static void UI_OT_drop_name(wmOperatorType *ot)
   ot->idname = "UI_OT_drop_name";
   ot->description = "Drop name to button";
 
-  ot->poll = ED_operator_regionactive;
+  ot->poll = drop_name_poll;
   ot->invoke = drop_name_invoke;
   ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
@@ -2142,11 +2162,8 @@ static int ui_drop_material_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
 
-  if (!RNA_struct_property_is_set(op->ptr, "session_uuid")) {
-    return OPERATOR_CANCELLED;
-  }
-  const uint32_t session_uuid = (uint32_t)RNA_int_get(op->ptr, "session_uuid");
-  Material *ma = (Material *)BKE_libblock_find_session_uuid(bmain, ID_MA, session_uuid);
+  Material *ma = (Material *)WM_operator_properties_id_lookup_from_name_or_session_uuid(
+      bmain, op->ptr, ID_MA);
   if (ma == NULL) {
     return OPERATOR_CANCELLED;
   }
@@ -2184,16 +2201,7 @@ static void UI_OT_drop_material(wmOperatorType *ot)
   ot->exec = ui_drop_material_exec;
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
-  PropertyRNA *prop = RNA_def_int(ot->srna,
-                                  "session_uuid",
-                                  0,
-                                  INT32_MIN,
-                                  INT32_MAX,
-                                  "Session UUID",
-                                  "Session UUID of the data-block to assign",
-                                  INT32_MIN,
-                                  INT32_MAX);
-  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+  WM_operator_properties_id_lookup(ot, false);
 }
 
 /** \} */

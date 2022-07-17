@@ -518,6 +518,14 @@ GField make_field_constant_if_possible(GField field)
   return new_field;
 }
 
+Field<bool> invert_boolean_field(const Field<bool> &field)
+{
+  static CustomMF_SI_SO<bool, bool> not_fn{
+      "Not", [](bool a) { return !a; }, CustomMF_presets::AllSpanOrSingle()};
+  auto not_op = std::make_shared<FieldOperation>(FieldOperation(not_fn, {field}));
+  return Field<bool>(not_op);
+}
+
 GField make_constant_field(const CPPType &type, const void *value)
 {
   auto constant_node = std::make_shared<FieldConstant>(type, value);
@@ -700,20 +708,11 @@ GPointer FieldConstant::value() const
  */
 
 static IndexMask index_mask_from_selection(const IndexMask full_mask,
-                                           VArray<bool> &selection,
+                                           const VArray<bool> &selection,
                                            ResourceScope &scope)
 {
-  if (selection.is_span()) {
-    Span<bool> span = selection.get_internal_span();
-    return index_mask_ops::find_indices_based_on_predicate(
-        full_mask, 4096, scope.construct<Vector<int64_t>>(), [&](const int curve_index) {
-          return span[curve_index];
-        });
-  }
-  return index_mask_ops::find_indices_based_on_predicate(
-      full_mask, 1024, scope.construct<Vector<int64_t>>(), [&](const int curve_index) {
-        return selection[curve_index];
-      });
+  return index_mask_ops::find_indices_from_virtual_array(
+      full_mask, selection, 1024, scope.construct<Vector<int64_t>>());
 }
 
 int FieldEvaluator::add_with_destination(GField field, GVMutableArray dst)
@@ -756,12 +755,6 @@ static IndexMask evaluate_selection(const Field<bool> &selection_field,
   if (selection_field) {
     VArray<bool> selection =
         evaluate_fields(scope, {selection_field}, full_mask, context)[0].typed<bool>();
-    if (selection.is_single()) {
-      if (selection.get_internal_single()) {
-        return full_mask;
-      }
-      return IndexRange(0);
-    }
     return index_mask_from_selection(full_mask, selection, scope);
   }
   return full_mask;

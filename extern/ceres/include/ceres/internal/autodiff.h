@@ -132,17 +132,16 @@
 // respectively. This is how autodiff works for functors taking multiple vector
 // valued arguments (up to 6).
 //
-// Jacobian NULL pointers
-// ----------------------
-// In general, the functions below will accept NULL pointers for all or some of
-// the Jacobian parameters, meaning that those Jacobians will not be computed.
+// Jacobian null pointers (nullptr)
+// --------------------------------
+// In general, the functions below will accept nullptr for all or some of the
+// Jacobian parameters, meaning that those Jacobians will not be computed.
 
 #ifndef CERES_PUBLIC_INTERNAL_AUTODIFF_H_
 #define CERES_PUBLIC_INTERNAL_AUTODIFF_H_
 
-#include <stddef.h>
-
 #include <array>
+#include <cstddef>
 #include <utility>
 
 #include "ceres/internal/array_selector.h"
@@ -198,7 +197,7 @@ struct Make1stOrderPerturbation {
 template <int N, int Offset, typename T, typename JetT>
 struct Make1stOrderPerturbation<N, N, Offset, T, JetT> {
  public:
-  static void Apply(const T* src, JetT* dst) {}
+  static void Apply(const T* /* NOT USED */, JetT* /* NOT USED */) {}
 };
 
 // Calls Make1stOrderPerturbation for every parameter block.
@@ -311,7 +310,7 @@ inline bool AutoDifferentiate(const Functor& functor,
                               int dynamic_num_outputs,
                               T* function_value,
                               T** jacobians) {
-  typedef Jet<T, ParameterDims::kNumParameters> JetT;
+  using JetT = Jet<T, ParameterDims::kNumParameters>;
   using Parameters = typename ParameterDims::Parameters;
 
   if (kNumResiduals != DYNAMIC) {

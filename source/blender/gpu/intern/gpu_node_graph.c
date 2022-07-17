@@ -328,17 +328,12 @@ void gpu_node_graph_finalize_uniform_attrs(GPUNodeGraph *graph)
 
 /* Attributes and Textures */
 
-static char attr_prefix_get(CustomDataType type)
+static char attr_prefix_get(eCustomDataType type)
 {
   switch (type) {
-    case CD_MTFACE:
-      return 'u';
     case CD_TANGENT:
       return 't';
     case CD_MCOL:
-    case CD_PROP_BYTE_COLOR:
-      return 'c';
-    case CD_PROP_COLOR:
       return 'c';
     case CD_AUTO_FROM_NAME:
       return 'a';
@@ -352,7 +347,7 @@ static char attr_prefix_get(CustomDataType type)
 
 static void attr_input_name(GPUMaterialAttribute *attr)
 {
-  /* NOTE: Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
+  /* NOTE: Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.cc */
   if (attr->type == CD_ORCO) {
     /* OPTI: orco is computed from local positions, but only if no modifier is present. */
     STRNCPY(attr->input_name, "orco");
@@ -369,14 +364,9 @@ static void attr_input_name(GPUMaterialAttribute *attr)
 
 /** Add a new varying attribute of given type and name. Returns NULL if out of slots. */
 static GPUMaterialAttribute *gpu_node_graph_add_attribute(GPUNodeGraph *graph,
-                                                          CustomDataType type,
+                                                          eCustomDataType type,
                                                           const char *name)
 {
-  /* Fall back to the UV layer, which matches old behavior. */
-  if (type == CD_AUTO_FROM_NAME && name[0] == '\0') {
-    type = CD_MTFACE;
-  }
-
   /* Find existing attribute. */
   int num_attributes = 0;
   GPUMaterialAttribute *attr = graph->attributes.first;
@@ -388,7 +378,7 @@ static GPUMaterialAttribute *gpu_node_graph_add_attribute(GPUNodeGraph *graph,
   }
 
   /* Add new requested attribute if it's within GPU limits. */
-  if (attr == NULL && num_attributes < GPU_MAX_ATTR) {
+  if (attr == NULL) {
     attr = MEM_callocN(sizeof(*attr), __func__);
     attr->type = type;
     STRNCPY(attr->name, name);
@@ -478,7 +468,7 @@ static GPUMaterialTexture *gpu_node_graph_add_texture(GPUNodeGraph *graph,
 
 /* Creating Inputs */
 
-GPUNodeLink *GPU_attribute(GPUMaterial *mat, const CustomDataType type, const char *name)
+GPUNodeLink *GPU_attribute(GPUMaterial *mat, const eCustomDataType type, const char *name)
 {
   GPUNodeGraph *graph = gpu_material_node_graph(mat);
   GPUMaterialAttribute *attr = gpu_node_graph_add_attribute(graph, type, name);
@@ -501,7 +491,7 @@ GPUNodeLink *GPU_attribute(GPUMaterial *mat, const CustomDataType type, const ch
 }
 
 GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
-                                        const CustomDataType type,
+                                        const eCustomDataType type,
                                         const char *name,
                                         eGPUDefaultValue default_value)
 {
@@ -623,7 +613,7 @@ bool GPU_link(GPUMaterial *mat, const char *name, ...)
 
   va_start(params, name);
   for (i = 0; i < function->totparam; i++) {
-    if (function->paramqual[i] != FUNCTION_QUAL_IN) {
+    if (function->paramqual[i] == FUNCTION_QUAL_OUT) {
       linkptr = va_arg(params, GPUNodeLink **);
       gpu_node_output(node, function->paramtype[i], linkptr);
     }
@@ -681,7 +671,7 @@ static bool gpu_stack_link_v(GPUMaterial *material,
   }
 
   for (i = 0; i < function->totparam; i++) {
-    if (function->paramqual[i] != FUNCTION_QUAL_IN) {
+    if (function->paramqual[i] == FUNCTION_QUAL_OUT) {
       if (totout == 0) {
         linkptr = va_arg(params, GPUNodeLink **);
         gpu_node_output(node, function->paramtype[i], linkptr);

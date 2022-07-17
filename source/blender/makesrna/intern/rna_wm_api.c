@@ -23,6 +23,7 @@
 #include "wm_cursors.h"
 #include "wm_event_types.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 #include "rna_internal.h" /* own include */
@@ -638,15 +639,11 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
   }
   /* TODO: validate NDOF. */
 
-  char ascii = 0;
   if (unicode != NULL) {
     int len = BLI_str_utf8_size(unicode);
     if (len == -1 || unicode[len] != '\0') {
       BKE_report(reports, RPT_ERROR, "Only a single character supported");
       return NULL;
-    }
-    if (len == 1 && isascii(unicode[0])) {
-      ascii = unicode[0];
     }
   }
 
@@ -671,10 +668,8 @@ static wmEvent *rna_Window_event_add_simulate(wmWindow *win,
     e.modifier |= KM_OSKEY;
   }
 
-  e.ascii = '\0';
   e.utf8_buf[0] = '\0';
   if (unicode != NULL) {
-    e.ascii = ascii;
     STRNCPY(e.utf8_buf, unicode);
   }
 

@@ -49,7 +49,7 @@ static void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, sh
   }
 }
 
-static void tex_input(float *out, int sz, bNodeStack *in, TexParams *params, short thread)
+static void tex_input(float *out, int num, bNodeStack *in, TexParams *params, short thread)
 {
   TexDelegate *dg = in->data;
   if (dg) {
@@ -59,7 +59,7 @@ static void tex_input(float *out, int sz, bNodeStack *in, TexParams *params, sho
       in->vec[1] = in->vec[2] = in->vec[0];
     }
   }
-  memcpy(out, in->vec, sz * sizeof(float));
+  memcpy(out, in->vec, num * sizeof(float));
 }
 
 void tex_input_vec(float *out, bNodeStack *in, TexParams *params, short thread)

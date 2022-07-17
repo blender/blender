@@ -58,17 +58,18 @@ static int remapTime(struct GpencilModifierData *md,
   const bool invpass = mmd->flag & GP_TIME_INVERT_LAYERPASS;
   int sfra = custom ? mmd->sfra : scene->r.sfra;
   int efra = custom ? mmd->efra : scene->r.efra;
+  int offset = mmd->offset;
+  int nfra = 0;
   CLAMP_MIN(sfra, 0);
   CLAMP_MIN(efra, 0);
 
+  if (offset < 0) {
+    offset = abs(efra - sfra + offset + 1);
+  }
   /* Avoid inverse ranges. */
-  if (efra < sfra) {
+  if (efra <= sfra) {
     return cfra;
   }
-
-  const int time_range = efra - sfra + 1;
-  int offset = mmd->offset;
-  int segments = 0;
 
   /* omit if filter by layer */
   if (mmd->layername[0] != '\0') {
@@ -97,60 +98,55 @@ static int remapTime(struct GpencilModifierData *md,
     }
   }
 
+  /* apply frame scale */
+  cfra *= mmd->frame_scale;
+
   /* if fix mode, return predefined frame number */
   if (mmd->mode == GP_TIME_MODE_FIX) {
     return offset;
   }
 
-  /* invert current frame number */
+  if (mmd->mode == GP_TIME_MODE_NORMAL) {
+    if ((mmd->flag & GP_TIME_KEEP_LOOP) == 0) {
+      nfra = cfra + sfra + offset - 1 < efra ? cfra + sfra + offset - 1 : efra;
+    }
+    else {
+      nfra = (offset + cfra - 1) % (efra - sfra + 1) + sfra;
+    }
+  }
   if (mmd->mode == GP_TIME_MODE_REVERSE) {
-    cfra = efra - cfra + sfra;
-  }
-
-  /* apply frame scale */
-  cfra *= mmd->frame_scale;
-
-  /* verify offset never is greater than frame range */
-  if (abs(offset) > time_range) {
-    offset = offset - ((offset / time_range) * time_range);
-  }
-
-  /* verify not outside range if loop is disabled */
-  if ((mmd->flag & GP_TIME_KEEP_LOOP) == 0) {
-    if (cfra + offset < sfra) {
-      return sfra;
+    if ((mmd->flag & GP_TIME_KEEP_LOOP) == 0) {
+      nfra = efra - cfra - offset > sfra ? efra - cfra - offset + 1 : sfra;
     }
-    if (cfra + offset > efra) {
-      return efra;
+    else {
+      nfra = (efra + 1 - (cfra + offset - 1) % (efra - sfra + 1)) - 1;
     }
   }
 
-  /* check frames before start */
-  if (cfra < sfra) {
-    segments = ((cfra + sfra) / time_range);
-    cfra = cfra + (segments * time_range);
-  }
-
-  /* check frames after end */
-  if (cfra > efra) {
-    segments = ((cfra - sfra) / time_range);
-    cfra = cfra - (segments * time_range);
-  }
-
-  if (mmd->flag & GP_TIME_KEEP_LOOP) {
-    const int nfra = cfra + offset;
-
-    /* if the sum of the cfra is out scene frame range, recalc */
-    if (cfra + offset < sfra) {
-      const int delta = abs(sfra - nfra);
-      return efra - delta + 1;
+  if (mmd->mode == GP_TIME_MODE_PINGPONG) {
+    if ((mmd->flag & GP_TIME_KEEP_LOOP) == 0) {
+      if (((int)(cfra + offset - 1) / (efra - sfra)) % (2)) {
+        nfra = efra - (cfra + offset - 1) % (efra - sfra);
+      }
+      else {
+        nfra = sfra + (cfra + offset - 1) % (efra - sfra);
+      }
+      if (cfra > (efra - sfra) * 2) {
+        nfra = sfra + offset;
+      }
     }
-    if (cfra + offset > efra) {
-      return nfra - efra + sfra - 1;
+    else {
+
+      if (((int)(cfra + offset - 1) / (efra - sfra)) % (2)) {
+        nfra = efra - (cfra + offset - 1) % (efra - sfra);
+      }
+      else {
+        nfra = sfra + (cfra + offset - 1) % (efra - sfra);
+      }
     }
   }
 
-  return cfra + offset;
+  return nfra;
 }
 
 static void panel_draw(const bContext *UNUSED(C), Panel *panel)

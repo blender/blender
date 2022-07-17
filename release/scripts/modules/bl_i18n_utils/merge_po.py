@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Merge one or more .po files into the first dest one.
 # If a msgkey is present in more than one merged po, the one in the first file wins, unless
 # it’s marked as fuzzy and one later is not.

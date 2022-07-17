@@ -4,51 +4,39 @@
  * \ingroup editor/io
  */
 
-#include "DNA_space_types.h"
+#ifdef WITH_IO_WAVEFRONT_OBJ
 
-#include "BKE_context.h"
-#include "BKE_main.h"
-#include "BKE_report.h"
+#  include "DNA_space_types.h"
 
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "BLI_utildefines.h"
+#  include "BKE_context.h"
+#  include "BKE_main.h"
+#  include "BKE_report.h"
 
-#include "BLT_translation.h"
+#  include "BLI_path_util.h"
+#  include "BLI_string.h"
+#  include "BLI_utildefines.h"
 
-#include "MEM_guardedalloc.h"
+#  include "BLT_translation.h"
 
-#include "RNA_access.h"
-#include "RNA_define.h"
+#  include "ED_outliner.h"
 
-#include "UI_interface.h"
-#include "UI_resources.h"
+#  include "MEM_guardedalloc.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
+#  include "RNA_access.h"
+#  include "RNA_define.h"
 
-#include "DEG_depsgraph.h"
+#  include "UI_interface.h"
+#  include "UI_resources.h"
 
-#include "IO_wavefront_obj.h"
-#include "io_obj.h"
+#  include "WM_api.h"
+#  include "WM_types.h"
 
-static const EnumPropertyItem io_obj_transform_axis_forward[] = {
-    {OBJ_AXIS_X_FORWARD, "X_FORWARD", 0, "X", "Positive X axis"},
-    {OBJ_AXIS_Y_FORWARD, "Y_FORWARD", 0, "Y", "Positive Y axis"},
-    {OBJ_AXIS_Z_FORWARD, "Z_FORWARD", 0, "Z", "Positive Z axis"},
-    {OBJ_AXIS_NEGATIVE_X_FORWARD, "NEGATIVE_X_FORWARD", 0, "-X", "Negative X axis"},
-    {OBJ_AXIS_NEGATIVE_Y_FORWARD, "NEGATIVE_Y_FORWARD", 0, "-Y", "Negative Y axis"},
-    {OBJ_AXIS_NEGATIVE_Z_FORWARD, "NEGATIVE_Z_FORWARD", 0, "-Z", "Negative Z axis"},
-    {0, NULL, 0, NULL, NULL}};
+#  include "DEG_depsgraph.h"
 
-static const EnumPropertyItem io_obj_transform_axis_up[] = {
-    {OBJ_AXIS_X_UP, "X_UP", 0, "X", "Positive X axis"},
-    {OBJ_AXIS_Y_UP, "Y_UP", 0, "Y", "Positive Y axis"},
-    {OBJ_AXIS_Z_UP, "Z_UP", 0, "Z", "Positive Z axis"},
-    {OBJ_AXIS_NEGATIVE_X_UP, "NEGATIVE_X_UP", 0, "-X", "Negative X axis"},
-    {OBJ_AXIS_NEGATIVE_Y_UP, "NEGATIVE_Y_UP", 0, "-Y", "Negative Y axis"},
-    {OBJ_AXIS_NEGATIVE_Z_UP, "NEGATIVE_Z_UP", 0, "-Z", "Negative Z axis"},
-    {0, NULL, 0, NULL, NULL}};
+#  include "IO_orientation.h"
+#  include "IO_path_util_types.h"
+#  include "IO_wavefront_obj.h"
+#  include "io_obj.h"
 
 static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
     {DAG_EVAL_RENDER, "DAG_EVAL_RENDER", 0, "Render", "Export objects as they appear in render"},
@@ -57,6 +45,15 @@ static const EnumPropertyItem io_obj_export_evaluation_mode[] = {
      0,
      "Viewport",
      "Export objects as they appear in the viewport"},
+    {0, NULL, 0, NULL, NULL}};
+
+static const EnumPropertyItem io_obj_path_mode[] = {
+    {PATH_REFERENCE_AUTO, "AUTO", 0, "Auto", "Use Relative paths with subdirectories only"},
+    {PATH_REFERENCE_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Always write absolute paths"},
+    {PATH_REFERENCE_RELATIVE, "RELATIVE", 0, "Relative", "Write relative paths where possible"},
+    {PATH_REFERENCE_MATCH, "MATCH", 0, "Match", "Match Absolute/Relative setting with input path"},
+    {PATH_REFERENCE_STRIP, "STRIP", 0, "Strip", "Write filename only"},
+    {PATH_REFERENCE_COPY, "COPY", 0, "Copy", "Copy the file to the destination path"},
     {0, NULL, 0, NULL, NULL}};
 
 static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -87,6 +84,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
   struct OBJExportParams export_params;
+  export_params.file_base_for_tests[0] = '\0';
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.blen_filepath = CTX_data_main(C)->filepath;
   export_params.export_animation = RNA_boolean_get(op->ptr, "export_animation");
@@ -102,7 +100,9 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
   export_params.export_selected_objects = RNA_boolean_get(op->ptr, "export_selected_objects");
   export_params.export_uv = RNA_boolean_get(op->ptr, "export_uv");
   export_params.export_normals = RNA_boolean_get(op->ptr, "export_normals");
+  export_params.export_colors = RNA_boolean_get(op->ptr, "export_colors");
   export_params.export_materials = RNA_boolean_get(op->ptr, "export_materials");
+  export_params.path_mode = RNA_enum_get(op->ptr, "path_mode");
   export_params.export_triangulated_mesh = RNA_boolean_get(op->ptr, "export_triangulated_mesh");
   export_params.export_curves_as_nurbs = RNA_boolean_get(op->ptr, "export_curves_as_nurbs");
 
@@ -119,9 +119,9 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
 
 static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
 {
-
   const bool export_animation = RNA_boolean_get(imfptr, "export_animation");
   const bool export_smooth_groups = RNA_boolean_get(imfptr, "export_smooth_groups");
+  const bool export_materials = RNA_boolean_get(imfptr, "export_materials");
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -150,6 +150,9 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(sub, imfptr, "export_selected_objects", 0, IFACE_("Selected Only"), ICON_NONE);
   uiItemR(sub, imfptr, "apply_modifiers", 0, IFACE_("Apply Modifiers"), ICON_NONE);
   uiItemR(sub, imfptr, "export_eval_mode", 0, IFACE_("Properties"), ICON_NONE);
+  sub = uiLayoutColumn(sub, false);
+  uiLayoutSetEnabled(sub, export_materials);
+  uiItemR(sub, imfptr, "path_mode", 0, IFACE_("Path Mode"), ICON_NONE);
 
   /* Options for what to write. */
   box = uiLayoutBox(layout);
@@ -158,10 +161,12 @@ static void ui_obj_export_settings(uiLayout *layout, PointerRNA *imfptr)
   sub = uiLayoutColumnWithHeading(col, false, IFACE_("Export"));
   uiItemR(sub, imfptr, "export_uv", 0, IFACE_("UV Coordinates"), ICON_NONE);
   uiItemR(sub, imfptr, "export_normals", 0, IFACE_("Normals"), ICON_NONE);
+  uiItemR(sub, imfptr, "export_colors", 0, IFACE_("Colors"), ICON_NONE);
   uiItemR(sub, imfptr, "export_materials", 0, IFACE_("Materials"), ICON_NONE);
   uiItemR(sub, imfptr, "export_triangulated_mesh", 0, IFACE_("Triangulated Mesh"), ICON_NONE);
   uiItemR(sub, imfptr, "export_curves_as_nurbs", 0, IFACE_("Curves as NURBS"), ICON_NONE);
 
+  /* Grouping options. */
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Grouping"), ICON_GROUP);
   col = uiLayoutColumn(box, false);
@@ -203,11 +208,11 @@ static bool wm_obj_export_check(bContext *C, wmOperator *op)
     int end = RNA_int_get(op->ptr, "end_frame");
     /* Set the defaults. */
     if (start == INT_MIN) {
-      start = SFRA;
+      start = scene->r.sfra;
       changed = true;
     }
     if (end == INT_MAX) {
-      end = EFRA;
+      end = scene->r.efra;
       changed = true;
     }
     /* Fix user errors. */
@@ -231,6 +236,8 @@ static bool wm_obj_export_check(bContext *C, wmOperator *op)
 
 void WM_OT_obj_export(struct wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Export Wavefront OBJ";
   ot->description = "Save the scene to a Wavefront OBJ file";
   ot->idname = "WM_OT_obj_export";
@@ -241,10 +248,10 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
   ot->ui = wm_obj_export_draw;
   ot->check = wm_obj_export_check;
 
-  ot->flag |= OPTYPE_PRESET;
+  ot->flag = OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER | FILE_TYPE_OBJECT_IO,
+                                 FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_SAVE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
@@ -259,7 +266,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                   "Export multiple frames instead of the current frame only");
   RNA_def_int(ot->srna,
               "start_frame",
-              INT_MIN, /* wm_obj_export_check uses this to set SFRA. */
+              INT_MIN, /* wm_obj_export_check uses this to set scene->r.sfra. */
               INT_MIN,
               INT_MAX,
               "Start Frame",
@@ -268,7 +275,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
               INT_MAX);
   RNA_def_int(ot->srna,
               "end_frame",
-              INT_MAX, /* wm_obj_export_check uses this to set EFRA. */
+              INT_MAX, /* wm_obj_export_check uses this to set scene->r.efra. */
               INT_MIN,
               INT_MAX,
               "End Frame",
@@ -276,13 +283,9 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
               INT_MIN,
               INT_MAX);
   /* Object transform options. */
-  RNA_def_enum(ot->srna,
-               "forward_axis",
-               io_obj_transform_axis_forward,
-               OBJ_AXIS_NEGATIVE_Z_FORWARD,
-               "Forward Axis",
-               "");
-  RNA_def_enum(ot->srna, "up_axis", io_obj_transform_axis_up, OBJ_AXIS_Y_UP, "Up Axis", "");
+  RNA_def_enum(
+      ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
+  RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
   RNA_def_float(ot->srna,
                 "scaling_factor",
                 1.0f,
@@ -314,12 +317,19 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                   "Export Normals",
                   "Export per-face normals if the face is flat-shaded, per-face-per-loop "
                   "normals if smooth-shaded");
+  RNA_def_boolean(ot->srna, "export_colors", false, "Export Colors", "Export per-vertex colors");
   RNA_def_boolean(ot->srna,
                   "export_materials",
                   true,
                   "Export Materials",
                   "Export MTL library. There must be a Principled-BSDF node for image textures to "
                   "be exported to the MTL file");
+  RNA_def_enum(ot->srna,
+               "path_mode",
+               io_obj_path_mode,
+               PATH_REFERENCE_AUTO,
+               "Path Mode",
+               "Method used to reference paths");
   RNA_def_boolean(ot->srna,
                   "export_triangulated_mesh",
                   false,
@@ -358,6 +368,10 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
       "Every smooth-shaded face is assigned group \"1\" and every flat-shaded face \"off\"");
   RNA_def_boolean(
       ot->srna, "smooth_group_bitflags", false, "Generate Bitflags for Smooth Groups", "");
+
+  /* Only show .obj or .mtl files by default. */
+  prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 static int wm_obj_import_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
@@ -378,9 +392,16 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
   import_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   import_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
+  import_params.import_vertex_groups = RNA_boolean_get(op->ptr, "import_vertex_groups");
   import_params.validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
 
   OBJ_import(C, &import_params);
+
+  Scene *scene = CTX_data_scene(C);
+  WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+  WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+  ED_outliner_select_sync_from_object_tag(C);
 
   return OPERATOR_FINISHED;
 }
@@ -402,6 +423,7 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Options"), ICON_EXPORT);
   col = uiLayoutColumn(box, false);
+  uiItemR(col, imfptr, "import_vertex_groups", 0, NULL, ICON_NONE);
   uiItemR(col, imfptr, "validate_meshes", 0, NULL, ICON_NONE);
 }
 
@@ -415,9 +437,12 @@ static void wm_obj_import_draw(bContext *C, wmOperator *op)
 
 void WM_OT_obj_import(struct wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Import Wavefront OBJ";
   ot->description = "Load a Wavefront OBJ scene";
   ot->idname = "WM_OT_obj_import";
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   ot->invoke = wm_obj_import_invoke;
   ot->exec = wm_obj_import_exec;
@@ -425,7 +450,7 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
   ot->ui = wm_obj_import_draw;
 
   WM_operator_properties_filesel(ot,
-                                 FILE_TYPE_FOLDER | FILE_TYPE_OBJECT_IO,
+                                 FILE_TYPE_FOLDER,
                                  FILE_BLENDER,
                                  FILE_OPENFILE,
                                  WM_FILESEL_FILEPATH | WM_FILESEL_SHOW_PROPS,
@@ -441,16 +466,23 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
       "Resize the objects to keep bounding box under this value. Value 0 disables clamping",
       0.0f,
       1000.0f);
-  RNA_def_enum(ot->srna,
-               "forward_axis",
-               io_obj_transform_axis_forward,
-               OBJ_AXIS_NEGATIVE_Z_FORWARD,
-               "Forward Axis",
-               "");
-  RNA_def_enum(ot->srna, "up_axis", io_obj_transform_axis_up, OBJ_AXIS_Y_UP, "Up Axis", "");
+  RNA_def_enum(
+      ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
+  RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
+  RNA_def_boolean(ot->srna,
+                  "import_vertex_groups",
+                  false,
+                  "Vertex Groups",
+                  "Import OBJ groups as vertex groups");
   RNA_def_boolean(ot->srna,
                   "validate_meshes",
                   false,
                   "Validate Meshes",
                   "Check imported mesh objects for invalid data (slow)");
+
+  /* Only show .obj or .mtl files by default. */
+  prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
+  RNA_def_property_flag(prop, PROP_HIDDEN);
 }
+
+#endif /* WITH_IO_WAVEFRONT_OBJ */

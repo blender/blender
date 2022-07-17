@@ -114,7 +114,7 @@ typedef struct {
 void cineonSetVerbose(int);
 LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t bufferSize);
 LogImageFile *cineonCreate(
-    const char *filename, int width, int height, int bitsPerSample, const char *creator);
+    const char *filepath, int width, int height, int bitsPerSample, const char *creator);
 
 #ifdef __cplusplus
 }

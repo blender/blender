@@ -358,6 +358,10 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   else if (t->spacetype == SPACE_SEQ && region->regiontype == RGN_TYPE_PREVIEW) {
     t->options |= CTX_SEQUENCER_IMAGE;
+
+    /* Needed for autokeying transforms in preview during playback. */
+    bScreen *animscreen = ED_screen_animation_playing(CTX_wm_manager(C));
+    t->animtimer = (animscreen) ? animscreen->animtimer : NULL;
   }
 
   setTransformViewAspect(t, t->aspect);

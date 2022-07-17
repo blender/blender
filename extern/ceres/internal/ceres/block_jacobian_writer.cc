@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,13 @@
 
 #include "ceres/block_jacobian_writer.h"
 
+#include <algorithm>
+#include <memory>
+
 #include "ceres/block_evaluate_preparer.h"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/parameter_block.h"
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
@@ -66,8 +69,7 @@ void BuildJacobianLayout(const Program& program,
   // matrix. Also compute the number of jacobian blocks.
   int f_block_pos = 0;
   int num_jacobian_blocks = 0;
-  for (int i = 0; i < residual_blocks.size(); ++i) {
-    ResidualBlock* residual_block = residual_blocks[i];
+  for (auto* residual_block : residual_blocks) {
     const int num_residuals = residual_block->NumResiduals();
     const int num_parameter_blocks = residual_block->NumParameterBlocks();
 
@@ -78,7 +80,7 @@ void BuildJacobianLayout(const Program& program,
         // Only count blocks for active parameters.
         num_jacobian_blocks++;
         if (parameter_block->index() < num_eliminate_blocks) {
-          f_block_pos += num_residuals * parameter_block->LocalSize();
+          f_block_pos += num_residuals * parameter_block->TangentSize();
         }
       }
     }
@@ -107,7 +109,7 @@ void BuildJacobianLayout(const Program& program,
         continue;
       }
       const int jacobian_block_size =
-          num_residuals * parameter_block->LocalSize();
+          num_residuals * parameter_block->TangentSize();
       if (parameter_block_index < num_eliminate_blocks) {
         *jacobian_pos = e_block_pos;
         e_block_pos += jacobian_block_size;
@@ -136,20 +138,20 @@ BlockJacobianWriter::BlockJacobianWriter(const Evaluator::Options& options,
 
 // Create evaluate prepareres that point directly into the final jacobian. This
 // makes the final Write() a nop.
-BlockEvaluatePreparer* BlockJacobianWriter::CreateEvaluatePreparers(
-    int num_threads) {
+std::unique_ptr<BlockEvaluatePreparer[]>
+BlockJacobianWriter::CreateEvaluatePreparers(int num_threads) {
   int max_derivatives_per_residual_block =
       program_->MaxDerivativesPerResidualBlock();
 
-  BlockEvaluatePreparer* preparers = new BlockEvaluatePreparer[num_threads];
+  auto preparers = std::make_unique<BlockEvaluatePreparer[]>(num_threads);
   for (int i = 0; i < num_threads; i++) {
     preparers[i].Init(&jacobian_layout_[0], max_derivatives_per_residual_block);
   }
   return preparers;
 }
 
-SparseMatrix* BlockJacobianWriter::CreateJacobian() const {
-  CompressedRowBlockStructure* bs = new CompressedRowBlockStructure;
+std::unique_ptr<SparseMatrix> BlockJacobianWriter::CreateJacobian() const {
+  auto* bs = new CompressedRowBlockStructure;
 
   const vector<ParameterBlock*>& parameter_blocks =
       program_->parameter_blocks();
@@ -159,7 +161,7 @@ SparseMatrix* BlockJacobianWriter::CreateJacobian() const {
   for (int i = 0, cursor = 0; i < parameter_blocks.size(); ++i) {
     CHECK_NE(parameter_blocks[i]->index(), -1);
     CHECK(!parameter_blocks[i]->IsConstant());
-    bs->cols[i].size = parameter_blocks[i]->LocalSize();
+    bs->cols[i].size = parameter_blocks[i]->TangentSize();
     bs->cols[i].position = cursor;
     cursor += bs->cols[i].size;
   }
@@ -201,12 +203,10 @@ SparseMatrix* BlockJacobianWriter::CreateJacobian() const {
       }
     }
 
-    sort(row->cells.begin(), row->cells.end(), CellLessThan);
+    std::sort(row->cells.begin(), row->cells.end(), CellLessThan);
   }
 
-  BlockSparseMatrix* jacobian = new BlockSparseMatrix(bs);
-  CHECK(jacobian != nullptr);
-  return jacobian;
+  return std::make_unique<BlockSparseMatrix>(bs);
 }
 
 }  // namespace internal

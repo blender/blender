@@ -26,7 +26,7 @@ class HandlePositionFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask mask) const final
   {
     if (component.type() != GEO_COMPONENT_TYPE_CURVE) {
@@ -37,13 +37,15 @@ class HandlePositionFieldInput final : public GeometryFieldInput {
     fn::FieldEvaluator evaluator(field_context, &mask);
     evaluator.add(relative_);
     evaluator.evaluate();
-    const VArray<bool> &relative = evaluator.get_evaluated<bool>(0);
+    const VArray<bool> relative = evaluator.get_evaluated<bool>(0);
 
-    VArray<float3> positions = component.attribute_get_for_read<float3>(
+    const AttributeAccessor attributes = *component.attributes();
+
+    VArray<float3> positions = attributes.lookup_or_default<float3>(
         "position", ATTR_DOMAIN_POINT, {0, 0, 0});
 
     StringRef side = left_ ? "handle_left" : "handle_right";
-    VArray<float3> handles = component.attribute_get_for_read<float3>(
+    VArray<float3> handles = attributes.lookup_or_default<float3>(
         side, ATTR_DOMAIN_POINT, {0, 0, 0});
 
     if (relative.is_single()) {
@@ -52,10 +54,10 @@ class HandlePositionFieldInput final : public GeometryFieldInput {
         for (const int i : positions.index_range()) {
           output[i] = handles[i] - positions[i];
         }
-        return component.attribute_try_adapt_domain<float3>(
+        return attributes.adapt_domain<float3>(
             VArray<float3>::ForContainer(std::move(output)), ATTR_DOMAIN_POINT, domain);
       }
-      return component.attribute_try_adapt_domain<float3>(handles, ATTR_DOMAIN_POINT, domain);
+      return attributes.adapt_domain<float3>(handles, ATTR_DOMAIN_POINT, domain);
     }
 
     Array<float3> output(positions.size());
@@ -67,7 +69,7 @@ class HandlePositionFieldInput final : public GeometryFieldInput {
         output[i] = handles[i];
       }
     }
-    return component.attribute_try_adapt_domain<float3>(
+    return component.attributes()->adapt_domain<float3>(
         VArray<float3>::ForContainer(std::move(output)), ATTR_DOMAIN_POINT, domain);
   }
 

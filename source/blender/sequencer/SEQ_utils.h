@@ -20,24 +20,18 @@ struct SeqRenderData;
 struct Sequence;
 struct StripElem;
 
-/**
- * Sort strips in provided seqbase. Effect strips are trailing the list and they are sorted by
- * channel position as well.
- * This is important for SEQ_time_update_sequence to work properly
- *
- * \param seqbase: ListBase with strips
- */
-void SEQ_sort(struct ListBase *seqbase);
 void SEQ_sequence_base_unique_name_recursive(struct Scene *scene,
                                              struct ListBase *seqbasep,
                                              struct Sequence *seq);
 const char *SEQ_sequence_give_name(struct Sequence *seq);
-struct ListBase *SEQ_get_seqbase_from_sequence(struct Sequence *seq, int *r_offset);
+struct ListBase *SEQ_get_seqbase_from_sequence(struct Sequence *seq,
+                                               struct ListBase **channels,
+                                               int *r_offset);
 const struct Sequence *SEQ_get_topmost_sequence(const struct Scene *scene, int frame);
 /**
  * In cases where we don't know the sequence's listbase.
  */
-struct ListBase *SEQ_get_seqbase_by_seq(struct ListBase *seqbase, struct Sequence *seq);
+struct ListBase *SEQ_get_seqbase_by_seq(const struct Scene *scene, struct Sequence *seq);
 /**
  * Only use as last resort when the StripElem is available but no the Sequence.
  * (needed for RNA)

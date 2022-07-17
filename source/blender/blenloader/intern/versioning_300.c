@@ -25,10 +25,12 @@
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_genfile.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_lineart_types.h"
 #include "DNA_listBase.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -44,6 +46,7 @@
 #include "BKE_asset.h"
 #include "BKE_attribute.h"
 #include "BKE_collection.h"
+#include "BKE_colortools.h"
 #include "BKE_curve.h"
 #include "BKE_data_transfer.h"
 #include "BKE_deform.h"
@@ -63,15 +66,13 @@
 #include "RNA_prototypes.h"
 
 #include "BLO_readfile.h"
-#include "MEM_guardedalloc.h"
+
 #include "readfile.h"
 
 #include "SEQ_channels.h"
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_time.h"
-
-#include "RNA_access.h"
 
 #include "versioning_common.h"
 
@@ -407,7 +408,9 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
           v->speed_control_type = SEQ_SPEED_MULTIPLY;
           v->speed_fader = globalSpeed *
                            ((float)seq->seq1->len /
-                            max_ff((float)(seq->seq1->enddisp - seq->seq1->start), 1.0f));
+                            max_ff((float)(SEQ_time_right_handle_frame_get(scene, seq->seq1) -
+                                           seq->seq1->start),
+                                   1.0f));
         }
       }
       else if (v->flags & SEQ_SPEED_INTEGRATE) {
@@ -590,6 +593,39 @@ static bNodeTree *add_realize_node_tree(Main *bmain)
 
   version_socket_update_is_used(node_tree);
   return node_tree;
+}
+
+static void seq_speed_factor_fix_rna_path(Sequence *seq, ListBase *fcurves)
+{
+  char name_esc[(sizeof(seq->name) - 2) * 2];
+  BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  char *path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].pitch", name_esc);
+  FCurve *fcu = BKE_fcurve_find(fcurves, path, 0);
+  if (fcu != NULL) {
+    MEM_freeN(fcu->rna_path);
+    fcu->rna_path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].speed_factor", name_esc);
+  }
+  MEM_freeN(path);
+}
+
+static bool seq_speed_factor_set(Sequence *seq, void *user_data)
+{
+  const Scene *scene = user_data;
+  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+    /* Move `pitch` animation to `speed_factor` */
+    if (scene->adt && scene->adt->action) {
+      seq_speed_factor_fix_rna_path(seq, &scene->adt->action->curves);
+    }
+    if (scene->adt && !BLI_listbase_is_empty(&scene->adt->drivers)) {
+      seq_speed_factor_fix_rna_path(seq, &scene->adt->drivers);
+    }
+
+    seq->speed_factor = seq->pitch;
+  }
+  else {
+    seq->speed_factor = 1.0f;
+  }
+  return true;
 }
 
 void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
@@ -795,13 +831,16 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
             continue;
           }
           SpaceSeq *sseq = (SpaceSeq *)sl;
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
           sseq->flag |= SEQ_CLAMP_VIEW;
 
           if (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW)) {
             continue;
           }
 
-          ARegion *timeline_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+          ARegion *timeline_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                         RGN_TYPE_WINDOW);
 
           if (timeline_region == NULL) {
             continue;
@@ -813,6 +852,17 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
       }
     }
   }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 5)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed == NULL) {
+        continue;
+      }
+      SEQ_for_each_callback(&ed->seqbase, seq_speed_factor_set, scene);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -1000,6 +1050,9 @@ static void do_version_subsurface_methods(bNode *node)
 
 static void version_geometry_nodes_add_attribute_input_settings(NodesModifierData *nmd)
 {
+  if (nmd->settings.properties == NULL) {
+    return;
+  }
   /* Before versioning the properties, make sure it hasn't been done already. */
   LISTBASE_FOREACH (const IDProperty *, property, &nmd->settings.properties->data.group) {
     if (strstr(property->name, "_use_attribute") || strstr(property->name, "_attribute_name")) {
@@ -1217,6 +1270,15 @@ static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
   return true;
 }
 
+static bool version_merge_still_offsets(Sequence *seq, void *UNUSED(user_data))
+{
+  seq->startofs -= seq->startstill;
+  seq->endofs -= seq->endstill;
+  seq->startstill = 0;
+  seq->endstill = 0;
+  return true;
+}
+
 /* Those `version_liboverride_rnacollections_*` functions mimic the old, pre-3.0 code to find
  * anchor and source items in the given list of modifiers, constraints etc., using only the
  * `subitem_local` data of the override property operation.
@@ -1358,6 +1420,275 @@ static void version_liboverride_rnacollections_insertion_animdata(ID *id)
       opop->subitem_local_name = NULL;
       opop->subitem_reference_index = opop->subitem_local_index;
       opop->subitem_local_index++;
+    }
+  }
+}
+
+static void versioning_replace_legacy_combined_and_separate_color_nodes(bNodeTree *ntree)
+{
+  /* In geometry nodes, replace shader combine/separate color nodes with function nodes */
+  if (ntree->type == NTREE_GEOMETRY) {
+    version_node_input_socket_name(ntree, SH_NODE_COMBRGB_LEGACY, "R", "Red");
+    version_node_input_socket_name(ntree, SH_NODE_COMBRGB_LEGACY, "G", "Green");
+    version_node_input_socket_name(ntree, SH_NODE_COMBRGB_LEGACY, "B", "Blue");
+    version_node_output_socket_name(ntree, SH_NODE_COMBRGB_LEGACY, "Image", "Color");
+
+    version_node_output_socket_name(ntree, SH_NODE_SEPRGB_LEGACY, "R", "Red");
+    version_node_output_socket_name(ntree, SH_NODE_SEPRGB_LEGACY, "G", "Green");
+    version_node_output_socket_name(ntree, SH_NODE_SEPRGB_LEGACY, "B", "Blue");
+    version_node_input_socket_name(ntree, SH_NODE_SEPRGB_LEGACY, "Image", "Color");
+
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      switch (node->type) {
+        case SH_NODE_COMBRGB_LEGACY: {
+          node->type = FN_NODE_COMBINE_COLOR;
+          NodeCombSepColor *storage = (NodeCombSepColor *)MEM_callocN(sizeof(NodeCombSepColor),
+                                                                      __func__);
+          storage->mode = NODE_COMBSEP_COLOR_RGB;
+          strcpy(node->idname, "FunctionNodeCombineColor");
+          node->storage = storage;
+          break;
+        }
+        case SH_NODE_SEPRGB_LEGACY: {
+          node->type = FN_NODE_SEPARATE_COLOR;
+          NodeCombSepColor *storage = (NodeCombSepColor *)MEM_callocN(sizeof(NodeCombSepColor),
+                                                                      __func__);
+          storage->mode = NODE_COMBSEP_COLOR_RGB;
+          strcpy(node->idname, "FunctionNodeSeparateColor");
+          node->storage = storage;
+          break;
+        }
+      }
+    }
+  }
+
+  /* In compositing nodes, replace combine/separate RGBA/HSVA/YCbCrA/YCCA nodes with
+   * combine/separate color */
+  if (ntree->type == NTREE_COMPOSIT) {
+    version_node_input_socket_name(ntree, CMP_NODE_COMBRGBA_LEGACY, "R", "Red");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBRGBA_LEGACY, "G", "Green");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBRGBA_LEGACY, "B", "Blue");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBRGBA_LEGACY, "A", "Alpha");
+
+    version_node_input_socket_name(ntree, CMP_NODE_COMBHSVA_LEGACY, "H", "Red");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBHSVA_LEGACY, "S", "Green");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBHSVA_LEGACY, "V", "Blue");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBHSVA_LEGACY, "A", "Alpha");
+
+    version_node_input_socket_name(ntree, CMP_NODE_COMBYCCA_LEGACY, "Y", "Red");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBYCCA_LEGACY, "Cb", "Green");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBYCCA_LEGACY, "Cr", "Blue");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBYCCA_LEGACY, "A", "Alpha");
+
+    version_node_input_socket_name(ntree, CMP_NODE_COMBYUVA_LEGACY, "Y", "Red");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBYUVA_LEGACY, "U", "Green");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBYUVA_LEGACY, "V", "Blue");
+    version_node_input_socket_name(ntree, CMP_NODE_COMBYUVA_LEGACY, "A", "Alpha");
+
+    version_node_output_socket_name(ntree, CMP_NODE_SEPRGBA_LEGACY, "R", "Red");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPRGBA_LEGACY, "G", "Green");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPRGBA_LEGACY, "B", "Blue");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPRGBA_LEGACY, "A", "Alpha");
+
+    version_node_output_socket_name(ntree, CMP_NODE_SEPHSVA_LEGACY, "H", "Red");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPHSVA_LEGACY, "S", "Green");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPHSVA_LEGACY, "V", "Blue");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPHSVA_LEGACY, "A", "Alpha");
+
+    version_node_output_socket_name(ntree, CMP_NODE_SEPYCCA_LEGACY, "Y", "Red");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPYCCA_LEGACY, "Cb", "Green");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPYCCA_LEGACY, "Cr", "Blue");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPYCCA_LEGACY, "A", "Alpha");
+
+    version_node_output_socket_name(ntree, CMP_NODE_SEPYUVA_LEGACY, "Y", "Red");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPYUVA_LEGACY, "U", "Green");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPYUVA_LEGACY, "V", "Blue");
+    version_node_output_socket_name(ntree, CMP_NODE_SEPYUVA_LEGACY, "A", "Alpha");
+
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      switch (node->type) {
+        case CMP_NODE_COMBRGBA_LEGACY: {
+          node->type = CMP_NODE_COMBINE_COLOR;
+          NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)MEM_callocN(
+              sizeof(NodeCMPCombSepColor), __func__);
+          storage->mode = CMP_NODE_COMBSEP_COLOR_RGB;
+          strcpy(node->idname, "CompositorNodeCombineColor");
+          node->storage = storage;
+          break;
+        }
+        case CMP_NODE_COMBHSVA_LEGACY: {
+          node->type = CMP_NODE_COMBINE_COLOR;
+          NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)MEM_callocN(
+              sizeof(NodeCMPCombSepColor), __func__);
+          storage->mode = CMP_NODE_COMBSEP_COLOR_HSV;
+          strcpy(node->idname, "CompositorNodeCombineColor");
+          node->storage = storage;
+          break;
+        }
+        case CMP_NODE_COMBYCCA_LEGACY: {
+          node->type = CMP_NODE_COMBINE_COLOR;
+          NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)MEM_callocN(
+              sizeof(NodeCMPCombSepColor), __func__);
+          storage->mode = CMP_NODE_COMBSEP_COLOR_YCC;
+          storage->ycc_mode = node->custom1;
+          strcpy(node->idname, "CompositorNodeCombineColor");
+          node->storage = storage;
+          break;
+        }
+        case CMP_NODE_COMBYUVA_LEGACY: {
+          node->type = CMP_NODE_COMBINE_COLOR;
+          NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)MEM_callocN(
+              sizeof(NodeCMPCombSepColor), __func__);
+          storage->mode = CMP_NODE_COMBSEP_COLOR_YUV;
+          strcpy(node->idname, "CompositorNodeCombineColor");
+          node->storage = storage;
+          break;
+        }
+        case CMP_NODE_SEPRGBA_LEGACY: {
+          node->type = CMP_NODE_SEPARATE_COLOR;
+          NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)MEM_callocN(
+              sizeof(NodeCMPCombSepColor), __func__);
+          storage->mode = CMP_NODE_COMBSEP_COLOR_RGB;
+          strcpy(node->idname, "CompositorNodeSeparateColor");
+          node->storage = storage;
+          break;
+        }
+        case CMP_NODE_SEPHSVA_LEGACY: {
+          node->type = CMP_NODE_SEPARATE_COLOR;
+          NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)MEM_callocN(
+              sizeof(NodeCMPCombSepColor), __func__);
+          storage->mode = CMP_NODE_COMBSEP_COLOR_HSV;
+          strcpy(node->idname, "CompositorNodeSeparateColor");
+          node->storage = storage;
+          break;
+        }
+        case CMP_NODE_SEPYCCA_LEGACY: {
+          node->type = CMP_NODE_SEPARATE_COLOR;
+          NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)MEM_callocN(
+              sizeof(NodeCMPCombSepColor), __func__);
+          storage->mode = CMP_NODE_COMBSEP_COLOR_YCC;
+          storage->ycc_mode = node->custom1;
+          strcpy(node->idname, "CompositorNodeSeparateColor");
+          node->storage = storage;
+          break;
+        }
+        case CMP_NODE_SEPYUVA_LEGACY: {
+          node->type = CMP_NODE_SEPARATE_COLOR;
+          NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)MEM_callocN(
+              sizeof(NodeCMPCombSepColor), __func__);
+          storage->mode = CMP_NODE_COMBSEP_COLOR_YUV;
+          strcpy(node->idname, "CompositorNodeSeparateColor");
+          node->storage = storage;
+          break;
+        }
+      }
+    }
+  }
+
+  /* In texture nodes, replace combine/separate RGBA with combine/separate color */
+  if (ntree->type == NTREE_TEXTURE) {
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      switch (node->type) {
+        case TEX_NODE_COMPOSE_LEGACY: {
+          node->type = TEX_NODE_COMBINE_COLOR;
+          node->custom1 = NODE_COMBSEP_COLOR_RGB;
+          strcpy(node->idname, "TextureNodeCombineColor");
+          break;
+        }
+        case TEX_NODE_DECOMPOSE_LEGACY: {
+          node->type = TEX_NODE_SEPARATE_COLOR;
+          node->custom1 = NODE_COMBSEP_COLOR_RGB;
+          strcpy(node->idname, "TextureNodeSeparateColor");
+          break;
+        }
+      }
+    }
+  }
+
+  /* In shader nodes, replace combine/separate RGB/HSV with combine/separate color */
+  if (ntree->type == NTREE_SHADER) {
+    version_node_input_socket_name(ntree, SH_NODE_COMBRGB_LEGACY, "R", "Red");
+    version_node_input_socket_name(ntree, SH_NODE_COMBRGB_LEGACY, "G", "Green");
+    version_node_input_socket_name(ntree, SH_NODE_COMBRGB_LEGACY, "B", "Blue");
+    version_node_output_socket_name(ntree, SH_NODE_COMBRGB_LEGACY, "Image", "Color");
+
+    version_node_input_socket_name(ntree, SH_NODE_COMBHSV_LEGACY, "H", "Red");
+    version_node_input_socket_name(ntree, SH_NODE_COMBHSV_LEGACY, "S", "Green");
+    version_node_input_socket_name(ntree, SH_NODE_COMBHSV_LEGACY, "V", "Blue");
+
+    version_node_output_socket_name(ntree, SH_NODE_SEPRGB_LEGACY, "R", "Red");
+    version_node_output_socket_name(ntree, SH_NODE_SEPRGB_LEGACY, "G", "Green");
+    version_node_output_socket_name(ntree, SH_NODE_SEPRGB_LEGACY, "B", "Blue");
+    version_node_input_socket_name(ntree, SH_NODE_SEPRGB_LEGACY, "Image", "Color");
+
+    version_node_output_socket_name(ntree, SH_NODE_SEPHSV_LEGACY, "H", "Red");
+    version_node_output_socket_name(ntree, SH_NODE_SEPHSV_LEGACY, "S", "Green");
+    version_node_output_socket_name(ntree, SH_NODE_SEPHSV_LEGACY, "V", "Blue");
+
+    LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+      switch (node->type) {
+        case SH_NODE_COMBRGB_LEGACY: {
+          node->type = SH_NODE_COMBINE_COLOR;
+          NodeCombSepColor *storage = (NodeCombSepColor *)MEM_callocN(sizeof(NodeCombSepColor),
+                                                                      __func__);
+          storage->mode = NODE_COMBSEP_COLOR_RGB;
+          strcpy(node->idname, "ShaderNodeCombineColor");
+          node->storage = storage;
+          break;
+        }
+        case SH_NODE_COMBHSV_LEGACY: {
+          node->type = SH_NODE_COMBINE_COLOR;
+          NodeCombSepColor *storage = (NodeCombSepColor *)MEM_callocN(sizeof(NodeCombSepColor),
+                                                                      __func__);
+          storage->mode = NODE_COMBSEP_COLOR_HSV;
+          strcpy(node->idname, "ShaderNodeCombineColor");
+          node->storage = storage;
+          break;
+        }
+        case SH_NODE_SEPRGB_LEGACY: {
+          node->type = SH_NODE_SEPARATE_COLOR;
+          NodeCombSepColor *storage = (NodeCombSepColor *)MEM_callocN(sizeof(NodeCombSepColor),
+                                                                      __func__);
+          storage->mode = NODE_COMBSEP_COLOR_RGB;
+          strcpy(node->idname, "ShaderNodeSeparateColor");
+          node->storage = storage;
+          break;
+        }
+        case SH_NODE_SEPHSV_LEGACY: {
+          node->type = SH_NODE_SEPARATE_COLOR;
+          NodeCombSepColor *storage = (NodeCombSepColor *)MEM_callocN(sizeof(NodeCombSepColor),
+                                                                      __func__);
+          storage->mode = NODE_COMBSEP_COLOR_HSV;
+          strcpy(node->idname, "ShaderNodeSeparateColor");
+          node->storage = storage;
+          break;
+        }
+      }
+    }
+  }
+}
+
+static void version_fix_image_format_copy(Main *bmain, ImageFormatData *format)
+{
+  /* Fix bug where curves in image format were not properly copied to file output
+   * node, incorrectly sharing a pointer with the scene settings. Copy the data
+   * structure now as it should have been done in the first place. */
+  if (format->view_settings.curve_mapping) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (format != &scene->r.im_format && ELEM(format->view_settings.curve_mapping,
+                                                scene->view_settings.curve_mapping,
+                                                scene->r.im_format.view_settings.curve_mapping)) {
+        format->view_settings.curve_mapping = BKE_curvemapping_copy(
+            format->view_settings.curve_mapping);
+        break;
+      }
+    }
+
+    /* Remove any invalid curves with missing data. */
+    if (format->view_settings.curve_mapping->cm[0].curve == NULL) {
+      BKE_curvemapping_free(format->view_settings.curve_mapping);
+      format->view_settings.curve_mapping = NULL;
+      format->view_settings.flag &= ~COLORMANAGE_VIEW_USE_CURVES;
     }
   }
 }
@@ -2480,8 +2811,8 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   /* Rebuild active/render color attribute references. */
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 6)) {
     LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
-      /* buggy code in wm_toolsystem broke smear in old files,
-         reset to defaults */
+      /* Buggy code in wm_toolsystem broke smear in old files,
+       * reset to defaults. */
       if (br->sculpt_tool == SCULPT_TOOL_SMEAR) {
         br->alpha = 1.0f;
         br->spacing = 5;
@@ -2585,16 +2916,19 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
           ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                  &sl->regionbase;
-          ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
+          ARegion *region = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_CHANNELS);
           if (!region) {
-            ARegion *tools_region = BKE_area_find_region_type(area, RGN_TYPE_TOOLS);
+            /* Find sequencer tools region. */
+            ARegion *tools_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                        RGN_TYPE_TOOLS);
             region = do_versions_add_region(RGN_TYPE_CHANNELS, "channels region");
             BLI_insertlinkafter(regionbase, tools_region, region);
             region->alignment = RGN_ALIGN_LEFT;
             region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
           }
 
-          ARegion *timeline_region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+          ARegion *timeline_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                         RGN_TYPE_WINDOW);
           if (timeline_region != NULL) {
             timeline_region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
           }
@@ -2735,6 +3069,13 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_node_input_socket_name(
+            ntree, GEO_NODE_SUBDIVISION_SURFACE, "Crease", "Edge Crease");
+      }
+    }
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 302, 13)) {
@@ -2761,6 +3102,161 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 1)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      versioning_replace_legacy_combined_and_separate_color_nodes(ntree);
+    }
+    FOREACH_NODETREE_END;
+
+    /* Initialize brush curves sculpt settings. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->ob_mode != OB_MODE_SCULPT_CURVES) {
+        continue;
+      }
+      if (brush->curves_sculpt_settings->points_per_curve == 0) {
+        brush->curves_sculpt_settings->points_per_curve = 8;
+      }
+    }
+
+    /* UDIM Packing. */
+    if (!DNA_struct_elem_find(fd->filesdna, "ImagePackedFile", "int", "tile_number")) {
+      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+        int view;
+        LISTBASE_FOREACH_INDEX (ImagePackedFile *, imapf, &ima->packedfiles, view) {
+          imapf->view = view;
+          imapf->tile_number = 1001;
+        }
+      }
+    }
+
+    /* Merge still offsets into start/end offsets. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != NULL) {
+        SEQ_for_each_callback(&ed->seqbase, version_merge_still_offsets, NULL);
+      }
+    }
+
+    /* Use the curves type enum for the set spline type node, instead of a special one. */
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == GEO_NODE_CURVE_SPLINE_TYPE) {
+            NodeGeometryCurveSplineType *storage = (NodeGeometryCurveSplineType *)node->storage;
+            switch (storage->spline_type) {
+              case 0: /* GEO_NODE_SPLINE_TYPE_BEZIER */
+                storage->spline_type = CURVE_TYPE_BEZIER;
+                break;
+              case 1: /* GEO_NODE_SPLINE_TYPE_NURBS */
+                storage->spline_type = CURVE_TYPE_NURBS;
+                break;
+              case 2: /* GEO_NODE_SPLINE_TYPE_POLY */
+                storage->spline_type = CURVE_TYPE_POLY;
+                break;
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      LISTBASE_FOREACH (GpencilModifierData *, gpd, &ob->greasepencil_modifiers) {
+        if (gpd->type == eGpencilModifierType_Lineart) {
+          LineartGpencilModifierData *lmd = (LineartGpencilModifierData *)gpd;
+          lmd->shadow_camera_near = 0.1f;
+          lmd->shadow_camera_far = 200.0f;
+          lmd->shadow_camera_size = 200.0f;
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 2)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_CLIP) {
+            ((SpaceClip *)sl)->mask_info.blend_factor = 1.0;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 3)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_CLIP) {
+            ((SpaceClip *)sl)->mask_info.draw_flag |= MASK_DRAWFLAG_SPLINE;
+          }
+          else if (sl->spacetype == SPACE_IMAGE) {
+            ((SpaceImage *)sl)->mask_info.draw_flag |= MASK_DRAWFLAG_SPLINE;
+          }
+        }
+      }
+    }
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      /* Zero isn't a valid value, use for versioning. */
+      if (tool_settings->snap_face_nearest_steps == 0) {
+        /* Minimum of snap steps for face nearest is 1. */
+        tool_settings->snap_face_nearest_steps = 1;
+        /* Set snap to edited and non-edited as default. */
+        tool_settings->snap_flag |= SCE_SNAP_TO_INCLUDE_EDITED | SCE_SNAP_TO_INCLUDE_NONEDITED;
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 4)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == CMP_NODE_OUTPUT_FILE) {
+            LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+              if (sock->storage) {
+                NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
+                version_fix_image_format_copy(bmain, &sockdata->format);
+              }
+            }
+
+            if (node->storage) {
+              NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
+              version_fix_image_format_copy(bmain, &nimf->format);
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      version_fix_image_format_copy(bmain, &scene->r.im_format);
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 303, 5)) {
+    /* Fix for T98925 - remove channels region, that was initialized in incorrect editor types. */
+    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (ELEM(sl->spacetype, SPACE_ACTION, SPACE_CLIP, SPACE_GRAPH, SPACE_NLA, SPACE_SEQ)) {
+            continue;
+          }
+
+          ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                 &sl->regionbase;
+          ARegion *channels_region = BKE_region_find_in_listbase_by_type(regionbase,
+                                                                         RGN_TYPE_CHANNELS);
+          if (channels_region) {
+            BLI_freelinkN(regionbase, channels_region);
+          }
+        }
+      }
+    }
+  }
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -2772,5 +3268,21 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Initialize brush curves sculpt settings. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->ob_mode != OB_MODE_SCULPT_CURVES) {
+        continue;
+      }
+      brush->curves_sculpt_settings->density_add_attempts = 100;
+    }
+
+    /* Disable 'show_bounds' option of curve objects. Option was set as there was no object mode
+     * outline implementation. See T95933. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type == OB_CURVES) {
+        ob->dtx &= ~OB_DRAWBOUNDOX;
+      }
+    }
   }
 }

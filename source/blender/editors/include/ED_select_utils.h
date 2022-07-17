@@ -14,6 +14,7 @@ extern "C" {
 
 struct KDTree_1d;
 struct wmOperator;
+struct wmOperatorType;
 
 enum {
   SEL_TOGGLE = 0,
@@ -39,11 +40,11 @@ typedef enum {
 } eSelectOp;
 
 /* Select Similar */
-enum {
+typedef enum {
   SIM_CMP_EQ = 0,
   SIM_CMP_GT,
   SIM_CMP_LT,
-};
+} eSimilarCmp;
 
 #define SEL_OP_USE_OUTSIDE(sel_op) (ELEM(sel_op, SEL_OP_AND))
 #define SEL_OP_USE_PRE_DESELECT(sel_op) (ELEM(sel_op, SEL_OP_SET))
@@ -62,11 +63,11 @@ int ED_select_op_action(eSelectOp sel_op, bool is_select, bool is_inside);
  */
 int ED_select_op_action_deselected(eSelectOp sel_op, bool is_select, bool is_inside);
 
-int ED_select_similar_compare_float(float delta, float thresh, int compare);
+bool ED_select_similar_compare_float(float delta, float thresh, eSimilarCmp compare);
 bool ED_select_similar_compare_float_tree(const struct KDTree_1d *tree,
                                           float length,
                                           float thresh,
-                                          int compare);
+                                          eSimilarCmp compare);
 
 /**
  * Utility to use for selection operations that run multiple times (circle select).
@@ -96,15 +97,22 @@ struct SelectPick_Params {
 /**
  * Utility to get #eSelectPickMode from booleans for convenience.
  */
-eSelectOp ED_select_op_from_operator(struct wmOperator *op)
+eSelectOp ED_select_op_from_operator(struct PointerRNA *ptr)
     ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Initialize `params` from `op`,
  * these properties are defined by #WM_operator_properties_mouse_select.
  */
-void ED_select_pick_params_from_operator(struct wmOperator *op, struct SelectPick_Params *params)
+void ED_select_pick_params_from_operator(struct PointerRNA *ptr, struct SelectPick_Params *params)
     ATTR_NONNULL(1, 2);
+
+/**
+ * Get-name callback for #wmOperatorType.get_name, this is mainly useful so the selection
+ * action is shown in the status-bar.
+ */
+const char *ED_select_pick_get_name(struct wmOperatorType *ot, PointerRNA *ptr);
+const char *ED_select_circle_get_name(struct wmOperatorType *ot, PointerRNA *ptr);
 
 #ifdef __cplusplus
 }

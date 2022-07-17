@@ -5354,7 +5354,7 @@ static BMEdge *snap_edge_for_center_vmesh_vert(int i,
  * so the arguments bndv_rep_faces is an array of size n_bndv give the freps for each i,
  * and center_frep is the frep for the center.
  *
- * Note: this function is for edge bevels only, at the moment.
+ * NOTE: this function is for edge bevels only, at the moment.
  */
 static void snap_edges_for_vmesh_vert(int i,
                                       int j,

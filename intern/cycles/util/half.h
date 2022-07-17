@@ -35,7 +35,7 @@ ccl_device_inline float half_to_float(half h_in)
 #else
 
 /* CUDA has its own half data type, no need to define then */
-#  if !defined(__KERNEL_CUDA__) && !defined(__KERNEL_HIP__)
+#  if !defined(__KERNEL_CUDA__) && !defined(__KERNEL_HIP__) && !defined(__KERNEL_ONEAPI__)
 /* Implementing this as a class rather than a typedef so that the compiler can tell it apart from
  * unsigned shorts. */
 class half {
@@ -73,10 +73,10 @@ struct half4 {
 
 ccl_device_inline half float_to_half_image(float f)
 {
-#if defined(__KERNEL_METAL__)
-  return half(f);
+#if defined(__KERNEL_METAL__) || defined(__KERNEL_ONEAPI__)
+  return half(min(f, 65504.0f));
 #elif defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
-  return __float2half(f);
+  return __float2half(min(f, 65504.0f));
 #else
   const uint u = __float_as_uint(f);
   /* Sign bit, shifted to its position. */
@@ -103,6 +103,8 @@ ccl_device_inline float half_to_float_image(half h)
 {
 #if defined(__KERNEL_METAL__)
   return half_to_float(h);
+#elif defined(__KERNEL_ONEAPI__)
+  return float(h);
 #elif defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
   return __half2float(h);
 #else
@@ -136,10 +138,10 @@ ccl_device_inline float4 half4_to_float4_image(const half4 h)
 
 ccl_device_inline half float_to_half_display(const float f)
 {
-#if defined(__KERNEL_METAL__)
-  return half(f);
+#if defined(__KERNEL_METAL__) || defined(__KERNEL_ONEAPI__)
+  return half(min(f, 65504.0f));
 #elif defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__)
-  return __float2half(f);
+  return __float2half(min(f, 65504.0f));
 #else
   const int x = __float_as_int((f > 0.0f) ? ((f < 65504.0f) ? f : 65504.0f) : 0.0f);
   const int absolute = x & 0x7FFFFFFF;

@@ -416,7 +416,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_MeshCache = {
-    /* name */ "MeshCache",
+    /* name */ N_("MeshCache"),
     /* structName */ "MeshCacheModifierData",
     /* structSize */ sizeof(MeshCacheModifierData),
     /* srna */ &RNA_MeshCacheModifier,

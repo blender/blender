@@ -25,17 +25,17 @@ void cdf_free(CDataFile *cdf);
 
 /* File read/write/remove */
 
-bool cdf_read_open(CDataFile *cdf, const char *filename);
+bool cdf_read_open(CDataFile *cdf, const char *filepath);
 bool cdf_read_layer(CDataFile *cdf, CDataFileLayer *blay);
 bool cdf_read_data(CDataFile *cdf, unsigned int size, void *data);
 void cdf_read_close(CDataFile *cdf);
 
-bool cdf_write_open(CDataFile *cdf, const char *filename);
+bool cdf_write_open(CDataFile *cdf, const char *filepath);
 bool cdf_write_layer(CDataFile *cdf, CDataFileLayer *blay);
 bool cdf_write_data(CDataFile *cdf, unsigned int size, void *data);
 void cdf_write_close(CDataFile *cdf);
 
-void cdf_remove(const char *filename);
+void cdf_remove(const char *filepath);
 
 /* Layers */
 

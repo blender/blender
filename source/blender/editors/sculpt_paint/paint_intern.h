@@ -98,7 +98,6 @@ void *paint_stroke_mode_data(struct PaintStroke *stroke);
 float paint_stroke_distance_get(struct PaintStroke *stroke);
 void paint_stroke_set_mode_data(struct PaintStroke *stroke, void *mode_data);
 bool PAINT_brush_tool_poll(struct bContext *C);
-void paint_cursor_start(struct Paint *p, bool (*poll)(struct bContext *C));
 /**
  * Delete overlay cursor textures to preserve memory and invalidate all overlay flags.
  */
@@ -135,18 +134,10 @@ void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 
 unsigned int vpaint_get_current_color(struct Scene *scene, struct VPaint *vp, bool secondary);
 
-/* paint_vertex_color_utils.c */
-
 /**
  * \note weight-paint has an equivalent function: #ED_wpaint_blend_tool
  */
 unsigned int ED_vpaint_blend_tool(int tool, uint col, uint paintcol, int alpha_i);
-/**
- * Apply callback to each vertex of the active vertex color layer.
- */
-bool ED_vpaint_color_transform(struct Object *ob,
-                               VPaintTransform_Callback vpaint_tx_fn,
-                               const void *user_data);
 
 /* paint_vertex_weight_utils.c */
 
@@ -379,10 +370,12 @@ void PAINT_OT_face_select_linked(struct wmOperatorType *ot);
 void PAINT_OT_face_select_linked_pick(struct wmOperatorType *ot);
 void PAINT_OT_face_select_all(struct wmOperatorType *ot);
 void PAINT_OT_face_select_hide(struct wmOperatorType *ot);
-void PAINT_OT_face_select_reveal(struct wmOperatorType *ot);
+
+void PAINT_OT_face_vert_reveal(struct wmOperatorType *ot);
 
 void PAINT_OT_vert_select_all(struct wmOperatorType *ot);
 void PAINT_OT_vert_select_ungrouped(struct wmOperatorType *ot);
+void PAINT_OT_vert_select_hide(struct wmOperatorType *ot);
 
 bool vert_paint_poll(struct bContext *C);
 bool mask_paint_poll(struct bContext *C);

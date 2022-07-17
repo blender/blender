@@ -55,13 +55,14 @@ using std::vector;
 
 namespace {
 
-ParameterBlockOrdering* CreateDefaultLinearSolverOrdering(
+std::shared_ptr<ParameterBlockOrdering> CreateDefaultLinearSolverOrdering(
     const Program& program) {
-  ParameterBlockOrdering* ordering = new ParameterBlockOrdering;
+  std::shared_ptr<ParameterBlockOrdering> ordering =
+      std::make_shared<ParameterBlockOrdering>();
   const vector<ParameterBlock*>& parameter_blocks = program.parameter_blocks();
-  for (int i = 0; i < parameter_blocks.size(); ++i) {
+  for (auto* parameter_block : parameter_blocks) {
     ordering->AddElementToGroup(
-        const_cast<double*>(parameter_blocks[i]->user_state()), 0);
+        const_cast<double*>(parameter_block->user_state()), 0);
   }
   return ordering;
 }
@@ -160,8 +161,8 @@ bool SetupLinearSolver(PreprocessedProblem* pp) {
     // assume that they are giving all the freedom to us in choosing
     // the best possible ordering. This intent can be indicated by
     // putting all the parameter blocks in the same elimination group.
-    options.linear_solver_ordering.reset(
-        CreateDefaultLinearSolverOrdering(*pp->reduced_program));
+    options.linear_solver_ordering =
+        CreateDefaultLinearSolverOrdering(*pp->reduced_program);
   } else {
     // If the user supplied an ordering, then check if the first
     // elimination group is still non-empty after the reduced problem
@@ -247,7 +248,7 @@ bool SetupLinearSolver(PreprocessedProblem* pp) {
     }
   }
 
-  pp->linear_solver.reset(LinearSolver::Create(pp->linear_solver_options));
+  pp->linear_solver = LinearSolver::Create(pp->linear_solver_options);
   return (pp->linear_solver != nullptr);
 }
 
@@ -269,8 +270,8 @@ bool SetupEvaluator(PreprocessedProblem* pp) {
   pp->evaluator_options.context = pp->problem->context();
   pp->evaluator_options.evaluation_callback =
       pp->reduced_program->mutable_evaluation_callback();
-  pp->evaluator.reset(Evaluator::Create(
-      pp->evaluator_options, pp->reduced_program.get(), &pp->error));
+  pp->evaluator = Evaluator::Create(
+      pp->evaluator_options, pp->reduced_program.get(), &pp->error);
 
   return (pp->evaluator != nullptr);
 }
@@ -316,12 +317,12 @@ bool SetupInnerIterationMinimizer(PreprocessedProblem* pp) {
     }
   } else {
     // The user did not supply an ordering, so create one.
-    options.inner_iteration_ordering.reset(
-        CoordinateDescentMinimizer::CreateOrdering(*pp->reduced_program));
+    options.inner_iteration_ordering =
+        CoordinateDescentMinimizer::CreateOrdering(*pp->reduced_program);
   }
 
-  pp->inner_iteration_minimizer.reset(
-      new CoordinateDescentMinimizer(pp->problem->context()));
+  pp->inner_iteration_minimizer =
+      std::make_unique<CoordinateDescentMinimizer>(pp->problem->context());
   return pp->inner_iteration_minimizer->Init(*pp->reduced_program,
                                              pp->problem->parameter_map(),
                                              *options.inner_iteration_ordering,
@@ -335,7 +336,7 @@ void SetupMinimizerOptions(PreprocessedProblem* pp) {
   SetupCommonMinimizerOptions(pp);
   pp->minimizer_options.is_constrained =
       pp->reduced_program->IsBoundsConstrained();
-  pp->minimizer_options.jacobian.reset(pp->evaluator->CreateJacobian());
+  pp->minimizer_options.jacobian = pp->evaluator->CreateJacobian();
   pp->minimizer_options.inner_iteration_minimizer =
       pp->inner_iteration_minimizer;
 
@@ -348,14 +349,12 @@ void SetupMinimizerOptions(PreprocessedProblem* pp) {
   strategy_options.trust_region_strategy_type =
       options.trust_region_strategy_type;
   strategy_options.dogleg_type = options.dogleg_type;
-  pp->minimizer_options.trust_region_strategy.reset(
-      TrustRegionStrategy::Create(strategy_options));
+  pp->minimizer_options.trust_region_strategy =
+      TrustRegionStrategy::Create(strategy_options);
   CHECK(pp->minimizer_options.trust_region_strategy != nullptr);
 }
 
 }  // namespace
-
-TrustRegionPreprocessor::~TrustRegionPreprocessor() {}
 
 bool TrustRegionPreprocessor::Preprocess(const Solver::Options& options,
                                          ProblemImpl* problem,
@@ -370,10 +369,10 @@ bool TrustRegionPreprocessor::Preprocess(const Solver::Options& options,
     return false;
   }
 
-  pp->reduced_program.reset(program->CreateReducedProgram(
-      &pp->removed_parameter_blocks, &pp->fixed_cost, &pp->error));
+  pp->reduced_program = program->CreateReducedProgram(
+      &pp->removed_parameter_blocks, &pp->fixed_cost, &pp->error);
 
-  if (pp->reduced_program.get() == NULL) {
+  if (pp->reduced_program.get() == nullptr) {
     return false;
   }
 

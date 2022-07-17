@@ -172,6 +172,26 @@ class ConvertHSVToRGBOperation : public ConvertBaseOperation {
   void update_memory_buffer_partial(BuffersIterator<float> &it) override;
 };
 
+class ConvertRGBToHSLOperation : public ConvertBaseOperation {
+ public:
+  ConvertRGBToHSLOperation();
+
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
+};
+
+class ConvertHSLToRGBOperation : public ConvertBaseOperation {
+ public:
+  ConvertHSLToRGBOperation();
+
+  void execute_pixel_sampled(float output[4], float x, float y, PixelSampler sampler) override;
+
+ protected:
+  void update_memory_buffer_partial(BuffersIterator<float> &it) override;
+};
+
 class ConvertPremulToStraightOperation : public ConvertBaseOperation {
  public:
   ConvertPremulToStraightOperation();

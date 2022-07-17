@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2019 Google Inc. All rights reserved.
+// Copyright 2021 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,9 +40,10 @@
 #include <unordered_set>
 
 #include "ceres/array_utils.h"
+#include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/port.h"
-#include "ceres/local_parameterization.h"
+#include "ceres/internal/export.h"
+#include "ceres/manifold.h"
 #include "ceres/stringprintf.h"
 #include "glog/logging.h"
 
@@ -58,12 +59,12 @@ class ResidualBlock;
 // methods are performance sensitive.
 //
 // The class is not thread-safe, unless only const methods are called. The
-// parameter block may also hold a pointer to a local parameterization; the
-// parameter block does not take ownership of this pointer, so the user is
-// responsible for the proper disposal of the local parameterization.
-class ParameterBlock {
+// parameter block may also hold a pointer to a manifold; the parameter block
+// does not take ownership of this pointer, so the user is responsible for the
+// proper disposal of the manifold.
+class CERES_NO_EXPORT ParameterBlock {
  public:
-  typedef std::unordered_set<ResidualBlock*> ResidualBlockSet;
+  using ResidualBlockSet = std::unordered_set<ResidualBlock*>;
 
   // Create a parameter block with the user state, size, and index specified.
   // The size is the size of the parameter block and the index is the position
@@ -74,16 +75,13 @@ class ParameterBlock {
         state_(user_state),
         index_(index) {}
 
-  ParameterBlock(double* user_state,
-                 int size,
-                 int index,
-                 LocalParameterization* local_parameterization)
+  ParameterBlock(double* user_state, int size, int index, Manifold* manifold)
       : user_state_(user_state),
         size_(size),
         state_(user_state),
         index_(index) {
-    if (local_parameterization != nullptr) {
-      SetParameterization(local_parameterization);
+    if (manifold != nullptr) {
+      SetManifold(manifold);
     }
   }
 
@@ -98,7 +96,7 @@ class ParameterBlock {
                          << "with user location " << user_state_;
 
     state_ = x;
-    return UpdateLocalParameterizationJacobian();
+    return UpdatePlusJacobian();
   }
 
   // Copy the current parameter state out to x. This is "GetState()" rather than
@@ -114,17 +112,13 @@ class ParameterBlock {
   const double* state() const { return state_; }
   const double* user_state() const { return user_state_; }
   double* mutable_user_state() { return user_state_; }
-  const LocalParameterization* local_parameterization() const {
-    return local_parameterization_;
-  }
-  LocalParameterization* mutable_local_parameterization() {
-    return local_parameterization_;
-  }
+  const Manifold* manifold() const { return manifold_; }
+  Manifold* mutable_manifold() { return manifold_; }
 
   // Set this parameter block to vary or not.
   void SetConstant() { is_set_constant_ = true; }
   void SetVarying() { is_set_constant_ = false; }
-  bool IsConstant() const { return (is_set_constant_ || LocalSize() == 0); }
+  bool IsConstant() const { return (is_set_constant_ || TangentSize() == 0); }
 
   double UpperBound(int index) const {
     return (upper_bounds_ ? upper_bounds_[index]
@@ -151,51 +145,46 @@ class ParameterBlock {
   int delta_offset() const { return delta_offset_; }
   void set_delta_offset(int delta_offset) { delta_offset_ = delta_offset; }
 
-  // Methods relating to the parameter block's parameterization.
+  // Methods relating to the parameter block's manifold.
 
-  // The local to global jacobian. Returns nullptr if there is no local
-  // parameterization for this parameter block. The returned matrix is row-major
-  // and has Size() rows and  LocalSize() columns.
-  const double* LocalParameterizationJacobian() const {
-    return local_parameterization_jacobian_.get();
+  // The local to global jacobian. Returns nullptr if there is no manifold for
+  // this parameter block. The returned matrix is row-major and has Size() rows
+  // and TangentSize() columns.
+  const double* PlusJacobian() const { return plus_jacobian_.get(); }
+
+  int TangentSize() const {
+    return (manifold_ == nullptr) ? size_ : manifold_->TangentSize();
   }
 
-  int LocalSize() const {
-    return (local_parameterization_ == nullptr)
-               ? size_
-               : local_parameterization_->LocalSize();
-  }
-
-  // Set the parameterization. The parameter block does not take
-  // ownership of the parameterization.
-  void SetParameterization(LocalParameterization* new_parameterization) {
-    // Nothing to do if the new parameterization is the same as the
-    // old parameterization.
-    if (new_parameterization == local_parameterization_) {
+  // Set the manifold. The parameter block does not take ownership of
+  // the manifold.
+  void SetManifold(Manifold* new_manifold) {
+    // Nothing to do if the new manifold is the same as the old
+    // manifold.
+    if (new_manifold == manifold_) {
       return;
     }
 
-    if (new_parameterization == nullptr) {
-      local_parameterization_ = nullptr;
+    if (new_manifold == nullptr) {
+      manifold_ = nullptr;
+      plus_jacobian_ = nullptr;
       return;
     }
 
-    CHECK(new_parameterization->GlobalSize() == size_)
-        << "Invalid parameterization for parameter block. The parameter block "
-        << "has size " << size_ << " while the parameterization has a global "
-        << "size of " << new_parameterization->GlobalSize() << ". Did you "
-        << "accidentally use the wrong parameter block or parameterization?";
+    CHECK_EQ(new_manifold->AmbientSize(), size_)
+        << "The parameter block has size = " << size_
+        << " while the manifold has ambient size = "
+        << new_manifold->AmbientSize();
 
-    CHECK_GE(new_parameterization->LocalSize(), 0)
-        << "Invalid parameterization. Parameterizations must have a "
+    CHECK_GE(new_manifold->TangentSize(), 0)
+        << "Invalid Manifold. Manifolds must have a "
         << "non-negative dimensional tangent space.";
 
-    local_parameterization_ = new_parameterization;
-    local_parameterization_jacobian_.reset(
-        new double[local_parameterization_->GlobalSize() *
-                   local_parameterization_->LocalSize()]);
-    CHECK(UpdateLocalParameterizationJacobian())
-        << "Local parameterization Jacobian computation failed for x: "
+    manifold_ = new_manifold;
+    plus_jacobian_ = std::make_unique<double[]>(manifold_->AmbientSize() *
+                                                manifold_->TangentSize());
+    CHECK(UpdatePlusJacobian())
+        << "Manifold::PlusJacobian computation failed for x: "
         << ConstVectorRef(state_, Size()).transpose();
   }
 
@@ -207,7 +196,7 @@ class ParameterBlock {
     }
 
     if (!upper_bounds_) {
-      upper_bounds_.reset(new double[size_]);
+      upper_bounds_ = std::make_unique<double[]>(size_);
       std::fill(upper_bounds_.get(),
                 upper_bounds_.get() + size_,
                 std::numeric_limits<double>::max());
@@ -224,7 +213,7 @@ class ParameterBlock {
     }
 
     if (!lower_bounds_) {
-      lower_bounds_.reset(new double[size_]);
+      lower_bounds_ = std::make_unique<double[]>(size_);
       std::fill(lower_bounds_.get(),
                 lower_bounds_.get() + size_,
                 -std::numeric_limits<double>::max());
@@ -234,11 +223,11 @@ class ParameterBlock {
   }
 
   // Generalization of the addition operation. This is the same as
-  // LocalParameterization::Plus() followed by projection onto the
+  // Manifold::Plus() followed by projection onto the
   // hyper cube implied by the bounds constraints.
   bool Plus(const double* x, const double* delta, double* x_plus_delta) {
-    if (local_parameterization_ != nullptr) {
-      if (!local_parameterization_->Plus(x, delta, x_plus_delta)) {
+    if (manifold_ != nullptr) {
+      if (!manifold_->Plus(x, delta, x_plus_delta)) {
         return false;
       }
     } else {
@@ -281,7 +270,7 @@ class ParameterBlock {
     CHECK(residual_blocks_.get() == nullptr)
         << "Ceres bug: There is already a residual block collection "
         << "for parameter block: " << ToString();
-    residual_blocks_.reset(new ResidualBlockSet);
+    residual_blocks_ = std::make_unique<ResidualBlockSet>();
   }
 
   void AddResidualBlock(ResidualBlock* residual_block) {
@@ -321,33 +310,30 @@ class ParameterBlock {
   }
 
  private:
-  bool UpdateLocalParameterizationJacobian() {
-    if (local_parameterization_ == nullptr) {
+  bool UpdatePlusJacobian() {
+    if (manifold_ == nullptr) {
       return true;
     }
 
-    // Update the local to global Jacobian. In some cases this is
+    // Update the Plus Jacobian. In some cases this is
     // wasted effort; if this is a bottleneck, we will find a solution
     // at that time.
-
-    const int jacobian_size = Size() * LocalSize();
-    InvalidateArray(jacobian_size, local_parameterization_jacobian_.get());
-    if (!local_parameterization_->ComputeJacobian(
-            state_, local_parameterization_jacobian_.get())) {
-      LOG(WARNING) << "Local parameterization Jacobian computation failed"
+    const int jacobian_size = Size() * TangentSize();
+    InvalidateArray(jacobian_size, plus_jacobian_.get());
+    if (!manifold_->PlusJacobian(state_, plus_jacobian_.get())) {
+      LOG(WARNING) << "Manifold::PlusJacobian computation failed"
                       "for x: "
                    << ConstVectorRef(state_, Size()).transpose();
       return false;
     }
 
-    if (!IsArrayValid(jacobian_size, local_parameterization_jacobian_.get())) {
-      LOG(WARNING) << "Local parameterization Jacobian computation returned"
+    if (!IsArrayValid(jacobian_size, plus_jacobian_.get())) {
+      LOG(WARNING) << "Manifold::PlusJacobian computation returned "
                    << "an invalid matrix for x: "
                    << ConstVectorRef(state_, Size()).transpose()
                    << "\n Jacobian matrix : "
-                   << ConstMatrixRef(local_parameterization_jacobian_.get(),
-                                     Size(),
-                                     LocalSize());
+                   << ConstMatrixRef(
+                          plus_jacobian_.get(), Size(), TangentSize());
       return false;
     }
     return true;
@@ -356,14 +342,14 @@ class ParameterBlock {
   double* user_state_ = nullptr;
   int size_ = -1;
   bool is_set_constant_ = false;
-  LocalParameterization* local_parameterization_ = nullptr;
+  Manifold* manifold_ = nullptr;
 
   // The "state" of the parameter. These fields are only needed while the
   // solver is running. While at first glance using mutable is a bad idea, this
   // ends up simplifying the internals of Ceres enough to justify the potential
   // pitfalls of using "mutable."
   mutable const double* state_ = nullptr;
-  mutable std::unique_ptr<double[]> local_parameterization_jacobian_;
+  mutable std::unique_ptr<double[]> plus_jacobian_;
 
   // The index of the parameter. This is used by various other parts of Ceres to
   // permit switching from a ParameterBlock* to an index in another array.
@@ -392,11 +378,13 @@ class ParameterBlock {
   std::unique_ptr<double[]> upper_bounds_;
   std::unique_ptr<double[]> lower_bounds_;
 
-  // Necessary so ProblemImpl can clean up the parameterizations.
+  // Necessary so ProblemImpl can clean up the manifolds.
   friend class ProblemImpl;
 };
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_PARAMETER_BLOCK_H_

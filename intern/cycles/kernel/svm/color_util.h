@@ -244,7 +244,7 @@ ccl_device float3 svm_mix_linear(float t, float3 col1, float3 col2)
 
 ccl_device float3 svm_mix_clamp(float3 col)
 {
-  return saturate3(col);
+  return saturate(col);
 }
 
 ccl_device_noinline_cpu float3 svm_mix(NodeMix type, float fac, float3 c1, float3 c2)
@@ -305,6 +305,32 @@ ccl_device_inline float3 svm_brightness_contrast(float3 color, float brightness,
   color.z = max(a * color.z + b, 0.0f);
 
   return color;
+}
+
+ccl_device float3 svm_combine_color(NodeCombSepColorType type, float3 color)
+{
+  switch (type) {
+    case NODE_COMBSEP_COLOR_HSV:
+      return hsv_to_rgb(color);
+    case NODE_COMBSEP_COLOR_HSL:
+      return hsl_to_rgb(color);
+    case NODE_COMBSEP_COLOR_RGB:
+    default:
+      return color;
+  }
+}
+
+ccl_device float3 svm_separate_color(NodeCombSepColorType type, float3 color)
+{
+  switch (type) {
+    case NODE_COMBSEP_COLOR_HSV:
+      return rgb_to_hsv(color);
+    case NODE_COMBSEP_COLOR_HSL:
+      return rgb_to_hsl(color);
+    case NODE_COMBSEP_COLOR_RGB:
+    default:
+      return color;
+  }
 }
 
 CCL_NAMESPACE_END

@@ -38,6 +38,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_timeit.hh"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -50,7 +51,7 @@ struct ExportJobData {
   Depsgraph *depsgraph;
   wmWindowManager *wm;
 
-  char filename[FILE_MAX];
+  char filepath[FILE_MAX];
   USDExportParams params;
 
   short *stop;
@@ -59,6 +60,7 @@ struct ExportJobData {
 
   bool was_canceled;
   bool export_ok;
+  timeit::TimePoint start_time;
 };
 
 /* Perform validation of export parameter settings. Returns
@@ -188,6 +190,14 @@ static void ensure_root_prim(pxr::UsdStageRefPtr stage, const USDExportParams &p
   }
 }
 
+static void report_job_duration(const ExportJobData *data)
+{
+  timeit::Nanoseconds duration = timeit::Clock::now() - data->start_time;
+  std::cout << "USD export of '" << data->filepath << "' took ";
+  timeit::print_duration(duration);
+  std::cout << '\n';
+}
+
 static void export_startjob(void *customdata,
                             /* Cannot be const, this function implements wm_jobs_start_callback.
                              * NOLINTNEXTLINE: readability-non-const-parameter. */
@@ -201,6 +211,7 @@ static void export_startjob(void *customdata,
   data->do_update = do_update;
   data->progress = progress;
   data->was_canceled = false;
+  data->start_time = timeit::Clock::now();
 
   G.is_rendering = true;
   WM_set_locked_interface(data->wm, true);
@@ -227,25 +238,25 @@ static void export_startjob(void *customdata,
   *do_update = true;
 
   /* For restoring the current frame after exporting animation is done. */
-  const int orig_frame = CFRA;
+  const int orig_frame = scene->r.cfra;
 
-  if (!BLI_path_extension_check_glob(data->filename, "*.usd;*.usda;*.usdc"))
-    BLI_path_extension_ensure(data->filename, FILE_MAX, ".usd");
+  if (!BLI_path_extension_check_glob(data->filepath, "*.usd;*.usda;*.usdc"))
+    BLI_path_extension_ensure(data->filepath, FILE_MAX, ".usd");
 
-  pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(data->filename);
+  pxr::UsdStageRefPtr usd_stage = pxr::UsdStage::CreateNew(data->filepath);
   if (!usd_stage) {
     /* This may happen when the USD JSON files cannot be found. When that happens,
      * the USD library doesn't know it has the functionality to write USDA and
      * USDC files, and creating a new UsdStage fails. */
-    WM_reportf(RPT_ERROR, "USD Export: unable to create a stage for writing %s", data->filename);
+    WM_reportf(RPT_ERROR, "USD Export: unable to create a stage for writing %s", data->filepath);
 
-    pxr::SdfLayerRefPtr existing_layer = pxr::SdfLayer::FindOrOpen(data->filename);
+    pxr::SdfLayerRefPtr existing_layer = pxr::SdfLayer::FindOrOpen(data->filepath);
     if (existing_layer) {
       WM_reportf(RPT_ERROR,
                  "USD Export: layer %s is currently open in the scene, "
                  "possibly because it's referenced by modifiers, "
                  "and can't be overwritten",
-                 data->filename);
+                 data->filepath);
     }
 
     data->export_ok = false;
@@ -286,7 +297,7 @@ static void export_startjob(void *customdata,
 
   ensure_root_prim(usd_stage, data->params);
 
-  USDHierarchyIterator iter(data->depsgraph, usd_stage, data->params);
+  USDHierarchyIterator iter(data->bmain, data->depsgraph, usd_stage, data->params);
 
   if (data->params.export_animation) {
 
@@ -353,8 +364,8 @@ static void export_startjob(void *customdata,
   usd_stage->GetRootLayer()->Save();
 
   /* Finish up by going back to the keyframe that was current before we started. */
-  if (CFRA != orig_frame) {
-    CFRA = orig_frame;
+  if (scene->r.cfra != orig_frame) {
+    scene->r.cfra = orig_frame;
     BKE_scene_graph_update_for_newframe(data->depsgraph);
   }
 
@@ -374,12 +385,13 @@ static void export_endjob(void *customdata)
   MEM_freeN(data->params.root_prim_path);
   MEM_freeN(data->params.material_prim_path);
 
-  if (data->was_canceled && BLI_exists(data->filename)) {
-    BLI_delete(data->filename, false, false);
+  if (data->was_canceled && BLI_exists(data->filepath)) {
+    BLI_delete(data->filepath, false, false);
   }
 
   G.is_rendering = false;
   WM_set_locked_interface(data->wm, false);
+  report_job_duration(data);
 }
 
 }  // namespace blender::io::usd
@@ -400,7 +412,7 @@ bool USD_export(bContext *C,
   job->bmain = CTX_data_main(C);
   job->wm = CTX_wm_manager(C);
   job->export_ok = false;
-  BLI_strncpy(job->filename, filepath, sizeof(job->filename));
+  BLI_strncpy(job->filepath, filepath, sizeof(job->filepath));
 
   job->depsgraph = DEG_graph_new(job->bmain, scene, view_layer, params->evaluation_mode);
   job->params = *params;

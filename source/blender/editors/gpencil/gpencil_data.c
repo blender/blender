@@ -226,7 +226,7 @@ static int gpencil_layer_add_exec(bContext *C, wmOperator *op)
       bGPDlayer *gpl = BKE_gpencil_layer_addnew(gpd, DATA_("GP_Layer"), true, false);
       /* Add a new frame to make it visible in Dopesheet. */
       if (gpl != NULL) {
-        gpl->actframe = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_NEW);
+        gpl->actframe = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_NEW);
       }
     }
   }
@@ -646,12 +646,12 @@ static int gpencil_frame_duplicate_exec(bContext *C, wmOperator *op)
   }
 
   if (mode == 0) {
-    BKE_gpencil_frame_addcopy(gpl_active, CFRA);
+    BKE_gpencil_frame_addcopy(gpl_active, scene->r.cfra);
   }
   else {
     LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
       if ((gpl->flag & GP_LAYER_LOCKED) == 0) {
-        BKE_gpencil_frame_addcopy(gpl, CFRA);
+        BKE_gpencil_frame_addcopy(gpl, scene->r.cfra);
       }
     }
   }

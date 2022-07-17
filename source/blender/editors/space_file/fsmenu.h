@@ -38,10 +38,10 @@ short fsmenu_can_save(struct FSMenu *fsmenu, enum FSMenuCategory category, int i
 void fsmenu_remove_entry(struct FSMenu *fsmenu, enum FSMenuCategory category, int idx);
 
 /** saves the 'bookmarks' to the specified file */
-void fsmenu_write_file(struct FSMenu *fsmenu, const char *filename);
+void fsmenu_write_file(struct FSMenu *fsmenu, const char *filepath);
 
 /** reads the 'bookmarks' from the specified file */
-void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filename);
+void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filepath);
 
 /** adds system specific directories */
 void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks);

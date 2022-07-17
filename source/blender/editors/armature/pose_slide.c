@@ -2061,12 +2061,12 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
     if (mode == POSE_PROPAGATE_SMART_HOLDS) {
       /* We store in endFrame the end frame of the "long keyframe" (i.e. a held value) starting
        * from the keyframe that occurs after the current frame. */
-      modeData.end_frame = pose_propagate_get_boneHoldEndFrame(pfl, (float)CFRA);
+      modeData.end_frame = pose_propagate_get_boneHoldEndFrame(pfl, (float)scene->r.cfra);
     }
 
     /* Go through propagating pose to keyframes, curve by curve. */
     for (ld = pfl->fcurves.first; ld; ld = ld->next) {
-      pose_propagate_fcurve(op, pfl->ob, (FCurve *)ld->data, (float)CFRA, modeData);
+      pose_propagate_fcurve(op, pfl->ob, (FCurve *)ld->data, (float)scene->r.cfra, modeData);
     }
   }
 

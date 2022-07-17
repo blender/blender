@@ -84,6 +84,7 @@
 #include "WM_toolsystem.h"
 #include "WM_types.h"
 
+#include "ED_image.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_sculpt.h"
@@ -349,7 +350,7 @@ void ED_object_sculptmode_enter_ex(Main *bmain,
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT);
   BKE_paint_init(bmain, scene, PAINT_MODE_SCULPT, PAINT_CURSOR_SCULPT);
 
-  paint_cursor_start(paint, SCULPT_mode_poll_view3d);
+  ED_paint_cursor_start(paint, SCULPT_mode_poll_view3d);
 
   /* Check dynamic-topology flag; re-enter dynamic-topology mode when changing modes,
    * As long as no data was added that is not supported. */
@@ -637,16 +638,16 @@ static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))
   if (MPropCol_layer_n == -1) {
     return OPERATOR_CANCELLED;
   }
-  MPropCol *vertcols = CustomData_get_layer_n(&mesh->vdata, CD_PROP_COLOR, MPropCol_layer_n);
+  const MPropCol *vertcols = CustomData_get_layer_n(&mesh->vdata, CD_PROP_COLOR, MPropCol_layer_n);
 
-  MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
-  MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
+  const MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
+  const MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
 
   for (int i = 0; i < mesh->totpoly; i++) {
-    MPoly *c_poly = &polys[i];
+    const MPoly *c_poly = &polys[i];
     for (int j = 0; j < c_poly->totloop; j++) {
       int loop_index = c_poly->loopstart + j;
-      MLoop *c_loop = &loops[c_poly->loopstart + j];
+      const MLoop *c_loop = &loops[c_poly->loopstart + j];
       float srgb_color[4];
       linearrgb_to_srgb_v4(srgb_color, vertcols[c_loop->v].color);
       loopcols[loop_index].r = (char)(srgb_color[0] * 255);
@@ -711,7 +712,8 @@ static int loop_to_vertex_colors_exec(bContext *C, wmOperator *UNUSED(op))
   if (mloopcol_layer_n == -1) {
     return OPERATOR_CANCELLED;
   }
-  MLoopCol *loopcols = CustomData_get_layer_n(&mesh->ldata, CD_PROP_BYTE_COLOR, mloopcol_layer_n);
+  const MLoopCol *loopcols = CustomData_get_layer_n(
+      &mesh->ldata, CD_PROP_BYTE_COLOR, mloopcol_layer_n);
 
   const int MPropCol_layer_n = CustomData_get_active_layer(&mesh->vdata, CD_PROP_COLOR);
   if (MPropCol_layer_n == -1) {
@@ -719,14 +721,14 @@ static int loop_to_vertex_colors_exec(bContext *C, wmOperator *UNUSED(op))
   }
   MPropCol *vertcols = CustomData_get_layer_n(&mesh->vdata, CD_PROP_COLOR, MPropCol_layer_n);
 
-  MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
-  MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
+  const MLoop *loops = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
+  const MPoly *polys = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
 
   for (int i = 0; i < mesh->totpoly; i++) {
-    MPoly *c_poly = &polys[i];
+    const MPoly *c_poly = &polys[i];
     for (int j = 0; j < c_poly->totloop; j++) {
       int loop_index = c_poly->loopstart + j;
-      MLoop *c_loop = &loops[c_poly->loopstart + j];
+      const MLoop *c_loop = &loops[c_poly->loopstart + j];
       vertcols[c_loop->v].color[0] = (loopcols[loop_index].r / 255.0f);
       vertcols[c_loop->v].color[1] = (loopcols[loop_index].g / 255.0f);
       vertcols[c_loop->v].color[2] = (loopcols[loop_index].b / 255.0f);
@@ -780,8 +782,7 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
   }
 
   float color_srgb[3];
-  copy_v3_v3(color_srgb, active_vertex_color);
-  IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb);
+  IMB_colormanagement_scene_linear_to_srgb_v3(color_srgb, active_vertex_color);
   BKE_brush_color_set(scene, brush, color_srgb);
 
   WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
@@ -1043,6 +1044,10 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob = CTX_data_active_object(C);
   SculptSession *ss = ob->sculpt;
+  View3D *v3d = CTX_wm_view3d(C);
+  if (v3d->shading.type == OB_SOLID) {
+    v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
+  }
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
@@ -1056,10 +1061,8 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
    * so it needs to be updated here. */
   SculptCursorGeometryInfo sgi;
-  float mouse[2];
-  mouse[0] = event->mval[0];
-  mouse[1] = event->mval[1];
-  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  const float mval_fl[2] = {UNPACK2(event->mval)};
+  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
   SCULPT_undo_push_begin(ob, "Mask by color");
   BKE_sculpt_color_layer_create_if_needed(ob);
@@ -1094,7 +1097,7 @@ static void SCULPT_OT_mask_by_color(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Mask by Color";
   ot->idname = "SCULPT_OT_mask_by_color";
-  ot->description = "Creates a mask based on the sculpt vertex colors";
+  ot->description = "Creates a mask based on the active color attribute";
 
   /* api callbacks */
   ot->invoke = sculpt_mask_by_color_invoke;

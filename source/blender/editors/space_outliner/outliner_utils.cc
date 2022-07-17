@@ -27,6 +27,9 @@
 #include "UI_view2d.h"
 
 #include "outliner_intern.hh"
+#include "tree/tree_iterator.hh"
+
+using namespace blender::ed::outliner;
 
 /* -------------------------------------------------------------------- */
 /** \name Tree View Context

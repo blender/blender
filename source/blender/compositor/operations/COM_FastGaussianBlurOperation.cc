@@ -112,7 +112,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
   double *X, *Y, *W;
   const unsigned int src_width = src->get_width();
   const unsigned int src_height = src->get_height();
-  unsigned int x, y, sz;
+  unsigned int x, y, src_dim_max;
   unsigned int i;
   float *buffer = src->get_buffer();
   const uint8_t num_channels = src->get_num_channels();
@@ -202,10 +202,10 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src,
   (void)0
 
   /* Intermediate buffers. */
-  sz = MAX2(src_width, src_height);
-  X = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss X buf");
-  Y = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss Y buf");
-  W = (double *)MEM_callocN(sz * sizeof(double), "IIR_gauss W buf");
+  src_dim_max = MAX2(src_width, src_height);
+  X = (double *)MEM_callocN(src_dim_max * sizeof(double), "IIR_gauss X buf");
+  Y = (double *)MEM_callocN(src_dim_max * sizeof(double), "IIR_gauss Y buf");
+  W = (double *)MEM_callocN(src_dim_max * sizeof(double), "IIR_gauss W buf");
   if (xy & 1) { /* H. */
     int offset;
     for (y = 0; y < src_height; y++) {

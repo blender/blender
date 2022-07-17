@@ -72,21 +72,21 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
      * NOTE: sync this part of the code with ANIM_OT_change_frame
      */
     /* 1) frame is rounded to the nearest int, since frames are ints */
-    CFRA = round_fl_to_int(frame);
+    scene->r.cfra = round_fl_to_int(frame);
 
     if (scene->r.flag & SCER_LOCK_FRAME_SELECTION) {
       /* Clip to preview range
        * NOTE: Preview range won't go into negative values,
        *       so only clamping once should be fine.
        */
-      CLAMP(CFRA, PSFRA, PEFRA);
+      CLAMP(scene->r.cfra, PSFRA, PEFRA);
     }
     else {
       /* Prevent negative frames */
-      FRAMENUMBER_MIN_CLAMP(CFRA);
+      FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
     }
 
-    SUBFRA = 0.0f;
+    scene->r.subframe = 0.0f;
     DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
   }
 
@@ -234,14 +234,16 @@ static int graphview_curves_hide_exec(bContext *C, wmOperator *op)
   /* get list of all channels that selection may need to be flushed to
    * - hierarchy must not affect what we have access to here...
    */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY | ANIMFILTER_LIST_CHANNELS |
+            ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
 
   /* filter data
    * - of the remaining visible curves, we want to hide the ones that are
    *   selected/unselected (depending on "unselected" prop)
    */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY | ANIMFILTER_CURVE_VISIBLE |
+            ANIMFILTER_NODUPLIS);
   if (unselected) {
     filter |= ANIMFILTER_UNSEL;
   }
@@ -275,7 +277,8 @@ static int graphview_curves_hide_exec(bContext *C, wmOperator *op)
   /* unhide selected */
   if (unselected) {
     /* turn off requirement for visible */
-    filter = ANIMFILTER_SEL | ANIMFILTER_NODUPLIS | ANIMFILTER_LIST_CHANNELS;
+    filter = ANIMFILTER_SEL | ANIMFILTER_NODUPLIS | ANIMFILTER_LIST_CHANNELS |
+             ANIMFILTER_FCURVESONLY;
 
     /* flushing has been done */
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -344,13 +347,15 @@ static int graphview_curves_reveal_exec(bContext *C, wmOperator *op)
   /* get list of all channels that selection may need to be flushed to
    * - hierarchy must not affect what we have access to here...
    */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
 
   /* filter data
    * - just go through all visible channels, ensuring that everything is set to be curve-visible
    */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   for (ale = anim_data.first; ale; ale = ale->next) {

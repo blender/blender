@@ -48,7 +48,7 @@ ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
 
     PROFILING_SHADER(emission_sd->object, emission_sd->shader);
     PROFILING_EVENT(PROFILING_SHADE_LIGHT_EVAL);
-    shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
+    shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND>(
         kg, state, emission_sd, render_buffer, path_flag | PATH_RAY_EMISSION);
 
     L = shader_background_eval(emission_sd);
@@ -62,11 +62,10 @@ ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
     const float3 ray_P = INTEGRATOR_STATE(state, ray, P);
     const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
     const float mis_ray_pdf = INTEGRATOR_STATE(state, path, mis_ray_pdf);
-    const float mis_ray_t = INTEGRATOR_STATE(state, path, mis_ray_t);
 
     /* multiple importance sampling, get background light pdf for ray
      * direction, and compute weight with respect to BSDF pdf */
-    const float pdf = background_light_pdf(kg, ray_P - ray_D * mis_ray_t, ray_D);
+    const float pdf = background_light_pdf(kg, ray_P, ray_D);
     const float mis_weight = light_sample_mis_weight_forward(kg, mis_ray_pdf, pdf);
     L *= mis_weight;
   }
@@ -107,7 +106,7 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
       for (int lamp = 0; lamp < kernel_data.integrator.num_all_lights; lamp++) {
         /* This path should have been resolved with mnee, it will
          * generate a firefly for small lights since it is improbable. */
-        const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
+        const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
         if (klight->type == LIGHT_BACKGROUND && klight->use_caustics) {
           eval_background = false;
           break;
@@ -160,7 +159,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
       if (INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_CULL_LIGHT_CONNECTION) {
         /* This path should have been resolved with mnee, it will
          * generate a firefly for small lights since it is improbable. */
-        const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, lamp);
+        const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
         if (klight->use_caustics)
           return;
       }
@@ -213,7 +212,7 @@ ccl_device void integrator_shade_background(KernelGlobals kg,
   }
 #endif
 
-  INTEGRATOR_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
+  integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND);
 }
 
 CCL_NAMESPACE_END

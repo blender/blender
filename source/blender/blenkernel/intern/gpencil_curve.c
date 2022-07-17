@@ -501,7 +501,7 @@ void BKE_gpencil_convert_curve(Main *bmain,
   }
 
   /* Check if there is an active frame and add if needed. */
-  bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, CFRA, GP_GETFRAME_ADD_COPY);
+  bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, GP_GETFRAME_ADD_COPY);
 
   /* Read all splines of the curve and create a stroke for each. */
   LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {

@@ -33,9 +33,13 @@
 #ifndef CERES_INTERNAL_DENSE_JACOBIAN_WRITER_H_
 #define CERES_INTERNAL_DENSE_JACOBIAN_WRITER_H_
 
+#include <memory>
+
 #include "ceres/casts.h"
 #include "ceres/dense_sparse_matrix.h"
+#include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/eigen.h"
+#include "ceres/internal/export.h"
 #include "ceres/parameter_block.h"
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
@@ -44,7 +48,7 @@
 namespace ceres {
 namespace internal {
 
-class DenseJacobianWriter {
+class CERES_NO_EXPORT DenseJacobianWriter {
  public:
   DenseJacobianWriter(Evaluator::Options /* ignored */, Program* program)
       : program_(program) {}
@@ -54,13 +58,14 @@ class DenseJacobianWriter {
   // Since the dense matrix has different layout than that assumed by the cost
   // functions, use scratch space to store the jacobians temporarily then copy
   // them over to the larger jacobian later.
-  ScratchEvaluatePreparer* CreateEvaluatePreparers(int num_threads) {
+  std::unique_ptr<ScratchEvaluatePreparer[]> CreateEvaluatePreparers(
+      int num_threads) {
     return ScratchEvaluatePreparer::Create(*program_, num_threads);
   }
 
-  SparseMatrix* CreateJacobian() const {
-    return new DenseSparseMatrix(
-        program_->NumResiduals(), program_->NumEffectiveParameters(), true);
+  std::unique_ptr<SparseMatrix> CreateJacobian() const {
+    return std::make_unique<DenseSparseMatrix>(
+        program_->NumResiduals(), program_->NumEffectiveParameters());
   }
 
   void Write(int residual_id,
@@ -82,14 +87,14 @@ class DenseJacobianWriter {
         continue;
       }
 
-      const int parameter_block_size = parameter_block->LocalSize();
+      const int parameter_block_size = parameter_block->TangentSize();
       ConstMatrixRef parameter_jacobian(
           jacobians[j], num_residuals, parameter_block_size);
 
-      dense_jacobian->mutable_matrix().block(residual_offset,
-                                             parameter_block->delta_offset(),
-                                             num_residuals,
-                                             parameter_block_size) =
+      dense_jacobian->mutable_matrix()->block(residual_offset,
+                                              parameter_block->delta_offset(),
+                                              num_residuals,
+                                              parameter_block_size) =
           parameter_jacobian;
     }
   }
@@ -100,5 +105,7 @@ class DenseJacobianWriter {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_DENSE_JACOBIAN_WRITER_H_

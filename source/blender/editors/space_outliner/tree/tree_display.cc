@@ -45,9 +45,9 @@ std::unique_ptr<AbstractTreeDisplay> AbstractTreeDisplay::createFromDisplayMode(
   return nullptr;
 }
 
-bool AbstractTreeDisplay::hasWarnings() const
+bool AbstractTreeDisplay::supportsModeColumn() const
 {
-  return has_warnings;
+  return false;
 }
 
 }  // namespace blender::ed::outliner

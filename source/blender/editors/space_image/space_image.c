@@ -103,7 +103,7 @@ static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(
   simage->overlay.flag = SI_OVERLAY_SHOW_OVERLAYS | SI_OVERLAY_SHOW_GRID_BACKGROUND;
 
   BKE_imageuser_default(&simage->iuser);
-  simage->iuser.flag = IMA_SHOW_STEREO | IMA_ANIM_ALWAYS | IMA_SHOW_MAX_RESOLUTION;
+  simage->iuser.flag = IMA_SHOW_STEREO | IMA_ANIM_ALWAYS;
 
   BKE_scopes_new(&simage->scopes);
   simage->sample_line_hist.height = 100;
@@ -199,6 +199,7 @@ static void image_operatortypes(void)
 
   WM_operatortype_append(IMAGE_OT_new);
   WM_operatortype_append(IMAGE_OT_open);
+  WM_operatortype_append(IMAGE_OT_file_browse);
   WM_operatortype_append(IMAGE_OT_match_movie_length);
   WM_operatortype_append(IMAGE_OT_replace);
   WM_operatortype_append(IMAGE_OT_reload);
@@ -315,6 +316,9 @@ static void image_listener(const wmSpaceTypeListenerParams *params)
           ED_area_tag_redraw(area);
           break;
         case ND_MODE:
+          ED_paint_cursor_start(&params->scene->toolsettings->imapaint.paint,
+                                ED_image_tools_paint_poll);
+
           if (wmn->subtype == NS_EDITMODE_MESH) {
             ED_area_tag_refresh(area);
           }
@@ -690,6 +694,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
                         sima->mask_info.draw_flag & ~MASK_DRAWFLAG_OVERLAY,
                         sima->mask_info.draw_type,
                         sima->mask_info.overlay_mode,
+                        sima->mask_info.blend_factor,
                         width,
                         height,
                         aspx,

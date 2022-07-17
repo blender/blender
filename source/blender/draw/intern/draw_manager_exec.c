@@ -693,6 +693,12 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
           *use_tfeedback = GPU_shader_transform_feedback_enable(shgroup->shader,
                                                                 ((GPUVertBuf *)uni->pvalue));
           break;
+        case DRW_UNIFORM_VERTEX_BUFFER_AS_TEXTURE_REF:
+          GPU_vertbuf_bind_as_texture(*uni->vertbuf_ref, uni->location);
+          break;
+        case DRW_UNIFORM_VERTEX_BUFFER_AS_TEXTURE:
+          GPU_vertbuf_bind_as_texture(uni->vertbuf, uni->location);
+          break;
         case DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE_REF:
           GPU_vertbuf_bind_as_ssbo(*uni->vertbuf_ref, uni->location);
           break;

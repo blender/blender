@@ -8,10 +8,14 @@
 #include <cstdio>
 
 #include "BKE_blender_version.h"
+#include "BKE_geometry_set.hh"
 
+#include "BLI_color.hh"
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_path_util.h"
 #include "BLI_task.hh"
+
+#include "IO_path_util.hh"
 
 #include "obj_export_mesh.hh"
 #include "obj_export_mtl.hh"
@@ -239,13 +243,37 @@ void obj_parallel_chunked_output(FormatHandler<eFileType::OBJ> &fh,
 }
 
 void OBJWriter::write_vertex_coords(FormatHandler<eFileType::OBJ> &fh,
-                                    const OBJMesh &obj_mesh_data) const
+                                    const OBJMesh &obj_mesh_data,
+                                    bool write_colors) const
 {
   const int tot_count = obj_mesh_data.tot_vertices();
-  obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler<eFileType::OBJ> &buf, int i) {
-    float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.scaling_factor);
-    buf.write<eOBJSyntaxElement::vertex_coords>(vertex[0], vertex[1], vertex[2]);
-  });
+
+  Mesh *mesh = obj_mesh_data.get_mesh();
+  CustomDataLayer *colors_layer = nullptr;
+  if (write_colors) {
+    colors_layer = BKE_id_attributes_active_color_get(&mesh->id);
+  }
+  if (write_colors && (colors_layer != nullptr)) {
+    const bke::AttributeAccessor attributes = bke::mesh_attributes(*mesh);
+    const VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
+        colors_layer->name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
+
+    BLI_assert(tot_count == attribute.size());
+    obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler<eFileType::OBJ> &buf, int i) {
+      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.scaling_factor);
+      ColorGeometry4f linear = attribute.get(i);
+      float srgb[3];
+      linearrgb_to_srgb_v3_v3(srgb, linear);
+      buf.write<eOBJSyntaxElement::vertex_coords_color>(
+          vertex[0], vertex[1], vertex[2], srgb[0], srgb[1], srgb[2]);
+    });
+  }
+  else {
+    obj_parallel_chunked_output(fh, tot_count, [&](FormatHandler<eFileType::OBJ> &buf, int i) {
+      float3 vertex = obj_mesh_data.calc_vertex_coords(i, export_params_.scaling_factor);
+      buf.write<eOBJSyntaxElement::vertex_coords>(vertex[0], vertex[1], vertex[2]);
+    });
+  }
 }
 
 void OBJWriter::write_uv_coords(FormatHandler<eFileType::OBJ> &fh, OBJMesh &r_obj_mesh_data) const
@@ -383,7 +411,7 @@ void OBJWriter::write_edges_indices(FormatHandler<eFileType::OBJ> &fh,
                                     const IndexOffsets &offsets,
                                     const OBJMesh &obj_mesh_data) const
 {
-  /* Note: ensure_mesh_edges should be called before. */
+  /* NOTE: ensure_mesh_edges should be called before. */
   const int tot_edges = obj_mesh_data.tot_edges();
   for (int edge_index = 0; edge_index < tot_edges; edge_index++) {
     const std::optional<std::array<int, 2>> vertex_indices =
@@ -530,7 +558,11 @@ void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl_material)
 
 void MTLWriter::write_texture_map(
     const MTLMaterial &mtl_material,
-    const Map<const eMTLSyntaxElement, tex_map_XX>::Item &texture_map)
+    const Map<const eMTLSyntaxElement, tex_map_XX>::Item &texture_map,
+    const char *blen_filedir,
+    const char *dest_dir,
+    ePathReferenceMode path_mode,
+    Set<std::pair<std::string, std::string>> &copy_set)
 {
   std::string options;
   /* Option strings should have their own leading spaces. */
@@ -546,7 +578,11 @@ void MTLWriter::write_texture_map(
 
 #define SYNTAX_DISPATCH(eMTLSyntaxElement) \
   if (texture_map.key == eMTLSyntaxElement) { \
-    fmt_handler_.write<eMTLSyntaxElement>(options, texture_map.value.image_path); \
+    std::string path = path_reference( \
+        texture_map.value.image_path.c_str(), blen_filedir, dest_dir, path_mode, &copy_set); \
+    /* Always emit forward slashes for cross-platform compatibility. */ \
+    std::replace(path.begin(), path.end(), '\\', '/'); \
+    fmt_handler_.write<eMTLSyntaxElement>(options, path.c_str()); \
     return; \
   }
 
@@ -561,25 +597,35 @@ void MTLWriter::write_texture_map(
   BLI_assert(!"This map type was not written to the file.");
 }
 
-void MTLWriter::write_materials()
+void MTLWriter::write_materials(const char *blen_filepath,
+                                ePathReferenceMode path_mode,
+                                const char *dest_dir)
 {
   if (mtlmaterials_.size() == 0) {
     return;
   }
+
+  char blen_filedir[PATH_MAX];
+  BLI_split_dir_part(blen_filepath, blen_filedir, PATH_MAX);
+  BLI_path_slash_native(blen_filedir);
+  BLI_path_normalize(nullptr, blen_filedir);
+
   std::sort(mtlmaterials_.begin(),
             mtlmaterials_.end(),
             [](const MTLMaterial &a, const MTLMaterial &b) { return a.name < b.name; });
+  Set<std::pair<std::string, std::string>> copy_set;
   for (const MTLMaterial &mtlmat : mtlmaterials_) {
     fmt_handler_.write<eMTLSyntaxElement::string>("\n");
     fmt_handler_.write<eMTLSyntaxElement::newmtl>(mtlmat.name);
     write_bsdf_properties(mtlmat);
-    for (const Map<const eMTLSyntaxElement, tex_map_XX>::Item &texture_map :
-         mtlmat.texture_maps.items()) {
-      if (!texture_map.value.image_path.empty()) {
-        write_texture_map(mtlmat, texture_map);
+    for (const auto &tex : mtlmat.texture_maps.items()) {
+      if (tex.value.image_path.empty()) {
+        continue;
       }
+      write_texture_map(mtlmat, tex, blen_filedir, dest_dir, path_mode, copy_set);
     }
   }
+  path_reference_copy(copy_set);
 }
 
 Vector<int> MTLWriter::add_materials(const OBJMesh &mesh_to_export)

@@ -124,7 +124,6 @@ if(WITH_LIBMV)
   endif()
   add_definitions(\${GFLAGS_DEFINES})
   add_definitions(\${GLOG_DEFINES})
-  add_definitions(\${CERES_DEFINES})
   add_definitions(-DLIBMV_GFLAGS_NAMESPACE=\${GFLAGS_NAMESPACE})
 
   list(APPEND INC

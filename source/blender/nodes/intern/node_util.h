@@ -65,6 +65,7 @@ void node_filter_label(const struct bNodeTree *ntree,
                        const struct bNode *node,
                        char *label,
                        int maxlen);
+void node_combsep_color_label(const ListBase *sockets, NodeCombSepColorMode mode);
 
 /*** Link Handling */
 

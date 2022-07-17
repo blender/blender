@@ -35,7 +35,7 @@ static const char *bpyunits_usystem_items[] = {
     NULL,
 };
 
-static const char *bpyunits_ucategorie_items[] = {
+static const char *bpyunits_ucategories_items[] = {
     "NONE",
     "LENGTH",
     "AREA",
@@ -43,12 +43,18 @@ static const char *bpyunits_ucategorie_items[] = {
     "MASS",
     "ROTATION",
     "TIME",
+    "TIME_ABSOLUTE",
     "VELOCITY",
     "ACCELERATION",
     "CAMERA",
     "POWER",
+    "TEMPERATURE",
     NULL,
 };
+
+BLI_STATIC_ASSERT(
+    ARRAY_SIZE(bpyunits_ucategories_items) == B_UNIT_TYPE_TOT + 1,
+    "`bpyunits_ucategories_items` should match `B_UNIT_` enum items in `BKE_units.h`")
 
 /**
  * These fields are just empty placeholders, actual values get set in initializations functions.
@@ -56,7 +62,7 @@ static const char *bpyunits_ucategorie_items[] = {
  * to keep all systems/categories definition stuff in `BKE_unit.h`.
  */
 static PyStructSequence_Field bpyunits_systems_fields[ARRAY_SIZE(bpyunits_usystem_items)];
-static PyStructSequence_Field bpyunits_categories_fields[ARRAY_SIZE(bpyunits_ucategorie_items)];
+static PyStructSequence_Field bpyunits_categories_fields[ARRAY_SIZE(bpyunits_ucategories_items)];
 
 static PyStructSequence_Desc bpyunits_systems_desc = {
     "bpy.utils.units.systems",                               /* name */
@@ -114,7 +120,7 @@ static bool bpyunits_validate(const char *usys_str, const char *ucat_str, int *r
     return false;
   }
 
-  *r_ucat = BLI_str_index_in_array(ucat_str, bpyunits_ucategorie_items);
+  *r_ucat = BLI_str_index_in_array(ucat_str, bpyunits_ucategories_items);
   if (*r_ucat < 0) {
     PyErr_Format(PyExc_ValueError, "Unknown unit category specified: %.200s.", ucat_str);
     return false;
@@ -356,7 +362,7 @@ PyObject *BPY_utils_units(void)
 
   /* bpy.utils.units.categories */
   item = py_structseq_from_strings(
-      &BPyUnitsCategoriesType, &bpyunits_categories_desc, bpyunits_ucategorie_items);
+      &BPyUnitsCategoriesType, &bpyunits_categories_desc, bpyunits_ucategories_items);
   PyModule_AddObject(submodule, "categories", item); /* steals ref */
 
   return submodule;

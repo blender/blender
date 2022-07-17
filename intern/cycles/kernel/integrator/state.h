@@ -127,6 +127,9 @@ typedef struct IntegratorStateGPU {
 
   /* Index of main path which will be used by a next shadow catcher split.  */
   ccl_global int *next_main_path_index;
+
+  /* Divisor used to partition active indices by locality when sorting by material.  */
+  uint sort_partition_divisor;
 } IntegratorStateGPU;
 
 /* Abstraction

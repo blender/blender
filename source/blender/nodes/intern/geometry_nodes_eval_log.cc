@@ -228,7 +228,7 @@ GeometryValueLog::GeometryValueLog(const GeometrySet &geometry_set, bool log_ful
       all_component_types,
       true,
       [&](const bke::AttributeIDRef &attribute_id,
-          const AttributeMetaData &meta_data,
+          const bke::AttributeMetaData &meta_data,
           const GeometryComponent &UNUSED(component)) {
         if (attribute_id.is_named() && names.add(attribute_id.name())) {
           this->attributes_.append({attribute_id.name(), meta_data.domain, meta_data.data_type});
@@ -241,27 +241,27 @@ GeometryValueLog::GeometryValueLog(const GeometrySet &geometry_set, bool log_ful
       case GEO_COMPONENT_TYPE_MESH: {
         const MeshComponent &mesh_component = *(const MeshComponent *)component;
         MeshInfo &info = this->mesh_info.emplace();
-        info.tot_verts = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
-        info.tot_edges = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
-        info.tot_faces = mesh_component.attribute_domain_size(ATTR_DOMAIN_FACE);
+        info.verts_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+        info.edges_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
+        info.faces_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_FACE);
         break;
       }
       case GEO_COMPONENT_TYPE_CURVE: {
         const CurveComponent &curve_component = *(const CurveComponent *)component;
         CurveInfo &info = this->curve_info.emplace();
-        info.tot_splines = curve_component.attribute_domain_size(ATTR_DOMAIN_CURVE);
+        info.splines_num = curve_component.attribute_domain_size(ATTR_DOMAIN_CURVE);
         break;
       }
       case GEO_COMPONENT_TYPE_POINT_CLOUD: {
         const PointCloudComponent &pointcloud_component = *(const PointCloudComponent *)component;
         PointCloudInfo &info = this->pointcloud_info.emplace();
-        info.tot_points = pointcloud_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+        info.points_num = pointcloud_component.attribute_domain_size(ATTR_DOMAIN_POINT);
         break;
       }
       case GEO_COMPONENT_TYPE_INSTANCES: {
         const InstancesComponent &instances_component = *(const InstancesComponent *)component;
         InstancesInfo &info = this->instances_info.emplace();
-        info.tot_instances = instances_component.instances_amount();
+        info.instances_num = instances_component.instances_num();
         break;
       }
       case GEO_COMPONENT_TYPE_VOLUME: {
@@ -495,7 +495,7 @@ void LocalGeoLogger::log_execution_time(DNode node, std::chrono::microseconds ex
 
 void LocalGeoLogger::log_used_named_attribute(DNode node,
                                               std::string attribute_name,
-                                              NamedAttributeUsage usage)
+                                              eNamedAttrUsage usage)
 {
   used_named_attributes_.append({node, {std::move(attribute_name), usage}});
 }

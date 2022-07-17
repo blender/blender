@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 /** \file
  * \ingroup gpu
  */
@@ -38,23 +40,20 @@ struct TextureUpdateRoutineSpecialisation {
   /* Number of channels the destination texture has (min=1, max=4). */
   int component_count_output;
 
-  inline bool operator==(const TextureUpdateRoutineSpecialisation &other) const
+  bool operator==(const TextureUpdateRoutineSpecialisation &other) const
   {
     return ((input_data_type == other.input_data_type) &&
             (output_data_type == other.output_data_type) &&
             (component_count_input == other.component_count_input) &&
             (component_count_output == other.component_count_output));
   }
-};
 
-template<> struct blender::DefaultHash<TextureUpdateRoutineSpecialisation> {
-  inline uint64_t operator()(const TextureUpdateRoutineSpecialisation &key) const
+  uint64_t hash() const
   {
-
-    DefaultHash<std::string> string_hasher;
+    blender::DefaultHash<std::string> string_hasher;
     return (uint64_t)string_hasher(
-        key.input_data_type + key.output_data_type +
-        std::to_string((key.component_count_input << 8) + key.component_count_output));
+        this->input_data_type + this->output_data_type +
+        std::to_string((this->component_count_input << 8) + this->component_count_output));
   }
 };
 
@@ -72,16 +71,14 @@ typedef enum {
 struct DepthTextureUpdateRoutineSpecialisation {
   DepthTextureUpdateMode data_mode;
 
-  inline bool operator==(const DepthTextureUpdateRoutineSpecialisation &other) const
+  bool operator==(const DepthTextureUpdateRoutineSpecialisation &other) const
   {
     return ((data_mode == other.data_mode));
   }
-};
 
-template<> struct blender::DefaultHash<DepthTextureUpdateRoutineSpecialisation> {
-  inline uint64_t operator()(const DepthTextureUpdateRoutineSpecialisation &key) const
+  uint64_t hash() const
   {
-    return (uint64_t)(key.data_mode);
+    return (uint64_t)(this->data_mode);
   }
 };
 
@@ -96,10 +93,10 @@ struct TextureReadRoutineSpecialisation {
    * 0 = Not a Depth format,
    * 1 = FLOAT DEPTH,
    * 2 = 24Bit Integer Depth,
-   * 4 = 32bit unsigned Integer Depth. */
+   * 4 = 32bit Unsigned-Integer Depth. */
   int depth_format_mode;
 
-  inline bool operator==(const TextureReadRoutineSpecialisation &other) const
+  bool operator==(const TextureReadRoutineSpecialisation &other) const
   {
     return ((input_data_type == other.input_data_type) &&
             (output_data_type == other.output_data_type) &&
@@ -107,17 +104,14 @@ struct TextureReadRoutineSpecialisation {
             (component_count_output == other.component_count_output) &&
             (depth_format_mode == other.depth_format_mode));
   }
-};
 
-template<> struct blender::DefaultHash<TextureReadRoutineSpecialisation> {
-  inline uint64_t operator()(const TextureReadRoutineSpecialisation &key) const
+  uint64_t hash() const
   {
-
-    DefaultHash<std::string> string_hasher;
-    return (uint64_t)string_hasher(key.input_data_type + key.output_data_type +
-                                   std::to_string((key.component_count_input << 8) +
-                                                  key.component_count_output +
-                                                  (key.depth_format_mode << 28)));
+    blender::DefaultHash<std::string> string_hasher;
+    return (uint64_t)string_hasher(this->input_data_type + this->output_data_type +
+                                   std::to_string((this->component_count_input << 8) +
+                                                  this->component_count_output +
+                                                  (this->depth_format_mode << 28)));
   }
 };
 
@@ -131,45 +125,29 @@ static const int MTL_MAX_MIPMAP_COUNT = 15; /* Max: 16384x16384 */
 static const int MTL_MAX_FBO_ATTACHED = 16;
 
 /* Samplers */
-typedef struct MTLSamplerState {
+struct MTLSamplerState {
   eGPUSamplerState state;
 
   /* Mip min and mip max on sampler state always the same.
    * Level range now controlled with textureView to be consistent with GL baseLevel. */
-  inline bool operator==(const MTLSamplerState &other) const
+  bool operator==(const MTLSamplerState &other) const
   {
     /* Add other parameters as needed. */
     return (this->state == other.state);
   }
 
-  operator unsigned int() const
+  operator uint() const
   {
-    return (unsigned int)state;
+    return (uint)state;
   }
 
   operator uint64_t() const
   {
     return (uint64_t)state;
   }
-
-} MTLSamplerState;
-
-const MTLSamplerState DEFAULT_SAMPLER_STATE = {GPU_SAMPLER_DEFAULT /*, 0, 9999*/};
-
-}  // namespace blender::gpu
-
-template<> struct blender::DefaultHash<blender::gpu::MTLSamplerState> {
-  inline uint64_t operator()(const blender::gpu::MTLSamplerState &key) const
-  {
-    const DefaultHash<unsigned int> uint_hasher;
-    uint64_t main_hash = (uint64_t)uint_hasher((unsigned int)(key.state));
-
-    /* Hash other parameters as needed. */
-    return main_hash;
-  }
 };
 
-namespace blender::gpu {
+const MTLSamplerState DEFAULT_SAMPLER_STATE = {GPU_SAMPLER_DEFAULT /*, 0, 9999*/};
 
 class MTLTexture : public Texture {
   friend class MTLContext;
@@ -195,12 +173,12 @@ class MTLTexture : public Texture {
 
   /* Texture Storage. */
   id<MTLBuffer> texture_buffer_;
-  unsigned int aligned_w_ = 0;
+  uint aligned_w_ = 0;
 
   /* Blit Frame-buffer. */
   GPUFrameBuffer *blit_fb_ = nullptr;
-  unsigned int blit_fb_slice_ = 0;
-  unsigned int blit_fb_mip_ = 0;
+  uint blit_fb_slice_ = 0;
+  uint blit_fb_mip_ = 0;
 
   /* Texture view properties */
   /* In Metal, we use texture views to either limit mipmap ranges,
@@ -240,7 +218,7 @@ class MTLTexture : public Texture {
   id<MTLBuffer> vert_buffer_mtl_;
   int vert_buffer_offset_;
 
-  /* Core parameters and subresources. */
+  /* Core parameters and sub-resources. */
   eGPUTextureUsage gpu_image_usage_flags_;
 
   /* Whether the texture's properties or state has changed (e.g. mipmap range), and re-baking of
@@ -259,7 +237,7 @@ class MTLTexture : public Texture {
   void update_sub(
       int mip, int offset[3], int extent[3], eGPUDataFormat type, const void *data) override;
 
-  void generate_mipmap(void) override;
+  void generate_mipmap() override;
   void copy_to(Texture *dst) override;
   void clear(eGPUDataFormat format, const void *data) override;
   void swizzle_set(const char swizzle_mask[4]) override;
@@ -270,16 +248,16 @@ class MTLTexture : public Texture {
   void *read(int mip, eGPUDataFormat type) override;
 
   /* Remove once no longer required -- will just return 0 for now in MTL path*/
-  uint gl_bindcode_get(void) const override;
+  uint gl_bindcode_get() const override;
 
   bool texture_is_baked();
-  inline const char *get_name()
+  const char *get_name()
   {
     return name_;
   }
 
  protected:
-  bool init_internal(void) override;
+  bool init_internal() override;
   bool init_internal(GPUVertBuf *vbo) override;
   bool init_internal(const GPUTexture *src,
                      int mip_offset,
@@ -301,7 +279,7 @@ class MTLTexture : public Texture {
   void ensure_mipmaps(int miplvl);
 
   /* Flags a given mip level as being used. */
-  void add_subresource(unsigned int level);
+  void add_subresource(uint level);
 
   void read_internal(int mip,
                      int x_off,
@@ -320,31 +298,31 @@ class MTLTexture : public Texture {
   id<MTLTexture> get_metal_handle_base();
   MTLSamplerState get_sampler_state();
   void blit(id<MTLBlitCommandEncoder> blit_encoder,
-            unsigned int src_x_offset,
-            unsigned int src_y_offset,
-            unsigned int src_z_offset,
-            unsigned int src_slice,
-            unsigned int src_mip,
+            uint src_x_offset,
+            uint src_y_offset,
+            uint src_z_offset,
+            uint src_slice,
+            uint src_mip,
             gpu::MTLTexture *dest,
-            unsigned int dst_x_offset,
-            unsigned int dst_y_offset,
-            unsigned int dst_z_offset,
-            unsigned int dst_slice,
-            unsigned int dst_mip,
-            unsigned int width,
-            unsigned int height,
-            unsigned int depth);
+            uint dst_x_offset,
+            uint dst_y_offset,
+            uint dst_z_offset,
+            uint dst_slice,
+            uint dst_mip,
+            uint width,
+            uint height,
+            uint depth);
   void blit(gpu::MTLTexture *dest,
-            unsigned int src_x_offset,
-            unsigned int src_y_offset,
-            unsigned int dst_x_offset,
-            unsigned int dst_y_offset,
-            unsigned int src_mip,
-            unsigned int dst_mip,
-            unsigned int dst_slice,
+            uint src_x_offset,
+            uint src_y_offset,
+            uint dst_x_offset,
+            uint dst_y_offset,
+            uint src_mip,
+            uint dst_mip,
+            uint dst_slice,
             int width,
             int height);
-  GPUFrameBuffer *get_blit_framebuffer(unsigned int dst_slice, unsigned int dst_mip);
+  GPUFrameBuffer *get_blit_framebuffer(uint dst_slice, uint dst_mip);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("gpu::MTLTexture")
 
@@ -370,7 +348,7 @@ class MTLTexture : public Texture {
    *    - Per-component size matches (e.g. GPU_DATA_UBYTE)
    *                                OR GPU_DATA_10_11_11_REV && GPU_R11G11B10 (equiv)
    *                                OR D24S8 and GPU_DATA_UINT_24_8
-   *    We can Use BLIT ENCODER.
+   *    We can use BLIT ENCODER.
    *
    * OTHERWISE TRIGGER COMPUTE:
    *  - Compute sizes will vary. Threads per grid WILL match 'extent'.

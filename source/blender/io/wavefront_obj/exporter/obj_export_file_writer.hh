@@ -9,6 +9,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_map.hh"
+#include "BLI_set.hh"
 #include "BLI_vector.hh"
 
 #include "IO_wavefront_obj.h"
@@ -71,9 +72,11 @@ class OBJWriter : NonMovable, NonCopyable {
    */
   void write_mtllib_name(const StringRefNull mtl_filepath) const;
   /**
-   * Write vertex coordinates for all vertices as "v x y z".
+   * Write vertex coordinates for all vertices as "v x y z" or "v x y z r g b".
    */
-  void write_vertex_coords(FormatHandler<eFileType::OBJ> &fh, const OBJMesh &obj_mesh_data) const;
+  void write_vertex_coords(FormatHandler<eFileType::OBJ> &fh,
+                           const OBJMesh &obj_mesh_data,
+                           bool write_colors) const;
   /**
    * Write UV vertex coordinates for all vertices as `vt u v`.
    * \note UV indices are stored here, but written with polygons later.
@@ -181,7 +184,9 @@ class MTLWriter : NonMovable, NonCopyable {
    * For consistency of output from run to run (useful for testing),
    * the materials are sorted by name before writing.
    */
-  void write_materials();
+  void write_materials(const char *blen_filepath,
+                       ePathReferenceMode path_mode,
+                       const char *dest_dir);
   StringRefNull mtl_file_path() const;
   /**
    * Add the materials of the given object to #MTLWriter, de-duplicating
@@ -203,6 +208,10 @@ class MTLWriter : NonMovable, NonCopyable {
    * Write a texture map in the form "map_XX -s 1. 1. 1. -o 0. 0. 0. [-bm 1.] path/to/image".
    */
   void write_texture_map(const MTLMaterial &mtl_material,
-                         const Map<const eMTLSyntaxElement, tex_map_XX>::Item &texture_map);
+                         const Map<const eMTLSyntaxElement, tex_map_XX>::Item &texture_map,
+                         const char *blen_filedir,
+                         const char *dest_dir,
+                         ePathReferenceMode mode,
+                         Set<std::pair<std::string, std::string>> &copy_set);
 };
 }  // namespace blender::io::obj

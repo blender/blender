@@ -7,6 +7,7 @@
  * \ingroup bli
  */
 
+#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 #include "DNA_vec_types.h"
 

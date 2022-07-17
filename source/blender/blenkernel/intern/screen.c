@@ -277,7 +277,7 @@ static void screen_blend_read_lib(BlendLibReader *reader, ID *id)
 
 IDTypeInfo IDType_ID_SCR = {
     .id_code = ID_SCR,
-    .id_filter = 0,
+    .id_filter = FILTER_ID_SCR,
     .main_listbase_index = INDEX_ID_SCR,
     .struct_size = sizeof(bScreen),
     .name = "Screen",
@@ -855,6 +855,17 @@ void BKE_screen_remove_unused_scrverts(bScreen *screen)
 }
 
 /* ***************** Utilities ********************** */
+
+ARegion *BKE_region_find_in_listbase_by_type(const ListBase *regionbase, const int region_type)
+{
+  LISTBASE_FOREACH (ARegion *, region, regionbase) {
+    if (region->regiontype == region_type) {
+      return region;
+    }
+  }
+
+  return NULL;
+}
 
 ARegion *BKE_area_find_region_type(const ScrArea *area, int region_type)
 {

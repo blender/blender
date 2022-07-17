@@ -1824,7 +1824,7 @@ static void sample_mesh(FluidFlowSettings *ffs,
                         const float *vert_vel,
                         bool has_velocity,
                         int defgrp_index,
-                        MDeformVert *dvert,
+                        const MDeformVert *dvert,
                         float x,
                         float y,
                         float z)
@@ -1942,7 +1942,6 @@ static void sample_mesh(FluidFlowSettings *ffs,
           tex_co[1] = tex_co[1] * 2.0f - 1.0f;
           tex_co[2] = ffs->texture_offset;
         }
-        texres.nor = NULL;
         BKE_texture_get_value(NULL, ffs->noise_texture, tex_co, &texres, false);
         emission_strength *= texres.tin;
       }
@@ -2008,7 +2007,7 @@ typedef struct EmitFromDMData {
   const MLoop *mloop;
   const MLoopTri *mlooptri;
   const MLoopUV *mloopuv;
-  MDeformVert *dvert;
+  const MDeformVert *dvert;
   int defgrp_index;
 
   BVHTreeFromMesh *tree;
@@ -2074,14 +2073,8 @@ static void emit_from_mesh(
     Object *flow_ob, FluidDomainSettings *fds, FluidFlowSettings *ffs, FluidObjectBB *bb, float dt)
 {
   if (ffs->mesh) {
-    Mesh *me = NULL;
-    MVert *mvert = NULL;
-    const MLoopTri *mlooptri = NULL;
-    const MLoop *mloop = NULL;
-    const MLoopUV *mloopuv = NULL;
-    MDeformVert *dvert = NULL;
     BVHTreeFromMesh tree_data = {NULL};
-    int numverts, i;
+    int i;
 
     float *vert_vel = NULL;
     bool has_velocity = false;
@@ -2092,7 +2085,7 @@ static void emit_from_mesh(
 
     /* Copy mesh for thread safety as we modify it.
      * Main issue is its VertArray being modified, then replaced and freed. */
-    me = BKE_mesh_copy_for_eval(ffs->mesh, true);
+    Mesh *me = BKE_mesh_copy_for_eval(ffs->mesh, true);
 
     /* Duplicate vertices to modify. */
     if (me->mvert) {
@@ -2100,12 +2093,12 @@ static void emit_from_mesh(
       CustomData_set_layer(&me->vdata, CD_MVERT, me->mvert);
     }
 
-    mvert = me->mvert;
-    mloop = me->mloop;
-    mlooptri = BKE_mesh_runtime_looptri_ensure(me);
-    numverts = me->totvert;
-    dvert = CustomData_get_layer(&me->vdata, CD_MDEFORMVERT);
-    mloopuv = CustomData_get_layer_named(&me->ldata, CD_MLOOPUV, ffs->uvlayer_name);
+    MVert *mvert = me->mvert;
+    const MLoop *mloop = me->mloop;
+    const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(me);
+    const int numverts = me->totvert;
+    const MDeformVert *dvert = CustomData_get_layer(&me->vdata, CD_MDEFORMVERT);
+    const MLoopUV *mloopuv = CustomData_get_layer_named(&me->ldata, CD_MLOOPUV, ffs->uvlayer_name);
 
     if (ffs->flags & FLUID_FLOW_INITVELOCITY) {
       vert_vel = MEM_callocN(sizeof(float[3]) * numverts, "manta_flow_velocity");
@@ -3768,16 +3761,16 @@ static void BKE_fluid_modifier_processDomain(FluidModifierData *fmd,
     MEM_freeN(objs);
   }
 
-  /* TODO(sebbas): Cache reset for when flow / effector object need update flag is set. */
-#  if 0
-  /* If the just updated flags now carry the 'outdated' flag, reset the cache here!
-   * Plus sanity check: Do not clear cache on file load. */
-  if (fds->cache_flag & FLUID_DOMAIN_OUTDATED_DATA &&
-      ((fds->flags & FLUID_DOMAIN_FILE_LOAD) == 0)) {
-    BKE_fluid_cache_free_all(fds, ob);
-    BKE_fluid_modifier_reset_ex(fmd, false);
+  /* If 'outdated', reset the cache here. */
+  if (is_startframe && mode == FLUID_DOMAIN_CACHE_REPLAY) {
+    PTCacheID pid;
+    BKE_ptcache_id_from_smoke(&pid, ob, fmd);
+    if (pid.cache->flag & PTCACHE_OUTDATED) {
+      BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+      BKE_fluid_cache_free_all(fds, ob);
+      BKE_fluid_modifier_reset_ex(fmd, false);
+    }
   }
-#  endif
 
   /* Fluid domain init must not fail in order to continue modifier evaluation. */
   if (!fds->fluid && !BKE_fluid_modifier_init(fmd, depsgraph, ob, scene, me)) {

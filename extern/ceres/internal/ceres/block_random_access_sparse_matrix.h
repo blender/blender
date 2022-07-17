@@ -39,7 +39,8 @@
 #include <vector>
 
 #include "ceres/block_random_access_matrix.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 #include "ceres/small_blas.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
@@ -51,7 +52,7 @@ namespace internal {
 // BlockRandomAccessMatrix. Internally a TripletSparseMatrix is used
 // for doing the actual storage. This class augments this matrix with
 // an unordered_map that allows random read/write access.
-class CERES_EXPORT_INTERNAL BlockRandomAccessSparseMatrix
+class CERES_NO_EXPORT BlockRandomAccessSparseMatrix
     : public BlockRandomAccessMatrix {
  public:
   // blocks is an array of block sizes. block_pairs is a set of
@@ -65,7 +66,7 @@ class CERES_EXPORT_INTERNAL BlockRandomAccessSparseMatrix
 
   // The destructor is not thread safe. It assumes that no one is
   // modifying any cells when the matrix is being destroyed.
-  virtual ~BlockRandomAccessSparseMatrix();
+  ~BlockRandomAccessSparseMatrix() override;
 
   // BlockRandomAccessMatrix Interface.
   CellInfo* GetCell(int row_block_id,
@@ -111,7 +112,7 @@ class CERES_EXPORT_INTERNAL BlockRandomAccessSparseMatrix
 
   // A mapping from <row_block_id, col_block_id> to the position in
   // the values array of tsm_ where the block is stored.
-  typedef std::unordered_map<long int, CellInfo*> LayoutType;
+  using LayoutType = std::unordered_map<long, CellInfo*>;
   LayoutType layout_;
 
   // In order traversal of contents of the matrix. This allows us to
@@ -126,5 +127,7 @@ class CERES_EXPORT_INTERNAL BlockRandomAccessSparseMatrix
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_BLOCK_RANDOM_ACCESS_SPARSE_MATRIX_H_

@@ -161,8 +161,8 @@ bool AbstractHierarchyWriter::check_has_deforming_physics(const HierarchyContext
   return rbo != nullptr && rbo->type == RBO_TYPE_ACTIVE && (rbo->flag & RBO_FLAG_USE_DEFORM) != 0;
 }
 
-AbstractHierarchyIterator::AbstractHierarchyIterator(Depsgraph *depsgraph)
-    : depsgraph_(depsgraph), export_subset_({true, true})
+AbstractHierarchyIterator::AbstractHierarchyIterator(Main *bmain, Depsgraph *depsgraph)
+    : bmain_(bmain), depsgraph_(depsgraph), export_subset_({true, true})
 {
 }
 
@@ -288,6 +288,11 @@ void AbstractHierarchyIterator::debug_print_export_graph(const ExportGraph &grap
 void AbstractHierarchyIterator::export_graph_construct()
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph_);
+
+  /* Add a "null" root node with no children immediately for the case where the top-most node in
+   * the scene is not being exported and a root node otherwise wouldn't get added. */
+  ExportGraph::key_type root_node_id = ObjectIdentifier::for_real_object(nullptr);
+  export_graph_[root_node_id] = ExportChildren();
 
   DEG_OBJECT_ITER_BEGIN (depsgraph_,
                          object,

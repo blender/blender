@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8-80 compliant>
-
 import bpy
 from bpy.types import Operator
 from bpy.props import (
@@ -598,6 +596,8 @@ class MakeDupliFace(Operator):
         for obj in context.selected_objects:
             if obj.type == 'MESH':
                 linked[obj.data].append(obj)
+            elif obj.type == 'EMPTY' and obj.instance_type == 'COLLECTION' and obj.instance_collection:
+                linked[obj.instance_collection].append(obj)
 
         for data, objects in linked.items():
             face_verts = [axis for obj in objects
@@ -623,7 +623,12 @@ class MakeDupliFace(Operator):
             ob_new = bpy.data.objects.new(mesh.name, mesh)
             context.collection.objects.link(ob_new)
 
-            ob_inst = bpy.data.objects.new(data.name, data)
+            if type(data) is bpy.types.Collection:
+                ob_inst = bpy.data.objects.new(data.name, None)
+                ob_inst.instance_type = 'COLLECTION'
+                ob_inst.instance_collection = data
+            else:
+                ob_inst = bpy.data.objects.new(data.name, data)
             context.collection.objects.link(ob_inst)
 
             ob_new.instance_type = 'FACES'
@@ -848,16 +853,43 @@ class DupliOffsetFromCursor(Operator):
     bl_label = "Set Offset from Cursor"
     bl_options = {'INTERNAL', 'UNDO'}
 
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object is not None)
-
     def execute(self, context):
         scene = context.scene
         collection = context.collection
 
         collection.instance_offset = scene.cursor.location
 
+        return {'FINISHED'}
+
+
+class DupliOffsetToCursor(Operator):
+    """Set cursor position to the offset used for collection instances"""
+    bl_idname = "object.instance_offset_to_cursor"
+    bl_label = "Set Cursor to Offset"
+    bl_options = {'INTERNAL', 'UNDO'}
+
+    def execute(self, context):
+        scene = context.scene
+        collection = context.collection
+        scene.cursor.location = collection.instance_offset
+        return {'FINISHED'}
+
+
+class DupliOffsetFromObject(Operator):
+    """Set offset used for collection instances based on the active object position"""
+    bl_idname = "object.instance_offset_from_object"
+    bl_label = "Set Offset from Object"
+    bl_options = {'INTERNAL', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object is not None)
+
+    def execute(self, context):
+        ob_eval = context.active_object.evaluated_get(context.view_layer.depsgraph)
+        world_loc = ob_eval.matrix_world.to_translation()
+        collection = context.collection
+        collection.instance_offset = world_loc
         return {'FINISHED'}
 
 
@@ -982,6 +1014,8 @@ class OBJECT_OT_assign_property_defaults(Operator):
 classes = (
     ClearAllRestrictRender,
     DupliOffsetFromCursor,
+    DupliOffsetToCursor,
+    DupliOffsetFromObject,
     IsolateTypeRender,
     JoinUVs,
     LoadBackgroundImage,

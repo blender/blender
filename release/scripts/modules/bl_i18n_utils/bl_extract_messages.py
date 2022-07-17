@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Populate a template file (POT format currently) from Blender RNA/py/C data.
 # XXX: This script is meant to be used from inside Blender!
 #      You should not directly use this script, rather use update_msg.py!
@@ -341,7 +339,8 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         msgsrc = "bpy.types." + bl_rna.identifier
         msgctxt = bl_rna.translation_context or default_context
 
-        if bl_rna.name and (bl_rna.name != bl_rna.identifier or msgctxt != default_context):
+        if bl_rna.name and (bl_rna.name != bl_rna.identifier or
+                            (msgctxt != default_context and not hasattr(bl_rna, 'bl_label'))):
             process_msg(msgs, msgctxt, bl_rna.name, msgsrc, reports, check_ctxt_rna, settings)
 
         if bl_rna.description:
@@ -804,20 +803,21 @@ def dump_src_messages(msgs, reports, settings):
                 line += data[pos:m.start()].count('\n')
                 msgsrc = rel_path + ":" + str(line)
                 _msgid = d.get("msg_raw")
-                # First, try the "multi-contexts" stuff!
-                _msgctxts = tuple(d.get("ctxt_raw{}".format(i)) for i in range(settings.PYGETTEXT_MAX_MULTI_CTXT))
-                if _msgctxts[0]:
-                    for _msgctxt in _msgctxts:
-                        if not _msgctxt:
-                            break
+                if _msgid not in {'""', "''"}:
+                    # First, try the "multi-contexts" stuff!
+                    _msgctxts = tuple(d.get("ctxt_raw{}".format(i)) for i in range(settings.PYGETTEXT_MAX_MULTI_CTXT))
+                    if _msgctxts[0]:
+                        for _msgctxt in _msgctxts:
+                            if not _msgctxt:
+                                break
+                            msgctxt, msgid = process_entry(_msgctxt, _msgid)
+                            process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt_src, settings)
+                            reports["src_messages"].append((msgctxt, msgid, msgsrc))
+                    else:
+                        _msgctxt = d.get("ctxt_raw")
                         msgctxt, msgid = process_entry(_msgctxt, _msgid)
                         process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt_src, settings)
                         reports["src_messages"].append((msgctxt, msgid, msgsrc))
-                else:
-                    _msgctxt = d.get("ctxt_raw")
-                    msgctxt, msgid = process_entry(_msgctxt, _msgid)
-                    process_msg(msgs, msgctxt, msgid, msgsrc, reports, check_ctxt_src, settings)
-                    reports["src_messages"].append((msgctxt, msgid, msgsrc))
 
                 pos = m.end()
                 line += data[m.start():pos].count('\n')

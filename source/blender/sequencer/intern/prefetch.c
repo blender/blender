@@ -395,7 +395,7 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
 {
   float cfra = seq_prefetch_cfra(pfjob);
   Sequence *seq_arr[MAXSEQ + 1];
-  int count = seq_get_shown_sequences(channels, seqbase, cfra, 0, seq_arr);
+  int count = seq_get_shown_sequences(pfjob->scene_eval, channels, seqbase, cfra, 0, seq_arr);
 
   /* Iterate over rendered strips. */
   for (int i = 0; i < count; i++) {

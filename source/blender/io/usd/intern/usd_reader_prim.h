@@ -12,6 +12,7 @@
 
 struct CacheFile;
 struct Main;
+struct Material;
 struct Object;
 
 namespace blender::io::usd {
@@ -35,13 +36,16 @@ struct ImportSettings {
 
   bool validate_meshes;
 
-  /* Map a USD matrial prim path to a Blender material name.
-   * This map might be updated by readers during stage traversal.
-   * TODO(makowalski): Is the ImportSettings struct the best place
-   * to store this map? Maybe we should define an ImportContext
-   * struct that stores USDImportParams, ImportSettings and
-   * mutable values such as this. */
+  /* Map a USD material prim path to a Blender material name.
+   * This map is updated by readers during stage traversal.
+   * This field is mutable because it is used to keep track
+   * of what the importer is doing. This is necessary even
+   * when all the other import settings are to remain const. */
   mutable std::map<std::string, std::string> usd_path_to_mat_name;
+  /* Map a material name to Blender material.
+   * This map is updated by readers during stage traversal,
+   * and is mutable similar to the map above. */
+  mutable std::map<std::string, Material *> mat_name_to_mat;
 
   ImportSettings()
       : do_convert_mat(false),

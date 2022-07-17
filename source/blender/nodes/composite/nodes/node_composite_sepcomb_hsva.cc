@@ -28,7 +28,7 @@ void register_node_type_cmp_sephsva()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, CMP_NODE_SEPHSVA_LEGACY, "Separate HSVA", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_sephsva_declare;
   nodeRegisterType(&ntype);
 }
@@ -54,7 +54,7 @@ void register_node_type_cmp_combhsva()
 
   static bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, CMP_NODE_COMBHSVA_LEGACY, "Combine HSVA", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_combhsva_declare;
 
   nodeRegisterType(&ntype);

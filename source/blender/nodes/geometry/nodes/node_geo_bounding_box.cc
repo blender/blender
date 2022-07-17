@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "GEO_mesh_primitive_cuboid.hh"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_bounding_box_cc {
@@ -53,7 +55,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       else {
         const float3 scale = sub_max - sub_min;
         const float3 center = sub_min + scale / 2.0f;
-        Mesh *mesh = create_cuboid_mesh(scale, 2, 2, 2);
+        Mesh *mesh = geometry::create_cuboid_mesh(scale, 2, 2, 2, "uv_map");
         transform_mesh(*mesh, center, float3(0), float3(1));
         sub_geometry.replace_mesh(mesh);
         sub_geometry.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});

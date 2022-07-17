@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8-80 compliant>
 import sys
 import bpy
 
@@ -213,7 +211,7 @@ execute.hooks = []
 
 
 def autocomplete(context):
-    from console import intellisense
+    from bl_console_utils.autocomplete import intellisense
 
     sc = context.space_data
 

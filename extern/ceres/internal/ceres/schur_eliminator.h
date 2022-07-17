@@ -40,8 +40,10 @@
 #include "ceres/block_random_access_matrix.h"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
+#include "ceres/internal/config.h"
+#include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
 
 namespace ceres {
@@ -56,9 +58,8 @@ namespace internal {
 // Where x = [y;z] is a partition of the variables.  The partitioning
 // of the variables is such that, E'E is a block diagonal matrix. Or
 // in other words, the parameter blocks in E form an independent set
-// of the of the graph implied by the block matrix A'A. Then, this
-// class provides the functionality to compute the Schur complement
-// system
+// of the graph implied by the block matrix A'A. Then, this class
+// provides the functionality to compute the Schur complement system
 //
 //   S z = r
 //
@@ -164,9 +165,9 @@ namespace internal {
 // 2008 for an example of such use].
 //
 // Example usage: Please see schur_complement_solver.cc
-class CERES_EXPORT_INTERNAL SchurEliminatorBase {
+class CERES_NO_EXPORT SchurEliminatorBase {
  public:
-  virtual ~SchurEliminatorBase() {}
+  virtual ~SchurEliminatorBase();
 
   // Initialize the eliminator. It is the user's responsibilty to call
   // this function before calling Eliminate or BackSubstitute. It is
@@ -210,7 +211,8 @@ class CERES_EXPORT_INTERNAL SchurEliminatorBase {
                               const double* z,
                               double* y) = 0;
   // Factory
-  static SchurEliminatorBase* Create(const LinearSolver::Options& options);
+  static std::unique_ptr<SchurEliminatorBase> Create(
+      const LinearSolver::Options& options);
 };
 
 // Templated implementation of the SchurEliminatorBase interface. The
@@ -223,7 +225,7 @@ class CERES_EXPORT_INTERNAL SchurEliminatorBase {
 template <int kRowBlockSize = Eigen::Dynamic,
           int kEBlockSize = Eigen::Dynamic,
           int kFBlockSize = Eigen::Dynamic>
-class SchurEliminator : public SchurEliminatorBase {
+class CERES_NO_EXPORT SchurEliminator final : public SchurEliminatorBase {
  public:
   explicit SchurEliminator(const LinearSolver::Options& options)
       : num_threads_(options.num_threads), context_(options.context) {
@@ -231,7 +233,7 @@ class SchurEliminator : public SchurEliminatorBase {
   }
 
   // SchurEliminatorBase Interface
-  virtual ~SchurEliminator();
+  ~SchurEliminator() override;
   void Init(int num_eliminate_blocks,
             bool assume_full_rank_ete,
             const CompressedRowBlockStructure* bs) final;
@@ -272,9 +274,9 @@ class SchurEliminator : public SchurEliminatorBase {
   // buffer_layout[z1] = 0
   // buffer_layout[z5] = y1 * z1
   // buffer_layout[z2] = y1 * z1 + y1 * z5
-  typedef std::map<int, int> BufferLayoutType;
+  using BufferLayoutType = std::map<int, int>;
   struct Chunk {
-    Chunk() : size(0) {}
+    explicit Chunk(int start) : size(0), start(start) {}
     int size;
     int start;
     BufferLayoutType buffer_layout;
@@ -378,9 +380,9 @@ class SchurEliminator : public SchurEliminatorBase {
 template <int kRowBlockSize = Eigen::Dynamic,
           int kEBlockSize = Eigen::Dynamic,
           int kFBlockSize = Eigen::Dynamic>
-class SchurEliminatorForOneFBlock : public SchurEliminatorBase {
+class CERES_NO_EXPORT SchurEliminatorForOneFBlock final
+    : public SchurEliminatorBase {
  public:
-  virtual ~SchurEliminatorForOneFBlock() {}
   void Init(int num_eliminate_blocks,
             bool assume_full_rank_ete,
             const CompressedRowBlockStructure* bs) override {
@@ -484,7 +486,7 @@ class SchurEliminatorForOneFBlock : public SchurEliminatorBase {
       Eigen::Matrix<double, kFBlockSize, 1> f_t_b;
 
       // Add the square of the diagonal to e_t_e.
-      if (D != NULL) {
+      if (D != nullptr) {
         const typename EigenTypes<kEBlockSize>::ConstVectorRef diag(
             D + bs->cols[e_block_id].position, kEBlockSize);
         e_t_e = diag.array().square().matrix().asDiagonal();
@@ -623,5 +625,7 @@ class SchurEliminatorForOneFBlock : public SchurEliminatorBase {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_SCHUR_ELIMINATOR_H_

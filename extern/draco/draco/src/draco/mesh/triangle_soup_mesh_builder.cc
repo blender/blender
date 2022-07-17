@@ -41,8 +41,6 @@ void TriangleSoupMeshBuilder::SetAttributeValuesForFace(
   att->SetAttributeValue(AttributeValueIndex(start_index), corner_value_0);
   att->SetAttributeValue(AttributeValueIndex(start_index + 1), corner_value_1);
   att->SetAttributeValue(AttributeValueIndex(start_index + 2), corner_value_2);
-  // TODO(ostava): The below code should be called only for one attribute.
-  // It will work OK even for multiple attributes, but it's redundant.
   mesh_->SetFace(face_id,
                  {{PointIndex(start_index), PointIndex(start_index + 1),
                    PointIndex(start_index + 2)}});

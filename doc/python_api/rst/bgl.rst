@@ -4,6 +4,12 @@ OpenGL Wrapper (bgl)
 
 .. module:: bgl
 
+.. warning::
+
+   This module is deprecated and will be removed in a future release,
+   when OpenGL is replaced by Metal and Vulkan.
+   Use the graphics API independent :mod:`gpu` module instead.
+
 This module wraps OpenGL constants and functions, making them available from
 within Blender Python.
 

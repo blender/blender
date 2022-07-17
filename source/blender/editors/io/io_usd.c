@@ -121,16 +121,16 @@ const EnumPropertyItem prop_usd_export_global_up[] = {
 };
 
 const EnumPropertyItem rna_enum_usd_mtl_name_collision_mode_items[] = {
-    {USD_MTL_NAME_COLLISION_MODIFY,
-     "MODIFY",
+    {USD_MTL_NAME_COLLISION_MAKE_UNIQUE,
+     "MAKE_UNIQUE",
      0,
-     "Modify",
-     "Create a unique name for the imported material"},
-    {USD_MTL_NAME_COLLISION_SKIP,
-     "SKIP",
+     "Make Unique",
+     "Import each USD material as a unique Blender material"},
+    {USD_MTL_NAME_COLLISION_REFERENCE_EXISTING,
+     "REFERENCE_EXISTING",
      0,
-     "Skip",
-     "Keep the existing material and discard the imported material"},
+     "Reference Existing",
+     "If a material with the same name already exists, reference that instead of importing"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -274,8 +274,6 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   bool export_textures = RNA_boolean_get(op->ptr, "export_textures");
 
-  bool relative_texture_paths = RNA_boolean_get(op->ptr, "relative_texture_paths");
-
   const bool backward_compatible = true;
 
   const float light_intensity_scale = RNA_float_get(op->ptr, "light_intensity_scale");
@@ -300,6 +298,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool fix_skel_root = RNA_boolean_get(op->ptr, "fix_skel_root");
   
   const bool overwrite_textures = RNA_boolean_get(op->ptr, "overwrite_textures");
+
+  const bool relative_paths = RNA_boolean_get(op->ptr, "relative_paths");
 
   struct USDExportParams params = {RNA_int_get(op->ptr, "start"),
                                    RNA_int_get(op->ptr, "end"),
@@ -344,7 +344,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    shutter_open,
                                    shutter_close,
                                    export_textures,
-                                   relative_texture_paths,
+                                   relative_paths,
                                    backward_compatible,
                                    light_intensity_scale,
                                    generate_mdl,
@@ -360,11 +360,14 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   /* Take some defaults from the scene, if not specified explicitly. */
   Scene *scene = CTX_data_scene(C);
-  if (params.frame_start == INT_MIN) {
-    params.frame_start = SFRA;
-  }
-  if (params.frame_end == INT_MIN) {
-    params.frame_end = EFRA;
+
+  if (scene) {
+    if (params.frame_start == INT_MIN) {
+      params.frame_start = scene->r.sfra;
+    }
+    if (params.frame_end == INT_MIN) {
+      params.frame_end = scene->r.efra;
+    }
   }
 
   bool ok = USD_export(C, filename, &params, as_background_job);
@@ -382,8 +385,8 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
 
   if (scene != NULL && RNA_boolean_get(ptr, "init_scene_frame_range")) {
-    RNA_int_set(ptr, "start", SFRA);
-    RNA_int_set(ptr, "end", EFRA);
+    RNA_int_set(ptr, "start", scene->r.sfra);
+    RNA_int_set(ptr, "end", scene->r.efra);
 
     RNA_boolean_set(ptr, "init_scene_frame_range", false);
   }
@@ -500,13 +503,30 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     if (RNA_boolean_get(ptr, "export_textures")) {
       uiItemR(box, ptr, "overwrite_textures", 0, NULL, ICON_NONE);
     }    
-    uiItemR(box, ptr, "relative_texture_paths", 0, NULL, ICON_NONE);
   }
+
+  box = uiLayoutBox(layout);
+  uiLayout *col = uiLayoutColumnWithHeading(box, true, IFACE_("File References"));
+  uiItemR(col, ptr, "relative_paths", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Experimental:"), ICON_NONE);
   uiItemR(box, ptr, "use_instancing", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "fix_skel_root", 0, NULL, ICON_NONE);
+}
+
+static bool wm_usd_export_check(bContext *UNUSED(C), wmOperator *op)
+{
+  char filepath[FILE_MAX];
+  RNA_string_get(op->ptr, "filepath", filepath);
+
+  if (!BLI_path_extension_check_n(filepath, ".usd", ".usda", ".usdc", NULL)) {
+    BLI_path_extension_ensure(filepath, FILE_MAX, ".usdc");
+    RNA_string_set(op->ptr, "filepath", filepath);
+    return true;
+  }
+
+  return false;
 }
 
 void WM_OT_usd_export(struct wmOperatorType *ot)
@@ -519,9 +539,9 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
   ot->exec = wm_usd_export_exec;
   ot->poll = WM_operator_winactive;
   ot->ui = wm_usd_export_draw;
+  ot->check = wm_usd_export_check;
 
-  ot->flag = OPTYPE_PRESET /* Show preset menu. */
-             | OPTYPE_REGISTER; /* No UNDO possible. */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_PRESET; /* No UNDO possible. */
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_USD,
@@ -840,13 +860,6 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   "Overwrite Textures",
                   "Allow overwriting existing texture files when exporting textures");
 
-  RNA_def_boolean(
-      ot->srna,
-      "relative_texture_paths",
-      true,
-      "Relative Texture Paths",
-      "When checked, material texture asset paths will be saved as relative paths in the USD.");
-
   RNA_def_float(ot->srna,
                 "light_intensity_scale",
                 1.0f,
@@ -885,6 +898,13 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                USD_XFORM_OP_SRT,
                "Xform Ops",
                "The type of transform operators to write");
+
+  RNA_def_boolean(ot->srna,
+                  "relative_paths",
+                  true,
+                  "Relative Paths",
+                  "Use relative paths to reference external files (i.e. textures, volumes) in "
+                  "USD, otherwise use absolute paths");
 }
 
 /* ====== USD Import ====== */
@@ -1244,7 +1264,7 @@ void WM_OT_usd_import(struct wmOperatorType *ot)
       ot->srna,
       "mtl_name_collision_mode",
       rna_enum_usd_mtl_name_collision_mode_items,
-      USD_MTL_NAME_COLLISION_MODIFY,
+      USD_MTL_NAME_COLLISION_MAKE_UNIQUE,
       "Material Name Collision",
       "Behavior when the name of an imported material conflicts with an existing material");
 

@@ -78,6 +78,7 @@
 #include "BKE_modifier.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -1078,14 +1079,18 @@ void DepsgraphNodeBuilder::build_animdata_nlastrip_targets(ListBase *strips)
 
 void DepsgraphNodeBuilder::build_animation_images(ID *id)
 {
-  /* GPU materials might use an animated image. However, these materials have no been built yet. We
-   * could scan the entire node tree recursively to check if any texture node has a video. That is
-   * quite expensive. For now just always add this operation node, because it is very fast. */
-  /* TODO: Add a more precise check when it is cheaper to iterate over all image nodes in a node
-   * tree. */
-  const bool can_have_gpu_material = ELEM(GS(id->name), ID_MA, ID_WO);
+  /* GPU materials might use an animated image. However, these materials have no been built yet so
+   * we have to check if they might be created during evaluation. */
+  bool has_image_animation = false;
+  if (ELEM(GS(id->name), ID_MA, ID_WO)) {
+    bNodeTree *ntree = *BKE_ntree_ptr_from_id(id);
+    if (ntree != nullptr &&
+        ntree->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION) {
+      has_image_animation = true;
+    }
+  }
 
-  if (can_have_gpu_material || BKE_image_user_id_has_animation(id)) {
+  if (has_image_animation || BKE_image_user_id_has_animation(id)) {
     ID *id_cow = get_cow_id(id);
     add_operation_node(
         id,

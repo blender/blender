@@ -237,7 +237,7 @@ unsigned int BLI_filelist_dir_contents(const char *dirname, struct direntry **r_
 }
 
 void BLI_filelist_entry_size_to_string(const struct stat *st,
-                                       const uint64_t sz,
+                                       const uint64_t st_size_fallback,
                                        /* Used to change MB -> M, etc. - is that really useful? */
                                        const bool UNUSED(compact),
                                        char r_size[FILELIST_DIRENTRY_SIZE_LEN])
@@ -247,7 +247,7 @@ void BLI_filelist_entry_size_to_string(const struct stat *st,
    * will buy us some time until files get bigger than 4GB or until
    * everyone starts using __USE_FILE_OFFSET64 or equivalent.
    */
-  double size = (double)(st ? st->st_size : sz);
+  double size = (double)(st ? st->st_size : st_size_fallback);
 #ifdef WIN32
   BLI_str_format_byte_unit(r_size, size, false);
 #else

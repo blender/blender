@@ -123,7 +123,7 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
  * one of the primaries, it lies outside the color gamut
  * accessible from the given triple of primaries.  Desaturate
  * it by adding white, equal quantities of R, G, and B, enough
- * to make RGB all positive.  The function returns 1 if the
+ * to make RGB all positive. The function returns 1 if the
  * components were modified, zero otherwise.
  */
 int constrain_rgb(float *r, float *g, float *b);
@@ -185,9 +185,6 @@ MINLINE void rgba_float_args_set(float col[4], float r, float g, float b, float 
 MINLINE void rgba_uchar_args_test_set(
     unsigned char col[4], unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 MINLINE void cpack_cpy_3ub(unsigned char r_col[3], unsigned int pack);
-
-void blackbody_temperature_to_rgb_table(float *r_table, int width, float min, float max);
-void wavelength_to_xyz_table(float *r_table, int width);
 
 /** \} */
 

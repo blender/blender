@@ -160,7 +160,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Lattice = {
-    /* name */ "Lattice",
+    /* name */ N_("Lattice"),
     /* structName */ "LatticeModifierData",
     /* structSize */ sizeof(LatticeModifierData),
     /* srna */ &RNA_LatticeModifier,

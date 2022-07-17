@@ -33,10 +33,12 @@
 #ifndef CERES_INTERNAL_COMPRESSED_ROW_JACOBIAN_WRITER_H_
 #define CERES_INTERNAL_COMPRESSED_ROW_JACOBIAN_WRITER_H_
 
+#include <memory>
 #include <utility>
 #include <vector>
 
 #include "ceres/evaluator.h"
+#include "ceres/internal/export.h"
 #include "ceres/scratch_evaluate_preparer.h"
 
 namespace ceres {
@@ -46,7 +48,7 @@ class CompressedRowSparseMatrix;
 class Program;
 class SparseMatrix;
 
-class CompressedRowJacobianWriter {
+class CERES_NO_EXPORT CompressedRowJacobianWriter {
  public:
   CompressedRowJacobianWriter(Evaluator::Options /* ignored */,
                               Program* program)
@@ -89,11 +91,12 @@ class CompressedRowJacobianWriter {
   // assumed by the cost functions, use scratch space to store the
   // jacobians temporarily then copy them over to the larger jacobian
   // in the Write() function.
-  ScratchEvaluatePreparer* CreateEvaluatePreparers(int num_threads) {
+  std::unique_ptr<ScratchEvaluatePreparer[]> CreateEvaluatePreparers(
+      int num_threads) {
     return ScratchEvaluatePreparer::Create(*program_, num_threads);
   }
 
-  SparseMatrix* CreateJacobian() const;
+  std::unique_ptr<SparseMatrix> CreateJacobian() const;
 
   void Write(int residual_id,
              int residual_offset,

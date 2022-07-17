@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
@@ -54,8 +52,10 @@ class PARTICLE_MT_context_menu(Menu):
     bl_label = "Particle Specials"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
+        psys = context.particle_system
+        experimental = context.preferences.experimental
 
         props = layout.operator(
             "particle.copy_particle_systems",
@@ -71,6 +71,11 @@ class PARTICLE_MT_context_menu(Menu):
         )
         props.use_active = False
         props.remove_target_particles = True
+
+        if psys.settings.type == 'HAIR':
+            layout.operator(
+                "curves.convert_from_particle_system",
+                text="Convert to Curves")
 
         layout.separator()
 

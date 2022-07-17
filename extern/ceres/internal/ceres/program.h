@@ -37,7 +37,8 @@
 #include <vector>
 
 #include "ceres/evaluation_callback.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 namespace internal {
@@ -57,11 +58,8 @@ class TripletSparseMatrix;
 // another; for example, the first stage of solving involves stripping all
 // constant parameters and residuals. This is in contrast with Problem, which is
 // not built for transformation.
-class CERES_EXPORT_INTERNAL Program {
+class CERES_NO_EXPORT Program {
  public:
-  Program();
-  explicit Program(const Program& program);
-
   // The ordered parameter and residual blocks for the program.
   const std::vector<ParameterBlock*>& parameter_blocks() const;
   const std::vector<ResidualBlock*>& residual_blocks() const;
@@ -72,9 +70,9 @@ class CERES_EXPORT_INTERNAL Program {
   // Serialize to/from the program and update states.
   //
   // NOTE: Setting the state of a parameter block can trigger the
-  // computation of the Jacobian of its local parameterization. If
-  // this computation fails for some reason, then this method returns
-  // false and the state of the parameter blocks cannot be trusted.
+  // computation of the Jacobian of its manifold. If this computation fails for
+  // some reason, then this method returns false and the state of the parameter
+  // blocks cannot be trusted.
   bool StateVectorToParameterBlocks(const double* state);
   void ParameterBlocksToStateVector(double* state) const;
 
@@ -82,8 +80,8 @@ class CERES_EXPORT_INTERNAL Program {
   void CopyParameterBlockStateToUserState();
 
   // Set the parameter block pointers to the user pointers. Since this
-  // runs parameter block set state internally, which may call local
-  // parameterizations, this can fail. False is returned on failure.
+  // runs parameter block set state internally, which may call manifold, this
+  // can fail. False is returned on failure.
   bool SetParameterBlockStatePtrsToUserStatePtrs();
 
   // Update a state vector for the program given a delta.
@@ -146,12 +144,13 @@ class CERES_EXPORT_INTERNAL Program {
   // fixed_cost will be equal to the sum of the costs of the residual
   // blocks that were removed.
   //
-  // If there was a problem, then the function will return a NULL
+  // If there was a problem, then the function will return a nullptr
   // pointer and error will contain a human readable description of
   // the problem.
-  Program* CreateReducedProgram(std::vector<double*>* removed_parameter_blocks,
-                                double* fixed_cost,
-                                std::string* error) const;
+  std::unique_ptr<Program> CreateReducedProgram(
+      std::vector<double*>* removed_parameter_blocks,
+      double* fixed_cost,
+      std::string* error) const;
 
   // See problem.h for what these do.
   int NumParameterBlocks() const;
@@ -195,5 +194,7 @@ class CERES_EXPORT_INTERNAL Program {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_PROGRAM_H_

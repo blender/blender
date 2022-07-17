@@ -3123,7 +3123,7 @@ static bAnimChannelType ACF_DSSIMULATION = {
 /* TODO: just get this from RNA? */
 static int acf_dsgpencil_icon(bAnimListElem *UNUSED(ale))
 {
-  return ICON_GREASEPENCIL;
+  return ICON_OUTLINER_DATA_GREASEPENCIL;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
@@ -4020,6 +4020,8 @@ static bool acf_nlaaction_setting_valid(bAnimContext *UNUSED(ac),
       else {
         return false;
       }
+    case ACHANNEL_SETTING_SELECT: /* selected */
+      return true;
 
     /* unsupported */
     default:
@@ -4039,6 +4041,9 @@ static int acf_nlaaction_setting_flag(bAnimContext *UNUSED(ac),
     case ACHANNEL_SETTING_PINNED: /* pinned - map/unmap */
       *neg = true;                /* XXX */
       return ADT_NLA_EDIT_NOMAP;
+
+    case ACHANNEL_SETTING_SELECT: /* selected */
+      return ADT_UI_SELECTED;
 
     default: /* unsupported */
       return 0;
@@ -4346,15 +4351,15 @@ void ANIM_channel_setting_set(bAnimContext *ac,
 
 /* --------------------------- */
 
-/* size of icons */
+/** Size of icons. */
 #define ICON_WIDTH (0.85f * U.widget_unit)
-/* width of sliders */
+/** Width of sliders. */
 #define SLIDER_WIDTH (4 * U.widget_unit)
-/* min-width of rename textboxes */
+/** Min-width of rename text-boxes. */
 #define RENAME_TEXT_MIN_WIDTH (U.widget_unit)
-/* width of graph editor color bands */
+/** Width of graph editor color bands. */
 #define GRAPH_COLOR_BAND_WIDTH (0.3f * U.widget_unit)
-/* extra offset for the visibility icons in the graph editor */
+/** Extra offset for the visibility icons in the graph editor. */
 #define GRAPH_ICON_VISIBILITY_OFFSET (GRAPH_COLOR_BAND_WIDTH * 1.5f)
 
 /* Helper - Check if a channel needs renaming */
@@ -4742,13 +4747,13 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   RNA_id_pointer_create(id, &id_ptr);
 
   /* Get NLA context for value remapping */
-  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
-                                                                                    (float)CFRA);
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+      depsgraph, (float)scene->r.cfra);
   NlaKeyframingContext *nla_context = BKE_animsys_get_nla_keyframing_context(
       &nla_cache, &id_ptr, adt, &anim_eval_context);
 
   /* get current frame and apply NLA-mapping to it (if applicable) */
-  cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+  cfra = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
 
   /* Get flags for keyframing. */
   flag = ANIM_get_keyframing_flags(scene, true);
@@ -4798,8 +4803,8 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
   RNA_id_pointer_create((ID *)key, &id_ptr);
 
   /* Get NLA context for value remapping */
-  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
-                                                                                    (float)CFRA);
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+      depsgraph, (float)scene->r.cfra);
   NlaKeyframingContext *nla_context = BKE_animsys_get_nla_keyframing_context(
       &nla_cache, &id_ptr, key->adt, &anim_eval_context);
 
@@ -4867,7 +4872,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C,
   float cfra;
 
   /* get current frame - *no* NLA mapping should be done */
-  cfra = (float)CFRA;
+  cfra = (float)scene->r.cfra;
 
   /* get flags for keyframing */
   flag = ANIM_get_keyframing_flags(scene, true);

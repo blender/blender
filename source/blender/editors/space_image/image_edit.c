@@ -20,6 +20,7 @@
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -212,13 +213,7 @@ void ED_space_image_get_size(SpaceImage *sima, int *r_width, int *r_height)
   }
   else if (sima->image && sima->image->type == IMA_TYPE_R_RESULT && scene) {
     /* not very important, just nice */
-    *r_width = (scene->r.xsch * scene->r.size) / 100;
-    *r_height = (scene->r.ysch * scene->r.size) / 100;
-
-    if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
-      *r_width *= BLI_rctf_size_x(&scene->r.border);
-      *r_height *= BLI_rctf_size_y(&scene->r.border);
-    }
+    BKE_render_resolution(&scene->r, true, r_width, r_height);
   }
   /* I know a bit weak... but preview uses not actual image size */
   // XXX else if (image_preview_active(sima, r_width, r_height));
@@ -483,6 +478,16 @@ bool ED_space_image_maskedit_poll(bContext *C)
   return false;
 }
 
+bool ED_space_image_maskedit_visible_splines_poll(bContext *C)
+{
+  if (!ED_space_image_maskedit_poll(C)) {
+    return false;
+  }
+
+  const SpaceImage *space_image = CTX_wm_space_image(C);
+  return space_image->mask_info.draw_flag & MASK_DRAWFLAG_SPLINE;
+}
+
 bool ED_space_image_paint_curve(const bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -506,6 +511,16 @@ bool ED_space_image_maskedit_mask_poll(bContext *C)
   }
 
   return false;
+}
+
+bool ED_space_image_maskedit_mask_visible_splines_poll(bContext *C)
+{
+  if (!ED_space_image_maskedit_mask_poll(C)) {
+    return false;
+  }
+
+  const SpaceImage *space_image = CTX_wm_space_image(C);
+  return space_image->mask_info.draw_flag & MASK_DRAWFLAG_SPLINE;
 }
 
 bool ED_space_image_cursor_poll(bContext *C)

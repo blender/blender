@@ -32,7 +32,7 @@
 #define CERES_INTERNAL_ACCELERATE_SPARSE_H_
 
 // This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 
 #ifndef CERES_NO_ACCELERATE_SPARSE
 
@@ -111,7 +111,7 @@ class AccelerateSparse {
 // An implementation of SparseCholesky interface using Apple's Accelerate
 // framework.
 template <typename Scalar>
-class AppleAccelerateCholesky : public SparseCholesky {
+class AppleAccelerateCholesky final : public SparseCholesky {
  public:
   // Factory
   static std::unique_ptr<SparseCholesky> Create(OrderingType ordering_type);

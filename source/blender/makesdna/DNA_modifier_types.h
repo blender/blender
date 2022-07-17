@@ -178,13 +178,6 @@ typedef enum {
   SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS = 1,
 } eSubsurfBoundarySmooth;
 
-typedef struct SubsurfRuntimeData {
-  /* Cached subdivision surface descriptor, with topology and settings. */
-  struct Subdiv *subdiv;
-  char set_by_draw_code;
-  char _pad[7];
-} SubsurfRuntimeData;
-
 typedef struct SubsurfModifierData {
   ModifierData modifier;
 
@@ -2222,13 +2215,19 @@ typedef struct SurfaceDeformModifierData {
   struct Object *target;
   /** Vertex bind data. */
   SDefVert *verts;
+  void *_pad1;
   float falloff;
-  unsigned int mesh_verts_num, bind_verts_num, polys_num;
+  /* Number of of vertices on the deformed mesh upon the bind process. */
+  unsigned int mesh_verts_num;
+  /* Number of vertices in the `verts` array of this modifier. */
+  unsigned int bind_verts_num;
+  /* Number of vertices and polygons on the target mesh upon bind process. */
+  unsigned int target_verts_num, target_polys_num;
   int flags;
   float mat[4][4];
   float strength;
   char defgrp_name[64];
-  void *_pad1;
+  int _pad2;
 } SurfaceDeformModifierData;
 
 /** Surface Deform modifier flags. */

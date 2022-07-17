@@ -35,7 +35,7 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 
@@ -50,7 +50,7 @@ inline int Uniform(int n) {
 }
 
 inline double RandDouble() {
-  double r = static_cast<double>(rand());
+  auto r = static_cast<double>(rand());
   return r / RAND_MAX;
 }
 

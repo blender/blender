@@ -96,7 +96,7 @@ void weightvg_do_map(
         BLI_assert(do_invert);
         break;
       default:
-        BLI_assert(0);
+        BLI_assert_unreachable();
     }
 
     new_w[i] = do_invert ? 1.0f - fac : fac;
@@ -162,7 +162,6 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
 
       do_color_manage = tex_use_channel != MOD_WVG_MASK_TEX_USE_INT;
 
-      texres.nor = NULL;
       BKE_texture_get_value(scene, texture, tex_co[idx], &texres, do_color_manage);
       /* Get the good channel value... */
       switch (tex_use_channel) {
@@ -206,8 +205,6 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
     MEM_freeN(tex_co);
   }
   else if ((ref_didx = BKE_id_defgroup_name_index(&mesh->id, defgrp_name)) != -1) {
-    MDeformVert *dvert = NULL;
-
     /* Check whether we want to set vgroup weights from a constant weight factor or a vertex
      * group.
      */
@@ -215,7 +212,7 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
 
     /* Proceed only if vgroup is valid, else use constant factor. */
     /* Get actual dverts (ie vertex group data). */
-    dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
+    const MDeformVert *dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
     /* Proceed only if vgroup is valid, else assume factor = O. */
     if (dvert == NULL) {
       return;

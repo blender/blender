@@ -20,6 +20,7 @@
 #include "BLI_string.h"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BKE_anim_data.h"
 #include "BKE_customdata.h"
@@ -44,6 +45,7 @@
 using blender::float3;
 using blender::IndexRange;
 using blender::Span;
+using blender::Vector;
 
 /* PointCloud datablock */
 
@@ -107,26 +109,24 @@ static void pointcloud_blend_write(BlendWriter *writer, ID *id, const void *id_a
 {
   PointCloud *pointcloud = (PointCloud *)id;
 
-  CustomDataLayer *players = nullptr, players_buff[CD_TEMP_CHUNK_SIZE];
-  CustomData_blend_write_prepare(
-      &pointcloud->pdata, &players, players_buff, ARRAY_SIZE(players_buff));
+  Vector<CustomDataLayer, 16> point_layers;
+  CustomData_blend_write_prepare(pointcloud->pdata, point_layers);
 
   /* Write LibData */
   BLO_write_id_struct(writer, PointCloud, id_address, &pointcloud->id);
   BKE_id_blend_write(writer, &pointcloud->id);
 
   /* Direct data */
-  CustomData_blend_write(
-      writer, &pointcloud->pdata, players, pointcloud->totpoint, CD_MASK_ALL, &pointcloud->id);
+  CustomData_blend_write(writer,
+                         &pointcloud->pdata,
+                         point_layers,
+                         pointcloud->totpoint,
+                         CD_MASK_ALL,
+                         &pointcloud->id);
 
   BLO_write_pointer_array(writer, pointcloud->totcol, pointcloud->mat);
   if (pointcloud->adt) {
     BKE_animdata_blend_write(writer, pointcloud->adt);
-  }
-
-  /* Remove temporary data. */
-  if (players && players != players_buff) {
-    MEM_freeN(players);
   }
 }
 
@@ -315,9 +315,9 @@ void BKE_pointcloud_update_customdata_pointers(PointCloud *pointcloud)
       CustomData_get_layer_named(&pointcloud->pdata, CD_PROP_FLOAT, POINTCLOUD_ATTR_RADIUS));
 }
 
-bool BKE_pointcloud_customdata_required(PointCloud *UNUSED(pointcloud), CustomDataLayer *layer)
+bool BKE_pointcloud_customdata_required(const PointCloud *UNUSED(pointcloud), const char *name)
 {
-  return layer->type == CD_PROP_FLOAT3 && STREQ(layer->name, POINTCLOUD_ATTR_POSITION);
+  return STREQ(name, POINTCLOUD_ATTR_POSITION);
 }
 
 /* Dependency Graph */

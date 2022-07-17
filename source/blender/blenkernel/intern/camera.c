@@ -26,6 +26,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.h"
+#include "BKE_action.h"
 #include "BKE_camera.h"
 #include "BKE_idtype.h"
 #include "BKE_layer.h"
@@ -66,14 +67,19 @@ static void camera_init_data(ID *id)
  *
  * \param flag: Copying options (see BKE_lib_id.h's LIB_ID_COPY_... flags for more).
  */
-static void camera_copy_data(Main *UNUSED(bmain),
-                             ID *id_dst,
-                             const ID *id_src,
-                             const int UNUSED(flag))
+static void camera_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, const int flag)
 {
   Camera *cam_dst = (Camera *)id_dst;
   const Camera *cam_src = (const Camera *)id_src;
-  BLI_duplicatelist(&cam_dst->bg_images, &cam_src->bg_images);
+
+  /* We never handle usercount here for own data. */
+  const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
+
+  BLI_listbase_clear(&cam_dst->bg_images);
+  LISTBASE_FOREACH (CameraBGImage *, bgpic_src, &cam_src->bg_images) {
+    CameraBGImage *bgpic_dst = BKE_camera_background_image_copy(bgpic_src, flag_subdata);
+    BLI_addtail(&cam_dst->bg_images, bgpic_dst);
+  }
 }
 
 /** Free (or release) any data used by this camera (does not free the camera itself). */
@@ -125,6 +131,11 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
     bgpic->iuser.scene = NULL;
+
+    /* If linking from a library, clear 'local' library override flag. */
+    if (ID_IS_LINKED(ca)) {
+      bgpic->flag &= ~CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
+    }
   }
 }
 
@@ -211,7 +222,15 @@ float BKE_camera_object_dof_distance(const Object *ob)
   if (cam->dof.focus_object) {
     float view_dir[3], dof_dir[3];
     normalize_v3_v3(view_dir, ob->obmat[2]);
-    sub_v3_v3v3(dof_dir, ob->obmat[3], cam->dof.focus_object->obmat[3]);
+    bPoseChannel *pchan = BKE_pose_channel_find_name(cam->dof.focus_object->pose, cam->dof.focus_subtarget);
+    if (pchan) {
+      float posemat[4][4];
+      mul_m4_m4m4(posemat, cam->dof.focus_object->obmat, pchan->pose_mat);
+      sub_v3_v3v3(dof_dir, ob->obmat[3], posemat[3]);
+    }
+    else {
+      sub_v3_v3v3(dof_dir, ob->obmat[3], cam->dof.focus_object->obmat[3]);
+    }
     return fabsf(dot_v3v3(view_dir, dof_dir));
   }
   return cam->dof.focus_distance;
@@ -302,7 +321,7 @@ void BKE_camera_params_from_object(CameraParams *params, const Object *cam_ob)
 }
 
 void BKE_camera_params_from_view3d(CameraParams *params,
-                                   Depsgraph *depsgraph,
+                                   const Depsgraph *depsgraph,
                                    const View3D *v3d,
                                    const RegionView3D *rv3d)
 {
@@ -518,7 +537,7 @@ void BKE_camera_view_frame_ex(const Scene *scene,
 
   if (do_clip) {
     /* Ensure the frame isn't behind the near clipping plane, T62814. */
-    float fac = (camera->clip_start + 0.1f) / -r_vec[0][2];
+    float fac = ((camera->clip_start + 0.1f) / -r_vec[0][2]) * scale[2];
     for (uint i = 0; i < 4; i++) {
       if (camera->type == CAM_ORTHO) {
         r_vec[i][2] *= fac;
@@ -548,6 +567,11 @@ void BKE_camera_view_frame(const Scene *scene, const Camera *camera, float r_vec
  * \{ */
 
 #define CAMERA_VIEWFRAME_NUM_PLANES 4
+
+#define Y_MIN 0
+#define Y_MAX 1
+#define Z_MIN 2
+#define Z_MAX 3
 
 typedef struct CameraViewFrameData {
   float plane_tx[CAMERA_VIEWFRAME_NUM_PLANES][4]; /* 4 planes normalized */
@@ -612,15 +636,13 @@ static void camera_frame_fit_data_init(const Scene *scene,
   invert_m4(camera_rotmat_transposed_inversed);
 
   /* Extract frustum planes from projection matrix. */
-  planes_from_projmat(
-      params->winmat,
-      /*   left              right                 top              bottom        near  far */
-      data->plane_tx[2],
-      data->plane_tx[0],
-      data->plane_tx[3],
-      data->plane_tx[1],
-      NULL,
-      NULL);
+  planes_from_projmat(params->winmat,
+                      data->plane_tx[Y_MIN],
+                      data->plane_tx[Y_MAX],
+                      data->plane_tx[Z_MIN],
+                      data->plane_tx[Z_MAX],
+                      NULL,
+                      NULL);
 
   /* Rotate planes and get normals from them */
   for (uint i = 0; i < CAMERA_VIEWFRAME_NUM_PLANES; i++) {
@@ -660,21 +682,21 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
     const float *cam_axis_y = data->camera_rotmat[1];
     const float *cam_axis_z = data->camera_rotmat[2];
     const float *dists = data->dist_vals;
-    float scale_diff;
+    const float dist_span_y = dists[Y_MIN] + dists[Y_MAX];
+    const float dist_span_z = dists[Z_MIN] + dists[Z_MAX];
+    const float dist_mid_y = (dists[Y_MIN] - dists[Y_MAX]) * 0.5f;
+    const float dist_mid_z = (dists[Z_MIN] - dists[Z_MAX]) * 0.5f;
+    const float scale_diff = (dist_span_z < dist_span_y) ?
+                                 (dist_span_z * (BLI_rctf_size_x(&params->viewplane) /
+                                                 BLI_rctf_size_y(&params->viewplane))) :
+                                 (dist_span_y * (BLI_rctf_size_y(&params->viewplane) /
+                                                 BLI_rctf_size_x(&params->viewplane)));
 
-    if ((dists[0] + dists[2]) > (dists[1] + dists[3])) {
-      scale_diff = (dists[1] + dists[3]) *
-                   (BLI_rctf_size_x(&params->viewplane) / BLI_rctf_size_y(&params->viewplane));
-    }
-    else {
-      scale_diff = (dists[0] + dists[2]) *
-                   (BLI_rctf_size_y(&params->viewplane) / BLI_rctf_size_x(&params->viewplane));
-    }
     *r_scale = params->ortho_scale - scale_diff;
 
     zero_v3(r_co);
-    madd_v3_v3fl(r_co, cam_axis_x, (dists[2] - dists[0]) * 0.5f + params->shiftx * scale_diff);
-    madd_v3_v3fl(r_co, cam_axis_y, (dists[1] - dists[3]) * 0.5f + params->shifty * scale_diff);
+    madd_v3_v3fl(r_co, cam_axis_x, dist_mid_y + (params->shiftx * scale_diff));
+    madd_v3_v3fl(r_co, cam_axis_y, dist_mid_z + (params->shifty * scale_diff));
     madd_v3_v3fl(r_co, cam_axis_z, -(data->z_range[0] - 1.0f - params->clip_start));
   }
   else {
@@ -690,36 +712,37 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
       plane_from_point_normal_v3(plane_tx[i], co, data->plane_tx[i]);
     }
 
-    if ((!isect_plane_plane_v3(plane_tx[0], plane_tx[2], plane_isect_1, plane_isect_1_no)) ||
-        (!isect_plane_plane_v3(plane_tx[1], plane_tx[3], plane_isect_2, plane_isect_2_no))) {
+    if ((!isect_plane_plane_v3(
+            plane_tx[Y_MIN], plane_tx[Y_MAX], plane_isect_1, plane_isect_1_no)) ||
+        (!isect_plane_plane_v3(
+            plane_tx[Z_MIN], plane_tx[Z_MAX], plane_isect_2, plane_isect_2_no))) {
       return false;
     }
 
     add_v3_v3v3(plane_isect_1_other, plane_isect_1, plane_isect_1_no);
     add_v3_v3v3(plane_isect_2_other, plane_isect_2, plane_isect_2_no);
 
-    if (isect_line_line_v3(plane_isect_1,
-                           plane_isect_1_other,
-                           plane_isect_2,
-                           plane_isect_2_other,
-                           plane_isect_pt_1,
-                           plane_isect_pt_2) == 0) {
+    if (!isect_line_line_v3(plane_isect_1,
+                            plane_isect_1_other,
+                            plane_isect_2,
+                            plane_isect_2_other,
+                            plane_isect_pt_1,
+                            plane_isect_pt_2)) {
       return false;
     }
 
     float cam_plane_no[3];
     float plane_isect_delta[3];
-    float plane_isect_delta_len;
 
-    float shift_fac = BKE_camera_sensor_size(
-                          params->sensor_fit, params->sensor_x, params->sensor_y) /
-                      params->lens;
+    const float shift_fac = BKE_camera_sensor_size(
+                                params->sensor_fit, params->sensor_x, params->sensor_y) /
+                            params->lens;
 
     /* we want (0, 0, -1) transformed by camera_rotmat, this is a quicker shortcut. */
     negate_v3_v3(cam_plane_no, data->camera_rotmat[2]);
 
     sub_v3_v3v3(plane_isect_delta, plane_isect_pt_2, plane_isect_pt_1);
-    plane_isect_delta_len = len_v3(plane_isect_delta);
+    const float plane_isect_delta_len = len_v3(plane_isect_delta);
 
     if (dot_v3v3(plane_isect_delta, cam_plane_no) > 0.0f) {
       copy_v3_v3(r_co, plane_isect_pt_1);
@@ -744,6 +767,11 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
   }
   return true;
 }
+
+#undef Y_MIN
+#undef Y_MAX
+#undef Z_MIN
+#undef Z_MAX
 
 bool BKE_camera_view_frame_fit_to_scene(Depsgraph *depsgraph,
                                         const Scene *scene,
@@ -1119,11 +1147,29 @@ CameraBGImage *BKE_camera_background_image_new(Camera *cam)
   bgpic->scale = 1.0f;
   bgpic->alpha = 0.5f;
   bgpic->iuser.flag |= IMA_ANIM_ALWAYS;
-  bgpic->flag |= CAM_BGIMG_FLAG_EXPANDED;
+  bgpic->flag |= CAM_BGIMG_FLAG_EXPANDED | CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
 
   BLI_addtail(&cam->bg_images, bgpic);
 
   return bgpic;
+}
+
+CameraBGImage *BKE_camera_background_image_copy(CameraBGImage *bgpic_src, const int flag)
+{
+  CameraBGImage *bgpic_dst = MEM_dupallocN(bgpic_src);
+
+  bgpic_dst->next = bgpic_dst->prev = NULL;
+
+  if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+    id_us_plus((ID *)bgpic_dst->ima);
+    id_us_plus((ID *)bgpic_dst->clip);
+  }
+
+  if ((flag & LIB_ID_COPY_NO_LIB_OVERRIDE_LOCAL_DATA_FLAG) == 0) {
+    bgpic_dst->flag |= CAM_BGIMG_FLAG_OVERRIDE_LIBRARY_LOCAL;
+  }
+
+  return bgpic_dst;
 }
 
 void BKE_camera_background_image_remove(Camera *cam, CameraBGImage *bgpic)

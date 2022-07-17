@@ -21,7 +21,7 @@ OutputOpenExrSingleLayerMultiViewOperation::OutputOpenExrSingleLayerMultiViewOpe
     const RenderData *rd,
     const bNodeTree *tree,
     DataType datatype,
-    ImageFormatData *format,
+    const ImageFormatData *format,
     const char *path,
     const char *view_name,
     const bool save_as_render)
@@ -243,7 +243,7 @@ OutputStereoOperation::OutputStereoOperation(const Scene *scene,
                                              const RenderData *rd,
                                              const bNodeTree *tree,
                                              DataType datatype,
-                                             ImageFormatData *format,
+                                             const ImageFormatData *format,
                                              const char *path,
                                              const char *name,
                                              const char *view_name,
@@ -325,7 +325,6 @@ void OutputStereoOperation::deinit_execution()
 
         /* do colormanagement in the individual views, so it doesn't need to do in the stereo */
         IMB_colormanagement_imbuf_for_write(ibuf[i], true, false, &format_);
-        IMB_prepare_write_ImBuf(IMB_isfloat(ibuf[i]), ibuf[i]);
       }
 
       /* create stereo buffer */

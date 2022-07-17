@@ -19,8 +19,10 @@ struct NodeEnum {
   }
   void insert(const char *x, int y)
   {
-    left[ustring(x)] = y;
-    right[y] = ustring(x);
+    ustring ustr_x(x);
+
+    left[ustr_x] = y;
+    right[y] = ustr_x;
   }
 
   bool exists(ustring x) const

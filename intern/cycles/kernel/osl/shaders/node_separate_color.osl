@@ -1,0 +1,26 @@
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
+
+#include "node_color.h"
+#include "stdcycles.h"
+
+shader node_separate_color(string color_type = "rgb",
+                           color Color = 0.8,
+                           output float Red = 0.0,
+                           output float Green = 0.0,
+                           output float Blue = 0.0)
+{
+  color col;
+  if (color_type == "rgb")
+    col = Color;
+  else if (color_type == "hsv")
+    col = rgb_to_hsv(Color);
+  else if (color_type == "hsl")
+    col = rgb_to_hsl(Color);
+  else
+    warning("%s", "Unknown color space!");
+
+  Red = col[0];
+  Green = col[1];
+  Blue = col[2];
+}

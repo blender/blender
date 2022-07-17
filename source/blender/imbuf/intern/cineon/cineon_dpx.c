@@ -69,7 +69,7 @@ static struct ImBuf *imb_load_dpx_cineon(const unsigned char *mem,
   return ibuf;
 }
 
-static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon, int flags)
+static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filepath, int use_cineon, int flags)
 {
   LogImageFile *logImage;
   float *fbuf;
@@ -86,7 +86,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
 
   depth = (ibuf->planes + 7) >> 3;
   if (depth > 4 || depth < 3) {
-    printf("DPX/Cineon: unsupported depth: %d for file: '%s'\n", depth, filename);
+    printf("DPX/Cineon: unsupported depth: %d for file: '%s'\n", depth, filepath);
     return 0;
   }
 
@@ -103,7 +103,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
     bitspersample = 8;
   }
 
-  logImage = logImageCreate(filename,
+  logImage = logImageCreate(filepath,
                             use_cineon,
                             ibuf->x,
                             ibuf->y,
@@ -121,8 +121,8 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
   }
 
   if (ibuf->rect_float != NULL && bitspersample != 8) {
-    /* don't use the float buffer to save 8 bpp picture to prevent color banding
-     * (there's no dithering algorithm behind the logImageSetDataRGBA function) */
+    /* Don't use the float buffer to save 8 BPP picture to prevent color banding
+     * (there's no dithering algorithm behind the #logImageSetDataRGBA function). */
 
     fbuf = (float *)MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y,
                                 "fbuf in imb_save_dpx_cineon");

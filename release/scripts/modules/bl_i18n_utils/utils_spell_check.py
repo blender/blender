@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 import enchant
 import os
 import pickle
@@ -435,6 +433,7 @@ class SpellChecker:
         "polyline", "polylines",
         "probabilistically",
         "pulldown", "pulldowns",
+        "quadratically",
         "quantized",
         "quartic",
         "quaternion", "quaternions",
@@ -503,6 +502,7 @@ class SpellChecker:
         "luminance",
         "mantaflow",
         "matcap",
+        "microfacet",
         "midtones",
         "mipmap", "mipmaps", "mip",
         "ngon", "ngons",
@@ -510,6 +510,7 @@ class SpellChecker:
         "nurb", "nurbs",
         "perlin",
         "phong",
+        "photorealistic",
         "pinlight",
         "posterize",
         "qi",
@@ -677,7 +678,7 @@ class SpellChecker:
         "ascii",
         "atrac",
         "avx",
-        "bsdf",
+        "bsdf", "bsdfs",
         "bssrdf",
         "bw",
         "ccd",
@@ -710,14 +711,17 @@ class SpellChecker:
         "hdc",
         "hdr", "hdri", "hdris",
         "hh", "mm", "ss", "ff",  # hh:mm:ss:ff timecode
+        "hpg",  # Intel Xe-HPG architecture
         "hsv", "hsva", "hsl",
         "id",
         "ies",
         "ior",
         "itu",
         "jonswap",
+        "lfe",
         "lhs",
         "lmb", "mmb", "rmb",
+        "lscm",
         "kb",
         "mocap",
         "msgid", "msgids",

@@ -66,15 +66,18 @@ eSelectOp ED_select_op_modal(const eSelectOp sel_op, const bool is_first)
   return sel_op;
 }
 
-int ED_select_similar_compare_float(const float delta, const float thresh, const int compare)
+bool ED_select_similar_compare_float(const float delta,
+                                     const float thresh,
+                                     const eSimilarCmp compare)
 {
+  BLI_assert(thresh >= 0.0f);
   switch (compare) {
     case SIM_CMP_EQ:
       return (fabsf(delta) <= thresh);
     case SIM_CMP_GT:
-      return ((delta + thresh) >= 0.0);
+      return ((delta + thresh) >= 0.0f);
     case SIM_CMP_LT:
-      return ((delta - thresh) <= 0.0);
+      return ((delta - thresh) <= 0.0f);
     default:
       BLI_assert_unreachable();
       return 0;
@@ -84,8 +87,10 @@ int ED_select_similar_compare_float(const float delta, const float thresh, const
 bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
                                           const float length,
                                           const float thresh,
-                                          const int compare)
+                                          const eSimilarCmp compare)
 {
+  BLI_assert(compare == SIM_CMP_EQ || length >= 0.0f); /* See precision note below. */
+
   /* Length of the edge we want to compare against. */
   float nearest_edge_length;
 
@@ -112,6 +117,7 @@ bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
 
   KDTreeNearest_1d nearest;
   if (BLI_kdtree_1d_find_nearest(tree, &nearest_edge_length, &nearest) != -1) {
+    BLI_assert(compare == SIM_CMP_EQ || nearest.co[0] >= 0.0f); /* See precision note above. */
     float delta = length - nearest.co[0];
     return ED_select_similar_compare_float(delta, thresh, compare);
   }
@@ -119,11 +125,11 @@ bool ED_select_similar_compare_float_tree(const KDTree_1d *tree,
   return false;
 }
 
-eSelectOp ED_select_op_from_operator(wmOperator *op)
+eSelectOp ED_select_op_from_operator(PointerRNA *ptr)
 {
-  const bool extend = RNA_boolean_get(op->ptr, "extend");
-  const bool deselect = RNA_boolean_get(op->ptr, "deselect");
-  const bool toggle = RNA_boolean_get(op->ptr, "toggle");
+  const bool extend = RNA_boolean_get(ptr, "extend");
+  const bool deselect = RNA_boolean_get(ptr, "deselect");
+  const bool toggle = RNA_boolean_get(ptr, "toggle");
 
   if (extend) {
     return SEL_OP_ADD;
@@ -137,10 +143,56 @@ eSelectOp ED_select_op_from_operator(wmOperator *op)
   return SEL_OP_SET;
 }
 
-void ED_select_pick_params_from_operator(wmOperator *op, struct SelectPick_Params *params)
+void ED_select_pick_params_from_operator(PointerRNA *ptr, struct SelectPick_Params *params)
 {
   memset(params, 0x0, sizeof(*params));
-  params->sel_op = ED_select_op_from_operator(op);
-  params->deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
-  params->select_passthrough = RNA_boolean_get(op->ptr, "select_passthrough");
+  params->sel_op = ED_select_op_from_operator(ptr);
+  params->deselect_all = RNA_boolean_get(ptr, "deselect_all");
+  params->select_passthrough = RNA_boolean_get(ptr, "select_passthrough");
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Naming Callbacks
+ * \{ */
+
+const char *ED_select_pick_get_name(wmOperatorType *UNUSED(ot), PointerRNA *ptr)
+{
+  struct SelectPick_Params params = {0};
+  ED_select_pick_params_from_operator(ptr, &params);
+  switch (params.sel_op) {
+    case SEL_OP_ADD:
+      return "Select (Extend)";
+    case SEL_OP_SUB:
+      return "Select (Deselect)";
+    case SEL_OP_XOR:
+      return "Select (Toggle)";
+    case SEL_OP_AND:
+      BLI_assert_unreachable();
+      ATTR_FALLTHROUGH;
+    case SEL_OP_SET:
+      break;
+  }
+  return "Select";
+}
+
+const char *ED_select_circle_get_name(wmOperatorType *UNUSED(ot), PointerRNA *ptr)
+{
+  /* Matches options in #WM_operator_properties_select_operation_simple */
+  const eSelectOp sel_op = RNA_enum_get(ptr, "mode");
+  switch (sel_op) {
+    case SEL_OP_ADD:
+      return "Circle Select (Extend)";
+    case SEL_OP_SUB:
+      return "Circle Select (Deselect)";
+    case SEL_OP_XOR:
+      ATTR_FALLTHROUGH;
+    case SEL_OP_AND:
+      BLI_assert_unreachable();
+      ATTR_FALLTHROUGH;
+    case SEL_OP_SET:
+      break;
+  }
+  return "Circle Select";
+}
+
+/** \} */

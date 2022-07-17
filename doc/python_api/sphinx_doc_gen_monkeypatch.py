@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 bpy_types_Operator_bl_property__doc__ = (
     """
 The name of a property to use as this operators primary property.

@@ -36,9 +36,10 @@
 
 // This include must come before any #ifndef check on Ceres compile options.
 // clang-format off
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 // clang-format on
 
+#include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
 
 namespace ceres {
@@ -53,12 +54,10 @@ class CompressedRowSparseMatrix;
 //
 // TODO(alex): Add support for Accelerate sparse solvers:
 // https://github.com/ceres-solver/ceres-solver/issues/397
-class DynamicSparseNormalCholeskySolver
+class CERES_NO_EXPORT DynamicSparseNormalCholeskySolver
     : public CompressedRowSparseMatrixSolver {
  public:
-  explicit DynamicSparseNormalCholeskySolver(
-      const LinearSolver::Options& options);
-  virtual ~DynamicSparseNormalCholeskySolver() {}
+  explicit DynamicSparseNormalCholeskySolver(LinearSolver::Options options);
 
  private:
   LinearSolver::Summary SolveImpl(CompressedRowSparseMatrix* A,

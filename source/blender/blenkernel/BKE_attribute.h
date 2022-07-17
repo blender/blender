@@ -22,7 +22,7 @@ struct ID;
 struct ReportList;
 
 /** #Attribute.domain */
-typedef enum AttributeDomain {
+typedef enum eAttrDomain {
   ATTR_DOMAIN_AUTO = -1,    /* Use for nodes to choose automatically based on other data. */
   ATTR_DOMAIN_POINT = 0,    /* Mesh, Curve or Point Cloud Point */
   ATTR_DOMAIN_EDGE = 1,     /* Mesh Edge */
@@ -30,52 +30,64 @@ typedef enum AttributeDomain {
   ATTR_DOMAIN_CORNER = 3,   /* Mesh Corner */
   ATTR_DOMAIN_CURVE = 4,    /* A single curve in a larger curve data-block */
   ATTR_DOMAIN_INSTANCE = 5, /* Instance */
+} eAttrDomain;
+#define ATTR_DOMAIN_NUM 6
 
-  ATTR_DOMAIN_NUM
-} AttributeDomain;
-
-typedef enum AttributeDomainMask {
+typedef enum eAttrDomainMask {
   ATTR_DOMAIN_MASK_POINT = (1 << 0),
   ATTR_DOMAIN_MASK_EDGE = (1 << 1),
   ATTR_DOMAIN_MASK_FACE = (1 << 2),
   ATTR_DOMAIN_MASK_CORNER = (1 << 3),
   ATTR_DOMAIN_MASK_CURVE = (1 << 4),
   ATTR_DOMAIN_MASK_ALL = (1 << 5) - 1
-} AttributeDomainMask;
+} eAttrDomainMask;
+
+#define ATTR_DOMAIN_AS_MASK(domain) ((eAttrDomainMask)((1 << (int)(domain))))
 
 /* All domains that support color attributes. */
 #define ATTR_DOMAIN_MASK_COLOR \
-  ((AttributeDomainMask)((ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER)))
+  ((eAttrDomainMask)((ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER)))
 
 /* Attributes. */
 
-bool BKE_id_attributes_supported(struct ID *id);
+bool BKE_id_attributes_supported(const struct ID *id);
+bool BKE_attribute_allow_procedural_access(const char *attribute_name);
 
 /**
  * Create a new attribute layer.
  */
 struct CustomDataLayer *BKE_id_attribute_new(
-    struct ID *id, const char *name, int type, AttributeDomain domain, struct ReportList *reports);
-bool BKE_id_attribute_remove(struct ID *id,
-                             struct CustomDataLayer *layer,
-                             struct ReportList *reports);
+    struct ID *id, const char *name, int type, eAttrDomain domain, struct ReportList *reports);
+bool BKE_id_attribute_remove(struct ID *id, const char *name, struct ReportList *reports);
+
+/**
+ * Creates a duplicate attribute layer.
+ */
+struct CustomDataLayer *BKE_id_attribute_duplicate(struct ID *id,
+                                                   const char *name,
+                                                   struct ReportList *reports);
 
 struct CustomDataLayer *BKE_id_attribute_find(const struct ID *id,
                                               const char *name,
                                               int type,
-                                              AttributeDomain domain);
+                                              eAttrDomain domain);
 
-AttributeDomain BKE_id_attribute_domain(const struct ID *id, const struct CustomDataLayer *layer);
+struct CustomDataLayer *BKE_id_attribute_search(struct ID *id,
+                                                const char *name,
+                                                eCustomDataMask type,
+                                                eAttrDomainMask domain_mask);
+
+eAttrDomain BKE_id_attribute_domain(const struct ID *id, const struct CustomDataLayer *layer);
 int BKE_id_attribute_data_length(struct ID *id, struct CustomDataLayer *layer);
-bool BKE_id_attribute_required(struct ID *id, struct CustomDataLayer *layer);
+bool BKE_id_attribute_required(const struct ID *id, const char *name);
 bool BKE_id_attribute_rename(struct ID *id,
-                             struct CustomDataLayer *layer,
+                             const char *old_name,
                              const char *new_name,
                              struct ReportList *reports);
 
 int BKE_id_attributes_length(const struct ID *id,
-                             AttributeDomainMask domain_mask,
-                             CustomDataMask mask);
+                             eAttrDomainMask domain_mask,
+                             eCustomDataMask mask);
 
 struct CustomDataLayer *BKE_id_attributes_active_get(struct ID *id);
 void BKE_id_attributes_active_set(struct ID *id, struct CustomDataLayer *layer);
@@ -84,24 +96,24 @@ int *BKE_id_attributes_active_index_p(struct ID *id);
 CustomData *BKE_id_attributes_iterator_next_domain(struct ID *id, struct CustomDataLayer *layers);
 CustomDataLayer *BKE_id_attribute_from_index(struct ID *id,
                                              int lookup_index,
-                                             AttributeDomainMask domain_mask,
-                                             CustomDataMask layer_mask);
+                                             eAttrDomainMask domain_mask,
+                                             eCustomDataMask layer_mask);
 
 /** Layer is allowed to be nullptr; if so -1 (layer not found) will be returned. */
 int BKE_id_attribute_to_index(const struct ID *id,
                               const CustomDataLayer *layer,
-                              AttributeDomainMask domain_mask,
-                              CustomDataMask layer_mask);
+                              eAttrDomainMask domain_mask,
+                              eCustomDataMask layer_mask);
 
 struct CustomDataLayer *BKE_id_attribute_subset_active_get(const struct ID *id,
                                                            int active_flag,
-                                                           AttributeDomainMask domain_mask,
-                                                           CustomDataMask mask);
+                                                           eAttrDomainMask domain_mask,
+                                                           eCustomDataMask mask);
 void BKE_id_attribute_subset_active_set(struct ID *id,
                                         struct CustomDataLayer *layer,
                                         int active_flag,
-                                        AttributeDomainMask domain_mask,
-                                        CustomDataMask mask);
+                                        eAttrDomainMask domain_mask,
+                                        eCustomDataMask mask);
 
 /**
  * Sets up a temporary ID with arbitrary CustomData domains. `r_id` will

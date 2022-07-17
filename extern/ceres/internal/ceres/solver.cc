@@ -41,7 +41,7 @@
 #include "ceres/context_impl.h"
 #include "ceres/detect_structure.h"
 #include "ceres/gradient_checking_cost_function.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/parameter_block_ordering.h"
 #include "ceres/preprocessor.h"
 #include "ceres/problem.h"
@@ -141,16 +141,20 @@ bool TrustRegionOptionsAreValid(const Solver::Options& options, string* error) {
     return false;
   }
 
-  if (options.dense_linear_algebra_library_type == LAPACK &&
-      !IsDenseLinearAlgebraLibraryTypeAvailable(LAPACK) &&
+  if (!IsDenseLinearAlgebraLibraryTypeAvailable(
+          options.dense_linear_algebra_library_type) &&
       (options.linear_solver_type == DENSE_NORMAL_CHOLESKY ||
        options.linear_solver_type == DENSE_QR ||
        options.linear_solver_type == DENSE_SCHUR)) {
     *error = StringPrintf(
         "Can't use %s with "
-        "Solver::Options::dense_linear_algebra_library_type = LAPACK "
-        "because LAPACK was not enabled when Ceres was built.",
-        LinearSolverTypeToString(options.linear_solver_type));
+        "Solver::Options::dense_linear_algebra_library_type = %s "
+        "because %s was not enabled when Ceres was built.",
+        LinearSolverTypeToString(options.linear_solver_type),
+        DenseLinearAlgebraLibraryTypeToString(
+            options.dense_linear_algebra_library_type),
+        DenseLinearAlgebraLibraryTypeToString(
+            options.dense_linear_algebra_library_type));
     return false;
   }
 
@@ -367,7 +371,7 @@ void PostSolveSummarize(const internal::PreprocessedProblem& pp,
                                  &(summary->inner_iteration_ordering_used));
 
   // clang-format off
-  summary->inner_iterations_used          = pp.inner_iteration_minimizer.get() != NULL;     // NOLINT
+  summary->inner_iterations_used          = pp.inner_iteration_minimizer.get() != nullptr;     // NOLINT
   summary->linear_solver_type_used        = pp.linear_solver_options.type;
   summary->num_threads_used               = pp.options.num_threads;
   summary->preconditioner_type_used       = pp.options.preconditioner_type;
@@ -375,7 +379,7 @@ void PostSolveSummarize(const internal::PreprocessedProblem& pp,
 
   internal::SetSummaryFinalCost(summary);
 
-  if (pp.reduced_program.get() != NULL) {
+  if (pp.reduced_program.get() != nullptr) {
     SummarizeReducedProgram(*pp.reduced_program, summary);
   }
 
@@ -385,7 +389,7 @@ void PostSolveSummarize(const internal::PreprocessedProblem& pp,
   // case if the preprocessor failed, or if the reduced problem did
   // not contain any parameter blocks. Thus, only extract the
   // evaluator statistics if one exists.
-  if (pp.evaluator.get() != NULL) {
+  if (pp.evaluator.get() != nullptr) {
     const map<string, CallStatistics>& evaluator_statistics =
         pp.evaluator->Statistics();
     {
@@ -407,7 +411,7 @@ void PostSolveSummarize(const internal::PreprocessedProblem& pp,
   // Again, like the evaluator, there may or may not be a linear
   // solver from which we can extract run time statistics. In
   // particular the line search solver does not use a linear solver.
-  if (pp.linear_solver.get() != NULL) {
+  if (pp.linear_solver.get() != nullptr) {
     const map<string, CallStatistics>& linear_solver_statistics =
         pp.linear_solver->Statistics();
     const CallStatistics& call_stats = FindWithDefault(
@@ -436,8 +440,7 @@ void Minimize(internal::PreprocessedProblem* pp, Solver::Summary* summary) {
   }
 
   const Vector original_reduced_parameters = pp->reduced_parameters;
-  std::unique_ptr<Minimizer> minimizer(
-      Minimizer::Create(pp->options.minimizer_type));
+  auto minimizer = Minimizer::Create(pp->options.minimizer_type);
   minimizer->Minimize(
       pp->minimizer_options, pp->reduced_parameters.data(), summary);
 
@@ -485,7 +488,7 @@ bool Solver::Options::IsValid(string* error) const {
   return LineSearchOptionsAreValid(*this, error);
 }
 
-Solver::~Solver() {}
+Solver::~Solver() = default;
 
 void Solver::Solve(const Solver::Options& options,
                    Problem* problem,
@@ -518,11 +521,11 @@ void Solver::Solve(const Solver::Options& options,
   Solver::Options modified_options = options;
   if (options.check_gradients) {
     modified_options.callbacks.push_back(&gradient_checking_callback);
-    gradient_checking_problem.reset(CreateGradientCheckingProblemImpl(
+    gradient_checking_problem = CreateGradientCheckingProblemImpl(
         problem_impl,
         options.gradient_check_numeric_derivative_relative_step_size,
         options.gradient_check_relative_precision,
-        &gradient_checking_callback));
+        &gradient_checking_callback);
     problem_impl = gradient_checking_problem.get();
     program = problem_impl->mutable_program();
   }
@@ -534,8 +537,7 @@ void Solver::Solve(const Solver::Options& options,
   // The main thread also does work so we only need to launch num_threads - 1.
   problem_impl->context()->EnsureMinimumThreads(options.num_threads - 1);
 
-  std::unique_ptr<Preprocessor> preprocessor(
-      Preprocessor::Create(modified_options.minimizer_type));
+  auto preprocessor = Preprocessor::Create(modified_options.minimizer_type);
   PreprocessedProblem pp;
 
   const bool status =

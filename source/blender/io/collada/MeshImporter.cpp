@@ -145,6 +145,27 @@ VCOLDataWrapper::VCOLDataWrapper(COLLADAFW::MeshVertexData &vdata) : mVData(&vda
 {
 }
 
+template<typename T>
+static void colladaAddColor(T values, MLoopCol *mloopcol, int v_index, int stride)
+{
+  if (values->empty() || values->getCount() < (v_index + 1) * stride) {
+    fprintf(stderr,
+            "VCOLDataWrapper.getvcol(): Out of Bounds error: index %d points outside value "
+            "list of length %zd (with stride=%d) \n",
+            v_index,
+            values->getCount(),
+            stride);
+    return;
+  }
+
+  mloopcol->r = unit_float_to_uchar_clamp((*values)[v_index * stride]);
+  mloopcol->g = unit_float_to_uchar_clamp((*values)[v_index * stride + 1]);
+  mloopcol->b = unit_float_to_uchar_clamp((*values)[v_index * stride + 2]);
+  if (stride == 4) {
+    mloopcol->a = unit_float_to_uchar_clamp((*values)[v_index * stride + 3]);
+  }
+}
+
 void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 {
   int stride = mVData->getStride(0);
@@ -155,25 +176,14 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
   switch (mVData->getType()) {
     case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT: {
       COLLADAFW::ArrayPrimitiveType<float> *values = mVData->getFloatValues();
-      if (values->empty() || values->getCount() <= (v_index * stride + 2)) {
-        return; /* XXX: need to create an error instead. */
-      }
-
-      mloopcol->r = unit_float_to_uchar_clamp((*values)[v_index * stride]);
-      mloopcol->g = unit_float_to_uchar_clamp((*values)[v_index * stride + 1]);
-      mloopcol->b = unit_float_to_uchar_clamp((*values)[v_index * stride + 2]);
+      colladaAddColor<COLLADAFW::ArrayPrimitiveType<float> *>(values, mloopcol, v_index, stride);
     } break;
 
     case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE: {
       COLLADAFW::ArrayPrimitiveType<double> *values = mVData->getDoubleValues();
-      if (values->empty() || values->getCount() <= (v_index * stride + 2)) {
-        return; /* XXX: need to create an error instead. */
-      }
-
-      mloopcol->r = unit_float_to_uchar_clamp((*values)[v_index * stride]);
-      mloopcol->g = unit_float_to_uchar_clamp((*values)[v_index * stride + 1]);
-      mloopcol->b = unit_float_to_uchar_clamp((*values)[v_index * stride + 2]);
+      colladaAddColor<COLLADAFW::ArrayPrimitiveType<double> *>(values, mloopcol, v_index, stride);
     } break;
+
     default:
       fprintf(stderr, "VCOLDataWrapper.getvcol(): unknown data type\n");
   }

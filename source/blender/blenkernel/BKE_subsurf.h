@@ -61,27 +61,6 @@ int BKE_ccg_gridsize(int level);
  */
 int BKE_ccg_factor(int low_level, int high_level);
 
-/**
- * Translate #GridHidden into the #ME_HIDE flag for MVerts. Assumes
- * vertices are in the order output by #ccgDM_copyFinalVertArray.
- */
-void subsurf_copy_grid_hidden(struct DerivedMesh *dm,
-                              const struct MPoly *mpoly,
-                              struct MVert *mvert,
-                              const struct MDisps *mdisps);
-
-/**
- * Translate #GridPaintMask into vertex paint masks. Assumes vertices
- * are in the order output by #ccgDM_copyFinalVertArray.
- */
-void subsurf_copy_grid_paint_mask(struct DerivedMesh *dm,
-                                  const struct MPoly *mpoly,
-                                  float *paint_mask,
-                                  const struct GridPaintMask *grid_paint_mask);
-
-bool subsurf_has_edges(struct DerivedMesh *dm);
-bool subsurf_has_faces(struct DerivedMesh *dm);
-
 typedef enum MultiresModifiedFlags {
   /* indicates the grids have been sculpted on, so MDisps
    * have to be updated */

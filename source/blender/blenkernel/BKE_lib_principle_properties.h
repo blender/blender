@@ -40,7 +40,7 @@ struct ReportList;
 struct IDPrincipleProperties *BKE_lib_principleprop_init(struct ID *id);
 #if 0
 /**
- * Shallow or deep copy of a whole princple properties from \a src_id to \a dst_id.
+ * Shallow or deep copy of a whole principle properties from \a src_id to \a dst_id.
  */
 void BKE_lib_principleprop_copy(struct ID *dst_id, const struct ID *src_id, bool do_full_copy);
 #endif

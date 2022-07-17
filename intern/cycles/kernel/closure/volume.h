@@ -166,7 +166,7 @@ ccl_device int volume_phase_sample(ccl_private const ShaderData *sd,
 
 ccl_device float3 volume_color_transmittance(float3 sigma, float t)
 {
-  return exp3(-sigma * t);
+  return exp(-sigma * t);
 }
 
 ccl_device float volume_channel_get(float3 value, int channel)

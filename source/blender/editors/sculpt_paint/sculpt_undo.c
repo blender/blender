@@ -50,6 +50,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_geometry.h"
 #include "ED_object.h"
 #include "ED_sculpt.h"
 #include "ED_undo.h"
@@ -105,7 +106,7 @@ typedef struct UndoSculpt {
 } UndoSculpt;
 
 typedef struct SculptAttrRef {
-  AttributeDomain domain;
+  eAttrDomain domain;
   int type;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   bool was_set;
@@ -854,7 +855,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
     if (tag_update) {
       Mesh *mesh = ob->data;
-      BKE_mesh_normals_tag_dirty(mesh);
+      BKE_mesh_tag_coords_changed(mesh);
 
       BKE_sculptsession_free_deformMats(ss);
     }
@@ -960,7 +961,7 @@ static bool sculpt_undo_cleanup(bContext *C, ListBase *lb)
 }
 #endif
 
-SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node)
+SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type)
 {
   UndoSculpt *usculpt = sculpt_undo_get_nodes();
 
@@ -968,7 +969,13 @@ SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node)
     return NULL;
   }
 
-  return BLI_findptr(&usculpt->nodes, node, offsetof(SculptUndoNode, node));
+  LISTBASE_FOREACH (SculptUndoNode *, unode, &usculpt->nodes) {
+    if (unode->node == node && unode->type == type) {
+      return unode;
+    }
+  }
+
+  return NULL;
 }
 
 SculptUndoNode *SCULPT_undo_get_first_node()
@@ -1265,7 +1272,7 @@ static SculptUndoNode *sculpt_undo_face_sets_push(Object *ob, SculptUndoType typ
 
   unode->face_sets = MEM_callocN(me->totpoly * sizeof(int), "sculpt face sets");
 
-  int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
+  const int *face_sets = CustomData_get_layer(&me->pdata, CD_SCULPT_FACE_SETS);
   for (int i = 0; i < me->totpoly; i++) {
     unode->face_sets[i] = face_sets[i];
   }
@@ -1380,7 +1387,7 @@ SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
-  if ((unode = SCULPT_undo_get_node(node))) {
+  if ((unode = SCULPT_undo_get_node(node, type))) {
     BLI_thread_unlock(LOCK_CUSTOM1);
     return unode;
   }
@@ -1464,7 +1471,7 @@ static bool sculpt_attribute_ref_equals(SculptAttrRef *a, SculptAttrRef *b)
 static void sculpt_save_active_attribute(Object *ob, SculptAttrRef *attr)
 {
   Mesh *me = BKE_object_get_original_mesh(ob);
-  CustomDataLayer *layer;
+  const CustomDataLayer *layer;
 
   if (ob && me && (layer = BKE_id_attributes_active_color_get((ID *)me))) {
     attr->domain = BKE_id_attribute_domain((ID *)me, layer);
@@ -1564,6 +1571,24 @@ static void sculpt_undo_set_active_layer(struct bContext *C, SculptAttrRef *attr
 
   CustomDataLayer *layer;
   layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
+
+  /* Temporary fix for T97408. This is a fundamental
+   * bug in the undo stack; the operator code needs to push
+   * an extra undo step before running an operator if a
+   * non-memfile undo system is active.
+   *
+   * For now, detect if the layer does exist but with a different
+   * domain and just unconvert it.
+   */
+  if (!layer) {
+    layer = BKE_id_attribute_search(&me->id, attr->name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+    eAttrDomain domain = layer ? BKE_id_attribute_domain(&me->id, layer) : ATTR_DOMAIN_NUM;
+
+    if (layer && ED_geometry_attribute_convert(
+                     me, attr->name, layer->type, domain, attr->type, attr->domain)) {
+      layer = BKE_id_attribute_find(&me->id, attr->name, attr->type, attr->domain);
+    }
+  }
 
   if (!layer) {
     /* Memfile undo killed the layer; re-create it. */

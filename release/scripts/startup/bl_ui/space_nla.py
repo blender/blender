@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 from bpy.types import Header, Menu, Panel
 from bpy.app.translations import contexts as i18n_contexts
 from bl_ui.space_dopesheet import (
@@ -153,7 +151,7 @@ class NLA_MT_marker(Menu):
 class NLA_MT_marker_select(Menu):
     bl_label = 'Select'
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         layout.operator("marker.select_all", text="All").action = 'SELECT'

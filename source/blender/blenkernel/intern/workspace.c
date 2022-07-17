@@ -67,6 +67,8 @@ static void workspace_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   WorkSpace *workspace = (WorkSpace *)id;
 
+  BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, workspace->pin_scene, IDWALK_CB_NOP);
+
   LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, layout->screen, IDWALK_CB_USER);
   }
@@ -119,6 +121,15 @@ static void workspace_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   WorkSpace *workspace = (WorkSpace *)id;
   Main *bmain = BLO_read_lib_get_main(reader);
+
+  /* Do not keep the scene reference when appending a workspace. Setting a scene for a workspace is
+   * a convenience feature, but the workspace should never truly depend on scene data. */
+  if (ID_IS_LINKED(id)) {
+    workspace->pin_scene = NULL;
+  }
+  else {
+    BLO_read_id_address(reader, NULL, &workspace->pin_scene);
+  }
 
   /* Restore proper 'parent' pointers to relevant data, and clean up unused/invalid entries. */
   LISTBASE_FOREACH_MUTABLE (WorkSpaceDataRelation *, relation, &workspace->hook_layout_relations) {

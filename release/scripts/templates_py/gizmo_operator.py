@@ -84,7 +84,7 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
     bl_label = "Side of Plane Gizmo"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
-    bl_options = {'3D'}
+    bl_options = {'3D', 'EXCLUDE_MODAL'}
 
     # Helper functions
     @staticmethod
@@ -199,7 +199,8 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
         matrix.col[0].xyz = no_x
         matrix.col[1].xyz = no_y
         matrix.col[2].xyz = no_z
-        matrix.col[3].xyz = co
+        # The location callback handles the location.
+        # `matrix.col[3].xyz = co`.
 
         # Dial
         no_z = self.rotate_axis

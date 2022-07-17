@@ -11,7 +11,12 @@ layout(std430, binding = 2) readonly buffer extraCoarseFaceData
   uint extra_coarse_face_data[];
 };
 
-layout(std430, binding = 3) writeonly buffer outputLoopNormals
+layout(std430, binding = 3) readonly buffer inputVertOrigIndices
+{
+  int input_vert_origindex[];
+};
+
+layout(std430, binding = 4) writeonly buffer outputLoopNormals
 {
   LoopNormal output_lnor[];
 };
@@ -19,6 +24,23 @@ layout(std430, binding = 3) writeonly buffer outputLoopNormals
 bool is_face_selected(uint coarse_quad_index)
 {
   return (extra_coarse_face_data[coarse_quad_index] & coarse_face_select_mask) != 0;
+}
+
+bool is_face_hidden(uint coarse_quad_index)
+{
+  return (extra_coarse_face_data[coarse_quad_index] & coarse_face_hidden_mask) != 0;
+}
+
+/* Flag for paint mode overlay and normals drawing in edit-mode. */
+float get_loop_flag(uint coarse_quad_index, int vert_origindex)
+{
+  if (is_face_hidden(coarse_quad_index) || (is_edit_mode && vert_origindex == -1)) {
+    return -1.0;
+  }
+  if (is_face_selected(coarse_quad_index)) {
+    return 1.0;
+  }
+  return 0.0;
 }
 
 void main()
@@ -39,7 +61,11 @@ void main()
     /* Face is smooth, use vertex normals. */
     for (int i = 0; i < 4; i++) {
       PosNorLoop pos_nor_loop = pos_nor[start_loop_index + i];
-      output_lnor[start_loop_index + i] = get_normal_and_flag(pos_nor_loop);
+      int origindex = input_vert_origindex[start_loop_index + i];
+      LoopNormal loop_normal = get_normal_and_flag(pos_nor_loop);
+      loop_normal.flag = get_loop_flag(coarse_quad_index, origindex);
+
+      output_lnor[start_loop_index + i] = loop_normal;
     }
   }
   else {
@@ -60,13 +86,11 @@ void main()
     loop_normal.nx = face_normal.x;
     loop_normal.ny = face_normal.y;
     loop_normal.nz = face_normal.z;
-    loop_normal.flag = 0.0;
-
-    if (is_face_selected(coarse_quad_index)) {
-      loop_normal.flag = 1.0;
-    }
 
     for (int i = 0; i < 4; i++) {
+      int origindex = input_vert_origindex[start_loop_index + i];
+      loop_normal.flag = get_loop_flag(coarse_quad_index, origindex);
+
       output_lnor[start_loop_index + i] = loop_normal;
     }
   }

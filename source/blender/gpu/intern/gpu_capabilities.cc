@@ -8,7 +8,7 @@
  * with checks for drivers and GPU support.
  */
 
-#include "DNA_userdef_types.h"
+#include "DNA_userdef_types.h" /* For `U.glreslimit`. */
 
 #include "GPU_capabilities.h"
 
@@ -33,11 +33,10 @@ int GPU_max_texture_size()
   return GCaps.max_texture_size;
 }
 
-int GPU_texture_size_with_limit(int res, bool limit_gl_texture_size)
+int GPU_texture_size_with_limit(int res)
 {
   int size = GPU_max_texture_size();
-  int reslimit = (limit_gl_texture_size && (U.glreslimit != 0)) ? min_ii(U.glreslimit, size) :
-                                                                  size;
+  int reslimit = (U.glreslimit != 0) ? min_ii(U.glreslimit, size) : size;
   return min_ii(reslimit, res);
 }
 
@@ -142,6 +141,11 @@ bool GPU_use_hq_normals_workaround()
   return GCaps.use_hq_normals_workaround;
 }
 
+bool GPU_clear_viewport_workaround()
+{
+  return GCaps.clear_viewport_workaround;
+}
+
 bool GPU_compute_shader_support()
 {
   return GCaps.compute_shader_support;
@@ -160,6 +164,11 @@ bool GPU_shader_image_load_store_support()
 int GPU_max_shader_storage_buffer_bindings()
 {
   return GCaps.max_shader_storage_buffer_bindings;
+}
+
+int GPU_max_compute_shader_storage_blocks()
+{
+  return GCaps.max_compute_shader_storage_blocks;
 }
 
 /** \} */

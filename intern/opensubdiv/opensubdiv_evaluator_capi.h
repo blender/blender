@@ -31,6 +31,11 @@ struct OpenSubdiv_EvaluatorInternal;
 struct OpenSubdiv_PatchCoord;
 struct OpenSubdiv_TopologyRefiner;
 
+typedef struct OpenSubdiv_EvaluatorSettings {
+  // Number of smoothly interpolated vertex data channels.
+  int num_vertex_data;
+} OpenSubdiv_EvaluatorSettings;
+
 // Callback type for doing input/output operations on buffers.
 // Useful to abstract GPU buffers.
 typedef struct OpenSubdiv_Buffer {
@@ -64,11 +69,20 @@ typedef struct OpenSubdiv_Buffer {
 } OpenSubdiv_Buffer;
 
 typedef struct OpenSubdiv_Evaluator {
+  // Set settings for data buffers used.
+  void (*setSettings)(struct OpenSubdiv_Evaluator *evaluator,
+                      const OpenSubdiv_EvaluatorSettings *settings);
+
   // Set coarse positions from a continuous array of coordinates.
   void (*setCoarsePositions)(struct OpenSubdiv_Evaluator *evaluator,
                              const float *positions,
                              const int start_vertex_index,
                              const int num_vertices);
+  // Set vertex data from a continuous array of coordinates.
+  void (*setVertexData)(struct OpenSubdiv_Evaluator *evaluator,
+                        const float *data,
+                        const int start_vertex_index,
+                        const int num_vertices);
   // Set varying data from a continuous array of data.
   void (*setVaryingData)(struct OpenSubdiv_Evaluator *evaluator,
                          const float *varying_data,
@@ -129,6 +143,13 @@ typedef struct OpenSubdiv_Evaluator {
                         float dPdu[3],
                         float dPdv[3]);
 
+  // Evaluate vertex data at a given bilinear coordinate of given ptex face.
+  void (*evaluateVertexData)(struct OpenSubdiv_Evaluator *evaluator,
+                             const int ptex_face_index,
+                             float face_u,
+                             float face_v,
+                             float data[]);
+
   // Evaluate varying data at a given bilinear coordinate of given ptex face.
   void (*evaluateVarying)(struct OpenSubdiv_Evaluator *evaluator,
                           const int ptex_face_index,
@@ -183,6 +204,10 @@ typedef struct OpenSubdiv_Evaluator {
   void (*wrapSrcBuffer)(struct OpenSubdiv_Evaluator *evaluator,
                         struct OpenSubdiv_Buffer *src_buffer);
 
+  // Fill the given buffer with data from the evaluator's extra source buffer.
+  void (*wrapSrcVertexDataBuffer)(struct OpenSubdiv_Evaluator *evaluator,
+                                  struct OpenSubdiv_Buffer *src_buffer);
+
   // Fill the given buffer with data from the evaluator's face varying patch array buffer.
   void (*fillFVarPatchArraysBuffer)(struct OpenSubdiv_Evaluator *evaluator,
                                     const int face_varying_channel,
@@ -202,6 +227,9 @@ typedef struct OpenSubdiv_Evaluator {
   void (*wrapFVarSrcBuffer)(struct OpenSubdiv_Evaluator *evaluator,
                             const int face_varying_channel,
                             struct OpenSubdiv_Buffer *src_buffer);
+
+  // Return true if the evaluator has source vertex data set.
+  bool (*hasVertexData)(struct OpenSubdiv_Evaluator *evaluator);
 
   // Implementation of the evaluator.
   struct OpenSubdiv_EvaluatorImpl *impl;

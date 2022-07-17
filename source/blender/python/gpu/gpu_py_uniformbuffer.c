@@ -14,13 +14,11 @@
 #include "BLI_string.h"
 
 #include "GPU_context.h"
-#include "GPU_texture.h"
 #include "GPU_uniform_buffer.h"
 
 #include "../generic/py_capi_utils.h"
 
 #include "gpu_py.h"
-#include "gpu_py_buffer.h"
 
 #include "gpu_py_uniformbuffer.h" /* own include */
 

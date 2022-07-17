@@ -268,9 +268,8 @@ static void cloth_setup_constraints(ClothModifierData *clmd)
 
 /**
  * Computes where the cloth would be if it were subject to perfectly stiff edges
- * (edge distance constraints) in a lagrangian solver.  then add forces to help
- * guide the implicit solver to that state.  this function is called after
- * collisions.
+ * (edge distance constraints) in a lagrangian solver. Then add forces to help
+ * guide the implicit solver to that state. This function is called after collisions.
  */
 static int UNUSED_FUNCTION(cloth_calc_helper_forces)(Object *UNUSED(ob),
                                                      ClothModifierData *clmd,

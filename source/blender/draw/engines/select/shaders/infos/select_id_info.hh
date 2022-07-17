@@ -3,7 +3,7 @@
 #include "gpu_shader_create_info.hh"
 
 /* -------------------------------------------------------------------- */
-/** \name Select ID fo Edit Mesh selection
+/** \name Select ID for Edit Mesh Selection
  * \{ */
 
 GPU_SHADER_INTERFACE_INFO(select_id_iface, "").flat(Type::INT, "id");

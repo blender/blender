@@ -34,7 +34,9 @@
 #include <algorithm>
 #include <memory>
 
+#include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/eigen.h"
+#include "ceres/internal/export.h"
 #include "ceres/linear_operator.h"
 
 namespace ceres {
@@ -78,11 +80,10 @@ class SparseMatrix;
 //  and z = A^T b
 //
 // Note: This class is not thread safe, since it uses some temporary storage.
-class CgnrLinearOperator : public LinearOperator {
+class CERES_NO_EXPORT CgnrLinearOperator final : public LinearOperator {
  public:
   CgnrLinearOperator(const LinearOperator& A, const double* D)
       : A_(A), D_(D), z_(new double[A.num_rows()]) {}
-  virtual ~CgnrLinearOperator() {}
 
   void RightMultiply(const double* x, double* y) const final {
     std::fill(z_.get(), z_.get() + A_.num_rows(), 0.0);
@@ -94,7 +95,7 @@ class CgnrLinearOperator : public LinearOperator {
     A_.LeftMultiply(z_.get(), y);
 
     // y = y + DtDx
-    if (D_ != NULL) {
+    if (D_ != nullptr) {
       int n = A_.num_cols();
       VectorRef(y, n).array() +=
           ConstVectorRef(D_, n).array().square() * ConstVectorRef(x, n).array();
@@ -116,5 +117,7 @@ class CgnrLinearOperator : public LinearOperator {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_CGNR_LINEAR_OPERATOR_H_

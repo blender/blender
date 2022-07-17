@@ -444,7 +444,7 @@ void ANIM_animdata_keyframe_callback(bAnimContext *ac,
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   for (ale = anim_data.first; ale; ale = ale->next) {
-    ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, callback_fn, calchandles_fcurve);
+    ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, callback_fn, BKE_fcurve_handles_recalc);
     ale->update |= ANIM_UPDATE_DEFAULT;
   }
 
@@ -831,7 +831,7 @@ static short snap_bezier_cframe(KeyframeEditData *ked, BezTriple *bezt)
 {
   const Scene *scene = ked->scene;
   if (bezt->f2 & SELECT) {
-    bezt->vec[1][0] = (float)CFRA;
+    bezt->vec[1][0] = (float)scene->r.cfra;
   }
   return 0;
 }
@@ -929,7 +929,7 @@ static short mirror_bezier_cframe(KeyframeEditData *ked, BezTriple *bezt)
   const Scene *scene = ked->scene;
 
   if (bezt->f2 & SELECT) {
-    mirror_bezier_xaxis_ex(bezt, CFRA);
+    mirror_bezier_xaxis_ex(bezt, scene->r.cfra);
   }
 
   return 0;

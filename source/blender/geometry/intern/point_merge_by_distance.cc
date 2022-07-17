@@ -97,32 +97,31 @@ PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
     const int merge_index = merge_indices[i];
     const int dst_index = src_to_dst_indices[merge_index];
 
-    const IndexRange point_range(map_offsets[dst_index],
-                                 map_offsets[dst_index + 1] - map_offsets[dst_index]);
-    MutableSpan<int> point_merge_indices = merge_map.as_mutable_span().slice(point_range);
+    const IndexRange points(map_offsets[dst_index],
+                            map_offsets[dst_index + 1] - map_offsets[dst_index]);
+    MutableSpan<int> point_merge_indices = merge_map.as_mutable_span().slice(points);
     point_merge_indices[point_merge_counts[dst_index]] = i;
     point_merge_counts[dst_index]++;
   }
 
-  Set<bke::AttributeIDRef> attributes = src_points.attribute_ids();
+  const bke::AttributeAccessor src_attributes = *src_points.attributes();
+  bke::MutableAttributeAccessor dst_attributes = *dst_points.attributes_for_write();
+  Set<bke::AttributeIDRef> attributes = src_attributes.all_ids();
 
   /* Transfer the ID attribute if it exists, using the ID of the first merged point. */
   if (attributes.contains("id")) {
-    VArray<int> src = src_points.attribute_get_for_read<int>("id", ATTR_DOMAIN_POINT, 0);
-    bke::OutputAttribute_Typed<int> dst = dst_points.attribute_try_get_for_output_only<int>(
+    VArraySpan<int> src = src_attributes.lookup_or_default<int>("id", ATTR_DOMAIN_POINT, 0);
+    bke::SpanAttributeWriter<int> dst = dst_attributes.lookup_or_add_for_write_only_span<int>(
         "id", ATTR_DOMAIN_POINT);
-    Span<int> src_ids = src.get_internal_span();
-    MutableSpan<int> dst_ids = dst.as_span();
 
     threading::parallel_for(IndexRange(dst_size), 1024, [&](IndexRange range) {
       for (const int i_dst : range) {
-        const IndexRange point_range(map_offsets[i_dst],
-                                     map_offsets[i_dst + 1] - map_offsets[i_dst]);
-        dst_ids[i_dst] = src_ids[point_range.first()];
+        const IndexRange points(map_offsets[i_dst], map_offsets[i_dst + 1] - map_offsets[i_dst]);
+        dst.span[i_dst] = src[points.first()];
       }
     });
 
-    dst.save();
+    dst.finish();
     attributes.remove_contained("id");
   }
 
@@ -132,24 +131,23 @@ PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
       continue;
     }
 
-    bke::ReadAttributeLookup src_attribute = src_points.attribute_try_get_for_read(id);
+    bke::GAttributeReader src_attribute = src_attributes.lookup(id);
     attribute_math::convert_to_static_type(src_attribute.varray.type(), [&](auto dummy) {
       using T = decltype(dummy);
       if constexpr (!std::is_void_v<attribute_math::DefaultMixer<T>>) {
-        bke::OutputAttribute_Typed<T> dst_attribute =
-            dst_points.attribute_try_get_for_output_only<T>(id, ATTR_DOMAIN_POINT);
-        Span<T> src = src_attribute.varray.get_internal_span().typed<T>();
-        MutableSpan<T> dst = dst_attribute.as_span();
+        bke::SpanAttributeWriter<T> dst_attribute =
+            dst_attributes.lookup_or_add_for_write_only_span<T>(id, ATTR_DOMAIN_POINT);
+        VArraySpan<T> src = src_attribute.varray.typed<T>();
 
         threading::parallel_for(IndexRange(dst_size), 1024, [&](IndexRange range) {
           for (const int i_dst : range) {
             /* Create a separate mixer for every point to avoid allocating temporary buffers
              * in the mixer the size of the result point cloud and to improve memory locality. */
-            attribute_math::DefaultMixer<T> mixer{dst.slice(i_dst, 1)};
+            attribute_math::DefaultMixer<T> mixer{dst_attribute.span.slice(i_dst, 1)};
 
-            const IndexRange point_range(map_offsets[i_dst],
-                                         map_offsets[i_dst + 1] - map_offsets[i_dst]);
-            Span<int> src_merge_indices = merge_map.as_span().slice(point_range);
+            const IndexRange points(map_offsets[i_dst],
+                                    map_offsets[i_dst + 1] - map_offsets[i_dst]);
+            Span<int> src_merge_indices = merge_map.as_span().slice(points);
             for (const int i_src : src_merge_indices) {
               mixer.mix_in(0, src[i_src]);
             }
@@ -158,7 +156,7 @@ PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
           }
         });
 
-        dst_attribute.save();
+        dst_attribute.finish();
       }
     });
   }

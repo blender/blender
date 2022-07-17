@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 import bpy
 import nodeitems_utils
 from nodeitems_utils import (
@@ -75,6 +73,7 @@ def curve_node_items(context):
     yield NodeItem("GeometryNodeCurveLength")
     yield NodeItem("GeometryNodeCurveToMesh")
     yield NodeItem("GeometryNodeCurveToPoints")
+    yield NodeItem("GeometryNodeDeformCurvesOnSurface")
     yield NodeItem("GeometryNodeFillCurve")
     yield NodeItem("GeometryNodeFilletCurve")
     yield NodeItem("GeometryNodeResampleCurve")
@@ -115,6 +114,7 @@ def mesh_node_items(context):
     yield NodeItem("GeometryNodeMeshBoolean")
     yield NodeItem("GeometryNodeMeshToCurve")
     yield NodeItem("GeometryNodeMeshToPoints")
+    yield NodeItem("GeometryNodeMeshToVolume")
     yield NodeItem("GeometryNodeSplitEdges")
     yield NodeItem("GeometryNodeSubdivideMesh")
     yield NodeItem("GeometryNodeSubdivisionSurface")
@@ -145,10 +145,10 @@ def geometry_node_items(context):
     yield NodeItem("GeometryNodeConvexHull")
     yield NodeItem("GeometryNodeDeleteGeometry")
     yield NodeItem("GeometryNodeDuplicateElements")
-    yield NodeItem("GeometryNodeGeometryToInstance")
-    yield NodeItem("GeometryNodeMergeByDistance")
     yield NodeItem("GeometryNodeProximity")
+    yield NodeItem("GeometryNodeGeometryToInstance")
     yield NodeItem("GeometryNodeJoinGeometry")
+    yield NodeItem("GeometryNodeMergeByDistance")
     yield NodeItem("GeometryNodeRaycast")
     yield NodeItem("GeometryNodeSeparateComponents")
     yield NodeItem("GeometryNodeSeparateGeometry")
@@ -156,6 +156,17 @@ def geometry_node_items(context):
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeSetID")
     yield NodeItem("GeometryNodeSetPosition")
+
+
+# Custom Menu for UV Nodes.
+def uv_node_items(context):
+    if context is None:
+        return
+    space = context.space_data
+    if not space:
+        return
+    yield NodeItem("GeometryNodeUVPackIslands")
+    yield NodeItem("GeometryNodeUVUnwrap")
 
 
 # Custom Menu for Geometry Node Input Nodes.
@@ -185,6 +196,24 @@ def geometry_input_node_items(context):
     yield NodeItem("GeometryNodeInputSceneTime")
 
 
+# Custom Menu for Geometry Node Instance Nodes.
+def geometry_instance_node_items(context):
+    if context is None:
+        return
+    space = context.space_data
+    if not space:
+        return
+    yield NodeItem("GeometryNodeInstanceOnPoints")
+    yield NodeItem("GeometryNodeInstancesToPoints")
+    yield NodeItem("GeometryNodeRealizeInstances")
+    yield NodeItem("GeometryNodeRotateInstances")
+    yield NodeItem("GeometryNodeScaleInstances")
+    yield NodeItem("GeometryNodeTranslateInstances")
+    yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
+    yield NodeItem("GeometryNodeInputInstanceRotation")
+    yield NodeItem("GeometryNodeInputInstanceScale")
+
+
 # Custom Menu for Material Nodes.
 def geometry_material_node_items(context):
     if context is None:
@@ -209,6 +238,7 @@ def point_node_items(context):
     if not space:
         return
     yield NodeItem("GeometryNodeDistributePointsOnFaces")
+    yield NodeItem("GeometryNodePoints")
     yield NodeItem("GeometryNodePointsToVertices")
     yield NodeItem("GeometryNodePointsToVolume")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
@@ -419,12 +449,10 @@ shader_node_categories = [
         NodeItem("ShaderNodeRGBToBW"),
         NodeItem("ShaderNodeShaderToRGB", poll=object_eevee_shader_nodes_poll),
         NodeItem("ShaderNodeVectorMath"),
-        NodeItem("ShaderNodeSeparateRGB"),
-        NodeItem("ShaderNodeCombineRGB"),
+        NodeItem("ShaderNodeSeparateColor"),
+        NodeItem("ShaderNodeCombineColor"),
         NodeItem("ShaderNodeSeparateXYZ"),
         NodeItem("ShaderNodeCombineXYZ"),
-        NodeItem("ShaderNodeSeparateHSV"),
-        NodeItem("ShaderNodeCombineHSV"),
         NodeItem("ShaderNodeWavelength"),
         NodeItem("ShaderNodeBlackbody"),
     ]),
@@ -483,14 +511,8 @@ compositor_node_categories = [
         NodeItem("CompositorNodePremulKey"),
         NodeItem("CompositorNodeIDMask"),
         NodeItem("CompositorNodeRGBToBW"),
-        NodeItem("CompositorNodeSepRGBA"),
-        NodeItem("CompositorNodeCombRGBA"),
-        NodeItem("CompositorNodeSepHSVA"),
-        NodeItem("CompositorNodeCombHSVA"),
-        NodeItem("CompositorNodeSepYUVA"),
-        NodeItem("CompositorNodeCombYUVA"),
-        NodeItem("CompositorNodeSepYCCA"),
-        NodeItem("CompositorNodeCombYCCA"),
+        NodeItem("CompositorNodeSeparateColor"),
+        NodeItem("CompositorNodeCombineColor"),
         NodeItem("CompositorNodeSeparateXYZ"),
         NodeItem("CompositorNodeCombineXYZ"),
         NodeItem("CompositorNodeSwitchView"),
@@ -576,8 +598,8 @@ texture_node_categories = [
         NodeItem("TextureNodeCurveRGB"),
         NodeItem("TextureNodeInvert"),
         NodeItem("TextureNodeHueSaturation"),
-        NodeItem("TextureNodeCompose"),
-        NodeItem("TextureNodeDecompose"),
+        NodeItem("TextureNodeCombineColor"),
+        NodeItem("TextureNodeSeparateColor"),
     ]),
     TextureNodeCategory("TEX_PATTERN", "Pattern", items=[
         NodeItem("TextureNodeChecker"),
@@ -629,8 +651,8 @@ geometry_node_categories = [
         NodeItem("ShaderNodeMixRGB"),
         NodeItem("ShaderNodeRGBCurve"),
         NodeItem("ShaderNodeValToRGB"),
-        NodeItem("ShaderNodeSeparateRGB"),
-        NodeItem("ShaderNodeCombineRGB"),
+        NodeItem("FunctionNodeSeparateColor"),
+        NodeItem("FunctionNodeCombineColor"),
     ]),
     GeometryNodeCategory("GEO_CURVE", "Curve", items=curve_node_items),
     GeometryNodeCategory("GEO_PRIMITIVES_CURVE", "Curve Primitives", items=[
@@ -645,14 +667,7 @@ geometry_node_categories = [
     ]),
     GeometryNodeCategory("GEO_GEOMETRY", "Geometry", items=geometry_node_items),
     GeometryNodeCategory("GEO_INPUT", "Input", items=geometry_input_node_items),
-    GeometryNodeCategory("GEO_INSTANCE", "Instances", items=[
-        NodeItem("GeometryNodeInstanceOnPoints"),
-        NodeItem("GeometryNodeInstancesToPoints"),
-        NodeItem("GeometryNodeRealizeInstances"),
-        NodeItem("GeometryNodeRotateInstances"),
-        NodeItem("GeometryNodeScaleInstances"),
-        NodeItem("GeometryNodeTranslateInstances"),
-    ]),
+    GeometryNodeCategory("GEO_INSTANCE", "Instances", items=geometry_instance_node_items),
     GeometryNodeCategory("GEO_MATERIAL", "Material", items=geometry_material_node_items),
     GeometryNodeCategory("GEO_MESH", "Mesh", items=mesh_node_items),
     GeometryNodeCategory("GEO_PRIMITIVES_MESH", "Mesh Primitives", items=[
@@ -693,6 +708,7 @@ geometry_node_categories = [
     GeometryNodeCategory("GEO_UTILITIES", "Utilities", items=[
         NodeItem("GeometryNodeAccumulateField"),
         NodeItem("GeometryNodeFieldAtIndex"),
+        NodeItem("GeometryNodeFieldOnDomain"),
         NodeItem("ShaderNodeMapRange"),
         NodeItem("ShaderNodeFloatCurve"),
         NodeItem("ShaderNodeClamp"),
@@ -705,6 +721,7 @@ geometry_node_categories = [
         NodeItem("FunctionNodeRandomValue"),
         NodeItem("FunctionNodeAlignEulerToVector"),
     ]),
+    GeometryNodeCategory("GEO_UV", "UV", items=uv_node_items),
     GeometryNodeCategory("GEO_VECTOR", "Vector", items=[
         NodeItem("ShaderNodeVectorCurve"),
         NodeItem("ShaderNodeSeparateXYZ"),
@@ -713,6 +730,7 @@ geometry_node_categories = [
         NodeItem("ShaderNodeVectorRotate"),
     ]),
     GeometryNodeCategory("GEO_VOLUME", "Volume", items=[
+        NodeItem("GeometryNodeVolumeCube"),
         NodeItem("GeometryNodeVolumeToMesh"),
     ]),
     GeometryNodeCategory("GEO_GROUP", "Group", items=node_group_items),

@@ -17,6 +17,7 @@
 #include "kernel/types.h"
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf_diffuse_ramp.h"
+#include "kernel/closure/bsdf_util.h"
 // clang-format on
 
 CCL_NAMESPACE_BEGIN
@@ -30,6 +31,8 @@ class DiffuseRampClosure : public CBSDFClosure {
 
   void setup(ShaderData *sd, uint32_t /* path_flag */, float3 weight)
   {
+    params.N = ensure_valid_reflection(sd->Ng, sd->I, params.N);
+
     DiffuseRampBsdf *bsdf = (DiffuseRampBsdf *)bsdf_alloc_osl(
         sd, sizeof(DiffuseRampBsdf), weight, &params);
 

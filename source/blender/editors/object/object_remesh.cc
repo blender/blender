@@ -344,7 +344,7 @@ static void voxel_size_edit_draw(const bContext *C, ARegion *UNUSED(ar), void *a
   BKE_unit_value_as_string(str,
                            VOXEL_SIZE_EDIT_MAX_STR_LEN,
                            (double)(cd->voxel_size * unit->scale_length),
-                           4,
+                           -3,
                            B_UNIT_LENGTH,
                            unit,
                            true);
@@ -415,14 +415,14 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
   }
 
   if (event->modifier & KM_CTRL) {
-    /* Linear mode, enables jumping to any voxel size. */
-    d = d * 0.0005f;
-  }
-  else {
     /* Multiply d by the initial voxel size to prevent uncontrollable speeds when using low voxel
      * sizes. */
     /* When the voxel size is slower, it needs more precision. */
     d = d * min_ff(pow2f(cd->init_voxel_size), 0.1f) * 0.05f;
+  }
+  else {
+    /* Linear mode, enables jumping to any voxel size. */
+    d = d * 0.0005f;
   }
   if (cd->slow_mode) {
     cd->voxel_size = cd->slow_voxel_size + d * 0.05f;
@@ -592,7 +592,8 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   ED_region_tag_redraw(region);
 
   const char *status_str = TIP_(
-      "Move the mouse to change the voxel size. LMB: confirm size, ESC/RMB: cancel");
+      "Move the mouse to change the voxel size. CTRL: Relative Scale, SHIFT: Precision Mode, "
+      "ENTER/LMB: Confirm Size, ESC/RMB: Cancel");
   ED_workspace_status_text(C, status_str);
 
   return OPERATOR_RUNNING_MODAL;

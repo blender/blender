@@ -35,7 +35,7 @@
 /* Own include. */
 #include "transform_mode.h"
 
-int transform_mode_really_used(bContext *C, int mode)
+eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode)
 {
   if (mode == TFM_BONESIZE) {
     Object *ob = CTX_data_active_object(C);
@@ -549,18 +549,14 @@ void ElementRotation_ex(const TransInfo *t,
     mul_m3_m3m3(totmat, mat, td->mtx);
     mul_m3_m3m3(smat, td->smtx, totmat);
 
-    /* apply gpencil falloff */
+    /* Apply gpencil falloff. */
     if (t->options & CTX_GPENCIL_STROKES) {
       bGPDstroke *gps = (bGPDstroke *)td->extra;
-      float sx = smat[0][0];
-      float sy = smat[1][1];
-      float sz = smat[2][2];
-
-      mul_m3_fl(smat, gps->runtime.multi_frame_falloff);
-      /* fix scale */
-      smat[0][0] = sx;
-      smat[1][1] = sy;
-      smat[2][2] = sz;
+      if (gps->runtime.multi_frame_falloff != 1.0f) {
+        float ident_mat[3][3];
+        unit_m3(ident_mat);
+        interp_m3_m3m3(smat, ident_mat, smat, gps->runtime.multi_frame_falloff);
+      }
     }
 
     sub_v3_v3v3(vec, td->iloc, center);

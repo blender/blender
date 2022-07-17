@@ -25,24 +25,24 @@
 
 const EnumPropertyItem rna_enum_ramp_blend_items[] = {
     {MA_RAMP_BLEND, "MIX", 0, "Mix", ""},
-    {0, "", ICON_NONE, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MA_RAMP_DARK, "DARKEN", 0, "Darken", ""},
     {MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
     {MA_RAMP_BURN, "BURN", 0, "Color Burn", ""},
-    {0, "", ICON_NONE, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MA_RAMP_LIGHT, "LIGHTEN", 0, "Lighten", ""},
     {MA_RAMP_SCREEN, "SCREEN", 0, "Screen", ""},
     {MA_RAMP_DODGE, "DODGE", 0, "Color Dodge", ""},
     {MA_RAMP_ADD, "ADD", 0, "Add", ""},
-    {0, "", ICON_NONE, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MA_RAMP_OVERLAY, "OVERLAY", 0, "Overlay", ""},
     {MA_RAMP_SOFT, "SOFT_LIGHT", 0, "Soft Light", ""},
     {MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""},
-    {0, "", ICON_NONE, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MA_RAMP_DIFF, "DIFFERENCE", 0, "Difference", ""},
     {MA_RAMP_SUB, "SUBTRACT", 0, "Subtract", ""},
     {MA_RAMP_DIV, "DIVIDE", 0, "Divide", ""},
-    {0, "", ICON_NONE, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MA_RAMP_HUE, "HUE", 0, "Hue", ""},
     {MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
     {MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
@@ -362,7 +362,7 @@ static void rna_gpcolordata_uv_update(Main *bmain, Scene *scene, PointerRNA *ptr
   rna_MaterialGpencil_update(bmain, scene, ptr);
 }
 
-static char *rna_GpencilColorData_path(PointerRNA *UNUSED(ptr))
+static char *rna_GpencilColorData_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("grease_pencil");
 }
@@ -753,6 +753,22 @@ static void rna_def_material_lineart(BlenderRNA *brna)
       prop,
       "Effectiveness",
       "Faces with this material will behave as if it has set number of layers in occlusion");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
+
+  prop = RNA_def_property(srna, "intersection_priority", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 0, 255);
+  RNA_def_property_ui_text(prop,
+                           "Intersection Priority",
+                           "The intersection line will be included into the object with the "
+                           "higher intersection priority value");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
+
+  prop = RNA_def_property(srna, "use_intersection_priority_override", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_default(prop, 0);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", LRT_MATERIAL_CUSTOM_INTERSECTION_PRIORITY);
+  RNA_def_property_ui_text(prop,
+                           "Use Intersection Priority",
+                           "Override object and collection intersection priority value");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
 }
 

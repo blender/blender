@@ -175,16 +175,14 @@ static void wm_dropbox_invoke(bContext *C, wmDrag *drag)
   }
 }
 
-wmDrag *WM_event_start_drag(
+wmDrag *WM_drag_data_create(
     struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags)
 {
-  wmWindowManager *wm = CTX_wm_manager(C);
   wmDrag *drag = MEM_callocN(sizeof(struct wmDrag), "new drag");
 
   /* Keep track of future multi-touch drag too, add a mouse-pointer id or so. */
   /* if multiple drags are added, they're drawn as list */
 
-  BLI_addtail(&wm->drags, drag);
   drag->flags = flags;
   drag->icon = icon;
   drag->type = type;
@@ -226,9 +224,22 @@ wmDrag *WM_event_start_drag(
   }
   drag->value = value;
 
-  wm_dropbox_invoke(C, drag);
-
   return drag;
+}
+
+void WM_event_start_prepared_drag(bContext *C, wmDrag *drag)
+{
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  BLI_addtail(&wm->drags, drag);
+  wm_dropbox_invoke(C, drag);
+}
+
+void WM_event_start_drag(
+    struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags)
+{
+  wmDrag *drag = WM_drag_data_create(C, icon, type, poin, value, flags);
+  WM_event_start_prepared_drag(C, drag);
 }
 
 void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
@@ -683,15 +694,10 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *
     return;
   }
 
-  /* Get name from property, not asset data - it may have changed after importing to ensure
-   * uniqueness (name is assumed to be set from the imported ID name). */
-  char name[MAX_ID_NAME - 2];
-  RNA_string_get(drop->ptr, "name", name);
-  if (!name[0]) {
-    return;
-  }
-
-  ID *id = BKE_libblock_find_name(bmain, asset_drag->id_type, name);
+  /* Try to find the imported ID. For this to work either a "session_uuid" or "name" property must
+   * have been defined (see #WM_operator_properties_id_lookup()). */
+  ID *id = WM_operator_properties_id_lookup_from_name_or_session_uuid(
+      bmain, drop->ptr, asset_drag->id_type);
   if (id != NULL) {
     /* Do not delete the dragged ID if it has any user, otherwise if it is a 're-used' ID it will
      * cause T95636. Note that we need first to add the user that we want to remove in
@@ -717,9 +723,7 @@ void WM_drag_add_asset_list_item(
     const AssetLibraryReference *asset_library_ref,
     const AssetHandle *asset)
 {
-  if (drag->type != WM_DRAG_ASSET_LIST) {
-    return;
-  }
+  BLI_assert(drag->type == WM_DRAG_ASSET_LIST);
 
   /* No guarantee that the same asset isn't added twice. */
 
@@ -832,7 +836,7 @@ static void wm_drag_draw_icon(bContext *UNUSED(C),
     x = xy[0] - (wm_drag_imbuf_icon_width_get(drag) / 2);
     y = xy[1] - (wm_drag_imbuf_icon_height_get(drag) / 2);
 
-    float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* this blends texture */
+    const float col[4] = {1.0f, 1.0f, 1.0f, 0.65f}; /* this blends texture */
     IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
     immDrawPixelsTexTiled_scaling(&state,
                                   x,

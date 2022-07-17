@@ -39,7 +39,6 @@
 
 #include "BLO_read_write.h"
 
-#include "BKE_curveprofile.h"
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
@@ -396,9 +395,11 @@ static void panelRegister(ARegionType *region_type)
       region_type, "shading", "Shading", NULL, shading_panel_draw, panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
 {
   const BevelModifierData *bmd = (const BevelModifierData *)md;
+
+  BLO_write_struct(writer, BevelModifierData, bmd);
 
   if (bmd->custom_profile) {
     BKE_curveprofile_blend_write(writer, bmd->custom_profile);
@@ -416,7 +417,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Bevel = {
-    /* name */ "Bevel",
+    /* name */ N_("Bevel"),
     /* structName */ "BevelModifierData",
     /* structSize */ sizeof(BevelModifierData),
     /* srna */ &RNA_BevelModifier,

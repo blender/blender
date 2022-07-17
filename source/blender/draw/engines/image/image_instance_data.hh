@@ -75,8 +75,10 @@ struct IMAGE_InstanceData {
       TextureInfo &info = texture_infos[i];
       const bool is_allocated = info.texture != nullptr;
       const bool is_visible = info.visible;
-      const bool should_be_freed = !is_visible && is_allocated;
-      const bool should_be_created = is_visible && !is_allocated;
+      const bool resolution_changed = assign_if_different(info.last_viewport_size,
+                                                          float2(DRW_viewport_size_get()));
+      const bool should_be_freed = is_allocated && (!is_visible || resolution_changed);
+      const bool should_be_created = is_visible && (!is_allocated || resolution_changed);
 
       if (should_be_freed) {
         GPU_texture_free(info.texture);

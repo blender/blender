@@ -46,12 +46,12 @@ const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
 #  include "WM_api.h"
 #  include "WM_types.h"
 
-static char *rna_VolumeRender_path(PointerRNA *UNUSED(ptr))
+static char *rna_VolumeRender_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("render");
 }
 
-static char *rna_VolumeDisplay_path(PointerRNA *UNUSED(ptr))
+static char *rna_VolumeDisplay_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("display");
 }
@@ -484,6 +484,21 @@ static void rna_def_volume_render(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Volume Render", "Volume object render settings");
   RNA_def_struct_sdna(srna, "VolumeRender");
   RNA_def_struct_path_func(srna, "rna_VolumeRender_path");
+
+  static const EnumPropertyItem precision_items[] = {
+      {VOLUME_PRECISION_FULL, "FULL", 0, "Full", "Full float (Use 32 bit for all data)"},
+      {VOLUME_PRECISION_HALF, "HALF", 0, "Half", "Half float (Use 16 bit for all data)"},
+      {VOLUME_PRECISION_VARIABLE, "VARIABLE", 0, "Variable", "Use variable bit quantization"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
+  prop = RNA_def_property(srna, "precision", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, precision_items);
+  RNA_def_property_ui_text(prop,
+                           "Precision",
+                           "Specify volume data precision. Lower values reduce memory consumption "
+                           "at the cost of detail");
+  RNA_def_property_update(prop, 0, "rna_Volume_update_display");
 
   static const EnumPropertyItem space_items[] = {
       {VOLUME_SPACE_OBJECT,

@@ -28,7 +28,10 @@ class MetalDevice : public Device {
   id<MTLCommandQueue> mtlGeneralCommandQueue = nil;
   id<MTLArgumentEncoder> mtlAncillaryArgEncoder =
       nil; /* encoder used for fetching device pointers from MTLBuffers */
-  string source_used_for_compile[PSO_NUM];
+  string source[PSO_NUM];
+  string source_md5[PSO_NUM];
+
+  bool capture_enabled = false;
 
   KernelParamsMetal launch_params = {0};
 
@@ -39,7 +42,6 @@ class MetalDevice : public Device {
       nil; /* encoder used for fetching device pointers from MTLAccelerationStructure */
   /*---------------------------------------------------*/
 
-  string device_name;
   MetalGPUVendor device_vendor;
 
   uint kernel_features;
@@ -72,9 +74,9 @@ class MetalDevice : public Device {
   id<MTLBuffer> texture_bindings_3d = nil;
   std::vector<id<MTLTexture>> texture_slot_map;
 
-  MetalDeviceKernels kernels;
   bool use_metalrt = false;
-  bool use_function_specialisation = false;
+  MetalPipelineType kernel_specialization_level = PSO_GENERIC;
+  std::atomic_bool async_compile_and_load = false;
 
   virtual BVHLayoutMask get_bvh_layout_mask() const override;
 
@@ -90,9 +92,7 @@ class MetalDevice : public Device {
 
   bool use_adaptive_compilation();
 
-  string get_source(const uint kernel_features);
-
-  string compile_kernel(const uint kernel_features, const char *name);
+  void make_source(MetalPipelineType pso_type, const uint kernel_features);
 
   virtual bool load_kernels(const uint kernel_features) override;
 
@@ -109,6 +109,10 @@ class MetalDevice : public Device {
   virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
 
   virtual void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
+
+  virtual void optimize_for_scene(Scene *scene) override;
+
+  bool compile_and_load(MetalPipelineType pso_type);
 
   /* ------------------------------------------------------------------ */
   /* low-level memory management */

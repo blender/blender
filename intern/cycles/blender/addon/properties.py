@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2011-2022 Blender Foundation
-
-# <pep8 compliant>
 from __future__ import annotations
 
 import bpy
@@ -24,12 +22,19 @@ from . import camera
 
 enum_devices = (
     ('CPU', "CPU", "Use CPU for rendering"),
-    ('GPU', "GPU Compute", "Use GPU compute device for rendering, configured in the system tab in the user preferences"),
+    ('GPU', "GPU Compute",
+        "Use GPU compute device for rendering, configured in the system tab in the user preferences"),
 )
 
 enum_feature_set = (
-    ('SUPPORTED', "Supported", "Only use finished and supported features"),
-    ('EXPERIMENTAL', "Experimental", "Use experimental and incomplete features that might be broken or change in the future", 'ERROR', 1),
+    ('SUPPORTED',
+     "Supported",
+     "Only use finished and supported features"),
+    ('EXPERIMENTAL',
+     "Experimental",
+     "Use experimental and incomplete features that might be broken or change in the future",
+     'ERROR',
+     1),
 )
 
 enum_displacement_methods = (
@@ -81,9 +86,14 @@ enum_sampling_pattern = (
 )
 
 enum_volume_sampling = (
-    ('DISTANCE', "Distance", "Use distance sampling, best for dense volumes with lights far away"),
-    ('EQUIANGULAR', "Equiangular", "Use equiangular sampling, best for volumes with low density with light inside or near the volume"),
-    ('MULTIPLE_IMPORTANCE', "Multiple Importance",
+    ('DISTANCE',
+     "Distance",
+     "Use distance sampling, best for dense volumes with lights far away"),
+    ('EQUIANGULAR',
+     "Equiangular",
+     "Use equiangular sampling, best for volumes with low density with light inside or near the volume"),
+    ('MULTIPLE_IMPORTANCE',
+     "Multiple Importance",
      "Combine distance and equi-angular sampling for volumes where neither method is ideal"),
 )
 
@@ -93,17 +103,23 @@ enum_volume_interpolation = (
 )
 
 enum_world_mis = (
-    ('NONE', "None", "Don't sample the background, faster but might cause noise for non-solid backgrounds"),
-    ('AUTOMATIC', "Auto", "Automatically try to determine the best setting"),
-    ('MANUAL', "Manual", "Manually set the resolution of the sampling map, higher values are slower and require more memory but reduce noise")
-)
+    ('NONE',
+     "None",
+     "Don't sample the background, faster but might cause noise for non-solid backgrounds"),
+    ('AUTOMATIC',
+     "Auto",
+     "Automatically try to determine the best setting"),
+    ('MANUAL',
+     "Manual",
+     "Manually set the resolution of the sampling map, higher values are slower and require more memory but reduce noise"))
 
 enum_device_type = (
     ('CPU', "CPU", "CPU", 0),
     ('CUDA', "CUDA", "CUDA", 1),
     ('OPTIX', "OptiX", "OptiX", 3),
     ('HIP', "HIP", "HIP", 4),
-    ('METAL', "Metal", "Metal", 5)
+    ('METAL', "Metal", "Metal", 5),
+    ('ONEAPI', "oneAPI", "oneAPI", 6)
 )
 
 enum_texture_limit = (
@@ -210,17 +226,33 @@ enum_denoising_input_passes = (
 )
 
 enum_denoising_prefilter = (
-    ('NONE', "None", "No prefiltering, use when guiding passes are noise-free", 1),
-    ('FAST', "Fast", "Denoise color and guiding passes together. Improves quality when guiding passes are noisy using least amount of extra processing time", 2),
-    ('ACCURATE', "Accurate", "Prefilter noisy guiding passes before denoising color. Improves quality when guiding passes are noisy using extra processing time", 3),
+    ('NONE',
+     "None",
+     "No prefiltering, use when guiding passes are noise-free",
+     1),
+    ('FAST',
+     "Fast",
+     "Denoise color and guiding passes together. Improves quality when guiding passes are noisy using least amount of extra processing time",
+     2),
+    ('ACCURATE',
+     "Accurate",
+     "Prefilter noisy guiding passes before denoising color. Improves quality when guiding passes are noisy using extra processing time",
+     3),
 )
 
 enum_direct_light_sampling_type = (
-    ('MULTIPLE_IMPORTANCE_SAMPLING', "Multiple Importance Sampling",
-     "Multiple importance sampling is used to combine direct light contributions from next-event estimation and forward path tracing", 0),
-    ('FORWARD_PATH_TRACING', "Forward Path Tracing", "Direct light contributions are only sampled using forward path tracing", 1),
-    ('NEXT_EVENT_ESTIMATION', "Next-Event Estimation",
-     "Direct light contributions are only sampled using next-event estimation", 2),
+    ('MULTIPLE_IMPORTANCE_SAMPLING',
+     "Multiple Importance Sampling",
+     "Multiple importance sampling is used to combine direct light contributions from next-event estimation and forward path tracing",
+     0),
+    ('FORWARD_PATH_TRACING',
+     "Forward Path Tracing",
+     "Direct light contributions are only sampled using forward path tracing",
+     1),
+    ('NEXT_EVENT_ESTIMATION',
+     "Next-Event Estimation",
+     "Direct light contributions are only sampled using next-event estimation",
+     2),
 )
 
 
@@ -357,7 +389,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     scrambling_distance: FloatProperty(
         name="Scrambling Distance",
         default=1.0,
-        min=0.0, soft_max=1.0,
+        min=0.0,
+        soft_max=1.0,
         description="Reduce randomization between pixels to improve GPU rendering performance, at the cost of possible rendering artifacts if set too low",
     )
     preview_scrambling_distance: BoolProperty(
@@ -383,7 +416,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Light Sampling Threshold",
         description="Probabilistically terminate light samples when the light contribution is below this threshold (more noise but faster rendering). "
         "Zero disables the test and never ignores lights",
-        min=0.0, max=1.0,
+        min=0.0,
+        max=1.0,
         default=0.01,
     )
 
@@ -395,7 +429,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     adaptive_threshold: FloatProperty(
         name="Adaptive Sampling Threshold",
         description="Noise level step to stop sampling at, lower values reduce noise at the cost of render time. Zero for automatic setting based on number of AA samples",
-        min=0.0, max=1.0,
+        min=0.0,
+        max=1.0,
         soft_min=0.001,
         default=0.01,
         precision=4,
@@ -403,7 +438,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     adaptive_min_samples: IntProperty(
         name="Adaptive Min Samples",
         description="Minimum AA samples for adaptive sampling, to discover noisy features before stopping sampling. Zero for automatic setting based on noise threshold",
-        min=0, max=4096,
+        min=0,
+        max=4096,
         default=0,
     )
 
@@ -415,7 +451,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     preview_adaptive_threshold: FloatProperty(
         name="Adaptive Sampling Threshold",
         description="Noise level step to stop sampling at, lower values reduce noise at the cost of render time. Zero for automatic setting based on number of AA samples, for viewport renders",
-        min=0.0, max=1.0,
+        min=0.0,
+        max=1.0,
         soft_min=0.001,
         default=0.1,
         precision=4,
@@ -423,7 +460,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     preview_adaptive_min_samples: IntProperty(
         name="Adaptive Min Samples",
         description="Minimum AA samples for adaptive sampling, to discover noisy features before stopping sampling. Zero for automatic setting based on noise threshold, for viewport renders",
-        min=0, max=4096,
+        min=0,
+        max=4096,
         default=0,
     )
 
@@ -550,7 +588,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     max_subdivisions: IntProperty(
         name="Max Subdivisions",
         description="Stop subdividing when this level is reached even if the dice rate would produce finer tessellation",
-        min=0, max=16,
+        min=0,
+        max=16,
         default=12,
     )
 
@@ -654,7 +693,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     debug_use_compact_bvh: BoolProperty(
         name="Use Compact BVH",
         description="Use compact BVH structure (uses less ram but renders slower)",
-        default=True,
+        default=False,
     )
     debug_bvh_time_steps: IntProperty(
         name="BVH Time Steps",
@@ -817,8 +856,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     debug_use_optix_debug: BoolProperty(
         name="OptiX Module Debug",
         description="Load OptiX module in debug mode: lower logging verbosity level, enable validations, and lower optimization level",
-        default=False
-    )
+        default=False)
 
     @classmethod
     def register(cls):
@@ -1185,7 +1223,8 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
     motion_steps: IntProperty(
         name="Motion Steps",
         description="Control accuracy of motion blur, more steps gives more memory usage (actual number of steps is 2^(steps - 1))",
-        min=1, max=7,
+        min=1,
+        max=7,
         default=1,
     )
 
@@ -1224,7 +1263,8 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
     shadow_terminator_geometry_offset: FloatProperty(
         name="Shadow Terminator Geometry Offset",
         description="Offset rays from the surface to reduce shadow terminator artifact on low poly geometry. Only affects triangles at grazing angles to light",
-        min=0.0, max=1.0,
+        min=0.0,
+        max=1.0,
         default=0.1,
     )
 
@@ -1358,7 +1398,8 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def get_device_types(self, context):
         import _cycles
-        has_cuda, has_optix, has_hip, has_metal = _cycles.get_device_types()
+        has_cuda, has_optix, has_hip, has_metal, has_oneapi = _cycles.get_device_types()
+
         list = [('NONE', "None", "Don't use compute device", 0)]
         if has_cuda:
             list.append(('CUDA', "CUDA", "Use CUDA for GPU acceleration", 1))
@@ -1368,6 +1409,8 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             list.append(('HIP', "HIP", "Use HIP for GPU acceleration", 4))
         if has_metal:
             list.append(('METAL', "Metal", "Use Metal for GPU acceleration", 5))
+        if has_oneapi:
+            list.append(('ONEAPI', "oneAPI", "Use oneAPI for GPU acceleration", 6))
 
         return list
 
@@ -1399,7 +1442,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
 
     def update_device_entries(self, device_list):
         for device in device_list:
-            if not device[1] in {'CUDA', 'OPTIX', 'CPU', 'HIP', 'METAL'}:
+            if not device[1] in {'CUDA', 'OPTIX', 'CPU', 'HIP', 'METAL', 'ONEAPI'}:
                 continue
             # Try to find existing Device entry
             entry = self.find_existing_device_entry(device)
@@ -1443,7 +1486,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
         import _cycles
         # Ensure `self.devices` is not re-allocated when the second call to
         # get_devices_for_type is made, freeing items from the first list.
-        for device_type in ('CUDA', 'OPTIX', 'HIP', 'METAL'):
+        for device_type in ('CUDA', 'OPTIX', 'HIP', 'METAL', 'ONEAPI'):
             self.update_device_entries(_cycles.available_devices(device_type))
 
     # Deprecated: use refresh_devices instead.
@@ -1506,18 +1549,31 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif device_type == 'HIP':
                 import sys
                 if sys.platform[:3] == "win":
-                    col.label(text="Requires discrete AMD GPU with RDNA architecture", icon='BLANK1')
+                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
                     col.label(text="and AMD Radeon Pro 21.Q4 driver or newer", icon='BLANK1')
                 elif sys.platform.startswith("linux"):
-                    col.label(text="Requires discrete AMD GPU with RDNA architecture", icon='BLANK1')
+                    col.label(text="Requires AMD GPU with Vega or RDNA architecture", icon='BLANK1')
                     col.label(text="and AMD driver version 22.10 or newer", icon='BLANK1')
+            elif device_type == 'ONEAPI':
+                import sys
+                col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
+                if sys.platform.startswith("win"):
+                    col.label(text="and Windows driver version 101.1660 or newer", icon='BLANK1')
+                elif sys.platform.startswith("linux"):
+                    col.label(text="and Linux driver version xx.xx.23570 or newer", icon='BLANK1')
             elif device_type == 'METAL':
                 col.label(text="Requires Apple Silicon with macOS 12.2 or newer", icon='BLANK1')
                 col.label(text="or AMD with macOS 12.3 or newer", icon='BLANK1')
             return
 
         for device in devices:
-            box.prop(device, "use", text=device.name)
+            import unicodedata
+            box.prop(
+                device, "use", text=device.name
+                .replace('(TM)', unicodedata.lookup('TRADE MARK SIGN'))
+                .replace('(R)', unicodedata.lookup('REGISTERED SIGN'))
+                .replace('(C)', unicodedata.lookup('COPYRIGHT SIGN'))
+            )
 
     def draw_impl(self, layout, context):
         row = layout.row()

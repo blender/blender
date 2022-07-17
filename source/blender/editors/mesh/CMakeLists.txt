@@ -24,7 +24,7 @@ set(INC
 )
 
 set(SRC
-  editface.c
+  editface.cc
   editmesh_add.c
   editmesh_add_gizmo.c
   editmesh_automerge.c
@@ -51,10 +51,10 @@ set(SRC
   editmesh_tools.c
   editmesh_undo.c
   editmesh_utils.c
-  mesh_data.c
+  mesh_data.cc
   mesh_mirror.c
   mesh_ops.c
-  meshtools.c
+  meshtools.cc
 
   mesh_intern.h
 )

@@ -857,7 +857,7 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
         cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;
         *fmt = FMT_TYPE_STRING;
       }
-      /* White-space (all ws. has been converted to spaces). */
+      /* White-space (all white-space has been converted to spaces). */
       else if (*str == ' ') {
         *fmt = FMT_TYPE_WHITESPACE;
       }
@@ -880,18 +880,19 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
       else if (text_check_delim(*str)) {
         *fmt = FMT_TYPE_SYMBOL;
       }
-      /* Identifiers and other text (no previous ws. or delims. so text continues) */
+      /* Identifiers and other text (no previous white-space/delimiters so text continues). */
       else if (prev == FMT_TYPE_DEFAULT) {
         str += BLI_str_utf8_size_safe(str) - 1;
         *fmt = FMT_TYPE_DEFAULT;
       }
-      /* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
+      /* Not white-space, a digit, punctuation, or continuing text.
+       * Must be new, check for special words. */
       else {
-        /* Keep aligned args for readability. */
+        /* Keep aligned arguments for readability. */
         /* clang-format off */
 
         /* Special vars(v) or built-in keywords(b) */
-        /* keep in sync with 'txtfmt_pov_format_identifier()' */
+        /* keep in sync with `txtfmt_pov_format_identifier()`. */
         if        ((i = txtfmt_pov_find_specialvar(str))        != -1) { prev = FMT_TYPE_SPECIAL;
         } else if ((i = txtfmt_pov_find_keyword(str))           != -1) { prev = FMT_TYPE_KEYWORD;
         } else if ((i = txtfmt_pov_find_reserved_keywords(str)) != -1) { prev = FMT_TYPE_RESERVED;

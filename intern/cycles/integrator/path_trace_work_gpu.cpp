@@ -65,6 +65,8 @@ PathTraceWorkGPU::PathTraceWorkGPU(Device *device,
       integrator_shader_sort_counter_(device, "integrator_shader_sort_counter", MEM_READ_WRITE),
       integrator_shader_raytrace_sort_counter_(
           device, "integrator_shader_raytrace_sort_counter", MEM_READ_WRITE),
+      integrator_shader_mnee_sort_counter_(
+          device, "integrator_shader_mnee_sort_counter", MEM_READ_WRITE),
       integrator_shader_sort_prefix_sum_(
           device, "integrator_shader_sort_prefix_sum", MEM_READ_WRITE),
       integrator_next_main_path_index_(device, "integrator_next_main_path_index", MEM_READ_WRITE),
@@ -150,7 +152,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
       total_soa_size += soa_memory->memory_size();
     }
 
-    VLOG(3) << "GPU SoA state size: " << string_human_readable_size(total_soa_size);
+    VLOG_DEVICE_STATS << "GPU SoA state size: " << string_human_readable_size(total_soa_size);
   }
 }
 
@@ -179,22 +181,45 @@ void PathTraceWorkGPU::alloc_integrator_queue()
 
 void PathTraceWorkGPU::alloc_integrator_sorting()
 {
+  /* Compute sort partitions, to balance between memory locality and coherence.
+   * Sort partitioning becomes less effective when more shaders are in the wavefront. In lieu of a
+   * more sophisticated heuristic we simply disable sort partitioning if the shader count is high.
+   */
+  num_sort_partitions_ = 1;
+  if (device_scene_->data.max_shaders < 300) {
+    const int num_elements = queue_->num_sort_partition_elements();
+    if (num_elements) {
+      num_sort_partitions_ = max(max_num_paths_ / num_elements, 1);
+    }
+  }
+
+  integrator_state_gpu_.sort_partition_divisor = (int)divide_up(max_num_paths_,
+                                                                num_sort_partitions_);
+
   /* Allocate arrays for shader sorting. */
-  const int max_shaders = device_scene_->data.max_shaders;
-  if (integrator_shader_sort_counter_.size() < max_shaders) {
-    integrator_shader_sort_counter_.alloc(max_shaders);
+  const int sort_buckets = device_scene_->data.max_shaders * num_sort_partitions_;
+  if (integrator_shader_sort_counter_.size() < sort_buckets) {
+    integrator_shader_sort_counter_.alloc(sort_buckets);
     integrator_shader_sort_counter_.zero_to_device();
-
-    integrator_shader_raytrace_sort_counter_.alloc(max_shaders);
-    integrator_shader_raytrace_sort_counter_.zero_to_device();
-
-    integrator_shader_sort_prefix_sum_.alloc(max_shaders);
-    integrator_shader_sort_prefix_sum_.zero_to_device();
-
     integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] =
         (int *)integrator_shader_sort_counter_.device_pointer;
-    integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE] =
-        (int *)integrator_shader_raytrace_sort_counter_.device_pointer;
+
+    if (device_scene_->data.kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
+      integrator_shader_raytrace_sort_counter_.alloc(sort_buckets);
+      integrator_shader_raytrace_sort_counter_.zero_to_device();
+      integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE] =
+          (int *)integrator_shader_raytrace_sort_counter_.device_pointer;
+    }
+
+    if (device_scene_->data.kernel_features & KERNEL_FEATURE_MNEE) {
+      integrator_shader_mnee_sort_counter_.alloc(sort_buckets);
+      integrator_shader_mnee_sort_counter_.zero_to_device();
+      integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE] =
+          (int *)integrator_shader_mnee_sort_counter_.device_pointer;
+    }
+
+    integrator_shader_sort_prefix_sum_.alloc(sort_buckets);
+    integrator_shader_sort_prefix_sum_.zero_to_device();
   }
 }
 
@@ -232,7 +257,7 @@ void PathTraceWorkGPU::init_execution()
 
   /* Copy to device side struct in constant memory. */
   device_->const_copy_to(
-      "__integrator_state", &integrator_state_gpu_, sizeof(integrator_state_gpu_));
+      "integrator_state", &integrator_state_gpu_, sizeof(integrator_state_gpu_));
 }
 
 void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
@@ -326,7 +351,12 @@ void PathTraceWorkGPU::enqueue_reset()
   queue_->enqueue(DEVICE_KERNEL_INTEGRATOR_RESET, max_num_paths_, args);
   queue_->zero_to_device(integrator_queue_counter_);
   queue_->zero_to_device(integrator_shader_sort_counter_);
-  queue_->zero_to_device(integrator_shader_raytrace_sort_counter_);
+  if (device_scene_->data.kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
+    queue_->zero_to_device(integrator_shader_raytrace_sort_counter_);
+  }
+  if (device_scene_->data.kernel_features & KERNEL_FEATURE_MNEE) {
+    queue_->zero_to_device(integrator_shader_mnee_sort_counter_);
+  }
 
   /* Tiles enqueue need to know number of active paths, which is based on this counter. Zero the
    * counter on the host side because `zero_to_device()` is not doing it. */
@@ -450,6 +480,7 @@ void PathTraceWorkGPU::enqueue_path_iteration(DeviceKernel kernel, const int num
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME: {
       /* Shading kernels with integrator state and render buffer. */
       DeviceKernelArguments args(&d_path_index, &buffers_->buffer.device_pointer, &work_size);
@@ -477,9 +508,9 @@ void PathTraceWorkGPU::compute_sorted_queued_paths(DeviceKernel kernel,
   /* Compute prefix sum of number of active paths with each shader. */
   {
     const int work_size = 1;
-    int max_shaders = device_scene_->data.max_shaders;
+    int sort_buckets = device_scene_->data.max_shaders * num_sort_partitions_;
 
-    DeviceKernelArguments args(&d_counter, &d_prefix_sum, &max_shaders);
+    DeviceKernelArguments args(&d_counter, &d_prefix_sum, &sort_buckets);
 
     queue_->enqueue(DEVICE_KERNEL_PREFIX_SUM, work_size, args);
   }
@@ -811,10 +842,10 @@ bool PathTraceWorkGPU::should_use_graphics_interop()
     interop_use_ = device->should_use_graphics_interop();
 
     if (interop_use_) {
-      VLOG(2) << "Using graphics interop GPU display update.";
+      VLOG_INFO << "Using graphics interop GPU display update.";
     }
     else {
-      VLOG(2) << "Using naive GPU display update.";
+      VLOG_INFO << "Using naive GPU display update.";
     }
 
     interop_use_checked_ = true;
@@ -1080,13 +1111,15 @@ int PathTraceWorkGPU::shadow_catcher_count_possible_splits()
 bool PathTraceWorkGPU::kernel_uses_sorting(DeviceKernel kernel)
 {
   return (kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE ||
-          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE);
+          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
+          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE);
 }
 
 bool PathTraceWorkGPU::kernel_creates_shadow_paths(DeviceKernel kernel)
 {
   return (kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
+          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
 }
 
@@ -1094,7 +1127,8 @@ bool PathTraceWorkGPU::kernel_creates_ao_paths(DeviceKernel kernel)
 {
   return (device_scene_->data.kernel_features & KERNEL_FEATURE_AO) &&
          (kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE ||
-          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE);
+          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
+          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE);
 }
 
 bool PathTraceWorkGPU::kernel_is_shadow_path(DeviceKernel kernel)

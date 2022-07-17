@@ -41,4 +41,5 @@ GPU_SHADER_CREATE_INFO(gpu_shader_3D_point_uniform_size_uniform_color_aa)
 
 GPU_SHADER_CREATE_INFO(gpu_shader_3D_point_uniform_size_uniform_color_aa_clipped)
     .additional_info("gpu_shader_3D_point_uniform_size_uniform_color_aa")
-    .additional_info("gpu_clip_planes");
+    .additional_info("gpu_clip_planes")
+    .do_static_compilation(true);

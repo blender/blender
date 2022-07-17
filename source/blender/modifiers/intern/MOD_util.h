@@ -11,6 +11,10 @@
 
 #include "DEG_depsgraph_build.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct MDeformVert;
 struct Mesh;
 struct ModifierData;
@@ -51,3 +55,7 @@ void MOD_depsgraph_update_object_bone_relation(struct DepsNodeHandle *node,
                                                struct Object *object,
                                                const char *bonename,
                                                const char *description);
+
+#ifdef __cplusplus
+}
+#endif

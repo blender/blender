@@ -64,6 +64,10 @@ const char *name_from_type(ImageDataType type)
       return "nanovdb_float";
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
       return "nanovdb_float3";
+    case IMAGE_DATA_TYPE_NANOVDB_FPN:
+      return "nanovdb_fpn";
+    case IMAGE_DATA_TYPE_NANOVDB_FP16:
+      return "nanovdb_fp16";
     case IMAGE_DATA_NUM_TYPES:
       assert(!"System enumerator type, should never be used");
       return "";
@@ -117,12 +121,12 @@ void ImageHandle::clear()
   manager = NULL;
 }
 
-bool ImageHandle::empty()
+bool ImageHandle::empty() const
 {
   return tile_slots.empty();
 }
 
-int ImageHandle::num_tiles()
+int ImageHandle::num_tiles() const
 {
   return tile_slots.size();
 }
@@ -152,6 +156,35 @@ int ImageHandle::svm_slot(const int tile_index) const
   }
 
   return tile_slots[tile_index];
+}
+
+vector<int4> ImageHandle::get_svm_slots() const
+{
+  const size_t num_nodes = divide_up(tile_slots.size(), 2);
+
+  vector<int4> svm_slots;
+  svm_slots.reserve(num_nodes);
+  for (size_t i = 0; i < num_nodes; i++) {
+    int4 node;
+
+    int slot = tile_slots[2 * i];
+    node.x = manager->images[slot]->loader->get_tile_number();
+    node.y = slot;
+
+    if ((2 * i + 1) < tile_slots.size()) {
+      slot = tile_slots[2 * i + 1];
+      node.z = manager->images[slot]->loader->get_tile_number();
+      node.w = slot;
+    }
+    else {
+      node.z = -1;
+      node.w = -1;
+    }
+
+    svm_slots.push_back(node);
+  }
+
+  return svm_slots;
 }
 
 device_texture *ImageHandle::image_memory(const int tile_index) const
@@ -239,17 +272,12 @@ void ImageMetaData::detect_colorspace()
     compress_as_srgb = true;
   }
   else {
-    /* Always compress non-raw 8bit images as scene linear + sRGB, as a
-     * heuristic to keep memory usage the same without too much data loss
-     * due to quantization in common cases. */
-    compress_as_srgb = (type == IMAGE_DATA_TYPE_BYTE || type == IMAGE_DATA_TYPE_BYTE4);
-
     /* If colorspace conversion needed, use half instead of short so we can
      * represent HDR values that might result from conversion. */
-    if (type == IMAGE_DATA_TYPE_USHORT) {
+    if (type == IMAGE_DATA_TYPE_BYTE || type == IMAGE_DATA_TYPE_USHORT) {
       type = IMAGE_DATA_TYPE_HALF;
     }
-    else if (type == IMAGE_DATA_TYPE_USHORT4) {
+    else if (type == IMAGE_DATA_TYPE_BYTE4 || type == IMAGE_DATA_TYPE_USHORT4) {
       type = IMAGE_DATA_TYPE_HALF4;
     }
   }
@@ -264,6 +292,11 @@ ImageLoader::ImageLoader()
 ustring ImageLoader::osl_filepath() const
 {
   return ustring();
+}
+
+int ImageLoader::get_tile_number() const
+{
+  return 0;
 }
 
 bool ImageLoader::equals(const ImageLoader *a, const ImageLoader *b)
@@ -344,7 +377,9 @@ void ImageManager::load_image_metadata(Image *img)
   metadata.detect_colorspace();
 
   assert(features.has_nanovdb || (metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT ||
-                                  metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3));
+                                  metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 ||
+                                  metadata.type != IMAGE_DATA_TYPE_NANOVDB_FPN ||
+                                  metadata.type != IMAGE_DATA_TYPE_NANOVDB_FP16));
 
   img->need_metadata = false;
 }
@@ -393,6 +428,19 @@ ImageHandle ImageManager::add_image(ImageLoader *loader,
 
   ImageHandle handle;
   handle.tile_slots.push_back(slot);
+  handle.manager = this;
+  return handle;
+}
+
+ImageHandle ImageManager::add_image(const vector<ImageLoader *> &loaders,
+                                    const ImageParams &params)
+{
+  ImageHandle handle;
+  for (ImageLoader *loader : loaders) {
+    const int slot = add_image_slot(loader, params, true);
+    handle.tile_slots.push_back(slot);
+  }
+
   handle.manager = this;
   return handle;
 }
@@ -605,8 +653,8 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
     while (max_size * scale_factor > texture_limit) {
       scale_factor *= 0.5f;
     }
-    VLOG(1) << "Scaling image " << img->loader->name() << " by a factor of " << scale_factor
-            << ".";
+    VLOG_WORK << "Scaling image " << img->loader->name() << " by a factor of " << scale_factor
+              << ".";
     vector<StorageType> scaled_pixels;
     size_t scaled_width, scaled_height, scaled_depth;
     util_image_resize_pixels(pixels_storage,
@@ -649,7 +697,7 @@ void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Pro
   ImageDataType type = img->metadata.type;
 
   /* Name for debugging. */
-  img->mem_name = string_printf("__tex_image_%s_%03d", name_from_type(type), slot);
+  img->mem_name = string_printf("tex_image_%s_%03d", name_from_type(type), slot);
 
   /* Free previous texture in slot. */
   if (img->mem) {
@@ -749,7 +797,8 @@ void ImageManager::device_load_image(Device *device, Scene *scene, int slot, Pro
     }
   }
 #ifdef WITH_NANOVDB
-  else if (type == IMAGE_DATA_TYPE_NANOVDB_FLOAT || type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3) {
+  else if (type == IMAGE_DATA_TYPE_NANOVDB_FLOAT || type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3 ||
+           type == IMAGE_DATA_TYPE_NANOVDB_FPN || type == IMAGE_DATA_TYPE_NANOVDB_FP16) {
     thread_scoped_lock device_lock(device_mutex);
     void *pixels = img->mem->alloc(img->metadata.byte_size, 0);
 

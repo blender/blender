@@ -102,7 +102,8 @@ typedef struct NoiseGpencilModifierData {
   /** Noise Frequency scaling */
   float noise_scale;
   float noise_offset;
-  char _pad[4];
+  short noise_mode;
+  char _pad[2];
   /** How many frames before recalculate randoms. */
   int step;
   /** Custom index for passes. */
@@ -126,6 +127,11 @@ typedef enum eNoiseGpencil_Flag {
   GP_NOISE_INVERT_LAYERPASS = (1 << 10),
   GP_NOISE_INVERT_MATERIAL = (1 << 11),
 } eNoiseGpencil_Flag;
+
+typedef enum eNoiseRandomGpencil_Mode {
+  GP_NOISE_RANDOM_STEP = 0,
+  GP_NOISE_RANDOM_KEYFRAME = 1,
+} eNoiseRandomGpencil_Mode;
 
 typedef struct SubdivGpencilModifierData {
   GpencilModifierData modifier;
@@ -223,6 +229,7 @@ typedef enum eTimeGpencil_Mode {
   GP_TIME_MODE_NORMAL = 0,
   GP_TIME_MODE_REVERSE = 1,
   GP_TIME_MODE_FIX = 2,
+  GP_TIME_MODE_PINGPONG = 3,
 } eTimeGpencil_Mode;
 
 typedef enum eModifyColorGpencil_Flag {
@@ -991,6 +998,18 @@ typedef enum eLineartGpencilModifierSource {
   LRT_SOURCE_SCENE = 2,
 } eLineartGpencilModifierSource;
 
+typedef enum eLineartGpencilModifierShadowFilter {
+  LRT_SHADOW_FILTER_NONE = 0,
+  LRT_SHADOW_FILTER_LIT = 1,
+  LRT_SHADOW_FILTER_SHADED = 2,
+} eLineartGpencilModifierShadowFilter;
+
+typedef enum eLineartGpencilModifierSilhouetteFilter {
+  LRT_SILHOUETTE_FILTER_NONE = 0,
+  LRT_SILHOUETTE_FILTER_GROUP = (1 << 0),
+  LRT_SILHOUETTE_FILTER_INDIVIDUAL = (1 << 1),
+} eLineartGpencilModifierSilhouetteFilter;
+
 /* This enum is for modifier internal state only. */
 typedef enum eLineArtGPencilModifierFlags {
   /* These two moved to #eLineartMainFlags to keep consistent with flag variable purpose. */
@@ -1001,6 +1020,7 @@ typedef enum eLineArtGPencilModifierFlags {
   LRT_GPENCIL_USE_CACHE = (1 << 4),
   LRT_GPENCIL_OFFSET_TOWARDS_CUSTOM_CAMERA = (1 << 5),
   LRT_GPENCIL_INVERT_COLLECTION = (1 << 6),
+  LRT_GPENCIL_INVERT_SILHOUETTE_FILTER = (1 << 7),
 } eLineArtGPencilModifierFlags;
 
 typedef enum eLineartGpencilMaskSwitches {
@@ -1017,8 +1037,7 @@ struct LineartCache;
 typedef struct LineartGpencilModifierData {
   GpencilModifierData modifier;
 
-  /** Line type enable flags, bits in #eLineartEdgeFlag. */
-  short edge_types;
+  uint16_t edge_types; /* line type enable flags, bits in eLineartEdgeFlag */
 
   /** Object or Collection, from #eLineartGpencilModifierSource. */
   char source_type;
@@ -1028,6 +1047,7 @@ typedef struct LineartGpencilModifierData {
   short level_end;
 
   struct Object *source_camera;
+  struct Object *light_contour_object;
 
   struct Object *source_object;
   struct Collection *source_collection;
@@ -1042,13 +1062,18 @@ typedef struct LineartGpencilModifierData {
   char source_vertex_group[64];
   char vgname[64];
 
-  /**
-   * Camera focal length is divided by `1 + overscan`, before calculation, which give a wider FOV,
+  /* Camera focal length is divided by (1 + over-scan), before calculation, which give a wider FOV,
    * this doesn't change coordinates range internally (-1, 1), but makes the calculated frame
    * bigger than actual output. This is for the easier shifting calculation. A value of 0.5 means
-   * the "internal" focal length become 2/3 of the actual camera.
-   */
+   * the "internal" focal length become 2/3 of the actual camera. */
   float overscan;
+
+  /* Values for point light and directional (sun) light. */
+  /* For point light, fov always gonna be 120 deg horizontal, with 3 "cameras" covering 360 deg. */
+  float shadow_camera_fov;
+  float shadow_camera_size;
+  float shadow_camera_near;
+  float shadow_camera_far;
 
   float opacity;
   short thickness;
@@ -1057,7 +1082,9 @@ typedef struct LineartGpencilModifierData {
   unsigned char material_mask_bits;
   unsigned char intersection_mask;
 
-  char _pad[3];
+  unsigned char shadow_selection;
+  unsigned char silhouette_selection;
+  char _pad[1];
 
   /** `0..1` range for cosine angle */
   float crease_threshold;
@@ -1071,7 +1098,7 @@ typedef struct LineartGpencilModifierData {
   /* CPU mode */
   float chaining_image_threshold;
 
-  /* Ported from SceneLineArt flags. */
+  /* eLineartMainFlags, for one time calculation. */
   int calculation_flags;
 
   /* #eLineArtGPencilModifierFlags, modifier internal state. */
@@ -1088,10 +1115,14 @@ typedef struct LineartGpencilModifierData {
   char level_start_override;
   char level_end_override;
   short edge_types_override;
+  char shadow_selection_override;
+  char shadow_use_silhouette_override;
+
+  char _pad2[6];
 
   struct LineartCache *cache;
   /* Keep a pointer to the render buffer so we can call destroy from ModifierData. */
-  struct LineartRenderBuffer *render_buffer_ptr;
+  struct LineartData *la_data_ptr;
 
 } LineartGpencilModifierData;
 

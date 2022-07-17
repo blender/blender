@@ -2,8 +2,6 @@
 
 #include <algorithm>
 
-#include "curves_sculpt_intern.hh"
-
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_kdtree.h"
@@ -35,6 +33,8 @@
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
+
+#include "WM_api.h"
 
 #include "curves_sculpt_intern.hh"
 
@@ -68,10 +68,10 @@ class CurvesEffect {
  */
 class ShrinkCurvesEffect : public CurvesEffect {
  private:
-  Brush &brush_;
+  const Brush &brush_;
 
  public:
-  ShrinkCurvesEffect(Brush &brush) : brush_(brush)
+  ShrinkCurvesEffect(const Brush &brush) : brush_(brush)
   {
   }
 
@@ -151,49 +151,9 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
         const float3 direction = math::normalize(old_last_pos_cu - direction_reference_point);
 
         const float3 new_last_pos_cu = old_last_pos_cu + direction * move_distance_cu;
-        this->move_last_point_and_resample(positions_cu, curve_points, new_last_pos_cu);
+        move_last_point_and_resample(positions_cu.slice(curve_points), new_last_pos_cu);
       }
     });
-  }
-
-  void move_last_point_and_resample(MutableSpan<float3> positions,
-                                    const IndexRange curve_points,
-                                    const float3 &new_last_point_position) const
-  {
-    Vector<float> old_lengths;
-    old_lengths.append(0.0f);
-    /* Used to (1) normalize the segment sizes over time and (2) support making zero-length
-     * segments */
-    const float extra_length = 0.001f;
-    for (const int segment_i : IndexRange(curve_points.size() - 1)) {
-      const float3 &p1 = positions[curve_points[segment_i]];
-      const float3 &p2 = positions[curve_points[segment_i] + 1];
-      const float length = math::distance(p1, p2);
-      old_lengths.append(old_lengths.last() + length + extra_length);
-    }
-    Vector<float> point_factors;
-    for (float &old_length : old_lengths) {
-      point_factors.append(old_length / old_lengths.last());
-    }
-
-    PolySpline new_spline;
-    new_spline.resize(curve_points.size());
-    MutableSpan<float3> new_spline_positions = new_spline.positions();
-    for (const int i : IndexRange(curve_points.size() - 1)) {
-      new_spline_positions[i] = positions[curve_points[i]];
-    }
-    new_spline_positions.last() = new_last_point_position;
-    new_spline.mark_cache_invalid();
-
-    for (const int i : IndexRange(curve_points.size())) {
-      const float factor = point_factors[i];
-      const Spline::LookupResult lookup = new_spline.lookup_evaluated_factor(factor);
-      const float index_factor = lookup.evaluated_index + lookup.factor;
-      float3 p;
-      new_spline.sample_with_index_factors<float3>(
-          new_spline_positions, {&index_factor, 1}, {&p, 1});
-      positions[curve_points[i]] = p;
-    }
   }
 };
 
@@ -203,10 +163,10 @@ class ExtrapolateCurvesEffect : public CurvesEffect {
 class ScaleCurvesEffect : public CurvesEffect {
  private:
   bool scale_up_;
-  Brush &brush_;
+  const Brush &brush_;
 
  public:
-  ScaleCurvesEffect(bool scale_up, Brush &brush) : scale_up_(scale_up), brush_(brush)
+  ScaleCurvesEffect(bool scale_up, const Brush &brush) : scale_up_(scale_up), brush_(brush)
   {
   }
 
@@ -261,7 +221,7 @@ class CurvesEffectOperation : public CurvesSculptStrokeOperation {
   {
   }
 
-  void on_stroke_extended(bContext *C, const StrokeExtension &stroke_extension) override;
+  void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) override;
 };
 
 /**
@@ -270,24 +230,24 @@ class CurvesEffectOperation : public CurvesSculptStrokeOperation {
  */
 struct CurvesEffectOperationExecutor {
   CurvesEffectOperation *self_ = nullptr;
-  Depsgraph *depsgraph_ = nullptr;
-  Scene *scene_ = nullptr;
-  Object *object_ = nullptr;
-  ARegion *region_ = nullptr;
-  View3D *v3d_ = nullptr;
-  RegionView3D *rv3d_ = nullptr;
+  CurvesSculptCommonContext ctx_;
 
+  Object *object_ = nullptr;
   Curves *curves_id_ = nullptr;
   CurvesGeometry *curves_ = nullptr;
 
-  Brush *brush_ = nullptr;
-  float brush_radius_re_;
-  float brush_radius_sq_re_;
+  VArray<float> curve_selection_factors_;
+  Vector<int64_t> selected_curve_indices_;
+  IndexMask curve_selection_;
+
+  const Brush *brush_ = nullptr;
+  float brush_radius_base_re_;
+  float brush_radius_factor_;
   float brush_strength_;
+
   eBrushFalloffShape falloff_shape_;
 
-  float4x4 curves_to_world_mat_;
-  float4x4 world_to_curves_mat_;
+  CurvesSurfaceTransforms transforms_;
 
   float2 brush_pos_start_re_;
   float2 brush_pos_end_re_;
@@ -297,17 +257,18 @@ struct CurvesEffectOperationExecutor {
     Vector<float> move_distances_cu;
   };
 
-  void execute(CurvesEffectOperation &self, bContext *C, const StrokeExtension &stroke_extension)
+  CurvesEffectOperationExecutor(const bContext &C) : ctx_(C)
+  {
+  }
+
+  void execute(CurvesEffectOperation &self,
+               const bContext &C,
+               const StrokeExtension &stroke_extension)
   {
     BLI_SCOPED_DEFER([&]() { self.last_mouse_position_ = stroke_extension.mouse_position; });
 
     self_ = &self;
-    depsgraph_ = CTX_data_depsgraph_pointer(C);
-    scene_ = CTX_data_scene(C);
-    object_ = CTX_data_active_object(C);
-    region_ = CTX_wm_region(C);
-    v3d_ = CTX_wm_view3d(C);
-    rv3d_ = CTX_wm_region_view3d(C);
+    object_ = CTX_data_active_object(&C);
 
     curves_id_ = static_cast<Curves *>(object_->data);
     curves_ = &CurvesGeometry::wrap(curves_id_->geometry);
@@ -315,15 +276,20 @@ struct CurvesEffectOperationExecutor {
       return;
     }
 
-    CurvesSculpt &curves_sculpt = *scene_->toolsettings->curves_sculpt;
-    brush_ = BKE_paint_brush(&curves_sculpt.paint);
-    brush_radius_re_ = BKE_brush_size_get(scene_, brush_);
-    brush_strength_ = BKE_brush_alpha_get(scene_, brush_);
-    brush_radius_sq_re_ = pow2f(brush_radius_re_);
+    curve_selection_factors_ = get_curves_selection(*curves_id_);
+    curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+
+    const CurvesSculpt &curves_sculpt = *ctx_.scene->toolsettings->curves_sculpt;
+    brush_ = BKE_paint_brush_for_read(&curves_sculpt.paint);
+    brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
+
+    brush_radius_base_re_ = BKE_brush_size_get(ctx_.scene, brush_);
+    brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
+    brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
+
     falloff_shape_ = eBrushFalloffShape(brush_->falloff_shape);
 
-    curves_to_world_mat_ = object_->obmat;
-    world_to_curves_mat_ = curves_to_world_mat_.inverted();
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     brush_pos_start_re_ = self.last_mouse_position_;
     brush_pos_end_re_ = stroke_extension.mouse_position;
@@ -331,7 +297,13 @@ struct CurvesEffectOperationExecutor {
     if (stroke_extension.is_first) {
       if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
         if (std::optional<CurvesBrush3D> brush_3d = sample_curves_3d_brush(
-                *C, *object_, stroke_extension.mouse_position, brush_radius_re_)) {
+                *ctx_.depsgraph,
+                *ctx_.region,
+                *ctx_.v3d,
+                *ctx_.rv3d,
+                *object_,
+                stroke_extension.mouse_position,
+                brush_radius_base_re_)) {
           self.brush_3d_ = *brush_3d;
         }
       }
@@ -356,7 +328,8 @@ struct CurvesEffectOperationExecutor {
 
     curves_->tag_positions_changed();
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
-    ED_region_tag_redraw(region_);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
+    ED_region_tag_redraw(ctx_.region);
   }
 
   void gather_influences_projected(
@@ -365,64 +338,79 @@ struct CurvesEffectOperationExecutor {
     const Span<float3> positions_cu = curves_->positions();
 
     float4x4 projection;
-    ED_view3d_ob_project_mat_get(rv3d_, object_, projection.values);
+    ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
+
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+    Vector<float4x4> symmetry_brush_transforms_inv;
+    for (const float4x4 brush_transform : symmetry_brush_transforms) {
+      symmetry_brush_transforms_inv.append(brush_transform.inverted());
+    }
+
+    const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
+    const float brush_radius_sq_re = pow2f(brush_radius_re);
 
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       Influences &local_influences = influences_for_thread.local();
 
       for (const int curve_i : curves_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
-        const int tot_segments = points.size() - 1;
+
+        const float curve_selection_factor = curve_selection_factors_[curve_i];
+
         float max_move_distance_cu = 0.0f;
-        for (const int segment_i : IndexRange(tot_segments)) {
-          const float3 &p1_cu = positions_cu[points[segment_i]];
-          const float3 &p2_cu = positions_cu[points[segment_i] + 1];
+        for (const float4x4 &brush_transform_inv : symmetry_brush_transforms_inv) {
+          for (const int segment_i : points.drop_back(1)) {
+            const float3 p1_cu = brush_transform_inv * positions_cu[segment_i];
+            const float3 p2_cu = brush_transform_inv * positions_cu[segment_i + 1];
 
-          float2 p1_re, p2_re;
-          ED_view3d_project_float_v2_m4(region_, p1_cu, p1_re, projection.values);
-          ED_view3d_project_float_v2_m4(region_, p2_cu, p2_re, projection.values);
+            float2 p1_re, p2_re;
+            ED_view3d_project_float_v2_m4(ctx_.region, p1_cu, p1_re, projection.values);
+            ED_view3d_project_float_v2_m4(ctx_.region, p2_cu, p2_re, projection.values);
 
-          float2 closest_on_brush_re;
-          float2 closest_on_segment_re;
-          float lambda_on_brush;
-          float lambda_on_segment;
-          const float dist_to_brush_sq_re = closest_seg_seg_v2(closest_on_brush_re,
-                                                               closest_on_segment_re,
-                                                               &lambda_on_brush,
-                                                               &lambda_on_segment,
-                                                               brush_pos_start_re_,
-                                                               brush_pos_end_re_,
-                                                               p1_re,
-                                                               p2_re);
+            float2 closest_on_brush_re;
+            float2 closest_on_segment_re;
+            float lambda_on_brush;
+            float lambda_on_segment;
+            const float dist_to_brush_sq_re = closest_seg_seg_v2(closest_on_brush_re,
+                                                                 closest_on_segment_re,
+                                                                 &lambda_on_brush,
+                                                                 &lambda_on_segment,
+                                                                 brush_pos_start_re_,
+                                                                 brush_pos_end_re_,
+                                                                 p1_re,
+                                                                 p2_re);
 
-          if (dist_to_brush_sq_re > brush_radius_sq_re_) {
-            continue;
+            if (dist_to_brush_sq_re > brush_radius_sq_re) {
+              continue;
+            }
+
+            const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
+            const float radius_falloff = BKE_brush_curve_strength(
+                brush_, dist_to_brush_re, brush_radius_re);
+            const float weight = brush_strength_ * radius_falloff * curve_selection_factor;
+
+            const float3 closest_on_segment_cu = math::interpolate(
+                p1_cu, p2_cu, lambda_on_segment);
+
+            float3 brush_start_pos_wo, brush_end_pos_wo;
+            ED_view3d_win_to_3d(ctx_.v3d,
+                                ctx_.region,
+                                transforms_.curves_to_world * closest_on_segment_cu,
+                                brush_pos_start_re_,
+                                brush_start_pos_wo);
+            ED_view3d_win_to_3d(ctx_.v3d,
+                                ctx_.region,
+                                transforms_.curves_to_world * closest_on_segment_cu,
+                                brush_pos_end_re_,
+                                brush_end_pos_wo);
+            const float3 brush_start_pos_cu = transforms_.world_to_curves * brush_start_pos_wo;
+            const float3 brush_end_pos_cu = transforms_.world_to_curves * brush_end_pos_wo;
+
+            const float move_distance_cu = weight *
+                                           math::distance(brush_start_pos_cu, brush_end_pos_cu);
+            max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
           }
-
-          const float dist_to_brush_re = std::sqrt(dist_to_brush_sq_re);
-          const float radius_falloff = BKE_brush_curve_strength(
-              brush_, dist_to_brush_re, brush_radius_re_);
-          const float weight = brush_strength_ * radius_falloff;
-
-          const float3 closest_on_segment_cu = math::interpolate(p1_cu, p2_cu, lambda_on_segment);
-
-          float3 brush_start_pos_wo, brush_end_pos_wo;
-          ED_view3d_win_to_3d(v3d_,
-                              region_,
-                              curves_to_world_mat_ * closest_on_segment_cu,
-                              brush_pos_start_re_,
-                              brush_start_pos_wo);
-          ED_view3d_win_to_3d(v3d_,
-                              region_,
-                              curves_to_world_mat_ * closest_on_segment_cu,
-                              brush_pos_end_re_,
-                              brush_end_pos_wo);
-          const float3 brush_start_pos_cu = world_to_curves_mat_ * brush_start_pos_wo;
-          const float3 brush_end_pos_cu = world_to_curves_mat_ * brush_end_pos_wo;
-
-          const float move_distance_cu = weight *
-                                         math::distance(brush_start_pos_cu, brush_end_pos_cu);
-          max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
         }
         if (max_move_distance_cu > 0.0f) {
           local_influences.curve_indices.append(curve_i);
@@ -438,55 +426,67 @@ struct CurvesEffectOperationExecutor {
     const Span<float3> positions_cu = curves_->positions();
 
     float3 brush_pos_start_wo, brush_pos_end_wo;
-    ED_view3d_win_to_3d(v3d_,
-                        region_,
-                        curves_to_world_mat_ * self_->brush_3d_.position_cu,
+    ED_view3d_win_to_3d(ctx_.v3d,
+                        ctx_.region,
+                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
                         brush_pos_start_re_,
                         brush_pos_start_wo);
-    ED_view3d_win_to_3d(v3d_,
-                        region_,
-                        curves_to_world_mat_ * self_->brush_3d_.position_cu,
+    ED_view3d_win_to_3d(ctx_.v3d,
+                        ctx_.region,
+                        transforms_.curves_to_world * self_->brush_3d_.position_cu,
                         brush_pos_end_re_,
                         brush_pos_end_wo);
-    const float3 brush_pos_start_cu = world_to_curves_mat_ * brush_pos_start_wo;
-    const float3 brush_pos_end_cu = world_to_curves_mat_ * brush_pos_end_wo;
+    const float3 brush_pos_start_cu = transforms_.world_to_curves * brush_pos_start_wo;
+    const float3 brush_pos_end_cu = transforms_.world_to_curves * brush_pos_end_wo;
     const float3 brush_pos_diff_cu = brush_pos_end_cu - brush_pos_start_cu;
     const float brush_pos_diff_length_cu = math::length(brush_pos_diff_cu);
-    const float brush_radius_cu = self_->brush_3d_.radius_cu;
+    const float brush_radius_cu = self_->brush_3d_.radius_cu * brush_radius_factor_;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
+
+    const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
+        eCurvesSymmetryType(curves_id_->symmetry));
+
     threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
       Influences &local_influences = influences_for_thread.local();
 
       for (const int curve_i : curves_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
-        const int tot_segments = points.size() - 1;
+
         float max_move_distance_cu = 0.0f;
-        for (const int segment_i : IndexRange(tot_segments)) {
-          const float3 &p1_cu = positions_cu[points[segment_i]];
-          const float3 &p2_cu = positions_cu[points[segment_i] + 1];
 
-          float3 closest_on_segment_cu;
-          float3 closest_on_brush_cu;
-          isect_seg_seg_v3(p1_cu,
-                           p2_cu,
-                           brush_pos_start_cu,
-                           brush_pos_end_cu,
-                           closest_on_segment_cu,
-                           closest_on_brush_cu);
+        const float curve_selection_factor = curve_selection_factors_[curve_i];
 
-          const float dist_to_brush_sq_cu = math::distance_squared(closest_on_segment_cu,
-                                                                   closest_on_brush_cu);
-          if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
-            continue;
+        for (const float4x4 &brush_transform : symmetry_brush_transforms) {
+          const float3 brush_pos_start_transformed_cu = brush_transform * brush_pos_start_cu;
+          const float3 brush_pos_end_transformed_cu = brush_transform * brush_pos_end_cu;
+
+          for (const int segment_i : points.drop_back(1)) {
+            const float3 &p1_cu = positions_cu[segment_i];
+            const float3 &p2_cu = positions_cu[segment_i + 1];
+
+            float3 closest_on_segment_cu;
+            float3 closest_on_brush_cu;
+            isect_seg_seg_v3(p1_cu,
+                             p2_cu,
+                             brush_pos_start_transformed_cu,
+                             brush_pos_end_transformed_cu,
+                             closest_on_segment_cu,
+                             closest_on_brush_cu);
+
+            const float dist_to_brush_sq_cu = math::distance_squared(closest_on_segment_cu,
+                                                                     closest_on_brush_cu);
+            if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
+              continue;
+            }
+
+            const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
+            const float radius_falloff = BKE_brush_curve_strength(
+                brush_, dist_to_brush_cu, brush_radius_cu);
+            const float weight = brush_strength_ * radius_falloff * curve_selection_factor;
+
+            const float move_distance_cu = weight * brush_pos_diff_length_cu;
+            max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
           }
-
-          const float dist_to_brush_cu = std::sqrt(dist_to_brush_sq_cu);
-          const float radius_falloff = BKE_brush_curve_strength(
-              brush_, dist_to_brush_cu, brush_radius_cu);
-          const float weight = brush_strength_ * radius_falloff;
-
-          const float move_distance_cu = weight * brush_pos_diff_length_cu;
-          max_move_distance_cu = std::max(max_move_distance_cu, move_distance_cu);
         }
         if (max_move_distance_cu > 0.0f) {
           local_influences.curve_indices.append(curve_i);
@@ -497,18 +497,18 @@ struct CurvesEffectOperationExecutor {
   }
 };
 
-void CurvesEffectOperation::on_stroke_extended(bContext *C,
+void CurvesEffectOperation::on_stroke_extended(const bContext &C,
                                                const StrokeExtension &stroke_extension)
 {
-  CurvesEffectOperationExecutor executor;
+  CurvesEffectOperationExecutor executor{C};
   executor.execute(*this, C, stroke_extension);
 }
 
 std::unique_ptr<CurvesSculptStrokeOperation> new_grow_shrink_operation(
-    const BrushStrokeMode brush_mode, bContext *C)
+    const BrushStrokeMode brush_mode, const bContext &C)
 {
-  Scene &scene = *CTX_data_scene(C);
-  Brush &brush = *BKE_paint_brush(&scene.toolsettings->curves_sculpt->paint);
+  const Scene &scene = *CTX_data_scene(&C);
+  const Brush &brush = *BKE_paint_brush_for_read(&scene.toolsettings->curves_sculpt->paint);
   const bool use_scale_uniform = brush.curves_sculpt_settings->flag &
                                  BRUSH_CURVES_SCULPT_FLAG_SCALE_UNIFORM;
   const bool use_grow = (brush_mode == BRUSH_STROKE_INVERT) == ((brush.flag & BRUSH_DIR_IN) != 0);

@@ -7,7 +7,7 @@
 
 #include "BLI_bitmap.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_subdivision.h"
 
@@ -22,7 +22,7 @@ struct MeshExtract_EditUvElem_Data {
 };
 
 static void extract_edituv_tris_init(const MeshRenderData *mr,
-                                     struct MeshBatchCache *UNUSED(cache),
+                                     MeshBatchCache *UNUSED(cache),
                                      void *UNUSED(ibo),
                                      void *tls_data)
 {
@@ -69,7 +69,7 @@ static void extract_edituv_tris_iter_looptri_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edituv_tris_finish(const MeshRenderData *UNUSED(mr),
-                                       struct MeshBatchCache *UNUSED(cache),
+                                       MeshBatchCache *UNUSED(cache),
                                        void *buf,
                                        void *_data)
 {
@@ -142,7 +142,7 @@ static void extract_edituv_tris_iter_subdiv_mesh(const DRWSubdivCache *UNUSED(su
 
 static void extract_edituv_tris_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
                                               const MeshRenderData *UNUSED(mr),
-                                              struct MeshBatchCache *UNUSED(cache),
+                                              MeshBatchCache *UNUSED(cache),
                                               void *buf,
                                               void *_data)
 {
@@ -176,7 +176,7 @@ constexpr MeshExtract create_extractor_edituv_tris()
  * \{ */
 
 static void extract_edituv_lines_init(const MeshRenderData *mr,
-                                      struct MeshBatchCache *UNUSED(cache),
+                                      MeshBatchCache *UNUSED(cache),
                                       void *UNUSED(ibo),
                                       void *tls_data)
 {
@@ -236,7 +236,7 @@ static void extract_edituv_lines_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edituv_lines_finish(const MeshRenderData *UNUSED(mr),
-                                        struct MeshBatchCache *UNUSED(cache),
+                                        MeshBatchCache *UNUSED(cache),
                                         void *buf,
                                         void *_data)
 {
@@ -307,7 +307,7 @@ static void extract_edituv_lines_iter_subdiv_mesh(const DRWSubdivCache *subdiv_c
 
 static void extract_edituv_lines_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
                                                const MeshRenderData *UNUSED(mr),
-                                               struct MeshBatchCache *UNUSED(cache),
+                                               MeshBatchCache *UNUSED(cache),
                                                void *buf,
                                                void *_data)
 {
@@ -341,7 +341,7 @@ constexpr MeshExtract create_extractor_edituv_lines()
  * \{ */
 
 static void extract_edituv_points_init(const MeshRenderData *mr,
-                                       struct MeshBatchCache *UNUSED(cache),
+                                       MeshBatchCache *UNUSED(cache),
                                        void *UNUSED(ibo),
                                        void *tls_data)
 {
@@ -387,15 +387,14 @@ static void extract_edituv_points_iter_poly_mesh(const MeshRenderData *mr,
   for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
     const MLoop *ml = &mloop[ml_index];
 
-    const bool real_vert = (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
-                            mr->v_origindex[ml->v] != ORIGINDEX_NONE);
+    const bool real_vert = !mr->v_origindex || mr->v_origindex[ml->v] != ORIGINDEX_NONE;
     edituv_point_add(
         data, ((mp->flag & ME_HIDE) != 0) || !real_vert, (mp->flag & ME_FACE_SEL) != 0, ml_index);
   }
 }
 
 static void extract_edituv_points_finish(const MeshRenderData *UNUSED(mr),
-                                         struct MeshBatchCache *UNUSED(cache),
+                                         MeshBatchCache *UNUSED(cache),
                                          void *buf,
                                          void *_data)
 {
@@ -449,9 +448,8 @@ static void extract_edituv_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_
   uint end_loop_idx = (subdiv_quad_index + 1) * 4;
   for (uint i = start_loop_idx; i < end_loop_idx; i++) {
     const int vert_origindex = subdiv_loop_vert_index[i];
-    const bool real_vert = (mr->extract_type == MR_EXTRACT_MAPPED && (mr->v_origindex) &&
-                            vert_origindex != -1 &&
-                            mr->v_origindex[vert_origindex] != ORIGINDEX_NONE);
+    const bool real_vert = !mr->v_origindex || (vert_origindex != -1 &&
+                                                mr->v_origindex[vert_origindex] != ORIGINDEX_NONE);
     edituv_point_add(data,
                      ((coarse_quad->flag & ME_HIDE) != 0) || !real_vert,
                      (coarse_quad->flag & ME_FACE_SEL) != 0,
@@ -461,7 +459,7 @@ static void extract_edituv_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_
 
 static void extract_edituv_points_finish_subdiv(const struct DRWSubdivCache *UNUSED(subdiv_cache),
                                                 const MeshRenderData *UNUSED(mr),
-                                                struct MeshBatchCache *UNUSED(cache),
+                                                MeshBatchCache *UNUSED(cache),
                                                 void *buf,
                                                 void *_data)
 {
@@ -495,7 +493,7 @@ constexpr MeshExtract create_extractor_edituv_points()
  * \{ */
 
 static void extract_edituv_fdots_init(const MeshRenderData *mr,
-                                      struct MeshBatchCache *UNUSED(cache),
+                                      MeshBatchCache *UNUSED(cache),
                                       void *UNUSED(ibo),
                                       void *tls_data)
 {
@@ -543,8 +541,7 @@ static void extract_edituv_fdots_iter_poly_mesh(const MeshRenderData *mr,
     for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
       const MLoop *ml = &mloop[ml_index];
 
-      const bool real_fdot = (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex &&
-                              mr->p_origindex[mp_index] != ORIGINDEX_NONE);
+      const bool real_fdot = !mr->p_origindex || (mr->p_origindex[mp_index] != ORIGINDEX_NONE);
       const bool subd_fdot = BLI_BITMAP_TEST(facedot_tags, ml->v);
       edituv_facedot_add(data,
                          ((mp->flag & ME_HIDE) != 0) || !real_fdot || !subd_fdot,
@@ -553,15 +550,14 @@ static void extract_edituv_fdots_iter_poly_mesh(const MeshRenderData *mr,
     }
   }
   else {
-    const bool real_fdot = (mr->extract_type == MR_EXTRACT_MAPPED && mr->p_origindex &&
-                            mr->p_origindex[mp_index] != ORIGINDEX_NONE);
+    const bool real_fdot = !mr->p_origindex || (mr->p_origindex[mp_index] != ORIGINDEX_NONE);
     edituv_facedot_add(
         data, ((mp->flag & ME_HIDE) != 0) || !real_fdot, (mp->flag & ME_FACE_SEL) != 0, mp_index);
   }
 }
 
 static void extract_edituv_fdots_finish(const MeshRenderData *UNUSED(mr),
-                                        struct MeshBatchCache *UNUSED(cache),
+                                        MeshBatchCache *UNUSED(cache),
                                         void *buf,
                                         void *_data)
 {
@@ -588,9 +584,7 @@ constexpr MeshExtract create_extractor_edituv_fdots()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_edituv_tris = blender::draw::create_extractor_edituv_tris();
 const MeshExtract extract_edituv_lines = blender::draw::create_extractor_edituv_lines();
 const MeshExtract extract_edituv_points = blender::draw::create_extractor_edituv_points();
 const MeshExtract extract_edituv_fdots = blender::draw::create_extractor_edituv_fdots();
-}

@@ -469,7 +469,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
     }
   }
 
-  BKE_mesh_normals_tag_dirty(mesh);
+  BKE_mesh_tag_coords_changed(mesh);
 
   if (allocated_ocean) {
     BKE_ocean_free(omd->ocean);
@@ -701,7 +701,7 @@ static void blendRead(BlendDataReader *UNUSED(reader), ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Ocean = {
-    /* name */ "Ocean",
+    /* name */ N_("Ocean"),
     /* structName */ "OceanModifierData",
     /* structSize */ sizeof(OceanModifierData),
     /* srna */ &RNA_OceanModifier,

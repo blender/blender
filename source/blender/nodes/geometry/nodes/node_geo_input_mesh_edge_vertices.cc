@@ -29,7 +29,7 @@ enum VertexNumber { VERTEX_ONE, VERTEX_TWO };
 
 static VArray<int> construct_edge_vertices_gvarray(const MeshComponent &component,
                                                    const VertexNumber vertex,
-                                                   const AttributeDomain domain)
+                                                   const eAttrDomain domain)
 {
   const Mesh *mesh = component.get_for_read();
   if (mesh == nullptr) {
@@ -58,7 +58,7 @@ class EdgeVerticesFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_MESH) {
@@ -85,7 +85,7 @@ class EdgeVerticesFieldInput final : public GeometryFieldInput {
 
 static VArray<float3> construct_edge_positions_gvarray(const MeshComponent &component,
                                                        const VertexNumber vertex,
-                                                       const AttributeDomain domain)
+                                                       const eAttrDomain domain)
 {
   const Mesh *mesh = component.get_for_read();
   if (mesh == nullptr) {
@@ -93,14 +93,14 @@ static VArray<float3> construct_edge_positions_gvarray(const MeshComponent &comp
   }
 
   if (vertex == VERTEX_ONE) {
-    return component.attribute_try_adapt_domain<float3>(
+    return component.attributes()->adapt_domain<float3>(
         VArray<float3>::ForFunc(
             mesh->totedge,
             [mesh](const int i) { return float3(mesh->mvert[mesh->medge[i].v1].co); }),
         ATTR_DOMAIN_EDGE,
         domain);
   }
-  return component.attribute_try_adapt_domain<float3>(
+  return component.attributes()->adapt_domain<float3>(
       VArray<float3>::ForFunc(
           mesh->totedge,
           [mesh](const int i) { return float3(mesh->mvert[mesh->medge[i].v2].co); }),
@@ -120,7 +120,7 @@ class EdgePositionFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_MESH) {

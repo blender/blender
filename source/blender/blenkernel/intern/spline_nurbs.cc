@@ -124,19 +124,19 @@ void NURBSpline::mark_cache_invalid()
   length_cache_dirty_ = true;
 }
 
-int NURBSpline::evaluated_points_size() const
+int NURBSpline::evaluated_points_num() const
 {
-  if (!this->check_valid_size_and_order()) {
+  if (!this->check_valid_num_and_order()) {
     return 0;
   }
-  return resolution_ * this->segments_size();
+  return resolution_ * this->segments_num();
 }
 
 void NURBSpline::correct_end_tangents() const
 {
 }
 
-bool NURBSpline::check_valid_size_and_order() const
+bool NURBSpline::check_valid_num_and_order() const
 {
   if (this->size() < order_) {
     return false;
@@ -152,10 +152,10 @@ bool NURBSpline::check_valid_size_and_order() const
   return true;
 }
 
-int NURBSpline::knots_size() const
+int NURBSpline::knots_num() const
 {
-  const int size = this->size() + order_;
-  return is_cyclic_ ? size + order_ - 1 : size;
+  const int num = this->size() + order_;
+  return is_cyclic_ ? num + order_ - 1 : num;
 }
 
 void NURBSpline::calculate_knots() const
@@ -173,7 +173,7 @@ void NURBSpline::calculate_knots() const
    * Covers both Cyclic and EndPoint cases. */
   const int tail = is_cyclic_ ? 2 * order - 1 : (is_end_point ? order : 0);
 
-  knots_.resize(this->knots_size());
+  knots_.resize(this->knots_num());
   MutableSpan<float> knots = knots_;
 
   int r = head;
@@ -203,13 +203,13 @@ void NURBSpline::calculate_knots() const
 Span<float> NURBSpline::knots() const
 {
   if (!knots_dirty_) {
-    BLI_assert(knots_.size() == this->knots_size());
+    BLI_assert(knots_.size() == this->knots_num());
     return knots_;
   }
 
   std::lock_guard lock{knots_mutex_};
   if (!knots_dirty_) {
-    BLI_assert(knots_.size() == this->knots_size());
+    BLI_assert(knots_.size() == this->knots_num());
     return knots_;
   }
 
@@ -221,7 +221,7 @@ Span<float> NURBSpline::knots() const
 }
 
 static void calculate_basis_for_point(const float parameter,
-                                      const int size,
+                                      const int num,
                                       const int degree,
                                       const Span<float> knots,
                                       MutableSpan<float> r_weights,
@@ -231,7 +231,7 @@ static void calculate_basis_for_point(const float parameter,
 
   int start = 0;
   int end = 0;
-  for (const int i : IndexRange(size + degree)) {
+  for (const int i : IndexRange(num + degree)) {
     const bool knots_equal = knots[i] == knots[i + 1];
     if (knots_equal || parameter < knots[i] || parameter > knots[i + 1]) {
       continue;
@@ -248,7 +248,7 @@ static void calculate_basis_for_point(const float parameter,
 
   for (const int i_order : IndexRange(2, degree)) {
     if (end + i_order >= knots.size()) {
-      end = size + degree - i_order;
+      end = num + degree - i_order;
     }
     for (const int i : IndexRange(end - start + 1)) {
       const int knot_index = start + i;
@@ -284,16 +284,16 @@ const NURBSpline::BasisCache &NURBSpline::calculate_basis_cache() const
     return basis_cache_;
   }
 
-  const int size = this->size();
-  const int eval_size = this->evaluated_points_size();
+  const int num = this->size();
+  const int eval_num = this->evaluated_points_num();
 
   const int order = this->order();
   const int degree = order - 1;
 
-  basis_cache_.weights.resize(eval_size * order);
-  basis_cache_.start_indices.resize(eval_size);
+  basis_cache_.weights.resize(eval_num * order);
+  basis_cache_.start_indices.resize(eval_num);
 
-  if (eval_size == 0) {
+  if (eval_num == 0) {
     return basis_cache_;
   }
 
@@ -303,14 +303,14 @@ const NURBSpline::BasisCache &NURBSpline::calculate_basis_cache() const
   const Span<float> control_weights = this->weights();
   const Span<float> knots = this->knots();
 
-  const int last_control_point_index = is_cyclic_ ? size + degree : size;
+  const int last_control_point_index = is_cyclic_ ? num + degree : num;
 
   const float start = knots[degree];
   const float end = knots[last_control_point_index];
-  const float step = (end - start) / this->evaluated_edges_size();
-  for (const int i : IndexRange(eval_size)) {
+  const float step = (end - start) / this->evaluated_edges_num();
+  for (const int i : IndexRange(eval_num)) {
     /* Clamp parameter due to floating point inaccuracy. */
-    const float parameter = std::clamp(start + step * i, knots[0], knots[size + degree]);
+    const float parameter = std::clamp(start + step * i, knots[0], knots[num + degree]);
 
     MutableSpan<float> point_weights = basis_weights.slice(i * order, order);
 
@@ -318,7 +318,7 @@ const NURBSpline::BasisCache &NURBSpline::calculate_basis_cache() const
         parameter, last_control_point_index, degree, knots, point_weights, basis_start_indices[i]);
 
     for (const int j : point_weights.index_range()) {
-      const int point_index = (basis_start_indices[i] + j) % size;
+      const int point_index = (basis_start_indices[i] + j) % num;
       point_weights[j] *= control_weights[point_index];
     }
   }
@@ -333,7 +333,7 @@ void interpolate_to_evaluated_impl(const NURBSpline::BasisCache &basis_cache,
                                    const blender::VArray<T> &src,
                                    MutableSpan<T> dst)
 {
-  const int size = src.size();
+  const int num = src.size();
   blender::attribute_math::DefaultMixer<T> mixer(dst);
 
   for (const int i : dst.index_range()) {
@@ -341,7 +341,7 @@ void interpolate_to_evaluated_impl(const NURBSpline::BasisCache &basis_cache,
     const int start_index = basis_cache.start_indices[i];
 
     for (const int j : point_weights.index_range()) {
-      const int point_index = (start_index + j) % size;
+      const int point_index = (start_index + j) % num;
       mixer.mix_in(i, src[point_index], point_weights[j]);
     }
   }
@@ -363,7 +363,7 @@ GVArray NURBSpline::interpolate_to_evaluated(const GVArray &src) const
   blender::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
     using T = decltype(dummy);
     if constexpr (!std::is_void_v<blender::attribute_math::DefaultMixer<T>>) {
-      Array<T> values(this->evaluated_points_size());
+      Array<T> values(this->evaluated_points_num());
       interpolate_to_evaluated_impl<T>(basis_cache, this->order(), src.typed<T>(), values);
       new_varray = VArray<T>::ForContainer(std::move(values));
     }
@@ -383,8 +383,8 @@ Span<float3> NURBSpline::evaluated_positions() const
     return evaluated_position_cache_;
   }
 
-  const int eval_size = this->evaluated_points_size();
-  evaluated_position_cache_.resize(eval_size);
+  const int eval_num = this->evaluated_points_num();
+  evaluated_position_cache_.resize(eval_num);
 
   /* TODO: Avoid copying the evaluated data from the temporary array. */
   VArray<float3> evaluated = Spline::interpolate_to_evaluated(positions_.as_span());

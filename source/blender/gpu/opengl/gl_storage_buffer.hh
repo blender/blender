@@ -36,6 +36,7 @@ class GLStorageBuf : public StorageBuf {
   void bind(int slot) override;
   void unbind() override;
   void clear(eGPUTextureFormat internal_format, eGPUDataFormat data_format, void *data) override;
+  void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) override;
 
   /* Special internal function to bind SSBOs to indirect argument targets. */
   void bind_as(GLenum target);

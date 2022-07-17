@@ -107,6 +107,7 @@ static struct PyMethodDef pyrna_text_methods[] = {
  * and creating the buffer, causing writes past the allocated length.
  * \{ */
 
+PyDoc_STRVAR(pyrna_WindowManager_clipboard_doc, "Clipboard text storage.\n\n:type: string");
 static PyObject *pyrna_WindowManager_clipboard_get(PyObject *UNUSED(self), void *UNUSED(flag))
 {
   int text_len = 0;
@@ -154,7 +155,7 @@ static struct PyGetSetDef pyrna_windowmanager_getset[] = {
     {"clipboard",
      pyrna_WindowManager_clipboard_get,
      pyrna_WindowManager_clipboard_set,
-     NULL,
+     pyrna_WindowManager_clipboard_doc,
      NULL},
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

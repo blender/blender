@@ -222,9 +222,10 @@ void CTX_wm_operator_poll_msg_clear(struct bContext *C);
 
 /* Data Context
  *
- * - listbases consist of CollectionPointerLink items and must be
- *   freed with BLI_freelistN!
- * - the dir listbase consists of LinkData items */
+ * - #ListBase consists of #CollectionPointerLink items and must be
+ *   freed with #BLI_freelistN!
+ * - The dir #ListBase consists of #LinkData items.
+ */
 
 /* data type, needed so we can tell between a NULL pointer and an empty list */
 enum {

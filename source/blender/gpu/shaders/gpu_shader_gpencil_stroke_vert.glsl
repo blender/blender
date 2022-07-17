@@ -1,19 +1,3 @@
-#ifndef USE_GPU_SHADER_CREATE_INFO
-uniform mat4 ModelViewProjectionMatrix;
-uniform mat4 ProjectionMatrix;
-
-uniform float pixsize; /* rv3d->pixsize */
-uniform int keep_size;
-uniform float objscale;
-uniform float pixfactor;
-
-in vec3 pos;
-in vec4 color;
-in float thickness;
-
-out vec4 finalColor;
-out float finalThickness;
-#endif
 
 float defaultpixsize = gpencil_stroke_data.pixsize * (1000.0 / gpencil_stroke_data.pixfactor);
 

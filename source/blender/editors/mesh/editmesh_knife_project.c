@@ -142,7 +142,7 @@ static int knifeproject_exec(bContext *C, wmOperator *op)
     ED_view3d_viewcontext_init_object(&vc, obedit);
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-    EDBM_mesh_knife(C, &vc, polys, true, cut_through);
+    EDBM_mesh_knife(&vc, polys, true, cut_through);
 
     /* select only tagged faces */
     BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);

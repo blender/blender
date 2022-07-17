@@ -102,6 +102,7 @@ typedef enum {
   /** Accepts #BMesh input (without conversion). */
   eModifierTypeFlag_AcceptsBMesh = (1 << 11),
 } ModifierTypeFlag;
+ENUM_OPERATORS(ModifierTypeFlag, eModifierTypeFlag_AcceptsBMesh)
 
 typedef void (*IDWalkFunc)(void *userData, struct Object *ob, struct ID **idpoin, int cb_flag);
 typedef void (*TexWalkFunc)(void *userData,
@@ -113,7 +114,7 @@ typedef enum ModifierApplyFlag {
   /** Render time. */
   MOD_APPLY_RENDER = 1 << 0,
   /** Result of evaluation will be cached, so modifier might
-   * want to cache data for quick updates (used by subsurf) */
+   * want to cache data for quick updates (used by subdivision-surface) */
   MOD_APPLY_USECACHE = 1 << 1,
   /** Modifier evaluated for undeformed texture coordinates */
   MOD_APPLY_ORCO = 1 << 2,
@@ -363,7 +364,9 @@ typedef struct ModifierTypeInfo {
    * This method should write any additional arrays and referenced structs that should be
    * stored in the file.
    */
-  void (*blendWrite)(struct BlendWriter *writer, const struct ModifierData *md);
+  void (*blendWrite)(struct BlendWriter *writer,
+                     const struct ID *id_owner,
+                     const struct ModifierData *md);
 
   /**
    * Is called when the modifier is read from a file.
@@ -443,10 +446,22 @@ bool BKE_modifier_is_enabled(const struct Scene *scene,
  */
 bool BKE_modifier_is_nonlocal_in_liboverride(const struct Object *ob,
                                              const struct ModifierData *md);
+
+/* Set modifier execution error.
+ * The message will be shown in the interface and will be logged as an error to the console. */
 void BKE_modifier_set_error(const struct Object *ob,
                             struct ModifierData *md,
                             const char *format,
                             ...) ATTR_PRINTF_FORMAT(3, 4);
+
+/* Set modifier execution warning, which does not prevent the modifier from being applied but which
+ * might need an attention. The message will only be shown in the interface, but will not appear in
+ * the logs. */
+void BKE_modifier_set_warning(const struct Object *ob,
+                              struct ModifierData *md,
+                              const char *format,
+                              ...) ATTR_PRINTF_FORMAT(3, 4);
+
 bool BKE_modifier_is_preview(struct ModifierData *md);
 
 void BKE_modifiers_foreach_ID_link(struct Object *ob, IDWalkFunc walk, void *userData);
@@ -592,7 +607,9 @@ struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(struct Object
 
 void BKE_modifier_check_uuids_unique_and_report(const struct Object *object);
 
-void BKE_modifier_blend_write(struct BlendWriter *writer, struct ListBase *modbase);
+void BKE_modifier_blend_write(struct BlendWriter *writer,
+                              const struct ID *id_owner,
+                              struct ListBase *modbase);
 void BKE_modifier_blend_read_data(struct BlendDataReader *reader,
                                   struct ListBase *lb,
                                   struct Object *ob);

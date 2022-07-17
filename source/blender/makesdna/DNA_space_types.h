@@ -173,7 +173,7 @@ typedef struct SpaceProperties {
 
 /* button defines (deprecated) */
 #ifdef DNA_DEPRECATED_ALLOW
-/* warning: the values of these defines are used in SpaceProperties.tabs[8] */
+/* WARNING: the values of these defines are used in SpaceProperties.tabs[8] */
 /* SpaceProperties.mainb new */
 #  define CONTEXT_SCENE 0
 #  define CONTEXT_OBJECT 1
@@ -732,7 +732,8 @@ typedef struct MaskSpaceInfo {
   char draw_flag;
   char draw_type;
   char overlay_mode;
-  char _pad3[5];
+  char _pad3[1];
+  float blend_factor;
 } MaskSpaceInfo;
 
 /** #SpaceSeq.gizmo_flag */
@@ -1223,7 +1224,8 @@ typedef struct SpaceImage {
   char dt_uvstretch;
   char around;
 
-  char _pad1[4];
+  char gizmo_flag;
+  char _pad1[3];
 
   int flag;
 
@@ -1321,6 +1323,13 @@ typedef enum eSpaceImageOverlay_Flag {
   SI_OVERLAY_SHOW_GRID_BACKGROUND = (1 << 1),
 } eSpaceImageOverlay_Flag;
 
+/** #SpaceImage.gizmo_flag */
+enum {
+  /** All gizmos. */
+  SI_GIZMO_HIDE = (1 << 0),
+  SI_GIZMO_HIDE_NAVIGATE = (1 << 1),
+};
+
 /** Keep in sync with `STEPS_LEN` in `grid_frag.glsl`. */
 #define SI_GRID_STEPS_LEN 8
 
@@ -1332,7 +1341,7 @@ typedef enum eSpaceImageOverlay_Flag {
 
 typedef struct SpaceText_Runtime {
 
-  /** Actual line height, scaled by dpi. */
+  /** Actual line height, scaled by DPI. */
   int lheight_px;
 
   /** Runtime computed, character width. */
@@ -1928,9 +1937,9 @@ typedef struct SpaceSpreadsheet {
 
   /* #GeometryComponentType. */
   uint8_t geometry_component_type;
-  /* #AttributeDomain. */
+  /* #eAttrDomain. */
   uint8_t attribute_domain;
-  /* eSpaceSpreadsheet_ObjectContext. */
+  /* eSpaceSpreadsheet_ObjectEvalState. */
   uint8_t object_eval_state;
 
   /* eSpaceSpreadsheet_Flag. */
@@ -1968,7 +1977,7 @@ typedef struct SpreadsheetRowFilter {
   float value_float2[2];
   float value_float3[3];
   float value_color[4];
-  uint8_t value_byte_color[4];
+  char _pad1[4];
 } SpreadsheetRowFilter;
 
 typedef enum eSpaceSpreadsheet_RowFilterFlag {
@@ -2006,6 +2015,7 @@ typedef enum eSpreadsheetColumnValueType {
   SPREADSHEET_VALUE_TYPE_INSTANCES = 6,
   SPREADSHEET_VALUE_TYPE_STRING = 7,
   SPREADSHEET_VALUE_TYPE_BYTE_COLOR = 8,
+  SPREADSHEET_VALUE_TYPE_INT8 = 9,
 } eSpreadsheetColumnValueType;
 
 /**

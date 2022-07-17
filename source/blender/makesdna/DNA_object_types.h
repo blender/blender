@@ -215,6 +215,10 @@ typedef struct ObjectLineArt {
 
   /** if OBJECT_LRT_OWN_CREASE is set */
   float crease_threshold;
+
+  unsigned char intersection_priority;
+
+  char _pad[7];
 } ObjectLineArt;
 
 /**
@@ -231,6 +235,7 @@ enum eObjectLineArt_Usage {
 
 enum eObjectLineArt_Flags {
   OBJECT_LRT_OWN_CREASE = (1 << 0),
+  OBJECT_LRT_OWN_INTERSECTION_PRIORITY = (1 << 1),
 };
 
 typedef struct Object {
@@ -374,7 +379,7 @@ typedef struct Object {
   /** Dupliface scale. */
   float instance_faces_scale;
 
-  /** Custom index, for renderpasses. */
+  /** Custom index, for render-passes. */
   short index;
   /** Current deformation group, NOTE: index starts at 1. */
   unsigned short actdef DNA_DEPRECATED;
@@ -429,7 +434,10 @@ typedef struct Object {
   char empty_image_visibility_flag;
   char empty_image_depth;
   char empty_image_flag;
-  char _pad8[5];
+
+  /** ObjectModifierFlag */
+  uint8_t modifier_flag;
+  char _pad8[4];
 
   struct PreviewImage *preview;
 
@@ -535,7 +543,8 @@ enum {
 
 /** Matches #OB_TYPE_SUPPORT_EDITMODE. */
 #define OB_DATA_SUPPORT_EDITMODE(_type) \
-  (ELEM(_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_AR, ID_CV))
+  (ELEM(_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_AR) || \
+   (U.experimental.use_new_curves_tools && (_type) == ID_CV))
 
 /* is this ID type used as object data */
 #define OB_DATA_SUPPORT_ID(_id_type) \
@@ -781,6 +790,10 @@ enum {
 enum {
   OB_EMPTY_IMAGE_USE_ALPHA_BLEND = 1 << 0,
 };
+
+typedef enum ObjectModifierFlag {
+  OB_MODIFIER_FLAG_ADD_REST_POSITION = 1 << 0,
+} ObjectModifierFlag;
 
 #define MAX_DUPLI_RECUR 8
 

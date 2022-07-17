@@ -347,7 +347,7 @@ float *BKE_mball_make_orco(Object *ob, ListBase *dispbase)
   return orcodata;
 }
 
-bool BKE_mball_is_basis(Object *ob)
+bool BKE_mball_is_basis(const Object *ob)
 {
   /* Meta-Ball Basis Notes from Blender-2.5x
    * =======================================
@@ -370,7 +370,7 @@ bool BKE_mball_is_basis(Object *ob)
   return (!isdigit(ob->id.name[len - 1]));
 }
 
-bool BKE_mball_is_basis_for(Object *ob1, Object *ob2)
+bool BKE_mball_is_same_group(const Object *ob1, const Object *ob2)
 {
   int basis1nr, basis2nr;
   char basis1name[MAX_ID_NAME], basis2name[MAX_ID_NAME];
@@ -383,11 +383,12 @@ bool BKE_mball_is_basis_for(Object *ob1, Object *ob2)
   BLI_split_name_num(basis1name, &basis1nr, ob1->id.name + 2, '.');
   BLI_split_name_num(basis2name, &basis2nr, ob2->id.name + 2, '.');
 
-  if (STREQ(basis1name, basis2name)) {
-    return BKE_mball_is_basis(ob1);
-  }
+  return STREQ(basis1name, basis2name);
+}
 
-  return false;
+bool BKE_mball_is_basis_for(const Object *ob1, const Object *ob2)
+{
+  return BKE_mball_is_same_group(ob1, ob2) && BKE_mball_is_basis(ob1);
 }
 
 bool BKE_mball_is_any_selected(const MetaBall *mb)
@@ -422,41 +423,85 @@ bool BKE_mball_is_any_unselected(const MetaBall *mb)
   return false;
 }
 
-void BKE_mball_properties_copy(Scene *scene, Object *active_object)
+static void mball_data_properties_copy(MetaBall *mb_dst, MetaBall *mb_src)
 {
-  Scene *sce_iter = scene;
-  Base *base;
-  Object *ob;
-  MetaBall *active_mball = (MetaBall *)active_object->data;
-  int basisnr, obnr;
-  char basisname[MAX_ID_NAME], obname[MAX_ID_NAME];
-  SceneBaseIter iter;
+  mb_dst->wiresize = mb_src->wiresize;
+  mb_dst->rendersize = mb_src->rendersize;
+  mb_dst->thresh = mb_src->thresh;
+  mb_dst->flag = mb_src->flag;
+  DEG_id_tag_update(&mb_dst->id, 0);
+}
 
-  BLI_split_name_num(basisname, &basisnr, active_object->id.name + 2, '.');
-
-  /* Pass depsgraph as NULL, which means we will not expand into
-   * duplis unlike when we generate the meta-ball. Expanding duplis
-   * would not be compatible when editing multiple view layers. */
-  BKE_scene_base_iter_next(NULL, &iter, &sce_iter, 0, NULL, NULL);
-  while (BKE_scene_base_iter_next(NULL, &iter, &sce_iter, 1, &base, &ob)) {
-    if (ob->type == OB_MBALL) {
-      if (ob != active_object) {
-        BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
-
-        /* Object ob has to be in same "group" ... it means, that it has to have
-         * same base of its name */
-        if (STREQ(obname, basisname)) {
-          MetaBall *mb = ob->data;
-
-          /* Copy properties from selected/edited metaball */
-          mb->wiresize = active_mball->wiresize;
-          mb->rendersize = active_mball->rendersize;
-          mb->thresh = active_mball->thresh;
-          mb->flag = active_mball->flag;
-          DEG_id_tag_update(&mb->id, 0);
-        }
-      }
+void BKE_mball_properties_copy(Main *bmain, MetaBall *metaball_src)
+{
+  /**
+   * WARNING: This code does not cover all potential corner-cases. E.g. if:
+   * <pre>
+   * |   Object   |   ObData   |
+   * | ---------- | ---------- |
+   * | Meta_A     | Meta_A     |
+   * | Meta_A.001 | Meta_A.001 |
+   * | Meta_B     | Meta_A     |
+   * | Meta_B.001 | Meta_B.001 |
+   * </pre>
+   *
+   * Calling this function with `metaball_src` being `Meta_A.001` will update `Meta_A`, but NOT
+   * `Meta_B.001`. So in the 'Meta_B' family, the two metaballs will have unmatching settings now.
+   *
+   * Solving this case would drastically increase the complexity of this code though, so don't
+   * think it would be worth it.
+   */
+  for (Object *ob_src = bmain->objects.first; ob_src != NULL && !ID_IS_LINKED(ob_src);) {
+    if (ob_src->data != metaball_src) {
+      ob_src = ob_src->id.next;
+      continue;
     }
+
+    /* In this code we take advantage of two facts:
+     *  - MetaBalls of the same family have the same basis name,
+     *  - IDs are sorted by name in their Main listbase.
+     * So, all MetaBall objects of the same family are contiguous in bmain list (potentially mixed
+     * with non-meta-ball objects with same basis names).
+     *
+     * Using this, it is possible to process the whole set of meta-balls with a single loop on the
+     * whole list of Objects, though additionally going backward on part of the list in some cases.
+     */
+    Object *ob_iter = NULL;
+    int obactive_nr, ob_nr;
+    char obactive_name[MAX_ID_NAME], ob_name[MAX_ID_NAME];
+    BLI_split_name_num(obactive_name, &obactive_nr, ob_src->id.name + 2, '.');
+
+    for (ob_iter = ob_src->id.prev; ob_iter != NULL; ob_iter = ob_iter->id.prev) {
+      if (ob_iter->id.name[2] != obactive_name[0]) {
+        break;
+      }
+      if (ob_iter->type != OB_MBALL || ob_iter->data == metaball_src) {
+        continue;
+      }
+      BLI_split_name_num(ob_name, &ob_nr, ob_iter->id.name + 2, '.');
+      if (!STREQ(obactive_name, ob_name)) {
+        break;
+      }
+
+      mball_data_properties_copy(ob_iter->data, metaball_src);
+    }
+
+    for (ob_iter = ob_src->id.next; ob_iter != NULL; ob_iter = ob_iter->id.next) {
+      if (ob_iter->id.name[2] != obactive_name[0] || ID_IS_LINKED(ob_iter)) {
+        break;
+      }
+      if (ob_iter->type != OB_MBALL || ob_iter->data == metaball_src) {
+        continue;
+      }
+      BLI_split_name_num(ob_name, &ob_nr, ob_iter->id.name + 2, '.');
+      if (!STREQ(obactive_name, ob_name)) {
+        break;
+      }
+
+      mball_data_properties_copy(ob_iter->data, metaball_src);
+    }
+
+    ob_src = ob_iter;
   }
 }
 

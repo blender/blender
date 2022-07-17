@@ -35,10 +35,12 @@
 #include <ctime>
 #include <memory>
 #include <sstream>
+#include <utility>
 
 #include "Eigen/SparseCore"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/cxsparse.h"
+#include "ceres/internal/config.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/linear_solver.h"
 #include "ceres/suitesparse.h"
@@ -54,8 +56,8 @@ namespace ceres {
 namespace internal {
 
 DynamicSparseNormalCholeskySolver::DynamicSparseNormalCholeskySolver(
-    const LinearSolver::Options& options)
-    : options_(options) {}
+    LinearSolver::Options options)
+    : options_(std::move(options)) {}
 
 LinearSolver::Summary DynamicSparseNormalCholeskySolver::SolveImpl(
     CompressedRowSparseMatrix* A,
@@ -71,11 +73,11 @@ LinearSolver::Summary DynamicSparseNormalCholeskySolver::SolveImpl(
     // it before returning the matrix to the user.
     std::unique_ptr<CompressedRowSparseMatrix> regularizer;
     if (!A->col_blocks().empty()) {
-      regularizer.reset(CompressedRowSparseMatrix::CreateBlockDiagonalMatrix(
-          per_solve_options.D, A->col_blocks()));
+      regularizer = CompressedRowSparseMatrix::CreateBlockDiagonalMatrix(
+          per_solve_options.D, A->col_blocks());
     } else {
-      regularizer.reset(
-          new CompressedRowSparseMatrix(per_solve_options.D, num_cols));
+      regularizer = std::make_unique<CompressedRowSparseMatrix>(
+          per_solve_options.D, num_cols);
     }
     A->AppendRows(*regularizer);
   }
@@ -123,12 +125,13 @@ LinearSolver::Summary DynamicSparseNormalCholeskySolver::SolveImplUsingEigen(
 
   EventLogger event_logger("DynamicSparseNormalCholeskySolver::Eigen::Solve");
 
-  Eigen::MappedSparseMatrix<double, Eigen::RowMajor> a(A->num_rows(),
-                                                       A->num_cols(),
-                                                       A->num_nonzeros(),
-                                                       A->mutable_rows(),
-                                                       A->mutable_cols(),
-                                                       A->mutable_values());
+  Eigen::Map<Eigen::SparseMatrix<double, Eigen::RowMajor>> a(
+      A->num_rows(),
+      A->num_cols(),
+      A->num_nonzeros(),
+      A->mutable_rows(),
+      A->mutable_cols(),
+      A->mutable_values());
 
   Eigen::SparseMatrix<double> lhs = a.transpose() * a;
   Eigen::SimplicialLDLT<Eigen::SparseMatrix<double>> solver;

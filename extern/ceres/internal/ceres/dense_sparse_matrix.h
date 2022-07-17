@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,9 @@
 #ifndef CERES_INTERNAL_DENSE_SPARSE_MATRIX_H_
 #define CERES_INTERNAL_DENSE_SPARSE_MATRIX_H_
 
+#include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/sparse_matrix.h"
 #include "ceres/types.h"
 
@@ -43,17 +44,13 @@ namespace internal {
 
 class TripletSparseMatrix;
 
-class CERES_EXPORT_INTERNAL DenseSparseMatrix : public SparseMatrix {
+class CERES_NO_EXPORT DenseSparseMatrix final : public SparseMatrix {
  public:
   // Build a matrix with the same content as the TripletSparseMatrix
   // m. This assumes that m does not have any repeated entries.
   explicit DenseSparseMatrix(const TripletSparseMatrix& m);
-  explicit DenseSparseMatrix(const ColMajorMatrix& m);
-
+  explicit DenseSparseMatrix(Matrix m);
   DenseSparseMatrix(int num_rows, int num_cols);
-  DenseSparseMatrix(int num_rows, int num_cols, bool reserve_diagonal);
-
-  virtual ~DenseSparseMatrix() {}
 
   // SparseMatrix interface.
   void SetZero() final;
@@ -69,40 +66,16 @@ class CERES_EXPORT_INTERNAL DenseSparseMatrix : public SparseMatrix {
   const double* values() const final { return m_.data(); }
   double* mutable_values() final { return m_.data(); }
 
-  ConstColMajorMatrixRef matrix() const;
-  ColMajorMatrixRef mutable_matrix();
-
-  // Only one diagonal can be appended at a time. The diagonal is appended to
-  // as a new set of rows, e.g.
-  //
-  // Original matrix:
-  //
-  //   x x x
-  //   x x x
-  //   x x x
-  //
-  // After append diagonal (1, 2, 3):
-  //
-  //   x x x
-  //   x x x
-  //   x x x
-  //   1 0 0
-  //   0 2 0
-  //   0 0 3
-  //
-  // Calling RemoveDiagonal removes the block. It is a fatal error to append a
-  // diagonal to a matrix that already has an appended diagonal, and it is also
-  // a fatal error to remove a diagonal from a matrix that has none.
-  void AppendDiagonal(double* d);
-  void RemoveDiagonal();
+  const Matrix& matrix() const;
+  Matrix* mutable_matrix();
 
  private:
-  ColMajorMatrix m_;
-  bool has_diagonal_appended_;
-  bool has_diagonal_reserved_;
+  Matrix m_;
 };
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_DENSE_SPARSE_MATRIX_H_

@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # note, properties_animviz is a helper module only.
 
 # support reloading sub-modules
@@ -130,8 +128,8 @@ def register():
         return items
 
     WindowManager.addon_search = StringProperty(
-        name="Search",
-        description="Search within the selected filter",
+        name="Filter",
+        description="Filter by add-on name, author & category",
         options={'TEXTEDIT_UPDATE'},
     )
     WindowManager.addon_filter = EnumProperty(

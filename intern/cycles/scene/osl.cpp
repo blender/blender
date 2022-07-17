@@ -92,7 +92,7 @@ void OSLShaderManager::device_update_specific(Device *device,
     }
   });
 
-  VLOG(1) << "Total " << scene->shaders.size() << " shaders.";
+  VLOG_INFO << "Total " << scene->shaders.size() << " shaders.";
 
   device_free(device, dscene, scene);
 
@@ -240,7 +240,7 @@ void OSLShaderManager::shading_system_init()
     ss_shared->attribute("searchpath:shader", shader_path);
     ss_shared->attribute("greedyjit", 1);
 
-    VLOG(1) << "Using shader search path: " << shader_path;
+    VLOG_INFO << "Using shader search path: " << shader_path;
 
     /* our own ray types */
     static const char *raytypes[] = {
@@ -1211,14 +1211,15 @@ void OSLCompiler::parameter_texture(const char *name, ustring filename, ustring 
   parameter(name, filename);
 }
 
-void OSLCompiler::parameter_texture(const char *name, int svm_slot)
+void OSLCompiler::parameter_texture(const char *name, const ImageHandle &handle)
 {
   /* Texture loaded through SVM image texture system. We generate a unique
    * name, which ends up being used in OSLRenderServices::get_texture_handle
    * to get handle again. Note that this name must be unique between multiple
    * render sessions as the render services are shared. */
   ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
-  services->textures.insert(filename, new OSLTextureHandle(OSLTextureHandle::SVM, svm_slot));
+  services->textures.insert(filename,
+                            new OSLTextureHandle(OSLTextureHandle::SVM, handle.get_svm_slots()));
   parameter(name, filename);
 }
 
@@ -1290,7 +1291,7 @@ void OSLCompiler::parameter_texture(const char * /* name */,
 {
 }
 
-void OSLCompiler::parameter_texture(const char * /* name */, int /* svm_slot */)
+void OSLCompiler::parameter_texture(const char * /* name */, const ImageHandle & /*handle*/)
 {
 }
 

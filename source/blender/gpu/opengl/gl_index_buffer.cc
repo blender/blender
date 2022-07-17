@@ -6,7 +6,6 @@
  */
 
 #include "gl_context.hh"
-#include "gl_debug.hh"
 
 #include "gl_index_buffer.hh"
 

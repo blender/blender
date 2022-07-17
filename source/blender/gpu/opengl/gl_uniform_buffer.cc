@@ -5,14 +5,10 @@
  * \ingroup gpu
  */
 
-#include "BKE_global.h"
-
 #include "BLI_string.h"
 
-#include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 
-#include "gl_backend.hh"
 #include "gl_debug.hh"
 #include "gl_uniform_buffer.hh"
 

@@ -32,9 +32,7 @@ static void add_final_mesh_as_geometry_component(const Object &object, GeometryS
 
   if (mesh != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh);
-
-    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-    mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
+    geometry_set.replace_mesh(mesh, GeometryOwnershipType::ReadOnly);
   }
 }
 
@@ -72,11 +70,6 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
     instances.add_instance(handle, float4x4::identity());
     return geometry_set;
   }
-
-  /* TODO: Cover the case of point clouds without modifiers-- they may not be covered by the
-   * #geometry_set_eval case above. */
-
-  /* TODO: Add volume support. */
 
   /* Return by value since there is not always an existing geometry set owned elsewhere to use. */
   return {};
@@ -162,41 +155,6 @@ void geometry_set_gather_instances(const GeometrySet &geometry_set,
                                    Vector<GeometryInstanceGroup> &r_instance_groups)
 {
   geometry_set_collect_recursive(geometry_set, float4x4::identity(), r_instance_groups);
-}
-
-void geometry_set_gather_instances_attribute_info(Span<GeometryInstanceGroup> set_groups,
-                                                  Span<GeometryComponentType> component_types,
-                                                  const Set<std::string> &ignored_attributes,
-                                                  Map<AttributeIDRef, AttributeKind> &r_attributes)
-{
-  for (const GeometryInstanceGroup &set_group : set_groups) {
-    const GeometrySet &set = set_group.geometry_set;
-    for (const GeometryComponentType component_type : component_types) {
-      if (!set.has(component_type)) {
-        continue;
-      }
-      const GeometryComponent &component = *set.get_component_for_read(component_type);
-
-      component.attribute_foreach(
-          [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-            if (attribute_id.is_named() && ignored_attributes.contains(attribute_id.name())) {
-              return true;
-            }
-            auto add_info = [&](AttributeKind *attribute_kind) {
-              attribute_kind->domain = meta_data.domain;
-              attribute_kind->data_type = meta_data.data_type;
-            };
-            auto modify_info = [&](AttributeKind *attribute_kind) {
-              attribute_kind->domain = meta_data.domain; /* TODO: Use highest priority domain. */
-              attribute_kind->data_type = bke::attribute_data_type_highest_complexity(
-                  {attribute_kind->data_type, meta_data.data_type});
-            };
-
-            r_attributes.add_or_modify(attribute_id, add_info, modify_info);
-            return true;
-          });
-    }
-  }
 }
 
 }  // namespace blender::bke

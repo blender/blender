@@ -370,6 +370,24 @@ MINLINE uint divide_ceil_u(uint a, uint b)
   return (a + b - 1) / b;
 }
 
+MINLINE uint64_t divide_ceil_ul(uint64_t a, uint64_t b)
+{
+  return (a + b - 1) / b;
+}
+
+/**
+ * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
+ */
+MINLINE uint ceil_to_multiple_u(uint a, uint b)
+{
+  return divide_ceil_u(a, b) * b;
+}
+
+MINLINE uint64_t ceil_to_multiple_ul(uint64_t a, uint64_t b)
+{
+  return divide_ceil_ul(a, b) * b;
+}
+
 MINLINE int mod_i(int i, int n)
 {
   return (i % n + n) % n;
@@ -767,6 +785,20 @@ MALWAYS_INLINE __m128 _bli_math_fastpow24(const __m128 arg)
   return _mm_mul_ps(x, _mm_mul_ps(x, x));
 }
 
+MALWAYS_INLINE __m128 _bli_math_rsqrt(__m128 in)
+{
+  __m128 r = _mm_rsqrt_ps(in);
+  /* Only do additional Newton-Raphson iterations when using actual SSE
+   * code path. When we are emulating SSE on NEON via sse2neon, the
+   * additional NR iterations are already done inside _mm_rsqrt_ps
+   * emulation. */
+#  if defined(__SSE2__)
+  r = _mm_add_ps(_mm_mul_ps(_mm_set1_ps(1.5f), r),
+                 _mm_mul_ps(_mm_mul_ps(_mm_mul_ps(in, _mm_set1_ps(-0.5f)), r), _mm_mul_ps(r, r)));
+#  endif
+  return r;
+}
+
 /* Calculate powf(x, 1.0f / 2.4) */
 MALWAYS_INLINE __m128 _bli_math_fastpow512(const __m128 arg)
 {
@@ -776,14 +808,14 @@ MALWAYS_INLINE __m128 _bli_math_fastpow512(const __m128 arg)
    */
   __m128 xf = _bli_math_fastpow(0x3f2aaaab, 0x5eb504f3, arg);
   __m128 xover = _mm_mul_ps(arg, xf);
-  __m128 xfm1 = _mm_rsqrt_ps(xf);
+  __m128 xfm1 = _bli_math_rsqrt(xf);
   __m128 x2 = _mm_mul_ps(arg, arg);
   __m128 xunder = _mm_mul_ps(x2, xfm1);
   /* sqrt2 * over + 2 * sqrt2 * under */
   __m128 xavg = _mm_mul_ps(_mm_set1_ps(1.0f / (3.0f * 0.629960524947437f) * 0.999852f),
                            _mm_add_ps(xover, xunder));
-  xavg = _mm_mul_ps(xavg, _mm_rsqrt_ps(xavg));
-  xavg = _mm_mul_ps(xavg, _mm_rsqrt_ps(xavg));
+  xavg = _mm_mul_ps(xavg, _bli_math_rsqrt(xavg));
+  xavg = _mm_mul_ps(xavg, _bli_math_rsqrt(xavg));
   return xavg;
 }
 

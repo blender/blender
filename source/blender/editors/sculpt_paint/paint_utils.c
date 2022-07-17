@@ -749,25 +749,68 @@ void PAINT_OT_face_select_hide(wmOperatorType *ot)
       ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }
 
-static int face_select_reveal_exec(bContext *C, wmOperator *op)
+static int vert_select_hide_exec(bContext *C, wmOperator *op)
 {
-  const bool select = RNA_boolean_get(op->ptr, "select");
+  const bool unselected = RNA_boolean_get(op->ptr, "unselected");
   Object *ob = CTX_data_active_object(C);
-  paintface_reveal(C, ob, select);
+  paintvert_hide(C, ob, unselected);
   ED_region_tag_redraw(CTX_wm_region(C));
   return OPERATOR_FINISHED;
 }
 
-void PAINT_OT_face_select_reveal(wmOperatorType *ot)
+void PAINT_OT_vert_select_hide(wmOperatorType *ot)
 {
-  ot->name = "Face Select Reveal";
-  ot->description = "Reveal hidden faces";
-  ot->idname = "PAINT_OT_face_select_reveal";
+  ot->name = "Vertex Select Hide";
+  ot->description = "Hide selected vertices";
+  ot->idname = "PAINT_OT_vert_select_hide";
 
-  ot->exec = face_select_reveal_exec;
-  ot->poll = facemask_paint_poll;
+  ot->exec = vert_select_hide_exec;
+  ot->poll = vert_paint_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna, "select", true, "Select", "");
+  RNA_def_boolean(
+      ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected vertices");
+}
+
+static int face_vert_reveal_exec(bContext *C, wmOperator *op)
+{
+  const bool select = RNA_boolean_get(op->ptr, "select");
+  Object *ob = CTX_data_active_object(C);
+
+  if (BKE_paint_select_vert_test(ob)) {
+    paintvert_reveal(C, ob, select);
+  }
+  else {
+    paintface_reveal(C, ob, select);
+  }
+
+  ED_region_tag_redraw(CTX_wm_region(C));
+  return OPERATOR_FINISHED;
+}
+
+static bool face_vert_reveal_poll(bContext *C)
+{
+  Object *ob = CTX_data_active_object(C);
+
+  /* Allow using this operator when no selection is enabled but hiding is applied. */
+  return BKE_paint_select_elem_test(ob) || BKE_paint_always_hide_test(ob);
+}
+
+void PAINT_OT_face_vert_reveal(wmOperatorType *ot)
+{
+  ot->name = "Reveal Faces/Vertices";
+  ot->description = "Reveal hidden faces and vertices";
+  ot->idname = "PAINT_OT_face_vert_reveal";
+
+  ot->exec = face_vert_reveal_exec;
+  ot->poll = face_vert_reveal_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "select",
+                  true,
+                  "Select",
+                  "Specifies whether the newly revealed geometry should be selected");
 }

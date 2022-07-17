@@ -10,6 +10,19 @@
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
 
+#include FT_MULTIPLE_MASTERS_H /* Variable font support. */
+
+#define BLF_VARIATIONS_MAX 16 /* Maximum variation axes per font. */
+
+#define MAKE_DVAR_TAG(a, b, c, d) \
+  (((uint32_t)a << 24u) | ((uint32_t)b << 16u) | ((uint32_t)c << 8u) | ((uint32_t)d))
+
+#define blf_variation_axis_weight MAKE_DVAR_TAG('w', 'g', 'h', 't')  /* 'wght' weight axis. */
+#define blf_variation_axis_slant MAKE_DVAR_TAG('s', 'l', 'n', 't')   /* 'slnt' slant axis. */
+#define blf_variation_axis_width MAKE_DVAR_TAG('w', 'd', 't', 'h')   /* 'wdth' width axis. */
+#define blf_variation_axis_spacing MAKE_DVAR_TAG('s', 'p', 'a', 'c') /* 'spac' spacing axis. */
+#define blf_variation_axis_optsize MAKE_DVAR_TAG('o', 'p', 's', 'z') /* 'opsz' optical size. */
+
 /* -------------------------------------------------------------------- */
 /** \name Sub-Pixel Offset & Utilities
  *
@@ -123,8 +136,12 @@ typedef struct GlyphCacheBLF {
   /* font size. */
   float size;
 
-  /* and dpi. */
+  /* and DPI. */
   unsigned int dpi;
+  float char_weight;
+  float char_slant;
+  float char_width;
+  float char_spacing;
 
   bool bold;
   bool italic;
@@ -226,6 +243,11 @@ typedef struct FontBLF {
   /** File-path or NULL. */
   char *filepath;
 
+  /* Copied from the SFNT OS/2 table. Bit flags for unicode blocks and ranges
+   * considered "functional". Cached here because face might not always exist.
+   * See: https://docs.microsoft.com/en-us/typography/opentype/spec/os2#ur */
+  uint UnicodeRanges[4];
+
   /* aspect ratio or scale. */
   float aspect[3];
 
@@ -264,11 +286,20 @@ typedef struct FontBLF {
   /* the width to wrap the text, see BLF_WORD_WRAP */
   int wrap_width;
 
-  /* font dpi (default 72). */
+  /* Font DPI (default 72). */
   unsigned int dpi;
 
   /* font size. */
   float size;
+
+  /* Axes data for Adobe MM, TrueType GX, or OpenType variation fonts.  */
+  FT_MM_Var *variations;
+
+  /* Character variation; 0=default, -1=min, +1=max. */
+  float char_weight;
+  float char_slant;
+  float char_width;
+  float char_spacing;
 
   /* max texture size. */
   int tex_size_max;
@@ -276,7 +307,8 @@ typedef struct FontBLF {
   /* font options. */
   int flags;
 
-  /* List of glyph caches (GlyphCacheBLF) for this font for size, dpi, bold, italic.
+  /**
+   * List of glyph caches (#GlyphCacheBLF) for this font for size, DPI, bold, italic.
    * Use blf_glyph_cache_acquire(font) and blf_glyph_cache_release(font) to access cache!
    */
   ListBase cache;

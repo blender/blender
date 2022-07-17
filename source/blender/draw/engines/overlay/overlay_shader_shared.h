@@ -24,19 +24,19 @@ typedef struct OVERLAY_GridData OVERLAY_GridData;
 #define BG_MASK 5
 
 enum OVERLAY_GridBits {
-  SHOW_AXIS_X = (1 << 0),
-  SHOW_AXIS_Y = (1 << 1),
-  SHOW_AXIS_Z = (1 << 2),
-  SHOW_GRID = (1 << 3),
-  PLANE_XY = (1 << 4),
-  PLANE_XZ = (1 << 5),
-  PLANE_YZ = (1 << 6),
-  CLIP_ZPOS = (1 << 7),
-  CLIP_ZNEG = (1 << 8),
-  GRID_BACK = (1 << 9),
-  GRID_CAMERA = (1 << 10),
-  PLANE_IMAGE = (1 << 11),
-  CUSTOM_GRID = (1 << 12),
+  SHOW_AXIS_X = (1u << 0u),
+  SHOW_AXIS_Y = (1u << 1u),
+  SHOW_AXIS_Z = (1u << 2u),
+  SHOW_GRID = (1u << 3u),
+  PLANE_XY = (1u << 4u),
+  PLANE_XZ = (1u << 5u),
+  PLANE_YZ = (1u << 6u),
+  CLIP_ZPOS = (1u << 7u),
+  CLIP_ZNEG = (1u << 8u),
+  GRID_BACK = (1u << 9u),
+  GRID_CAMERA = (1u << 10u),
+  PLANE_IMAGE = (1u << 11u),
+  CUSTOM_GRID = (1u << 12u),
 };
 
 /* Match: #SI_GRID_STEPS_LEN */

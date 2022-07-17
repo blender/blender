@@ -7,16 +7,17 @@
 
 #include "GHOST_DropTargetX11.h"
 #include "GHOST_Debug.h"
+#include "GHOST_utildefines.h"
 
-#include <assert.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <string.h>
+#include <cassert>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
 
 bool GHOST_DropTargetX11::m_xdndInitialized = false;
 DndClass GHOST_DropTargetX11::m_dndClass;
-Atom *GHOST_DropTargetX11::m_dndTypes = NULL;
-Atom *GHOST_DropTargetX11::m_dndActions = NULL;
+Atom *GHOST_DropTargetX11::m_dndTypes = nullptr;
+Atom *GHOST_DropTargetX11::m_dndActions = nullptr;
 const char *GHOST_DropTargetX11::m_dndMimeTypes[] = {
     "url/url", "text/uri-list", "text/plain", "application/octet-stream"};
 int GHOST_DropTargetX11::m_refCounter = 0;
@@ -31,10 +32,10 @@ int GHOST_DropTargetX11::m_refCounter = 0;
 #define dndTypePlainText m_dndTypes[dndTypePlainTextID]
 #define dndTypeOctetStream m_dndTypes[dndTypeOctetStreamID]
 
-void GHOST_DropTargetX11::Initialize(void)
+void GHOST_DropTargetX11::Initialize()
 {
   Display *display = m_system->getXDisplay();
-  int dndTypesCount = sizeof(m_dndMimeTypes) / sizeof(char *);
+  int dndTypesCount = ARRAY_SIZE(m_dndMimeTypes);
   int counter;
 
   xdnd_init(&m_dndClass, display);
@@ -60,7 +61,7 @@ void GHOST_DropTargetX11::Initialize(void)
   m_dndActions[counter++] = 0;
 }
 
-void GHOST_DropTargetX11::Uninitialize(void)
+void GHOST_DropTargetX11::Uninitialize()
 {
   xdnd_shut(&m_dndClass);
 
@@ -98,12 +99,12 @@ GHOST_DropTargetX11::~GHOST_DropTargetX11()
 
 /* Based on: https://stackoverflow.com/a/2766963/432509 */
 
-typedef enum DecodeState_e {
+using DecodeState_e = enum DecodeState_e {
   /** Searching for an ampersand to convert. */
   STATE_SEARCH = 0,
   /** Convert the two proceeding characters from hex. */
   STATE_CONVERTING
-} DecodeState_e;
+};
 
 void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char *encodedIn)
 {
@@ -122,7 +123,7 @@ void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char
       case STATE_SEARCH:
         if (encodedIn[i] != '%') {
           strncat(decodedOut, &encodedIn[i], 1);
-          assert(strlen(decodedOut) < bufferSize);
+          assert((int)strlen(decodedOut) < bufferSize);
           break;
         }
 
@@ -145,18 +146,19 @@ void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char
         /* Ensure both characters are hexadecimal */
 
         for (j = 0; j < 2; ++j) {
-          if (!isxdigit(tempNumBuf[j]))
+          if (!isxdigit(tempNumBuf[j])) {
             bothDigits = false;
+          }
         }
 
-        if (!bothDigits)
+        if (!bothDigits) {
           break;
-
+        }
         /* Convert two hexadecimal characters into one character */
         sscanf(tempNumBuf, "%x", &asciiCharacter);
 
         /* Ensure we aren't going to overflow */
-        assert(strlen(decodedOut) < bufferSize);
+        assert((int)strlen(decodedOut) < bufferSize);
 
         /* Concatenate this character onto the output */
         strncat(decodedOut, (char *)&asciiCharacter, 1);
@@ -180,12 +182,12 @@ char *GHOST_DropTargetX11::FileUrlDecode(char *fileUrl)
     return decodedPath;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dropBufferSize)
 {
-  GHOST_TStringArray *strArray = NULL;
+  GHOST_TStringArray *strArray = nullptr;
   int totPaths = 0, curLength = 0;
 
   /* Count total number of file paths in buffer. */
@@ -196,8 +198,9 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
         curLength = 0;
       }
     }
-    else
+    else {
       curLength++;
+    }
   }
 
   strArray = (GHOST_TStringArray *)malloc(sizeof(GHOST_TStringArray));
@@ -224,8 +227,9 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
         curLength = 0;
       }
     }
-    else
+    else {
       curLength++;
+    }
   }
 
   return strArray;
@@ -235,11 +239,11 @@ void *GHOST_DropTargetX11::getGhostData(Atom dropType,
                                         unsigned char *dropBuffer,
                                         int dropBufferSize)
 {
-  void *data = NULL;
+  void *data = nullptr;
   unsigned char *tmpBuffer = (unsigned char *)malloc(dropBufferSize + 1);
   bool needsFree = true;
 
-  /* ensure NULL-terminator */
+  /* Ensure nil-terminator. */
   memcpy(tmpBuffer, dropBuffer, dropBufferSize);
   tmpBuffer[dropBufferSize] = 0;
 
@@ -265,8 +269,9 @@ void *GHOST_DropTargetX11::getGhostData(Atom dropType,
     m_draggedObjectType = GHOST_kDragnDropTypeUnknown;
   }
 
-  if (needsFree)
+  if (needsFree) {
     free(tmpBuffer);
+  }
 
   return data;
 }
@@ -288,9 +293,10 @@ bool GHOST_DropTargetX11::GHOST_HandleClientMessage(XEvent *event)
                     &dropY)) {
     void *data = getGhostData(dropType, dropBuffer, dropBufferSize);
 
-    if (data)
+    if (data) {
       m_system->pushDragDropEvent(
           GHOST_kEventDraggingDropDone, m_draggedObjectType, m_window, dropX, dropY, data);
+    }
 
     free(dropBuffer);
 

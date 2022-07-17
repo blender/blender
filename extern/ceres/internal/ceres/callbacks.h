@@ -33,7 +33,7 @@
 
 #include <string>
 
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/iteration_callback.h"
 
 namespace ceres {
@@ -43,10 +43,10 @@ class Program;
 
 // Callback for updating the externally visible state of parameter
 // blocks.
-class StateUpdatingCallback : public IterationCallback {
+class CERES_NO_EXPORT StateUpdatingCallback final : public IterationCallback {
  public:
   StateUpdatingCallback(Program* program, double* parameters);
-  virtual ~StateUpdatingCallback();
+  ~StateUpdatingCallback() override;
   CallbackReturnType operator()(const IterationSummary& summary) final;
 
  private:
@@ -56,12 +56,13 @@ class StateUpdatingCallback : public IterationCallback {
 
 // Callback for updating the externally visible state of the
 // parameters vector for GradientProblemSolver.
-class GradientProblemSolverStateUpdatingCallback : public IterationCallback {
+class CERES_NO_EXPORT GradientProblemSolverStateUpdatingCallback final
+    : public IterationCallback {
  public:
   GradientProblemSolverStateUpdatingCallback(int num_parameters,
                                              const double* internal_parameters,
                                              double* user_parameters);
-  virtual ~GradientProblemSolverStateUpdatingCallback();
+  ~GradientProblemSolverStateUpdatingCallback() override;
   CallbackReturnType operator()(const IterationSummary& summary) final;
 
  private:
@@ -72,10 +73,10 @@ class GradientProblemSolverStateUpdatingCallback : public IterationCallback {
 
 // Callback for logging the state of the minimizer to STDERR or
 // STDOUT depending on the user's preferences and logging level.
-class LoggingCallback : public IterationCallback {
+class CERES_NO_EXPORT LoggingCallback final : public IterationCallback {
  public:
   LoggingCallback(MinimizerType minimizer_type, bool log_to_stdout);
-  virtual ~LoggingCallback();
+  ~LoggingCallback() override;
   CallbackReturnType operator()(const IterationSummary& summary) final;
 
  private:

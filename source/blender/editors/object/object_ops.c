@@ -281,7 +281,7 @@ void ED_operatormacros_object(void)
 
   ot = WM_operatortype_append_macro("OBJECT_OT_duplicate_move",
                                     "Duplicate Objects",
-                                    "Duplicate selected objects and move them",
+                                    "Duplicate the selected objects and move them",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   if (ot) {
     WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
@@ -289,11 +289,11 @@ void ED_operatormacros_object(void)
     RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
   }
 
-  /* grr, should be able to pass options on... */
-  ot = WM_operatortype_append_macro("OBJECT_OT_duplicate_move_linked",
-                                    "Duplicate Linked",
-                                    "Duplicate selected objects and move them",
-                                    OPTYPE_UNDO | OPTYPE_REGISTER);
+  ot = WM_operatortype_append_macro(
+      "OBJECT_OT_duplicate_move_linked",
+      "Duplicate Linked",
+      "Duplicate the selected objects, but not their object data, and move them",
+      OPTYPE_UNDO | OPTYPE_REGISTER);
   if (ot) {
     otmacro = WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
     RNA_boolean_set(otmacro->ptr, "linked", true);

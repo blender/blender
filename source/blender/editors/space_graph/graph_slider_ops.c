@@ -48,8 +48,8 @@
 
 /* Used to obtain a list of animation channels for the operators to work on. */
 #define OPERATOR_DATA_FILTER \
-  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_SEL | \
-   ANIMFILTER_NODUPLIS)
+  (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY | \
+   ANIMFILTER_FOREDIT | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS)
 
 /* This data type is only used for modal operation. */
 typedef struct tGraphSliderOp {

@@ -268,11 +268,11 @@ static bool cdf_write_header(CDataFile *cdf)
   return true;
 }
 
-bool cdf_read_open(CDataFile *cdf, const char *filename)
+bool cdf_read_open(CDataFile *cdf, const char *filepath)
 {
   FILE *f;
 
-  f = BLI_fopen(filename, "rb");
+  f = BLI_fopen(filepath, "rb");
   if (!f) {
     return false;
   }
@@ -333,14 +333,14 @@ void cdf_read_close(CDataFile *cdf)
   }
 }
 
-bool cdf_write_open(CDataFile *cdf, const char *filename)
+bool cdf_write_open(CDataFile *cdf, const char *filepath)
 {
   CDataFileHeader *header;
   CDataFileImageHeader *image;
   CDataFileMeshHeader *mesh;
   FILE *f;
 
-  f = BLI_fopen(filename, "wb");
+  f = BLI_fopen(filepath, "wb");
   if (!f) {
     return false;
   }
@@ -402,9 +402,9 @@ void cdf_write_close(CDataFile *cdf)
   }
 }
 
-void cdf_remove(const char *filename)
+void cdf_remove(const char *filepath)
 {
-  BLI_delete(filename, false, false);
+  BLI_delete(filepath, false, false);
 }
 
 /********************************** Layers ***********************************/

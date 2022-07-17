@@ -351,6 +351,19 @@ int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks);
 struct KeyingSet *ANIM_get_keyingset_for_autokeying(const struct Scene *scene,
                                                     const char *transformKSName);
 
+void ANIM_keyingset_visit_for_search(const struct bContext *C,
+                                     struct PointerRNA *ptr,
+                                     struct PropertyRNA *prop,
+                                     const char *edit_text,
+                                     StringPropertySearchVisitFunc visit_fn,
+                                     void *visit_user_data);
+
+void ANIM_keyingset_visit_for_search_no_poll(const struct bContext *C,
+                                             struct PointerRNA *ptr,
+                                             struct PropertyRNA *prop,
+                                             const char *edit_text,
+                                             StringPropertySearchVisitFunc visit_fn,
+                                             void *visit_user_data);
 /**
  * Dynamically populate an enum of Keying Sets.
  */
@@ -645,15 +658,20 @@ bool ED_autokeyframe_pchan(struct bContext *C,
                            struct Object *ob,
                            struct bPoseChannel *pchan,
                            struct KeyingSet *ks);
+
 /**
- * Use for auto-key-framing from the UI.
+ * Use for auto-key-framing
+ * \param only_if_property_keyed: if true, auto-key-framing only creates keyframes on already keyed
+ * properties. This is by design when using buttons. For other callers such as gizmos or VSE
+ * preview transform, creating new animation/keyframes also on non-keyed properties is desired.
  */
 bool ED_autokeyframe_property(struct bContext *C,
                               struct Scene *scene,
                               PointerRNA *ptr,
                               PropertyRNA *prop,
                               int rnaindex,
-                              float cfra);
+                              float cfra,
+                              bool only_if_property_keyed);
 
 /* Names for builtin keying sets so we don't confuse these with labels/text,
  * defined in python script: `keyingsets_builtins.py`. */

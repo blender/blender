@@ -73,6 +73,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "CLG_log.h"
+
 /* allow writefile to use deprecated functionality (for forward compatibility code) */
 #define DNA_DEPRECATED_ALLOW
 
@@ -132,6 +134,8 @@
 #define ZSTD_CHUNK_SIZE (1 << 20)  /* 1mb */
 
 #define ZSTD_COMPRESSION_LEVEL 3
+
+static CLG_LogRef LOG = {"blo.writefile"};
 
 /** Use if we want to store how many bytes have been written to the file. */
 // #define USE_WRITE_DATA_LEN
@@ -973,7 +977,7 @@ static void write_libraries(WriteData *wd, Main *main)
       if (main->curlib->packedfile) {
         BKE_packedfile_blend_write(&writer, main->curlib->packedfile);
         if (wd->use_memfile == false) {
-          printf("write packed .blend: %s\n", main->curlib->filepath);
+          CLOG_INFO(&LOG, 2, "Write packed .blend: %s", main->curlib->filepath);
         }
       }
 
@@ -984,12 +988,11 @@ static void write_libraries(WriteData *wd, Main *main)
               ((id->tag & LIB_TAG_EXTERN) ||
                ((id->tag & LIB_TAG_INDIRECT) && (id->flag & LIB_INDIRECT_WEAK_LINK)))) {
             if (!BKE_idtype_idcode_is_linkable(GS(id->name))) {
-              printf(
-                  "ERROR: write file: data-block '%s' from lib '%s' is not linkable "
-                  "but is flagged as directly linked\n",
-                  id->name,
-                  main->curlib->filepath_abs);
-              BLI_assert(0);
+              CLOG_ERROR(&LOG,
+                         "Data-block '%s' from lib '%s' is not linkable, but is flagged as "
+                         "directly linked",
+                         id->name,
+                         main->curlib->filepath_abs);
             }
             writestruct(wd, ID_LINK_PLACEHOLDER, ID, 1, id);
           }
@@ -1129,9 +1132,15 @@ static bool write_file_handle(Main *mainvar,
 
       char id_buffer_static[ID_BUFFER_STATIC_SIZE];
       void *id_buffer = id_buffer_static;
-      const size_t idtype_struct_size = BKE_idtype_get_info_from_id(id)->struct_size;
+      const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+      const size_t idtype_struct_size = id_type->struct_size;
       if (idtype_struct_size > ID_BUFFER_STATIC_SIZE) {
-        BLI_assert(0);
+        CLOG_ERROR(&LOG,
+                   "ID maximum buffer size (%d bytes) is not big enough to fit IDs of type %s, "
+                   "which needs %lu bytes",
+                   ID_BUFFER_STATIC_SIZE,
+                   id_type->name,
+                   id_type->struct_size);
         id_buffer = MEM_mallocN(idtype_struct_size, __func__);
       }
 
@@ -1200,7 +1209,6 @@ static bool write_file_handle(Main *mainvar,
          * #direct_link_id_common in `readfile.c` anyway, */
         ((ID *)id_buffer)->py_instance = NULL;
 
-        const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
         if (id_type->blend_write != NULL) {
           id_type->blend_write(&writer, (ID *)id_buffer, id);
         }
@@ -1349,7 +1357,6 @@ bool BLO_write_file(Main *mainvar,
 
   /* Remapping of relative paths to new file location. */
   if (remap_mode != BLO_WRITE_PATH_REMAP_NONE) {
-
     if (remap_mode == BLO_WRITE_PATH_REMAP_RELATIVE) {
       /* Make all relative as none of the existing paths can be relative in an unsaved document. */
       if (relbase_valid == false) {
@@ -1388,6 +1395,13 @@ bool BLO_write_file(Main *mainvar,
     }
 
     if (remap_mode != BLO_WRITE_PATH_REMAP_NONE) {
+      /* Some path processing (e.g. with libraries) may use the current `main->filepath`, if this
+       * is not matching the path currently used for saving, unexpected paths corruptions can
+       * happen. See T98201. */
+      char mainvar_filepath_orig[FILE_MAX];
+      STRNCPY(mainvar_filepath_orig, mainvar->filepath);
+      STRNCPY(mainvar->filepath, filepath);
+
       /* Check if we need to backup and restore paths. */
       if (UNLIKELY(use_save_as_copy)) {
         path_list_backup = BKE_bpath_list_backup(mainvar, path_list_flag);
@@ -1409,9 +1423,11 @@ bool BLO_write_file(Main *mainvar,
           BKE_bpath_absolute_convert(mainvar, dir_src, NULL);
           break;
         case BLO_WRITE_PATH_REMAP_NONE:
-          BLI_assert(0); /* Unreachable. */
+          BLI_assert_unreachable(); /* Unreachable. */
           break;
       }
+
+      STRNCPY(mainvar->filepath, mainvar_filepath_orig);
     }
   }
 
@@ -1482,7 +1498,7 @@ void BLO_write_struct_array_by_name(BlendWriter *writer,
 {
   int struct_id = BLO_get_struct_id_by_name(writer, struct_name);
   if (UNLIKELY(struct_id == -1)) {
-    printf("error: can't find SDNA code <%s>\n", struct_name);
+    CLOG_ERROR(&LOG, "Can't find SDNA code <%s>", struct_name);
     return;
   }
   BLO_write_struct_array_by_id(writer, struct_id, array_size, data_ptr);
@@ -1530,7 +1546,7 @@ void BLO_write_struct_list_by_name(BlendWriter *writer, const char *struct_name,
 {
   int struct_id = BLO_get_struct_id_by_name(writer, struct_name);
   if (UNLIKELY(struct_id == -1)) {
-    printf("error: can't find SDNA code <%s>\n", struct_name);
+    CLOG_ERROR(&LOG, "Can't find SDNA code <%s>", struct_name);
     return;
   }
   BLO_write_struct_list_by_id(writer, struct_id, list);

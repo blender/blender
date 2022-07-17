@@ -166,7 +166,7 @@ class RenderGraph : public testing::Test {
   virtual void SetUp()
   {
     util_logging_start();
-    util_logging_verbosity_set(3);
+    util_logging_verbosity_set(5);
 
     device_cpu = Device::create(device_info, stats, profiler);
     scene = new Scene(scene_params, device_cpu);
@@ -946,7 +946,7 @@ TEST_F(RenderGraph, constant_fold_bright_contrast)
 TEST_F(RenderGraph, constant_fold_blackbody)
 {
   EXPECT_ANY_MESSAGE(log);
-  CORRECT_INFO_MESSAGE(log, "Folding Blackbody::Color to constant (3.94163, 0.226523, 0).");
+  CORRECT_INFO_MESSAGE(log, "Folding Blackbody::Color to constant (3.96553, 0.227897, 0).");
 
   builder
       .add_node(ShaderNodeBuilder<BlackbodyNode>(graph, "Blackbody").set("Temperature", 1200.0f))

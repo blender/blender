@@ -32,7 +32,7 @@
 #define CERES_INTERNAL_THREAD_TOKEN_PROVIDER_H_
 
 #include "ceres/internal/config.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 
 #ifdef CERES_USE_CXX_THREADS
 #include "ceres/concurrent_queue.h"
@@ -66,9 +66,9 @@ namespace internal {
 //    ttp.Release(token); // return token to the pool
 //  }
 //
-class ThreadTokenProvider {
+class CERES_NO_EXPORT ThreadTokenProvider {
  public:
-  ThreadTokenProvider(int num_threads);
+  explicit ThreadTokenProvider(int num_threads);
 
   // Returns the first token from the queue. The acquired value must be
   // given back by Release().
@@ -87,8 +87,8 @@ class ThreadTokenProvider {
   ConcurrentQueue<int> pool_;
 #endif
 
-  ThreadTokenProvider(ThreadTokenProvider&);
-  ThreadTokenProvider& operator=(ThreadTokenProvider&);
+  ThreadTokenProvider(ThreadTokenProvider&) = delete;
+  ThreadTokenProvider& operator=(ThreadTokenProvider&) = delete;
 };
 
 }  // namespace internal

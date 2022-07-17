@@ -97,8 +97,9 @@ static char text_closing_character_pair_get(const char character)
  * This function converts the indentation tabs from a buffer to spaces.
  * \param in_buf: A pointer to a cstring.
  * \param tab_size: The size, in spaces, of the tab character.
+ * \param r_out_buf_len: The #strlen of the returned buffer.
  */
-static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size)
+static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size, int *r_out_buf_len)
 {
   /* Get the number of tab characters in buffer. */
   bool line_start = true;
@@ -148,6 +149,7 @@ static char *buf_tabs_to_spaces(const char *in_buf, const int tab_size)
   }
 
   out_buf[out_offset] = '\0';
+  *r_out_buf_len = out_offset;
   return out_buf;
 }
 
@@ -916,7 +918,7 @@ static int text_paste_exec(bContext *C, wmOperator *op)
 
   /* Convert clipboard content indentation to spaces if specified */
   if (text->flags & TXT_TABSTOSPACES) {
-    char *new_buf = buf_tabs_to_spaces(buf, TXT_TABSIZE);
+    char *new_buf = buf_tabs_to_spaces(buf, TXT_TABSIZE, &buf_len);
     MEM_freeN(buf);
     buf = new_buf;
   }
@@ -3394,7 +3396,8 @@ static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), const wm
     return OPERATOR_PASS_THROUGH;
   }
 
-  if (!(event->ascii >= '0' && event->ascii <= '9')) {
+  const char event_ascii = WM_event_utf8_to_ascii(event);
+  if (!(event_ascii >= '0' && event_ascii <= '9')) {
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -3404,7 +3407,7 @@ static int text_line_number_invoke(bContext *C, wmOperator *UNUSED(op), const wm
   }
 
   jump_to *= 10;
-  jump_to += (int)(event->ascii - '0');
+  jump_to += (int)(event_ascii - '0');
 
   txt_move_toline(text, jump_to - 1, 0);
   last_jump = time;
@@ -3493,16 +3496,8 @@ static int text_insert_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
 
     char str[BLI_UTF8_MAX + 1];
-    size_t len;
-
-    if (event->utf8_buf[0]) {
-      len = BLI_str_utf8_size_safe(event->utf8_buf);
-      memcpy(str, event->utf8_buf, len);
-    }
-    else {
-      /* in theory, ghost can set value to extended ascii here */
-      len = BLI_str_utf8_from_unicode(event->ascii, str, sizeof(str) - 1);
-    }
+    const size_t len = BLI_str_utf8_size_safe(event->utf8_buf);
+    memcpy(str, event->utf8_buf, len);
     str[len] = '\0';
     RNA_string_set(op->ptr, "text", str);
 

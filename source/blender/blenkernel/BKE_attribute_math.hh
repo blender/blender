@@ -39,7 +39,7 @@ inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
 }
 
 template<typename Func>
-inline void convert_to_static_type(const CustomDataType data_type, const Func &func)
+inline void convert_to_static_type(const eCustomDataType data_type, const Func &func)
 {
   const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(data_type);
   convert_to_static_type(cpp_type, func);
@@ -56,7 +56,7 @@ template<typename T> T mix3(const float3 &weights, const T &v0, const T &v1, con
 template<>
 inline int8_t mix3(const float3 &weights, const int8_t &v0, const int8_t &v1, const int8_t &v2)
 {
-  return static_cast<int8_t>(weights.x * v0 + weights.y * v1 + weights.z * v2);
+  return static_cast<int8_t>(std::round(weights.x * v0 + weights.y * v1 + weights.z * v2));
 }
 
 template<> inline bool mix3(const float3 &weights, const bool &v0, const bool &v1, const bool &v2)
@@ -66,7 +66,7 @@ template<> inline bool mix3(const float3 &weights, const bool &v0, const bool &v
 
 template<> inline int mix3(const float3 &weights, const int &v0, const int &v1, const int &v2)
 {
-  return static_cast<int>(weights.x * v0 + weights.y * v1 + weights.z * v2);
+  return static_cast<int>(std::round(weights.x * v0 + weights.y * v1 + weights.z * v2));
 }
 
 template<>
@@ -131,12 +131,12 @@ template<> inline bool mix2(const float factor, const bool &a, const bool &b)
 
 template<> inline int8_t mix2(const float factor, const int8_t &a, const int8_t &b)
 {
-  return static_cast<int8_t>((1.0f - factor) * a + factor * b);
+  return static_cast<int8_t>(std::round((1.0f - factor) * a + factor * b));
 }
 
 template<> inline int mix2(const float factor, const int &a, const int &b)
 {
-  return static_cast<int>((1.0f - factor) * a + factor * b);
+  return static_cast<int>(std::round((1.0f - factor) * a + factor * b));
 }
 
 template<> inline float mix2(const float factor, const float &a, const float &b)
@@ -356,7 +356,7 @@ template<> struct DefaultMixerStruct<ColorGeometry4b> {
 template<> struct DefaultMixerStruct<int> {
   static int double_to_int(const double &value)
   {
-    return static_cast<int>(value);
+    return static_cast<int>(std::round(value));
   }
   /* Store interpolated ints in a double temporarily, so that weights are handled correctly. It
    * uses double instead of float so that it is accurate for all 32 bit integers. */
@@ -375,7 +375,7 @@ template<> struct DefaultMixerStruct<bool> {
 template<> struct DefaultMixerStruct<int8_t> {
   static int8_t float_to_int8_t(const float &value)
   {
-    return static_cast<int8_t>(value);
+    return static_cast<int8_t>(std::round(value));
   }
   /* Store interpolated 8 bit integers in a float temporarily to increase accuracy. */
   using type = SimpleMixerWithAccumulationType<int8_t, float, float_to_int8_t>;

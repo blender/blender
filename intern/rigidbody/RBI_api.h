@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 /* API Notes:
- * Currently, this API is optimised for Bullet RigidBodies, and doesn't
+ * Currently, this API is optimized for Bullet RigidBodies, and doesn't
  * take into account other Physics Engines. Some tweaking may be necessary
  * to allow other systems to be used, in particular there may be references
  * to datatypes that aren't used here...

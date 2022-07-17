@@ -155,8 +155,7 @@ static void mask_init_functions(SubdivCCGMaskEvaluator *mask_evaluator)
 bool BKE_subdiv_ccg_mask_init_from_paint(SubdivCCGMaskEvaluator *mask_evaluator,
                                          const struct Mesh *mesh)
 {
-  GridPaintMask *grid_paint_mask = CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK);
-  if (grid_paint_mask == NULL) {
+  if (!CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK)) {
     return false;
   }
   /* Allocate all required memory. */

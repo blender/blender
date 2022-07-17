@@ -31,7 +31,9 @@ struct wmKeyConfig;
 struct wmWindow;
 
 /* Outside of blender namespace to avoid Python documentation build error with `ctypes`. */
+extern "C" {
 extern const char *node_context_dir[];
+};
 
 namespace blender::ed::space_node {
 
@@ -74,8 +76,18 @@ struct SpaceNode_Runtime {
   /** Mouse position for drawing socket-less links and adding nodes. */
   float2 cursor;
 
-  /** For auto compositing. */
-  bool recalc;
+  /**
+   * Indicates that the compositing tree in the space needs to be re-evaluated using the
+   * auto-compositing pipeline.
+   * Takes priority over the regular compositing.
+   */
+  bool recalc_auto_compositing;
+
+  /**
+   * Indicates that the compositing int the space  tree needs to be re-evaluated using
+   * regular compositing pipeline.
+   */
+  bool recalc_regular_compositing;
 
   /** Temporary data for modal linking operator. */
   std::unique_ptr<bNodeLinkDrag> linkdrag;
@@ -94,7 +106,7 @@ enum NodeResizeDirection {
 };
 ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
 
-/* Nodes draw without dpi - the view zoom is flexible. */
+/* Nodes draw without DPI - the view zoom is flexible. */
 #define HIDDEN_RAD (0.75f * U.widget_unit)
 #define BASIS_RAD (0.2f * U.widget_unit)
 #define NODE_DYS (U.widget_unit / 2)
@@ -116,8 +128,6 @@ ENUM_OPERATORS(NodeResizeDirection, NODE_RESIZE_LEFT);
  * Transform between View2Ds in the tree path.
  */
 float2 space_node_group_offset(const SpaceNode &snode);
-
-rctf node_frame_rect_inside(const bNode &node);
 
 int node_get_resize_cursor(NodeResizeDirection directions);
 /**
@@ -154,6 +164,9 @@ void node_operatortypes();
 void node_keymap(wmKeyConfig *keyconf);
 
 /* node_select.cc */
+
+rctf node_frame_rect_inside(const bNode &node);
+bool node_or_socket_isect_event(bContext *C, const wmEvent *event);
 
 void node_deselect_all(SpaceNode &snode);
 void node_socket_select(bNode *node, bNodeSocket &sock);

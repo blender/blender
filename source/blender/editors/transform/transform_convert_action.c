@@ -311,6 +311,7 @@ void createTransActionData(bContext *C, TransInfo *t)
   const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 
   int count = 0;
+  int gpf_count = 0;
   float cfra;
   float ypos = 1.0f / ((ysize / xsize) * (xmask / ymask)) * BLI_rctf_cent_y(&t->region->v2d.cur);
 
@@ -320,17 +321,12 @@ void createTransActionData(bContext *C, TransInfo *t)
   }
 
   /* filter data */
-  if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
-    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
-  }
-  else {
-    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
-  }
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* which side of the current frame should be allowed */
   if (t->mode == TFM_TIME_EXTEND) {
-    t->frame_side = transform_convert_frame_side_dir_get(t, (float)CFRA);
+    t->frame_side = transform_convert_frame_side_dir_get(t, (float)scene->r.cfra);
   }
   else {
     /* normal transform - both sides of current frame are considered */
@@ -345,10 +341,10 @@ void createTransActionData(bContext *C, TransInfo *t)
      * higher scaling ratios, but is faster than converting all points)
      */
     if (adt) {
-      cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+      cfra = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
     }
     else {
-      cfra = (float)CFRA;
+      cfra = (float)scene->r.cfra;
     }
 
     if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
@@ -365,13 +361,16 @@ void createTransActionData(bContext *C, TransInfo *t)
     }
 
     if (adt_count > 0) {
+      if (ELEM(ale->type, ANIMTYPE_GPLAYER, ANIMTYPE_MASKLAYER)) {
+        gpf_count += adt_count;
+      }
       count += adt_count;
       ale->tag = true;
     }
   }
 
   /* stop if trying to build list if nothing selected */
-  if (count == 0) {
+  if (count == 0 && gpf_count == 0) {
     /* cleanup temp list */
     ANIM_animdata_freelist(&anim_data);
     return;
@@ -387,8 +386,9 @@ void createTransActionData(bContext *C, TransInfo *t)
   td = tc->data;
   td2d = tc->data_2d;
 
-  if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
-    tc->custom.type.data = tfd = MEM_callocN(sizeof(tGPFtransdata) * count, "tGPFtransdata");
+  if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
+    tc->data_gpf_len = gpf_count;
+    tc->custom.type.data = tfd = MEM_callocN(sizeof(tGPFtransdata) * gpf_count, "tGPFtransdata");
     tc->custom.type.use_free = true;
   }
 
@@ -399,7 +399,7 @@ void createTransActionData(bContext *C, TransInfo *t)
       continue;
     }
 
-    cfra = (float)CFRA;
+    cfra = (float)scene->r.cfra;
 
     {
       AnimData *adt;
@@ -447,10 +447,10 @@ void createTransActionData(bContext *C, TransInfo *t)
 
       adt = ANIM_nla_mapping_get(&ac, ale);
       if (adt) {
-        cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+        cfra = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
       }
       else {
-        cfra = (float)CFRA;
+        cfra = (float)scene->r.cfra;
       }
 
       if (ale->type == ANIMTYPE_GPLAYER) {
@@ -558,8 +558,9 @@ static void flushTransIntFrameActionData(TransInfo *t)
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   tGPFtransdata *tfd = tc->custom.type.data;
 
-  /* flush data! */
-  for (int i = 0; i < tc->data_len; i++, tfd++) {
+  /* flush data!
+   * Expects data_gpf_len to be set in the data container. */
+  for (int i = 0; i < tc->data_gpf_len; i++, tfd++) {
     *(tfd->sdata) = round_fl_to_int(tfd->val);
   }
 }
@@ -589,7 +590,7 @@ void recalcData_actedit(TransInfo *t)
   ANIM_animdata_context_getdata(&ac);
 
   /* perform flush */
-  if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
+  if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK, ANIMCONT_DOPESHEET, ANIMCONT_TIMELINE)) {
     /* flush transform values back to actual coordinates */
     flushTransIntFrameActionData(t);
   }
@@ -735,7 +736,7 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
   int filter;
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, act, ANIMCONT_ACTION);
 
   /* loop through relevant data, removing keyframes as appropriate
@@ -776,32 +777,44 @@ void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
   if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY, ANIMCONT_TIMELINE)) {
     ListBase anim_data = {NULL, NULL};
     bAnimListElem *ale;
-    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
+    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
 
     /* get channels to work on */
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
-    /* these should all be F-Curves */
     for (ale = anim_data.first; ale; ale = ale->next) {
-      AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
-      FCurve *fcu = (FCurve *)ale->key_data;
+      switch (ale->datatype) {
+        case ALE_GPFRAME:
+          ale->id->tag &= ~LIB_TAG_DOIT;
+          posttrans_gpd_clean((bGPdata *)ale->id);
+          break;
 
-      /* 3 cases here for curve cleanups:
-       * 1) NOTRANSKEYCULL on    -> cleanup of duplicates shouldn't be done
-       * 2) canceled == 0        -> user confirmed the transform,
-       *                            so duplicates should be removed
-       * 3) canceled + duplicate -> user canceled the transform,
-       *                            but we made duplicates, so get rid of these
-       */
-      if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
-        if (adt) {
-          ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
-          posttrans_fcurve_clean(fcu, SELECT, false); /* only use handles in graph editor */
-          ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
+        case ALE_FCURVE: {
+          AnimData *adt = ANIM_nla_mapping_get(&ac, ale);
+          FCurve *fcu = (FCurve *)ale->key_data;
+
+          /* 3 cases here for curve cleanups:
+           * 1) NOTRANSKEYCULL on    -> cleanup of duplicates shouldn't be done
+           * 2) canceled == 0        -> user confirmed the transform,
+           *                            so duplicates should be removed
+           * 3) canceled + duplicate -> user canceled the transform,
+           *                            but we made duplicates, so get rid of these
+           */
+          if ((saction->flag & SACTION_NOTRANSKEYCULL) == 0 && ((canceled == 0) || (duplicate))) {
+            if (adt) {
+              ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
+              posttrans_fcurve_clean(fcu, SELECT, false); /* only use handles in graph editor */
+              ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
+            }
+            else {
+              posttrans_fcurve_clean(fcu, SELECT, false); /* only use handles in graph editor */
+            }
+          }
+          break;
         }
-        else {
-          posttrans_fcurve_clean(fcu, SELECT, false); /* only use handles in graph editor */
-        }
+
+        default:
+          BLI_assert_msg(false, "Keys cannot be transformed into this animation type.");
       }
     }
 
@@ -847,15 +860,8 @@ void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 
       LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
         if (ale->datatype == ALE_GPFRAME) {
-          ale->id->tag |= LIB_TAG_DOIT;
-        }
-      }
-      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-        if (ale->datatype == ALE_GPFRAME) {
-          if (ale->id->tag & LIB_TAG_DOIT) {
-            ale->id->tag &= ~LIB_TAG_DOIT;
-            posttrans_gpd_clean((bGPdata *)ale->id);
-          }
+          ale->id->tag &= ~LIB_TAG_DOIT;
+          posttrans_gpd_clean((bGPdata *)ale->id);
         }
       }
       ANIM_animdata_freelist(&anim_data);
@@ -878,15 +884,8 @@ void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 
       LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
         if (ale->datatype == ALE_MASKLAY) {
-          ale->id->tag |= LIB_TAG_DOIT;
-        }
-      }
-      LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
-        if (ale->datatype == ALE_MASKLAY) {
-          if (ale->id->tag & LIB_TAG_DOIT) {
-            ale->id->tag &= ~LIB_TAG_DOIT;
-            posttrans_mask_clean((Mask *)ale->id);
-          }
+          ale->id->tag &= ~LIB_TAG_DOIT;
+          posttrans_mask_clean((Mask *)ale->id);
         }
       }
       ANIM_animdata_freelist(&anim_data);

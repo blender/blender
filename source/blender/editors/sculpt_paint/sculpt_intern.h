@@ -247,6 +247,10 @@ typedef struct SculptThreadedTaskData {
   float (*mat)[4];
   float (*vertCos)[3];
 
+  /* When true, the displacement stored in the proxies will be applied to the original coordinates
+   * instead of to the current coordinates. */
+  bool use_proxies_orco;
+
   /* X and Z vectors aligned to the stroke direction for operations where perpendicular vectors to
    * the stroke direction are needed. */
   float (*stroke_xz)[3];
@@ -290,6 +294,10 @@ typedef struct SculptThreadedTaskData {
   bool mask_expand_create_face_set;
 
   float transform_mats[8][4][4];
+  float elastic_transform_mat[4][4];
+  float elastic_transform_pivot[3];
+  float elastic_transform_pivot_init[3];
+  float elastic_transform_radius;
 
   /* Boundary brush */
   float boundary_deform_strength;
@@ -372,6 +380,14 @@ typedef enum SculptFilterOrientation {
   SCULPT_FILTER_ORIENTATION_VIEW = 2,
 } SculptFilterOrientation;
 
+/* Defines how transform tools are going to apply its displacement. */
+typedef enum SculptTransformDisplacementMode {
+  /* Displaces the elements from their original coordinates. */
+  SCULPT_TRANSFORM_DISPLACEMENT_ORIGINAL = 0,
+  /* Displaces the elements incrementally from their previous position. */
+  SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL = 1,
+} SculptTransformDisplacementMode;
+
 #define SCULPT_CLAY_STABILIZER_LEN 10
 
 typedef struct AutomaskingSettings {
@@ -439,6 +455,8 @@ typedef struct FilterCache {
   int *prev_face_set;
 
   int active_face_set;
+
+  SculptTransformDisplacementMode transform_displacement_mode;
 
   /* Auto-masking. */
   AutomaskingCache *automasking;
@@ -840,7 +858,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, struct SculptSession *ss,
 
 void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush);
 float SCULPT_raycast_init(struct ViewContext *vc,
-                          const float mouse[2],
+                          const float mval[2],
                           float ray_start[3],
                           float ray_end[3],
                           float ray_normal[3],
@@ -1011,7 +1029,10 @@ void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible);
  * Initialize a #SculptOrigVertData for accessing original vertex data;
  * handles #BMesh, #Mesh, and multi-resolution.
  */
-void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node);
+void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
+                                Object *ob,
+                                PBVHNode *node,
+                                SculptUndoType type);
 /**
  * Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
  */
@@ -1137,12 +1158,15 @@ bool SCULPT_search_sphere_cb(PBVHNode *node, void *data_v);
  */
 bool SCULPT_search_circle_cb(PBVHNode *node, void *data_v);
 
+void SCULPT_combine_transform_proxies(Sculpt *sd, Object *ob);
+
 /**
  * Initialize a point-in-brush test with a given falloff shape.
  *
  * \param falloff_shape: #PAINT_FALLOFF_SHAPE_SPHERE or #PAINT_FALLOFF_SHAPE_TUBE.
  * \return The brush falloff function.
  */
+
 SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
                                                             SculptBrushTest *test,
                                                             char falloff_shape);
@@ -1446,7 +1470,7 @@ void SCULPT_cache_free(StrokeCache *cache);
  * \{ */
 
 SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
-SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node);
+SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_first_node(void);
 
 /**
@@ -1652,11 +1676,11 @@ void SCULPT_do_paint_brush(struct PaintModeSettings *paint_mode_settings,
                            int totnode) ATTR_NONNULL();
 
 /**
- * @brief Get the image canvas for painting on the given object.
+ * \brief Get the image canvas for painting on the given object.
  *
- * @return #true if an image is found. The #r_image and #r_image_user fields are filled with the
+ * \return #true if an image is found. The #r_image and #r_image_user fields are filled with the
  * image and image user. Returns false when the image isn't found. In the later case the r_image
- * and r_image_user are set to nullptr/NULL.
+ * and r_image_user are set to NULL.
  */
 bool SCULPT_paint_image_canvas_get(struct PaintModeSettings *paint_mode_settings,
                                    struct Object *ob,
@@ -1781,7 +1805,10 @@ void SCULPT_OT_brush_stroke(struct wmOperatorType *ot);
 
 /* end sculpt_ops.c */
 
-#define SCULPT_TOOL_NEEDS_COLOR(tool) ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)
+BLI_INLINE bool SCULPT_tool_is_paint(int tool)
+{
+  return ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR);
+}
 
 #ifdef __cplusplus
 }

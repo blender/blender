@@ -24,7 +24,7 @@ void GeoNodeExecParams::error_message_add(const NodeWarningType type, std::strin
 }
 
 void GeoNodeExecParams::used_named_attribute(std::string attribute_name,
-                                             const NamedAttributeUsage usage)
+                                             const eNamedAttrUsage usage)
 {
   if (provider_->logger == nullptr) {
     return;
@@ -37,7 +37,7 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
                                                  const GeometrySet &geometry_set) const
 {
   const SocketDeclaration &decl =
-      *provider_->dnode->input_by_identifier(identifier).bsocket()->declaration;
+      *provider_->dnode->input_by_identifier(identifier).bsocket()->runtime->declaration;
   const decl::Geometry *geo_decl = dynamic_cast<const decl::Geometry *>(&decl);
   if (geo_decl == nullptr) {
     return;
@@ -108,137 +108,6 @@ const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name
   }
 
   return nullptr;
-}
-
-GVArray GeoNodeExecParams::get_input_attribute(const StringRef name,
-                                               const GeometryComponent &component,
-                                               const AttributeDomain domain,
-                                               const CustomDataType type,
-                                               const void *default_value) const
-{
-  const bNodeSocket *found_socket = this->find_available_socket(name);
-  BLI_assert(found_socket != nullptr); /* There should always be available socket for the name. */
-  const CPPType *cpp_type = bke::custom_data_type_to_cpp_type(type);
-  const int64_t domain_size = component.attribute_domain_size(domain);
-
-  if (default_value == nullptr) {
-    default_value = cpp_type->default_value();
-  }
-
-  if (found_socket == nullptr) {
-    return GVArray::ForSingle(*cpp_type, domain_size, default_value);
-  }
-
-  if (found_socket->type == SOCK_STRING) {
-    const std::string name = this->get_input<std::string>(found_socket->identifier);
-    /* Try getting the attribute without the default value. */
-    GVArray attribute = component.attribute_try_get_for_read(name, domain, type);
-    if (attribute) {
-      return attribute;
-    }
-
-    /* If the attribute doesn't exist, use the default value and output an error message
-     * (except when the field is empty, to avoid spamming error messages, and not when
-     * the domain is empty and we don't expect an attribute anyway). */
-    if (!name.empty() && component.attribute_domain_size(domain) != 0) {
-      this->error_message_add(NodeWarningType::Error,
-                              TIP_("No attribute with name \"") + name + "\"");
-    }
-    return GVArray::ForSingle(*cpp_type, domain_size, default_value);
-  }
-  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
-  if (found_socket->type == SOCK_FLOAT) {
-    const float value = this->get_input<float>(found_socket->identifier);
-    BUFFER_FOR_CPP_TYPE_VALUE(*cpp_type, buffer);
-    conversions.convert_to_uninitialized(CPPType::get<float>(), *cpp_type, &value, buffer);
-    return GVArray::ForSingle(*cpp_type, domain_size, buffer);
-  }
-  if (found_socket->type == SOCK_INT) {
-    const int value = this->get_input<int>(found_socket->identifier);
-    BUFFER_FOR_CPP_TYPE_VALUE(*cpp_type, buffer);
-    conversions.convert_to_uninitialized(CPPType::get<int>(), *cpp_type, &value, buffer);
-    return GVArray::ForSingle(*cpp_type, domain_size, buffer);
-  }
-  if (found_socket->type == SOCK_VECTOR) {
-    const float3 value = this->get_input<float3>(found_socket->identifier);
-    BUFFER_FOR_CPP_TYPE_VALUE(*cpp_type, buffer);
-    conversions.convert_to_uninitialized(CPPType::get<float3>(), *cpp_type, &value, buffer);
-    return GVArray::ForSingle(*cpp_type, domain_size, buffer);
-  }
-  if (found_socket->type == SOCK_RGBA) {
-    const ColorGeometry4f value = this->get_input<ColorGeometry4f>(found_socket->identifier);
-    BUFFER_FOR_CPP_TYPE_VALUE(*cpp_type, buffer);
-    conversions.convert_to_uninitialized(
-        CPPType::get<ColorGeometry4f>(), *cpp_type, &value, buffer);
-    return GVArray::ForSingle(*cpp_type, domain_size, buffer);
-  }
-  BLI_assert(false);
-  return GVArray::ForSingle(*cpp_type, domain_size, default_value);
-}
-
-CustomDataType GeoNodeExecParams::get_input_attribute_data_type(
-    const StringRef name,
-    const GeometryComponent &component,
-    const CustomDataType default_type) const
-{
-  const bNodeSocket *found_socket = this->find_available_socket(name);
-  BLI_assert(found_socket != nullptr); /* There should always be available socket for the name. */
-  if (found_socket == nullptr) {
-    return default_type;
-  }
-
-  if (found_socket->type == SOCK_STRING) {
-    const std::string name = this->get_input<std::string>(found_socket->identifier);
-    std::optional<AttributeMetaData> info = component.attribute_get_meta_data(name);
-    if (info) {
-      return info->data_type;
-    }
-    return default_type;
-  }
-  if (found_socket->type == SOCK_FLOAT) {
-    return CD_PROP_FLOAT;
-  }
-  if (found_socket->type == SOCK_VECTOR) {
-    return CD_PROP_FLOAT3;
-  }
-  if (found_socket->type == SOCK_RGBA) {
-    return CD_PROP_COLOR;
-  }
-  if (found_socket->type == SOCK_BOOLEAN) {
-    return CD_PROP_BOOL;
-  }
-
-  BLI_assert(false);
-  return default_type;
-}
-
-AttributeDomain GeoNodeExecParams::get_highest_priority_input_domain(
-    Span<std::string> names,
-    const GeometryComponent &component,
-    const AttributeDomain default_domain) const
-{
-  Vector<AttributeDomain, 8> input_domains;
-  for (const std::string &name : names) {
-    const bNodeSocket *found_socket = this->find_available_socket(name);
-    BLI_assert(found_socket != nullptr); /* A socket should be available socket for the name. */
-    if (found_socket == nullptr) {
-      continue;
-    }
-
-    if (found_socket->type == SOCK_STRING) {
-      const std::string name = this->get_input<std::string>(found_socket->identifier);
-      std::optional<AttributeMetaData> info = component.attribute_get_meta_data(name);
-      if (info) {
-        input_domains.append(info->domain);
-      }
-    }
-  }
-
-  if (input_domains.size() > 0) {
-    return bke::attribute_domain_highest_priority(input_domains);
-  }
-
-  return default_domain;
 }
 
 std::string GeoNodeExecParams::attribute_producer_name() const

@@ -65,18 +65,6 @@ static int cdDM_getNumEdges(DerivedMesh *dm)
   return dm->numEdgeData;
 }
 
-static int cdDM_getNumTessFaces(DerivedMesh *dm)
-{
-  /* uncomment and add a breakpoint on the printf()
-   * to help debug tessfaces issues since BMESH merge. */
-#if 0
-  if (dm->numTessFaceData == 0 && dm->numPolyData != 0) {
-    printf("%s: has no faces!\n");
-  }
-#endif
-  return dm->numTessFaceData;
-}
-
 static int cdDM_getNumLoops(DerivedMesh *dm)
 {
   return dm->numLoopData;
@@ -173,7 +161,6 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 
   dm->getNumVerts = cdDM_getNumVerts;
   dm->getNumEdges = cdDM_getNumEdges;
-  dm->getNumTessFaces = cdDM_getNumTessFaces;
   dm->getNumLoops = cdDM_getNumLoops;
   dm->getNumPolys = cdDM_getNumPolys;
 

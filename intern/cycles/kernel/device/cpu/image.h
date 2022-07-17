@@ -733,7 +733,7 @@ template<typename TexT, typename OutT = float4> struct NanoVDBInterpolator {
 
 ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, float y)
 {
-  const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
+  const TextureInfo &info = kernel_data_fetch(texture_info, id);
 
   if (UNLIKELY(!info.data)) {
     return zero_float4();
@@ -776,7 +776,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
                                              float3 P,
                                              InterpolationType interp)
 {
-  const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
+  const TextureInfo &info = kernel_data_fetch(texture_info, id);
 
   if (UNLIKELY(!info.data)) {
     return zero_float4();
@@ -817,6 +817,16 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
     }
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
       return NanoVDBInterpolator<nanovdb::Vec3f>::interp_3d(info, P.x, P.y, P.z, interp);
+    case IMAGE_DATA_TYPE_NANOVDB_FPN: {
+      const float f = NanoVDBInterpolator<nanovdb::FpN, float>::interp_3d(
+          info, P.x, P.y, P.z, interp);
+      return make_float4(f, f, f, 1.0f);
+    }
+    case IMAGE_DATA_TYPE_NANOVDB_FP16: {
+      const float f = NanoVDBInterpolator<nanovdb::Fp16, float>::interp_3d(
+          info, P.x, P.y, P.z, interp);
+      return make_float4(f, f, f, 1.0f);
+    }
 #endif
     default:
       assert(0);

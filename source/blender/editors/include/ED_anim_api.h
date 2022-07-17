@@ -324,11 +324,15 @@ typedef enum eAnimFilter_Flags {
   /** duplicate entries for animation data attached to multi-user blocks must not occur */
   ANIMFILTER_NODUPLIS = (1 << 11),
 
+  /** avoid channel that does not have any F-curve data */
+  ANIMFILTER_FCURVESONLY = (1 << 12),
+
   /** for checking if we should keep some collapsed channel around (internal use only!) */
   ANIMFILTER_TMP_PEEK = (1 << 30),
 
   /** Ignore ONLYSEL flag from #bDopeSheet.filterflag (internal use only!) */
   ANIMFILTER_TMP_IGNORE_ONLYSEL = (1u << 31),
+
 } eAnimFilter_Flags;
 
 /** \} */
@@ -549,7 +553,7 @@ typedef enum eAnimChannels_SetFlag {
 /* types of settings for AnimChannels */
 typedef enum eAnimChannel_Settings {
   ACHANNEL_SETTING_SELECT = 0,
-  /** warning: for drawing UI's, need to check if this is off (maybe inverse this later) */
+  /** WARNING: for drawing UI's, need to check if this is off (maybe inverse this later). */
   ACHANNEL_SETTING_PROTECT = 1,
   ACHANNEL_SETTING_MUTE = 2,
   ACHANNEL_SETTING_EXPAND = 3,

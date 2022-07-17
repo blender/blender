@@ -307,7 +307,7 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, bool base_10) A
  *
  * Length of 7 is the maximum of the resulting string, for example, `-15.5K\0`.
  */
-void BLI_str_format_attribute_domain_size(char dst[7], int number_to_format) ATTR_NONNULL();
+void BLI_str_format_decimal_unit(char dst[7], int number_to_format) ATTR_NONNULL();
 /**
  * Compare two strings without regard to case.
  *
@@ -343,8 +343,16 @@ int BLI_strcmp_ignore_pad(const char *str1, const char *str2, char pad) ATTR_WAR
  */
 size_t BLI_strnlen(const char *str, size_t maxlen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
+/**
+ * String case conversion, not affected by locale.
+ */
+
 void BLI_str_tolower_ascii(char *str, size_t len) ATTR_NONNULL();
 void BLI_str_toupper_ascii(char *str, size_t len) ATTR_NONNULL();
+
+char BLI_tolower_ascii(const char c);
+char BLI_toupper_ascii(const char c);
+
 /**
  * Strip white-space from end of the string.
  */

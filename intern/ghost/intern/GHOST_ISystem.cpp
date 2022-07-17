@@ -29,18 +29,31 @@
 #  include "GHOST_SystemCocoa.h"
 #endif
 
-GHOST_ISystem *GHOST_ISystem::m_system = NULL;
+GHOST_ISystem *GHOST_ISystem::m_system = nullptr;
+
+GHOST_TBacktraceFn GHOST_ISystem::m_backtrace_fn = nullptr;
 
 GHOST_TSuccess GHOST_ISystem::createSystem()
 {
   GHOST_TSuccess success;
   if (!m_system) {
+
+#if defined(WITH_HEADLESS)
+    /* Pass. */
+#elif defined(WITH_GHOST_WAYLAND)
+#  if defined(WITH_GHOST_WAYLAND_DYNLOAD)
+    const bool has_wayland_libraries = ghost_wl_dynload_libraries();
+#  else
+    const bool has_wayland_libraries = true;
+#  endif
+#endif
+
 #if defined(WITH_HEADLESS)
     m_system = new GHOST_SystemNULL();
 #elif defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
     /* Special case, try Wayland, fall back to X11. */
     try {
-      m_system = new GHOST_SystemWayland();
+      m_system = has_wayland_libraries ? new GHOST_SystemWayland() : nullptr;
     }
     catch (const std::runtime_error &) {
       /* fallback to X11. */
@@ -53,7 +66,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
 #elif defined(WITH_GHOST_X11)
     m_system = new GHOST_SystemX11();
 #elif defined(WITH_GHOST_WAYLAND)
-    m_system = new GHOST_SystemWayland();
+    m_system = has_wayland_libraries ? new GHOST_SystemWayland() : nullptr;
 #elif defined(WITH_GHOST_SDL)
     m_system = new GHOST_SystemSDL();
 #elif defined(WIN32)
@@ -61,7 +74,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
 #elif defined(__APPLE__)
     m_system = new GHOST_SystemCocoa();
 #endif
-    success = m_system != NULL ? GHOST_kSuccess : GHOST_kFailure;
+    success = m_system != nullptr ? GHOST_kSuccess : GHOST_kFailure;
   }
   else {
     success = GHOST_kFailure;
@@ -77,7 +90,7 @@ GHOST_TSuccess GHOST_ISystem::disposeSystem()
   GHOST_TSuccess success = GHOST_kSuccess;
   if (m_system) {
     delete m_system;
-    m_system = NULL;
+    m_system = nullptr;
   }
   else {
     success = GHOST_kFailure;
@@ -88,4 +101,14 @@ GHOST_TSuccess GHOST_ISystem::disposeSystem()
 GHOST_ISystem *GHOST_ISystem::getSystem()
 {
   return m_system;
+}
+
+GHOST_TBacktraceFn GHOST_ISystem::getBacktraceFn()
+{
+  return GHOST_ISystem::m_backtrace_fn;
+}
+
+void GHOST_ISystem::setBacktraceFn(GHOST_TBacktraceFn backtrace_fn)
+{
+  GHOST_ISystem::m_backtrace_fn = backtrace_fn;
 }

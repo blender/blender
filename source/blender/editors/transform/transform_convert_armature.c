@@ -93,8 +93,8 @@ static void autokeyframe_pose(
   KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
   ListBase nla_cache = {NULL, NULL};
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
-                                                                                    (float)CFRA);
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
+      depsgraph, (float)scene->r.cfra);
   eInsertKeyFlags flag = 0;
 
   /* flag is initialized from UserPref keyframing settings
@@ -1192,7 +1192,7 @@ static void restoreBones(TransDataContainer *tc)
 void recalcData_edit_armature(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
-    applyProject(t);
+    applySnappingIndividual(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -1471,7 +1471,7 @@ void recalcData_pose(TransInfo *t)
         /* XXX: this currently doesn't work, since flags aren't set yet! */
         int targetless_ik = (t->flag & T_AUTOIK);
 
-        animrecord_check_state(t, ob);
+        animrecord_check_state(t, &ob->id);
         autokeyframe_pose(t->context, t->scene, ob, t->mode, targetless_ik);
       }
 

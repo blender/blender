@@ -162,7 +162,7 @@ colorspaces:
     equalitygroup:
     bitdepth: 32f
     description: |
-      Standard RGB Display Space
+      sRGB display space
     isdata: false
     to_reference: !<FileTransform> {src: srgb.spi1d, interpolation: linear}
     from_reference: !<FileTransform> {src: srgb_inv.spi1d, interpolation: linear}
@@ -193,11 +193,11 @@ colorspaces:
 
   - !<ColorSpace>
     name: Filmic sRGB
-    family: display
+    family:
     equalitygroup:
     bitdepth: 32f
     description: |
-      Filmic sRGB view transform
+      sRGB display space with Filmic view transform
     isdata: false
     from_reference: !<GroupTransform>
         children:

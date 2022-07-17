@@ -8,6 +8,8 @@
 
 #include <memory>
 
+#include "BLI_string_ref.hh"
+
 struct ListBase;
 struct SpaceOutliner;
 struct TreeElement;
@@ -56,6 +58,12 @@ class AbstractTreeElement {
   }
 
   /**
+   * By letting this return a warning message, the tree element will display a warning icon with
+   * the message in the tooltip.
+   */
+  virtual StringRefNull getWarning() const;
+
+  /**
    * Expand this tree element if it is displayed for the first time (as identified by its
    * tree-store element).
    *
@@ -86,23 +94,20 @@ class AbstractTreeElement {
  * \note "ID" is not always a real ID.
  * \note If child items are only added to the tree if the item is open,
  * the `TSE_` type _must_ be added to #outliner_element_needs_rebuild_on_open_change().
+ *
+ * \param expand: If true, the element may add its own sub-tree. E.g. objects will list their
+ *                animation data, object data, constraints, modifiers, ... This often adds visual
+ *                noise, and can be expensive to add in big scenes. So prefer setting this to
+ *                false.
  */
 struct TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                          ListBase *lb,
                                          void *idv,
                                          struct TreeElement *parent,
                                          short type,
-                                         short index);
+                                         short index,
+                                         const bool expand = true);
 
 void tree_element_expand(const AbstractTreeElement &tree_element, SpaceOutliner &space_outliner);
-
-/**
- * Get actual warning data of a tree element, if any.
- *
- * \param r_icon: The icon to display as warning.
- * \param r_message: The message to display as warning.
- * \return true if there is a warning, false otherwise.
- */
-bool tree_element_warnings_get(struct TreeElement *te, int *r_icon, const char **r_message);
 
 }  // namespace blender::ed::outliner

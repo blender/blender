@@ -19,6 +19,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_node.h"
+#include "BKE_node_runtime.hh"
 
 #include "DNA_collection_types.h"
 #include "DNA_material_types.h"
@@ -261,8 +262,8 @@ void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
   }
   if (ntype->declare != nullptr) {
     nodeDeclarationEnsureOnOutdatedNode(ntree, node);
-    if (!node->declaration->matches(*node)) {
-      refresh_node(*ntree, *node, *node->declaration, do_id_user);
+    if (!node->runtime->declaration->matches(*node)) {
+      refresh_node(*ntree, *node, *node->runtime->declaration, do_id_user);
     }
     nodeSocketDeclarationsUpdate(node);
     return;

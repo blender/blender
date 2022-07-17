@@ -124,7 +124,7 @@ struct FCurve *alloc_driver_fcurve(const char rna_path[],
       insert_vert_fcurve(
           fcu, 1.0f, 1.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
       fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
-      calchandles_fcurve(fcu);
+      BKE_fcurve_handles_recalc(fcu);
     }
   }
 
@@ -180,7 +180,7 @@ static int add_driver_with_target(ReportList *UNUSED(reports),
     }
     else if ((RNA_property_unit(src_prop) == PROP_UNIT_ROTATION) &&
              (RNA_property_unit(dst_prop) != PROP_UNIT_ROTATION)) {
-      /* Rotation Source:  radians -> normal,  so convert src to degrees
+      /* Rotation Source: radians -> normal, so convert src to degrees
        * (However, if both input and output is a rotation, don't apply such corrections)
        */
       BLI_strncpy(driver->expression, "degrees(var)", sizeof(driver->expression));

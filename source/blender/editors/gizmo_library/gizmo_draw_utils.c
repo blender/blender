@@ -95,7 +95,7 @@ void wm_gizmo_vec_draw(
     immEnd();
   }
   else if (primitive_type == GPU_PRIM_TRI_FAN) {
-    /* Note(Metal): Tri-fan alternative for Metal. Triangle List is more efficient for small
+    /* NOTE(Metal): Tri-fan alternative for Metal. Triangle List is more efficient for small
      * primitive counts. */
     int tri_count = vert_count - 2;
     immBegin(GPU_PRIM_TRIS, tri_count * 3);

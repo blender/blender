@@ -64,7 +64,7 @@ static Array<float3> curve_tangent_point_domain(const bke::CurvesGeometry &curve
 }
 
 static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &component,
-                                                      const AttributeDomain domain)
+                                                      const eAttrDomain domain)
 {
   if (!component.has_curves()) {
     return {};
@@ -75,7 +75,7 @@ static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &comp
 
   const VArray<int8_t> types = curves.curve_types();
   if (curves.is_single_type(CURVE_TYPE_POLY)) {
-    return component.attribute_try_adapt_domain<float3>(
+    return component.attributes()->adapt_domain<float3>(
         VArray<float3>::ForSpan(curves.evaluated_tangents()), ATTR_DOMAIN_POINT, domain);
   }
 
@@ -86,7 +86,7 @@ static VArray<float3> construct_curve_tangent_gvarray(const CurveComponent &comp
   }
 
   if (domain == ATTR_DOMAIN_CURVE) {
-    return component.attribute_try_adapt_domain<float3>(
+    return component.attributes()->adapt_domain<float3>(
         VArray<float3>::ForContainer(std::move(tangents)), ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE);
   }
 
@@ -101,7 +101,7 @@ class TangentFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_CURVE) {

@@ -483,10 +483,10 @@ static void gpencil_interpolate_set_points(bContext *C, tGPDinterpolate *tgpi)
     tgpil = MEM_callocN(sizeof(tGPDinterpolate_layer), "GPencil Interpolate Layer");
 
     tgpil->gpl = gpl;
-    bGPDframe *gpf = gpencil_get_previous_keyframe(gpl, CFRA);
+    bGPDframe *gpf = gpencil_get_previous_keyframe(gpl, scene->r.cfra);
     tgpil->prevFrame = BKE_gpencil_frame_duplicate(gpf, true);
 
-    gpf = gpencil_get_next_keyframe(gpl, CFRA);
+    gpf = gpencil_get_next_keyframe(gpl, scene->r.cfra);
     tgpil->nextFrame = BKE_gpencil_frame_duplicate(gpf, true);
 
     BLI_addtail(&tgpi->ilayers, tgpil);
@@ -750,7 +750,7 @@ static int gpencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent
   tGPDinterpolate *tgpi = NULL;
 
   /* Cannot interpolate if not between 2 frames. */
-  int cfra = CFRA;
+  int cfra = scene->r.cfra;
   bGPDframe *gpf_prv = gpencil_get_previous_keyframe(gpl, cfra);
   bGPDframe *gpf_next = gpencil_get_next_keyframe(gpl, cfra);
   if (ELEM(NULL, gpf_prv, gpf_next)) {
@@ -1221,7 +1221,7 @@ static int gpencil_interpolate_seq_exec(bContext *C, wmOperator *op)
   GP_SpaceConversion gsc;
   gpencil_point_conversion_init(C, &gsc);
 
-  int cfra = CFRA;
+  int cfra = scene->r.cfra;
 
   GP_Interpolate_Settings *ipo_settings = &ts->gp_interpolate;
   const int step = RNA_int_get(op->ptr, "step");
@@ -1482,8 +1482,8 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
    * Changes here will likely apply there too.
    */
   static const EnumPropertyItem gpencil_interpolation_type_items[] = {
-      /* interpolation */
-      {0, "", 0, N_("Interpolation"), "Standard transitions between keyframes"},
+      /* Interpolation. */
+      RNA_ENUM_ITEM_HEADING(N_("Interpolation"), "Standard transitions between keyframes"),
       {GP_IPO_LINEAR,
        "LINEAR",
        ICON_IPO_LINEAR,
@@ -1495,13 +1495,10 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
        "Custom",
        "Custom interpolation defined using a curve map"},
 
-      /* easing */
-      {0,
-       "",
-       0,
-       N_("Easing (by strength)"),
-       "Predefined inertial transitions, useful for motion graphics (from least to most "
-       "''dramatic'')"},
+      /* Easing. */
+      RNA_ENUM_ITEM_HEADING(N_("Easing (by strength)"),
+                            "Predefined inertial transitions, useful for motion graphics "
+                            "(from least to most \"dramatic\")"),
       {GP_IPO_SINE,
        "SINE",
        ICON_IPO_SINE,
@@ -1518,7 +1515,7 @@ void GPENCIL_OT_interpolate_sequence(wmOperatorType *ot)
        "Circular",
        "Circular easing (strongest and most dynamic)"},
 
-      {0, "", 0, N_("Dynamic Effects"), "Simple physics-inspired easing effects"},
+      RNA_ENUM_ITEM_HEADING(N_("Dynamic Effects"), "Simple physics-inspired easing effects"),
       {GP_IPO_BACK, "BACK", ICON_IPO_BACK, "Back", "Cubic easing with overshoot and settle"},
       {GP_IPO_BOUNCE,
        "BOUNCE",

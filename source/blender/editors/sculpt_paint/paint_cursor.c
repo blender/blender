@@ -38,6 +38,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "ED_image.h"
 #include "ED_view3d.h"
 
 #include "DEG_depsgraph.h"
@@ -1358,7 +1359,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
   ViewContext *vc = &pcontext->vc;
   SculptCursorGeometryInfo gi;
 
-  const float mouse[2] = {
+  const float mval_fl[2] = {
       pcontext->x - pcontext->region->winrct.xmin,
       pcontext->y - pcontext->region->winrct.ymin,
   };
@@ -1368,7 +1369,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
   pcontext->prev_active_vertex_index = ss->active_vertex_index;
   if (!ups->stroke_active) {
     pcontext->is_cursor_over_mesh = SCULPT_cursor_geometry_info_update(
-        C, &gi, mouse, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
+        C, &gi, mval_fl, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
     copy_v3_v3(pcontext->location, gi.location);
     copy_v3_v3(pcontext->normal, gi.normal);
   }
@@ -1932,7 +1933,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 /* Public API */
 
-void paint_cursor_start(Paint *p, bool (*poll)(bContext *C))
+void ED_paint_cursor_start(Paint *p, bool (*poll)(bContext *C))
 {
   if (p && !p->paint_cursor) {
     p->paint_cursor = WM_paint_cursor_activate(

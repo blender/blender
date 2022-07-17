@@ -48,7 +48,7 @@
 #include <vector>
 
 #include "ceres/internal/disable_warnings.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 
@@ -63,11 +63,11 @@ namespace ceres {
 // when added with AddResidualBlock().
 class CERES_EXPORT CostFunction {
  public:
-  CostFunction() : num_residuals_(0) {}
+  CostFunction();
   CostFunction(const CostFunction&) = delete;
   void operator=(const CostFunction&) = delete;
 
-  virtual ~CostFunction() {}
+  virtual ~CostFunction();
 
   // Inputs:
   //
@@ -92,8 +92,8 @@ class CERES_EXPORT CostFunction {
   //   jacobians[i][r*parameter_block_size_[i] + c] =
   //                              d residual[r] / d parameters[i][c]
   //
-  // If jacobians is NULL, then no derivatives are returned; this is
-  // the case when computing cost only. If jacobians[i] is NULL, then
+  // If jacobians is nullptr, then no derivatives are returned; this is
+  // the case when computing cost only. If jacobians[i] is nullptr, then
   // the jacobian block corresponding to the i'th parameter block must
   // not to be returned.
   //

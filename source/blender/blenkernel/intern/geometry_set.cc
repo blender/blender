@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_bounds.hh"
 #include "BLI_map.hh"
 #include "BLI_task.hh"
 
 #include "BLT_translation.h"
 
 #include "BKE_attribute.h"
-#include "BKE_attribute_access.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
@@ -15,7 +15,6 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcloud.h"
-#include "BKE_spline.hh"
 #include "BKE_volume.h"
 
 #include "DNA_collection_types.h"
@@ -57,6 +56,27 @@ GeometryComponent *GeometryComponent::create(GeometryComponentType component_typ
   }
   BLI_assert_unreachable();
   return nullptr;
+}
+
+int GeometryComponent::attribute_domain_size(const eAttrDomain domain) const
+{
+  if (this->is_empty()) {
+    return 0;
+  }
+  const std::optional<blender::bke::AttributeAccessor> attributes = this->attributes();
+  if (attributes.has_value()) {
+    return attributes->domain_size(domain);
+  }
+  return 0;
+}
+
+std::optional<blender::bke::AttributeAccessor> GeometryComponent::attributes() const
+{
+  return std::nullopt;
+};
+std::optional<blender::bke::MutableAttributeAccessor> GeometryComponent::attributes_for_write()
+{
+  return std::nullopt;
 }
 
 void GeometryComponent::user_add() const
@@ -175,6 +195,7 @@ Vector<const GeometryComponent *> GeometrySet::get_components_for_read() const
 
 bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_max) const
 {
+  using namespace blender;
   bool have_minmax = false;
   if (const PointCloud *pointcloud = this->get_pointcloud_for_read()) {
     have_minmax |= BKE_pointcloud_minmax(pointcloud, *r_min, *r_max);
@@ -185,10 +206,16 @@ bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_ma
   if (const Volume *volume = this->get_volume_for_read()) {
     have_minmax |= BKE_volume_min_max(volume, *r_min, *r_max);
   }
-  if (const Curves *curves = this->get_curves_for_read()) {
-    std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*curves);
+  if (const Curves *curves_id = this->get_curves_for_read()) {
+    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
     /* Using the evaluated positions is somewhat arbitrary, but it is probably expected. */
-    have_minmax |= curve->bounds_min_max(*r_min, *r_max, true);
+    std::optional<bounds::MinMaxResult<float3>> min_max = bounds::min_max(
+        curves.evaluated_positions());
+    if (min_max) {
+      have_minmax = true;
+      *r_min = math::min(*r_min, min_max->min);
+      *r_max = math::max(*r_max, min_max->max);
+    }
   }
   return have_minmax;
 }
@@ -272,7 +299,7 @@ bool GeometrySet::has_pointcloud() const
 bool GeometrySet::has_instances() const
 {
   const InstancesComponent *component = this->get_component_for_read<InstancesComponent>();
-  return component != nullptr && component->instances_amount() >= 1;
+  return component != nullptr && component->instances_num() >= 1;
 }
 
 bool GeometrySet::has_volume() const
@@ -311,6 +338,16 @@ GeometrySet GeometrySet::create_with_mesh(Mesh *mesh, GeometryOwnershipType owne
   if (mesh != nullptr) {
     MeshComponent &component = geometry_set.get_component_for_write<MeshComponent>();
     component.replace(mesh, ownership);
+  }
+  return geometry_set;
+}
+
+GeometrySet GeometrySet::create_with_volume(Volume *volume, GeometryOwnershipType ownership)
+{
+  GeometrySet geometry_set;
+  if (volume != nullptr) {
+    VolumeComponent &component = geometry_set.get_component_for_write<VolumeComponent>();
+    component.replace(volume, ownership);
   }
   return geometry_set;
 }
@@ -427,11 +464,14 @@ void GeometrySet::attribute_foreach(const Span<GeometryComponentType> component_
       continue;
     }
     const GeometryComponent &component = *this->get_component_for_read(component_type);
-    component.attribute_foreach(
-        [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
-          callback(attribute_id, meta_data, component);
-          return true;
-        });
+    const std::optional<AttributeAccessor> attributes = component.attributes();
+    if (attributes.has_value()) {
+      attributes->for_all(
+          [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
+            callback(attribute_id, meta_data, component);
+            return true;
+          });
+    }
   }
   if (include_instances && this->has_instances()) {
     const InstancesComponent &instances = *this->get_component_for_read<InstancesComponent>();
@@ -445,7 +485,7 @@ void GeometrySet::gather_attributes_for_propagation(
     const Span<GeometryComponentType> component_types,
     const GeometryComponentType dst_component_type,
     bool include_instances,
-    blender::Map<blender::bke::AttributeIDRef, AttributeKind> &r_attributes) const
+    blender::Map<blender::bke::AttributeIDRef, blender::bke::AttributeKind> &r_attributes) const
 {
   using namespace blender;
   using namespace blender::bke;
@@ -458,8 +498,8 @@ void GeometrySet::gather_attributes_for_propagation(
       [&](const AttributeIDRef &attribute_id,
           const AttributeMetaData &meta_data,
           const GeometryComponent &component) {
-        if (component.attribute_is_builtin(attribute_id)) {
-          if (!dummy_component->attribute_is_builtin(attribute_id)) {
+        if (component.attributes()->is_builtin(attribute_id)) {
+          if (!dummy_component->attributes()->is_builtin(attribute_id)) {
             /* Don't propagate built-in attributes that are not built-in on the destination
              * component. */
             return;
@@ -470,7 +510,7 @@ void GeometrySet::gather_attributes_for_propagation(
           return;
         }
 
-        AttributeDomain domain = meta_data.domain;
+        eAttrDomain domain = meta_data.domain;
         if (dst_component_type != GEO_COMPONENT_TYPE_INSTANCES && domain == ATTR_DOMAIN_INSTANCE) {
           domain = ATTR_DOMAIN_POINT;
         }
@@ -567,7 +607,7 @@ void GeometrySet::modify_geometry_sets(ForeachSubGeometryCallback callback)
 namespace blender::bke {
 
 GVArray NormalFieldInput::get_varray_for_context(const GeometryComponent &component,
-                                                 const AttributeDomain domain,
+                                                 const eAttrDomain domain,
                                                  IndexMask mask) const
 {
   if (component.type() == GEO_COMPONENT_TYPE_MESH) {

@@ -34,12 +34,14 @@
 #define CERES_INTERNAL_GRAPH_ALGORITHMS_H_
 
 #include <algorithm>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "ceres/graph.h"
+#include "ceres/internal/export.h"
 #include "ceres/wall_time.h"
 #include "glog/logging.h"
 
@@ -49,7 +51,7 @@ namespace internal {
 // Compare two vertices of a graph by their degrees, if the degrees
 // are equal then order them by their ids.
 template <typename Vertex>
-class VertexTotalOrdering {
+class CERES_NO_EXPORT VertexTotalOrdering {
  public:
   explicit VertexTotalOrdering(const Graph<Vertex>& graph) : graph_(graph) {}
 
@@ -257,11 +259,11 @@ Vertex FindConnectedComponent(const Vertex& vertex,
 // spanning forest, or a collection of linear paths that span the
 // graph G.
 template <typename Vertex>
-WeightedGraph<Vertex>* Degree2MaximumSpanningForest(
+std::unique_ptr<WeightedGraph<Vertex>> Degree2MaximumSpanningForest(
     const WeightedGraph<Vertex>& graph) {
   // Array of edges sorted in decreasing order of their weights.
   std::vector<std::pair<double, std::pair<Vertex, Vertex>>> weighted_edges;
-  WeightedGraph<Vertex>* forest = new WeightedGraph<Vertex>();
+  auto forest = std::make_unique<WeightedGraph<Vertex>>();
 
   // Disjoint-set to keep track of the connected components in the
   // maximum spanning tree.

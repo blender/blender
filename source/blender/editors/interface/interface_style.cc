@@ -376,25 +376,14 @@ void uiStyleInit(void)
 {
   const uiStyle *style = static_cast<uiStyle *>(U.uistyles.first);
 
-  /* recover from uninitialized dpi */
+  /* Recover from uninitialized DPI. */
   if (U.dpi == 0) {
     U.dpi = 72;
   }
   CLAMP(U.dpi, 48, 144);
 
-  LISTBASE_FOREACH (uiFont *, font, &U.uifonts) {
-    BLF_unload_id(font->blf_id);
-  }
-
-  if (blf_mono_font != -1) {
-    BLF_unload_id(blf_mono_font);
-    blf_mono_font = -1;
-  }
-
-  if (blf_mono_font_render != -1) {
-    BLF_unload_id(blf_mono_font_render);
-    blf_mono_font_render = -1;
-  }
+  /* Needed so that custom fonts are always first. */
+  BLF_unload_all();
 
   uiFont *font_first = static_cast<uiFont *>(U.uifonts.first);
 
@@ -498,6 +487,9 @@ void uiStyleInit(void)
     const bool unique = true;
     blf_mono_font_render = BLF_load_mono_default(unique);
   }
+
+  /* Load the fallback fonts last. */
+  BLF_load_font_stack();
 }
 
 void UI_fontstyle_set(const uiFontStyle *fs)

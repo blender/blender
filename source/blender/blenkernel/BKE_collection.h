@@ -115,6 +115,18 @@ bool BKE_collection_is_empty(const struct Collection *collection);
 bool BKE_collection_object_add(struct Main *bmain,
                                struct Collection *collection,
                                struct Object *ob);
+
+/**
+ * Add object to given collection, similar to #BKE_collection_object_add.
+ *
+ * However, it additionally ensures that the selected collection is also part of the given
+ * `view_layer`, if non-NULL. Otherwise, the object is not added to any collection.
+ */
+bool BKE_collection_viewlayer_object_add(struct Main *bmain,
+                                         const struct ViewLayer *view_layer,
+                                         struct Collection *collection,
+                                         struct Object *ob);
+
 /**
  * Same as #BKE_collection_object_add, but unconditionally adds the object to the given collection.
  *

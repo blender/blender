@@ -33,6 +33,7 @@
 
 #include <memory>
 
+#include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
 
 namespace ceres {
@@ -49,12 +50,12 @@ class BlockJacobiPreconditioner;
 //
 // as required for solving for x in the least squares sense. Currently only
 // block diagonal preconditioning is supported.
-class CgnrSolver : public BlockSparseMatrixSolver {
+class CERES_NO_EXPORT CgnrSolver final : public BlockSparseMatrixSolver {
  public:
-  explicit CgnrSolver(const LinearSolver::Options& options);
+  explicit CgnrSolver(LinearSolver::Options options);
   CgnrSolver(const CgnrSolver&) = delete;
   void operator=(const CgnrSolver&) = delete;
-  virtual ~CgnrSolver();
+  ~CgnrSolver() override;
 
   Summary SolveImpl(BlockSparseMatrix* A,
                     const double* b,

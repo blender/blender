@@ -32,7 +32,7 @@
 #define CERES_PUBLIC_CUBIC_INTERPOLATION_H_
 
 #include "Eigen/Core"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "glog/logging.h"
 
 namespace ceres {
@@ -59,8 +59,8 @@ namespace ceres {
 // http://en.wikipedia.org/wiki/Cubic_Hermite_spline
 // http://en.wikipedia.org/wiki/Bicubic_interpolation
 //
-// f if not NULL will contain the interpolated function values.
-// dfdx if not NULL will contain the interpolated derivative values.
+// f if not nullptr will contain the interpolated function values.
+// dfdx if not nullptr will contain the interpolated derivative values.
 template <int kDataDimension>
 void CubicHermiteSpline(const Eigen::Matrix<double, kDataDimension, 1>& p0,
                         const Eigen::Matrix<double, kDataDimension, 1>& p1,
@@ -69,7 +69,7 @@ void CubicHermiteSpline(const Eigen::Matrix<double, kDataDimension, 1>& p0,
                         const double x,
                         double* f,
                         double* dfdx) {
-  typedef Eigen::Matrix<double, kDataDimension, 1> VType;
+  using VType = Eigen::Matrix<double, kDataDimension, 1>;
   const VType a = 0.5 * (-p0 + 3.0 * p1 - 3.0 * p2 + p3);
   const VType b = 0.5 * (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3);
   const VType c = 0.5 * (-p0 + p2);
@@ -79,12 +79,12 @@ void CubicHermiteSpline(const Eigen::Matrix<double, kDataDimension, 1>& p0,
   // derivative.
 
   // f = ax^3 + bx^2 + cx + d
-  if (f != NULL) {
+  if (f != nullptr) {
     Eigen::Map<VType>(f, kDataDimension) = d + x * (c + x * (b + x * a));
   }
 
   // dfdx = 3ax^2 + 2bx + c
-  if (dfdx != NULL) {
+  if (dfdx != nullptr) {
     Eigen::Map<VType>(dfdx, kDataDimension) = c + x * (2.0 * b + 3.0 * a * x);
   }
 }
@@ -143,7 +143,7 @@ class CubicInterpolator {
   // The following two Evaluate overloads are needed for interfacing
   // with automatic differentiation. The first is for when a scalar
   // evaluation is done, and the second one is for when Jets are used.
-  void Evaluate(const double& x, double* f) const { Evaluate(x, f, NULL); }
+  void Evaluate(const double& x, double* f) const { Evaluate(x, f, nullptr); }
 
   template <typename JetT>
   void Evaluate(const JetT& x, JetT* f) const {
@@ -191,7 +191,7 @@ struct Grid1D {
   }
 
   EIGEN_STRONG_INLINE void GetValue(const int n, double* f) const {
-    const int idx = std::min(std::max(begin_, n), end_ - 1) - begin_;
+    const int idx = (std::min)((std::max)(begin_, n), end_ - 1) - begin_;
     if (kInterleaved) {
       for (int i = 0; i < kDataDimension; ++i) {
         f[i] = static_cast<double>(data_[kDataDimension * idx + i]);
@@ -317,10 +317,10 @@ class BiCubicInterpolator {
     // Interpolate vertically the interpolated value from each row and
     // compute the derivative along the columns.
     CubicHermiteSpline<Grid::DATA_DIMENSION>(f0, f1, f2, f3, r - row, f, dfdr);
-    if (dfdc != NULL) {
+    if (dfdc != nullptr) {
       // Interpolate vertically the derivative along the columns.
       CubicHermiteSpline<Grid::DATA_DIMENSION>(
-          df0dc, df1dc, df2dc, df3dc, r - row, dfdc, NULL);
+          df0dc, df1dc, df2dc, df3dc, r - row, dfdc, nullptr);
     }
   }
 
@@ -328,7 +328,7 @@ class BiCubicInterpolator {
   // with automatic differentiation. The first is for when a scalar
   // evaluation is done, and the second one is for when Jets are used.
   void Evaluate(const double& r, const double& c, double* f) const {
-    Evaluate(r, c, f, NULL, NULL);
+    Evaluate(r, c, f, nullptr, nullptr);
   }
 
   template <typename JetT>
@@ -402,9 +402,9 @@ struct Grid2D {
 
   EIGEN_STRONG_INLINE void GetValue(const int r, const int c, double* f) const {
     const int row_idx =
-        std::min(std::max(row_begin_, r), row_end_ - 1) - row_begin_;
+        (std::min)((std::max)(row_begin_, r), row_end_ - 1) - row_begin_;
     const int col_idx =
-        std::min(std::max(col_begin_, c), col_end_ - 1) - col_begin_;
+        (std::min)((std::max)(col_begin_, c), col_end_ - 1) - col_begin_;
 
     const int n = (kRowMajor) ? num_cols_ * row_idx + col_idx
                               : num_rows_ * col_idx + row_idx;

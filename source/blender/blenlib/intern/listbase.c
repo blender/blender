@@ -193,8 +193,18 @@ void BLI_listbases_swaplinks(ListBase *listbasea, ListBase *listbaseb, void *vli
     return;
   }
 
+  /* The reference to `linkc` assigns NULL, not a dangling pointer so it can be ignored. */
+#if defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__) >= 1201 /* gcc12.1+ only */
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdangling-pointer"
+#endif
+
   /* Temporary link to use as placeholder of the links positions */
   BLI_insertlinkafter(listbasea, linka, &linkc);
+
+#if defined(__GNUC__) && (__GNUC__ * 100 + __GNUC_MINOR__) >= 1201 /* gcc12.1+ only */
+#  pragma GCC diagnostic pop
+#endif
 
   /* Bring linka into linkb position */
   BLI_remlink(listbasea, linka);

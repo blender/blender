@@ -29,11 +29,12 @@
 
 /* please keep the names in sync with constraint.c */
 const EnumPropertyItem rna_enum_constraint_type_items[] = {
-    {0, "", 0, N_("Motion Tracking"), ""},
+    RNA_ENUM_ITEM_HEADING(N_("Motion Tracking"), NULL),
     {CONSTRAINT_TYPE_CAMERASOLVER, "CAMERA_SOLVER", ICON_CON_CAMERASOLVER, "Camera Solver", ""},
     {CONSTRAINT_TYPE_FOLLOWTRACK, "FOLLOW_TRACK", ICON_CON_FOLLOWTRACK, "Follow Track", ""},
     {CONSTRAINT_TYPE_OBJECTSOLVER, "OBJECT_SOLVER", ICON_CON_OBJECTSOLVER, "Object Solver", ""},
-    {0, "", 0, N_("Transform"), ""},
+
+    RNA_ENUM_ITEM_HEADING(N_("Transform"), NULL),
     {CONSTRAINT_TYPE_LOCLIKE,
      "COPY_LOCATION",
      ICON_CON_LOCLIKE,
@@ -91,7 +92,8 @@ const EnumPropertyItem rna_enum_constraint_type_items[] = {
      ICON_CON_TRANSFORM_CACHE,
      "Transform Cache",
      "Look up the transformation matrix from an external file"},
-    {0, "", 0, N_("Tracking"), ""},
+
+    RNA_ENUM_ITEM_HEADING(N_("Tracking"), NULL),
     {CONSTRAINT_TYPE_CLAMPTO,
      "CLAMP_TO",
      ICON_CON_CLAMPTO,
@@ -127,7 +129,8 @@ const EnumPropertyItem rna_enum_constraint_type_items[] = {
      ICON_CON_TRACKTO,
      "Track To",
      "Legacy tracking constraint prone to twisting artifacts"},
-    {0, "", 0, N_("Relationship"), ""},
+
+    RNA_ENUM_ITEM_HEADING(N_("Relationship"), NULL),
     {CONSTRAINT_TYPE_ACTION,
      "ACTION",
      ICON_ACTION,
@@ -192,7 +195,7 @@ static const EnumPropertyItem target_space_pchan_items[] = {
      "Custom Space",
      "The transformation of the target is evaluated relative to a custom object/bone/vertex "
      "group"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {CONSTRAINT_SPACE_POSE,
      "POSE",
      0,
@@ -233,7 +236,7 @@ static const EnumPropertyItem owner_space_pchan_items[] = {
      0,
      "Custom Space",
      "The constraint is applied in local space of a custom object/bone/vertex group"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {CONSTRAINT_SPACE_POSE,
      "POSE",
      0,
@@ -440,7 +443,7 @@ static char *rna_Constraint_do_compute_path(Object *ob, bConstraint *con)
   }
 }
 
-static char *rna_Constraint_path(PointerRNA *ptr)
+static char *rna_Constraint_path(const PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
   bConstraint *con = ptr->data;
@@ -448,7 +451,7 @@ static char *rna_Constraint_path(PointerRNA *ptr)
   return rna_Constraint_do_compute_path(ob, con);
 }
 
-static bConstraint *rna_constraint_from_target(PointerRNA *ptr)
+static bConstraint *rna_constraint_from_target(const PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
   bConstraintTarget *tgt = ptr->data;
@@ -456,7 +459,7 @@ static bConstraint *rna_constraint_from_target(PointerRNA *ptr)
   return BKE_constraint_find_from_target(ob, tgt, NULL);
 }
 
-static char *rna_ConstraintTarget_path(PointerRNA *ptr)
+static char *rna_ConstraintTarget_path(const PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
   bConstraintTarget *tgt = ptr->data;
@@ -595,22 +598,17 @@ static const EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSE
                                                                  bool *UNUSED(r_free))
 {
   bConstraint *con = (bConstraint *)ptr->data;
-  const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
   ListBase targets = {NULL, NULL};
   bConstraintTarget *ct;
 
-  if (cti && cti->get_constraint_targets) {
-    cti->get_constraint_targets(con, &targets);
-
+  if (BKE_constraint_targets_get(con, &targets)) {
     for (ct = targets.first; ct; ct = ct->next) {
       if (ct->tar && ct->tar->type == OB_ARMATURE) {
         break;
       }
     }
 
-    if (cti->flush_constraint_targets) {
-      cti->flush_constraint_targets(con, &targets, 1);
-    }
+    BKE_constraint_targets_flush(con, &targets, 1);
 
     if (ct) {
       return target_space_pchan_items;
@@ -691,11 +689,11 @@ static void rna_ActionConstraint_minmax_range(
   }
 }
 
-static int rna_SplineIKConstraint_joint_bindings_get_length(PointerRNA *ptr,
+static int rna_SplineIKConstraint_joint_bindings_get_length(const PointerRNA *ptr,
                                                             int length[RNA_MAX_ARRAY_DIMENSION])
 {
-  bConstraint *con = (bConstraint *)ptr->data;
-  bSplineIKConstraint *ikData = (bSplineIKConstraint *)con->data;
+  const bConstraint *con = (bConstraint *)ptr->data;
+  const bSplineIKConstraint *ikData = (bSplineIKConstraint *)con->data;
 
   if (ikData) {
     length[0] = ikData->numpoints;
@@ -1623,7 +1621,7 @@ static void rna_def_constraint_transform_like(BlenderRNA *brna)
        0,
        "Replace",
        "Replace the original transformation with copied"},
-      {0, "", 0, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {TRANSLIKE_MIX_BEFORE_FULL,
        "BEFORE_FULL",
        0,
@@ -1644,7 +1642,7 @@ static void rna_def_constraint_transform_like(BlenderRNA *brna)
        "Before Original (Split Channels)",
        "Apply copied transformation before original, handling location, rotation and scale "
        "separately, similar to a sequence of three Copy constraints"},
-      {0, "", 0, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {TRANSLIKE_MIX_AFTER_FULL,
        "AFTER_FULL",
        0,
@@ -1782,7 +1780,7 @@ static void rna_def_constraint_action(BlenderRNA *brna)
        "Before Original (Split Channels)",
        "Apply the action channels before the original transformation, handling location, rotation "
        "and scale separately"},
-      {0, "", 0, NULL, NULL},
+      RNA_ENUM_ITEM_SEPR,
       {ACTCON_MIX_AFTER_FULL,
        "AFTER_FULL",
        0,

@@ -49,5 +49,5 @@ typedef void (*gpBakeCb)(struct GpencilModifierData *md_,
 void generic_bake_deform_stroke(struct Depsgraph *depsgraph,
                                 struct GpencilModifierData *md,
                                 struct Object *ob,
-                                const bool retime,
+                                bool retime,
                                 gpBakeCb bake_cb);

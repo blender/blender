@@ -67,6 +67,7 @@ void EEVEE_material_bind_resources(DRWShadingGroup *shgrp,
                                    EEVEE_Data *vedata,
                                    const int *ssr_id,
                                    const float *refract_depth,
+                                   const float alpha_clip_threshold,
                                    bool use_ssrefraction,
                                    bool use_alpha_blend)
 {
@@ -90,6 +91,8 @@ void EEVEE_material_bind_resources(DRWShadingGroup *shgrp,
   DRW_shgroup_uniform_block(shgrp, "shadow_block", sldata->shadow_ubo);
   DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
   DRW_shgroup_uniform_block_ref(shgrp, "renderpass_block", &pd->renderpass_ubo);
+
+  DRW_shgroup_uniform_float_copy(shgrp, "alphaClipThreshold", alpha_clip_threshold);
 
   DRW_shgroup_uniform_int_copy(shgrp, "outputSssId", 1);
   DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
@@ -480,6 +483,8 @@ BLI_INLINE void material_shadow(EEVEE_Data *vedata,
     /* Shadow Pass */
     const bool use_shadow_shader = ma->use_nodes && ma->nodetree &&
                                    ELEM(ma->blend_shadow, MA_BS_CLIP, MA_BS_HASHED);
+    float alpha_clip_threshold = (ma->blend_shadow == MA_BS_CLIP) ? ma->alpha_threshold : -1.0f;
+
     int mat_options = VAR_MAT_MESH | VAR_MAT_DEPTH;
     SET_FLAG_FROM_TEST(mat_options, use_shadow_shader, VAR_MAT_HASH);
     SET_FLAG_FROM_TEST(mat_options, is_hair, VAR_MAT_HAIR);
@@ -503,7 +508,8 @@ BLI_INLINE void material_shadow(EEVEE_Data *vedata,
     }
     else {
       *grp_p = grp = DRW_shgroup_create(sh, psl->shadow_pass);
-      EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, false, false);
+      EEVEE_material_bind_resources(
+          grp, gpumat, sldata, vedata, NULL, NULL, alpha_clip_threshold, false, false);
     }
 
     DRW_shgroup_add_material_resources(grp, gpumat);
@@ -533,6 +539,7 @@ static EeveeMaterialCache material_opaque(EEVEE_Data *vedata,
   const bool use_ssrefract = use_gpumat && ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
                              ((effects->enabled_effects & EFFECT_REFRACT) != 0);
   const bool use_depth_shader = use_gpumat && ELEM(ma->blend_method, MA_BM_CLIP, MA_BM_HASHED);
+  float alpha_clip_threshold = (ma->blend_method == MA_BM_CLIP) ? ma->alpha_threshold : -1.0f;
 
   /* HACK: Assume the struct will never be smaller than our variations.
    * This allow us to only keep one ghash and avoid bigger keys comparisons/hashing. */
@@ -581,7 +588,8 @@ static EeveeMaterialCache material_opaque(EEVEE_Data *vedata,
     }
     else {
       *grp_p = grp = DRW_shgroup_create(sh, depth_ps);
-      EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, false, false);
+      EEVEE_material_bind_resources(
+          grp, gpumat, sldata, vedata, NULL, NULL, alpha_clip_threshold, false, false);
     }
 
     DRW_shgroup_add_material_resources(grp, gpumat);
@@ -630,8 +638,15 @@ static EeveeMaterialCache material_opaque(EEVEE_Data *vedata,
     }
     else {
       *grp_p = grp = DRW_shgroup_create(sh, shading_pass);
-      EEVEE_material_bind_resources(
-          grp, gpumat, sldata, vedata, &ssr_id, &ma->refract_depth, use_ssrefract, false);
+      EEVEE_material_bind_resources(grp,
+                                    gpumat,
+                                    sldata,
+                                    vedata,
+                                    &ssr_id,
+                                    &ma->refract_depth,
+                                    alpha_clip_threshold,
+                                    use_ssrefract,
+                                    false);
     }
     DRW_shgroup_add_material_resources(grp, gpumat);
 
@@ -677,7 +692,7 @@ static EeveeMaterialCache material_transparent(EEVEE_Data *vedata,
 
     DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->transparent_pass);
 
-    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, false, true);
+    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, -1.0f, false, true);
     DRW_shgroup_add_material_resources(grp, gpumat);
 
     cur_state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
@@ -699,7 +714,7 @@ static EeveeMaterialCache material_transparent(EEVEE_Data *vedata,
                                               psl->transparent_pass);
 
     EEVEE_material_bind_resources(
-        grp, gpumat, sldata, vedata, &ssr_id, &ma->refract_depth, use_ssrefract, true);
+        grp, gpumat, sldata, vedata, &ssr_id, &ma->refract_depth, -1.0f, use_ssrefract, true);
     DRW_shgroup_add_material_resources(grp, gpumat);
 
     cur_state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM;

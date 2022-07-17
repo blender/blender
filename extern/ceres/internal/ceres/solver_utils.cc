@@ -34,8 +34,11 @@
 
 #include "Eigen/Core"
 #include "ceres/internal/config.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/version.h"
+#ifndef CERES_NO_CUDA
+#include "cuda_runtime.h"
+#endif  // CERES_NO_CUDA
 
 namespace ceres {
 namespace internal {
@@ -85,6 +88,10 @@ std::string VersionString() {
 
 #ifdef CERES_NO_CUSTOM_BLAS
   value += "-no_custom_blas";
+#endif
+
+#ifndef CERES_NO_CUDA
+  value += "-cuda-(" + std::to_string(CUDART_VERSION) + ")";
 #endif
 
   return value;

@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8-80 compliant>
-
 """
 Utility modules associated with the bpy module.
 """
@@ -16,4 +14,5 @@ __all__ = (
     "mesh_utils",
     "node_utils",
     "view3d_utils",
+    "id_map_utils",
 )

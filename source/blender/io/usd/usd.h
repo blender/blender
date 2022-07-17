@@ -48,9 +48,11 @@ typedef enum eUSDXformOpMode {
 static const USD_global_forward_axis USD_DEFAULT_FORWARD = USD_GLOBAL_FORWARD_MINUS_Z;
 static const USD_global_up_axis USD_DEFAULT_UP = USD_GLOBAL_UP_Y;
 
+/* Behavior when the name of an imported material
+ * conflicts with an existing material. */
 typedef enum eUSDMtlNameCollisionMode {
-  USD_MTL_NAME_COLLISION_MODIFY = 0,
-  USD_MTL_NAME_COLLISION_SKIP = 1,
+  USD_MTL_NAME_COLLISION_MAKE_UNIQUE = 0,
+  USD_MTL_NAME_COLLISION_REFERENCE_EXISTING = 1,
 } eUSDMtlNameCollisionMode;
 
 typedef enum eUSDAttrImportMode {
@@ -105,7 +107,7 @@ struct USDExportParams {
   double shutter_open;
   double shutter_close;
   bool export_textures;
-  bool relative_texture_paths;
+  bool relative_paths;
   bool backward_compatible;
   float light_intensity_scale;
   bool generate_mdl;
@@ -180,7 +182,7 @@ bool USD_umm_module_loaded(void);
 /* USD Import and Mesh Cache interface. */
 
 struct CacheArchiveHandle *USD_create_handle(struct Main *bmain,
-                                             const char *filename,
+                                             const char *filepath,
                                              struct ListBase *object_paths);
 
 void USD_free_handle(struct CacheArchiveHandle *handle);

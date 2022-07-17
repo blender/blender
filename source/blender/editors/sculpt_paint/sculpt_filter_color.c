@@ -93,7 +93,7 @@ static void color_filter_task_cb(void *__restrict userdata,
   const int mode = data->filter_type;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COLOR);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
@@ -124,8 +124,8 @@ static void color_filter_task_cb(void *__restrict userdata,
       }
       case COLOR_FILTER_HUE:
         rgb_to_hsv_v(orig_color, hsv_color);
-        hue = hsv_color[0] + fade;
-        hsv_color[0] = fabs((hsv_color[0] + fade) - hue);
+        hue = hsv_color[0];
+        hsv_color[0] = fmod((hsv_color[0] + fabs(fade)) - hue, 1);
         hsv_to_rgb_v(hsv_color, final_color);
         break;
       case COLOR_FILTER_SATURATION:
@@ -298,7 +298,7 @@ static int sculpt_color_filter_modal(bContext *C, wmOperator *op, const wmEvent 
 
   float fill_color[3];
   RNA_float_get_array(op->ptr, "fill_color", fill_color);
-  IMB_colormanagement_srgb_to_scene_linear_v3(fill_color);
+  IMB_colormanagement_srgb_to_scene_linear_v3(fill_color, fill_color);
 
   if (filter_strength < 0.0 && !ss->filter_cache->pre_smoothed_color) {
     sculpt_color_presmooth_init(ss);
@@ -328,18 +328,20 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
 {
   Object *ob = CTX_data_active_object(C);
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+  View3D *v3d = CTX_wm_view3d(C);
   SculptSession *ss = ob->sculpt;
   PBVH *pbvh = ob->sculpt->pbvh;
+  if (v3d->shading.type == OB_SOLID) {
+    v3d->shading.color_type = V3D_SHADING_VERTEX_COLOR;
+  }
 
   const bool use_automasking = SCULPT_is_automasking_enabled(sd, ss, NULL);
   if (use_automasking) {
     /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
      * Filter Tool. */
-    float mouse[2];
+    float mval_fl[2] = {UNPACK2(event->mval)};
     SculptCursorGeometryInfo sgi;
-    mouse[0] = event->mval[0];
-    mouse[1] = event->mval[1];
-    SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+    SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
   }
 
   /* Disable for multires and dyntopo for now */
@@ -374,7 +376,7 @@ void SCULPT_OT_color_filter(struct wmOperatorType *ot)
   /* identifiers */
   ot->name = "Filter Color";
   ot->idname = "SCULPT_OT_color_filter";
-  ot->description = "Applies a filter to modify the current sculpt vertex colors";
+  ot->description = "Applies a filter to modify the active color attribute";
 
   /* api callbacks */
   ot->invoke = sculpt_color_filter_invoke;

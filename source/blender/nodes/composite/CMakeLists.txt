@@ -91,6 +91,7 @@ set(SRC
   nodes/node_composite_rotate.cc
   nodes/node_composite_scale.cc
   nodes/node_composite_scene_time.cc
+  nodes/node_composite_sepcomb_color.cc
   nodes/node_composite_sepcomb_hsva.cc
   nodes/node_composite_sepcomb_rgba.cc
   nodes/node_composite_sepcomb_xyz.cc

@@ -51,7 +51,7 @@ class MaterialSelectionFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask mask) const final
   {
     if (component.type() != GEO_COMPONENT_TYPE_MESH) {
@@ -71,7 +71,7 @@ class MaterialSelectionFieldInput final : public GeometryFieldInput {
 
     Array<bool> selection(mesh->totpoly);
     select_mesh_by_material(*mesh, material_, IndexMask(mesh->totpoly), selection);
-    return mesh_component.attribute_try_adapt_domain<bool>(
+    return mesh_component.attributes()->adapt_domain<bool>(
         VArray<bool>::ForContainer(std::move(selection)), ATTR_DOMAIN_FACE, domain);
 
     return nullptr;

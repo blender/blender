@@ -38,11 +38,14 @@
 
 #include <algorithm>
 #include <cstring>
+#include <memory>
 #include <vector>
 
 #include "ceres/block_structure.h"
+#include "ceres/internal/config.h"
+#include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/eigen.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/linear_solver.h"
 #include "ceres/small_blas.h"
 #include "glog/logging.h"
@@ -60,9 +63,9 @@ namespace internal {
 // block structure of the matrix does not satisfy the requirements of
 // the Schur complement solver it will result in unpredictable and
 // wrong output.
-class CERES_EXPORT_INTERNAL PartitionedMatrixViewBase {
+class CERES_NO_EXPORT PartitionedMatrixViewBase {
  public:
-  virtual ~PartitionedMatrixViewBase() {}
+  virtual ~PartitionedMatrixViewBase();
 
   // y += E'x
   virtual void LeftMultiplyE(const double* x, double* y) const = 0;
@@ -77,11 +80,11 @@ class CERES_EXPORT_INTERNAL PartitionedMatrixViewBase {
   virtual void RightMultiplyF(const double* x, double* y) const = 0;
 
   // Create and return the block diagonal of the matrix E'E.
-  virtual BlockSparseMatrix* CreateBlockDiagonalEtE() const = 0;
+  virtual std::unique_ptr<BlockSparseMatrix> CreateBlockDiagonalEtE() const = 0;
 
   // Create and return the block diagonal of the matrix F'F. Caller
   // owns the result.
-  virtual BlockSparseMatrix* CreateBlockDiagonalFtF() const = 0;
+  virtual std::unique_ptr<BlockSparseMatrix> CreateBlockDiagonalFtF() const = 0;
 
   // Compute the block diagonal of the matrix E'E and store it in
   // block_diagonal. The matrix block_diagonal is expected to have a
@@ -108,26 +111,26 @@ class CERES_EXPORT_INTERNAL PartitionedMatrixViewBase {
   virtual int num_cols()         const = 0;
   // clang-format on
 
-  static PartitionedMatrixViewBase* Create(const LinearSolver::Options& options,
-                                           const BlockSparseMatrix& matrix);
+  static std::unique_ptr<PartitionedMatrixViewBase> Create(
+      const LinearSolver::Options& options, const BlockSparseMatrix& matrix);
 };
 
 template <int kRowBlockSize = Eigen::Dynamic,
           int kEBlockSize = Eigen::Dynamic,
           int kFBlockSize = Eigen::Dynamic>
-class PartitionedMatrixView : public PartitionedMatrixViewBase {
+class CERES_NO_EXPORT PartitionedMatrixView final
+    : public PartitionedMatrixViewBase {
  public:
   // matrix = [E F], where the matrix E contains the first
   // num_col_blocks_a column blocks.
   PartitionedMatrixView(const BlockSparseMatrix& matrix, int num_col_blocks_e);
 
-  virtual ~PartitionedMatrixView();
   void LeftMultiplyE(const double* x, double* y) const final;
   void LeftMultiplyF(const double* x, double* y) const final;
   void RightMultiplyE(const double* x, double* y) const final;
   void RightMultiplyF(const double* x, double* y) const final;
-  BlockSparseMatrix* CreateBlockDiagonalEtE() const final;
-  BlockSparseMatrix* CreateBlockDiagonalFtF() const final;
+  std::unique_ptr<BlockSparseMatrix> CreateBlockDiagonalEtE() const final;
+  std::unique_ptr<BlockSparseMatrix> CreateBlockDiagonalFtF() const final;
   void UpdateBlockDiagonalEtE(BlockSparseMatrix* block_diagonal) const final;
   void UpdateBlockDiagonalFtF(BlockSparseMatrix* block_diagonal) const final;
   // clang-format off
@@ -140,8 +143,8 @@ class PartitionedMatrixView : public PartitionedMatrixViewBase {
   // clang-format on
 
  private:
-  BlockSparseMatrix* CreateBlockDiagonalMatrixLayout(int start_col_block,
-                                                     int end_col_block) const;
+  std::unique_ptr<BlockSparseMatrix> CreateBlockDiagonalMatrixLayout(
+      int start_col_block, int end_col_block) const;
 
   const BlockSparseMatrix& matrix_;
   int num_row_blocks_e_;
@@ -153,5 +156,7 @@ class PartitionedMatrixView : public PartitionedMatrixViewBase {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_PARTITIONED_MATRIX_VIEW_H_

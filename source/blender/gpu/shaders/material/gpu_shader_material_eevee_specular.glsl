@@ -34,6 +34,13 @@ void node_eevee_specular(vec4 diffuse,
   diffuse_data.N = N;
   diffuse_data.sss_id = 0u;
 
+  /* WORKAROUND: Nasty workaround to the current interface with the closure evaluation.
+   * Ideally the occlusion input should be move to the output node or removed all-together.
+   * This is temporary to avoid a regression in 3.2 and should be removed after EEVEE-Next rewrite.
+   */
+  diffuse_data.sss_radius.r = occlusion;
+  diffuse_data.sss_radius.g = -1.0; /* Flag */
+
   ClosureReflection reflection_data;
   reflection_data.weight = alpha;
   if (true) {
@@ -41,7 +48,7 @@ void node_eevee_specular(vec4 diffuse,
     vec2 split_sum = brdf_lut(NV, roughness);
     vec3 brdf = F_brdf_single_scatter(specular.rgb, vec3(1.0), split_sum);
 
-    reflection_data.color = specular.rgb * brdf;
+    reflection_data.color = brdf;
     reflection_data.N = N;
     reflection_data.roughness = roughness;
   }
@@ -64,6 +71,8 @@ void node_eevee_specular(vec4 diffuse,
   else {
     result = closure_eval(diffuse_data, reflection_data);
   }
-  result = closure_add(result, closure_eval(emission_data));
-  result = closure_add(result, closure_eval(transparency_data));
+  Closure emission_cl = closure_eval(emission_data);
+  Closure transparency_cl = closure_eval(transparency_data);
+  result = closure_add(result, emission_cl);
+  result = closure_add(result, transparency_cl);
 }

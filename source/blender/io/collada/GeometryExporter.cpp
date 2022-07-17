@@ -477,7 +477,8 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
   for (int a = 0; a < totlayer_mcol; a++) {
 
     map_index++;
-    MLoopCol *mloopcol = (MLoopCol *)CustomData_get_layer_n(&me->ldata, CD_PROP_BYTE_COLOR, a);
+    const MLoopCol *mloopcol = (const MLoopCol *)CustomData_get_layer_n(
+        &me->ldata, CD_PROP_BYTE_COLOR, a);
 
     COLLADASW::FloatSourceF source(mSW);
 
@@ -502,7 +503,7 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
     MPoly *mpoly;
     int i;
     for (i = 0, mpoly = me->mpoly; i < me->totpoly; i++, mpoly++) {
-      MLoopCol *mlc = mloopcol + mpoly->loopstart;
+      const MLoopCol *mlc = mloopcol + mpoly->loopstart;
       for (int j = 0; j < mpoly->totloop; j++, mlc++) {
         source.appendValues(mlc->r / 255.0f, mlc->g / 255.0f, mlc->b / 255.0f, mlc->a / 255.0f);
       }
@@ -619,7 +620,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
   MVert *verts = me->mvert;
   const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me);
   MLoop *mloops = me->mloop;
-  float(*lnors)[3] = nullptr;
+  const float(*lnors)[3] = nullptr;
   bool use_custom_normals = false;
 
   BKE_mesh_calc_normals_split(me);

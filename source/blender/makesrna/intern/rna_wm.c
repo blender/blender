@@ -24,6 +24,7 @@
 
 #include "rna_internal.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
 
 #ifdef RNA_RUNTIME
@@ -36,16 +37,16 @@ static const EnumPropertyItem event_mouse_type_items[] = {
     {BUTTON5MOUSE, "BUTTON5MOUSE", 0, "Button5", ""},
     {BUTTON6MOUSE, "BUTTON6MOUSE", 0, "Button6", ""},
     {BUTTON7MOUSE, "BUTTON7MOUSE", 0, "Button7", ""},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {TABLET_STYLUS, "PEN", 0, "Pen", ""},
     {TABLET_ERASER, "ERASER", 0, "Eraser", ""},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MOUSEMOVE, "MOUSEMOVE", 0, "Move", ""},
     {MOUSEPAN, "TRACKPADPAN", 0, "Mouse/Trackpad Pan", ""},
     {MOUSEZOOM, "TRACKPADZOOM", 0, "Mouse/Trackpad Zoom", ""},
     {MOUSEROTATE, "MOUSEROTATE", 0, "Mouse/Trackpad Rotate", ""},
     {MOUSESMARTZOOM, "MOUSESMARTZOOM", 0, "Mouse/Trackpad Smart Zoom", ""},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {WHEELUPMOUSE, "WHEELUPMOUSE", 0, "Wheel Up", ""},
     {WHEELDOWNMOUSE, "WHEELDOWNMOUSE", 0, "Wheel Down", ""},
     {WHEELINMOUSE, "WHEELINMOUSE", 0, "Wheel In", ""},
@@ -123,6 +124,24 @@ static const EnumPropertyItem event_ndof_type_items[] = {
 };
 #endif /* RNA_RUNTIME */
 
+/**
+ * Job types for use in the `bpy.app.is_job_running(job_type)` call.
+ *
+ * This is a subset of the `WM_JOB_TYPE_...` anonymous enum defined in `WM_api.h`. It is
+ * intentionally kept as a subset, such that by default how jobs are handled is kept as an
+ * "internal implementation detail" of Blender, rather than a public, reliable part of the API.
+ *
+ * This array can be expanded on a case-by-case basis, when there is a clear and testable use case.
+ */
+const EnumPropertyItem rna_enum_wm_job_type_items[] = {
+    {WM_JOB_TYPE_RENDER, "RENDER", 0, "Regular rendering", ""},
+    {WM_JOB_TYPE_RENDER_PREVIEW, "RENDER_PREVIEW", 0, "Rendering previews", ""},
+    {WM_JOB_TYPE_OBJECT_BAKE, "OBJECT_BAKE", 0, "Object Baking", ""},
+    {WM_JOB_TYPE_COMPOSITE, "COMPOSITE", 0, "Compositing", ""},
+    {WM_JOB_TYPE_SHADER_COMPILATION, "SHADER_COMPILATION", 0, "Shader compilation", ""},
+    {0, NULL, 0, NULL, NULL},
+};
+
 const EnumPropertyItem rna_enum_event_type_items[] = {
     /* - Note we abuse 'tooltip' message here to store a 'compact' form of some (too) long names.
      * - Intentionally excluded: #CAPSLOCKKEY, #UNKNOWNKEY.
@@ -135,22 +154,22 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {BUTTON5MOUSE, "BUTTON5MOUSE", 0, "Button5 Mouse", "MB5"},
     {BUTTON6MOUSE, "BUTTON6MOUSE", 0, "Button6 Mouse", "MB6"},
     {BUTTON7MOUSE, "BUTTON7MOUSE", 0, "Button7 Mouse", "MB7"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {TABLET_STYLUS, "PEN", 0, "Pen", ""},
     {TABLET_ERASER, "ERASER", 0, "Eraser", ""},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MOUSEMOVE, "MOUSEMOVE", 0, "Mouse Move", "MsMov"},
     {INBETWEEN_MOUSEMOVE, "INBETWEEN_MOUSEMOVE", 0, "In-between Move", "MsSubMov"},
     {MOUSEPAN, "TRACKPADPAN", 0, "Mouse/Trackpad Pan", "MsPan"},
     {MOUSEZOOM, "TRACKPADZOOM", 0, "Mouse/Trackpad Zoom", "MsZoom"},
     {MOUSEROTATE, "MOUSEROTATE", 0, "Mouse/Trackpad Rotate", "MsRot"},
     {MOUSESMARTZOOM, "MOUSESMARTZOOM", 0, "Mouse/Trackpad Smart Zoom", "MsSmartZoom"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {WHEELUPMOUSE, "WHEELUPMOUSE", 0, "Wheel Up", "WhUp"},
     {WHEELDOWNMOUSE, "WHEELDOWNMOUSE", 0, "Wheel Down", "WhDown"},
     {WHEELINMOUSE, "WHEELINMOUSE", 0, "Wheel In", "WhIn"},
     {WHEELOUTMOUSE, "WHEELOUTMOUSE", 0, "Wheel Out", "WhOut"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {EVT_AKEY, "A", 0, "A", ""},
     {EVT_BKEY, "B", 0, "B", ""},
     {EVT_CKEY, "C", 0, "C", ""},
@@ -177,7 +196,7 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {EVT_XKEY, "X", 0, "X", ""},
     {EVT_YKEY, "Y", 0, "Y", ""},
     {EVT_ZKEY, "Z", 0, "Z", ""},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {EVT_ZEROKEY, "ZERO", 0, "0", ""},
     {EVT_ONEKEY, "ONE", 0, "1", ""},
     {EVT_TWOKEY, "TWO", 0, "2", ""},
@@ -188,14 +207,14 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {EVT_SEVENKEY, "SEVEN", 0, "7", ""},
     {EVT_EIGHTKEY, "EIGHT", 0, "8", ""},
     {EVT_NINEKEY, "NINE", 0, "9", ""},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {EVT_LEFTCTRLKEY, "LEFT_CTRL", 0, "Left Ctrl", "CtrlL"},
     {EVT_LEFTALTKEY, "LEFT_ALT", 0, "Left Alt", "AltL"},
     {EVT_LEFTSHIFTKEY, "LEFT_SHIFT", 0, "Left Shift", "ShiftL"},
     {EVT_RIGHTALTKEY, "RIGHT_ALT", 0, "Right Alt", "AltR"},
     {EVT_RIGHTCTRLKEY, "RIGHT_CTRL", 0, "Right Ctrl", "CtrlR"},
     {EVT_RIGHTSHIFTKEY, "RIGHT_SHIFT", 0, "Right Shift", "ShiftR"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {EVT_OSKEY, "OSKEY", 0, "OS Key", "Cmd"},
     {EVT_APPKEY, "APP", 0, "Application", "App"},
     {EVT_GRLESSKEY, "GRLESS", 0, "Grless", ""},
@@ -268,14 +287,14 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {EVT_PAGEUPKEY, "PAGE_UP", 0, "Page Up", "PgUp"},
     {EVT_PAGEDOWNKEY, "PAGE_DOWN", 0, "Page Down", "PgDown"},
     {EVT_ENDKEY, "END", 0, "End", ""},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {EVT_MEDIAPLAY, "MEDIA_PLAY", 0, "Media Play/Pause", ">/||"},
     {EVT_MEDIASTOP, "MEDIA_STOP", 0, "Media Stop", "Stop"},
     {EVT_MEDIAFIRST, "MEDIA_FIRST", 0, "Media First", "|<<"},
     {EVT_MEDIALAST, "MEDIA_LAST", 0, "Media Last", ">>|"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {KM_TEXTINPUT, "TEXTINPUT", 0, "Text Input", "TxtIn"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {WINDEACTIVATE, "WINDOW_DEACTIVATE", 0, "Window Deactivate", ""},
     {TIMER, "TIMER", 0, "Timer", "Tmr"},
     {TIMER0, "TIMER0", 0, "Timer 0", "Tmr0"},
@@ -285,7 +304,7 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
     {TIMERAUTOSAVE, "TIMER_AUTOSAVE", 0, "Timer Autosave", "TmrSave"},
     {TIMERREPORT, "TIMER_REPORT", 0, "Timer Report", "TmrReport"},
     {TIMERREGION, "TIMERREGION", 0, "Timer Region", "TmrReg"},
-    {0, "", 0, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {NDOF_MOTION, "NDOF_MOTION", 0, "NDOF Motion", "NdofMov"},
     /* buttons on all 3dconnexion devices */
     {NDOF_BUTTON_MENU, "NDOF_BUTTON_MENU", 0, "NDOF Menu", "NdofMenu"},
@@ -588,14 +607,14 @@ static PointerRNA rna_OperatorMacro_properties_get(PointerRNA *ptr)
 static void rna_Event_ascii_get(PointerRNA *ptr, char *value)
 {
   const wmEvent *event = ptr->data;
-  value[0] = event->ascii;
+  value[0] = WM_event_utf8_to_ascii(event);
   value[1] = '\0';
 }
 
 static int rna_Event_ascii_length(PointerRNA *ptr)
 {
   const wmEvent *event = ptr->data;
-  return (event->ascii) ? 1 : 0;
+  return WM_event_utf8_to_ascii(event) ? 1 : 0;
 }
 
 static void rna_Event_unicode_get(PointerRNA *ptr, char *value)
@@ -896,8 +915,10 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
   }
 }
 
-/* assumes value to be an enum from rna_enum_event_type_items */
-/* function makes sure keymodifiers are only valid keys, ESC keeps it unaltered */
+/**
+ * Assumes value to be an enum from rna_enum_event_type_items.
+ * Function makes sure key-modifiers are only valid keys, ESC keeps it unaltered.
+ */
 static void rna_wmKeyMapItem_keymodifier_set(PointerRNA *ptr, int value)
 {
   wmKeyMapItem *kmi = ptr->data;
@@ -1155,9 +1176,7 @@ static int rna_wmKeyMapItem_idname_length(PointerRNA *ptr)
 {
   wmKeyMapItem *kmi = ptr->data;
   char pyname[OP_MAX_TYPENAME];
-
-  WM_operator_py_idname(pyname, kmi->idname);
-  return strlen(pyname);
+  return WM_operator_py_idname(pyname, kmi->idname);
 }
 
 static void rna_wmKeyMapItem_idname_set(PointerRNA *ptr, const char *value)
@@ -2047,12 +2066,25 @@ static void rna_def_event(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Value", "The type of event, only applies to some");
 
+  prop = RNA_def_property(srna, "value_prev", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "prev_val");
+  RNA_def_property_enum_items(prop, rna_enum_event_value_items);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Previous Value", "The type of event, only applies to some");
+
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "type");
   RNA_def_property_enum_items(prop, rna_enum_event_type_items);
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Type", "");
+
+  prop = RNA_def_property(srna, "type_prev", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, NULL, "prev_type");
+  RNA_def_property_enum_items(prop, rna_enum_event_type_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UI_EVENTS);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Previous Type", "");
 
   prop = RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "direction");
@@ -2599,6 +2631,9 @@ static void rna_def_keyconfig(BlenderRNA *brna)
                                 "rna_wmKeyMapItem_idname_get",
                                 "rna_wmKeyMapItem_idname_length",
                                 "rna_wmKeyMapItem_idname_set");
+  RNA_def_property_string_search_func(prop,
+                                      "WM_operatortype_idname_visit_for_search",
+                                      PROP_STRING_SEARCH_SORT | PROP_STRING_SEARCH_SUGGESTION);
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 

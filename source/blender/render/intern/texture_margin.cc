@@ -12,6 +12,7 @@
 #include "BLI_vector.hh"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_customdata.h"
 #include "BKE_mesh.h"
 
 #include "DNA_mesh_types.h"
@@ -492,11 +493,11 @@ static void generate_margin(ImBuf *ibuf,
 
   MPoly *mpoly;
   MLoop *mloop;
-  MLoopUV const *mloopuv;
+  const MLoopUV *mloopuv;
   int totpoly, totloop, totedge;
 
   int tottri;
-  MLoopTri const *looptri;
+  const MLoopTri *looptri;
   MLoopTri *looptri_mem = nullptr;
 
   if (me) {
@@ -508,11 +509,11 @@ static void generate_margin(ImBuf *ibuf,
     mloop = me->mloop;
 
     if ((uv_layer == nullptr) || (uv_layer[0] == '\0')) {
-      mloopuv = static_cast<MLoopUV const *>(CustomData_get_layer(&me->ldata, CD_MLOOPUV));
+      mloopuv = static_cast<const MLoopUV *>(CustomData_get_layer(&me->ldata, CD_MLOOPUV));
     }
     else {
       int uv_id = CustomData_get_named_layer(&me->ldata, CD_MLOOPUV, uv_layer);
-      mloopuv = static_cast<MLoopUV const *>(
+      mloopuv = static_cast<const MLoopUV *>(
           CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, uv_id));
     }
 

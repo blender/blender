@@ -132,7 +132,7 @@ OSLRenderServices::OSLRenderServices(OSL::TextureSystem *texture_system)
 OSLRenderServices::~OSLRenderServices()
 {
   if (texture_system) {
-    VLOG(2) << "OSL texture system stats:\n" << texture_system->getstats();
+    VLOG_INFO << "OSL texture system stats:\n" << texture_system->getstats();
   }
 }
 
@@ -1094,10 +1094,8 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
       ndc[0] = camera_world_to_ndc(kg, sd, sd->ray_P);
 
       if (derivatives) {
-        ndc[1] = camera_world_to_ndc(kg, sd, sd->ray_P + make_float3(sd->ray_dP, 0.0f, 0.0f)) -
-                 ndc[0];
-        ndc[2] = camera_world_to_ndc(kg, sd, sd->ray_P + make_float3(0.0f, sd->ray_dP, 0.0f)) -
-                 ndc[0];
+        ndc[1] = zero_float3();
+        ndc[2] = zero_float3();
       }
     }
     else {
@@ -1304,8 +1302,38 @@ bool OSLRenderServices::texture(ustring filename,
       break;
     }
     case OSLTextureHandle::SVM: {
-      /* Packed texture. */
-      float4 rgba = kernel_tex_image_interp(kernel_globals, handle->svm_slot, s, 1.0f - t);
+      int id = -1;
+      if (handle->svm_slots[0].w == -1) {
+        /* Packed single texture. */
+        id = handle->svm_slots[0].y;
+      }
+      else {
+        /* Packed tiled texture. */
+        int tx = (int)s;
+        int ty = (int)t;
+        int tile = 1001 + 10 * ty + tx;
+        for (int4 tile_node : handle->svm_slots) {
+          if (tile_node.x == tile) {
+            id = tile_node.y;
+            break;
+          }
+          if (tile_node.z == tile) {
+            id = tile_node.w;
+            break;
+          }
+        }
+        s -= tx;
+        t -= ty;
+      }
+
+      float4 rgba;
+      if (id == -1) {
+        rgba = make_float4(
+            TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B, TEX_IMAGE_MISSING_A);
+      }
+      else {
+        rgba = kernel_tex_image_interp(kernel_globals, id, s, 1.0f - t);
+      }
 
       result[0] = rgba[0];
       if (nchannels > 1)
@@ -1319,7 +1347,7 @@ bool OSLRenderServices::texture(ustring filename,
     }
     case OSLTextureHandle::IES: {
       /* IES light. */
-      result[0] = kernel_ies_interp(kernel_globals, handle->svm_slot, s, t);
+      result[0] = kernel_ies_interp(kernel_globals, handle->svm_slots[0].y, s, t);
       status = true;
       break;
     }
@@ -1413,7 +1441,7 @@ bool OSLRenderServices::texture3d(ustring filename,
       /* Packed texture. */
       ShaderData *sd = (ShaderData *)(sg->renderstate);
       KernelGlobals kernel_globals = sd->osl_globals;
-      int slot = handle->svm_slot;
+      int slot = handle->svm_slots[0].y;
       float3 P_float3 = make_float3(P.x, P.y, P.z);
       float4 rgba = kernel_tex_image_interp_3d(kernel_globals, slot, P_float3, INTERPOLATION_NONE);
 
@@ -1641,7 +1669,8 @@ bool OSLRenderServices::trace(TraceOpt &options,
 
   ray.P = TO_FLOAT3(P);
   ray.D = TO_FLOAT3(R);
-  ray.t = (options.maxdist == 1.0e30f) ? FLT_MAX : options.maxdist - options.mindist;
+  ray.tmin = 0.0f;
+  ray.tmax = (options.maxdist == 1.0e30f) ? FLT_MAX : options.maxdist - options.mindist;
   ray.time = sd->time;
   ray.self.object = OBJECT_NONE;
   ray.self.prim = PRIM_NONE;
@@ -1680,12 +1709,12 @@ bool OSLRenderServices::trace(TraceOpt &options,
 
   const KernelGlobalsCPU *kg = sd->osl_globals;
 
-  /* Can't raytrace from shaders like displacement, before BVH exists. */
+  /* Can't ray-trace from shaders like displacement, before BVH exists. */
   if (kernel_data.bvh.bvh_layout == BVH_LAYOUT_NONE) {
     return false;
   }
 
-  /* Raytrace, leaving out shadow opaque to avoid early exit. */
+  /* Ray-trace, leaving out shadow opaque to avoid early exit. */
   uint visibility = PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE;
   tracedata->hit = scene_intersect(kg, &ray, visibility, &tracedata->isect);
   return tracedata->hit;

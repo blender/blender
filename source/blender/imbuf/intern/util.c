@@ -390,14 +390,3 @@ bool IMB_isanim(const char *filepath)
 
   return (type && type != ANIM_SEQUENCE);
 }
-
-bool IMB_isfloat(const ImBuf *ibuf)
-{
-  const ImFileType *type = IMB_file_type_from_ibuf(ibuf);
-  if (type != NULL) {
-    if (type->flag & IM_FTYPE_FLOAT) {
-      return true;
-    }
-  }
-  return false;
-}

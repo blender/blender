@@ -16,7 +16,6 @@
 #include "GPU_uniform_buffer.h"
 
 #include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
 #include "../mathutils/mathutils.h"
 
 #include "gpu_py.h"
@@ -46,6 +45,9 @@
   "``3D_FLAT_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: none\n" \
+  "``3D_IMAGE``\n" \
+  "   :Attributes: vec3 pos, vec2 texCoord\n" \
+  "   :Uniforms: sampler2D image\n" \
   "``3D_SMOOTH_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
   "   :Uniforms: none\n" \
@@ -68,6 +70,7 @@ static const struct PyC_StringEnumItems pygpu_shader_builtin_items[] = {
     {GPU_SHADER_2D_SMOOTH_COLOR, "2D_SMOOTH_COLOR"},
     {GPU_SHADER_2D_UNIFORM_COLOR, "2D_UNIFORM_COLOR"},
     {GPU_SHADER_3D_FLAT_COLOR, "3D_FLAT_COLOR"},
+    {GPU_SHADER_3D_IMAGE, "3D_IMAGE"},
     {GPU_SHADER_3D_SMOOTH_COLOR, "3D_SMOOTH_COLOR"},
     {GPU_SHADER_3D_UNIFORM_COLOR, "3D_UNIFORM_COLOR"},
     {GPU_SHADER_3D_POLYLINE_FLAT_COLOR, "3D_POLYLINE_FLAT_COLOR"},
@@ -748,28 +751,27 @@ static PyObject *pygpu_shader_unbind(BPyGPUShader *UNUSED(self))
   Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_shader_from_builtin_doc,
-             ".. function:: from_builtin(shader_name, config='DEFAULT')\n"
-             "\n"
-             "   Shaders that are embedded in the blender internal code:\n"
-             "" PYDOC_BUILTIN_SHADER_DESCRIPTION
-             "\n"
-             "   They all read the uniform ``mat4 ModelViewProjectionMatrix``,\n"
-             "   which can be edited by the :mod:`gpu.matrix` module.\n"
-             "\n"
-             "   You can also choose a shader configuration that uses clip_planes by setting the "
-             "``CLIPPED`` value to the config parameter. Note that in this case you also need to "
-             "manually set the value of ``mat4 ModelMatrix``.\n"
-             "\n"
-             "   :param shader_name: One of the builtin shader names.\n"
-             "   :type shader_name: str\n"
-             "   :param config: One of these types of shader configuration:\n"
-             "\n"
-             "      - ``DEFAULT``\n"
-             "      - ``CLIPPED``\n"
-             "   :type config: str\n"
-             "   :return: Shader object corresponding to the given name.\n"
-             "   :rtype: :class:`bpy.types.GPUShader`\n");
+PyDoc_STRVAR(
+    pygpu_shader_from_builtin_doc,
+    ".. function:: from_builtin(shader_name, config='DEFAULT')\n"
+    "\n"
+    "   Shaders that are embedded in the blender internal code (see :ref:`built-in-shaders`).\n"
+    "   They all read the uniform ``mat4 ModelViewProjectionMatrix``,\n"
+    "   which can be edited by the :mod:`gpu.matrix` module.\n"
+    "\n"
+    "   You can also choose a shader configuration that uses clip_planes by setting the "
+    "``CLIPPED`` value to the config parameter. Note that in this case you also need to "
+    "manually set the value of ``mat4 ModelMatrix``.\n"
+    "\n"
+    "   :param shader_name: One of the builtin shader names.\n"
+    "   :type shader_name: str\n"
+    "   :param config: One of these types of shader configuration:\n"
+    "\n"
+    "      - ``DEFAULT``\n"
+    "      - ``CLIPPED``\n"
+    "   :type config: str\n"
+    "   :return: Shader object corresponding to the given name.\n"
+    "   :rtype: :class:`bpy.types.GPUShader`\n");
 static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
@@ -849,6 +851,8 @@ static struct PyMethodDef pygpu_shader_module__tp_methods[] = {
 
 PyDoc_STRVAR(pygpu_shader_module__tp_doc,
              "This module provides access to GPUShader internal functions.\n"
+             "\n"
+             ".. _built-in-shaders:\n"
              "\n"
              ".. rubric:: Built-in shaders\n"
              "\n"

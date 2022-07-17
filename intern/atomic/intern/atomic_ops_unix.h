@@ -99,6 +99,22 @@ ATOMIC_INLINE void atomic_spin_unlock(volatile AtomicSpinLock *lock)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Common part of x64 implementation
+ * \{ */
+
+/* TODO(sergey): On x64 platform both read and write of a variable aligned to its type size is
+ * atomic, so in theory it is possible to avoid memory barrier and gain performance. The downside
+ * of that would be that it will impose requirement to value which is being operated on. */
+#define __atomic_impl_load_generic(v) (__sync_synchronize(), *(v))
+#define __atomic_impl_store_generic(p, v) \
+  do { \
+    *(p) = (v); \
+    __sync_synchronize(); \
+  } while (0)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Common part of locking fallback implementation
  * \{ */
 
@@ -158,6 +174,23 @@ static _ATOMIC_MAYBE_UNUSED AtomicSpinLock _atomic_global_lock = {0};
     return original_value; \
   }
 
+#define ATOMIC_LOCKING_LOAD_DEFINE(_type) \
+  ATOMIC_INLINE _type##_t atomic_load_##_type(const _type##_t *v) \
+  { \
+    atomic_spin_lock(&_atomic_global_lock); \
+    const _type##_t value = *v; \
+    atomic_spin_unlock(&_atomic_global_lock); \
+    return value; \
+  }
+
+#define ATOMIC_LOCKING_STORE_DEFINE(_type) \
+  ATOMIC_INLINE void atomic_store_##_type(_type##_t *p, const _type##_t v) \
+  { \
+    atomic_spin_lock(&_atomic_global_lock); \
+    *p = v; \
+    atomic_spin_unlock(&_atomic_global_lock); \
+  }
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -192,6 +225,16 @@ ATOMIC_INLINE uint64_t atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _ne
   return __sync_val_compare_and_swap(v, old, _new);
 }
 
+ATOMIC_INLINE uint64_t atomic_load_uint64(const uint64_t *v)
+{
+  return __atomic_load_n(v, __ATOMIC_SEQ_CST);
+}
+
+ATOMIC_INLINE void atomic_store_uint64(uint64_t *p, uint64_t v)
+{
+  __atomic_store(p, &v, __ATOMIC_SEQ_CST);
+}
+
 /* Signed */
 ATOMIC_INLINE int64_t atomic_add_and_fetch_int64(int64_t *p, int64_t x)
 {
@@ -216,6 +259,16 @@ ATOMIC_INLINE int64_t atomic_fetch_and_sub_int64(int64_t *p, int64_t x)
 ATOMIC_INLINE int64_t atomic_cas_int64(int64_t *v, int64_t old, int64_t _new)
 {
   return __sync_val_compare_and_swap(v, old, _new);
+}
+
+ATOMIC_INLINE int64_t atomic_load_int64(const int64_t *v)
+{
+  return __atomic_load_n(v, __ATOMIC_SEQ_CST);
+}
+
+ATOMIC_INLINE void atomic_store_int64(int64_t *p, int64_t v)
+{
+  __atomic_store(p, &v, __ATOMIC_SEQ_CST);
 }
 
 #elif !defined(ATOMIC_FORCE_USE_FALLBACK) && (defined(__amd64__) || defined(__x86_64__))
@@ -256,6 +309,16 @@ ATOMIC_INLINE uint64_t atomic_cas_uint64(uint64_t *v, uint64_t old, uint64_t _ne
   return ret;
 }
 
+ATOMIC_INLINE uint64_t atomic_load_uint64(const uint64_t *v)
+{
+  return __atomic_impl_load_generic(v);
+}
+
+ATOMIC_INLINE void atomic_store_uint64(uint64_t *p, uint64_t v)
+{
+  __atomic_impl_store_generic(p, v);
+}
+
 /* Signed */
 ATOMIC_INLINE int64_t atomic_fetch_and_add_int64(int64_t *p, int64_t x)
 {
@@ -292,6 +355,17 @@ ATOMIC_INLINE int64_t atomic_cas_int64(int64_t *v, int64_t old, int64_t _new)
   asm volatile("lock; cmpxchgq %2,%1" : "=a"(ret), "+m"(*v) : "r"(_new), "0"(old) : "memory");
   return ret;
 }
+
+ATOMIC_INLINE int64_t atomic_load_int64(const int64_t *v)
+{
+  return __atomic_impl_load_generic(v);
+}
+
+ATOMIC_INLINE void atomic_store_int64(int64_t *p, int64_t v)
+{
+  __atomic_impl_store_generic(p, v);
+}
+
 #else
 
 /* Unsigned */
@@ -304,6 +378,9 @@ ATOMIC_LOCKING_FETCH_AND_SUB_DEFINE(uint64)
 
 ATOMIC_LOCKING_CAS_DEFINE(uint64)
 
+ATOMIC_LOCKING_LOAD_DEFINE(uint64)
+ATOMIC_LOCKING_STORE_DEFINE(uint64)
+
 /* Signed */
 ATOMIC_LOCKING_ADD_AND_FETCH_DEFINE(int64)
 ATOMIC_LOCKING_SUB_AND_FETCH_DEFINE(int64)
@@ -312,6 +389,9 @@ ATOMIC_LOCKING_FETCH_AND_ADD_DEFINE(int64)
 ATOMIC_LOCKING_FETCH_AND_SUB_DEFINE(int64)
 
 ATOMIC_LOCKING_CAS_DEFINE(int64)
+
+ATOMIC_LOCKING_LOAD_DEFINE(int64)
+ATOMIC_LOCKING_STORE_DEFINE(int64)
 
 #endif
 
@@ -339,6 +419,16 @@ ATOMIC_INLINE uint32_t atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _ne
   return __sync_val_compare_and_swap(v, old, _new);
 }
 
+ATOMIC_INLINE uint32_t atomic_load_uint32(const uint32_t *v)
+{
+  return __atomic_load_n(v, __ATOMIC_SEQ_CST);
+}
+
+ATOMIC_INLINE void atomic_store_uint32(uint32_t *p, uint32_t v)
+{
+  __atomic_store(p, &v, __ATOMIC_SEQ_CST);
+}
+
 /* Signed */
 ATOMIC_INLINE int32_t atomic_add_and_fetch_int32(int32_t *p, int32_t x)
 {
@@ -353,6 +443,16 @@ ATOMIC_INLINE int32_t atomic_sub_and_fetch_int32(int32_t *p, int32_t x)
 ATOMIC_INLINE int32_t atomic_cas_int32(int32_t *v, int32_t old, int32_t _new)
 {
   return __sync_val_compare_and_swap(v, old, _new);
+}
+
+ATOMIC_INLINE int32_t atomic_load_int32(const int32_t *v)
+{
+  return __atomic_load_n(v, __ATOMIC_SEQ_CST);
+}
+
+ATOMIC_INLINE void atomic_store_int32(int32_t *p, int32_t v)
+{
+  __atomic_store(p, &v, __ATOMIC_SEQ_CST);
 }
 
 #elif !defined(ATOMIC_FORCE_USE_FALLBACK) && \
@@ -385,6 +485,16 @@ ATOMIC_INLINE uint32_t atomic_cas_uint32(uint32_t *v, uint32_t old, uint32_t _ne
   return ret;
 }
 
+ATOMIC_INLINE uint32_t atomic_load_uint32(const uint32_t *v)
+{
+  return __atomic_load_n(v, __ATOMIC_SEQ_CST);
+}
+
+ATOMIC_INLINE void atomic_store_uint32(uint32_t *p, uint32_t v)
+{
+  __atomic_store(p, &v, __ATOMIC_SEQ_CST);
+}
+
 /* Signed */
 ATOMIC_INLINE int32_t atomic_add_and_fetch_int32(int32_t *p, int32_t x)
 {
@@ -413,6 +523,16 @@ ATOMIC_INLINE int32_t atomic_cas_int32(int32_t *v, int32_t old, int32_t _new)
   return ret;
 }
 
+ATOMIC_INLINE int32_t atomic_load_int32(const int32_t *v)
+{
+  return __atomic_load_n(v, __ATOMIC_SEQ_CST);
+}
+
+ATOMIC_INLINE void atomic_store_int32(int32_t *p, int32_t v)
+{
+  __atomic_store(p, &v, __ATOMIC_SEQ_CST);
+}
+
 #else
 
 /* Unsigned */
@@ -422,12 +542,18 @@ ATOMIC_LOCKING_SUB_AND_FETCH_DEFINE(uint32)
 
 ATOMIC_LOCKING_CAS_DEFINE(uint32)
 
+ATOMIC_LOCKING_LOAD_DEFINE(uint32)
+ATOMIC_LOCKING_STORE_DEFINE(uint32)
+
 /* Signed */
 
 ATOMIC_LOCKING_ADD_AND_FETCH_DEFINE(int32)
 ATOMIC_LOCKING_SUB_AND_FETCH_DEFINE(int32)
 
 ATOMIC_LOCKING_CAS_DEFINE(int32)
+
+ATOMIC_LOCKING_LOAD_DEFINE(int32)
+ATOMIC_LOCKING_STORE_DEFINE(int32)
 
 #endif
 
@@ -548,6 +674,9 @@ ATOMIC_LOCKING_FETCH_AND_OR_DEFINE(int8)
 
 /** \} */
 
+#undef __atomic_impl_load_generic
+#undef __atomic_impl_store_generic
+
 #undef ATOMIC_LOCKING_OP_AND_FETCH_DEFINE
 #undef ATOMIC_LOCKING_FETCH_AND_OP_DEFINE
 #undef ATOMIC_LOCKING_ADD_AND_FETCH_DEFINE
@@ -557,5 +686,7 @@ ATOMIC_LOCKING_FETCH_AND_OR_DEFINE(int8)
 #undef ATOMIC_LOCKING_FETCH_AND_OR_DEFINE
 #undef ATOMIC_LOCKING_FETCH_AND_AND_DEFINE
 #undef ATOMIC_LOCKING_CAS_DEFINE
+#undef ATOMIC_LOCKING_LOAD_DEFINE
+#undef ATOMIC_LOCKING_STORE_DEFINE
 
 #endif /* __ATOMIC_OPS_UNIX_H__ */

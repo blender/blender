@@ -39,54 +39,8 @@
 
 #include "multiview.h"
 #include "proxy.h"
+#include "sequencer.h"
 #include "utils.h"
-
-void SEQ_sort(ListBase *seqbase)
-{
-  if (seqbase == NULL) {
-    return;
-  }
-
-  /* all strips together per kind, and in order of y location ("machine") */
-  ListBase inputbase, effbase;
-  Sequence *seq, *seqt;
-
-  BLI_listbase_clear(&inputbase);
-  BLI_listbase_clear(&effbase);
-
-  while ((seq = BLI_pophead(seqbase))) {
-
-    if (seq->type & SEQ_TYPE_EFFECT) {
-      seqt = effbase.first;
-      while (seqt) {
-        if (seqt->machine >= seq->machine) {
-          BLI_insertlinkbefore(&effbase, seqt, seq);
-          break;
-        }
-        seqt = seqt->next;
-      }
-      if (seqt == NULL) {
-        BLI_addtail(&effbase, seq);
-      }
-    }
-    else {
-      seqt = inputbase.first;
-      while (seqt) {
-        if (seqt->machine >= seq->machine) {
-          BLI_insertlinkbefore(&inputbase, seqt, seq);
-          break;
-        }
-        seqt = seqt->next;
-      }
-      if (seqt == NULL) {
-        BLI_addtail(&inputbase, seq);
-      }
-    }
-  }
-
-  BLI_movelisttolist(seqbase, &inputbase);
-  BLI_movelisttolist(seqbase, &effbase);
-}
 
 typedef struct SeqUniqueInfo {
   Sequence *seq;
@@ -225,14 +179,15 @@ const char *SEQ_sequence_give_name(Sequence *seq)
   return name;
 }
 
-ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, int *r_offset)
+ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, ListBase **r_channels, int *r_offset)
 {
   ListBase *seqbase = NULL;
 
   switch (seq->type) {
     case SEQ_TYPE_META: {
       seqbase = &seq->seqbase;
-      *r_offset = seq->start;
+      *r_channels = &seq->channels;
+      *r_offset = SEQ_time_start_frame_get(seq);
       break;
     }
     case SEQ_TYPE_SCENE: {
@@ -240,6 +195,7 @@ ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, int *r_offset)
         Editing *ed = SEQ_editing_get(seq->scene);
         if (ed) {
           seqbase = &ed->seqbase;
+          *r_channels = &ed->channels;
           *r_offset = seq->scene->r.sfra;
         }
       }
@@ -261,7 +217,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   const bool is_multiview = (seq->flag & SEQ_USE_VIEWS) != 0 &&
                             (scene->r.scemode & R_MULTIVIEW) != 0;
 
-  if ((seq->anims.first != NULL) && (((StripAnim *)seq->anims.first)->anim != NULL)) {
+  if ((seq->anims.first != NULL) && (((StripAnim *)seq->anims.first)->anim != NULL) && !openfile) {
     return;
   }
 
@@ -391,7 +347,8 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   }
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-    if (SEQ_render_is_muted(channels, seq) || !SEQ_time_strip_intersects_frame(seq, frame)) {
+    if (SEQ_render_is_muted(channels, seq) ||
+        !SEQ_time_strip_intersects_frame(scene, seq, frame)) {
       continue;
     }
     /* Only use strips that generate an image, not ones that combine
@@ -412,20 +369,18 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   return best_seq;
 }
 
-ListBase *SEQ_get_seqbase_by_seq(ListBase *seqbase, Sequence *seq)
+ListBase *SEQ_get_seqbase_by_seq(const Scene *scene, Sequence *seq)
 {
-  Sequence *iseq;
-  ListBase *lb = NULL;
+  Editing *ed = SEQ_editing_get(scene);
+  ListBase *main_seqbase = &ed->seqbase;
+  Sequence *seq_meta = seq_sequence_lookup_meta_by_seq(scene, seq);
 
-  for (iseq = seqbase->first; iseq; iseq = iseq->next) {
-    if (seq == iseq) {
-      return seqbase;
-    }
-    if (iseq->seqbase.first && (lb = SEQ_get_seqbase_by_seq(&iseq->seqbase, seq))) {
-      return lb;
-    }
+  if (seq_meta != NULL) {
+    return &seq_meta->seqbase;
   }
-
+  if (BLI_findindex(main_seqbase, seq) >= 0) {
+    return main_seqbase;
+  }
   return NULL;
 }
 

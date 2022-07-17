@@ -13,7 +13,6 @@
 /* **************** COMPOSITE ******************** */
 static bNodeSocketTemplate inputs[] = {
     {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {SOCK_VECTOR, N_("Normal"), 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, PROP_DIRECTION},
     {-1, ""},
 };
 
@@ -32,12 +31,7 @@ static void exec(void *data,
     TexParams params;
     params_from_cdata(&params, cdata);
 
-    if (in[1] && in[1]->hasinput && !in[0]->hasinput) {
-      tex_input_rgba(target->trgba, in[1], &params, cdata->thread);
-    }
-    else {
-      tex_input_rgba(target->trgba, in[0], &params, cdata->thread);
-    }
+    tex_input_rgba(target->trgba, in[0], &params, cdata->thread);
   }
   else {
     /* 0 means don't care, so just use first */
@@ -49,15 +43,6 @@ static void exec(void *data,
 
       target->tin = (target->trgba[0] + target->trgba[1] + target->trgba[2]) / 3.0f;
       target->talpha = true;
-
-      if (target->nor) {
-        if (in[1] && in[1]->hasinput) {
-          tex_input_vec(target->nor, in[1], &params, cdata->thread);
-        }
-        else {
-          target->nor = NULL;
-        }
-      }
     }
   }
 }

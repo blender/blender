@@ -7,6 +7,7 @@
 
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
+#include "BKE_tracking.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

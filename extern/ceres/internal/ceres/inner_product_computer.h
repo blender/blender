@@ -36,7 +36,8 @@
 
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/compressed_row_sparse_matrix.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 namespace internal {
@@ -61,7 +62,7 @@ namespace internal {
 // This is not a problem as sparse linear algebra libraries can ignore
 // these entries with ease and the space used is minimal/linear in the
 // size of the matrices.
-class CERES_EXPORT_INTERNAL InnerProductComputer {
+class CERES_NO_EXPORT InnerProductComputer {
  public:
   // Factory
   //
@@ -74,7 +75,7 @@ class CERES_EXPORT_INTERNAL InnerProductComputer {
   //
   // The user must ensure that the matrix m is valid for the life time
   // of this object.
-  static InnerProductComputer* Create(
+  static std::unique_ptr<InnerProductComputer> Create(
       const BlockSparseMatrix& m,
       CompressedRowSparseMatrix::StorageType storage_type);
 
@@ -83,7 +84,7 @@ class CERES_EXPORT_INTERNAL InnerProductComputer {
   //
   // a = m(start_row_block : end_row_block, :);
   // result = a' * a;
-  static InnerProductComputer* Create(
+  static std::unique_ptr<InnerProductComputer> Create(
       const BlockSparseMatrix& m,
       int start_row_block,
       int end_row_block,
@@ -127,7 +128,7 @@ class CERES_EXPORT_INTERNAL InnerProductComputer {
 
   void Init(CompressedRowSparseMatrix::StorageType storage_type);
 
-  CompressedRowSparseMatrix* CreateResultMatrix(
+  std::unique_ptr<CompressedRowSparseMatrix> CreateResultMatrix(
       const CompressedRowSparseMatrix::StorageType storage_type,
       int num_nonzeros);
 
@@ -154,5 +155,7 @@ class CERES_EXPORT_INTERNAL InnerProductComputer {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_INNER_PRODUCT_COMPUTER_H_

@@ -6,7 +6,7 @@
  */
 
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -30,7 +30,7 @@ static void extract_select_idx_init_impl(const MeshRenderData *UNUSED(mr),
 }
 
 static void extract_select_idx_init(const MeshRenderData *mr,
-                                    struct MeshBatchCache *UNUSED(cache),
+                                    MeshBatchCache *UNUSED(cache),
                                     void *buf,
                                     void *tls_data)
 {
@@ -188,7 +188,7 @@ static void extract_vert_idx_init_subdiv(const DRWSubdivCache *subdiv_cache,
 {
   GPUVertBuf *vbo = static_cast<GPUVertBuf *>(buf);
   const DRWSubdivLooseGeom &loose_geom = subdiv_cache->loose_geom;
-  /* Each element points to an element in the ibo.points. */
+  /* Each element points to an element in the `ibo.points`. */
   draw_subdiv_init_origindex_buffer(
       vbo,
       (int32_t *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index),
@@ -366,7 +366,7 @@ constexpr MeshExtract create_extractor_vert_idx()
 }
 
 static void extract_fdot_idx_init(const MeshRenderData *mr,
-                                  struct MeshBatchCache *UNUSED(cache),
+                                  MeshBatchCache *UNUSED(cache),
                                   void *buf,
                                   void *tls_data)
 {
@@ -411,9 +411,7 @@ constexpr MeshExtract create_extractor_fdot_idx()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_poly_idx = blender::draw::create_extractor_poly_idx();
 const MeshExtract extract_edge_idx = blender::draw::create_extractor_edge_idx();
 const MeshExtract extract_vert_idx = blender::draw::create_extractor_vert_idx();
 const MeshExtract extract_fdot_idx = blender::draw::create_extractor_fdot_idx();
-}

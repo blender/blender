@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <memory>
 #include <numeric>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ceres/dynamic_numeric_diff_cost_function.h"
@@ -60,19 +62,18 @@ using std::vector;
 
 namespace {
 
-class GradientCheckingCostFunction : public CostFunction {
+class GradientCheckingCostFunction final : public CostFunction {
  public:
-  GradientCheckingCostFunction(
-      const CostFunction* function,
-      const std::vector<const LocalParameterization*>* local_parameterizations,
-      const NumericDiffOptions& options,
-      double relative_precision,
-      const string& extra_info,
-      GradientCheckingIterationCallback* callback)
+  GradientCheckingCostFunction(const CostFunction* function,
+                               const std::vector<const Manifold*>* manifolds,
+                               const NumericDiffOptions& options,
+                               double relative_precision,
+                               string extra_info,
+                               GradientCheckingIterationCallback* callback)
       : function_(function),
-        gradient_checker_(function, local_parameterizations, options),
+        gradient_checker_(function, manifolds, options),
         relative_precision_(relative_precision),
-        extra_info_(extra_info),
+        extra_info_(std::move(extra_info)),
         callback_(callback) {
     CHECK(callback_ != nullptr);
     const vector<int32_t>& parameter_block_sizes =
@@ -81,14 +82,12 @@ class GradientCheckingCostFunction : public CostFunction {
     set_num_residuals(function->num_residuals());
   }
 
-  virtual ~GradientCheckingCostFunction() {}
-
   bool Evaluate(double const* const* parameters,
                 double* residuals,
                 double** jacobians) const final {
     if (!jacobians) {
       // Nothing to check in this case; just forward.
-      return function_->Evaluate(parameters, residuals, NULL);
+      return function_->Evaluate(parameters, residuals, nullptr);
     }
 
     GradientChecker::ProbeResults results;
@@ -108,7 +107,7 @@ class GradientCheckingCostFunction : public CostFunction {
     // Copy the original jacobian blocks into the jacobians array.
     const vector<int32_t>& block_sizes = function_->parameter_block_sizes();
     for (int k = 0; k < block_sizes.size(); k++) {
-      if (jacobians[k] != NULL) {
+      if (jacobians[k] != nullptr) {
         MatrixRef(jacobians[k],
                   results.jacobians[k].rows(),
                   results.jacobians[k].cols()) = results.jacobians[k];
@@ -145,6 +144,7 @@ CallbackReturnType GradientCheckingIterationCallback::operator()(
   }
   return SOLVER_CONTINUE;
 }
+
 void GradientCheckingIterationCallback::SetGradientErrorDetected(
     std::string& error_log) {
   std::lock_guard<std::mutex> l(mutex_);
@@ -152,9 +152,9 @@ void GradientCheckingIterationCallback::SetGradientErrorDetected(
   error_log_ += "\n" + error_log;
 }
 
-CostFunction* CreateGradientCheckingCostFunction(
+std::unique_ptr<CostFunction> CreateGradientCheckingCostFunction(
     const CostFunction* cost_function,
-    const std::vector<const LocalParameterization*>* local_parameterizations,
+    const std::vector<const Manifold*>* manifolds,
     double relative_step_size,
     double relative_precision,
     const std::string& extra_info,
@@ -162,51 +162,48 @@ CostFunction* CreateGradientCheckingCostFunction(
   NumericDiffOptions numeric_diff_options;
   numeric_diff_options.relative_step_size = relative_step_size;
 
-  return new GradientCheckingCostFunction(cost_function,
-                                          local_parameterizations,
-                                          numeric_diff_options,
-                                          relative_precision,
-                                          extra_info,
-                                          callback);
+  return std::make_unique<GradientCheckingCostFunction>(cost_function,
+                                                        manifolds,
+                                                        numeric_diff_options,
+                                                        relative_precision,
+                                                        extra_info,
+                                                        callback);
 }
 
-ProblemImpl* CreateGradientCheckingProblemImpl(
+std::unique_ptr<ProblemImpl> CreateGradientCheckingProblemImpl(
     ProblemImpl* problem_impl,
     double relative_step_size,
     double relative_precision,
     GradientCheckingIterationCallback* callback) {
   CHECK(callback != nullptr);
-  // We create new CostFunctions by wrapping the original CostFunction
-  // in a gradient checking CostFunction. So its okay for the
-  // ProblemImpl to take ownership of it and destroy it. The
-  // LossFunctions and LocalParameterizations are reused and since
-  // they are owned by problem_impl, gradient_checking_problem_impl
+  // We create new CostFunctions by wrapping the original CostFunction in a
+  // gradient checking CostFunction. So its okay for the ProblemImpl to take
+  // ownership of it and destroy it. The LossFunctions and Manifolds are reused
+  // and since they are owned by problem_impl, gradient_checking_problem_impl
   // should not take ownership of it.
   Problem::Options gradient_checking_problem_options;
   gradient_checking_problem_options.cost_function_ownership = TAKE_OWNERSHIP;
   gradient_checking_problem_options.loss_function_ownership =
       DO_NOT_TAKE_OWNERSHIP;
-  gradient_checking_problem_options.local_parameterization_ownership =
-      DO_NOT_TAKE_OWNERSHIP;
+  gradient_checking_problem_options.manifold_ownership = DO_NOT_TAKE_OWNERSHIP;
   gradient_checking_problem_options.context = problem_impl->context();
 
   NumericDiffOptions numeric_diff_options;
   numeric_diff_options.relative_step_size = relative_step_size;
 
-  ProblemImpl* gradient_checking_problem_impl =
-      new ProblemImpl(gradient_checking_problem_options);
+  auto gradient_checking_problem_impl =
+      std::make_unique<ProblemImpl>(gradient_checking_problem_options);
 
   Program* program = problem_impl->mutable_program();
 
-  // For every ParameterBlock in problem_impl, create a new parameter
-  // block with the same local parameterization and constancy.
+  // For every ParameterBlock in problem_impl, create a new parameter block with
+  // the same manifold and constancy.
   const vector<ParameterBlock*>& parameter_blocks = program->parameter_blocks();
-  for (int i = 0; i < parameter_blocks.size(); ++i) {
-    ParameterBlock* parameter_block = parameter_blocks[i];
+  for (auto* parameter_block : parameter_blocks) {
     gradient_checking_problem_impl->AddParameterBlock(
         parameter_block->mutable_user_state(),
         parameter_block->Size(),
-        parameter_block->mutable_local_parameterization());
+        parameter_block->mutable_manifold());
 
     if (parameter_block->IsConstant()) {
       gradient_checking_problem_impl->SetParameterBlockConstant(
@@ -238,22 +235,22 @@ ProblemImpl* CreateGradientCheckingProblemImpl(
     string extra_info =
         StringPrintf("Residual block id %d; depends on parameters [", i);
     vector<double*> parameter_blocks;
-    vector<const LocalParameterization*> local_parameterizations;
+    vector<const Manifold*> manifolds;
     parameter_blocks.reserve(residual_block->NumParameterBlocks());
-    local_parameterizations.reserve(residual_block->NumParameterBlocks());
+    manifolds.reserve(residual_block->NumParameterBlocks());
     for (int j = 0; j < residual_block->NumParameterBlocks(); ++j) {
       ParameterBlock* parameter_block = residual_block->parameter_blocks()[j];
       parameter_blocks.push_back(parameter_block->mutable_user_state());
       StringAppendF(&extra_info, "%p", parameter_block->mutable_user_state());
       extra_info += (j < residual_block->NumParameterBlocks() - 1) ? ", " : "]";
-      local_parameterizations.push_back(problem_impl->GetParameterization(
-          parameter_block->mutable_user_state()));
+      manifolds.push_back(
+          problem_impl->GetManifold(parameter_block->mutable_user_state()));
     }
 
     // Wrap the original CostFunction in a GradientCheckingCostFunction.
     CostFunction* gradient_checking_cost_function =
         new GradientCheckingCostFunction(residual_block->cost_function(),
-                                         &local_parameterizations,
+                                         &manifolds,
                                          numeric_diff_options,
                                          relative_precision,
                                          extra_info,

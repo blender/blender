@@ -3,6 +3,8 @@
 
 #include "node_shader_util.hh"
 
+#include "IMB_colormanagement.h"
+
 namespace blender::nodes::node_shader_volume_principled_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -109,7 +111,7 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat,
   float *data, layer;
   if (use_blackbody) {
     data = (float *)MEM_mallocN(sizeof(float) * size * 4, "blackbody texture");
-    blackbody_temperature_to_rgb_table(data, size, 965.0f, 12000.0f);
+    IMB_colormanagement_blackbody_temperature_to_rgb_table(data, size, 800.0f, 12000.0f);
   }
   else {
     data = (float *)MEM_callocN(sizeof(float) * size * 4, "blackbody black");

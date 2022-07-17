@@ -263,7 +263,6 @@ void id_us_ensure_real(ID *id)
                    "ID user count error: %s (from '%s')",
                    id->name,
                    id->lib ? id->lib->filepath_abs : "[Main]");
-        BLI_assert(0);
       }
       id->us = limit + 1;
       id->tag |= LIB_TAG_EXTRAUSER_SET;
@@ -312,7 +311,7 @@ void id_us_min(ID *id)
     const int limit = ID_FAKE_USERS(id);
 
     if (id->us <= limit) {
-      if (GS(id->name) != ID_IP) {
+      if (!ID_TYPE_IS_DEPRECATED(GS(id->name))) {
         /* Do not assert on deprecated ID types, we cannot really ensure that their ID refcounting
          * is valid... */
         CLOG_ERROR(&LOG,
@@ -321,7 +320,6 @@ void id_us_min(ID *id)
                    id->lib ? id->lib->filepath_abs : "[Main]",
                    id->us,
                    limit);
-        BLI_assert(0);
       }
       id->us = limit;
     }
@@ -592,11 +590,9 @@ static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
 
 bool BKE_id_copy_is_allowed(const ID *id)
 {
-#define LIB_ID_TYPES_NOCOPY \
-  ID_LI, ID_SCR, ID_WM, ID_WS, /* Not supported */ \
-      ID_IP                    /* Deprecated */
+#define LIB_ID_TYPES_NOCOPY ID_LI, ID_SCR, ID_WM, ID_WS /* Not supported */
 
-  return !ELEM(GS(id->name), LIB_ID_TYPES_NOCOPY);
+  return !ID_TYPE_IS_DEPRECATED(GS(id->name)) && !ELEM(GS(id->name), LIB_ID_TYPES_NOCOPY);
 
 #undef LIB_ID_TYPES_NOCOPY
 }
@@ -2165,7 +2161,7 @@ bool BKE_id_can_be_asset(const ID *id)
          BKE_idtype_idcode_is_linkable(GS(id->name));
 }
 
-bool BKE_id_is_editable(Main *bmain, ID *id)
+bool BKE_id_is_editable(const Main *bmain, const ID *id)
 {
   return !(ID_IS_LINKED(id) || BKE_lib_override_library_is_system_defined(bmain, id));
 }

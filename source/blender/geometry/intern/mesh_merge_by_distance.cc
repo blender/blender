@@ -82,7 +82,7 @@ struct WeldPoly {
       int loop_start;
       int loop_end;
       /* Final Polygon Size. */
-      int len;
+      int loop_len;
       /* Group of loops that will be affected. */
       struct WeldGroup loops;
     };
@@ -104,9 +104,6 @@ struct WeldMesh {
   /* References all polygons and loops that will be affected. */
   Vector<WeldLoop> wloop;
   Vector<WeldPoly> wpoly;
-  MutableSpan<WeldPoly> wpoly_new;
-  int wloop_len;
-  int wpoly_len;
   int wpoly_new_len;
 
   /* From the actual index of the element in the mesh, it indicates what is the index of the Weld
@@ -147,14 +144,14 @@ struct WeldLoopOfPolyIter {
  * \{ */
 
 #ifdef USE_WELD_DEBUG
-static bool weld_iter_loop_of_poly_begin(WeldLoopOfPolyIter *iter,
+static bool weld_iter_loop_of_poly_begin(WeldLoopOfPolyIter &iter,
                                          const WeldPoly &wp,
                                          Span<WeldLoop> wloop,
                                          Span<MLoop> mloop,
                                          Span<int> loop_map,
                                          int *group_buffer);
 
-static bool weld_iter_loop_of_poly_next(WeldLoopOfPolyIter *iter);
+static bool weld_iter_loop_of_poly_next(WeldLoopOfPolyIter &iter);
 
 static void weld_assert_edge_kill_len(Span<WeldEdge> wedge, const int supposed_kill_len)
 {
@@ -170,12 +167,8 @@ static void weld_assert_edge_kill_len(Span<WeldEdge> wedge, const int supposed_k
   BLI_assert(kills == supposed_kill_len);
 }
 
-static void weld_assert_poly_and_loop_kill_len(Span<WeldPoly> wpoly,
-                                               Span<WeldPoly> wpoly_new,
-                                               Span<WeldLoop> wloop,
+static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
                                                Span<MLoop> mloop,
-                                               Span<int> loop_map,
-                                               Span<int> poly_map,
                                                Span<MPoly> mpoly,
                                                const int supposed_poly_kill_len,
                                                const int supposed_loop_kill_len)
@@ -184,11 +177,12 @@ static void weld_assert_poly_and_loop_kill_len(Span<WeldPoly> wpoly,
   int loop_kills = mloop.size();
   const MPoly *mp = &mpoly[0];
   for (int i = 0; i < mpoly.size(); i++, mp++) {
-    int poly_ctx = poly_map[i];
+    int poly_ctx = weld_mesh->poly_map[i];
     if (poly_ctx != OUT_OF_CONTEXT) {
-      const WeldPoly *wp = &wpoly[poly_ctx];
+      const WeldPoly *wp = &weld_mesh->wpoly[poly_ctx];
       WeldLoopOfPolyIter iter;
-      if (!weld_iter_loop_of_poly_begin(&iter, *wp, wloop, mloop, loop_map, nullptr)) {
+      if (!weld_iter_loop_of_poly_begin(
+              iter, *wp, weld_mesh->wloop, mloop, weld_mesh->loop_map, nullptr)) {
         poly_kills++;
         continue;
       }
@@ -197,13 +191,13 @@ static void weld_assert_poly_and_loop_kill_len(Span<WeldPoly> wpoly,
           poly_kills++;
           continue;
         }
-        int remain = wp->len;
+        int remain = wp->loop_len;
         int l = wp->loop_start;
         while (remain) {
           int l_next = l + 1;
-          int loop_ctx = loop_map[l];
+          int loop_ctx = weld_mesh->loop_map[l];
           if (loop_ctx != OUT_OF_CONTEXT) {
-            const WeldLoop *wl = &wloop[loop_ctx];
+            const WeldLoop *wl = &weld_mesh->wloop[loop_ctx];
             if (wl->loop_skip_to != OUT_OF_CONTEXT) {
               l_next = wl->loop_skip_to;
             }
@@ -225,19 +219,19 @@ static void weld_assert_poly_and_loop_kill_len(Span<WeldPoly> wpoly,
     }
   }
 
-  const WeldPoly *wp = wpoly_new.data();
-  for (int i = wpoly_new.size(); i--; wp++) {
-    if (wp->poly_dst != OUT_OF_CONTEXT) {
+  for (const int i : weld_mesh->wpoly.index_range().take_back(weld_mesh->wpoly_new_len)) {
+    const WeldPoly &wp = weld_mesh->wpoly[i];
+    if (wp.poly_dst != OUT_OF_CONTEXT) {
       poly_kills++;
       continue;
     }
-    int remain = wp->len;
-    int l = wp->loop_start;
+    int remain = wp.loop_len;
+    int l = wp.loop_start;
     while (remain) {
       int l_next = l + 1;
-      int loop_ctx = loop_map[l];
+      int loop_ctx = weld_mesh->loop_map[l];
       if (loop_ctx != OUT_OF_CONTEXT) {
-        const WeldLoop *wl = &wloop[loop_ctx];
+        const WeldLoop *wl = &weld_mesh->wloop[loop_ctx];
         if (wl->loop_skip_to != OUT_OF_CONTEXT) {
           l_next = wl->loop_skip_to;
         }
@@ -263,10 +257,10 @@ static void weld_assert_poly_no_vert_repetition(const WeldPoly &wp,
                                                 Span<MLoop> mloop,
                                                 Span<int> loop_map)
 {
-  const int len = wp.len;
-  Array<int, 64> verts(len);
+  const int loop_len = wp.loop_len;
+  Array<int, 64> verts(loop_len);
   WeldLoopOfPolyIter iter;
-  if (!weld_iter_loop_of_poly_begin(&iter, wp, wloop, mloop, loop_map, nullptr)) {
+  if (!weld_iter_loop_of_poly_begin(iter, wp, wloop, mloop, loop_map, nullptr)) {
     return;
   }
   else {
@@ -275,9 +269,9 @@ static void weld_assert_poly_no_vert_repetition(const WeldPoly &wp,
       verts[i++] = iter.v;
     }
   }
-  for (int i = 0; i < len; i++) {
+  for (int i = 0; i < loop_len; i++) {
     int va = verts[i];
-    for (int j = i + 1; j < len; j++) {
+    for (int j = i + 1; j < loop_len; j++) {
       int vb = verts[j];
       BLI_assert(va != vb);
     }
@@ -290,7 +284,7 @@ static void weld_assert_poly_len(const WeldPoly *wp, const Span<WeldLoop> wloop)
     return;
   }
 
-  int len = wp->len;
+  int loop_len = wp->loop_len;
   const WeldLoop *wl = &wloop[wp->loops.ofs];
   BLI_assert(wp->loop_start <= wl->loop_orig);
 
@@ -304,10 +298,10 @@ static void weld_assert_poly_len(const WeldPoly *wp, const Span<WeldLoop> wloop)
       min_len++;
     }
   }
-  BLI_assert(len >= min_len);
+  BLI_assert(loop_len >= min_len);
 
   int max_len = wp->loop_end - wp->loop_start + 1;
-  BLI_assert(len <= max_len);
+  BLI_assert(loop_len <= max_len);
 }
 
 #endif /* USE_WELD_DEBUG */
@@ -786,7 +780,7 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> mpoly,
       wp.loops.ofs = prev_wloop_len;
       wp.loop_start = loopstart;
       wp.loop_end = loopstart + totloop - 1;
-      wp.len = totloop;
+      wp.loop_len = totloop;
       wpoly.append(wp);
 
       poly_map[i] = wpoly_len++;
@@ -802,15 +796,10 @@ static void weld_poly_loop_ctx_alloc(Span<MPoly> mpoly,
     }
   }
 
-  if (mpoly.size() < (wpoly_len + maybe_new_poly)) {
-    wpoly.resize(wpoly_len + maybe_new_poly);
-  }
+  wpoly.reserve(wpoly.size() + maybe_new_poly);
 
   r_weld_mesh->wloop = std::move(wloop);
   r_weld_mesh->wpoly = std::move(wpoly);
-  r_weld_mesh->wpoly_new = r_weld_mesh->wpoly.as_mutable_span().drop_front(wpoly_len);
-  r_weld_mesh->wloop_len = wloop_len;
-  r_weld_mesh->wpoly_len = wpoly_len;
   r_weld_mesh->wpoly_new_len = 0;
   r_weld_mesh->loop_map = std::move(loop_map);
   r_weld_mesh->poly_map = std::move(poly_map);
@@ -827,8 +816,8 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
                                       int *r_poly_kill,
                                       int *r_loop_kill)
 {
-  int poly_len = r_wp->len;
-  if (poly_len < 3 || ctx_verts_len < 1) {
+  int poly_loop_len = r_wp->loop_len;
+  if (poly_loop_len < 3 || ctx_verts_len < 1) {
     return;
   }
 
@@ -870,7 +859,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
         }
         if (vert_a == vert_b) {
           const int dist_a = wlb->loop_orig - wla->loop_orig - killed_ab;
-          const int dist_b = poly_len - dist_a;
+          const int dist_b = poly_loop_len - dist_a;
 
           BLI_assert(dist_a != 0 && dist_b != 0);
           if (dist_a == 1 || dist_b == 1) {
@@ -886,7 +875,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
               wla->flag = ELEM_COLLAPSED;
               wl_tmp->flag = ELEM_COLLAPSED;
               loop_kill += 2;
-              poly_len -= 2;
+              poly_loop_len -= 2;
             }
             if (dist_b == 2) {
               if (wl_tmp != nullptr) {
@@ -901,20 +890,22 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
                 wl_tmp->flag = ELEM_COLLAPSED;
               }
               loop_kill += 2;
-              poly_len -= 2;
+              poly_loop_len -= 2;
             }
             if (wl_tmp == nullptr) {
               const int new_loops_len = lb - la;
               const int new_loops_ofs = ctx_loops_ofs + la;
 
-              WeldPoly *new_wp = &r_weld_mesh->wpoly_new[r_weld_mesh->wpoly_new_len++];
+              r_weld_mesh->wpoly.increase_size_by_unchecked(1);
+              WeldPoly *new_wp = &r_weld_mesh->wpoly.last();
               new_wp->poly_dst = OUT_OF_CONTEXT;
               new_wp->poly_orig = r_wp->poly_orig;
               new_wp->loops.len = new_loops_len;
               new_wp->loops.ofs = new_loops_ofs;
               new_wp->loop_start = wla->loop_orig;
               new_wp->loop_end = wlb_prev->loop_orig;
-              new_wp->len = dist_a;
+              new_wp->loop_len = dist_a;
+              r_weld_mesh->wpoly_new_len++;
               weld_poly_split_recursive(vert_dest_map,
 #ifdef USE_WELD_DEBUG
                                         mloop,
@@ -924,8 +915,8 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
                                         r_weld_mesh,
                                         r_poly_kill,
                                         r_loop_kill);
-              BLI_assert(dist_b == poly_len - dist_a);
-              poly_len = dist_b;
+              BLI_assert(dist_b == poly_loop_len - dist_a);
+              poly_loop_len = dist_b;
               if (wla_prev->loop_orig > wla->loop_orig) {
                 /* New start. */
                 r_wp->loop_start = wlb->loop_orig;
@@ -950,7 +941,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
       wla_prev = wla;
     }
   }
-  r_wp->len = poly_len;
+  r_wp->loop_len = poly_loop_len;
   *r_loop_kill += loop_kill;
 
 #ifdef USE_WELD_DEBUG
@@ -968,10 +959,8 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
                                      MutableSpan<WeldGroup> r_vlinks,
                                      WeldMesh *r_weld_mesh)
 {
-  MutableSpan<WeldPoly> wpoly = r_weld_mesh->wpoly;
+  WeldPoly *wpoly = r_weld_mesh->wpoly.data();
   MutableSpan<WeldLoop> wloop = r_weld_mesh->wloop;
-  int wpoly_len = r_weld_mesh->wpoly_len;
-  int wpoly_new_len = 0;
   int poly_kill_len = 0;
   int loop_kill_len = 0;
 
@@ -979,28 +968,31 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
 
   if (remain_edge_ctx_len) {
 
-    /* Setup Poly/Loop. Note that `wpoly_len` may be different than `wpoly.size()` here. */
-    for (const int i : IndexRange(wpoly_len)) {
+    /* Setup Poly/Loop. */
+    /* `wpoly.size()` may change during the loop,
+     * so make it clear that we are only working with the original wpolys. */
+    IndexRange wpoly_original_range = r_weld_mesh->wpoly.index_range();
+    for (const int i : wpoly_original_range) {
       WeldPoly &wp = wpoly[i];
       const int ctx_loops_len = wp.loops.len;
       const int ctx_loops_ofs = wp.loops.ofs;
 
-      int poly_len = wp.len;
+      int poly_loop_len = wp.loop_len;
       int ctx_verts_len = 0;
       WeldLoop *wl = &wloop[ctx_loops_ofs];
       for (int l = ctx_loops_len; l--; wl++) {
         const int edge_dest = wl->edge;
         if (edge_dest == ELEM_COLLAPSED) {
           wl->flag = ELEM_COLLAPSED;
-          if (poly_len == 3) {
+          if (poly_loop_len == 3) {
             wp.flag = ELEM_COLLAPSED;
             poly_kill_len++;
             loop_kill_len += 3;
-            poly_len = 0;
+            poly_loop_len = 0;
             break;
           }
           loop_kill_len++;
-          poly_len--;
+          poly_loop_len--;
         }
         else {
           const int vert_dst = wl->vert;
@@ -1010,10 +1002,10 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
         }
       }
 
-      if (poly_len) {
-        wp.len = poly_len;
+      if (poly_loop_len) {
+        wp.loop_len = poly_loop_len;
 #ifdef USE_WELD_DEBUG
-        weld_assert_poly_len(wp, wloop);
+        weld_assert_poly_len(&wp, wloop);
 #endif
 
         weld_poly_split_recursive(vert_dest_map,
@@ -1025,32 +1017,19 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
                                   r_weld_mesh,
                                   &poly_kill_len,
                                   &loop_kill_len);
-
-        wpoly_new_len = r_weld_mesh->wpoly_new_len;
       }
     }
 
 #ifdef USE_WELD_DEBUG
-    weld_assert_poly_and_loop_kill_len(wpoly,
-                                       r_weld_mesh->wpoly_new,
-                                       wloop,
-                                       mloop,
-                                       loop_map,
-                                       r_weld_mesh->poly_map,
-                                       mpoly,
-                                       poly_kill_len,
-                                       loop_kill_len);
+    weld_assert_poly_and_loop_kill_len(r_weld_mesh, mloop, mpoly, poly_kill_len, loop_kill_len);
 #endif
 
     /* Setup Polygon Overlap. */
 
-    const int wpoly_and_new_len = wpoly_len + wpoly_new_len;
-
     r_vlinks.fill({0, 0});
     MutableSpan<WeldGroup> v_links = r_vlinks;
 
-    for (const int i : IndexRange(wpoly_and_new_len)) {
-      const WeldPoly &wp = wpoly[i];
+    for (const WeldPoly &wp : r_weld_mesh->wpoly) {
       WeldLoopOfPolyIter iter;
       if (weld_iter_loop_of_poly_begin(iter, wp, wloop, mloop, loop_map, nullptr)) {
         while (weld_iter_loop_of_poly_next(iter)) {
@@ -1068,7 +1047,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
     if (link_len) {
       Array<int> link_poly_buffer(link_len);
 
-      for (const int i : IndexRange(wpoly_and_new_len)) {
+      for (const int i : IndexRange(r_weld_mesh->wpoly.size())) {
         const WeldPoly &wp = wpoly[i];
         WeldLoopOfPolyIter iter;
         if (weld_iter_loop_of_poly_begin(iter, wp, wloop, mloop, loop_map, nullptr)) {
@@ -1086,7 +1065,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
       int polys_len_a, polys_len_b, *polys_ctx_a, *polys_ctx_b, p_ctx_a, p_ctx_b;
       polys_len_b = p_ctx_b = 0; /* silence warnings */
 
-      for (const int i : IndexRange(wpoly_and_new_len)) {
+      for (const int i : IndexRange(r_weld_mesh->wpoly.size())) {
         const WeldPoly &wp = wpoly[i];
         if (wp.poly_dst != OUT_OF_CONTEXT) {
           /* No need to retest poly.
@@ -1103,7 +1082,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
           BLI_assert(link_poly_buffer[link_a->ofs] == i);
           continue;
         }
-        int wp_len = wp.len;
+        int wp_loop_len = wp.loop_len;
         polys_ctx_a = &link_poly_buffer[link_a->ofs];
         for (; polys_len_a--; polys_ctx_a++) {
           p_ctx_a = *polys_ctx_a;
@@ -1112,7 +1091,7 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
           }
 
           WeldPoly *wp_tmp = &wpoly[p_ctx_a];
-          if (wp_tmp->len != wp_len) {
+          if (wp_tmp->loop_len != wp_loop_len) {
             continue;
           }
 
@@ -1151,31 +1130,23 @@ static void weld_poly_loop_ctx_setup(Span<MLoop> mloop,
           BLI_assert(wp_tmp->poly_dst == OUT_OF_CONTEXT);
           BLI_assert(wp_tmp != &wp);
           wp_tmp->poly_dst = wp.poly_orig;
-          loop_kill_len += wp_tmp->len;
+          loop_kill_len += wp_tmp->loop_len;
           poly_kill_len++;
         }
       }
     }
   }
   else {
-    poly_kill_len = r_weld_mesh->wpoly_len;
-    loop_kill_len = r_weld_mesh->wloop_len;
+    poly_kill_len = r_weld_mesh->wpoly.size();
+    loop_kill_len = r_weld_mesh->wloop.size();
 
-    for (WeldPoly &wp : wpoly) {
+    for (WeldPoly &wp : r_weld_mesh->wpoly) {
       wp.flag = ELEM_COLLAPSED;
     }
   }
 
 #ifdef USE_WELD_DEBUG
-  weld_assert_poly_and_loop_kill_len(wpoly,
-                                     r_weld_mesh->wpoly_new,
-                                     wloop,
-                                     mloop,
-                                     loop_map,
-                                     r_weld_mesh->poly_map,
-                                     mpoly,
-                                     poly_kill_len,
-                                     loop_kill_len);
+  weld_assert_poly_and_loop_kill_len(r_weld_mesh, mloop, mpoly, poly_kill_len, loop_kill_len);
 #endif
 
   r_weld_mesh->poly_kill_len = poly_kill_len;
@@ -1545,8 +1516,9 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     r_i++;
   }
 
-  for (const int i : IndexRange(weld_mesh.wpoly_new_len)) {
-    const WeldPoly &wp = weld_mesh.wpoly_new[i];
+  /* New Polygons. */
+  for (const int i : weld_mesh.wpoly.index_range().take_back(weld_mesh.wpoly_new_len)) {
+    const WeldPoly &wp = weld_mesh.wpoly[i];
     const int loop_start = loop_cur;
     WeldLoopOfPolyIter iter;
     if (!weld_iter_loop_of_poly_begin(

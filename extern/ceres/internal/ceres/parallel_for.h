@@ -28,37 +28,38 @@
 //
 // Author: vitus@google.com (Michael Vitus)
 
-#ifndef CERES_INTERNAL_PARALLEL_FOR_
-#define CERES_INTERNAL_PARALLEL_FOR_
+#ifndef CERES_INTERNAL_PARALLEL_FOR_H_
+#define CERES_INTERNAL_PARALLEL_FOR_H_
 
 #include <functional>
 
 #include "ceres/context_impl.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 namespace internal {
 
 // Returns the maximum number of threads supported by the threading backend
 // Ceres was compiled with.
+CERES_NO_EXPORT
 int MaxNumThreadsAvailable();
 
 // Execute the function for every element in the range [start, end) with at most
 // num_threads. It will execute all the work on the calling thread if
 // num_threads is 1.
-CERES_EXPORT_INTERNAL void ParallelFor(
-    ContextImpl* context,
-    int start,
-    int end,
-    int num_threads,
-    const std::function<void(int)>& function);
+CERES_NO_EXPORT void ParallelFor(ContextImpl* context,
+                                 int start,
+                                 int end,
+                                 int num_threads,
+                                 const std::function<void(int)>& function);
 
 // Execute the function for every element in the range [start, end) with at most
 // num_threads. It will execute all the work on the calling thread if
 // num_threads is 1.  Each invocation of function() will be passed a thread_id
 // in [0, num_threads) that is guaranteed to be distinct from the value passed
 // to any concurrent execution of function().
-CERES_EXPORT_INTERNAL void ParallelFor(
+CERES_NO_EXPORT void ParallelFor(
     ContextImpl* context,
     int start,
     int end,
@@ -66,5 +67,7 @@ CERES_EXPORT_INTERNAL void ParallelFor(
     const std::function<void(int thread_id, int i)>& function);
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/disable_warnings.h"
 
 #endif  // CERES_INTERNAL_PARALLEL_FOR_H_

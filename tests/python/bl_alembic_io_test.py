@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 """
 ./blender.bin --background -noaudio --factory-startup --python tests/python/bl_alembic_io_test.py -- --testdir /path/to/lib/tests/alembic
 """

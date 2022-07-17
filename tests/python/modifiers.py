@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 import math
 import os
 import sys
@@ -215,7 +213,6 @@ def main():
         SpecMeshTest("MergedNoneWeld", "testMergedNoneWeld", "expectedMergedNoneWeld",
                      [ModifierSpec("weld", 'WELD', {"merge_threshold": 0.019})]),
 
-
         #############################################
         # One 'Deform' modifier on primitive meshes
         #############################################
@@ -326,6 +323,22 @@ def main():
                      [ModifierSpec('curve_Curve', 'CURVE', {'object': bpy.data.objects['NurbsCurve']})]),
 
     ]
+
+    boolean_basename = "CubeBooleanDiffBMeshObject"
+    tests.append(SpecMeshTest("BooleandDiffBMeshObject", "test" + boolean_basename, "expected" + boolean_basename,
+                              [ModifierSpec("boolean", 'BOOLEAN',
+                                            {"solver": 'FAST', "operation": 'DIFFERENCE', "operand_type": 'OBJECT',
+                                             "object": bpy.data.objects["test" + boolean_basename + "Operand"]})]))
+    boolean_basename = "CubeBooleanDiffBMeshCollection"
+    tests.append(SpecMeshTest("BooleandDiffBMeshCollection",
+                              "test" + boolean_basename,
+                              "expected" + boolean_basename,
+                              [ModifierSpec("boolean",
+                                            'BOOLEAN',
+                                            {"solver": 'FAST',
+                                             "operation": 'DIFFERENCE',
+                                             "operand_type": 'COLLECTION',
+                                             "collection": bpy.data.collections["test" + boolean_basename + "Operands"]})]))
 
     modifiers_test = RunTest(tests)
 

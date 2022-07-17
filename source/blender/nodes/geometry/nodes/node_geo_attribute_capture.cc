@@ -50,7 +50,7 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
 static void node_update(bNodeTree *ntree, bNode *node)
 {
   const NodeGeometryAttributeCapture &storage = node_storage(*node);
-  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
+  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
 
   bNodeSocket *socket_value_geometry = (bNodeSocket *)node->inputs.first;
   bNodeSocket *socket_value_vector = socket_value_geometry->next;
@@ -86,7 +86,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.outputs().take_front(1));
 
   const bNodeType &node_type = params.node_type();
-  const std::optional<CustomDataType> type = node_data_type_to_custom_data_type(
+  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
       (eNodeSocketDatatype)params.other_socket().type);
   if (type && *type != CD_PROP_STRING) {
     if (params.in_out() == SOCK_OUT) {
@@ -108,48 +108,91 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void try_capture_field_on_geometry(GeometryComponent &component,
                                           const AttributeIDRef &attribute_id,
-                                          const AttributeDomain domain,
+                                          const eAttrDomain domain,
                                           const GField &field)
 {
-  GeometryComponentFieldContext field_context{component, domain};
   const int domain_size = component.attribute_domain_size(domain);
+  if (domain_size == 0) {
+    return;
+  }
+  GeometryComponentFieldContext field_context{component, domain};
+  MutableAttributeAccessor attributes = *component.attributes_for_write();
   const IndexMask mask{IndexMask(domain_size)};
 
-  const CustomDataType data_type = bke::cpp_type_to_custom_data_type(field.cpp_type());
-  OutputAttribute output_attribute = component.attribute_try_get_for_output_only(
+  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(field.cpp_type());
+  GAttributeWriter output_attribute = attributes.lookup_or_add_for_write(
       attribute_id, domain, data_type);
+  if (!output_attribute) {
+    return;
+  }
 
   fn::FieldEvaluator evaluator{field_context, &mask};
-  evaluator.add_with_destination(field, output_attribute.varray());
+  evaluator.add_with_destination(field, output_attribute.varray);
   evaluator.evaluate();
 
-  output_attribute.save();
+  output_attribute.finish();
+}
+
+static StringRefNull identifier_suffix(eCustomDataType data_type)
+{
+  switch (data_type) {
+    case CD_PROP_FLOAT:
+      return "_001";
+    case CD_PROP_INT32:
+      return "_004";
+    case CD_PROP_COLOR:
+      return "_002";
+    case CD_PROP_BOOL:
+      return "_003";
+    case CD_PROP_FLOAT3:
+      return "";
+    default:
+      BLI_assert_unreachable();
+      return "";
+  }
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
-  const NodeGeometryAttributeCapture &storage = node_storage(params.node());
-  const CustomDataType data_type = static_cast<CustomDataType>(storage.data_type);
-  const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
+  if (!params.output_is_required("Geometry")) {
+    params.error_message_add(
+        NodeWarningType::Info,
+        TIP_("The attribute output can not be used without the geometry output"));
+    params.set_default_remaining_outputs();
+    return;
+  }
 
+  const NodeGeometryAttributeCapture &storage = node_storage(params.node());
+  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
+
+  const std::string output_identifier = "Attribute" + identifier_suffix(data_type);
+
+  if (!params.output_is_required(output_identifier)) {
+    params.set_output("Geometry", geometry_set);
+    return;
+  }
+
+  const std::string input_identifier = "Value" + identifier_suffix(data_type);
   GField field;
+
   switch (data_type) {
     case CD_PROP_FLOAT:
-      field = params.get_input<Field<float>>("Value_001");
+      field = params.get_input<Field<float>>(input_identifier);
       break;
     case CD_PROP_FLOAT3:
-      field = params.get_input<Field<float3>>("Value");
+      field = params.get_input<Field<float3>>(input_identifier);
       break;
     case CD_PROP_COLOR:
-      field = params.get_input<Field<ColorGeometry4f>>("Value_002");
+      field = params.get_input<Field<ColorGeometry4f>>(input_identifier);
       break;
     case CD_PROP_BOOL:
-      field = params.get_input<Field<bool>>("Value_003");
+      field = params.get_input<Field<bool>>(input_identifier);
       break;
     case CD_PROP_INT32:
-      field = params.get_input<Field<int>>("Value_004");
+      field = params.get_input<Field<int>>(input_identifier);
       break;
     default:
       break;
@@ -185,23 +228,23 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   switch (data_type) {
     case CD_PROP_FLOAT: {
-      params.set_output("Attribute_001", Field<float>(output_field));
+      params.set_output(output_identifier, Field<float>(output_field));
       break;
     }
     case CD_PROP_FLOAT3: {
-      params.set_output("Attribute", Field<float3>(output_field));
+      params.set_output(output_identifier, Field<float3>(output_field));
       break;
     }
     case CD_PROP_COLOR: {
-      params.set_output("Attribute_002", Field<ColorGeometry4f>(output_field));
+      params.set_output(output_identifier, Field<ColorGeometry4f>(output_field));
       break;
     }
     case CD_PROP_BOOL: {
-      params.set_output("Attribute_003", Field<bool>(output_field));
+      params.set_output(output_identifier, Field<bool>(output_field));
       break;
     }
     case CD_PROP_INT32: {
-      params.set_output("Attribute_004", Field<int>(output_field));
+      params.set_output(output_identifier, Field<int>(output_field));
       break;
     }
     default:

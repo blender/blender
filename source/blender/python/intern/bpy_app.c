@@ -36,15 +36,19 @@
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "DNA_ID.h"
 
 #include "UI_interface_icons.h"
 
+#include "RNA_enum_types.h" /* For `rna_enum_wm_job_type_items`. */
+
 /* for notifiers */
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "../generic/py_capi_rna.h"
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
@@ -450,6 +454,44 @@ static PyGetSetDef bpy_app_getsets[] = {
     {NULL, NULL, NULL, NULL, NULL},
 };
 
+PyDoc_STRVAR(bpy_app_is_job_running_doc,
+             ".. staticmethod:: is_job_running(job_type)\n"
+             "\n"
+             "   Check whether a job of the given type is running.\n"
+             "\n"
+             "   :arg job_type: job type in :ref:`rna_enum_wm_job_type_items`.\n"
+             "   :type job_type: str\n"
+             "   :return: Whether a job of the given type is currently running.\n"
+             "   :rtype: bool.\n");
+static PyObject *bpy_app_is_job_running(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
+{
+  struct BPy_EnumProperty_Parse job_type_enum = {
+      .items = rna_enum_wm_job_type_items,
+      .value = 0,
+  };
+  static const char *_keywords[] = {"job_type", NULL};
+  static _PyArg_Parser _parser = {
+      "O&" /* `job_type` */
+      ":is_job_running",
+      _keywords,
+      0,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(
+          args, kwds, &_parser, pyrna_enum_value_parse_string, &job_type_enum)) {
+    return NULL;
+  }
+  wmWindowManager *wm = G_MAIN->wm.first;
+  return PyBool_FromLong(WM_jobs_has_running_type(wm, job_type_enum.value));
+}
+
+static struct PyMethodDef bpy_app_methods[] = {
+    {"is_job_running",
+     (PyCFunction)bpy_app_is_job_running,
+     METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+     bpy_app_is_job_running_doc},
+    {NULL, NULL, 0, NULL},
+};
+
 static void py_struct_seq_getset_init(void)
 {
   /* tricky dynamic members, not to py-spec! */
@@ -459,6 +501,17 @@ static void py_struct_seq_getset_init(void)
     Py_DECREF(item);
   }
 }
+
+static void py_struct_seq_method_init(void)
+{
+  for (PyMethodDef *method = bpy_app_methods; method->ml_name; method++) {
+    BLI_assert_msg(method->ml_flags & METH_STATIC, "Only static methods make sense for 'bpy.app'");
+    PyObject *item = PyCFunction_New(method, NULL);
+    PyDict_SetItemString(BlenderAppType.tp_dict, method->ml_name, item);
+    Py_DECREF(item);
+  }
+}
+
 /* end dynamic bpy.app */
 
 PyObject *BPY_app_struct(void)
@@ -477,6 +530,7 @@ PyObject *BPY_app_struct(void)
 
   /* kindof a hack ontop of PyStructSequence */
   py_struct_seq_getset_init();
+  py_struct_seq_method_init();
 
   return ret;
 }

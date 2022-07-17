@@ -259,7 +259,7 @@ static bool rna_ParticleEdit_hair_get(PointerRNA *ptr)
   return 0;
 }
 
-static char *rna_ParticleEdit_path(PointerRNA *UNUSED(ptr))
+static char *rna_ParticleEdit_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.particle_edit");
 }
@@ -403,15 +403,15 @@ static void rna_Sculpt_ShowMask_update(bContext *C, PointerRNA *UNUSED(ptr))
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, object);
 }
 
-static char *rna_Sculpt_path(PointerRNA *UNUSED(ptr))
+static char *rna_Sculpt_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.sculpt");
 }
 
-static char *rna_VertexPaint_path(PointerRNA *ptr)
+static char *rna_VertexPaint_path(const PointerRNA *ptr)
 {
-  Scene *scene = (Scene *)ptr->owner_id;
-  ToolSettings *ts = scene->toolsettings;
+  const Scene *scene = (Scene *)ptr->owner_id;
+  const ToolSettings *ts = scene->toolsettings;
   if (ptr->data == ts->vpaint) {
     return BLI_strdup("tool_settings.vertex_paint");
   }
@@ -420,47 +420,47 @@ static char *rna_VertexPaint_path(PointerRNA *ptr)
   }
 }
 
-static char *rna_ImagePaintSettings_path(PointerRNA *UNUSED(ptr))
+static char *rna_ImagePaintSettings_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.image_paint");
 }
 
-static char *rna_PaintModeSettings_path(PointerRNA *UNUSED(ptr))
+static char *rna_PaintModeSettings_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.paint_mode");
 }
 
-static char *rna_UvSculpt_path(PointerRNA *UNUSED(ptr))
+static char *rna_UvSculpt_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.uv_sculpt");
 }
 
-static char *rna_CurvesSculpt_path(PointerRNA *UNUSED(ptr))
+static char *rna_CurvesSculpt_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.curves_sculpt");
 }
 
-static char *rna_GpPaint_path(PointerRNA *UNUSED(ptr))
+static char *rna_GpPaint_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_paint");
 }
 
-static char *rna_GpVertexPaint_path(PointerRNA *UNUSED(ptr))
+static char *rna_GpVertexPaint_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_vertex_paint");
 }
 
-static char *rna_GpSculptPaint_path(PointerRNA *UNUSED(ptr))
+static char *rna_GpSculptPaint_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_sculpt_paint");
 }
 
-static char *rna_GpWeightPaint_path(PointerRNA *UNUSED(ptr))
+static char *rna_GpWeightPaint_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_weight_paint");
 }
 
-static char *rna_ParticleBrush_path(PointerRNA *UNUSED(ptr))
+static char *rna_ParticleBrush_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.particle_edit.brush");
 }
@@ -578,12 +578,12 @@ static bool rna_ImaPaint_detect_data(ImagePaintSettings *imapaint)
   return imapaint->missing_data == 0;
 }
 
-static char *rna_GPencilSculptSettings_path(PointerRNA *UNUSED(ptr))
+static char *rna_GPencilSculptSettings_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_sculpt");
 }
 
-static char *rna_GPencilSculptGuide_path(PointerRNA *UNUSED(ptr))
+static char *rna_GPencilSculptGuide_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tool_settings.gpencil_sculpt.guide");
 }
@@ -774,6 +774,20 @@ static void rna_def_sculpt(BlenderRNA *brna)
       {0, NULL, 0, NULL, NULL},
   };
 
+  static const EnumPropertyItem sculpt_transform_mode_items[] = {
+      {SCULPT_TRANSFORM_MODE_ALL_VERTICES,
+       "ALL_VERTICES",
+       0,
+       "All Vertices",
+       "Applies the transformation to all vertices in the mesh"},
+      {SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC,
+       "RADIUS_ELASTIC",
+       0,
+       "Elastic",
+       "Applies the transformation simulating elasticity using the radius of the cursor"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   StructRNA *srna;
   PropertyRNA *prop;
 
@@ -910,6 +924,12 @@ static void rna_def_sculpt(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
   RNA_def_property_ui_text(prop, "Gravity", "Amount of gravity after each dab");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
+  prop = RNA_def_property(srna, "transform_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, sculpt_transform_mode_items);
+  RNA_def_property_ui_text(
+      prop, "Transform Mode", "How the transformation is going to be applied to the target");
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
   prop = RNA_def_property(srna, "gravity_object", PROP_POINTER, PROP_NONE);

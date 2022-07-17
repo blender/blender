@@ -26,7 +26,6 @@ void GPUTest::SetUp()
 void GPUTest::TearDown()
 {
   GPU_exit();
-  GPU_backend_exit();
   GPU_context_discard(context);
   GHOST_DisposeOpenGLContext(ghost_system, ghost_context);
   GHOST_DisposeSystem(ghost_system);

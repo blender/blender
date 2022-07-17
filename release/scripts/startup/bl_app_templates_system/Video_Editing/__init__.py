@@ -14,6 +14,8 @@ def update_factory_startup_screens():
 
 
 def update_factory_startup_ffmpeg_preset():
+    from bpy import context
+
     preset = "H264_in_MP4"
     preset_filepath = bpy.utils.preset_find(preset, preset_path="ffmpeg")
     if not preset_filepath:
@@ -24,7 +26,8 @@ def update_factory_startup_ffmpeg_preset():
         render.image_settings.file_format = 'FFMPEG'
 
         if preset_filepath:
-            bpy.ops.script.python_file_run({"scene": scene}, filepath=preset_filepath)
+            with context.temp_override(scene=scene):
+                bpy.ops.script.python_file_run(filepath=preset_filepath)
 
         render.ffmpeg.audio_codec = 'AAC'
         render.ffmpeg.audio_bitrate = 256

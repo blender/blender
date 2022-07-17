@@ -40,6 +40,7 @@
 #include <vector>
 
 #include "ceres/is_close.h"
+#include "ceres/manifold_adapter.h"
 #include "ceres/stringprintf.h"
 #include "ceres/types.h"
 
@@ -53,15 +54,13 @@ using std::vector;
 
 namespace {
 // Evaluate the cost function and transform the returned Jacobians to
-// the local space of the respective local parameterizations.
-bool EvaluateCostFunction(
-    const ceres::CostFunction* function,
-    double const* const* parameters,
-    const std::vector<const ceres::LocalParameterization*>&
-        local_parameterizations,
-    Vector* residuals,
-    std::vector<Matrix>* jacobians,
-    std::vector<Matrix>* local_jacobians) {
+// the tangent space of the respective local parameterizations.
+bool EvaluateCostFunction(const CostFunction* function,
+                          double const* const* parameters,
+                          const std::vector<const Manifold*>& manifolds,
+                          Vector* residuals,
+                          std::vector<Matrix>* jacobians,
+                          std::vector<Matrix>* local_jacobians) {
   CHECK(residuals != nullptr);
   CHECK(jacobians != nullptr);
   CHECK(local_jacobians != nullptr);
@@ -69,20 +68,20 @@ bool EvaluateCostFunction(
   const vector<int32_t>& block_sizes = function->parameter_block_sizes();
   const int num_parameter_blocks = block_sizes.size();
 
-  // Allocate Jacobian matrices in local space.
+  // Allocate Jacobian matrices in tangent space.
   local_jacobians->resize(num_parameter_blocks);
   vector<double*> local_jacobian_data(num_parameter_blocks);
   for (int i = 0; i < num_parameter_blocks; ++i) {
     int block_size = block_sizes.at(i);
-    if (local_parameterizations.at(i) != NULL) {
-      block_size = local_parameterizations.at(i)->LocalSize();
+    if (manifolds.at(i) != nullptr) {
+      block_size = manifolds.at(i)->TangentSize();
     }
     local_jacobians->at(i).resize(function->num_residuals(), block_size);
     local_jacobians->at(i).setZero();
     local_jacobian_data.at(i) = local_jacobians->at(i).data();
   }
 
-  // Allocate Jacobian matrices in global space.
+  // Allocate Jacobian matrices in ambient space.
   jacobians->resize(num_parameter_blocks);
   vector<double*> jacobian_data(num_parameter_blocks);
   for (int i = 0; i < num_parameter_blocks; ++i) {
@@ -100,18 +99,17 @@ bool EvaluateCostFunction(
     return false;
   }
 
-  // Convert Jacobians from global to local space.
+  // Convert Jacobians from ambient to local space.
   for (size_t i = 0; i < local_jacobians->size(); ++i) {
-    if (local_parameterizations.at(i) == NULL) {
+    if (manifolds.at(i) == nullptr) {
       local_jacobians->at(i) = jacobians->at(i);
     } else {
-      int global_size = local_parameterizations.at(i)->GlobalSize();
-      int local_size = local_parameterizations.at(i)->LocalSize();
-      CHECK_EQ(jacobians->at(i).cols(), global_size);
-      Matrix global_J_local(global_size, local_size);
-      local_parameterizations.at(i)->ComputeJacobian(parameters[i],
-                                                     global_J_local.data());
-      local_jacobians->at(i).noalias() = jacobians->at(i) * global_J_local;
+      int ambient_size = manifolds.at(i)->AmbientSize();
+      int tangent_size = manifolds.at(i)->TangentSize();
+      CHECK_EQ(jacobians->at(i).cols(), ambient_size);
+      Matrix ambient_J_tangent(ambient_size, tangent_size);
+      manifolds.at(i)->PlusJacobian(parameters[i], ambient_J_tangent.data());
+      local_jacobians->at(i).noalias() = jacobians->at(i) * ambient_J_tangent;
     }
   }
   return true;
@@ -122,20 +120,47 @@ GradientChecker::GradientChecker(
     const CostFunction* function,
     const vector<const LocalParameterization*>* local_parameterizations,
     const NumericDiffOptions& options)
+    : delete_manifolds_(true), function_(function) {
+  CHECK(function != nullptr);
+  manifolds_.resize(function->parameter_block_sizes().size(), nullptr);
+
+  // Wrap the local parameterization into manifold objects using
+  // ManifoldAdapter.
+  for (int i = 0; i < manifolds_.size(); ++i) {
+    const LocalParameterization* local_param = local_parameterizations->at(i);
+    if (local_param == nullptr) {
+      continue;
+    }
+    manifolds_[i] = new internal::ManifoldAdapter(local_param);
+  }
+
+  auto finite_diff_cost_function =
+      std::make_unique<DynamicNumericDiffCostFunction<CostFunction, RIDDERS>>(
+          function, DO_NOT_TAKE_OWNERSHIP, options);
+  const vector<int32_t>& parameter_block_sizes =
+      function->parameter_block_sizes();
+  for (int32_t parameter_block_size : parameter_block_sizes) {
+    finite_diff_cost_function->AddParameterBlock(parameter_block_size);
+  }
+  finite_diff_cost_function->SetNumResiduals(function->num_residuals());
+
+  finite_diff_cost_function_ = std::move(finite_diff_cost_function);
+}
+
+GradientChecker::GradientChecker(const CostFunction* function,
+                                 const vector<const Manifold*>* manifolds,
+                                 const NumericDiffOptions& options)
     : function_(function) {
   CHECK(function != nullptr);
-  if (local_parameterizations != NULL) {
-    local_parameterizations_ = *local_parameterizations;
+  if (manifolds != nullptr) {
+    manifolds_ = *manifolds;
   } else {
-    local_parameterizations_.resize(function->parameter_block_sizes().size(),
-                                    NULL);
+    manifolds_.resize(function->parameter_block_sizes().size(), nullptr);
   }
-  DynamicNumericDiffCostFunction<CostFunction, RIDDERS>*
-      finite_diff_cost_function =
-          new DynamicNumericDiffCostFunction<CostFunction, RIDDERS>(
-              function, DO_NOT_TAKE_OWNERSHIP, options);
-  finite_diff_cost_function_.reset(finite_diff_cost_function);
 
+  auto finite_diff_cost_function =
+      std::make_unique<DynamicNumericDiffCostFunction<CostFunction, RIDDERS>>(
+          function, DO_NOT_TAKE_OWNERSHIP, options);
   const vector<int32_t>& parameter_block_sizes =
       function->parameter_block_sizes();
   const int num_parameter_blocks = parameter_block_sizes.size();
@@ -143,6 +168,16 @@ GradientChecker::GradientChecker(
     finite_diff_cost_function->AddParameterBlock(parameter_block_sizes[i]);
   }
   finite_diff_cost_function->SetNumResiduals(function->num_residuals());
+
+  finite_diff_cost_function_ = std::move(finite_diff_cost_function);
+}
+
+GradientChecker::~GradientChecker() {
+  if (delete_manifolds_) {
+    for (const auto m : manifolds_) {
+      delete m;
+    }
+  }
 }
 
 bool GradientChecker::Probe(double const* const* parameters,
@@ -154,7 +189,7 @@ bool GradientChecker::Probe(double const* const* parameters,
   // provided an output argument.
   ProbeResults* results;
   ProbeResults results_local;
-  if (results_param != NULL) {
+  if (results_param != nullptr) {
     results = results_param;
     results->residuals.resize(0);
     results->jacobians.clear();
@@ -173,7 +208,7 @@ bool GradientChecker::Probe(double const* const* parameters,
   vector<Matrix>& local_jacobians = results->local_jacobians;
   if (!EvaluateCostFunction(function_,
                             parameters,
-                            local_parameterizations_,
+                            manifolds_,
                             &results->residuals,
                             &jacobians,
                             &local_jacobians)) {
@@ -187,7 +222,7 @@ bool GradientChecker::Probe(double const* const* parameters,
   Vector finite_diff_residuals;
   if (!EvaluateCostFunction(finite_diff_cost_function_.get(),
                             parameters,
-                            local_parameterizations_,
+                            manifolds_,
                             &finite_diff_residuals,
                             &numeric_jacobians,
                             &local_numeric_jacobians)) {
@@ -205,8 +240,8 @@ bool GradientChecker::Probe(double const* const* parameters,
     if (!IsClose(results->residuals[i],
                  finite_diff_residuals[i],
                  relative_precision,
-                 NULL,
-                 NULL)) {
+                 nullptr,
+                 nullptr)) {
       results->error_log =
           "Function evaluation with and without Jacobians "
           "resulted in different residuals.";

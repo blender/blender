@@ -44,7 +44,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
 
   GPUNodeLink **texco = &in[0].link;
   if (!*texco) {
-    *texco = GPU_attribute(mat, CD_MTFACE, "");
+    *texco = GPU_attribute(mat, CD_AUTO_FROM_NAME, "");
     node_shader_gpu_bump_tex_coord(mat, node, texco);
   }
 
@@ -74,7 +74,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat,
     const char *gpu_node_name = use_cubic ? "node_tex_tile_cubic" : "node_tex_tile_linear";
     GPUNodeLink *gpu_image = GPU_image_tiled(mat, ima, iuser, sampler_state);
     GPUNodeLink *gpu_image_tile_mapping = GPU_image_tiled_mapping(mat, ima, iuser);
-    /* UDIM tiles needs a samper2DArray and sampler1DArray for tile mapping. */
+    /* UDIM tiles needs a `sampler2DArray` and `sampler1DArray` for tile mapping. */
     GPU_stack_link(mat, node, gpu_node_name, in, out, gpu_image, gpu_image_tile_mapping);
   }
   else {

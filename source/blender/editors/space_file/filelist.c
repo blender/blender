@@ -336,7 +336,7 @@ enum {
 };
 
 typedef struct FileListEntryPreview {
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
   uint flags;
   int index;
   int attributes; /* from FileDirEntry. */
@@ -485,6 +485,7 @@ static int groupname_to_code(const char *group);
 static uint64_t groupname_to_filter_id(const char *group);
 
 static void filelist_cache_clear(FileListEntryCache *cache, size_t new_size);
+static bool filelist_intern_entry_is_main_file(const FileListInternEntry *intern_entry);
 
 /* ********** Sort helpers ********** */
 
@@ -1025,13 +1026,6 @@ static bool is_filtered_lib(FileListInternEntry *file, const char *root, FileLis
   return is_filtered_lib_type(file, root, filter) && is_filtered_file_relpath(file, filter);
 }
 
-static bool is_filtered_asset_library(FileListInternEntry *file,
-                                      const char *root,
-                                      FileListFilter *filter)
-{
-  return is_filtered_lib_type(file, root, filter) && is_filtered_asset(file, filter);
-}
-
 static bool is_filtered_main(FileListInternEntry *file,
                              const char *UNUSED(dir),
                              FileListFilter *filter)
@@ -1046,6 +1040,17 @@ static bool is_filtered_main_assets(FileListInternEntry *file,
   /* "Filtered" means *not* being filtered out... So return true if the file should be visible. */
   return is_filtered_id_file_type(file, file->relpath, file->name, filter) &&
          is_filtered_asset(file, filter);
+}
+
+static bool is_filtered_asset_library(FileListInternEntry *file,
+                                      const char *root,
+                                      FileListFilter *filter)
+{
+  if (filelist_intern_entry_is_main_file(file)) {
+    return is_filtered_main_assets(file, root, filter);
+  }
+
+  return is_filtered_lib_type(file, root, filter) && is_filtered_asset(file, filter);
 }
 
 void filelist_tag_needs_filtering(FileList *filelist)
@@ -1636,13 +1641,13 @@ static void filelist_cache_preview_runf(TaskPool *__restrict pool, void *taskdat
     source = THB_SOURCE_FONT;
   }
 
-  IMB_thumb_path_lock(preview->path);
+  IMB_thumb_path_lock(preview->filepath);
   /* Always generate biggest preview size for now, it's simpler and avoids having to re-generate
    * in case user switch to a bigger preview size. Do not create preview when file is offline. */
   ImBuf *imbuf = (preview->attributes & FILE_ATTR_OFFLINE) ?
-                     IMB_thumb_read(preview->path, THB_LARGE) :
-                     IMB_thumb_manage(preview->path, THB_LARGE, source);
-  IMB_thumb_path_unlock(preview->path);
+                     IMB_thumb_read(preview->filepath, THB_LARGE) :
+                     IMB_thumb_manage(preview->filepath, THB_LARGE, source);
+  IMB_thumb_path_unlock(preview->filepath);
   if (imbuf) {
     preview->icon_id = BKE_icon_imbuf_create(imbuf);
   }
@@ -1753,7 +1758,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   if (preview_in_memory) {
     /* TODO(mano-wii): No need to use the thread API here. */
     BLI_assert(BKE_previewimg_is_finished(preview_in_memory, ICON_SIZE_PREVIEW));
-    preview->path[0] = '\0';
+    preview->filepath[0] = '\0';
     ImBuf *imbuf = BKE_previewimg_to_imbuf(preview_in_memory, ICON_SIZE_PREVIEW);
     if (imbuf) {
       preview->icon_id = BKE_icon_imbuf_create(imbuf);
@@ -1762,13 +1767,13 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
   }
   else {
     if (entry->redirection_path) {
-      BLI_strncpy(preview->path, entry->redirection_path, FILE_MAXDIR);
+      BLI_strncpy(preview->filepath, entry->redirection_path, FILE_MAXDIR);
     }
     else {
       BLI_join_dirfile(
-          preview->path, sizeof(preview->path), filelist->filelist.root, entry->relpath);
+          preview->filepath, sizeof(preview->filepath), filelist->filelist.root, entry->relpath);
     }
-    // printf("%s: %d - %s\n", __func__, preview->index, preview->path);
+    // printf("%s: %d - %s\n", __func__, preview->index, preview->filepath);
 
     FileListEntryPreviewTaskData *preview_taskdata = MEM_mallocN(sizeof(*preview_taskdata),
                                                                  __func__);
@@ -2667,7 +2672,7 @@ bool filelist_cache_previews_update(FileList *filelist)
      * we do not want to cache it again here. */
     entry = filelist_file_ex(filelist, preview->index, false);
 
-    //      printf("%s: %d - %s - %p\n", __func__, preview->index, preview->path, preview->img);
+    // printf("%s: %d - %s - %p\n", __func__, preview->index, preview->filepath, preview->img);
 
     if (entry) {
       if (preview->icon_id) {
@@ -2802,7 +2807,8 @@ int ED_path_extension_type(const char *path)
   if (BLI_path_extension_check(path, ".zip")) {
     return FILE_TYPE_ARCHIVE;
   }
-  if (BLI_path_extension_check_n(path, ".obj", ".3ds", ".fbx", ".glb", ".gltf", ".svg", NULL)) {
+  if (BLI_path_extension_check_n(
+          path, ".obj", ".mtl", ".3ds", ".fbx", ".glb", ".gltf", ".svg", ".stl", NULL)) {
     return FILE_TYPE_OBJECT_IO;
   }
   if (BLI_path_extension_check_array(path, imb_ext_image)) {
@@ -3074,7 +3080,7 @@ static int filelist_readjob_list_dir(const char *root,
           }
           target = entry->redirection_path;
 #ifdef WIN32
-          /* On Windows don't show ".lnk" extension for valid shortcuts. */
+          /* On Windows don't show `.lnk` extension for valid shortcuts. */
           BLI_path_extension_replace(entry->relpath, FILE_MAXDIR, "");
 #endif
         }

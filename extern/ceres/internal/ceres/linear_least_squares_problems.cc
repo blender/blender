@@ -49,7 +49,8 @@ namespace internal {
 
 using std::string;
 
-LinearLeastSquaresProblem* CreateLinearLeastSquaresProblemFromId(int id) {
+std::unique_ptr<LinearLeastSquaresProblem>
+CreateLinearLeastSquaresProblemFromId(int id) {
   switch (id) {
     case 0:
       return LinearLeastSquaresProblem0();
@@ -64,7 +65,7 @@ LinearLeastSquaresProblem* CreateLinearLeastSquaresProblemFromId(int id) {
     default:
       LOG(FATAL) << "Unknown problem id requested " << id;
   }
-  return NULL;
+  return nullptr;
 }
 
 /*
@@ -85,15 +86,16 @@ D = [1
 x_D = [1.78448275;
        2.82327586;]
  */
-LinearLeastSquaresProblem* LinearLeastSquaresProblem0() {
-  LinearLeastSquaresProblem* problem = new LinearLeastSquaresProblem;
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem0() {
+  std::unique_ptr<LinearLeastSquaresProblem> problem =
+      std::make_unique<LinearLeastSquaresProblem>();
 
-  TripletSparseMatrix* A = new TripletSparseMatrix(3, 2, 6);
-  problem->b.reset(new double[3]);
-  problem->D.reset(new double[2]);
+  auto A = std::make_unique<TripletSparseMatrix>(3, 2, 6);
+  problem->b = std::make_unique<double[]>(3);
+  problem->D = std::make_unique<double[]>(2);
 
-  problem->x.reset(new double[2]);
-  problem->x_D.reset(new double[2]);
+  problem->x = std::make_unique<double[]>(2);
+  problem->x_D = std::make_unique<double[]>(2);
 
   int* Ai = A->mutable_rows();
   int* Aj = A->mutable_cols();
@@ -115,7 +117,7 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem0() {
   Ax[4] = 6;
   Ax[5] = -10;
   A->set_num_nonzeros(6);
-  problem->A.reset(A);
+  problem->A = std::move(A);
 
   problem->b[0] = 8;
   problem->b[1] = 18;
@@ -161,7 +163,7 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem0() {
 
       S = [ 42.3419  -1.4000  -11.5806
             -1.4000   2.6000    1.0000
-            11.5806   1.0000   31.1935]
+           -11.5806   1.0000   31.1935]
 
       r = [ 4.3032
             5.4000
@@ -181,15 +183,16 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem0() {
 // BlockSparseMatrix version of this problem.
 
 // TripletSparseMatrix version.
-LinearLeastSquaresProblem* LinearLeastSquaresProblem1() {
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem1() {
   int num_rows = 6;
   int num_cols = 5;
 
-  LinearLeastSquaresProblem* problem = new LinearLeastSquaresProblem;
-  TripletSparseMatrix* A =
-      new TripletSparseMatrix(num_rows, num_cols, num_rows * num_cols);
-  problem->b.reset(new double[num_rows]);
-  problem->D.reset(new double[num_cols]);
+  std::unique_ptr<LinearLeastSquaresProblem> problem =
+      std::make_unique<LinearLeastSquaresProblem>();
+  auto A = std::make_unique<TripletSparseMatrix>(
+      num_rows, num_cols, num_rows * num_cols);
+  problem->b = std::make_unique<double[]>(num_rows);
+  problem->D = std::make_unique<double[]>(num_cols);
   problem->num_eliminate_blocks = 2;
 
   int* rows = A->mutable_rows();
@@ -271,7 +274,7 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem1() {
   A->set_num_nonzeros(nnz);
   CHECK(A->IsValid());
 
-  problem->A.reset(A);
+  problem->A = std::move(A);
 
   for (int i = 0; i < num_cols; ++i) {
     problem->D.get()[i] = 1;
@@ -285,21 +288,23 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem1() {
 }
 
 // BlockSparseMatrix version
-LinearLeastSquaresProblem* LinearLeastSquaresProblem2() {
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem2() {
   int num_rows = 6;
   int num_cols = 5;
 
-  LinearLeastSquaresProblem* problem = new LinearLeastSquaresProblem;
+  std::unique_ptr<LinearLeastSquaresProblem> problem =
+      std::make_unique<LinearLeastSquaresProblem>();
 
-  problem->b.reset(new double[num_rows]);
-  problem->D.reset(new double[num_cols]);
+  problem->b = std::make_unique<double[]>(num_rows);
+  problem->D = std::make_unique<double[]>(num_cols);
   problem->num_eliminate_blocks = 2;
 
-  CompressedRowBlockStructure* bs = new CompressedRowBlockStructure;
-  std::unique_ptr<double[]> values(new double[num_rows * num_cols]);
+  auto* bs = new CompressedRowBlockStructure;
+  std::unique_ptr<double[]> values =
+      std::make_unique<double[]>(num_rows * num_cols);
 
   for (int c = 0; c < num_cols; ++c) {
-    bs->cols.push_back(Block());
+    bs->cols.emplace_back();
     bs->cols.back().size = 1;
     bs->cols.back().position = c;
   }
@@ -311,12 +316,12 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem2() {
     values[nnz++] = 1;
     values[nnz++] = 2;
 
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 0;
-    row.cells.push_back(Cell(0, 0));
-    row.cells.push_back(Cell(2, 1));
+    row.cells.emplace_back(0, 0);
+    row.cells.emplace_back(2, 1);
   }
 
   // Row 2
@@ -324,12 +329,12 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem2() {
     values[nnz++] = 3;
     values[nnz++] = 4;
 
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 1;
-    row.cells.push_back(Cell(0, 2));
-    row.cells.push_back(Cell(3, 3));
+    row.cells.emplace_back(0, 2);
+    row.cells.emplace_back(3, 3);
   }
 
   // Row 3
@@ -337,12 +342,12 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem2() {
     values[nnz++] = 5;
     values[nnz++] = 6;
 
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 2;
-    row.cells.push_back(Cell(1, 4));
-    row.cells.push_back(Cell(4, 5));
+    row.cells.emplace_back(1, 4);
+    row.cells.emplace_back(4, 5);
   }
 
   // Row 4
@@ -350,12 +355,12 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem2() {
     values[nnz++] = 7;
     values[nnz++] = 8;
 
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 3;
-    row.cells.push_back(Cell(1, 6));
-    row.cells.push_back(Cell(2, 7));
+    row.cells.emplace_back(1, 6);
+    row.cells.emplace_back(2, 7);
   }
 
   // Row 5
@@ -363,12 +368,12 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem2() {
     values[nnz++] = 9;
     values[nnz++] = 1;
 
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 4;
-    row.cells.push_back(Cell(1, 8));
-    row.cells.push_back(Cell(2, 9));
+    row.cells.emplace_back(1, 8);
+    row.cells.emplace_back(2, 9);
   }
 
   // Row 6
@@ -377,16 +382,16 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem2() {
     values[nnz++] = 1;
     values[nnz++] = 1;
 
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 5;
-    row.cells.push_back(Cell(2, 10));
-    row.cells.push_back(Cell(3, 11));
-    row.cells.push_back(Cell(4, 12));
+    row.cells.emplace_back(2, 10);
+    row.cells.emplace_back(3, 11);
+    row.cells.emplace_back(4, 12);
   }
 
-  BlockSparseMatrix* A = new BlockSparseMatrix(bs);
+  auto A = std::make_unique<BlockSparseMatrix>(bs);
   memcpy(A->mutable_values(), values.get(), nnz * sizeof(*A->values()));
 
   for (int i = 0; i < num_cols; ++i) {
@@ -397,7 +402,7 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem2() {
     problem->b.get()[i] = i;
   }
 
-  problem->A.reset(A);
+  problem->A = std::move(A);
 
   return problem;
 }
@@ -418,21 +423,23 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem2() {
            5]
 */
 // BlockSparseMatrix version
-LinearLeastSquaresProblem* LinearLeastSquaresProblem3() {
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem3() {
   int num_rows = 5;
   int num_cols = 2;
 
-  LinearLeastSquaresProblem* problem = new LinearLeastSquaresProblem;
+  std::unique_ptr<LinearLeastSquaresProblem> problem =
+      std::make_unique<LinearLeastSquaresProblem>();
 
-  problem->b.reset(new double[num_rows]);
-  problem->D.reset(new double[num_cols]);
+  problem->b = std::make_unique<double[]>(num_rows);
+  problem->D = std::make_unique<double[]>(num_cols);
   problem->num_eliminate_blocks = 2;
 
-  CompressedRowBlockStructure* bs = new CompressedRowBlockStructure;
-  std::unique_ptr<double[]> values(new double[num_rows * num_cols]);
+  auto* bs = new CompressedRowBlockStructure;
+  std::unique_ptr<double[]> values =
+      std::make_unique<double[]>(num_rows * num_cols);
 
   for (int c = 0; c < num_cols; ++c) {
-    bs->cols.push_back(Block());
+    bs->cols.emplace_back();
     bs->cols.back().size = 1;
     bs->cols.back().position = c;
   }
@@ -442,54 +449,54 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem3() {
   // Row 1
   {
     values[nnz++] = 1;
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 0;
-    row.cells.push_back(Cell(0, 0));
+    row.cells.emplace_back(0, 0);
   }
 
   // Row 2
   {
     values[nnz++] = 3;
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 1;
-    row.cells.push_back(Cell(0, 1));
+    row.cells.emplace_back(0, 1);
   }
 
   // Row 3
   {
     values[nnz++] = 5;
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 2;
-    row.cells.push_back(Cell(1, 2));
+    row.cells.emplace_back(1, 2);
   }
 
   // Row 4
   {
     values[nnz++] = 7;
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 3;
-    row.cells.push_back(Cell(1, 3));
+    row.cells.emplace_back(1, 3);
   }
 
   // Row 5
   {
     values[nnz++] = 9;
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 4;
-    row.cells.push_back(Cell(1, 4));
+    row.cells.emplace_back(1, 4);
   }
 
-  BlockSparseMatrix* A = new BlockSparseMatrix(bs);
+  auto A = std::make_unique<BlockSparseMatrix>(bs);
   memcpy(A->mutable_values(), values.get(), nnz * sizeof(*A->values()));
 
   for (int i = 0; i < num_cols; ++i) {
@@ -500,7 +507,7 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem3() {
     problem->b.get()[i] = i;
   }
 
-  problem->A.reset(A);
+  problem->A = std::move(A);
 
   return problem;
 }
@@ -525,29 +532,31 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem3() {
 //
 // NOTE: This problem is too small and rank deficient to be solved without
 // the diagonal regularization.
-LinearLeastSquaresProblem* LinearLeastSquaresProblem4() {
+std::unique_ptr<LinearLeastSquaresProblem> LinearLeastSquaresProblem4() {
   int num_rows = 3;
   int num_cols = 7;
 
-  LinearLeastSquaresProblem* problem = new LinearLeastSquaresProblem;
+  std::unique_ptr<LinearLeastSquaresProblem> problem =
+      std::make_unique<LinearLeastSquaresProblem>();
 
-  problem->b.reset(new double[num_rows]);
-  problem->D.reset(new double[num_cols]);
+  problem->b = std::make_unique<double[]>(num_rows);
+  problem->D = std::make_unique<double[]>(num_cols);
   problem->num_eliminate_blocks = 1;
 
-  CompressedRowBlockStructure* bs = new CompressedRowBlockStructure;
-  std::unique_ptr<double[]> values(new double[num_rows * num_cols]);
+  auto* bs = new CompressedRowBlockStructure;
+  std::unique_ptr<double[]> values =
+      std::make_unique<double[]>(num_rows * num_cols);
 
   // Column block structure
-  bs->cols.push_back(Block());
+  bs->cols.emplace_back();
   bs->cols.back().size = 2;
   bs->cols.back().position = 0;
 
-  bs->cols.push_back(Block());
+  bs->cols.emplace_back();
   bs->cols.back().size = 3;
   bs->cols.back().position = 2;
 
-  bs->cols.push_back(Block());
+  bs->cols.emplace_back();
   bs->cols.back().size = 2;
   bs->cols.back().position = 5;
 
@@ -555,18 +564,18 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem4() {
 
   // Row 1 & 2
   {
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 2;
     row.block.position = 0;
 
-    row.cells.push_back(Cell(0, nnz));
+    row.cells.emplace_back(0, nnz);
     values[nnz++] = 1;
     values[nnz++] = 2;
     values[nnz++] = 1;
     values[nnz++] = 4;
 
-    row.cells.push_back(Cell(2, nnz));
+    row.cells.emplace_back(2, nnz);
     values[nnz++] = 1;
     values[nnz++] = 1;
     values[nnz++] = 5;
@@ -575,22 +584,22 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem4() {
 
   // Row 3
   {
-    bs->rows.push_back(CompressedRow());
+    bs->rows.emplace_back();
     CompressedRow& row = bs->rows.back();
     row.block.size = 1;
     row.block.position = 2;
 
-    row.cells.push_back(Cell(1, nnz));
+    row.cells.emplace_back(1, nnz);
     values[nnz++] = 9;
     values[nnz++] = 0;
     values[nnz++] = 0;
 
-    row.cells.push_back(Cell(2, nnz));
+    row.cells.emplace_back(2, nnz);
     values[nnz++] = 3;
     values[nnz++] = 1;
   }
 
-  BlockSparseMatrix* A = new BlockSparseMatrix(bs);
+  auto A = std::make_unique<BlockSparseMatrix>(bs);
   memcpy(A->mutable_values(), values.get(), nnz * sizeof(*A->values()));
 
   for (int i = 0; i < num_cols; ++i) {
@@ -601,7 +610,7 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem4() {
     problem->b.get()[i] = i;
   }
 
-  problem->A.reset(A);
+  problem->A = std::move(A);
   return problem;
 }
 
@@ -616,15 +625,15 @@ bool DumpLinearLeastSquaresProblemToConsole(const SparseMatrix* A,
   A->ToDenseMatrix(&AA);
   LOG(INFO) << "A^T: \n" << AA.transpose();
 
-  if (D != NULL) {
+  if (D != nullptr) {
     LOG(INFO) << "A's appended diagonal:\n" << ConstVectorRef(D, A->num_cols());
   }
 
-  if (b != NULL) {
+  if (b != nullptr) {
     LOG(INFO) << "b: \n" << ConstVectorRef(b, A->num_rows());
   }
 
-  if (x != NULL) {
+  if (x != nullptr) {
     LOG(INFO) << "x: \n" << ConstVectorRef(x, A->num_cols());
   }
   return true;
@@ -673,21 +682,21 @@ bool DumpLinearLeastSquaresProblemToTextFile(const string& filename_base,
         A->num_cols());
   }
 
-  if (D != NULL) {
+  if (D != nullptr) {
     string filename = filename_base + "_D.txt";
     WriteArrayToFileOrDie(filename, D, A->num_cols());
     StringAppendF(
         &matlab_script, "lsqp.D = load('%s', '-ascii');\n", filename.c_str());
   }
 
-  if (b != NULL) {
+  if (b != nullptr) {
     string filename = filename_base + "_b.txt";
     WriteArrayToFileOrDie(filename, b, A->num_rows());
     StringAppendF(
         &matlab_script, "lsqp.b = load('%s', '-ascii');\n", filename.c_str());
   }
 
-  if (x != NULL) {
+  if (x != nullptr) {
     string filename = filename_base + "_x.txt";
     WriteArrayToFileOrDie(filename, x, A->num_cols());
     StringAppendF(

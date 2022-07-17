@@ -1292,7 +1292,7 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
     side_index = t_snap >= t_mid;
   }
 
-  if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE)) {
+  if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE_RAYCAST)) {
     float co_dir[3];
     sub_v3_v3v3(co_dir, co_dest[side_index], co_orig);
     normalize_v3(co_dir);
@@ -1444,7 +1444,7 @@ static void applyEdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
   final = t->values[0] + t->values_modal_offset[0];
 
-  applySnapping(t, &final);
+  applySnappingAsGroup(t, &final);
   if (!validSnap(t)) {
     transform_snap_increment(t, &final);
   }

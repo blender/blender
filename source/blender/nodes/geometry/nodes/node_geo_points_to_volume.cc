@@ -163,19 +163,22 @@ static void gather_point_data_from_component(GeoNodeExecParams &params,
                                              Vector<float3> &r_positions,
                                              Vector<float> &r_radii)
 {
-  VArray<float3> positions = component.attribute_get_for_read<float3>(
+  if (component.is_empty()) {
+    return;
+  }
+  VArray<float3> positions = component.attributes()->lookup_or_default<float3>(
       "position", ATTR_DOMAIN_POINT, {0, 0, 0});
 
   Field<float> radius_field = params.get_input<Field<float>>("Radius");
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  const int domain_num = component.attribute_domain_size(ATTR_DOMAIN_POINT);
 
-  r_positions.resize(r_positions.size() + domain_size);
-  positions.materialize(r_positions.as_mutable_span().take_back(domain_size));
+  r_positions.resize(r_positions.size() + domain_num);
+  positions.materialize(r_positions.as_mutable_span().take_back(domain_num));
 
-  r_radii.resize(r_radii.size() + domain_size);
-  fn::FieldEvaluator evaluator{field_context, domain_size};
-  evaluator.add_with_destination(radius_field, r_radii.as_mutable_span().take_back(domain_size));
+  r_radii.resize(r_radii.size() + domain_num);
+  fn::FieldEvaluator evaluator{field_context, domain_num};
+  evaluator.add_with_destination(radius_field, r_radii.as_mutable_span().take_back(domain_num));
   evaluator.evaluate();
 }
 

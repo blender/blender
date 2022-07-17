@@ -32,7 +32,7 @@ using OpenSubdiv::Osd::CpuVertexBuffer;
 namespace blender {
 namespace opensubdiv {
 
-// Note: Define as a class instead of typedef to make it possible
+// NOTE: Define as a class instead of typedef to make it possible
 // to have anonymous class in opensubdiv_evaluator_internal.h
 class CpuEvalOutput : public VolatileEvalOutput<CpuVertexBuffer,
                                                 CpuVertexBuffer,

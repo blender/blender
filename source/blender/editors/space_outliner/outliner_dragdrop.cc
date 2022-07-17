@@ -170,7 +170,8 @@ static TreeElement *outliner_drop_insert_find(bContext *C,
     *r_insert_type = TE_INSERT_BEFORE;
     return first;
   }
-  BLI_assert(0);
+
+  BLI_assert_unreachable();
   return nullptr;
 }
 
@@ -315,7 +316,7 @@ static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
-  bool changed = outliner_flag_set(&space_outliner->tree, TSE_DRAG_ANY, false);
+  bool changed = outliner_flag_set(*space_outliner, TSE_DRAG_ANY, false);
   if (changed) {
     ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));
   }
@@ -846,8 +847,7 @@ static bool datastack_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ARegion *region = CTX_wm_region(C);
-  bool changed = outliner_flag_set(
-      &space_outliner->tree, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
+  bool changed = outliner_flag_set(*space_outliner, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
 
   StackDropData *drop_data = reinterpret_cast<StackDropData *>(drag->poin);
   if (!drop_data) {
@@ -1124,8 +1124,7 @@ static Collection *collection_parent_from_ID(ID *id)
   return nullptr;
 }
 
-static bool collection_drop_init(
-    bContext *C, wmDrag *drag, const int xy[2], const bool is_link, CollectionDrop *data)
+static bool collection_drop_init(bContext *C, wmDrag *drag, const int xy[2], CollectionDrop *data)
 {
   /* Get collection to drop into. */
   TreeElementInsertType insert_type;
@@ -1157,9 +1156,6 @@ static bool collection_drop_init(
   /* Get collection to drag out of. */
   ID *parent = drag_id->from_parent;
   Collection *from_collection = collection_parent_from_ID(parent);
-  if (is_link) {
-    from_collection = nullptr;
-  }
 
   /* Currently this should not be allowed, cannot edit items in an override of a Collection. */
   if (from_collection != nullptr && ID_IS_OVERRIDE_LIBRARY(from_collection)) {
@@ -1194,33 +1190,25 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 {
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   ARegion *region = CTX_wm_region(C);
-  bool changed = outliner_flag_set(
-      &space_outliner->tree, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
+  bool changed = outliner_flag_set(*space_outliner, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
 
   CollectionDrop data;
-  if (((event->modifier & KM_SHIFT) == 0) &&
-      collection_drop_init(C, drag, event->xy, event->modifier & KM_CTRL, &data)) {
+  if (((event->modifier & KM_SHIFT) == 0) && collection_drop_init(C, drag, event->xy, &data)) {
     TreeElement *te = data.te;
     TreeStoreElem *tselem = TREESTORE(te);
-    if (!data.from || event->modifier & KM_CTRL) {
-      tselem->flag |= TSE_DRAG_INTO;
-      changed = true;
-    }
-    else {
-      switch (data.insert_type) {
-        case TE_INSERT_BEFORE:
-          tselem->flag |= TSE_DRAG_BEFORE;
-          changed = true;
-          break;
-        case TE_INSERT_AFTER:
-          tselem->flag |= TSE_DRAG_AFTER;
-          changed = true;
-          break;
-        case TE_INSERT_INTO: {
-          tselem->flag |= TSE_DRAG_INTO;
-          changed = true;
-          break;
-        }
+    switch (data.insert_type) {
+      case TE_INSERT_BEFORE:
+        tselem->flag |= TSE_DRAG_BEFORE;
+        changed = true;
+        break;
+      case TE_INSERT_AFTER:
+        tselem->flag |= TSE_DRAG_AFTER;
+        changed = true;
+        break;
+      case TE_INSERT_INTO: {
+        tselem->flag |= TSE_DRAG_INTO;
+        changed = true;
+        break;
       }
     }
     if (changed) {
@@ -1243,30 +1231,49 @@ static char *collection_drop_tooltip(bContext *C,
   const wmEvent *event = win ? win->eventstate : nullptr;
 
   CollectionDrop data;
-  if (event && ((event->modifier & KM_SHIFT) == 0) &&
-      collection_drop_init(C, drag, xy, event->modifier & KM_CTRL, &data)) {
-    TreeElement *te = data.te;
-    if (!data.from || event->modifier & KM_CTRL) {
-      return BLI_strdup(TIP_("Link inside Collection"));
+  if (event && ((event->modifier & KM_SHIFT) == 0) && collection_drop_init(C, drag, xy, &data)) {
+    const bool is_link = !data.from || (event->modifier & KM_CTRL);
+
+    /* Test if we are moving within same parent collection. */
+    bool same_level = false;
+    LISTBASE_FOREACH (CollectionParent *, parent, &data.to->parents) {
+      if (data.from == parent->collection) {
+        same_level = true;
+      }
     }
+
+    /* Tooltips when not moving directly into another collection i.e. mouse on border of
+     * collections. Later we will decide which tooltip to return. */
+    const bool tooltip_link = (is_link && !same_level);
+    const char *tooltip_before = tooltip_link ? TIP_("Link before collection") :
+                                                TIP_("Move before collection");
+    const char *tooltip_between = tooltip_link ? TIP_("Link between collections") :
+                                                 TIP_("Move between collections");
+    const char *tooltip_after = tooltip_link ? TIP_("Link after collection") :
+                                               TIP_("Move after collection");
+
+    TreeElement *te = data.te;
     switch (data.insert_type) {
       case TE_INSERT_BEFORE:
         if (te->prev && outliner_is_collection_tree_element(te->prev)) {
-          return BLI_strdup(TIP_("Move between collections"));
+          return BLI_strdup(tooltip_between);
         }
         else {
-          return BLI_strdup(TIP_("Move before collection"));
+          return BLI_strdup(tooltip_before);
         }
         break;
       case TE_INSERT_AFTER:
         if (te->next && outliner_is_collection_tree_element(te->next)) {
-          return BLI_strdup(TIP_("Move between collections"));
+          return BLI_strdup(tooltip_between);
         }
         else {
-          return BLI_strdup(TIP_("Move after collection"));
+          return BLI_strdup(tooltip_after);
         }
         break;
       case TE_INSERT_INTO: {
+        if (is_link) {
+          return BLI_strdup(TIP_("Link inside collection"));
+        }
 
         /* Check the type of the drag IDs to avoid the incorrect "Shift to parent"
          * for collections. Checking the type of the first ID works fine here since
@@ -1297,7 +1304,7 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
   wmDrag *drag = reinterpret_cast<wmDrag *>(lb->first);
 
   CollectionDrop data;
-  if (!collection_drop_init(C, drag, event->xy, event->modifier & KM_CTRL, &data)) {
+  if (!collection_drop_init(C, drag, event->xy, &data)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -1448,7 +1455,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
                                        TSE_GPENCIL_EFFECT_BASE);
 
   const int wm_drag_type = use_datastack_drag ? WM_DRAG_DATASTACK : WM_DRAG_ID;
-  wmDrag *drag = WM_event_start_drag(C, data.icon, wm_drag_type, nullptr, 0.0, WM_DRAG_NOP);
+  wmDrag *drag = WM_drag_data_create(C, data.icon, wm_drag_type, nullptr, 0.0, WM_DRAG_NOP);
 
   if (use_datastack_drag) {
     TreeElement *te_bone = nullptr;
@@ -1460,7 +1467,7 @@ static int outliner_item_drag_drop_invoke(bContext *C,
 
     /* Only drag element under mouse if it was not selected before. */
     if ((tselem->flag & TSE_SELECTED) == 0) {
-      outliner_flag_set(&space_outliner->tree, TSE_SELECTED, 0);
+      outliner_flag_set(*space_outliner, TSE_SELECTED, 0);
       tselem->flag |= TSE_SELECTED;
     }
 
@@ -1537,6 +1544,8 @@ static int outliner_item_drag_drop_invoke(bContext *C,
     /* Add single ID. */
     WM_drag_add_local_ID(drag, data.drag_id, data.drag_parent);
   }
+
+  WM_event_start_prepared_drag(C, drag);
 
   ED_outliner_select_sync_from_outliner(C, space_outliner);
 

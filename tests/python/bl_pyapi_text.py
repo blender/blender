@@ -17,11 +17,11 @@ class TestText(unittest.TestCase):
     def test_text_new(self):
         self.assertEqual(len(bpy.data.texts), 1)
         self.assertEqual(self.text.name, "test_text")
-        self.assertEqual(self.text.as_string(), "\n")
+        self.assertEqual(self.text.as_string(), "")
 
     def test_text_clear(self):
         self.text.clear()
-        self.assertEqual(self.text.as_string(), "\n")
+        self.assertEqual(self.text.as_string(), "")
 
     def test_text_fill(self):
         tmp_text = (
@@ -30,7 +30,7 @@ class TestText(unittest.TestCase):
             "Line 3: test line 3"
         )
         self.text.write(tmp_text)
-        self.assertEqual(self.text.as_string(), tmp_text + "\n")
+        self.assertEqual(self.text.as_string(), tmp_text)
 
     def test_text_region_as_string(self):
         tmp_text = (
@@ -53,10 +53,10 @@ class TestText(unittest.TestCase):
         self.text.write(tmp_text)
         # Set string in the middle of the text.
         self.text.region_from_string("line 2", range=((1, 0), (1, -1)))
-        self.assertEqual(self.text.as_string(), tmp_text.replace("Line 2: test line 2", "line 2") + "\n")
+        self.assertEqual(self.text.as_string(), tmp_text.replace("Line 2: test line 2", "line 2"))
         # Large range test.
         self.text.region_from_string("New Text", range=((-10000, -10000), (10000, 10000)))
-        self.assertEqual(self.text.as_string(), "New Text\n")
+        self.assertEqual(self.text.as_string(), "New Text")
 
 
 if __name__ == "__main__":

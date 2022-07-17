@@ -22,7 +22,7 @@ class OutputOpenExrSingleLayerMultiViewOperation : public OutputSingleLayerOpera
                                              const RenderData *rd,
                                              const bNodeTree *tree,
                                              DataType datatype,
-                                             ImageFormatData *format,
+                                             const ImageFormatData *format,
                                              const char *path,
                                              const char *view_name,
                                              bool save_as_render);
@@ -57,7 +57,7 @@ class OutputStereoOperation : public OutputSingleLayerOperation {
                         const RenderData *rd,
                         const bNodeTree *tree,
                         DataType datatype,
-                        struct ImageFormatData *format,
+                        const struct ImageFormatData *format,
                         const char *path,
                         const char *name,
                         const char *view_name,

@@ -102,15 +102,13 @@ namespace ceres {
 // seen where instead of using a_ directly, a_ is wrapped with T(a_).
 
 template <typename FirstOrderFunctor, int kNumParameters>
-class AutoDiffFirstOrderFunction : public FirstOrderFunction {
+class AutoDiffFirstOrderFunction final : public FirstOrderFunction {
  public:
   // Takes ownership of functor.
   explicit AutoDiffFirstOrderFunction(FirstOrderFunctor* functor)
       : functor_(functor) {
     static_assert(kNumParameters > 0, "kNumParameters must be positive");
   }
-
-  virtual ~AutoDiffFirstOrderFunction() {}
 
   bool Evaluate(const double* const parameters,
                 double* cost,
@@ -119,7 +117,7 @@ class AutoDiffFirstOrderFunction : public FirstOrderFunction {
       return (*functor_)(parameters, cost);
     }
 
-    typedef Jet<double, kNumParameters> JetT;
+    using JetT = Jet<double, kNumParameters>;
     internal::FixedArray<JetT, (256 * 7) / sizeof(JetT)> x(kNumParameters);
     for (int i = 0; i < kNumParameters; ++i) {
       x[i].a = parameters[i];
@@ -141,6 +139,8 @@ class AutoDiffFirstOrderFunction : public FirstOrderFunction {
   }
 
   int NumParameters() const override { return kNumParameters; }
+
+  const FirstOrderFunctor& functor() const { return *functor_; }
 
  private:
   std::unique_ptr<FirstOrderFunctor> functor_;

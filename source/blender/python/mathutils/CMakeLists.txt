@@ -6,6 +6,7 @@ set(INC
   ../../blenlib
   ../../bmesh
   ../../depsgraph
+  ../../imbuf
   ../../makesdna
   ../../../../intern/guardedalloc
 )
@@ -42,6 +43,7 @@ set(SRC
 
 set(LIB
   bf_blenlib
+  bf_imbuf
   bf_python_ext
 
   ${PYTHON_LINKFLAGS}

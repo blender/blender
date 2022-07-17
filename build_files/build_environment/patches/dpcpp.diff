@@ -1,0 +1,54 @@
+diff -Naur external_dpcpp.orig/sycl/source/CMakeLists.txt external_dpcpp/sycl/source/CMakeLists.txt
+--- external_dpcpp.orig/sycl/source/CMakeLists.txt      2022-05-20 04:19:45.067771362 +0000
++++ external_dpcpp/sycl/source/CMakeLists.txt   2022-05-20 04:21:49.708025048 +0000
+@@ -66,10 +66,10 @@
+     target_compile_options(${LIB_OBJ_NAME} PUBLIC
+                            -fvisibility=hidden -fvisibility-inlines-hidden)
+     set(linker_script "${CMAKE_CURRENT_SOURCE_DIR}/ld-version-script.txt")
+-    set(abi_linker_script "${CMAKE_CURRENT_SOURCE_DIR}/abi_replacements_linux.txt")
+-    target_link_libraries(
+-      ${LIB_NAME} PRIVATE "-Wl,${abi_linker_script}")
+-    set_target_properties(${LIB_NAME} PROPERTIES LINK_DEPENDS ${abi_linker_script})
++#    set(abi_linker_script "${CMAKE_CURRENT_SOURCE_DIR}/abi_replacements_linux.txt")
++#    target_link_libraries(
++#      ${LIB_NAME} PRIVATE "-Wl,${abi_linker_script}")
++#    set_target_properties(${LIB_NAME} PROPERTIES LINK_DEPENDS ${abi_linker_script})
+     target_link_libraries(
+         ${LIB_NAME} PRIVATE "-Wl,--version-script=${linker_script}")
+     set_target_properties(${LIB_NAME} PROPERTIES LINK_DEPENDS ${linker_script})
+diff -Naur llvm-sycl-nightly-20220501.orig\opencl/CMakeLists.txt llvm-sycl-nightly-20220501\opencl/CMakeLists.txt
+--- llvm-sycl-nightly-20220501.orig/opencl/CMakeLists.txt       2022-04-29 13:47:11 -0600
++++ llvm-sycl-nightly-20220501/opencl/CMakeLists.txt    2022-05-21 15:25:06 -0600
+@@ -11,6 +11,11 @@
+   )
+ endif()
+
++# Blender code below is determined to use FetchContent_Declare
++# temporarily allow it (but feed it our downloaded tarball
++# in the OpenCL_HEADERS variable
++set(FETCHCONTENT_FULLY_DISCONNECTED OFF)
++
+ # Repo URLs
+
+ set(OCL_HEADERS_REPO
+@@ -77,5 +82,6 @@
+
+ FetchContent_MakeAvailable(ocl-icd)
+ add_library(OpenCL-ICD ALIAS OpenCL)
++set(FETCHCONTENT_FULLY_DISCONNECTED ON)
+
+ add_subdirectory(opencl-aot)
+diff -Naur llvm-sycl-nightly-20220208.orig/libdevice/cmake/modules/SYCLLibdevice.cmake llvm-sycl-nightly-20220208/libdevice/cmake/modules/SYCLLibdevice.cmake
+--- llvm-sycl-nightly-20220208.orig/libdevice/cmake/modules/SYCLLibdevice.cmake	2022-02-08 09:17:24 -0700
++++ llvm-sycl-nightly-20220208/libdevice/cmake/modules/SYCLLibdevice.cmake	2022-05-24 11:35:51 -0600
+@@ -36,7 +36,9 @@
+ add_custom_target(libsycldevice-obj)
+ add_custom_target(libsycldevice-spv)
+ 
+-add_custom_target(libsycldevice DEPENDS
++# Blender: add ALL here otherwise this target will not build
++# and cause an error due to missing files during the install phase.
++add_custom_target(libsycldevice ALL DEPENDS
+   libsycldevice-obj
+   libsycldevice-spv)
+ 

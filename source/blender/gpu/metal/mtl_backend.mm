@@ -9,6 +9,7 @@
 #include "gpu_backend.hh"
 #include "mtl_backend.hh"
 #include "mtl_context.hh"
+#include "mtl_framebuffer.hh"
 
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
@@ -50,8 +51,9 @@ DrawList *MTLBackend::drawlist_alloc(int list_length)
 
 FrameBuffer *MTLBackend::framebuffer_alloc(const char *name)
 {
-  /* TODO(Metal): Implement MTLFrameBuffer. */
-  return nullptr;
+  MTLContext *mtl_context = static_cast<MTLContext *>(
+      reinterpret_cast<Context *>(GPU_context_active_get()));
+  return new MTLFrameBuffer(mtl_context, name);
 };
 
 IndexBuf *MTLBackend::indexbuf_alloc()
@@ -125,7 +127,21 @@ void MTLBackend::render_end()
 
 void MTLBackend::render_step()
 {
-  /* Placeholder */
+  /* NOTE(Metal): Primarily called from main thread, but below data-structures
+   * and operations are thread-safe, and GPUContext rendering coordination
+   * is also thread-safe. */
+
+  /* Flush any MTLSafeFreeLists which have previously been released by any MTLContext. */
+  MTLContext::get_global_memory_manager().update_memory_pools();
+
+  /* End existing MTLSafeFreeList and begin new list --
+   * Buffers wont `free` until all associated in-flight command buffers have completed.
+   * Decrement final reference count for ensuring the previous list is certainly
+   * released. */
+  MTLSafeFreeList *cmd_free_buffer_list =
+      MTLContext::get_global_memory_manager().get_current_safe_list();
+  MTLContext::get_global_memory_manager().begin_new_safe_list();
+  cmd_free_buffer_list->decrement_reference();
 }
 
 bool MTLBackend::is_inside_render_boundary()
@@ -256,7 +272,7 @@ bool MTLBackend::metal_is_supported()
 
   NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
 
-  /* Metal Viewport requires macOS Version 10.15 onwards. */
+  /* Metal Viewport requires macOS Version 10.15 onward. */
   bool supported_os_version = version.majorVersion >= 11 ||
                               (version.majorVersion == 10 ? version.minorVersion >= 15 : false);
   if (!supported_os_version) {
@@ -380,11 +396,10 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
 
     /* In Metal, total_thread_count is 512 or 1024, such that
      * threadgroup `width*height*depth <= total_thread_count` */
-    unsigned int max_threads_per_threadgroup_per_dim =
-        ([device supportsFamily:MTLGPUFamilyApple4] ||
-         MTLBackend::capabilities.supports_family_mac1) ?
-            1024 :
-            512;
+    uint max_threads_per_threadgroup_per_dim = ([device supportsFamily:MTLGPUFamilyApple4] ||
+                                                MTLBackend::capabilities.supports_family_mac1) ?
+                                                   1024 :
+                                                   512;
     GCaps.max_work_group_size[0] = max_threads_per_threadgroup_per_dim;
     GCaps.max_work_group_size[1] = max_threads_per_threadgroup_per_dim;
     GCaps.max_work_group_size[2] = max_threads_per_threadgroup_per_dim;

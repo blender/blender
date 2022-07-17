@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 """
 blender -b -noaudio --factory-startup --python tests/python/bl_animation_fcurves.py -- --testdir /path/to/lib/tests/animation
 """

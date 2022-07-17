@@ -31,7 +31,7 @@ enum {
 enum { METALRT_TABLE_DEFAULT, METALRT_TABLE_SHADOW, METALRT_TABLE_LOCAL, METALRT_TABLE_NUM };
 
 /* Pipeline State Object types */
-enum {
+enum MetalPipelineType {
   /* A kernel that can be used with all scenes, supporting all features.
    * It is slow to compile, but only needs to be compiled once and is then
    * cached for future render sessions. This allows a render to get underway
@@ -39,118 +39,64 @@ enum {
    */
   PSO_GENERIC,
 
-  /* A kernel that is relatively quick to compile, but is specialized for the
-   * scene being rendered. It only contains the functionality and even baked in
-   * constants for values that means it needs to be recompiled whenever a
-   * dependent setting is changed. The render performance of this kernel is
-   * significantly faster though, and justifies the extra compile time.
+  /* A intersection kernel that is very quick to specialize and results in faster intersection
+   * kernel performance. It uses Metal function constants to replace several KernelData variables
+   * with fixed constants.
    */
-  /* METAL_WIP: This isn't used and will require more changes to enable. */
-  PSO_SPECIALISED,
+  PSO_SPECIALIZED_INTERSECT,
+
+  /* A shading kernel that is slow to specialize, but results in faster shading kernel performance
+   * rendered. It uses Metal function constants to replace several KernelData variables with fixed
+   * constants and short-circuit all unused SVM node case handlers.
+   */
+  PSO_SPECIALIZED_SHADE,
 
   PSO_NUM
 };
 
-const char *kernel_type_as_string(int kernel_type);
+const char *kernel_type_as_string(MetalPipelineType pso_type);
 
 struct MetalKernelPipeline {
-  void release()
-  {
-    if (pipeline) {
-      [pipeline release];
-      pipeline = nil;
-      if (@available(macOS 11.0, *)) {
-        for (int i = 0; i < METALRT_TABLE_NUM; i++) {
-          if (intersection_func_table[i]) {
-            [intersection_func_table[i] release];
-            intersection_func_table[i] = nil;
-          }
-        }
-      }
-    }
-    if (function) {
-      [function release];
-      function = nil;
-    }
-    if (@available(macOS 11.0, *)) {
-      for (int i = 0; i < METALRT_TABLE_NUM; i++) {
-        if (intersection_func_table[i]) {
-          [intersection_func_table[i] release];
-        }
-      }
-    }
-  }
 
+  void compile();
+
+  id<MTLLibrary> mtlLibrary = nil;
+  MetalPipelineType pso_type;
+  string source_md5;
+  size_t usage_count = 0;
+
+  KernelData kernel_data_;
+  bool use_metalrt;
+  bool metalrt_hair;
+  bool metalrt_hair_thick;
+  bool metalrt_pointcloud;
+
+  int threads_per_threadgroup;
+
+  DeviceKernel device_kernel;
   bool loaded = false;
+  id<MTLDevice> mtlDevice = nil;
   id<MTLFunction> function = nil;
   id<MTLComputePipelineState> pipeline = nil;
+  int num_threads_per_block = 0;
+
+  bool should_use_binary_archive() const;
+
+  string error_str;
 
   API_AVAILABLE(macos(11.0))
   id<MTLIntersectionFunctionTable> intersection_func_table[METALRT_TABLE_NUM] = {nil};
-};
-
-struct MetalKernelLoadDesc {
-  int pso_index = 0;
-  const char *function_name = nullptr;
-  int kernel_index = 0;
-  int threads_per_threadgroup = 0;
-  MTLFunctionConstantValues *constant_values = nullptr;
-  NSArray *linked_functions = nullptr;
-
-  struct IntersectorFunctions {
-    NSArray *defaults;
-    NSArray *shadow;
-    NSArray *local;
-    NSArray *operator[](int index) const
-    {
-      if (index == METALRT_TABLE_DEFAULT)
-        return defaults;
-      if (index == METALRT_TABLE_SHADOW)
-        return shadow;
-      return local;
-    }
-  } intersector_functions = {nullptr};
-};
-
-/* Metal kernel and associate occupancy information. */
-class MetalDeviceKernel {
- public:
-  ~MetalDeviceKernel();
-
-  bool load(MetalDevice *device, MetalKernelLoadDesc const &desc, class MD5Hash const &md5);
-
-  void mark_loaded(int pso_index)
-  {
-    pso[pso_index].loaded = true;
-  }
-
-  int get_num_threads_per_block() const
-  {
-    return num_threads_per_block;
-  }
-  const MetalKernelPipeline &get_pso() const;
-
-  double load_duration = 0.0;
-
- private:
-  MetalKernelPipeline pso[PSO_NUM];
-
-  int num_threads_per_block = 0;
+  id<MTLFunction> rt_intersection_function[METALRT_FUNC_NUM] = {nil};
 };
 
 /* Cache of Metal kernels for each DeviceKernel. */
-class MetalDeviceKernels {
- public:
-  bool load(MetalDevice *device, int kernel_type);
-  bool available(DeviceKernel kernel) const;
-  const MetalDeviceKernel &get(DeviceKernel kernel) const;
+namespace MetalDeviceKernels {
 
-  MetalDeviceKernel kernels_[DEVICE_KERNEL_NUM];
+bool should_load_kernels(MetalDevice *device, MetalPipelineType pso_type);
+bool load(MetalDevice *device, MetalPipelineType pso_type);
+const MetalKernelPipeline *get_best_pipeline(const MetalDevice *device, DeviceKernel kernel);
 
-  id<MTLFunction> rt_intersection_funcs[PSO_NUM][METALRT_FUNC_NUM] = {{nil}};
-
-  string loaded_md5[PSO_NUM];
-};
+} /* namespace MetalDeviceKernels */
 
 CCL_NAMESPACE_END
 

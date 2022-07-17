@@ -67,7 +67,6 @@ inline bool IsCornerOppositeToAttributeSeam(CornerIndex ci,
 // Interpolates an attribute value on a face using given barycentric
 // coordinates. InterpolatedVectorT should be a VectorD that corresponds to the
 // values stored in the attribute.
-// TODO(ostava): Find a better place for this.
 template <typename InterpolatedVectorT>
 InterpolatedVectorT ComputeInterpolatedAttributeValueOnMeshFace(
     const Mesh &mesh, const PointAttribute &attribute, FaceIndex fi,

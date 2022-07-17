@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+#include "DNA_scene_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -256,6 +259,7 @@ typedef enum {
    */
   V3D_PROJ_TEST_CLIP_CONTENT = (1 << 5),
 } eV3DProjTest;
+ENUM_OPERATORS(eV3DProjTest, V3D_PROJ_TEST_CLIP_CONTENT);
 
 #define V3D_PROJ_TEST_CLIP_DEFAULT \
   (V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR)
@@ -296,7 +300,7 @@ typedef enum {
 } eV3DPlaceOrient;
 
 typedef struct V3DSnapCursorData {
-  short snap_elem;
+  eSnapMode snap_elem;
   float loc[3];
   float nor[3];
   float obmat[4][4];
@@ -319,7 +323,7 @@ typedef struct V3DSnapCursorState {
   struct wmGizmoGroupType *gzgrp_type; /* Force cursor to be drawn only when gizmo is available. */
   float *prevpoint;
   float box_dimensions[3];
-  short snap_elem_force; /* If zero, use scene settings. */
+  eSnapMode snap_elem_force; /* If SCE_SNAP_MODE_NONE, use scene settings. */
   short plane_axis;
   bool use_plane_axis_auto;
   bool draw_point;
@@ -344,7 +348,7 @@ void ED_view3d_cursor_snap_draw_util(struct RegionView3D *rv3d,
                                      const float normal[3],
                                      const uchar color_line[4],
                                      const uchar color_point[4],
-                                     short snap_elem_type);
+                                     eSnapMode snap_elem_type);
 
 /* view3d_iterators.c */
 
@@ -443,14 +447,14 @@ void pose_foreachScreenBone(struct ViewContext *vc,
 void ED_view3d_project_float_v2_m4(const struct ARegion *region,
                                    const float co[3],
                                    float r_co[2],
-                                   float mat[4][4]);
+                                   const float mat[4][4]);
 /**
  * \note use #ED_view3d_ob_project_mat_get to get projecting mat
  */
 void ED_view3d_project_float_v3_m4(const struct ARegion *region,
                                    const float co[3],
                                    float r_co[3],
-                                   float mat[4][4]);
+                                   const float mat[4][4]);
 
 eV3DProjStatus ED_view3d_project_base(const struct ARegion *region, struct Base *base);
 
@@ -700,9 +704,9 @@ void ED_view3d_win_to_vector(const struct ARegion *region, const float mval[2], 
  * \param do_clip_planes: Optionally clip the ray by the view clipping planes.
  * \return success, false if the segment is totally clipped.
  */
-bool ED_view3d_win_to_segment_clipped(struct Depsgraph *depsgraph,
+bool ED_view3d_win_to_segment_clipped(const struct Depsgraph *depsgraph,
                                       const struct ARegion *region,
-                                      struct View3D *v3d,
+                                      const struct View3D *v3d,
                                       const float mval[2],
                                       float r_ray_start[3],
                                       float r_ray_end[3],
@@ -733,7 +737,7 @@ void ED_view3d_dist_range_get(const struct View3D *v3d, float r_dist_range[2]);
 /**
  * \note copies logic of #ED_view3d_viewplane_get(), keep in sync.
  */
-bool ED_view3d_clip_range_get(struct Depsgraph *depsgraph,
+bool ED_view3d_clip_range_get(const struct Depsgraph *depsgraph,
                               const struct View3D *v3d,
                               const struct RegionView3D *rv3d,
                               float *r_clipsta,
@@ -952,6 +956,22 @@ float ED_view3d_select_dist_px(void);
 void ED_view3d_viewcontext_init(struct bContext *C,
                                 struct ViewContext *vc,
                                 struct Depsgraph *depsgraph);
+
+/**
+ * Re-initialize `vc` with `obact` as if it's active object (with some differences).
+ *
+ * This is often used when operating on multiple objects in modes (edit, pose mode etc)
+ * where the `vc` is passed in as an argument which then references it's object data.
+ *
+ * \note members #ViewContext.obedit & #ViewContext.em are only initialized if they're already set,
+ * by #ED_view3d_viewcontext_init in most cases.
+ * This is necessary because the active object defines the current object-mode.
+ * When iterating over objects in object-mode it doesn't make sense to perform
+ * an edit-mode action on an object that happens to contain edit-mode data.
+ * In some cases these values are cleared allowing the owner of `vc` to explicitly
+ * disable edit-mode operation (to force object selection in edit-mode for e.g.).
+ * So object-mode specific values should remain cleared when initialized with another object.
+ */
 void ED_view3d_viewcontext_init_object(struct ViewContext *vc, struct Object *obact);
 /**
  * Use this call when executing an operator,
@@ -1064,6 +1084,16 @@ bool ED_view3d_quat_to_axis_view(const float viewquat[4],
                                  float epsilon,
                                  char *r_view,
                                  char *r_view_axis_rotation);
+/**
+ * A version of #ED_view3d_quat_to_axis_view that updates `viewquat`
+ * if it's within `epsilon` to an axis-view.
+ *
+ * \note Include the special case function since most callers need to perform these operations.
+ */
+bool ED_view3d_quat_to_axis_view_and_reset_quat(float viewquat[4],
+                                                float epsilon,
+                                                char *r_view,
+                                                char *r_view_axis_rotation);
 
 char ED_view3d_lock_view_from_index(int index);
 char ED_view3d_axis_view_opposite(char view);

@@ -166,6 +166,11 @@ EvalOutputAPI::~EvalOutputAPI()
   delete implementation_;
 }
 
+void EvalOutputAPI::setSettings(const OpenSubdiv_EvaluatorSettings *settings)
+{
+  implementation_->updateSettings(settings);
+}
+
 void EvalOutputAPI::setCoarsePositions(const float *positions,
                                        const int start_vertex_index,
                                        const int num_vertices)
@@ -180,6 +185,14 @@ void EvalOutputAPI::setVaryingData(const float *varying_data,
 {
   // TODO(sergey): Add sanity check on indices.
   implementation_->updateVaryingData(varying_data, start_vertex_index, num_vertices);
+}
+
+void EvalOutputAPI::setVertexData(const float *vertex_data,
+                                  const int start_vertex_index,
+                                  const int num_vertices)
+{
+  // TODO(sergey): Add sanity check on indices.
+  implementation_->updateVertexData(vertex_data, start_vertex_index, num_vertices);
 }
 
 void EvalOutputAPI::setFaceVaryingData(const int face_varying_channel,
@@ -286,6 +299,20 @@ void EvalOutputAPI::evaluateVarying(const int ptex_face_index,
   implementation_->evalPatchesVarying(&patch_coord, 1, varying);
 }
 
+void EvalOutputAPI::evaluateVertexData(const int ptex_face_index,
+                                       float face_u,
+                                       float face_v,
+                                       float vertex_data[])
+{
+  assert(face_u >= 0.0f);
+  assert(face_u <= 1.0f);
+  assert(face_v >= 0.0f);
+  assert(face_v <= 1.0f);
+  const PatchTable::PatchHandle *handle = patch_map_->FindPatch(ptex_face_index, face_u, face_v);
+  PatchCoord patch_coord(*handle, face_u, face_v);
+  implementation_->evalPatchesVertexData(&patch_coord, 1, vertex_data);
+}
+
 void EvalOutputAPI::evaluateFaceVarying(const int face_varying_channel,
                                         const int ptex_face_index,
                                         float face_u,
@@ -361,6 +388,11 @@ void EvalOutputAPI::wrapSrcBuffer(OpenSubdiv_Buffer *src_buffer)
   implementation_->wrapSrcBuffer(src_buffer);
 }
 
+void EvalOutputAPI::wrapSrcVertexDataBuffer(OpenSubdiv_Buffer *src_buffer)
+{
+  implementation_->wrapSrcVertexDataBuffer(src_buffer);
+}
+
 void EvalOutputAPI::fillFVarPatchArraysBuffer(const int face_varying_channel,
                                               OpenSubdiv_Buffer *patch_arrays_buffer)
 {
@@ -383,6 +415,11 @@ void EvalOutputAPI::wrapFVarSrcBuffer(const int face_varying_channel,
                                       OpenSubdiv_Buffer *src_buffer)
 {
   implementation_->wrapFVarSrcBuffer(face_varying_channel, src_buffer);
+}
+
+bool EvalOutputAPI::hasVertexData() const
+{
+  return implementation_->hasVertexData();
 }
 
 }  // namespace opensubdiv
@@ -542,7 +579,7 @@ OpenSubdiv_EvaluatorImpl *openSubdiv_createEvaluatorInternal(
   evaluator_descr->eval_output = new blender::opensubdiv::EvalOutputAPI(eval_output, patch_map);
   evaluator_descr->patch_map = patch_map;
   evaluator_descr->patch_table = patch_table;
-  // TOOD(sergey): Look into whether we've got duplicated stencils arrays.
+  // TODO(sergey): Look into whether we've got duplicated stencils arrays.
   delete vertex_stencils;
   delete varying_stencils;
   for (const StencilTable *table : all_face_varying_stencils) {

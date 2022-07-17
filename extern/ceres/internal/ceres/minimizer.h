@@ -35,7 +35,8 @@
 #include <string>
 #include <vector>
 
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 #include "ceres/iteration_callback.h"
 #include "ceres/solver.h"
 
@@ -49,7 +50,7 @@ class CoordinateDescentMinimizer;
 class LinearSolver;
 
 // Interface for non-linear least squares solvers.
-class CERES_EXPORT_INTERNAL Minimizer {
+class CERES_NO_EXPORT Minimizer {
  public:
   // Options struct to control the behaviour of the Minimizer. Please
   // see solver.h for detailed information about the meaning and
@@ -178,7 +179,7 @@ class CERES_EXPORT_INTERNAL Minimizer {
     std::shared_ptr<CoordinateDescentMinimizer> inner_iteration_minimizer;
   };
 
-  static Minimizer* Create(MinimizerType minimizer_type);
+  static std::unique_ptr<Minimizer> Create(MinimizerType minimizer_type);
   static bool RunCallbacks(const Options& options,
                            const IterationSummary& iteration_summary,
                            Solver::Summary* summary);
@@ -194,5 +195,7 @@ class CERES_EXPORT_INTERNAL Minimizer {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_MINIMIZER_H_

@@ -66,6 +66,12 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"xr_session_start_pre", "on starting an xr session (before)"},
     {"annotation_pre", "on drawing an annotation (before)"},
     {"annotation_post", "on drawing an annotation (after)"},
+    {"object_bake_pre", "before starting a bake job"},
+    {"object_bake_complete", "on completing a bake job; will be called in the main thread"},
+    {"object_bake_cancel", "on canceling a bake job; will be called in the main thread"},
+    {"composite_pre", "on a compositing background job (before)"},
+    {"composite_post", "on a compositing background job (after)"},
+    {"composite_cancel", "on a compositing background job (cancel)"},
 
 /* sets the permanent tag */
 #define APP_CB_OTHER_FIELDS 1
@@ -139,41 +145,41 @@ static PyTypeObject BPyPersistent_Type = {
     0,                /* tp_basicsize */
     0,                /* tp_itemsize */
     /* methods */
-    0,                                                             /* tp_dealloc */
-    0,                                                             /* tp_print */
-    0,                                                             /* tp_getattr */
-    0,                                                             /* tp_setattr */
-    0,                                                             /* tp_reserved */
-    0,                                                             /* tp_repr */
-    0,                                                             /* tp_as_number */
-    0,                                                             /* tp_as_sequence */
-    0,                                                             /* tp_as_mapping */
-    0,                                                             /* tp_hash */
-    0,                                                             /* tp_call */
-    0,                                                             /* tp_str */
-    0,                                                             /* tp_getattro */
-    0,                                                             /* tp_setattro */
-    0,                                                             /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_BASETYPE, /* tp_flags */
-    0,                                                             /* tp_doc */
-    0,                                                             /* tp_traverse */
-    0,                                                             /* tp_clear */
-    0,                                                             /* tp_richcompare */
-    0,                                                             /* tp_weaklistoffset */
-    0,                                                             /* tp_iter */
-    0,                                                             /* tp_iternext */
-    0,                                                             /* tp_methods */
-    0,                                                             /* tp_members */
-    0,                                                             /* tp_getset */
-    0,                                                             /* tp_base */
-    0,                                                             /* tp_dict */
-    0,                                                             /* tp_descr_get */
-    0,                                                             /* tp_descr_set */
-    0,                                                             /* tp_dictoffset */
-    0,                                                             /* tp_init */
-    0,                                                             /* tp_alloc */
-    bpy_app_handlers_persistent_new,                               /* tp_new */
-    0,                                                             /* tp_free */
+    0,                                        /* tp_dealloc */
+    0,                                        /* tp_print */
+    0,                                        /* tp_getattr */
+    0,                                        /* tp_setattr */
+    0,                                        /* tp_reserved */
+    0,                                        /* tp_repr */
+    0,                                        /* tp_as_number */
+    0,                                        /* tp_as_sequence */
+    0,                                        /* tp_as_mapping */
+    0,                                        /* tp_hash */
+    0,                                        /* tp_call */
+    0,                                        /* tp_str */
+    0,                                        /* tp_getattro */
+    0,                                        /* tp_setattro */
+    0,                                        /* tp_as_buffer */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
+    0,                                        /* tp_doc */
+    0,                                        /* tp_traverse */
+    0,                                        /* tp_clear */
+    0,                                        /* tp_richcompare */
+    0,                                        /* tp_weaklistoffset */
+    0,                                        /* tp_iter */
+    0,                                        /* tp_iternext */
+    0,                                        /* tp_methods */
+    0,                                        /* tp_members */
+    0,                                        /* tp_getset */
+    0,                                        /* tp_base */
+    0,                                        /* tp_dict */
+    0,                                        /* tp_descr_get */
+    0,                                        /* tp_descr_set */
+    0,                                        /* tp_dictoffset */
+    0,                                        /* tp_init */
+    0,                                        /* tp_alloc */
+    bpy_app_handlers_persistent_new,          /* tp_new */
+    0,                                        /* tp_free */
 };
 
 static PyObject *py_cb_array[BKE_CB_EVT_TOT] = {NULL};

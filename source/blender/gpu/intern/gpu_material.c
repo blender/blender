@@ -19,14 +19,11 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
-#include "BKE_scene.h"
-#include "BKE_world.h"
 
 #include "NOD_shader.h"
 
@@ -168,6 +165,7 @@ static void gpu_material_free_single(GPUMaterial *material)
   if (material->sss_tex_profile != NULL) {
     GPU_texture_free(material->sss_tex_profile);
   }
+  MEM_freeN(material);
 }
 
 void GPU_material_free(ListBase *gpumaterial)
@@ -176,7 +174,6 @@ void GPU_material_free(ListBase *gpumaterial)
     GPUMaterial *material = link->data;
     DRW_deferred_shader_remove(material);
     gpu_material_free_single(material);
-    MEM_freeN(material);
   }
   BLI_freelistN(gpumaterial);
 }
@@ -626,7 +623,7 @@ eGPUMaterialFlag GPU_material_flag(const GPUMaterial *mat)
   return mat->flag;
 }
 
-/* Note: Consumes the flags. */
+/* NOTE: Consumes the flags. */
 bool GPU_material_recalc_flag_get(GPUMaterial *mat)
 {
   bool updated = (mat->flag & GPU_MATFLAG_UPDATED) != 0;
@@ -669,7 +666,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUNodeGraph.used_libraries");
   mat->refcount = 1;
 #ifndef NDEBUG
-  BLI_snprintf(mat->name, sizeof(mat->name), "%s", name);
+  STRNCPY(mat->name, name);
 #else
   UNUSED_VARS(name);
 #endif
@@ -749,6 +746,9 @@ void GPU_material_compile(GPUMaterial *mat)
     if (sh != NULL) {
       mat->status = GPU_MAT_SUCCESS;
       gpu_node_graph_free_nodes(&mat->graph);
+    }
+    else {
+      mat->status = GPU_MAT_FAILED;
     }
   }
   else {

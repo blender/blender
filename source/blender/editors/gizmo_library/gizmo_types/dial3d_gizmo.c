@@ -77,6 +77,21 @@ typedef struct DialInteraction {
 #define DIAL_CLIP_BIAS 0.02
 
 /* -------------------------------------------------------------------- */
+struct Dial3dParams {
+  int draw_options;
+  float angle_ofs;
+  float angle_delta;
+  float angle_increment;
+  float arc_partial_angle;
+  float arc_inner_factor;
+  float *clip_plane;
+};
+static void dial_3d_draw_util(const float matrix_basis[4][4],
+                              const float matrix_final[4][4],
+                              const float line_width,
+                              const float color[4],
+                              const bool select,
+                              struct Dial3dParams *params);
 
 static void dial_geom_draw(const float color[4],
                            const float line_width,
@@ -96,7 +111,7 @@ static void dial_geom_draw(const float color[4],
                                                  ED_GIZMO_DIAL_DRAW_FLAG_FILL)));
 
   GPUVertFormat *format = immVertexFormat();
-  /* Note(Metal): Prefer using 3D coordinates with 3D shader, even if rendering 2D gizmo's. */
+  /* NOTE(Metal): Prefer using 3D coordinates with 3D shader, even if rendering 2D gizmo's. */
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
   if (clip_plane) {
@@ -411,23 +426,26 @@ static void dial_draw_intern(
       if (WM_gizmo_target_property_is_valid(gz_prop)) {
         angle_delta = WM_gizmo_target_property_float_get(gz, gz_prop);
       }
+      if (gz->state & WM_GIZMO_STATE_MODAL) {
+        angle_increment = RNA_float_get(gz->ptr, "incremental_angle");
+      }
     }
   }
 
-  ED_gizmotypes_dial_3d_draw_util(gz->matrix_basis,
-                                  matrix_final,
-                                  gz->line_width,
-                                  color,
-                                  select,
-                                  &(struct Dial3dParams){
-                                      .draw_options = draw_options,
-                                      .angle_ofs = angle_ofs,
-                                      .angle_delta = angle_delta,
-                                      .angle_increment = angle_increment,
-                                      .arc_partial_angle = arc_partial_angle,
-                                      .arc_inner_factor = arc_inner_factor,
-                                      .clip_plane = clip_plane,
-                                  });
+  dial_3d_draw_util(gz->matrix_basis,
+                    matrix_final,
+                    gz->line_width,
+                    color,
+                    select,
+                    &(struct Dial3dParams){
+                        .draw_options = draw_options,
+                        .angle_ofs = angle_ofs,
+                        .angle_delta = angle_delta,
+                        .angle_increment = angle_increment,
+                        .arc_partial_angle = arc_partial_angle,
+                        .arc_inner_factor = arc_inner_factor,
+                        .clip_plane = clip_plane,
+                    });
 }
 
 static void gizmo_dial_draw_select(const bContext *C, wmGizmo *gz, int select_id)
@@ -479,6 +497,10 @@ static int gizmo_dial_modal(bContext *C,
                             eWM_GizmoFlagTweak tweak_flag)
 {
   DialInteraction *inter = gz->interaction_data;
+  if (!inter) {
+    return OPERATOR_CANCELLED;
+  }
+
   if ((event->type != MOUSEMOVE) && (inter->prev.tweak_flag == tweak_flag)) {
     return OPERATOR_RUNNING_MODAL;
   }
@@ -519,30 +541,33 @@ static int gizmo_dial_modal(bContext *C,
 static void gizmo_dial_exit(bContext *C, wmGizmo *gz, const bool cancel)
 {
   DialInteraction *inter = gz->interaction_data;
-  bool use_reset_value = false;
-  float reset_value = 0.0f;
-  if (cancel) {
-    /* Set the property for the operator and call its modal function. */
-    wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
-    if (WM_gizmo_target_property_is_valid(gz_prop)) {
-      use_reset_value = true;
-      reset_value = inter->init.prop_angle;
-    }
-  }
-  else {
-    if (inter->has_drag == false) {
-      PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "click_value");
-      if (RNA_property_is_set(gz->ptr, prop)) {
+  if (inter) {
+    bool use_reset_value = false;
+    float reset_value = 0.0f;
+
+    if (cancel) {
+      /* Set the property for the operator and call its modal function. */
+      wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+      if (WM_gizmo_target_property_is_valid(gz_prop)) {
         use_reset_value = true;
-        reset_value = RNA_property_float_get(gz->ptr, prop);
+        reset_value = inter->init.prop_angle;
       }
     }
-  }
+    else {
+      if (inter->has_drag == false) {
+        PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "click_value");
+        if (RNA_property_is_set(gz->ptr, prop)) {
+          use_reset_value = true;
+          reset_value = RNA_property_float_get(gz->ptr, prop);
+        }
+      }
+    }
 
-  if (use_reset_value) {
-    wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
-    if (WM_gizmo_target_property_is_valid(gz_prop)) {
-      WM_gizmo_target_property_float_set(C, gz, gz_prop, reset_value);
+    if (use_reset_value) {
+      wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+      if (WM_gizmo_target_property_is_valid(gz_prop)) {
+        WM_gizmo_target_property_float_set(C, gz, gz_prop, reset_value);
+      }
     }
   }
 
@@ -564,6 +589,11 @@ static void gizmo_dial_setup(wmGizmo *gz)
 
 static int gizmo_dial_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
 {
+  if (gz->custom_modal) {
+    /* #DialInteraction is only used for the inner modal. */
+    return OPERATOR_RUNNING_MODAL;
+  }
+
   DialInteraction *inter = MEM_callocN(sizeof(DialInteraction), __func__);
 
   inter->init.mval[0] = event->mval[0];
@@ -583,12 +613,12 @@ static int gizmo_dial_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEvent *ev
 /** \name Dial Gizmo API
  * \{ */
 
-void ED_gizmotypes_dial_3d_draw_util(const float matrix_basis[4][4],
-                                     const float matrix_final[4][4],
-                                     const float line_width,
-                                     const float color[4],
-                                     const bool select,
-                                     struct Dial3dParams *params)
+static void dial_3d_draw_util(const float matrix_basis[4][4],
+                              const float matrix_final[4][4],
+                              const float line_width,
+                              const float color[4],
+                              const bool select,
+                              struct Dial3dParams *params)
 {
   GPU_matrix_push();
   GPU_matrix_mul(matrix_final);

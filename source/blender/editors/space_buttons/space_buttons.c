@@ -724,6 +724,9 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
           /* Needed to refresh context path when changing active particle system index. */
           buttons_area_redraw(area, BCONTEXT_PARTICLE);
           break;
+        case ND_DRAW_ANIMVIZ:
+          buttons_area_redraw(area, BCONTEXT_OBJECT);
+          break;
         default:
           /* Not all object RNA props have a ND_ notifier (yet) */
           ED_area_tag_redraw(area);
@@ -774,6 +777,9 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
         ED_area_tag_redraw(area);
         sbuts->preview = 1;
       }
+      break;
+    case NC_WORKSPACE:
+      buttons_area_redraw(area, BCONTEXT_TOOL);
       break;
     case NC_SPACE:
       if (wmn->data == ND_SPACE_PROPERTIES) {

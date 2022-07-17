@@ -79,7 +79,7 @@ typedef struct CameraParams {
 void BKE_camera_params_init(CameraParams *params);
 void BKE_camera_params_from_object(CameraParams *params, const struct Object *cam_ob);
 void BKE_camera_params_from_view3d(CameraParams *params,
-                                   struct Depsgraph *depsgraph,
+                                   const struct Depsgraph *depsgraph,
                                    const struct View3D *v3d,
                                    const struct RegionView3D *rv3d);
 
@@ -164,6 +164,15 @@ bool BKE_camera_multiview_spherical_stereo(const struct RenderData *rd,
 /* Camera background image API */
 
 struct CameraBGImage *BKE_camera_background_image_new(struct Camera *cam);
+
+/**
+ * Duplicate a background image, in a ID management compatible way.
+ *
+ * \param copy_flag: The usual ID copying flags, see `LIB_ID_CREATE_`/`LIB_ID_COPY_` enums in
+ * `BKE_lib_id.h`.
+ */
+struct CameraBGImage *BKE_camera_background_image_copy(struct CameraBGImage *bgpic_src,
+                                                       const int copy_flag);
 void BKE_camera_background_image_remove(struct Camera *cam, struct CameraBGImage *bgpic);
 void BKE_camera_background_image_clear(struct Camera *cam);
 

@@ -229,7 +229,7 @@ typedef enum eCalcRollTypes {
 } eCalcRollTypes;
 
 static const EnumPropertyItem prop_calc_roll_types[] = {
-    {0, "", 0, N_("Positive"), ""},
+    RNA_ENUM_ITEM_HEADING(N_("Positive"), NULL),
     {CALC_ROLL_TAN_POS_X, "POS_X", 0, "Local +X Tangent", ""},
     {CALC_ROLL_TAN_POS_Z, "POS_Z", 0, "Local +Z Tangent", ""},
 
@@ -237,8 +237,7 @@ static const EnumPropertyItem prop_calc_roll_types[] = {
     {CALC_ROLL_POS_Y, "GLOBAL_POS_Y", 0, "Global +Y Axis", ""},
     {CALC_ROLL_POS_Z, "GLOBAL_POS_Z", 0, "Global +Z Axis", ""},
 
-    {0, "", 0, N_("Negative"), ""},
-
+    RNA_ENUM_ITEM_HEADING(N_("Negative"), NULL),
     {CALC_ROLL_TAN_NEG_X, "NEG_X", 0, "Local -X Tangent", ""},
     {CALC_ROLL_TAN_NEG_Z, "NEG_Z", 0, "Local -Z Tangent", ""},
 
@@ -246,7 +245,7 @@ static const EnumPropertyItem prop_calc_roll_types[] = {
     {CALC_ROLL_NEG_Y, "GLOBAL_NEG_Y", 0, "Global -Y Axis", ""},
     {CALC_ROLL_NEG_Z, "GLOBAL_NEG_Z", 0, "Global -Z Axis", ""},
 
-    {0, "", 0, N_("Other"), ""},
+    RNA_ENUM_ITEM_HEADING(N_("Other"), NULL),
     {CALC_ROLL_ACTIVE, "ACTIVE", 0, "Active Bone", ""},
     {CALC_ROLL_VIEW, "VIEW", 0, "View Axis", ""},
     {CALC_ROLL_CURSOR, "CURSOR", 0, "Cursor", ""},

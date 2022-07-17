@@ -165,6 +165,7 @@ void GPU_vertbuf_tag_dirty(GPUVertBuf *verts);
  */
 void GPU_vertbuf_use(GPUVertBuf *);
 void GPU_vertbuf_bind_as_ssbo(struct GPUVertBuf *verts, int binding);
+void GPU_vertbuf_bind_as_texture(struct GPUVertBuf *verts, int binding);
 
 void GPU_vertbuf_wrap_handle(GPUVertBuf *verts, uint64_t handle);
 

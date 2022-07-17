@@ -7,7 +7,7 @@
 
 #include "BLI_bitmap.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 /* ---------------------------------------------------------------------- */
@@ -15,7 +15,7 @@ namespace blender::draw {
  * \{ */
 
 static void extract_fdots_init(const MeshRenderData *mr,
-                               struct MeshBatchCache *UNUSED(cache),
+                               MeshBatchCache *UNUSED(cache),
                                void *UNUSED(buf),
                                void *tls_data)
 {
@@ -68,7 +68,7 @@ static void extract_fdots_iter_poly_mesh(const MeshRenderData *mr,
 }
 
 static void extract_fdots_finish(const MeshRenderData *UNUSED(mr),
-                                 struct MeshBatchCache *UNUSED(cache),
+                                 MeshBatchCache *UNUSED(cache),
                                  void *buf,
                                  void *_userdata)
 {
@@ -95,6 +95,4 @@ constexpr MeshExtract create_extractor_fdots()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_fdots = blender::draw::create_extractor_fdots();
-}

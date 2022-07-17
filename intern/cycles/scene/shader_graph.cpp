@@ -659,7 +659,7 @@ void ShaderGraph::deduplicate_nodes()
   }
 
   if (num_deduplicated > 0) {
-    VLOG(1) << "Deduplicated " << num_deduplicated << " nodes.";
+    VLOG_DEBUG << "Deduplicated " << num_deduplicated << " nodes.";
   }
 }
 
@@ -700,7 +700,7 @@ void ShaderGraph::verify_volume_output()
     }
   }
   if (!has_valid_volume) {
-    VLOG(1) << "Disconnect meaningless volume output.";
+    VLOG_DEBUG << "Disconnect meaningless volume output.";
     disconnect(volume_in->link);
   }
 }
@@ -888,7 +888,7 @@ void ShaderGraph::default_inputs(bool do_osl)
 
 void ShaderGraph::refine_bump_nodes()
 {
-  /* we transverse the node graph looking for bump nodes, when we find them,
+  /* We transverse the node graph looking for bump nodes, when we find them,
    * like in bump_from_displacement(), we copy the sub-graph defined from "bump"
    * input to the inputs "center","dx" and "dy" What is in "bump" input is moved
    * to "center" input. */
@@ -898,18 +898,18 @@ void ShaderGraph::refine_bump_nodes()
       ShaderInput *bump_input = node->input("Height");
       ShaderNodeSet nodes_bump;
 
-      /* make 2 extra copies of the subgraph defined in Bump input */
+      /* Make 2 extra copies of the subgraph defined in Bump input. */
       ShaderNodeMap nodes_dx;
       ShaderNodeMap nodes_dy;
 
-      /* find dependencies for the given input */
+      /* Find dependencies for the given input. */
       find_dependencies(nodes_bump, bump_input);
 
       copy_nodes(nodes_bump, nodes_dx);
       copy_nodes(nodes_bump, nodes_dy);
 
-      /* mark nodes to indicate they are use for bump computation, so
-         that any texture coordinates are shifted by dx/dy when sampling */
+      /* Mark nodes to indicate they are use for bump computation, so
+       * that any texture coordinates are shifted by dx/dy when sampling. */
       foreach (ShaderNode *node, nodes_bump)
         node->bump = SHADER_BUMP_CENTER;
       foreach (NodePair &pair, nodes_dx)
@@ -924,7 +924,7 @@ void ShaderGraph::refine_bump_nodes()
       connect(out_dx, node->input("SampleX"));
       connect(out_dy, node->input("SampleY"));
 
-      /* add generated nodes */
+      /* Add generated nodes. */
       foreach (NodePair &pair, nodes_dx)
         add(pair.second);
       foreach (NodePair &pair, nodes_dy)

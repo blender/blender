@@ -1,5 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_task.hh"
+
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute_math.hh"
@@ -41,21 +43,22 @@ static void node_init(bNodeTree *UNUSED(tree), bNode *node)
   node->storage = data;
 }
 
-template<typename T>
-static void copy_attribute_to_points(const VArray<T> &src,
-                                     const IndexMask mask,
-                                     MutableSpan<T> dst)
+static void materialize_compressed_to_uninitialized_threaded(const GVArray &src,
+                                                             const IndexMask mask,
+                                                             GMutableSpan dst)
 {
-  for (const int i : mask.index_range()) {
-    dst[i] = src[mask[i]];
-  }
+  BLI_assert(src.type() == dst.type());
+  BLI_assert(mask.size() == dst.size());
+  threading::parallel_for(mask.index_range(), 4096, [&](IndexRange range) {
+    src.materialize_compressed_to_uninitialized(mask.slice(range), dst.slice(range).data());
+  });
 }
 
 static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
                                         Field<float3> &position_field,
                                         Field<float> &radius_field,
                                         Field<bool> &selection_field,
-                                        const AttributeDomain domain)
+                                        const eAttrDomain domain)
 {
   const MeshComponent *mesh_component = geometry_set.get_component_for_read<MeshComponent>();
   if (mesh_component == nullptr) {
@@ -63,12 +66,12 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     return;
   }
   GeometryComponentFieldContext field_context{*mesh_component, domain};
-  const int domain_size = mesh_component->attribute_domain_size(domain);
-  if (domain_size == 0) {
+  const int domain_num = mesh_component->attribute_domain_size(domain);
+  if (domain_num == 0) {
     geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
     return;
   }
-  fn::FieldEvaluator evaluator{field_context, domain_size};
+  fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
   /* Evaluating directly into the point cloud doesn't work because we are not using the full
    * "min_array_size" array but compressing the selected elements into the final array with no
@@ -79,16 +82,21 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
-  uninitialized_fill_n(pointcloud->radius, pointcloud->totpoint, 0.05f);
   geometry_set.replace_pointcloud(pointcloud);
-  PointCloudComponent &point_component =
-      geometry_set.get_component_for_write<PointCloudComponent>();
+  MutableAttributeAccessor pointcloud_attributes = bke::pointcloud_attributes_for_write(
+      *pointcloud);
 
-  copy_attribute_to_points(evaluator.get_evaluated<float3>(0),
-                           selection,
-                           {(float3 *)pointcloud->co, pointcloud->totpoint});
-  copy_attribute_to_points(
-      evaluator.get_evaluated<float>(1), selection, {pointcloud->radius, pointcloud->totpoint});
+  GSpanAttributeWriter position = pointcloud_attributes.lookup_or_add_for_write_only_span(
+      "position", ATTR_DOMAIN_POINT, CD_PROP_FLOAT3);
+  materialize_compressed_to_uninitialized_threaded(
+      evaluator.get_evaluated(0), selection, position.span);
+  position.finish();
+
+  GSpanAttributeWriter radius = pointcloud_attributes.lookup_or_add_for_write_only_span(
+      "radius", ATTR_DOMAIN_POINT, CD_PROP_FLOAT);
+  materialize_compressed_to_uninitialized_threaded(
+      evaluator.get_evaluated(1), selection, radius.span);
+  radius.finish();
 
   Map<AttributeIDRef, AttributeKind> attributes;
   geometry_set.gather_attributes_for_propagation(
@@ -97,17 +105,13 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
 
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    const CustomDataType data_type = entry.value.data_type;
-    GVArray src = mesh_component->attribute_get_for_read(attribute_id, domain, data_type);
-    OutputAttribute dst = point_component.attribute_try_get_for_output_only(
+    const eCustomDataType data_type = entry.value.data_type;
+    GVArray src = mesh_component->attributes()->lookup_or_default(attribute_id, domain, data_type);
+    GSpanAttributeWriter dst = pointcloud_attributes.lookup_or_add_for_write_only_span(
         attribute_id, ATTR_DOMAIN_POINT, data_type);
     if (dst && src) {
-      attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-        using T = decltype(dummy);
-        VArray<T> src_typed = src.typed<T>();
-        copy_attribute_to_points(src_typed, selection, dst.as_span().typed<T>());
-      });
-      dst.save();
+      materialize_compressed_to_uninitialized_threaded(src, selection, dst.span);
+      dst.finish();
     }
   }
 

@@ -33,6 +33,7 @@
 #include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_system.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_colormanagement.h"
@@ -211,7 +212,7 @@ static void playanim_gl_matrix(void)
 /* implementation */
 static void playanim_event_qual_update(void)
 {
-  int val;
+  bool val;
 
   /* Shift */
   GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyLeftShift, &val);
@@ -673,7 +674,7 @@ static void build_pict_list_ex(
      *
      * If set, all reads and writes on the resulting file descriptor will
      * be performed directly to or from the user program buffer, provided
-     * appropriate size and alignment restrictions are met.  Refer to the
+     * appropriate size and alignment restrictions are met. Refer to the
      * F_SETFL and F_DIOINFO commands in the fcntl(2) manual entry for
      * information about how to determine the alignment constraints.
      * O_DIRECT is a Silicon Graphics extension and is only supported on
@@ -870,7 +871,7 @@ static void change_frame(PlayState *ps)
   ps->need_frame_update = false;
 }
 
-static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
+static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 {
   PlayState *ps = (PlayState *)ps_void;
   const GHOST_TEventType type = GHOST_GetEventType(evt);
@@ -901,7 +902,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       default:
         break;
     }
-    return 1;
+    return true;
   }
 
   if (ps->wait2 && ps->stopped == false) {
@@ -1216,8 +1217,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       GHOST_TEventButtonData *bd = GHOST_GetEventData(evt);
       int cx, cy, sizex, sizey, inside_window;
 
-      GHOST_GetCursorPosition(g_WS.ghost_system, &cx, &cy);
-      GHOST_ScreenToClient(g_WS.ghost_window, cx, cy, &cx, &cy);
+      GHOST_GetCursorPosition(g_WS.ghost_system, g_WS.ghost_window, &cx, &cy);
       playanim_window_get_size(&sizex, &sizey);
 
       inside_window = (cx >= 0 && cx < sizex && cy >= 0 && cy <= sizey);
@@ -1266,14 +1266,14 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
          * however the API currently doesn't support this. */
         {
           int x_test, y_test;
-          GHOST_GetCursorPosition(g_WS.ghost_system, &x_test, &y_test);
-          if (x_test != cd->x || y_test != cd->y) {
+          GHOST_GetCursorPosition(g_WS.ghost_system, g_WS.ghost_window, &cx, &cy);
+          GHOST_ScreenToClient(g_WS.ghost_window, cd->x, cd->y, &x_test, &y_test);
+
+          if (cx != x_test || cy != y_test) {
             /* we're not the last event... skipping */
             break;
           }
         }
-
-        GHOST_ScreenToClient(g_WS.ghost_window, cd->x, cd->y, &cx, &cy);
 
         tag_change_frame(ps, cx);
       }
@@ -1334,7 +1334,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       break;
   }
 
-  return 1;
+  return true;
 }
 
 static void playanim_window_open(const char *title, int posx, int posy, int sizex, int sizey)
@@ -1536,6 +1536,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
     GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(ghost_event_proc, &ps);
 
+    GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
+
     g_WS.ghost_system = GHOST_CreateSystem();
     GHOST_AddEventConsumer(g_WS.ghost_system, consumer);
 
@@ -1552,6 +1554,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   /* initialize the font */
   BLF_init();
+  BLF_load_font_stack();
   ps.fontid = BLF_load_mono_default(false);
   BLF_size(ps.fontid, 11.0f, 72);
 
@@ -1852,7 +1855,7 @@ void WM_main_playanim(int argc, const char **argv)
     AUD_DeviceSpecs specs;
 
     specs.rate = AUD_RATE_48000;
-    specs.format = AUD_FORMAT_S16;
+    specs.format = AUD_FORMAT_FLOAT32;
     specs.channels = AUD_CHANNELS_STEREO;
 
     AUD_initOnce();

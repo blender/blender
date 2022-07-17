@@ -1,0 +1,16 @@
+/* SPDX-License-Identifier: Apache-2.0
+ * Copyright 2011-2022 Blender Foundation */
+
+#include "stdcycles.h"
+
+shader node_combine_color(string color_type = "rgb",
+                          float Red = 0.0,
+                          float Green = 0.0,
+                          float Blue = 0.0,
+                          output color Color = 0.8)
+{
+  if (color_type == "rgb" || color_type == "hsv" || color_type == "hsl")
+    Color = color(color_type, Red, Green, Blue);
+  else
+    warning("%s", "Unknown color space!");
+}

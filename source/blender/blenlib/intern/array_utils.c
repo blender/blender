@@ -53,7 +53,7 @@ void _bli_array_wrap(void *arr_v, uint arr_len, size_t arr_stride, int dir)
     memcpy(arr, buf, arr_stride);
   }
   else {
-    BLI_assert(0);
+    BLI_assert_unreachable();
   }
 }
 

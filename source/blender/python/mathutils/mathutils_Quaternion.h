@@ -20,7 +20,8 @@ typedef struct {
  * be stored in py_data) or be a wrapper for data allocated through
  * blender (stored in blend_data). This is an either/or struct not both */
 
-/* prototypes */
+/* Prototypes. */
+
 PyObject *Quaternion_CreatePyObject(const float quat[4],
                                     PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;
 PyObject *Quaternion_CreatePyObject_wrap(float quat[4],

@@ -267,64 +267,82 @@ static void mikk_compute_tangents(
   genTangSpaceDefault(&context);
 }
 
-/* Create sculpt vertex color attributes. */
-static void attr_create_sculpt_vertex_color(Scene *scene,
-                                            Mesh *mesh,
-                                            BL::Mesh &b_mesh,
-                                            bool subdivision)
-{
-  for (BL::MeshVertColorLayer &l : b_mesh.sculpt_vertex_colors) {
-    const bool active_render = l.active_render();
-    AttributeStandard vcol_std = (active_render) ? ATTR_STD_VERTEX_COLOR : ATTR_STD_NONE;
-    ustring vcol_name = ustring(l.name().c_str());
-
-    const bool need_vcol = mesh->need_attribute(scene, vcol_name) ||
-                           mesh->need_attribute(scene, vcol_std);
-
-    if (!need_vcol) {
-      continue;
-    }
-
-    AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
-    Attribute *vcol_attr = attributes.add(vcol_name, TypeRGBA, ATTR_ELEMENT_VERTEX);
-    vcol_attr->std = vcol_std;
-
-    float4 *cdata = vcol_attr->data_float4();
-    int numverts = b_mesh.vertices.length();
-
-    for (int i = 0; i < numverts; i++) {
-      *(cdata++) = get_float4(l.data[i].color());
-    }
-  }
-}
-
 template<typename TypeInCycles, typename GetValueAtIndex>
 static void fill_generic_attribute(BL::Mesh &b_mesh,
                                    TypeInCycles *data,
-                                   const AttributeElement element,
+                                   const BL::Attribute::domain_enum b_domain,
+                                   const bool subdivision,
                                    const GetValueAtIndex &get_value_at_index)
 {
-  switch (element) {
-    case ATTR_ELEMENT_CORNER: {
-      for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
-        const int index = t.index() * 3;
-        BL::Array<int, 3> loops = t.loops();
-        data[index] = get_value_at_index(loops[0]);
-        data[index + 1] = get_value_at_index(loops[1]);
-        data[index + 2] = get_value_at_index(loops[2]);
+  switch (b_domain) {
+    case BL::Attribute::domain_CORNER: {
+      if (subdivision) {
+        for (BL::MeshPolygon &p : b_mesh.polygons) {
+          int n = p.loop_total();
+          for (int i = 0; i < n; i++) {
+            *data = get_value_at_index(p.loop_start() + i);
+            data++;
+          }
+        }
+      }
+      else {
+        for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
+          const int index = t.index() * 3;
+          BL::Array<int, 3> loops = t.loops();
+          data[index] = get_value_at_index(loops[0]);
+          data[index + 1] = get_value_at_index(loops[1]);
+          data[index + 2] = get_value_at_index(loops[2]);
+        }
       }
       break;
     }
-    case ATTR_ELEMENT_VERTEX: {
+    case BL::Attribute::domain_EDGE: {
+      if constexpr (std::is_same_v<TypeInCycles, uchar4>) {
+        /* uchar4 edge attributes do not exist, and averaging in place
+         * would not work. */
+        assert(0);
+      }
+      else {
+        /* Average edge attributes at vertices. */
+        const size_t num_verts = b_mesh.vertices.length();
+        vector<int> count(num_verts, 0);
+
+        for (BL::MeshEdge &e : b_mesh.edges) {
+          BL::Array<int, 2> vertices = e.vertices();
+          TypeInCycles value = get_value_at_index(e.index());
+
+          data[vertices[0]] += value;
+          data[vertices[1]] += value;
+          count[vertices[0]]++;
+          count[vertices[1]]++;
+        }
+
+        for (size_t i = 0; i < num_verts; i++) {
+          if (count[i] > 1) {
+            data[i] /= (float)count[i];
+          }
+        }
+      }
+      break;
+    }
+    case BL::Attribute::domain_POINT: {
       const int num_verts = b_mesh.vertices.length();
       for (int i = 0; i < num_verts; i++) {
         data[i] = get_value_at_index(i);
       }
       break;
     }
-    case ATTR_ELEMENT_FACE: {
-      for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
-        data[t.index()] = get_value_at_index(t.polygon_index());
+    case BL::Attribute::domain_FACE: {
+      if (subdivision) {
+        const int num_polygons = b_mesh.polygons.length();
+        for (int i = 0; i < num_polygons; i++) {
+          data[i] = get_value_at_index(i);
+        }
+      }
+      else {
+        for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
+          data[t.index()] = get_value_at_index(t.polygon_index());
+        }
       }
       break;
     }
@@ -372,21 +390,22 @@ static void attr_create_generic(Scene *scene,
                                 const bool need_motion,
                                 const float motion_scale)
 {
-  if (subdivision) {
-    /* TODO: Handle subdivision correctly. */
-    return;
-  }
-  AttributeSet &attributes = mesh->attributes;
+  AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   static const ustring u_velocity("velocity");
+
+  int attribute_index = 0;
+  int render_color_index = b_mesh.attributes.render_color_index();
 
   for (BL::Attribute &b_attribute : b_mesh.attributes) {
     const ustring name{b_attribute.name().c_str()};
+    const bool is_render_color = (attribute_index++ == render_color_index);
 
     if (need_motion && name == u_velocity) {
       attr_create_motion(mesh, b_attribute, motion_scale);
     }
 
-    if (!mesh->need_attribute(scene, name)) {
+    if (!(mesh->need_attribute(scene, name) ||
+          (is_render_color && mesh->need_attribute(scene, ATTR_STD_VERTEX_COLOR)))) {
       continue;
     }
     if (attributes.find(name)) {
@@ -404,6 +423,9 @@ static void attr_create_generic(Scene *scene,
       case BL::Attribute::domain_POINT:
         element = ATTR_ELEMENT_VERTEX;
         break;
+      case BL::Attribute::domain_EDGE:
+        element = ATTR_ELEMENT_VERTEX;
+        break;
       case BL::Attribute::domain_FACE:
         element = ATTR_ELEMENT_FACE;
         break;
@@ -419,41 +441,77 @@ static void attr_create_generic(Scene *scene,
         BL::FloatAttribute b_float_attribute{b_attribute};
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
-        fill_generic_attribute(
-            b_mesh, data, element, [&](int i) { return b_float_attribute.data[i].value(); });
+        fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
+          return b_float_attribute.data[i].value();
+        });
         break;
       }
       case BL::Attribute::data_type_BOOLEAN: {
         BL::BoolAttribute b_bool_attribute{b_attribute};
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
-        fill_generic_attribute(
-            b_mesh, data, element, [&](int i) { return (float)b_bool_attribute.data[i].value(); });
+        fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
+          return (float)b_bool_attribute.data[i].value();
+        });
         break;
       }
       case BL::Attribute::data_type_INT: {
         BL::IntAttribute b_int_attribute{b_attribute};
         Attribute *attr = attributes.add(name, TypeFloat, element);
         float *data = attr->data_float();
-        fill_generic_attribute(
-            b_mesh, data, element, [&](int i) { return (float)b_int_attribute.data[i].value(); });
+        fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
+          return (float)b_int_attribute.data[i].value();
+        });
         break;
       }
       case BL::Attribute::data_type_FLOAT_VECTOR: {
         BL::FloatVectorAttribute b_vector_attribute{b_attribute};
         Attribute *attr = attributes.add(name, TypeVector, element);
         float3 *data = attr->data_float3();
-        fill_generic_attribute(b_mesh, data, element, [&](int i) {
+        fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
           BL::Array<float, 3> v = b_vector_attribute.data[i].vector();
           return make_float3(v[0], v[1], v[2]);
         });
         break;
       }
+      case BL::Attribute::data_type_BYTE_COLOR: {
+        BL::ByteColorAttribute b_color_attribute{b_attribute};
+
+        if (element == ATTR_ELEMENT_CORNER) {
+          element = ATTR_ELEMENT_CORNER_BYTE;
+        }
+        Attribute *attr = attributes.add(name, TypeRGBA, element);
+        if (is_render_color) {
+          attr->std = ATTR_STD_VERTEX_COLOR;
+        }
+
+        if (element == ATTR_ELEMENT_CORNER_BYTE) {
+          uchar4 *data = attr->data_uchar4();
+          fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
+            /* Compress/encode vertex color using the sRGB curve. */
+            const float4 c = get_float4(b_color_attribute.data[i].color());
+            return color_float4_to_uchar4(color_linear_to_srgb_v4(c));
+          });
+        }
+        else {
+          float4 *data = attr->data_float4();
+          fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
+            BL::Array<float, 4> v = b_color_attribute.data[i].color();
+            return make_float4(v[0], v[1], v[2], v[3]);
+          });
+        }
+        break;
+      }
       case BL::Attribute::data_type_FLOAT_COLOR: {
         BL::FloatColorAttribute b_color_attribute{b_attribute};
+
         Attribute *attr = attributes.add(name, TypeRGBA, element);
+        if (is_render_color) {
+          attr->std = ATTR_STD_VERTEX_COLOR;
+        }
+
         float4 *data = attr->data_float4();
-        fill_generic_attribute(b_mesh, data, element, [&](int i) {
+        fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
           BL::Array<float, 4> v = b_color_attribute.data[i].color();
           return make_float4(v[0], v[1], v[2], v[3]);
         });
@@ -463,7 +521,7 @@ static void attr_create_generic(Scene *scene,
         BL::Float2Attribute b_float2_attribute{b_attribute};
         Attribute *attr = attributes.add(name, TypeFloat2, element);
         float2 *data = attr->data_float2();
-        fill_generic_attribute(b_mesh, data, element, [&](int i) {
+        fill_generic_attribute(b_mesh, data, b_domain, subdivision, [&](int i) {
           BL::Array<float, 2> v = b_float2_attribute.data[i].vector();
           return make_float2(v[0], v[1]);
         });
@@ -472,69 +530,6 @@ static void attr_create_generic(Scene *scene,
       default:
         /* Not supported. */
         break;
-    }
-  }
-}
-
-/* Create vertex color attributes. */
-static void attr_create_vertex_color(Scene *scene, Mesh *mesh, BL::Mesh &b_mesh, bool subdivision)
-{
-  for (BL::MeshLoopColorLayer &l : b_mesh.vertex_colors) {
-    const bool active_render = l.active_render();
-    AttributeStandard vcol_std = (active_render) ? ATTR_STD_VERTEX_COLOR : ATTR_STD_NONE;
-    ustring vcol_name = ustring(l.name().c_str());
-
-    const bool need_vcol = mesh->need_attribute(scene, vcol_name) ||
-                           mesh->need_attribute(scene, vcol_std);
-
-    if (!need_vcol) {
-      continue;
-    }
-
-    Attribute *vcol_attr = NULL;
-
-    if (subdivision) {
-      if (active_render) {
-        vcol_attr = mesh->subd_attributes.add(vcol_std, vcol_name);
-      }
-      else {
-        vcol_attr = mesh->subd_attributes.add(vcol_name, TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
-      }
-
-      uchar4 *cdata = vcol_attr->data_uchar4();
-
-      for (BL::MeshPolygon &p : b_mesh.polygons) {
-        int n = p.loop_total();
-        for (int i = 0; i < n; i++) {
-          float4 color = get_float4(l.data[p.loop_start() + i].color());
-          /* Compress/encode vertex color using the sRGB curve. */
-          *(cdata++) = color_float4_to_uchar4(color);
-        }
-      }
-    }
-    else {
-      if (active_render) {
-        vcol_attr = mesh->attributes.add(vcol_std, vcol_name);
-      }
-      else {
-        vcol_attr = mesh->attributes.add(vcol_name, TypeRGBA, ATTR_ELEMENT_CORNER_BYTE);
-      }
-
-      uchar4 *cdata = vcol_attr->data_uchar4();
-
-      for (BL::MeshLoopTriangle &t : b_mesh.loop_triangles) {
-        int3 li = get_int3(t.loops());
-        float4 c1 = get_float4(l.data[li[0]].color());
-        float4 c2 = get_float4(l.data[li[1]].color());
-        float4 c3 = get_float4(l.data[li[2]].color());
-
-        /* Compress/encode vertex color using the sRGB curve. */
-        cdata[0] = color_float4_to_uchar4(c1);
-        cdata[1] = color_float4_to_uchar4(c2);
-        cdata[2] = color_float4_to_uchar4(c3);
-
-        cdata += 3;
-      }
     }
   }
 }
@@ -1002,8 +997,6 @@ static void create_mesh(Scene *scene,
    * The calculate functions will check whether they're needed or not.
    */
   attr_create_pointiness(scene, mesh, b_mesh, subdivision);
-  attr_create_vertex_color(scene, mesh, b_mesh, subdivision);
-  attr_create_sculpt_vertex_color(scene, mesh, b_mesh, subdivision);
   attr_create_random_per_island(scene, mesh, b_mesh, subdivision);
   attr_create_generic(scene, mesh, b_mesh, subdivision, need_motion, motion_scale);
 
@@ -1219,17 +1212,17 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
           memcmp(mP, &mesh->get_verts()[0], sizeof(float3) * numverts) == 0) {
         /* no motion, remove attributes again */
         if (b_mesh.vertices.length() != numverts) {
-          VLOG(1) << "Topology differs, disabling motion blur for object " << ob_name;
+          VLOG_WARNING << "Topology differs, disabling motion blur for object " << ob_name;
         }
         else {
-          VLOG(1) << "No actual deformation motion for object " << ob_name;
+          VLOG_DEBUG << "No actual deformation motion for object " << ob_name;
         }
         mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
         if (attr_mN)
           mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_NORMAL);
       }
       else if (motion_step > 0) {
-        VLOG(1) << "Filling deformation motion for object " << ob_name;
+        VLOG_DEBUG << "Filling deformation motion for object " << ob_name;
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
         float3 *P = &mesh->get_verts()[0];
@@ -1243,8 +1236,8 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     }
     else {
       if (b_mesh.vertices.length() != numverts) {
-        VLOG(1) << "Topology differs, discarding motion blur for object " << ob_name << " at time "
-                << motion_step;
+        VLOG_WARNING << "Topology differs, discarding motion blur for object " << ob_name
+                     << " at time " << motion_step;
         memcpy(mP, &mesh->get_verts()[0], sizeof(float3) * numverts);
         if (mN != NULL) {
           memcpy(mN, attr_N->data_float3(), sizeof(float3) * numverts);

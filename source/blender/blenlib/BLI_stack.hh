@@ -96,7 +96,7 @@ class Stack {
   int64_t size_;
 
   /** The buffer used to implement small object optimization. */
-  TypedBuffer<T, InlineBufferCapacity> inline_buffer_;
+  BLI_NO_UNIQUE_ADDRESS TypedBuffer<T, InlineBufferCapacity> inline_buffer_;
 
   /**
    * A chunk referencing the inline buffer. This is always the bottom-most chunk.
@@ -105,7 +105,7 @@ class Stack {
   Chunk inline_chunk_;
 
   /** Used for allocations when the inline buffer is not large enough. */
-  Allocator allocator_;
+  BLI_NO_UNIQUE_ADDRESS Allocator allocator_;
 
  public:
   /**

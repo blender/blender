@@ -23,6 +23,7 @@ struct uiSearchItems;
 
 namespace blender::ui {
 
+class AbstractGridView;
 class AbstractTreeView;
 
 /**
@@ -45,7 +46,7 @@ void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path);
 
 void attribute_search_add_items(
     StringRefNull str,
-    bool is_output,
+    bool can_create_attribute,
     Span<const nodes::geometry_nodes_eval_log::GeometryAttributeInfo *> infos,
     uiSearchItems *items,
     bool is_first);
@@ -53,8 +54,12 @@ void attribute_search_add_items(
 }  // namespace blender::ui
 
 /**
- * Override this for all available tree types.
+ * Override this for all available view types.
  */
+blender::ui::AbstractGridView *UI_block_add_view(
+    uiBlock &block,
+    blender::StringRef idname,
+    std::unique_ptr<blender::ui::AbstractGridView> grid_view);
 blender::ui::AbstractTreeView *UI_block_add_view(
     uiBlock &block,
     blender::StringRef idname,

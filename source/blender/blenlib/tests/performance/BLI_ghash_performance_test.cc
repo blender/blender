@@ -57,23 +57,23 @@ static void str_ghash_tests(GHash *ghash, const char *id)
   printf("\n========== STARTING %s ==========\n", id);
 
 #ifdef TEXT_CORPUS_PATH
-  size_t sz = 0;
+  size_t data_size = 0;
   char *data;
   {
     struct stat st;
     if (stat(TEXT_CORPUS_PATH, &st) == 0)
-      sz = st.st_size;
+      data_size = st.st_size;
   }
-  if (sz != 0) {
+  if (data_size != 0) {
     FILE *f = fopen(TEXT_CORPUS_PATH, "r");
 
-    data = (char *)MEM_mallocN(sz + 1, __func__);
-    if (fread(data, sizeof(*data), sz, f) != sz) {
+    data = (char *)MEM_mallocN(data_size + 1, __func__);
+    if (fread(data, sizeof(*data), data_size, f) != data_size) {
       printf("ERROR in reading file %s!", TEXT_CORPUS_PATH);
       MEM_freeN(data);
       data = BLI_strdup(words10k);
     }
-    data[sz] = '\0';
+    data[data_size] = '\0';
     fclose(f);
   }
   else {

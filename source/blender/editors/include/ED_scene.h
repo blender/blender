@@ -18,6 +18,11 @@ struct Scene *ED_scene_add(struct Main *bmain,
                            struct bContext *C,
                            struct wmWindow *win,
                            enum eSceneCopyMethod method) ATTR_NONNULL();
+/** Special mode for adding a scene assigned to sequencer strip. */
+struct Scene *ED_scene_sequencer_add(struct Main *bmain,
+                                     struct bContext *C,
+                                     enum eSceneCopyMethod method,
+                                     const bool assign_strip);
 /**
  * \note Only call outside of area/region loops.
  * \return true if successful.

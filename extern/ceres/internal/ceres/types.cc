@@ -34,6 +34,7 @@
 #include <cctype>
 #include <string>
 
+#include "ceres/internal/config.h"
 #include "glog/logging.h"
 
 namespace ceres {
@@ -128,6 +129,7 @@ const char* DenseLinearAlgebraLibraryTypeToString(
   switch (type) {
     CASESTR(EIGEN);
     CASESTR(LAPACK);
+    CASESTR(CUDA);
     default:
       return "UNKNOWN";
   }
@@ -138,6 +140,7 @@ bool StringToDenseLinearAlgebraLibraryType(
   UpperCase(&value);
   STRENUM(EIGEN);
   STRENUM(LAPACK);
+  STRENUM(CUDA);
   return false;
 }
 
@@ -417,8 +420,17 @@ bool IsDenseLinearAlgebraLibraryTypeAvailable(
   if (type == EIGEN) {
     return true;
   }
+
   if (type == LAPACK) {
 #ifdef CERES_NO_LAPACK
+    return false;
+#else
+    return true;
+#endif
+  }
+
+  if (type == CUDA) {
+#ifdef CERES_NO_CUDA
     return false;
 #else
     return true;

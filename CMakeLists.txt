@@ -222,6 +222,17 @@ if(UNIX AND NOT (APPLE OR HAIKU))
 
   option(WITH_GHOST_WAYLAND "Enable building Blender against Wayland for windowing (under development)" OFF)
   mark_as_advanced(WITH_GHOST_WAYLAND)
+
+  if (WITH_GHOST_WAYLAND)
+    option(WITH_GHOST_WAYLAND_LIBDECOR "Optionally build with LibDecor window decorations" OFF)
+    mark_as_advanced(WITH_GHOST_WAYLAND_LIBDECOR)
+
+    option(WITH_GHOST_WAYLAND_DBUS "Optionally build with DBUS support (used for Cursor themes). May hang on startup systems where DBUS is not used." OFF)
+    mark_as_advanced(WITH_GHOST_WAYLAND_DBUS)
+
+    option(WITH_GHOST_WAYLAND_DYNLOAD  "Enable runtime dynamic WAYLAND libraries loading" OFF)
+    mark_as_advanced(WITH_GHOST_WAYLAND_DYNLOAD)
+  endif()
 endif()
 
 if(WITH_GHOST_X11)
@@ -255,19 +266,11 @@ if(WITH_GHOST_X11)
 endif()
 
 if(UNIX AND NOT APPLE)
-  option(WITH_SYSTEM_GLEW "Use GLEW OpenGL wrapper library provided by the operating system" OFF)
-  option(WITH_SYSTEM_GLES "Use OpenGL ES library provided by the operating system"           ON)
   option(WITH_SYSTEM_FREETYPE "Use the freetype library provided by the operating system" OFF)
-else()
-  # not an option for other OS's
-  set(WITH_SYSTEM_GLEW OFF)
-  set(WITH_SYSTEM_GLES OFF)
-  set(WITH_SYSTEM_FREETYPE OFF)
-endif()
-
-
-if(UNIX AND NOT APPLE)
   option(WITH_SYSTEM_EIGEN3 "Use the systems Eigen3 library" OFF)
+else()
+  set(WITH_SYSTEM_FREETYPE OFF)
+  set(WITH_SYSTEM_EIGEN3 OFF)
 endif()
 
 
@@ -300,6 +303,9 @@ option(WITH_USD                 "Enable Universal Scene Description (USD) Suppor
 # 3D format support
 # Disable opencollada when we don't have precompiled libs
 option(WITH_OPENCOLLADA   "Enable OpenCollada Support (http://www.opencollada.org)" ON)
+option(WITH_IO_WAVEFRONT_OBJ  "Enable Wavefront-OBJ 3D file format support (*.obj)" ON)
+option(WITH_IO_STL            "Enable STL 3D file format support (*.stl)" ON)
+option(WITH_IO_GPENCIL        "Enable grease-pencil file format IO (*.svg, *.pdf)" ON)
 
 # Sound output
 option(WITH_SDL           "Enable SDL for sound" ON)
@@ -441,7 +447,7 @@ endif()
 if(NOT APPLE)
   option(WITH_CYCLES_DEVICE_HIP        "Enable Cycles AMD HIP support" ON)
   option(WITH_CYCLES_HIP_BINARIES      "Build Cycles AMD HIP binaries" OFF)
-  set(CYCLES_HIP_BINARIES_ARCH gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 CACHE STRING "AMD HIP architectures to build binaries for")
+  set(CYCLES_HIP_BINARIES_ARCH gfx900 gfx906 gfx90c gfx902 gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1034 gfx1035 CACHE STRING "AMD HIP architectures to build binaries for")
   mark_as_advanced(WITH_CYCLES_DEVICE_HIP)
   mark_as_advanced(CYCLES_HIP_BINARIES_ARCH)
 endif()
@@ -449,6 +455,21 @@ endif()
 # Apple Metal
 if(APPLE)
   option(WITH_CYCLES_DEVICE_METAL       "Enable Cycles Apple Metal compute support" ON)
+endif()
+
+# oneAPI
+if(NOT APPLE)
+  option(WITH_CYCLES_DEVICE_ONEAPI "Enable Cycles oneAPI compute support" OFF)
+  option(WITH_CYCLES_ONEAPI_BINARIES "Enable Ahead-Of-Time compilation for Cycles oneAPI device" OFF)
+  option(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED "Enable use of SYCL host (CPU) device execution by oneAPI implementation. This option is for debugging purposes and impacts GPU execution." OFF)
+
+  # https://www.intel.com/content/www/us/en/develop/documentation/oneapi-dpcpp-cpp-compiler-dev-guide-and-reference/top/compilation/ahead-of-time-compilation.html
+  SET (CYCLES_ONEAPI_SPIR64_GEN_DEVICES "dg2" CACHE STRING "oneAPI Intel GPU architectures to build binaries for")
+  SET (CYCLES_ONEAPI_SYCL_TARGETS spir64 spir64_gen CACHE STRING "oneAPI targets to build AOT binaries for")
+
+  mark_as_advanced(WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED)
+  mark_as_advanced(CYCLES_ONEAPI_SPIR64_GEN_DEVICES)
+  mark_as_advanced(CYCLES_ONEAPI_SYCL_TARGETS)
 endif()
 
 # Draw Manager
@@ -486,7 +507,7 @@ if((UNIX AND NOT APPLE) OR (CMAKE_GENERATOR MATCHES "^Visual Studio.+"))
 endif()
 
 option(WITH_BOOST "Enable features depending on boost" ON)
-option(WITH_TBB   "Enable features depending on TBB (OpenVDB, OpenImageDenoise, sculpt multithreading)" ON)
+option(WITH_TBB   "Enable multithreading. TBB is also required for features such as Cycles, OpenVDB and USD" ON)
 
 # TBB malloc is only supported on for windows currently
 if(WIN32)
@@ -515,19 +536,47 @@ endif()
 
 # OpenGL
 
+# Experimental EGL option.
+option(WITH_GL_EGL "Use the EGL OpenGL system library instead of the platform specific OpenGL system library (CGL, GLX or WGL)" OFF)
+mark_as_advanced(WITH_GL_EGL)
+
+if(WITH_GHOST_WAYLAND)
+  # Wayland can only use EGL to create OpenGL contexts, not GLX.
+  set(WITH_GL_EGL ON)
+endif()
+
+if(UNIX AND NOT APPLE)
+  if(WITH_GL_EGL)
+    # GLEW can only be built with either GLX or EGL support. Most binary distributions are
+    # built with GLX support and we have no automated way to detect this. So always build
+    # GLEW from source to be sure it has EGL support.
+    set(WITH_SYSTEM_GLEW OFF)
+  else()
+    option(WITH_SYSTEM_GLEW "Use GLEW OpenGL wrapper library provided by the operating system" OFF)
+  endif()
+
+  option(WITH_SYSTEM_GLES "Use OpenGL ES library provided by the operating system" ON)
+else()
+  # System GLEW and GLES not an option on other platforms.
+  set(WITH_SYSTEM_GLEW OFF)
+  set(WITH_SYSTEM_GLES OFF)
+endif()
+
 option(WITH_OPENGL              "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
 option(WITH_GLEW_ES             "Switches to experimental copy of GLEW that has support for OpenGL ES. (temporary option for development purposes)" OFF)
-option(WITH_GL_EGL              "Use the EGL OpenGL system library instead of the platform specific OpenGL system library (CGL, glX, or WGL)"       OFF)
 option(WITH_GL_PROFILE_ES20     "Support using OpenGL ES 2.0. (through either EGL or the AGL/WGL/XGL 'es20' profile)"                               OFF)
-option(WITH_GPU_SHADER_BUILDER  "Shader builder is a developer option enabling linting on GLSL during compilation"                                  OFF)
+option(WITH_GPU_BUILDTIME_SHADER_BUILDER  "Shader builder is a developer option enabling linting on GLSL during compilation"                                  OFF)
 
 mark_as_advanced(
   WITH_OPENGL
   WITH_GLEW_ES
-  WITH_GL_EGL
   WITH_GL_PROFILE_ES20
-  WITH_GPU_SHADER_BUILDER
+  WITH_GPU_BUILDTIME_SHADER_BUILDER
 )
+
+if(WITH_HEADLESS)
+  set(WITH_OPENGL OFF)
+endif()
 
 # Metal
 
@@ -765,6 +814,7 @@ endif()
 
 set_and_warn_dependency(WITH_PYTHON WITH_CYCLES        OFF)
 set_and_warn_dependency(WITH_PYTHON WITH_DRACO         OFF)
+set_and_warn_dependency(WITH_PYTHON WITH_MOD_FLUID     OFF)
 
 if(WITH_DRACO AND NOT WITH_PYTHON_INSTALL)
   message(STATUS "WITH_DRACO requires WITH_PYTHON_INSTALL to be ON, disabling WITH_DRACO for now")
@@ -781,7 +831,9 @@ set_and_warn_dependency(WITH_BOOST WITH_OPENCOLORIO    OFF)
 set_and_warn_dependency(WITH_BOOST WITH_QUADRIFLOW     OFF)
 set_and_warn_dependency(WITH_BOOST WITH_USD            OFF)
 set_and_warn_dependency(WITH_BOOST WITH_ALEMBIC        OFF)
-set_and_warn_dependency(WITH_PUGIXML WITH_CYCLES_OSL   OFF)
+if(WITH_CYCLES)
+  set_and_warn_dependency(WITH_PUGIXML WITH_CYCLES_OSL   OFF)
+endif()
 set_and_warn_dependency(WITH_PUGIXML WITH_OPENIMAGEIO  OFF)
 
 if(WITH_BOOST AND NOT (WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_INTERNATIONAL OR
@@ -935,7 +987,10 @@ set(PLATFORM_CFLAGS)
 set(C_WARNINGS)
 set(CXX_WARNINGS)
 
-# for gcc -Wno-blah-blah
+# NOTE: These flags are intended for situations where where it's impractical to
+# suppress warnings by modifying the code or for code which is maintained externally.
+# For GCC this typically means adding `-Wno-*` arguments to negate warnings
+# that are useful in the general case.
 set(C_REMOVE_STRICT_FLAGS)
 set(CXX_REMOVE_STRICT_FLAGS)
 
@@ -1456,14 +1511,6 @@ if(WITH_LIBMV OR WITH_GTESTS OR (WITH_CYCLES AND WITH_CYCLES_LOGGING))
 endif()
 
 #-----------------------------------------------------------------------------
-# Configure Ceres
-
-if(WITH_LIBMV)
-  # We always have C++11 which includes unordered_map.
-  set(CERES_DEFINES "-DCERES_STD_UNORDERED_MAP;-DCERES_USE_CXX_THREADS")
-endif()
-
-#-----------------------------------------------------------------------------
 # Extra limits to number of jobs running in parallel for some kind os tasks.
 # Only supported by Ninja build system currently.
 if("${CMAKE_GENERATOR}" MATCHES "Ninja" AND WITH_NINJA_POOL_JOBS)
@@ -1539,7 +1586,6 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCC)
 
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
-  ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_CAST_ALIGN -Wcast-align)
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_IMPLICIT_FUNCTION_DECLARATION -Werror=implicit-function-declaration)
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_RETURN_TYPE  -Werror=return-type)
   ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ERROR_VLA -Werror=vla)
@@ -1624,6 +1670,18 @@ if(CMAKE_COMPILER_IS_GNUCC)
     ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_IMPLICIT_FALLTHROUGH -Wimplicit-fallthrough=5)
   endif()
 
+
+  #----------------------
+  # Suppress Strict Flags
+  #
+  # Exclude the following warnings from this list:
+  # - `-Wno-address`:
+  #   This can give useful hints that point to bugs/misleading logic.
+  # - `-Wno-strict-prototypes`:
+  #   No need to support older C-style prototypes.
+  #
+  # If code in `./extern/` needs to suppress these flags that can be done on a case-by-case basis.
+
   # flags to undo strict flags
   ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_DEPRECATED_DECLARATIONS -Wno-deprecated-declarations)
   ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER        -Wno-unused-parameter)
@@ -1678,6 +1736,9 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   # gives too many unfixable warnings
   # ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_MACROS      -Wunused-macros)
   # ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNUSED_MACROS          -Wunused-macros)
+
+  #----------------------
+  # Suppress Strict Flags
 
   # flags to undo strict flags
   ADD_CHECK_C_COMPILER_FLAG(C_REMOVE_STRICT_FLAGS C_WARN_NO_UNUSED_PARAMETER -Wno-unused-parameter)
@@ -1744,6 +1805,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
     "/wd4828"  # The file contains a character that is illegal
     "/wd4996"  # identifier was declared deprecated
     "/wd4661"  # no suitable definition provided for explicit template instantiation request
+    "/wd4848"  # 'no_unique_address' is a vendor extension in C++17
     # errors:
     "/we4013"  # 'function' undefined; assuming extern returning int
     "/we4133"  # incompatible pointer types

@@ -415,7 +415,7 @@ void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_tangent[3])
   /* In case of degenerate faces. */
   zero_v3(r_tangent);
 
-  /* warning: O(n^2) loop here, take care! */
+  /* WARNING: O(n^2) loop here, take care! */
   float dist_max_sq = 0.0f;
   do {
     BMLoop *l_iter_other = l_iter->next;
@@ -447,7 +447,7 @@ void BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_tangent[3])
   /* In case of degenerate faces. */
   zero_v3(r_tangent);
 
-  /* warning: O(n^2) loop here, take care! */
+  /* WARNING: O(n^2) loop here, take care! */
   float dist_max_sq = 0.0f;
   do {
     BMLoop *l_iter_other = l_iter->next;

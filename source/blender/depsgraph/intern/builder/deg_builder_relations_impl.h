@@ -9,6 +9,8 @@
 
 #include "intern/node/deg_node_id.h"
 
+#include <iostream>
+
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
 #include "DNA_rigidbody_types.h"
@@ -33,37 +35,30 @@ Relation *DepsgraphRelationBuilder::add_relation(const KeyFrom &key_from,
   Node *node_to = get_node(key_to);
   OperationNode *op_from = node_from ? node_from->get_exit_operation() : nullptr;
   OperationNode *op_to = node_to ? node_to->get_entry_operation() : nullptr;
+
   if (op_from && op_to) {
     return add_operation_relation(op_from, op_to, description, flags);
   }
-  else {
-    if (!op_from) {
-      /* XXX TODO: handle as error or report if needed. */
-      fprintf(stderr,
-              "add_relation(%s) - Could not find op_from (%s)\n",
-              description,
-              key_from.identifier().c_str());
-    }
-    else {
-      fprintf(stderr,
-              "add_relation(%s) - Failed, but op_from (%s) was ok\n",
-              description,
-              key_from.identifier().c_str());
-    }
-    if (!op_to) {
-      /* XXX TODO: handle as error or report if needed. */
-      fprintf(stderr,
-              "add_relation(%s) - Could not find op_to (%s)\n",
-              description,
-              key_to.identifier().c_str());
-    }
-    else {
-      fprintf(stderr,
-              "add_relation(%s) - Failed, but op_to (%s) was ok\n",
-              description,
-              key_to.identifier().c_str());
-    }
+
+  /* TODO(sergey): Report error in the interface. */
+
+  std::cerr << "--------------------------------------------------------------------\n";
+  std::cerr << "Failed to add relation \"" << description << "\"\n";
+
+  if (!op_from) {
+    std::cerr << "Could not find op_from: " << key_from.identifier() << "\n";
   }
+
+  if (!op_to) {
+    std::cerr << "Could not find op_to: " << key_to.identifier() << "\n";
+  }
+
+  if (!stack_.is_empty()) {
+    std::cerr << "\nTrace:\n\n";
+    stack_.print_backtrace(std::cerr);
+    std::cerr << "\n";
+  }
+
   return nullptr;
 }
 

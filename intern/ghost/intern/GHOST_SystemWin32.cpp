@@ -8,12 +8,14 @@
 #include "GHOST_SystemWin32.h"
 #include "GHOST_ContextD3D.h"
 #include "GHOST_EventDragnDrop.h"
+#include "GHOST_EventTrackpad.h"
 
 #ifndef _WIN32_IE
 #  define _WIN32_IE 0x0501 /* shipped before XP, so doesn't impose additional requirements */
 #endif
 
 #include <commctrl.h>
+#include <dwmapi.h>
 #include <psapi.h>
 #include <shellapi.h>
 #include <shellscalingapi.h>
@@ -414,6 +416,8 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
       hasEventHandled = true;
     }
 
+    driveTrackpad();
+
     // Process all the events waiting for us
     while (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE) != 0) {
       // TranslateMessage doesn't alter the message, and doesn't change our raw keyboard data.
@@ -422,6 +426,8 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
       ::DispatchMessageW(&msg);
       hasEventHandled = true;
     }
+
+    processTrackpad();
 
     /* PeekMessage above is allowed to dispatch messages to the wndproc without us
      * noticing, so we need to check the event manager here to see if there are
@@ -574,7 +580,7 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw,
   // extra handling of modifier keys: don't send repeats out from GHOST
   if (key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt) {
     bool changed = false;
-    GHOST_TModifierKeyMask modifier;
+    GHOST_TModifierKey modifier;
     switch (key) {
       case GHOST_kKeyLeftShift: {
         changed = (modifiers.get(GHOST_kModifierKeyLeftShift) != *r_keyDown);
@@ -858,7 +864,7 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
 
 GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
                                                          GHOST_WindowWin32 *window,
-                                                         GHOST_TButtonMask mask)
+                                                         GHOST_TButton mask)
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 
@@ -1250,9 +1256,8 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
                                keyDown ? GHOST_kEventKeyDown : GHOST_kEventKeyUp,
                                window,
                                key,
-                               ascii,
-                               utf8_char,
-                               is_repeat);
+                               is_repeat,
+                               utf8_char);
 
     // GHOST_PRINTF("%c\n", ascii); // we already get this info via EventPrinter
   }
@@ -1415,6 +1420,52 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const &raw)
   return eventSent;
 }
 #endif  // WITH_INPUT_NDOF
+
+void GHOST_SystemWin32::driveTrackpad()
+{
+  GHOST_WindowWin32 *active_window = static_cast<GHOST_WindowWin32 *>(
+      getWindowManager()->getActiveWindow());
+  if (active_window) {
+    active_window->updateDirectManipulation();
+  }
+}
+
+void GHOST_SystemWin32::processTrackpad()
+{
+  GHOST_WindowWin32 *active_window = static_cast<GHOST_WindowWin32 *>(
+      getWindowManager()->getActiveWindow());
+
+  if (!active_window) {
+    return;
+  }
+
+  GHOST_TTrackpadInfo trackpad_info = active_window->getTrackpadInfo();
+  GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
+
+  int32_t cursor_x, cursor_y;
+  system->getCursorPosition(cursor_x, cursor_y);
+
+  if (trackpad_info.x != 0 || trackpad_info.y != 0) {
+    system->pushEvent(new GHOST_EventTrackpad(system->getMilliSeconds(),
+                                              active_window,
+                                              GHOST_kTrackpadEventScroll,
+                                              cursor_x,
+                                              cursor_y,
+                                              trackpad_info.x,
+                                              trackpad_info.y,
+                                              trackpad_info.isScrollDirectionInverted));
+  }
+  if (trackpad_info.scale != 0) {
+    system->pushEvent(new GHOST_EventTrackpad(system->getMilliSeconds(),
+                                              active_window,
+                                              GHOST_kTrackpadEventMagnify,
+                                              cursor_x,
+                                              cursor_y,
+                                              trackpad_info.scale,
+                                              0,
+                                              false));
+  }
+}
 
 LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -1968,6 +2019,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
                          suggestedWindowRect->right - suggestedWindowRect->left,
                          suggestedWindowRect->bottom - suggestedWindowRect->top,
                          SWP_NOZORDER | SWP_NOACTIVATE);
+
+            window->updateDPI();
           }
           break;
         case WM_DISPLAYCHANGE: {
@@ -1983,6 +2036,12 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            * nowhere. */
           if (!wParam && hwnd == ::GetActiveWindow()) {
             ::SetFocus(hwnd);
+          }
+          break;
+        case WM_SETTINGCHANGE:
+          /* Microsoft: "Note that some applications send this message with lParam set to NULL" */
+          if ((lParam != NULL) && (wcscmp(LPCWSTR(lParam), L"ImmersiveColorSet") == 0)) {
+            window->ThemeRefresh();
           }
           break;
         ////////////////////////////////////////////////////////////////////////
@@ -2055,6 +2114,12 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
            *
            * In GHOST, we let DefWindowProc call the timer callback.
            */
+          break;
+        case DM_POINTERHITTEST:
+          /* The DM_POINTERHITTEST message is sent to a window, when pointer input is first
+           * detected, in order to determine the most probable input target for Direct
+           * Manipulation. */
+          window->onPointerHitTest(wParam);
           break;
       }
     }
@@ -2145,30 +2210,27 @@ char *GHOST_SystemWin32::getClipboard(bool selection) const
 
 void GHOST_SystemWin32::putClipboard(const char *buffer, bool selection) const
 {
-  if (selection) {
+  if (selection || !buffer) {
     return;
   }  // for copying the selection, used on X11
 
   if (OpenClipboard(NULL)) {
-    HLOCAL clipbuffer;
-    wchar_t *data;
+    EmptyClipboard();
 
-    if (buffer) {
-      size_t len = count_utf_16_from_8(buffer);
-      EmptyClipboard();
+    // Get length of buffer including the terminating null
+    size_t len = count_utf_16_from_8(buffer);
 
-      clipbuffer = LocalAlloc(LMEM_FIXED, sizeof(wchar_t) * len);
-      data = (wchar_t *)GlobalLock(clipbuffer);
+    HGLOBAL clipbuffer = GlobalAlloc(GMEM_MOVEABLE, sizeof(wchar_t) * len);
+    if (clipbuffer) {
+      wchar_t *data = (wchar_t *)GlobalLock(clipbuffer);
 
       conv_utf_8_to_16(buffer, data, len);
 
-      LocalUnlock(clipbuffer);
+      GlobalUnlock(clipbuffer);
       SetClipboardData(CF_UNICODETEXT, clipbuffer);
     }
+
     CloseClipboard();
-  }
-  else {
-    return;
   }
 }
 

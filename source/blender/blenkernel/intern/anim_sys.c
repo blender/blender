@@ -2868,7 +2868,7 @@ static void nlastrip_evaluate_meta(const int evaluation_mode,
   /* Assert currently supported modes. If new mode added, then assertion marks potentially missed
    * area.
    *
-   * Note: In the future if support is ever added to metastrips to support nested tracks, then
+   * NOTE: In the future if support is ever added to metastrips to support nested tracks, then
    * STRIP_EVAL_BLEND and STRIP_EVAL_BLEND_GET_INVERTED_LOWER_SNAPSHOT cases are no longer
    * equivalent. The output of nlastrips_ctime_get_strip() may return a list of strips. The only
    * case difference should be the evaluation order.
@@ -4074,7 +4074,7 @@ void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, float 
 
   /* objects */
   /* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets
-   * this tagged by Depsgraph on framechange. This optimization means that objects
+   * this tagged by Depsgraph on frame-change. This optimization means that objects
    * linked from other (not-visible) scenes will not need their data calculated.
    */
   EVAL_ANIM_IDS(main->objects.first, 0);

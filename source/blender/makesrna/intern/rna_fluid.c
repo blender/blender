@@ -857,30 +857,30 @@ static void rna_Fluid_domaintype_set(struct PointerRNA *ptr, int value)
   BKE_fluid_fields_sanitize(settings);
 }
 
-static char *rna_FluidDomainSettings_path(PointerRNA *ptr)
+static char *rna_FluidDomainSettings_path(const PointerRNA *ptr)
 {
-  FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
-  ModifierData *md = (ModifierData *)settings->fmd;
+  const FluidDomainSettings *settings = (FluidDomainSettings *)ptr->data;
+  const ModifierData *md = (ModifierData *)settings->fmd;
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"].domain_settings", name_esc);
 }
 
-static char *rna_FluidFlowSettings_path(PointerRNA *ptr)
+static char *rna_FluidFlowSettings_path(const PointerRNA *ptr)
 {
-  FluidFlowSettings *settings = (FluidFlowSettings *)ptr->data;
-  ModifierData *md = (ModifierData *)settings->fmd;
+  const FluidFlowSettings *settings = (FluidFlowSettings *)ptr->data;
+  const ModifierData *md = (ModifierData *)settings->fmd;
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"].flow_settings", name_esc);
 }
 
-static char *rna_FluidEffectorSettings_path(PointerRNA *ptr)
+static char *rna_FluidEffectorSettings_path(const PointerRNA *ptr)
 {
-  FluidEffectorSettings *settings = (FluidEffectorSettings *)ptr->data;
-  ModifierData *md = (ModifierData *)settings->fmd;
+  const FluidEffectorSettings *settings = (FluidEffectorSettings *)ptr->data;
+  const ModifierData *md = (ModifierData *)settings->fmd;
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
@@ -893,9 +893,10 @@ static char *rna_FluidEffectorSettings_path(PointerRNA *ptr)
 
 #  ifdef WITH_FLUID
 
-static int rna_FluidModifier_grid_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+static int rna_FluidModifier_grid_get_length(const PointerRNA *ptr,
+                                             int length[RNA_MAX_ARRAY_DIMENSION])
 {
-  FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
+  const FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
   float *density = NULL;
   int size = 0;
 
@@ -918,7 +919,7 @@ static int rna_FluidModifier_grid_get_length(PointerRNA *ptr, int length[RNA_MAX
   return length[0];
 }
 
-static int rna_FluidModifier_color_grid_get_length(PointerRNA *ptr,
+static int rna_FluidModifier_color_grid_get_length(const PointerRNA *ptr,
                                                    int length[RNA_MAX_ARRAY_DIMENSION])
 {
   rna_FluidModifier_grid_get_length(ptr, length);
@@ -927,10 +928,10 @@ static int rna_FluidModifier_color_grid_get_length(PointerRNA *ptr,
   return length[0];
 }
 
-static int rna_FluidModifier_velocity_grid_get_length(PointerRNA *ptr,
+static int rna_FluidModifier_velocity_grid_get_length(const PointerRNA *ptr,
                                                       int length[RNA_MAX_ARRAY_DIMENSION])
 {
-  FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
+  const FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
   float *vx = NULL;
   float *vy = NULL;
   float *vz = NULL;
@@ -948,10 +949,10 @@ static int rna_FluidModifier_velocity_grid_get_length(PointerRNA *ptr,
   return length[0];
 }
 
-static int rna_FluidModifier_heat_grid_get_length(PointerRNA *ptr,
+static int rna_FluidModifier_heat_grid_get_length(const PointerRNA *ptr,
                                                   int length[RNA_MAX_ARRAY_DIMENSION])
 {
-  FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
+  const FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
   float *heat = NULL;
   int size = 0;
 

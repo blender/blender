@@ -92,8 +92,6 @@ GPU_SHADER_CREATE_INFO(draw_mesh).additional_info("draw_modelmat", "draw_resourc
 
 GPU_SHADER_CREATE_INFO(draw_hair)
     .sampler(15, ImageType::FLOAT_BUFFER, "hairPointBuffer")
-    .sampler(14, ImageType::UINT_BUFFER, "hairStrandBuffer")
-    .sampler(13, ImageType::UINT_BUFFER, "hairStrandSegBuffer")
     /* TODO(@fclem): Pack these into one UBO. */
     .push_constant(Type::INT, "hairStrandsRes")
     .push_constant(Type::INT, "hairThicknessRes")

@@ -13,7 +13,7 @@
 
 namespace blender::io::obj {
 
-/* Note: the OBJ parser implementation is planned to get fairly large changes "soon",
+/* NOTE: the OBJ parser implementation is planned to get fairly large changes "soon",
  * so don't read too much into current implementation... */
 class OBJParser {
  private:
@@ -39,6 +39,10 @@ class OBJParser {
    * Return a list of all material library filepaths referenced by the OBJ file.
    */
   Span<std::string> mtl_libraries() const;
+
+ private:
+  void add_mtl_library(StringRef path);
+  void add_default_mtl_library();
 };
 
 class MTLParser {
@@ -53,7 +57,7 @@ class MTLParser {
   /**
    * Open material library file.
    */
-  MTLParser(StringRef mtl_library_, StringRefNull obj_filepath);
+  MTLParser(StringRefNull mtl_library_, StringRefNull obj_filepath);
 
   /**
    * Read MTL file(s) and add MTLMaterial instances to the given Map reference.

@@ -152,7 +152,8 @@ void main()
 /* Only supported attrib for world/background shaders. */
 vec3 attr_load_orco(vec4 orco)
 {
-  return g_data.P;
+  /* Retain precision better than g_data.P (see T99128). */
+  return transform_direction(ViewMatrixInverse, normalize(viewPosition));
 }
 /* Unsupported. */
 vec4 attr_load_tangent(vec4 tangent)
@@ -170,14 +171,6 @@ vec3 attr_load_vec3(vec3 attr)
 vec2 attr_load_vec2(vec2 attr)
 {
   return vec2(0);
-}
-vec4 attr_load_color(vec4 attr)
-{
-  return vec4(0);
-}
-vec3 attr_load_uv(vec3 attr)
-{
-  return vec3(0);
 }
 
 /* Passthrough. */

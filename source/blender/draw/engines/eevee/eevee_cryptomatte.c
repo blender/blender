@@ -68,7 +68,7 @@ BLI_INLINE int eevee_cryptomatte_layers_count(const ViewLayer *view_layer)
 }
 
 /* The number of render result passes are needed to store a single cryptomatte layer. Per
- * renderpass 2 cryptomatte samples can be stored. */
+ * render-pass 2 cryptomatte samples can be stored. */
 BLI_INLINE int eevee_cryptomatte_passes_per_layer(const ViewLayer *view_layer)
 {
   const int num_cryptomatte_levels = view_layer->cryptomatte_levels;
@@ -94,7 +94,7 @@ BLI_INLINE int eevee_cryptomatte_pixel_stride(const ViewLayer *view_layer)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Init Renderpasses
+/** \name Init Render-Passes
  * \{ */
 
 void EEVEE_cryptomatte_renderpasses_init(EEVEE_Data *vedata)
@@ -189,11 +189,8 @@ void EEVEE_cryptomatte_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
   }
 }
 
-static DRWShadingGroup *eevee_cryptomatte_shading_group_create(EEVEE_Data *vedata,
-                                                               EEVEE_ViewLayerData *UNUSED(sldata),
-                                                               Object *ob,
-                                                               Material *material,
-                                                               bool is_hair)
+static DRWShadingGroup *eevee_cryptomatte_shading_group_create(
+    EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob, Material *material, bool is_hair)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const ViewLayer *view_layer = draw_ctx->view_layer;
@@ -229,6 +226,7 @@ static DRWShadingGroup *eevee_cryptomatte_shading_group_create(EEVEE_Data *vedat
   DRWShadingGroup *grp = DRW_shgroup_create(EEVEE_shaders_cryptomatte_sh_get(is_hair),
                                             psl->cryptomatte_ps);
   DRW_shgroup_uniform_vec4_copy(grp, "cryptohash", cryptohash);
+  DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
 
   return grp;
 }

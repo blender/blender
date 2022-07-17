@@ -45,7 +45,8 @@
 #include <vector>
 
 #include "ceres/graph.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 namespace internal {
@@ -95,13 +96,13 @@ struct CanonicalViewsClusteringOptions;
 // It is possible depending on the configuration of the clustering
 // algorithm that some of the vertices may not be assigned to any
 // cluster. In this case they are assigned to a cluster with id = -1;
-CERES_EXPORT_INTERNAL void ComputeCanonicalViewsClustering(
+CERES_NO_EXPORT void ComputeCanonicalViewsClustering(
     const CanonicalViewsClusteringOptions& options,
     const WeightedGraph<int>& graph,
     std::vector<int>* centers,
     std::unordered_map<int, int>* membership);
 
-struct CERES_EXPORT_INTERNAL CanonicalViewsClusteringOptions {
+struct CERES_NO_EXPORT CanonicalViewsClusteringOptions {
   // The minimum number of canonical views to compute.
   int min_views = 3;
 
@@ -121,5 +122,7 @@ struct CERES_EXPORT_INTERNAL CanonicalViewsClusteringOptions {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_CANONICAL_VIEWS_CLUSTERING_H_

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
 #include <utility>
 #include <vector>
 
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
 #include "glog/logging.h"
@@ -58,9 +58,9 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
   // rows/columns.
   int num_cols = 0;
   block_positions_.reserve(blocks_.size());
-  for (int i = 0; i < blocks_.size(); ++i) {
+  for (int block_size : blocks_) {
     block_positions_.push_back(num_cols);
-    num_cols += blocks_[i];
+    num_cols += block_size;
   }
 
   // Count the number of scalar non-zero entries and build the layout
@@ -76,7 +76,8 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
   VLOG(1) << "Matrix Size [" << num_cols << "," << num_cols << "] "
           << num_nonzeros;
 
-  tsm_.reset(new TripletSparseMatrix(num_cols, num_cols, num_nonzeros));
+  tsm_ =
+      std::make_unique<TripletSparseMatrix>(num_cols, num_cols, num_nonzeros);
   tsm_->set_num_nonzeros(num_nonzeros);
   int* rows = tsm_->mutable_rows();
   int* cols = tsm_->mutable_cols();
@@ -86,7 +87,7 @@ BlockRandomAccessSparseMatrix::BlockRandomAccessSparseMatrix(
   for (const auto& block_pair : block_pairs) {
     const int row_block_size = blocks_[block_pair.first];
     const int col_block_size = blocks_[block_pair.second];
-    cell_values_.push_back(make_pair(block_pair, values + pos));
+    cell_values_.emplace_back(block_pair, values + pos);
     layout_[IntPairToLong(block_pair.first, block_pair.second)] =
         new CellInfo(values + pos);
     pos += row_block_size * col_block_size;
@@ -129,7 +130,7 @@ CellInfo* BlockRandomAccessSparseMatrix::GetCell(int row_block_id,
   const LayoutType::iterator it =
       layout_.find(IntPairToLong(row_block_id, col_block_id));
   if (it == layout_.end()) {
-    return NULL;
+    return nullptr;
   }
 
   // Each cell is stored contiguously as its own little dense matrix.

@@ -47,6 +47,18 @@ void GPU_storagebuf_clear(GPUStorageBuf *ssbo,
                           void *data);
 void GPU_storagebuf_clear_to_zero(GPUStorageBuf *ssbo);
 
+/**
+ * \brief Copy a part of a vertex buffer to a storage buffer.
+ *
+ * \param ssbo: destination storage buffer
+ * \param src: source vertex buffer
+ * \param dst_offset: where to start copying to (in bytes).
+ * \param src_offset: where to start copying from (in bytes).
+ * \param copy_size: byte size of the segment to copy.
+ */
+void GPU_storagebuf_copy_sub_from_vertbuf(
+    GPUStorageBuf *ssbo, GPUVertBuf *src, uint dst_offset, uint src_offset, uint copy_size);
+
 #ifdef __cplusplus
 }
 #endif

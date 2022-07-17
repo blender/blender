@@ -130,7 +130,7 @@ static bool rna_Cache_get_valid_owner_ID(PointerRNA *ptr, Object **ob, Scene **s
   return (*ob != NULL || *scene != NULL);
 }
 
-static char *rna_PointCache_path(PointerRNA *ptr)
+static char *rna_PointCache_path(const PointerRNA *ptr)
 {
   ModifierData *md;
   Object *ob = (Object *)ptr->owner_id;
@@ -443,7 +443,7 @@ int rna_Cache_info_length(PointerRNA *ptr)
   return (int)strlen(cache->info);
 }
 
-static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))
+static char *rna_CollisionSettings_path(const PointerRNA *UNUSED(ptr))
 {
   /* both methods work ok, but return the shorter path */
 #  if 0
@@ -619,17 +619,17 @@ static void rna_SoftBodySettings_spring_vgroup_set(PointerRNA *ptr, const char *
   rna_object_vgroup_name_set(ptr, value, sb->namedVG_Spring_K, sizeof(sb->namedVG_Spring_K));
 }
 
-static char *rna_SoftBodySettings_path(PointerRNA *ptr)
+static char *rna_SoftBodySettings_path(const PointerRNA *ptr)
 {
-  Object *ob = (Object *)ptr->owner_id;
-  ModifierData *md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Softbody);
+  const Object *ob = (Object *)ptr->owner_id;
+  const ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Softbody);
   char name_esc[sizeof(md->name) * 2];
 
   BLI_str_escape(name_esc, md->name, sizeof(name_esc));
   return BLI_sprintfN("modifiers[\"%s\"].settings", name_esc);
 }
 
-static int particle_id_check(PointerRNA *ptr)
+static int particle_id_check(const PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
 
@@ -731,7 +731,7 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
   }
 }
 
-static char *rna_FieldSettings_path(PointerRNA *ptr)
+static char *rna_FieldSettings_path(const PointerRNA *ptr)
 {
   PartDeflect *pd = (PartDeflect *)ptr->data;
 
@@ -787,7 +787,7 @@ static void rna_EffectorWeight_dependency_update(Main *bmain,
   WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
 
-static char *rna_EffectorWeight_path(PointerRNA *ptr)
+static char *rna_EffectorWeight_path(const PointerRNA *ptr)
 {
   EffectorWeights *ew = (EffectorWeights *)ptr->data;
   /* Check through all possible places the settings can be to find the right one */
@@ -1395,97 +1395,97 @@ static void rna_def_field(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem field_type_items[] = {
-      {0, "NONE", 0, "None", ""},
-      {PFIELD_FORCE,
-       "FORCE",
-       ICON_FORCE_FORCE,
-       "Force",
-       "Radial field toward the center of object"},
-      {PFIELD_WIND,
-       "WIND",
-       ICON_FORCE_WIND,
-       "Wind",
-       "Constant force along the force object's local Z axis"},
-      {PFIELD_VORTEX,
-       "VORTEX",
-       ICON_FORCE_VORTEX,
-       "Vortex",
-       "Spiraling force that twists the force object's local Z axis"},
-      {PFIELD_MAGNET,
-       "MAGNET",
-       ICON_FORCE_MAGNETIC,
-       "Magnetic",
-       "Forcefield depends on the speed of the particles"},
-      {PFIELD_HARMONIC,
-       "HARMONIC",
-       ICON_FORCE_HARMONIC,
-       "Harmonic",
-       "The source of this force field is the zero point of a harmonic oscillator"},
+      {0, "NONE", ICON_BLANK1, "None", ""},
+      {PFIELD_BOID,
+       "BOID",
+       ICON_FORCE_BOID,
+       "Boid",
+       "Create a force that acts as a boid's predators or target"},
       {PFIELD_CHARGE,
        "CHARGE",
        ICON_FORCE_CHARGE,
        "Charge",
        "Spherical forcefield based on the charge of particles, "
        "only influences other charge force fields"},
-      {PFIELD_LENNARDJ,
-       "LENNARDJ",
-       ICON_FORCE_LENNARDJONES,
-       "Lennard-Jones",
-       "Forcefield based on the Lennard-Jones potential"},
-      {PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, "Texture", "Force field based on a texture"},
       {PFIELD_GUIDE,
        "GUIDE",
        ICON_FORCE_CURVE,
        "Curve Guide",
        "Create a force along a curve object"},
-      {PFIELD_BOID,
-       "BOID",
-       ICON_FORCE_BOID,
-       "Boid",
-       "Create a force that acts as a boid's predators or target"},
-      {PFIELD_TURBULENCE,
-       "TURBULENCE",
-       ICON_FORCE_TURBULENCE,
-       "Turbulence",
-       "Create turbulence with a noise field"},
       {PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", "Create a force that dampens motion"},
       {PFIELD_FLUIDFLOW,
        "FLUID_FLOW",
        ICON_FORCE_FLUIDFLOW,
        "Fluid Flow",
        "Create a force based on fluid simulation velocities"},
+      {PFIELD_FORCE,
+       "FORCE",
+       ICON_FORCE_FORCE,
+       "Force",
+       "Radial field toward the center of object"},
+      {PFIELD_HARMONIC,
+       "HARMONIC",
+       ICON_FORCE_HARMONIC,
+       "Harmonic",
+       "The source of this force field is the zero point of a harmonic oscillator"},
+      {PFIELD_LENNARDJ,
+       "LENNARDJ",
+       ICON_FORCE_LENNARDJONES,
+       "Lennard-Jones",
+       "Forcefield based on the Lennard-Jones potential"},
+      {PFIELD_MAGNET,
+       "MAGNET",
+       ICON_FORCE_MAGNETIC,
+       "Magnetic",
+       "Forcefield depends on the speed of the particles"},
+      {PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, "Texture", "Force field based on a texture"},
+      {PFIELD_TURBULENCE,
+       "TURBULENCE",
+       ICON_FORCE_TURBULENCE,
+       "Turbulence",
+       "Create turbulence with a noise field"},
+      {PFIELD_VORTEX,
+       "VORTEX",
+       ICON_FORCE_VORTEX,
+       "Vortex",
+       "Spiraling force that twists the force object's local Z axis"},
+      {PFIELD_WIND,
+       "WIND",
+       ICON_FORCE_WIND,
+       "Wind",
+       "Constant force along the force object's local Z axis"},
       {0, NULL, 0, NULL, NULL},
   };
 
   static const EnumPropertyItem falloff_items[] = {
+      {PFIELD_FALL_CONE, "CONE", 0, "Cone", ""},
       {PFIELD_FALL_SPHERE, "SPHERE", 0, "Sphere", ""},
       {PFIELD_FALL_TUBE, "TUBE", 0, "Tube", ""},
-      {PFIELD_FALL_CONE, "CONE", 0, "Cone", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
   static const EnumPropertyItem texture_items[] = {
-      {PFIELD_TEX_RGB, "RGB", 0, "RGB", ""},
-      {PFIELD_TEX_GRAD, "GRADIENT", 0, "Gradient", ""},
       {PFIELD_TEX_CURL, "CURL", 0, "Curl", ""},
+      {PFIELD_TEX_GRAD, "GRADIENT", 0, "Gradient", ""},
+      {PFIELD_TEX_RGB, "RGB", 0, "RGB", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
   static const EnumPropertyItem zdirection_items[] = {
-      {PFIELD_Z_BOTH, "BOTH", 0, "Both Z", ""},
       {PFIELD_Z_POS, "POSITIVE", 0, "+Z", ""},
       {PFIELD_Z_NEG, "NEGATIVE", 0, "-Z", ""},
+      {PFIELD_Z_BOTH, "BOTH", 0, "Both Z", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
   static const EnumPropertyItem guide_kink_items[] = {
-      {0, "NONE", 0, "Nothing", ""},
+      {0, "NONE", 0, "None", ""},
+      {4, "BRAID", 0, "Braid", ""},
       {1, "CURL", 0, "Curl", ""},
       {2, "RADIAL", 0, "Radial", ""},
-      {3, "WAVE", 0, "Wave", ""},
-      {4, "BRAID", 0, "Braid", ""},
-      {5, "ROTATION", 0, "Rotation", ""},
       {6, "ROLL", 0, "Roll", ""},
+      {5, "ROTATION", 0, "Rotation", ""},
+      {3, "WAVE", 0, "Wave", ""},
       {0, NULL, 0, NULL, NULL},
   };
 

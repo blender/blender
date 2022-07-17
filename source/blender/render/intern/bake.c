@@ -96,7 +96,7 @@ typedef struct TriTessFace {
   const MVert *mverts[3];
   const float *vert_normals[3];
   const TSpace *tspace[3];
-  float *loop_normal[3];
+  const float *loop_normal[3];
   float normal[3]; /* for flat faces */
   bool is_smooth;
 } TriTessFace;
@@ -330,10 +330,10 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
 {
   int i;
   int hit_mesh = -1;
-  float hit_distance = max_ray_distance;
-  if (hit_distance == 0.0f) {
+  float hit_distance_squared = max_ray_distance * max_ray_distance;
+  if (hit_distance_squared == 0.0f) {
     /* No ray distance set, use maximum. */
-    hit_distance = FLT_MAX;
+    hit_distance_squared = FLT_MAX;
   }
 
   BVHTreeRayHit *hits;
@@ -365,16 +365,14 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
     }
 
     if (hits[i].index != -1) {
-      float distance;
-      float hit_world[3];
-
       /* distance comparison in world space */
+      float hit_world[3];
       mul_v3_m4v3(hit_world, highpoly[i].obmat, hits[i].co);
-      distance = len_squared_v3v3(hit_world, co);
+      float distance_squared = len_squared_v3v3(hit_world, co);
 
-      if (distance < hit_distance) {
+      if (distance_squared < hit_distance_squared) {
         hit_mesh = i;
-        hit_distance = distance;
+        hit_distance_squared = distance_squared;
       }
     }
   }
@@ -453,9 +451,6 @@ static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
 static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval)
 {
   int i;
-  MVert *mvert;
-  TSpace *tspace = NULL;
-  float(*loop_normals)[3] = NULL;
 
   const int tottri = poly_to_tri_count(me->totpoly, me->totloop);
   MLoopTri *looptri;
@@ -465,7 +460,7 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
   unsigned int mpoly_prev = UINT_MAX;
   float no[3];
 
-  mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
+  const MVert *mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
   looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
   triangles = MEM_callocN(sizeof(TriTessFace) * tottri, __func__);
 
@@ -482,6 +477,8 @@ static TriTessFace *mesh_calc_tri_tessface(Mesh *me, bool tangent, Mesh *me_eval
     BKE_mesh_recalc_looptri(me->mloop, me->mpoly, me->mvert, me->totloop, me->totpoly, looptri);
   }
 
+  const TSpace *tspace = NULL;
+  const float(*loop_normals)[3] = NULL;
   if (tangent) {
     BKE_mesh_ensure_normals_for_display(me_eval);
     BKE_mesh_calc_normals_split(me_eval);

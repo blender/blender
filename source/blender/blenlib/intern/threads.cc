@@ -348,7 +348,7 @@ static ThreadMutex *global_mutex_from_type(const int type)
     case LOCK_VIEW3D:
       return &_view3d_lock;
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       return nullptr;
   }
 }

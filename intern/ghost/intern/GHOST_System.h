@@ -151,10 +151,14 @@ class GHOST_System : public GHOST_ISystem {
   bool useNativePixel(void);
   bool m_nativePixel;
 
+  bool supportsCursorWarp(void);
+  bool supportsWindowPosition(void);
+
   /**
    * Focus window after opening, or put them in the background.
    */
   void useWindowFocus(const bool use_focus);
+
   bool m_windowFocus;
 
   /**
@@ -199,6 +203,15 @@ class GHOST_System : public GHOST_ISystem {
    * Cursor management functionality
    ***************************************************************************************/
 
+  /* Client relative functions use a default implementation
+   * that converts from screen-coordinates to client coordinates.
+   * Implementations may override. */
+
+  GHOST_TSuccess getCursorPositionClientRelative(const GHOST_IWindow *window,
+                                                 int32_t &x,
+                                                 int32_t &y) const;
+  GHOST_TSuccess setCursorPositionClientRelative(GHOST_IWindow *window, int32_t x, int32_t y);
+
   /**
    * Inherited from GHOST_ISystem but left pure virtual
    * <pre>
@@ -217,7 +230,7 @@ class GHOST_System : public GHOST_ISystem {
    * \param isDown: The state of a modifier key (true == pressed).
    * \return Indication of success.
    */
-  GHOST_TSuccess getModifierKeyState(GHOST_TModifierKeyMask mask, bool &isDown) const;
+  GHOST_TSuccess getModifierKeyState(GHOST_TModifierKey mask, bool &isDown) const;
 
   /**
    * Returns the state of a mouse button (outside the message queue).
@@ -225,7 +238,7 @@ class GHOST_System : public GHOST_ISystem {
    * \param isDown: Button state.
    * \return Indication of success.
    */
-  GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool &isDown) const;
+  GHOST_TSuccess getButtonState(GHOST_TButton mask, bool &isDown) const;
 
   /**
    * Set which tablet API to use. Only affects Windows, other platforms have a single API.

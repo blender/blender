@@ -56,7 +56,7 @@ class LinearSolver;
 //
 // The minimizer assumes that none of the parameter blocks in the
 // program are constant.
-class CoordinateDescentMinimizer : public Minimizer {
+class CERES_NO_EXPORT CoordinateDescentMinimizer final : public Minimizer {
  public:
   explicit CoordinateDescentMinimizer(ContextImpl* context);
 
@@ -66,7 +66,7 @@ class CoordinateDescentMinimizer : public Minimizer {
             std::string* error);
 
   // Minimizer interface.
-  virtual ~CoordinateDescentMinimizer();
+  ~CoordinateDescentMinimizer() override;
 
   void Minimize(const Minimizer::Options& options,
                 double* parameters,
@@ -81,7 +81,8 @@ class CoordinateDescentMinimizer : public Minimizer {
   // of independent sets of decreasing size and invert it. This
   // seems to work better in practice, i.e., Cameras before
   // points.
-  static ParameterBlockOrdering* CreateOrdering(const Program& program);
+  static std::shared_ptr<ParameterBlockOrdering> CreateOrdering(
+      const Program& program);
 
  private:
   void Solve(Program* program,

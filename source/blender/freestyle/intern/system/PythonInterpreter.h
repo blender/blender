@@ -90,6 +90,7 @@ class PythonInterpreter : public Interpreter {
 
     if (!BPY_run_string_eval(_context, NULL, str.c_str())) {
       BPy_errors_to_report(reports);
+      PyErr_Clear();
       cerr << "\nError executing Python script from PythonInterpreter::interpretString" << endl;
       cerr << "Name: " << name << endl;
       cerr << "Errors: " << endl;

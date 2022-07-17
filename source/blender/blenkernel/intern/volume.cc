@@ -97,12 +97,7 @@ static struct VolumeFileCache {
   /* Cache Entry */
   struct Entry {
     Entry(const std::string &filepath, const openvdb::GridBase::Ptr &grid)
-        : filepath(filepath),
-          grid_name(grid->getName()),
-          grid(grid),
-          is_loaded(false),
-          num_metadata_users(0),
-          num_tree_users(0)
+        : filepath(filepath), grid_name(grid->getName()), grid(grid)
     {
     }
 
@@ -110,9 +105,7 @@ static struct VolumeFileCache {
         : filepath(other.filepath),
           grid_name(other.grid_name),
           grid(other.grid),
-          is_loaded(other.is_loaded),
-          num_metadata_users(0),
-          num_tree_users(0)
+          is_loaded(other.is_loaded)
     {
     }
 
@@ -151,12 +144,12 @@ static struct VolumeFileCache {
     blender::Map<int, openvdb::GridBase::Ptr> simplified_grids;
 
     /* Has the grid tree been loaded? */
-    mutable bool is_loaded;
+    mutable bool is_loaded = false;
     /* Error message if an error occurred while loading. */
     std::string error_msg;
     /* User counting. */
-    int num_metadata_users;
-    int num_tree_users;
+    int num_metadata_users = 0;
+    int num_tree_users = 0;
     /* Mutex for on-demand reading of tree. */
     mutable std::mutex mutex;
   };

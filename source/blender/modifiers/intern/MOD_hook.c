@@ -519,9 +519,11 @@ static void panelRegister(ARegionType *region_type)
       region_type, "falloff", "Falloff", NULL, falloff_panel_draw, panel_type);
 }
 
-static void blendWrite(BlendWriter *writer, const ModifierData *md)
+static void blendWrite(BlendWriter *writer, const ID *UNUSED(id_owner), const ModifierData *md)
 {
   const HookModifierData *hmd = (const HookModifierData *)md;
+
+  BLO_write_struct(writer, HookModifierData, hmd);
 
   if (hmd->curfalloff) {
     BKE_curvemapping_blend_write(writer, hmd->curfalloff);
@@ -543,7 +545,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_Hook = {
-    /* name */ "Hook",
+    /* name */ N_("Hook"),
     /* structName */ "HookModifierData",
     /* structSize */ sizeof(HookModifierData),
     /* srna */ &RNA_HookModifier,

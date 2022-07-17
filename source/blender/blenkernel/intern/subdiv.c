@@ -25,7 +25,9 @@
 #include "opensubdiv_evaluator_capi.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
-/* =================----====--===== MODULE ==========================------== */
+/* --------------------------------------------------------------------
+ * Module.
+ */
 
 void BKE_subdiv_init()
 {
@@ -37,7 +39,9 @@ void BKE_subdiv_exit()
   openSubdiv_cleanup();
 }
 
-/* ========================== CONVERSION HELPERS ============================ */
+/* --------------------------------------------------------------------
+ * Conversion helpers.
+ */
 
 eSubdivFVarLinearInterpolation BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth)
 {
@@ -72,7 +76,9 @@ eSubdivVtxBoundaryInterpolation BKE_subdiv_vtx_boundary_interpolation_from_subsu
   return SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
 }
 
-/* ================================ SETTINGS ================================ */
+/* --------------------------------------------------------------------
+ * Settings.
+ */
 
 bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a, const SubdivSettings *settings_b)
 {
@@ -83,7 +89,9 @@ bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a, const SubdivSet
           settings_a->fvar_linear_interpolation == settings_b->fvar_linear_interpolation);
 }
 
-/* ============================== CONSTRUCTION ============================== */
+/* --------------------------------------------------------------------
+ * Construction.
+ */
 
 /* Creation from scratch. */
 
@@ -194,7 +202,9 @@ void BKE_subdiv_free(Subdiv *subdiv)
   MEM_freeN(subdiv);
 }
 
-/* =========================== PTEX FACES AND GRIDS ========================= */
+/* --------------------------------------------------------------------
+ * Topology helpers.
+ */
 
 int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv)
 {

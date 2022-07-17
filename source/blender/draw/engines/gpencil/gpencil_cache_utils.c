@@ -290,7 +290,7 @@ GPENCIL_tLayer *gpencil_layer_cache_add(GPENCIL_PrivateData *pd,
   /* Masking: Go through mask list and extract valid masks in a bitmap. */
   if (is_masked) {
     bool valid_mask = false;
-    /* Warning: only GP_MAX_MASKBITS amount of bits.
+    /* WARNING: only #GP_MAX_MASKBITS amount of bits.
      * TODO(fclem): Find a better system without any limitation. */
     tgp_layer->mask_bits = BLI_memblock_alloc(pd->gp_maskbit_pool);
     tgp_layer->mask_invert_bits = BLI_memblock_alloc(pd->gp_maskbit_pool);

@@ -114,6 +114,10 @@ class FrameBuffer {
                                 eGPUDataFormat data_format,
                                 const void *clear_value) = 0;
 
+  virtual void attachment_set_loadstore_op(GPUAttachmentType type,
+                                           eGPULoadOp load_action,
+                                           eGPUStoreOp store_action) = 0;
+
   virtual void read(eGPUFrameBufferBits planes,
                     eGPUDataFormat format,
                     const int area[4],
@@ -128,12 +132,15 @@ class FrameBuffer {
                        int dst_offset_x,
                        int dst_offset_y) = 0;
 
+  void load_store_config_array(const GPULoadStore *load_store_actions, uint actions_len);
+
   void attachment_set(GPUAttachmentType type, const GPUAttachment &new_attachment);
   void attachment_remove(GPUAttachmentType type);
 
   void recursive_downsample(int max_lvl,
                             void (*callback)(void *userData, int level),
                             void *userData);
+  uint get_bits_per_pixel();
 
   inline void size_set(int width, int height)
   {

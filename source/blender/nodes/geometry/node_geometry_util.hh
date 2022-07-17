@@ -57,8 +57,6 @@ Mesh *create_cylinder_or_cone_mesh(float radius_top,
                                    GeometryNodeMeshCircleFillType fill_type,
                                    ConeAttributeOutputs &attribute_outputs);
 
-Mesh *create_cuboid_mesh(float3 size, int verts_x, int verts_y, int verts_z);
-
 /**
  * Copies the point domain attributes from `in_component` that are in the mask to `out_component`.
  */
@@ -72,23 +70,12 @@ void copy_point_attributes_based_on_mask(const GeometryComponent &in_component,
  * component. If no component can work with the domain, then `error_message` is set to true.
  */
 void separate_geometry(GeometrySet &geometry_set,
-                       AttributeDomain domain,
+                       eAttrDomain domain,
                        GeometryNodeDeleteGeometryMode mode,
                        const Field<bool> &selection_field,
-                       bool invert,
                        bool &r_is_error);
 
-std::optional<CustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
-std::optional<CustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);
-
-class SplineLengthFieldInput final : public GeometryFieldInput {
- public:
-  SplineLengthFieldInput();
-  GVArray get_varray_for_context(const GeometryComponent &component,
-                                 AttributeDomain domain,
-                                 IndexMask mask) const final;
-  uint64_t hash() const override;
-  bool is_equal_to(const fn::FieldNode &other) const override;
-};
+std::optional<eCustomDataType> node_data_type_to_custom_data_type(eNodeSocketDatatype type);
+std::optional<eCustomDataType> node_socket_to_custom_data_type(const bNodeSocket &socket);
 
 }  // namespace blender::nodes

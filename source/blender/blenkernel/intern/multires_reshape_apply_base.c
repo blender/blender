@@ -156,7 +156,7 @@ void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape
   /* Vertices were moved around, need to update normals after all the vertices are updated
    * Probably this is possible to do in the loop above, but this is rather tricky because
    * we don't know all needed vertices' coordinates there yet. */
-  BKE_mesh_normals_tag_dirty(base_mesh);
+  BKE_mesh_tag_coords_changed(base_mesh);
 }
 
 void multires_reshape_apply_base_refine_from_base(MultiresReshapeContext *reshape_context)

@@ -52,7 +52,7 @@ void BKE_object_material_remap_calc(struct Object *ob_dst,
  */
 void BKE_object_material_from_eval_data(struct Main *bmain,
                                         struct Object *ob_orig,
-                                        struct ID *data_eval);
+                                        const struct ID *data_eval);
 struct Material *BKE_material_add(struct Main *bmain, const char *name);
 struct Material *BKE_gpencil_material_add(struct Main *bmain, const char *name);
 void BKE_gpencil_material_attr_init(struct Material *ma);
@@ -87,6 +87,17 @@ struct Material *BKE_object_material_get(struct Object *ob, short act);
 void BKE_id_material_assign(struct Main *bmain, struct ID *id, struct Material *ma, short act);
 void BKE_object_material_assign(
     struct Main *bmain, struct Object *ob, struct Material *ma, short act, int assign_type);
+
+/**
+ * Similar to #BKE_object_material_assign with #BKE_MAT_ASSIGN_OBDATA type,
+ * but does not scan whole Main for other usages of the same obdata. Only
+ * use in cases where you know that the object's obdata is only used by this one
+ * object.
+ */
+void BKE_object_material_assign_single_obdata(struct Main *bmain,
+                                              struct Object *ob,
+                                              struct Material *ma,
+                                              short act);
 /**
  * \warning this calls many more update calls per object then are needed, could be optimized.
  */

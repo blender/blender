@@ -122,9 +122,10 @@ class SchurEliminatorBase;
 //   options.elimination_groups.push_back(num_cameras);
 //   VisibilityBasedPreconditioner preconditioner(
 //      *A.block_structure(), options);
-//   preconditioner.Update(A, NULL);
+//   preconditioner.Update(A, nullptr);
 //   preconditioner.RightMultiply(x, y);
-class VisibilityBasedPreconditioner : public BlockSparseMatrixPreconditioner {
+class CERES_NO_EXPORT VisibilityBasedPreconditioner
+    : public BlockSparseMatrixPreconditioner {
  public:
   // Initialize the symbolic structure of the preconditioner. bs is
   // the block structure of the linear system to be solved. It is used
@@ -133,11 +134,11 @@ class VisibilityBasedPreconditioner : public BlockSparseMatrixPreconditioner {
   // It has the same structural requirement as other Schur complement
   // based solvers. Please see schur_eliminator.h for more details.
   VisibilityBasedPreconditioner(const CompressedRowBlockStructure& bs,
-                                const Preconditioner::Options& options);
+                                Preconditioner::Options options);
   VisibilityBasedPreconditioner(const VisibilityBasedPreconditioner&) = delete;
   void operator=(const VisibilityBasedPreconditioner&) = delete;
 
-  virtual ~VisibilityBasedPreconditioner();
+  ~VisibilityBasedPreconditioner() override;
 
   // Preconditioner interface
   void RightMultiply(const double* x, double* y) const final;
@@ -160,7 +161,7 @@ class VisibilityBasedPreconditioner : public BlockSparseMatrixPreconditioner {
   void ComputeClusterVisibility(
       const std::vector<std::set<int>>& visibility,
       std::vector<std::set<int>>* cluster_visibility) const;
-  WeightedGraph<int>* CreateClusterGraph(
+  std::unique_ptr<WeightedGraph<int>> CreateClusterGraph(
       const std::vector<std::set<int>>& visibility) const;
   void ForestToClusterPairs(
       const WeightedGraph<int>& forest,

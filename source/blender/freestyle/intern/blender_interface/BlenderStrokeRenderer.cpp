@@ -499,9 +499,9 @@ void BlenderStrokeRenderer::test_strip_visibility(Strip::vertex_container &strip
   StrokeVertexRep *svRep[3];
   bool visible;
 
-  // iterate over all vertices and count visible faces and strip segments
-  // (note: a strip segment is a series of visible faces, while two strip
-  // segments are separated by one or more invisible faces)
+  /* Iterate over all vertices and count visible faces and strip segments
+   * (NOTE: a strip segment is a series of visible faces, while two strip
+   * segments are separated by one or more invisible faces). */
   v[0] = strip_vertices.begin();
   v[1] = v[0] + 1;
   v[2] = v[0] + 2;

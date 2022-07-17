@@ -38,7 +38,8 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
   /* Setup ray into surface. */
   INTEGRATOR_STATE_WRITE(state, ray, P) = sd->P;
   INTEGRATOR_STATE_WRITE(state, ray, D) = bssrdf->N;
-  INTEGRATOR_STATE_WRITE(state, ray, t) = FLT_MAX;
+  INTEGRATOR_STATE_WRITE(state, ray, tmin) = 0.0f;
+  INTEGRATOR_STATE_WRITE(state, ray, tmax) = FLT_MAX;
   INTEGRATOR_STATE_WRITE(state, ray, dP) = differential_make_compact(sd->dP);
   INTEGRATOR_STATE_WRITE(state, ray, dD) = differential_zero_compact();
 
@@ -147,7 +148,7 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   /* Update volume stack if needed. */
   if (kernel_data.integrator.use_volumes) {
     const int object = ss_isect.hits[0].object;
-    const int object_flag = kernel_tex_fetch(__object_flag, object);
+    const int object_flag = kernel_data_fetch(object_flag, object);
 
     if (object_flag & SD_OBJECT_INTERSECTS_VOLUME) {
       float3 P = INTEGRATOR_STATE(state, ray, P);
@@ -160,7 +161,7 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   /* Pretend ray is coming from the outside towards the exit point. This ensures
    * correct front/back facing normals.
    * TODO: find a more elegant solution? */
-  ray.P += ray.D * ray.t * 2.0f;
+  ray.P += ray.D * ray.tmax * 2.0f;
   ray.D = -ray.D;
 
   integrator_state_write_isect(kg, state, &ss_isect.hits[0]);
@@ -170,19 +171,30 @@ ccl_device_inline bool subsurface_scatter(KernelGlobals kg, IntegratorState stat
   INTEGRATOR_STATE_WRITE(state, path, rng_offset) += PRNG_BOUNCE_NUM;
 
   const int shader = intersection_get_shader(kg, &ss_isect.hits[0]);
-  const int shader_flags = kernel_tex_fetch(__shaders, shader).flags;
+  const int shader_flags = kernel_data_fetch(shaders, shader).flags;
   const int object_flags = intersection_get_object_flags(kg, &ss_isect.hits[0]);
   const bool use_caustics = kernel_data.integrator.use_caustics &&
                             (object_flags & SD_OBJECT_CAUSTICS);
-  const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE) || use_caustics;
+  const bool use_raytrace_kernel = (shader_flags & SD_HAS_RAYTRACE);
 
-  if (use_raytrace_kernel) {
-    INTEGRATOR_PATH_NEXT_SORTED(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
+  if (use_caustics) {
+    integrator_path_next_sorted(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
+                                DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE,
+                                shader);
+  }
+  else if (use_raytrace_kernel) {
+    integrator_path_next_sorted(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE,
                                 shader);
   }
   else {
-    INTEGRATOR_PATH_NEXT_SORTED(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
+    integrator_path_next_sorted(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE,
                                 shader);
   }

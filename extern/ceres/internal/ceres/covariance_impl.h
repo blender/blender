@@ -38,7 +38,8 @@
 #include <vector>
 
 #include "ceres/covariance.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/disable_warnings.h"
+#include "ceres/internal/export.h"
 #include "ceres/problem_impl.h"
 #include "ceres/suitesparse.h"
 
@@ -47,7 +48,7 @@ namespace internal {
 
 class CompressedRowSparseMatrix;
 
-class CERES_EXPORT_INTERNAL CovarianceImpl {
+class CERES_NO_EXPORT CovarianceImpl {
  public:
   explicit CovarianceImpl(const Covariance::Options& options);
   ~CovarianceImpl();
@@ -97,5 +98,7 @@ class CERES_EXPORT_INTERNAL CovarianceImpl {
 
 }  // namespace internal
 }  // namespace ceres
+
+#include "ceres/internal/reenable_warnings.h"
 
 #endif  // CERES_INTERNAL_COVARIANCE_IMPL_H_

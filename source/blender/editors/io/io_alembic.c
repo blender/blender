@@ -144,10 +144,10 @@ static int wm_alembic_export_exec(bContext *C, wmOperator *op)
   /* Take some defaults from the scene, if not specified explicitly. */
   Scene *scene = CTX_data_scene(C);
   if (params.frame_start == INT_MIN) {
-    params.frame_start = SFRA;
+    params.frame_start = scene->r.sfra;
   }
   if (params.frame_end == INT_MIN) {
-    params.frame_end = EFRA;
+    params.frame_end = scene->r.efra;
   }
 
   const bool as_background_job = RNA_boolean_get(op->ptr, "as_background_job");
@@ -248,8 +248,8 @@ static void wm_alembic_export_draw(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
 
   if (scene != NULL && RNA_boolean_get(op->ptr, "init_scene_frame_range")) {
-    RNA_int_set(op->ptr, "start", SFRA);
-    RNA_int_set(op->ptr, "end", EFRA);
+    RNA_int_set(op->ptr, "start", scene->r.sfra);
+    RNA_int_set(op->ptr, "end", scene->r.efra);
 
     RNA_boolean_set(op->ptr, "init_scene_frame_range", false);
   }
@@ -282,6 +282,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
   ot->poll = WM_operator_winactive;
   ot->ui = wm_alembic_export_draw;
   ot->check = wm_alembic_export_check;
+  ot->flag = OPTYPE_PRESET;
 
   WM_operator_properties_filesel(ot,
                                  FILE_TYPE_FOLDER | FILE_TYPE_ALEMBIC,
@@ -475,7 +476,7 @@ void WM_OT_alembic_export(wmOperatorType *ot)
   /* This dummy prop is used to check whether we need to init the start and
    * end frame values to that of the scene's, otherwise they are reset at
    * every change, draw update. */
-  RNA_def_boolean(ot->srna, "init_scene_frame_range", false, "", "");
+  RNA_def_boolean(ot->srna, "init_scene_frame_range", true, "", "");
 }
 
 /* ************************************************************************** */

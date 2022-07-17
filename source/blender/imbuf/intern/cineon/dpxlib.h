@@ -133,7 +133,7 @@ typedef struct {
 
 void dpxSetVerbose(int verbosity);
 LogImageFile *dpxOpen(const unsigned char *byteStuff, int fromMemory, size_t bufferSize);
-LogImageFile *dpxCreate(const char *filename,
+LogImageFile *dpxCreate(const char *filepath,
                         int width,
                         int height,
                         int bitsPerSample,

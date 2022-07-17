@@ -626,6 +626,11 @@ class CPPType : NonCopyable, NonMovable {
     fill_construct_indices_(value, dst, mask);
   }
 
+  bool can_exist_in_buffer(const int64_t buffer_size, const int64_t buffer_alignment) const
+  {
+    return size_ <= buffer_size && alignment_ <= buffer_alignment;
+  }
+
   void print(const void *value, std::stringstream &ss) const
   {
     BLI_assert(this->pointer_can_point_to_instance(value));

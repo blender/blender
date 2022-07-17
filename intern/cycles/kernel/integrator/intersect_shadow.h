@@ -162,7 +162,7 @@ ccl_device void integrator_intersect_shadow(KernelGlobals kg, IntegratorShadowSt
 
   if (opaque_hit) {
     /* Hit an opaque surface, shadow path ends here. */
-    INTEGRATOR_SHADOW_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
+    integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
     return;
   }
   else {
@@ -171,7 +171,9 @@ ccl_device void integrator_intersect_shadow(KernelGlobals kg, IntegratorShadowSt
      *
      * TODO: could also write to render buffer directly if no transparent shadows?
      * Could save a kernel execution for the common case. */
-    INTEGRATOR_SHADOW_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW,
+    integrator_shadow_path_next(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;
   }

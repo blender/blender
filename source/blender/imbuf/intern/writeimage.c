@@ -19,11 +19,6 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-static bool prepare_write_imbuf(const ImFileType *type, ImBuf *ibuf)
-{
-  return IMB_prepare_write_ImBuf((type->flag & IM_FTYPE_FLOAT), ibuf);
-}
-
 bool IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags)
 {
   errno = 0;
@@ -36,34 +31,22 @@ bool IMB_saveiff(struct ImBuf *ibuf, const char *filepath, int flags)
   ibuf->flags = flags;
 
   const ImFileType *type = IMB_file_type_from_ibuf(ibuf);
-  if (type != NULL) {
-    if (type->save != NULL) {
-      prepare_write_imbuf(type, ibuf);
-      return type->save(ibuf, filepath, flags);
-    }
+  if (type == NULL || type->save == NULL) {
+    fprintf(stderr, "Couldn't save picture.\n");
+    return false;
   }
 
-  fprintf(stderr, "Couldn't save picture.\n");
-
-  return false;
-}
-
-bool IMB_prepare_write_ImBuf(const bool isfloat, ImBuf *ibuf)
-{
-  bool changed = false;
-
-  if (isfloat) {
-    /* pass */
-  }
-  else {
+  /* If writing byte image from float buffer, create a byte buffer for writing.
+   *
+   * For color managed image writing, IMB_colormanagement_imbuf_for_write should
+   * have already created this byte buffer. This is a basic fallback for other
+   * cases where we do not have a specific desired output colorspace. */
+  if (!(type->flag & IM_FTYPE_FLOAT)) {
     if (ibuf->rect == NULL && ibuf->rect_float) {
       ibuf->rect_colorspace = colormanage_colorspace_get_roled(COLOR_ROLE_DEFAULT_BYTE);
       IMB_rect_from_float(ibuf);
-      if (ibuf->rect != NULL) {
-        changed = true;
-      }
     }
   }
 
-  return changed;
+  return type->save(ibuf, filepath, flags);
 }

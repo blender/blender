@@ -167,7 +167,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       SpaceSeq *sseq = CTX_wm_space_seq(C);
 
       SeqCollection *strips = SEQ_query_rendered_strips(
-          channels, seqbase, scene->r.cfra, sseq->chanshown);
+          scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
       /* Get the top most strip channel that is in view.*/
       Sequence *seq;
@@ -179,6 +179,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       if (max_channel != -1) {
         RNA_int_set(drop->ptr, "channel", max_channel);
       }
+      SEQ_collection_free(strips);
     }
   }
 }
@@ -231,13 +232,12 @@ static void update_overlay_strip_poistion_data(bContext *C, const int mval[2])
   else {
     /* Check if there is a strip that would intersect with the new strip(s). */
     coords->is_intersecting = false;
-    Sequence dummy_seq = {.machine = coords->channel,
-                          .startdisp = coords->start_frame,
-                          .enddisp = coords->start_frame + coords->strip_len};
-    Editing *ed = SEQ_editing_get(scene);
+    Sequence dummy_seq = {
+        .machine = coords->channel, .start = coords->start_frame, .len = coords->strip_len};
+    Editing *ed = SEQ_editing_ensure(scene);
 
     for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
-      coords->is_intersecting = SEQ_transform_test_overlap(ed->seqbasep, &dummy_seq);
+      coords->is_intersecting = SEQ_transform_test_overlap(scene, ed->seqbasep, &dummy_seq);
       dummy_seq.machine++;
     }
   }

@@ -19,8 +19,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "WM_toolsystem.h"
-
 #include "RNA_access.h"
 #include "RNA_define.h"
 

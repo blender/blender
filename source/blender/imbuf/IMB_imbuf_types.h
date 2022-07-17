@@ -41,13 +41,12 @@ typedef struct DDSData {
 
 /**
  * \ingroup imbuf
- * This is the abstraction of an image.  ImBuf is the basic type used for all
- * imbuf operations.
+ * This is the abstraction of an image. ImBuf is the basic type used for all imbuf operations.
  *
  * Also; add new variables to the end to save pain!
  */
 
-/* Warning: Keep explicit value assignments here,
+/* WARNING: Keep explicit value assignments here,
  * this file is included in areas where not all format defines are set
  * (e.g. intern/dds only get WITH_DDS, even if TIFF, HDR etc are also defined).
  * See T46524. */
@@ -176,7 +175,7 @@ typedef struct ImBuf {
    * avoid problems and use int. - campbell */
   int x, y;
 
-  /** Active amount of bits/bitplanes */
+  /** Active amount of bits/bit-planes. */
   unsigned char planes;
   /** Number of channels in `rect_float` (0 = 4 channel default) */
   int channels;
@@ -276,7 +275,7 @@ typedef struct ImBuf {
 } ImBuf;
 
 /**
- * \brief userflags: Flags used internally by blender for imagebuffers
+ * \brief userflags: Flags used internally by blender for image-buffers.
  */
 
 enum {

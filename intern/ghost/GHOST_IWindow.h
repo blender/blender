@@ -254,6 +254,15 @@ class GHOST_IWindow {
    */
   virtual GHOST_TSuccess setCursorShape(GHOST_TStandardCursor cursorShape) = 0;
 
+  virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds) = 0;
+
+  virtual void getCursorGrabState(GHOST_TGrabCursorMode &mode,
+                                  GHOST_TAxisFlag &axis_flag,
+                                  GHOST_Rect &bounds,
+                                  bool &use_software_cursor) = 0;
+
+  virtual bool getCursorGrabUseSoftwareDisplay() = 0;
+
   /**
    * Test if the standard cursor shape is supported by current platform.
    * \return Indication of success.
@@ -275,6 +284,8 @@ class GHOST_IWindow {
                                               int hotX,
                                               int hotY,
                                               bool canInvertColor) = 0;
+
+  virtual GHOST_TSuccess getCursorBitmap(GHOST_CursorBitmapRef *bitmap) = 0;
 
   /**
    * Returns the visibility state of the cursor.

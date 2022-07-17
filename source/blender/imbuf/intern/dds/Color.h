@@ -21,9 +21,8 @@ class Color32 {
   Color32()
   {
   }
-  Color32(const Color32 &c) : u(c.u)
-  {
-  }
+  Color32(const Color32 &) = default;
+
   Color32(unsigned char R, unsigned char G, unsigned char B)
   {
     setRGBA(R, G, B, 0xFF);

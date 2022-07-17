@@ -547,6 +547,29 @@ void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
       shgroup, location, DRW_UNIFORM_VERTEX_BUFFER_AS_STORAGE_REF, vertex_buffer, 0, 0, 1);
 }
 
+void DRW_shgroup_buffer_texture(DRWShadingGroup *shgroup,
+                                const char *name,
+                                GPUVertBuf *vertex_buffer)
+{
+  int location = GPU_shader_get_ssbo(shgroup->shader, name);
+  if (location == -1) {
+    return;
+  }
+  drw_shgroup_uniform_create_ex(
+      shgroup, location, DRW_UNIFORM_VERTEX_BUFFER_AS_TEXTURE, vertex_buffer, 0, 0, 1);
+}
+
+void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
+                                    const char *name,
+                                    GPUVertBuf **vertex_buffer)
+{
+  int location = GPU_shader_get_ssbo(shgroup->shader, name);
+  if (location == -1) {
+    return;
+  }
+  drw_shgroup_uniform_create_ex(
+      shgroup, location, DRW_UNIFORM_VERTEX_BUFFER_AS_TEXTURE_REF, vertex_buffer, 0, 0, 1);
+}
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -937,25 +960,25 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
 }
 
 void DRW_shgroup_call_range(
-    DRWShadingGroup *shgroup, struct Object *ob, GPUBatch *geom, uint v_sta, uint v_ct)
+    DRWShadingGroup *shgroup, struct Object *ob, GPUBatch *geom, uint v_sta, uint v_num)
 {
   BLI_assert(geom != NULL);
   if (G.f & G_FLAG_PICKSEL) {
     drw_command_set_select_id(shgroup, NULL, DST.select_id);
   }
   DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
-  drw_command_draw_range(shgroup, geom, handle, v_sta, v_ct);
+  drw_command_draw_range(shgroup, geom, handle, v_sta, v_num);
 }
 
 void DRW_shgroup_call_instance_range(
-    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_ct)
+    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_num)
 {
   BLI_assert(geom != NULL);
   if (G.f & G_FLAG_PICKSEL) {
     drw_command_set_select_id(shgroup, NULL, DST.select_id);
   }
   DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
-  drw_command_draw_intance_range(shgroup, geom, handle, i_sta, i_ct);
+  drw_command_draw_intance_range(shgroup, geom, handle, i_sta, i_num);
 }
 
 void DRW_shgroup_call_compute(DRWShadingGroup *shgroup,
@@ -1215,7 +1238,8 @@ static void drw_sculpt_generate_calls(DRWSculptCallbackData *scd)
                    &update_frustum,
                    &draw_frustum,
                    (void (*)(void *, GPU_PBVH_Buffers *))sculpt_draw_cb,
-                   scd);
+                   scd,
+                   scd->use_mats);
 
   if (SCULPT_DEBUG_BUFFERS) {
     int debug_node_nr = 0;
@@ -1905,8 +1929,8 @@ DRWView *DRW_view_create(const float viewmat[4][4],
 {
   DRWView *view = BLI_memblock_alloc(DST.vmempool->views);
 
-  if (DST.primary_view_ct < MAX_CULLED_VIEWS) {
-    view->culling_mask = 1u << DST.primary_view_ct++;
+  if (DST.primary_view_num < MAX_CULLED_VIEWS) {
+    view->culling_mask = 1u << DST.primary_view_num++;
   }
   else {
     BLI_assert(0);
@@ -2056,6 +2080,11 @@ void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)
 void DRW_view_camtexco_set(DRWView *view, float texco[4])
 {
   copy_v4_v4(view->storage.viewcamtexcofac, texco);
+}
+
+void DRW_view_camtexco_get(const DRWView *view, float r_texco[4])
+{
+  copy_v4_v4(r_texco, view->storage.viewcamtexcofac);
 }
 
 void DRW_view_frustum_corners_get(const DRWView *view, BoundBox *corners)

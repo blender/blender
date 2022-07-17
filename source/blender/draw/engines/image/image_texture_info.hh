@@ -46,6 +46,8 @@ struct TextureInfo {
    */
   GPUTexture *texture;
 
+  float2 last_viewport_size = float2(0.0f, 0.0f);
+
   ~TextureInfo()
   {
     if (batch != nullptr) {

@@ -60,7 +60,7 @@
 
 int ED_sculpt_face_sets_find_next_available_id(struct Mesh *mesh)
 {
-  int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
+  const int *face_sets = CustomData_get_layer(&mesh->pdata, CD_SCULPT_FACE_SETS);
   if (!face_sets) {
     return SCULPT_FACE_SET_NONE;
   }
@@ -150,25 +150,22 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
         }
       }
     }
-
     else if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
-      {
-        if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
-          continue;
-        }
-        const float fade = bstrength * SCULPT_brush_strength_factor(ss,
-                                                                    brush,
-                                                                    vd.co,
-                                                                    sqrtf(test.dist),
-                                                                    vd.no,
-                                                                    vd.fno,
-                                                                    vd.mask ? *vd.mask : 0.0f,
-                                                                    vd.index,
-                                                                    thread_id);
+      if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+        continue;
+      }
+      const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                  brush,
+                                                                  vd.co,
+                                                                  sqrtf(test.dist),
+                                                                  vd.no,
+                                                                  vd.fno,
+                                                                  vd.mask ? *vd.mask : 0.0f,
+                                                                  vd.index,
+                                                                  thread_id);
 
-        if (fade > 0.05f) {
-          SCULPT_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
-        }
+      if (fade > 0.05f) {
+        SCULPT_vertex_face_set_set(ss, vd.index, ss->cache->paint_face_set);
       }
     }
   }
@@ -952,11 +949,9 @@ static int sculpt_face_sets_change_visibility_invoke(bContext *C,
   /* Update the active vertex and Face Set using the cursor position to avoid relying on the paint
    * cursor updates. */
   SculptCursorGeometryInfo sgi;
-  float mouse[2];
-  mouse[0] = event->mval[0];
-  mouse[1] = event->mval[1];
+  const float mval_fl[2] = {UNPACK2(event->mval)};
   SCULPT_vertex_random_access_ensure(ss);
-  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
   return sculpt_face_sets_change_visibility_exec(C, op);
 }
@@ -1404,8 +1399,8 @@ static int sculpt_face_set_edit_invoke(bContext *C, wmOperator *op, const wmEven
   /* Update the current active Face Set and Vertex as the operator can be used directly from the
    * tool without brush cursor. */
   SculptCursorGeometryInfo sgi;
-  const float mouse[2] = {event->mval[0], event->mval[1]};
-  if (!SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false)) {
+  const float mval_fl[2] = {UNPACK2(event->mval)};
+  if (!SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false)) {
     /* The cursor is not over the mesh. Cancel to avoid editing the last updated Face Set ID. */
     return OPERATOR_CANCELLED;
   }

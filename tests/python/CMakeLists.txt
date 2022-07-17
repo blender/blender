@@ -102,6 +102,11 @@ add_blender_test(
 )
 
 add_blender_test(
+  script_pyapi_bpy_driver_secure_eval
+  --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_bpy_driver_secure_eval.py
+)
+
+add_blender_test(
   script_pyapi_idprop
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_pyapi_idprop.py
 )

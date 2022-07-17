@@ -186,13 +186,17 @@ typedef struct Subdiv {
   } cache_;
 } Subdiv;
 
-/* =================----====--===== MODULE ==========================------== */
+/* --------------------------------------------------------------------
+ * Module.
+ */
 
 /* (De)initialize the entire subdivision surface module. */
 void BKE_subdiv_init(void);
 void BKE_subdiv_exit(void);
 
-/* ========================== CONVERSION HELPERS ============================ */
+/* --------------------------------------------------------------------
+ * Conversion helpers.
+ */
 
 /* NOTE: uv_smooth is eSubsurfUVSmooth. */
 eSubdivFVarLinearInterpolation BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth);
@@ -200,7 +204,9 @@ eSubdivFVarLinearInterpolation BKE_subdiv_fvar_interpolation_from_uv_smooth(int 
 eSubdivVtxBoundaryInterpolation BKE_subdiv_vtx_boundary_interpolation_from_subsurf(
     int boundary_smooth);
 
-/* =============================== STATISTICS =============================== */
+/* --------------------------------------------------------------------
+ * Statistics.
+ */
 
 void BKE_subdiv_stats_init(SubdivStats *stats);
 
@@ -211,11 +217,15 @@ void BKE_subdiv_stats_reset(SubdivStats *stats, eSubdivStatsValue value);
 
 void BKE_subdiv_stats_print(const SubdivStats *stats);
 
-/* ================================ SETTINGS ================================ */
+/* --------------------------------------------------------------------
+ * Settings.
+ */
 
 bool BKE_subdiv_settings_equal(const SubdivSettings *settings_a, const SubdivSettings *settings_b);
 
-/* ============================== CONSTRUCTION ============================== */
+/* --------------------------------------------------------------------
+ * Construction.
+ */
 
 /* Construct new subdivision surface descriptor, from scratch, using given
  * settings and topology. */
@@ -240,7 +250,9 @@ Subdiv *BKE_subdiv_update_from_mesh(Subdiv *subdiv,
 
 void BKE_subdiv_free(Subdiv *subdiv);
 
-/* ============================ DISPLACEMENT API ============================ */
+/* --------------------------------------------------------------------
+ * Displacement API.
+ */
 
 void BKE_subdiv_displacement_attach_from_multires(Subdiv *subdiv,
                                                   struct Mesh *mesh,
@@ -248,14 +260,18 @@ void BKE_subdiv_displacement_attach_from_multires(Subdiv *subdiv,
 
 void BKE_subdiv_displacement_detach(Subdiv *subdiv);
 
-/* ============================ TOPOLOGY HELPERS ============================ */
+/* --------------------------------------------------------------------
+ * Topology helpers.
+ */
 
 /* For each element in the array, this stores the total number of ptex faces up to that element,
  * with the total number of ptex faces being the last element in the array. The array is of length
  * `base face count + 1`. */
 int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv);
 
-/* =========================== PTEX FACES AND GRIDS ========================= */
+/* --------------------------------------------------------------------
+ * PTex faces and grids.
+ */
 
 /* For a given (ptex_u, ptex_v) within a ptex face get corresponding
  * (grid_u, grid_v) within a grid. */

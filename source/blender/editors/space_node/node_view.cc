@@ -643,6 +643,12 @@ static int sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   ARegion *region = CTX_wm_region(C);
   ImageSampleInfo *info;
 
+  /* Don't handle events intended for nodes (which rely on click/drag distinction).
+   * which this operator would use since sampling is normally activated on press, see: T98191. */
+  if (node_or_socket_isect_event(C, event)) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
   if (!ED_node_is_compositor(snode) || !(snode->flag & SNODE_BACKDRAW)) {
     return OPERATOR_CANCELLED;
   }

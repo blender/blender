@@ -11,6 +11,8 @@
 #pragma BLENDER_REQUIRE(surface_lib.glsl)
 
 #ifdef USE_ALPHA_HASH
+/* A value of -1.0 will disable alpha clip and use alpha hash. */
+uniform float alphaClipThreshold;
 
 /* From the paper "Hashed Alpha Testing" by Chris Wyman and Morgan McGuire */
 float hash(vec2 a)
@@ -76,9 +78,16 @@ void main()
 
   float opacity = saturate(1.0 - avg(cl.transmittance));
 
-  /* Hashed Alpha Testing */
-  if (opacity < hashed_alpha_threshold(worldPosition)) {
-    discard;
+  if (alphaClipThreshold == -1.0) {
+    /* NOTE: uniform control flow required for dFdx(). */
+    if (opacity < hashed_alpha_threshold(worldPosition)) {
+      discard;
+    }
+  }
+  else {
+    if (opacity <= alphaClipThreshold) {
+      discard;
+    }
   }
 #endif
 }

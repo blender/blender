@@ -754,11 +754,11 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
   }
 
   /* Print stats. */
-  VLOG(1) << "Memory usage volume mesh: "
-          << ((vertices.size() + face_normals.size()) * sizeof(float3) +
-              indices.size() * sizeof(int)) /
-                 (1024.0 * 1024.0)
-          << "Mb.";
+  VLOG_WORK << "Memory usage volume mesh: "
+            << ((vertices.size() + face_normals.size()) * sizeof(float3) +
+                indices.size() * sizeof(int)) /
+                   (1024.0 * 1024.0)
+            << "Mb.";
 }
 
 CCL_NAMESPACE_END

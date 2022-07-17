@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # run this script in the game engine.
 # or on the command line with...
 #  ./blender.bin --background -noaudio --python tests/python/bl_rst_completeness.py

@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # To run the test type: blender -b /path/to/the/blend/file --python path/to/this/py/file -- --run-all-tests -- --verbose
 # Type the above line in cmd/terminal, for example, look below
 # blender -b c:\blender-lib\deform_modifiers.blend --python c:\deform_modifiers.py -- --run-all-tests -- --verbose

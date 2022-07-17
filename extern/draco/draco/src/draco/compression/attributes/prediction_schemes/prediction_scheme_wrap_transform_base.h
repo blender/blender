@@ -73,7 +73,7 @@ class PredictionSchemeWrapTransformBase {
     return &clamped_value_[0];
   }
 
-  // TODO(hemmer): Consider refactoring to avoid this dummy.
+  // TODO(b/199760123): Consider refactoring to avoid this dummy.
   int quantization_bits() const {
     DRACO_DCHECK(false);
     return -1;

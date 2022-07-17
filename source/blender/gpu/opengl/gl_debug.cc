@@ -189,7 +189,7 @@ void check_gl_error(const char *info)
   case err: { \
     char msg[256]; \
     SNPRINTF(msg, "%s : %s", #err, info); \
-    debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, msg, NULL); \
+    debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, msg, nullptr); \
     break; \
   }
 
@@ -331,11 +331,21 @@ void object_label(GLenum type, GLuint object, const char *name)
     char label[64];
     SNPRINTF(label, "%s%s%s", to_str_prefix(type), name, to_str_suffix(type));
     /* Small convenience for caller. */
-    if (ELEM(type, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_VERTEX_SHADER, GL_COMPUTE_SHADER)) {
-      type = GL_SHADER;
-    }
-    if (ELEM(type, GL_UNIFORM_BUFFER)) {
-      type = GL_BUFFER;
+    switch (type) {
+      case GL_FRAGMENT_SHADER:
+      case GL_GEOMETRY_SHADER:
+      case GL_VERTEX_SHADER:
+      case GL_COMPUTE_SHADER:
+        type = GL_SHADER;
+        break;
+      case GL_UNIFORM_BUFFER:
+      case GL_SHADER_STORAGE_BUFFER:
+      case GL_ARRAY_BUFFER:
+      case GL_ELEMENT_ARRAY_BUFFER:
+        type = GL_BUFFER;
+        break;
+      default:
+        break;
     }
     glObjectLabel(type, object, -1, label);
   }

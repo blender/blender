@@ -113,12 +113,12 @@ class TinySolverAutoDiffFunction {
   // as a member a Jet type, which itself has a fixed-size Eigen type as member.
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  TinySolverAutoDiffFunction(const CostFunctor& cost_functor)
+  explicit TinySolverAutoDiffFunction(const CostFunctor& cost_functor)
       : cost_functor_(cost_functor) {
     Initialize<kNumResiduals>(cost_functor);
   }
 
-  typedef T Scalar;
+  using Scalar = T;
   enum {
     NUM_PARAMETERS = kNumParameters,
     NUM_RESIDUALS = kNumResiduals,
@@ -127,7 +127,7 @@ class TinySolverAutoDiffFunction {
   // This is similar to AutoDifferentiate(), but since there is only one
   // parameter block it is easier to inline to avoid overhead.
   bool operator()(const T* parameters, T* residuals, T* jacobian) const {
-    if (jacobian == NULL) {
+    if (jacobian == nullptr) {
       // No jacobian requested, so just directly call the cost function with
       // doubles, skipping jets and derivatives.
       return cost_functor_(parameters, residuals);

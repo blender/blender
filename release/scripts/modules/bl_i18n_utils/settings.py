@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Global settings used by all scripts in this dir.
 # XXX Before any use of the tools in this dir, please make a copy of this file
 #     named "setting.py"
@@ -58,7 +56,7 @@ LANGUAGES = (
     (21, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"),
     (22, "Bulgarian (Български)", "bg_BG"),
     (23, "Greek (Ελληνικά)", "el_GR"),
-    (24, "Korean (한국 언어)", "ko_KR"),
+    (24, "Korean (한국어)", "ko_KR"),
     (25, "Nepali (नेपाली)", "ne_NP"),
     # Using the utf8 flipped form of Persian (فارسی).
     (26, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"),
@@ -250,13 +248,18 @@ PYGETTEXT_KEYWORDS = (() +
     tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("BMO_error_raise",)) +
 
-    tuple(("{}\\((?:[^\"',]+,)\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+    tuple(("{}\\((?:[^\"',]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
           for it in ("BKE_modifier_set_error",)) +
+
+    # This one is a tad more risky, but in practice would not expect a name/uid string parameter
+    # (the second one in those functions) to ever have a comma in it, so think this is fine.
+    tuple(("{}\\((?:[^,]+,){{2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
+          for it in ("modifier_subpanel_register", "gpencil_modifier_subpanel_register")) +
 
     # bUnitDef unit names.
     # NOTE: regex is a bit more complex than it would need too. Since the actual
     # identifier (`B_UNIT_DEF_`) is at the end, if it's simpler/too general it
-    # becomes extremely slow to process some (unrelated) source files. 
+    # becomes extremely slow to process some (unrelated) source files.
     ((r"\{(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,)){4}\s*" +
       _msg_re + r"\s*,(?:(?:\s*\"[^\"',]+\"\s*,)|(?:\s*NULL\s*,))(?:[^,]+,){2}"
       + "\s*B_UNIT_DEF_[_A-Z]+\s*\}"),) +
@@ -299,6 +302,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "ascii",
     "author",                        # Addons' field. :/
     "bItasc",
+    "blender.org",
     "color_index is invalid",
     "cos(A)",
     "cosh(A)",
@@ -314,6 +318,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "glTF 2.0 (.glb/.gltf)",
     "glTF Binary (.glb)",
     "glTF Embedded (.gltf)",
+    "glTF Original PBR data",
     "glTF Separate (.gltf + .bin + textures)",
     "invoke() needs to be called before execute()",
     "iScale",
@@ -332,6 +337,7 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "mp3",
     "normal",
     "ogg",
+    "oneAPI",
     "p0",
     "px",
     "re",
@@ -342,6 +348,8 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "sinh(A)",
     "sqrt(x*x+y*y+z*z)",
     "sRGB",
+    "sRGB display space",
+    "sRGB display space with Filmic view transform",
     "tan(A)",
     "tanh(A)",
     "utf-8",
@@ -358,7 +366,9 @@ WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
     "all and invert unselected",
     "and AMD driver version 22.10 or newer",
     "and AMD Radeon Pro 21.Q4 driver or newer",
+    "and Linux driver version xx.xx.28000 or newer",
     "and NVIDIA driver version 470 or newer",
+    "and Windows driver version 101.1660 or newer",
     "available with",
     "brown fox",
     "can't save image while rendering",
@@ -433,6 +443,7 @@ WARN_MSGID_END_POINT_ALLOWED = {
     "The program will now close.",
     "Your graphics card or driver has limited support. It may work, but with issues.",
     "Your graphics card or driver is not supported.",
+    "Invalid surface UVs on %d curves.",
 }
 
 PARSER_CACHE_HASH = 'sha1'

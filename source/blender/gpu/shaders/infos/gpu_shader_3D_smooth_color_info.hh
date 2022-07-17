@@ -21,4 +21,5 @@ GPU_SHADER_CREATE_INFO(gpu_shader_3D_smooth_color)
 
 GPU_SHADER_CREATE_INFO(gpu_shader_3D_smooth_color_clipped)
     .additional_info("gpu_shader_3D_smooth_color")
-    .additional_info("gpu_clip_planes");
+    .additional_info("gpu_clip_planes")
+    .do_static_compilation(true);

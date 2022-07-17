@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8-80 compliant>
-
 __all__ = (
     "mesh_linked_uv_islands",
     "mesh_linked_triangles",

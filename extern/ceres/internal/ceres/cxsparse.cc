@@ -29,10 +29,11 @@
 // Author: strandmark@google.com (Petter Strandmark)
 
 // This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 
 #ifndef CERES_NO_CXSPARSE
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -47,7 +48,7 @@ namespace internal {
 
 using std::vector;
 
-CXSparse::CXSparse() : scratch_(NULL), scratch_size_(0) {}
+CXSparse::CXSparse() : scratch_(nullptr), scratch_size_(0) {}
 
 CXSparse::~CXSparse() {
   if (scratch_size_ > 0) {
@@ -116,7 +117,7 @@ cs_dis* CXSparse::BlockAnalyzeCholesky(cs_di* A,
   block_matrix.nzmax = block_rows.size();
   block_matrix.p = &block_cols[0];
   block_matrix.i = &block_rows[0];
-  block_matrix.x = NULL;
+  block_matrix.x = nullptr;
 
   int* ordering = cs_amd(1, &block_matrix);
   vector<int> block_ordering(num_row_blocks, -1);
@@ -126,7 +127,7 @@ cs_dis* CXSparse::BlockAnalyzeCholesky(cs_di* A,
   vector<int> scalar_ordering;
   BlockOrderingToScalarOrdering(row_blocks, block_ordering, &scalar_ordering);
 
-  cs_dis* symbolic_factor =
+  auto* symbolic_factor =
       reinterpret_cast<cs_dis*>(cs_calloc(1, sizeof(cs_dis)));
   symbolic_factor->pinv = cs_pinv(&scalar_ordering[0], A->n);
   cs* permuted_A = cs_symperm(A, symbolic_factor->pinv, 0);
@@ -138,7 +139,7 @@ cs_dis* CXSparse::BlockAnalyzeCholesky(cs_di* A,
   cs_free(postordering);
   cs_spfree(permuted_A);
 
-  symbolic_factor->cp = (int*)cs_malloc(A->n + 1, sizeof(int));
+  symbolic_factor->cp = static_cast<int*>(cs_malloc(A->n + 1, sizeof(int)));
   symbolic_factor->lnz = cs_cumsum(symbolic_factor->cp, column_counts, A->n);
   symbolic_factor->unz = symbolic_factor->lnz;
 
@@ -146,7 +147,7 @@ cs_dis* CXSparse::BlockAnalyzeCholesky(cs_di* A,
 
   if (symbolic_factor->lnz < 0) {
     cs_sfree(symbolic_factor);
-    symbolic_factor = NULL;
+    symbolic_factor = nullptr;
   }
 
   return symbolic_factor;
@@ -206,8 +207,8 @@ CompressedRowSparseMatrix::StorageType CXSparseCholesky::StorageType() const {
 
 CXSparseCholesky::CXSparseCholesky(const OrderingType ordering_type)
     : ordering_type_(ordering_type),
-      symbolic_factor_(NULL),
-      numeric_factor_(NULL) {}
+      symbolic_factor_(nullptr),
+      numeric_factor_(nullptr) {}
 
 CXSparseCholesky::~CXSparseCholesky() {
   FreeSymbolicFactorization();
@@ -217,14 +218,14 @@ CXSparseCholesky::~CXSparseCholesky() {
 LinearSolverTerminationType CXSparseCholesky::Factorize(
     CompressedRowSparseMatrix* lhs, std::string* message) {
   CHECK_EQ(lhs->storage_type(), StorageType());
-  if (lhs == NULL) {
-    *message = "Failure: Input lhs is NULL.";
+  if (lhs == nullptr) {
+    *message = "Failure: Input lhs is nullptr.";
     return LINEAR_SOLVER_FATAL_ERROR;
   }
 
   cs_di cs_lhs = cs_.CreateSparseMatrixTransposeView(lhs);
 
-  if (symbolic_factor_ == NULL) {
+  if (symbolic_factor_ == nullptr) {
     if (ordering_type_ == NATURAL) {
       symbolic_factor_ = cs_.AnalyzeCholeskyWithNaturalOrdering(&cs_lhs);
     } else {
@@ -236,7 +237,7 @@ LinearSolverTerminationType CXSparseCholesky::Factorize(
       }
     }
 
-    if (symbolic_factor_ == NULL) {
+    if (symbolic_factor_ == nullptr) {
       *message = "CXSparse Failure : Symbolic factorization failed.";
       return LINEAR_SOLVER_FATAL_ERROR;
     }
@@ -244,7 +245,7 @@ LinearSolverTerminationType CXSparseCholesky::Factorize(
 
   FreeNumericFactorization();
   numeric_factor_ = cs_.Cholesky(&cs_lhs, symbolic_factor_);
-  if (numeric_factor_ == NULL) {
+  if (numeric_factor_ == nullptr) {
     *message = "CXSparse Failure : Numeric factorization failed.";
     return LINEAR_SOLVER_FAILURE;
   }
@@ -255,7 +256,7 @@ LinearSolverTerminationType CXSparseCholesky::Factorize(
 LinearSolverTerminationType CXSparseCholesky::Solve(const double* rhs,
                                                     double* solution,
                                                     std::string* message) {
-  CHECK(numeric_factor_ != NULL)
+  CHECK(numeric_factor_ != nullptr)
       << "Solve called without a call to Factorize first.";
   const int num_cols = numeric_factor_->L->n;
   memcpy(solution, rhs, num_cols * sizeof(*solution));
@@ -264,16 +265,16 @@ LinearSolverTerminationType CXSparseCholesky::Solve(const double* rhs,
 }
 
 void CXSparseCholesky::FreeSymbolicFactorization() {
-  if (symbolic_factor_ != NULL) {
+  if (symbolic_factor_ != nullptr) {
     cs_.Free(symbolic_factor_);
-    symbolic_factor_ = NULL;
+    symbolic_factor_ = nullptr;
   }
 }
 
 void CXSparseCholesky::FreeNumericFactorization() {
-  if (numeric_factor_ != NULL) {
+  if (numeric_factor_ != nullptr) {
     cs_.Free(numeric_factor_);
-    numeric_factor_ = NULL;
+    numeric_factor_ = nullptr;
   }
 }
 

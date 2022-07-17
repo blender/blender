@@ -82,8 +82,10 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
         if (const geo_log::GeometryValueLog *geo_value_log =
                 dynamic_cast<const geo_log::GeometryValueLog *>(value_log)) {
           for (const GeometryAttributeInfo &attribute : geo_value_log->attributes()) {
-            if (names.add(attribute.name)) {
-              attributes.append(&attribute);
+            if (bke::allow_procedural_attribute_access(attribute.name)) {
+              if (names.add(attribute.name)) {
+                attributes.append(&attribute);
+              }
             }
           }
         }
@@ -111,14 +113,6 @@ static void attribute_search_update_fn(
 
   Vector<const GeometryAttributeInfo *> infos = get_attribute_info_from_context(*C, *data);
 
-  /* Remove the deprecated normal attribute from the search. */
-  for (const int i : infos.index_range()) {
-    if (infos[i]->domain == ATTR_DOMAIN_FACE && infos[i]->name == "normal") {
-      infos.remove(i);
-      break;
-    }
-  }
-
   ui::attribute_search_add_items(str, true, infos, items, is_first);
 }
 
@@ -126,7 +120,7 @@ static void attribute_search_update_fn(
  * Some custom data types don't correspond to node types and therefore can't be
  * used by the named attribute input node. Find the best option or fallback to float.
  */
-static CustomDataType data_type_in_attribute_input_node(const CustomDataType type)
+static eCustomDataType data_type_in_attribute_input_node(const eCustomDataType type)
 {
   switch (type) {
     case CD_PROP_FLOAT:
@@ -183,9 +177,9 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   BLI_assert(socket->type == SOCK_STRING);
 
   /* For the attribute input node, also adjust the type and links connected to the output. */
-  if (node->type == GEO_NODE_INPUT_NAMED_ATTRIBUTE) {
+  if (node->type == GEO_NODE_INPUT_NAMED_ATTRIBUTE && item->data_type.has_value()) {
     NodeGeometryInputNamedAttribute &storage = *(NodeGeometryInputNamedAttribute *)node->storage;
-    const CustomDataType new_type = data_type_in_attribute_input_node(item->data_type);
+    const eCustomDataType new_type = data_type_in_attribute_input_node(*item->data_type);
     if (new_type != storage.data_type) {
       storage.data_type = new_type;
       /* Make the output socket with the new type on the attribute input node active. */

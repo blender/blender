@@ -43,38 +43,31 @@ static void node_geo_exec(GeoNodeExecParams params)
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
   const NodeGeometrySeparateGeometry &storage = node_storage(params.node());
-  const AttributeDomain domain = static_cast<AttributeDomain>(storage.domain);
+  const eAttrDomain domain = static_cast<eAttrDomain>(storage.domain);
 
-  auto separate_geometry_maybe_recursively = [&](GeometrySet &geometry_set, bool invert) {
+  auto separate_geometry_maybe_recursively = [&](GeometrySet &geometry_set,
+                                                 const Field<bool> &selection) {
     bool is_error;
     if (domain == ATTR_DOMAIN_INSTANCE) {
       /* Only delete top level instances. */
-      separate_geometry(geometry_set,
-                        domain,
-                        GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
-                        selection_field,
-                        invert,
-                        is_error);
+      separate_geometry(
+          geometry_set, domain, GEO_NODE_DELETE_GEOMETRY_MODE_ALL, selection, is_error);
     }
     else {
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-        separate_geometry(geometry_set,
-                          domain,
-                          GEO_NODE_DELETE_GEOMETRY_MODE_ALL,
-                          selection_field,
-                          invert,
-                          is_error);
+        separate_geometry(
+            geometry_set, domain, GEO_NODE_DELETE_GEOMETRY_MODE_ALL, selection, is_error);
       });
     }
   };
 
   GeometrySet second_set(geometry_set);
   if (params.output_is_required("Selection")) {
-    separate_geometry_maybe_recursively(geometry_set, false);
+    separate_geometry_maybe_recursively(geometry_set, selection_field);
     params.set_output("Selection", std::move(geometry_set));
   }
   if (params.output_is_required("Inverted")) {
-    separate_geometry_maybe_recursively(second_set, true);
+    separate_geometry_maybe_recursively(second_set, fn::invert_boolean_field(selection_field));
     params.set_output("Inverted", std::move(second_set));
   }
 }

@@ -23,7 +23,7 @@
 #include "BLI_utildefines.h"
 
 /**
- * Empty function, use for breakpoint when a deprecated
+ * Empty function, use for break-point when a deprecated
  * OpenGL function is called.
  */
 static void gl_deprecated(void)

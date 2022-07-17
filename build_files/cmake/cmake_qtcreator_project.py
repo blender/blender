@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 r"""
 Example Linux usage:
  python ~/blender-git/blender/build_files/cmake/cmake_qtcreator_project.py --build-dir ~/blender-git/cmake

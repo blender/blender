@@ -41,7 +41,7 @@
 
 #  include "WM_api.h"
 
-static char *rna_tracking_path(PointerRNA *UNUSED(ptr))
+static char *rna_tracking_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tracking");
 }
@@ -72,7 +72,7 @@ static void rna_tracking_defaultSettings_searchUpdate(Main *UNUSED(bmain),
   }
 }
 
-static char *rna_trackingTrack_path(PointerRNA *ptr)
+static char *rna_trackingTrack_path(const PointerRNA *ptr)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
@@ -255,7 +255,7 @@ static void rna_trackingPlaneMarker_frame_set(PointerRNA *ptr, int value)
   }
 }
 
-static char *rna_trackingPlaneTrack_path(PointerRNA *ptr)
+static char *rna_trackingPlaneTrack_path(const PointerRNA *ptr)
 {
   MovieClip *clip = (MovieClip *)ptr->owner_id;
   MovieTrackingPlaneTrack *plane_track = (MovieTrackingPlaneTrack *)ptr->data;
@@ -289,7 +289,7 @@ static void rna_trackingPlaneTrack_name_set(PointerRNA *ptr, const char *value)
   }
 }
 
-static char *rna_trackingCamera_path(PointerRNA *UNUSED(ptr))
+static char *rna_trackingCamera_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tracking.camera");
 }
@@ -321,7 +321,7 @@ static void rna_trackingCamera_focal_mm_set(PointerRNA *ptr, float value)
   }
 }
 
-static char *rna_trackingStabilization_path(PointerRNA *UNUSED(ptr))
+static char *rna_trackingStabilization_path(const PointerRNA *UNUSED(ptr))
 {
   return BLI_strdup("tracking.stabilization");
 }
@@ -557,7 +557,7 @@ static void rna_tracking_markerPattern_update(Main *UNUSED(bmain),
 {
   MovieTrackingMarker *marker = (MovieTrackingMarker *)ptr->data;
 
-  BKE_tracking_marker_clamp(marker, CLAMP_PAT_DIM);
+  BKE_tracking_marker_clamp_search_size(marker);
 }
 
 static void rna_tracking_markerSearch_update(Main *UNUSED(bmain),
@@ -566,7 +566,7 @@ static void rna_tracking_markerSearch_update(Main *UNUSED(bmain),
 {
   MovieTrackingMarker *marker = (MovieTrackingMarker *)ptr->data;
 
-  BKE_tracking_marker_clamp(marker, CLAMP_SEARCH_DIM);
+  BKE_tracking_marker_clamp_search_size(marker);
 }
 
 static void rna_tracking_markerPattern_boundbox_get(PointerRNA *ptr, float *values)

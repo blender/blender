@@ -53,7 +53,8 @@ add_dependencies(
   external_opencolorio
   external_yamlcpp
   external_expat
-  external_openexr
+  external_imath
+  external_pystring
 )
 
 if(WIN32)

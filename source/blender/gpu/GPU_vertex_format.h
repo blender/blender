@@ -55,7 +55,7 @@ typedef struct GPUVertAttr {
   /* 1 to 4 or 8 or 12 or 16 */
   uint comp_len : 5;
   /* size in bytes, 1 to 64 */
-  uint sz : 7;
+  uint size : 7;
   /* from beginning of vertex, in bytes */
   uint offset : 11;
   /* up to GPU_VERT_ATTR_MAX_NAMES */

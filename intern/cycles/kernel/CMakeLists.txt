@@ -37,6 +37,10 @@ set(SRC_KERNEL_DEVICE_OPTIX
   device/optix/kernel_shader_raytrace.cu
 )
 
+set(SRC_KERNEL_DEVICE_ONEAPI
+  device/oneapi/kernel.cpp
+)
+
 set(SRC_KERNEL_DEVICE_CPU_HEADERS
   device/cpu/compat.h
   device/cpu/image.h
@@ -75,7 +79,18 @@ set(SRC_KERNEL_DEVICE_METAL_HEADERS
   device/metal/compat.h
   device/metal/context_begin.h
   device/metal/context_end.h
+  device/metal/function_constants.h
   device/metal/globals.h
+)
+
+set(SRC_KERNEL_DEVICE_ONEAPI_HEADERS
+  device/oneapi/compat.h
+  device/oneapi/context_begin.h
+  device/oneapi/context_end.h
+  device/oneapi/globals.h
+  device/oneapi/image.h
+  device/oneapi/kernel.h
+  device/oneapi/kernel_templates.h
 )
 
 set(SRC_KERNEL_CLOSURE_HEADERS
@@ -140,11 +155,13 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/math_util.h
   svm/mix.h
   svm/musgrave.h
+  svm/node_types_template.h
   svm/noise.h
   svm/noisetex.h
   svm/normal.h
   svm/ramp.h
   svm/ramp_util.h
+  svm/sepcomb_color.h
   svm/sepcomb_hsv.h
   svm/sepcomb_vector.h
   svm/sky.h
@@ -266,8 +283,9 @@ set(SRC_KERNEL_UTIL_HEADERS
 )
 
 set(SRC_KERNEL_TYPES_HEADERS
+  data_arrays.h
+  data_template.h
   tables.h
-  textures.h
   types.h
 )
 
@@ -356,16 +374,13 @@ if(WITH_CYCLES_CUDA_BINARIES)
   set(CUDA_VERSION "${CUDA_VERSION_MAJOR}${CUDA_VERSION_MINOR}")
 
   # warn for other versions
-  if((CUDA_VERSION MATCHES "101") OR
-     (CUDA_VERSION MATCHES "102") OR
-     (CUDA_VERSION MATCHES "111") OR
-     (CUDA_VERSION MATCHES "112") OR
-     (CUDA_VERSION MATCHES "113") OR
-     (CUDA_VERSION MATCHES "114"))
+  if((CUDA_VERSION STREQUAL "101") OR
+     (CUDA_VERSION STREQUAL "102") OR
+     (CUDA_VERSION_MAJOR STREQUAL "11"))
   else()
     message(WARNING
       "CUDA version ${CUDA_VERSION_MAJOR}.${CUDA_VERSION_MINOR} detected, "
-      "build may succeed but only CUDA 10.1 to 11.4 are officially supported")
+      "build may succeed but only CUDA 11, 10.2 and 10.1 have been tested")
   endif()
 
   # build for each arch
@@ -482,19 +497,19 @@ if(WITH_CYCLES_CUDA_BINARIES)
       if(DEFINED CUDA10_NVCC_EXECUTABLE)
         set(cuda_nvcc_executable ${CUDA10_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA10_TOOLKIT_ROOT_DIR})
-      elseif(${CUDA_VERSION} LESS 110) # Support for sm_30 was removed in CUDA 11
+      elseif("${CUDA_VERSION}" LESS 110) # Support for sm_30 was removed in CUDA 11
         set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
       else()
         message(STATUS "CUDA binaries for ${arch} require CUDA 10 or earlier, skipped.")
       endif()
-    elseif(${arch} MATCHES ".*_7." AND ${CUDA_VERSION} LESS 100)
+    elseif(${arch} MATCHES ".*_7." AND "${CUDA_VERSION}" LESS 100)
       message(STATUS "CUDA binaries for ${arch} require CUDA 10.0+, skipped.")
     elseif(${arch} MATCHES ".*_8.")
       if(DEFINED CUDA11_NVCC_EXECUTABLE)
         set(cuda_nvcc_executable ${CUDA11_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA11_TOOLKIT_ROOT_DIR})
-      elseif(${CUDA_VERSION} GREATER_EQUAL 111) # Support for sm_86 was introduced in CUDA 11
+      elseif("${CUDA_VERSION}" GREATER_EQUAL 111) # Support for sm_86 was introduced in CUDA 11
         set(cuda_nvcc_executable ${CUDA_NVCC_EXECUTABLE})
         set(cuda_toolkit_root_dir ${CUDA_TOOLKIT_ROOT_DIR})
       else()
@@ -689,6 +704,209 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
   cycles_set_solution_folder(cycles_kernel_optix)
 endif()
 
+if(WITH_CYCLES_DEVICE_ONEAPI)
+  if(WIN32)
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/cycles_kernel_oneapi.dll)
+  else()
+    set(cycles_kernel_oneapi_lib ${CMAKE_CURRENT_BINARY_DIR}/cycles_kernel_oneapi.so)
+  endif()
+
+  set(cycles_oneapi_kernel_sources
+    ${SRC_KERNEL_DEVICE_ONEAPI}
+    ${SRC_KERNEL_HEADERS}
+    ${SRC_KERNEL_DEVICE_GPU_HEADERS}
+    ${SRC_KERNEL_DEVICE_ONEAPI_HEADERS}
+    ${SRC_UTIL_HEADERS}
+  )
+
+  # SYCL_CPP_FLAGS is a variable that the user can set to pass extra compiler options
+  set(sycl_compiler_flags
+      ${CMAKE_CURRENT_SOURCE_DIR}/${SRC_KERNEL_DEVICE_ONEAPI}
+      -fsycl
+      -fsycl-unnamed-lambda
+      -fdelayed-template-parsing
+      -mllvm -inlinedefault-threshold=300
+      -mllvm -inlinehint-threshold=400
+      -shared
+      -DWITH_ONEAPI
+      -ffast-math
+      -DNDEBUG
+      -O2
+      -o ${cycles_kernel_oneapi_lib}
+      -I${CMAKE_CURRENT_SOURCE_DIR}/..
+      ${SYCL_CPP_FLAGS}
+      )
+
+
+  if (WITH_CYCLES_ONEAPI_SYCL_HOST_ENABLED)
+    list(APPEND sycl_compiler_flags -DWITH_ONEAPI_SYCL_HOST_ENABLED)
+  endif()
+
+  # Set defaults for spir64 and spir64_gen options
+  if (NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64)
+    set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-ze-opt-large-register-file -ze-opt-regular-grf-kernel integrator_intersect'")
+  endif()
+  if (NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen)
+    SET (CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}" CACHE STRING "Extra build options for spir64_gen target")
+  endif()
+  # enabling zebin (graphics binary format with improved compatibility) on Windows only while support on Linux isn't available yet
+  if(WIN32)
+    string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "--format zebin ")
+  endif()
+  string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${CYCLES_ONEAPI_SPIR64_GEN_DEVICES} ")
+
+  if (WITH_CYCLES_ONEAPI_BINARIES)
+    # Iterate over all targest and their options
+    list (JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
+    list (APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
+    foreach(target ${CYCLES_ONEAPI_SYCL_TARGETS})
+      if(DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_${target})
+        list (APPEND sycl_compiler_flags -Xsycl-target-backend=${target} "${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}")
+      endif()
+    endforeach()
+  else()
+    # If AOT is disabled, build for spir64
+    list(APPEND sycl_compiler_flags
+      -fsycl-targets=spir64
+      -Xsycl-target-backend=spir64 "${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}")
+  endif()
+
+  if(WITH_NANOVDB)
+    list(APPEND sycl_compiler_flags
+      -DWITH_NANOVDB
+      -I"${NANOVDB_INCLUDE_DIR}")
+  endif()
+
+  if(WITH_CYCLES_DEBUG)
+    list(APPEND sycl_compiler_flags -DWITH_CYCLES_DEBUG)
+  endif()
+
+  get_filename_component(sycl_compiler_root ${SYCL_COMPILER} DIRECTORY)
+  get_filename_component(sycl_compiler_compiler_name ${SYCL_COMPILER} NAME_WE)
+
+  if(NOT OCLOC_INSTALL_DIR)
+    get_filename_component(OCLOC_INSTALL_DIR "${sycl_compiler_root}/../lib/ocloc" ABSOLUTE)
+  endif()
+  if(WITH_CYCLES_ONEAPI_BINARIES AND NOT EXISTS ${OCLOC_INSTALL_DIR})
+    message(FATAL_ERROR "WITH_CYCLES_ONEAPI_BINARIES requires ocloc but ${OCLOC_INSTALL_DIR} directory doesn't exist."
+                        " A different ocloc directory can be set using OCLOC_INSTALL_DIR cmake variable.")
+  endif()
+
+  if(UNIX AND NOT APPLE)
+    if(NOT WITH_CXX11_ABI)
+      check_library_exists(sycl
+        _ZN2cl4sycl7handler22verifyUsedKernelBundleERKSs ${sycl_compiler_root}/../lib SYCL_NO_CXX11_ABI)
+      if(SYCL_NO_CXX11_ABI)
+        list(APPEND sycl_compiler_flags -D_GLIBCXX_USE_CXX11_ABI=0)
+      endif()
+    endif()
+  endif()
+
+  if(WIN32)
+    list(APPEND sycl_compiler_flags
+    -fms-extensions
+    -fms-compatibility
+    -D_WINDLL
+    -D_MBCS
+    -DWIN32
+    -D_WINDOWS
+    -D_CRT_NONSTDC_NO_DEPRECATE
+    -D_CRT_SECURE_NO_DEPRECATE
+    -DONEAPI_EXPORT)
+
+    if(sycl_compiler_compiler_name MATCHES "dpcpp")
+      # The oneAPI distribution calls the compiler "dpcpp" and comes with a script that sets environment variables.
+      add_custom_command(
+        OUTPUT ${cycles_kernel_oneapi_lib}
+        COMMAND "${sycl_compiler_root}/../../env/vars.bat"
+        COMMAND ${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}
+        DEPENDS ${cycles_oneapi_kernel_sources})
+    else()
+      # The open source SYCL compiler just goes by clang++ and does not have such a script.
+      # Set the variables manually.
+      string(REPLACE /Redist/ /Tools/ MSVC_TOOLS_DIR ${MSVC_REDIST_DIR})
+      if(NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION) # case for Ninja on Windows
+        get_filename_component(cmake_mt_dir ${CMAKE_MT} DIRECTORY)
+        string(REPLACE /bin/ /Lib/ WINDOWS_KIT_DIR ${cmake_mt_dir})
+        get_filename_component(WINDOWS_KIT_DIR "${WINDOWS_KIT_DIR}/../" ABSOLUTE)
+      else()
+        set(WINDOWS_KIT_DIR ${WINDOWS_KITS_DIR}/Lib/${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
+      endif()
+      list(APPEND sycl_compiler_flags
+                  -L "${MSVC_TOOLS_DIR}/lib/x64"
+                  -L "${WINDOWS_KIT_DIR}/um/x64"
+                  -L "${WINDOWS_KIT_DIR}/ucrt/x64")
+      add_custom_command(
+        OUTPUT ${cycles_kernel_oneapi_lib}
+        COMMAND ${CMAKE_COMMAND} -E env
+                "LIB=${sycl_compiler_root}/../lib" # for compiler to find sycl.lib
+                "PATH=${OCLOC_INSTALL_DIR};${sycl_compiler_root}"
+                ${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}
+        DEPENDS ${cycles_oneapi_kernel_sources})
+    endif()
+  else()
+    list(APPEND sycl_compiler_flags -fPIC)
+
+    # We avoid getting __FAST_MATH__ to be defined when building on CentOS 7 until the compilation crash
+    # it triggers at either AoT or JIT stages gets fixed.
+    list(APPEND sycl_compiler_flags -fhonor-nans)
+
+    # add $ORIGIN to cycles_kernel_oneapi.so rpath so libsycl.so and
+    # libpi_level_zero.so can be placed next to it and get found.
+    list(APPEND sycl_compiler_flags -Wl,-rpath,'$$ORIGIN')
+
+    # The oneAPI distribution calls the compiler "dpcpp" and comes with a script that sets environment variables.
+    if(sycl_compiler_compiler_name MATCHES "dpcpp")
+      add_custom_command(
+        OUTPUT ${cycles_kernel_oneapi_lib}
+        COMMAND bash -c \"source ${sycl_compiler_root}/../../env/vars.sh&&${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}\"
+        DEPENDS ${cycles_oneapi_kernel_sources})
+    else()
+      # The open source SYCL compiler just goes by clang++ and does not have such a script.
+      # Set the variables manually.
+      if(NOT IGC_INSTALL_DIR)
+        get_filename_component(IGC_INSTALL_DIR "${sycl_compiler_root}/../lib/igc" ABSOLUTE)
+      endif()
+      add_custom_command(
+        OUTPUT ${cycles_kernel_oneapi_lib}
+        COMMAND ${CMAKE_COMMAND} -E env
+                "LD_LIBRARY_PATH=${sycl_compiler_root}/../lib:${OCLOC_INSTALL_DIR}/lib:${IGC_INSTALL_DIR}/lib"
+                "PATH=${OCLOC_INSTALL_DIR}/bin:${sycl_compiler_root}:$ENV{PATH}" # env PATH is for compiler to find ld
+                ${SYCL_COMPILER} $<$<CONFIG:Debug>:-g>$<$<CONFIG:RelWithDebInfo>:-g> ${sycl_compiler_flags}
+        DEPENDS ${cycles_oneapi_kernel_sources})
+    endif()
+  endif()
+
+  # install dynamic libraries required at runtime
+  if(WIN32)
+    set(SYCL_RUNTIME_DEPENDENCIES
+        sycl.dll
+        pi_level_zero.dll
+    )
+    if(NOT WITH_BLENDER)
+      # For the Cycles standalone put libraries next to the Cycles application.
+      delayed_install("${sycl_compiler_root}" "${SYCL_RUNTIME_DEPENDENCIES}" ${CYCLES_INSTALL_PATH})
+    else()
+      # For Blender put the libraries next to the Blender executable.
+      #
+      # Note that the installation path in the delayed_install is relative to the versioned folder,
+      # which means we need to go one level up.
+      delayed_install("${sycl_compiler_root}" "${SYCL_RUNTIME_DEPENDENCIES}" "../")
+    endif()
+  elseif(UNIX AND NOT APPLE)
+    file(GLOB SYCL_RUNTIME_DEPENDENCIES
+              ${sycl_compiler_root}/../lib/libsycl.so
+              ${sycl_compiler_root}/../lib/libsycl.so.[0-9]
+              ${sycl_compiler_root}/../lib/libsycl.so.[0-9].[0-9].[0-9]-[0-9]
+    )
+    list(APPEND SYCL_RUNTIME_DEPENDENCIES ${sycl_compiler_root}/../lib/libpi_level_zero.so)
+    delayed_install("" "${SYCL_RUNTIME_DEPENDENCIES}" ${CYCLES_INSTALL_PATH}/lib)
+  endif()
+
+  delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cycles_kernel_oneapi_lib}" ${CYCLES_INSTALL_PATH}/lib)
+  add_custom_target(cycles_kernel_oneapi ALL DEPENDS ${cycles_kernel_oneapi_lib})
+endif()
+
 # OSL module
 
 if(WITH_CYCLES_OSL)
@@ -754,6 +972,7 @@ cycles_add_library(cycles_kernel "${LIB}"
   ${SRC_KERNEL_DEVICE_HIP_HEADERS}
   ${SRC_KERNEL_DEVICE_OPTIX_HEADERS}
   ${SRC_KERNEL_DEVICE_METAL_HEADERS}
+  ${SRC_KERNEL_DEVICE_ONEAPI_HEADERS}
 )
 
 source_group("bake" FILES ${SRC_KERNEL_BAKE_HEADERS})
@@ -766,6 +985,7 @@ source_group("device\\gpu" FILES ${SRC_KERNEL_DEVICE_GPU_HEADERS})
 source_group("device\\hip" FILES ${SRC_KERNEL_DEVICE_HIP} ${SRC_KERNEL_DEVICE_HIP_HEADERS})
 source_group("device\\optix" FILES ${SRC_KERNEL_DEVICE_OPTIX} ${SRC_KERNEL_DEVICE_OPTIX_HEADERS})
 source_group("device\\metal" FILES ${SRC_KERNEL_DEVICE_METAL} ${SRC_KERNEL_DEVICE_METAL_HEADERS})
+source_group("device\\oneapi" FILES ${SRC_KERNEL_DEVICE_ONEAPI} ${SRC_KERNEL_DEVICE_ONEAPI_HEADERS})
 source_group("film" FILES ${SRC_KERNEL_FILM_HEADERS})
 source_group("geom" FILES ${SRC_KERNEL_GEOM_HEADERS})
 source_group("integrator" FILES ${SRC_KERNEL_INTEGRATOR_HEADERS})
@@ -783,6 +1003,9 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
 endif()
 if(WITH_CYCLES_HIP)
   add_dependencies(cycles_kernel cycles_kernel_hip)
+endif()
+if(WITH_CYCLES_DEVICE_ONEAPI)
+  add_dependencies(cycles_kernel cycles_kernel_oneapi)
 endif()
 
 # Install kernel source for runtime compilation

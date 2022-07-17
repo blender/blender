@@ -72,7 +72,7 @@ static CLG_LogRef LOG = {"ed.undo.mesh"};
 /* Single linked list of layers stored per type */
 typedef struct BArrayCustomData {
   struct BArrayCustomData *next;
-  CustomDataType type;
+  eCustomDataType type;
   int states_len; /* number of layers for each type */
   BArrayState *states[0];
 } BArrayCustomData;
@@ -149,7 +149,7 @@ static void um_arraystore_cd_compact(struct CustomData *cdata,
   const BArrayCustomData *bcd_reference_current = bcd_reference;
   BArrayCustomData *bcd = NULL, *bcd_first = NULL, *bcd_prev = NULL;
   for (int layer_start = 0, layer_end; layer_start < cdata->totlayer; layer_start = layer_end) {
-    const CustomDataType type = cdata->layers[layer_start].type;
+    const eCustomDataType type = cdata->layers[layer_start].type;
 
     /* Perform a full copy on dynamic layers.
      *

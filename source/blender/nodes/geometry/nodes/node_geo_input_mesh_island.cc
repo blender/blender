@@ -30,7 +30,7 @@ class IslandFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() != GEO_COMPONENT_TYPE_MESH) {
@@ -54,7 +54,7 @@ class IslandFieldInput final : public GeometryFieldInput {
       output[i] = ordered_roots.index_of_or_add(root);
     }
 
-    return mesh_component.attribute_try_adapt_domain<int>(
+    return mesh_component.attributes()->adapt_domain<int>(
         VArray<int>::ForContainer(std::move(output)), ATTR_DOMAIN_POINT, domain);
   }
 
@@ -78,7 +78,7 @@ class IslandCountFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() != GEO_COMPONENT_TYPE_MESH) {

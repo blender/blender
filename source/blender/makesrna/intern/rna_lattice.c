@@ -209,11 +209,11 @@ static void rna_Lattice_vg_name_set(PointerRNA *ptr, const char *value)
 }
 
 /* annoying, but is a consequence of RNA structures... */
-static char *rna_LatticePoint_path(PointerRNA *ptr)
+static char *rna_LatticePoint_path(const PointerRNA *ptr)
 {
-  Lattice *lt = (Lattice *)ptr->owner_id;
-  void *point = ptr->data;
-  BPoint *points = NULL;
+  const Lattice *lt = (Lattice *)ptr->owner_id;
+  const void *point = ptr->data;
+  const BPoint *points = NULL;
 
   if (lt->editlatt && lt->editlatt->latt->def) {
     points = lt->editlatt->latt->def;

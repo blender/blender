@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <cmath>
 #include <ctime>
+#include <memory>
 #include <set>
 #include <unordered_map>
 #include <utility>
@@ -62,8 +63,8 @@ void ComputeVisibility(const CompressedRowBlockStructure& block_structure,
   visibility->resize(0);
   visibility->resize(block_structure.cols.size() - num_eliminate_blocks);
 
-  for (int i = 0; i < block_structure.rows.size(); ++i) {
-    const vector<Cell>& cells = block_structure.rows[i].cells;
+  for (const auto& row : block_structure.rows) {
+    const vector<Cell>& cells = row.cells;
     int block_id = cells[0].block_id;
     // If the first block is not an e_block, then skip this row block.
     if (block_id >= num_eliminate_blocks) {
@@ -79,16 +80,16 @@ void ComputeVisibility(const CompressedRowBlockStructure& block_structure,
   }
 }
 
-WeightedGraph<int>* CreateSchurComplementGraph(
+std::unique_ptr<WeightedGraph<int>> CreateSchurComplementGraph(
     const vector<set<int>>& visibility) {
-  const time_t start_time = time(NULL);
+  const time_t start_time = time(nullptr);
   // Compute the number of e_blocks/point blocks. Since the visibility
   // set for each e_block/camera contains the set of e_blocks/points
   // visible to it, we find the maximum across all visibility sets.
   int num_points = 0;
-  for (int i = 0; i < visibility.size(); i++) {
-    if (visibility[i].size() > 0) {
-      num_points = max(num_points, (*visibility[i].rbegin()) + 1);
+  for (const auto& visible : visibility) {
+    if (!visible.empty()) {
+      num_points = max(num_points, (*visible.rbegin()) + 1);
     }
   }
 
@@ -100,7 +101,7 @@ WeightedGraph<int>* CreateSchurComplementGraph(
   vector<set<int>> inverse_visibility(num_points);
   for (int i = 0; i < visibility.size(); i++) {
     const set<int>& visibility_set = visibility[i];
-    for (const int v : visibility_set) {
+    for (int v : visibility_set) {
       inverse_visibility[v].insert(i);
     }
   }
@@ -111,17 +112,17 @@ WeightedGraph<int>* CreateSchurComplementGraph(
 
   // Count the number of points visible to each camera/f_block pair.
   for (const auto& inverse_visibility_set : inverse_visibility) {
-    for (set<int>::const_iterator camera1 = inverse_visibility_set.begin();
+    for (auto camera1 = inverse_visibility_set.begin();
          camera1 != inverse_visibility_set.end();
          ++camera1) {
-      set<int>::const_iterator camera2 = camera1;
+      auto camera2 = camera1;
       for (++camera2; camera2 != inverse_visibility_set.end(); ++camera2) {
         ++(camera_pairs[make_pair(*camera1, *camera2)]);
       }
     }
   }
 
-  WeightedGraph<int>* graph = new WeightedGraph<int>;
+  auto graph = std::make_unique<WeightedGraph<int>>();
 
   // Add vertices and initialize the pairs for self edges so that self
   // edges are guaranteed. This is needed for the Canonical views
@@ -146,7 +147,7 @@ WeightedGraph<int>* CreateSchurComplementGraph(
     graph->AddEdge(camera1, camera2, weight);
   }
 
-  VLOG(2) << "Schur complement graph time: " << (time(NULL) - start_time);
+  VLOG(2) << "Schur complement graph time: " << (time(nullptr) - start_time);
   return graph;
 }
 

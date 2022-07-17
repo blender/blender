@@ -49,6 +49,20 @@ template<typename T, int Size> inline bool is_any_zero(const vec_base<T, Size> &
   return false;
 }
 
+template<typename T, int Size>
+inline bool almost_equal_relative(const vec_base<T, Size> &a,
+                                  const vec_base<T, Size> &b,
+                                  const T &epsilon_factor)
+{
+  for (int i = 0; i < Size; i++) {
+    const float epsilon = epsilon_factor * math::abs(a[i]);
+    if (math::distance(a[i], b[i]) > epsilon) {
+      return false;
+    }
+  }
+  return true;
+}
+
 template<typename T, int Size> inline vec_base<T, Size> abs(const vec_base<T, Size> &a)
 {
   vec_base<T, Size> result;
@@ -141,6 +155,39 @@ inline T safe_mod(const vec_base<T, Size> &a, const T &b)
   vec_base<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = std::fmod(a[i], b);
+  }
+  return result;
+}
+
+/**
+ * Returns \a a if it is a multiple of \a b or the next multiple or \a b after \b a .
+ * In other words, it is equivalent to `divide_ceil(a, b) * b`.
+ * It is undefined if \a a is negative or \b b is not strictly positive.
+ */
+template<typename T, int Size, BLI_ENABLE_IF((is_math_integral_type<T>))>
+inline vec_base<T, Size> ceil_to_multiple(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+{
+  vec_base<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    BLI_assert(a[i] >= 0);
+    BLI_assert(b[i] > 0);
+    result[i] = ((a[i] + b[i] - 1) / b[i]) * b[i];
+  }
+  return result;
+}
+
+/**
+ * Integer division that returns the ceiling, instead of flooring like normal C division.
+ * It is undefined if \a a is negative or \b b is not strictly positive.
+ */
+template<typename T, int Size, BLI_ENABLE_IF((is_math_integral_type<T>))>
+inline vec_base<T, Size> divide_ceil(const vec_base<T, Size> &a, const vec_base<T, Size> &b)
+{
+  vec_base<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    BLI_assert(a[i] >= 0);
+    BLI_assert(b[i] > 0);
+    result[i] = (a[i] + b[i] - 1) / b[i];
   }
   return result;
 }

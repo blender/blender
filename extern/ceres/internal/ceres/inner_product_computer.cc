@@ -31,6 +31,7 @@
 #include "ceres/inner_product_computer.h"
 
 #include <algorithm>
+#include <memory>
 
 #include "ceres/small_blas.h"
 
@@ -44,11 +45,12 @@ namespace internal {
 // or the lower triangular part of the product.
 //
 // num_nonzeros is the number of non-zeros in the result matrix.
-CompressedRowSparseMatrix* InnerProductComputer::CreateResultMatrix(
+std::unique_ptr<CompressedRowSparseMatrix>
+InnerProductComputer::CreateResultMatrix(
     const CompressedRowSparseMatrix::StorageType storage_type,
     const int num_nonzeros) {
-  CompressedRowSparseMatrix* matrix =
-      new CompressedRowSparseMatrix(m_.num_cols(), m_.num_cols(), num_nonzeros);
+  auto matrix = std::make_unique<CompressedRowSparseMatrix>(
+      m_.num_cols(), m_.num_cols(), num_nonzeros);
   matrix->set_storage_type(storage_type);
 
   const CompressedRowBlockStructure* bs = m_.block_structure();
@@ -116,14 +118,14 @@ InnerProductComputer::InnerProductComputer(const BlockSparseMatrix& m,
 //
 // product_storage_type controls the form of the output matrix. It
 // can be LOWER_TRIANGULAR or UPPER_TRIANGULAR.
-InnerProductComputer* InnerProductComputer::Create(
+std::unique_ptr<InnerProductComputer> InnerProductComputer::Create(
     const BlockSparseMatrix& m,
     CompressedRowSparseMatrix::StorageType product_storage_type) {
   return InnerProductComputer::Create(
       m, 0, m.block_structure()->rows.size(), product_storage_type);
 }
 
-InnerProductComputer* InnerProductComputer::Create(
+std::unique_ptr<InnerProductComputer> InnerProductComputer::Create(
     const BlockSparseMatrix& m,
     const int start_row_block,
     const int end_row_block,
@@ -132,8 +134,8 @@ InnerProductComputer* InnerProductComputer::Create(
         product_storage_type == CompressedRowSparseMatrix::UPPER_TRIANGULAR);
   CHECK_GT(m.num_nonzeros(), 0)
       << "Congratulations, you found a bug in Ceres. Please report it.";
-  InnerProductComputer* inner_product_computer =
-      new InnerProductComputer(m, start_row_block, end_row_block);
+  std::unique_ptr<InnerProductComputer> inner_product_computer(
+      new InnerProductComputer(m, start_row_block, end_row_block));
   inner_product_computer->Init(product_storage_type);
   return inner_product_computer;
 }
@@ -165,8 +167,8 @@ void InnerProductComputer::Init(
 
       for (int c2 = c2_begin; c2 < c2_end; ++c2) {
         const Cell& cell2 = row.cells[c2];
-        product_terms.push_back(InnerProductComputer::ProductTerm(
-            cell1.block_id, cell2.block_id, product_terms.size()));
+        product_terms.emplace_back(
+            cell1.block_id, cell2.block_id, product_terms.size());
       }
     }
   }
@@ -183,7 +185,7 @@ void InnerProductComputer::ComputeOffsetsAndCreateResultMatrix(
   std::vector<int> row_block_nnz;
   const int num_nonzeros = ComputeNonzeros(product_terms, &row_block_nnz);
 
-  result_.reset(CreateResultMatrix(product_storage_type, num_nonzeros));
+  result_ = CreateResultMatrix(product_storage_type, num_nonzeros);
 
   // Populate the row non-zero counts in the result matrix.
   int* crsm_rows = result_->mutable_rows();

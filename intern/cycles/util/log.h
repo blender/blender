@@ -69,9 +69,22 @@ class LogMessageVoidify {
 #  define LOG_ASSERT(expression) LOG_SUPPRESS()
 #endif
 
-#define VLOG_ONCE(level, flag) \
-  if (!flag) \
-  flag = true, VLOG(level)
+/* Verbose logging categories. */
+
+/* Warnings. */
+#define VLOG_WARNING VLOG(1)
+/* Info about devices, scene contents and features used. */
+#define VLOG_INFO VLOG(2)
+#define VLOG_INFO_IS_ON VLOG_IS_ON(2)
+/* Work being performed and timing/memory stats about that work. */
+#define VLOG_WORK VLOG(3)
+#define VLOG_WORK_IS_ON VLOG_IS_ON(3)
+/* Detailed device timing stats. */
+#define VLOG_DEVICE_STATS VLOG(4)
+#define VLOG_DEVICE_STATS_IS_ON VLOG_IS_ON(4)
+/* Verbose debug messages. */
+#define VLOG_DEBUG VLOG(5)
+#define VLOG_DEBUG_IS_ON VLOG_IS_ON(5)
 
 struct int2;
 struct float3;

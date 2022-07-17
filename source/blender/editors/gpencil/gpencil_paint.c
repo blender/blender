@@ -2166,7 +2166,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
       if (gpl->actframe && gpl->actframe->strokes.first) {
         if (ts->gpencil_flags & GP_TOOL_FLAG_RETAIN_LAST) {
           short frame_mode = IS_AUTOKEY_ON(scene) ? GP_GETFRAME_ADD_COPY : GP_GETFRAME_USE_PREV;
-          gpl->actframe = BKE_gpencil_layer_frame_get(gpl, CFRA, frame_mode);
+          gpl->actframe = BKE_gpencil_layer_frame_get(gpl, scene->r.cfra, frame_mode);
         }
         has_layer_to_erase = true;
         break;
@@ -2204,7 +2204,7 @@ static void gpencil_paint_initstroke(tGPsdata *p,
     bool need_tag = p->gpl->actframe == NULL;
     bGPDframe *actframe = p->gpl->actframe;
 
-    p->gpf = BKE_gpencil_layer_frame_get(p->gpl, CFRA, add_frame_mode);
+    p->gpf = BKE_gpencil_layer_frame_get(p->gpl, scene->r.cfra, add_frame_mode);
     /* Only if there wasn't an active frame, need update. */
     if (need_tag) {
       DEG_id_tag_update(&p->gpd->id, ID_RECALC_GEOMETRY);

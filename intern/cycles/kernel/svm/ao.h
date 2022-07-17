@@ -31,7 +31,7 @@ ccl_device float svm_ao(
     return 1.0f;
   }
 
-  /* Can't raytrace from shaders like displacement, before BVH exists. */
+  /* Can't ray-trace from shaders like displacement, before BVH exists. */
   if (kernel_data.bvh.bvh_layout == BVH_LAYOUT_NONE) {
     return 1.0f;
   }
@@ -59,7 +59,8 @@ ccl_device float svm_ao(
     Ray ray;
     ray.P = sd->P;
     ray.D = D.x * T + D.y * B + D.z * N;
-    ray.t = max_dist;
+    ray.tmin = 0.0f;
+    ray.tmax = max_dist;
     ray.time = sd->time;
     ray.self.object = sd->object;
     ray.self.prim = sd->prim;

@@ -133,6 +133,7 @@ class PathTraceWorkGPU : public PathTraceWork {
   /* Shader sorting. */
   device_vector<int> integrator_shader_sort_counter_;
   device_vector<int> integrator_shader_raytrace_sort_counter_;
+  device_vector<int> integrator_shader_mnee_sort_counter_;
   device_vector<int> integrator_shader_sort_prefix_sum_;
   /* Path split. */
   device_vector<int> integrator_next_main_path_index_;
@@ -154,6 +155,9 @@ class PathTraceWorkGPU : public PathTraceWork {
   /* Cached result of device->should_use_graphics_interop(). */
   bool interop_use_checked_ = false;
   bool interop_use_ = false;
+
+  /* Number of partitions to sort state indices into prior to material sort. */
+  int num_sort_partitions_;
 
   /* Maximum number of concurrent integrator states. */
   int max_num_paths_;

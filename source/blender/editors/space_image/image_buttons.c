@@ -845,7 +845,10 @@ void uiTemplateImage(uiLayout *layout,
 
     row = uiLayoutRow(row, true);
     uiLayoutSetEnabled(row, is_packed == false);
-    uiItemR(row, &imaptr, "filepath", 0, "", ICON_NONE);
+
+    prop = RNA_struct_find_property(&imaptr, "filepath");
+    uiDefAutoButR(block, &imaptr, prop, -1, "", ICON_NONE, 0, 0, 200, UI_UNIT_Y);
+    uiItemO(row, "", ICON_FILEBROWSER, "image.file_browse");
     uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
   }
 
@@ -1215,7 +1218,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
   if (ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
     /* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
     Scene *scene = CTX_data_scene(C);
-    const int framenr = BKE_image_user_frame_get(iuser, CFRA, NULL);
+    const int framenr = BKE_image_user_frame_get(iuser, scene->r.cfra, NULL);
     char str[MAX_IMAGE_INFO_LEN];
     int duration = 0;
 

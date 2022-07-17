@@ -48,9 +48,9 @@ static const std::string propNameOriginalCoordinates("Pref");
 static void get_uvs(const CDStreamConfig &config,
                     std::vector<Imath::V2f> &uvs,
                     std::vector<uint32_t> &uvidx,
-                    void *cd_data)
+                    const void *cd_data)
 {
-  MLoopUV *mloopuv_array = static_cast<MLoopUV *>(cd_data);
+  const MLoopUV *mloopuv_array = static_cast<const MLoopUV *>(cd_data);
 
   if (!mloopuv_array) {
     return;
@@ -68,7 +68,7 @@ static void get_uvs(const CDStreamConfig &config,
     /* Iterate in reverse order to match exported polygons. */
     for (int i = 0; i < num_poly; i++) {
       MPoly &current_poly = polygons[i];
-      MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
+      const MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
       for (int j = 0; j < current_poly.totloop; j++, count++) {
         loopuv--;
@@ -87,7 +87,7 @@ static void get_uvs(const CDStreamConfig &config,
     for (int i = 0; i < num_poly; i++) {
       MPoly &current_poly = polygons[i];
       MLoop *looppoly = mloop + current_poly.loopstart + current_poly.totloop;
-      MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
+      const MLoopUV *loopuv = mloopuv_array + current_poly.loopstart + current_poly.totloop;
 
       for (int j = 0; j < current_poly.totloop; j++) {
         looppoly--;
@@ -125,7 +125,7 @@ const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, Custom
     return "";
   }
 
-  void *cd_data = CustomData_get_layer_n(data, CD_MLOOPUV, active_uvlayer);
+  const void *cd_data = CustomData_get_layer_n(data, CD_MLOOPUV, active_uvlayer);
 
   get_uvs(config, sample.uvs, sample.indices, cd_data);
 
@@ -139,7 +139,7 @@ const char *get_uv_sample(UVSample &sample, const CDStreamConfig &config, Custom
  */
 static void write_uv(const OCompoundProperty &prop,
                      CDStreamConfig &config,
-                     void *data,
+                     const void *data,
                      const char *name)
 {
   std::vector<uint32_t> indices;
@@ -169,12 +169,12 @@ static void write_uv(const OCompoundProperty &prop,
 static void get_cols(const CDStreamConfig &config,
                      std::vector<Imath::C4f> &buffer,
                      std::vector<uint32_t> &uvidx,
-                     void *cd_data)
+                     const void *cd_data)
 {
   const float cscale = 1.0f / 255.0f;
-  MPoly *polys = config.mpoly;
-  MLoop *mloops = config.mloop;
-  MCol *cfaces = static_cast<MCol *>(cd_data);
+  const MPoly *polys = config.mpoly;
+  const MLoop *mloops = config.mloop;
+  const MCol *cfaces = static_cast<const MCol *>(cd_data);
 
   buffer.reserve(config.totvert);
   uvidx.reserve(config.totvert);
@@ -182,9 +182,9 @@ static void get_cols(const CDStreamConfig &config,
   Imath::C4f col;
 
   for (int i = 0; i < config.totpoly; i++) {
-    MPoly *p = &polys[i];
-    MCol *cface = &cfaces[p->loopstart + p->totloop];
-    MLoop *mloop = &mloops[p->loopstart + p->totloop];
+    const MPoly *p = &polys[i];
+    const MCol *cface = &cfaces[p->loopstart + p->totloop];
+    const MLoop *mloop = &mloops[p->loopstart + p->totloop];
 
     for (int j = 0; j < p->totloop; j++) {
       cface--;
@@ -207,7 +207,7 @@ static void get_cols(const CDStreamConfig &config,
  */
 static void write_mcol(const OCompoundProperty &prop,
                        CDStreamConfig &config,
-                       void *data,
+                       const void *data,
                        const char *name)
 {
   std::vector<uint32_t> indices;
@@ -257,7 +257,7 @@ void write_generated_coordinates(const OCompoundProperty &prop, CDStreamConfig &
   /* ORCOs are always stored in the normalized 0..1 range in Blender, but Alembic stores them
    * unnormalized, so we need to unnormalize (invert transform) them. */
   BKE_mesh_orco_verts_transform(
-      mesh, reinterpret_cast<float(*)[3]>(&coords[0]), mesh->totvert, true);
+      mesh, reinterpret_cast<float(*)[3]>(coords.data()), mesh->totvert, true);
 
   if (!config.abc_orco.valid()) {
     /* Create the Alembic property and keep a reference so future frames can reuse it. */
@@ -273,7 +273,7 @@ void write_custom_data(const OCompoundProperty &prop,
                        CustomData *data,
                        int data_type)
 {
-  CustomDataType cd_data_type = static_cast<CustomDataType>(data_type);
+  eCustomDataType cd_data_type = static_cast<eCustomDataType>(data_type);
 
   if (!CustomData_has_layer(data, cd_data_type)) {
     return;
@@ -283,7 +283,7 @@ void write_custom_data(const OCompoundProperty &prop,
   const int tot_layers = CustomData_number_of_layers(data, cd_data_type);
 
   for (int i = 0; i < tot_layers; i++) {
-    void *cd_data = CustomData_get_layer_n(data, cd_data_type, i);
+    const void *cd_data = CustomData_get_layer_n(data, cd_data_type, i);
     const char *name = CustomData_get_layer_name(data, cd_data_type, i);
 
     if (cd_data_type == CD_MLOOPUV) {

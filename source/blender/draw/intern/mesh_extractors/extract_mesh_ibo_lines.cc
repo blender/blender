@@ -7,7 +7,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_subdivision.h"
 
@@ -18,7 +18,7 @@ namespace blender::draw {
  * \{ */
 
 static void extract_lines_init(const MeshRenderData *mr,
-                               struct MeshBatchCache *UNUSED(cache),
+                               MeshBatchCache *UNUSED(cache),
                                void *UNUSED(buf),
                                void *tls_data)
 {
@@ -132,7 +132,7 @@ static void extract_lines_task_reduce(void *_userdata_to, void *_userdata_from)
 }
 
 static void extract_lines_finish(const MeshRenderData *UNUSED(mr),
-                                 struct MeshBatchCache *UNUSED(cache),
+                                 MeshBatchCache *UNUSED(cache),
                                  void *buf,
                                  void *data)
 {
@@ -143,7 +143,7 @@ static void extract_lines_finish(const MeshRenderData *UNUSED(mr),
 
 static void extract_lines_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                       const MeshRenderData *UNUSED(mr),
-                                      struct MeshBatchCache *UNUSED(cache),
+                                      MeshBatchCache *UNUSED(cache),
                                       void *buffer,
                                       void *UNUSED(data))
 {
@@ -160,7 +160,7 @@ static void extract_lines_init_subdiv(const DRWSubdivCache *subdiv_cache,
 }
 
 static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
-                                            const MeshRenderData *UNUSED(mr),
+                                            const MeshRenderData *mr,
                                             void *buffer,
                                             void *UNUSED(data))
 {
@@ -169,8 +169,65 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache *subdiv_cache,
     return;
   }
 
+  /* Update flags for loose edges, points are already handled. */
+  static GPUVertFormat format;
+  if (format.attr_len == 0) {
+    GPU_vertformat_attr_add(&format, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
+  }
+
+  GPUVertBuf *flags = GPU_vertbuf_calloc();
+  GPU_vertbuf_init_with_format(flags, &format);
+
+  Span<DRWSubdivLooseEdge> loose_edges = draw_subdiv_cache_get_loose_edges(subdiv_cache);
+  GPU_vertbuf_data_alloc(flags, loose_edges.size());
+
+  uint *flags_data = static_cast<uint *>(GPU_vertbuf_get_data(flags));
+
+  switch (mr->extract_type) {
+    case MR_EXTRACT_MESH: {
+      const MEdge *medge = mr->medge;
+      for (DRWSubdivLooseEdge edge : loose_edges) {
+        *flags_data++ = (medge[edge.coarse_edge_index].flag & ME_HIDE) != 0;
+      }
+      break;
+    }
+    case MR_EXTRACT_MAPPED: {
+      if (mr->bm) {
+        for (DRWSubdivLooseEdge edge : loose_edges) {
+          const BMEdge *bm_edge = bm_original_edge_get(mr, edge.coarse_edge_index);
+          *flags_data++ = BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) != 0;
+        }
+      }
+      else {
+        for (DRWSubdivLooseEdge edge : loose_edges) {
+          int e = edge.coarse_edge_index;
+
+          if (mr->e_origindex && mr->e_origindex[e] != ORIGINDEX_NONE) {
+            *flags_data++ = (mr->medge[mr->e_origindex[e]].flag & ME_HIDE) != 0;
+          }
+          else {
+            *flags_data++ = false;
+          }
+        }
+      }
+
+      break;
+    }
+    case MR_EXTRACT_BMESH: {
+      BMesh *bm = mr->bm;
+      for (DRWSubdivLooseEdge edge : loose_edges) {
+        const BMEdge *bm_edge = BM_edge_at_index(bm, edge.coarse_edge_index);
+        *flags_data++ = BM_elem_flag_test_bool(bm_edge, BM_ELEM_HIDDEN) != 0;
+      }
+      break;
+    }
+  }
+
   GPUIndexBuf *ibo = static_cast<GPUIndexBuf *>(buffer);
-  draw_subdiv_build_lines_loose_buffer(subdiv_cache, ibo, static_cast<uint>(loose_geom.edge_len));
+  draw_subdiv_build_lines_loose_buffer(
+      subdiv_cache, ibo, flags, static_cast<uint>(loose_geom.edge_len));
+
+  GPU_vertbuf_discard(flags);
 }
 
 constexpr MeshExtract create_extractor_lines()
@@ -198,7 +255,7 @@ constexpr MeshExtract create_extractor_lines()
 /** \name Extract Lines and Loose Edges Sub Buffer
  * \{ */
 
-static void extract_lines_loose_subbuffer(const MeshRenderData *mr, struct MeshBatchCache *cache)
+static void extract_lines_loose_subbuffer(const MeshRenderData *mr, MeshBatchCache *cache)
 {
   BLI_assert(cache->final.buff.ibo.lines);
   /* Multiply by 2 because these are edges indices. */
@@ -210,7 +267,7 @@ static void extract_lines_loose_subbuffer(const MeshRenderData *mr, struct MeshB
 }
 
 static void extract_lines_with_lines_loose_finish(const MeshRenderData *mr,
-                                                  struct MeshBatchCache *cache,
+                                                  MeshBatchCache *cache,
                                                   void *buf,
                                                   void *data)
 {
@@ -222,7 +279,7 @@ static void extract_lines_with_lines_loose_finish(const MeshRenderData *mr,
 
 static void extract_lines_with_lines_loose_finish_subdiv(const struct DRWSubdivCache *subdiv_cache,
                                                          const MeshRenderData *UNUSED(mr),
-                                                         struct MeshBatchCache *cache,
+                                                         MeshBatchCache *cache,
                                                          void *UNUSED(buf),
                                                          void *UNUSED(_data))
 {
@@ -261,7 +318,7 @@ constexpr MeshExtract create_extractor_lines_with_lines_loose()
  * \{ */
 
 static void extract_lines_loose_only_init(const MeshRenderData *mr,
-                                          struct MeshBatchCache *cache,
+                                          MeshBatchCache *cache,
                                           void *buf,
                                           void *UNUSED(tls_data))
 {
@@ -272,7 +329,7 @@ static void extract_lines_loose_only_init(const MeshRenderData *mr,
 
 static void extract_lines_loose_only_init_subdiv(const DRWSubdivCache *UNUSED(subdiv_cache),
                                                  const MeshRenderData *mr,
-                                                 struct MeshBatchCache *cache,
+                                                 MeshBatchCache *cache,
                                                  void *buffer,
                                                  void *UNUSED(data))
 {
@@ -297,9 +354,7 @@ constexpr MeshExtract create_extractor_lines_loose_only()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_lines = blender::draw::create_extractor_lines();
 const MeshExtract extract_lines_with_lines_loose =
     blender::draw::create_extractor_lines_with_lines_loose();
 const MeshExtract extract_lines_loose_only = blender::draw::create_extractor_lines_loose_only();
-}

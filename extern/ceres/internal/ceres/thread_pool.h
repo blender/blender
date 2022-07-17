@@ -37,7 +37,7 @@
 #include <vector>
 
 #include "ceres/concurrent_queue.h"
-#include "ceres/internal/port.h"
+#include "ceres/internal/export.h"
 
 namespace ceres {
 namespace internal {
@@ -58,7 +58,7 @@ namespace internal {
 //  workers to stop.  The workers will finish all of the tasks that have already
 //  been added to the thread pool.
 //
-class CERES_EXPORT_INTERNAL ThreadPool {
+class CERES_NO_EXPORT ThreadPool {
  public:
   // Returns the maximum number of hardware threads.
   static int MaxNumThreadsAvailable();

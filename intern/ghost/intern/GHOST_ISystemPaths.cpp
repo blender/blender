@@ -9,8 +9,6 @@
  * Copyright (C) 2001 NaN Technologies B.V.
  */
 
-#include <stdio.h> /* just for NULL */
-
 #include "GHOST_ISystemPaths.h"
 
 #ifdef WIN32
@@ -23,7 +21,7 @@
 #  endif
 #endif
 
-GHOST_ISystemPaths *GHOST_ISystemPaths::m_systemPaths = NULL;
+GHOST_ISystemPaths *GHOST_ISystemPaths::m_systemPaths = nullptr;
 
 GHOST_TSuccess GHOST_ISystemPaths::create()
 {
@@ -38,7 +36,7 @@ GHOST_TSuccess GHOST_ISystemPaths::create()
     m_systemPaths = new GHOST_SystemPathsUnix();
 #  endif
 #endif
-    success = m_systemPaths != NULL ? GHOST_kSuccess : GHOST_kFailure;
+    success = m_systemPaths != nullptr ? GHOST_kSuccess : GHOST_kFailure;
   }
   else {
     success = GHOST_kFailure;
@@ -51,7 +49,7 @@ GHOST_TSuccess GHOST_ISystemPaths::dispose()
   GHOST_TSuccess success = GHOST_kSuccess;
   if (m_systemPaths) {
     delete m_systemPaths;
-    m_systemPaths = NULL;
+    m_systemPaths = nullptr;
   }
   else {
     success = GHOST_kFailure;

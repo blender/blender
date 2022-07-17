@@ -305,6 +305,12 @@ typedef enum eGP_Sculpt_Mode_Flag {
   GP_SCULPT_FLAGMODE_APPLY_THICKNESS = (1 << 2),
   /* apply brush to uv data */
   GP_SCULPT_FLAGMODE_APPLY_UV = (1 << 3),
+  /* Stroke Auto-Masking for sculpt. */
+  GP_SCULPT_FLAGMODE_AUTOMASK_STROKE = (1 << 4),
+  /* Layer Auto-Masking for sculpt. */
+  GP_SCULPT_FLAGMODE_AUTOMASK_LAYER = (1 << 5),
+  /* Material Auto-Masking for sculpt. */
+  GP_SCULPT_FLAGMODE_AUTOMASK_MATERIAL = (1 << 6),
 } eGP_Sculpt_Mode_Flag;
 
 typedef enum eAutomasking_flag {
@@ -462,6 +468,12 @@ typedef enum eBrushCurvesSculptTool {
   CURVES_SCULPT_TOOL_SNAKE_HOOK = 2,
   CURVES_SCULPT_TOOL_ADD = 3,
   CURVES_SCULPT_TOOL_GROW_SHRINK = 4,
+  CURVES_SCULPT_TOOL_SELECTION_PAINT = 5,
+  CURVES_SCULPT_TOOL_PINCH = 6,
+  CURVES_SCULPT_TOOL_SMOOTH = 7,
+  CURVES_SCULPT_TOOL_PUFF = 8,
+  CURVES_SCULPT_TOOL_DENSITY = 9,
+  CURVES_SCULPT_TOOL_SLIDE = 10,
 } eBrushCurvesSculptTool;
 
 /** When #BRUSH_ACCUMULATE is used */
@@ -612,7 +624,14 @@ typedef enum eBrushCurvesSculptFlag {
   BRUSH_CURVES_SCULPT_FLAG_GROW_SHRINK_INVERT = (1 << 1),
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_LENGTH = (1 << 2),
   BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_SHAPE = (1 << 3),
+  BRUSH_CURVES_SCULPT_FLAG_INTERPOLATE_POINT_COUNT = (1 << 4),
 } eBrushCurvesSculptFlag;
+
+typedef enum eBrushCurvesSculptDensityMode {
+  BRUSH_CURVES_SCULPT_DENSITY_MODE_AUTO = 0,
+  BRUSH_CURVES_SCULPT_DENSITY_MODE_ADD = 1,
+  BRUSH_CURVES_SCULPT_DENSITY_MODE_REMOVE = 2,
+} eBrushCurvesSculptDensityMode;
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
 #define GP_MAX_BRUSH_PIXEL_RADIUS 1000

@@ -22,14 +22,52 @@ struct bScreen;
 
 /*  ** clip_editor.c ** */
 
-/* common poll functions */
+/* Returns true when the following conditions are met:
+ * - Current space is Space Clip.
+ * - There is a movie clip opened in it. */
 bool ED_space_clip_poll(struct bContext *C);
 
+/* Returns true when the following conditions are met:
+ * - Current space is Space Clip.
+ * - It is set to Clip view.
+ *
+ * It is not required to have movie clip opened for editing. */
 bool ED_space_clip_view_clip_poll(struct bContext *C);
 
+/* Returns true when the following conditions are met:
+ * - Current space is Space Clip.
+ * - It is set to Tracking mode.
+ *
+ * It is not required to have movie clip opened for editing. */
 bool ED_space_clip_tracking_poll(struct bContext *C);
+
+/* Returns true when the following conditions are met:
+ * - Current space is Space Clip.
+ * - It is set to Mask mode.
+ *
+ * It is not required to have mask opened for editing. */
 bool ED_space_clip_maskedit_poll(struct bContext *C);
+
+/* Returns true when the following conditions are met:
+ * - Current space is Space Clip.
+ * - It is set to Mask mode.
+ * - Mask has visible and editable splines.
+ *
+ * It is not required to have mask opened for editing. */
+bool ED_space_clip_maskedit_visible_splines_poll(struct bContext *C);
+
+/* Returns true when the following conditions are met:
+ * - Current space is Space Clip.
+ * - It is set to Mask mode.
+ * - The space has mask opened. */
 bool ED_space_clip_maskedit_mask_poll(struct bContext *C);
+
+/* Returns true when the following conditions are met:
+ * - Current space is Space Clip.
+ * - It is set to Mask mode.
+ * - The space has mask opened.
+ * - Mask has visible and editable splines. */
+bool ED_space_clip_maskedit_mask_visible_splines_poll(struct bContext *C);
 
 void ED_space_clip_get_size(struct SpaceClip *sc, int *width, int *height);
 void ED_space_clip_get_size_fl(struct SpaceClip *sc, float size[2]);
@@ -60,7 +98,7 @@ bool ED_space_clip_get_position(struct SpaceClip *sc,
  */
 bool ED_space_clip_color_sample(struct SpaceClip *sc,
                                 struct ARegion *region,
-                                int mval[2],
+                                const int mval[2],
                                 float r_col[3]);
 
 void ED_clip_update_frame(const struct Main *mainp, int cfra);

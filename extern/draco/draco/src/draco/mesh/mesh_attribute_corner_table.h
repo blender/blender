@@ -130,6 +130,12 @@ class MeshAttributeCornerTable {
     return false;
   }
 
+  bool IsDegenerated(FaceIndex face) const {
+    // Introducing seams can't change the degeneracy of the individual faces,
+    // therefore we can delegate the check to the original |corner_table_|.
+    return corner_table_->IsDegenerated(face);
+  }
+
   bool no_interior_seams() const { return no_interior_seams_; }
   const CornerTable *corner_table() const { return corner_table_; }
 

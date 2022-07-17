@@ -97,7 +97,7 @@ typedef struct BrushGpencilSettings {
   /** Simplify adaptive factor */
   float simplify_f;
 
-  /** Mix colorfactor */
+  /** Mix color-factor. */
   float vertex_factor;
   int vertex_mode;
 
@@ -140,12 +140,21 @@ typedef struct BrushGpencilSettings {
 typedef struct BrushCurvesSculptSettings {
   /** Number of curves added by the add brush. */
   int add_amount;
+  /** Number of control points in new curves added by the add brush. */
+  int points_per_curve;
   /* eBrushCurvesSculptFlag. */
   uint32_t flag;
   /** When shrinking curves, they shouldn't become shorter than this length. */
   float minimum_length;
   /** Length of newly added curves when it is not interpolated from other curves. */
   float curve_length;
+  /** Minimum distance between curve root points used by the Density brush. */
+  float minimum_distance;
+  /** How often the Density brush tries to add a new curve. */
+  int density_add_attempts;
+  /** #eBrushCurvesSculptDensityMode. */
+  uint8_t density_mode;
+  char _pad[7];
 } BrushCurvesSculptSettings;
 
 typedef struct Brush {

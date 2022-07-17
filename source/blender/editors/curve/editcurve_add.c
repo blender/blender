@@ -87,6 +87,8 @@ static const char *get_surf_defname(int type)
       return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfCircle");
     case CU_PRIM_PATCH:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfPatch");
+    case CU_PRIM_TUBE:
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfCylinder");
     case CU_PRIM_SPHERE:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_CURVE_LEGACY, "SurfSphere");
     case CU_PRIM_DONUT:

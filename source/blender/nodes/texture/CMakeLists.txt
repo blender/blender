@@ -24,6 +24,7 @@ set(SRC
   nodes/node_texture_at.c
   nodes/node_texture_bricks.c
   nodes/node_texture_checker.c
+  nodes/node_texture_combine_color.c
   nodes/node_texture_common.c
   nodes/node_texture_compose.c
   nodes/node_texture_coord.c
@@ -39,6 +40,7 @@ set(SRC
   nodes/node_texture_proc.c
   nodes/node_texture_rotate.c
   nodes/node_texture_scale.c
+  nodes/node_texture_separate_color.c
   nodes/node_texture_texture.c
   nodes/node_texture_translate.c
   nodes/node_texture_valToNor.c

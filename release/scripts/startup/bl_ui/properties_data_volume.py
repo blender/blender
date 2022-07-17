@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 import bpy
 from bpy.types import Panel, UIList
 from rna_prop_ui import PropertyPanel
@@ -114,6 +112,9 @@ class DATA_PT_volume_render(DataButtonsPanel, Panel):
 
             col = layout.column(align=True)
             col.prop(render, "clipping")
+
+            col = layout.column()
+            col.prop(render, "precision")
 
             col = layout.column(align=False)
             col.prop(volume, "velocity_grid")

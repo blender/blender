@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # Use for validating our manual interlinking.
 #  ./blender.bin --background -noaudio --python tests/python/bl_rna_manual_reference.py
 #

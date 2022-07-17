@@ -32,6 +32,7 @@
 #define CERES_INTERNAL_LINE_SEARCH_MINIMIZER_H_
 
 #include "ceres/internal/eigen.h"
+#include "ceres/internal/export.h"
 #include "ceres/minimizer.h"
 #include "ceres/solver.h"
 #include "ceres/types.h"
@@ -43,7 +44,7 @@ namespace internal {
 // Generic line search minimization algorithm.
 //
 // For example usage, see SolverImpl::Minimize.
-class LineSearchMinimizer : public Minimizer {
+class CERES_NO_EXPORT LineSearchMinimizer final : public Minimizer {
  public:
   struct State {
     State(int num_parameters, int num_effective_parameters)
@@ -63,7 +64,6 @@ class LineSearchMinimizer : public Minimizer {
     double step_size;
   };
 
-  ~LineSearchMinimizer() {}
   void Minimize(const Minimizer::Options& options,
                 double* parameters,
                 Solver::Summary* summary) final;

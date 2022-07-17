@@ -180,6 +180,7 @@ struct Paint *BKE_paint_get_active_from_context(const struct bContext *C);
 ePaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);
 ePaintMode BKE_paintmode_get_from_tool(const struct bToolRef *tref);
 struct Brush *BKE_paint_brush(struct Paint *paint);
+const struct Brush *BKE_paint_brush_for_read(const struct Paint *p);
 void BKE_paint_brush_set(struct Paint *paint, struct Brush *br);
 struct Palette *BKE_paint_palette(struct Paint *paint);
 void BKE_paint_palette_set(struct Paint *p, struct Palette *palette);
@@ -199,6 +200,11 @@ bool BKE_paint_select_vert_test(struct Object *ob);
  * (when we don't care if its face or vert)
  */
 bool BKE_paint_select_elem_test(struct Object *ob);
+/**
+ * Checks if face/vertex hiding is always applied in the current mode.
+ * Returns true in vertex/weight paint.
+ */
+bool BKE_paint_always_hide_test(struct Object *ob);
 
 /* Partial visibility. */
 
@@ -500,8 +506,8 @@ typedef struct SculptSession {
   struct MPropCol *vcol;
   struct MLoopCol *mcol;
 
-  AttributeDomain vcol_domain;
-  CustomDataType vcol_type;
+  eAttrDomain vcol_domain;
+  eCustomDataType vcol_type;
 
   float *vmask;
 
@@ -551,8 +557,7 @@ typedef struct SculptSession {
   float (*deform_cos)[3];       /* Coords of deformed mesh but without stroke displacement. */
   float (*deform_imats)[3][3];  /* Crazy-space deformation matrices. */
 
-  /* Used to cache the render of the active texture */
-  unsigned int texcache_side, *texcache, texcache_actual;
+  /* Pool for texture evaluations. */
   struct ImagePool *tex_pool;
 
   struct StrokeCache *cache;
@@ -611,6 +616,10 @@ typedef struct SculptSession {
   float init_pivot_pos[3];
   float init_pivot_rot[4];
   float init_pivot_scale[3];
+
+  float prev_pivot_pos[3];
+  float prev_pivot_rot[4];
+  float prev_pivot_scale[3];
 
   union {
     struct {
@@ -675,8 +684,8 @@ void BKE_sculpt_update_object_for_edit(struct Depsgraph *depsgraph,
                                        struct Object *ob_orig,
                                        bool need_pmap,
                                        bool need_mask,
-                                       bool need_colors);
-void BKE_sculpt_update_object_before_eval(struct Object *ob_eval);
+                                       bool is_paint_tool);
+void BKE_sculpt_update_object_before_eval(const struct Scene *scene, struct Object *ob_eval);
 void BKE_sculpt_update_object_after_eval(struct Depsgraph *depsgraph, struct Object *ob_eval);
 
 /**
@@ -729,6 +738,21 @@ enum {
   SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),
   SCULPT_MASK_LAYER_CALC_LOOP = (1 << 1),
 };
+
+/* paint_vertex.cc */
+
+/**
+ * Fills the object's active color attribute layer with the fill color.
+ *
+ * \param[in] ob: The object.
+ * \param[in] fill_color: The fill color.
+ * \param[in] only_selected: Limit the fill to selected faces or vertices.
+ *
+ * \return #true if successful.
+ */
+bool BKE_object_attributes_active_color_fill(struct Object *ob,
+                                             const float fill_color[4],
+                                             bool only_selected);
 
 /* paint_canvas.cc */
 

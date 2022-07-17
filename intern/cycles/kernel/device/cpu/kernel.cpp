@@ -53,8 +53,8 @@ CCL_NAMESPACE_BEGIN
 
 void kernel_const_copy(KernelGlobalsCPU *kg, const char *name, void *host, size_t)
 {
-  if (strcmp(name, "__data") == 0) {
-    kg->__data = *(KernelData *)host;
+  if (strcmp(name, "data") == 0) {
+    kg->data = *(KernelData *)host;
   }
   else {
     assert(0);
@@ -66,13 +66,13 @@ void kernel_global_memory_copy(KernelGlobalsCPU *kg, const char *name, void *mem
   if (0) {
   }
 
-#define KERNEL_TEX(type, tname) \
+#define KERNEL_DATA_ARRAY(type, tname) \
   else if (strcmp(name, #tname) == 0) \
   { \
     kg->tname.data = (type *)mem; \
     kg->tname.width = size; \
   }
-#include "kernel/textures.h"
+#include "kernel/data_arrays.h"
   else {
     assert(0);
   }

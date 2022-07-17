@@ -1,4 +1,4 @@
-#pragma BLENDER_REQUIRE(gpu_shader_material_hash.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_common_hash.glsl)
 
 /* clang-format off */
 #define FLOORFRAC(x, x_int, x_fract) { float x_floor = floor(x); x_int = int(x_floor); x_fract = x - x_floor; }

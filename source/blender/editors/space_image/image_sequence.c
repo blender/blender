@@ -107,10 +107,10 @@ static void image_detect_frame_range(ImageFrameRange *range, const bool detect_u
   /* UDIM */
   if (detect_udim) {
     int udim_start, udim_range;
-    bool result = BKE_image_get_tile_info(
+    range->udims_detected = BKE_image_get_tile_info(
         range->filepath, &range->udim_tiles, &udim_start, &udim_range);
 
-    if (result) {
+    if (range->udims_detected) {
       range->offset = udim_start;
       range->length = udim_range;
       return;

@@ -53,6 +53,11 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
   if (faces_64 > 0xffffffff / 3) {
     return false;
   }
+  if (faces_64 > buffer()->remaining_size() / 3) {
+    // The number of faces is unreasonably high, because face indices do not
+    // fit in the remaining size of the buffer.
+    return false;
+  }
   if (points_64 > faces_64 * 3) {
     return false;
   }
@@ -91,7 +96,7 @@ bool MeshSequentialDecoder::DecodeConnectivity() {
         }
         mesh()->AddFace(face);
       }
-    } else if (mesh()->num_points() < (1 << 21) &&
+    } else if (num_points < (1 << 21) &&
                bitstream_version() >= DRACO_BITSTREAM_VERSION(2, 2)) {
       // Decode indices as uint32_t.
       for (uint32_t i = 0; i < num_faces; ++i) {

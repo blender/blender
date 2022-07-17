@@ -954,7 +954,8 @@ void BKE_id_material_assign(Main *bmain, ID *id, Material *ma, short act)
   BKE_objects_materials_test_all(bmain, id);
 }
 
-void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act, int assign_type)
+static void object_material_assign(
+    Main *bmain, Object *ob, Material *ma, short act, int assign_type, bool do_test_all)
 {
   Material *mao, **matar, ***matarar;
   short *totcolp;
@@ -1037,12 +1038,28 @@ void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act
       id_us_min(&mao->id);
     }
     (*matarar)[act - 1] = ma;
-    BKE_objects_materials_test_all(bmain, ob->data); /* Data may be used by several objects... */
+    /* Data may be used by several objects. */
+    if (do_test_all) {
+      BKE_objects_materials_test_all(bmain, ob->data);
+    }
   }
 
   if (ma) {
     id_us_plus(&ma->id);
   }
+}
+
+void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act, int assign_type)
+{
+  object_material_assign(bmain, ob, ma, act, assign_type, true);
+}
+
+void BKE_object_material_assign_single_obdata(struct Main *bmain,
+                                              struct Object *ob,
+                                              struct Material *ma,
+                                              short act)
+{
+  object_material_assign(bmain, ob, ma, act, BKE_MAT_ASSIGN_OBDATA, false);
 }
 
 void BKE_object_material_remap(Object *ob, const unsigned int *remap)
@@ -1123,15 +1140,16 @@ void BKE_object_material_remap_calc(Object *ob_dst, Object *ob_src, short *remap
   BLI_ghash_free(gh_mat_map, NULL, NULL);
 }
 
-void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, ID *data_eval)
+void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, const ID *data_eval)
 {
   ID *data_orig = ob_orig->data;
 
   short *orig_totcol = BKE_id_material_len_p(data_orig);
   Material ***orig_mat = BKE_id_material_array_p(data_orig);
 
-  short *eval_totcol = BKE_id_material_len_p(data_eval);
-  Material ***eval_mat = BKE_id_material_array_p(data_eval);
+  /* Can cast away const, because the data is not changed. */
+  const short *eval_totcol = BKE_id_material_len_p((ID *)data_eval);
+  Material ***eval_mat = BKE_id_material_array_p((ID *)data_eval);
 
   if (ELEM(NULL, orig_totcol, orig_mat, eval_totcol, eval_mat)) {
     return;
@@ -1244,7 +1262,6 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
   /* this should never happen and used to crash */
   if (ob->actcol <= 0) {
     CLOG_ERROR(&LOG, "invalid material index %d, report a bug!", ob->actcol);
-    BLI_assert(0);
     return false;
   }
 
@@ -1448,7 +1465,7 @@ static bool fill_texpaint_slots_cb(bNode *node, void *userdata)
       slot->attribute_name = storage->name;
       if (storage->type == SHD_ATTRIBUTE_GEOMETRY) {
         const Mesh *mesh = (const Mesh *)fill_data->ob->data;
-        CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh->id, storage->name);
+        const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh->id, storage->name);
         slot->valid = layer != NULL;
       }
 

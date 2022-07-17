@@ -9,7 +9,7 @@
 
 #include "BKE_mesh.h"
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_subdivision.h"
 
@@ -20,7 +20,7 @@ namespace blender::draw {
  * \{ */
 
 static void extract_edituv_stretch_area_init(const MeshRenderData *mr,
-                                             struct MeshBatchCache *UNUSED(cache),
+                                             MeshBatchCache *UNUSED(cache),
                                              void *buf,
                                              void *UNUSED(tls_data))
 {
@@ -89,7 +89,7 @@ static void compute_area_ratio(const MeshRenderData *mr,
 }
 
 static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
-                                               struct MeshBatchCache *cache,
+                                               MeshBatchCache *cache,
                                                void *buf,
                                                void *UNUSED(data))
 {
@@ -131,7 +131,7 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
 
 static void extract_edituv_stretch_area_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                                     const MeshRenderData *mr,
-                                                    struct MeshBatchCache *cache,
+                                                    MeshBatchCache *cache,
                                                     void *buffer,
                                                     void *UNUSED(data))
 {
@@ -180,7 +180,5 @@ constexpr MeshExtract create_extractor_edituv_stretch_area()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_edituv_stretch_area =
     blender::draw::create_extractor_edituv_stretch_area();
-}

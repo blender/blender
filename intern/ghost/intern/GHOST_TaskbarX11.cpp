@@ -11,10 +11,10 @@
 #include <cstdlib>
 #include <dlfcn.h>
 
-typedef void *(*unity_get_entry_t)(const char *);
-typedef void (*unity_set_progress_t)(void *, double);
-typedef void (*unity_set_progress_visible_t)(void *, int);
-typedef int (*unity_event_loop_t)(void *, int);
+using unity_get_entry_t = void *(*)(const char *);
+using unity_set_progress_t = void (*)(void *, double);
+using unity_set_progress_visible_t = void (*)(void *, int);
+using unity_event_loop_t = int (*)(void *, int);
 
 static unity_get_entry_t unity_get_entry;
 static unity_set_progress_t unity_set_progress;
@@ -23,13 +23,13 @@ static unity_event_loop_t unity_event_loop;
 
 static bool libunity_initialized = false;
 static bool libunity_available = false;
-static void *libunity_handle = NULL;
+static void *libunity_handle = nullptr;
 
 void GHOST_TaskBarX11::free()
 {
   if (libunity_handle) {
     dlclose(libunity_handle);
-    libunity_handle = NULL;
+    libunity_handle = nullptr;
   }
 }
 
@@ -42,7 +42,7 @@ bool GHOST_TaskBarX11::init()
   libunity_initialized = true;
 
   const char *libunity_names[] = {
-      "libunity.so.4", "libunity.so.6", "libunity.so.9", "libunity.so", NULL};
+      "libunity.so.4", "libunity.so.6", "libunity.so.9", "libunity.so", nullptr};
   for (int i = 0; libunity_names[i]; i++) {
     libunity_handle = dlopen(libunity_names[i], RTLD_LAZY);
     if (libunity_handle) {
@@ -90,13 +90,13 @@ GHOST_TaskBarX11::GHOST_TaskBarX11(const char *name)
     handle = unity_get_entry(name);
   }
   else {
-    handle = NULL;
+    handle = nullptr;
   }
 }
 
 bool GHOST_TaskBarX11::is_valid()
 {
-  return (handle != NULL);
+  return (handle != nullptr);
 }
 
 void GHOST_TaskBarX11::set_progress(double progress)
@@ -109,5 +109,5 @@ void GHOST_TaskBarX11::set_progress_enabled(bool enabled)
 {
   assert(is_valid());
   unity_set_progress_visible(handle, enabled ? 1 : 0);
-  unity_event_loop(NULL, 0);
+  unity_event_loop(nullptr, 0);
 }

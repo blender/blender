@@ -27,16 +27,21 @@
 #  include "WM_api.h"
 #  include "WM_types.h"
 
-static PointCloud *rna_pointcloud(PointerRNA *ptr)
+static PointCloud *rna_pointcloud(const PointerRNA *ptr)
 {
   return (PointCloud *)ptr->owner_id;
 }
 
-static int rna_Point_index_get(PointerRNA *ptr)
+static int rna_Point_index_get_const(const PointerRNA *ptr)
 {
   const PointCloud *pointcloud = rna_pointcloud(ptr);
   const float(*co)[3] = ptr->data;
   return (int)(co - pointcloud->co);
+}
+
+static int rna_Point_index_get(PointerRNA *ptr)
+{
+  return rna_Point_index_get_const(ptr);
 }
 
 static void rna_Point_location_get(PointerRNA *ptr, float value[3])
@@ -69,9 +74,9 @@ static void rna_Point_radius_set(PointerRNA *ptr, float value)
   pointcloud->radius[co - pointcloud->co] = value;
 }
 
-static char *rna_Point_path(PointerRNA *ptr)
+static char *rna_Point_path(const PointerRNA *ptr)
 {
-  return BLI_sprintfN("points[%d]", rna_Point_index_get(ptr));
+  return BLI_sprintfN("points[%d]", rna_Point_index_get_const(ptr));
 }
 
 static void rna_PointCloud_update_data(struct Main *UNUSED(bmain),

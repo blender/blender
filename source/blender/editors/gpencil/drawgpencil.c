@@ -80,9 +80,9 @@ typedef enum eDrawStrokeFlags {
   GP_DRAWDATA_ONLYI2D = (1 << 3),
   /** special hack for drawing strokes in Image Editor (weird coordinates) */
   GP_DRAWDATA_IEDITHACK = (1 << 4),
-  /** don't draw xray in 3D view (which is default) */
+  /** Don't draw XRAY in 3D view (which is default). */
   GP_DRAWDATA_NO_XRAY = (1 << 5),
-  /** no onionskins should be drawn (for animation playback) */
+  /** No onion-skins should be drawn (for animation playback). */
   GP_DRAWDATA_NO_ONIONS = (1 << 6),
   /** draw strokes as "volumetric" circular billboards */
   GP_DRAWDATA_VOLUMETRIC = (1 << 7),

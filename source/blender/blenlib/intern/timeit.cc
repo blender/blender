@@ -3,19 +3,29 @@
 #include "BLI_timeit.hh"
 
 #include <algorithm>
+#include <iomanip>
 
 namespace blender::timeit {
 
 void print_duration(Nanoseconds duration)
 {
-  if (duration < std::chrono::microseconds(100)) {
+  using namespace std::chrono;
+  if (duration < microseconds(100)) {
     std::cout << duration.count() << " ns";
   }
-  else if (duration < std::chrono::seconds(5)) {
-    std::cout << duration.count() / 1.0e6 << " ms";
+  else if (duration < seconds(5)) {
+    std::cout << std::fixed << std::setprecision(1) << duration.count() / 1.0e6 << " ms";
+  }
+  else if (duration > seconds(90)) {
+    /* Long durations: print seconds, and also H:m:s */
+    const auto dur_hours = duration_cast<hours>(duration);
+    const auto dur_mins = duration_cast<minutes>(duration - dur_hours);
+    const auto dur_sec = duration_cast<seconds>(duration - dur_hours - dur_mins);
+    std::cout << std::fixed << std::setprecision(1) << duration.count() / 1.0e9 << " s ("
+              << dur_hours.count() << "H:" << dur_mins.count() << "m:" << dur_sec.count() << "s)";
   }
   else {
-    std::cout << duration.count() / 1.0e9 << " s";
+    std::cout << std::fixed << std::setprecision(1) << duration.count() / 1.0e9 << " s";
   }
 }
 

@@ -2,10 +2,6 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /** \file
  * \ingroup bli
  * \brief A KD-tree for nearest neighbor search.
@@ -54,7 +50,3 @@ extern "C" {
 #undef KDTree
 #undef KDTreeNearest
 #undef KDTREE_PREFIX_ID
-
-#ifdef __cplusplus
-}
-#endif

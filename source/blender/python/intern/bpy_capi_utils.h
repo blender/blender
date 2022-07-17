@@ -38,6 +38,8 @@ bool BPy_errors_to_report_ex(struct ReportList *reports,
  *   BKE_reports_print(reports);
  * }
  * \endcode
+ *
+ * \note The caller is responsible for clearing the error (see #PyErr_Clear).
  */
 bool BPy_errors_to_report(struct ReportList *reports);
 

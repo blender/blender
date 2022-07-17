@@ -52,7 +52,6 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, flag) = PATH_RAY_CAMERA | PATH_RAY_MIS_SKIP |
                                               PATH_RAY_TRANSPARENT_BACKGROUND;
   INTEGRATOR_STATE_WRITE(state, path, mis_ray_pdf) = 0.0f;
-  INTEGRATOR_STATE_WRITE(state, path, mis_ray_t) = 0.0f;
   INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = FLT_MAX;
   INTEGRATOR_STATE_WRITE(state, path, continuation_probability) = 1.0f;
   INTEGRATOR_STATE_WRITE(state, path, throughput) = make_float3(1.0f, 1.0f, 1.0f);
@@ -250,7 +249,7 @@ ccl_device_inline float path_state_continuation_probability(KernelGlobals kg,
 
   /* Probabilistic termination: use sqrt() to roughly match typical view
    * transform and do path termination a bit later on average. */
-  return min(sqrtf(max3(fabs(INTEGRATOR_STATE(state, path, throughput)))), 1.0f);
+  return min(sqrtf(reduce_max(fabs(INTEGRATOR_STATE(state, path, throughput)))), 1.0f);
 }
 
 ccl_device_inline bool path_state_ao_bounce(KernelGlobals kg, ConstIntegratorState state)

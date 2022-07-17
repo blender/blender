@@ -76,7 +76,7 @@ set(SRC
   intern/asset_catalog_path.cc
   intern/asset_library.cc
   intern/asset_library_service.cc
-  intern/attribute.c
+  intern/attribute.cc
   intern/attribute_access.cc
   intern/attribute_math.cc
   intern/autoexec.c
@@ -88,7 +88,7 @@ set(SRC
   intern/blendfile_link_append.c
   intern/boids.c
   intern/bpath.c
-  intern/brush.c
+  intern/brush.cc
   intern/bvhutils.cc
   intern/cachefile.c
   intern/callbacks.c
@@ -111,12 +111,14 @@ set(SRC
   intern/curve_decimate.c
   intern/curve_deform.c
   intern/curve_eval.cc
+  intern/curve_legacy_convert.cc
   intern/curve_nurbs.cc
   intern/curve_poly.cc
   intern/curve_to_mesh_convert.cc
   intern/curveprofile.cc
   intern/curves.cc
   intern/curves_geometry.cc
+  intern/curves_utils.cc
   intern/customdata.cc
   intern/customdata_file.c
   intern/data_transfer.c
@@ -173,7 +175,7 @@ set(SRC
   intern/lib_id_delete.c
   intern/lib_id_eval.c
   intern/lib_id_remapper.cc
-  intern/lib_override.c
+  intern/lib_override.cc
   intern/lib_override_proxy_conversion.c
   intern/lib_query.c
   intern/lib_remap.c
@@ -197,8 +199,10 @@ set(SRC
   intern/mesh_evaluate.cc
   intern/mesh_fair.cc
   intern/mesh_iterators.c
+  intern/mesh_legacy_convert.cc
   intern/mesh_mapping.c
   intern/mesh_merge.c
+  intern/mesh_merge_customdata.cc
   intern/mesh_mirror.c
   intern/mesh_normals.cc
   intern/mesh_remap.c
@@ -241,8 +245,8 @@ set(SRC
   intern/particle_child.c
   intern/particle_distribute.c
   intern/particle_system.c
-  intern/pbvh.cc
   intern/pbvh.c
+  intern/pbvh.cc
   intern/pbvh_bmesh.c
   intern/pbvh_pixels.cc
   intern/pointcache.c
@@ -321,7 +325,7 @@ set(SRC
   BKE_asset_library.h
   BKE_asset_library.hh
   BKE_attribute.h
-  BKE_attribute_access.hh
+  BKE_attribute.hh
   BKE_attribute_math.hh
   BKE_autoexec.h
   BKE_blender.h
@@ -351,10 +355,12 @@ set(SRC
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
   BKE_curve.h
+  BKE_curve_legacy_convert.hh
   BKE_curve_to_mesh.hh
   BKE_curveprofile.h
   BKE_curves.h
   BKE_curves.hh
+  BKE_curves_utils.hh
   BKE_customdata.h
   BKE_customdata_file.h
   BKE_data_transfer.h
@@ -414,6 +420,7 @@ set(SRC
   BKE_mesh_boolean_convert.hh
   BKE_mesh_fair.h
   BKE_mesh_iterators.h
+  BKE_mesh_legacy_convert.h
   BKE_mesh_mapping.h
   BKE_mesh_mirror.h
   BKE_mesh_remap.h
@@ -428,6 +435,7 @@ set(SRC
   BKE_multires.h
   BKE_nla.h
   BKE_node.h
+  BKE_node_runtime.hh
   BKE_node_tree_update.h
   BKE_object.h
   BKE_object_deform.h
@@ -607,7 +615,7 @@ if(WITH_IMAGE_HDR)
 endif()
 
 if(WITH_IMAGE_WEBP)
-	add_definitions(-DWITH_WEBP)
+  add_definitions(-DWITH_WEBP)
 endif()
 
 if(WITH_CODEC_AVI)

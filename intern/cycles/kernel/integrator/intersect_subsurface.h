@@ -17,7 +17,7 @@ ccl_device void integrator_intersect_subsurface(KernelGlobals kg, IntegratorStat
   }
 #endif
 
-  INTEGRATOR_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE);
+  integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE);
 }
 
 CCL_NAMESPACE_END

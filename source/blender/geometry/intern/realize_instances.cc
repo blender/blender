@@ -23,12 +23,13 @@
 namespace blender::geometry {
 
 using blender::bke::AttributeIDRef;
+using blender::bke::AttributeKind;
+using blender::bke::AttributeMetaData;
 using blender::bke::custom_data_type_to_cpp_type;
 using blender::bke::CustomDataAttributes;
+using blender::bke::GSpanAttributeWriter;
 using blender::bke::object_get_evaluated_geometry_set;
-using blender::bke::OutputAttribute;
-using blender::bke::OutputAttribute_Typed;
-using blender::bke::ReadAttributeLookup;
+using blender::bke::SpanAttributeWriter;
 
 /**
  * An ordered set of attribute ids. Attributes are ordered to avoid name lookups in many places.
@@ -66,7 +67,7 @@ struct AttributeFallbacksArray {
 struct PointCloudRealizeInfo {
   const PointCloud *pointcloud = nullptr;
   /** Matches the order stored in #AllPointCloudsInfo.attributes. */
-  Array<std::optional<GVArray_GSpan>> attributes;
+  Array<std::optional<GVArraySpan>> attributes;
   /** Id attribute on the point cloud. If there are no ids, this #Span is empty. */
   Span<int> stored_ids;
 };
@@ -96,7 +97,7 @@ struct MeshRealizeInfo {
   /** Maps old material indices to new material indices. */
   Array<int> material_index_map;
   /** Matches the order in #AllMeshesInfo.attributes. */
-  Array<std::optional<GVArray_GSpan>> attributes;
+  Array<std::optional<GVArraySpan>> attributes;
   /** Vertex ids stored on the mesh. If there are no ids, this #Span is empty. */
   Span<int> stored_vertex_ids;
 };
@@ -116,7 +117,7 @@ struct RealizeCurveInfo {
   /**
    * Matches the order in #AllCurvesInfo.attributes.
    */
-  Array<std::optional<GVArray_GSpan>> attributes;
+  Array<std::optional<GVArraySpan>> attributes;
 
   /** ID attribute on the curves. If there are no ids, this #Span is empty. */
   Span<int> stored_ids;
@@ -134,6 +135,12 @@ struct RealizeCurveInfo {
    * doesn't exist on some (but not all) of the input curves data-blocks.
    */
   Span<float> radius;
+
+  /**
+   * The resolution attribute must be filled with the default value if it does not exist on some
+   * curves.
+   */
+  VArray<int> resolution;
 };
 
 /** Start indices in the final output curves data-block. */
@@ -185,6 +192,7 @@ struct AllCurvesInfo {
   bool create_id_attribute = false;
   bool create_handle_postion_attributes = false;
   bool create_radius_attribute = false;
+  bool create_resolution_attribute = false;
 };
 
 /** Collects all tasks that need to be executed to realize all instances. */
@@ -276,30 +284,31 @@ static void threaded_fill(const GPointer value, GMutableSpan dst)
 }
 
 static void copy_generic_attributes_to_result(
-    const Span<std::optional<GVArray_GSpan>> src_attributes,
+    const Span<std::optional<GVArraySpan>> src_attributes,
     const AttributeFallbacksArray &attribute_fallbacks,
     const OrderedAttributes &ordered_attributes,
-    const FunctionRef<IndexRange(AttributeDomain)> &range_fn,
-    MutableSpan<GMutableSpan> dst_attributes)
+    const FunctionRef<IndexRange(eAttrDomain)> &range_fn,
+    MutableSpan<GSpanAttributeWriter> dst_attribute_writers)
 {
-  threading::parallel_for(dst_attributes.index_range(), 10, [&](const IndexRange attribute_range) {
-    for (const int attribute_index : attribute_range) {
-      const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
-      const IndexRange element_slice = range_fn(domain);
+  threading::parallel_for(
+      dst_attribute_writers.index_range(), 10, [&](const IndexRange attribute_range) {
+        for (const int attribute_index : attribute_range) {
+          const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
+          const IndexRange element_slice = range_fn(domain);
 
-      GMutableSpan dst_span = dst_attributes[attribute_index].slice(element_slice);
-      if (src_attributes[attribute_index].has_value()) {
-        threaded_copy(*src_attributes[attribute_index], dst_span);
-      }
-      else {
-        const CPPType &cpp_type = dst_span.type();
-        const void *fallback = attribute_fallbacks.array[attribute_index] == nullptr ?
-                                   cpp_type.default_value() :
-                                   attribute_fallbacks.array[attribute_index];
-        threaded_fill({cpp_type, fallback}, dst_span);
-      }
-    }
-  });
+          GMutableSpan dst_span = dst_attribute_writers[attribute_index].span.slice(element_slice);
+          if (src_attributes[attribute_index].has_value()) {
+            threaded_copy(*src_attributes[attribute_index], dst_span);
+          }
+          else {
+            const CPPType &cpp_type = dst_span.type();
+            const void *fallback = attribute_fallbacks.array[attribute_index] == nullptr ?
+                                       cpp_type.default_value() :
+                                       attribute_fallbacks.array[attribute_index];
+            threaded_fill({cpp_type, fallback}, dst_span);
+          }
+        }
+      });
 }
 
 static void create_result_ids(const RealizeInstancesOptions &options,
@@ -354,7 +363,7 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
     const OrderedAttributes &ordered_attributes)
 {
   Vector<std::pair<int, GSpan>> attributes_to_override;
-  const CustomDataAttributes &attributes = instances_component.attributes();
+  const CustomDataAttributes &attributes = instances_component.instance_attributes();
   attributes.foreach_attribute(
       [&](const AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
         const int attribute_index = ordered_attributes.ids.index_of_try(attribute_id);
@@ -363,7 +372,7 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
           return true;
         }
         GSpan span = *attributes.get_for_read(attribute_id);
-        const CustomDataType expected_type = ordered_attributes.kinds[attribute_index].data_type;
+        const eCustomDataType expected_type = ordered_attributes.kinds[attribute_index].data_type;
         if (meta_data.data_type != expected_type) {
           const CPPType &from_type = span.type();
           const CPPType &to_type = *custom_data_type_to_cpp_type(expected_type);
@@ -374,7 +383,7 @@ static Vector<std::pair<int, GSpan>> prepare_attribute_fallbacks(
           }
           /* Convert the attribute on the instances component to the expected attribute type. */
           std::unique_ptr<GArray<>> temporary_array = std::make_unique<GArray<>>(
-              to_type, instances_component.instances_amount());
+              to_type, instances_component.instances_num());
           conversions.convert_to_initialized_n(span, temporary_array->as_mutable_span());
           span = temporary_array->as_span();
           gather_info.r_temporary_arrays.append(std::move(temporary_array));
@@ -440,7 +449,7 @@ static void gather_realize_tasks_for_instances(GatherTasksInfo &gather_info,
 
   Span<int> stored_instance_ids;
   if (gather_info.create_id_attribute_on_any_component) {
-    std::optional<GSpan> ids = instances_component.attributes().get_for_read("id");
+    std::optional<GSpan> ids = instances_component.instance_attributes().get_for_read("id");
     if (ids.has_value()) {
       stored_instance_ids = ids->typed<int>();
     }
@@ -548,7 +557,7 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
       case GEO_COMPONENT_TYPE_CURVE: {
         const CurveComponent &curve_component = *static_cast<const CurveComponent *>(component);
         const Curves *curves = curve_component.get_for_read();
-        if (curves != nullptr && curves->geometry.curve_size > 0) {
+        if (curves != nullptr && curves->geometry.curve_num > 0) {
           const int curve_index = gather_info.curves.order.index_of(curves);
           const RealizeCurveInfo &curve_info = gather_info.curves.realize_info[curve_index];
           gather_info.r_tasks.curve_tasks.append({gather_info.r_offsets.curves_offsets,
@@ -556,8 +565,8 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
                                                   base_transform,
                                                   base_instance_context.curves,
                                                   base_instance_context.id});
-          gather_info.r_offsets.curves_offsets.point += curves->geometry.point_size;
-          gather_info.r_offsets.curves_offsets.curve += curves->geometry.curve_size;
+          gather_info.r_offsets.curves_offsets.point += curves->geometry.point_num;
+          gather_info.r_offsets.curves_offsets.curve += curves->geometry.curve_num;
         }
         break;
       }
@@ -639,34 +648,34 @@ static AllPointCloudsInfo preprocess_pointclouds(const GeometrySet &geometry_set
     pointcloud_info.pointcloud = pointcloud;
 
     /* Access attributes. */
-    PointCloudComponent component;
-    component.replace(const_cast<PointCloud *>(pointcloud), GeometryOwnershipType::ReadOnly);
+    bke::AttributeAccessor attributes = bke::pointcloud_attributes(*pointcloud);
     pointcloud_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
-      const CustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
-      const AttributeDomain domain = info.attributes.kinds[attribute_index].domain;
-      if (component.attribute_exists(attribute_id)) {
-        GVArray attribute = component.attribute_get_for_read(attribute_id, domain, data_type);
+      const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
+      const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
+      if (attributes.contains(attribute_id)) {
+        GVArray attribute = attributes.lookup_or_default(attribute_id, domain, data_type);
         pointcloud_info.attributes[attribute_index].emplace(std::move(attribute));
       }
     }
     if (info.create_id_attribute) {
-      ReadAttributeLookup ids_lookup = component.attribute_try_get_for_read("id");
-      if (ids_lookup) {
-        pointcloud_info.stored_ids = ids_lookup.varray.get_internal_span().typed<int>();
+      bke::GAttributeReader ids_attribute = attributes.lookup("id");
+      if (ids_attribute) {
+        pointcloud_info.stored_ids = ids_attribute.varray.get_internal_span().typed<int>();
       }
     }
   }
   return info;
 }
 
-static void execute_realize_pointcloud_task(const RealizeInstancesOptions &options,
-                                            const RealizePointCloudTask &task,
-                                            const OrderedAttributes &ordered_attributes,
-                                            PointCloud &dst_pointcloud,
-                                            MutableSpan<GMutableSpan> dst_attribute_spans,
-                                            MutableSpan<int> all_dst_ids)
+static void execute_realize_pointcloud_task(
+    const RealizeInstancesOptions &options,
+    const RealizePointCloudTask &task,
+    const OrderedAttributes &ordered_attributes,
+    PointCloud &dst_pointcloud,
+    MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
+    MutableSpan<int> all_dst_ids)
 {
   const PointCloudRealizeInfo &pointcloud_info = *task.pointcloud_info;
   const PointCloud &pointcloud = *pointcloud_info.pointcloud;
@@ -687,12 +696,12 @@ static void execute_realize_pointcloud_task(const RealizeInstancesOptions &optio
       pointcloud_info.attributes,
       task.attribute_fallbacks,
       ordered_attributes,
-      [&](const AttributeDomain domain) {
+      [&](const eAttrDomain domain) {
         BLI_assert(domain == ATTR_DOMAIN_POINT);
         UNUSED_VARS_NDEBUG(domain);
         return point_slice;
       },
-      dst_attribute_spans);
+      dst_attribute_writers);
 }
 
 static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &options,
@@ -714,42 +723,43 @@ static void execute_realize_pointcloud_tasks(const RealizeInstancesOptions &opti
   PointCloudComponent &dst_component =
       r_realized_geometry.get_component_for_write<PointCloudComponent>();
   dst_component.replace(dst_pointcloud);
+  bke::MutableAttributeAccessor dst_attributes = bke::pointcloud_attributes_for_write(
+      *dst_pointcloud);
 
   /* Prepare id attribute. */
-  OutputAttribute_Typed<int> point_ids;
-  MutableSpan<int> point_ids_span;
+  SpanAttributeWriter<int> point_ids;
   if (all_pointclouds_info.create_id_attribute) {
-    point_ids = dst_component.attribute_try_get_for_output_only<int>("id", ATTR_DOMAIN_POINT);
-    point_ids_span = point_ids.as_span();
+    point_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
   }
 
   /* Prepare generic output attributes. */
-  Vector<OutputAttribute> dst_attributes;
-  Vector<GMutableSpan> dst_attribute_spans;
+  Vector<GSpanAttributeWriter> dst_attribute_writers;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
-    const CustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
-    OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
-        attribute_id, ATTR_DOMAIN_POINT, data_type);
-    dst_attribute_spans.append(dst_attribute.as_span());
-    dst_attributes.append(std::move(dst_attribute));
+    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    dst_attribute_writers.append(dst_attributes.lookup_or_add_for_write_only_span(
+        attribute_id, ATTR_DOMAIN_POINT, data_type));
   }
 
   /* Actually execute all tasks. */
   threading::parallel_for(tasks.index_range(), 100, [&](const IndexRange task_range) {
     for (const int task_index : task_range) {
       const RealizePointCloudTask &task = tasks[task_index];
-      execute_realize_pointcloud_task(
-          options, task, ordered_attributes, *dst_pointcloud, dst_attribute_spans, point_ids_span);
+      execute_realize_pointcloud_task(options,
+                                      task,
+                                      ordered_attributes,
+                                      *dst_pointcloud,
+                                      dst_attribute_writers,
+                                      point_ids.span);
     }
   });
 
-  /* Save modified attributes. */
-  for (OutputAttribute &dst_attribute : dst_attributes) {
-    dst_attribute.save();
+  /* Tag modified attributes. */
+  for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
+    dst_attribute.finish();
   }
   if (point_ids) {
-    point_ids.save();
+    point_ids.finish();
   }
 }
 
@@ -830,22 +840,21 @@ static AllMeshesInfo preprocess_meshes(const GeometrySet &geometry_set,
     }
 
     /* Access attributes. */
-    MeshComponent component;
-    component.replace(const_cast<Mesh *>(mesh), GeometryOwnershipType::ReadOnly);
+    bke::AttributeAccessor attributes = bke::mesh_attributes(*mesh);
     mesh_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
-      const CustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
-      const AttributeDomain domain = info.attributes.kinds[attribute_index].domain;
-      if (component.attribute_exists(attribute_id)) {
-        GVArray attribute = component.attribute_get_for_read(attribute_id, domain, data_type);
+      const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
+      const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
+      if (attributes.contains(attribute_id)) {
+        GVArray attribute = attributes.lookup_or_default(attribute_id, domain, data_type);
         mesh_info.attributes[attribute_index].emplace(std::move(attribute));
       }
     }
     if (info.create_id_attribute) {
-      ReadAttributeLookup ids_lookup = component.attribute_try_get_for_read("id");
-      if (ids_lookup) {
-        mesh_info.stored_vertex_ids = ids_lookup.varray.get_internal_span().typed<int>();
+      bke::GAttributeReader ids_attribute = attributes.lookup("id");
+      if (ids_attribute) {
+        mesh_info.stored_vertex_ids = ids_attribute.varray.get_internal_span().typed<int>();
       }
     }
   }
@@ -856,7 +865,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
                                       const RealizeMeshTask &task,
                                       const OrderedAttributes &ordered_attributes,
                                       Mesh &dst_mesh,
-                                      MutableSpan<GMutableSpan> dst_attribute_spans,
+                                      MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
                                       MutableSpan<int> all_dst_vertex_ids)
 {
   const MeshRealizeInfo &mesh_info = *task.mesh_info;
@@ -927,7 +936,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       mesh_info.attributes,
       task.attribute_fallbacks,
       ordered_attributes,
-      [&](const AttributeDomain domain) {
+      [&](const eAttrDomain domain) {
         switch (domain) {
           case ATTR_DOMAIN_POINT:
             return IndexRange(task.start_indices.vertex, mesh.totvert);
@@ -942,7 +951,7 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
             return IndexRange();
         }
       },
-      dst_attribute_spans);
+      dst_attribute_writers);
 }
 
 static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
@@ -966,6 +975,7 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   Mesh *dst_mesh = BKE_mesh_new_nomain(tot_vertices, tot_edges, 0, tot_loops, tot_poly);
   MeshComponent &dst_component = r_realized_geometry.get_component_for_write<MeshComponent>();
   dst_component.replace(dst_mesh);
+  bke::MutableAttributeAccessor dst_attributes = bke::mesh_attributes_for_write(*dst_mesh);
 
   /* Copy settings from the first input geometry set with a mesh. */
   const RealizeMeshTask &first_task = tasks.first();
@@ -979,24 +989,19 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   }
 
   /* Prepare id attribute. */
-  OutputAttribute_Typed<int> vertex_ids;
-  MutableSpan<int> vertex_ids_span;
+  SpanAttributeWriter<int> vertex_ids;
   if (all_meshes_info.create_id_attribute) {
-    vertex_ids = dst_component.attribute_try_get_for_output_only<int>("id", ATTR_DOMAIN_POINT);
-    vertex_ids_span = vertex_ids.as_span();
+    vertex_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
   }
 
   /* Prepare generic output attributes. */
-  Vector<OutputAttribute> dst_attributes;
-  Vector<GMutableSpan> dst_attribute_spans;
+  Vector<GSpanAttributeWriter> dst_attribute_writers;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
-    const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
-    const CustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
-    OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
-        attribute_id, domain, data_type);
-    dst_attribute_spans.append(dst_attribute.as_span());
-    dst_attributes.append(std::move(dst_attribute));
+    const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
+    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    dst_attribute_writers.append(
+        dst_attributes.lookup_or_add_for_write_only_span(attribute_id, domain, data_type));
   }
 
   /* Actually execute all tasks. */
@@ -1004,16 +1009,16 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
     for (const int task_index : task_range) {
       const RealizeMeshTask &task = tasks[task_index];
       execute_realize_mesh_task(
-          options, task, ordered_attributes, *dst_mesh, dst_attribute_spans, vertex_ids_span);
+          options, task, ordered_attributes, *dst_mesh, dst_attribute_writers, vertex_ids.span);
     }
   });
 
-  /* Save modified attributes. */
-  for (OutputAttribute &dst_attribute : dst_attributes) {
-    dst_attribute.save();
+  /* Tag modified attributes. */
+  for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
+    dst_attribute.finish();
   }
   if (vertex_ids) {
-    vertex_ids.save();
+    vertex_ids.finish();
   }
 }
 
@@ -1037,6 +1042,7 @@ static OrderedAttributes gather_generic_curve_attributes_to_propagate(
       src_component_types, GEO_COMPONENT_TYPE_CURVE, true, attributes_to_propagate);
   attributes_to_propagate.remove("position");
   attributes_to_propagate.remove("radius");
+  attributes_to_propagate.remove("resolution");
   attributes_to_propagate.remove("handle_right");
   attributes_to_propagate.remove("handle_left");
   r_create_id = attributes_to_propagate.pop_try("id").has_value();
@@ -1052,7 +1058,7 @@ static void gather_curves_to_realize(const GeometrySet &geometry_set,
                                      VectorSet<const Curves *> &r_curves)
 {
   if (const Curves *curves = geometry_set.get_curves_for_read()) {
-    if (curves->geometry.curve_size != 0) {
+    if (curves->geometry.curve_num != 0) {
       r_curves.add(curves);
     }
   }
@@ -1075,47 +1081,48 @@ static AllCurvesInfo preprocess_curves(const GeometrySet &geometry_set,
   info.realize_info.reinitialize(info.order.size());
   for (const int curve_index : info.realize_info.index_range()) {
     RealizeCurveInfo &curve_info = info.realize_info[curve_index];
-    const Curves *curves = info.order[curve_index];
-    curve_info.curves = curves;
+    const Curves *curves_id = info.order[curve_index];
+    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+    curve_info.curves = curves_id;
 
     /* Access attributes. */
-    CurveComponent component;
-    component.replace(const_cast<Curves *>(curves), GeometryOwnershipType::ReadOnly);
+    bke::AttributeAccessor attributes = curves.attributes();
     curve_info.attributes.reinitialize(info.attributes.size());
     for (const int attribute_index : info.attributes.index_range()) {
-      const AttributeDomain domain = info.attributes.kinds[attribute_index].domain;
+      const eAttrDomain domain = info.attributes.kinds[attribute_index].domain;
       const AttributeIDRef &attribute_id = info.attributes.ids[attribute_index];
-      const CustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
-      if (component.attribute_exists(attribute_id)) {
-        GVArray attribute = component.attribute_get_for_read(attribute_id, domain, data_type);
+      const eCustomDataType data_type = info.attributes.kinds[attribute_index].data_type;
+      if (attributes.contains(attribute_id)) {
+        GVArray attribute = attributes.lookup_or_default(attribute_id, domain, data_type);
         curve_info.attributes[attribute_index].emplace(std::move(attribute));
       }
     }
     if (info.create_id_attribute) {
-      ReadAttributeLookup ids_lookup = component.attribute_try_get_for_read("id");
-      if (ids_lookup) {
-        curve_info.stored_ids = ids_lookup.varray.get_internal_span().typed<int>();
+      bke::GAttributeReader id_attribute = attributes.lookup("id");
+      if (id_attribute) {
+        curve_info.stored_ids = id_attribute.varray.get_internal_span().typed<int>();
       }
     }
 
     /* Retrieve the radius attribute, if it exists. */
-    if (component.attribute_exists("radius")) {
-      curve_info.radius = component
-                              .attribute_get_for_read<float>("radius", ATTR_DOMAIN_POINT, 0.0f)
-                              .get_internal_span();
+    if (attributes.contains("radius")) {
+      curve_info.radius =
+          attributes.lookup<float>("radius", ATTR_DOMAIN_POINT).get_internal_span();
       info.create_radius_attribute = true;
     }
 
+    /* Retrieve the resolution attribute, if it exists. */
+    curve_info.resolution = curves.resolution();
+    if (attributes.contains("resolution")) {
+      info.create_resolution_attribute = true;
+    }
+
     /* Retrieve handle position attributes, if they exist. */
-    if (component.attribute_exists("handle_right")) {
-      curve_info.handle_left = component
-                                   .attribute_get_for_read<float3>(
-                                       "handle_left", ATTR_DOMAIN_POINT, float3(0))
-                                   .get_internal_span();
-      curve_info.handle_right = component
-                                    .attribute_get_for_read<float3>(
-                                        "handle_right", ATTR_DOMAIN_POINT, float3(0))
-                                    .get_internal_span();
+    if (attributes.contains("handle_right")) {
+      curve_info.handle_left =
+          attributes.lookup<float3>("handle_left", ATTR_DOMAIN_POINT).get_internal_span();
+      curve_info.handle_right =
+          attributes.lookup<float3>("handle_right", ATTR_DOMAIN_POINT).get_internal_span();
       info.create_handle_postion_attributes = true;
     }
   }
@@ -1127,11 +1134,12 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
                                        const RealizeCurveTask &task,
                                        const OrderedAttributes &ordered_attributes,
                                        bke::CurvesGeometry &dst_curves,
-                                       MutableSpan<GMutableSpan> dst_attribute_spans,
+                                       MutableSpan<GSpanAttributeWriter> dst_attribute_writers,
                                        MutableSpan<int> all_dst_ids,
                                        MutableSpan<float3> all_handle_left,
                                        MutableSpan<float3> all_handle_right,
-                                       MutableSpan<float> all_radii)
+                                       MutableSpan<float> all_radii,
+                                       MutableSpan<int> all_resolutions)
 {
   const RealizeCurveInfo &curves_info = *task.curve_info;
   const Curves &curves_id = *curves_info.curves;
@@ -1171,6 +1179,10 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
     }
   }
 
+  if (all_curves_info.create_resolution_attribute) {
+    curves_info.resolution.materialize(all_resolutions.slice(dst_curve_range));
+  }
+
   /* Copy curve offsets. */
   const Span<int> src_offsets = curves.offsets();
   const MutableSpan<int> dst_offsets = dst_curves.offsets_for_write().slice(dst_curve_range);
@@ -1189,7 +1201,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
       curves_info.attributes,
       task.attribute_fallbacks,
       ordered_attributes,
-      [&](const AttributeDomain domain) {
+      [&](const eAttrDomain domain) {
         switch (domain) {
           case ATTR_DOMAIN_POINT:
             return IndexRange(task.start_indices.point, curves.points_num());
@@ -1200,7 +1212,7 @@ static void execute_realize_curve_task(const RealizeInstancesOptions &options,
             return IndexRange();
         }
       },
-      dst_attribute_spans);
+      dst_attribute_writers);
 }
 
 static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
@@ -1215,57 +1227,54 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
 
   const RealizeCurveTask &last_task = tasks.last();
   const Curves &last_curves = *last_task.curve_info->curves;
-  const int points_size = last_task.start_indices.point + last_curves.geometry.point_size;
-  const int curves_size = last_task.start_indices.curve + last_curves.geometry.curve_size;
+  const int points_num = last_task.start_indices.point + last_curves.geometry.point_num;
+  const int curves_num = last_task.start_indices.curve + last_curves.geometry.curve_num;
 
   /* Allocate new curves data-block. */
-  Curves *dst_curves_id = bke::curves_new_nomain(points_size, curves_size);
+  Curves *dst_curves_id = bke::curves_new_nomain(points_num, curves_num);
   bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
-  dst_curves.offsets_for_write().last() = points_size;
+  dst_curves.offsets_for_write().last() = points_num;
   CurveComponent &dst_component = r_realized_geometry.get_component_for_write<CurveComponent>();
   dst_component.replace(dst_curves_id);
+  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
 
   /* Prepare id attribute. */
-  OutputAttribute_Typed<int> point_ids;
-  MutableSpan<int> point_ids_span;
+  SpanAttributeWriter<int> point_ids;
   if (all_curves_info.create_id_attribute) {
-    point_ids = dst_component.attribute_try_get_for_output_only<int>("id", ATTR_DOMAIN_POINT);
-    point_ids_span = point_ids.as_span();
+    point_ids = dst_attributes.lookup_or_add_for_write_only_span<int>("id", ATTR_DOMAIN_POINT);
   }
 
   /* Prepare generic output attributes. */
-  Vector<OutputAttribute> dst_attributes;
-  Vector<GMutableSpan> dst_attribute_spans;
+  Vector<GSpanAttributeWriter> dst_attribute_writers;
   for (const int attribute_index : ordered_attributes.index_range()) {
     const AttributeIDRef &attribute_id = ordered_attributes.ids[attribute_index];
-    const AttributeDomain domain = ordered_attributes.kinds[attribute_index].domain;
-    const CustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
-    OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
-        attribute_id, domain, data_type);
-    dst_attribute_spans.append(dst_attribute.as_span());
-    dst_attributes.append(std::move(dst_attribute));
+    const eAttrDomain domain = ordered_attributes.kinds[attribute_index].domain;
+    const eCustomDataType data_type = ordered_attributes.kinds[attribute_index].data_type;
+    dst_attribute_writers.append(
+        dst_attributes.lookup_or_add_for_write_only_span(attribute_id, domain, data_type));
   }
 
   /* Prepare handle position attributes if necessary. */
-  OutputAttribute_Typed<float3> handle_left;
-  OutputAttribute_Typed<float3> handle_right;
-  MutableSpan<float3> handle_left_span;
-  MutableSpan<float3> handle_right_span;
+  SpanAttributeWriter<float3> handle_left;
+  SpanAttributeWriter<float3> handle_right;
   if (all_curves_info.create_handle_postion_attributes) {
-    handle_left = dst_component.attribute_try_get_for_output_only<float3>("handle_left",
-                                                                          ATTR_DOMAIN_POINT);
-    handle_right = dst_component.attribute_try_get_for_output_only<float3>("handle_right",
+    handle_left = dst_attributes.lookup_or_add_for_write_only_span<float3>("handle_left",
                                                                            ATTR_DOMAIN_POINT);
-    handle_left_span = handle_left.as_span();
-    handle_right_span = handle_right.as_span();
+    handle_right = dst_attributes.lookup_or_add_for_write_only_span<float3>("handle_right",
+                                                                            ATTR_DOMAIN_POINT);
   }
 
   /* Prepare radius attribute if necessary. */
-  OutputAttribute_Typed<float> radius;
-  MutableSpan<float> radius_span;
+  SpanAttributeWriter<float> radius;
   if (all_curves_info.create_radius_attribute) {
-    radius = dst_component.attribute_try_get_for_output_only<float>("radius", ATTR_DOMAIN_POINT);
-    radius_span = radius.as_span();
+    radius = dst_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+  }
+
+  /* Prepare resolution attribute if necessary. */
+  SpanAttributeWriter<int> resolution;
+  if (all_curves_info.create_resolution_attribute) {
+    resolution = dst_attributes.lookup_or_add_for_write_only_span<int>("resolution",
+                                                                       ATTR_DOMAIN_CURVE);
   }
 
   /* Actually execute all tasks. */
@@ -1277,27 +1286,40 @@ static void execute_realize_curve_tasks(const RealizeInstancesOptions &options,
                                  task,
                                  ordered_attributes,
                                  dst_curves,
-                                 dst_attribute_spans,
-                                 point_ids_span,
-                                 handle_left_span,
-                                 handle_right_span,
-                                 radius_span);
+                                 dst_attribute_writers,
+                                 point_ids.span,
+                                 handle_left.span,
+                                 handle_right.span,
+                                 radius.span,
+                                 resolution.span);
     }
   });
 
-  /* Save modified attributes. */
-  for (OutputAttribute &dst_attribute : dst_attributes) {
-    dst_attribute.save();
+  /* Type counts have to be updated eagerly. */
+  dst_curves.runtime->type_counts.fill(0);
+  for (const RealizeCurveTask &task : tasks) {
+    for (const int i : IndexRange(CURVE_TYPES_NUM)) {
+      dst_curves.runtime->type_counts[i] +=
+          task.curve_info->curves->geometry.runtime->type_counts[i];
+    }
+  }
+
+  /* Tag modified attributes. */
+  for (GSpanAttributeWriter &dst_attribute : dst_attribute_writers) {
+    dst_attribute.finish();
   }
   if (point_ids) {
-    point_ids.save();
+    point_ids.finish();
   }
   if (radius) {
-    radius.save();
+    radius.finish();
+  }
+  if (resolution) {
+    resolution.finish();
   }
   if (all_curves_info.create_handle_postion_attributes) {
-    handle_left.save();
-    handle_right.save();
+    handle_left.finish();
+    handle_right.finish();
   }
 }
 
@@ -1312,7 +1334,7 @@ static void remove_id_attribute_from_instances(GeometrySet &geometry_set)
   geometry_set.modify_geometry_sets([&](GeometrySet &sub_geometry) {
     if (sub_geometry.has<InstancesComponent>()) {
       InstancesComponent &component = sub_geometry.get_component_for_write<InstancesComponent>();
-      component.attributes().remove("id");
+      component.instance_attributes().remove("id");
     }
   });
 }

@@ -1,4 +1,4 @@
-#pragma BLENDER_REQUIRE(gpu_shader_material_math_util.glsl)
+#pragma BLENDER_REQUIRE(gpu_shader_common_math_utils.glsl)
 
 void node_tex_environment_equirectangular(vec3 co, out vec3 uv)
 {

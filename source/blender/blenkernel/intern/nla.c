@@ -244,27 +244,71 @@ void BKE_nla_tracks_copy(Main *bmain, ListBase *dst, const ListBase *src, const 
   }
 }
 
-/* Set adt_dest->actstrip to the strip with the same index as adt_source->actstrip. */
-static void update_active_strip(AnimData *adt_dest,
-                                NlaTrack *track_dest,
-                                const AnimData *adt_source,
-                                NlaTrack *track_source)
+/**
+ * Find `active_strip` in `strips_source`, then return the strip with the same
+ * index from `strips_dest`.
+ */
+static NlaStrip *find_active_strip_from_listbase(const NlaStrip *active_strip,
+                                                 const ListBase /* NlaStrip */ *strips_source,
+                                                 const ListBase /* NlaStrip */ *strips_dest)
 {
-  BLI_assert(BLI_listbase_count(&track_source->strips) == BLI_listbase_count(&track_dest->strips));
+  BLI_assert_msg(BLI_listbase_count(strips_source) == BLI_listbase_count(strips_dest),
+                 "Expecting the same number of source and destination strips");
 
-  NlaStrip *strip_dest = track_dest->strips.first;
-  LISTBASE_FOREACH (NlaStrip *, strip_source, &track_source->strips) {
-    if (strip_source == adt_source->actstrip) {
-      adt_dest->actstrip = strip_dest;
+  NlaStrip *strip_dest = strips_dest->first;
+  LISTBASE_FOREACH (const NlaStrip *, strip_source, strips_source) {
+    if (strip_dest == NULL) {
+      /* The tracks are assumed to have an equal number of strips, but this is
+       * not the case. Not sure when this might happen, but it's better to not
+       * crash. */
+      break;
+    }
+    if (strip_source == active_strip) {
+      return strip_dest;
+    }
+
+    const bool src_is_meta = strip_source->type == NLASTRIP_TYPE_META;
+    const bool dst_is_meta = strip_dest->type == NLASTRIP_TYPE_META;
+    BLI_assert_msg(src_is_meta == dst_is_meta,
+                   "Expecting topology of source and destination strips to be equal");
+    if (src_is_meta && dst_is_meta) {
+      NlaStrip *found_in_meta = find_active_strip_from_listbase(
+          active_strip, &strip_source->strips, &strip_dest->strips);
+      if (found_in_meta != NULL) {
+        return found_in_meta;
+      }
     }
 
     strip_dest = strip_dest->next;
   }
+
+  return NULL;
+}
+
+/* Set adt_dest->actstrip to the strip with the same index as
+ * adt_source->actstrip. Note that this always sets `adt_dest->actstrip`; sets
+ * to NULL when `adt_source->actstrip` cannot be found. */
+static void update_active_strip(AnimData *adt_dest,
+                                NlaTrack *track_dest,
+                                const AnimData *adt_source,
+                                const NlaTrack *track_source)
+{
+  BLI_assert(BLI_listbase_count(&track_source->strips) == BLI_listbase_count(&track_dest->strips));
+
+  NlaStrip *active_strip = find_active_strip_from_listbase(
+      adt_source->actstrip, &track_source->strips, &track_dest->strips);
+  adt_dest->actstrip = active_strip;
 }
 
 /* Set adt_dest->act_track to the track with the same index as adt_source->act_track. */
 static void update_active_track(AnimData *adt_dest, const AnimData *adt_source)
 {
+  adt_dest->act_track = NULL;
+  adt_dest->actstrip = NULL;
+  if (adt_source->act_track == NULL && adt_source->actstrip == NULL) {
+    return;
+  }
+
   BLI_assert(BLI_listbase_count(&adt_source->nla_tracks) ==
              BLI_listbase_count(&adt_dest->nla_tracks));
 
@@ -272,20 +316,24 @@ static void update_active_track(AnimData *adt_dest, const AnimData *adt_source)
   LISTBASE_FOREACH (NlaTrack *, track_source, &adt_source->nla_tracks) {
     if (track_source == adt_source->act_track) {
       adt_dest->act_track = track_dest;
-      /* Assumption: the active strip is on the active track. */
+    }
+
+    /* Only search for the active strip if it hasn't been found yet. */
+    if (adt_dest->actstrip == NULL && adt_source->actstrip != NULL) {
       update_active_strip(adt_dest, track_dest, adt_source, track_source);
     }
 
     track_dest = track_dest->next;
   }
 
-  /* If the above assumption failed to hold, do a more thorough search for the active strip. */
-  if (adt_source->actstrip != NULL && adt_dest->actstrip == NULL) {
-    nla_tweakmode_find_active(&adt_source->nla_tracks, &track_dest, &adt_dest->actstrip);
+#ifndef NDEBUG
+  {
+    const bool source_has_actstrip = adt_source->actstrip != NULL;
+    const bool dest_has_actstrip = adt_dest->actstrip != NULL;
+    BLI_assert_msg(source_has_actstrip == dest_has_actstrip,
+                   "Active strip did not copy correctly");
   }
-
-  BLI_assert_msg((adt_source->actstrip == NULL) == (adt_dest->actstrip == NULL),
-                 "Active strip did not copy correctly");
+#endif
 }
 
 void BKE_nla_tracks_copy_from_adt(Main *bmain,
@@ -1171,24 +1219,67 @@ bool BKE_nlatrack_is_nonlocal_in_liboverride(const ID *id, const NlaTrack *nlt)
 
 /* NLA Strips -------------------------------------- */
 
-NlaStrip *BKE_nlastrip_find_active(NlaTrack *nlt)
+static NlaStrip *nlastrip_find_active(ListBase /* NlaStrip */ *strips)
 {
-  NlaStrip *strip;
-
-  /* sanity check */
-  if (ELEM(NULL, nlt, nlt->strips.first)) {
-    return NULL;
-  }
-
-  /* try to find the first active strip */
-  for (strip = nlt->strips.first; strip; strip = strip->next) {
+  LISTBASE_FOREACH (NlaStrip *, strip, strips) {
     if (strip->flag & NLASTRIP_FLAG_ACTIVE) {
       return strip;
     }
+
+    if (strip->type != NLASTRIP_TYPE_META) {
+      continue;
+    }
+
+    NlaStrip *inner_active = nlastrip_find_active(&strip->strips);
+    if (inner_active != NULL) {
+      return inner_active;
+    }
   }
 
-  /* none found */
   return NULL;
+}
+
+float BKE_nlastrip_compute_frame_from_previous_strip(NlaStrip *strip)
+{
+  float limit_prev = MINFRAMEF;
+
+  /* Find the previous end frame, with a special case if the previous strip was a transition : */
+  if (strip->prev) {
+    if (strip->prev->type == NLASTRIP_TYPE_TRANSITION) {
+      limit_prev = strip->prev->start + NLASTRIP_MIN_LEN_THRESH;
+    }
+    else {
+      limit_prev = strip->prev->end;
+    }
+  }
+
+  return limit_prev;
+}
+
+float BKE_nlastrip_compute_frame_to_next_strip(NlaStrip *strip)
+{
+  float limit_next = MAXFRAMEF;
+
+  /* Find the next begin frame, with a special case if the next strip's a transition : */
+  if (strip->next) {
+    if (strip->next->type == NLASTRIP_TYPE_TRANSITION) {
+      limit_next = strip->next->end - NLASTRIP_MIN_LEN_THRESH;
+    }
+    else {
+      limit_next = strip->next->start;
+    }
+  }
+
+  return limit_next;
+}
+
+NlaStrip *BKE_nlastrip_find_active(NlaTrack *nlt)
+{
+  if (nlt == NULL) {
+    return NULL;
+  }
+
+  return nlastrip_find_active(&nlt->strips);
 }
 
 void BKE_nlastrip_set_active(AnimData *adt, NlaStrip *strip)

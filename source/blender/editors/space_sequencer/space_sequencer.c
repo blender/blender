@@ -548,7 +548,12 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
   }
 
   View2D *v2d = &region->v2d;
-  Editing *ed = SEQ_editing_get(CTX_data_scene(C));
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = SEQ_editing_get(scene);
+
+  if (ed == NULL) {
+    return;
+  }
 
   /* Transformation uses edge panning to move view. Also if smooth view is running, don't apply
    * clamping to prevent overriding this functionality. */
@@ -559,7 +564,7 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
   /* Initialize default view with 7 channels, that are visible even if empty. */
   rctf strip_boundbox;
   BLI_rctf_init(&strip_boundbox, 0.0f, 0.0f, 1.0f, 7.0f);
-  SEQ_timeline_expand_boundbox(ed->seqbasep, &strip_boundbox);
+  SEQ_timeline_expand_boundbox(scene, ed->seqbasep, &strip_boundbox);
 
   /* Clamp Y max. Scrubbing area height must be added, so strips aren't occluded. */
   rcti scrub_rect;
@@ -596,6 +601,8 @@ static void sequencer_main_clamp_view(const bContext *C, ARegion *region)
     view_clamped.ymin = strip_boundbox.ymin;
     view_clamped.ymax = min_ff(strip_boundbox.ymax, strip_boundbox.ymin + range_y);
   }
+
+  v2d->cur = view_clamped;
 }
 
 static void sequencer_main_region_clamp_custom_set(const bContext *C, ARegion *region)

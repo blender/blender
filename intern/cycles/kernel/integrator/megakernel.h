@@ -77,6 +77,9 @@ ccl_device void integrator_megakernel(KernelGlobals kg,
         case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE:
           integrator_shade_surface_raytrace(kg, state, render_buffer);
           break;
+        case DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE:
+          integrator_shade_surface_mnee(kg, state, render_buffer);
+          break;
         case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT:
           integrator_shade_light(kg, state, render_buffer);
           break;

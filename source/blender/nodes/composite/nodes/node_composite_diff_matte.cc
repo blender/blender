@@ -19,7 +19,7 @@ static void cmp_node_diff_matte_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>(N_("Image 1")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_input<decl::Color>(N_("Image 2")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_output<decl::Color>(N_("Image"));
-  b.add_output<decl::Color>(N_("Matte"));
+  b.add_output<decl::Float>(N_("Matte"));
 }
 
 static void node_composit_init_diff_matte(bNodeTree *UNUSED(ntree), bNode *node)

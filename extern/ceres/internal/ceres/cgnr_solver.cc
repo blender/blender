@@ -30,6 +30,9 @@
 
 #include "ceres/cgnr_solver.h"
 
+#include <memory>
+#include <utility>
+
 #include "ceres/block_jacobi_preconditioner.h"
 #include "ceres/cgnr_linear_operator.h"
 #include "ceres/conjugate_gradients_solver.h"
@@ -42,8 +45,8 @@
 namespace ceres {
 namespace internal {
 
-CgnrSolver::CgnrSolver(const LinearSolver::Options& options)
-    : options_(options) {
+CgnrSolver::CgnrSolver(LinearSolver::Options options)
+    : options_(std::move(options)) {
   if (options_.preconditioner_type != JACOBI &&
       options_.preconditioner_type != IDENTITY &&
       options_.preconditioner_type != SUBSET) {
@@ -54,7 +57,7 @@ CgnrSolver::CgnrSolver(const LinearSolver::Options& options)
   }
 }
 
-CgnrSolver::~CgnrSolver() {}
+CgnrSolver::~CgnrSolver() = default;
 
 LinearSolver::Summary CgnrSolver::SolveImpl(
     BlockSparseMatrix* A,
@@ -70,7 +73,7 @@ LinearSolver::Summary CgnrSolver::SolveImpl(
 
   if (!preconditioner_) {
     if (options_.preconditioner_type == JACOBI) {
-      preconditioner_.reset(new BlockJacobiPreconditioner(*A));
+      preconditioner_ = std::make_unique<BlockJacobiPreconditioner>(*A);
     } else if (options_.preconditioner_type == SUBSET) {
       Preconditioner::Options preconditioner_options;
       preconditioner_options.type = SUBSET;
@@ -81,8 +84,8 @@ LinearSolver::Summary CgnrSolver::SolveImpl(
       preconditioner_options.use_postordering = options_.use_postordering;
       preconditioner_options.num_threads = options_.num_threads;
       preconditioner_options.context = options_.context;
-      preconditioner_.reset(
-          new SubsetPreconditioner(preconditioner_options, *A));
+      preconditioner_ =
+          std::make_unique<SubsetPreconditioner>(preconditioner_options, *A);
     }
   }
 

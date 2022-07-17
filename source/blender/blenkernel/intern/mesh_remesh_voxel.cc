@@ -290,7 +290,7 @@ void BKE_mesh_remesh_reproject_paint_mask(Mesh *target, Mesh *source)
         &target->vdata, CD_PAINT_MASK, CD_CALLOC, nullptr, target->totvert);
   }
 
-  float *source_mask;
+  const float *source_mask;
   if (CustomData_has_layer(&source->vdata, CD_PAINT_MASK)) {
     source_mask = (float *)CustomData_get_layer(&source->vdata, CD_PAINT_MASK);
   }
@@ -375,7 +375,7 @@ void BKE_remesh_reproject_vertex_paint(Mesh *target, const Mesh *source)
 
   while ((layer = BKE_id_attribute_from_index(
               const_cast<ID *>(&source->id), i++, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL))) {
-    AttributeDomain domain = BKE_id_attribute_domain(&source->id, layer);
+    eAttrDomain domain = BKE_id_attribute_domain(&source->id, layer);
 
     CustomData *target_cdata = domain == ATTR_DOMAIN_POINT ? &target->vdata : &target->ldata;
     const CustomData *source_cdata = domain == ATTR_DOMAIN_POINT ? &source->vdata : &source->ldata;

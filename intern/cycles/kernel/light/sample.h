@@ -81,7 +81,7 @@ light_sample_shader_eval(KernelGlobals kg,
   eval *= ls->eval_fac;
 
   if (ls->lamp != LAMP_NONE) {
-    ccl_global const KernelLight *klight = &kernel_tex_fetch(__lights, ls->lamp);
+    ccl_global const KernelLight *klight = &kernel_data_fetch(lights, ls->lamp);
     eval *= make_float3(klight->strength[0], klight->strength[1], klight->strength[2]);
   }
 
@@ -106,7 +106,7 @@ ccl_device_inline bool light_sample_terminate(KernelGlobals kg,
   }
 
   if (kernel_data.integrator.light_inv_rr_threshold > 0.0f) {
-    float probability = max3(fabs(bsdf_eval_sum(eval))) *
+    float probability = reduce_max(fabs(bsdf_eval_sum(eval))) *
                         kernel_data.integrator.light_inv_rr_threshold;
     if (probability < 1.0f) {
       if (rand_terminate >= probability) {
@@ -143,7 +143,7 @@ ccl_device_inline float3 shadow_ray_smooth_surface_offset(
   float3 n = N[0] * u + N[1] * v + N[2] * w; /* We get away without normalization */
 
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    object_normal_transform(kg, sd, &n); /* Normal x scale, world space */
+    object_dir_transform(kg, sd, &n); /* Normal x scale, to world space */
   }
 
   /* Parabolic approximation */
@@ -187,7 +187,7 @@ ccl_device_inline float3 shadow_ray_offset(KernelGlobals kg,
 
   if ((sd->type & PRIMITIVE_TRIANGLE) && (sd->shader & SHADER_SMOOTH_NORMAL)) {
     const float offset_cutoff =
-        kernel_tex_fetch(__objects, sd->object).shadow_terminator_geometry_offset;
+        kernel_data_fetch(objects, sd->object).shadow_terminator_geometry_offset;
     /* Do ray offset (heavy stuff) only for close to be terminated triangles:
      * offset_cutoff = 0.1f means that 10-20% of rays will be affected. Also
      * make a smooth transition near the threshold. */
@@ -227,23 +227,24 @@ ccl_device_inline void shadow_ray_setup(ccl_private const ShaderData *ccl_restri
   if (ls->shader & SHADER_CAST_SHADOW) {
     /* setup ray */
     ray->P = P;
+    ray->tmin = 0.0f;
 
     if (ls->t == FLT_MAX) {
       /* distant light */
       ray->D = ls->D;
-      ray->t = ls->t;
+      ray->tmax = ls->t;
     }
     else {
       /* other lights, avoid self-intersection */
       ray->D = ls->P - P;
-      ray->D = normalize_len(ray->D, &ray->t);
+      ray->D = normalize_len(ray->D, &ray->tmax);
     }
   }
   else {
     /* signal to not cast shadow ray */
     ray->P = zero_float3();
     ray->D = zero_float3();
-    ray->t = 0.0f;
+    ray->tmax = 0.0f;
   }
 
   ray->dP = differential_make_compact(sd->dP);

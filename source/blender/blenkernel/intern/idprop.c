@@ -168,7 +168,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
 
   /* NOTE: This code comes from python, here's the corresponding comment. */
   /* This over-allocates proportional to the list size, making room
-   * for additional growth.  The over-allocation is mild, but is
+   * for additional growth. The over-allocation is mild, but is
    * enough to give linear-time amortized behavior over a long
    * sequence of appends() in the presence of a poorly-performing
    * system realloc().
@@ -872,7 +872,7 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
     case IDP_ID:
       return (IDP_Id(prop1) == IDP_Id(prop2));
     default:
-      BLI_assert(0);
+      BLI_assert_unreachable();
       break;
   }
 

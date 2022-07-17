@@ -111,7 +111,7 @@ Corrector::Corrector(const double sq_norm, const double rho[3]) {
 }
 
 void Corrector::CorrectResiduals(const int num_rows, double* residuals) {
-  DCHECK(residuals != NULL);
+  DCHECK(residuals != nullptr);
   // Equation 11 in BANS.
   VectorRef(residuals, num_rows) *= residual_scaling_;
 }
@@ -120,8 +120,8 @@ void Corrector::CorrectJacobian(const int num_rows,
                                 const int num_cols,
                                 double* residuals,
                                 double* jacobian) {
-  DCHECK(residuals != NULL);
-  DCHECK(jacobian != NULL);
+  DCHECK(residuals != nullptr);
+  DCHECK(jacobian != nullptr);
 
   // The common case (rho[2] <= 0).
   if (alpha_sq_norm_ == 0.0) {

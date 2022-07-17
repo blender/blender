@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2011-2022 Blender Foundation
-
-# <pep8 compliant>
 from __future__ import annotations
 
 from bl_operators.presets import AddPresetBase
@@ -86,10 +84,36 @@ class AddPresetViewportSampling(AddPresetBase, Operator):
     preset_subdir = "cycles/viewport_sampling"
 
 
+class AddPresetPerformance(AddPresetBase, Operator):
+    '''Add an Performance Preset'''
+    bl_idname = "render.cycles_performance_preset_add"
+    bl_label = "Add Performance Preset"
+    preset_menu = "CYCLES_PT_performance_presets"
+
+    preset_defines = [
+        "render = bpy.context.scene.render"
+        "cycles = bpy.context.scene.cycles"
+    ]
+
+    preset_values = [
+        "render.threads_mode",
+        "render.use_persistent_data",
+        "cycles.debug_use_spatial_splits",
+        "cycles.debug_use_compact_bvh",
+        "cycles.debug_use_hair_bvh",
+        "cycles.debug_bvh_time_steps",
+        "cycles.use_auto_tile",
+        "cycles.tile_size",
+    ]
+
+    preset_subdir = "cycles/performance"
+
+
 classes = (
     AddPresetIntegrator,
     AddPresetSampling,
     AddPresetViewportSampling,
+    AddPresetPerformance,
 )
 
 

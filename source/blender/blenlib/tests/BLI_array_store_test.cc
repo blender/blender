@@ -644,7 +644,7 @@ static void testbuffer_list_state_random_data(ListBase *lb,
           break;
         }
         default:
-          BLI_assert(0);
+          BLI_assert_unreachable();
       }
     }
   }

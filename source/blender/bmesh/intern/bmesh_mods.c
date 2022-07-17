@@ -597,7 +597,7 @@ bool BM_face_validate(BMFace *face, FILE *err)
   bool ret = true;
 
   if (face->len == 2) {
-    fprintf(err, "warning: found two-edged face. face ptr: %p\n", face);
+    fprintf(err, "WARNING: found two-edged face. face ptr: %p\n", face);
     fflush(err);
   }
 

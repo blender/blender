@@ -464,6 +464,68 @@ void ConvertHSVToRGBOperation::update_memory_buffer_partial(BuffersIterator<floa
   }
 }
 
+/* ******** RGB to HSL ******** */
+
+ConvertRGBToHSLOperation::ConvertRGBToHSLOperation() : ConvertBaseOperation()
+{
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
+}
+
+void ConvertRGBToHSLOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
+{
+  float input_color[4];
+  input_operation_->read_sampled(input_color, x, y, sampler);
+  rgb_to_hsl_v(input_color, output);
+  output[3] = input_color[3];
+}
+
+void ConvertRGBToHSLOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
+{
+  for (; !it.is_end(); ++it) {
+    const float *in = it.in(0);
+    rgb_to_hsl_v(in, it.out);
+    it.out[3] = in[3];
+  }
+}
+
+/* ******** HSL to RGB ******** */
+
+ConvertHSLToRGBOperation::ConvertHSLToRGBOperation() : ConvertBaseOperation()
+{
+  this->add_input_socket(DataType::Color);
+  this->add_output_socket(DataType::Color);
+}
+
+void ConvertHSLToRGBOperation::execute_pixel_sampled(float output[4],
+                                                     float x,
+                                                     float y,
+                                                     PixelSampler sampler)
+{
+  float input_color[4];
+  input_operation_->read_sampled(input_color, x, y, sampler);
+  hsl_to_rgb_v(input_color, output);
+  output[0] = max_ff(output[0], 0.0f);
+  output[1] = max_ff(output[1], 0.0f);
+  output[2] = max_ff(output[2], 0.0f);
+  output[3] = input_color[3];
+}
+
+void ConvertHSLToRGBOperation::update_memory_buffer_partial(BuffersIterator<float> &it)
+{
+  for (; !it.is_end(); ++it) {
+    const float *in = it.in(0);
+    hsl_to_rgb_v(in, it.out);
+    it.out[0] = max_ff(it.out[0], 0.0f);
+    it.out[1] = max_ff(it.out[1], 0.0f);
+    it.out[2] = max_ff(it.out[2], 0.0f);
+    it.out[3] = in[3];
+  }
+}
+
 /* ******** Premul to Straight ******** */
 
 ConvertPremulToStraightOperation::ConvertPremulToStraightOperation() : ConvertBaseOperation()

@@ -98,22 +98,22 @@ const EnumPropertyItem rna_enum_texture_type_items[] = {
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem blend_type_items[] = {
     {MTEX_BLEND, "MIX", 0, "Mix", ""},
-    {0, "", ICON_NONE, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MTEX_DARK, "DARKEN", 0, "Darken", ""},
     {MTEX_MUL, "MULTIPLY", 0, "Multiply", ""},
-    {0, "", ICON_NONE, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MTEX_LIGHT, "LIGHTEN", 0, "Lighten", ""},
     {MTEX_SCREEN, "SCREEN", 0, "Screen", ""},
     {MTEX_ADD, "ADD", 0, "Add", ""},
-    {0, "", ICON_NONE, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MTEX_OVERLAY, "OVERLAY", 0, "Overlay", ""},
     {MTEX_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
     {MTEX_LIN_LIGHT, "LINEAR_LIGHT", 0, "Linear Light", ""},
-    {0, "", ICON_NONE, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MTEX_DIFF, "DIFFERENCE", 0, "Difference", ""},
     {MTEX_SUB, "SUBTRACT", 0, "Subtract", ""},
     {MTEX_DIV, "DIVIDE", 0, "Divide", ""},
-    {0, "", ICON_NONE, NULL, NULL},
+    RNA_ENUM_ITEM_SEPR,
     {MTEX_BLEND_HUE, "HUE", 0, "Hue", ""},
     {MTEX_BLEND_SAT, "SATURATION", 0, "Saturation", ""},
     {MTEX_BLEND_COLOR, "COLOR", 0, "Color", ""},
@@ -291,7 +291,7 @@ void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
   }
 }
 
-char *rna_TextureSlot_path(PointerRNA *ptr)
+char *rna_TextureSlot_path(const PointerRNA *ptr)
 {
   MTex *mtex = ptr->data;
 

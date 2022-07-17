@@ -23,6 +23,7 @@
 #  include "util/md5.h"
 #  include "util/path.h"
 #  include "util/progress.h"
+#  include "util/task.h"
 #  include "util/time.h"
 
 #  undef __KERNEL_CPU__
@@ -216,6 +217,25 @@ static OptixResult optixUtilDenoiserInvokeTiled(OptixDenoiser denoiser,
   return OPTIX_SUCCESS;
 }
 
+#  if OPTIX_ABI_VERSION >= 55
+static void execute_optix_task(TaskPool &pool, OptixTask task, OptixResult &failure_reason)
+{
+  OptixTask additional_tasks[16];
+  unsigned int num_additional_tasks = 0;
+
+  const OptixResult result = optixTaskExecute(task, additional_tasks, 16, &num_additional_tasks);
+  if (result == OPTIX_SUCCESS) {
+    for (unsigned int i = 0; i < num_additional_tasks; ++i) {
+      pool.push(function_bind(
+          &execute_optix_task, std::ref(pool), additional_tasks[i], std::ref(failure_reason)));
+    }
+  }
+  else {
+    failure_reason = result;
+  }
+}
+#  endif
+
 }  // namespace
 
 OptiXDevice::Denoiser::Denoiser(OptiXDevice *device)
@@ -226,7 +246,7 @@ OptiXDevice::Denoiser::Denoiser(OptiXDevice *device)
 OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler)
     : CUDADevice(info, stats, profiler),
       sbt_data(this, "__sbt", MEM_READ_ONLY),
-      launch_params(this, "__params", false),
+      launch_params(this, "kernel_params", false),
       denoiser_(this)
 {
   /* Make the CUDA context current. */
@@ -258,7 +278,7 @@ OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   };
 #  endif
   if (DebugFlags().optix.use_debug) {
-    VLOG(1) << "Using OptiX debug mode.";
+    VLOG_INFO << "Using OptiX debug mode.";
     options.validationMode = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL;
   }
   optix_assert(optixDeviceContextCreate(cuContext, &options, &context));
@@ -401,7 +421,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   pipeline_options.numPayloadValues = 8;
   pipeline_options.numAttributeValues = 2; /* u, v */
   pipeline_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_NONE;
-  pipeline_options.pipelineLaunchParamsVariableName = "__params"; /* See globals.h */
+  pipeline_options.pipelineLaunchParamsVariableName = "kernel_params"; /* See globals.h */
 
   pipeline_options.usesPrimitiveTypeFlags = OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE;
   if (kernel_features & KERNEL_FEATURE_HAIR) {
@@ -432,9 +452,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   }
 
   { /* Load and compile PTX module with OptiX kernels. */
-    string ptx_data, ptx_filename = path_get((kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) ?
-                                                 "lib/kernel_optix_shader_raytrace.ptx" :
-                                                 "lib/kernel_optix.ptx");
+    string ptx_data, ptx_filename = path_get(
+                         (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) ?
+                             "lib/kernel_optix_shader_raytrace.ptx" :
+                             "lib/kernel_optix.ptx");
     if (use_adaptive_compilation() || path_file_size(ptx_filename) == -1) {
       if (!getenv("OPTIX_ROOT_DIR")) {
         set_error(
@@ -444,7 +465,9 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       }
       ptx_filename = compile_kernel(
           kernel_features,
-          (kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) ? "kernel_shader_raytrace" : "kernel",
+          (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) ?
+              "kernel_shader_raytrace" :
+              "kernel",
           "optix",
           true);
     }
@@ -453,6 +476,23 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       return false;
     }
 
+#  if OPTIX_ABI_VERSION >= 55
+    OptixTask task = nullptr;
+    OptixResult result = optixModuleCreateFromPTXWithTasks(context,
+                                                           &module_options,
+                                                           &pipeline_options,
+                                                           ptx_data.data(),
+                                                           ptx_data.size(),
+                                                           nullptr,
+                                                           nullptr,
+                                                           &optix_module,
+                                                           &task);
+    if (result == OPTIX_SUCCESS) {
+      TaskPool pool;
+      execute_optix_task(pool, task, result);
+      pool.wait_work();
+    }
+#  else
     const OptixResult result = optixModuleCreateFromPTX(context,
                                                         &module_options,
                                                         &pipeline_options,
@@ -461,6 +501,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
                                                         nullptr,
                                                         0,
                                                         &optix_module);
+#  endif
     if (result != OPTIX_SUCCESS) {
       set_error(string_printf("Failed to load OptiX kernel from '%s' (%s)",
                               ptx_filename.c_str(),
@@ -512,7 +553,8 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       OptixBuiltinISOptions builtin_options = {};
 #  if OPTIX_ABI_VERSION >= 55
       builtin_options.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_ROUND_CATMULLROM;
-      builtin_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
+      builtin_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE |
+                                   OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
       builtin_options.curveEndcapFlags = OPTIX_CURVE_ENDCAP_DEFAULT; /* Disable end-caps. */
 #  else
       builtin_options.builtinISModuleType = OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE;
@@ -580,6 +622,14 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_CALL_SVM_BEVEL].callables.moduleDC = optix_module;
     group_descs[PG_CALL_SVM_BEVEL].callables.entryFunctionNameDC =
         "__direct_callable__svm_node_bevel";
+  }
+
+  /* MNEE. */
+  if (kernel_features & KERNEL_FEATURE_MNEE) {
+    group_descs[PG_RGEN_SHADE_SURFACE_MNEE].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
+    group_descs[PG_RGEN_SHADE_SURFACE_MNEE].raygen.module = optix_module;
+    group_descs[PG_RGEN_SHADE_SURFACE_MNEE].raygen.entryFunctionName =
+        "__raygen__kernel_optix_integrator_shade_surface_mnee";
   }
 
   optix_assert(optixProgramGroupCreate(
@@ -661,6 +711,46 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     /* Set stack size depending on pipeline options. */
     optix_assert(optixPipelineSetStackSize(
         pipelines[PIP_SHADE_RAYTRACE], 0, dss, css, motion_blur ? 3 : 2));
+  }
+
+  if (kernel_features & KERNEL_FEATURE_MNEE) {
+    /* Create MNEE pipeline. */
+    vector<OptixProgramGroup> pipeline_groups;
+    pipeline_groups.reserve(NUM_PROGRAM_GROUPS);
+    pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_MNEE]);
+    pipeline_groups.push_back(groups[PG_MISS]);
+    pipeline_groups.push_back(groups[PG_HITD]);
+    pipeline_groups.push_back(groups[PG_HITS]);
+    pipeline_groups.push_back(groups[PG_HITL]);
+    pipeline_groups.push_back(groups[PG_HITV]);
+    if (motion_blur) {
+      pipeline_groups.push_back(groups[PG_HITD_MOTION]);
+      pipeline_groups.push_back(groups[PG_HITS_MOTION]);
+    }
+    if (kernel_features & KERNEL_FEATURE_POINTCLOUD) {
+      pipeline_groups.push_back(groups[PG_HITD_POINTCLOUD]);
+      pipeline_groups.push_back(groups[PG_HITS_POINTCLOUD]);
+    }
+    pipeline_groups.push_back(groups[PG_CALL_SVM_AO]);
+    pipeline_groups.push_back(groups[PG_CALL_SVM_BEVEL]);
+
+    optix_assert(optixPipelineCreate(context,
+                                     &pipeline_options,
+                                     &link_options,
+                                     pipeline_groups.data(),
+                                     pipeline_groups.size(),
+                                     nullptr,
+                                     0,
+                                     &pipelines[PIP_SHADE_MNEE]));
+
+    /* Combine ray generation and trace continuation stack size. */
+    const unsigned int css = stack_size[PG_RGEN_SHADE_SURFACE_MNEE].cssRG +
+                             link_options.maxTraceDepth * trace_css;
+    const unsigned int dss = 0;
+
+    /* Set stack size depending on pipeline options. */
+    optix_assert(
+        optixPipelineSetStackSize(pipelines[PIP_SHADE_MNEE], 0, dss, css, motion_blur ? 3 : 2));
   }
 
   { /* Create intersection-only pipeline. */
@@ -1148,7 +1238,7 @@ bool OptiXDevice::denoise_configure_if_needed(DenoiseContext &context)
   const OptixResult result = optixDenoiserSetup(
       denoiser_.optix_denoiser,
       0, /* Work around bug in r495 drivers that causes artifacts when denoiser setup is called
-            on a stream that is not the default stream */
+          * on a stream that is not the default stream. */
       tile_size.x + denoiser_.sizes.overlapWindowSizeInPixels * 2,
       tile_size.y + denoiser_.sizes.overlapWindowSizeInPixels * 2,
       denoiser_.state.device_pointer,
@@ -1298,12 +1388,15 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
   OptixAccelBufferSizes sizes = {};
   OptixAccelBuildOptions options = {};
   options.operation = operation;
-  if (use_fast_trace_bvh) {
-    VLOG(2) << "Using fast to trace OptiX BVH";
+  if (use_fast_trace_bvh ||
+      /* The build flags have to match the ones used to query the built-in curve intersection
+         program (see optixBuiltinISModuleGet above) */
+      build_input.type == OPTIX_BUILD_INPUT_TYPE_CURVES) {
+    VLOG_INFO << "Using fast to trace OptiX BVH";
     options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_COMPACTION;
   }
   else {
-    VLOG(2) << "Using fast to update OptiX BVH";
+    VLOG_INFO << "Using fast to update OptiX BVH";
     options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_BUILD | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
   }
 
@@ -1823,7 +1916,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       {
         /* Can disable __anyhit__kernel_optix_visibility_test by default (except for thick curves,
          * since it needs to filter out end-caps there).
-
+         *
          * It is enabled where necessary (visibility mask exceeds 8 bits or the other any-hit
          * programs like __anyhit__kernel_optix_shadow_all_hit) via OPTIX_RAY_FLAG_ENFORCE_ANYHIT.
          */
@@ -1949,26 +2042,26 @@ void OptiXDevice::const_copy_to(const char *name, void *host, size_t size)
   /* Set constant memory for CUDA module. */
   CUDADevice::const_copy_to(name, host, size);
 
-  if (strcmp(name, "__data") == 0) {
+  if (strcmp(name, "data") == 0) {
     assert(size <= sizeof(KernelData));
 
     /* Update traversable handle (since it is different for each device on multi devices). */
     KernelData *const data = (KernelData *)host;
-    *(OptixTraversableHandle *)&data->bvh.scene = tlas_handle;
+    *(OptixTraversableHandle *)&data->device_bvh = tlas_handle;
 
     update_launch_params(offsetof(KernelParamsOptiX, data), host, size);
     return;
   }
 
   /* Update data storage pointers in launch parameters. */
-#  define KERNEL_TEX(data_type, tex_name) \
-    if (strcmp(name, #tex_name) == 0) { \
-      update_launch_params(offsetof(KernelParamsOptiX, tex_name), host, size); \
+#  define KERNEL_DATA_ARRAY(data_type, data_name) \
+    if (strcmp(name, #data_name) == 0) { \
+      update_launch_params(offsetof(KernelParamsOptiX, data_name), host, size); \
       return; \
     }
-  KERNEL_TEX(IntegratorStateGPU, __integrator_state)
-#  include "kernel/textures.h"
-#  undef KERNEL_TEX
+  KERNEL_DATA_ARRAY(IntegratorStateGPU, integrator_state)
+#  include "kernel/data_arrays.h"
+#  undef KERNEL_DATA_ARRAY
 }
 
 void OptiXDevice::update_launch_params(size_t offset, void *data, size_t data_size)

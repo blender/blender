@@ -1603,7 +1603,7 @@ void draw_text_main(SpaceText *st, ARegion *region)
     return;
   }
 
-  /* dpi controlled line height and font size */
+  /* DPI controlled line height and font size. */
   st->runtime.lheight_px = (U.widget_unit * st->lheight) / 20;
 
   /* don't draw lines below this */

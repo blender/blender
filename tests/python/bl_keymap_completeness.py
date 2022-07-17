@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # simple script to test 'bl_keymap_utils.keymap_hierarchy' contains correct values.
 
 # Needed for 'bl_keymap_utils.keymap_hierarchy' which inspects tools.

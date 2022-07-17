@@ -105,7 +105,7 @@ static int expandrow2(
     float *optr, const float *optr_end, const uchar *iptr, const uchar *iptr_end, int z);
 static void interleaverow(uchar *lptr, const uchar *cptr, int z, int n);
 static void interleaverow2(float *lptr, const uchar *cptr, int z, int n);
-static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int row_len);
+static int compressrow(const uchar *lbuf, uchar *rlebuf, int z, int row_len);
 static void lumrow(const uchar *rgbptr, uchar *lumptr, int n);
 
 /*
@@ -779,18 +779,24 @@ fail:
 }
 
 /**
- * Copy an array of ints to an iris image file.
- * Each int represents one pixel.  xsize and ysize specify the dimensions of
- * the pixel array.  zsize specifies what kind of image file to
- * write out.  if zsize is 1, the luminance of the pixels are
- * calculated, and a single channel black and white image is saved.
- * If zsize is 3, an RGB image file is saved.  If zsize is 4, an
- * RGBA image file is saved.
- *
- * Added: zbuf write
+ * \param filepath: The file path to write to.
+ * \param lptr: an array of integers to an iris image file (each int represents one pixel).
+ * \param zptr: depth-buffer (optional, may be NULL).
+ * \param xsize: with width of the pixel-array.
+ * \param ysize: height of the pixel-array.
+ * \param zsize: specifies what kind of image file to write out.
+ * - 1: the luminance of the pixels are calculated,
+ *      and a single channel black and white image is saved.
+ * - 3: an RGB image file is saved.
+ * - 4: an RGBA image file is saved.
+ * - 8: an RGBA image and a Z-buffer (non-null `zptr`).
  */
-
-static bool output_iris(uint *lptr, int xsize, int ysize, int zsize, const char *name, int *zptr)
+static bool output_iris(const char *filepath,
+                        const uint *lptr,
+                        const int *zptr,
+                        const int xsize,
+                        const int ysize,
+                        const int zsize)
 {
   FILE *outf;
   IMAGE *image;
@@ -801,7 +807,7 @@ static bool output_iris(uint *lptr, int xsize, int ysize, int zsize, const char 
   int rlebuflen, goodwrite;
 
   goodwrite = 1;
-  outf = BLI_fopen(name, "wb");
+  outf = BLI_fopen(filepath, "wb");
   if (!outf) {
     return 0;
   }
@@ -837,21 +843,20 @@ static bool output_iris(uint *lptr, int xsize, int ysize, int zsize, const char 
     for (z = 0; z < zsize; z++) {
 
       if (zsize == 1) {
-        lumrow((uchar *)lptr, (uchar *)lumbuf, xsize);
-        len = compressrow((uchar *)lumbuf, rlebuf, CHANOFFSET(z), xsize);
+        lumrow((const uchar *)lptr, (uchar *)lumbuf, xsize);
+        len = compressrow((const uchar *)lumbuf, rlebuf, CHANOFFSET(z), xsize);
       }
       else {
         if (z < 4) {
-          len = compressrow((uchar *)lptr, rlebuf, CHANOFFSET(z), xsize);
+          len = compressrow((const uchar *)lptr, rlebuf, CHANOFFSET(z), xsize);
         }
         else if (z < 8 && zptr) {
-          len = compressrow((uchar *)zptr, rlebuf, CHANOFFSET(z - 4), xsize);
+          len = compressrow((const uchar *)zptr, rlebuf, CHANOFFSET(z - 4), xsize);
         }
       }
-      if (len > rlebuflen) {
-        fprintf(stderr, "output_iris: rlebuf is too small - bad poop\n");
-        exit(1);
-      }
+
+      BLI_assert_msg(len <= rlebuflen, "The length calculated for 'rlebuflen' was too small!");
+
       goodwrite *= fwrite(rlebuf, len, 1, outf);
       starttab[y + z * ysize] = pos;
       lengthtab[y + z * ysize] = len;
@@ -892,9 +897,10 @@ static void lumrow(const uchar *rgbptr, uchar *lumptr, int n)
   }
 }
 
-static int compressrow(uchar *lbuf, uchar *rlebuf, int z, int row_len)
+static int compressrow(const uchar *lbuf, uchar *rlebuf, const int z, const int row_len)
 {
-  uchar *iptr, *ibufend, *sptr, *optr;
+  const uchar *iptr, *ibufend, *sptr;
+  uchar *optr;
   short todo, cc;
   int count;
 
@@ -964,7 +970,7 @@ bool imb_saveiris(struct ImBuf *ibuf, const char *filepath, int flags)
   IMB_convert_rgba_to_abgr(ibuf);
   test_endian_zbuf(ibuf);
 
-  const bool ok = output_iris(ibuf->rect, ibuf->x, ibuf->y, zsize, filepath, ibuf->zbuf);
+  const bool ok = output_iris(filepath, ibuf->rect, ibuf->zbuf, ibuf->x, ibuf->y, zsize);
 
   /* restore! Quite clumsy, 2 times a switch... maybe better a malloc ? */
   IMB_convert_rgba_to_abgr(ibuf);

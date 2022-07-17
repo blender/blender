@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 # This is a quite stupid script which extracts bmesh api docs from
 # 'bmesh_opdefines.c' in order to avoid having to add a lot of introspection
 # data access into the api.

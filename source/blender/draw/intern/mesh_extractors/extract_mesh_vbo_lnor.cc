@@ -5,7 +5,7 @@
  * \ingroup draw
  */
 
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 #include "draw_subdivision.h"
 
@@ -16,7 +16,7 @@ namespace blender::draw {
  * \{ */
 
 static void extract_lnor_init(const MeshRenderData *mr,
-                              struct MeshBatchCache *UNUSED(cache),
+                              MeshBatchCache *UNUSED(cache),
                               void *buf,
                               void *tls_data)
 {
@@ -105,7 +105,7 @@ static GPUVertFormat *get_subdiv_lnor_format()
 
 static void extract_lnor_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                      const MeshRenderData *UNUSED(mr),
-                                     struct MeshBatchCache *cache,
+                                     MeshBatchCache *cache,
                                      void *buffer,
                                      void *UNUSED(data))
 {
@@ -141,7 +141,7 @@ struct gpuHQNor {
 };
 
 static void extract_lnor_hq_init(const MeshRenderData *mr,
-                                 struct MeshBatchCache *UNUSED(cache),
+                                 MeshBatchCache *UNUSED(cache),
                                  void *buf,
                                  void *tls_data)
 {
@@ -234,7 +234,5 @@ constexpr MeshExtract create_extractor_lnor_hq()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_lnor = blender::draw::create_extractor_lnor();
 const MeshExtract extract_lnor_hq = blender::draw::create_extractor_lnor_hq();
-}

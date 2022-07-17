@@ -10,7 +10,7 @@
 #include "GPU_capabilities.h"
 
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -43,7 +43,7 @@ static float loop_edge_factor_get(const float f_no[3],
 }
 
 static void extract_edge_fac_init(const MeshRenderData *mr,
-                                  struct MeshBatchCache *UNUSED(cache),
+                                  MeshBatchCache *UNUSED(cache),
                                   void *buf,
                                   void *tls_data)
 {
@@ -167,7 +167,7 @@ static void extract_edge_fac_iter_ledge_mesh(const MeshRenderData *mr,
 }
 
 static void extract_edge_fac_finish(const MeshRenderData *mr,
-                                    struct MeshBatchCache *UNUSED(cache),
+                                    MeshBatchCache *UNUSED(cache),
                                     void *buf,
                                     void *_data)
 {
@@ -218,7 +218,7 @@ static GPUVertFormat *get_subdiv_edge_fac_format()
 
 static void extract_edge_fac_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                          const MeshRenderData *UNUSED(mr),
-                                         struct MeshBatchCache *cache,
+                                         MeshBatchCache *cache,
                                          void *buffer,
                                          void *UNUSED(data))
 {
@@ -303,6 +303,4 @@ constexpr MeshExtract create_extractor_edge_fac()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_edge_fac = blender::draw::create_extractor_edge_fac();
-}

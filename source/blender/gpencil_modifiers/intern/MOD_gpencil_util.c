@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
@@ -182,7 +182,7 @@ void generic_bake_deform_stroke(
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
       if (retime) {
-        CFRA = gpf->framenum;
+        scene->r.cfra = gpf->framenum;
         BKE_scene_graph_update_for_newframe(depsgraph);
       }
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
@@ -193,7 +193,7 @@ void generic_bake_deform_stroke(
 
   /* Return frame state and DB to original state. */
   if (retime) {
-    CFRA = oldframe;
+    scene->r.cfra = oldframe;
     BKE_scene_graph_update_for_newframe(depsgraph);
   }
 }

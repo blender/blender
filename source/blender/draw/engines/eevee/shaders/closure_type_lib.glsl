@@ -24,7 +24,7 @@ struct Closure {
   float holdout;
 #endif
 
-/* Metal Default Constructor - Requred for C++ constructor syntax. */
+/* Metal Default Constructor - Required for C++ constructor syntax. */
 #ifdef GPU_METAL
   inline Closure() = default;
 #  ifdef VOLUMETRICS
@@ -49,7 +49,7 @@ struct Closure {
 #ifndef GPU_METAL
 /* Prototype */
 Closure nodetree_exec();
-vec4 closure_to_rgba(Closure);
+vec4 closure_to_rgba(Closure cl);
 void output_aov(vec4 color, float value, uint hash);
 vec3 coordinate_camera(vec3 P);
 vec3 coordinate_screen(vec3 P);
@@ -87,8 +87,8 @@ Closure closure_eval(ClosureDiffuse diffuse,
                      ClosureReflection clearcoat,
                      ClosureRefraction refraction);
 
-Closure closure_add(Closure cl1, Closure cl2);
-Closure closure_mix(Closure cl1, Closure cl2, float fac);
+Closure closure_add(inout Closure cl1, inout Closure cl2);
+Closure closure_mix(inout Closure cl1, inout Closure cl2, float fac);
 
 float ambient_occlusion_eval(vec3 normal,
                              float distance,

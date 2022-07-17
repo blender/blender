@@ -708,6 +708,72 @@ KeyingSet *ANIM_get_keyingset_for_autokeying(const Scene *scene, const char *tra
   return ANIM_builtin_keyingset_get_named(NULL, transformKSName);
 }
 
+static void anim_keyingset_visit_for_search_impl(const bContext *C,
+                                                 StringPropertySearchVisitFunc visit_fn,
+                                                 void *visit_user_data,
+                                                 const bool use_poll)
+{
+  /* Poll requires context.  */
+  if (use_poll && (C == NULL)) {
+    return;
+  }
+
+  Scene *scene = C ? CTX_data_scene(C) : NULL;
+  KeyingSet *ks;
+
+  /* Active Keying Set. */
+  if (!use_poll || (scene && scene->active_keyingset)) {
+    StringPropertySearchVisitParams visit_params = {NULL};
+    visit_params.text = "__ACTIVE__";
+    visit_params.info = "Active Keying Set";
+    visit_fn(visit_user_data, &visit_params);
+  }
+
+  /* User-defined Keying Sets. */
+  if (scene && scene->keyingsets.first) {
+    for (ks = scene->keyingsets.first; ks; ks = ks->next) {
+      if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, ks)) {
+        continue;
+      }
+      StringPropertySearchVisitParams visit_params = {NULL};
+      visit_params.text = ks->idname;
+      visit_params.info = ks->name;
+      visit_fn(visit_user_data, &visit_params);
+    }
+  }
+
+  /* Builtin Keying Sets. */
+  for (ks = builtin_keyingsets.first; ks; ks = ks->next) {
+    if (use_poll && !ANIM_keyingset_context_ok_poll((bContext *)C, ks)) {
+      continue;
+    }
+    StringPropertySearchVisitParams visit_params = {NULL};
+    visit_params.text = ks->idname;
+    visit_params.info = ks->name;
+    visit_fn(visit_user_data, &visit_params);
+  }
+}
+
+void ANIM_keyingset_visit_for_search(const bContext *C,
+                                     PointerRNA *UNUSED(ptr),
+                                     PropertyRNA *UNUSED(prop),
+                                     const char *UNUSED(edit_text),
+                                     StringPropertySearchVisitFunc visit_fn,
+                                     void *visit_user_data)
+{
+  anim_keyingset_visit_for_search_impl(C, visit_fn, visit_user_data, false);
+}
+
+void ANIM_keyingset_visit_for_search_no_poll(const bContext *C,
+                                             PointerRNA *UNUSED(ptr),
+                                             PropertyRNA *UNUSED(prop),
+                                             const char *UNUSED(edit_text),
+                                             StringPropertySearchVisitFunc visit_fn,
+                                             void *visit_user_data)
+{
+  anim_keyingset_visit_for_search_impl(C, visit_fn, visit_user_data, true);
+}
+
 /* Menu of All Keying Sets ----------------------------- */
 
 const EnumPropertyItem *ANIM_keying_sets_enum_itemf(bContext *C,

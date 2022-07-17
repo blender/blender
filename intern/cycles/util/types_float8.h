@@ -11,7 +11,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_GPU__
+#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
 
 struct ccl_try_align(32) float8
 {
@@ -43,7 +43,7 @@ struct ccl_try_align(32) float8
 ccl_device_inline float8 make_float8(float f);
 ccl_device_inline float8
 make_float8(float a, float b, float c, float d, float e, float f, float g, float h);
-#endif /* __KERNEL_GPU__ */
+#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
 
 CCL_NAMESPACE_END
 

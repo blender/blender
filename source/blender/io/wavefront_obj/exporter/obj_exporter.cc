@@ -195,7 +195,7 @@ static void write_mesh_objects(Vector<std::unique_ptr<OBJMesh>> exportable_as_me
       auto &fh = buffers[i];
 
       obj_writer.write_object_name(fh, obj);
-      obj_writer.write_vertex_coords(fh, obj);
+      obj_writer.write_vertex_coords(fh, obj, export_params.export_colors);
 
       if (obj.tot_polygons() > 0) {
         if (export_params.export_smooth_groups) {
@@ -284,7 +284,16 @@ void export_frame(Depsgraph *depsgraph, const OBJExportParams &export_params, co
       std::move(exportable_as_mesh), *frame_writer, mtl_writer.get(), export_params);
   if (mtl_writer) {
     mtl_writer->write_header(export_params.blen_filepath);
-    mtl_writer->write_materials();
+    char dest_dir[PATH_MAX];
+    if (export_params.file_base_for_tests[0] == '\0') {
+      BLI_split_dir_part(export_params.filepath, dest_dir, PATH_MAX);
+    }
+    else {
+      BLI_strncpy(dest_dir, export_params.file_base_for_tests, PATH_MAX);
+    }
+    BLI_path_slash_native(dest_dir);
+    BLI_path_normalize(nullptr, dest_dir);
+    mtl_writer->write_materials(export_params.blen_filepath, export_params.path_mode, dest_dir);
   }
   write_nurbs_curve_objects(std::move(exportable_as_nurbs), *frame_writer);
 }
@@ -314,7 +323,7 @@ void exporter_main(bContext *C, const OBJExportParams &export_params)
 
   char filepath_with_frames[FILE_MAX];
   /* Used to reset the Scene to its original state. */
-  const int original_frame = CFRA;
+  const int original_frame = scene->r.cfra;
 
   for (int frame = export_params.start_frame; frame <= export_params.end_frame; frame++) {
     const bool filepath_ok = append_frame_to_filename(filepath, frame, filepath_with_frames);
@@ -323,11 +332,11 @@ void exporter_main(bContext *C, const OBJExportParams &export_params)
       return;
     }
 
-    CFRA = frame;
+    scene->r.cfra = frame;
     obj_depsgraph.update_for_newframe();
     fprintf(stderr, "Writing to %s\n", filepath_with_frames);
     export_frame(obj_depsgraph.get(), export_params, filepath_with_frames);
   }
-  CFRA = original_frame;
+  scene->r.cfra = original_frame;
 }
 }  // namespace blender::io::obj

@@ -55,6 +55,11 @@ TreeDisplayViewLayer::TreeDisplayViewLayer(SpaceOutliner &space_outliner)
 {
 }
 
+bool TreeDisplayViewLayer::supportsModeColumn() const
+{
+  return true;
+}
+
 ListBase TreeDisplayViewLayer::buildTree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
@@ -266,14 +271,14 @@ void ObjectsChildrenBuilder::make_object_parent_hierarchy_collections()
 
       if (!found) {
         /* We add the child in the tree even if it is not in the collection.
-         * We deliberately clear its sub-tree though, to make it less prominent. */
+         * We don't expand its sub-tree though, to make it less prominent. */
         TreeElement *child_ob_tree_element = outliner_add_element(&outliner_,
                                                                   &parent_ob_tree_element->subtree,
                                                                   child,
                                                                   parent_ob_tree_element,
                                                                   TSE_SOME_ID,
-                                                                  0);
-        outliner_free_tree(&child_ob_tree_element->subtree);
+                                                                  0,
+                                                                  false);
         child_ob_tree_element->flag |= TE_CHILD_NOT_IN_COLLECTION;
         child_ob_tree_elements.append(child_ob_tree_element);
       }

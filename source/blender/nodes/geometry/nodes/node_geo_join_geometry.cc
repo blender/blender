@@ -24,7 +24,7 @@ static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
   Map<AttributeIDRef, AttributeMetaData> info;
 
   for (const GeometryComponent *component : components) {
-    component->attribute_foreach(
+    component->attributes()->for_all(
         [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
           if (attribute_id.is_named() && ignored_attributes.contains(attribute_id.name())) {
             return true;
@@ -47,8 +47,8 @@ static Map<AttributeIDRef, AttributeMetaData> get_final_attribute_info(
 
 static void fill_new_attribute(Span<const GeometryComponent *> src_components,
                                const AttributeIDRef &attribute_id,
-                               const CustomDataType data_type,
-                               const AttributeDomain domain,
+                               const eCustomDataType data_type,
+                               const eAttrDomain domain,
                                GMutableSpan dst_span)
 {
   const CPPType *cpp_type = bke::custom_data_type_to_cpp_type(data_type);
@@ -56,19 +56,19 @@ static void fill_new_attribute(Span<const GeometryComponent *> src_components,
 
   int offset = 0;
   for (const GeometryComponent *component : src_components) {
-    const int domain_size = component->attribute_domain_size(domain);
-    if (domain_size == 0) {
+    const int domain_num = component->attribute_domain_size(domain);
+    if (domain_num == 0) {
       continue;
     }
-    GVArray read_attribute = component->attribute_get_for_read(
+    GVArray read_attribute = component->attributes()->lookup_or_default(
         attribute_id, domain, data_type, nullptr);
 
-    GVArray_GSpan src_span{read_attribute};
+    GVArraySpan src_span{read_attribute};
     const void *src_buffer = src_span.data();
     void *dst_buffer = dst_span[offset];
-    cpp_type->copy_assign_n(src_buffer, dst_buffer, domain_size);
+    cpp_type->copy_assign_n(src_buffer, dst_buffer, domain_num);
 
-    offset += domain_size;
+    offset += domain_num;
   }
 }
 
@@ -83,15 +83,15 @@ static void join_attributes(Span<const GeometryComponent *> src_components,
     const AttributeIDRef attribute_id = item.key;
     const AttributeMetaData &meta_data = item.value;
 
-    OutputAttribute write_attribute = result.attribute_try_get_for_output_only(
-        attribute_id, meta_data.domain, meta_data.data_type);
+    GSpanAttributeWriter write_attribute =
+        result.attributes_for_write()->lookup_or_add_for_write_only_span(
+            attribute_id, meta_data.domain, meta_data.data_type);
     if (!write_attribute) {
       continue;
     }
-    GMutableSpan dst_span = write_attribute.as_span();
     fill_new_attribute(
-        src_components, attribute_id, meta_data.data_type, meta_data.domain, dst_span);
-    write_attribute.save();
+        src_components, attribute_id, meta_data.data_type, meta_data.domain, write_attribute.span);
+    write_attribute.finish();
   }
 }
 
@@ -101,7 +101,7 @@ static void join_components(Span<const InstancesComponent *> src_components, Geo
 
   int tot_instances = 0;
   for (const InstancesComponent *src_component : src_components) {
-    tot_instances += src_component->instances_amount();
+    tot_instances += src_component->instances_num();
   }
   dst_component.reserve(tot_instances);
 

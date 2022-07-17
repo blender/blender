@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2022 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -79,13 +79,12 @@ CovarianceImpl::CovarianceImpl(const Covariance::Options& options)
   evaluate_options_.apply_loss_function = options_.apply_loss_function;
 }
 
-CovarianceImpl::~CovarianceImpl() {}
+CovarianceImpl::~CovarianceImpl() = default;
 
 template <typename T>
 void CheckForDuplicates(std::vector<T> blocks) {
-  sort(blocks.begin(), blocks.end());
-  typename std::vector<T>::iterator it =
-      std::adjacent_find(blocks.begin(), blocks.end());
+  std::sort(blocks.begin(), blocks.end());
+  auto it = std::adjacent_find(blocks.begin(), blocks.end());
   if (it != blocks.end()) {
     // In case there are duplicates, we search for their location.
     std::map<T, std::vector<int>> blocks_map;
@@ -117,7 +116,7 @@ bool CovarianceImpl::Compute(const CovarianceBlocks& covariance_blocks,
       covariance_blocks);
   problem_ = problem;
   parameter_block_to_row_index_.clear();
-  covariance_matrix_.reset(NULL);
+  covariance_matrix_ = nullptr;
   is_valid_ = (ComputeCovarianceSparsity(covariance_blocks, problem) &&
                ComputeCovarianceValues());
   is_computed_ = true;
@@ -162,10 +161,10 @@ bool CovarianceImpl::GetCovarianceBlockInTangentOrAmbientSpace(
 
     const int block1_size = block1->Size();
     const int block2_size = block2->Size();
-    const int block1_local_size = block1->LocalSize();
-    const int block2_local_size = block2->LocalSize();
+    const int block1_tangent_size = block1->TangentSize();
+    const int block2_tangent_size = block2->TangentSize();
     if (!lift_covariance_to_ambient_space) {
-      MatrixRef(covariance_block, block1_local_size, block2_local_size)
+      MatrixRef(covariance_block, block1_tangent_size, block2_tangent_size)
           .setZero();
     } else {
       MatrixRef(covariance_block, block1_size, block2_size).setZero();
@@ -209,34 +208,34 @@ bool CovarianceImpl::GetCovarianceBlockInTangentOrAmbientSpace(
       FindOrDie(parameter_map, const_cast<double*>(parameter_block1));
   ParameterBlock* block2 =
       FindOrDie(parameter_map, const_cast<double*>(parameter_block2));
-  const LocalParameterization* local_param1 = block1->local_parameterization();
-  const LocalParameterization* local_param2 = block2->local_parameterization();
+  const Manifold* manifold1 = block1->manifold();
+  const Manifold* manifold2 = block2->manifold();
   const int block1_size = block1->Size();
-  const int block1_local_size = block1->LocalSize();
+  const int block1_tangent_size = block1->TangentSize();
   const int block2_size = block2->Size();
-  const int block2_local_size = block2->LocalSize();
+  const int block2_tangent_size = block2->TangentSize();
 
-  ConstMatrixRef cov(
-      covariance_matrix_->values() + rows[row_begin], block1_size, row_size);
+  ConstMatrixRef cov(covariance_matrix_->values() + rows[row_begin],
+                     block1_tangent_size,
+                     row_size);
 
-  // Fast path when there are no local parameterizations or if the
-  // user does not want it lifted to the ambient space.
-  if ((local_param1 == NULL && local_param2 == NULL) ||
+  // Fast path when there are no manifolds or if the user does not want it
+  // lifted to the ambient space.
+  if ((manifold1 == nullptr && manifold2 == nullptr) ||
       !lift_covariance_to_ambient_space) {
     if (transpose) {
-      MatrixRef(covariance_block, block2_local_size, block1_local_size) =
-          cov.block(0, offset, block1_local_size, block2_local_size)
+      MatrixRef(covariance_block, block2_tangent_size, block1_tangent_size) =
+          cov.block(0, offset, block1_tangent_size, block2_tangent_size)
               .transpose();
     } else {
-      MatrixRef(covariance_block, block1_local_size, block2_local_size) =
-          cov.block(0, offset, block1_local_size, block2_local_size);
+      MatrixRef(covariance_block, block1_tangent_size, block2_tangent_size) =
+          cov.block(0, offset, block1_tangent_size, block2_tangent_size);
     }
     return true;
   }
 
-  // If local parameterizations are used then the covariance that has
-  // been computed is in the tangent space and it needs to be lifted
-  // back to the ambient space.
+  // If manifolds are used then the covariance that has been computed is in the
+  // tangent space and it needs to be lifted back to the ambient space.
   //
   // This is given by the formula
   //
@@ -249,36 +248,37 @@ bool CovarianceImpl::GetCovarianceBlockInTangentOrAmbientSpace(
   // See Result 5.11 on page 142 of Hartley & Zisserman (2nd Edition)
   // for a proof.
   //
-  // TODO(sameeragarwal): Add caching of local parameterization, so
-  // that they are computed just once per parameter block.
-  Matrix block1_jacobian(block1_size, block1_local_size);
-  if (local_param1 == NULL) {
+  // TODO(sameeragarwal): Add caching the manifold plus_jacobian, so that they
+  // are computed just once per parameter block.
+  Matrix block1_jacobian(block1_size, block1_tangent_size);
+  if (manifold1 == nullptr) {
     block1_jacobian.setIdentity();
   } else {
-    local_param1->ComputeJacobian(parameter_block1, block1_jacobian.data());
+    manifold1->PlusJacobian(parameter_block1, block1_jacobian.data());
   }
 
-  Matrix block2_jacobian(block2_size, block2_local_size);
+  Matrix block2_jacobian(block2_size, block2_tangent_size);
   // Fast path if the user is requesting a diagonal block.
   if (parameter_block1 == parameter_block2) {
     block2_jacobian = block1_jacobian;
   } else {
-    if (local_param2 == NULL) {
+    if (manifold2 == nullptr) {
       block2_jacobian.setIdentity();
     } else {
-      local_param2->ComputeJacobian(parameter_block2, block2_jacobian.data());
+      manifold2->PlusJacobian(parameter_block2, block2_jacobian.data());
     }
   }
 
   if (transpose) {
     MatrixRef(covariance_block, block2_size, block1_size) =
         block2_jacobian *
-        cov.block(0, offset, block1_local_size, block2_local_size).transpose() *
+        cov.block(0, offset, block1_tangent_size, block2_tangent_size)
+            .transpose() *
         block1_jacobian.transpose();
   } else {
     MatrixRef(covariance_block, block1_size, block2_size) =
         block1_jacobian *
-        cov.block(0, offset, block1_local_size, block2_local_size) *
+        cov.block(0, offset, block1_tangent_size, block2_tangent_size) *
         block2_jacobian.transpose();
   }
 
@@ -309,7 +309,7 @@ bool CovarianceImpl::GetCovarianceMatrixInTangentOrAmbientSpace(
     if (lift_covariance_to_ambient_space) {
       parameter_sizes.push_back(block->Size());
     } else {
-      parameter_sizes.push_back(block->LocalSize());
+      parameter_sizes.push_back(block->TangentSize());
     }
   }
   std::partial_sum(parameter_sizes.begin(),
@@ -383,8 +383,7 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
   std::vector<ResidualBlock*> residual_blocks;
   problem->GetResidualBlocks(&residual_blocks);
 
-  for (int i = 0; i < residual_blocks.size(); ++i) {
-    ResidualBlock* residual_block = residual_blocks[i];
+  for (auto* residual_block : residual_blocks) {
     parameter_blocks_in_use.insert(residual_block->parameter_blocks(),
                                    residual_block->parameter_blocks() +
                                        residual_block->NumParameterBlocks());
@@ -394,8 +393,7 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
   std::vector<double*>& active_parameter_blocks =
       evaluate_options_.parameter_blocks;
   active_parameter_blocks.clear();
-  for (int i = 0; i < all_parameter_blocks.size(); ++i) {
-    double* parameter_block = all_parameter_blocks[i];
+  for (auto* parameter_block : all_parameter_blocks) {
     ParameterBlock* block = FindOrDie(parameter_map, parameter_block);
     if (!block->IsConstant() && (parameter_blocks_in_use.count(block) > 0)) {
       active_parameter_blocks.push_back(parameter_block);
@@ -411,10 +409,9 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
   // ordering of parameter blocks just constructed.
   int num_rows = 0;
   parameter_block_to_row_index_.clear();
-  for (int i = 0; i < active_parameter_blocks.size(); ++i) {
-    double* parameter_block = active_parameter_blocks[i];
+  for (auto* parameter_block : active_parameter_blocks) {
     const int parameter_block_size =
-        problem->ParameterBlockLocalSize(parameter_block);
+        problem->ParameterBlockTangentSize(parameter_block);
     parameter_block_to_row_index_[parameter_block] = num_rows;
     num_rows += parameter_block_size;
   }
@@ -424,9 +421,7 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
   // triangular part of the matrix.
   int num_nonzeros = 0;
   CovarianceBlocks covariance_blocks;
-  for (int i = 0; i < original_covariance_blocks.size(); ++i) {
-    const std::pair<const double*, const double*>& block_pair =
-        original_covariance_blocks[i];
+  for (const auto& block_pair : original_covariance_blocks) {
     if (constant_parameter_blocks_.count(block_pair.first) > 0 ||
         constant_parameter_blocks_.count(block_pair.second) > 0) {
       continue;
@@ -434,8 +429,8 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
 
     int index1 = FindOrDie(parameter_block_to_row_index_, block_pair.first);
     int index2 = FindOrDie(parameter_block_to_row_index_, block_pair.second);
-    const int size1 = problem->ParameterBlockLocalSize(block_pair.first);
-    const int size2 = problem->ParameterBlockLocalSize(block_pair.second);
+    const int size1 = problem->ParameterBlockTangentSize(block_pair.first);
+    const int size2 = problem->ParameterBlockTangentSize(block_pair.second);
     num_nonzeros += size1 * size2;
 
     // Make sure we are constructing a block upper triangular matrix.
@@ -447,9 +442,9 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
     }
   }
 
-  if (covariance_blocks.size() == 0) {
+  if (covariance_blocks.empty()) {
     VLOG(2) << "No non-zero covariance blocks found";
-    covariance_matrix_.reset(NULL);
+    covariance_matrix_ = nullptr;
     return true;
   }
 
@@ -459,8 +454,8 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
   std::sort(covariance_blocks.begin(), covariance_blocks.end());
 
   // Fill the sparsity pattern of the covariance matrix.
-  covariance_matrix_.reset(
-      new CompressedRowSparseMatrix(num_rows, num_rows, num_nonzeros));
+  covariance_matrix_ = std::make_unique<CompressedRowSparseMatrix>(
+      num_rows, num_rows, num_nonzeros);
 
   int* rows = covariance_matrix_->mutable_rows();
   int* cols = covariance_matrix_->mutable_cols();
@@ -480,7 +475,7 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
   int cursor = 0;  // index into the covariance matrix.
   for (const auto& entry : parameter_block_to_row_index_) {
     const double* row_block = entry.first;
-    const int row_block_size = problem->ParameterBlockLocalSize(row_block);
+    const int row_block_size = problem->ParameterBlockTangentSize(row_block);
     int row_begin = entry.second;
 
     // Iterate over the covariance blocks contained in this row block
@@ -493,7 +488,7 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
       if (block_pair.first != row_block) {
         break;
       }
-      num_columns += problem->ParameterBlockLocalSize(block_pair.second);
+      num_columns += problem->ParameterBlockTangentSize(block_pair.second);
     }
 
     // Fill out all the compressed rows for this parameter block.
@@ -501,7 +496,8 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
       rows[row_begin + r] = cursor;
       for (int c = 0; c < num_col_blocks; ++c) {
         const double* col_block = covariance_blocks[i + c].second;
-        const int col_block_size = problem->ParameterBlockLocalSize(col_block);
+        const int col_block_size =
+            problem->ParameterBlockTangentSize(col_block);
         int col_begin = FindOrDie(parameter_block_to_row_index_, col_block);
         for (int k = 0; k < col_block_size; ++k) {
           cols[cursor++] = col_begin++;
@@ -556,13 +552,13 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
       "CovarianceImpl::ComputeCovarianceValuesUsingSparseQR");
 
 #ifndef CERES_NO_SUITESPARSE
-  if (covariance_matrix_.get() == NULL) {
+  if (covariance_matrix_ == nullptr) {
     // Nothing to do, all zeros covariance matrix.
     return true;
   }
 
   CRSMatrix jacobian;
-  problem_->Evaluate(evaluate_options_, NULL, NULL, NULL, &jacobian);
+  problem_->Evaluate(evaluate_options_, nullptr, nullptr, nullptr, &jacobian);
   event_logger.AddEvent("Evaluate");
 
   // Construct a compressed column form of the Jacobian.
@@ -601,11 +597,11 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
   cholmod_jacobian.nrow = num_rows;
   cholmod_jacobian.ncol = num_cols;
   cholmod_jacobian.nzmax = num_nonzeros;
-  cholmod_jacobian.nz = NULL;
+  cholmod_jacobian.nz = nullptr;
   cholmod_jacobian.p = reinterpret_cast<void*>(&transpose_rows[0]);
   cholmod_jacobian.i = reinterpret_cast<void*>(&transpose_cols[0]);
   cholmod_jacobian.x = reinterpret_cast<void*>(&transpose_values[0]);
-  cholmod_jacobian.z = NULL;
+  cholmod_jacobian.z = nullptr;
   cholmod_jacobian.stype = 0;  // Matrix is not symmetric.
   cholmod_jacobian.itype = CHOLMOD_LONG;
   cholmod_jacobian.xtype = CHOLMOD_REAL;
@@ -616,8 +612,8 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
   cholmod_common cc;
   cholmod_l_start(&cc);
 
-  cholmod_sparse* R = NULL;
-  SuiteSparse_long* permutation = NULL;
+  cholmod_sparse* R = nullptr;
+  SuiteSparse_long* permutation = nullptr;
 
   // Compute a Q-less QR factorization of the Jacobian. Since we are
   // only interested in inverting J'J = R'R, we do not need Q. This
@@ -648,9 +644,9 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
   }
 
   if (rank < cholmod_jacobian.ncol) {
-    LOG(ERROR) << "Jacobian matrix is rank deficient. "
-               << "Number of columns: " << cholmod_jacobian.ncol
-               << " rank: " << rank;
+    LOG(WARNING) << "Jacobian matrix is rank deficient. "
+                 << "Number of columns: " << cholmod_jacobian.ncol
+                 << " rank: " << rank;
     free(permutation);
     cholmod_l_free_sparse(&R, &cc);
     cholmod_l_finish(&cc);
@@ -721,13 +717,13 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
 bool CovarianceImpl::ComputeCovarianceValuesUsingDenseSVD() {
   EventLogger event_logger(
       "CovarianceImpl::ComputeCovarianceValuesUsingDenseSVD");
-  if (covariance_matrix_.get() == NULL) {
+  if (covariance_matrix_ == nullptr) {
     // Nothing to do, all zeros covariance matrix.
     return true;
   }
 
   CRSMatrix jacobian;
-  problem_->Evaluate(evaluate_options_, NULL, NULL, NULL, &jacobian);
+  problem_->Evaluate(evaluate_options_, nullptr, nullptr, nullptr, &jacobian);
   event_logger.AddEvent("Evaluate");
 
   Matrix dense_jacobian(jacobian.num_rows, jacobian.num_cols);
@@ -812,20 +808,20 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingDenseSVD() {
 bool CovarianceImpl::ComputeCovarianceValuesUsingEigenSparseQR() {
   EventLogger event_logger(
       "CovarianceImpl::ComputeCovarianceValuesUsingEigenSparseQR");
-  if (covariance_matrix_.get() == NULL) {
+  if (covariance_matrix_ == nullptr) {
     // Nothing to do, all zeros covariance matrix.
     return true;
   }
 
   CRSMatrix jacobian;
-  problem_->Evaluate(evaluate_options_, NULL, NULL, NULL, &jacobian);
+  problem_->Evaluate(evaluate_options_, nullptr, nullptr, nullptr, &jacobian);
   event_logger.AddEvent("Evaluate");
 
-  typedef Eigen::SparseMatrix<double, Eigen::ColMajor> EigenSparseMatrix;
+  using EigenSparseMatrix = Eigen::SparseMatrix<double, Eigen::ColMajor>;
 
   // Convert the matrix to column major order as required by SparseQR.
   EigenSparseMatrix sparse_jacobian =
-      Eigen::MappedSparseMatrix<double, Eigen::RowMajor>(
+      Eigen::Map<Eigen::SparseMatrix<double, Eigen::RowMajor>>(
           jacobian.num_rows,
           jacobian.num_cols,
           static_cast<int>(jacobian.values.size()),

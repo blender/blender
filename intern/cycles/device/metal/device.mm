@@ -34,7 +34,8 @@ void device_metal_info(vector<DeviceInfo> &devices)
   int device_index = 0;
   for (id<MTLDevice> &device : usable_devices) {
     /* Compute unique ID for persistent user preferences. */
-    string device_name = [device.name UTF8String];
+    string device_name = MetalInfo::get_device_name(device);
+
     string id = string("METAL_") + device_name;
 
     /* Hardware ID might not be unique, add device number in that case. */
@@ -47,12 +48,6 @@ void device_metal_info(vector<DeviceInfo> &devices)
     DeviceInfo info;
     info.type = DEVICE_METAL;
     info.description = string_remove_trademark(string(device_name));
-
-    /* Ensure unique naming on Apple Silicon / SoC devices which return the same string for CPU and
-     * GPU */
-    if (info.description == system_cpu_brand_string()) {
-      info.description += " (GPU)";
-    }
 
     info.num = device_index;
     /* We don't know if it's used for display, but assume it is. */
@@ -69,14 +64,15 @@ string device_metal_capabilities()
 {
   string result = "";
   auto allDevices = MTLCopyAllDevices();
-  uint32_t num_devices = allDevices.count;
+  uint32_t num_devices = (uint32_t)allDevices.count;
   if (num_devices == 0) {
     return "No Metal devices found\n";
   }
   result += string_printf("Number of devices: %u\n", num_devices);
 
   for (id<MTLDevice> device in allDevices) {
-    result += string_printf("\t\tDevice: %s\n", [device.name UTF8String]);
+    string device_name = MetalInfo::get_device_name(device);
+    result += string_printf("\t\tDevice: %s\n", device_name.c_str());
   }
 
   return result;

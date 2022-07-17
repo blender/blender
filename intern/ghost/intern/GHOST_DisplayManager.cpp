@@ -12,15 +12,15 @@
 #include "GHOST_DisplayManager.h"
 #include "GHOST_Debug.h"
 
-GHOST_DisplayManager::GHOST_DisplayManager(void) : m_settingsInitialized(false)
+GHOST_DisplayManager::GHOST_DisplayManager() : m_settingsInitialized(false)
 {
 }
 
-GHOST_DisplayManager::~GHOST_DisplayManager(void)
+GHOST_DisplayManager::~GHOST_DisplayManager()
 {
 }
 
-GHOST_TSuccess GHOST_DisplayManager::initialize(void)
+GHOST_TSuccess GHOST_DisplayManager::initialize()
 {
   GHOST_TSuccess success;
   if (!m_settingsInitialized) {
@@ -139,7 +139,7 @@ GHOST_TSuccess GHOST_DisplayManager::findMatch(uint8_t display,
   return success;
 }
 
-GHOST_TSuccess GHOST_DisplayManager::initializeSettings(void)
+GHOST_TSuccess GHOST_DisplayManager::initializeSettings()
 {
   uint8_t numDisplays;
   GHOST_TSuccess success = getNumDisplays(numDisplays);

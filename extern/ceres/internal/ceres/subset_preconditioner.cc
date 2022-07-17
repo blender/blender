@@ -32,6 +32,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/inner_product_computer.h"
@@ -42,9 +43,9 @@
 namespace ceres {
 namespace internal {
 
-SubsetPreconditioner::SubsetPreconditioner(
-    const Preconditioner::Options& options, const BlockSparseMatrix& A)
-    : options_(options), num_cols_(A.num_cols()) {
+SubsetPreconditioner::SubsetPreconditioner(Preconditioner::Options options,
+                                           const BlockSparseMatrix& A)
+    : options_(std::move(options)), num_cols_(A.num_cols()) {
   CHECK_GE(options_.subset_preconditioner_start_row_block, 0)
       << "Congratulations, you found a bug in Ceres. Please report it.";
 
@@ -55,7 +56,7 @@ SubsetPreconditioner::SubsetPreconditioner(
   sparse_cholesky_ = SparseCholesky::Create(sparse_cholesky_options);
 }
 
-SubsetPreconditioner::~SubsetPreconditioner() {}
+SubsetPreconditioner::~SubsetPreconditioner() = default;
 
 void SubsetPreconditioner::RightMultiply(const double* x, double* y) const {
   CHECK(x != nullptr);
@@ -66,14 +67,14 @@ void SubsetPreconditioner::RightMultiply(const double* x, double* y) const {
 
 bool SubsetPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
                                       const double* D) {
-  BlockSparseMatrix* m = const_cast<BlockSparseMatrix*>(&A);
+  auto* m = const_cast<BlockSparseMatrix*>(&A);
   const CompressedRowBlockStructure* bs = m->block_structure();
 
   // A = [P]
   //     [Q]
 
   // Now add D to A if needed.
-  if (D != NULL) {
+  if (D != nullptr) {
     // A = [P]
     //     [Q]
     //     [D]
@@ -82,19 +83,19 @@ bool SubsetPreconditioner::UpdateImpl(const BlockSparseMatrix& A,
     m->AppendRows(*regularizer);
   }
 
-  if (inner_product_computer_.get() == NULL) {
-    inner_product_computer_.reset(InnerProductComputer::Create(
+  if (inner_product_computer_ == nullptr) {
+    inner_product_computer_ = InnerProductComputer::Create(
         *m,
         options_.subset_preconditioner_start_row_block,
         bs->rows.size(),
-        sparse_cholesky_->StorageType()));
+        sparse_cholesky_->StorageType());
   }
 
   // Compute inner_product = [Q'*Q + D'*D]
   inner_product_computer_->Compute();
 
   // Unappend D if needed.
-  if (D != NULL) {
+  if (D != nullptr) {
     // A = [P]
     //     [Q]
     m->DeleteRowBlocks(bs->cols.size());

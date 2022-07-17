@@ -29,15 +29,14 @@ namespace blender::io::obj {
 /**
  * Make Blender Mesh, Curve etc from Geometry and add them to the import collection.
  */
-static void geometry_to_blender_objects(
-    Main *bmain,
-    Scene *scene,
-    ViewLayer *view_layer,
-    const OBJImportParams &import_params,
-    Vector<std::unique_ptr<Geometry>> &all_geometries,
-    const GlobalVertices &global_vertices,
-    const Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
-    Map<std::string, Material *> &created_materials)
+static void geometry_to_blender_objects(Main *bmain,
+                                        Scene *scene,
+                                        ViewLayer *view_layer,
+                                        const OBJImportParams &import_params,
+                                        Vector<std::unique_ptr<Geometry>> &all_geometries,
+                                        const GlobalVertices &global_vertices,
+                                        Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
+                                        Map<std::string, Material *> &created_materials)
 {
   BKE_view_layer_base_deselect_all(view_layer);
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
@@ -89,7 +88,6 @@ void importer_main(bContext *C, const OBJImportParams &import_params)
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   importer_main(bmain, scene, view_layer, import_params);
-  static_cast<void>(CTX_data_ensure_evaluated_depsgraph(C));
 }
 
 void importer_main(Main *bmain,
@@ -109,7 +107,7 @@ void importer_main(Main *bmain,
   OBJParser obj_parser{import_params, read_buffer_size};
   obj_parser.parse(all_geometries, global_vertices);
 
-  for (StringRef mtl_library : obj_parser.mtl_libraries()) {
+  for (StringRefNull mtl_library : obj_parser.mtl_libraries()) {
     MTLParser mtl_parser{mtl_library, import_params.filepath};
     mtl_parser.parse_and_store(materials);
   }

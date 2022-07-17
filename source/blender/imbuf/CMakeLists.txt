@@ -178,13 +178,13 @@ if(WITH_IMAGE_WEBP)
   list(APPEND SRC
     intern/webp.c
   )
-	list(APPEND INC_SYS
-		${WEBP_INCLUDE_DIRS}
-	)
+  list(APPEND INC_SYS
+    ${WEBP_INCLUDE_DIRS}
+  )
   list(APPEND LIB
     ${WEBP_LIBRARIES}
   )
-	add_definitions(-DWITH_WEBP)
+  add_definitions(-DWITH_WEBP)
 endif()
 
 list(APPEND INC

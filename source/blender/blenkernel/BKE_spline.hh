@@ -15,7 +15,7 @@
 #include "BLI_math_vec_types.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_attribute_access.hh"
+#include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 
 struct Curve;
@@ -102,7 +102,7 @@ class Spline {
 
   /** Return the number of control points. */
   virtual int size() const = 0;
-  int segments_size() const;
+  int segments_num() const;
   bool is_cyclic() const;
   void set_cyclic(bool value);
 
@@ -127,8 +127,8 @@ class Spline {
    * change the generated positions, tangents, normals, mapping, etc. of the evaluated points.
    */
   virtual void mark_cache_invalid() = 0;
-  virtual int evaluated_points_size() const = 0;
-  int evaluated_edges_size() const;
+  virtual int evaluated_points_num() const = 0;
+  int evaluated_edges_num() const;
 
   float length() const;
 
@@ -164,7 +164,7 @@ class Spline {
     /**
      * The index of the evaluated point after the result location, accounting for wrapping when
      * the spline is cyclic. If the sampled factor/length is the very end of the spline, this will
-     * be the last index (#evaluated_points_size - 1).
+     * be the last index (#evaluated_points_num - 1).
      */
     int next_evaluated_index;
     /**
@@ -191,7 +191,7 @@ class Spline {
    * indices and factors to the next index encoded in floats. The logic for converting from the
    * float values to interpolation data is in #lookup_data_from_index_factor.
    */
-  blender::Array<float> sample_uniform_index_factors(int samples_size) const;
+  blender::Array<float> sample_uniform_index_factors(int samples_num) const;
   LookupResult lookup_data_from_index_factor(float index_factor) const;
 
   /**
@@ -344,7 +344,7 @@ class BezierSpline final : public Spline {
   bool point_is_sharp(int index) const;
 
   void mark_cache_invalid() final;
-  int evaluated_points_size() const final;
+  int evaluated_points_num() const final;
 
   /**
    * Returns access to a cache of offsets into the evaluated point array for each control point.
@@ -472,7 +472,7 @@ class NURBSpline final : public Spline {
 
   /**
    * Determines where and how the control points affect the evaluated points. The length should
-   * always be the value returned by #knots_size(), and each value should be greater than or equal
+   * always be the value returned by #knots_num(), and each value should be greater than or equal
    * to the previous. Only invalidated when a point is added or removed.
    */
   mutable blender::Vector<float> knots_;
@@ -514,8 +514,8 @@ class NURBSpline final : public Spline {
   uint8_t order() const;
   void set_order(uint8_t value);
 
-  bool check_valid_size_and_order() const;
-  int knots_size() const;
+  bool check_valid_num_and_order() const;
+  int knots_num() const;
 
   void resize(int size) final;
   blender::MutableSpan<blender::float3> positions() final;
@@ -530,7 +530,7 @@ class NURBSpline final : public Spline {
   blender::Span<float> weights() const;
 
   void mark_cache_invalid() final;
-  int evaluated_points_size() const final;
+  int evaluated_points_num() const final;
 
   blender::Span<blender::float3> evaluated_positions() const final;
 
@@ -582,7 +582,7 @@ class PolySpline final : public Spline {
   blender::Span<float> tilts() const final;
 
   void mark_cache_invalid() final;
-  int evaluated_points_size() const final;
+  int evaluated_points_num() const final;
 
   blender::Span<blender::float3> evaluated_positions() const final;
 
@@ -646,6 +646,8 @@ struct CurveEval {
   void transform(const blender::float4x4 &matrix);
   bool bounds_min_max(blender::float3 &min, blender::float3 &max, bool use_evaluated) const;
 
+  blender::bke::MutableAttributeAccessor attributes_for_write();
+
   /**
    * Return the start indices for each of the curve spline's control points, if they were part
    * of a flattened array. This can be used to facilitate parallelism by avoiding the need to
@@ -665,7 +667,7 @@ struct CurveEval {
   blender::Array<float> accumulated_spline_lengths() const;
 
   float total_length() const;
-  int total_control_point_size() const;
+  int total_control_point_num() const;
 
   void mark_cache_invalid();
 

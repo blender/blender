@@ -296,6 +296,8 @@ void DRW_shader_library_free(DRWShaderLibrary *lib);
  * therefore they aren't ordered as a bit mask.
  */
 typedef enum {
+  /** To be used for compute passes. */
+  DRW_STATE_NO_DRAW = 0,
   /** Write mask */
   DRW_STATE_WRITE_DEPTH = (1 << 0),
   DRW_STATE_WRITE_COLOR = (1 << 1),
@@ -430,12 +432,12 @@ void DRW_shgroup_call_ex(DRWShadingGroup *shgroup,
   DRW_shgroup_call_ex(shgroup, ob, NULL, geom, true, NULL)
 
 void DRW_shgroup_call_range(
-    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint v_sta, uint v_ct);
+    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint v_sta, uint v_num);
 /**
  * A count of 0 instance will use the default number of instance in the batch.
  */
 void DRW_shgroup_call_instance_range(
-    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_ct);
+    DRWShadingGroup *shgroup, Object *ob, struct GPUBatch *geom, uint i_sta, uint i_num);
 
 void DRW_shgroup_call_compute(DRWShadingGroup *shgroup,
                               int groups_x_len,
@@ -621,6 +623,12 @@ void DRW_shgroup_vertex_buffer_ex(DRWShadingGroup *shgroup,
 void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
                                       const char *name,
                                       struct GPUVertBuf **vertex_buffer DRW_DEBUG_FILE_LINE_ARGS);
+void DRW_shgroup_buffer_texture(DRWShadingGroup *shgroup,
+                                const char *name,
+                                struct GPUVertBuf *vertex_buffer);
+void DRW_shgroup_buffer_texture_ref(DRWShadingGroup *shgroup,
+                                    const char *name,
+                                    struct GPUVertBuf **vertex_buffer);
 
 #ifdef DRW_UNUSED_RESOURCE_TRACKING
 #  define DRW_shgroup_vertex_buffer(shgroup, name, vert) \
@@ -631,10 +639,10 @@ void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
     DRW_shgroup_uniform_block_ex(shgroup, name, ubo, __FILE__, __LINE__)
 #  define DRW_shgroup_uniform_block_ref(shgroup, name, ubo) \
     DRW_shgroup_uniform_block_ref_ex(shgroup, name, ubo, __FILE__, __LINE__)
-#  define DRW_shgroup_storage_block(shgroup, name, ubo) \
-    DRW_shgroup_storage_block_ex(shgroup, name, ubo, __FILE__, __LINE__)
-#  define DRW_shgroup_storage_block_ref(shgroup, name, ubo) \
-    DRW_shgroup_storage_block_ref_ex(shgroup, name, ubo, __FILE__, __LINE__)
+#  define DRW_shgroup_storage_block(shgroup, name, ssbo) \
+    DRW_shgroup_storage_block_ex(shgroup, name, ssbo, __FILE__, __LINE__)
+#  define DRW_shgroup_storage_block_ref(shgroup, name, ssbo) \
+    DRW_shgroup_storage_block_ref_ex(shgroup, name, ssbo, __FILE__, __LINE__)
 #else
 #  define DRW_shgroup_vertex_buffer(shgroup, name, vert) \
     DRW_shgroup_vertex_buffer_ex(shgroup, name, vert)
@@ -644,10 +652,10 @@ void DRW_shgroup_vertex_buffer_ref_ex(DRWShadingGroup *shgroup,
     DRW_shgroup_uniform_block_ex(shgroup, name, ubo)
 #  define DRW_shgroup_uniform_block_ref(shgroup, name, ubo) \
     DRW_shgroup_uniform_block_ref_ex(shgroup, name, ubo)
-#  define DRW_shgroup_storage_block(shgroup, name, ubo) \
-    DRW_shgroup_storage_block_ex(shgroup, name, ubo)
-#  define DRW_shgroup_storage_block_ref(shgroup, name, ubo) \
-    DRW_shgroup_storage_block_ref_ex(shgroup, name, ubo)
+#  define DRW_shgroup_storage_block(shgroup, name, ssbo) \
+    DRW_shgroup_storage_block_ex(shgroup, name, ssbo)
+#  define DRW_shgroup_storage_block_ref(shgroup, name, ssbo) \
+    DRW_shgroup_storage_block_ref_ex(shgroup, name, ssbo)
 #endif
 
 bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup);
@@ -738,6 +746,7 @@ const DRWView *DRW_view_get_active(void);
  */
 void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len);
 void DRW_view_camtexco_set(DRWView *view, float texco[4]);
+void DRW_view_camtexco_get(const DRWView *view, float r_texco[4]);
 
 /* For all getters, if view is NULL, default view is assumed. */
 
@@ -828,7 +837,7 @@ void DRW_render_viewport_size_set(const int size[2]);
 /**
  * Assume a valid GL context is bound (and that the gl_context_mutex has been acquired).
  * This function only setup DST and execute the given function.
- * \warning similar to DRW_render_to_image you cannot use default lists (dfbl & dtxl).
+ * \warning similar to DRW_render_to_image you cannot use default lists (`dfbl` & `dtxl`).
  */
 void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
                          struct Depsgraph *depsgraph,
@@ -841,6 +850,7 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
 void DRW_cache_restart(void);
 
 /* ViewLayers */
+
 void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type);
 void **DRW_view_layer_engine_data_ensure_ex(struct ViewLayer *view_layer,
                                             DrawEngineType *engine_type,
@@ -849,6 +859,7 @@ void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type,
                                          void (*callback)(void *storage));
 
 /* DrawData */
+
 DrawData *DRW_drawdata_get(ID *id, DrawEngineType *engine_type);
 DrawData *DRW_drawdata_ensure(ID *id,
                               DrawEngineType *engine_type,

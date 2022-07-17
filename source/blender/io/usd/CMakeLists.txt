@@ -46,6 +46,7 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../editors/include
+  ../../imbuf
   ../../makesdna
   ../../makesrna
   ../../python
@@ -97,6 +98,7 @@ set(SRC
   intern/usd_writer_skel_root.cc
   intern/usd_writer_skinned_mesh.cc
   intern/usd_writer_transform.cc
+  intern/usd_writer_volume.cc
 
   usd.h
 
@@ -133,11 +135,13 @@ set(SRC
   intern/usd_writer_skel_root.h
   intern/usd_writer_skinned_mesh.h
   intern/usd_writer_transform.h
+  intern/usd_writer_volume.h
 )
 
 set(LIB
   bf_blenkernel
   bf_blenlib
+  bf_imbuf
   bf_io_common
 )
 
@@ -147,8 +151,15 @@ list(APPEND LIB
   ${PYTHON_LIBRARIES}
 )
 
-list(APPEND LIB
-)
+if(WITH_OPENVDB)
+  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
+  list(APPEND INC_SYS
+    ${OPENVDB_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${OPENVDB_LIBRARIES}
+  )
+endif()
 
 blender_add_lib(bf_usd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 

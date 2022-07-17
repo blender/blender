@@ -162,9 +162,9 @@ static StructRNA *rna_BoidRule_refine(struct PointerRNA *ptr)
   }
 }
 
-static char *rna_BoidRule_path(PointerRNA *ptr)
+static char *rna_BoidRule_path(const PointerRNA *ptr)
 {
-  BoidRule *rule = (BoidRule *)ptr->data;
+  const BoidRule *rule = (BoidRule *)ptr->data;
   char name_esc[sizeof(rule->name) * 2];
 
   BLI_str_escape(name_esc, rule->name, sizeof(name_esc));
@@ -222,16 +222,16 @@ static void rna_BoidState_active_boid_rule_index_set(struct PointerRNA *ptr, int
   }
 }
 
-static int particle_id_check(PointerRNA *ptr)
+static int particle_id_check(const PointerRNA *ptr)
 {
-  ID *id = ptr->owner_id;
+  const ID *id = ptr->owner_id;
 
   return (GS(id->name) == ID_PA);
 }
 
-static char *rna_BoidSettings_path(PointerRNA *ptr)
+static char *rna_BoidSettings_path(const PointerRNA *ptr)
 {
-  BoidSettings *boids = (BoidSettings *)ptr->data;
+  const BoidSettings *boids = (BoidSettings *)ptr->data;
 
   if (particle_id_check(ptr)) {
     ParticleSettings *part = (ParticleSettings *)ptr->owner_id;

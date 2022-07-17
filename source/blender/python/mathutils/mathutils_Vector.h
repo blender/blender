@@ -18,7 +18,8 @@ typedef struct {
   int vec_num;
 } VectorObject;
 
-/*prototypes*/
+/* Prototypes. */
+
 PyObject *Vector_CreatePyObject(const float *vec,
                                 int vec_num,
                                 PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT;

@@ -147,6 +147,16 @@ struct float4x4 {
     return m * float3(v);
   }
 
+  friend bool operator==(const float4x4 &a, const float4x4 &b)
+  {
+    return equals_m4m4(a.ptr(), b.ptr());
+  }
+
+  friend bool operator!=(const float4x4 &a, const float4x4 &b)
+  {
+    return !(a == b);
+  }
+
   float3 translation() const
   {
     return float3(values[3]);
@@ -245,6 +255,25 @@ struct float4x4 {
       h = h * 33 + *reinterpret_cast<const uint32_t *>(&value);
     }
     return h;
+  }
+
+  friend std::ostream &operator<<(std::ostream &stream, const float4x4 &mat)
+  {
+    char fchar[16];
+    stream << "(\n";
+    for (int i = 0; i < 4; i++) {
+      stream << "(";
+      for (int j = 0; j < 4; j++) {
+        snprintf(fchar, sizeof(fchar), "%11.6f", mat[j][i]);
+        stream << fchar;
+        if (i != 3) {
+          stream << ", ";
+        }
+      }
+      stream << ")\n";
+    }
+    stream << ")\n";
+    return stream;
   }
 };
 

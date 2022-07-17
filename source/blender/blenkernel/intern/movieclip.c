@@ -2085,8 +2085,7 @@ GPUTexture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser)
   /* This only means RGBA16F instead of RGBA32F. */
   const bool high_bitdepth = false;
   const bool store_premultiplied = ibuf->rect_float ? false : true;
-  *tex = IMB_create_gpu_texture(
-      clip->id.name + 2, ibuf, high_bitdepth, store_premultiplied, false);
+  *tex = IMB_create_gpu_texture(clip->id.name + 2, ibuf, high_bitdepth, store_premultiplied);
 
   /* Do not generate mips for movieclips... too slow. */
   GPU_texture_mipmap_mode(*tex, false, true);

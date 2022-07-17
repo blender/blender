@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
 
@@ -57,7 +55,7 @@ class OUTLINER_HT_header(Header):
             layout.operator("outliner.collection_new", text="", icon='COLLECTION_NEW').nested = True
 
         elif display_mode == 'ORPHAN_DATA':
-            layout.operator("outliner.orphans_purge", text="Purge")
+            layout.operator("outliner.orphans_purge", text="Purge").do_recursive = True
 
         elif space.display_mode == 'DATA_API':
             layout.separator()

@@ -8,13 +8,13 @@
  * shader files.
  */
 
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
 #include "BLI_ghash.h"
 #include "BLI_map.hh"
-#include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
 #include "gpu_material_library.h"
@@ -98,6 +98,10 @@ struct GPUSource {
     /* Limit to shared header files to avoid the temptation to use C++ syntax in .glsl files. */
     if (filename.endswith(".h") || filename.endswith(".hh")) {
       enum_preprocess();
+      quote_preprocess();
+    }
+    else {
+      check_no_quotes();
     }
 
     if (is_from_material_library()) {
@@ -171,6 +175,44 @@ struct GPUSource {
   if ((test_value) == -1) { \
     print_error(str, ofs, msg); \
     continue; \
+  }
+
+  /**
+   * Some drivers completely forbid quote characters even in unused preprocessor directives.
+   * We fix the cases where we can't manually patch in `enum_preprocess()`.
+   * This check ensure none are present in non-patched sources. (see T97545)
+   */
+  void check_no_quotes()
+  {
+#ifdef DEBUG
+    int64_t pos = -1;
+    do {
+      pos = source.find('"', pos + 1);
+      if (pos == -1) {
+        break;
+      }
+      if (!is_in_comment(source, pos)) {
+        print_error(source, pos, "Quote characters are forbidden in GLSL files");
+      }
+    } while (true);
+#endif
+  }
+
+  /**
+   * Some drivers completely forbid string characters even in unused preprocessor directives.
+   * This fixes the cases we cannot manually patch: Shared headers #includes. (see T97545)
+   * TODO(fclem): This could be done during the datatoc step.
+   */
+  void quote_preprocess()
+  {
+    if (source.find_first_of('"') == -1) {
+      return;
+    }
+
+    processed_source = source;
+    std::replace(processed_source.begin(), processed_source.end(), '"', ' ');
+
+    source = processed_source.c_str();
   }
 
   /**
@@ -282,6 +324,7 @@ struct GPUSource {
     if (last_pos != 0) {
       output += input.substr(last_pos);
     }
+
     processed_source = output;
     source = processed_source.c_str();
   };
@@ -549,7 +592,9 @@ struct GPUSource {
 
   bool is_from_material_library() const
   {
-    return filename.startswith("gpu_shader_material_") && filename.endswith(".glsl");
+    return (filename.startswith("gpu_shader_material_") ||
+            filename.startswith("gpu_shader_common_")) &&
+           filename.endswith(".glsl");
   }
 };
 
@@ -624,14 +669,20 @@ Vector<const char *> gpu_shader_dependency_get_resolved_source(
     const StringRefNull shader_source_name)
 {
   Vector<const char *> result;
-  GPUSource *source = g_sources->lookup(shader_source_name);
-  source->build(result);
+  GPUSource *src = g_sources->lookup_default(shader_source_name, nullptr);
+  if (src == nullptr) {
+    std::cout << "Error source not found : " << shader_source_name << std::endl;
+  }
+  src->build(result);
   return result;
 }
 
 StringRefNull gpu_shader_dependency_get_source(const StringRefNull shader_source_name)
 {
-  GPUSource *src = g_sources->lookup(shader_source_name);
+  GPUSource *src = g_sources->lookup_default(shader_source_name, nullptr);
+  if (src == nullptr) {
+    std::cout << "Error source not found : " << shader_source_name << std::endl;
+  }
   return src->source;
 }
 

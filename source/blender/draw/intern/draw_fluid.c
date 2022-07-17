@@ -20,6 +20,8 @@
 
 #include "BKE_colorband.h"
 
+#include "IMB_colormanagement.h"
+
 #include "GPU_texture.h"
 
 #include "draw_manager.h"
@@ -52,7 +54,7 @@ static void create_flame_spectrum_texture(float *data)
   float *spec_pixels = (float *)MEM_mallocN(TFUNC_WIDTH * 4 * 16 * 16 * sizeof(float),
                                             "spec_pixels");
 
-  blackbody_temperature_to_rgb_table(data, TFUNC_WIDTH, 1500, 3000);
+  IMB_colormanagement_blackbody_temperature_to_rgb_table(data, TFUNC_WIDTH, 1500, 3000);
 
   for (int i = 0; i < 16; i++) {
     for (int j = 0; j < 16; j++) {

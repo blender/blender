@@ -12,7 +12,7 @@ CombineColorNode::CombineColorNode(bNode *editor_node) : Node(editor_node)
 }
 
 void CombineColorNode::convert_to_operations(NodeConverter &converter,
-                                             const CompositorContext &context) const
+                                             const CompositorContext &UNUSED(context)) const
 {
   NodeInput *input_rsocket = this->get_input_socket(0);
   NodeInput *input_gsocket = this->get_input_socket(1);
@@ -40,7 +40,39 @@ void CombineColorNode::convert_to_operations(NodeConverter &converter,
   converter.map_input_socket(input_bsocket, operation->get_input_socket(2));
   converter.map_input_socket(input_asocket, operation->get_input_socket(3));
 
-  NodeOperation *color_conv = get_color_converter(context);
+  bNode *editor_node = this->get_bnode();
+  NodeCMPCombSepColor *storage = (NodeCMPCombSepColor *)editor_node->storage;
+
+  NodeOperation *color_conv = nullptr;
+  switch (storage->mode) {
+    case CMP_NODE_COMBSEP_COLOR_RGB: {
+      /* Pass */
+      break;
+    }
+    case CMP_NODE_COMBSEP_COLOR_HSV: {
+      color_conv = new ConvertHSVToRGBOperation();
+      break;
+    }
+    case CMP_NODE_COMBSEP_COLOR_HSL: {
+      color_conv = new ConvertHSLToRGBOperation();
+      break;
+    }
+    case CMP_NODE_COMBSEP_COLOR_YCC: {
+      ConvertYCCToRGBOperation *operation = new ConvertYCCToRGBOperation();
+      operation->set_mode(storage->ycc_mode);
+      color_conv = operation;
+      break;
+    }
+    case CMP_NODE_COMBSEP_COLOR_YUV: {
+      color_conv = new ConvertYUVToRGBOperation();
+      break;
+    }
+    default: {
+      BLI_assert_unreachable();
+      break;
+    }
+  }
+
   if (color_conv) {
     converter.add_operation(color_conv);
 
@@ -50,29 +82,6 @@ void CombineColorNode::convert_to_operations(NodeConverter &converter,
   else {
     converter.map_output_socket(output_socket, operation->get_output_socket());
   }
-}
-
-NodeOperation *CombineRGBANode::get_color_converter(const CompositorContext & /*context*/) const
-{
-  return nullptr; /* no conversion needed */
-}
-
-NodeOperation *CombineHSVANode::get_color_converter(const CompositorContext & /*context*/) const
-{
-  return new ConvertHSVToRGBOperation();
-}
-
-NodeOperation *CombineYCCANode::get_color_converter(const CompositorContext & /*context*/) const
-{
-  ConvertYCCToRGBOperation *operation = new ConvertYCCToRGBOperation();
-  bNode *editor_node = this->get_bnode();
-  operation->set_mode(editor_node->custom1);
-  return operation;
-}
-
-NodeOperation *CombineYUVANode::get_color_converter(const CompositorContext & /*context*/) const
-{
-  return new ConvertYUVToRGBOperation();
 }
 
 }  // namespace blender::compositor

@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
@@ -203,7 +201,7 @@ class DATA_PT_geometry_curve_start_end(CurveButtonsPanelCurve, Panel):
     @classmethod
     def poll(cls, context):
         # Text objects don't support these properties
-        return (type(context.curve) in {Curve})
+        return (type(context.curve) == Curve)
 
     def draw(self, context):
         layout = self.layout

@@ -264,7 +264,8 @@ TEST(vector, AppendAndGetIndex)
   EXPECT_EQ(vec.append_and_get_index(10), 1);
   EXPECT_EQ(vec.append_and_get_index(10), 2);
   vec.append(10);
-  EXPECT_EQ(vec.append_and_get_index(10), 4);
+  int value = 10;
+  EXPECT_EQ(vec.append_and_get_index(value), 4);
 }
 
 TEST(vector, AppendNonDuplicates)
@@ -479,6 +480,7 @@ TEST(vector, UniquePtrValue)
   vec.remove_and_reorder(0);
   vec.remove(0);
   EXPECT_EQ(vec.size(), 1);
+  EXPECT_EQ(vec.append_and_get_index(std::make_unique<int>(4)), 1);
 
   UNUSED_VARS(a, b);
 }

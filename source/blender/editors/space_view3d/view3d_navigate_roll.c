@@ -48,11 +48,7 @@ static void view_roll_angle(ARegion *region,
   normalize_qt(quat);
 
   if (use_axis_view && RV3D_VIEW_IS_AXIS(rv3d->view) && (fabsf(angle) == (float)M_PI_2)) {
-    if (ED_view3d_quat_to_axis_view(quat, 0.01f, &rv3d->view, &rv3d->view_axis_roll)) {
-      if (rv3d->view != RV3D_VIEW_USER) {
-        ED_view3d_quat_from_axis_view(rv3d->view, rv3d->view_axis_roll, quat_mul);
-      }
-    }
+    ED_view3d_quat_to_axis_view_and_reset_quat(quat, 0.01f, &rv3d->view, &rv3d->view_axis_roll);
   }
   else {
     rv3d->view = RV3D_VIEW_USER;

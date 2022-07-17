@@ -29,7 +29,7 @@
 // Author: vitus@google.com (Michael Vitus)
 
 // This include must come before any #ifndef check on Ceres compile options.
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 
 #ifdef CERES_USE_CXX_THREADS
 
@@ -57,7 +57,7 @@ int ThreadPool::MaxNumThreadsAvailable() {
                                    : num_hardware_threads;
 }
 
-ThreadPool::ThreadPool() {}
+ThreadPool::ThreadPool() = default;
 
 ThreadPool::ThreadPool(int num_threads) { Resize(num_threads); }
 
@@ -83,7 +83,7 @@ void ThreadPool::Resize(int num_threads) {
       GetNumAllowedThreads(num_threads) - num_current_threads;
 
   for (int i = 0; i < create_num_threads; ++i) {
-    thread_pool_.push_back(std::thread(&ThreadPool::ThreadMainLoop, this));
+    thread_pool_.emplace_back(&ThreadPool::ThreadMainLoop, this);
   }
 }
 

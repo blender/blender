@@ -117,6 +117,8 @@ class GHOST_Window : public GHOST_IWindow {
                                       int hotY,
                                       bool canInvertColor);
 
+  GHOST_TSuccess getCursorBitmap(GHOST_CursorBitmapRef *bitmap);
+
   /**
    * Returns the visibility state of the cursor.
    * \return The visibility state of the cursor.
@@ -151,6 +153,15 @@ class GHOST_Window : public GHOST_IWindow {
    * reset when grab is disabled.
    */
   GHOST_TSuccess getCursorGrabBounds(GHOST_Rect &bounds);
+
+  void getCursorGrabState(GHOST_TGrabCursorMode &mode,
+                          GHOST_TAxisFlag &axis_flag,
+                          GHOST_Rect &bounds,
+                          bool &use_software_cursor);
+  /**
+   * Return true when a software cursor should be used.
+   */
+  bool getCursorGrabUseSoftwareDisplay();
 
   /**
    * Sets the progress bar value displayed in the window/application icon

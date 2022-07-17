@@ -25,7 +25,7 @@ class EdgeNeighborCountFieldInput final : public GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const GeometryComponent &component,
-                                 const AttributeDomain domain,
+                                 const eAttrDomain domain,
                                  IndexMask UNUSED(mask)) const final
   {
     if (component.type() == GEO_COMPONENT_TYPE_MESH) {
@@ -40,7 +40,7 @@ class EdgeNeighborCountFieldInput final : public GeometryFieldInput {
         face_count[mesh->mloop[i].e]++;
       }
 
-      return mesh_component.attribute_try_adapt_domain<int>(
+      return mesh_component.attributes()->adapt_domain<int>(
           VArray<int>::ForContainer(std::move(face_count)), ATTR_DOMAIN_EDGE, domain);
     }
     return {};

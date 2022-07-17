@@ -71,18 +71,18 @@ namespace ceres {
 //   ccf_residual[i] = f_i(my_cost_function_residual[i])
 //
 // and the Jacobian will be affected appropriately.
-class CERES_EXPORT ConditionedCostFunction : public CostFunction {
+class CERES_EXPORT ConditionedCostFunction final : public CostFunction {
  public:
   // Builds a cost function based on a wrapped cost function, and a
   // per-residual conditioner. Takes ownership of all of the wrapped cost
   // functions, or not, depending on the ownership parameter. Conditioners
-  // may be NULL, in which case the corresponding residual is not modified.
+  // may be nullptr, in which case the corresponding residual is not modified.
   //
   // The conditioners can repeat.
   ConditionedCostFunction(CostFunction* wrapped_cost_function,
                           const std::vector<CostFunction*>& conditioners,
                           Ownership ownership);
-  virtual ~ConditionedCostFunction();
+  ~ConditionedCostFunction() override;
 
   bool Evaluate(double const* const* parameters,
                 double* residuals,

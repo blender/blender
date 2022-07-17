@@ -26,10 +26,11 @@
 
 namespace blender::io::alembic {
 
-ABCHierarchyIterator::ABCHierarchyIterator(Depsgraph *depsgraph,
+ABCHierarchyIterator::ABCHierarchyIterator(Main *bmain,
+                                           Depsgraph *depsgraph,
                                            ABCArchive *abc_archive,
                                            const AlembicExportParams &params)
-    : AbstractHierarchyIterator(depsgraph), abc_archive_(abc_archive), params_(params)
+    : AbstractHierarchyIterator(bmain, depsgraph), abc_archive_(abc_archive), params_(params)
 {
 }
 

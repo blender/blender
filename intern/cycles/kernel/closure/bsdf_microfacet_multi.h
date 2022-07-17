@@ -377,8 +377,8 @@ ccl_device int bsdf_microfacet_multi_ggx_common_setup(ccl_private MicrofacetBsdf
 {
   bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
   bsdf->alpha_y = clamp(bsdf->alpha_y, 1e-4f, 1.0f);
-  bsdf->extra->color = saturate3(bsdf->extra->color);
-  bsdf->extra->cspec0 = saturate3(bsdf->extra->cspec0);
+  bsdf->extra->color = saturate(bsdf->extra->color);
+  bsdf->extra->cspec0 = saturate(bsdf->extra->cspec0);
 
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_NEEDS_LCG;
 }
@@ -565,7 +565,7 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_setup(ccl_private MicrofacetBsdf 
   bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
   bsdf->alpha_y = bsdf->alpha_x;
   bsdf->ior = max(0.0f, bsdf->ior);
-  bsdf->extra->color = saturate3(bsdf->extra->color);
+  bsdf->extra->color = saturate(bsdf->extra->color);
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID;
 
@@ -578,8 +578,8 @@ ccl_device int bsdf_microfacet_multi_ggx_glass_fresnel_setup(ccl_private Microfa
   bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
   bsdf->alpha_y = bsdf->alpha_x;
   bsdf->ior = max(0.0f, bsdf->ior);
-  bsdf->extra->color = saturate3(bsdf->extra->color);
-  bsdf->extra->cspec0 = saturate3(bsdf->extra->cspec0);
+  bsdf->extra->color = saturate(bsdf->extra->color);
+  bsdf->extra->cspec0 = saturate(bsdf->extra->cspec0);
 
   bsdf->type = CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID;
 

@@ -8,7 +8,7 @@
 #include "BLI_string.h"
 
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -19,7 +19,7 @@ namespace blender::draw {
 /* Initialize the vertex format to be used for UVs. Return true if any UV layer is
  * found, false otherwise. */
 static bool mesh_extract_uv_format_init(GPUVertFormat *format,
-                                        struct MeshBatchCache *cache,
+                                        MeshBatchCache *cache,
                                         CustomData *cd_ldata,
                                         eMRExtractType extract_type,
                                         uint32_t &r_uv_layers)
@@ -44,14 +44,11 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
 
       GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
       /* UV layer name. */
-      BLI_snprintf(attr_name, sizeof(attr_name), "u%s", attr_safe_name);
-      GPU_vertformat_attr_add(format, attr_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      /* Auto layer name. */
       BLI_snprintf(attr_name, sizeof(attr_name), "a%s", attr_safe_name);
-      GPU_vertformat_alias_add(format, attr_name);
+      GPU_vertformat_attr_add(format, attr_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       /* Active render layer name. */
       if (i == CustomData_get_render_layer(cd_ldata, CD_MLOOPUV)) {
-        GPU_vertformat_alias_add(format, "u");
+        GPU_vertformat_alias_add(format, "a");
       }
       /* Active display layer name. */
       if (i == CustomData_get_active_layer(cd_ldata, CD_MLOOPUV)) {
@@ -75,7 +72,7 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
 }
 
 static void extract_uv_init(const MeshRenderData *mr,
-                            struct MeshBatchCache *cache,
+                            MeshBatchCache *cache,
                             void *buf,
                             void *UNUSED(tls_data))
 {
@@ -111,7 +108,8 @@ static void extract_uv_init(const MeshRenderData *mr,
         }
       }
       else {
-        MLoopUV *layer_data = (MLoopUV *)CustomData_get_layer_n(cd_ldata, CD_MLOOPUV, i);
+        const MLoopUV *layer_data = (const MLoopUV *)CustomData_get_layer_n(
+            cd_ldata, CD_MLOOPUV, i);
         for (int ml_index = 0; ml_index < mr->loop_len; ml_index++, uv_data++, layer_data++) {
           memcpy(uv_data, layer_data->uv, sizeof(*uv_data));
         }
@@ -122,7 +120,7 @@ static void extract_uv_init(const MeshRenderData *mr,
 
 static void extract_uv_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                    const MeshRenderData *UNUSED(mr),
-                                   struct MeshBatchCache *cache,
+                                   MeshBatchCache *cache,
                                    void *buffer,
                                    void *UNUSED(data))
 {
@@ -170,6 +168,4 @@ constexpr MeshExtract create_extractor_uv()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_uv = blender::draw::create_extractor_uv();
-}

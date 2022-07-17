@@ -131,7 +131,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
 {
   float x;
   int *points, totseg, i, a;
-  float sfra = SFRA, efra = EFRA, framelen = region->winx / (efra - sfra + 1);
+  float sfra = scene->r.sfra, efra = scene->r.efra, framelen = region->winx / (efra - sfra + 1);
   MovieTracking *tracking = &clip->tracking;
   MovieTrackingObject *act_object = BKE_tracking_object_get_active(tracking);
   MovieTrackingTrack *act_track = BKE_tracking_track_get_active(&clip->tracking);
@@ -245,14 +245,16 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
 
   /* solver keyframes */
   immUniformColor4ub(175, 255, 0, 255);
-  draw_keyframe(act_object->keyframe1 + clip->start_frame - 1, CFRA, sfra, framelen, 2, pos);
-  draw_keyframe(act_object->keyframe2 + clip->start_frame - 1, CFRA, sfra, framelen, 2, pos);
+  draw_keyframe(
+      act_object->keyframe1 + clip->start_frame - 1, scene->r.cfra, sfra, framelen, 2, pos);
+  draw_keyframe(
+      act_object->keyframe2 + clip->start_frame - 1, scene->r.cfra, sfra, framelen, 2, pos);
 
   immUnbindProgram();
 
   /* movie clip animation */
   if ((sc->mode == SC_MODE_MASKEDIT) && sc->mask_info.mask) {
-    ED_mask_draw_frames(sc->mask_info.mask, region, CFRA, sfra, efra);
+    ED_mask_draw_frames(sc->mask_info.mask, region, scene->r.cfra, sfra, efra);
   }
 }
 
@@ -676,6 +678,40 @@ static void track_colors(MovieTrackingTrack *track, int act, float col[3], float
   }
 }
 
+static void set_draw_marker_area_color(const MovieTrackingTrack *track,
+                                       const MovieTrackingMarker *marker,
+                                       const bool is_track_active,
+                                       const bool is_area_selected,
+                                       const float color[3],
+                                       const float selected_color[3])
+{
+  if (track->flag & TRACK_LOCKED) {
+    if (is_track_active) {
+      immUniformThemeColor(TH_ACT_MARKER);
+    }
+    else if (is_area_selected) {
+      immUniformThemeColorShade(TH_LOCK_MARKER, 64);
+    }
+    else {
+      immUniformThemeColor(TH_LOCK_MARKER);
+    }
+  }
+  else if (marker->flag & MARKER_DISABLED) {
+    if (is_track_active) {
+      immUniformThemeColor(TH_ACT_MARKER);
+    }
+    else if (is_area_selected) {
+      immUniformThemeColorShade(TH_DIS_MARKER, 128);
+    }
+    else {
+      immUniformThemeColor(TH_DIS_MARKER);
+    }
+  }
+  else {
+    immUniformColor3fv(is_area_selected ? selected_color : color);
+  }
+}
+
 static void draw_marker_areas(SpaceClip *sc,
                               MovieTrackingTrack *track,
                               MovieTrackingMarker *marker,
@@ -785,31 +821,7 @@ static void draw_marker_areas(SpaceClip *sc,
   GPU_matrix_push();
   GPU_matrix_translate_2fv(marker_pos);
 
-  if (track->flag & TRACK_LOCKED) {
-    if (act) {
-      immUniformThemeColor(TH_ACT_MARKER);
-    }
-    else if (track->pat_flag & SELECT) {
-      immUniformThemeColorShade(TH_LOCK_MARKER, 64);
-    }
-    else {
-      immUniformThemeColor(TH_LOCK_MARKER);
-    }
-  }
-  else if (marker->flag & MARKER_DISABLED) {
-    if (act) {
-      immUniformThemeColor(TH_ACT_MARKER);
-    }
-    else if (track->pat_flag & SELECT) {
-      immUniformThemeColorShade(TH_DIS_MARKER, 128);
-    }
-    else {
-      immUniformThemeColor(TH_DIS_MARKER);
-    }
-  }
-  else {
-    immUniformColor3fv((track->pat_flag & SELECT) ? scol : col);
-  }
+  set_draw_marker_area_color(track, marker, act, track->pat_flag & SELECT, col, scol);
 
   if (tiny) {
     immUniform1f("dash_width", 6.0f);
@@ -834,6 +846,8 @@ static void draw_marker_areas(SpaceClip *sc,
                 0;
 
   if ((track->search_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_SEARCH) && show_search) {
+    set_draw_marker_area_color(track, marker, act, track->search_flag & SELECT, col, scol);
+
     imm_draw_box_wire_2d(shdr_pos,
                          marker->search_min[0],
                          marker->search_min[1],
@@ -1163,17 +1177,9 @@ static void draw_plane_marker_image(Scene *scene,
   ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
 
   if (ibuf) {
-    uchar *display_buffer;
     void *cache_handle;
-
-    if (image->flag & IMA_VIEW_AS_RENDER) {
-      display_buffer = IMB_display_buffer_acquire(
-          ibuf, &scene->view_settings, &scene->display_settings, &cache_handle);
-    }
-    else {
-      display_buffer = IMB_display_buffer_acquire(
-          ibuf, NULL, &scene->display_settings, &cache_handle);
-    }
+    uchar *display_buffer = IMB_display_buffer_acquire(
+        ibuf, &scene->view_settings, &scene->display_settings, &cache_handle);
 
     if (display_buffer) {
       float frame_corners[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};

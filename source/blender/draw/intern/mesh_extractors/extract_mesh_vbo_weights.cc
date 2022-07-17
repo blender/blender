@@ -10,7 +10,7 @@
 #include "BKE_deform.h"
 
 #include "draw_subdivision.h"
-#include "extract_mesh.h"
+#include "extract_mesh.hh"
 
 namespace blender::draw {
 
@@ -79,7 +79,7 @@ static float evaluate_vertex_weight(const MDeformVert *dvert, const DRW_MeshWeig
 }
 
 static void extract_weights_init(const MeshRenderData *mr,
-                                 struct MeshBatchCache *cache,
+                                 MeshBatchCache *cache,
                                  void *buf,
                                  void *tls_data)
 {
@@ -154,7 +154,7 @@ static void extract_weights_iter_poly_mesh(const MeshRenderData *mr,
 
 static void extract_weights_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                         const MeshRenderData *mr,
-                                        struct MeshBatchCache *cache,
+                                        MeshBatchCache *cache,
                                         void *buffer,
                                         void *_data)
 {
@@ -208,6 +208,4 @@ constexpr MeshExtract create_extractor_weights()
 
 }  // namespace blender::draw
 
-extern "C" {
 const MeshExtract extract_weights = blender::draw::create_extractor_weights();
-}

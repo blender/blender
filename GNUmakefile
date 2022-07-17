@@ -120,7 +120,7 @@ Utilities
      Updates git and all submodules but not svn.
 
    * format:
-     Format source code using clang (uses PATHS if passed in). For example::
+     Format source code using clang-format & autopep8 (uses PATHS if passed in). For example::
 
         make format PATHS="source/blender/blenlib source/blender/blenkernel"
 
@@ -130,6 +130,7 @@ Environment Variables
    * BUILD_DIR:             Override default build path.
    * PYTHON:                Use this for the Python command (used for checking tools).
    * NPROCS:                Number of processes to use building (auto-detect when omitted).
+   * AUTOPEP8:              Command used for Python code-formatting (used for the format target).
 
 Documentation Targets
    Not associated with building Blender.
@@ -205,6 +206,27 @@ ifeq ($(OS_NCASE),darwin)
 		endif
 	endif
 endif
+
+# Set the LIBDIR, an empty string when not found.
+LIBDIR:=$(wildcard ../lib/${OS_NCASE}_${CPU})
+ifeq (, $(LIBDIR))
+	LIBDIR:=$(wildcard ../lib/${OS_NCASE}_centos7_${CPU})
+endif
+ifeq (, $(LIBDIR))
+	LIBDIR:=$(wildcard ../lib/${OS_NCASE})
+endif
+
+# Use the autopep8 module in ../lib/ (which can be executed via Python directly).
+# Otherwise the "autopep8" command can be used.
+ifndef AUTOPEP8
+	ifneq (, $(LIBDIR))
+		AUTOPEP8:=$(wildcard $(LIBDIR)/python/lib/python3.10/site-packages/autopep8.py)
+	endif
+	ifeq (, $(AUTOPEP8))
+		AUTOPEP8:=autopep8
+	endif
+endif
+
 
 # -----------------------------------------------------------------------------
 # additional targets for the build configuration
@@ -527,8 +549,8 @@ update_code: .FORCE
 	@$(PYTHON) ./build_files/utils/make_update.py --no-libraries
 
 format: .FORCE
-	@PATH="../lib/${OS_NCASE}_${CPU}/llvm/bin/:../lib/${OS_NCASE}_centos7_${CPU}/llvm/bin/:../lib/${OS_NCASE}/llvm/bin/:$(PATH)" \
-	    $(PYTHON) source/tools/utils_maintenance/clang_format_paths.py $(PATHS)
+	@PATH="${LIBDIR}/llvm/bin/:$(PATH)" $(PYTHON) source/tools/utils_maintenance/clang_format_paths.py $(PATHS)
+	@$(PYTHON) source/tools/utils_maintenance/autopep8_format_paths.py --autopep8-command="$(AUTOPEP8)" $(PATHS)
 
 
 # -----------------------------------------------------------------------------

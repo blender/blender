@@ -388,6 +388,17 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C,
 
   /* Create new layer */
   /* TODO: have some way of specifying that we don't want this? */
+  {
+    /* "New Layer" entry */
+    item_tmp.identifier = "__CREATE__";
+    item_tmp.name = "New Layer";
+    item_tmp.value = -1;
+    item_tmp.icon = ICON_ADD;
+    RNA_enum_item_add(&item, &totitem, &item_tmp);
+
+    /* separator */
+    RNA_enum_item_add_separator(&item, &totitem);
+  }
 
   const int tot = BLI_listbase_count(&gpd->layers);
   /* Existing layers */
@@ -403,17 +414,6 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(bContext *C,
       item_tmp.icon = ICON_NONE;
     }
 
-    RNA_enum_item_add(&item, &totitem, &item_tmp);
-  }
-  {
-    /* separator */
-    RNA_enum_item_add_separator(&item, &totitem);
-
-    /* "New Layer" entry */
-    item_tmp.identifier = "__CREATE__";
-    item_tmp.name = "New Layer";
-    item_tmp.value = -1;
-    item_tmp.icon = ICON_ADD;
     RNA_enum_item_add(&item, &totitem, &item_tmp);
   }
 
@@ -525,7 +525,7 @@ bool ED_gpencil_stroke_can_use_direct(const ScrArea *area, const bGPDstroke *gps
     return (area->spacetype == SPACE_IMAGE);
   }
   if (gps->flag & GP_STROKE_2DSPACE) {
-    /* 2D strokes (dataspace) - for any 2D view (i.e. everything other than 3D view) */
+    /* 2D strokes (data-space) - for any 2D view (i.e. everything other than 3D view). */
     return (area->spacetype != SPACE_VIEW3D);
   }
   /* view aligned - anything goes */
@@ -1149,7 +1149,7 @@ void ED_gpencil_stroke_reproject(Depsgraph *depsgraph,
                                                depsgraph,
                                                v3d,
                                                &(const struct SnapObjectParams){
-                                                   .snap_select = SNAP_ALL,
+                                                   .snap_target_select = SCE_SNAP_TARGET_ALL,
                                                },
                                                &ray_start[0],
                                                &ray_normal[0],
@@ -1747,7 +1747,7 @@ static void gpencil_brush_cursor_draw(bContext *C, int x, int y, void *customdat
   float darkcolor[3];
   float radius = 3.0f;
 
-  int mval_i[2] = {x, y};
+  const int mval_i[2] = {x, y};
   /* Check if cursor is in drawing region and has valid data-block. */
   if ((!gpencil_check_cursor_region(C, mval_i)) || (gpd == NULL)) {
     return;
@@ -2962,7 +2962,7 @@ void ED_gpencil_projected_2d_bound_box(const GP_SpaceConversion *gsc,
 
 bool ED_gpencil_stroke_check_collision(const GP_SpaceConversion *gsc,
                                        bGPDstroke *gps,
-                                       const float mouse[2],
+                                       const float mval[2],
                                        const int radius,
                                        const float diff_mat[4][4])
 {
@@ -2980,7 +2980,7 @@ bool ED_gpencil_stroke_check_collision(const GP_SpaceConversion *gsc,
   rcti rect_stroke = {boundbox_min[0], boundbox_max[0], boundbox_min[1], boundbox_max[1]};
 
   /* For mouse, add a small offset to avoid false negative in corners. */
-  rcti rect_mouse = {mouse[0] - offset, mouse[0] + offset, mouse[1] - offset, mouse[1] + offset};
+  rcti rect_mouse = {mval[0] - offset, mval[0] + offset, mval[1] - offset, mval[1] + offset};
 
   /* Check collision between both rectangles. */
   return BLI_rcti_isect(&rect_stroke, &rect_mouse, NULL);
@@ -2988,7 +2988,7 @@ bool ED_gpencil_stroke_check_collision(const GP_SpaceConversion *gsc,
 
 bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
                                        const GP_SpaceConversion *gsc,
-                                       const int mouse[2],
+                                       const int mval[2],
                                        const float diff_mat[4][4])
 {
   bool hit = false;
@@ -3014,9 +3014,8 @@ bool ED_gpencil_stroke_point_is_inside(const bGPDstroke *gps,
   BLI_lasso_boundbox(&rect, mcoords, len);
 
   /* Test if point inside stroke. */
-  hit = ((!ELEM(V2D_IS_CLIPPED, mouse[0], mouse[1])) &&
-         BLI_rcti_isect_pt(&rect, mouse[0], mouse[1]) &&
-         BLI_lasso_is_point_inside(mcoords, len, mouse[0], mouse[1], INT_MAX));
+  hit = ((!ELEM(V2D_IS_CLIPPED, mval[0], mval[1])) && BLI_rcti_isect_pt(&rect, mval[0], mval[1]) &&
+         BLI_lasso_is_point_inside(mcoords, len, mval[0], mval[1], INT_MAX));
 
   /* Free memory. */
   MEM_SAFE_FREE(mcoords);
@@ -3074,6 +3073,11 @@ bGPDstroke *ED_gpencil_stroke_nearest_to_ends(bContext *C,
   LISTBASE_FOREACH (bGPDstroke *, gps_target, &gpf->strokes) {
     /* Check if the color is editable. */
     if ((gps_target == gps) || (ED_gpencil_stroke_material_editable(ob, gpl, gps) == false)) {
+      continue;
+    }
+
+    /* Check that stroke is not closed. Closed strokes must not be included in the merge. */
+    if (gps_target->flag & GP_STROKE_CYCLIC) {
       continue;
     }
 

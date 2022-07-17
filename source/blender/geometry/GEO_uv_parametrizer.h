@@ -12,12 +12,9 @@
 extern "C" {
 #endif
 
-typedef void ParamHandle;  /* handle to a set of charts */
-typedef intptr_t ParamKey; /* (hash) key for identifying verts and faces */
-typedef enum ParamBool {
-  PARAM_TRUE = 1,
-  PARAM_FALSE = 0,
-} ParamBool;
+typedef struct ParamHandle ParamHandle; /* Handle to an array of charts. */
+typedef intptr_t ParamKey;              /* Key (hash) for identifying verts and faces. */
+#define PARAM_KEY_MAX INTPTR_MAX
 
 /* -------------------------------------------------------------------- */
 /** \name Chart Construction:
@@ -38,20 +35,24 @@ ParamHandle *GEO_uv_parametrizer_construct_begin(void);
 
 void GEO_uv_parametrizer_aspect_ratio(ParamHandle *handle, float aspx, float aspy);
 
+void GEO_uv_prepare_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2]);
+
+ParamKey GEO_uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const float uv[2]);
+
 void GEO_uv_parametrizer_face_add(ParamHandle *handle,
-                                  ParamKey key,
-                                  int nverts,
-                                  ParamKey *vkeys,
-                                  float *co[4],
-                                  float *uv[4],
-                                  ParamBool *pin,
-                                  ParamBool *select);
+                                  const ParamKey key,
+                                  const int nverts,
+                                  const ParamKey *vkeys,
+                                  const float **co,
+                                  float **uv, /* Output will eventually be written to `uv`. */
+                                  const bool *pin,
+                                  const bool *select);
 
 void GEO_uv_parametrizer_edge_set_seam(ParamHandle *handle, ParamKey *vkeys);
 
 void GEO_uv_parametrizer_construct_end(ParamHandle *handle,
-                                       ParamBool fill,
-                                       ParamBool topology_from_uvs,
+                                       bool fill,
+                                       bool topology_from_uvs,
                                        int *count_fail);
 void GEO_uv_parametrizer_delete(ParamHandle *handle);
 
@@ -70,7 +71,7 @@ void GEO_uv_parametrizer_delete(ParamHandle *handle);
  *
  * \{ */
 
-void GEO_uv_parametrizer_lscm_begin(ParamHandle *handle, ParamBool live, ParamBool abf);
+void GEO_uv_parametrizer_lscm_begin(ParamHandle *handle, bool live, bool abf);
 void GEO_uv_parametrizer_lscm_solve(ParamHandle *handle, int *count_changed, int *count_failed);
 void GEO_uv_parametrizer_lscm_end(ParamHandle *handle);
 
@@ -84,14 +85,6 @@ void GEO_uv_parametrizer_stretch_begin(ParamHandle *handle);
 void GEO_uv_parametrizer_stretch_blend(ParamHandle *handle, float blend);
 void GEO_uv_parametrizer_stretch_iter(ParamHandle *handle);
 void GEO_uv_parametrizer_stretch_end(ParamHandle *handle);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Area Smooth
- * \{ */
-
-void GEO_uv_parametrizer_smooth_area(ParamHandle *handle);
 
 /** \} */
 
@@ -110,7 +103,10 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
 /** \name Average area for all charts
  * \{ */
 
-void GEO_uv_parametrizer_average(ParamHandle *handle, bool ignore_pinned);
+void GEO_uv_parametrizer_average(ParamHandle *handle,
+                                 bool ignore_pinned,
+                                 bool scale_uv,
+                                 bool shear);
 
 /** \} */
 

@@ -46,7 +46,7 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node, const
   }
 
   /* use top-left corner as the transform origin for nodes */
-  /* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
+  /* Weirdo - but the node system is a mix of free 2d elements and DPI sensitive UI. */
 #ifdef USE_NODE_CENTER
   td2d->loc[0] = (locx * dpi_fac) + (BLI_rctf_size_x(&node->totr) * +0.5f);
   td2d->loc[1] = (locy * dpi_fac) + (BLI_rctf_size_y(&node->totr) * -0.5f);
@@ -194,7 +194,7 @@ void flushTransNodes(TransInfo *t)
       loc[1] += 0.5f * BLI_rctf_size_y(&node->totr);
 #endif
 
-      /* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
+      /* Weirdo - but the node system is a mix of free 2d elements and DPI sensitive UI. */
       loc[0] /= dpi_fac;
       loc[1] /= dpi_fac;
 

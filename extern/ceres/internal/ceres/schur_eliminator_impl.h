@@ -47,7 +47,7 @@
 
 // This include must come before any #ifndef check on Ceres compile options.
 // clang-format off
-#include "ceres/internal/port.h"
+#include "ceres/internal/config.h"
 // clang-format on
 
 #include <algorithm>
@@ -125,10 +125,8 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::Init(
       break;
     }
 
-    chunks_.push_back(Chunk());
+    chunks_.push_back(Chunk(r));
     Chunk& chunk = chunks_.back();
-    chunk.size = 0;
-    chunk.start = r;
     int buffer_size = 0;
     const int e_block_size = bs->cols[chunk_block_id].size;
 
@@ -161,12 +159,13 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::Init(
 
   uneliminated_row_begins_ = chunk.start + chunk.size;
 
-  buffer_.reset(new double[buffer_size_ * num_threads_]);
+  buffer_ = std::make_unique<double[]>(buffer_size_ * num_threads_);
 
   // chunk_outer_product_buffer_ only needs to store e_block_size *
   // f_block_size, which is always less than buffer_size_, so we just
   // allocate buffer_size_ per thread.
-  chunk_outer_product_buffer_.reset(new double[buffer_size_ * num_threads_]);
+  chunk_outer_product_buffer_ =
+      std::make_unique<double[]>(buffer_size_ * num_threads_);
 
   STLDeleteElements(&rhs_locks_);
   rhs_locks_.resize(num_col_blocks - num_eliminate_blocks_);
@@ -193,7 +192,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::Eliminate(
   const int num_col_blocks = bs->cols.size();
 
   // Add the diagonal to the schur complement.
-  if (D != NULL) {
+  if (D != nullptr) {
     ParallelFor(context_,
                 num_eliminate_blocks_,
                 num_col_blocks,
@@ -203,7 +202,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::Eliminate(
                   int r, c, row_stride, col_stride;
                   CellInfo* cell_info = lhs->GetCell(
                       block_id, block_id, &r, &c, &row_stride, &col_stride);
-                  if (cell_info != NULL) {
+                  if (cell_info != nullptr) {
                     const int block_size = bs->cols[i].size;
                     typename EigenTypes<Eigen::Dynamic>::ConstVectorRef diag(
                         D + bs->cols[i].position, block_size);
@@ -245,7 +244,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::Eliminate(
         typename EigenTypes<kEBlockSize, kEBlockSize>::Matrix ete(e_block_size,
                                                                   e_block_size);
 
-        if (D != NULL) {
+        if (D != nullptr) {
           const typename EigenTypes<kEBlockSize>::ConstVectorRef diag(
               D + bs->cols[e_block_id].position, e_block_size);
           ete = diag.array().square().matrix().asDiagonal();
@@ -327,7 +326,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::BackSubstitute(
 
     typename EigenTypes<kEBlockSize, kEBlockSize>::Matrix ete(e_block_size,
                                                               e_block_size);
-    if (D != NULL) {
+    if (D != nullptr) {
       const typename EigenTypes<kEBlockSize>::ConstVectorRef diag(
           D + bs->cols[e_block_id].position, e_block_size);
       ete = diag.array().square().matrix().asDiagonal();
@@ -525,7 +524,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
   // computation of the right-hand matrix product, but memory
   // references to the left hand side.
   const int e_block_size = inverse_ete.rows();
-  BufferLayoutType::const_iterator it1 = buffer_layout.begin();
+  auto it1 = buffer_layout.begin();
 
   double* b1_transpose_inverse_ete =
       chunk_outer_product_buffer_.get() + thread_id * buffer_size_;
@@ -542,14 +541,14 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
         b1_transpose_inverse_ete, 0, 0, block1_size, e_block_size);
     // clang-format on
 
-    BufferLayoutType::const_iterator it2 = it1;
+    auto it2 = it1;
     for (; it2 != buffer_layout.end(); ++it2) {
       const int block2 = it2->first - num_eliminate_blocks_;
 
       int r, c, row_stride, col_stride;
       CellInfo* cell_info =
           lhs->GetCell(block1, block2, &r, &c, &row_stride, &col_stride);
-      if (cell_info != NULL) {
+      if (cell_info != nullptr) {
         const int block2_size = bs->cols[it2->first].size;
         std::lock_guard<std::mutex> l(cell_info->m);
         // clang-format off
@@ -627,7 +626,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
     int r, c, row_stride, col_stride;
     CellInfo* cell_info =
         lhs->GetCell(block1, block1, &r, &c, &row_stride, &col_stride);
-    if (cell_info != NULL) {
+    if (cell_info != nullptr) {
       std::lock_guard<std::mutex> l(cell_info->m);
       // This multiply currently ignores the fact that this is a
       // symmetric outer product.
@@ -647,7 +646,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
       int r, c, row_stride, col_stride;
       CellInfo* cell_info =
           lhs->GetCell(block1, block2, &r, &c, &row_stride, &col_stride);
-      if (cell_info != NULL) {
+      if (cell_info != nullptr) {
         const int block2_size = bs->cols[row.cells[j].block_id].size;
         std::lock_guard<std::mutex> l(cell_info->m);
         // clang-format off
@@ -682,7 +681,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
     int r, c, row_stride, col_stride;
     CellInfo* cell_info =
         lhs->GetCell(block1, block1, &r, &c, &row_stride, &col_stride);
-    if (cell_info != NULL) {
+    if (cell_info != nullptr) {
       std::lock_guard<std::mutex> l(cell_info->m);
       // block += b1.transpose() * b1;
       // clang-format off
@@ -702,7 +701,7 @@ void SchurEliminator<kRowBlockSize, kEBlockSize, kFBlockSize>::
       int r, c, row_stride, col_stride;
       CellInfo* cell_info =
           lhs->GetCell(block1, block2, &r, &c, &row_stride, &col_stride);
-      if (cell_info != NULL) {
+      if (cell_info != nullptr) {
         // block += b1.transpose() * b2;
         std::lock_guard<std::mutex> l(cell_info->m);
         // clang-format off

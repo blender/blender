@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# <pep8 compliant>
-
 from bpy.types import (
     Panel,
 )
@@ -77,7 +75,6 @@ class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
 
         elif field.type == 'GUIDE':
             col = flow.column()
-            col.prop(field, "guide_minimum")
             col.prop(field, "guide_free")
             col.prop(field, "falloff_power")
             col.prop(field, "use_guide_path_add")
@@ -88,11 +85,20 @@ class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
             col = flow.column()
             col.prop(field, "guide_clump_amount", text="Clumping Amount")
             col.prop(field, "guide_clump_shape")
-            col.prop(field, "use_max_distance")
 
-            sub = col.column()
+            col.separator()
+
+            col.prop(field, "guide_minimum", text="Min Distance")
+
+            col = layout.column(align=False, heading="Max Distance")
+            col.use_property_decorate = False
+            row = col.row(align=True)
+            sub = row.row(align=True)
+            sub.prop(field, "use_max_distance", text="")
+            sub = sub.row(align=True)
             sub.active = field.use_max_distance
-            sub.prop(field, "distance_max")
+            sub.prop(field, "distance_max", text="")
+            row.prop_decorator(field, "distance_max")
 
         elif field.type == 'TEXTURE':
             col = flow.column()

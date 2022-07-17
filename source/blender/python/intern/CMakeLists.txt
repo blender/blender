@@ -143,10 +143,13 @@ if(WITH_PYTHON_SAFETY)
   add_definitions(-DWITH_PYTHON_SAFETY)
 endif()
 
-
-
 if(WITH_AUDASPACE)
+  # It's possible to build with AUDASPACE (for file IO) but without the `aud` Python API,
+  # when building without NUMPY so define both `WITH_AUDASPACE` & `DWITH_AUDASPACE_PY`.
   add_definitions(-DWITH_AUDASPACE)
+  if(WITH_PYTHON_NUMPY)
+    add_definitions(-DWITH_AUDASPACE_PY)
+  endif()
 endif()
 
 if(WITH_BULLET)
@@ -229,7 +232,7 @@ if(WITH_IMAGE_TIFF)
 endif()
 
 if(WITH_WEBP)
-	add_definitions(-DWITH_WEBP)
+  add_definitions(-DWITH_WEBP)
 endif()
 
 if(WITH_INPUT_NDOF)
@@ -305,6 +308,18 @@ endif()
 
 if(WITH_OPENCOLLADA)
   add_definitions(-DWITH_COLLADA)
+endif()
+
+if(WITH_IO_WAVEFRONT_OBJ)
+  add_definitions(-DWITH_IO_WAVEFRONT_OBJ)
+endif()
+
+if(WITH_IO_STL)
+  add_definitions(-DWITH_IO_STL)
+endif()
+
+if(WITH_IO_GPENCIL)
+  add_definitions(-DWITH_IO_GPENCIL)
 endif()
 
 if(WITH_ALEMBIC)

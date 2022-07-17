@@ -30,6 +30,7 @@ class VertBuf;
 class GPUBackend {
  public:
   virtual ~GPUBackend() = default;
+  virtual void delete_resources() = 0;
 
   static GPUBackend *get();
 

@@ -1,26 +1,3 @@
-#ifndef USE_GPU_SHADER_CREATE_INFO
-layout(lines) in;
-layout(triangle_strip, max_vertices = 4) out;
-
-uniform vec4 color;
-uniform vec2 viewportSize;
-uniform float lineWidth;
-uniform bool lineSmooth = true;
-
-#  if !defined(UNIFORM)
-in vec4 finalColor_g[];
-#  endif
-
-#  ifdef CLIP
-in float clip_g[];
-out float clip;
-#  endif
-
-out vec4 finalColor;
-noperspective out float smoothline;
-#endif
-
-#define SMOOTH_WIDTH 1.0
 
 /* Clips point to near clip plane before perspective divide. */
 vec4 clip_line_point_homogeneous_space(vec4 p, vec4 q)
@@ -41,26 +18,26 @@ vec4 clip_line_point_homogeneous_space(vec4 p, vec4 q)
 void do_vertex(const int i, vec4 pos, vec2 ofs)
 {
 #if defined(UNIFORM)
-  finalColor = color;
+  interp_out.color = color;
 
 #elif defined(FLAT)
   /* WATCH: Assuming last provoking vertex. */
-  finalColor = finalColor_g[1];
+  interp_out.color = interp_in[1].color;
 
 #elif defined(SMOOTH)
-  finalColor = finalColor_g[i];
+  interp_out.color = interp_in[i].color;
 #endif
 
 #ifdef CLIP
-  clip = clip_g[i];
+  interp_out.clip = interp_in[i].clip;
 #endif
 
-  smoothline = (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
+  interp_out.smoothline = (lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy += ofs * pos.w;
   EmitVertex();
 
-  smoothline = -(lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
+  interp_out.smoothline = -(lineWidth + SMOOTH_WIDTH * float(lineSmooth)) * 0.5;
   gl_Position = pos;
   gl_Position.xy -= ofs * pos.w;
   EmitVertex();

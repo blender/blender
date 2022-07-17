@@ -1,6 +1,4 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-
-# <pep8 compliant>
 import bpy
 from bpy.types import (
     Panel,
@@ -30,6 +28,8 @@ class WORKSPACE_PT_main(WorkSpaceButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
+
+        layout.prop(workspace, "use_pin_scene")
         layout.prop(workspace, "object_mode", text="Mode")
 
 

@@ -65,7 +65,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu,
   if (UNDO_DISK) {
     const struct BlendFileReadParams params = {0};
     BlendFileReadReport bf_reports = {.reports = NULL};
-    struct BlendFileData *bfd = BKE_blendfile_read(mfu->filename, &params, &bf_reports);
+    struct BlendFileData *bfd = BKE_blendfile_read(mfu->filepath, &params, &bf_reports);
     if (bfd != NULL) {
       BKE_blendfile_read_setup(C, bfd, &params, &bf_reports);
       success = true;
@@ -108,20 +108,20 @@ MemFileUndoData *BKE_memfile_undo_encode(Main *bmain, MemFileUndoData *mfu_prev)
   /* disk save version */
   if (UNDO_DISK) {
     static int counter = 0;
-    char filename[FILE_MAX];
+    char filepath[FILE_MAX];
     char numstr[32];
 
-    /* Calculate current filename. */
+    /* Calculate current filepath. */
     counter++;
     counter = counter % U.undosteps;
 
     BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
-    BLI_join_dirfile(filename, sizeof(filename), BKE_tempdir_session(), numstr);
+    BLI_join_dirfile(filepath, sizeof(filepath), BKE_tempdir_session(), numstr);
 
     /* success = */ /* UNUSED */ BLO_write_file(
-        bmain, filename, fileflags, &(const struct BlendFileWriteParams){0}, NULL);
+        bmain, filepath, fileflags, &(const struct BlendFileWriteParams){0}, NULL);
 
-    BLI_strncpy(mfu->filename, filename, sizeof(mfu->filename));
+    BLI_strncpy(mfu->filepath, filepath, sizeof(mfu->filepath));
   }
   else {
     MemFile *prevfile = (mfu_prev) ? &(mfu_prev->memfile) : NULL;
