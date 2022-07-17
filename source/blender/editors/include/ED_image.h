@@ -173,7 +173,6 @@ typedef struct ImageFrameRange {
   int length;
   int offset;
   /* UDIM tiles. */
-  bool udims_detected;
   ListBase udim_tiles;
 
   /* Temporary data. */
