@@ -1616,7 +1616,7 @@ static bool sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
  */
 static void sculpt_update_object(Depsgraph *depsgraph,
                                  Object *ob,
-                                 Mesh *me_eval,
+                                 Object *ob_eval,
                                  bool need_pmap,
                                  bool need_mask,
                                  bool is_paint_tool)
@@ -1625,8 +1625,11 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   Sculpt *sd = scene->toolsettings->sculpt;
   SculptSession *ss = ob->sculpt;
   const Mesh *me = BKE_object_get_original_mesh(ob);
+  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
   const bool use_face_sets = (ob->mode & OB_MODE_SCULPT) != 0;
+
+  BLI_assert(me_eval != nullptr);
 
   ss->depsgraph = depsgraph;
 
@@ -1733,7 +1736,26 @@ static void sculpt_update_object(Depsgraph *depsgraph,
   pbvh_show_face_sets_set(ss->pbvh, ss->show_face_sets);
 
   if (ss->deform_modifiers_active) {
-    if (!ss->orig_cos) {
+    /* Painting doesn't need crazyspace, use already evaluated mesh coordinates. */
+    if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
+      Mesh *me_eval_deform = ob_eval->runtime.mesh_deform_eval;
+
+      /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
+       * This matters because 'deform eval' is very restrictive and excludes even modifiers that
+       * simply recompute vertex weights. */
+      if (me_eval_deform->mpoly == me_eval->mpoly && me_eval_deform->mloop == me_eval->mloop &&
+          me_eval_deform->totvert == me_eval->totvert) {
+        me_eval_deform = me_eval;
+      }
+
+      BKE_sculptsession_free_deformMats(ss);
+
+      BLI_assert(me_eval_deform->totvert == me->totvert);
+
+      ss->deform_cos = BKE_mesh_vert_coords_alloc(me_eval_deform, NULL);
+      BKE_pbvh_vert_coords_apply(ss->pbvh, ss->deform_cos, me->totvert);
+    }
+    else if (!ss->orig_cos) {
       int a;
 
       BKE_sculptsession_free_deformMats(ss);
@@ -1871,10 +1893,8 @@ void BKE_sculpt_update_object_after_eval(Depsgraph *depsgraph, Object *ob_eval)
   /* Update after mesh evaluation in the dependency graph, to rebuild PBVH or
    * other data when modifiers change the mesh. */
   Object *ob_orig = DEG_get_original_object(ob_eval);
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
-  BLI_assert(me_eval != nullptr);
-  sculpt_update_object(depsgraph, ob_orig, me_eval, false, false, false);
+  sculpt_update_object(depsgraph, ob_orig, ob_eval, false, false, false);
 }
 
 void BKE_sculpt_color_layer_create_if_needed(Object *object)
@@ -1917,10 +1937,8 @@ void BKE_sculpt_update_object_for_edit(
   BLI_assert(ob_orig == DEG_get_original_object(ob_orig));
 
   Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_orig);
-  Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
-  BLI_assert(me_eval != nullptr);
 
-  sculpt_update_object(depsgraph, ob_orig, me_eval, need_pmap, need_mask, is_paint_tool);
+  sculpt_update_object(depsgraph, ob_orig, ob_eval, need_pmap, need_mask, is_paint_tool);
 }
 
 int BKE_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
