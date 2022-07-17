@@ -4952,7 +4952,10 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
   return true;
 }
 
-bool SCULPT_stroke_get_location(bContext *C, float out[3], const float mval[2])
+bool SCULPT_stroke_get_location(bContext *C,
+                                float out[3],
+                                const float mval[2],
+                                bool force_original)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Object *ob;
@@ -4968,7 +4971,7 @@ bool SCULPT_stroke_get_location(bContext *C, float out[3], const float mval[2])
 
   ss = ob->sculpt;
   cache = ss->cache;
-  original = (cache) ? cache->original : false;
+  original = force_original || ((cache) ? cache->original : false);
 
   const Brush *brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 
@@ -5284,7 +5287,7 @@ void SCULPT_flush_update_done(const bContext *C, Object *ob, SculptUpdateType up
 static bool over_mesh(bContext *C, struct wmOperator *UNUSED(op), const float mval[2])
 {
   float co_dummy[3];
-  return SCULPT_stroke_get_location(C, co_dummy, mval);
+  return SCULPT_stroke_get_location(C, co_dummy, mval, false);
 }
 
 bool SCULPT_handles_colors_report(SculptSession *ss, ReportList *reports)

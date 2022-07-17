@@ -845,7 +845,10 @@ void SCULPT_tag_update_overlays(bContext *C);
  * (This allows us to ignore the GL depth buffer)
  * Returns 0 if the ray doesn't hit the mesh, non-zero otherwise.
  */
-bool SCULPT_stroke_get_location(struct bContext *C, float out[3], const float mouse[2]);
+bool SCULPT_stroke_get_location(struct bContext *C,
+                                float out[3],
+                                const float mouse[2],
+                                bool force_original);
 /**
  * Gets the normal, location and active vertex location of the geometry under the cursor. This also
  * updates the active vertex and cursor related data of the SculptSession using the mouse position

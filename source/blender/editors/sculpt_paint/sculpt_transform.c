@@ -426,7 +426,7 @@ static int sculpt_set_pivot_position_exec(bContext *C, wmOperator *op)
         RNA_float_get(op->ptr, "mouse_x"),
         RNA_float_get(op->ptr, "mouse_y"),
     };
-    if (SCULPT_stroke_get_location(C, stroke_location, mval)) {
+    if (SCULPT_stroke_get_location(C, stroke_location, mval, false)) {
       copy_v3_v3(ss->pivot_pos, stroke_location);
     }
   }
