@@ -14,6 +14,8 @@ from bpy.props import (
     StringProperty,
 )
 
+from bpy.app.translations import pgettext_tip as tip_
+
 
 class NodeSetting(PropertyGroup):
     value: StringProperty(
@@ -134,7 +136,7 @@ class NodeAddOperator:
         nodetype = properties["type"]
         bl_rna = bpy.types.Node.bl_rna_get_subclass(nodetype)
         if bl_rna is not None:
-            return bl_rna.description
+            return tip_(bl_rna.description)
         else:
             return ""
 
