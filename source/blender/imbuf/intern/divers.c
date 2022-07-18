@@ -695,9 +695,6 @@ void IMB_buffer_byte_from_byte(uchar *rect_to,
 
 void IMB_rect_from_float(ImBuf *ibuf)
 {
-  float *buffer;
-  const char *from_colorspace;
-
   /* verify we have a float buffer */
   if (ibuf->rect_float == NULL) {
     return;
@@ -710,24 +707,21 @@ void IMB_rect_from_float(ImBuf *ibuf)
     }
   }
 
-  if (ibuf->float_colorspace == NULL) {
-    from_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
-  }
-  else {
-    from_colorspace = ibuf->float_colorspace->name;
-  }
+  const char *from_colorspace = (ibuf->float_colorspace == NULL) ?
+                                    IMB_colormanagement_role_colorspace_name_get(
+                                        COLOR_ROLE_SCENE_LINEAR) :
+                                    ibuf->float_colorspace->name;
+  const char *to_colorspace = (ibuf->rect_colorspace == NULL) ?
+                                  IMB_colormanagement_role_colorspace_name_get(
+                                      COLOR_ROLE_DEFAULT_BYTE) :
+                                  ibuf->rect_colorspace->name;
 
-  buffer = MEM_dupallocN(ibuf->rect_float);
+  float *buffer = MEM_dupallocN(ibuf->rect_float);
 
   /* first make float buffer in byte space */
   const bool predivide = IMB_alpha_affects_rgb(ibuf);
-  IMB_colormanagement_transform(buffer,
-                                ibuf->x,
-                                ibuf->y,
-                                ibuf->channels,
-                                from_colorspace,
-                                ibuf->rect_colorspace->name,
-                                predivide);
+  IMB_colormanagement_transform(
+      buffer, ibuf->x, ibuf->y, ibuf->channels, from_colorspace, to_colorspace, predivide);
 
   /* convert from float's premul alpha to byte's straight alpha */
   if (IMB_alpha_affects_rgb(ibuf)) {
