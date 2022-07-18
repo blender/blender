@@ -59,9 +59,9 @@ static int txtfmt_py_find_builtinfunc(const char *string)
   /* clang-format off */
 
   if        (STR_LITERAL_STARTSWITH(string, "and",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "as",       len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "assert",   len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "async",    len)) { i = len;
+  } else if (STR_LITERAL_STARTSWITH(string, "as",       len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "await",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "break",    len)) { i = len;
   } else if (STR_LITERAL_STARTSWITH(string, "case",     len)) { i = len;
