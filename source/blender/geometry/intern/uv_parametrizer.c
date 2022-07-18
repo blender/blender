@@ -3307,8 +3307,10 @@ static float p_face_stretch(PFace *f)
 
   area = p_face_uv_area_signed(f);
 
-  if (area <= 0.0f) { /* flipped face -> infinite stretch */
-    return 1e10f;
+  if (area <= 0.0f) {
+    /* When a face is flipped, provide a large penalty.
+     * Add on a slight gradient to unflip the face, see also: T99781. */
+    return 1e8f * (1.0f + p_edge_uv_length(e1) + p_edge_uv_length(e2) + p_edge_uv_length(e3));
   }
 
   w = 1.0f / (2.0f * area);
