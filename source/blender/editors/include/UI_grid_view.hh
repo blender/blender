@@ -32,13 +32,11 @@ class AbstractGridView;
 /** \name Grid-View Item Type
  * \{ */
 
-class AbstractGridViewItem {
+class AbstractGridViewItem : public AbstractViewItem {
   friend class AbstractGridView;
   friend class GridViewLayoutBuilder;
 
   const AbstractGridView *view_;
-
-  bool is_active_ = false;
 
  protected:
   /** Reference to a string that uniquely identifies this item in the view. */
@@ -76,13 +74,6 @@ class AbstractGridViewItem {
    * usually depending on the data that the view represents.
    */
   virtual std::optional<bool> should_be_active() const;
-
-  /**
-   * Copy persistent state (e.g. active, selection, etc.) from a matching item of
-   * the last redraw to this item. If sub-classes introduce more advanced state they should
-   * override this and make it update their state accordingly.
-   */
-  virtual void update_from_old(const AbstractGridViewItem &old);
 
   /**
    * Activates this item, deactivates other items, and calls the

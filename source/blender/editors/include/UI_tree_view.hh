@@ -153,7 +153,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
  * It also stores state information that needs to be persistent over redraws, like the collapsed
  * state.
  */
-class AbstractTreeViewItem : public TreeViewItemContainer {
+class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContainer {
   friend class AbstractTreeView;
   friend class TreeViewLayoutBuilder;
   /* Higher-level API. */
@@ -161,7 +161,6 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
 
  private:
   bool is_open_ = false;
-  bool is_active_ = false;
   bool is_renaming_ = false;
 
  protected:
@@ -222,12 +221,8 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    */
   virtual bool supports_collapsing() const;
 
-  /**
-   * Copy persistent state (e.g. is-collapsed flag, selection, etc.) from a matching item of
-   * the last redraw to this item. If sub-classes introduce more advanced state they should
-   * override this and make it update their state accordingly.
-   */
-  virtual void update_from_old(const AbstractTreeViewItem &old);
+  /** See #AbstractViewItem::update_from_old(). */
+  virtual void update_from_old(const AbstractViewItem &old) override;
 
   /**
    * Compare this item to \a other to check if they represent the same data.

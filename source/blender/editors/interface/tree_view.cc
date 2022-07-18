@@ -339,11 +339,13 @@ void AbstractTreeViewItem::build_context_menu(bContext & /*C*/, uiLayout & /*col
   /* No context menu by default. */
 }
 
-void AbstractTreeViewItem::update_from_old(const AbstractTreeViewItem &old)
+void AbstractTreeViewItem::update_from_old(const AbstractViewItem &old)
 {
-  is_open_ = old.is_open_;
-  is_active_ = old.is_active_;
-  is_renaming_ = old.is_renaming_;
+  AbstractViewItem::update_from_old(old);
+
+  const AbstractTreeViewItem &old_tree_item = dynamic_cast<const AbstractTreeViewItem &>(old);
+  is_open_ = old_tree_item.is_open_;
+  is_renaming_ = old_tree_item.is_renaming_;
 }
 
 bool AbstractTreeViewItem::matches(const AbstractTreeViewItem &other) const

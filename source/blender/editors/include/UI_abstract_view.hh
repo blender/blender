@@ -15,11 +15,16 @@
 #include <array>
 #include <memory>
 
+#include "DNA_defs.h"
+
 #include "BLI_span.hh"
 
 struct wmNotifier;
+struct uiBlock;
 
 namespace blender::ui {
+
+class AbstractViewItem;
 
 class AbstractView {
   bool is_reconstructed_ = false;
@@ -64,6 +69,28 @@ class AbstractView {
    * #update_from_old() have finished.
    */
   bool is_reconstructed() const;
+};
+
+class AbstractViewItem {
+ protected:
+  bool is_active_ = false;
+
+ public:
+  virtual ~AbstractViewItem() = default;
+
+ protected:
+  AbstractViewItem() = default;
+
+  /**
+   * Copy persistent state (e.g. active, selection, etc.) from a matching item of
+   * the last redraw to this item. If sub-classes introduce more advanced state they should
+   * override this and make it update their state accordingly.
+   *
+   * \note Always call the base class implementation when overriding this!
+   */
+  virtual void update_from_old(const AbstractViewItem &old);
+
+  void set_view(AbstractView &view);
 };
 
 }  // namespace blender::ui

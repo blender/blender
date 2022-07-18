@@ -158,11 +158,6 @@ void AbstractGridViewItem::change_state_delayed()
   }
 }
 
-void AbstractGridViewItem::update_from_old(const AbstractGridViewItem &old)
-{
-  is_active_ = old.is_active_;
-}
-
 void AbstractGridViewItem::activate()
 {
   BLI_assert_msg(get_view().is_reconstructed(),
