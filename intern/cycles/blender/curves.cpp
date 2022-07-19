@@ -613,8 +613,6 @@ void BlenderSync::sync_particle_hair(
   }
 }
 
-#ifdef WITH_NEW_CURVES_TYPE
-
 static std::optional<BL::FloatAttribute> find_curves_radius_attribute(BL::Curves b_curves)
 {
   for (BL::Attribute &b_attribute : b_curves.attributes) {
@@ -990,15 +988,6 @@ void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, int
     export_hair_curves(scene, hair, b_curves, need_motion, motion_scale);
   }
 }
-#else
-void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, int motion_step)
-{
-  (void)hair;
-  (void)b_ob_info;
-  (void)motion;
-  (void)motion_step;
-}
-#endif
 
 void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Hair *hair)
 {
@@ -1010,14 +999,11 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, H
   new_hair.set_used_shaders(used_shaders);
 
   if (view_layer.use_hair) {
-#ifdef WITH_NEW_CURVES_TYPE
     if (b_ob_info.object_data.is_a(&RNA_Curves)) {
       /* Hair object. */
       sync_hair(&new_hair, b_ob_info, false);
     }
-    else
-#endif
-    {
+    else {
       /* Particle hair. */
       bool need_undeformed = new_hair.need_attribute(scene, ATTR_STD_GENERATED);
       BL::Mesh b_mesh = object_to_mesh(
@@ -1064,15 +1050,12 @@ void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
 
   /* Export deformed coordinates. */
   if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
-#ifdef WITH_NEW_CURVES_TYPE
     if (b_ob_info.object_data.is_a(&RNA_Curves)) {
       /* Hair object. */
       sync_hair(hair, b_ob_info, true, motion_step);
       return;
     }
-    else
-#endif
-    {
+    else {
       /* Particle hair. */
       BL::Mesh b_mesh = object_to_mesh(
           b_data, b_ob_info, b_depsgraph, false, Mesh::SUBDIVISION_NONE);
