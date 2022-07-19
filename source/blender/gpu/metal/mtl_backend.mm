@@ -10,6 +10,7 @@
 #include "mtl_backend.hh"
 #include "mtl_context.hh"
 #include "mtl_framebuffer.hh"
+#include "mtl_uniform_buffer.hh"
 #include "mtl_query.hh"
 
 #include "gpu_capabilities_private.hh"
@@ -81,8 +82,7 @@ Texture *MTLBackend::texture_alloc(const char *name)
 
 UniformBuf *MTLBackend::uniformbuf_alloc(int size, const char *name)
 {
-  /* TODO(Metal): Implement MTLUniformBuf. */
-  return nullptr;
+  return new MTLUniformBuf(size, name);
 };
 
 StorageBuf *MTLBackend::storagebuf_alloc(int size, GPUUsageType usage, const char *name)

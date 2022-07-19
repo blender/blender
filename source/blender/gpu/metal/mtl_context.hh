@@ -3,6 +3,7 @@
 /** \file
  * \ingroup gpu
  */
+
 #pragma once
 
 #include "MEM_guardedalloc.h"
@@ -624,6 +625,11 @@ class MTLContext : public Context {
   void finish() override;
 
   void memory_statistics_get(int *total_mem, int *free_mem) override;
+
+  static MTLContext *get()
+  {
+    return static_cast<MTLContext *>(Context::get());
+  }
 
   void debug_group_begin(const char *name, int index) override;
   void debug_group_end() override;
