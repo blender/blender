@@ -3,7 +3,7 @@
 /** \file
  * \ingroup edinterface
  *
- * Share between interface_eyedropper_*.c files.
+ * Share between `interface/eyedropper/` files.
  */
 
 #pragma once
@@ -35,7 +35,7 @@ void datadropper_win_area_find(const struct bContext *C,
  *
  * Special check for image or nodes where we MAY have HDR pixels which don't display.
  *
- * \note Exposed by 'interface_eyedropper_intern.h' for use with color band picking.
+ * \note Exposed by 'eyedropper_intern.h' for use with color band picking.
  */
 void eyedropper_color_sample_fl(bContext *C, const int m_xy[2], float r_col[3]);
 

@@ -21,7 +21,7 @@
 
 #include "interface_intern.h"
 
-#include "interface_eyedropper_intern.h" /* own include */
+#include "eyedropper_intern.h" /* own include */
 
 /* -------------------------------------------------------------------- */
 /* Keymap

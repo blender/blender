@@ -26,6 +26,13 @@ set(INC
 )
 
 set(SRC
+  eyedroppers/interface_eyedropper.c
+  eyedroppers/eyedropper_color.c
+  eyedroppers/eyedropper_colorband.c
+  eyedroppers/eyedropper_datablock.c
+  eyedroppers/eyedropper_depth.c
+  eyedroppers/eyedropper_driver.c
+  eyedroppers/eyedropper_gpencil_color.c
   interface.cc
   interface_align.c
   interface_anim.c
@@ -35,13 +42,6 @@ set(SRC
   interface_drag.cc
   interface_draw.c
   interface_dropboxes.cc
-  interface_eyedropper.c
-  interface_eyedropper_color.c
-  interface_eyedropper_colorband.c
-  interface_eyedropper_datablock.c
-  interface_eyedropper_depth.c
-  interface_eyedropper_driver.c
-  interface_eyedropper_gpencil_color.c
   interface_handlers.c
   interface_icons.c
   interface_icons_event.c
@@ -80,7 +80,7 @@ set(SRC
   views/interface_view.cc
   views/tree_view.cc
 
-  interface_eyedropper_intern.h
+  eyedroppers/eyedropper_intern.h
   interface_intern.h
   interface_regions_intern.h
 )

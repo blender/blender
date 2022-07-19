@@ -38,7 +38,7 @@
 #include "ED_space_api.h"
 #include "ED_view3d.h"
 
-#include "interface_eyedropper_intern.h"
+#include "eyedropper_intern.h"
 #include "interface_intern.h"
 
 /**

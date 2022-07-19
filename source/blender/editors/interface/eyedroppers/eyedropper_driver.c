@@ -32,7 +32,7 @@
 
 #include "ED_keyframing.h"
 
-#include "interface_eyedropper_intern.h"
+#include "eyedropper_intern.h"
 #include "interface_intern.h"
 
 typedef struct DriverDropper {

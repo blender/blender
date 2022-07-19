@@ -50,7 +50,7 @@
 
 #include "RE_pipeline.h"
 
-#include "interface_eyedropper_intern.h"
+#include "eyedropper_intern.h"
 
 typedef struct Eyedropper {
   struct ColorManagedDisplay *display;
