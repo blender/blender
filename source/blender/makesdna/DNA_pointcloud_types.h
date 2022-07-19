@@ -18,13 +18,9 @@ typedef struct PointCloud {
   struct AnimData *adt; /* animation data (must be immediately after id) */
 
   int flag;
-  int _pad1[1];
 
   /* Geometry */
-  float (*co)[3];
-  float *radius;
   int totpoint;
-  int _pad2[1];
 
   /* Custom Data */
   struct CustomData pdata;

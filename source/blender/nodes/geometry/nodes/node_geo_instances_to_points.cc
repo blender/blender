@@ -51,16 +51,24 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   if (selection.is_empty()) {
     return;
   }
+  const VArray<float3> &positions = evaluator.get_evaluated<float3>(0);
+  const VArray<float> radii = evaluator.get_evaluated<float>(1);
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   geometry_set.replace_pointcloud(pointcloud);
 
-  PointCloudComponent &points = geometry_set.get_component_for_write<PointCloudComponent>();
+  bke::MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(
+      *pointcloud);
 
-  const VArray<float3> &positions = evaluator.get_evaluated<float3>(0);
-  copy_attribute_to_points(positions, selection, {(float3 *)pointcloud->co, pointcloud->totpoint});
-  const VArray<float> radii = evaluator.get_evaluated<float>(1);
-  copy_attribute_to_points(radii, selection, {pointcloud->radius, pointcloud->totpoint});
+  bke::SpanAttributeWriter<float3> point_positions =
+      point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);
+  bke::SpanAttributeWriter<float> point_radii =
+      point_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+
+  copy_attribute_to_points(positions, selection, point_positions.span);
+  copy_attribute_to_points(radii, selection, point_radii.span);
+  point_positions.finish();
+  point_radii.finish();
 
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
   geometry_set.gather_attributes_for_propagation({GEO_COMPONENT_TYPE_INSTANCES},
@@ -78,7 +86,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
     const GVArray src = instances.attributes()->lookup_or_default(
         attribute_id, ATTR_DOMAIN_INSTANCE, attribute_kind.data_type);
     BLI_assert(src);
-    GSpanAttributeWriter dst = points.attributes_for_write()->lookup_or_add_for_write_only_span(
+    GSpanAttributeWriter dst = point_attributes.lookup_or_add_for_write_only_span(
         attribute_id, ATTR_DOMAIN_POINT, attribute_kind.data_type);
     BLI_assert(dst);
 

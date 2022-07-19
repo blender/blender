@@ -47,21 +47,24 @@ static void transform_mesh(Mesh &mesh, const float4x4 &transform)
 
 static void translate_pointcloud(PointCloud &pointcloud, const float3 translation)
 {
-  CustomData_duplicate_referenced_layer(&pointcloud.pdata, CD_PROP_FLOAT3, pointcloud.totpoint);
-  BKE_pointcloud_update_customdata_pointers(&pointcloud);
-  for (const int i : IndexRange(pointcloud.totpoint)) {
-    add_v3_v3(pointcloud.co[i], translation);
+  MutableAttributeAccessor attributes = bke::pointcloud_attributes_for_write(pointcloud);
+  SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
+      "position", ATTR_DOMAIN_POINT);
+  for (const int i : position.span.index_range()) {
+    position.span[i] += translation;
   }
+  position.finish();
 }
 
 static void transform_pointcloud(PointCloud &pointcloud, const float4x4 &transform)
 {
-  CustomData_duplicate_referenced_layer(&pointcloud.pdata, CD_PROP_FLOAT3, pointcloud.totpoint);
-  BKE_pointcloud_update_customdata_pointers(&pointcloud);
-  for (const int i : IndexRange(pointcloud.totpoint)) {
-    float3 &co = *(float3 *)pointcloud.co[i];
-    co = transform * co;
+  MutableAttributeAccessor attributes = bke::pointcloud_attributes_for_write(pointcloud);
+  SpanAttributeWriter position = attributes.lookup_or_add_for_write_span<float3>(
+      "position", ATTR_DOMAIN_POINT);
+  for (const int i : position.span.index_range()) {
+    position.span[i] = transform * position.span[i];
   }
+  position.finish();
 }
 
 static void translate_instances(InstancesComponent &instances, const float3 translation)

@@ -751,6 +751,8 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(scene), 
 
 void BKE_pointcloud_from_mesh(Mesh *me, PointCloud *pointcloud)
 {
+  using namespace blender;
+
   BLI_assert(me != nullptr);
 
   pointcloud->totpoint = me->totvert;
@@ -758,14 +760,17 @@ void BKE_pointcloud_from_mesh(Mesh *me, PointCloud *pointcloud)
 
   /* Copy over all attributes. */
   CustomData_merge(&me->vdata, &pointcloud->pdata, CD_MASK_PROP_ALL, CD_DUPLICATE, me->totvert);
-  BKE_pointcloud_update_customdata_pointers(pointcloud);
-  CustomData_update_typemap(&pointcloud->pdata);
 
-  MVert *mvert;
-  mvert = me->mvert;
-  for (int i = 0; i < me->totvert; i++, mvert++) {
-    copy_v3_v3(pointcloud->co[i], mvert->co);
-  }
+  bke::AttributeAccessor mesh_attributes = bke::mesh_attributes(*me);
+  bke::MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(
+      *pointcloud);
+
+  const VArray<float3> mesh_positions = mesh_attributes.lookup_or_default<float3>(
+      "position", ATTR_DOMAIN_POINT, float3(0));
+  bke::SpanAttributeWriter<float3> point_positions =
+      point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);
+  mesh_positions.materialize(point_positions.span);
+  point_positions.finish();
 }
 
 void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob)

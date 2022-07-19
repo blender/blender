@@ -18,8 +18,10 @@ PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
                                     const IndexMask selection)
 {
   const PointCloud &src_pointcloud = *src_points.get_for_read();
-  const int src_size = src_pointcloud.totpoint;
-  Span<float3> positions{reinterpret_cast<float3 *>(src_pointcloud.co), src_size};
+  bke::AttributeAccessor attributes = bke::pointcloud_attributes(src_pointcloud);
+  VArraySpan<float3> positions = attributes.lookup_or_default<float3>(
+      "position", ATTR_DOMAIN_POINT, float3(0));
+  const int src_size = positions.size();
 
   /* Create the KD tree based on only the selected points, to speed up merge detection and
    * balancing. */
@@ -106,10 +108,10 @@ PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
 
   const bke::AttributeAccessor src_attributes = *src_points.attributes();
   bke::MutableAttributeAccessor dst_attributes = *dst_points.attributes_for_write();
-  Set<bke::AttributeIDRef> attributes = src_attributes.all_ids();
+  Set<bke::AttributeIDRef> attribute_ids = src_attributes.all_ids();
 
   /* Transfer the ID attribute if it exists, using the ID of the first merged point. */
-  if (attributes.contains("id")) {
+  if (attribute_ids.contains("id")) {
     VArraySpan<int> src = src_attributes.lookup_or_default<int>("id", ATTR_DOMAIN_POINT, 0);
     bke::SpanAttributeWriter<int> dst = dst_attributes.lookup_or_add_for_write_only_span<int>(
         "id", ATTR_DOMAIN_POINT);
@@ -122,11 +124,11 @@ PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
     });
 
     dst.finish();
-    attributes.remove_contained("id");
+    attribute_ids.remove_contained("id");
   }
 
   /* Transfer all other attributes. */
-  for (const bke::AttributeIDRef &id : attributes) {
+  for (const bke::AttributeIDRef &id : attribute_ids) {
     if (!id.should_be_kept()) {
       continue;
     }

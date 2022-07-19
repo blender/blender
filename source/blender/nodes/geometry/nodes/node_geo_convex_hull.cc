@@ -149,12 +149,17 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
 
   if (geometry_set.has_pointcloud()) {
     count++;
-    span_count++;
     const PointCloudComponent *component =
         geometry_set.get_component_for_read<PointCloudComponent>();
     const PointCloud *pointcloud = component->get_for_read();
-    positions_span = {reinterpret_cast<const float3 *>(pointcloud->co), pointcloud->totpoint};
-    total_num += pointcloud->totpoint;
+    const bke::AttributeAccessor attributes = bke::pointcloud_attributes(*pointcloud);
+    const VArray<float3> positions = attributes.lookup_or_default<float3>(
+        "position", ATTR_DOMAIN_POINT, float3(0));
+    if (positions.is_span()) {
+      span_count++;
+      positions_span = positions.get_internal_span();
+    }
+    total_num += positions.size();
   }
 
   if (geometry_set.has_curves()) {

@@ -497,8 +497,17 @@ static void point_distribution_calculate(GeometrySet &geometry_set,
   }
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(positions.size());
-  memcpy(pointcloud->co, positions.data(), sizeof(float3) * positions.size());
-  uninitialized_fill_n(pointcloud->radius, pointcloud->totpoint, 0.05f);
+  bke::MutableAttributeAccessor point_attributes = bke::pointcloud_attributes_for_write(
+      *pointcloud);
+  bke::SpanAttributeWriter<float3> point_positions =
+      point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);
+  bke::SpanAttributeWriter<float> point_radii =
+      point_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+  point_positions.span.copy_from(positions);
+  point_radii.span.fill(0.05f);
+  point_positions.finish();
+  point_radii.finish();
+
   geometry_set.replace_pointcloud(pointcloud);
 
   PointCloudComponent &point_component =
