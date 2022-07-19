@@ -60,16 +60,20 @@ struct ComponentNode : public Node {
    * See #add_operation for the meaning and examples of #name and #name_tag.
    */
   OperationNode *find_operation(OperationIDKey key) const;
-  OperationNode *find_operation(OperationCode opcode, const char *name, int name_tag) const;
+  OperationNode *find_operation(OperationCode opcode,
+                                const char *name = "",
+                                int name_tag = -1) const;
 
   /* Find an existing operation, will throw an assert() if it does not exist.
    * See #add_operation for the meaning and examples of #name and #name_tag. */
   OperationNode *get_operation(OperationIDKey key) const;
-  OperationNode *get_operation(OperationCode opcode, const char *name, int name_tag) const;
+  OperationNode *get_operation(OperationCode opcode,
+                               const char *name = "",
+                               int name_tag = -1) const;
 
   /* Check operation exists and return it. */
   bool has_operation(OperationIDKey key) const;
-  bool has_operation(OperationCode opcode, const char *name, int name_tag) const;
+  bool has_operation(OperationCode opcode, const char *name = "", int name_tag = -1) const;
 
   /**
    * Create a new node for representing an operation and add this to graph
@@ -89,8 +93,8 @@ struct ComponentNode : public Node {
    */
   OperationNode *add_operation(const DepsEvalOperationCb &op,
                                OperationCode opcode,
-                               const char *name,
-                               int name_tag);
+                               const char *name = "",
+                               int name_tag = -1);
 
   /* Entry/exit operations management.
    *
