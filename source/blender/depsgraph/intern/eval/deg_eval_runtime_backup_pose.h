@@ -11,8 +11,6 @@
 
 #include "DNA_action_types.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
-}
-}  // namespace blender
+}  // namespace blender::deg

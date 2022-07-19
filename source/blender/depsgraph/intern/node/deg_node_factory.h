@@ -14,9 +14,7 @@
 
 struct ID;
 
-namespace blender {
-namespace deg {
-
+namespace blender::deg {
 struct DepsNodeFactory {
   virtual NodeType type() const = 0;
   virtual const char *type_name() const = 0;
@@ -41,7 +39,6 @@ void register_node_typeinfo(DepsNodeFactory *factory);
 /* Get typeinfo for specified type */
 DepsNodeFactory *type_get_factory(NodeType type);
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg
 
 #include "intern/node/deg_node_factory_impl.h"

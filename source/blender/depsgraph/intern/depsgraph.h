@@ -31,8 +31,7 @@ struct ID;
 struct Scene;
 struct ViewLayer;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct IDNode;
 struct Node;
@@ -162,5 +161,4 @@ struct Depsgraph {
   MEM_CXX_CLASS_ALLOC_FUNCS("Depsgraph");
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

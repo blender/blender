@@ -9,8 +9,7 @@
 
 struct bGPdata;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 
@@ -25,5 +24,4 @@ class GPencilBackup {
   const Depsgraph *depsgraph;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

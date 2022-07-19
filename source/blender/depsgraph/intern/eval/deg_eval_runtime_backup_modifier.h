@@ -11,8 +11,7 @@
 
 struct ModifierData;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 class ModifierDataBackup {
  public:
@@ -22,5 +21,4 @@ class ModifierDataBackup {
   void *runtime;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg
