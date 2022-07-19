@@ -180,7 +180,7 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 
     ComponentNode *visibility_component = id_node->add_component(NodeType::VISIBILITY);
     OperationNode *visibility_operation = visibility_component->add_operation(
-        nullptr, OperationCode::OPERATION);
+        nullptr, OperationCode::VISIBILITY);
     /* Pin the node so that it and its relations are preserved by the unused nodes/relations
      * deletion. This is mainly to make it easier to debug visibility. */
     visibility_operation->flag |= OperationFlag::DEPSOP_FLAG_PINNED;

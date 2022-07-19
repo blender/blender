@@ -34,6 +34,7 @@ enum class OperationCode {
   PARAMETERS_ENTRY,
   PARAMETERS_EVAL,
   PARAMETERS_EXIT,
+  VISIBILITY,
 
   /* Animation, Drivers, etc. --------------------------------------------- */
   /* NLA + Action */
