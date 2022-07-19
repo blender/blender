@@ -3,6 +3,8 @@
 /** \file
  * \ingroup gpu
  */
+#pragma once
+
 #include "MEM_guardedalloc.h"
 
 #include "gpu_context_private.hh"
@@ -588,6 +590,10 @@ class MTLContext : public Context {
   bool is_inside_frame_ = false;
   uint current_frame_index_;
 
+  /* Visibility buffer for MTLQuery results. */
+  gpu::MTLBuffer *visibility_buffer_ = nullptr;
+  bool visibility_is_dirty_ = false;
+
  public:
   /* Shaders and Pipeline state. */
   MTLContextGlobalShaderPipelineState pipeline_state;
@@ -659,6 +665,18 @@ class MTLContext : public Context {
   void set_viewport(int origin_x, int origin_y, int width, int height);
   void set_scissor(int scissor_x, int scissor_y, int scissor_width, int scissor_height);
   void set_scissor_enabled(bool scissor_enabled);
+
+  /* Visibility buffer control. */
+  void set_visibility_buffer(gpu::MTLBuffer *buffer);
+  gpu::MTLBuffer *get_visibility_buffer() const;
+
+  /* Flag whether the visibility buffer for query results
+   * has changed. This requires a new RenderPass in order
+   * to update.*/
+  bool is_visibility_dirty() const;
+
+  /* Reset dirty flag state for visibility buffer. */
+  void clear_visibility_dirty();
 
   /* Texture utilities. */
   MTLContextTextureUtils &get_texture_utils()

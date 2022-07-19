@@ -188,7 +188,8 @@ id<MTLRenderCommandEncoder> MTLContext::ensure_begin_render_pass()
    * framebuffer state has been modified (is_dirty). */
   if (!this->main_command_buffer.is_inside_render_pass() ||
       this->active_fb != this->main_command_buffer.get_active_framebuffer() ||
-      this->main_command_buffer.get_active_framebuffer()->get_dirty()) {
+      this->main_command_buffer.get_active_framebuffer()->get_dirty() ||
+      this->is_visibility_dirty()) {
 
     /* Validate bound framebuffer before beginning render pass. */
     if (!static_cast<MTLFrameBuffer *>(this->active_fb)->validate_render_pass()) {
@@ -367,6 +368,45 @@ void MTLContext::set_scissor_enabled(bool scissor_enabled)
     this->pipeline_state.dirty_flags = (this->pipeline_state.dirty_flags |
                                         MTL_PIPELINE_STATE_SCISSOR_FLAG);
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Visibility buffer control for MTLQueryPool.
+ * \{ */
+
+void MTLContext::set_visibility_buffer(gpu::MTLBuffer *buffer)
+{
+  /* Flag visibility buffer as dirty if the buffer being used for visibility has changed --
+   * This is required by the render pass, and we will break the pass if the results destination
+   * buffer is modified. */
+  if (buffer) {
+    visibility_is_dirty_ = (buffer != visibility_buffer_) || visibility_is_dirty_;
+    visibility_buffer_ = buffer;
+    visibility_buffer_->debug_ensure_used();
+  }
+  else {
+    /* If buffer is null, reset visibility state, mark dirty to break render pass if results are no
+     * longer needed. */
+    visibility_is_dirty_ = (visibility_buffer_ != nullptr) || visibility_is_dirty_;
+    visibility_buffer_ = nullptr;
+  }
+}
+
+gpu::MTLBuffer *MTLContext::get_visibility_buffer() const
+{
+  return visibility_buffer_;
+}
+
+void MTLContext::clear_visibility_dirty()
+{
+  visibility_is_dirty_ = false;
+}
+
+bool MTLContext::is_visibility_dirty() const
+{
+  return visibility_is_dirty_;
 }
 
 /** \} */

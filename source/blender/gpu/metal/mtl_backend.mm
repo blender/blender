@@ -10,6 +10,7 @@
 #include "mtl_backend.hh"
 #include "mtl_context.hh"
 #include "mtl_framebuffer.hh"
+#include "mtl_query.hh"
 
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
@@ -64,8 +65,7 @@ IndexBuf *MTLBackend::indexbuf_alloc()
 
 QueryPool *MTLBackend::querypool_alloc()
 {
-  /* TODO(Metal): Implement MTLQueryPool. */
-  return nullptr;
+  return new MTLQueryPool();
 };
 
 Shader *MTLBackend::shader_alloc(const char *name)
