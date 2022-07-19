@@ -9,8 +9,7 @@
 
 #include "pipeline.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 /* Optimized builders for dependency graph built from a given set of IDs.
  *
@@ -37,5 +36,4 @@ class FromIDsBuilderPipeline : public AbstractBuilderPipeline {
   Span<ID *> ids_;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

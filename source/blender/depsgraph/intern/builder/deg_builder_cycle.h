@@ -7,13 +7,11 @@
 
 #pragma once
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 
 /* Detect and solve dependency cycles. */
 void deg_graph_detect_cycles(Depsgraph *graph);
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

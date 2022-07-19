@@ -17,8 +17,7 @@ struct ID;
 struct PointerRNA;
 struct PropertyRNA;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 class DepsgraphBuilderCache;
 
@@ -101,5 +100,4 @@ class DepsgraphBuilderCache {
   MEM_CXX_CLASS_ALLOC_FUNCS("DepsgraphBuilderCache");
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg
