@@ -28,7 +28,7 @@
 static bool ui_view_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
   const ARegion *region = CTX_wm_region(C);
-  const uiViewItemHandle *hovered_item = UI_block_view_find_item_at(region, event->xy);
+  const uiViewItemHandle *hovered_item = UI_region_views_find_item_at(region, event->xy);
   if (!hovered_item) {
     return false;
   }
@@ -47,7 +47,7 @@ static char *ui_view_drop_tooltip(bContext *C,
                                   wmDropBox *UNUSED(drop))
 {
   const ARegion *region = CTX_wm_region(C);
-  const uiViewItemHandle *hovered_item = UI_block_view_find_item_at(region, xy);
+  const uiViewItemHandle *hovered_item = UI_region_views_find_item_at(region, xy);
   if (!hovered_item) {
     return nullptr;
   }

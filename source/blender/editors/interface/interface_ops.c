@@ -2058,7 +2058,7 @@ static bool ui_view_drop_poll(bContext *C)
 {
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region(C);
-  const uiViewItemHandle *hovered_item = UI_block_view_find_item_at(region, win->eventstate->xy);
+  const uiViewItemHandle *hovered_item = UI_region_views_find_item_at(region, win->eventstate->xy);
 
   return hovered_item != NULL;
 }
@@ -2070,7 +2070,7 @@ static int ui_view_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEven
   }
 
   const ARegion *region = CTX_wm_region(C);
-  uiViewItemHandle *hovered_item = UI_block_view_find_item_at(region, event->xy);
+  uiViewItemHandle *hovered_item = UI_region_views_find_item_at(region, event->xy);
 
   if (!UI_view_item_drop_handle(C, hovered_item, event->customdata)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
@@ -2105,14 +2105,14 @@ static void UI_OT_view_drop(wmOperatorType *ot)
 static bool ui_view_item_rename_poll(bContext *C)
 {
   const ARegion *region = CTX_wm_region(C);
-  const uiViewItemHandle *active_item = UI_block_view_find_active_item(region);
+  const uiViewItemHandle *active_item = UI_region_views_find_active_item(region);
   return active_item != NULL && UI_view_item_can_rename(active_item);
 }
 
 static int ui_view_item_rename_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ARegion *region = CTX_wm_region(C);
-  uiViewItemHandle *active_item = UI_block_view_find_active_item(region);
+  uiViewItemHandle *active_item = UI_region_views_find_active_item(region);
 
   UI_view_item_begin_rename(active_item);
   ED_region_tag_redraw(region);

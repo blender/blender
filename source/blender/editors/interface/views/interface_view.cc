@@ -3,10 +3,16 @@
 /** \file
  * \ingroup edinterface
  *
- * This part of the UI-View API is mostly needed to support persistent state of items within the
- * view. Views are stored in #uiBlock's, and kept alive with it until after the next redraw. So we
- * can compare the old view items with the new view items and keep state persistent for matching
- * ones.
+ * Code to manage views as part of the regular screen hierarchy. E.g. managing ownership of views
+ * inside blocks (#uiBlock.views), looking up items in the region, passing WM notifiers to views,
+ * etc.
+ *
+ * Blocks and their contained views are reconstructed on every redraw. This file also contains
+ * functions related to this recreation of views inside blocks. For example to query state
+ * information before the view is done reconstructing (#AbstractView.is_reconstructed() returns
+ * false), it may be enough to query the previous version of the block/view/view-item. Since such
+ * queries rely on the details of the UI reconstruction process, they should remain internal to
+ * `interface/` code.
  */
 
 #include <memory>
@@ -86,7 +92,7 @@ void UI_block_views_listen(const uiBlock *block, const wmRegionListenerParams *l
   }
 }
 
-uiViewItemHandle *UI_block_view_find_item_at(const ARegion *region, const int xy[2])
+uiViewItemHandle *UI_region_views_find_item_at(const ARegion *region, const int xy[2])
 {
   uiButViewItem *item_but = (uiButViewItem *)ui_view_item_find_mouse_over(region, xy);
   if (!item_but) {
@@ -96,7 +102,7 @@ uiViewItemHandle *UI_block_view_find_item_at(const ARegion *region, const int xy
   return item_but->view_item;
 }
 
-uiViewItemHandle *UI_block_view_find_active_item(const ARegion *region)
+uiViewItemHandle *UI_region_views_find_active_item(const ARegion *region)
 {
   uiButViewItem *item_but = (uiButViewItem *)ui_view_item_find_active(region);
   if (!item_but) {

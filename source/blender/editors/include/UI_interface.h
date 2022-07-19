@@ -3230,9 +3230,9 @@ bool UI_view_item_drop_handle(struct bContext *C,
 /**
  * \param xy: Coordinate to find a view item at, in window space.
  */
-uiViewItemHandle *UI_block_view_find_item_at(const struct ARegion *region, const int xy[2])
+uiViewItemHandle *UI_region_views_find_item_at(const struct ARegion *region, const int xy[2])
     ATTR_NONNULL();
-uiViewItemHandle *UI_block_view_find_active_item(const struct ARegion *region);
+uiViewItemHandle *UI_region_views_find_active_item(const struct ARegion *region);
 
 #ifdef __cplusplus
 }
