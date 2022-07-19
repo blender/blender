@@ -56,12 +56,14 @@ struct ComponentNode : public Node {
 
   virtual string identifier() const override;
 
-  /* Find an existing operation, if requested operation does not exist
-   * nullptr will be returned. */
+  /* Find an existing operation, if requested operation does not exist nullptr will be returned.
+   * See #add_operation for the meaning and examples of #name and #name_tag.
+   */
   OperationNode *find_operation(OperationIDKey key) const;
   OperationNode *find_operation(OperationCode opcode, const char *name, int name_tag) const;
 
-  /* Find an existing operation, will throw an assert() if it does not exist. */
+  /* Find an existing operation, will throw an assert() if it does not exist.
+   * See #add_operation for the meaning and examples of #name and #name_tag. */
   OperationNode *get_operation(OperationIDKey key) const;
   OperationNode *get_operation(OperationCode opcode, const char *name, int name_tag) const;
 
@@ -71,12 +73,19 @@ struct ComponentNode : public Node {
 
   /**
    * Create a new node for representing an operation and add this to graph
+   *
    * \warning If an existing node is found, it will be modified. This helps
    * when node may have been partially created earlier (e.g. parent ref before
    * parent item is added)
    *
    * \param opcode: The operation to perform.
-   * \param name: Identifier for operation - used to find/locate it again.
+   * \param name: An optional identifier for operation. It will be used to tell operation nodes
+   *              with the same code apart. For example, parameter operation code will have name
+   *              set to the corresponding custom property name
+   * \param name_tag: An optional integer tag for the name. Is an additional way to tell operations
+   *                  apart. For example, RNA path to an array property will have the same opcode
+   *                  of PARAMETERS, name corresponding to the property name, and name tag
+   *                  corresponding to the array index within the property.
    */
   OperationNode *add_operation(const DepsEvalOperationCb &op,
                                OperationCode opcode,
