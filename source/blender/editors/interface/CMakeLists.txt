@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
+  .
   ../include
   ../../blenfont
   ../../blenkernel
@@ -25,9 +26,6 @@ set(INC
 )
 
 set(SRC
-  abstract_view.cc
-  abstract_view_item.cc
-  grid_view.cc
   interface.cc
   interface_align.c
   interface_anim.c
@@ -69,15 +67,18 @@ set(SRC
   interface_templates.c
   interface_undo.c
   interface_utils.cc
-  interface_view.cc
   interface_widgets.c
   resources.c
-  tree_view.cc
   view2d.cc
   view2d_draw.cc
   view2d_edge_pan.cc
   view2d_gizmo_navigate.cc
   view2d_ops.cc
+  views/abstract_view.cc
+  views/abstract_view_item.cc
+  views/grid_view.cc
+  views/interface_view.cc
+  views/tree_view.cc
 
   interface_eyedropper_intern.h
   interface_intern.h
