@@ -198,6 +198,16 @@ class IndexRange {
   }
 
   /**
+   * Get the element one before the beginning. The returned value is undefined when the range is
+   * empty, and the range must start after zero already.
+   */
+  constexpr int64_t one_before_start() const
+  {
+    BLI_assert(start_ > 0);
+    return start_ - 1;
+  }
+
+  /**
    * Get the element one after the end. The returned value is undefined when the range is empty.
    */
   constexpr int64_t one_after_last() const

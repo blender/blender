@@ -1011,6 +1011,37 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span
   return {};
 }
 
+Vector<AttributeTransferData> retrieve_attributes_for_transfer(
+    const bke::AttributeAccessor &src_attributes,
+    bke::MutableAttributeAccessor &dst_attributes,
+    const eAttrDomainMask domain_mask,
+    const Set<std::string> &skip)
+{
+  Vector<AttributeTransferData> attributes;
+  src_attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
+        if (!(ATTR_DOMAIN_AS_MASK(meta_data.domain) & domain_mask)) {
+          return true;
+        }
+        if (id.is_named() && skip.contains(id.name())) {
+          return true;
+        }
+        if (!id.should_be_kept()) {
+          return true;
+        }
+
+        GVArray src = src_attributes.lookup(id, meta_data.domain);
+        BLI_assert(src);
+        bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+            id, meta_data.domain, meta_data.data_type);
+        BLI_assert(dst);
+        attributes.append({std::move(src), meta_data, std::move(dst)});
+
+        return true;
+      });
+  return attributes;
+}
+
 }  // namespace blender::bke
 
 /** \} */

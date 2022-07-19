@@ -56,40 +56,6 @@ static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
   bke::curves::accumulate_counts_to_offsets(dst_curve_offsets);
 }
 
-struct AttributeTransferData {
-  /* Expect that if an attribute exists, it is stored as a contiguous array internally anyway. */
-  GVArraySpan src;
-  bke::GSpanAttributeWriter dst;
-};
-
-static Vector<AttributeTransferData> retrieve_point_attributes(
-    const bke::AttributeAccessor &src_attributes,
-    bke::MutableAttributeAccessor &dst_attributes,
-    const Set<std::string> &skip = {})
-{
-  Vector<AttributeTransferData> attributes;
-  src_attributes.for_all(
-      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
-        if (meta_data.domain != ATTR_DOMAIN_POINT) {
-          /* Curve domain attributes are all copied directly to the result in one step. */
-          return true;
-        }
-        if (id.is_named() && skip.contains(id.name())) {
-          return true;
-        }
-
-        GVArray src = src_attributes.lookup(id, ATTR_DOMAIN_POINT);
-        BLI_assert(src);
-        bke::GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
-            id, ATTR_DOMAIN_POINT, meta_data.data_type);
-        BLI_assert(dst);
-        attributes.append({std::move(src), std::move(dst)});
-
-        return true;
-      });
-  return attributes;
-}
-
 template<typename T>
 static inline void linear_interpolation(const T &a, const T &b, MutableSpan<T> dst)
 {
@@ -365,7 +331,8 @@ bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
   bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
 
   auto subdivide_catmull_rom = [&](IndexMask selection) {
-    for (auto &attribute : retrieve_point_attributes(src_attributes, dst_attributes)) {
+    for (auto &attribute : bke::retrieve_attributes_for_transfer(
+             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT)) {
       subdivide_attribute_catmull_rom(src_curves,
                                       dst_curves,
                                       selection,
@@ -378,7 +345,8 @@ bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
   };
 
   auto subdivide_poly = [&](IndexMask selection) {
-    for (auto &attribute : retrieve_point_attributes(src_attributes, dst_attributes)) {
+    for (auto &attribute : bke::retrieve_attributes_for_transfer(
+             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT)) {
       subdivide_attribute_linear(
           src_curves, dst_curves, selection, point_offsets, attribute.src, attribute.dst.span);
       attribute.dst.finish();
@@ -419,13 +387,14 @@ bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
       }
     });
 
-    for (auto &attribute : retrieve_point_attributes(src_attributes,
-                                                     dst_attributes,
-                                                     {"position",
-                                                      "handle_type_left",
-                                                      "handle_type_right",
-                                                      "handle_right",
-                                                      "handle_left"})) {
+    for (auto &attribute : bke::retrieve_attributes_for_transfer(src_attributes,
+                                                                 dst_attributes,
+                                                                 ATTR_DOMAIN_MASK_POINT,
+                                                                 {"position",
+                                                                  "handle_type_left",
+                                                                  "handle_type_right",
+                                                                  "handle_right",
+                                                                  "handle_left"})) {
       subdivide_attribute_linear(
           src_curves, dst_curves, selection, point_offsets, attribute.src, attribute.dst.span);
       attribute.dst.finish();
@@ -445,7 +414,8 @@ bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
                                      subdivide_nurbs);
 
   if (!unselected_ranges.is_empty()) {
-    for (auto &attribute : retrieve_point_attributes(src_attributes, dst_attributes)) {
+    for (auto &attribute : bke::retrieve_attributes_for_transfer(
+             src_attributes, dst_attributes, ATTR_DOMAIN_MASK_POINT)) {
       bke::curves::copy_point_data(
           src_curves, dst_curves, unselected_ranges, attribute.src, attribute.dst.span);
       attribute.dst.finish();
