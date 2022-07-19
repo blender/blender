@@ -692,7 +692,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(object->id);
 
-  /* Object Transforms */
+  /* Object Transforms. */
   OperationCode base_op = (object->parent) ? OperationCode::TRANSFORM_PARENT :
                                              OperationCode::TRANSFORM_LOCAL;
   OperationKey base_op_key(&object->id, NodeType::TRANSFORM, base_op);
@@ -705,9 +705,12 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   OperationKey final_transform_key(
       &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
   OperationKey ob_eval_key(&object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_EVAL);
+
   add_relation(init_transform_key, local_transform_key, "Transform Init");
+
   /* Various flags, flushing from bases/collections. */
   build_object_layer_component_relations(object);
+
   /* Parenting. */
   if (object->parent != nullptr) {
     /* Make sure parent object's relations are built. */
@@ -717,30 +720,35 @@ void DepsgraphRelationBuilder::build_object(Object *object)
     /* Local -> parent. */
     add_relation(local_transform_key, parent_transform_key, "ObLocal -> ObParent");
   }
+
   /* Modifiers. */
   if (object->modifiers.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
   }
+
   /* Grease Pencil Modifiers. */
   if (object->greasepencil_modifiers.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     BKE_gpencil_modifiers_foreach_ID_link(object, modifier_walk, &data);
   }
+
   /* Shader FX. */
   if (object->shader_fx.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     BKE_shaderfx_foreach_ID_link(object, modifier_walk, &data);
   }
+
   /* Constraints. */
   if (object->constraints.first != nullptr) {
     BuilderWalkUserData data;
     data.builder = this;
     BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
   }
+
   /* Object constraints. */
   OperationKey object_transform_simulation_init_key(
       &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_SIMULATION_INIT);
@@ -767,30 +775,39 @@ void DepsgraphRelationBuilder::build_object(Object *object)
                  final_transform_key,
                  "Simulation -> Final Transform");
   }
+
   build_idproperties(object->id.properties);
+
   /* Animation data */
   build_animdata(&object->id);
+
   /* Object data. */
   build_object_data(object);
+
   /* Particle systems. */
   if (object->particlesystem.first != nullptr) {
     build_particle_systems(object);
   }
+
   /* Force field Texture. */
   if ((object->pd != nullptr) && (object->pd->forcefield == PFIELD_TEXTURE) &&
       (object->pd->tex != nullptr)) {
     build_texture(object->pd->tex);
   }
+
   /* Object dupligroup. */
   if (object->instance_collection != nullptr) {
     build_collection(nullptr, object, object->instance_collection);
   }
+
   /* Point caches. */
   build_object_pointcache(object);
+
   /* Synchronization back to original object. */
   OperationKey synchronize_key(
       &object->id, NodeType::SYNCHRONIZATION, OperationCode::SYNCHRONIZE_TO_ORIGINAL);
   add_relation(final_transform_key, synchronize_key, "Synchronize to Original");
+
   /* Parameters. */
   build_parameters(&object->id);
 }
@@ -2460,7 +2477,10 @@ void DepsgraphRelationBuilder::build_camera(Camera *camera)
     ComponentKey dof_ob_key(&camera->dof.focus_object->id, NodeType::TRANSFORM);
     add_relation(dof_ob_key, camera_parameters_key, "Camera DOF");
     if (camera->dof.focus_subtarget[0]) {
-      OperationKey target_key(&camera->dof.focus_object->id, NodeType::BONE, camera->dof.focus_subtarget, OperationCode::BONE_DONE);
+      OperationKey target_key(&camera->dof.focus_object->id,
+                              NodeType::BONE,
+                              camera->dof.focus_subtarget,
+                              OperationCode::BONE_DONE);
       add_relation(target_key, camera_parameters_key, "Camera DOF subtarget");
     }
   }
