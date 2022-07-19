@@ -1915,7 +1915,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
   UnwrapOptions options = {
       .topology_from_uvs = false,
-      .only_selected_faces = false,
+      .only_selected_faces = true,
       .only_selected_uvs = false,
       .fill_holes = RNA_boolean_get(op->ptr, "fill_holes"),
       .correct_aspect = RNA_boolean_get(op->ptr, "correct_aspect"),
@@ -1926,7 +1926,6 @@ static int unwrap_exec(bContext *C, wmOperator *op)
   if (CTX_wm_space_image(C)) {
     /* Inside the UV Editor, only unwrap selected UVs. */
     options.only_selected_uvs = true;
-    options.only_selected_faces = true;
     options.pin_unselected = true;
   }
 
