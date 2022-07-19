@@ -22,16 +22,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Points"));
 }
 
-template<typename T>
-static void copy_attribute_to_points(const VArray<T> &src,
-                                     const IndexMask mask,
-                                     MutableSpan<T> dst)
-{
-  for (const int i : mask.index_range()) {
-    dst[i] = src[mask[i]];
-  }
-}
-
 static void convert_instances_to_points(GeometrySet &geometry_set,
                                         Field<float3> position_field,
                                         Field<float> radius_field,
@@ -65,8 +55,8 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   bke::SpanAttributeWriter<float> point_radii =
       point_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
 
-  copy_attribute_to_points(positions, selection, point_positions.span);
-  copy_attribute_to_points(radii, selection, point_radii.span);
+  positions.materialize_compressed_to_uninitialized(selection, point_positions.span);
+  radii.materialize_compressed_to_uninitialized(selection, point_radii.span);
   point_positions.finish();
   point_radii.finish();
 
@@ -90,10 +80,7 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
         attribute_id, ATTR_DOMAIN_POINT, attribute_kind.data_type);
     BLI_assert(dst);
 
-    attribute_math::convert_to_static_type(attribute_kind.data_type, [&](auto dummy) {
-      using T = decltype(dummy);
-      copy_attribute_to_points(src.typed<T>(), selection, dst.span.typed<T>());
-    });
+    src.materialize_compressed_to_uninitialized(selection, dst.span.data());
     dst.finish();
   }
 }

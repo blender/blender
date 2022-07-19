@@ -18,14 +18,6 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Mesh"));
 }
 
-template<typename T>
-static void copy_attribute_to_vertices(const Span<T> src, const IndexMask mask, MutableSpan<T> dst)
-{
-  for (const int i : mask.index_range()) {
-    dst[i] = src[mask[i]];
-  }
-}
-
 /* One improvement would be to move the attribute arrays directly to the mesh when possible. */
 static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
                                             Field<bool> &selection_field)
@@ -66,12 +58,7 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
         mesh_component.attributes_for_write()->lookup_or_add_for_write_only_span(
             attribute_id, ATTR_DOMAIN_POINT, data_type);
     if (dst && src) {
-      attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
-        using T = decltype(dummy);
-        VArray<T> src_typed = src.typed<T>();
-        VArraySpan<T> src_typed_span{src_typed};
-        copy_attribute_to_vertices(src_typed_span, selection, dst.span.typed<T>());
-      });
+      src.materialize_compressed_to_uninitialized(selection, dst.span.data());
       dst.finish();
     }
   }
