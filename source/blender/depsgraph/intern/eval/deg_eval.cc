@@ -354,9 +354,7 @@ void depsgraph_ensure_view_layer(Depsgraph *graph)
   deg_update_copy_on_write_datablock(graph, scene_id_node);
 }
 
-}  // namespace
-
-static TaskPool *deg_evaluate_task_pool_create(DepsgraphEvalState *state)
+TaskPool *deg_evaluate_task_pool_create(DepsgraphEvalState *state)
 {
   if (G.debug & G_DEBUG_DEPSGRAPH_NO_THREADS) {
     return BLI_task_pool_create_no_threads(state);
@@ -364,6 +362,8 @@ static TaskPool *deg_evaluate_task_pool_create(DepsgraphEvalState *state)
 
   return BLI_task_pool_create_suspended(state, TASK_PRIORITY_HIGH);
 }
+
+}  // namespace
 
 void deg_evaluate_on_refresh(Depsgraph *graph)
 {
