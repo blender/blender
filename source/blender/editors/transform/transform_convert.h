@@ -252,6 +252,11 @@ void createTransUVs(bContext *C, TransInfo *t);
 /* helper for recalcData() - for Image Editor transforms */
 void recalcData_uv(TransInfo *t);
 
+/* transform_convert_mesh_vert_cdata.c */
+
+void createTransMeshVertCData(TransInfo *t);
+void recalcData_mesh_cdata(TransInfo *t);
+
 /* transform_convert_nla.c */
 
 void createTransNlaData(bContext *C, TransInfo *t);

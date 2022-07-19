@@ -823,6 +823,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     case TC_GPENCIL:
     case TC_LATTICE_VERTS:
     case TC_MBALL_VERTS:
+    case TC_MESH_VERT_CDATA:
     case TC_MESH_UV:
     case TC_MESH_SKIN:
     case TC_OBJECT_TEXSPACE:
@@ -905,6 +906,7 @@ static void init_proportional_edit(TransInfo *t)
     case TC_MESH_EDGES:
     case TC_MESH_SKIN:
     case TC_MESH_UV:
+    case TC_MESH_VERT_CDATA:
     case TC_NODE_DATA:
     case TC_OBJECT:
     case TC_PARTICLE_VERTS:
@@ -939,7 +941,7 @@ static void init_proportional_edit(TransInfo *t)
     if (ELEM(convert_type, TC_ACTION_DATA, TC_GRAPH_EDIT_DATA)) {
       /* Distance has already been set. */
     }
-    else if (ELEM(convert_type, TC_MESH_VERTS, TC_MESH_SKIN)) {
+    else if (ELEM(convert_type, TC_MESH_VERTS, TC_MESH_SKIN, TC_MESH_VERT_CDATA)) {
       if (t->flag & T_PROP_CONNECTED) {
         /* Already calculated by transform_convert_mesh_connectivity_distance. */
       }
@@ -984,6 +986,7 @@ static void init_TransDataContainers(TransInfo *t,
     case TC_MESH_EDGES:
     case TC_MESH_SKIN:
     case TC_MESH_UV:
+    case TC_MESH_VERT_CDATA:
       break;
     case TC_ACTION_DATA:
     case TC_GRAPH_EDIT_DATA:
@@ -1095,6 +1098,7 @@ static eTFlag flags_from_data_type(eTConvertType data_type)
     case TC_MBALL_VERTS:
     case TC_MESH_VERTS:
     case TC_MESH_SKIN:
+    case TC_MESH_VERT_CDATA:
       return T_EDIT | T_POINTS;
     case TC_MESH_EDGES:
       return T_EDIT;
@@ -1193,6 +1197,9 @@ static eTConvertType convert_type_get(const TransInfo *t, Object **r_obj_armatur
     if (t->obedit_type == OB_MESH) {
       if (t->mode == TFM_SKIN_RESIZE) {
         convert_type = TC_MESH_SKIN;
+      }
+      else if (ELEM(t->mode, TFM_BWEIGHT, TFM_VERT_CREASE)) {
+        convert_type = TC_MESH_VERT_CDATA;
       }
       else {
         convert_type = TC_MESH_VERTS;
@@ -1316,6 +1323,9 @@ void createTransData(bContext *C, TransInfo *t)
       break;
     case TC_NLA_DATA:
       createTransNlaData(C, t);
+      break;
+    case TC_MESH_VERT_CDATA:
+      createTransMeshVertCData(t);
       break;
     case TC_NODE_DATA:
       createTransNodeData(t);
@@ -1622,6 +1632,9 @@ void recalcData(TransInfo *t)
       break;
     case TC_MESH_UV:
       recalcData_uv(t);
+      break;
+    case TC_MESH_VERT_CDATA:
+      recalcData_mesh_cdata(t);
       break;
     case TC_NLA_DATA:
       recalcData_nla(t);
