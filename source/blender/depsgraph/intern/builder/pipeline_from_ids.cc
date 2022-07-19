@@ -39,7 +39,7 @@ class DepsgraphFromIDsNodeBuilder : public DepsgraphNodeBuilder {
   {
   }
 
-  bool need_pull_base_into_graph(Base *base) override
+  bool need_pull_base_into_graph(const Base *base) override
   {
     if (!filter_.contains(&base->object->id)) {
       return false;
@@ -61,7 +61,7 @@ class DepsgraphFromIDsRelationBuilder : public DepsgraphRelationBuilder {
   {
   }
 
-  bool need_pull_base_into_graph(Base *base) override
+  bool need_pull_base_into_graph(const Base *base) override
   {
     if (!filter_.contains(&base->object->id)) {
       return false;
