@@ -95,18 +95,19 @@ AbstractGridViewItem::AbstractGridViewItem(StringRef identifier) : identifier_(i
 {
 }
 
-bool AbstractGridViewItem::matches(const AbstractGridViewItem &other) const
+bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
 {
-  return identifier_ == other.identifier_;
+  const AbstractGridViewItem &other_grid_item = dynamic_cast<const AbstractGridViewItem &>(other);
+  return identifier_ == other_grid_item.identifier_;
 }
 
 void AbstractGridViewItem::grid_tile_click_fn(struct bContext * /*C*/,
                                               void *but_arg1,
                                               void * /*arg2*/)
 {
-  uiButGridTile *grid_tile_but = (uiButGridTile *)but_arg1;
+  uiButViewItem *view_item_but = (uiButViewItem *)but_arg1;
   AbstractGridViewItem &grid_item = reinterpret_cast<AbstractGridViewItem &>(
-      *grid_tile_but->view_item);
+      *view_item_but->view_item);
 
   grid_item.activate();
 }
@@ -114,8 +115,8 @@ void AbstractGridViewItem::grid_tile_click_fn(struct bContext * /*C*/,
 void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
 {
   const GridViewStyle &style = get_view().get_style();
-  grid_tile_but_ = (uiButGridTile *)uiDefBut(&block,
-                                             UI_BTYPE_GRID_TILE,
+  view_item_but_ = (uiButViewItem *)uiDefBut(&block,
+                                             UI_BTYPE_VIEW_ITEM,
                                              0,
                                              "",
                                              0,
@@ -129,15 +130,8 @@ void AbstractGridViewItem::add_grid_tile_button(uiBlock &block)
                                              0,
                                              "");
 
-  grid_tile_but_->view_item = reinterpret_cast<uiGridViewItemHandle *>(this);
-  UI_but_func_set(&grid_tile_but_->but, grid_tile_click_fn, grid_tile_but_, nullptr);
-}
-
-bool AbstractGridViewItem::is_active() const
-{
-  BLI_assert_msg(get_view().is_reconstructed(),
-                 "State can't be queried until reconstruction is completed");
-  return is_active_;
+  view_item_but_->view_item = reinterpret_cast<uiViewItemHandle *>(this);
+  UI_but_func_set(&view_item_but_->but, grid_tile_click_fn, view_item_but_, nullptr);
 }
 
 void AbstractGridViewItem::on_activate()
@@ -468,24 +462,3 @@ std::optional<bool> PreviewGridItem::should_be_active() const
 }
 
 }  // namespace blender::ui
-
-using namespace blender::ui;
-
-/* ---------------------------------------------------------------------- */
-/* C-API */
-
-using namespace blender::ui;
-
-bool UI_grid_view_item_is_active(const uiGridViewItemHandle *item_handle)
-{
-  const AbstractGridViewItem &item = reinterpret_cast<const AbstractGridViewItem &>(*item_handle);
-  return item.is_active();
-}
-
-bool UI_grid_view_item_matches(const uiGridViewItemHandle *a_handle,
-                               const uiGridViewItemHandle *b_handle)
-{
-  const AbstractGridViewItem &a = reinterpret_cast<const AbstractGridViewItem &>(*a_handle);
-  const AbstractGridViewItem &b = reinterpret_cast<const AbstractGridViewItem &>(*b_handle);
-  return a.matches(b);
-}

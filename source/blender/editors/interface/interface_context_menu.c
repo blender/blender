@@ -927,11 +927,11 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
   {
     const ARegion *region = CTX_wm_menu(C) ? CTX_wm_menu(C) : CTX_wm_region(C);
-    uiButTreeRow *treerow_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(region, event->xy);
-    if (treerow_but) {
-      BLI_assert(treerow_but->but.type == UI_BTYPE_TREEROW);
-      UI_tree_view_item_context_menu_build(
-          C, treerow_but->tree_item, uiLayoutColumn(layout, false));
+    uiButViewItem *view_item_but = (uiButViewItem *)ui_view_item_find_mouse_over(region,
+                                                                                 event->xy);
+    if (view_item_but) {
+      BLI_assert(view_item_but->but.type == UI_BTYPE_VIEW_ITEM);
+      UI_view_item_context_menu_build(C, view_item_but->view_item, uiLayoutColumn(layout, false));
       uiItemS(layout);
     }
   }

@@ -343,20 +343,12 @@ typedef struct uiButProgressbar {
   float progress;
 } uiButProgressbar;
 
-/** Derived struct for #UI_BTYPE_TREEROW. */
-typedef struct uiButTreeRow {
+typedef struct uiButViewItem {
   uiBut but;
 
-  uiTreeViewItemHandle *tree_item;
-  int indentation;
-} uiButTreeRow;
-
-/** Derived struct for #UI_BTYPE_GRID_TILE. */
-typedef struct uiButGridTile {
-  uiBut but;
-
-  uiGridViewItemHandle *view_item;
-} uiButGridTile;
+  /* C-Handle to the view item this button was created for. */
+  uiViewItemHandle *view_item;
+} uiButViewItem;
 
 /** Derived struct for #UI_BTYPE_HSVCUBE. */
 typedef struct uiButHSVCube {
@@ -1372,7 +1364,6 @@ void ui_but_anim_decorate_update_from_flag(uiButDecorator *but);
 bool ui_but_is_editable(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_is_editable_as_text(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 bool ui_but_is_toggle(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
-bool ui_but_is_view_item(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
 /**
  * Can we mouse over the button or is it hidden/disabled/layout.
  * \note ctrl is kind of a hack currently,
@@ -1406,9 +1397,7 @@ uiBut *ui_list_row_find_from_index(const struct ARegion *region,
                                    uiBut *listbox) ATTR_WARN_UNUSED_RESULT;
 uiBut *ui_view_item_find_mouse_over(const struct ARegion *region, const int xy[2])
     ATTR_NONNULL(1, 2);
-uiBut *ui_tree_row_find_mouse_over(const struct ARegion *region, const int xy[2])
-    ATTR_NONNULL(1, 2);
-uiBut *ui_tree_row_find_active(const struct ARegion *region);
+uiBut *ui_view_item_find_active(const struct ARegion *region);
 
 typedef bool (*uiButFindPollFn)(const uiBut *but, const void *customdata);
 /**
@@ -1546,8 +1535,8 @@ void ui_block_free_views(struct uiBlock *block);
 uiViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
                                                        const uiViewHandle *new_view);
 
-uiButTreeRow *ui_block_view_find_treerow_in_old_block(const uiBlock *new_block,
-                                                      const uiTreeViewItemHandle *new_item_handle);
+uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
+    const uiBlock *new_block, const uiViewItemHandle *new_item_handle);
 
 /* interface_templates.c */
 

@@ -10,6 +10,13 @@
 
 namespace blender::ui {
 
+void AbstractView::register_item(AbstractViewItem &item)
+{
+  /* Actually modifies the item, not the view.  But for the public API it "feels" a bit nicer to
+   * have the view base class register the items, rather than setting the view on the item. */
+  item.view_ = this;
+}
+
 /* ---------------------------------------------------------------------- */
 /** \name View Reconstruction
  * \{ */

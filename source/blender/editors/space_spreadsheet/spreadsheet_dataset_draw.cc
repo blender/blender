@@ -145,7 +145,7 @@ void GeometryDataSetTreeViewItem::build_row(uiLayout &row)
      * to the right side of the number, which it didn't have with the button. */
     char element_count[7];
     BLI_str_format_decimal_unit(element_count, *count);
-    UI_but_hint_drawstr_set((uiBut *)this->tree_row_button(), element_count);
+    UI_but_hint_drawstr_set((uiBut *)this->view_item_button(), element_count);
   }
 }
 

@@ -86,24 +86,24 @@ void UI_block_views_listen(const uiBlock *block, const wmRegionListenerParams *l
   }
 }
 
-uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const ARegion *region, const int xy[2])
+uiViewItemHandle *UI_block_view_find_item_at(const ARegion *region, const int xy[2])
 {
-  uiButTreeRow *tree_row_but = (uiButTreeRow *)ui_tree_row_find_mouse_over(region, xy);
-  if (!tree_row_but) {
+  uiButViewItem *item_but = (uiButViewItem *)ui_view_item_find_mouse_over(region, xy);
+  if (!item_but) {
     return nullptr;
   }
 
-  return tree_row_but->tree_item;
+  return item_but->view_item;
 }
 
-uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const ARegion *region)
+uiViewItemHandle *UI_block_view_find_active_item(const ARegion *region)
 {
-  uiButTreeRow *tree_row_but = (uiButTreeRow *)ui_tree_row_find_active(region);
-  if (!tree_row_but) {
+  uiButViewItem *item_but = (uiButViewItem *)ui_view_item_find_active(region);
+  if (!item_but) {
     return nullptr;
   }
 
-  return tree_row_but->tree_item;
+  return item_but->view_item;
 }
 
 static StringRef ui_block_view_find_idname(const uiBlock &block, const AbstractView &view)
@@ -151,39 +151,38 @@ uiViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
   return reinterpret_cast<uiViewHandle *>(old_view);
 }
 
-uiButTreeRow *ui_block_view_find_treerow_in_old_block(const uiBlock *new_block,
-                                                      const uiTreeViewItemHandle *new_item_handle)
+uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
+    const uiBlock *new_block, const uiViewItemHandle *new_item_handle)
 {
   uiBlock *old_block = new_block->oldblock;
   if (!old_block) {
     return nullptr;
   }
 
-  const AbstractTreeViewItem &new_item = *reinterpret_cast<const AbstractTreeViewItem *>(
-      new_item_handle);
+  const AbstractViewItem &new_item = *reinterpret_cast<const AbstractViewItem *>(new_item_handle);
   const AbstractView *old_view = ui_block_view_find_matching_in_old_block_impl(
-      *new_block, new_item.get_tree_view());
+      *new_block, new_item.get_view());
   if (!old_view) {
     return nullptr;
   }
 
   LISTBASE_FOREACH (uiBut *, old_but, &old_block->buttons) {
-    if (old_but->type != UI_BTYPE_TREEROW) {
+    if (old_but->type != UI_BTYPE_VIEW_ITEM) {
       continue;
     }
-    uiButTreeRow *old_treerow_but = (uiButTreeRow *)old_but;
-    if (!old_treerow_but->tree_item) {
+    uiButViewItem *old_item_but = (uiButViewItem *)old_but;
+    if (!old_item_but->view_item) {
       continue;
     }
-    AbstractTreeViewItem &old_item = *reinterpret_cast<AbstractTreeViewItem *>(
-        old_treerow_but->tree_item);
-    /* Check if the row is from the expected tree-view. */
-    if (&old_item.get_tree_view() != old_view) {
+    AbstractViewItem &old_item = *reinterpret_cast<AbstractViewItem *>(old_item_but->view_item);
+    /* Check if the item is from the expected view. */
+    if (&old_item.get_view() != old_view) {
       continue;
     }
 
-    if (UI_tree_view_item_matches(new_item_handle, old_treerow_but->tree_item)) {
-      return old_treerow_but;
+    if (UI_view_item_matches(reinterpret_cast<const uiViewItemHandle *>(&new_item),
+                             reinterpret_cast<const uiViewItemHandle *>(&old_item))) {
+      return old_item_but;
     }
   }
 
