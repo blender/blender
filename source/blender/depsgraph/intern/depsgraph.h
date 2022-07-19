@@ -89,7 +89,7 @@ struct Depsgraph {
   TimeSourceNode *time_source;
 
   /* Indicates whether relations needs to be updated. */
-  bool need_update;
+  bool need_update_relations;
 
   /* Indicated whether IDs in this graph are to be tagged as if they first appear visible, with
    * an optional tag for their animation (time) update. */
