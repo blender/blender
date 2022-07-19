@@ -247,7 +247,7 @@ static bool paint_stroke_use_scene_spacing(Brush *brush, ePaintMode mode)
   return false;
 }
 
-static bool paint_tool_raycast_original(Brush *brush, ePaintMode mode)
+static bool paint_tool_raycast_original(Brush *brush, ePaintMode UNUSED(mode))
 {
   return brush->flag & BRUSH_ANCHORED;
 }
