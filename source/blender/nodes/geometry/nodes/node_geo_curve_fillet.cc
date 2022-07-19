@@ -9,6 +9,7 @@
 
 #include "node_geometry_util.hh"
 
+#include "BKE_curves.hh"
 #include "BKE_spline.hh"
 
 namespace blender::nodes::node_geo_curve_fillet_cc {
