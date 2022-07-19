@@ -361,27 +361,29 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
 
   graph->is_evaluating = true;
   depsgraph_ensure_view_layer(graph);
+
   /* Set up evaluation state. */
   DepsgraphEvalState state;
   state.graph = graph;
   state.do_stats = graph->debug.do_time_debug();
   state.need_single_thread_pass = false;
+
   /* Prepare all nodes for evaluation. */
   initialize_execution(&state, graph);
+
+  TaskPool *task_pool = deg_evaluate_task_pool_create(&state);
 
   /* Do actual evaluation now. */
   /* First, process all Copy-On-Write nodes. */
   state.stage = EvaluationStage::COPY_ON_WRITE;
-  TaskPool *task_pool = deg_evaluate_task_pool_create(&state);
   schedule_graph(&state, schedule_node_to_pool, task_pool);
   BLI_task_pool_work_and_wait(task_pool);
-  BLI_task_pool_free(task_pool);
 
   /* After that, process all other nodes. */
   state.stage = EvaluationStage::THREADED_EVALUATION;
-  task_pool = deg_evaluate_task_pool_create(&state);
   schedule_graph(&state, schedule_node_to_pool, task_pool);
   BLI_task_pool_work_and_wait(task_pool);
+
   BLI_task_pool_free(task_pool);
 
   if (state.need_single_thread_pass) {
@@ -395,6 +397,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   if (state.do_stats) {
     deg_eval_stats_aggregate(graph);
   }
+
   /* Clear any uncleared tags - just in case. */
   deg_graph_clear_tags(graph);
   graph->is_evaluating = false;
