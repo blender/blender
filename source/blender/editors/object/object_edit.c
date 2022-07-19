@@ -1469,8 +1469,6 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
   const bool use_smooth = STREQ(op->idname, "OBJECT_OT_shade_smooth");
-  const bool use_auto_smooth = RNA_boolean_get(op->ptr, "use_auto_smooth");
-  const float auto_smooth_angle = RNA_float_get(op->ptr, "auto_smooth_angle");
   bool changed_multi = false;
   bool has_linked_data = false;
 
@@ -1518,7 +1516,11 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
     bool changed = false;
     if (ob->type == OB_MESH) {
       BKE_mesh_smooth_flag_set(ob->data, use_smooth);
-      BKE_mesh_auto_smooth_flag_set(ob->data, use_auto_smooth, auto_smooth_angle);
+      if (use_smooth) {
+        const bool use_auto_smooth = RNA_boolean_get(op->ptr, "use_auto_smooth");
+        const float auto_smooth_angle = RNA_float_get(op->ptr, "auto_smooth_angle");
+        BKE_mesh_auto_smooth_flag_set(ob->data, use_auto_smooth, auto_smooth_angle);
+      }
       BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
       changed = true;
     }
