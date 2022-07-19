@@ -162,8 +162,6 @@ static void gather_point_attributes_to_interpolate(const CurveComponent &src_com
                            result.src_no_interpolation,
                            result.dst_no_interpolation,
                            result.dst_attributes);
-
-  dst_curves.update_customdata_pointers();
 }
 
 static Curves *resample_to_uniform(const CurveComponent &src_component,

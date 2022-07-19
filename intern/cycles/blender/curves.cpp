@@ -630,6 +630,25 @@ static std::optional<BL::FloatAttribute> find_curves_radius_attribute(BL::Curves
   return std::nullopt;
 }
 
+static BL::FloatVectorAttribute find_curves_position_attribute(BL::Curves b_curves)
+{
+  for (BL::Attribute &b_attribute : b_curves.attributes) {
+    if (b_attribute.name() != "position") {
+      continue;
+    }
+    if (b_attribute.domain() != BL::Attribute::domain_POINT) {
+      continue;
+    }
+    if (b_attribute.data_type() != BL::Attribute::data_type_FLOAT_VECTOR) {
+      continue;
+    }
+    return BL::FloatVectorAttribute{b_attribute};
+  }
+  /* The position attribute must exist. */
+  assert(false);
+  return BL::FloatVectorAttribute{b_curves.attributes[0]};
+}
+
 template<typename TypeInCycles, typename GetValueAtIndex>
 static void fill_generic_attribute(BL::Curves &b_curves,
                                    TypeInCycles *data,
@@ -793,16 +812,16 @@ static void attr_create_generic(Scene *scene,
   }
 }
 
-static float4 hair_point_as_float4(BL::Curves b_curves,
+static float4 hair_point_as_float4(BL::FloatVectorAttribute b_attr_position,
                                    std::optional<BL::FloatAttribute> b_attr_radius,
                                    const int index)
 {
-  float4 mP = float3_to_float4(get_float3(b_curves.position_data[index].vector()));
+  float4 mP = float3_to_float4(get_float3(b_attr_position.data[index].vector()));
   mP.w = b_attr_radius ? b_attr_radius->data[index].value() : 0.0f;
   return mP;
 }
 
-static float4 interpolate_hair_points(BL::Curves b_curves,
+static float4 interpolate_hair_points(BL::FloatVectorAttribute b_attr_position,
                                       std::optional<BL::FloatAttribute> b_attr_radius,
                                       const int first_point_index,
                                       const int num_points,
@@ -812,8 +831,8 @@ static float4 interpolate_hair_points(BL::Curves b_curves,
   const int point_a = clamp((int)curve_t, 0, num_points - 1);
   const int point_b = min(point_a + 1, num_points - 1);
   const float t = curve_t - (float)point_a;
-  return lerp(hair_point_as_float4(b_curves, b_attr_radius, first_point_index + point_a),
-              hair_point_as_float4(b_curves, b_attr_radius, first_point_index + point_b),
+  return lerp(hair_point_as_float4(b_attr_position, b_attr_radius, first_point_index + point_a),
+              hair_point_as_float4(b_attr_position, b_attr_radius, first_point_index + point_b),
               t);
 }
 
@@ -846,6 +865,7 @@ static void export_hair_curves(Scene *scene,
 
   hair->reserve_curves(num_curves, num_keys);
 
+  BL::FloatVectorAttribute b_attr_position = find_curves_position_attribute(b_curves);
   std::optional<BL::FloatAttribute> b_attr_radius = find_curves_radius_attribute(b_curves);
 
   /* Export curves and points. */
@@ -864,7 +884,7 @@ static void export_hair_curves(Scene *scene,
 
     /* Position and radius. */
     for (int i = 0; i < num_points; i++) {
-      const float3 co = get_float3(b_curves.position_data[first_point_index + i].vector());
+      const float3 co = get_float3(b_attr_position.data[first_point_index + i].vector());
       const float radius = b_attr_radius ? b_attr_radius->data[first_point_index + i].value() :
                                            0.005f;
       hair->add_curve_key(co, radius);
@@ -921,6 +941,7 @@ static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motio
   int num_motion_keys = 0;
   int curve_index = 0;
 
+  BL::FloatVectorAttribute b_attr_position = find_curves_position_attribute(b_curves);
   std::optional<BL::FloatAttribute> b_attr_radius = find_curves_radius_attribute(b_curves);
 
   for (int i = 0; i < num_curves; i++) {
@@ -936,7 +957,7 @@ static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motio
         int point_index = first_point_index + i;
 
         if (point_index < num_keys) {
-          mP[num_motion_keys] = hair_point_as_float4(b_curves, b_attr_radius, point_index);
+          mP[num_motion_keys] = hair_point_as_float4(b_attr_position, b_attr_radius, point_index);
           num_motion_keys++;
 
           if (!have_motion) {
@@ -956,7 +977,7 @@ static void export_hair_curves_motion(Hair *hair, BL::Curves b_curves, int motio
       for (int i = 0; i < curve.num_keys; i++) {
         const float step = i * step_size;
         mP[num_motion_keys] = interpolate_hair_points(
-            b_curves, b_attr_radius, first_point_index, num_points, step);
+            b_attr_position, b_attr_radius, first_point_index, num_points, step);
         num_motion_keys++;
       }
       have_motion = true;

@@ -68,8 +68,6 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
 #endif
   this->offsets_for_write().first() = 0;
 
-  this->update_customdata_pointers();
-
   this->runtime = MEM_new<CurvesGeometryRuntime>(__func__);
   /* Fill the type counts with the default so they're in a valid state. */
   this->runtime->type_counts[CURVE_TYPE_CATMULL_ROM] = curve_num;
@@ -95,8 +93,6 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
 
   /* Though type counts are a cache, they must be copied because they are calculated eagerly. */
   dst.runtime->type_counts = src.runtime->type_counts;
-
-  dst.update_customdata_pointers();
 }
 
 CurvesGeometry::CurvesGeometry(const CurvesGeometry &other)
@@ -130,9 +126,6 @@ static void move_curves_geometry(CurvesGeometry &dst, CurvesGeometry &src)
   MEM_SAFE_FREE(src.curve_offsets);
 
   std::swap(dst.runtime, src.runtime);
-
-  src.update_customdata_pointers();
-  dst.update_customdata_pointers();
 }
 
 CurvesGeometry::CurvesGeometry(CurvesGeometry &&other)
@@ -306,13 +299,11 @@ void CurvesGeometry::update_curve_types()
 
 Span<float3> CurvesGeometry::positions() const
 {
-  return {(const float3 *)this->position, this->point_num};
+  return get_span_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_POSITION);
 }
 MutableSpan<float3> CurvesGeometry::positions_for_write()
 {
-  this->position = (float(*)[3])CustomData_duplicate_referenced_layer_named(
-      &this->point_data, CD_PROP_FLOAT3, ATTR_POSITION.c_str(), this->point_num);
-  return {(float3 *)this->position, this->point_num};
+  return get_mutable_attribute<float3>(*this, ATTR_DOMAIN_POINT, ATTR_POSITION);
 }
 
 Span<int> CurvesGeometry::offsets() const
@@ -961,7 +952,6 @@ void CurvesGeometry::resize(const int points_num, const int curves_num)
     this->curve_offsets = (int *)MEM_reallocN(this->curve_offsets, sizeof(int) * (curves_num + 1));
   }
   this->tag_topology_changed();
-  this->update_customdata_pointers();
 }
 
 void CurvesGeometry::tag_positions_changed()
@@ -1060,10 +1050,11 @@ void CurvesGeometry::transform(const float4x4 &matrix)
 
 static std::optional<bounds::MinMaxResult<float3>> curves_bounds(const CurvesGeometry &curves)
 {
-  Span<float3> positions = curves.positions();
-  if (curves.radius) {
-    Span<float> radii{curves.radius, curves.points_num()};
-    return bounds::min_max_with_radii(positions, radii);
+  const Span<float3> positions = curves.positions();
+  const VArray<float> radii = curves.attributes().lookup_or_default<float>(
+      ATTR_RADIUS, ATTR_DOMAIN_POINT, 0.0f);
+  if (!(radii.is_single() && radii.get_internal_single() == 0.0f)) {
+    return bounds::min_max_with_radii(positions, radii.get_internal_span());
   }
   return bounds::min_max(positions);
 }
@@ -1077,16 +1068,6 @@ bool CurvesGeometry::bounds_min_max(float3 &min, float3 &max) const
   min = math::min(bounds->min, min);
   max = math::max(bounds->max, max);
   return true;
-}
-
-void CurvesGeometry::update_customdata_pointers()
-{
-  this->position = (float(*)[3])CustomData_get_layer_named(
-      &this->point_data, CD_PROP_FLOAT3, ATTR_POSITION.c_str());
-  this->radius = (float *)CustomData_get_layer_named(
-      &this->point_data, CD_PROP_FLOAT, ATTR_RADIUS.c_str());
-  this->curve_type = (int8_t *)CustomData_get_layer_named(
-      &this->point_data, CD_PROP_INT8, ATTR_CURVE_TYPE.c_str());
 }
 
 static void *ensure_customdata_layer(CustomData &custom_data,
@@ -1497,7 +1478,6 @@ void CurvesGeometry::remove_attributes_based_on_types()
   if (!this->has_curve_with_type({CURVE_TYPE_BEZIER, CURVE_TYPE_CATMULL_ROM, CURVE_TYPE_NURBS})) {
     CustomData_free_layer_named(&this->curve_data, ATTR_RESOLUTION.c_str(), curves_num);
   }
-  this->update_customdata_pointers();
 }
 
 /** \} */

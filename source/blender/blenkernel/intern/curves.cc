@@ -53,8 +53,6 @@ using blender::Vector;
 
 static const char *ATTR_POSITION = "position";
 
-static void update_custom_data_pointers(Curves &curves);
-
 static void curves_init_data(ID *id)
 {
   Curves *curves = (Curves *)id;
@@ -96,8 +94,6 @@ static void curves_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
   dst.runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
 
   dst.runtime->type_counts = src.runtime->type_counts;
-
-  dst.update_customdata_pointers();
 
   curves_dst->batch_cache = nullptr;
 }
@@ -170,7 +166,6 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   /* Geometry */
   CustomData_blend_read(reader, &curves->geometry.point_data, curves->geometry.point_num);
   CustomData_blend_read(reader, &curves->geometry.curve_data, curves->geometry.curve_num);
-  update_custom_data_pointers(*curves);
 
   BLO_read_int32_array(reader, curves->geometry.curve_num + 1, &curves->geometry.curve_offsets);
 
@@ -232,11 +227,6 @@ IDTypeInfo IDType_ID_CV = {
 
     /*lib_override_apply_post */ nullptr,
 };
-
-static void update_custom_data_pointers(Curves &curves)
-{
-  blender::bke::CurvesGeometry::wrap(curves.geometry).update_customdata_pointers();
-}
 
 void *BKE_curves_add(Main *bmain, const char *name)
 {
