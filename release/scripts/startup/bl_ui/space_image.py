@@ -306,6 +306,7 @@ class IMAGE_MT_uvs_snap(Menu):
 
         layout.operator("uv.snap_cursor", text="Cursor to Pixels").target = 'PIXELS'
         layout.operator("uv.snap_cursor", text="Cursor to Selected").target = 'SELECTED'
+        layout.operator("uv.snap_cursor", text="Cursor to Origin").target = 'ORIGIN'
 
 
 class IMAGE_MT_uvs_mirror(Menu):
@@ -572,6 +573,11 @@ class IMAGE_MT_uvs_snap_pie(Menu):
             text="Selected to Adjacent Unselected",
             icon='RESTRICT_SELECT_OFF',
         ).target = 'ADJACENT_UNSELECTED'
+        pie.operator(
+            "uv.snap_cursor",
+            text="Cursor to Origin",
+            icon='PIVOT_CURSOR',
+        ).target = 'ORIGIN'
 
 
 class IMAGE_MT_view_pie(Menu):

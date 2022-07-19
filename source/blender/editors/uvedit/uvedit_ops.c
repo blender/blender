@@ -1036,6 +1036,12 @@ static bool uv_snap_cursor_to_selection(Scene *scene,
   return ED_uvedit_center_multi(scene, objects_edit, objects_len, sima->cursor, sima->around);
 }
 
+static void uv_snap_cursor_to_origin(float uvco[2])
+{
+  uvco[0] = 0;
+  uvco[1] = 0;
+}
+
 static int uv_snap_cursor_exec(bContext *C, wmOperator *op)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -1058,6 +1064,10 @@ static int uv_snap_cursor_exec(bContext *C, wmOperator *op)
       MEM_freeN(objects);
       break;
     }
+    case 2:
+      uv_snap_cursor_to_origin(sima->cursor);
+      changed = true;
+      break;
   }
 
   if (!changed) {
@@ -1074,6 +1084,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
   static const EnumPropertyItem target_items[] = {
       {0, "PIXELS", 0, "Pixels", ""},
       {1, "SELECTED", 0, "Selected", ""},
+      {2, "ORIGIN", 0, "Origin", ""},
       {0, NULL, 0, NULL, NULL},
   };
 
