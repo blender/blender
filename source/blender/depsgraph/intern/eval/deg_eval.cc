@@ -302,8 +302,28 @@ void schedule_node_to_queue(OperationNode *node,
   BLI_gsqueue_push(evaluation_queue, &node);
 }
 
-void evaluate_graph_single_threaded(DepsgraphEvalState *state)
+/* Evaluate given stage of the dependency graph evaluation using multiple threads.
+ *
+ * NOTE: Will assign the `state->stage` to the given stage. */
+void evaluate_graph_threaded_stage(DepsgraphEvalState *state,
+                                   TaskPool *task_pool,
+                                   const EvaluationStage stage)
 {
+  state->stage = stage;
+
+  schedule_graph(state, schedule_node_to_pool, task_pool);
+  BLI_task_pool_work_and_wait(task_pool);
+}
+
+/* Evaluate remaining operations of the dependency graph in a single threaded manner. */
+void evaluate_graph_single_threaded_if_needed(DepsgraphEvalState *state)
+{
+  if (!state->need_single_thread_pass) {
+    return;
+  }
+
+  state->stage = EvaluationStage::SINGLE_THREADED_WORKAROUND;
+
   GSQueue *evaluation_queue = BLI_gsqueue_new(sizeof(OperationNode *));
   schedule_graph(state, schedule_node_to_queue, evaluation_queue);
 
@@ -371,25 +391,27 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   /* Prepare all nodes for evaluation. */
   initialize_execution(&state, graph);
 
+  /* Evaluation happens in several incremental steps:
+   *
+   * - Start with the copy-on-write operations which never form dependency cycles. This will ensure
+   *   that if a dependency graph has a cycle evaluation functions will always "see" valid expanded
+   *   datablock. It might not be evaluated yet, but at least the datablock will be valid.
+   *
+   * - Multi-threaded evaluation of all possible nodes.
+   *   Certain operations (and their subtrees) could be ignored. For example, meta-balls are not
+   *   safe from threading point of view, so the threaded evaluation will stop at the metaball
+   *   operation node.
+   *
+   * - Single-threaded pass of all remaining operations. */
+
   TaskPool *task_pool = deg_evaluate_task_pool_create(&state);
 
-  /* Do actual evaluation now. */
-  /* First, process all Copy-On-Write nodes. */
-  state.stage = EvaluationStage::COPY_ON_WRITE;
-  schedule_graph(&state, schedule_node_to_pool, task_pool);
-  BLI_task_pool_work_and_wait(task_pool);
-
-  /* After that, process all other nodes. */
-  state.stage = EvaluationStage::THREADED_EVALUATION;
-  schedule_graph(&state, schedule_node_to_pool, task_pool);
-  BLI_task_pool_work_and_wait(task_pool);
+  evaluate_graph_threaded_stage(&state, task_pool, EvaluationStage::COPY_ON_WRITE);
+  evaluate_graph_threaded_stage(&state, task_pool, EvaluationStage::THREADED_EVALUATION);
 
   BLI_task_pool_free(task_pool);
 
-  if (state.need_single_thread_pass) {
-    state.stage = EvaluationStage::SINGLE_THREADED_WORKAROUND;
-    evaluate_graph_single_threaded(&state);
-  }
+  evaluate_graph_single_threaded_if_needed(&state);
 
   /* Finalize statistics gathering. This is because we only gather single
    * operation timing here, without aggregating anything to avoid any extra
