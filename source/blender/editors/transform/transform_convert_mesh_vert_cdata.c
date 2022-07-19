@@ -42,7 +42,6 @@ static float *tc_mesh_cdata_transdata_center(const struct TransIslandData *islan
 }
 
 static void tc_mesh_cdata_transdata_create(TransDataBasic *td,
-                                           BMEditMesh *em,
                                            BMVert *eve,
                                            float *weight,
                                            const struct TransIslandData *island_data,
@@ -193,7 +192,7 @@ void createTransMeshVertCData(TransInfo *t)
       float *weight = BM_ELEM_CD_GET_VOID_P(eve, cd_offset);
       if (mirror_data.vert_map && mirror_data.vert_map[a].index != -1) {
         tc_mesh_cdata_transdata_create(
-            (TransDataBasic *)td_mirror, em, eve, weight, &island_data, island_index);
+            (TransDataBasic *)td_mirror, eve, weight, &island_data, island_index);
 
         int elem_index = mirror_data.vert_map[a].index;
         BMVert *v_src = BM_vert_at_index(bm, elem_index);
@@ -204,7 +203,7 @@ void createTransMeshVertCData(TransInfo *t)
       }
       else if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
         tc_mesh_cdata_transdata_create(
-            (TransDataBasic *)td, em, eve, weight, &island_data, island_index);
+            (TransDataBasic *)td, eve, weight, &island_data, island_index);
 
         if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
           createSpaceNormal(td->axismtx, eve->no);
