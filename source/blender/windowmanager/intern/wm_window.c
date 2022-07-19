@@ -1362,6 +1362,11 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
         event.type = MOUSEMOVE;
         event.val = KM_NOTHING;
         copy_v2_v2_int(event.prev_xy, event.xy);
+
+        wm_cursor_position_from_ghost_screen_coords(win, &ddd->x, &ddd->y);
+        event.xy[0] = ddd->x;
+        event.xy[1] = ddd->y;
+
         event.flag = 0;
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */
