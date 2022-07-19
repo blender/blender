@@ -4,10 +4,9 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_virtual_array.hh"
 
 #include "BKE_curves.hh"
-
-class CurveComponent;
 
 namespace blender::geometry {
 
@@ -18,9 +17,8 @@ namespace blender::geometry {
  *
  * \param selection: A selection of curves to consider when subdividing.
  */
-Curves *subdivide_curves(const CurveComponent &src_component,
-                         const bke::CurvesGeometry &src_curves,
-                         IndexMask selection,
-                         const VArray<int> &cuts);
+bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
+                                     IndexMask selection,
+                                     const VArray<int> &cuts);
 
 }  // namespace blender::geometry

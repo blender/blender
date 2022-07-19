@@ -369,6 +369,7 @@ static void duplicate_curves(GeometrySet &geometry_set,
   point_offsets.last() = dst_points_num;
 
   Curves *new_curves_id = bke::curves_new_nomain(dst_points_num, dst_curves_num);
+  bke::curves_copy_parameters(curves_id, *new_curves_id);
   bke::CurvesGeometry &new_curves = bke::CurvesGeometry::wrap(new_curves_id->geometry);
   MutableSpan<int> all_dst_offsets = new_curves.offsets_for_write();
 
@@ -830,6 +831,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   });
 
   Curves *new_curves_id = bke::curves_new_nomain(dst_num, dst_num);
+  bke::curves_copy_parameters(src_curves_id, *new_curves_id);
   bke::CurvesGeometry &new_curves = bke::CurvesGeometry::wrap(new_curves_id->geometry);
   MutableSpan<int> new_curve_offsets = new_curves.offsets_for_write();
   for (const int i : new_curves.curves_range()) {

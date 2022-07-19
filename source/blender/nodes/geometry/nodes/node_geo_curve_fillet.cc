@@ -603,10 +603,13 @@ static void calculate_curve_fillet(GeometrySet &geometry_set,
 
   fillet_param.limit_radius = limit_radius;
 
+  const Curves &src_curves_id = *geometry_set.get_curves_for_read();
   const std::unique_ptr<CurveEval> input_curve = curves_to_curve_eval(*component.get_for_read());
   std::unique_ptr<CurveEval> output_curve = fillet_curve(*input_curve, fillet_param);
 
-  geometry_set.replace_curves(curve_eval_to_curves(*output_curve));
+  Curves *dst_curves_id = curve_eval_to_curves(*output_curve);
+  bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
+  geometry_set.replace_curves(dst_curves_id);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

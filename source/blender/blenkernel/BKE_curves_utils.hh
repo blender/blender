@@ -56,6 +56,13 @@ void fill_points(const CurvesGeometry &curves,
 }
 
 /**
+ * Copy only the information on the point domain, but not the offsets or any point attributes,
+ * meant for operations that change the number of points but not the number of curves.
+ * \warning The returned curves have invalid offsets!
+ */
+bke::CurvesGeometry copy_only_curve_domain(const bke::CurvesGeometry &src_curves);
+
+/**
  * Copy the size of every curve in #curve_ranges to the corresponding index in #counts.
  */
 void fill_curve_counts(const bke::CurvesGeometry &curves,

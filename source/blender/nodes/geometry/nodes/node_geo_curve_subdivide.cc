@@ -35,11 +35,11 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     const CurveComponent &component = *geometry_set.get_component_for_read<CurveComponent>();
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(
-        component.get_for_read()->geometry);
+    const Curves &src_curves_id = *component.get_for_read();
+    const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(src_curves_id.geometry);
 
     GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-    fn::FieldEvaluator evaluator{field_context, curves.points_num()};
+    fn::FieldEvaluator evaluator{field_context, src_curves.points_num()};
     evaluator.add(cuts_field);
     evaluator.evaluate();
     const VArray<int> cuts = evaluator.get_evaluated<int>(0);
@@ -47,9 +47,12 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    Curves *result = geometry::subdivide_curves(component, curves, curves.curves_range(), cuts);
+    bke::CurvesGeometry dst_curves = geometry::subdivide_curves(
+        src_curves, src_curves.curves_range(), cuts);
 
-    geometry_set.replace_curves(result);
+    Curves *dst_curves_id = bke::curves_new_nomain(std::move(dst_curves));
+    bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
+    geometry_set.replace_curves(dst_curves_id);
   });
   params.set_output("Curve", geometry_set);
 }

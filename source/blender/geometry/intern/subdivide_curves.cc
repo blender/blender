@@ -12,26 +12,6 @@
 namespace blender::geometry {
 
 /**
- * \warning Only the curve domain of the input is copied, so the result is invalid!
- */
-static Curves *create_result_curves(const bke::CurvesGeometry &src_curves)
-{
-  Curves *dst_curves_id = bke::curves_new_nomain(0, src_curves.curves_num());
-  bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
-  CurveComponent dst_component;
-  dst_component.replace(dst_curves_id, GeometryOwnershipType::Editable);
-  /* Directly copy curve attributes, since they stay the same. */
-  CustomData_copy(&src_curves.curve_data,
-                  &dst_curves.curve_data,
-                  CD_MASK_ALL,
-                  CD_DUPLICATE,
-                  src_curves.curves_num());
-  dst_curves.runtime->type_counts = src_curves.runtime->type_counts;
-
-  return dst_curves_id;
-}
-
-/**
  * Return a range used to retrieve values from an array of values stored per point, but with an
  * extra element at the end of each curve. This is useful for offsets within curves, where it is
  * convenient to store the first 0 and have the last offset be the total result curve size.
@@ -342,10 +322,9 @@ static void subdivide_bezier_positions(const Span<float3> src_positions,
       cyclic, dst_types_l, dst_types_r, dst_positions, dst_handles_l, dst_handles_r);
 }
 
-Curves *subdivide_curves(const CurveComponent &src_component,
-                         const bke::CurvesGeometry &src_curves,
-                         const IndexMask selection,
-                         const VArray<int> &cuts)
+bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
+                                     const IndexMask selection,
+                                     const VArray<int> &cuts)
 {
   const Vector<IndexRange> unselected_ranges = selection.extract_ranges_invert(
       src_curves.curves_range());
@@ -353,10 +332,7 @@ Curves *subdivide_curves(const CurveComponent &src_component,
   /* Cyclic is accessed a lot, it's probably worth it to make sure it's a span. */
   const VArraySpan<bool> cyclic{src_curves.cyclic()};
 
-  Curves *dst_curves_id = create_result_curves(src_curves);
-  bke::CurvesGeometry &dst_curves = bke::CurvesGeometry::wrap(dst_curves_id->geometry);
-  CurveComponent dst_component;
-  dst_component.replace(dst_curves_id, GeometryOwnershipType::Editable);
+  bke::CurvesGeometry dst_curves = bke::curves::copy_only_curve_domain(src_curves);
 
   /* For each point, this contains the point offset in the corresponding result curve,
    * starting at zero. For example for two curves with four points each, the values might
@@ -385,8 +361,8 @@ Curves *subdivide_curves(const CurveComponent &src_component,
 
   dst_curves.resize(dst_curves.offsets().last(), dst_curves.curves_num());
 
-  const bke::AttributeAccessor src_attributes = *src_component.attributes();
-  bke::MutableAttributeAccessor dst_attributes = *dst_component.attributes_for_write();
+  const bke::AttributeAccessor src_attributes = src_curves.attributes();
+  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
 
   auto subdivide_catmull_rom = [&](IndexMask selection) {
     for (auto &attribute : retrieve_point_attributes(src_attributes, dst_attributes)) {
@@ -476,7 +452,7 @@ Curves *subdivide_curves(const CurveComponent &src_component,
     }
   }
 
-  return dst_curves_id;
+  return dst_curves;
 }
 
 }  // namespace blender::geometry

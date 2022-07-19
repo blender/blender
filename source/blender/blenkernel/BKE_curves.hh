@@ -735,6 +735,12 @@ Curves *curves_new_nomain(CurvesGeometry curves);
  */
 Curves *curves_new_nomain_single(int points_num, CurveType type);
 
+/**
+ * Copy data from #src to #dst, except the geometry data in #CurvesGeometry. Typically used to
+ * copy high-level parameters when a geometry-altering operation creates a new curves data-block.
+ */
+void curves_copy_parameters(const Curves &src, Curves &dst);
+
 std::array<int, CURVE_TYPES_NUM> calculate_type_counts(const VArray<int8_t> &types);
 
 /* -------------------------------------------------------------------- */

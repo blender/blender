@@ -388,6 +388,23 @@ Curves *curves_new_nomain(CurvesGeometry curves)
   return curves_id;
 }
 
+void curves_copy_parameters(const Curves &src, Curves &dst)
+{
+  dst.flag = src.flag;
+  dst.attributes_active_index = src.attributes_active_index;
+  MEM_SAFE_FREE(dst.mat);
+  dst.mat = static_cast<Material **>(MEM_malloc_arrayN(src.totcol, sizeof(Material *), __func__));
+  dst.totcol = src.totcol;
+  MutableSpan(dst.mat, dst.totcol).copy_from(Span(src.mat, src.totcol));
+  dst.symmetry = src.symmetry;
+  dst.selection_domain = src.selection_domain;
+  dst.surface = src.surface;
+  MEM_SAFE_FREE(dst.surface_uv_map);
+  if (src.surface_uv_map != nullptr) {
+    dst.surface_uv_map = BLI_strdup(src.surface_uv_map);
+  }
+}
+
 CurvesSurfaceTransforms::CurvesSurfaceTransforms(const Object &curves_ob, const Object *surface_ob)
 {
   this->curves_to_world = curves_ob.obmat;

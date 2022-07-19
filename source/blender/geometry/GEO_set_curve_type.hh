@@ -2,17 +2,10 @@
 
 #pragma once
 
-#include "DNA_curves_types.h"
-
 #include "BLI_function_ref.hh"
 #include "BLI_index_mask.hh"
 
-struct Curves;
-class CurveComponent;
-
-namespace blender::bke {
-class CurvesGeometry;
-}
+#include "BKE_curves.hh"
 
 namespace blender::geometry {
 
@@ -27,14 +20,13 @@ namespace blender::geometry {
  */
 bool try_curves_conversion_in_place(IndexMask selection,
                                     CurveType dst_type,
-                                    FunctionRef<Curves &()> get_writable_curves_fn);
+                                    FunctionRef<bke::CurvesGeometry &()> get_writable_curves_fn);
 
 /**
  * Change the types of the selected curves, potentially changing the total point count.
  */
-Curves *convert_curves(const CurveComponent &src_component,
-                       const bke::CurvesGeometry &src_curves,
-                       IndexMask selection,
-                       CurveType dst_type);
+bke::CurvesGeometry convert_curves(const bke::CurvesGeometry &src_curves,
+                                   IndexMask selection,
+                                   CurveType dst_type);
 
 }  // namespace blender::geometry

@@ -18,7 +18,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    if (!geometry_set.has_mesh()) {
+    const Mesh *mesh = geometry_set.get_mesh_for_read();
+    if (mesh == nullptr) {
       geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
       return;
     }
@@ -34,7 +35,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    geometry_set.replace_curves(geometry::mesh_to_curve_convert(component, selection));
+    bke::CurvesGeometry curves = geometry::mesh_to_curve_convert(*mesh, selection);
+    geometry_set.replace_curves(bke::curves_new_nomain(std::move(curves)));
     geometry_set.keep_only({GEO_COMPONENT_TYPE_CURVE, GEO_COMPONENT_TYPE_INSTANCES});
   });
 

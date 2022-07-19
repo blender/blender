@@ -1,5 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_curves.hh"
 #include "BKE_spline.hh"
 #include "BLI_task.hh"
 
@@ -515,7 +516,8 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
   const VArray<float> starts = evaluator.get_evaluated<float>(0);
   const VArray<float> ends = evaluator.get_evaluated<float>(1);
 
-  std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*geometry_set.get_curves_for_read());
+  const Curves &src_curves_id = *geometry_set.get_curves_for_read();
+  std::unique_ptr<CurveEval> curve = curves_to_curve_eval(src_curves_id);
   MutableSpan<SplinePtr> splines = curve->splines();
 
   threading::parallel_for(splines.index_range(), 128, [&](IndexRange range) {
@@ -566,7 +568,9 @@ static void geometry_set_curve_trim(GeometrySet &geometry_set,
     }
   });
 
-  geometry_set.replace_curves(curve_eval_to_curves(*curve));
+  Curves *dst_curves_id = curve_eval_to_curves(*curve);
+  bke::curves_copy_parameters(src_curves_id, *dst_curves_id);
+  geometry_set.replace_curves(dst_curves_id);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
