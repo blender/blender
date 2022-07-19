@@ -314,6 +314,10 @@ typedef struct bNodeType {
 
   /* Execute a geometry node. */
   NodeGeometryExecFunction geometry_node_execute;
+  /**
+   * If true, the geometry nodes evaluator can call the execute function multiple times to improve
+   * performance by specifying required data in one call and using it for calculations in another.
+   */
   bool geometry_node_execute_supports_laziness;
 
   /* Declares which sockets the node has. */
