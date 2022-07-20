@@ -88,8 +88,14 @@ struct Depsgraph {
   /* Top-level time source node. */
   TimeSourceNode *time_source;
 
+  /* The graph contains data-blocks whose visibility depends on evaluation (driven or animated). */
+  bool has_animated_visibility;
+
   /* Indicates whether relations needs to be updated. */
   bool need_update_relations;
+
+  /* Indicates whether indirect effect of nodes on a directly visible ones needs to be updated. */
+  bool need_update_nodes_visibility;
 
   /* Indicated whether IDs in this graph are to be tagged as if they first appear visible, with
    * an optional tag for their animation (time) update. */

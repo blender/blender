@@ -67,6 +67,8 @@ set(SRC
   intern/eval/deg_eval_runtime_backup_sound.cc
   intern/eval/deg_eval_runtime_backup_volume.cc
   intern/eval/deg_eval_stats.cc
+  intern/eval/deg_eval_visibility.cc
+  intern/eval/deg_eval_visibility.h
   intern/node/deg_node.cc
   intern/node/deg_node_component.cc
   intern/node/deg_node_factory.cc

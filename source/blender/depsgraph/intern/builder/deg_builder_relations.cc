@@ -810,6 +810,13 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 
   /* Parameters. */
   build_parameters(&object->id);
+
+  /* Visibility.
+   * Evaluate visibility node after the object's base_flags has been updated to the current state
+   * of collections restrict and object's restrict flags. */
+  const ComponentKey object_from_layer_entry_key(&object->id, NodeType::OBJECT_FROM_LAYER);
+  const ComponentKey visibility_key(&object->id, NodeType::VISIBILITY);
+  add_relation(object_from_layer_entry_key, visibility_key, "Object Visibility");
 }
 
 /* NOTE: Implies that the object has base in the current view layer. */

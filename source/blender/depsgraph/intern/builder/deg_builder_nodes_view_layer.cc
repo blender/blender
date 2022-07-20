@@ -92,14 +92,20 @@ void DepsgraphNodeBuilder::build_view_layer(Scene *scene,
   int base_index = 0;
   LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
     /* object itself */
-    if (need_pull_base_into_graph(base)) {
-      /* NOTE: We consider object visible even if it's currently
-       * restricted by the base/restriction flags. Otherwise its drivers
-       * will never be evaluated.
-       *
-       * TODO(sergey): Need to go more granular on visibility checks. */
-      build_object(base_index, base->object, linked_state, true);
-      base_index++;
+    if (!need_pull_base_into_graph(base)) {
+      continue;
+    }
+
+    /* NOTE: We consider object visible even if it's currently
+     * restricted by the base/restriction flags. Otherwise its drivers
+     * will never be evaluated.
+     *
+     * TODO(sergey): Need to go more granular on visibility checks. */
+    build_object(base_index, base->object, linked_state, true);
+    base_index++;
+
+    if (!graph_->has_animated_visibility) {
+      graph_->has_animated_visibility |= is_object_visibility_animated(base->object);
     }
   }
   build_layer_collections(&view_layer->layer_collections);
