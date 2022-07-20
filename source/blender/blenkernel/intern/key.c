@@ -1501,7 +1501,14 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
   }
 }
 
-float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t arr_size)
+static void keyblock_data_convert_to_mesh(const float (*fp)[3], MVert *mvert, const int totvert);
+static void keyblock_data_convert_to_lattice(const float (*fp)[3],
+                                             BPoint *bpoint,
+                                             const int totpoint);
+static void keyblock_data_convert_to_curve(const float *fp, ListBase *nurb, const int totpoint);
+
+float *BKE_key_evaluate_object_ex(
+    Object *ob, int *r_totelem, float *arr, size_t arr_size, ID *obdata)
 {
   Key *key = BKE_key_from_object(ob);
   KeyBlock *actkb = BKE_keyblock_from_object(ob);
@@ -1576,7 +1583,6 @@ float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t
     }
   }
   else {
-
     if (ob->type == OB_MESH) {
       do_mesh_key(ob, key, out, tot);
     }
@@ -1591,6 +1597,31 @@ float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t
     }
   }
 
+  if (obdata != NULL) {
+    switch (GS(obdata->name)) {
+      case ID_ME: {
+        Mesh *mesh = (Mesh *)obdata;
+        const int totvert = min_ii(tot, mesh->totvert);
+        keyblock_data_convert_to_mesh((const float(*)[3])out, mesh->mvert, totvert);
+        break;
+      }
+      case ID_LT: {
+        Lattice *lattice = (Lattice *)obdata;
+        const int totpoint = min_ii(tot, lattice->pntsu * lattice->pntsv * lattice->pntsw);
+        keyblock_data_convert_to_lattice((const float(*)[3])out, lattice->def, totpoint);
+        break;
+      }
+      case ID_CU_LEGACY: {
+        Curve *curve = (Curve *)obdata;
+        const int totpoint = min_ii(tot, BKE_keyblock_curve_element_count(&curve->nurb));
+        keyblock_data_convert_to_curve((const float *)out, &curve->nurb, totpoint);
+        break;
+      }
+      default:
+        BLI_assert_unreachable();
+    }
+  }
+
   if (r_totelem) {
     *r_totelem = tot;
   }
@@ -1599,7 +1630,7 @@ float *BKE_key_evaluate_object_ex(Object *ob, int *r_totelem, float *arr, size_t
 
 float *BKE_key_evaluate_object(Object *ob, int *r_totelem)
 {
-  return BKE_key_evaluate_object_ex(ob, r_totelem, NULL, 0);
+  return BKE_key_evaluate_object_ex(ob, r_totelem, NULL, 0, NULL);
 }
 
 int BKE_keyblock_element_count_from_shape(const Key *key, const int shape_index)
@@ -1971,21 +2002,22 @@ void BKE_keyblock_convert_from_lattice(const Lattice *lt, KeyBlock *kb)
   BKE_keyblock_update_from_lattice(lt, kb);
 }
 
+static void keyblock_data_convert_to_lattice(const float (*fp)[3],
+                                             BPoint *bpoint,
+                                             const int totpoint)
+{
+  for (int i = 0; i < totpoint; i++, fp++, bpoint++) {
+    copy_v3_v3(bpoint->vec, *fp);
+  }
+}
+
 void BKE_keyblock_convert_to_lattice(const KeyBlock *kb, Lattice *lt)
 {
-  BPoint *bp;
-  const float(*fp)[3];
-  int a, tot;
+  BPoint *bp = lt->def;
+  const float(*fp)[3] = kb->data;
+  const int tot = min_ii(kb->totelem, lt->pntsu * lt->pntsv * lt->pntsw);
 
-  bp = lt->def;
-  fp = kb->data;
-
-  tot = lt->pntsu * lt->pntsv * lt->pntsw;
-  tot = min_ii(kb->totelem, tot);
-
-  for (a = 0; a < tot; a++, fp++, bp++) {
-    copy_v3_v3(bp->vec, *fp);
-  }
+  keyblock_data_convert_to_lattice(fp, bp, tot);
 }
 
 /************************* Curve ************************/
@@ -2097,40 +2129,38 @@ void BKE_keyblock_convert_from_curve(const Curve *cu, KeyBlock *kb, const ListBa
   BKE_keyblock_update_from_curve(cu, kb, nurb);
 }
 
-void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
+static void keyblock_data_convert_to_curve(const float *fp, ListBase *nurb, int totpoint)
 {
-  Nurb *nu;
-  BezTriple *bezt;
-  BPoint *bp;
-  const float *fp;
-  int a, tot;
-
-  tot = BKE_keyblock_curve_element_count(nurb);
-  tot = min_ii(kb->totelem, tot);
-
-  fp = kb->data;
-  for (nu = nurb->first; nu && tot > 0; nu = nu->next) {
-    if (nu->bezt) {
-      for (a = nu->pntsu, bezt = nu->bezt; a && (tot -= KEYELEM_ELEM_LEN_BEZTRIPLE) >= 0;
-           a--, bezt++) {
-        for (int i = 0; i < 3; i++) {
-          copy_v3_v3(bezt->vec[i], &fp[i * 3]);
+  for (Nurb *nu = nurb->first; nu && totpoint > 0; nu = nu->next) {
+    if (nu->bezt != NULL) {
+      BezTriple *bezt = nu->bezt;
+      for (int i = nu->pntsu; i && (totpoint -= KEYELEM_ELEM_LEN_BEZTRIPLE) >= 0;
+           i--, bezt++, fp += KEYELEM_FLOAT_LEN_BEZTRIPLE) {
+        for (int j = 0; j < 3; j++) {
+          copy_v3_v3(bezt->vec[j], &fp[j * 3]);
         }
         bezt->tilt = fp[9];
         bezt->radius = fp[10];
-        fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
       }
     }
     else {
-      for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a && (tot -= KEYELEM_ELEM_LEN_BPOINT) >= 0;
-           a--, bp++) {
+      BPoint *bp = nu->bp;
+      for (int i = nu->pntsu * nu->pntsv; i && (totpoint -= KEYELEM_ELEM_LEN_BPOINT) >= 0;
+           i--, bp++, fp += KEYELEM_FLOAT_LEN_BPOINT) {
         copy_v3_v3(bp->vec, fp);
         bp->tilt = fp[3];
         bp->radius = fp[4];
-        fp += KEYELEM_FLOAT_LEN_BPOINT;
       }
     }
   }
+}
+
+void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
+{
+  const float *fp = kb->data;
+  const int tot = min_ii(kb->totelem, BKE_keyblock_curve_element_count(nurb));
+
+  keyblock_data_convert_to_curve(fp, nurb, tot);
 }
 
 /************************* Mesh ************************/
@@ -2171,18 +2201,19 @@ void BKE_keyblock_convert_from_mesh(const Mesh *me, const Key *key, KeyBlock *kb
   BKE_keyblock_update_from_mesh(me, kb);
 }
 
-void BKE_keyblock_convert_to_mesh(const KeyBlock *kb, MVert *mvert, const int totvert)
+static void keyblock_data_convert_to_mesh(const float (*fp)[3], MVert *mvert, const int totvert)
 {
-  const float(*fp)[3];
-  int a, tot;
-
-  fp = kb->data;
-
-  tot = min_ii(kb->totelem, totvert);
-
-  for (a = 0; a < tot; a++, fp++, mvert++) {
+  for (int i = 0; i < totvert; i++, fp++, mvert++) {
     copy_v3_v3(mvert->co, *fp);
   }
+}
+
+void BKE_keyblock_convert_to_mesh(const KeyBlock *kb, MVert *mvert, const int totvert)
+{
+  const float(*fp)[3] = kb->data;
+  const int tot = min_ii(kb->totelem, totvert);
+
+  keyblock_data_convert_to_mesh(fp, mvert, tot);
 }
 
 void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
