@@ -248,8 +248,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   else {
     surface_mesh_orig = &surface_object_data;
   }
-  Mesh *surface_mesh_eval = BKE_modifier_get_evaluated_mesh_from_evaluated_object(surface_ob_eval,
-                                                                                  false);
+  Mesh *surface_mesh_eval = BKE_modifier_get_evaluated_mesh_from_evaluated_object(surface_ob_eval);
   if (surface_mesh_eval == nullptr) {
     pass_through_input();
     params.error_message_add(NodeWarningType::Error, "Surface has no mesh");

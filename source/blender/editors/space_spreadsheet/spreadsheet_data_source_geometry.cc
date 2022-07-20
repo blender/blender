@@ -412,7 +412,7 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
   }
   else {
     if (object_eval->mode == OB_MODE_EDIT && object_eval->type == OB_MESH) {
-      Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval, false);
+      Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval);
       if (mesh == nullptr) {
         return geometry_set;
       }

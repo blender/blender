@@ -207,7 +207,7 @@ static void main_namemap_populate(UniqueName_Map *name_map, struct Main *bmain, 
 
     /* Insert the full name into the set. */
     UniqueName_Key key;
-    strncpy(key.name, id->name + 2, MAX_NAME);
+    BLI_strncpy(key.name, id->name + 2, MAX_NAME);
     type_map->full_names.add(key);
 
     /* Get the name and number parts ("name.number"). */
@@ -255,7 +255,7 @@ bool BKE_main_namemap_get_name(struct Main *bmain, struct ID *id, char *name)
   UniqueName_Key key;
   while (true) {
     /* Check if the full original name has a duplicate. */
-    strncpy(key.name, name, MAX_NAME);
+    BLI_strncpy(key.name, name, MAX_NAME);
     const bool has_dup = type_map->full_names.contains(key);
 
     /* Get the name and number parts ("name.number"). */
@@ -275,7 +275,7 @@ bool BKE_main_namemap_get_name(struct Main *bmain, struct ID *id, char *name)
       val.mark_used(number);
 
       if (!has_dup) {
-        strncpy(key.name, name, MAX_NAME);
+        BLI_strncpy(key.name, name, MAX_NAME);
         type_map->full_names.add(key);
       }
       return is_name_changed;
@@ -310,7 +310,7 @@ bool BKE_main_namemap_get_name(struct Main *bmain, struct ID *id, char *name)
     BLI_assert(number_to_use >= MIN_NUMBER);
     if (id_name_final_build(name, key.name, base_name_len, number_to_use)) {
       /* All good, add final name to the set. */
-      strncpy(key.name, name, MAX_NAME);
+      BLI_strncpy(key.name, name, MAX_NAME);
       type_map->full_names.add(key);
       break;
     }
@@ -343,7 +343,7 @@ void BKE_main_namemap_remove_name(struct Main *bmain, struct ID *id, const char 
 
   UniqueName_Key key;
   /* Remove full name from the set. */
-  strncpy(key.name, name, MAX_NAME);
+  BLI_strncpy(key.name, name, MAX_NAME);
   type_map->full_names.remove(key);
 
   int number = MIN_NUMBER;

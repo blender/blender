@@ -29,9 +29,8 @@ AbstractGridViewItem &AbstractGridView::add_item(std::unique_ptr<AbstractGridVie
   items_.append(std::move(item));
 
   AbstractGridViewItem &added_item = *items_.last();
-  added_item.view_ = this;
-
   item_map_.add(added_item.identifier_, &added_item);
+  register_item(added_item);
 
   return added_item;
 }
@@ -180,7 +179,7 @@ const AbstractGridView &AbstractGridViewItem::get_view() const
     throw std::runtime_error(
         "Invalid state, item must be added through AbstractGridView::add_item()");
   }
-  return *view_;
+  return dynamic_cast<AbstractGridView &>(*view_);
 }
 
 /* ---------------------------------------------------------------------- */
