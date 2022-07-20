@@ -475,17 +475,18 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
   Image *ima = (Image *)ptr->owner_id;
   int duration = 1;
 
+  if (!BKE_image_has_anim(ima)) {
+    /* Ensure image has been loaded into memory and frame duration is known. */
+    void *lock;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+    BKE_image_release_ibuf(ima, ibuf, lock);
+  }
+
   if (BKE_image_has_anim(ima)) {
     struct anim *anim = ((ImageAnim *)ima->anims.first)->anim;
     if (anim) {
       duration = IMB_anim_get_duration(anim, IMB_TC_RECORD_RUN);
     }
-  }
-  else {
-    /* acquire ensures ima->anim is set, if possible! */
-    void *lock;
-    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
-    BKE_image_release_ibuf(ima, ibuf, lock);
   }
 
   return duration;
