@@ -1344,7 +1344,7 @@ void SCULPT_cloth_simulation_free(struct SculptClothSimulation *cloth_sim);
 
 /* Public functions. */
 
-struct SculptClothSimulation *SCULPT_cloth_brush_simulation_create(struct SculptSession *ss,
+struct SculptClothSimulation *SCULPT_cloth_brush_simulation_create(struct Object *ob,
                                                                    float cloth_mass,
                                                                    float cloth_damping,
                                                                    float cloth_softbody_strength,
