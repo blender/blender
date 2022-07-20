@@ -1070,21 +1070,6 @@ bool CurvesGeometry::bounds_min_max(float3 &min, float3 &max) const
   return true;
 }
 
-static void *ensure_customdata_layer(CustomData &custom_data,
-                                     const StringRefNull name,
-                                     const eCustomDataType data_type,
-                                     const int tot_elements)
-{
-  for (const int other_layer_i : IndexRange(custom_data.totlayer)) {
-    CustomDataLayer &new_layer = custom_data.layers[other_layer_i];
-    if (name == StringRef(new_layer.name)) {
-      return new_layer.data;
-    }
-  }
-  return CustomData_add_layer_named(
-      &custom_data, data_type, CD_DEFAULT, nullptr, tot_elements, name.c_str());
-}
-
 static void copy_between_buffers(const CPPType &type,
                                  const void *src_buffer,
                                  void *dst_buffer,
@@ -1180,55 +1165,36 @@ static CurvesGeometry copy_with_removed_points(const CurvesGeometry &curves,
       [&]() { new_curves.offsets_for_write().copy_from(new_curve_offsets); },
       /* Copy over point attributes. */
       [&]() {
-        const CustomData &old_point_data = curves.point_data;
-        CustomData &new_point_data = new_curves.point_data;
-        for (const int layer_i : IndexRange(old_point_data.totlayer)) {
-          const CustomDataLayer &old_layer = old_point_data.layers[layer_i];
-          const eCustomDataType data_type = static_cast<eCustomDataType>(old_layer.type);
-          const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
-
-          void *dst_buffer = ensure_customdata_layer(
-              new_point_data, old_layer.name, data_type, new_point_count);
-
-          threading::parallel_for(
-              copy_point_ranges.index_range(), 128, [&](const IndexRange ranges_range) {
-                for (const int range_i : ranges_range) {
-                  const IndexRange src_range = copy_point_ranges[range_i];
-                  copy_between_buffers(type,
-                                       old_layer.data,
-                                       dst_buffer,
-                                       src_range,
-                                       {copy_point_range_dst_offsets[range_i], src_range.size()});
-                }
-              });
+        for (auto &attribute : bke::retrieve_attributes_for_transfer(
+                 curves.attributes(), new_curves.attributes_for_write(), ATTR_DOMAIN_MASK_POINT)) {
+          threading::parallel_for(copy_point_ranges.index_range(), 128, [&](IndexRange range) {
+            for (const int range_i : range) {
+              const IndexRange src_range = copy_point_ranges[range_i];
+              copy_between_buffers(attribute.src.type(),
+                                   attribute.src.data(),
+                                   attribute.dst.span.data(),
+                                   src_range,
+                                   {copy_point_range_dst_offsets[range_i], src_range.size()});
+            }
+          });
+          attribute.dst.finish();
         }
       },
       /* Copy over curve attributes.
        * In some cases points are just dissolved, so the the number of
        * curves will be the same. That could be optimized in the future. */
       [&]() {
-        const CustomData &old_curve_data = curves.curve_data;
-        CustomData &new_curve_data = new_curves.curve_data;
-        for (const int layer_i : IndexRange(old_curve_data.totlayer)) {
-          const CustomDataLayer &old_layer = old_curve_data.layers[layer_i];
-          const eCustomDataType data_type = static_cast<eCustomDataType>(old_layer.type);
-          const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
-
-          void *dst_buffer = ensure_customdata_layer(
-              new_curve_data, old_layer.name, data_type, new_curve_count);
-
+        for (auto &attribute : bke::retrieve_attributes_for_transfer(
+                 curves.attributes(), new_curves.attributes_for_write(), ATTR_DOMAIN_MASK_CURVE)) {
           if (new_curves.curves_num() == curves.curves_num()) {
-            type.copy_construct_n(old_layer.data, dst_buffer, new_curves.curves_num());
+            attribute.dst.span.copy_from(attribute.src);
           }
           else {
-            copy_with_map({type, old_layer.data, curves.curves_num()},
-                          new_curve_orig_indices,
-                          {type, dst_buffer, new_curves.curves_num()});
+            copy_with_map(attribute.src, new_curve_orig_indices, attribute.dst.span);
           }
+          attribute.dst.finish();
         }
       });
-
-  new_curves.update_curve_types();
 
   return new_curves;
 }
@@ -1296,54 +1262,36 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
       },
       /* Copy over point attributes. */
       [&]() {
-        const CustomData &old_point_data = curves.point_data;
-        CustomData &new_point_data = new_curves.point_data;
-        for (const int layer_i : IndexRange(old_point_data.totlayer)) {
-          const CustomDataLayer &old_layer = old_point_data.layers[layer_i];
-          const eCustomDataType data_type = static_cast<eCustomDataType>(old_layer.type);
-          const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
-
-          void *dst_buffer = ensure_customdata_layer(
-              new_point_data, old_layer.name, data_type, new_tot_points);
-
-          threading::parallel_for(
-              old_curve_ranges.index_range(), 128, [&](const IndexRange ranges_range) {
-                for (const int range_i : ranges_range) {
-                  copy_between_buffers(type,
-                                       old_layer.data,
-                                       dst_buffer,
-                                       old_point_ranges[range_i],
-                                       new_point_ranges[range_i]);
-                }
-              });
+        for (auto &attribute : bke::retrieve_attributes_for_transfer(
+                 curves.attributes(), new_curves.attributes_for_write(), ATTR_DOMAIN_MASK_POINT)) {
+          threading::parallel_for(old_curve_ranges.index_range(), 128, [&](IndexRange range) {
+            for (const int range_i : range) {
+              copy_between_buffers(attribute.src.type(),
+                                   attribute.src.data(),
+                                   attribute.dst.span.data(),
+                                   old_point_ranges[range_i],
+                                   new_point_ranges[range_i]);
+            }
+          });
+          attribute.dst.finish();
         }
       },
       /* Copy over curve attributes. */
       [&]() {
-        const CustomData &old_curve_data = curves.curve_data;
-        CustomData &new_curve_data = new_curves.curve_data;
-        for (const int layer_i : IndexRange(old_curve_data.totlayer)) {
-          const CustomDataLayer &old_layer = old_curve_data.layers[layer_i];
-          const eCustomDataType data_type = static_cast<eCustomDataType>(old_layer.type);
-          const CPPType &type = *bke::custom_data_type_to_cpp_type(data_type);
-
-          void *dst_buffer = ensure_customdata_layer(
-              new_curve_data, old_layer.name, data_type, new_tot_curves);
-
-          threading::parallel_for(
-              old_curve_ranges.index_range(), 128, [&](const IndexRange ranges_range) {
-                for (const int range_i : ranges_range) {
-                  copy_between_buffers(type,
-                                       old_layer.data,
-                                       dst_buffer,
-                                       old_curve_ranges[range_i],
-                                       new_curve_ranges[range_i]);
-                }
-              });
+        for (auto &attribute : bke::retrieve_attributes_for_transfer(
+                 curves.attributes(), new_curves.attributes_for_write(), ATTR_DOMAIN_MASK_CURVE)) {
+          threading::parallel_for(old_curve_ranges.index_range(), 128, [&](IndexRange range) {
+            for (const int range_i : range) {
+              copy_between_buffers(attribute.src.type(),
+                                   attribute.src.data(),
+                                   attribute.dst.span.data(),
+                                   old_curve_ranges[range_i],
+                                   new_curve_ranges[range_i]);
+            }
+          });
+          attribute.dst.finish();
         }
       });
-
-  new_curves.update_curve_types();
 
   return new_curves;
 }

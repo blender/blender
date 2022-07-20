@@ -1012,8 +1012,8 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span
 }
 
 Vector<AttributeTransferData> retrieve_attributes_for_transfer(
-    const bke::AttributeAccessor &src_attributes,
-    bke::MutableAttributeAccessor &dst_attributes,
+    const bke::AttributeAccessor src_attributes,
+    bke::MutableAttributeAccessor dst_attributes,
     const eAttrDomainMask domain_mask,
     const Set<std::string> &skip)
 {
