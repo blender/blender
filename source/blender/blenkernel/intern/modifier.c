@@ -456,6 +456,40 @@ void BKE_modifier_set_error(const Object *ob, ModifierData *md, const char *_for
   CLOG_ERROR(&LOG, "Object: \"%s\", Modifier: \"%s\", %s", ob->id.name + 2, md->name, md->error);
 }
 
+void BKE_modifier_set_warning(const struct Object *ob,
+                              struct ModifierData *md,
+                              const char *_format,
+                              ...)
+{
+  char buffer[512];
+  va_list ap;
+  const char *format = TIP_(_format);
+
+  va_start(ap, _format);
+  vsnprintf(buffer, sizeof(buffer), format, ap);
+  va_end(ap);
+  buffer[sizeof(buffer) - 1] = '\0';
+
+  /* Store the warning in the same field as the error.
+   * It is not expected to have both error and warning and having a single place to store the
+   * message simplifies interface code. */
+
+  if (md->error) {
+    MEM_freeN(md->error);
+  }
+
+  md->error = BLI_strdup(buffer);
+
+#ifndef NDEBUG
+  if ((md->mode & eModifierMode_Virtual) == 0) {
+    /* Ensure correct object is passed in. */
+    BLI_assert(BKE_modifier_get_original(ob, md) != NULL);
+  }
+#endif
+
+  UNUSED_VARS_NDEBUG(ob);
+}
+
 int BKE_modifiers_get_cage_index(const Scene *scene,
                                  Object *ob,
                                  int *r_lastPossibleCageIndex,

@@ -152,6 +152,13 @@ struct float3x3 {
     return result;
   }
 
+  friend float3 operator*(const float3x3 &a, const float3 &b)
+  {
+    float3 result;
+    mul_v3_m3v3(result, a.values, b);
+    return result;
+  }
+
   void operator*=(const float3x3 &other)
   {
     mul_m3_m3_post(values, other.values);

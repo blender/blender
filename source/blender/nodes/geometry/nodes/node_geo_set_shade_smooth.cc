@@ -16,21 +16,23 @@ static void set_smooth_in_component(GeometryComponent &component,
                                     const Field<bool> &selection_field,
                                     const Field<bool> &shade_field)
 {
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_FACE};
-  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_FACE);
-  if (domain_num == 0) {
+  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_FACE);
+  if (domain_size == 0) {
     return;
   }
+  MutableAttributeAccessor attributes = *component.attributes_for_write();
 
-  OutputAttribute_Typed<bool> shades = component.attribute_try_get_for_output_only<bool>(
-      "shade_smooth", ATTR_DOMAIN_FACE);
+  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_FACE};
 
-  fn::FieldEvaluator evaluator{field_context, domain_num};
+  AttributeWriter<bool> shades = attributes.lookup_or_add_for_write<bool>("shade_smooth",
+                                                                          ATTR_DOMAIN_FACE);
+
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
-  evaluator.add_with_destination(shade_field, shades.varray());
+  evaluator.add_with_destination(shade_field, shades.varray);
   evaluator.evaluate();
 
-  shades.save();
+  shades.finish();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

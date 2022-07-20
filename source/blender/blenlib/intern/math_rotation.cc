@@ -23,4 +23,17 @@ float3 rotate_direction_around_axis(const float3 &direction, const float3 &axis,
   return axis_scaled + diff * std::cos(angle) + cross * std::sin(angle);
 }
 
+float3 rotate_around_axis(const float3 &vector,
+                          const float3 &center,
+                          const float3 &axis,
+                          const float angle)
+
+{
+  float3 result = vector - center;
+  float mat[3][3];
+  axis_angle_normalized_to_mat3(mat, axis, angle);
+  mul_m3_v3(mat, result);
+  return result + center;
+}
+
 }  // namespace blender::math

@@ -214,7 +214,14 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         wmOperatorType *ot = WM_operatortype_find(umi_op->op_idname, false);
         if (ot != NULL) {
           IDProperty *prop = umi_op->prop ? IDP_CopyProperty(umi_op->prop) : NULL;
-          uiItemFullO_ptr(menu->layout, ot, ui_name, ICON_NONE, prop, umi_op->opcontext, 0, NULL);
+          uiItemFullO_ptr(menu->layout,
+                          ot,
+                          CTX_IFACE_(ot->translation_context, ui_name),
+                          ICON_NONE,
+                          prop,
+                          umi_op->opcontext,
+                          0,
+                          NULL);
           is_empty = false;
         }
         else {

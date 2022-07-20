@@ -35,9 +35,9 @@ class GLShaderInterface;
 class GLVaoCache {
  private:
   /** Context for which the vao_cache_ was generated. */
-  GLContext *context_ = NULL;
+  GLContext *context_ = nullptr;
   /** Last interface this batch was drawn with. */
-  GLShaderInterface *interface_ = NULL;
+  GLShaderInterface *interface_ = nullptr;
   /** Cached VAO for the last interface. */
   GLuint vao_id_ = 0;
   /** Used when arb_base_instance is not supported. */

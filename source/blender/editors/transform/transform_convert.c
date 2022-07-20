@@ -479,132 +479,6 @@ TransDataCurveHandleFlags *initTransDataCurveHandles(TransData *td, struct BezTr
 /** \name UV Coordinates
  * \{ */
 
-/**
- * Find the correction for the scaling factor when "Constrain to Bounds" is active.
- * \param numerator: How far the UV boundary (unit square) is from the origin of the scale.
- * \param denominator: How far the AABB is from the origin of the scale.
- * \param scale: Scale parameter to update.
- */
-static void constrain_scale_to_boundary(const float numerator,
-                                        const float denominator,
-                                        float *scale)
-{
-  if (denominator == 0.0f) {
-    /* The origin of the scale is on the edge of the boundary. */
-    if (numerator < 0.0f) {
-      /* Negative scale will wrap around and put us outside the boundary. */
-      *scale = 0.0f; /* Hold at the boundary instead. */
-    }
-    return; /* Nothing else we can do without more info. */
-  }
-
-  const float correction = numerator / denominator;
-  if (correction < 0.0f || !isfinite(correction)) {
-    /* TODO: Correction is negative or invalid, but we lack context to fix `*scale`. */
-    return;
-  }
-
-  if (denominator < 0.0f) {
-    /* Scale origin is outside boundary, only make scale bigger. */
-    if (*scale < correction) {
-      *scale = correction;
-    }
-    return;
-  }
-
-  /* Scale origin is inside boundary, the "regular" case, limit maximum scale. */
-  if (*scale > correction) {
-    *scale = correction;
-  }
-}
-
-bool clipUVTransform(TransInfo *t, float vec[2], const bool resize)
-{
-  bool clipx = true, clipy = true;
-  float min[2], max[2];
-
-  /* Check if the current image in UV editor is a tiled image or not. */
-  const SpaceImage *sima = t->area->spacedata.first;
-  const Image *image = sima->image;
-  const bool is_tiled_image = image && (image->source == IMA_SRC_TILED);
-  /* Stores the coordinates of the closest UDIM tile.
-   * Also acts as an offset to the tile from the origin of UV space. */
-  float base_offset[2] = {0.0f, 0.0f};
-
-  /* If tiled image then constrain to correct/closest UDIM tile, else 0-1 UV space. */
-  if (is_tiled_image) {
-    int nearest_tile_index = BKE_image_find_nearest_tile(image, t->center_global);
-    if (nearest_tile_index != -1) {
-      nearest_tile_index -= 1001;
-      /* Getting coordinates of nearest tile from the tile index. */
-      base_offset[0] = nearest_tile_index % 10;
-      base_offset[1] = nearest_tile_index / 10;
-    }
-  }
-
-  min[0] = min[1] = FLT_MAX;
-  max[0] = max[1] = FLT_MIN;
-
-  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-
-    TransData *td;
-    int a;
-
-    for (a = 0, td = tc->data; a < tc->data_len; a++, td++) {
-      minmax_v2v2_v2(min, max, td->loc);
-    }
-  }
-
-  if (resize) {
-    /* Assume no change is required. */
-    float scalex = 1.0f;
-    float scaley = 1.0f;
-
-    /* Update U against the left border. */
-    constrain_scale_to_boundary(
-        t->center_global[0] - base_offset[0], t->center_global[0] - min[0], &scalex);
-    /* Now the right border, negated, because `-1.0 / -1.0 = 1.0` */
-    constrain_scale_to_boundary(base_offset[0] + t->aspect[0] - t->center_global[0],
-                                max[0] - t->center_global[0],
-                                &scalex);
-
-    /* Do the same for the V co-ordinate, which is called `y`. */
-    constrain_scale_to_boundary(
-        t->center_global[1] - base_offset[1], t->center_global[1] - min[1], &scaley);
-    constrain_scale_to_boundary(base_offset[1] + t->aspect[1] - t->center_global[1],
-                                max[1] - t->center_global[1],
-                                &scaley);
-
-    clipx = (scalex != 1.0f);
-    clipy = (scaley != 1.0f);
-    vec[0] *= scalex;
-    vec[1] *= scaley;
-  }
-  else {
-    if (min[0] < base_offset[0]) {
-      vec[0] += base_offset[0] - min[0];
-    }
-    else if (max[0] > base_offset[0] + t->aspect[0]) {
-      vec[0] -= max[0] - base_offset[0] - t->aspect[0];
-    }
-    else {
-      clipx = 0;
-    }
-
-    if (min[1] < base_offset[1]) {
-      vec[1] += base_offset[1] - min[1];
-    }
-    else if (max[1] > base_offset[1] + t->aspect[1]) {
-      vec[1] -= max[1] - base_offset[1] - t->aspect[1];
-    }
-    else {
-      clipy = 0;
-    }
-  }
-
-  return (clipx || clipy);
-}
-
 void clipUVData(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -769,7 +643,7 @@ void posttrans_fcurve_clean(FCurve *fcu, const int sel_flag, const bool use_hand
           }
           else {
             /* Delete Keyframe */
-            delete_fcurve_key(fcu, i, 0);
+            BKE_fcurve_delete_key(fcu, i);
           }
 
           /* Update count of how many we've deleted
@@ -779,7 +653,7 @@ void posttrans_fcurve_clean(FCurve *fcu, const int sel_flag, const bool use_hand
         }
         else {
           /* Always delete - Unselected keys don't matter */
-          delete_fcurve_key(fcu, i, 0);
+          BKE_fcurve_delete_key(fcu, i);
         }
 
         /* Stop the RK search... we've found our match now */
@@ -949,6 +823,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
     case TC_GPENCIL:
     case TC_LATTICE_VERTS:
     case TC_MBALL_VERTS:
+    case TC_MESH_VERT_CDATA:
     case TC_MESH_UV:
     case TC_MESH_SKIN:
     case TC_OBJECT_TEXSPACE:
@@ -1031,6 +906,7 @@ static void init_proportional_edit(TransInfo *t)
     case TC_MESH_EDGES:
     case TC_MESH_SKIN:
     case TC_MESH_UV:
+    case TC_MESH_VERT_CDATA:
     case TC_NODE_DATA:
     case TC_OBJECT:
     case TC_PARTICLE_VERTS:
@@ -1065,7 +941,7 @@ static void init_proportional_edit(TransInfo *t)
     if (ELEM(convert_type, TC_ACTION_DATA, TC_GRAPH_EDIT_DATA)) {
       /* Distance has already been set. */
     }
-    else if (ELEM(convert_type, TC_MESH_VERTS, TC_MESH_SKIN)) {
+    else if (ELEM(convert_type, TC_MESH_VERTS, TC_MESH_SKIN, TC_MESH_VERT_CDATA)) {
       if (t->flag & T_PROP_CONNECTED) {
         /* Already calculated by transform_convert_mesh_connectivity_distance. */
       }
@@ -1110,6 +986,7 @@ static void init_TransDataContainers(TransInfo *t,
     case TC_MESH_EDGES:
     case TC_MESH_SKIN:
     case TC_MESH_UV:
+    case TC_MESH_VERT_CDATA:
       break;
     case TC_ACTION_DATA:
     case TC_GRAPH_EDIT_DATA:
@@ -1221,6 +1098,7 @@ static eTFlag flags_from_data_type(eTConvertType data_type)
     case TC_MBALL_VERTS:
     case TC_MESH_VERTS:
     case TC_MESH_SKIN:
+    case TC_MESH_VERT_CDATA:
       return T_EDIT | T_POINTS;
     case TC_MESH_EDGES:
       return T_EDIT;
@@ -1319,6 +1197,9 @@ static eTConvertType convert_type_get(const TransInfo *t, Object **r_obj_armatur
     if (t->obedit_type == OB_MESH) {
       if (t->mode == TFM_SKIN_RESIZE) {
         convert_type = TC_MESH_SKIN;
+      }
+      else if (ELEM(t->mode, TFM_BWEIGHT, TFM_VERT_CREASE)) {
+        convert_type = TC_MESH_VERT_CDATA;
       }
       else {
         convert_type = TC_MESH_VERTS;
@@ -1442,6 +1323,9 @@ void createTransData(bContext *C, TransInfo *t)
       break;
     case TC_NLA_DATA:
       createTransNlaData(C, t);
+      break;
+    case TC_MESH_VERT_CDATA:
+      createTransMeshVertCData(t);
       break;
     case TC_NODE_DATA:
       createTransNodeData(t);
@@ -1748,6 +1632,9 @@ void recalcData(TransInfo *t)
       break;
     case TC_MESH_UV:
       recalcData_uv(t);
+      break;
+    case TC_MESH_VERT_CDATA:
+      recalcData_mesh_cdata(t);
       break;
     case TC_NLA_DATA:
       recalcData_nla(t);

@@ -2661,13 +2661,31 @@ BoundBox *BKE_armature_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-void BKE_pchan_minmax(const Object *ob, const bPoseChannel *pchan, float r_min[3], float r_max[3])
+void BKE_pchan_minmax(const Object *ob,
+                      const bPoseChannel *pchan,
+                      const bool use_empty_drawtype,
+                      float r_min[3],
+                      float r_max[3])
 {
   const bArmature *arm = ob->data;
-  const bPoseChannel *pchan_tx = (pchan->custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
-  const BoundBox *bb_custom = ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) ?
-                                  BKE_object_boundbox_get(pchan->custom) :
-                                  NULL;
+  Object *ob_custom = (arm->flag & ARM_NO_CUSTOM) ? NULL : pchan->custom;
+  const bPoseChannel *pchan_tx = (ob_custom && pchan->custom_tx) ? pchan->custom_tx : pchan;
+  const BoundBox *bb_custom = NULL;
+  BoundBox bb_custom_buf;
+
+  if (ob_custom) {
+    float min[3], max[3];
+    if (use_empty_drawtype && (ob_custom->type == OB_EMPTY) &&
+        BKE_object_minmax_empty_drawtype(ob_custom, min, max)) {
+      memset(&bb_custom_buf, 0x0, sizeof(bb_custom_buf));
+      BKE_boundbox_init_from_minmax(&bb_custom_buf, min, max);
+      bb_custom = &bb_custom_buf;
+    }
+    else {
+      bb_custom = BKE_object_boundbox_get(ob_custom);
+    }
+  }
+
   if (bb_custom) {
     float mat[4][4], smat[4][4], rmat[4][4], tmp[4][4];
     scale_m4_fl(smat, PCHAN_CUSTOM_BONE_LENGTH(pchan));
@@ -2704,7 +2722,7 @@ bool BKE_pose_minmax(Object *ob, float r_min[3], float r_max[3], bool use_hidden
       if (pchan->bone && (!((use_hidden == false) && (PBONE_VISIBLE(arm, pchan->bone) == false)) &&
                           !((use_select == true) && ((pchan->bone->flag & BONE_SELECTED) == 0)))) {
 
-        BKE_pchan_minmax(ob, pchan, r_min, r_max);
+        BKE_pchan_minmax(ob, pchan, false, r_min, r_max);
         changed = true;
       }
     }

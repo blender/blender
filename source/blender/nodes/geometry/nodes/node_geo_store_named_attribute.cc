@@ -87,9 +87,14 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
                                           const eAttrDomain domain,
                                           const GField &field)
 {
+  const int domain_size = component.attribute_domain_size(domain);
+  if (domain_size == 0) {
+    return;
+  }
+  MutableAttributeAccessor attributes = *component.attributes_for_write();
+
   GeometryComponentFieldContext field_context{component, domain};
-  const int domain_num = component.attribute_domain_num(domain);
-  const IndexMask mask{IndexMask(domain_num)};
+  const IndexMask mask{IndexMask(domain_size)};
 
   const CPPType &type = field.cpp_type();
   const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
@@ -97,28 +102,28 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
   /* Could avoid allocating a new buffer if:
    * - We are writing to an attribute that exists already.
    * - The field does not depend on that attribute (we can't easily check for that yet). */
-  void *buffer = MEM_mallocN(type.size() * domain_num, __func__);
+  void *buffer = MEM_mallocN(type.size() * domain_size, __func__);
 
   fn::FieldEvaluator evaluator{field_context, &mask};
-  evaluator.add_with_destination(field, GMutableSpan{type, buffer, domain_num});
+  evaluator.add_with_destination(field, GMutableSpan{type, buffer, domain_size});
   evaluator.evaluate();
 
-  component.attribute_try_delete(name);
-  if (component.attribute_exists(name)) {
-    WriteAttributeLookup write_attribute = component.attribute_try_get_for_write(name);
+  attributes.remove(name);
+  if (attributes.contains(name)) {
+    GAttributeWriter write_attribute = attributes.lookup_for_write(name);
     if (write_attribute && write_attribute.domain == domain &&
         write_attribute.varray.type() == type) {
       write_attribute.varray.set_all(buffer);
-      write_attribute.tag_modified_fn();
+      write_attribute.finish();
     }
     else {
       /* Cannot change type of built-in attribute. */
     }
-    type.destruct_n(buffer, domain_num);
+    type.destruct_n(buffer, domain_size);
     MEM_freeN(buffer);
   }
   else {
-    if (!component.attribute_try_create(name, domain, data_type, AttributeInitMove{buffer})) {
+    if (!attributes.add(name, domain, data_type, bke::AttributeInitMove{buffer})) {
       MEM_freeN(buffer);
     }
   }

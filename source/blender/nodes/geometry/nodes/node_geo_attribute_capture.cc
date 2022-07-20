@@ -111,19 +111,26 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
                                           const eAttrDomain domain,
                                           const GField &field)
 {
+  const int domain_size = component.attribute_domain_size(domain);
+  if (domain_size == 0) {
+    return;
+  }
   GeometryComponentFieldContext field_context{component, domain};
-  const int domain_num = component.attribute_domain_num(domain);
-  const IndexMask mask{IndexMask(domain_num)};
+  MutableAttributeAccessor attributes = *component.attributes_for_write();
+  const IndexMask mask{IndexMask(domain_size)};
 
   const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(field.cpp_type());
-  OutputAttribute output_attribute = component.attribute_try_get_for_output_only(
+  GAttributeWriter output_attribute = attributes.lookup_or_add_for_write(
       attribute_id, domain, data_type);
+  if (!output_attribute) {
+    return;
+  }
 
   fn::FieldEvaluator evaluator{field_context, &mask};
-  evaluator.add_with_destination(field, output_attribute.varray());
+  evaluator.add_with_destination(field, output_attribute.varray);
   evaluator.evaluate();
 
-  output_attribute.save();
+  output_attribute.finish();
 }
 
 static StringRefNull identifier_suffix(eCustomDataType data_type)

@@ -20,6 +20,7 @@
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -212,13 +213,7 @@ void ED_space_image_get_size(SpaceImage *sima, int *r_width, int *r_height)
   }
   else if (sima->image && sima->image->type == IMA_TYPE_R_RESULT && scene) {
     /* not very important, just nice */
-    *r_width = (scene->r.xsch * scene->r.size) / 100;
-    *r_height = (scene->r.ysch * scene->r.size) / 100;
-
-    if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
-      *r_width *= BLI_rctf_size_x(&scene->r.border);
-      *r_height *= BLI_rctf_size_y(&scene->r.border);
-    }
+    BKE_render_resolution(&scene->r, true, r_width, r_height);
   }
   /* I know a bit weak... but preview uses not actual image size */
   // XXX else if (image_preview_active(sima, r_width, r_height));

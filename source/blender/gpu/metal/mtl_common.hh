@@ -10,7 +10,7 @@
 #define MTL_MAX_COMMAND_BUFFERS 64
 
 /* Number of frames for which we retain in-flight resources such as scratch buffers.
- * Set as number of GPU frames in flight, plus an additioanl value for extra possible CPU frame. */
+ * Set as number of GPU frames in flight, plus an additional value for extra possible CPU frame. */
 #define MTL_NUM_SAFE_FRAMES (MTL_MAX_DRAWABLES + 1)
 
 #endif

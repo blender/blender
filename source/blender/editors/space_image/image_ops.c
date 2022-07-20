@@ -45,6 +45,7 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 
@@ -197,10 +198,17 @@ static ImageUser *image_user_from_context(const bContext *C)
   return (sima) ? &sima->iuser : NULL;
 }
 
-static ImageUser image_user_from_active_tile(Image *ima)
+static ImageUser image_user_from_context_and_active_tile(const bContext *C, Image *ima)
 {
+  /* Try to get image user from context if available, otherwise use default. */
+  ImageUser *iuser_context = image_user_from_context(C);
   ImageUser iuser;
-  BKE_imageuser_default(&iuser);
+  if (iuser_context) {
+    iuser = *iuser_context;
+  }
+  else {
+    BKE_imageuser_default(&iuser);
+  }
 
   /* Use the file associated with the active tile. Otherwise use the first tile. */
   if (ima && ima->source == IMA_SRC_TILED) {
@@ -233,7 +241,7 @@ static bool image_from_context_has_data_poll(bContext *C)
 static bool image_from_context_has_data_poll_active_tile(bContext *C)
 {
   Image *ima = image_from_context(C);
-  ImageUser iuser = image_user_from_active_tile(ima);
+  ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
 
   return BKE_image_has_ibuf(ima, &iuser);
 }
@@ -1602,7 +1610,7 @@ static int image_file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *
       }
     }
     else if (ima->source == IMA_SRC_TILED) {
-      ImageUser iuser = image_user_from_active_tile(ima);
+      ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
       BKE_image_user_file_path(&iuser, ima, filepath);
     }
 
@@ -1823,7 +1831,7 @@ static void image_save_options_from_op(Main *bmain, ImageSaveOptions *opts, wmOp
 }
 
 static bool save_image_op(
-    Main *bmain, Image *ima, ImageUser *iuser, wmOperator *op, ImageSaveOptions *opts)
+    Main *bmain, Image *ima, ImageUser *iuser, wmOperator *op, const ImageSaveOptions *opts)
 {
   WM_cursor_wait(true);
 
@@ -2391,7 +2399,7 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
         if (image_has_valid_path(ima)) {
           ImageSaveOptions opts;
           Scene *scene = CTX_data_scene(C);
-          if (!BKE_image_save_options_init(&opts, bmain, scene, ima, NULL, false, false)) {
+          if (BKE_image_save_options_init(&opts, bmain, scene, ima, NULL, false, false)) {
             bool saved_successfully = BKE_image_save(reports, bmain, ima, NULL, &opts);
             ok = ok && saved_successfully;
           }
@@ -2698,7 +2706,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 static int image_flip_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
-  ImageUser iuser = image_user_from_active_tile(ima);
+  ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   SpaceImage *sima = CTX_wm_space_image(C);
   const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
@@ -2716,7 +2724,7 @@ static int image_flip_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &sima->iuser);
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &iuser);
 
   if (is_paint) {
     ED_imapaint_clear_partial_redraw();
@@ -2819,7 +2827,7 @@ void IMAGE_OT_flip(wmOperatorType *ot)
 static int image_invert_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
-  ImageUser iuser = image_user_from_active_tile(ima);
+  ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   SpaceImage *sima = CTX_wm_space_image(C);
   const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
@@ -2837,7 +2845,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &sima->iuser);
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &iuser);
 
   if (is_paint) {
     ED_imapaint_clear_partial_redraw();
@@ -2943,7 +2951,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 static int image_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   Image *ima = image_from_context(C);
-  ImageUser iuser = image_user_from_active_tile(ima);
+  ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "size");
   if (!RNA_property_is_set(op->ptr, prop)) {
     ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
@@ -2957,7 +2965,7 @@ static int image_scale_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 static int image_scale_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
-  ImageUser iuser = image_user_from_active_tile(ima);
+  ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
   SpaceImage *sima = CTX_wm_space_image(C);
   const bool is_paint = ((sima != NULL) && (sima->mode == SI_MODE_PAINT));
@@ -2982,7 +2990,7 @@ static int image_scale_exec(bContext *C, wmOperator *op)
     RNA_property_int_set_array(op->ptr, prop, size);
   }
 
-  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &sima->iuser);
+  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &iuser);
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   IMB_scaleImBuf(ibuf, size[0], size[1]);
@@ -3464,10 +3472,10 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 
 static int image_clear_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  SpaceImage *sima = CTX_wm_space_image(C);
   Image *ima = image_from_context(C);
+  ImageUser *iuser = image_user_from_context(C);
 
-  if (!BKE_image_clear_renderslot(ima, &sima->iuser, ima->render_slot)) {
+  if (!BKE_image_clear_renderslot(ima, iuser, ima->render_slot)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3532,10 +3540,10 @@ void IMAGE_OT_add_render_slot(wmOperatorType *ot)
 
 static int image_remove_render_slot_exec(bContext *C, wmOperator *UNUSED(op))
 {
-  SpaceImage *sima = CTX_wm_space_image(C);
   Image *ima = image_from_context(C);
+  ImageUser *iuser = image_user_from_context(C);
 
-  if (!BKE_image_remove_renderslot(ima, &sima->iuser, ima->render_slot)) {
+  if (!BKE_image_remove_renderslot(ima, iuser, ima->render_slot)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -3725,38 +3733,52 @@ static int render_border_exec(bContext *C, wmOperator *op)
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   Render *re = RE_GetSceneRender(scene);
-  RenderData *rd;
-  rctf border;
+  SpaceImage *sima = CTX_wm_space_image(C);
 
   if (re == NULL) {
     /* Shouldn't happen, but better be safe close to the release. */
     return OPERATOR_CANCELLED;
   }
 
-  rd = RE_engine_get_render_data(re);
-  if ((rd->mode & (R_BORDER | R_CROP)) == (R_BORDER | R_CROP)) {
-    BKE_report(op->reports, RPT_INFO, "Can not set border from a cropped render");
-    return OPERATOR_CANCELLED;
-  }
+  /* Get information about the previous render, or current scene if no render yet. */
+  int width, height;
+  BKE_render_resolution(&scene->r, false, &width, &height);
+  const RenderData *rd = ED_space_image_has_buffer(sima) ? RE_engine_get_render_data(re) :
+                                                           &scene->r;
 
-  /* get rectangle from operator */
+  /* Get rectangle from the operator. */
+  rctf border;
   WM_operator_properties_border_to_rctf(op, &border);
   UI_view2d_region_to_view_rctf(&region->v2d, &border, &border);
 
-  /* actually set border */
+  /* Adjust for cropping. */
+  if ((rd->mode & (R_BORDER | R_CROP)) == (R_BORDER | R_CROP)) {
+    border.xmin = rd->border.xmin + border.xmin * (rd->border.xmax - rd->border.xmin);
+    border.xmax = rd->border.xmin + border.xmax * (rd->border.xmax - rd->border.xmin);
+    border.ymin = rd->border.ymin + border.ymin * (rd->border.ymax - rd->border.ymin);
+    border.ymax = rd->border.ymin + border.ymax * (rd->border.ymax - rd->border.ymin);
+  }
+
   CLAMP(border.xmin, 0.0f, 1.0f);
   CLAMP(border.ymin, 0.0f, 1.0f);
   CLAMP(border.xmax, 0.0f, 1.0f);
   CLAMP(border.ymax, 0.0f, 1.0f);
-  scene->r.border = border;
 
-  /* drawing a border surrounding the entire camera view switches off border rendering
-   * or the border covers no pixels */
+  /* Drawing a border surrounding the entire camera view switches off border rendering
+   * or the border covers no pixels. */
   if ((border.xmin <= 0.0f && border.xmax >= 1.0f && border.ymin <= 0.0f && border.ymax >= 1.0f) ||
       (border.xmin == border.xmax || border.ymin == border.ymax)) {
     scene->r.mode &= ~R_BORDER;
   }
   else {
+    /* Snap border to pixel boundaries, so drawing a border within a pixel selects that pixel. */
+    border.xmin = floorf(border.xmin * width) / width;
+    border.xmax = ceilf(border.xmax * width) / width;
+    border.ymin = floorf(border.ymin * height) / height;
+    border.ymax = ceilf(border.ymax * height) / height;
+
+    /* Set border. */
+    scene->r.border = border;
     scene->r.mode |= R_BORDER;
   }
 

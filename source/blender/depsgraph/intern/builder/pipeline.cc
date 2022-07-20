@@ -90,7 +90,7 @@ void AbstractBuilderPipeline::build_step_finalize()
   }
 #endif
   /* Relations are up to date. */
-  deg_graph_->need_update = false;
+  deg_graph_->need_update_relations = false;
 }
 
 unique_ptr<DepsgraphNodeBuilder> AbstractBuilderPipeline::construct_node_builder()

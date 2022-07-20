@@ -1036,8 +1036,7 @@ static void do_render_compositor_scene(Render *re, Scene *sce, int cfra)
 
   /* exception: scene uses own size (unfinished code) */
   if (0) {
-    winx = (sce->r.size * sce->r.xsch) / 100;
-    winy = (sce->r.size * sce->r.ysch) / 100;
+    BKE_render_resolution(&sce->r, false, &winx, &winy);
   }
 
   /* initial setup */
@@ -1675,8 +1674,7 @@ static int render_init_from_main(Render *re,
    * r.border is the clipping rect */
 
   /* calculate actual render result and display size */
-  winx = (rd->size * rd->xsch) / 100;
-  winy = (rd->size * rd->ysch) / 100;
+  BKE_render_resolution(rd, false, &winx, &winy);
 
   /* We always render smaller part, inserting it in larger image is compositor business,
    * it uses 'disprect' for it. */
@@ -2409,8 +2407,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
   Object *camera;
   int winx, winy;
 
-  winx = (sce->r.size * sce->r.xsch) / 100;
-  winy = (sce->r.size * sce->r.ysch) / 100;
+  BKE_render_resolution(&sce->r, false, &winx, &winy);
 
   RE_InitState(re, NULL, &sce->r, &sce->view_layers, NULL, winx, winy, NULL);
 
@@ -2439,8 +2436,7 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
   rcti disprect;
 
   /* calculate actual render result and display size */
-  winx = (scene->r.size * scene->r.xsch) / 100;
-  winy = (scene->r.size * scene->r.ysch) / 100;
+  BKE_render_resolution(&scene->r, false, &winx, &winy);
 
   /* only in movie case we render smaller part */
   if (scene->r.mode & R_BORDER) {

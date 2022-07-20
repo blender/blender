@@ -72,14 +72,10 @@ typedef struct uiBut uiBut;
 typedef struct uiButExtraOpIcon uiButExtraOpIcon;
 typedef struct uiLayout uiLayout;
 typedef struct uiPopupBlockHandle uiPopupBlockHandle;
-/* C handle for C++ #ui::AbstractTreeView type. */
-typedef struct uiTreeViewHandle uiTreeViewHandle;
-/* C handle for C++ #ui::AbstractTreeViewItem type. */
-typedef struct uiTreeViewItemHandle uiTreeViewItemHandle;
-/* C handle for C++ #ui::AbstractGridView type. */
-typedef struct uiGridViewHandle uiGridViewHandle;
-/* C handle for C++ #ui::AbstractGridViewItem type. */
-typedef struct uiGridViewItemHandle uiGridViewItemHandle;
+/* C handle for C++ #ui::AbstractView type. */
+typedef struct uiViewHandle uiViewHandle;
+/* C handle for C++ #ui::AbstractViewItem type. */
+typedef struct uiViewItemHandle uiViewItemHandle;
 
 /* Defines */
 
@@ -393,10 +389,8 @@ typedef enum {
   /** Resize handle (resize uilist). */
   UI_BTYPE_GRIP = 57 << 9,
   UI_BTYPE_DECORATOR = 58 << 9,
-  /* An item in a tree view. Parent items may be collapsible. */
-  UI_BTYPE_TREEROW = 59 << 9,
-  /* An item in a grid view. */
-  UI_BTYPE_GRID_TILE = 60 << 9,
+  /* An item a view (see #ui::AbstractViewItem). */
+  UI_BTYPE_VIEW_ITEM = 59 << 9,
 } eButType;
 
 #define BUTTYPE (63 << 9)
@@ -1686,8 +1680,6 @@ int UI_search_items_find_index(uiSearchItems *items, const char *name);
  * Adds a hint to the button which draws right aligned, grayed out and never clipped.
  */
 void UI_but_hint_drawstr_set(uiBut *but, const char *string);
-
-void UI_but_treerow_indentation_set(uiBut *but, int indentation);
 
 void UI_but_node_link_set(uiBut *but, struct bNodeSocket *socket, const float draw_color[4]);
 
@@ -3203,54 +3195,44 @@ void UI_interface_tag_script_reload(void);
 void UI_block_views_listen(const uiBlock *block,
                            const struct wmRegionListenerParams *listener_params);
 
-bool UI_grid_view_item_is_active(const uiGridViewItemHandle *item_handle);
-bool UI_tree_view_item_is_active(const uiTreeViewItemHandle *item);
-bool UI_grid_view_item_matches(const uiGridViewItemHandle *a, const uiGridViewItemHandle *b);
-bool UI_tree_view_item_matches(const uiTreeViewItemHandle *a, const uiTreeViewItemHandle *b);
+bool UI_view_item_is_active(const uiViewItemHandle *item_handle);
+bool UI_view_item_matches(const uiViewItemHandle *a_handle, const uiViewItemHandle *b_handle);
 /**
- * Attempt to start dragging the tree-item \a item_. This will not work if the tree item doesn't
- * support dragging, i.e. it won't create a drag-controller upon request.
- * \return True if dragging started successfully, otherwise false.
- */
-bool UI_tree_view_item_drag_start(struct bContext *C, uiTreeViewItemHandle *item_);
-bool UI_tree_view_item_can_drop(const uiTreeViewItemHandle *item_,
-                                const struct wmDrag *drag,
-                                const char **r_disabled_hint);
-char *UI_tree_view_item_drop_tooltip(const uiTreeViewItemHandle *item, const struct wmDrag *drag);
-/**
- * Let a tree-view item handle a drop event.
- * \return True if the drop was handled by the tree-view item.
- */
-bool UI_tree_view_item_drop_handle(struct bContext *C,
-                                   const uiTreeViewItemHandle *item_,
-                                   const struct ListBase *drags);
-/**
- * Can \a item_handle be renamed right now? Not that this isn't just a mere wrapper around
- * #AbstractTreeViewItem::can_rename(). This also checks if there is another item being renamed,
+ * Can \a item_handle be renamed right now? Note that this isn't just a mere wrapper around
+ * #AbstractViewItem::supports_renaming(). This also checks if there is another item being renamed,
  * and returns false if so.
  */
-bool UI_tree_view_item_can_rename(const uiTreeViewItemHandle *item_handle);
-void UI_tree_view_item_begin_rename(uiTreeViewItemHandle *item_handle);
+bool UI_view_item_can_rename(const uiViewItemHandle *item_handle);
+void UI_view_item_begin_rename(uiViewItemHandle *item_handle);
 
-void UI_tree_view_item_context_menu_build(struct bContext *C,
-                                          const uiTreeViewItemHandle *item,
-                                          uiLayout *column);
-
-/**
- * \param xy: Coordinate to find a tree-row item at, in window space.
- */
-uiTreeViewItemHandle *UI_block_tree_view_find_item_at(const struct ARegion *region,
-                                                      const int xy[2]) ATTR_NONNULL(1, 2);
-uiTreeViewItemHandle *UI_block_tree_view_find_active_item(const struct ARegion *region);
+void UI_view_item_context_menu_build(struct bContext *C,
+                                     const uiViewItemHandle *item_handle,
+                                     uiLayout *column);
 
 /**
- * Listen to \a notifier, returning true if the region should redraw.
+ * Attempt to start dragging \a item_. This will not work if the view item doesn't
+ * support dragging, i.e. if it won't create a drag-controller upon request.
+ * \return True if dragging started successfully, otherwise false.
  */
-bool UI_tree_view_listen_should_redraw(const uiTreeViewHandle *view, const wmNotifier *notifier);
+bool UI_view_item_drag_start(struct bContext *C, const uiViewItemHandle *item_);
+bool UI_view_item_can_drop(const uiViewItemHandle *item_,
+                           const struct wmDrag *drag,
+                           const char **r_disabled_hint);
+char *UI_view_item_drop_tooltip(const uiViewItemHandle *item, const struct wmDrag *drag);
 /**
- * Listen to \a notifier, returning true if the region should redraw.
+ * Let a view item handle a drop event.
+ * \return True if the drop was handled by the view item.
  */
-bool UI_grid_view_listen_should_redraw(const uiGridViewHandle *view, const wmNotifier *notifier);
+bool UI_view_item_drop_handle(struct bContext *C,
+                              const uiViewItemHandle *item_,
+                              const struct ListBase *drags);
+
+/**
+ * \param xy: Coordinate to find a view item at, in window space.
+ */
+uiViewItemHandle *UI_region_views_find_item_at(const struct ARegion *region, const int xy[2])
+    ATTR_NONNULL();
+uiViewItemHandle *UI_region_views_find_active_item(const struct ARegion *region);
 
 #ifdef __cplusplus
 }

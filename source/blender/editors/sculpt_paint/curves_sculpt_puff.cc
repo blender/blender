@@ -80,7 +80,7 @@ struct PuffOperationExecutor {
 
   eBrushFalloffShape falloff_shape_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
 
   Object *surface_ob_ = nullptr;
   Mesh *surface_ = nullptr;
@@ -122,7 +122,7 @@ struct PuffOperationExecutor {
     surface_ob_ = curves_id_->surface;
     surface_ = static_cast<Mesh *>(surface_ob_->data);
 
-    transforms_ = CurvesSculptTransforms(*object_, surface_ob_);
+    transforms_ = CurvesSurfaceTransforms(*object_, surface_ob_);
 
     if (!CustomData_has_layer(&surface_->ldata, CD_NORMAL)) {
       BKE_mesh_calc_normals_split(surface_);

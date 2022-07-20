@@ -98,8 +98,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     has_curves = true;
     const CurveComponent &component = *geometry_set.get_component_for_read<CurveComponent>();
-    if (!component.attribute_exists("handle_type_left") ||
-        !component.attribute_exists("handle_type_right")) {
+    const AttributeAccessor attributes = *component.attributes();
+    if (!attributes.contains("handle_type_left") || !attributes.contains("handle_type_right")) {
       return;
     }
     has_bezier = true;

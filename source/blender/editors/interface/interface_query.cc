@@ -54,13 +54,7 @@ bool ui_but_is_toggle(const uiBut *but)
               UI_BTYPE_TOGGLE_N,
               UI_BTYPE_CHECKBOX,
               UI_BTYPE_CHECKBOX_N,
-              UI_BTYPE_ROW,
-              UI_BTYPE_TREEROW);
-}
-
-bool ui_but_is_view_item(const uiBut *but)
-{
-  return ELEM(but->type, UI_BTYPE_TREEROW, UI_BTYPE_GRID_TILE);
+              UI_BTYPE_ROW);
 }
 
 bool ui_but_is_interactive_ex(const uiBut *but, const bool labeledit, const bool for_tooltip)
@@ -462,14 +456,9 @@ uiBut *ui_list_row_find_from_index(const ARegion *region, const int index, uiBut
   return ui_but_find(region, ui_but_is_listrow_at_index, &data);
 }
 
-static bool ui_but_is_treerow(const uiBut *but, const void *UNUSED(customdata))
-{
-  return but->type == UI_BTYPE_TREEROW;
-}
-
 static bool ui_but_is_view_item_fn(const uiBut *but, const void *UNUSED(customdata))
 {
-  return ui_but_is_view_item(but);
+  return but->type == UI_BTYPE_VIEW_ITEM;
 }
 
 uiBut *ui_view_item_find_mouse_over(const ARegion *region, const int xy[2])
@@ -477,24 +466,19 @@ uiBut *ui_view_item_find_mouse_over(const ARegion *region, const int xy[2])
   return ui_but_find_mouse_over_ex(region, xy, false, false, ui_but_is_view_item_fn, nullptr);
 }
 
-uiBut *ui_tree_row_find_mouse_over(const ARegion *region, const int xy[2])
+static bool ui_but_is_active_view_item(const uiBut *but, const void *UNUSED(customdata))
 {
-  return ui_but_find_mouse_over_ex(region, xy, false, false, ui_but_is_treerow, nullptr);
-}
-
-static bool ui_but_is_active_treerow(const uiBut *but, const void *customdata)
-{
-  if (!ui_but_is_treerow(but, customdata)) {
+  if (but->type != UI_BTYPE_VIEW_ITEM) {
     return false;
   }
 
-  const uiButTreeRow *treerow_but = (const uiButTreeRow *)but;
-  return UI_tree_view_item_is_active(treerow_but->tree_item);
+  const uiButViewItem *view_item_but = (const uiButViewItem *)but;
+  return UI_view_item_is_active(view_item_but->view_item);
 }
 
-uiBut *ui_tree_row_find_active(const ARegion *region)
+uiBut *ui_view_item_find_active(const ARegion *region)
 {
-  return ui_but_find(region, ui_but_is_active_treerow, nullptr);
+  return ui_but_find(region, ui_but_is_active_view_item, nullptr);
 }
 
 /** \} */

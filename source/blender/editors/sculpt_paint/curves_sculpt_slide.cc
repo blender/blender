@@ -98,7 +98,7 @@ struct SlideOperationExecutor {
   float2 brush_pos_re_;
   float2 brush_pos_diff_re_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
 
   BVHTreeFromMesh surface_bvh_;
 
@@ -136,7 +136,7 @@ struct SlideOperationExecutor {
     brush_pos_diff_re_ = brush_pos_re_ - brush_pos_prev_re_;
     BLI_SCOPED_DEFER([&]() { self_->brush_pos_last_re_ = brush_pos_re_; });
 
-    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     surface_ob_ = curves_id_->surface;
     surface_ = static_cast<Mesh *>(surface_ob_->data);
@@ -148,12 +148,9 @@ struct SlideOperationExecutor {
                          BKE_mesh_runtime_looptri_len(surface_)};
 
     if (curves_id_->surface_uv_map != nullptr) {
-      MeshComponent surface_component;
-      surface_component.replace(surface_, GeometryOwnershipType::ReadOnly);
-      surface_uv_map_ = surface_component
-                            .attribute_try_get_for_read(curves_id_->surface_uv_map,
-                                                        ATTR_DOMAIN_CORNER)
-                            .typed<float2>();
+      const bke::AttributeAccessor surface_attributes = bke::mesh_attributes(*surface_);
+      surface_uv_map_ = surface_attributes.lookup<float2>(curves_id_->surface_uv_map,
+                                                          ATTR_DOMAIN_CORNER);
     }
 
     if (stroke_extension.is_first) {

@@ -444,7 +444,7 @@ void ANIM_animdata_keyframe_callback(bAnimContext *ac,
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   for (ale = anim_data.first; ale; ale = ale->next) {
-    ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, callback_fn, calchandles_fcurve);
+    ANIM_fcurve_keyframes_loop(NULL, ale->key_data, NULL, callback_fn, BKE_fcurve_handles_recalc);
     ale->update |= ANIM_UPDATE_DEFAULT;
   }
 

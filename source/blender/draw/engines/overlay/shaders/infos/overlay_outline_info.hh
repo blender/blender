@@ -29,6 +29,16 @@ GPU_SHADER_CREATE_INFO(overlay_outline_prepass_mesh_clipped)
 
 GPU_SHADER_INTERFACE_INFO(overlay_outline_prepass_wire_iface, "vert").flat(Type::VEC3, "pos");
 
+GPU_SHADER_CREATE_INFO(overlay_outline_prepass_curves)
+    .do_static_compilation(true)
+    .vertex_source("overlay_outline_prepass_curves_vert.glsl")
+    .additional_info("draw_hair", "overlay_outline_prepass")
+    .additional_info("draw_object_infos");
+
+GPU_SHADER_CREATE_INFO(overlay_outline_prepass_curves_clipped)
+    .do_static_compilation(true)
+    .additional_info("overlay_outline_prepass_curves", "drw_clipped");
+
 GPU_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
     .do_static_compilation(true)
     .define("USE_GEOM")

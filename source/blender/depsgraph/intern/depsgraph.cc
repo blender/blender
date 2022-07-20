@@ -45,9 +45,9 @@ namespace blender::deg {
 
 Depsgraph::Depsgraph(Main *bmain, Scene *scene, ViewLayer *view_layer, eEvaluationMode mode)
     : time_source(nullptr),
-      need_update(true),
-      need_visibility_update(true),
-      need_visibility_time_update(false),
+      need_update_relations(true),
+      need_tag_id_on_graph_visibility_update(true),
+      need_tag_id_on_graph_visibility_time_update(false),
       bmain(bmain),
       scene(scene),
       view_layer(view_layer),

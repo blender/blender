@@ -26,14 +26,26 @@
 #include "BKE_lib_query.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_packedFile.h"
 
 /* Unused currently. */
 // static CLG_LogRef LOG = {.identifier = "bke.library"};
 
+struct BlendWriter;
+struct BlendDataReader;
+
+static void library_runtime_reset(Library *lib)
+{
+  if (lib->runtime.name_map) {
+    BKE_main_namemap_destroy(&lib->runtime.name_map);
+  }
+}
+
 static void library_free_data(ID *id)
 {
   Library *library = (Library *)id;
+  library_runtime_reset(library);
   if (library->packedfile) {
     BKE_packedfile_free(library->packedfile);
   }
@@ -61,9 +73,23 @@ static void library_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
+static void library_blend_write(struct BlendWriter *UNUSED(writer),
+                                ID *id,
+                                const void *UNUSED(id_address))
+{
+  Library *lib = (Library *)id;
+  library_runtime_reset(lib);
+}
+
+static void library_blend_read_data(struct BlendDataReader *UNUSED(reader), ID *id)
+{
+  Library *lib = (Library *)id;
+  library_runtime_reset(lib);
+}
+
 IDTypeInfo IDType_ID_LI = {
     .id_code = ID_LI,
-    .id_filter = 0,
+    .id_filter = FILTER_ID_LI,
     .main_listbase_index = INDEX_ID_LI,
     .struct_size = sizeof(Library),
     .name = "Library",
@@ -81,8 +107,8 @@ IDTypeInfo IDType_ID_LI = {
     .foreach_path = library_foreach_path,
     .owner_get = NULL,
 
-    .blend_write = NULL,
-    .blend_read_data = NULL,
+    .blend_write = library_blend_write,
+    .blend_read_data = library_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
 

@@ -57,8 +57,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     const MeshComponent &mesh_component = *geometry_set.get_component_for_read<MeshComponent>();
     GeometryComponentFieldContext field_context{mesh_component, ATTR_DOMAIN_EDGE};
-    const int domain_num = mesh_component.attribute_domain_num(ATTR_DOMAIN_EDGE);
-    fn::FieldEvaluator selection_evaluator{field_context, domain_num};
+    const int domain_size = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
+    fn::FieldEvaluator selection_evaluator{field_context, domain_size};
     selection_evaluator.add(selection_field);
     selection_evaluator.evaluate();
     const IndexMask selection = selection_evaluator.get_evaluated_as_mask(0);

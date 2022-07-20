@@ -2839,7 +2839,7 @@ ImBuf *BKE_tracking_get_plane_imbuf(const ImBuf *frame_ibuf,
   ImBuf *plane_ibuf = IMB_allocImBuf(
       num_samples_x, num_samples_y, 32, frame_ibuf->rect_float ? IB_rectfloat : IB_rect);
 
-  /* Calculate corner coordinates in pixel space, as spearate X/Y arrays. */
+  /* Calculate corner coordinates in pixel space, as separate X/Y arrays. */
   const double src_pixel_x[4] = {corners[0][0] * frame_width,
                                  corners[1][0] * frame_width,
                                  corners[2][0] * frame_width,

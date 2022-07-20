@@ -1,30 +1,37 @@
-diff -Naur orig/common/sys/platform.h external_embree/common/sys/platform.h
---- orig/common/sys/platform.h	2020-05-13 23:08:53 -0600
-+++ external_embree/common/sys/platform.h	2020-06-13 17:40:26 -0600
-@@ -84,8 +84,8 @@
- ////////////////////////////////////////////////////////////////////////////////
+diff -Naur org/kernels/rtcore_config.h.in embree-3.13.4/kernels/rtcore_config.h.in
+--- org/kernels/rtcore_config.h.in      2022-06-14 22:13:52 -0600
++++ embree-3.13.4/kernels/rtcore_config.h.in    2022-06-24 15:20:12 -0600
+@@ -14,6 +14,7 @@
+ #cmakedefine01 EMBREE_MIN_WIDTH
+ #define RTC_MIN_WIDTH EMBREE_MIN_WIDTH
+
++#cmakedefine EMBREE_STATIC_LIB
+ #cmakedefine EMBREE_API_NAMESPACE
+
+ #if defined(EMBREE_API_NAMESPACE)
+diff --git a/kernels/CMakeLists.txt b/kernels/CMakeLists.txt
+index 7c2f43d..106b1d5 100644
+--- a/kernels/CMakeLists.txt
++++ b/kernels/CMakeLists.txt
+@@ -201,6 +201,12 @@ embree_files(EMBREE_LIBRARY_FILES_AVX512 ${AVX512})
+ #message("AVX2: ${EMBREE_LIBRARY_FILES_AVX2}")
+ #message("AVX512: ${EMBREE_LIBRARY_FILES_AVX512}")
  
- #ifdef __WIN32__
--#define dll_export __declspec(dllexport)
--#define dll_import __declspec(dllimport)
-+#define dll_export 
-+#define dll_import 
- #else
- #define dll_export __attribute__ ((visibility ("default")))
- #define dll_import 
-diff --git orig/common/tasking/CMakeLists.txt external_embree/common/tasking/CMakeLists.txt
---- orig/common/tasking/CMakeLists.txt
-+++ external_embree/common/tasking/CMakeLists.txt
-@@ -27,7 +27,11 @@
-     else()
-       # If not found try getting older TBB via module (FindTBB.cmake)
-       unset(TBB_DIR CACHE)
--      find_package(TBB 4.1 REQUIRED tbb)
-+      if (TBB_STATIC_LIB)
-+        find_package(TBB 4.1 REQUIRED tbb_static)
-+      else()
-+        find_package(TBB 4.1 REQUIRED tbb)
-+      endif()
-       if (TBB_FOUND)
-         TARGET_LINK_LIBRARIES(tasking PUBLIC TBB)
-         TARGET_INCLUDE_DIRECTORIES(tasking PUBLIC "${TBB_INCLUDE_DIRS}")
++# Bundle Neon2x into the main static library.
++IF(EMBREE_ISA_NEON2X AND EMBREE_STATIC_LIB)
++  LIST(APPEND EMBREE_LIBRARY_FILES ${EMBREE_LIBRARY_FILES_AVX2})
++  LIST(REMOVE_DUPLICATES EMBREE_LIBRARY_FILES)
++ENDIF()
++
+ # replaces all .cpp files with a dummy file that includes that .cpp file
+ # this is to work around an ICC name mangling issue related to lambda functions under windows
+ MACRO (CreateISADummyFiles list isa)
+@@ -277,7 +283,7 @@ IF (EMBREE_ISA_AVX  AND EMBREE_LIBRARY_FILES_AVX)
+   ENDIF()
+ ENDIF()
+ 
+-IF (EMBREE_ISA_AVX2 AND EMBREE_LIBRARY_FILES_AVX2)
++IF (EMBREE_ISA_AVX2 AND EMBREE_LIBRARY_FILES_AVX2 AND NOT (EMBREE_ISA_NEON2X AND EMBREE_STATIC_LIB))
+   DISABLE_STACK_PROTECTOR_FOR_INTERSECTORS(${EMBREE_LIBRARY_FILES_AVX2})
+   ADD_LIBRARY(embree_avx2 STATIC ${EMBREE_LIBRARY_FILES_AVX2})
+   TARGET_LINK_LIBRARIES(embree_avx2 PRIVATE tasking)

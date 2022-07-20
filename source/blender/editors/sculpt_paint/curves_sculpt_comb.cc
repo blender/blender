@@ -100,7 +100,7 @@ struct CombOperationExecutor {
   float2 brush_pos_re_;
   float2 brush_pos_diff_re_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
 
   CombOperationExecutor(const bContext &C) : ctx_(C)
   {
@@ -128,7 +128,7 @@ struct CombOperationExecutor {
       return;
     }
 
-    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     point_factors_ = get_point_selection(*curves_id_);
     curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);

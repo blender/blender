@@ -147,7 +147,10 @@ struct SculptCurvesBrushStrokeData {
   PaintStroke *stroke;
 };
 
-static bool stroke_get_location(bContext *C, float out[3], const float mouse[2])
+static bool stroke_get_location(bContext *C,
+                                float out[3],
+                                const float mouse[2],
+                                bool UNUSED(force_original))
 {
   out[0] = mouse[0];
   out[1] = mouse[1];

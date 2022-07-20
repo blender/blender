@@ -122,7 +122,7 @@ bool ui_but_drag_is_draggable(const uiBut *but)
 
 void ui_but_drag_start(bContext *C, uiBut *but)
 {
-  wmDrag *drag = WM_event_start_drag(C,
+  wmDrag *drag = WM_drag_data_create(C,
                                      but->icon,
                                      but->dragtype,
                                      but->dragpoin,
@@ -135,6 +135,8 @@ void ui_but_drag_start(bContext *C, uiBut *but)
   if (but->imb) {
     WM_event_drag_image(drag, but->imb, but->imb_scale);
   }
+
+  WM_event_start_prepared_drag(C, drag);
 
   /* Special feature for assets: We add another drag item that supports multiple assets. It
    * gets the assets from context. */

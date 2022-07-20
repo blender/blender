@@ -463,23 +463,39 @@ bool BKE_fcurve_bezt_subdivide_handles(struct BezTriple *bezt,
                                        struct BezTriple *next,
                                        float *r_pdelta);
 
+/**
+ * Delete a keyframe from an F-curve at a specific index.
+ */
+void BKE_fcurve_delete_key(struct FCurve *fcu, int index);
+
+/**
+ * Delete selected keyframes from an F-curve.
+ */
+bool BKE_fcurve_delete_keys_selected(struct FCurve *fcu);
+
+/**
+ * Delete all keyframes from an F-curve.
+ */
+void BKE_fcurve_delete_keys_all(struct FCurve *fcu);
+
 /* -------- Curve Sanity -------- */
 
 /**
  * This function recalculates the handles of an F-Curve. Acts based on selection with `SELECT`
- * flag. To use a different flag, use #calchandles_fcurve_ex().
+ * flag. To use a different flag, use #BKE_fcurve_handles_recalc_ex().
  *
  * If the BezTriples have been rearranged, sort them first before using this.
  */
-void calchandles_fcurve(struct FCurve *fcu);
+void BKE_fcurve_handles_recalc(struct FCurve *fcu);
 /**
- * Variant of #calchandles_fcurve() that allows calculating based on a different select flag.
+ * Variant of #BKE_fcurve_handles_recalc() that allows calculating based on a different select
+ * flag.
  *
  * \param handle_sel_flag: The flag (bezt.f1/2/3) value to use to determine selection.
  * Usually `SELECT`, but may want to use a different one at times
  * (if caller does not operate on selection).
  */
-void calchandles_fcurve_ex(struct FCurve *fcu, eBezTriple_Flag handle_sel_flag);
+void BKE_fcurve_handles_recalc_ex(struct FCurve *fcu, eBezTriple_Flag handle_sel_flag);
 /**
  * Update handles, making sure the handle-types are valid (e.g. correctly deduced from an "Auto"
  * type), and recalculating their position vectors.

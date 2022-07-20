@@ -5282,7 +5282,7 @@ static void def_sh_tex_sky(StructRNA *srna)
 
   prop = RNA_def_property(srna, "sun_elevation", PROP_FLOAT, PROP_ANGLE);
   RNA_def_property_ui_text(prop, "Sun Elevation", "Sun angle from horizon");
-  RNA_def_property_range(prop, -M_PI_2, M_PI_2);
+  RNA_def_property_ui_range(prop, -M_PI, M_PI, 1, 2);
   RNA_def_property_float_default(prop, M_PI_2);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 

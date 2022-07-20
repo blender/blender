@@ -18,11 +18,7 @@ CCL_NAMESPACE_BEGIN
 
 static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_particle_hair)
 {
-#ifdef WITH_NEW_CURVES_TYPE
   if (b_ob_info.object_data.is_a(&RNA_Curves) || use_particle_hair) {
-#else
-  if (use_particle_hair) {
-#endif
     return Geometry::HAIR;
   }
 
@@ -217,11 +213,7 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
     if (progress.get_cancel())
       return;
 
-#ifdef WITH_NEW_CURVES_TYPE
     if (b_ob_info.object_data.is_a(&RNA_Curves) || use_particle_hair) {
-#else
-    if (use_particle_hair) {
-#endif
       Hair *hair = static_cast<Hair *>(geom);
       sync_hair_motion(b_depsgraph, b_ob_info, hair, motion_step);
     }

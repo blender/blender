@@ -951,7 +951,7 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
                  1);
 
   struct {
-    bool mesh, gpencil;
+    bool mesh, gpencil, curves;
   } has_children_of_type = {0};
 
   CTX_DATA_BEGIN (C, Object *, child, selected_editable_objects) {
@@ -963,6 +963,9 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
     }
     if (child->type == OB_GPENCIL) {
       has_children_of_type.gpencil = true;
+    }
+    if (child->type == OB_CURVES) {
+      has_children_of_type.curves = true;
     }
   }
   CTX_DATA_END;
@@ -986,6 +989,11 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
   }
   else if (parent->type == OB_LATTICE) {
     uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_LATTICE);
+  }
+  else if (parent->type == OB_MESH) {
+    if (has_children_of_type.curves) {
+      uiItemO(layout, "Object (Attach Curves to Surface)", ICON_NONE, "CURVES_OT_surface_set");
+    }
   }
 
   /* vertex parenting */
@@ -2267,7 +2275,7 @@ static int make_override_library_exec(bContext *C, wmOperator *op)
   ID *id_root = NULL;
   bool is_override_instancing_object = false;
 
-  const bool do_fully_editable = RNA_boolean_get(op->ptr, "do_fully_editable");
+  const bool do_fully_editable = U.experimental.use_override_new_fully_editable;
 
   GSet *user_overrides_objects_uids = do_fully_editable ? NULL :
                                                           BLI_gset_new(BLI_ghashutil_inthash_p,
@@ -2495,13 +2503,6 @@ void OBJECT_OT_make_override_library(wmOperatorType *ot)
                      INT_MAX);
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   ot->prop = prop;
-
-  prop = RNA_def_boolean(ot->srna,
-                         "do_fully_editable",
-                         false,
-                         "Create Fully Editable",
-                         "Make all created override data-blocks fully editable");
-  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */

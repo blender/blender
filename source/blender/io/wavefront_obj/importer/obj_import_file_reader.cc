@@ -22,32 +22,24 @@ using std::string;
 /**
  * Based on the properties of the given Geometry instance, create a new Geometry instance
  * or return the previous one.
- *
- * Also update index offsets which should always happen if a new Geometry instance is created.
  */
 static Geometry *create_geometry(Geometry *const prev_geometry,
                                  const eGeometryType new_type,
                                  StringRef name,
-                                 const GlobalVertices &global_vertices,
-                                 Vector<std::unique_ptr<Geometry>> &r_all_geometries,
-                                 VertexIndexOffset &r_offset)
+                                 Vector<std::unique_ptr<Geometry>> &r_all_geometries)
 {
   auto new_geometry = [&]() {
     r_all_geometries.append(std::make_unique<Geometry>());
     Geometry *g = r_all_geometries.last().get();
     g->geom_type_ = new_type;
     g->geometry_name_ = name.is_empty() ? "New object" : name;
-    g->vertex_start_ = global_vertices.vertices.size();
-    g->vertex_color_start_ = global_vertices.vertex_colors.size();
-    r_offset.set_index_offset(g->vertex_start_);
     return g;
   };
 
   if (prev_geometry && prev_geometry->geom_type_ == GEOM_MESH) {
     /* After the creation of a Geometry instance, at least one element has been found in the OBJ
-     * file that indicates that it is a mesh (basically anything but the vertex positions). */
-    if (!prev_geometry->face_elements_.is_empty() || prev_geometry->has_vertex_normals_ ||
-        !prev_geometry->edges_.is_empty()) {
+     * file that indicates that it is a mesh (faces or edges). */
+    if (!prev_geometry->face_elements_.is_empty() || !prev_geometry->edges_.is_empty()) {
       return new_geometry();
     }
     if (new_type == GEOM_MESH) {
@@ -70,15 +62,11 @@ static Geometry *create_geometry(Geometry *const prev_geometry,
   return new_geometry();
 }
 
-static void geom_add_vertex(Geometry *geom,
-                            const char *p,
-                            const char *end,
-                            GlobalVertices &r_global_vertices)
+static void geom_add_vertex(const char *p, const char *end, GlobalVertices &r_global_vertices)
 {
   float3 vert;
   p = parse_floats(p, end, 0.0f, vert, 3);
   r_global_vertices.vertices.append(vert);
-  geom->vertex_count_++;
   /* OBJ extension: `xyzrgb` vertex colors, when the vertex position
    * is followed by 3 more RGB color components. See
    * http://paulbourke.net/dataformats/obj/colour.html */
@@ -88,16 +76,22 @@ static void geom_add_vertex(Geometry *geom,
     if (srgb.x >= 0 && srgb.y >= 0 && srgb.z >= 0) {
       float3 linear;
       srgb_to_linearrgb_v3_v3(linear, srgb);
-      r_global_vertices.vertex_colors.append(linear);
-      geom->vertex_color_count_++;
+
+      auto &blocks = r_global_vertices.vertex_colors;
+      /* If we don't have vertex colors yet, or the previous vertex
+       * was without color, we need to start a new vertex colors block. */
+      if (blocks.is_empty() || (blocks.last().start_vertex_index + blocks.last().colors.size() !=
+                                r_global_vertices.vertices.size() - 1)) {
+        GlobalVertices::VertexColorsBlock block;
+        block.start_vertex_index = r_global_vertices.vertices.size() - 1;
+        blocks.append(block);
+      }
+      blocks.last().colors.append(linear);
     }
   }
 }
 
-static void geom_add_mrgb_colors(Geometry *geom,
-                                 const char *p,
-                                 const char *end,
-                                 GlobalVertices &r_global_vertices)
+static void geom_add_mrgb_colors(const char *p, const char *end, GlobalVertices &r_global_vertices)
 {
   /* MRGB color extension, in the form of
    * "#MRGB MMRRGGBBMMRRGGBB ..."
@@ -117,14 +111,26 @@ static void geom_add_mrgb_colors(Geometry *geom,
     srgb[3] = 0xFF;
     float linear[4];
     srgb_to_linearrgb_uchar4(linear, srgb);
-    r_global_vertices.vertex_colors.append({linear[0], linear[1], linear[2]});
-    geom->vertex_color_count_++;
+
+    auto &blocks = r_global_vertices.vertex_colors;
+    /* If we don't have vertex colors yet, or the previous vertex
+     * was without color, we need to start a new vertex colors block. */
+    if (blocks.is_empty() || (blocks.last().start_vertex_index + blocks.last().colors.size() !=
+                              r_global_vertices.vertices.size())) {
+      GlobalVertices::VertexColorsBlock block;
+      block.start_vertex_index = r_global_vertices.vertices.size();
+      blocks.append(block);
+    }
+    blocks.last().colors.append({linear[0], linear[1], linear[2]});
+    /* MRGB colors are specified after vertex positions; each new color
+     * "pushes" the vertex colors block further back into which vertices it is for. */
+    blocks.last().start_vertex_index--;
+
     p += mrgb_length;
   }
 }
 
-static void geom_add_vertex_normal(Geometry *geom,
-                                   const char *p,
+static void geom_add_vertex_normal(const char *p,
                                    const char *end,
                                    GlobalVertices &r_global_vertices)
 {
@@ -135,7 +141,6 @@ static void geom_add_vertex_normal(Geometry *geom,
    * normalized. */
   normalize_v3(normal);
   r_global_vertices.vertex_normals.append(normal);
-  geom->has_vertex_normals_ = true;
 }
 
 static void geom_add_uv_vertex(const char *p, const char *end, GlobalVertices &r_global_vertices)
@@ -148,24 +153,24 @@ static void geom_add_uv_vertex(const char *p, const char *end, GlobalVertices &r
 static void geom_add_edge(Geometry *geom,
                           const char *p,
                           const char *end,
-                          const VertexIndexOffset &offsets,
                           GlobalVertices &r_global_vertices)
 {
   int edge_v1, edge_v2;
   p = parse_int(p, end, -1, edge_v1);
   p = parse_int(p, end, -1, edge_v2);
   /* Always keep stored indices non-negative and zero-based. */
-  edge_v1 += edge_v1 < 0 ? r_global_vertices.vertices.size() : -offsets.get_index_offset() - 1;
-  edge_v2 += edge_v2 < 0 ? r_global_vertices.vertices.size() : -offsets.get_index_offset() - 1;
+  edge_v1 += edge_v1 < 0 ? r_global_vertices.vertices.size() : -1;
+  edge_v2 += edge_v2 < 0 ? r_global_vertices.vertices.size() : -1;
   BLI_assert(edge_v1 >= 0 && edge_v2 >= 0);
   geom->edges_.append({static_cast<uint>(edge_v1), static_cast<uint>(edge_v2)});
+  geom->track_vertex_index(edge_v1);
+  geom->track_vertex_index(edge_v2);
 }
 
 static void geom_add_polygon(Geometry *geom,
                              const char *p,
                              const char *end,
                              const GlobalVertices &global_vertices,
-                             const VertexIndexOffset &offsets,
                              const int material_index,
                              const int group_index,
                              const bool shaded_smooth)
@@ -204,14 +209,16 @@ static void geom_add_polygon(Geometry *geom,
       }
     }
     /* Always keep stored indices non-negative and zero-based. */
-    corner.vert_index += corner.vert_index < 0 ? global_vertices.vertices.size() :
-                                                 -offsets.get_index_offset() - 1;
+    corner.vert_index += corner.vert_index < 0 ? global_vertices.vertices.size() : -1;
     if (corner.vert_index < 0 || corner.vert_index >= global_vertices.vertices.size()) {
       fprintf(stderr,
               "Invalid vertex index %i (valid range [0, %zu)), ignoring face\n",
               corner.vert_index,
               (size_t)global_vertices.vertices.size());
       face_valid = false;
+    }
+    else {
+      geom->track_vertex_index(corner.vert_index);
     }
     if (got_uv) {
       corner.uv_vert_index += corner.uv_vert_index < 0 ? global_vertices.uv_vertices.size() : -1;
@@ -226,7 +233,7 @@ static void geom_add_polygon(Geometry *geom,
     /* Ignore corner normal index, if the geometry does not have any normals.
      * Some obj files out there do have face definitions that refer to normal indices,
      * without any normals being present (T98782). */
-    if (got_normal && geom->has_vertex_normals_) {
+    if (got_normal && !global_vertices.vertex_normals.is_empty()) {
       corner.vertex_normal_index += corner.vertex_normal_index < 0 ?
                                         global_vertices.vertex_normals.size() :
                                         -1;
@@ -260,9 +267,7 @@ static void geom_add_polygon(Geometry *geom,
 static Geometry *geom_set_curve_type(Geometry *geom,
                                      const char *p,
                                      const char *end,
-                                     const GlobalVertices &global_vertices,
                                      const StringRef group_name,
-                                     VertexIndexOffset &r_offsets,
                                      Vector<std::unique_ptr<Geometry>> &r_all_geometries)
 {
   p = drop_whitespace(p, end);
@@ -270,8 +275,7 @@ static Geometry *geom_set_curve_type(Geometry *geom,
     std::cerr << "Curve type not supported: '" << std::string(p, end) << "'" << std::endl;
     return geom;
   }
-  geom = create_geometry(
-      geom, GEOM_CURVE, group_name, global_vertices, r_all_geometries, r_offsets);
+  geom = create_geometry(geom, GEOM_CURVE, group_name, r_all_geometries);
   geom->nurbs_element_.group_ = group_name;
   return geom;
 }
@@ -402,9 +406,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
   BLI_strncpy(ob_name, BLI_path_basename(import_params_.filepath), FILE_MAXFILE);
   BLI_path_extension_replace(ob_name, FILE_MAXFILE, "");
 
-  VertexIndexOffset offsets;
-  Geometry *curr_geom = create_geometry(
-      nullptr, GEOM_MESH, ob_name, r_global_vertices, r_all_geometries, offsets);
+  Geometry *curr_geom = create_geometry(nullptr, GEOM_MESH, ob_name, r_all_geometries);
 
   /* State variables: once set, they remain the same for the remaining
    * elements in the object. */
@@ -427,6 +429,11 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
       break; /* No more data to read. */
     }
 
+    /* Take care of line continuations now (turn them into spaces);
+     * the rest of the parsing code does not need to worry about them anymore. */
+    fixup_line_continuations(buffer.data() + buffer_offset,
+                             buffer.data() + buffer_offset + bytes_read);
+
     /* Ensure buffer ends in a newline. */
     if (bytes_read < read_buffer_size_) {
       if (bytes_read == 0 || buffer[buffer_offset + bytes_read - 1] != '\n') {
@@ -445,9 +452,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
     while (last_nl > 0) {
       --last_nl;
       if (buffer[last_nl] == '\n') {
-        if (last_nl < 1 || buffer[last_nl - 1] != '\\') {
-          break;
-        }
+        break;
       }
     }
     if (buffer[last_nl] != '\n') {
@@ -474,10 +479,10 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
       /* Most common things that start with 'v': vertices, normals, UVs. */
       if (*p == 'v') {
         if (parse_keyword(p, end, "v")) {
-          geom_add_vertex(curr_geom, p, end, r_global_vertices);
+          geom_add_vertex(p, end, r_global_vertices);
         }
         else if (parse_keyword(p, end, "vn")) {
-          geom_add_vertex_normal(curr_geom, p, end, r_global_vertices);
+          geom_add_vertex_normal(p, end, r_global_vertices);
         }
         else if (parse_keyword(p, end, "vt")) {
           geom_add_uv_vertex(p, end, r_global_vertices);
@@ -489,26 +494,21 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
                          p,
                          end,
                          r_global_vertices,
-                         offsets,
                          state_material_index,
-                         state_group_index, /* TODO was wrongly material name! */
+                         state_group_index,
                          state_shaded_smooth);
       }
       /* Faces. */
       else if (parse_keyword(p, end, "l")) {
-        geom_add_edge(curr_geom, p, end, offsets, r_global_vertices);
+        geom_add_edge(curr_geom, p, end, r_global_vertices);
       }
       /* Objects. */
       else if (parse_keyword(p, end, "o")) {
         state_shaded_smooth = false;
         state_group_name = "";
         state_material_name = "";
-        curr_geom = create_geometry(curr_geom,
-                                    GEOM_MESH,
-                                    StringRef(p, end).trim(),
-                                    r_global_vertices,
-                                    r_all_geometries,
-                                    offsets);
+        curr_geom = create_geometry(
+            curr_geom, GEOM_MESH, StringRef(p, end).trim(), r_all_geometries);
       }
       /* Groups. */
       else if (parse_keyword(p, end, "g")) {
@@ -537,7 +537,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
         add_mtl_library(StringRef(p, end).trim());
       }
       else if (parse_keyword(p, end, "#MRGB")) {
-        geom_add_mrgb_colors(curr_geom, p, end, r_global_vertices);
+        geom_add_mrgb_colors(p, end, r_global_vertices);
       }
       /* Comments. */
       else if (*p == '#') {
@@ -545,8 +545,7 @@ void OBJParser::parse(Vector<std::unique_ptr<Geometry>> &r_all_geometries,
       }
       /* Curve related things. */
       else if (parse_keyword(p, end, "cstype")) {
-        curr_geom = geom_set_curve_type(
-            curr_geom, p, end, r_global_vertices, state_group_name, offsets, r_all_geometries);
+        curr_geom = geom_set_curve_type(curr_geom, p, end, state_group_name, r_all_geometries);
       }
       else if (parse_keyword(p, end, "deg")) {
         geom_set_curve_degree(curr_geom, p, end);
@@ -626,15 +625,15 @@ static bool parse_texture_option(const char *&p,
 {
   p = drop_whitespace(p, end);
   if (parse_keyword(p, end, "-o")) {
-    p = parse_floats(p, end, 0.0f, tex_map.translation, 3);
+    p = parse_floats(p, end, 0.0f, tex_map.translation, 3, true);
     return true;
   }
   if (parse_keyword(p, end, "-s")) {
-    p = parse_floats(p, end, 1.0f, tex_map.scale, 3);
+    p = parse_floats(p, end, 1.0f, tex_map.scale, 3, true);
     return true;
   }
   if (parse_keyword(p, end, "-bm")) {
-    p = parse_float(p, end, 1.0f, material->map_Bump_strength);
+    p = parse_float(p, end, 1.0f, material->map_Bump_strength, true, true);
     return true;
   }
   if (parse_keyword(p, end, "-type")) {

@@ -40,7 +40,7 @@ static VArray<float3> construct_uv_gvarray(const MeshComponent &component,
     return {};
   }
 
-  const int face_num = component.attribute_domain_num(ATTR_DOMAIN_FACE);
+  const int face_num = component.attribute_domain_size(ATTR_DOMAIN_FACE);
   GeometryComponentFieldContext face_context{component, ATTR_DOMAIN_FACE};
   FieldEvaluator face_evaluator{face_context, face_num};
   face_evaluator.add(selection_field);
@@ -50,7 +50,7 @@ static VArray<float3> construct_uv_gvarray(const MeshComponent &component,
     return {};
   }
 
-  const int corner_num = component.attribute_domain_num(ATTR_DOMAIN_CORNER);
+  const int corner_num = component.attribute_domain_size(ATTR_DOMAIN_CORNER);
   GeometryComponentFieldContext corner_context{component, ATTR_DOMAIN_CORNER};
   FieldEvaluator evaluator{corner_context, corner_num};
   Array<float3> uv(corner_num);
@@ -88,7 +88,7 @@ static VArray<float3> construct_uv_gvarray(const MeshComponent &component,
   GEO_uv_parametrizer_flush(handle);
   GEO_uv_parametrizer_delete(handle);
 
-  return component.attribute_try_adapt_domain<float3>(
+  return component.attributes()->adapt_domain<float3>(
       VArray<float3>::ForContainer(std::move(uv)), ATTR_DOMAIN_CORNER, domain);
 }
 

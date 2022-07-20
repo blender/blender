@@ -480,53 +480,49 @@ static void calculate_selection_outputs(Mesh *mesh,
                                         const ConeConfig &config,
                                         ConeAttributeOutputs &attribute_outputs)
 {
-  MeshComponent mesh_component;
-  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
+  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
 
   /* Populate "Top" selection output. */
   if (attribute_outputs.top_id) {
     const bool face = !config.top_is_point && config.fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-    OutputAttribute_Typed<bool> attribute = mesh_component.attribute_try_get_for_output_only<bool>(
+    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
         attribute_outputs.top_id.get(), face ? ATTR_DOMAIN_FACE : ATTR_DOMAIN_POINT);
-    MutableSpan<bool> selection = attribute.as_span();
 
     if (config.top_is_point) {
-      selection[config.first_vert] = true;
+      selection.span[config.first_vert] = true;
     }
     else {
-      selection.slice(0, face ? config.top_faces_len : config.circle_segments).fill(true);
+      selection.span.slice(0, face ? config.top_faces_len : config.circle_segments).fill(true);
     }
-    attribute.save();
+    selection.finish();
   }
 
   /* Populate "Bottom" selection output. */
   if (attribute_outputs.bottom_id) {
     const bool face = !config.bottom_is_point &&
                       config.fill_type != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-    OutputAttribute_Typed<bool> attribute = mesh_component.attribute_try_get_for_output_only<bool>(
+    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
         attribute_outputs.bottom_id.get(), face ? ATTR_DOMAIN_FACE : ATTR_DOMAIN_POINT);
-    MutableSpan<bool> selection = attribute.as_span();
 
     if (config.bottom_is_point) {
-      selection[config.last_vert] = true;
+      selection.span[config.last_vert] = true;
     }
     else if (face) {
-      selection.slice(config.bottom_faces_start, config.bottom_faces_len).fill(true);
+      selection.span.slice(config.bottom_faces_start, config.bottom_faces_len).fill(true);
     }
     else {
-      selection.slice(config.last_ring_verts_start + 1, config.circle_segments).fill(true);
+      selection.span.slice(config.last_ring_verts_start + 1, config.circle_segments).fill(true);
     }
-    attribute.save();
+    selection.finish();
   }
 
   /* Populate "Side" selection output. */
   if (attribute_outputs.side_id) {
-    OutputAttribute_Typed<bool> attribute = mesh_component.attribute_try_get_for_output_only<bool>(
+    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
         attribute_outputs.side_id.get(), ATTR_DOMAIN_FACE);
-    MutableSpan<bool> selection = attribute.as_span();
 
-    selection.slice(config.side_faces_start, config.side_faces_len).fill(true);
-    attribute.save();
+    selection.span.slice(config.side_faces_start, config.side_faces_len).fill(true);
+    selection.finish();
   }
 }
 
@@ -540,11 +536,11 @@ static void calculate_selection_outputs(Mesh *mesh,
  */
 static void calculate_cone_uvs(Mesh *mesh, const ConeConfig &config)
 {
-  MeshComponent mesh_component;
-  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
-  OutputAttribute_Typed<float2> uv_attribute =
-      mesh_component.attribute_try_get_for_output_only<float2>("uv_map", ATTR_DOMAIN_CORNER);
-  MutableSpan<float2> uvs = uv_attribute.as_span();
+  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+
+  SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
+      "uv_map", ATTR_DOMAIN_CORNER);
+  MutableSpan<float2> uvs = uv_attribute.span;
 
   Array<float2> circle(config.circle_segments);
   float angle = 0.0f;
@@ -654,7 +650,7 @@ static void calculate_cone_uvs(Mesh *mesh, const ConeConfig &config)
     }
   }
 
-  uv_attribute.save();
+  uv_attribute.finish();
 }
 
 static Mesh *create_vertex_mesh()

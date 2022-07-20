@@ -29,7 +29,7 @@ class UniformBuf {
   /** Data size in bytes. */
   size_t size_in_bytes_;
   /** Continuous memory block to copy to GPU. This data is owned by the UniformBuf. */
-  void *data_ = NULL;
+  void *data_ = nullptr;
   /** Debugging name */
   char name_[DEBUG_NAME_LEN];
 

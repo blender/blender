@@ -23,6 +23,7 @@
 
 #include "BKE_context.h"
 #include "BKE_gpencil.h"
+#include "BKE_gpencil_geom.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_lib_query.h"
 #include "BKE_main.h"
@@ -100,9 +101,11 @@ static void update_position(Object *ob, MirrorGpencilModifierData *mmd, bGPDstro
   }
 }
 
-static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gpl, bGPDframe *gpf)
+static void generate_geometry(
+    GpencilModifierData *md, Object *ob, bGPDlayer *gpl, bGPDframe *gpf, const bool update)
 {
   MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
+  bGPdata *gpd = ob->data;
   bGPDstroke *gps, *gps_new = NULL;
   int tot_strokes;
   int i;
@@ -129,6 +132,9 @@ static void generate_geometry(GpencilModifierData *md, Object *ob, bGPDlayer *gp
                                            mmd->flag & GP_MIRROR_INVERT_MATERIAL)) {
           gps_new = BKE_gpencil_stroke_duplicate(gps, true, true);
           update_position(ob, mmd, gps_new, xi);
+          if (update) {
+            BKE_gpencil_stroke_geometry_update(gpd, gps_new);
+          }
           BLI_addtail(&gpf->strokes, gps_new);
         }
       }
@@ -147,7 +153,7 @@ static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Objec
     if (gpf == NULL) {
       continue;
     }
-    generate_geometry(md, ob, gpl, gpf);
+    generate_geometry(md, ob, gpl, gpf, false);
   }
 }
 
@@ -167,7 +173,7 @@ static void bakeModifier(Main *UNUSED(bmain),
       BKE_scene_graph_update_for_newframe(depsgraph);
 
       /* compute mirror effects on this frame */
-      generate_geometry(md, ob, gpl, gpf);
+      generate_geometry(md, ob, gpl, gpf, true);
     }
   }
 

@@ -44,17 +44,12 @@ static void transdata_elem_crease(const TransInfo *UNUSED(t),
                                   TransData *td,
                                   const float crease)
 {
-  if (td->val == NULL) {
+  if (td->loc == NULL) {
     return;
   }
 
-  *td->val = td->ival + crease * td->factor;
-  if (*td->val < 0.0f) {
-    *td->val = 0.0f;
-  }
-  if (*td->val > 1.0f) {
-    *td->val = 1.0f;
-  }
+  *td->loc = td->iloc[0] + crease * td->factor;
+  CLAMP(*td->loc, 0.0f, 1.0f);
 }
 
 static void transdata_elem_crease_fn(void *__restrict iter_data_v,

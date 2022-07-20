@@ -57,6 +57,7 @@ set(SRC
   nodes/node_geo_curve_to_mesh.cc
   nodes/node_geo_curve_to_points.cc
   nodes/node_geo_curve_trim.cc
+  nodes/node_geo_deform_curves_on_surface.cc
   nodes/node_geo_delete_geometry.cc
   nodes/node_geo_distribute_points_on_faces.cc
   nodes/node_geo_dual_mesh.cc

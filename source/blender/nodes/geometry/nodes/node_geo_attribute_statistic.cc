@@ -195,9 +195,13 @@ static void node_geo_exec(GeoNodeExecParams params)
       const Field<float> input_field = params.get_input<Field<float>>("Attribute");
       Vector<float> data;
       for (const GeometryComponent *component : components) {
-        if (component->attribute_domain_supported(domain)) {
+        const std::optional<AttributeAccessor> attributes = component->attributes();
+        if (!attributes.has_value()) {
+          continue;
+        }
+        if (attributes->domain_supported(domain)) {
           GeometryComponentFieldContext field_context{*component, domain};
-          const int domain_num = component->attribute_domain_num(domain);
+          const int domain_num = attributes->domain_size(domain);
 
           fn::FieldEvaluator data_evaluator{field_context, domain_num};
           data_evaluator.add(input_field);
@@ -273,9 +277,13 @@ static void node_geo_exec(GeoNodeExecParams params)
       const Field<float3> input_field = params.get_input<Field<float3>>("Attribute_001");
       Vector<float3> data;
       for (const GeometryComponent *component : components) {
-        if (component->attribute_domain_supported(domain)) {
+        const std::optional<AttributeAccessor> attributes = component->attributes();
+        if (!attributes.has_value()) {
+          continue;
+        }
+        if (attributes->domain_supported(domain)) {
           GeometryComponentFieldContext field_context{*component, domain};
-          const int domain_num = component->attribute_domain_num(domain);
+          const int domain_num = attributes->domain_size(domain);
 
           fn::FieldEvaluator data_evaluator{field_context, domain_num};
           data_evaluator.add(input_field);

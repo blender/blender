@@ -68,7 +68,7 @@ struct PinchOperationExecutor {
   Vector<int64_t> selected_curve_indices_;
   IndexMask curve_selection_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
 
   const CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;
@@ -103,7 +103,7 @@ struct PinchOperationExecutor {
 
     invert_factor_ = self_->invert_pinch_ ? -1.0f : 1.0f;
 
-    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     point_factors_ = get_point_selection(*curves_id_);
     curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);

@@ -104,8 +104,7 @@ typedef enum {
   UI_WTYPE_LISTITEM,
   UI_WTYPE_PROGRESSBAR,
   UI_WTYPE_NODESOCKET,
-  UI_WTYPE_TREEROW,
-  UI_WTYPE_GRID_TILE,
+  UI_WTYPE_VIEW_ITEM,
 } uiWidgetTypeEnum;
 
 /**
@@ -3672,12 +3671,11 @@ static void widget_progressbar(uiBut *but,
   widgetbase_draw(&wtb_bar, wcol);
 }
 
-static void widget_treerow_exec(uiWidgetColors *wcol,
-                                rcti *rect,
-                                const uiWidgetStateInfo *state,
-                                int UNUSED(roundboxalign),
-                                int indentation,
-                                const float zoom)
+static void widget_view_item(uiWidgetColors *wcol,
+                             rcti *rect,
+                             const uiWidgetStateInfo *state,
+                             int UNUSED(roundboxalign),
+                             const float zoom)
 {
   uiWidgetBase wtb;
   widget_init(&wtb);
@@ -3690,31 +3688,6 @@ static void widget_treerow_exec(uiWidgetColors *wcol,
   if ((state->but_flag & UI_ACTIVE) || (state->but_flag & UI_SELECT)) {
     widgetbase_draw(&wtb, wcol);
   }
-
-  BLI_rcti_resize(rect, BLI_rcti_size_x(rect) - UI_UNIT_X * indentation, BLI_rcti_size_y(rect));
-  BLI_rcti_translate(rect, 0.5f * UI_UNIT_X * indentation, 0);
-}
-
-static void widget_treerow(uiBut *but,
-                           uiWidgetColors *wcol,
-                           rcti *rect,
-                           const uiWidgetStateInfo *state,
-                           int roundboxalign,
-                           const float zoom)
-{
-  uiButTreeRow *tree_row = (uiButTreeRow *)but;
-  BLI_assert(but->type == UI_BTYPE_TREEROW);
-  widget_treerow_exec(wcol, rect, state, roundboxalign, tree_row->indentation, zoom);
-}
-
-static void widget_gridtile(uiWidgetColors *wcol,
-                            rcti *rect,
-                            const uiWidgetStateInfo *state,
-                            int roundboxalign,
-                            const float zoom)
-{
-  /* TODO Reuse tree-row drawing. */
-  widget_treerow_exec(wcol, rect, state, roundboxalign, 0, zoom);
 }
 
 static void widget_nodesocket(uiBut *but,
@@ -4608,14 +4581,9 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.custom = widget_progressbar;
       break;
 
-    case UI_WTYPE_TREEROW:
+    case UI_WTYPE_VIEW_ITEM:
       wt.wcol_theme = &btheme->tui.wcol_view_item;
-      wt.custom = widget_treerow;
-      break;
-
-    case UI_WTYPE_GRID_TILE:
-      wt.wcol_theme = &btheme->tui.wcol_view_item;
-      wt.draw = widget_gridtile;
+      wt.draw = widget_view_item;
       break;
 
     case UI_WTYPE_NODESOCKET:
@@ -4949,13 +4917,8 @@ void ui_draw_but(const bContext *C, struct ARegion *region, uiStyle *style, uiBu
         fstyle = &style->widgetlabel;
         break;
 
-      case UI_BTYPE_TREEROW:
-        wt = widget_type(UI_WTYPE_TREEROW);
-        fstyle = &style->widgetlabel;
-        break;
-
-      case UI_BTYPE_GRID_TILE:
-        wt = widget_type(UI_WTYPE_GRID_TILE);
+      case UI_BTYPE_VIEW_ITEM:
+        wt = widget_type(UI_WTYPE_VIEW_ITEM);
         fstyle = &style->widgetlabel;
         break;
 

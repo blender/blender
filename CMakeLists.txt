@@ -229,6 +229,9 @@ if(UNIX AND NOT (APPLE OR HAIKU))
 
     option(WITH_GHOST_WAYLAND_DBUS "Optionally build with DBUS support (used for Cursor themes). May hang on startup systems where DBUS is not used." OFF)
     mark_as_advanced(WITH_GHOST_WAYLAND_DBUS)
+
+    option(WITH_GHOST_WAYLAND_DYNLOAD  "Enable runtime dynamic WAYLAND libraries loading" OFF)
+    mark_as_advanced(WITH_GHOST_WAYLAND_DYNLOAD)
   endif()
 endif()
 
@@ -562,14 +565,18 @@ endif()
 option(WITH_OPENGL              "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
 option(WITH_GLEW_ES             "Switches to experimental copy of GLEW that has support for OpenGL ES. (temporary option for development purposes)" OFF)
 option(WITH_GL_PROFILE_ES20     "Support using OpenGL ES 2.0. (through either EGL or the AGL/WGL/XGL 'es20' profile)"                               OFF)
-option(WITH_GPU_SHADER_BUILDER  "Shader builder is a developer option enabling linting on GLSL during compilation"                                  OFF)
+option(WITH_GPU_BUILDTIME_SHADER_BUILDER  "Shader builder is a developer option enabling linting on GLSL during compilation"                                  OFF)
 
 mark_as_advanced(
   WITH_OPENGL
   WITH_GLEW_ES
   WITH_GL_PROFILE_ES20
-  WITH_GPU_SHADER_BUILDER
+  WITH_GPU_BUILDTIME_SHADER_BUILDER
 )
+
+if(WITH_HEADLESS)
+  set(WITH_OPENGL OFF)
+endif()
 
 # Metal
 

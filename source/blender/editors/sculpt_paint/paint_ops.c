@@ -1454,6 +1454,7 @@ void ED_operatortypes_paint(void)
   /* vertex selection */
   WM_operatortype_append(PAINT_OT_vert_select_all);
   WM_operatortype_append(PAINT_OT_vert_select_ungrouped);
+  WM_operatortype_append(PAINT_OT_vert_select_hide);
 
   /* vertex */
   WM_operatortype_append(PAINT_OT_vertex_paint_toggle);
@@ -1472,7 +1473,8 @@ void ED_operatortypes_paint(void)
   WM_operatortype_append(PAINT_OT_face_select_linked_pick);
   WM_operatortype_append(PAINT_OT_face_select_all);
   WM_operatortype_append(PAINT_OT_face_select_hide);
-  WM_operatortype_append(PAINT_OT_face_select_reveal);
+
+  WM_operatortype_append(PAINT_OT_face_vert_reveal);
 
   /* partial visibility */
   WM_operatortype_append(PAINT_OT_hide_show);

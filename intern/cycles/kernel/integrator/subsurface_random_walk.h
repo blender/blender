@@ -195,7 +195,8 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   /* Setup ray. */
   ray.P = P;
   ray.D = D;
-  ray.t = FLT_MAX;
+  ray.tmin = 0.0f;
+  ray.tmax = FLT_MAX;
   ray.time = time;
   ray.dP = ray_dP;
   ray.dD = differential_zero_compact();
@@ -370,10 +371,10 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
      * chance of connecting to it.
      * TODO: Maybe use less than 10 times the mean free path? */
     if (bounce == 0) {
-      ray.t = max(t, 10.0f / (reduce_min(sigma_t)));
+      ray.tmax = max(t, 10.0f / (reduce_min(sigma_t)));
     }
     else {
-      ray.t = t;
+      ray.tmax = t;
       /* After the first bounce the object can intersect the same surface again */
       ray.self.object = OBJECT_NONE;
       ray.self.prim = PRIM_NONE;
@@ -384,12 +385,12 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     if (hit) {
 #ifdef __KERNEL_GPU_RAYTRACING__
       /* t is always in world space with OptiX and MetalRT. */
-      ray.t = ss_isect.hits[0].t;
+      ray.tmax = ss_isect.hits[0].t;
 #else
       /* Compute world space distance to surface hit. */
       float3 D = transform_direction(&ob_itfm, ray.D);
       D = normalize(D) * ss_isect.hits[0].t;
-      ray.t = len(transform_direction(&ob_tfm, D));
+      ray.tmax = len(transform_direction(&ob_tfm, D));
 #endif
     }
 
@@ -397,16 +398,16 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
       /* Check if we hit the opposite side. */
       if (hit) {
         have_opposite_interface = true;
-        opposite_distance = dot(ray.P + ray.t * ray.D - P, -N);
+        opposite_distance = dot(ray.P + ray.tmax * ray.D - P, -N);
       }
       /* Apart from the opposite side check, we were supposed to only trace up to distance t,
        * so check if there would have been a hit in that case. */
-      hit = ray.t < t;
+      hit = ray.tmax < t;
     }
 
     /* Use the distance to the exit point for the throughput update if we found one. */
     if (hit) {
-      t = ray.t;
+      t = ray.tmax;
     }
 
     /* Advance to new scatter location. */

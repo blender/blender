@@ -2732,6 +2732,8 @@ void blo_lib_link_restore(Main *oldmain,
     LISTBASE_FOREACH (WorkSpaceLayout *, layout, &workspace->layouts) {
       lib_link_workspace_layout_restore(id_map, newmain, layout);
     }
+    workspace->pin_scene = restore_pointer_by_name(
+        id_map, (ID *)workspace->pin_scene, USER_IGNORE);
   }
 
   LISTBASE_FOREACH (wmWindow *, win, &curwm->windows) {
@@ -2745,6 +2747,7 @@ void blo_lib_link_restore(Main *oldmain,
     if (win->scene == NULL) {
       win->scene = curscene;
     }
+    win->unpinned_scene = restore_pointer_by_name(id_map, (ID *)win->unpinned_scene, USER_IGNORE);
     if (BKE_view_layer_find(win->scene, win->view_layer_name) == NULL) {
       STRNCPY(win->view_layer_name, cur_view_layer->name);
     }

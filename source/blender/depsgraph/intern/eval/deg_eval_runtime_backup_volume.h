@@ -10,8 +10,7 @@
 struct Volume;
 struct VolumeGridVector;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 
@@ -27,5 +26,4 @@ class VolumeBackup {
   char filepath[1024]; /* FILE_MAX */
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

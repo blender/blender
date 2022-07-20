@@ -136,6 +136,19 @@ void string_replace(string &haystack, const string &needle, const string &other)
   }
 }
 
+void string_replace_same_length(string &haystack, const string &needle, const string &other)
+{
+  assert(needle.size() == other.size());
+  size_t pos = 0;
+  while (pos != string::npos) {
+    pos = haystack.find(needle, pos);
+    if (pos != string::npos) {
+      memcpy(haystack.data() + pos, other.data(), other.size());
+      pos += other.size();
+    }
+  }
+}
+
 string string_remove_trademark(const string &s)
 {
   string result = s;
@@ -162,6 +175,11 @@ string string_from_bool(bool var)
 string to_string(const char *str)
 {
   return string(str);
+}
+
+string to_string(const float4 &v)
+{
+  return string_printf("%f,%f,%f,%f", v.x, v.y, v.z, v.w);
 }
 
 string string_to_lower(const string &s)

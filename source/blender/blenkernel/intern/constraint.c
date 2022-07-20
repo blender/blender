@@ -5844,9 +5844,12 @@ static bConstraint *add_new_constraint(Object *ob,
   return con;
 }
 
-bool BKE_constraint_target_uses_bbone(struct bConstraint *con,
-                                      struct bConstraintTarget *UNUSED(ct))
+bool BKE_constraint_target_uses_bbone(struct bConstraint *con, struct bConstraintTarget *ct)
 {
+  if (ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE) {
+    return false;
+  }
+
   return (con->flag & CONSTRAINT_BBONE_SHAPE) || (con->type == CONSTRAINT_TYPE_ARMATURE);
 }
 
@@ -6258,6 +6261,9 @@ void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph,
         break;
       }
     }
+
+    /* Initialize the custom space for use in calculating the matrices. */
+    BKE_constraint_custom_object_space_init(cob, con);
 
     /* get targets - we only need the first one though (and there should only be one) */
     cti->get_constraint_targets(con, &targets);

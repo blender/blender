@@ -124,7 +124,7 @@ struct FCurve *alloc_driver_fcurve(const char rna_path[],
       insert_vert_fcurve(
           fcu, 1.0f, 1.0f, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST | INSERTKEY_NO_USERPREF);
       fcu->extend = FCURVE_EXTRAPOLATE_LINEAR;
-      calchandles_fcurve(fcu);
+      BKE_fcurve_handles_recalc(fcu);
     }
   }
 

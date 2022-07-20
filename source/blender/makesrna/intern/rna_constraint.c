@@ -603,7 +603,7 @@ static const EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSE
 
   if (BKE_constraint_targets_get(con, &targets)) {
     for (ct = targets.first; ct; ct = ct->next) {
-      if (ct->tar && ct->tar->type == OB_ARMATURE) {
+      if (ct->tar && ct->tar->type == OB_ARMATURE && !(ct->flag & CONSTRAINT_TAR_CUSTOM_SPACE)) {
         break;
       }
     }

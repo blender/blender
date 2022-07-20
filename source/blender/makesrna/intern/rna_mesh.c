@@ -1723,6 +1723,56 @@ static void UNUSED_FUNCTION(rna_mesh_unused)(void)
   /* end unused function block */
 }
 
+static bool rna_Mesh_materials_override_apply(Main *bmain,
+                                              PointerRNA *ptr_dst,
+                                              PointerRNA *UNUSED(ptr_src),
+                                              PointerRNA *UNUSED(ptr_storage),
+                                              PropertyRNA *prop_dst,
+                                              PropertyRNA *UNUSED(prop_src),
+                                              PropertyRNA *UNUSED(prop_storage),
+                                              const int UNUSED(len_dst),
+                                              const int UNUSED(len_src),
+                                              const int UNUSED(len_storage),
+                                              PointerRNA *ptr_item_dst,
+                                              PointerRNA *ptr_item_src,
+                                              PointerRNA *UNUSED(ptr_item_storage),
+                                              IDOverrideLibraryPropertyOperation *opop)
+{
+  BLI_assert_msg(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE,
+                 "Unsupported RNA override operation on collections' objects");
+  UNUSED_VARS_NDEBUG(opop);
+
+  Mesh *mesh_dst = (Mesh *)ptr_dst->owner_id;
+
+  if (ptr_item_dst->type == NULL || ptr_item_src->type == NULL) {
+    // BLI_assert_msg(0, "invalid source or destination material.");
+    return false;
+  }
+
+  Material *mat_dst = ptr_item_dst->data;
+  Material *mat_src = ptr_item_src->data;
+
+  if (mat_src == mat_dst) {
+    return true;
+  }
+
+  bool is_modified = false;
+  for (int i = 0; i < mesh_dst->totcol; i++) {
+    if (mesh_dst->mat[i] == mat_dst) {
+      id_us_min(&mat_dst->id);
+      mesh_dst->mat[i] = mat_src;
+      id_us_plus(&mat_src->id);
+      is_modified = true;
+    }
+  }
+
+  if (is_modified) {
+    RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
+  }
+
+  return true;
+}
+
 /** \} */
 
 #else
@@ -2478,6 +2528,8 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
   RNA_def_property_struct_type(prop, "Material");
   RNA_def_property_ui_text(prop, "Materials", "");
   RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_override_funcs(prop, NULL, NULL, "rna_Mesh_materials_override_apply");
   RNA_def_property_collection_funcs(
       prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
 }

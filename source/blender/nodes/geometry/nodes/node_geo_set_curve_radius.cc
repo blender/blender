@@ -10,7 +10,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().supports_field();
   b.add_input<decl::Float>(N_("Radius"))
       .min(0.0f)
-      .default_value(1.0f)
+      .default_value(0.005f)
       .supports_field()
       .subtype(PROP_DISTANCE);
   b.add_output<decl::Geometry>(N_("Curve"));
@@ -20,21 +20,22 @@ static void set_radius_in_component(GeometryComponent &component,
                                     const Field<bool> &selection_field,
                                     const Field<float> &radius_field)
 {
-  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_POINT);
-  if (domain_num == 0) {
+  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_POINT);
+  if (domain_size == 0) {
     return;
   }
+  MutableAttributeAccessor attributes = *component.attributes_for_write();
+  GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
 
-  OutputAttribute_Typed<float> radii = component.attribute_try_get_for_output_only<float>(
-      "radius", ATTR_DOMAIN_POINT);
+  AttributeWriter<float> radii = attributes.lookup_or_add_for_write<float>("radius",
+                                                                           ATTR_DOMAIN_POINT);
 
-  fn::FieldEvaluator evaluator{field_context, domain_num};
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.set_selection(selection_field);
-  evaluator.add_with_destination(radius_field, radii.varray());
+  evaluator.add_with_destination(radius_field, radii.varray);
   evaluator.evaluate();
 
-  radii.save();
+  radii.finish();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

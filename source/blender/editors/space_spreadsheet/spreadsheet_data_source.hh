@@ -27,9 +27,8 @@ class DataSource {
    * column. (This can be made a bit more generic in the future when necessary.)
    */
   virtual void foreach_default_column_ids(
-      FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
+      FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> /*fn*/) const
   {
-    UNUSED_VARS(fn);
   }
 
   /**
@@ -37,9 +36,8 @@ class DataSource {
    * returned.
    */
   virtual std::unique_ptr<ColumnValues> get_column_values(
-      const SpreadsheetColumnID &column_id) const
+      const SpreadsheetColumnID & /*column_id*/) const
   {
-    UNUSED_VARS(column_id);
     return {};
   }
 

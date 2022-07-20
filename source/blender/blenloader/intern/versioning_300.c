@@ -2017,7 +2017,7 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
   /* Font names were copied directly into ID names, see: T90417. */
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 16)) {
     ListBase *lb = which_libbase(bmain, ID_VF);
-    BKE_main_id_repair_duplicate_names_listbase(lb);
+    BKE_main_id_repair_duplicate_names_listbase(bmain, lb);
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 300, 17)) {
@@ -3275,6 +3275,14 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
         continue;
       }
       brush->curves_sculpt_settings->density_add_attempts = 100;
+    }
+
+    /* Disable 'show_bounds' option of curve objects. Option was set as there was no object mode
+     * outline implementation. See T95933. */
+    LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+      if (ob->type == OB_CURVES) {
+        ob->dtx &= ~OB_DRAWBOUNDOX;
+      }
     }
   }
 }

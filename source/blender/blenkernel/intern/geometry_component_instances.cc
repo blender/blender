@@ -13,7 +13,6 @@
 
 #include "DNA_collection_types.h"
 
-#include "BKE_attribute_access.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
@@ -157,7 +156,7 @@ void InstancesComponent::remove_instances(const IndexMask mask)
   dst_attributes.reallocate(mask.size());
 
   src_attributes.foreach_attribute(
-      [&](const bke::AttributeIDRef &id, const AttributeMetaData &meta_data) {
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData &meta_data) {
         if (!id.should_be_kept()) {
           return true;
         }
@@ -366,20 +365,12 @@ blender::Span<int> InstancesComponent::almost_unique_ids() const
   return almost_unique_ids_;
 }
 
-int InstancesComponent::attribute_domain_num(const eAttrDomain domain) const
-{
-  if (domain != ATTR_DOMAIN_INSTANCE) {
-    return 0;
-  }
-  return this->instances_num();
-}
-
-blender::bke::CustomDataAttributes &InstancesComponent::attributes()
+blender::bke::CustomDataAttributes &InstancesComponent::instance_attributes()
 {
   return this->attributes_;
 }
 
-const blender::bke::CustomDataAttributes &InstancesComponent::attributes() const
+const blender::bke::CustomDataAttributes &InstancesComponent::instance_attributes() const
 {
   return this->attributes_;
 }
@@ -404,17 +395,17 @@ class InstancePositionAttributeProvider final : public BuiltinAttributeProvider 
   {
   }
 
-  GVArray try_get_for_read(const GeometryComponent &component) const final
+  GVArray try_get_for_read(const void *owner) const final
   {
-    const InstancesComponent &instances_component = static_cast<const InstancesComponent &>(
-        component);
+    const InstancesComponent &instances_component = *static_cast<const InstancesComponent *>(
+        owner);
     Span<float4x4> transforms = instances_component.instance_transforms();
     return VArray<float3>::ForDerivedSpan<float4x4, get_transform_position>(transforms);
   }
 
-  WriteAttributeLookup try_get_for_write(GeometryComponent &component) const final
+  GAttributeWriter try_get_for_write(void *owner) const final
   {
-    InstancesComponent &instances_component = static_cast<InstancesComponent &>(component);
+    InstancesComponent &instances_component = *static_cast<InstancesComponent *>(owner);
     MutableSpan<float4x4> transforms = instances_component.instance_transforms();
     return {VMutableArray<float3>::ForDerivedSpan<float4x4,
                                                   get_transform_position,
@@ -422,18 +413,17 @@ class InstancePositionAttributeProvider final : public BuiltinAttributeProvider 
             domain_};
   }
 
-  bool try_delete(GeometryComponent &UNUSED(component)) const final
+  bool try_delete(void *UNUSED(owner)) const final
   {
     return false;
   }
 
-  bool try_create(GeometryComponent &UNUSED(component),
-                  const AttributeInit &UNUSED(initializer)) const final
+  bool try_create(void *UNUSED(owner), const AttributeInit &UNUSED(initializer)) const final
   {
     return false;
   }
 
-  bool exists(const GeometryComponent &UNUSED(component)) const final
+  bool exists(const void *UNUSED(owner)) const final
   {
     return true;
   }
@@ -443,13 +433,17 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
 {
   static InstancePositionAttributeProvider position;
   static CustomDataAccessInfo instance_custom_data_access = {
-      [](GeometryComponent &component) -> CustomData * {
-        InstancesComponent &inst = static_cast<InstancesComponent &>(component);
-        return &inst.attributes().data;
+      [](void *owner) -> CustomData * {
+        InstancesComponent &inst = *static_cast<InstancesComponent *>(owner);
+        return &inst.instance_attributes().data;
       },
-      [](const GeometryComponent &component) -> const CustomData * {
-        const InstancesComponent &inst = static_cast<const InstancesComponent &>(component);
-        return &inst.attributes().data;
+      [](const void *owner) -> const CustomData * {
+        const InstancesComponent &inst = *static_cast<const InstancesComponent *>(owner);
+        return &inst.instance_attributes().data;
+      },
+      [](const void *owner) -> int {
+        const InstancesComponent &inst = *static_cast<const InstancesComponent *>(owner);
+        return inst.instances_num();
       },
       nullptr};
 
@@ -476,14 +470,57 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
 
   return ComponentAttributeProviders({&position, &id}, {&instance_custom_data});
 }
+
+static AttributeAccessorFunctions get_instances_accessor_functions()
+{
+  static const ComponentAttributeProviders providers = create_attribute_providers_for_instances();
+  AttributeAccessorFunctions fn =
+      attribute_accessor_functions::accessor_functions_for_providers<providers>();
+  fn.domain_size = [](const void *owner, const eAttrDomain domain) {
+    if (owner == nullptr) {
+      return 0;
+    }
+    const InstancesComponent &instances = *static_cast<const InstancesComponent *>(owner);
+    switch (domain) {
+      case ATTR_DOMAIN_INSTANCE:
+        return instances.instances_num();
+      default:
+        return 0;
+    }
+  };
+  fn.domain_supported = [](const void *UNUSED(owner), const eAttrDomain domain) {
+    return domain == ATTR_DOMAIN_INSTANCE;
+  };
+  fn.adapt_domain = [](const void *UNUSED(owner),
+                       const blender::GVArray &varray,
+                       const eAttrDomain from_domain,
+                       const eAttrDomain to_domain) {
+    if (from_domain == to_domain && from_domain == ATTR_DOMAIN_INSTANCE) {
+      return varray;
+    }
+    return blender::GVArray{};
+  };
+  return fn;
+}
+
+static const AttributeAccessorFunctions &get_instances_accessor_functions_ref()
+{
+  static const AttributeAccessorFunctions fn = get_instances_accessor_functions();
+  return fn;
+}
+
 }  // namespace blender::bke
 
-const blender::bke::ComponentAttributeProviders *InstancesComponent::get_attribute_providers()
-    const
+std::optional<blender::bke::AttributeAccessor> InstancesComponent::attributes() const
 {
-  static blender::bke::ComponentAttributeProviders providers =
-      blender::bke::create_attribute_providers_for_instances();
-  return &providers;
+  return blender::bke::AttributeAccessor(this,
+                                         blender::bke::get_instances_accessor_functions_ref());
+}
+
+std::optional<blender::bke::MutableAttributeAccessor> InstancesComponent::attributes_for_write()
+{
+  return blender::bke::MutableAttributeAccessor(
+      this, blender::bke::get_instances_accessor_functions_ref());
 }
 
 /** \} */

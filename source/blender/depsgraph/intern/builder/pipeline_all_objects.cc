@@ -20,7 +20,7 @@ class AllObjectsNodeBuilder : public DepsgraphNodeBuilder {
   {
   }
 
-  bool need_pull_base_into_graph(Base * /*base*/) override
+  bool need_pull_base_into_graph(const Base * /*base*/) override
   {
     return true;
   }
@@ -33,7 +33,7 @@ class AllObjectsRelationBuilder : public DepsgraphRelationBuilder {
   {
   }
 
-  bool need_pull_base_into_graph(Base * /*base*/) override
+  bool need_pull_base_into_graph(const Base * /*base*/) override
   {
     return true;
   }

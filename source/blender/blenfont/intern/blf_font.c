@@ -18,7 +18,8 @@
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
-#include FT_TRUETYPE_TABLES_H /* For TT_OS2 */
+#include FT_TRUETYPE_TABLES_H  /* For TT_OS2 */
+#include FT_MULTIPLE_MASTERS_H /* Variable font support. */
 
 #include "MEM_guardedalloc.h"
 
@@ -1285,6 +1286,10 @@ FontBLF *blf_font_new(const char *name, const char *filepath)
     MEM_freeN(mfile);
   }
 
+  if (FT_HAS_MULTIPLE_MASTERS(font->face)) {
+    FT_Get_MM_Var(font->face, &(font->variations));
+  }
+
   font->name = BLI_strdup(name);
   font->filepath = BLI_strdup(filepath);
   blf_font_fill(font);
@@ -1351,6 +1356,10 @@ FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int m
     return NULL;
   }
 
+  if (FT_HAS_MULTIPLE_MASTERS(font->face)) {
+    FT_Get_MM_Var(font->face, &(font->variations));
+  }
+
   font->name = BLI_strdup(name);
   font->filepath = NULL;
   blf_font_fill(font);
@@ -1363,6 +1372,10 @@ void blf_font_free(FontBLF *font)
 
   if (font->kerning_cache) {
     MEM_freeN(font->kerning_cache);
+  }
+
+  if (font->variations) {
+    FT_Done_MM_Var(ft_lib, font->variations);
   }
 
   FT_Done_Face(font->face);

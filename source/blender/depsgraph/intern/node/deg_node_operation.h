@@ -13,8 +13,7 @@
 
 struct Depsgraph;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct ComponentNode;
 
@@ -34,6 +33,7 @@ enum class OperationCode {
   PARAMETERS_ENTRY,
   PARAMETERS_EVAL,
   PARAMETERS_EXIT,
+  VISIBILITY,
 
   /* Animation, Drivers, etc. --------------------------------------------- */
   /* NLA + Action */
@@ -202,13 +202,16 @@ const char *operationCodeAsString(OperationCode opcode);
 enum OperationFlag {
   /* Node needs to be updated. */
   DEPSOP_FLAG_NEEDS_UPDATE = (1 << 0),
+
   /* Node was directly modified, causing need for update. */
   DEPSOP_FLAG_DIRECTLY_MODIFIED = (1 << 1),
+
   /* Node was updated due to user input. */
   DEPSOP_FLAG_USER_MODIFIED = (1 << 2),
-  /* Node may not be removed, even when it has no evaluation callback and no
-   * outgoing relations. This is for NO-OP nodes that are purely used to indicate a
-   * relation between components/IDs, and not for connecting to an operation. */
+
+  /* Node may not be removed, even when it has no evaluation callback and no outgoing relations.
+   * This is for NO-OP nodes that are purely used to indicate a relation between components/IDs,
+   * and not for connecting to an operation. */
   DEPSOP_FLAG_PINNED = (1 << 3),
 
   /* Set of flags which gets flushed along the relations. */
@@ -268,5 +271,4 @@ struct OperationNode : public Node {
 
 void deg_register_operation_depsnodes();
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

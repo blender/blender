@@ -34,42 +34,41 @@
 struct BMLogEntry {
   struct BMLogEntry *next, *prev;
 
-  /* The following GHashes map from an element ID to one of the log
-   * types above */
+  /* The following #GHash members map from an element ID to one of the log types above. */
 
-  /* Elements that were in the previous entry, but have been
-   * deleted */
+  /** Elements that were in the previous entry, but have been deleted. */
   GHash *deleted_verts;
   GHash *deleted_faces;
-  /* Elements that were not in the previous entry, but are in the
-   * result of this entry */
+  /** Elements that were not in the previous entry, but are in the result of this entry. */
   GHash *added_verts;
   GHash *added_faces;
 
-  /* Vertices whose coordinates, mask value, or hflag have changed */
+  /** Vertices whose coordinates, mask value, or hflag have changed. */
   GHash *modified_verts;
   GHash *modified_faces;
 
   BLI_mempool *pool_verts;
   BLI_mempool *pool_faces;
 
-  /* This is only needed for dropping BMLogEntries while still in
+  /**
+   * This is only needed for dropping BMLogEntries while still in
    * dynamic-topology mode, as that should release vert/face IDs
-   * back to the BMLog but no BMLog pointer is available at that
-   * time.
+   * back to the BMLog but no BMLog pointer is available at that time.
    *
    * This field is not guaranteed to be valid, any use of it should
-   * check for NULL. */
+   * check for NULL.
+   */
   BMLog *log;
 };
 
 struct BMLog {
-  /* Tree of free IDs */
+  /** Tree of free IDs */
   struct RangeTreeUInt *unused_ids;
 
-  /* Mapping from unique IDs to vertices and faces
+  /**
+   * Mapping from unique IDs to vertices and faces
    *
-   * Each vertex and face in the log gets a unique uinteger
+   * Each vertex and face in the log gets a unique `uint`
    * assigned. That ID is taken from the set managed by the
    * unused_ids range tree.
    *
@@ -79,10 +78,11 @@ struct BMLog {
   GHash *id_to_elem;
   GHash *elem_to_id;
 
-  /* All BMLogEntrys, ordered from earliest to most recent */
+  /** All #BMLogEntrys, ordered from earliest to most recent. */
   ListBase entries;
 
-  /* The current log entry from entries list
+  /**
+   * The current log entry from entries list
    *
    * If null, then the original mesh from before any of the log
    * entries is current (i.e. there is nothing left to undo.)

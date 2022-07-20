@@ -75,13 +75,9 @@ ccl_device_inline void integrate_transparent_volume_shadow(KernelGlobals kg,
   ray.self.light_object = OBJECT_NONE;
   ray.self.light_prim = PRIM_NONE;
   /* Modify ray position and length to match current segment. */
-  const float start_t = (hit == 0) ? 0.0f :
-                                     INTEGRATOR_STATE_ARRAY(state, shadow_isect, hit - 1, t);
-  const float end_t = (hit < num_recorded_hits) ?
-                          INTEGRATOR_STATE_ARRAY(state, shadow_isect, hit, t) :
-                          ray.t;
-  ray.P += start_t * ray.D;
-  ray.t = end_t - start_t;
+  ray.tmin = (hit == 0) ? ray.tmin : INTEGRATOR_STATE_ARRAY(state, shadow_isect, hit - 1, t);
+  ray.tmax = (hit < num_recorded_hits) ? INTEGRATOR_STATE_ARRAY(state, shadow_isect, hit, t) :
+                                         ray.tmax;
 
   shader_setup_from_volume(kg, shadow_sd, &ray);
 
@@ -137,10 +133,7 @@ ccl_device_inline bool integrate_transparent_shadow(KernelGlobals kg,
     /* There are more hits that we could not recorded due to memory usage,
      * adjust ray to intersect again from the last hit. */
     const float last_hit_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, num_recorded_hits - 1, t);
-    const float3 ray_P = INTEGRATOR_STATE(state, shadow_ray, P);
-    const float3 ray_D = INTEGRATOR_STATE(state, shadow_ray, D);
-    INTEGRATOR_STATE_WRITE(state, shadow_ray, P) = ray_P + last_hit_t * ray_D;
-    INTEGRATOR_STATE_WRITE(state, shadow_ray, t) -= last_hit_t;
+    INTEGRATOR_STATE_WRITE(state, shadow_ray, tmin) = intersection_t_offset(last_hit_t);
   }
 
   return false;
@@ -158,20 +151,22 @@ ccl_device void integrator_shade_shadow(KernelGlobals kg,
   /* Evaluate transparent shadows. */
   const bool opaque = integrate_transparent_shadow(kg, state, num_hits);
   if (opaque) {
-    INTEGRATOR_SHADOW_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
+    integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;
   }
 #endif
 
   if (shadow_intersections_has_remaining(num_hits)) {
     /* More intersections to find, continue shadow ray. */
-    INTEGRATOR_SHADOW_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW,
+    integrator_shadow_path_next(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW,
                                 DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
     return;
   }
   else {
     kernel_accum_light(kg, state, render_buffer);
-    INTEGRATOR_SHADOW_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
+    integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;
   }
 }

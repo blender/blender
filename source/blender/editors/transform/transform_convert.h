@@ -34,7 +34,6 @@ int special_transform_moving(TransInfo *t);
 void special_aftertrans_update(struct bContext *C, TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
 void createTransData(struct bContext *C, TransInfo *t);
-bool clipUVTransform(TransInfo *t, float vec[2], bool resize);
 void clipUVData(TransInfo *t);
 void transform_convert_flush_handle2D(TransData *td, TransData2D *td2d, float y_fac);
 /**
@@ -252,6 +251,11 @@ void recalcData_mesh_skin(TransInfo *t);
 void createTransUVs(bContext *C, TransInfo *t);
 /* helper for recalcData() - for Image Editor transforms */
 void recalcData_uv(TransInfo *t);
+
+/* transform_convert_mesh_vert_cdata.c */
+
+void createTransMeshVertCData(TransInfo *t);
+void recalcData_mesh_cdata(TransInfo *t);
 
 /* transform_convert_nla.c */
 

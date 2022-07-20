@@ -21,6 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_collection_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_defaults.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -108,7 +109,7 @@ using blender::Span;
 using blender::StringRef;
 using blender::StringRefNull;
 using blender::Vector;
-using blender::bke::OutputAttribute;
+using blender::bke::AttributeMetaData;
 using blender::fn::Field;
 using blender::fn::GField;
 using blender::fn::ValueOrField;
@@ -190,6 +191,10 @@ static bool node_needs_own_transform_relation(const bNode &node)
     return storage.transform_space == GEO_NODE_TRANSFORM_SPACE_RELATIVE;
   }
 
+  if (node.type == GEO_NODE_DEFORM_CURVES_ON_SURFACE) {
+    return true;
+  }
+
   return false;
 }
 
@@ -269,6 +274,14 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   Set<ID *> used_ids;
   find_used_ids_from_settings(nmd->settings, used_ids);
   process_nodes_for_depsgraph(*nmd->node_group, used_ids, needs_own_transform_relation);
+
+  if (ctx->object->type == OB_CURVES) {
+    Curves *curves_id = static_cast<Curves *>(ctx->object->data);
+    if (curves_id->surface != nullptr) {
+      used_ids.add(&curves_id->surface->id);
+    }
+  }
+
   for (ID *id : used_ids) {
     switch ((ID_Type)GS(id->name)) {
       case ID_OB: {
@@ -986,22 +999,27 @@ static Vector<OutputAttributeToStore> compute_attributes_to_store(
       continue;
     }
     const GeometryComponent &component = *geometry.get_component_for_read(component_type);
+    if (component.is_empty()) {
+      continue;
+    }
+    const blender::bke::AttributeAccessor attributes = *component.attributes();
     for (const auto item : outputs_by_domain.items()) {
       const eAttrDomain domain = item.key;
       const Span<OutputAttributeInfo> outputs_info = item.value;
-      if (!component.attribute_domain_supported(domain)) {
+      if (!attributes.domain_supported(domain)) {
         continue;
       }
-      const int domain_num = component.attribute_domain_num(domain);
+      const int domain_size = attributes.domain_size(domain);
       blender::bke::GeometryComponentFieldContext field_context{component, domain};
-      blender::fn::FieldEvaluator field_evaluator{field_context, domain_num};
+      blender::fn::FieldEvaluator field_evaluator{field_context, domain_size};
       for (const OutputAttributeInfo &output_info : outputs_info) {
         const CPPType &type = output_info.field.cpp_type();
         OutputAttributeToStore store{
             component_type,
             domain,
             output_info.name,
-            GMutableSpan{type, MEM_malloc_arrayN(domain_num, type.size(), __func__), domain_num}};
+            GMutableSpan{
+                type, MEM_malloc_arrayN(domain_size, type.size(), __func__), domain_size}};
         field_evaluator.add_with_destination(output_info.field, store.data);
         attributes_to_store.append(store);
       }
@@ -1016,33 +1034,33 @@ static void store_computed_output_attributes(
 {
   for (const OutputAttributeToStore &store : attributes_to_store) {
     GeometryComponent &component = geometry.get_component_for_write(store.component_type);
+    blender::bke::MutableAttributeAccessor attributes = *component.attributes_for_write();
+
     const eCustomDataType data_type = blender::bke::cpp_type_to_custom_data_type(
         store.data.type());
-    const std::optional<AttributeMetaData> meta_data = component.attribute_get_meta_data(
-        store.name);
+    const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data(store.name);
 
     /* Attempt to remove the attribute if it already exists but the domain and type don't match.
      * Removing the attribute won't succeed if it is built in and non-removable. */
     if (meta_data.has_value() &&
         (meta_data->domain != store.domain || meta_data->data_type != data_type)) {
-      component.attribute_try_delete(store.name);
+      attributes.remove(store.name);
     }
 
     /* Try to create the attribute reusing the stored buffer. This will only succeed if the
      * attribute didn't exist before, or if it existed but was removed above. */
-    if (component.attribute_try_create(
-            store.name,
-            store.domain,
-            blender::bke::cpp_type_to_custom_data_type(store.data.type()),
-            AttributeInitMove(store.data.data()))) {
+    if (attributes.add(store.name,
+                       store.domain,
+                       blender::bke::cpp_type_to_custom_data_type(store.data.type()),
+                       blender::bke::AttributeInitMove(store.data.data()))) {
       continue;
     }
 
-    OutputAttribute attribute = component.attribute_try_get_for_output_only(
+    blender::bke::GAttributeWriter attribute = attributes.lookup_or_add_for_write(
         store.name, store.domain, data_type);
     if (attribute) {
-      attribute.varray().set_all(store.data.data());
-      attribute.save();
+      attribute.varray.set_all(store.data.data());
+      attribute.finish();
     }
 
     /* We were unable to reuse the data, so it must be destructed and freed. */
@@ -1807,7 +1825,7 @@ static void requiredDataMask(Object *UNUSED(ob),
 }
 
 ModifierTypeInfo modifierType_Nodes = {
-    /* name */ "GeometryNodes",
+    /* name */ N_("GeometryNodes"),
     /* structName */ "NodesModifierData",
     /* structSize */ sizeof(NodesModifierData),
     /* srna */ &RNA_NodesModifier,

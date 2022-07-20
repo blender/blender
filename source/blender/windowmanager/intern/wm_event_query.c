@@ -112,7 +112,7 @@ void WM_event_print(const wmEvent *event)
         "wmEvent type:%d/%s, val:%d/%s, "
         "prev_type:%d/%s, prev_val:%d/%s, "
         "modifier=%s, keymodifier:%d, flag:%s, "
-        "mouse:(%d,%d), ascii:'%c', utf8:'%.*s', pointer:%p",
+        "mouse:(%d,%d), utf8:'%.*s', pointer:%p",
         event->type,
         type_id,
         event->val,
@@ -126,7 +126,6 @@ void WM_event_print(const wmEvent *event)
         flag_id,
         event->xy[0],
         event->xy[1],
-        event->ascii,
         BLI_str_utf8_size(event->utf8_buf),
         event->utf8_buf,
         (const void *)event);
@@ -252,16 +251,6 @@ bool WM_event_is_modal_drag_exit(const wmEvent *event,
   }
 
   return 0;
-}
-
-bool WM_event_is_last_mousemove(const wmEvent *event)
-{
-  while ((event = event->next)) {
-    if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 bool WM_event_is_mouse_drag(const wmEvent *event)
@@ -406,6 +395,20 @@ void WM_event_drag_start_mval_fl(const wmEvent *event, const ARegion *region, fl
 void WM_event_drag_start_xy(const wmEvent *event, int r_xy[2])
 {
   copy_v2_v2_int(r_xy, (event->val == KM_CLICK_DRAG) ? event->prev_press_xy : event->xy);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Event Text Queries
+ * \{ */
+
+char WM_event_utf8_to_ascii(const struct wmEvent *event)
+{
+  if (BLI_str_utf8_size(event->utf8_buf) == 1) {
+    return event->utf8_buf[0];
+  }
+  return '\0';
 }
 
 /** \} */

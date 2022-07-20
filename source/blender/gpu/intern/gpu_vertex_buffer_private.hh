@@ -29,7 +29,7 @@ class VertBuf {
   /** Status flag. */
   GPUVertBufStatus flag = GPU_VERTBUF_INVALID;
   /** NULL indicates data in VRAM (unmapped) */
-  uchar *data = NULL;
+  uchar *data = nullptr;
 
  protected:
   /** Usage hint for GL optimization. */

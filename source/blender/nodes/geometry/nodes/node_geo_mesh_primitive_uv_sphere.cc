@@ -220,11 +220,11 @@ static void calculate_sphere_faces(MutableSpan<MLoop> loops,
 
 static void calculate_sphere_uvs(Mesh *mesh, const float segments, const float rings)
 {
-  MeshComponent mesh_component;
-  mesh_component.replace(mesh, GeometryOwnershipType::Editable);
-  OutputAttribute_Typed<float2> uv_attribute =
-      mesh_component.attribute_try_get_for_output_only<float2>("uv_map", ATTR_DOMAIN_CORNER);
-  MutableSpan<float2> uvs = uv_attribute.as_span();
+  MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*mesh);
+
+  SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_only_span<float2>(
+      "uv_map", ATTR_DOMAIN_CORNER);
+  MutableSpan<float2> uvs = uv_attribute.span;
 
   int loop_index = 0;
   const float dy = 1.0f / rings;
@@ -254,7 +254,7 @@ static void calculate_sphere_uvs(Mesh *mesh, const float segments, const float r
     uvs[loop_index++] = float2(segment / segments, 1.0f - dy);
   }
 
-  uv_attribute.save();
+  uv_attribute.finish();
 }
 
 static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const int rings)

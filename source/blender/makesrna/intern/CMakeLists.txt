@@ -84,7 +84,6 @@ set(DEFSRC
 
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
-  add_definitions(-DWITH_NEW_CURVES_TYPE)
   list(APPEND DEFSRC
     rna_curves.c
     rna_simulation.c

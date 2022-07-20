@@ -105,6 +105,12 @@ TEST(index_range, OneAfterEnd)
   EXPECT_EQ(range.one_after_last(), 8);
 }
 
+TEST(index_range, OneBeforeStart)
+{
+  IndexRange range = IndexRange(5, 3);
+  EXPECT_EQ(range.one_before_start(), 4);
+}
+
 TEST(index_range, Start)
 {
   IndexRange range = IndexRange(6, 2);

@@ -310,6 +310,12 @@ void GLTexture::update_sub(
  */
 void GLTexture::generate_mipmap()
 {
+  /* Allow users to provide mipmaps stored in compressed textures.
+   * Skip generating mipmaps to avoid overriding the existing ones. */
+  if (format_flag_ & GPU_FORMAT_COMPRESSED) {
+    return;
+  }
+
   /* Some drivers have bugs when using #glGenerateMipmap with depth textures (see T56789).
    * In this case we just create a complete texture with mipmaps manually without
    * down-sampling. You must initialize the texture levels using other methods like

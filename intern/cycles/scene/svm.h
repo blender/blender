@@ -211,6 +211,7 @@ class SVMCompiler {
   /* compile */
   void compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
 
+  std::atomic_int *svm_node_types_used;
   array<int4> current_svm_nodes;
   ShaderType current_type;
   Shader *current_shader;

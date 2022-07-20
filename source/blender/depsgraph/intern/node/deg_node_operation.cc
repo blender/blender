@@ -32,6 +32,8 @@ const char *operationCodeAsString(OperationCode opcode)
       return "PARAMETERS_EVAL";
     case OperationCode::PARAMETERS_EXIT:
       return "PARAMETERS_EXIT";
+    case OperationCode::VISIBILITY:
+      return "VISIBILITY";
     /* Animation, Drivers, etc. */
     case OperationCode::ANIMATION_ENTRY:
       return "ANIMATION_ENTRY";

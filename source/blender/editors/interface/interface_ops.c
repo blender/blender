@@ -2054,40 +2054,39 @@ static void UI_OT_list_start_filter(wmOperatorType *ot)
 /** \name UI Tree-View Drop Operator
  * \{ */
 
-static bool ui_tree_view_drop_poll(bContext *C)
+static bool ui_view_drop_poll(bContext *C)
 {
   const wmWindow *win = CTX_wm_window(C);
   const ARegion *region = CTX_wm_region(C);
-  const uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(
-      region, win->eventstate->xy);
+  const uiViewItemHandle *hovered_item = UI_region_views_find_item_at(region, win->eventstate->xy);
 
-  return hovered_tree_item != NULL;
+  return hovered_item != NULL;
 }
 
-static int ui_tree_view_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int ui_view_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
   if (event->custom != EVT_DATA_DRAGDROP) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
   const ARegion *region = CTX_wm_region(C);
-  uiTreeViewItemHandle *hovered_tree_item = UI_block_tree_view_find_item_at(region, event->xy);
+  uiViewItemHandle *hovered_item = UI_region_views_find_item_at(region, event->xy);
 
-  if (!UI_tree_view_item_drop_handle(C, hovered_tree_item, event->customdata)) {
+  if (!UI_view_item_drop_handle(C, hovered_item, event->customdata)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
   return OPERATOR_FINISHED;
 }
 
-static void UI_OT_tree_view_drop(wmOperatorType *ot)
+static void UI_OT_view_drop(wmOperatorType *ot)
 {
-  ot->name = "Tree View drop";
-  ot->idname = "UI_OT_tree_view_drop";
-  ot->description = "Drag and drop items onto a tree item";
+  ot->name = "View drop";
+  ot->idname = "UI_OT_view_drop";
+  ot->description = "Drag and drop items onto a data-set item";
 
-  ot->invoke = ui_tree_view_drop_invoke;
-  ot->poll = ui_tree_view_drop_poll;
+  ot->invoke = ui_view_drop_invoke;
+  ot->poll = ui_view_drop_poll;
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -2095,43 +2094,42 @@ static void UI_OT_tree_view_drop(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name UI Tree-View Item Rename Operator
+/** \name UI View Item Rename Operator
  *
- * General purpose renaming operator for tree-views. Thanks to this, to add a rename button to
- * context menus for example, tree-view API users don't have to implement their own renaming
- * operators with the same logic as they already have for their #ui::AbstractTreeViewItem::rename()
- * override.
+ * General purpose renaming operator for views. Thanks to this, to add a rename button to context
+ * menus for example, view API users don't have to implement their own renaming operators with the
+ * same logic as they already have for their #ui::AbstractViewItem::rename() override.
  *
  * \{ */
 
-static bool ui_tree_view_item_rename_poll(bContext *C)
+static bool ui_view_item_rename_poll(bContext *C)
 {
   const ARegion *region = CTX_wm_region(C);
-  const uiTreeViewItemHandle *active_item = UI_block_tree_view_find_active_item(region);
-  return active_item != NULL && UI_tree_view_item_can_rename(active_item);
+  const uiViewItemHandle *active_item = UI_region_views_find_active_item(region);
+  return active_item != NULL && UI_view_item_can_rename(active_item);
 }
 
-static int ui_tree_view_item_rename_exec(bContext *C, wmOperator *UNUSED(op))
+static int ui_view_item_rename_exec(bContext *C, wmOperator *UNUSED(op))
 {
   ARegion *region = CTX_wm_region(C);
-  uiTreeViewItemHandle *active_item = UI_block_tree_view_find_active_item(region);
+  uiViewItemHandle *active_item = UI_region_views_find_active_item(region);
 
-  UI_tree_view_item_begin_rename(active_item);
+  UI_view_item_begin_rename(active_item);
   ED_region_tag_redraw(region);
 
   return OPERATOR_FINISHED;
 }
 
-static void UI_OT_tree_view_item_rename(wmOperatorType *ot)
+static void UI_OT_view_item_rename(wmOperatorType *ot)
 {
-  ot->name = "Rename Tree-View Item";
-  ot->idname = "UI_OT_tree_view_item_rename";
-  ot->description = "Rename the active item in the tree";
+  ot->name = "Rename View Item";
+  ot->idname = "UI_OT_view_item_rename";
+  ot->description = "Rename the active item in the data-set view";
 
-  ot->exec = ui_tree_view_item_rename_exec;
-  ot->poll = ui_tree_view_item_rename_poll;
+  ot->exec = ui_view_item_rename_exec;
+  ot->poll = ui_view_item_rename_poll;
   /* Could get a custom tooltip via the `get_description()` callback and another overridable
-   * function of the tree-view. */
+   * function of the view. */
 
   ot->flag = OPTYPE_INTERNAL;
 }
@@ -2235,8 +2233,8 @@ void ED_operatortypes_ui(void)
 
   WM_operatortype_append(UI_OT_list_start_filter);
 
-  WM_operatortype_append(UI_OT_tree_view_drop);
-  WM_operatortype_append(UI_OT_tree_view_item_rename);
+  WM_operatortype_append(UI_OT_view_drop);
+  WM_operatortype_append(UI_OT_view_item_rename);
 
   /* external */
   WM_operatortype_append(UI_OT_eyedropper_color);

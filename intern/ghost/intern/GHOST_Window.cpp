@@ -23,6 +23,7 @@ GHOST_Window::GHOST_Window(uint32_t width,
     : m_drawingContextType(GHOST_kDrawingContextTypeNone),
       m_cursorVisible(true),
       m_cursorGrab(GHOST_kGrabDisable),
+      m_cursorGrabAxis(GHOST_kAxisNone),
       m_cursorShape(GHOST_kStandardCursorDefault),
       m_wantStereoVisual(wantStereoVisual),
       m_context(new GHOST_ContextNone(false))

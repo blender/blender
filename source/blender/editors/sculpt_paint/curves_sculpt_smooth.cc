@@ -52,7 +52,7 @@ struct SmoothOperationExecutor {
   float brush_strength_;
   float2 brush_pos_re_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
 
   SmoothOperationExecutor(const bContext &C) : ctx_(C)
   {
@@ -79,7 +79,7 @@ struct SmoothOperationExecutor {
 
     point_factors_ = get_point_selection(*curves_id_);
     curve_selection_ = retrieve_selected_curves(*curves_id_, selected_curve_indices_);
-    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
         brush_->falloff_shape);

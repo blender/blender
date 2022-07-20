@@ -22,11 +22,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void mesh_flip_faces(MeshComponent &component, const Field<bool> &selection_field)
 {
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_FACE};
-  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_FACE);
-  if (domain_num == 0) {
+  const int domain_size = component.attribute_domain_size(ATTR_DOMAIN_FACE);
+  if (domain_size == 0) {
     return;
   }
-  fn::FieldEvaluator evaluator{field_context, domain_num};
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.add(selection_field);
   evaluator.evaluate();
   const IndexMask selection = evaluator.get_evaluated_as_mask(0);
@@ -49,20 +49,21 @@ static void mesh_flip_faces(MeshComponent &component, const Field<bool> &selecti
     }
   }
 
-  component.attribute_foreach(
+  MutableAttributeAccessor attributes = *component.attributes_for_write();
+  attributes.for_all(
       [&](const bke::AttributeIDRef &attribute_id, const AttributeMetaData &meta_data) {
         if (meta_data.domain == ATTR_DOMAIN_CORNER) {
-          OutputAttribute attribute = component.attribute_try_get_for_output(
-              attribute_id, ATTR_DOMAIN_CORNER, meta_data.data_type, nullptr);
+          GSpanAttributeWriter attribute = attributes.lookup_or_add_for_write_span(
+              attribute_id, ATTR_DOMAIN_CORNER, meta_data.data_type);
           attribute_math::convert_to_static_type(meta_data.data_type, [&](auto dummy) {
             using T = decltype(dummy);
-            MutableSpan<T> dst_span = attribute.as_span<T>();
+            MutableSpan<T> dst_span = attribute.span.typed<T>();
             for (const int j : selection.index_range()) {
               const MPoly &poly = polys[selection[j]];
               dst_span.slice(poly.loopstart + 1, poly.totloop - 1).reverse();
             }
           });
-          attribute.save();
+          attribute.finish();
         }
         return true;
       });

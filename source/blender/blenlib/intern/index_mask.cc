@@ -142,6 +142,7 @@ IndexMask find_indices_based_on_predicate__merge(
   int64_t result_mask_size = 0;
   for (Vector<Vector<int64_t>> &local_sub_masks : sub_masks) {
     for (Vector<int64_t> &sub_mask : local_sub_masks) {
+      BLI_assert(!sub_mask.is_empty());
       all_vectors.append(&sub_mask);
       result_mask_size += sub_mask.size();
     }
@@ -232,7 +233,9 @@ IndexMask find_indices_from_virtual_array(const IndexMask indices_to_check,
             }
           }
         });
-        sub_masks.local().append(std::move(masked_indices));
+        if (!masked_indices.is_empty()) {
+          sub_masks.local().append(std::move(masked_indices));
+        }
       });
 
   return detail::find_indices_based_on_predicate__merge(indices_to_check, sub_masks, r_indices);

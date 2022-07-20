@@ -37,6 +37,7 @@
 #include "BKE_lib_override.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
@@ -677,6 +678,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
     TreeElement *te = outliner_find_tree_element(&space_outliner->tree, tselem);
 
     if (tselem->type == TSE_SOME_ID) {
+      BKE_main_namemap_remove_name(bmain, tselem->id, oldname);
       BLI_libblock_ensure_unique_name(bmain, tselem->id->name);
 
       WM_msg_publish_rna_prop(mbus, tselem->id, tselem->id, ID, name);
@@ -742,6 +744,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
         }
         case TSE_NLA_ACTION: {
           bAction *act = (bAction *)tselem->id;
+          BKE_main_namemap_remove_name(bmain, &act->id, oldname);
           BLI_libblock_ensure_unique_name(bmain, act->id.name);
           WM_msg_publish_rna_prop(mbus, &act->id, &act->id, ID, name);
           break;
@@ -852,6 +855,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
         case TSE_LAYER_COLLECTION: {
           /* The ID is a #Collection, not a #LayerCollection */
           Collection *collection = (Collection *)tselem->id;
+          BKE_main_namemap_remove_name(bmain, &collection->id, oldname);
           BLI_libblock_ensure_unique_name(bmain, collection->id.name);
           WM_msg_publish_rna_prop(mbus, &collection->id, &collection->id, ID, name);
           WM_event_add_notifier(C, NC_ID | NA_RENAME, nullptr);

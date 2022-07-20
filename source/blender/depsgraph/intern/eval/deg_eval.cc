@@ -302,8 +302,28 @@ void schedule_node_to_queue(OperationNode *node,
   BLI_gsqueue_push(evaluation_queue, &node);
 }
 
-void evaluate_graph_single_threaded(DepsgraphEvalState *state)
+/* Evaluate given stage of the dependency graph evaluation using multiple threads.
+ *
+ * NOTE: Will assign the `state->stage` to the given stage. */
+void evaluate_graph_threaded_stage(DepsgraphEvalState *state,
+                                   TaskPool *task_pool,
+                                   const EvaluationStage stage)
 {
+  state->stage = stage;
+
+  schedule_graph(state, schedule_node_to_pool, task_pool);
+  BLI_task_pool_work_and_wait(task_pool);
+}
+
+/* Evaluate remaining operations of the dependency graph in a single threaded manner. */
+void evaluate_graph_single_threaded_if_needed(DepsgraphEvalState *state)
+{
+  if (!state->need_single_thread_pass) {
+    return;
+  }
+
+  state->stage = EvaluationStage::SINGLE_THREADED_WORKAROUND;
+
   GSQueue *evaluation_queue = BLI_gsqueue_new(sizeof(OperationNode *));
   schedule_graph(state, schedule_node_to_queue, evaluation_queue);
 
@@ -334,9 +354,7 @@ void depsgraph_ensure_view_layer(Depsgraph *graph)
   deg_update_copy_on_write_datablock(graph, scene_id_node);
 }
 
-}  // namespace
-
-static TaskPool *deg_evaluate_task_pool_create(DepsgraphEvalState *state)
+TaskPool *deg_evaluate_task_pool_create(DepsgraphEvalState *state)
 {
   if (G.debug & G_DEBUG_DEPSGRAPH_NO_THREADS) {
     return BLI_task_pool_create_no_threads(state);
@@ -344,6 +362,8 @@ static TaskPool *deg_evaluate_task_pool_create(DepsgraphEvalState *state)
 
   return BLI_task_pool_create_suspended(state, TASK_PRIORITY_HIGH);
 }
+
+}  // namespace
 
 void deg_evaluate_on_refresh(Depsgraph *graph)
 {
@@ -361,33 +381,37 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
 
   graph->is_evaluating = true;
   depsgraph_ensure_view_layer(graph);
+
   /* Set up evaluation state. */
   DepsgraphEvalState state;
   state.graph = graph;
   state.do_stats = graph->debug.do_time_debug();
   state.need_single_thread_pass = false;
+
   /* Prepare all nodes for evaluation. */
   initialize_execution(&state, graph);
 
-  /* Do actual evaluation now. */
-  /* First, process all Copy-On-Write nodes. */
-  state.stage = EvaluationStage::COPY_ON_WRITE;
+  /* Evaluation happens in several incremental steps:
+   *
+   * - Start with the copy-on-write operations which never form dependency cycles. This will ensure
+   *   that if a dependency graph has a cycle evaluation functions will always "see" valid expanded
+   *   datablock. It might not be evaluated yet, but at least the datablock will be valid.
+   *
+   * - Multi-threaded evaluation of all possible nodes.
+   *   Certain operations (and their subtrees) could be ignored. For example, meta-balls are not
+   *   safe from threading point of view, so the threaded evaluation will stop at the metaball
+   *   operation node.
+   *
+   * - Single-threaded pass of all remaining operations. */
+
   TaskPool *task_pool = deg_evaluate_task_pool_create(&state);
-  schedule_graph(&state, schedule_node_to_pool, task_pool);
-  BLI_task_pool_work_and_wait(task_pool);
+
+  evaluate_graph_threaded_stage(&state, task_pool, EvaluationStage::COPY_ON_WRITE);
+  evaluate_graph_threaded_stage(&state, task_pool, EvaluationStage::THREADED_EVALUATION);
+
   BLI_task_pool_free(task_pool);
 
-  /* After that, process all other nodes. */
-  state.stage = EvaluationStage::THREADED_EVALUATION;
-  task_pool = deg_evaluate_task_pool_create(&state);
-  schedule_graph(&state, schedule_node_to_pool, task_pool);
-  BLI_task_pool_work_and_wait(task_pool);
-  BLI_task_pool_free(task_pool);
-
-  if (state.need_single_thread_pass) {
-    state.stage = EvaluationStage::SINGLE_THREADED_WORKAROUND;
-    evaluate_graph_single_threaded(&state);
-  }
+  evaluate_graph_single_threaded_if_needed(&state);
 
   /* Finalize statistics gathering. This is because we only gather single
    * operation timing here, without aggregating anything to avoid any extra
@@ -395,6 +419,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   if (state.do_stats) {
     deg_eval_stats_aggregate(graph);
   }
+
   /* Clear any uncleared tags - just in case. */
   deg_graph_clear_tags(graph);
   graph->is_evaluating = false;

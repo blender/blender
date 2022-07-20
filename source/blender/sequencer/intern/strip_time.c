@@ -203,6 +203,8 @@ void seq_time_effect_range_set(const Scene *scene, Sequence *seq)
 
   /* Values unusable for effects, these should be always 0. */
   seq->startofs = seq->endofs = seq->anim_startofs = seq->anim_endofs = 0;
+  seq->start = seq->startdisp;
+  seq->len = seq->enddisp - seq->startdisp;
 }
 
 /* Update strip startdisp and enddisp (n-input effects have no len to calculate these). */

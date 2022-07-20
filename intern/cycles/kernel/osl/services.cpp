@@ -1094,10 +1094,8 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
       ndc[0] = camera_world_to_ndc(kg, sd, sd->ray_P);
 
       if (derivatives) {
-        ndc[1] = camera_world_to_ndc(kg, sd, sd->ray_P + make_float3(sd->ray_dP, 0.0f, 0.0f)) -
-                 ndc[0];
-        ndc[2] = camera_world_to_ndc(kg, sd, sd->ray_P + make_float3(0.0f, sd->ray_dP, 0.0f)) -
-                 ndc[0];
+        ndc[1] = zero_float3();
+        ndc[2] = zero_float3();
       }
     }
     else {
@@ -1671,7 +1669,8 @@ bool OSLRenderServices::trace(TraceOpt &options,
 
   ray.P = TO_FLOAT3(P);
   ray.D = TO_FLOAT3(R);
-  ray.t = (options.maxdist == 1.0e30f) ? FLT_MAX : options.maxdist - options.mindist;
+  ray.tmin = 0.0f;
+  ray.tmax = (options.maxdist == 1.0e30f) ? FLT_MAX : options.maxdist - options.mindist;
   ray.time = sd->time;
   ray.self.object = OBJECT_NONE;
   ray.self.prim = PRIM_NONE;

@@ -31,13 +31,17 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
                                       Map<std::string, Material *> &created_materials,
                                       const OBJImportParams &import_params)
 {
+  const int64_t tot_verts_object{mesh_geometry_.get_vertex_count()};
+  if (tot_verts_object <= 0) {
+    /* Empty mesh */
+    return nullptr;
+  }
   std::string ob_name{mesh_geometry_.geometry_name_};
   if (ob_name.empty()) {
     ob_name = "Untitled";
   }
   fixup_invalid_faces();
 
-  const int64_t tot_verts_object{mesh_geometry_.vertex_count_};
   /* Total explicitly imported edges, not the ones belonging the polygons to be created. */
   const int64_t tot_edges{mesh_geometry_.edges_.size()};
   const int64_t tot_face_elems{mesh_geometry_.face_elements_.size()};
@@ -153,9 +157,9 @@ void MeshFromGeometry::fixup_invalid_faces()
 
 void MeshFromGeometry::create_vertices(Mesh *mesh)
 {
-  const int tot_verts_object{mesh_geometry_.vertex_count_};
+  const int tot_verts_object{mesh_geometry_.get_vertex_count()};
   for (int i = 0; i < tot_verts_object; ++i) {
-    int vi = mesh_geometry_.vertex_start_ + i;
+    int vi = mesh_geometry_.vertex_index_min_ + i;
     if (vi < global_vertices_.vertices.size()) {
       copy_v3_v3(mesh->mvert[i].co, global_vertices_.vertices[vi]);
     }
@@ -170,7 +174,7 @@ void MeshFromGeometry::create_vertices(Mesh *mesh)
 void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
 {
   mesh->dvert = nullptr;
-  const int64_t total_verts = mesh_geometry_.vertex_count_;
+  const int64_t total_verts = mesh_geometry_.get_vertex_count();
   if (use_vertex_groups && total_verts && mesh_geometry_.has_vertex_groups_) {
     mesh->dvert = static_cast<MDeformVert *>(
         CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, nullptr, total_verts));
@@ -204,7 +208,7 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
       const PolyCorner &curr_corner = mesh_geometry_.face_corners_[curr_face.start_index_ + idx];
       MLoop &mloop = mesh->mloop[tot_loop_idx];
       tot_loop_idx++;
-      mloop.v = curr_corner.vert_index;
+      mloop.v = curr_corner.vert_index - mesh_geometry_.vertex_index_min_;
 
       /* Setup vertex group data, if needed. */
       if (!mesh->dvert) {
@@ -231,14 +235,14 @@ void MeshFromGeometry::create_vertex_groups(Object *obj)
 void MeshFromGeometry::create_edges(Mesh *mesh)
 {
   const int64_t tot_edges{mesh_geometry_.edges_.size()};
-  const int64_t total_verts{mesh_geometry_.vertex_count_};
+  const int64_t total_verts{mesh_geometry_.get_vertex_count()};
   UNUSED_VARS_NDEBUG(total_verts);
   for (int i = 0; i < tot_edges; ++i) {
     const MEdge &src_edge = mesh_geometry_.edges_[i];
     MEdge &dst_edge = mesh->medge[i];
-    BLI_assert(src_edge.v1 < total_verts && src_edge.v2 < total_verts);
-    dst_edge.v1 = src_edge.v1;
-    dst_edge.v2 = src_edge.v2;
+    dst_edge.v1 = src_edge.v1 - mesh_geometry_.vertex_index_min_;
+    dst_edge.v2 = src_edge.v2 - mesh_geometry_.vertex_index_min_;
+    BLI_assert(dst_edge.v1 < total_verts && dst_edge.v2 < total_verts);
     dst_edge.flag = ME_LOOSEEDGE;
   }
 
@@ -306,17 +310,14 @@ void MeshFromGeometry::create_materials(Main *bmain,
     if (mat == nullptr) {
       continue;
     }
-    BKE_object_material_slot_add(bmain, obj);
-    BKE_object_material_assign(bmain, obj, mat, obj->totcol, BKE_MAT_ASSIGN_USERPREF);
+    BKE_object_material_assign_single_obdata(bmain, obj, mat, obj->totcol + 1);
   }
 }
 
 void MeshFromGeometry::create_normals(Mesh *mesh)
 {
-  /* NOTE: Needs more clarity about what is expected in the viewport if the function works. */
-
   /* No normal data: nothing to do. */
-  if (global_vertices_.vertex_normals.is_empty() || !mesh_geometry_.has_vertex_normals_) {
+  if (global_vertices_.vertex_normals.is_empty()) {
     return;
   }
 
@@ -342,23 +343,26 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
 
 void MeshFromGeometry::create_colors(Mesh *mesh)
 {
-  /* Nothing to do if we don't have vertex colors. */
-  if (mesh_geometry_.vertex_color_count_ < 1) {
-    return;
-  }
-  if (mesh_geometry_.vertex_color_count_ != mesh_geometry_.vertex_count_) {
-    std::cerr << "Mismatching number of vertices (" << mesh_geometry_.vertex_count_
-              << ") and colors (" << mesh_geometry_.vertex_color_count_ << ") on object '"
-              << mesh_geometry_.geometry_name_ << "', ignoring colors." << std::endl;
+  /* Nothing to do if we don't have vertex colors at all. */
+  if (global_vertices_.vertex_colors.is_empty()) {
     return;
   }
 
-  CustomDataLayer *color_layer = BKE_id_attribute_new(
-      &mesh->id, "Color", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
-  float4 *colors = (float4 *)color_layer->data;
-  for (int i = 0; i < mesh_geometry_.vertex_color_count_; ++i) {
-    float3 c = global_vertices_.vertex_colors[mesh_geometry_.vertex_color_start_ + i];
-    colors[i] = float4(c.x, c.y, c.z, 1.0f);
+  /* Find which vertex color block is for this mesh (if any). */
+  for (const auto &block : global_vertices_.vertex_colors) {
+    if (mesh_geometry_.vertex_index_min_ >= block.start_vertex_index &&
+        mesh_geometry_.vertex_index_max_ < block.start_vertex_index + block.colors.size()) {
+      /* This block is suitable, use colors from it. */
+      CustomDataLayer *color_layer = BKE_id_attribute_new(
+          &mesh->id, "Color", CD_PROP_COLOR, ATTR_DOMAIN_POINT, nullptr);
+      float4 *colors = (float4 *)color_layer->data;
+      int offset = mesh_geometry_.vertex_index_min_ - block.start_vertex_index;
+      for (int i = 0, n = mesh_geometry_.get_vertex_count(); i != n; ++i) {
+        float3 c = block.colors[offset + i];
+        colors[i] = float4(c.x, c.y, c.z, 1.0f);
+      }
+      return;
+    }
   }
 }
 

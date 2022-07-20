@@ -53,8 +53,6 @@ using blender::Vector;
 
 static const char *ATTR_POSITION = "position";
 
-static void update_custom_data_pointers(Curves &curves);
-
 static void curves_init_data(ID *id)
 {
   Curves *curves = (Curves *)id;
@@ -96,8 +94,6 @@ static void curves_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
   dst.runtime = MEM_new<bke::CurvesGeometryRuntime>(__func__);
 
   dst.runtime->type_counts = src.runtime->type_counts;
-
-  dst.update_customdata_pointers();
 
   curves_dst->batch_cache = nullptr;
 }
@@ -170,7 +166,6 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
   /* Geometry */
   CustomData_blend_read(reader, &curves->geometry.point_data, curves->geometry.point_num);
   CustomData_blend_read(reader, &curves->geometry.curve_data, curves->geometry.curve_num);
-  update_custom_data_pointers(*curves);
 
   BLO_read_int32_array(reader, curves->geometry.curve_num + 1, &curves->geometry.curve_offsets);
 
@@ -232,11 +227,6 @@ IDTypeInfo IDType_ID_CV = {
 
     /*lib_override_apply_post */ nullptr,
 };
-
-static void update_custom_data_pointers(Curves &curves)
-{
-  blender::bke::CurvesGeometry::wrap(curves.geometry).update_customdata_pointers();
-}
 
 void *BKE_curves_add(Main *bmain, const char *name)
 {
@@ -386,6 +376,37 @@ Curves *curves_new_nomain(CurvesGeometry curves)
   Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
   bke::CurvesGeometry::wrap(curves_id->geometry) = std::move(curves);
   return curves_id;
+}
+
+void curves_copy_parameters(const Curves &src, Curves &dst)
+{
+  dst.flag = src.flag;
+  dst.attributes_active_index = src.attributes_active_index;
+  MEM_SAFE_FREE(dst.mat);
+  dst.mat = static_cast<Material **>(MEM_malloc_arrayN(src.totcol, sizeof(Material *), __func__));
+  dst.totcol = src.totcol;
+  MutableSpan(dst.mat, dst.totcol).copy_from(Span(src.mat, src.totcol));
+  dst.symmetry = src.symmetry;
+  dst.selection_domain = src.selection_domain;
+  dst.surface = src.surface;
+  MEM_SAFE_FREE(dst.surface_uv_map);
+  if (src.surface_uv_map != nullptr) {
+    dst.surface_uv_map = BLI_strdup(src.surface_uv_map);
+  }
+}
+
+CurvesSurfaceTransforms::CurvesSurfaceTransforms(const Object &curves_ob, const Object *surface_ob)
+{
+  this->curves_to_world = curves_ob.obmat;
+  this->world_to_curves = this->curves_to_world.inverted();
+
+  if (surface_ob != nullptr) {
+    this->surface_to_world = surface_ob->obmat;
+    this->world_to_surface = this->surface_to_world.inverted();
+    this->surface_to_curves = this->world_to_curves * this->surface_to_world;
+    this->curves_to_surface = this->world_to_surface * this->curves_to_world;
+    this->surface_to_curves_normal = this->surface_to_curves.inverted().transposed();
+  }
 }
 
 }  // namespace blender::bke

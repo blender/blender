@@ -55,6 +55,8 @@ void GPU_exit(void)
   gpu_shader_dependency_exit();
   gpu_shader_create_info_exit();
 
+  gpu_backend_delete_resources();
+
   initialized = false;
 }
 

@@ -11,6 +11,7 @@
 #include "BLI_task.h"
 
 #include "BKE_context.h"
+#include "BKE_image.h"
 #include "BKE_unit.h"
 
 #include "ED_screen.h"
@@ -82,6 +83,109 @@ static void ApplySnapResize(TransInfo *t, float vec[3])
   if (dist != TRANSFORM_DIST_INVALID) {
     copy_v3_fl(vec, dist);
   }
+}
+
+/**
+ * Find the correction for the scaling factor when "Constrain to Bounds" is active.
+ * \param numerator: How far the UV boundary (unit square) is from the origin of the scale.
+ * \param denominator: How far the AABB is from the origin of the scale.
+ * \param scale: Scale parameter to update.
+ */
+static void constrain_scale_to_boundary(const float numerator,
+                                        const float denominator,
+                                        float *scale)
+{
+  if (denominator == 0.0f) {
+    /* The origin of the scale is on the edge of the boundary. */
+    if (numerator < 0.0f) {
+      /* Negative scale will wrap around and put us outside the boundary. */
+      *scale = 0.0f; /* Hold at the boundary instead. */
+    }
+    return; /* Nothing else we can do without more info. */
+  }
+
+  const float correction = numerator / denominator;
+  if (correction < 0.0f || !isfinite(correction)) {
+    /* TODO: Correction is negative or invalid, but we lack context to fix `*scale`. */
+    return;
+  }
+
+  if (denominator < 0.0f) {
+    /* Scale origin is outside boundary, only make scale bigger. */
+    if (*scale < correction) {
+      *scale = correction;
+    }
+    return;
+  }
+
+  /* Scale origin is inside boundary, the "regular" case, limit maximum scale. */
+  if (*scale > correction) {
+    *scale = correction;
+  }
+}
+
+static bool clip_uv_transform_resize(TransInfo *t, float vec[2])
+{
+  /* Check if the current image in UV editor is a tiled image or not. */
+  const SpaceImage *sima = t->area->spacedata.first;
+  const Image *image = sima->image;
+  const bool is_tiled_image = image && (image->source == IMA_SRC_TILED);
+
+  /* Stores the coordinates of the closest UDIM tile.
+   * Also acts as an offset to the tile from the origin of UV space. */
+  float base_offset[2] = {0.0f, 0.0f};
+
+  /* If tiled image then constrain to correct/closest UDIM tile, else 0-1 UV space. */
+  if (is_tiled_image) {
+    int nearest_tile_index = BKE_image_find_nearest_tile(image, t->center_global);
+    if (nearest_tile_index != -1) {
+      nearest_tile_index -= 1001;
+      /* Getting coordinates of nearest tile from the tile index. */
+      base_offset[0] = nearest_tile_index % 10;
+      base_offset[1] = nearest_tile_index / 10;
+    }
+  }
+
+  /* Assume no change is required. */
+  float scale = 1.0f;
+
+  /* Are we scaling U and V together, or just one axis? */
+  const bool adjust_u = !(t->con.mode & CON_AXIS1);
+  const bool adjust_v = !(t->con.mode & CON_AXIS0);
+  const bool use_local_center = transdata_check_local_center(t, t->around);
+  FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+    for (TransData *td = tc->data; td < tc->data + tc->data_len; td++) {
+
+      /* Get scale origin. */
+      const float *scale_origin = use_local_center ? td->center : t->center_global;
+
+      /* Alias td->loc as min and max just in case we need to optimize later. */
+      const float *min = td->loc;
+      const float *max = td->loc;
+
+      if (adjust_u) {
+        /* Update U against the left border. */
+        constrain_scale_to_boundary(
+            scale_origin[0] - base_offset[0], scale_origin[0] - min[0], &scale);
+
+        /* Now the right border, negated, because `-1.0 / -1.0 = 1.0` */
+        constrain_scale_to_boundary(
+            base_offset[0] + t->aspect[0] - scale_origin[0], max[0] - scale_origin[0], &scale);
+      }
+
+      /* Do the same for the V co-ordinate. */
+      if (adjust_v) {
+        constrain_scale_to_boundary(
+            scale_origin[1] - base_offset[1], scale_origin[1] - min[1], &scale);
+
+        constrain_scale_to_boundary(
+            base_offset[1] + t->aspect[1] - scale_origin[1], max[1] - scale_origin[1], &scale);
+      }
+    }
+  }
+  vec[0] *= scale;
+  vec[1] *= scale;
+  return scale != 1.0f;
 }
 
 static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
@@ -157,7 +261,7 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
   }
 
   /* Evil hack - redo resize if clipping needed. */
-  if (t->flag & T_CLIP_UV && clipUVTransform(t, t->values_final, 1)) {
+  if (t->flag & T_CLIP_UV && clip_uv_transform_resize(t, t->values_final)) {
     size_to_mat3(mat, t->values_final);
 
     if (t->con.mode & CON_APPLY) {

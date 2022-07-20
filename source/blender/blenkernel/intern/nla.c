@@ -1239,6 +1239,40 @@ static NlaStrip *nlastrip_find_active(ListBase /* NlaStrip */ *strips)
   return NULL;
 }
 
+float BKE_nlastrip_compute_frame_from_previous_strip(NlaStrip *strip)
+{
+  float limit_prev = MINFRAMEF;
+
+  /* Find the previous end frame, with a special case if the previous strip was a transition : */
+  if (strip->prev) {
+    if (strip->prev->type == NLASTRIP_TYPE_TRANSITION) {
+      limit_prev = strip->prev->start + NLASTRIP_MIN_LEN_THRESH;
+    }
+    else {
+      limit_prev = strip->prev->end;
+    }
+  }
+
+  return limit_prev;
+}
+
+float BKE_nlastrip_compute_frame_to_next_strip(NlaStrip *strip)
+{
+  float limit_next = MAXFRAMEF;
+
+  /* Find the next begin frame, with a special case if the next strip's a transition : */
+  if (strip->next) {
+    if (strip->next->type == NLASTRIP_TYPE_TRANSITION) {
+      limit_next = strip->next->end - NLASTRIP_MIN_LEN_THRESH;
+    }
+    else {
+      limit_next = strip->next->start;
+    }
+  }
+
+  return limit_next;
+}
+
 NlaStrip *BKE_nlastrip_find_active(NlaTrack *nlt)
 {
   if (nlt == NULL) {

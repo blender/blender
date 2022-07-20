@@ -174,15 +174,13 @@ IDNode *DepsgraphNodeBuilder::add_id_node(ID *id)
       ComponentNode *comp_cow = id_node->add_component(NodeType::COPY_ON_WRITE);
       OperationNode *op_cow = comp_cow->add_operation(
           [id_node](::Depsgraph *depsgraph) { deg_evaluate_copy_on_write(depsgraph, id_node); },
-          OperationCode::COPY_ON_WRITE,
-          "",
-          -1);
+          OperationCode::COPY_ON_WRITE);
       graph_->operations.append(op_cow);
     }
 
     ComponentNode *visibility_component = id_node->add_component(NodeType::VISIBILITY);
     OperationNode *visibility_operation = visibility_component->add_operation(
-        nullptr, OperationCode::OPERATION, "", -1);
+        nullptr, OperationCode::VISIBILITY);
     /* Pin the node so that it and its relations are preserved by the unused nodes/relations
      * deletion. This is mainly to make it easier to debug visibility. */
     visibility_operation->flag |= OperationFlag::DEPSOP_FLAG_PINNED;

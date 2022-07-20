@@ -1529,7 +1529,8 @@ def pyrna2sphinx(basepath):
         else:
             fw(".. class:: %s\n\n" % struct_id)
 
-        fw("   %s\n\n" % struct.description)
+        write_indented_lines("   ", fw, struct.description, False)
+        fw("\n")
 
         # Properties sorted in alphabetical order.
         sorted_struct_properties = struct.properties[:]

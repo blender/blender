@@ -849,7 +849,7 @@ void blo_do_versions_290(FileData *fd, Library *UNUSED(lib), Main *bmain)
       short id_codes[] = {ID_BR, ID_PAL};
       for (int i = 0; i < ARRAY_SIZE(id_codes); i++) {
         ListBase *lb = which_libbase(bmain, id_codes[i]);
-        BKE_main_id_repair_duplicate_names_listbase(lb);
+        BKE_main_id_repair_duplicate_names_listbase(bmain, lb);
       }
     }
 

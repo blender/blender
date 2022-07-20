@@ -66,7 +66,7 @@ struct SelectionPaintOperationExecutor {
 
   float2 brush_pos_re_;
 
-  CurvesSculptTransforms transforms_;
+  CurvesSurfaceTransforms transforms_;
 
   SelectionPaintOperationExecutor(const bContext &C) : ctx_(C)
   {
@@ -104,7 +104,7 @@ struct SelectionPaintOperationExecutor {
       }
     }
 
-    transforms_ = CurvesSculptTransforms(*object_, curves_id_->surface);
+    transforms_ = CurvesSurfaceTransforms(*object_, curves_id_->surface);
 
     const eBrushFalloffShape falloff_shape = static_cast<eBrushFalloffShape>(
         brush_->falloff_shape);
@@ -140,6 +140,7 @@ struct SelectionPaintOperationExecutor {
      * selection is handled as a generic attribute for now. */
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
+    ctx_.rv3d->rflag &= ~RV3D_PAINTING;
     ED_region_tag_redraw(ctx_.region);
   }
 

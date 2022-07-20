@@ -17,6 +17,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals kg,
                                           ccl_private Intersection *isect,
                                           float3 P,
                                           float3 dir,
+                                          float tmin,
                                           float tmax,
                                           uint visibility,
                                           int object,
@@ -28,7 +29,7 @@ ccl_device_inline bool triangle_intersect(KernelGlobals kg,
                tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1),
                tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
   float t, u, v;
-  if (ray_triangle_intersect(P, dir, tmax, tri_a, tri_b, tri_c, &u, &v, &t)) {
+  if (ray_triangle_intersect(P, dir, tmin, tmax, tri_a, tri_b, tri_c, &u, &v, &t)) {
 #ifdef __VISIBILITY_FLAG__
     /* Visibility flag test. we do it here under the assumption
      * that most triangles are culled by node flags.
@@ -62,6 +63,7 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
                                                 int object,
                                                 int prim,
                                                 int prim_addr,
+                                                float tmin,
                                                 float tmax,
                                                 ccl_private uint *lcg_state,
                                                 int max_hits)
@@ -71,7 +73,7 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
                tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1),
                tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
   float t, u, v;
-  if (!ray_triangle_intersect(P, dir, tmax, tri_a, tri_b, tri_c, &u, &v, &t)) {
+  if (!ray_triangle_intersect(P, dir, tmin, tmax, tri_a, tri_b, tri_c, &u, &v, &t)) {
     return false;
   }
 

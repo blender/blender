@@ -109,7 +109,7 @@ typedef struct wmXrDrawData {
   GHOST_XrPose base_pose;
   /** Base scale (uniform, world space). */
   float base_scale;
-  /** Offset to _substract_ from the OpenXR eye and viewer pose to get the wanted effective pose
+  /** Offset to _subtract_ from the OpenXR eye and viewer pose to get the wanted effective pose
    * (e.g. a pose exactly at the landmark position). */
   float eye_position_ofs[3]; /* Local/view space. */
 } wmXrDrawData;

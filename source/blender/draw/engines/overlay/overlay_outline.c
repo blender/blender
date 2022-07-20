@@ -133,6 +133,10 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
     pd->outlines_gpencil_grp = grp = DRW_shgroup_create(sh_gpencil, psl->outlines_prepass_ps);
     DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
     DRW_shgroup_uniform_float_copy(grp, "gpStrokeIndexOffset", 0.0);
+
+    GPUShader *sh_curves = OVERLAY_shader_outline_prepass_curves();
+    pd->outlines_curves_grp = grp = DRW_shgroup_create(sh_curves, psl->outlines_prepass_ps);
+    DRW_shgroup_uniform_bool_copy(grp, "isTransform", (G.moving & G_TRANSFORM_OBJ) != 0);
   }
 
   /* outlines_prepass_ps is still needed for selection of probes. */
@@ -267,6 +271,12 @@ static void OVERLAY_outline_volume(OVERLAY_PrivateData *pd, Object *ob)
   DRW_shgroup_call(shgroup, geom, ob);
 }
 
+static void OVERLAY_outline_curves(OVERLAY_PrivateData *pd, Object *ob)
+{
+  DRWShadingGroup *shgroup = pd->outlines_curves_grp;
+  DRW_shgroup_curves_create_sub(ob, shgroup, NULL);
+}
+
 void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
                                     Object *ob,
                                     OVERLAY_DupliData *dupli,
@@ -290,6 +300,11 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
 
   if (ob->type == OB_VOLUME) {
     OVERLAY_outline_volume(pd, ob);
+    return;
+  }
+
+  if (ob->type == OB_CURVES) {
+    OVERLAY_outline_curves(pd, ob);
     return;
   }
 

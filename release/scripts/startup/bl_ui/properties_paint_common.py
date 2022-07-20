@@ -782,7 +782,6 @@ def brush_settings(layout, context, brush, popover=False):
     elif mode == 'SCULPT_CURVES':
         if brush.curves_sculpt_tool == 'ADD':
             layout.prop(brush.curves_sculpt_settings, "add_amount")
-            layout.prop(brush.curves_sculpt_settings, "curve_length")
             col = layout.column(heading="Interpolate", align=True)
             col.prop(brush.curves_sculpt_settings, "interpolate_length", text="Length")
             col.prop(brush.curves_sculpt_settings, "interpolate_shape", text="Shape")

@@ -24,6 +24,7 @@ typedef struct BASIC_Shaders {
   /* Depth Pre Pass */
   struct GPUShader *depth;
   struct GPUShader *pointcloud_depth;
+  struct GPUShader *curves_depth;
   struct GPUShader *depth_conservative;
   struct GPUShader *pointcloud_depth_conservative;
 } BASIC_Shaders;
@@ -51,6 +52,16 @@ GPUShader *BASIC_shaders_pointcloud_depth_sh_get(eGPUShaderConfig config)
                                            "basic_depth_pointcloud");
   }
   return sh_data->pointcloud_depth;
+}
+
+GPUShader *BASIC_shaders_curves_depth_sh_get(eGPUShaderConfig config)
+{
+  BASIC_Shaders *sh_data = &e_data.sh_data[config];
+  if (sh_data->curves_depth == NULL) {
+    sh_data->curves_depth = GPU_shader_create_from_info_name(
+        config == GPU_SHADER_CFG_CLIPPED ? "basic_depth_curves_clipped" : "basic_depth_curves");
+  }
+  return sh_data->curves_depth;
 }
 
 GPUShader *BASIC_shaders_depth_conservative_sh_get(eGPUShaderConfig config)

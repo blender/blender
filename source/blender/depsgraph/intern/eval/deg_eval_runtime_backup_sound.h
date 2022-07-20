@@ -9,8 +9,7 @@
 
 struct bSound;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 
@@ -29,5 +28,4 @@ class SoundBackup {
   void *playback_handle;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

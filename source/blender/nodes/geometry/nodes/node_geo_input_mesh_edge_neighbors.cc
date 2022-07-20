@@ -40,7 +40,7 @@ class EdgeNeighborCountFieldInput final : public GeometryFieldInput {
         face_count[mesh->mloop[i].e]++;
       }
 
-      return mesh_component.attribute_try_adapt_domain<int>(
+      return mesh_component.attributes()->adapt_domain<int>(
           VArray<int>::ForContainer(std::move(face_count)), ATTR_DOMAIN_EDGE, domain);
     }
     return {};

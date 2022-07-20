@@ -8,7 +8,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_attribute_access.hh"
+#include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
@@ -30,13 +30,12 @@ static void copy_with_map(const VArray<T> &src, Span<int> map, MutableSpan<T> ds
   });
 }
 
-static Curves *create_curve_from_vert_indices(const MeshComponent &mesh_component,
-                                              const Span<int> vert_indices,
-                                              const Span<int> curve_offsets,
-                                              const IndexRange cyclic_curves)
+static bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
+                                                          const Span<int> vert_indices,
+                                                          const Span<int> curve_offsets,
+                                                          const IndexRange cyclic_curves)
 {
-  Curves *curves_id = bke::curves_new_nomain(vert_indices.size(), curve_offsets.size());
-  bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
+  bke::CurvesGeometry curves(vert_indices.size(), curve_offsets.size());
   curves.offsets_for_write().drop_back(1).copy_from(curve_offsets);
   curves.offsets_for_write().last() = vert_indices.size();
   curves.fill_curve_types(CURVE_TYPE_POLY);
@@ -44,14 +43,13 @@ static Curves *create_curve_from_vert_indices(const MeshComponent &mesh_componen
   curves.cyclic_for_write().fill(false);
   curves.cyclic_for_write().slice(cyclic_curves).fill(true);
 
-  Set<bke::AttributeIDRef> source_attribute_ids = mesh_component.attribute_ids();
+  const bke::AttributeAccessor mesh_attributes = bke::mesh_attributes(mesh);
+  bke::MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
 
-  CurveComponent curves_component;
-  curves_component.replace(curves_id, GeometryOwnershipType::Editable);
+  Set<bke::AttributeIDRef> source_attribute_ids = mesh_attributes.all_ids();
 
   for (const bke::AttributeIDRef &attribute_id : source_attribute_ids) {
-    if (mesh_component.attribute_is_builtin(attribute_id) &&
-        !curves_component.attribute_is_builtin(attribute_id)) {
+    if (mesh_attributes.is_builtin(attribute_id) && !curves_attributes.is_builtin(attribute_id)) {
       /* Don't copy attributes that are built-in on meshes but not on curves. */
       continue;
     }
@@ -60,8 +58,7 @@ static Curves *create_curve_from_vert_indices(const MeshComponent &mesh_componen
       continue;
     }
 
-    const GVArray mesh_attribute = mesh_component.attribute_try_get_for_read(attribute_id,
-                                                                             ATTR_DOMAIN_POINT);
+    const GVArray mesh_attribute = mesh_attributes.lookup(attribute_id, ATTR_DOMAIN_POINT);
     /* Some attributes might not exist if they were builtin attribute on domains that don't
      * have any elements, i.e. a face attribute on the output of the line primitive node. */
     if (!mesh_attribute) {
@@ -71,14 +68,14 @@ static Curves *create_curve_from_vert_indices(const MeshComponent &mesh_componen
     /* Copy attribute based on the map for this curve. */
     attribute_math::convert_to_static_type(mesh_attribute.type(), [&](auto dummy) {
       using T = decltype(dummy);
-      bke::OutputAttribute_Typed<T> attribute =
-          curves_component.attribute_try_get_for_output_only<T>(attribute_id, ATTR_DOMAIN_POINT);
-      copy_with_map<T>(mesh_attribute.typed<T>(), vert_indices, attribute.as_span());
-      attribute.save();
+      bke::SpanAttributeWriter<T> attribute =
+          curves_attributes.lookup_or_add_for_write_only_span<T>(attribute_id, ATTR_DOMAIN_POINT);
+      copy_with_map<T>(mesh_attribute.typed<T>(), vert_indices, attribute.span);
+      attribute.finish();
     });
   }
 
-  return curves_id;
+  return curves;
 }
 
 struct CurveFromEdgesOutput {
@@ -222,16 +219,14 @@ static Vector<std::pair<int, int>> get_selected_edges(const Mesh &mesh, const In
   return selected_edges;
 }
 
-Curves *mesh_to_curve_convert(const MeshComponent &mesh_component, const IndexMask selection)
+bke::CurvesGeometry mesh_to_curve_convert(const Mesh &mesh, const IndexMask selection)
 {
-  const Mesh &mesh = *mesh_component.get_for_read();
-  Vector<std::pair<int, int>> selected_edges = get_selected_edges(*mesh_component.get_for_read(),
-                                                                  selection);
+  Vector<std::pair<int, int>> selected_edges = get_selected_edges(mesh, selection);
   CurveFromEdgesOutput output = edges_to_curve_point_indices({mesh.mvert, mesh.totvert},
                                                              selected_edges);
 
   return create_curve_from_vert_indices(
-      mesh_component, output.vert_indices, output.curve_offsets, output.cyclic_curves);
+      mesh, output.vert_indices, output.curve_offsets, output.cyclic_curves);
 }
 
 }  // namespace blender::geometry

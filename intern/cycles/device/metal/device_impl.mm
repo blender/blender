@@ -6,6 +6,8 @@
 #  include "device/metal/device_impl.h"
 #  include "device/metal/device.h"
 
+#  include "scene/scene.h"
+
 #  include "util/debug.h"
 #  include "util/md5.h"
 #  include "util/path.h"
@@ -78,6 +80,10 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     case METAL_GPU_APPLE: {
       max_threads_per_threadgroup = 512;
       use_metalrt = info.use_metalrt;
+
+      /* Specialize the intersection kernels on Apple GPUs by default as these can be built very
+       * quickly. */
+      kernel_specialization_level = PSO_SPECIALIZED_INTERSECT;
       break;
     }
   }
@@ -89,6 +95,13 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   if (getenv("CYCLES_DEBUG_METAL_CAPTURE_KERNEL")) {
     capture_enabled = true;
   }
+
+  if (auto envstr = getenv("CYCLES_METAL_SPECIALIZATION_LEVEL")) {
+    kernel_specialization_level = (MetalPipelineType)atoi(envstr);
+  }
+  metal_printf("kernel_specialization_level = %s\n",
+               kernel_type_as_string(
+                   (MetalPipelineType)min((int)kernel_specialization_level, (int)PSO_NUM - 1)));
 
   MTLArgumentDescriptor *arg_desc_params = [[MTLArgumentDescriptor alloc] init];
   arg_desc_params.dataType = MTLDataTypePointer;
@@ -209,61 +222,86 @@ bool MetalDevice::use_adaptive_compilation()
   return DebugFlags().metal.adaptive_compile;
 }
 
-string MetalDevice::get_source(const uint kernel_features)
+void MetalDevice::make_source(MetalPipelineType pso_type, const uint kernel_features)
 {
-  string build_options;
-
+  string global_defines;
   if (use_adaptive_compilation()) {
-    build_options += " -D__KERNEL_FEATURES__=" + to_string(kernel_features);
+    global_defines += "#define __KERNEL_FEATURES__ " + to_string(kernel_features) + "\n";
   }
 
   if (use_metalrt) {
-    build_options += "-D__METALRT__ ";
+    global_defines += "#define __METALRT__\n";
     if (motion_blur) {
-      build_options += "-D__METALRT_MOTION__ ";
+      global_defines += "#define __METALRT_MOTION__\n";
     }
   }
 
 #  ifdef WITH_CYCLES_DEBUG
-  build_options += "-D__KERNEL_DEBUG__ ";
+  global_defines += "#define __KERNEL_DEBUG__\n";
 #  endif
 
   switch (device_vendor) {
     default:
       break;
     case METAL_GPU_INTEL:
-      build_options += "-D__KERNEL_METAL_INTEL__ ";
+      global_defines += "#define __KERNEL_METAL_INTEL__\n";
       break;
     case METAL_GPU_AMD:
-      build_options += "-D__KERNEL_METAL_AMD__ ";
+      global_defines += "#define __KERNEL_METAL_AMD__\n";
       break;
     case METAL_GPU_APPLE:
-      build_options += "-D__KERNEL_METAL_APPLE__ ";
+      global_defines += "#define __KERNEL_METAL_APPLE__\n";
       break;
   }
 
-  /* reformat -D defines list into compilable form */
-  vector<string> components;
-  string_replace(build_options, "-D", "");
-  string_split(components, build_options, " ");
-
-  string globalDefines;
-  for (const string &component : components) {
-    vector<string> assignments;
-    string_split(assignments, component, "=");
-    if (assignments.size() == 2)
-      globalDefines += string_printf(
-          "#define %s %s\n", assignments[0].c_str(), assignments[1].c_str());
-    else
-      globalDefines += string_printf("#define %s\n", assignments[0].c_str());
-  }
-
-  string source = globalDefines + "\n#include \"kernel/device/metal/kernel.metal\"\n";
+  string &source = this->source[pso_type];
+  source = "\n#include \"kernel/device/metal/kernel.metal\"\n";
   source = path_source_replace_includes(source, path_get("source"));
 
-  metal_printf("Global defines:\n%s\n", globalDefines.c_str());
+  /* Perform any required specialization on the source.
+   * With Metal function constants we can generate a single variant of the kernel source which can
+   * be repeatedly respecialized.
+   */
+  string baked_constants;
 
-  return source;
+  /* Replace specific KernelData "dot" dereferences with a Metal function_constant identifier of
+   * the same character length. Build a string of all active constant values which is then hashed
+   * in order to identify the PSO.
+   */
+  if (pso_type != PSO_GENERIC) {
+    const double starttime = time_dt();
+
+#  define KERNEL_STRUCT_BEGIN(name, parent) \
+    string_replace_same_length(source, "kernel_data." #parent ".", "kernel_data_" #parent "_");
+
+    /* Add constants to md5 so that 'get_best_pipeline' is able to return a suitable match. */
+#  define KERNEL_STRUCT_MEMBER(parent, _type, name) \
+    baked_constants += string(#parent "." #name "=") + \
+                       to_string(_type(launch_params.data.parent.name)) + "\n";
+
+#  include "kernel/data_template.h"
+
+    /* Opt in to all of available specializations. This can be made more granular for the
+     * PSO_SPECIALIZED_INTERSECT case in order to minimize the number of specialization requests,
+     * but the overhead should be negligible as these are very quick to (re)build and aren't
+     * serialized to disk via MTLBinaryArchives.
+     */
+    global_defines += "#define __KERNEL_USE_DATA_CONSTANTS__\n";
+
+    metal_printf("KernelData patching took %.1f ms\n", (time_dt() - starttime) * 1000.0);
+  }
+
+  source = global_defines + source;
+  metal_printf("================\n%s================\n\%s================\n",
+               global_defines.c_str(),
+               baked_constants.c_str());
+
+  /* Generate an MD5 from the source and include any baked constants. This is used when caching
+   * PSOs. */
+  MD5Hash md5;
+  md5.append(baked_constants);
+  md5.append(source);
+  source_md5[pso_type] = md5.get_hex();
 }
 
 bool MetalDevice::load_kernels(const uint _kernel_features)
@@ -279,28 +317,22 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
    * active, but may still need to be rendered without motion blur if that isn't active as well. */
   motion_blur = kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
 
-  source[PSO_GENERIC] = get_source(kernel_features);
-
-  const double starttime = time_dt();
-
-  mtlLibrary[PSO_GENERIC] = compile(source[PSO_GENERIC]);
-
-  metal_printf("Front-end compilation finished in %.1f seconds (generic)\n",
-               time_dt() - starttime);
-
-  MD5Hash md5;
-  md5.append(source[PSO_GENERIC]);
-  source_md5[PSO_GENERIC] = md5.get_hex();
-
-  bool result = MetalDeviceKernels::load(this, false);
+  bool result = compile_and_load(PSO_GENERIC);
 
   reserve_local_memory(kernel_features);
-
   return result;
 }
 
-id<MTLLibrary> MetalDevice::compile(string const &source)
+bool MetalDevice::compile_and_load(MetalPipelineType pso_type)
 {
+  make_source(pso_type, kernel_features);
+
+  if (!MetalDeviceKernels::should_load_kernels(this, pso_type)) {
+    /* We already have a full set of matching pipelines which are cached or queued. */
+    metal_printf("%s kernels already requested\n", kernel_type_as_string(pso_type));
+    return true;
+  }
+
   MTLCompileOptions *options = [[MTLCompileOptions alloc] init];
 
   options.fastMathEnabled = YES;
@@ -308,19 +340,30 @@ id<MTLLibrary> MetalDevice::compile(string const &source)
     options.languageVersion = MTLLanguageVersion2_4;
   }
 
-  NSError *error = NULL;
-  id<MTLLibrary> mtlLibrary = [mtlDevice newLibraryWithSource:@(source.c_str())
-                                                      options:options
-                                                        error:&error];
+  if (getenv("CYCLES_METAL_PROFILING") || getenv("CYCLES_METAL_DEBUG")) {
+    path_write_text(path_cache_get(string_printf("%s.metal", kernel_type_as_string(pso_type))),
+                    source[pso_type]);
+  }
 
-  if (!mtlLibrary) {
+  const double starttime = time_dt();
+
+  NSError *error = NULL;
+  mtlLibrary[pso_type] = [mtlDevice newLibraryWithSource:@(source[pso_type].c_str())
+                                                 options:options
+                                                   error:&error];
+
+  if (!mtlLibrary[pso_type]) {
     NSString *err = [error localizedDescription];
     set_error(string_printf("Failed to compile library:\n%s", [err UTF8String]));
   }
 
+  metal_printf("Front-end compilation finished in %.1f seconds (%s)\n",
+               time_dt() - starttime,
+               kernel_type_as_string(pso_type));
+
   [options release];
 
-  return mtlLibrary;
+  return MetalDeviceKernels::load(this, pso_type);
 }
 
 void MetalDevice::reserve_local_memory(const uint kernel_features)
@@ -627,6 +670,58 @@ device_ptr MetalDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, siz
   return 0;
 }
 
+void MetalDevice::optimize_for_scene(Scene *scene)
+{
+  MetalPipelineType specialization_level = kernel_specialization_level;
+
+  if (specialization_level < PSO_SPECIALIZED_INTERSECT) {
+    return;
+  }
+
+  /* PSO_SPECIALIZED_INTERSECT kernels are fast to specialize, so we always load them
+   * synchronously. */
+  compile_and_load(PSO_SPECIALIZED_INTERSECT);
+
+  if (specialization_level < PSO_SPECIALIZED_SHADE) {
+    return;
+  }
+  if (!scene->params.background) {
+    /* Don't load PSO_SPECIALIZED_SHADE kernels during viewport rendering as they are slower to
+     * build. */
+    return;
+  }
+
+  /* PSO_SPECIALIZED_SHADE kernels are slower to specialize, so we load them asynchronously, and
+   * only if there isn't an existing load in flight.
+   */
+  auto specialize_shade_fn = ^() {
+    compile_and_load(PSO_SPECIALIZED_SHADE);
+    async_compile_and_load = false;
+  };
+
+  bool async_specialize_shade = true;
+
+  /* Block if a per-kernel profiling is enabled (ensure steady rendering rate). */
+  if (getenv("CYCLES_METAL_PROFILING") != nullptr) {
+    async_specialize_shade = false;
+  }
+
+  if (async_specialize_shade) {
+    if (!async_compile_and_load) {
+      async_compile_and_load = true;
+      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0),
+                     specialize_shade_fn);
+    }
+    else {
+      metal_printf(
+          "Async PSO_SPECIALIZED_SHADE load request already in progress - dropping request\n");
+    }
+  }
+  else {
+    specialize_shade_fn();
+  }
+}
+
 void MetalDevice::const_copy_to(const char *name, void *host, size_t size)
 {
   if (strcmp(name, "data") == 0) {
@@ -652,7 +747,7 @@ void MetalDevice::const_copy_to(const char *name, void *host, size_t size)
   /* Update data storage pointers in launch parameters. */
   if (strcmp(name, "integrator_state") == 0) {
     /* IntegratorStateGPU is contiguous pointers */
-    const size_t pointer_block_size = sizeof(IntegratorStateGPU);
+    const size_t pointer_block_size = offsetof(IntegratorStateGPU, sort_partition_divisor);
     update_launch_pointers(
         offsetof(KernelParamsMetal, integrator_state), host, size, pointer_block_size);
   }

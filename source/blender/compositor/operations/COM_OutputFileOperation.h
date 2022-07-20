@@ -35,7 +35,7 @@ class OutputSingleLayerOperation : public MultiThreadedOperation {
                              const RenderData *rd,
                              const bNodeTree *tree,
                              DataType datatype,
-                             ImageFormatData *format,
+                             const ImageFormatData *format,
                              const char *path,
                              const char *view_name,
                              bool save_as_render);

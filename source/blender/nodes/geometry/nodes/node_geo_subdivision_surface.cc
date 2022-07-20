@@ -6,6 +6,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_mesh.h"
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_mesh.h"
@@ -79,10 +80,11 @@ static void write_vertex_creases(Mesh &mesh, const VArray<float> &crease_varray)
 
 static void write_edge_creases(MeshComponent &mesh, const VArray<float> &crease_varray)
 {
-  OutputAttribute_Typed<float> attribute = mesh.attribute_try_get_for_output_only<float>(
-      "crease", ATTR_DOMAIN_EDGE);
-  materialize_and_clamp_creases(crease_varray, attribute.as_span());
-  attribute.save();
+  bke::SpanAttributeWriter<float> attribute =
+      mesh.attributes_for_write()->lookup_or_add_for_write_only_span<float>("crease",
+                                                                            ATTR_DOMAIN_EDGE);
+  materialize_and_clamp_creases(crease_varray, attribute.span);
+  attribute.finish();
 }
 
 static bool varray_is_nonzero(const VArray<float> &varray)
@@ -118,8 +120,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
 
     const MeshComponent &mesh_component = *geometry_set.get_component_for_read<MeshComponent>();
-    const int verts_num = mesh_component.attribute_domain_num(ATTR_DOMAIN_POINT);
-    const int edges_num = mesh_component.attribute_domain_num(ATTR_DOMAIN_EDGE);
+    const int verts_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+    const int edges_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
     if (verts_num == 0 || edges_num == 0) {
       return;
     }

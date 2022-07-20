@@ -58,8 +58,8 @@ class GpencilIO {
   struct Scene *scene_;
   struct RegionView3D *rv3d_;
 
-  int16_t winx_, winy_;
-  int16_t render_x_, render_y_;
+  int winx_, winy_;
+  int render_x_, render_y_;
   float camera_ratio_;
   rctf camera_rect_;
 

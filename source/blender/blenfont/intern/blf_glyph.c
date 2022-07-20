@@ -18,7 +18,8 @@
 #include FT_GLYPH_H
 #include FT_OUTLINE_H
 #include FT_BITMAP_H
-#include FT_ADVANCES_H /* For FT_Get_Advance. */
+#include FT_ADVANCES_H         /* For FT_Get_Advance. */
+#include FT_MULTIPLE_MASTERS_H /* Variable font support. */
 
 #include "MEM_guardedalloc.h"
 
@@ -64,7 +65,9 @@ static GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, float size, unsigned i
   GlyphCacheBLF *gc = (GlyphCacheBLF *)font->cache.first;
   while (gc) {
     if (gc->size == size && gc->dpi == dpi && (gc->bold == ((font->flags & BLF_BOLD) != 0)) &&
-        (gc->italic == ((font->flags & BLF_ITALIC) != 0))) {
+        (gc->italic == ((font->flags & BLF_ITALIC) != 0)) &&
+        (gc->char_weight == font->char_weight) && (gc->char_slant == font->char_slant) &&
+        (gc->char_width == font->char_width) && (gc->char_spacing == font->char_spacing)) {
       return gc;
     }
     gc = gc->next;
@@ -82,6 +85,10 @@ static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
   gc->dpi = font->dpi;
   gc->bold = ((font->flags & BLF_BOLD) != 0);
   gc->italic = ((font->flags & BLF_ITALIC) != 0);
+  gc->char_weight = font->char_weight;
+  gc->char_slant = font->char_slant;
+  gc->char_width = font->char_width;
+  gc->char_spacing = font->char_spacing;
 
   memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
   memset(gc->bucket, 0, sizeof(gc->bucket));
@@ -378,7 +385,7 @@ static eUnicodeBlock unicode_blocks[] = {
     {0xFE30, 0xFE4F, 65},     /* CJK Compatibility Forms. */
     {0xFE50, 0xFE6F, 66},     /* Small Form Variants. */
     {0xFE70, 0xFEFF, 67},     /* Arabic Presentation Forms-B. */
-    {0xFF00, 0xFFEF, 68},     /* Halfwidth And Fullwidth Forms. */
+    {0xFF00, 0xFFEF, 68},     /* Half-width And Full-width Forms. */
     {0xFFF0, 0xFFFF, 69},     /* Specials. */
     {0x10000, 0x1013F, 101},  /* Linear B. */
     {0x10140, 0x1018F, 102},  /* Ancient Greek Numbers. */
@@ -674,6 +681,96 @@ static bool blf_glyph_render_bitmap(FontBLF *font, FT_GlyphSlot glyph)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Variations (Multiple Masters) support
+ * \{ */
+
+/**
+ * Return a design axis that matches an identifying tag.
+ *
+ * \param variations: Variation descriptors from `FT_Get_MM_Var`.
+ * \param tag: Axis tag (4-character string as uint), like 'wght'
+ * \param axis_index: returns index of axis in variations array.
+ */
+static FT_Var_Axis *blf_var_axis_by_tag(FT_MM_Var *variations, uint tag, int *axis_index)
+{
+  *axis_index = -1;
+  if (!variations) {
+    return NULL;
+  }
+  for (int i = 0; i < (int)variations->num_axis; i++) {
+    if (variations->axis[i].tag == tag) {
+      *axis_index = i;
+      return &(variations->axis)[i];
+      break;
+    }
+  }
+  return NULL;
+}
+
+/**
+ * Convert a float factor to a fixed-point design coordinate.
+ *
+ * \param axis: Pointer to a design space axis structure.
+ * \param factor: -1 to 1 with 0 meaning "default"
+ */
+static FT_Fixed blf_factor_to_coordinate(FT_Var_Axis *axis, float factor)
+{
+  FT_Fixed value = axis->def;
+  if (factor > 0) {
+    /* Map 0-1 to axis->def - axis->maximum */
+    value += (FT_Fixed)((double)(axis->maximum - axis->def) * factor);
+  }
+  else if (factor < 0) {
+    /* Map -1-0 to axis->minimum - axis->def */
+    value += (FT_Fixed)((double)(axis->def - axis->minimum) * factor);
+  }
+  return value;
+}
+
+/**
+ * Alter a face variation axis by a factor
+ *
+ * \param coords: array of design coordinates, per axis.
+ * \param tag: Axis tag (4-character string as uint), like 'wght'
+ * \param factor: -1 to 1 with 0 meaning "default"
+ */
+static bool blf_glyph_set_variation_normalized(FontBLF *font,
+                                               FT_Fixed coords[],
+                                               uint tag,
+                                               float factor)
+{
+  int axis_index;
+  FT_Var_Axis *axis = blf_var_axis_by_tag(font->variations, tag, &axis_index);
+  if (axis && (axis_index < BLF_VARIATIONS_MAX)) {
+    coords[axis_index] = blf_factor_to_coordinate(axis, factor);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Set a face variation axis to an exact float value
+ *
+ * \param coords: array of design coordinates, per axis.
+ * \param tag: Axis tag (4-character string as uint), like 'opsz'
+ * \param value: New float value. Converted to 16.16 and clamped within allowed range.
+ */
+static bool blf_glyph_set_variation_float(FontBLF *font, FT_Fixed coords[], uint tag, float value)
+{
+  int axis_index;
+  FT_Var_Axis *axis = blf_var_axis_by_tag(font->variations, tag, &axis_index);
+  if (axis && (axis_index < BLF_VARIATIONS_MAX)) {
+    FT_Fixed int_value = to_16dot16(value);
+    CLAMP(int_value, axis->minimum, axis->maximum);
+    coords[axis_index] = int_value;
+    return true;
+  }
+  return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Glyph Transformations
  * \{ */
 
@@ -682,9 +779,7 @@ static bool blf_glyph_render_bitmap(FontBLF *font, FT_GlyphSlot glyph)
  *
  * \param factor: -1 (min stroke width) <= 0 (normal) => 1 (max boldness).
  */
-static bool UNUSED_FUNCTION(blf_glyph_transform_weight)(FT_GlyphSlot glyph,
-                                                        float factor,
-                                                        bool monospaced)
+static bool blf_glyph_transform_weight(FT_GlyphSlot glyph, float factor, bool monospaced)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
     /* Fake bold if the font does not have this variable axis. */
@@ -713,7 +808,7 @@ static bool UNUSED_FUNCTION(blf_glyph_transform_weight)(FT_GlyphSlot glyph,
  *
  * \note that left-leaning italics are possible in some RTL writing systems.
  */
-static bool UNUSED_FUNCTION(blf_glyph_transform_slant)(FT_GlyphSlot glyph, float factor)
+static bool blf_glyph_transform_slant(FT_GlyphSlot glyph, float factor)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
     FT_Matrix transform = {to_16dot16(1), to_16dot16(factor / 2.0f), 0, to_16dot16(1)};
@@ -728,13 +823,28 @@ static bool UNUSED_FUNCTION(blf_glyph_transform_slant)(FT_GlyphSlot glyph, float
  *
  * \param factor: -1 (min width) <= 0 (normal) => 1 (max width).
  */
-static bool UNUSED_FUNCTION(blf_glyph_transform_width)(FT_GlyphSlot glyph, float factor)
+static bool blf_glyph_transform_width(FT_GlyphSlot glyph, float factor)
 {
   if (glyph->format == FT_GLYPH_FORMAT_OUTLINE) {
     float scale = (factor * 0.4f) + 1.0f; /* 0.6f - 1.4f */
     FT_Matrix matrix = {to_16dot16(scale), 0, 0, to_16dot16(1)};
     FT_Outline_Transform(&glyph->outline, &matrix);
     glyph->advance.x = (FT_Pos)((double)glyph->advance.x * scale);
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Change glyph advance to alter letter-spacing (tracking).
+ *
+ * \param factor: -1 (min tightness) <= 0 (normal) => 1 (max looseness).
+ */
+static bool blf_glyph_transform_spacing(FT_GlyphSlot glyph, float factor)
+{
+  if (glyph->advance.x > 0) {
+    const long int size = glyph->face->size->metrics.height;
+    glyph->advance.x += (FT_Pos)(factor * (float)size / 6.0f);
     return true;
   }
   return false;
@@ -791,6 +901,48 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
     glyph_font->dpi = settings_font->dpi;
   }
 
+  /* We need to keep track if changes are still needed. */
+  bool weight_done = false;
+  bool slant_done = false;
+  bool width_done = false;
+  bool spacing_done = false;
+
+  /* 70% of maximum weight results in the same amount of boldness and horizontal
+   * expansion as the bold version `DejaVuSans-Bold.ttf` of our default font.
+   * Worth reevaluating if we change default font. */
+  float weight = (settings_font->flags & BLF_BOLD) ? 0.7f : settings_font->char_weight;
+
+  /* 37.5% of maximum rightward slant results in 6 degree slope, matching italic
+   * version `DejaVuSans-Oblique.ttf` of our current font. But a nice median when
+   * checking others. Worth reevaluating if we change default font. We could also
+   * narrow the glyph slightly as most italics do, but this one does not. */
+  float slant = (settings_font->flags & BLF_ITALIC) ? 0.375f : settings_font->char_slant;
+
+  float width = settings_font->char_width;
+  float spacing = settings_font->char_spacing;
+
+  /* Font variations need to be set before glyph loading. Even if new value is zero. */
+
+  if (glyph_font->variations) {
+    FT_Fixed coords[BLF_VARIATIONS_MAX];
+    /* Load current design coordinates. */
+    FT_Get_Var_Design_Coordinates(glyph_font->face, BLF_VARIATIONS_MAX, &coords[0]);
+    /* Update design coordinates with new values. */
+    weight_done = blf_glyph_set_variation_normalized(
+        glyph_font, coords, blf_variation_axis_weight, weight);
+    slant_done = blf_glyph_set_variation_normalized(
+        glyph_font, coords, blf_variation_axis_slant, slant);
+    width_done = blf_glyph_set_variation_normalized(
+        glyph_font, coords, blf_variation_axis_width, width);
+    spacing_done = blf_glyph_set_variation_normalized(
+        glyph_font, coords, blf_variation_axis_spacing, spacing);
+    /* Optical size, if available, is set to current font size. */
+    blf_glyph_set_variation_float(
+        glyph_font, coords, blf_variation_axis_optsize, settings_font->size);
+    /* Save updated design coordinates. */
+    FT_Set_Var_Design_Coordinates(glyph_font->face, BLF_VARIATIONS_MAX, &coords[0]);
+  }
+
   FT_GlyphSlot glyph = blf_glyph_load(glyph_font, glyph_index);
   if (!glyph) {
     return NULL;
@@ -798,6 +950,21 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
 
   if ((settings_font->flags & BLF_MONOSPACED) && (settings_font != glyph_font)) {
     blf_glyph_transform_monospace(glyph, BLI_wcwidth((char32_t)charcode) * fixed_width);
+  }
+
+  /* Fallback glyph transforms, but only if required and not yet done. */
+
+  if (weight != 0.0f && !weight_done) {
+    blf_glyph_transform_weight(glyph, weight, glyph->face->face_flags & FT_FACE_FLAG_FIXED_WIDTH);
+  }
+  if (slant != 0.0f && !slant_done) {
+    blf_glyph_transform_slant(glyph, slant);
+  }
+  if (width != 0.0f && !width_done) {
+    blf_glyph_transform_width(glyph, width);
+  }
+  if (spacing != 0.0f && !spacing_done) {
+    blf_glyph_transform_spacing(glyph, spacing);
   }
 
   if (blf_glyph_render_bitmap(glyph_font, glyph)) {

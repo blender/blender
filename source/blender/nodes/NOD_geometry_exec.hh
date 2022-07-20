@@ -5,7 +5,6 @@
 #include "FN_field.hh"
 #include "FN_multi_function_builder.hh"
 
-#include "BKE_attribute_access.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 
@@ -20,16 +19,22 @@ struct ModifierData;
 namespace blender::nodes {
 
 using bke::AnonymousAttributeFieldInput;
+using bke::AttributeAccessor;
 using bke::AttributeFieldInput;
 using bke::AttributeIDRef;
+using bke::AttributeKind;
+using bke::AttributeMetaData;
+using bke::AttributeReader;
+using bke::AttributeWriter;
+using bke::GAttributeReader;
+using bke::GAttributeWriter;
 using bke::GeometryComponentFieldContext;
 using bke::GeometryFieldInput;
-using bke::OutputAttribute;
-using bke::OutputAttribute_Typed;
-using bke::ReadAttributeLookup;
+using bke::GSpanAttributeWriter;
+using bke::MutableAttributeAccessor;
+using bke::SpanAttributeWriter;
 using bke::StrongAnonymousAttributeID;
 using bke::WeakAnonymousAttributeID;
-using bke::WriteAttributeLookup;
 using fn::Field;
 using fn::FieldContext;
 using fn::FieldEvaluator;

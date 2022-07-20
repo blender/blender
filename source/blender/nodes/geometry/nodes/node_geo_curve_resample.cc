@@ -65,8 +65,10 @@ static void node_geo_exec(GeoNodeExecParams params)
       Field<int> count = params.extract_input<Field<int>>("Count");
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const CurveComponent *component = geometry.get_component_for_read<CurveComponent>()) {
-          if (!component->is_empty()) {
-            geometry.replace_curves(geometry::resample_to_count(*component, selection, count));
+          if (const Curves *src_curves = component->get_for_read()) {
+            Curves *dst_curves = geometry::resample_to_count(*component, selection, count);
+            bke::curves_copy_parameters(*src_curves, *dst_curves);
+            geometry.replace_curves(dst_curves);
           }
         }
       });
@@ -76,8 +78,10 @@ static void node_geo_exec(GeoNodeExecParams params)
       Field<float> length = params.extract_input<Field<float>>("Length");
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const CurveComponent *component = geometry.get_component_for_read<CurveComponent>()) {
-          if (!component->is_empty()) {
-            geometry.replace_curves(geometry::resample_to_length(*component, selection, length));
+          if (const Curves *src_curves = component->get_for_read()) {
+            Curves *dst_curves = geometry::resample_to_length(*component, selection, length);
+            bke::curves_copy_parameters(*src_curves, *dst_curves);
+            geometry.replace_curves(dst_curves);
           }
         }
       });
@@ -86,8 +90,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     case GEO_NODE_CURVE_RESAMPLE_EVALUATED:
       geometry_set.modify_geometry_sets([&](GeometrySet &geometry) {
         if (const CurveComponent *component = geometry.get_component_for_read<CurveComponent>()) {
-          if (!component->is_empty()) {
-            geometry.replace_curves(geometry::resample_to_evaluated(*component, selection));
+          if (const Curves *src_curves = component->get_for_read()) {
+            Curves *dst_curves = geometry::resample_to_evaluated(*component, selection);
+            bke::curves_copy_parameters(*src_curves, *dst_curves);
+            geometry.replace_curves(dst_curves);
           }
         }
       });

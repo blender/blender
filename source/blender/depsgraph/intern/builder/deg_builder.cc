@@ -63,7 +63,7 @@ DepsgraphBuilder::DepsgraphBuilder(Main *bmain, Depsgraph *graph, DepsgraphBuild
 {
 }
 
-bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
+bool DepsgraphBuilder::need_pull_base_into_graph(const Base *base)
 {
   /* Simple check: enabled bases are always part of dependency graph. */
   const int base_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? BASE_ENABLED_VIEWPORT :
@@ -74,7 +74,7 @@ bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
   /* More involved check: since we don't support dynamic changes in dependency graph topology and
    * all visible objects are to be part of dependency graph, we pull all objects which has animated
    * visibility. */
-  Object *object = base->object;
+  const Object *object = base->object;
   AnimatedPropertyID property_id;
   if (graph_->mode == DAG_EVAL_VIEWPORT) {
     property_id = AnimatedPropertyID(&object->id, &RNA_Object, "hide_viewport");
@@ -89,7 +89,7 @@ bool DepsgraphBuilder::need_pull_base_into_graph(Base *base)
   return cache_->isPropertyAnimated(&object->id, property_id);
 }
 
-bool DepsgraphBuilder::check_pchan_has_bbone(Object *object, const bPoseChannel *pchan)
+bool DepsgraphBuilder::check_pchan_has_bbone(const Object *object, const bPoseChannel *pchan)
 {
   BLI_assert(object->type == OB_ARMATURE);
   if (pchan == nullptr || pchan->bone == nullptr) {
@@ -109,12 +109,13 @@ bool DepsgraphBuilder::check_pchan_has_bbone(Object *object, const bPoseChannel 
          cache_->isPropertyAnimated(&armature->id, property_id);
 }
 
-bool DepsgraphBuilder::check_pchan_has_bbone_segments(Object *object, const bPoseChannel *pchan)
+bool DepsgraphBuilder::check_pchan_has_bbone_segments(const Object *object,
+                                                      const bPoseChannel *pchan)
 {
   return check_pchan_has_bbone(object, pchan);
 }
 
-bool DepsgraphBuilder::check_pchan_has_bbone_segments(Object *object, const char *bone_name)
+bool DepsgraphBuilder::check_pchan_has_bbone_segments(const Object *object, const char *bone_name)
 {
   const bPoseChannel *pchan = BKE_pose_channel_find_name(object->pose, bone_name);
   return check_pchan_has_bbone_segments(object, pchan);
@@ -138,19 +139,6 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
   for (IDNode *id_node : graph->id_nodes) {
     for (ComponentNode *comp_node : id_node->components.values()) {
       comp_node->affects_directly_visible |= id_node->is_directly_visible;
-
-      /* Enforce "visibility" of the synchronization component.
-       *
-       * This component is never connected to other ID nodes, and hence can not be handled in the
-       * same way as other components needed for evaluation. It is only needed for proper
-       * evaluation of the ID node it belongs to.
-       *
-       * The design is such that the synchronization is supposed to happen whenever any part of the
-       * ID changed/evaluated. Here we mark the component as "visible" so that genetic recalc flag
-       * flushing and scheduling will handle the component in a generic manner. */
-      if (comp_node->type == NodeType::SYNCHRONIZATION) {
-        comp_node->affects_directly_visible = true;
-      }
     }
   }
 

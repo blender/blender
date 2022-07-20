@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_length_parameterize.hh"
+
+#include "BKE_attribute_math.hh"
 #include "BKE_mesh_sample.hh"
-#include "BKE_spline.hh"
 
 #include "GEO_add_curves_on_mesh.hh"
 
@@ -145,16 +147,16 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
   const int added_curves_num = root_positions_cu.size();
 
   threading::parallel_for(IndexRange(added_curves_num), 256, [&](const IndexRange range) {
-    for (const int i : range) {
-      const NeighborCurves &neighbors = neighbors_per_curve[i];
-      const int curve_i = old_curves_num + i;
+    for (const int added_curve_i : range) {
+      const NeighborCurves &neighbors = neighbors_per_curve[added_curve_i];
+      const int curve_i = old_curves_num + added_curve_i;
       const IndexRange points = curves.points_for_curve(curve_i);
 
-      const float length_cu = new_lengths_cu[i];
-      const float3 &normal_su = new_normals_su[i];
+      const float length_cu = new_lengths_cu[added_curve_i];
+      const float3 &normal_su = new_normals_su[added_curve_i];
       const float3 normal_cu = math::normalize(surface_to_curves_normal_mat * normal_su);
 
-      const float3 &root_cu = root_positions_cu[i];
+      const float3 &root_cu = root_positions_cu[added_curve_i];
 
       if (neighbors.is_empty()) {
         /* If there are no neighbors, just make a straight line. */
@@ -197,30 +199,41 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
         const IndexRange neighbor_points = curves.points_for_curve(neighbor_curve_i);
         const float3 &neighbor_root_cu = positions_cu[neighbor_points[0]];
 
-        /* Use a temporary #PolySpline, because that's the easiest way to resample an
-         * existing curve right now. Resampling is necessary if the length of the new curve
-         * does not match the length of the neighbors or the number of handle points is
-         * different. */
-        PolySpline neighbor_spline;
-        neighbor_spline.resize(neighbor_points.size());
-        neighbor_spline.positions().copy_from(positions_cu.slice(neighbor_points));
-        neighbor_spline.mark_cache_invalid();
+        /* Sample the positions on neighbors and mix them into the final positions of the curve.
+         * Resampling is necessary if the length of the new curve does not match the length of the
+         * neighbors or the number of handle points is different.
+         *
+         * TODO: The lengths can be cached so they aren't recomputed if a curve is a neighbor for
+         * multiple new curves. Also, allocations could be avoided by reusing some arrays. */
 
-        const float neighbor_length_cu = neighbor_spline.length();
+        const Span<float3> neighbor_positions_cu = positions_cu.slice(neighbor_points);
+        if (neighbor_positions_cu.size() == 1) {
+          /* Skip interpolating positions from neighbors with only one point. */
+          continue;
+        }
+        Array<float, 32> lengths(length_parameterize::segments_num(neighbor_points.size(), false));
+        length_parameterize::accumulate_lengths<float3>(neighbor_positions_cu, false, lengths);
+        const float neighbor_length_cu = lengths.last();
+
+        Array<float, 32> sample_lengths(points.size());
         const float length_factor = std::min(1.0f, length_cu / neighbor_length_cu);
-
         const float resample_factor = (1.0f / (points.size() - 1.0f)) * length_factor;
-        for (const int j : IndexRange(points.size())) {
-          const Spline::LookupResult lookup = neighbor_spline.lookup_evaluated_factor(
-              j * resample_factor);
-          const float index_factor = lookup.evaluated_index + lookup.factor;
-          float3 p;
-          neighbor_spline.sample_with_index_factors<float3>(
-              neighbor_spline.positions(), {&index_factor, 1}, {&p, 1});
-          const float3 relative_coord = p - neighbor_root_cu;
-          float3 rotated_relative_coord = relative_coord;
+        for (const int i : sample_lengths.index_range()) {
+          sample_lengths[i] = i * resample_factor * neighbor_length_cu;
+        }
+
+        Array<int, 32> indices(points.size());
+        Array<float, 32> factors(points.size());
+        length_parameterize::sample_at_lengths(lengths, sample_lengths, indices, factors);
+
+        for (const int i : IndexRange(points.size())) {
+          const float3 sample_cu = math::interpolate(neighbor_positions_cu[indices[i]],
+                                                     neighbor_positions_cu[indices[i] + 1],
+                                                     factors[i]);
+          const float3 relative_to_root_cu = sample_cu - neighbor_root_cu;
+          float3 rotated_relative_coord = relative_to_root_cu;
           mul_m3_v3(normal_rotation_cu, rotated_relative_coord);
-          positions_cu[points[j]] += neighbor.weight * rotated_relative_coord;
+          positions_cu[points[i]] += neighbor.weight * rotated_relative_coord;
         }
       }
     }
@@ -348,6 +361,9 @@ void add_curves_on_mesh(CurvesGeometry &curves, const AddCurvesOnMeshInputs &inp
                                                inputs.surface_to_curves_normal_mat);
   }
 
+  /* Set curve types. */
+  MutableSpan<int8_t> types_span = curves.curve_types_for_write();
+  types_span.drop_front(old_curves_num).fill(CURVE_TYPE_CATMULL_ROM);
   curves.update_curve_types();
 }
 

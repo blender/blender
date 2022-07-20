@@ -407,7 +407,7 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
 {
 
   /* vectors */
-  sd->P = ray->P;
+  sd->P = ray->P + ray->D * ray->tmin;
   sd->N = -ray->D;
   sd->Ng = -ray->D;
   sd->I = -ray->D;
@@ -441,7 +441,6 @@ ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
 
   /* for NDC coordinates */
   sd->ray_P = ray->P;
-  sd->ray_dP = ray->dP;
 }
 #endif /* __VOLUME__ */
 

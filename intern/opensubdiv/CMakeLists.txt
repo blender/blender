@@ -42,18 +42,6 @@ if(WITH_OPENSUBDIV)
     internal/base/util.cc
     internal/base/util.h
 
-    # Device.
-    internal/device/device_context_cuda.cc
-    internal/device/device_context_cuda.h
-    internal/device/device_context_glsl_compute.cc
-    internal/device/device_context_glsl_compute.h
-    internal/device/device_context_glsl_transform_feedback.cc
-    internal/device/device_context_glsl_transform_feedback.h
-    internal/device/device_context_opencl.cc
-    internal/device/device_context_opencl.h
-    internal/device/device_context_openmp.cc
-    internal/device/device_context_openmp.h
-
     # Evaluator.
     internal/evaluator/eval_output.cc
     internal/evaluator/eval_output.h

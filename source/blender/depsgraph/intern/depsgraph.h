@@ -31,8 +31,7 @@ struct ID;
 struct Scene;
 struct ViewLayer;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct IDNode;
 struct Node;
@@ -90,12 +89,12 @@ struct Depsgraph {
   TimeSourceNode *time_source;
 
   /* Indicates whether relations needs to be updated. */
-  bool need_update;
+  bool need_update_relations;
 
   /* Indicated whether IDs in this graph are to be tagged as if they first appear visible, with
    * an optional tag for their animation (time) update. */
-  bool need_visibility_update;
-  bool need_visibility_time_update;
+  bool need_tag_id_on_graph_visibility_update;
+  bool need_tag_id_on_graph_visibility_time_update;
 
   /* Indicates which ID types were updated. */
   char id_type_updated[INDEX_ID_MAX];
@@ -162,5 +161,4 @@ struct Depsgraph {
   MEM_CXX_CLASS_ALLOC_FUNCS("Depsgraph");
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

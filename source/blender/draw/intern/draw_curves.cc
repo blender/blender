@@ -336,9 +336,7 @@ DRWShadingGroup *DRW_shgroup_curves_create_sub(Object *object,
   const blender::bke::CurvesGeometry &curves = blender::bke::CurvesGeometry::wrap(
       curves_id.geometry);
   if (curves.curves_num() >= 1) {
-    CurveComponent curves_component;
-    curves_component.replace(&curves_id, GeometryOwnershipType::ReadOnly);
-    blender::VArray<float> radii = curves_component.attribute_get_for_read(
+    blender::VArray<float> radii = curves.attributes().lookup_or_default(
         "radius", ATTR_DOMAIN_POINT, 0.005f);
     const blender::IndexRange first_curve_points = curves.points_for_curve(0);
     const float first_radius = radii[first_curve_points.first()];

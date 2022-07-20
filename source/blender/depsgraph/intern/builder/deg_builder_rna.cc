@@ -271,7 +271,8 @@ RNANodeIdentifier RNANodeQuery::construct_node_identifier(const PointerRNA *ptr,
            RNA_struct_is_a(ptr->type, &RNA_LatticePoint) ||
            RNA_struct_is_a(ptr->type, &RNA_MeshUVLoop) ||
            RNA_struct_is_a(ptr->type, &RNA_MeshLoopColor) ||
-           RNA_struct_is_a(ptr->type, &RNA_VertexGroupElement)) {
+           RNA_struct_is_a(ptr->type, &RNA_VertexGroupElement) ||
+           RNA_struct_is_a(ptr->type, &RNA_ShaderFx)) {
     /* When modifier is used as FROM operation this is likely referencing to
      * the property (for example, modifier's influence).
      * But when it's used as TO operation, this is geometry component. */

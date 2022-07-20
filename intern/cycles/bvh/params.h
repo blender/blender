@@ -129,7 +129,7 @@ class BVHParams {
 
     top_level = false;
     bvh_layout = BVH_LAYOUT_BVH2;
-    use_compact_structure = true;
+    use_compact_structure = false;
     use_unaligned_nodes = false;
 
     num_motion_curve_steps = 0;

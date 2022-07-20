@@ -4718,7 +4718,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator *UNUSED(op), con
 #endif
   }
 
-  /* since we follow drawflags, we can't send notifier but tag regions ourselves */
+  /* Since we follow draw-flags, we can't send notifier but tag regions ourselves. */
   if (depsgraph != NULL) {
     ED_update_for_newframe(bmain, depsgraph);
   }

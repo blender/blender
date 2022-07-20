@@ -51,32 +51,36 @@ ccl_device_forceinline int get_object_id()
 extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_closest()
 {
   const int global_index = optixGetLaunchIndex().x;
-  const int path_index = (kernel_params.path_index_array) ? kernel_params.path_index_array[global_index] :
-                                                       global_index;
+  const int path_index = (kernel_params.path_index_array) ?
+                             kernel_params.path_index_array[global_index] :
+                             global_index;
   integrator_intersect_closest(nullptr, path_index, kernel_params.render_buffer);
 }
 
 extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_shadow()
 {
   const int global_index = optixGetLaunchIndex().x;
-  const int path_index = (kernel_params.path_index_array) ? kernel_params.path_index_array[global_index] :
-                                                       global_index;
+  const int path_index = (kernel_params.path_index_array) ?
+                             kernel_params.path_index_array[global_index] :
+                             global_index;
   integrator_intersect_shadow(nullptr, path_index);
 }
 
 extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_subsurface()
 {
   const int global_index = optixGetLaunchIndex().x;
-  const int path_index = (kernel_params.path_index_array) ? kernel_params.path_index_array[global_index] :
-                                                       global_index;
+  const int path_index = (kernel_params.path_index_array) ?
+                             kernel_params.path_index_array[global_index] :
+                             global_index;
   integrator_intersect_subsurface(nullptr, path_index);
 }
 
 extern "C" __global__ void __raygen__kernel_optix_integrator_intersect_volume_stack()
 {
   const int global_index = optixGetLaunchIndex().x;
-  const int path_index = (kernel_params.path_index_array) ? kernel_params.path_index_array[global_index] :
-                                                       global_index;
+  const int path_index = (kernel_params.path_index_array) ?
+                             kernel_params.path_index_array[global_index] :
+                             global_index;
   integrator_intersect_volume_stack(nullptr, path_index);
 }
 
@@ -408,6 +412,7 @@ ccl_device_inline void optix_intersection_curve(const int prim, const int type)
 
   float3 P = optixGetObjectRayOrigin();
   float3 dir = optixGetObjectRayDirection();
+  float tmin = optixGetRayTmin();
 
   /* The direction is not normalized by default, but the curve intersection routine expects that */
   float len;
@@ -425,7 +430,7 @@ ccl_device_inline void optix_intersection_curve(const int prim, const int type)
   if (isect.t != FLT_MAX)
     isect.t *= len;
 
-  if (curve_intersect(NULL, &isect, P, dir, isect.t, object, prim, time, type)) {
+  if (curve_intersect(NULL, &isect, P, dir, tmin, isect.t, object, prim, time, type)) {
     static_assert(PRIMITIVE_ALL < 128, "Values >= 128 are reserved for OptiX internal use");
     optixReportIntersection(isect.t / len,
                             type & PRIMITIVE_ALL,
@@ -462,6 +467,7 @@ extern "C" __global__ void __intersection__point()
 
   float3 P = optixGetObjectRayOrigin();
   float3 dir = optixGetObjectRayDirection();
+  float tmin = optixGetRayTmin();
 
   /* The direction is not normalized by default, the point intersection routine expects that. */
   float len;
@@ -480,7 +486,7 @@ extern "C" __global__ void __intersection__point()
     isect.t *= len;
   }
 
-  if (point_intersect(NULL, &isect, P, dir, isect.t, object, prim, time, type)) {
+  if (point_intersect(NULL, &isect, P, dir, tmin, isect.t, object, prim, time, type)) {
     static_assert(PRIMITIVE_ALL < 128, "Values >= 128 are reserved for OptiX internal use");
     optixReportIntersection(isect.t / len, type & PRIMITIVE_ALL);
   }

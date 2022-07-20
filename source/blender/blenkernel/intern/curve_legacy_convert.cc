@@ -83,8 +83,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
 
   Curves *curves_id = curves_new_nomain(0, src_curves.size());
   CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
-  CurveComponent component;
-  component.replace(curves_id, GeometryOwnershipType::Editable);
+  MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
 
   MutableSpan<int8_t> types = curves.curve_types_for_write();
   MutableSpan<bool> cyclic = curves.cyclic_for_write();
@@ -110,9 +109,9 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
   }
 
   MutableSpan<float3> positions = curves.positions_for_write();
-  OutputAttribute_Typed<float> radius_attribute =
-      component.attribute_try_get_for_output_only<float>("radius", ATTR_DOMAIN_POINT);
-  MutableSpan<float> radii = radius_attribute.as_span();
+  SpanAttributeWriter<float> radius_attribute =
+      curves_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+  MutableSpan<float> radii = radius_attribute.span;
   MutableSpan<float> tilts = curves.tilt_for_write();
 
   auto create_poly = [&](IndexMask selection) {
@@ -203,7 +202,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
 
   curves.normal_mode_for_write().fill(normal_mode_from_legacy(curve_legacy.twist_mode));
 
-  radius_attribute.save();
+  radius_attribute.finish();
 
   return curves_id;
 }

@@ -114,7 +114,7 @@ void ntreeCompositOutputFileUniqueLayer(ListBase *list,
 bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
                                               bNode *node,
                                               const char *name,
-                                              ImageFormatData *im_format)
+                                              const ImageFormatData *im_format)
 {
   NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
   bNodeSocket *sock = nodeAddStaticSocket(

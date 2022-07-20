@@ -650,7 +650,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_MeshDeform = {
-    /* name */ "MeshDeform",
+    /* name */ N_("MeshDeform"),
     /* structName */ "MeshDeformModifierData",
     /* structSize */ sizeof(MeshDeformModifierData),
     /* srna */ &RNA_MeshDeformModifier,
