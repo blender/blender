@@ -1498,7 +1498,8 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
     int filter;
 
     /* get animdata blocks */
-    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA);
+    filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA |
+              ANIMFILTER_FCURVESONLY);
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
     for (ale = anim_data.first; ale; ale = ale->next) {
