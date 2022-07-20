@@ -32,6 +32,7 @@ AbstractGridViewItem &AbstractGridView::add_item(std::unique_ptr<AbstractGridVie
   added_item.view_ = this;
 
   item_map_.add(added_item.identifier_, &added_item);
+  register_item(added_item);
 
   return added_item;
 }
