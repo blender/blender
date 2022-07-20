@@ -196,8 +196,9 @@ enum {
 #define MASK_HIDE_RENDER (1 << 2)
 
 /* SpaceClip->mask_draw_flag */
-#define MASK_DRAWFLAG_SMOOTH (1 << 0)
+/* #define MASK_DRAWFLAG_SMOOTH_DEPRECATED (1 << 0) */ /* Deprecated */
 #define MASK_DRAWFLAG_OVERLAY (1 << 1)
+#define MASK_DRAWFLAG_SPLINE (1 << 2)
 
 /* copy of eSpaceImage_UVDT */
 /* SpaceClip->mask_draw_type */

@@ -1330,7 +1330,7 @@ static void do_thumb_brush_task_cb_ex(void *__restrict userdata,
   float(*proxy)[3];
   const float bstrength = ss->cache->bstrength;
 
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -1403,7 +1403,7 @@ static void do_rotate_brush_task_cb_ex(void *__restrict userdata,
   float(*proxy)[3];
   const float bstrength = ss->cache->bstrength;
 
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -1477,7 +1477,7 @@ static void do_layer_brush_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
   const float bstrength = ss->cache->bstrength;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   SculptBrushTest test;
   SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
@@ -1964,7 +1964,7 @@ static void do_grab_brush_task_cb_ex(void *__restrict userdata,
   float(*proxy)[3];
   const float bstrength = ss->cache->bstrength;
 
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -2052,7 +2052,7 @@ static void do_elastic_deform_brush_task_cb_ex(void *__restrict userdata,
 
   const float bstrength = ss->cache->bstrength;
 
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -2163,7 +2163,7 @@ static void do_draw_sharp_brush_task_cb_ex(void *__restrict userdata,
   SculptOrigVertData orig_data;
   float(*proxy)[3];
 
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -2247,7 +2247,7 @@ static void do_topology_slide_task_cb_ex(void *__restrict userdata,
   SculptOrigVertData orig_data;
   float(*proxy)[3];
 
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   proxy = BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n])->co;
 
@@ -2404,7 +2404,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
   SculptOrigVertData orig_data;
 
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   BKE_pbvh_node_add_proxy(ss->pbvh, data->nodes[n]);
 

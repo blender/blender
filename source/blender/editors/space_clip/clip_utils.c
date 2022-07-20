@@ -617,8 +617,8 @@ void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
   immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
   immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-  immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, (float)SFRA, v2d->cur.ymax);
-  immRectf(pos, (float)EFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+  immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, (float)scene->r.sfra, v2d->cur.ymax);
+  immRectf(pos, (float)scene->r.efra, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
 
   GPU_blend(GPU_BLEND_NONE);
 
@@ -628,10 +628,10 @@ void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
   GPU_line_width(1.0f);
 
   immBegin(GPU_PRIM_LINES, 4);
-  immVertex2f(pos, (float)SFRA, v2d->cur.ymin);
-  immVertex2f(pos, (float)SFRA, v2d->cur.ymax);
-  immVertex2f(pos, (float)EFRA, v2d->cur.ymin);
-  immVertex2f(pos, (float)EFRA, v2d->cur.ymax);
+  immVertex2f(pos, (float)scene->r.sfra, v2d->cur.ymin);
+  immVertex2f(pos, (float)scene->r.sfra, v2d->cur.ymax);
+  immVertex2f(pos, (float)scene->r.efra, v2d->cur.ymin);
+  immVertex2f(pos, (float)scene->r.efra, v2d->cur.ymax);
   immEnd();
 
   immUnbindProgram();

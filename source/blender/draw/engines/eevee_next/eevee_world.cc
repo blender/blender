@@ -79,7 +79,7 @@ void World::sync()
   /* TODO(fclem) This should be detected to scene level. */
   ::World *orig_world = (::World *)DEG_get_original_id(&bl_world->id);
   if (assign_if_different(prev_original_world, orig_world)) {
-    // inst_.sampling.reset();
+    inst_.sampling.reset();
   }
 
   bNodeTree *ntree = (bl_world->nodetree && bl_world->use_nodes) ?

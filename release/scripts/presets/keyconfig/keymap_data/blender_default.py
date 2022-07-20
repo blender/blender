@@ -1265,6 +1265,7 @@ def km_uv_editor(params):
          {"properties": [("deselect", True)]}),
         ("uv.select_more", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
         ("uv.select_less", {"type": 'NUMPAD_MINUS', "value": 'PRESS', "ctrl": True, "repeat": True}, None),
+        ("uv.select_similar", {"type": 'G', "value": 'PRESS', "shift": True}, None),
         *_template_items_select_actions(params, "uv.select_all"),
         *_template_items_hide_reveal_actions("uv.hide", "uv.reveal"),
         ("uv.select_pinned", {"type": 'P', "value": 'PRESS', "shift": True}, None),
@@ -2222,6 +2223,7 @@ def km_file_browser(params):
         ("file.smoothscroll", {"type": 'TIMER1', "value": 'ANY', "any": True}, None),
         ("file.bookmark_add", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
         ("file.start_filter", {"type": 'F', "value": 'PRESS', "ctrl": True}, None),
+        ("file.edit_directory_path", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("file.filenum", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "repeat": True},
          {"properties": [("increment", 1)]}),
         ("file.filenum", {"type": 'NUMPAD_PLUS', "value": 'PRESS', "shift": True, "repeat": True},
@@ -5609,6 +5611,7 @@ def km_font(params):
 
     return keymap
 
+
 # Curves edit mode.
 def km_curves(params):
     items = []
@@ -5642,6 +5645,8 @@ def km_sculpt_curves(params):
         ("curves.disable_selection", {"type": 'TWO', "value": 'PRESS', "alt": True}, None),
         *_template_paint_radial_control("curves_sculpt"),
         *_template_items_select_actions(params, "sculpt_curves.select_all"),
+        ("sculpt_curves.min_distance_edit", {"type": 'R', "value": 'PRESS', "shift": True}, {}),
+        ("sculpt_curves.select_grow", {"type": 'A', "value": 'PRESS', "shift": True}, {}),
     ])
 
     return keymap

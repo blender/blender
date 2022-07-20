@@ -7,4 +7,4 @@
 /* NOTE: These macros will need maintaining as entry-points change. */
 
 #undef kernel_integrator_state
-#define kernel_integrator_state context.launch_params_metal.__integrator_state
+#define kernel_integrator_state context.launch_params_metal.integrator_state

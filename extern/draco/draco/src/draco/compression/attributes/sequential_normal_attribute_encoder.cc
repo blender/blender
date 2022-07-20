@@ -20,8 +20,9 @@ namespace draco {
 
 bool SequentialNormalAttributeEncoder::Init(PointCloudEncoder *encoder,
                                             int attribute_id) {
-  if (!SequentialIntegerAttributeEncoder::Init(encoder, attribute_id))
+  if (!SequentialIntegerAttributeEncoder::Init(encoder, attribute_id)) {
     return false;
+  }
   // Currently this encoder works only for 3-component normal vectors.
   if (attribute()->num_components() != 3) {
     return false;
@@ -44,9 +45,13 @@ bool SequentialNormalAttributeEncoder::EncodeDataNeededByPortableTransform(
 
 bool SequentialNormalAttributeEncoder::PrepareValues(
     const std::vector<PointIndex> &point_ids, int num_points) {
-  SetPortableAttribute(
-      attribute_octahedron_transform_.GeneratePortableAttribute(
-          *(attribute()), point_ids, num_points));
+  auto portable_att = attribute_octahedron_transform_.InitTransformedAttribute(
+      *(attribute()), point_ids.size());
+  if (!attribute_octahedron_transform_.TransformAttribute(
+          *(attribute()), point_ids, portable_att.get())) {
+    return false;
+  }
+  SetPortableAttribute(std::move(portable_att));
   return true;
 }
 

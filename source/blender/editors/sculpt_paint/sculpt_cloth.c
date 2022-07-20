@@ -1553,11 +1553,9 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   const eSculptClothFilterType filter_type = RNA_enum_get(op->ptr, "type");
 
   /* Update the active vertex */
-  float mouse[2];
+  float mval_fl[2] = {UNPACK2(event->mval)};
   SculptCursorGeometryInfo sgi;
-  mouse[0] = event->mval[0];
-  mouse[1] = event->mval[1];
-  SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+  SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
 
   SCULPT_vertex_random_access_ensure(ss);
 

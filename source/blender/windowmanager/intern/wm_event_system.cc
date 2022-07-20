@@ -2355,7 +2355,7 @@ static int wm_handler_operator_call(bContext *C,
           }
         }
 
-        /* Important to run 'wm_operator_finished' before nullptr-ing the context members. */
+        /* Important to run 'wm_operator_finished' before setting the context members to null. */
         if (retval & OPERATOR_FINISHED) {
           wm_operator_finished(C, op, false, true);
           handler->op = nullptr;
@@ -3376,9 +3376,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
         }
       }
 
-      if (event->prev_press_type == event->type) {
-
-        if (event->val == KM_RELEASE) {
+      if (event->val == KM_RELEASE) {
+        if (event->prev_press_type == event->type) {
           if (event->prev_val == KM_PRESS) {
             if (win->event_queue_check_click) {
               if (WM_event_drag_test(event, event->prev_press_xy)) {
@@ -3408,15 +3407,15 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
             }
           }
         }
-        else if (event->val == KM_DBL_CLICK) {
-          /* The underlying event is a press, so try and handle this. */
-          event->val = KM_PRESS;
-          action |= wm_handlers_do_intern(C, win, event, handlers);
+      }
+      else if (event->val == KM_DBL_CLICK) {
+        /* The underlying event is a press, so try and handle this. */
+        event->val = KM_PRESS;
+        action |= wm_handlers_do_intern(C, win, event, handlers);
 
-          /* Revert value if not handled. */
-          if (wm_action_not_handled(action)) {
-            event->val = KM_DBL_CLICK;
-          }
+        /* Revert value if not handled. */
+        if (wm_action_not_handled(action)) {
+          event->val = KM_DBL_CLICK;
         }
       }
     }
@@ -4942,7 +4941,11 @@ static void attach_ndof_data(wmEvent *event, const GHOST_TEventNDOFMotionData *g
 /* Imperfect but probably usable... draw/enable drags to other windows. */
 static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *event)
 {
-  int mval[2] = {event->xy[0], event->xy[1]};
+  /* If GHOST doesn't support window positioning, don't use this feature at all. */
+  const static int8_t supports_window_position = GHOST_SupportsWindowPosition();
+  if (!supports_window_position) {
+    return nullptr;
+  }
 
   if (wm->windows.first == wm->windows.last) {
     return nullptr;
@@ -4951,8 +4954,9 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
   /* In order to use window size and mouse position (pixels), we have to use a WM function. */
 
   /* Check if outside, include top window bar. */
-  if (mval[0] < 0 || mval[1] < 0 || mval[0] > WM_window_pixels_x(win) ||
-      mval[1] > WM_window_pixels_y(win) + 30) {
+  int event_xy[2] = {UNPACK2(event->xy)};
+  if (event_xy[0] < 0 || event_xy[1] < 0 || event_xy[0] > WM_window_pixels_x(win) ||
+      event_xy[1] > WM_window_pixels_y(win) + 30) {
     /* Let's skip windows having modal handlers now. */
     /* Potential XXX ugly... I wouldn't have added a `modalhandlers` list
      * (introduced in rev 23331, ton). */
@@ -4962,9 +4966,9 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
       }
     }
 
-    wmWindow *win_other = WM_window_find_under_cursor(win, mval, mval);
+    wmWindow *win_other = WM_window_find_under_cursor(win, event_xy, event_xy);
     if (win_other && win_other != win) {
-      copy_v2_v2_int(event->xy, mval);
+      copy_v2_v2_int(event->xy, event_xy);
       return win_other;
     }
   }

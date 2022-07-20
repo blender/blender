@@ -12,8 +12,6 @@
 #include "DNA_customdata_types.h"
 #include "DNA_image_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_hash_mm2a.h"
 #include "BLI_link_utils.h"
@@ -23,7 +21,6 @@
 #include "PIL_time.h"
 
 #include "BKE_material.h"
-#include "BKE_world.h"
 
 #include "GPU_capabilities.h"
 #include "GPU_material.h"
@@ -35,7 +32,6 @@
 #include "BLI_vector.hh"
 
 #include "gpu_codegen.h"
-#include "gpu_material_library.h"
 #include "gpu_node_graph.h"
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_dependency_private.h"
@@ -56,16 +52,19 @@ using namespace blender::gpu::shader;
  */
 struct GPUCodegenCreateInfo : ShaderCreateInfo {
   struct NameBuffer {
+    using NameEntry = std::array<char, 32>;
+
     /** Duplicate attribute names to avoid reference the GPUNodeGraph directly. */
     char attr_names[16][GPU_MAX_SAFE_ATTR_NAME + 1];
     char var_names[16][8];
-    blender::Vector<std::array<char, 32>, 16> sampler_names;
+    blender::Vector<std::unique_ptr<NameEntry>, 16> sampler_names;
 
     /* Returns the appended name memory location */
     const char *append_sampler_name(const char name[32])
     {
-      auto index = sampler_names.append_and_get_index(std::array<char, 32>());
-      char *name_buffer = sampler_names[index].data();
+      auto index = sampler_names.size();
+      sampler_names.append(std::make_unique<NameEntry>());
+      char *name_buffer = sampler_names[index]->data();
       memcpy(name_buffer, name, 32);
       return name_buffer;
     }
@@ -303,7 +302,7 @@ void GPUCodegen::generate_attribs()
   info.vertex_out(iface);
 
   /* Input declaration, loading / assignment to interface and geometry shader passthrough. */
-  std::stringstream decl_ss, iface_ss, load_ss;
+  std::stringstream load_ss;
 
   int slot = 15;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attr, &graph.attributes) {

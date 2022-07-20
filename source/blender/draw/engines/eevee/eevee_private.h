@@ -1050,7 +1050,7 @@ typedef struct EEVEE_PrivateData {
   float studiolight_glossy_clamp;
   float studiolight_filter_quality;
 
-  /* Renderpasses */
+  /* Render-passes */
   /* Bitmask containing the active render_passes */
   eViewLayerEEVEEPassType render_passes;
   uint aov_hash;

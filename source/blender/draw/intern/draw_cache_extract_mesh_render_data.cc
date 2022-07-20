@@ -514,7 +514,7 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
     /* Seems like the mesh_eval_final do not have the right origin indices.
      * Force not mapped in this case. */
-    if (has_mdata && do_final && editmesh_eval_final != editmesh_eval_cage) {
+    if (use_mapped && do_final && editmesh_eval_final != editmesh_eval_cage) {
       // mr->edit_bmesh = nullptr;
       mr->extract_type = MR_EXTRACT_MESH;
     }

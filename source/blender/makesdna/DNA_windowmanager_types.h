@@ -463,14 +463,19 @@ typedef struct wmKeyMap {
 
 /** #wmKeyMap.flag */
 enum {
-  KEYMAP_MODAL = (1 << 0), /* modal map, not using operatornames */
-  KEYMAP_USER = (1 << 1),  /* user keymap */
+  /** Modal map, not using operator-names. */
+  KEYMAP_MODAL = (1 << 0),
+  /** User key-map. */
+  KEYMAP_USER = (1 << 1),
   KEYMAP_EXPANDED = (1 << 2),
   KEYMAP_CHILDREN_EXPANDED = (1 << 3),
-  KEYMAP_DIFF = (1 << 4),          /* diff keymap for user preferences */
-  KEYMAP_USER_MODIFIED = (1 << 5), /* keymap has user modifications */
+  /** Diff key-map for user preferences. */
+  KEYMAP_DIFF = (1 << 4),
+  /** Key-map has user modifications. */
+  KEYMAP_USER_MODIFIED = (1 << 5),
   KEYMAP_UPDATE = (1 << 6),
-  KEYMAP_TOOL = (1 << 7), /* keymap for active tool system */
+  /** key-map for active tool system. */
+  KEYMAP_TOOL = (1 << 7),
 };
 
 /**

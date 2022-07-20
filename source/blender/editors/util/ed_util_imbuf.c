@@ -291,7 +291,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
   Scene *scene = CTX_data_scene(C);
   SpaceSeq *sseq = (SpaceSeq *)CTX_wm_space_data(C);
   ARegion *region = CTX_wm_region(C);
-  ImBuf *ibuf = sequencer_ibuf_get(bmain, region, depsgraph, scene, sseq, CFRA, 0, NULL);
+  ImBuf *ibuf = sequencer_ibuf_get(bmain, region, depsgraph, scene, sseq, scene->r.cfra, 0, NULL);
   ImageSampleInfo *info = op->customdata;
   float fx, fy;
 

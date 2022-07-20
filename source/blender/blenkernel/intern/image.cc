@@ -1172,22 +1172,81 @@ Image *BKE_image_add_generated(Main *bmain,
   return ima;
 }
 
+static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
+{
+  const char *colorspace_name = NULL;
+
+  if (ibuf->rect_float) {
+    if (ibuf->float_colorspace) {
+      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->float_colorspace);
+    }
+    else {
+      colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT);
+    }
+  }
+
+  if (ibuf->rect && !colorspace_name) {
+    if (ibuf->rect_colorspace) {
+      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->rect_colorspace);
+    }
+    else {
+      colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
+    }
+  }
+
+  if (colorspace_name) {
+    STRNCPY(image->colorspace_settings.name, colorspace_name);
+  }
+}
+
 Image *BKE_image_add_from_imbuf(Main *bmain, ImBuf *ibuf, const char *name)
 {
-  Image *ima;
-
   if (name == nullptr) {
     name = BLI_path_basename(ibuf->name);
   }
 
-  ima = image_alloc(bmain, name, IMA_SRC_FILE, IMA_TYPE_IMAGE);
+  /* When the image buffer has valid path create a new image with "file" source and copy the path
+   * from the image buffer.
+   * Otherwise create "generated" image, avoiding invalid configuration with an empty file path. */
+  const eImageSource source = ibuf->name[0] != '\0' ? IMA_SRC_FILE : IMA_SRC_GENERATED;
 
-  if (ima) {
-    STRNCPY(ima->filepath, ibuf->name);
-    image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+  Image *ima = image_alloc(bmain, name, source, IMA_TYPE_IMAGE);
+
+  if (!ima) {
+    return nullptr;
   }
 
+  BKE_image_replace_imbuf(ima, ibuf);
+
   return ima;
+}
+
+void BKE_image_replace_imbuf(Image *image, ImBuf *ibuf)
+{
+  BLI_assert(image->type == IMA_TYPE_IMAGE &&
+             ELEM(image->source, IMA_SRC_FILE, IMA_SRC_GENERATED));
+
+  BKE_image_free_buffers(image);
+
+  image_assign_ibuf(image, ibuf, IMA_NO_INDEX, 0);
+  image_colorspace_from_imbuf(image, ibuf);
+
+  /* Keep generated image type flags consistent with the image buffer. */
+  if (image->source == IMA_SRC_GENERATED) {
+    if (ibuf->rect_float) {
+      image->gen_flag |= IMA_GEN_FLOAT;
+    }
+    else {
+      image->gen_flag &= ~IMA_GEN_FLOAT;
+    }
+
+    image->gen_x = ibuf->x;
+    image->gen_y = ibuf->y;
+  }
+
+  /* Consider image dirty since its content can not be re-created unless the image is explicitly
+   * saved. */
+  BKE_image_mark_dirty(image, ibuf);
 }
 
 /** Pack image buffer to memory as PNG or EXR. */
@@ -1582,7 +1641,7 @@ static void stampdata(
   }
 
   if (use_dynamic && scene->r.stamp & R_STAMP_MARKER) {
-    const char *name = BKE_scene_find_last_marker_name(scene, CFRA);
+    const char *name = BKE_scene_find_last_marker_name(scene, scene->r.cfra);
 
     if (name) {
       STRNCPY(text, name);
@@ -1730,7 +1789,7 @@ static void stampdata_from_template(StampData *stamp_data,
     stamp_data->file[0] = '\0';
   }
   if (scene->r.stamp & R_STAMP_NOTE) {
-    SNPRINTF(stamp_data->note, "%s", stamp_data_template->note);
+    STRNCPY(stamp_data->note, stamp_data_template->note);
   }
   else {
     stamp_data->note[0] = '\0';
@@ -1950,7 +2009,7 @@ void BKE_image_stamp_buf(Scene *scene,
     y -= BUFF_MARGIN_Y * 2;
   }
 
-  /* Top left corner, below File, Date, Rendertime */
+  /* Top left corner, below File, Date, Render-time */
   if (TEXT_SIZE_CHECK(stamp_data.memory, w, h)) {
     y -= h;
 
@@ -1973,7 +2032,7 @@ void BKE_image_stamp_buf(Scene *scene,
     y -= BUFF_MARGIN_Y * 2;
   }
 
-  /* Top left corner, below File, Date, Rendertime, Memory */
+  /* Top left corner, below: File, Date, Render-time, Memory. */
   if (TEXT_SIZE_CHECK(stamp_data.hostname, w, h)) {
     y -= h;
 
@@ -1996,7 +2055,7 @@ void BKE_image_stamp_buf(Scene *scene,
     y -= BUFF_MARGIN_Y * 2;
   }
 
-  /* Top left corner, below File, Date, Memory, Rendertime, Hostname */
+  /* Top left corner, below: File, Date, Memory, Render-time, Host-name. */
   BLF_enable(mono, BLF_WORD_WRAP);
   if (TEXT_SIZE_CHECK_WORD_WRAP(stamp_data.note, w, h)) {
     y -= h;

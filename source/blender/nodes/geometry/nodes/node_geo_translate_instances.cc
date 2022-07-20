@@ -26,8 +26,8 @@ static void translate_instances(GeoNodeExecParams &params, InstancesComponent &i
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  const VArray<float3> &translations = evaluator.get_evaluated<float3>(0);
-  const VArray<bool> &local_spaces = evaluator.get_evaluated<bool>(1);
+  const VArray<float3> translations = evaluator.get_evaluated<float3>(0);
+  const VArray<bool> local_spaces = evaluator.get_evaluated<bool>(1);
 
   MutableSpan<float4x4> instance_transforms = instances_component.instance_transforms();
 

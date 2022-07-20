@@ -22,6 +22,34 @@ struct wmKeyConfig;
 
 /* mask_edit.c */
 
+/* Returns true when the following conditions are met:
+ * - Current space supports mask editing.
+ * - The space is configured to interact with mask.
+ *
+ * It is not required to have mask opened for editing. */
+bool ED_maskedit_poll(struct bContext *C);
+
+/* Returns true when the following conditions are met:
+ * - Current space supports mask editing.
+ * - The space is configured to interact with mask.
+ * - Mask has visible and editable splines.
+ *
+ * It is not required to have mask opened for editing. */
+bool ED_maskedit_visible_splines_poll(struct bContext *C);
+
+/* Returns true when the following conditions are met:
+ * - Current space supports mask editing.
+ * - The space is configured to interact with mask.
+ * - The space has mask open for editing. */
+bool ED_maskedit_mask_poll(struct bContext *C);
+
+/* Returns true when the following conditions are met:
+ * - Current space supports mask editing.
+ * - The space is configured to interact with mask.
+ * - The space has mask opened.
+ * - Mask has visible and editable splines. */
+bool ED_maskedit_mask_visible_splines_poll(struct bContext *C);
+
 void ED_mask_deselect_all(const struct bContext *C);
 
 void ED_operatortypes_mask(void);
@@ -73,6 +101,7 @@ void ED_mask_draw_region(struct Depsgraph *depsgraph,
                          char draw_flag,
                          char draw_type,
                          eMaskOverlayMode overlay_mode,
+                         float blend_factor,
                          int width_i,
                          int height_i,
                          float aspx,

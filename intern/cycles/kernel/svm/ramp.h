@@ -9,7 +9,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline float fetch_float(KernelGlobals kg, int offset)
 {
-  uint4 node = kernel_tex_fetch(__svm_nodes, offset);
+  uint4 node = kernel_data_fetch(svm_nodes, offset);
   return __uint_as_float(node.x);
 }
 

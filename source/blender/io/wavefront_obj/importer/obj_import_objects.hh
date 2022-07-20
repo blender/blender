@@ -113,7 +113,7 @@ struct Geometry {
 
   bool has_invalid_polys_ = false;
   bool has_vertex_normals_ = false;
-  bool use_vertex_groups_ = false;
+  bool has_vertex_groups_ = false;
   NurbsElement nurbs_element_;
   int total_loops_ = 0;
 };

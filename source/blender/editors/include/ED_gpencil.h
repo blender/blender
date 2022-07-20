@@ -239,7 +239,7 @@ void ED_annotation_draw_ex(
 
 /* ----------- Grease-Pencil AnimEdit API ------------------ */
 /**
- * Loops over the gp-frames for a gp-layer, and applies the given callback.
+ * Loops over the GP-frames for a GP-layer, and applies the given callback.
  */
 bool ED_gpencil_layer_frames_looper(struct bGPDlayer *gpl,
                                     struct Scene *scene,
@@ -279,6 +279,11 @@ void ED_gpencil_select_frames(struct bGPDlayer *gpl, short select_mode);
  * Select the frame in this layer that occurs on this frame (there should only be one at most).
  */
 void ED_gpencil_select_frame(struct bGPDlayer *gpl, int selx, short select_mode);
+
+/**
+ * Set the layer's channel as active
+ */
+void ED_gpencil_set_active_channel(struct bGPdata *gpd, struct bGPDlayer *gpl);
 
 /**
  * Delete selected frames.
@@ -579,7 +584,7 @@ void ED_gpencil_init_random_settings(struct Brush *brush,
  */
 bool ED_gpencil_stroke_check_collision(const struct GP_SpaceConversion *gsc,
                                        struct bGPDstroke *gps,
-                                       const float mouse[2],
+                                       const float mval[2],
                                        int radius,
                                        const float diff_mat[4][4]);
 /**
@@ -587,13 +592,13 @@ bool ED_gpencil_stroke_check_collision(const struct GP_SpaceConversion *gsc,
  *
  * \param gps: Stroke to check.
  * \param gsc: Space conversion data.
- * \param mouse: Mouse position.
+ * \param mval: Region relative cursor position.
  * \param diff_mat: View matrix.
  * \return True if the point is inside.
  */
 bool ED_gpencil_stroke_point_is_inside(const struct bGPDstroke *gps,
                                        const struct GP_SpaceConversion *gsc,
-                                       const int mouse[2],
+                                       const int mval[2],
                                        const float diff_mat[4][4]);
 /**
  * Get the bigger 2D bound box points.

@@ -20,7 +20,7 @@
 
 #include "GPU_select.h"
 
-#include "gpu_py_select.h" /* own include */
+#include "gpu_py_select.h" /* Own include. */
 
 /* -------------------------------------------------------------------- */
 /** \name Methods

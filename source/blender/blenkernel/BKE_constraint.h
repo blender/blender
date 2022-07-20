@@ -265,6 +265,8 @@ void BKE_constraint_panel_expand(struct bConstraint *con);
 /* Constraint Evaluation function prototypes */
 
 /**
+ * Package an object/bone for use in constraint evaluation.
+ *
  * This function MEM_calloc's a #bConstraintOb struct,
  * that will need to be freed after evaluation.
  */
@@ -312,17 +314,17 @@ void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph,
  * Retrieves the list of all constraint targets, including the custom space target.
  * Must be followed by a call to BKE_constraint_targets_flush to free memory.
  *
- * \param r_targets Pointer to the list to be initialized with target data.
+ * \param r_targets: Pointer to the list to be initialized with target data.
  * \returns the number of targets stored in the list.
  */
 int BKE_constraint_targets_get(struct bConstraint *con, struct ListBase *r_targets);
 
 /**
- * Copies changed data from the list produced by BKE_constraint_targets_get back to the constraint
+ * Copies changed data from the list produced by #BKE_constraint_targets_get back to the constraint
  * data structures and frees memory.
  *
- * \param targets List of targets filled by BKE_constraint_targets_get.
- * \param no_copy Only free memory without copying changes (read-only mode).
+ * \param targets: List of targets filled by BKE_constraint_targets_get.
+ * \param no_copy: Only free memory without copying changes (read-only mode).
  */
 void BKE_constraint_targets_flush(struct bConstraint *con, struct ListBase *targets, bool no_copy);
 
@@ -334,7 +336,15 @@ void BKE_constraint_targets_for_solving_get(struct Depsgraph *depsgraph,
                                             struct bConstraintOb *ob,
                                             struct ListBase *targets,
                                             float ctime);
-void BKE_constraint_custom_object_space_get(float r_mat[4][4], struct bConstraint *con);
+
+/**
+ * Initialize the Custom Space matrix inside `cob` (if required by the constraint).
+ *
+ * \param cob: Constraint evaluation context (contains the matrix to be initialized).
+ * \param con: Constraint that is about to be evaluated.
+ */
+void BKE_constraint_custom_object_space_init(struct bConstraintOb *cob, struct bConstraint *con);
+
 /**
  * This function is called whenever constraints need to be evaluated. Currently, all
  * constraints that can be evaluated are every time this gets run.

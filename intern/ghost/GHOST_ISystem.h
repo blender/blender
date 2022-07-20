@@ -313,6 +313,11 @@ class GHOST_ISystem {
   virtual bool supportsCursorWarp() = 0;
 
   /**
+   * Return true getting/setting the window position is supported.
+   */
+  virtual bool supportsWindowPosition() = 0;
+
+  /**
    * Focus window after opening, or put them in the background.
    */
   virtual void useWindowFocus(const bool use_focus) = 0;
@@ -360,6 +365,25 @@ class GHOST_ISystem {
    ***************************************************************************************/
 
   /**
+   * Returns the current location of the cursor (location in window coordinates)
+   * \param x: The x-coordinate of the cursor.
+   * \param y: The y-coordinate of the cursor.
+   * \return Indication of success.
+   */
+  virtual GHOST_TSuccess getCursorPositionClientRelative(const GHOST_IWindow *window,
+                                                         int32_t &x,
+                                                         int32_t &y) const = 0;
+  /**
+   * Updates the location of the cursor (location in window coordinates).
+   * \param x: The x-coordinate of the cursor.
+   * \param y: The y-coordinate of the cursor.
+   * \return Indication of success.
+   */
+  virtual GHOST_TSuccess setCursorPositionClientRelative(GHOST_IWindow *window,
+                                                         int32_t x,
+                                                         int32_t y) = 0;
+
+  /**
    * Returns the current location of the cursor (location in screen coordinates)
    * \param x: The x-coordinate of the cursor.
    * \param y: The y-coordinate of the cursor.
@@ -386,7 +410,7 @@ class GHOST_ISystem {
    * \param isDown: The state of a modifier key (true == pressed).
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess getModifierKeyState(GHOST_TModifierKeyMask mask, bool &isDown) const = 0;
+  virtual GHOST_TSuccess getModifierKeyState(GHOST_TModifierKey mask, bool &isDown) const = 0;
 
   /**
    * Returns the state of a mouse button (outside the message queue).
@@ -394,7 +418,7 @@ class GHOST_ISystem {
    * \param isDown: Button state.
    * \return Indication of success.
    */
-  virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool &isDown) const = 0;
+  virtual GHOST_TSuccess getButtonState(GHOST_TButton mask, bool &isDown) const = 0;
 
   /**
    * Set which tablet API to use. Only affects Windows, other platforms have a single API.

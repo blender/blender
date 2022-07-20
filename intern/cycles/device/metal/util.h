@@ -25,10 +25,19 @@ enum MetalGPUVendor {
   METAL_GPU_INTEL = 3,
 };
 
+enum AppleGPUArchitecture {
+  APPLE_UNKNOWN,
+  APPLE_M1,
+  APPLE_M2,
+};
+
 /* Contains static Metal helper functions. */
 struct MetalInfo {
   static vector<id<MTLDevice>> const &get_usable_devices();
-  static MetalGPUVendor get_vendor_from_device_name(string const &device_name);
+  static int get_apple_gpu_core_count(id<MTLDevice> device);
+  static MetalGPUVendor get_device_vendor(id<MTLDevice> device);
+  static AppleGPUArchitecture get_apple_gpu_architecture(id<MTLDevice> device);
+  static string get_device_name(id<MTLDevice> device);
 };
 
 /* Pool of MTLBuffers whose lifetime is linked to a single MTLCommandBuffer */

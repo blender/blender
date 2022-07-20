@@ -424,7 +424,7 @@ static void extrude_mesh_edges(MeshComponent &component,
   edge_evaluator.add(offset_field);
   edge_evaluator.evaluate();
   const IndexMask edge_selection = edge_evaluator.get_evaluated_selection_as_mask();
-  const VArray<float3> &edge_offsets = edge_evaluator.get_evaluated<float3>(0);
+  const VArray<float3> edge_offsets = edge_evaluator.get_evaluated<float3>(0);
   if (edge_selection.is_empty()) {
     return;
   }
@@ -686,7 +686,7 @@ static void extrude_mesh_face_regions(MeshComponent &component,
   poly_evaluator.add(offset_field);
   poly_evaluator.evaluate();
   const IndexMask poly_selection = poly_evaluator.get_evaluated_selection_as_mask();
-  const VArray<float3> &poly_offsets = poly_evaluator.get_evaluated<float3>(0);
+  const VArray<float3> poly_offsets = poly_evaluator.get_evaluated<float3>(0);
   if (poly_selection.is_empty()) {
     return;
   }

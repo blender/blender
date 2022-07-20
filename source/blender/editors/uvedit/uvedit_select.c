@@ -12,6 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_image_types.h"
+#include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -22,6 +23,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_kdtree.h"
 #include "BLI_lasso_2d.h"
 #include "BLI_math.h"
 #include "BLI_polyfill_2d.h"
@@ -31,6 +33,7 @@
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_report.h"
@@ -74,6 +77,16 @@ static void uv_select_flush_from_loop_edge_flag(const Scene *scene, BMEditMesh *
 static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
                                             const ToolSettings *ts,
                                             Object *obedit);
+
+typedef enum {
+  UV_SSIM_AREA_UV = 1000,
+  UV_SSIM_AREA_3D,
+  UV_SSIM_LENGTH_UV,
+  UV_SSIM_LENGTH_3D,
+  UV_SSIM_SIDES,
+  UV_SSIM_PIN,
+  UV_SSIM_MATERIAL,
+} eUVSelectSimilar;
 
 /* -------------------------------------------------------------------- */
 /** \name Active Selection Tracking
@@ -586,12 +599,25 @@ bool uvedit_uv_select_test_ex(const ToolSettings *ts, BMLoop *l, const int cd_lo
     if (ts->selectmode & SCE_SELECT_FACE) {
       return BM_elem_flag_test_bool(l->f, BM_ELEM_SELECT);
     }
+    if (ts->selectmode & SCE_SELECT_EDGE) {
+      /* Are you looking for `uvedit_edge_select_test(...)` instead? */
+    }
     return BM_elem_flag_test_bool(l->v, BM_ELEM_SELECT);
   }
 
   MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+  if (ts->selectmode & SCE_SELECT_FACE) {
+    /* Are you looking for `uvedit_face_select_test(...)` instead? */
+  }
+
+  if (ts->selectmode & SCE_SELECT_EDGE) {
+    /* Are you looking for `uvedit_edge_select_test(...)` instead? */
+  }
+
   return (luv->flag & MLOOPUV_VERTSEL) != 0;
 }
+
 bool uvedit_uv_select_test(const Scene *scene, BMLoop *l, const int cd_loop_uv_offset)
 {
   return uvedit_uv_select_test_ex(scene->toolsettings, l, cd_loop_uv_offset);
@@ -698,6 +724,10 @@ void uvedit_uv_select_enable(const Scene *scene,
                              const int cd_loop_uv_offset)
 {
   const ToolSettings *ts = scene->toolsettings;
+
+  if (ts->selectmode & SCE_SELECT_EDGE) {
+    /* Are you looking for `uvedit_edge_select_set(...)` instead? */
+  }
 
   if (ts->uv_flag & UV_SYNC_SELECTION) {
     if (ts->selectmode & SCE_SELECT_FACE) {
@@ -2905,12 +2935,14 @@ void UV_OT_select_edge_ring(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit; /* requires space image */
 
   /* properties */
-  RNA_def_boolean(ot->srna,
-                  "extend",
-                  0,
-                  "Extend",
-                  "Extend selection rather than clearing the existing selection");
-  RNA_def_float_vector(
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna,
+                         "extend",
+                         0,
+                         "Extend",
+                         "Extend selection rather than clearing the existing selection");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_float_vector(
       ot->srna,
       "location",
       2,
@@ -2921,6 +2953,7 @@ void UV_OT_select_edge_ring(wmOperatorType *ot)
       "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds",
       -100.0f,
       100.0f);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -4409,6 +4442,550 @@ void UV_OT_select_overlap(wmOperatorType *ot)
                   0,
                   "Extend",
                   "Extend selection rather than clearing the existing selection");
+}
+
+/** \} */
+/** \name Select Similar Operator
+ * \{ */
+
+static float get_uv_vert_needle(const eUVSelectSimilar type,
+                                BMVert *vert,
+                                const float ob_m3[3][3],
+                                MLoopUV *luv,
+                                const int cd_loop_uv_offset)
+{
+  float result = 0.0f;
+  switch (type) {
+    case UV_SSIM_AREA_UV: {
+      BMFace *f;
+      BMIter iter;
+      BM_ITER_ELEM (f, &iter, vert, BM_FACES_OF_VERT) {
+        result += BM_face_calc_area_uv(f, cd_loop_uv_offset);
+      }
+    } break;
+    case UV_SSIM_AREA_3D: {
+      BMFace *f;
+      BMIter iter;
+      BM_ITER_ELEM (f, &iter, vert, BM_FACES_OF_VERT) {
+        result += BM_face_calc_area_with_mat3(f, ob_m3);
+      }
+    } break;
+    case UV_SSIM_SIDES: {
+      BMEdge *e;
+      BMIter iter;
+      BM_ITER_ELEM (e, &iter, vert, BM_EDGES_OF_VERT) {
+        result += 1.0f;
+      }
+    } break;
+    case UV_SSIM_PIN:
+      return (luv->flag & MLOOPUV_PINNED) ? 1.0f : 0.0f;
+    default:
+      BLI_assert_unreachable();
+      return false;
+  }
+
+  return result;
+}
+
+static float get_uv_edge_needle(const eUVSelectSimilar type,
+                                BMEdge *edge,
+                                const float ob_m3[3][3],
+                                MLoopUV *luv_a,
+                                MLoopUV *luv_b,
+                                const int cd_loop_uv_offset)
+{
+  float result = 0.0f;
+  switch (type) {
+    case UV_SSIM_AREA_UV: {
+      BMFace *f;
+      BMIter iter;
+      BM_ITER_ELEM (f, &iter, edge, BM_FACES_OF_EDGE) {
+        result += BM_face_calc_area_uv(f, cd_loop_uv_offset);
+      }
+    } break;
+    case UV_SSIM_AREA_3D: {
+      BMFace *f;
+      BMIter iter;
+      BM_ITER_ELEM (f, &iter, edge, BM_FACES_OF_EDGE) {
+        result += BM_face_calc_area_with_mat3(f, ob_m3);
+      }
+    } break;
+    case UV_SSIM_LENGTH_UV:
+      return len_v2v2(luv_a->uv, luv_b->uv);
+    case UV_SSIM_LENGTH_3D:
+      return len_v3v3(edge->v1->co, edge->v2->co);
+    case UV_SSIM_SIDES: {
+      BMEdge *e;
+      BMIter iter;
+      BM_ITER_ELEM (e, &iter, edge, BM_FACES_OF_EDGE) {
+        result += 1.0f;
+      }
+    } break;
+    case UV_SSIM_PIN:
+      if (luv_a->flag & MLOOPUV_PINNED) {
+        result += 1.0f;
+      }
+      if (luv_b->flag & MLOOPUV_PINNED) {
+        result += 1.0f;
+      }
+      break;
+    default:
+      BLI_assert_unreachable();
+      return false;
+  }
+
+  return result;
+}
+
+static float get_uv_face_needle(const eUVSelectSimilar type,
+                                BMFace *face,
+                                const float ob_m3[3][3],
+                                const int cd_loop_uv_offset)
+{
+  float result = 0.0f;
+  switch (type) {
+    case UV_SSIM_AREA_UV:
+      return BM_face_calc_area_uv(face, cd_loop_uv_offset);
+    case UV_SSIM_AREA_3D:
+      return BM_face_calc_area_with_mat3(face, ob_m3);
+    case UV_SSIM_SIDES:
+      return face->len;
+    case UV_SSIM_PIN: {
+      BMLoop *l;
+      BMIter liter;
+      BM_ITER_ELEM (l, &liter, face, BM_LOOPS_OF_FACE) {
+        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+        if (luv->flag & MLOOPUV_PINNED) {
+          result += 1.0f;
+        }
+      }
+    } break;
+    case UV_SSIM_MATERIAL:
+      return face->mat_nr;
+    default:
+      BLI_assert_unreachable();
+      return false;
+  }
+  return result;
+}
+
+static int uv_select_similar_vert_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
+
+  const eUVSelectSimilar type = RNA_enum_get(op->ptr, "type");
+  const float threshold = RNA_float_get(op->ptr, "threshold");
+  const eSimilarCmp compare = RNA_enum_get(op->ptr, "compare");
+
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      view_layer, ((View3D *)NULL), &objects_len);
+
+  int max_verts_selected_all = 0;
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    BMFace *face;
+    BMIter iter;
+    BM_ITER_MESH (face, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, face)) {
+        continue;
+      }
+      max_verts_selected_all += face->len;
+    }
+    /* TODO: Get a tighter bounds */
+  }
+
+  int tree_index = 0;
+  KDTree_1d *tree_1d = BLI_kdtree_1d_new(max_verts_selected_all);
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    BMesh *bm = em->bm;
+    if (bm->totvertsel == 0) {
+      continue;
+    }
+
+    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+    float ob_m3[3][3];
+    copy_m3_m4(ob_m3, ob->obmat);
+
+    BMFace *face;
+    BMIter iter;
+    BM_ITER_MESH (face, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, face)) {
+        continue;
+      }
+      BMLoop *l;
+      BMIter liter;
+      BM_ITER_ELEM (l, &liter, face, BM_LOOPS_OF_FACE) {
+        if (!uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+          continue;
+        }
+        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+        float needle = get_uv_vert_needle(type, l->v, ob_m3, luv, cd_loop_uv_offset);
+        BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
+      }
+    }
+  }
+
+  if (tree_1d != NULL) {
+    BLI_kdtree_1d_deduplicate(tree_1d);
+    BLI_kdtree_1d_balance(tree_1d);
+  }
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    BMesh *bm = em->bm;
+    if (bm->totvertsel == 0) {
+      continue;
+    }
+
+    bool changed = false;
+    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+    float ob_m3[3][3];
+    copy_m3_m4(ob_m3, ob->obmat);
+
+    BMFace *face;
+    BMIter iter;
+    BM_ITER_MESH (face, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, face)) {
+        continue;
+      }
+      BMLoop *l;
+      BMIter liter;
+      BM_ITER_ELEM (l, &liter, face, BM_LOOPS_OF_FACE) {
+        if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+          continue; /* Already selected. */
+        }
+        MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+        const float needle = get_uv_vert_needle(type, l->v, ob_m3, luv, cd_loop_uv_offset);
+        bool select = ED_select_similar_compare_float_tree(tree_1d, needle, threshold, compare);
+        if (select) {
+          uvedit_uv_select_set(scene, em, l, select, false, cd_loop_uv_offset);
+          changed = true;
+        }
+      }
+      if (changed) {
+        uv_select_tag_update_for_object(depsgraph, ts, ob);
+      }
+    }
+  }
+
+  MEM_SAFE_FREE(objects);
+  BLI_kdtree_1d_free(tree_1d);
+  return OPERATOR_FINISHED;
+}
+
+static int uv_select_similar_edge_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
+
+  const eUVSelectSimilar type = RNA_enum_get(op->ptr, "type");
+  const float threshold = RNA_float_get(op->ptr, "threshold");
+  const eSimilarCmp compare = RNA_enum_get(op->ptr, "compare");
+
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      view_layer, ((View3D *)NULL), &objects_len);
+
+  int max_edges_selected_all = 0;
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    BMFace *face;
+    BMIter iter;
+    BM_ITER_MESH (face, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, face)) {
+        continue;
+      }
+      max_edges_selected_all += face->len;
+    }
+    /* TODO: Get a tighter bounds. */
+  }
+
+  int tree_index = 0;
+  KDTree_1d *tree_1d = BLI_kdtree_1d_new(max_edges_selected_all);
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    BMesh *bm = em->bm;
+    if (bm->totvertsel == 0) {
+      continue;
+    }
+
+    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+    float ob_m3[3][3];
+    copy_m3_m4(ob_m3, ob->obmat);
+
+    BMFace *face;
+    BMIter iter;
+    BM_ITER_MESH (face, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, face)) {
+        continue;
+      }
+      BMLoop *l;
+      BMIter liter;
+      BM_ITER_ELEM (l, &liter, face, BM_LOOPS_OF_FACE) {
+        if (!uvedit_edge_select_test(scene, l, cd_loop_uv_offset)) {
+          continue;
+        }
+
+        MLoopUV *luv_a = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+        MLoopUV *luv_b = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
+        float needle = get_uv_edge_needle(type, l->e, ob_m3, luv_a, luv_b, cd_loop_uv_offset);
+        if (tree_1d) {
+          BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
+        }
+      }
+    }
+  }
+
+  if (tree_1d != NULL) {
+    BLI_kdtree_1d_deduplicate(tree_1d);
+    BLI_kdtree_1d_balance(tree_1d);
+  }
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    BMesh *bm = em->bm;
+    if (bm->totvertsel == 0) {
+      continue;
+    }
+
+    bool changed = false;
+    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+    float ob_m3[3][3];
+    copy_m3_m4(ob_m3, ob->obmat);
+
+    BMFace *face;
+    BMIter iter;
+    BM_ITER_MESH (face, &iter, em->bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, face)) {
+        continue;
+      }
+      BMLoop *l;
+      BMIter liter;
+      BM_ITER_ELEM (l, &liter, face, BM_LOOPS_OF_FACE) {
+        if (uvedit_edge_select_test(scene, l, cd_loop_uv_offset)) {
+          continue; /* Already selected. */
+        }
+
+        MLoopUV *luv_a = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+        MLoopUV *luv_b = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
+        float needle = get_uv_edge_needle(type, l->e, ob_m3, luv_a, luv_b, cd_loop_uv_offset);
+        bool select = ED_select_similar_compare_float_tree(tree_1d, needle, threshold, compare);
+        if (select) {
+          uvedit_edge_select_set(scene, em, l, select, false, cd_loop_uv_offset);
+          changed = true;
+        }
+      }
+      if (changed) {
+        uv_select_tag_update_for_object(depsgraph, ts, ob);
+      }
+    }
+  }
+
+  MEM_SAFE_FREE(objects);
+  BLI_kdtree_1d_free(tree_1d);
+  return OPERATOR_FINISHED;
+}
+
+static int uv_select_similar_face_exec(bContext *C, wmOperator *op)
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
+
+  const eUVSelectSimilar type = RNA_enum_get(op->ptr, "type");
+  const float threshold = RNA_float_get(op->ptr, "threshold");
+  const eSimilarCmp compare = RNA_enum_get(op->ptr, "compare");
+
+  uint objects_len = 0;
+  Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      view_layer, ((View3D *)NULL), &objects_len);
+
+  int max_faces_selected_all = 0;
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    max_faces_selected_all += em->bm->totfacesel;
+    /* TODO: Get a tighter bounds */
+  }
+
+  int tree_index = 0;
+  KDTree_1d *tree_1d = BLI_kdtree_1d_new(max_faces_selected_all);
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
+
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    BMesh *bm = em->bm;
+
+    float ob_m3[3][3];
+    copy_m3_m4(ob_m3, ob->obmat);
+
+    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+    BMFace *face;
+    BMIter iter;
+    BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, face)) {
+        continue;
+      }
+      if (!uvedit_face_select_test(scene, face, cd_loop_uv_offset)) {
+        continue;
+      }
+
+      float needle = get_uv_face_needle(type, face, ob_m3, cd_loop_uv_offset);
+      if (tree_1d) {
+        BLI_kdtree_1d_insert(tree_1d, tree_index++, &needle);
+      }
+    }
+  }
+
+  if (tree_1d != NULL) {
+    BLI_kdtree_1d_deduplicate(tree_1d);
+    BLI_kdtree_1d_balance(tree_1d);
+  }
+
+  for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+    Object *ob = objects[ob_index];
+
+    BMEditMesh *em = BKE_editmesh_from_object(ob);
+    BMesh *bm = em->bm;
+    bool changed = false;
+    bool do_history = false;
+    const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+    float ob_m3[3][3];
+    copy_m3_m4(ob_m3, ob->obmat);
+
+    BMFace *face;
+    BMIter iter;
+    BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
+      if (!uvedit_face_visible_test(scene, face)) {
+        continue;
+      }
+      if (uvedit_face_select_test(scene, face, cd_loop_uv_offset)) {
+        continue;
+      }
+
+      float needle = get_uv_face_needle(type, face, ob_m3, cd_loop_uv_offset);
+
+      bool select = ED_select_similar_compare_float_tree(tree_1d, needle, threshold, compare);
+      if (select) {
+        uvedit_face_select_set(scene, em, face, select, do_history, cd_loop_uv_offset);
+        changed = true;
+      }
+    }
+    if (changed) {
+      uv_select_tag_update_for_object(depsgraph, ts, ob);
+    }
+  }
+
+  MEM_SAFE_FREE(objects);
+  BLI_kdtree_1d_free(tree_1d);
+  return OPERATOR_FINISHED;
+}
+
+/* Select similar UV faces/edges/verts based on current selection. */
+static int uv_select_similar_exec(bContext *C, wmOperator *op)
+{
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "threshold");
+
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    RNA_property_float_set(op->ptr, prop, ts->select_thresh);
+  }
+  else {
+    ts->select_thresh = RNA_property_float_get(op->ptr, prop);
+  }
+
+  int selectmode = (ts->uv_flag & UV_SYNC_SELECTION) ? ts->selectmode : ts->uv_selectmode;
+  if (selectmode & UV_SELECT_EDGE) {
+    return uv_select_similar_edge_exec(C, op);
+  }
+  if (selectmode & UV_SELECT_FACE) {
+    return uv_select_similar_face_exec(C, op);
+  }
+  if (selectmode & UV_SELECT_ISLAND) {
+    // return uv_select_similar_island_exec(C, op);
+  }
+
+  return uv_select_similar_vert_exec(C, op);
+}
+
+static EnumPropertyItem prop_vert_similar_types[] = {{UV_SSIM_PIN, "PIN", 0, "Pinned", ""}, {0}};
+
+static EnumPropertyItem prop_edge_similar_types[] = {
+    {UV_SSIM_LENGTH_UV, "LENGTH", 0, "Length", ""},
+    {UV_SSIM_LENGTH_3D, "LENGTH_3D", 0, "Length 3D", ""},
+    {UV_SSIM_PIN, "PIN", 0, "Pinned", ""},
+    {0}};
+
+static EnumPropertyItem prop_face_similar_types[] = {
+    {UV_SSIM_AREA_UV, "AREA", 0, "Area", ""},
+    {UV_SSIM_AREA_3D, "AREA_3D", 0, "Area 3D", ""},
+    {UV_SSIM_SIDES, "SIDES", 0, "Polygon Sides", ""},
+    {UV_SSIM_MATERIAL, "MATERIAL", 0, "Material", ""},
+    {0}};
+
+static EnumPropertyItem prop_similar_compare_types[] = {{SIM_CMP_EQ, "EQUAL", 0, "Equal", ""},
+                                                        {SIM_CMP_GT, "GREATER", 0, "Greater", ""},
+                                                        {SIM_CMP_LT, "LESS", 0, "Less", ""},
+                                                        {0}};
+
+static const EnumPropertyItem *uv_select_similar_type_itemf(bContext *C,
+                                                            PointerRNA *UNUSED(ptr),
+                                                            PropertyRNA *UNUSED(prop),
+                                                            bool *UNUSED(r_free))
+{
+  const ToolSettings *ts = CTX_data_tool_settings(C);
+  if (ts) {
+    int selectmode = (ts->uv_flag & UV_SYNC_SELECTION) ? ts->selectmode : ts->uv_selectmode;
+    if (selectmode & UV_SELECT_EDGE) {
+      return prop_edge_similar_types;
+    }
+    if (selectmode & UV_SELECT_FACE) {
+      return prop_face_similar_types;
+    }
+  }
+
+  return prop_vert_similar_types;
+}
+void UV_OT_select_similar(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Select Similar";
+  ot->description = "Select similar UVs by property types";
+  ot->idname = "UV_OT_select_similar";
+
+  /* api callbacks */
+  ot->invoke = WM_menu_invoke;
+  ot->exec = uv_select_similar_exec;
+  ot->poll = ED_operator_uvedit_space_image;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* properties */
+  PropertyRNA *prop = ot->prop = RNA_def_enum(
+      ot->srna, "type", prop_vert_similar_types, SIMVERT_NORMAL, "Type", "");
+  RNA_def_enum_funcs(prop, uv_select_similar_type_itemf);
+  RNA_def_enum(ot->srna, "compare", prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");
+  RNA_def_float(ot->srna, "threshold", 0.0f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);
 }
 
 /** \} */

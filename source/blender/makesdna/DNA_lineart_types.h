@@ -38,6 +38,8 @@ typedef enum eLineartMainFlags {
   LRT_USE_BACK_FACE_CULLING = (1 << 19),
   LRT_USE_IMAGE_BOUNDARY_TRIMMING = (1 << 20),
   LRT_CHAIN_PRESERVE_DETAILS = (1 << 22),
+  LRT_SHADOW_ENCLOSED_SHAPES = (1 << 23),
+  LRT_SHADOW_USE_SILHOUETTE = (1 << 24),
 } eLineartMainFlags;
 
 typedef enum eLineartEdgeFlag {
@@ -47,14 +49,21 @@ typedef enum eLineartEdgeFlag {
   LRT_EDGE_FLAG_MATERIAL = (1 << 3),
   LRT_EDGE_FLAG_INTERSECTION = (1 << 4),
   LRT_EDGE_FLAG_LOOSE = (1 << 5),
+  LRT_EDGE_FLAG_LIGHT_CONTOUR = (1 << 6),
   /* LRT_EDGE_FLAG_FOR_FUTURE = (1 << 7), */
   /**
    * It's a legacy limit of 8 bits for feature lines that come from original mesh edges. It should
    * not be needed in current object loading scheme, but might still be relevant if we are to
    * implement edit-mesh loading, so don't exceed 8 bits just yet.
    */
-  LRT_EDGE_FLAG_CHAIN_PICKED = (1 << 8),
-  LRT_EDGE_FLAG_CLIPPED = (1 << 9),
+  LRT_EDGE_FLAG_PROJECTED_SHADOW = (1 << 8),
+  /* To determine an edge to be occluded from the front or back face it's lying on. */
+  LRT_EDGE_FLAG_SHADOW_FACING_LIGHT = (1 << 9),
+  /** Also used as discarded line mark. */
+  LRT_EDGE_FLAG_CHAIN_PICKED = (1 << 10),
+  LRT_EDGE_FLAG_CLIPPED = (1 << 11),
+  /** Used to specify contour from viewing camera when computing shadows. */
+  LRT_EDGE_FLAG_CONTOUR_SECONDARY = (1 << 12),
   /** Limited to 16 bits for the entire thing. */
 
   /** For object loading code to use only. */
@@ -63,4 +72,6 @@ typedef enum eLineartEdgeFlag {
   LRT_EDGE_FLAG_NEXT_IS_DUPLICATION = (1 << 15),
 } eLineartEdgeFlag;
 
-#define LRT_EDGE_FLAG_ALL_TYPE 0x3f
+#define LRT_EDGE_FLAG_ALL_TYPE 0x01ff
+#define LRT_EDGE_FLAG_INIT_TYPE 0x37 /* Without material & light contour */
+#define LRT_EDGE_FLAG_TYPE_MAX_BITS 7

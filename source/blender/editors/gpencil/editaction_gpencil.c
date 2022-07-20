@@ -214,6 +214,18 @@ void ED_gpencil_layer_frames_select_region(KeyframeEditData *ked,
   }
 }
 
+void ED_gpencil_set_active_channel(bGPdata *gpd, bGPDlayer *gpl)
+{
+  gpl->flag |= GP_LAYER_SELECT;
+
+  /* Update other layer status. */
+  if (BKE_gpencil_layer_active_get(gpd) != gpl) {
+    BKE_gpencil_layer_active_set(gpd, gpl);
+    BKE_gpencil_layer_autolock_set(gpd, false);
+    WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+  }
+}
+
 /* ***************************************** */
 /* Frame Editing Tools */
 
@@ -316,8 +328,13 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
   filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-  /* assume that each of these is a GP layer */
   for (ale = anim_data.first; ale; ale = ale->next) {
+    /* This function only deals with grease pencil layer frames.
+     * This check is needed in the case of a call from the main dopesheet. */
+    if (ale->type != ANIMTYPE_GPLAYER) {
+      continue;
+    }
+
     ListBase copied_frames = {NULL, NULL};
     bGPDlayer *gpl = (bGPDlayer *)ale->data;
 
@@ -354,19 +371,13 @@ bool ED_gpencil_anim_copybuf_copy(bAnimContext *ac)
   }
 
   /* in case 'relative' paste method is used */
-  gpencil_anim_copy_cfra = CFRA;
+  gpencil_anim_copy_cfra = scene->r.cfra;
 
   /* clean up */
   ANIM_animdata_freelist(&anim_data);
 
-  /* check if anything ended up in the buffer */
-  if (ELEM(NULL, gpencil_anim_copybuf.first, gpencil_anim_copybuf.last)) {
-    BKE_report(ac->reports, RPT_ERROR, "No keyframes copied to keyframes copy/paste buffer");
-    return false;
-  }
-
   /* report success */
-  return true;
+  return !BLI_listbase_is_empty(&gpencil_anim_copybuf);
 }
 
 bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
@@ -381,7 +392,6 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 
   /* check if buffer is empty */
   if (BLI_listbase_is_empty(&gpencil_anim_copybuf)) {
-    BKE_report(ac->reports, RPT_ERROR, "No data in buffer to paste");
     return false;
   }
 
@@ -393,13 +403,13 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
   /* methods of offset (eKeyPasteOffset) */
   switch (offset_mode) {
     case KEYFRAME_PASTE_OFFSET_CFRA_START:
-      offset = (CFRA - gpencil_anim_copy_firstframe);
+      offset = (scene->r.cfra - gpencil_anim_copy_firstframe);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_END:
-      offset = (CFRA - gpencil_anim_copy_lastframe);
+      offset = (scene->r.cfra - gpencil_anim_copy_lastframe);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE:
-      offset = (CFRA - gpencil_anim_copy_cfra);
+      offset = (scene->r.cfra - gpencil_anim_copy_cfra);
       break;
     case KEYFRAME_PASTE_OFFSET_NONE:
       offset = 0;
@@ -414,6 +424,11 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 
   /* from selected channels */
   for (ale = anim_data.first; ale; ale = ale->next) {
+    /* only deal with GPlayers (case of calls from general dopesheet) */
+    if (ale->type != ANIMTYPE_GPLAYER) {
+      continue;
+    }
+
     bGPDlayer *gpld = (bGPDlayer *)ale->data;
     bGPDlayer *gpls = NULL;
     bGPDframe *gpfs, *gpf;
@@ -503,7 +518,7 @@ static bool gpencil_frame_snap_nearestsec(bGPDframe *gpf, Scene *scene)
 static bool gpencil_frame_snap_cframe(bGPDframe *gpf, Scene *scene)
 {
   if (gpf->flag & GP_FRAME_SELECT) {
-    gpf->framenum = (int)CFRA;
+    gpf->framenum = (int)scene->r.cfra;
   }
   return false;
 }
@@ -545,8 +560,8 @@ static bool gpencil_frame_mirror_cframe(bGPDframe *gpf, Scene *scene)
   int diff;
 
   if (gpf->flag & GP_FRAME_SELECT) {
-    diff = CFRA - gpf->framenum;
-    gpf->framenum = CFRA + diff;
+    diff = scene->r.cfra - gpf->framenum;
+    gpf->framenum = scene->r.cfra + diff;
   }
 
   return false;

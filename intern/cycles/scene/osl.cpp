@@ -92,7 +92,7 @@ void OSLShaderManager::device_update_specific(Device *device,
     }
   });
 
-  VLOG(1) << "Total " << scene->shaders.size() << " shaders.";
+  VLOG_INFO << "Total " << scene->shaders.size() << " shaders.";
 
   device_free(device, dscene, scene);
 
@@ -240,7 +240,7 @@ void OSLShaderManager::shading_system_init()
     ss_shared->attribute("searchpath:shader", shader_path);
     ss_shared->attribute("greedyjit", 1);
 
-    VLOG(1) << "Using shader search path: " << shader_path;
+    VLOG_INFO << "Using shader search path: " << shader_path;
 
     /* our own ray types */
     static const char *raytypes[] = {

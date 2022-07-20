@@ -412,6 +412,11 @@ struct GeometrySet {
   static GeometrySet create_with_mesh(
       Mesh *mesh, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
   /**
+   * Create a new geometry set that only contains the given volume.
+   */
+  static GeometrySet create_with_volume(
+      Volume *volume, GeometryOwnershipType ownership = GeometryOwnershipType::Owned);
+  /**
    * Create a new geometry set that only contains the given point cloud.
    */
   static GeometrySet create_with_pointcloud(

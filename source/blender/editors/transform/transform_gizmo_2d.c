@@ -247,7 +247,7 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
     Editing *ed = SEQ_editing_get(scene);
     ListBase *seqbase = SEQ_active_seqbase_get(ed);
     ListBase *channels = SEQ_channels_displayed_get(ed);
-    SeqCollection *strips = SEQ_query_rendered_strips(channels, seqbase, scene->r.cfra, 0);
+    SeqCollection *strips = SEQ_query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
     SEQ_filter_selected_strips(strips);
     int selected_strips = SEQ_collection_len(strips);
     if (selected_strips > 0) {
@@ -299,7 +299,7 @@ static int gizmo2d_calc_transform_orientation(const bContext *C)
   Editing *ed = SEQ_editing_get(scene);
   ListBase *seqbase = SEQ_active_seqbase_get(ed);
   ListBase *channels = SEQ_channels_displayed_get(ed);
-  SeqCollection *strips = SEQ_query_rendered_strips(channels, seqbase, scene->r.cfra, 0);
+  SeqCollection *strips = SEQ_query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   SEQ_filter_selected_strips(strips);
 
   bool use_local_orient = SEQ_collection_len(strips) == 1;
@@ -322,7 +322,7 @@ static float gizmo2d_calc_rotation(const bContext *C)
   Editing *ed = SEQ_editing_get(scene);
   ListBase *seqbase = SEQ_active_seqbase_get(ed);
   ListBase *channels = SEQ_channels_displayed_get(ed);
-  SeqCollection *strips = SEQ_query_rendered_strips(channels, seqbase, scene->r.cfra, 0);
+  SeqCollection *strips = SEQ_query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   SEQ_filter_selected_strips(strips);
 
   if (SEQ_collection_len(strips) == 1) {
@@ -348,7 +348,7 @@ static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
   Editing *ed = SEQ_editing_get(scene);
   ListBase *seqbase = SEQ_active_seqbase_get(ed);
   ListBase *channels = SEQ_channels_displayed_get(ed);
-  SeqCollection *strips = SEQ_query_rendered_strips(channels, seqbase, scene->r.cfra, 0);
+  SeqCollection *strips = SEQ_query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   SEQ_filter_selected_strips(strips);
   bool has_select = SEQ_collection_len(strips) != 0;
 
@@ -387,7 +387,8 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
       Editing *ed = SEQ_editing_get(scene);
       ListBase *seqbase = SEQ_active_seqbase_get(ed);
       ListBase *channels = SEQ_channels_displayed_get(ed);
-      SeqCollection *strips = SEQ_query_rendered_strips(channels, seqbase, scene->r.cfra, 0);
+      SeqCollection *strips = SEQ_query_rendered_strips(
+          scene, channels, seqbase, scene->r.cfra, 0);
       SEQ_filter_selected_strips(strips);
       has_select = SEQ_collection_len(strips) != 0;
       SEQ_collection_free(strips);

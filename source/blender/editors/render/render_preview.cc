@@ -805,7 +805,7 @@ static Scene *object_preview_scene_create(const struct ObjectPreviewData *previe
   Scene *scene = BKE_scene_add(preview_data->pr_main, "Object preview scene");
   /* Preview need to be in the current frame to get a thumbnail similar of what
    * viewport displays. */
-  CFRA = preview_data->cfra;
+  scene->r.cfra = preview_data->cfra;
 
   ViewLayer *view_layer = static_cast<ViewLayer *>(scene->view_layers.first);
   Depsgraph *depsgraph = DEG_graph_new(

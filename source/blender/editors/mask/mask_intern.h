@@ -86,9 +86,6 @@ void ED_mask_select_flush_all(struct Mask *mask);
 
 /* mask_editor.c */
 
-bool ED_maskedit_poll(struct bContext *C);
-bool ED_maskedit_mask_poll(struct bContext *C);
-
 /* Generalized solution for preserving editor viewport when making changes while lock-to-selection
  * is enabled.
  * Any mask operator can use this API, without worrying that some editors do not have an idea of

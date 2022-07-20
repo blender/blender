@@ -128,7 +128,9 @@ Vector<IndexRange> IndexMask::extract_ranges_invert(const IndexRange full_range,
 
 }  // namespace blender
 
-namespace blender::index_mask_ops::detail {
+namespace blender::index_mask_ops {
+
+namespace detail {
 
 IndexMask find_indices_based_on_predicate__merge(
     IndexMask indices_to_check,
@@ -193,4 +195,47 @@ IndexMask find_indices_based_on_predicate__merge(
   return r_indices.as_span();
 }
 
-}  // namespace blender::index_mask_ops::detail
+}  // namespace detail
+
+IndexMask find_indices_from_virtual_array(const IndexMask indices_to_check,
+                                          const VArray<bool> &virtual_array,
+                                          const int64_t parallel_grain_size,
+                                          Vector<int64_t> &r_indices)
+{
+  if (virtual_array.is_single()) {
+    return virtual_array.get_internal_single() ? indices_to_check : IndexMask(0);
+  }
+  if (virtual_array.is_span()) {
+    const Span<bool> span = virtual_array.get_internal_span();
+    return find_indices_based_on_predicate(
+        indices_to_check, 4096, r_indices, [&](const int64_t i) { return span[i]; });
+  }
+
+  threading::EnumerableThreadSpecific<Vector<bool>> materialize_buffers;
+  threading::EnumerableThreadSpecific<Vector<Vector<int64_t>>> sub_masks;
+
+  threading::parallel_for(
+      indices_to_check.index_range(), parallel_grain_size, [&](const IndexRange range) {
+        const IndexMask sliced_mask = indices_to_check.slice(range);
+
+        /* To avoid virtual function call overhead from accessing the virtual array,
+         * materialize the necessary indices for this chunk into a reused buffer. */
+        Vector<bool> &buffer = materialize_buffers.local();
+        buffer.reinitialize(sliced_mask.size());
+        virtual_array.materialize_compressed(sliced_mask, buffer);
+
+        Vector<int64_t> masked_indices;
+        sliced_mask.to_best_mask_type([&](auto best_mask) {
+          for (const int64_t i : IndexRange(best_mask.size())) {
+            if (buffer[i]) {
+              masked_indices.append(best_mask[i]);
+            }
+          }
+        });
+        sub_masks.local().append(std::move(masked_indices));
+      });
+
+  return detail::find_indices_based_on_predicate__merge(indices_to_check, sub_masks, r_indices);
+}
+
+}  // namespace blender::index_mask_ops

@@ -21,6 +21,7 @@
 #include "WM_types.h"
 
 #include "ED_clip.h" /* frame remapping functions */
+#include "ED_mask.h"
 #include "ED_screen.h"
 
 #include "mask_intern.h" /* own include */
@@ -61,7 +62,7 @@ void MASK_OT_parent_clear(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = mask_parent_clear_exec;
 
-  ot->poll = ED_maskedit_mask_poll;
+  ot->poll = ED_maskedit_mask_visible_splines_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

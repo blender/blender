@@ -134,18 +134,10 @@ void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 
 unsigned int vpaint_get_current_color(struct Scene *scene, struct VPaint *vp, bool secondary);
 
-/* paint_vertex_color_utils.c */
-
 /**
  * \note weight-paint has an equivalent function: #ED_wpaint_blend_tool
  */
 unsigned int ED_vpaint_blend_tool(int tool, uint col, uint paintcol, int alpha_i);
-/**
- * Apply callback to each vertex of the active vertex color layer.
- */
-bool ED_vpaint_color_transform(struct Object *ob,
-                               VPaintTransform_Callback vpaint_tx_fn,
-                               const void *user_data);
 
 /* paint_vertex_weight_utils.c */
 

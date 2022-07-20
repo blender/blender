@@ -247,7 +247,7 @@ typedef struct SculptThreadedTaskData {
   float (*mat)[4];
   float (*vertCos)[3];
 
-  /* When true, the displacement stored in the proxies will be aplied to the original coordinates
+  /* When true, the displacement stored in the proxies will be applied to the original coordinates
    * instead of to the current coordinates. */
   bool use_proxies_orco;
 
@@ -858,7 +858,7 @@ void SCULPT_geometry_preview_lines_update(bContext *C, struct SculptSession *ss,
 
 void SCULPT_stroke_modifiers_check(const bContext *C, Object *ob, const Brush *brush);
 float SCULPT_raycast_init(struct ViewContext *vc,
-                          const float mouse[2],
+                          const float mval[2],
                           float ray_start[3],
                           float ray_end[3],
                           float ray_normal[3],
@@ -1029,7 +1029,10 @@ void SCULPT_face_sets_visibility_all_set(SculptSession *ss, bool visible);
  * Initialize a #SculptOrigVertData for accessing original vertex data;
  * handles #BMesh, #Mesh, and multi-resolution.
  */
-void SCULPT_orig_vert_data_init(SculptOrigVertData *data, Object *ob, PBVHNode *node);
+void SCULPT_orig_vert_data_init(SculptOrigVertData *data,
+                                Object *ob,
+                                PBVHNode *node,
+                                SculptUndoType type);
 /**
  * Update a #SculptOrigVertData for a particular vertex from the PBVH iterator.
  */
@@ -1467,7 +1470,7 @@ void SCULPT_cache_free(StrokeCache *cache);
  * \{ */
 
 SculptUndoNode *SCULPT_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
-SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node);
+SculptUndoNode *SCULPT_undo_get_node(PBVHNode *node, SculptUndoType type);
 SculptUndoNode *SCULPT_undo_get_first_node(void);
 
 /**
@@ -1802,7 +1805,10 @@ void SCULPT_OT_brush_stroke(struct wmOperatorType *ot);
 
 /* end sculpt_ops.c */
 
-#define SCULPT_TOOL_NEEDS_COLOR(tool) ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR)
+BLI_INLINE bool SCULPT_tool_is_paint(int tool)
+{
+  return ELEM(tool, SCULPT_TOOL_PAINT, SCULPT_TOOL_SMEAR);
+}
 
 #ifdef __cplusplus
 }

@@ -1013,7 +1013,7 @@ static void gpencil_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
         gpl = CTX_data_active_gpencil_layer(C);
       }
       bGPDframe *gpf = BKE_gpencil_layer_frame_get(
-          gpl, CFRA, IS_AUTOKEY_ON(scene) ? GP_GETFRAME_ADD_NEW : GP_GETFRAME_USE_PREV);
+          gpl, scene->r.cfra, IS_AUTOKEY_ON(scene) ? GP_GETFRAME_ADD_NEW : GP_GETFRAME_USE_PREV);
       if (gpf == NULL) {
         continue;
       }
@@ -1161,6 +1161,7 @@ static bool gpencil_sculpt_brush_init(bContext *C, wmOperator *op)
 
   gso->is_painting = false;
   gso->first = true;
+  gso->mval_prev[0] = -1.0f;
 
   gso->gpd = ED_gpencil_data_get_active(C);
   gso->cfra = INT_MAX; /* NOTE: So that first stroke will get handled in init_stroke() */
@@ -1335,7 +1336,7 @@ static void gpencil_sculpt_brush_init_stroke(bContext *C, tGP_BrushEditData *gso
   bGPdata *gpd = gso->gpd;
 
   Scene *scene = gso->scene;
-  int cfra = CFRA;
+  int cfra = scene->r.cfra;
 
   /* only try to add a new frame if this is the first stroke, or the frame has changed */
   if ((gpd == NULL) || (cfra == gso->cfra)) {
@@ -1442,6 +1443,7 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
   char tool = gso->brush->gpencil_sculpt_tool;
   const int radius = (brush->flag & GP_BRUSH_USE_PRESSURE) ? gso->brush->size * gso->pressure :
                                                              gso->brush->size;
+  const bool is_masking = GPENCIL_ANY_SCULPT_MASK(gso->mask);
 
   bGPDstroke *gps_active = (gps->runtime.gps_orig) ? gps->runtime.gps_orig : gps;
   bGPDspoint *pt_active = NULL;
@@ -1459,7 +1461,7 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
   if (gps->totpoints == 1) {
     bGPDspoint pt_temp;
     pt = &gps->points[0];
-    if (GPENCIL_ANY_SCULPT_MASK(gso->mask) && (pt->flag & GP_SPOINT_SELECT) != 0) {
+    if ((is_masking && (pt->flag & GP_SPOINT_SELECT) != 0) || (!is_masking)) {
       gpencil_point_to_parent_space(gps->points, diff_mat, &pt_temp);
       gpencil_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
 
@@ -1618,7 +1620,8 @@ static bool gpencil_sculpt_brush_do_frame(bContext *C,
     }
 
     /* Check if the stroke collide with brush. */
-    if (!ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, bound_mat)) {
+    if ((gps->totpoints > 1) &&
+        (!ED_gpencil_stroke_check_collision(gsc, gps, gso->mval, radius, bound_mat))) {
       continue;
     }
 
@@ -1982,7 +1985,7 @@ static void gpencil_sculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *
   }
 
   /* Store coordinates as reference, if operator just started running */
-  if (gso->first) {
+  if (gso->mval_prev[0] == -1.0f) {
     gso->mval_prev[0] = gso->mval[0];
     gso->mval_prev[1] = gso->mval[1];
     gso->pressure_prev = gso->pressure;

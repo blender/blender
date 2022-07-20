@@ -2,6 +2,8 @@
 
 #include "BLI_math_matrix.h"
 
+#include "BKE_geometry_set_instances.hh"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 

@@ -16,6 +16,12 @@
 extern "C" {
 #endif
 
+struct Curves;
+struct GPUVertBuf;
+struct GPUIndexBuf;
+struct GPUBatch;
+struct GPUTexture;
+
 #define MAX_THICKRES 2    /* see eHairType */
 #define MAX_HAIR_SUBDIV 4 /* see hair_subdiv rna */
 
@@ -24,11 +30,6 @@ typedef enum CurvesEvalShader {
   CURVES_EVAL_BEZIER = 1,
 } CurvesEvalShader;
 #define CURVES_EVAL_SHADER_NUM 3
-
-struct GPUVertBuf;
-struct GPUIndexBuf;
-struct GPUBatch;
-struct GPUTexture;
 
 typedef struct CurvesEvalFinalCache {
   /* Output of the subdivision stage: vertex buffer sized to subdiv level. */
@@ -95,7 +96,7 @@ typedef struct CurvesEvalCache {
 /**
  * Ensure all necessary textures and buffers exist for GPU accelerated drawing.
  */
-bool curves_ensure_procedural_data(struct Object *object,
+bool curves_ensure_procedural_data(struct Curves *curves,
                                    struct CurvesEvalCache **r_hair_cache,
                                    struct GPUMaterial *gpu_material,
                                    int subdiv,

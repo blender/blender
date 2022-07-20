@@ -35,20 +35,6 @@ CCL_NAMESPACE_BEGIN
 
 #define kernel_assert(cond) assert(cond)
 
-/* Texture types to be compatible with CUDA textures. These are really just
- * simple arrays and after inlining fetch hopefully revert to being a simple
- * pointer lookup. */
-template<typename T> struct texture {
-  ccl_always_inline const T &fetch(int index) const
-  {
-    kernel_assert(index >= 0 && index < width);
-    return data[index];
-  }
-
-  T *data;
-  int width;
-};
-
 /* Macros to handle different memory storage on different devices */
 
 #ifdef __KERNEL_SSE2__

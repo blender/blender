@@ -109,14 +109,18 @@ void foreach_curve_by_type(const VArray<int8_t> &types,
                            FunctionRef<void(IndexMask)> bezier_fn,
                            FunctionRef<void(IndexMask)> nurbs_fn)
 {
-  Vector<int64_t> catmull_rom;
-  Vector<int64_t> poly;
-  Vector<int64_t> bezier;
-  Vector<int64_t> nurbs;
-  catmull_rom_fn(indices_for_type(types, counts, CURVE_TYPE_CATMULL_ROM, selection, catmull_rom));
-  poly_fn(indices_for_type(types, counts, CURVE_TYPE_POLY, selection, poly));
-  bezier_fn(indices_for_type(types, counts, CURVE_TYPE_BEZIER, selection, bezier));
-  nurbs_fn(indices_for_type(types, counts, CURVE_TYPE_NURBS, selection, nurbs));
+  Vector<int64_t> indices;
+  auto call_if_not_empty = [&](const CurveType type, FunctionRef<void(IndexMask)> fn) {
+    indices.clear();
+    const IndexMask mask = indices_for_type(types, counts, type, selection, indices);
+    if (!mask.is_empty()) {
+      fn(mask);
+    }
+  };
+  call_if_not_empty(CURVE_TYPE_CATMULL_ROM, catmull_rom_fn);
+  call_if_not_empty(CURVE_TYPE_POLY, poly_fn);
+  call_if_not_empty(CURVE_TYPE_BEZIER, bezier_fn);
+  call_if_not_empty(CURVE_TYPE_NURBS, nurbs_fn);
 }
 
 }  // namespace blender::bke::curves

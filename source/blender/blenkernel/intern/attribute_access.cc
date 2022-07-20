@@ -155,10 +155,9 @@ GMutableSpan OutputAttribute::as_span()
 {
   if (!optional_span_varray_) {
     const bool materialize_old_values = !ignore_old_values_;
-    optional_span_varray_ = std::make_unique<GVMutableArray_GSpan>(varray_,
-                                                                   materialize_old_values);
+    optional_span_varray_ = std::make_unique<GMutableVArraySpan>(varray_, materialize_old_values);
   }
-  GVMutableArray_GSpan &span_varray = *optional_span_varray_;
+  GMutableVArraySpan &span_varray = *optional_span_varray_;
   return span_varray;
 }
 
@@ -375,27 +374,24 @@ bool BuiltinCustomDataLayerProvider::try_delete(GeometryComponent &component) co
   }
 
   const int domain_num = component.attribute_domain_num(domain_);
-  int layer_index;
   if (stored_as_named_attribute_) {
-    for (const int i : IndexRange(custom_data->totlayer)) {
-      if (custom_data_layer_matches_attribute_id(custom_data->layers[i], name_)) {
-        layer_index = i;
-        break;
+    if (CustomData_free_layer_named(custom_data, name_.c_str(), domain_num)) {
+      if (custom_data_access_.update_custom_data_pointers) {
+        custom_data_access_.update_custom_data_pointers(component);
       }
+      return true;
     }
-  }
-  else {
-    layer_index = CustomData_get_layer_index(custom_data, stored_type_);
+    return false;
   }
 
-  const bool delete_success = CustomData_free_layer(
-      custom_data, stored_type_, domain_num, layer_index);
-  if (delete_success) {
+  const int layer_index = CustomData_get_layer_index(custom_data, stored_type_);
+  if (CustomData_free_layer(custom_data, stored_type_, domain_num, layer_index)) {
     if (custom_data_access_.update_custom_data_pointers) {
       custom_data_access_.update_custom_data_pointers(component);
     }
+    return true;
   }
-  return delete_success;
+  return false;
 }
 
 bool BuiltinCustomDataLayerProvider::try_create(GeometryComponent &component,

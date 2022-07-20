@@ -2329,6 +2329,7 @@ bool CustomData_merge(const CustomData *source,
 
 void CustomData_realloc(CustomData *data, int totelem)
 {
+  BLI_assert(totelem >= 0);
   for (int i = 0; i < data->totlayer; i++) {
     CustomDataLayer *layer = &data->layers[i];
     const LayerTypeInfo *typeInfo;

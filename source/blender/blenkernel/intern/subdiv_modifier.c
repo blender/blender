@@ -44,15 +44,14 @@ bool BKE_subsurf_modifier_runtime_init(SubsurfModifierData *smd, const bool use_
 
     return false;
   }
-  else {
-    /* Allocate runtime data if it did not exist yet. */
-    if (runtime_data == NULL) {
-      runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
-      smd->modifier.runtime = runtime_data;
-    }
-    runtime_data->settings = settings;
-    return true;
+
+  /* Allocate runtime data if it did not exist yet. */
+  if (runtime_data == NULL) {
+    runtime_data = MEM_callocN(sizeof(*runtime_data), "subsurf runtime");
+    smd->modifier.runtime = runtime_data;
   }
+  runtime_data->settings = settings;
+  return true;
 }
 
 static ModifierData *modifier_get_last_enabled_for_mode(const Scene *scene,

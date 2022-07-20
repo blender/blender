@@ -34,17 +34,19 @@ void ShadingView::init()
   // mb_.init();
 }
 
-void ShadingView::sync(int2 render_extent_)
+void ShadingView::sync()
 {
+  int2 render_extent = inst_.film.render_extent_get();
+
   if (false /* inst_.camera.is_panoramic() */) {
-    int64_t render_pixel_count = render_extent_.x * (int64_t)render_extent_.y;
+    int64_t render_pixel_count = render_extent.x * (int64_t)render_extent.y;
     /* Divide pixel count between the 6 views. Rendering to a square target. */
     extent_[0] = extent_[1] = ceilf(sqrtf(1 + (render_pixel_count / 6)));
     /* TODO(@fclem): Clip unused views here. */
     is_enabled_ = true;
   }
   else {
-    extent_ = render_extent_;
+    extent_ = render_extent;
     /* Only enable -Z view. */
     is_enabled_ = (StringRefNull(name_) == "negZ_view");
   }
@@ -54,31 +56,23 @@ void ShadingView::sync(int2 render_extent_)
   }
 
   /* Create views. */
-  // const CameraData &data = inst_.camera.data_get();
+  const CameraData &cam = inst_.camera.data_get();
 
   float4x4 viewmat, winmat;
   const float(*viewmat_p)[4] = viewmat.ptr(), (*winmat_p)[4] = winmat.ptr();
-#if 0
   if (false /* inst_.camera.is_panoramic() */) {
     /* TODO(@fclem) Over-scans. */
     /* For now a mandatory 5% over-scan for DoF. */
-    float side = data.clip_near * 1.05f;
-    float near = data.clip_near;
-    float far = data.clip_far;
+    float side = cam.clip_near * 1.05f;
+    float near = cam.clip_near;
+    float far = cam.clip_far;
     perspective_m4(winmat.ptr(), -side, side, -side, side, near, far);
-    viewmat = face_matrix_ * data.viewmat;
+    viewmat = face_matrix_ * cam.viewmat;
   }
   else {
-    viewmat_p = data.viewmat.ptr();
-    winmat_p = data.winmat.ptr();
+    viewmat_p = cam.viewmat.ptr();
+    winmat_p = cam.winmat.ptr();
   }
-#else
-  /* TEMP */
-  UNUSED_VARS(face_matrix_);
-  const DRWView *default_view = DRW_view_default_get();
-  DRW_view_winmat_get(default_view, winmat.ptr(), false);
-  DRW_view_viewmat_get(default_view, viewmat.ptr(), false);
-#endif
 
   main_view_ = DRW_view_create(viewmat_p, winmat_p, nullptr, nullptr, nullptr);
   sub_view_ = DRW_view_create_sub(main_view_, viewmat_p, winmat_p);
@@ -93,7 +87,6 @@ void ShadingView::sync(int2 render_extent_)
   // inst_.hiz_front.view_sync(extent_);
   // inst_.gbuffer.view_sync(extent_);
 
-  combined_tx_.sync();
   postfx_tx_.sync();
 }
 
@@ -108,22 +101,18 @@ void ShadingView::render()
    * With this, we can reuse the same texture across views. */
   DrawEngineType *owner = (DrawEngineType *)name_;
 
-  DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-
-  depth_tx_.ensure_2d(GPU_DEPTH24_STENCIL8, extent_);
-  combined_tx_.acquire(extent_, GPU_RGBA16F, owner);
+  RenderBuffers &rbufs = inst_.render_buffers;
+  rbufs.acquire(extent_, owner);
   velocity_.acquire(extent_);
-  // combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx_), GPU_ATTACHMENT_TEXTURE(combined_tx_));
-  // prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(depth_tx_),
-  //                    GPU_ATTACHMENT_TEXTURE(velocity_.view_vectors_get()));
-  combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(dtxl->depth), GPU_ATTACHMENT_TEXTURE(dtxl->color));
-  prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+  combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
+                      GPU_ATTACHMENT_TEXTURE(rbufs.combined_tx));
+  prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
                      GPU_ATTACHMENT_TEXTURE(velocity_.view_vectors_get()));
 
   update_view();
 
   DRW_stats_group_start(name_);
-  // DRW_view_set_active(render_view_);
+  DRW_view_set_active(render_view_);
 
   float4 clear_velocity(VELOCITY_INVALID);
   GPU_framebuffer_bind(prepass_fb_);
@@ -142,31 +131,22 @@ void ShadingView::render()
 
   // inst_.lookdev.render_overlay(view_fb_);
 
-  inst_.pipelines.forward.render(render_view_, prepass_fb_, combined_fb_, depth_tx_, combined_tx_);
+  inst_.pipelines.forward.render(
+      render_view_, prepass_fb_, combined_fb_, rbufs.depth_tx, rbufs.combined_tx);
 
   // inst_.lights.debug_draw(view_fb_);
   // inst_.shadows.debug_draw(view_fb_);
 
-  // velocity_.resolve(depth_tx_);
-  velocity_.resolve(dtxl->depth);
-
-  // if (inst_.render_passes.vector) {
-  //   inst_.render_passes.vector->accumulate(velocity_.camera_vectors_get(), sub_view_);
-  // }
+  velocity_.resolve(rbufs.depth_tx);
 
   // GPUTexture *final_radiance_tx = render_post(combined_tx_);
 
-  // if (inst_.render_passes.combined) {
-  //   inst_.render_passes.combined->accumulate(final_radiance_tx, sub_view_);
-  // }
+  inst_.film.accumulate(sub_view_);
 
-  // if (inst_.render_passes.depth) {
-  //   inst_.render_passes.depth->accumulate(depth_tx_, sub_view_);
-  // }
+  rbufs.release();
 
   DRW_stats_group_end();
 
-  combined_tx_.release();
   postfx_tx_.release();
   velocity_.release();
 }
@@ -197,11 +177,15 @@ void ShadingView::update_view()
   DRW_view_viewmat_get(main_view_, viewmat.ptr(), false);
   DRW_view_winmat_get(main_view_, winmat.ptr(), false);
 
-  /* Anti-Aliasing / Super-Sampling jitter. */
-  // float jitter_u = 2.0f * (inst_.sampling.rng_get(SAMPLING_FILTER_U) - 0.5f) / extent_[0];
-  // float jitter_v = 2.0f * (inst_.sampling.rng_get(SAMPLING_FILTER_V) - 0.5f) / extent_[1];
+  /* TODO(fclem): Mixed-resolution rendering: We need to make sure we render with exactly the same
+   * distances between pixels to line up render samples and target pixels.
+   * So if the target resolution is not a multiple of the resolution divisor, we need to make the
+   * projection window bigger in the +X and +Y directions. */
 
-  // window_translate_m4(winmat.ptr(), winmat.ptr(), jitter_u, jitter_v);
+  /* Anti-Aliasing / Super-Sampling jitter. */
+  float2 jitter = inst_.film.pixel_jitter_get() / float2(extent_);
+
+  window_translate_m4(winmat.ptr(), winmat.ptr(), UNPACK2(jitter));
   DRW_view_update_sub(sub_view_, viewmat.ptr(), winmat.ptr());
 
   /* FIXME(fclem): The offset may be is noticeably large and the culling might make object pop

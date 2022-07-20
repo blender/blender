@@ -159,6 +159,11 @@ static void joined_armature_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data
     ChannelDriver *driver = fcu->driver;
     DriverVar *dvar;
 
+    /* Ensure that invalid drivers gets re-evaluated in case they become valid once the join
+     * operation is finished. */
+    fcu->flag &= ~FCURVE_DISABLED;
+    driver->flag &= ~DRIVER_FLAG_INVALID;
+
     /* Fix driver references to invalid ID's */
     for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
       /* only change the used targets, since the others will need fixing manually anyway */

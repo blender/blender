@@ -222,4 +222,47 @@ AttributeValueIndex::ValueType PointAttribute::DeduplicateFormattedValues(
 }
 #endif
 
+#ifdef DRACO_TRANSCODER_SUPPORTED
+void PointAttribute::RemoveUnusedValues() {
+  if (is_mapping_identity()) {
+    return;  // For identity mapping, all values are always used.
+  }
+  // For explicit mapping we need to check if any point is mapped to a value.
+  // If not we can delete the value.
+  IndexTypeVector<AttributeValueIndex, bool> is_value_used(size(), false);
+  int num_used_values = 0;
+  for (PointIndex pi(0); pi < indices_map_.size(); ++pi) {
+    const AttributeValueIndex avi = indices_map_[pi];
+    if (!is_value_used[avi]) {
+      is_value_used[avi] = true;
+      num_used_values++;
+    }
+  }
+  if (num_used_values == size()) {
+    return;  // All values are used.
+  }
+
+  // Remap the values and update the point to value mapping.
+  IndexTypeVector<AttributeValueIndex, AttributeValueIndex>
+      old_to_new_value_map(size(), kInvalidAttributeValueIndex);
+  AttributeValueIndex new_avi(0);
+  for (AttributeValueIndex avi(0); avi < size(); ++avi) {
+    if (!is_value_used[avi]) {
+      continue;
+    }
+    if (avi != new_avi) {
+      SetAttributeValue(new_avi, GetAddress(avi));
+    }
+    old_to_new_value_map[avi] = new_avi++;
+  }
+
+  // Remap all points to the new attribute values.
+  for (PointIndex pi(0); pi < indices_map_.size(); ++pi) {
+    indices_map_[pi] = old_to_new_value_map[indices_map_[pi]];
+  }
+
+  num_unique_entries_ = num_used_values;
+}
+#endif
+
 }  // namespace draco

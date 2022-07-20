@@ -78,6 +78,10 @@ ShaderModule::~ShaderModule()
 const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_type)
 {
   switch (shader_type) {
+    case FILM_FRAG:
+      return "eevee_film_frag";
+    case FILM_COMP:
+      return "eevee_film_comp";
     case VELOCITY_RESOLVE:
       return "eevee_velocity_resolve";
     /* To avoid compiler warning about missing case. */
@@ -161,7 +165,6 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
         }
       }
       info.vertex_inputs_.clear();
-      info.additional_info("draw_curves_infos");
       break;
     case MAT_GEOM_WORLD:
       /**

@@ -21,6 +21,7 @@
 #include "draco/attributes/geometry_indices.h"
 #include "draco/core/data_buffer.h"
 #include "draco/core/hash_utils.h"
+#include "draco/draco_features.h"
 
 namespace draco {
 
@@ -51,6 +52,16 @@ class GeometryAttribute {
     // predefined use case. Such attributes are often used for a shader specific
     // data.
     GENERIC,
+#ifdef DRACO_TRANSCODER_SUPPORTED
+    // TODO(ostava): Adding a new attribute would be bit-stream change for GLTF.
+    // Older decoders wouldn't know what to do with this attribute type. This
+    // should be open-sourced only when we are ready to increase our bit-stream
+    // version.
+    TANGENT,
+    MATERIAL,
+    JOINTS,
+    WEIGHTS,
+#endif
     // Total number of different attribute types.
     // Always keep behind all named attributes.
     NAMED_ATTRIBUTES_COUNT,
@@ -110,6 +121,9 @@ class GeometryAttribute {
   inline uint8_t *GetAddress(AttributeValueIndex att_index) {
     const int64_t byte_pos = GetBytePos(att_index);
     return buffer_->data() + byte_pos;
+  }
+  inline bool IsAddressValid(const uint8_t *address) const {
+    return ((buffer_->data() + buffer_->data_size()) > address);
   }
 
   // Fills out_data with the raw value of the requested attribute entry.
@@ -263,7 +277,35 @@ class GeometryAttribute {
 
     // Convert all components available in both the original and output formats.
     for (int i = 0; i < std::min(num_components_, out_num_components); ++i) {
+      if (!IsAddressValid(src_address)) {
+        return false;
+      }
       const T in_value = *reinterpret_cast<const T *>(src_address);
+
+      // Make sure the in_value fits within the range of values that OutT
+      // is able to represent. Perform the check only for integral types.
+      if (std::is_integral<T>::value && std::is_integral<OutT>::value) {
+#ifdef _MSC_VER
+#  pragma warning(push)
+#  pragma warning(disable:4804)
+#endif
+#if defined(__GNUC__) && !defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wbool-compare"
+#endif
+        static constexpr OutT kOutMin =
+            std::is_signed<T>::value ? std::numeric_limits<OutT>::lowest() : 0;
+        if (in_value < kOutMin || in_value > std::numeric_limits<OutT>::max()) {
+          return false;
+        }
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
+      }
+
       out_value[i] = static_cast<OutT>(in_value);
       // When converting integer to floating point, normalize the value if
       // necessary.

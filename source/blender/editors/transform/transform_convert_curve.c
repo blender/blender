@@ -418,7 +418,7 @@ void createTransCurveVerts(TransInfo *t)
 void recalcData_curve(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
-    applyProject(t);
+    applySnappingIndividual(t);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {

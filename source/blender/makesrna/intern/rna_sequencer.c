@@ -43,6 +43,7 @@
 #include "SEQ_prefetch.h"
 #include "SEQ_proxy.h"
 #include "SEQ_relations.h"
+#include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_sound.h"
 #include "SEQ_time.h"
@@ -291,7 +292,7 @@ static void do_sequence_frame_change_update(Scene *scene, Sequence *seq)
 {
   ListBase *seqbase = SEQ_get_seqbase_by_seq(scene, seq);
 
-  if (SEQ_transform_test_overlap(seqbase, seq)) {
+  if (SEQ_transform_test_overlap(scene, seqbase, seq)) {
     SEQ_transform_seqbase_shuffle(seqbase, seq, scene);
   }
 
@@ -311,17 +312,19 @@ static void rna_Sequence_frame_change_update(Main *UNUSED(bmain),
   do_sequence_frame_change_update(scene, (Sequence *)ptr->data);
 }
 
-static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
+static int rna_Sequence_frame_final_start_get(PointerRNA *ptr)
 {
-  Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
-
-  SEQ_transform_translate_sequence(scene, seq, value - seq->start);
-  do_sequence_frame_change_update(scene, seq);
-  SEQ_relations_invalidate_cache_composite(scene, seq);
+  return SEQ_time_left_handle_frame_get(scene, (Sequence *)ptr->data);
 }
 
-static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, int value)
+static int rna_Sequence_frame_final_end_get(PointerRNA *ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+  return SEQ_time_right_handle_frame_get(scene, (Sequence *)ptr->data);
+}
+
+static void rna_Sequence_start_frame_final_set(PointerRNA *ptr, float value)
 {
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
@@ -343,7 +346,17 @@ static void rna_Sequence_end_frame_final_set(PointerRNA *ptr, int value)
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
 
-static void rna_Sequence_frame_offset_start_set(PointerRNA *ptr, int value)
+static void rna_Sequence_start_frame_set(PointerRNA *ptr, int value)
+{
+  Sequence *seq = (Sequence *)ptr->data;
+  Scene *scene = (Scene *)ptr->owner_id;
+
+  SEQ_transform_translate_sequence(scene, seq, value - seq->start);
+  do_sequence_frame_change_update(scene, seq);
+  SEQ_relations_invalidate_cache_composite(scene, seq);
+}
+
+static void rna_Sequence_frame_offset_start_set(PointerRNA *ptr, float value)
 {
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
@@ -352,7 +365,7 @@ static void rna_Sequence_frame_offset_start_set(PointerRNA *ptr, int value)
   seq->startofs = value;
 }
 
-static void rna_Sequence_frame_offset_end_set(PointerRNA *ptr, int value)
+static void rna_Sequence_frame_offset_end_set(PointerRNA *ptr, float value)
 {
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
@@ -402,7 +415,7 @@ static void rna_Sequence_anim_startofs_final_range(
 }
 
 static void rna_Sequence_frame_offset_start_range(
-    PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
+    PointerRNA *ptr, float *min, float *max, float *UNUSED(softmin), float *UNUSED(softmax))
 {
   Sequence *seq = (Sequence *)ptr->data;
   *min = ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) ? 0 : INT_MIN;
@@ -410,7 +423,7 @@ static void rna_Sequence_frame_offset_start_range(
 }
 
 static void rna_Sequence_frame_offset_end_range(
-    PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
+    PointerRNA *ptr, float *min, float *max, float *UNUSED(softmin), float *UNUSED(softmax))
 {
   Sequence *seq = (Sequence *)ptr->data;
   *min = ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) ? 0 : INT_MIN;
@@ -422,7 +435,7 @@ static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
   Sequence *seq = (Sequence *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  SEQ_time_right_handle_frame_set(scene, seq, SEQ_time_left_handle_frame_get(seq) + value);
+  SEQ_time_right_handle_frame_set(scene, seq, SEQ_time_left_handle_frame_get(scene, seq) + value);
   do_sequence_frame_change_update(scene, seq);
   SEQ_relations_invalidate_cache_composite(scene, seq);
 }
@@ -430,7 +443,8 @@ static void rna_Sequence_frame_length_set(PointerRNA *ptr, int value)
 static int rna_Sequence_frame_length_get(PointerRNA *ptr)
 {
   Sequence *seq = (Sequence *)ptr->data;
-  return SEQ_time_right_handle_frame_get(seq) - SEQ_time_left_handle_frame_get(seq);
+  Scene *scene = (Scene *)ptr->owner_id;
+  return SEQ_time_right_handle_frame_get(scene, seq) - SEQ_time_left_handle_frame_get(scene, seq);
 }
 
 static int rna_Sequence_frame_editable(PointerRNA *ptr, const char **UNUSED(r_info))
@@ -450,7 +464,7 @@ static void rna_Sequence_channel_set(PointerRNA *ptr, int value)
   const int channel_delta = (value >= seq->machine) ? 1 : -1;
   seq->machine = value;
 
-  if (SEQ_transform_test_overlap(seqbase, seq)) {
+  if (SEQ_transform_test_overlap(scene, seqbase, seq)) {
     SEQ_transform_seqbase_shuffle_ex(seqbase, seq, scene, channel_delta);
   }
   SEQ_relations_invalidate_cache_composite(scene, seq);
@@ -804,7 +818,20 @@ static int rna_Sequence_proxy_filepath_length(PointerRNA *ptr)
 
 static void rna_Sequence_audio_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-  DEG_id_tag_update(ptr->owner_id, ID_RECALC_SEQUENCER_STRIPS);
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
+}
+
+static void rna_Sequence_speed_factor_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  SEQ_cache_cleanup(scene);
+  rna_Sequence_audio_update(bmain, scene, ptr);
+}
+
+static void rna_Sequence_speed_factor_set(PointerRNA *ptr, float value)
+{
+  Sequence *seq = (Sequence *)ptr->data;
+  Scene *scene = (Scene *)ptr->owner_id;
+  SEQ_time_speed_factor_set(scene, seq, value);
 }
 
 static void rna_Sequence_pan_range(
@@ -1105,6 +1132,26 @@ static void rna_SequenceEditor_overlay_frame_set(PointerRNA *ptr, int value)
   else {
     ed->overlay_frame_ofs = value;
   }
+}
+
+static void rna_SequenceEditor_display_stack(ID *id,
+                                             Editing *ed,
+                                             ReportList *reports,
+                                             Sequence *seqm)
+{
+  /* Check for non-meta sequence */
+  if (seqm != NULL && seqm->type != SEQ_TYPE_META && SEQ_exists_in_seqbase(seqm, &ed->seqbase)) {
+    BKE_report(reports, RPT_ERROR, "Sequence type must be 'META'");
+    return;
+  }
+
+  /* Get editing base of meta sequence */
+  Scene *scene = (Scene *)id;
+  SEQ_meta_stack_set(scene, seqm);
+  /* De-activate strip. This is to prevent strip from different timeline being drawn. */
+  SEQ_select_active_set(scene, NULL);
+
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }
 
 static bool modifier_seq_cmp_fn(Sequence *seq, void *arg_pt)
@@ -1938,11 +1985,12 @@ static void rna_def_sequence(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Length", "The length of the contents of this strip before the handles are applied");
 
-  prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
-  RNA_def_property_int_sdna(prop, NULL, "start");
+  prop = RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_float_sdna(prop, NULL, "start");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Start Frame", "X position where the strip begins");
-  RNA_def_property_int_funcs(
+  RNA_def_property_ui_range(prop, MINFRAME, MAXFRAME, 3, 0);
+  RNA_def_property_float_funcs(
       prop, NULL, "rna_Sequence_start_frame_set", NULL); /* overlap tests and calc_seq_disp */
   RNA_def_property_editable_func(prop, "rna_Sequence_frame_editable");
   RNA_def_property_update(
@@ -1950,6 +1998,9 @@ static void rna_def_sequence(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "frame_final_start", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "startdisp");
+  RNA_def_property_int_funcs(
+      prop, "rna_Sequence_frame_final_start_get", "rna_Sequence_start_frame_final_set", NULL);
+  RNA_def_property_editable_func(prop, "rna_Sequence_frame_editable");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop,
@@ -1957,35 +2008,36 @@ static void rna_def_sequence(BlenderRNA *brna)
       "Start frame displayed in the sequence editor after offsets are applied, setting this is "
       "equivalent to moving the handle, not the actual start frame");
   /* overlap tests and calc_seq_disp */
-  RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_start_frame_final_set", NULL);
-  RNA_def_property_editable_func(prop, "rna_Sequence_frame_editable");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
   prop = RNA_def_property(srna, "frame_final_end", PROP_INT, PROP_TIME);
   RNA_def_property_int_sdna(prop, NULL, "enddisp");
+  RNA_def_property_int_funcs(
+      prop, "rna_Sequence_frame_final_end_get", "rna_Sequence_end_frame_final_set", NULL);
+  RNA_def_property_editable_func(prop, "rna_Sequence_frame_editable");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "End Frame", "End frame displayed in the sequence editor after offsets are applied");
   /* overlap tests and calc_seq_disp */
-  RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_end_frame_final_set", NULL);
-  RNA_def_property_editable_func(prop, "rna_Sequence_frame_editable");
   RNA_def_property_update(
       prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_invalidate_preprocessed_update");
 
-  prop = RNA_def_property(srna, "frame_offset_start", PROP_INT, PROP_TIME);
-  RNA_def_property_int_sdna(prop, NULL, "startofs");
+  prop = RNA_def_property(srna, "frame_offset_start", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_float_sdna(prop, NULL, "startofs");
   //  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
   RNA_def_property_ui_text(prop, "Start Offset", "");
-  RNA_def_property_int_funcs(
+  RNA_def_property_ui_range(prop, MINFRAME, MAXFRAME, 3, 0);
+  RNA_def_property_float_funcs(
       prop, NULL, "rna_Sequence_frame_offset_start_set", "rna_Sequence_frame_offset_start_range");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
 
-  prop = RNA_def_property(srna, "frame_offset_end", PROP_INT, PROP_TIME);
-  RNA_def_property_int_sdna(prop, NULL, "endofs");
+  prop = RNA_def_property(srna, "frame_offset_end", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_float_sdna(prop, NULL, "endofs");
   //  RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* overlap tests */
   RNA_def_property_ui_text(prop, "End Offset", "");
-  RNA_def_property_int_funcs(
+  RNA_def_property_ui_range(prop, MINFRAME, MAXFRAME, 3, 0);
+  RNA_def_property_float_funcs(
       prop, NULL, "rna_Sequence_frame_offset_end_set", "rna_Sequence_frame_offset_end_range");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_frame_change_update");
 
@@ -2116,6 +2168,8 @@ static void rna_def_channel(BlenderRNA *brna)
 static void rna_def_editor(BlenderRNA *brna)
 {
   StructRNA *srna;
+  FunctionRNA *func;
+  PropertyRNA *parm;
   PropertyRNA *prop;
 
   static const EnumPropertyItem editing_storage_items[] = {
@@ -2259,6 +2313,28 @@ static void rna_def_editor(BlenderRNA *brna)
       "Prefetch Frames",
       "Render frames ahead of current frame in the background for faster playback");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
+
+  /* functions */
+
+  func = RNA_def_function(srna, "display_stack", "rna_SequenceEditor_display_stack");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  RNA_def_function_ui_description(func, "Display sequences stack");
+  parm = RNA_def_pointer(
+      func, "meta_sequence", "Sequence", "Meta Sequence", "Meta to display its stack");
+  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+}
+
+static void rna_def_speed_factor(StructRNA *srna)
+{
+  PropertyRNA *prop = RNA_def_property(srna, "speed_factor", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_sdna(prop, NULL, "speed_factor");
+  RNA_def_property_float_default(prop, 1.0f);
+  RNA_def_property_range(prop, 0.1f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 1.0f, 100.0f, 10.0, 3);
+  RNA_def_property_ui_text(prop, "Speed Factor", "Multiply playback speed");
+  RNA_def_property_float_funcs(
+      prop, NULL, "rna_Sequence_speed_factor_set", NULL); /* overlap test */
+  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_speed_factor_update");
 }
 
 static void rna_def_filter_video(StructRNA *srna)
@@ -2493,6 +2569,7 @@ static void rna_def_image(BlenderRNA *brna)
   rna_def_proxy(srna);
   rna_def_input(srna);
   rna_def_color_management(srna);
+  rna_def_speed_factor(srna);
 }
 
 static void rna_def_meta(BlenderRNA *brna)
@@ -2524,6 +2601,7 @@ static void rna_def_meta(BlenderRNA *brna)
   rna_def_filter_video(srna);
   rna_def_proxy(srna);
   rna_def_input(srna);
+  rna_def_speed_factor(srna);
 }
 
 static void rna_def_scene(BlenderRNA *brna)
@@ -2572,6 +2650,7 @@ static void rna_def_scene(BlenderRNA *brna)
   rna_def_proxy(srna);
   rna_def_input(srna);
   rna_def_movie_types(srna);
+  rna_def_speed_factor(srna);
 }
 
 static void rna_def_movie(BlenderRNA *brna)
@@ -2655,6 +2734,7 @@ static void rna_def_movie(BlenderRNA *brna)
   rna_def_input(srna);
   rna_def_color_management(srna);
   rna_def_movie_types(srna);
+  rna_def_speed_factor(srna);
 }
 
 static void rna_def_movieclip(BlenderRNA *brna)
@@ -2682,6 +2762,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
   rna_def_filter_video(srna);
   rna_def_input(srna);
   rna_def_movie_types(srna);
+  rna_def_speed_factor(srna);
 }
 
 static void rna_def_mask(BlenderRNA *brna)
@@ -2700,6 +2781,7 @@ static void rna_def_mask(BlenderRNA *brna)
 
   rna_def_filter_video(srna);
   rna_def_input(srna);
+  rna_def_speed_factor(srna);
 }
 
 static void rna_def_sound(BlenderRNA *brna)
@@ -2726,13 +2808,6 @@ static void rna_def_sound(BlenderRNA *brna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_audio_update");
 
-  prop = RNA_def_property(srna, "pitch", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "pitch");
-  RNA_def_property_range(prop, 0.1f, 10.0f);
-  RNA_def_property_ui_text(prop, "Pitch", "Playback pitch of the sound");
-  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_audio_update");
-
   prop = RNA_def_property(srna, "pan", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "pan");
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
@@ -2748,6 +2823,7 @@ static void rna_def_sound(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
 
   rna_def_input(srna);
+  rna_def_speed_factor(srna);
 }
 
 static void rna_def_effect(BlenderRNA *brna)

@@ -192,6 +192,10 @@ harvest(zstd/lib zstd/lib "*.a")
 if(UNIX AND NOT APPLE)
   harvest(libglu/lib mesa/lib "*.so*")
   harvest(mesa/lib64 mesa/lib "*.so*")
-endif()
+
+  harvest(dpcpp dpcpp "*")
+  harvest(igc dpcpp/lib/igc "*")
+  harvest(ocloc dpcpp/lib/ocloc "*")
+ endif()
 
 endif()

@@ -30,6 +30,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_timeit.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -132,7 +133,16 @@ struct ImportJobData {
   char error_code;
   bool was_canceled;
   bool import_ok;
+  timeit::TimePoint start_time;
 };
+
+static void report_job_duration(const ImportJobData *data)
+{
+  timeit::Nanoseconds duration = timeit::Clock::now() - data->start_time;
+  std::cout << "USD import of '" << data->filepath << "' took ";
+  timeit::print_duration(duration);
+  std::cout << '\n';
+}
 
 static void import_startjob(void *customdata, short *stop, short *do_update, float *progress)
 {
@@ -143,6 +153,7 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
   data->progress = progress;
   data->was_canceled = false;
   data->archive = nullptr;
+  data->start_time = timeit::Clock::now();
 
   WM_set_locked_interface(data->wm, true);
   G.is_break = false;
@@ -277,7 +288,6 @@ static void import_endjob(void *customdata)
     }
   }
   else if (data->archive) {
-    /* Add object to scene. */
     Base *base;
     LayerCollection *lc;
     ViewLayer *view_layer = data->view_layer;
@@ -286,20 +296,30 @@ static void import_endjob(void *customdata)
 
     lc = BKE_layer_collection_get_active(view_layer);
 
+    /* Add all objects to the collection (don't do sync for each object). */
+    BKE_layer_collection_resync_forbid();
     for (USDPrimReader *reader : data->archive->readers()) {
-
       if (!reader) {
         continue;
       }
-
       Object *ob = reader->object();
-
       if (!ob) {
         continue;
       }
-
       BKE_collection_object_add(data->bmain, lc->collection, ob);
+    }
 
+    /* Sync the collection, and do view layer operations. */
+    BKE_layer_collection_resync_allow();
+    BKE_main_collection_sync(data->bmain);
+    for (USDPrimReader *reader : data->archive->readers()) {
+      if (!reader) {
+        continue;
+      }
+      Object *ob = reader->object();
+      if (!ob) {
+        continue;
+      }
       base = BKE_view_layer_base_find(view_layer, ob);
       /* TODO: is setting active needed? */
       BKE_view_layer_base_select_and_set_active(view_layer, base);
@@ -328,6 +348,7 @@ static void import_endjob(void *customdata)
   }
 
   WM_main_add_notifier(NC_SCENE | ND_FRAME, data->scene);
+  report_job_duration(data);
 }
 
 static void import_freejob(void *user_data)

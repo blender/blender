@@ -100,7 +100,7 @@ class FieldAtIndex final : public GeometryFieldInput {
     FieldEvaluator index_evaluator{index_field_context, &mask};
     index_evaluator.add(index_field_);
     index_evaluator.evaluate();
-    const VArray<int> &indices = index_evaluator.get_evaluated<int>(0);
+    const VArray<int> indices = index_evaluator.get_evaluated<int>(0);
 
     GVArray output_array;
     attribute_math::convert_to_static_type(*type_, [&](auto dummy) {

@@ -982,10 +982,8 @@ void BlenderDisplayDriver::draw(const Params &params)
   gl_render_sync_ = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   glFlush();
 
-  if (VLOG_IS_ON(5)) {
-    VLOG(5) << "Number of textures: " << GLTexture::num_used;
-    VLOG(5) << "Number of PBOs: " << GLPixelBufferObject::num_used;
-  }
+  VLOG_DEVICE_STATS << "Display driver number of textures: " << GLTexture::num_used;
+  VLOG_DEVICE_STATS << "Display driver number of PBOs: " << GLPixelBufferObject::num_used;
 
   if (use_gl_context_) {
     gl_context_mutex_.unlock();

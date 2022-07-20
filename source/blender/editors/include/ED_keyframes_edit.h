@@ -229,6 +229,16 @@ typedef enum eKeyMergeMode {
   KEYFRAME_PASTE_MERGE_OVER_RANGE_ALL,
 } eKeyMergeMode;
 
+/* Possible errors occurring while pasting keys. */
+typedef enum eKeyPasteError {
+  /* No errors occurred */
+  KEYFRAME_PASTE_OK,
+  /* Nothing was copied */
+  KEYFRAME_PASTE_NOTHING_TO_PASTE,
+  /* No F-curves was selected to paste into*/
+  KEYFRAME_PASTE_NOWHERE_TO_PASTE
+} eKeyPasteError;
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -416,11 +426,11 @@ void sample_fcurve(struct FCurve *fcu);
 
 void ANIM_fcurves_copybuf_free(void);
 short copy_animedit_keys(struct bAnimContext *ac, ListBase *anim_data);
-short paste_animedit_keys(struct bAnimContext *ac,
-                          ListBase *anim_data,
-                          eKeyPasteOffset offset_mode,
-                          eKeyMergeMode merge_mode,
-                          bool flip);
+eKeyPasteError paste_animedit_keys(struct bAnimContext *ac,
+                                   ListBase *anim_data,
+                                   eKeyPasteOffset offset_mode,
+                                   eKeyMergeMode merge_mode,
+                                   bool flip);
 
 /* ************************************************ */
 

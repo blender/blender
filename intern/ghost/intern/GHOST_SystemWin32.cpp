@@ -580,7 +580,7 @@ GHOST_TKey GHOST_SystemWin32::hardKey(RAWINPUT const &raw,
   // extra handling of modifier keys: don't send repeats out from GHOST
   if (key >= GHOST_kKeyLeftShift && key <= GHOST_kKeyRightAlt) {
     bool changed = false;
-    GHOST_TModifierKeyMask modifier;
+    GHOST_TModifierKey modifier;
     switch (key) {
       case GHOST_kKeyLeftShift: {
         changed = (modifiers.get(GHOST_kModifierKeyLeftShift) != *r_keyDown);
@@ -864,7 +864,7 @@ GHOST_TKey GHOST_SystemWin32::convertKey(short vKey, short scanCode, short exten
 
 GHOST_EventButton *GHOST_SystemWin32::processButtonEvent(GHOST_TEventType type,
                                                          GHOST_WindowWin32 *window,
-                                                         GHOST_TButtonMask mask)
+                                                         GHOST_TButton mask)
 {
   GHOST_SystemWin32 *system = (GHOST_SystemWin32 *)getSystem();
 

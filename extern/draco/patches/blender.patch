@@ -1,0 +1,30 @@
+diff --git a/draco/src/draco/attributes/geometry_attribute.h b/draco/src/draco/attributes/geometry_attribute.h
+index fd478a4..c1c0148 100644
+--- a/draco/src/draco/attributes/geometry_attribute.h
++++ b/draco/src/draco/attributes/geometry_attribute.h
+@@ -285,11 +285,25 @@ class GeometryAttribute {
+       // Make sure the in_value fits within the range of values that OutT
+       // is able to represent. Perform the check only for integral types.
+       if (std::is_integral<T>::value && std::is_integral<OutT>::value) {
++#ifdef _MSC_VER
++#  pragma warning(push)
++#  pragma warning(disable:4804)
++#endif
++#if defined(__GNUC__) && !defined(__clang__)
++#  pragma GCC diagnostic push
++#  pragma GCC diagnostic ignored "-Wbool-compare"
++#endif
+         static constexpr OutT kOutMin =
+             std::is_signed<T>::value ? std::numeric_limits<OutT>::lowest() : 0;
+         if (in_value < kOutMin || in_value > std::numeric_limits<OutT>::max()) {
+           return false;
+         }
++#ifdef __GNUC__
++#  pragma GCC diagnostic pop
++#endif
++#ifdef _MSC_VER
++#  pragma warning(pop)
++#endif
+       }
+ 
+       out_value[i] = static_cast<OutT>(in_value);

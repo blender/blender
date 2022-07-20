@@ -154,8 +154,8 @@ static void set_position_in_component(GeometryComponent &component,
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
-  const VArray<float3> &positions_input = evaluator.get_evaluated<float3>(0);
-  const VArray<float3> &offsets_input = evaluator.get_evaluated<float3>(1);
+  const VArray<float3> positions_input = evaluator.get_evaluated<float3>(0);
+  const VArray<float3> offsets_input = evaluator.get_evaluated<float3>(1);
   set_computed_position_and_offset(component, positions_input, offsets_input, domain, selection);
 }
 

@@ -256,8 +256,8 @@ static void fluid_bake_sequence(FluidJob *job)
   frame = is_first_frame ? fds->cache_frame_start : (*pause_frame);
 
   /* Save orig frame and update scene frame. */
-  orig_frame = CFRA;
-  CFRA = frame;
+  orig_frame = scene->r.cfra;
+  scene->r.cfra = frame;
 
   /* Loop through selected frames. */
   for (; frame <= fds->cache_frame_end; frame++) {
@@ -280,7 +280,7 @@ static void fluid_bake_sequence(FluidJob *job)
       *(job->progress) = progress;
     }
 
-    CFRA = frame;
+    scene->r.cfra = frame;
 
     /* Update animation system. */
     ED_update_for_newframe(job->bmain, job->depsgraph);
@@ -293,7 +293,7 @@ static void fluid_bake_sequence(FluidJob *job)
   }
 
   /* Restore frame position that we were on before bake. */
-  CFRA = orig_frame;
+  scene->r.cfra = orig_frame;
 }
 
 static void fluid_bake_endjob(void *customdata)

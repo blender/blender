@@ -34,13 +34,6 @@
 #include "blf_internal.h"
 #include "blf_internal_types.h"
 
-/* Max number of font in memory.
- * Take care that now every font have a glyph cache per size/dpi,
- * so we don't need load the same font with different size, just
- * load one and call BLF_size.
- */
-#define BLF_MAX_FONT 16
-
 #define BLF_RESULT_CHECK_INIT(r_info) \
   if (r_info) { \
     memset(r_info, 0, sizeof(*(r_info))); \
@@ -48,7 +41,7 @@
   ((void)0)
 
 /* Font array. */
-static FontBLF *global_font[BLF_MAX_FONT] = {NULL};
+FontBLF *global_font[BLF_MAX_FONT] = {NULL};
 
 /* XXX: should these be made into global_font_'s too? */
 
@@ -132,6 +125,11 @@ bool BLF_has_glyph(int fontid, unsigned int unicode)
     return FT_Get_Char_Index(font->face, unicode) != FT_Err_Ok;
   }
   return false;
+}
+
+bool BLF_is_loaded(const char *name)
+{
+  return blf_search(name) >= 0;
 }
 
 int BLF_load(const char *name)
@@ -253,6 +251,20 @@ void BLF_unload_id(int fontid)
       global_font[fontid] = NULL;
     }
   }
+}
+
+void BLF_unload_all(void)
+{
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    FontBLF *font = global_font[i];
+    if (font) {
+      blf_font_free(font);
+      global_font[i] = NULL;
+    }
+  }
+  blf_mono_font = -1;
+  blf_mono_font_render = -1;
+  BLF_default_set(-1);
 }
 
 void BLF_enable(int fontid, int option)

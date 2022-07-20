@@ -451,8 +451,16 @@ class Vector {
    */
   int64_t append_and_get_index(const T &value)
   {
+    return this->append_and_get_index_as(value);
+  }
+  int64_t append_and_get_index(T &&value)
+  {
+    return this->append_and_get_index_as(std::move(value));
+  }
+  template<typename... ForwardValue> int64_t append_and_get_index_as(ForwardValue &&...value)
+  {
     const int64_t index = this->size();
-    this->append(value);
+    this->append_as(std::forward<ForwardValue>(value)...);
     return index;
   }
 

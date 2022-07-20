@@ -849,17 +849,6 @@ static void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
   Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
-/* Similar to #transform_shear_poll. */
-static bool transform_rotate_poll(bContext *C)
-{
-  if (!ED_operator_screenactive(C)) {
-    return false;
-  }
-
-  ScrArea *area = CTX_wm_area(C);
-  return area && !ELEM(area->spacetype, SPACE_ACTION);
-}
-
 static void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 {
   /* identifiers */
@@ -873,7 +862,7 @@ static void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
   ot->exec = transform_exec;
   ot->modal = transform_modal;
   ot->cancel = transform_cancel;
-  ot->poll = transform_rotate_poll;
+  ot->poll = ED_operator_screenactive;
   ot->poll_property = transform_poll_property;
 
   RNA_def_float_rotation(
@@ -938,7 +927,6 @@ static void TRANSFORM_OT_bend(struct wmOperatorType *ot)
   Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
-/* Similar to #transform_rotate_poll. */
 static bool transform_shear_poll(bContext *C)
 {
   if (!ED_operator_screenactive(C)) {

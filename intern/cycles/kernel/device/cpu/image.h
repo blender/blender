@@ -733,7 +733,7 @@ template<typename TexT, typename OutT = float4> struct NanoVDBInterpolator {
 
 ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, float y)
 {
-  const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
+  const TextureInfo &info = kernel_data_fetch(texture_info, id);
 
   if (UNLIKELY(!info.data)) {
     return zero_float4();
@@ -776,7 +776,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
                                              float3 P,
                                              InterpolationType interp)
 {
-  const TextureInfo &info = kernel_tex_fetch(__texture_info, id);
+  const TextureInfo &info = kernel_data_fetch(texture_info, id);
 
   if (UNLIKELY(!info.data)) {
     return zero_float4();

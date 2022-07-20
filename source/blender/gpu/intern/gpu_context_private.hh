@@ -63,6 +63,8 @@ class Context {
 
   virtual void activate() = 0;
   virtual void deactivate() = 0;
+  virtual void begin_frame() = 0;
+  virtual void end_frame() = 0;
 
   /* Will push all pending commands to the GPU. */
   virtual void flush() = 0;

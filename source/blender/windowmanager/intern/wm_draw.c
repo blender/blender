@@ -41,6 +41,7 @@
 #include "GPU_debug.h"
 #include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
 #include "GPU_state.h"
 #include "GPU_texture.h"
 #include "GPU_viewport.h"
@@ -158,9 +159,13 @@ static bool wm_software_cursor_needed_for_window(const wmWindow *win, struct Gra
   if (GHOST_GetCursorVisibility(win->ghostwin)) {
     /* NOTE: The value in `win->grabcursor` can't be used as it
      * doesn't always match GHOST's value in the case of tablet events. */
-    GHOST_GetCursorGrabState(
-        win->ghostwin, &grab_state->mode, &grab_state->wrap_axis, grab_state->bounds);
-    if (grab_state->mode == GHOST_kGrabWrap) {
+    bool use_software_cursor;
+    GHOST_GetCursorGrabState(win->ghostwin,
+                             &grab_state->mode,
+                             &grab_state->wrap_axis,
+                             grab_state->bounds,
+                             &use_software_cursor);
+    if (use_software_cursor) {
       return true;
     }
   }
@@ -189,27 +194,69 @@ static void wm_software_cursor_motion_clear(void)
   g_software_cursor.xy[1] = -1;
 }
 
-static void wm_software_cursor_draw(wmWindow *win, const struct GrabState *grab_state)
+static void wm_software_cursor_draw_bitmap(const int event_xy[2],
+                                           const GHOST_CursorBitmapRef *bitmap)
 {
-  int x = win->eventstate->xy[0];
-  int y = win->eventstate->xy[1];
+  GPU_blend(GPU_BLEND_ALPHA);
 
-  if (grab_state->wrap_axis & GHOST_kAxisX) {
-    const int min = grab_state->bounds[0];
-    const int max = grab_state->bounds[2];
-    if (min != max) {
-      x = mod_i(x - min, max - min) + min;
-    }
-  }
-  if (grab_state->wrap_axis & GHOST_kGrabAxisY) {
-    const int height = WM_window_pixels_y(win);
-    const int min = height - grab_state->bounds[1];
-    const int max = height - grab_state->bounds[3];
-    if (min != max) {
-      y = mod_i(y - max, min - max) + max;
-    }
-  }
+  float gl_matrix[4][4];
+  GPUTexture *texture = GPU_texture_create_2d(
+      "softeare_cursor", bitmap->data_size[0], bitmap->data_size[1], 1, GPU_RGBA8, NULL);
+  GPU_texture_update(texture, GPU_DATA_UBYTE, bitmap->data);
+  GPU_texture_filter_mode(texture, false);
 
+  GPU_matrix_push();
+
+  const int scale = (int)U.pixelsize;
+
+  unit_m4(gl_matrix);
+
+  gl_matrix[3][0] = event_xy[0] - (bitmap->hot_spot[0] * scale);
+  gl_matrix[3][1] = event_xy[1] - ((bitmap->data_size[1] - bitmap->hot_spot[1]) * scale);
+
+  gl_matrix[0][0] = bitmap->data_size[0] * scale;
+  gl_matrix[1][1] = bitmap->data_size[1] * scale;
+
+  GPU_matrix_mul(gl_matrix);
+
+  GPUVertFormat *imm_format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  uint texCoord = GPU_vertformat_attr_add(
+      imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  /* Use 3D image for correct display of planar tracked images. */
+  immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
+
+  immBindTexture("image", texture);
+  immUniform1f("alpha", 1.0f);
+
+  immBegin(GPU_PRIM_TRI_FAN, 4);
+
+  immAttr2f(texCoord, 0.0f, 1.0f);
+  immVertex3f(pos, 0.0f, 0.0f, 0.0f);
+
+  immAttr2f(texCoord, 1.0f, 1.0f);
+  immVertex3f(pos, 1.0f, 0.0f, 0.0f);
+
+  immAttr2f(texCoord, 1.0f, 0.0f);
+  immVertex3f(pos, 1.0f, 1.0f, 0.0f);
+
+  immAttr2f(texCoord, 0.0f, 0.0f);
+  immVertex3f(pos, 0.0f, 1.0f, 0.0f);
+
+  immEnd();
+
+  immUnbindProgram();
+
+  GPU_matrix_pop();
+  GPU_texture_unbind(texture);
+  GPU_texture_free(texture);
+
+  GPU_blend(GPU_BLEND_NONE);
+}
+
+static void wm_software_cursor_draw_crosshair(const int event_xy[2])
+{
   /* Draw a primitive cross-hair cursor.
    * NOTE: the `win->cursor` could be used for drawing although it's complicated as some cursors
    * are set by the operating-system, where the pixel information isn't easily available. */
@@ -222,17 +269,62 @@ static void wm_software_cursor_draw(wmWindow *win, const struct GrabState *grab_
   {
     const int ofs_line = (8 * unit);
     const int ofs_size = (2 * unit);
-    immRecti(pos, x - ofs_line, y - ofs_size, x + ofs_line, y + ofs_size);
-    immRecti(pos, x - ofs_size, y - ofs_line, x + ofs_size, y + ofs_line);
+    immRecti(pos,
+             event_xy[0] - ofs_line,
+             event_xy[1] - ofs_size,
+             event_xy[0] + ofs_line,
+             event_xy[1] + ofs_size);
+    immRecti(pos,
+             event_xy[0] - ofs_size,
+             event_xy[1] - ofs_line,
+             event_xy[0] + ofs_size,
+             event_xy[1] + ofs_line);
   }
   immUniformColor4f(0, 0, 0, 1);
   {
     const int ofs_line = (7 * unit);
     const int ofs_size = (1 * unit);
-    immRecti(pos, x - ofs_line, y - ofs_size, x + ofs_line, y + ofs_size);
-    immRecti(pos, x - ofs_size, y - ofs_line, x + ofs_size, y + ofs_line);
+    immRecti(pos,
+             event_xy[0] - ofs_line,
+             event_xy[1] - ofs_size,
+             event_xy[0] + ofs_line,
+             event_xy[1] + ofs_size);
+    immRecti(pos,
+             event_xy[0] - ofs_size,
+             event_xy[1] - ofs_line,
+             event_xy[0] + ofs_size,
+             event_xy[1] + ofs_line);
   }
   immUnbindProgram();
+}
+
+static void wm_software_cursor_draw(wmWindow *win, const struct GrabState *grab_state)
+{
+  int event_xy[2] = {UNPACK2(win->eventstate->xy)};
+
+  if (grab_state->wrap_axis & GHOST_kAxisX) {
+    const int min = grab_state->bounds[0];
+    const int max = grab_state->bounds[2];
+    if (min != max) {
+      event_xy[0] = mod_i(event_xy[0] - min, max - min) + min;
+    }
+  }
+  if (grab_state->wrap_axis & GHOST_kAxisY) {
+    const int height = WM_window_pixels_y(win);
+    const int min = height - grab_state->bounds[1];
+    const int max = height - grab_state->bounds[3];
+    if (min != max) {
+      event_xy[1] = mod_i(event_xy[1] - max, min - max) + max;
+    }
+  }
+
+  GHOST_CursorBitmapRef bitmap = {0};
+  if (GHOST_GetCursorBitmap(win->ghostwin, &bitmap) == GHOST_kSuccess) {
+    wm_software_cursor_draw_bitmap(event_xy, &bitmap);
+  }
+  else {
+    wm_software_cursor_draw_crosshair(event_xy);
+  }
 }
 
 /** \} */
@@ -1006,6 +1098,8 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 
 static void wm_draw_window(bContext *C, wmWindow *win)
 {
+  GPU_context_begin_frame(win->gpuctx);
+
   bScreen *screen = WM_window_get_active_screen(win);
   bool stereo = WM_stereo3d_enabled(win, false);
 
@@ -1075,6 +1169,8 @@ static void wm_draw_window(bContext *C, wmWindow *win)
   }
 
   screen->do_draw = false;
+
+  GPU_context_end_frame(win->gpuctx);
 }
 
 /**
@@ -1085,7 +1181,11 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
   wm_window_clear_drawable(CTX_wm_manager(C));
   wm_surface_make_drawable(surface);
 
+  GPU_context_begin_frame(surface->gpu_ctx);
+
   surface->draw(C);
+
+  GPU_context_end_frame(surface->gpu_ctx);
 
   /* Avoid interference with window drawable */
   wm_surface_clear_drawable();

@@ -77,9 +77,10 @@ void Camera::init()
 void Camera::sync()
 {
   const Object *camera_eval = inst_.camera_eval_object;
-  CameraData &data = data_.current();
 
-  data.filter_size = inst_.scene->r.gauss;
+  data_.swap();
+
+  CameraData &data = data_.current();
 
   if (inst_.drw_view) {
     DRW_view_viewmat_get(inst_.drw_view, data.viewmat.ptr(), false);
@@ -127,6 +128,10 @@ void Camera::sync()
     data.equirect_scale *= data.uv_scale;
 
     data.equirect_scale_inv = 1.0f / data.equirect_scale;
+#else
+    data.fisheye_fov = data.fisheye_lens = -1.0f;
+    data.equirect_bias = float2(0.0f);
+    data.equirect_scale = float2(0.0f);
 #endif
   }
   else if (inst_.drw_view) {
@@ -143,7 +148,7 @@ void Camera::sync()
 
   /* Detect changes in parameters. */
   if (data_.current() != data_.previous()) {
-    // inst_.sampling.reset();
+    inst_.sampling.reset();
   }
 }
 

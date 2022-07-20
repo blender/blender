@@ -2273,7 +2273,7 @@ Object *BKE_object_add(Main *bmain, ViewLayer *view_layer, int type, const char 
   LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
   BKE_collection_viewlayer_object_add(bmain, view_layer, layer_collection->collection, ob);
 
-  /* Note: There is no way to be sure that #BKE_collection_viewlayer_object_add will actually
+  /* NOTE: There is no way to be sure that #BKE_collection_viewlayer_object_add will actually
    * manage to find a valid collection in given `view_layer` to add the new object to. */
   Base *base = BKE_view_layer_base_find(view_layer, ob);
   if (base != nullptr) {
@@ -4318,7 +4318,7 @@ Mesh *BKE_object_get_evaluated_mesh(const Object *object)
   }
 
   if (object->data && GS(((const ID *)object->data)->name) == ID_ME) {
-    mesh = BKE_mesh_wrapper_ensure_subdivision(object, mesh);
+    mesh = BKE_mesh_wrapper_ensure_subdivision(mesh);
   }
 
   return mesh;

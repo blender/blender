@@ -44,8 +44,6 @@ bool RE_texture_evaluate(const struct MTex *mtex,
  * \param fact: Texture strength.
  * \param facg: Button strength value.
  */
-void texture_rgb_blend(
-    float in[3], const float tex[3], const float out[3], float fact, float facg, int blendtype);
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype);
 
 void RE_texture_rng_init(void);
@@ -89,7 +87,6 @@ typedef struct TexResult {
   float trgba[4];
   /* Is actually a boolean: When true -> use alpha, false -> set alpha to 1.0. */
   int talpha;
-  float *nor;
 } TexResult;
 
 /* This one uses nodes. */

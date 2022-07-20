@@ -30,18 +30,18 @@ class MTLStateManager : public StateManager {
  public:
   MTLStateManager(MTLContext *ctx);
 
-  void apply_state(void) override;
-  void force_state(void) override;
+  void apply_state() override;
+  void force_state() override;
 
   void issue_barrier(eGPUBarrier barrier_bits) override;
 
   void texture_bind(Texture *tex, eGPUSamplerState sampler, int unit) override;
   void texture_unbind(Texture *tex) override;
-  void texture_unbind_all(void) override;
+  void texture_unbind_all() override;
 
   void image_bind(Texture *tex, int unit) override;
   void image_unbind(Texture *tex) override;
-  void image_unbind_all(void) override;
+  void image_unbind_all() override;
 
   void texture_unpack_row_length_set(uint len) override;
 
@@ -62,10 +62,10 @@ class MTLStateManager : public StateManager {
   void set_mutable_state(const GPUStateMutable &state);
 
   /* METAL State utility functions. */
-  void mtl_state_init(void);
+  void mtl_state_init();
   void mtl_depth_range(float near, float far);
-  void mtl_stencil_mask(unsigned int mask);
-  void mtl_stencil_set_func(eGPUStencilTest stencil_func, int ref, unsigned int mask);
+  void mtl_stencil_mask(uint mask);
+  void mtl_stencil_set_func(eGPUStencilTest stencil_func, int ref, uint mask);
 
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLStateManager")
 };

@@ -1061,9 +1061,9 @@ static void change_frame_apply(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
 
   /* set the new frame number */
-  CFRA = RNA_int_get(op->ptr, "frame");
-  FRAMENUMBER_MIN_CLAMP(CFRA);
-  SUBFRA = 0.0f;
+  scene->r.cfra = RNA_int_get(op->ptr, "frame");
+  FRAMENUMBER_MIN_CLAMP(scene->r.cfra);
+  scene->r.subframe = 0.0f;
 
   /* do updates */
   DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
@@ -1084,7 +1084,7 @@ static int frame_from_event(bContext *C, const wmEvent *event)
   int framenr = 0;
 
   if (region->regiontype == RGN_TYPE_WINDOW) {
-    float sfra = SFRA, efra = EFRA, framelen = region->winx / (efra - sfra + 1);
+    float sfra = scene->r.sfra, efra = scene->r.efra, framelen = region->winx / (efra - sfra + 1);
 
     framenr = sfra + event->mval[0] / framelen;
   }
@@ -1399,7 +1399,7 @@ static void do_sequence_proxy(void *pjv,
   ProxyJob *pj = pjv;
   MovieClip *clip = pj->clip;
   Scene *scene = pj->scene;
-  int sfra = SFRA, efra = EFRA;
+  int sfra = scene->r.sfra, efra = scene->r.efra;
   ProxyThread *handles;
   int tot_thread = BLI_task_scheduler_num_threads();
   int width, height;

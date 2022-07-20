@@ -38,12 +38,12 @@ AbstractGridViewItem &AbstractGridView::add_item(std::unique_ptr<AbstractGridVie
 
 void AbstractGridView::foreach_item(ItemIterFn iter_fn) const
 {
-  for (auto &item_ptr : items_) {
+  for (const auto &item_ptr : items_) {
     iter_fn(*item_ptr);
   }
 }
 
-bool AbstractGridView::listen(const wmNotifier &) const
+bool AbstractGridView::listen(const wmNotifier & /*notifier*/) const
 {
   /* Nothing by default. */
   return false;
@@ -243,17 +243,17 @@ class BuildOnlyVisibleButtonsHelper {
   IndexRange visible_items_range_{};
 
  public:
-  BuildOnlyVisibleButtonsHelper(const View2D &,
+  BuildOnlyVisibleButtonsHelper(const View2D &v2d,
                                 const AbstractGridView &grid_view,
                                 int cols_per_row);
 
   bool is_item_visible(int item_idx) const;
-  void fill_layout_before_visible(uiBlock &) const;
-  void fill_layout_after_visible(uiBlock &) const;
+  void fill_layout_before_visible(uiBlock &block) const;
+  void fill_layout_after_visible(uiBlock &block) const;
 
  private:
   IndexRange get_visible_range() const;
-  void add_spacer_button(uiBlock &, int row_count) const;
+  void add_spacer_button(uiBlock &block, int row_count) const;
 };
 
 BuildOnlyVisibleButtonsHelper::BuildOnlyVisibleButtonsHelper(const View2D &v2d,

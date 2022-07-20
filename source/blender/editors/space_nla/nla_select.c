@@ -455,10 +455,10 @@ static void nlaedit_select_leftright(bContext *C,
   /* get range, and get the right flag-setting mode */
   if (leftright == NLAEDIT_LRSEL_LEFT) {
     xmin = MINAFRAMEF;
-    xmax = (float)(CFRA + 0.1f);
+    xmax = (float)(scene->r.cfra + 0.1f);
   }
   else {
-    xmin = (float)(CFRA - 0.1f);
+    xmin = (float)(scene->r.cfra - 0.1f);
     xmax = MAXFRAMEF;
   }
 
@@ -540,7 +540,7 @@ static int nlaedit_select_leftright_invoke(bContext *C, wmOperator *op, const wm
 
     /* determine which side of the current frame mouse is on */
     x = UI_view2d_region_to_view_x(v2d, event->mval[0]);
-    if (x < CFRA) {
+    if (x < scene->r.cfra) {
       RNA_enum_set(op->ptr, "mode", NLAEDIT_LRSEL_LEFT);
     }
     else {

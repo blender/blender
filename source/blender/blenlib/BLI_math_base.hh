@@ -44,6 +44,16 @@ template<typename T> inline T max(const T &a, const T &b)
   return std::max(a, b);
 }
 
+template<typename T> inline void max_inplace(T &a, const T &b)
+{
+  a = math::max(a, b);
+}
+
+template<typename T> inline void min_inplace(T &a, const T &b)
+{
+  a = math::min(a, b);
+}
+
 template<typename T> inline T clamp(const T &a, const T &min, const T &max)
 {
   return std::clamp(a, min, max);

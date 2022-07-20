@@ -115,7 +115,7 @@ ccl_device_forceinline void mnee_update_light_sample(KernelGlobals kg,
 {
   /* correct light sample position/direction and pdf
    * NOTE: preserve pdf in area measure */
-  const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, ls->lamp);
+  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, ls->lamp);
 
   if (ls->type == LIGHT_POINT || ls->type == LIGHT_SPOT) {
     ls->D = normalize_len(ls->P - P, &ls->t);
@@ -154,12 +154,12 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
                                                        ccl_private const Intersection *isect,
                                                        ccl_private ShaderData *sd_vtx)
 {
-  sd_vtx->object = (isect->object == OBJECT_NONE) ? kernel_tex_fetch(__prim_object, isect->prim) :
+  sd_vtx->object = (isect->object == OBJECT_NONE) ? kernel_data_fetch(prim_object, isect->prim) :
                                                     isect->object;
 
   sd_vtx->type = isect->type;
   sd_vtx->flag = 0;
-  sd_vtx->object_flag = kernel_tex_fetch(__object_flag, sd_vtx->object);
+  sd_vtx->object_flag = kernel_data_fetch(object_flag, sd_vtx->object);
 
   /* Matrices and time. */
   shader_setup_object_transforms(kg, sd_vtx, ray->time);
@@ -171,7 +171,7 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
   sd_vtx->u = isect->u;
   sd_vtx->v = isect->v;
 
-  sd_vtx->shader = kernel_tex_fetch(__tri_shader, sd_vtx->prim);
+  sd_vtx->shader = kernel_data_fetch(tri_shader, sd_vtx->prim);
 
   float3 verts[3];
   float3 normals[3];
@@ -509,7 +509,7 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
           break;
 
         int hit_object = (projection_isect.object == OBJECT_NONE) ?
-                             kernel_tex_fetch(__prim_object, projection_isect.prim) :
+                             kernel_data_fetch(prim_object, projection_isect.prim) :
                              projection_isect.object;
 
         if (hit_object == mv.object) {
@@ -830,7 +830,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, bounce) = bounce + vertex_count;
 
   float3 light_eval = light_sample_shader_eval(kg, state, sd_mnee, ls, sd->time);
-  bsdf_eval_mul3(throughput, light_eval / ls->pdf);
+  bsdf_eval_mul(throughput, light_eval / ls->pdf);
 
   /* Generalized geometry term. */
 
@@ -870,7 +870,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
     probe_ray.D = normalize_len(v.p - probe_ray.P, &probe_ray.t);
     if (scene_intersect(kg, &probe_ray, PATH_RAY_TRANSMIT, &probe_isect)) {
       int hit_object = (probe_isect.object == OBJECT_NONE) ?
-                           kernel_tex_fetch(__prim_object, probe_isect.prim) :
+                           kernel_data_fetch(prim_object, probe_isect.prim) :
                            probe_isect.object;
       /* Test whether the ray hit the appropriate object at its intended location. */
       if (hit_object != v.object || fabsf(probe_ray.t - probe_isect.t) > MNEE_MIN_DISTANCE)
@@ -918,7 +918,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
      * divided by corresponding sampled pdf:
      * fr(vi)_do / pdf_dh(vi) x |do/dh| x |n.wo / n.h| */
     float3 bsdf_contribution = mnee_eval_bsdf_contribution(v.bsdf, wi, wo);
-    bsdf_eval_mul3(throughput, bsdf_contribution);
+    bsdf_eval_mul(throughput, bsdf_contribution);
   }
 
   /* Restore original state path bounce info. */

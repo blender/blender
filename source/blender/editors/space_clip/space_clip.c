@@ -515,6 +515,9 @@ static void clip_operatortypes(void)
   WM_operatortype_append(CLIP_OT_keyframe_insert);
   WM_operatortype_append(CLIP_OT_keyframe_delete);
 
+  WM_operatortype_append(CLIP_OT_new_image_from_plane_marker);
+  WM_operatortype_append(CLIP_OT_update_image_from_plane_marker);
+
   /* ** clip_graph_ops.c  ** */
 
   /* graph editing */
@@ -860,6 +863,7 @@ static void clip_main_region_draw(const bContext *C, ARegion *region)
                           sc->mask_info.draw_flag,
                           sc->mask_info.draw_type,
                           sc->mask_info.overlay_mode,
+                          sc->mask_info.blend_factor,
                           mask_width,
                           mask_height,
                           aspx,

@@ -80,7 +80,7 @@ ccl_device_inline
       while (node_addr >= 0 && node_addr != ENTRYPOINT_SENTINEL) {
         int node_addr_child1, traverse_mask;
         float dist[2];
-        float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
+        float4 cnodes = kernel_data_fetch(bvh_nodes, node_addr + 0);
 
         traverse_mask = NODE_INTERSECT(kg,
                                        P,
@@ -124,7 +124,7 @@ ccl_device_inline
 
       /* if node is leaf, fetch triangle list */
       if (node_addr < 0) {
-        float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-node_addr - 1));
+        float4 leaf = kernel_data_fetch(bvh_leaf_nodes, (-node_addr - 1));
         int prim_addr = __float_as_int(leaf.x);
 
         if (prim_addr >= 0) {
@@ -137,7 +137,7 @@ ccl_device_inline
 
           /* primitive intersection */
           for (; prim_addr < prim_addr2; prim_addr++) {
-            kernel_assert((kernel_tex_fetch(__prim_type, prim_addr) & PRIMITIVE_ALL) ==
+            kernel_assert((kernel_data_fetch(prim_type, prim_addr) & PRIMITIVE_ALL) ==
                           (type & PRIMITIVE_ALL));
             bool hit;
 
@@ -147,9 +147,9 @@ ccl_device_inline
             Intersection isect ccl_optional_struct_init;
 
             const int prim_object = (object == OBJECT_NONE) ?
-                                        kernel_tex_fetch(__prim_object, prim_addr) :
+                                        kernel_data_fetch(prim_object, prim_addr) :
                                         object;
-            const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+            const int prim = kernel_data_fetch(prim_index, prim_addr);
             if (intersection_skip_self_shadow(ray->self, prim_object, prim)) {
               continue;
             }
@@ -181,14 +181,14 @@ ccl_device_inline
               case PRIMITIVE_CURVE_RIBBON:
               case PRIMITIVE_MOTION_CURVE_RIBBON: {
                 if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
-                  const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
+                  const float2 prim_time = kernel_data_fetch(prim_time, prim_addr);
                   if (ray->time < prim_time.x || ray->time > prim_time.y) {
                     hit = false;
                     break;
                   }
                 }
 
-                const int curve_type = kernel_tex_fetch(__prim_type, prim_addr);
+                const int curve_type = kernel_data_fetch(prim_type, prim_addr);
                 hit = curve_intersect(
                     kg, &isect, P, dir, t_max_current, prim_object, prim, ray->time, curve_type);
 
@@ -199,14 +199,14 @@ ccl_device_inline
               case PRIMITIVE_POINT:
               case PRIMITIVE_MOTION_POINT: {
                 if ((type & PRIMITIVE_MOTION) && kernel_data.bvh.use_bvh_steps) {
-                  const float2 prim_time = kernel_tex_fetch(__prim_time, prim_addr);
+                  const float2 prim_time = kernel_data_fetch(prim_time, prim_addr);
                   if (ray->time < prim_time.x || ray->time > prim_time.y) {
                     hit = false;
                     break;
                   }
                 }
 
-                const int point_type = kernel_tex_fetch(__prim_type, prim_addr);
+                const int point_type = kernel_data_fetch(prim_type, prim_addr);
                 hit = point_intersect(
                     kg, &isect, P, dir, t_max_current, prim_object, prim, ray->time, point_type);
                 break;
@@ -291,7 +291,7 @@ ccl_device_inline
         }
         else {
           /* instance push */
-          object = kernel_tex_fetch(__prim_object, -prim_addr - 1);
+          object = kernel_data_fetch(prim_object, -prim_addr - 1);
 
 #if BVH_FEATURE(BVH_MOTION)
           t_world_to_instance = bvh_instance_motion_push(
@@ -307,7 +307,7 @@ ccl_device_inline
           kernel_assert(stack_ptr < BVH_STACK_SIZE);
           traversal_stack[stack_ptr] = ENTRYPOINT_SENTINEL;
 
-          node_addr = kernel_tex_fetch(__object_node, object);
+          node_addr = kernel_data_fetch(object_node, object);
         }
       }
     } while (node_addr != ENTRYPOINT_SENTINEL);

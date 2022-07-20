@@ -312,12 +312,12 @@ static void eevee_draw_scene(void *vedata)
     /* Volumetrics Resolve Opaque */
     EEVEE_volumes_resolve(sldata, vedata);
 
-    /* Renderpasses */
+    /* Render-passes. */
     EEVEE_renderpasses_output_accumulate(sldata, vedata, false);
 
     /* Transparent */
-    /* TODO(fclem): should be its own Frame-buffer.
-     * This is needed because dualsource blending only works with 1 color buffer. */
+    /* TODO(@fclem): should be its own Frame-buffer.
+     * This is needed because dual-source blending only works with 1 color buffer. */
     GPU_framebuffer_texture_attach(fbl->main_color_fb, dtxl->depth, 0, 0);
     GPU_framebuffer_bind(fbl->main_color_fb);
     DRW_draw_pass(psl->transparent_pass);
@@ -451,8 +451,8 @@ static void eevee_render_to_image(void *vedata,
   }
   EEVEE_PrivateData *g_data = ved->stl->g_data;
 
-  int initial_frame = CFRA;
-  float initial_subframe = SUBFRA;
+  int initial_frame = scene->r.cfra;
+  float initial_subframe = scene->r.subframe;
   float shuttertime = (do_motion_blur) ? scene->eevee.motion_blur_shutter : 0.0f;
   int time_steps_tot = (do_motion_blur) ? max_ii(1, scene->eevee.motion_blur_steps) : 1;
   g_data->render_timesteps = time_steps_tot;
@@ -588,7 +588,7 @@ static void eevee_render_to_image(void *vedata,
   /* Restore original viewport size. */
   DRW_render_viewport_size_set((int[2]){g_data->size_orig[0], g_data->size_orig[1]});
 
-  if (CFRA != initial_frame || SUBFRA != initial_subframe) {
+  if (scene->r.cfra != initial_frame || scene->r.subframe != initial_subframe) {
     /* Restore original frame number. This is because the render pipeline expects it. */
     RE_engine_frame_set(engine, initial_frame, initial_subframe);
   }

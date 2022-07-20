@@ -51,7 +51,7 @@ class PlanarFieldInput final : public GeometryFieldInput {
     fn::FieldEvaluator evaluator{context, mesh->totpoly};
     evaluator.add(threshold_);
     evaluator.evaluate();
-    const VArray<float> &thresholds = evaluator.get_evaluated<float>(0);
+    const VArray<float> thresholds = evaluator.get_evaluated<float>(0);
 
     Span<float3> poly_normals{(float3 *)BKE_mesh_poly_normals_ensure(mesh), mesh->totpoly};
 

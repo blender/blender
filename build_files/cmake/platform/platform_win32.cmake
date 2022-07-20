@@ -950,3 +950,6 @@ endif()
 
 set(ZSTD_INCLUDE_DIRS ${LIBDIR}/zstd/include)
 set(ZSTD_LIBRARIES ${LIBDIR}/zstd/lib/zstd_static.lib)
+
+set(LEVEL_ZERO_ROOT_DIR ${LIBDIR}/level_zero)
+set(SYCL_ROOT_DIR ${LIBDIR}/dpcpp)

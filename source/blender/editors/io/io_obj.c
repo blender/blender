@@ -208,11 +208,11 @@ static bool wm_obj_export_check(bContext *C, wmOperator *op)
     int end = RNA_int_get(op->ptr, "end_frame");
     /* Set the defaults. */
     if (start == INT_MIN) {
-      start = SFRA;
+      start = scene->r.sfra;
       changed = true;
     }
     if (end == INT_MAX) {
-      end = EFRA;
+      end = scene->r.efra;
       changed = true;
     }
     /* Fix user errors. */
@@ -266,7 +266,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
                   "Export multiple frames instead of the current frame only");
   RNA_def_int(ot->srna,
               "start_frame",
-              INT_MIN, /* wm_obj_export_check uses this to set SFRA. */
+              INT_MIN, /* wm_obj_export_check uses this to set scene->r.sfra. */
               INT_MIN,
               INT_MAX,
               "Start Frame",
@@ -275,7 +275,7 @@ void WM_OT_obj_export(struct wmOperatorType *ot)
               INT_MAX);
   RNA_def_int(ot->srna,
               "end_frame",
-              INT_MAX, /* wm_obj_export_check uses this to set EFRA. */
+              INT_MAX, /* wm_obj_export_check uses this to set scene->r.efra. */
               INT_MIN,
               INT_MAX,
               "End Frame",
@@ -392,6 +392,7 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
   import_params.forward_axis = RNA_enum_get(op->ptr, "forward_axis");
   import_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
+  import_params.import_vertex_groups = RNA_boolean_get(op->ptr, "import_vertex_groups");
   import_params.validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
 
   OBJ_import(C, &import_params);
@@ -422,6 +423,7 @@ static void ui_obj_import_settings(uiLayout *layout, PointerRNA *imfptr)
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Options"), ICON_EXPORT);
   col = uiLayoutColumn(box, false);
+  uiItemR(col, imfptr, "import_vertex_groups", 0, NULL, ICON_NONE);
   uiItemR(col, imfptr, "validate_meshes", 0, NULL, ICON_NONE);
 }
 
@@ -467,6 +469,11 @@ void WM_OT_obj_import(struct wmOperatorType *ot)
   RNA_def_enum(
       ot->srna, "forward_axis", io_transform_axis, IO_AXIS_NEGATIVE_Z, "Forward Axis", "");
   RNA_def_enum(ot->srna, "up_axis", io_transform_axis, IO_AXIS_Y, "Up Axis", "");
+  RNA_def_boolean(ot->srna,
+                  "import_vertex_groups",
+                  false,
+                  "Vertex Groups",
+                  "Import OBJ groups as vertex groups");
   RNA_def_boolean(ot->srna,
                   "validate_meshes",
                   false,

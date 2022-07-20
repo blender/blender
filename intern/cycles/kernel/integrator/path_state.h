@@ -250,7 +250,7 @@ ccl_device_inline float path_state_continuation_probability(KernelGlobals kg,
 
   /* Probabilistic termination: use sqrt() to roughly match typical view
    * transform and do path termination a bit later on average. */
-  return min(sqrtf(max3(fabs(INTEGRATOR_STATE(state, path, throughput)))), 1.0f);
+  return min(sqrtf(reduce_max(fabs(INTEGRATOR_STATE(state, path, throughput)))), 1.0f);
 }
 
 ccl_device_inline bool path_state_ao_bounce(KernelGlobals kg, ConstIntegratorState state)

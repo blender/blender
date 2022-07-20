@@ -152,7 +152,7 @@ void PathTraceWorkGPU::alloc_integrator_soa()
       total_soa_size += soa_memory->memory_size();
     }
 
-    VLOG(3) << "GPU SoA state size: " << string_human_readable_size(total_soa_size);
+    VLOG_DEVICE_STATS << "GPU SoA state size: " << string_human_readable_size(total_soa_size);
   }
 }
 
@@ -239,7 +239,7 @@ void PathTraceWorkGPU::init_execution()
 
   /* Copy to device side struct in constant memory. */
   device_->const_copy_to(
-      "__integrator_state", &integrator_state_gpu_, sizeof(integrator_state_gpu_));
+      "integrator_state", &integrator_state_gpu_, sizeof(integrator_state_gpu_));
 }
 
 void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
@@ -820,10 +820,10 @@ bool PathTraceWorkGPU::should_use_graphics_interop()
     interop_use_ = device->should_use_graphics_interop();
 
     if (interop_use_) {
-      VLOG(2) << "Using graphics interop GPU display update.";
+      VLOG_INFO << "Using graphics interop GPU display update.";
     }
     else {
-      VLOG(2) << "Using naive GPU display update.";
+      VLOG_INFO << "Using naive GPU display update.";
     }
 
     interop_use_checked_ = true;

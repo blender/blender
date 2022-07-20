@@ -659,7 +659,7 @@ void ShaderGraph::deduplicate_nodes()
   }
 
   if (num_deduplicated > 0) {
-    VLOG(1) << "Deduplicated " << num_deduplicated << " nodes.";
+    VLOG_DEBUG << "Deduplicated " << num_deduplicated << " nodes.";
   }
 }
 
@@ -700,7 +700,7 @@ void ShaderGraph::verify_volume_output()
     }
   }
   if (!has_valid_volume) {
-    VLOG(1) << "Disconnect meaningless volume output.";
+    VLOG_DEBUG << "Disconnect meaningless volume output.";
     disconnect(volume_in->link);
   }
 }

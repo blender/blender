@@ -407,43 +407,47 @@ void GeometryManager::update_osl_attributes(Device *device,
 
 /* Generate a normal attribute map entry from an attribute descriptor. */
 static void emit_attribute_map_entry(
-    uint4 *attr_map, int index, uint id, TypeDesc type, const AttributeDescriptor &desc)
+    AttributeMap *attr_map, int index, uint id, TypeDesc type, const AttributeDescriptor &desc)
 {
-  attr_map[index].x = id;
-  attr_map[index].y = desc.element;
-  attr_map[index].z = as_uint(desc.offset);
+  attr_map[index].id = id;
+  attr_map[index].element = desc.element;
+  attr_map[index].offset = as_uint(desc.offset);
 
   if (type == TypeDesc::TypeFloat)
-    attr_map[index].w = NODE_ATTR_FLOAT;
+    attr_map[index].type = NODE_ATTR_FLOAT;
   else if (type == TypeDesc::TypeMatrix)
-    attr_map[index].w = NODE_ATTR_MATRIX;
+    attr_map[index].type = NODE_ATTR_MATRIX;
   else if (type == TypeFloat2)
-    attr_map[index].w = NODE_ATTR_FLOAT2;
+    attr_map[index].type = NODE_ATTR_FLOAT2;
   else if (type == TypeFloat4)
-    attr_map[index].w = NODE_ATTR_FLOAT4;
+    attr_map[index].type = NODE_ATTR_FLOAT4;
   else if (type == TypeRGBA)
-    attr_map[index].w = NODE_ATTR_RGBA;
+    attr_map[index].type = NODE_ATTR_RGBA;
   else
-    attr_map[index].w = NODE_ATTR_FLOAT3;
+    attr_map[index].type = NODE_ATTR_FLOAT3;
 
-  attr_map[index].w |= desc.flags << 8;
+  attr_map[index].flags = desc.flags;
 }
 
 /* Generate an attribute map end marker, optionally including a link to another map.
  * Links are used to connect object attribute maps to mesh attribute maps. */
-static void emit_attribute_map_terminator(uint4 *attr_map, int index, bool chain, uint chain_link)
+static void emit_attribute_map_terminator(AttributeMap *attr_map,
+                                          int index,
+                                          bool chain,
+                                          uint chain_link)
 {
   for (int j = 0; j < ATTR_PRIM_TYPES; j++) {
-    attr_map[index + j].x = ATTR_STD_NONE;
-    attr_map[index + j].y = chain;                      /* link is valid flag */
-    attr_map[index + j].z = chain ? chain_link + j : 0; /* link to the correct sub-entry */
-    attr_map[index + j].w = 0;
+    attr_map[index + j].id = ATTR_STD_NONE;
+    attr_map[index + j].element = chain;                     /* link is valid flag */
+    attr_map[index + j].offset = chain ? chain_link + j : 0; /* link to the correct sub-entry */
+    attr_map[index + j].type = 0;
+    attr_map[index + j].flags = 0;
   }
 }
 
 /* Generate all necessary attribute map entries from the attribute request. */
 static void emit_attribute_mapping(
-    uint4 *attr_map, int index, Scene *scene, AttributeRequest &req, Geometry *geom)
+    AttributeMap *attr_map, int index, Scene *scene, AttributeRequest &req, Geometry *geom)
 {
   uint id;
 
@@ -501,8 +505,8 @@ void GeometryManager::update_svm_attributes(Device *,
   }
 
   /* create attribute map */
-  uint4 *attr_map = dscene->attributes_map.alloc(attr_map_size);
-  memset(attr_map, 0, dscene->attributes_map.size() * sizeof(uint));
+  AttributeMap *attr_map = dscene->attributes_map.alloc(attr_map_size);
+  memset(attr_map, 0, dscene->attributes_map.size() * sizeof(*attr_map));
 
   for (size_t i = 0; i < scene->geometry.size(); i++) {
     Geometry *geom = scene->geometry[i];
@@ -1288,7 +1292,7 @@ void GeometryManager::device_update_bvh(Device *device,
   bparams.bvh_type = scene->params.bvh_type;
   bparams.curve_subdivisions = scene->params.curve_subdivisions();
 
-  VLOG(1) << "Using " << bvh_layout_name(bparams.bvh_layout) << " layout.";
+  VLOG_INFO << "Using " << bvh_layout_name(bparams.bvh_layout) << " layout.";
 
   const bool can_refit = scene->bvh != nullptr &&
                          (bparams.bvh_layout == BVHLayout::BVH_LAYOUT_OPTIX ||
@@ -1799,7 +1803,7 @@ void GeometryManager::device_update(Device *device,
   if (!need_update())
     return;
 
-  VLOG(1) << "Total " << scene->geometry.size() << " meshes.";
+  VLOG_INFO << "Total " << scene->geometry.size() << " meshes.";
 
   bool true_displacement_used = false;
   bool curve_shadow_transparency_used = false;
@@ -1953,7 +1957,7 @@ void GeometryManager::device_update(Device *device,
 
   {
     /* Copy constant data needed by shader evaluation. */
-    device->const_copy_to("__data", &dscene->data, sizeof(dscene->data));
+    device->const_copy_to("data", &dscene->data, sizeof(dscene->data));
 
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
@@ -2038,7 +2042,7 @@ void GeometryManager::device_update(Device *device,
 
     TaskPool::Summary summary;
     pool.wait_work(&summary);
-    VLOG(2) << "Objects BVH build pool statistics:\n" << summary.full_report();
+    VLOG_WORK << "Objects BVH build pool statistics:\n" << summary.full_report();
   }
 
   foreach (Shader *shader, scene->shaders) {

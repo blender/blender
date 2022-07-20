@@ -70,27 +70,24 @@ void SEQ_seqbase_active_set(struct Editing *ed, struct ListBase *seqbase);
 struct Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type);
 void SEQ_sequence_free(struct Scene *scene, struct Sequence *seq);
 /**
- * Create and initialize #MetaStack, append it to `ed->metastack` ListBase
- *
- * \param ed: sequence editor data
- * \param seq_meta: meta strip
- * \return pointer to created meta stack
- */
-struct MetaStack *SEQ_meta_stack_alloc(struct Editing *ed, struct Sequence *seq_meta);
-/**
  * Get #MetaStack that corresponds to current level that is being viewed
  *
- * \param ed: sequence editor data
  * \return pointer to meta stack
  */
 struct MetaStack *SEQ_meta_stack_active_get(const struct Editing *ed);
 /**
- * Free #MetaStack and remove it from `ed->metastack` ListBase.
+ * Open Meta strip content for editing.
  *
  * \param ed: sequence editor data
- * \param ms: meta stack
+ * \param seqm: meta sequence or NULL for top level view
  */
-void SEQ_meta_stack_free(struct Editing *ed, struct MetaStack *ms);
+void SEQ_meta_stack_set(const struct Scene *scene, struct Sequence *dst_seq);
+/**
+ * Close last Meta strip open for editing.
+ *
+ * \param ed: sequence editor data
+ */
+struct Sequence *SEQ_meta_stack_pop(struct Editing *ed);
 struct Sequence *SEQ_sequence_dupli_recursive(const struct Scene *scene_src,
                                               struct Scene *scene_dst,
                                               struct ListBase *new_seq_list,

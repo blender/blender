@@ -112,7 +112,7 @@ static GPUVertFormat *get_edit_data_format()
 }
 
 static void extract_edit_data_init(const MeshRenderData *mr,
-                                   struct MeshBatchCache *UNUSED(cache),
+                                   MeshBatchCache *UNUSED(cache),
                                    void *buf,
                                    void *tls_data)
 {

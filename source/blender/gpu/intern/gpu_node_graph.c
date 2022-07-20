@@ -378,7 +378,7 @@ static GPUMaterialAttribute *gpu_node_graph_add_attribute(GPUNodeGraph *graph,
   }
 
   /* Add new requested attribute if it's within GPU limits. */
-  if (attr == NULL && num_attributes < GPU_MAX_ATTR) {
+  if (attr == NULL) {
     attr = MEM_callocN(sizeof(*attr), __func__);
     attr->type = type;
     STRNCPY(attr->name, name);

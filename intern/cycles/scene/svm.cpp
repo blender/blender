@@ -51,9 +51,9 @@ void SVMShaderManager::device_update_shader(Scene *scene,
   compiler.background = (shader == scene->background->get_shader(scene));
   compiler.compile(shader, *svm_nodes, 0, &summary);
 
-  VLOG(3) << "Compilation summary:\n"
-          << "Shader name: " << shader->name << "\n"
-          << summary.full_report();
+  VLOG_WORK << "Compilation summary:\n"
+            << "Shader name: " << shader->name << "\n"
+            << summary.full_report();
 }
 
 void SVMShaderManager::device_update_specific(Device *device,
@@ -72,7 +72,7 @@ void SVMShaderManager::device_update_specific(Device *device,
 
   const int num_shaders = scene->shaders.size();
 
-  VLOG(1) << "Total " << num_shaders << " shaders.";
+  VLOG_INFO << "Total " << num_shaders << " shaders.";
 
   double start_time = time_dt();
 
@@ -148,8 +148,8 @@ void SVMShaderManager::device_update_specific(Device *device,
 
   update_flags = UPDATE_NONE;
 
-  VLOG(1) << "Shader manager updated " << num_shaders << " shaders in " << time_dt() - start_time
-          << " seconds.";
+  VLOG_INFO << "Shader manager updated " << num_shaders << " shaders in " << time_dt() - start_time
+            << " seconds.";
 }
 
 void SVMShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *scene)

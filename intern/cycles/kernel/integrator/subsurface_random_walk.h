@@ -229,7 +229,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
    * Since the strength of the guided sampling increases as alpha gets lower, using a value that
    * is too low results in fireflies while one that's too high just gives a bit more noise.
    * Therefore, the code here uses the highest of the three albedos to be safe. */
-  const float diffusion_length = diffusion_length_dwivedi(max3(alpha));
+  const float diffusion_length = diffusion_length_dwivedi(reduce_max(alpha));
 
   if (diffusion_length == 1.0f) {
     /* With specific values of alpha the length might become 1, which in asymptotic makes phase to
@@ -370,7 +370,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
      * chance of connecting to it.
      * TODO: Maybe use less than 10 times the mean free path? */
     if (bounce == 0) {
-      ray.t = max(t, 10.0f / (min3(sigma_t)));
+      ray.t = max(t, 10.0f / (reduce_min(sigma_t)));
     }
     else {
       ray.t = t;
@@ -452,7 +452,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   }
 
   if (hit) {
-    kernel_assert(isfinite3_safe(throughput));
+    kernel_assert(isfinite_safe(throughput));
     INTEGRATOR_STATE_WRITE(state, path, throughput) = throughput;
   }
 

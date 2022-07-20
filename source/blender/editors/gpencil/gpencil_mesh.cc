@@ -283,7 +283,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
     }
 
     /* Move scene to new frame. */
-    CFRA = i;
+    scene->r.cfra = i;
     BKE_scene_graph_update_for_newframe(depsgraph);
 
     /* Loop all objects in the list. */
@@ -325,7 +325,7 @@ static int gpencil_bake_mesh_animation_exec(bContext *C, wmOperator *op)
   }
 
   /* Return scene frame state and DB to original state. */
-  CFRA = oldframe;
+  scene->r.cfra = oldframe;
   BKE_scene_graph_update_for_newframe(depsgraph);
 
   /* Remove unused materials. */

@@ -37,7 +37,7 @@ GPU_SHADER_CREATE_INFO(gpu_shader_3D_polyline_uniform_color)
 
 GPU_SHADER_CREATE_INFO(gpu_shader_3D_polyline_uniform_color_clipped)
     .do_static_compilation(true)
-    /* TODO(fclem): Put in an UBO to fit the 128byte requirement. */
+    /* TODO(fclem): Put in a UBO to fit the 128byte requirement. */
     .push_constant(Type::MAT4, "ModelMatrix")
     .push_constant(Type::VEC4, "ClipPlane")
     .define("CLIP")

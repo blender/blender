@@ -1294,7 +1294,7 @@ static void draw_viewport_name(ARegion *region, View3D *v3d, int xoffset, int *y
 static void draw_selected_name(
     Scene *scene, ViewLayer *view_layer, Object *ob, int xoffset, int *yoffset)
 {
-  const int cfra = CFRA;
+  const int cfra = scene->r.cfra;
   const char *msg_pin = " (Pinned)";
   const char *msg_sep = " : ";
 

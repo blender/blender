@@ -111,6 +111,12 @@ def use_optix(context):
     return (get_device_type(context) == 'OPTIX' and cscene.device == 'GPU')
 
 
+def use_oneapi(context):
+    cscene = context.scene.cycles
+
+    return (get_device_type(context) == 'ONEAPI' and cscene.device == 'GPU')
+
+
 def use_multi_device(context):
     cscene = context.scene.cycles
     if cscene.device != 'GPU':

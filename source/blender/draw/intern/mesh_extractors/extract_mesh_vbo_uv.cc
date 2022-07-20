@@ -19,7 +19,7 @@ namespace blender::draw {
 /* Initialize the vertex format to be used for UVs. Return true if any UV layer is
  * found, false otherwise. */
 static bool mesh_extract_uv_format_init(GPUVertFormat *format,
-                                        struct MeshBatchCache *cache,
+                                        MeshBatchCache *cache,
                                         CustomData *cd_ldata,
                                         eMRExtractType extract_type,
                                         uint32_t &r_uv_layers)
@@ -72,7 +72,7 @@ static bool mesh_extract_uv_format_init(GPUVertFormat *format,
 }
 
 static void extract_uv_init(const MeshRenderData *mr,
-                            struct MeshBatchCache *cache,
+                            MeshBatchCache *cache,
                             void *buf,
                             void *UNUSED(tls_data))
 {
@@ -120,7 +120,7 @@ static void extract_uv_init(const MeshRenderData *mr,
 
 static void extract_uv_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                    const MeshRenderData *UNUSED(mr),
-                                   struct MeshBatchCache *cache,
+                                   MeshBatchCache *cache,
                                    void *buffer,
                                    void *UNUSED(data))
 {

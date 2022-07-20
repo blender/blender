@@ -77,8 +77,8 @@ static bool interpolate_attribute_to_poly_curve(const bke::AttributeIDRef &attri
   static const Set<StringRef> no_interpolation{{
       "handle_type_left",
       "handle_type_right",
-      "handle_position_right",
-      "handle_position_left",
+      "handle_right",
+      "handle_left",
       "nurbs_weight",
   }};
   return !(attribute_id.is_named() && no_interpolation.contains(attribute_id.name()));
@@ -234,11 +234,10 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
     for (const int i_curve : sliced_selection) {
       const bool cyclic = curves_cyclic[i_curve];
       const IndexRange dst_points = dst_curves.points_for_curve(i_curve);
-      length_parameterize::create_uniform_samples(
-          src_curves.evaluated_lengths_for_curve(i_curve, cyclic),
-          curves_cyclic[i_curve],
-          sample_indices.as_mutable_span().slice(dst_points),
-          sample_factors.as_mutable_span().slice(dst_points));
+      length_parameterize::sample_uniform(src_curves.evaluated_lengths_for_curve(i_curve, cyclic),
+                                          !curves_cyclic[i_curve],
+                                          sample_indices.as_mutable_span().slice(dst_points),
+                                          sample_factors.as_mutable_span().slice(dst_points));
     }
 
     /* For every attribute, evaluate attributes from every curve in the range in the original

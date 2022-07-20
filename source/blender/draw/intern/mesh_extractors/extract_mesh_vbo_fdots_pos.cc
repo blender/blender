@@ -36,7 +36,7 @@ static GPUVertFormat *get_fdots_nor_format_subdiv()
 }
 
 static void extract_fdots_pos_init(const MeshRenderData *mr,
-                                   struct MeshBatchCache *UNUSED(cache),
+                                   MeshBatchCache *UNUSED(cache),
                                    void *buf,
                                    void *tls_data)
 {
@@ -101,7 +101,7 @@ static void extract_fdots_pos_iter_poly_mesh(const MeshRenderData *mr,
 
 static void extract_fdots_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                       const MeshRenderData *UNUSED(mr),
-                                      struct MeshBatchCache *cache,
+                                      MeshBatchCache *cache,
                                       void *buffer,
                                       void *UNUSED(data))
 {

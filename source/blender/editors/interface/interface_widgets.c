@@ -3707,8 +3707,11 @@ static void widget_treerow(uiBut *but,
   widget_treerow_exec(wcol, rect, state, roundboxalign, tree_row->indentation, zoom);
 }
 
-static void widget_gridtile(
-    uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, const float zoom)
+static void widget_gridtile(uiWidgetColors *wcol,
+                            rcti *rect,
+                            const uiWidgetStateInfo *state,
+                            int roundboxalign,
+                            const float zoom)
 {
   /* TODO Reuse tree-row drawing. */
   widget_treerow_exec(wcol, rect, state, roundboxalign, 0, zoom);

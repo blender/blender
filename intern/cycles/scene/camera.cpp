@@ -530,7 +530,7 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
                      if (object->get_geometry()->has_volume &&
                          viewplane_boundbox.intersects(object->bounds)) {
                        /* TODO(sergey): Consider adding more grained check. */
-                       VLOG(1) << "Detected camera inside volume.";
+                       VLOG_INFO << "Detected camera inside volume.";
                        kcam->is_inside_volume = 1;
                        parallel_for_cancel();
                        break;
@@ -539,7 +539,7 @@ void Camera::device_update_volume(Device * /*device*/, DeviceScene *dscene, Scen
                  });
 
     if (!kcam->is_inside_volume) {
-      VLOG(1) << "Camera is outside of the volume.";
+      VLOG_INFO << "Camera is outside of the volume.";
     }
   }
 

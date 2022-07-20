@@ -232,13 +232,14 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
   anim_map_flag |= ANIM_get_normalization_flags(&ac);
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* which side of the current frame should be allowed */
   /* XXX we still want this mode, but how to get this using standard transform too? */
   if (t->mode == TFM_TIME_EXTEND) {
-    t->frame_side = transform_convert_frame_side_dir_get(t, (float)CFRA);
+    t->frame_side = transform_convert_frame_side_dir_get(t, (float)scene->r.cfra);
   }
   else {
     /* normal transform - both sides of current frame are considered */
@@ -263,10 +264,10 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
      * higher scaling ratios, but is faster than converting all points)
      */
     if (adt) {
-      cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+      cfra = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
     }
     else {
-      cfra = (float)CFRA;
+      cfra = (float)scene->r.cfra;
     }
 
     for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
@@ -369,10 +370,10 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
      * higher scaling ratios, but is faster than converting all points)
      */
     if (adt) {
-      cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+      cfra = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
     }
     else {
-      cfra = (float)CFRA;
+      cfra = (float)scene->r.cfra;
     }
 
     unit_scale = ANIM_unit_mapping_get_factor(
@@ -560,10 +561,10 @@ void createTransGraphEditData(bContext *C, TransInfo *t)
        * higher scaling ratios, but is faster than converting all points)
        */
       if (adt) {
-        cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+        cfra = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
       }
       else {
-        cfra = (float)CFRA;
+        cfra = (float)scene->r.cfra;
       }
 
       for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
@@ -915,7 +916,8 @@ void recalcData_graphedit(TransInfo *t)
   flushTransGraphData(t);
 
   /* get curves to check if a re-sort is needed */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* now test if there is a need to re-sort */
@@ -975,7 +977,8 @@ void special_aftertrans_update__graph(bContext *C, TransInfo *t)
   if (ac.datatype) {
     ListBase anim_data = {NULL, NULL};
     bAnimListElem *ale;
-    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
+    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE |
+                    ANIMFILTER_FCURVESONLY);
 
     /* get channels to work on */
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);

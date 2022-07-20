@@ -39,7 +39,7 @@ std::string path_reference(StringRefNull filepath,
   if (mode == PATH_REFERENCE_ABSOLUTE) {
     return filepath_abs;
   }
-  else if (mode == PATH_REFERENCE_RELATIVE) {
+  if (mode == PATH_REFERENCE_RELATIVE) {
     char rel_path[PATH_MAX];
     BLI_strncpy(rel_path, filepath_abs, PATH_MAX);
     BLI_path_rel(rel_path, base_dst.c_str());
@@ -49,7 +49,7 @@ std::string path_reference(StringRefNull filepath,
     }
     return rel_path + 2; /* Skip blender's internal "//" prefix. */
   }
-  else if (mode == PATH_REFERENCE_STRIP) {
+  if (mode == PATH_REFERENCE_STRIP) {
     return BLI_path_basename(filepath_abs);
   }
   BLI_assert_msg(false, "Invalid path reference mode");

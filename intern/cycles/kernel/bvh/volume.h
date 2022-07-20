@@ -65,7 +65,7 @@ ccl_device_inline
       while (node_addr >= 0 && node_addr != ENTRYPOINT_SENTINEL) {
         int node_addr_child1, traverse_mask;
         float dist[2];
-        float4 cnodes = kernel_tex_fetch(__bvh_nodes, node_addr + 0);
+        float4 cnodes = kernel_data_fetch(bvh_nodes, node_addr + 0);
 
         traverse_mask = NODE_INTERSECT(kg,
                                        P,
@@ -109,7 +109,7 @@ ccl_device_inline
 
       /* if node is leaf, fetch triangle list */
       if (node_addr < 0) {
-        float4 leaf = kernel_tex_fetch(__bvh_leaf_nodes, (-node_addr - 1));
+        float4 leaf = kernel_data_fetch(bvh_leaf_nodes, (-node_addr - 1));
         int prim_addr = __float_as_int(leaf.x);
 
         if (prim_addr >= 0) {
@@ -125,17 +125,17 @@ ccl_device_inline
             case PRIMITIVE_TRIANGLE: {
               /* intersect ray against primitive */
               for (; prim_addr < prim_addr2; prim_addr++) {
-                kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
+                kernel_assert(kernel_data_fetch(prim_type, prim_addr) == type);
                 /* only primitives from volume object */
                 const int prim_object = (object == OBJECT_NONE) ?
-                                            kernel_tex_fetch(__prim_object, prim_addr) :
+                                            kernel_data_fetch(prim_object, prim_addr) :
                                             object;
-                const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+                const int prim = kernel_data_fetch(prim_index, prim_addr);
                 if (intersection_skip_self(ray->self, prim_object, prim)) {
                   continue;
                 }
 
-                int object_flag = kernel_tex_fetch(__object_flag, prim_object);
+                int object_flag = kernel_data_fetch(object_flag, prim_object);
                 if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
                   continue;
                 }
@@ -148,16 +148,16 @@ ccl_device_inline
             case PRIMITIVE_MOTION_TRIANGLE: {
               /* intersect ray against primitive */
               for (; prim_addr < prim_addr2; prim_addr++) {
-                kernel_assert(kernel_tex_fetch(__prim_type, prim_addr) == type);
+                kernel_assert(kernel_data_fetch(prim_type, prim_addr) == type);
                 /* only primitives from volume object */
                 const int prim_object = (object == OBJECT_NONE) ?
-                                            kernel_tex_fetch(__prim_object, prim_addr) :
+                                            kernel_data_fetch(prim_object, prim_addr) :
                                             object;
-                const int prim = kernel_tex_fetch(__prim_index, prim_addr);
+                const int prim = kernel_data_fetch(prim_index, prim_addr);
                 if (intersection_skip_self(ray->self, prim_object, prim)) {
                   continue;
                 }
-                int object_flag = kernel_tex_fetch(__object_flag, prim_object);
+                int object_flag = kernel_data_fetch(object_flag, prim_object);
                 if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
                   continue;
                 }
@@ -182,8 +182,8 @@ ccl_device_inline
         }
         else {
           /* instance push */
-          object = kernel_tex_fetch(__prim_object, -prim_addr - 1);
-          int object_flag = kernel_tex_fetch(__object_flag, object);
+          object = kernel_data_fetch(prim_object, -prim_addr - 1);
+          int object_flag = kernel_data_fetch(object_flag, object);
           if (object_flag & SD_OBJECT_HAS_VOLUME) {
 #if BVH_FEATURE(BVH_MOTION)
             isect->t *= bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &ob_itfm);
@@ -195,7 +195,7 @@ ccl_device_inline
             kernel_assert(stack_ptr < BVH_STACK_SIZE);
             traversal_stack[stack_ptr] = ENTRYPOINT_SENTINEL;
 
-            node_addr = kernel_tex_fetch(__object_node, object);
+            node_addr = kernel_data_fetch(object_node, object);
           }
           else {
             /* pop */

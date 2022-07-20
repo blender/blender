@@ -62,7 +62,11 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
                              this->point_num,
                              ATTR_POSITION.c_str());
 
-  this->curve_offsets = (int *)MEM_calloc_arrayN(this->curve_num + 1, sizeof(int), __func__);
+  this->curve_offsets = (int *)MEM_malloc_arrayN(this->curve_num + 1, sizeof(int), __func__);
+#ifdef DEBUG
+  this->offsets_for_write().fill(-1);
+#endif
+  this->offsets_for_write().first() = 0;
 
   this->update_customdata_pointers();
 
@@ -84,7 +88,7 @@ static void copy_curves_geometry(CurvesGeometry &dst, const CurvesGeometry &src)
   CustomData_copy(&src.curve_data, &dst.curve_data, CD_MASK_ALL, CD_DUPLICATE, dst.curve_num);
 
   MEM_SAFE_FREE(dst.curve_offsets);
-  dst.curve_offsets = (int *)MEM_calloc_arrayN(dst.point_num + 1, sizeof(int), __func__);
+  dst.curve_offsets = (int *)MEM_malloc_arrayN(dst.point_num + 1, sizeof(int), __func__);
   dst.offsets_for_write().copy_from(src.offsets());
 
   dst.tag_topology_changed();
@@ -473,8 +477,8 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
   VArray<int> resolution = curves.resolution();
   VArray<bool> cyclic = curves.cyclic();
 
-  VArray_Span<int8_t> handle_types_left{curves.handle_types_left()};
-  VArray_Span<int8_t> handle_types_right{curves.handle_types_right()};
+  VArraySpan<int8_t> handle_types_left{curves.handle_types_left()};
+  VArraySpan<int8_t> handle_types_right{curves.handle_types_right()};
 
   VArray<int8_t> nurbs_orders = curves.nurbs_orders();
   VArray<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes();
@@ -1009,8 +1013,8 @@ void CurvesGeometry::calculate_bezier_auto_handles()
     return;
   }
   const VArray<bool> cyclic = this->cyclic();
-  const VArray_Span<int8_t> types_left{this->handle_types_left()};
-  const VArray_Span<int8_t> types_right{this->handle_types_right()};
+  const VArraySpan<int8_t> types_left{this->handle_types_left()};
+  const VArraySpan<int8_t> types_right{this->handle_types_right()};
   const Span<float3> positions = this->positions();
   MutableSpan<float3> positions_left = this->handle_positions_left_for_write();
   MutableSpan<float3> positions_right = this->handle_positions_right_for_write();
@@ -1370,6 +1374,7 @@ void CurvesGeometry::remove_curves(const IndexMask curves_to_delete)
   }
   if (curves_to_delete.size() == this->curves_num()) {
     *this = {};
+    return;
   }
   *this = copy_with_removed_curves(*this, curves_to_delete);
 }

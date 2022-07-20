@@ -14,26 +14,18 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_alloca.h"
-#include "BLI_array.h"
 #include "BLI_bitmap.h"
 #include "BLI_ghash.h"
-#include "BLI_hash.h"
-#include "BLI_math.h"
 #include "BLI_math_color.h"
-#include "BLI_math_color_blend.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
 #include "BKE_customdata.h"
-#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -889,13 +881,14 @@ void GPU_pbvh_grid_buffers_update(PBVHGPUFormat *vbo_id,
   buffers->show_overlay = !empty_mask || !default_face_set;
 }
 
-GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hidden)
+GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(int totgrid, BLI_bitmap **grid_hidden, bool smooth)
 {
   GPU_PBVH_Buffers *buffers;
 
   buffers = MEM_callocN(sizeof(GPU_PBVH_Buffers), "GPU_Buffers");
   buffers->grid_hidden = grid_hidden;
   buffers->totgrid = totgrid;
+  buffers->smooth = smooth;
 
   buffers->show_overlay = false;
 
@@ -1189,9 +1182,9 @@ GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading)
  * Builds a list of attributes from a set of domains and a set of
  * customdata types.
  *
- * \param active_only Returns only one item, a GPUAttrRef to active_layer
- * \param active_layer CustomDataLayer to use for the active layer
- * \param active_layer CustomDataLayer to use for the render layer
+ * \param active_only: Returns only one item, a #GPUAttrRef to active_layer.
+ * \param active_layer: #CustomDataLayer to use for the active layer.
+ * \param active_layer: #CustomDataLayer to use for the render layer.
  */
 static int gpu_pbvh_make_attr_offs(eAttrDomainMask domain_mask,
                                    eCustomDataMask type_mask,

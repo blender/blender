@@ -12,7 +12,6 @@
 #include "gpu_backend.hh"
 #include "gpu_vertex_format_private.h"
 
-#include "gl_vertex_buffer.hh"    /* TODO: remove. */
 #include "gpu_context_private.hh" /* TODO: remove. */
 
 #include "gpu_vertex_buffer_private.hh"

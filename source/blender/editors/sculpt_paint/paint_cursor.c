@@ -1359,7 +1359,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
   ViewContext *vc = &pcontext->vc;
   SculptCursorGeometryInfo gi;
 
-  const float mouse[2] = {
+  const float mval_fl[2] = {
       pcontext->x - pcontext->region->winrct.xmin,
       pcontext->y - pcontext->region->winrct.ymin,
   };
@@ -1369,7 +1369,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
   pcontext->prev_active_vertex_index = ss->active_vertex_index;
   if (!ups->stroke_active) {
     pcontext->is_cursor_over_mesh = SCULPT_cursor_geometry_info_update(
-        C, &gi, mouse, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
+        C, &gi, mval_fl, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE));
     copy_v3_v3(pcontext->location, gi.location);
     copy_v3_v3(pcontext->normal, gi.normal);
   }

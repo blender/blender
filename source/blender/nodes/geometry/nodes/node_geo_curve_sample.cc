@@ -135,7 +135,7 @@ class SampleCurveFunction : public fn::MultiFunction {
     }
 
     const VArray<float> &lengths_varray = params.readonly_single_input<float>(0, "Length");
-    const VArray_Span lengths{lengths_varray};
+    const VArraySpan lengths{lengths_varray};
 #ifdef DEBUG
     for (const float length : lengths) {
       /* Lengths must be in range of the curve's total length. This is ensured in

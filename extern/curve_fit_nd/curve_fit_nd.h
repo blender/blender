@@ -39,7 +39,7 @@
  * Takes a flat array of points and evaluates that to calculate a bezier spline.
  *
  * \param points, points_len: The array of points to calculate a cubics from.
- * \param dims: The number of dimensions for for each element in \a points.
+ * \param dims: The number of dimensions for each element in \a points.
  * \param error_threshold: the error threshold to allow for,
  * the curve will be within this distance from \a points.
  * \param corners, corners_len: indices for points which will not have aligned tangents (optional).
@@ -47,10 +47,10 @@
  * to evaluate a line to detect corner indices.
  *
  * \param r_cubic_array, r_cubic_array_len: Resulting array of tangents and knots, formatted as follows:
- * ``r_cubic_array[r_cubic_array_len][3][dims]``,
+ * `r_cubic_array[r_cubic_array_len][3][dims]`,
  * where each point has 0 and 2 for the tangents and the middle index 1 for the knot.
- * The size of the *flat* array will be ``r_cubic_array_len * 3 * dims``.
- * \param r_corner_index_array, r_corner_index_len: Corner indices in in \a r_cubic_array (optional).
+ * The size of the *flat* array will be `r_cubic_array_len * 3 * dims`.
+ * \param r_corner_index_array, r_corner_index_len: Corner indices in \a r_cubic_array (optional).
  * This allows you to access corners on the resulting curve.
  *
  * \returns zero on success, nonzero is reserved for error values.
@@ -85,7 +85,7 @@ int curve_fit_cubic_to_points_fl(
  * Takes a flat array of points and evaluates that to calculate handle lengths.
  *
  * \param points, points_len: The array of points to calculate a cubics from.
- * \param dims: The number of dimensions for for each element in \a points.
+ * \param dims: The number of dimensions for each element in \a points.
  * \param points_length_cache: Optional pre-calculated lengths between points.
  * \param error_threshold: the error threshold to allow for,
  * \param tan_l, tan_r: Normalized tangents the handles will be aligned to.
@@ -166,7 +166,7 @@ int curve_fit_cubic_to_points_refit_fl(
  * A helper function that takes a line and outputs its corner indices.
  *
  * \param points, points_len: Curve to evaluate.
- * \param dims: The number of dimensions for for each element in \a points.
+ * \param dims: The number of dimensions for each element in \a points.
  * \param radius_min: Corners on the curve between points below this radius are ignored.
  * \param radius_max: Corners on the curve above this radius are ignored.
  * \param samples_max: Prevent testing corners beyond this many points

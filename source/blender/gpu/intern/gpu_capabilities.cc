@@ -8,7 +8,7 @@
  * with checks for drivers and GPU support.
  */
 
-#include "DNA_userdef_types.h"
+#include "DNA_userdef_types.h" /* For `U.glreslimit`. */
 
 #include "GPU_capabilities.h"
 

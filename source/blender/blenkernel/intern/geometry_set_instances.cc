@@ -32,9 +32,7 @@ static void add_final_mesh_as_geometry_component(const Object &object, GeometryS
 
   if (mesh != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh);
-
-    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-    mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
+    geometry_set.replace_mesh(mesh, GeometryOwnershipType::ReadOnly);
   }
 }
 
@@ -72,11 +70,6 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
     instances.add_instance(handle, float4x4::identity());
     return geometry_set;
   }
-
-  /* TODO: Cover the case of point clouds without modifiers-- they may not be covered by the
-   * #geometry_set_eval case above. */
-
-  /* TODO: Add volume support. */
 
   /* Return by value since there is not always an existing geometry set owned elsewhere to use. */
   return {};

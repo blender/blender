@@ -228,8 +228,8 @@ struct CurvesInfo {
   const CurvesGeometry &profile;
 
   /* Make sure these are spans because they are potentially accessed many times. */
-  VArray_Span<bool> main_cyclic;
-  VArray_Span<bool> profile_cyclic;
+  VArraySpan<bool> main_cyclic;
+  VArraySpan<bool> profile_cyclic;
 };
 static CurvesInfo get_curves_info(const CurvesGeometry &main, const CurvesGeometry &profile)
 {
@@ -700,8 +700,8 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
   if (profile.curve_type_counts()[CURVE_TYPE_BEZIER] > 0) {
     const VArray<int8_t> curve_types = profile.curve_types();
-    const VArray_Span<int8_t> handle_types_left{profile.handle_types_left()};
-    const VArray_Span<int8_t> handle_types_right{profile.handle_types_right()};
+    const VArraySpan<int8_t> handle_types_left{profile.handle_types_left()};
+    const VArraySpan<int8_t> handle_types_right{profile.handle_types_right()};
 
     foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
       if (curve_types[info.i_profile] == CURVE_TYPE_BEZIER) {

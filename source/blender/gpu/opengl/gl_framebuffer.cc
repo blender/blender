@@ -7,8 +7,6 @@
 
 #include "BKE_global.h"
 
-#include "GPU_capabilities.h"
-
 #include "gl_backend.hh"
 #include "gl_debug.hh"
 #include "gl_state.hh"

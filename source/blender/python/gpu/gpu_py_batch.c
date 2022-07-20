@@ -13,13 +13,9 @@
 
 #include <Python.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
 
 #include "GPU_batch.h"
-
-#include "../mathutils/mathutils.h"
 
 #include "../generic/py_capi_utils.h"
 

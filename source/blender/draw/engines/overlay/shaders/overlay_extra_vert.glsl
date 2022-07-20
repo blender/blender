@@ -198,8 +198,8 @@ void main()
     vec3 edge = obmat[3].xyz - world_pos;
     vec3 n0 = normalize(cross(edge, p0 - world_pos));
     vec3 n1 = normalize(cross(edge, world_pos - p1));
-    bool persp = (ProjectionMatrix[3][3] == 0.0);
-    vec3 V = (persp) ? normalize(ViewMatrixInverse[3].xyz - world_pos) : ViewMatrixInverse[2].xyz;
+    bool persp = (drw_view.winmat[3][3] == 0.0);
+    vec3 V = (persp) ? normalize(drw_view.viewinv[3].xyz - world_pos) : drw_view.viewinv[2].xyz;
     /* Discard non-silhouette edges. */
     bool facing0 = dot(n0, V) > 0.0;
     bool facing1 = dot(n1, V) > 0.0;

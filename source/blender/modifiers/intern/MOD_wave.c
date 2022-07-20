@@ -262,7 +262,6 @@ static void waveModifier_do(WaveModifierData *md,
         if (tex_co) {
           Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
           TexResult texres;
-          texres.nor = NULL;
           BKE_texture_get_value(scene, tex_target, tex_co[i], &texres, false);
           amplit *= texres.tin;
         }

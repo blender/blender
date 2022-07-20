@@ -574,7 +574,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
             }
 
             if (layer != -1 && domain.has_value()) {
-              drw_attributes_add_request(attributes, type, layer, *domain);
+              drw_attributes_add_request(attributes, name, type, layer, *domain);
             }
             break;
           }
@@ -585,7 +585,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
           case CD_PROP_FLOAT:
           case CD_PROP_FLOAT2: {
             if (layer != -1 && domain.has_value()) {
-              drw_attributes_add_request(attributes, type, layer, *domain);
+              drw_attributes_add_request(attributes, name, type, layer, *domain);
             }
             break;
           }

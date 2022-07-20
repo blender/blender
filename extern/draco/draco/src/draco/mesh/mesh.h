@@ -119,6 +119,10 @@ class Mesh : public PointCloud {
       const std::vector<PointIndex> &unique_point_ids) override;
 #endif
 
+  // Exposes |faces_|. Use |faces_| at your own risk. DO NOT store the
+  // reference: the |faces_| object is destroyed with the mesh.
+  IndexTypeVector<FaceIndex, Face> &faces() { return faces_; }
+
  private:
   // Mesh specific per-attribute data.
   std::vector<AttributeData> attribute_data_;

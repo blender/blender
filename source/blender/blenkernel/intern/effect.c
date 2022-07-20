@@ -868,8 +868,6 @@ static void do_texture_effector(EffectorCache *eff,
     return;
   }
 
-  result[0].nor = result[1].nor = result[2].nor = result[3].nor = NULL;
-
   strength = eff->pd->f_strength * efd->falloff;
 
   copy_v3_v3(tex_co, point->loc);

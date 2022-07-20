@@ -37,6 +37,7 @@
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_sound.h"
+#include "SEQ_time.h"
 #include "SEQ_utils.h"
 
 #include "BLO_read_write.h"
@@ -126,9 +127,10 @@ Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int 
   seq->mul = 1.0;
   seq->blend_opacity = 100.0;
   seq->volume = 1.0f;
-  seq->pitch = 1.0f;
   seq->scene_sound = NULL;
   seq->type = type;
+  seq->media_playback_rate = 0.0f;
+  seq->speed_factor = 1.0f;
 
   if (seq->type == SEQ_TYPE_ADJUSTMENT) {
     seq->blend_mode = SEQ_TYPE_CROSS;
@@ -397,21 +399,22 @@ void SEQ_seqbase_active_set(Editing *ed, ListBase *seqbase)
   ed->seqbasep = seqbase;
 }
 
-MetaStack *SEQ_meta_stack_alloc(Editing *ed, Sequence *seq_meta)
+static MetaStack *seq_meta_stack_alloc(const Scene *scene, Sequence *seq_meta)
 {
-  MetaStack *ms = MEM_mallocN(sizeof(MetaStack), "metastack");
-  BLI_addtail(&ed->metastack, ms);
-  ms->parseq = seq_meta;
-  ms->oldbasep = ed->seqbasep;
-  ms->old_channels = ed->displayed_channels;
-  copy_v2_v2_int(ms->disp_range, &ms->parseq->startdisp);
-  return ms;
-}
+  Editing *ed = SEQ_editing_get(scene);
 
-void SEQ_meta_stack_free(Editing *ed, MetaStack *ms)
-{
-  BLI_remlink(&ed->metastack, ms);
-  MEM_freeN(ms);
+  MetaStack *ms = MEM_mallocN(sizeof(MetaStack), "metastack");
+  BLI_addhead(&ed->metastack, ms);
+  ms->parseq = seq_meta;
+
+  /* Reference to previously displayed timeline data. */
+  Sequence *higher_level_meta = seq_sequence_lookup_meta_by_seq(scene, seq_meta);
+  ms->oldbasep = higher_level_meta ? &higher_level_meta->seqbase : &ed->seqbase;
+  ms->old_channels = higher_level_meta ? &higher_level_meta->channels : &ed->channels;
+
+  ms->disp_range[0] = SEQ_time_left_handle_frame_get(scene, ms->parseq);
+  ms->disp_range[1] = SEQ_time_right_handle_frame_get(scene, ms->parseq);
+  return ms;
 }
 
 MetaStack *SEQ_meta_stack_active_get(const Editing *ed)
@@ -421,6 +424,41 @@ MetaStack *SEQ_meta_stack_active_get(const Editing *ed)
   }
 
   return ed->metastack.last;
+}
+
+void SEQ_meta_stack_set(const Scene *scene, Sequence *seqm)
+{
+  Editing *ed = SEQ_editing_get(scene);
+  /* Clear metastack */
+  BLI_freelistN(&ed->metastack);
+
+  if (seqm != NULL) {
+    /* Allocate meta stack in a way, that represents meta hierarchy in timeline. */
+    seq_meta_stack_alloc(scene, seqm);
+    Sequence *meta_parent = seqm;
+    while ((meta_parent = seq_sequence_lookup_meta_by_seq(scene, meta_parent))) {
+      seq_meta_stack_alloc(scene, meta_parent);
+    }
+
+    SEQ_seqbase_active_set(ed, &seqm->seqbase);
+    SEQ_channels_displayed_set(ed, &seqm->channels);
+  }
+  else {
+    /* Go to top level, exiting meta strip. */
+    SEQ_seqbase_active_set(ed, &ed->seqbase);
+    SEQ_channels_displayed_set(ed, &ed->channels);
+  }
+}
+
+Sequence *SEQ_meta_stack_pop(Editing *ed)
+{
+  MetaStack *ms = SEQ_meta_stack_active_get(ed);
+  Sequence *meta_parent = ms->parseq;
+  SEQ_seqbase_active_set(ed, ms->oldbasep);
+  SEQ_channels_displayed_set(ed, ms->old_channels);
+  BLI_remlink(&ed->metastack, ms);
+  MEM_freeN(ms);
+  return meta_parent;
 }
 
 /** \} */
@@ -928,8 +966,9 @@ static bool seq_update_seq_cb(Sequence *seq, void *user_data)
     }
     BKE_sound_set_scene_sound_volume(
         seq->scene_sound, seq->volume, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
-    BKE_sound_set_scene_sound_pitch(
-        seq->scene_sound, seq->pitch, (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
+    BKE_sound_set_scene_sound_pitch(seq->scene_sound,
+                                    SEQ_sound_pitch_get(scene, seq),
+                                    (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
     BKE_sound_set_scene_sound_pan(
         seq->scene_sound, seq->pan, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
   }

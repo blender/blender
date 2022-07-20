@@ -109,17 +109,22 @@ struct anim {
   AVFormatContext *pFormatCtx;
   AVCodecContext *pCodecCtx;
   const AVCodec *pCodec;
-  AVFrame *pFrame;
-  int pFrameComplete;
   AVFrame *pFrameRGB;
   AVFrame *pFrameDeinterlaced;
   struct SwsContext *img_convert_ctx;
   int videoStream;
 
+  AVFrame *pFrame;
+  bool pFrame_complete;
+  AVFrame *pFrame_backup;
+  bool pFrame_backup_complete;
+
   struct ImBuf *cur_frame_final;
   int64_t cur_pts;
   int64_t cur_key_frame_pts;
   AVPacket *cur_packet;
+
+  bool seek_before_decode;
 #endif
 
   char index_dir[768];

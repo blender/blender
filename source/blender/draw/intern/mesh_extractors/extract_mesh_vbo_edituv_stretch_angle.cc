@@ -74,7 +74,7 @@ static void edituv_get_edituv_stretch_angle(float auv[2][2],
 }
 
 static void extract_edituv_stretch_angle_init(const MeshRenderData *mr,
-                                              struct MeshBatchCache *UNUSED(cache),
+                                              MeshBatchCache *UNUSED(cache),
                                               void *buf,
                                               void *tls_data)
 {
@@ -212,7 +212,7 @@ static GPUVertFormat *get_edituv_stretch_angle_format_subdiv()
 
 static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdiv_cache,
                                                      const MeshRenderData *mr,
-                                                     struct MeshBatchCache *cache,
+                                                     MeshBatchCache *cache,
                                                      void *buffer,
                                                      void *UNUSED(tls_data))
 {

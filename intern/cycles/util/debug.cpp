@@ -25,7 +25,7 @@ void DebugFlags::CPU::reset()
   do { \
     flag = (getenv(env) == NULL); \
     if (!flag) { \
-      VLOG(1) << "Disabling " << STRINGIFY(flag) << " instruction set."; \
+      VLOG_INFO << "Disabling " << STRINGIFY(flag) << " instruction set."; \
     } \
   } while (0)
 

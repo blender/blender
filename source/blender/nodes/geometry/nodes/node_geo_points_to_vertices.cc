@@ -68,7 +68,7 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
       attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
         using T = decltype(dummy);
         VArray<T> src_typed = src.typed<T>();
-        VArray_Span<T> src_typed_span{src_typed};
+        VArraySpan<T> src_typed_span{src_typed};
         copy_attribute_to_vertices(src_typed_span, selection, dst.as_span().typed<T>());
       });
       dst.save();

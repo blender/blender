@@ -218,7 +218,7 @@ struct WriteAttributeLookup {
  * Supported convenience features:
  * - Implicit type conversion when writing to builtin attributes.
  * - Supports simple access to a span containing the attribute values (that avoids the use of
- *   VMutableArray_Span in many cases).
+ *   MutableVArraySpan in many cases).
  * - An output attribute can live side by side with an existing attribute with a different domain
  *   or data type. The old attribute will only be overwritten when the #save function is called.
  *
@@ -234,7 +234,7 @@ class OutputAttribute {
   GVMutableArray varray_;
   eAttrDomain domain_ = ATTR_DOMAIN_AUTO;
   SaveFn save_;
-  std::unique_ptr<GVMutableArray_GSpan> optional_span_varray_;
+  std::unique_ptr<GMutableVArraySpan> optional_span_varray_;
   bool ignore_old_values_ = false;
   bool save_has_been_called_ = false;
 

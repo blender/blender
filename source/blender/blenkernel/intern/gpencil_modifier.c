@@ -221,6 +221,9 @@ GpencilLineartLimitInfo BKE_gpencil_get_lineart_modifier_limits(const Object *ob
         info.max_level = MAX2(info.max_level,
                               (lmd->use_multiple_levels ? lmd->level_end : lmd->level_start));
         info.edge_types |= lmd->edge_types;
+        info.shadow_selection = MAX2(lmd->shadow_selection, info.shadow_selection);
+        info.silhouette_selection = MAX2(lmd->silhouette_selection, info.silhouette_selection);
+        is_first = false;
       }
     }
   }
@@ -237,11 +240,15 @@ void BKE_gpencil_set_lineart_modifier_limits(GpencilModifierData *md,
     lmd->level_start_override = info->min_level;
     lmd->level_end_override = info->max_level;
     lmd->edge_types_override = info->edge_types;
+    lmd->shadow_selection_override = info->shadow_selection;
+    lmd->shadow_use_silhouette_override = info->silhouette_selection;
   }
   else {
     lmd->level_start_override = lmd->level_start;
     lmd->level_end_override = lmd->level_end;
     lmd->edge_types_override = lmd->edge_types;
+    lmd->shadow_selection_override = lmd->shadow_selection;
+    lmd->shadow_use_silhouette_override = lmd->silhouette_selection;
   }
 }
 
@@ -678,7 +685,7 @@ static void copy_frame_to_eval_cb(bGPDlayer *gpl,
 
 static void gpencil_copy_visible_frames_to_eval(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-  /* Remap layers'active frame with time modifiers applied. */
+  /* Remap layers active frame with time modifiers applied. */
   bGPdata *gpd_eval = ob->data;
   LISTBASE_FOREACH (bGPDlayer *, gpl_eval, &gpd_eval->layers) {
     bGPDframe *gpf_eval = gpl_eval->actframe;

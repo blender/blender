@@ -856,6 +856,17 @@ void BKE_screen_remove_unused_scrverts(bScreen *screen)
 
 /* ***************** Utilities ********************** */
 
+ARegion *BKE_region_find_in_listbase_by_type(const ListBase *regionbase, const int region_type)
+{
+  LISTBASE_FOREACH (ARegion *, region, regionbase) {
+    if (region->regiontype == region_type) {
+      return region;
+    }
+  }
+
+  return NULL;
+}
+
 ARegion *BKE_area_find_region_type(const ScrArea *area, int region_type)
 {
   if (area) {

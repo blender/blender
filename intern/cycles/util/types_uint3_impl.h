@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_GPU__
+#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
 __forceinline uint uint3::operator[](uint i) const
 {
   util_assert(i < 3);
@@ -28,7 +28,7 @@ ccl_device_inline uint3 make_uint3(uint x, uint y, uint z)
   uint3 a = {x, y, z};
   return a;
 }
-#endif /* __KERNEL_GPU__ */
+#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
 
 CCL_NAMESPACE_END
 

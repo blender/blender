@@ -133,7 +133,7 @@ ccl_device float volume_stack_step_size(KernelGlobals kg, StackReadOp stack_read
       break;
     }
 
-    int shader_flag = kernel_tex_fetch(__shaders, (entry.shader & SHADER_MASK)).flags;
+    int shader_flag = kernel_data_fetch(shaders, (entry.shader & SHADER_MASK)).flags;
 
     bool heterogeneous = false;
 
@@ -146,7 +146,7 @@ ccl_device float volume_stack_step_size(KernelGlobals kg, StackReadOp stack_read
        * heterogeneous volume objects may be using the same shader. */
       int object = entry.object;
       if (object != OBJECT_NONE) {
-        int object_flag = kernel_tex_fetch(__object_flag, object);
+        int object_flag = kernel_data_fetch(object_flag, object);
         if (object_flag & SD_OBJECT_HAS_VOLUME_ATTRIBUTES) {
           heterogeneous = true;
         }
@@ -180,7 +180,7 @@ ccl_device VolumeSampleMethod volume_stack_sample_method(KernelGlobals kg, Integ
       break;
     }
 
-    int shader_flag = kernel_tex_fetch(__shaders, (entry.shader & SHADER_MASK)).flags;
+    int shader_flag = kernel_data_fetch(shaders, (entry.shader & SHADER_MASK)).flags;
 
     if (shader_flag & SD_VOLUME_MIS) {
       /* Multiple importance sampling. */

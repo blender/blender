@@ -465,7 +465,7 @@ TBB_VERSION="2020"
 TBB_VERSION_SHORT="2020"
 TBB_VERSION_UPDATE="_U3"  # Used for source packages...
 TBB_VERSION_MIN="2018"
-TBB_VERSION_MEX="2022"
+TBB_VERSION_MEX="2021"  # 2021 introduces 'oneTBB', which has lots of compatibility breakage with previous versions
 TBB_FORCE_BUILD=false
 TBB_FORCE_REBUILD=false
 TBB_SKIP=false
@@ -634,9 +634,6 @@ MP3LAME_USE=false
 MP3LAME_DEV=""
 OPENJPEG_USE=false
 OPENJPEG_DEV=""
-
-# Whether to use system GLEW or not (OpenSubDiv needs recent glew to work).
-NO_SYSTEM_GLEW=false
 
 # Switch to english language, else some things (like check_package_DEB()) won't work!
 LANG_BACK=$LANG
@@ -1193,7 +1190,7 @@ Those libraries should be available as packages in all recent distributions (opt
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
     * libwayland-client0, libwayland-cursor0, libwayland-egl1, libxkbcommon0, libdbus-1-3, libegl1 (Wayland)
     * libsqlite3, libzstd, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp, flex.
-    * libsdl2, libglew, libpugixml, libpotrace, [libgmp], [libglewmx], fontconfig, [libharu/libhpdf].\""
+    * libsdl2, libglew, libpugixml, libpotrace, [libgmp], fontconfig, [libharu/libhpdf].\""
 
 DEPS_SPECIFIC_INFO="\"BUILDABLE DEPENDENCIES:
 
@@ -1687,7 +1684,7 @@ compile_TBB() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  tbb_magic=0
+  tbb_magic=1
   _init_tbb
 
   # Force having own builds for the dependencies.
@@ -2696,14 +2693,13 @@ compile_OSD() {
     mkdir build
     cd build
 
-    if [ -d $INST/tbb ]; then
-      cmake_d="$cmake_d $cmake_d -D TBB_LOCATION=$INST/tbb"
-    fi
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    if [ -d $INST/tbb ]; then
+      cmake_d="$cmake_d -D TBB_LOCATION=$INST/tbb"
+    fi
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
-    # ptex is only needed when nicholas bishop is ready
     cmake_d="$cmake_d -D NO_PTEX=1"
-    cmake_d="$cmake_d -D NO_CLEW=1 -D NO_CUDA=1 -D NO_OPENCL=1"
+    cmake_d="$cmake_d -D NO_CLEW=1 -D NO_CUDA=1 -D NO_OPENCL=1 -D NO_GLEW=1"
     # maya plugin, docs, tutorials, regression tests and examples are not needed
     cmake_d="$cmake_d -D NO_MAYA=1 -D NO_DOC=1 -D NO_TUTORIALS=1 -D NO_REGRESSION=1 -DNO_EXAMPLES=1"
 
@@ -3326,7 +3322,7 @@ compile_Embree() {
   fi
 
   # To be changed each time we make edits that would modify the compiled results!
-  embree_magic=10
+  embree_magic=11
   _init_embree
 
   # Force having own builds for the dependencies.
@@ -3386,7 +3382,7 @@ compile_Embree() {
 
     cmake_d="$cmake_d -D EMBREE_TASKING_SYSTEM=TBB"
     if [ -d $INST/tbb ]; then
-      make_d="$make_d EMBREE_TBB_ROOT=$INST/tbb"
+      cmake_d="$cmake_d -D EMBREE_TBB_ROOT=$INST/tbb"
     fi
 
     cmake $cmake_d ../
@@ -3525,7 +3521,7 @@ compile_OIDN() {
   install_ISPC
 
   # To be changed each time we make edits that would modify the compiled results!
-  oidn_magic=9
+  oidn_magic=10
   _init_oidn
 
   # Force having own builds for the dependencies.
@@ -3581,7 +3577,7 @@ compile_OIDN() {
     cmake_d="$cmake_d -D ISPC_DIR_HINT=$_ispc_path_bin"
 
     if [ -d $INST/tbb ]; then
-      make_d="$make_d TBB_ROOT=$INST/tbb"
+      cmake_d="$cmake_d -D TBB_ROOT=$INST/tbb"
     fi
 
     cmake $cmake_d ../
@@ -4062,7 +4058,6 @@ install_DEB() {
              libopenal-dev libglew-dev yasm \
              libsdl2-dev libfftw3-dev patch bzip2 libxml2-dev libtinyxml-dev libjemalloc-dev \
              libgmp-dev libpugixml-dev libpotrace-dev libhpdf-dev libzstd-dev libpystring-dev"
-             # libglewmx-dev  (broken in deb testing currently...)
 
   VORBIS_USE=true
   OGG_USE=true
@@ -4171,7 +4166,7 @@ install_DEB() {
     fi
   fi
 
-  # Check cmake/glew versions and disable features for older distros.
+  # Check cmake version and disable features for older distros.
   # This is so Blender can at least compile.
   PRINT ""
   _cmake=`get_package_version_DEB cmake`
@@ -4187,28 +4182,6 @@ install_DEB() {
       OPENVDB_SKIP=true
     fi
   fi
-
-  PRINT ""
-  _glew=`get_package_version_DEB libglew-dev`
-  if [ -z $_glew ]; then
-    # Stupid virtual package in Ubuntu 12.04 doesn't show version number...
-    _glew=`apt-cache showpkg libglew-dev|tail -n1|awk '{print $2}'|sed 's/-.*//'`
-  fi
-  version_ge $_glew "1.9.0"
-  if [ $? -eq 1 ]; then
-    version_ge $_glew "1.7.0"
-    if [ $? -eq 1 ]; then
-      WARNING "OpenSubdiv disabled because GLEW-$_glew is not enough"
-      WARNING "Blender will not use system GLEW library"
-      OSD_SKIP=true
-      NO_SYSTEM_GLEW=true
-    else
-      WARNING "OpenSubdiv will compile with GLEW-$_glew but with limited capability"
-      WARNING "Blender will not use system GLEW library"
-      NO_SYSTEM_GLEW=true
-    fi
-  fi
-
 
   PRINT ""
   _do_compile_python=false
@@ -6288,12 +6261,6 @@ print_info() {
       PRINT "  $_1"
       _buildargs="$_buildargs $_1"
     fi
-  fi
-
-  if [ "$NO_SYSTEM_GLEW" = true ]; then
-    _1="-D WITH_SYSTEM_GLEW=OFF"
-    PRINT "  $_1"
-    _buildargs="$_buildargs $_1"
   fi
 
   if [ "$FFMPEG_SKIP" = false ]; then

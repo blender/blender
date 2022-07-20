@@ -19,7 +19,7 @@ namespace blender::draw {
 #define NOR_AND_FLAG_HIDDEN -2
 
 static void extract_fdots_nor_init(const MeshRenderData *mr,
-                                   struct MeshBatchCache *UNUSED(cache),
+                                   MeshBatchCache *UNUSED(cache),
                                    void *buf,
                                    void *UNUSED(tls_data))
 {
@@ -34,7 +34,7 @@ static void extract_fdots_nor_init(const MeshRenderData *mr,
 }
 
 static void extract_fdots_nor_finish(const MeshRenderData *mr,
-                                     struct MeshBatchCache *UNUSED(cache),
+                                     MeshBatchCache *UNUSED(cache),
                                      void *buf,
                                      void *UNUSED(data))
 {
@@ -101,7 +101,7 @@ constexpr MeshExtract create_extractor_fdots_nor()
  * \{ */
 
 static void extract_fdots_nor_hq_init(const MeshRenderData *mr,
-                                      struct MeshBatchCache *UNUSED(cache),
+                                      MeshBatchCache *UNUSED(cache),
                                       void *buf,
                                       void *UNUSED(tls_data))
 {
@@ -116,7 +116,7 @@ static void extract_fdots_nor_hq_init(const MeshRenderData *mr,
 }
 
 static void extract_fdots_nor_hq_finish(const MeshRenderData *mr,
-                                        struct MeshBatchCache *UNUSED(cache),
+                                        MeshBatchCache *UNUSED(cache),
                                         void *buf,
                                         void *UNUSED(data))
 {

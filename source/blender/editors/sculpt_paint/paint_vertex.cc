@@ -36,6 +36,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
+#include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -225,22 +226,6 @@ static MDeformVert *defweight_prev_init(MDeformVert *dvert_prev,
     BKE_defvert_copy(dv_prev, dv_curr);
   }
   return dv_prev;
-}
-
-/* check if we can do partial updates and have them draw realtime
- * (without evaluating modifiers) */
-static bool vertex_paint_use_fast_update_check(Object *ob)
-{
-  const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob);
-
-  if (me_eval != nullptr) {
-    const Mesh *me = BKE_mesh_from_object(ob);
-    if (me && me->mloopcol) {
-      return (me->mloopcol == CustomData_get_layer(&me_eval->ldata, CD_PROP_BYTE_COLOR));
-    }
-  }
-
-  return false;
 }
 
 static void paint_last_stroke_update(Scene *scene, const float location[3])
@@ -1191,12 +1176,12 @@ static void vertex_paint_init_session(Depsgraph *depsgraph,
   BLI_assert(ob->sculpt == nullptr);
   ob->sculpt = (SculptSession *)MEM_callocN(sizeof(SculptSession), "sculpt session");
   ob->sculpt->mode_type = object_mode;
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
 }
 
 static void vwpaint_init_stroke(Depsgraph *depsgraph, Object *ob)
 {
-  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, true);
   SculptSession *ss = ob->sculpt;
 
   /* Ensure ss->cache is allocated.  It will mostly be initialized in
@@ -1608,7 +1593,7 @@ static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache
 
 /* Initialize the stroke cache invariants from operator properties */
 static void vwpaint_update_cache_invariants(
-    bContext *C, VPaint *vp, SculptSession *ss, wmOperator *op, const float mouse[2])
+    bContext *C, VPaint *vp, SculptSession *ss, wmOperator *op, const float mval[2])
 {
   StrokeCache *cache;
   const Scene *scene = CTX_data_scene(C);
@@ -1629,8 +1614,8 @@ static void vwpaint_update_cache_invariants(
   }
 
   /* Initial mouse location */
-  if (mouse) {
-    copy_v2_v2(cache->initial_mouse, mouse);
+  if (mval) {
+    copy_v2_v2(cache->initial_mouse, mval);
   }
   else {
     zero_v2(cache->initial_mouse);
@@ -1804,7 +1789,8 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   /* set up auto-normalize, and generate map for detecting which
    * vgroups affect deform bones */
   wpd->lock_flags = BKE_object_defgroup_lock_flags_get(ob, wpd->defbase_tot);
-  if (ts->auto_normalize || ts->multipaint || wpd->lock_flags || ts->wpaint_lock_relative) {
+  if (ts->auto_normalize || ts->multipaint || wpd->lock_flags != nullptr ||
+      ts->wpaint_lock_relative) {
     wpd->vgroup_validmap = BKE_object_defgroup_validmap_get(ob, wpd->defbase_tot);
   }
 
@@ -2593,31 +2579,14 @@ static void wpaint_stroke_done(const bContext *C, PaintStroke *stroke)
   WPaintData *wpd = (WPaintData *)paint_stroke_mode_data(stroke);
 
   if (wpd) {
-    if (wpd->defbase_sel) {
-      MEM_freeN((void *)wpd->defbase_sel);
-    }
-    if (wpd->vgroup_validmap) {
-      MEM_freeN((void *)wpd->vgroup_validmap);
-    }
-    if (wpd->vgroup_locked) {
-      MEM_freeN((void *)wpd->vgroup_locked);
-    }
-    if (wpd->vgroup_unlocked) {
-      MEM_freeN((void *)wpd->vgroup_unlocked);
-    }
-    if (wpd->lock_flags) {
-      MEM_freeN((void *)wpd->lock_flags);
-    }
-    if (wpd->active.lock) {
-      MEM_freeN((void *)wpd->active.lock);
-    }
-    if (wpd->mirror.lock) {
-      MEM_freeN((void *)wpd->mirror.lock);
-    }
-    if (wpd->precomputed_weight) {
-      MEM_freeN(wpd->precomputed_weight);
-    }
-
+    MEM_SAFE_FREE(wpd->defbase_sel);
+    MEM_SAFE_FREE(wpd->vgroup_validmap);
+    MEM_SAFE_FREE(wpd->vgroup_locked);
+    MEM_SAFE_FREE(wpd->vgroup_unlocked);
+    MEM_SAFE_FREE(wpd->lock_flags);
+    MEM_SAFE_FREE(wpd->active.lock);
+    MEM_SAFE_FREE(wpd->mirror.lock);
+    MEM_SAFE_FREE(wpd->precomputed_weight);
     MEM_freeN(wpd);
   }
 
@@ -2838,16 +2807,6 @@ struct VPaintData : public VPaintDataBase {
   struct VertProjHandle *vp_handle;
   CoNo *vertexcosnos;
 
-  /**
-   * Modify #Mesh.mloopcol directly, since the derived mesh is drawing from this
-   * array, otherwise we need to refresh the modifier stack.
-   */
-  bool use_fast_update;
-
-  /* loops tagged as having been painted, to apply shared vertex color
-   * blending only to modified loops */
-  bool *mlooptag;
-
   bool is_texbrush;
 
   /* Special storage for smear brush, avoid feedback loop - update each step. */
@@ -2892,20 +2851,6 @@ static void *vpaint_init_vpaint(bContext *C,
       scene, vp, (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_INVERT));
 
   vpd->is_texbrush = !(brush->vertexpaint_tool == VPAINT_TOOL_BLUR) && brush->mtex.tex;
-
-  /* are we painting onto a modified mesh?,
-   * if not we can skip face map trickiness */
-  if (vertex_paint_use_fast_update_check(ob)) {
-    vpd->use_fast_update = true;
-  }
-  else {
-    vpd->use_fast_update = false;
-  }
-
-  /* to keep tracked of modified loops for shared vertex color blending */
-  if (brush->vertexpaint_tool == VPAINT_TOOL_BLUR) {
-    vpd->mlooptag = (bool *)MEM_mallocN(sizeof(bool) * elem_num, "VPaintData mlooptag");
-  }
 
   if (brush->vertexpaint_tool == VPAINT_TOOL_SMEAR) {
     CustomDataLayer *layer = BKE_id_attributes_active_color_get(&me->id);
@@ -3901,15 +3846,7 @@ static void vpaint_stroke_update_step_intern(bContext *C, PaintStroke *stroke, P
 
   ED_region_tag_redraw(vc->region);
 
-  if (vpd->use_fast_update == false) {
-    /* recalculate modifier stack to get new colors, slow,
-     * avoid this if we can! */
-    DEG_id_tag_update((ID *)ob->data, 0);
-  }
-  else {
-    /* Flush changes through DEG. */
-    DEG_id_tag_update((ID *)ob->data, ID_RECALC_COPY_ON_WRITE);
-  }
+  DEG_id_tag_update((ID *)ob->data, ID_RECALC_GEOMETRY);
 }
 
 static void vpaint_stroke_update_step(bContext *C,
@@ -3950,9 +3887,6 @@ static void vpaint_free_vpaintdata(Object *UNUSED(ob), void *_vpd)
     ED_vpaint_proj_handle_free(vpd->vp_handle);
   }
 
-  if (vpd->mlooptag) {
-    MEM_freeN(vpd->mlooptag);
-  }
   if (vpd->smear.color_prev) {
     MEM_freeN(vpd->smear.color_prev);
   }
@@ -4099,7 +4033,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
  * \{ */
 
 template<typename Color, typename Traits, eAttrDomain domain>
-static bool vertex_color_set(Object *ob, ColorPaint4f paintcol_in, Color *color_layer)
+static bool vertex_color_set(Object *ob, ColorPaint4f paintcol_in, CustomDataLayer *layer)
 {
   Mesh *me;
   if (((me = BKE_mesh_from_object(ob)) == nullptr) ||
@@ -4112,30 +4046,70 @@ static bool vertex_color_set(Object *ob, ColorPaint4f paintcol_in, Color *color_
   const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
   const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
-  const MPoly *mp = me->mpoly;
-  for (int i = 0; i < me->totpoly; i++, mp++) {
-    if (use_face_sel && !(mp->flag & ME_FACE_SEL)) {
-      continue;
+  if (me->edit_mesh) {
+    BMesh *bm = me->edit_mesh->bm;
+    BMFace *f;
+    BMIter iter;
+
+    int cd_offset = -1;
+
+    /* Find customdata offset inside of bmesh. */
+    CustomData *cdata = domain == ATTR_DOMAIN_POINT ? &bm->vdata : &bm->ldata;
+
+    for (int i = 0; i < cdata->totlayer; i++) {
+      if (STREQ(cdata->layers[i].name, layer->name)) {
+        cd_offset = layer->offset;
+      }
     }
 
-    int j = 0;
-    do {
-      uint vidx = me->mloop[mp->loopstart + j].v;
+    BLI_assert(cd_offset != -1);
 
-      if (!(use_vert_sel && !(me->mvert[vidx].flag & SELECT))) {
-        if constexpr (domain == ATTR_DOMAIN_CORNER) {
-          color_layer[mp->loopstart + j] = paintcol;
+    BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+      Color *color;
+      BMLoop *l = f->l_first;
+
+      do {
+        if (!(use_vert_sel && !(BM_elem_flag_test(l->v, BM_ELEM_SELECT)))) {
+          if constexpr (domain == ATTR_DOMAIN_CORNER) {
+            color = static_cast<Color *>(BM_ELEM_CD_GET_VOID_P(l, cd_offset));
+          }
+          else {
+            color = static_cast<Color *>(BM_ELEM_CD_GET_VOID_P(l->v, cd_offset));
+          }
+
+          *color = paintcol;
         }
-        else {
-          color_layer[vidx] = paintcol;
-        }
-      }
-      j++;
-    } while (j < mp->totloop);
+      } while ((l = l->next) != f->l_first);
+    }
   }
+  else {
+    Color *color_layer = static_cast<Color *>(layer->data);
 
-  /* remove stale me->mcol, will be added later */
-  BKE_mesh_tessface_clear(me);
+    const MPoly *mp = me->mpoly;
+    for (int i = 0; i < me->totpoly; i++, mp++) {
+      if (use_face_sel && !(mp->flag & ME_FACE_SEL)) {
+        continue;
+      }
+
+      int j = 0;
+      do {
+        uint vidx = me->mloop[mp->loopstart + j].v;
+
+        if (!(use_vert_sel && !(me->mvert[vidx].flag & SELECT))) {
+          if constexpr (domain == ATTR_DOMAIN_CORNER) {
+            color_layer[mp->loopstart + j] = paintcol;
+          }
+          else {
+            color_layer[vidx] = paintcol;
+          }
+        }
+        j++;
+      } while (j < mp->totloop);
+    }
+
+    /* remove stale me->mcol, will be added later */
+    BKE_mesh_tessface_clear(me);
+  }
 
   DEG_id_tag_update(&me->id, ID_RECALC_COPY_ON_WRITE);
 
@@ -4170,22 +4144,18 @@ static bool paint_object_attributes_active_color_fill_ex(Object *ob,
   bool ok = false;
   if (domain == ATTR_DOMAIN_POINT) {
     if (layer->type == CD_PROP_COLOR) {
-      ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_POINT>(
-          ob, fill_color, static_cast<ColorPaint4f *>(layer->data));
+      ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_POINT>(ob, fill_color, layer);
     }
     else if (layer->type == CD_PROP_BYTE_COLOR) {
-      ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_POINT>(
-          ob, fill_color, static_cast<ColorPaint4b *>(layer->data));
+      ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_POINT>(ob, fill_color, layer);
     }
   }
   else {
     if (layer->type == CD_PROP_COLOR) {
-      ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_CORNER>(
-          ob, fill_color, static_cast<ColorPaint4f *>(layer->data));
+      ok = vertex_color_set<ColorPaint4f, FloatTraits, ATTR_DOMAIN_CORNER>(ob, fill_color, layer);
     }
     else if (layer->type == CD_PROP_BYTE_COLOR) {
-      ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_CORNER>(
-          ob, fill_color, static_cast<ColorPaint4b *>(layer->data));
+      ok = vertex_color_set<ColorPaint4b, ByteTraits, ATTR_DOMAIN_CORNER>(ob, fill_color, layer);
     }
   }
   /* Restore #Mesh.editflag. */

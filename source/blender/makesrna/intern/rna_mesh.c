@@ -21,6 +21,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.h"
 #include "BKE_editmesh.h"
 
 #include "RNA_access.h"
@@ -166,27 +167,62 @@ static CustomData *rna_cd_from_layer(PointerRNA *ptr, CustomDataLayer *cdl)
 
 static void rna_MeshVertexLayer_name_set(PointerRNA *ptr, const char *value)
 {
-  rna_cd_layer_name_set(rna_mesh_vdata(ptr), (CustomDataLayer *)ptr->data, value);
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+
+  if (CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) {
+    BKE_id_attribute_rename(ptr->owner_id, layer->name, value, NULL);
+  }
+  else {
+    rna_cd_layer_name_set(rna_mesh_vdata(ptr), layer, value);
+  }
 }
 #  if 0
 static void rna_MeshEdgeLayer_name_set(PointerRNA *ptr, const char *value)
 {
-  rna_cd_layer_name_set(rna_mesh_edata(ptr), (CustomDataLayer *)ptr->data, value);
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+
+  if (CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) {
+    BKE_id_attribute_rename(ptr->owner_id, layer->name, value, NULL);
+  }
+  else {
+    rna_cd_layer_name_set(rna_mesh_edata(ptr), layer, value);
+  }
 }
 #  endif
 static void rna_MeshPolyLayer_name_set(PointerRNA *ptr, const char *value)
 {
-  rna_cd_layer_name_set(rna_mesh_pdata(ptr), (CustomDataLayer *)ptr->data, value);
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+
+  if (CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) {
+    BKE_id_attribute_rename(ptr->owner_id, layer->name, value, NULL);
+  }
+  else {
+    rna_cd_layer_name_set(rna_mesh_pdata(ptr), layer, value);
+  }
 }
 static void rna_MeshLoopLayer_name_set(PointerRNA *ptr, const char *value)
 {
-  rna_cd_layer_name_set(rna_mesh_ldata(ptr), (CustomDataLayer *)ptr->data, value);
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+
+  if (CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) {
+    BKE_id_attribute_rename(ptr->owner_id, layer->name, value, NULL);
+  }
+  else {
+    rna_cd_layer_name_set(rna_mesh_ldata(ptr), layer, value);
+  }
 }
 /* only for layers shared between types */
 static void rna_MeshAnyLayer_name_set(PointerRNA *ptr, const char *value)
 {
-  CustomData *cd = rna_cd_from_layer(ptr, (CustomDataLayer *)ptr->data);
-  rna_cd_layer_name_set(cd, (CustomDataLayer *)ptr->data, value);
+  CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
+
+  if (CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL) {
+    BKE_id_attribute_rename(ptr->owner_id, layer->name, value, NULL);
+  }
+  else {
+    CustomData *cd = rna_cd_from_layer(ptr, layer);
+    rna_cd_layer_name_set(cd, layer, value);
+  }
 }
 
 static bool rna_Mesh_has_custom_normals_get(PointerRNA *ptr)
@@ -293,6 +329,13 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
   BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_ALL);
 
   rna_Mesh_update_draw(bmain, scene, ptr);
+}
+
+static void rna_Mesh_update_positions_tag(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+  Mesh *mesh = rna_mesh(ptr);
+  BKE_mesh_tag_coords_changed(mesh);
+  rna_Mesh_update_data_legacy_deg_tag_all(bmain, scene, ptr);
 }
 
 /** \} */
@@ -1727,7 +1770,7 @@ static void rna_def_mvert(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_ui_text(prop, "Location", "");
-  RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
+  RNA_def_property_update(prop, 0, "rna_Mesh_update_positions_tag");
 
   prop = RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);
   RNA_def_property_array(prop, 3);

@@ -7,7 +7,6 @@
 
 #include "gpu_shader_interface.hh"
 #include "gpu_vertex_buffer_private.hh"
-#include "gpu_vertex_format_private.h"
 
 #include "gl_batch.hh"
 #include "gl_context.hh"

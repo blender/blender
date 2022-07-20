@@ -54,20 +54,20 @@ size_t getComponentByteLength(size_t componentType)
 {
     switch (componentType)
     {
-        case ComponentType::Byte:
-        case ComponentType::UnsignedByte:
-            return 1;
-            
-        case ComponentType::Short:
-        case ComponentType::UnsignedShort:
-            return 2;
-            
-        case ComponentType::UnsignedInt:
-        case ComponentType::Float:
-            return 4;
-            
-        default:
-            return 0;
+    case ComponentType::Byte:
+    case ComponentType::UnsignedByte:
+        return 1;
+
+    case ComponentType::Short:
+    case ComponentType::UnsignedShort:
+        return 2;
+
+    case ComponentType::UnsignedInt:
+    case ComponentType::Float:
+        return 4;
+
+    default:
+        return 0;
     }
 }
 

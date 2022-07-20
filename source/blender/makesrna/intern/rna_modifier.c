@@ -4993,7 +4993,7 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *UNUSED(brna),
        0,
        "Object",
        "Use local generated coordinates of another object"},
-      {MOD_DISP_MAP_UV, "UV", 0, "UV", "Use coordinates from an UV layer"},
+      {MOD_DISP_MAP_UV, "UV", 0, "UV", "Use coordinates from a UV layer"},
       {0, NULL, 0, NULL, NULL},
   };
 

@@ -54,6 +54,8 @@ buildbot:
         version: '10.1.243'
     cuda11:
         version: '11.4.1'
+    hip:
+        version: '5.2.21440'
     optix:
         version: '7.3.0'
     cmake:

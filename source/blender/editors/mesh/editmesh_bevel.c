@@ -669,7 +669,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
   short etype = event->type;
   short eval = event->val;
 
-  /* When activated from toolbar, need to convert leftmouse release to confirm */
+  /* When activated from toolbar, need to convert left-mouse release to confirm. */
   if (ELEM(etype, LEFTMOUSE, opdata->launch_event) && (eval == KM_RELEASE) &&
       RNA_boolean_get(op->ptr, "release_confirm")) {
     etype = EVT_MODAL_MAP;

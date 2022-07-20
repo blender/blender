@@ -21,14 +21,14 @@ using blender::Array;
 using blender::float3;
 using blender::float4x4;
 using blender::GVArray;
-using blender::GVArray_GSpan;
+using blender::GVArraySpan;
 using blender::IndexRange;
 using blender::Map;
 using blender::MutableSpan;
 using blender::Span;
 using blender::StringRefNull;
 using blender::VArray;
-using blender::VArray_Span;
+using blender::VArraySpan;
 using blender::Vector;
 using blender::bke::AttributeIDRef;
 using blender::bke::OutputAttribute;
@@ -360,7 +360,7 @@ static void copy_attributes_between_components(const GeometryComponent &src_comp
         if (!src_attribute) {
           return true;
         }
-        GVArray_GSpan src_attribute_data{src_attribute};
+        GVArraySpan src_attribute_data{src_attribute};
 
         OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
             id, meta_data.domain, meta_data.data_type);
@@ -383,16 +383,16 @@ std::unique_ptr<CurveEval> curves_to_curve_eval(const Curves &curves_id)
   VArray<int> resolution = curves.resolution();
   VArray<int8_t> normal_mode = curves.normal_mode();
 
-  VArray_Span<float> nurbs_weights{
+  VArraySpan<float> nurbs_weights{
       src_component.attribute_get_for_read<float>("nurbs_weight", ATTR_DOMAIN_POINT, 0.0f)};
-  VArray_Span<int8_t> nurbs_orders{
+  VArraySpan<int8_t> nurbs_orders{
       src_component.attribute_get_for_read<int8_t>("nurbs_order", ATTR_DOMAIN_CURVE, 4)};
-  VArray_Span<int8_t> nurbs_knots_modes{
+  VArraySpan<int8_t> nurbs_knots_modes{
       src_component.attribute_get_for_read<int8_t>("knots_mode", ATTR_DOMAIN_CURVE, 0)};
 
-  VArray_Span<int8_t> handle_types_right{
+  VArraySpan<int8_t> handle_types_right{
       src_component.attribute_get_for_read<int8_t>("handle_type_right", ATTR_DOMAIN_POINT, 0)};
-  VArray_Span<int8_t> handle_types_left{
+  VArraySpan<int8_t> handle_types_left{
       src_component.attribute_get_for_read<int8_t>("handle_type_left", ATTR_DOMAIN_POINT, 0)};
 
   /* Create splines with the correct size and type. */

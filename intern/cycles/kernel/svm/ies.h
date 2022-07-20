@@ -17,7 +17,7 @@ ccl_device_inline float interpolate_ies_vertical(
    * Therefore, the assumption is made that the light is going to be symmetrical, which means that
    * we can just take the corresponding value at the current horizontal coordinate. */
 
-#define IES_LOOKUP(v) kernel_tex_fetch(__ies, ofs + h * v_num + (v))
+#define IES_LOOKUP(v) kernel_data_fetch(ies, ofs + h * v_num + (v))
   /* If v is zero, assume symmetry and read at v=1 instead of v=-1. */
   float a = IES_LOOKUP((v == 0) ? 1 : v - 1);
   float b = IES_LOOKUP(v);
@@ -31,16 +31,16 @@ ccl_device_inline float interpolate_ies_vertical(
 ccl_device_inline float kernel_ies_interp(KernelGlobals kg, int slot, float h_angle, float v_angle)
 {
   /* Find offset of the IES data in the table. */
-  int ofs = __float_as_int(kernel_tex_fetch(__ies, slot));
+  int ofs = __float_as_int(kernel_data_fetch(ies, slot));
   if (ofs == -1) {
     return 100.0f;
   }
 
-  int h_num = __float_as_int(kernel_tex_fetch(__ies, ofs++));
-  int v_num = __float_as_int(kernel_tex_fetch(__ies, ofs++));
+  int h_num = __float_as_int(kernel_data_fetch(ies, ofs++));
+  int v_num = __float_as_int(kernel_data_fetch(ies, ofs++));
 
-#define IES_LOOKUP_ANGLE_H(h) kernel_tex_fetch(__ies, ofs + (h))
-#define IES_LOOKUP_ANGLE_V(v) kernel_tex_fetch(__ies, ofs + h_num + (v))
+#define IES_LOOKUP_ANGLE_H(h) kernel_data_fetch(ies, ofs + (h))
+#define IES_LOOKUP_ANGLE_V(v) kernel_data_fetch(ies, ofs + h_num + (v))
 
   /* Check whether the angle is within the bounds of the IES texture. */
   if (v_angle >= IES_LOOKUP_ANGLE_V(v_num - 1)) {

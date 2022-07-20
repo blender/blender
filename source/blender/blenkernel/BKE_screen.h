@@ -440,6 +440,14 @@ void BKE_region_callback_free_gizmomap_set(void (*callback)(struct wmGizmoMap *)
 void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(struct wmGizmoMap *));
 
 /**
+ * Find a region of type \a region_type in provided \a regionbase.
+ *
+ * \note this is useful for versioning where either the #Area or #SpaceLink regionbase are typical
+ * inputs
+ */
+struct ARegion *BKE_region_find_in_listbase_by_type(const struct ListBase *regionbase,
+                                                    const int region_type);
+/**
  * Find a region of type \a region_type in the currently active space of \a area.
  *
  * \note This does _not_ work if the region to look up is not in the active space.

@@ -93,7 +93,7 @@ static void color_filter_task_cb(void *__restrict userdata,
   const int mode = data->filter_type;
 
   SculptOrigVertData orig_data;
-  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n]);
+  SCULPT_orig_vert_data_init(&orig_data, data->ob, data->nodes[n], SCULPT_UNDO_COORDS);
 
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
@@ -339,11 +339,9 @@ static int sculpt_color_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   if (use_automasking) {
     /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
      * Filter Tool. */
-    float mouse[2];
+    float mval_fl[2] = {UNPACK2(event->mval)};
     SculptCursorGeometryInfo sgi;
-    mouse[0] = event->mval[0];
-    mouse[1] = event->mval[1];
-    SCULPT_cursor_geometry_info_update(C, &sgi, mouse, false);
+    SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
   }
 
   /* Disable for multires and dyntopo for now */

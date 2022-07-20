@@ -12,11 +12,7 @@
 
 #include "GPU_select.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_rect.h"
-
-#include "DNA_userdef_types.h"
 
 #include "BLI_utildefines.h"
 

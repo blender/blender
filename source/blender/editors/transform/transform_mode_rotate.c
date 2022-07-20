@@ -11,6 +11,7 @@
 #include "BLI_task.h"
 
 #include "BKE_context.h"
+#include "BKE_report.h"
 #include "BKE_unit.h"
 
 #include "ED_screen.h"
@@ -304,7 +305,7 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
     final = large_rotation_limit(final);
   }
   else {
-    applySnapping(t, &final);
+    applySnappingAsGroup(t, &final);
     if (!(activeSnap(t) && validSnap(t))) {
       transform_snap_increment(t, &final);
     }
@@ -343,6 +344,11 @@ static void applyRotationMatrix(TransInfo *t, float mat_xform[4][4])
 
 void initRotation(TransInfo *t)
 {
+  if (t->spacetype == SPACE_ACTION) {
+    BKE_report(t->reports, RPT_ERROR, "Rotation is not supported in the Dope Sheet Editor");
+    t->state = TRANS_CANCEL;
+  }
+
   t->mode = TFM_ROTATION;
   t->transform = applyRotation;
   t->transform_matrix = applyRotationMatrix;

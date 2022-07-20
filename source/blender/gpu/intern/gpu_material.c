@@ -19,14 +19,11 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
-#include "BKE_scene.h"
-#include "BKE_world.h"
 
 #include "NOD_shader.h"
 
@@ -669,7 +666,7 @@ GPUMaterial *GPU_material_from_nodetree(Scene *scene,
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "GPUNodeGraph.used_libraries");
   mat->refcount = 1;
 #ifndef NDEBUG
-  BLI_snprintf(mat->name, sizeof(mat->name), "%s", name);
+  STRNCPY(mat->name, name);
 #else
   UNUSED_VARS(name);
 #endif

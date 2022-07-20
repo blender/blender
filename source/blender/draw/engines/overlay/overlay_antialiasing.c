@@ -52,7 +52,7 @@ void OVERLAY_antialiasing_init(OVERLAY_Data *vedata)
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-  /* Small texture which will have very small impact on rendertime. */
+  /* Small texture which will have very small impact on render-time. */
   if (txl->dummy_depth_tx == NULL) {
     const float pixel[1] = {1.0f};
     txl->dummy_depth_tx = DRW_texture_create_2d(1, 1, GPU_DEPTH_COMPONENT24, 0, pixel);

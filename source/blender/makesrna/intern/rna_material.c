@@ -754,6 +754,22 @@ static void rna_def_material_lineart(BlenderRNA *brna)
       "Effectiveness",
       "Faces with this material will behave as if it has set number of layers in occlusion");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
+
+  prop = RNA_def_property(srna, "intersection_priority", PROP_INT, PROP_NONE);
+  RNA_def_property_range(prop, 0, 255);
+  RNA_def_property_ui_text(prop,
+                           "Intersection Priority",
+                           "The intersection line will be included into the object with the "
+                           "higher intersection priority value");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
+
+  prop = RNA_def_property(srna, "use_intersection_priority_override", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_default(prop, 0);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", LRT_MATERIAL_CUSTOM_INTERSECTION_PRIORITY);
+  RNA_def_property_ui_text(prop,
+                           "Use Intersection Priority",
+                           "Override object and collection intersection priority value");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
 }
 
 void RNA_def_material(BlenderRNA *brna)

@@ -18,6 +18,7 @@
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
+#include FT_TRUETYPE_TABLES_H /* For TT_OS2 */
 
 #include "MEM_guardedalloc.h"
 
@@ -1287,6 +1288,25 @@ FontBLF *blf_font_new(const char *name, const char *filepath)
   font->name = BLI_strdup(name);
   font->filepath = BLI_strdup(filepath);
   blf_font_fill(font);
+
+  /* Save TrueType table with bits to quickly test most unicode block coverage. */
+  TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
+  if (os2_table) {
+    font->UnicodeRanges[0] = (uint)os2_table->ulUnicodeRange1;
+    font->UnicodeRanges[1] = (uint)os2_table->ulUnicodeRange2;
+    font->UnicodeRanges[2] = (uint)os2_table->ulUnicodeRange3;
+    font->UnicodeRanges[3] = (uint)os2_table->ulUnicodeRange4;
+  }
+
+  /* Detect "Last resort" fonts. They have everything. Usually except last 5 bits.  */
+  if (font->UnicodeRanges[0] == 0xffffffffU && font->UnicodeRanges[1] == 0xffffffffU &&
+      font->UnicodeRanges[2] == 0xffffffffU && font->UnicodeRanges[3] >= 0x7FFFFFFU) {
+    font->flags |= BLF_LAST_RESORT;
+  }
+
+  if (FT_IS_FIXED_WIDTH(font->face)) {
+    font->flags |= BLF_MONOSPACED;
+  }
 
   if (FT_HAS_KERNING(font->face)) {
     /* Create kerning cache table and fill with value indicating "unset". */

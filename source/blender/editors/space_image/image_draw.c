@@ -515,7 +515,8 @@ void draw_image_cache(const bContext *C, ARegion *region)
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = CTX_data_scene(C);
   Image *image = ED_space_image(sima);
-  float x, cfra = CFRA, sfra = SFRA, efra = EFRA, framelen = region->winx / (efra - sfra + 1);
+  float x, cfra = scene->r.cfra, sfra = scene->r.sfra, efra = scene->r.efra,
+           framelen = region->winx / (efra - sfra + 1);
   Mask *mask = NULL;
 
   if (!ED_space_image_show_cache(sima)) {

@@ -306,9 +306,9 @@ typedef struct TransSnap {
   eSnapTargetSelect target_select;
   bool align;
   bool project;
-  bool snap_self;
   bool peel;
   bool use_backface_culling;
+  short face_nearest_steps;
   eTSnap status;
   /* Snapped Element Type (currently for objects only). */
   eSnapMode snapElem;
@@ -463,6 +463,8 @@ typedef struct TransDataContainer {
   int data_len;
   /** Total number of transformed data_mirror. */
   int data_mirror_len;
+  /** Total number of transformed gp-frames. */
+  int data_gpf_len;
 
   struct Object *obedit;
 
