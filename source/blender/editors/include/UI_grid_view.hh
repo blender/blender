@@ -36,8 +36,6 @@ class AbstractGridViewItem : public AbstractViewItem {
   friend class AbstractGridView;
   friend class GridViewLayoutBuilder;
 
-  const AbstractGridView *view_;
-
  protected:
   /** Reference to a string that uniquely identifies this item in the view. */
   StringRef identifier_{};
