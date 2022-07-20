@@ -321,7 +321,7 @@ static int shape_key_remove_exec(bContext *C, wmOperator *op)
   return OPERATOR_CANCELLED;
 }
 
-static bool shape_key_remove_poll_property(const bContext *C,
+static bool shape_key_remove_poll_property(const bContext *UNUSED(C),
                                            wmOperator *op,
                                            const PropertyRNA *prop)
 {
