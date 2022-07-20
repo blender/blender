@@ -141,15 +141,14 @@ static void threaded_id_offset_copy(const Span<int> offsets,
 }
 
 /** Create the copy indices for the duplication domain. */
-static void create_duplicate_index_attribute(GeometryComponent &component,
+static void create_duplicate_index_attribute(bke::MutableAttributeAccessor attributes,
                                              const eAttrDomain output_domain,
                                              const IndexMask selection,
                                              const IndexAttributes &attribute_outputs,
                                              const Span<int> offsets)
 {
-  SpanAttributeWriter<int> duplicate_indices =
-      component.attributes_for_write()->lookup_or_add_for_write_only_span<int>(
-          attribute_outputs.duplicate_index.get(), output_domain);
+  SpanAttributeWriter<int> duplicate_indices = attributes.lookup_or_add_for_write_only_span<int>(
+      attribute_outputs.duplicate_index.get(), output_domain);
   for (const int i : IndexRange(selection.size())) {
     const IndexRange range = range_for_offsets_index(offsets, i);
     MutableSpan<int> indices = duplicate_indices.span.slice(range);
@@ -165,16 +164,15 @@ static void create_duplicate_index_attribute(GeometryComponent &component,
  * and the duplicate number. This function is used for the point domain elements.
  */
 static void copy_stable_id_point(const Span<int> offsets,
-                                 const GeometryComponent &src_component,
-                                 GeometryComponent &dst_component)
+                                 const bke::AttributeAccessor src_attributes,
+                                 bke::MutableAttributeAccessor dst_attributes)
 {
-  GAttributeReader src_attribute = src_component.attributes()->lookup("id");
+  GAttributeReader src_attribute = src_attributes.lookup("id");
   if (!src_attribute) {
     return;
   }
-  GSpanAttributeWriter dst_attribute =
-      dst_component.attributes_for_write()->lookup_or_add_for_write_only_span(
-          "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
+  GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+      "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
   if (!dst_attribute) {
     return;
   }
@@ -190,24 +188,23 @@ static void copy_attributes_without_id(GeometrySet &geometry_set,
                                        const eAttrDomain domain,
                                        const Span<int> offsets,
                                        const IndexMask selection,
-                                       const GeometryComponent &src_component,
-                                       GeometryComponent &dst_component)
+                                       const bke::AttributeAccessor src_attributes,
+                                       bke::MutableAttributeAccessor dst_attributes)
 {
   const Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
       geometry_set, component_type);
 
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    GAttributeReader src_attribute = src_component.attributes()->lookup(attribute_id);
+    GAttributeReader src_attribute = src_attributes.lookup(attribute_id);
     if (!src_attribute || src_attribute.domain != domain) {
       continue;
     }
     eAttrDomain out_domain = src_attribute.domain;
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
         src_attribute.varray.type());
-    GSpanAttributeWriter dst_attribute =
-        dst_component.attributes_for_write()->lookup_or_add_for_write_only_span(
-            attribute_id, out_domain, data_type);
+    GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        attribute_id, out_domain, data_type);
     if (!dst_attribute) {
       continue;
     }
@@ -232,19 +229,17 @@ static void copy_attributes_without_id(GeometrySet &geometry_set,
  * copied with an offset fill, otherwise a mapping is used.
  */
 static void copy_curve_attributes_without_id(const GeometrySet &geometry_set,
-                                             const CurveComponent &src_component,
                                              const bke::CurvesGeometry &src_curves,
                                              const IndexMask selection,
                                              const Span<int> curve_offsets,
-                                             bke::CurvesGeometry &dst_curves,
-                                             CurveComponent &dst_component)
+                                             bke::CurvesGeometry &dst_curves)
 {
   Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
       geometry_set, GEO_COMPONENT_TYPE_CURVE);
 
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    GAttributeReader src_attribute = src_component.attributes()->lookup(attribute_id);
+    GAttributeReader src_attribute = src_curves.attributes().lookup(attribute_id);
     if (!src_attribute) {
       continue;
     }
@@ -253,7 +248,7 @@ static void copy_curve_attributes_without_id(const GeometrySet &geometry_set,
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
         src_attribute.varray.type());
     GSpanAttributeWriter dst_attribute =
-        dst_component.attributes_for_write()->lookup_or_add_for_write_only_span(
+        dst_curves.attributes_for_write().lookup_or_add_for_write_only_span(
             attribute_id, out_domain, data_type);
     if (!dst_attribute) {
       continue;
@@ -296,16 +291,14 @@ static void copy_curve_attributes_without_id(const GeometrySet &geometry_set,
 static void copy_stable_id_curves(const bke::CurvesGeometry &src_curves,
                                   const IndexMask selection,
                                   const Span<int> curve_offsets,
-                                  const CurveComponent &src_component,
-                                  bke::CurvesGeometry &dst_curves,
-                                  CurveComponent &dst_component)
+                                  bke::CurvesGeometry &dst_curves)
 {
-  GAttributeReader src_attribute = src_component.attributes()->lookup("id");
+  GAttributeReader src_attribute = src_curves.attributes().lookup("id");
   if (!src_attribute) {
     return;
   }
   GSpanAttributeWriter dst_attribute =
-      dst_component.attributes_for_write()->lookup_or_add_for_write_only_span(
+      dst_curves.attributes_for_write().lookup_or_add_for_write_only_span(
           "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
   if (!dst_attribute) {
     return;
@@ -387,18 +380,16 @@ static void duplicate_curves(GeometrySet &geometry_set,
   });
   all_dst_offsets.last() = dst_points_num;
 
-  CurveComponent dst_component;
-  dst_component.replace(new_curves_id, GeometryOwnershipType::Editable);
+  copy_curve_attributes_without_id(geometry_set, curves, selection, curve_offsets, new_curves);
 
-  copy_curve_attributes_without_id(
-      geometry_set, src_component, curves, selection, curve_offsets, new_curves, dst_component);
-
-  copy_stable_id_curves(
-      curves, selection, curve_offsets, src_component, new_curves, dst_component);
+  copy_stable_id_curves(curves, selection, curve_offsets, new_curves);
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(
-        dst_component, ATTR_DOMAIN_CURVE, selection, attribute_outputs, curve_offsets);
+    create_duplicate_index_attribute(new_curves.attributes_for_write(),
+                                     ATTR_DOMAIN_CURVE,
+                                     selection,
+                                     attribute_outputs,
+                                     curve_offsets);
   }
 
   geometry_set.replace_curves(new_curves_id);
@@ -420,15 +411,15 @@ static void copy_face_attributes_without_id(GeometrySet &geometry_set,
                                             const Span<int> loop_mapping,
                                             const Span<int> offsets,
                                             const IndexMask selection,
-                                            const GeometryComponent &src_component,
-                                            GeometryComponent &dst_component)
+                                            const bke::AttributeAccessor src_attributes,
+                                            bke::MutableAttributeAccessor dst_attributes)
 {
   Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
       geometry_set, GEO_COMPONENT_TYPE_MESH);
 
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    GAttributeReader src_attribute = src_component.attributes()->lookup(attribute_id);
+    GAttributeReader src_attribute = src_attributes.lookup(attribute_id);
     if (!src_attribute) {
       continue;
     }
@@ -436,9 +427,8 @@ static void copy_face_attributes_without_id(GeometrySet &geometry_set,
     eAttrDomain out_domain = src_attribute.domain;
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
         src_attribute.varray.type());
-    GSpanAttributeWriter dst_attribute =
-        dst_component.attributes_for_write()->lookup_or_add_for_write_only_span(
-            attribute_id, out_domain, data_type);
+    GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        attribute_id, out_domain, data_type);
     if (!dst_attribute) {
       continue;
     }
@@ -480,16 +470,15 @@ static void copy_stable_id_faces(const Mesh &mesh,
                                  const IndexMask selection,
                                  const Span<int> poly_offsets,
                                  const Span<int> vert_mapping,
-                                 const MeshComponent &src_component,
-                                 MeshComponent &dst_component)
+                                 const bke::AttributeAccessor src_attributes,
+                                 bke::MutableAttributeAccessor dst_attributes)
 {
-  GAttributeReader src_attribute = src_component.attributes()->lookup("id");
+  GAttributeReader src_attribute = src_attributes.lookup("id");
   if (!src_attribute) {
     return;
   }
-  GSpanAttributeWriter dst_attribute =
-      dst_component.attributes_for_write()->lookup_or_add_for_write_only_span(
-          "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
+  GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+      "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
   if (!dst_attribute) {
     return;
   }
@@ -599,23 +588,28 @@ static void duplicate_faces(GeometrySet &geometry_set,
     }
   }
 
-  MeshComponent dst_component;
-  dst_component.replace(new_mesh, GeometryOwnershipType::Editable);
-
   copy_face_attributes_without_id(geometry_set,
                                   edge_mapping,
                                   vert_mapping,
                                   loop_mapping,
                                   offsets,
                                   selection,
-                                  src_component,
-                                  dst_component);
+                                  bke::mesh_attributes(mesh),
+                                  bke::mesh_attributes_for_write(*new_mesh));
 
-  copy_stable_id_faces(mesh, selection, offsets, vert_mapping, src_component, dst_component);
+  copy_stable_id_faces(mesh,
+                       selection,
+                       offsets,
+                       vert_mapping,
+                       bke::mesh_attributes(mesh),
+                       bke::mesh_attributes_for_write(*new_mesh));
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(
-        dst_component, ATTR_DOMAIN_FACE, selection, attribute_outputs, offsets);
+    create_duplicate_index_attribute(bke::mesh_attributes_for_write(*new_mesh),
+                                     ATTR_DOMAIN_FACE,
+                                     selection,
+                                     attribute_outputs,
+                                     offsets);
   }
 
   geometry_set.replace_mesh(new_mesh);
@@ -635,15 +629,15 @@ static void copy_edge_attributes_without_id(GeometrySet &geometry_set,
                                             const Span<int> point_mapping,
                                             const Span<int> offsets,
                                             const IndexMask selection,
-                                            const GeometryComponent &src_component,
-                                            GeometryComponent &dst_component)
+                                            const bke::AttributeAccessor src_attributes,
+                                            bke::MutableAttributeAccessor dst_attributes)
 {
   Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
       geometry_set, GEO_COMPONENT_TYPE_MESH);
 
   for (const Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
-    GAttributeReader src_attribute = src_component.attributes()->lookup(attribute_id);
+    GAttributeReader src_attribute = src_attributes.lookup(attribute_id);
     if (!src_attribute) {
       continue;
     }
@@ -651,9 +645,8 @@ static void copy_edge_attributes_without_id(GeometrySet &geometry_set,
     const eAttrDomain out_domain = src_attribute.domain;
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
         src_attribute.varray.type());
-    GSpanAttributeWriter dst_attribute =
-        dst_component.attributes_for_write()->lookup_or_add_for_write_only_span(
-            attribute_id, out_domain, data_type);
+    GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+        attribute_id, out_domain, data_type);
     if (!dst_attribute) {
       continue;
     }
@@ -684,16 +677,15 @@ static void copy_edge_attributes_without_id(GeometrySet &geometry_set,
 static void copy_stable_id_edges(const Mesh &mesh,
                                  const IndexMask selection,
                                  const Span<int> edge_offsets,
-                                 const MeshComponent &src_component,
-                                 MeshComponent &dst_component)
+                                 const bke::AttributeAccessor src_attributes,
+                                 bke::MutableAttributeAccessor dst_attributes)
 {
-  GAttributeReader src_attribute = src_component.attributes()->lookup("id");
+  GAttributeReader src_attribute = src_attributes.lookup("id");
   if (!src_attribute) {
     return;
   }
-  GSpanAttributeWriter dst_attribute =
-      dst_component.attributes_for_write()->lookup_or_add_for_write_only_span(
-          "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
+  GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+      "id", ATTR_DOMAIN_POINT, CD_PROP_INT32);
   if (!dst_attribute) {
     return;
   }
@@ -777,17 +769,25 @@ static void duplicate_edges(GeometrySet &geometry_set,
     }
   });
 
-  MeshComponent dst_component;
-  dst_component.replace(new_mesh, GeometryOwnershipType::Editable);
+  copy_edge_attributes_without_id(geometry_set,
+                                  vert_orig_indices,
+                                  edge_offsets,
+                                  selection,
+                                  bke::mesh_attributes(mesh),
+                                  bke::mesh_attributes_for_write(*new_mesh));
 
-  copy_edge_attributes_without_id(
-      geometry_set, vert_orig_indices, edge_offsets, selection, src_component, dst_component);
-
-  copy_stable_id_edges(mesh, selection, edge_offsets, src_component, dst_component);
+  copy_stable_id_edges(mesh,
+                       selection,
+                       edge_offsets,
+                       bke::mesh_attributes(mesh),
+                       bke::mesh_attributes_for_write(*new_mesh));
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(
-        dst_component, ATTR_DOMAIN_EDGE, selection, attribute_outputs, edge_offsets);
+    create_duplicate_index_attribute(bke::mesh_attributes_for_write(*new_mesh),
+                                     ATTR_DOMAIN_EDGE,
+                                     selection,
+                                     attribute_outputs,
+                                     edge_offsets);
   }
 
   geometry_set.replace_mesh(new_mesh);
@@ -839,9 +839,6 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
   }
   new_curve_offsets.last() = dst_num;
 
-  CurveComponent dst_component;
-  dst_component.replace(new_curves_id, GeometryOwnershipType::Editable);
-
   Map<AttributeIDRef, AttributeKind> attributes = gather_attributes_without_id(
       geometry_set, GEO_COMPONENT_TYPE_CURVE);
 
@@ -856,7 +853,7 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(
         src_attribute.varray.type());
     GSpanAttributeWriter dst_attribute =
-        dst_component.attributes_for_write()->lookup_or_add_for_write_only_span(
+        new_curves.attributes_for_write().lookup_or_add_for_write_only_span(
             attribute_id, domain, data_type);
     if (!dst_attribute) {
       continue;
@@ -887,11 +884,14 @@ static void duplicate_points_curve(GeometrySet &geometry_set,
     dst_attribute.finish();
   }
 
-  copy_stable_id_point(offsets, src_component, dst_component);
+  copy_stable_id_point(offsets, src_curves.attributes(), new_curves.attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(
-        dst_component, ATTR_DOMAIN_POINT, selection, attribute_outputs, offsets.as_span());
+    create_duplicate_index_attribute(new_curves.attributes_for_write(),
+                                     ATTR_DOMAIN_POINT,
+                                     selection,
+                                     attribute_outputs,
+                                     offsets.as_span());
   }
 
   geometry_set.replace_curves(new_curves_id);
@@ -927,21 +927,23 @@ static void duplicate_points_mesh(GeometrySet &geometry_set,
 
   threaded_slice_fill(offsets.as_span(), selection, src_verts, dst_verts);
 
-  MeshComponent dst_component;
-  dst_component.replace(new_mesh, GeometryOwnershipType::Editable);
   copy_attributes_without_id(geometry_set,
                              GEO_COMPONENT_TYPE_MESH,
                              ATTR_DOMAIN_POINT,
                              offsets,
                              selection,
-                             src_component,
-                             dst_component);
+                             bke::mesh_attributes(mesh),
+                             bke::mesh_attributes_for_write(*new_mesh));
 
-  copy_stable_id_point(offsets, src_component, dst_component);
+  copy_stable_id_point(
+      offsets, bke::mesh_attributes(mesh), bke::mesh_attributes_for_write(*new_mesh));
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(
-        dst_component, ATTR_DOMAIN_POINT, selection, attribute_outputs, offsets.as_span());
+    create_duplicate_index_attribute(bke::mesh_attributes_for_write(*new_mesh),
+                                     ATTR_DOMAIN_POINT,
+                                     selection,
+                                     attribute_outputs,
+                                     offsets.as_span());
   }
 
   geometry_set.replace_mesh(new_mesh);
@@ -973,22 +975,24 @@ static void duplicate_points_pointcloud(GeometrySet &geometry_set,
   Array<int> offsets = accumulate_counts_to_offsets(selection, counts);
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(offsets.last());
-  PointCloudComponent dst_component;
-  dst_component.replace(pointcloud, GeometryOwnershipType::Editable);
 
   copy_attributes_without_id(geometry_set,
                              GEO_COMPONENT_TYPE_POINT_CLOUD,
                              ATTR_DOMAIN_POINT,
                              offsets,
                              selection,
-                             src_points,
-                             dst_component);
+                             *src_points.attributes(),
+                             bke::pointcloud_attributes_for_write(*pointcloud));
 
-  copy_stable_id_point(offsets, src_points, dst_component);
+  copy_stable_id_point(
+      offsets, *src_points.attributes(), bke::pointcloud_attributes_for_write(*pointcloud));
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(
-        dst_component, ATTR_DOMAIN_POINT, selection, attribute_outputs, offsets);
+    create_duplicate_index_attribute(bke::pointcloud_attributes_for_write(*pointcloud),
+                                     ATTR_DOMAIN_POINT,
+                                     selection,
+                                     attribute_outputs,
+                                     offsets);
   }
   geometry_set.replace_pointcloud(pointcloud);
 }
@@ -1085,12 +1089,15 @@ static void duplicate_instances(GeometrySet &geometry_set,
                              ATTR_DOMAIN_INSTANCE,
                              offsets,
                              selection,
-                             src_instances,
-                             dst_instances);
+                             *src_instances.attributes(),
+                             *dst_instances.attributes_for_write());
 
   if (attribute_outputs.duplicate_index) {
-    create_duplicate_index_attribute(
-        dst_instances, ATTR_DOMAIN_INSTANCE, selection, attribute_outputs, offsets);
+    create_duplicate_index_attribute(*dst_instances.attributes_for_write(),
+                                     ATTR_DOMAIN_INSTANCE,
+                                     selection,
+                                     attribute_outputs,
+                                     offsets);
   }
 
   geometry_set = std::move(dst_geometry);

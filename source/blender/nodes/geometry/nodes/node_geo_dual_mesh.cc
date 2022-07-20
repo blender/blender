@@ -143,12 +143,9 @@ static void transfer_attributes(
     const Span<int> new_to_old_edges_map,
     const Span<int> new_to_old_face_corners_map,
     const Span<std::pair<int, int>> boundary_vertex_to_relevant_face_map,
-    const GeometryComponent &src_component,
-    GeometryComponent &dst_component)
+    const AttributeAccessor src_attributes,
+    MutableAttributeAccessor dst_attributes)
 {
-  const AttributeAccessor src_attributes = *src_component.attributes();
-  MutableAttributeAccessor dst_attributes = *dst_component.attributes_for_write();
-
   for (Map<AttributeIDRef, AttributeKind>::Item entry : attributes.items()) {
     const AttributeIDRef attribute_id = entry.key;
     GAttributeReader src_attribute = src_attributes.lookup(attribute_id);
@@ -875,16 +872,14 @@ static void calc_dual_mesh(GeometrySet &geometry_set,
   }
   Mesh *mesh_out = BKE_mesh_new_nomain(
       vertex_positions.size(), new_edges.size(), 0, loops.size(), loop_lengths.size());
-  MeshComponent out_component;
-  out_component.replace(mesh_out, GeometryOwnershipType::Editable);
   transfer_attributes(attributes,
                       vertex_types,
                       keep_boundaries,
                       new_to_old_edges_map,
                       new_to_old_face_corners_map,
                       boundary_vertex_to_relevant_face_map,
-                      in_component,
-                      out_component);
+                      bke::mesh_attributes(mesh_in),
+                      bke::mesh_attributes_for_write(*mesh_out));
 
   int loop_start = 0;
   for (const int i : IndexRange(mesh_out->totpoly)) {

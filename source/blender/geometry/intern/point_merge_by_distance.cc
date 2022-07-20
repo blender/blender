@@ -13,13 +13,12 @@
 
 namespace blender::geometry {
 
-PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
+PointCloud *point_merge_by_distance(const PointCloud &src_points,
                                     const float merge_distance,
                                     const IndexMask selection)
 {
-  const PointCloud &src_pointcloud = *src_points.get_for_read();
-  bke::AttributeAccessor attributes = bke::pointcloud_attributes(src_pointcloud);
-  VArraySpan<float3> positions = attributes.lookup_or_default<float3>(
+  const bke::AttributeAccessor src_attributes = bke::pointcloud_attributes(src_points);
+  VArraySpan<float3> positions = src_attributes.lookup_or_default<float3>(
       "position", ATTR_DOMAIN_POINT, float3(0));
   const int src_size = positions.size();
 
@@ -42,8 +41,8 @@ PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
   /* Create the new point cloud and add it to a temporary component for the attribute API. */
   const int dst_size = src_size - duplicate_count;
   PointCloud *dst_pointcloud = BKE_pointcloud_new_nomain(dst_size);
-  PointCloudComponent dst_points;
-  dst_points.replace(dst_pointcloud, GeometryOwnershipType::Editable);
+  bke::MutableAttributeAccessor dst_attributes = bke::pointcloud_attributes_for_write(
+      *dst_pointcloud);
 
   /* By default, every point is just "merged" with itself. Then fill in the results of the merge
    * finding, converting from indices into the selection to indices into the full input point
@@ -106,8 +105,6 @@ PointCloud *point_merge_by_distance(const PointCloudComponent &src_points,
     point_merge_counts[dst_index]++;
   }
 
-  const bke::AttributeAccessor src_attributes = *src_points.attributes();
-  bke::MutableAttributeAccessor dst_attributes = *dst_points.attributes_for_write();
   Set<bke::AttributeIDRef> attribute_ids = src_attributes.all_ids();
 
   /* Transfer the ID attribute if it exists, using the ID of the first merged point. */

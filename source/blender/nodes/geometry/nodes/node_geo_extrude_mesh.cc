@@ -164,11 +164,10 @@ static CustomData &get_customdata(Mesh &mesh, const eAttrDomain domain)
 
 static MutableSpan<int> get_orig_index_layer(Mesh &mesh, const eAttrDomain domain)
 {
-  MeshComponent component;
-  component.replace(&mesh, GeometryOwnershipType::ReadOnly);
+  const bke::AttributeAccessor attributes = bke::mesh_attributes(mesh);
   CustomData &custom_data = get_customdata(mesh, domain);
   if (int *orig_indices = static_cast<int *>(CustomData_get_layer(&custom_data, CD_ORIGINDEX))) {
-    return {orig_indices, component.attribute_domain_size(domain)};
+    return {orig_indices, attributes.domain_size(domain)};
   }
   return {};
 }
