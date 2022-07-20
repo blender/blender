@@ -962,7 +962,12 @@ def dump_addon_messages(module_name, do_checks, settings):
     # and make the diff!
     for key in minus_msgs:
         if key != settings.PO_HEADER_KEY:
-            del msgs[key]
+            if key in msgs:
+                del msgs[key]
+            else:
+                # This should not happen, but some messages seem to have
+                # leaked on add-on unregister and register?
+                print(f"Key not found in msgs: {key}")
 
     if check_ctxt:
         _diff_check_ctxt(check_ctxt, minus_check_ctxt)
