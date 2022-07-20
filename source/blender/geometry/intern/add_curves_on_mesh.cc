@@ -361,6 +361,9 @@ void add_curves_on_mesh(CurvesGeometry &curves, const AddCurvesOnMeshInputs &inp
                                                inputs.surface_to_curves_normal_mat);
   }
 
+  /* Set curve types. */
+  MutableSpan<int8_t> types_span = curves.curve_types_for_write();
+  types_span.drop_front(old_curves_num).fill(CURVE_TYPE_CATMULL_ROM);
   curves.update_curve_types();
 }
 
