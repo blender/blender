@@ -1072,7 +1072,7 @@ static void separate_mesh_selection(GeometrySet &geometry_set,
   evaluator.evaluate();
   const VArray<bool> selection = evaluator.get_evaluated<bool>(0);
   /* Check if there is anything to delete. */
-  if (selection.is_single() && selection.get_internal_single()) {
+  if (selection.is_empty() || (selection.is_single() && selection.get_internal_single())) {
     return;
   }
 
