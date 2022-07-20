@@ -598,12 +598,8 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
  * e.g. second operand for boolean modifier.
  * Note that modifiers in stack always get fully evaluated COW ID pointers,
  * never original ones. Makes things simpler.
- *
- * \param get_cage_mesh: Return evaluated mesh with only deforming modifiers applied
- * (i.e. mesh topology remains the same as original one, a.k.a. 'cage' mesh).
  */
-struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(struct Object *ob_eval,
-                                                                   bool get_cage_mesh);
+struct Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(struct Object *ob_eval);
 
 void BKE_modifier_check_uuids_unique_and_report(const struct Object *object);
 

@@ -128,7 +128,7 @@ static Volume *mesh_to_volume(ModifierData *md,
   if (object_to_convert == nullptr) {
     return input_volume;
   }
-  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_to_convert, false);
+  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_to_convert);
   if (mesh == nullptr) {
     return input_volume;
   }
