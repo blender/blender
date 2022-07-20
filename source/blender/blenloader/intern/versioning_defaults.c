@@ -479,8 +479,10 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
         /* Default only has one window. */
         if (layout->screen) {
           bScreen *screen = layout->screen;
-          BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
-          BLI_libblock_ensure_unique_name(bmain, screen->id.name);
+          if (!STREQ(screen->id.name + 2, workspace->id.name + 2)) {
+            BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
+            BLI_libblock_ensure_unique_name(bmain, screen->id.name);
+          }
         }
 
         /* For some reason we have unused screens, needed until re-saving.

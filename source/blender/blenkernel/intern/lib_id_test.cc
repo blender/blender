@@ -10,6 +10,7 @@
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 
 #include "DNA_ID.h"
 #include "DNA_mesh_types.h"
@@ -57,15 +58,20 @@ TEST(lib_id_main_sort, local_ids_1)
   test_lib_id_main_sort_check_order({id_a, id_b, id_c});
 }
 
-static void change_lib(Main * /*bmain*/, ID *id, Library *lib)
+static void change_lib(Main *bmain, ID *id, Library *lib)
 {
+  if (id->lib == lib) {
+    return;
+  }
+  BKE_main_namemap_remove_name(bmain, id, id->name + 2);
   id->lib = lib;
 }
 
 static void change_name(Main *bmain, ID *id, const char *name)
 {
+  BKE_main_namemap_remove_name(bmain, id, id->name + 2);
   BLI_strncpy(id->name + 2, name, MAX_NAME);
-  BKE_id_new_name_validate(&bmain->objects, id, nullptr, true);
+  BKE_id_new_name_validate(bmain, &bmain->objects, id, nullptr, true);
 }
 
 TEST(lib_id_main_sort, linked_ids_1)
@@ -387,6 +393,19 @@ TEST(lib_id_main_unique_name, names_are_unique_per_id_type)
   EXPECT_STREQ(id_a->name + 2, "Foo");
   EXPECT_STREQ(id_b->name + 2, "Foo"); /* Different types (OB & CA) can have the same name. */
   EXPECT_STREQ(id_c->name + 2, "Foo.001");
+}
+
+TEST(lib_id_main_unique_name, name_huge_number_suffix)
+{
+  LibIDMainSortTestContext ctx;
+
+  /* Use numeric suffix that is really large: should come through
+   * fine, since no duplicates with other names. */
+  ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "SuperLong.1234567890"));
+  EXPECT_STREQ(id_a->name + 2, "SuperLong.1234567890");
+  /* Now create with the same name again: should get 001 suffix. */
+  ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "SuperLong.1234567890"));
+  EXPECT_STREQ(id_b->name + 2, "SuperLong.001");
 }
 
 }  // namespace blender::bke::tests

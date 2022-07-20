@@ -22,6 +22,7 @@ struct GPUTexture;
 struct ID;
 struct Library;
 struct PackedFile;
+struct UniqueName_Map;
 
 /* Runtime display data */
 struct DrawData;
@@ -444,6 +445,11 @@ typedef struct ID {
   struct ID_Runtime runtime;
 } ID;
 
+typedef struct Library_Runtime {
+  /* Used for efficient calculations of unique names. */
+  struct UniqueName_Map *name_map;
+} Library_Runtime;
+
 /**
  * For each library file used, a Library struct is added to Main
  * WARNING: readfile.c, expand_doit() reads this struct without DNA check!
@@ -476,6 +482,8 @@ typedef struct Library {
   int temp_index;
   /** See BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION, needed for do_versions. */
   short versionfile, subversionfile;
+
+  struct Library_Runtime runtime;
 } Library;
 
 /** #Library.tag */

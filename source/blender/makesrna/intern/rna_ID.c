@@ -16,6 +16,7 @@
 
 #include "BKE_icons.h"
 #include "BKE_lib_id.h"
+#include "BKE_main_namemap.h"
 #include "BKE_object.h"
 
 #include "RNA_access.h"
@@ -273,6 +274,7 @@ int rna_ID_name_length(PointerRNA *ptr)
 void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
   ID *id = (ID *)ptr->data;
+  BKE_main_namemap_remove_name(G_MAIN, id, id->name + 2);
   BLI_strncpy_utf8(id->name + 2, value, sizeof(id->name) - 2);
   BLI_assert(BKE_id_is_in_global_main(id));
   BLI_libblock_ensure_unique_name(G_MAIN, id->name);
