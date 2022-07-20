@@ -212,16 +212,6 @@ int DRW_object_visibility_in_active_context(const Object *ob)
   return BKE_object_visibility(ob, mode);
 }
 
-bool DRW_object_is_flat_normal(const Object *ob)
-{
-  if (ob->type == OB_MESH) {
-    const Mesh *me = ob->data;
-    if (me->mpoly && me->mpoly[0].flag & ME_SMOOTH) {
-      return false;
-    }
-  }
-  return true;
-}
 
 bool DRW_object_use_hide_faces(const struct Object *ob)
 {
