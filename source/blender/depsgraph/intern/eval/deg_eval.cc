@@ -101,6 +101,12 @@ void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_nod
   else {
     operation_node->evaluate(depsgraph);
   }
+
+  /* Clear the flag early on, allowing partial updates without re-evaluating the same node multiple
+   * times.
+   * This is a thread-safe modification as the node's flags are only read for a non-scheduled nodes
+   * and this node has been scheduled. */
+  operation_node->flag &= ~DEPSOP_FLAG_NEEDS_UPDATE;
 }
 
 void deg_task_run_func(TaskPool *pool, void *taskdata)
