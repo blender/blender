@@ -26,6 +26,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
@@ -1563,8 +1564,14 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
       break;
     }
     case ID_CV: {
+      Curves *curves_id = reinterpret_cast<Curves *>(obdata);
+
       op_node = add_operation_node(obdata, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
       op_node->set_as_entry();
+
+      if (curves_id->surface != nullptr) {
+        build_object(-1, curves_id->surface, DEG_ID_LINKED_INDIRECTLY, false);
+      }
       break;
     }
     case ID_PT: {

@@ -27,6 +27,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
@@ -2426,8 +2427,16 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       }
       break;
     }
-    case ID_CV:
+    case ID_CV: {
+      Curves *curves_id = reinterpret_cast<Curves *>(obdata);
+      if (curves_id->surface != nullptr) {
+        build_object(curves_id->surface);
+
+        /* The relations between the surface and the curves are handled as part of the modifier
+         * stack building. */
+      }
       break;
+    }
     case ID_PT:
       break;
     case ID_VO: {
