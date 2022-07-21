@@ -482,6 +482,11 @@ void film_store_combined(
     color.a = 1.0;
   }
 
+  /* Filter NaNs. */
+  if (any(isnan(color))) {
+    color = vec4(0.0, 0.0, 0.0, 1.0);
+  }
+
   if (film_buf.display_id == -1) {
     display = color;
   }
@@ -498,6 +503,11 @@ void film_store_color(FilmSample dst, int pass_id, vec4 color, inout vec4 displa
 
   color = (data_film * dst.weight + color) * dst.weight_sum_inv;
 
+  /* Filter NaNs. */
+  if (any(isnan(color))) {
+    color = vec4(0.0, 0.0, 0.0, 1.0);
+  }
+
   if (film_buf.display_id == pass_id) {
     display = color;
   }
@@ -513,6 +523,11 @@ void film_store_value(FilmSample dst, int pass_id, float value, inout vec4 displ
   float data_film = imageLoad(value_accum_img, ivec3(dst.texel, pass_id)).x;
 
   value = (data_film * dst.weight + value) * dst.weight_sum_inv;
+
+  /* Filter NaNs. */
+  if (isnan(value)) {
+    value = 0.0;
+  }
 
   if (film_buf.display_id == pass_id) {
     display = vec4(value, value, value, 1.0);
