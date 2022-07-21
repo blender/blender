@@ -537,10 +537,7 @@ class MutableAttributeAccessor : public AttributeAccessor {
    * Get a writable attribute or none if it does not exist.
    * Make sure to call #finish after changes are done.
    */
-  GAttributeWriter lookup_for_write(const AttributeIDRef &attribute_id)
-  {
-    return fn_->lookup_for_write(owner_, attribute_id);
-  }
+  GAttributeWriter lookup_for_write(const AttributeIDRef &attribute_id);
 
   /**
    * Get a writable attribute or non if it does not exist.
