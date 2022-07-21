@@ -1439,7 +1439,6 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
   Scene *scene = CTX_data_scene(C);
   Object *ob = ED_object_active_context(C);
   ModifierData *md = edit_modifier_property_get(op, ob, 0);
-  const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
   const bool do_report = RNA_boolean_get(op->ptr, "report");
   const bool do_single_user = RNA_boolean_get(op->ptr, "single_user");
   const bool do_merge_customdata = RNA_boolean_get(op->ptr, "merge_customdata");
@@ -1447,6 +1446,8 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
   if (md == nullptr) {
     return OPERATOR_CANCELLED;
   }
+
+  const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
 
   if (do_single_user && ID_REAL_USERS(ob->data) > 1) {
     ED_object_single_obdata_user(bmain, scene, ob);
