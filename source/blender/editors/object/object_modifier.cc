@@ -818,7 +818,7 @@ static bool modifier_apply_obdata(
     /* Create a temporary geometry set and component. */
     GeometrySet geometry_set;
     geometry_set.get_component_for_write<CurveComponent>().replace(
-        &curves, GeometryOwnershipType::Editable);
+        &curves, GeometryOwnershipType::ReadOnly);
 
     ModifierEvalContext mectx = {depsgraph, ob, (ModifierApplyFlag)0};
     mti->modifyGeometrySet(md_eval, &mectx, &geometry_set);
@@ -833,14 +833,11 @@ static bool modifier_apply_obdata(
         .attributes_for_write()
         .remove_anonymous();
 
-    /* If the modifier's output is a different curves data-block, copy the relevant information to
-     * the original. */
-    if (&curves_eval != &curves) {
-      blender::bke::CurvesGeometry::wrap(curves.geometry) = std::move(
-          blender::bke::CurvesGeometry::wrap(curves_eval.geometry));
-      Main *bmain = DEG_get_bmain(depsgraph);
-      BKE_object_material_from_eval_data(bmain, ob, &curves_eval.id);
-    }
+    /* Copy the relevant information to the original. */
+    blender::bke::CurvesGeometry::wrap(curves.geometry) = std::move(
+        blender::bke::CurvesGeometry::wrap(curves_eval.geometry));
+    Main *bmain = DEG_get_bmain(depsgraph);
+    BKE_object_material_from_eval_data(bmain, ob, &curves_eval.id);
   }
   else {
     /* TODO: implement for point clouds and volumes. */
