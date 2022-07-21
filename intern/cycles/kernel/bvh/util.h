@@ -11,7 +11,7 @@ CCL_NAMESPACE_BEGIN
  * intersection we'll be comparing against the exact same distances. */
 ccl_device_forceinline float intersection_t_offset(const float t)
 {
-  /* This is a simplified version of nextafterf(t, FLT_MAX), only dealing with
+  /* This is a simplified version of `nextafterf(t, FLT_MAX)`, only dealing with
    * non-negative and finite t. */
   kernel_assert(t >= 0.0f && isfinite_safe(t));
   const uint32_t bits = (t == 0.0f) ? 1 : __float_as_uint(t) + 1;

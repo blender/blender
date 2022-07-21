@@ -107,7 +107,7 @@ void MTLUniformBuf::bind(int slot)
     MEM_SAFE_FREE(data_);
   }
 
-  /* Ensure there is atleast an empty dummy buffer. */
+  /* Ensure there is at least an empty dummy buffer. */
   if (metal_buffer_ == nullptr) {
     this->update(nullptr);
   }

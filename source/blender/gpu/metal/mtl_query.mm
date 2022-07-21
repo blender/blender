@@ -104,8 +104,8 @@ void MTLQueryPool::get_occlusion_result(MutableSpan<uint32_t> r_values)
     BLI_assert(ctx->get_inside_frame());
   }
 
-  /* Wait for GPU operatiosn to complete and for query buffer contents
-   * to be synchronised back to host memory. */
+  /* Wait for GPU operations to complete and for query buffer contents
+   * to be synchronized back to host memory. */
   GPU_finish();
 
   /* Iterate through all possible visibility buffers and copy results into provided

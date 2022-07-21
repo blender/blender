@@ -70,7 +70,7 @@ KERNEL_STRUCT_MEMBER(film, float4, rec709_to_r)
 KERNEL_STRUCT_MEMBER(film, float4, rec709_to_g)
 KERNEL_STRUCT_MEMBER(film, float4, rec709_to_b)
 KERNEL_STRUCT_MEMBER(film, int, is_rec709)
-/* Exposuse. */
+/* Exposure. */
 KERNEL_STRUCT_MEMBER(film, float, exposure)
 /* Passed used. */
 KERNEL_STRUCT_MEMBER(film, int, pass_flag)

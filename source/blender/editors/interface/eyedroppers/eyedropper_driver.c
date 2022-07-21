@@ -83,14 +83,14 @@ static void driverdropper_sample(bContext *C, wmOperator *op, const wmEvent *eve
   if (but == NULL) {
     return;
   }
-  /* Get paths for src... */
+  /* Get paths for the source. */
   PointerRNA *target_ptr = &but->rnapoin;
   PropertyRNA *target_prop = but->rnaprop;
   const int target_index = but->rnaindex;
 
   char *target_path = RNA_path_from_ID_to_property(target_ptr, target_prop);
 
-  /* ... and destination */
+  /* Get paths for the destination. */
   char *dst_path = RNA_path_from_ID_to_property(&ddr->ptr, ddr->prop);
 
   /* Now create driver(s) */

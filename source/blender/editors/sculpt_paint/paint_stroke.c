@@ -123,7 +123,7 @@ typedef struct PaintStroke {
   StrokeRedraw redraw;
   StrokeDone done;
 
-  bool original; /* Raycast original mesh at start of stroke */
+  bool original; /* Ray-cast original mesh at start of stroke. */
 } PaintStroke;
 
 /*** Cursors ***/

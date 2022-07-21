@@ -17,8 +17,8 @@
 extern "C" {
 #endif
 
-/* GPU backends abstract the differences between different APIs. GPU_context_create
- * automatically initializes the backend, and GPU_context_discard frees it when there
+/* GPU back-ends abstract the differences between different APIs. #GPU_context_create
+ * automatically initializes the back-end, and #GPU_context_discard frees it when there
  * are no more contexts. */
 bool GPU_backend_supported(void);
 eGPUBackendType GPU_backend_get_type(void);
