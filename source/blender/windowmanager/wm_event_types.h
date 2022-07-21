@@ -380,12 +380,11 @@ enum {
    (event_type) == EVT_OSKEY)
 
 /** Test whether the event is a mouse button. */
-#define ISMOUSE(event_type) \
-  (((event_type) >= LEFTMOUSE && (event_type) <= BUTTON7MOUSE) || (event_type) == MOUSESMARTZOOM)
+#define ISMOUSE(event_type) ((event_type) >= LEFTMOUSE && (event_type) <= BUTTON7MOUSE)
 /** Test whether the event is a mouse wheel. */
 #define ISMOUSE_WHEEL(event_type) ((event_type) >= WHEELUPMOUSE && (event_type) <= WHEELOUTMOUSE)
 /** Test whether the event is a mouse (track-pad) gesture. */
-#define ISMOUSE_GESTURE(event_type) ((event_type) >= MOUSEPAN && (event_type) <= MOUSEROTATE)
+#define ISMOUSE_GESTURE(event_type) ((event_type) >= MOUSEPAN && (event_type) <= MOUSESMARTZOOM)
 /** Test whether the event is a mouse button (excluding mouse-wheel). */
 #define ISMOUSE_BUTTON(event_type) \
   (ELEM(event_type, \
