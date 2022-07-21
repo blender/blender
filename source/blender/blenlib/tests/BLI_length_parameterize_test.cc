@@ -210,7 +210,6 @@ TEST(length_parameterize, ArbitraryFloatSimple)
   sample_at_lengths(lengths, sample_lengths, indices, factors);
   Array<float> results(4);
   linear_interpolation<float>(values, indices, factors, results);
-  results.as_span().print_as_lines("results");
   Array<float> expected({
       0.5f,
       1.5f,
@@ -234,7 +233,6 @@ TEST(length_parameterize, ArbitraryFloat2)
   sample_at_lengths(lengths, sample_lengths, indices, factors);
   Array<float2> results(12);
   linear_interpolation<float2>(values, indices, factors, results);
-  results.as_span().print_as_lines("results");
   Array<float2> expected({
       {0.5f, 0.0f},
       {1.0f, 0.5f},
