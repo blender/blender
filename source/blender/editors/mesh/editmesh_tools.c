@@ -8692,7 +8692,7 @@ static int edbm_point_normals_modal(bContext *C, wmOperator *op, const wmEvent *
    * Free the data here, then use #point_normals_ensure to add it back on demand. */
   if (ret == OPERATOR_PASS_THROUGH) {
     /* Don't free on mouse-move, causes creation/freeing of the loop data in an inefficient way. */
-    if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+    if (!ISMOUSE_MOTION(event->type)) {
       point_normals_free(op);
     }
   }

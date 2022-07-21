@@ -479,7 +479,7 @@ static int eyedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
         break;
     }
   }
-  else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  else if (ISMOUSE_MOTION(event->type)) {
     if (eye->accum_start) {
       /* button is pressed so keep sampling */
       eyedropper_color_sample(C, eye, event->xy);
