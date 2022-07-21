@@ -410,13 +410,9 @@ ccl_device_inline void optix_intersection_curve(const int prim, const int type)
   }
 #  endif
 
-  float3 P = optixGetObjectRayOrigin();
-  float3 dir = optixGetObjectRayDirection();
-  float tmin = optixGetRayTmin();
-
-  /* The direction is not normalized by default, but the curve intersection routine expects that */
-  float len;
-  dir = normalize_len(dir, &len);
+  const float3 ray_P = optixGetObjectRayOrigin();
+  const float3 ray_D = optixGetObjectRayDirection();
+  const float ray_tmin = optixGetRayTmin();
 
 #  ifdef __OBJECT_MOTION__
   const float time = optixGetRayTime();
@@ -426,13 +422,10 @@ ccl_device_inline void optix_intersection_curve(const int prim, const int type)
 
   Intersection isect;
   isect.t = optixGetRayTmax();
-  /* Transform maximum distance into object space. */
-  if (isect.t != FLT_MAX)
-    isect.t *= len;
 
-  if (curve_intersect(NULL, &isect, P, dir, tmin, isect.t, object, prim, time, type)) {
+  if (curve_intersect(NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type)) {
     static_assert(PRIMITIVE_ALL < 128, "Values >= 128 are reserved for OptiX internal use");
-    optixReportIntersection(isect.t / len,
+    optixReportIntersection(isect.t,
                             type & PRIMITIVE_ALL,
                             __float_as_int(isect.u),  /* Attribute_0 */
                             __float_as_int(isect.v)); /* Attribute_1 */
@@ -465,13 +458,9 @@ extern "C" __global__ void __intersection__point()
   }
 #  endif
 
-  float3 P = optixGetObjectRayOrigin();
-  float3 dir = optixGetObjectRayDirection();
-  float tmin = optixGetRayTmin();
-
-  /* The direction is not normalized by default, the point intersection routine expects that. */
-  float len;
-  dir = normalize_len(dir, &len);
+  const float3 ray_P = optixGetObjectRayOrigin();
+  const float3 ray_D = optixGetObjectRayDirection();
+  const float ray_tmin = optixGetRayTmin();
 
 #  ifdef __OBJECT_MOTION__
   const float time = optixGetRayTime();
@@ -481,14 +470,10 @@ extern "C" __global__ void __intersection__point()
 
   Intersection isect;
   isect.t = optixGetRayTmax();
-  /* Transform maximum distance into object space. */
-  if (isect.t != FLT_MAX) {
-    isect.t *= len;
-  }
 
-  if (point_intersect(NULL, &isect, P, dir, tmin, isect.t, object, prim, time, type)) {
+  if (point_intersect(NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type)) {
     static_assert(PRIMITIVE_ALL < 128, "Values >= 128 are reserved for OptiX internal use");
-    optixReportIntersection(isect.t / len, type & PRIMITIVE_ALL);
+    optixReportIntersection(isect.t, type & PRIMITIVE_ALL);
   }
 }
 #endif

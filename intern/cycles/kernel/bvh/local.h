@@ -59,14 +59,10 @@ ccl_device_inline
   const int object_flag = kernel_data_fetch(object_flag, local_object);
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #if BVH_FEATURE(BVH_MOTION)
-    Transform ob_itfm;
-    const float t_world_to_instance = bvh_instance_motion_push(
-        kg, local_object, ray, &P, &dir, &idir, &ob_itfm);
+    bvh_instance_motion_push(kg, local_object, ray, &P, &dir, &idir);
 #else
-    const float t_world_to_instance = bvh_instance_push(kg, local_object, ray, &P, &dir, &idir);
+    bvh_instance_push(kg, local_object, ray, &P, &dir, &idir);
 #endif
-    isect_t *= t_world_to_instance;
-    tmin *= t_world_to_instance;
     object = local_object;
   }
 

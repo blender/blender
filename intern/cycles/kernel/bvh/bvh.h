@@ -475,12 +475,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
         float3 P = ray->P;
         float3 dir = ray->D;
         float3 idir = ray->D;
-        Transform ob_itfm;
-        rtc_ray.tfar = ray->tmax *
-                       bvh_instance_motion_push(kg, local_object, ray, &P, &dir, &idir, &ob_itfm);
-        /* bvh_instance_motion_push() returns the inverse transform but
-         * it's not needed here. */
-        (void)ob_itfm;
+        bvh_instance_motion_push(kg, local_object, ray, &P, &dir, &idir);
 
         rtc_ray.org_x = P.x;
         rtc_ray.org_y = P.y;
@@ -488,6 +483,8 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
         rtc_ray.dir_x = dir.x;
         rtc_ray.dir_y = dir.y;
         rtc_ray.dir_z = dir.z;
+        rtc_ray.tnear = ray->tmin;
+        rtc_ray.tfar = ray->tmax;
         RTCScene scene = (RTCScene)rtcGetGeometryUserData(geom);
         kernel_assert(scene);
         if (scene) {
