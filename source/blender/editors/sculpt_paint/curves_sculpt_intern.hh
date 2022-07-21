@@ -14,6 +14,8 @@
 #include "BKE_attribute.h"
 #include "BKE_curves.hh"
 
+#include "ED_curves_sculpt.h"
+
 struct ARegion;
 struct RegionView3D;
 struct Depsgraph;
@@ -97,12 +99,6 @@ VArray<float> get_curves_selection(const Curves &curves_id);
  * Get the floating point selection on the curve domain, copied from curves if necessary.
  */
 VArray<float> get_point_selection(const Curves &curves_id);
-
-/**
- * Find curves that have any point selected (a selection factor greater than zero),
- * or curves that have their own selection factor greater than zero.
- */
-IndexMask retrieve_selected_curves(const Curves &curves_id, Vector<int64_t> &r_indices);
 
 void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &new_last_position);
 
