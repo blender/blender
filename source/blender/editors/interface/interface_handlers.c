@@ -10096,8 +10096,7 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
       /* Pass, needed to click-exit outside of non-floating menus. */
       ui_region_auto_open_clear(but->active->region);
     }
-    else if ((!ELEM(event->type, MOUSEMOVE, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN)) &&
-             ISMOUSE(event->type)) {
+    else if (ISMOUSE_BUTTON(event->type)) {
       if (!ui_but_contains_point_px(but, but->active->region, event->xy)) {
         but = NULL;
       }
