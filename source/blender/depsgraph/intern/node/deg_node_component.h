@@ -24,7 +24,6 @@ struct bPoseChannel;
 
 namespace blender::deg {
 
-struct BoneComponentNode;
 struct Depsgraph;
 struct IDNode;
 struct OperationNode;
