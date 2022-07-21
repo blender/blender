@@ -410,6 +410,9 @@ class RENDER_PT_eevee_next_sampling(RenderButtonsPanel, Panel):
         col.prop(props, "taa_render_samples", text="Render")
         col.prop(props, "taa_samples", text="Viewport")
 
+        col = layout.column()
+        col.prop(props, "use_taa_reprojection")
+
 
 class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
     bl_label = "Indirect Lighting"

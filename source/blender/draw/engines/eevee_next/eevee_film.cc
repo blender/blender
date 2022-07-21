@@ -345,6 +345,8 @@ void Film::init(const int2 &extent, const rcti *output_rect)
       depth_tx_.clear(float4(0.0f));
     }
   }
+
+  force_disable_reprojection_ = (inst_.scene->eevee.flag & SCE_EEVEE_TAA_REPROJECTION) == 0;
 }
 
 void Film::sync()
@@ -414,6 +416,12 @@ void Film::sync()
 void Film::end_sync()
 {
   data_.use_reprojection = inst_.sampling.interactive_mode();
+
+  /* Just bypass the reprojection and reset the accumulation. */
+  if (force_disable_reprojection_ && inst_.sampling.is_reset()) {
+    data_.use_reprojection = false;
+    data_.use_history = false;
+  }
 
   aovs_info.push_update();
 

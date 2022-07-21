@@ -49,6 +49,8 @@ class Film {
   SwapChain<Texture, 2> weight_tx_;
   /** Extent used by the render buffers when rendering the main views. */
   int2 render_extent_ = int2(-1);
+  /** User setting to disable reprojection. Useful for debugging or have a more precise render. */
+  bool force_disable_reprojection_ = false;
 
   DRWPass *accumulate_ps_ = nullptr;
 
