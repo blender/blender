@@ -63,10 +63,10 @@ ccl_device_inline float3 transform_point(ccl_private const Transform *t, const f
 
   _MM_TRANSPOSE4_PS(x, y, z, w);
 
-  ssef tmp = shuffle<0>(aa) * x;
-  tmp = madd(shuffle<1>(aa), y, tmp);
+  ssef tmp = w;
   tmp = madd(shuffle<2>(aa), z, tmp);
-  tmp += w;
+  tmp = madd(shuffle<1>(aa), y, tmp);
+  tmp = madd(shuffle<0>(aa), x, tmp);
 
   return float3(tmp.m128);
 #elif defined(__KERNEL_METAL__)
@@ -93,9 +93,9 @@ ccl_device_inline float3 transform_direction(ccl_private const Transform *t, con
 
   _MM_TRANSPOSE4_PS(x, y, z, w);
 
-  ssef tmp = shuffle<0>(aa) * x;
+  ssef tmp = shuffle<2>(aa) * z;
   tmp = madd(shuffle<1>(aa), y, tmp);
-  tmp = madd(shuffle<2>(aa), z, tmp);
+  tmp = madd(shuffle<0>(aa), x, tmp);
 
   return float3(tmp.m128);
 #elif defined(__KERNEL_METAL__)
@@ -312,7 +312,6 @@ ccl_device_inline void transform_set_column(Transform *t, int column, float3 val
   t->z[column] = value.z;
 }
 
-Transform transform_inverse(const Transform &a);
 Transform transform_transposed_inverse(const Transform &a);
 
 ccl_device_inline bool transform_uniform_scale(const Transform &tfm, float &scale)
@@ -392,39 +391,47 @@ ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 #endif /* defined(__KERNEL_GPU_RAYTRACING__) */
 }
 
-ccl_device_inline Transform transform_quick_inverse(Transform M)
+ccl_device_inline Transform transform_inverse(const Transform tfm)
 {
-  /* possible optimization: can we avoid doing this altogether and construct
-   * the inverse matrix directly from negated translation, transposed rotation,
-   * scale can be inverted but what about shearing? */
-  Transform R;
-  float det = M.x.x * (M.z.z * M.y.y - M.z.y * M.y.z) - M.y.x * (M.z.z * M.x.y - M.z.y * M.x.z) +
-              M.z.x * (M.y.z * M.x.y - M.y.y * M.x.z);
+  /* This implementation matches the one in Embree exactly, to ensure consistent
+   * results with the ray intersection of instances. */
+  float3 x = make_float3(tfm.x.x, tfm.y.x, tfm.z.x);
+  float3 y = make_float3(tfm.x.y, tfm.y.y, tfm.z.y);
+  float3 z = make_float3(tfm.x.z, tfm.y.z, tfm.z.z);
+  float3 w = make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
+
+  /* Compute determinant. */
+  float det = dot(x, cross(y, z));
+
   if (det == 0.0f) {
-    M.x.x += 1e-8f;
-    M.y.y += 1e-8f;
-    M.z.z += 1e-8f;
-    det = M.x.x * (M.z.z * M.y.y - M.z.y * M.y.z) - M.y.x * (M.z.z * M.x.y - M.z.y * M.x.z) +
-          M.z.x * (M.y.z * M.x.y - M.y.y * M.x.z);
+    /* Matrix is degenerate (e.g. 0 scale on some axis), ideally we should
+     * never be in this situation, but try to invert it anyway with tweak.
+     *
+     * This logic does not match Embree which would just give an invalid
+     * matrix. A better solution would be to remove this and ensure any object
+     * matrix is valid. */
+    x.x += 1e-8f;
+    y.y += 1e-8f;
+    z.z += 1e-8f;
+
+    det = dot(x, cross(y, z));
+    if (det == 0.0f) {
+      det = FLT_MAX;
+    }
   }
-  det = (det != 0.0f) ? 1.0f / det : 0.0f;
 
-  float3 Rx = det * make_float3(M.z.z * M.y.y - M.z.y * M.y.z,
-                                M.z.y * M.x.z - M.z.z * M.x.y,
-                                M.y.z * M.x.y - M.y.y * M.x.z);
-  float3 Ry = det * make_float3(M.z.x * M.y.z - M.z.z * M.y.x,
-                                M.z.z * M.x.x - M.z.x * M.x.z,
-                                M.y.x * M.x.z - M.y.z * M.x.x);
-  float3 Rz = det * make_float3(M.z.y * M.y.x - M.z.x * M.y.y,
-                                M.z.x * M.x.y - M.z.y * M.x.x,
-                                M.y.y * M.x.x - M.y.x * M.x.y);
-  float3 T = -make_float3(M.x.w, M.y.w, M.z.w);
+  /* Divide adjoint matrix by the determinant to compute inverse of 3x3 matrix. */
+  const float3 inverse_x = cross(y, z) / det;
+  const float3 inverse_y = cross(z, x) / det;
+  const float3 inverse_z = cross(x, y) / det;
 
-  R.x = make_float4(Rx.x, Rx.y, Rx.z, dot(Rx, T));
-  R.y = make_float4(Ry.x, Ry.y, Ry.z, dot(Ry, T));
-  R.z = make_float4(Rz.x, Rz.y, Rz.z, dot(Rz, T));
+  /* Compute translation and fill transform. */
+  Transform itfm;
+  itfm.x = float3_to_float4(inverse_x, -dot(inverse_x, w));
+  itfm.y = float3_to_float4(inverse_y, -dot(inverse_y, w));
+  itfm.z = float3_to_float4(inverse_z, -dot(inverse_z, w));
 
-  return R;
+  return itfm;
 }
 
 ccl_device_inline void transform_compose(ccl_private Transform *tfm,

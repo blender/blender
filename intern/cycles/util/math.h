@@ -511,6 +511,11 @@ ccl_device_inline float4 float3_to_float4(const float3 a)
   return make_float4(a.x, a.y, a.z, 1.0f);
 }
 
+ccl_device_inline float4 float3_to_float4(const float3 a, const float w)
+{
+  return make_float4(a.x, a.y, a.z, w);
+}
+
 ccl_device_inline float inverse_lerp(float a, float b, float x)
 {
   return (x - a) / (b - a);

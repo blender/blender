@@ -55,7 +55,7 @@ static bool ObtainCacheParticleData(
     return false;
 
   Transform tfm = get_transform(b_ob->matrix_world());
-  Transform itfm = transform_quick_inverse(tfm);
+  Transform itfm = transform_inverse(tfm);
 
   for (BL::Modifier &b_mod : b_ob->modifiers) {
     if ((b_mod.type() == b_mod.type_PARTICLE_SYSTEM) &&

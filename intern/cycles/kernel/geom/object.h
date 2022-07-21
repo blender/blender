@@ -86,7 +86,7 @@ ccl_device_inline Transform object_fetch_transform_motion_test(KernelGlobals kg,
     Transform tfm = object_fetch_transform_motion(kg, object, time);
 
     if (itfm)
-      *itfm = transform_quick_inverse(tfm);
+      *itfm = transform_inverse(tfm);
 
     return tfm;
   }
