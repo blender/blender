@@ -1025,7 +1025,7 @@ static void id_override_library_create_hierarchy(
     }
     FOREACH_MAIN_ID_END;
 
-    bool success;
+    bool success = false;
     if (do_hierarchy) {
       ID *id_root_override = nullptr;
       success = BKE_lib_override_library_create(&bmain,
@@ -1072,6 +1072,9 @@ static void id_override_library_create_hierarchy(
       /* Cleanup. */
       BKE_main_id_newptr_and_tag_clear(&bmain);
       BKE_main_id_tag_all(&bmain, LIB_TAG_DOIT, false);
+    }
+    else {
+      BLI_assert_unreachable();
     }
 
     /* Remove the instance empty from this scene, the items now have an overridden collection
