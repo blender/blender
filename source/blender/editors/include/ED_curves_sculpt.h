@@ -15,6 +15,10 @@ struct Curves;
 void ED_operatortypes_sculpt_curves(void);
 
 #ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
 
 #  include "BLI_index_mask.hh"
 #  include "BLI_vector.hh"
@@ -35,8 +39,4 @@ IndexMask retrieve_selected_points(const Curves &curves_id, Vector<int64_t> &r_i
 
 }  // namespace blender::ed::sculpt_paint
 
-#endif
-
-#ifdef __cplusplus
-}
 #endif
