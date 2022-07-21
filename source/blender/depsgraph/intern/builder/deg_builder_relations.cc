@@ -2198,8 +2198,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
    * data mask to be used. We add relation here to ensure object is never
    * evaluated prior to Scene's CoW is ready. */
   OperationKey scene_key(&scene_->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
-  Relation *rel = add_relation(scene_key, obdata_ubereval_key, "CoW Relation");
-  rel->flag |= RELATION_FLAG_NO_FLUSH;
+  add_relation(scene_key, obdata_ubereval_key, "CoW Relation", RELATION_FLAG_NO_FLUSH);
   /* Modifiers */
   if (object->modifiers.first != nullptr) {
     ModifierUpdateDepsgraphContext ctx = {};
