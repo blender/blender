@@ -212,7 +212,6 @@ int DRW_object_visibility_in_active_context(const Object *ob)
   return BKE_object_visibility(ob, mode);
 }
 
-
 bool DRW_object_use_hide_faces(const struct Object *ob)
 {
   if (ob->type == OB_MESH) {
