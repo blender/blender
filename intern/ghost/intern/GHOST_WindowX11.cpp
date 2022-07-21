@@ -658,15 +658,15 @@ GHOST_TSuccess GHOST_WindowX11::setClientSize(uint32_t width, uint32_t height)
 
 void GHOST_WindowX11::screenToClient(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const
 {
-  /* This is correct! */
-
   int ax, ay;
   Window temp;
 
+  /* Use (0, 0) instead of (inX, inY) to work around overflow of signed int16 in
+   * the implementation of this function. */
   XTranslateCoordinates(
-      m_display, RootWindow(m_display, m_visualInfo->screen), m_window, inX, inY, &ax, &ay, &temp);
-  outX = ax;
-  outY = ay;
+      m_display, RootWindow(m_display, m_visualInfo->screen), m_window, 0, 0, &ax, &ay, &temp);
+  outX = ax + inX;
+  outY = ay + inY;
 }
 
 void GHOST_WindowX11::clientToScreen(int32_t inX, int32_t inY, int32_t &outX, int32_t &outY) const
