@@ -1327,7 +1327,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     handled = true;
   }
 
-  if (t->redraw && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  if (t->redraw && !ISMOUSE_MOTION(event->type)) {
     WM_window_status_area_tag_redraw(CTX_wm_window(t->context));
   }
 

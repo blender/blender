@@ -127,7 +127,7 @@ class ShrinkCurvesEffect : public CurvesEffect {
 
     lp::sample_at_lengths(data.old_lengths, data.sample_lengths, data.indices, data.factors);
 
-    lp::linear_interpolation<float3>(data.old_positions, data.indices, data.factors, positions);
+    lp::interpolate<float3>(data.old_positions, data.indices, data.factors, positions);
   }
 };
 

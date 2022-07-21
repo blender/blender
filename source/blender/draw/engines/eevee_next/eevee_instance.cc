@@ -199,7 +199,7 @@ void Instance::render_sync()
  **/
 void Instance::render_sample()
 {
-  if (sampling.finished()) {
+  if (sampling.finished_viewport()) {
     film.display();
     return;
   }

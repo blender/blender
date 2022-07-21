@@ -3852,11 +3852,15 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
       input->relative_pointer = nullptr;
     }
     if (input->locked_pointer) {
+      /* Potentially add a motion event so the applicate has updated X/Y coordinates. */
+      int32_t xy_motion[2] = {0, 0};
+      bool xy_motion_create_event = false;
+
       /* Request location to restore to. */
       if (mode_current == GHOST_kGrabWrap) {
         /* Since this call is initiated by Blender, we can be sure the window wasn't closed
          * by logic outside this function - as the window was needed to make this call. */
-        int32_t xy_new[2] = {UNPACK2(input->pointer.xy)};
+        int32_t xy_next[2] = {UNPACK2(input->pointer.xy)};
 
         GHOST_Rect bounds_scale;
 
@@ -3865,21 +3869,18 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
         bounds_scale.m_r = wl_fixed_from_int(wrap_bounds->m_r) / scale;
         bounds_scale.m_b = wl_fixed_from_int(wrap_bounds->m_b) / scale;
 
-        bounds_scale.wrapPoint(UNPACK2(xy_new), 0, wrap_axis);
+        bounds_scale.wrapPoint(UNPACK2(xy_next), 0, wrap_axis);
 
         /* Push an event so the new location is registered. */
-        if ((xy_new[0] != input->pointer.xy[0]) || (xy_new[1] != input->pointer.xy[1])) {
-          input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
-                                                         GHOST_kEventCursorMove,
-                                                         ghost_wl_surface_user_data(surface),
-                                                         wl_fixed_to_int(scale * xy_new[0]),
-                                                         wl_fixed_to_int(scale * xy_new[1]),
-                                                         GHOST_TABLET_DATA_NONE));
+        if ((xy_next[0] != input->pointer.xy[0]) || (xy_next[1] != input->pointer.xy[1])) {
+          xy_motion[0] = xy_next[0];
+          xy_motion[1] = xy_next[1];
+          xy_motion_create_event = true;
         }
-        input->pointer.xy[0] = xy_new[0];
-        input->pointer.xy[1] = xy_new[1];
+        input->pointer.xy[0] = xy_next[0];
+        input->pointer.xy[1] = xy_next[1];
 
-        zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer, UNPACK2(xy_new));
+        zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer, UNPACK2(xy_next));
         wl_surface_commit(surface);
       }
       else if (mode_current == GHOST_kGrabHide) {
@@ -3891,6 +3892,13 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
           };
           zwp_locked_pointer_v1_set_cursor_position_hint(input->locked_pointer, UNPACK2(xy_next));
           wl_surface_commit(surface);
+
+          /* NOTE(@campbellbarton): The new cursor position is a hint,
+           * it's possible the hint is ignored. It doesn't seem like there is a good way to
+           * know if the hint will be used or not, at least not immediately. */
+          xy_motion[0] = xy_next[0];
+          xy_motion[1] = xy_next[1];
+          xy_motion_create_event = true;
         }
       }
 #ifdef USE_GNOME_CONFINE_HACK
@@ -3902,6 +3910,15 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
         }
       }
 #endif
+
+      if (xy_motion_create_event) {
+        input->system->pushEvent(new GHOST_EventCursor(input->system->getMilliSeconds(),
+                                                       GHOST_kEventCursorMove,
+                                                       ghost_wl_surface_user_data(surface),
+                                                       wl_fixed_to_int(scale * xy_motion[0]),
+                                                       wl_fixed_to_int(scale * xy_motion[1]),
+                                                       GHOST_TABLET_DATA_NONE));
+      }
 
       zwp_locked_pointer_v1_destroy(input->locked_pointer);
       input->locked_pointer = nullptr;

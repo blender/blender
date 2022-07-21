@@ -124,7 +124,12 @@ struct CameraData {
   float clip_far;
   eCameraType type;
 
-  int _pad0;
+  bool initialized;
+
+#ifdef __cplusplus
+  /* Small constructor to allow detecting new buffers. */
+  CameraData() : initialized(false){};
+#endif
 };
 BLI_STATIC_ASSERT_ALIGN(CameraData, 16)
 
@@ -156,6 +161,8 @@ struct FilmData {
    * pixel if using scaled resolution rendering.
    */
   float2 subpixel_offset;
+  /** Scaling factor to convert texel to uvs. */
+  float2 extent_inv;
   /** Is true if history is valid and can be sampled. Bypass history to resets accumulation. */
   bool1 use_history;
   /** Is true if combined buffer is valid and can be re-projected to reduce variance. */
@@ -165,7 +172,6 @@ struct FilmData {
   /** Is true if accumulation of filtered passes is needed. */
   bool1 any_render_pass_1;
   bool1 any_render_pass_2;
-  int _pad0, _pad1;
   /** Output counts per type. */
   int color_len, value_len;
   /** Index in color_accum_img or value_accum_img of each pass. -1 if pass is not enabled. */

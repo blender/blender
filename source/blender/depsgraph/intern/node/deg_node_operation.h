@@ -214,6 +214,9 @@ enum OperationFlag {
    * and not for connecting to an operation. */
   DEPSOP_FLAG_PINNED = (1 << 3),
 
+  /* The operation directly or indirectly affects ID node visibility. */
+  DEPSOP_FLAG_AFFECTS_VISIBILITY = (1 << 4),
+
   /* Set of flags which gets flushed along the relations. */
   DEPSOP_FLAG_FLUSH = (DEPSOP_FLAG_USER_MODIFIED),
 };

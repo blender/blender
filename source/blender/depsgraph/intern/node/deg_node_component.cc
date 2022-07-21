@@ -67,7 +67,10 @@ uint64_t ComponentNode::OperationIDKey::hash() const
 }
 
 ComponentNode::ComponentNode()
-    : entry_operation(nullptr), exit_operation(nullptr), affects_directly_visible(false)
+    : entry_operation(nullptr),
+      exit_operation(nullptr),
+      possibly_affects_visible_id(false),
+      affects_visible_id(false)
 {
   operations_map = new Map<ComponentNode::OperationIDKey, OperationNode *>();
 }
@@ -90,7 +93,7 @@ string ComponentNode::identifier() const
   const string idname = this->owner->name;
   const string typebuf = "" + to_string(static_cast<int>(type)) + ")";
   return typebuf + name + " : " + idname +
-         "( affects_directly_visible: " + (affects_directly_visible ? "true" : "false") + ")";
+         "( affects_visible_id: " + (affects_visible_id ? "true" : "false") + ")";
 }
 
 OperationNode *ComponentNode::find_operation(OperationIDKey key) const

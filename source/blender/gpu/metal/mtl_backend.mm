@@ -10,8 +10,8 @@
 #include "mtl_backend.hh"
 #include "mtl_context.hh"
 #include "mtl_framebuffer.hh"
-#include "mtl_uniform_buffer.hh"
 #include "mtl_query.hh"
+#include "mtl_uniform_buffer.hh"
 
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"

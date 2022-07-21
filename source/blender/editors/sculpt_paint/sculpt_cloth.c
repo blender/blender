@@ -611,13 +611,17 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static ListBase *cloth_brush_collider_cache_create(Depsgraph *depsgraph)
+static ListBase *cloth_brush_collider_cache_create(Object *object, Depsgraph *depsgraph)
 {
   ListBase *cache = NULL;
   DEG_OBJECT_ITER_BEGIN (depsgraph,
                          ob,
                          DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
                              DEG_ITER_OBJECT_FLAG_DUPLI) {
+    if (STREQ(object->id.name, ob->id.name)) {
+      continue;
+    }
+
     CollisionModifierData *cmd = (CollisionModifierData *)BKE_modifiers_findby_type(
         ob, eModifierType_Collision);
     if (!cmd) {
@@ -1029,13 +1033,14 @@ static void cloth_sim_initialize_default_node_state(SculptSession *ss,
   MEM_SAFE_FREE(nodes);
 }
 
-SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
+SculptClothSimulation *SCULPT_cloth_brush_simulation_create(Object *ob,
                                                             const float cloth_mass,
                                                             const float cloth_damping,
                                                             const float cloth_softbody_strength,
                                                             const bool use_collisions,
                                                             const bool needs_deform_coords)
 {
+  SculptSession *ss = ob->sculpt;
   const int totverts = SCULPT_vertex_count_get(ss);
   SculptClothSimulation *cloth_sim;
 
@@ -1073,7 +1078,7 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
   cloth_sim->softbody_strength = cloth_softbody_strength;
 
   if (use_collisions) {
-    cloth_sim->collider_list = cloth_brush_collider_cache_create(ss->depsgraph);
+    cloth_sim->collider_list = cloth_brush_collider_cache_create(ob, ss->depsgraph);
   }
 
   cloth_sim_initialize_default_node_state(ss, cloth_sim);
@@ -1184,7 +1189,7 @@ void SCULPT_do_cloth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
     /* The simulation structure only needs to be created on the first symmetry pass. */
     if (SCULPT_stroke_is_first_brush_step(ss->cache) || !ss->cache->cloth_sim) {
       ss->cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-          ss,
+          ob,
           brush->cloth_mass,
           brush->cloth_damping,
           brush->cloth_constraint_softbody_strength,
@@ -1571,7 +1576,7 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
   const float cloth_damping = RNA_float_get(op->ptr, "cloth_damping");
   const bool use_collisions = RNA_boolean_get(op->ptr, "use_collisions");
   ss->filter_cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-      ss,
+      ob,
       cloth_mass,
       cloth_damping,
       0.0f,

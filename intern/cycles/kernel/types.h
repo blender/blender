@@ -1168,7 +1168,7 @@ typedef struct KernelData {
   uint max_shaders;
   uint volume_stack_size;
 
-  /* Always dynamic data mambers. */
+  /* Always dynamic data members. */
   KernelCamera cam;
   KernelBake bake;
   KernelTables tables;

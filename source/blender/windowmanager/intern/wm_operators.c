@@ -939,7 +939,7 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
     return ret_value | OPERATOR_PASS_THROUGH;
   }
-  if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  if (ISMOUSE_MOTION(event->type)) {
     const int drag_delta[2] = {
         mval[0] - event->mval[0],
         mval[1] - event->mval[1],

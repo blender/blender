@@ -2079,7 +2079,8 @@ static int object_curves_empty_hair_add_exec(bContext *C, wmOperator *op)
   Object *surface_ob = CTX_data_active_object(C);
   BLI_assert(surface_ob != nullptr);
 
-  Object *curves_ob = ED_object_add_type(C, OB_CURVES, nullptr, nullptr, nullptr, false, local_view_bits);
+  Object *curves_ob = ED_object_add_type(
+      C, OB_CURVES, nullptr, nullptr, nullptr, false, local_view_bits);
   BKE_object_apply_mat4(curves_ob, surface_ob->obmat, false, false);
 
   /* Set surface object. */

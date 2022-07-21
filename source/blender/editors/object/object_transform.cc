@@ -2222,7 +2222,7 @@ static int object_transform_axis_target_modal(bContext *C, wmOperator *op, const
 
   bool is_finished = false;
 
-  if (ISMOUSE(xfd->init_event)) {
+  if (ISMOUSE_BUTTON(xfd->init_event)) {
     if ((event->type == xfd->init_event) && (event->val == KM_RELEASE)) {
       is_finished = true;
     }

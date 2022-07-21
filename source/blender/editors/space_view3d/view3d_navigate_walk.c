@@ -659,7 +659,7 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
   if (event->type == TIMER && event->customdata == walk->timer) {
     walk->redraw = true;
   }
-  else if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  else if (ISMOUSE_MOTION(event->type)) {
 
 #ifdef USE_TABLET_SUPPORT
     if ((walk->is_cursor_absolute == false) && event->tablet.is_motion_absolute) {

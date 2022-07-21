@@ -9,7 +9,6 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_color.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_vector.hh"
 
 namespace blender::length_parameterize {
 
@@ -42,10 +41,10 @@ void accumulate_lengths(const Span<T> values, const bool cyclic, MutableSpan<flo
 }
 
 template<typename T>
-inline void linear_interpolation(const Span<T> src,
-                                 const Span<int> indices,
-                                 const Span<float> factors,
-                                 MutableSpan<T> dst)
+inline void interpolate(const Span<T> src,
+                        const Span<int> indices,
+                        const Span<float> factors,
+                        MutableSpan<T> dst)
 {
   BLI_assert(indices.size() == factors.size());
   BLI_assert(indices.size() == dst.size());
@@ -75,6 +74,7 @@ struct SampleSegmentHint {
 
 /**
  * \param accumulated_segment_lengths: Lengths of individual segments added up.
+ * Each value describes the total length at the end of the segment following a point.
  * \param sample_length: The position to sample at.
  * \param r_segment_index: Returns the index of the segment that #sample_length is in.
  * \param r_factor: Returns the position within the segment.
@@ -82,7 +82,7 @@ struct SampleSegmentHint {
  * \note #sample_length must not be outside of any segment.
  */
 inline void sample_at_length(const Span<float> accumulated_segment_lengths,
-                             float sample_length,
+                             const float sample_length,
                              int &r_segment_index,
                              float &r_factor,
                              SampleSegmentHint *hint = nullptr)
@@ -117,7 +117,7 @@ inline void sample_at_length(const Span<float> accumulated_segment_lengths,
   const float segment_start = prev_point_index == 0 ? 0.0f : lengths[prev_point_index - 1];
   const float segment_end = lengths[prev_point_index];
   const float segment_length = segment_end - segment_start;
-  const float segment_length_inv = safe_divide(1.0f, segment_length);
+  const float segment_length_inv = math::safe_divide(1.0f, segment_length);
   const float length_in_segment = sample_length - segment_start;
   const float factor = length_in_segment * segment_length_inv;
 

@@ -123,7 +123,7 @@ typedef struct PaintStroke {
   StrokeRedraw redraw;
   StrokeDone done;
 
-  bool original; /* Raycast original mesh at start of stroke */
+  bool original; /* Ray-cast original mesh at start of stroke. */
 } PaintStroke;
 
 /*** Cursors ***/
@@ -1550,8 +1550,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
     copy_v2_fl2(mouse, event->mval[0], event->mval[1]);
     paint_stroke_line_constrain(stroke, mouse);
 
-    if (stroke->stroke_started &&
-        (first_modal || (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)))) {
+    if (stroke->stroke_started && (first_modal || ISMOUSE_MOTION(event->type))) {
       if ((br->mtex.brush_angle_mode & MTEX_ANGLE_RAKE) ||
           (br->mask_mtex.brush_angle_mode & MTEX_ANGLE_RAKE)) {
         copy_v2_v2(stroke->ups->last_rake, stroke->last_mouse_position);
@@ -1561,7 +1560,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
   }
   else if (first_modal ||
            /* regular dabs */
-           (!(br->flag & BRUSH_AIRBRUSH) && (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE))) ||
+           (!(br->flag & BRUSH_AIRBRUSH) && ISMOUSE_MOTION(event->type)) ||
            /* airbrush */
            ((br->flag & BRUSH_AIRBRUSH) && event->type == TIMER &&
             event->customdata == stroke->timer)) {

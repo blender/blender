@@ -37,6 +37,7 @@
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/eval/deg_eval_flush.h"
 #include "intern/eval/deg_eval_stats.h"
+#include "intern/eval/deg_eval_visibility.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_id.h"
@@ -69,6 +70,9 @@ enum class EvaluationStage {
    * involved. */
   COPY_ON_WRITE,
 
+  /* Evaluate actual ID nodes visiblity based on the current state of animation and drivers. */
+  DYNAMIC_VISIBILITY,
+
   /* Threaded evaluation of all possible operations. */
   THREADED_EVALUATION,
 
@@ -83,7 +87,8 @@ struct DepsgraphEvalState {
   Depsgraph *graph;
   bool do_stats;
   EvaluationStage stage;
-  bool need_single_thread_pass;
+  bool need_update_pending_parents = true;
+  bool need_single_thread_pass = false;
 };
 
 void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_node)
@@ -101,6 +106,12 @@ void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_nod
   else {
     operation_node->evaluate(depsgraph);
   }
+
+  /* Clear the flag early on, allowing partial updates without re-evaluating the same node multiple
+   * times.
+   * This is a thread-safe modification as the node's flags are only read for a non-scheduled nodes
+   * and this node has been scheduled. */
+  operation_node->flag &= ~DEPSOP_FLAG_NEEDS_UPDATE;
 }
 
 void deg_task_run_func(TaskPool *pool, void *taskdata)
@@ -116,24 +127,31 @@ void deg_task_run_func(TaskPool *pool, void *taskdata)
   schedule_children(state, operation_node, schedule_node_to_pool, pool);
 }
 
-bool check_operation_node_visible(OperationNode *op_node)
+bool check_operation_node_visible(const DepsgraphEvalState *state, OperationNode *op_node)
 {
   const ComponentNode *comp_node = op_node->owner;
-  /* Special exception, copy on write component is to be always evaluated,
-   * to keep copied "database" in a consistent state. */
+  /* Special case for copy on write component: it is to be always evaluated, to keep copied
+   * "database" in a consistent state. */
   if (comp_node->type == NodeType::COPY_ON_WRITE) {
     return true;
   }
-  return comp_node->affects_directly_visible;
+
+  /* Special case for dynamic visiblity pass: the actual visibility is not yet known, so limit to
+   * only operations which affects visibility. */
+  if (state->stage == EvaluationStage::DYNAMIC_VISIBILITY) {
+    return op_node->flag & OperationFlag::DEPSOP_FLAG_AFFECTS_VISIBILITY;
+  }
+
+  return comp_node->affects_visible_id;
 }
 
-void calculate_pending_parents_for_node(OperationNode *node)
+void calculate_pending_parents_for_node(const DepsgraphEvalState *state, OperationNode *node)
 {
   /* Update counters, applies for both visible and invisible IDs. */
   node->num_links_pending = 0;
   node->scheduled = false;
   /* Invisible IDs requires no pending operations. */
-  if (!check_operation_node_visible(node)) {
+  if (!check_operation_node_visible(state, node)) {
     return;
   }
   /* No need to bother with anything if node is not tagged for update. */
@@ -147,7 +165,7 @@ void calculate_pending_parents_for_node(OperationNode *node)
        * calculation, but how is it possible that visible object depends
        * on an invisible? This is something what is prohibited after
        * deg_graph_build_flush_layers(). */
-      if (!check_operation_node_visible(from)) {
+      if (!check_operation_node_visible(state, from)) {
         continue;
       }
       /* No need to wait for operation which is up to date. */
@@ -159,20 +177,24 @@ void calculate_pending_parents_for_node(OperationNode *node)
   }
 }
 
-void calculate_pending_parents(Depsgraph *graph)
+void calculate_pending_parents_if_needed(DepsgraphEvalState *state)
 {
-  for (OperationNode *node : graph->operations) {
-    calculate_pending_parents_for_node(node);
+  if (!state->need_update_pending_parents) {
+    return;
   }
+
+  for (OperationNode *node : state->graph->operations) {
+    calculate_pending_parents_for_node(state, node);
+  }
+
+  state->need_update_pending_parents = false;
 }
 
 void initialize_execution(DepsgraphEvalState *state, Depsgraph *graph)
 {
-  const bool do_stats = state->do_stats;
-  calculate_pending_parents(graph);
   /* Clear tags and other things which needs to be clear. */
-  for (OperationNode *node : graph->operations) {
-    if (do_stats) {
+  if (state->do_stats) {
+    for (OperationNode *node : graph->operations) {
       node->stats.reset_current();
     }
   }
@@ -197,11 +219,10 @@ bool need_evaluate_operation_at_stage(DepsgraphEvalState *state,
     case EvaluationStage::COPY_ON_WRITE:
       return (component_node->type == NodeType::COPY_ON_WRITE);
 
+    case EvaluationStage::DYNAMIC_VISIBILITY:
+      return operation_node->flag & OperationFlag::DEPSOP_FLAG_AFFECTS_VISIBILITY;
+
     case EvaluationStage::THREADED_EVALUATION:
-      /* Sanity check: copy-on-write node should be evaluated already. This will be indicated by
-       * scheduled flag (we assume that scheduled operations have been actually handled by previous
-       * stage). */
-      BLI_assert(operation_node->scheduled || component_node->type != NodeType::COPY_ON_WRITE);
       if (is_metaball_object_operation(operation_node)) {
         state->need_single_thread_pass = true;
         return false;
@@ -227,7 +248,7 @@ void schedule_node(DepsgraphEvalState *state,
                    ScheduleFunctionArgs... schedule_function_args)
 {
   /* No need to schedule nodes of invisible ID. */
-  if (!check_operation_node_visible(node)) {
+  if (!check_operation_node_visible(state, node)) {
     return;
   }
   /* No need to schedule operations which are not tagged for update, they are
@@ -311,6 +332,8 @@ void evaluate_graph_threaded_stage(DepsgraphEvalState *state,
 {
   state->stage = stage;
 
+  calculate_pending_parents_if_needed(state);
+
   schedule_graph(state, schedule_node_to_pool, task_pool);
   BLI_task_pool_work_and_wait(task_pool);
 }
@@ -321,6 +344,8 @@ void evaluate_graph_single_threaded_if_needed(DepsgraphEvalState *state)
   if (!state->need_single_thread_pass) {
     return;
   }
+
+  BLI_assert(!state->need_update_pending_parents);
 
   state->stage = EvaluationStage::SINGLE_THREADED_WORKAROUND;
 
@@ -386,7 +411,6 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   DepsgraphEvalState state;
   state.graph = graph;
   state.do_stats = graph->debug.do_time_debug();
-  state.need_single_thread_pass = false;
 
   /* Prepare all nodes for evaluation. */
   initialize_execution(&state, graph);
@@ -396,6 +420,10 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
    * - Start with the copy-on-write operations which never form dependency cycles. This will ensure
    *   that if a dependency graph has a cycle evaluation functions will always "see" valid expanded
    *   datablock. It might not be evaluated yet, but at least the datablock will be valid.
+   *
+   * - If there is potentially dynamically changing visibility in the graph update the actual
+   *   nodes visibilities, so that actual heavy data evaluation can benefit from knowledge that
+   *   something heavy is not currently visible.
    *
    * - Multi-threaded evaluation of all possible nodes.
    *   Certain operations (and their subtrees) could be ignored. For example, meta-balls are not
@@ -407,6 +435,24 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
   TaskPool *task_pool = deg_evaluate_task_pool_create(&state);
 
   evaluate_graph_threaded_stage(&state, task_pool, EvaluationStage::COPY_ON_WRITE);
+
+  if (graph->has_animated_visibility) {
+    /* Update pending parents including only the ones which are affecting operations which are
+     * affecting visibility. */
+    state.need_update_pending_parents = true;
+
+    evaluate_graph_threaded_stage(&state, task_pool, EvaluationStage::DYNAMIC_VISIBILITY);
+
+    deg_graph_flush_visibility_flags_if_needed(graph);
+
+    /* Update parents to an updated visibility and evaluation stage.
+     *
+     * Need to do it regardless of whether visibility is actually changed or not: current state of
+     * the pending parents are all zeroes because it was previously calculated for only visibility
+     * related nodes and those are fully evaluated by now. */
+    state.need_update_pending_parents = true;
+  }
+
   evaluate_graph_threaded_stage(&state, task_pool, EvaluationStage::THREADED_EVALUATION);
 
   BLI_task_pool_free(task_pool);

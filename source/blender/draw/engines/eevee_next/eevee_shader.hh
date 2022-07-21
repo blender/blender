@@ -29,8 +29,6 @@ enum eShaderType {
   FILM_FRAG = 0,
   FILM_COMP,
 
-  VELOCITY_RESOLVE,
-
   MAX_SHADER_TYPE,
 };
 

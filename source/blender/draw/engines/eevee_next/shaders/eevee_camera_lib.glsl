@@ -143,24 +143,10 @@ vec2 camera_uv_from_view(CameraData cam, vec3 vV)
   }
 }
 
-vec2 camera_uv_from_world(CameraData cam, vec3 V)
+vec2 camera_uv_from_world(CameraData cam, vec3 P)
 {
-  vec3 vV = transform_point(cam.viewmat, V);
-  switch (cam.type) {
-    default:
-    case CAMERA_ORTHO:
-      return camera_uv_from_view(cam.persmat, false, V);
-    case CAMERA_PERSP:
-      return camera_uv_from_view(cam.persmat, true, V);
-    case CAMERA_PANO_EQUIRECT:
-      return camera_equirectangular_from_direction(cam, vV);
-    case CAMERA_PANO_EQUISOLID:
-      /* ATTR_FALLTHROUGH; */
-    case CAMERA_PANO_EQUIDISTANT:
-      return camera_fisheye_from_direction(cam, vV);
-    case CAMERA_PANO_MIRROR:
-      return camera_mirror_ball_from_direction(cam, vV);
-  }
+  vec3 vV = transform_direction(cam.viewmat, normalize(P));
+  return camera_uv_from_view(cam, vV);
 }
 
 /** \} */

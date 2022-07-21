@@ -57,22 +57,21 @@ void Sampling::end_sync()
 {
   if (reset_) {
     viewport_sample_ = 0;
-    if (inst_.is_viewport()) {
-      interactive_mode_ = true;
-    }
   }
 
-  if (interactive_mode_) {
-    int interactive_sample_count = min_ii(interactive_sample_max_, sample_count_);
+  if (inst_.is_viewport()) {
+    interactive_mode_ = viewport_sample_ < interactive_mode_threshold;
+    if (interactive_mode_) {
+      int interactive_sample_count = min_ii(interactive_sample_max_, sample_count_);
 
-    if (viewport_sample_ < interactive_sample_count) {
-      /* Loop over the same starting samples. */
-      sample_ = sample_ % interactive_sample_count;
-    }
-    else {
-      /* Break out of the loop and resume normal pattern. */
-      sample_ = interactive_sample_count;
-      interactive_mode_ = false;
+      if (viewport_sample_ < interactive_sample_count) {
+        /* Loop over the same starting samples. */
+        sample_ = sample_ % interactive_sample_count;
+      }
+      else {
+        /* Break out of the loop and resume normal pattern. */
+        sample_ = interactive_sample_count;
+      }
     }
   }
 }
@@ -137,8 +136,6 @@ void Sampling::step()
 
   viewport_sample_++;
   sample_++;
-
-  std::cout << sample_ << " " << viewport_sample_ << std::endl;
 
   reset_ = false;
 }
@@ -218,7 +215,7 @@ void Sampling::dof_disk_sample_get(float *r_radius, float *r_theta) const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Sampling patterns
+/** \name Cumulative Distribution Function (CDF)
  * \{ */
 
 /* Creates a discrete cumulative distribution function table from a given curvemapping.

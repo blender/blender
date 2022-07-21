@@ -27,6 +27,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_curves_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
@@ -810,6 +811,13 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 
   /* Parameters. */
   build_parameters(&object->id);
+
+  /* Visibility.
+   * Evaluate visibility node after the object's base_flags has been updated to the current state
+   * of collections restrict and object's restrict flags. */
+  const ComponentKey object_from_layer_entry_key(&object->id, NodeType::OBJECT_FROM_LAYER);
+  const ComponentKey visibility_key(&object->id, NodeType::VISIBILITY);
+  add_relation(object_from_layer_entry_key, visibility_key, "Object Visibility");
 }
 
 /* NOTE: Implies that the object has base in the current view layer. */
@@ -2190,8 +2198,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
    * data mask to be used. We add relation here to ensure object is never
    * evaluated prior to Scene's CoW is ready. */
   OperationKey scene_key(&scene_->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
-  Relation *rel = add_relation(scene_key, obdata_ubereval_key, "CoW Relation");
-  rel->flag |= RELATION_FLAG_NO_FLUSH;
+  add_relation(scene_key, obdata_ubereval_key, "CoW Relation", RELATION_FLAG_NO_FLUSH);
   /* Modifiers */
   if (object->modifiers.first != nullptr) {
     ModifierUpdateDepsgraphContext ctx = {};
@@ -2419,8 +2426,16 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       }
       break;
     }
-    case ID_CV:
+    case ID_CV: {
+      Curves *curves_id = reinterpret_cast<Curves *>(obdata);
+      if (curves_id->surface != nullptr) {
+        build_object(curves_id->surface);
+
+        /* The relations between the surface and the curves are handled as part of the modifier
+         * stack building. */
+      }
       break;
+    }
     case ID_PT:
       break;
     case ID_VO: {

@@ -24,7 +24,6 @@ struct bPoseChannel;
 
 namespace blender::deg {
 
-struct BoneComponentNode;
 struct Depsgraph;
 struct IDNode;
 struct OperationNode;
@@ -137,9 +136,17 @@ struct ComponentNode : public Node {
     return true;
   }
 
-  /* Denotes whether this component affects (possibly indirectly) on a
-   * directly visible object. */
-  bool affects_directly_visible;
+  /* The component has (possibly indirect) effect on a data-block whose node has
+   * is_visible_on_build set to true.
+   *
+   * This field is ensured to be up-to-date prior to `IDNode::finalize_build()`. */
+  bool possibly_affects_visible_id;
+
+  /* Denotes whether this component actually affects (possibly indirectly) on a directly visible
+   * object. Includes possibly run-time visibility update of ID nodes.
+   *
+   * NOTE: Is only reliable after `deg_graph_flush_visibility()`. */
+  bool affects_visible_id;
 };
 
 /* ---------------------------------------- */
@@ -197,7 +204,7 @@ DEG_COMPONENT_NODE_DECLARE_GENERIC(Dupli);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Audio);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Armature);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(GenericDatablock);
-DEG_COMPONENT_NODE_DECLARE_NO_COW(Visibility);
+DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(Visibility);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Simulation);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(NTreeOutput);
 
@@ -214,7 +221,7 @@ struct SynchronizationComponentNode : public ComponentNode {
      * The design is such that the synchronization is supposed to happen whenever any part of the
      * ID changed/evaluated. Here we mark the component as "visible" so that genetic recalc flag
      * flushing and scheduling will handle the component in a generic manner. */
-    affects_directly_visible = true;
+    affects_visible_id = true;
   }
 
   DEG_COMPONENT_NODE_DECLARE;

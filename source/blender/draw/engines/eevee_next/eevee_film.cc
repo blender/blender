@@ -163,11 +163,13 @@ inline bool operator!=(const FilmData &a, const FilmData &b)
 
 void Film::init(const int2 &extent, const rcti *output_rect)
 {
+  Sampling &sampling = inst_.sampling;
+
   init_aovs();
 
   {
     /* Enable passes that need to be rendered. */
-    eViewLayerEEVEEPassType render_passes;
+    eViewLayerEEVEEPassType render_passes = eViewLayerEEVEEPassType(0);
 
     if (inst_.is_viewport()) {
       /* Viewport Case. */
@@ -178,6 +180,8 @@ void Film::init(const int2 &extent, const rcti *output_rect)
          * Using the render pass ensure we store the center depth. */
         render_passes |= EEVEE_RENDER_PASS_Z;
       }
+      /* TEST */
+      render_passes |= EEVEE_RENDER_PASS_VECTOR;
     }
     else {
       /* Render Case. */
@@ -211,7 +215,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
 
     /* TODO(@fclem): Can't we rely on depsgraph update notification? */
     if (assign_if_different(enabled_passes_, render_passes)) {
-      inst_.sampling.reset();
+      sampling.reset();
     }
   }
   {
@@ -224,14 +228,18 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     FilmData data = data_;
     data.extent = int2(BLI_rcti_size_x(output_rect), BLI_rcti_size_y(output_rect));
     data.offset = int2(output_rect->xmin, output_rect->ymin);
-    data.filter_size = clamp_f(inst_.scene->r.gauss, 0.0f, 100.0f);
+    data.extent_inv = 1.0f / float2(data.extent);
+    /* Disable filtering if sample count is 1. */
+    data.filter_size = (sampling.sample_count() == 1) ?
+                           0.0f :
+                           clamp_f(inst_.scene->r.gauss, 0.0f, 100.0f);
     /* TODO(fclem): parameter hidden in experimental.
      * We need to figure out LOD bias first in order to preserve texture crispiness. */
     data.scaling_factor = 1;
 
     FilmData &data_prev_ = data_;
     if (assign_if_different(data_prev_, data)) {
-      inst_.sampling.reset();
+      sampling.reset();
     }
 
     const eViewLayerEEVEEPassType data_passes = EEVEE_RENDER_PASS_Z | EEVEE_RENDER_PASS_NORMAL |
@@ -325,7 +333,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
                                              (data_.value_len > 0) ? data_.value_len : 1);
 
     if (reset > 0) {
-      inst_.sampling.reset();
+      sampling.reset();
       data_.use_history = 0;
       data_.use_reprojection = 0;
 
@@ -337,6 +345,8 @@ void Film::init(const int2 &extent, const rcti *output_rect)
       depth_tx_.clear(float4(0.0f));
     }
   }
+
+  force_disable_reprojection_ = (inst_.scene->eevee.flag & SCE_EEVEE_TAA_REPROJECTION) == 0;
 }
 
 void Film::sync()
@@ -349,12 +359,22 @@ void Film::sync()
   /* TODO(fclem): Shader variation for panoramic & scaled resolution. */
 
   RenderBuffers &rbuffers = inst_.render_buffers;
+  VelocityModule &velocity = inst_.velocity;
+
+  eGPUSamplerState filter = GPU_SAMPLER_FILTER;
+
+  /* For viewport, only previous motion is supported.
+   * Still bind previous step to avoid undefined behavior. */
+  eVelocityStep step_next = inst_.is_viewport() ? STEP_PREVIOUS : STEP_NEXT;
 
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS;
   accumulate_ps_ = DRW_pass_create("Film.Accumulate", state);
   GPUShader *sh = inst_.shaders.static_shader_get(shader);
   DRWShadingGroup *grp = DRW_shgroup_create(sh, accumulate_ps_);
   DRW_shgroup_uniform_block_ref(grp, "film_buf", &data_);
+  DRW_shgroup_uniform_block_ref(grp, "camera_prev", &(*velocity.camera_steps[STEP_PREVIOUS]));
+  DRW_shgroup_uniform_block_ref(grp, "camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
+  DRW_shgroup_uniform_block_ref(grp, "camera_next", &(*velocity.camera_steps[step_next]));
   DRW_shgroup_uniform_texture_ref(grp, "depth_tx", &rbuffers.depth_tx);
   DRW_shgroup_uniform_texture_ref(grp, "combined_tx", &rbuffers.combined_tx);
   DRW_shgroup_uniform_texture_ref(grp, "normal_tx", &rbuffers.normal_tx);
@@ -375,7 +395,7 @@ void Film::sync()
    * use image binding instead. */
   DRW_shgroup_uniform_image_ref(grp, "in_weight_img", &weight_tx_.current());
   DRW_shgroup_uniform_image_ref(grp, "out_weight_img", &weight_tx_.next());
-  DRW_shgroup_uniform_image_ref(grp, "in_combined_img", &combined_tx_.current());
+  DRW_shgroup_uniform_texture_ref_ex(grp, "in_combined_tx", &combined_tx_.current(), filter);
   DRW_shgroup_uniform_image_ref(grp, "out_combined_img", &combined_tx_.next());
   DRW_shgroup_uniform_image_ref(grp, "depth_img", &depth_tx_);
   DRW_shgroup_uniform_image_ref(grp, "color_accum_img", &color_accum_tx_);
@@ -395,13 +415,13 @@ void Film::sync()
 
 void Film::end_sync()
 {
-  if (inst_.sampling.is_reset()) {
-    data_.use_history = 0;
-  }
+  data_.use_reprojection = inst_.sampling.interactive_mode();
 
-  // if (camera.changed_type) {
-  //   data_.use_reprojection = false;
-  // }
+  /* Just bypass the reprojection and reset the accumulation. */
+  if (force_disable_reprojection_ && inst_.sampling.is_reset()) {
+    data_.use_reprojection = false;
+    data_.use_history = false;
+  }
 
   aovs_info.push_update();
 
@@ -427,6 +447,11 @@ float2 Film::pixel_jitter_get() const
    * by a render pixel, ideally, by choosing one randomly using another sampling dimension, or by
    * repeating the same sample RNG sequence for each pixel offset. */
   return jitter;
+}
+
+eViewLayerEEVEEPassType Film::enabled_passes_get() const
+{
+  return enabled_passes_;
 }
 
 void Film::update_sample_table()
@@ -528,7 +553,6 @@ void Film::accumulate(const DRWView *view)
   /* Use history after first sample. */
   if (data_.use_history == 0) {
     data_.use_history = 1;
-    data_.use_reprojection = 1;
   }
 }
 

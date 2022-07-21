@@ -9,10 +9,6 @@
  * temporal re-projection or motion blur.
  *
  * It is the module that tracks the objects between frames updates.
- *
- * #VelocityModule contains all motion steps data and logic.
- * #VelocityPass contains the resolve pass for static geometry.
- * #VelocityView is a per view instance that contain the velocity buffer.
  */
 
 #include "BKE_duplilist.h"
@@ -36,8 +32,7 @@ namespace blender::eevee {
 
 void VelocityModule::init()
 {
-#if 0 /* TODO renderpasses */
-  if (inst_.render && (inst_.render_passes.vector != nullptr)) {
+  if (inst_.render && (inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR)) {
     /* No motion blur and the vector pass was requested. Do the step sync here. */
     const Scene *scene = inst_.scene;
     float initial_time = scene->r.cfra + scene->r.subframe;
@@ -45,7 +40,6 @@ void VelocityModule::init()
     step_sync(STEP_NEXT, initial_time + 1.0f);
     inst_.set_time(initial_time);
   }
-#endif
 }
 
 static void step_object_sync_render(void *velocity,
@@ -70,6 +64,11 @@ void VelocityModule::step_camera_sync()
 {
   inst_.camera.sync();
   *camera_steps[step_] = inst_.camera.data_get();
+  /* Fix undefined camera steps when rendering is starting. */
+  if ((step_ == STEP_CURRENT) && (camera_steps[STEP_PREVIOUS]->initialized == false)) {
+    *camera_steps[STEP_PREVIOUS] = *static_cast<CameraData *>(camera_steps[step_]);
+    camera_steps[STEP_PREVIOUS]->initialized = true;
+  }
 }
 
 bool VelocityModule::step_object_sync(Object *ob,
@@ -267,6 +266,10 @@ void VelocityModule::end_sync()
     inst_.sampling.reset();
   }
 
+  if (inst_.is_viewport() && camera_has_motion()) {
+    inst_.sampling.reset();
+  }
+
   for (auto key : deleted_obj) {
     velocity_map.remove(key);
   }
@@ -300,19 +303,6 @@ void VelocityModule::end_sync()
   camera_steps[STEP_CURRENT]->push_update();
   camera_steps[STEP_NEXT]->push_update();
   indirection_buf.push_update();
-
-  {
-    resolve_ps_ = DRW_pass_create("Velocity.Resolve", (DRWState)0);
-    GPUShader *sh = inst_.shaders.static_shader_get(VELOCITY_RESOLVE);
-    DRWShadingGroup *grp = DRW_shgroup_create(sh, resolve_ps_);
-    DRW_shgroup_uniform_texture_ref(grp, "depth_tx", &input_depth_tx_);
-    DRW_shgroup_uniform_image_ref(grp, "velocity_view_img", &velocity_view_tx_);
-    DRW_shgroup_uniform_image_ref(grp, "velocity_camera_img", &velocity_camera_tx_);
-    DRW_shgroup_uniform_block(grp, "camera_prev", *camera_steps[STEP_PREVIOUS]);
-    DRW_shgroup_uniform_block(grp, "camera_curr", *camera_steps[STEP_CURRENT]);
-    DRW_shgroup_uniform_block(grp, "camera_next", *camera_steps[STEP_NEXT]);
-    DRW_shgroup_call_compute_ref(grp, resolve_dispatch_size_);
-  }
 }
 
 bool VelocityModule::object_has_velocity(const Object *ob)
@@ -359,60 +349,15 @@ void VelocityModule::bind_resources(DRWShadingGroup *grp)
   DRW_shgroup_storage_block_ref(grp, "velocity_indirection_buf", &indirection_buf);
 }
 
-/* Resolve pass for static geometry and to camera space projection. */
-void VelocityModule::resolve_camera_motion(GPUTexture *depth_tx,
-                                           GPUTexture *velocity_view_tx,
-                                           GPUTexture *velocity_camera_tx)
+bool VelocityModule::camera_has_motion() const
 {
-  input_depth_tx_ = depth_tx;
-  velocity_view_tx_ = velocity_view_tx;
-  velocity_camera_tx_ = velocity_camera_tx;
-
-  resolve_dispatch_size_.x = divide_ceil_u(GPU_texture_width(depth_tx), 8);
-  resolve_dispatch_size_.y = divide_ceil_u(GPU_texture_height(depth_tx), 8);
-
-  DRW_draw_pass(resolve_ps_);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Velocity View
- * \{ */
-
-void VelocityView::sync()
-{
-  /* TODO: Remove. */
-  velocity_view_tx_.sync();
-  velocity_camera_tx_.sync();
-}
-
-void VelocityView::acquire(int2 extent)
-{
-  /* WORKAROUND: View name should be unique and static.
-   * With this, we can reuse the same texture across views. */
-  DrawEngineType *owner = (DrawEngineType *)view_name_.c_str();
-
-  /* Only RG16F when only doing only reprojection or motion blur. */
-  eGPUTextureFormat format = inst_.is_viewport() ? GPU_RG16F : GPU_RGBA16F;
-  velocity_view_tx_.acquire(extent, format, owner);
-  if (false /* TODO(fclem): Panoramic camera. */) {
-    velocity_camera_tx_.acquire(extent, format, owner);
+  /* Only valid after sync. */
+  if (inst_.is_viewport()) {
+    /* Viewport has no next step. */
+    return *camera_steps[STEP_PREVIOUS] != *camera_steps[STEP_CURRENT];
   }
-  else {
-    velocity_camera_tx_.acquire(int2(1), format, owner);
-  }
-}
-
-void VelocityView::resolve(GPUTexture *depth_tx)
-{
-  inst_.velocity.resolve_camera_motion(depth_tx, velocity_view_tx_, velocity_camera_tx_);
-}
-
-void VelocityView::release()
-{
-  velocity_view_tx_.release();
-  velocity_camera_tx_.release();
+  return *camera_steps[STEP_PREVIOUS] != *camera_steps[STEP_CURRENT] &&
+         *camera_steps[STEP_NEXT] != *camera_steps[STEP_CURRENT];
 }
 
 /** \} */

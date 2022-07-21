@@ -44,7 +44,10 @@ enum {
   /* non-event, for example disabled timer */
   EVENT_NONE = 0x0000,
 
-  /* ********** Start of Input devices. ********** */
+/* ********** Start of Input devices. ********** */
+
+/* Minimum mouse value (inclusive). */
+#define _EVT_MOUSE_MIN 0x0001
 
   /* MOUSE: 0x000x, 0x001x */
   LEFTMOUSE = 0x0001,
@@ -73,6 +76,9 @@ enum {
    * ignore all but the most recent MOUSEMOVE (for better performance),
    * paint and drawing tools however will want to handle these. */
   INBETWEEN_MOUSEMOVE = 0x0011,
+
+/* Maximum keyboard value (inclusive). */
+#define _EVT_MOUSE_MAX 0x0011 /* 17 */
 
   /* IME event, GHOST_kEventImeCompositionStart in ghost */
   WM_IME_COMPOSITE_START = 0x0014,
@@ -379,13 +385,16 @@ enum {
   (((event_type) >= EVT_LEFTCTRLKEY && (event_type) <= EVT_LEFTSHIFTKEY) || \
    (event_type) == EVT_OSKEY)
 
-/** Test whether the event is a mouse button. */
-#define ISMOUSE(event_type) \
-  (((event_type) >= LEFTMOUSE && (event_type) <= BUTTON7MOUSE) || (event_type) == MOUSESMARTZOOM)
-/** Test whether the event is a mouse wheel. */
-#define ISMOUSE_WHEEL(event_type) ((event_type) >= WHEELUPMOUSE && (event_type) <= WHEELOUTMOUSE)
-/** Test whether the event is a mouse (track-pad) gesture. */
-#define ISMOUSE_GESTURE(event_type) ((event_type) >= MOUSEPAN && (event_type) <= MOUSEROTATE)
+/**
+ * Test whether the event is any kind:
+ * #ISMOUSE_MOTION, #ISMOUSE_BUTTON, #ISMOUSE_WHEEL & #ISMOUSE_GESTURE.
+ *
+ * \note It's best to use more specific check if possible as mixing motion/buttons/gestures
+ * is very broad and not necessarily obvious which kinds of events are important.
+ */
+#define ISMOUSE(event_type) ((event_type) >= _EVT_MOUSE_MIN && (event_type) <= _EVT_MOUSE_MAX)
+/** Test whether the event is a mouse button (excluding mouse-wheel). */
+#define ISMOUSE_MOTION(event_type) ELEM(event_type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)
 /** Test whether the event is a mouse button (excluding mouse-wheel). */
 #define ISMOUSE_BUTTON(event_type) \
   (ELEM(event_type, \
@@ -396,6 +405,10 @@ enum {
         BUTTON5MOUSE, \
         BUTTON6MOUSE, \
         BUTTON7MOUSE))
+/** Test whether the event is a mouse wheel. */
+#define ISMOUSE_WHEEL(event_type) ((event_type) >= WHEELUPMOUSE && (event_type) <= WHEELOUTMOUSE)
+/** Test whether the event is a mouse (track-pad) gesture. */
+#define ISMOUSE_GESTURE(event_type) ((event_type) >= MOUSEPAN && (event_type) <= MOUSESMARTZOOM)
 
 /** Test whether the event is a NDOF event. */
 #define ISNDOF(event_type) ((event_type) >= _NDOF_MIN && (event_type) <= _NDOF_MAX)

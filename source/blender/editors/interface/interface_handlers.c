@@ -4509,7 +4509,7 @@ static int ui_do_but_HOTKEYEVT(bContext *C,
     }
   }
   else if (data->state == BUTTON_STATE_WAIT_KEY_EVENT) {
-    if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+    if (ISMOUSE_MOTION(event->type)) {
       return WM_UI_HANDLER_CONTINUE;
     }
     if (event->type == EVT_UNKNOWNKEY) {
@@ -4575,7 +4575,7 @@ static int ui_do_but_KEYEVT(bContext *C,
     }
   }
   else if (data->state == BUTTON_STATE_WAIT_KEY_EVENT) {
-    if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+    if (ISMOUSE_MOTION(event->type)) {
       return WM_UI_HANDLER_CONTINUE;
     }
 
@@ -8097,7 +8097,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 #ifdef USE_DRAG_MULTINUM
   data = but->active;
   if (data) {
-    if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) ||
+    if (ISMOUSE_MOTION(event->type) ||
         /* if we started dragging, progress on any event */
         (data->multi_data.init == BUTTON_MULTI_INIT_SETUP)) {
       if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER) &&
@@ -10096,8 +10096,7 @@ static int ui_handle_menu_button(bContext *C, const wmEvent *event, uiPopupBlock
       /* Pass, needed to click-exit outside of non-floating menus. */
       ui_region_auto_open_clear(but->active->region);
     }
-    else if ((!ELEM(event->type, MOUSEMOVE, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN)) &&
-             ISMOUSE(event->type)) {
+    else if (ISMOUSE_BUTTON(event->type)) {
       if (!ui_but_contains_point_px(but, but->active->region, event->xy)) {
         but = NULL;
       }

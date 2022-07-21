@@ -29,6 +29,7 @@
 #include "intern/depsgraph_tag.h"
 #include "intern/depsgraph_type.h"
 #include "intern/eval/deg_eval_copy_on_write.h"
+#include "intern/eval/deg_eval_visibility.h"
 #include "intern/node/deg_node.h"
 #include "intern/node/deg_node_component.h"
 #include "intern/node/deg_node_id.h"
@@ -71,10 +72,15 @@ bool DepsgraphBuilder::need_pull_base_into_graph(const Base *base)
   if (base->flag & base_flag) {
     return true;
   }
+
   /* More involved check: since we don't support dynamic changes in dependency graph topology and
    * all visible objects are to be part of dependency graph, we pull all objects which has animated
    * visibility. */
-  const Object *object = base->object;
+  return is_object_visibility_animated(base->object);
+}
+
+bool DepsgraphBuilder::is_object_visibility_animated(const Object *object)
+{
   AnimatedPropertyID property_id;
   if (graph_->mode == DAG_EVAL_VIEWPORT) {
     property_id = AnimatedPropertyID(&object->id, &RNA_Object, "hide_viewport");
@@ -127,84 +133,9 @@ bool DepsgraphBuilder::check_pchan_has_bbone_segments(const Object *object, cons
 /** \name Builder Finalizer.
  * \{ */
 
-namespace {
-
-void deg_graph_build_flush_visibility(Depsgraph *graph)
-{
-  enum {
-    DEG_NODE_VISITED = (1 << 0),
-  };
-
-  BLI_Stack *stack = BLI_stack_new(sizeof(OperationNode *), "DEG flush layers stack");
-  for (IDNode *id_node : graph->id_nodes) {
-    for (ComponentNode *comp_node : id_node->components.values()) {
-      comp_node->affects_directly_visible |= id_node->is_directly_visible;
-    }
-  }
-
-  for (OperationNode *op_node : graph->operations) {
-    op_node->custom_flags = 0;
-    op_node->num_links_pending = 0;
-    for (Relation *rel : op_node->outlinks) {
-      if ((rel->from->type == NodeType::OPERATION) && (rel->flag & RELATION_FLAG_CYCLIC) == 0) {
-        ++op_node->num_links_pending;
-      }
-    }
-    if (op_node->num_links_pending == 0) {
-      BLI_stack_push(stack, &op_node);
-      op_node->custom_flags |= DEG_NODE_VISITED;
-    }
-  }
-
-  while (!BLI_stack_is_empty(stack)) {
-    OperationNode *op_node;
-    BLI_stack_pop(stack, &op_node);
-    /* Flush layers to parents. */
-    for (Relation *rel : op_node->inlinks) {
-      if (rel->from->type == NodeType::OPERATION) {
-        OperationNode *op_from = (OperationNode *)rel->from;
-        ComponentNode *comp_from = op_from->owner;
-        const bool target_directly_visible = op_node->owner->affects_directly_visible;
-
-        /* Visibility component forces all components of the current ID to be considered as
-         * affecting directly visible. */
-        if (comp_from->type == NodeType::VISIBILITY) {
-          if (target_directly_visible) {
-            IDNode *id_node_from = comp_from->owner;
-            for (ComponentNode *comp_node : id_node_from->components.values()) {
-              comp_node->affects_directly_visible |= target_directly_visible;
-            }
-          }
-        }
-        else {
-          comp_from->affects_directly_visible |= target_directly_visible;
-        }
-      }
-    }
-    /* Schedule parent nodes. */
-    for (Relation *rel : op_node->inlinks) {
-      if (rel->from->type == NodeType::OPERATION) {
-        OperationNode *op_from = (OperationNode *)rel->from;
-        if ((rel->flag & RELATION_FLAG_CYCLIC) == 0) {
-          BLI_assert(op_from->num_links_pending > 0);
-          --op_from->num_links_pending;
-        }
-        if ((op_from->num_links_pending == 0) && (op_from->custom_flags & DEG_NODE_VISITED) == 0) {
-          BLI_stack_push(stack, &op_from);
-          op_from->custom_flags |= DEG_NODE_VISITED;
-        }
-      }
-    }
-  }
-  BLI_stack_free(stack);
-}
-
-}  // namespace
-
 void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 {
-  /* Make sure dependencies of visible ID data-blocks are visible. */
-  deg_graph_build_flush_visibility(graph);
+  deg_graph_flush_visibility_flags(graph);
   deg_graph_remove_unused_noops(graph);
 
   /* Re-tag IDs for update if it was tagged before the relations

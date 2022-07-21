@@ -968,6 +968,49 @@ void MutableAttributeAccessor::remove_anonymous()
   }
 }
 
+/**
+ * Debug utility that checks whether the #finish function of an #AttributeWriter has been called.
+ */
+#ifdef DEBUG
+struct FinishCallChecker {
+  std::string name;
+  bool finish_called = false;
+  std::function<void()> real_finish_fn;
+
+  ~FinishCallChecker()
+  {
+    if (!this->finish_called) {
+      std::cerr << "Forgot to call `finish()` for '" << this->name << "'.\n";
+    }
+  }
+};
+#endif
+
+GAttributeWriter MutableAttributeAccessor::lookup_for_write(const AttributeIDRef &attribute_id)
+{
+  GAttributeWriter attribute = fn_->lookup_for_write(owner_, attribute_id);
+  /* Check that the #finish method is called in debug builds. */
+#ifdef DEBUG
+  if (attribute) {
+    auto checker = std::make_shared<FinishCallChecker>();
+    if (attribute_id.is_named()) {
+      checker->name = attribute_id.name();
+    }
+    else {
+      checker->name = BKE_anonymous_attribute_id_debug_name(&attribute_id.anonymous_id());
+    }
+    checker->real_finish_fn = attribute.tag_modified_fn;
+    attribute.tag_modified_fn = [checker]() {
+      if (checker->real_finish_fn) {
+        checker->real_finish_fn();
+      }
+      checker->finish_called = true;
+    };
+  }
+#endif
+  return attribute;
+}
+
 GAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write(
     const AttributeIDRef &attribute_id,
     const eAttrDomain domain,
@@ -1012,8 +1055,8 @@ GSpanAttributeWriter MutableAttributeAccessor::lookup_or_add_for_write_only_span
 }
 
 Vector<AttributeTransferData> retrieve_attributes_for_transfer(
-    const bke::AttributeAccessor &src_attributes,
-    bke::MutableAttributeAccessor &dst_attributes,
+    const bke::AttributeAccessor src_attributes,
+    bke::MutableAttributeAccessor dst_attributes,
     const eAttrDomainMask domain_mask,
     const Set<std::string> &skip)
 {

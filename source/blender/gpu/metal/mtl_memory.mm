@@ -68,7 +68,7 @@ gpu::MTLBuffer *MTLBufferPool::allocate_with_data(uint64_t size,
                                                   bool cpu_visible,
                                                   const void *data)
 {
-  /* Allocate buffer with default HW-compatible alignemnt of 256 bytes.
+  /* Allocate buffer with default HW-compatible alignment of 256 bytes.
    * See https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf for more. */
   return this->allocate_aligned_with_data(size, 256, cpu_visible, data);
 }
