@@ -73,18 +73,10 @@ static void library_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
-static void library_blend_write(struct BlendWriter *UNUSED(writer),
-                                ID *id,
-                                const void *UNUSED(id_address))
-{
-  Library *lib = (Library *)id;
-  library_runtime_reset(lib);
-}
-
 static void library_blend_read_data(struct BlendDataReader *UNUSED(reader), ID *id)
 {
   Library *lib = (Library *)id;
-  library_runtime_reset(lib);
+  lib->runtime.name_map = NULL;
 }
 
 IDTypeInfo IDType_ID_LI = {
@@ -107,7 +99,7 @@ IDTypeInfo IDType_ID_LI = {
     .foreach_path = library_foreach_path,
     .owner_get = NULL,
 
-    .blend_write = library_blend_write,
+    .blend_write = NULL,
     .blend_read_data = library_blend_read_data,
     .blend_read_lib = NULL,
     .blend_read_expand = NULL,
