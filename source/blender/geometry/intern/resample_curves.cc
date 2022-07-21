@@ -252,10 +252,10 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
           const IndexRange dst_points = dst_curves.points_for_curve(i_curve);
 
           if (curve_types[i_curve] == CURVE_TYPE_POLY) {
-            length_parameterize::linear_interpolation(src.slice(src_points),
-                                                      sample_indices.as_span().slice(dst_points),
-                                                      sample_factors.as_span().slice(dst_points),
-                                                      dst.slice(dst_points));
+            length_parameterize::interpolate(src.slice(src_points),
+                                             sample_indices.as_span().slice(dst_points),
+                                             sample_factors.as_span().slice(dst_points),
+                                             dst.slice(dst_points));
           }
           else {
             const int evaluated_size = src_curves.evaluated_points_for_curve(i_curve).size();
@@ -264,10 +264,10 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
             MutableSpan<T> evaluated = evaluated_buffer.as_mutable_span().cast<T>();
             src_curves.interpolate_to_evaluated(i_curve, src.slice(src_points), evaluated);
 
-            length_parameterize::linear_interpolation(evaluated.as_span(),
-                                                      sample_indices.as_span().slice(dst_points),
-                                                      sample_factors.as_span().slice(dst_points),
-                                                      dst.slice(dst_points));
+            length_parameterize::interpolate(evaluated.as_span(),
+                                             sample_indices.as_span().slice(dst_points),
+                                             sample_factors.as_span().slice(dst_points),
+                                             dst.slice(dst_points));
           }
         }
       });
@@ -277,10 +277,10 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
     for (const int i_curve : sliced_selection) {
       const IndexRange src_points = src_curves.evaluated_points_for_curve(i_curve);
       const IndexRange dst_points = dst_curves.points_for_curve(i_curve);
-      length_parameterize::linear_interpolation(evaluated_positions.slice(src_points),
-                                                sample_indices.as_span().slice(dst_points),
-                                                sample_factors.as_span().slice(dst_points),
-                                                dst_positions.slice(dst_points));
+      length_parameterize::interpolate(evaluated_positions.slice(src_points),
+                                       sample_indices.as_span().slice(dst_points),
+                                       sample_factors.as_span().slice(dst_points),
+                                       dst_positions.slice(dst_points));
     }
 
     /* Fill the default value for non-interpolating attributes that still must be copied. */

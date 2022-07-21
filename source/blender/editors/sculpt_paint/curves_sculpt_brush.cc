@@ -366,7 +366,7 @@ void move_last_point_and_resample(MutableSpan<float3> positions, const float3 &n
   length_parameterize::sample_at_lengths(orig_lengths, new_lengths, indices, factors);
 
   Array<float3> new_positions(positions.size() - 1);
-  length_parameterize::linear_interpolation<float3>(positions, indices, factors, new_positions);
+  length_parameterize::interpolate<float3>(positions, indices, factors, new_positions);
   positions.drop_back(1).copy_from(new_positions);
   positions.last() = new_last_position;
 }

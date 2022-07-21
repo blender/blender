@@ -42,10 +42,10 @@ void accumulate_lengths(const Span<T> values, const bool cyclic, MutableSpan<flo
 }
 
 template<typename T>
-inline void linear_interpolation(const Span<T> src,
-                                 const Span<int> indices,
-                                 const Span<float> factors,
-                                 MutableSpan<T> dst)
+inline void interpolate(const Span<T> src,
+                        const Span<int> indices,
+                        const Span<float> factors,
+                        MutableSpan<T> dst)
 {
   BLI_assert(indices.size() == factors.size());
   BLI_assert(indices.size() == dst.size());
