@@ -1377,12 +1377,12 @@ void BKE_main_collection_sync_remap(const Main *bmain)
       if (view_layer->object_bases_hash) {
         BLI_ghash_free(view_layer->object_bases_hash, NULL, NULL);
         view_layer->object_bases_hash = NULL;
-
-        /* Directly re-create the mapping here, so that we can also deal with duplicates in
-         * `view_layer->object_bases` list of bases properly. This is the only place where such
-         * duplicates should be fixed, and not considered as a critical error. */
-        view_layer_bases_hash_create(view_layer, true);
       }
+
+      /* Directly re-create the mapping here, so that we can also deal with duplicates in
+       * `view_layer->object_bases` list of bases properly. This is the only place where such
+       * duplicates should be fixed, and not considered as a critical error. */
+      view_layer_bases_hash_create(view_layer, true);
     }
 
     BKE_collection_object_cache_free(scene->master_collection);
