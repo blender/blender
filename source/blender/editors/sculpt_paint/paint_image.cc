@@ -276,10 +276,11 @@ static bool image_paint_poll_ex(bContext *C, bool check_tool)
           (ID_IS_LINKED(sima->image) || ID_IS_OVERRIDE_LIBRARY(sima->image))) {
         return false;
       }
-      ARegion *region = CTX_wm_region(C);
-
-      if ((sima->mode == SI_MODE_PAINT) && region->regiontype == RGN_TYPE_WINDOW) {
-        return true;
+      if (sima->mode == SI_MODE_PAINT) {
+        const ARegion *region = CTX_wm_region(C);
+        if (region->regiontype == RGN_TYPE_WINDOW) {
+          return true;
+        }
       }
     }
   }
