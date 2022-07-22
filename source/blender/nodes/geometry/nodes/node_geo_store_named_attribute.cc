@@ -90,13 +90,13 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
                                           const StringRef name,
                                           const eAttrDomain domain,
                                           const GField &field,
-                                          std::atomic<bool> &failure)
+                                          std::atomic<bool> &r_failure)
 {
-  const int domain_size = component.attribute_domain_size(domain);
+  MutableAttributeAccessor attributes = *component.attributes_for_write();
+  const int domain_size = attributes.domain_size(domain);
   if (domain_size == 0) {
     return;
   }
-  MutableAttributeAccessor attributes = *component.attributes_for_write();
 
   GeometryComponentFieldContext field_context{component, domain};
   const IndexMask mask{IndexMask(domain_size)};
@@ -133,7 +133,7 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
    * it's required, and adding the attribute might fail if the domain or type is incorrect. */
   type.destruct_n(buffer, domain_size);
   MEM_freeN(buffer);
-  failure = true;
+  r_failure = true;
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

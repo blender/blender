@@ -218,12 +218,12 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
 void AbcObjectReader::read_matrix(float r_mat[4][4] /* local matrix */,
                                   const chrono_t time,
                                   const float scale,
-                                  bool &is_constant)
+                                  bool &r_is_constant)
 {
   IXform ixform = xform();
   if (!ixform) {
     unit_m4(r_mat);
-    is_constant = true;
+    r_is_constant = true;
     return;
   }
 
@@ -254,7 +254,7 @@ void AbcObjectReader::read_matrix(float r_mat[4][4] /* local matrix */,
     mul_m4_m4m4(r_mat, scale_mat, r_mat);
   }
 
-  is_constant = schema.isConstant();
+  r_is_constant = schema.isConstant();
 }
 
 void AbcObjectReader::addCacheModifier()

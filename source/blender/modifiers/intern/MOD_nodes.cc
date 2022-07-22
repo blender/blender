@@ -200,7 +200,7 @@ static bool node_needs_own_transform_relation(const bNode &node)
 
 static void process_nodes_for_depsgraph(const bNodeTree &tree,
                                         Set<ID *> &ids,
-                                        bool &needs_own_transform_relation)
+                                        bool &r_needs_own_transform_relation)
 {
   Set<const bNodeTree *> handled_groups;
 
@@ -211,10 +211,10 @@ static void process_nodes_for_depsgraph(const bNodeTree &tree,
     if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
       const bNodeTree *group = (bNodeTree *)node->id;
       if (group != nullptr && handled_groups.add(group)) {
-        process_nodes_for_depsgraph(*group, ids, needs_own_transform_relation);
+        process_nodes_for_depsgraph(*group, ids, r_needs_own_transform_relation);
       }
     }
-    needs_own_transform_relation |= node_needs_own_transform_relation(*node);
+    r_needs_own_transform_relation |= node_needs_own_transform_relation(*node);
   }
 }
 
