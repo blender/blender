@@ -1057,7 +1057,7 @@ static TransConvertTypeInfo *convert_type_get(const TransInfo *t, Object **r_obj
     return &TransConvertType_Graph;
   }
   if (t->spacetype == SPACE_NODE) {
-    return &TransConvertType_Graph;
+    return &TransConvertType_Node;
   }
   if (t->spacetype == SPACE_CLIP) {
     if (t->options & CTX_MOVIECLIP) {
