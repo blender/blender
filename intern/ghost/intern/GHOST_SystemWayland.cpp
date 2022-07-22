@@ -1580,13 +1580,38 @@ static void pointer_handle_button(void *data,
   }
 }
 
-static void pointer_handle_axis(void *data,
+static void pointer_handle_axis(void * /*data*/,
                                 struct wl_pointer * /*wl_pointer*/,
                                 const uint32_t /*time*/,
                                 const uint32_t axis,
                                 const wl_fixed_t value)
 {
   CLOG_INFO(LOG, 2, "axis (axis=%u, value=%d)", axis, value);
+}
+
+static void pointer_handle_frame(void * /*data*/, struct wl_pointer * /*wl_pointer*/)
+{
+  CLOG_INFO(LOG, 2, "frame");
+}
+static void pointer_handle_axis_source(void * /*data*/,
+                                       struct wl_pointer * /*wl_pointer*/,
+                                       uint32_t axis_source)
+{
+  CLOG_INFO(LOG, 2, "axis_source (axis_source=%u)", axis_source);
+}
+static void pointer_handle_axis_stop(void * /*data*/,
+                                     struct wl_pointer * /*wl_pointer*/,
+                                     uint32_t /*time*/,
+                                     uint32_t axis)
+{
+  CLOG_INFO(LOG, 2, "axis_stop (axis=%u)", axis);
+}
+static void pointer_handle_axis_discrete(void *data,
+                                         struct wl_pointer * /*wl_pointer*/,
+                                         uint32_t axis,
+                                         int32_t discrete)
+{
+  CLOG_INFO(LOG, 2, "axis_discrete (axis=%u, discrete=%d)", axis, discrete);
 
   input_t *input = static_cast<input_t *>(data);
   if (axis != WL_POINTER_AXIS_VERTICAL_SCROLL) {
@@ -1596,7 +1621,7 @@ static void pointer_handle_axis(void *data,
   if (wl_surface *focus_surface = input->pointer.wl_surface) {
     GHOST_WindowWayland *win = ghost_wl_surface_user_data(focus_surface);
     input->system->pushEvent(new GHOST_EventWheel(
-        input->system->getMilliSeconds(), win, std::signbit(value) ? +1 : -1));
+        input->system->getMilliSeconds(), win, std::signbit(discrete) ? +1 : -1));
   }
 }
 
@@ -1606,6 +1631,10 @@ static const struct wl_pointer_listener pointer_listener = {
     pointer_handle_motion,
     pointer_handle_button,
     pointer_handle_axis,
+    pointer_handle_frame,
+    pointer_handle_axis_source,
+    pointer_handle_axis_stop,
+    pointer_handle_axis_discrete,
 };
 
 #undef LOG
@@ -2744,7 +2773,7 @@ static void global_handle_add(void *data,
     input->xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
     input->data_source = new data_source_t;
     input->wl_seat = static_cast<wl_seat *>(
-        wl_registry_bind(wl_registry, name, &wl_seat_interface, 4));
+        wl_registry_bind(wl_registry, name, &wl_seat_interface, 5));
     display->inputs.push_back(input);
     wl_seat_add_listener(input->wl_seat, &seat_listener, input);
   }
