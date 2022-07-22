@@ -448,13 +448,7 @@ static bool clip_uv_transform_translation(TransInfo *t, float vec[2])
 
   /* If tiled image then constrain to correct/closest UDIM tile, else 0-1 UV space. */
   if (is_tiled_image) {
-    int nearest_tile_index = BKE_image_find_nearest_tile(image, t->center_global);
-    if (nearest_tile_index != -1) {
-      nearest_tile_index -= 1001;
-      /* Getting coordinates of nearest tile from the tile index. */
-      base_offset[0] = nearest_tile_index % 10;
-      base_offset[1] = nearest_tile_index / 10;
-    }
+    BKE_image_find_nearest_tile_with_offset(image, t->center_global, base_offset);
   }
 
   float min[2], max[2];
