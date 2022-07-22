@@ -221,6 +221,17 @@ class FieldOperation : public FieldNode {
   const MultiFunction &multi_function() const;
 
   const CPPType &output_cpp_type(int output_index) const override;
+
+  static std::shared_ptr<FieldOperation> Create(std::shared_ptr<const MultiFunction> function,
+                                                Vector<GField> inputs = {})
+  {
+    return std::make_shared<FieldOperation>(FieldOperation(std::move(function), inputs));
+  }
+  static std::shared_ptr<FieldOperation> Create(const MultiFunction &function,
+                                                Vector<GField> inputs = {})
+  {
+    return std::make_shared<FieldOperation>(FieldOperation(function, inputs));
+  }
 };
 
 class FieldContext;
