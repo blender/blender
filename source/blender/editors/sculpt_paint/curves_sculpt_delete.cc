@@ -51,6 +51,12 @@ using blender::bke::CurvesGeometry;
 class DeleteOperation : public CurvesSculptStrokeOperation {
  private:
   CurvesBrush3D brush_3d_;
+  /**
+   * Need to store those in case the brush is evaluated more than once before the curves are
+   * evaluated again. This can happen when the mouse is moved quickly and the brush spacing is
+   * small.
+   */
+  Vector<float3> deformed_positions_;
 
   friend struct DeleteOperationExecutor;
 
@@ -109,6 +115,9 @@ struct DeleteOperationExecutor {
       if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
         this->initialize_spherical_brush_reference_point();
       }
+      const bke::crazyspace::GeometryDeformation deformation =
+          bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+      self_->deformed_positions_ = deformation.positions;
     }
 
     Array<bool> curves_to_delete(curves_->curves_num(), false);
@@ -123,12 +132,22 @@ struct DeleteOperationExecutor {
     }
 
     Vector<int64_t> indices;
-    const IndexMask mask = index_mask_ops::find_indices_based_on_predicate(
+    const IndexMask mask_to_delete = index_mask_ops::find_indices_based_on_predicate(
         curves_->curves_range(), 4096, indices, [&](const int curve_i) {
           return curves_to_delete[curve_i];
         });
 
-    curves_->remove_curves(mask);
+    /* Remove deleted curves from the stored deformed positions. */
+    const Vector<IndexRange> ranges_to_keep = mask_to_delete.extract_ranges_invert(
+        curves_->curves_range());
+    Vector<float3> new_deformed_positions;
+    for (const IndexRange curves_range : ranges_to_keep) {
+      new_deformed_positions.extend(
+          self_->deformed_positions_.as_span().slice(curves_->points_for_curves(curves_range)));
+    }
+    self_->deformed_positions_ = std::move(new_deformed_positions);
+
+    curves_->remove_curves(mask_to_delete);
 
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
@@ -151,8 +170,6 @@ struct DeleteOperationExecutor {
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
 
-    Span<float3> positions_cu = curves_->positions();
-
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
@@ -160,7 +177,7 @@ struct DeleteOperationExecutor {
       for (const int curve_i : curve_selection_.slice(range)) {
         const IndexRange points = curves_->points_for_curve(curve_i);
         if (points.size() == 1) {
-          const float3 pos_cu = brush_transform_inv * positions_cu[points.first()];
+          const float3 pos_cu = brush_transform_inv * self_->deformed_positions_[points.first()];
           float2 pos_re;
           ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.values);
 
@@ -171,8 +188,8 @@ struct DeleteOperationExecutor {
         }
 
         for (const int segment_i : points.drop_back(1)) {
-          const float3 pos1_cu = brush_transform_inv * positions_cu[segment_i];
-          const float3 pos2_cu = brush_transform_inv * positions_cu[segment_i + 1];
+          const float3 pos1_cu = brush_transform_inv * self_->deformed_positions_[segment_i];
+          const float3 pos2_cu = brush_transform_inv * self_->deformed_positions_[segment_i + 1];
 
           float2 pos1_re, pos2_re;
           ED_view3d_project_float_v2_m4(ctx_.region, pos1_cu, pos1_re, projection.values);
@@ -212,8 +229,6 @@ struct DeleteOperationExecutor {
 
   void delete_spherical(const float3 &brush_cu, MutableSpan<bool> curves_to_delete)
   {
-    Span<float3> positions_cu = curves_->positions();
-
     const float brush_radius_cu = self_->brush_3d_.radius_cu * brush_radius_factor_;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
@@ -222,7 +237,7 @@ struct DeleteOperationExecutor {
         const IndexRange points = curves_->points_for_curve(curve_i);
 
         if (points.size() == 1) {
-          const float3 &pos_cu = positions_cu[points.first()];
+          const float3 &pos_cu = self_->deformed_positions_[points.first()];
           const float distance_sq_cu = math::distance_squared(pos_cu, brush_cu);
           if (distance_sq_cu < brush_radius_sq_cu) {
             curves_to_delete[curve_i] = true;
@@ -231,8 +246,8 @@ struct DeleteOperationExecutor {
         }
 
         for (const int segment_i : points.drop_back(1)) {
-          const float3 &pos1_cu = positions_cu[segment_i];
-          const float3 &pos2_cu = positions_cu[segment_i + 1];
+          const float3 &pos1_cu = self_->deformed_positions_[segment_i];
+          const float3 &pos2_cu = self_->deformed_positions_[segment_i + 1];
 
           const float distance_sq_cu = dist_squared_to_line_segment_v3(brush_cu, pos1_cu, pos2_cu);
           if (distance_sq_cu > brush_radius_sq_cu) {

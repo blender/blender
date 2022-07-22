@@ -319,6 +319,14 @@ void BKE_curves_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Ob
   Curves *curves = static_cast<Curves *>(object->data);
   GeometrySet geometry_set = GeometrySet::create_with_curves(curves,
                                                              GeometryOwnershipType::ReadOnly);
+  if (object->mode == OB_MODE_SCULPT_CURVES) {
+    /* Try to propagate deformation data through modifier evaluation, so that sculpt mode can work
+     * on evaluated curves. */
+    GeometryComponentEditData &edit_component =
+        geometry_set.get_component_for_write<GeometryComponentEditData>();
+    edit_component.curves_edit_hints_ = std::make_unique<blender::bke::CurvesEditHints>(
+        *static_cast<const Curves *>(DEG_get_original_object(object)->data));
+  }
   curves_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   /* Assign evaluated object. */
@@ -407,6 +415,22 @@ CurvesSurfaceTransforms::CurvesSurfaceTransforms(const Object &curves_ob, const 
     this->curves_to_surface = this->world_to_surface * this->curves_to_world;
     this->surface_to_curves_normal = this->surface_to_curves.inverted().transposed();
   }
+}
+
+bool CurvesEditHints::is_valid() const
+{
+  const int point_num = this->curves_id_orig.geometry.point_num;
+  if (this->positions.has_value()) {
+    if (this->positions->size() != point_num) {
+      return false;
+    }
+  }
+  if (this->deform_mats.has_value()) {
+    if (this->deform_mats->size() != point_num) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace blender::bke

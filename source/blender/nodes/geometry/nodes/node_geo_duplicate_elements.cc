@@ -328,10 +328,11 @@ static void duplicate_curves(GeometrySet &geometry_set,
                              const IndexAttributes &attribute_outputs)
 {
   if (!geometry_set.has_curves()) {
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.remove_geometry_during_modify();
     return;
   }
-  geometry_set.keep_only({GEO_COMPONENT_TYPE_CURVE, GEO_COMPONENT_TYPE_INSTANCES});
+  geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_CURVE});
+  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
 
   const CurveComponent &src_component = *geometry_set.get_component_for_read<CurveComponent>();
   const Curves &curves_id = *src_component.get_for_read();
@@ -516,10 +517,10 @@ static void duplicate_faces(GeometrySet &geometry_set,
                             const IndexAttributes &attribute_outputs)
 {
   if (!geometry_set.has_mesh()) {
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.remove_geometry_during_modify();
     return;
   }
-  geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
+  geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
 
   const MeshComponent &src_component = *geometry_set.get_component_for_read<MeshComponent>();
   const Mesh &mesh = *src_component.get_for_read();
@@ -720,7 +721,7 @@ static void duplicate_edges(GeometrySet &geometry_set,
                             const IndexAttributes &attribute_outputs)
 {
   if (!geometry_set.has_mesh()) {
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.remove_geometry_during_modify();
     return;
   };
   const MeshComponent &src_component = *geometry_set.get_component_for_read<MeshComponent>();
@@ -1032,7 +1033,7 @@ static void duplicate_points(GeometrySet &geometry_set,
     }
   }
   component_types.append(GEO_COMPONENT_TYPE_INSTANCES);
-  geometry_set.keep_only(component_types);
+  geometry_set.keep_only_during_modify(component_types);
 }
 
 /** \} */

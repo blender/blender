@@ -41,7 +41,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>(N_("Curves"));
 }
 
-static void deform_curves(CurvesGeometry &curves,
+static void deform_curves(const CurvesGeometry &curves,
                           const Mesh &surface_mesh_old,
                           const Mesh &surface_mesh_new,
                           const Span<float2> curve_attachment_uvs,
@@ -51,6 +51,8 @@ static void deform_curves(CurvesGeometry &curves,
                           const Span<float3> corner_normals_new,
                           const Span<float3> rest_positions,
                           const float4x4 &surface_to_curves,
+                          MutableSpan<float3> r_positions,
+                          MutableSpan<float3x3> r_rotations,
                           std::atomic<int> &r_invalid_uv_count)
 {
   /* Find attachment points on old and new mesh. */
@@ -60,8 +62,6 @@ static void deform_curves(CurvesGeometry &curves,
   threading::parallel_invoke(
       [&]() { reverse_uv_sampler_old.sample_many(curve_attachment_uvs, surface_samples_old); },
       [&]() { reverse_uv_sampler_new.sample_many(curve_attachment_uvs, surface_samples_new); });
-
-  MutableSpan<float3> positions = curves.positions_for_write();
 
   const float4x4 curves_to_surface = surface_to_curves.inverted();
 
@@ -190,9 +190,15 @@ static void deform_curves(CurvesGeometry &curves,
       /* Actually transform all points. */
       const IndexRange points = curves.points_for_curve(curve_i);
       for (const int point_i : points) {
-        const float3 old_point_pos = positions[point_i];
+        const float3 old_point_pos = r_positions[point_i];
         const float3 new_point_pos = curve_transform * old_point_pos;
-        positions[point_i] = new_point_pos;
+        r_positions[point_i] = new_point_pos;
+      }
+
+      if (!r_rotations.is_empty()) {
+        for (const int point_i : points) {
+          r_rotations[point_i] = rotation * r_rotations[point_i];
+        }
       }
     }
   });
@@ -320,17 +326,67 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   const bke::CurvesSurfaceTransforms transforms{*self_ob_eval, surface_ob_eval};
 
-  deform_curves(curves,
-                *surface_mesh_orig,
-                *surface_mesh_eval,
-                surface_uv_coords,
-                reverse_uv_sampler_orig,
-                reverse_uv_sampler_eval,
-                corner_normals_orig,
-                corner_normals_eval,
-                rest_positions,
-                transforms.surface_to_curves,
-                invalid_uv_count);
+  bke::CurvesEditHints *edit_hints = curves_geometry.get_curve_edit_hints_for_write();
+  MutableSpan<float3> edit_hint_positions;
+  MutableSpan<float3x3> edit_hint_rotations;
+  if (edit_hints != nullptr) {
+    if (edit_hints->positions.has_value()) {
+      edit_hint_positions = *edit_hints->positions;
+    }
+    if (!edit_hints->deform_mats.has_value()) {
+      edit_hints->deform_mats.emplace(edit_hints->curves_id_orig.geometry.point_num,
+                                      float3x3::identity());
+      edit_hints->deform_mats->fill(float3x3::identity());
+    }
+    edit_hint_rotations = *edit_hints->deform_mats;
+  }
+
+  if (edit_hint_positions.is_empty()) {
+    deform_curves(curves,
+                  *surface_mesh_orig,
+                  *surface_mesh_eval,
+                  surface_uv_coords,
+                  reverse_uv_sampler_orig,
+                  reverse_uv_sampler_eval,
+                  corner_normals_orig,
+                  corner_normals_eval,
+                  rest_positions,
+                  transforms.surface_to_curves,
+                  curves.positions_for_write(),
+                  edit_hint_rotations,
+                  invalid_uv_count);
+  }
+  else {
+    /* First deform the actual curves in the input geometry. */
+    deform_curves(curves,
+                  *surface_mesh_orig,
+                  *surface_mesh_eval,
+                  surface_uv_coords,
+                  reverse_uv_sampler_orig,
+                  reverse_uv_sampler_eval,
+                  corner_normals_orig,
+                  corner_normals_eval,
+                  rest_positions,
+                  transforms.surface_to_curves,
+                  curves.positions_for_write(),
+                  {},
+                  invalid_uv_count);
+    /* Then also deform edit curve information for use in sculpt mode. */
+    const CurvesGeometry &curves_orig = CurvesGeometry::wrap(edit_hints->curves_id_orig.geometry);
+    deform_curves(curves_orig,
+                  *surface_mesh_orig,
+                  *surface_mesh_eval,
+                  surface_uv_coords,
+                  reverse_uv_sampler_orig,
+                  reverse_uv_sampler_eval,
+                  corner_normals_orig,
+                  corner_normals_eval,
+                  rest_positions,
+                  transforms.surface_to_curves,
+                  edit_hint_positions,
+                  edit_hint_rotations,
+                  invalid_uv_count);
+  }
 
   curves.tag_positions_changed();
 

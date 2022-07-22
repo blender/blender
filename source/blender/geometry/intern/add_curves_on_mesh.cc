@@ -6,6 +6,7 @@
 #include "BKE_mesh_sample.hh"
 
 #include "GEO_add_curves_on_mesh.hh"
+#include "GEO_reverse_uv_sampler.hh"
 
 /**
  * The code below uses a suffix naming convention to indicate the coordinate space:
@@ -27,9 +28,9 @@ struct NeighborCurve {
 static constexpr int max_neighbors = 5;
 using NeighborCurves = Vector<NeighborCurve, max_neighbors>;
 
-static float3 compute_surface_point_normal(const MLoopTri &looptri,
-                                           const float3 &bary_coord,
-                                           const Span<float3> corner_normals)
+float3 compute_surface_point_normal(const MLoopTri &looptri,
+                                    const float3 &bary_coord,
+                                    const Span<float3> corner_normals)
 {
   const int l0 = looptri.tri[0];
   const int l1 = looptri.tri[1];
@@ -136,15 +137,14 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
                                                     const int old_curves_num,
                                                     const Span<float> new_lengths_cu,
                                                     const Span<float3> new_normals_su,
-                                                    const float4x4 &surface_to_curves_normal_mat,
-                                                    const float4x4 &curves_to_surface_mat,
-                                                    const BVHTreeFromMesh &surface_bvh,
-                                                    const Span<MLoopTri> surface_looptris,
-                                                    const Mesh &surface,
+                                                    const bke::CurvesSurfaceTransforms &transforms,
+                                                    const ReverseUVSampler &reverse_uv_sampler,
                                                     const Span<float3> corner_normals_su)
 {
   MutableSpan<float3> positions_cu = curves.positions_for_write();
   const int added_curves_num = root_positions_cu.size();
+
+  const Span<float2> uv_coords = curves.surface_uv_coords();
 
   threading::parallel_for(IndexRange(added_curves_num), 256, [&](const IndexRange range) {
     for (const int added_curve_i : range) {
@@ -154,7 +154,7 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
 
       const float length_cu = new_lengths_cu[added_curve_i];
       const float3 &normal_su = new_normals_su[added_curve_i];
-      const float3 normal_cu = math::normalize(surface_to_curves_normal_mat * normal_su);
+      const float3 normal_cu = math::normalize(transforms.surface_to_curves_normal * normal_su);
 
       const float3 &root_cu = root_positions_cu[added_curve_i];
 
@@ -169,26 +169,15 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
 
       for (const NeighborCurve &neighbor : neighbors) {
         const int neighbor_curve_i = neighbor.index;
-        const float3 &neighbor_first_pos_cu = positions_cu[curves.offsets()[neighbor_curve_i]];
-        const float3 neighbor_first_pos_su = curves_to_surface_mat * neighbor_first_pos_cu;
-
-        BVHTreeNearest nearest;
-        nearest.dist_sq = FLT_MAX;
-        BLI_bvhtree_find_nearest(surface_bvh.tree,
-                                 neighbor_first_pos_su,
-                                 &nearest,
-                                 surface_bvh.nearest_callback,
-                                 const_cast<BVHTreeFromMesh *>(&surface_bvh));
-        const int neighbor_looptri_index = nearest.index;
-        const MLoopTri &neighbor_looptri = surface_looptris[neighbor_looptri_index];
-
-        const float3 neighbor_bary_coord =
-            bke::mesh_surface_sample::compute_bary_coord_in_triangle(
-                surface, neighbor_looptri, nearest.co);
+        const float2 neighbor_uv = uv_coords[neighbor_curve_i];
+        const ReverseUVSampler::Result result = reverse_uv_sampler.sample(neighbor_uv);
+        if (result.type != ReverseUVSampler::ResultType::Ok) {
+          continue;
+        }
 
         const float3 neighbor_normal_su = compute_surface_point_normal(
-            surface_looptris[neighbor_looptri_index], neighbor_bary_coord, corner_normals_su);
-        const float3 neighbor_normal_cu = math::normalize(surface_to_curves_normal_mat *
+            *result.looptri, result.bary_weights, corner_normals_su);
+        const float3 neighbor_normal_cu = math::normalize(transforms.surface_to_curves_normal *
                                                           neighbor_normal_su);
 
         /* The rotation matrix used to transform relative coordinates of the neighbor curve
@@ -245,13 +234,37 @@ void add_curves_on_mesh(CurvesGeometry &curves, const AddCurvesOnMeshInputs &inp
   const bool use_interpolation = inputs.interpolate_length || inputs.interpolate_point_count ||
                                  inputs.interpolate_shape;
 
+  Vector<float3> root_positions_cu;
+  Vector<float3> bary_coords;
+  Vector<const MLoopTri *> looptris;
+  Vector<float2> used_uvs;
+
+  /* Find faces that the passed in uvs belong to. */
+  for (const int i : inputs.uvs.index_range()) {
+    const float2 &uv = inputs.uvs[i];
+    const ReverseUVSampler::Result result = inputs.reverse_uv_sampler->sample(uv);
+    if (result.type != ReverseUVSampler::ResultType::Ok) {
+      continue;
+    }
+    const MLoopTri &looptri = *result.looptri;
+    bary_coords.append(result.bary_weights);
+    looptris.append(&looptri);
+    const float3 root_position_su = attribute_math::mix3<float3>(
+        result.bary_weights,
+        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[0]].v].co,
+        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[1]].v].co,
+        inputs.surface->mvert[inputs.surface->mloop[looptri.tri[2]].v].co);
+    root_positions_cu.append(inputs.transforms->surface_to_curves * root_position_su);
+    used_uvs.append(uv);
+  }
+
   Array<NeighborCurves> neighbors_per_curve;
   if (use_interpolation) {
     BLI_assert(inputs.old_roots_kdtree != nullptr);
-    neighbors_per_curve = find_curve_neighbors(inputs.root_positions_cu, *inputs.old_roots_kdtree);
+    neighbors_per_curve = find_curve_neighbors(root_positions_cu, *inputs.old_roots_kdtree);
   }
 
-  const int added_curves_num = inputs.root_positions_cu.size();
+  const int added_curves_num = root_positions_cu.size();
   const int old_points_num = curves.points_num();
   const int old_curves_num = curves.curves_num();
   const int new_curves_num = old_curves_num + added_curves_num;
@@ -280,6 +293,10 @@ void add_curves_on_mesh(CurvesGeometry &curves, const AddCurvesOnMeshInputs &inp
   curves.resize(new_points_num, new_curves_num);
   MutableSpan<float3> positions_cu = curves.positions_for_write();
 
+  /* Initialize attachment information. */
+  MutableSpan<float2> surface_uv_coords = curves.surface_uv_coords_for_write();
+  surface_uv_coords.take_back(added_curves_num).copy_from(used_uvs);
+
   /* Determine length of new curves. */
   Array<float> new_lengths_cu(added_curves_num);
   if (inputs.interpolate_length) {
@@ -306,24 +323,10 @@ void add_curves_on_mesh(CurvesGeometry &curves, const AddCurvesOnMeshInputs &inp
   Array<float3> new_normals_su(added_curves_num);
   threading::parallel_for(IndexRange(added_curves_num), 256, [&](const IndexRange range) {
     for (const int i : range) {
-      const int looptri_index = inputs.looptri_indices[i];
-      const float3 &bary_coord = inputs.bary_coords[i];
       new_normals_su[i] = compute_surface_point_normal(
-          inputs.surface_looptris[looptri_index], bary_coord, inputs.corner_normals_su);
+          *looptris[i], bary_coords[i], inputs.corner_normals_su);
     }
   });
-
-  /* Propagate attachment information. */
-  if (!inputs.surface_uv_map.is_empty()) {
-    MutableSpan<float2> surface_uv_coords = curves.surface_uv_coords_for_write();
-    bke::mesh_surface_sample::sample_corner_attribute(
-        *inputs.surface,
-        inputs.looptri_indices,
-        inputs.bary_coords,
-        GVArray::ForSpan(inputs.surface_uv_map),
-        IndexRange(added_curves_num),
-        surface_uv_coords.take_back(added_curves_num));
-  }
 
   /* Update selection arrays when available. */
   const VArray<float> points_selection = curves.selection_point_float();
@@ -340,25 +343,22 @@ void add_curves_on_mesh(CurvesGeometry &curves, const AddCurvesOnMeshInputs &inp
   /* Initialize position attribute. */
   if (inputs.interpolate_shape) {
     interpolate_position_with_interpolation(curves,
-                                            inputs.root_positions_cu,
+                                            root_positions_cu,
                                             neighbors_per_curve,
                                             old_curves_num,
                                             new_lengths_cu,
                                             new_normals_su,
-                                            inputs.surface_to_curves_normal_mat,
-                                            inputs.curves_to_surface_mat,
-                                            *inputs.surface_bvh,
-                                            inputs.surface_looptris,
-                                            *inputs.surface,
+                                            *inputs.transforms,
+                                            *inputs.reverse_uv_sampler,
                                             inputs.corner_normals_su);
   }
   else {
     interpolate_position_without_interpolation(curves,
                                                old_curves_num,
-                                               inputs.root_positions_cu,
+                                               root_positions_cu,
                                                new_lengths_cu,
                                                new_normals_su,
-                                               inputs.surface_to_curves_normal_mat);
+                                               inputs.transforms->surface_to_curves_normal);
   }
 
   /* Set curve types. */

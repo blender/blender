@@ -213,7 +213,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
     }
 
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.remove_geometry_during_modify();
   });
 
   /* Unused references may have been added above. Remove those now so that other nodes don't

@@ -2,6 +2,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_crazyspace.hh"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -95,60 +96,56 @@ struct SmoothOperationExecutor {
       }
     }
 
+    Array<float> point_smooth_factors(curves_->points_num(), 0.0f);
+
     if (falloff_shape == PAINT_FALLOFF_SHAPE_TUBE) {
-      this->smooth_projected_with_symmetry();
+      this->find_projected_smooth_factors_with_symmetry(point_smooth_factors);
     }
     else if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-      this->smooth_spherical_with_symmetry();
+      this->find_spherical_smooth_factors_with_symmetry(point_smooth_factors);
     }
     else {
       BLI_assert_unreachable();
     }
 
+    this->smooth(point_smooth_factors);
     curves_->tag_positions_changed();
     DEG_id_tag_update(&curves_id_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_->id);
     ED_region_tag_redraw(ctx_.region);
   }
 
-  void smooth_projected_with_symmetry()
+  void find_projected_smooth_factors_with_symmetry(MutableSpan<float> r_point_smooth_factors)
   {
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      this->smooth_projected(brush_transform);
+      this->find_projected_smooth_factors(brush_transform, r_point_smooth_factors);
     }
   }
 
-  void smooth_projected(const float4x4 &brush_transform)
+  void find_projected_smooth_factors(const float4x4 &brush_transform,
+                                     MutableSpan<float> r_point_smooth_factors)
   {
     const float4x4 brush_transform_inv = brush_transform.inverted();
 
-    MutableSpan<float3> positions_cu = curves_->positions_for_write();
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
 
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
-      Vector<float2> old_curve_positions_re;
       for (const int curve_i : curve_selection_.slice(range)) {
         const IndexRange points = curves_->points_for_curve(curve_i);
-
-        /* Find position of control points in screen space. */
-        old_curve_positions_re.clear();
-        old_curve_positions_re.reserve(points.size());
         for (const int point_i : points) {
-          const float3 &pos_cu = brush_transform_inv * positions_cu[point_i];
+          const float3 &pos_cu = brush_transform_inv * deformation.positions[point_i];
           float2 pos_re;
           ED_view3d_project_float_v2_m4(ctx_.region, pos_cu, pos_re, projection.values);
-          old_curve_positions_re.append_unchecked(pos_re);
-        }
-        for (const int i : IndexRange(points.size()).drop_front(1).drop_back(1)) {
-          const int point_i = points[i];
-          const float2 &old_pos_re = old_curve_positions_re[i];
-          const float dist_to_brush_sq_re = math::distance_squared(old_pos_re, brush_pos_re_);
+          const float dist_to_brush_sq_re = math::distance_squared(pos_re, brush_pos_re_);
           if (dist_to_brush_sq_re > brush_radius_sq_re) {
             continue;
           }
@@ -161,27 +158,13 @@ struct SmoothOperationExecutor {
           const float weight_factor = 0.1f;
           const float weight = weight_factor * brush_strength_ * radius_falloff *
                                point_factors_[point_i];
-
-          /* Move points towards the middle of their neighbors. */
-          const float2 &old_pos_prev_re = old_curve_positions_re[i - 1];
-          const float2 &old_pos_next_re = old_curve_positions_re[i + 1];
-          const float2 goal_pos_re = math::midpoint(old_pos_prev_re, old_pos_next_re);
-          const float2 new_pos_re = math::interpolate(old_pos_re, goal_pos_re, weight);
-          const float3 old_pos_cu = brush_transform_inv * positions_cu[point_i];
-          float3 new_pos_wo;
-          ED_view3d_win_to_3d(ctx_.v3d,
-                              ctx_.region,
-                              transforms_.curves_to_world * old_pos_cu,
-                              new_pos_re,
-                              new_pos_wo);
-          const float3 new_pos_cu = brush_transform * (transforms_.world_to_curves * new_pos_wo);
-          positions_cu[point_i] = new_pos_cu;
+          math::max_inplace(r_point_smooth_factors[point_i], weight);
         }
       }
     });
   }
 
-  void smooth_spherical_with_symmetry()
+  void find_spherical_smooth_factors_with_symmetry(MutableSpan<float> r_point_smooth_factors)
   {
     float4x4 projection;
     ED_view3d_ob_project_mat_get(ctx_.rv3d, object_, projection.values);
@@ -198,27 +181,25 @@ struct SmoothOperationExecutor {
     const Vector<float4x4> symmetry_brush_transforms = get_symmetry_brush_transforms(
         eCurvesSymmetryType(curves_id_->symmetry));
     for (const float4x4 &brush_transform : symmetry_brush_transforms) {
-      this->smooth_spherical(brush_transform * brush_pos_cu, brush_radius_cu);
+      this->find_spherical_smooth_factors(
+          brush_transform * brush_pos_cu, brush_radius_cu, r_point_smooth_factors);
     }
   }
 
-  void smooth_spherical(const float3 &brush_pos_cu, const float brush_radius_cu)
+  void find_spherical_smooth_factors(const float3 &brush_pos_cu,
+                                     const float brush_radius_cu,
+                                     MutableSpan<float> r_point_smooth_factors)
   {
-    MutableSpan<float3> positions_cu = curves_->positions_for_write();
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
 
     threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
-      Vector<float3> old_curve_positions_cu;
       for (const int curve_i : curve_selection_.slice(range)) {
         const IndexRange points = curves_->points_for_curve(curve_i);
-        /* Remember original positions so that we don't smooth based on already smoothed points
-         * below. */
-        old_curve_positions_cu.clear();
-        old_curve_positions_cu.extend(positions_cu.slice(points));
-        for (const int i : IndexRange(points.size()).drop_front(1).drop_back(1)) {
-          const int point_i = points[i];
-          const float3 &old_pos_cu = old_curve_positions_cu[i];
-          const float dist_to_brush_sq_cu = math::distance_squared(old_pos_cu, brush_pos_cu);
+        for (const int point_i : points) {
+          const float3 &pos_cu = deformation.positions[point_i];
+          const float dist_to_brush_sq_cu = math::distance_squared(pos_cu, brush_pos_cu);
           if (dist_to_brush_sq_cu > brush_radius_sq_cu) {
             continue;
           }
@@ -231,13 +212,34 @@ struct SmoothOperationExecutor {
           const float weight_factor = 0.1f;
           const float weight = weight_factor * brush_strength_ * radius_falloff *
                                point_factors_[point_i];
+          math::max_inplace(r_point_smooth_factors[point_i], weight);
+        }
+      }
+    });
+  }
 
-          /* Move points towards the middle of their neighbors. */
-          const float3 &old_pos_prev_cu = old_curve_positions_cu[i - 1];
-          const float3 &old_pos_next_cu = old_curve_positions_cu[i + 1];
-          const float3 goal_pos_cu = math::midpoint(old_pos_prev_cu, old_pos_next_cu);
-          const float3 new_pos_cu = math::interpolate(old_pos_cu, goal_pos_cu, weight);
-          positions_cu[point_i] = new_pos_cu;
+  void smooth(const Span<float> point_smooth_factors)
+  {
+    MutableSpan<float3> positions = curves_->positions_for_write();
+    threading::parallel_for(curve_selection_.index_range(), 256, [&](const IndexRange range) {
+      Vector<float3> old_positions;
+      for (const int curve_i : curve_selection_.slice(range)) {
+        const IndexRange points = curves_->points_for_curve(curve_i);
+        old_positions.clear();
+        old_positions.extend(positions.slice(points));
+        for (const int i : IndexRange(points.size()).drop_front(1).drop_back(1)) {
+          const int point_i = points[i];
+          const float smooth_factor = point_smooth_factors[point_i];
+          if (smooth_factor == 0.0f) {
+            continue;
+          }
+          /* Move towards the middle of the neighboring points. */
+          const float3 old_pos = old_positions[i];
+          const float3 &prev_pos = old_positions[i - 1];
+          const float3 &next_pos = old_positions[i + 1];
+          const float3 goal_pos = math::midpoint(prev_pos, next_pos);
+          const float3 new_pos = math::interpolate(old_pos, goal_pos, smooth_factor);
+          positions[point_i] = new_pos;
         }
       }
     });

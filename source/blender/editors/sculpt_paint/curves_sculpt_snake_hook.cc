@@ -176,6 +176,8 @@ struct SnakeHookOperatorExecutor {
   void projected_snake_hook(const float4x4 &brush_transform)
   {
     const float4x4 brush_transform_inv = brush_transform.inverted();
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
 
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
 
@@ -189,12 +191,14 @@ struct SnakeHookOperatorExecutor {
       for (const int curve_i : curves_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
         const int last_point_i = points.last();
-        const float3 old_pos_cu = brush_transform_inv * positions_cu[last_point_i];
+        const float3 old_pos_cu = deformation.positions[last_point_i];
+        const float3 old_symm_pos_cu = brush_transform_inv * old_pos_cu;
 
-        float2 old_pos_re;
-        ED_view3d_project_float_v2_m4(ctx_.region, old_pos_cu, old_pos_re, projection.values);
+        float2 old_symm_pos_re;
+        ED_view3d_project_float_v2_m4(
+            ctx_.region, old_symm_pos_cu, old_symm_pos_re, projection.values);
 
-        const float distance_to_brush_sq_re = math::distance_squared(old_pos_re,
+        const float distance_to_brush_sq_re = math::distance_squared(old_symm_pos_re,
                                                                      brush_pos_prev_re_);
         if (distance_to_brush_sq_re > brush_radius_sq_re) {
           continue;
@@ -204,17 +208,21 @@ struct SnakeHookOperatorExecutor {
             brush_, std::sqrt(distance_to_brush_sq_re), brush_radius_re);
         const float weight = brush_strength_ * radius_falloff * curve_factors_[curve_i];
 
-        const float2 new_position_re = old_pos_re + brush_pos_diff_re_ * weight;
-        float3 new_position_wo;
+        const float2 new_symm_pos_re = old_symm_pos_re + brush_pos_diff_re_ * weight;
+        float3 new_symm_pos_wo;
         ED_view3d_win_to_3d(ctx_.v3d,
                             ctx_.region,
-                            transforms_.curves_to_world * old_pos_cu,
-                            new_position_re,
-                            new_position_wo);
-        const float3 new_position_cu = brush_transform *
-                                       (transforms_.world_to_curves * new_position_wo);
+                            transforms_.curves_to_world * old_symm_pos_cu,
+                            new_symm_pos_re,
+                            new_symm_pos_wo);
+        const float3 new_pos_cu = brush_transform *
+                                  (transforms_.world_to_curves * new_symm_pos_wo);
+        const float3 translation_eval = new_pos_cu - old_pos_cu;
+        const float3 translation_orig = deformation.translation_from_deformed_to_original(
+            last_point_i, translation_eval);
 
-        move_last_point_and_resample(positions_cu.slice(points), new_position_cu);
+        move_last_point_and_resample(positions_cu.slice(points),
+                                     positions_cu[last_point_i] + translation_orig);
       }
     });
   }
@@ -252,6 +260,9 @@ struct SnakeHookOperatorExecutor {
                             const float3 &brush_end_cu,
                             const float brush_radius_cu)
   {
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*ctx_.depsgraph, *object_);
+
     MutableSpan<float3> positions_cu = curves_->positions_for_write();
     const float3 brush_diff_cu = brush_end_cu - brush_start_cu;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
@@ -260,7 +271,7 @@ struct SnakeHookOperatorExecutor {
       for (const int curve_i : curves_range) {
         const IndexRange points = curves_->points_for_curve(curve_i);
         const int last_point_i = points.last();
-        const float3 old_pos_cu = positions_cu[last_point_i];
+        const float3 old_pos_cu = deformation.positions[last_point_i];
 
         const float distance_to_brush_sq_cu = dist_squared_to_line_segment_v3(
             old_pos_cu, brush_start_cu, brush_end_cu);
@@ -274,9 +285,12 @@ struct SnakeHookOperatorExecutor {
             brush_, distance_to_brush_cu, brush_radius_cu);
         const float weight = brush_strength_ * radius_falloff * curve_factors_[curve_i];
 
-        const float3 new_pos_cu = old_pos_cu + weight * brush_diff_cu;
+        const float3 translation_eval = weight * brush_diff_cu;
+        const float3 translation_orig = deformation.translation_from_deformed_to_original(
+            last_point_i, translation_eval);
 
-        move_last_point_and_resample(positions_cu.slice(points), new_pos_cu);
+        move_last_point_and_resample(positions_cu.slice(points),
+                                     positions_cu[last_point_i] + translation_orig);
       }
     });
   }

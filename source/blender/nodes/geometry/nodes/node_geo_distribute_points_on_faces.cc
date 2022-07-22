@@ -550,7 +550,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         geometry_set, selection_field, method, seed, attribute_outputs, params);
     /* Keep instances because the original geometry set may contain instances that are processed as
      * well. */
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_POINT_CLOUD});
   });
 
   params.set_output("Points", std::move(geometry_set));

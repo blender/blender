@@ -94,7 +94,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                 params.extract_input<Field<float3>>("Position"),
                                 params.extract_input<Field<float>>("Radius"),
                                 params.extract_input<Field<bool>>("Selection"));
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD});
+    geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_EDIT});
     params.set_output("Points", std::move(geometry_set));
   }
   else {

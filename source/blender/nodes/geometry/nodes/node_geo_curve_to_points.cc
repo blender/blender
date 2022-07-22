@@ -316,9 +316,11 @@ static void node_geo_exec(GeoNodeExecParams params)
   attribute_outputs.normal_id = StrongAnonymousAttributeID("Normal");
   attribute_outputs.rotation_id = StrongAnonymousAttributeID("Rotation");
 
+  GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(geometry_set);
+
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (!geometry_set.has_curves()) {
-      geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+      geometry_set.remove_geometry_during_modify();
       return;
     }
     const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
@@ -329,7 +331,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     const Array<int> offsets = calculate_spline_point_offsets(params, mode, *curve, splines);
     const int total_num = offsets.last();
     if (total_num == 0) {
-      geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+      geometry_set.remove_geometry_during_modify();
       return;
     }
 
@@ -355,7 +357,7 @@ static void node_geo_exec(GeoNodeExecParams params)
           point_attributes.tangents, point_attributes.normals, point_attributes.rotations);
     }
 
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES, GEO_COMPONENT_TYPE_POINT_CLOUD});
+    geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_POINT_CLOUD});
   });
 
   params.set_output("Points", std::move(geometry_set));

@@ -139,6 +139,7 @@ set(SRC
   intern/freestyle.c
   intern/geometry_component_curve.cc
   intern/geometry_component_curves.cc
+  intern/geometry_component_edit_data.cc
   intern/geometry_component_instances.cc
   intern/geometry_component_mesh.cc
   intern/geometry_component_pointcloud.cc
@@ -353,6 +354,7 @@ set(SRC
   BKE_constraint.h
   BKE_context.h
   BKE_crazyspace.h
+  BKE_crazyspace.hh
   BKE_cryptomatte.h
   BKE_cryptomatte.hh
   BKE_curve.h

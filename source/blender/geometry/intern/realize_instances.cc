@@ -204,7 +204,8 @@ struct GatherTasks {
 
   /* Volumes only have very simple support currently. Only the first found volume is put into the
    * output. */
-  UserCounter<VolumeComponent> first_volume;
+  UserCounter<const VolumeComponent> first_volume;
+  UserCounter<const GeometryComponentEditData> first_edit_data;
 };
 
 /** Current offsets while during the gather operation. */
@@ -582,7 +583,16 @@ static void gather_realize_tasks_recursive(GatherTasksInfo &gather_info,
         const VolumeComponent *volume_component = static_cast<const VolumeComponent *>(component);
         if (!gather_info.r_tasks.first_volume) {
           volume_component->user_add();
-          gather_info.r_tasks.first_volume = const_cast<VolumeComponent *>(volume_component);
+          gather_info.r_tasks.first_volume = volume_component;
+        }
+        break;
+      }
+      case GEO_COMPONENT_TYPE_EDIT: {
+        const GeometryComponentEditData *edit_component =
+            static_cast<const GeometryComponentEditData *>(component);
+        if (!gather_info.r_tasks.first_edit_data) {
+          edit_component->user_add();
+          gather_info.r_tasks.first_edit_data = edit_component;
         }
         break;
       }
@@ -1404,6 +1414,9 @@ GeometrySet realize_instances(GeometrySet geometry_set, const RealizeInstancesOp
 
   if (gather_info.r_tasks.first_volume) {
     new_geometry_set.add(*gather_info.r_tasks.first_volume);
+  }
+  if (gather_info.r_tasks.first_edit_data) {
+    new_geometry_set.add(*gather_info.r_tasks.first_edit_data);
   }
 
   return new_geometry_set;

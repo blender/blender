@@ -53,6 +53,8 @@ GeometryComponent *GeometryComponent::create(GeometryComponentType component_typ
       return new VolumeComponent();
     case GEO_COMPONENT_TYPE_CURVE:
       return new CurveComponent();
+    case GEO_COMPONENT_TYPE_EDIT:
+      return new GeometryComponentEditData();
   }
   BLI_assert_unreachable();
   return nullptr;
@@ -175,6 +177,20 @@ void GeometrySet::keep_only(const blender::Span<GeometryComponentType> component
   }
 }
 
+void GeometrySet::keep_only_during_modify(
+    const blender::Span<GeometryComponentType> component_types)
+{
+  Vector<GeometryComponentType> extended_types = component_types;
+  extended_types.append_non_duplicates(GEO_COMPONENT_TYPE_INSTANCES);
+  extended_types.append_non_duplicates(GEO_COMPONENT_TYPE_EDIT);
+  this->keep_only(extended_types);
+}
+
+void GeometrySet::remove_geometry_during_modify()
+{
+  this->keep_only_during_modify({});
+}
+
 void GeometrySet::add(const GeometryComponent &component)
 {
   BLI_assert(!components_[component.type()]);
@@ -288,6 +304,13 @@ const Curves *GeometrySet::get_curves_for_read() const
 {
   const CurveComponent *component = this->get_component_for_read<CurveComponent>();
   return (component == nullptr) ? nullptr : component->get_for_read();
+}
+
+const blender::bke::CurvesEditHints *GeometrySet::get_curve_edit_hints_for_read() const
+{
+  const GeometryComponentEditData *component =
+      this->get_component_for_read<GeometryComponentEditData>();
+  return (component == nullptr) ? nullptr : component->curves_edit_hints_.get();
 }
 
 bool GeometrySet::has_pointcloud() const
@@ -451,6 +474,16 @@ Curves *GeometrySet::get_curves_for_write()
 {
   CurveComponent *component = this->get_component_ptr<CurveComponent>();
   return component == nullptr ? nullptr : component->get_for_write();
+}
+
+blender::bke::CurvesEditHints *GeometrySet::get_curve_edit_hints_for_write()
+{
+  if (!this->has<GeometryComponentEditData>()) {
+    return nullptr;
+  }
+  GeometryComponentEditData &component =
+      this->get_component_for_write<GeometryComponentEditData>();
+  return component.curves_edit_hints_.get();
 }
 
 void GeometrySet::attribute_foreach(const Span<GeometryComponentType> component_types,
@@ -678,6 +711,8 @@ bool BKE_object_has_geometry_set_instances(const Object *ob)
         break;
       case GEO_COMPONENT_TYPE_CURVE:
         is_instance = !ELEM(ob->type, OB_CURVES_LEGACY, OB_FONT);
+        break;
+      case GEO_COMPONENT_TYPE_EDIT:
         break;
     }
     if (is_instance) {

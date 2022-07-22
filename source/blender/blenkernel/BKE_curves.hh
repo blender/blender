@@ -11,6 +11,7 @@
 
 #include <mutex>
 
+#include "BLI_float3x3.hh"
 #include "BLI_float4x4.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_index_mask.hh"
@@ -412,6 +413,38 @@ class CurvesGeometry : public ::CurvesGeometry {
   {
     return this->adapt_domain(GVArray(varray), from, to).typed<T>();
   }
+};
+
+/**
+ * Used to propagate deformation data through modifier evaluation so that sculpt tools can work on
+ * evaluated data.
+ */
+class CurvesEditHints {
+ public:
+  /**
+   * Original data that the edit hints below are meant to be used for.
+   */
+  const Curves &curves_id_orig;
+  /**
+   * Evaluated positions for the points in #curves_orig. If this is empty, the positions from the
+   * evaluated #Curves should be used if possible.
+   */
+  std::optional<Array<float3>> positions;
+  /**
+   * Matrices which transform point movement vectors from original data to corresponding movements
+   * of evaluated data.
+   */
+  std::optional<Array<float3x3>> deform_mats;
+
+  CurvesEditHints(const Curves &curves_id_orig) : curves_id_orig(curves_id_orig)
+  {
+  }
+
+  /**
+   * The edit hints have to correspond to the original curves, i.e. the number of deformed points
+   * is the same as the number of original points.
+   */
+  bool is_valid() const;
 };
 
 namespace curves {

@@ -62,13 +62,13 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
 {
   const MeshComponent *mesh_component = geometry_set.get_component_for_read<MeshComponent>();
   if (mesh_component == nullptr) {
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.remove_geometry_during_modify();
     return;
   }
   GeometryComponentFieldContext field_context{*mesh_component, domain};
   const int domain_num = mesh_component->attribute_domain_size(domain);
   if (domain_num == 0) {
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.remove_geometry_during_modify();
     return;
   }
   fn::FieldEvaluator evaluator{field_context, domain_num};
@@ -115,7 +115,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
     }
   }
 
-  geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_INSTANCES});
+  geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_POINT_CLOUD});
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

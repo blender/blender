@@ -123,6 +123,34 @@ static void translate_volume(Volume &volume, const float3 translation, const Dep
   transform_volume(volume, float4x4::from_location(translation), depsgraph);
 }
 
+static void transform_curve_edit_hints(bke::CurvesEditHints &edit_hints, const float4x4 &transform)
+{
+  if (edit_hints.positions.has_value()) {
+    for (float3 &pos : *edit_hints.positions) {
+      pos = transform * pos;
+    }
+  }
+  float3x3 deform_mat;
+  copy_m3_m4(deform_mat.values, transform.values);
+  if (edit_hints.deform_mats.has_value()) {
+    for (float3x3 &mat : *edit_hints.deform_mats) {
+      mat = deform_mat * mat;
+    }
+  }
+  else {
+    edit_hints.deform_mats.emplace(edit_hints.curves_id_orig.geometry.point_num, deform_mat);
+  }
+}
+
+static void translate_curve_edit_hints(bke::CurvesEditHints &edit_hints, const float3 &translation)
+{
+  if (edit_hints.positions.has_value()) {
+    for (float3 &pos : *edit_hints.positions) {
+      pos += translation;
+    }
+  }
+}
+
 static void translate_geometry_set(GeometrySet &geometry,
                                    const float3 translation,
                                    const Depsgraph &depsgraph)
@@ -141,6 +169,9 @@ static void translate_geometry_set(GeometrySet &geometry,
   }
   if (geometry.has_instances()) {
     translate_instances(geometry.get_component_for_write<InstancesComponent>(), translation);
+  }
+  if (bke::CurvesEditHints *curve_edit_hints = geometry.get_curve_edit_hints_for_write()) {
+    translate_curve_edit_hints(*curve_edit_hints, translation);
   }
 }
 
@@ -162,6 +193,9 @@ void transform_geometry_set(GeometrySet &geometry,
   }
   if (geometry.has_instances()) {
     transform_instances(geometry.get_component_for_write<InstancesComponent>(), transform);
+  }
+  if (bke::CurvesEditHints *curve_edit_hints = geometry.get_curve_edit_hints_for_write()) {
+    transform_curve_edit_hints(*curve_edit_hints, transform);
   }
 }
 

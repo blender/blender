@@ -9,6 +9,8 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_curves.hh"
+#include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 
 #include "WM_api.h"
@@ -24,6 +26,7 @@
 #include "ED_view3d.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_curves_types.h"
@@ -122,7 +125,7 @@ static std::unique_ptr<CurvesSculptStrokeOperation> start_brush_operation(
     case CURVES_SCULPT_TOOL_SNAKE_HOOK:
       return new_snake_hook_operation();
     case CURVES_SCULPT_TOOL_ADD:
-      return new_add_operation(C, op.reports);
+      return new_add_operation();
     case CURVES_SCULPT_TOOL_GROW_SHRINK:
       return new_grow_shrink_operation(mode, C);
     case CURVES_SCULPT_TOOL_SELECTION_PAINT:
@@ -176,6 +179,7 @@ static void stroke_update_step(bContext *C,
   StrokeExtension stroke_extension;
   RNA_float_get_array(stroke_element, "mouse", stroke_extension.mouse_position);
   stroke_extension.pressure = RNA_float_get(stroke_element, "pressure");
+  stroke_extension.reports = op->reports;
 
   if (!op_data->operation) {
     stroke_extension.is_first = true;
@@ -1129,14 +1133,21 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
   View3D *v3d = CTX_wm_view3d(C);
   Scene *scene = CTX_data_scene(C);
 
-  Object &curves_ob = *CTX_data_active_object(C);
-  Curves &curves_id = *static_cast<Curves *>(curves_ob.data);
-  Object &surface_ob = *curves_id.surface;
-  Mesh &surface_me = *static_cast<Mesh *>(surface_ob.data);
+  Object &curves_ob_orig = *CTX_data_active_object(C);
+  Curves &curves_id_orig = *static_cast<Curves *>(curves_ob_orig.data);
+  Object &surface_ob_orig = *curves_id_orig.surface;
+  Object *surface_ob_eval = DEG_get_evaluated_object(depsgraph, &surface_ob_orig);
+  if (surface_ob_eval == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
+  Mesh *surface_me_eval = BKE_object_get_evaluated_mesh(surface_ob_eval);
+  if (surface_me_eval == nullptr) {
+    return OPERATOR_CANCELLED;
+  }
 
-  BVHTreeFromMesh surface_bvh;
-  BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_me, BVHTREE_FROM_LOOPTRI, 2);
-  BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
+  BVHTreeFromMesh surface_bvh_eval;
+  BKE_bvhtree_from_mesh_get(&surface_bvh_eval, surface_me_eval, BVHTREE_FROM_LOOPTRI, 2);
+  BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval); });
 
   const int2 mouse_pos_int_re{event->mval};
   const float2 mouse_pos_re{mouse_pos_int_re};
@@ -1145,23 +1156,22 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
   ED_view3d_win_to_segment_clipped(
       depsgraph, region, v3d, mouse_pos_re, ray_start_wo, ray_end_wo, true);
 
-  const float4x4 surface_to_world_mat = surface_ob.obmat;
-  const float4x4 world_to_surface_mat = surface_to_world_mat.inverted();
+  const CurvesSurfaceTransforms transforms{curves_ob_orig, &surface_ob_orig};
 
-  const float3 ray_start_su = world_to_surface_mat * ray_start_wo;
-  const float3 ray_end_su = world_to_surface_mat * ray_end_wo;
+  const float3 ray_start_su = transforms.world_to_surface * ray_start_wo;
+  const float3 ray_end_su = transforms.world_to_surface * ray_end_wo;
   const float3 ray_direction_su = math::normalize(ray_end_su - ray_start_su);
 
   BVHTreeRayHit ray_hit;
   ray_hit.dist = FLT_MAX;
   ray_hit.index = -1;
-  BLI_bvhtree_ray_cast(surface_bvh.tree,
+  BLI_bvhtree_ray_cast(surface_bvh_eval.tree,
                        ray_start_su,
                        ray_direction_su,
                        0.0f,
                        &ray_hit,
-                       surface_bvh.raycast_callback,
-                       &surface_bvh);
+                       surface_bvh_eval.raycast_callback,
+                       &surface_bvh_eval);
   if (ray_hit.index == -1) {
     WM_report(RPT_ERROR, "Cursor must be over the surface mesh");
     return OPERATOR_CANCELLED;
@@ -1169,16 +1179,13 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
 
   const float3 hit_pos_su = ray_hit.co;
   const float3 hit_normal_su = ray_hit.no;
-  const float4x4 curves_to_world_mat = curves_ob.obmat;
-  const float4x4 world_to_curves_mat = curves_to_world_mat.inverted();
-  const float4x4 surface_to_curves_mat = world_to_curves_mat * surface_to_world_mat;
-  const float4x4 surface_to_curves_normal_mat = surface_to_curves_mat.inverted().transposed();
 
-  const float3 hit_pos_cu = surface_to_curves_mat * hit_pos_su;
-  const float3 hit_normal_cu = math::normalize(surface_to_curves_normal_mat * hit_normal_su);
+  const float3 hit_pos_cu = transforms.surface_to_curves * hit_pos_su;
+  const float3 hit_normal_cu = math::normalize(transforms.surface_to_curves_normal *
+                                               hit_normal_su);
 
   MinDistanceEditData *op_data = MEM_new<MinDistanceEditData>(__func__);
-  op_data->curves_to_world_mat = curves_to_world_mat;
+  op_data->curves_to_world_mat = transforms.curves_to_world;
   op_data->normal_cu = hit_normal_cu;
   op_data->pos_cu = hit_pos_cu;
   op_data->initial_mouse = event->xy;

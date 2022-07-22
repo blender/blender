@@ -19,7 +19,10 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_crazyspace.h"
+#include "BKE_crazyspace.hh"
+#include "BKE_curves.hh"
 #include "BKE_editmesh.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_wrapper.h"
@@ -586,3 +589,64 @@ void BKE_crazyspace_api_eval_clear(Object *object)
 }
 
 /** \} */
+
+namespace blender::bke::crazyspace {
+
+GeometryDeformation get_evaluated_curves_deformation(const Depsgraph &depsgraph,
+                                                     const Object &ob_orig)
+{
+  BLI_assert(ob_orig.type == OB_CURVES);
+  const Curves &curves_id_orig = *static_cast<const Curves *>(ob_orig.data);
+  const CurvesGeometry &curves_orig = CurvesGeometry::wrap(curves_id_orig.geometry);
+  const int points_num = curves_orig.points_num();
+
+  GeometryDeformation deformation;
+  /* Use the undeformed positions by default. */
+  deformation.positions = curves_orig.positions();
+
+  const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, const_cast<Object *>(&ob_orig));
+  if (ob_eval == nullptr) {
+    return deformation;
+  }
+  const GeometrySet *geometry_eval = ob_eval->runtime.geometry_set_eval;
+  if (geometry_eval == nullptr) {
+    return deformation;
+  }
+
+  /* If available, use deformation information generated during evaluation. */
+  const GeometryComponentEditData *edit_component_eval =
+      geometry_eval->get_component_for_read<GeometryComponentEditData>();
+  bool uses_extra_positions = false;
+  if (edit_component_eval != nullptr) {
+    const CurvesEditHints *edit_hints = edit_component_eval->curves_edit_hints_.get();
+    if (edit_hints != nullptr && &edit_hints->curves_id_orig == &curves_id_orig) {
+      if (edit_hints->positions.has_value()) {
+        BLI_assert(edit_hints->positions->size() == points_num);
+        deformation.positions = *edit_hints->positions;
+        uses_extra_positions = true;
+      }
+      if (edit_hints->deform_mats.has_value()) {
+        BLI_assert(edit_hints->deform_mats->size() == points_num);
+        deformation.deform_mats = *edit_hints->deform_mats;
+      }
+    }
+  }
+
+  /* Use the positions of the evaluated curves directly, if the number of points matches. */
+  if (!uses_extra_positions) {
+    const CurveComponent *curves_component_eval =
+        geometry_eval->get_component_for_read<CurveComponent>();
+    if (curves_component_eval != nullptr) {
+      const Curves *curves_id_eval = curves_component_eval->get_for_read();
+      if (curves_id_eval != nullptr) {
+        const CurvesGeometry &curves_eval = CurvesGeometry::wrap(curves_id_eval->geometry);
+        if (curves_eval.points_num() == points_num) {
+          deformation.positions = curves_eval.positions();
+        }
+      }
+    }
+  }
+  return deformation;
+}
+
+}  // namespace blender::bke::crazyspace

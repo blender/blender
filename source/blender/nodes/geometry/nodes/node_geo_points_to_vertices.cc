@@ -25,14 +25,14 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
   const PointCloudComponent *point_component =
       geometry_set.get_component_for_read<PointCloudComponent>();
   if (point_component == nullptr) {
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.remove_geometry_during_modify();
     return;
   }
 
   GeometryComponentFieldContext field_context{*point_component, ATTR_DOMAIN_POINT};
   const int domain_num = point_component->attribute_domain_size(ATTR_DOMAIN_POINT);
   if (domain_num == 0) {
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.remove_geometry_during_modify();
     return;
   }
 
@@ -63,7 +63,7 @@ static void geometry_set_points_to_vertices(GeometrySet &geometry_set,
     }
   }
 
-  geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
+  geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
