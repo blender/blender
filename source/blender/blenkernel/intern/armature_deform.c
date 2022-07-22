@@ -483,14 +483,11 @@ static void armature_deform_coords_impl(const Object *ob_arm,
   }
 
   if (BKE_object_supports_vertex_groups(ob_target)) {
-    /* get the def_nr for the overall armature vertex group if present */
-    armature_def_nr = BKE_object_defgroup_name_index(ob_target, defgrp_name);
-
-    defbase_len = BKE_object_defgroup_count(ob_target);
-
+    const ID *target_data_id = NULL;
     if (ob_target->type == OB_MESH) {
+      target_data_id = me_target == NULL ? (const ID *)ob_target->data : &me_target->id;
       if (em_target == NULL) {
-        const Mesh *me = ob_target->data;
+        const Mesh *me = (const Mesh *)target_data_id;
         dverts = me->dvert;
         if (dverts) {
           dverts_len = me->totvert;
@@ -499,17 +496,24 @@ static void armature_deform_coords_impl(const Object *ob_arm,
     }
     else if (ob_target->type == OB_LATTICE) {
       const Lattice *lt = ob_target->data;
+      target_data_id = (const ID *)ob_target->data;
       dverts = lt->dvert;
       if (dverts) {
         dverts_len = lt->pntsu * lt->pntsv * lt->pntsw;
       }
     }
     else if (ob_target->type == OB_GPENCIL) {
+      target_data_id = (const ID *)ob_target->data;
       dverts = gps_target->dvert;
       if (dverts) {
         dverts_len = gps_target->totpoints;
       }
     }
+
+    /* Collect the vertex group names from the evaluated data. */
+    armature_def_nr = BKE_id_defgroup_name_index(target_data_id, defgrp_name);
+    const ListBase *defbase = BKE_id_defgroup_list_get(target_data_id);
+    defbase_len = BLI_listbase_count(defbase);
 
     /* get a vertex-deform-index to posechannel array */
     if (deformflag & ARM_DEF_VGROUP) {
@@ -531,7 +535,6 @@ static void armature_deform_coords_impl(const Object *ob_arm,
          *
          * - Check whether keeping this consistent across frames gives speedup.
          */
-        const ListBase *defbase = BKE_object_defgroup_list(ob_target);
         int i;
         LISTBASE_FOREACH_INDEX (bDeformGroup *, dg, defbase, i) {
           pchan_from_defbase[i] = BKE_pose_channel_find_name(ob_arm->pose, dg->name);
