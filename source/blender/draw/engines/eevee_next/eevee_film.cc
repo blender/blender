@@ -393,10 +393,10 @@ void Film::sync()
   /* NOTE(@fclem): 16 is the max number of sampled texture in many implementations.
    * If we need more, we need to pack more of the similar passes in the same textures as arrays or
    * use image binding instead. */
-  DRW_shgroup_uniform_image_ref(grp, "in_weight_img", &weight_tx_.current());
-  DRW_shgroup_uniform_image_ref(grp, "out_weight_img", &weight_tx_.next());
-  DRW_shgroup_uniform_texture_ref_ex(grp, "in_combined_tx", &combined_tx_.current(), filter);
-  DRW_shgroup_uniform_image_ref(grp, "out_combined_img", &combined_tx_.next());
+  DRW_shgroup_uniform_image_ref(grp, "in_weight_img", &weight_src_tx_);
+  DRW_shgroup_uniform_image_ref(grp, "out_weight_img", &weight_dst_tx_);
+  DRW_shgroup_uniform_texture_ref_ex(grp, "in_combined_tx", &combined_src_tx_, filter);
+  DRW_shgroup_uniform_image_ref(grp, "out_combined_img", &combined_dst_tx_);
   DRW_shgroup_uniform_image_ref(grp, "depth_img", &depth_tx_);
   DRW_shgroup_uniform_image_ref(grp, "color_accum_img", &color_accum_tx_);
   DRW_shgroup_uniform_image_ref(grp, "value_accum_img", &value_accum_tx_);
@@ -541,6 +541,12 @@ void Film::accumulate(const DRWView *view)
 
   update_sample_table();
 
+  /* Need to update the static references as there could have change from a previous swap. */
+  weight_src_tx_ = weight_tx_.current();
+  weight_dst_tx_ = weight_tx_.next();
+  combined_src_tx_ = combined_tx_.current();
+  combined_dst_tx_ = combined_tx_.next();
+
   data_.display_only = false;
   data_.push_update();
 
@@ -566,6 +572,12 @@ void Film::display()
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   GPU_framebuffer_bind(dfbl->default_fb);
   GPU_framebuffer_viewport_set(dfbl->default_fb, UNPACK2(data_.offset), UNPACK2(data_.extent));
+
+  /* Need to update the static references as there could have change from a previous swap. */
+  weight_src_tx_ = weight_tx_.current();
+  weight_dst_tx_ = weight_tx_.next();
+  combined_src_tx_ = combined_tx_.current();
+  combined_dst_tx_ = combined_tx_.next();
 
   data_.display_only = true;
   data_.push_update();

@@ -45,8 +45,14 @@ class Film {
   Texture depth_tx_;
   /** Combined "Color" buffer. Double buffered to allow re-projection. */
   SwapChain<Texture, 2> combined_tx_;
+  /** Static reference as SwapChain does not actually move the objects when swapping. */
+  GPUTexture *combined_src_tx_ = nullptr;
+  GPUTexture *combined_dst_tx_ = nullptr;
   /** Weight buffers. Double buffered to allow updating it during accumulation. */
   SwapChain<Texture, 2> weight_tx_;
+  /** Static reference as SwapChain does not actually move the objects when swapping. */
+  GPUTexture *weight_src_tx_ = nullptr;
+  GPUTexture *weight_dst_tx_ = nullptr;
   /** Extent used by the render buffers when rendering the main views. */
   int2 render_extent_ = int2(-1);
   /** User setting to disable reprojection. Useful for debugging or have a more precise render. */
