@@ -176,6 +176,26 @@ void mat3_to_quat_is_ok(float q[4], const float mat[3][3]);
 
 /* Other. */
 
+/**
+ * Utility function that performs `sinf` & `cosf` where the quadrants of the circle
+ * will have exactly matching values when their sign is flipped.
+ * This works as long as the denominator can be divided by 2 or 4,
+ * otherwise `sinf` & `cosf` are used without any additional logic.
+ *
+ * Besides adjustments to precision, this function is the equivalent of:
+ * \code {.c}
+ * float phi = (2 * M_PI) * (float)i / (float)denominator;
+ * *r_sin = sinf(phi);
+ * *r_cos = cosf(phi);
+ * \endcode
+ *
+ * \param numerator: An integer factor in [0..denominator] (inclusive).
+ * \param denominator: The faction denominator (typically the number of segments of the circle).
+ * \param r_sin: The resulting sine.
+ * \param r_cos: The resulting cosine.
+ */
+void sin_cos_from_fraction(const int numerator, const int denominator, float *r_sin, float *r_cos);
+
 void print_qt(const char *str, const float q[4]);
 
 #define print_qt_id(q) print_qt(STRINGIFY(q), q)

@@ -915,6 +915,55 @@ float tri_to_quat(float q[4], const float a[3], const float b[3], const float c[
   return len;
 }
 
+void sin_cos_from_fraction(const int numerator, const int denominator, float *r_sin, float *r_cos)
+{
+  BLI_assert((numerator <= denominator) && (denominator > 0));
+  if ((denominator & 3) == 0) {
+    const int denominator_4 = denominator / 4;
+    if (numerator <= denominator_4) {
+      /* Fall through. */
+    }
+    else {
+      if (numerator <= denominator_4 * 2) {
+        const float phi = (float)(2.0 * M_PI) *
+                          ((float)(numerator - denominator_4) / (float)denominator);
+        *r_sin = cosf(phi);
+        *r_cos = -sinf(phi);
+      }
+      else if (numerator <= denominator_4 * 3) {
+        const float phi = (float)(2.0 * M_PI) *
+                          ((float)(numerator - (denominator_4 * 2)) / (float)denominator);
+        *r_sin = -sinf(phi);
+        *r_cos = -cosf(phi);
+      }
+      else {
+        const float phi = (float)(2.0 * M_PI) *
+                          ((float)(numerator - (denominator_4 * 3)) / (float)denominator);
+        *r_cos = sinf(phi);
+        *r_sin = -cosf(phi);
+      }
+      return;
+    }
+  }
+  else if ((denominator & 1) == 0) {
+    const int denominator_2 = denominator / 2;
+    if (numerator <= denominator_2) {
+      /* Fall through. */
+    }
+    else {
+      const float phi = (float)(2.0 * M_PI) *
+                        ((float)(numerator - denominator_2) / (float)denominator);
+      *r_sin = -sinf(phi);
+      *r_cos = -cosf(phi);
+      return;
+    }
+  }
+
+  const float phi = (float)(2.0 * M_PI) * ((float)numerator / (float)denominator);
+  *r_sin = sinf(phi);
+  *r_cos = cosf(phi);
+}
+
 void print_qt(const char *str, const float q[4])
 {
   printf("%s: %.3f %.3f %.3f %.3f\n", str, q[0], q[1], q[2], q[3]);
