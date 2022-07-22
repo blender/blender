@@ -1,7 +1,11 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <atomic>
+
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "RNA_enum_types.h"
 
 #include "NOD_socket_search_link.hh"
 
@@ -85,7 +89,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 static void try_capture_field_on_geometry(GeometryComponent &component,
                                           const StringRef name,
                                           const eAttrDomain domain,
-                                          const GField &field)
+                                          const GField &field,
+                                          std::atomic<bool> &failure)
 {
   const int domain_size = component.attribute_domain_size(domain);
   if (domain_size == 0) {
@@ -100,7 +105,7 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
   const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
 
   /* Could avoid allocating a new buffer if:
-   * - We are writing to an attribute that exists already.
+   * - We are writing to an attribute that exists already with the correct domain and type.
    * - The field does not depend on that attribute (we can't easily check for that yet). */
   void *buffer = MEM_mallocN(type.size() * domain_size, __func__);
 
@@ -108,25 +113,27 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
   evaluator.add_with_destination(field, GMutableSpan{type, buffer, domain_size});
   evaluator.evaluate();
 
-  attributes.remove(name);
-  if (attributes.contains(name)) {
-    GAttributeWriter write_attribute = attributes.lookup_for_write(name);
-    if (write_attribute && write_attribute.domain == domain &&
-        write_attribute.varray.type() == type) {
-      write_attribute.varray.set_all(buffer);
-      write_attribute.finish();
-    }
-    else {
-      /* Cannot change type of built-in attribute. */
-    }
-    type.destruct_n(buffer, domain_size);
-    MEM_freeN(buffer);
-  }
-  else {
-    if (!attributes.add(name, domain, data_type, bke::AttributeInitMove{buffer})) {
+  if (GAttributeWriter attribute = attributes.lookup_for_write(name)) {
+    if (attribute.domain == domain && attribute.varray.type() == type) {
+      attribute.varray.set_all(buffer);
+      attribute.finish();
+      type.destruct_n(buffer, domain_size);
       MEM_freeN(buffer);
+      return;
     }
   }
+
+  if (attributes.remove(name)) {
+    if (attributes.add(name, domain, data_type, bke::AttributeInitMove{buffer})) {
+      return;
+    }
+  }
+
+  /* If the name corresponds to a builtin attribute, removing the attribute might fail if
+   * it's required, and adding the attribute might fail if the domain or type is incorrect. */
+  type.destruct_n(buffer, domain_size);
+  MEM_freeN(buffer);
+  failure = true;
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -177,12 +184,14 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
   }
 
+  std::atomic<bool> failure = false;
+
   /* Run on the instances component separately to only affect the top level of instances. */
   if (domain == ATTR_DOMAIN_INSTANCE) {
     if (geometry_set.has_instances()) {
       GeometryComponent &component = geometry_set.get_component_for_write(
           GEO_COMPONENT_TYPE_INSTANCES);
-      try_capture_field_on_geometry(component, name, domain, field);
+      try_capture_field_on_geometry(component, name, domain, field, failure);
     }
   }
   else {
@@ -191,10 +200,24 @@ static void node_geo_exec(GeoNodeExecParams params)
            {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE}) {
         if (geometry_set.has(type)) {
           GeometryComponent &component = geometry_set.get_component_for_write(type);
-          try_capture_field_on_geometry(component, name, domain, field);
+          try_capture_field_on_geometry(component, name, domain, field, failure);
         }
       }
     });
+  }
+
+  if (failure) {
+    const char *domain_name = nullptr;
+    RNA_enum_name_from_value(rna_enum_attribute_domain_items, domain, &domain_name);
+    const char *type_name = nullptr;
+    RNA_enum_name_from_value(rna_enum_attribute_type_items, data_type, &type_name);
+    char *message = BLI_sprintfN(
+        TIP_("Failed to write to attribute \"%s\" with domain \"%s\" and type \"%s\""),
+        name.c_str(),
+        TIP_(domain_name),
+        TIP_(type_name));
+    params.error_message_add(NodeWarningType::Warning, message);
+    MEM_freeN(message);
   }
 
   params.set_output("Geometry", std::move(geometry_set));
