@@ -856,9 +856,9 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
   for (a = 0; a <= tot; a++) {
     /* Going in this direction, then edge extruding, makes normals face outward */
     float sin_phi, cos_phi;
-    sin_cos_from_fraction(a, tot, &sin_phi, &cos_phi);
+    sin_cos_from_fraction(a, 2 * tot, &sin_phi, &cos_phi);
 
-    vec[0] = 0.0;
+    vec[0] = 0.0f;
     vec[1] = rad * sin_phi;
     vec[2] = rad * cos_phi;
     eve = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
@@ -1391,7 +1391,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
   BMFace **side_faces = MEM_mallocN(sizeof(*side_faces) * side_faces_len, __func__);
 
   for (int i = 0; i < segs; i++) {
-    /* Calculate with doubles for higher precision, see: T87779. */
+    /* Calculate with higher precision, see: T87779. */
     float sin_phi, cos_phi;
     sin_cos_from_fraction(i, segs, &sin_phi, &cos_phi);
 
