@@ -78,11 +78,6 @@ if(UNIX AND NOT APPLE)
   set(WITH_PULSEAUDIO          ON  CACHE BOOL "" FORCE)
   set(WITH_X11_XINPUT          ON  CACHE BOOL "" FORCE)
   set(WITH_X11_XF86VMODE       ON  CACHE BOOL "" FORCE)
-
-  # Disable oneAPI on Linux for the time being.
-  # The AoT compilation takes too long to be used officially in the buildbot CI/CD and the JIT
-  # compilation has ABI compatibility issues when running builds made on centOS on Ubuntu.
-  set(WITH_CYCLES_DEVICE_ONEAPI OFF  CACHE BOOL "" FORCE)
 endif()
 if(NOT APPLE)
   set(WITH_XR_OPENXR              ON  CACHE BOOL "" FORCE)
@@ -93,6 +88,6 @@ if(NOT APPLE)
   set(WITH_CYCLES_HIP_BINARIES    ON  CACHE BOOL "" FORCE)
   set(WITH_CYCLES_DEVICE_ONEAPI   ON  CACHE BOOL "" FORCE)
 
-  # Disable AoT kernels compilations until buildbot can deliver them in a reasonabel time.
+  # Disable AoT kernels compilations until buildbot can deliver them in a reasonable time.
   set(WITH_CYCLES_ONEAPI_BINARIES OFF CACHE BOOL "" FORCE)
 endif()
