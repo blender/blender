@@ -164,6 +164,8 @@ inline bool operator!=(const FilmData &a, const FilmData &b)
 void Film::init(const int2 &extent, const rcti *output_rect)
 {
   Sampling &sampling = inst_.sampling;
+  Scene &scene = *inst_.scene;
+  SceneEEVEE &scene_eevee = scene.eevee;
 
   init_aovs();
 
@@ -230,9 +232,8 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data.offset = int2(output_rect->xmin, output_rect->ymin);
     data.extent_inv = 1.0f / float2(data.extent);
     /* Disable filtering if sample count is 1. */
-    data.filter_size = (sampling.sample_count() == 1) ?
-                           0.0f :
-                           clamp_f(inst_.scene->r.gauss, 0.0f, 100.0f);
+    data.filter_size = (sampling.sample_count() == 1) ? 0.0f :
+                                                        clamp_f(scene.r.gauss, 0.0f, 100.0f);
     /* TODO(fclem): parameter hidden in experimental.
      * We need to figure out LOD bias first in order to preserve texture crispiness. */
     data.scaling_factor = 1;
@@ -254,7 +255,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
                                                    EEVEE_RENDER_PASS_MIST |
                                                    EEVEE_RENDER_PASS_SHADOW | EEVEE_RENDER_PASS_AO;
 
-    data_.exposure = 1.0f /* TODO */;
+    data_.exposure_scale = pow2f(scene.view_settings.exposure);
     data_.has_data = (enabled_passes_ & data_passes) != 0;
     data_.any_render_pass_1 = (enabled_passes_ & color_passes_1) != 0;
     data_.any_render_pass_2 = (enabled_passes_ & color_passes_2) != 0;
@@ -346,7 +347,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     }
   }
 
-  force_disable_reprojection_ = (inst_.scene->eevee.flag & SCE_EEVEE_TAA_REPROJECTION) == 0;
+  force_disable_reprojection_ = (scene_eevee.flag & SCE_EEVEE_TAA_REPROJECTION) == 0;
 }
 
 void Film::sync()

@@ -48,8 +48,6 @@ vec3 film_scene_linear_from_YCoCg(vec3 ycocg_color)
 vec4 film_texelfetch_as_YCoCg_opacity(sampler2D tx, ivec2 texel)
 {
   vec4 color = texelFetch(combined_tx, texel, 0);
-  /* Can we assume safe color from earlier pass? */
-  // color = safe_color(color);
   /* Convert transmittance to opacity. */
   color.a = saturate(1.0 - color.a);
   /* Transform to YCoCg for accumulation. */
@@ -62,8 +60,7 @@ float film_luma_weight(float luma)
 {
   /* Slide 20 of "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014. */
   /* To preserve more details in dark areas, we use a bigger bias. */
-  /* TODO(fclem): exposure weighting. */
-  return 1.0 / (4.0 + luma);
+  return 1.0 / (4.0 + luma * film_buf.exposure_scale);
 }
 
 /* -------------------------------------------------------------------- */

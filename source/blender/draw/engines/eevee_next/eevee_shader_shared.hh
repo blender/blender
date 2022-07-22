@@ -202,7 +202,7 @@ struct FilmData {
   /** Settings to render mist pass */
   float mist_scale, mist_bias, mist_exponent;
   /** Scene exposure used for better noise reduction. */
-  float exposure;
+  float exposure_scale;
   /** Scaling factor for scaled resolution rendering. */
   int scaling_factor;
   /** Film pixel filter radius. */
