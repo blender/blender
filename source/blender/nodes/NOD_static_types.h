@@ -260,7 +260,7 @@ DefNode(TextureNode,    TEX_NODE_PROC+TEX_NOISE, 0,                      "TEX_NO
 DefNode(TextureNode,    TEX_NODE_PROC+TEX_STUCCI, 0,                     "TEX_STUCCI",     TexStucci,        "Stucci",            ""              )
 DefNode(TextureNode,    TEX_NODE_PROC+TEX_DISTNOISE, 0,                  "TEX_DISTNOISE",  TexDistNoise,     "Distorted Noise",   ""              )
 
-DefNode(FunctionNode, FN_NODE_ALIGN_EULER_TO_VECTOR, def_fn_align_euler_to_vector, "ALIGN_EULER_TO_VECTOR", AlignEulerToVector, "Align Euler To Vector", "")
+DefNode(FunctionNode, FN_NODE_ALIGN_EULER_TO_VECTOR, def_fn_align_euler_to_vector, "ALIGN_EULER_TO_VECTOR", AlignEulerToVector, "Align Euler to Vector", "")
 DefNode(FunctionNode, FN_NODE_BOOLEAN_MATH,  def_boolean_math,  "BOOLEAN_MATH",  BooleanMath,  "Boolean Math", "")
 DefNode(FunctionNode, FN_NODE_COMBINE_COLOR, def_fn_combsep_color, "COMBINE_COLOR", CombineColor, "Combine Color", "")
 DefNode(FunctionNode, FN_NODE_COMPARE, def_compare, "COMPARE", Compare, "Compare", "")
@@ -358,7 +358,7 @@ DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_LINE, def_geo_mesh_line, "MESH_PRI
 DefNode(GeometryNode, GEO_NODE_MESH_PRIMITIVE_UV_SPHERE, 0, "MESH_PRIMITIVE_UV_SPHERE", MeshUVSphere, "UV Sphere", "")
 DefNode(GeometryNode, GEO_NODE_MESH_TO_CURVE, 0, "MESH_TO_CURVE", MeshToCurve, "Mesh to Curve", "")
 DefNode(GeometryNode, GEO_NODE_MESH_TO_POINTS, def_geo_mesh_to_points, "MESH_TO_POINTS", MeshToPoints, "Mesh to Points", "")
-DefNode(GeometryNode, GEO_NODE_MESH_TO_VOLUME, def_geo_mesh_to_volume, "MESH_TO_VOLUME", MeshToVolume, "Mesh To Volume", "")
+DefNode(GeometryNode, GEO_NODE_MESH_TO_VOLUME, def_geo_mesh_to_volume, "MESH_TO_VOLUME", MeshToVolume, "Mesh to Volume", "")
 DefNode(GeometryNode, GEO_NODE_OBJECT_INFO, def_geo_object_info, "OBJECT_INFO", ObjectInfo, "Object Info", "")
 DefNode(GeometryNode, GEO_NODE_POINTS, 0, "POINTS", Points, "Points", "")
 DefNode(GeometryNode, GEO_NODE_POINTS_TO_VERTICES, 0, "POINTS_TO_VERTICES", PointsToVertices, "Points to Vertices", "")
