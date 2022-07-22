@@ -242,8 +242,10 @@ static UniqueName_Map *get_namemap_for(Main *bmain, ID *id, bool ensure_created)
 
 bool BKE_main_namemap_get_name(struct Main *bmain, struct ID *id, char *name)
 {
+#ifndef __GNUC__ /* GCC warns with `nonull-compare`. */
   BLI_assert(bmain != nullptr);
   BLI_assert(id != nullptr);
+#endif
   UniqueName_Map *name_map = get_namemap_for(bmain, id, true);
   BLI_assert(name_map != nullptr);
   BLI_assert(strlen(name) < MAX_NAME);
@@ -325,9 +327,11 @@ bool BKE_main_namemap_get_name(struct Main *bmain, struct ID *id, char *name)
 
 void BKE_main_namemap_remove_name(struct Main *bmain, struct ID *id, const char *name)
 {
+#ifndef __GNUC__ /* GCC warns with `nonull-compare`. */
   BLI_assert(bmain != nullptr);
   BLI_assert(id != nullptr);
   BLI_assert(name != nullptr);
+#endif
   /* Name is empty or not initialized yet, nothing to remove. */
   if (name[0] == '\0') {
     return;
