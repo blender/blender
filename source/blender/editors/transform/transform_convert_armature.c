@@ -701,7 +701,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
   td->con = pchan->constraints.first;
 }
 
-void createTransPose(TransInfo *t)
+static void createTransPose(bContext *UNUSED(C), TransInfo *t)
 {
   Main *bmain = CTX_data_main(t->context);
 
@@ -879,7 +879,7 @@ void createTransPose(TransInfo *t)
   }
 }
 
-void createTransArmatureVerts(TransInfo *t)
+static void createTransArmatureVerts(bContext *UNUSED(C), TransInfo *t)
 {
   t->data_len_all = 0;
 
@@ -1189,7 +1189,7 @@ static void restoreBones(TransDataContainer *tc)
   }
 }
 
-void recalcData_edit_armature(TransInfo *t)
+static void recalcData_edit_armature(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
     applySnappingIndividual(t);
@@ -1412,7 +1412,7 @@ static void restoreMirrorPoseBones(TransDataContainer *tc)
   }
 }
 
-void recalcData_pose(TransInfo *t)
+static void recalcData_pose(TransInfo *t)
 {
   if (t->mode == TFM_BONESIZE) {
     /* Handle the exception where for TFM_BONESIZE in edit mode we pretend to be
@@ -1684,7 +1684,7 @@ static void pose_grab_with_ik_clear(Main *bmain, Object *ob)
   }
 }
 
-void special_aftertrans_update__pose(bContext *C, TransInfo *t)
+static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
 {
   Object *ob;
 
@@ -1768,3 +1768,17 @@ void special_aftertrans_update__pose(bContext *C, TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_EditArmature = {
+    /* flags */ (T_EDIT | T_POINTS),
+    /* createTransData */ createTransArmatureVerts,
+    /* recalcData */ recalcData_edit_armature,
+    /* special_aftertrans_update */ NULL,
+};
+
+TransConvertTypeInfo TransConvertType_Pose = {
+    /* flags */ 0,
+    /* createTransData */ createTransPose,
+    /* recalcData */ recalcData_pose,
+    /* special_aftertrans_update */ special_aftertrans_update__pose,
+};

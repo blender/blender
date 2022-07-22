@@ -105,7 +105,7 @@ static void freeSeqData(TransInfo *UNUSED(t),
   MEM_freeN(td->extra);
 }
 
-void createTransSeqImageData(TransInfo *t)
+static void createTransSeqImageData(bContext *UNUSED(C), TransInfo *t)
 {
   Editing *ed = SEQ_editing_get(t->scene);
   const SpaceSeq *sseq = t->area->spacedata.first;
@@ -191,7 +191,7 @@ static bool autokeyframe_sequencer_image(bContext *C,
   return changed;
 }
 
-void recalcData_sequencer_image(TransInfo *t)
+static void recalcData_sequencer_image(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   TransData *td = NULL;
@@ -247,7 +247,7 @@ void recalcData_sequencer_image(TransInfo *t)
   }
 }
 
-void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), TransInfo *t)
+static void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), TransInfo *t)
 {
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
@@ -271,3 +271,10 @@ void special_aftertrans_update__sequencer_image(bContext *UNUSED(C), TransInfo *
     }
   }
 }
+
+TransConvertTypeInfo TransConvertType_SequencerImage = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransSeqImageData,
+    /* recalcData */ recalcData_sequencer_image,
+    /* special_aftertrans_update */ special_aftertrans_update__sequencer_image,
+};

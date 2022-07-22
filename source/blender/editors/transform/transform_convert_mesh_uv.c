@@ -234,7 +234,7 @@ static void uv_set_connectivity_distance(BMesh *bm, float *dists, const float as
   MEM_freeN(dists_prev);
 }
 
-void createTransUVs(bContext *C, TransInfo *t)
+static void createTransUVs(bContext *C, TransInfo *t)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
   Scene *scene = t->scene;
@@ -446,7 +446,7 @@ static void flushTransUVs(TransInfo *t)
   }
 }
 
-void recalcData_uv(TransInfo *t)
+static void recalcData_uv(TransInfo *t)
 {
   SpaceImage *sima = t->area->spacedata.first;
 
@@ -463,3 +463,10 @@ void recalcData_uv(TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_MeshUV = {
+    /* flags */ (T_EDIT | T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransUVs,
+    /* recalcData */ recalcData_uv,
+    /* special_aftertrans_update */ NULL,
+};

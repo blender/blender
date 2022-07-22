@@ -62,7 +62,7 @@ static int bezt_select_to_transform_triple_flag(const BezTriple *bezt, const boo
   return flag;
 }
 
-void createTransCurveVerts(TransInfo *t)
+static void createTransCurveVerts(bContext *UNUSED(C), TransInfo *t)
 {
 
 #define SEL_F1 (1 << 0)
@@ -415,7 +415,7 @@ void createTransCurveVerts(TransInfo *t)
 #undef SEL_F3
 }
 
-void recalcData_curve(TransInfo *t)
+static void recalcData_curve(TransInfo *t)
 {
   if (t->state != TRANS_CANCEL) {
     applySnappingIndividual(t);
@@ -446,3 +446,10 @@ void recalcData_curve(TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Curve = {
+    /* flags */ (T_EDIT | T_POINTS),
+    /* createTransData */ createTransCurveVerts,
+    /* recalcData */ recalcData_curve,
+    /* special_aftertrans_update */ NULL,
+};

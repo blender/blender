@@ -1454,7 +1454,7 @@ static void VertsToTransData(TransInfo *t,
   }
 }
 
-void createTransEditVerts(TransInfo *t)
+static void createTransEditVerts(bContext *UNUSED(C), TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransDataExtension *tx = NULL;
@@ -2029,7 +2029,7 @@ static void tc_mesh_transdata_mirror_apply(TransDataContainer *tc)
   }
 }
 
-void recalcData_mesh(TransInfo *t)
+static void recalcData_mesh(TransInfo *t)
 {
   bool is_canceling = t->state == TRANS_CANCEL;
   /* Apply corrections. */
@@ -2129,3 +2129,10 @@ void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Mesh = {
+    /* flags */ (T_EDIT | T_POINTS),
+    /* createTransData */ createTransEditVerts,
+    /* recalcData */ recalcData_mesh,
+    /* special_aftertrans_update */ special_aftertrans_update__mesh,
+};

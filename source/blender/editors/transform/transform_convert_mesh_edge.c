@@ -23,7 +23,7 @@
 /** \name Edge (for crease) Transform Creation
  * \{ */
 
-void createTransEdge(TransInfo *t)
+static void createTransEdge(bContext *UNUSED(C), TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
@@ -108,7 +108,7 @@ void createTransEdge(TransInfo *t)
   }
 }
 
-void recalcData_mesh_edge(TransInfo *t)
+static void recalcData_mesh_edge(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     DEG_id_tag_update(tc->obedit->data, ID_RECALC_GEOMETRY);
@@ -116,3 +116,10 @@ void recalcData_mesh_edge(TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_MeshEdge = {
+    /* flags */ T_EDIT,
+    /* createTransData */ createTransEdge,
+    /* recalcData */ recalcData_mesh_edge,
+    /* special_aftertrans_update */ special_aftertrans_update__mesh,
+};
