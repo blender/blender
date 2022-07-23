@@ -441,8 +441,8 @@ float2 Film::pixel_jitter_get() const
     jitter = Sampling::sample_disk(jitter) * data_.filter_size;
   }
   else {
-    /* Jitter the size of a whole pixel. */
-    jitter = jitter * 2.0f - 1.0f;
+    /* Jitter the size of a whole pixel. [-0.5..0.5] */
+    jitter -= 0.5f;
   }
   /* TODO(fclem): Mixed-resolution rendering: We need to offset to each of the target pixel covered
    * by a render pixel, ideally, by choosing one randomly using another sampling dimension, or by

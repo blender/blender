@@ -181,6 +181,8 @@ void ShadingView::update_view()
 
   /* Anti-Aliasing / Super-Sampling jitter. */
   float2 jitter = inst_.film.pixel_jitter_get() / float2(extent_);
+  /* Transform to NDC space. */
+  jitter *= 2.0f;
 
   window_translate_m4(winmat.ptr(), winmat.ptr(), UNPACK2(jitter));
   DRW_view_update_sub(sub_view_, viewmat.ptr(), winmat.ptr());
