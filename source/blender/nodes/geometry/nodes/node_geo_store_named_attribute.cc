@@ -122,11 +122,9 @@ static void try_capture_field_on_geometry(GeometryComponent &component,
       return;
     }
   }
-
-  if (attributes.remove(name)) {
-    if (attributes.add(name, domain, data_type, bke::AttributeInitMove{buffer})) {
-      return;
-    }
+  attributes.remove(name);
+  if (attributes.add(name, domain, data_type, bke::AttributeInitMove{buffer})) {
+    return;
   }
 
   /* If the name corresponds to a builtin attribute, removing the attribute might fail if
