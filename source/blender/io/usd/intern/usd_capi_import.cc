@@ -218,6 +218,7 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
     data->scene->r.efra = stage->GetEndTimeCode();
   }
 
+  *data->do_update = true;
   *data->progress = 0.15f;
 
   USDStageReader *archive = new USDStageReader(stage, data->params, data->settings);
@@ -226,13 +227,32 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
 
   archive->collect_readers(data->bmain);
 
+  *data->do_update = true;
   *data->progress = 0.2f;
 
   const float size = static_cast<float>(archive->readers().size());
   size_t i = 0;
 
-  /* Setup parenthood */
+  /* Sort readers by name: when creating a lot of objects in Blender,
+   * it is much faster if the order is sorted by name. */
+  archive->sort_readers();
+  *data->do_update = true;
+  *data->progress = 0.25f;
 
+  /* Create blender objects. */
+  for (USDPrimReader *reader : archive->readers()) {
+    if (!reader) {
+      continue;
+    }
+    reader->create_object(data->bmain, 0.0);
+    if ((++i & 1023) == 0) {
+      *data->do_update = true;
+      *data->progress = 0.25f + 0.25f * (i / size);
+    }
+  }
+
+  /* Setup parenthood and read actual object data. */
+  i = 0;
   for (USDPrimReader *reader : archive->readers()) {
 
     if (!reader) {
@@ -252,7 +272,7 @@ static void import_startjob(void *customdata, short *stop, short *do_update, flo
       ob->parent = parent->object();
     }
 
-    *data->progress = 0.2f + 0.8f * (++i / size);
+    *data->progress = 0.5f + 0.5f * (++i / size);
     *data->do_update = true;
 
     if (G.is_break) {
