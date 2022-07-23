@@ -522,6 +522,7 @@ static void toposort_from_start_node(const NodeTreeRef::ToposortDirection direct
   /* Do a depth-first search to sort nodes topologically. */
   Stack<Item, 64> nodes_to_check;
   nodes_to_check.push({&start_node});
+  node_states[start_node.id()].is_in_stack = true;
   while (!nodes_to_check.is_empty()) {
     Item &item = nodes_to_check.peek();
     const NodeRef &node = *item.node;
