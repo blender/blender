@@ -146,8 +146,8 @@ void Film::sync_mist()
 
 inline bool operator==(const FilmData &a, const FilmData &b)
 {
-  return (a.extent == b.extent) && (a.offset == b.offset) && (a.filter_size == b.filter_size) &&
-         (a.scaling_factor == b.scaling_factor);
+  return (a.extent == b.extent) && (a.offset == b.offset) &&
+         (a.filter_radius == b.filter_radius) && (a.scaling_factor == b.scaling_factor);
 }
 
 inline bool operator!=(const FilmData &a, const FilmData &b)
@@ -232,8 +232,8 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     data.offset = int2(output_rect->xmin, output_rect->ymin);
     data.extent_inv = 1.0f / float2(data.extent);
     /* Disable filtering if sample count is 1. */
-    data.filter_size = (sampling.sample_count() == 1) ? 0.0f :
-                                                        clamp_f(scene.r.gauss, 0.0f, 100.0f);
+    data.filter_radius = (sampling.sample_count() == 1) ? 0.0f :
+                                                          clamp_f(scene.r.gauss, 0.0f, 100.0f);
     /* TODO(fclem): parameter hidden in experimental.
      * We need to figure out LOD bias first in order to preserve texture crispiness. */
     data.scaling_factor = 1;
@@ -433,12 +433,12 @@ float2 Film::pixel_jitter_get() const
 {
   float2 jitter = inst_.sampling.rng_2d_get(SAMPLING_FILTER_U);
 
-  if (data_.filter_size < M_SQRT1_2 && !inst_.camera.is_panoramic()) {
+  if (!use_box_filter && data_.filter_radius < M_SQRT1_2 && !inst_.camera.is_panoramic()) {
     /* For filter size less than a pixel, change sampling strategy and use a uniform disk
      * distribution covering the filter shape. This avoids putting samples in areas without any
      * weights. */
     /* TODO(fclem): Importance sampling could be a better option here. */
-    jitter = Sampling::sample_disk(jitter) * data_.filter_size;
+    jitter = Sampling::sample_disk(jitter) * data_.filter_radius;
   }
   else {
     /* Jitter the size of a whole pixel. [-0.5..0.5] */
@@ -459,36 +459,36 @@ void Film::update_sample_table()
 {
   data_.subpixel_offset = pixel_jitter_get();
 
-  int filter_size_ceil = ceilf(data_.filter_size);
-  float filter_size_sqr = square_f(data_.filter_size);
+  int filter_radius_ceil = ceilf(data_.filter_radius);
+  float filter_radius_sqr = square_f(data_.filter_radius);
 
   data_.samples_len = 0;
-  if (data_.filter_size < 0.01f) {
-    /* Disable filtering. */
+  if (use_box_filter || data_.filter_radius < 0.01f) {
+    /* Disable gather filtering. */
     data_.samples[0].texel = int2(0, 0);
     data_.samples[0].weight = 1.0f;
     data_.samples_weight_total = 1.0f;
     data_.samples_len = 1;
   }
   /* NOTE: Threshold determined by hand until we don't hit the assert bellow. */
-  else if (data_.filter_size < 2.20f) {
+  else if (data_.filter_radius < 2.20f) {
     /* Small filter Size. */
     int closest_index = 0;
     float closest_distance = FLT_MAX;
     data_.samples_weight_total = 0.0f;
     /* TODO(fclem): For optimization, could try Z-tile ordering. */
-    for (int y = -filter_size_ceil; y <= filter_size_ceil; y++) {
-      for (int x = -filter_size_ceil; x <= filter_size_ceil; x++) {
+    for (int y = -filter_radius_ceil; y <= filter_radius_ceil; y++) {
+      for (int x = -filter_radius_ceil; x <= filter_radius_ceil; x++) {
         float2 pixel_offset = float2(x, y) - data_.subpixel_offset;
         float distance_sqr = math::length_squared(pixel_offset);
-        if (distance_sqr < filter_size_sqr) {
+        if (distance_sqr < filter_radius_sqr) {
           if (data_.samples_len >= FILM_PRECOMP_SAMPLE_MAX) {
             BLI_assert_msg(0, "Precomputed sample table is too small.");
             break;
           }
           FilmSample &sample = data_.samples[data_.samples_len];
           sample.texel = int2(x, y);
-          sample.weight = film_filter_weight(data_.filter_size, distance_sqr);
+          sample.weight = film_filter_weight(data_.filter_radius, distance_sqr);
           data_.samples_weight_total += sample.weight;
 
           if (distance_sqr < closest_distance) {
@@ -521,11 +521,11 @@ void Film::update_sample_table()
        * neighbor filtering not converging rapidly. */
       random_2d.x = (random_2d.x + i) / float(FILM_PRECOMP_SAMPLE_MAX);
 
-      float2 pixel_offset = math::floor(Sampling::sample_spiral(random_2d) * data_.filter_size);
+      float2 pixel_offset = math::floor(Sampling::sample_spiral(random_2d) * data_.filter_radius);
       sample.texel = int2(pixel_offset);
 
       float distance_sqr = math::length_squared(pixel_offset - data_.subpixel_offset);
-      sample.weight = film_filter_weight(data_.filter_size, distance_sqr);
+      sample.weight = film_filter_weight(data_.filter_radius, distance_sqr);
       data_.samples_weight_total += sample.weight;
       i++;
     }

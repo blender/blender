@@ -206,7 +206,7 @@ struct FilmData {
   /** Scaling factor for scaled resolution rendering. */
   int scaling_factor;
   /** Film pixel filter radius. */
-  float filter_size;
+  float filter_radius;
   /** Precomputed samples. First in the table is the closest one. The rest is unordered. */
   int samples_len;
   /** Sum of the weights of all samples in the sample table. */
@@ -215,17 +215,17 @@ struct FilmData {
 };
 BLI_STATIC_ASSERT_ALIGN(FilmData, 16)
 
-static inline float film_filter_weight(float filter_size, float sample_distance_sqr)
+static inline float film_filter_weight(float filter_radius, float sample_distance_sqr)
 {
 #if 1 /* Faster */
   /* Gaussian fitted to Blackman-Harris. */
-  float r = sample_distance_sqr / (filter_size * filter_size);
+  float r = sample_distance_sqr / (filter_radius * filter_radius);
   const float sigma = 0.284;
   const float fac = -0.5 / (sigma * sigma);
   float weight = expf(fac * r);
 #else
   /* Blackman-Harris filter. */
-  float r = M_2PI * saturate(0.5 + sqrtf(sample_distance_sqr) / (2.0 * filter_size));
+  float r = M_2PI * saturate(0.5 + sqrtf(sample_distance_sqr) / (2.0 * filter_radius));
   float weight = 0.35875 - 0.48829 * cosf(r) + 0.14128 * cosf(2.0 * r) - 0.01168 * cosf(3.0 * r);
 #endif
   return weight;
