@@ -60,8 +60,15 @@ void Sampling::end_sync()
   }
 
   if (inst_.is_viewport()) {
+
     interactive_mode_ = viewport_sample_ < interactive_mode_threshold;
-    if (interactive_mode_) {
+
+    bool interactive_mode_disabled = (inst_.scene->eevee.flag & SCE_EEVEE_TAA_REPROJECTION) == 0;
+    if (interactive_mode_disabled) {
+      interactive_mode_ = false;
+      sample_ = viewport_sample_;
+    }
+    else if (interactive_mode_) {
       int interactive_sample_count = min_ii(interactive_sample_max_, sample_count_);
 
       if (viewport_sample_ < interactive_sample_count) {
