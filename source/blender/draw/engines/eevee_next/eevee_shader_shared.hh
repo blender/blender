@@ -174,7 +174,9 @@ struct FilmData {
   /** Is true if accumulation of filtered passes is needed. */
   bool1 any_render_pass_1;
   bool1 any_render_pass_2;
-  float _pad0, _pad1;
+  /** Controlled by user in lookdev mode or by render settings. */
+  float background_opacity;
+  float _pad0;
   /** Output counts per type. */
   int color_len, value_len;
   /** Index in color_accum_img or value_accum_img of each pass. -1 if pass is not enabled. */

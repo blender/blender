@@ -140,6 +140,7 @@ GPU_SHADER_CREATE_INFO(eevee_surf_world)
     .image_out(3, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_specular_light_img")
     .image_out(4, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_specular_color_img")
     .image_out(5, Qualifier::READ_WRITE, GPU_RGBA16F, "rp_emission_img")
+    .push_constant(Type::FLOAT, "world_opacity_fade")
     .fragment_out(0, Type::VEC4, "out_background")
     .fragment_source("eevee_surf_world_frag.glsl")
     .additional_info("eevee_aov_out"

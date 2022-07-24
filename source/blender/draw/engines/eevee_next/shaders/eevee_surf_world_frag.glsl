@@ -34,4 +34,7 @@ void main()
 
   out_background.rgb = safe_color(g_emission) * (1.0 - g_holdout);
   out_background.a = saturate(avg(g_transmittance)) * g_holdout;
+
+  /* World opacity. */
+  out_background = mix(vec4(0.0, 0.0, 0.0, 1.0), out_background, world_opacity_fade);
 }

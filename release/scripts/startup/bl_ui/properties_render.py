@@ -525,6 +525,7 @@ class RENDER_PT_eevee_next_film(RenderButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(rd, "filter_size")
+        col.prop(rd, "film_transparent", text="Transparent")
 
 
 def draw_curves_settings(self, context):

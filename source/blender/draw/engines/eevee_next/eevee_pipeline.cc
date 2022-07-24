@@ -36,6 +36,7 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, world_ps_);
   DRW_shgroup_uniform_texture(grp, "utility_tx", inst_.pipelines.utility_tx);
   DRW_shgroup_call_obmat(grp, DRW_cache_fullscreen_quad_get(), camera_mat.ptr());
+  DRW_shgroup_uniform_float_copy(grp, "world_opacity_fade", inst_.film.background_opacity_get());
   /* AOVs. */
   DRW_shgroup_uniform_image_ref(grp, "aov_color_img", &rbufs.aov_color_tx);
   DRW_shgroup_uniform_image_ref(grp, "aov_value_img", &rbufs.aov_value_tx);

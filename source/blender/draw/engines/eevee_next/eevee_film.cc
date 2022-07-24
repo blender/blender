@@ -147,7 +147,8 @@ void Film::sync_mist()
 inline bool operator==(const FilmData &a, const FilmData &b)
 {
   return (a.extent == b.extent) && (a.offset == b.offset) &&
-         (a.filter_radius == b.filter_radius) && (a.scaling_factor == b.scaling_factor);
+         (a.filter_radius == b.filter_radius) && (a.scaling_factor == b.scaling_factor) &&
+         (a.background_opacity == b.background_opacity);
 }
 
 inline bool operator!=(const FilmData &a, const FilmData &b)
@@ -237,6 +238,11 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     /* TODO(fclem): parameter hidden in experimental.
      * We need to figure out LOD bias first in order to preserve texture crispiness. */
     data.scaling_factor = 1;
+
+    data.background_opacity = (scene.r.alphamode == R_ALPHAPREMUL) ? 0.0f : 1.0f;
+    if (inst_.is_viewport() && false /* TODO(fclem): StudioLight */) {
+      data.background_opacity = inst_.v3d->shading.studiolight_background;
+    }
 
     FilmData &data_prev_ = data_;
     if (assign_if_different(data_prev_, data)) {

@@ -89,6 +89,11 @@ class Film {
 
   float2 pixel_jitter_get() const;
 
+  float background_opacity_get() const
+  {
+    return data_.background_opacity;
+  }
+
   eViewLayerEEVEEPassType enabled_passes_get() const;
 
   static bool pass_is_value(eViewLayerEEVEEPassType pass_type)
