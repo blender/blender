@@ -319,8 +319,8 @@ GAttributeWriter BuiltinCustomDataLayerProvider::try_get_for_write(void *owner) 
   }
 
   std::function<void()> tag_modified_fn;
-  if (update_on_write_ != nullptr) {
-    tag_modified_fn = [owner, update = update_on_write_]() { update(owner); };
+  if (update_on_change_ != nullptr) {
+    tag_modified_fn = [owner, update = update_on_change_]() { update(owner); };
   }
 
   return {as_write_attribute_(data, element_num), domain_, std::move(tag_modified_fn)};
@@ -336,12 +336,19 @@ bool BuiltinCustomDataLayerProvider::try_delete(void *owner) const
     return {};
   }
 
+  auto update = [&]() {
+    if (update_on_change_ != nullptr) {
+      update_on_change_(owner);
+    }
+  };
+
   const int element_num = custom_data_access_.get_element_num(owner);
   if (stored_as_named_attribute_) {
     if (CustomData_free_layer_named(custom_data, name_.c_str(), element_num)) {
       if (custom_data_access_.update_custom_data_pointers) {
         custom_data_access_.update_custom_data_pointers(owner);
       }
+      update();
       return true;
     }
     return false;
@@ -352,8 +359,10 @@ bool BuiltinCustomDataLayerProvider::try_delete(void *owner) const
     if (custom_data_access_.update_custom_data_pointers) {
       custom_data_access_.update_custom_data_pointers(owner);
     }
+    update();
     return true;
   }
+
   return false;
 }
 

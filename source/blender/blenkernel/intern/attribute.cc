@@ -8,6 +8,7 @@
  */
 
 #include <cstring>
+#include <optional>
 
 #include "MEM_guardedalloc.h"
 
@@ -24,7 +25,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
-#include "BKE_curves.h"
+#include "BKE_curves.hh"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
 #include "BKE_pointcloud.h"
@@ -88,6 +89,36 @@ static void get_domains(const ID *id, DomainInfo info[ATTR_DOMAIN_NUM])
       break;
   }
 }
+
+namespace blender::bke {
+
+static std::optional<blender::bke::MutableAttributeAccessor> get_attribute_accessor_for_write(
+    ID &id)
+{
+  switch (GS(id.name)) {
+    case ID_ME: {
+      Mesh &mesh = reinterpret_cast<Mesh &>(id);
+      /* The attribute API isn't implemented for BMesh, so edit mode meshes are not supported. */
+      BLI_assert(mesh.edit_mesh == nullptr);
+      return mesh_attributes_for_write(mesh);
+    }
+    case ID_PT: {
+      PointCloud &pointcloud = reinterpret_cast<PointCloud &>(id);
+      return pointcloud_attributes_for_write(pointcloud);
+    }
+    case ID_CV: {
+      Curves &curves_id = reinterpret_cast<Curves &>(id);
+      CurvesGeometry &curves = CurvesGeometry::wrap(curves_id.geometry);
+      return curves.attributes_for_write();
+    }
+    default: {
+      BLI_assert_unreachable();
+      return {};
+    }
+  }
+}
+
+}  // namespace blender::bke
 
 bool BKE_id_attributes_supported(const ID *id)
 {
@@ -242,6 +273,7 @@ CustomDataLayer *BKE_id_attribute_duplicate(ID *id, const char *name, ReportList
 
 bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
 {
+  using namespace blender::bke;
   if (BKE_id_attribute_required(id, name)) {
     BKE_report(reports, RPT_ERROR, "Attribute is required and can't be removed");
     return false;
@@ -266,12 +298,9 @@ bool BKE_id_attribute_remove(ID *id, const char *name, ReportList *reports)
       ATTR_FALLTHROUGH;
     }
     default:
-      for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
-        if (CustomData *data = info[domain].customdata) {
-          if (CustomData_free_layer_named(data, name, info[domain].length)) {
-            return true;
-          }
-        }
+      if (std::optional<MutableAttributeAccessor> attributes = get_attribute_accessor_for_write(
+              *id)) {
+        return attributes->remove(name);
       }
       return false;
   }
