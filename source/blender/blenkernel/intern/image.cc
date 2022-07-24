@@ -867,28 +867,28 @@ int BKE_image_find_nearest_tile_with_offset(const Image *image,
                                             const float co[2],
                                             float r_uv_offset[2])
 {
-  const float co_floor[2] = {floorf(co[0]), floorf(co[1])};
-  /* Distance to the closest UDIM tile. */
+  /* Distance squared to the closest UDIM tile. */
   float dist_best_sq = FLT_MAX;
   float uv_offset_best[2] = {0, 0};
   int tile_number_best = -1;
+
+  const float co_offset[2] = {co[0] - 0.5f, co[1] - 0.5f};
 
   LISTBASE_FOREACH (const ImageTile *, tile, &image->tiles) {
     float uv_offset[2];
     BKE_image_get_tile_uv(image, tile->tile_number, uv_offset);
 
-    if (equals_v2v2(co_floor, uv_offset)) {
-      copy_v2_v2(r_uv_offset, uv_offset);
-      return tile->tile_number;
-    }
-
-    /* Distance between co[2] and UDIM tile. */
-    const float dist_sq = len_squared_v2v2(uv_offset, co);
+    /* Distance squared between co[2] and center of UDIM tile. */
+    const float dist_sq = len_squared_v2v2(uv_offset, co_offset);
 
     if (dist_sq < dist_best_sq) {
       dist_best_sq = dist_sq;
       tile_number_best = tile->tile_number;
       copy_v2_v2(uv_offset_best, uv_offset);
+
+      if (dist_best_sq < 0.5f * 0.5f) {
+        break; /* No other tile can be closer. */
+      }
     }
   }
   if (tile_number_best != -1) {
