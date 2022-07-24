@@ -381,12 +381,9 @@ float film_aabb_clipping_dist_alpha(float origin, float direction, float aabb_mi
 }
 
 /* Modulate the history color to avoid ghosting artifact. */
-vec4 film_amend_combined_history(vec4 color_history, vec4 src_color, ivec2 src_texel)
+vec4 film_amend_combined_history(
+    vec4 min_color, vec4 max_color, vec4 color_history, vec4 src_color, ivec2 src_texel)
 {
-  /* Get local color bounding box of source neighboorhood. */
-  vec4 min_color, max_color;
-  film_combined_neighbor_boundbox(src_texel, min_color, max_color);
-
   /* Clip instead of clamping to avoid color accumulating in the AABB corners. */
   vec4 clip_dir = src_color - color_history;
 
@@ -402,6 +399,8 @@ vec4 film_amend_combined_history(vec4 color_history, vec4 src_color, ivec2 src_t
 
 float film_history_blend_factor(float velocity,
                                 vec2 texel,
+                                float luma_min,
+                                float luma_max,
                                 float luma_incoming,
                                 float luma_history)
 {
@@ -409,8 +408,15 @@ float film_history_blend_factor(float velocity,
   float blend = 0.05;
   /* Blend less history if the pixel has substential velocity. */
   blend = mix(blend, 0.20, saturate(velocity * 0.02));
-  /* Weight by luma. */
-  blend = max(blend, saturate(0.01 * luma_history / abs(luma_history - luma_incoming)));
+  /**
+   * "High Quality Temporal Supersampling" by Brian Karis at Siggraph 2014 (Slide 43)
+   * Bias towards history if incomming pixel is near clamping. Reduces flicker.
+   */
+  float distance_to_luma_clip = min_v2(vec2(luma_history - luma_min, luma_max - luma_history));
+  /* Divide by bbox size to get a factor. 2 factor to compensate the line above. */
+  distance_to_luma_clip *= 2.0 * safe_rcp(luma_max - luma_min);
+  /* Linearly blend when history gets bellow to 25% of the bbox size. */
+  blend *= saturate(distance_to_luma_clip * 4.0 + 0.1);
   /* Discard out of view history. */
   if (any(lessThan(texel, vec2(0))) || any(greaterThanEqual(texel, film_buf.extent))) {
     blend = 1.0;
@@ -451,9 +457,14 @@ void film_store_combined(
     color_dst = film_sample_catmull_rom(in_combined_tx, history_texel);
     color_dst.rgb = film_YCoCg_from_scene_linear(color_dst.rgb);
 
-    float blend = film_history_blend_factor(velocity, history_texel, color_src.x, color_dst.x);
+    /* Get local color bounding box of source neighboorhood. */
+    vec4 min_color, max_color;
+    film_combined_neighbor_boundbox(src_texel, min_color, max_color);
 
-    color_dst = film_amend_combined_history(color_dst, color_src, src_texel);
+    float blend = film_history_blend_factor(
+        velocity, history_texel, min_color.x, max_color.x, color_src.x, color_dst.x);
+
+    color_dst = film_amend_combined_history(min_color, max_color, color_dst, color_src, src_texel);
 
     /* Luma weighted blend to avoid flickering. */
     weight_dst = film_luma_weight(color_dst.x) * (1.0 - blend);
