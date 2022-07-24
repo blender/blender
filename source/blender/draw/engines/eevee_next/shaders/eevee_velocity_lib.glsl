@@ -41,8 +41,16 @@ vec4 velocity_background(vec3 vV)
 {
   /* Only transform direction to avoid loosing precision. */
   vec3 V = transform_direction(camera_curr.viewinv, vV);
+  /* NOTE: We don't use the drw_view.winmat to avoid adding the TAA jitter to the velocity. */
+  vec2 prev_uv = project_point(camera_prev.winmat, V).xy;
+  vec2 curr_uv = project_point(camera_curr.winmat, V).xy;
+  vec2 next_uv = project_point(camera_next.winmat, V).xy;
 
-  return velocity_surface(V, V, V);
+  vec4 motion = vec4(prev_uv - curr_uv, curr_uv - next_uv);
+  /* Convert NDC velocity to UV velocity */
+  motion *= 0.5;
+
+  return motion;
 }
 
 /**
