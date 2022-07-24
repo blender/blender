@@ -111,7 +111,7 @@ class Instance {
 
   bool overlays_enabled() const
   {
-    return (!v3d) || ((v3d->flag & V3D_HIDE_OVERLAYS) == 0);
+    return v3d && ((v3d->flag2 & V3D_HIDE_OVERLAYS) == 0);
   }
 
   bool use_scene_lights() const

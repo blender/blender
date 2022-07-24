@@ -26,4 +26,6 @@ void main()
   }
 
   gl_FragDepth = get_depth_from_view_z(-out_depth);
+
+  gl_FragDepth = film_display_depth_ammend(texel_film, gl_FragDepth);
 }

@@ -192,7 +192,7 @@ float film_distance_load(ivec2 texel)
   /* Repeat texture coordinates as the weight can be optimized to a small portion of the film. */
   texel = texel % imageSize(in_weight_img).xy;
 
-  if (film_buf.use_history == false) {
+  if (!film_buf.use_history || film_buf.use_reprojection) {
     return 1.0e16;
   }
   return imageLoad(in_weight_img, ivec3(texel, WEIGHT_lAYER_DISTANCE)).x;
@@ -575,6 +575,20 @@ void film_store_distance(ivec2 texel, float value)
 void film_store_weight(ivec2 texel, float value)
 {
   imageStore(out_weight_img, ivec3(texel, WEIGHT_lAYER_ACCUMULATION), vec4(value));
+}
+
+float film_display_depth_ammend(ivec2 texel, float depth)
+{
+  /* This effectively offsets the depth of the whole 2x2 region to the lowest value of the region
+   * twice. One for X and one for Y direction. */
+  /* TODO(fclem): This could be improved as it gives flickering result at depth discontinuity.
+   * But this is the quickest stable result I could come with for now. */
+#ifdef GPU_FRAGMENT_SHADER
+  depth += fwidth(depth);
+#endif
+  /* Small offset to avoid depth test lessEqual failing because of all the conversions loss. */
+  depth += 2.4e-7 * 4.0;
+  return saturate(depth);
 }
 
 /** \} */
