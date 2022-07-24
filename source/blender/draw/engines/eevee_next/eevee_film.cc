@@ -522,7 +522,7 @@ void Film::update_sample_table()
     int i = 0;
     for (FilmSample &sample : sample_table) {
       /* TODO(fclem): Own RNG. */
-      float2 random_2d = inst_.sampling.rng_2d_get(SAMPLING_FILTER_U);
+      float2 random_2d = inst_.sampling.rng_2d_get(SAMPLING_SSS_U);
       /* This randomization makes sure we converge to the right result but also makes nearest
        * neighbor filtering not converging rapidly. */
       random_2d.x = (random_2d.x + i) / float(FILM_PRECOMP_SAMPLE_MAX);

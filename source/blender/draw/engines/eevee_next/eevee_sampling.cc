@@ -177,7 +177,7 @@ float2 Sampling::sample_disk(const float2 &rand)
 float2 Sampling::sample_spiral(const float2 &rand)
 {
   /* Fibonacci spiral. */
-  float omega = M_PI * (1.0f + sqrtf(5.0f)) * rand.x;
+  float omega = 4.0f * M_PI * (1.0f + sqrtf(5.0f)) * rand.x;
   float r = sqrtf(rand.x);
   /* Random rotation. */
   omega += rand.y * 2.0f * M_PI;
