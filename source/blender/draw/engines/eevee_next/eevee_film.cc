@@ -311,7 +311,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
   {
     /* TODO(@fclem): Over-scans. */
 
-    render_extent_ = math::divide_ceil(extent, int2(data_.scaling_factor));
+    data_.render_extent = math::divide_ceil(extent, int2(data_.scaling_factor));
     int2 weight_extent = inst_.camera.is_panoramic() ? data_.extent : int2(data_.scaling_factor);
 
     eGPUTextureFormat color_format = GPU_RGBA16F;
@@ -536,7 +536,13 @@ void Film::accumulate(const DRWView *view)
 {
   if (inst_.is_viewport()) {
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
     GPU_framebuffer_bind(dfbl->default_fb);
+    /* Clear when using render borders. */
+    if (data_.extent != int2(GPU_texture_width(dtxl->color), GPU_texture_height(dtxl->color))) {
+      float4 clear_color = {0.0f, 0.0f, 0.0f, 0.0f};
+      GPU_framebuffer_clear_color(dfbl->default_fb, clear_color);
+    }
     GPU_framebuffer_viewport_set(dfbl->default_fb, UNPACK2(data_.offset), UNPACK2(data_.extent));
   }
 

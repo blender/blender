@@ -154,6 +154,8 @@ struct FilmData {
   int2 extent;
   /** Offset of the film in the full-res frame, in pixels. */
   int2 offset;
+  /** Extent used by the render buffers when rendering the main views. */
+  int2 render_extent;
   /** Sub-pixel offset applied to the window matrix.
    * NOTE: In final film pixel unit.
    * NOTE: Positive values makes the view translate in the negative axes direction.
@@ -172,6 +174,7 @@ struct FilmData {
   /** Is true if accumulation of filtered passes is needed. */
   bool1 any_render_pass_1;
   bool1 any_render_pass_2;
+  float _pad0, _pad1;
   /** Output counts per type. */
   int color_len, value_len;
   /** Index in color_accum_img or value_accum_img of each pass. -1 if pass is not enabled. */

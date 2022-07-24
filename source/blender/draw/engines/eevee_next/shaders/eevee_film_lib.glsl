@@ -80,9 +80,9 @@ FilmSample film_sample_get(int sample_n, ivec2 texel_film)
 #  endif
 
   FilmSample film_sample = film_buf.samples[sample_n];
-  film_sample.texel += texel_film;
+  film_sample.texel += texel_film + film_buf.offset;
   /* Use extend on borders. */
-  film_sample.texel = clamp(film_sample.texel, ivec2(0, 0), film_buf.extent - 1);
+  film_sample.texel = clamp(film_sample.texel, ivec2(0, 0), film_buf.render_extent - 1);
 
   /* TODO(fclem): Panoramic projection will need to compute the sample weight in the shader
    * instead of precomputing it on CPU. */
@@ -440,7 +440,7 @@ void film_store_combined(
     /* Interactive accumulation. Do reprojection and Temporal Anti-Aliasing. */
 
     /* Reproject by finding where this pixel was in the previous frame. */
-    vec2 motion = film_pixel_history_motion_vector(dst.texel);
+    vec2 motion = film_pixel_history_motion_vector(src_texel);
     vec2 history_texel = vec2(dst.texel) + motion;
 
     float velocity = length(motion);
@@ -592,11 +592,13 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
     float weight_accum = 0.0;
     vec4 combined_accum = vec4(0.0);
 
-    for (int i = 0; i < film_buf.samples_len; i++) {
-      FilmSample src = film_sample_get(i, texel_film);
+    FilmSample src;
+    for (int i = film_buf.samples_len - 1; i >= 0; i--) {
+      src = film_sample_get(i, texel_film);
       film_sample_accum_combined(src, combined_accum, weight_accum);
     }
-    film_store_combined(dst, texel_film, combined_accum, weight_accum, out_color);
+    /* NOTE: src.texel is center texel in incomming data buffer. */
+    film_store_combined(dst, src.texel, combined_accum, weight_accum, out_color);
   }
 
   if (film_buf.has_data) {
