@@ -131,5 +131,6 @@ float transform_brush_radius(const float4x4 &transform,
 void report_missing_surface(ReportList *reports);
 void report_missing_uv_map_on_original_surface(ReportList *reports);
 void report_missing_uv_map_on_evaluated_surface(ReportList *reports);
+void report_invalid_uv_map(ReportList *reports);
 
 }  // namespace blender::ed::sculpt_paint

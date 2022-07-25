@@ -229,8 +229,11 @@ static void interpolate_position_with_interpolation(CurvesGeometry &curves,
   });
 }
 
-void add_curves_on_mesh(CurvesGeometry &curves, const AddCurvesOnMeshInputs &inputs)
+AddCurvesOnMeshOutputs add_curves_on_mesh(CurvesGeometry &curves,
+                                          const AddCurvesOnMeshInputs &inputs)
 {
+  AddCurvesOnMeshOutputs outputs;
+
   const bool use_interpolation = inputs.interpolate_length || inputs.interpolate_point_count ||
                                  inputs.interpolate_shape;
 
@@ -244,6 +247,7 @@ void add_curves_on_mesh(CurvesGeometry &curves, const AddCurvesOnMeshInputs &inp
     const float2 &uv = inputs.uvs[i];
     const ReverseUVSampler::Result result = inputs.reverse_uv_sampler->sample(uv);
     if (result.type != ReverseUVSampler::ResultType::Ok) {
+      outputs.uv_error = true;
       continue;
     }
     const MLoopTri &looptri = *result.looptri;
@@ -365,6 +369,8 @@ void add_curves_on_mesh(CurvesGeometry &curves, const AddCurvesOnMeshInputs &inp
   MutableSpan<int8_t> types_span = curves.curve_types_for_write();
   types_span.drop_front(old_curves_num).fill(CURVE_TYPE_CATMULL_ROM);
   curves.update_curve_types();
+
+  return outputs;
 }
 
 }  // namespace blender::geometry

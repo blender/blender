@@ -277,7 +277,12 @@ struct DensityAddOperationExecutor {
     add_inputs.reverse_uv_sampler = &reverse_uv_sampler;
     add_inputs.old_roots_kdtree = self_->original_curve_roots_kdtree_;
 
-    geometry::add_curves_on_mesh(*curves_orig_, add_inputs);
+    const geometry::AddCurvesOnMeshOutputs add_outputs = geometry::add_curves_on_mesh(
+        *curves_orig_, add_inputs);
+
+    if (add_outputs.uv_error) {
+      report_invalid_uv_map(stroke_extension.reports);
+    }
 
     DEG_id_tag_update(&curves_id_orig_->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GEOM | ND_DATA, &curves_id_orig_->id);

@@ -40,12 +40,19 @@ struct AddCurvesOnMeshInputs {
    * interpolation is used.
    */
   KDTree_3d *old_roots_kdtree = nullptr;
+
+  bool r_uv_error = false;
+};
+
+struct AddCurvesOnMeshOutputs {
+  bool uv_error = false;
 };
 
 /**
  * Generate new curves on a mesh surface with the given inputs. Existing curves stay intact.
  */
-void add_curves_on_mesh(bke::CurvesGeometry &curves, const AddCurvesOnMeshInputs &inputs);
+AddCurvesOnMeshOutputs add_curves_on_mesh(bke::CurvesGeometry &curves,
+                                          const AddCurvesOnMeshInputs &inputs);
 
 float3 compute_surface_point_normal(const MLoopTri &looptri,
                                     const float3 &bary_coord,

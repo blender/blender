@@ -408,4 +408,9 @@ void report_missing_uv_map_on_evaluated_surface(ReportList *reports)
       reports, RPT_WARNING, TIP_("Missing UV map for attaching curves on evaluated surface"));
 }
 
+void report_invalid_uv_map(ReportList *reports)
+{
+  BKE_report(reports, RPT_WARNING, TIP_("Invalid UV map: UV islands must not overlap"));
+}
+
 }  // namespace blender::ed::sculpt_paint
