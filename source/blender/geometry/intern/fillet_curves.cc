@@ -98,7 +98,7 @@ static void calculate_result_offsets(const bke::CurvesGeometry &src_curves,
       /* Implicitly "deselect" points with zero radius. */
       devirtualize_varray(radii, [&](const auto radii) {
         for (const int i : IndexRange(src_points.size())) {
-          if (radii[i] == 0.0f) {
+          if (radii[src_points[i]] == 0.0f) {
             point_counts[i] = 1;
           }
         }
