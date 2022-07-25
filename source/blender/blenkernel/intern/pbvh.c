@@ -2424,7 +2424,7 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
             madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
 
             const int x_it[4] = {0, 1, 1, 0};
-            const int y_it[4] = {0, 0, 1, 1};
+            const int y_it[4] = {1, 1, 0, 0};
 
             for (int j = 0; j < 4; j++) {
               /* Always assign nearest_vertex_co in the first iteration to avoid comparison against
