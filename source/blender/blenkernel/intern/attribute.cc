@@ -146,6 +146,13 @@ bool BKE_id_attribute_rename(ID *id,
     BLI_assert_msg(0, "Required attribute name is not editable");
     return false;
   }
+  if (STREQ(new_name, "")) {
+    BKE_report(reports, RPT_ERROR, "Attribute name can not be empty");
+    return false;
+  }
+  if (STREQ(old_name, new_name)) {
+    return false;
+  }
 
   CustomDataLayer *layer = BKE_id_attribute_search(
       id, old_name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
