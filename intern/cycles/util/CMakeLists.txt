@@ -63,6 +63,7 @@ set(SRC_HEADERS
   math_float2.h
   math_float3.h
   math_float4.h
+  math_float8.h
   math_int2.h
   math_int3.h
   math_int4.h

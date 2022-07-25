@@ -15,8 +15,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
-#  ifdef __KERNEL_AVX2__
+#ifdef __KERNEL_AVX2__
 __forceinline float8::float8()
 {
 }
@@ -44,8 +43,9 @@ __forceinline float8 &float8::operator=(const float8 &f)
   m256 = f.m256;
   return *this;
 }
-#  endif /* __KERNEL_AVX2__ */
+#endif /* __KERNEL_AVX2__ */
 
+#ifndef __KERNEL_GPU__
 __forceinline float float8::operator[](int i) const
 {
   util_assert(i >= 0);
@@ -59,29 +59,28 @@ __forceinline float &float8::operator[](int i)
   util_assert(i < 8);
   return *(&a + i);
 }
+#endif
 
 ccl_device_inline float8 make_float8(float f)
 {
-#  ifdef __KERNEL_AVX2__
+#ifdef __KERNEL_AVX2__
   float8 r(_mm256_set1_ps(f));
-#  else
+#else
   float8 r = {f, f, f, f, f, f, f, f};
-#  endif
+#endif
   return r;
 }
 
 ccl_device_inline float8
 make_float8(float a, float b, float c, float d, float e, float f, float g, float h)
 {
-#  ifdef __KERNEL_AVX2__
-  float8 r(_mm256_set_ps(a, b, c, d, e, f, g, h));
-#  else
+#ifdef __KERNEL_AVX2__
+  float8 r(_mm256_setr_ps(a, b, c, d, e, f, g, h));
+#else
   float8 r = {a, b, c, d, e, f, g, h};
-#  endif
+#endif
   return r;
 }
-
-#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
 
 CCL_NAMESPACE_END
 

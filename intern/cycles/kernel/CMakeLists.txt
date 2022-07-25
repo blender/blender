@@ -317,6 +317,7 @@ set(SRC_UTIL_HEADERS
   ../util/math_float2.h
   ../util/math_float3.h
   ../util/math_float4.h
+  ../util/math_float8.h
   ../util/math_int2.h
   ../util/math_int3.h
   ../util/math_int4.h
