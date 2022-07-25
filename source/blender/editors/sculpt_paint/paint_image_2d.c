@@ -1196,7 +1196,7 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
   ImBuf tmpbuf;
   IMB_initImBuf(&tmpbuf, ED_IMAGE_UNDO_TILE_SIZE, ED_IMAGE_UNDO_TILE_SIZE, 32, 0);
 
-  ListBase *undo_tiles = ED_image_paint_tile_list_get();
+  PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
 
   for (int ty = tiley; ty <= tileh; ty++) {
     for (int tx = tilex; tx <= tilew; tx++) {

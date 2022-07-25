@@ -125,7 +125,7 @@ void ED_imapaint_dirty_region(
 
   imapaint_region_tiles(ibuf, x, y, w, h, &tilex, &tiley, &tilew, &tileh);
 
-  ListBase *undo_tiles = ED_image_paint_tile_list_get();
+  PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
 
   for (ty = tiley; ty <= tileh; ty++) {
     for (tx = tilex; tx <= tilew; tx++) {

@@ -28,7 +28,7 @@ set(SRC
   image_edit.c
   image_ops.c
   image_sequence.c
-  image_undo.c
+  image_undo.cc
   space_image.c
 
   image_intern.h

@@ -1813,7 +1813,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
   }
 
   if (generate_tile) {
-    ListBase *undo_tiles = ED_image_paint_tile_list_get();
+    struct PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
     volatile void *undorect;
     if (tinf->masked) {
       undorect = ED_image_paint_tile_push(undo_tiles,

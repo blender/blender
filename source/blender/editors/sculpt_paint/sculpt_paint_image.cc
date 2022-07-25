@@ -383,7 +383,7 @@ static void push_undo(const NodeData &node_data,
       continue;
     }
     int tilex, tiley, tilew, tileh;
-    ListBase *undo_tiles = ED_image_paint_tile_list_get();
+    PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
     undo_region_tiles(&image_buffer,
                       tile_undo.region.xmin,
                       tile_undo.region.ymin,
