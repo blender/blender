@@ -81,7 +81,7 @@
 /* macros */
 
 /* hints for branch prediction, only use in code that runs a _lot_ */
-#if defined(__GNUC__) && defined(__KERNEL_CPU__)
+#if defined(__GNUC__) && !defined(__KERNEL_GPU__)
 #  define LIKELY(x) __builtin_expect(!!(x), 1)
 #  define UNLIKELY(x) __builtin_expect(!!(x), 0)
 #else

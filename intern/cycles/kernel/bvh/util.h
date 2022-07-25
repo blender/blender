@@ -33,7 +33,7 @@ ccl_device_forceinline float intersection_t_offset(const float t)
   return __uint_as_float(bits);
 }
 
-#if defined(__KERNEL_CPU__)
+#ifndef __KERNEL_GPU__
 ccl_device int intersections_compare(const void *a, const void *b)
 {
   const Intersection *isect_a = (const Intersection *)a;

@@ -3,13 +3,13 @@
 
 #pragma once
 
-#ifdef __KERNEL_CPU__
+#ifndef __KERNEL_GPU__
 #  include "util/profiling.h"
 #endif
 
 CCL_NAMESPACE_BEGIN
 
-#ifdef __KERNEL_CPU__
+#ifndef __KERNEL_GPU__
 #  define PROFILING_INIT(kg, event) \
     ProfilingHelper profiling_helper((ProfilingState *)&kg->profiler, event)
 #  define PROFILING_EVENT(event) profiling_helper.set_event(event)
@@ -22,6 +22,6 @@ CCL_NAMESPACE_BEGIN
 #  define PROFILING_EVENT(event)
 #  define PROFILING_INIT_FOR_SHADER(kg, event)
 #  define PROFILING_SHADER(object, shader)
-#endif /* __KERNEL_CPU__ */
+#endif /* !__KERNEL_GPU__ */
 
 CCL_NAMESPACE_END

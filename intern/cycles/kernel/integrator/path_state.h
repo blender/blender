@@ -13,7 +13,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline void path_state_init_queues(IntegratorState state)
 {
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
-#ifdef __KERNEL_CPU__
+#ifndef __KERNEL_GPU__
   INTEGRATOR_STATE_WRITE(&state->shadow, shadow_path, queued_kernel) = 0;
   INTEGRATOR_STATE_WRITE(&state->ao, shadow_path, queued_kernel) = 0;
 #endif

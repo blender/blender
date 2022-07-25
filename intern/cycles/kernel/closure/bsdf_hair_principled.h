@@ -3,7 +3,7 @@
 
 #pragma once
 
-#ifdef __KERNEL_CPU__
+#ifndef __KERNEL_GPU__
 #  include <fenv.h>
 #endif
 

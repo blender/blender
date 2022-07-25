@@ -3,8 +3,6 @@
 
 #pragma once
 
-#define __KERNEL_CPU__
-
 /* Release kernel has too much false-positive maybe-uninitialized warnings,
  * which makes it possible to miss actual warnings.
  */

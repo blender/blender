@@ -19,10 +19,6 @@
 
 #include "kernel/svm/types.h"
 
-#ifndef __KERNEL_GPU__
-#  define __KERNEL_CPU__
-#endif
-
 CCL_NAMESPACE_BEGIN
 
 /* Constants */
@@ -51,10 +47,10 @@ CCL_NAMESPACE_BEGIN
 #define INTEGRATOR_SHADOW_ISECT_SIZE_CPU 1024U
 #define INTEGRATOR_SHADOW_ISECT_SIZE_GPU 4U
 
-#ifdef __KERNEL_CPU__
-#  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_CPU
-#else
+#ifdef __KERNEL_GPU__
 #  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_GPU
+#else
+#  define INTEGRATOR_SHADOW_ISECT_SIZE INTEGRATOR_SHADOW_ISECT_SIZE_CPU
 #endif
 
 /* Kernel features */
@@ -91,12 +87,12 @@ CCL_NAMESPACE_BEGIN
 #define __BRANCHED_PATH__
 
 /* Device specific features */
-#ifdef __KERNEL_CPU__
+#ifndef __KERNEL_GPU__
 #  ifdef WITH_OSL
 #    define __OSL__
 #  endif
 #  define __VOLUME_RECORD_ALL__
-#endif /* __KERNEL_CPU__ */
+#endif /* !__KERNEL_GPU__ */
 
 /* MNEE currently causes "Compute function exceeds available temporary registers"
  * on Metal, disabled for now. */
@@ -722,7 +718,7 @@ typedef struct ccl_align(16) ShaderClosure
 {
   SHADER_CLOSURE_BASE;
 
-#ifdef __KERNEL_CPU__
+#ifndef __KERNEL_GPU__
   float pad[2];
 #endif
   float data[10];
@@ -1540,15 +1536,15 @@ enum KernelFeatureFlag : uint32_t {
 /* Must be constexpr on the CPU to avoid compile errors because the state types
  * are different depending on the main, shadow or null path. For GPU we don't have
  * C++17 everywhere so can't use it. */
-#ifdef __KERNEL_CPU__
+#ifdef __KERNEL_GPU__
+#  define IF_KERNEL_FEATURE(feature) if ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
+#  define IF_KERNEL_NODES_FEATURE(feature) \
+    if ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
+#else
 #  define IF_KERNEL_FEATURE(feature) \
     if constexpr ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
 #  define IF_KERNEL_NODES_FEATURE(feature) \
     if constexpr ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
-#else
-#  define IF_KERNEL_FEATURE(feature) if ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
-#  define IF_KERNEL_NODES_FEATURE(feature) \
-    if ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)
 #endif
 
 CCL_NAMESPACE_END
