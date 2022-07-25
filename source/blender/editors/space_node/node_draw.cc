@@ -1713,7 +1713,7 @@ static std::string node_get_execution_time_label(const SpaceNode &snode, const b
 {
   int node_count = 0;
   std::chrono::microseconds exec_time = node_get_execution_time(
-      *snode.nodetree, node, snode, node_count);
+      *snode.edittree, node, snode, node_count);
 
   if (node_count == 0) {
     return std::string("");
