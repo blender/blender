@@ -56,6 +56,7 @@ vec4 velocity_background(vec3 vV)
 /**
  * Load and resolve correct velocity as some pixels might still not have correct
  * motion data for performance reasons.
+ * Returns motion vector in render UV space.
  */
 vec4 velocity_resolve(sampler2D vector_tx, ivec2 texel, float depth)
 {

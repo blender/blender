@@ -60,6 +60,7 @@ void Instance::init(const int2 &output_res,
   sampling.init(scene);
   camera.init();
   film.init(output_res, output_rect);
+  velocity.init();
   main_view.init();
 }
 
@@ -240,7 +241,6 @@ void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
     if (rp) {
       float *result = film.read_pass(pass_type);
       if (result) {
-        std::cout << "read " << pass_name << std::endl;
         BLI_mutex_lock(&render->update_render_passes_mutex);
         /* WORKAROUND: We use texture read to avoid using a framebuffer to get the render result.
          * However, on some implementation, we need a buffer with a few extra bytes for the read to

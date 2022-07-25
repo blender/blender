@@ -32,13 +32,17 @@ namespace blender::eevee {
 
 void VelocityModule::init()
 {
-  if (inst_.render && (inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR)) {
-    /* No motion blur and the vector pass was requested. Do the step sync here. */
+  if (inst_.render && (inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR) != 0 &&
+      true /* TODO(fclem) Motion blur */) {
+    /* No motion blur and the vector pass was requested. Do the steps sync here. */
     const Scene *scene = inst_.scene;
     float initial_time = scene->r.cfra + scene->r.subframe;
     step_sync(STEP_PREVIOUS, initial_time - 1.0f);
     step_sync(STEP_NEXT, initial_time + 1.0f);
+
     inst_.set_time(initial_time);
+    step_ = STEP_CURRENT;
+    /* Let the main sync loop handle the current step. */
   }
 }
 

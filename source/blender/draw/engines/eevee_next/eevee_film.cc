@@ -183,20 +183,17 @@ void Film::init(const int2 &extent, const rcti *output_rect)
          * Using the render pass ensure we store the center depth. */
         render_passes |= EEVEE_RENDER_PASS_Z;
       }
-      /* TEST */
-      render_passes |= EEVEE_RENDER_PASS_VECTOR;
     }
     else {
       /* Render Case. */
       render_passes = eViewLayerEEVEEPassType(inst_.view_layer->eevee.render_passes);
-
-      render_passes |= EEVEE_RENDER_PASS_COMBINED;
 
 #define ENABLE_FROM_LEGACY(name_legacy, name_eevee) \
   SET_FLAG_FROM_TEST(render_passes, \
                      (inst_.view_layer->passflag & SCE_PASS_##name_legacy) != 0, \
                      EEVEE_RENDER_PASS_##name_eevee);
 
+      ENABLE_FROM_LEGACY(COMBINED, COMBINED)
       ENABLE_FROM_LEGACY(Z, Z)
       ENABLE_FROM_LEGACY(MIST, MIST)
       ENABLE_FROM_LEGACY(NORMAL, NORMAL)
@@ -209,6 +206,7 @@ void Film::init(const int2 &extent, const rcti *output_rect)
       ENABLE_FROM_LEGACY(DIFFUSE_DIRECT, DIFFUSE_LIGHT)
       ENABLE_FROM_LEGACY(GLOSSY_DIRECT, SPECULAR_LIGHT)
       ENABLE_FROM_LEGACY(ENVIRONMENT, ENVIRONMENT)
+      ENABLE_FROM_LEGACY(VECTOR, VECTOR)
 
 #undef ENABLE_FROM_LEGACY
     }
@@ -458,6 +456,10 @@ float2 Film::pixel_jitter_get() const
 
 eViewLayerEEVEEPassType Film::enabled_passes_get() const
 {
+  if (inst_.is_viewport() && data_.use_reprojection) {
+    /* Enable motion vector rendering but not the accumulation buffer. */
+    return enabled_passes_ | EEVEE_RENDER_PASS_VECTOR;
+  }
   return enabled_passes_;
 }
 

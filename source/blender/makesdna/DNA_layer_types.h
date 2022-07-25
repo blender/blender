@@ -37,7 +37,7 @@ typedef enum eViewLayerEEVEEPassType {
   EEVEE_RENDER_PASS_CRYPTOMATTE = (1 << 16),
   EEVEE_RENDER_PASS_VECTOR = (1 << 17),
 } eViewLayerEEVEEPassType;
-#define EEVEE_RENDER_PASS_MAX_BIT 17
+#define EEVEE_RENDER_PASS_MAX_BIT 18
 
 /* #ViewLayerAOV.type */
 typedef enum eViewLayerAOVType {

@@ -636,6 +636,8 @@ void film_process_data(ivec2 texel_film, out vec4 out_color, out float out_depth
       vec4 normal = texelFetch(normal_tx, film_sample.texel, 0);
       float depth = texelFetch(depth_tx, film_sample.texel, 0).x;
       vec4 vector = velocity_resolve(vector_tx, film_sample.texel, depth);
+      /* Transform to pixel space. */
+      vector *= vec4(film_buf.render_extent, -film_buf.render_extent);
 
       film_store_depth(texel_film, depth, out_depth);
       film_store_data(texel_film, film_buf.normal_id, normal, out_color);
