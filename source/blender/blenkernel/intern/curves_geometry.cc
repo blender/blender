@@ -715,8 +715,9 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
       }
     });
 
-    /* Correct the first and last tangents of Bezier curves so that they align with the inner
-     * handles. This is a separate loop to avoid the cost when Bezier type curves are not used. */
+    /* Correct the first and last tangents of non-cyclic Bezier curves so that they align with the
+     * inner handles. This is a separate loop to avoid the cost when Bezier type curves are not
+     * used. */
     Vector<int64_t> bezier_indices;
     const IndexMask bezier_mask = this->indices_for_curve_type(CURVE_TYPE_BEZIER, bezier_indices);
     if (!bezier_mask.is_empty()) {
@@ -726,6 +727,9 @@ Span<float3> CurvesGeometry::evaluated_tangents() const
 
       threading::parallel_for(bezier_mask.index_range(), 1024, [&](IndexRange range) {
         for (const int curve_index : bezier_mask.slice(range)) {
+          if (cyclic[curve_index]) {
+            continue;
+          }
           const IndexRange points = this->points_for_curve(curve_index);
           const IndexRange evaluated_points = this->evaluated_points_for_curve(curve_index);
 
