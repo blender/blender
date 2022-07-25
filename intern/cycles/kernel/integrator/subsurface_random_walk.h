@@ -205,12 +205,6 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   ray.self.light_object = OBJECT_NONE;
   ray.self.light_prim = PRIM_NONE;
 
-#ifndef __KERNEL_GPU_RAYTRACING__
-  /* Compute or fetch object transforms. */
-  Transform ob_itfm ccl_optional_struct_init;
-  Transform ob_tfm = object_fetch_transform_motion_test(kg, object, time, &ob_itfm);
-#endif
-
   /* Convert subsurface to volume coefficients.
    * The single-scattering albedo is named alpha to avoid confusion with the surface albedo. */
   const float3 albedo = INTEGRATOR_STATE(state, subsurface, albedo);
@@ -383,15 +377,8 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     hit = (ss_isect.num_hits > 0);
 
     if (hit) {
-#ifdef __KERNEL_GPU_RAYTRACING__
       /* t is always in world space with OptiX and MetalRT. */
       ray.tmax = ss_isect.hits[0].t;
-#else
-      /* Compute world space distance to surface hit. */
-      float3 D = transform_direction(&ob_itfm, ray.D);
-      D = normalize(D) * ss_isect.hits[0].t;
-      ray.tmax = len(transform_direction(&ob_tfm, D));
-#endif
     }
 
     if (bounce == 0) {
