@@ -10,6 +10,18 @@
 #pragma BLENDER_REQUIRE(eevee_surf_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
 
+vec4 closure_to_rgba(Closure cl)
+{
+  vec4 out_color;
+  out_color.rgb = g_emission;
+  out_color.a = saturate(1.0 - avg(g_transmittance));
+
+  /* Reset for the next closure tree. */
+  closure_weights_reset();
+
+  return out_color;
+}
+
 /* From the paper "Hashed Alpha Testing" by Chris Wyman and Morgan McGuire. */
 float hash(vec2 a)
 {
