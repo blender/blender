@@ -269,18 +269,6 @@ static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
 /** \name * CURVES_OT_sculptmode_toggle
  * \{ */
 
-static bool curves_sculptmode_toggle_poll(bContext *C)
-{
-  const Object *ob = CTX_data_active_object(C);
-  if (ob == nullptr) {
-    return false;
-  }
-  if (ob->type != OB_CURVES) {
-    return false;
-  }
-  return true;
-}
-
 static void curves_sculptmode_enter(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
@@ -342,7 +330,7 @@ static void CURVES_OT_sculptmode_toggle(wmOperatorType *ot)
   ot->description = "Enter/Exit sculpt mode for curves";
 
   ot->exec = curves_sculptmode_toggle_exec;
-  ot->poll = curves_sculptmode_toggle_poll;
+  ot->poll = curves::curves_poll;
 
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 }
@@ -485,7 +473,7 @@ static void SCULPT_CURVES_OT_select_random(wmOperatorType *ot)
   ot->description = "Randomizes existing selection or create new random selection";
 
   ot->exec = select_random::select_random_exec;
-  ot->poll = curves::selection_operator_poll;
+  ot->poll = curves::editable_curves_poll;
   ot->ui = select_random::select_random_ui;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -529,7 +517,7 @@ static void SCULPT_CURVES_OT_select_random(wmOperatorType *ot)
 namespace select_end {
 static bool select_end_poll(bContext *C)
 {
-  if (!curves::selection_operator_poll(C)) {
+  if (!curves::editable_curves_poll(C)) {
     return false;
   }
   const Curves *curves_id = static_cast<const Curves *>(CTX_data_active_object(C)->data);
@@ -911,7 +899,7 @@ static void SCULPT_CURVES_OT_select_grow(wmOperatorType *ot)
 
   ot->invoke = select_grow::select_grow_invoke;
   ot->modal = select_grow::select_grow_modal;
-  ot->poll = curves::selection_operator_poll;
+  ot->poll = curves::editable_curves_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -932,16 +920,7 @@ namespace min_distance_edit {
 
 static bool min_distance_edit_poll(bContext *C)
 {
-  Object *ob = CTX_data_active_object(C);
-  if (ob == nullptr) {
-    return false;
-  }
-  if (ob->type != OB_CURVES) {
-    return false;
-  }
-  Curves *curves_id = static_cast<Curves *>(ob->data);
-  if (curves_id->surface == nullptr || curves_id->surface->type != OB_MESH) {
-    CTX_wm_operator_poll_msg_set(C, "Curves must have a mesh surface object set");
+  if (!curves::curves_with_surface_poll(C)) {
     return false;
   }
   Scene *scene = CTX_data_scene(C);
