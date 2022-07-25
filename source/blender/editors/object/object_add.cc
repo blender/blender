@@ -3993,7 +3993,7 @@ void OBJECT_OT_transform_to_mouse(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = object_add_drop_xy_generic_invoke;
   ot->exec = object_transform_to_mouse_exec;
-  ot->poll = ED_operator_objectmode;
+  ot->poll = ED_operator_objectmode_poll_msg;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
