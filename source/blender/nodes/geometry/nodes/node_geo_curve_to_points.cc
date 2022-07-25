@@ -126,18 +126,22 @@ static GMutableSpan ensure_point_attribute(PointCloudComponent &points,
                                            const AttributeIDRef &attribute_id,
                                            const eCustomDataType data_type)
 {
-  return points.attributes_for_write()
-      ->lookup_or_add_for_write(attribute_id, ATTR_DOMAIN_POINT, data_type)
-      .varray.get_internal_span();
+  GAttributeWriter attribute = points.attributes_for_write()->lookup_or_add_for_write(
+      attribute_id, ATTR_DOMAIN_POINT, data_type);
+  GMutableSpan span = attribute.varray.get_internal_span();
+  attribute.finish();
+  return span;
 }
 
 template<typename T>
 static MutableSpan<T> ensure_point_attribute(PointCloudComponent &points,
                                              const AttributeIDRef &attribute_id)
 {
-  return points.attributes_for_write()
-      ->lookup_or_add_for_write<T>(attribute_id, ATTR_DOMAIN_POINT)
-      .varray.get_internal_span();
+  AttributeWriter<T> attribute = points.attributes_for_write()->lookup_or_add_for_write<T>(
+      attribute_id, ATTR_DOMAIN_POINT);
+  MutableSpan<T> span = attribute.varray.get_internal_span();
+  attribute.finish();
+  return span;
 }
 
 namespace {
