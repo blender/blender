@@ -109,6 +109,23 @@ class Film {
     }
   }
 
+  static bool pass_is_float3(eViewLayerEEVEEPassType pass_type)
+  {
+    switch (pass_type) {
+      case EEVEE_RENDER_PASS_NORMAL:
+      case EEVEE_RENDER_PASS_DIFFUSE_LIGHT:
+      case EEVEE_RENDER_PASS_DIFFUSE_COLOR:
+      case EEVEE_RENDER_PASS_SPECULAR_LIGHT:
+      case EEVEE_RENDER_PASS_SPECULAR_COLOR:
+      case EEVEE_RENDER_PASS_VOLUME_LIGHT:
+      case EEVEE_RENDER_PASS_EMIT:
+      case EEVEE_RENDER_PASS_ENVIRONMENT:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   /* Returns layer offset in the accumulation texture. -1 if the pass is not enabled. */
   int pass_id_get(eViewLayerEEVEEPassType pass_type) const
   {

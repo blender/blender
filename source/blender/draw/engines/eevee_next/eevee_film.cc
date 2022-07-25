@@ -620,7 +620,16 @@ float *Film::read_pass(eViewLayerEEVEEPassType pass_type)
 
   GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
-  return (float *)GPU_texture_read(pass_tx, GPU_DATA_FLOAT, 0);
+  float *result = (float *)GPU_texture_read(pass_tx, GPU_DATA_FLOAT, 0);
+
+  if (pass_is_float3(pass_type)) {
+    /* Convert result in place as we cannot do this conversion on GPU. */
+    for (auto px : IndexRange(accum_tx.width() * accum_tx.height())) {
+      *(reinterpret_cast<float3 *>(result) + px) = *(reinterpret_cast<float3 *>(result + px * 4));
+    }
+  }
+
+  return result;
 }
 
 /** \} */
