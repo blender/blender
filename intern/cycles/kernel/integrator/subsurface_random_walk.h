@@ -377,7 +377,6 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     hit = (ss_isect.num_hits > 0);
 
     if (hit) {
-      /* t is always in world space with OptiX and MetalRT. */
       ray.tmax = ss_isect.hits[0].t;
     }
 

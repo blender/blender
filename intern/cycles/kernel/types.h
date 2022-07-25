@@ -83,7 +83,6 @@ CCL_NAMESPACE_BEGIN
 #define __LAMP_MIS__
 #define __CAMERA_MOTION__
 #define __OBJECT_MOTION__
-#define __BAKING__
 #define __PRINCIPLED__
 #define __SUBSURFACE__
 #define __VOLUME__
@@ -98,10 +97,6 @@ CCL_NAMESPACE_BEGIN
 #  endif
 #  define __VOLUME_RECORD_ALL__
 #endif /* __KERNEL_CPU__ */
-
-#ifdef __KERNEL_GPU_RAYTRACING__
-#  undef __BAKING__
-#endif /* __KERNEL_GPU_RAYTRACING__ */
 
 /* MNEE currently causes "Compute function exceeds available temporary registers"
  * on Metal, disabled for now. */
@@ -128,9 +123,6 @@ CCL_NAMESPACE_BEGIN
 #  endif
 #  if !(__KERNEL_FEATURES & KERNEL_FEATURE_SUBSURFACE)
 #    undef __SUBSURFACE__
-#  endif
-#  if !(__KERNEL_FEATURES & KERNEL_FEATURE_BAKING)
-#    undef __BAKING__
 #  endif
 #  if !(__KERNEL_FEATURES & KERNEL_FEATURE_PATCH_EVALUATION)
 #    undef __PATCH_EVAL__

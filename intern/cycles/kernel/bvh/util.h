@@ -5,6 +5,21 @@
 
 CCL_NAMESPACE_BEGIN
 
+ccl_device_inline bool intersection_ray_valid(ccl_private const Ray *ray)
+{
+  /* NOTE: Due to some vectorization code  non-finite origin point might
+   * cause lots of false-positive intersections which will overflow traversal
+   * stack.
+   * This code is a quick way to perform early output, to avoid crashes in
+   * such cases.
+   * From production scenes so far it seems it's enough to test first element
+   * only.
+   * Scene intersection may also called with empty rays for conditional trace
+   * calls that evaluate to false, so filter those out.
+   */
+  return isfinite_safe(ray->P.x) && isfinite_safe(ray->D.x) && len_squared(ray->D) != 0.0f;
+}
+
 /* Offset intersection distance by the smallest possible amount, to skip
  * intersections at this distance. This works in cases where the ray start
  * position is unchanged and only tmin is updated, since for self
