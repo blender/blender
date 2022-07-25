@@ -1163,8 +1163,8 @@ static CurvesGeometry copy_with_removed_points(const CurvesGeometry &curves,
   threading::parallel_invoke(
       /* Initialize curve offsets. */
       [&]() { new_curves.offsets_for_write().copy_from(new_curve_offsets); },
-      /* Copy over point attributes. */
       [&]() {
+        /* Copy over point attributes. */
         for (auto &attribute : bke::retrieve_attributes_for_transfer(
                  curves.attributes(), new_curves.attributes_for_write(), ATTR_DOMAIN_MASK_POINT)) {
           threading::parallel_for(copy_point_ranges.index_range(), 128, [&](IndexRange range) {
@@ -1179,11 +1179,10 @@ static CurvesGeometry copy_with_removed_points(const CurvesGeometry &curves,
           });
           attribute.dst.finish();
         }
-      },
-      /* Copy over curve attributes.
-       * In some cases points are just dissolved, so the the number of
-       * curves will be the same. That could be optimized in the future. */
-      [&]() {
+
+        /* Copy over curve attributes.
+         * In some cases points are just dissolved, so the the number of
+         * curves will be the same. That could be optimized in the future. */
         for (auto &attribute : bke::retrieve_attributes_for_transfer(
                  curves.attributes(), new_curves.attributes_for_write(), ATTR_DOMAIN_MASK_CURVE)) {
           if (new_curves.curves_num() == curves.curves_num()) {
@@ -1260,8 +1259,8 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
               }
             });
       },
-      /* Copy over point attributes. */
       [&]() {
+        /* Copy over point attributes. */
         for (auto &attribute : bke::retrieve_attributes_for_transfer(
                  curves.attributes(), new_curves.attributes_for_write(), ATTR_DOMAIN_MASK_POINT)) {
           threading::parallel_for(old_curve_ranges.index_range(), 128, [&](IndexRange range) {
@@ -1275,9 +1274,7 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
           });
           attribute.dst.finish();
         }
-      },
-      /* Copy over curve attributes. */
-      [&]() {
+        /* Copy over curve attributes. */
         for (auto &attribute : bke::retrieve_attributes_for_transfer(
                  curves.attributes(), new_curves.attributes_for_write(), ATTR_DOMAIN_MASK_CURVE)) {
           threading::parallel_for(old_curve_ranges.index_range(), 128, [&](IndexRange range) {
