@@ -559,7 +559,7 @@ static void add_fields_as_extra_columns(SpaceSpreadsheet *sspreadsheet,
           std::make_unique<GeometryComponentCacheKey>(component));
 
   const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
-  const int domain_num = component.attributes()->domain_size(domain);
+  const int domain_num = component.attribute_domain_size(domain);
   for (const auto item : fields_to_show.items()) {
     const StringRef name = item.key;
     const GField &field = item.value;
