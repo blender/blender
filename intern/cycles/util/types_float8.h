@@ -11,10 +11,13 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* float8 is a reserved type in Metal that has not been implemented. For
+ * that reason this is named float8_t. */
+
 #ifdef __KERNEL_GPU__
-struct float8
+struct float8_t
 #else
-struct ccl_try_align(32) float8
+struct ccl_try_align(32) float8_t
 #endif
 {
 #ifdef __KERNEL_AVX2__
@@ -25,14 +28,14 @@ struct ccl_try_align(32) float8
     };
   };
 
-  __forceinline float8();
-  __forceinline float8(const float8 &a);
-  __forceinline explicit float8(const __m256 &a);
+  __forceinline float8_t();
+  __forceinline float8_t(const float8_t &a);
+  __forceinline explicit float8_t(const __m256 &a);
 
   __forceinline operator const __m256 &() const;
   __forceinline operator __m256 &();
 
-  __forceinline float8 &operator=(const float8 &a);
+  __forceinline float8_t &operator=(const float8_t &a);
 
 #else  /* __KERNEL_AVX2__ */
   float a, b, c, d, e, f, g, h;
@@ -44,9 +47,9 @@ struct ccl_try_align(32) float8
 #endif
 };
 
-ccl_device_inline float8 make_float8(float f);
-ccl_device_inline float8
-make_float8(float a, float b, float c, float d, float e, float f, float g, float h);
+ccl_device_inline float8_t make_float8_t(float f);
+ccl_device_inline float8_t
+make_float8_t(float a, float b, float c, float d, float e, float f, float g, float h);
 
 CCL_NAMESPACE_END
 
