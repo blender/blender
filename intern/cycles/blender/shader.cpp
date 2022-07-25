@@ -928,8 +928,22 @@ static ShaderNode *add_node(Scene *scene,
     sky->set_sun_disc(b_sky_node.sun_disc());
     sky->set_sun_size(b_sky_node.sun_size());
     sky->set_sun_intensity(b_sky_node.sun_intensity());
-    sky->set_sun_elevation(b_sky_node.sun_elevation());
-    sky->set_sun_rotation(b_sky_node.sun_rotation());
+    /* Patch sun position to be able to animate daylight cycle while keeping the shading code
+     * simple. */
+    float sun_rotation = b_sky_node.sun_rotation();
+    /* Wrap into [-2PI..2PI] range. */
+    float sun_elevation = fmodf(b_sky_node.sun_elevation(), M_2PI_F);
+    /* Wrap into [-PI..PI] range. */
+    if (fabsf(sun_elevation) >= M_PI_F) {
+      sun_elevation -= copysignf(2.0f, sun_elevation) * M_PI_F;
+    }
+    /* Wrap into [-PI/2..PI/2] range while keeping the same absolute position. */
+    if (sun_elevation >= M_PI_2_F || sun_elevation <= -M_PI_2_F) {
+      sun_elevation = copysignf(M_PI_F, sun_elevation) - sun_elevation;
+      sun_rotation += M_PI_F;
+    }
+    sky->set_sun_elevation(sun_elevation);
+    sky->set_sun_rotation(sun_rotation);
     sky->set_altitude(b_sky_node.altitude());
     sky->set_air_density(b_sky_node.air_density());
     sky->set_dust_density(b_sky_node.dust_density());
