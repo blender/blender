@@ -242,11 +242,7 @@ ccl_device_inline
       kernel_assert(object != OBJECT_NONE);
 
       /* Instance pop. */
-#if BVH_FEATURE(BVH_MOTION)
-      bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir);
-#else
-      bvh_instance_pop(kg, object, ray, &P, &dir, &idir);
-#endif
+      bvh_instance_pop(ray, &P, &dir, &idir);
 
       object = OBJECT_NONE;
       node_addr = traversal_stack[stack_ptr];
