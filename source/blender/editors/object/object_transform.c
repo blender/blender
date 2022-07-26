@@ -1406,6 +1406,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
                     sub_v3_v3(mpt, offset_local);
                     mul_v3_m4v3(&pt->x, diff_mat, mpt);
                   }
+                  BKE_gpencil_stroke_geometry_update(gpd, gps);
                 }
               }
             }
