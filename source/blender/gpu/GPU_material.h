@@ -131,6 +131,11 @@ typedef void (*GPUCodegenCallbackFn)(void *thunk, GPUMaterial *mat, GPUCodegenOu
 GPUNodeLink *GPU_constant(const float *num);
 GPUNodeLink *GPU_uniform(const float *num);
 GPUNodeLink *GPU_attribute(GPUMaterial *mat, eCustomDataType type, const char *name);
+/**
+ * Add a GPU attribute that refers to the default color attribute on a geometry.
+ * The name, type, and domain are unknown and do not depend on the material.
+ */
+GPUNodeLink *GPU_attribute_default_color(GPUMaterial *mat);
 GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
                                         eCustomDataType type,
                                         const char *name,
@@ -266,6 +271,12 @@ typedef struct GPUMaterialAttribute {
   eGPUDefaultValue default_value; /* Only for volumes attributes. */
   int id;
   int users;
+  /**
+   * If true, the corresponding attribute is the specified default color attribute on the mesh,
+   * if it exists. In that case the type and name data can vary per geometry, so it will not be
+   * valid here.
+   */
+  bool is_default_color;
 } GPUMaterialAttribute;
 
 typedef struct GPUMaterialTexture {
