@@ -1080,6 +1080,10 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
       break;
     }
+    case EVT_ESCKEY:
+      node_resize_exit(C, op, true);
+      ED_region_tag_redraw(region);
+      return OPERATOR_CANCELLED;
   }
 
   return OPERATOR_RUNNING_MODAL;
