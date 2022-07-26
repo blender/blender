@@ -330,7 +330,7 @@ void BKE_mesh_vert_coords_apply_with_mat4(struct Mesh *mesh,
                                           const float mat[4][4]);
 void BKE_mesh_vert_coords_apply(struct Mesh *mesh, const float (*vert_coords)[3]);
 
-/* *** mesh_tessellate.c *** */
+/* *** mesh_tessellate.cc *** */
 
 /**
  * Calculate tessellation into #MLoopTri which exist only for this purpose.

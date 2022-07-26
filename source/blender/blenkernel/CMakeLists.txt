@@ -212,7 +212,7 @@ set(SRC
   intern/mesh_runtime.cc
   intern/mesh_sample.cc
   intern/mesh_tangent.c
-  intern/mesh_tessellate.c
+  intern/mesh_tessellate.cc
   intern/mesh_validate.cc
   intern/mesh_wrapper.cc
   intern/modifier.c
