@@ -166,16 +166,16 @@ ccl_device_inline void kernel_embree_convert_hit(KernelGlobals kg,
   }
   else {
     isect->type = kernel_data_fetch(objects, isect->object).primitive_type;
-    isect->u = 1.0f - hit->v - hit->u;
-    isect->v = hit->u;
+    isect->u = hit->u;
+    isect->v = hit->v;
   }
 }
 
 ccl_device_inline void kernel_embree_convert_sss_hit(
     KernelGlobals kg, const RTCRay *ray, const RTCHit *hit, Intersection *isect, int object)
 {
-  isect->u = 1.0f - hit->v - hit->u;
-  isect->v = hit->u;
+  isect->u = hit->u;
+  isect->v = hit->v;
   isect->t = ray->tfar;
   RTCScene inst_scene = (RTCScene)rtcGetGeometryUserData(
       rtcGetGeometry(kernel_data.device_bvh, object * 2));

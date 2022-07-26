@@ -120,9 +120,9 @@ ccl_device_forceinline bool ray_triangle_intersect(const float3 ray_P,
    * in Embree. */
 
   /* Calculate vertices relative to ray origin. */
-  const float3 v0 = tri_c - ray_P;
-  const float3 v1 = tri_a - ray_P;
-  const float3 v2 = tri_b - ray_P;
+  const float3 v0 = tri_a - ray_P;
+  const float3 v1 = tri_b - ray_P;
+  const float3 v2 = tri_c - ray_P;
 
   /* Calculate triangle edges. */
   const float3 e0 = v2 - v0;
@@ -130,11 +130,12 @@ ccl_device_forceinline bool ray_triangle_intersect(const float3 ray_P,
   const float3 e2 = v1 - v2;
 
   /* Perform edge tests. */
-  const float U = dot(cross(v2 + v0, e0), ray_D);
-  const float V = dot(cross(v0 + v1, e1), ray_D);
-  const float W = dot(cross(v1 + v2, e2), ray_D);
+  const float U = dot(cross(e0, v2 + v0), ray_D);
+  const float V = dot(cross(e1, v0 + v1), ray_D);
+  const float W = dot(cross(e2, v1 + v2), ray_D);
 
-  const float eps = FLT_EPSILON * fabsf(U + V + W);
+  const float UVW = U + V + W;
+  const float eps = FLT_EPSILON * fabsf(UVW);
   const float minUVW = min(U, min(V, W));
   const float maxUVW = max(U, max(V, W));
 
@@ -158,8 +159,9 @@ ccl_device_forceinline bool ray_triangle_intersect(const float3 ray_P,
     return false;
   }
 
-  *isect_u = U / den;
-  *isect_v = V / den;
+  const float rcp_UVW = (fabsf(UVW) < 1e-18f) ? 0.0f : 1.0f / UVW;
+  *isect_u = min(U * rcp_UVW, 1.0f);
+  *isect_v = min(V * rcp_UVW, 1.0f);
   *isect_t = t;
   return true;
 }

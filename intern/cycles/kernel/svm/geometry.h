@@ -34,7 +34,7 @@ ccl_device_noinline void svm_node_geometry(KernelGlobals kg,
       data = sd->Ng;
       break;
     case NODE_GEOM_uv:
-      data = make_float3(sd->u, sd->v, 0.0f);
+      data = make_float3(1.0f - sd->u - sd->v, sd->u, 0.0f);
       break;
     default:
       data = make_float3(0.0f, 0.0f, 0.0f);
@@ -57,7 +57,7 @@ ccl_device_noinline void svm_node_geometry_bump_dx(KernelGlobals kg,
       data = sd->P + sd->dP.dx;
       break;
     case NODE_GEOM_uv:
-      data = make_float3(sd->u + sd->du.dx, sd->v + sd->dv.dx, 0.0f);
+      data = make_float3(1.0f - sd->u - sd->du.dx - sd->v - sd->dv.dx, sd->u + sd->du.dx, 0.0f);
       break;
     default:
       svm_node_geometry(kg, sd, stack, type, out_offset);
@@ -84,7 +84,7 @@ ccl_device_noinline void svm_node_geometry_bump_dy(KernelGlobals kg,
       data = sd->P + sd->dP.dy;
       break;
     case NODE_GEOM_uv:
-      data = make_float3(sd->u + sd->du.dy, sd->v + sd->dv.dy, 0.0f);
+      data = make_float3(1.0f - sd->u - sd->du.dy - sd->v - sd->dv.dy, sd->u + sd->du.dy, 0.0f);
       break;
     default:
       svm_node_geometry(kg, sd, stack, type, out_offset);

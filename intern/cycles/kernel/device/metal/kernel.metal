@@ -122,8 +122,8 @@ TReturn metalrt_local_hit(constant KernelParamsMetal &launch_params_metal,
   isect->object = object;
   isect->type = kernel_data_fetch(objects, object).primitive_type;
 
-  isect->u = 1.0f - barycentrics.y - barycentrics.x;
-  isect->v = barycentrics.x;
+  isect->u = barycentrics.x;
+  isect->v = barycentrics.y;
 
   /* Record geometric normal */
   const uint tri_vindex = kernel_data_fetch(tri_vindex, isect->prim).w;
@@ -185,18 +185,14 @@ bool metalrt_shadow_all_hit(constant KernelParamsMetal &launch_params_metal,
     return true;
   }
 
-  float u = 0.0f, v = 0.0f;
+  const float u = barycentrics.x;
+  const float v = barycentrics.y;
   int type = 0;
   if (intersection_type == METALRT_HIT_TRIANGLE) {
-    u = 1.0f - barycentrics.y - barycentrics.x;
-    v = barycentrics.x;
     type = kernel_data_fetch(objects, object).primitive_type;
   }
 #  ifdef __HAIR__
   else {
-    u = barycentrics.x;
-    v = barycentrics.y;
-
     const KernelCurveSegment segment = kernel_data_fetch(curve_segments, prim);
     type = segment.type;
     prim = segment.prim;
