@@ -823,6 +823,36 @@ void PyC_Err_PrintWithFunc(PyObject *py_func)
 /** \name Exception Buffer Access
  * \{ */
 
+static void pyc_exception_buffer_handle_system_exit(PyObject *error_type,
+                                                    PyObject *error_value,
+                                                    PyObject *error_traceback)
+{
+  if (!PyErr_GivenExceptionMatches(error_type, PyExc_SystemExit)) {
+    return;
+  }
+  /* Inspecting, follow Python's logic in #_Py_HandleSystemExit & treat as a regular exception. */
+  if (_Py_GetConfig()->inspect) {
+    return;
+  }
+
+  /* NOTE(@campbellbarton): A `SystemExit` exception will exit immediately (unless inspecting).
+   * So print the error and exit now. This is necessary as the call to #PyErr_Print exits,
+   * the temporary `sys.stderr` assignment causes the output to be suppressed, failing silently.
+   * Instead, restore the error and print it. If Python changes it's behavior and doesn't exit in
+   * the future - continue to create the exception buffer, see: T99966.
+   *
+   * Arguably accessing a `SystemExit` exception as a buffer should be supported without exiting.
+   * (by temporarily enabling inspection for example) however - it's not obvious exactly when this
+   * should be enabled and complicates the Python API by introducing different kinds of execution.
+   * Since the rule of thumb is for Blender's embedded Python to match stand-alone Python,
+   * favor exiting when a `SystemExit` is raised.
+   * Especially since this exception more likely to be used for background/batch-processing
+   * utilities where exiting immediately makes sense, the possibility of this being called
+   * indirectly from python-drivers or modal-operators is less of a concern. */
+  PyErr_Restore(error_type, error_value, error_traceback);
+  PyErr_Print();
+}
+
 /* returns the exception string as a new PyUnicode object, depends on external traceback module */
 #  if 0
 
@@ -872,6 +902,8 @@ PyObject *PyC_ExceptionBuffer(void)
   }
 
   PyErr_Fetch(&error_type, &error_value, &error_traceback);
+
+  pyc_exception_buffer_handle_system_exit(error_type, error_value, error_traceback);
 
   /* import io
    * string_io = io.StringIO()
@@ -943,6 +975,11 @@ PyObject *PyC_ExceptionBuffer_Simple(void)
   PyObject *error_type, *error_value, *error_traceback;
 
   PyErr_Fetch(&error_type, &error_value, &error_traceback);
+
+  /* Since #PyErr_Print is not called it's not essential that `SystemExit` exceptions are handled.
+   * Do this to match the behavior of #PyC_ExceptionBuffer since requesting a brief exception
+   * shouldn't result in completely different behavior. */
+  pyc_exception_buffer_handle_system_exit(error_type, error_value, error_traceback);
 
   if (PyErr_GivenExceptionMatches(error_type, PyExc_SyntaxError)) {
     /* Special exception for syntax errors,
