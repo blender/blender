@@ -166,7 +166,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     prim = segment.prim;
 
 #    if OPTIX_ABI_VERSION < 55
-    /* Filter out curve endcaps. */
+    /* Filter out curve end-caps. */
     if (u == 0.0f || u == 1.0f) {
       return optixIgnoreIntersection();
     }
@@ -290,7 +290,7 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
 #ifdef __HAIR__
 #  if OPTIX_ABI_VERSION < 55
   if (optixGetPrimitiveType() == OPTIX_PRIMITIVE_TYPE_ROUND_CUBIC_BSPLINE) {
-    /* Filter out curve endcaps. */
+    /* Filter out curve end-caps. */
     const float u = __uint_as_float(optixGetAttribute_0());
     if (u == 0.0f || u == 1.0f) {
       return optixIgnoreIntersection();

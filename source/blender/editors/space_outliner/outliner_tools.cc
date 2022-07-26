@@ -790,11 +790,11 @@ struct OutlinerLiboverrideDataIDRoot {
    * known/created. */
   ID *id_hierarchy_root_override;
 
-  /** The ID that was detected as being a good candidate as instanciation hint for newly overridden
+  /** The ID that was detected as being a good candidate as instantiation hint for newly overridden
    * objects, may be null.
    *
    * \note Typically currently only used when the root ID to override is a collection instanced by
-   * an emtpy object. */
+   * an empty object. */
   ID *id_instance_hint;
 
   /** If this override comes from an instancing object (which would be `id_instance_hint` then). */

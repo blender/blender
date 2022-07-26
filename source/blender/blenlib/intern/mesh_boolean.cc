@@ -2966,10 +2966,10 @@ static std::ostream &operator<<(std::ostream &os, const FaceMergeState &fms)
  * \a tris all have the same original face.
  * Find the 2d edge/triangle topology for these triangles, but only the ones facing in the
  * norm direction, and whether each edge is dissolvable or not.
- * If we did the initial triangulation properly, and any Delaunay triangulations of interections
+ * If we did the initial triangulation properly, and any Delaunay triangulations of intersections
  * properly, then each triangle edge should have at most one neighbor.
- * However, there can be anonalies. For example, if an input face is self-intersecting, we fall
- * back on the floating poing polyfill triangulation, which, after which all bets are off.
+ * However, there can be anomalies. For example, if an input face is self-intersecting, we fall
+ * back on the floating point poly-fill triangulation, which, after which all bets are off.
  * Hence, try to be tolerant of such unexpected topology.
  */
 static void init_face_merge_state(FaceMergeState *fms,

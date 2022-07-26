@@ -3881,7 +3881,7 @@ bool GHOST_SystemWayland::window_cursor_grab_set(const GHOST_TGrabCursorMode mod
       input->relative_pointer = nullptr;
     }
     if (input->locked_pointer) {
-      /* Potentially add a motion event so the applicate has updated X/Y coordinates. */
+      /* Potentially add a motion event so the application has updated X/Y coordinates. */
       int32_t xy_motion[2] = {0, 0};
       bool xy_motion_create_event = false;
 

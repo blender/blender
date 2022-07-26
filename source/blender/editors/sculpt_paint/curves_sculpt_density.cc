@@ -595,7 +595,7 @@ struct DensitySubtractOperationExecutor {
           return curves_to_delete[curve_i];
         });
 
-    /* Remove deleted curves fromt he stored deformed root positions. */
+    /* Remove deleted curves from the stored deformed root positions. */
     const Vector<IndexRange> ranges_to_keep = mask_to_delete.extract_ranges_invert(
         curves_->curves_range());
     BLI_assert(curves_->curves_num() == self_->deformed_root_positions_.size());

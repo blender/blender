@@ -96,7 +96,7 @@ float (*BKE_crazyspace_get_mapped_editverts(struct Depsgraph *depsgraph, Object 
 
   /* disable subsurf temporal, get mapped cos, and enable it */
   if (modifiers_disable_subsurf_temporary(scene_eval, obedit_eval)) {
-    /* need to make new derivemesh */
+    /* Need to make new derived-mesh. */
     makeDerivedMesh(depsgraph, scene_eval, obedit_eval, &CD_MASK_BAREMESH);
   }
 

@@ -533,10 +533,12 @@ typedef struct DRWData {
   void *volume_grids_ubos; /* VolumeUniformBufPool */
   /** List of smoke textures to free after drawing. */
   ListBase smoke_textures;
-  /** Texture pool to reuse temp texture across engines. */
-  /* TODO(@fclem): The pool could be shared even between view-ports. */
+  /**
+   * Texture pool to reuse temp texture across engines.
+   * TODO(@fclem): The pool could be shared even between view-ports.
+   */
   struct DRWTexturePool *texture_pool;
-  /** Per stereo view data. Contains engine data and default framebuffers. */
+  /** Per stereo view data. Contains engine data and default frame-buffers. */
   struct DRWViewData *view_data[2];
   /** Per draw-call curves object data. */
   struct CurvesUniformBufPool *curves_ubos;

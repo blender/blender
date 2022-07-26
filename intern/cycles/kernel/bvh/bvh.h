@@ -8,7 +8,7 @@
 
 #include "kernel/integrator/state_util.h"
 
-/* Device specific accleration structures for ray tracing. */
+/* Device specific acceleration structures for ray tracing. */
 
 #if defined(__EMBREE__)
 #  include "kernel/device/cpu/bvh.h"

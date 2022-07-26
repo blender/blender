@@ -95,7 +95,7 @@ void ShadingView::render()
     return;
   }
 
-  /* Query temp textures and create framebuffers. */
+  /* Query temp textures and create frame-buffers. */
   /* HACK: View name should be unique and static.
    * With this, we can reuse the same texture across views. */
   DrawEngineType *owner = (DrawEngineType *)name_;

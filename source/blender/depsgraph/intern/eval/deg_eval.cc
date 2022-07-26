@@ -70,7 +70,7 @@ enum class EvaluationStage {
    * involved. */
   COPY_ON_WRITE,
 
-  /* Evaluate actual ID nodes visiblity based on the current state of animation and drivers. */
+  /* Evaluate actual ID nodes visibility based on the current state of animation and drivers. */
   DYNAMIC_VISIBILITY,
 
   /* Threaded evaluation of all possible operations. */
@@ -136,7 +136,7 @@ bool check_operation_node_visible(const DepsgraphEvalState *state, OperationNode
     return true;
   }
 
-  /* Special case for dynamic visiblity pass: the actual visibility is not yet known, so limit to
+  /* Special case for dynamic visibility pass: the actual visibility is not yet known, so limit to
    * only operations which affects visibility. */
   if (state->stage == EvaluationStage::DYNAMIC_VISIBILITY) {
     return op_node->flag & OperationFlag::DEPSOP_FLAG_AFFECTS_VISIBILITY;

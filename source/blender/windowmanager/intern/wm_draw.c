@@ -957,7 +957,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
     GPU_debug_group_end();
   }
 
-  /* Draw menus into their own framebuffer. */
+  /* Draw menus into their own frame-buffer. */
   LISTBASE_FOREACH (ARegion *, region, &screen->regionbase) {
     if (!region->visible) {
       continue;
@@ -994,7 +994,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 
   GPU_debug_group_begin("Window Redraw");
 
-  /* Draw into the window framebuffer, in full window coordinates. */
+  /* Draw into the window frame-buffer, in full window coordinates. */
   wmWindowViewport(win);
 
   /* We draw on all pixels of the windows so we don't need to clear them before.
@@ -1106,17 +1106,17 @@ static void wm_draw_window(bContext *C, wmWindow *win)
   /* Avoid any BGL call issued before this to alter the window drawin. */
   GPU_bgl_end();
 
-  /* Draw area regions into their own framebuffer. This way we can redraw
-   * the areas that need it, and blit the rest from existing framebuffers. */
+  /* Draw area regions into their own frame-buffer. This way we can redraw
+   * the areas that need it, and blit the rest from existing frame-buffers. */
   wm_draw_window_offscreen(C, win, stereo);
 
-  /* Now we draw into the window framebuffer, in full window coordinates. */
+  /* Now we draw into the window frame-buffer, in full window coordinates. */
   if (!stereo) {
     /* Regular mono drawing. */
     wm_draw_window_onscreen(C, win, -1);
   }
   else if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
-    /* For pageflip we simply draw to both back buffers. */
+    /* For page-flip we simply draw to both back buffers. */
     GPU_backbuffer_bind(GPU_BACKBUFFER_RIGHT);
     wm_draw_window_onscreen(C, win, 1);
 
@@ -1125,12 +1125,12 @@ static void wm_draw_window(bContext *C, wmWindow *win)
   }
   else if (ELEM(win->stereo3d_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
     /* For anaglyph and interlace, we draw individual regions with
-     * stereo framebuffers using different shaders. */
+     * stereo frame-buffers using different shaders. */
     wm_draw_window_onscreen(C, win, -1);
   }
   else {
     /* For side-by-side and top-bottom, we need to render each view to an
-     * an offscreen texture and then draw it. This used to happen for all
+     * an off-screen texture and then draw it. This used to happen for all
      * stereo methods, but it's less efficient than drawing directly. */
     const int width = WM_window_pixels_x(win);
     const int height = WM_window_pixels_y(win);
