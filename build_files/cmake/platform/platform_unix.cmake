@@ -202,6 +202,9 @@ if(WITH_CODEC_FFMPEG)
       vpx
       x264
       xvidcore)
+    if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
+      list(APPEND FFMPEG_FIND_COMPONENTS aom)
+    endif()
   elseif(FFMPEG)
     # Old cache variable used for root dir, convert to new standard.
     set(FFMPEG_ROOT_DIR ${FFMPEG})

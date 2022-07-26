@@ -162,6 +162,9 @@ if(WITH_CODEC_FFMPEG)
     mp3lame ogg opus swresample swscale
     theora theoradec theoraenc vorbis vorbisenc
     vorbisfile vpx x264 xvidcore)
+  if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
+    list(APPEND FFMPEG_FIND_COMPONENTS aom)
+  endif()
   find_package(FFmpeg)
 endif()
 

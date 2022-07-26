@@ -633,3 +633,9 @@ set(OCLOC_URI https://github.com/intel/compute-runtime/archive/refs/tags/${OCLOC
 set(OCLOC_HASH ab22b8bf2560a57fdd3def0e35a62ca75991406f959c0263abb00cd6cd9ae998)
 set(OCLOC_HASH_TYPE SHA256)
 set(OCLOC_FILE ocloc-${OCLOC_VERSION}.tar.gz)
+
+set(AOM_VERSION 3.4.0)
+set(AOM_URI https://storage.googleapis.com/aom-releases/libaom-${AOM_VERSION}.tar.gz)
+set(AOM_HASH bd754b58c3fa69f3ffd29da77de591bd9c26970e3b18537951336d6c0252e354)
+set(AOM_HASH_TYPE SHA256)
+set(AOM_FILE libaom-${AOM_VERSION}.tar.gz)
