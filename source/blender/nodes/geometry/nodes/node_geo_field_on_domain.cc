@@ -9,6 +9,8 @@
 
 #include "BLI_task.hh"
 
+#include "NOD_socket_search_link.hh"
+
 namespace blender::nodes::node_geo_field_on_domain_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -65,6 +67,20 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, sock_out_vector, data_type == CD_PROP_FLOAT3);
   nodeSetSocketAvailability(ntree, sock_out_color, data_type == CD_PROP_COLOR);
   nodeSetSocketAvailability(ntree, sock_out_bool, data_type == CD_PROP_BOOL);
+}
+
+static void node_gather_link_searches(GatherLinkSearchOpParams &params)
+{
+  const bNodeType &node_type = params.node_type();
+  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
+      (eNodeSocketDatatype)params.other_socket().type);
+  if (type && *type != CD_PROP_STRING) {
+    params.add_item(IFACE_("Value"), [node_type, type](LinkSearchOpParams &params) {
+      bNode &node = params.add_node(node_type);
+      node.custom2 = *type;
+      params.update_and_connect_available_socket(node, "Value");
+    });
+  }
 }
 
 class FieldOnDomain final : public GeometryFieldInput {
@@ -143,5 +159,6 @@ void register_node_type_geo_field_on_domain()
   ntype.draw_buttons = file_ns::node_layout;
   ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
+  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   nodeRegisterType(&ntype);
 }
