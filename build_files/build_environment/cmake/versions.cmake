@@ -45,15 +45,15 @@ set(PTHREADS_HASH f3bf81bb395840b3446197bcf4ecd653)
 set(PTHREADS_HASH_TYPE MD5)
 set(PTHREADS_FILE pthreads4w-code-${PTHREADS_VERSION}.zip)
 
-set(OPENEXR_VERSION 3.1.4)
+set(OPENEXR_VERSION 3.1.5)
 set(OPENEXR_URI https://github.com/AcademySoftwareFoundation/openexr/archive/v${OPENEXR_VERSION}.tar.gz)
-set(OPENEXR_HASH e990be1ff765797bc2d93a8060e1c1f2)
+set(OPENEXR_HASH a92f38eedd43e56c0af56d4852506886)
 set(OPENEXR_HASH_TYPE MD5)
 set(OPENEXR_FILE openexr-${OPENEXR_VERSION}.tar.gz)
 
-set(IMATH_VERSION 3.1.4)
+set(IMATH_VERSION 3.1.5)
 set(IMATH_URI https://github.com/AcademySoftwareFoundation/Imath/archive/v${OPENEXR_VERSION}.tar.gz)
-set(IMATH_HASH fddf14ec73e12c34e74c3c175e311a3f)
+set(IMATH_HASH dd375574276c54872b7b3d54053baff0)
 set(IMATH_HASH_TYPE MD5)
 set(IMATH_FILE imath-${IMATH_VERSION}.tar.gz)
 
@@ -163,9 +163,9 @@ set(ROBINMAP_HASH c08ec4b1bf1c85eb0d6432244a6a89862229da1cb834f3f90fba8dc35d8c8e
 set(ROBINMAP_HASH_TYPE SHA256)
 set(ROBINMAP_FILE robinmap-${ROBINMAP_VERSION}.tar.gz)
 
-set(TIFF_VERSION 4.3.0)
+set(TIFF_VERSION 4.4.0)
 set(TIFF_URI http://download.osgeo.org/libtiff/tiff-${TIFF_VERSION}.tar.gz)
-set(TIFF_HASH 0a2e4744d1426a8fc8211c0cdbc3a1b3)
+set(TIFF_HASH 376f17f189e9d02280dfe709b2b2bbea)
 set(TIFF_HASH_TYPE MD5)
 set(TIFF_FILE tiff-${TIFF_VERSION}.tar.gz)
 
