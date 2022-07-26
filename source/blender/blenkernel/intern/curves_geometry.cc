@@ -1165,6 +1165,7 @@ static CurvesGeometry copy_with_removed_points(const CurvesGeometry &curves,
   CurvesGeometry new_curves{new_point_count, new_curve_count};
 
   threading::parallel_invoke(
+      256 < new_point_count * new_curve_count,
       /* Initialize curve offsets. */
       [&]() { new_curves.offsets_for_write().copy_from(new_curve_offsets); },
       [&]() {
@@ -1237,6 +1238,7 @@ static CurvesGeometry copy_with_removed_curves(const CurvesGeometry &curves,
   CurvesGeometry new_curves{new_tot_points, new_tot_curves};
 
   threading::parallel_invoke(
+      256 < new_tot_points * new_tot_curves,
       /* Initialize curve offsets. */
       [&]() {
         MutableSpan<int> new_offsets = new_curves.offsets_for_write();

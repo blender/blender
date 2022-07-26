@@ -188,6 +188,7 @@ struct DensityAddOperationExecutor {
      * curves. */
     Array<bool> new_curve_skipped(new_positions_cu.size(), false);
     threading::parallel_invoke(
+        512 < already_added_curves + new_positions_cu.size(),
         /* Build kdtree from root points created by the current stroke. */
         [&]() {
           for (const int i : IndexRange(already_added_curves)) {
@@ -309,6 +310,7 @@ struct DensityAddOperationExecutor {
     };
 
     threading::parallel_invoke(
+        1024 < original_positions.size() + deformed_positions.size(),
         [&]() {
           self_->original_curve_roots_kdtree_ = roots_kdtree_from_positions(original_positions);
         },

@@ -734,6 +734,8 @@ static void select_grow_invoke_per_curve(Curves &curves_id,
   }
 
   threading::parallel_invoke(
+      1024 < curve_op_data.selected_point_indices.size() +
+                 curve_op_data.unselected_point_indices.size(),
       [&]() {
         /* Build KD-tree for the selected points. */
         KDTree_3d *kdtree = BLI_kdtree_3d_new(curve_op_data.selected_point_indices.size());

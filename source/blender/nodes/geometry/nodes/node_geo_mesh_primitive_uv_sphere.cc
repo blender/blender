@@ -307,6 +307,7 @@ static Mesh *create_uv_sphere_mesh(const float radius, const int segments, const
   MutableSpan<MPoly> polys{mesh->mpoly, mesh->totpoly};
 
   threading::parallel_invoke(
+      1024 < segments * rings,
       [&]() {
         MutableSpan vert_normals{(float3 *)BKE_mesh_vertex_normals_for_write(mesh), mesh->totvert};
         calculate_sphere_vertex_data(verts, vert_normals, radius, segments, rings);

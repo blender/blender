@@ -60,6 +60,7 @@ static void deform_curves(const CurvesGeometry &curves,
   Array<ReverseUVSampler::Result> surface_samples_old(curves_num);
   Array<ReverseUVSampler::Result> surface_samples_new(curves_num);
   threading::parallel_invoke(
+      1024 < curves_num,
       [&]() { reverse_uv_sampler_old.sample_many(curve_attachment_uvs, surface_samples_old); },
       [&]() { reverse_uv_sampler_new.sample_many(curve_attachment_uvs, surface_samples_new); });
 
