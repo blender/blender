@@ -1455,7 +1455,11 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
     }
     case SOCK_BOOLEAN:
     case SOCK_RGBA:
-    case SOCK_STRING: {
+    case SOCK_STRING:
+    case SOCK_OBJECT:
+    case SOCK_COLLECTION:
+    case SOCK_TEXTURE:
+    case SOCK_MATERIAL: {
       uiItemR(col, ptr, "default_value", DEFAULT_FLAGS, IFACE_("Default"), 0);
       break;
     }
