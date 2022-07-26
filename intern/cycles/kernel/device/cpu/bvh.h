@@ -446,19 +446,11 @@ ccl_device void kernel_embree_filter_occluded_func_backface_cull(
 
 /* Scene intersection. */
 
-ccl_device_intersect bool scene_intersect(KernelGlobals kg,
-                                          ccl_private const Ray *ray,
-                                          const uint visibility,
-                                          ccl_private Intersection *isect)
+ccl_device_intersect bool kernel_embree_intersect(KernelGlobals kg,
+                                                  ccl_private const Ray *ray,
+                                                  const uint visibility,
+                                                  ccl_private Intersection *isect)
 {
-  if (!intersection_ray_valid(ray)) {
-    return false;
-  }
-
-  if (!kernel_data.device_bvh) {
-    return false;
-  }
-
   isect->t = ray->tmax;
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_REGULAR);
   IntersectContext rtc_ctx(&ctx);
@@ -476,24 +468,13 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 }
 
 #ifdef __BVH_LOCAL__
-ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
-                                                ccl_private const Ray *ray,
-                                                ccl_private LocalIntersection *local_isect,
-                                                int local_object,
-                                                ccl_private uint *lcg_state,
-                                                int max_hits)
+ccl_device_intersect bool kernel_embree_intersect_local(KernelGlobals kg,
+                                                        ccl_private const Ray *ray,
+                                                        ccl_private LocalIntersection *local_isect,
+                                                        int local_object,
+                                                        ccl_private uint *lcg_state,
+                                                        int max_hits)
 {
-  if (!intersection_ray_valid(ray)) {
-    if (local_isect) {
-      local_isect->num_hits = 0;
-    }
-    return false;
-  }
-
-  if (!kernel_data.device_bvh) {
-    return false;
-  }
-
   const bool has_bvh = !(kernel_data_fetch(object_flag, local_object) &
                          SD_OBJECT_TRANSFORM_APPLIED);
   CCLIntersectContext ctx(kg,
@@ -544,24 +525,14 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 #endif
 
 #ifdef __SHADOW_RECORD_ALL__
-ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
-                                                     IntegratorShadowStateCPU *state,
-                                                     ccl_private const Ray *ray,
-                                                     uint visibility,
-                                                     uint max_hits,
-                                                     ccl_private uint *num_recorded_hits,
-                                                     ccl_private float *throughput)
+ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
+                                                             IntegratorShadowStateCPU *state,
+                                                             ccl_private const Ray *ray,
+                                                             uint visibility,
+                                                             uint max_hits,
+                                                             ccl_private uint *num_recorded_hits,
+                                                             ccl_private float *throughput)
 {
-  if (!intersection_ray_valid(ray)) {
-    *num_recorded_hits = 0;
-    *throughput = 1.0f;
-    return false;
-  }
-
-  if (!kernel_data.device_bvh) {
-    return false;
-  }
-
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_SHADOW_ALL);
   Intersection *isect_array = (Intersection *)state->shadow_isect;
   ctx.isect_s = isect_array;
@@ -579,20 +550,12 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
 #endif
 
 #ifdef __VOLUME__
-ccl_device_intersect uint scene_intersect_volume(KernelGlobals kg,
-                                                 ccl_private const Ray *ray,
-                                                 ccl_private Intersection *isect,
-                                                 const uint max_hits,
-                                                 const uint visibility)
+ccl_device_intersect uint kernel_embree_intersect_volume(KernelGlobals kg,
+                                                         ccl_private const Ray *ray,
+                                                         ccl_private Intersection *isect,
+                                                         const uint max_hits,
+                                                         const uint visibility)
 {
-  if (!intersection_ray_valid(ray)) {
-    return false;
-  }
-
-  if (!kernel_data.device_bvh) {
-    return false;
-  }
-
   CCLIntersectContext ctx(kg, CCLIntersectContext::RAY_VOLUME_ALL);
   ctx.isect_s = isect;
   ctx.max_hits = max_hits;

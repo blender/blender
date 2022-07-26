@@ -12,6 +12,7 @@
 
 #if defined(__EMBREE__)
 #  include "kernel/device/cpu/bvh.h"
+#  define __BVH2__
 #elif defined(__METALRT__)
 #  include "kernel/device/metal/bvh.h"
 #elif defined(__KERNEL_OPTIX__)
@@ -72,6 +73,12 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     return false;
   }
 
+#  ifdef __EMBREE__
+  if (kernel_data.device_bvh) {
+    return kernel_embree_intersect(kg, ray, visibility, isect);
+  }
+#  endif
+
 #  ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
 #    ifdef __HAIR__
@@ -121,6 +128,12 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
     return false;
   }
 
+#    ifdef __EMBREE__
+  if (kernel_data.device_bvh) {
+    return kernel_embree_intersect_local(kg, ray, local_isect, local_object, lcg_state, max_hits);
+  }
+#    endif
+
 #    ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
     return bvh_intersect_local_motion(kg, ray, local_isect, local_object, lcg_state, max_hits);
@@ -169,6 +182,13 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
     *throughput = 1.0f;
     return false;
   }
+
+#    ifdef __EMBREE__
+  if (kernel_data.device_bvh) {
+    return kernel_embree_intersect_shadow_all(
+        kg, state, ray, visibility, max_hits, num_recorded_hits, throughput);
+  }
+#    endif
 
 #    ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
@@ -253,6 +273,12 @@ ccl_device_intersect uint scene_intersect_volume(KernelGlobals kg,
   if (!intersection_ray_valid(ray)) {
     return false;
   }
+
+#    ifdef __EMBREE__
+  if (kernel_data.device_bvh) {
+    return kernel_embree_intersect_volume(kg, ray, isect, max_hits, visibility);
+  }
+#    endif
 
 #    ifdef __OBJECT_MOTION__
   if (kernel_data.bvh.have_motion) {
