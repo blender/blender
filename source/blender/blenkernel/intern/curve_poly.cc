@@ -65,8 +65,21 @@ void calculate_tangents(const Span<float3> positions,
     tangents.last() = direction_bisect(second_to_last, last, first, used_fallback);
   }
   else {
-    tangents.first() = math::normalize(positions[1] - positions.first());
-    tangents.last() = math::normalize(positions.last() - positions[positions.size() - 2]);
+    const float epsilon = 1e-6f;
+    if (math::almost_equal_relative(positions[0], positions[1], epsilon)) {
+      tangents.first() = {0.0f, 0.0f, 0.0f};
+      used_fallback = true;
+    }
+    else {
+      tangents.first() = math::normalize(positions[1] - positions[0]);
+    }
+    if (math::almost_equal_relative(positions.last(0), positions.last(1), epsilon)) {
+      tangents.last() = {0.0f, 0.0f, 0.0f};
+      used_fallback = true;
+    }
+    else {
+      tangents.last() = math::normalize(positions.last(0) - positions.last(1));
+    }
   }
 
   if (!used_fallback) {
