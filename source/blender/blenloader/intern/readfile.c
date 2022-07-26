@@ -517,7 +517,7 @@ void blo_split_main(ListBase *mainlist, Main *main)
   while (i--) {
     ID *id = lbarray[i]->first;
     if (id == NULL || GS(id->name) == ID_LI) {
-      /* No ID_LI data-lock should ever be linked anyway, but just in case, better be explicit. */
+      /* No ID_LI data-block should ever be linked anyway, but just in case, better be explicit. */
       continue;
     }
     split_libdata(lbarray[i], lib_main_array, lib_main_array_len);
@@ -4175,7 +4175,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
   }
 
   if (bhead->code == ID_LINK_PLACEHOLDER) {
-    /* Placeholder link to data-lock in another library. */
+    /* Placeholder link to data-block in another library. */
     BHead *bheadlib = find_previous_lib(fd, bhead);
     if (bheadlib == NULL) {
       return;
@@ -4229,7 +4229,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
        */
       oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
 
-      /* If "id" is a real data-lock and not a placeholder, we need to
+      /* If "id" is a real data-block and not a placeholder, we need to
        * update fd->libmap to replace ID_LINK_PLACEHOLDER with the real
        * ID_* code.
        *
@@ -4890,11 +4890,11 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
           }
         }
 
-        /* Read linked data-locks for each link placeholder, and replace
-         * the placeholder with the real data-lock. */
+        /* Read linked data-blocks for each link placeholder, and replace
+         * the placeholder with the real data-block. */
         read_library_linked_ids(basefd, fd, mainlist, mainptr);
 
-        /* Test if linked data-locks need to read further linked data-locks
+        /* Test if linked data-blocks need to read further linked data-blocks
          * and create link placeholders for them. */
         BLO_expand_main(fd, mainptr);
       }
@@ -4906,7 +4906,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
     /* Drop weak links for which no data-block was found. */
     read_library_clear_weak_links(basefd, mainlist, mainptr);
 
-    /* Do versioning for newly added linked data-locks. If no data-locks
+    /* Do versioning for newly added linked data-blocks. If no data-blocks
      * were read from a library versionfile will still be zero and we can
      * skip it. */
     if (mainptr->versionfile) {
