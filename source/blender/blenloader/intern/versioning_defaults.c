@@ -134,6 +134,14 @@ static void blo_update_defaults_screen(bScreen *screen,
           }
         }
       }
+      else {
+        /* Open properties panel by default. */
+        LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+          if (region->regiontype == RGN_TYPE_UI) {
+            region->flag &= ~RGN_FLAG_HIDDEN;
+          }
+        }
+      }
     }
     else if (area->spacetype == SPACE_GRAPH) {
       SpaceGraph *sipo = area->spacedata.first;

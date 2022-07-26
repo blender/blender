@@ -875,6 +875,34 @@ void do_versions_after_linking_300(Main *bmain, ReportList *UNUSED(reports))
    */
   {
     /* Keep this block, even when empty. */
+
+    {
+      /* In the Dope Sheet, for every mode other than Timeline, open the Properties panel. */
+      LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+        LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+          LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+            if (sl->spacetype != SPACE_ACTION) {
+              continue;
+            }
+
+            /* Skip the timeline, it shouldn't get its Properties panel opened. */
+            SpaceAction *saction = (SpaceAction *)sl;
+            if (saction->mode == SACTCONT_TIMELINE) {
+              continue;
+            }
+
+            const bool is_first_space = sl == area->spacedata.first;
+            ListBase *regionbase = is_first_space ? &area->regionbase : &sl->regionbase;
+            ARegion *region = BKE_region_find_in_listbase_by_type(regionbase, RGN_TYPE_UI);
+            if (region == NULL) {
+              continue;
+            }
+
+            region->flag &= ~RGN_FLAG_HIDDEN;
+          }
+        }
+      }
+    }
   }
 }
 
