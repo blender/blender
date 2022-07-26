@@ -1601,6 +1601,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
                     }
                   }
                 }
+                BKE_gpencil_stroke_geometry_update(gpd, gps);
               }
             }
           }
