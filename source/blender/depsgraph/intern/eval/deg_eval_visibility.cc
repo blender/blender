@@ -57,6 +57,27 @@ void deg_graph_flush_visibility_flags(Depsgraph *graph)
     for (ComponentNode *comp_node : id_node->components.values()) {
       comp_node->possibly_affects_visible_id = id_node->is_visible_on_build;
       comp_node->affects_visible_id = id_node->is_visible_on_build && id_node->is_enabled_on_eval;
+
+      /* Visibility component is always to be considered to have the same visibility as the
+       * `id_node->is_visible_on_build`. This is because the visibility is to be evaluated
+       * regardless of its current state as it might get changed due to animation. */
+      if (comp_node->type == NodeType::VISIBILITY) {
+        comp_node->affects_visible_id = id_node->is_visible_on_build;
+      }
+
+      /* Enforce "visibility" of the synchronization component.
+       *
+       * This component is never connected to other ID nodes, and hence can not be handled in the
+       * same way as other components needed for evaluation. It is only needed for proper
+       * evaluation of the ID node it belongs to.
+       *
+       * The design is such that the synchronization is supposed to happen whenever any part of the
+       * ID changed/evaluated. Here we mark the component as "visible" so that genetic recalc flag
+       * flushing and scheduling will handle the component in a generic manner. */
+      if (comp_node->type == NodeType::SYNCHRONIZATION) {
+        comp_node->possibly_affects_visible_id = true;
+        comp_node->affects_visible_id = true;
+      }
     }
   }
 
@@ -85,6 +106,13 @@ void deg_graph_flush_visibility_flags(Depsgraph *graph)
       if (rel->from->type == NodeType::OPERATION) {
         const OperationNode *op_to = reinterpret_cast<const OperationNode *>(rel->to);
         const ComponentNode *comp_to = op_to->owner;
+
+        /* Ignore the synchronization target.
+         * It is always visible and should not affect on other components. */
+        if (comp_to->type == NodeType::SYNCHRONIZATION) {
+          continue;
+        }
+
         OperationNode *op_from = reinterpret_cast<OperationNode *>(rel->from);
         ComponentNode *comp_from = op_from->owner;
 

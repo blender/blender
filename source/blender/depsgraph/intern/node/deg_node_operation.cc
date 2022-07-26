@@ -218,9 +218,13 @@ string OperationNode::full_identifier() const
 
 void OperationNode::tag_update(Depsgraph *graph, eUpdateSource source)
 {
-  if ((flag & DEPSOP_FLAG_NEEDS_UPDATE) == 0) {
-    graph->add_entry_tag(this);
-  }
+  /* Ensure that there is an entry tag for this update.
+   *
+   * Note that the node might already be tagged for an update due invisible state of the node
+   * during previous dependency evaluation. Here the node gets re-tagged, so we need to give
+   * the evaluated clues that evaluation needs to happen again. */
+  graph->add_entry_tag(this);
+
   /* Tag for update, but also note that this was the source of an update. */
   flag |= (DEPSOP_FLAG_NEEDS_UPDATE | DEPSOP_FLAG_DIRECTLY_MODIFIED);
   switch (source) {

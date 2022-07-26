@@ -218,10 +218,9 @@ void ComponentNode::clear_operations()
 
 void ComponentNode::tag_update(Depsgraph *graph, eUpdateSource source)
 {
-  OperationNode *entry_op = get_entry_operation();
-  if (entry_op != nullptr && entry_op->flag & DEPSOP_FLAG_NEEDS_UPDATE) {
-    return;
-  }
+  /* Note that the node might already be tagged for an update due invisible state of the node
+   * during previous dependency evaluation. Here the node gets re-tagged, so we need to give
+   * the evaluated clues that evaluation needs to happen again. */
   for (OperationNode *op_node : operations) {
     op_node->tag_update(graph, source);
   }

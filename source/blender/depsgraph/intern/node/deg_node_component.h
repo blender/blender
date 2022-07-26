@@ -201,31 +201,13 @@ DEG_COMPONENT_NODE_DECLARE_GENERIC(ShadingParameters);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Transform);
 DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(ObjectFromLayer);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Dupli);
+DEG_COMPONENT_NODE_DECLARE_GENERIC(Synchronization);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Audio);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Armature);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(GenericDatablock);
 DEG_COMPONENT_NODE_DECLARE_NO_COW_TAG_ON_UPDATE(Visibility);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(Simulation);
 DEG_COMPONENT_NODE_DECLARE_GENERIC(NTreeOutput);
-
-/* Synchronization Component. */
-struct SynchronizationComponentNode : public ComponentNode {
-  SynchronizationComponentNode()
-  {
-    /* Enforce "visibility" of the synchronization component.
-     *
-     * This component is never connected to other ID nodes, and hence can not be handled in the
-     * same way as other components needed for evaluation. It is only needed for proper
-     * evaluation of the ID node it belongs to.
-     *
-     * The design is such that the synchronization is supposed to happen whenever any part of the
-     * ID changed/evaluated. Here we mark the component as "visible" so that genetic recalc flag
-     * flushing and scheduling will handle the component in a generic manner. */
-    affects_visible_id = true;
-  }
-
-  DEG_COMPONENT_NODE_DECLARE;
-};
 
 /* Bone Component */
 struct BoneComponentNode : public ComponentNode {

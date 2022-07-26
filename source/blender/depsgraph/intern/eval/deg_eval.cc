@@ -111,7 +111,8 @@ void evaluate_node(const DepsgraphEvalState *state, OperationNode *operation_nod
    * times.
    * This is a thread-safe modification as the node's flags are only read for a non-scheduled nodes
    * and this node has been scheduled. */
-  operation_node->flag &= ~DEPSOP_FLAG_NEEDS_UPDATE;
+  operation_node->flag &= ~(DEPSOP_FLAG_DIRECTLY_MODIFIED | DEPSOP_FLAG_NEEDS_UPDATE |
+                            DEPSOP_FLAG_USER_MODIFIED);
 }
 
 void deg_task_run_func(TaskPool *pool, void *taskdata)
@@ -466,7 +467,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
     deg_eval_stats_aggregate(graph);
   }
 
-  /* Clear any uncleared tags - just in case. */
+  /* Clear any uncleared tags. */
   deg_graph_clear_tags(graph);
   graph->is_evaluating = false;
 
