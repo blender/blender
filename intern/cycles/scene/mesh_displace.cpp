@@ -73,16 +73,16 @@ static int fill_shader_input(const Scene *scene,
 
       switch (j) {
         case 0:
-          u = 1.0f;
+          u = 0.0f;
           v = 0.0f;
           break;
         case 1:
-          u = 0.0f;
-          v = 1.0f;
+          u = 1.0f;
+          v = 0.0f;
           break;
         default:
           u = 0.0f;
-          v = 0.0f;
+          v = 1.0f;
           break;
       }
 

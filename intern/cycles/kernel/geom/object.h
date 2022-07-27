@@ -503,20 +503,6 @@ ccl_device_inline void bvh_instance_push(KernelGlobals kg,
   *idir = bvh_inverse_direction(*dir);
 }
 
-/* Transform ray to exit static object in BVH. */
-
-ccl_device_inline void bvh_instance_pop(KernelGlobals kg,
-                                        int object,
-                                        ccl_private const Ray *ray,
-                                        ccl_private float3 *P,
-                                        ccl_private float3 *dir,
-                                        ccl_private float3 *idir)
-{
-  *P = ray->P;
-  *dir = bvh_clamp_direction(ray->D);
-  *idir = bvh_inverse_direction(*dir);
-}
-
 #ifdef __OBJECT_MOTION__
 /* Transform ray into object space to enter motion blurred object in BVH */
 
@@ -536,21 +522,19 @@ ccl_device_inline void bvh_instance_motion_push(KernelGlobals kg,
   *idir = bvh_inverse_direction(*dir);
 }
 
-/* Transform ray to exit motion blurred object in BVH. */
+#endif
 
-ccl_device_inline void bvh_instance_motion_pop(KernelGlobals kg,
-                                               int object,
-                                               ccl_private const Ray *ray,
-                                               ccl_private float3 *P,
-                                               ccl_private float3 *dir,
-                                               ccl_private float3 *idir)
+/* Transform ray to exit static object in BVH. */
+
+ccl_device_inline void bvh_instance_pop(ccl_private const Ray *ray,
+                                        ccl_private float3 *P,
+                                        ccl_private float3 *dir,
+                                        ccl_private float3 *idir)
 {
   *P = ray->P;
   *dir = bvh_clamp_direction(ray->D);
   *idir = bvh_inverse_direction(*dir);
 }
-
-#endif
 
 /* TODO: This can be removed when we know if no devices will require explicit
  * address space qualifiers for this case. */

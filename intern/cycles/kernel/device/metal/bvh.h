@@ -129,9 +129,8 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 
   isect->t = intersection.distance;
   if (intersection.type == intersection_type::triangle) {
-    isect->u = 1.0f - intersection.triangle_barycentric_coord.y -
-               intersection.triangle_barycentric_coord.x;
-    isect->v = intersection.triangle_barycentric_coord.x;
+    isect->u = intersection.triangle_barycentric_coord.x;
+    isect->v = intersection.triangle_barycentric_coord.y;
   }
   else {
     isect->u = payload.u;
@@ -346,9 +345,8 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
 
   isect->t = intersection.distance;
   if (intersection.type == intersection_type::triangle) {
-    isect->u = 1.0f - intersection.triangle_barycentric_coord.y -
-               intersection.triangle_barycentric_coord.x;
-    isect->v = intersection.triangle_barycentric_coord.x;
+    isect->u = intersection.triangle_barycentric_coord.x;
+    isect->v = intersection.triangle_barycentric_coord.y;
   }
   else {
     isect->u = payload.u;

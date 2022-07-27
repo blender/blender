@@ -137,8 +137,9 @@ ccl_device_inline float3 shadow_ray_smooth_surface_offset(
     triangle_vertices_and_normals(kg, sd->prim, V, N);
   }
 
-  const float u = sd->u, v = sd->v;
-  const float w = 1 - u - v;
+  const float u = 1.0f - sd->u - sd->v;
+  const float v = sd->u;
+  const float w = sd->v;
   float3 P = V[0] * u + V[1] * v + V[2] * w; /* Local space */
   float3 n = N[0] * u + N[1] * v + N[2] * w; /* We get away without normalization */
 

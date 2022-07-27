@@ -145,9 +145,9 @@ ccl_device_inline float3 triangle_point_from_uv(KernelGlobals kg,
   const packed_float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0),
                       tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1),
                       tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
-  float w = 1.0f - u - v;
 
-  float3 P = u * tri_a + v * tri_b + w * tri_c;
+  /* This appears to give slightly better precision than interpolating with w = (1 - u - v). */
+  float3 P = tri_a + u * (tri_b - tri_a) + v * (tri_c - tri_a);
 
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     const Transform tfm = object_get_transform(kg, sd);

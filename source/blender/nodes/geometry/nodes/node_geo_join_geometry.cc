@@ -185,6 +185,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   join_component_type<InstancesComponent>(geometry_sets, geometry_set_result);
   join_component_type<VolumeComponent>(geometry_sets, geometry_set_result);
   join_component_type<CurveComponent>(geometry_sets, geometry_set_result);
+  join_component_type<GeometryComponentEditData>(geometry_sets, geometry_set_result);
 
   params.set_output("Geometry", std::move(geometry_set_result));
 }
