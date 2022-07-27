@@ -5,6 +5,7 @@
  */
 
 #include "BKE_idtype.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
 
@@ -382,43 +383,60 @@ struct Uniqueness_Key {
   }
 };
 
-bool BKE_main_namemap_validate(Main *bmain)
+static bool main_namemap_validate_and_fix(Main *bmain, const bool do_fix)
 {
   Set<Uniqueness_Key> id_names_libs;
   bool is_valid = true;
-  ID *id_iter;
-  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-    Uniqueness_Key key;
-    BLI_strncpy(key.name, id_iter->name, MAX_ID_NAME);
-    key.lib = id_iter->lib;
-    if (!id_names_libs.add(key)) {
-      is_valid = false;
-      CLOG_ERROR(&LOG,
-                 "ID name '%s' (from library '%s') is found more than once",
-                 id_iter->name,
-                 id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
-    }
+  ListBase *lb_iter;
+  FOREACH_MAIN_LISTBASE_BEGIN (bmain, lb_iter) {
+    LISTBASE_FOREACH_MUTABLE (ID *, id_iter, lb_iter) {
+      Uniqueness_Key key;
+      BLI_strncpy(key.name, id_iter->name, MAX_ID_NAME);
+      key.lib = id_iter->lib;
+      if (!id_names_libs.add(key)) {
+        is_valid = false;
+        CLOG_ERROR(&LOG,
+                   "ID name '%s' (from library '%s') is found more than once",
+                   id_iter->name,
+                   id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+        if (do_fix) {
+          /* NOTE: this may imply moving this ID in its listbase, however re-checking it later is
+           * not really an issue. */
+          BKE_id_new_name_validate(
+              bmain, which_libbase(bmain, GS(id_iter->name)), id_iter, nullptr, true);
+          BLI_strncpy(key.name, id_iter->name, MAX_ID_NAME);
+          if (!id_names_libs.add(key)) {
+            CLOG_ERROR(&LOG,
+                       "\tID has been renamed to '%s', but it still seems to be already in use",
+                       id_iter->name);
+          }
+          else {
+            CLOG_WARN(&LOG, "\tID has been renamed to '%s'", id_iter->name);
+          }
+        }
+      }
 
-    UniqueName_Map *name_map = get_namemap_for(bmain, id_iter, false);
-    if (name_map == nullptr) {
-      continue;
-    }
-    UniqueName_TypeMap *type_map = name_map->find_by_type(GS(id_iter->name));
-    BLI_assert(type_map != nullptr);
+      UniqueName_Map *name_map = get_namemap_for(bmain, id_iter, false);
+      if (name_map == nullptr) {
+        continue;
+      }
+      UniqueName_TypeMap *type_map = name_map->find_by_type(GS(id_iter->name));
+      BLI_assert(type_map != nullptr);
 
-    UniqueName_Key key_namemap;
-    /* Remove full name from the set. */
-    BLI_strncpy(key_namemap.name, id_iter->name + 2, MAX_NAME);
-    if (!type_map->full_names.contains(key_namemap)) {
-      is_valid = false;
-      CLOG_ERROR(&LOG,
-                 "ID name '%s' (from library '%s') exists in current Main, but is not listed in "
-                 "the namemap",
-                 id_iter->name,
-                 id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+      UniqueName_Key key_namemap;
+      /* Remove full name from the set. */
+      BLI_strncpy(key_namemap.name, id_iter->name + 2, MAX_NAME);
+      if (!type_map->full_names.contains(key_namemap)) {
+        is_valid = false;
+        CLOG_ERROR(&LOG,
+                   "ID name '%s' (from library '%s') exists in current Main, but is not listed in "
+                   "the namemap",
+                   id_iter->name,
+                   id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+      }
     }
   }
-  FOREACH_MAIN_ID_END;
+  FOREACH_MAIN_LISTBASE_END;
 
   Library *lib = nullptr;
   UniqueName_Map *name_map = bmain->name_map;
@@ -450,5 +468,33 @@ bool BKE_main_namemap_validate(Main *bmain)
     name_map = (lib != nullptr) ? lib->runtime.name_map : nullptr;
   } while (lib != nullptr);
 
+  if (is_valid || !do_fix) {
+    return is_valid;
+  }
+
+  /* Clear all existing namemaps. */
+  lib = nullptr;
+  UniqueName_Map **name_map_p = &bmain->name_map;
+  do {
+    BLI_assert(name_map_p != nullptr);
+    if (*name_map_p != nullptr) {
+      BKE_main_namemap_destroy(name_map_p);
+    }
+    lib = static_cast<Library *>((lib == nullptr) ? bmain->libraries.first : lib->id.next);
+    name_map_p = (lib != nullptr) ? &lib->runtime.name_map : nullptr;
+  } while (lib != nullptr);
+
   return is_valid;
+}
+
+bool BKE_main_namemap_validate_and_fix(Main *bmain)
+{
+  const bool is_valid = main_namemap_validate_and_fix(bmain, true);
+  BLI_assert(main_namemap_validate_and_fix(bmain, false));
+  return is_valid;
+}
+
+bool BKE_main_namemap_validate(Main *bmain)
+{
+  return main_namemap_validate_and_fix(bmain, false);
 }
