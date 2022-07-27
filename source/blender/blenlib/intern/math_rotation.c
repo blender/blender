@@ -915,53 +915,107 @@ float tri_to_quat(float q[4], const float a[3], const float b[3], const float c[
   return len;
 }
 
-void sin_cos_from_fraction(const int numerator, const int denominator, float *r_sin, float *r_cos)
+void sin_cos_from_fraction(int numerator, const int denominator, float *r_sin, float *r_cos)
 {
+  /* By default, creating an circle from an integer: calling #sinf & #cosf on the fraction doesn't
+   * create symmetrical values (because of float imprecision).
+   * Resolve this when the rotation is calculated from a fraction by mapping the `numerator`
+   * to lower values so X/Y values for points around a circle are exactly symmetrical, see T87779.
+   *
+   * - Numbers divisible by 4 are mapped to the lower 8th (8 axis symmetry).
+   * - Even numbers are mapped to the lower quarter (4 axis symmetry).
+   * - Odd numbers are mapped to the lower half (1 axis symmetry).
+   *
+   * Once the values are calculated, the are mapped back to their position in the circle
+   * using negation & swapping values. */
+
   BLI_assert((numerator <= denominator) && (denominator > 0));
+  enum { NEGATE_SIN_BIT = 0, NEGATE_COS_BIT = 1, SWAP_SIN_COS_BIT = 2 };
+  enum {
+    NEGATE_SIN = (1 << NEGATE_SIN_BIT),
+    NEGATE_COS = (1 << NEGATE_COS_BIT),
+    SWAP_SIN_COS = (1 << SWAP_SIN_COS_BIT),
+  } xform = 0;
   if ((denominator & 3) == 0) {
+    /* The denominator divides by 4, determine the quadrant then further refine the upper 8th. */
     const int denominator_4 = denominator / 4;
-    if (numerator <= denominator_4) {
+    if (numerator < denominator_4) {
       /* Fall through. */
     }
     else {
-      if (numerator <= denominator_4 * 2) {
-        const float phi = (float)(2.0 * M_PI) *
-                          ((float)(numerator - denominator_4) / (float)denominator);
-        *r_sin = cosf(phi);
-        *r_cos = -sinf(phi);
+      if (numerator < denominator_4 * 2) {
+        numerator -= denominator_4;
+        xform = NEGATE_SIN | SWAP_SIN_COS;
       }
-      else if (numerator <= denominator_4 * 3) {
-        const float phi = (float)(2.0 * M_PI) *
-                          ((float)(numerator - (denominator_4 * 2)) / (float)denominator);
-        *r_sin = -sinf(phi);
-        *r_cos = -cosf(phi);
+      else if (numerator == denominator_4 * 2) {
+        numerator = 0;
+        xform = NEGATE_COS;
+      }
+      else if (numerator < denominator_4 * 3) {
+        numerator -= denominator_4 * 2;
+        xform = NEGATE_SIN | NEGATE_COS;
+      }
+      else if (numerator == denominator_4 * 3) {
+        numerator = 0;
+        xform = NEGATE_COS | SWAP_SIN_COS;
       }
       else {
-        const float phi = (float)(2.0 * M_PI) *
-                          ((float)(numerator - (denominator_4 * 3)) / (float)denominator);
-        *r_cos = sinf(phi);
-        *r_sin = -cosf(phi);
+        numerator -= denominator_4 * 3;
+        xform = NEGATE_COS | SWAP_SIN_COS;
       }
-      return;
+    }
+    /* Further increase accuracy by using the range of the upper 8th. */
+    const int numerator_test = denominator_4 - numerator;
+    if (numerator_test < numerator) {
+      numerator = numerator_test;
+      xform ^= SWAP_SIN_COS;
+      /* Swap #NEGATE_SIN, #NEGATE_COS flags. */
+      xform = (xform & (uint)(~(NEGATE_SIN | NEGATE_COS))) |
+              (((xform & NEGATE_SIN) >> NEGATE_SIN_BIT) << NEGATE_COS_BIT) |
+              (((xform & NEGATE_COS) >> NEGATE_COS_BIT) << NEGATE_SIN_BIT);
     }
   }
   else if ((denominator & 1) == 0) {
+    /* The denominator divides by 2, determine the quadrant then further refine the upper 4th. */
     const int denominator_2 = denominator / 2;
-    if (numerator <= denominator_2) {
+    if (numerator < denominator_2) {
       /* Fall through. */
     }
+    else if (numerator == denominator_2) {
+      numerator = 0;
+      xform = NEGATE_COS;
+    }
     else {
-      const float phi = (float)(2.0 * M_PI) *
-                        ((float)(numerator - denominator_2) / (float)denominator);
-      *r_sin = -sinf(phi);
-      *r_cos = -cosf(phi);
-      return;
+      numerator -= denominator_2;
+      xform = NEGATE_SIN | NEGATE_COS;
+    }
+    /* Further increase accuracy by using the range of the upper 4th. */
+    const int numerator_test = denominator_2 - numerator;
+    if (numerator_test < numerator) {
+      numerator = numerator_test;
+      xform ^= NEGATE_COS;
+    }
+  }
+  else {
+    /* The denominator is an odd number, only refine the upper half. */
+    const int numerator_test = denominator - numerator;
+    if (numerator_test < numerator) {
+      numerator = numerator_test;
+      xform ^= NEGATE_SIN;
     }
   }
 
   const float phi = (float)(2.0 * M_PI) * ((float)numerator / (float)denominator);
-  *r_sin = sinf(phi);
-  *r_cos = cosf(phi);
+  const float sin_phi = sinf(phi) * ((xform & NEGATE_SIN) ? -1.0f : 1.0f);
+  const float cos_phi = cosf(phi) * ((xform & NEGATE_COS) ? -1.0f : 1.0f);
+  if ((xform & SWAP_SIN_COS) == 0) {
+    *r_sin = sin_phi;
+    *r_cos = cos_phi;
+  }
+  else {
+    *r_sin = cos_phi;
+    *r_cos = sin_phi;
+  }
 }
 
 void print_qt(const char *str, const float q[4])
