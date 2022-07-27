@@ -87,6 +87,7 @@ set(SRC
 
   intern/usd_writer_abstract.cc
   intern/usd_writer_armature.cc
+  intern/usd_writer_blendshape_mesh.cc
   intern/usd_writer_camera.cc
   intern/usd_writer_curve.cc
   intern/usd_writer_hair.cc
@@ -124,6 +125,7 @@ set(SRC
   
   intern/usd_writer_abstract.h
   intern/usd_writer_armature.h
+  intern/usd_writer_blendshape_mesh.h
   intern/usd_writer_camera.h
   intern/usd_writer_curve.h
   intern/usd_writer_hair.h

@@ -120,6 +120,7 @@ struct USDExportParams {
   eUSDXformOpMode xform_op_mode;
   bool fix_skel_root;
   bool overwrite_textures;
+  bool export_blendshapes;
 };
 
 struct USDImportParams {

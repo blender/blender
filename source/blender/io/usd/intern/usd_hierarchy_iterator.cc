@@ -5,6 +5,7 @@
 #include "usd_hierarchy_iterator.h"
 #include "usd_writer_abstract.h"
 #include "usd_writer_armature.h"
+#include "usd_writer_blendshape_mesh.h"
 #include "usd_writer_camera.h"
 #include "usd_writer_curve.h"
 #include "usd_writer_hair.h"
@@ -86,9 +87,17 @@ USDExporterContext USDHierarchyIterator::create_usd_export_context(const Hierarc
   pxr::SdfPath prim_path = pxr::SdfPath(std::string(params_.root_prim_path) +
                                         context->export_path);
   // TODO: Somewhat of a workaround. There could be a better way to incoporate this...
-  bool can_merge_with_xform = !(
-      this->params_.export_armatures &&
-      (is_skinned_mesh(context->object) || context->object->type == OB_ARMATURE));
+
+  bool can_merge_with_xform = true;
+  if (this->params_.export_armatures &&
+      (is_skinned_mesh(context->object) || context->object->type == OB_ARMATURE)) {
+    can_merge_with_xform = false;
+  }
+
+  if (this->params_.export_blendshapes && is_blendshape_mesh(context->object)) {
+    can_merge_with_xform = false;
+  }
+
   if (can_merge_with_xform && mergeTransformAndShape)
     prim_path = prim_path.GetParentPath();
   return USDExporterContext{bmain_, depsgraph_, stage_, prim_path, this, params_};
@@ -99,6 +108,10 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_transform_writer(
 {
   if (this->params_.export_armatures &&
       (is_skinned_mesh(context->object) || context->object->type == OB_ARMATURE)) {
+    return new USDSkelRootWriter(create_usd_export_context(context));
+  }
+
+  if (this->params_.export_blendshapes && is_blendshape_mesh(context->object)) {
     return new USDSkelRootWriter(create_usd_export_context(context));
   }
 
@@ -121,6 +134,10 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
         if (usd_export_context.export_params.export_armatures &&
             is_skinned_mesh(context->object)) {
           data_writer = new USDSkinnedMeshWriter(usd_export_context);
+        }
+        else if (usd_export_context.export_params.export_blendshapes &&
+            is_blendshape_mesh(context->object)) {
+          data_writer = new USDBlendShapeMeshWriter(usd_export_context);
         }
         else {
           data_writer = new USDMeshWriter(usd_export_context);

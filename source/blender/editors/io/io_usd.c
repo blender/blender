@@ -301,6 +301,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   const bool relative_paths = RNA_boolean_get(op->ptr, "relative_paths");
 
+  const bool export_blendshapes = RNA_boolean_get(op->ptr, "export_blendshapes");
+
   struct USDExportParams params = {RNA_int_get(op->ptr, "start"),
                                    RNA_int_get(op->ptr, "end"),
                                    export_animation,
@@ -356,7 +358,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    export_armatures,
                                    xform_op_mode,
                                    fix_skel_root,
-                                   overwrite_textures};
+                                   overwrite_textures,
+                                   export_blendshapes};
 
   /* Take some defaults from the scene, if not specified explicitly. */
   Scene *scene = CTX_data_scene(C);
@@ -457,6 +460,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
   uiItemR(box, ptr, "export_hair", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "export_particles", 0, NULL, ICON_NONE);
   uiItemR(box, ptr, "export_armatures", 0, NULL, ICON_NONE);
+  uiItemR(box, ptr, "export_blendshapes", 0, NULL, ICON_NONE);
 
   box = uiLayoutBox(layout);
   uiItemL(box, IFACE_("Stage Options:"), ICON_SCENE_DATA);
@@ -656,6 +660,12 @@ void WM_OT_usd_export(struct wmOperatorType *ot)
                   false,
                   "Armatures (Experimental)",
                   "Export armatures and skinned meshes");
+
+  RNA_def_boolean(ot->srna,
+                  "export_blendshapes",
+                  false,
+                  "Blend Shapes",
+                  "Export shape keys as USD blend shapes");
 
   RNA_def_boolean(ot->srna,
                   "use_instancing",

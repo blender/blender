@@ -21,6 +21,11 @@ struct USDExporterContext {
   const pxr::SdfPath usd_path;
   const USDHierarchyIterator *hierarchy_iterator;
   const USDExportParams &export_params;
+
+  template<typename T> T usd_define_or_over(pxr::SdfPath path) const
+  {
+    return (export_params.export_as_overs) ? T(stage->OverridePrim(path)) : T::Define(stage, path);
+  }
 };
 
 }  // namespace blender::io::usd
