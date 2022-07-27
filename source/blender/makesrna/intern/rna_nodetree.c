@@ -10754,7 +10754,7 @@ static void def_geo_field_at_index(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_GeometryNode_socket_update");
 }
 
-static void def_geo_field_on_domain(StructRNA *srna)
+static void def_geo_interpolate_domain(StructRNA *srna)
 {
   PropertyRNA *prop;
 

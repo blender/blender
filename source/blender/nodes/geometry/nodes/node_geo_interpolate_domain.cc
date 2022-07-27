@@ -11,7 +11,7 @@
 
 #include "NOD_socket_search_link.hh"
 
-namespace blender::nodes::node_geo_field_on_domain_cc {
+namespace blender::nodes::node_geo_interpolate_domain_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
@@ -83,14 +83,14 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-class FieldOnDomain final : public GeometryFieldInput {
+class InterpolateDomain final : public GeometryFieldInput {
  private:
   GField src_field_;
   eAttrDomain src_domain_;
 
  public:
-  FieldOnDomain(GField field, eAttrDomain domain)
-      : GeometryFieldInput(field.cpp_type(), "Field on Domain"),
+  InterpolateDomain(GField field, eAttrDomain domain)
+      : GeometryFieldInput(field.cpp_type(), "Interpolate Domain"),
         src_field_(std::move(field)),
         src_domain_(domain)
   {
@@ -140,20 +140,21 @@ static void node_geo_exec(GeoNodeExecParams params)
     using T = decltype(dummy);
     static const std::string identifier = "Value_" + identifier_suffix(data_type);
     Field<T> src_field = params.extract_input<Field<T>>(identifier);
-    Field<T> dst_field{std::make_shared<FieldOnDomain>(std::move(src_field), domain)};
+    Field<T> dst_field{std::make_shared<InterpolateDomain>(std::move(src_field), domain)};
     params.set_output(identifier, std::move(dst_field));
   });
 }
 
-}  // namespace blender::nodes::node_geo_field_on_domain_cc
+}  // namespace blender::nodes::node_geo_interpolate_domain_cc
 
-void register_node_type_geo_field_on_domain()
+void register_node_type_geo_interpolate_domain()
 {
-  namespace file_ns = blender::nodes::node_geo_field_on_domain_cc;
+  namespace file_ns = blender::nodes::node_geo_interpolate_domain_cc;
 
   static bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_FIELD_ON_DOMAIN, "Field on Domain", NODE_CLASS_CONVERTER);
+  geo_node_type_base(
+      &ntype, GEO_NODE_INTERPOLATE_DOMAIN, "Interpolate Domain", NODE_CLASS_CONVERTER);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_layout;

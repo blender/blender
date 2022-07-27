@@ -4751,19 +4751,17 @@ static void registerGeometryNodes()
   register_node_type_geo_curve_trim();
   register_node_type_geo_deform_curves_on_surface();
   register_node_type_geo_delete_geometry();
-  register_node_type_geo_duplicate_elements();
   register_node_type_geo_distribute_points_on_faces();
   register_node_type_geo_dual_mesh();
+  register_node_type_geo_duplicate_elements();
   register_node_type_geo_edge_paths_to_curves();
   register_node_type_geo_edge_paths_to_selection();
   register_node_type_geo_edge_split();
   register_node_type_geo_extrude_mesh();
   register_node_type_geo_field_at_index();
-  register_node_type_geo_field_on_domain();
   register_node_type_geo_flip_faces();
   register_node_type_geo_geometry_to_instance();
   register_node_type_geo_image_texture();
-  register_node_type_geo_input_named_attribute();
   register_node_type_geo_input_curve_handles();
   register_node_type_geo_input_curve_tilt();
   register_node_type_geo_input_id();
@@ -4780,6 +4778,7 @@ static void registerGeometryNodes()
   register_node_type_geo_input_mesh_face_neighbors();
   register_node_type_geo_input_mesh_island();
   register_node_type_geo_input_mesh_vertex_neighbors();
+  register_node_type_geo_input_named_attribute();
   register_node_type_geo_input_normal();
   register_node_type_geo_input_position();
   register_node_type_geo_input_radius();
@@ -4792,6 +4791,7 @@ static void registerGeometryNodes()
   register_node_type_geo_input_tangent();
   register_node_type_geo_instance_on_points();
   register_node_type_geo_instances_to_points();
+  register_node_type_geo_interpolate_domain();
   register_node_type_geo_is_viewport();
   register_node_type_geo_join_geometry();
   register_node_type_geo_material_replace();
@@ -4810,9 +4810,9 @@ static void registerGeometryNodes()
   register_node_type_geo_mesh_to_points();
   register_node_type_geo_mesh_to_volume();
   register_node_type_geo_object_info();
-  register_node_type_geo_points();
   register_node_type_geo_points_to_vertices();
   register_node_type_geo_points_to_volume();
+  register_node_type_geo_points();
   register_node_type_geo_proximity();
   register_node_type_geo_raycast();
   register_node_type_geo_realize_instances();
@@ -4842,11 +4842,11 @@ static void registerGeometryNodes()
   register_node_type_geo_transform();
   register_node_type_geo_translate_instances();
   register_node_type_geo_triangulate();
+  register_node_type_geo_uv_pack_islands();
+  register_node_type_geo_uv_unwrap();
   register_node_type_geo_viewer();
   register_node_type_geo_volume_cube();
   register_node_type_geo_volume_to_mesh();
-  register_node_type_geo_uv_pack_islands();
-  register_node_type_geo_uv_unwrap();
 }
 
 static void registerFunctionNodes()
