@@ -214,6 +214,11 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     /* Filter obsolete passes. */
     render_passes &= ~(EEVEE_RENDER_PASS_UNUSED_8 | EEVEE_RENDER_PASS_BLOOM);
 
+    if (scene_eevee.flag & SCE_EEVEE_MOTION_BLUR_ENABLED) {
+      /* Disable motion vector pass if motion blur is enabled. */
+      render_passes &= ~EEVEE_RENDER_PASS_VECTOR;
+    }
+
     /* TODO(@fclem): Can't we rely on depsgraph update notification? */
     if (assign_if_different(enabled_passes_, render_passes)) {
       sampling.reset();
@@ -381,7 +386,7 @@ void Film::sync()
   DRW_shgroup_uniform_block_ref(grp, "camera_curr", &(*velocity.camera_steps[STEP_CURRENT]));
   DRW_shgroup_uniform_block_ref(grp, "camera_next", &(*velocity.camera_steps[step_next]));
   DRW_shgroup_uniform_texture_ref(grp, "depth_tx", &rbuffers.depth_tx);
-  DRW_shgroup_uniform_texture_ref(grp, "combined_tx", &rbuffers.combined_tx);
+  DRW_shgroup_uniform_texture_ref(grp, "combined_tx", &combined_final_tx_);
   DRW_shgroup_uniform_texture_ref(grp, "normal_tx", &rbuffers.normal_tx);
   DRW_shgroup_uniform_texture_ref(grp, "vector_tx", &rbuffers.vector_tx);
   DRW_shgroup_uniform_texture_ref(grp, "diffuse_light_tx", &rbuffers.diffuse_light_tx);
@@ -540,7 +545,7 @@ void Film::update_sample_table()
   }
 }
 
-void Film::accumulate(const DRWView *view)
+void Film::accumulate(const DRWView *view, GPUTexture *combined_final_tx)
 {
   if (inst_.is_viewport()) {
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
@@ -555,6 +560,8 @@ void Film::accumulate(const DRWView *view)
   }
 
   update_sample_table();
+
+  combined_final_tx_ = combined_final_tx;
 
   /* Need to update the static references as there could have change from a previous swap. */
   weight_src_tx_ = weight_tx_.current();
@@ -587,6 +594,8 @@ void Film::display()
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   GPU_framebuffer_bind(dfbl->default_fb);
   GPU_framebuffer_viewport_set(dfbl->default_fb, UNPACK2(data_.offset), UNPACK2(data_.extent));
+
+  combined_final_tx_ = inst_.render_buffers.combined_tx;
 
   /* Need to update the static references as there could have change from a previous swap. */
   weight_src_tx_ = weight_tx_.current();

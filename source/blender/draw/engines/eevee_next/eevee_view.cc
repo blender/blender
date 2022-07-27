@@ -79,7 +79,6 @@ void ShadingView::sync()
   render_view_ = DRW_view_create_sub(main_view_, viewmat_p, winmat_p);
 
   // dof_.sync(winmat_p, extent_);
-  // mb_.sync(extent_);
   // rt_buffer_opaque_.sync(extent_);
   // rt_buffer_refract_.sync(extent_);
   // inst_.hiz_back.view_sync(extent_);
@@ -132,9 +131,9 @@ void ShadingView::render()
   // inst_.lights.debug_draw(view_fb_);
   // inst_.shadows.debug_draw(view_fb_);
 
-  // GPUTexture *final_radiance_tx = render_post(combined_tx_);
+  GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
 
-  inst_.film.accumulate(sub_view_);
+  inst_.film.accumulate(sub_view_, combined_final_tx);
 
   rbufs.release();
   postfx_tx_.release();
@@ -142,21 +141,19 @@ void ShadingView::render()
   DRW_stats_group_end();
 }
 
-GPUTexture *ShadingView::render_post(GPUTexture *input_tx)
+GPUTexture *ShadingView::render_postfx(GPUTexture *input_tx)
 {
-#if 0
-  if (!dof_.postfx_enabled() && !mb_.enabled()) {
+  if (/*!dof_.postfx_enabled() &&*/ !inst_.motion_blur.postfx_enabled()) {
     return input_tx;
   }
   postfx_tx_.acquire(extent_, GPU_RGBA16F);
 
-  GPUTexture *velocity_tx = velocity_.view_vectors_get();
   GPUTexture *output_tx = postfx_tx_;
 
   /* Swapping is done internally. Actual output is set to the next input. */
-  dof_.render(depth_tx_, &input_tx, &output_tx);
-  mb_.render(depth_tx_, velocity_tx, &input_tx, &output_tx);
-#endif
+  // dof_.render(depth_tx_, &input_tx, &output_tx);
+  inst_.motion_blur.render(&input_tx, &output_tx);
+
   return input_tx;
 }
 

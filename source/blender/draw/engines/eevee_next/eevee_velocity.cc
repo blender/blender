@@ -32,8 +32,7 @@ namespace blender::eevee {
 
 void VelocityModule::init()
 {
-  if (inst_.render && (inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR) != 0 &&
-      true /* TODO(fclem) Motion blur */) {
+  if (inst_.render && (inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR) != 0) {
     /* No motion blur and the vector pass was requested. Do the steps sync here. */
     const Scene *scene = inst_.scene;
     float initial_time = scene->r.cfra + scene->r.subframe;
@@ -68,10 +67,12 @@ void VelocityModule::step_camera_sync()
 {
   inst_.camera.sync();
   *camera_steps[step_] = inst_.camera.data_get();
+  step_time[step_] = inst_.scene->r.cfra + inst_.scene->r.subframe;
   /* Fix undefined camera steps when rendering is starting. */
   if ((step_ == STEP_CURRENT) && (camera_steps[STEP_PREVIOUS]->initialized == false)) {
     *camera_steps[STEP_PREVIOUS] = *static_cast<CameraData *>(camera_steps[step_]);
     camera_steps[STEP_PREVIOUS]->initialized = true;
+    step_time[STEP_PREVIOUS] = step_time[step_];
   }
 }
 
@@ -216,6 +217,7 @@ void VelocityModule::step_swap()
     SWAP(VelocityObjectBuf *, object_steps[step_a], object_steps[step_b]);
     SWAP(VelocityGeometryBuf *, geometry_steps[step_a], geometry_steps[step_b]);
     SWAP(CameraDataBuf *, camera_steps[step_a], camera_steps[step_b]);
+    SWAP(float, step_time[step_a], step_time[step_b]);
 
     for (VelocityObjectData &vel : velocity_map.values()) {
       vel.obj.ofs[step_a] = vel.obj.ofs[step_b];
@@ -242,10 +244,7 @@ void VelocityModule::step_swap()
 
 void VelocityModule::begin_sync()
 {
-  if (inst_.is_viewport()) {
-    /* Viewport always evaluate current step. */
-    step_ = STEP_CURRENT;
-  }
+  step_ = STEP_CURRENT;
   step_camera_sync();
   object_steps_usage[step_] = 0;
 }
@@ -362,6 +361,21 @@ bool VelocityModule::camera_has_motion() const
   }
   return *camera_steps[STEP_PREVIOUS] != *camera_steps[STEP_CURRENT] &&
          *camera_steps[STEP_NEXT] != *camera_steps[STEP_CURRENT];
+}
+
+bool VelocityModule::camera_changed_projection() const
+{
+  /* Only valid after sync. */
+  if (inst_.is_viewport()) {
+    return camera_steps[STEP_PREVIOUS]->type != camera_steps[STEP_CURRENT]->type;
+  }
+  /* Cannot happen in render mode since we set the type during the init phase. */
+  return false;
+}
+
+float VelocityModule::step_time_delta_get(eVelocityStep start, eVelocityStep end) const
+{
+  return step_time[end] - step_time[start];
 }
 
 /** \} */

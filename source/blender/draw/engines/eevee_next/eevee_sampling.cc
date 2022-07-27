@@ -232,7 +232,7 @@ void Sampling::cdf_from_curvemapping(const CurveMapping &curve, Vector<float> &c
   BLI_assert(cdf.size() > 1);
   cdf[0] = 0.0f;
   /* Actual CDF evaluation. */
-  for (int u : cdf.index_range()) {
+  for (int u : IndexRange(cdf.size() - 1)) {
     float x = (float)(u + 1) / (float)(cdf.size() - 1);
     cdf[u + 1] = cdf[u] + BKE_curvemapping_evaluateF(&curve, 0, x);
   }

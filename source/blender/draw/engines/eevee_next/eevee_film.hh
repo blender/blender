@@ -50,6 +50,8 @@ class Film {
   /** Static reference as SwapChain does not actually move the objects when swapping. */
   GPUTexture *combined_src_tx_ = nullptr;
   GPUTexture *combined_dst_tx_ = nullptr;
+  /** Incomming combined buffer with post fx applied (motion blur + depth of field). */
+  GPUTexture *combined_final_tx_ = nullptr;
   /** Weight buffers. Double buffered to allow updating it during accumulation. */
   SwapChain<Texture, 2> weight_tx_;
   /** Static reference as SwapChain does not actually move the objects when swapping. */
@@ -74,7 +76,7 @@ class Film {
   void end_sync();
 
   /** Accumulate the newly rendered sample contained in #RenderBuffers and blit to display. */
-  void accumulate(const DRWView *view);
+  void accumulate(const DRWView *view, GPUTexture *combined_final_tx);
 
   /** Blit to display. No rendered sample needed. */
   void display();

@@ -1,6 +1,8 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifndef GPU_SHADER
+#  pragma once
+
 #  include "GPU_shader.h"
 #  include "GPU_shader_shared_utils.h"
 

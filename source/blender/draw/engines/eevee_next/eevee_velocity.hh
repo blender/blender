@@ -56,6 +56,8 @@ class VelocityModule {
   int3 object_steps_usage = int3(0);
   /** Buffer of all #VelocityIndex used in this frame. Indexed by draw manager resource id. */
   VelocityIndexBuf indirection_buf;
+  /** Frame time at which each steps were evaluated. */
+  float3 step_time;
 
   /**
    * Copies of camera data. One for previous and one for next time step.
@@ -78,7 +80,6 @@ class VelocityModule {
     }
     for (CameraDataBuf *&step_buf : camera_steps) {
       step_buf = new CameraDataBuf();
-      /*  */
     }
   };
 
@@ -112,6 +113,10 @@ class VelocityModule {
   void bind_resources(DRWShadingGroup *grp);
 
   bool camera_has_motion() const;
+  bool camera_changed_projection() const;
+
+  /* Returns frame time difference between two steps. */
+  float step_time_delta_get(eVelocityStep start, eVelocityStep end) const;
 
  private:
   bool object_has_velocity(const Object *ob);

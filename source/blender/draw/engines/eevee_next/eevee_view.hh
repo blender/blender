@@ -78,7 +78,7 @@ class ShadingView {
 
   void render();
 
-  GPUTexture *render_post(GPUTexture *input_tx);
+  GPUTexture *render_postfx(GPUTexture *input_tx);
 
  private:
   void update_view();

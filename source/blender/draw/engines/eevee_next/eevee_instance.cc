@@ -61,6 +61,7 @@ void Instance::init(const int2 &output_res,
   camera.init();
   film.init(output_res, output_rect);
   velocity.init();
+  motion_blur.init();
   main_view.init();
 }
 
@@ -93,14 +94,14 @@ void Instance::update_eval_members()
 void Instance::begin_sync()
 {
   materials.begin_sync();
-  velocity.begin_sync();
+  velocity.begin_sync(); /* NOTE: Also syncs camera. */
 
   gpencil_engine_enabled = false;
 
+  motion_blur.sync();
   pipelines.sync();
   main_view.sync();
   world.sync();
-  camera.sync();
   film.sync();
 }
 
@@ -212,13 +213,9 @@ void Instance::render_sample()
   sampling.step();
 
   main_view.render();
+
+  motion_blur.step();
 }
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Interface
- * \{ */
 
 void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
 {
@@ -259,7 +256,10 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
   render_sample();
   velocity.step_swap();
 
-  if (!sampling.finished_viewport()) {
+  /* Do not request redraw during viewport animation to lock the framerate to the animation
+   * playback rate. This is in order to preserve motion blur aspect and also to avoid TAA reset
+   * that can show flickering. */
+  if (!sampling.finished_viewport() && !DRW_state_is_playback()) {
     DRW_viewport_request_redraw();
   }
 

@@ -38,7 +38,8 @@ void RenderBuffers::acquire(int2 extent)
   depth_tx.acquire(extent, GPU_DEPTH24_STENCIL8);
   combined_tx.acquire(extent, color_format);
 
-  bool do_vector_render_pass = inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR;
+  bool do_vector_render_pass = (inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_VECTOR) ||
+                               (inst_.motion_blur.postfx_enabled() && !inst_.is_viewport());
   /* Only RG16F when only doing only reprojection or motion blur. */
   eGPUTextureFormat vector_format = do_vector_render_pass ? GPU_RGBA16F : GPU_RG16F;
   /* TODO(fclem): Make vector pass allocation optional if no TAA or motion blur is needed. */

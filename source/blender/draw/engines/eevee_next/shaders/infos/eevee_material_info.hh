@@ -12,8 +12,9 @@ GPU_SHADER_CREATE_INFO(eevee_shared)
     .typedef_source("eevee_shader_shared.hh");
 
 GPU_SHADER_CREATE_INFO(eevee_sampling_data)
+    .define("EEVEE_SAMPLING_DATA")
     .additional_info("eevee_shared")
-    .uniform_buf(14, "SamplingData", "sampling_buf");
+    .storage_buf(14, Qualifier::READ, "SamplingData", "sampling_buf");
 
 /** \} */
 

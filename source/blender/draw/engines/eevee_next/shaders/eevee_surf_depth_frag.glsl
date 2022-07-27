@@ -73,7 +73,7 @@ void main()
 
   nodetree_surface();
 
-  // float noise_offset = sampling_rng_1D_get(sampling_buf, SAMPLING_TRANSPARENCY);
+  // float noise_offset = sampling_rng_1D_get(SAMPLING_TRANSPARENCY);
   float noise_offset = 0.5;
   float random_threshold = hashed_alpha_threshold(1.0, noise_offset, g_data.P);
 
@@ -84,7 +84,7 @@ void main()
 #endif
 
 #ifdef MAT_VELOCITY
-  out_velocity = velocity_surface(interp.P + motion.prev, interp.P, interp.P - motion.next);
+  out_velocity = velocity_surface(interp.P + motion.prev, interp.P, interp.P + motion.next);
   out_velocity = velocity_pack(out_velocity);
 #endif
 }

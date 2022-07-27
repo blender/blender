@@ -18,6 +18,7 @@
 #include "eevee_camera.hh"
 #include "eevee_film.hh"
 #include "eevee_material.hh"
+#include "eevee_motion_blur.hh"
 #include "eevee_pipeline.hh"
 #include "eevee_renderbuffers.hh"
 #include "eevee_sampling.hh"
@@ -34,6 +35,7 @@ namespace blender::eevee {
  */
 class Instance {
   friend VelocityModule;
+  friend MotionBlurModule;
 
  public:
   ShaderModule &shaders;
@@ -41,6 +43,7 @@ class Instance {
   MaterialModule materials;
   PipelineModule pipelines;
   VelocityModule velocity;
+  MotionBlurModule motion_blur;
   Sampling sampling;
   Camera camera;
   Film film;
@@ -76,6 +79,7 @@ class Instance {
         materials(*this),
         pipelines(*this),
         velocity(*this),
+        motion_blur(*this),
         sampling(*this),
         camera(*this),
         film(*this),
