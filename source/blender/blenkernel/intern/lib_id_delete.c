@@ -152,7 +152,9 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
   if ((flag & LIB_ID_FREE_NO_MAIN) == 0) {
     ListBase *lb = which_libbase(bmain, type);
     BLI_remlink(lb, id);
-    BKE_main_namemap_remove_name(bmain, id, id->name + 2);
+    if ((flag & LIB_ID_FREE_NO_NAMEMAP_REMOVE) == 0) {
+      BKE_main_namemap_remove_name(bmain, id, id->name + 2);
+    }
   }
 
   BKE_libblock_free_data(id, (flag & LIB_ID_FREE_NO_USER_REFCOUNT) == 0);

@@ -34,6 +34,7 @@
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -3637,6 +3638,9 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
     return;
   }
 
+  /* Remove the pair (idname, lib) of this temp id from the name map. */
+  BKE_main_namemap_remove_name(bmain, tmp_id, tmp_id->name + 2);
+
   tmp_id->lib = local->lib;
 
   /* This ID name is problematic, since it is an 'rna name property' it should not be editable or
@@ -3688,8 +3692,10 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   }
 
   /* Again, horribly inefficient in our case, we need something off-Main
-   * (aka more generic nolib copy/free stuff)! */
-  BKE_id_free_ex(bmain, tmp_id, LIB_ID_FREE_NO_UI_USER, true);
+   * (aka more generic nolib copy/free stuff).
+   * NOTE: Do not remove this tmp_id's name from the namemap here, since this name actually still
+   * exists in `bmain`. */
+  BKE_id_free_ex(bmain, tmp_id, LIB_ID_FREE_NO_UI_USER | LIB_ID_FREE_NO_NAMEMAP_REMOVE, true);
 
   if (GS(local->name) == ID_AR) {
     /* Fun times again, thanks to bone pointers in pose data of objects. We keep same ID addresses,

@@ -254,6 +254,8 @@ enum {
   LIB_ID_FREE_NO_DEG_TAG = 1 << 8,
   /** Do not attempt to remove freed ID from UI data/notifiers/... */
   LIB_ID_FREE_NO_UI_USER = 1 << 9,
+  /** Do not remove freed ID's name from a potential runtime namemap. */
+  LIB_ID_FREE_NO_NAMEMAP_REMOVE = 1 << 10,
 };
 
 void BKE_libblock_free_datablock(struct ID *id, int flag) ATTR_NONNULL();
