@@ -36,34 +36,9 @@ OneapiDeviceQueue::~OneapiDeviceQueue()
 
 int OneapiDeviceQueue::num_concurrent_states(const size_t state_size) const
 {
-  int num_states;
-
-  /* TODO: implement and use get_num_multiprocessors and get_max_num_threads_per_multiprocessor. */
-  const size_t compute_units = oneapi_dll_.oneapi_get_compute_units_amount(
-      oneapi_device_->sycl_queue());
-  if (compute_units >= 128) {
-    /* dGPU path, make sense to allocate more states, because it will be dedicated GPU memory. */
-    int base = 1024 * 1024;
-    /* linear dependency (with coefficient less that 1) from amount of compute units. */
-    num_states = (base * (compute_units / 128)) * 3 / 4;
-
-    /* Limit amount of integrator states by one quarter of device memory, because
-     * other allocations will need some space as well
-     * TODO: base this calculation on the how many states what the GPU is actually capable of
-     * running, with some headroom to improve occupancy. If the texture don't fit, offload into
-     * unified memory. */
-    size_t states_memory_size = num_states * state_size;
-    size_t device_memory_amount =
-        (oneapi_dll_.oneapi_get_memcapacity)(oneapi_device_->sycl_queue());
-    if (states_memory_size >= device_memory_amount / 4) {
-      num_states = device_memory_amount / 4 / state_size;
-    }
-  }
-  else {
-    /* iGPU path - no real need to allocate a lot of integrator states because it is shared GPU
-     * memory. */
-    num_states = 1024 * 512;
-  }
+  const int max_num_threads = oneapi_device_->get_num_multiprocessors() *
+                              oneapi_device_->get_max_num_threads_per_multiprocessor();
+  int num_states = max(8 * max_num_threads, 65536) * 16;
 
   VLOG_DEVICE_STATS << "GPU queue concurrent states: " << num_states << ", using up to "
                     << string_human_readable_size(num_states * state_size);
@@ -73,14 +48,10 @@ int OneapiDeviceQueue::num_concurrent_states(const size_t state_size) const
 
 int OneapiDeviceQueue::num_concurrent_busy_states() const
 {
-  const size_t compute_units = oneapi_dll_.oneapi_get_compute_units_amount(
-      oneapi_device_->sycl_queue());
-  if (compute_units >= 128) {
-    return 1024 * 1024;
-  }
-  else {
-    return 1024 * 512;
-  }
+  const int max_num_threads = oneapi_device_->get_num_multiprocessors() *
+                              oneapi_device_->get_max_num_threads_per_multiprocessor();
+
+  return 4 * max(8 * max_num_threads, 65536);
 }
 
 void OneapiDeviceQueue::init_execution()
