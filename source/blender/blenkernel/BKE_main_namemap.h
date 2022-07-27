@@ -46,6 +46,14 @@ bool BKE_main_namemap_get_name(struct Main *bmain, struct ID *id, char *name) AT
 void BKE_main_namemap_remove_name(struct Main *bmain, struct ID *id, const char *name)
     ATTR_NONNULL();
 
+/**
+ * Check that all ID names in given `bmain` are unique (per ID type and library), and that existing
+ * name maps are consistent with existing relevant IDs.
+ *
+ * This is typically called within an assert, or in tests.
+ */
+bool BKE_main_namemap_validate(struct Main *bmain) ATTR_NONNULL();
+
 #ifdef __cplusplus
 }
 #endif

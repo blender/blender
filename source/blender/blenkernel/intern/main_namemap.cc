@@ -22,6 +22,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG = {"bke.main_namemap"};
+
 //#define DEBUG_PRINT_MEMORY_USAGE
 
 using namespace blender;
@@ -362,4 +366,89 @@ void BKE_main_namemap_remove_name(struct Main *bmain, struct ID *id, const char 
     return;
   }
   val->mark_unused(number);
+}
+
+struct Uniqueness_Key {
+  char name[MAX_ID_NAME];
+  Library *lib;
+  uint64_t hash() const
+  {
+    return BLI_ghashutil_combine_hash(BLI_ghashutil_strhash_n(name, MAX_ID_NAME),
+                                      BLI_ghashutil_ptrhash(lib));
+  }
+  bool operator==(const Uniqueness_Key &o) const
+  {
+    return lib == o.lib && !BLI_ghashutil_strcmp(name, o.name);
+  }
+};
+
+bool BKE_main_namemap_validate(Main *bmain)
+{
+  Set<Uniqueness_Key> id_names_libs;
+  bool is_valid = true;
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    Uniqueness_Key key;
+    BLI_strncpy(key.name, id_iter->name, MAX_ID_NAME);
+    key.lib = id_iter->lib;
+    if (!id_names_libs.add(key)) {
+      is_valid = false;
+      CLOG_ERROR(&LOG,
+                 "ID name '%s' (from library '%s') is found more than once",
+                 id_iter->name,
+                 id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+    }
+
+    UniqueName_Map *name_map = get_namemap_for(bmain, id_iter, false);
+    if (name_map == nullptr) {
+      continue;
+    }
+    UniqueName_TypeMap *type_map = name_map->find_by_type(GS(id_iter->name));
+    BLI_assert(type_map != nullptr);
+
+    UniqueName_Key key_namemap;
+    /* Remove full name from the set. */
+    BLI_strncpy(key_namemap.name, id_iter->name + 2, MAX_NAME);
+    if (!type_map->full_names.contains(key_namemap)) {
+      is_valid = false;
+      CLOG_ERROR(&LOG,
+                 "ID name '%s' (from library '%s') exists in current Main, but is not listed in "
+                 "the namemap",
+                 id_iter->name,
+                 id_iter->lib != nullptr ? id_iter->lib->filepath : "<None>");
+    }
+  }
+  FOREACH_MAIN_ID_END;
+
+  Library *lib = nullptr;
+  UniqueName_Map *name_map = bmain->name_map;
+  do {
+    if (name_map != nullptr) {
+      int i = 0;
+      for (short idcode = BKE_idtype_idcode_iter_step(&i); idcode != 0;
+           idcode = BKE_idtype_idcode_iter_step(&i)) {
+        UniqueName_TypeMap *type_map = name_map->find_by_type(idcode);
+        if (type_map != nullptr) {
+          for (const UniqueName_Key &id_name : type_map->full_names) {
+            Uniqueness_Key key;
+            *(reinterpret_cast<short *>(key.name)) = idcode;
+            BLI_strncpy(key.name + 2, id_name.name, MAX_NAME);
+            key.lib = lib;
+            if (!id_names_libs.contains(key)) {
+              is_valid = false;
+              CLOG_ERROR(&LOG,
+                         "ID name '%s' (from library '%s') is listed in the namemap, but does not "
+                         "exists in current Main",
+                         key.name,
+                         lib != nullptr ? lib->filepath : "<None>");
+            }
+          }
+        }
+      }
+    }
+    lib = static_cast<Library *>((lib == nullptr) ? bmain->libraries.first : lib->id.next);
+    name_map = (lib != nullptr) ? lib->runtime.name_map : nullptr;
+  } while (lib != nullptr);
+
+  return is_valid;
 }

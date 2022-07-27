@@ -2670,6 +2670,8 @@ void BKE_lib_override_library_main_resync(Main *bmain,
                 library->filepath);
     }
   }
+
+  BLI_assert(BKE_main_namemap_validate(bmain));
 }
 
 void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
@@ -3745,6 +3747,8 @@ void BKE_lib_override_library_main_update(Main *bmain)
     }
   }
   FOREACH_MAIN_ID_END;
+
+  BLI_assert(BKE_main_namemap_validate(bmain));
 
   G_MAIN = orig_gmain;
 }

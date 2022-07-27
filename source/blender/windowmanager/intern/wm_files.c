@@ -71,6 +71,7 @@
 #include "BKE_lib_override.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -1003,6 +1004,8 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
   }
 
   WM_cursor_wait(false);
+
+  BLI_assert(BKE_main_namemap_validate(CTX_data_main(C)));
 
   return success;
 }
