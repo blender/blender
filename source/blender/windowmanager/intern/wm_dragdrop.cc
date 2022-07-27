@@ -7,7 +7,7 @@
  * Our own drag-and-drop, drag state and drop boxes.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -57,7 +57,7 @@
 
 /* ****************************************************** */
 
-static ListBase dropboxes = {NULL, NULL};
+static ListBase dropboxes = {nullptr, nullptr};
 
 static void wm_drag_free_asset_data(wmDragAsset **asset_data);
 
@@ -65,14 +65,13 @@ static void wm_drag_free_asset_data(wmDragAsset **asset_data);
 /* these are part of blender's UI/space specs, and not like keymaps */
 /* when editors become configurable, they can add own dropbox definitions */
 
-typedef struct wmDropBoxMap {
+struct wmDropBoxMap {
   struct wmDropBoxMap *next, *prev;
 
   ListBase dropboxes;
   short spaceid, regionid;
   char idname[KMAP_MAX_NAME];
-
-} wmDropBoxMap;
+};
 
 ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 {
@@ -84,7 +83,7 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
     }
   }
 
-  wmDropBoxMap *dm = MEM_callocN(sizeof(struct wmDropBoxMap), "dropmap list");
+  wmDropBoxMap *dm = MEM_cnew<wmDropBoxMap>(__func__);
   BLI_strncpy(dm->idname, idname, KMAP_MAX_NAME);
   dm->spaceid = spaceid;
   dm->regionid = regionid;
@@ -97,20 +96,20 @@ wmDropBox *WM_dropbox_add(ListBase *lb,
                           const char *idname,
                           bool (*poll)(bContext *, wmDrag *, const wmEvent *),
                           void (*copy)(bContext *, wmDrag *, wmDropBox *),
-                          void (*cancel)(struct Main *, wmDrag *, wmDropBox *),
+                          void (*cancel)(Main *, wmDrag *, wmDropBox *),
                           WMDropboxTooltipFunc tooltip)
 {
-  wmDropBox *drop = MEM_callocN(sizeof(wmDropBox), "wmDropBox");
+  wmDropBox *drop = MEM_cnew<wmDropBox>(__func__);
   drop->poll = poll;
   drop->copy = copy;
   drop->cancel = cancel;
   drop->tooltip = tooltip;
-  drop->ot = WM_operatortype_find(idname, 0);
+  drop->ot = WM_operatortype_find(idname, false);
 
-  if (drop->ot == NULL) {
+  if (drop->ot == nullptr) {
     MEM_freeN(drop);
     printf("Error: dropbox with unknown operator: %s\n", idname);
-    return NULL;
+    return nullptr;
   }
   WM_operator_properties_alloc(&(drop->ptr), &(drop->properties), idname);
 
@@ -170,25 +169,25 @@ static void wm_dropbox_invoke(bContext *C, wmDrag *drag)
       if (drop->on_drag_start) {
         drop->on_drag_start(C, drag);
       }
-      CTX_store_set(C, NULL);
+      CTX_store_set(C, nullptr);
     }
   }
 }
 
 wmDrag *WM_drag_data_create(
-    struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags)
+    bContext *C, int icon, int type, void *poin, double value, unsigned int flags)
 {
-  wmDrag *drag = MEM_callocN(sizeof(struct wmDrag), "new drag");
+  wmDrag *drag = MEM_cnew<wmDrag>(__func__);
 
   /* Keep track of future multi-touch drag too, add a mouse-pointer id or so. */
   /* if multiple drags are added, they're drawn as list */
 
-  drag->flags = flags;
+  drag->flags = static_cast<eWM_DragFlags>(flags);
   drag->icon = icon;
   drag->type = type;
   switch (type) {
     case WM_DRAG_PATH:
-      BLI_strncpy(drag->path, poin, FILE_MAX);
+      BLI_strncpy(drag->path, static_cast<const char *>(poin), FILE_MAX);
       /* As the path is being copied, free it immediately as `drag` won't "own" the data. */
       if (flags & WM_DRAG_FREE_DATA) {
         MEM_freeN(poin);
@@ -196,7 +195,7 @@ wmDrag *WM_drag_data_create(
       break;
     case WM_DRAG_ID:
       if (poin) {
-        WM_drag_add_local_ID(drag, poin, NULL);
+        WM_drag_add_local_ID(drag, static_cast<ID *>(poin), nullptr);
       }
       break;
     case WM_DRAG_ASSET:
@@ -211,7 +210,7 @@ wmDrag *WM_drag_data_create(
       const AssetLibraryReference *asset_library = CTX_wm_asset_library_ref(C);
       ListBase asset_file_links = CTX_data_collection_get(C, "selected_asset_files");
       LISTBASE_FOREACH (const CollectionPointerLink *, link, &asset_file_links) {
-        const FileDirEntry *asset_file = link->ptr.data;
+        const FileDirEntry *asset_file = static_cast<const FileDirEntry *>(link->ptr.data);
         const AssetHandle asset_handle = {asset_file};
         WM_drag_add_asset_list_item(drag, C, asset_library, &asset_handle);
       }
@@ -236,7 +235,7 @@ void WM_event_start_prepared_drag(bContext *C, wmDrag *drag)
 }
 
 void WM_event_start_drag(
-    struct bContext *C, int icon, int type, void *poin, double value, unsigned int flags)
+    bContext *C, int icon, int type, void *poin, double value, unsigned int flags)
 {
   wmDrag *drag = WM_drag_data_create(C, icon, type, poin, value, flags);
   WM_event_start_prepared_drag(C, drag);
@@ -266,12 +265,12 @@ static bContextStore *wm_drop_ui_context_create(const bContext *C)
 {
   uiBut *active_but = UI_region_active_but_get(CTX_wm_region(C));
   if (!active_but) {
-    return NULL;
+    return nullptr;
   }
 
   bContextStore *but_context = UI_but_context_get(active_but);
   if (!but_context) {
-    return NULL;
+    return nullptr;
   }
 
   return CTX_store_copy(but_context);
@@ -283,7 +282,7 @@ static void wm_drop_ui_context_free(bContextStore **context_store)
     return;
   }
   CTX_store_free(*context_store);
-  *context_store = NULL;
+  *context_store = nullptr;
 }
 
 void WM_event_drag_image(wmDrag *drag, ImBuf *imb, float scale)
@@ -294,14 +293,14 @@ void WM_event_drag_image(wmDrag *drag, ImBuf *imb, float scale)
 
 void WM_drag_data_free(int dragtype, void *poin)
 {
-  /* Don't require all the callers to have a NULL-check, just allow passing NULL. */
+  /* Don't require all the callers to have a nullptr-check, just allow passing nullptr. */
   if (!poin) {
     return;
   }
 
   /* Not too nice, could become a callback. */
   if (dragtype == WM_DRAG_ASSET) {
-    wmDragAsset *asset_data = poin;
+    wmDragAsset *asset_data = static_cast<wmDragAsset *>(poin);
     wm_drag_free_asset_data(&asset_data);
   }
   else {
@@ -331,17 +330,17 @@ void WM_drag_free(wmDrag *drag)
   MEM_freeN(drag);
 }
 
-void WM_drag_free_list(struct ListBase *lb)
+void WM_drag_free_list(ListBase *lb)
 {
   wmDrag *drag;
-  while ((drag = BLI_pophead(lb))) {
+  while ((drag = static_cast<wmDrag *>(BLI_pophead(lb)))) {
     WM_drag_free(drag);
   }
 }
 
 static char *dropbox_tooltip(bContext *C, wmDrag *drag, const int xy[2], wmDropBox *drop)
 {
-  char *tooltip = NULL;
+  char *tooltip = nullptr;
   if (drop->tooltip) {
     tooltip = drop->tooltip(C, drag, xy, drop);
   }
@@ -361,7 +360,7 @@ static wmDropBox *dropbox_active(bContext *C,
   if (drag->drop_state.free_disabled_info) {
     MEM_SAFE_FREE(drag->drop_state.disabled_info);
   }
-  drag->drop_state.disabled_info = NULL;
+  drag->drop_state.disabled_info = nullptr;
 
   LISTBASE_FOREACH (wmEventHandler *, handler_base, handlers) {
     if (handler_base->type == WM_HANDLER_TYPE_DROPBOX) {
@@ -381,7 +380,7 @@ static wmDropBox *dropbox_active(bContext *C,
 
           const wmOperatorCallContext opcontext = wm_drop_operator_context_get(drop);
           if (WM_operator_poll_context(C, drop->ot, opcontext)) {
-            CTX_store_set(C, NULL);
+            CTX_store_set(C, nullptr);
             return drop;
           }
 
@@ -397,8 +396,8 @@ static wmDropBox *dropbox_active(bContext *C,
       }
     }
   }
-  CTX_store_set(C, NULL);
-  return NULL;
+  CTX_store_set(C, nullptr);
+  return nullptr;
 }
 
 /* return active operator tooltip/name when mouse is in box */
@@ -441,14 +440,14 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
   if (drop != drop_prev) {
     if (drop_prev && drop_prev->draw_deactivate) {
       drop_prev->draw_deactivate(drop_prev, drag);
-      BLI_assert(drop_prev->draw_data == NULL);
+      BLI_assert(drop_prev->draw_data == nullptr);
     }
     if (drop && drop->draw_activate) {
       drop->draw_activate(drop, drag);
     }
     drag->drop_state.active_dropbox = drop;
-    drag->drop_state.area_from = drop ? CTX_wm_area(C) : NULL;
-    drag->drop_state.region_from = drop ? CTX_wm_region(C) : NULL;
+    drag->drop_state.area_from = drop ? CTX_wm_area(C) : nullptr;
+    drag->drop_state.region_from = drop ? CTX_wm_region(C) : nullptr;
   }
 
   if (!drag->drop_state.active_dropbox) {
@@ -476,7 +475,7 @@ void wm_drop_prepare(bContext *C, wmDrag *drag, wmDropBox *drop)
 
 void wm_drop_end(bContext *C, wmDrag *UNUSED(drag), wmDropBox *UNUSED(drop))
 {
-  CTX_store_set(C, NULL);
+  CTX_store_set(C, nullptr);
 }
 
 void wm_drags_check_ops(bContext *C, const wmEvent *event)
@@ -511,7 +510,7 @@ void WM_drag_add_local_ID(wmDrag *drag, ID *id, ID *from_parent)
   /* Don't drag the same ID twice. */
   LISTBASE_FOREACH (wmDragID *, drag_id, &drag->ids) {
     if (drag_id->id == id) {
-      if (drag_id->from_parent == NULL) {
+      if (drag_id->from_parent == nullptr) {
         drag_id->from_parent = from_parent;
       }
       return;
@@ -523,7 +522,7 @@ void WM_drag_add_local_ID(wmDrag *drag, ID *id, ID *from_parent)
   }
 
   /* Add to list. */
-  wmDragID *drag_id = MEM_callocN(sizeof(wmDragID), __func__);
+  wmDragID *drag_id = MEM_cnew<wmDragID>(__func__);
   drag_id->id = id;
   drag_id->from_parent = from_parent;
   BLI_addtail(&drag->ids, drag_id);
@@ -532,26 +531,26 @@ void WM_drag_add_local_ID(wmDrag *drag, ID *id, ID *from_parent)
 ID *WM_drag_get_local_ID(const wmDrag *drag, short idcode)
 {
   if (drag->type != WM_DRAG_ID) {
-    return NULL;
+    return nullptr;
   }
 
-  wmDragID *drag_id = drag->ids.first;
+  wmDragID *drag_id = static_cast<wmDragID *>(drag->ids.first);
   if (!drag_id) {
-    return NULL;
+    return nullptr;
   }
 
   ID *id = drag_id->id;
-  return (idcode == 0 || GS(id->name) == idcode) ? id : NULL;
+  return (idcode == 0 || GS(id->name) == idcode) ? id : nullptr;
 }
 
 ID *WM_drag_get_local_ID_from_event(const wmEvent *event, short idcode)
 {
   if (event->custom != EVT_DATA_DRAGDROP) {
-    return NULL;
+    return nullptr;
   }
 
-  ListBase *lb = event->customdata;
-  return WM_drag_get_local_ID(lb->first, idcode);
+  ListBase *lb = static_cast<ListBase *>(event->customdata);
+  return WM_drag_get_local_ID(static_cast<const wmDrag *>(lb->first), idcode);
 }
 
 bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)
@@ -564,7 +563,7 @@ wmDragAsset *WM_drag_create_asset_data(const AssetHandle *asset,
                                        const char *path,
                                        int import_type)
 {
-  wmDragAsset *asset_drag = MEM_mallocN(sizeof(*asset_drag), "wmDragAsset");
+  wmDragAsset *asset_drag = MEM_new<wmDragAsset>(__func__);
 
   BLI_strncpy(asset_drag->name, ED_asset_handle_get_name(asset), sizeof(asset_drag->name));
   asset_drag->metadata = metadata;
@@ -584,14 +583,14 @@ static void wm_drag_free_asset_data(wmDragAsset **asset_data)
 wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode)
 {
   if (drag->type != WM_DRAG_ASSET) {
-    return NULL;
+    return nullptr;
   }
 
-  wmDragAsset *asset_drag = drag->poin;
-  return (ELEM(idcode, 0, asset_drag->id_type)) ? asset_drag : NULL;
+  wmDragAsset *asset_drag = static_cast<wmDragAsset *>(drag->poin);
+  return (ELEM(idcode, 0, asset_drag->id_type)) ? asset_drag : nullptr;
 }
 
-struct AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode)
+AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode)
 {
   wmDragAsset *drag_asset = WM_drag_get_asset_data(drag, idcode);
   if (drag_asset) {
@@ -603,17 +602,18 @@ struct AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode
     return local_id->asset_data;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
 {
   /* Only support passing in limited flags. */
   BLI_assert(flag_extra == (flag_extra & FILE_AUTOSELECT));
-  eFileSel_Params_Flag flag = flag_extra | FILE_ACTIVE_COLLECTION;
+  eFileSel_Params_Flag flag = static_cast<eFileSel_Params_Flag>(flag_extra) |
+                              FILE_ACTIVE_COLLECTION;
 
   const char *name = asset_drag->name;
-  ID_Type idtype = asset_drag->id_type;
+  ID_Type idtype = static_cast<ID_Type>(asset_drag->id_type);
 
   /* FIXME: Link/Append should happens in the operator called at the end of drop process, not from
    * here. */
@@ -651,7 +651,7 @@ ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
   }
 
   BLI_assert_unreachable();
-  return NULL;
+  return nullptr;
 }
 
 bool WM_drag_asset_will_import_linked(const wmDrag *drag)
@@ -667,7 +667,7 @@ bool WM_drag_asset_will_import_linked(const wmDrag *drag)
 ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
 {
   if (!ELEM(drag->type, WM_DRAG_ASSET, WM_DRAG_ID)) {
-    return NULL;
+    return nullptr;
   }
 
   if (drag->type == WM_DRAG_ID) {
@@ -676,14 +676,14 @@ ID *WM_drag_get_local_ID_or_import_from_asset(const wmDrag *drag, int idcode)
 
   wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, idcode);
   if (!asset_drag) {
-    return NULL;
+    return nullptr;
   }
 
   /* Link/append the asset. */
   return WM_drag_asset_id_import(asset_drag, 0);
 }
 
-void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *drop)
+void WM_drag_free_imported_drag_ID(Main *bmain, wmDrag *drag, wmDropBox *drop)
 {
   if (drag->type != WM_DRAG_ASSET) {
     return;
@@ -697,8 +697,8 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *
   /* Try to find the imported ID. For this to work either a "session_uuid" or "name" property must
    * have been defined (see #WM_operator_properties_id_lookup()). */
   ID *id = WM_operator_properties_id_lookup_from_name_or_session_uuid(
-      bmain, drop->ptr, asset_drag->id_type);
-  if (id != NULL) {
+      bmain, drop->ptr, static_cast<ID_Type>(asset_drag->id_type));
+  if (id != nullptr) {
     /* Do not delete the dragged ID if it has any user, otherwise if it is a 're-used' ID it will
      * cause T95636. Note that we need first to add the user that we want to remove in
      * #BKE_id_free_us. */
@@ -710,10 +710,10 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain, wmDrag *drag, wmDropBox *
 wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const wmDrag *drag)
 {
   if (drag->type != WM_DRAG_ASSET_CATALOG) {
-    return NULL;
+    return nullptr;
   }
 
-  return drag->poin;
+  return static_cast<wmDragAssetCatalog *>(drag->poin);
 }
 
 void WM_drag_add_asset_list_item(
@@ -728,7 +728,7 @@ void WM_drag_add_asset_list_item(
   /* No guarantee that the same asset isn't added twice. */
 
   /* Add to list. */
-  wmDragAssetListItem *drag_asset = MEM_callocN(sizeof(*drag_asset), __func__);
+  wmDragAssetListItem *drag_asset = MEM_cnew<wmDragAssetListItem>(__func__);
   ID *local_id = ED_asset_handle_get_local_id(asset);
   if (local_id) {
     drag_asset->is_external = false;
@@ -748,7 +748,7 @@ void WM_drag_add_asset_list_item(
 const ListBase *WM_drag_asset_list_get(const wmDrag *drag)
 {
   if (drag->type != WM_DRAG_ASSET_LIST) {
-    return NULL;
+    return nullptr;
   }
 
   return &drag->asset_items;
@@ -889,7 +889,7 @@ static void wm_drag_draw_tooltip(bContext *C, wmWindow *win, wmDrag *drag, const
   int iconsize = UI_DPI_ICON_SIZE;
   int padding = 4 * UI_DPI_FAC;
 
-  char *tooltip = NULL;
+  char *tooltip = nullptr;
   if (drag->drop_state.active_dropbox) {
     tooltip = dropbox_tooltip(C, drag, xy, drag->drop_state.active_dropbox);
   }
@@ -1013,7 +1013,7 @@ void wm_drags_draw(bContext *C, wmWindow *win)
     wm_drag_draw_default(C, win, drag, xy);
   }
   GPU_blend(GPU_BLEND_NONE);
-  CTX_wm_area_set(C, NULL);
-  CTX_wm_region_set(C, NULL);
-  CTX_store_set(C, NULL);
+  CTX_wm_area_set(C, nullptr);
+  CTX_wm_region_set(C, nullptr);
+  CTX_store_set(C, nullptr);
 }
