@@ -174,6 +174,7 @@ AbstractHierarchyWriter *USDHierarchyIterator::create_data_writer(const Hierarch
       }
       else
         return nullptr;
+      break;
     case OB_VOLUME:
       data_writer = new USDVolumeWriter(usd_export_context);
       break;
