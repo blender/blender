@@ -21,4 +21,9 @@ namespace blender::geometry {
  */
 bke::CurvesGeometry mesh_to_curve_convert(const Mesh &mesh, const IndexMask selection);
 
+bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
+                                                   Span<int> vert_indices,
+                                                   Span<int> curve_offsets,
+                                                   IndexRange cyclic_curves);
+
 }  // namespace blender::geometry

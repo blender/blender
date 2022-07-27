@@ -62,6 +62,8 @@ set(SRC
   nodes/node_geo_distribute_points_on_faces.cc
   nodes/node_geo_dual_mesh.cc
   nodes/node_geo_duplicate_elements.cc
+  nodes/node_geo_edge_paths_to_curves.cc
+  nodes/node_geo_edge_paths_to_selection.cc
   nodes/node_geo_edge_split.cc
   nodes/node_geo_extrude_mesh.cc
   nodes/node_geo_field_at_index.cc
@@ -91,6 +93,7 @@ set(SRC
   nodes/node_geo_input_radius.cc
   nodes/node_geo_input_scene_time.cc
   nodes/node_geo_input_shade_smooth.cc
+  nodes/node_geo_input_shortest_edge_paths.cc
   nodes/node_geo_input_spline_cyclic.cc
   nodes/node_geo_input_spline_length.cc
   nodes/node_geo_input_spline_resolution.cc

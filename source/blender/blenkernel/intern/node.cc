@@ -4754,6 +4754,8 @@ static void registerGeometryNodes()
   register_node_type_geo_duplicate_elements();
   register_node_type_geo_distribute_points_on_faces();
   register_node_type_geo_dual_mesh();
+  register_node_type_geo_edge_paths_to_curves();
+  register_node_type_geo_edge_paths_to_selection();
   register_node_type_geo_edge_split();
   register_node_type_geo_extrude_mesh();
   register_node_type_geo_field_at_index();
@@ -4783,6 +4785,7 @@ static void registerGeometryNodes()
   register_node_type_geo_input_radius();
   register_node_type_geo_input_scene_time();
   register_node_type_geo_input_shade_smooth();
+  register_node_type_geo_input_shortest_edge_paths();
   register_node_type_geo_input_spline_cyclic();
   register_node_type_geo_input_spline_length();
   register_node_type_geo_input_spline_resolution();

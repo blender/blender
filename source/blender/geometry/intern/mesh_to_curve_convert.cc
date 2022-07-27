@@ -30,10 +30,10 @@ static void copy_with_map(const VArray<T> &src, Span<int> map, MutableSpan<T> ds
   });
 }
 
-static bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
-                                                          const Span<int> vert_indices,
-                                                          const Span<int> curve_offsets,
-                                                          const IndexRange cyclic_curves)
+bke::CurvesGeometry create_curve_from_vert_indices(const Mesh &mesh,
+                                                   const Span<int> vert_indices,
+                                                   const Span<int> curve_offsets,
+                                                   const IndexRange cyclic_curves)
 {
   bke::CurvesGeometry curves(vert_indices.size(), curve_offsets.size());
   curves.offsets_for_write().drop_back(1).copy_from(curve_offsets);
