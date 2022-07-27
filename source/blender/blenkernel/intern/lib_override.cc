@@ -3657,7 +3657,9 @@ void BKE_lib_override_library_update(Main *bmain, ID *local)
   Key *tmp_key = BKE_key_from_id(tmp_id);
   if (local_key != nullptr && tmp_key != nullptr) {
     tmp_key->id.flag |= (local_key->id.flag & LIB_EMBEDDED_DATA_LIB_OVERRIDE);
+    BKE_main_namemap_remove_name(bmain, &tmp_key->id, tmp_key->id.name + 2);
     tmp_key->id.lib = local_key->id.lib;
+    BLI_strncpy(tmp_key->id.name, local_key->id.name, sizeof(tmp_key->id.name));
   }
 
   PointerRNA rnaptr_src, rnaptr_dst, rnaptr_storage_stack, *rnaptr_storage = nullptr;
@@ -3740,6 +3742,8 @@ void BKE_lib_override_library_main_update(Main *bmain)
    * since those always use on G_MAIN when they need access to a Main database. */
   Main *orig_gmain = G_MAIN;
   G_MAIN = bmain;
+
+  BLI_assert(BKE_main_namemap_validate(bmain));
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (id->override_library != nullptr) {
