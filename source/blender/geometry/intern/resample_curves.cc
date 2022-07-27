@@ -345,6 +345,7 @@ Curves *resample_to_evaluated(const CurveComponent &src_component,
 {
   const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
       src_component.get_for_read()->geometry);
+  src_curves.ensure_evaluated_offsets();
 
   bke::GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
