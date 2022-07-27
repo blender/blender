@@ -177,10 +177,9 @@ void mat3_to_quat_is_ok(float q[4], const float mat[3][3]);
 /* Other. */
 
 /**
- * Utility function that performs `sinf` & `cosf` where the quadrants of the circle
- * will have exactly matching values when their sign is flipped.
- * This works as long as the denominator can be divided by 2 or 4,
- * otherwise `sinf` & `cosf` are used without any additional logic.
+ * Utility that performs `sinf` & `cosf` intended for plotting a 2D circle,
+ * where the values of the coordinates with are exactly symmetrical although this
+ * favors even numbers as odd numbers can only be symmetrical on a single axis.
  *
  * Besides adjustments to precision, this function is the equivalent of:
  * \code {.c}
@@ -194,7 +193,7 @@ void mat3_to_quat_is_ok(float q[4], const float mat[3][3]);
  * \param r_sin: The resulting sine.
  * \param r_cos: The resulting cosine.
  */
-void sin_cos_from_fraction(const int numerator, const int denominator, float *r_sin, float *r_cos);
+void sin_cos_from_fraction(int numerator, int denominator, float *r_sin, float *r_cos);
 
 void print_qt(const char *str, const float q[4]);
 
