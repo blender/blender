@@ -179,6 +179,10 @@ void BKE_lib_id_clear_library_data(Main *bmain, ID *id, const int flags)
   const bool id_in_mainlist = (id->tag & LIB_TAG_NO_MAIN) == 0 &&
                               (id->flag & LIB_EMBEDDED_DATA) == 0;
 
+  if (id_in_mainlist) {
+    BKE_main_namemap_remove_name(bmain, id, id->name + 2);
+  }
+
   lib_id_library_local_paths(bmain, id->lib, id);
 
   id_fake_user_clear(id);
@@ -1080,6 +1084,9 @@ void *BKE_libblock_alloc(Main *bmain, short type, const char *name, const int fl
       /* alphabetic insertion: is in new_id */
       BKE_main_unlock(bmain);
 
+      /* This assert avoids having to keep name_map consistency when changing the library of an ID,
+       * if this check is not true anymore it will have to be done here too. */
+      BLI_assert(bmain->curlib == NULL || bmain->curlib->runtime.name_map == NULL);
       /* This is important in 'readfile doversion after liblink' context mainly, but is a good
        * consistency change in general: ID created for a Main should get that main's current
        * library pointer. */

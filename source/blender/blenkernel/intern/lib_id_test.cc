@@ -65,6 +65,7 @@ static void change_lib(Main *bmain, ID *id, Library *lib)
   }
   BKE_main_namemap_remove_name(bmain, id, id->name + 2);
   id->lib = lib;
+  BKE_main_namemap_get_name(bmain, id, id->name + 2);
 }
 
 static void change_name(Main *bmain, ID *id, const char *name)
@@ -85,25 +86,27 @@ TEST(lib_id_main_sort, linked_ids_1)
   ID *id_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_A"));
   ID *id_b = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_OB, "OB_B"));
 
-  id_a->lib = lib_a;
+  change_lib(ctx.bmain, id_a, lib_a);
   id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
-  id_b->lib = lib_a;
+  change_lib(ctx.bmain, id_b, lib_a);
   id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
   EXPECT_TRUE(ctx.bmain->objects.last == id_b);
   test_lib_id_main_sort_check_order({id_c, id_a, id_b});
 
-  id_a->lib = lib_b;
+  change_lib(ctx.bmain, id_a, lib_b);
   id_sort_by_name(&ctx.bmain->objects, id_a, nullptr);
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
   EXPECT_TRUE(ctx.bmain->objects.last == id_a);
   test_lib_id_main_sort_check_order({id_c, id_b, id_a});
 
-  id_b->lib = lib_b;
+  change_lib(ctx.bmain, id_b, lib_b);
   id_sort_by_name(&ctx.bmain->objects, id_b, nullptr);
   EXPECT_TRUE(ctx.bmain->objects.first == id_c);
   EXPECT_TRUE(ctx.bmain->objects.last == id_b);
   test_lib_id_main_sort_check_order({id_c, id_a, id_b});
+
+  EXPECT_TRUE(BKE_main_namemap_validate(ctx.bmain));
 }
 
 TEST(lib_id_main_unique_name, local_ids_1)
@@ -184,9 +187,7 @@ TEST(lib_id_main_unique_name, ids_sorted_by_default)
 static ID *add_id_in_library(Main *bmain, const char *name, Library *lib)
 {
   ID *id = static_cast<ID *>(BKE_id_new(bmain, ID_OB, name));
-  BKE_main_namemap_remove_name(bmain, id, id->name + 2);
-  id->lib = lib;
-  BKE_main_namemap_get_name(bmain, id, id->name + 2);
+  change_lib(bmain, id, lib);
   id_sort_by_name(&bmain->objects, id, nullptr);
   return id;
 }
