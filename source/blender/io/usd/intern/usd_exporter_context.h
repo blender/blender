@@ -6,6 +6,7 @@
 
 #include <pxr/usd/sdf/path.h>
 #include <pxr/usd/usd/common.h>
+#include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usd/stage.h>
 
 struct Depsgraph;
