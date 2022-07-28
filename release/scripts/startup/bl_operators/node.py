@@ -149,37 +149,6 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
 
-# Add a node and link it to an existing socket
-class NODE_OT_add_and_link_node(NodeAddOperator, Operator):
-    '''Add a node to the active tree and link to an existing socket'''
-    bl_idname = "node.add_and_link_node"
-    bl_label = "Add and Link Node"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    link_socket_index: IntProperty(
-        name="Link Socket Index",
-        description="Index of the socket to link",
-    )
-
-    def execute(self, context):
-        space = context.space_data
-        ntree = space.edit_tree
-
-        node = self.create_node(context)
-        if not node:
-            return {'CANCELLED'}
-
-        to_socket = getattr(context, "link_to_socket", None)
-        if to_socket:
-            ntree.links.new(node.outputs[self.link_socket_index], to_socket)
-
-        from_socket = getattr(context, "link_from_socket", None)
-        if from_socket:
-            ntree.links.new(from_socket, node.inputs[self.link_socket_index])
-
-        return {'FINISHED'}
-
-
 class NODE_OT_add_search(NodeAddOperator, Operator):
     '''Add a node to the active tree'''
     bl_idname = "node.add_search"
@@ -306,7 +275,6 @@ class NODE_OT_tree_path_parent(Operator):
 classes = (
     NodeSetting,
 
-    NODE_OT_add_and_link_node,
     NODE_OT_add_node,
     NODE_OT_add_search,
     NODE_OT_collapse_hide_unused_toggle,
