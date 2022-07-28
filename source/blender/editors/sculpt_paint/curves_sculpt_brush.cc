@@ -391,6 +391,16 @@ CurvesSculptCommonContext::CurvesSculptCommonContext(const bContext &C)
   this->rv3d = CTX_wm_region_view3d(&C);
 }
 
+void report_empty_original_surface(ReportList *reports)
+{
+  BKE_report(reports, RPT_WARNING, TIP_("Original surface mesh is empty"));
+}
+
+void report_empty_evaluated_surface(ReportList *reports)
+{
+  BKE_report(reports, RPT_WARNING, TIP_("Evaluated surface mesh is empty"));
+}
+
 void report_missing_surface(ReportList *reports)
 {
   BKE_report(reports, RPT_WARNING, TIP_("Missing surface mesh"));

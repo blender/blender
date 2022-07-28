@@ -166,6 +166,10 @@ struct SlideOperationExecutor {
 
     surface_ob_orig_ = curves_id_orig_->surface;
     surface_orig_ = static_cast<Mesh *>(surface_ob_orig_->data);
+    if (surface_orig_->totpoly == 0) {
+      report_empty_original_surface(stroke_extension.reports);
+      return;
+    }
     surface_looptris_orig_ = {BKE_mesh_runtime_looptri_ensure(surface_orig_),
                               BKE_mesh_runtime_looptri_len(surface_orig_)};
     surface_uv_map_orig_ =
@@ -187,6 +191,10 @@ struct SlideOperationExecutor {
     }
     surface_eval_ = BKE_object_get_evaluated_mesh(surface_ob_eval_);
     if (surface_eval_ == nullptr) {
+      return;
+    }
+    if (surface_eval_->totpoly == 0) {
+      report_empty_evaluated_surface(stroke_extension.reports);
       return;
     }
     surface_looptris_eval_ = {BKE_mesh_runtime_looptri_ensure(surface_eval_),

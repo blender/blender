@@ -128,6 +128,8 @@ float transform_brush_radius(const float4x4 &transform,
                              const float3 &brush_position,
                              const float old_radius);
 
+void report_empty_original_surface(ReportList *reports);
+void report_empty_evaluated_surface(ReportList *reports);
 void report_missing_surface(ReportList *reports);
 void report_missing_uv_map_on_original_surface(ReportList *reports);
 void report_missing_uv_map_on_evaluated_surface(ReportList *reports);
