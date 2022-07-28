@@ -355,8 +355,6 @@ set(SRC_UTIL_HEADERS
   ../util/types_uint4.h
   ../util/types_uint4_impl.h
   ../util/types_ushort4.h
-  ../util/types_vector3.h
-  ../util/types_vector3_impl.h
 )
 
 set(LIB

@@ -33,38 +33,4 @@ CCL_NAMESPACE_BEGIN
 
 #define kernel_assert(cond) assert(cond)
 
-/* Macros to handle different memory storage on different devices */
-
-#ifdef __KERNEL_SSE2__
-typedef vector3<sseb> sse3b;
-typedef vector3<ssef> sse3f;
-typedef vector3<ssei> sse3i;
-
-ccl_device_inline void print_sse3b(const char *label, sse3b &a)
-{
-  print_sseb(label, a.x);
-  print_sseb(label, a.y);
-  print_sseb(label, a.z);
-}
-
-ccl_device_inline void print_sse3f(const char *label, sse3f &a)
-{
-  print_ssef(label, a.x);
-  print_ssef(label, a.y);
-  print_ssef(label, a.z);
-}
-
-ccl_device_inline void print_sse3i(const char *label, sse3i &a)
-{
-  print_ssei(label, a.x);
-  print_ssei(label, a.y);
-  print_ssei(label, a.z);
-}
-
-#  if defined(__KERNEL_AVX__) || defined(__KERNEL_AVX2__)
-typedef vector3<avxf> avx3f;
-#  endif
-
-#endif
-
 CCL_NAMESPACE_END

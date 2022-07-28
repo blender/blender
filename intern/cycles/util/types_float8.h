@@ -2,8 +2,7 @@
  * Original code Copyright 2017, Intel Corporation
  * Modifications Copyright 2018-2022 Blender Foundation. */
 
-#ifndef __UTIL_TYPES_FLOAT8_H__
-#define __UTIL_TYPES_FLOAT8_H__
+#pragma once
 
 #ifndef __UTIL_TYPES_H__
 #  error "Do not include this file directly, include util/types.h instead."
@@ -12,7 +11,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* float8 is a reserved type in Metal that has not been implemented. For
- * that reason this is named float8_t. */
+ * that reason this is named float8_t and not using native vector types. */
 
 #ifdef __KERNEL_GPU__
 struct float8_t
@@ -52,5 +51,3 @@ ccl_device_inline float8_t
 make_float8_t(float a, float b, float c, float d, float e, float f, float g, float h);
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_TYPES_FLOAT8_H__ */

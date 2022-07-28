@@ -1,20 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
-#ifndef __UTIL_TYPES_FLOAT4_IMPL_H__
-#define __UTIL_TYPES_FLOAT4_IMPL_H__
+#pragma once
 
 #ifndef __UTIL_TYPES_H__
 #  error "Do not include this file directly, include util/types.h instead."
 #endif
 
-#ifndef __KERNEL_GPU__
-#  include <cstdio>
-#endif
-
 CCL_NAMESPACE_BEGIN
 
-#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
+#ifndef __KERNEL_NATIVE_VECTOR_TYPES__
 #  ifdef __KERNEL_SSE__
 __forceinline float4::float4()
 {
@@ -41,6 +36,7 @@ __forceinline float4 &float4::operator=(const float4 &a)
 }
 #  endif /* __KERNEL_SSE__ */
 
+#  ifndef __KERNEL_GPU__
 __forceinline float float4::operator[](int i) const
 {
   util_assert(i >= 0);
@@ -54,6 +50,7 @@ __forceinline float &float4::operator[](int i)
   util_assert(i < 4);
   return *(&x + i);
 }
+#  endif
 
 ccl_device_inline float4 make_float4(float f)
 {
@@ -89,8 +86,6 @@ ccl_device_inline void print_float4(const char *label, const float4 &a)
 {
   printf("%s: %.8f %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z, (double)a.w);
 }
-#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
+#endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_TYPES_FLOAT4_IMPL_H__ */
