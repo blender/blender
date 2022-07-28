@@ -4901,11 +4901,15 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
     }
   }
 
+  for (Main *mainptr = mainl->next; mainptr; mainptr = mainptr->next) {
+    /* Drop weak links for which no data-block was found.
+     * Since this can remap pointers in `libmap` of all libraries, it needs to be performed in its
+     * own loop, before any call to `lib_link_all` (and the freeing of the libraries' filedata). */
+    read_library_clear_weak_links(basefd, mainlist, mainptr);
+  }
+
   Main *main_newid = BKE_main_new();
   for (Main *mainptr = mainl->next; mainptr; mainptr = mainptr->next) {
-    /* Drop weak links for which no data-block was found. */
-    read_library_clear_weak_links(basefd, mainlist, mainptr);
-
     /* Do versioning for newly added linked data-blocks. If no data-blocks
      * were read from a library versionfile will still be zero and we can
      * skip it. */
