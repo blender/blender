@@ -115,12 +115,20 @@ struct DensityAddOperationExecutor {
 
     surface_ob_orig_ = curves_id_orig_->surface;
     surface_orig_ = static_cast<Mesh *>(surface_ob_orig_->data);
+    if (surface_orig_->totpoly == 0) {
+      report_empty_original_surface(stroke_extension.reports);
+      return;
+    }
 
     surface_ob_eval_ = DEG_get_evaluated_object(ctx_.depsgraph, surface_ob_orig_);
     if (surface_ob_eval_ == nullptr) {
       return;
     }
     surface_eval_ = BKE_object_get_evaluated_mesh(surface_ob_eval_);
+    if (surface_eval_->totpoly == 0) {
+      report_empty_evaluated_surface(stroke_extension.reports);
+      return;
+    }
 
     BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_LOOPTRI, 2);
     BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval_); });
