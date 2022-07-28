@@ -31,16 +31,16 @@
 
 #define PYDOC_BUILTIN_SHADER_DESCRIPTION \
   "``2D_FLAT_COLOR``\n" \
-  "   :Attributes: vec3 pos, vec4 color\n" \
+  "   :Attributes: vec2 pos, vec4 color\n" \
   "   :Uniforms: none\n" \
   "``2D_IMAGE``\n" \
-  "   :Attributes: vec3 pos, vec2 texCoord\n" \
+  "   :Attributes: vec2 pos, vec2 texCoord\n" \
   "   :Uniforms: sampler2D image\n" \
   "``2D_SMOOTH_COLOR``\n" \
-  "   :Attributes: vec3 pos, vec4 color\n" \
+  "   :Attributes: vec2 pos, vec4 color\n" \
   "   :Uniforms: none\n" \
   "``2D_UNIFORM_COLOR``\n" \
-  "   :Attributes: vec3 pos\n" \
+  "   :Attributes: vec2 pos\n" \
   "   :Uniforms: vec4 color\n" \
   "``3D_FLAT_COLOR``\n" \
   "   :Attributes: vec3 pos, vec4 color\n" \
