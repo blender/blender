@@ -1863,6 +1863,7 @@ bool NodeParamsProvider::lazy_require_input(StringRef identifier)
 
 void NodeParamsProvider::set_input_unused(StringRef identifier)
 {
+  BLI_assert(node_supports_laziness(this->dnode));
   const DInputSocket socket = this->dnode.input_by_identifier(identifier);
   BLI_assert(socket);
 
