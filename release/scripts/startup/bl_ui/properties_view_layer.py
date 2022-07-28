@@ -79,6 +79,7 @@ class VIEWLAYER_PT_eevee_next_layer_passes_data(ViewLayerButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
+        scene = context.scene
         view_layer = context.view_layer
 
         col = layout.column()
@@ -87,7 +88,9 @@ class VIEWLAYER_PT_eevee_next_layer_passes_data(ViewLayerButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_mist")
         col.prop(view_layer, "use_pass_normal")
         col.prop(view_layer, "use_pass_position")
-        col.prop(view_layer, "use_pass_vector")
+        sub = col.column()
+        sub.active = not scene.eevee.use_motion_blur
+        sub.prop(view_layer, "use_pass_vector")
 
 
 class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):

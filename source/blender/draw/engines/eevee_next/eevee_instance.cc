@@ -242,6 +242,15 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
       }
     }
   }
+
+  /* The vector pass is initialized to weird values. Set it to neutral value if not rendered. */
+  if ((pass_bits & EEVEE_RENDER_PASS_VECTOR) == 0) {
+    const char *vector_pass_name = Film::pass_to_render_pass_name(EEVEE_RENDER_PASS_VECTOR);
+    RenderPass *vector_rp = RE_pass_find_by_name(render_layer, vector_pass_name, view_name);
+    if (vector_rp) {
+      memset(vector_rp->rect, 0, sizeof(float) * 4 * vector_rp->rectx * vector_rp->recty);
+    }
+  }
 }
 
 /** \} */
