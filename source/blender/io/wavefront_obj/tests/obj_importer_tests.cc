@@ -522,4 +522,14 @@ TEST_F(obj_importer_test, import_all_objects)
   import_and_check("all_objects.obj", expect, std::size(expect), 7);
 }
 
+TEST_F(obj_importer_test, import_vertices)
+{
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      /* Loose vertices without faces or edges. */
+      {"OBCube.001", OB_MESH, 8, 0, 0, 0, float3(1, 1, -1), float3(-1, 1, 1)},
+  };
+  import_and_check("vertices.obj", expect, std::size(expect), 0);
+}
+
 }  // namespace blender::io::obj
