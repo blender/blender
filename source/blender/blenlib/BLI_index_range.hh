@@ -90,10 +90,10 @@ class IndexRange {
       return *this;
     }
 
-    constexpr Iterator operator++(int) const
+    constexpr Iterator operator++(int)
     {
       Iterator copied_iterator = *this;
-      ++copied_iterator;
+      ++(*this);
       return copied_iterator;
     }
 

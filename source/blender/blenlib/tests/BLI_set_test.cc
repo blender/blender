@@ -532,8 +532,8 @@ TEST(set, ForwardIterator)
   Set<int>::iterator iter1 = set.begin();
   int value1 = *iter1;
   Set<int>::iterator iter2 = iter1++;
-  EXPECT_EQ(*iter1, value1);
-  EXPECT_EQ(*iter2, *(++iter1));
+  EXPECT_EQ(*iter1, *(++iter1));
+  EXPECT_EQ(*iter2, value1);
 }
 
 TEST(set, GenericAlgorithms)
