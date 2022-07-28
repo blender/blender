@@ -183,6 +183,7 @@ void register_node_tree_type_cmp()
 
   tt->type = NTREE_COMPOSIT;
   strcpy(tt->idname, "CompositorNodeTree");
+  strcpy(tt->group_idname, "CompositorNodeGroup");
   strcpy(tt->ui_name, N_("Compositor"));
   tt->ui_icon = ICON_NODE_COMPOSITING;
   strcpy(tt->ui_description, N_("Compositing nodes"));

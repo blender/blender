@@ -44,7 +44,12 @@
 #include "UI_resources.h"
 
 #include "NOD_common.h"
+#include "NOD_composite.h"
+#include "NOD_geometry.h"
+#include "NOD_shader.h"
 #include "NOD_socket.h"
+#include "NOD_texture.h"
+
 #include "node_intern.hh" /* own include */
 
 namespace blender::ed::space_node {
@@ -99,16 +104,16 @@ const char *node_group_idname(bContext *C)
   SpaceNode *snode = CTX_wm_space_node(C);
 
   if (ED_node_is_shader(snode)) {
-    return "ShaderNodeGroup";
+    return ntreeType_Shader->group_idname;
   }
   if (ED_node_is_compositor(snode)) {
-    return "CompositorNodeGroup";
+    return ntreeType_Composite->group_idname;
   }
   if (ED_node_is_texture(snode)) {
-    return "TextureNodeGroup";
+    return ntreeType_Texture->group_idname;
   }
   if (ED_node_is_geometry(snode)) {
-    return "GeometryNodeGroup";
+    return ntreeType_Geometry->group_idname;
   }
 
   return "";

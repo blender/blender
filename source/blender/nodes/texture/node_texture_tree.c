@@ -140,6 +140,7 @@ void register_node_tree_type_tex(void)
 
   tt->type = NTREE_TEXTURE;
   strcpy(tt->idname, "TextureNodeTree");
+  strcpy(tt->group_idname, "TextureNodeGroup");
   strcpy(tt->ui_name, N_("Texture Node Editor"));
   tt->ui_icon = ICON_NODE_TEXTURE; /* Defined in `drawnode.c`. */
   strcpy(tt->ui_description, N_("Texture nodes"));

@@ -374,6 +374,9 @@ typedef struct bNodeTreeType {
   int type;        /* type identifier */
   char idname[64]; /* identifier name */
 
+  /* The ID name of group nodes for this type. */
+  char group_idname[64];
+
   char ui_name[64];
   char ui_description[256];
   int ui_icon;
