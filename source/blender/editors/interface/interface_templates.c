@@ -6674,7 +6674,7 @@ void uiTemplateCacheFileTimeSettings(uiLayout *layout, PointerRNA *fileptr)
 }
 
 static void cache_file_layer_item(uiList *UNUSED(ui_list),
-                                  bContext *UNUSED(C),
+                                  const bContext *UNUSED(C),
                                   uiLayout *layout,
                                   PointerRNA *UNUSED(dataptr),
                                   PointerRNA *itemptr,
