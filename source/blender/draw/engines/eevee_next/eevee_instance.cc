@@ -217,14 +217,8 @@ void Instance::render_sample()
   motion_blur.step();
 }
 
-void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
+void Instance::render_read_result(RenderLayer *render_layer, const char *view_name)
 {
-  while (!sampling.finished()) {
-    this->render_sample();
-    /* TODO(fclem) print progression. */
-  }
-
-  /* Read Results. */
   eViewLayerEEVEEPassType pass_bits = film.enabled_passes_get();
   for (auto i : IndexRange(EEVEE_RENDER_PASS_MAX_BIT)) {
     eViewLayerEEVEEPassType pass_type = eViewLayerEEVEEPassType(pass_bits & (1 << i));
@@ -248,6 +242,36 @@ void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
       }
     }
   }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Interface
+ * \{ */
+
+void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
+{
+  while (!sampling.finished()) {
+    this->render_sample();
+
+    /* TODO(fclem) print progression. */
+#if 0
+    /* TODO(fclem): Does not currently work. But would be better to just display to 2D view like
+     * cycles does. */
+    if (G.background == false && first_read) {
+      /* Allow to preview the first sample. */
+      /* TODO(fclem): Might want to not do this during animation render to avoid too much stall. */
+      this->render_read_result(render_layer, view_name);
+      first_read = false;
+      DRW_render_context_disable(render->re);
+      /* Allow the 2D viewport to grab the ticket mutex to display the render. */
+      DRW_render_context_enable(render->re);
+    }
+#endif
+  }
+
+  this->render_read_result(render_layer, view_name);
 }
 
 void Instance::draw_viewport(DefaultFramebufferList *dfbl)

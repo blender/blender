@@ -142,6 +142,7 @@ class Instance {
                                  RenderEngine *engine,
                                  Depsgraph *depsgraph);
   void render_sample();
+  void render_read_result(RenderLayer *render_layer, const char *view_name);
 
   void mesh_sync(Object *ob, ObjectHandle &ob_handle);
 
