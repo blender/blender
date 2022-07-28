@@ -582,7 +582,7 @@ void Film::display()
   BLI_assert(inst_.is_viewport());
 
   /* Acquire dummy render buffers for correct binding. They will not be used. */
-  inst_.render_buffers.acquire(int2(1), (void *)this);
+  inst_.render_buffers.acquire(int2(1));
 
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   GPU_framebuffer_bind(dfbl->default_fb);

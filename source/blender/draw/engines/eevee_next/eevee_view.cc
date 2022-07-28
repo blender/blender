@@ -85,8 +85,6 @@ void ShadingView::sync()
   // inst_.hiz_back.view_sync(extent_);
   // inst_.hiz_front.view_sync(extent_);
   // inst_.gbuffer.view_sync(extent_);
-
-  postfx_tx_.sync();
 }
 
 void ShadingView::render()
@@ -96,12 +94,8 @@ void ShadingView::render()
   }
 
   /* Query temp textures and create frame-buffers. */
-  /* HACK: View name should be unique and static.
-   * With this, we can reuse the same texture across views. */
-  DrawEngineType *owner = (DrawEngineType *)name_;
-
   RenderBuffers &rbufs = inst_.render_buffers;
-  rbufs.acquire(extent_, owner);
+  rbufs.acquire(extent_);
   combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
                       GPU_ATTACHMENT_TEXTURE(rbufs.combined_tx));
   prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
@@ -154,9 +148,7 @@ GPUTexture *ShadingView::render_post(GPUTexture *input_tx)
   if (!dof_.postfx_enabled() && !mb_.enabled()) {
     return input_tx;
   }
-  /* HACK: View name should be unique and static.
-   * With this, we can reuse the same texture across views. */
-  postfx_tx_.acquire(extent_, GPU_RGBA16F, (void *)name_);
+  postfx_tx_.acquire(extent_, GPU_RGBA16F);
 
   GPUTexture *velocity_tx = velocity_.view_vectors_get();
   GPUTexture *output_tx = postfx_tx_;

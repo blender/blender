@@ -97,7 +97,6 @@ void Instance::begin_sync()
 
   gpencil_engine_enabled = false;
 
-  render_buffers.sync();
   pipelines.sync();
   main_view.sync();
   world.sync();
