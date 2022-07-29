@@ -836,7 +836,7 @@ static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
   size_t i = 0, i_curr;
   rcti gbox_px;
 
-  if (str_len == 0) {
+  if (str_len == 0 || str[0] == 0) {
     /* early output. */
     return;
   }
