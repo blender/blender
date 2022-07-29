@@ -478,7 +478,7 @@ OCIO_FORCE_BUILD=false
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
-IMATH_VERSION="3.1.4"
+IMATH_VERSION="3.1.5"
 IMATH_VERSION_SHORT="3.1"
 IMATH_VERSION_MIN="3.0"
 IMATH_VERSION_MEX="4.0"
@@ -487,7 +487,7 @@ IMATH_FORCE_REBUILD=false
 IMATH_SKIP=false
 _with_built_imath=false
 
-OPENEXR_VERSION="3.1.4"
+OPENEXR_VERSION="3.1.5"
 OPENEXR_VERSION_SHORT="3.1"
 OPENEXR_VERSION_MIN="3.0"
 OPENEXR_VERSION_MEX="4.0"
@@ -3000,7 +3000,7 @@ compile_ALEMBIC() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  alembic_magic=2
+  alembic_magic=3
   _init_alembic
 
   # Force having own builds for the dependencies.
@@ -3048,7 +3048,7 @@ compile_ALEMBIC() {
     fi
     if [ "$_with_built_openexr" = true ]; then
       cmake_d="$cmake_d -D USE_ARNOLD=OFF"
-      cmake_d="$cmake_d -D USE_BINARIES=OFF"
+      cmake_d="$cmake_d -D USE_BINARIES=ON"  # Tests use some Alembic binaries...
       cmake_d="$cmake_d -D USE_EXAMPLES=OFF"
       cmake_d="$cmake_d -D USE_HDF5=OFF"
       cmake_d="$cmake_d -D USE_MAYA=OFF"
