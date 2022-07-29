@@ -15,6 +15,7 @@
 #include "DNA_ID.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 #include "RNA_types.h"
 
 #include "BLI_string.h"

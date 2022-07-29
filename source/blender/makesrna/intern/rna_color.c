@@ -23,6 +23,7 @@
 #ifdef RNA_RUNTIME
 
 #  include "RNA_access.h"
+#  include "RNA_path.h"
 
 #  include "DNA_image_types.h"
 #  include "DNA_material_types.h"
