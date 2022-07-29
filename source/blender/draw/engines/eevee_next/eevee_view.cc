@@ -143,7 +143,7 @@ void ShadingView::render()
 
 GPUTexture *ShadingView::render_postfx(GPUTexture *input_tx)
 {
-  if (/*!dof_.postfx_enabled() &&*/ !inst_.motion_blur.postfx_enabled()) {
+  if (!inst_.depth_of_field.postfx_enabled() && !inst_.motion_blur.postfx_enabled()) {
     return input_tx;
   }
   postfx_tx_.acquire(extent_, GPU_RGBA16F);
@@ -151,7 +151,7 @@ GPUTexture *ShadingView::render_postfx(GPUTexture *input_tx)
   GPUTexture *output_tx = postfx_tx_;
 
   /* Swapping is done internally. Actual output is set to the next input. */
-  // dof_.render(depth_tx_, &input_tx, &output_tx);
+  inst_.depth_of_field.render(&input_tx, &output_tx);
   inst_.motion_blur.render(&input_tx, &output_tx);
 
   return input_tx;
@@ -178,7 +178,7 @@ void ShadingView::update_view()
 
   /* FIXME(fclem): The offset may be is noticeably large and the culling might make object pop
    * out of the blurring radius. To fix this, use custom enlarged culling matrix. */
-  // dof_.jitter_apply(winmat, viewmat);
+  inst_.depth_of_field.jitter_apply(winmat, viewmat);
   DRW_view_update_sub(render_view_, viewmat.ptr(), winmat.ptr());
 
   // inst_.lightprobes.set_view(render_view_, extent_);

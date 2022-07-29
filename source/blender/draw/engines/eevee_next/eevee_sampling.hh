@@ -27,11 +27,11 @@ class Sampling {
   Instance &inst_;
 
   /* Number of samples in the first ring of jittered depth of field. */
-  constexpr static uint64_t dof_web_density_ = 6;
+  static constexpr uint64_t dof_web_density_ = 6;
   /* High number of sample for viewport infinite rendering. */
-  constexpr static uint64_t infinite_sample_count_ = 0xFFFFFFu;
+  static constexpr uint64_t infinite_sample_count_ = 0xFFFFFFu;
   /* During interactive rendering, loop over the first few samples. */
-  constexpr static uint64_t interactive_sample_max_ = 8;
+  static constexpr uint64_t interactive_sample_max_ = 8;
 
   /** 0 based current sample. Might not increase sequentially in viewport. */
   uint64_t sample_ = 0;

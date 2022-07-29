@@ -134,6 +134,7 @@ set(SRC
   engines/eevee/eevee_temporal_sampling.c
   engines/eevee/eevee_volumes.c
   engines/eevee_next/eevee_camera.cc
+  engines/eevee_next/eevee_depth_of_field.cc
   engines/eevee_next/eevee_engine.cc
   engines/eevee_next/eevee_film.cc
   engines/eevee_next/eevee_instance.cc
@@ -362,6 +363,21 @@ set(GLSL_SRC
 
   engines/eevee_next/shaders/eevee_attributes_lib.glsl
   engines/eevee_next/shaders/eevee_camera_lib.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_accumulator_lib.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_bokeh_lut_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_downsample_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_filter_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_gather_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_hole_fill_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_lib.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_reduce_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_resolve_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_scatter_frag.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_scatter_vert.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_setup_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_stabilize_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_tiles_dilate_comp.glsl
+  engines/eevee_next/shaders/eevee_depth_of_field_tiles_flatten_comp.glsl
   engines/eevee_next/shaders/eevee_film_comp.glsl
   engines/eevee_next/shaders/eevee_film_frag.glsl
   engines/eevee_next/shaders/eevee_film_lib.glsl

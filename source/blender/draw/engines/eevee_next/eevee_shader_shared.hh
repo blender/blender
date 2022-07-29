@@ -23,6 +23,9 @@ using draw::SwapChain;
 using draw::Texture;
 using draw::TextureFromPool;
 
+constexpr eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
+constexpr eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;
+
 #endif
 
 #define UBO_MIN_MAX_SUPPORTED_SIZE 1 << 14
@@ -346,6 +349,116 @@ BLI_STATIC_ASSERT_ALIGN(MotionBlurTileIndirection, 16)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Depth of field
+ * \{ */
+
+/* 5% error threshold. */
+#define DOF_FAST_GATHER_COC_ERROR 0.05
+#define DOF_GATHER_RING_COUNT 5
+#define DOF_DILATE_RING_COUNT 3
+
+struct DepthOfFieldData {
+  /** Size of the render targets for gather & scatter passes. */
+  int2 extent;
+  /** Size of a pixel in uv space (1.0 / extent). */
+  float2 texel_size;
+  /** Scale factor for anisotropic bokeh. */
+  float2 bokeh_anisotropic_scale;
+  float2 bokeh_anisotropic_scale_inv;
+  /* Correction factor to align main target pixels with the filtered mipmap chain texture. */
+  float2 gather_uv_fac;
+  /** Scatter parameters. */
+  float scatter_coc_threshold;
+  float scatter_color_threshold;
+  float scatter_neighbor_max_color;
+  int scatter_sprite_per_row;
+  /** Firefly removing factor. */
+  float denoise_factor;
+  /** Number of side the bokeh shape has. */
+  float bokeh_blades;
+  /** Rotation of the bokeh shape. */
+  float bokeh_rotation;
+  /** Multiplier and bias to apply to linear depth to Circle of confusion (CoC). */
+  float coc_mul, coc_bias;
+  /** Maximum absolute allowed Circle of confusion (CoC). Min of computed max and user max. */
+  float coc_abs_max;
+  /** Copy of camera type. */
+  eCameraType camera_type;
+  /** Max number of sprite in the scatter pass for each ground. */
+  int scatter_max_rect;
+
+  int _pad0, _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(DepthOfFieldData, 16)
+
+struct ScatterRect {
+  /** Color and CoC of the 4 pixels the scatter sprite represents. */
+  float4 color_and_coc[4];
+  /** Rect center position in half pixel space. */
+  float2 offset;
+  /** Rect half extent in half pixel space. */
+  float2 half_extent;
+};
+BLI_STATIC_ASSERT_ALIGN(ScatterRect, 16)
+
+/** WORKAROUND(@fclem): This is because this file is included before common_math_lib.glsl. */
+#ifndef M_PI
+#  define EEVEE_PI
+#  define M_PI 3.14159265358979323846 /* pi */
+#endif
+
+static inline float coc_radius_from_camera_depth(DepthOfFieldData dof, float depth)
+{
+  depth = (dof.camera_type != CAMERA_ORTHO) ? 1.0f / depth : depth;
+  return dof.coc_mul * depth + dof.coc_bias;
+}
+
+static inline float regular_polygon_side_length(float sides_count)
+{
+  return 2.0f * sinf(M_PI / sides_count);
+}
+
+/* Returns intersection ratio between the radius edge at theta and the regular polygon edge.
+ * Start first corners at theta == 0. */
+static inline float circle_to_polygon_radius(float sides_count, float theta)
+{
+  /* From Graphics Gems from CryENGINE 3 (Siggraph 2013) by Tiago Sousa (slide
+   * 36). */
+  float side_angle = (2.0f * M_PI) / sides_count;
+  return cosf(side_angle * 0.5f) /
+         cosf(theta - side_angle * floorf((sides_count * theta + M_PI) / (2.0f * M_PI)));
+}
+
+/* Remap input angle to have homogenous spacing of points along a polygon edge.
+ * Expects theta to be in [0..2pi] range. */
+static inline float circle_to_polygon_angle(float sides_count, float theta)
+{
+  float side_angle = (2.0f * M_PI) / sides_count;
+  float halfside_angle = side_angle * 0.5f;
+  float side = floorf(theta / side_angle);
+  /* Length of segment from center to the middle of polygon side. */
+  float adjacent = circle_to_polygon_radius(sides_count, 0.0f);
+
+  /* This is the relative position of the sample on the polygon half side. */
+  float local_theta = theta - side * side_angle;
+  float ratio = (local_theta - halfside_angle) / halfside_angle;
+
+  float halfside_len = regular_polygon_side_length(sides_count) * 0.5f;
+  float opposite = ratio * halfside_len;
+
+  /* NOTE: atan(y_over_x) has output range [-M_PI_2..M_PI_2]. */
+  float final_local_theta = atanf(opposite / adjacent);
+
+  return side * side_angle + final_local_theta;
+}
+
+#ifdef EEVEE_PI
+#  undef M_PI
+#endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Ray-Tracing
  * \{ */
 
@@ -404,13 +517,16 @@ float4 utility_tx_sample(sampler2DArray util_tx, float2 uv, float layer)
 
 using AOVsInfoDataBuf = draw::StorageBuffer<AOVsInfoData>;
 using CameraDataBuf = draw::UniformBuffer<CameraData>;
+using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
+using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
+using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
 using FilmDataBuf = draw::UniformBuffer<FilmData>;
+using MotionBlurDataBuf = draw::UniformBuffer<MotionBlurData>;
+using MotionBlurTileIndirectionBuf = draw::StorageBuffer<MotionBlurTileIndirection, true>;
 using SamplingDataBuf = draw::StorageBuffer<SamplingData>;
 using VelocityGeometryBuf = draw::StorageArrayBuffer<float4, 16, true>;
 using VelocityIndexBuf = draw::StorageArrayBuffer<VelocityIndex, 16>;
 using VelocityObjectBuf = draw::StorageArrayBuffer<float4x4, 16>;
-using MotionBlurDataBuf = draw::UniformBuffer<MotionBlurData>;
-using MotionBlurTileIndirectionBuf = draw::StorageBuffer<MotionBlurTileIndirection, true>;
 
 }  // namespace blender::eevee
 #endif

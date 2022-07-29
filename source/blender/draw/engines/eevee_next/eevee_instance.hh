@@ -16,6 +16,7 @@
 #include "DRW_render.h"
 
 #include "eevee_camera.hh"
+#include "eevee_depth_of_field.hh"
 #include "eevee_film.hh"
 #include "eevee_material.hh"
 #include "eevee_motion_blur.hh"
@@ -44,6 +45,7 @@ class Instance {
   PipelineModule pipelines;
   VelocityModule velocity;
   MotionBlurModule motion_blur;
+  DepthOfField depth_of_field;
   Sampling sampling;
   Camera camera;
   Film film;
@@ -80,6 +82,7 @@ class Instance {
         pipelines(*this),
         velocity(*this),
         motion_blur(*this),
+        depth_of_field(*this),
         sampling(*this),
         camera(*this),
         film(*this),

@@ -61,6 +61,7 @@ void Instance::init(const int2 &output_res,
   camera.init();
   film.init(output_res, output_rect);
   velocity.init();
+  depth_of_field.init();
   motion_blur.init();
   main_view.init();
 }
@@ -98,6 +99,7 @@ void Instance::begin_sync()
 
   gpencil_engine_enabled = false;
 
+  depth_of_field.sync();
   motion_blur.sync();
   pipelines.sync();
   main_view.sync();

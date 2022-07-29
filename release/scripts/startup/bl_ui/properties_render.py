@@ -223,7 +223,7 @@ class RENDER_PT_motion_blur_curve(RenderButtonsPanel, Panel):
 class RENDER_PT_eevee_depth_of_field(RenderButtonsPanel, Panel):
     bl_label = "Depth of Field"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'}
 
     @classmethod
     def poll(cls, context):

@@ -90,6 +90,44 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_motion_blur_tiles_flatten_render";
     case MOTION_BLUR_TILE_FLATTEN_VIEWPORT:
       return "eevee_motion_blur_tiles_flatten_viewport";
+    case DOF_BOKEH_LUT:
+      return "eevee_depth_of_field_bokeh_lut";
+    case DOF_DOWNSAMPLE:
+      return "eevee_depth_of_field_downsample";
+    case DOF_FILTER:
+      return "eevee_depth_of_field_filter";
+    case DOF_GATHER_FOREGROUND_LUT:
+      return "eevee_depth_of_field_gather_foreground_lut";
+    case DOF_GATHER_FOREGROUND:
+      return "eevee_depth_of_field_gather_foreground";
+    case DOF_GATHER_BACKGROUND_LUT:
+      return "eevee_depth_of_field_gather_background_lut";
+    case DOF_GATHER_BACKGROUND:
+      return "eevee_depth_of_field_gather_background";
+    case DOF_GATHER_HOLE_FILL:
+      return "eevee_depth_of_field_hole_fill";
+    case DOF_REDUCE:
+      return "eevee_depth_of_field_reduce";
+    case DOF_RESOLVE:
+      return "eevee_depth_of_field_resolve_lq";
+    case DOF_RESOLVE_HQ:
+      return "eevee_depth_of_field_resolve_hq";
+    case DOF_RESOLVE_LUT:
+      return "eevee_depth_of_field_resolve_lq_lut";
+    case DOF_RESOLVE_LUT_HQ:
+      return "eevee_depth_of_field_resolve_hq_lut";
+    case DOF_SETUP:
+      return "eevee_depth_of_field_setup";
+    case DOF_SCATTER:
+      return "eevee_depth_of_field_scatter";
+    case DOF_STABILIZE:
+      return "eevee_depth_of_field_stabilize";
+    case DOF_TILES_DILATE_MINABS:
+      return "eevee_depth_of_field_tiles_dilate_minabs";
+    case DOF_TILES_DILATE_MINMAX:
+      return "eevee_depth_of_field_tiles_dilate_minmax";
+    case DOF_TILES_FLATTEN:
+      return "eevee_depth_of_field_tiles_flatten";
     /* To avoid compiler warning about missing case. */
     case MAX_SHADER_TYPE:
       return "";

@@ -79,6 +79,7 @@ class Film {
   float *read_pass(eViewLayerEEVEEPassType pass_type);
   float *read_aov(ViewLayerAOV *aov);
 
+  /** Returns shading views internal resolution. */
   int2 render_extent_get() const
   {
     return data_.render_extent;
