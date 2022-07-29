@@ -277,8 +277,8 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
 
   Object *ob_parent = ob ? ob : base->object;
 
-  for (Object *ob_iter = reinterpret_cast<Object *>(bmain->objects.first); ob_iter;
-       ob_iter = reinterpret_cast<Object *>(ob_iter->id.next)) {
+  for (Object *ob_iter = static_cast<Object *>(bmain->objects.first); ob_iter;
+       ob_iter = static_cast<Object *>(ob_iter->id.next)) {
     if (BKE_object_is_child_recursive(ob_parent, ob_iter)) {
       if (ob) {
         RNA_id_pointer_create(&ob_iter->id, &ptr);
@@ -312,8 +312,8 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
  */
 static void outliner__object_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
-  Object *ob = reinterpret_cast<Object *>(poin);
-  char *propname = reinterpret_cast<char *>(poin2);
+  Object *ob = static_cast<Object *>(poin);
+  char *propname = static_cast<char *>(poin2);
   outliner_object_set_flag_recursive_fn(C, nullptr, ob, propname);
 }
 
@@ -322,8 +322,8 @@ static void outliner__object_set_flag_recursive_fn(bContext *C, void *poin, void
  */
 static void outliner__base_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
-  Base *base = reinterpret_cast<Base *>(poin);
-  char *propname = reinterpret_cast<char *>(poin2);
+  Base *base = static_cast<Base *>(poin);
+  char *propname = static_cast<char *>(poin2);
   outliner_object_set_flag_recursive_fn(C, base, nullptr, propname);
 }
 
@@ -488,7 +488,7 @@ void outliner_collection_isolate_flag(Scene *scene,
   const bool is_hide = strstr(propname, "hide_") != nullptr;
 
   LayerCollection *top_layer_collection = layer_collection ?
-                                              reinterpret_cast<LayerCollection *>(
+                                              static_cast<LayerCollection *>(
                                                   view_layer->layer_collections.first) :
                                               nullptr;
   Collection *top_collection = collection ? scene->master_collection : nullptr;
@@ -559,7 +559,7 @@ void outliner_collection_isolate_flag(Scene *scene,
   else {
     CollectionParent *parent;
     Collection *child = collection;
-    while ((parent = reinterpret_cast<CollectionParent *>(child->parents.first))) {
+    while ((parent = static_cast<CollectionParent *>(child->parents.first))) {
       if (parent->collection->flag & COLLECTION_IS_MASTER) {
         break;
       }
@@ -638,8 +638,8 @@ static void view_layer__layer_collection_set_flag_recursive_fn(bContext *C,
                                                                void *poin,
                                                                void *poin2)
 {
-  LayerCollection *layer_collection = reinterpret_cast<LayerCollection *>(poin);
-  char *propname = reinterpret_cast<char *>(poin2);
+  LayerCollection *layer_collection = static_cast<LayerCollection *>(poin);
+  char *propname = static_cast<char *>(poin2);
   outliner_collection_set_flag_recursive_fn(C, layer_collection, nullptr, propname);
 }
 
@@ -649,8 +649,8 @@ static void view_layer__layer_collection_set_flag_recursive_fn(bContext *C,
  */
 static void view_layer__collection_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
-  LayerCollection *layer_collection = reinterpret_cast<LayerCollection *>(poin);
-  char *propname = reinterpret_cast<char *>(poin2);
+  LayerCollection *layer_collection = static_cast<LayerCollection *>(poin);
+  char *propname = static_cast<char *>(poin2);
   outliner_collection_set_flag_recursive_fn(
       C, layer_collection, layer_collection->collection, propname);
 }
@@ -661,8 +661,8 @@ static void view_layer__collection_set_flag_recursive_fn(bContext *C, void *poin
  */
 static void scenes__collection_set_flag_recursive_fn(bContext *C, void *poin, void *poin2)
 {
-  Collection *collection = reinterpret_cast<Collection *>(poin);
-  char *propname = reinterpret_cast<char *>(poin2);
+  Collection *collection = static_cast<Collection *>(poin);
+  char *propname = static_cast<char *>(poin2);
   outliner_collection_set_flag_recursive_fn(C, nullptr, collection, propname);
 }
 
@@ -672,7 +672,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   struct wmMsgBus *mbus = CTX_wm_message_bus(C);
   BLI_mempool *ts = space_outliner->treestore;
-  TreeStoreElem *tselem = reinterpret_cast<TreeStoreElem *>(tsep);
+  TreeStoreElem *tselem = static_cast<TreeStoreElem *>(tsep);
 
   if (ts && tselem) {
     TreeElement *te = outliner_find_tree_element(&space_outliner->tree, tselem);
@@ -737,7 +737,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
       switch (tselem->type) {
         case TSE_DEFGROUP: {
           Object *ob = (Object *)tselem->id;
-          bDeformGroup *vg = reinterpret_cast<bDeformGroup *>(te->directdata);
+          bDeformGroup *vg = static_cast<bDeformGroup *>(te->directdata);
           BKE_object_defgroup_unique_name(vg, ob);
           WM_msg_publish_rna_prop(mbus, &ob->id, vg, VertexGroup, name);
           break;
@@ -752,7 +752,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
         case TSE_EBONE: {
           bArmature *arm = (bArmature *)tselem->id;
           if (arm->edbo) {
-            EditBone *ebone = reinterpret_cast<EditBone *>(te->directdata);
+            EditBone *ebone = static_cast<EditBone *>(te->directdata);
             char newname[sizeof(ebone->name)];
 
             /* restore bone name */
@@ -770,7 +770,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           outliner_viewcontext_init(C, &tvc);
 
           bArmature *arm = (bArmature *)tselem->id;
-          Bone *bone = reinterpret_cast<Bone *>(te->directdata);
+          Bone *bone = static_cast<Bone *>(te->directdata);
           char newname[sizeof(bone->name)];
 
           /* always make current object active */
@@ -790,7 +790,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
 
           Object *ob = (Object *)tselem->id;
           bArmature *arm = (bArmature *)ob->data;
-          bPoseChannel *pchan = reinterpret_cast<bPoseChannel *>(te->directdata);
+          bPoseChannel *pchan = static_cast<bPoseChannel *>(te->directdata);
           char newname[sizeof(pchan->name)];
 
           /* always make current pose-bone active */
@@ -801,15 +801,14 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
           /* restore bone name */
           BLI_strncpy(newname, pchan->name, sizeof(pchan->name));
           BLI_strncpy(pchan->name, oldname, sizeof(pchan->name));
-          ED_armature_bone_rename(
-              bmain, reinterpret_cast<bArmature *>(ob->data), oldname, newname);
+          ED_armature_bone_rename(bmain, static_cast<bArmature *>(ob->data), oldname, newname);
           WM_msg_publish_rna_prop(mbus, &arm->id, pchan->bone, Bone, name);
           WM_event_add_notifier(C, NC_OBJECT | ND_POSE, nullptr);
           break;
         }
         case TSE_POSEGRP: {
           Object *ob = (Object *)tselem->id; /* id = object. */
-          bActionGroup *grp = reinterpret_cast<bActionGroup *>(te->directdata);
+          bActionGroup *grp = static_cast<bActionGroup *>(te->directdata);
 
           BLI_uniquename(&ob->pose->agroups,
                          grp,
@@ -823,7 +822,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
         }
         case TSE_GP_LAYER: {
           bGPdata *gpd = (bGPdata *)tselem->id; /* id = GP Datablock */
-          bGPDlayer *gpl = reinterpret_cast<bGPDlayer *>(te->directdata);
+          bGPDlayer *gpl = static_cast<bGPDlayer *>(te->directdata);
 
           /* always make layer active */
           BKE_gpencil_layer_active_set(gpd, gpl);
@@ -839,7 +838,7 @@ static void namebutton_fn(bContext *C, void *tsep, char *oldname)
         }
         case TSE_R_LAYER: {
           Scene *scene = (Scene *)tselem->id;
-          ViewLayer *view_layer = reinterpret_cast<ViewLayer *>(te->directdata);
+          ViewLayer *view_layer = static_cast<ViewLayer *>(te->directdata);
 
           /* Restore old name. */
           char newname[sizeof(view_layer->name)];
@@ -991,7 +990,7 @@ static bool outliner_restrict_properties_collection_set(Scene *scene,
 {
   TreeStoreElem *tselem = TREESTORE(te);
   LayerCollection *layer_collection = (tselem->type == TSE_LAYER_COLLECTION) ?
-                                          reinterpret_cast<LayerCollection *>(te->directdata) :
+                                          static_cast<LayerCollection *>(te->directdata) :
                                           nullptr;
   Collection *collection = outliner_collection_from_tree_element(te);
 
@@ -1105,7 +1104,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
           ELEM(space_outliner->outlinevis, SO_SCENES, SO_VIEW_LAYER)) {
         if (space_outliner->show_restrict_flags & SO_RESTRICT_RENDER) {
           /* View layer render toggle. */
-          ViewLayer *layer = reinterpret_cast<ViewLayer *>(te->directdata);
+          ViewLayer *layer = static_cast<ViewLayer *>(te->directdata);
 
           bt = uiDefIconButBitS(block,
                                 UI_BTYPE_ICON_TOGGLE_N,
@@ -1329,7 +1328,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
         bPoseChannel *pchan = (bPoseChannel *)te->directdata;
         Bone *bone = pchan->bone;
         Object *ob = (Object *)tselem->id;
-        bArmature *arm = reinterpret_cast<bArmature *>(ob->data);
+        bArmature *arm = static_cast<bArmature *>(ob->data);
 
         RNA_pointer_create(&arm->id, &RNA_Bone, bone, &ptr);
 
@@ -1479,8 +1478,7 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                 scene, te, &collection_ptr, &layer_collection_ptr, &props, &props_active)) {
 
           LayerCollection *layer_collection = (tselem->type == TSE_LAYER_COLLECTION) ?
-                                                  reinterpret_cast<LayerCollection *>(
-                                                      te->directdata) :
+                                                  static_cast<LayerCollection *>(te->directdata) :
                                                   nullptr;
           Collection *collection = outliner_collection_from_tree_element(te);
 
@@ -2499,7 +2497,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.drag_id = tselem->id;
         break;
       case TSE_CONSTRAINT: {
-        bConstraint *con = reinterpret_cast<bConstraint *>(te->directdata);
+        bConstraint *con = static_cast<bConstraint *>(te->directdata);
         data.drag_id = tselem->id;
         switch ((eBConstraint_Types)con->type) {
           case CONSTRAINT_TYPE_CAMERASOLVER:
@@ -2616,9 +2614,8 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         data.drag_id = tselem->id;
 
         if (ob->type != OB_GPENCIL) {
-          ModifierData *md = reinterpret_cast<ModifierData *>(
-              BLI_findlink(&ob->modifiers, tselem->nr));
-          const ModifierTypeInfo *modifier_type = reinterpret_cast<const ModifierTypeInfo *>(
+          ModifierData *md = static_cast<ModifierData *>(BLI_findlink(&ob->modifiers, tselem->nr));
+          const ModifierTypeInfo *modifier_type = static_cast<const ModifierTypeInfo *>(
               BKE_modifier_get_info((ModifierType)md->type));
           if (modifier_type != nullptr) {
             data.icon = modifier_type->icon;
@@ -2629,7 +2626,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         }
         else {
           /* grease pencil modifiers */
-          GpencilModifierData *md = reinterpret_cast<GpencilModifierData *>(
+          GpencilModifierData *md = static_cast<GpencilModifierData *>(
               BLI_findlink(&ob->greasepencil_modifiers, tselem->nr));
           switch ((GpencilModifierType)md->type) {
             case eGpencilModifierType_Noise:
@@ -2788,7 +2785,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         const PointerRNA &ptr = te_rna_struct->getPointerRNA();
 
         if (RNA_struct_is_ID(ptr.type)) {
-          data.drag_id = reinterpret_cast<ID *>(ptr.data);
+          data.drag_id = static_cast<ID *>(ptr.data);
           data.icon = RNA_struct_ui_icon(ptr.type);
         }
         else {

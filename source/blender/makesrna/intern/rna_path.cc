@@ -610,8 +610,7 @@ char *RNA_path_append(const char *path,
 
     if (strkey) {
       const int strkey_esc_max_size = (strlen(strkey) * 2) + 1;
-      char *strkey_esc = reinterpret_cast<char *>(
-          BLI_array_alloca(strkey_esc, strkey_esc_max_size));
+      char *strkey_esc = static_cast<char *>(BLI_array_alloca(strkey_esc, strkey_esc_max_size));
       BLI_str_escape(strkey_esc, strkey, strkey_esc_max_size);
       BLI_dynstr_append(dynstr, "\"");
       BLI_dynstr_append(dynstr, strkey_esc);
@@ -809,7 +808,7 @@ static char *rna_idp_path(PointerRNA *ptr,
   link.name = NULL;
   link.index = -1;
 
-  for (i = 0, iter = reinterpret_cast<IDProperty *>(haystack->data.group.first); iter;
+  for (i = 0, iter = static_cast<IDProperty *>(haystack->data.group.first); iter;
        iter = iter->next, i++) {
     if (needle == iter) { /* found! */
       link.name = iter->name;
@@ -911,7 +910,7 @@ static char *rna_path_from_ID_to_idpgroup(const PointerRNA *ptr)
    */
   RNA_id_pointer_create(ptr->owner_id, &id_ptr);
 
-  return RNA_path_from_struct_to_idproperty(&id_ptr, reinterpret_cast<IDProperty *>(ptr->data));
+  return RNA_path_from_struct_to_idproperty(&id_ptr, static_cast<IDProperty *>(ptr->data));
 }
 
 ID *RNA_find_real_ID_and_path(Main *bmain, ID *id, const char **r_path)

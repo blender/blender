@@ -101,7 +101,7 @@ static void outliner_main_region_listener(const wmRegionListenerParams *params)
   ScrArea *area = params->area;
   ARegion *region = params->region;
   wmNotifier *wmn = params->notifier;
-  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(area->spacedata.first);
+  SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
 
   /* context changes */
   switch (wmn->category) {
@@ -264,7 +264,7 @@ static void outliner_main_region_message_subscribe(const wmRegionMessageSubscrib
   struct wmMsgBus *mbus = params->message_bus;
   ScrArea *area = params->area;
   ARegion *region = params->region;
-  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(area->spacedata.first);
+  SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};
   msg_sub_value_region_tag_redraw.owner = region;
@@ -361,7 +361,7 @@ static void outliner_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void outliner_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
-  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(area->spacedata.first);
+  SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
 
   if (space_outliner->runtime == nullptr) {
     space_outliner->runtime = MEM_new<SpaceOutliner_Runtime>("SpaceOutliner_Runtime");
@@ -437,7 +437,7 @@ static void outliner_id_remap(ScrArea *area, SpaceLink *slink, const struct IDRe
 static void outliner_deactivate(struct ScrArea *area)
 {
   /* Remove hover highlights */
-  SpaceOutliner *space_outliner = reinterpret_cast<SpaceOutliner *>(area->spacedata.first);
+  SpaceOutliner *space_outliner = static_cast<SpaceOutliner *>(area->spacedata.first);
   outliner_flag_set(*space_outliner, TSE_HIGHLIGHTED_ANY, false);
   ED_region_tag_redraw_no_rebuild(BKE_area_find_region_type(area, RGN_TYPE_WINDOW));
 }

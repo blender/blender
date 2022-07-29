@@ -90,7 +90,7 @@ static void outliner_storage_cleanup(SpaceOutliner *space_outliner)
     BLI_mempool_iter iter;
 
     BLI_mempool_iternew(ts, &iter);
-    while ((tselem = reinterpret_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
+    while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
       tselem->used = 0;
     }
 
@@ -100,7 +100,7 @@ static void outliner_storage_cleanup(SpaceOutliner *space_outliner)
       space_outliner->storeflag &= ~SO_TREESTORE_CLEANUP;
 
       BLI_mempool_iternew(ts, &iter);
-      while ((tselem = reinterpret_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
+      while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
         if (tselem->id == nullptr) {
           unused++;
         }
@@ -120,9 +120,9 @@ static void outliner_storage_cleanup(SpaceOutliner *space_outliner)
           BLI_mempool *new_ts = BLI_mempool_create(
               sizeof(TreeStoreElem), BLI_mempool_len(ts) - unused, 512, BLI_MEMPOOL_ALLOW_ITER);
           BLI_mempool_iternew(ts, &iter);
-          while ((tselem = reinterpret_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
+          while ((tselem = static_cast<TreeStoreElem *>(BLI_mempool_iterstep(&iter)))) {
             if (tselem->id) {
-              tsenew = reinterpret_cast<TreeStoreElem *>(BLI_mempool_alloc(new_ts));
+              tsenew = static_cast<TreeStoreElem *>(BLI_mempool_alloc(new_ts));
               *tsenew = *tselem;
             }
           }
@@ -151,7 +151,7 @@ static void check_persistent(
         sizeof(TreeStoreElem), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
   }
   if (space_outliner->runtime->treehash == nullptr) {
-    space_outliner->runtime->treehash = reinterpret_cast<GHash *>(
+    space_outliner->runtime->treehash = static_cast<GHash *>(
         BKE_outliner_treehash_create_from_treestore(space_outliner->treestore));
   }
 
@@ -166,7 +166,7 @@ static void check_persistent(
   }
 
   /* add 1 element to treestore */
-  tselem = reinterpret_cast<TreeStoreElem *>(BLI_mempool_alloc(space_outliner->treestore));
+  tselem = static_cast<TreeStoreElem *>(BLI_mempool_alloc(space_outliner->treestore));
   tselem->type = type;
   tselem->nr = type ? nr : 0;
   tselem->id = id;
@@ -293,7 +293,7 @@ static void outliner_add_object_contents(SpaceOutliner *space_outliner,
   outliner_add_element(space_outliner, &te->subtree, ob->data, te, TSE_SOME_ID, 0);
 
   if (ob->pose) {
-    bArmature *arm = reinterpret_cast<bArmature *>(ob->data);
+    bArmature *arm = static_cast<bArmature *>(ob->data);
     TreeElement *tenla = outliner_add_element(
         space_outliner, &te->subtree, ob, te, TSE_POSE_BASE, 0);
     tenla->name = IFACE_("Pose");
@@ -339,7 +339,7 @@ static void outliner_add_object_contents(SpaceOutliner *space_outliner,
         }
       }
       /* make hierarchy */
-      TreeElement *ten = reinterpret_cast<TreeElement *>(tenla->subtree.first);
+      TreeElement *ten = static_cast<TreeElement *>(tenla->subtree.first);
       while (ten) {
         TreeElement *nten = ten->next, *par;
         tselem = TREESTORE(ten);
@@ -694,15 +694,15 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
           ebone->temp.p = ten;
         }
         /* make hierarchy */
-        TreeElement *ten = arm->edbo->first ? reinterpret_cast<TreeElement *>(
-                                                  ((EditBone *)arm->edbo->first)->temp.p) :
-                                              nullptr;
+        TreeElement *ten = arm->edbo->first ?
+                               static_cast<TreeElement *>(((EditBone *)arm->edbo->first)->temp.p) :
+                               nullptr;
         while (ten) {
           TreeElement *nten = ten->next, *par;
           EditBone *ebone = (EditBone *)ten->directdata;
           if (ebone->parent) {
             BLI_remlink(&te->subtree, ten);
-            par = reinterpret_cast<TreeElement *>(ebone->parent->temp.p);
+            par = static_cast<TreeElement *>(ebone->parent->temp.p);
             BLI_addtail(&par->subtree, ten);
             ten->parent = par;
           }
@@ -805,12 +805,12 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                   short index,
                                   const bool expand)
 {
-  ID *id = reinterpret_cast<ID *>(idv);
+  ID *id = static_cast<ID *>(idv);
 
   if (ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
     id = ((PointerRNA *)idv)->owner_id;
     if (!id) {
-      id = reinterpret_cast<ID *>(((PointerRNA *)idv)->data);
+      id = static_cast<ID *>(((PointerRNA *)idv)->data);
     }
   }
   else if (type == TSE_GP_LAYER) {
@@ -980,8 +980,8 @@ struct tTreeSort {
 /* alphabetical comparator, trying to put objects first */
 static int treesort_alpha_ob(const void *v1, const void *v2)
 {
-  const tTreeSort *x1 = reinterpret_cast<const tTreeSort *>(v1);
-  const tTreeSort *x2 = reinterpret_cast<const tTreeSort *>(v2);
+  const tTreeSort *x1 = static_cast<const tTreeSort *>(v1);
+  const tTreeSort *x2 = static_cast<const tTreeSort *>(v2);
 
   /* first put objects last (hierarchy) */
   int comp = (x1->idcode == ID_OB);
@@ -1019,8 +1019,8 @@ static int treesort_alpha_ob(const void *v1, const void *v2)
 /* Move children that are not in the collection to the end of the list. */
 static int treesort_child_not_in_collection(const void *v1, const void *v2)
 {
-  const tTreeSort *x1 = reinterpret_cast<const tTreeSort *>(v1);
-  const tTreeSort *x2 = reinterpret_cast<const tTreeSort *>(v2);
+  const tTreeSort *x1 = static_cast<const tTreeSort *>(v1);
+  const tTreeSort *x2 = static_cast<const tTreeSort *>(v2);
 
   /* Among objects first come the ones in the collection, followed by the ones not on it.
    * This way we can have the dashed lines in a separate style connecting the former. */
@@ -1033,8 +1033,8 @@ static int treesort_child_not_in_collection(const void *v1, const void *v2)
 /* alphabetical comparator */
 static int treesort_alpha(const void *v1, const void *v2)
 {
-  const tTreeSort *x1 = reinterpret_cast<const tTreeSort *>(v1);
-  const tTreeSort *x2 = reinterpret_cast<const tTreeSort *>(v2);
+  const tTreeSort *x1 = static_cast<const tTreeSort *>(v1);
+  const tTreeSort *x2 = static_cast<const tTreeSort *>(v2);
 
   int comp = BLI_strcasecmp_natural(x1->name, x2->name);
 
@@ -1091,7 +1091,7 @@ static int treesort_obtype_alpha(const void *v1, const void *v2)
 /* sort happens on each subtree individual */
 static void outliner_sort(ListBase *lb)
 {
-  TreeElement *last_te = reinterpret_cast<TreeElement *>(lb->last);
+  TreeElement *last_te = static_cast<TreeElement *>(lb->last);
   if (last_te == nullptr) {
     return;
   }
@@ -1103,7 +1103,7 @@ static void outliner_sort(ListBase *lb)
     int totelem = BLI_listbase_count(lb);
 
     if (totelem > 1) {
-      tTreeSort *tear = reinterpret_cast<tTreeSort *>(
+      tTreeSort *tear = static_cast<tTreeSort *>(
           MEM_mallocN(totelem * sizeof(tTreeSort), "tree sort array"));
       tTreeSort *tp = tear;
       int skip = 0;
@@ -1159,7 +1159,7 @@ static void outliner_sort(ListBase *lb)
 
 static void outliner_collections_children_sort(ListBase *lb)
 {
-  TreeElement *last_te = reinterpret_cast<TreeElement *>(lb->last);
+  TreeElement *last_te = static_cast<TreeElement *>(lb->last);
   if (last_te == nullptr) {
     return;
   }
@@ -1170,7 +1170,7 @@ static void outliner_collections_children_sort(ListBase *lb)
     int totelem = BLI_listbase_count(lb);
 
     if (totelem > 1) {
-      tTreeSort *tear = reinterpret_cast<tTreeSort *>(
+      tTreeSort *tear = static_cast<tTreeSort *>(
           MEM_mallocN(totelem * sizeof(tTreeSort), "tree sort array"));
       tTreeSort *tp = tear;
 
@@ -1541,8 +1541,7 @@ static TreeElement *outliner_extract_children_from_subtree(TreeElement *element,
 
   if (outliner_element_is_collection_or_object(element)) {
     TreeElement *te_prev = nullptr;
-    for (TreeElement *te = reinterpret_cast<TreeElement *>(element->subtree.last); te;
-         te = te_prev) {
+    for (TreeElement *te = static_cast<TreeElement *>(element->subtree.last); te; te = te_prev) {
       te_prev = te->prev;
 
       if (!outliner_element_is_collection_or_object(te)) {
@@ -1569,7 +1568,7 @@ static int outliner_filter_subtree(SpaceOutliner *space_outliner,
   TreeElement *te, *te_next;
   TreeStoreElem *tselem;
 
-  for (te = reinterpret_cast<TreeElement *>(lb->first); te; te = te_next) {
+  for (te = static_cast<TreeElement *>(lb->first); te; te = te_next) {
     te_next = te->next;
     if ((outliner_element_visible_get(view_layer, te, exclude_filter) == false)) {
       /* Don't free the tree, but extract the children from the parent and add to this tree. */

@@ -856,7 +856,7 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
 {
   BLI_assert(TSE_IS_REAL_ID(tselem));
 
-  OutlinerLibOverrideData *data = reinterpret_cast<OutlinerLibOverrideData *>(user_data);
+  OutlinerLibOverrideData *data = static_cast<OutlinerLibOverrideData *>(user_data);
   const bool do_hierarchy = data->do_hierarchy;
   ID *id_root_reference = tselem->id;
 
@@ -1160,7 +1160,7 @@ static void id_override_library_reset_fn(bContext *C,
 {
   BLI_assert(TSE_IS_REAL_ID(tselem));
   ID *id_root = tselem->id;
-  OutlinerLibOverrideData *data = reinterpret_cast<OutlinerLibOverrideData *>(user_data);
+  OutlinerLibOverrideData *data = static_cast<OutlinerLibOverrideData *>(user_data);
   const bool do_hierarchy = data->do_hierarchy;
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
@@ -1191,7 +1191,7 @@ static void id_override_library_resync_fn(bContext *C,
 {
   BLI_assert(TSE_IS_REAL_ID(tselem));
   ID *id_root = tselem->id;
-  OutlinerLibOverrideData *data = reinterpret_cast<OutlinerLibOverrideData *>(user_data);
+  OutlinerLibOverrideData *data = static_cast<OutlinerLibOverrideData *>(user_data);
   const bool do_hierarchy_enforce = data->do_resync_hierarchy_enforce;
 
   if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root)) {
@@ -1637,7 +1637,7 @@ static void data_select_linked_fn(int event,
     const PointerRNA &ptr = te_rna_struct->getPointerRNA();
     if (RNA_struct_is_ID(ptr.type)) {
       bContext *C = (bContext *)C_v;
-      ID *id = reinterpret_cast<ID *>(ptr.data);
+      ID *id = static_cast<ID *>(ptr.data);
 
       ED_object_select_linked_by_id(C, id);
     }
@@ -1646,7 +1646,7 @@ static void data_select_linked_fn(int event,
 
 static void constraint_fn(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *C_v)
 {
-  bContext *C = reinterpret_cast<bContext *>(C_v);
+  bContext *C = static_cast<bContext *>(C_v);
   Main *bmain = CTX_data_main(C);
   bConstraint *constraint = (bConstraint *)te->directdata;
   Object *ob = (Object *)outliner_search_back(te, ID_OB);
@@ -1737,7 +1737,7 @@ static Base *outliner_batch_delete_hierarchy(
   }
 
   object = base->object;
-  for (child_base = reinterpret_cast<Base *>(view_layer->object_bases.first); child_base;
+  for (child_base = static_cast<Base *>(view_layer->object_bases.first); child_base;
        child_base = base_next) {
     base_next = child_base->next;
     for (parent = child_base->object->parent; parent && (parent != object);
@@ -1960,7 +1960,7 @@ static void outliner_do_object_delete(bContext *C,
 
 static TreeTraversalAction outliner_find_objects_to_delete(TreeElement *te, void *customdata)
 {
-  ObjectEditData *data = reinterpret_cast<ObjectEditData *>(customdata);
+  ObjectEditData *data = static_cast<ObjectEditData *>(customdata);
   GSet *objects_to_delete = data->objects_set;
   TreeStoreElem *tselem = TREESTORE(te);
 
@@ -2711,8 +2711,7 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
   get_element_operation_type(te, &scenelevel, &objectlevel, &idlevel, &datalevel);
 
   /* get action to use */
-  act = reinterpret_cast<bAction *>(
-      BLI_findlink(&bmain->actions, RNA_enum_get(op->ptr, "action")));
+  act = static_cast<bAction *>(BLI_findlink(&bmain->actions, RNA_enum_get(op->ptr, "action")));
 
   if (act == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "No valid action to add");
