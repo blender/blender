@@ -14,6 +14,10 @@
 
 #include "UI_resources.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define RNA_MAGIC ((int)~0)
 
 struct AssetLibraryReference;
@@ -690,4 +694,8 @@ void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values);
              : INT_MIN, unsigned int : 0, float \
              : -FLT_MAX, double \
              : -DBL_MAX)
+#endif
+
+#ifdef __cplusplus
+}
 #endif

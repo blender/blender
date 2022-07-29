@@ -55,6 +55,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_path.h"
 
 #include "GPU_material.h"
 

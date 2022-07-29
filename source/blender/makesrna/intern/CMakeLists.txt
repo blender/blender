@@ -159,6 +159,7 @@ set(SRC_RNA_INC
   ../RNA_documentation.h
   ../RNA_enum_items.h
   ../RNA_enum_types.h
+  ../RNA_path.h
   ../RNA_types.h
 )
 
@@ -416,6 +417,7 @@ add_custom_command(
 set(SRC
   rna_access.c
   rna_access_compare_override.c
+  rna_path.cc
   ${GENSRC}
 
   ${SRC_RNA_INC}

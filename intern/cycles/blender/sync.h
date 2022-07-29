@@ -7,6 +7,7 @@
 #include "MEM_guardedalloc.h"
 #include "RNA_access.h"
 #include "RNA_blender_cpp.h"
+#include "RNA_path.h"
 #include "RNA_types.h"
 
 #include "blender/id_map.h"

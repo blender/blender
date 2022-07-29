@@ -35,6 +35,7 @@
 #include "UI_interface.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

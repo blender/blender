@@ -20,6 +20,7 @@
 #include "message_bus/intern/wm_message_bus_intern.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities

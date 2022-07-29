@@ -10,6 +10,10 @@
 
 #include "rna_internal_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct IDProperty;
 struct PropertyRNAOrID;
 
@@ -26,3 +30,9 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
 
 void rna_idproperty_touch(struct IDProperty *idprop);
 struct IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name);
+
+PropertyRNA *rna_struct_find_nested(PointerRNA *ptr, StructRNA *srna);
+
+#ifdef __cplusplus
+}
+#endif
