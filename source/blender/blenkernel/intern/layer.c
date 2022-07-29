@@ -2384,7 +2384,7 @@ void BKE_view_layer_blend_read_lib(BlendLibReader *reader, Library *lib, ViewLay
 
   BLO_read_id_address(reader, lib, &view_layer->mat_override);
 
-  IDP_BlendReadLib(reader, view_layer->id_properties);
+  IDP_BlendReadLib(reader, lib, view_layer->id_properties);
 }
 
 /** \} */

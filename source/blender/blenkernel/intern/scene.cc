@@ -1481,7 +1481,7 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
-    IDP_BlendReadLib(reader, marker->prop);
+    IDP_BlendReadLib(reader, sce->id.lib, marker->prop);
 
     if (marker->camera) {
       BLO_read_id_address(reader, sce->id.lib, &marker->camera);

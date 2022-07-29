@@ -835,7 +835,7 @@ static void ntree_blend_read_data(BlendDataReader *reader, ID *id)
 
 static void lib_link_node_socket(BlendLibReader *reader, Library *lib, bNodeSocket *sock)
 {
-  IDP_BlendReadLib(reader, sock->prop);
+  IDP_BlendReadLib(reader, lib, sock->prop);
 
   /* This can happen for all socket types when a file is saved in an older version of Blender than
    * it was originally created in (T86298). Some socket types still require a default value. The
@@ -901,7 +901,7 @@ void ntreeBlendReadLib(struct BlendLibReader *reader, struct bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     /* Link ID Properties -- and copy this comment EXACTLY for easy finding
      * of library blocks that implement this. */
-    IDP_BlendReadLib(reader, node->prop);
+    IDP_BlendReadLib(reader, lib, node->prop);
 
     BLO_read_id_address(reader, lib, &node->id);
 
