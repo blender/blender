@@ -3000,7 +3000,7 @@ compile_ALEMBIC() {
   fi
 
   # To be changed each time we make edits that would modify the compiled result!
-  alembic_magic=2
+  alembic_magic=3
   _init_alembic
 
   # Force having own builds for the dependencies.
@@ -3048,7 +3048,7 @@ compile_ALEMBIC() {
     fi
     if [ "$_with_built_openexr" = true ]; then
       cmake_d="$cmake_d -D USE_ARNOLD=OFF"
-      cmake_d="$cmake_d -D USE_BINARIES=OFF"
+      cmake_d="$cmake_d -D USE_BINARIES=ON"  # Tests use some Alembic binaries...
       cmake_d="$cmake_d -D USE_EXAMPLES=OFF"
       cmake_d="$cmake_d -D USE_HDF5=OFF"
       cmake_d="$cmake_d -D USE_MAYA=OFF"
