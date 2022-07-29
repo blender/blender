@@ -527,7 +527,7 @@ static void uilist_draw_filter(uiList *ui_list, const bContext *C, uiLayout *lay
 }
 
 static void uilist_filter_items(uiList *ui_list,
-                                bContext *C,
+                                const bContext *C,
                                 PointerRNA *dataptr,
                                 const char *propname)
 {

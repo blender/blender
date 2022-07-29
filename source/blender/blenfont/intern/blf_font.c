@@ -1375,10 +1375,10 @@ static const eFaceDetails static_face_details[] = {
 };
 
 /* Create a new font from filename OR from passed memory pointer. */
-FontBLF *blf_font_new_ex(const char *name,
-                         const char *filepath,
-                         const unsigned char *mem,
-                         int mem_size)
+static FontBLF *blf_font_new_ex(const char *name,
+                                const char *filepath,
+                                const unsigned char *mem,
+                                const size_t mem_size)
 {
   FontBLF *font = (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new");
 
@@ -1393,7 +1393,7 @@ FontBLF *blf_font_new_ex(const char *name,
   /* If we have static details about this font we don't need to load the Face. */
   const eFaceDetails *static_details = NULL;
   char filename[256];
-  for (int i = 0; i < ARRAY_SIZE(static_face_details); i++) {
+  for (int i = 0; i < (int)ARRAY_SIZE(static_face_details); i++) {
     BLI_split_file_part(font->filepath, filename, sizeof(filename));
     if (STREQ(static_face_details[i].name, filename)) {
       static_details = &static_face_details[i];
@@ -1426,18 +1426,18 @@ FontBLF *blf_font_new(const char *name, const char *filename)
   return blf_font_new_ex(name, filename, NULL, 0);
 }
 
-FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int mem_size)
+FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, const size_t mem_size)
 {
   return blf_font_new_ex(name, NULL, mem, mem_size);
 }
 
-void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, int mem_size)
+void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, const size_t mem_size)
 {
   FT_Open_Args open;
 
   open.flags = FT_OPEN_MEMORY;
   open.memory_base = (const FT_Byte *)mem;
-  open.memory_size = mem_size;
+  open.memory_size = (FT_Long)mem_size;
   FT_Attach_Stream(font->face, &open);
 }
 
