@@ -17,8 +17,8 @@
 CCL_NAMESPACE_BEGIN
 
 typedef struct MicrofacetExtra {
-  float3 color, cspec0;
-  float3 fresnel_color;
+  Spectrum color, cspec0;
+  Spectrum fresnel_color;
   float clearcoat;
 } MicrofacetExtra;
 
@@ -233,11 +233,11 @@ ccl_device_forceinline float3 microfacet_sample_stretched(KernelGlobals kg,
  *
  * Else it is simply white
  */
-ccl_device_forceinline float3 reflection_color(ccl_private const MicrofacetBsdf *bsdf,
-                                               float3 L,
-                                               float3 H)
+ccl_device_forceinline Spectrum reflection_color(ccl_private const MicrofacetBsdf *bsdf,
+                                                 float3 L,
+                                                 float3 H)
 {
-  float3 F = make_float3(1.0f, 1.0f, 1.0f);
+  Spectrum F = one_spectrum();
   bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID ||
                       bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID);
   if (use_fresnel) {
@@ -357,10 +357,10 @@ ccl_device void bsdf_microfacet_ggx_blur(ccl_private ShaderClosure *sc, float ro
   bsdf->alpha_y = fmaxf(roughness, bsdf->alpha_y);
 }
 
-ccl_device float3 bsdf_microfacet_ggx_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                   const float3 I,
-                                                   const float3 omega_in,
-                                                   ccl_private float *pdf)
+ccl_device Spectrum bsdf_microfacet_ggx_eval_reflect(ccl_private const ShaderClosure *sc,
+                                                     const float3 I,
+                                                     const float3 omega_in,
+                                                     ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
   float alpha_x = bsdf->alpha_x;
@@ -370,7 +370,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(ccl_private const ShaderClosu
 
   if (m_refractive || alpha_x * alpha_y <= 1e-7f) {
     *pdf = 0.0f;
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_spectrum();
   }
 
   float cosNO = dot(N, I);
@@ -451,12 +451,12 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(ccl_private const ShaderClosu
     /* eq. 20 */
     float common = D * 0.25f / cosNO;
 
-    float3 F = reflection_color(bsdf, omega_in, m);
+    Spectrum F = reflection_color(bsdf, omega_in, m);
     if (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID) {
       F *= 0.25f * bsdf->extra->clearcoat;
     }
 
-    float3 out = F * G * common;
+    Spectrum out = F * G * common;
 
     /* eq. 2 in distribution of visible normals sampling
      * `pm = Dw = G1o * dot(m, I) * D / dot(N, I);` */
@@ -469,13 +469,13 @@ ccl_device float3 bsdf_microfacet_ggx_eval_reflect(ccl_private const ShaderClosu
     return out;
   }
 
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
-ccl_device float3 bsdf_microfacet_ggx_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                    const float3 I,
-                                                    const float3 omega_in,
-                                                    ccl_private float *pdf)
+ccl_device Spectrum bsdf_microfacet_ggx_eval_transmit(ccl_private const ShaderClosure *sc,
+                                                      const float3 I,
+                                                      const float3 omega_in,
+                                                      ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
   float alpha_x = bsdf->alpha_x;
@@ -486,7 +486,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_transmit(ccl_private const ShaderClos
 
   if (!m_refractive || alpha_x * alpha_y <= 1e-7f) {
     *pdf = 0.0f;
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_spectrum();
   }
 
   float cosNO = dot(N, I);
@@ -494,7 +494,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_transmit(ccl_private const ShaderClos
 
   if (cosNO <= 0 || cosNI >= 0) {
     *pdf = 0.0f;
-    return make_float3(0.0f, 0.0f, 0.0f); /* vectors on same side -- not possible */
+    return zero_spectrum(); /* vectors on same side -- not possible */
   }
   /* compute half-vector of the refraction (eq. 16) */
   float3 ht = -(m_eta * omega_in + I);
@@ -530,7 +530,7 @@ ccl_device float3 bsdf_microfacet_ggx_eval_transmit(ccl_private const ShaderClos
   float out = G * fabsf(cosHI * cosHO) * common;
   *pdf = G1o * fabsf(cosHO * cosHI) * common;
 
-  return make_float3(out, out, out);
+  return make_spectrum(out);
 }
 
 ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
@@ -541,7 +541,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
                                           float3 dIdy,
                                           float randu,
                                           float randv,
-                                          ccl_private float3 *eval,
+                                          ccl_private Spectrum *eval,
                                           ccl_private float3 *omega_in,
                                           ccl_private float3 *domega_in_dx,
                                           ccl_private float3 *domega_in_dy,
@@ -588,7 +588,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
           if (alpha_x * alpha_y <= 1e-7f) {
             /* some high number for MIS */
             *pdf = 1e6f;
-            *eval = make_float3(1e6f, 1e6f, 1e6f);
+            *eval = make_spectrum(1e6f);
 
             bool use_fresnel = (bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_FRESNEL_ID ||
                                 bsdf->type == CLOSURE_BSDF_MICROFACET_GGX_CLEARCOAT_ID);
@@ -664,7 +664,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
             float common = (G1o * D) * 0.25f / cosNO;
             *pdf = common;
 
-            float3 F = reflection_color(bsdf, *omega_in, m);
+            Spectrum F = reflection_color(bsdf, *omega_in, m);
 
             *eval = G1i * common * F;
           }
@@ -679,7 +679,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
 #endif
         }
         else {
-          *eval = make_float3(0.0f, 0.0f, 0.0f);
+          *eval = zero_spectrum();
           *pdf = 0.0f;
         }
       }
@@ -722,7 +722,7 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
         if (alpha_x * alpha_y <= 1e-7f || fabsf(m_eta - 1.0f) < 1e-4f) {
           /* some high number for MIS */
           *pdf = 1e6f;
-          *eval = make_float3(1e6f, 1e6f, 1e6f);
+          *eval = make_spectrum(1e6f);
           label = LABEL_TRANSMIT | LABEL_SINGULAR;
         }
         else {
@@ -750,11 +750,11 @@ ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
           float out = G1i * fabsf(cosHI * cosHO) * common;
           *pdf = cosHO * fabsf(cosHI) * common;
 
-          *eval = make_float3(out, out, out);
+          *eval = make_spectrum(out);
         }
       }
       else {
-        *eval = make_float3(0.0f, 0.0f, 0.0f);
+        *eval = zero_spectrum();
         *pdf = 0.0f;
       }
     }
@@ -835,10 +835,10 @@ ccl_device_inline float bsdf_beckmann_aniso_G1(
   return ((2.181f * a + 3.535f) * a) / ((2.577f * a + 2.276f) * a + 1.0f);
 }
 
-ccl_device float3 bsdf_microfacet_beckmann_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                        const float3 I,
-                                                        const float3 omega_in,
-                                                        ccl_private float *pdf)
+ccl_device Spectrum bsdf_microfacet_beckmann_eval_reflect(ccl_private const ShaderClosure *sc,
+                                                          const float3 I,
+                                                          const float3 omega_in,
+                                                          ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
   float alpha_x = bsdf->alpha_x;
@@ -848,7 +848,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_reflect(ccl_private const Shader
 
   if (m_refractive || alpha_x * alpha_y <= 1e-7f) {
     *pdf = 0.0f;
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_spectrum();
   }
 
   float cosNO = dot(N, I);
@@ -910,16 +910,16 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_reflect(ccl_private const Shader
      * pdf = pm * 0.25 / dot(m, I); */
     *pdf = G1o * common;
 
-    return make_float3(out, out, out);
+    return make_spectrum(out);
   }
 
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
-ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                         const float3 I,
-                                                         const float3 omega_in,
-                                                         ccl_private float *pdf)
+ccl_device Spectrum bsdf_microfacet_beckmann_eval_transmit(ccl_private const ShaderClosure *sc,
+                                                           const float3 I,
+                                                           const float3 omega_in,
+                                                           ccl_private float *pdf)
 {
   ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
   float alpha_x = bsdf->alpha_x;
@@ -930,7 +930,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(ccl_private const Shade
 
   if (!m_refractive || alpha_x * alpha_y <= 1e-7f) {
     *pdf = 0.0f;
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_spectrum();
   }
 
   float cosNO = dot(N, I);
@@ -938,7 +938,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(ccl_private const Shade
 
   if (cosNO <= 0 || cosNI >= 0) {
     *pdf = 0.0f;
-    return make_float3(0.0f, 0.0f, 0.0f);
+    return zero_spectrum();
   }
   /* compute half-vector of the refraction (eq. 16) */
   float3 ht = -(m_eta * omega_in + I);
@@ -971,7 +971,7 @@ ccl_device float3 bsdf_microfacet_beckmann_eval_transmit(ccl_private const Shade
   float out = G * fabsf(cosHI * cosHO) * common;
   *pdf = G1o * fabsf(cosHO * cosHI) * common;
 
-  return make_float3(out, out, out);
+  return make_spectrum(out);
 }
 
 ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
@@ -982,7 +982,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
                                                float3 dIdy,
                                                float randu,
                                                float randv,
-                                               ccl_private float3 *eval,
+                                               ccl_private Spectrum *eval,
                                                ccl_private float3 *omega_in,
                                                ccl_private float3 *domega_in_dx,
                                                ccl_private float3 *domega_in_dy,
@@ -1028,7 +1028,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
           if (alpha_x * alpha_y <= 1e-7f) {
             /* some high number for MIS */
             *pdf = 1e6f;
-            *eval = make_float3(1e6f, 1e6f, 1e6f);
+            *eval = make_spectrum(1e6f);
             label = LABEL_REFLECT | LABEL_SINGULAR;
           }
           else {
@@ -1074,7 +1074,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
             float out = G * common;
             *pdf = G1o * common;
 
-            *eval = make_float3(out, out, out);
+            *eval = make_spectrum(out);
           }
 
 #ifdef __RAY_DIFFERENTIALS__
@@ -1083,7 +1083,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
 #endif
         }
         else {
-          *eval = make_float3(0.0f, 0.0f, 0.0f);
+          *eval = zero_spectrum();
           *pdf = 0.0f;
         }
       }
@@ -1126,7 +1126,7 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
         if (alpha_x * alpha_y <= 1e-7f || fabsf(m_eta - 1.0f) < 1e-4f) {
           /* some high number for MIS */
           *pdf = 1e6f;
-          *eval = make_float3(1e6f, 1e6f, 1e6f);
+          *eval = make_spectrum(1e6f);
           label = LABEL_TRANSMIT | LABEL_SINGULAR;
         }
         else {
@@ -1155,11 +1155,11 @@ ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
           float out = G * fabsf(cosHI * cosHO) * common;
           *pdf = G1o * cosHO * fabsf(cosHI) * common;
 
-          *eval = make_float3(out, out, out);
+          *eval = make_spectrum(out);
         }
       }
       else {
-        *eval = make_float3(0.0f, 0.0f, 0.0f);
+        *eval = zero_spectrum();
         *pdf = 0.0f;
       }
     }

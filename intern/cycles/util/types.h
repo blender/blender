@@ -109,6 +109,8 @@ ccl_device_inline void print_float(ccl_private const char *label, const float a)
 #include "util/types_float4.h"
 #include "util/types_float8.h"
 
+#include "util/types_spectrum.h"
+
 /* Vectorized types implementation. */
 #include "util/types_uchar2_impl.h"
 #include "util/types_uchar3_impl.h"

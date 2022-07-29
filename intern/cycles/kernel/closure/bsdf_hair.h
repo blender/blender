@@ -37,10 +37,10 @@ ccl_device int bsdf_hair_transmission_setup(ccl_private HairBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device float3 bsdf_hair_reflection_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                    const float3 I,
-                                                    const float3 omega_in,
-                                                    ccl_private float *pdf)
+ccl_device Spectrum bsdf_hair_reflection_eval_reflect(ccl_private const ShaderClosure *sc,
+                                                      const float3 I,
+                                                      const float3 omega_in,
+                                                      ccl_private float *pdf)
 {
   ccl_private const HairBsdf *bsdf = (ccl_private const HairBsdf *)sc;
   float offset = bsdf->offset;
@@ -61,7 +61,7 @@ ccl_device float3 bsdf_hair_reflection_eval_reflect(ccl_private const ShaderClos
 
   if (M_PI_2_F - fabsf(theta_i) < 0.001f || cosphi_i < 0.0f) {
     *pdf = 0.0f;
-    return make_float3(*pdf, *pdf, *pdf);
+    return zero_spectrum();
   }
 
   float roughness1_inv = 1.0f / roughness1;
@@ -81,31 +81,31 @@ ccl_device float3 bsdf_hair_reflection_eval_reflect(ccl_private const ShaderClos
                     (2 * (t * t + roughness1 * roughness1) * (a_R - b_R) * costheta_i);
   *pdf = phi_pdf * theta_pdf;
 
-  return make_float3(*pdf, *pdf, *pdf);
+  return make_spectrum(*pdf);
 }
 
-ccl_device float3 bsdf_hair_transmission_eval_reflect(ccl_private const ShaderClosure *sc,
-                                                      const float3 I,
-                                                      const float3 omega_in,
-                                                      ccl_private float *pdf)
+ccl_device Spectrum bsdf_hair_transmission_eval_reflect(ccl_private const ShaderClosure *sc,
+                                                        const float3 I,
+                                                        const float3 omega_in,
+                                                        ccl_private float *pdf)
 {
   *pdf = 0.0f;
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
-ccl_device float3 bsdf_hair_reflection_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                     const float3 I,
-                                                     const float3 omega_in,
-                                                     ccl_private float *pdf)
-{
-  *pdf = 0.0f;
-  return make_float3(0.0f, 0.0f, 0.0f);
-}
-
-ccl_device float3 bsdf_hair_transmission_eval_transmit(ccl_private const ShaderClosure *sc,
+ccl_device Spectrum bsdf_hair_reflection_eval_transmit(ccl_private const ShaderClosure *sc,
                                                        const float3 I,
                                                        const float3 omega_in,
                                                        ccl_private float *pdf)
+{
+  *pdf = 0.0f;
+  return zero_spectrum();
+}
+
+ccl_device Spectrum bsdf_hair_transmission_eval_transmit(ccl_private const ShaderClosure *sc,
+                                                         const float3 I,
+                                                         const float3 omega_in,
+                                                         ccl_private float *pdf)
 {
   ccl_private const HairBsdf *bsdf = (ccl_private const HairBsdf *)sc;
   float offset = bsdf->offset;
@@ -125,7 +125,7 @@ ccl_device float3 bsdf_hair_transmission_eval_transmit(ccl_private const ShaderC
 
   if (M_PI_2_F - fabsf(theta_i) < 0.001f) {
     *pdf = 0.0f;
-    return make_float3(*pdf, *pdf, *pdf);
+    return zero_spectrum();
   }
 
   float costheta_i = fast_cosf(theta_i);
@@ -145,7 +145,7 @@ ccl_device float3 bsdf_hair_transmission_eval_transmit(ccl_private const ShaderC
   float phi_pdf = roughness2 / (c_TT * (p * p + roughness2 * roughness2));
 
   *pdf = phi_pdf * theta_pdf;
-  return make_float3(*pdf, *pdf, *pdf);
+  return make_spectrum(*pdf);
 }
 
 ccl_device int bsdf_hair_reflection_sample(ccl_private const ShaderClosure *sc,
@@ -155,7 +155,7 @@ ccl_device int bsdf_hair_reflection_sample(ccl_private const ShaderClosure *sc,
                                            float3 dIdy,
                                            float randu,
                                            float randv,
-                                           ccl_private float3 *eval,
+                                           ccl_private Spectrum *eval,
                                            ccl_private float3 *omega_in,
                                            ccl_private float3 *domega_in_dx,
                                            ccl_private float3 *domega_in_dy,
@@ -204,7 +204,7 @@ ccl_device int bsdf_hair_reflection_sample(ccl_private const ShaderClosure *sc,
   if (M_PI_2_F - fabsf(theta_i) < 0.001f)
     *pdf = 0.0f;
 
-  *eval = make_float3(*pdf, *pdf, *pdf);
+  *eval = make_spectrum(*pdf);
 
   return LABEL_REFLECT | LABEL_GLOSSY;
 }
@@ -216,7 +216,7 @@ ccl_device int bsdf_hair_transmission_sample(ccl_private const ShaderClosure *sc
                                              float3 dIdy,
                                              float randu,
                                              float randv,
-                                             ccl_private float3 *eval,
+                                             ccl_private Spectrum *eval,
                                              ccl_private float3 *omega_in,
                                              ccl_private float3 *domega_in_dx,
                                              ccl_private float3 *domega_in_dy,
@@ -266,7 +266,7 @@ ccl_device int bsdf_hair_transmission_sample(ccl_private const ShaderClosure *sc
     *pdf = 0.0f;
   }
 
-  *eval = make_float3(*pdf, *pdf, *pdf);
+  *eval = make_spectrum(*pdf);
 
   /* TODO(sergey): Should always be negative, but seems some precision issue
    * is involved here.

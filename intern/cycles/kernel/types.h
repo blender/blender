@@ -413,9 +413,9 @@ typedef enum CryptomatteType {
 } CryptomatteType;
 
 typedef struct BsdfEval {
-  float3 diffuse;
-  float3 glossy;
-  float3 sum;
+  Spectrum diffuse;
+  Spectrum glossy;
+  Spectrum sum;
 } BsdfEval;
 
 /* Closure Filter */
@@ -709,7 +709,7 @@ typedef struct AttributeMap {
  * padded to be 16 bytes, while it's only 12 bytes on the GPU. */
 
 #define SHADER_CLOSURE_BASE \
-  float3 weight; \
+  Spectrum weight; \
   ClosureType type; \
   float sample_weight; \
   float3 N
@@ -718,10 +718,9 @@ typedef struct ccl_align(16) ShaderClosure
 {
   SHADER_CLOSURE_BASE;
 
-#ifndef __KERNEL_GPU__
-  float pad[2];
-#endif
-  float data[10];
+  /* Extra space for closures to store data, somewhat arbitrary but closures
+   * assert that their size fits. */
+  char pad[sizeof(Spectrum) * 2 + sizeof(float) * 4];
 }
 ShaderClosure;
 
@@ -912,12 +911,12 @@ typedef struct ccl_align(16) ShaderData
   /* Closure data, we store a fixed array of closures */
   int num_closure;
   int num_closure_left;
-  float3 svm_closure_weight;
+  Spectrum svm_closure_weight;
 
   /* Closure weights summed directly, so we can evaluate
    * emission and shadow transparency with MAX_CLOSURE 0. */
-  float3 closure_emission_background;
-  float3 closure_transparent_extinction;
+  Spectrum closure_emission_background;
+  Spectrum closure_transparent_extinction;
 
   /* At the end so we can adjust size in ShaderDataTinyStorage. */
   struct ShaderClosure closure[MAX_CLOSURE];
@@ -948,7 +947,7 @@ ShaderDataCausticsStorage;
  * Used for decoupled direct/indirect light closure storage. */
 
 typedef struct ShaderVolumeClosure {
-  float3 weight;
+  Spectrum weight;
   float sample_weight;
   float g;
 } ShaderVolumeClosure;

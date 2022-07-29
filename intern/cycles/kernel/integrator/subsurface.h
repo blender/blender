@@ -51,7 +51,7 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
                                                                  PATH_RAY_SUBSURFACE_RANDOM_WALK);
 
   /* Compute weight, optionally including Fresnel from entry point. */
-  float3 weight = shader_bssrdf_sample_weight(sd, sc);
+  Spectrum weight = shader_bssrdf_sample_weight(sd, sc);
 #  ifdef __PRINCIPLED__
   if (bssrdf->roughness != FLT_MAX) {
     path_flag |= PATH_RAY_SUBSURFACE_USE_FRESNEL;
@@ -70,8 +70,8 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_PASSES) {
     if (INTEGRATOR_STATE(state, path, bounce) == 0) {
-      INTEGRATOR_STATE_WRITE(state, path, pass_diffuse_weight) = one_float3();
-      INTEGRATOR_STATE_WRITE(state, path, pass_glossy_weight) = zero_float3();
+      INTEGRATOR_STATE_WRITE(state, path, pass_diffuse_weight) = one_spectrum();
+      INTEGRATOR_STATE_WRITE(state, path, pass_glossy_weight) = zero_spectrum();
     }
   }
 
@@ -99,7 +99,7 @@ ccl_device void subsurface_shader_data_setup(KernelGlobals kg,
   sd->num_closure = 0;
   sd->num_closure_left = kernel_data.max_closures;
 
-  const float3 weight = one_float3();
+  const Spectrum weight = one_spectrum();
 
 #  ifdef __PRINCIPLED__
   if (path_flag & PATH_RAY_SUBSURFACE_USE_FRESNEL) {

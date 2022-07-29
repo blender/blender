@@ -8,6 +8,8 @@
 
 #include "kernel/geom/geom.h"
 
+#include "kernel/util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device void kernel_displace_evaluate(KernelGlobals kg,
@@ -65,7 +67,7 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
   shader_eval_surface<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT &
                       ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
       kg, INTEGRATOR_STATE_NULL, &sd, NULL, path_flag);
-  float3 color = shader_background_eval(&sd);
+  Spectrum color = shader_background_eval(&sd);
 
 #ifdef __KERNEL_DEBUG_NAN__
   if (!isfinite_safe(color)) {
@@ -76,10 +78,12 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
   /* Ensure finite color, avoiding possible numerical instabilities in the path tracing kernels. */
   color = ensure_finite(color);
 
+  float3 color_rgb = spectrum_to_rgb(color);
+
   /* Write output. */
-  output[offset * 3 + 0] += color.x;
-  output[offset * 3 + 1] += color.y;
-  output[offset * 3 + 2] += color.z;
+  output[offset * 3 + 0] += color_rgb.x;
+  output[offset * 3 + 1] += color_rgb.y;
+  output[offset * 3 + 2] += color_rgb.z;
 }
 
 ccl_device void kernel_curve_shadow_transparency_evaluate(

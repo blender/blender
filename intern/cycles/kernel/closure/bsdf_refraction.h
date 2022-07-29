@@ -18,22 +18,22 @@ ccl_device int bsdf_refraction_setup(ccl_private MicrofacetBsdf *bsdf)
   return SD_BSDF;
 }
 
-ccl_device float3 bsdf_refraction_eval_reflect(ccl_private const ShaderClosure *sc,
-                                               const float3 I,
-                                               const float3 omega_in,
-                                               ccl_private float *pdf)
+ccl_device Spectrum bsdf_refraction_eval_reflect(ccl_private const ShaderClosure *sc,
+                                                 const float3 I,
+                                                 const float3 omega_in,
+                                                 ccl_private float *pdf)
 {
   *pdf = 0.0f;
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
-ccl_device float3 bsdf_refraction_eval_transmit(ccl_private const ShaderClosure *sc,
-                                                const float3 I,
-                                                const float3 omega_in,
-                                                ccl_private float *pdf)
+ccl_device Spectrum bsdf_refraction_eval_transmit(ccl_private const ShaderClosure *sc,
+                                                  const float3 I,
+                                                  const float3 omega_in,
+                                                  ccl_private float *pdf)
 {
   *pdf = 0.0f;
-  return make_float3(0.0f, 0.0f, 0.0f);
+  return zero_spectrum();
 }
 
 ccl_device int bsdf_refraction_sample(ccl_private const ShaderClosure *sc,
@@ -43,7 +43,7 @@ ccl_device int bsdf_refraction_sample(ccl_private const ShaderClosure *sc,
                                       float3 dIdy,
                                       float randu,
                                       float randv,
-                                      ccl_private float3 *eval,
+                                      ccl_private Spectrum *eval,
                                       ccl_private float3 *omega_in,
                                       ccl_private float3 *domega_in_dx,
                                       ccl_private float3 *domega_in_dy,
@@ -77,7 +77,7 @@ ccl_device int bsdf_refraction_sample(ccl_private const ShaderClosure *sc,
   if (!inside && fresnel != 1.0f) {
     /* Some high number for MIS. */
     *pdf = 1e6f;
-    *eval = make_float3(1e6f, 1e6f, 1e6f);
+    *eval = make_spectrum(1e6f);
     *omega_in = T;
 #ifdef __RAY_DIFFERENTIALS__
     *domega_in_dx = dTdx;
@@ -86,7 +86,7 @@ ccl_device int bsdf_refraction_sample(ccl_private const ShaderClosure *sc,
   }
   else {
     *pdf = 0.0f;
-    *eval = make_float3(0.0f, 0.0f, 0.0f);
+    *eval = zero_spectrum();
   }
   return LABEL_TRANSMIT | LABEL_SINGULAR;
 }

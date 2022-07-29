@@ -10,9 +10,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
-                                                    IntegratorState state,
-                                                    ccl_global float *ccl_restrict render_buffer)
+ccl_device Spectrum integrator_eval_background_shader(KernelGlobals kg,
+                                                      IntegratorState state,
+                                                      ccl_global float *ccl_restrict render_buffer)
 {
 #ifdef __BACKGROUND__
   const int shader = kernel_data.background.surface_shader;
@@ -26,11 +26,11 @@ ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
         ((shader & SHADER_EXCLUDE_TRANSMIT) && (path_flag & PATH_RAY_TRANSMIT)) ||
         ((shader & SHADER_EXCLUDE_CAMERA) && (path_flag & PATH_RAY_CAMERA)) ||
         ((shader & SHADER_EXCLUDE_SCATTER) && (path_flag & PATH_RAY_VOLUME_SCATTER)))
-      return zero_float3();
+      return zero_spectrum();
   }
 
   /* Use fast constant background color if available. */
-  float3 L = zero_float3();
+  Spectrum L = zero_spectrum();
   if (!shader_constant_emission_eval(kg, shader, &L)) {
     /* Evaluate background shader. */
 
@@ -73,7 +73,7 @@ ccl_device float3 integrator_eval_background_shader(KernelGlobals kg,
 
   return L;
 #else
-  return make_float3(0.8f, 0.8f, 0.8f);
+  return make_spectrum(0.8f);
 #endif
 }
 
@@ -117,8 +117,8 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
 #endif /* __MNEE__ */
 
   /* Evaluate background shader. */
-  float3 L = (eval_background) ? integrator_eval_background_shader(kg, state, render_buffer) :
-                                 zero_float3();
+  Spectrum L = (eval_background) ? integrator_eval_background_shader(kg, state, render_buffer) :
+                                   zero_spectrum();
 
   /* When using the ao bounces approximation, adjust background
    * shader intensity with ao factor. */
@@ -169,7 +169,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
       /* TODO: does aliasing like this break automatic SoA in CUDA? */
       ShaderDataTinyStorage emission_sd_storage;
       ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-      float3 light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, ray_time);
+      Spectrum light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, ray_time);
       if (is_zero(light_eval)) {
         return;
       }
@@ -184,7 +184,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
       }
 
       /* Write to render buffer. */
-      const float3 throughput = INTEGRATOR_STATE(state, path, throughput);
+      const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
       kernel_accum_emission(
           kg, state, throughput * light_eval, render_buffer, kernel_data.background.lightgroup);
     }
