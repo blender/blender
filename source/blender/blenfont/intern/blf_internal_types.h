@@ -240,8 +240,12 @@ typedef struct FontBLF {
   /* # of times this font was loaded */
   unsigned int reference_count;
 
-  /** File-path or NULL. */
+  /* Full path to font file or NULL if from memory. */
   char *filepath;
+
+  /* Pointer to in-memory font, or NULL if from file. */
+  void *mem;
+  size_t mem_size;
 
   /* Copied from the SFNT OS/2 table. Bit flags for unicode blocks and ranges
    * considered "functional". Cached here because face might not always exist.

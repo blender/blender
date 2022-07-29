@@ -584,16 +584,18 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
       continue;
     }
     if (coverage_bit < 0 || blf_font_has_coverage_bit(f, coverage_bit)) {
-      glyph_index = FT_Get_Char_Index(f->face, charcode);
-      if (glyph_index) {
-        *font = f;
-        return glyph_index;
+      if (blf_ensure_face(f)) {
+        glyph_index = FT_Get_Char_Index(f->face, charcode);
+        if (glyph_index) {
+          *font = f;
+          return glyph_index;
+        }
       }
     }
   }
 
   /* Not found in the stack, return from Last Resort if there is one. */
-  if (last_resort) {
+  if (last_resort && blf_ensure_face(last_resort)) {
     glyph_index = FT_Get_Char_Index(last_resort->face, charcode);
     if (glyph_index) {
       *font = last_resort;

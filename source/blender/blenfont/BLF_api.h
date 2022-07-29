@@ -351,6 +351,8 @@ enum {
   BLF_DEFAULT = 1 << 14,
   /** Must only be used as last font in the stack. */
   BLF_LAST_RESORT = 1 << 15,
+  /** Failure to load this font. Don't try again. */
+  BLF_BAD_FONT = 1 << 16,
 };
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024

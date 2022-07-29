@@ -39,6 +39,8 @@ void blf_font_exit(void);
 
 bool blf_font_id_is_valid(int fontid);
 
+bool blf_ensure_face(struct FontBLF *font);
+
 void blf_draw_buffer__start(struct FontBLF *font);
 void blf_draw_buffer__end(void);
 
