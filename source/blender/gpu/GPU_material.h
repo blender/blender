@@ -121,6 +121,7 @@ typedef struct GPUCodegenOutput {
   char *surface;
   char *volume;
   char *thickness;
+  char *composite;
   char *material_functions;
 
   GPUShaderCreateInfo *create_info;
@@ -178,6 +179,8 @@ void GPU_material_output_thickness(GPUMaterial *material, GPUNodeLink *link);
 
 void GPU_material_add_output_link_aov(GPUMaterial *material, GPUNodeLink *link, int hash);
 
+void GPU_material_add_output_link_composite(GPUMaterial *material, GPUNodeLink *link);
+
 /**
  * Wrap a part of the material graph into a function. You need then need to call the function by
  * using something like #GPU_differentiate_float_function.
@@ -218,6 +221,7 @@ GPUMaterial *GPU_material_from_nodetree(struct Scene *scene,
                                         void *thunk);
 
 void GPU_material_compile(GPUMaterial *mat);
+void GPU_material_free_single(GPUMaterial *material);
 void GPU_material_free(struct ListBase *gpumaterial);
 
 void GPU_material_acquire(GPUMaterial *mat);
@@ -318,6 +322,16 @@ GPUUniformAttrList *GPU_material_uniform_attributes(GPUMaterial *material);
 struct GHash *GPU_uniform_attr_list_hash_new(const char *info);
 void GPU_uniform_attr_list_copy(GPUUniformAttrList *dest, GPUUniformAttrList *src);
 void GPU_uniform_attr_list_free(GPUUniformAttrList *set);
+
+/* A callback passed to GPU_material_from_callbacks to construct the material graph by adding and
+ * linking the necessary GPU material nodes. */
+typedef void (*ConstructGPUMaterialFn)(void *thunk, GPUMaterial *material);
+
+/* Construct a GPU material from a set of callbacks. See the callback types for more information.
+ * The given thunk will be passed as the first parameter of each callback. */
+GPUMaterial *GPU_material_from_callbacks(ConstructGPUMaterialFn construct_function_cb,
+                                         GPUCodegenCallbackFn generate_code_function_cb,
+                                         void *thunk);
 
 #ifdef __cplusplus
 }

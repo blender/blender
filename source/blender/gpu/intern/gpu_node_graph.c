@@ -75,9 +75,26 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const eGPUType
 
     if (STR_ELEM(name, "set_value", "set_rgb", "set_rgba") && (input->type == type)) {
       input = MEM_dupallocN(outnode->inputs.first);
+
+      switch (input->source) {
+        case GPU_SOURCE_ATTR:
+          input->attr->users++;
+          break;
+        case GPU_SOURCE_UNIFORM_ATTR:
+          input->uniform_attr->users++;
+          break;
+        case GPU_SOURCE_TEX:
+        case GPU_SOURCE_TEX_TILED_MAPPING:
+          input->texture->users++;
+          break;
+        default:
+          break;
+      }
+
       if (input->link) {
         input->link->users++;
       }
+
       BLI_addtail(&node->inputs, input);
       return;
     }
@@ -179,35 +196,21 @@ static GPUNodeLink *gpu_uniformbuffer_link(GPUMaterial *mat,
   BLI_assert(socket != NULL);
   BLI_assert(socket->in_out == in_out);
 
-  if ((socket->flag & SOCK_HIDE_VALUE) == 0) {
-    GPUNodeLink *link;
-    switch (socket->type) {
-      case SOCK_FLOAT: {
-        bNodeSocketValueFloat *socket_data = socket->default_value;
-        link = GPU_uniform(&socket_data->value);
-        break;
-      }
-      case SOCK_VECTOR: {
-        bNodeSocketValueVector *socket_data = socket->default_value;
-        link = GPU_uniform(socket_data->value);
-        break;
-      }
-      case SOCK_RGBA: {
-        bNodeSocketValueRGBA *socket_data = socket->default_value;
-        link = GPU_uniform(socket_data->value);
-        break;
-      }
-      default:
-        return NULL;
-        break;
-    }
-
-    if (in_out == SOCK_IN) {
-      GPU_link(mat, gpu_uniform_set_function_from_type(socket->type), link, &stack->link);
-    }
-    return link;
+  if (socket->flag & SOCK_HIDE_VALUE) {
+    return NULL;
   }
-  return NULL;
+
+  if (!ELEM(socket->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA)) {
+    return NULL;
+  }
+
+  GPUNodeLink *link = GPU_uniform(stack->vec);
+
+  if (in_out == SOCK_IN) {
+    GPU_link(mat, gpu_uniform_set_function_from_type(socket->type), link, &stack->link);
+  }
+
+  return link;
 }
 
 static void gpu_node_input_socket(
@@ -803,6 +806,7 @@ void gpu_node_graph_free(GPUNodeGraph *graph)
 {
   BLI_freelistN(&graph->outlink_aovs);
   BLI_freelistN(&graph->material_functions);
+  BLI_freelistN(&graph->outlink_compositor);
   gpu_node_graph_free_nodes(graph);
 
   BLI_freelistN(&graph->textures);
@@ -854,6 +858,9 @@ void gpu_node_graph_prune_unused(GPUNodeGraph *graph)
   }
   LISTBASE_FOREACH (GPUNodeGraphFunctionLink *, funclink, &graph->material_functions) {
     gpu_nodes_tag(funclink->outlink, GPU_NODE_TAG_FUNCTION);
+  }
+  LISTBASE_FOREACH (GPUNodeGraphOutputLink *, compositor_link, &graph->outlink_compositor) {
+    gpu_nodes_tag(compositor_link->outlink, GPU_NODE_TAG_COMPOSITOR);
   }
 
   for (GPUNode *node = graph->nodes.first, *next = NULL; node; node = next) {
