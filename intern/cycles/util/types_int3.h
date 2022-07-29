@@ -44,9 +44,10 @@ struct ccl_try_align(16) int3
 #  endif
 };
 
-ccl_device_inline int3 make_int3(int i);
 ccl_device_inline int3 make_int3(int x, int y, int z);
-ccl_device_inline void print_int3(const char *label, const int3 &a);
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
+
+ccl_device_inline int3 make_int3(int i);
+ccl_device_inline void print_int3(ccl_private const char *label, const int3 a);
 
 CCL_NAMESPACE_END
