@@ -18,10 +18,10 @@ extern "C" {
 #define BLF_DATAFILES_FONTS_DIR "fonts"
 
 /* File name of the default variable-width font. */
-#define BLF_DEFAULT_PROPORTIONAL_FONT "droidsans.ttf"
+#define BLF_DEFAULT_PROPORTIONAL_FONT "DejaVuSans.woff2"
 
 /* File name of the default fixed-pitch font. */
-#define BLF_DEFAULT_MONOSPACED_FONT "bmonofont-i18n.ttf"
+#define BLF_DEFAULT_MONOSPACED_FONT "DejaVuSansMono.woff2"
 
 /* enable this only if needed (unused circa 2016) */
 #define BLF_BLUR_ENABLE 0

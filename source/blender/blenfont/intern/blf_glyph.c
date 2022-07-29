@@ -594,6 +594,10 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
     }
   }
 
+#ifdef DEBUG
+  printf("Unicode character U+%04X not found in loaded fonts. \n", charcode);
+#endif
+
   /* Not found in the stack, return from Last Resort if there is one. */
   if (last_resort && blf_ensure_face(last_resort)) {
     glyph_index = FT_Get_Char_Index(last_resort->face, charcode);
