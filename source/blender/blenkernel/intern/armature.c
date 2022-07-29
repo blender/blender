@@ -261,12 +261,12 @@ static void armature_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_armature_bone_hash_make(arm);
 }
 
-static void lib_link_bones(BlendLibReader *reader, Bone *bone)
+static void lib_link_bones(BlendLibReader *reader, Library *lib, Bone *bone)
 {
-  IDP_BlendReadLib(reader, bone->prop);
+  IDP_BlendReadLib(reader, lib, bone->prop);
 
   LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
-    lib_link_bones(reader, curbone);
+    lib_link_bones(reader, lib, curbone);
   }
 }
 
@@ -274,7 +274,7 @@ static void armature_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   bArmature *arm = (bArmature *)id;
   LISTBASE_FOREACH (Bone *, curbone, &arm->bonebase) {
-    lib_link_bones(reader, curbone);
+    lib_link_bones(reader, id->lib, curbone);
   }
 }
 

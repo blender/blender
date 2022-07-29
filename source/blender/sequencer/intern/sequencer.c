@@ -836,7 +836,7 @@ static bool seq_read_lib_cb(Sequence *seq, void *user_data)
   BlendLibReader *reader = data->reader;
   Scene *sce = data->scene;
 
-  IDP_BlendReadLib(reader, seq->prop);
+  IDP_BlendReadLib(reader, sce->id.lib, seq->prop);
 
   if (seq->ipo) {
     /* XXX: deprecated - old animation system. */

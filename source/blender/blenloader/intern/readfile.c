@@ -1999,7 +1999,7 @@ static void lib_link_id(BlendLibReader *reader, ID *id)
 {
   /* NOTE: WM IDProperties are never written to file, hence they should always be NULL here. */
   BLI_assert((GS(id->name) != ID_WM) || id->properties == NULL);
-  IDP_BlendReadLib(reader, id->properties);
+  IDP_BlendReadLib(reader, id->lib, id->properties);
 
   AnimData *adt = BKE_animdata_from_id(id);
   if (adt != NULL) {
