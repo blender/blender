@@ -369,6 +369,8 @@ void Scene::device_update(Device *device_, Progress &progress)
     device->const_copy_to("data", &dscene.data, sizeof(dscene.data));
   }
 
+  device->optimize_for_scene(this);
+
   if (print_stats) {
     size_t mem_used = util_guarded_get_mem_used();
     size_t mem_peak = util_guarded_get_mem_peak();

@@ -2102,7 +2102,7 @@ static void pchan_culling_calc_bsphere(const Object *ob,
 {
   float min[3], max[3];
   INIT_MINMAX(min, max);
-  BKE_pchan_minmax(ob, pchan, min, max);
+  BKE_pchan_minmax(ob, pchan, true, min, max);
   mid_v3_v3v3(r_bsphere->center, min, max);
   r_bsphere->radius = len_v3v3(min, r_bsphere->center);
 }

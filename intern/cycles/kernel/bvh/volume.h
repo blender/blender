@@ -46,13 +46,10 @@ ccl_device_inline
   float3 P = ray->P;
   float3 dir = bvh_clamp_direction(ray->D);
   float3 idir = bvh_inverse_direction(dir);
+  const float tmin = ray->tmin;
   int object = OBJECT_NONE;
 
-#if BVH_FEATURE(BVH_MOTION)
-  Transform ob_itfm;
-#endif
-
-  isect->t = ray->t;
+  isect->t = ray->tmax;
   isect->u = 0.0f;
   isect->v = 0.0f;
   isect->prim = PRIM_NONE;
@@ -73,6 +70,7 @@ ccl_device_inline
                                        dir,
 #endif
                                        idir,
+                                       tmin,
                                        isect->t,
                                        node_addr,
                                        visibility,
@@ -140,7 +138,7 @@ ccl_device_inline
                   continue;
                 }
                 triangle_intersect(
-                    kg, isect, P, dir, isect->t, visibility, prim_object, prim, prim_addr);
+                    kg, isect, P, dir, tmin, isect->t, visibility, prim_object, prim, prim_addr);
               }
               break;
             }
@@ -165,6 +163,7 @@ ccl_device_inline
                                           isect,
                                           P,
                                           dir,
+                                          tmin,
                                           isect->t,
                                           ray->time,
                                           visibility,
@@ -186,9 +185,9 @@ ccl_device_inline
           int object_flag = kernel_data_fetch(object_flag, object);
           if (object_flag & SD_OBJECT_HAS_VOLUME) {
 #if BVH_FEATURE(BVH_MOTION)
-            isect->t *= bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &ob_itfm);
+            bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir);
 #else
-            isect->t *= bvh_instance_push(kg, object, ray, &P, &dir, &idir);
+            bvh_instance_push(kg, object, ray, &P, &dir, &idir);
 #endif
 
             ++stack_ptr;
@@ -211,11 +210,7 @@ ccl_device_inline
       kernel_assert(object != OBJECT_NONE);
 
       /* instance pop */
-#if BVH_FEATURE(BVH_MOTION)
-      isect->t = bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, isect->t, &ob_itfm);
-#else
-      isect->t = bvh_instance_pop(kg, object, ray, &P, &dir, &idir, isect->t);
-#endif
+      bvh_instance_pop(ray, &P, &dir, &idir);
 
       object = OBJECT_NONE;
       node_addr = traversal_stack[stack_ptr];

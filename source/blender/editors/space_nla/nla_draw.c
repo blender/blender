@@ -792,7 +792,8 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
 
   /* build list of channels to draw */
   ListBase anim_data = {NULL, NULL};
-  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
+                ANIMFILTER_FCURVESONLY);
   size_t items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* Update max-extent of channels here (taking into account scrollers):
@@ -902,7 +903,8 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
   size_t items;
 
   /* build list of channels to draw */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
+            ANIMFILTER_FCURVESONLY);
   items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* Update max-extent of channels here (taking into account scrollers):

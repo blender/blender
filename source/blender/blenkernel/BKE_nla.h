@@ -7,6 +7,9 @@
  * \ingroup bke
  */
 
+/* temp constant defined for these funcs only... */
+#define NLASTRIP_MIN_LEN_THRESH 0.1f
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -215,6 +218,33 @@ bool BKE_nlatrack_get_bounds(struct NlaTrack *nlt, float bounds[2]);
  * \param nlt: May be NULL, in which case we consider it as a non-local track case.
  */
 bool BKE_nlatrack_is_nonlocal_in_liboverride(const struct ID *id, const struct NlaTrack *nlt);
+
+/* ............ */
+
+/**
+ * Compute the left-hand-side 'frame limit' of that strip, in its NLA track.
+ *
+ * \details This is either :
+ * - the end frame of the previous strip, if the strip's track contains another strip on it left
+ * - the macro MINFRAMEF, if no strips are to the left of this strip in its track
+ *
+ * \param strip: The strip to compute the left-hand-side 'frame limit' of.
+ * \return The beginning frame of the previous strip, or MINFRAMEF if no strips are next in that
+ * track.
+ */
+float BKE_nlastrip_compute_frame_from_previous_strip(struct NlaStrip *strip);
+/**
+ * Compute the right-hand-side 'frame limit' of that strip, in its NLA track.
+ *
+ * \details This is either :
+ *
+ * - the begin frame of the next strip, if the strip's track contains another strip on it right
+ * - the macro MAXFRAMEF, if no strips are to the right of this strip in its track
+ *
+ * \param strip: The strip to compute the right-hand-side 'frame limit' of.
+ * \return The beginning frame of the next strip, or MAXFRAMEF if no strips are next in that track.
+ */
+float BKE_nlastrip_compute_frame_to_next_strip(struct NlaStrip *strip);
 
 /* ............ */
 

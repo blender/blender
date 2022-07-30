@@ -218,7 +218,6 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
       prev_mask = MEM_mallocN(num_verts * sizeof(float), "prevmask");
       for (int j = 0; j < num_verts; j++) {
         PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, j);
-
         prev_mask[j] = SCULPT_vertex_mask_get(ss, vertex);
       }
     }

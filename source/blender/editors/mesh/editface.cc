@@ -551,3 +551,54 @@ void paintvert_select_ungrouped(Object *ob, bool extend, bool flush_flags)
     paintvert_flush_flags(ob);
   }
 }
+
+void paintvert_hide(bContext *C, Object *ob, const bool unselected)
+{
+  Mesh *const me = BKE_mesh_from_object(ob);
+
+  if (me == NULL || me->totvert == 0) {
+    return;
+  }
+
+  for (int i = 0; i < me->totvert; i++) {
+    MVert *const mvert = &me->mvert[i];
+
+    if ((mvert->flag & ME_HIDE) == 0) {
+      if (((mvert->flag & SELECT) == 0) == unselected) {
+        mvert->flag |= ME_HIDE;
+      }
+    }
+
+    if (mvert->flag & ME_HIDE) {
+      mvert->flag &= ~SELECT;
+    }
+  }
+
+  BKE_mesh_flush_hidden_from_verts(me);
+
+  paintvert_flush_flags(ob);
+  paintvert_tag_select_update(C, ob);
+}
+
+void paintvert_reveal(bContext *C, Object *ob, const bool select)
+{
+  Mesh *const me = BKE_mesh_from_object(ob);
+
+  if (me == NULL || me->totvert == 0) {
+    return;
+  }
+
+  for (int i = 0; i < me->totvert; i++) {
+    MVert *const mvert = &me->mvert[i];
+
+    if (mvert->flag & ME_HIDE) {
+      SET_FLAG_FROM_TEST(mvert->flag, select, SELECT);
+      mvert->flag &= ~ME_HIDE;
+    }
+  }
+
+  BKE_mesh_flush_hidden_from_verts(me);
+
+  paintvert_flush_flags(ob);
+  paintvert_tag_select_update(C, ob);
+}

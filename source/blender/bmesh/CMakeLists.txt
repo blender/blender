@@ -83,7 +83,7 @@ set(SRC
   intern/bmesh_log_intern.h
   intern/bmesh_marking.c
   intern/bmesh_marking.h
-  intern/bmesh_mesh.c
+  intern/bmesh_mesh.cc
   intern/bmesh_mesh.h
   intern/bmesh_mesh_convert_threaded.c
   intern/bmesh_mesh_convert.cc

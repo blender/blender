@@ -158,7 +158,7 @@ typedef struct PBVHBMeshLog PBVHBMeshLog;
 struct DMFlagMat;
 
 struct PBVH {
-  PBVHType type;
+  struct PBVHPublic header;
   PBVHFlags flags;
 
   int idgen;
@@ -224,7 +224,6 @@ struct PBVH {
   bool respect_hide;
 
   /* Dynamic topology */
-  BMesh *bm;
   float bm_max_edge_len;
   float bm_min_edge_len;
   float bm_detail_range;
@@ -434,7 +433,7 @@ BLI_INLINE bool pbvh_check_vert_boundary(PBVH *pbvh, struct BMVert *v)
                                   pbvh->cd_vcol_offset,
                                   v,
                                   pbvh->boundary_symmetry,
-                                  &pbvh->bm->ldata,
+                                  &pbvh->header.bm->ldata,
                                   pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv);
     return true;
   }

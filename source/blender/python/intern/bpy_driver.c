@@ -19,6 +19,7 @@
 #include "BKE_animsys.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
+#include "BKE_idtype.h"
 
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
@@ -233,15 +234,8 @@ static void bpy_pydriver_namespace_update_depsgraph(struct Depsgraph *depsgraph)
   }
 }
 
-void BPY_driver_reset(void)
+void BPY_driver_exit(void)
 {
-  PyGILState_STATE gilstate;
-  const bool use_gil = true; /* !PyC_IsInterpreterActive(); */
-
-  if (use_gil) {
-    gilstate = PyGILState_Ensure();
-  }
-
   if (bpy_pydriver_Dict) { /* Free the global dict used by python-drivers. */
     PyDict_Clear(bpy_pydriver_Dict);
     Py_DECREF(bpy_pydriver_Dict);
@@ -261,19 +255,46 @@ void BPY_driver_reset(void)
   /* Freed when clearing driver dictionary. */
   g_pydriver_state_prev.self = NULL;
   g_pydriver_state_prev.depsgraph = NULL;
+}
+
+void BPY_driver_reset(void)
+{
+  PyGILState_STATE gilstate;
+  const bool use_gil = true; /* !PyC_IsInterpreterActive(); */
+
+  if (use_gil) {
+    gilstate = PyGILState_Ensure();
+  }
+
+  /* Currently exit/reset are practically the same besides the GIL check. */
+  BPY_driver_exit();
 
   if (use_gil) {
     PyGILState_Release(gilstate);
   }
 }
 
-/** Error return function for #BPY_eval_pydriver. */
-static void pydriver_error(ChannelDriver *driver)
+/**
+ * Error return function for #BPY_driver_exec.
+ *
+ * \param anim_rna: Used to show the target when printing the error to give additional context.
+ */
+static void pydriver_error(ChannelDriver *driver, const struct PathResolvedRNA *anim_rna)
 {
   driver->flag |= DRIVER_FLAG_INVALID; /* Python expression failed. */
+
+  const char *null_str = "<null>";
+  const ID *id = anim_rna->ptr.owner_id;
   fprintf(stderr,
-          "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n",
-          driver->expression);
+          "\n"
+          "Error in PyDriver: expression failed: %s\n"
+          "For target: (type=%s, name=\"%s\", property=%s, property_index=%d)\n"
+          "\n",
+          driver->expression,
+          id ? BKE_idtype_idcode_to_name(GS(id->name)) : null_str,
+          id ? id->name + 2 : null_str,
+          anim_rna->prop ? RNA_property_identifier(anim_rna->prop) : null_str,
+          anim_rna->prop_index);
 
   // BPy_errors_to_report(NULL); /* TODO: reports. */
   PyErr_Print();
@@ -282,14 +303,75 @@ static void pydriver_error(ChannelDriver *driver)
 
 #ifdef USE_BYTECODE_WHITELIST
 
-#  define OK_OP(op) [op] = 1
+#  define OK_OP(op) [op] = true
 
-static const char secure_opcodes[255] = {
+static const bool secure_opcodes[255] = {
+#  if PY_VERSION_HEX >= 0x030b0000 /* Python 3.11 & newer. */
+
+    OK_OP(CACHE),
+    OK_OP(POP_TOP),
+    OK_OP(PUSH_NULL),
+    OK_OP(NOP),
+    OK_OP(UNARY_POSITIVE),
+    OK_OP(UNARY_NEGATIVE),
+    OK_OP(UNARY_NOT),
+    OK_OP(UNARY_INVERT),
+    OK_OP(BINARY_SUBSCR),
+    OK_OP(GET_LEN),
+    OK_OP(LIST_TO_TUPLE),
+    OK_OP(RETURN_VALUE),
+    OK_OP(SWAP),
+    OK_OP(BUILD_TUPLE),
+    OK_OP(BUILD_LIST),
+    OK_OP(BUILD_SET),
+    OK_OP(BUILD_MAP),
+    OK_OP(COMPARE_OP),
+    OK_OP(JUMP_FORWARD),
+    OK_OP(JUMP_IF_FALSE_OR_POP),
+    OK_OP(JUMP_IF_TRUE_OR_POP),
+    OK_OP(POP_JUMP_FORWARD_IF_FALSE),
+    OK_OP(POP_JUMP_FORWARD_IF_TRUE),
+    OK_OP(LOAD_GLOBAL),
+    OK_OP(IS_OP),
+    OK_OP(CONTAINS_OP),
+    OK_OP(BINARY_OP),
+    OK_OP(LOAD_FAST),
+    OK_OP(STORE_FAST),
+    OK_OP(DELETE_FAST),
+    OK_OP(POP_JUMP_FORWARD_IF_NOT_NONE),
+    OK_OP(POP_JUMP_FORWARD_IF_NONE),
+    OK_OP(BUILD_SLICE),
+    OK_OP(LOAD_DEREF),
+    OK_OP(STORE_DEREF),
+    OK_OP(RESUME),
+    OK_OP(LIST_EXTEND),
+    OK_OP(SET_UPDATE),
+/* NOTE(@campbellbarton): Don't enable dict manipulation, unless we can prove there is not way it
+ * can be used to manipulate the name-space (potentially allowing malicious code). */
+#    if 0
+    OK_OP(DICT_MERGE),
+    OK_OP(DICT_UPDATE),
+#    endif
+    OK_OP(POP_JUMP_BACKWARD_IF_NOT_NONE),
+    OK_OP(POP_JUMP_BACKWARD_IF_NONE),
+    OK_OP(POP_JUMP_BACKWARD_IF_FALSE),
+    OK_OP(POP_JUMP_BACKWARD_IF_TRUE),
+
+    /* Special cases. */
+    OK_OP(LOAD_CONST), /* Ok because constants are accepted. */
+    OK_OP(LOAD_NAME),  /* Ok, because `PyCodeObject.names` is checked. */
+    OK_OP(CALL),       /* Ok, because we check its "name" before calling. */
+    OK_OP(KW_NAMES),   /* Ok, because it's used for calling functions with keyword arguments. */
+    OK_OP(PRECALL),    /* Ok, because it's used for calling. */
+
+#  else /* Python 3.10 and older. */
+
     OK_OP(POP_TOP),
     OK_OP(ROT_TWO),
     OK_OP(ROT_THREE),
     OK_OP(DUP_TOP),
     OK_OP(DUP_TOP_TWO),
+    OK_OP(ROT_FOUR),
     OK_OP(NOP),
     OK_OP(UNARY_POSITIVE),
     OK_OP(UNARY_NEGATIVE),
@@ -307,6 +389,7 @@ static const char secure_opcodes[255] = {
     OK_OP(BINARY_TRUE_DIVIDE),
     OK_OP(INPLACE_FLOOR_DIVIDE),
     OK_OP(INPLACE_TRUE_DIVIDE),
+    OK_OP(GET_LEN),
     OK_OP(INPLACE_ADD),
     OK_OP(INPLACE_SUBTRACT),
     OK_OP(INPLACE_MULTIPLY),
@@ -322,7 +405,9 @@ static const char secure_opcodes[255] = {
     OK_OP(INPLACE_AND),
     OK_OP(INPLACE_XOR),
     OK_OP(INPLACE_OR),
+    OK_OP(LIST_TO_TUPLE),
     OK_OP(RETURN_VALUE),
+    OK_OP(ROT_N),
     OK_OP(BUILD_TUPLE),
     OK_OP(BUILD_LIST),
     OK_OP(BUILD_SET),
@@ -335,11 +420,22 @@ static const char secure_opcodes[255] = {
     OK_OP(POP_JUMP_IF_FALSE),
     OK_OP(POP_JUMP_IF_TRUE),
     OK_OP(LOAD_GLOBAL),
+    OK_OP(IS_OP),
+    OK_OP(CONTAINS_OP),
     OK_OP(LOAD_FAST),
     OK_OP(STORE_FAST),
     OK_OP(DELETE_FAST),
+    OK_OP(BUILD_SLICE),
     OK_OP(LOAD_DEREF),
     OK_OP(STORE_DEREF),
+    OK_OP(LIST_EXTEND),
+    OK_OP(SET_UPDATE),
+/* NOTE(@campbellbarton): Don't enable dict manipulation, unless we can prove there is not way it
+ * can be used to manipulate the name-space (potentially allowing malicious code). */
+#    if 0
+    OK_OP(DICT_MERGE),
+    OK_OP(DICT_UPDATE),
+#    endif
 
     /* Special cases. */
     OK_OP(LOAD_CONST),    /* Ok because constants are accepted. */
@@ -347,11 +443,16 @@ static const char secure_opcodes[255] = {
     OK_OP(CALL_FUNCTION), /* Ok, because we check its "name" before calling. */
     OK_OP(CALL_FUNCTION_KW),
     OK_OP(CALL_FUNCTION_EX),
+
+#  endif /* Python 3.10 and older. */
 };
 
 #  undef OK_OP
 
-static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *dict_arr[])
+bool BPY_driver_secure_bytecode_test_ex(PyObject *expr_code,
+                                        PyObject *namespace_array[],
+                                        const bool verbose,
+                                        const char *error_prefix)
 {
   PyCodeObject *py_code = (PyCodeObject *)expr_code;
 
@@ -359,20 +460,23 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
   {
     for (int i = 0; i < PyTuple_GET_SIZE(py_code->co_names); i++) {
       PyObject *name = PyTuple_GET_ITEM(py_code->co_names, i);
-
+      const char *name_str = PyUnicode_AsUTF8(name);
       bool contains_name = false;
-      for (int j = 0; dict_arr[j]; j++) {
-        if (PyDict_Contains(dict_arr[j], name)) {
+      for (int j = 0; namespace_array[j]; j++) {
+        if (PyDict_Contains(namespace_array[j], name)) {
           contains_name = true;
           break;
         }
       }
 
-      if (contains_name == false) {
-        fprintf(stderr,
-                "\tBPY_driver_eval() - restricted access disallows name '%s', "
-                "enable auto-execution to support\n",
-                PyUnicode_AsUTF8(name));
+      if ((contains_name == false) || (name_str[0] == '_')) {
+        if (verbose) {
+          fprintf(stderr,
+                  "\t%s: restricted access disallows name '%s', "
+                  "enable auto-execution to support\n",
+                  error_prefix,
+                  name_str);
+        }
         return false;
       }
     }
@@ -383,24 +487,68 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
     const _Py_CODEUNIT *codestr;
     Py_ssize_t code_len;
 
-    PyBytes_AsStringAndSize(py_code->co_code, (char **)&codestr, &code_len);
-    code_len /= sizeof(*codestr);
+    PyObject *co_code;
 
+#  if PY_VERSION_HEX >= 0x030b0000 /* Python 3.11 & newer. */
+    co_code = PyCode_GetCode(py_code);
+    if (UNLIKELY(!co_code)) {
+      PyErr_Print();
+      PyErr_Clear();
+      return false;
+    }
+#  else
+    co_code = py_code->co_code;
+#  endif
+
+    PyBytes_AsStringAndSize(co_code, (char **)&codestr, &code_len);
+    code_len /= sizeof(*codestr);
+    bool ok = true;
+
+    /* Loop over op-code's, the op-code arguments are ignored. */
     for (Py_ssize_t i = 0; i < code_len; i++) {
       const int opcode = _Py_OPCODE(codestr[i]);
-      if (secure_opcodes[opcode] == 0) {
-        fprintf(stderr,
-                "\tBPY_driver_eval() - restricted access disallows opcode '%d', "
-                "enable auto-execution to support\n",
-                opcode);
-        return false;
+      if (secure_opcodes[opcode] == false) {
+        if (verbose) {
+          fprintf(stderr,
+                  "\t%s: restricted access disallows opcode '%d', "
+                  "enable auto-execution to support\n",
+                  error_prefix,
+                  opcode);
+        }
+        ok = false;
+        break;
       }
     }
 
-#  undef CODESIZE
+#  if PY_VERSION_HEX >= 0x030b0000 /* Python 3.11 & newer. */
+    Py_DECREF(co_code);
+#  endif
+    if (!ok) {
+      return false;
+    }
   }
 
   return true;
+}
+
+bool BPY_driver_secure_bytecode_test(PyObject *expr_code, PyObject *namespace, const bool verbose)
+{
+
+  if (!bpy_pydriver_Dict) {
+    if (bpy_pydriver_create_dict() != 0) {
+      fprintf(stderr, "%s: couldn't create Python dictionary\n", __func__);
+      return false;
+    }
+  }
+  return BPY_driver_secure_bytecode_test_ex(expr_code,
+                                            (PyObject *[]){
+                                                bpy_pydriver_Dict,
+                                                bpy_pydriver_Dict__whitelist,
+                                                namespace,
+                                                NULL,
+                                            },
+                                            verbose,
+                                            __func__);
 }
 
 #endif /* USE_BYTECODE_WHITELIST */
@@ -435,7 +583,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   DriverVar *dvar;
   double result = 0.0; /* Default return. */
   const char *expr;
-  short targets_ok = 1;
+  bool targets_ok = true;
   int i;
 
   /* Get the python expression to be evaluated. */
@@ -470,7 +618,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   /* Initialize global dictionary for Python driver evaluation settings. */
   if (!bpy_pydriver_Dict) {
     if (bpy_pydriver_create_dict() != 0) {
-      fprintf(stderr, "PyDriver error: couldn't create Python dictionary\n");
+      fprintf(stderr, "%s: couldn't create Python dictionary\n", __func__);
       if (use_gil) {
         PyGILState_Release(gilstate);
       }
@@ -579,12 +727,11 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
       /* This target failed - bad name. */
       if (targets_ok) {
         /* First one, print some extra info for easier identification. */
-        fprintf(stderr, "\nBPY_driver_eval() - Error while evaluating PyDriver:\n");
-        targets_ok = 0;
+        fprintf(stderr, "\n%s: Error while evaluating PyDriver:\n", __func__);
+        targets_ok = false;
       }
 
-      fprintf(
-          stderr, "\tBPY_driver_eval() - couldn't add variable '%s' to namespace\n", dvar->name);
+      fprintf(stderr, "\t%s: couldn't add variable '%s' to namespace\n", __func__, dvar->name);
       // BPy_errors_to_report(NULL); /* TODO: reports. */
       PyErr_Print();
       PyErr_Clear();
@@ -595,13 +742,17 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
 #ifdef USE_BYTECODE_WHITELIST
   if (is_recompile && expr_code) {
     if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
-      if (!bpy_driver_secure_bytecode_validate(expr_code,
-                                               (PyObject *[]){
-                                                   bpy_pydriver_Dict,
-                                                   bpy_pydriver_Dict__whitelist,
-                                                   driver_vars,
-                                                   NULL,
-                                               })) {
+      if (!BPY_driver_secure_bytecode_test_ex(
+              expr_code,
+              (PyObject *[]){
+                  bpy_pydriver_Dict,
+                  bpy_pydriver_Dict__whitelist,
+                  driver_vars,
+                  NULL,
+              },
+              /* Always be verbose since this can give hints to why evaluation fails. */
+              true,
+              __func__)) {
         if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
           G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
           BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", expr);
@@ -630,11 +781,11 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
 
   /* Process the result. */
   if (retval == NULL) {
-    pydriver_error(driver);
+    pydriver_error(driver, anim_rna);
   }
   else {
-    if ((result = PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred()) {
-      pydriver_error(driver);
+    if (UNLIKELY((result = PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred())) {
+      pydriver_error(driver, anim_rna);
       result = 0.0;
     }
     else {
@@ -648,11 +799,10 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     PyGILState_Release(gilstate);
   }
 
-  if (isfinite(result)) {
-    return (float)result;
+  if (UNLIKELY(!isfinite(result))) {
+    fprintf(stderr, "\t%s: driver '%s' evaluates to '%f'\n", __func__, driver->expression, result);
+    return 0.0f;
   }
 
-  fprintf(
-      stderr, "\tBPY_driver_eval() - driver '%s' evaluates to '%f'\n", driver->expression, result);
-  return 0.0f;
+  return (float)result;
 }

@@ -36,6 +36,7 @@ struct IDRemapper {
     BLI_assert(old_id != nullptr);
     BLI_assert(new_id == nullptr || (GS(old_id->name) == GS(new_id->name)));
     mappings.add(old_id, new_id);
+    BLI_assert(BKE_idtype_idcode_to_idfilter(GS(old_id->name)) != 0);
     source_types |= BKE_idtype_idcode_to_idfilter(GS(old_id->name));
   }
 

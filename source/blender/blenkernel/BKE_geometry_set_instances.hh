@@ -43,15 +43,4 @@ struct GeometryInstanceGroup {
 void geometry_set_gather_instances(const GeometrySet &geometry_set,
                                    Vector<GeometryInstanceGroup> &r_instance_groups);
 
-/**
- * Add information about all the attributes on every component of the type. The resulting info
- * will contain the highest complexity data type and the highest priority domain among every
- * attribute with the given name on all of the input components.
- */
-void geometry_set_gather_instances_attribute_info(
-    Span<GeometryInstanceGroup> set_groups,
-    Span<GeometryComponentType> component_types,
-    const Set<std::string> &ignored_attributes,
-    Map<AttributeIDRef, AttributeKind> &r_attributes);
-
 }  // namespace blender::bke

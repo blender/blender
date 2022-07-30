@@ -103,7 +103,10 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
 /** \name Average area for all charts
  * \{ */
 
-void GEO_uv_parametrizer_average(ParamHandle *handle, bool ignore_pinned);
+void GEO_uv_parametrizer_average(ParamHandle *handle,
+                                 bool ignore_pinned,
+                                 bool scale_uv,
+                                 bool shear);
 
 /** \} */
 

@@ -15,6 +15,8 @@
 
 #include "BKE_animsys.h"
 
+#include "RNA_path.h"
+
 namespace blender::deg {
 
 /* Animated property storage. */
@@ -35,13 +37,13 @@ AnimatedPropertyID::AnimatedPropertyID(const PointerRNA &pointer_rna,
 {
 }
 
-AnimatedPropertyID::AnimatedPropertyID(ID *id, StructRNA *type, const char *property_name)
+AnimatedPropertyID::AnimatedPropertyID(const ID *id, StructRNA *type, const char *property_name)
     : data(id)
 {
   property_rna = RNA_struct_type_find_property(type, property_name);
 }
 
-AnimatedPropertyID::AnimatedPropertyID(ID * /*id*/,
+AnimatedPropertyID::AnimatedPropertyID(const ID * /*id*/,
                                        StructRNA *type,
                                        void *data,
                                        const char *property_name)
@@ -100,13 +102,13 @@ AnimatedPropertyStorage::AnimatedPropertyStorage() : is_fully_initialized(false)
 {
 }
 
-void AnimatedPropertyStorage::initializeFromID(DepsgraphBuilderCache *builder_cache, ID *id)
+void AnimatedPropertyStorage::initializeFromID(DepsgraphBuilderCache *builder_cache, const ID *id)
 {
   AnimatedPropertyCallbackData data;
-  RNA_id_pointer_create(id, &data.pointer_rna);
+  RNA_id_pointer_create(const_cast<ID *>(id), &data.pointer_rna);
   data.animated_property_storage = this;
   data.builder_cache = builder_cache;
-  BKE_fcurves_id_cb(id, animated_property_cb, &data);
+  BKE_fcurves_id_cb(const_cast<ID *>(id), animated_property_cb, &data);
 }
 
 void AnimatedPropertyStorage::tagPropertyAsAnimated(const AnimatedPropertyID &property_id)
@@ -147,13 +149,14 @@ DepsgraphBuilderCache::~DepsgraphBuilderCache()
   }
 }
 
-AnimatedPropertyStorage *DepsgraphBuilderCache::ensureAnimatedPropertyStorage(ID *id)
+AnimatedPropertyStorage *DepsgraphBuilderCache::ensureAnimatedPropertyStorage(const ID *id)
 {
   return animated_property_storage_map_.lookup_or_add_cb(
       id, []() { return new AnimatedPropertyStorage(); });
 }
 
-AnimatedPropertyStorage *DepsgraphBuilderCache::ensureInitializedAnimatedPropertyStorage(ID *id)
+AnimatedPropertyStorage *DepsgraphBuilderCache::ensureInitializedAnimatedPropertyStorage(
+    const ID *id)
 {
   AnimatedPropertyStorage *animated_property_storage = ensureAnimatedPropertyStorage(id);
   if (!animated_property_storage->is_fully_initialized) {

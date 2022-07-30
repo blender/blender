@@ -87,6 +87,17 @@ struct Material *BKE_object_material_get(struct Object *ob, short act);
 void BKE_id_material_assign(struct Main *bmain, struct ID *id, struct Material *ma, short act);
 void BKE_object_material_assign(
     struct Main *bmain, struct Object *ob, struct Material *ma, short act, int assign_type);
+
+/**
+ * Similar to #BKE_object_material_assign with #BKE_MAT_ASSIGN_OBDATA type,
+ * but does not scan whole Main for other usages of the same obdata. Only
+ * use in cases where you know that the object's obdata is only used by this one
+ * object.
+ */
+void BKE_object_material_assign_single_obdata(struct Main *bmain,
+                                              struct Object *ob,
+                                              struct Material *ma,
+                                              short act);
 /**
  * \warning this calls many more update calls per object then are needed, could be optimized.
  */

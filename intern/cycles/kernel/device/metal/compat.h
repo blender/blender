@@ -260,8 +260,6 @@ void kernel_gpu_##name::run(thread MetalKernelContext& context, \
 
 #ifdef __METALRT__
 
-#  define __KERNEL_GPU_RAYTRACING__
-
 #  if defined(__METALRT_MOTION__)
 #    define METALRT_TAGS instancing, instance_motion, primitive_motion
 #  else

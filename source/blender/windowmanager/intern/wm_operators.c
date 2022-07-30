@@ -81,6 +81,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 
 #include "UI_interface.h"
@@ -939,7 +940,7 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
     return ret_value | OPERATOR_PASS_THROUGH;
   }
-  if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  if (ISMOUSE_MOTION(event->type)) {
     const int drag_delta[2] = {
         mval[0] - event->mval[0],
         mval[1] - event->mval[1],

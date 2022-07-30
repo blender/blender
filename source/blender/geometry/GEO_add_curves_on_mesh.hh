@@ -13,13 +13,13 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "GEO_reverse_uv_sampler.hh"
+
 namespace blender::geometry {
 
 struct AddCurvesOnMeshInputs {
-  /** Information about the root points where new curves should be generated. */
-  Span<float3> root_positions_cu;
-  Span<float3> bary_coords;
-  Span<int> looptri_indices;
+  /** UV Coordinates at which the new curves should be added. */
+  Span<float2> uvs;
 
   /** Determines shape of new curves. */
   bool interpolate_length = false;
@@ -30,25 +30,32 @@ struct AddCurvesOnMeshInputs {
 
   /** Information about the surface that the new curves are attached to. */
   const Mesh *surface = nullptr;
-  BVHTreeFromMesh *surface_bvh = nullptr;
-  Span<MLoopTri> surface_looptris;
-  Span<float2> surface_uv_map;
+  const ReverseUVSampler *reverse_uv_sampler = nullptr;
   Span<float3> corner_normals_su;
 
-  /** Transformation matrices. */
-  float4x4 curves_to_surface_mat;
-  float4x4 surface_to_curves_normal_mat;
+  bke::CurvesSurfaceTransforms *transforms = nullptr;
 
   /**
    * KD-Tree that contains the root points of existing curves. This is only necessary when
    * interpolation is used.
    */
   KDTree_3d *old_roots_kdtree = nullptr;
+
+  bool r_uv_error = false;
+};
+
+struct AddCurvesOnMeshOutputs {
+  bool uv_error = false;
 };
 
 /**
  * Generate new curves on a mesh surface with the given inputs. Existing curves stay intact.
  */
-void add_curves_on_mesh(bke::CurvesGeometry &curves, const AddCurvesOnMeshInputs &inputs);
+AddCurvesOnMeshOutputs add_curves_on_mesh(bke::CurvesGeometry &curves,
+                                          const AddCurvesOnMeshInputs &inputs);
+
+float3 compute_surface_point_normal(const MLoopTri &looptri,
+                                    const float3 &bary_coord,
+                                    const Span<float3> corner_normals);
 
 }  // namespace blender::geometry

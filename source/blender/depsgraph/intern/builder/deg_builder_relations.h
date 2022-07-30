@@ -15,6 +15,7 @@
 #include "DNA_ID.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 #include "RNA_types.h"
 
 #include "BLI_string.h"
@@ -70,8 +71,7 @@ struct bSound;
 
 struct PropertyRNA;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct ComponentNode;
 struct DepsNodeHandle;
@@ -381,7 +381,6 @@ struct DepsNodeHandle {
   const char *default_name;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg
 
 #include "intern/builder/deg_builder_relations_impl.h"

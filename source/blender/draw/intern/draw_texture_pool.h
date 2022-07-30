@@ -26,6 +26,7 @@ void DRW_texture_pool_free(DRWTexturePool *pool);
 /**
  * Try to find a texture corresponding to params into the texture pool.
  * If no texture was found, create one and add it to the pool.
+ * DEPRECATED: Use DRW_texture_pool_texture_acquire instead and do it just before rendering.
  */
 GPUTexture *DRW_texture_pool_query(
     DRWTexturePool *pool, int width, int height, eGPUTextureFormat format, void *user);

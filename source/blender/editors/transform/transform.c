@@ -525,7 +525,8 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
                                          UVCALC_TRANSFORM_CORRECT_SLIDE :
                                          UVCALC_TRANSFORM_CORRECT;
 
-    if ((t->data_type == TC_MESH_VERTS) && (t->settings->uvcalc_flag & uvcalc_correct_flag)) {
+    if ((t->data_type == &TransConvertType_Mesh) &&
+        (t->settings->uvcalc_flag & uvcalc_correct_flag)) {
       WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
     }
 
@@ -847,7 +848,7 @@ static bool transform_event_modal_constraint(TransInfo *t, short modal_type)
       return false;
     }
 
-    if (t->data_type == TC_SEQ_IMAGE_DATA) {
+    if (t->data_type == &TransConvertType_SequencerImage) {
       /* Setup the 2d msg string so it writes out the transform space. */
       msg_2d = msg_3d;
 
@@ -1327,7 +1328,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     handled = true;
   }
 
-  if (t->redraw && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  if (t->redraw && !ISMOUSE_MOTION(event->type)) {
     WM_window_status_area_tag_redraw(CTX_wm_window(t->context));
   }
 

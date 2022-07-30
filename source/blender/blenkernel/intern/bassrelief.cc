@@ -1283,7 +1283,7 @@ bool BKE_bassrelief_init_tree(
   }
 
   Object *ob_target = DEG_get_evaluated_object(depsgraph, ob);
-  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
+  Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target);
 
   if (mesh == nullptr) {
     return false;
@@ -2166,7 +2166,7 @@ void bassReliefModifier_deform(BassReliefModifierData *smd,
   }
 
   /*
-  BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
+  BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target);
   */
 
   TIMEIT_BENCH(shrinkwrap_calc_normal_projection(&calc), deform_project);

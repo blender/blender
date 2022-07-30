@@ -148,7 +148,7 @@ PBVHEdgeRef sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
   float *location = ss->cursor_location;
 
   MVert *mvert = SCULPT_mesh_deformed_mverts_get(ss);
-  MPoly *initial_poly = &mesh->mpoly[ss->active_face_index.i];
+  MPoly *initial_poly = &mesh->mpoly[ss->active_face.i];
 
   if (initial_poly->totloop != 4) {
     return (PBVHEdgeRef){.i = PBVH_REF_NONE};
@@ -286,7 +286,7 @@ BLI_bitmap *sculpt_poly_loop_from_cursor(Object *ob)
 
   sculpt_poly_loop_topology_data_ensure(ob);
   const PBVHEdgeRef initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
-  const PBVHFaceRef initial_poly = ss->active_face_index;
+  const PBVHFaceRef initial_poly = ss->active_face;
 
   const int initial_edge_i = BKE_pbvh_edge_to_index(ss->pbvh, initial_edge);
   const int initial_poly_i = BKE_pbvh_face_to_index(ss->pbvh, initial_poly);

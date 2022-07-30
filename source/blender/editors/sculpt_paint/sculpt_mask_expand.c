@@ -97,6 +97,9 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
   PBVHVertexIter vd;
   int update_it = data->mask_expand_update_it;
 
+  PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  int active_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, active_vertex);
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_ALL) {
     int vi = vd.index;
     float final_mask = *vd.mask;
@@ -168,6 +171,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
 
   if (RNA_boolean_get(op->ptr, "use_cursor")) {
     SculptCursorGeometryInfo sgi;
+
     const float mval_fl[2] = {UNPACK2(event->mval)};
     if (SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false)) {
       /* The cursor is over the mesh, get the update iteration from the updated active vertex. */
@@ -300,12 +304,12 @@ static bool mask_expand_floodfill_cb(SculptSession *ss,
 {
   MaskExpandFloodFillData *data = userdata;
 
-  int to_v = BKE_pbvh_vertex_to_index(ss->pbvh, to_vref);
-  int from_v = BKE_pbvh_vertex_to_index(ss->pbvh, from_vref);
+  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_vref);
+  int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_vref);
 
   if (!is_duplicate) {
-    int to_it = ss->filter_cache->mask_update_it[from_v] + 1;
-    ss->filter_cache->mask_update_it[to_v] = to_it;
+    int to_it = ss->filter_cache->mask_update_it[from_v_i] + 1;
+    ss->filter_cache->mask_update_it[to_v_i] = to_it;
     if (to_it > ss->filter_cache->mask_update_last_it) {
       ss->filter_cache->mask_update_last_it = to_it;
     }
@@ -314,20 +318,20 @@ static bool mask_expand_floodfill_cb(SculptSession *ss,
       float current_normal[3], prev_normal[3];
       SCULPT_vertex_normal_get(ss, to_vref, current_normal);
       SCULPT_vertex_normal_get(ss, from_vref, prev_normal);
-      const float from_edge_factor = ss->filter_cache->edge_factor[from_v];
-      ss->filter_cache->edge_factor[to_v] = dot_v3v3(current_normal, prev_normal) *
+      const float from_edge_factor = ss->filter_cache->edge_factor[from_v_i];
+      ss->filter_cache->edge_factor[to_v_i] = dot_v3v3(current_normal, prev_normal) *
                                             from_edge_factor;
-      ss->filter_cache->normal_factor[to_v] = dot_v3v3(data->original_normal, current_normal) *
+      ss->filter_cache->normal_factor[to_v_i] = dot_v3v3(data->original_normal, current_normal) *
                                               powf(from_edge_factor, data->edge_sensitivity);
-      CLAMP(ss->filter_cache->normal_factor[to_v], 0.0f, 1.0f);
+      CLAMP(ss->filter_cache->normal_factor[to_v_i], 0.0f, 1.0f);
     }
   }
   else {
     /* PBVH_GRIDS duplicate handling. */
-    ss->filter_cache->mask_update_it[to_v] = ss->filter_cache->mask_update_it[from_v];
+    ss->filter_cache->mask_update_it[to_v_i] = ss->filter_cache->mask_update_it[from_v_i];
     if (data->use_normals) {
-      ss->filter_cache->edge_factor[to_v] = ss->filter_cache->edge_factor[from_v];
-      ss->filter_cache->normal_factor[to_v] = ss->filter_cache->normal_factor[from_v];
+      ss->filter_cache->edge_factor[to_v_i] = ss->filter_cache->edge_factor[from_v_i];
+      ss->filter_cache->normal_factor[to_v_i] = ss->filter_cache->normal_factor[from_v_i];
     }
   }
 
@@ -405,6 +409,8 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
       ss->filter_cache->prev_mask[i] = SCULPT_vertex_mask_get(ss, vertex);
     }
   }
+
+  int active_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, SCULPT_active_vertex_get(ss));
 
   ss->filter_cache->mask_update_last_it = 1;
   ss->filter_cache->mask_update_current_it = 1;

@@ -245,7 +245,7 @@ static void MaskPointToTransData(Scene *scene,
   }
 }
 
-void createTransMaskingData(bContext *C, TransInfo *t)
+static void createTransMaskingData(bContext *C, TransInfo *t)
 {
   Scene *scene = CTX_data_scene(C);
   Mask *mask = CTX_data_edit_mask(C);
@@ -416,7 +416,7 @@ static void flushTransMasking(TransInfo *t)
   }
 }
 
-void recalcData_mask_common(TransInfo *t)
+static void recalcData_mask_common(TransInfo *t)
 {
   Mask *mask = CTX_data_edit_mask(t->context);
 
@@ -431,7 +431,7 @@ void recalcData_mask_common(TransInfo *t)
 /** \name Special After Transform Mask
  * \{ */
 
-void special_aftertrans_update__mask(bContext *C, TransInfo *t)
+static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 {
   Mask *mask = NULL;
 
@@ -463,3 +463,10 @@ void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Mask = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransMaskingData,
+    /* recalcData */ recalcData_mask_common,
+    /* special_aftertrans_update */ special_aftertrans_update__mask,
+};

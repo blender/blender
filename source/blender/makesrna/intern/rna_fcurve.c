@@ -612,7 +612,7 @@ static void rna_tag_animation_update(Main *bmain, ID *id)
 static void rna_FCurve_update_data_ex(ID *id, FCurve *fcu, Main *bmain)
 {
   sort_time_fcurve(fcu);
-  calchandles_fcurve(fcu);
+  BKE_fcurve_handles_recalc(fcu);
 
   rna_tag_animation_update(bmain, id);
 }
@@ -752,7 +752,7 @@ static void rna_FModifier_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
   FModifier *fcm = (FModifier *)ptr->data;
 
   if (fcm->curve && fcm->type == FMODIFIER_TYPE_CYCLES) {
-    calchandles_fcurve(fcm->curve);
+    BKE_fcurve_handles_recalc(fcm->curve);
   }
 
   rna_tag_animation_update(bmain, id);
@@ -1021,8 +1021,19 @@ static void rna_FKeyframe_points_remove(
     return;
   }
 
-  delete_fcurve_key(fcu, index, !do_fast);
+  BKE_fcurve_delete_key(fcu, index);
   RNA_POINTER_INVALIDATE(bezt_ptr);
+
+  if (!do_fast) {
+    BKE_fcurve_handles_recalc(fcu);
+  }
+
+  rna_tag_animation_update(bmain, id);
+}
+
+static void rna_FKeyframe_points_clear(ID *id, FCurve *fcu, Main *bmain)
+{
+  BKE_fcurve_delete_keys_all(fcu);
 
   rna_tag_animation_update(bmain, id);
 }
@@ -2306,6 +2317,10 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
   /* optional */
   RNA_def_boolean(
       func, "fast", 0, "Fast", "Fast keyframe removal to avoid recalculating the curve each time");
+
+  func = RNA_def_function(srna, "clear", "rna_FKeyframe_points_clear");
+  RNA_def_function_ui_description(func, "Remove all keyframes from an F-Curve");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
 }
 
 static void rna_def_fcurve(BlenderRNA *brna)

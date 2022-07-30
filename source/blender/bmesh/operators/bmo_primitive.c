@@ -855,12 +855,12 @@ void bmo_create_uvsphere_exec(BMesh *bm, BMOperator *op)
   /* one segment first */
   for (a = 0; a <= tot; a++) {
     /* Going in this direction, then edge extruding, makes normals face outward */
-    /* Calculate with doubles for higher precision, see: T87779. */
-    const float phi = M_PI * ((double)a / (double)tot);
+    float sin_phi, cos_phi;
+    sin_cos_from_fraction(a, 2 * tot, &sin_phi, &cos_phi);
 
-    vec[0] = 0.0;
-    vec[1] = rad * sinf(phi);
-    vec[2] = rad * cosf(phi);
+    vec[0] = 0.0f;
+    vec[1] = rad * sin_phi;
+    vec[2] = rad * cos_phi;
     eve = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
     BMO_vert_flag_enable(bm, eve, VERT_MARK);
 
@@ -1262,11 +1262,9 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 
   for (a = 0; a < segs; a++) {
     /* Going this way ends up with normal(s) upward */
-
-    /* Calculate with doubles for higher precision, see: T87779. */
-    const float phi = (2.0 * M_PI) * ((double)a / (double)segs);
-    vec[0] = -radius * sinf(phi);
-    vec[1] = radius * cosf(phi);
+    sin_cos_from_fraction(a, segs, &vec[0], &vec[1]);
+    vec[0] *= -radius;
+    vec[1] *= radius;
     vec[2] = 0.0f;
     mul_m4_v3(mat, vec);
     v1 = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
@@ -1393,16 +1391,18 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
   BMFace **side_faces = MEM_mallocN(sizeof(*side_faces) * side_faces_len, __func__);
 
   for (int i = 0; i < segs; i++) {
-    /* Calculate with doubles for higher precision, see: T87779. */
-    const float phi = (2.0 * M_PI) * ((double)i / (double)segs);
-    vec[0] = rad1 * sinf(phi);
-    vec[1] = rad1 * cosf(phi);
+    /* Calculate with higher precision, see: T87779. */
+    float sin_phi, cos_phi;
+    sin_cos_from_fraction(i, segs, &sin_phi, &cos_phi);
+
+    vec[0] = rad1 * sin_phi;
+    vec[1] = rad1 * cos_phi;
     vec[2] = -depth_half;
     mul_m4_v3(mat, vec);
     v1 = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);
 
-    vec[0] = rad2 * sinf(phi);
-    vec[1] = rad2 * cosf(phi);
+    vec[0] = rad2 * sin_phi;
+    vec[1] = rad2 * cos_phi;
     vec[2] = depth_half;
     mul_m4_v3(mat, vec);
     v2 = BM_vert_create(bm, vec, NULL, BM_CREATE_NOP);

@@ -18,7 +18,9 @@
 
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
-#include FT_TRUETYPE_TABLES_H /* For TT_OS2 */
+#include FT_MULTIPLE_MASTERS_H /* Variable font support. */
+#include FT_TRUETYPE_IDS_H     /* Codepoint coverage constants. */
+#include FT_TRUETYPE_TABLES_H  /* For TT_OS2 */
 
 #include "MEM_guardedalloc.h"
 
@@ -27,6 +29,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_path_util.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -835,7 +838,7 @@ static void blf_font_boundbox_foreach_glyph_ex(FontBLF *font,
   size_t i = 0, i_curr;
   rcti gbox_px;
 
-  if (str_len == 0) {
+  if (str_len == 0 || str[0] == 0) {
     /* early output. */
     return;
   }
@@ -1156,7 +1159,7 @@ int blf_font_ascender(FontBLF *font)
 
 char *blf_display_name(FontBLF *font)
 {
-  if (!font->face->family_name) {
+  if (!blf_ensure_face(font) || !font->face->family_name) {
     return NULL;
   }
   return BLI_sprintfN("%s %s", font->face->family_name, font->face->style_name);
@@ -1243,14 +1246,28 @@ static void blf_font_fill(FontBLF *font)
   font->glyph_cache_mutex = &blf_glyph_cache_mutex;
 }
 
-FontBLF *blf_font_new(const char *name, const char *filepath)
+/**
+ * Create an FT_Face for this font if not already existing.
+ */
+bool blf_ensure_face(FontBLF *font)
 {
-  FontBLF *font;
-  FT_Error err;
-  char *mfile;
+  if (font->face) {
+    return true;
+  }
 
-  font = (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new");
-  err = FT_New_Face(ft_lib, filepath, 0, &font->face);
+  if (font->flags & BLF_BAD_FONT) {
+    return false;
+  }
+
+  FT_Error err;
+
+  if (font->filepath) {
+    err = FT_New_Face(ft_lib, font->filepath, 0, &font->face);
+  }
+  if (font->mem) {
+    err = FT_New_Memory_Face(ft_lib, font->mem, (FT_Long)font->mem_size, 0, &font->face);
+  }
+
   if (err) {
     if (ELEM(err, FT_Err_Unknown_File_Format, FT_Err_Unimplemented_Feature)) {
       printf("Format of this font file is not supported\n");
@@ -1258,8 +1275,8 @@ FontBLF *blf_font_new(const char *name, const char *filepath)
     else {
       printf("Error encountered while opening font file\n");
     }
-    MEM_freeN(font);
-    return NULL;
+    font->flags |= BLF_BAD_FONT;
+    return false;
   }
 
   err = FT_Select_Charmap(font->face, FT_ENCODING_UNICODE);
@@ -1271,23 +1288,27 @@ FontBLF *blf_font_new(const char *name, const char *filepath)
   }
   if (err) {
     printf("Can't set a character map!\n");
-    FT_Done_Face(font->face);
-    MEM_freeN(font);
-    return NULL;
+    font->flags |= BLF_BAD_FONT;
+    return false;
   }
 
-  mfile = blf_dir_metrics_search(filepath);
-  if (mfile) {
-    err = FT_Attach_File(font->face, mfile);
-    if (err) {
-      fprintf(stderr, "FT_Attach_File failed to load '%s' with error %d\n", filepath, (int)err);
+  if (font->filepath) {
+    char *mfile = blf_dir_metrics_search(font->filepath);
+    if (mfile) {
+      err = FT_Attach_File(font->face, mfile);
+      if (err) {
+        fprintf(stderr,
+                "FT_Attach_File failed to load '%s' with error %d\n",
+                font->filepath,
+                (int)err);
+      }
+      MEM_freeN(mfile);
     }
-    MEM_freeN(mfile);
   }
 
-  font->name = BLI_strdup(name);
-  font->filepath = BLI_strdup(filepath);
-  blf_font_fill(font);
+  if (FT_HAS_MULTIPLE_MASTERS(font->face)) {
+    FT_Get_MM_Var(font->face, &(font->variations));
+  }
 
   /* Save TrueType table with bits to quickly test most unicode block coverage. */
   TT_OS2 *os2_table = (TT_OS2 *)FT_Get_Sfnt_Table(font->face, FT_SFNT_OS2);
@@ -1298,17 +1319,11 @@ FontBLF *blf_font_new(const char *name, const char *filepath)
     font->UnicodeRanges[3] = (uint)os2_table->ulUnicodeRange4;
   }
 
-  /* Detect "Last resort" fonts. They have everything. Usually except last 5 bits.  */
-  if (font->UnicodeRanges[0] == 0xffffffffU && font->UnicodeRanges[1] == 0xffffffffU &&
-      font->UnicodeRanges[2] == 0xffffffffU && font->UnicodeRanges[3] >= 0x7FFFFFFU) {
-    font->flags |= BLF_LAST_RESORT;
-  }
-
   if (FT_IS_FIXED_WIDTH(font->face)) {
     font->flags |= BLF_MONOSPACED;
   }
 
-  if (FT_HAS_KERNING(font->face)) {
+  if (FT_HAS_KERNING(font->face) && !font->kerning_cache) {
     /* Create kerning cache table and fill with value indicating "unset". */
     font->kerning_cache = MEM_mallocN(sizeof(KerningCacheBLF), __func__);
     for (uint i = 0; i < KERNING_CACHE_TABLE_SIZE; i++) {
@@ -1318,43 +1333,112 @@ FontBLF *blf_font_new(const char *name, const char *filepath)
     }
   }
 
+  return true;
+}
+
+typedef struct eFaceDetails {
+  char name[50];
+  unsigned int coverage1;
+  unsigned int coverage2;
+  unsigned int coverage3;
+  unsigned int coverage4;
+} eFaceDetails;
+
+/* Details about the fallback fonts we ship, so that we can load only when needed. */
+static const eFaceDetails static_face_details[] = {
+    {"lastresort.woff2", UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX},
+    {"Noto Sans CJK Regular.woff2", 0x30000083L, 0x2BDF3C10L, 0x16L, 0},
+    {"NotoEmoji-VariableFont_wght.woff2", 0x80000003L, 0x241E4ACL, 0x14000000L, 0x4000000L},
+    {"NotoSansArabic-VariableFont_wdth,wght.woff2", TT_UCR_ARABIC, 0, 0, 0},
+    {"NotoSansArmenian-VariableFont_wdth,wght.woff2",
+     TT_UCR_ARMENIAN,
+     TT_UCR_ALPHABETIC_PRESENTATION_FORMS,
+     0,
+     0},
+    {"NotoSansBengali-VariableFont_wdth,wght.woff2", TT_UCR_BENGALI, 0, 0, 0},
+    {"NotoSansDevanagari-Regular.woff2", TT_UCR_DEVANAGARI, 0, 0, 0},
+    {"NotoSansEthiopic-Regular.woff2", 0, 0, TT_UCR_ETHIOPIC, 0},
+    {"NotoSansGeorgian-VariableFont_wdth,wght.woff2", TT_UCR_GEORGIAN, 0, 0, 0},
+    {"NotoSansGujarati-Regular.woff2", TT_UCR_GUJARATI, 0, 0, 0},
+    {"NotoSansGurmukhi-VariableFont_wdth,wght.woff2", TT_UCR_GURMUKHI, 0, 0, 0},
+    {"NotoSansHebrew-VariableFont_wdth,wght.woff2", TT_UCR_HEBREW, 0, 0, 0},
+    {"NotoSansJavanese-Regular.woff2", 0x80000003L, 0x2000L, 0, 0},
+    {"NotoSansKannada-VariableFont_wdth,wght.woff2", TT_UCR_KANNADA, 0, 0, 0},
+    {"NotoSansMalayalam-VariableFont_wdth,wght.woff2", TT_UCR_MALAYALAM, 0, 0, 0},
+    {"NotoSansMath-Regular.woff2", 0, TT_UCR_MATHEMATICAL_OPERATORS, 0, 0},
+    {"NotoSansMyanmar-Regular.woff2", 0, 0, TT_UCR_MYANMAR, 0},
+    {"NotoSansSymbols-VariableFont_wght.woff2", 0x3L, 0x200E4B4L, 0, 0},
+    {"NotoSansSymbols2-Regular.woff2", 0x80000003L, 0x200E3E4L, 0x40020L, 0x580A048L},
+    {"NotoSansTamil-VariableFont_wdth,wght.woff2", TT_UCR_TAMIL, 0, 0, 0},
+    {"NotoSansTelugu-VariableFont_wdth,wght.woff2", TT_UCR_TELUGU, 0, 0, 0},
+    {"NotoSansThai-VariableFont_wdth,wght.woff2", TT_UCR_THAI, 0, 0, 0},
+};
+
+/* Create a new font from filename OR from passed memory pointer. */
+static FontBLF *blf_font_new_ex(const char *name,
+                                const char *filepath,
+                                const unsigned char *mem,
+                                const size_t mem_size)
+{
+  FontBLF *font = (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new");
+
+  font->name = BLI_strdup(name);
+  font->filepath = filepath ? BLI_strdup(filepath) : NULL;
+  if (mem) {
+    font->mem = (void *)mem;
+    font->mem_size = mem_size;
+  }
+  blf_font_fill(font);
+
+  /* If we have static details about this font we don't need to load the Face. */
+  const eFaceDetails *static_details = NULL;
+  char filename[256];
+  for (int i = 0; i < (int)ARRAY_SIZE(static_face_details); i++) {
+    BLI_split_file_part(font->filepath, filename, sizeof(filename));
+    if (STREQ(static_face_details[i].name, filename)) {
+      static_details = &static_face_details[i];
+      font->UnicodeRanges[0] = static_details->coverage1;
+      font->UnicodeRanges[1] = static_details->coverage2;
+      font->UnicodeRanges[2] = static_details->coverage3;
+      font->UnicodeRanges[3] = static_details->coverage4;
+      break;
+    }
+  }
+
+  if (!static_details) {
+    if (!blf_ensure_face(font)) {
+      blf_font_free(font);
+      return NULL;
+    }
+  }
+
+  /* Detect "Last resort" fonts. They have everything. Usually except last 5 bits.  */
+  if (font->UnicodeRanges[0] == 0xffffffffU && font->UnicodeRanges[1] == 0xffffffffU &&
+      font->UnicodeRanges[2] == 0xffffffffU && font->UnicodeRanges[3] >= 0x7FFFFFFU) {
+    font->flags |= BLF_LAST_RESORT;
+  }
+
   return font;
 }
 
-void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, int mem_size)
+FontBLF *blf_font_new(const char *name, const char *filename)
+{
+  return blf_font_new_ex(name, filename, NULL, 0);
+}
+
+FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, const size_t mem_size)
+{
+  return blf_font_new_ex(name, NULL, mem, mem_size);
+}
+
+void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, const size_t mem_size)
 {
   FT_Open_Args open;
 
   open.flags = FT_OPEN_MEMORY;
   open.memory_base = (const FT_Byte *)mem;
-  open.memory_size = mem_size;
+  open.memory_size = (FT_Long)mem_size;
   FT_Attach_Stream(font->face, &open);
-}
-
-FontBLF *blf_font_new_from_mem(const char *name, const unsigned char *mem, int mem_size)
-{
-  FontBLF *font;
-  FT_Error err;
-
-  font = (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new_from_mem");
-  err = FT_New_Memory_Face(ft_lib, mem, mem_size, 0, &font->face);
-  if (err) {
-    MEM_freeN(font);
-    return NULL;
-  }
-
-  err = FT_Select_Charmap(font->face, ft_encoding_unicode);
-  if (err) {
-    printf("Can't set the unicode character map!\n");
-    FT_Done_Face(font->face);
-    MEM_freeN(font);
-    return NULL;
-  }
-
-  font->name = BLI_strdup(name);
-  font->filepath = NULL;
-  blf_font_fill(font);
-  return font;
 }
 
 void blf_font_free(FontBLF *font)
@@ -1365,7 +1449,13 @@ void blf_font_free(FontBLF *font)
     MEM_freeN(font->kerning_cache);
   }
 
-  FT_Done_Face(font->face);
+  if (font->variations) {
+    FT_Done_MM_Var(ft_lib, font->variations);
+  }
+
+  if (font->face) {
+    FT_Done_Face(font->face);
+  }
   if (font->filepath) {
     MEM_freeN(font->filepath);
   }
@@ -1383,6 +1473,10 @@ void blf_font_free(FontBLF *font)
 
 bool blf_font_size(FontBLF *font, float size, unsigned int dpi)
 {
+  if (!blf_ensure_face(font)) {
+    return false;
+  }
+
   /* FreeType uses fixed-point integers in 64ths. */
   FT_F26Dot6 ft_size = lroundf(size * 64.0f);
   /* Adjust our new size to be on even 64ths. */

@@ -3,6 +3,8 @@
 set(TIFF_EXTRA_ARGS
   -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include
+  -DJPEG_LIBRARY=${LIBDIR}/jpeg/lib/${JPEG_LIBRARY}
+  -DJPEG_INCLUDE_DIR=${LIBDIR}/jpeg/include
   -DPNG_STATIC=ON
   -DBUILD_SHARED_LIBS=OFF
   -Dlzma=OFF
@@ -24,10 +26,12 @@ add_dependencies(
   external_tiff
   external_zlib
 )
-
-if(WIN32 AND BUILD_MODE STREQUAL Debug)
-  ExternalProject_Add_Step(external_tiff after_install
-    COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tiff/lib/tiffd${LIBEXT} ${LIBDIR}/tiff/lib/tiff${LIBEXT}
-    DEPENDEES install
-  )
+if(WIN32)
+  if(BUILD_MODE STREQUAL Release)
+    ExternalProject_Add_Step(external_tiff after_install
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tiff/lib/tiff.lib ${HARVEST_TARGET}/tiff/lib/libtiff.lib &&
+              ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/tiff/include/ ${HARVEST_TARGET}/tiff/include/
+      DEPENDEES install
+    )
+  endif()
 endif()

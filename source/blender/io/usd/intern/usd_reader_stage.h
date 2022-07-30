@@ -63,6 +63,8 @@ class USDStageReader {
     return readers_;
   };
 
+  void sort_readers();
+
  private:
   USDPrimReader *collect_readers(Main *bmain, const pxr::UsdPrim &prim);
 

@@ -51,7 +51,7 @@ ccl_device_forceinline int integrate_shadow_max_transparent_hits(KernelGlobals k
 }
 
 #ifdef __TRANSPARENT_SHADOWS__
-#  if defined(__KERNEL_CPU__)
+#  ifndef __KERNEL_GPU__
 ccl_device int shadow_intersections_compare(const void *a, const void *b)
 {
   const Intersection *isect_a = (const Intersection *)a;
@@ -162,7 +162,7 @@ ccl_device void integrator_intersect_shadow(KernelGlobals kg, IntegratorShadowSt
 
   if (opaque_hit) {
     /* Hit an opaque surface, shadow path ends here. */
-    INTEGRATOR_SHADOW_PATH_TERMINATE(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
+    integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
     return;
   }
   else {
@@ -171,7 +171,9 @@ ccl_device void integrator_intersect_shadow(KernelGlobals kg, IntegratorShadowSt
      *
      * TODO: could also write to render buffer directly if no transparent shadows?
      * Could save a kernel execution for the common case. */
-    INTEGRATOR_SHADOW_PATH_NEXT(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW,
+    integrator_shadow_path_next(kg,
+                                state,
+                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW,
                                 DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
     return;
   }

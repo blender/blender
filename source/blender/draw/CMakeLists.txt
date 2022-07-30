@@ -67,7 +67,6 @@ set(SRC
   intern/mesh_extractors/extract_mesh_vbo_skin_roots.cc
   intern/mesh_extractors/extract_mesh_vbo_tan.cc
   intern/mesh_extractors/extract_mesh_vbo_uv.cc
-  intern/mesh_extractors/extract_mesh_vbo_vcol.cc
   intern/mesh_extractors/extract_mesh_vbo_weights.cc
   intern/draw_attributes.cc
   intern/draw_cache_impl_curve.cc
@@ -139,6 +138,7 @@ set(SRC
   engines/eevee_next/eevee_film.cc
   engines/eevee_next/eevee_instance.cc
   engines/eevee_next/eevee_material.cc
+  engines/eevee_next/eevee_motion_blur.cc
   engines/eevee_next/eevee_pipeline.cc
   engines/eevee_next/eevee_renderbuffers.cc
   engines/eevee_next/eevee_sampling.cc
@@ -194,6 +194,7 @@ set(SRC
   engines/overlay/overlay_paint.c
   engines/overlay/overlay_particle.c
   engines/overlay/overlay_sculpt.c
+  engines/overlay/overlay_sculpt_curves.cc
   engines/overlay/overlay_shader.c
   engines/overlay/overlay_volume.c
   engines/overlay/overlay_wireframe.c
@@ -367,14 +368,18 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_geom_gpencil_vert.glsl
   engines/eevee_next/shaders/eevee_geom_mesh_vert.glsl
   engines/eevee_next/shaders/eevee_geom_world_vert.glsl
+  engines/eevee_next/shaders/eevee_motion_blur_dilate_comp.glsl
+  engines/eevee_next/shaders/eevee_motion_blur_flatten_comp.glsl
+  engines/eevee_next/shaders/eevee_motion_blur_gather_comp.glsl
+  engines/eevee_next/shaders/eevee_motion_blur_lib.glsl
   engines/eevee_next/shaders/eevee_nodetree_lib.glsl
+  engines/eevee_next/shaders/eevee_sampling_lib.glsl
   engines/eevee_next/shaders/eevee_surf_deferred_frag.glsl
   engines/eevee_next/shaders/eevee_surf_depth_frag.glsl
   engines/eevee_next/shaders/eevee_surf_forward_frag.glsl
   engines/eevee_next/shaders/eevee_surf_lib.glsl
   engines/eevee_next/shaders/eevee_surf_world_frag.glsl
   engines/eevee_next/shaders/eevee_velocity_lib.glsl
-  engines/eevee_next/shaders/eevee_velocity_resolve_comp.glsl
 
   engines/eevee_next/eevee_defines.hh
   engines/eevee_next/eevee_shader_shared.hh
@@ -460,6 +465,7 @@ set(GLSL_SRC
 
   engines/basic/shaders/basic_conservative_depth_geom.glsl
   engines/basic/shaders/basic_depth_vert.glsl
+  engines/basic/shaders/basic_depth_curves_vert.glsl
   engines/basic/shaders/basic_depth_pointcloud_vert.glsl
   engines/basic/shaders/basic_depth_frag.glsl
 
@@ -537,6 +543,7 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_motion_path_line_vert.glsl
   engines/overlay/shaders/overlay_motion_path_point_vert.glsl
   engines/overlay/shaders/overlay_outline_detect_frag.glsl
+  engines/overlay/shaders/overlay_outline_prepass_curves_vert.glsl
   engines/overlay/shaders/overlay_outline_prepass_frag.glsl
   engines/overlay/shaders/overlay_outline_prepass_geom.glsl
   engines/overlay/shaders/overlay_outline_prepass_gpencil_frag.glsl
@@ -556,6 +563,8 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_particle_vert.glsl
   engines/overlay/shaders/overlay_point_varying_color_frag.glsl
   engines/overlay/shaders/overlay_point_varying_color_varying_outline_aa_frag.glsl
+  engines/overlay/shaders/overlay_sculpt_curves_selection_frag.glsl
+  engines/overlay/shaders/overlay_sculpt_curves_selection_vert.glsl
   engines/overlay/shaders/overlay_sculpt_mask_frag.glsl
   engines/overlay/shaders/overlay_sculpt_mask_vert.glsl
   engines/overlay/shaders/overlay_uniform_color_frag.glsl

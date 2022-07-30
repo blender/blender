@@ -177,7 +177,9 @@ void GPU_shader_uniform_4f(GPUShader *sh, const char *name, float x, float y, fl
 void GPU_shader_uniform_2fv(GPUShader *sh, const char *name, const float data[2]);
 void GPU_shader_uniform_3fv(GPUShader *sh, const char *name, const float data[3]);
 void GPU_shader_uniform_4fv(GPUShader *sh, const char *name, const float data[4]);
+void GPU_shader_uniform_2iv(GPUShader *sh, const char *name, const int data[2]);
 void GPU_shader_uniform_mat4(GPUShader *sh, const char *name, const float data[4][4]);
+void GPU_shader_uniform_mat3_as_mat4(GPUShader *sh, const char *name, const float data[3][3]);
 void GPU_shader_uniform_2fv_array(GPUShader *sh, const char *name, int len, const float (*val)[2]);
 void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, const float (*val)[4]);
 

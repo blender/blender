@@ -448,7 +448,7 @@ static void options_light_reference_draw(const bContext *UNUSED(C), Panel *panel
   uiItemR(col, ptr, "shadow_camera_near", 0, "Near", ICON_NONE);
   uiItemR(col, ptr, "shadow_camera_far", 0, "Far", ICON_NONE);
 
-  uiItemR(layout, ptr, "use_shadow_enclosed_shapes", 0, IFACE_("Eclosed Shapes"), ICON_NONE);
+  uiItemR(layout, ptr, "use_shadow_enclosed_shapes", 0, IFACE_("Enclosed Shapes"), ICON_NONE);
 }
 
 static void options_panel_draw(const bContext *UNUSED(C), Panel *panel)

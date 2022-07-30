@@ -113,14 +113,6 @@ static void attribute_search_update_fn(
 
   Vector<const GeometryAttributeInfo *> infos = get_attribute_info_from_context(*C, *data);
 
-  /* Remove the deprecated normal attribute from the search. */
-  for (const int i : infos.index_range()) {
-    if (infos[i]->domain == ATTR_DOMAIN_FACE && infos[i]->name == "normal") {
-      infos.remove(i);
-      break;
-    }
-  }
-
   ui::attribute_search_add_items(str, true, infos, items, is_first);
 }
 

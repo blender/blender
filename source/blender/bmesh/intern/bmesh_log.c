@@ -319,8 +319,7 @@ typedef struct BMLogIdMap {
 struct BMLogEntry {
   struct BMLogEntry *next, *prev;
 
-  /* The following GHashes map from an element ID to one of the log
-   * types above */
+  /* The following #GHash members map from an element ID to one of the log types above. */
 
   /* topology at beginning of step */
   GHash *topo_modified_verts_pre;
@@ -332,7 +331,7 @@ struct BMLogEntry {
   GHash *topo_modified_edges_post;
   GHash *topo_modified_faces_post;
 
-  /* Vertices whose coordinates, mask value, or hflag have changed */
+  /** Vertices whose coordinates, mask value, or hflag have changed. */
   GHash *modified_verts;
   GHash *modified_edges;
   GHash *modified_faces;
@@ -342,13 +341,14 @@ struct BMLogEntry {
   BLI_mempool *pool_faces;
   MemArena *arena;
 
-  /* This is only needed for dropping BMLogEntries while still in
+  /**
+   * This is only needed for dropping BMLogEntries while still in
    * dynamic-topology mode, as that should release vert/face IDs
-   * back to the BMLog but no BMLog pointer is available at that
-   * time.
+   * back to the BMLog but no BMLog pointer is available at that time.
    *
    * This field is not guaranteed to be valid, any use of it should
-   * check for NULL. */
+   * check for NULL.
+   */
   BMLog *log;
 
   CustomData vdata, edata, ldata, pdata;
@@ -378,9 +378,10 @@ struct BMLog {
 
   int refcount;
 
-  /* Mapping from unique IDs to vertices and faces
+  /**
+   * Mapping from unique IDs to vertices and faces
    *
-   * Each vertex and face in the log gets a unique uinteger
+   * Each vertex and face in the log gets a unique `uint`
    * assigned. That ID is taken from the set managed by the
    * unused_ids range tree.
    *
@@ -392,10 +393,11 @@ struct BMLog {
 
   BMesh *bm;
 
-  /* All BMLogEntrys, ordered from earliest to most recent */
+  /** All #BMLogEntrys, ordered from earliest to most recent. */
   ListBase entries;
 
-  /* The current log entry from entries list
+  /**
+   * The current log entry from entries list
    *
    * If null, then the original mesh from before any of the log
    * entries is current (i.e. there is nothing left to undo.)
@@ -2588,8 +2590,7 @@ static void full_copy_swap(BMesh *bm, BMLog *log, BMLogEntry *entry)
 /* Undo one BMLogEntry
  *
  * Has no effect if there's nothing left to undo */
-static void bm_log_undo_intern(
-    BMesh *bm, BMLog *log, BMLogEntry *entry, BMLogCallbacks *callbacks, const char *node_layer_id)
+static void bm_log_undo_intern(BMesh *bm, BMLog *log, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   log->bm = bm;
 
@@ -2650,10 +2651,7 @@ void BM_log_redo_skip(BMesh *bm, BMLog *log)
   }
 }
 
-void BM_log_undo_single(BMesh *bm,
-                        BMLog *log,
-                        BMLogCallbacks *callbacks,
-                        const char *node_layer_id)
+void BM_log_undo_single(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks)
 {
   BMLogEntry *entry = log->current_entry;
   log->bm = bm;
@@ -2664,13 +2662,13 @@ void BM_log_undo_single(BMesh *bm,
 
   BMLogEntry *preventry = entry->prev;
 
-  bm_log_undo_intern(bm, log, entry, callbacks, node_layer_id);
+  bm_log_undo_intern(bm, log, entry, callbacks);
   entry = entry->combined_prev;
 
   log->current_entry = entry ? entry : preventry;
 }
 
-void BM_log_undo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks, const char *node_layer_id)
+void BM_log_undo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks)
 {
   BMLogEntry *entry = log->current_entry;
   log->bm = bm;
@@ -2682,7 +2680,7 @@ void BM_log_undo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks, const char *n
   BMLogEntry *preventry = entry->prev;
 
   while (entry) {
-    bm_log_undo_intern(bm, log, entry, callbacks, node_layer_id);
+    bm_log_undo_intern(bm, log, entry, callbacks);
     entry = entry->combined_prev;
   }
 
@@ -2692,8 +2690,7 @@ void BM_log_undo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks, const char *n
 /* Redo one BMLogEntry
  *
  * Has no effect if there's nothing left to redo */
-static void bm_log_redo_intern(
-    BMesh *bm, BMLog *log, BMLogEntry *entry, BMLogCallbacks *callbacks, const char *node_layer_id)
+static void bm_log_redo_intern(BMesh *bm, BMLog *log, BMLogEntry *entry, BMLogCallbacks *callbacks)
 {
   if (entry->type == LOG_ENTRY_FULL_MESH) {
     // hrm, should we swap?
@@ -2812,7 +2809,7 @@ BMLogEntry *BM_log_entry_next(BMLogEntry *entry)
   return entry->next;
 }
 
-void BM_log_redo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks, const char *node_layer_id)
+void BM_log_redo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks)
 {
   BMLogEntry *entry = log->current_entry;
   log->bm = bm;
@@ -2838,7 +2835,7 @@ void BM_log_redo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks, const char *n
   }
 
   while (entry) {
-    bm_log_redo_intern(bm, log, entry, callbacks, node_layer_id);
+    bm_log_redo_intern(bm, log, entry, callbacks);
     entry = entry->combined_next;
   }
 
@@ -3932,10 +3929,10 @@ static bool bm_log_validate_intern(
 
   if (do_apply) {
     if (!is_applied) {
-      bm_log_undo_intern(bm, newlog, entry, NULL, "_dyntopo_node_id");
+      bm_log_undo_intern(bm, newlog, entry, NULL);
     }
     else {
-      bm_log_redo_intern(bm, newlog, entry, NULL, "_dyntopo_node_id");
+      bm_log_redo_intern(bm, newlog, entry, NULL);
     }
   }
 

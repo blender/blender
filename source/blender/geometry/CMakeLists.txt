@@ -16,6 +16,7 @@ set(INC
 
 set(SRC
   intern/add_curves_on_mesh.cc
+  intern/fillet_curves.cc
   intern/mesh_merge_by_distance.cc
   intern/mesh_primitive_cuboid.cc
   intern/mesh_to_curve_convert.cc
@@ -24,9 +25,12 @@ set(SRC
   intern/realize_instances.cc
   intern/resample_curves.cc
   intern/reverse_uv_sampler.cc
+  intern/set_curve_type.cc
+  intern/subdivide_curves.cc
   intern/uv_parametrizer.c
 
   GEO_add_curves_on_mesh.hh
+  GEO_fillet_curves.hh
   GEO_mesh_merge_by_distance.hh
   GEO_mesh_primitive_cuboid.hh
   GEO_mesh_to_curve.hh
@@ -35,6 +39,8 @@ set(SRC
   GEO_realize_instances.hh
   GEO_resample_curves.hh
   GEO_reverse_uv_sampler.hh
+  GEO_set_curve_type.hh
+  GEO_subdivide_curves.hh
   GEO_uv_parametrizer.h
 )
 

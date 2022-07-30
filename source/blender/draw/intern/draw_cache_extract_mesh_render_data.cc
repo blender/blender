@@ -431,6 +431,30 @@ void mesh_render_data_update_normals(MeshRenderData *mr, const eMRDataType data_
   }
 }
 
+static void retrieve_active_attribute_names(MeshRenderData &mr,
+                                            const Object &object,
+                                            const Mesh &mesh)
+{
+  const Mesh *mesh_final = editmesh_final_or_this(&object, &mesh);
+  const CustomData *cd_vdata = mesh_cd_vdata_get_from_mesh(mesh_final);
+  const CustomData *cd_ldata = mesh_cd_ldata_get_from_mesh(mesh_final);
+
+  /* Necessary because which attributes are active/default is stored in #CustomData. */
+  Mesh me_query = blender::dna::shallow_zero_initialize();
+  BKE_id_attribute_copy_domains_temp(
+      ID_ME, cd_vdata, nullptr, cd_ldata, nullptr, nullptr, &me_query.id);
+
+  mr.active_color_name = nullptr;
+  mr.default_color_name = nullptr;
+
+  if (const CustomDataLayer *active = BKE_id_attributes_active_color_get(&me_query.id)) {
+    mr.active_color_name = active->name;
+  }
+  if (const CustomDataLayer *render = BKE_id_attributes_render_color_get(&me_query.id)) {
+    mr.default_color_name = render->name;
+  }
+}
+
 MeshRenderData *mesh_render_data_create(Object *object,
                                         Mesh *me,
                                         const bool is_editmode,
@@ -514,8 +538,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
 
     /* Seems like the mesh_eval_final do not have the right origin indices.
      * Force not mapped in this case. */
-    if (use_mapped && do_final && editmesh_eval_final != editmesh_eval_cage) {
-      // mr->edit_bmesh = nullptr;
+    if (has_mdata && do_final && editmesh_eval_final != editmesh_eval_cage) {
+      // mr->edit_bmesh = NULL;
       mr->extract_type = MR_EXTRACT_MESH;
     }
   }
@@ -565,6 +589,8 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->poly_len = bm->totface;
     mr->tri_len = poly_to_tri_count(mr->poly_len, mr->loop_len);
   }
+
+  retrieve_active_attribute_names(*mr, *object, *me);
 
   return mr;
 }

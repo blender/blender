@@ -89,6 +89,8 @@ template<> void from_float(const float src[4], MPropCol &dst)
 template<typename T>
 static void pbvh_vertex_color_get_faces(const PBVH &pbvh, PBVHVertRef vertex, float r_color[4])
 {
+  int index = vertex.i;
+
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
     const MeshElemMap &melem = pbvh.pmap->pmap[vertex.i];
 
@@ -154,7 +156,7 @@ static void pbvh_vertex_color_get_bmesh(const PBVH &pbvh, PBVHVertRef vertex, fl
 template<typename T>
 static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_color[4])
 {
-  switch (pbvh.type) {
+  switch (pbvh.header.type) {
     case PBVH_FACES:
       pbvh_vertex_color_get_faces<T>(pbvh, vertex, r_color);
       break;
@@ -169,6 +171,8 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_
 template<typename T>
 static void pbvh_vertex_color_set_faces(PBVH &pbvh, PBVHVertRef vertex, const float color[4])
 {
+  int index = vertex.i;
+
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
     const MeshElemMap &melem = pbvh.pmap->pmap[vertex.i];
 
@@ -212,7 +216,7 @@ static void pbvh_vertex_color_set_bmesh(PBVH &pbvh, PBVHVertRef vertex, const fl
 template<typename T>
 static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float color[4])
 {
-  switch (pbvh.type) {
+  switch (pbvh.header.type) {
     case PBVH_FACES:
       pbvh_vertex_color_set_faces<T>(pbvh, vertex, color);
       break;

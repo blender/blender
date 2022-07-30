@@ -254,9 +254,8 @@ void OBJWriter::write_vertex_coords(FormatHandler<eFileType::OBJ> &fh,
     colors_layer = BKE_id_attributes_active_color_get(&mesh->id);
   }
   if (write_colors && (colors_layer != nullptr)) {
-    MeshComponent component;
-    component.replace(mesh, GeometryOwnershipType::ReadOnly);
-    VArray<ColorGeometry4f> attribute = component.attribute_get_for_read<ColorGeometry4f>(
+    const bke::AttributeAccessor attributes = bke::mesh_attributes(*mesh);
+    const VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
         colors_layer->name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
 
     BLI_assert(tot_count == attribute.size());

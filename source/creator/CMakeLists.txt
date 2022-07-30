@@ -511,7 +511,7 @@ if(UNIX AND NOT APPLE)
     endif()
 
     if(EXISTS ${LIBDIR}/mesa)
-      install(DIRECTORY ${LIBDIR}/mesa/lib DESTINATION ".")
+      install(DIRECTORY ${LIBDIR}/mesa/lib/ DESTINATION "lib/mesa/")
 
       install(
         PROGRAMS
@@ -1216,10 +1216,8 @@ unset(LIB)
 setup_platform_linker_flags(blender)
 setup_platform_linker_libs(blender)
 
-if(APPLE)
-  set_target_properties(blender PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/osx_locals.map)
-elseif(UNIX)
-  set_target_properties(blender PROPERTIES LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/blender.map)
+if(DEFINED PLATFORM_SYMBOLS_MAP)
+  set_target_properties(blender PROPERTIES LINK_DEPENDS ${PLATFORM_SYMBOLS_MAP})
 endif()
 
 # -----------------------------------------------------------------------------

@@ -91,8 +91,7 @@ void GpencilIO::prepare_camera_params(Scene *scene, const GpencilIOParams *ipara
 
   /* Camera rectangle. */
   if ((rv3d_->persp == RV3D_CAMOB) || (force_camera_view)) {
-    render_x_ = (scene_->r.xsch * scene_->r.size) / 100;
-    render_y_ = (scene_->r.ysch * scene_->r.size) / 100;
+    BKE_render_resolution(&scene->r, false, &render_x_, &render_y_);
 
     ED_view3d_calc_camera_border(CTX_data_scene(params_.C),
                                  depsgraph_,

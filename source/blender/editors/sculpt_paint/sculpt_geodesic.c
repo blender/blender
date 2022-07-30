@@ -961,22 +961,23 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
   float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
-  PBVHVertRef first_affected = {SCULPT_GEODESIC_VERTEX_NONE};
+  int first_affected = SCULPT_GEODESIC_VERTEX_NONE;
 
   GSetIterator gs_iter;
   GSET_ITER (gs_iter, initial_vertices) {
-    first_affected.i = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+    first_affected = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
     break;
   }
 
-  if (first_affected.i == SCULPT_GEODESIC_VERTEX_NONE) {
+  if (first_affected == SCULPT_GEODESIC_VERTEX_NONE) {
     for (int i = 0; i < totvert; i++) {
       dists[i] = FLT_MAX;
     }
     return dists;
   }
 
-  const float *first_affected_co = SCULPT_vertex_co_get(ss, first_affected);
+  const float *first_affected_co = SCULPT_vertex_co_get(
+      ss, BKE_pbvh_index_to_vertex(ss->pbvh, first_affected));
   for (int i = 0; i < totvert; i++) {
     dists[i] = len_v3v3(first_affected_co,
                         SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, i)));
@@ -1019,7 +1020,7 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   for (char i = 0; i <= symm; ++i) {
     if (SCULPT_is_symmetry_iteration_valid(i, symm)) {
-      PBVHVertRef v = {-1};
+      PBVHVertRef v = {PBVH_REF_NONE};
 
       if (i == 0) {
         v = vertex;
@@ -1029,11 +1030,8 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
         flip_v3_v3(location, SCULPT_vertex_co_get(ss, vertex), i);
         v = SCULPT_nearest_vertex_get(sd, ob, location, FLT_MAX, false);
       }
-
-      const int v_i = BKE_pbvh_vertex_to_index(ss->pbvh, v);
-
-      if (v_i != -1) {
-        BLI_gset_add(initial_vertices, POINTER_FROM_INT(v_i));
+      if (v.i != PBVH_REF_NONE) {
+        BLI_gset_add(initial_vertices, POINTER_FROM_INT(BKE_pbvh_vertex_to_index(ss->pbvh, v)));
       }
     }
   }

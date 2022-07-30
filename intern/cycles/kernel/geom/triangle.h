@@ -45,8 +45,8 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
   float3 v1 = kernel_data_fetch(tri_verts, tri_vindex.w + 1);
   float3 v2 = kernel_data_fetch(tri_verts, tri_vindex.w + 2);
   /* compute point */
-  float t = 1.0f - u - v;
-  *P = (u * v0 + v * v1 + t * v2);
+  float w = 1.0f - u - v;
+  *P = (w * v0 + u * v1 + v * v2);
   /* get object flags */
   int object_flag = kernel_data_fetch(object_flag, object);
   /* compute normal */
@@ -97,7 +97,7 @@ triangle_smooth_normal(KernelGlobals kg, float3 Ng, int prim, float u, float v)
   float3 n1 = kernel_data_fetch(tri_vnormal, tri_vindex.y);
   float3 n2 = kernel_data_fetch(tri_vnormal, tri_vindex.z);
 
-  float3 N = safe_normalize((1.0f - u - v) * n2 + u * n0 + v * n1);
+  float3 N = safe_normalize((1.0f - u - v) * n0 + u * n1 + v * n2);
 
   return is_zero(N) ? Ng : N;
 }
@@ -118,7 +118,7 @@ ccl_device_inline float3 triangle_smooth_normal_unnormalized(
     object_inverse_normal_transform(kg, sd, &n2);
   }
 
-  float3 N = (1.0f - u - v) * n2 + u * n0 + v * n1;
+  float3 N = (1.0f - u - v) * n0 + u * n1 + v * n2;
 
   return is_zero(N) ? Ng : N;
 }
@@ -137,8 +137,8 @@ ccl_device_inline void triangle_dPdudv(KernelGlobals kg,
   const float3 p2 = kernel_data_fetch(tri_verts, tri_vindex.w + 2);
 
   /* compute derivatives of P w.r.t. uv */
-  *dPdu = (p0 - p2);
-  *dPdv = (p1 - p2);
+  *dPdu = (p1 - p0);
+  *dPdv = (p2 - p0);
 }
 
 /* Reading attributes on various triangle elements */
@@ -167,12 +167,12 @@ ccl_device float triangle_attribute_float(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * f0 + sd->dv.dx * f1 - (sd->du.dx + sd->dv.dx) * f2;
+      *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
     if (dy)
-      *dy = sd->du.dy * f0 + sd->dv.dy * f1 - (sd->du.dy + sd->dv.dy) * f2;
+      *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
 #endif
 
-    return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
+    return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
   else {
 #ifdef __RAY_DIFFERENTIALS__
@@ -217,12 +217,12 @@ ccl_device float2 triangle_attribute_float2(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * f0 + sd->dv.dx * f1 - (sd->du.dx + sd->dv.dx) * f2;
+      *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
     if (dy)
-      *dy = sd->du.dy * f0 + sd->dv.dy * f1 - (sd->du.dy + sd->dv.dy) * f2;
+      *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
 #endif
 
-    return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
+    return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
   else {
 #ifdef __RAY_DIFFERENTIALS__
@@ -267,12 +267,12 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * f0 + sd->dv.dx * f1 - (sd->du.dx + sd->dv.dx) * f2;
+      *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
     if (dy)
-      *dy = sd->du.dy * f0 + sd->dv.dy * f1 - (sd->du.dy + sd->dv.dy) * f2;
+      *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
 #endif
 
-    return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
+    return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
   else {
 #ifdef __RAY_DIFFERENTIALS__
@@ -328,12 +328,12 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * f0 + sd->dv.dx * f1 - (sd->du.dx + sd->dv.dx) * f2;
+      *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
     if (dy)
-      *dy = sd->du.dy * f0 + sd->dv.dy * f1 - (sd->du.dy + sd->dv.dy) * f2;
+      *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
 #endif
 
-    return sd->u * f0 + sd->v * f1 + (1.0f - sd->u - sd->v) * f2;
+    return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
   else {
 #ifdef __RAY_DIFFERENTIALS__

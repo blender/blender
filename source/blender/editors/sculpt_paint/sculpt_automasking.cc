@@ -291,19 +291,21 @@ struct AutomaskFloodFillData {
 };
 
 static bool automask_floodfill_cb(SculptSession *ss,
-                                  PBVHVertRef from_vref,
-                                  PBVHVertRef to_vref,
+                                  PBVHVertRef from_v,
+                                  PBVHVertRef to_v,
                                   bool UNUSED(is_duplicate),
                                   void *userdata)
 {
   AutomaskFloodFillData *data = (AutomaskFloodFillData *)userdata;
+  int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
+  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
 
-  *(float *)SCULPT_attr_vertex_data(to_vref, data->factorlayer) = 1.0f;
-  *(float *)SCULPT_attr_vertex_data(from_vref, data->factorlayer) = 1.0f;
+  *(float *)SCULPT_attr_vertex_data(to_v, data->factorlayer) = 1.0f;
+  *(float *)SCULPT_attr_vertex_data(from_v, data->factorlayer) = 1.0f;
 
   return (!data->use_radius ||
           SCULPT_is_vertex_inside_brush_radius_symm(
-              SCULPT_vertex_co_get(ss, to_vref), data->location, data->radius, data->symm));
+              SCULPT_vertex_co_get(ss, to_v), data->location, data->radius, data->symm));
 }
 
 static void SCULPT_topology_automasking_init(Sculpt *sd,
@@ -417,13 +419,13 @@ void SCULPT_boundary_automasking_init(Object *ob,
 
   for (int propagation_it : IndexRange(propagation_steps)) {
     for (int i : IndexRange(totvert)) {
-      PBVHVertRef vref = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       if (edge_distance[i] != EDGE_DISTANCE_INF) {
         continue;
       }
       SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vref, ni) {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         if (edge_distance[ni.index] == propagation_it) {
           edge_distance[i] = propagation_it + 1;
         }

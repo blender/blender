@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_task.hh"
+#include "BLI_devirtualize_parameters.hh"
+#include "BLI_length_parameterize.hh"
 
-#include "BKE_spline.hh"
+#include "BKE_curves.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -58,34 +59,66 @@ static void node_update(bNodeTree *ntree, bNode *node)
   nodeSetSocketAvailability(ntree, length, mode == GEO_NODE_CURVE_SAMPLE_LENGTH);
 }
 
-template<typename T> static T sample_with_lookup(const Spline::LookupResult lookup, Span<T> data)
+static void sample_indices_and_lengths(const Span<float> accumulated_lengths,
+                                       const Span<float> sample_lengths,
+                                       const IndexMask mask,
+                                       MutableSpan<int> r_segment_indices,
+                                       MutableSpan<float> r_length_in_segment)
 {
-  return attribute_math::mix2(
-      lookup.factor, data[lookup.evaluated_index], data[lookup.next_evaluated_index]);
+  const float total_length = accumulated_lengths.last();
+  length_parameterize::SampleSegmentHint hint;
+
+  mask.to_best_mask_type([&](const auto mask) {
+    for (const int64_t i : mask) {
+      int segment_i;
+      float factor_in_segment;
+      length_parameterize::sample_at_length(accumulated_lengths,
+                                            std::clamp(sample_lengths[i], 0.0f, total_length),
+                                            segment_i,
+                                            factor_in_segment,
+                                            &hint);
+      const float segment_start = segment_i == 0 ? 0.0f : accumulated_lengths[segment_i - 1];
+      const float segment_end = accumulated_lengths[segment_i];
+      const float segment_length = segment_end - segment_start;
+
+      r_segment_indices[i] = segment_i;
+      r_length_in_segment[i] = factor_in_segment * segment_length;
+    }
+  });
 }
 
-class SampleCurveFunction : public fn::MultiFunction {
+static void sample_indices_and_factors_to_compressed(const Span<float> accumulated_lengths,
+                                                     const Span<float> sample_lengths,
+                                                     const IndexMask mask,
+                                                     MutableSpan<int> r_segment_indices,
+                                                     MutableSpan<float> r_factor_in_segment)
+{
+  const float total_length = accumulated_lengths.last();
+  length_parameterize::SampleSegmentHint hint;
+
+  mask.to_best_mask_type([&](const auto mask) {
+    for (const int64_t i : IndexRange(mask.size())) {
+      const float length = sample_lengths[mask[i]];
+      length_parameterize::sample_at_length(accumulated_lengths,
+                                            std::clamp(length, 0.0f, total_length),
+                                            r_segment_indices[i],
+                                            r_factor_in_segment[i],
+                                            &hint);
+    }
+  });
+}
+
+/**
+ * Given an array of accumulated lengths, find the segment indices that
+ * sample lengths lie on, and how far along the segment they are.
+ */
+class SampleFloatSegmentsFunction : public fn::MultiFunction {
  private:
-  /**
-   * The function holds a geometry set instead of a curve or a curve component in order to
-   * maintain a reference to the geometry while the field tree is being built, so that the
-   * curve is not freed before the function can execute.
-   */
-  GeometrySet geometry_set_;
-  /**
-   * To support factor inputs, the node adds another field operation before this one to multiply by
-   * the curve's total length. Since that must calculate the spline lengths anyway, store them to
-   * reuse the calculation.
-   */
-  Array<float> spline_lengths_;
-  /** The last member of #spline_lengths_, extracted for convenience. */
-  const float total_length_;
+  Array<float> accumulated_lengths_;
 
  public:
-  SampleCurveFunction(GeometrySet geometry_set, Array<float> spline_lengths)
-      : geometry_set_(std::move(geometry_set)),
-        spline_lengths_(std::move(spline_lengths)),
-        total_length_(spline_lengths_.last())
+  SampleFloatSegmentsFunction(Array<float> accumulated_lengths)
+      : accumulated_lengths_(std::move(accumulated_lengths))
   {
     static fn::MFSignature signature = create_signature();
     this->set_signature(&signature);
@@ -93,7 +126,45 @@ class SampleCurveFunction : public fn::MultiFunction {
 
   static fn::MFSignature create_signature()
   {
-    blender::fn::MFSignatureBuilder signature{"Curve Sample"};
+    fn::MFSignatureBuilder signature{"Sample Curve Index"};
+    signature.single_input<float>("Length");
+
+    signature.single_output<int>("Curve Index");
+    signature.single_output<float>("Length in Curve");
+    return signature.build();
+  }
+
+  void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
+  {
+    const VArraySpan<float> lengths = params.readonly_single_input<float>(0, "Length");
+    MutableSpan<int> indices = params.uninitialized_single_output<int>(1, "Curve Index");
+    MutableSpan<float> lengths_in_segments = params.uninitialized_single_output<float>(
+        2, "Length in Curve");
+
+    sample_indices_and_lengths(accumulated_lengths_, lengths, mask, indices, lengths_in_segments);
+  }
+};
+
+class SampleCurveFunction : public fn::MultiFunction {
+ private:
+  /**
+   * The function holds a geometry set instead of curves or a curve component reference in order
+   * to maintain a ownership of the geometry while the field tree is being built and used, so
+   * that the curve is not freed before the function can execute.
+   */
+  GeometrySet geometry_set_;
+
+ public:
+  SampleCurveFunction(GeometrySet geometry_set) : geometry_set_(std::move(geometry_set))
+  {
+    static fn::MFSignature signature = create_signature();
+    this->set_signature(&signature);
+  }
+
+  static fn::MFSignature create_signature()
+  {
+    blender::fn::MFSignatureBuilder signature{"Sample Curve"};
+    signature.single_input<int>("Curve Index");
     signature.single_input<float>("Length");
     signature.single_output<float3>("Position");
     signature.single_output<float3>("Tangent");
@@ -104,11 +175,11 @@ class SampleCurveFunction : public fn::MultiFunction {
   void call(IndexMask mask, fn::MFParams params, fn::MFContext UNUSED(context)) const override
   {
     MutableSpan<float3> sampled_positions = params.uninitialized_single_output_if_required<float3>(
-        1, "Position");
+        2, "Position");
     MutableSpan<float3> sampled_tangents = params.uninitialized_single_output_if_required<float3>(
-        2, "Tangent");
+        3, "Tangent");
     MutableSpan<float3> sampled_normals = params.uninitialized_single_output_if_required<float3>(
-        3, "Normal");
+        4, "Normal");
 
     auto return_default = [&]() {
       if (!sampled_positions.is_empty()) {
@@ -126,61 +197,78 @@ class SampleCurveFunction : public fn::MultiFunction {
       return return_default();
     }
 
-    const CurveComponent *curve_component = geometry_set_.get_component_for_read<CurveComponent>();
-    const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(
-        *curve_component->get_for_read());
-    Span<SplinePtr> splines = curve->splines();
-    if (splines.is_empty()) {
+    const Curves &curves_id = *geometry_set_.get_curves_for_read();
+    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+    if (curves.points_num() == 0) {
       return return_default();
     }
-
-    const VArray<float> &lengths_varray = params.readonly_single_input<float>(0, "Length");
-    const VArraySpan lengths{lengths_varray};
-#ifdef DEBUG
-    for (const float length : lengths) {
-      /* Lengths must be in range of the curve's total length. This is ensured in
-       * #get_length_input_field by adding another multi-function before this one
-       * to clamp the lengths. */
-      BLI_assert(length >= 0.0f && length <= total_length_);
-    }
-#endif
-
-    Array<int> spline_indices(mask.min_array_size());
-    for (const int i : mask) {
-      const float *offset = std::lower_bound(
-          spline_lengths_.begin(), spline_lengths_.end(), lengths[i]);
-      const int index = offset - spline_lengths_.data() - 1;
-      spline_indices[i] = std::max(index, 0);
-    }
-
-    /* Storing lookups in an array is unnecessary but will simplify custom attribute transfer. */
-    Array<Spline::LookupResult> lookups(mask.min_array_size());
-    for (const int i : mask) {
-      const float length_in_spline = lengths[i] - spline_lengths_[spline_indices[i]];
-      lookups[i] = splines[spline_indices[i]]->lookup_evaluated_length(length_in_spline);
-    }
-
-    if (!sampled_positions.is_empty()) {
-      for (const int i : mask) {
-        const Spline::LookupResult &lookup = lookups[i];
-        const Span<float3> evaluated_positions = splines[spline_indices[i]]->evaluated_positions();
-        sampled_positions[i] = sample_with_lookup(lookup, evaluated_positions);
-      }
-    }
-
+    Span<float3> evaluated_positions = curves.evaluated_positions();
+    Span<float3> evaluated_tangents;
+    Span<float3> evaluated_normals;
     if (!sampled_tangents.is_empty()) {
-      for (const int i : mask) {
-        const Spline::LookupResult &lookup = lookups[i];
-        const Span<float3> evaluated_tangents = splines[spline_indices[i]]->evaluated_tangents();
-        sampled_tangents[i] = math::normalize(sample_with_lookup(lookup, evaluated_tangents));
-      }
+      evaluated_tangents = curves.evaluated_tangents();
+    }
+    if (!sampled_normals.is_empty()) {
+      evaluated_normals = curves.evaluated_normals();
     }
 
-    if (!sampled_normals.is_empty()) {
-      for (const int i : mask) {
-        const Spline::LookupResult &lookup = lookups[i];
-        const Span<float3> evaluated_normals = splines[spline_indices[i]]->evaluated_normals();
-        sampled_normals[i] = math::normalize(sample_with_lookup(lookup, evaluated_normals));
+    const VArray<int> curve_indices = params.readonly_single_input<int>(0, "Curve Index");
+    const VArraySpan<float> lengths = params.readonly_single_input<float>(1, "Length");
+    const VArray<bool> cyclic = curves.cyclic();
+
+    Array<int> indices;
+    Array<float> factors;
+
+    auto sample_curve = [&](const int curve_i, const IndexMask mask) {
+      /* Store the sampled indices and factors in arrays the size of the mask.
+       * Then, during interpolation, move the results back to the masked indices. */
+      indices.reinitialize(mask.size());
+      factors.reinitialize(mask.size());
+      sample_indices_and_factors_to_compressed(
+          curves.evaluated_lengths_for_curve(curve_i, cyclic[curve_i]),
+          lengths,
+          mask,
+          indices,
+          factors);
+
+      const IndexRange evaluated_points = curves.evaluated_points_for_curve(curve_i);
+      if (!sampled_positions.is_empty()) {
+        length_parameterize::interpolate_to_masked<float3>(
+            evaluated_positions.slice(evaluated_points),
+            indices,
+            factors,
+            mask,
+            sampled_positions);
+      }
+      if (!sampled_tangents.is_empty()) {
+        length_parameterize::interpolate_to_masked<float3>(
+            evaluated_tangents.slice(evaluated_points), indices, factors, mask, sampled_tangents);
+        for (const int64_t i : mask) {
+          sampled_tangents[i] = math::normalize(sampled_tangents[i]);
+        }
+      }
+      if (!sampled_normals.is_empty()) {
+        length_parameterize::interpolate_to_masked<float3>(
+            evaluated_normals.slice(evaluated_points), indices, factors, mask, sampled_normals);
+        for (const int64_t i : mask) {
+          sampled_normals[i] = math::normalize(sampled_normals[i]);
+        }
+      }
+    };
+
+    if (curve_indices.is_single()) {
+      sample_curve(curve_indices.get_internal_single(), mask);
+    }
+    else {
+      MultiValueMap<int, int64_t> indices_per_curve;
+      devirtualize_varray(curve_indices, [&](const auto curve_indices) {
+        for (const int64_t i : mask) {
+          indices_per_curve.add(curve_indices[i], i);
+        }
+      });
+
+      for (const int curve_i : indices_per_curve.keys()) {
+        sample_curve(curve_i, IndexMask(indices_per_curve.lookup(curve_i)));
       }
     }
   }
@@ -188,82 +276,82 @@ class SampleCurveFunction : public fn::MultiFunction {
 
 /**
  * Pre-process the lengths or factors used for the sampling, turning factors into lengths, and
- * clamping between zero and the total length of the curve. Do this as a separate operation in the
+ * clamping between zero and the total length of the curves. Do this as a separate operation in the
  * field tree to make the sampling simpler, and to let the evaluator optimize better.
  *
  * \todo Use a mutable single input instead when they are supported.
  */
-static Field<float> get_length_input_field(const GeoNodeExecParams &params,
-                                           const float curve_total_length)
+static Field<float> get_length_input_field(GeoNodeExecParams params,
+                                           const GeometryNodeCurveSampleMode mode,
+                                           const float curves_total_length)
 {
-  const NodeGeometryCurveSample &storage = node_storage(params.node());
-  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
-
   if (mode == GEO_NODE_CURVE_SAMPLE_LENGTH) {
-    /* Just make sure the length is in bounds of the curve. */
-    Field<float> length_field = params.get_input<Field<float>>("Length");
-    auto clamp_fn = std::make_unique<fn::CustomMF_SI_SO<float, float>>(
-        __func__,
-        [curve_total_length](float length) {
-          return std::clamp(length, 0.0f, curve_total_length);
-        },
-        fn::CustomMF_presets::AllSpanOrSingle());
-    auto clamp_op = std::make_shared<FieldOperation>(
-        FieldOperation(std::move(clamp_fn), {std::move(length_field)}));
-
-    return Field<float>(std::move(clamp_op), 0);
+    return params.extract_input<Field<float>>("Length");
   }
 
-  /* Convert the factor to a length and clamp it to the bounds of the curve. */
+  /* Convert the factor to a length. */
   Field<float> factor_field = params.get_input<Field<float>>("Factor");
   auto clamp_fn = std::make_unique<fn::CustomMF_SI_SO<float, float>>(
       __func__,
-      [curve_total_length](float factor) {
-        const float length = factor * curve_total_length;
-        return std::clamp(length, 0.0f, curve_total_length);
-      },
+      [curves_total_length](float factor) { return factor * curves_total_length; },
       fn::CustomMF_presets::AllSpanOrSingle());
-  auto process_op = std::make_shared<FieldOperation>(
-      FieldOperation(std::move(clamp_fn), {std::move(factor_field)}));
 
-  return Field<float>(std::move(process_op), 0);
+  return Field<float>(FieldOperation::Create(std::move(clamp_fn), {std::move(factor_field)}), 0);
+}
+
+static Array<float> curve_accumulated_lengths(const bke::CurvesGeometry &curves)
+{
+  curves.ensure_evaluated_lengths();
+
+  Array<float> curve_lengths(curves.curves_num());
+  const VArray<bool> cyclic = curves.cyclic();
+  float length = 0.0f;
+  for (const int i : curves.curves_range()) {
+    length += curves.evaluated_length_total_for_curve(i, cyclic[i]);
+    curve_lengths[i] = length;
+  }
+  return curve_lengths;
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Curve");
-
-  const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>();
-  if (component == nullptr) {
+  if (!geometry_set.has_curves()) {
     params.set_default_remaining_outputs();
     return;
   }
 
-  if (!component->has_curves()) {
+  const Curves &curves_id = *geometry_set.get_curves_for_read();
+  const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  if (curves.points_num() == 0) {
     params.set_default_remaining_outputs();
     return;
   }
 
-  const std::unique_ptr<CurveEval> curve = curves_to_curve_eval(*component->get_for_read());
-
-  if (curve->splines().is_empty()) {
-    params.set_default_remaining_outputs();
-    return;
-  }
-
-  Array<float> spline_lengths = curve->accumulated_spline_lengths();
-  const float total_length = spline_lengths.last();
+  Array<float> curve_lengths = curve_accumulated_lengths(curves);
+  const float total_length = curve_lengths.last();
   if (total_length == 0.0f) {
     params.set_default_remaining_outputs();
     return;
   }
 
-  Field<float> length_field = get_length_input_field(params, total_length);
+  const NodeGeometryCurveSample &storage = node_storage(params.node());
+  const GeometryNodeCurveSampleMode mode = (GeometryNodeCurveSampleMode)storage.mode;
+  Field<float> length_field = get_length_input_field(params, mode, total_length);
 
-  auto sample_fn = std::make_unique<SampleCurveFunction>(std::move(geometry_set),
-                                                         std::move(spline_lengths));
-  auto sample_op = std::make_shared<FieldOperation>(
-      FieldOperation(std::move(sample_fn), {length_field}));
+  auto sample_fn = std::make_unique<SampleCurveFunction>(std::move(geometry_set));
+
+  std::shared_ptr<FieldOperation> sample_op;
+  if (curves.curves_num() == 1) {
+    sample_op = FieldOperation::Create(std::move(sample_fn),
+                                       {fn::make_constant_field<int>(0), std::move(length_field)});
+  }
+  else {
+    auto index_fn = std::make_unique<SampleFloatSegmentsFunction>(std::move(curve_lengths));
+    auto index_op = FieldOperation::Create(std::move(index_fn), {std::move(length_field)});
+    sample_op = FieldOperation::Create(std::move(sample_fn),
+                                       {Field<int>(index_op, 0), Field<float>(index_op, 1)});
+  }
 
   params.set_output("Position", Field<float3>(sample_op, 0));
   params.set_output("Tangent", Field<float3>(sample_op, 1));

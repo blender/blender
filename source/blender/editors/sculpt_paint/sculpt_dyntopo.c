@@ -355,11 +355,11 @@ void SCULPT_reorder_bmesh(SculptSession *ss)
   SCULPT_face_random_access_ensure(ss);
   SCULPT_vertex_random_access_ensure(ss);
 
-  int actv = ss->active_vertex_index.i ?
-                 BKE_pbvh_vertex_to_index(ss->pbvh, ss->active_vertex_index) :
+  int actv = ss->active_vertex.i ?
+                 BKE_pbvh_vertex_to_index(ss->pbvh, ss->active_vertex) :
                  -1;
-  int actf = ss->active_face_index.i ?
-                 BKE_pbvh_face_to_index(ss->pbvh, ss->active_face_index) :
+  int actf = ss->active_face.i ?
+                 BKE_pbvh_face_to_index(ss->pbvh, ss->active_face) :
                  -1;
 
   if (ss->bm_log) {
@@ -372,10 +372,10 @@ void SCULPT_reorder_bmesh(SculptSession *ss)
   SCULPT_vertex_random_access_ensure(ss);
 
   if (actv >= 0) {
-    ss->active_vertex_index = BKE_pbvh_index_to_vertex(ss->pbvh, actv);
+    ss->active_vertex = BKE_pbvh_index_to_vertex(ss->pbvh, actv);
   }
   if (actf >= 0) {
-    ss->active_face_index = BKE_pbvh_index_to_face(ss->pbvh, actf);
+    ss->active_face = BKE_pbvh_index_to_face(ss->pbvh, actf);
   }
 
   SCULPT_dyntopo_node_layers_update_offsets(ss, ob);
@@ -493,7 +493,8 @@ void SCULPT_pbvh_clear(Object *ob, bool cache_pbvh)
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
 }
 
-extern char dyntopop_node_idx_layer_id[];
+extern char dyntopo_node_idx_vertex_id[];
+extern char dyntopo_node_idx_face_id[];
 
 void SCULPT_dyntopo_node_layers_update_offsets(SculptSession *ss, Object *ob)
 {
@@ -538,7 +539,7 @@ int SCULPT_dyntopo_get_templayer(SculptSession *ss, int type, const char *name)
       &ss->bm->vdata, type, li - CustomData_get_layer_index(&ss->bm->vdata, type));
 }
 
-extern char dyntopop_faces_areas_layer_id[];
+extern char dyntopo_faces_areas_layer_id[];
 
 void SCULPT_dyntopo_node_layers_add(SculptSession *ss, Object *ob)
 {
@@ -820,7 +821,7 @@ void sculpt_dynamic_topology_disable_with_undo(Main *bmain,
       SCULPT_undo_push_end(ob);
     }
 
-    ss->active_vertex_index.i = ss->active_face_index.i = 0;
+    ss->active_vertex.i = ss->active_face.i = 0;
   }
 }
 
@@ -843,7 +844,7 @@ static void sculpt_dynamic_topology_enable_with_undo(Main *bmain,
       SCULPT_undo_push_end(ob);
     }
 
-    ss->active_vertex_index.i = ss->active_face_index.i = 0;
+    ss->active_vertex.i = ss->active_face.i = 0;
   }
 }
 

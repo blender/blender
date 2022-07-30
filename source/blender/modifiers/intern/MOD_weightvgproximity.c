@@ -544,7 +544,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     const bool use_trgt_faces = (wmd->proximity_flags & MOD_WVG_PROXIMITY_GEOM_FACES) != 0;
 
     if (use_trgt_verts || use_trgt_edges || use_trgt_faces) {
-      Mesh *target_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(obr, false);
+      Mesh *target_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(obr);
 
       /* We must check that we do have a valid target_mesh! */
       if (target_mesh != NULL) {
@@ -737,7 +737,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_WeightVGProximity = {
-    /* name */ "VertexWeightProximity",
+    /* name */ N_("VertexWeightProximity"),
     /* structName */ "WeightVGProximityModifierData",
     /* structSize */ sizeof(WeightVGProximityModifierData),
     /* srna */ &RNA_VertexWeightProximityModifier,

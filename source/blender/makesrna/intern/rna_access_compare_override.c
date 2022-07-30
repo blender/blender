@@ -38,6 +38,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 
 #include "rna_access_internal.h"

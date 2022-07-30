@@ -42,6 +42,7 @@ set(SRC_KERNEL_DEVICE_ONEAPI
 )
 
 set(SRC_KERNEL_DEVICE_CPU_HEADERS
+  device/cpu/bvh.h
   device/cpu/compat.h
   device/cpu/image.h
   device/cpu/globals.h
@@ -71,14 +72,17 @@ set(SRC_KERNEL_DEVICE_HIP_HEADERS
 )
 
 set(SRC_KERNEL_DEVICE_OPTIX_HEADERS
+  device/optix/bvh.h
   device/optix/compat.h
   device/optix/globals.h
 )
 
 set(SRC_KERNEL_DEVICE_METAL_HEADERS
+  device/metal/bvh.h
   device/metal/compat.h
   device/metal/context_begin.h
   device/metal/context_end.h
+  device/metal/function_constants.h
   device/metal/globals.h
 )
 
@@ -86,7 +90,6 @@ set(SRC_KERNEL_DEVICE_ONEAPI_HEADERS
   device/oneapi/compat.h
   device/oneapi/context_begin.h
   device/oneapi/context_end.h
-  device/oneapi/device_id.h
   device/oneapi/globals.h
   device/oneapi/image.h
   device/oneapi/kernel.h
@@ -155,6 +158,7 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/math_util.h
   svm/mix.h
   svm/musgrave.h
+  svm/node_types_template.h
   svm/noise.h
   svm/noisetex.h
   svm/normal.h
@@ -213,8 +217,6 @@ set(SRC_KERNEL_BVH_HEADERS
   bvh/util.h
   bvh/volume.h
   bvh/volume_all.h
-  bvh/embree.h
-  bvh/metal.h
 )
 
 set(SRC_KERNEL_CAMERA_HEADERS
@@ -283,6 +285,7 @@ set(SRC_KERNEL_UTIL_HEADERS
 
 set(SRC_KERNEL_TYPES_HEADERS
   data_arrays.h
+  data_template.h
   tables.h
   types.h
 )
@@ -314,6 +317,7 @@ set(SRC_UTIL_HEADERS
   ../util/math_float2.h
   ../util/math_float3.h
   ../util/math_float4.h
+  ../util/math_float8.h
   ../util/math_int2.h
   ../util/math_int3.h
   ../util/math_int4.h
@@ -351,8 +355,6 @@ set(SRC_UTIL_HEADERS
   ../util/types_uint4.h
   ../util/types_uint4_impl.h
   ../util/types_ushort4.h
-  ../util/types_vector3.h
-  ../util/types_vector3_impl.h
 )
 
 set(LIB
@@ -734,8 +736,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       -O2
       -o ${cycles_kernel_oneapi_lib}
       -I${CMAKE_CURRENT_SOURCE_DIR}/..
-      -I${LEVEL_ZERO_INCLUDE_DIR}
-      ${LEVEL_ZERO_LIBRARY}
       ${SYCL_CPP_FLAGS}
       )
 
@@ -849,10 +849,9 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
   else()
     list(APPEND sycl_compiler_flags -fPIC)
 
-    # avoid getting __FAST_MATH__ to be defined for the graphics compiler on CentOS 7 until the compile-time issue it triggers gets fixed.
-    if(WITH_CYCLES_ONEAPI_BINARIES)
-      list(APPEND sycl_compiler_flags -fhonor-nans)
-    endif()
+    # We avoid getting __FAST_MATH__ to be defined when building on CentOS 7 until the compilation crash
+    # it triggers at either AoT or JIT stages gets fixed.
+    list(APPEND sycl_compiler_flags -fhonor-nans)
 
     # add $ORIGIN to cycles_kernel_oneapi.so rpath so libsycl.so and
     # libpi_level_zero.so can be placed next to it and get found.

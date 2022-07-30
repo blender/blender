@@ -732,8 +732,10 @@ const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *
   }
 
   /* Set `Deform Bone` as default selection if armature is present. */
-  RNA_def_property_enum_default(
-    prop, BKE_modifiers_is_deformed_by_armature(ob) ? WT_VGROUP_BONE_DEFORM : WT_VGROUP_ALL);
+  if (ob) {
+    RNA_def_property_enum_default(
+        prop, BKE_modifiers_is_deformed_by_armature(ob) ? WT_VGROUP_BONE_DEFORM : WT_VGROUP_ALL);
+  }
 
   RNA_enum_item_end(&item, &totitem);
   *r_free = true;

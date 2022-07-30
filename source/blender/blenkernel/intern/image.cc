@@ -863,31 +863,44 @@ void BKE_image_get_tile_uv(const Image *ima, const int tile_number, float r_uv[2
   }
 }
 
-int BKE_image_find_nearest_tile(const Image *image, const float co[2])
+int BKE_image_find_nearest_tile_with_offset(const Image *image,
+                                            const float co[2],
+                                            float r_uv_offset[2])
 {
-  const float co_floor[2] = {floorf(co[0]), floorf(co[1])};
-  /* Distance to the closest UDIM tile. */
+  /* Distance squared to the closest UDIM tile. */
   float dist_best_sq = FLT_MAX;
+  float uv_offset_best[2] = {0, 0};
   int tile_number_best = -1;
+
+  const float co_offset[2] = {co[0] - 0.5f, co[1] - 0.5f};
 
   LISTBASE_FOREACH (const ImageTile *, tile, &image->tiles) {
     float uv_offset[2];
     BKE_image_get_tile_uv(image, tile->tile_number, uv_offset);
 
-    if (equals_v2v2(co_floor, uv_offset)) {
-      return tile->tile_number;
-    }
-
-    /* Distance between co[2] and UDIM tile. */
-    const float dist_sq = len_squared_v2v2(uv_offset, co);
+    /* Distance squared between co[2] and center of UDIM tile. */
+    const float dist_sq = len_squared_v2v2(uv_offset, co_offset);
 
     if (dist_sq < dist_best_sq) {
       dist_best_sq = dist_sq;
       tile_number_best = tile->tile_number;
+      copy_v2_v2(uv_offset_best, uv_offset);
+
+      if (dist_best_sq < 0.5f * 0.5f) {
+        break; /* No other tile can be closer. */
+      }
     }
   }
-
+  if (tile_number_best != -1) {
+    copy_v2_v2(r_uv_offset, uv_offset_best);
+  }
   return tile_number_best;
+}
+
+int BKE_image_find_nearest_tile(const struct Image *image, const float co[2])
+{
+  float uv_offset_dummy[2];
+  return BKE_image_find_nearest_tile_with_offset(image, co, uv_offset_dummy);
 }
 
 static void image_init_color_management(Image *ima)
@@ -2475,7 +2488,10 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, const ImageFormatData *imf)
   return ok;
 }
 
-int BKE_imbuf_write_as(ImBuf *ibuf, const char *name, ImageFormatData *imf, const bool save_copy)
+int BKE_imbuf_write_as(ImBuf *ibuf,
+                       const char *name,
+                       const ImageFormatData *imf,
+                       const bool save_copy)
 {
   ImBuf ibuf_back = *ibuf;
   int ok;
@@ -5057,13 +5073,7 @@ void BKE_image_get_size(Image *image, ImageUser *iuser, int *r_width, int *r_hei
   }
   else if (image != nullptr && image->type == IMA_TYPE_R_RESULT && iuser != nullptr &&
            iuser->scene != nullptr) {
-    Scene *scene = iuser->scene;
-    *r_width = (scene->r.xsch * scene->r.size) / 100;
-    *r_height = (scene->r.ysch * scene->r.size) / 100;
-    if ((scene->r.mode & R_BORDER) && (scene->r.mode & R_CROP)) {
-      *r_width *= BLI_rctf_size_x(&scene->r.border);
-      *r_height *= BLI_rctf_size_y(&scene->r.border);
-    }
+    BKE_render_resolution(&iuser->scene->r, true, r_width, r_height);
   }
   else {
     *r_width = IMG_SIZE_FALLBACK;

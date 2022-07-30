@@ -440,6 +440,7 @@ static void stats_update(Depsgraph *depsgraph,
     FOREACH_OBJECT_END;
   }
   else if (ob && (ob->mode & OB_MODE_SCULPT)) {
+    /* Sculpt Mode. */
     stats_object_sculpt(ob, stats);
   }
   else {

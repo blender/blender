@@ -68,10 +68,6 @@ class GeometryDataSource : public DataSource {
     return object_eval_;
   }
 
-  /**
-   * Only data sets corresponding to mesh objects in edit mode currently support selection
-   * filtering.
-   */
   bool has_selection_filter() const override;
   IndexMask apply_selection_filter(Vector<int64_t> &indices) const;
 

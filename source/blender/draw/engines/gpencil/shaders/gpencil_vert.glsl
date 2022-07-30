@@ -32,7 +32,7 @@ void main()
   vec3 vert_N;
 
   gpMaterial gp_mat = materials[ma1.x + gpMaterialOffset];
-  gpMaterialFlag gp_flag = floatBitsToInt(gp_mat._flag);
+  gpMaterialFlag gp_flag = floatBitsToUint(gp_mat._flag);
 
   gl_Position = gpencil_vertex(ma,
                                ma1,

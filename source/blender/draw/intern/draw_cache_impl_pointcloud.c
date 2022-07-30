@@ -18,6 +18,7 @@
 #include "DNA_object_types.h"
 #include "DNA_pointcloud_types.h"
 
+#include "BKE_customdata.h"
 #include "BKE_pointcloud.h"
 
 #include "GPU_batch.h"
@@ -139,7 +140,11 @@ static void pointcloud_batch_cache_ensure_pos(Object *ob, PointCloudBatchCache *
   }
 
   PointCloud *pointcloud = ob->data;
-  const bool has_radius = pointcloud->radius != NULL;
+  const float(*positions)[3] = (float(*)[3])CustomData_get_layer_named(
+      &pointcloud->pdata, CD_PROP_FLOAT3, "position");
+  const float *radii = (float *)CustomData_get_layer_named(
+      &pointcloud->pdata, CD_PROP_FLOAT, "radius");
+  const bool has_radius = radii != NULL;
 
   static GPUVertFormat format = {0};
   static GPUVertFormat format_no_radius = {0};
@@ -162,14 +167,14 @@ static void pointcloud_batch_cache_ensure_pos(Object *ob, PointCloudBatchCache *
   if (has_radius) {
     float(*vbo_data)[4] = (float(*)[4])GPU_vertbuf_get_data(cache->pos);
     for (int i = 0; i < pointcloud->totpoint; i++) {
-      copy_v3_v3(vbo_data[i], pointcloud->co[i]);
+      copy_v3_v3(vbo_data[i], positions[i]);
       /* TODO(fclem): remove multiplication here.
        * Here only for keeping the size correct for now. */
-      vbo_data[i][3] = pointcloud->radius[i] * 100.0f;
+      vbo_data[i][3] = radii[i] * 100.0f;
     }
   }
   else {
-    GPU_vertbuf_attr_fill(cache->pos, pos, pointcloud->co);
+    GPU_vertbuf_attr_fill(cache->pos, pos, positions);
   }
 }
 

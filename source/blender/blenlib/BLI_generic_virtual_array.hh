@@ -267,6 +267,7 @@ class GVArraySpan : public GSpan {
   void *owned_data_ = nullptr;
 
  public:
+  GVArraySpan();
   GVArraySpan(GVArray varray);
   GVArraySpan(GVArraySpan &&other);
   ~GVArraySpan();
@@ -282,10 +283,13 @@ class GMutableVArraySpan : public GMutableSpan, NonCopyable, NonMovable {
   bool show_not_saved_warning_ = true;
 
  public:
+  GMutableVArraySpan();
   GMutableVArraySpan(GVMutableArray varray, bool copy_values_to_span = true);
   GMutableVArraySpan(GMutableVArraySpan &&other);
   ~GMutableVArraySpan();
   GMutableVArraySpan &operator=(GMutableVArraySpan &&other);
+
+  const GVMutableArray &varray() const;
 
   void save();
   void disable_not_applied_warning();
@@ -856,6 +860,7 @@ template<typename T> inline GVArray::GVArray(const VArray<T> &varray)
    * #this is destructed. */
   if (info.type == CommonVArrayInfo::Type::Span && !info.may_have_ownership) {
     *this = GVArray::ForSpan(GSpan(CPPType::get<T>(), info.data, varray.size()));
+    return;
   }
   if (varray.try_assign_GVArray(*this)) {
     return;

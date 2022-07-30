@@ -5,7 +5,35 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if defined(__KERNEL_CPU__)
+ccl_device_inline bool intersection_ray_valid(ccl_private const Ray *ray)
+{
+  /* NOTE: Due to some vectorization code  non-finite origin point might
+   * cause lots of false-positive intersections which will overflow traversal
+   * stack.
+   * This code is a quick way to perform early output, to avoid crashes in
+   * such cases.
+   * From production scenes so far it seems it's enough to test first element
+   * only.
+   * Scene intersection may also called with empty rays for conditional trace
+   * calls that evaluate to false, so filter those out.
+   */
+  return isfinite_safe(ray->P.x) && isfinite_safe(ray->D.x) && len_squared(ray->D) != 0.0f;
+}
+
+/* Offset intersection distance by the smallest possible amount, to skip
+ * intersections at this distance. This works in cases where the ray start
+ * position is unchanged and only tmin is updated, since for self
+ * intersection we'll be comparing against the exact same distances. */
+ccl_device_forceinline float intersection_t_offset(const float t)
+{
+  /* This is a simplified version of `nextafterf(t, FLT_MAX)`, only dealing with
+   * non-negative and finite t. */
+  kernel_assert(t >= 0.0f && isfinite_safe(t));
+  const uint32_t bits = (t == 0.0f) ? 1 : __float_as_uint(t) + 1;
+  return __uint_as_float(bits);
+}
+
+#ifndef __KERNEL_GPU__
 ccl_device int intersections_compare(const void *a, const void *b)
 {
   const Intersection *isect_a = (const Intersection *)a;

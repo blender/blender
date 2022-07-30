@@ -25,9 +25,6 @@ if(BUILD_MODE STREQUAL Release)
         # glew-> opengl
         ${CMAKE_COMMAND} -E copy ${LIBDIR}/glew/lib/libglew32.lib ${HARVEST_TARGET}/opengl/lib/glew.lib &&
         ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/glew/include/ ${HARVEST_TARGET}/opengl/include/ &&
-        # tiff
-        ${CMAKE_COMMAND} -E copy ${LIBDIR}/tiff/lib/tiff.lib ${HARVEST_TARGET}/tiff/lib/libtiff.lib &&
-        ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/tiff/include/ ${HARVEST_TARGET}/tiff/include/
     DEPENDS
   )
 endif()
@@ -177,6 +174,7 @@ harvest(opus/lib ffmpeg/lib "*.a")
 harvest(vpx/lib ffmpeg/lib "*.a")
 harvest(x264/lib ffmpeg/lib "*.a")
 harvest(xvidcore/lib ffmpeg/lib "*.a")
+harvest(aom/lib ffmpeg/lib "*.a")
 harvest(webp/lib webp/lib "*.a")
 harvest(webp/include webp/include "*.h")
 harvest(usd/include usd/include "*.h")

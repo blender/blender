@@ -1,20 +1,15 @@
 /* SPDX-License-Identifier: Apache-2.0
  * Copyright 2011-2022 Blender Foundation */
 
-#ifndef __UTIL_TYPES_INT4_IMPL_H__
-#define __UTIL_TYPES_INT4_IMPL_H__
+#pragma once
 
 #ifndef __UTIL_TYPES_H__
 #  error "Do not include this file directly, include util/types.h instead."
 #endif
 
-#ifndef __KERNEL_GPU__
-#  include <cstdio>
-#endif
-
 CCL_NAMESPACE_BEGIN
 
-#if !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__)
+#ifndef __KERNEL_NATIVE_VECTOR_TYPES__
 #  ifdef __KERNEL_SSE__
 __forceinline int4::int4()
 {
@@ -45,6 +40,7 @@ __forceinline int4 &int4::operator=(const int4 &a)
 }
 #  endif /* __KERNEL_SSE__ */
 
+#  ifndef __KERNEL_GPU__
 __forceinline int int4::operator[](int i) const
 {
   util_assert(i >= 0);
@@ -58,6 +54,7 @@ __forceinline int &int4::operator[](int i)
   util_assert(i < 4);
   return *(&x + i);
 }
+#  endif
 
 ccl_device_inline int4 make_int4(int i)
 {
@@ -105,8 +102,6 @@ ccl_device_inline void print_int4(const char *label, const int4 &a)
 {
   printf("%s: %d %d %d %d\n", label, a.x, a.y, a.z, a.w);
 }
-#endif /* !defined(__KERNEL_GPU__) || defined(__KERNEL_ONEAPI__) */
+#endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_TYPES_INT4_IMPL_H__ */

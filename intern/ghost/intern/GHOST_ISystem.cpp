@@ -37,12 +37,23 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
 {
   GHOST_TSuccess success;
   if (!m_system) {
+
+#if defined(WITH_HEADLESS)
+    /* Pass. */
+#elif defined(WITH_GHOST_WAYLAND)
+#  if defined(WITH_GHOST_WAYLAND_DYNLOAD)
+    const bool has_wayland_libraries = ghost_wl_dynload_libraries();
+#  else
+    const bool has_wayland_libraries = true;
+#  endif
+#endif
+
 #if defined(WITH_HEADLESS)
     m_system = new GHOST_SystemNULL();
 #elif defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND)
     /* Special case, try Wayland, fall back to X11. */
     try {
-      m_system = new GHOST_SystemWayland();
+      m_system = has_wayland_libraries ? new GHOST_SystemWayland() : nullptr;
     }
     catch (const std::runtime_error &) {
       /* fallback to X11. */
@@ -55,7 +66,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
 #elif defined(WITH_GHOST_X11)
     m_system = new GHOST_SystemX11();
 #elif defined(WITH_GHOST_WAYLAND)
-    m_system = new GHOST_SystemWayland();
+    m_system = has_wayland_libraries ? new GHOST_SystemWayland() : nullptr;
 #elif defined(WITH_GHOST_SDL)
     m_system = new GHOST_SystemSDL();
 #elif defined(WIN32)

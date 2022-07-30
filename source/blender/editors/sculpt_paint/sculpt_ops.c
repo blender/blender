@@ -232,8 +232,8 @@ static int sculpt_spatial_sort_exec(bContext *C, wmOperator *op)
       BKE_pbvh_bmesh_on_mesh_change(ss->pbvh);
       BM_log_full_mesh(ss->bm, ss->bm_log);
 
-      ss->active_vertex_index.i = 0;
-      ss->active_face_index.i = 0;
+      ss->active_vertex.i = 0;
+      ss->active_face.i = 0;
 
       BKE_pbvh_free(ss->pbvh);
       ss->pbvh = NULL;
@@ -379,8 +379,8 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   BKE_object_sculpt_data_create(ob);
 
   ob->sculpt->mode_type = OB_MODE_SCULPT;
-  ob->sculpt->active_face_index.i = PBVH_REF_NONE;
-  ob->sculpt->active_vertex_index.i = PBVH_REF_NONE;
+  ob->sculpt->active_face.i = PBVH_REF_NONE;
+  ob->sculpt->active_vertex.i = PBVH_REF_NONE;
 
   CustomData_reset(&ob->sculpt->temp_vdata);
   CustomData_reset(&ob->sculpt->temp_pdata);
@@ -642,6 +642,86 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
   ot->poll = ED_operator_object_active_editable_mesh;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+void SCULPT_geometry_preview_lines_update(bContext *C, SculptSession *ss, float radius)
+{
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Object *ob = CTX_data_active_object(C);
+
+  ss->preview_vert_count = 0;
+  int totpoints = 0;
+
+  /* This function is called from the cursor drawing code, so the PBVH may not be build yet. */
+  if (!ss->pbvh) {
+    return;
+  }
+
+  if (!ss->deform_modifiers_active) {
+    return;
+  }
+
+  if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
+    return;
+  }
+
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
+
+  if (!ss->pmap) {
+    return;
+  }
+
+  float brush_co[3];
+  copy_v3_v3(brush_co, SCULPT_active_vertex_co_get(ss));
+
+  BLI_bitmap *visited_vertices = BLI_BITMAP_NEW(SCULPT_vertex_count_get(ss), "visited_vertices");
+
+  /* Assuming an average of 6 edges per vertex in a triangulated mesh. */
+  const int max_preview_vertices = SCULPT_vertex_count_get(ss) * 3 * 2;
+
+  if (ss->preview_vert_list == NULL) {
+    ss->preview_vert_list = MEM_callocN(max_preview_vertices * sizeof(PBVHVertRef),
+                                        "preview lines");
+  }
+
+  GSQueue *not_visited_vertices = BLI_gsqueue_new(sizeof(PBVHVertRef));
+  PBVHVertRef active_v = SCULPT_active_vertex_get(ss);
+  BLI_gsqueue_push(not_visited_vertices, &active_v);
+
+  while (!BLI_gsqueue_is_empty(not_visited_vertices)) {
+    PBVHVertRef from_v;
+
+    BLI_gsqueue_pop(not_visited_vertices, &from_v);
+
+    SculptVertexNeighborIter ni;
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, from_v, ni) {
+      if (totpoints + (ni.size * 2) < max_preview_vertices) {
+        PBVHVertRef to_v = ni.vertex;
+        int to_v_i = ni.index;
+
+        ss->preview_vert_list[totpoints] = from_v;
+        totpoints++;
+        ss->preview_vert_list[totpoints] = to_v;
+        totpoints++;
+
+        if (BLI_BITMAP_TEST(visited_vertices, to_v_i)) {
+          continue;
+        }
+        BLI_BITMAP_ENABLE(visited_vertices, to_v_i);
+        const float *co = SCULPT_vertex_co_for_grab_active_get(ss, to_v);
+        if (len_squared_v3v3(brush_co, co) < radius * radius) {
+          BLI_gsqueue_push(not_visited_vertices, &to_v);
+        }
+      }
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+  }
+
+  BLI_gsqueue_free(not_visited_vertices);
+
+  MEM_freeN(visited_vertices);
+
+  ss->preview_vert_count = totpoints;
 }
 
 static int vertex_to_loop_colors_exec(bContext *C, wmOperator *UNUSED(op))

@@ -494,19 +494,19 @@ void deg_graph_node_tag_zero(Main *bmain,
 
 void graph_tag_on_visible_update(Depsgraph *graph, const bool do_time)
 {
-  graph->need_visibility_update = true;
-  graph->need_visibility_time_update |= do_time;
+  graph->need_tag_id_on_graph_visibility_update = true;
+  graph->need_tag_id_on_graph_visibility_time_update |= do_time;
 }
 
 } /* namespace */
 
 void graph_tag_ids_for_visible_update(Depsgraph *graph)
 {
-  if (!graph->need_visibility_update) {
+  if (!graph->need_tag_id_on_graph_visibility_update) {
     return;
   }
 
-  const bool do_time = graph->need_visibility_time_update;
+  const bool do_time = graph->need_tag_id_on_graph_visibility_time_update;
   Main *bmain = graph->bmain;
 
   /* NOTE: It is possible to have this function called with `do_time=false` first and later (prior
@@ -561,8 +561,8 @@ void graph_tag_ids_for_visible_update(Depsgraph *graph)
     id_node->previously_visible_components_mask = id_node->visible_components_mask;
   }
 
-  graph->need_visibility_update = false;
-  graph->need_visibility_time_update = false;
+  graph->need_tag_id_on_graph_visibility_update = false;
+  graph->need_tag_id_on_graph_visibility_time_update = false;
 }
 
 NodeType geometry_tag_to_component(const ID *id)

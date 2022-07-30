@@ -82,7 +82,8 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
   /* Create ray. */
   ray.P = P + disk_N * disk_height + disk_P;
   ray.D = -disk_N;
-  ray.t = 2.0f * disk_height;
+  ray.tmin = 0.0f;
+  ray.tmax = 2.0f * disk_height;
   ray.dP = ray_dP;
   ray.dD = differential_zero_compact();
   ray.time = time;
@@ -125,17 +126,8 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
     if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
       /* Transform normal to world space. */
       Transform itfm;
-      Transform tfm = object_fetch_transform_motion_test(kg, object, time, &itfm);
+      object_fetch_transform_motion_test(kg, object, time, &itfm);
       hit_Ng = normalize(transform_direction_transposed(&itfm, hit_Ng));
-
-      /* Transform t to world space, except for OptiX and MetalRT where it already is. */
-#ifdef __KERNEL_GPU_RAYTRACING__
-      (void)tfm;
-#else
-      float3 D = transform_direction(&itfm, ray.D);
-      D = normalize(D) * ss_isect.hits[hit].t;
-      ss_isect.hits[hit].t = len(transform_direction(&tfm, D));
-#endif
     }
 
     /* Quickly retrieve P and Ng without setting up ShaderData. */
@@ -188,7 +180,8 @@ ccl_device_inline bool subsurface_disk(KernelGlobals kg,
 
       ray.P = ray.P + ray.D * ss_isect.hits[hit].t;
       ray.D = ss_isect.Ng[hit];
-      ray.t = 1.0f;
+      ray.tmin = 0.0f;
+      ray.tmax = 1.0f;
       return true;
     }
 

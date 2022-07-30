@@ -71,3 +71,10 @@ endif()
 if(WITH_INSTANT_MESHES)
   add_subdirectory(instant-meshes)
 endif()
+
+if(UNIX AND NOT APPLE)
+  # Important this comes after "ghost" as it uses includes defined by GHOST's CMake.
+  if(WITH_GHOST_WAYLAND AND WITH_GHOST_WAYLAND_DYNLOAD)
+    add_subdirectory(wayland_dynload)
+  endif()
+endif()

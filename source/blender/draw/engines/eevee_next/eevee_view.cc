@@ -79,15 +79,11 @@ void ShadingView::sync()
   render_view_ = DRW_view_create_sub(main_view_, viewmat_p, winmat_p);
 
   // dof_.sync(winmat_p, extent_);
-  // mb_.sync(extent_);
-  velocity_.sync();
   // rt_buffer_opaque_.sync(extent_);
   // rt_buffer_refract_.sync(extent_);
   // inst_.hiz_back.view_sync(extent_);
   // inst_.hiz_front.view_sync(extent_);
   // inst_.gbuffer.view_sync(extent_);
-
-  postfx_tx_.sync();
 }
 
 void ShadingView::render()
@@ -96,25 +92,23 @@ void ShadingView::render()
     return;
   }
 
-  /* Query temp textures and create framebuffers. */
-  /* HACK: View name should be unique and static.
-   * With this, we can reuse the same texture across views. */
-  DrawEngineType *owner = (DrawEngineType *)name_;
-
+  /* Query temp textures and create frame-buffers. */
   RenderBuffers &rbufs = inst_.render_buffers;
-  rbufs.acquire(extent_, owner);
-  velocity_.acquire(extent_);
+  rbufs.acquire(extent_);
   combined_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
                       GPU_ATTACHMENT_TEXTURE(rbufs.combined_tx));
   prepass_fb_.ensure(GPU_ATTACHMENT_TEXTURE(rbufs.depth_tx),
-                     GPU_ATTACHMENT_TEXTURE(velocity_.view_vectors_get()));
+                     GPU_ATTACHMENT_TEXTURE(rbufs.vector_tx));
 
   update_view();
 
   DRW_stats_group_start(name_);
   DRW_view_set_active(render_view_);
 
-  float4 clear_velocity(VELOCITY_INVALID);
+  /* If camera has any motion, compute motion vector in the film pass. Otherwise, we avoid float
+   * precision issue by setting the motion of all static geometry to 0. */
+  float4 clear_velocity = float4(inst_.velocity.camera_has_motion() ? VELOCITY_INVALID : 0.0f);
+
   GPU_framebuffer_bind(prepass_fb_);
   GPU_framebuffer_clear_color(prepass_fb_, clear_velocity);
   /* Alpha stores transmittance. So start at 1. */
@@ -137,37 +131,29 @@ void ShadingView::render()
   // inst_.lights.debug_draw(view_fb_);
   // inst_.shadows.debug_draw(view_fb_);
 
-  velocity_.resolve(rbufs.depth_tx);
+  GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
 
-  // GPUTexture *final_radiance_tx = render_post(combined_tx_);
-
-  inst_.film.accumulate(sub_view_);
+  inst_.film.accumulate(sub_view_, combined_final_tx);
 
   rbufs.release();
+  postfx_tx_.release();
 
   DRW_stats_group_end();
-
-  postfx_tx_.release();
-  velocity_.release();
 }
 
-GPUTexture *ShadingView::render_post(GPUTexture *input_tx)
+GPUTexture *ShadingView::render_postfx(GPUTexture *input_tx)
 {
-#if 0
-  if (!dof_.postfx_enabled() && !mb_.enabled()) {
+  if (/*!dof_.postfx_enabled() &&*/ !inst_.motion_blur.postfx_enabled()) {
     return input_tx;
   }
-  /* HACK: View name should be unique and static.
-   * With this, we can reuse the same texture across views. */
-  postfx_tx_.acquire(extent_, GPU_RGBA16F, (void *)name_);
+  postfx_tx_.acquire(extent_, GPU_RGBA16F);
 
-  GPUTexture *velocity_tx = velocity_.view_vectors_get();
   GPUTexture *output_tx = postfx_tx_;
 
   /* Swapping is done internally. Actual output is set to the next input. */
-  dof_.render(depth_tx_, &input_tx, &output_tx);
-  mb_.render(depth_tx_, velocity_tx, &input_tx, &output_tx);
-#endif
+  // dof_.render(depth_tx_, &input_tx, &output_tx);
+  inst_.motion_blur.render(&input_tx, &output_tx);
+
   return input_tx;
 }
 
@@ -184,6 +170,8 @@ void ShadingView::update_view()
 
   /* Anti-Aliasing / Super-Sampling jitter. */
   float2 jitter = inst_.film.pixel_jitter_get() / float2(extent_);
+  /* Transform to NDC space. */
+  jitter *= 2.0f;
 
   window_translate_m4(winmat.ptr(), winmat.ptr(), UNPACK2(jitter));
   DRW_view_update_sub(sub_view_, viewmat.ptr(), winmat.ptr());

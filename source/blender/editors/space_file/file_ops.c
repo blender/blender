@@ -1793,7 +1793,7 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
     }
     ED_file_change_dir(C);
   }
-  /* opening file - sends events now, so things get handled on windowqueue level */
+  /* Opening file, sends events now, so things get handled on window-queue level. */
   else if (sfile->op) {
     wmOperator *op = sfile->op;
     char filepath[FILE_MAX];

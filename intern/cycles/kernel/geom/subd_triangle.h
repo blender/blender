@@ -94,11 +94,11 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    float2 dpdu = uv[0] - uv[2];
-    float2 dpdv = uv[1] - uv[2];
+    float2 dpdu = uv[1] - uv[0];
+    float2 dpdv = uv[2] - uv[0];
 
     /* p is [s, t] */
-    float2 p = dpdu * sd->u + dpdv * sd->v + uv[2];
+    float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
 
     float a, dads, dadt;
     a = patch_eval_float(kg, sd, desc.offset, patch, p.x, p.y, 0, &dads, &dadt);
@@ -165,12 +165,12 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * a + sd->dv.dx * b - (sd->du.dx + sd->dv.dx) * c;
+      *dx = sd->du.dx * b + sd->dv.dx * c - (sd->du.dx + sd->dv.dx) * a;
     if (dy)
-      *dy = sd->du.dy * a + sd->dv.dy * b - (sd->du.dy + sd->dv.dy) * c;
+      *dy = sd->du.dy * b + sd->dv.dy * c - (sd->du.dy + sd->dv.dy) * a;
 #endif
 
-    return sd->u * a + sd->v * b + (1.0f - sd->u - sd->v) * c;
+    return sd->u * b + sd->v * c + (1.0f - sd->u - sd->v) * a;
   }
   else if (desc.element == ATTR_ELEMENT_CORNER) {
     float2 uv[3];
@@ -195,12 +195,12 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * a + sd->dv.dx * b - (sd->du.dx + sd->dv.dx) * c;
+      *dx = sd->du.dx * b + sd->dv.dx * c - (sd->du.dx + sd->dv.dx) * a;
     if (dy)
-      *dy = sd->du.dy * a + sd->dv.dy * b - (sd->du.dy + sd->dv.dy) * c;
+      *dy = sd->du.dy * b + sd->dv.dy * c - (sd->du.dy + sd->dv.dy) * a;
 #endif
 
-    return sd->u * a + sd->v * b + (1.0f - sd->u - sd->v) * c;
+    return sd->u * b + sd->v * c + (1.0f - sd->u - sd->v) * a;
   }
   else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
     if (dx)
@@ -233,11 +233,11 @@ ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    float2 dpdu = uv[0] - uv[2];
-    float2 dpdv = uv[1] - uv[2];
+    float2 dpdu = uv[1] - uv[0];
+    float2 dpdv = uv[2] - uv[0];
 
     /* p is [s, t] */
-    float2 p = dpdu * sd->u + dpdv * sd->v + uv[2];
+    float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
 
     float2 a, dads, dadt;
 
@@ -305,12 +305,12 @@ ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * a + sd->dv.dx * b - (sd->du.dx + sd->dv.dx) * c;
+      *dx = sd->du.dx * b + sd->dv.dx * c - (sd->du.dx + sd->dv.dx) * a;
     if (dy)
-      *dy = sd->du.dy * a + sd->dv.dy * b - (sd->du.dy + sd->dv.dy) * c;
+      *dy = sd->du.dy * b + sd->dv.dy * c - (sd->du.dy + sd->dv.dy) * a;
 #endif
 
-    return sd->u * a + sd->v * b + (1.0f - sd->u - sd->v) * c;
+    return sd->u * b + sd->v * c + (1.0f - sd->u - sd->v) * a;
   }
   else if (desc.element == ATTR_ELEMENT_CORNER) {
     float2 uv[3];
@@ -337,12 +337,12 @@ ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * a + sd->dv.dx * b - (sd->du.dx + sd->dv.dx) * c;
+      *dx = sd->du.dx * b + sd->dv.dx * c - (sd->du.dx + sd->dv.dx) * a;
     if (dy)
-      *dy = sd->du.dy * a + sd->dv.dy * b - (sd->du.dy + sd->dv.dy) * c;
+      *dy = sd->du.dy * b + sd->dv.dy * c - (sd->du.dy + sd->dv.dy) * a;
 #endif
 
-    return sd->u * a + sd->v * b + (1.0f - sd->u - sd->v) * c;
+    return sd->u * b + sd->v * c + (1.0f - sd->u - sd->v) * a;
   }
   else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
     if (dx)
@@ -375,11 +375,11 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    float2 dpdu = uv[0] - uv[2];
-    float2 dpdv = uv[1] - uv[2];
+    float2 dpdu = uv[1] - uv[0];
+    float2 dpdv = uv[2] - uv[0];
 
     /* p is [s, t] */
-    float2 p = dpdu * sd->u + dpdv * sd->v + uv[2];
+    float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
 
     float3 a, dads, dadt;
     a = patch_eval_float3(kg, sd, desc.offset, patch, p.x, p.y, 0, &dads, &dadt);
@@ -446,12 +446,12 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * a + sd->dv.dx * b - (sd->du.dx + sd->dv.dx) * c;
+      *dx = sd->du.dx * b + sd->dv.dx * c - (sd->du.dx + sd->dv.dx) * a;
     if (dy)
-      *dy = sd->du.dy * a + sd->dv.dy * b - (sd->du.dy + sd->dv.dy) * c;
+      *dy = sd->du.dy * b + sd->dv.dy * c - (sd->du.dy + sd->dv.dy) * a;
 #endif
 
-    return sd->u * a + sd->v * b + (1.0f - sd->u - sd->v) * c;
+    return sd->u * b + sd->v * c + (1.0f - sd->u - sd->v) * a;
   }
   else if (desc.element == ATTR_ELEMENT_CORNER) {
     float2 uv[3];
@@ -478,12 +478,12 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * a + sd->dv.dx * b - (sd->du.dx + sd->dv.dx) * c;
+      *dx = sd->du.dx * b + sd->dv.dx * c - (sd->du.dx + sd->dv.dx) * a;
     if (dy)
-      *dy = sd->du.dy * a + sd->dv.dy * b - (sd->du.dy + sd->dv.dy) * c;
+      *dy = sd->du.dy * b + sd->dv.dy * c - (sd->du.dy + sd->dv.dy) * a;
 #endif
 
-    return sd->u * a + sd->v * b + (1.0f - sd->u - sd->v) * c;
+    return sd->u * b + sd->v * c + (1.0f - sd->u - sd->v) * a;
   }
   else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
     if (dx)
@@ -516,11 +516,11 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    float2 dpdu = uv[0] - uv[2];
-    float2 dpdv = uv[1] - uv[2];
+    float2 dpdu = uv[1] - uv[0];
+    float2 dpdv = uv[2] - uv[0];
 
     /* p is [s, t] */
-    float2 p = dpdu * sd->u + dpdv * sd->v + uv[2];
+    float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
 
     float4 a, dads, dadt;
     if (desc.type == NODE_ATTR_RGBA) {
@@ -592,12 +592,12 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * a + sd->dv.dx * b - (sd->du.dx + sd->dv.dx) * c;
+      *dx = sd->du.dx * b + sd->dv.dx * c - (sd->du.dx + sd->dv.dx) * a;
     if (dy)
-      *dy = sd->du.dy * a + sd->dv.dy * b - (sd->du.dy + sd->dv.dy) * c;
+      *dy = sd->du.dy * b + sd->dv.dy * c - (sd->du.dy + sd->dv.dy) * a;
 #endif
 
-    return sd->u * a + sd->v * b + (1.0f - sd->u - sd->v) * c;
+    return sd->u * b + sd->v * c + (1.0f - sd->u - sd->v) * a;
   }
   else if (desc.element == ATTR_ELEMENT_CORNER || desc.element == ATTR_ELEMENT_CORNER_BYTE) {
     float2 uv[3];
@@ -636,12 +636,12 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx)
-      *dx = sd->du.dx * a + sd->dv.dx * b - (sd->du.dx + sd->dv.dx) * c;
+      *dx = sd->du.dx * b + sd->dv.dx * c - (sd->du.dx + sd->dv.dx) * a;
     if (dy)
-      *dy = sd->du.dy * a + sd->dv.dy * b - (sd->du.dy + sd->dv.dy) * c;
+      *dy = sd->du.dy * b + sd->dv.dy * c - (sd->du.dy + sd->dv.dy) * a;
 #endif
 
-    return sd->u * a + sd->v * b + (1.0f - sd->u - sd->v) * c;
+    return sd->u * b + sd->v * c + (1.0f - sd->u - sd->v) * a;
   }
   else if (desc.element == ATTR_ELEMENT_OBJECT || desc.element == ATTR_ELEMENT_MESH) {
     if (dx)

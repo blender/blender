@@ -254,6 +254,8 @@ enum {
   LIB_ID_FREE_NO_DEG_TAG = 1 << 8,
   /** Do not attempt to remove freed ID from UI data/notifiers/... */
   LIB_ID_FREE_NO_UI_USER = 1 << 9,
+  /** Do not remove freed ID's name from a potential runtime namemap. */
+  LIB_ID_FREE_NO_NAMEMAP_REMOVE = 1 << 10,
 };
 
 void BKE_libblock_free_datablock(struct ID *id, int flag) ATTR_NONNULL();
@@ -478,10 +480,12 @@ void BKE_lib_id_expand_local(struct Main *bmain, struct ID *id, int flags);
  *
  * \return true if a new name had to be created.
  */
-bool BKE_id_new_name_validate(struct ListBase *lb,
+bool BKE_id_new_name_validate(struct Main *bmain,
+                              struct ListBase *lb,
                               struct ID *id,
                               const char *name,
-                              bool do_linked_data) ATTR_NONNULL(1, 2);
+                              bool do_linked_data) ATTR_NONNULL(1, 2, 3);
+
 /**
  * Pull an ID out of a library (make it local). Only call this for IDs that
  * don't have other library users.
@@ -526,7 +530,7 @@ void BKE_main_lib_objects_recalc_all(struct Main *bmain);
 /**
  * Only for repairing files via versioning, avoid for general use.
  */
-void BKE_main_id_repair_duplicate_names_listbase(struct ListBase *lb);
+void BKE_main_id_repair_duplicate_names_listbase(struct Main *bmain, struct ListBase *lb);
 
 #define MAX_ID_FULL_NAME (64 + 64 + 3 + 1)         /* 64 is MAX_ID_NAME - 2 */
 #define MAX_ID_FULL_NAME_UI (MAX_ID_FULL_NAME + 3) /* Adds 'keycode' two letters at beginning. */

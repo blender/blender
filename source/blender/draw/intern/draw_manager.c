@@ -214,17 +214,6 @@ int DRW_object_visibility_in_active_context(const Object *ob)
   return BKE_object_visibility(ob, mode);
 }
 
-bool DRW_object_is_flat_normal(const Object *ob)
-{
-  if (ob->type == OB_MESH) {
-    const Mesh *me = ob->data;
-    if (me->mpoly && me->mpoly[0].flag & ME_SMOOTH) {
-      return false;
-    }
-  }
-  return true;
-}
-
 bool DRW_object_use_hide_faces(const struct Object *ob)
 {
   if (ob->type == OB_MESH) {
@@ -237,7 +226,7 @@ bool DRW_object_use_hide_faces(const struct Object *ob)
         return (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
       case OB_MODE_VERTEX_PAINT:
       case OB_MODE_WEIGHT_PAINT:
-        return (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
+        return true;
     }
   }
 

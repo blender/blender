@@ -70,6 +70,11 @@ void BPY_modules_load_user(struct bContext *C);
 void BPY_app_handlers_reset(bool do_all);
 
 /**
+ * Run on exit to free any cached data.
+ */
+void BPY_driver_exit(void);
+
+/**
  * Update function, it gets rid of python-drivers global dictionary: `bpy.app.driver_namespace`,
  * forcing #BPY_driver_exec to recreate it. Use this when loading a new `.blend` file
  * so any variables setup by the previous blend file are cleared.

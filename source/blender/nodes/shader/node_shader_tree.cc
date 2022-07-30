@@ -166,6 +166,7 @@ void register_node_tree_type_sh()
 
   tt->type = NTREE_SHADER;
   strcpy(tt->idname, "ShaderNodeTree");
+  strcpy(tt->group_idname, "ShaderNodeGroup");
   strcpy(tt->ui_name, N_("Shader Editor"));
   tt->ui_icon = ICON_NODE_MATERIAL;
   strcpy(tt->ui_description, N_("Shader nodes"));

@@ -8,7 +8,6 @@
 
 #  include "util/time.h"
 
-#  undef __KERNEL_CPU__
 #  define __KERNEL_OPTIX__
 #  include "kernel/device/optix/globals.h"
 

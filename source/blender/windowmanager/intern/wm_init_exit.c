@@ -170,6 +170,10 @@ void WM_init_opengl(void)
     wm_ghost_init(NULL);
   }
 
+  if (!GPU_backend_supported()) {
+    return;
+  }
+
   /* Needs to be first to have an OpenGL context bound. */
   DRW_opengl_context_create();
 
@@ -573,14 +577,6 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
   BLF_exit();
 
-  if (opengl_is_init) {
-    DRW_opengl_context_enable_ex(false);
-    GPU_pass_cache_free();
-    GPU_exit();
-    DRW_opengl_context_disable_ex(false);
-    DRW_opengl_context_destroy();
-  }
-
   BLT_lang_free();
 
   ANIM_keyingset_infos_exit();
@@ -605,12 +601,23 @@ void WM_exit_ex(bContext *C, const bool do_python)
 
   ED_file_exit(); /* for fsmenu */
 
-  UI_exit();
+  /* Delete GPU resources and context. The UI also uses GPU resources and so
+   * is also deleted with the context active. */
+  if (opengl_is_init) {
+    DRW_opengl_context_enable_ex(false);
+    UI_exit();
+    GPU_pass_cache_free();
+    GPU_exit();
+    DRW_opengl_context_disable_ex(false);
+    DRW_opengl_context_destroy();
+  }
+  else {
+    UI_exit();
+  }
+
   BKE_blender_userdef_data_free(&U, false);
 
   RNA_exit(); /* should be after BPY_python_end so struct python slots are cleared */
-
-  GPU_backend_exit();
 
   BKE_curvemapping_cache_exit();
 

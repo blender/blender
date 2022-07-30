@@ -19,7 +19,7 @@
 struct bContext;
 struct PreviewImage;
 struct uiBlock;
-struct uiButGridTile;
+struct uiButViewItem;
 struct uiLayout;
 struct View2D;
 struct wmNotifier;
@@ -32,42 +32,28 @@ class AbstractGridView;
 /** \name Grid-View Item Type
  * \{ */
 
-class AbstractGridViewItem {
+class AbstractGridViewItem : public AbstractViewItem {
   friend class AbstractGridView;
   friend class GridViewLayoutBuilder;
-
-  const AbstractGridView *view_;
-
-  bool is_active_ = false;
 
  protected:
   /** Reference to a string that uniquely identifies this item in the view. */
   StringRef identifier_{};
-  /** Every visible item gets a button of type #UI_BTYPE_GRID_TILE during the layout building. */
-  uiButGridTile *grid_tile_but_ = nullptr;
+  /** Every visible item gets a button of type #UI_BTYPE_VIEW_ITEM during the layout building. */
+  uiButViewItem *view_item_but_ = nullptr;
 
  public:
   virtual ~AbstractGridViewItem() = default;
 
   virtual void build_grid_tile(uiLayout &layout) const = 0;
 
-  /**
-   * Compare this item's identifier to \a other to check if they represent the same data.
-   * Used to recognize an item from a previous redraw, to be able to keep its state (e.g. active,
-   * renaming, etc.).
-   */
-  bool matches(const AbstractGridViewItem &other) const;
-
   const AbstractGridView &get_view() const;
-
-  /**
-   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we
-   * can't be sure about the item state.
-   */
-  bool is_active() const;
 
  protected:
   AbstractGridViewItem(StringRef identifier);
+
+  /** See AbstractViewItem::matches(). */
+  virtual bool matches(const AbstractViewItem &other) const override;
 
   /** Called when the item's state changes from inactive to active. */
   virtual void on_activate();
@@ -76,13 +62,6 @@ class AbstractGridViewItem {
    * usually depending on the data that the view represents.
    */
   virtual std::optional<bool> should_be_active() const;
-
-  /**
-   * Copy persistent state (e.g. active, selection, etc.) from a matching item of
-   * the last redraw to this item. If sub-classes introduce more advanced state they should
-   * override this and make it update their state accordingly.
-   */
-  virtual void update_from_old(const AbstractGridViewItem &old);
 
   /**
    * Activates this item, deactivates other items, and calls the

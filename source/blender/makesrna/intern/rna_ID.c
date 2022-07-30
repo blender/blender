@@ -16,6 +16,7 @@
 
 #include "BKE_icons.h"
 #include "BKE_lib_id.h"
+#include "BKE_main_namemap.h"
 #include "BKE_object.h"
 
 #include "RNA_access.h"
@@ -273,6 +274,7 @@ int rna_ID_name_length(PointerRNA *ptr)
 void rna_ID_name_set(PointerRNA *ptr, const char *value)
 {
   ID *id = (ID *)ptr->data;
+  BKE_main_namemap_remove_name(G_MAIN, id, id->name + 2);
   BLI_strncpy_utf8(id->name + 2, value, sizeof(id->name) - 2);
   BLI_assert(BKE_id_is_in_global_main(id));
   BLI_libblock_ensure_unique_name(G_MAIN, id->name);
@@ -375,11 +377,9 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_FreestyleLineStyle) {
     return ID_LS;
   }
-#  ifdef WITH_NEW_CURVES_TYPE
   if (base_type == &RNA_Curves) {
     return ID_CV;
   }
-#  endif
   if (base_type == &RNA_Lattice) {
     return ID_LT;
   }
@@ -483,11 +483,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
     case ID_GR:
       return &RNA_Collection;
     case ID_CV:
-#  ifdef WITH_NEW_CURVES_TYPE
       return &RNA_Curves;
-#  else
-      return &RNA_ID;
-#  endif
     case ID_IM:
       return &RNA_Image;
     case ID_KE:

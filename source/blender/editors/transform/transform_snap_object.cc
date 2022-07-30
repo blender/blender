@@ -492,36 +492,36 @@ static bool snap_object_is_snappable(const SnapObjectContext *sctx,
     return false;
   }
 
-  /* get base attributes */
+  /* Get attributes of potential target. */
   const bool is_active = (base_act == base);
   const bool is_selected = (base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL);
   const bool is_edited = (base->object->mode == OB_MODE_EDIT);
   const bool is_selectable = (base->flag & BASE_SELECTABLE);
+  /* Get attributes of state. */
   const bool is_in_object_mode = (base_act == NULL) || (base_act->object->mode == OB_MODE_OBJECT);
 
-  if (is_edited) {
-    if (is_active) {
-      if (snap_target_select & SCE_SNAP_TARGET_NOT_ACTIVE) {
-        return false;
-      }
-    }
-    else {
-      if (snap_target_select & SCE_SNAP_TARGET_NOT_EDITED) {
-        return false;
-      }
+  if (is_in_object_mode) {
+    /* Handle target selection options that make sense for object mode. */
+    if ((snap_target_select & SCE_SNAP_TARGET_NOT_SELECTED) && is_selected) {
+      /* What is selectable or not is part of the object and depends on the mode. */
+      return false;
     }
   }
-
-  if ((snap_target_select & SCE_SNAP_TARGET_NOT_NONEDITED) && !is_edited) {
-    return false;
+  else {
+    /* Handle target selection options that make sense for edit/pose mode. */
+    if ((snap_target_select & SCE_SNAP_TARGET_NOT_ACTIVE) && is_active) {
+      return false;
+    }
+    if ((snap_target_select & SCE_SNAP_TARGET_NOT_EDITED) && is_edited && !is_active) {
+      /* Base is edited, but not active. */
+      return false;
+    }
+    if ((snap_target_select & SCE_SNAP_TARGET_NOT_NONEDITED) && !is_edited) {
+      return false;
+    }
   }
 
   if ((snap_target_select & SCE_SNAP_TARGET_ONLY_SELECTABLE) && !is_selectable) {
-    return false;
-  }
-
-  if ((snap_target_select & SCE_SNAP_TARGET_NOT_SELECTED) && is_in_object_mode && is_selected) {
-    /* What is selectable or not is part of the object and depends on the mode. */
     return false;
   }
 

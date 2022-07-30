@@ -11,8 +11,7 @@
 
 struct bNodeTree;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 class CompositorBuilderPipeline : public AbstractBuilderPipeline {
  public:
@@ -26,5 +25,4 @@ class CompositorBuilderPipeline : public AbstractBuilderPipeline {
   bNodeTree *nodetree_;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

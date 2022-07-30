@@ -3,6 +3,7 @@
 
 set(INC
   .
+  ../clog
   ../glew-mx
   ../../source/blender/imbuf
   ../../source/blender/makesdna
@@ -65,6 +66,8 @@ set(SRC
   intern/GHOST_Util.h
   intern/GHOST_Window.h
   intern/GHOST_WindowManager.h
+  intern/GHOST_utildefines.h
+  intern/GHOST_utildefines_variadic.h
 )
 
 set(LIB
@@ -269,6 +272,16 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       ${xkbcommon_INCLUDE_DIRS}
       ${wayland-cursor_INCLUDE_DIRS}
     )
+
+    if(WITH_GHOST_WAYLAND_DYNLOAD)
+      list(APPEND INC_SYS
+        ../../intern/wayland_dynload/extern
+      )
+      list(APPEND LIB
+        bf_intern_wayland_dynload
+      )
+      add_definitions(-DWITH_GHOST_WAYLAND_DYNLOAD)
+    endif()
 
     if(WITH_GHOST_WAYLAND_DBUS)
       list(APPEND INC_SYS

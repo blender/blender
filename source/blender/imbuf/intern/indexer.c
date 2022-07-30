@@ -1098,6 +1098,7 @@ static int indexer_performance_get_decode_rate(FFmpegIndexBuilderContext *contex
 
   while (av_read_frame(context->iFormatCtx, packet) >= 0) {
     if (packet->stream_index != context->videoStream) {
+      av_packet_unref(packet);
       continue;
     }
 
@@ -1121,6 +1122,7 @@ static int indexer_performance_get_decode_rate(FFmpegIndexBuilderContext *contex
     if (end > start + time_period) {
       break;
     }
+    av_packet_unref(packet);
   }
 
   av_packet_free(&packet);
@@ -1145,6 +1147,7 @@ static int indexer_performance_get_max_gop_size(FFmpegIndexBuilderContext *conte
 
   while (av_read_frame(context->iFormatCtx, packet) >= 0) {
     if (packet->stream_index != context->videoStream) {
+      av_packet_unref(packet);
       continue;
     }
     packet_index++;
@@ -1158,6 +1161,7 @@ static int indexer_performance_get_max_gop_size(FFmpegIndexBuilderContext *conte
     if (packet_index > packets_max) {
       break;
     }
+    av_packet_unref(packet);
   }
 
   av_packet_free(&packet);

@@ -9,8 +9,7 @@
 
 #include "MEM_guardedalloc.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Node;
 
@@ -49,5 +48,4 @@ struct Relation {
   MEM_CXX_CLASS_ALLOC_FUNCS("Relation");
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

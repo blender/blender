@@ -12,6 +12,7 @@ set(INC
   ../../../../intern/clog
   ../../../../intern/atomic
   ../../../../intern/guardedalloc
+  ../../bmesh
 )
 
 set(SRC

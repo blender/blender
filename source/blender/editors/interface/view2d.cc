@@ -1695,6 +1695,41 @@ void UI_view2d_view_to_region_fl(
   *r_region_y = v2d->mask.ymin + (y * BLI_rcti_size_y(&v2d->mask));
 }
 
+bool UI_view2d_view_to_region_segment_clip(const View2D *v2d,
+                                           const float xy_a[2],
+                                           const float xy_b[2],
+                                           int r_region_a[2],
+                                           int r_region_b[2])
+{
+  rctf rect_unit;
+  rect_unit.xmin = rect_unit.ymin = 0.0f;
+  rect_unit.xmax = rect_unit.ymax = 1.0f;
+
+  /* Express given coordinates as proportional values. */
+  const float s_a[2] = {
+      (xy_a[0] - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur),
+      (xy_a[1] - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur),
+  };
+  const float s_b[2] = {
+      (xy_b[0] - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur),
+      (xy_b[1] - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur),
+  };
+
+  /* Set initial value in case coordinates lie outside bounds. */
+  r_region_a[0] = r_region_b[0] = r_region_a[1] = r_region_b[1] = V2D_IS_CLIPPED;
+
+  if (BLI_rctf_isect_segment(&rect_unit, s_a, s_b)) {
+    r_region_a[0] = (int)(v2d->mask.xmin + (s_a[0] * BLI_rcti_size_x(&v2d->mask)));
+    r_region_a[1] = (int)(v2d->mask.ymin + (s_a[1] * BLI_rcti_size_y(&v2d->mask)));
+    r_region_b[0] = (int)(v2d->mask.xmin + (s_b[0] * BLI_rcti_size_x(&v2d->mask)));
+    r_region_b[1] = (int)(v2d->mask.ymin + (s_b[1] * BLI_rcti_size_y(&v2d->mask)));
+
+    return true;
+  }
+
+  return false;
+}
+
 void UI_view2d_view_to_region_rcti(const View2D *v2d, const rctf *rect_src, rcti *rect_dst)
 {
   const float cur_size[2] = {BLI_rctf_size_x(&v2d->cur), BLI_rctf_size_y(&v2d->cur)};

@@ -211,7 +211,7 @@ static void HC_relaxation_iteration_uv(BMEditMesh *em,
     }
   }
 
-  MEM_freeN(tmp_uvdata);
+  MEM_SAFE_FREE(tmp_uvdata);
 }
 
 static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
@@ -240,7 +240,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
     add_v2_v2(tmp_uvdata[tmpedge->uv1].sum_co, sculptdata->uv[tmpedge->uv2].uv);
   }
 
-  /* Original Lacplacian algorithm included removal of normal component of translation.
+  /* Original Laplacian algorithm included removal of normal component of translation.
    * here it is not needed since we translate along the UV plane always. */
   for (i = 0; i < sculptdata->totalUniqueUvs; i++) {
     copy_v2_v2(tmp_uvdata[i].p, tmp_uvdata[i].sum_co);
@@ -283,7 +283,7 @@ static void laplacian_relaxation_iteration_uv(BMEditMesh *em,
     }
   }
 
-  MEM_freeN(tmp_uvdata);
+  MEM_SAFE_FREE(tmp_uvdata);
 }
 
 static void uv_sculpt_stroke_apply(bContext *C,
@@ -417,20 +417,14 @@ static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
   if (data->elementMap) {
     BM_uv_element_map_free(data->elementMap);
   }
-  if (data->uv) {
-    MEM_freeN(data->uv);
-  }
-  if (data->uvedges) {
-    MEM_freeN(data->uvedges);
-  }
+  MEM_SAFE_FREE(data->uv);
+  MEM_SAFE_FREE(data->uvedges);
   if (data->initial_stroke) {
-    if (data->initial_stroke->initialSelection) {
-      MEM_freeN(data->initial_stroke->initialSelection);
-    }
-    MEM_freeN(data->initial_stroke);
+    MEM_SAFE_FREE(data->initial_stroke->initialSelection);
+    MEM_SAFE_FREE(data->initial_stroke);
   }
 
-  MEM_freeN(data);
+  MEM_SAFE_FREE(data);
   op->customdata = NULL;
 }
 
@@ -489,7 +483,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
     bool do_island_optimization = !(ts->uv_sculpt_settings & UV_SCULPT_ALL_ISLANDS);
     int island_index = 0;
-    /* Holds, for each UvElement in elementMap, a pointer to its unique UV. */
+    /* Holds, for each UvElement in elementMap, an index of its unique UV. */
     int *uniqueUv;
     data->tool = (RNA_enum_get(op->ptr, "mode") == BRUSH_STROKE_SMOOTH) ?
                      UV_SCULPT_TOOL_RELAX :
@@ -500,20 +494,10 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
     if (do_island_optimization) {
       /* We will need island information */
-      if (ts->uv_flag & UV_SYNC_SELECTION) {
-        data->elementMap = BM_uv_element_map_create(bm, scene, false, false, true, true);
-      }
-      else {
-        data->elementMap = BM_uv_element_map_create(bm, scene, true, false, true, true);
-      }
+      data->elementMap = BM_uv_element_map_create(bm, scene, false, true, true);
     }
     else {
-      if (ts->uv_flag & UV_SYNC_SELECTION) {
-        data->elementMap = BM_uv_element_map_create(bm, scene, false, false, true, false);
-      }
-      else {
-        data->elementMap = BM_uv_element_map_create(bm, scene, true, false, true, false);
-      }
+      data->elementMap = BM_uv_element_map_create(bm, scene, false, true, false);
     }
 
     if (!data->elementMap) {
@@ -550,12 +534,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     /* we have at most totalUVs edges */
     edges = MEM_mallocN(sizeof(*edges) * data->elementMap->totalUVs, "uv_brush_all_edges");
     if (!data->uv || !uniqueUv || !edgeHash || !edges) {
-      if (edges) {
-        MEM_freeN(edges);
-      }
-      if (uniqueUv) {
-        MEM_freeN(uniqueUv);
-      }
+      MEM_SAFE_FREE(edges);
+      MEM_SAFE_FREE(uniqueUv);
       if (edgeHash) {
         BLI_ghash_free(edgeHash, NULL, NULL);
       }
@@ -635,14 +615,14 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
       }
     }
 
-    MEM_freeN(uniqueUv);
+    MEM_SAFE_FREE(uniqueUv);
 
     /* Allocate connectivity data, we allocate edges once */
     data->uvedges = MEM_mallocN(sizeof(*data->uvedges) * BLI_ghash_len(edgeHash),
                                 "uv_brush_edge_connectivity_data");
     if (!data->uvedges) {
       BLI_ghash_free(edgeHash, NULL, NULL);
-      MEM_freeN(edges);
+      MEM_SAFE_FREE(edges);
       uv_sculpt_stroke_exit(C, op);
       return NULL;
     }
@@ -656,7 +636,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 
     /* cleanup temporary stuff */
     BLI_ghash_free(edgeHash, NULL, NULL);
-    MEM_freeN(edges);
+    MEM_SAFE_FREE(edges);
 
     /* transfer boundary edge property to UV's */
     if (ts->uv_sculpt_settings & UV_SCULPT_LOCK_BORDERS) {

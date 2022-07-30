@@ -19,6 +19,7 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
@@ -1430,13 +1431,17 @@ BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
     return nullptr;
   }
 
-  for (int i = 0; i < pointcloud->totpoint; i++) {
-    BLI_bvhtree_insert(tree, i, pointcloud->co[i], 1);
+  blender::bke::AttributeAccessor attributes = blender::bke::pointcloud_attributes(*pointcloud);
+  blender::VArraySpan<blender::float3> positions = attributes.lookup_or_default<blender::float3>(
+      "position", ATTR_DOMAIN_POINT, blender::float3(0));
+
+  for (const int i : positions.index_range()) {
+    BLI_bvhtree_insert(tree, i, positions[i], 1);
   }
   BLI_assert(BLI_bvhtree_get_len(tree) == pointcloud->totpoint);
   bvhtree_balance(tree, false);
 
-  data->coords = pointcloud->co;
+  data->coords = (const float(*)[3])positions.data();
   data->tree = tree;
   data->nearest_callback = nullptr;
 

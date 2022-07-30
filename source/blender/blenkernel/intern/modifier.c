@@ -456,6 +456,40 @@ void BKE_modifier_set_error(const Object *ob, ModifierData *md, const char *_for
   CLOG_ERROR(&LOG, "Object: \"%s\", Modifier: \"%s\", %s", ob->id.name + 2, md->name, md->error);
 }
 
+void BKE_modifier_set_warning(const struct Object *ob,
+                              struct ModifierData *md,
+                              const char *_format,
+                              ...)
+{
+  char buffer[512];
+  va_list ap;
+  const char *format = TIP_(_format);
+
+  va_start(ap, _format);
+  vsnprintf(buffer, sizeof(buffer), format, ap);
+  va_end(ap);
+  buffer[sizeof(buffer) - 1] = '\0';
+
+  /* Store the warning in the same field as the error.
+   * It is not expected to have both error and warning and having a single place to store the
+   * message simplifies interface code. */
+
+  if (md->error) {
+    MEM_freeN(md->error);
+  }
+
+  md->error = BLI_strdup(buffer);
+
+#ifndef NDEBUG
+  if ((md->mode & eModifierMode_Virtual) == 0) {
+    /* Ensure correct object is passed in. */
+    BLI_assert(BKE_modifier_get_original(ob, md) != NULL);
+  }
+#endif
+
+  UNUSED_VARS_NDEBUG(ob);
+}
+
 int BKE_modifiers_get_cage_index(const Scene *scene,
                                  Object *ob,
                                  int *r_lastPossibleCageIndex,
@@ -1001,8 +1035,7 @@ void BKE_modifier_deform_vertsEM(ModifierData *md,
 
 /* end modifier callback wrappers */
 
-Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval,
-                                                            const bool get_cage_mesh)
+Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval)
 {
   Mesh *me = NULL;
 
@@ -1011,17 +1044,11 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval,
     BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
     /* 'em' might not exist yet in some cases, just after loading a .blend file, see T57878. */
     if (em != NULL) {
-      Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(ob_eval);
-      Mesh *editmesh_eval_cage = BKE_object_get_editmesh_eval_cage(ob_eval);
-
-      me = (get_cage_mesh && editmesh_eval_cage != NULL) ? editmesh_eval_cage :
-                                                           editmesh_eval_final;
+      me = BKE_object_get_editmesh_eval_final(ob_eval);
     }
   }
   if (me == NULL) {
-    me = (get_cage_mesh && ob_eval->runtime.mesh_deform_eval != NULL) ?
-             ob_eval->runtime.mesh_deform_eval :
-             BKE_object_get_evaluated_mesh(ob_eval);
+    me = BKE_object_get_evaluated_mesh(ob_eval);
   }
 
   return me;

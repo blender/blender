@@ -137,8 +137,9 @@ ccl_device_inline float3 shadow_ray_smooth_surface_offset(
     triangle_vertices_and_normals(kg, sd->prim, V, N);
   }
 
-  const float u = sd->u, v = sd->v;
-  const float w = 1 - u - v;
+  const float u = 1.0f - sd->u - sd->v;
+  const float v = sd->u;
+  const float w = sd->v;
   float3 P = V[0] * u + V[1] * v + V[2] * w; /* Local space */
   float3 n = N[0] * u + N[1] * v + N[2] * w; /* We get away without normalization */
 
@@ -227,23 +228,24 @@ ccl_device_inline void shadow_ray_setup(ccl_private const ShaderData *ccl_restri
   if (ls->shader & SHADER_CAST_SHADOW) {
     /* setup ray */
     ray->P = P;
+    ray->tmin = 0.0f;
 
     if (ls->t == FLT_MAX) {
       /* distant light */
       ray->D = ls->D;
-      ray->t = ls->t;
+      ray->tmax = ls->t;
     }
     else {
       /* other lights, avoid self-intersection */
       ray->D = ls->P - P;
-      ray->D = normalize_len(ray->D, &ray->t);
+      ray->D = normalize_len(ray->D, &ray->tmax);
     }
   }
   else {
     /* signal to not cast shadow ray */
     ray->P = zero_float3();
     ray->D = zero_float3();
-    ray->t = 0.0f;
+    ray->tmax = 0.0f;
   }
 
   ray->dP = differential_make_compact(sd->dP);

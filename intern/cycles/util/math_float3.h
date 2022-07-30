@@ -147,8 +147,11 @@ ccl_device_inline float3 operator/(const float f, const float3 &a)
 
 ccl_device_inline float3 operator/(const float3 &a, const float f)
 {
-  float invf = 1.0f / f;
-  return a * invf;
+#  if defined(__KERNEL_SSE__)
+  return float3(_mm_div_ps(a.m128, _mm_set1_ps(f)));
+#  else
+  return make_float3(a.x / f, a.y / f, a.z / f);
+#  endif
 }
 
 ccl_device_inline float3 operator/(const float3 &a, const float3 &b)
@@ -284,8 +287,12 @@ ccl_device_inline float dot_xy(const float3 &a, const float3 &b)
 
 ccl_device_inline float3 cross(const float3 &a, const float3 &b)
 {
-  float3 r = make_float3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
-  return r;
+#  ifdef __KERNEL_SSE__
+  return float3(shuffle<1, 2, 0, 3>(
+      msub(ssef(a), shuffle<1, 2, 0, 3>(ssef(b)), shuffle<1, 2, 0, 3>(ssef(a)) * ssef(b))));
+#  else
+  return make_float3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+#  endif
 }
 
 ccl_device_inline float3 normalize(const float3 &a)

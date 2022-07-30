@@ -20,7 +20,7 @@ struct Subdiv;
 
 typedef enum eSubdivEvaluatorType {
   SUBDIV_EVALUATOR_TYPE_CPU,
-  SUBDIV_EVALUATOR_TYPE_GLSL_COMPUTE,
+  SUBDIV_EVALUATOR_TYPE_GPU,
 } eSubdivEvaluatorType;
 
 /* Returns true if evaluator is ready for use. */

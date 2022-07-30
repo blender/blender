@@ -89,7 +89,7 @@ static bool is_node_parent_select(bNode *node)
   return false;
 }
 
-void createTransNodeData(TransInfo *t)
+static void createTransNodeData(bContext *UNUSED(C), TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
   SpaceNode *snode = t->area->spacedata.first;
@@ -150,7 +150,7 @@ void createTransNodeData(TransInfo *t)
 /** \name Node Transform Creation
  * \{ */
 
-void flushTransNodes(TransInfo *t)
+static void flushTransNodes(TransInfo *t)
 {
   const float dpi_fac = UI_DPI_FAC;
 
@@ -220,7 +220,7 @@ void flushTransNodes(TransInfo *t)
 /** \name Special After Transform Node
  * \{ */
 
-void special_aftertrans_update__node(bContext *C, TransInfo *t)
+static void special_aftertrans_update__node(bContext *C, TransInfo *t)
 {
   struct Main *bmain = CTX_data_main(C);
   const bool canceled = (t->state == TRANS_CANCEL);
@@ -249,3 +249,10 @@ void special_aftertrans_update__node(bContext *C, TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Node = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransNodeData,
+    /* recalcData */ flushTransNodes,
+    /* special_aftertrans_update */ special_aftertrans_update__node,
+};

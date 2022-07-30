@@ -340,7 +340,8 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
   AUD_DeviceSpecs specs;
   AUD_Container container;
   AUD_Codec codec;
-  const char *result;
+  int result;
+  char error_message[1024] = {'\0'};
 
   sound_bake_animation_exec(C, op);
 
@@ -372,7 +373,9 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
                                      codec,
                                      bitrate,
                                      NULL,
-                                     NULL);
+                                     NULL,
+                                     error_message,
+                                     sizeof(error_message));
   }
   else {
     result = AUD_mixdown(scene_eval->sound_scene,
@@ -385,13 +388,15 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
                          codec,
                          bitrate,
                          NULL,
-                         NULL);
+                         NULL,
+                         error_message,
+                         sizeof(error_message));
   }
 
   BKE_sound_reset_scene_specs(scene_eval);
 
-  if (result) {
-    BKE_report(op->reports, RPT_ERROR, result);
+  if (!result) {
+    BKE_report(op->reports, RPT_ERROR, error_message);
     return OPERATOR_CANCELLED;
   }
 #else  /* WITH_AUDASPACE */

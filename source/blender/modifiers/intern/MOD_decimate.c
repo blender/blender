@@ -272,7 +272,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Decimate = {
-    /* name */ "Decimate",
+    /* name */ N_("Decimate"),
     /* structName */ "DecimateModifierData",
     /* structSize */ sizeof(DecimateModifierData),
     /* srna */ &RNA_DecimateModifier,

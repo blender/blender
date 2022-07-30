@@ -110,7 +110,7 @@ ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
   BMVert *v;
   BMIter iter;
 
-  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+  BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
     int ni = BM_ELEM_CD_GET_INT(v, pbvh->cd_vert_node_offset);
 
     if (ni >= 0 && (!v->e || !v->e->l)) {
@@ -298,7 +298,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
 
 static void pbvh_print_mem_size(PBVH *pbvh)
 {
-  BMesh *bm = pbvh->bm;
+  BMesh *bm = pbvh->header.bm;
   CustomData *cdatas[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
 
   int tots[4] = {bm->totvert, bm->totedge, bm->totloop, bm->totface};
@@ -573,7 +573,7 @@ bool pbvh_bmesh_node_limit_ensure(PBVH *pbvh, int node_index)
   TGSET_ITER_INDEX_END
 
   /* Likely this is already dirty. */
-  pbvh->bm->elem_index_dirty |= BM_FACE;
+  pbvh->header.bm->elem_index_dirty |= BM_FACE;
 
   pbvh_bmesh_node_split(pbvh, bbc_array, node_index, false, 0);
 
@@ -1251,7 +1251,6 @@ void pbvh_bmesh_normals_update(PBVH *pbvh, PBVHNode **nodes, int totnode)
         if (e->l) {
           add_v3_v3(v->no, e->l->f->no);
         }
-
         e = BM_DISK_EDGE_NEXT(e, v);
       } while (e != v->e);
 
@@ -1978,7 +1977,7 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
   BMVert *v;
   BMIter iter;
 
-  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+  BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
     bke_pbvh_update_vert_boundary(pbvh->cd_sculpt_vert,
                                   pbvh->cd_faceset_offset,
                                   pbvh->cd_vert_node_offset,
@@ -1986,7 +1985,7 @@ void BKE_pbvh_recalc_bmesh_boundary(PBVH *pbvh)
                                   pbvh->cd_vcol_offset,
                                   v,
                                   pbvh->boundary_symmetry,
-                                  &pbvh->bm->ldata,
+                                  &pbvh->header.bm->ldata,
                                   pbvh->flags & PBVH_IGNORE_UVS ? 0 : pbvh->totuv);
   }
 }
@@ -2000,9 +1999,9 @@ void BKE_pbvh_update_all_boundary_bmesh(PBVH *pbvh)
   BMEdge *e;
   BMVert *v;
 
-  const int cd_fset = CustomData_get_offset(&pbvh->bm->pdata, CD_SCULPT_FACE_SETS);
+  const int cd_fset = CustomData_get_offset(&pbvh->header.bm->pdata, CD_SCULPT_FACE_SETS);
 
-  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+  BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
     mv->flag &= ~(SCULPTVERT_BOUNDARY | SCULPTVERT_FSET_BOUNDARY | SCULPTVERT_NEED_BOUNDARY |
                   SCULPTVERT_VERT_FSET_HIDDEN);
@@ -2012,7 +2011,7 @@ void BKE_pbvh_update_all_boundary_bmesh(PBVH *pbvh)
     }
   }
 
-  BM_ITER_MESH (e, &iter, pbvh->bm, BM_EDGES_OF_MESH) {
+  BM_ITER_MESH (e, &iter, pbvh->header.bm, BM_EDGES_OF_MESH) {
     if (!e->l || e->l == e->l->radial_next) {
       MSculptVert *mv1 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v1);
       MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, e->v2);
@@ -2240,11 +2239,11 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
 
   smooth_shading |= fast_draw;
 
-  pbvh->bm = bm;
+  pbvh->header.bm = bm;
 
   BKE_pbvh_bmesh_detail_size_set(pbvh, 0.75f, 0.4f);
 
-  pbvh->type = PBVH_BMESH;
+  pbvh->header.type = PBVH_BMESH;
   pbvh->bm_log = log;
   pbvh->cd_faceset_offset = CustomData_get_offset(&bm->pdata, CD_SCULPT_FACE_SETS);
 
@@ -2531,22 +2530,23 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
 {
   BMFace *f;
 
-  BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT | BM_FACE);
+  BM_mesh_elem_index_ensure(pbvh->header.bm, BM_VERT | BM_FACE);
 
   // split by uvs
-  int layeri = CustomData_get_layer_index(&pbvh->bm->ldata, CD_MLOOPUV);
+  int layeri = CustomData_get_layer_index(&pbvh->header.bm->ldata, CD_MLOOPUV);
   if (layeri < 0) {
     return false;
   }
 
   int totlayer = 0;
 
-  while (layeri < pbvh->bm->ldata.totlayer && pbvh->bm->ldata.layers[layeri].type == CD_MLOOPUV) {
+  while (layeri < pbvh->header.bm->ldata.totlayer &&
+         pbvh->header.bm->ldata.layers[layeri].type == CD_MLOOPUV) {
     totlayer++;
     layeri++;
   }
 
-  const int cd_uv = pbvh->bm->ldata.layers[layeri].offset;
+  const int cd_uv = pbvh->header.bm->ldata.layers[layeri].offset;
   const int cd_size = CustomData_sizeof(CD_MLOOPUV);
 
   PBVHVertRef *verts = NULL;
@@ -2786,7 +2786,7 @@ static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], i
  * Skips triangles that are hidden. */
 bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 {
-  BMesh *bm = pbvh->bm;
+  BMesh *bm = pbvh->header.bm;
 
   if (!(node->flag & PBVH_UpdateTris) && node->tribuf) {
     return false;
@@ -3059,7 +3059,7 @@ void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh)
   BMVert *v;
   BMIter iter;
 
-  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+  BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
     mv->flag |= SCULPTVERT_NEED_DISK_SORT;
   }
@@ -3070,7 +3070,7 @@ void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh)
   BMIter iter;
   BMVert *v;
 
-  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+  BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
     BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){(intptr_t)v});
   }
 }
@@ -3090,7 +3090,7 @@ void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh)
 
   const int cd_sculpt_vert = pbvh->cd_sculpt_vert;
 
-  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+  BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, v);
 
     MV_ADD_FLAG(
@@ -3968,11 +3968,11 @@ void BKE_pbvh_update_offsets(PBVH *pbvh,
   pbvh->cd_face_node_offset = cd_face_node_offset;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
   pbvh->cd_face_area = cd_face_areas;
-  pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->bm->vdata, CD_PAINT_MASK);
+  pbvh->cd_vert_mask_offset = CustomData_get_offset(&pbvh->header.bm->vdata, CD_PAINT_MASK);
   pbvh->cd_sculpt_vert = cd_sculpt_vert;
-  pbvh->cd_faceset_offset = CustomData_get_offset(&pbvh->bm->pdata, CD_SCULPT_FACE_SETS);
+  pbvh->cd_faceset_offset = CustomData_get_offset(&pbvh->header.bm->pdata, CD_SCULPT_FACE_SETS);
 
-  pbvh->totuv = CustomData_number_of_layers(&pbvh->bm->ldata, CD_MLOOPUV);
+  pbvh->totuv = CustomData_number_of_layers(&pbvh->header.bm->ldata, CD_MLOOPUV);
 }
 
 static void scan_edge_split(BMesh *bm, BMEdge **edges, int totedge)
@@ -4145,14 +4145,14 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
 {
   /*try to compute size of verts per node*/
   int vsize = sizeof(BMVert);
-  vsize += pbvh->bm->vdata.totsize;
+  vsize += pbvh->header.bm->vdata.totsize;
 
   // perhaps aim for l2 cache?
   const int limit = 1024;
   int leaf_limit = MAX2(limit / vsize, 4);
 
   BLI_mempool *pool = BLI_mempool_create(sizeof(ReVertNode) + sizeof(void *) * vsize, 0, 8192, 0);
-  ReVertNode **vnodemap = MEM_calloc_arrayN(pbvh->bm->totvert, sizeof(void *), "vnodemap");
+  ReVertNode **vnodemap = MEM_calloc_arrayN(pbvh->header.bm->totvert, sizeof(void *), "vnodemap");
 
   printf("leaf_limit: %d\n", leaf_limit);
 
@@ -4161,7 +4161,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   const char flag = BM_ELEM_TAG_ALT;
   int i = 0;
 
-  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+  BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
     v->head.hflag &= ~flag;
     v->head.index = i++;
   }
@@ -4169,7 +4169,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   BMVert **stack = NULL;
   BLI_array_declare(stack);
 
-  BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
+  BM_ITER_MESH (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH) {
     if (v->head.hflag & flag) {
       continue;
     }
@@ -4225,7 +4225,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   for (int step = 0; step < steps; step++) {
     const bool last_step = step == steps - 1;
 
-    BM_ITER_MESH_INDEX (v, &iter, pbvh->bm, BM_VERTS_OF_MESH, i) {
+    BM_ITER_MESH_INDEX (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH, i) {
       BMEdge *e = v->e;
 
       if (!e) {
@@ -4274,7 +4274,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
       }
     }
 
-    BM_ITER_MESH_INDEX (v, &iter, pbvh->bm, BM_VERTS_OF_MESH, i) {
+    BM_ITER_MESH_INDEX (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH, i) {
       while (vnodemap[i]->parent) {
         vnodemap[i] = vnodemap[i]->parent;
       }
@@ -4282,7 +4282,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   }
 
   BLI_mempool_iter loopiter;
-  BLI_mempool_iternew(pbvh->bm->lpool, &loopiter);
+  BLI_mempool_iternew(pbvh->header.bm->lpool, &loopiter);
   BMLoop *l = BLI_mempool_iterstep(&loopiter);
   BMEdge *e;
   BMFace *f;
@@ -4290,11 +4290,11 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   for (i = 0; l; l = BLI_mempool_iterstep(&loopiter), i++) {
     l->head.hflag &= ~flag;
   }
-  BM_ITER_MESH (e, &iter, pbvh->bm, BM_EDGES_OF_MESH) {
+  BM_ITER_MESH (e, &iter, pbvh->header.bm, BM_EDGES_OF_MESH) {
     e->head.hflag &= ~flag;
   }
 
-  BM_ITER_MESH (f, &iter, pbvh->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (f, &iter, pbvh->header.bm, BM_FACES_OF_MESH) {
     f->head.hflag &= ~flag;
   }
 
@@ -4317,7 +4317,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
           v = node2->verts[j];
 
 #if 0
-          const int cd_vcol = CustomData_get_offset(&pbvh->bm->vdata,CD_PROP_COLOR);
+          const int cd_vcol = CustomData_get_offset(&pbvh->header.bm->vdata,CD_PROP_COLOR);
 
           if (cd_vcol >= 0) {
             MPropCol *col = BM_ELEM_CD_GET_VOID_P(node2->verts[j],cd_vcol);
@@ -4393,28 +4393,28 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
 
   uint *vidx, *eidx, *lidx, *fidx;
 
-  vidx = MEM_malloc_arrayN(pbvh->bm->totvert, sizeof(*vidx), "vorder");
-  eidx = MEM_malloc_arrayN(pbvh->bm->totedge, sizeof(*eidx), "eorder");
-  lidx = MEM_malloc_arrayN(pbvh->bm->totloop, sizeof(*lidx), "lorder");
-  fidx = MEM_malloc_arrayN(pbvh->bm->totface, sizeof(*fidx), "forder");
+  vidx = MEM_malloc_arrayN(pbvh->header.bm->totvert, sizeof(*vidx), "vorder");
+  eidx = MEM_malloc_arrayN(pbvh->header.bm->totedge, sizeof(*eidx), "eorder");
+  lidx = MEM_malloc_arrayN(pbvh->header.bm->totloop, sizeof(*lidx), "lorder");
+  fidx = MEM_malloc_arrayN(pbvh->header.bm->totface, sizeof(*fidx), "forder");
 
-  printf("v %d %d\n", vorder, pbvh->bm->totvert);
-  printf("e %d %d\n", eorder, pbvh->bm->totedge);
-  printf("l %d %d\n", lorder, pbvh->bm->totloop);
-  printf("f %d %d\n", forder, pbvh->bm->totface);
+  printf("v %d %d\n", vorder, pbvh->header.bm->totvert);
+  printf("e %d %d\n", eorder, pbvh->header.bm->totedge);
+  printf("l %d %d\n", lorder, pbvh->header.bm->totloop);
+  printf("f %d %d\n", forder, pbvh->header.bm->totface);
 
-  BM_ITER_MESH_INDEX (v, &iter, pbvh->bm, BM_VERTS_OF_MESH, i) {
+  BM_ITER_MESH_INDEX (v, &iter, pbvh->header.bm, BM_VERTS_OF_MESH, i) {
     vidx[i] = (uint)v->head.index;
   }
 
-  BM_ITER_MESH_INDEX (e, &iter, pbvh->bm, BM_EDGES_OF_MESH, i) {
+  BM_ITER_MESH_INDEX (e, &iter, pbvh->header.bm, BM_EDGES_OF_MESH, i) {
     eidx[i] = (uint)e->head.index;
   }
-  BM_ITER_MESH_INDEX (f, &iter, pbvh->bm, BM_FACES_OF_MESH, i) {
+  BM_ITER_MESH_INDEX (f, &iter, pbvh->header.bm, BM_FACES_OF_MESH, i) {
     fidx[i] = (uint)f->head.index;
   }
 
-  BLI_mempool_iternew(pbvh->bm->lpool, &loopiter);
+  BLI_mempool_iternew(pbvh->header.bm->lpool, &loopiter);
   l = BLI_mempool_iterstep(&loopiter);
 
   for (i = 0; l; l = BLI_mempool_iterstep(&loopiter), i++) {
@@ -4429,7 +4429,7 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
 
   printf("roots: %d\n", BLI_array_len(roots));
 
-  BM_mesh_remap(pbvh->bm, vidx, eidx, fidx, lidx);
+  BM_mesh_remap(pbvh->header.bm, vidx, eidx, fidx, lidx);
 
   MEM_SAFE_FREE(vidx);
   MEM_SAFE_FREE(eidx);
@@ -4442,13 +4442,13 @@ BMesh *BKE_pbvh_reorder_bmesh(PBVH *pbvh)
   MEM_SAFE_FREE(stack);
   MEM_SAFE_FREE(vnodemap);
 
-  return pbvh->bm;
+  return pbvh->header.bm;
 }
 
 BMesh *BKE_pbvh_reorder_bmesh2(PBVH *pbvh)
 {
   if (BKE_pbvh_type(pbvh) != PBVH_BMESH || pbvh->totnode == 0) {
-    return pbvh->bm;
+    return pbvh->header.bm;
   }
 
   // try to group memory allocations by node
@@ -4466,13 +4466,13 @@ BMesh *BKE_pbvh_reorder_bmesh2(PBVH *pbvh)
 
 #define VISIT_TAG BM_ELEM_TAG
 
-  BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT | BM_EDGE | BM_FACE);
-  BM_mesh_elem_table_ensure(pbvh->bm, BM_VERT | BM_EDGE | BM_FACE);
+  BM_mesh_elem_index_ensure(pbvh->header.bm, BM_VERT | BM_EDGE | BM_FACE);
+  BM_mesh_elem_table_ensure(pbvh->header.bm, BM_VERT | BM_EDGE | BM_FACE);
 
   for (int i = 0; i < 3; i++) {
     BMHeader *elem;
 
-    BM_ITER_MESH (elem, &iter, pbvh->bm, types[i]) {
+    BM_ITER_MESH (elem, &iter, pbvh->header.bm, types[i]) {
       elem->hflag &= ~VISIT_TAG;
     }
   }
@@ -4533,21 +4533,23 @@ BMesh *BKE_pbvh_reorder_bmesh2(PBVH *pbvh)
     nodedata[i].totface = BLI_array_len(faces);
   }
 
-  BMAllocTemplate templ = {
-      pbvh->bm->totvert, pbvh->bm->totedge, pbvh->bm->totloop, pbvh->bm->totface};
+  BMAllocTemplate templ = {pbvh->header.bm->totvert,
+                           pbvh->header.bm->totedge,
+                           pbvh->header.bm->totloop,
+                           pbvh->header.bm->totface};
   struct BMeshCreateParams params = {0};
 
   BMesh *bm2 = BM_mesh_create(&templ, &params);
 
-  CustomData_copy_all_layout(&pbvh->bm->vdata, &bm2->vdata);
-  CustomData_copy_all_layout(&pbvh->bm->edata, &bm2->edata);
-  CustomData_copy_all_layout(&pbvh->bm->ldata, &bm2->ldata);
-  CustomData_copy_all_layout(&pbvh->bm->pdata, &bm2->pdata);
+  CustomData_copy_all_layout(&pbvh->header.bm->vdata, &bm2->vdata);
+  CustomData_copy_all_layout(&pbvh->header.bm->edata, &bm2->edata);
+  CustomData_copy_all_layout(&pbvh->header.bm->ldata, &bm2->ldata);
+  CustomData_copy_all_layout(&pbvh->header.bm->pdata, &bm2->pdata);
 
-  CustomData_bmesh_init_pool(&bm2->vdata, pbvh->bm->totvert, BM_VERT);
-  CustomData_bmesh_init_pool(&bm2->edata, pbvh->bm->totedge, BM_EDGE);
-  CustomData_bmesh_init_pool(&bm2->ldata, pbvh->bm->totloop, BM_LOOP);
-  CustomData_bmesh_init_pool(&bm2->pdata, pbvh->bm->totface, BM_FACE);
+  CustomData_bmesh_init_pool(&bm2->vdata, pbvh->header.bm->totvert, BM_VERT);
+  CustomData_bmesh_init_pool(&bm2->edata, pbvh->header.bm->totedge, BM_EDGE);
+  CustomData_bmesh_init_pool(&bm2->ldata, pbvh->header.bm->totloop, BM_LOOP);
+  CustomData_bmesh_init_pool(&bm2->pdata, pbvh->header.bm->totface, BM_FACE);
 
   BMVert **verts = NULL;
   BMEdge **edges = NULL;
@@ -4560,7 +4562,7 @@ BMesh *BKE_pbvh_reorder_bmesh2(PBVH *pbvh)
     for (int j = 0; j < nodedata[i].totvert; j++) {
       BMVert *v1 = nodedata[i].verts[j];
       BMVert *v2 = BM_vert_create(bm2, v1->co, NULL, BM_CREATE_NOP);
-      BM_elem_attrs_copy_ex(pbvh->bm, bm2, v1, v2, 0, 0L);
+      BM_elem_attrs_copy_ex(pbvh->header.bm, bm2, v1, v2, 0, 0L);
 
       v2->head.index = v1->head.index = BLI_array_len(verts);
       BLI_array_append(verts, v2);
@@ -4572,7 +4574,7 @@ BMesh *BKE_pbvh_reorder_bmesh2(PBVH *pbvh)
       BMEdge *e1 = nodedata[i].edges[j];
       BMEdge *e2 = BM_edge_create(
           bm2, verts[e1->v1->head.index], verts[e1->v2->head.index], NULL, BM_CREATE_NOP);
-      BM_elem_attrs_copy_ex(pbvh->bm, bm2, e1, e2, 0, 0L);
+      BM_elem_attrs_copy_ex(pbvh->header.bm, bm2, e1, e2, 0, 0L);
 
       e2->head.index = e1->head.index = BLI_array_len(edges);
       BLI_array_append(edges, e2);
@@ -4604,13 +4606,13 @@ BMesh *BKE_pbvh_reorder_bmesh2(PBVH *pbvh)
       f1->head.index = f2->head.index = BLI_array_len(faces);
       BLI_array_append(faces, f2);
 
-      // CustomData_bmesh_copy_data(&pbvh->bm->pdata, &bm2->pdata, f1->head.data,
+      // CustomData_bmesh_copy_data(&pbvh->header.bm->pdata, &bm2->pdata, f1->head.data,
       // &f2->head.data);
-      BM_elem_attrs_copy_ex(pbvh->bm, bm2, f1, f2, 0, 0L);
+      BM_elem_attrs_copy_ex(pbvh->header.bm, bm2, f1, f2, 0, 0L);
 
       BMLoop *l2 = f2->l_first;
       do {
-        BM_elem_attrs_copy_ex(pbvh->bm, bm2, l1, l2, 0, 0L);
+        BM_elem_attrs_copy_ex(pbvh->header.bm, bm2, l1, l2, 0, 0L);
 
         l1 = l1->next;
         l2 = l2->next;
@@ -4675,8 +4677,8 @@ BMesh *BKE_pbvh_reorder_bmesh2(PBVH *pbvh)
 
   MEM_freeN(nodedata);
 
-  BM_mesh_free(pbvh->bm);
-  pbvh->bm = bm2;
+  BM_mesh_free(pbvh->header.bm);
+  pbvh->header.bm = bm2;
 
   return bm2;
 }
@@ -4715,7 +4717,7 @@ static int sort_edges(const void *va, const void *vb)
 
 BMesh *BKE_pbvh_reorder_bmesh1(PBVH *pbvh)
 {
-  BMesh *bm = pbvh->bm;
+  BMesh *bm = pbvh->header.bm;
 
   int **save_other_vs = MEM_calloc_arrayN(pbvh->totnode, sizeof(int *), __func__);
   int **save_unique_vs = MEM_calloc_arrayN(pbvh->totnode, sizeof(int *), __func__);
@@ -4885,7 +4887,7 @@ BMesh *BKE_pbvh_reorder_bmesh1(PBVH *pbvh)
   MEM_SAFE_FREE(save_unique_vs);
   MEM_SAFE_FREE(save_fs);
 
-  return pbvh->bm;
+  return pbvh->header.bm;
 }
 
 // only floats! and 8 byte aligned!
@@ -5795,7 +5797,7 @@ void pbvh_bmesh_do_cache_test()
 /* saves all bmesh references to internal indices, to be restored later */
 void BKE_pbvh_bmesh_save_indices(PBVH *pbvh)
 {
-  BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT | BM_EDGE | BM_FACE);
+  BM_mesh_elem_index_ensure(pbvh->header.bm, BM_VERT | BM_EDGE | BM_FACE);
 
   BMFace *f;
   BMVert *v;
@@ -5803,7 +5805,7 @@ void BKE_pbvh_bmesh_save_indices(PBVH *pbvh)
 
   int j = 0;
 
-  BM_ITER_MESH (f, &iter, pbvh->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (f, &iter, pbvh->header.bm, BM_FACES_OF_MESH) {
     BMLoop *l = f->l_first;
 
     do {
@@ -5882,8 +5884,8 @@ void BKE_pbvh_bmesh_save_indices(PBVH *pbvh)
 /* restore bmesh references from previously indices saved by BKE_pbvh_bmesh_save_indices */
 void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
 {
-  BM_mesh_elem_table_ensure(pbvh->bm, BM_VERT | BM_EDGE | BM_FACE);
-  BM_mesh_elem_index_ensure(pbvh->bm, BM_VERT | BM_EDGE | BM_FACE);
+  BM_mesh_elem_table_ensure(pbvh->header.bm, BM_VERT | BM_EDGE | BM_FACE);
+  BM_mesh_elem_index_ensure(pbvh->header.bm, BM_VERT | BM_EDGE | BM_FACE);
 
   BMLoop **ltable = NULL;
   BLI_array_declare(ltable);
@@ -5892,7 +5894,7 @@ void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
   BMIter iter;
   int i = 0;
 
-  BM_ITER_MESH (f, &iter, pbvh->bm, BM_FACES_OF_MESH) {
+  BM_ITER_MESH (f, &iter, pbvh->header.bm, BM_FACES_OF_MESH) {
     BMLoop *l = f->l_first;
 
     do {
@@ -5925,7 +5927,7 @@ void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
     int *data = node->prim_indices;
 
     while (data[j] != -1 && j < node->totprim) {
-      BMFace *f = pbvh->bm->ftable[data[j]];
+      BMFace *f = pbvh->header.bm->ftable[data[j]];
       BM_ELEM_CD_SET_INT(f, pbvh->cd_face_node_offset, i);
 
       BLI_table_gset_insert(node->bm_faces, f);
@@ -5935,11 +5937,11 @@ void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
     j++;
 
     while (j < node->totprim) {
-      if (data[j] < 0 || data[j] >= pbvh->bm->totvert) {
+      if (data[j] < 0 || data[j] >= pbvh->header.bm->totvert) {
         printf("%s: bad vertex at index %d!\n", __func__, data[j]);
         continue;
       }
-      BMVert *v = pbvh->bm->vtable[data[j]];
+      BMVert *v = pbvh->header.bm->vtable[data[j]];
       BM_ELEM_CD_SET_INT(v, pbvh->cd_vert_node_offset, i);
 
       BLI_table_gset_insert(node->bm_unique_verts, v);
@@ -5961,7 +5963,7 @@ void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
       }
 
       for (int k = 0; k < tribuf->totvert; k++) {
-        tribuf->verts[k].i = (intptr_t)pbvh->bm->vtable[tribuf->verts[k].i];
+        tribuf->verts[k].i = (intptr_t)pbvh->header.bm->vtable[tribuf->verts[k].i];
       }
 
       for (int k = 0; k < tribuf->totloop; k++) {
@@ -5975,7 +5977,7 @@ void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
           tri->l[l] = (uintptr_t)ltable[tri->l[l]];
         }
 
-        tri->f.i = (intptr_t)pbvh->bm->ftable[tri->f.i];
+        tri->f.i = (intptr_t)pbvh->header.bm->ftable[tri->f.i];
       }
     }
 
@@ -5986,22 +5988,23 @@ void BKE_pbvh_bmesh_from_saved_indices(PBVH *pbvh)
   BLI_array_free(ltable);
 }
 
-extern char dyntopop_node_idx_layer_id[];
-extern char dyntopop_faces_areas_layer_id[];
+extern char dyntopo_node_idx_vertex_id[];
+extern char dyntopo_node_idx_face_id[];
+extern char dyntopo_faces_areas_layer_id[];
 
 static void pbvh_bmesh_fetch_cdrefs(PBVH *pbvh)
 {
-  BMesh *bm = pbvh->bm;
+  BMesh *bm = pbvh->header.bm;
 
   int idx = CustomData_get_named_layer_index(
-      &bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
+      &bm->vdata, CD_PROP_INT32, dyntopo_node_idx_vertex_id);
   pbvh->cd_vert_node_offset = bm->vdata.layers[idx].offset;
 
-  idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
+  idx = CustomData_get_named_layer_index(&bm->pdata, CD_PROP_INT32, dyntopo_node_idx_face_id);
   pbvh->cd_face_node_offset = bm->pdata.layers[idx].offset;
 
   idx = CustomData_get_named_layer_index(
-      &bm->pdata, CD_PROP_FLOAT2, dyntopop_faces_areas_layer_id);
+      &bm->pdata, CD_PROP_FLOAT2, dyntopo_faces_areas_layer_id);
   pbvh->cd_face_area = bm->pdata.layers[idx].offset;
 
   pbvh->cd_vert_mask_offset = CustomData_get_offset(&bm->vdata, CD_PAINT_MASK);
@@ -6011,12 +6014,12 @@ static void pbvh_bmesh_fetch_cdrefs(PBVH *pbvh)
 
 void BKE_pbvh_bmesh_set_toolflags(PBVH *pbvh, bool use_toolflags)
 {
-  if (use_toolflags == pbvh->bm->use_toolflags) {
+  if (use_toolflags == pbvh->header.bm->use_toolflags) {
     return;
   }
 
   // BKE_pbvh_bmesh_save_indices(pbvh);
-  BM_mesh_toolflags_set(pbvh->bm, use_toolflags);
+  BM_mesh_toolflags_set(pbvh->header.bm, use_toolflags);
 
   // customdata layout might've changed
   pbvh_bmesh_fetch_cdrefs(pbvh);

@@ -15,8 +15,7 @@
 
 struct FCurve;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 /* Helper class for determining which relations are needed between driver evaluation nodes. */
 class DriverDescriptor {
@@ -59,5 +58,4 @@ class DriverDescriptor {
   bool resolve_rna();
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

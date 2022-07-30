@@ -28,6 +28,7 @@
 #include "BKE_lib_remap.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 
 #include "lib_intern.h"
 
@@ -151,6 +152,9 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
   if ((flag & LIB_ID_FREE_NO_MAIN) == 0) {
     ListBase *lb = which_libbase(bmain, type);
     BLI_remlink(lb, id);
+    if ((flag & LIB_ID_FREE_NO_NAMEMAP_REMOVE) == 0) {
+      BKE_main_namemap_remove_name(bmain, id, id->name + 2);
+    }
   }
 
   BKE_libblock_free_data(id, (flag & LIB_ID_FREE_NO_USER_REFCOUNT) == 0);
@@ -237,6 +241,7 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
           /* NOTE: in case we delete a library, we also delete all its datablocks! */
           if ((id->tag & tag) || (ID_IS_LINKED(id) && (id->lib->id.tag & tag))) {
             BLI_remlink(lb, id);
+            BKE_main_namemap_remove_name(bmain, id, id->name + 2);
             BLI_addtail(&tagged_deleted_ids, id);
             /* Do not tag as no_main now, we want to unlink it first (lower-level ID management
              * code has some specific handling of 'no main' IDs that would be a problem in that

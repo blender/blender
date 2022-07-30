@@ -402,6 +402,18 @@ unique_ptr<DeviceQueue> OneapiDevice::gpu_queue_create()
   return make_unique<OneapiDeviceQueue>(this);
 }
 
+int OneapiDevice::get_num_multiprocessors()
+{
+  assert(device_queue_);
+  return oneapi_dll_.oneapi_get_num_multiprocessors(device_queue_);
+}
+
+int OneapiDevice::get_max_num_threads_per_multiprocessor()
+{
+  assert(device_queue_);
+  return oneapi_dll_.oneapi_get_max_num_threads_per_multiprocessor(device_queue_);
+}
+
 bool OneapiDevice::should_use_graphics_interop()
 {
   /* NOTE(@nsirgien): oneAPI doesn't yet support direct writing into graphics API objects, so

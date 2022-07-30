@@ -270,7 +270,7 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
 {
   DEG_DEBUG_PRINTF(graph, TAG, "%s: Tagging relations for update.\n", __func__);
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(graph);
-  deg_graph->need_update = true;
+  deg_graph->need_update_relations = true;
   /* NOTE: When relations are updated, it's quite possible that
    * we've got new bases in the scene. This means, we need to
    * re-create flat array of bases in view layer.
@@ -286,7 +286,7 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
 void DEG_graph_relations_update(Depsgraph *graph)
 {
   deg::Depsgraph *deg_graph = (deg::Depsgraph *)graph;
-  if (!deg_graph->need_update) {
+  if (!deg_graph->need_update_relations) {
     /* Graph is up to date, nothing to do. */
     return;
   }

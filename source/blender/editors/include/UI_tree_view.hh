@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include <array>
 #include <functional>
 #include <memory>
 #include <string>
@@ -25,18 +24,13 @@
 struct bContext;
 struct uiBlock;
 struct uiBut;
-struct uiButTreeRow;
+struct uiButViewItem;
 struct uiLayout;
-struct wmDrag;
-struct wmEvent;
-struct wmNotifier;
 
 namespace blender::ui {
 
 class AbstractTreeView;
 class AbstractTreeViewItem;
-class AbstractTreeViewItemDropController;
-class AbstractTreeViewItemDragController;
 
 /* ---------------------------------------------------------------------- */
 /** \name Tree-View Item Container
@@ -153,7 +147,7 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
  * It also stores state information that needs to be persistent over redraws, like the collapsed
  * state.
  */
-class AbstractTreeViewItem : public TreeViewItemContainer {
+class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContainer {
   friend class AbstractTreeView;
   friend class TreeViewLayoutBuilder;
   /* Higher-level API. */
@@ -161,20 +155,17 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
 
  private:
   bool is_open_ = false;
-  bool is_active_ = false;
-  bool is_renaming_ = false;
 
  protected:
   /** This label is used as the default way to identifying an item within its parent. */
   std::string label_{};
-  /** Every visible item gets a button of type #UI_BTYPE_TREEROW during the layout building. */
-  uiButTreeRow *tree_row_but_ = nullptr;
+  /** Every visible item gets a button of type #UI_BTYPE_VIEW_ITEM during the layout building. */
+  uiButViewItem *view_item_but_ = nullptr;
 
  public:
   virtual ~AbstractTreeViewItem() = default;
 
   virtual void build_row(uiLayout &row) = 0;
-  virtual void build_context_menu(bContext &C, uiLayout &column) const;
 
   AbstractTreeView &get_tree_view() const;
 
@@ -186,11 +177,6 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    * can't be sure about the item state.
    */
   bool is_collapsed() const;
-  /**
-   * Requires the tree to have completed reconstruction, see #is_reconstructed(). Otherwise we
-   * can't be sure about the item state.
-   */
-  bool is_active() const;
 
  protected:
   /**
@@ -203,31 +189,21 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    */
   virtual std::optional<bool> should_be_active() const;
 
-  /**
-   * Queries if the tree-view item supports renaming in principle. Renaming may still fail, e.g. if
-   * another item is already being renamed.
-   */
-  virtual bool supports_renaming() const;
-  /**
-   * Try renaming the item, or the data it represents. Can assume
-   * #AbstractTreeViewItem::supports_renaming() returned true. Sub-classes that override this
-   * should usually call this, unless they have a custom #AbstractTreeViewItem.matches().
-   *
-   * \return True if the renaming was successful.
-   */
-  virtual bool rename(StringRefNull new_name);
+  /** See AbstractViewItem::get_rename_string(). */
+  virtual StringRef get_rename_string() const override;
+  /** See AbstractViewItem::rename(). */
+  virtual bool rename(StringRefNull new_name) override;
 
   /**
    * Return whether the item can be collapsed. Used to disable collapsing for items with children.
    */
   virtual bool supports_collapsing() const;
 
-  /**
-   * Copy persistent state (e.g. is-collapsed flag, selection, etc.) from a matching item of
-   * the last redraw to this item. If sub-classes introduce more advanced state they should
-   * override this and make it update their state accordingly.
-   */
-  virtual void update_from_old(const AbstractTreeViewItem &old);
+  /** See #AbstractViewItem::matches(). */
+  virtual bool matches(const AbstractViewItem &other) const override;
+
+  /** See #AbstractViewItem::update_from_old(). */
+  virtual void update_from_old(const AbstractViewItem &old) override;
 
   /**
    * Compare this item to \a other to check if they represent the same data.
@@ -235,22 +211,11 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    * open/closed, active, etc.). Items are only matched if their parents also match.
    * By default this just matches the item's label (if the parents match!). If that isn't
    * good enough for a sub-class, that can override it.
-   */
-  virtual bool matches(const AbstractTreeViewItem &other) const;
-
-  /**
-   * If an item wants to support being dragged, it has to return a drag controller here.
-   * That is an object implementing #AbstractTreeViewItemDragController.
-   */
-  virtual std::unique_ptr<AbstractTreeViewItemDragController> create_drag_controller() const;
-  /**
-   * If an item wants to support dropping data into it, it has to return a drop controller here.
-   * That is an object implementing #AbstractTreeViewItemDropController.
    *
-   * \note This drop controller may be requested for each event. The tree-view doesn't keep a drop
-   *       controller around currently. So it can not contain persistent state.
+   * TODO #matches_single() is a rather temporary name, used to indicate that this only compares
+   * the item itself, not the parents. Item matching is expected to change quite a bit anyway.
    */
-  virtual std::unique_ptr<AbstractTreeViewItemDropController> create_drop_controller() const;
+  virtual bool matches_single(const AbstractTreeViewItem &other) const;
 
   /**
    * Activates this item, deactivates other items, calls the #AbstractTreeViewItem::on_activate()
@@ -268,94 +233,26 @@ class AbstractTreeViewItem : public TreeViewItemContainer {
    */
   bool is_hovered() const;
   bool is_collapsible() const;
-  bool is_renaming() const;
 
   void ensure_parents_uncollapsed();
 
-  uiButTreeRow *tree_row_button();
+  uiButViewItem *view_item_button();
 
  private:
-  static void rename_button_fn(bContext *, void *, char *);
-  static AbstractTreeViewItem *find_tree_item_from_rename_button(const uiBut &but);
   static void tree_row_click_fn(struct bContext *, void *, void *);
   static void collapse_chevron_click_fn(bContext *, void *but_arg1, void *);
   static bool is_collapse_chevron_but(const uiBut *but);
 
   /** See #AbstractTreeView::change_state_delayed() */
   void change_state_delayed();
-  void end_renaming();
 
   void add_treerow_button(uiBlock &block);
   void add_indent(uiLayout &row) const;
   void add_collapse_chevron(uiBlock &block) const;
   void add_rename_button(uiLayout &row);
 
-  bool matches_including_parents(const AbstractTreeViewItem &other) const;
   bool has_active_child() const;
   int count_parents() const;
-};
-
-/** \} */
-
-/* ---------------------------------------------------------------------- */
-/** \name Drag 'n Drop
- * \{ */
-
-/**
- * Class to enable dragging a tree-item. An item can return a drop controller for itself via a
- * custom implementation of #AbstractTreeViewItem::create_drag_controller().
- */
-class AbstractTreeViewItemDragController {
- protected:
-  AbstractTreeView &tree_view_;
-
- public:
-  AbstractTreeViewItemDragController(AbstractTreeView &tree_view);
-  virtual ~AbstractTreeViewItemDragController() = default;
-
-  virtual int get_drag_type() const = 0;
-  virtual void *create_drag_data() const = 0;
-  virtual void on_drag_start();
-
-  template<class TreeViewType> inline TreeViewType &tree_view() const;
-};
-
-/**
- * Class to customize the drop behavior of a tree-item, plus the behavior when dragging over this
- * item. An item can return a drop controller for itself via a custom implementation of
- * #AbstractTreeViewItem::create_drop_controller().
- */
-class AbstractTreeViewItemDropController {
- protected:
-  AbstractTreeView &tree_view_;
-
- public:
-  AbstractTreeViewItemDropController(AbstractTreeView &tree_view);
-  virtual ~AbstractTreeViewItemDropController() = default;
-
-  /**
-   * Check if the data dragged with \a drag can be dropped on the item this controller is for.
-   * \param r_disabled_hint: Return a static string to display to the user, explaining why dropping
-   *                         isn't possible on this item. Shouldn't be done too aggressively, e.g.
-   *                         don't set this if the drag-type can't be dropped here; only if it can
-   *                         but there's another reason it can't be dropped.
-   *                         Can assume this is a non-null pointer.
-   */
-  virtual bool can_drop(const wmDrag &drag, const char **r_disabled_hint) const = 0;
-  /**
-   * Custom text to display when dragging over a tree item. Should explain what happens when
-   * dropping the data onto this item. Will only be used if #AbstractTreeViewItem::can_drop()
-   * returns true, so the implementing override doesn't have to check that again.
-   * The returned value must be a translated string.
-   */
-  virtual std::string drop_tooltip(const wmDrag &drag) const = 0;
-  /**
-   * Execute the logic to apply a drop of the data dragged with \a drag onto/into the item this
-   * controller is for.
-   */
-  virtual bool on_drop(struct bContext *C, const wmDrag &drag) = 0;
-
-  template<class TreeViewType> inline TreeViewType &tree_view() const;
 };
 
 /** \} */
@@ -429,20 +326,6 @@ inline ItemT &TreeViewItemContainer::add_tree_item(Args &&...args)
 
   return dynamic_cast<ItemT &>(
       add_tree_item(std::make_unique<ItemT>(std::forward<Args>(args)...)));
-}
-
-template<class TreeViewType> TreeViewType &AbstractTreeViewItemDragController::tree_view() const
-{
-  static_assert(std::is_base_of<AbstractTreeView, TreeViewType>::value,
-                "Type must derive from and implement the AbstractTreeView interface");
-  return static_cast<TreeViewType &>(tree_view_);
-}
-
-template<class TreeViewType> TreeViewType &AbstractTreeViewItemDropController::tree_view() const
-{
-  static_assert(std::is_base_of<AbstractTreeView, TreeViewType>::value,
-                "Type must derive from and implement the AbstractTreeView interface");
-  return static_cast<TreeViewType &>(tree_view_);
 }
 
 }  // namespace blender::ui

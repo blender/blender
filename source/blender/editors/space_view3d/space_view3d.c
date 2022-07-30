@@ -1300,6 +1300,10 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
         ED_region_tag_redraw(region);
       }
       break;
+    case NC_WORKSPACE:
+      /* In case the region displays workspace settings. */
+      ED_region_tag_redraw(region);
+      break;
   }
 }
 

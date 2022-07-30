@@ -10,7 +10,8 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device bool ray_sphere_intersect(float3 ray_P,
                                      float3 ray_D,
-                                     float ray_t,
+                                     float ray_tmin,
+                                     float ray_tmax,
                                      float3 sphere_P,
                                      float sphere_radius,
                                      ccl_private float3 *isect_P,
@@ -33,7 +34,7 @@ ccl_device bool ray_sphere_intersect(float3 ray_P,
       return false;
     }
     const float t = tp - sqrtf(radiussq - dsq); /* pythagoras */
-    if (t < ray_t) {
+    if (t > ray_tmin && t < ray_tmax) {
       *isect_t = t;
       *isect_P = ray_P + ray_D * t;
       return true;
@@ -44,7 +45,8 @@ ccl_device bool ray_sphere_intersect(float3 ray_P,
 
 ccl_device bool ray_aligned_disk_intersect(float3 ray_P,
                                            float3 ray_D,
-                                           float ray_t,
+                                           float ray_tmin,
+                                           float ray_tmax,
                                            float3 disk_P,
                                            float disk_radius,
                                            ccl_private float3 *isect_P,
@@ -59,7 +61,7 @@ ccl_device bool ray_aligned_disk_intersect(float3 ray_P,
   }
   /* Compute t to intersection point. */
   const float t = -disk_t / div;
-  if (t < 0.0f || t > ray_t) {
+  if (!(t > ray_tmin && t < ray_tmax)) {
     return false;
   }
   /* Test if within radius. */
@@ -74,7 +76,8 @@ ccl_device bool ray_aligned_disk_intersect(float3 ray_P,
 
 ccl_device bool ray_disk_intersect(float3 ray_P,
                                    float3 ray_D,
-                                   float ray_t,
+                                   float ray_tmin,
+                                   float ray_tmax,
                                    float3 disk_P,
                                    float3 disk_N,
                                    float disk_radius,
@@ -92,7 +95,8 @@ ccl_device bool ray_disk_intersect(float3 ray_P,
     }
     float3 P = ray_P + t * ray_D;
     float3 T = P - disk_P;
-    if (dot(T, T) < sqr(disk_radius) /*&& t > 0.f*/ && t <= ray_t) {
+
+    if (dot(T, T) < sqr(disk_radius) && (t > ray_tmin && t < ray_tmax)) {
       *isect_P = ray_P + t * ray_D;
       *isect_t = t;
       return true;
@@ -101,9 +105,10 @@ ccl_device bool ray_disk_intersect(float3 ray_P,
   return false;
 }
 
-ccl_device_forceinline bool ray_triangle_intersect(float3 ray_P,
-                                                   float3 ray_dir,
-                                                   float ray_t,
+ccl_device_forceinline bool ray_triangle_intersect(const float3 ray_P,
+                                                   const float3 ray_D,
+                                                   const float ray_tmin,
+                                                   const float ray_tmax,
                                                    const float3 tri_a,
                                                    const float3 tri_b,
                                                    const float3 tri_c,
@@ -111,14 +116,13 @@ ccl_device_forceinline bool ray_triangle_intersect(float3 ray_P,
                                                    ccl_private float *isect_v,
                                                    ccl_private float *isect_t)
 {
-#define dot3(a, b) dot(a, b)
-  const float3 P = ray_P;
-  const float3 dir = ray_dir;
+  /* This implementation matches the Plücker coordinates triangle intersection
+   * in Embree. */
 
   /* Calculate vertices relative to ray origin. */
-  const float3 v0 = tri_c - P;
-  const float3 v1 = tri_a - P;
-  const float3 v2 = tri_b - P;
+  const float3 v0 = tri_a - ray_P;
+  const float3 v1 = tri_b - ray_P;
+  const float3 v2 = tri_c - ray_P;
 
   /* Calculate triangle edges. */
   const float3 e0 = v2 - v0;
@@ -126,42 +130,40 @@ ccl_device_forceinline bool ray_triangle_intersect(float3 ray_P,
   const float3 e2 = v1 - v2;
 
   /* Perform edge tests. */
-  const float U = dot(cross(v2 + v0, e0), ray_dir);
-  const float V = dot(cross(v0 + v1, e1), ray_dir);
-  const float W = dot(cross(v1 + v2, e2), ray_dir);
+  const float U = dot(cross(e0, v2 + v0), ray_D);
+  const float V = dot(cross(e1, v0 + v1), ray_D);
+  const float W = dot(cross(e2, v1 + v2), ray_D);
 
+  const float UVW = U + V + W;
+  const float eps = FLT_EPSILON * fabsf(UVW);
   const float minUVW = min(U, min(V, W));
   const float maxUVW = max(U, max(V, W));
 
-  if (minUVW < 0.0f && maxUVW > 0.0f) {
+  if (!(minUVW >= -eps || maxUVW <= eps)) {
     return false;
   }
 
   /* Calculate geometry normal and denominator. */
   const float3 Ng1 = cross(e1, e0);
-  // const Vec3vfM Ng1 = stable_triangle_normal(e2,e1,e0);
   const float3 Ng = Ng1 + Ng1;
-  const float den = dot3(Ng, dir);
+  const float den = dot(Ng, ray_D);
   /* Avoid division by 0. */
   if (UNLIKELY(den == 0.0f)) {
     return false;
   }
 
   /* Perform depth test. */
-  const float T = dot3(v0, Ng);
-  const int sign_den = (__float_as_int(den) & 0x80000000);
-  const float sign_T = xor_signmask(T, sign_den);
-  if ((sign_T < 0.0f) || (sign_T > ray_t * xor_signmask(den, sign_den))) {
+  const float T = dot(v0, Ng);
+  const float t = T / den;
+  if (!(t >= ray_tmin && t <= ray_tmax)) {
     return false;
   }
 
-  const float inv_den = 1.0f / den;
-  *isect_u = U * inv_den;
-  *isect_v = V * inv_den;
-  *isect_t = T * inv_den;
+  const float rcp_UVW = (fabsf(UVW) < 1e-18f) ? 0.0f : 1.0f / UVW;
+  *isect_u = min(U * rcp_UVW, 1.0f);
+  *isect_v = min(V * rcp_UVW, 1.0f);
+  *isect_t = t;
   return true;
-
-#undef dot3
 }
 
 /* Tests for an intersection between a ray and a quad defined by
@@ -171,8 +173,8 @@ ccl_device_forceinline bool ray_triangle_intersect(float3 ray_P,
  */
 ccl_device bool ray_quad_intersect(float3 ray_P,
                                    float3 ray_D,
-                                   float ray_mint,
-                                   float ray_maxt,
+                                   float ray_tmin,
+                                   float ray_tmax,
                                    float3 quad_P,
                                    float3 quad_u,
                                    float3 quad_v,
@@ -185,7 +187,7 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
 {
   /* Perform intersection test. */
   float t = -(dot(ray_P, quad_n) - dot(quad_P, quad_n)) / dot(ray_D, quad_n);
-  if (t < ray_mint || t > ray_maxt) {
+  if (!(t > ray_tmin && t < ray_tmax)) {
     return false;
   }
   const float3 hit = ray_P + t * ray_D;

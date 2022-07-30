@@ -66,7 +66,7 @@ static void tc_mesh_skin_transdata_create(TransDataBasic *td,
   td->extra = eve;
 }
 
-void createTransMeshSkin(TransInfo *t)
+static void createTransMeshSkin(bContext *UNUSED(C), TransInfo *t)
 {
   BLI_assert(t->mode == TFM_SKIN_RESIZE);
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -271,7 +271,7 @@ static void tc_mesh_skin_apply_to_mirror(TransInfo *t)
   }
 }
 
-void recalcData_mesh_skin(TransInfo *t)
+static void recalcData_mesh_skin(TransInfo *t)
 {
   bool is_canceling = t->state == TRANS_CANCEL;
   /* mirror modifier clipping? */
@@ -289,3 +289,10 @@ void recalcData_mesh_skin(TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_MeshSkin = {
+    /* flags */ (T_EDIT | T_POINTS),
+    /* createTransData */ createTransMeshSkin,
+    /* recalcData */ recalcData_mesh_skin,
+    /* special_aftertrans_update */ NULL,
+};

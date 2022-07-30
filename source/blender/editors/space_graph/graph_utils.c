@@ -81,7 +81,8 @@ void ED_drivers_editor_init(bContext *C, ScrArea *area)
 bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 {
   ListBase anim_data = {NULL, NULL};
-  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ACTIVE);
+  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ACTIVE |
+                ANIMFILTER_FCURVESONLY);
   size_t items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* We take the first F-Curve only, since some other ones may have had 'active' flag set

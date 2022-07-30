@@ -954,7 +954,8 @@ void BKE_id_material_assign(Main *bmain, ID *id, Material *ma, short act)
   BKE_objects_materials_test_all(bmain, id);
 }
 
-void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act, int assign_type)
+static void object_material_assign(
+    Main *bmain, Object *ob, Material *ma, short act, int assign_type, bool do_test_all)
 {
   Material *mao, **matar, ***matarar;
   short *totcolp;
@@ -1037,12 +1038,28 @@ void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act
       id_us_min(&mao->id);
     }
     (*matarar)[act - 1] = ma;
-    BKE_objects_materials_test_all(bmain, ob->data); /* Data may be used by several objects... */
+    /* Data may be used by several objects. */
+    if (do_test_all) {
+      BKE_objects_materials_test_all(bmain, ob->data);
+    }
   }
 
   if (ma) {
     id_us_plus(&ma->id);
   }
+}
+
+void BKE_object_material_assign(Main *bmain, Object *ob, Material *ma, short act, int assign_type)
+{
+  object_material_assign(bmain, ob, ma, act, assign_type, true);
+}
+
+void BKE_object_material_assign_single_obdata(struct Main *bmain,
+                                              struct Object *ob,
+                                              struct Material *ma,
+                                              short act)
+{
+  object_material_assign(bmain, ob, ma, act, BKE_MAT_ASSIGN_OBDATA, false);
 }
 
 void BKE_object_material_remap(Object *ob, const unsigned int *remap)

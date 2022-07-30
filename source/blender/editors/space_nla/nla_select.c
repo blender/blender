@@ -85,7 +85,7 @@ static void deselect_nla_strips(bAnimContext *ac, short test, short sel)
 
   /* determine type-based settings */
   /* FIXME: double check whether ANIMFILTER_LIST_VISIBLE is needed! */
-  filter = (ANIMFILTER_DATA_VISIBLE);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY);
 
   /* filter data */
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
@@ -223,7 +223,8 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
   UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* convert selection modes to selection modes */
@@ -278,7 +279,8 @@ static void nlaedit_strip_at_region_position(
       0, NLACHANNEL_STEP(snla), 0, NLACHANNEL_FIRST_TOP(ac), view_x, view_y, NULL, &channel_index);
 
   ListBase anim_data = {NULL, NULL};
-  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
+                ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click
@@ -465,7 +467,7 @@ static void nlaedit_select_leftright(bContext *C,
   select_mode = selmodes_to_flagmodes(select_mode);
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
   /* select strips on the side where most data occurs */

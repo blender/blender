@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_rect.h"
@@ -97,7 +98,7 @@ int BKE_imbuf_write(struct ImBuf *ibuf, const char *name, const struct ImageForm
  */
 int BKE_imbuf_write_as(struct ImBuf *ibuf,
                        const char *name,
-                       struct ImageFormatData *imf,
+                       const struct ImageFormatData *imf,
                        bool save_copy);
 
 /**
@@ -198,7 +199,7 @@ struct Image *BKE_image_add_from_imbuf(struct Main *bmain, struct ImBuf *ibuf, c
  * For a non-viewer single-buffer image (single frame file, or generated image) replace its image
  * buffer with the given one.
  * If an unsupported image type (multi-layer, image sequence, ...) the function will assert in the
- * debug mode and will have an underfined behavior in the release mode.
+ * debug mode and will have an undefined behavior in the release mode.
  */
 void BKE_image_replace_imbuf(struct Image *image, struct ImBuf *ibuf);
 
@@ -424,7 +425,11 @@ void BKE_image_get_tile_uv(const struct Image *ima, const int tile_number, float
 /**
  * Return the tile_number for the closest UDIM tile.
  */
-int BKE_image_find_nearest_tile(const struct Image *image, const float co[2]);
+int BKE_image_find_nearest_tile_with_offset(const struct Image *image,
+                                            const float co[2],
+                                            float r_uv_offset[2]) ATTR_NONNULL(1, 2, 3);
+int BKE_image_find_nearest_tile(const struct Image *image, const float co[2])
+    ATTR_NONNULL(1, 2) ATTR_WARN_UNUSED_RESULT;
 
 void BKE_image_get_size(struct Image *image, struct ImageUser *iuser, int *r_width, int *r_height);
 void BKE_image_get_size_fl(struct Image *image, struct ImageUser *iuser, float r_size[2]);

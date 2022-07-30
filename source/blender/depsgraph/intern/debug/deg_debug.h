@@ -14,8 +14,7 @@
 
 #include "DEG_depsgraph_debug.h"
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 class DepsgraphDebug {
  public:
@@ -74,5 +73,4 @@ bool terminal_do_color(void);
 string color_for_pointer(const void *pointer);
 string color_end(void);
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

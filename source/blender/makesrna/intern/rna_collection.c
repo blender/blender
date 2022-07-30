@@ -359,6 +359,14 @@ static void rna_Collection_color_tag_update(Main *UNUSED(bmain),
   WM_main_add_notifier(NC_SCENE | ND_LAYER_CONTENT, scene);
 }
 
+static void rna_Collection_instance_offset_update(Main *UNUSED(bmain),
+                                                  Scene *UNUSED(scene),
+                                                  PointerRNA *ptr)
+{
+  Collection *collection = (Collection *)ptr->data;
+  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY);
+}
+
 #else
 
 /* collection.objects */
@@ -433,7 +441,7 @@ void RNA_def_collections(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Instance Offset", "Offset from the origin to use when instancing");
   RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, RNA_TRANSLATION_PREC_DEFAULT);
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Collection_instance_offset_update");
 
   prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "Object");

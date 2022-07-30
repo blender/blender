@@ -179,6 +179,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
       if (max_channel != -1) {
         RNA_int_set(drop->ptr, "channel", max_channel);
       }
+      SEQ_collection_free(strips);
     }
   }
 }

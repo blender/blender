@@ -59,7 +59,7 @@ typedef struct TransDataNla {
 /** \name NLA Transform Creation
  * \{ */
 
-void createTransNlaData(bContext *C, TransInfo *t)
+static void createTransNlaData(bContext *C, TransInfo *t)
 {
   Scene *scene = t->scene;
   SpaceNla *snla = NULL;
@@ -82,7 +82,8 @@ void createTransNlaData(bContext *C, TransInfo *t)
   snla = (SpaceNla *)ac.sl;
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT);
+  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT |
+            ANIMFILTER_FCURVESONLY);
   ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 
   /* which side of the current frame should be allowed */
@@ -248,7 +249,7 @@ void createTransNlaData(bContext *C, TransInfo *t)
   ANIM_animdata_freelist(&anim_data);
 }
 
-void recalcData_nla(TransInfo *t)
+static void recalcData_nla(TransInfo *t)
 {
   SpaceNla *snla = (SpaceNla *)t->area->spacedata.first;
 
@@ -463,7 +464,7 @@ void recalcData_nla(TransInfo *t)
 /** \name Special After Transform NLA
  * \{ */
 
-void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
+static void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
 {
   bAnimContext ac;
 
@@ -475,7 +476,7 @@ void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
   if (ac.datatype) {
     ListBase anim_data = {NULL, NULL};
     bAnimListElem *ale;
-    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
+    short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_FCURVESONLY);
 
     /* get channels to work on */
     ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -505,3 +506,10 @@ void special_aftertrans_update__nla(bContext *C, TransInfo *UNUSED(t))
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_NLA = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransNlaData,
+    /* recalcData */ recalcData_nla,
+    /* special_aftertrans_update */ special_aftertrans_update__nla,
+};

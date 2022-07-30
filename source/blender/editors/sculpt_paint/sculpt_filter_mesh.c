@@ -636,6 +636,7 @@ static void mesh_filter_init_limit_surface_co(SculptSession *ss)
       totvert, sizeof(float[3]), "limit surface co");
   for (int i = 0; i < totvert; i++) {
     PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
     SCULPT_vertex_limit_surface_get(ss, vertex, filter_cache->limit_surface_co[i]);
   }
 }
@@ -684,8 +685,9 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
        smooth_iterations < filter_cache->sharpen_curvature_smooth_iterations;
        smooth_iterations++) {
     for (int i = 0; i < totvert; i++) {
-      float direction_avg[3] = {0.0f, 0.0f, 0.0f};
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
+      float direction_avg[3] = {0.0f, 0.0f, 0.0f};
       float sharpen_avg = 0;
       int total = 0;
 

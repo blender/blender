@@ -209,7 +209,11 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
   case ID_##_id: \
     return FILTER_ID_##_id
 
-  switch (idcode) {
+#define CASE_IDFILTER_NONE(_id) \
+  case ID_##_id: \
+    return 0
+
+  switch ((ID_Type)idcode) {
     CASE_IDFILTER(AC);
     CASE_IDFILTER(AR);
     CASE_IDFILTER(BR);
@@ -220,7 +224,11 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
     CASE_IDFILTER(GR);
     CASE_IDFILTER(CV);
     CASE_IDFILTER(IM);
+    CASE_IDFILTER_NONE(IP);
+    CASE_IDFILTER(KE);
     CASE_IDFILTER(LA);
+    CASE_IDFILTER(LI);
+    CASE_IDFILTER(LP);
     CASE_IDFILTER(LS);
     CASE_IDFILTER(LT);
     CASE_IDFILTER(MA);
@@ -234,22 +242,25 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
     CASE_IDFILTER(PAL);
     CASE_IDFILTER(PC);
     CASE_IDFILTER(PT);
-    CASE_IDFILTER(LP);
     CASE_IDFILTER(SCE);
+    CASE_IDFILTER(SCR);
     CASE_IDFILTER(SIM);
-    CASE_IDFILTER(SPK);
     CASE_IDFILTER(SO);
+    CASE_IDFILTER(SPK);
     CASE_IDFILTER(TE);
     CASE_IDFILTER(TXT);
     CASE_IDFILTER(VF);
     CASE_IDFILTER(VO);
+    CASE_IDFILTER(WM);
     CASE_IDFILTER(WO);
     CASE_IDFILTER(WS);
-    default:
-      return 0;
   }
 
+  BLI_assert_unreachable();
+  return 0;
+
 #undef CASE_IDFILTER
+#undef CASE_IDFILTER_NONE
 }
 
 short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
@@ -257,6 +268,8 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
 #define CASE_IDFILTER(_id) \
   case FILTER_ID_##_id: \
     return ID_##_id
+
+#define CASE_IDFILTER_NONE(_id) (void)0
 
   switch (idfilter) {
     CASE_IDFILTER(AC);
@@ -269,7 +282,11 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
     CASE_IDFILTER(GR);
     CASE_IDFILTER(CV);
     CASE_IDFILTER(IM);
+    CASE_IDFILTER_NONE(IP);
+    CASE_IDFILTER(KE);
     CASE_IDFILTER(LA);
+    CASE_IDFILTER(LI);
+    CASE_IDFILTER(LP);
     CASE_IDFILTER(LS);
     CASE_IDFILTER(LT);
     CASE_IDFILTER(MA);
@@ -283,21 +300,25 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
     CASE_IDFILTER(PAL);
     CASE_IDFILTER(PC);
     CASE_IDFILTER(PT);
-    CASE_IDFILTER(LP);
     CASE_IDFILTER(SCE);
+    CASE_IDFILTER(SCR);
     CASE_IDFILTER(SIM);
-    CASE_IDFILTER(SPK);
     CASE_IDFILTER(SO);
+    CASE_IDFILTER(SPK);
     CASE_IDFILTER(TE);
     CASE_IDFILTER(TXT);
     CASE_IDFILTER(VF);
     CASE_IDFILTER(VO);
+    CASE_IDFILTER(WM);
     CASE_IDFILTER(WO);
-    default:
-      return 0;
+    CASE_IDFILTER(WS);
   }
 
+  BLI_assert_unreachable();
+  return 0;
+
 #undef CASE_IDFILTER
+#undef CASE_IDFILTER_NONE
 }
 
 int BKE_idtype_idcode_to_index(const short idcode)

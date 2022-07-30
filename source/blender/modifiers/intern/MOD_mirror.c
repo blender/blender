@@ -204,7 +204,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Mirror = {
-    /* name */ "Mirror",
+    /* name */ N_("Mirror"),
     /* structName */ "MirrorModifierData",
     /* structSize */ sizeof(MirrorModifierData),
     /* srna */ &RNA_MirrorModifier,

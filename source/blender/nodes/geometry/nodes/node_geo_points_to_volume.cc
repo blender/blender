@@ -163,12 +163,15 @@ static void gather_point_data_from_component(GeoNodeExecParams &params,
                                              Vector<float3> &r_positions,
                                              Vector<float> &r_radii)
 {
-  VArray<float3> positions = component.attribute_get_for_read<float3>(
+  if (component.is_empty()) {
+    return;
+  }
+  VArray<float3> positions = component.attributes()->lookup_or_default<float3>(
       "position", ATTR_DOMAIN_POINT, {0, 0, 0});
 
   Field<float> radius_field = params.get_input<Field<float>>("Radius");
   GeometryComponentFieldContext field_context{component, ATTR_DOMAIN_POINT};
-  const int domain_num = component.attribute_domain_num(ATTR_DOMAIN_POINT);
+  const int domain_num = component.attribute_domain_size(ATTR_DOMAIN_POINT);
 
   r_positions.resize(r_positions.size() + domain_num);
   positions.materialize(r_positions.as_mutable_span().take_back(domain_num));
@@ -221,7 +224,7 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
   new_grid->transform().postScale(voxel_size);
   BKE_volume_grid_add_vdb(*volume, "density", std::move(new_grid));
 
-  r_geometry_set.keep_only({GEO_COMPONENT_TYPE_VOLUME, GEO_COMPONENT_TYPE_INSTANCES});
+  r_geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_VOLUME});
   r_geometry_set.replace_volume(volume);
 }
 #endif

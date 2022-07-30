@@ -55,6 +55,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
+#include "RNA_path.h"
 
 #include "GPU_material.h"
 
@@ -447,7 +448,7 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
 /** \name ID Delete Operator
  * \{ */
 
-static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeStoreElem *tselem)
+static void id_delete_tag(bContext *C, ReportList *reports, TreeElement *te, TreeStoreElem *tselem)
 {
   Main *bmain = CTX_data_main(C);
   ID *id = tselem->id;
@@ -484,35 +485,39 @@ static void id_delete(bContext *C, ReportList *reports, TreeElement *te, TreeSto
     return;
   }
   if (te->idcode == ID_WS) {
-    BKE_workspace_id_tag_all_visible(bmain, LIB_TAG_DOIT);
-    if (id->tag & LIB_TAG_DOIT) {
+    BKE_workspace_id_tag_all_visible(bmain, LIB_TAG_PRE_EXISTING);
+    if (id->tag & LIB_TAG_PRE_EXISTING) {
       BKE_reportf(
           reports, RPT_WARNING, "Cannot delete currently visible workspace id '%s'", id->name);
+      BKE_main_id_tag_idcode(bmain, ID_WS, LIB_TAG_PRE_EXISTING, false);
       return;
     }
+    BKE_main_id_tag_idcode(bmain, ID_WS, LIB_TAG_PRE_EXISTING, false);
   }
 
-  BKE_id_delete(bmain, id);
+  id->tag |= LIB_TAG_DOIT;
 
   WM_event_add_notifier(C, NC_WINDOW, nullptr);
 }
 
-void id_delete_fn(bContext *C,
-                  ReportList *reports,
-                  Scene *UNUSED(scene),
-                  TreeElement *te,
-                  TreeStoreElem *UNUSED(tsep),
-                  TreeStoreElem *tselem,
-                  void *UNUSED(user_data))
+void id_delete_tag_fn(bContext *C,
+                      ReportList *reports,
+                      Scene *UNUSED(scene),
+                      TreeElement *te,
+                      TreeStoreElem *UNUSED(tsep),
+                      TreeStoreElem *tselem,
+                      void *UNUSED(user_data))
 {
-  id_delete(C, reports, te, tselem);
+  id_delete_tag(C, reports, te, tselem);
 }
 
-static int outliner_id_delete_invoke_do(bContext *C,
-                                        ReportList *reports,
-                                        TreeElement *te,
-                                        const float mval[2])
+static int outliner_id_delete_tag(bContext *C,
+                                  ReportList *reports,
+                                  TreeElement *te,
+                                  const float mval[2])
 {
+  int id_tagged_num = 0;
+
   if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
     TreeStoreElem *tselem = TREESTORE(te);
 
@@ -522,26 +527,27 @@ static int outliner_id_delete_invoke_do(bContext *C,
                     RPT_ERROR_INVALID_INPUT,
                     "Cannot delete indirectly linked library '%s'",
                     ((Library *)tselem->id)->filepath_abs);
-        return OPERATOR_CANCELLED;
       }
-      id_delete(C, reports, te, tselem);
-      return OPERATOR_FINISHED;
+      else {
+        id_delete_tag(C, reports, te, tselem);
+        id_tagged_num++;
+      }
     }
   }
   else {
     LISTBASE_FOREACH (TreeElement *, te_sub, &te->subtree) {
-      int ret;
-      if ((ret = outliner_id_delete_invoke_do(C, reports, te_sub, mval))) {
-        return ret;
+      if ((id_tagged_num += outliner_id_delete_tag(C, reports, te_sub, mval)) != 0) {
+        break;
       }
     }
   }
 
-  return 0;
+  return id_tagged_num;
 }
 
 static int outliner_id_delete_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+  Main *bmain = CTX_data_main(C);
   ARegion *region = CTX_wm_region(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   float fmval[2];
@@ -550,15 +556,21 @@ static int outliner_id_delete_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
+  int id_tagged_num = 0;
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
   LISTBASE_FOREACH (TreeElement *, te, &space_outliner->tree) {
-    int ret;
-
-    if ((ret = outliner_id_delete_invoke_do(C, op->reports, te, fmval))) {
-      return ret;
+    if ((id_tagged_num += outliner_id_delete_tag(C, op->reports, te, fmval)) != 0) {
+      break;
     }
   }
+  if (id_tagged_num == 0) {
+    BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+    return OPERATOR_CANCELLED;
+  }
 
-  return OPERATOR_CANCELLED;
+  BKE_id_multi_tagged_delete(bmain);
+  BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
+  return OPERATOR_FINISHED;
 }
 
 void OUTLINER_OT_id_delete(wmOperatorType *ot)
@@ -586,9 +598,9 @@ static int outliner_id_remap_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
 
   const short id_type = (short)RNA_enum_get(op->ptr, "id_type");
-  ID *old_id = reinterpret_cast<ID *>(
+  ID *old_id = static_cast<ID *>(
       BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "old_id")));
-  ID *new_id = reinterpret_cast<ID *>(
+  ID *new_id = static_cast<ID *>(
       BLI_findlink(which_libbase(CTX_data_main(C), id_type), RNA_enum_get(op->ptr, "new_id")));
 
   /* check for invalid states */
@@ -682,9 +694,9 @@ static const EnumPropertyItem *outliner_id_itemf(bContext *C,
   int i = 0;
 
   short id_type = (short)RNA_enum_get(ptr, "id_type");
-  ID *id = reinterpret_cast<ID *>(which_libbase(CTX_data_main(C), id_type)->first);
+  ID *id = static_cast<ID *>(which_libbase(CTX_data_main(C), id_type)->first);
 
-  for (; id; id = reinterpret_cast<ID *>(id->next)) {
+  for (; id; id = static_cast<ID *>(id->next)) {
     item_tmp.identifier = item_tmp.name = id->name + 2;
     item_tmp.value = i++;
     RNA_enum_item_add(&item, &totitem, &item_tmp);
@@ -1806,7 +1818,7 @@ static void tree_element_to_path(TreeElement *te,
         /* ptr->data not ptr->owner_id seems to be the one we want,
          * since ptr->data is sometimes the owner of this ID? */
         if (RNA_struct_is_ID(ptr.type)) {
-          *id = reinterpret_cast<ID *>(ptr.data);
+          *id = static_cast<ID *>(ptr.data);
 
           /* clear path */
           if (*path) {
@@ -2041,8 +2053,7 @@ static KeyingSet *verify_active_keyingset(Scene *scene, short add)
 
   /* try to find one from scene */
   if (scene->active_keyingset > 0) {
-    ks = reinterpret_cast<KeyingSet *>(
-        BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
+    ks = static_cast<KeyingSet *>(BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
   }
 
   /* Add if none found */

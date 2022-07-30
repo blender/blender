@@ -333,8 +333,11 @@ bool gpu_shader_create_info_compile_all()
   int skipped = 0;
   int total = 0;
   for (ShaderCreateInfo *info : g_create_infos->values()) {
+    info->finalize();
     if (info->do_static_compilation_) {
-      if (GPU_compute_shader_support() == false && info->compute_source_ != nullptr) {
+      if ((GPU_compute_shader_support() == false && info->compute_source_ != nullptr) ||
+          (GPU_shader_image_load_store_support() == false && info->has_resource_image()) ||
+          (GPU_shader_storage_buffer_objects_support() == false && info->has_resource_storage())) {
         skipped++;
         continue;
       }

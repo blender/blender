@@ -353,7 +353,7 @@ static void meshdeformModifier_do(ModifierData *md,
    * We'll support this case once granular dependency graph is landed.
    */
   Object *ob_target = mmd->object;
-  cagemesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target, false);
+  cagemesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target);
   if (cagemesh == NULL) {
     BKE_modifier_set_error(ctx->object, md, "Cannot get mesh from cage object");
     return;
@@ -650,7 +650,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
 }
 
 ModifierTypeInfo modifierType_MeshDeform = {
-    /* name */ "MeshDeform",
+    /* name */ N_("MeshDeform"),
     /* structName */ "MeshDeformModifierData",
     /* structSize */ sizeof(MeshDeformModifierData),
     /* srna */ &RNA_MeshDeformModifier,

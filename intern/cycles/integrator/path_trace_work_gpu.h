@@ -156,6 +156,9 @@ class PathTraceWorkGPU : public PathTraceWork {
   bool interop_use_checked_ = false;
   bool interop_use_ = false;
 
+  /* Number of partitions to sort state indices into prior to material sort. */
+  int num_sort_partitions_;
+
   /* Maximum number of concurrent integrator states. */
   int max_num_paths_;
 

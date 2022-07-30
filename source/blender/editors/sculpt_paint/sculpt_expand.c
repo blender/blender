@@ -143,7 +143,7 @@ static bool sculpt_expand_is_vert_in_active_component(SculptSession *ss,
                                                       ExpandCache *expand_cache,
                                                       const PBVHVertRef v)
 {
-  const int v_i = BKE_pbvh_vertex_to_index(ss->pbvh, v);
+  int v_i = BKE_pbvh_vertex_to_index(ss->pbvh, v);
 
   for (int i = 0; i < EXPAND_SYMM_AREAS; i++) {
     if (ss->vertex_info.connected_component[v_i] == expand_cache->active_connected_components[i]) {
@@ -550,11 +550,11 @@ static float *sculpt_expand_normal_falloff_create(Sculpt *sd,
 
   for (int repeat = 0; repeat < 2; repeat++) {
     for (int i = 0; i < totvert; i++) {
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
       float avg = 0.0f;
-      PBVHVertRef vref = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       SculptVertexNeighborIter ni;
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vref, ni) {
+      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
         avg += dists[ni.index];
       }
       SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
@@ -647,6 +647,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
   /* Propagate the values from the boundaries to the rest of the mesh. */
   while (!BLI_gsqueue_is_empty(queue)) {
     PBVHVertRef v_next;
+
     BLI_gsqueue_pop(queue, &v_next);
 
     SculptVertexNeighborIter ni;
@@ -659,7 +660,7 @@ static float *sculpt_expand_boundary_topology_falloff_create(Sculpt *sd,
 
       dists[ni.index] = dists[v_next_i] + 1.0f;
       BLI_BITMAP_ENABLE(visited_vertices, ni.index);
-      BLI_gsqueue_push(queue, &ni.index);
+      BLI_gsqueue_push(queue, &ni.vertex);
     }
     SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
   }
@@ -851,9 +852,9 @@ static void sculpt_expand_update_max_vert_falloff_value(SculptSession *ss,
       continue;
     }
 
-    PBVHVertRef v = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-    if (!sculpt_expand_is_vert_in_active_component(ss, expand_cache, v)) {
+    if (!sculpt_expand_is_vert_in_active_component(ss, expand_cache, vertex)) {
       continue;
     }
 
@@ -1713,13 +1714,13 @@ static void sculpt_expand_reposition_pivot(bContext *C, Object *ob, ExpandCache 
       continue;
     }
 
-    PBVHVertRef v = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
-    if (!sculpt_expand_is_vert_in_active_component(ss, expand_cache, v)) {
+    if (!sculpt_expand_is_vert_in_active_component(ss, expand_cache, vertex)) {
       continue;
     }
 
-    const float *vertex_co = SCULPT_vertex_co_get(ss, v);
+    const float *vertex_co = SCULPT_vertex_co_get(ss, vertex);
 
     if (!SCULPT_check_vertex_pivot_symmetry(vertex_co, expand_init_co, symm)) {
       continue;
@@ -1807,6 +1808,7 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
                                                            const float mval[2])
 {
   SculptSession *ss = ob->sculpt;
+
   PBVHVertRef initial_vertex = sculpt_expand_target_vertex_update_and_get(C, ob, mval);
 
   if (initial_vertex.i == SCULPT_EXPAND_VERTEX_NONE) {
@@ -1814,6 +1816,9 @@ static void sculpt_expand_set_initial_components_for_mouse(bContext *C,
      * vertex in the sculpt session. */
     initial_vertex = SCULPT_active_vertex_get(ss);
   }
+
+  int initial_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, initial_vertex);
+
   copy_v2_v2(ss->expand_cache->initial_mouse, mval);
   expand_cache->initial_active_vertex = initial_vertex;
   expand_cache->initial_active_face_set = SCULPT_active_face_set_get(ss);
@@ -1885,7 +1890,7 @@ static int sculpt_expand_active_face_set_id_get(SculptSession *ss, ExpandCache *
     case PBVH_BMESH:
     case PBVH_FACES:
       return expand_cache
-          ->original_face_sets[BKE_pbvh_vertex_to_index(ss->pbvh, ss->active_face_index)];
+          ->original_face_sets[BKE_pbvh_vertex_to_index(ss->pbvh, ss->active_face)];
     case PBVH_GRIDS: {
       const int face_index = BKE_subdiv_ccg_grid_to_face_index(ss->subdiv_ccg,
                                                                ss->active_grid_index);

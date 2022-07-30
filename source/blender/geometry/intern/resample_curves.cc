@@ -92,17 +92,18 @@ static void retrieve_attribute_spans(const Span<bke::AttributeIDRef> ids,
                                      CurveComponent &dst_component,
                                      Vector<GSpan> &src,
                                      Vector<GMutableSpan> &dst,
-                                     Vector<bke::OutputAttribute> &dst_attributes)
+                                     Vector<bke::GSpanAttributeWriter> &dst_attributes)
 {
   for (const int i : ids.index_range()) {
-    GVArray src_attribute = src_component.attribute_try_get_for_read(ids[i], ATTR_DOMAIN_POINT);
+    GVArray src_attribute = src_component.attributes()->lookup(ids[i], ATTR_DOMAIN_POINT);
     BLI_assert(src_attribute);
     src.append(src_attribute.get_internal_span());
 
     const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(src_attribute.type());
-    bke::OutputAttribute dst_attribute = dst_component.attribute_try_get_for_output_only(
-        ids[i], ATTR_DOMAIN_POINT, data_type);
-    dst.append(dst_attribute.as_span());
+    bke::GSpanAttributeWriter dst_attribute =
+        dst_component.attributes_for_write()->lookup_or_add_for_write_only_span(
+            ids[i], ATTR_DOMAIN_POINT, data_type);
+    dst.append(dst_attribute.span);
     dst_attributes.append(std::move(dst_attribute));
   }
 }
@@ -111,7 +112,7 @@ struct AttributesForInterpolation : NonCopyable, NonMovable {
   Vector<GSpan> src;
   Vector<GMutableSpan> dst;
 
-  Vector<bke::OutputAttribute> dst_attributes;
+  Vector<bke::GSpanAttributeWriter> dst_attributes;
 
   Vector<GSpan> src_no_interpolation;
   Vector<GMutableSpan> dst_no_interpolation;
@@ -129,8 +130,8 @@ static void gather_point_attributes_to_interpolate(const CurveComponent &src_com
 
   VectorSet<bke::AttributeIDRef> ids;
   VectorSet<bke::AttributeIDRef> ids_no_interpolation;
-  src_component.attribute_foreach(
-      [&](const bke::AttributeIDRef &id, const AttributeMetaData meta_data) {
+  src_component.attributes()->for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
         if (meta_data.domain != ATTR_DOMAIN_POINT) {
           return true;
         }
@@ -161,8 +162,6 @@ static void gather_point_attributes_to_interpolate(const CurveComponent &src_com
                            result.src_no_interpolation,
                            result.dst_no_interpolation,
                            result.dst_attributes);
-
-  dst_curves.update_customdata_pointers();
 }
 
 static Curves *resample_to_uniform(const CurveComponent &src_component,
@@ -234,10 +233,18 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
     for (const int i_curve : sliced_selection) {
       const bool cyclic = curves_cyclic[i_curve];
       const IndexRange dst_points = dst_curves.points_for_curve(i_curve);
-      length_parameterize::sample_uniform(src_curves.evaluated_lengths_for_curve(i_curve, cyclic),
-                                          !curves_cyclic[i_curve],
-                                          sample_indices.as_mutable_span().slice(dst_points),
-                                          sample_factors.as_mutable_span().slice(dst_points));
+      const Span<float> lengths = src_curves.evaluated_lengths_for_curve(i_curve, cyclic);
+      if (lengths.is_empty()) {
+        /* Handle curves with only one evaluated point. */
+        sample_indices.as_mutable_span().slice(dst_points).fill(0);
+        sample_factors.as_mutable_span().slice(dst_points).fill(0.0f);
+      }
+      else {
+        length_parameterize::sample_uniform(lengths,
+                                            !curves_cyclic[i_curve],
+                                            sample_indices.as_mutable_span().slice(dst_points),
+                                            sample_factors.as_mutable_span().slice(dst_points));
+      }
     }
 
     /* For every attribute, evaluate attributes from every curve in the range in the original
@@ -253,10 +260,10 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
           const IndexRange dst_points = dst_curves.points_for_curve(i_curve);
 
           if (curve_types[i_curve] == CURVE_TYPE_POLY) {
-            length_parameterize::linear_interpolation(src.slice(src_points),
-                                                      sample_indices.as_span().slice(dst_points),
-                                                      sample_factors.as_span().slice(dst_points),
-                                                      dst.slice(dst_points));
+            length_parameterize::interpolate(src.slice(src_points),
+                                             sample_indices.as_span().slice(dst_points),
+                                             sample_factors.as_span().slice(dst_points),
+                                             dst.slice(dst_points));
           }
           else {
             const int evaluated_size = src_curves.evaluated_points_for_curve(i_curve).size();
@@ -265,10 +272,10 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
             MutableSpan<T> evaluated = evaluated_buffer.as_mutable_span().cast<T>();
             src_curves.interpolate_to_evaluated(i_curve, src.slice(src_points), evaluated);
 
-            length_parameterize::linear_interpolation(evaluated.as_span(),
-                                                      sample_indices.as_span().slice(dst_points),
-                                                      sample_factors.as_span().slice(dst_points),
-                                                      dst.slice(dst_points));
+            length_parameterize::interpolate(evaluated.as_span(),
+                                             sample_indices.as_span().slice(dst_points),
+                                             sample_factors.as_span().slice(dst_points),
+                                             dst.slice(dst_points));
           }
         }
       });
@@ -278,10 +285,10 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
     for (const int i_curve : sliced_selection) {
       const IndexRange src_points = src_curves.evaluated_points_for_curve(i_curve);
       const IndexRange dst_points = dst_curves.points_for_curve(i_curve);
-      length_parameterize::linear_interpolation(evaluated_positions.slice(src_points),
-                                                sample_indices.as_span().slice(dst_points),
-                                                sample_factors.as_span().slice(dst_points),
-                                                dst_positions.slice(dst_points));
+      length_parameterize::interpolate(evaluated_positions.slice(src_points),
+                                       sample_indices.as_span().slice(dst_points),
+                                       sample_factors.as_span().slice(dst_points),
+                                       dst_positions.slice(dst_points));
     }
 
     /* Fill the default value for non-interpolating attributes that still must be copied. */
@@ -311,8 +318,8 @@ static Curves *resample_to_uniform(const CurveComponent &src_component,
   bke::curves::copy_point_data(
       src_curves, dst_curves, unselected_ranges, src_positions, dst_positions);
 
-  for (bke::OutputAttribute &attribute : attributes.dst_attributes) {
-    attribute.save();
+  for (bke::GSpanAttributeWriter &attribute : attributes.dst_attributes) {
+    attribute.finish();
   }
 
   return dst_curves_id;
@@ -338,6 +345,7 @@ Curves *resample_to_evaluated(const CurveComponent &src_component,
 {
   const bke::CurvesGeometry &src_curves = bke::CurvesGeometry::wrap(
       src_component.get_for_read()->geometry);
+  src_curves.ensure_evaluated_offsets();
 
   bke::GeometryComponentFieldContext field_context{src_component, ATTR_DOMAIN_CURVE};
   fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
@@ -433,8 +441,8 @@ Curves *resample_to_evaluated(const CurveComponent &src_component,
   bke::curves::copy_point_data(
       src_curves, dst_curves, unselected_ranges, src_positions, dst_positions);
 
-  for (bke::OutputAttribute &attribute : attributes.dst_attributes) {
-    attribute.save();
+  for (bke::GSpanAttributeWriter &attribute : attributes.dst_attributes) {
+    attribute.finish();
   }
 
   return dst_curves_id;

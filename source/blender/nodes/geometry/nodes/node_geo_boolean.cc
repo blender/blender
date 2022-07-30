@@ -154,17 +154,15 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   /* Store intersecting edges in attribute. */
   if (attribute_outputs.intersecting_edges_id) {
-    MeshComponent mesh_component;
-    mesh_component.replace(result, GeometryOwnershipType::Editable);
-    OutputAttribute_Typed<bool> attribute = mesh_component.attribute_try_get_for_output_only<bool>(
+    MutableAttributeAccessor attributes = bke::mesh_attributes_for_write(*result);
+    SpanAttributeWriter<bool> selection = attributes.lookup_or_add_for_write_only_span<bool>(
         attribute_outputs.intersecting_edges_id.get(), ATTR_DOMAIN_EDGE);
-    MutableSpan<bool> selection = attribute.as_span();
-    selection.fill(false);
-    for (const int i : intersecting_edges) {
-      selection[i] = true;
-    }
 
-    attribute.save();
+    selection.span.fill(false);
+    for (const int i : intersecting_edges) {
+      selection.span[i] = true;
+    }
+    selection.finish();
 
     params.set_output(
         "Intersecting Edges",

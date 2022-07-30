@@ -1161,11 +1161,10 @@ static void sculpt_geometry_preview_lines_draw(const uint gpuattr,
   }
 
   GPU_line_width(1.0f);
-  if (ss->preview_vert_index_count > 0) {
-    immBegin(GPU_PRIM_LINES, ss->preview_vert_index_count);
-    for (int i = 0; i < ss->preview_vert_index_count; i++) {
-      immVertex3fv(gpuattr,
-                   SCULPT_vertex_co_for_grab_active_get(ss, ss->preview_vert_index_list[i]));
+  if (ss->preview_vert_count > 0) {
+    immBegin(GPU_PRIM_LINES, ss->preview_vert_count);
+    for (int i = 0; i < ss->preview_vert_count; i++) {
+      immVertex3fv(gpuattr, SCULPT_vertex_co_for_grab_active_get(ss, ss->preview_vert_list[i]));
     }
     immEnd();
   }
@@ -1225,7 +1224,7 @@ typedef struct PaintCursorContext {
   /* Sculpt related data. */
   Sculpt *sd;
   SculptSession *ss;
-  PBVHVertRef prev_active_vertex_index;
+  PBVHVertRef prev_active_vertex;
   bool is_stroke_active;
   bool is_cursor_over_mesh;
   bool is_multires;
@@ -1389,7 +1388,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext *pcon
 
   /* This updates the active vertex, which is needed for most of the Sculpt/Vertex Colors tools to
    * work correctly */
-  pcontext->prev_active_vertex_index = ss->active_vertex_index;
+  pcontext->prev_active_vertex = ss->active_vertex;
   if (!ups->stroke_active) {
     pcontext->is_cursor_over_mesh = SCULPT_cursor_geometry_info_update(
         C, &gi, mval_fl, (pcontext->brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE), false);
@@ -1530,7 +1529,7 @@ static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
   /*
   int v_in_poly = 0;
   for (int i = 0; i < totpoints; i++) {
-    if (ss->active_vertex_index == loops[poly->loopstart + i].v) {
+    if (ss->active_vertex == loops[poly->loopstart + i].v) {
       v_in_poly = i;
     }
   }
@@ -1539,11 +1538,11 @@ static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
 
 
   immBegin(GPU_PRIM_LINES, 4);
-  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ss->active_vertex_index));
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ss->active_vertex));
   immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, loops[poly->loopstart + next_v].v));
 
 
-  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ss->active_vertex_index));
+  immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ss->active_vertex));
   immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, loops[poly->loopstart + prev_v].v));
 
   immEnd();
@@ -1555,13 +1554,13 @@ static void sculpt_cursor_draw_3D_face_set_preview(PaintCursorContext *pcontext)
 
   int total = 0;
   SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ss->active_vertex_index, ni) {
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ss->active_vertex, ni) {
     total++;
   }
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   immBegin(GPU_PRIM_LINES, total * 2);
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ss->active_vertex_index, ni) {
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, ss->active_vertex, ni) {
     immVertex3fv(pcontext->pos, SCULPT_active_vertex_co_get(ss));
     immVertex3fv(pcontext->pos, SCULPT_vertex_co_get(ss, ni.vertex));
   }
@@ -1672,11 +1671,8 @@ static void paint_cursor_preview_boundary_data_update(PaintCursorContext *pconte
     SCULPT_boundary_data_free(ss->boundary_preview);
   }
 
-  ss->boundary_preview = SCULPT_boundary_data_init(pcontext->sd,
-                                                   pcontext->vc.obact,
-                                                   pcontext->brush,
-                                                   ss->active_vertex_index,
-                                                   pcontext->radius);
+  ss->boundary_preview = SCULPT_boundary_data_init(
+      pcontext->sd, pcontext->vc.obact, pcontext->brush, ss->active_vertex, pcontext->radius);
 }
 
 static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *pcontext)
@@ -1702,7 +1698,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext *
 
   paint_cursor_update_object_space_radius(pcontext);
 
-  const bool update_previews = pcontext->prev_active_vertex_index.i !=
+  const bool update_previews = pcontext->prev_active_vertex.i !=
                                SCULPT_active_vertex_get(pcontext->ss).i;
 
   /* Setup drawing. */

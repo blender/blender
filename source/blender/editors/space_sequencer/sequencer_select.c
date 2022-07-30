@@ -589,8 +589,10 @@ static void sequencer_select_side_of_frame(const bContext *C,
 
   const float x = UI_view2d_region_to_view_x(v2d, mval[0]);
   LISTBASE_FOREACH (Sequence *, seq_iter, SEQ_active_seqbase_get(ed)) {
-    if (((x < scene->r.cfra) && (SEQ_time_right_handle_frame_get(scene, seq_iter) <= scene->r.cfra)) ||
-        ((x >= scene->r.cfra) && (SEQ_time_left_handle_frame_get(scene, seq_iter) >= scene->r.cfra))) {
+    if (((x < scene->r.cfra) &&
+         (SEQ_time_right_handle_frame_get(scene, seq_iter) <= scene->r.cfra)) ||
+        ((x >= scene->r.cfra) &&
+         (SEQ_time_left_handle_frame_get(scene, seq_iter) >= scene->r.cfra))) {
       /* Select left or right. */
       seq_iter->flag |= SELECT;
       recurs_sel_seq(seq_iter);

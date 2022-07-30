@@ -1180,8 +1180,8 @@ void SCULPT_replay_test()
   cache.radius = 1.5f;
   cache.brush = &brush;
 
-  ss.active_vertex_index.i = -1LL;
-  ss.active_face_index.i = -1LL;
+  ss.active_vertex.i = -1LL;
+  ss.active_face.i = -1LL;
 
   SCULPT_replay_log_start();
   SCULPT_replay_log_append(&sd, &ss, &ob);
@@ -1221,9 +1221,9 @@ void SCULPT_replay_log_append(Sculpt *sd, SculptSession *ss, Object *ob)
 
   // replay_ensure_tex(log, &samp->cache->brush.mtex);
 
-  if (ss->active_vertex_index.i != -1LL) {
+  if (ss->active_vertex.i != -1LL) {
     samp->have_active_vertex = true;
-    // copy_v3_v3(samp->active_vertex_co, SCULPT_vertex_co_get(ss, ss->active_vertex_index));
+    // copy_v3_v3(samp->active_vertex_co, SCULPT_vertex_co_get(ss, ss->active_vertex));
   }
   else {
     zero_v3(samp->active_vertex_co);

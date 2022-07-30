@@ -16,15 +16,14 @@ bool segment_is_vector(const Span<int8_t> handle_types_left,
                        const int segment_index)
 {
   BLI_assert(handle_types_left.index_range().drop_back(1).contains(segment_index));
-  return handle_types_right[segment_index] == BEZIER_HANDLE_VECTOR &&
-         handle_types_left[segment_index + 1] == BEZIER_HANDLE_VECTOR;
+  return segment_is_vector(handle_types_right[segment_index],
+                           handle_types_left[segment_index + 1]);
 }
 
 bool last_cyclic_segment_is_vector(const Span<int8_t> handle_types_left,
                                    const Span<int8_t> handle_types_right)
 {
-  return handle_types_right.last() == BEZIER_HANDLE_VECTOR &&
-         handle_types_left.first() == BEZIER_HANDLE_VECTOR;
+  return segment_is_vector(handle_types_right.last(), handle_types_left.first());
 }
 
 void calculate_evaluated_offsets(const Span<int8_t> handle_types_left,
@@ -57,6 +56,26 @@ void calculate_evaluated_offsets(const Span<int8_t> handle_types_left,
   }
 
   evaluated_offsets.last() = offset;
+}
+
+Insertion insert(const float3 &point_prev,
+                 const float3 &handle_prev,
+                 const float3 &handle_next,
+                 const float3 &point_next,
+                 float parameter)
+{
+  /* De Casteljau Bezier subdivision. */
+  BLI_assert(parameter <= 1.0f && parameter >= 0.0f);
+
+  const float3 center_point = math::interpolate(handle_prev, handle_next, parameter);
+
+  Insertion result;
+  result.handle_prev = math::interpolate(point_prev, handle_prev, parameter);
+  result.handle_next = math::interpolate(handle_next, point_next, parameter);
+  result.left_handle = math::interpolate(result.handle_prev, center_point, parameter);
+  result.right_handle = math::interpolate(center_point, result.handle_next, parameter);
+  result.position = math::interpolate(result.left_handle, result.right_handle, parameter);
+  return result;
 }
 
 static float3 calculate_aligned_handle(const float3 &position,
@@ -106,11 +125,11 @@ static void calculate_point_handles(const HandleType type_left,
   }
 
   if (type_left == BEZIER_HANDLE_VECTOR) {
-    left = math::interpolate(position, prev_position, 1.0f / 3.0f);
+    left = calculate_vector_handle(position, prev_position);
   }
 
   if (type_right == BEZIER_HANDLE_VECTOR) {
-    right = math::interpolate(position, next_position, 1.0f / 3.0f);
+    right = calculate_vector_handle(position, next_position);
   }
 
   /* When one of the handles is "aligned" handle, it must be aligned with the other, i.e. point in

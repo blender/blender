@@ -73,6 +73,7 @@ def curve_node_items(context):
     yield NodeItem("GeometryNodeCurveLength")
     yield NodeItem("GeometryNodeCurveToMesh")
     yield NodeItem("GeometryNodeCurveToPoints")
+    yield NodeItem("GeometryNodeDeformCurvesOnSurface")
     yield NodeItem("GeometryNodeFillCurve")
     yield NodeItem("GeometryNodeFilletCurve")
     yield NodeItem("GeometryNodeResampleCurve")
@@ -108,6 +109,8 @@ def mesh_node_items(context):
     if not space:
         return
     yield NodeItem("GeometryNodeDualMesh")
+    yield NodeItem("GeometryNodeEdgePathsToCurves")
+    yield NodeItem("GeometryNodeEdgePathsToSelection")
     yield NodeItem("GeometryNodeExtrudeMesh")
     yield NodeItem("GeometryNodeFlipFaces")
     yield NodeItem("GeometryNodeMeshBoolean")
@@ -128,6 +131,7 @@ def mesh_node_items(context):
     yield NodeItem("GeometryNodeInputMeshFaceIsPlanar")
     yield NodeItem("GeometryNodeInputMeshIsland")
     yield NodeItem("GeometryNodeInputShadeSmooth")
+    yield NodeItem("GeometryNodeInputShortestEdgePaths")
     yield NodeItem("GeometryNodeInputMeshVertexNeighbors")
     yield NodeItemCustom(draw=lambda self, layout, context: layout.separator())
     yield NodeItem("GeometryNodeSetShadeSmooth")
@@ -164,8 +168,8 @@ def uv_node_items(context):
     space = context.space_data
     if not space:
         return
-    yield NodeItem("GeometryNodeUVUnwrap")
     yield NodeItem("GeometryNodeUVPackIslands")
+    yield NodeItem("GeometryNodeUVUnwrap")
 
 
 # Custom Menu for Geometry Node Input Nodes.
@@ -665,7 +669,6 @@ geometry_node_categories = [
         NodeItem("GeometryNodeCurvePrimitiveBezierSegment"),
     ]),
     GeometryNodeCategory("GEO_GEOMETRY", "Geometry", items=geometry_node_items),
-    GeometryNodeCategory("GEO_UV", "UV", items=uv_node_items),
     GeometryNodeCategory("GEO_INPUT", "Input", items=geometry_input_node_items),
     GeometryNodeCategory("GEO_INSTANCE", "Instances", items=geometry_instance_node_items),
     GeometryNodeCategory("GEO_MATERIAL", "Material", items=geometry_material_node_items),
@@ -721,6 +724,7 @@ geometry_node_categories = [
         NodeItem("FunctionNodeRandomValue"),
         NodeItem("FunctionNodeAlignEulerToVector"),
     ]),
+    GeometryNodeCategory("GEO_UV", "UV", items=uv_node_items),
     GeometryNodeCategory("GEO_VECTOR", "Vector", items=[
         NodeItem("ShaderNodeVectorCurve"),
         NodeItem("ShaderNodeSeparateXYZ"),

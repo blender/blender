@@ -1027,7 +1027,7 @@ def km_markers(params):
         ("marker.select_box", {"type": 'B', "value": 'PRESS'}, None),
         *_template_items_select_actions(params, "marker.select_all"),
         ("marker.delete", {"type": 'X', "value": 'PRESS'}, None),
-        ("marker.delete", {"type": 'DEL', "value": 'PRESS'}, None),
+        ("marker.delete", {"type": 'DEL', "value": 'PRESS'}, {"properties": [("confirm", False)]}),
         op_panel("TOPBAR_PT_name_marker", {"type": 'F2', "value": 'PRESS'}, [("keep_open", False)]),
         ("marker.move", {"type": 'G', "value": 'PRESS'}, None),
         ("marker.camera_bind", {"type": 'B', "value": 'PRESS', "ctrl": True}, None),
@@ -2578,10 +2578,8 @@ def km_nla_editor(params):
         ("nla.soundclip_add", {"type": 'K', "value": 'PRESS', "shift": True}, None),
         ("nla.meta_add", {"type": 'G', "value": 'PRESS', "ctrl": True}, None),
         ("nla.meta_remove", {"type": 'G', "value": 'PRESS', "ctrl": True, "alt": True}, None),
-        ("nla.duplicate", {"type": 'D', "value": 'PRESS', "shift": True},
-         {"properties": [("linked", False)]}),
-        ("nla.duplicate", {"type": 'D', "value": 'PRESS', "alt": True},
-         {"properties": [("linked", True)]}),
+        ("nla.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
+        ("nla.duplicate_linked_move", {"type": 'D', "value": 'PRESS', "alt": True}, None),
         ("nla.make_single_user", {"type": 'U', "value": 'PRESS'}, None),
         ("nla.delete", {"type": 'X', "value": 'PRESS'}, None),
         ("nla.delete", {"type": 'DEL', "value": 'PRESS'}, None),
@@ -4397,7 +4395,7 @@ def km_face_mask(params):
 
     items.extend([
         *_template_items_select_actions(params, "paint.face_select_all"),
-        *_template_items_hide_reveal_actions("paint.face_select_hide", "paint.face_select_reveal"),
+        *_template_items_hide_reveal_actions("paint.face_select_hide", "paint.face_vert_reveal"),
         ("paint.face_select_linked", {"type": 'L', "value": 'PRESS', "ctrl": True}, None),
         ("paint.face_select_linked_pick", {"type": 'L', "value": 'PRESS'},
          {"properties": [("deselect", False)]}),
@@ -4418,6 +4416,7 @@ def km_weight_paint_vertex_selection(params):
 
     items.extend([
         *_template_items_select_actions(params, "paint.vert_select_all"),
+        *_template_items_hide_reveal_actions("paint.vert_select_hide", "paint.face_vert_reveal"),
         ("view3d.select_box", {"type": 'B', "value": 'PRESS'}, None),
         ("view3d.select_lasso", {"type": params.action_mouse, "value": 'CLICK_DRAG', "ctrl": True},
          {"properties": [("mode", 'ADD')]}),
@@ -5016,6 +5015,7 @@ def km_vertex_paint(params):
         op_menu("VIEW3D_MT_angle_control", {"type": 'R', "value": 'PRESS'}),
         ("wm.context_menu_enum", {"type": 'E', "value": 'PRESS'},
          {"properties": [("data_path", 'tool_settings.vertex_paint.brush.stroke_method')]}),
+        ("paint.face_vert_reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
         *_template_items_context_panel("VIEW3D_PT_paint_vertex_context_menu", params.context_menu_event),
     ])
 
@@ -5063,6 +5063,7 @@ def km_weight_paint(params):
         ("wm.context_toggle", {"type": 'S', "value": 'PRESS', "shift": True},
          {"properties": [("data_path", 'tool_settings.weight_paint.brush.use_smooth_stroke')]}),
         op_menu_pie("VIEW3D_MT_wpaint_vgroup_lock_pie", {"type": 'K', "value": 'PRESS'}),
+        ("paint.face_vert_reveal", {"type": 'H', "value": 'PRESS', "alt": True}, None),
         *_template_items_context_panel("VIEW3D_PT_paint_weight_context_menu", params.context_menu_event),
     ])
 

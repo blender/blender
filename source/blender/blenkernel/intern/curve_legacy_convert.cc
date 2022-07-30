@@ -83,8 +83,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
 
   Curves *curves_id = curves_new_nomain(0, src_curves.size());
   CurvesGeometry &curves = CurvesGeometry::wrap(curves_id->geometry);
-  CurveComponent component;
-  component.replace(curves_id, GeometryOwnershipType::Editable);
+  MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
 
   MutableSpan<int8_t> types = curves.curve_types_for_write();
   MutableSpan<bool> cyclic = curves.cyclic_for_write();
@@ -110,13 +109,13 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
   }
 
   MutableSpan<float3> positions = curves.positions_for_write();
-  OutputAttribute_Typed<float> radius_attribute =
-      component.attribute_try_get_for_output_only<float>("radius", ATTR_DOMAIN_POINT);
-  MutableSpan<float> radii = radius_attribute.as_span();
+  SpanAttributeWriter<float> radius_attribute =
+      curves_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+  MutableSpan<float> radii = radius_attribute.span;
   MutableSpan<float> tilts = curves.tilt_for_write();
 
   auto create_poly = [&](IndexMask selection) {
-    threading::parallel_for(selection.index_range(), 246, [&](IndexRange range) {
+    threading::parallel_for(selection.index_range(), 256, [&](IndexRange range) {
       for (const int curve_i : selection.slice(range)) {
         const Nurb &src_curve = *src_curves[curve_i];
         const Span<BPoint> src_points(src_curve.bp, src_curve.pntsu);
@@ -143,7 +142,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
     MutableSpan<int8_t> handle_types_l = curves.handle_types_left_for_write();
     MutableSpan<int8_t> handle_types_r = curves.handle_types_right_for_write();
 
-    threading::parallel_for(selection.index_range(), 246, [&](IndexRange range) {
+    threading::parallel_for(selection.index_range(), 256, [&](IndexRange range) {
       for (const int curve_i : selection.slice(range)) {
         const Nurb &src_curve = *src_curves[curve_i];
         const Span<BezTriple> src_points(src_curve.bezt, src_curve.pntsu);
@@ -166,12 +165,12 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
   };
 
   auto create_nurbs = [&](IndexMask selection) {
-    threading::parallel_for(selection.index_range(), 246, [&](IndexRange range) {
-      MutableSpan<int> resolutions = curves.resolution_for_write();
-      MutableSpan<float> nurbs_weights = curves.nurbs_weights_for_write();
-      MutableSpan<int8_t> nurbs_orders = curves.nurbs_orders_for_write();
-      MutableSpan<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes_for_write();
+    MutableSpan<int> resolutions = curves.resolution_for_write();
+    MutableSpan<float> nurbs_weights = curves.nurbs_weights_for_write();
+    MutableSpan<int8_t> nurbs_orders = curves.nurbs_orders_for_write();
+    MutableSpan<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes_for_write();
 
+    threading::parallel_for(selection.index_range(), 256, [&](IndexRange range) {
       for (const int curve_i : selection.slice(range)) {
         const Nurb &src_curve = *src_curves[curve_i];
         const Span src_points(src_curve.bp, src_curve.pntsu);
@@ -203,7 +202,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
 
   curves.normal_mode_for_write().fill(normal_mode_from_legacy(curve_legacy.twist_mode));
 
-  radius_attribute.save();
+  radius_attribute.finish();
 
   return curves_id;
 }

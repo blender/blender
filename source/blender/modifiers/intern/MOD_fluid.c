@@ -241,7 +241,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ModifierTypeInfo modifierType_Fluid = {
-    /* name */ "Fluid",
+    /* name */ N_("Fluid"),
     /* structName */ "FluidModifierData",
     /* structSize */ sizeof(FluidModifierData),
     /* srna */ &RNA_FluidModifier,

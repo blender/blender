@@ -4556,7 +4556,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_curve_display_handle_items);
   RNA_def_property_ui_text(
       prop, "Display Handles", "Limit the display of curve handles in edit mode");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
   prop = RNA_def_property(srna, "show_curve_normals", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.edit_flag", V3D_OVERLAY_EDIT_CU_NORMALS);
@@ -5317,6 +5317,7 @@ static void rna_def_space_image_overlay(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_overlays", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", SI_OVERLAY_SHOW_OVERLAYS);
   RNA_def_property_ui_text(prop, "Show Overlays", "Display overlays like UV Maps and Metadata");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
   prop = RNA_def_property(srna, "show_grid_background", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "overlay.flag", SI_OVERLAY_SHOW_GRID_BACKGROUND);
@@ -6603,7 +6604,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
   static const EnumPropertyItem display_size_items[] = {
       {64, "TINY", 0, "Tiny", ""},
       {96, "SMALL", 0, "Small", ""},
-      {128, "NORMAL", 0, "Regular", ""},
+      {128, "NORMAL", 0, "Medium", ""},
       {192, "LARGE", 0, "Large", ""},
       {0, NULL, 0, NULL, NULL},
   };

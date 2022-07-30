@@ -11,6 +11,7 @@ set(INC
   ../../windowmanager
   ../../../../intern/atomic
   ../../../../intern/guardedalloc
+  ../../bmesh
 )
 
 set(INC_SYS

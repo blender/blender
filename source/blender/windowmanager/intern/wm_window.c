@@ -510,7 +510,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
                                       wmWindow *win,
                                       bool is_dialog)
 {
-  /* a new window is created when pageflip mode is required for a window */
+  /* A new window is created when page-flip mode is required for a window. */
   GHOST_GLSettings glSettings = {0};
   if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
     glSettings.flags |= GHOST_glStereoVisual;
@@ -1148,7 +1148,6 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
          */
         GHOST_TEventKeyData kdata = {
             .key = GHOST_kKeyUnknown,
-            .ascii = '\0',
             .utf8_buf = {'\0'},
             .is_repeat = false,
         };
@@ -1363,6 +1362,11 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
         event.type = MOUSEMOVE;
         event.val = KM_NOTHING;
         copy_v2_v2_int(event.prev_xy, event.xy);
+
+        wm_cursor_position_from_ghost_screen_coords(win, &ddd->x, &ddd->y);
+        event.xy[0] = ddd->x;
+        event.xy[1] = ddd->y;
+
         event.flag = 0;
 
         /* No context change! C->wm->windrawable is drawable, or for area queues. */

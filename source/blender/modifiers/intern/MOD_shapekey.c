@@ -9,6 +9,8 @@
 
 #include "BLI_math.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -34,7 +36,7 @@ static void deformVerts(ModifierData *UNUSED(md),
   if (key && key->block.first) {
     int deformedVerts_tot;
     BKE_key_evaluate_object_ex(
-        ctx->object, &deformedVerts_tot, (float *)vertexCos, sizeof(*vertexCos) * verts_num);
+        ctx->object, &deformedVerts_tot, (float *)vertexCos, sizeof(*vertexCos) * verts_num, NULL);
   }
 }
 
@@ -108,7 +110,7 @@ static void deformMatricesEM(ModifierData *UNUSED(md),
 }
 
 ModifierTypeInfo modifierType_ShapeKey = {
-    /* name */ "ShapeKey",
+    /* name */ N_("ShapeKey"),
     /* structName */ "ShapeKeyModifierData",
     /* structSize */ sizeof(ShapeKeyModifierData),
     /* srna */ &RNA_Modifier,

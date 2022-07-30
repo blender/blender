@@ -75,7 +75,8 @@ class MetalDevice : public Device {
   std::vector<id<MTLTexture>> texture_slot_map;
 
   bool use_metalrt = false;
-  bool use_function_specialisation = false;
+  MetalPipelineType kernel_specialization_level = PSO_GENERIC;
+  std::atomic_bool async_compile_and_load = false;
 
   virtual BVHLayoutMask get_bvh_layout_mask() const override;
 
@@ -91,9 +92,7 @@ class MetalDevice : public Device {
 
   bool use_adaptive_compilation();
 
-  string get_source(const uint kernel_features);
-
-  string compile_kernel(const uint kernel_features, const char *name);
+  void make_source(MetalPipelineType pso_type, const uint kernel_features);
 
   virtual bool load_kernels(const uint kernel_features) override;
 
@@ -111,7 +110,9 @@ class MetalDevice : public Device {
 
   virtual void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
 
-  id<MTLLibrary> compile(string const &source);
+  virtual void optimize_for_scene(Scene *scene) override;
+
+  bool compile_and_load(MetalPipelineType pso_type);
 
   /* ------------------------------------------------------------------ */
   /* low-level memory management */

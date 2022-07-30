@@ -189,7 +189,7 @@ void check_gl_error(const char *info)
   case err: { \
     char msg[256]; \
     SNPRINTF(msg, "%s : %s", #err, info); \
-    debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, msg, NULL); \
+    debug_callback(0, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, 0, msg, nullptr); \
     break; \
   }
 

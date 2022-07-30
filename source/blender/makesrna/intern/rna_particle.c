@@ -25,6 +25,7 @@
 #include "RNA_enum_types.h"
 
 #include "BKE_mesh.h"
+#include "BKE_mesh_legacy_convert.h"
 
 #include "BLI_listbase.h"
 

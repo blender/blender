@@ -158,7 +158,7 @@ TEST_F(obj_mtl_parser_test, all_objects)
 
 TEST_F(obj_mtl_parser_test, materials)
 {
-  MTLMaterial mat[5];
+  MTLMaterial mat[6];
   mat[0].name = "no_textures_red";
   mat[0].Ka = {0.3f, 0.3f, 0.3f};
   mat[0].Kd = {0.8f, 0.3f, 0.1f};
@@ -234,6 +234,20 @@ TEST_F(obj_mtl_parser_test, materials)
     tex_map_XX &bump = mat[4].tex_map_of_type(eMTLSyntaxElement::map_Bump);
     bump.image_path = "somebump.tga";
     bump.scale = {3, 4, 5};
+  }
+
+  mat[5].name = "Parser_ScaleOffset_Test";
+  {
+    tex_map_XX &kd = mat[5].tex_map_of_type(eMTLSyntaxElement::map_Kd);
+    kd.translation = {2.5f, 0.0f, 0.0f};
+    kd.image_path = "OffsetOneValue.png";
+    tex_map_XX &ks = mat[5].tex_map_of_type(eMTLSyntaxElement::map_Ks);
+    ks.scale = {1.5f, 2.5f, 1.0f};
+    ks.translation = {3.5f, 4.5f, 0.0f};
+    ks.image_path = "ScaleOffsetBothTwovalues.png";
+    tex_map_XX &ns = mat[5].tex_map_of_type(eMTLSyntaxElement::map_Ns);
+    ns.scale = {0.5f, 1.0f, 1.0f};
+    ns.image_path = "1.Value.png";
   }
 
   check("materials.mtl", mat, ARRAY_SIZE(mat));

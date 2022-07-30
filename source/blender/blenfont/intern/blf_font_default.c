@@ -66,8 +66,6 @@ void BLF_load_font_stack()
           }
           else {
             BLF_enable(font_id, BLF_DEFAULT);
-            /* TODO: FontBLF will later load FT_Face on demand.  When this is in
-             * place we can drop this face now since we have all needed data. */
           }
         }
       }

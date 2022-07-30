@@ -1044,7 +1044,6 @@ Object *multires_dump_grids_bmesh(Object *bmob, BMesh *bm)
   }
 
   BKE_mesh_calc_normals(me);
-  BKE_mesh_tessface_calc(me);
 
   return ob;
 }

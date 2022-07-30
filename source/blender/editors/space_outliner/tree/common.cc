@@ -38,7 +38,7 @@ void outliner_make_object_parent_hierarchy(ListBase *lb)
 {
   /* build hierarchy */
   /* XXX also, set extents here... */
-  TreeElement *te = reinterpret_cast<TreeElement *>(lb->first);
+  TreeElement *te = static_cast<TreeElement *>(lb->first);
   while (te) {
     TreeElement *ten = te->next;
     TreeStoreElem *tselem = TREESTORE(te);

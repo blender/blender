@@ -2318,7 +2318,7 @@ int ui_handler_panel_region(bContext *C,
                             const uiBut *active_but)
 {
   /* Mouse-move events are handled by separate handlers for dragging and drag collapsing. */
-  if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+  if (ISMOUSE_MOTION(event->type)) {
     return WM_UI_HANDLER_CONTINUE;
   }
 

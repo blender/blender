@@ -48,9 +48,8 @@ class RenderBuffers {
  public:
   RenderBuffers(Instance &inst) : inst_(inst){};
 
-  void sync();
   /* Acquires (also ensures) the render buffer before rendering to them. */
-  void acquire(int2 extent, void *owner);
+  void acquire(int2 extent);
   void release();
 };
 

@@ -50,7 +50,7 @@ static bool attribute_search_item_add(uiSearchItems *items, const GeometryAttrib
 }
 
 void attribute_search_add_items(StringRefNull str,
-                                const bool is_output,
+                                const bool can_create_attribute,
                                 Span<const GeometryAttributeInfo *> infos,
                                 uiSearchItems *seach_items,
                                 const bool is_first)
@@ -68,8 +68,12 @@ void attribute_search_add_items(StringRefNull str,
     }
     if (!contained) {
       dummy_info.name = str;
-      UI_search_item_add(
-          seach_items, str.c_str(), &dummy_info, is_output ? ICON_ADD : ICON_NONE, 0, 0);
+      UI_search_item_add(seach_items,
+                         str.c_str(),
+                         &dummy_info,
+                         can_create_attribute ? ICON_ADD : ICON_NONE,
+                         0,
+                         0);
     }
   }
 

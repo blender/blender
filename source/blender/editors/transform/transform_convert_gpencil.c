@@ -672,7 +672,7 @@ static void createTransGPencil_strokes(bContext *C,
   }
 }
 
-void createTransGPencil(bContext *C, TransInfo *t)
+static void createTransGPencil(bContext *C, TransInfo *t)
 {
   if (t->data_container_len == 0) {
     return;
@@ -737,7 +737,7 @@ void createTransGPencil(bContext *C, TransInfo *t)
   }
 }
 
-void recalcData_gpencil_strokes(TransInfo *t)
+static void recalcData_gpencil_strokes(TransInfo *t)
 {
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
   GHash *strokes = BLI_ghash_ptr_new(__func__);
@@ -762,3 +762,10 @@ void recalcData_gpencil_strokes(TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_GPencil = {
+    /* flags */ (T_EDIT | T_POINTS),
+    /* createTransData */ createTransGPencil,
+    /* recalcData */ recalcData_gpencil_strokes,
+    /* special_aftertrans_update */ NULL,
+};

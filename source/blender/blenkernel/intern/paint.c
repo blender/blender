@@ -1011,6 +1011,12 @@ bool BKE_paint_select_elem_test(Object *ob)
   return (BKE_paint_select_vert_test(ob) || BKE_paint_select_face_test(ob));
 }
 
+bool BKE_paint_always_hide_test(Object *ob)
+{
+  return ((ob != NULL) && (ob->type == OB_MESH) && (ob->data != NULL) &&
+          (ob->mode & OB_MODE_WEIGHT_PAINT || ob->mode & OB_MODE_VERTEX_PAINT));
+}
+
 void BKE_paint_cavity_curve_preset(Paint *p, int preset)
 {
   CurveMapping *cumap = NULL;
@@ -1477,10 +1483,8 @@ static void sculptsession_free_pbvh(Object *object)
   MEM_SAFE_FREE(ss->vemap);
   MEM_SAFE_FREE(ss->vemap_mem);
 
-  MEM_SAFE_FREE(ss->preview_vert_index_list);
-  ss->preview_vert_index_count = 0;
-
-  MEM_SAFE_FREE(ss->preview_vert_index_list);
+  MEM_SAFE_FREE(ss->preview_vert_list);
+  ss->preview_vert_count = 0;
 
   MEM_SAFE_FREE(ss->vertex_info.connected_component);
   MEM_SAFE_FREE(ss->vertex_info.boundary);
@@ -2641,6 +2645,12 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg, bool respect
   ss->temp_vdata_elems = BKE_pbvh_get_grid_num_vertices(pbvh);
   ss->temp_pdata_elems = ss->totfaces;
 
+  if (!ss->pmap) {
+    ss->pmap = BKE_pbvh_make_pmap(BKE_object_get_original_mesh(ob));
+  }
+
+  BKE_pbvh_set_pmap(pbvh, ss->pmap);
+
   BKE_sculptsession_check_sculptverts(ob->sculpt, pbvh, BKE_pbvh_get_grid_num_vertices(pbvh));
 
   pbvh_show_mask_set(pbvh, ob->sculpt->show_mask);
@@ -2675,6 +2685,7 @@ static void init_mdyntopo_layer_faces(SculptSession *ss, PBVH *pbvh, int totvert
   BKE_pbvh_set_mdyntopo_verts(pbvh, ss->mdyntopo_verts);
 
   MSculptVert *mv = ss->mdyntopo_verts;
+  const bool is_grid = BKE_pbvh_type(pbvh) == PBVH_GRIDS;
 
   for (int i = 0; i < totvert; i++, mv++) {
     MV_ADD_FLAG(mv,
@@ -2743,13 +2754,7 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   }
 
   Scene *scene = DEG_get_input_scene(depsgraph);
-
-  bool respect_hide = true;
-  if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
-    if (!(BKE_paint_select_vert_test(ob) || BKE_paint_select_face_test(ob))) {
-      respect_hide = false;
-    }
-  }
+  const bool respect_hide = true;
 
   PBVH *pbvh = ob->sculpt->pbvh;
   if (pbvh != NULL) {
@@ -3080,8 +3085,9 @@ BMesh *BKE_sculptsession_empty_bmesh_create()
   return bm;
 }
 
-char dyntopop_node_idx_layer_id[] = "_dyntopo_node_id";
-char dyntopop_faces_areas_layer_id[] = "__dyntopo_face_areas";
+char dyntopo_node_idx_vertex_id[] = "_dyntopo_vnode_id";
+char dyntopo_node_idx_face_id[] = "_dyntopo_fnode_id";
+char dyntopo_faces_areas_layer_id[] = "__dyntopo_face_areas";
 
 void BKE_sculptsession_bmesh_add_layers(Object *ob)
 {
@@ -3092,23 +3098,23 @@ void BKE_sculptsession_bmesh_add_layers(Object *ob)
   BMCustomLayerReq vlayers[] = {
       {CD_PAINT_MASK, NULL, 0},
       {CD_DYNTOPO_VERT, NULL, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
-      {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
+      {CD_PROP_INT32, dyntopo_node_idx_vertex_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY}};
 
   BM_data_layers_ensure(ss->bm, &ss->bm->vdata, vlayers, ARRAY_SIZE(vlayers));
 
   ss->cd_vert_mask_offset = CustomData_get_offset(&ss->bm->vdata, CD_PAINT_MASK);
 
   BMCustomLayerReq flayers[] = {
-      {CD_PROP_INT32, dyntopop_node_idx_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
-      {CD_PROP_FLOAT2, dyntopop_faces_areas_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+      {CD_PROP_INT32, dyntopo_node_idx_face_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
+      {CD_PROP_FLOAT2, dyntopo_faces_areas_layer_id, CD_FLAG_TEMPORARY | CD_FLAG_NOCOPY},
   };
   BM_data_layers_ensure(ss->bm, &ss->bm->pdata, flayers, ARRAY_SIZE(flayers));
 
   // get indices again, as they might have changed after adding new layers
   cd_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->vdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
+      &ss->bm->vdata, CD_PROP_INT32, dyntopo_node_idx_vertex_id);
   cd_face_node_layer_index = CustomData_get_named_layer_index(
-      &ss->bm->pdata, CD_PROP_INT32, dyntopop_node_idx_layer_id);
+      &ss->bm->pdata, CD_PROP_INT32, dyntopo_node_idx_face_id);
 
   ss->cd_sculpt_vert = CustomData_get_offset(&ss->bm->vdata, CD_DYNTOPO_VERT);
 
@@ -3128,7 +3134,7 @@ void BKE_sculptsession_bmesh_add_layers(Object *ob)
   ss->cd_faceset_offset = CustomData_get_offset(&ss->bm->pdata, CD_SCULPT_FACE_SETS);
 
   ss->cd_face_areas = CustomData_get_named_layer_index(
-      &ss->bm->pdata, CD_PROP_FLOAT2, dyntopop_faces_areas_layer_id);
+      &ss->bm->pdata, CD_PROP_FLOAT2, dyntopo_faces_areas_layer_id);
 
   ss->cd_face_areas = ss->bm->pdata.layers[ss->cd_face_areas].offset;
 

@@ -27,6 +27,9 @@ GPU_SHADER_CREATE_INFO(basic_pointcloud)
     .vertex_source("basic_depth_pointcloud_vert.glsl")
     .additional_info("draw_pointcloud");
 
+GPU_SHADER_CREATE_INFO(basic_curves)
+    .vertex_source("basic_depth_curves_vert.glsl")
+    .additional_info("draw_hair");
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -46,7 +49,8 @@ GPU_SHADER_CREATE_INFO(basic_pointcloud)
 
 #define BASIC_OBTYPE_VARIATIONS(prefix, ...) \
   BASIC_CONSERVATIVE_VARIATIONS(prefix##_mesh, "basic_mesh", __VA_ARGS__) \
-  BASIC_CONSERVATIVE_VARIATIONS(prefix##_pointcloud, "basic_pointcloud", __VA_ARGS__)
+  BASIC_CONSERVATIVE_VARIATIONS(prefix##_pointcloud, "basic_pointcloud", __VA_ARGS__) \
+  BASIC_CLIPPING_VARIATIONS(prefix##_curves, "basic_curves", __VA_ARGS__)
 
 /** \} */
 

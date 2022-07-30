@@ -2168,8 +2168,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
   SculptFaceSetIsland *island = NULL;
 
-  if (no_islands && ss->active_face_index.i != PBVH_REF_NONE) {
-    island = SCULPT_face_set_island_get(ss, ss->active_face_index, active_face_set_id);
+  if (no_islands && ss->active_face.i != PBVH_REF_NONE) {
+    island = SCULPT_face_set_island_get(ss, ss->active_face, active_face_set_id);
 
     /* convert PBVHFaceRef list into simple integers, only need to do for pbvh_bmesh*/
     if (island && ss->bm) {
@@ -2842,10 +2842,10 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
   SCULPT_face_random_access_ensure(ss);
 
   if (dot_v3v3(fsecd->start_no, fsecd->start_no) == 0.0f &&
-      ss->active_face_index.i != PBVH_REF_NONE) {
+      ss->active_face.i != PBVH_REF_NONE) {
     float fno[4];
 
-    SCULPT_face_normal_get(ss, ss->active_face_index, fno);
+    SCULPT_face_normal_get(ss, ss->active_face, fno);
     fno[3] = 0.0f;
 
     mul_v4_m4v4(fno, ob->obmat, fno);

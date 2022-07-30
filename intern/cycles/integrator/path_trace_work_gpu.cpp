@@ -181,27 +181,45 @@ void PathTraceWorkGPU::alloc_integrator_queue()
 
 void PathTraceWorkGPU::alloc_integrator_sorting()
 {
+  /* Compute sort partitions, to balance between memory locality and coherence.
+   * Sort partitioning becomes less effective when more shaders are in the wavefront. In lieu of a
+   * more sophisticated heuristic we simply disable sort partitioning if the shader count is high.
+   */
+  num_sort_partitions_ = 1;
+  if (device_scene_->data.max_shaders < 300) {
+    const int num_elements = queue_->num_sort_partition_elements();
+    if (num_elements) {
+      num_sort_partitions_ = max(max_num_paths_ / num_elements, 1);
+    }
+  }
+
+  integrator_state_gpu_.sort_partition_divisor = (int)divide_up(max_num_paths_,
+                                                                num_sort_partitions_);
+
   /* Allocate arrays for shader sorting. */
-  const int max_shaders = device_scene_->data.max_shaders;
-  if (integrator_shader_sort_counter_.size() < max_shaders) {
-    integrator_shader_sort_counter_.alloc(max_shaders);
+  const int sort_buckets = device_scene_->data.max_shaders * num_sort_partitions_;
+  if (integrator_shader_sort_counter_.size() < sort_buckets) {
+    integrator_shader_sort_counter_.alloc(sort_buckets);
     integrator_shader_sort_counter_.zero_to_device();
-
-    integrator_shader_raytrace_sort_counter_.alloc(max_shaders);
-    integrator_shader_raytrace_sort_counter_.zero_to_device();
-
-    integrator_shader_mnee_sort_counter_.alloc(max_shaders);
-    integrator_shader_mnee_sort_counter_.zero_to_device();
-
-    integrator_shader_sort_prefix_sum_.alloc(max_shaders);
-    integrator_shader_sort_prefix_sum_.zero_to_device();
-
     integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE] =
         (int *)integrator_shader_sort_counter_.device_pointer;
-    integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE] =
-        (int *)integrator_shader_raytrace_sort_counter_.device_pointer;
-    integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE] =
-        (int *)integrator_shader_mnee_sort_counter_.device_pointer;
+
+    if (device_scene_->data.kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
+      integrator_shader_raytrace_sort_counter_.alloc(sort_buckets);
+      integrator_shader_raytrace_sort_counter_.zero_to_device();
+      integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE] =
+          (int *)integrator_shader_raytrace_sort_counter_.device_pointer;
+    }
+
+    if (device_scene_->data.kernel_features & KERNEL_FEATURE_MNEE) {
+      integrator_shader_mnee_sort_counter_.alloc(sort_buckets);
+      integrator_shader_mnee_sort_counter_.zero_to_device();
+      integrator_state_gpu_.sort_key_counter[DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE] =
+          (int *)integrator_shader_mnee_sort_counter_.device_pointer;
+    }
+
+    integrator_shader_sort_prefix_sum_.alloc(sort_buckets);
+    integrator_shader_sort_prefix_sum_.zero_to_device();
   }
 }
 
@@ -333,8 +351,12 @@ void PathTraceWorkGPU::enqueue_reset()
   queue_->enqueue(DEVICE_KERNEL_INTEGRATOR_RESET, max_num_paths_, args);
   queue_->zero_to_device(integrator_queue_counter_);
   queue_->zero_to_device(integrator_shader_sort_counter_);
-  queue_->zero_to_device(integrator_shader_raytrace_sort_counter_);
-  queue_->zero_to_device(integrator_shader_mnee_sort_counter_);
+  if (device_scene_->data.kernel_features & KERNEL_FEATURE_NODE_RAYTRACE) {
+    queue_->zero_to_device(integrator_shader_raytrace_sort_counter_);
+  }
+  if (device_scene_->data.kernel_features & KERNEL_FEATURE_MNEE) {
+    queue_->zero_to_device(integrator_shader_mnee_sort_counter_);
+  }
 
   /* Tiles enqueue need to know number of active paths, which is based on this counter. Zero the
    * counter on the host side because `zero_to_device()` is not doing it. */
@@ -486,9 +508,9 @@ void PathTraceWorkGPU::compute_sorted_queued_paths(DeviceKernel kernel,
   /* Compute prefix sum of number of active paths with each shader. */
   {
     const int work_size = 1;
-    int max_shaders = device_scene_->data.max_shaders;
+    int sort_buckets = device_scene_->data.max_shaders * num_sort_partitions_;
 
-    DeviceKernelArguments args(&d_counter, &d_prefix_sum, &max_shaders);
+    DeviceKernelArguments args(&d_counter, &d_prefix_sum, &sort_buckets);
 
     queue_->enqueue(DEVICE_KERNEL_PREFIX_SUM, work_size, args);
   }

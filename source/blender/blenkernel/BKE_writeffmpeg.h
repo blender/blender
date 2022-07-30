@@ -68,7 +68,7 @@ void BKE_ffmpeg_filepath_get(char *string,
                              const char *suffix);
 
 void BKE_ffmpeg_preset_set(struct RenderData *rd, int preset);
-void BKE_ffmpeg_image_type_verify(struct RenderData *rd, struct ImageFormatData *imf);
+void BKE_ffmpeg_image_type_verify(struct RenderData *rd, const struct ImageFormatData *imf);
 bool BKE_ffmpeg_alpha_channel_is_supported(const struct RenderData *rd);
 
 void *BKE_ffmpeg_context_create(void);

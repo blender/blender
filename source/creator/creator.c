@@ -41,13 +41,11 @@
 #include "BKE_global.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_idtype.h"
-#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_node.h"
 #include "BKE_particle.h"
-#include "BKE_pbvh.h"
 #include "BKE_shader_fx.h"
 #include "BKE_sound.h"
 #include "BKE_vfont.h"
@@ -242,6 +240,9 @@ void gmp_blender_init_allocator()
  * - run #WM_main() event loop,
  *   or exit immediately when running in background-mode.
  */
+
+void BKE_pbvh_system_init(void);
+void BKE_pbvh_system_exit(void);
 
 int main(int argc,
 #ifdef WIN32

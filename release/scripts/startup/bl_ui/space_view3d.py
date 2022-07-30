@@ -646,8 +646,8 @@ class VIEW3D_HT_header(Header):
             show_snap = True
         else:
             if (object_mode not in {
-                    'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT',
-                    'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL'
+                    'SCULPT', 'SCULPT_CURVES', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT',
+                    'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL',
             }) or has_pose_mode:
                 show_snap = True
             else:
@@ -756,19 +756,17 @@ class VIEW3D_HT_header(Header):
 
                 row = layout.row(align=True)
 
-                experimental = context.preferences.experimental
-                if experimental.use_new_curves_tools:
-                    # Combine the "use selection" toggle with the "set domain" operators
-                    # to allow turning selection off directly.
-                    domain = curves.selection_domain
-                    if domain == 'POINT':
-                        row.prop(curves, "use_sculpt_selection", text="", icon='CURVE_BEZCIRCLE')
-                    else:
-                        row.operator("curves.set_selection_domain", text="", icon='CURVE_BEZCIRCLE').domain = 'POINT'
-                    if domain == 'CURVE':
-                        row.prop(curves, "use_sculpt_selection", text="", icon='CURVE_PATH')
-                    else:
-                        row.operator("curves.set_selection_domain", text="", icon='CURVE_PATH').domain = 'CURVE'
+                # Combine the "use selection" toggle with the "set domain" operators
+                # to allow turning selection off directly.
+                domain = curves.selection_domain
+                if domain == 'POINT':
+                    row.prop(curves, "use_sculpt_selection", text="", icon='CURVE_BEZCIRCLE')
+                else:
+                    row.operator("curves.set_selection_domain", text="", icon='CURVE_BEZCIRCLE').domain = 'POINT'
+                if domain == 'CURVE':
+                    row.prop(curves, "use_sculpt_selection", text="", icon='CURVE_PATH')
+                else:
+                    row.operator("curves.set_selection_domain", text="", icon='CURVE_PATH').domain = 'CURVE'
 
         # Grease Pencil
         if obj and obj.type == 'GPENCIL' and context.gpencil_data:
@@ -2119,14 +2117,13 @@ class VIEW3D_MT_curve_add(Menu):
         layout.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon='CURVE_NCIRCLE')
         layout.operator("curve.primitive_nurbs_path_add", text="Path", icon='CURVE_PATH')
 
+        layout.separator()
+
+        layout.operator("object.curves_empty_hair_add", text="Empty Hair", icon='CURVES_DATA')
+
         experimental = context.preferences.experimental
-        if experimental.use_new_curves_type:
-            layout.separator()
-
-            layout.operator("object.curves_empty_hair_add", text="Empty Hair", icon='CURVES_DATA')
-
-            if experimental.use_new_curves_tools:
-                layout.operator("object.curves_random_add", text="Random", icon='CURVES_DATA')
+        if experimental.use_new_curves_tools:
+            layout.operator("object.curves_random_add", text="Random", icon='CURVES_DATA')
 
 
 class VIEW3D_MT_surface_add(Menu):
@@ -2363,8 +2360,6 @@ class VIEW3D_MT_object_relations(Menu):
         layout = self.layout
 
         layout.operator("object.make_override_library", text="Make Library Override...")
-        layout.operator("object.make_override_library",
-                        text="Make Library Override - Fully Editable...").do_fully_editable = True
 
         layout.operator("object.make_dupli_face")
 
@@ -6650,6 +6645,7 @@ class VIEW3D_PT_overlay_sculpt_curves(Panel):
         overlay = view.overlay
 
         row = layout.row(align=True)
+        row.active = overlay.show_overlays
         row.prop(overlay, "sculpt_mode_mask_opacity", text="Selection Opacity")
 
 
@@ -7032,13 +7028,13 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
         row.prop(overlay, "use_gpencil_fade_layers", text="")
         sub = row.row()
         sub.active = overlay.use_gpencil_fade_layers
-        sub.prop(overlay, "gpencil_fade_layer", text="Fade Layers", slider=True)
+        sub.prop(overlay, "gpencil_fade_layer", text="Fade Inactive Layers", slider=True)
 
         row = col.row()
         row.prop(overlay, "use_gpencil_fade_objects", text="")
         sub = row.row(align=True)
         sub.active = overlay.use_gpencil_fade_objects
-        sub.prop(overlay, "gpencil_fade_objects", text="Fade Objects", slider=True)
+        sub.prop(overlay, "gpencil_fade_objects", text="Fade Inactive Objects", slider=True)
         sub.prop(overlay, "use_gpencil_fade_gp_objects", text="", icon='OUTLINER_OB_GREASEPENCIL')
 
         if context.object.mode in {'EDIT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL'}:
@@ -7049,18 +7045,17 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
             col.prop(overlay, "use_gpencil_multiedit_line_only", text="Only in Multiframe")
 
             if context.object.mode == 'EDIT_GPENCIL':
+                gpd = context.object.data
                 split = layout.split()
                 col = split.column()
                 col.prop(overlay, "use_gpencil_show_directions")
                 col = split.column()
                 col.prop(overlay, "use_gpencil_show_material_name", text="Material Name")
 
-            layout.prop(overlay, "vertex_opacity", text="Vertex Opacity", slider=True)
-
-            # Handles for Curve Edit
-            if context.object.mode == 'EDIT_GPENCIL':
-                gpd = context.object.data
-                if gpd.use_curve_edit:
+                if not gpd.use_curve_edit:
+                    layout.prop(overlay, "vertex_opacity", text="Vertex Opacity", slider=True)
+                else:
+                    # Handles for Curve Edit
                     layout.prop(overlay, "display_handle", text="Handles")
 
         if context.object.mode in {'PAINT_GPENCIL', 'VERTEX_GPENCIL'}:

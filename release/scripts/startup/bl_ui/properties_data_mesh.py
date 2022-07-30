@@ -58,7 +58,12 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.operator("object.join_shapes")
         layout.operator("object.shape_key_transfer")
         layout.separator()
-        layout.operator("object.shape_key_remove", icon='X', text="Delete All Shape Keys").all = True
+        op = layout.operator("object.shape_key_remove", icon='X', text="Delete All Shape Keys")
+        op.all = True
+        op.apply_mix = False
+        op = layout.operator("object.shape_key_remove", text="Apply All Shape Keys")
+        op.all = True
+        op.apply_mix = True
         layout.separator()
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move to Top").type = 'TOP'
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move to Bottom").type = 'BOTTOM'
@@ -410,6 +415,8 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
                 row = layout.column()
                 row.active = enable_edit_value
                 row.prop(key, "eval_time")
+
+        layout.prop(ob, "add_rest_position_attribute")
 
 
 class DATA_PT_uv_texture(MeshButtonsPanel, Panel):

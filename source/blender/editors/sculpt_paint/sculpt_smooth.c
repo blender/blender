@@ -1420,13 +1420,13 @@ void SCULPT_neighbor_coords_average(SculptSession *ss,
   }
 }
 
-float SCULPT_neighbor_mask_average(SculptSession *ss, PBVHVertRef index)
+float SCULPT_neighbor_mask_average(SculptSession *ss, PBVHVertRef vertex)
 {
   float avg = 0.0f;
   int total = 0;
 
   SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, index, ni) {
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     avg += SCULPT_vertex_mask_get(ss, ni.vertex);
     total++;
   }
@@ -1435,7 +1435,7 @@ float SCULPT_neighbor_mask_average(SculptSession *ss, PBVHVertRef index)
   if (total > 0) {
     return avg / total;
   }
-  return SCULPT_vertex_mask_get(ss, index);
+  return SCULPT_vertex_mask_get(ss, vertex);
 }
 
 void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], PBVHVertRef vertex)
@@ -1702,6 +1702,8 @@ void SCULPT_enhance_details_brush(
         totvert, sizeof(float[3]), "details directions");
 
     for (int i = 0; i < totvert; i++) {
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
+
       float avg[3];
       PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
       float *dir = SCULPT_attr_vertex_data(vertex, &scl);
@@ -2196,7 +2198,7 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
 void SCULPT_surface_smooth_displace_step(SculptSession *ss,
                                          float *co,
                                          SculptCustomLayer *scl,
-                                         const PBVHVertRef v_index,
+                                         const PBVHVertRef vertex,
                                          const float beta,
                                          const float fade)
 {
@@ -2206,15 +2208,16 @@ void SCULPT_surface_smooth_displace_step(SculptSession *ss,
   // int index = BKE_pbvh_vertex_to_index(ss->pbvh, v_index);
 
   SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_index, ni) {
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     add_v3_v3(b_avg, (float *)SCULPT_attr_vertex_data(ni.vertex, scl));
     total++;
   }
+
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   if (total > 0) {
     mul_v3_v3fl(b_current_vertex, b_avg, (1.0f - beta) / total);
-    madd_v3_v3fl(b_current_vertex, (float *)SCULPT_attr_vertex_data(v_index, scl), beta);
+    madd_v3_v3fl(b_current_vertex, (float *)SCULPT_attr_vertex_data(vertex, scl), beta);
     mul_v3_fl(b_current_vertex, clamp_f(fade, 0.0f, 1.0f));
     sub_v3_v3(co, b_current_vertex);
   }

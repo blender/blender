@@ -9,8 +9,7 @@
 
 #pragma once
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct Depsgraph;
 
@@ -24,5 +23,4 @@ void deg_graph_flush_updates(struct Depsgraph *graph);
  */
 void deg_graph_clear_tags(struct Depsgraph *graph);
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

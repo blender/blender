@@ -41,6 +41,7 @@
 #include "WM_types.h"
 
 #include "RNA_access.h"
+#include "RNA_path.h"
 #include "RNA_prototypes.h"
 
 #include "ED_anim_api.h"
@@ -277,7 +278,7 @@ static void graphedit_activekey_update_cb(bContext *UNUSED(C),
 
   /* make sure F-Curve and its handles are still valid after this editing */
   sort_time_fcurve(fcu);
-  calchandles_fcurve(fcu);
+  BKE_fcurve_handles_recalc(fcu);
 }
 
 /* update callback for active keyframe properties - handle-editing wrapper */

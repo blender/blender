@@ -692,10 +692,6 @@ static void cloth_brush_add_length_constraint(SculptSession *ss,
                                               const bool use_persistent)
 {
   SculptClothLengthConstraint *length_constraint = cloth_add_constraint(cloth_sim, CON_LENGTH);
-  PBVHVertRef v1, v2;
-
-  v1 = BKE_pbvh_index_to_vertex(ss->pbvh, v1i);
-  v2 = BKE_pbvh_index_to_vertex(ss->pbvh, v2i);
 
   length_constraint->elems[0].index = PACK_POS_TYPE(v1i, CLOTH_POS_POS);
   length_constraint->elems[1].index = PACK_POS_TYPE(v2i, CLOTH_POS_POS);
@@ -709,13 +705,16 @@ static void cloth_brush_add_length_constraint(SculptSession *ss,
 
   length_constraint->type = SCULPT_CLOTH_CONSTRAINT_STRUCTURAL;
 
+  PBVHVertRef vertex1 = BKE_pbvh_index_to_vertex(ss->pbvh, v1i);
+  PBVHVertRef vertex2 = BKE_pbvh_index_to_vertex(ss->pbvh, v2i);
+
   if (use_persistent) {
-    length_constraint->length = len_v3v3(SCULPT_vertex_persistent_co_get(ss, v1),
-                                         SCULPT_vertex_persistent_co_get(ss, v2));
+    length_constraint->length = len_v3v3(SCULPT_vertex_persistent_co_get(ss, vertex1),
+                                         SCULPT_vertex_persistent_co_get(ss, vertex2));
   }
   else {
-    length_constraint->length = len_v3v3(SCULPT_vertex_co_get(ss, v1),
-                                         SCULPT_vertex_co_get(ss, v2));
+    length_constraint->length = len_v3v3(SCULPT_vertex_co_get(ss, vertex1),
+                                         SCULPT_vertex_co_get(ss, vertex2));
   }
   length_constraint->strength = 1.0f;
 
@@ -860,7 +859,6 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
 
       build_indices[tot_indices] = vd.index;
       tot_indices++;
-
       SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
         build_indices[tot_indices] = ni.index;
 
@@ -1432,13 +1430,17 @@ static void do_cloth_brush_apply_forces_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static ListBase *cloth_brush_collider_cache_create(Depsgraph *depsgraph)
+static ListBase *cloth_brush_collider_cache_create(Object *object, Depsgraph *depsgraph)
 {
   ListBase *cache = NULL;
   DEG_OBJECT_ITER_BEGIN (depsgraph,
                          ob,
                          DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY | DEG_ITER_OBJECT_FLAG_VISIBLE |
                              DEG_ITER_OBJECT_FLAG_DUPLI) {
+    if (STREQ(object->id.name, ob->id.name)) {
+      continue;
+    }
+
     CollisionModifierData *cmd = (CollisionModifierData *)BKE_modifiers_findby_type(
         ob, eModifierType_Collision);
     if (!cmd) {
@@ -2238,7 +2240,7 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
   cloth_sim->softbody_strength = cloth_softbody_strength;
 
   if (use_collisions) {
-    cloth_sim->collider_list = cloth_brush_collider_cache_create(ss->depsgraph);
+    cloth_sim->collider_list = cloth_brush_collider_cache_create(ob, ss->depsgraph);
   }
 
   cloth_sim_initialize_default_node_state(ss, cloth_sim);

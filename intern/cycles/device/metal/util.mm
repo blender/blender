@@ -72,6 +72,21 @@ MetalGPUVendor MetalInfo::get_device_vendor(id<MTLDevice> device)
   return METAL_GPU_UNKNOWN;
 }
 
+int MetalInfo::optimal_sort_partition_elements(id<MTLDevice> device)
+{
+  if (auto str = getenv("CYCLES_METAL_SORT_PARTITION_ELEMENTS")) {
+    return atoi(str);
+  }
+
+  /* On M1 and M2 GPUs, we see better cache utilization if we partition the active indices before
+   * sorting each partition by material. Partitioning into chunks of 65536 elements results in an
+   * overall render time speedup of up to 15%. */
+  if (get_device_vendor(device) == METAL_GPU_APPLE) {
+    return 65536;
+  }
+  return 0;
+}
+
 vector<id<MTLDevice>> const &MetalInfo::get_usable_devices()
 {
   static vector<id<MTLDevice>> usable_devices;

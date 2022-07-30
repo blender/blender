@@ -34,8 +34,8 @@ static eOpenSubdivEvaluator opensubdiv_evalutor_from_subdiv_evaluator_type(
     case SUBDIV_EVALUATOR_TYPE_CPU: {
       return OPENSUBDIV_EVALUATOR_CPU;
     }
-    case SUBDIV_EVALUATOR_TYPE_GLSL_COMPUTE: {
-      return OPENSUBDIV_EVALUATOR_GLSL_COMPUTE;
+    case SUBDIV_EVALUATOR_TYPE_GPU: {
+      return OPENSUBDIV_EVALUATOR_GPU;
     }
   }
   BLI_assert_msg(0, "Unknown evaluator type");

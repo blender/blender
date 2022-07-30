@@ -21,13 +21,9 @@
 
 #  include "bvh/embree.h"
 
-/* Kernel includes are necessary so that the filter function for Embree can access the packed BVH.
- */
-#  include "kernel/bvh/embree.h"
-#  include "kernel/bvh/util.h"
+#  include "kernel/device/cpu/bvh.h"
 #  include "kernel/device/cpu/compat.h"
 #  include "kernel/device/cpu/globals.h"
-#  include "kernel/sample/lcg.h"
 
 #  include "scene/hair.h"
 #  include "scene/mesh.h"
@@ -45,265 +41,6 @@ static_assert(Object::MAX_MOTION_STEPS <= RTC_MAX_TIME_STEP_COUNT,
               "Object and Embree max motion steps inconsistent");
 static_assert(Object::MAX_MOTION_STEPS == Geometry::MAX_MOTION_STEPS,
               "Object and Geometry max motion steps inconsistent");
-
-#  define IS_HAIR(x) (x & 1)
-
-/* This gets called by Embree at every valid ray/object intersection.
- * Things like recording subsurface or shadow hits for later evaluation
- * as well as filtering for volume objects happen here.
- * Cycles' own BVH does that directly inside the traversal calls.
- */
-static void rtc_filter_intersection_func(const RTCFilterFunctionNArguments *args)
-{
-  /* Current implementation in Cycles assumes only single-ray intersection queries. */
-  assert(args->N == 1);
-
-  RTCHit *hit = (RTCHit *)args->hit;
-  CCLIntersectContext *ctx = ((IntersectContext *)args->context)->userRayExt;
-  const KernelGlobalsCPU *kg = ctx->kg;
-  const Ray *cray = ctx->ray;
-
-  if (kernel_embree_is_self_intersection(kg, hit, cray)) {
-    *args->valid = 0;
-  }
-}
-
-/* This gets called by Embree at every valid ray/object intersection.
- * Things like recording subsurface or shadow hits for later evaluation
- * as well as filtering for volume objects happen here.
- * Cycles' own BVH does that directly inside the traversal calls.
- */
-static void rtc_filter_occluded_func(const RTCFilterFunctionNArguments *args)
-{
-  /* Current implementation in Cycles assumes only single-ray intersection queries. */
-  assert(args->N == 1);
-
-  const RTCRay *ray = (RTCRay *)args->ray;
-  RTCHit *hit = (RTCHit *)args->hit;
-  CCLIntersectContext *ctx = ((IntersectContext *)args->context)->userRayExt;
-  const KernelGlobalsCPU *kg = ctx->kg;
-  const Ray *cray = ctx->ray;
-
-  switch (ctx->type) {
-    case CCLIntersectContext::RAY_SHADOW_ALL: {
-      Intersection current_isect;
-      kernel_embree_convert_hit(kg, ray, hit, &current_isect);
-      if (intersection_skip_self_shadow(cray->self, current_isect.object, current_isect.prim)) {
-        *args->valid = 0;
-        return;
-      }
-      /* If no transparent shadows or max number of hits exceeded, all light is blocked. */
-      const int flags = intersection_get_shader_flags(kg, current_isect.prim, current_isect.type);
-      if (!(flags & (SD_HAS_TRANSPARENT_SHADOW)) || ctx->num_hits >= ctx->max_hits) {
-        ctx->opaque_hit = true;
-        return;
-      }
-
-      ++ctx->num_hits;
-
-      /* Always use baked shadow transparency for curves. */
-      if (current_isect.type & PRIMITIVE_CURVE) {
-        ctx->throughput *= intersection_curve_shadow_transparency(
-            kg, current_isect.object, current_isect.prim, current_isect.u);
-
-        if (ctx->throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
-          ctx->opaque_hit = true;
-          return;
-        }
-        else {
-          *args->valid = 0;
-          return;
-        }
-      }
-
-      /* Test if we need to record this transparent intersection. */
-      const uint max_record_hits = min(ctx->max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
-      if (ctx->num_recorded_hits < max_record_hits || ray->tfar < ctx->max_t) {
-        /* If maximum number of hits was reached, replace the intersection with the
-         * highest distance. We want to find the N closest intersections. */
-        const uint num_recorded_hits = min(ctx->num_recorded_hits, max_record_hits);
-        uint isect_index = num_recorded_hits;
-        if (num_recorded_hits + 1 >= max_record_hits) {
-          float max_t = ctx->isect_s[0].t;
-          uint max_recorded_hit = 0;
-
-          for (uint i = 1; i < num_recorded_hits; ++i) {
-            if (ctx->isect_s[i].t > max_t) {
-              max_recorded_hit = i;
-              max_t = ctx->isect_s[i].t;
-            }
-          }
-
-          if (num_recorded_hits >= max_record_hits) {
-            isect_index = max_recorded_hit;
-          }
-
-          /* Limit the ray distance and stop counting hits beyond this.
-           * TODO: is there some way we can tell Embree to stop intersecting beyond
-           * this distance when max number of hits is reached?. Or maybe it will
-           * become irrelevant if we make max_hits a very high number on the CPU. */
-          ctx->max_t = max(current_isect.t, max_t);
-        }
-
-        ctx->isect_s[isect_index] = current_isect;
-      }
-
-      /* Always increase the number of recorded hits, even beyond the maximum,
-       * so that we can detect this and trace another ray if needed. */
-      ++ctx->num_recorded_hits;
-
-      /* This tells Embree to continue tracing. */
-      *args->valid = 0;
-      break;
-    }
-    case CCLIntersectContext::RAY_LOCAL:
-    case CCLIntersectContext::RAY_SSS: {
-      /* Check if it's hitting the correct object. */
-      Intersection current_isect;
-      if (ctx->type == CCLIntersectContext::RAY_SSS) {
-        kernel_embree_convert_sss_hit(kg, ray, hit, &current_isect, ctx->local_object_id);
-      }
-      else {
-        kernel_embree_convert_hit(kg, ray, hit, &current_isect);
-        if (ctx->local_object_id != current_isect.object) {
-          /* This tells Embree to continue tracing. */
-          *args->valid = 0;
-          break;
-        }
-      }
-      if (intersection_skip_self_local(cray->self, current_isect.prim)) {
-        *args->valid = 0;
-        return;
-      }
-
-      /* No intersection information requested, just return a hit. */
-      if (ctx->max_hits == 0) {
-        break;
-      }
-
-      /* Ignore curves. */
-      if (IS_HAIR(hit->geomID)) {
-        /* This tells Embree to continue tracing. */
-        *args->valid = 0;
-        break;
-      }
-
-      LocalIntersection *local_isect = ctx->local_isect;
-      int hit_idx = 0;
-
-      if (ctx->lcg_state) {
-        /* See triangle_intersect_subsurface() for the native equivalent. */
-        for (int i = min((int)ctx->max_hits, local_isect->num_hits) - 1; i >= 0; --i) {
-          if (local_isect->hits[i].t == ray->tfar) {
-            /* This tells Embree to continue tracing. */
-            *args->valid = 0;
-            return;
-          }
-        }
-
-        local_isect->num_hits++;
-
-        if (local_isect->num_hits <= ctx->max_hits) {
-          hit_idx = local_isect->num_hits - 1;
-        }
-        else {
-          /* reservoir sampling: if we are at the maximum number of
-           * hits, randomly replace element or skip it */
-          hit_idx = lcg_step_uint(ctx->lcg_state) % local_isect->num_hits;
-
-          if (hit_idx >= ctx->max_hits) {
-            /* This tells Embree to continue tracing. */
-            *args->valid = 0;
-            return;
-          }
-        }
-      }
-      else {
-        /* Record closest intersection only. */
-        if (local_isect->num_hits && current_isect.t > local_isect->hits[0].t) {
-          *args->valid = 0;
-          return;
-        }
-
-        local_isect->num_hits = 1;
-      }
-
-      /* record intersection */
-      local_isect->hits[hit_idx] = current_isect;
-      local_isect->Ng[hit_idx] = normalize(make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z));
-      /* This tells Embree to continue tracing. */
-      *args->valid = 0;
-      break;
-    }
-    case CCLIntersectContext::RAY_VOLUME_ALL: {
-      /* Append the intersection to the end of the array. */
-      if (ctx->num_hits < ctx->max_hits) {
-        Intersection current_isect;
-        kernel_embree_convert_hit(kg, ray, hit, &current_isect);
-        if (intersection_skip_self(cray->self, current_isect.object, current_isect.prim)) {
-          *args->valid = 0;
-          return;
-        }
-
-        Intersection *isect = &ctx->isect_s[ctx->num_hits];
-        ++ctx->num_hits;
-        *isect = current_isect;
-        /* Only primitives from volume object. */
-        uint tri_object = isect->object;
-        int object_flag = kernel_data_fetch(object_flag, tri_object);
-        if ((object_flag & SD_OBJECT_HAS_VOLUME) == 0) {
-          --ctx->num_hits;
-        }
-        /* This tells Embree to continue tracing. */
-        *args->valid = 0;
-      }
-      break;
-    }
-    case CCLIntersectContext::RAY_REGULAR:
-    default:
-      if (kernel_embree_is_self_intersection(kg, hit, cray)) {
-        *args->valid = 0;
-        return;
-      }
-      break;
-  }
-}
-
-static void rtc_filter_func_backface_cull(const RTCFilterFunctionNArguments *args)
-{
-  const RTCRay *ray = (RTCRay *)args->ray;
-  RTCHit *hit = (RTCHit *)args->hit;
-
-  /* Always ignore back-facing intersections. */
-  if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
-          make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
-    *args->valid = 0;
-    return;
-  }
-
-  CCLIntersectContext *ctx = ((IntersectContext *)args->context)->userRayExt;
-  const KernelGlobalsCPU *kg = ctx->kg;
-  const Ray *cray = ctx->ray;
-
-  if (kernel_embree_is_self_intersection(kg, hit, cray)) {
-    *args->valid = 0;
-  }
-}
-
-static void rtc_filter_occluded_func_backface_cull(const RTCFilterFunctionNArguments *args)
-{
-  const RTCRay *ray = (RTCRay *)args->ray;
-  RTCHit *hit = (RTCHit *)args->hit;
-
-  /* Always ignore back-facing intersections. */
-  if (dot(make_float3(ray->dir_x, ray->dir_y, ray->dir_z),
-          make_float3(hit->Ng_x, hit->Ng_y, hit->Ng_z)) > 0.0f) {
-    *args->valid = 0;
-    return;
-  }
-
-  rtc_filter_occluded_func(args);
-}
 
 static size_t unaccounted_mem = 0;
 
@@ -535,8 +272,8 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
   set_tri_vertex_buffer(geom_id, mesh, false);
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
-  rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func);
-  rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_intersection_func);
+  rtcSetGeometryOccludedFilterFunction(geom_id, kernel_embree_filter_occluded_func);
+  rtcSetGeometryIntersectFilterFunction(geom_id, kernel_embree_filter_intersection_func);
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
 
   rtcCommitGeometry(geom_id);
@@ -739,8 +476,8 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, int i
   set_point_vertex_buffer(geom_id, pointcloud, false);
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
-  rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_func_backface_cull);
-  rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func_backface_cull);
+  rtcSetGeometryIntersectFilterFunction(geom_id, kernel_embree_filter_func_backface_cull);
+  rtcSetGeometryOccludedFilterFunction(geom_id, kernel_embree_filter_occluded_func_backface_cull);
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
 
   rtcCommitGeometry(geom_id);
@@ -799,12 +536,13 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   if (hair->curve_shape == CURVE_RIBBON) {
-    rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_intersection_func);
-    rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func);
+    rtcSetGeometryIntersectFilterFunction(geom_id, kernel_embree_filter_intersection_func);
+    rtcSetGeometryOccludedFilterFunction(geom_id, kernel_embree_filter_occluded_func);
   }
   else {
-    rtcSetGeometryIntersectFilterFunction(geom_id, rtc_filter_func_backface_cull);
-    rtcSetGeometryOccludedFilterFunction(geom_id, rtc_filter_occluded_func_backface_cull);
+    rtcSetGeometryIntersectFilterFunction(geom_id, kernel_embree_filter_func_backface_cull);
+    rtcSetGeometryOccludedFilterFunction(geom_id,
+                                         kernel_embree_filter_occluded_func_backface_cull);
   }
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
 

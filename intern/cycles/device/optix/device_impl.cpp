@@ -26,7 +26,6 @@
 #  include "util/task.h"
 #  include "util/time.h"
 
-#  undef __KERNEL_CPU__
 #  define __KERNEL_OPTIX__
 #  include "kernel/device/optix/globals.h"
 
@@ -2047,7 +2046,7 @@ void OptiXDevice::const_copy_to(const char *name, void *host, size_t size)
 
     /* Update traversable handle (since it is different for each device on multi devices). */
     KernelData *const data = (KernelData *)host;
-    *(OptixTraversableHandle *)&data->bvh.scene = tlas_handle;
+    *(OptixTraversableHandle *)&data->device_bvh = tlas_handle;
 
     update_launch_params(offsetof(KernelParamsOptiX, data), host, size);
     return;

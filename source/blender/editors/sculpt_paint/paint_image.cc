@@ -125,7 +125,7 @@ void ED_imapaint_dirty_region(
 
   imapaint_region_tiles(ibuf, x, y, w, h, &tilex, &tiley, &tilew, &tileh);
 
-  ListBase *undo_tiles = ED_image_paint_tile_list_get();
+  PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
 
   for (ty = tiley; ty <= tileh; ty++) {
     for (tx = tilex; tx <= tilew; tx++) {
@@ -276,10 +276,11 @@ static bool image_paint_poll_ex(bContext *C, bool check_tool)
           (ID_IS_LINKED(sima->image) || ID_IS_OVERRIDE_LIBRARY(sima->image))) {
         return false;
       }
-      ARegion *region = CTX_wm_region(C);
-
-      if ((sima->mode == SI_MODE_PAINT) && region->regiontype == RGN_TYPE_WINDOW) {
-        return true;
+      if (sima->mode == SI_MODE_PAINT) {
+        const ARegion *region = CTX_wm_region(C);
+        if (region->regiontype == RGN_TYPE_WINDOW) {
+          return true;
+        }
       }
     }
   }

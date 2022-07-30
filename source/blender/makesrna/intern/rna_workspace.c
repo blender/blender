@@ -413,6 +413,14 @@ static void rna_def_workspace(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Object Mode", "Switch to this object mode when activating the workspace");
 
+  prop = RNA_def_property(srna, "use_pin_scene", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flags", WORKSPACE_USE_PIN_SCENE);
+  RNA_def_property_ui_text(prop,
+                           "Pin Scene",
+                           "Remember the last used scene for the workspace and switch to it "
+                           "whenever this workspace is activated again");
+  RNA_def_property_update(prop, NC_WORKSPACE, NULL);
+
   /* Flags */
   prop = RNA_def_property(srna, "use_filter_by_owner", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

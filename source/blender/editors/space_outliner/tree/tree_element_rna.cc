@@ -117,7 +117,7 @@ void TreeElementRNAStruct::expand(SpaceOutliner &space_outliner) const
     for (int index = 0; index < tot; index++) {
       PointerRNA propptr;
       RNA_property_collection_lookup_int(&ptr, iterprop, index, &propptr);
-      if (!(RNA_property_flag(reinterpret_cast<PropertyRNA *>(propptr.data)) & PROP_HIDDEN)) {
+      if (!(RNA_property_flag(static_cast<PropertyRNA *>(propptr.data)) & PROP_HIDDEN)) {
         outliner_add_element(
             &space_outliner, &legacy_te_.subtree, &ptr, &legacy_te_, TSE_RNA_PROPERTY, index);
       }
@@ -146,7 +146,7 @@ TreeElementRNAProperty::TreeElementRNAProperty(TreeElement &legacy_te,
   PropertyRNA *iterprop = RNA_struct_iterator_property(rna_ptr.type);
   RNA_property_collection_lookup_int(&rna_ptr, iterprop, index, &propptr);
 
-  PropertyRNA *prop = reinterpret_cast<PropertyRNA *>(propptr.data);
+  PropertyRNA *prop = static_cast<PropertyRNA *>(propptr.data);
 
   legacy_te_.name = RNA_property_ui_name(prop);
   rna_prop_ = prop;
@@ -232,8 +232,7 @@ TreeElementRNAArrayElement::TreeElementRNAArrayElement(TreeElement &legacy_te,
 
   char c = RNA_property_array_item_char(TreeElementRNAArrayElement::getPropertyRNA(), index);
 
-  legacy_te_.name = reinterpret_cast<char *>(
-      MEM_callocN(sizeof(char[20]), "OutlinerRNAArrayName"));
+  legacy_te_.name = static_cast<char *>(MEM_callocN(sizeof(char[20]), "OutlinerRNAArrayName"));
   if (c) {
     sprintf((char *)legacy_te_.name, "  %c", c);
   }

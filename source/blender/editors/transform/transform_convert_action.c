@@ -289,7 +289,7 @@ static int MaskLayerToTransData(TransData *td,
   return count;
 }
 
-void createTransActionData(bContext *C, TransInfo *t)
+static void createTransActionData(bContext *C, TransInfo *t)
 {
   Scene *scene = t->scene;
   TransData *td = NULL;
@@ -565,7 +565,7 @@ static void flushTransIntFrameActionData(TransInfo *t)
   }
 }
 
-void recalcData_actedit(TransInfo *t)
+static void recalcData_actedit(TransInfo *t)
 {
   ViewLayer *view_layer = t->view_layer;
   SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
@@ -759,7 +759,7 @@ static void posttrans_action_clean(bAnimContext *ac, bAction *act)
   ANIM_animdata_freelist(&anim_data);
 }
 
-void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
+static void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 {
   SpaceAction *saction = (SpaceAction *)t->area->spacedata.first;
   bAnimContext ac;
@@ -926,3 +926,10 @@ void special_aftertrans_update__actedit(bContext *C, TransInfo *t)
 }
 
 /** \} */
+
+TransConvertTypeInfo TransConvertType_Action = {
+    /* flags */ (T_POINTS | T_2D_EDIT),
+    /* createTransData */ createTransActionData,
+    /* recalcData */ recalcData_actedit,
+    /* special_aftertrans_update */ special_aftertrans_update__actedit,
+};

@@ -887,7 +887,6 @@ bool DRW_object_is_in_edit_mode(const struct Object *ob);
  * we are rendering or drawing in the viewport.
  */
 int DRW_object_visibility_in_active_context(const struct Object *ob);
-bool DRW_object_is_flat_normal(const struct Object *ob);
 bool DRW_object_use_hide_faces(const struct Object *ob);
 
 bool DRW_object_is_visible_psys_in_active_context(const struct Object *object,

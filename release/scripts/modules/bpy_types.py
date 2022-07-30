@@ -56,6 +56,21 @@ class Context(StructRNA):
         if value is None:
             return value
 
+        # If the attribute is a list property, apply subscripting.
+        if isinstance(value, list) and path_rest.startswith("["):
+            index_str, div, index_tail = path_rest[1:].partition("]")
+            if not div:
+                raise ValueError("Path index is not terminated: %s%s" % (attr, path_rest))
+            try:
+                index = int(index_str)
+            except ValueError:
+                raise ValueError("Path index is invalid: %s[%s]" % (attr, index_str))
+            if 0 <= index < len(value):
+                path_rest = index_tail
+                value = value[index]
+            else:
+                raise IndexError("Path index out of range: %s[%s]" % (attr, index_str))
+
         # Resolve the rest of the path if necessary.
         if path_rest:
             path_resolve_fn = getattr(value, "path_resolve", None)

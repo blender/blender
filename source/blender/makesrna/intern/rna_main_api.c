@@ -749,7 +749,6 @@ static bGPdata *rna_Main_gpencils_new(Main *bmain, const char *name)
   return gpd;
 }
 
-#  ifdef WITH_NEW_CURVES_TYPE
 static Curves *rna_Main_hair_curves_new(Main *bmain, const char *name)
 {
   char safe_name[MAX_ID_NAME - 2];
@@ -762,7 +761,6 @@ static Curves *rna_Main_hair_curves_new(Main *bmain, const char *name)
 
   return curves;
 }
-#  endif
 
 static PointCloud *rna_Main_pointclouds_new(Main *bmain, const char *name)
 {
@@ -847,9 +845,7 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(cachefiles, cachefiles, ID_CF)
 RNA_MAIN_ID_TAG_FUNCS_DEF(paintcurves, paintcurves, ID_PC)
 RNA_MAIN_ID_TAG_FUNCS_DEF(workspaces, workspaces, ID_WS)
 RNA_MAIN_ID_TAG_FUNCS_DEF(lightprobes, lightprobes, ID_LP)
-#  ifdef WITH_NEW_CURVES_TYPE
 RNA_MAIN_ID_TAG_FUNCS_DEF(hair_curves, hair_curves, ID_CV)
-#  endif
 RNA_MAIN_ID_TAG_FUNCS_DEF(pointclouds, pointclouds, ID_PT)
 RNA_MAIN_ID_TAG_FUNCS_DEF(volumes, volumes, ID_VO)
 #  ifdef WITH_SIMULATION_DATABLOCK
@@ -2255,7 +2251,6 @@ void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
-#  ifdef WITH_NEW_CURVES_TYPE
 void RNA_def_main_hair_curves(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
@@ -2299,7 +2294,6 @@ void RNA_def_main_hair_curves(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_boolean(func, "value", 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
-#  endif
 
 void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop)
 {

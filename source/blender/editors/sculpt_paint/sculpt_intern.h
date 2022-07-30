@@ -229,7 +229,7 @@ typedef struct SculptUndoNode {
   int totloop;
 
   /* non-multires */
-  int maxvert;          /* to verify if totvert it still the same */
+  int maxvert;        /* to verify if totvert it still the same */
   PBVHVertRef *index; /* to restore into right location */
   int maxloop;
   int *loop_index;
@@ -1128,7 +1128,10 @@ void SCULPT_tag_update_overlays(bContext *C);
  * (This allows us to ignore the GL depth buffer)
  * Returns 0 if the ray doesn't hit the mesh, non-zero otherwise.
  */
-bool SCULPT_stroke_get_location(struct bContext *C, float out[3], const float mouse[2]);
+bool SCULPT_stroke_get_location(struct bContext *C,
+                                float out[3],
+                                const float mouse[2],
+                                bool force_original);
 /**
  * Gets the normal, location and active vertex location of the geometry under the cursor. This
  * also updates the active vertex and cursor related data of the SculptSession using the mouse
@@ -1459,10 +1462,10 @@ void SCULPT_calc_area_center(
     Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float r_area_co[3]);
 
 PBVHVertRef SCULPT_nearest_vertex_get(struct Sculpt *sd,
-                                        struct Object *ob,
-                                        const float co[3],
-                                        float max_distance,
-                                        bool use_original);
+                                      struct Object *ob,
+                                      const float co[3],
+                                      float max_distance,
+                                      bool use_original);
 
 int SCULPT_plane_point_side(const float co[3], const float plane[4]);
 int SCULPT_plane_trim(const struct StrokeCache *cache,
@@ -1692,9 +1695,7 @@ float *SCULPT_geodesic_from_vertex_and_symm(struct Sculpt *sd,
                                             struct Object *ob,
                                             const PBVHVertRef vertex,
                                             const float limit_radius);
-float *SCULPT_geodesic_from_vertex(Object *ob,
-                                   const PBVHVertRef vertex,
-                                   const float limit_radius);
+float *SCULPT_geodesic_from_vertex(Object *ob, const PBVHVertRef vertex, const float limit_radius);
 
 /** \} */
 
@@ -2327,8 +2328,8 @@ void SCULPT_edge_get_verts(const SculptSession *ss,
                            PBVHVertRef *r_v1,
                            PBVHVertRef *r_v2);
 PBVHVertRef SCULPT_edge_other_vertex(const SculptSession *ss,
-                                       const PBVHEdgeRef edge,
-                                       const PBVHVertRef vertex);
+                                     const PBVHEdgeRef edge,
+                                     const PBVHVertRef vertex);
 
 #define SCULPT_REPLAY
 #ifdef SCULPT_REPLAY
@@ -2420,8 +2421,7 @@ void SCULPT_update_customdata_refs(SculptSession *ss, Object *ob);
  * layer is actually freed */
 void SCULPT_clear_scl_pointers(SculptSession *ss);
 
-static inline void *SCULPT_attr_vertex_data(const PBVHVertRef vertex,
-                                            const SculptCustomLayer *scl)
+static inline void *SCULPT_attr_vertex_data(const PBVHVertRef vertex, const SculptCustomLayer *scl)
 {
   if (scl->data) {
     char *p = (char *)scl->data;

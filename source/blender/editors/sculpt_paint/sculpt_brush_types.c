@@ -3515,6 +3515,7 @@ static void do_fairing_brush_displace_task_cb_ex(void *__restrict userdata,
     mul_v3_fl(disp, *(float *)SCULPT_attr_vertex_data(vd.vertex, ss->scl.fairing_fade));
     copy_v3_v3(vd.co, SCULPT_attr_vertex_data(vd.vertex, ss->scl.prefairing_co));
     add_v3_v3(vd.co, disp);
+
     if (vd.mvert) {
       BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }

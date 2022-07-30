@@ -18,6 +18,7 @@
 #include "DNA_object_enums.h"
 
 #include "BKE_attribute.h"
+#include "BKE_pbvh.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -208,6 +209,11 @@ bool BKE_paint_select_vert_test(struct Object *ob);
  * (when we don't care if its face or vert)
  */
 bool BKE_paint_select_elem_test(struct Object *ob);
+/**
+ * Checks if face/vertex hiding is always applied in the current mode.
+ * Returns true in vertex/weight paint.
+ */
+bool BKE_paint_always_hide_test(struct Object *ob);
 
 /* Partial visibility. */
 
@@ -505,8 +511,7 @@ typedef struct StoredCotangentW {
 typedef struct SculptBoundary {
   /* Vertex indices of the active boundary. */
   PBVHVertRef *vertices;
-  int *vertex_indices;
-
+  int *vertices_i;
   int vertices_capacity;
   int num_vertices;
 
@@ -533,6 +538,7 @@ typedef struct SculptBoundary {
 
   /* Initial vertex in the boundary which is closest to the current sculpt active vertex. */
   PBVHVertRef initial_vertex;
+  int initial_vertex_i;
 
   /* Vertex that at max_propagation_steps from the boundary and closest to the original active
    * vertex that was used to initialize the boundary. This is used as a reference to check how much
@@ -801,8 +807,8 @@ typedef struct SculptSession {
   struct ExpandCache *expand_cache;
 
   /* Cursor data and active vertex for tools */
-  PBVHVertRef active_vertex_index;
-  PBVHFaceRef active_face_index;
+  PBVHVertRef active_vertex;
+  PBVHFaceRef active_face;
 
   int active_grid_index;
 
@@ -836,8 +842,8 @@ typedef struct SculptSession {
   PBVHEdgeRef face_set_last_edge;
 
   /* Dynamic mesh preview */
-  PBVHVertRef *preview_vert_index_list;
-  int preview_vert_index_count;
+  PBVHVertRef *preview_vert_list;
+  int preview_vert_count;
 
   /* Pose Brush Preview */
   float pose_origin[3];

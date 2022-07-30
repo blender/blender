@@ -140,28 +140,35 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
 
   Span<float3> positions_span;
 
-  if (geometry_set.has_mesh()) {
+  if (const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>()) {
     count++;
-    const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>();
-    total_num += component->attribute_domain_num(ATTR_DOMAIN_POINT);
+    if (const VArray<float3> positions = component->attributes()->lookup<float3>(
+            "position", ATTR_DOMAIN_POINT)) {
+      if (positions.is_span()) {
+        span_count++;
+        positions_span = positions.get_internal_span();
+      }
+      total_num += positions.size();
+    }
   }
 
-  if (geometry_set.has_pointcloud()) {
+  if (const PointCloudComponent *component =
+          geometry_set.get_component_for_read<PointCloudComponent>()) {
     count++;
-    span_count++;
-    const PointCloudComponent *component =
-        geometry_set.get_component_for_read<PointCloudComponent>();
-    VArray<float3> varray = component->attribute_get_for_read<float3>(
-        "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-    total_num += varray.size();
-    positions_span = varray.get_internal_span();
+    if (const VArray<float3> positions = component->attributes()->lookup<float3>(
+            "position", ATTR_DOMAIN_POINT)) {
+      if (positions.is_span()) {
+        span_count++;
+        positions_span = positions.get_internal_span();
+      }
+      total_num += positions.size();
+    }
   }
 
-  if (geometry_set.has_curves()) {
+  if (const Curves *curves_id = geometry_set.get_curves_for_read()) {
     count++;
     span_count++;
-    const Curves &curves_id = *geometry_set.get_curves_for_read();
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
     positions_span = curves.evaluated_positions();
     total_num += positions_span.size();
   }
@@ -179,26 +186,25 @@ static Mesh *compute_hull(const GeometrySet &geometry_set)
   Array<float3> positions(total_num);
   int offset = 0;
 
-  if (geometry_set.has_mesh()) {
-    const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>();
-    VArray<float3> varray = component->attribute_get_for_read<float3>(
-        "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-    varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
-    offset += varray.size();
+  if (const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>()) {
+    if (const VArray<float3> varray = component->attributes()->lookup<float3>("position",
+                                                                              ATTR_DOMAIN_POINT)) {
+      varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
+      offset += varray.size();
+    }
   }
 
-  if (geometry_set.has_pointcloud()) {
-    const PointCloudComponent *component =
-        geometry_set.get_component_for_read<PointCloudComponent>();
-    VArray<float3> varray = component->attribute_get_for_read<float3>(
-        "position", ATTR_DOMAIN_POINT, {0, 0, 0});
-    varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
-    offset += varray.size();
+  if (const PointCloudComponent *component =
+          geometry_set.get_component_for_read<PointCloudComponent>()) {
+    if (const VArray<float3> varray = component->attributes()->lookup<float3>("position",
+                                                                              ATTR_DOMAIN_POINT)) {
+      varray.materialize(positions.as_mutable_span().slice(offset, varray.size()));
+      offset += varray.size();
+    }
   }
 
-  if (geometry_set.has_curves()) {
-    const Curves &curves_id = *geometry_set.get_curves_for_read();
-    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id.geometry);
+  if (const Curves *curves_id = geometry_set.get_curves_for_read()) {
+    const bke::CurvesGeometry &curves = bke::CurvesGeometry::wrap(curves_id->geometry);
     Span<float3> array = curves.evaluated_positions();
     positions.as_mutable_span().slice(offset, array.size()).copy_from(array);
     offset += array.size();
@@ -218,7 +224,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     Mesh *mesh = compute_hull(geometry_set);
     geometry_set.replace_mesh(mesh);
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
   });
 
   params.set_output("Convex Hull", std::move(geometry_set));

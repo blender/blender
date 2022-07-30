@@ -202,6 +202,9 @@ if(WITH_CODEC_FFMPEG)
       vpx
       x264
       xvidcore)
+    if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
+      list(APPEND FFMPEG_FIND_COMPONENTS aom)
+    endif()
   elseif(FFMPEG)
     # Old cache variable used for root dir, convert to new standard.
     set(FFMPEG_ROOT_DIR ${FFMPEG})
@@ -641,11 +644,16 @@ if(WITH_GHOST_WAYLAND)
   endif()
 
   list(APPEND PLATFORM_LINKLIBS
-    ${wayland-client_LINK_LIBRARIES}
-    ${wayland-egl_LINK_LIBRARIES}
     ${xkbcommon_LINK_LIBRARIES}
-    ${wayland-cursor_LINK_LIBRARIES}
   )
+
+  if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
+    list(APPEND PLATFORM_LINKLIBS
+      ${wayland-client_LINK_LIBRARIES}
+      ${wayland-egl_LINK_LIBRARIES}
+      ${wayland-cursor_LINK_LIBRARIES}
+    )
+  endif()
 
   if(WITH_GHOST_WAYLAND_DBUS)
     list(APPEND PLATFORM_LINKLIBS
@@ -655,9 +663,11 @@ if(WITH_GHOST_WAYLAND)
   endif()
 
   if(WITH_GHOST_WAYLAND_LIBDECOR)
-    list(APPEND PLATFORM_LINKLIBS
-      ${libdecor_LIBRARIES}
-    )
+    if(NOT WITH_GHOST_WAYLAND_DYNLOAD)
+      list(APPEND PLATFORM_LINKLIBS
+        ${libdecor_LIBRARIES}
+      )
+    endif()
     add_definitions(-DWITH_GHOST_WAYLAND_LIBDECOR)
   endif()
 endif()
@@ -878,8 +888,9 @@ unset(_IS_LINKER_DEFAULT)
 
 # Avoid conflicts with Mesa llvmpipe, Luxrender, and other plug-ins that may
 # use the same libraries as Blender with a different version or build options.
+set(PLATFORM_SYMBOLS_MAP ${CMAKE_SOURCE_DIR}/source/creator/symbols_unix.map)
 set(PLATFORM_LINKFLAGS
-  "${PLATFORM_LINKFLAGS} -Wl,--version-script='${CMAKE_SOURCE_DIR}/source/creator/blender.map'"
+  "${PLATFORM_LINKFLAGS} -Wl,--version-script='${PLATFORM_SYMBOLS_MAP}'"
 )
 
 # Don't use position independent executable for portable install since file

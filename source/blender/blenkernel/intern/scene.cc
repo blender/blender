@@ -1193,6 +1193,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       BKE_curveprofile_blend_read(reader, sce->toolsettings->custom_bevel_profile_preset);
     }
 
+    BLO_read_data_address(reader, &sce->toolsettings->paint_mode.canvas_image);
     BLO_read_data_address(reader, &sce->toolsettings->sequencer_tool_settings);
   }
 
@@ -1504,7 +1505,7 @@ static void scene_blend_read_lib(BlendLibReader *reader, ID *id)
   }
 
   LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
-    IDP_BlendReadLib(reader, marker->prop);
+    IDP_BlendReadLib(reader, sce->id.lib, marker->prop);
 
     if (marker->camera) {
       BLO_read_id_address(reader, sce->id.lib, &marker->camera);
@@ -2990,6 +2991,20 @@ int BKE_render_num_threads(const RenderData *rd)
 int BKE_scene_num_threads(const Scene *scene)
 {
   return BKE_render_num_threads(&scene->r);
+}
+
+void BKE_render_resolution(const struct RenderData *r,
+                           const bool use_crop,
+                           int *r_width,
+                           int *r_height)
+{
+  *r_width = (r->xsch * r->size) / 100;
+  *r_height = (r->ysch * r->size) / 100;
+
+  if (use_crop && (r->mode & R_BORDER) && (r->mode & R_CROP)) {
+    *r_width *= BLI_rctf_size_x(&r->border);
+    *r_height *= BLI_rctf_size_y(&r->border);
+  }
 }
 
 int BKE_render_preview_pixel_size(const RenderData *r)

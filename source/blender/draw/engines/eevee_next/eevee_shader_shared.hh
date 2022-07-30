@@ -124,7 +124,12 @@ struct CameraData {
   float clip_far;
   eCameraType type;
 
-  int _pad0;
+  bool1 initialized;
+
+#ifdef __cplusplus
+  /* Small constructor to allow detecting new buffers. */
+  CameraData() : initialized(false){};
+#endif
 };
 BLI_STATIC_ASSERT_ALIGN(CameraData, 16)
 
@@ -149,6 +154,8 @@ struct FilmData {
   int2 extent;
   /** Offset of the film in the full-res frame, in pixels. */
   int2 offset;
+  /** Extent used by the render buffers when rendering the main views. */
+  int2 render_extent;
   /** Sub-pixel offset applied to the window matrix.
    * NOTE: In final film pixel unit.
    * NOTE: Positive values makes the view translate in the negative axes direction.
@@ -156,6 +163,8 @@ struct FilmData {
    * pixel if using scaled resolution rendering.
    */
   float2 subpixel_offset;
+  /** Scaling factor to convert texel to uvs. */
+  float2 extent_inv;
   /** Is true if history is valid and can be sampled. Bypass history to resets accumulation. */
   bool1 use_history;
   /** Is true if combined buffer is valid and can be re-projected to reduce variance. */
@@ -165,7 +174,9 @@ struct FilmData {
   /** Is true if accumulation of filtered passes is needed. */
   bool1 any_render_pass_1;
   bool1 any_render_pass_2;
-  int _pad0, _pad1;
+  /** Controlled by user in lookdev mode or by render settings. */
+  float background_opacity;
+  float _pad0;
   /** Output counts per type. */
   int color_len, value_len;
   /** Index in color_accum_img or value_accum_img of each pass. -1 if pass is not enabled. */
@@ -196,11 +207,11 @@ struct FilmData {
   /** Settings to render mist pass */
   float mist_scale, mist_bias, mist_exponent;
   /** Scene exposure used for better noise reduction. */
-  float exposure;
+  float exposure_scale;
   /** Scaling factor for scaled resolution rendering. */
   int scaling_factor;
   /** Film pixel filter radius. */
-  float filter_size;
+  float filter_radius;
   /** Precomputed samples. First in the table is the closest one. The rest is unordered. */
   int samples_len;
   /** Sum of the weights of all samples in the sample table. */
@@ -209,17 +220,17 @@ struct FilmData {
 };
 BLI_STATIC_ASSERT_ALIGN(FilmData, 16)
 
-static inline float film_filter_weight(float filter_size, float sample_distance_sqr)
+static inline float film_filter_weight(float filter_radius, float sample_distance_sqr)
 {
 #if 1 /* Faster */
   /* Gaussian fitted to Blackman-Harris. */
-  float r = sample_distance_sqr / (filter_size * filter_size);
+  float r = sample_distance_sqr / (filter_radius * filter_radius);
   const float sigma = 0.284;
   const float fac = -0.5 / (sigma * sigma);
   float weight = expf(fac * r);
 #else
   /* Blackman-Harris filter. */
-  float r = M_2PI * saturate(0.5 + sqrtf(sample_distance_sqr) / (2.0 * filter_size));
+  float r = M_2PI * saturate(0.5 + sqrtf(sample_distance_sqr) / (2.0 * filter_radius));
   float weight = 0.35875 - 0.48829 * cosf(r) + 0.14128 * cosf(2.0 * r) - 0.01168 * cosf(3.0 * r);
 #endif
   return weight;
@@ -301,6 +312,40 @@ BLI_STATIC_ASSERT_ALIGN(VelocityGeometryIndex, 16)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Motion Blur
+ * \{ */
+
+#define MOTION_BLUR_TILE_SIZE 32
+#define MOTION_BLUR_MAX_TILE 512 /* 16384 / MOTION_BLUR_TILE_SIZE */
+struct MotionBlurData {
+  /** As the name suggests. Used to avoid a division in the sampling. */
+  float2 target_size_inv;
+  /** Viewport motion scaling factor. Make blur relative to frame time not render time. */
+  float2 motion_scale;
+  /** Depth scaling factor. Avoid blurring background behind moving objects. */
+  float depth_scale;
+
+  float _pad0, _pad1, _pad2;
+};
+BLI_STATIC_ASSERT_ALIGN(MotionBlurData, 16)
+
+/* For some reasons some GLSL compilers do not like this struct.
+ * So we declare it as a uint array instead and do indexing ourselves. */
+#ifdef __cplusplus
+struct MotionBlurTileIndirection {
+  /**
+   * Stores indirection to the tile with the highest velocity covering each tile.
+   * This is stored using velocity in the MSB to be able to use atomicMax operations.
+   */
+  uint prev[MOTION_BLUR_MAX_TILE][MOTION_BLUR_MAX_TILE];
+  uint next[MOTION_BLUR_MAX_TILE][MOTION_BLUR_MAX_TILE];
+};
+BLI_STATIC_ASSERT_ALIGN(MotionBlurTileIndirection, 16)
+#endif
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Ray-Tracing
  * \{ */
 
@@ -364,6 +409,8 @@ using SamplingDataBuf = draw::StorageBuffer<SamplingData>;
 using VelocityGeometryBuf = draw::StorageArrayBuffer<float4, 16, true>;
 using VelocityIndexBuf = draw::StorageArrayBuffer<VelocityIndex, 16>;
 using VelocityObjectBuf = draw::StorageArrayBuffer<float4x4, 16>;
+using MotionBlurDataBuf = draw::UniformBuffer<MotionBlurData>;
+using MotionBlurTileIndirectionBuf = draw::StorageBuffer<MotionBlurTileIndirection, true>;
 
 }  // namespace blender::eevee
 #endif

@@ -1771,7 +1771,7 @@ PreviewLoadJob &PreviewLoadJob::ensure_job(wmWindowManager *wm, wmWindow *win)
     WM_jobs_start(wm, wm_job);
   }
 
-  return *reinterpret_cast<PreviewLoadJob *>(WM_jobs_customdata_get(wm_job));
+  return *static_cast<PreviewLoadJob *>(WM_jobs_customdata_get(wm_job));
 }
 
 void PreviewLoadJob::load_jobless(PreviewImage *preview, const eIconSizes icon_size)
@@ -1807,11 +1807,11 @@ void PreviewLoadJob::run_fn(void *customdata,
                             short *do_update,
                             float *UNUSED(progress))
 {
-  PreviewLoadJob *job_data = reinterpret_cast<PreviewLoadJob *>(customdata);
+  PreviewLoadJob *job_data = static_cast<PreviewLoadJob *>(customdata);
 
   IMB_thumb_locks_acquire();
 
-  while (RequestedPreview *request = reinterpret_cast<RequestedPreview *>(
+  while (RequestedPreview *request = static_cast<RequestedPreview *>(
              BLI_thread_queue_pop_timeout(job_data->todo_queue_, 100))) {
     if (*stop) {
       break;
@@ -1864,7 +1864,7 @@ void PreviewLoadJob::finish_request(RequestedPreview &request)
 
 void PreviewLoadJob::update_fn(void *customdata)
 {
-  PreviewLoadJob *job_data = reinterpret_cast<PreviewLoadJob *>(customdata);
+  PreviewLoadJob *job_data = static_cast<PreviewLoadJob *>(customdata);
 
   for (auto request_it = job_data->requested_previews_.begin();
        request_it != job_data->requested_previews_.end();) {
@@ -1884,7 +1884,7 @@ void PreviewLoadJob::update_fn(void *customdata)
 
 void PreviewLoadJob::end_fn(void *customdata)
 {
-  PreviewLoadJob *job_data = reinterpret_cast<PreviewLoadJob *>(customdata);
+  PreviewLoadJob *job_data = static_cast<PreviewLoadJob *>(customdata);
 
   /* Finish any possibly remaining queued previews. */
   for (RequestedPreview &request : job_data->requested_previews_) {
@@ -1895,7 +1895,7 @@ void PreviewLoadJob::end_fn(void *customdata)
 
 void PreviewLoadJob::free_fn(void *customdata)
 {
-  MEM_delete(reinterpret_cast<PreviewLoadJob *>(customdata));
+  MEM_delete(static_cast<PreviewLoadJob *>(customdata));
 }
 
 static void icon_preview_free(void *customdata)

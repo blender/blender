@@ -50,8 +50,7 @@ struct bNodeTree;
 struct bPoseChannel;
 struct bSound;
 
-namespace blender {
-namespace deg {
+namespace blender::deg {
 
 struct ComponentNode;
 struct Depsgraph;
@@ -306,5 +305,4 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   BuilderMap built_map_;
 };
 
-}  // namespace deg
-}  // namespace blender
+}  // namespace blender::deg

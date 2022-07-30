@@ -1038,19 +1038,12 @@ static void obstacles_from_mesh(Object *coll_ob,
 
     /* Transform mesh vertices to domain grid space for fast lookups.
      * This is valid because the mesh is copied above. */
-    BKE_mesh_vertex_normals_ensure(me);
-    float(*vert_normals)[3] = BKE_mesh_vertex_normals_for_write(me);
     for (i = 0; i < numverts; i++) {
       float co[3];
 
       /* Vertex position. */
       mul_m4_v3(coll_ob->obmat, mvert[i].co);
       manta_pos_to_cell(fds, mvert[i].co);
-
-      /* Vertex normal. */
-      mul_mat3_m4_v3(coll_ob->obmat, vert_normals[i]);
-      mul_mat3_m4_v3(fds->imat, vert_normals[i]);
-      normalize_v3(vert_normals[i]);
 
       /* Vertex velocity. */
       add_v3fl_v3fl_v3i(co, mvert[i].co, fds->shift);

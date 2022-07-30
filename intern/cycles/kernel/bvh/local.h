@@ -47,8 +47,9 @@ ccl_device_inline
   float3 P = ray->P;
   float3 dir = bvh_clamp_direction(ray->D);
   float3 idir = bvh_inverse_direction(dir);
+  float tmin = ray->tmin;
   int object = OBJECT_NONE;
-  float isect_t = ray->t;
+  float isect_t = ray->tmax;
 
   if (local_isect != NULL) {
     local_isect->num_hits = 0;
@@ -58,10 +59,9 @@ ccl_device_inline
   const int object_flag = kernel_data_fetch(object_flag, local_object);
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #if BVH_FEATURE(BVH_MOTION)
-    Transform ob_itfm;
-    isect_t *= bvh_instance_motion_push(kg, local_object, ray, &P, &dir, &idir, &ob_itfm);
+    bvh_instance_motion_push(kg, local_object, ray, &P, &dir, &idir);
 #else
-    isect_t *= bvh_instance_push(kg, local_object, ray, &P, &dir, &idir);
+    bvh_instance_push(kg, local_object, ray, &P, &dir, &idir);
 #endif
     object = local_object;
   }
@@ -81,6 +81,7 @@ ccl_device_inline
                                        dir,
 #endif
                                        idir,
+                                       tmin,
                                        isect_t,
                                        node_addr,
                                        PATH_RAY_ALL_VISIBILITY,
@@ -155,6 +156,7 @@ ccl_device_inline
                                            local_object,
                                            prim,
                                            prim_addr,
+                                           tmin,
                                            isect_t,
                                            lcg_state,
                                            max_hits)) {
@@ -191,6 +193,7 @@ ccl_device_inline
                                                   local_object,
                                                   prim,
                                                   prim_addr,
+                                                  tmin,
                                                   isect_t,
                                                   lcg_state,
                                                   max_hits)) {

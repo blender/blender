@@ -11,6 +11,8 @@
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 
+#include "bmesh.h"
+
 /* For embedding CCGKey in iterator. */
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
@@ -57,24 +59,6 @@ typedef struct SculptLoopRef {
   intptr_t i;
 } SculptLoopRef;
 #endif
-
-BLI_INLINE PBVHVertRef BKE_pbvh_make_vref(intptr_t i)
-{
-  PBVHVertRef ret = {i};
-  return ret;
-}
-
-BLI_INLINE PBVHEdgeRef BKE_pbvh_make_eref(intptr_t i)
-{
-  PBVHEdgeRef ret = {i};
-  return ret;
-}
-
-BLI_INLINE PBVHFaceRef BKE_pbvh_make_fref(intptr_t i)
-{
-  PBVHFaceRef ret = {i};
-  return ret;
-}
 
 #ifdef DEFRAGMENT_MEMORY
 #  include "BLI_smallhash.h"
@@ -210,6 +194,18 @@ ProxyVertArray *BKE_pbvh_get_proxyarrays(struct PBVH *pbvh, struct PBVHNode *nod
 
 #endif
 
+typedef enum {
+  PBVH_FACES,
+  PBVH_GRIDS,
+  PBVH_BMESH,
+} PBVHType;
+
+/* Public members of PBVH, used for inlined functions. */
+struct PBVHPublic {
+  PBVHType type;
+  BMesh *bm;
+};
+
 typedef struct {
   float (*co)[3];
 } PBVHProxyNode;
@@ -264,8 +260,96 @@ typedef struct PBVHFrustumPlanes {
   int num_planes;
 } PBVHFrustumPlanes;
 
+BLI_INLINE PBVHType BKE_pbvh_type(const PBVH *pbvh)
+{
+  return ((const struct PBVHPublic *)pbvh)->type;
+}
+
+BLI_INLINE BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh)
+{
+  return ((struct PBVHPublic *)pbvh)->bm;
+}
+
 void BKE_pbvh_set_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes);
 void BKE_pbvh_get_frustum_planes(PBVH *pbvh, PBVHFrustumPlanes *planes);
+
+BLI_INLINE PBVHVertRef BKE_pbvh_make_vref(intptr_t i)
+{
+  PBVHVertRef ret = {i};
+  return ret;
+}
+
+BLI_INLINE PBVHEdgeRef BKE_pbvh_make_eref(intptr_t i)
+{
+  PBVHEdgeRef ret = {i};
+  return ret;
+}
+
+BLI_INLINE PBVHFaceRef BKE_pbvh_make_fref(intptr_t i)
+{
+  PBVHFaceRef ret = {i};
+  return ret;
+}
+
+BLI_INLINE int BKE_pbvh_vertex_to_index(PBVH *pbvh, PBVHVertRef v)
+{
+  return (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != PBVH_REF_NONE ?
+              BM_elem_index_get((BMVert *)(v.i)) :
+              (v.i));
+}
+
+BLI_INLINE PBVHVertRef BKE_pbvh_index_to_vertex(PBVH *pbvh, int index)
+{
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      return BKE_pbvh_make_vref(index);
+    case PBVH_BMESH:
+      return BKE_pbvh_make_vref((intptr_t)BKE_pbvh_get_bmesh(pbvh)->vtable[index]);
+  }
+
+  return BKE_pbvh_make_vref(PBVH_REF_NONE);
+}
+
+BLI_INLINE int BKE_pbvh_edge_to_index(PBVH *pbvh, PBVHEdgeRef e)
+{
+  return (BKE_pbvh_type(pbvh) == PBVH_BMESH && e.i != PBVH_REF_NONE ?
+              BM_elem_index_get((BMEdge *)(e.i)) :
+              (e.i));
+}
+
+BLI_INLINE PBVHEdgeRef BKE_pbvh_index_to_edge(PBVH *pbvh, int index)
+{
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      return BKE_pbvh_make_eref(index);
+    case PBVH_BMESH:
+      return BKE_pbvh_make_eref((intptr_t)BKE_pbvh_get_bmesh(pbvh)->etable[index]);
+  }
+
+  return BKE_pbvh_make_eref(PBVH_REF_NONE);
+}
+
+BLI_INLINE int BKE_pbvh_face_to_index(PBVH *pbvh, PBVHFaceRef f)
+{
+  return (BKE_pbvh_type(pbvh) == PBVH_BMESH && f.i != PBVH_REF_NONE ?
+              BM_elem_index_get((BMFace *)(f.i)) :
+              (f.i));
+}
+
+BLI_INLINE PBVHFaceRef BKE_pbvh_index_to_face(PBVH *pbvh, int index)
+{
+  switch (BKE_pbvh_type(pbvh)) {
+    case PBVH_FACES:
+    case PBVH_GRIDS:
+      return BKE_pbvh_make_fref(index);
+    case PBVH_BMESH:
+      return BKE_pbvh_make_fref((intptr_t)BKE_pbvh_get_bmesh(pbvh)->ftable[index]);
+  }
+
+  return BKE_pbvh_make_fref(PBVH_REF_NONE);
+}
 
 /* Callbacks */
 
@@ -458,13 +542,7 @@ void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
                             void *user_data);
 
 /* PBVH Access */
-typedef enum {
-  PBVH_FACES,
-  PBVH_GRIDS,
-  PBVH_BMESH,
-} PBVHType;
 
-PBVHType BKE_pbvh_type(const PBVH *pbvh);
 bool BKE_pbvh_has_faces(const PBVH *pbvh);
 
 /**
@@ -500,7 +578,6 @@ int BKE_pbvh_get_grid_num_faces(const PBVH *pbvh);
 /**
  * Only valid for type == #PBVH_BMESH.
  */
-struct BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh);
 void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size, float detail_range);
 
 typedef enum {
@@ -723,7 +800,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
     if (vi.grids) { \
       vi.width = vi.gridsize; \
       vi.height = vi.gridsize; \
-      vi.vertex.i = vi.index = vi.grid_indices[vi.g] * vi.key.grid_area - 1; \
+      vi.index = vi.vertex.i = vi.grid_indices[vi.g] * vi.key.grid_area - 1; \
       vi.grid = vi.grids[vi.grid_indices[vi.g]]; \
       if (mode == PBVH_ITER_UNIQUE) { \
         vi.gh = vi.grid_hidden[vi.grid_indices[vi.g]]; \

@@ -270,7 +270,7 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
 }
 
 static void segment_list_item(struct uiList *UNUSED(ui_list),
-                              struct bContext *UNUSED(C),
+                              const struct bContext *UNUSED(C),
                               struct uiLayout *layout,
                               struct PointerRNA *UNUSED(idataptr),
                               struct PointerRNA *itemptr,

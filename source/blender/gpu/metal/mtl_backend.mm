@@ -10,6 +10,8 @@
 #include "mtl_backend.hh"
 #include "mtl_context.hh"
 #include "mtl_framebuffer.hh"
+#include "mtl_query.hh"
+#include "mtl_uniform_buffer.hh"
 
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
@@ -64,8 +66,7 @@ IndexBuf *MTLBackend::indexbuf_alloc()
 
 QueryPool *MTLBackend::querypool_alloc()
 {
-  /* TODO(Metal): Implement MTLQueryPool. */
-  return nullptr;
+  return new MTLQueryPool();
 };
 
 Shader *MTLBackend::shader_alloc(const char *name)
@@ -81,8 +82,7 @@ Texture *MTLBackend::texture_alloc(const char *name)
 
 UniformBuf *MTLBackend::uniformbuf_alloc(int size, const char *name)
 {
-  /* TODO(Metal): Implement MTLUniformBuf. */
-  return nullptr;
+  return new MTLUniformBuf(size, name);
 };
 
 StorageBuf *MTLBackend::storagebuf_alloc(int size, GPUUsageType usage, const char *name)
@@ -127,7 +127,7 @@ void MTLBackend::render_end()
 
 void MTLBackend::render_step()
 {
-  /* NOTE(Metal): Primarily called from main thread, but below datastructures
+  /* NOTE(Metal): Primarily called from main thread, but below data-structures
    * and operations are thread-safe, and GPUContext rendering coordination
    * is also thread-safe. */
 

@@ -312,8 +312,8 @@ class RaycastFunction : public fn::MultiFunction {
     }
     const MeshComponent &mesh_component = *target_.get_component_for_read<MeshComponent>();
     target_context_.emplace(GeometryComponentFieldContext{mesh_component, domain_});
-    const int domain_num = mesh_component.attribute_domain_num(domain_);
-    target_evaluator_ = std::make_unique<FieldEvaluator>(*target_context_, domain_num);
+    const int domain_size = mesh_component.attribute_domain_size(domain_);
+    target_evaluator_ = std::make_unique<FieldEvaluator>(*target_context_, domain_size);
     target_evaluator_->add(std::move(src_field));
     target_evaluator_->evaluate();
     target_data_ = &target_evaluator_->get_evaluated(0);

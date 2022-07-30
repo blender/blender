@@ -50,7 +50,10 @@ typedef struct CoNo {
 
 /* paint_stroke.c */
 
-typedef bool (*StrokeGetLocation)(struct bContext *C, float location[3], const float mouse[2]);
+typedef bool (*StrokeGetLocation)(struct bContext *C,
+                                  float location[3],
+                                  const float mouse[2],
+                                  bool force_original);
 typedef bool (*StrokeTestStart)(struct bContext *C, struct wmOperator *op, const float mouse[2]);
 typedef void (*StrokeUpdateStep)(struct bContext *C,
                                  struct wmOperator *op,
@@ -87,6 +90,7 @@ typedef struct PaintStroke {
 
   float last_mouse_position[2];
   float last_world_space_position[3];
+  float last_scene_spacing_delta[3];
 
   float mouse_cubic[4][2];
   float world_cubic[4][3];
@@ -142,6 +146,8 @@ typedef struct PaintStroke {
 
   float spacing;
   void *debug_draw_handle;
+
+  bool original;
 } PaintStroke;
 
 struct PaintStroke *paint_stroke_new(struct bContext *C,
@@ -473,10 +479,12 @@ void PAINT_OT_face_select_linked(struct wmOperatorType *ot);
 void PAINT_OT_face_select_linked_pick(struct wmOperatorType *ot);
 void PAINT_OT_face_select_all(struct wmOperatorType *ot);
 void PAINT_OT_face_select_hide(struct wmOperatorType *ot);
-void PAINT_OT_face_select_reveal(struct wmOperatorType *ot);
+
+void PAINT_OT_face_vert_reveal(struct wmOperatorType *ot);
 
 void PAINT_OT_vert_select_all(struct wmOperatorType *ot);
 void PAINT_OT_vert_select_ungrouped(struct wmOperatorType *ot);
+void PAINT_OT_vert_select_hide(struct wmOperatorType *ot);
 
 bool vert_paint_poll(struct bContext *C);
 bool mask_paint_poll(struct bContext *C);

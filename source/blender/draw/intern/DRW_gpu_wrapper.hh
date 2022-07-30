@@ -57,6 +57,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "draw_manager.h"
 #include "draw_texture_pool.h"
 
 #include "BLI_math_vec_types.hh"
@@ -772,50 +773,26 @@ class Texture : NonCopyable {
 };
 
 class TextureFromPool : public Texture, NonMovable {
- private:
-  GPUTexture *tx_tmp_saved_ = nullptr;
-
  public:
   TextureFromPool(const char *name = "gpu::Texture") : Texture(name){};
 
-  /* Always use `release()` after rendering and `sync()` in sync phase. */
-  void acquire(int2 extent, eGPUTextureFormat format, void *owner_)
+  /* Always use `release()` after rendering. */
+  void acquire(int2 extent, eGPUTextureFormat format)
   {
     BLI_assert(this->tx_ == nullptr);
-    if (this->tx_ != nullptr) {
-      return;
-    }
-    if (tx_tmp_saved_ != nullptr) {
-      if (GPU_texture_width(tx_tmp_saved_) != extent.x ||
-          GPU_texture_height(tx_tmp_saved_) != extent.y ||
-          GPU_texture_format(tx_tmp_saved_) != format) {
-        this->tx_tmp_saved_ = nullptr;
-      }
-      else {
-        this->tx_ = tx_tmp_saved_;
-        return;
-      }
-    }
-    DrawEngineType *owner = (DrawEngineType *)owner_;
-    this->tx_ = DRW_texture_pool_query_2d(UNPACK2(extent), format, owner);
+
+    this->tx_ = DRW_texture_pool_texture_acquire(
+        DST.vmempool->texture_pool, UNPACK2(extent), format);
   }
 
   void release(void)
   {
     /* Allows multiple release. */
-    if (this->tx_ != nullptr) {
-      tx_tmp_saved_ = this->tx_;
-      this->tx_ = nullptr;
+    if (this->tx_ == nullptr) {
+      return;
     }
-  }
-
-  /**
-   * Clears any reference. Workaround for pool texture not being able to release on demand.
-   * Needs to be called at during the sync phase.
-   */
-  void sync(void)
-  {
-    tx_tmp_saved_ = nullptr;
+    DRW_texture_pool_texture_release(DST.vmempool->texture_pool, this->tx_);
+    this->tx_ = nullptr;
   }
 
   /** Remove methods that are forbidden with this type of textures. */

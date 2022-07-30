@@ -43,13 +43,10 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
   float3 P = ray->P;
   float3 dir = bvh_clamp_direction(ray->D);
   float3 idir = bvh_inverse_direction(dir);
+  const float tmin = ray->tmin;
   int object = OBJECT_NONE;
 
-#if BVH_FEATURE(BVH_MOTION)
-  Transform ob_itfm;
-#endif
-
-  isect->t = ray->t;
+  isect->t = ray->tmax;
   isect->u = 0.0f;
   isect->v = 0.0f;
   isect->prim = PRIM_NONE;
@@ -71,6 +68,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                                          dir,
 #endif
                                          idir,
+                                         tmin,
                                          isect->t,
                                          node_addr,
                                          visibility,
@@ -133,8 +131,16 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
 
             switch (type & PRIMITIVE_ALL) {
               case PRIMITIVE_TRIANGLE: {
-                if (triangle_intersect(
-                        kg, isect, P, dir, isect->t, visibility, prim_object, prim, prim_addr)) {
+                if (triangle_intersect(kg,
+                                       isect,
+                                       P,
+                                       dir,
+                                       tmin,
+                                       isect->t,
+                                       visibility,
+                                       prim_object,
+                                       prim,
+                                       prim_addr)) {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
                     return true;
@@ -147,6 +153,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                                               isect,
                                               P,
                                               dir,
+                                              tmin,
                                               isect->t,
                                               ray->time,
                                               visibility,
@@ -174,7 +181,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
 
                 const int curve_type = kernel_data_fetch(prim_type, prim_addr);
                 const bool hit = curve_intersect(
-                    kg, isect, P, dir, isect->t, prim_object, prim, ray->time, curve_type);
+                    kg, isect, P, dir, tmin, isect->t, prim_object, prim, ray->time, curve_type);
                 if (hit) {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
@@ -195,7 +202,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
 
                 const int point_type = kernel_data_fetch(prim_type, prim_addr);
                 const bool hit = point_intersect(
-                    kg, isect, P, dir, isect->t, prim_object, prim, ray->time, point_type);
+                    kg, isect, P, dir, tmin, isect->t, prim_object, prim, ray->time, point_type);
                 if (hit) {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
@@ -212,9 +219,9 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
           object = kernel_data_fetch(prim_object, -prim_addr - 1);
 
 #if BVH_FEATURE(BVH_MOTION)
-          isect->t *= bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir, &ob_itfm);
+          bvh_instance_motion_push(kg, object, ray, &P, &dir, &idir);
 #else
-          isect->t *= bvh_instance_push(kg, object, ray, &P, &dir, &idir);
+          bvh_instance_push(kg, object, ray, &P, &dir, &idir);
 #endif
 
           ++stack_ptr;
@@ -230,11 +237,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
       kernel_assert(object != OBJECT_NONE);
 
       /* instance pop */
-#if BVH_FEATURE(BVH_MOTION)
-      isect->t = bvh_instance_motion_pop(kg, object, ray, &P, &dir, &idir, isect->t, &ob_itfm);
-#else
-      isect->t = bvh_instance_pop(kg, object, ray, &P, &dir, &idir, isect->t);
-#endif
+      bvh_instance_pop(ray, &P, &dir, &idir);
 
       object = OBJECT_NONE;
       node_addr = traversal_stack[stack_ptr];

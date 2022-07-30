@@ -1082,18 +1082,34 @@ static PyObject *Buffer_repr(Buffer *self)
 /** \name OpenGL API Wrapping
  * \{ */
 
-#define BGL_Wrap(funcname, ret, arg_list) \
-  static PyObject *Method_##funcname(PyObject *UNUSED(self), PyObject *args) \
-  { \
-    arg_def arg_list; \
-    ret_def_##ret; \
-    if (!PyArg_ParseTuple(args, arg_str arg_list, arg_ref arg_list)) { \
+#ifdef WITH_OPENGL
+#  define BGL_Wrap(funcname, ret, arg_list) \
+    static PyObject *Method_##funcname(PyObject *UNUSED(self), PyObject *args) \
+    { \
+      arg_def arg_list; \
+      ret_def_##ret; \
+      if (!PyArg_ParseTuple(args, arg_str arg_list, arg_ref arg_list)) { \
+        return NULL; \
+      } \
+      GPU_bgl_start(); \
+      ret_set_##ret gl##funcname(arg_var arg_list); \
+      ret_ret_##ret; \
+    }
+#else
+
+static void bgl_no_opengl_error(void)
+{
+  PyErr_SetString(PyExc_RuntimeError, "Built without OpenGL support");
+}
+
+#  define BGL_Wrap(funcname, ret, arg_list) \
+    static PyObject *Method_##funcname(PyObject *UNUSED(self), PyObject *args) \
+    { \
+      (void)args; \
+      bgl_no_opengl_error(); \
       return NULL; \
-    } \
-    GPU_bgl_start(); \
-    ret_set_##ret gl##funcname(arg_var arg_list); \
-    ret_ret_##ret; \
-  }
+    }
+#endif
 
 /* GL_VERSION_1_0 */
 BGL_Wrap(BlendFunc, void, (GLenum, GLenum));
@@ -1421,12 +1437,22 @@ static void py_module_dict_add_method(PyObject *submodule,
 #ifdef __GNUC__
 #  pragma GCC diagnostic ignored "-Waddress"
 #endif
-#define PY_MOD_ADD_METHOD(func) \
-  { \
-    static PyMethodDef method_def = {"gl" #func, Method_##func, METH_VARARGS}; \
-    py_module_dict_add_method(submodule, dict, &method_def, (gl##func != NULL)); \
-  } \
-  ((void)0)
+
+#ifdef WITH_OPENGL
+#  define PY_MOD_ADD_METHOD(func) \
+    { \
+      static PyMethodDef method_def = {"gl" #func, Method_##func, METH_VARARGS}; \
+      py_module_dict_add_method(submodule, dict, &method_def, (gl##func != NULL)); \
+    } \
+    ((void)0)
+#else
+#  define PY_MOD_ADD_METHOD(func) \
+    { \
+      static PyMethodDef method_def = {"gl" #func, Method_##func, METH_VARARGS}; \
+      py_module_dict_add_method(submodule, dict, &method_def, false); \
+    } \
+    ((void)0)
+#endif
 
 static void init_bgl_version_1_0_methods(PyObject *submodule, PyObject *dict)
 {
@@ -2620,9 +2646,13 @@ static PyObject *Method_ShaderSource(PyObject *UNUSED(self), PyObject *args)
     return NULL;
   }
 
+#ifdef WITH_OPENGL
   glShaderSource(shader, 1, (const char **)&source, NULL);
-
   Py_RETURN_NONE;
+#else
+  bgl_no_opengl_error();
+  return NULL;
+#endif
 }
 
 /** \} */

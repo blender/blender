@@ -15,7 +15,7 @@
 #include "BLI_math_vec_types.hh"
 #include "BLI_vector.hh"
 
-#include "BKE_attribute_access.hh"
+#include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
 
 struct Curve;
@@ -645,6 +645,8 @@ struct CurveEval {
   void translate(const blender::float3 &translation);
   void transform(const blender::float4x4 &matrix);
   bool bounds_min_max(blender::float3 &min, blender::float3 &max, bool use_evaluated) const;
+
+  blender::bke::MutableAttributeAccessor attributes_for_write();
 
   /**
    * Return the start indices for each of the curve spline's control points, if they were part

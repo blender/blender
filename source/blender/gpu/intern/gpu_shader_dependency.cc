@@ -593,7 +593,8 @@ struct GPUSource {
   bool is_from_material_library() const
   {
     return (filename.startswith("gpu_shader_material_") ||
-            filename.startswith("gpu_shader_common_")) &&
+            filename.startswith("gpu_shader_common_") ||
+            filename.startswith("gpu_shader_compositor_")) &&
            filename.endswith(".glsl");
   }
 };

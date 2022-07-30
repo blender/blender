@@ -117,12 +117,11 @@ void BM_log_cleanup_entry(BMLogEntry *entry);
 bool BM_log_entry_drop(BMLogEntry *entry);
 bool BM_log_is_dead(BMLog *log);
 
-/* Undo one BMLogEntry.  node_layer_id is necassary to preserve node idxs with customdata, whose
- * layout might have changed */
-void BM_log_undo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks, const char *node_layer_id);
+/* Undo one BMLogEntry. */
+void BM_log_undo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks);
 
 /* Redo one BMLogEntry */
-void BM_log_redo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks, const char *node_layer_id);
+void BM_log_redo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks);
 
 /* Log a vertex before it is modified */
 void BM_log_vert_before_modified(BMLog *log,

@@ -13,6 +13,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_attribute.h"
+#include "BKE_attribute.hh"
 
 struct Mesh;
 struct BVHTreeFromMesh;
@@ -20,11 +21,6 @@ struct BVHTreeFromMesh;
 namespace blender {
 class RandomNumberGenerator;
 }
-
-namespace blender::bke {
-struct ReadAttributeLookup;
-class OutputAttribute;
-}  // namespace blender::bke
 
 namespace blender::bke::mesh_surface_sample {
 
@@ -81,8 +77,8 @@ class MeshAttributeInterpolator {
                    eAttributeMapMode mode,
                    const GMutableSpan dst);
 
-  void sample_attribute(const ReadAttributeLookup &src_attribute,
-                        OutputAttribute &dst_attribute,
+  void sample_attribute(const GAttributeReader &src_attribute,
+                        GSpanAttributeWriter &dst_attribute,
                         eAttributeMapMode mode);
 
  protected:
@@ -140,5 +136,16 @@ int sample_surface_points_projected(
 float3 compute_bary_coord_in_triangle(const Mesh &mesh,
                                       const MLoopTri &looptri,
                                       const float3 &position);
+
+template<typename T>
+inline T sample_corner_attrribute_with_bary_coords(const float3 &bary_weights,
+                                                   const MLoopTri &looptri,
+                                                   const Span<T> corner_attribute)
+{
+  return attribute_math::mix3(bary_weights,
+                              corner_attribute[looptri.tri[0]],
+                              corner_attribute[looptri.tri[1]],
+                              corner_attribute[looptri.tri[2]]);
+}
 
 }  // namespace blender::bke::mesh_surface_sample

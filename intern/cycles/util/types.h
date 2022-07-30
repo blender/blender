@@ -12,6 +12,7 @@
 
 #if !defined(__KERNEL_GPU__)
 #  include <stdint.h>
+#  include <stdio.h>
 #endif
 
 #include "util/defines.h"
@@ -70,6 +71,12 @@ ccl_device_inline bool is_power_of_two(size_t x)
 
 CCL_NAMESPACE_END
 
+/* Most GPU APIs matching native vector types, so we only need to implement them for
+ * CPU and oneAPI. */
+#if defined(__KERNEL_GPU__) && !defined(__KERNEL_ONEAPI__)
+#  define __KERNEL_NATIVE_VECTOR_TYPES__
+#endif
+
 /* Vectorized types declaration. */
 #include "util/types_uchar2.h"
 #include "util/types_uchar3.h"
@@ -90,8 +97,6 @@ CCL_NAMESPACE_END
 #include "util/types_float4.h"
 #include "util/types_float8.h"
 
-#include "util/types_vector3.h"
-
 /* Vectorized types implementation. */
 #include "util/types_uchar2_impl.h"
 #include "util/types_uchar3_impl.h"
@@ -109,8 +114,6 @@ CCL_NAMESPACE_END
 #include "util/types_float3_impl.h"
 #include "util/types_float4_impl.h"
 #include "util/types_float8_impl.h"
-
-#include "util/types_vector3_impl.h"
 
 /* SSE types. */
 #ifndef __KERNEL_GPU__

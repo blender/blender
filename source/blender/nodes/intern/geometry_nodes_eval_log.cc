@@ -2,6 +2,7 @@
 
 #include "NOD_geometry_nodes_eval_log.hh"
 
+#include "BKE_curves.hh"
 #include "BKE_geometry_set_instances.hh"
 
 #include "DNA_modifier_types.h"
@@ -228,7 +229,7 @@ GeometryValueLog::GeometryValueLog(const GeometrySet &geometry_set, bool log_ful
       all_component_types,
       true,
       [&](const bke::AttributeIDRef &attribute_id,
-          const AttributeMetaData &meta_data,
+          const bke::AttributeMetaData &meta_data,
           const GeometryComponent &UNUSED(component)) {
         if (attribute_id.is_named() && names.add(attribute_id.name())) {
           this->attributes_.append({attribute_id.name(), meta_data.domain, meta_data.data_type});
@@ -241,27 +242,38 @@ GeometryValueLog::GeometryValueLog(const GeometrySet &geometry_set, bool log_ful
       case GEO_COMPONENT_TYPE_MESH: {
         const MeshComponent &mesh_component = *(const MeshComponent *)component;
         MeshInfo &info = this->mesh_info.emplace();
-        info.verts_num = mesh_component.attribute_domain_num(ATTR_DOMAIN_POINT);
-        info.edges_num = mesh_component.attribute_domain_num(ATTR_DOMAIN_EDGE);
-        info.faces_num = mesh_component.attribute_domain_num(ATTR_DOMAIN_FACE);
+        info.verts_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_POINT);
+        info.edges_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_EDGE);
+        info.faces_num = mesh_component.attribute_domain_size(ATTR_DOMAIN_FACE);
         break;
       }
       case GEO_COMPONENT_TYPE_CURVE: {
         const CurveComponent &curve_component = *(const CurveComponent *)component;
         CurveInfo &info = this->curve_info.emplace();
-        info.splines_num = curve_component.attribute_domain_num(ATTR_DOMAIN_CURVE);
+        info.splines_num = curve_component.attribute_domain_size(ATTR_DOMAIN_CURVE);
         break;
       }
       case GEO_COMPONENT_TYPE_POINT_CLOUD: {
         const PointCloudComponent &pointcloud_component = *(const PointCloudComponent *)component;
         PointCloudInfo &info = this->pointcloud_info.emplace();
-        info.points_num = pointcloud_component.attribute_domain_num(ATTR_DOMAIN_POINT);
+        info.points_num = pointcloud_component.attribute_domain_size(ATTR_DOMAIN_POINT);
         break;
       }
       case GEO_COMPONENT_TYPE_INSTANCES: {
         const InstancesComponent &instances_component = *(const InstancesComponent *)component;
         InstancesInfo &info = this->instances_info.emplace();
         info.instances_num = instances_component.instances_num();
+        break;
+      }
+      case GEO_COMPONENT_TYPE_EDIT: {
+        const GeometryComponentEditData &edit_component = *(
+            const GeometryComponentEditData *)component;
+        if (const bke::CurvesEditHints *curve_edit_hints =
+                edit_component.curves_edit_hints_.get()) {
+          EditDataInfo &info = this->edit_data_info.emplace();
+          info.has_deform_matrices = curve_edit_hints->deform_mats.has_value();
+          info.has_deformed_positions = curve_edit_hints->positions.has_value();
+        }
         break;
       }
       case GEO_COMPONENT_TYPE_VOLUME: {

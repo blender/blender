@@ -461,8 +461,6 @@ static bool sculpt_undo_restore_face_sets(bContext *C, SculptUndoNode *unode)
   return false;
 }
 
-extern const char dyntopop_node_idx_layer_id[];
-
 typedef struct BmeshUndoData {
   PBVH *pbvh;
   BMesh *bm;
@@ -717,11 +715,11 @@ static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode, Object *ob,
   // pbvh_bmesh_check_nodes(ss->pbvh);
 
   if (unode->applied) {
-    BM_log_undo(ss->bm, ss->bm_log, &callbacks, dyntopop_node_idx_layer_id);
+    BM_log_undo(ss->bm, ss->bm_log, &callbacks);
     unode->applied = false;
   }
   else {
-    BM_log_redo(ss->bm, ss->bm_log, &callbacks, dyntopop_node_idx_layer_id);
+    BM_log_redo(ss->bm, ss->bm_log, &callbacks);
     unode->applied = true;
   }
 
@@ -770,7 +768,7 @@ static void sculpt_undo_bmesh_enable(Object *ob, SculptUndoNode *unode, bool is_
   SCULPT_pbvh_clear(ob, false);
   SCULPT_clear_scl_pointers(ss);
 
-  ss->active_face_index.i = ss->active_vertex_index.i = 0;
+  ss->active_face.i = ss->active_vertex.i = 0;
 
   /* Create empty BMesh and enable logging. */
   ss->bm = SCULPT_dyntopo_empty_bmesh();
@@ -851,10 +849,10 @@ static void sculpt_undo_bmesh_restore_begin(
     // ref counting system otherwise
 
     if (dir == 1) {
-      BM_log_redo(ss->bm, ss->bm_log, NULL, dyntopop_node_idx_layer_id);
+      BM_log_redo(ss->bm, ss->bm_log, NULL);
     }
     else {
-      BM_log_undo(ss->bm, ss->bm_log, NULL, dyntopop_node_idx_layer_id);
+      BM_log_undo(ss->bm, ss->bm_log, NULL);
     }
 #endif
 
@@ -880,10 +878,10 @@ static void sculpt_undo_bmesh_restore_end(
     // ref counting system otherwise
 
     if (dir == -1) {
-      BM_log_undo(ss->bm, ss->bm_log, NULL, dyntopop_node_idx_layer_id);
+      BM_log_undo(ss->bm, ss->bm_log, NULL);
     }
     else {
-      BM_log_redo(ss->bm, ss->bm_log, NULL, dyntopop_node_idx_layer_id);
+      BM_log_redo(ss->bm, ss->bm_log, NULL);
     }
 #endif
 
@@ -1018,26 +1016,26 @@ static int sculpt_undo_bmesh_restore(
     BM_log_set_cd_offsets(ss->bm_log, ss->cd_sculpt_vert);
 
 #if 0
-    if (ss->active_face_index.i && ss->active_face_index.i != -1LL) {
-      ss->active_face_index.i = (intptr_t)BM_log_face_id_get(ss->bm_log,
-                                                             (BMFace *)ss->active_face_index.i);
+    if (ss->active_face.i && ss->active_face.i != -1LL) {
+      ss->active_face.i = (intptr_t)BM_log_face_id_get(ss->bm_log,
+                                                             (BMFace *)ss->active_face.i);
     }
     else {
-      ss->active_face_index.i = -1;
+      ss->active_face.i = -1;
     }
 
-    if (ss->active_vertex_index.i && ss->active_vertex_index.i != -1LL) {
-      ss->active_vertex_index.i = (intptr_t)BM_log_vert_id_get(
-          ss->bm_log, (BMVert *)ss->active_vertex_index.i);
+    if (ss->active_vertex.i && ss->active_vertex.i != -1LL) {
+      ss->active_vertex.i = (intptr_t)BM_log_vert_id_get(
+          ss->bm_log, (BMVert *)ss->active_vertex.i);
     }
     else {
-      ss->active_vertex_index.i = -1;
+      ss->active_vertex.i = -1;
     }
 #endif
-    ss->active_face_index.i = ss->active_vertex_index.i = 0;
+    ss->active_face.i = ss->active_vertex.i = 0;
   }
   else {
-    ss->active_face_index.i = ss->active_vertex_index.i = -1;
+    ss->active_face.i = ss->active_vertex.i = -1;
   }
 
   bool ret = false;
@@ -1048,13 +1046,13 @@ static int sculpt_undo_bmesh_restore(
       sculpt_undo_bmesh_restore_begin(C, unode, ob, ss, dir);
       SCULPT_vertex_random_access_ensure(ss);
 
-      ss->active_face_index.i = ss->active_vertex_index.i = 0;
+      ss->active_face.i = ss->active_vertex.i = 0;
       set_active_vertex = false;
 
       ret = true;
       break;
     case SCULPT_UNDO_DYNTOPO_END:
-      ss->active_face_index.i = ss->active_vertex_index.i = 0;
+      ss->active_face.i = ss->active_vertex.i = 0;
       set_active_vertex = false;
 
       sculpt_undo_bmesh_restore_end(C, unode, ob, ss, dir);
@@ -1072,35 +1070,35 @@ static int sculpt_undo_bmesh_restore(
   }
 
   if (set_active_vertex && ss->bm_log && ss->bm) {
-    if (ss->active_face_index.i != -1) {
-      BMFace *f = BM_log_id_face_get(ss->bm_log, (uint)ss->active_face_index.i);
+    if (ss->active_face.i != -1) {
+      BMFace *f = BM_log_id_face_get(ss->bm_log, (uint)ss->active_face.i);
       if (f && f->head.htype == BM_FACE) {
-        ss->active_face_index.i = (intptr_t)f;
+        ss->active_face.i = (intptr_t)f;
       }
       else {
-        ss->active_face_index.i = 0LL;
+        ss->active_face.i = 0LL;
       }
     }
     else {
-      ss->active_face_index.i = 0LL;
+      ss->active_face.i = 0LL;
     }
 
-    if (ss->active_vertex_index.i != -1) {
-      BMVert *v = BM_log_id_vert_get(ss->bm_log, (uint)ss->active_vertex_index.i);
+    if (ss->active_vertex.i != -1) {
+      BMVert *v = BM_log_id_vert_get(ss->bm_log, (uint)ss->active_vertex.i);
 
       if (v && v->head.htype == BM_VERT) {
-        ss->active_vertex_index.i = (intptr_t)v;
+        ss->active_vertex.i = (intptr_t)v;
       }
       else {
-        ss->active_vertex_index.i = 0LL;
+        ss->active_vertex.i = 0LL;
       }
     }
     else {
-      ss->active_vertex_index.i = 0LL;
+      ss->active_vertex.i = 0LL;
     }
   }
   else {
-    ss->active_face_index.i = ss->active_vertex_index.i = 0;
+    ss->active_face.i = ss->active_vertex.i = 0;
   }
 
   return ret;
@@ -1154,7 +1152,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
 
       did_first_hack = true;
 
-      ss->active_face_index.i = ss->active_vertex_index.i = 0;
+      ss->active_face.i = ss->active_vertex.i = 0;
       SCULPT_dynamic_topology_enable_ex(CTX_data_main(C), depsgraph, scene, ob);
 
       // see if we have a saved log in the entry
@@ -2961,7 +2959,7 @@ void SCULPT_substep_undo(bContext *C, int dir)
                               NULL,
                               (void *)&data};
 
-  BM_log_undo_single(ss->bm, ss->bm_log, &callbacks, dyntopop_node_idx_layer_id);
+  BM_log_undo_single(ss->bm, ss->bm_log, &callbacks, NULL);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
