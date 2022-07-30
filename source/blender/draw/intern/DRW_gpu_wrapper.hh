@@ -806,6 +806,15 @@ class TextureFromPool : public Texture, NonMovable {
     this->tx_ = nullptr;
   }
 
+  /**
+   * Swap the GPUTexture pointers of the two texture.
+   */
+  static void swap(TextureFromPool &a, TextureFromPool &b)
+  {
+    SWAP(GPUTexture *, a.tx_, b.tx_);
+    SWAP(const char *, a.name_, b.name_);
+  }
+
   /** Remove methods that are forbidden with this type of textures. */
   bool ensure_1d(int, int, eGPUTextureFormat, float *) = delete;
   bool ensure_1d_array(int, int, int, eGPUTextureFormat, float *) = delete;
@@ -890,45 +899,47 @@ class Framebuffer : NonCopyable {
 
 template<typename T, int64_t len> class SwapChain {
  private:
+  BLI_STATIC_ASSERT(len > 1, "A swap-chain needs more than 1 unit in length.");
   std::array<T, len> chain_;
-  int64_t index_ = 0;
 
  public:
   void swap()
   {
-    index_ = (index_ + 1) % len;
+    for (auto i : IndexRange(len - 1)) {
+      T::swap(chain_[i], chain_[(i + 1) % len]);
+    }
   }
 
   T &current()
   {
-    return chain_[index_];
+    return chain_[0];
   }
 
   T &previous()
   {
     /* Avoid modulo operation with negative numbers. */
-    return chain_[(index_ + len - 1) % len];
+    return chain_[(0 + len - 1) % len];
   }
 
   T &next()
   {
-    return chain_[(index_ + 1) % len];
+    return chain_[(0 + 1) % len];
   }
 
   const T &current() const
   {
-    return chain_[index_];
+    return chain_[0];
   }
 
   const T &previous() const
   {
     /* Avoid modulo operation with negative numbers. */
-    return chain_[(index_ + len - 1) % len];
+    return chain_[(0 + len - 1) % len];
   }
 
   const T &next() const
   {
-    return chain_[(index_ + 1) % len];
+    return chain_[(0 + 1) % len];
   }
 };
 
