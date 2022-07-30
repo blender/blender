@@ -131,7 +131,7 @@ static float cotangent_tri_weight_v3_proj(const float n[3],
 }
 
 void SCULPT_dyntopo_get_cotangents(SculptSession *ss,
-                                   SculptVertRef vertex,
+                                   PBVHVertRef vertex,
                                    float *r_ws,
                                    float *r_cot1,
                                    float *r_cot2,
@@ -199,7 +199,7 @@ void SCULPT_dyntopo_get_cotangents(SculptSession *ss,
 }
 
 void SCULPT_faces_get_cotangents(SculptSession *ss,
-                                 SculptVertRef vertex,
+                                 PBVHVertRef vertex,
                                  float *r_ws,
                                  float *r_cot1,
                                  float *r_cot2,
@@ -268,7 +268,7 @@ void SCULPT_cotangents_begin(Object *ob, SculptSession *ss)
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
       for (int i = 0; i < totvert; i++) {
-        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
         SCULPT_dyntopo_check_disk_sort(ss, vertex);
       }
       break;
@@ -294,7 +294,7 @@ void SCULPT_cotangents_begin(Object *ob, SculptSession *ss)
 }
 
 void SCULPT_get_cotangents(SculptSession *ss,
-                           SculptVertRef vertex,
+                           PBVHVertRef vertex,
                            float *r_ws,
                            float *r_cot1,
                            float *r_cot2,
@@ -329,7 +329,7 @@ void SCULT_dyntopo_flag_all_disk_sort(SculptSession *ss)
 }
 
 // returns true if edge disk list around vertex was sorted
-bool SCULPT_dyntopo_check_disk_sort(SculptSession *ss, SculptVertRef vertex)
+bool SCULPT_dyntopo_check_disk_sort(SculptSession *ss, PBVHVertRef vertex)
 {
   BMVert *v = (BMVert *)vertex.i;
   MSculptVert *mv = BKE_PBVH_SCULPTVERT(ss->cd_sculpt_vert, v);
@@ -356,10 +356,10 @@ void SCULPT_reorder_bmesh(SculptSession *ss)
   SCULPT_vertex_random_access_ensure(ss);
 
   int actv = ss->active_vertex_index.i ?
-                 BKE_pbvh_vertex_index_to_table(ss->pbvh, ss->active_vertex_index) :
+                 BKE_pbvh_vertex_to_index(ss->pbvh, ss->active_vertex_index) :
                  -1;
   int actf = ss->active_face_index.i ?
-                 BKE_pbvh_face_index_to_table(ss->pbvh, ss->active_face_index) :
+                 BKE_pbvh_face_to_index(ss->pbvh, ss->active_face_index) :
                  -1;
 
   if (ss->bm_log) {
@@ -372,10 +372,10 @@ void SCULPT_reorder_bmesh(SculptSession *ss)
   SCULPT_vertex_random_access_ensure(ss);
 
   if (actv >= 0) {
-    ss->active_vertex_index = BKE_pbvh_table_index_to_vertex(ss->pbvh, actv);
+    ss->active_vertex_index = BKE_pbvh_index_to_vertex(ss->pbvh, actv);
   }
   if (actf >= 0) {
-    ss->active_face_index = BKE_pbvh_table_index_to_face(ss->pbvh, actf);
+    ss->active_face_index = BKE_pbvh_index_to_face(ss->pbvh, actf);
   }
 
   SCULPT_dyntopo_node_layers_update_offsets(ss, ob);
@@ -1707,7 +1707,7 @@ static void sculpt_uv_brush_cb(void *__restrict userdata,
         mask = BM_ELEM_CD_GET_FLOAT(l->v, cd_mask);
       }
 
-      SculptVertRef vertex = {(intptr_t)l->v};
+      PBVHVertRef vertex = {(intptr_t)l->v};
 
       float direction2[3];
       const float fade =
@@ -1787,7 +1787,7 @@ void SCULPT_uv_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
                                                  NULL,
                                                  sv->v->no,
                                                  0.0f,
-                                                 (SculptVertRef){.i = (intptr_t)sv->v},
+                                                 (PBVHVertRef){.i = (intptr_t)sv->v},
                                                  0);
   }
 

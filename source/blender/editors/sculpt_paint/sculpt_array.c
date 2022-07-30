@@ -101,7 +101,7 @@ static void sculpt_array_datalayers_add(SculptArray *array, SculptSession *ss, M
   const SculptCustomLayer *scl = array->scl_inst;
 
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     *(int *)SCULPT_attr_vertex_data(vertex, scl) = ARRAY_INSTANCE_ORIGINAL;
     *(int *)SCULPT_attr_vertex_data(vertex, array->scl_sym) = 0;
@@ -220,7 +220,7 @@ static BMesh *sculpt_array_source_build(Object *ob, Brush *brush, SculptArray *a
 
   SculptSession *ss = ob->sculpt;
   for (int i = 0; i < srcbm->totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     const float automask = SCULPT_automasking_factor_get(ss->cache->automasking, ss, vertex);
     const float mask = 1.0f - SCULPT_vertex_mask_get(ss, vertex);
@@ -330,7 +330,7 @@ static void sculpt_array_ensure_geometry_indices(Object *ob, SculptArray *array)
   array->symmetry_pass = MEM_malloc_arrayN(totvert, sizeof(int), "array symmetry pass index");
 
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     array->copy_index[i] = *(int *)SCULPT_attr_vertex_data(vertex, array->scl_inst);
     array->symmetry_pass[i] = *(int *)SCULPT_attr_vertex_data(vertex, array->scl_sym);
@@ -805,7 +805,7 @@ static void sculpt_array_ensure_original_coordinates(Object *ob, SculptArray *ar
   array->orco = MEM_malloc_arrayN(totvert, sizeof(float) * 3, "array orco");
 
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     copy_v3_v3(array->orco[i], SCULPT_vertex_co_get(ss, vertex));
   }
@@ -912,7 +912,7 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
       array->smooth_strength = MEM_calloc_arrayN(sizeof(float), totvert, "smooth_strength");
 
       for (int i = 0; i < totvert; i++) {
-        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
         int array_index = ARRAY_INSTANCE_ORIGINAL;
         int array_symm_pass = 0;
@@ -939,7 +939,7 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
       for (int smooth_iterations = 0; smooth_iterations < 4; smooth_iterations++) {
         for (int i = 0; i < totvert; i++) {
-          SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+          PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
           float avg = array->smooth_strength[i];
           int count = 1;
@@ -962,7 +962,7 @@ void SCULPT_do_array_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
       /* Update Geometry Orco. */
       for (int i = 0; i < totvert; i++) {
-        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
         int array_index = ARRAY_INSTANCE_ORIGINAL;
         int array_symm_pass = 0;

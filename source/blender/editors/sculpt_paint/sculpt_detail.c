@@ -261,7 +261,7 @@ static void sample_detail_voxel(bContext *C, ViewContext *vc, const int mval[2])
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   /* Average the edge length of the connected edges to the active vertex. */
-  SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
   const float *active_vertex_co = SCULPT_active_vertex_co_get(ss);
   float edge_length = 0.0f;
   int tot = 0;
@@ -686,7 +686,7 @@ static void dyntopo_detail_size_sample_from_surface(Object *ob,
                                                     DyntopoDetailSizeEditCustomData *cd)
 {
   SculptSession *ss = ob->sculpt;
-  const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
 
   float len_accum = 0;
   int num_neighbors = 0;

@@ -572,7 +572,7 @@ static void mesh_filter_enhance_details_init_directions(SculptSession *ss)
   filter_cache->detail_directions = MEM_malloc_arrayN(
       totvert, sizeof(float[3]), "detail directions");
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     float avg[3];
     SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false, weighted);
@@ -589,7 +589,7 @@ static void mesh_filter_sphere_center_calculate(
       const int totvert = SCULPT_vertex_count_get(ss);
       float center_accum[3] = {0.0f};
       for (int i = 0; i < totvert; i++) {
-        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
         add_v3_v3(center_accum, SCULPT_vertex_co_get(ss, vertex));
       }
@@ -607,7 +607,7 @@ static void mesh_filter_sphere_radius_calculate(SculptSession *ss)
   FilterCache *filter_cache = ss->filter_cache;
   float accum = 0.0f;
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     accum += len_v3v3(filter_cache->sphere_center, SCULPT_vertex_co_get(ss, vertex));
   }
@@ -635,7 +635,7 @@ static void mesh_filter_init_limit_surface_co(SculptSession *ss)
   filter_cache->limit_surface_co = MEM_malloc_arrayN(
       totvert, sizeof(float[3]), "limit surface co");
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
     SCULPT_vertex_limit_surface_get(ss, vertex, filter_cache->limit_surface_co[i]);
   }
 }
@@ -659,7 +659,7 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
 
   for (int i = 0; i < totvert; i++) {
     float avg[3];
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     SCULPT_neighbor_coords_average(ss, avg, vertex, 0.0f, false, weighted);
     sub_v3_v3v3(filter_cache->detail_directions[i], avg, SCULPT_vertex_co_get(ss, vertex));
@@ -685,7 +685,7 @@ static void mesh_filter_sharpen_init(SculptSession *ss,
        smooth_iterations++) {
     for (int i = 0; i < totvert; i++) {
       float direction_avg[3] = {0.0f, 0.0f, 0.0f};
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
       float sharpen_avg = 0;
       int total = 0;
 

@@ -2681,7 +2681,7 @@ static void init_mdyntopo_layer_faces(SculptSession *ss, PBVH *pbvh, int totvert
                 SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT);
     mv->stroke_id = -1;
 
-    SculptVertRef vertex = {.i = i};
+    PBVHVertRef vertex = {.i = i};
 
     copy_v3_v3(mv->origco, ss->mvert[i].co);
 
@@ -2717,7 +2717,7 @@ static void init_mdyntopo_layer_grids(SculptSession *ss, PBVH *pbvh, int totvert
                 SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_VALENCE | SCULPTVERT_NEED_DISK_SORT);
     mv->stroke_id = -1;
 
-    SculptVertRef vertex = {.i = i};
+    PBVHVertRef vertex = {.i = i};
 
     BKE_pbvh_update_vert_boundary_grids(pbvh, ss->subdiv_ccg, vertex);
 

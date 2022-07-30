@@ -348,8 +348,8 @@ bool pbvh_bmesh_node_raycast(PBVH *pbvh,
                              float *depth,
                              float *back_depth,
                              bool use_original,
-                             SculptVertRef *r_active_vertex_index,
-                             SculptFaceRef *r_active_face_index,
+                             PBVHVertRef *r_active_vertex_index,
+                             PBVHFaceRef *r_active_face_index,
                              float *r_face_normal,
                              int stroke_id);
 

@@ -167,7 +167,7 @@ template<typename ImageBuffer> class PaintingKernel {
         continue;
       }
 
-      SculptVertRef fakevert = BKE_pbvh_make_vref(0LL);
+      PBVHVertRef fakevert = BKE_pbvh_make_vref(0LL);
 
       float4 color = image_accessor.read_pixel(image_buffer);
       const float3 normal(0.0f, 0.0f, 0.0f);

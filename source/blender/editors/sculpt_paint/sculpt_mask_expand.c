@@ -101,8 +101,8 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
     int vi = vd.index;
     float final_mask = *vd.mask;
     if (data->mask_expand_use_normals) {
-      if (ss->filter_cache->normal_factor[BKE_pbvh_vertex_index_to_table(
-              ss->pbvh, SCULPT_active_vertex_get(ss))] <
+      if (ss->filter_cache
+              ->normal_factor[BKE_pbvh_vertex_to_index(ss->pbvh, SCULPT_active_vertex_get(ss))] <
           ss->filter_cache->normal_factor[vd.index]) {
         final_mask = 1.0f;
       }
@@ -171,7 +171,7 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     const float mval_fl[2] = {UNPACK2(event->mval)};
     if (SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false, false)) {
       /* The cursor is over the mesh, get the update iteration from the updated active vertex. */
-      int vi = BKE_pbvh_vertex_index_to_table(ss->pbvh, SCULPT_active_vertex_get(ss));
+      int vi = BKE_pbvh_vertex_to_index(ss->pbvh, SCULPT_active_vertex_get(ss));
       mask_expand_update_it = ss->filter_cache->mask_update_it[vi];
     }
     else {
@@ -293,15 +293,15 @@ typedef struct MaskExpandFloodFillData {
 } MaskExpandFloodFillData;
 
 static bool mask_expand_floodfill_cb(SculptSession *ss,
-                                     SculptVertRef from_vref,
-                                     SculptVertRef to_vref,
+                                     PBVHVertRef from_vref,
+                                     PBVHVertRef to_vref,
                                      bool is_duplicate,
                                      void *userdata)
 {
   MaskExpandFloodFillData *data = userdata;
 
-  int to_v = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_vref);
-  int from_v = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_vref);
+  int to_v = BKE_pbvh_vertex_to_index(ss->pbvh, to_vref);
+  int from_v = BKE_pbvh_vertex_to_index(ss->pbvh, from_vref);
 
   if (!is_duplicate) {
     int to_it = ss->filter_cache->mask_update_it[from_v] + 1;
@@ -400,7 +400,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   else {
     ss->filter_cache->prev_mask = MEM_callocN(sizeof(float) * vertex_count, "prev mask");
     for (int i = 0; i < vertex_count; i++) {
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       ss->filter_cache->prev_mask[i] = SCULPT_vertex_mask_get(ss, vertex);
     }
@@ -409,7 +409,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   ss->filter_cache->mask_update_last_it = 1;
   ss->filter_cache->mask_update_current_it = 1;
   ss->filter_cache
-      ->mask_update_it[BKE_pbvh_vertex_index_to_table(ss->pbvh, SCULPT_active_vertex_get(ss))] = 0;
+      ->mask_update_it[BKE_pbvh_vertex_to_index(ss->pbvh, SCULPT_active_vertex_get(ss))] = 0;
 
   copy_v3_v3(ss->filter_cache->mask_expand_initial_co, SCULPT_active_vertex_co_get(ss));
 
@@ -428,7 +428,7 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   if (use_normals) {
     for (int repeat = 0; repeat < 2; repeat++) {
       for (int i = 0; i < vertex_count; i++) {
-        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
         float avg = 0.0f;
         SculptVertexNeighborIter ni;

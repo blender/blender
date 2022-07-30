@@ -1047,7 +1047,7 @@ static void sculpt_gesture_trim_calculate_depth(SculptGestureContext *sgcontext)
   trim_operation->depth_back = -FLT_MAX;
 
   for (int i = 0; i < totvert; i++) {
-    const float *vco = SCULPT_vertex_co_get(ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, i));
+    const float *vco = SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, i));
     /* Convert the coordinates to world space to calculate the depth. When generating the trimming
      * mesh, coordinates are first calculated in world space, then converted to object space to
      * store them. */

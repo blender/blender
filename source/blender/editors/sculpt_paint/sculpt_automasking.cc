@@ -137,7 +137,7 @@ bool SCULPT_automasking_needs_normal(const SculptSession *ss, const Brush *brush
 
 static float sculpt_automasking_normal_calc(AutomaskingCache *automasking,
                                             SculptSession *ss,
-                                            SculptVertRef vert,
+                                            PBVHVertRef vert,
                                             float normal[3],
                                             float limit,
                                             float falloff)
@@ -174,7 +174,7 @@ static float sculpt_automasking_normal_calc(AutomaskingCache *automasking,
 
 float SCULPT_automasking_factor_get(AutomaskingCache *automasking,
                                     SculptSession *ss,
-                                    SculptVertRef vert)
+                                    PBVHVertRef vert)
 {
   float mask = 1.0f;
   bool do_concave;
@@ -291,8 +291,8 @@ struct AutomaskFloodFillData {
 };
 
 static bool automask_floodfill_cb(SculptSession *ss,
-                                  SculptVertRef from_vref,
-                                  SculptVertRef to_vref,
+                                  PBVHVertRef from_vref,
+                                  PBVHVertRef to_vref,
                                   bool UNUSED(is_duplicate),
                                   void *userdata)
 {
@@ -320,7 +320,7 @@ static void SCULPT_topology_automasking_init(Sculpt *sd,
 
   const int totvert = SCULPT_vertex_count_get(ss);
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     float *fac = (float *)SCULPT_attr_vertex_data(vertex, factorlayer);
     *fac = 0.0f;
@@ -371,7 +371,7 @@ static void sculpt_face_sets_automasking_init(Sculpt *sd,
   int active_face_set = SCULPT_active_face_set_get(ss);
 
   for (int i : IndexRange(tot_vert)) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     if (!SCULPT_vertex_has_face_set(ss, vertex, active_face_set)) {
       *(float *)SCULPT_attr_vertex_data(vertex, factorlayer) = 0.0f;
@@ -397,7 +397,7 @@ void SCULPT_boundary_automasking_init(Object *ob,
   int *edge_distance = (int *)MEM_callocN(sizeof(int) * totvert, "automask_factor");
 
   for (int i : IndexRange(totvert)) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     edge_distance[i] = EDGE_DISTANCE_INF;
 
@@ -417,7 +417,7 @@ void SCULPT_boundary_automasking_init(Object *ob,
 
   for (int propagation_it : IndexRange(propagation_steps)) {
     for (int i : IndexRange(totvert)) {
-      SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vref = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       if (edge_distance[i] != EDGE_DISTANCE_INF) {
         continue;
@@ -433,7 +433,7 @@ void SCULPT_boundary_automasking_init(Object *ob,
   }
 
   for (int i : IndexRange(totvert)) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     if (edge_distance[i] == EDGE_DISTANCE_INF) {
       continue;
@@ -479,7 +479,7 @@ void SCULPT_automasking_step_update(AutomaskingCache *automasking,
   automasking->settings.concave_factor = SCULPT_get_float(ss, concave_mask_factor, sd, brush);
 }
 
-float SCULPT_calc_concavity(SculptSession *ss, SculptVertRef vref)
+float SCULPT_calc_concavity(SculptSession *ss, PBVHVertRef vref)
 {
   SculptVertexNeighborIter ni;
   float co[3], tot = 0.0, elen = 0.0;
@@ -526,7 +526,7 @@ static void SCULPT_concavity_automasking_init(Object *ob,
   const int totvert = SCULPT_vertex_count_get(ss);
 
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vref = BKE_pbvh_index_to_vertex(ss->pbvh, i);
     float f = SCULPT_calc_concavity(ss, vref);
     f = sculpt_concavity_factor(automasking, f);
 
@@ -573,7 +573,7 @@ AutomaskingCache *SCULPT_automasking_cache_init(Sculpt *sd, const Brush *brush, 
   automasking->factorlayer = ss->scl.automasking_factor;
 
   for (int i : IndexRange(totvert)) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
     float *f = (float *)SCULPT_attr_vertex_data(vertex, automasking->factorlayer);
 
     *f = 1.0f;

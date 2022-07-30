@@ -217,7 +217,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     if (ELEM(filter_type, MASK_FILTER_GROW, MASK_FILTER_SHRINK)) {
       prev_mask = MEM_mallocN(num_verts * sizeof(float), "prevmask");
       for (int j = 0; j < num_verts; j++) {
-        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, j);
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, j);
 
         prev_mask[j] = SCULPT_vertex_mask_get(ss, vertex);
       }
@@ -328,7 +328,7 @@ typedef enum MaskFilterStepDirectionType {
 
 /* Grown/Shrink vertex callbacks. */
 static float sculpt_ipmask_vertex_grow_cb(SculptSession *ss,
-                                          const SculptVertRef vertex,
+                                          const PBVHVertRef vertex,
                                           float *current_mask)
 {
   float max = 0.0f;
@@ -344,7 +344,7 @@ static float sculpt_ipmask_vertex_grow_cb(SculptSession *ss,
 }
 
 static float sculpt_ipmask_vertex_shrink_cb(SculptSession *ss,
-                                            const SculptVertRef vertex,
+                                            const PBVHVertRef vertex,
                                             float *current_mask)
 {
   float min = 1.0f;
@@ -361,10 +361,10 @@ static float sculpt_ipmask_vertex_shrink_cb(SculptSession *ss,
 
 /* Smooth/Sharpen vertex callbacks. */
 static float sculpt_ipmask_vertex_smooth_cb(SculptSession *ss,
-                                            const SculptVertRef vertex,
+                                            const PBVHVertRef vertex,
                                             float *current_mask)
 {
-  int vertex_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
+  int vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, vertex);
 
   float accum = current_mask[vertex_i];
   int total = 1;
@@ -378,10 +378,10 @@ static float sculpt_ipmask_vertex_smooth_cb(SculptSession *ss,
 }
 
 static float sculpt_ipmask_vertex_sharpen_cb(SculptSession *ss,
-                                             const SculptVertRef vertex,
+                                             const PBVHVertRef vertex,
                                              float *current_mask)
 {
-  int vertex_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
+  int vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, vertex);
 
   float accum = 0.0f;
   int total = 0;
@@ -430,10 +430,10 @@ static float sculpt_ipmask_vertex_sharpen_cb(SculptSession *ss,
 /* Harder/Softer callbacks. */
 #define SCULPT_IPMASK_FILTER_HARDER_SOFTER_STEP 0.01f
 static float sculpt_ipmask_vertex_harder_cb(SculptSession *ss,
-                                            const SculptVertRef vertex,
+                                            const PBVHVertRef vertex,
                                             float *current_mask)
 {
-  int vertex_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
+  int vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, vertex);
 
   return clamp_f(current_mask[vertex_i] += current_mask[vertex_i] *
                                            SCULPT_IPMASK_FILTER_HARDER_SOFTER_STEP,
@@ -442,10 +442,10 @@ static float sculpt_ipmask_vertex_harder_cb(SculptSession *ss,
 }
 
 static float sculpt_ipmask_vertex_softer_cb(SculptSession *ss,
-                                            const SculptVertRef vertex,
+                                            const PBVHVertRef vertex,
                                             float *current_mask)
 {
-  int vertex_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
+  int vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, vertex);
 
   return clamp_f(current_mask[vertex_i] -= current_mask[vertex_i] *
                                            SCULPT_IPMASK_FILTER_HARDER_SOFTER_STEP,
@@ -473,19 +473,19 @@ static float sculpt_ipmask_filter_contrast(const float mask, const float contras
 }
 
 static float sculpt_ipmask_vertex_contrast_increase_cb(SculptSession *ss,
-                                                       const SculptVertRef vertex,
+                                                       const PBVHVertRef vertex,
                                                        float *current_mask)
 {
-  int vertex_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
+  int vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, vertex);
 
   return sculpt_ipmask_filter_contrast(current_mask[vertex_i], SCULPT_IPMASK_FILTER_CONTRAST_STEP);
 }
 
 static float sculpt_ipmask_vertex_contrast_decrease_cb(SculptSession *ss,
-                                                       const SculptVertRef vertex,
+                                                       const PBVHVertRef vertex,
                                                        float *current_mask)
 {
-  int vertex_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex);
+  int vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, vertex);
 
   return sculpt_ipmask_filter_contrast(current_mask[vertex_i],
                                        -1.0f * SCULPT_IPMASK_FILTER_CONTRAST_STEP);
@@ -533,7 +533,7 @@ static void ipmask_filter_compute_step_task_cb(void *__restrict userdata,
                                                const TaskParallelTLS *__restrict UNUSED(tls))
 {
   SculptIPMaskFilterTaskData *data = userdata;
-  SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(data->ss->pbvh, i);
+  PBVHVertRef vertex = BKE_pbvh_index_to_vertex(data->ss->pbvh, i);
 
   if (data->direction == MASK_FILTER_STEP_DIRECTION_FORWARD) {
     data->next_mask[i] = data->ss->filter_cache->mask_filter_step_forward(
@@ -588,7 +588,7 @@ static void sculpt_ipmask_store_reference_step(SculptSession *ss)
   }
 
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     ss->filter_cache->mask_filter_ref[i] = SCULPT_vertex_mask_get(ss, vertex);
   }

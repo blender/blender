@@ -87,7 +87,7 @@ template<> void from_float(const float src[4], MPropCol &dst)
 }
 
 template<typename T>
-static void pbvh_vertex_color_get_faces(const PBVH &pbvh, SculptVertRef vertex, float r_color[4])
+static void pbvh_vertex_color_get_faces(const PBVH &pbvh, PBVHVertRef vertex, float r_color[4])
 {
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
     const MeshElemMap &melem = pbvh.pmap->pmap[vertex.i];
@@ -120,7 +120,7 @@ static void pbvh_vertex_color_get_faces(const PBVH &pbvh, SculptVertRef vertex, 
 }
 
 template<typename T>
-static void pbvh_vertex_color_get_bmesh(const PBVH &pbvh, SculptVertRef vertex, float r_color[4])
+static void pbvh_vertex_color_get_bmesh(const PBVH &pbvh, PBVHVertRef vertex, float r_color[4])
 {
   BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
 
@@ -152,7 +152,7 @@ static void pbvh_vertex_color_get_bmesh(const PBVH &pbvh, SculptVertRef vertex, 
 }
 
 template<typename T>
-static void pbvh_vertex_color_get(const PBVH &pbvh, SculptVertRef vertex, float r_color[4])
+static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_color[4])
 {
   switch (pbvh.type) {
     case PBVH_FACES:
@@ -167,7 +167,7 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, SculptVertRef vertex, float 
 }
 
 template<typename T>
-static void pbvh_vertex_color_set_faces(PBVH &pbvh, SculptVertRef vertex, const float color[4])
+static void pbvh_vertex_color_set_faces(PBVH &pbvh, PBVHVertRef vertex, const float color[4])
 {
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
     const MeshElemMap &melem = pbvh.pmap->pmap[vertex.i];
@@ -190,7 +190,7 @@ static void pbvh_vertex_color_set_faces(PBVH &pbvh, SculptVertRef vertex, const 
 }
 
 template<typename T>
-static void pbvh_vertex_color_set_bmesh(PBVH &pbvh, SculptVertRef vertex, const float color[4])
+static void pbvh_vertex_color_set_bmesh(PBVH &pbvh, PBVHVertRef vertex, const float color[4])
 {
   BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
 
@@ -210,7 +210,7 @@ static void pbvh_vertex_color_set_bmesh(PBVH &pbvh, SculptVertRef vertex, const 
 }
 
 template<typename T>
-static void pbvh_vertex_color_set(PBVH &pbvh, SculptVertRef vertex, const float color[4])
+static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float color[4])
 {
   switch (pbvh.type) {
     case PBVH_FACES:
@@ -227,7 +227,7 @@ static void pbvh_vertex_color_set(PBVH &pbvh, SculptVertRef vertex, const float 
 }  // namespace blender::bke
 
 extern "C" {
-void BKE_pbvh_vertex_color_get(const PBVH *pbvh, SculptVertRef vertex, float r_color[4])
+void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_color[4])
 {
   blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
@@ -235,7 +235,7 @@ void BKE_pbvh_vertex_color_get(const PBVH *pbvh, SculptVertRef vertex, float r_c
   });
 }
 
-void BKE_pbvh_vertex_color_set(PBVH *pbvh, SculptVertRef vertex, const float color[4])
+void BKE_pbvh_vertex_color_set(PBVH *pbvh, PBVHVertRef vertex, const float color[4])
 {
   blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
     using T = decltype(dummy);
@@ -285,7 +285,7 @@ void BKE_pbvh_store_colors_vertex(PBVH *pbvh,
     blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
       using T = decltype(dummy);
       for (const int i : IndexRange(indices_num)) {
-        SculptVertRef vertex = {(intptr_t)indices[i]};
+        PBVHVertRef vertex = {(intptr_t)indices[i]};
 
         blender::bke::pbvh_vertex_color_get<T>(*pbvh, vertex, r_colors[i]);
       }

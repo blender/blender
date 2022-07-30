@@ -216,9 +216,9 @@ typedef struct BMesh {
   int totvert, totedge, totloop, totface;
 } BMesh;
 
-typedef struct SculptVertRef {
+typedef struct PBVHVertRef {
   intptr_t i;
-} SculptVertRef;
+} PBVHVertRef;
 
 typedef struct SculptBrushTest {
   int value;
@@ -254,7 +254,7 @@ float SCULPT_brush_strength_factor(struct SculptSession *ss,
                                    const short vno[3],
                                    const float fno[3],
                                    const float mask,
-                                   const SculptVertRef vertex_index,
+                                   const PBVHVertRef vertex_index,
                                    const int thread_id);
 extern PBVHNode *the_fake_node;
 #  endif
@@ -398,7 +398,7 @@ class BMeshPBVH {
       return *this;
     }
 
-    SculptVertRef deprecated_vertref;
+    PBVHVertRef deprecated_vertref;
 
     int i;
     int index;

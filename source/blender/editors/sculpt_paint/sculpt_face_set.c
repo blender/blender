@@ -61,7 +61,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-static int sculpt_face_material_get(SculptSession *ss, SculptFaceRef face)
+static int sculpt_face_material_get(SculptSession *ss, PBVHFaceRef face)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
@@ -76,7 +76,7 @@ static int sculpt_face_material_get(SculptSession *ss, SculptFaceRef face)
   return -1;
 }
 
-int SCULPT_face_set_get(SculptSession *ss, SculptFaceRef face)
+int SCULPT_face_set_get(SculptSession *ss, PBVHFaceRef face)
 {
   switch (BKE_pbvh_type(ss->pbvh)) {
     case PBVH_BMESH: {
@@ -91,7 +91,7 @@ int SCULPT_face_set_get(SculptSession *ss, SculptFaceRef face)
 }
 
 // returns previous face set
-int SCULPT_face_set_set(SculptSession *ss, SculptFaceRef face, int fset)
+int SCULPT_face_set_set(SculptSession *ss, PBVHFaceRef face, int fset)
 {
   int ret = 0;
 
@@ -115,7 +115,7 @@ int SCULPT_face_set_set(SculptSession *ss, SculptFaceRef face, int fset)
 
 const char orig_faceset_attr_name[] = "_sculpt_original_fsets";
 
-void SCULPT_face_check_origdata(SculptSession *ss, SculptFaceRef face)
+void SCULPT_face_check_origdata(SculptSession *ss, PBVHFaceRef face)
 {
   if (!ss->scl.orig_fsets) {
     return;
@@ -130,7 +130,7 @@ void SCULPT_face_check_origdata(SculptSession *ss, SculptFaceRef face)
   }
 }
 
-int SCULPT_face_set_original_get(SculptSession *ss, SculptFaceRef face)
+int SCULPT_face_set_original_get(SculptSession *ss, PBVHFaceRef face)
 {
   if (!ss->scl.orig_fsets) {
     return SCULPT_face_set_get(ss, face);
@@ -157,7 +157,7 @@ void SCULPT_face_ensure_original(SculptSession *ss, Object *ob)
       &((SculptLayerParams){.permanent = false, .simple_array = false}));
 }
 
-int SCULPT_face_set_flag_get(SculptSession *ss, SculptFaceRef face, char flag)
+int SCULPT_face_set_flag_get(SculptSession *ss, PBVHFaceRef face, char flag)
 {
   if (ss->bm) {
     BMFace *f = (BMFace *)face.i;
@@ -170,7 +170,7 @@ int SCULPT_face_set_flag_get(SculptSession *ss, SculptFaceRef face, char flag)
   }
 }
 
-int SCULPT_face_set_flag_set(SculptSession *ss, SculptFaceRef face, char flag, bool state)
+int SCULPT_face_set_flag_set(SculptSession *ss, PBVHFaceRef face, char flag, bool state)
 {
   int ret;
 
@@ -462,16 +462,15 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             copy_v3_v3(fno, ss->vert_normals[ml->v]);
             float mask = ss->vmask ? ss->vmask[ml->v] : 0.0f;
 
-            const float fade2 = bstrength *
-                                SCULPT_brush_strength_factor(ss,
-                                                             brush,
-                                                             v->co,
-                                                             sqrtf(test.dist),
-                                                             ss->vert_normals[ml->v],
-                                                             fno,
-                                                             mask,
-                                                             (SculptVertRef){.i = ml->v},
-                                                             thread_id);
+            const float fade2 = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                         brush,
+                                                                         v->co,
+                                                                         sqrtf(test.dist),
+                                                                         ss->vert_normals[ml->v],
+                                                                         fno,
+                                                                         mask,
+                                                                         (PBVHVertRef){.i = ml->v},
+                                                                         thread_id);
 
             if (fade2 < test_limit) {
               ok = false;
@@ -546,16 +545,16 @@ void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
             do {
               float mask = cd_mask >= 0 ? BM_ELEM_CD_GET_FLOAT(l->v, cd_mask) : 0.0f;
 
-              const float fade2 = bstrength * SCULPT_brush_strength_factor(
-                                                  ss,
-                                                  brush,
-                                                  l->v->co,
-                                                  sqrtf(test.dist),
-                                                  l->v->no,
-                                                  l->f->no,
-                                                  mask,
-                                                  (SculptVertRef){.i = (intptr_t)l->v},
-                                                  thread_id);
+              const float fade2 = bstrength *
+                                  SCULPT_brush_strength_factor(ss,
+                                                               brush,
+                                                               l->v->co,
+                                                               sqrtf(test.dist),
+                                                               l->v->no,
+                                                               l->f->no,
+                                                               mask,
+                                                               (PBVHVertRef){.i = (intptr_t)l->v},
+                                                               thread_id);
 
               if (fade2 < test_limit) {
                 ok = false;
@@ -804,7 +803,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
   if (mode == SCULPT_FACE_SET_MASKED) {
     for (int i = 0; i < tot_vert; i++) {
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       if (SCULPT_vertex_mask_get(ss, vertex) >= threshold &&
           SCULPT_vertex_visible_get(ss, vertex)) {
@@ -820,7 +819,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
      * sets and the performance hit of rendering the overlay. */
     bool all_visible = true;
     for (int i = 0; i < tot_vert; i++) {
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       if (!SCULPT_vertex_visible_get(ss, vertex)) {
         all_visible = false;
@@ -836,7 +835,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     }
 
     for (int i = 0; i < tot_vert; i++) {
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       if (SCULPT_vertex_visible_get(ss, vertex)) {
         SCULPT_vertex_face_set_set(ss, vertex, next_face_set);
@@ -846,7 +845,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
 
   if (mode == SCULPT_FACE_SET_ALL) {
     for (int i = 0; i < tot_vert; i++) {
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       SCULPT_vertex_face_set_set(ss, vertex, next_face_set);
     }
@@ -856,7 +855,7 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     const int totface = ss->totfaces;
 
     for (int i = 0; i < totface; i++) {
-      SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+      PBVHFaceRef fref = BKE_pbvh_index_to_face(ss->pbvh, i);
 
       // XXX check hidden?
       int ok = !SCULPT_face_set_flag_get(ss, fref, ME_HIDE);
@@ -1063,7 +1062,7 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
     GSQueue *queue;
     queue = BLI_gsqueue_new(sizeof(int));
 
-    SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+    PBVHFaceRef fref = BKE_pbvh_index_to_face(ss->pbvh, i);
     SCULPT_face_set_set(ss, fref, next_face_set);
 
     BLI_BITMAP_ENABLE(visited_faces, i);
@@ -1092,7 +1091,7 @@ static void sculpt_face_sets_init_flood_fill(Object *ob,
             continue;
           }
 
-          SculptFaceRef fref2 = BKE_pbvh_table_index_to_face(ss->pbvh, neighbor_face_index);
+          PBVHFaceRef fref2 = BKE_pbvh_index_to_face(ss->pbvh, neighbor_face_index);
           SCULPT_face_set_set(ss, fref2, next_face_set);
 
           BLI_BITMAP_ENABLE(visited_faces, neighbor_face_index);
@@ -1134,7 +1133,7 @@ static void sculpt_face_sets_init_loop(Object *ob, const int mode)
   }
 
   for (int i = 0; i < ss->totfaces; i++) {
-    SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+    PBVHFaceRef fref = BKE_pbvh_index_to_face(ss->pbvh, i);
 
     if (mode == SCULPT_FACE_SETS_FROM_MATERIALS) {
       SCULPT_face_set_set(ss, fref, (int)(sculpt_face_material_get(ss, fref) + 1));
@@ -1351,7 +1350,7 @@ static int sculpt_face_sets_change_visibility_exec(bContext *C, wmOperator *op)
      * be synced from face sets to non-manifold vertices. */
     if (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS) {
       for (int i = 0; i < tot_vert; i++) {
-        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
         if (!SCULPT_vertex_visible_get(ss, vertex)) {
           hidden_vertex = true;
@@ -1493,7 +1492,7 @@ static int sculpt_face_sets_randomize_colors_exec(bContext *C, wmOperator *UNUSE
                                      0,
                                      max_ii(0, ss->totfaces - 1));
 
-    SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, random_index);
+    PBVHFaceRef fref = BKE_pbvh_index_to_face(ss->pbvh, random_index);
     mesh->face_sets_color_default = SCULPT_face_set_get(ss, fref);
   }
   BKE_pbvh_face_sets_color_set(pbvh, mesh->face_sets_color_seed, mesh->face_sets_color_default);
@@ -1694,7 +1693,7 @@ static void sculpt_face_set_fill_component(Object *ob,
 
   const int totvert = SCULPT_vertex_count_get(ss);
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     if (!SCULPT_vertex_has_face_set(ss, vertex, active_face_set_id)) {
       continue;
@@ -1707,7 +1706,7 @@ static void sculpt_face_set_fill_component(Object *ob,
   }
 
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     const int vertex_connected_component = ss->vertex_info.connected_component[i];
     if (!BLI_gset_haskey(connected_components, POINTER_FROM_INT(vertex_connected_component))) {
@@ -1818,7 +1817,7 @@ static bool check_single_face_set(SculptSession *ss, const bool check_visible_on
 
   if (check_visible_only) {
     for (int f = 0; f < ss->totfaces; f++) {
-      SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, f);
+      PBVHFaceRef fref = BKE_pbvh_index_to_face(ss->pbvh, f);
       int fset = SCULPT_face_set_get(ss, fref);
 
       if (fset > 0) {
@@ -1828,7 +1827,7 @@ static bool check_single_face_set(SculptSession *ss, const bool check_visible_on
     }
   }
   else {
-    SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, 0);
+    PBVHFaceRef fref = BKE_pbvh_index_to_face(ss->pbvh, 0);
     first_face_set = abs(SCULPT_face_set_get(ss, fref));
   }
 
@@ -1837,7 +1836,7 @@ static bool check_single_face_set(SculptSession *ss, const bool check_visible_on
   }
 
   for (int f = 0; f < ss->totfaces; f++) {
-    SculptFaceRef fref = BKE_pbvh_table_index_to_face(ss->pbvh, f);
+    PBVHFaceRef fref = BKE_pbvh_index_to_face(ss->pbvh, f);
 
     int fset = SCULPT_face_set_get(ss, fref);
     fset = check_visible_only ? abs(fset) : fset;
@@ -1936,7 +1935,7 @@ static void sculpt_face_set_edit_fair_face_set(Object *ob,
   SCULPT_boundary_info_ensure(ob);
 
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vref = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     fair_vertices[i] = !SCULPT_vertex_is_boundary(ss, vref, SCULPT_BOUNDARY_MESH) &&
                        SCULPT_vertex_has_face_set(ss, vref, active_face_set_id) &&
@@ -2169,10 +2168,10 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
   SculptFaceSetIsland *island = NULL;
 
-  if (no_islands && ss->active_face_index.i != SCULPT_REF_NONE) {
+  if (no_islands && ss->active_face_index.i != PBVH_REF_NONE) {
     island = SCULPT_face_set_island_get(ss, ss->active_face_index, active_face_set_id);
 
-    /* convert SculptFaceRef list into simple integers, only need to do for pbvh_bmesh*/
+    /* convert PBVHFaceRef list into simple integers, only need to do for pbvh_bmesh*/
     if (island && ss->bm) {
       SCULPT_face_random_access_ensure(ss);
 
@@ -2612,8 +2611,8 @@ static void sculpt_face_set_extrude_id(Object *ob,
 
 static void island_stack_bmesh_do(SculptSession *ss,
                                   int fset,
-                                  SculptFaceRef face,
-                                  SculptFaceRef **r_faces,
+                                  PBVHFaceRef face,
+                                  PBVHFaceRef **r_faces,
                                   int *r_totfaces,
                                   BLI_bitmap *visit)
 {
@@ -2641,17 +2640,17 @@ static void island_stack_bmesh_do(SculptSession *ss,
   } while ((l = l->next) != f->l_first);
 
   *r_totfaces = BLI_array_len(faces);
-  *r_faces = (SculptFaceRef *)faces;
+  *r_faces = (PBVHFaceRef *)faces;
 }
 
 static void island_stack_mesh_do(SculptSession *ss,
                                  int fset,
-                                 SculptFaceRef face,
-                                 SculptFaceRef **r_faces,
+                                 PBVHFaceRef face,
+                                 PBVHFaceRef **r_faces,
                                  int *r_totfaces,
                                  BLI_bitmap *visit)
 {
-  SculptFaceRef *faces = *r_faces;
+  PBVHFaceRef *faces = *r_faces;
   BLI_array_declare(faces);
   BLI_array_len_set(faces, *r_totfaces);
 
@@ -2666,7 +2665,7 @@ static void island_stack_mesh_do(SculptSession *ss,
 
       if (abs(ss->face_sets[f2]) == fset && !BLI_BITMAP_TEST(visit, f2)) {
         BLI_BITMAP_SET(visit, f2, true);
-        SculptFaceRef face2 = {f2};
+        PBVHFaceRef face2 = {f2};
 
         BLI_array_append(faces, face2);
       }
@@ -2674,7 +2673,7 @@ static void island_stack_mesh_do(SculptSession *ss,
   }
 
   *r_totfaces = BLI_array_len(faces);
-  *r_faces = (SculptFaceRef *)faces;
+  *r_faces = (PBVHFaceRef *)faces;
 }
 SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset)
 {
@@ -2696,13 +2695,13 @@ SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset)
 
   int totface = ss->totfaces;
   BLI_bitmap *visit = BLI_BITMAP_NEW(totface, __func__);
-  SculptFaceRef *stack = NULL;
+  PBVHFaceRef *stack = NULL;
   BLI_array_declare(stack);
 
   SCULPT_face_random_access_ensure(ss);
 
   for (int i = 0; i < totface; i++) {
-    SculptFaceRef face = BKE_pbvh_table_index_to_face(ss->pbvh, i);
+    PBVHFaceRef face = BKE_pbvh_index_to_face(ss->pbvh, i);
 
     if (abs(SCULPT_face_set_get(ss, face)) != fset) {
       continue;
@@ -2717,12 +2716,12 @@ SculptFaceSetIslands *SCULPT_face_set_islands_get(SculptSession *ss, int fset)
     BLI_array_clear(stack);
     BLI_array_append(stack, face);
 
-    SculptFaceRef *faces = NULL;
+    PBVHFaceRef *faces = NULL;
     BLI_array_declare(faces);
 
     while (BLI_array_len(stack) > 0) {
       // can't use BLI_array_pop since it doesn't work with popping structures
-      SculptFaceRef face2 = stack[BLI_array_len(stack) - 1];
+      PBVHFaceRef face2 = stack[BLI_array_len(stack) - 1];
       BLI_array_len_set(stack, BLI_array_len(stack) - 1);
 
       BLI_array_append(faces, face2);
@@ -2761,7 +2760,7 @@ void SCULPT_face_set_islands_free(SculptSession *ss, SculptFaceSetIslands *islan
   MEM_SAFE_FREE(islands);
 }
 
-SculptFaceSetIsland *SCULPT_face_set_island_get(SculptSession *ss, SculptFaceRef face, int fset)
+SculptFaceSetIsland *SCULPT_face_set_island_get(SculptSession *ss, PBVHFaceRef face, int fset)
 {
   SculptFaceSetIslands *islands = SCULPT_face_set_islands_get(ss, fset);
 
@@ -2843,7 +2842,7 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
   SCULPT_face_random_access_ensure(ss);
 
   if (dot_v3v3(fsecd->start_no, fsecd->start_no) == 0.0f &&
-      ss->active_face_index.i != SCULPT_REF_NONE) {
+      ss->active_face_index.i != PBVH_REF_NONE) {
     float fno[4];
 
     SCULPT_face_normal_get(ss, ss->active_face_index, fno);
@@ -2882,7 +2881,7 @@ static int sculpt_face_set_edit_modal(bContext *C, wmOperator *op, const wmEvent
     BM_mesh_elem_index_ensure(ss->bm, BM_VERT | BM_EDGE | BM_FACE);
 
     for (int i = 0; i < fsecd->totvert; i++) {
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, fsecd->verts[i]);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, fsecd->verts[i]);
 
       BMVert *v = (BMVert *)vertex.i;
 

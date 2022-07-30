@@ -32,23 +32,19 @@ extern "C" {
 
    The idea is to enforce stronger type checking by encapsulating
    intptr_t's in structs.*/
-typedef struct SculptElemRef {
+typedef struct PBVHVertRef {
   intptr_t i;
-} SculptElemRef;
+} PBVHVertRef;
 
-typedef struct SculptVertRef {
+typedef struct PBVHEdgeRef {
   intptr_t i;
-} SculptVertRef;
+} PBVHEdgeRef;
 
-typedef struct SculptEdgeRef {
+typedef struct PBVHFaceRef {
   intptr_t i;
-} SculptEdgeRef;
+} PBVHFaceRef;
 
-typedef struct SculptFaceRef {
-  intptr_t i;
-} SculptFaceRef;
-
-#define SCULPT_REF_NONE ((intptr_t)-1)
+#define PBVH_REF_NONE ((intptr_t)-1)
 
 typedef struct SculptPMap {
   struct MeshElemMap *pmap;
@@ -62,21 +58,21 @@ typedef struct SculptLoopRef {
 } SculptLoopRef;
 #endif
 
-BLI_INLINE SculptVertRef BKE_pbvh_make_vref(intptr_t i)
+BLI_INLINE PBVHVertRef BKE_pbvh_make_vref(intptr_t i)
 {
-  SculptVertRef ret = {i};
+  PBVHVertRef ret = {i};
   return ret;
 }
 
-BLI_INLINE SculptEdgeRef BKE_pbvh_make_eref(intptr_t i)
+BLI_INLINE PBVHEdgeRef BKE_pbvh_make_eref(intptr_t i)
 {
-  SculptEdgeRef ret = {i};
+  PBVHEdgeRef ret = {i};
   return ret;
 }
 
-BLI_INLINE SculptFaceRef BKE_pbvh_make_fref(intptr_t i)
+BLI_INLINE PBVHFaceRef BKE_pbvh_make_fref(intptr_t i)
 {
-  SculptFaceRef ret = {i};
+  PBVHFaceRef ret = {i};
   return ret;
 }
 
@@ -90,12 +86,12 @@ typedef struct PBVHTri {
   intptr_t l[3];  // loops
 
   float no[3];
-  SculptFaceRef f;
+  PBVHFaceRef f;
 } PBVHTri;
 
 typedef struct PBVHTriBuf {
   PBVHTri *tris;
-  SculptVertRef *verts;
+  PBVHVertRef *verts;
   int *edges;
   int totvert, totedge, tottri;
   int verts_size, edges_size, tris_size;
@@ -159,7 +155,7 @@ typedef struct ProxyVertArray {
   float (*fno)[3];
   short (*no)[3];
   float *mask, **ownermask;
-  SculptVertRef *index;
+  PBVHVertRef *index;
   float **ownercolor, (*color)[4];
 
   ProxyKey (*neighbors)[MAX_PROXY_NEIGHBORS];
@@ -186,7 +182,7 @@ typedef enum {
 
 typedef struct ProxyVertUpdateRec {
   float *co, *no, *mask, *color;
-  SculptVertRef index, newindex;
+  PBVHVertRef index, newindex;
 } ProxyVertUpdateRec;
 
 #  define PBVH_PROXY_DEFAULT CO | INDEX | MASK
@@ -203,7 +199,7 @@ void BKE_pbvh_ensure_proxyarray(
     struct PBVHNode *node,
     int mask,
     struct GHash
-        *vert_node_map,  // vert_node_map maps vertex SculptVertRefs to PBVHNode indices; optional
+        *vert_node_map,  // vert_node_map maps vertex PBVHVertRefs to PBVHNode indices; optional
     bool check_indexmap,
     bool force_update);
 void BKE_pbvh_gather_proxyarray(PBVH *pbvh, PBVHNode **nodes, int totnode);
@@ -357,7 +353,7 @@ void BKE_pbvh_update_sculpt_verts(PBVH *pbvh);
 
 /** update original data, only data whose r_** parameters are passed in will be updated*/
 bool BKE_pbvh_get_origvert(
-    PBVH *pbvh, SculptVertRef vertex, const float **r_co, float **r_no, float **r_color);
+    PBVH *pbvh, PBVHVertRef vertex, const float **r_co, float **r_no, float **r_color);
 
 /**
 checks if original data needs to be updated for v, and if so updates it.  Stroke_id
@@ -406,8 +402,8 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            int *hit_count,
                            float *depth,
                            float *back_depth,
-                           SculptVertRef *active_vertex_index,
-                           SculptFaceRef *active_face_grid_index,
+                           PBVHVertRef *active_vertex_index,
+                           PBVHFaceRef *active_face_grid_index,
                            float *face_normal,
                            int stroke_id);
 
@@ -515,7 +511,7 @@ typedef enum {
   PBVH_LocalCollapse = 1 << 4
 } PBVHTopologyUpdateMode;
 
-typedef float (*DyntopoMaskCB)(SculptVertRef vertex, void *userdata);
+typedef float (*DyntopoMaskCB)(PBVHVertRef vertex, void *userdata);
 
 bool BKE_pbvh_bmesh_update_topology(
     PBVH *pbvh,
@@ -556,11 +552,11 @@ void BKE_pbvh_face_areas_begin(PBVH *pbvh);
 
 // updates boundaries and valences for whole mesh
 void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh);
-bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, SculptVertRef vertex);
-void BKE_pbvh_bmesh_update_valence(int cd_sculpt_vert, SculptVertRef vertex);
+bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, PBVHVertRef vertex);
+void BKE_pbvh_bmesh_update_valence(int cd_sculpt_vert, PBVHVertRef vertex);
 void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh);
 void BKE_pbvh_bmesh_flag_all_disk_sort(PBVH *pbvh);
-bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, SculptVertRef vertex);
+bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, PBVHVertRef vertex);
 
 /* if pbvh uses a split index buffer, will call BKE_pbvh_node_mark_update_triangulation;
    otherwise does nothing.  returns true if BKE_pbvh_node_mark_update_triangulation was
@@ -587,7 +583,7 @@ bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node);
 void BKE_pbvh_node_mark_curvature_update(PBVHNode *node);
 
 void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh);
-void BKE_pbvh_vert_mark_update(PBVH *pbvh, SculptVertRef vertex);
+void BKE_pbvh_vert_mark_update(PBVH *pbvh, PBVHVertRef vertex);
 
 void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              PBVHNode *node,
@@ -675,7 +671,7 @@ typedef struct PBVHVertexIter {
   int gy;
   int i;
   int index;
-  SculptVertRef vertex;
+  PBVHVertRef vertex;
   bool respect_hide;
 
   /* grid */
@@ -812,17 +808,17 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   } \
   ((void)0)
 
-#define BKE_pbvh_vertex_index_to_table(pbvh, v) \
+#define BKE_pbvh_vertex_to_index(pbvh, v) \
   (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMVert *)(v.i)) : (v.i))
-SculptVertRef BKE_pbvh_table_index_to_vertex(PBVH *pbvh, int idx);
+PBVHVertRef BKE_pbvh_index_to_vertex(PBVH *pbvh, int idx);
 
-#define BKE_pbvh_edge_index_to_table(pbvh, v) \
+#define BKE_pbvh_edge_to_index(pbvh, v) \
   (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMEdge *)(v.i)) : (v.i))
-SculptEdgeRef BKE_pbvh_table_index_to_edge(PBVH *pbvh, int idx);
+PBVHEdgeRef BKE_pbvh_index_to_edge(PBVH *pbvh, int idx);
 
-#define BKE_pbvh_face_index_to_table(pbvh, v) \
+#define BKE_pbvh_face_to_index(pbvh, v) \
   (BKE_pbvh_type(pbvh) == PBVH_BMESH && v.i != -1 ? BM_elem_index_get((BMFace *)(v.i)) : (v.i))
-SculptFaceRef BKE_pbvh_table_index_to_face(PBVH *pbvh, int idx);
+PBVHFaceRef BKE_pbvh_index_to_face(PBVH *pbvh, int idx);
 
 void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *proxy_count);
 void BKE_pbvh_node_free_proxies(PBVHNode *node);
@@ -886,8 +882,8 @@ void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop);
 
 void BKE_pbvh_update_active_vcol(PBVH *pbvh, const struct Mesh *mesh);
 
-void BKE_pbvh_vertex_color_set(PBVH *pbvh, SculptVertRef vertex, const float color[4]);
-void BKE_pbvh_vertex_color_get(const PBVH *pbvh, SculptVertRef vertex, float r_color[4]);
+void BKE_pbvh_vertex_color_set(PBVH *pbvh, PBVHVertRef vertex, const float color[4]);
+void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_color[4]);
 
 void BKE_pbvh_ensure_node_loops(PBVH *pbvh);
 bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh);
@@ -957,7 +953,7 @@ void BKE_pbvh_update_vert_boundary(int cd_sculpt_vert,
 
 PBVHNode *BKE_pbvh_get_node_leaf_safe(PBVH *pbvh, int i);
 
-void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_areas, int valence);
+void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas, int valence);
 void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry, int boundary_symmetry);
 
 #if 0
@@ -993,7 +989,7 @@ typedef struct SculptTextureDef {
   void *(*buildNodeData)(PBVH *pbvh, PBVHNode *node);
   bool (*validate)(PBVH *pbvh, TexLayerRef vdm);
 
-  void (*setVertexCos)(PBVH *pbvh, PBVHNode *node, SculptVertRef *verts, int totvert, TexLayerRef vdm);
+  void (*setVertexCos)(PBVH *pbvh, PBVHNode *node, PBVHVertRef *verts, int totvert, TexLayerRef vdm);
 
   void (*getPointsFromNode)(PBVH *pbvh,
                             PBVHNode *node,
@@ -1065,10 +1061,10 @@ void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
                                          struct MPoly *mpoly,
                                          struct MSculptVert *mdyntopo_verts,
                                          struct MeshElemMap *pmap,
-                                         SculptVertRef vertex);
+                                         PBVHVertRef vertex);
 void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
                                          struct SubdivCCG *subdiv_ccg,
-                                         SculptVertRef vertex);
+                                         PBVHVertRef vertex);
 
 void BKE_pbvh_set_mdyntopo_verts(PBVH *pbvh, struct MSculptVert *mdyntopoverts);
 
@@ -1171,7 +1167,7 @@ check if heap_alloc is true afterwards and free *r_edges.
 r_polys is an array of integer pairs and must be same logical size as r_edges
 */
 void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
-                            SculptVertRef vertex,
+                            PBVHVertRef vertex,
                             int **r_edges,
                             int *r_edges_size,
                             bool *heap_alloc,

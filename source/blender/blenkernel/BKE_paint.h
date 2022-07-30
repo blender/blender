@@ -478,7 +478,7 @@ typedef struct SculptVertexInfo {
 
 typedef struct SculptBoundaryEditInfo {
   /* Vertex index from where the topology propagation reached this vertex. */
-  SculptVertRef original_vertex;
+  PBVHVertRef original_vertex;
   int original_vertex_i;
 
   /* How many steps were needed to reach this vertex from the boundary. */
@@ -490,8 +490,8 @@ typedef struct SculptBoundaryEditInfo {
 
 /* Edge for drawing the boundary preview in the cursor. */
 typedef struct SculptBoundaryPreviewEdge {
-  SculptVertRef v1;
-  SculptVertRef v2;
+  PBVHVertRef v1;
+  PBVHVertRef v2;
 } SculptBoundaryPreviewEdge;
 
 #define MAX_STORED_COTANGENTW_EDGES 7
@@ -504,7 +504,7 @@ typedef struct StoredCotangentW {
 
 typedef struct SculptBoundary {
   /* Vertex indices of the active boundary. */
-  SculptVertRef *vertices;
+  PBVHVertRef *vertices;
   int *vertex_indices;
 
   int vertices_capacity;
@@ -520,7 +520,7 @@ typedef struct SculptBoundary {
   float (*boundary_tangents)[3];
 
   StoredCotangentW *boundary_cotangents;
-  SculptVertRef *boundary_closest;
+  PBVHVertRef *boundary_closest;
   int sculpt_totvert;
 
   /* Data for drawing the preview. */
@@ -532,12 +532,12 @@ typedef struct SculptBoundary {
   bool forms_loop;
 
   /* Initial vertex in the boundary which is closest to the current sculpt active vertex. */
-  SculptVertRef initial_vertex;
+  PBVHVertRef initial_vertex;
 
   /* Vertex that at max_propagation_steps from the boundary and closest to the original active
    * vertex that was used to initialize the boundary. This is used as a reference to check how much
    * the deformation will go into the mesh and to calculate the strength of the brushes. */
-  SculptVertRef pivot_vertex;
+  PBVHVertRef pivot_vertex;
 
   /* Stores the initial positions of the pivot and boundary initial vertex as they may be deformed
    * during the brush action. This allows to use them as a reference positions and vectors for some
@@ -632,7 +632,7 @@ typedef struct SculptFakeNeighbors {
   float current_max_distance;
 
   /* Indexed by vertex, stores the vertex index of its fake neighbor if available. */
-  SculptVertRef *fake_neighbor_index;
+  PBVHVertRef *fake_neighbor_index;
 
 } SculptFakeNeighbors;
 
@@ -801,8 +801,8 @@ typedef struct SculptSession {
   struct ExpandCache *expand_cache;
 
   /* Cursor data and active vertex for tools */
-  SculptVertRef active_vertex_index;
-  SculptFaceRef active_face_index;
+  PBVHVertRef active_vertex_index;
+  PBVHFaceRef active_face_index;
 
   int active_grid_index;
 
@@ -832,11 +832,11 @@ typedef struct SculptSession {
 
   /* Face Sets by topology. */
   int face_set_last_created;
-  SculptFaceRef face_set_last_poly;
-  SculptEdgeRef face_set_last_edge;
+  PBVHFaceRef face_set_last_poly;
+  PBVHEdgeRef face_set_last_edge;
 
   /* Dynamic mesh preview */
-  SculptVertRef *preview_vert_index_list;
+  PBVHVertRef *preview_vert_index_list;
   int preview_vert_index_count;
 
   /* Pose Brush Preview */

@@ -436,7 +436,7 @@ typedef struct PoseFloodFillData {
   int current_face_set;
   int next_face_set;
   int prev_face_set;
-  SculptVertRef next_vertex;
+  PBVHVertRef next_vertex;
   int next_vertex_index;
 
   bool next_face_set_found;
@@ -468,13 +468,13 @@ typedef struct PoseFloodFillData {
 } PoseFloodFillData;
 
 static bool pose_topology_floodfill_cb(SculptSession *ss,
-                                       SculptVertRef UNUSED(from_v),
-                                       SculptVertRef to_vref,
+                                       PBVHVertRef UNUSED(from_v),
+                                       PBVHVertRef to_vref,
                                        bool is_duplicate,
                                        void *userdata)
 {
   PoseFloodFillData *data = userdata;
-  int to_v = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_vref);
+  int to_v = BKE_pbvh_vertex_to_index(ss->pbvh, to_vref);
 
   const float *co = SCULPT_vertex_co_get(ss, to_vref);
 
@@ -502,14 +502,14 @@ static bool pose_topology_floodfill_cb(SculptSession *ss,
 }
 
 static bool pose_face_sets_floodfill_cb(SculptSession *ss,
-                                        SculptVertRef UNUSED(from_v),
-                                        SculptVertRef to_v,
+                                        PBVHVertRef UNUSED(from_v),
+                                        PBVHVertRef to_v,
                                         bool is_duplicate,
                                         void *userdata)
 {
   PoseFloodFillData *data = userdata;
 
-  const int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_v);
+  const int index = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
   bool visit_next = false;
 
   const float *co = SCULPT_vertex_co_get(ss, to_v);
@@ -738,9 +738,8 @@ static SculptPoseIKChain *pose_ik_chain_init_topology(Sculpt *sd,
   float next_chain_segment_target[3];
 
   int totvert = SCULPT_vertex_count_get(ss);
-  SculptVertRef nearest_vertex = SCULPT_nearest_vertex_get(
-      sd, ob, initial_location, FLT_MAX, true);
-  int nearest_vertex_index = BKE_pbvh_vertex_index_to_table(ss->pbvh, nearest_vertex);
+  PBVHVertRef nearest_vertex = SCULPT_nearest_vertex_get(sd, ob, initial_location, FLT_MAX, true);
+  int nearest_vertex_index = BKE_pbvh_vertex_to_index(ss->pbvh, nearest_vertex);
 
   /* Init the buffers used to keep track of the changes in the pose factors as more segments are
    * added to the IK chain. */
@@ -825,7 +824,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
   int current_face_set = SCULPT_FACE_SET_NONE;
   int prev_face_set = SCULPT_FACE_SET_NONE;
 
-  SculptVertRef current_vertex = SCULPT_active_vertex_get(ss);
+  PBVHVertRef current_vertex = SCULPT_active_vertex_get(ss);
 
   for (int s = 0; s < ik_chain->tot_segments; s++) {
 
@@ -887,15 +886,12 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets(
   return ik_chain;
 }
 
-static bool pose_face_sets_fk_find_masked_floodfill_cb(SculptSession *ss,
-                                                       SculptVertRef from_vr,
-                                                       SculptVertRef to_vr,
-                                                       bool is_duplicate,
-                                                       void *userdata)
+static bool pose_face_sets_fk_find_masked_floodfill_cb(
+    SculptSession *ss, PBVHVertRef from_vr, PBVHVertRef to_vr, bool is_duplicate, void *userdata)
 {
   PoseFloodFillData *data = userdata;
-  int from_v = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_vr);
-  int to_v = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_vr);
+  int from_v = BKE_pbvh_vertex_to_index(ss->pbvh, from_vr);
+  int to_v = BKE_pbvh_vertex_to_index(ss->pbvh, to_vr);
 
   if (!is_duplicate) {
     data->floodfill_it[to_v] = data->floodfill_it[from_v] + 1;
@@ -927,13 +923,13 @@ static bool pose_face_sets_fk_find_masked_floodfill_cb(SculptSession *ss,
 }
 
 static bool pose_face_sets_fk_set_weights_floodfill_cb(SculptSession *ss,
-                                                       SculptVertRef UNUSED(from_v),
-                                                       SculptVertRef to_v,
+                                                       PBVHVertRef UNUSED(from_v),
+                                                       PBVHVertRef to_v,
                                                        bool UNUSED(is_duplicate),
                                                        void *userdata)
 {
   PoseFloodFillData *data = userdata;
-  data->fk_weights[BKE_pbvh_vertex_index_to_table(ss->pbvh, to_v)] = 1.0f;
+  data->fk_weights[BKE_pbvh_vertex_to_index(ss->pbvh, to_v)] = 1.0f;
   return !SCULPT_vertex_has_face_set(ss, to_v, data->masked_face_set);
 }
 
@@ -944,8 +940,8 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
 
   SculptPoseIKChain *ik_chain = pose_ik_chain_new(1, totvert);
 
-  const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
-  const int active_vertex_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, active_vertex);
+  const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  const int active_vertex_i = BKE_pbvh_vertex_to_index(ss->pbvh, active_vertex);
 
   const int active_face_set = SCULPT_active_face_set_get(ss);
 
@@ -967,7 +963,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   int origin_count = 0;
   float origin_acc[3] = {0.0f};
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vref = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     if (fdata.floodfill_it[i] != 0 &&
         SCULPT_vertex_has_face_set(ss, vref, fdata.initial_face_set) &&
@@ -981,7 +977,7 @@ static SculptPoseIKChain *pose_ik_chain_init_face_sets_fk(
   float target_acc[3] = {0.0f};
   if (fdata.target_face_set != fdata.masked_face_set) {
     for (int i = 0; i < totvert; i++) {
-      SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vref = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       if (fdata.floodfill_it[i] != 0 &&
           SCULPT_vertex_has_face_set(ss, vref, fdata.initial_face_set) &&
@@ -1214,7 +1210,7 @@ static void sculpt_pose_do_bend_deform(SculptSession *ss, Brush *UNUSED(brush))
     float smd_limit[2];
 
     for (int i = 0; i < totvert; i++) {
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       if (ik_chain->segments[0].weights[i] == 0.0f) {
         continue;

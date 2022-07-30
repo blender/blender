@@ -140,7 +140,7 @@ BLI_INLINE void normal_covariance(float mat[3][3], float no[3])
 }
 
 bool SCULPT_calc_principle_curvatures(SculptSession *ss,
-                                      SculptVertRef vertex,
+                                      PBVHVertRef vertex,
                                       SculptCurvatureData *out,
                                       bool useAccurateSolver)
 {
@@ -217,7 +217,7 @@ bool SCULPT_calc_principle_curvatures(SculptSession *ss,
 }
 
 void SCULPT_curvature_dir_get(SculptSession *ss,
-                              SculptVertRef v,
+                              PBVHVertRef v,
                               float dir[3],
                               bool useAccurateSolver)
 {

@@ -60,7 +60,7 @@
 #include "BLI_utildefines.h"
 
 void SCULPT_reproject_cdata(SculptSession *ss,
-                            SculptVertRef vertex,
+                            PBVHVertRef vertex,
                             float origco[3],
                             float origno[3])
 {
@@ -266,7 +266,7 @@ void SCULPT_reproject_cdata(SculptSession *ss,
       *fakev = *l2->v;
       fakel->v = fakev;
 
-      SCULPT_vertex_check_origdata(ss, (SculptVertRef){.i = (intptr_t)l2->v});
+      SCULPT_vertex_check_origdata(ss, (PBVHVertRef){.i = (intptr_t)l2->v});
 
       if (l2->v == v) {
         copy_v3_v3(fakev->co, origco);
@@ -378,7 +378,7 @@ MINLINE float safe_shell_angle_to_dist(const float angle)
 
 static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
                                                              float result[3],
-                                                             SculptVertRef vertex,
+                                                             PBVHVertRef vertex,
                                                              SculptSmoothArgs *args)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
@@ -723,7 +723,7 @@ static void SCULPT_neighbor_coords_average_interior_boundary(SculptSession *ss,
 
 void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              float result[3],
-                                             SculptVertRef vertex,
+                                             PBVHVertRef vertex,
                                              SculptSmoothArgs *args)
 {
   if (args->bound_smooth > 0.0f && args->bound_scl) {
@@ -1064,10 +1064,10 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
   const bool weighted = (ss->cache->brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT);
   float *areas;
 
-  SCULPT_vertex_check_origdata(ss, (SculptVertRef){.i = (intptr_t)v});
+  SCULPT_vertex_check_origdata(ss, (PBVHVertRef){.i = (intptr_t)v});
 
   if (do_origco) {
-    // SCULPT_vertex_check_origdata(ss, (SculptVertRef){.i = (intptr_t)v});
+    // SCULPT_vertex_check_origdata(ss, (PBVHVertRef){.i = (intptr_t)v});
     madd_v3_v3fl(direction, mv->origno, -dot_v3v3(mv->origno, direction));
     normalize_v3(direction);
   }
@@ -1076,7 +1076,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
   float *no1 = do_origco ? mv->origno : v->no;
 
   if (weighted) {
-    SculptVertRef vertex = {.i = (intptr_t)v};
+    PBVHVertRef vertex = {.i = (intptr_t)v};
 
     int val = SCULPT_vertex_valence_get(ss, vertex);
     areas = BLI_array_alloca(areas, val * 2);
@@ -1137,7 +1137,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     SculptBoundaryType bflag = SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_MESH |
                                SCULPT_BOUNDARY_SHARP | SCULPT_BOUNDARY_SEAM | SCULPT_BOUNDARY_UV;
 
-    int bound = SCULPT_edge_is_boundary(ss, (SculptEdgeRef){.i = (intptr_t)e}, bflag);
+    int bound = SCULPT_edge_is_boundary(ss, (PBVHEdgeRef){.i = (intptr_t)e}, bflag);
     float dirw = 1.0f;
 
     if (bound) {
@@ -1261,7 +1261,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
 }
 
 static void sculpt_neighbor_coords_average_fset(
-    SculptSession *ss, float result[3], SculptVertRef vertex, float projection, bool weighted)
+    SculptSession *ss, float result[3], PBVHVertRef vertex, float projection, bool weighted)
 {
   float avg[3] = {0.0f, 0.0f, 0.0f};
   float *co, no[3];
@@ -1331,7 +1331,7 @@ static void sculpt_neighbor_coords_average_fset(
 
 void SCULPT_neighbor_coords_average(SculptSession *ss,
                                     float result[3],
-                                    SculptVertRef vertex,
+                                    PBVHVertRef vertex,
                                     float projection,
                                     bool check_fsets,
                                     bool weighted)
@@ -1420,7 +1420,7 @@ void SCULPT_neighbor_coords_average(SculptSession *ss,
   }
 }
 
-float SCULPT_neighbor_mask_average(SculptSession *ss, SculptVertRef index)
+float SCULPT_neighbor_mask_average(SculptSession *ss, PBVHVertRef index)
 {
   float avg = 0.0f;
   int total = 0;
@@ -1438,7 +1438,7 @@ float SCULPT_neighbor_mask_average(SculptSession *ss, SculptVertRef index)
   return SCULPT_vertex_mask_get(ss, index);
 }
 
-void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], SculptVertRef vertex)
+void SCULPT_neighbor_color_average(SculptSession *ss, float result[4], PBVHVertRef vertex)
 {
   float avg[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float total = 0.0f;
@@ -1703,7 +1703,7 @@ void SCULPT_enhance_details_brush(
 
     for (int i = 0; i < totvert; i++) {
       float avg[3];
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
       float *dir = SCULPT_attr_vertex_data(vertex, &scl);
       float no[3];
 
@@ -1726,7 +1726,7 @@ void SCULPT_enhance_details_brush(
       for (int i = 0; i < totvert; i++) {
         float avg[3] = {0.0f, 0.0f, 0.0f};
 
-        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
         float *dir = SCULPT_attr_vertex_data(vertex, &scl);
         float tot = 0.0f;
         float *areas = NULL;
@@ -2171,7 +2171,7 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
                                           float *disp,
                                           const float co[3],
                                           SculptCustomLayer *scl,
-                                          const SculptVertRef v_index,
+                                          const PBVHVertRef v_index,
                                           const float origco[3],
                                           const float alpha,
                                           const float projection,
@@ -2183,7 +2183,7 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
   SCULPT_neighbor_coords_average(
       ss, laplacian_smooth_co, v_index, projection, check_fsets, weighted);
 
-  // int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, v_index);
+  // int index = BKE_pbvh_vertex_to_index(ss->pbvh, v_index);
 
   mul_v3_v3fl(weigthed_o, origco, alpha);
   mul_v3_v3fl(weigthed_q, co, 1.0f - alpha);
@@ -2196,14 +2196,14 @@ void SCULPT_surface_smooth_laplacian_step(SculptSession *ss,
 void SCULPT_surface_smooth_displace_step(SculptSession *ss,
                                          float *co,
                                          SculptCustomLayer *scl,
-                                         const SculptVertRef v_index,
+                                         const PBVHVertRef v_index,
                                          const float beta,
                                          const float fade)
 {
   float b_avg[3] = {0.0f, 0.0f, 0.0f};
   float b_current_vertex[3];
   int total = 0;
-  // int index = BKE_pbvh_vertex_index_to_table(ss->pbvh, v_index);
+  // int index = BKE_pbvh_vertex_to_index(ss->pbvh, v_index);
 
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, v_index, ni) {

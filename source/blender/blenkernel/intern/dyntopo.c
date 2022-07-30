@@ -1475,8 +1475,8 @@ typedef struct EdgeQueueContext {
 static float maskcb_get(EdgeQueueContext *eq_ctx, BMVert *v1, BMVert *v2)
 {
   if (eq_ctx->mask_cb) {
-    SculptVertRef sv1 = {(intptr_t)v1};
-    SculptVertRef sv2 = {(intptr_t)v2};
+    PBVHVertRef sv1 = {(intptr_t)v1};
+    PBVHVertRef sv2 = {(intptr_t)v2};
 
     float w1 = eq_ctx->mask_cb(sv1, eq_ctx->mask_cb_data);
     float w2 = eq_ctx->mask_cb(sv2, eq_ctx->mask_cb_data);
@@ -2058,7 +2058,7 @@ static void unified_edge_queue_task_cb(void *__restrict userdata,
         int randval = (seed = dyntopo_thread_rand(seed)) & 255;
 
         if (do_smooth && randval > 127) {
-          SculptVertRef sv = {.i = (intptr_t)l_iter->v};
+          PBVHVertRef sv = {.i = (intptr_t)l_iter->v};
           surface_smooth_v_safe(tdata->pbvh,
                                 l_iter->v,
                                 eq_ctx->surface_smooth_fac *
@@ -2657,11 +2657,11 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
       MSculptVert *mv2 = BKE_PBVH_SCULPTVERT(cd_sculpt_vert, e->v2);
 
       if (mv1->flag & SCULPTVERT_NEED_VALENCE) {
-        BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (SculptVertRef){.i = (intptr_t)e->v1});
+        BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){.i = (intptr_t)e->v1});
       }
 
       if (mv2->flag & SCULPTVERT_NEED_VALENCE) {
-        BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (SculptVertRef){.i = (intptr_t)e->v2});
+        BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){.i = (intptr_t)e->v2});
       }
 
       // check_vert_fan_are_tris(pbvh, e->v1);
@@ -2840,7 +2840,7 @@ static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
           MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
           if (mv->flag & SCULPTVERT_NEED_VALENCE) {
-            BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (SculptVertRef){.i = (intptr_t)v});
+            BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){.i = (intptr_t)v});
           }
 
           edge_queue_insert_val34_vert(eq_ctx, v);
@@ -4018,14 +4018,14 @@ cleanup_valence_3_4(EdgeQueueContext *ectx,
 
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
-    BKE_pbvh_bmesh_check_valence(pbvh, (SculptVertRef){.i = (intptr_t)v});
+    BKE_pbvh_bmesh_check_valence(pbvh, (PBVHVertRef){.i = (intptr_t)v});
 
     int val = mv->valence;
     if (val != 4 && val != 3) {
       continue;
     }
 
-    SculptVertRef sv = {.i = (intptr_t)v};
+    PBVHVertRef sv = {.i = (intptr_t)v};
 
     if (len_squared_v3v3(v->co, center) >= rsqr || !v->e ||
         ectx->mask_cb(sv, ectx->mask_cb_data) < 0.5f) {
@@ -4444,7 +4444,7 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx,
         MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
 
         if (mv->flag & SCULPTVERT_NEED_VALENCE) {
-          BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (SculptVertRef){.i = (intptr_t)v});
+          BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){.i = (intptr_t)v});
         }
 
         if (mv->valence < 5) {
@@ -4467,7 +4467,7 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx,
   return modified;
 }
 
-float mask_cb_nop(SculptVertRef vertex, void *userdata)
+float mask_cb_nop(PBVHVertRef vertex, void *userdata)
 {
   return 1.0f;
 }

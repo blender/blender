@@ -2233,7 +2233,7 @@ bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node)
   return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyUnmasked);
 }
 
-void BKE_pbvh_vert_mark_update(PBVH *pbvh, SculptVertRef vertex)
+void BKE_pbvh_vert_mark_update(PBVH *pbvh, PBVHVertRef vertex)
 {
   BLI_assert(pbvh->type == PBVH_FACES);
   pbvh->vert_bitmap[vertex.i] = true;
@@ -2640,8 +2640,8 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
                                     float *depth,
 
                                     float *depth_back,
-                                    SculptVertRef *r_active_vertex_index,
-                                    SculptFaceRef *r_active_face_index,
+                                    PBVHVertRef *r_active_vertex_index,
+                                    PBVHFaceRef *r_active_face_index,
                                     float *r_face_normal,
                                     int stroke_id)
 {
@@ -2695,8 +2695,8 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
         if (j == 0 ||
             len_squared_v3v3(location, co[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
           copy_v3_v3(nearest_vertex_co, co[j]);
-          *r_active_vertex_index = (SculptVertRef){.i = mloop[lt->tri[j]].v};
-          *r_active_face_index = (SculptFaceRef){.i = lt->poly};
+          *r_active_vertex_index = (PBVHVertRef){.i = mloop[lt->tri[j]].v};
+          *r_active_face_index = (PBVHFaceRef){.i = lt->poly};
         }
       }
     }
@@ -2715,8 +2715,8 @@ static bool pbvh_grids_node_raycast(PBVH *pbvh,
                                     float *depth,
                                     float *back_depth,
 
-                                    SculptVertRef *r_active_vertex_index,
-                                    SculptFaceRef *r_active_grid_index,
+                                    PBVHVertRef *r_active_vertex_index,
+                                    PBVHFaceRef *r_active_grid_index,
                                     float *r_face_normal)
 {
   const int totgrid = node->totprim;
@@ -2820,8 +2820,8 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
                            int *hit_count,
                            float *depth,
                            float *back_depth,
-                           SculptVertRef *active_vertex_index,
-                           SculptFaceRef *active_face_grid_index,
+                           PBVHVertRef *active_vertex_index,
+                           PBVHFaceRef *active_face_grid_index,
                            float *face_normal,
                            int stroke_id)
 {
@@ -3597,30 +3597,30 @@ bool BKE_pbvh_draw_mask(const PBVH *pbvh)
   return false;
 }
 
-SculptVertRef BKE_pbvh_table_index_to_vertex(PBVH *pbvh, int idx)
+PBVHVertRef BKE_pbvh_index_to_vertex(PBVH *pbvh, int idx)
 {
   if (pbvh->type == PBVH_BMESH) {
-    SculptVertRef ref = {(intptr_t)pbvh->bm->vtable[idx]};
+    PBVHVertRef ref = {(intptr_t)pbvh->bm->vtable[idx]};
     return ref;
   }
 
   return BKE_pbvh_make_vref(idx);
 }
 
-SculptEdgeRef BKE_pbvh_table_index_to_edge(PBVH *pbvh, int idx)
+PBVHEdgeRef BKE_pbvh_index_to_edge(PBVH *pbvh, int idx)
 {
   if (pbvh->type == PBVH_BMESH) {
-    SculptEdgeRef ref = {(intptr_t)pbvh->bm->etable[idx]};
+    PBVHEdgeRef ref = {(intptr_t)pbvh->bm->etable[idx]};
     return ref;
   }
 
   return BKE_pbvh_make_eref(idx);
 }
 
-SculptFaceRef BKE_pbvh_table_index_to_face(PBVH *pbvh, int idx)
+PBVHFaceRef BKE_pbvh_index_to_face(PBVH *pbvh, int idx)
 {
   if (pbvh->type == PBVH_BMESH) {
-    SculptFaceRef ref = {(intptr_t)pbvh->bm->ftable[idx]};
+    PBVHFaceRef ref = {(intptr_t)pbvh->bm->ftable[idx]};
     return ref;
   }
 
@@ -3908,7 +3908,7 @@ void BKE_pbvh_ensure_proxyarray(SculptSession *ss,
   UPDATETEST(fno, PV_NO, sizeof(float) * 3)
   UPDATETEST(mask, PV_MASK, sizeof(float))
   UPDATETEST(color, PV_COLOR, sizeof(float) * 4)
-  UPDATETEST(index, PV_INDEX, sizeof(SculptVertRef))
+  UPDATETEST(index, PV_INDEX, sizeof(PBVHVertRef))
   UPDATETEST(neighbors, PV_NEIGHBORS, sizeof(ProxyKey) * MAX_PROXY_NEIGHBORS)
 
   p->size = totvert;
@@ -4336,7 +4336,7 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
 }
 
 static void pbvh_pmap_to_edges_add(PBVH *pbvh,
-                                   SculptVertRef vertex,
+                                   PBVHVertRef vertex,
                                    int **r_edges,
                                    int *r_edges_size,
                                    bool *heap_alloc,
@@ -4384,7 +4384,7 @@ static void pbvh_pmap_to_edges_add(PBVH *pbvh,
 }
 
 void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
-                            SculptVertRef vertex,
+                            PBVHVertRef vertex,
                             int **r_edges,
                             int *r_edges_size,
                             bool *r_heap_alloc,
@@ -4434,7 +4434,7 @@ void BKE_pbvh_set_vemap(PBVH *pbvh, MeshElemMap *vemap)
   pbvh->vemap = vemap;
 }
 
-void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, SculptVertRef vertex, float *r_areas, int valence)
+void BKE_pbvh_get_vert_face_areas(PBVH *pbvh, PBVHVertRef vertex, float *r_areas, int valence)
 {
   const int cur_i = pbvh->face_area_i;
 
@@ -4629,7 +4629,7 @@ void BKE_pbvh_set_mdyntopo_verts(PBVH *pbvh, struct MSculptVert *mdyntopoverts)
 
 void BKE_pbvh_update_vert_boundary_grids(PBVH *pbvh,
                                          struct SubdivCCG *subdiv_ccg,
-                                         SculptVertRef vertex)
+                                         PBVHVertRef vertex)
 {
   MSculptVert *mv = pbvh->mdyntopo_verts + vertex.i;
 
@@ -4664,7 +4664,7 @@ void BKE_pbvh_update_vert_boundary_faces(int *face_sets,
                                          MPoly *mpoly,
                                          MSculptVert *mdyntopo_verts,
                                          MeshElemMap *pmap,
-                                         SculptVertRef vertex)
+                                         PBVHVertRef vertex)
 {
   MSculptVert *mv = mdyntopo_verts + vertex.i;
   MeshElemMap *vert_map = &pmap[vertex.i];
@@ -5308,7 +5308,7 @@ void BKE_pbvh_ensure_node_loops(PBVH *pbvh)
 }
 
 bool BKE_pbvh_get_origvert(
-    PBVH *pbvh, SculptVertRef vertex, const float **r_co, float **r_no, float **r_color)
+    PBVH *pbvh, PBVHVertRef vertex, const float **r_co, float **r_no, float **r_color)
 {
   MSculptVert *mv;
 

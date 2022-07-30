@@ -2526,7 +2526,7 @@ void SCULPT_do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
       const int symm_pass = ss->cache->mirror_symmetry_pass;
       float location[3];
       flip_v3_v3(location, SCULPT_active_vertex_co_get(ss), symm_pass);
-      SculptVertRef v = SCULPT_nearest_vertex_get(sd, ob, location, ss->cache->radius, false);
+      PBVHVertRef v = SCULPT_nearest_vertex_get(sd, ob, location, ss->cache->radius, false);
       ss->cache->geodesic_dists[symm_pass] = SCULPT_geodesic_from_vertex(
           ob, v, ss->cache->initial_radius);
     }
@@ -2665,7 +2665,7 @@ void SCULPT_do_elastic_deform_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
       const int symm_pass = ss->cache->mirror_symmetry_pass;
       float location[3];
       flip_v3_v3(location, SCULPT_active_vertex_co_get(ss), symm_pass);
-      SculptVertRef v = SCULPT_nearest_vertex_get(
+      PBVHVertRef v = SCULPT_nearest_vertex_get(
           sd, ob, location, ss->cache->initial_radius, false);
       ss->cache->geodesic_dists[symm_pass] = SCULPT_geodesic_from_vertex(ob, v, FLT_MAX);
     }
@@ -2886,7 +2886,7 @@ void SCULPT_stroke_cache_snap_context_init(bContext *C, Object *ob)
 }
 
 static void sculpt_scene_project_view_ray_init(Object *ob,
-                                               const SculptVertRef vertex,
+                                               const PBVHVertRef vertex,
                                                float r_ray_normal[3],
                                                float r_ray_origin[3])
 {
@@ -2906,7 +2906,7 @@ static void sculpt_scene_project_view_ray_init(Object *ob,
 }
 
 static void sculpt_scene_project_vertex_normal_ray_init(Object *ob,
-                                                        const SculptVertRef vertex,
+                                                        const PBVHVertRef vertex,
                                                         const float original_normal[3],
                                                         float r_ray_normal[3],
                                                         float r_ray_origin[3])
@@ -2919,7 +2919,7 @@ static void sculpt_scene_project_vertex_normal_ray_init(Object *ob,
 }
 
 static void sculpt_scene_project_brush_normal_ray_init(Object *ob,
-                                                       const SculptVertRef vertex,
+                                                       const PBVHVertRef vertex,
                                                        float r_ray_normal[3],
                                                        float r_ray_origin[3])
 {
@@ -3475,7 +3475,7 @@ void SCULPT_do_fairing_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 
   if (SCULPT_stroke_is_main_symmetry_pass(ss->cache)) {
     for (int i = 0; i < totvert; i++) {
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       *(uchar *)SCULPT_attr_vertex_data(vertex, ss->scl.fairing_mask) = false;
       *(float *)SCULPT_attr_vertex_data(vertex, ss->scl.fairing_fade) = 0.0f;
@@ -3833,7 +3833,7 @@ void SCULPT_do_displacement_smear_brush(Sculpt *sd, Object *ob, PBVHNode **nodes
     ss->cache->limit_surface_co = MEM_malloc_arrayN(totvert, sizeof(float[3]), "limit surface co");
 
     for (int i = 0; i < totvert; i++) {
-      SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vref = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       SCULPT_vertex_limit_surface_get(ss, vref, ss->cache->limit_surface_co[i]);
       sub_v3_v3v3(ss->cache->prev_displacement[i],
@@ -4179,9 +4179,9 @@ void SCULPT_do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
   }
 }
 
-BLI_INLINE SculptVertRef grid_xy_to_vertex(int x, int y, int grid_i, int gridsize)
+BLI_INLINE PBVHVertRef grid_xy_to_vertex(int x, int y, int grid_i, int gridsize)
 {
-  return (SculptVertRef){.i = grid_i * gridsize * gridsize + y * gridsize + x};
+  return (PBVHVertRef){.i = grid_i * gridsize * gridsize + y * gridsize + x};
 }
 
 typedef struct DisplacementHealTaskData {
@@ -4221,7 +4221,7 @@ static void do_displacement_heal_cb(void *__restrict userdata,
 
     for (int x = 0; x < gridsize; x++) {
       for (int y = 0; y < gridsize; y++) {
-        SculptVertRef vertex = grid_xy_to_vertex(x, y, grid_i, gridsize);
+        PBVHVertRef vertex = grid_xy_to_vertex(x, y, grid_i, gridsize);
 
         SubdivCCGCoord coord = {.grid_index = grid_i, .x = x, .y = y};
         int locali = y * gridsize + x;
@@ -4246,7 +4246,7 @@ static void do_displacement_heal_cb(void *__restrict userdata,
       for (int y = 0; y < gridsize; y++) {
         int locali = y * gridsize + x;
 
-        SculptVertRef vertex = grid_xy_to_vertex(x, y, grid_i, gridsize);
+        PBVHVertRef vertex = grid_xy_to_vertex(x, y, grid_i, gridsize);
         float *disp = disps[locali];
         float avg[3] = {0.0f, 0.0f, 0.0f};
         float tot = 0.0f;

@@ -221,7 +221,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
   MVert *mvert;
-  SculptVertRef *index;
+  PBVHVertRef *index;
 
   if (unode->maxvert) {
     /* Regular mesh restore. */
@@ -410,7 +410,7 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
   SculptSession *ss = ob->sculpt;
   SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
   float *vmask;
-  SculptVertRef *index;
+  PBVHVertRef *index;
 
   if (unode->maxvert) {
     /* Regular mesh restore. */

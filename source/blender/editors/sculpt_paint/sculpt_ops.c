@@ -134,7 +134,7 @@ static int sculpt_set_persistent_base_exec(bContext *C, wmOperator *UNUSED(op))
   const int totvert = SCULPT_vertex_count_get(ss);
 
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     float *co = SCULPT_attr_vertex_data(vertex, scl_co);
     float *no = SCULPT_attr_vertex_data(vertex, scl_no);
@@ -379,8 +379,8 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
   BKE_object_sculpt_data_create(ob);
 
   ob->sculpt->mode_type = OB_MODE_SCULPT;
-  ob->sculpt->active_face_index.i = SCULPT_REF_NONE;
-  ob->sculpt->active_vertex_index.i = SCULPT_REF_NONE;
+  ob->sculpt->active_face_index.i = PBVH_REF_NONE;
+  ob->sculpt->active_vertex_index.i = PBVH_REF_NONE;
 
   CustomData_reset(&ob->sculpt->temp_vdata);
   CustomData_reset(&ob->sculpt->temp_pdata);
@@ -915,7 +915,7 @@ static int sculpt_sample_color_modal(bContext *C, wmOperator *op, const wmEvent 
 
   const bool over_mesh = SCULPT_cursor_geometry_info_update(C, &sgi, sccd->mval, false, false);
   if (over_mesh) {
-    SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
+    PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
     SCULPT_vertex_color_get(ss, active_vertex, sccd->sampled_color);
     IMB_colormanagement_scene_linear_to_srgb_v3(sccd->sampled_color, sccd->sampled_color);
   }
@@ -944,7 +944,7 @@ static int sculpt_sample_color_invoke(bContext *C, wmOperator *op, const wmEvent
 
   BKE_sculpt_update_object_for_edit(CTX_data_depsgraph_pointer(C), ob, true, false, false);
 
-  const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
   float active_vertex_color[4];
 
   SCULPT_vertex_color_get(ss, active_vertex, active_vertex_color);
@@ -1073,11 +1073,11 @@ static void do_mask_by_color_contiguous_update_nodes_cb(
 }
 
 static bool sculpt_mask_by_color_contiguous_floodfill_cb(
-    SculptSession *ss, SculptVertRef from_v, SculptVertRef to_v, bool is_duplicate, void *userdata)
+    SculptSession *ss, PBVHVertRef from_v, PBVHVertRef to_v, bool is_duplicate, void *userdata)
 {
   MaskByColorContiguousFloodFillData *data = userdata;
-  int to_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, to_v);
-  int from_v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, from_v);
+  int to_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, to_v);
+  int from_v_i = BKE_pbvh_vertex_to_index(ss->pbvh, from_v);
 
   float current_color[4];
 
@@ -1097,7 +1097,7 @@ static bool sculpt_mask_by_color_contiguous_floodfill_cb(
 }
 
 static void sculpt_mask_by_color_contiguous(Object *object,
-                                            const SculptVertRef vertex,
+                                            const PBVHVertRef vertex,
                                             const float threshold,
                                             const bool invert,
                                             const bool preserve_mask)
@@ -1196,7 +1196,7 @@ static void do_mask_by_color_task_cb(void *__restrict userdata,
 }
 
 static void sculpt_mask_by_color_full_mesh(Object *object,
-                                           const SculptVertRef vertex,
+                                           const PBVHVertRef vertex,
                                            const float threshold,
                                            const bool invert,
                                            const bool preserve_mask)
@@ -1251,7 +1251,7 @@ static int sculpt_mask_by_color_invoke(bContext *C, wmOperator *op, const wmEven
   SCULPT_undo_push_begin(ob, "Mask by color");
   BKE_sculpt_color_layer_create_if_needed(ob);
 
-  const SculptVertRef active_vertex = SCULPT_active_vertex_get(ss);
+  const PBVHVertRef active_vertex = SCULPT_active_vertex_get(ss);
   const float threshold = RNA_float_get(op->ptr, "threshold");
   const bool invert = RNA_boolean_get(op->ptr, "invert");
   const bool preserve_mask = RNA_boolean_get(op->ptr, "preserve_previous_mask");
@@ -1367,7 +1367,7 @@ static int sculpt_set_limit_surface_exec(bContext *C, wmOperator *UNUSED(op))
   const int totvert = SCULPT_vertex_count_get(ss);
   const bool weighted = false;
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
     float *f = SCULPT_attr_vertex_data(vertex, scl);
 
     SCULPT_neighbor_coords_average(ss, f, vertex, 0.0, true, weighted);
@@ -1537,7 +1537,7 @@ static int sculpt_regularize_rake_exec(bContext *C, wmOperator *op)
         float tanco[3];
         add_v3_v3v3(tanco, v2->co, dir2);
 
-        SCULPT_dyntopo_check_disk_sort(ss, (SculptVertRef){.i = (intptr_t)v2});
+        SCULPT_dyntopo_check_disk_sort(ss, (PBVHVertRef){.i = (intptr_t)v2});
 
         float lastdir3[3];
         float firstdir3[3];

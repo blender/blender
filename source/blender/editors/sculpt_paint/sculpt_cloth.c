@@ -635,12 +635,12 @@ static void cloth_brush_add_bend_constraint(SculptSession *ss,
   SculptClothBendConstraint *bend_constraint = (SculptClothBendConstraint *)cloth_add_constraint(
       cloth_sim, CON_BEND);
 
-  SculptVertRef v1, v2, v3, v4;
+  PBVHVertRef v1, v2, v3, v4;
 
-  v1 = BKE_pbvh_table_index_to_vertex(ss->pbvh, v1i);
-  v2 = BKE_pbvh_table_index_to_vertex(ss->pbvh, v2i);
-  v3 = BKE_pbvh_table_index_to_vertex(ss->pbvh, v3i);
-  v4 = BKE_pbvh_table_index_to_vertex(ss->pbvh, v4i);
+  v1 = BKE_pbvh_index_to_vertex(ss->pbvh, v1i);
+  v2 = BKE_pbvh_index_to_vertex(ss->pbvh, v2i);
+  v3 = BKE_pbvh_index_to_vertex(ss->pbvh, v3i);
+  v4 = BKE_pbvh_index_to_vertex(ss->pbvh, v4i);
 
   bend_constraint->elems[0].index = PACK_POS_TYPE(v1i, CLOTH_POS_POS);
   bend_constraint->elems[1].index = PACK_POS_TYPE(v2i, CLOTH_POS_POS);
@@ -692,10 +692,10 @@ static void cloth_brush_add_length_constraint(SculptSession *ss,
                                               const bool use_persistent)
 {
   SculptClothLengthConstraint *length_constraint = cloth_add_constraint(cloth_sim, CON_LENGTH);
-  SculptVertRef v1, v2;
+  PBVHVertRef v1, v2;
 
-  v1 = BKE_pbvh_table_index_to_vertex(ss->pbvh, v1i);
-  v2 = BKE_pbvh_table_index_to_vertex(ss->pbvh, v2i);
+  v1 = BKE_pbvh_index_to_vertex(ss->pbvh, v1i);
+  v2 = BKE_pbvh_index_to_vertex(ss->pbvh, v2i);
 
   length_constraint->elems[0].index = PACK_POS_TYPE(v1i, CLOTH_POS_POS);
   length_constraint->elems[1].index = PACK_POS_TYPE(v2i, CLOTH_POS_POS);
@@ -853,7 +853,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
 
       SculptVertexNeighborIter ni;
       int build_indices[CLOTH_MAX_CONSTRAINTS_PER_VERTEX];
-      SculptEdgeRef build_edges[CLOTH_MAX_CONSTRAINTS_PER_VERTEX];
+      PBVHEdgeRef build_edges[CLOTH_MAX_CONSTRAINTS_PER_VERTEX];
 
       int tot_indices = 0;
       bool have_edges = false;
@@ -869,7 +869,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
           build_edges[tot_indices - 1] = ni.edge;
         }
         else {
-          build_edges[tot_indices - 1].i = SCULPT_REF_NONE;
+          build_edges[tot_indices - 1].i = PBVH_REF_NONE;
         }
 
         tot_indices++;
@@ -883,8 +883,8 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
 #ifdef BENDING_CONSTRAINTS
 
       for (int c_i = 0; use_bending && c_i < tot_indices - 1; c_i++) {
-        if (have_edges && build_edges[c_i].i && build_edges[c_i].i != SCULPT_REF_NONE) {
-          SculptEdgeRef edge = build_edges[c_i];
+        if (have_edges && build_edges[c_i].i && build_edges[c_i].i != PBVH_REF_NONE) {
+          PBVHEdgeRef edge = build_edges[c_i];
 
           if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
             BMEdge *e = (BMEdge *)edge.i;
@@ -1113,7 +1113,7 @@ static void do_cloth_brush_build_constraints_task_cb_ex(
 
               memset(&ni, 0, sizeof(ni));
 
-              SculptVertRef vertex2 = BKE_pbvh_table_index_to_vertex(ss->pbvh, v2i);
+              PBVHVertRef vertex2 = BKE_pbvh_index_to_vertex(ss->pbvh, v2i);
 
               SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
                 if (ni.vertex.i == vertex2.i) {
@@ -1561,7 +1561,7 @@ static void cloth_brush_solve_collision(Object *object,
 }
 static void cloth_simulation_noise_get(float *r_noise,
                                        SculptSession *ss,
-                                       const SculptVertRef vertex,
+                                       const PBVHVertRef vertex,
                                        const float strength)
 {
   const uint *hash_co = (const uint *)SCULPT_vertex_co_get(ss, vertex);
@@ -1741,7 +1741,7 @@ static void cloth_sort_constraints_for_tasks(SculptSession *ss,
       for (int step = 0; not_dynamic && step < totelem; step++) {
         int v = UNPACK_POS_INDEX(con->elems[step].index);
 
-        SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, v);
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, v);
         SculptVertexNeighborIter ni;
 
         SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
@@ -1863,7 +1863,7 @@ static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
         continue;
       }
 
-      SculptVertRef vref = BKE_pbvh_table_index_to_vertex(ss->pbvh, vi);
+      PBVHVertRef vref = BKE_pbvh_index_to_vertex(ss->pbvh, vi);
 
       sim_factor *= SCULPT_automasking_factor_get(automasking, ss, vref) * 1.0f -
                     SCULPT_vertex_mask_get(ss, vref);
@@ -1896,8 +1896,8 @@ static void cloth_brush_satisfy_constraints_intern(SculptSession *ss,
     const int v1 = UNPACK_POS_INDEX(constraint->elems[0].index);
     const int v2 = UNPACK_POS_INDEX(constraint->elems[1].index);
 
-    const SculptVertRef v1ref = BKE_pbvh_table_index_to_vertex(ss->pbvh, v1);
-    const SculptVertRef v2ref = BKE_pbvh_table_index_to_vertex(ss->pbvh, v2);
+    const PBVHVertRef v1ref = BKE_pbvh_index_to_vertex(ss->pbvh, v1);
+    const PBVHVertRef v2ref = BKE_pbvh_index_to_vertex(ss->pbvh, v2);
 
     float v1_to_v2[3];
     sub_v3_v3v3(v1_to_v2, pos2, pos1);
@@ -2227,7 +2227,7 @@ SculptClothSimulation *SCULPT_cloth_brush_simulation_create(SculptSession *ss,
   if (USE_SOLVER_RIPPLE_CONSTRAINT) {
     cloth_sim->init_normal = MEM_calloc_arrayN(totverts, sizeof(float) * 3, "init noramls");
     for (int i = 0; i < totverts; i++) {
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
       SCULPT_vertex_normal_get(ss, vertex, cloth_sim->init_normal[i]);
     }
@@ -2298,7 +2298,7 @@ void SCULPT_cloth_brush_simulation_init(SculptSession *ss, SculptClothSimulation
   SCULPT_vertex_random_access_ensure(ss);
 
   for (int i = 0; i < totverts; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     copy_v3_v3(cloth_sim->last_iteration_pos[i], SCULPT_vertex_co_get(ss, vertex));
     copy_v3_v3(cloth_sim->init_pos[i], SCULPT_vertex_co_get(ss, vertex));
@@ -2317,7 +2317,7 @@ void SCULPT_cloth_brush_store_simulation_state(SculptSession *ss, SculptClothSim
 {
   const int totverts = SCULPT_vertex_count_get(ss);
   for (int i = 0; i < totverts; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     copy_v3_v3(cloth_sim->pos[i], SCULPT_vertex_co_get(ss, vertex));
   }
@@ -2751,7 +2751,7 @@ static int sculpt_cloth_filter_modal(bContext *C, wmOperator *op, const wmEvent 
   const int totverts = SCULPT_vertex_count_get(ss);
 
   for (int i = 0; i < totverts; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     copy_v3_v3(ss->filter_cache->cloth_sim->pos[i], SCULPT_vertex_co_get(ss, vertex));
   }
@@ -2792,7 +2792,7 @@ static void sculpt_cloth_filter_face_set_pinch_origin_calculate(float r_pinch_or
   float accum[3] = {0.0f};
   int tot = 0;
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
 
     if (!SCULPT_vertex_has_face_set(ss, vertex, active_face_set)) {
       continue;

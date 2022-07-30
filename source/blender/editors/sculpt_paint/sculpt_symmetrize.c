@@ -231,8 +231,7 @@ static void do_shape_symmetrize_brush_task_cb(void *__restrict userdata,
     }
 
     const int symmetrical_index = ss->vertex_info.symmetrize_map[vd.index];
-    const SculptVertRef symmetrical_vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh,
-                                                                            symmetrical_index);
+    const PBVHVertRef symmetrical_vertex = BKE_pbvh_index_to_vertex(ss->pbvh, symmetrical_index);
 
     if (symmetrical_index == -1) {
       continue;

@@ -138,7 +138,7 @@ static int sculpt_poly_loop_opposite_edge_in_quad(SculptSession *ss,
   return ss->mloop[ss->mpoly[poly].loopstart + next_edge_index_in_poly].e;
 }
 
-SculptEdgeRef sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
+PBVHEdgeRef sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
   Mesh *mesh = BKE_object_get_original_mesh(ob);
@@ -151,7 +151,7 @@ SculptEdgeRef sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
   MPoly *initial_poly = &mesh->mpoly[ss->active_face_index.i];
 
   if (initial_poly->totloop != 4) {
-    return (SculptEdgeRef){.i = SCULPT_REF_NONE};
+    return (PBVHEdgeRef){.i = PBVH_REF_NONE};
   }
 
   int closest_vert = mesh->mloop[initial_poly->loopstart].v;
@@ -178,7 +178,7 @@ SculptEdgeRef sculpt_poly_loop_initial_edge_from_cursor(Object *ob)
       closest_vert_on_initial_edge = other_vert;
     }
   }
-  return (SculptEdgeRef){.i = initial_edge};
+  return (PBVHEdgeRef){.i = initial_edge};
 }
 
 static void sculpt_poly_loop_iterate_and_fill(SculptSession *ss,
@@ -285,11 +285,11 @@ BLI_bitmap *sculpt_poly_loop_from_cursor(Object *ob)
   BLI_bitmap *poly_loop = BLI_BITMAP_NEW(mesh->totpoly, "poly loop");
 
   sculpt_poly_loop_topology_data_ensure(ob);
-  const SculptEdgeRef initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
-  const SculptFaceRef initial_poly = ss->active_face_index;
+  const PBVHEdgeRef initial_edge = sculpt_poly_loop_initial_edge_from_cursor(ob);
+  const PBVHFaceRef initial_poly = ss->active_face_index;
 
-  const int initial_edge_i = BKE_pbvh_edge_index_to_table(ss->pbvh, initial_edge);
-  const int initial_poly_i = BKE_pbvh_face_index_to_table(ss->pbvh, initial_poly);
+  const int initial_edge_i = BKE_pbvh_edge_to_index(ss->pbvh, initial_edge);
+  const int initial_poly_i = BKE_pbvh_face_to_index(ss->pbvh, initial_poly);
 
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   for (char symm_it = 0; symm_it <= symm; symm_it++) {

@@ -142,7 +142,7 @@ ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
     }
 
     MSculptVert *mv = BKE_PBVH_SCULPTVERT(pbvh->cd_sculpt_vert, v);
-    BKE_pbvh_bmesh_check_valence(pbvh, (SculptVertRef){.i = (intptr_t)v});
+    BKE_pbvh_bmesh_check_valence(pbvh, (PBVHVertRef){.i = (intptr_t)v});
 
     if (BM_vert_edge_count(v) != mv->valence) {
       _debugprint("cached vertex valence mismatch; old: %d, should be: %d\n",
@@ -872,7 +872,7 @@ void BKE_pbvh_bmesh_regen_node_verts(PBVH *pbvh)
 
 bool BKE_pbvh_bmesh_check_origdata(PBVH *pbvh, BMVert *v, int stroke_id)
 {
-  SculptVertRef vertex = {(intptr_t)v};
+  PBVHVertRef vertex = {(intptr_t)v};
 
   return BKE_pbvh_get_origvert(pbvh, vertex, NULL, NULL, NULL);
 }
@@ -886,8 +886,8 @@ bool pbvh_bmesh_node_raycast(PBVH *pbvh,
                              float *depth,
                              float *back_depth,
                              bool use_original,
-                             SculptVertRef *r_active_vertex_index,
-                             SculptFaceRef *r_active_face_index,
+                             PBVHVertRef *r_active_vertex_index,
+                             PBVHFaceRef *r_active_face_index,
                              float *r_face_normal,
                              int stroke_id)
 {
@@ -2211,7 +2211,7 @@ void BKE_pbvh_update_sculpt_verts(PBVH *pbvh)
   int totvert = pbvh->totvert;
 
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(pbvh, i);
 
     BKE_pbvh_get_origvert(pbvh, vertex, NULL, NULL, NULL);
   }
@@ -2549,7 +2549,7 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
   const int cd_uv = pbvh->bm->ldata.layers[layeri].offset;
   const int cd_size = CustomData_sizeof(CD_MLOOPUV);
 
-  SculptVertRef *verts = NULL;
+  PBVHVertRef *verts = NULL;
   PBVHTri *tris = NULL;
   intptr_t *loops = NULL;
 
@@ -2580,7 +2580,7 @@ static bool pbvh_bmesh_split_tris(PBVH *pbvh, PBVHNode *node)
       l->head.index = vi++;
       BLI_array_append(loops, (intptr_t)l);
 
-      SculptVertRef sv = {(intptr_t)l->v};
+      PBVHVertRef sv = {(intptr_t)l->v};
       BLI_array_append(verts, sv);
 
       BMIter iter;
@@ -2660,7 +2660,7 @@ BLI_INLINE PBVHTri *pbvh_tribuf_add_tri(PBVHTriBuf *tribuf)
   return tribuf->tris + tribuf->tottri - 1;
 }
 
-BLI_INLINE void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, SculptVertRef vertex, BMLoop *l)
+BLI_INLINE void pbvh_tribuf_add_vert(PBVHTriBuf *tribuf, PBVHVertRef vertex, BMLoop *l)
 {
   tribuf->totvert++;
   tribuf->totloop++;
@@ -2906,7 +2906,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
         uintptr_t loopkey = tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv);
 
         if (!BLI_smallhash_ensure_p(&node->tribuf->vertmap, loopkey, &val)) {
-          SculptVertRef sv = {(intptr_t)l->v};
+          PBVHVertRef sv = {(intptr_t)l->v};
 
           minmax_v3v3_v3(min, max, l->v->co);
 
@@ -2919,7 +2919,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
         val = NULL;
         if (!BLI_smallhash_ensure_p(&mat_tribuf->vertmap, loopkey, &val)) {
-          SculptVertRef sv = {(intptr_t)l->v};
+          PBVHVertRef sv = {(intptr_t)l->v};
 
           minmax_v3v3_v3(min, max, l->v->co);
 
@@ -2948,7 +2948,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       void **val = NULL;
 
       if (!BLI_ghash_ensure_p(vmap, l->v, &val)) {
-        SculptVertRef sv = {(intptr_t)l->v};
+        PBVHVertRef sv = {(intptr_t)l->v};
 
         minmax_v3v3_v3(min, max, l->v->co);
 
@@ -2961,7 +2961,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
       val = NULL;
       if (!BLI_ghash_ensure_p(mat_vmaps[mat_nr], l->v, &val)) {
-        SculptVertRef sv = {(intptr_t)l->v};
+        PBVHVertRef sv = {(intptr_t)l->v};
 
         minmax_v3v3_v3(min, max, l->v->co);
 
@@ -3071,7 +3071,7 @@ void BKE_pbvh_bmesh_update_all_valence(PBVH *pbvh)
   BMVert *v;
 
   BM_ITER_MESH (v, &iter, pbvh->bm, BM_VERTS_OF_MESH) {
-    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (SculptVertRef){(intptr_t)v});
+    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){(intptr_t)v});
   }
 }
 
@@ -3095,11 +3095,11 @@ void BKE_pbvh_bmesh_on_mesh_change(PBVH *pbvh)
 
     MV_ADD_FLAG(
         mv, SCULPTVERT_NEED_BOUNDARY | SCULPTVERT_NEED_DISK_SORT | SCULPTVERT_NEED_TRIANGULATE);
-    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (SculptVertRef){.i = (intptr_t)v});
+    BKE_pbvh_bmesh_update_valence(pbvh->cd_sculpt_vert, (PBVHVertRef){.i = (intptr_t)v});
   }
 }
 
-bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, SculptVertRef vertex)
+bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, PBVHVertRef vertex)
 {
   BMVert *v = (BMVert *)vertex.i;
   MSculptVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_sculpt_vert);
@@ -3111,7 +3111,7 @@ bool BKE_pbvh_bmesh_mark_update_valence(PBVH *pbvh, SculptVertRef vertex)
   return ret;
 }
 
-bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, SculptVertRef vertex)
+bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, PBVHVertRef vertex)
 {
   BMVert *v = (BMVert *)vertex.i;
   MSculptVert *mv = BM_ELEM_CD_GET_VOID_P(v, pbvh->cd_sculpt_vert);
@@ -3124,7 +3124,7 @@ bool BKE_pbvh_bmesh_check_valence(PBVH *pbvh, SculptVertRef vertex)
   return false;
 }
 
-void BKE_pbvh_bmesh_update_valence(int cd_sculpt_vert, SculptVertRef vertex)
+void BKE_pbvh_bmesh_update_valence(int cd_sculpt_vert, PBVHVertRef vertex)
 {
   BMVert *v = (BMVert *)vertex.i;
   BMEdge *e;

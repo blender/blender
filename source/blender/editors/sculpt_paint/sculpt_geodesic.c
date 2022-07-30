@@ -73,7 +73,7 @@ static bool sculpt_geodesic_mesh_test_dist_add(MVert *mvert,
                                                const int v2,
                                                float *dists,
                                                GSet *initial_vertices,
-                                               SculptVertRef *r_closest_verts,
+                                               PBVHVertRef *r_closest_verts,
                                                float (*cos)[3])
 {
   if (BLI_gset_haskey(initial_vertices, POINTER_FROM_INT(v0))) {
@@ -141,7 +141,7 @@ static bool sculpt_geodesic_grids_test_dist_add(SculptSession *ss,
                                                 const int v2,
                                                 float *dists,
                                                 GSet *initial_vertices,
-                                                SculptVertRef *r_closest_verts,
+                                                PBVHVertRef *r_closest_verts,
                                                 float (*cos)[3])
 {
   if (BLI_gset_haskey(initial_vertices, POINTER_FROM_INT(v0))) {
@@ -154,13 +154,12 @@ static bool sculpt_geodesic_grids_test_dist_add(SculptSession *ss,
   }
 
   const float *co0 = cos ? cos[v0] :
-                           SCULPT_vertex_co_get(ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, v0));
+                           SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, v0));
   const float *co1 = cos ? cos[v1] :
-                           SCULPT_vertex_co_get(ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, v1));
+                           SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, v1));
   const float *co2 = v2 != SCULPT_GEODESIC_VERTEX_NONE ?
                          (cos ? cos[v2] :
-                                SCULPT_vertex_co_get(
-                                    ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, v2))) :
+                                SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, v2))) :
                          NULL;
 
   float dist0;
@@ -215,7 +214,7 @@ static bool sculpt_geodesic_mesh_test_dist_add_bmesh(BMVert *v0,
                                                      BMVert *v2,
                                                      float *dists,
                                                      GSet *initial_vertices,
-                                                     SculptVertRef *r_closest_verts,
+                                                     PBVHVertRef *r_closest_verts,
                                                      float (*cos)[3])
 {
   const int v0_i = BM_elem_index_get(v0);
@@ -290,7 +289,7 @@ static bool sculpt_geodesic_mesh_test_dist_add_bmesh(BMVert *v0,
 static float *SCULPT_geodesic_mesh_create(Object *ob,
                                           GSet *initial_vertices,
                                           const float limit_radius,
-                                          SculptVertRef *r_closest_verts,
+                                          PBVHVertRef *r_closest_verts,
                                           float (*cos)[3])
 {
   SculptSession *ss = ob->sculpt;
@@ -332,7 +331,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
   for (int i = 0; i < totvert; i++) {
     if (BLI_gset_haskey(initial_vertices, POINTER_FROM_INT(i))) {
       if (r_closest_verts) {
-        r_closest_verts[i] = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        r_closest_verts[i] = BKE_pbvh_index_to_vertex(ss->pbvh, i);
       }
 
       dists[i] = 0.0f;
@@ -466,7 +465,7 @@ static float *SCULPT_geodesic_mesh_create(Object *ob,
 static float *SCULPT_geodesic_bmesh_create(Object *ob,
                                            GSet *initial_vertices,
                                            const float limit_radius,
-                                           SculptVertRef *r_closest_verts,
+                                           PBVHVertRef *r_closest_verts,
                                            float (*cos)[3])
 {
   SculptSession *ss = ob->sculpt;
@@ -502,7 +501,7 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
       dists[i] = 0.0f;
 
       if (r_closest_verts) {
-        r_closest_verts[i] = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        r_closest_verts[i] = BKE_pbvh_index_to_vertex(ss->pbvh, i);
       }
     }
     else {
@@ -533,13 +532,13 @@ static float *SCULPT_geodesic_bmesh_create(Object *ob,
      * number of vertices (usually just 1 or 2). */
     GSET_ITER (gs_iter, initial_vertices) {
       const int v_i = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
-      BMVert *v = (BMVert *)BKE_pbvh_table_index_to_vertex(ss->pbvh, v_i).i;
+      BMVert *v = (BMVert *)BKE_pbvh_index_to_vertex(ss->pbvh, v_i).i;
       float *co1 = cos ? cos[BM_elem_index_get(v)] : v->co;
 
       BM_elem_flag_enable(v, BMESH_INITIAL_VERT_TAG);
 
       for (int i = 0; i < totvert; i++) {
-        BMVert *v2 = (BMVert *)BKE_pbvh_table_index_to_vertex(ss->pbvh, i).i;
+        BMVert *v2 = (BMVert *)BKE_pbvh_index_to_vertex(ss->pbvh, i).i;
         float *co2 = cos ? cos[BM_elem_index_get(v2)] : v2->co;
 
         if (len_squared_v3v3(co1, co2) <= limit_radius_sq) {
@@ -702,7 +701,7 @@ int find_quad(TempEdge *edges, MeshElemMap *vmap, int v1, int v2, int v3)
 static float *SCULPT_geodesic_grids_create(Object *ob,
                                            GSet *initial_vertices,
                                            const float limit_radius,
-                                           SculptVertRef *r_closest_verts,
+                                           PBVHVertRef *r_closest_verts,
                                            float (*cos)[3])
 {
   SculptSession *ss = ob->sculpt;
@@ -723,7 +722,7 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
   for (int i = 0; i < totvert; i++) {
     if (BLI_gset_haskey(initial_vertices, POINTER_FROM_INT(i))) {
       if (r_closest_verts) {
-        r_closest_verts[i] = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+        r_closest_verts[i] = BKE_pbvh_index_to_vertex(ss->pbvh, i);
       }
 
       dists[i] = 0.0f;
@@ -753,13 +752,12 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
      * number of vertices (usually just 1 or 2). */
     GSET_ITER (gs_iter, initial_vertices) {
       const int v = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
-      SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, v);
+      PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, v);
       const float *v_co = cos ? cos[v] : SCULPT_vertex_co_get(ss, vertex);
 
       for (int i = 0; i < totvert; i++) {
         const float *v_co2 = cos ? cos[i] :
-                                   SCULPT_vertex_co_get(
-                                       ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, i));
+                                   SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, i));
         if (len_squared_v3v3(v_co, v_co2) <= limit_radius_sq) {
           BLI_BITMAP_ENABLE(affected_vertex, i);
         }
@@ -779,7 +777,7 @@ static float *SCULPT_geodesic_grids_create(Object *ob,
   MemArena *ma = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "geodesic grids memarena");
 
   for (int i = 0; i < totvert; i++) {
-    SculptVertRef vertex = BKE_pbvh_table_index_to_vertex(ss->pbvh, i);
+    PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, i);
     MeshElemMap *map = vmap + i;
 
     int val = SCULPT_vertex_valence_get(ss, vertex);
@@ -963,7 +961,7 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
   SculptSession *ss = ob->sculpt;
   const int totvert = SCULPT_vertex_count_get(ss);
   float *dists = MEM_malloc_arrayN(totvert, sizeof(float), "distances");
-  SculptVertRef first_affected = {SCULPT_GEODESIC_VERTEX_NONE};
+  PBVHVertRef first_affected = {SCULPT_GEODESIC_VERTEX_NONE};
 
   GSetIterator gs_iter;
   GSET_ITER (gs_iter, initial_vertices) {
@@ -981,7 +979,7 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
   const float *first_affected_co = SCULPT_vertex_co_get(ss, first_affected);
   for (int i = 0; i < totvert; i++) {
     dists[i] = len_v3v3(first_affected_co,
-                        SCULPT_vertex_co_get(ss, BKE_pbvh_table_index_to_vertex(ss->pbvh, i)));
+                        SCULPT_vertex_co_get(ss, BKE_pbvh_index_to_vertex(ss->pbvh, i)));
   }
 
   return dists;
@@ -990,7 +988,7 @@ static float *SCULPT_geodesic_fallback_create(Object *ob, GSet *initial_vertices
 float *SCULPT_geodesic_distances_create(Object *ob,
                                         GSet *initial_vertices,
                                         const float limit_radius,
-                                        SculptVertRef *r_closest_verts,
+                                        PBVHVertRef *r_closest_verts,
                                         float (*vertco_override)[3])
 {
   SculptSession *ss = ob->sculpt;
@@ -1012,7 +1010,7 @@ float *SCULPT_geodesic_distances_create(Object *ob,
 
 float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
                                             Object *ob,
-                                            const SculptVertRef vertex,
+                                            const PBVHVertRef vertex,
                                             const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
@@ -1021,7 +1019,7 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
   const char symm = SCULPT_mesh_symmetry_xyz_get(ob);
   for (char i = 0; i <= symm; ++i) {
     if (SCULPT_is_symmetry_iteration_valid(i, symm)) {
-      SculptVertRef v = {-1};
+      PBVHVertRef v = {-1};
 
       if (i == 0) {
         v = vertex;
@@ -1032,7 +1030,7 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
         v = SCULPT_nearest_vertex_get(sd, ob, location, FLT_MAX, false);
       }
 
-      const int v_i = BKE_pbvh_vertex_index_to_table(ss->pbvh, v);
+      const int v_i = BKE_pbvh_vertex_to_index(ss->pbvh, v);
 
       if (v_i != -1) {
         BLI_gset_add(initial_vertices, POINTER_FROM_INT(v_i));
@@ -1045,9 +1043,7 @@ float *SCULPT_geodesic_from_vertex_and_symm(Sculpt *sd,
   return dists;
 }
 
-float *SCULPT_geodesic_from_vertex(Object *ob,
-                                   const SculptVertRef vertex,
-                                   const float limit_radius)
+float *SCULPT_geodesic_from_vertex(Object *ob, const PBVHVertRef vertex, const float limit_radius)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -1055,8 +1051,7 @@ float *SCULPT_geodesic_from_vertex(Object *ob,
 
   GSet *initial_vertices = BLI_gset_int_new("initial_vertices");
 
-  BLI_gset_add(initial_vertices,
-               POINTER_FROM_INT(BKE_pbvh_vertex_index_to_table(ss->pbvh, vertex)));
+  BLI_gset_add(initial_vertices, POINTER_FROM_INT(BKE_pbvh_vertex_to_index(ss->pbvh, vertex)));
 
   float *dists = SCULPT_geodesic_distances_create(ob, initial_vertices, limit_radius, NULL, NULL);
   BLI_gset_free(initial_vertices, NULL);
