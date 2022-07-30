@@ -85,7 +85,7 @@ typedef struct uiViewItemHandle uiViewItemHandle;
 
 /* Separator for text in search menus (right pointing arrow).
  * keep in sync with `string_search.cc`. */
-#define UI_MENU_ARROW_SEP "\xe2\x96\xb6"
+#define UI_MENU_ARROW_SEP "\xe2\x96\xb8"
 
 /* names */
 #define UI_MAX_DRAW_STR 400
