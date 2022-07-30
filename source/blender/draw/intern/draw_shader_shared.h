@@ -11,6 +11,9 @@ typedef struct ObjectMatrices ObjectMatrices;
 typedef struct ObjectInfos ObjectInfos;
 typedef struct VolumeInfos VolumeInfos;
 typedef struct CurvesInfos CurvesInfos;
+typedef struct DrawCommand DrawCommand;
+typedef struct DrawCommandIndexed DrawCommandIndexed;
+typedef struct DispatchCommand DispatchCommand;
 #endif
 
 #define DRW_SHADER_SHARED_H
@@ -98,3 +101,33 @@ BLI_STATIC_ASSERT_ALIGN(CurvesInfos, 16)
 #define OrcoTexCoFactors (drw_infos[resource_id].drw_OrcoTexCoFactors)
 #define ObjectInfo (drw_infos[resource_id].drw_Infos)
 #define ObjectColor (drw_infos[resource_id].drw_ObjectColor)
+
+/* Indirect commands structures. */
+
+struct DrawCommand {
+  uint v_count;
+  uint i_count;
+  uint v_first;
+  uint i_first;
+};
+BLI_STATIC_ASSERT_ALIGN(DrawCommand, 16)
+
+struct DrawCommandIndexed {
+  uint v_count;
+  uint i_count;
+  uint v_first;
+  uint base_index;
+  uint i_first;
+  uint _pad0;
+  uint _pad1;
+  uint _pad2;
+};
+BLI_STATIC_ASSERT_ALIGN(DrawCommandIndexed, 16)
+
+struct DispatchCommand {
+  uint num_groups_x;
+  uint num_groups_y;
+  uint num_groups_z;
+  uint _pad0;
+};
+BLI_STATIC_ASSERT_ALIGN(DispatchCommand, 16)

@@ -454,6 +454,9 @@ void DRW_shgroup_call_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *
 void DRW_shgroup_call_procedural_points(DRWShadingGroup *sh, Object *ob, uint point_count);
 void DRW_shgroup_call_procedural_lines(DRWShadingGroup *sh, Object *ob, uint line_count);
 void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *sh, Object *ob, uint tri_count);
+void DRW_shgroup_call_procedural_triangles_indirect(DRWShadingGroup *shgroup,
+                                                    Object *ob,
+                                                    GPUStorageBuf *indirect_buf);
 /**
  * \warning Only use with Shaders that have `IN_PLACE_INSTANCES` defined.
  * TODO: Should be removed.

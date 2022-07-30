@@ -878,6 +878,17 @@ static void drw_command_draw_procedural(DRWShadingGroup *shgroup,
   cmd->vert_count = vert_count;
 }
 
+static void drw_command_draw_indirect(DRWShadingGroup *shgroup,
+                                      GPUBatch *batch,
+                                      DRWResourceHandle handle,
+                                      GPUStorageBuf *indirect_buf)
+{
+  DRWCommandDrawIndirect *cmd = drw_command_create(shgroup, DRW_CMD_DRAW_INDIRECT);
+  cmd->batch = batch;
+  cmd->handle = handle;
+  cmd->indirect_buf = indirect_buf;
+}
+
 static void drw_command_set_select_id(DRWShadingGroup *shgroup, GPUVertBuf *buf, uint select_id)
 {
   /* Only one can be valid. */
@@ -1005,6 +1016,7 @@ void DRW_shgroup_call_compute_indirect(DRWShadingGroup *shgroup, GPUStorageBuf *
 
   drw_command_compute_indirect(shgroup, indirect_buf);
 }
+
 void DRW_shgroup_barrier(DRWShadingGroup *shgroup, eGPUBarrier type)
 {
   BLI_assert(GPU_compute_shader_support());
@@ -1042,6 +1054,18 @@ void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup, Object *ob,
 {
   struct GPUBatch *geom = drw_cache_procedural_triangles_get();
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tri_count * 3);
+}
+
+void DRW_shgroup_call_procedural_triangles_indirect(DRWShadingGroup *shgroup,
+                                                    Object *ob,
+                                                    GPUStorageBuf *indirect_buf)
+{
+  struct GPUBatch *geom = drw_cache_procedural_triangles_get();
+  if (G.f & G_FLAG_PICKSEL) {
+    drw_command_set_select_id(shgroup, NULL, DST.select_id);
+  }
+  DRWResourceHandle handle = drw_resource_handle(shgroup, ob ? ob->obmat : NULL, ob);
+  drw_command_draw_indirect(shgroup, geom, handle, indirect_buf);
 }
 
 void DRW_shgroup_call_instances(DRWShadingGroup *shgroup,

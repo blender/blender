@@ -188,6 +188,7 @@ typedef enum {
   DRW_CMD_DRAW_INSTANCE = 2,
   DRW_CMD_DRAW_INSTANCE_RANGE = 3,
   DRW_CMD_DRAW_PROCEDURAL = 4,
+  DRW_CMD_DRAW_INDIRECT = 5,
 
   /* Compute Commands. */
   DRW_CMD_COMPUTE = 8,
@@ -203,7 +204,7 @@ typedef enum {
   /* Needs to fit in 4bits */
 } eDRWCommandType;
 
-#define DRW_MAX_DRAW_CMD_TYPE DRW_CMD_DRAW_PROCEDURAL
+#define DRW_MAX_DRAW_CMD_TYPE DRW_CMD_DRAW_INDIRECT
 
 typedef struct DRWCommandDraw {
   GPUBatch *batch;
@@ -231,6 +232,12 @@ typedef struct DRWCommandDrawInstanceRange {
   uint inst_first;
   uint inst_count;
 } DRWCommandDrawInstanceRange;
+
+typedef struct DRWCommandDrawIndirect {
+  GPUBatch *batch;
+  DRWResourceHandle handle;
+  GPUStorageBuf *indirect_buf;
+} DRWCommandDrawIndirect;
 
 typedef struct DRWCommandCompute {
   int groups_x_len;
@@ -286,6 +293,7 @@ typedef union DRWCommand {
   DRWCommandDrawInstance instance;
   DRWCommandDrawInstanceRange instance_range;
   DRWCommandDrawProcedural procedural;
+  DRWCommandDrawIndirect draw_indirect;
   DRWCommandCompute compute;
   DRWCommandComputeRef compute_ref;
   DRWCommandComputeIndirect compute_indirect;

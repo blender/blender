@@ -874,6 +874,25 @@ static void draw_call_single_do(DRWShadingGroup *shgroup,
                         state->baseinst_loc);
 }
 
+/* Not to be mistaken with draw_indirect_call which does batch many drawcalls together. This one
+ * only execute an indirect drawcall with user indirect buffer. */
+static void draw_call_indirect(DRWShadingGroup *shgroup,
+                               DRWCommandsState *state,
+                               GPUBatch *batch,
+                               DRWResourceHandle handle,
+                               GPUStorageBuf *indirect_buf)
+{
+  draw_call_batching_flush(shgroup, state);
+  draw_call_resource_bind(state, &handle);
+
+  if (G.f & G_FLAG_PICKSEL) {
+    GPU_select_load_id(state->select_id);
+  }
+
+  GPU_batch_set_shader(batch, shgroup->shader);
+  GPU_batch_draw_indirect(batch, indirect_buf);
+}
+
 static void draw_call_batching_start(DRWCommandsState *state)
 {
   state->neg_scale = false;
@@ -996,12 +1015,13 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
     while ((cmd = draw_command_iter_step(&iter, &cmd_type))) {
 
       switch (cmd_type) {
+        case DRW_CMD_DRAW_PROCEDURAL:
         case DRW_CMD_DRWSTATE:
         case DRW_CMD_STENCIL:
           draw_call_batching_flush(shgroup, &state);
           break;
         case DRW_CMD_DRAW:
-        case DRW_CMD_DRAW_PROCEDURAL:
+        case DRW_CMD_DRAW_INDIRECT:
         case DRW_CMD_DRAW_INSTANCE:
           if (draw_call_is_culled(&cmd->instance.handle, DST.view_active)) {
             continue;
@@ -1054,6 +1074,13 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
                               0,
                               1,
                               true);
+          break;
+        case DRW_CMD_DRAW_INDIRECT:
+          draw_call_indirect(shgroup,
+                             &state,
+                             cmd->draw_indirect.batch,
+                             cmd->draw_indirect.handle,
+                             cmd->draw_indirect.indirect_buf);
           break;
         case DRW_CMD_DRAW_INSTANCE:
           draw_call_single_do(shgroup,
