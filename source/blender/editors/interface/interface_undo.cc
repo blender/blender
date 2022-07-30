@@ -7,7 +7,7 @@
  * Undo stack to use for UI widgets that manage their own editing state.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_listbase.h"
 
@@ -21,39 +21,39 @@
 /** \name Text Field Undo Stack
  * \{ */
 
-typedef struct uiUndoStack_Text_State {
+struct uiUndoStack_Text_State {
   struct uiUndoStack_Text_State *next, *prev;
   int cursor_index;
   char text[0];
-} uiUndoStack_Text_State;
+};
 
-typedef struct uiUndoStack_Text {
+struct uiUndoStack_Text {
   ListBase states;
   uiUndoStack_Text_State *current;
-} uiUndoStack_Text;
+};
 
 static const char *ui_textedit_undo_impl(uiUndoStack_Text *stack, int *r_cursor_index)
 {
   /* Don't undo if no data has been pushed yet. */
-  if (stack->current == NULL) {
-    return NULL;
+  if (stack->current == nullptr) {
+    return nullptr;
   }
 
   /* Travel backwards in the stack and copy information to the caller. */
-  if (stack->current->prev != NULL) {
+  if (stack->current->prev != nullptr) {
     stack->current = stack->current->prev;
 
     *r_cursor_index = stack->current->cursor_index;
     return stack->current->text;
   }
-  return NULL;
+  return nullptr;
 }
 
 static const char *ui_textedit_redo_impl(uiUndoStack_Text *stack, int *r_cursor_index)
 {
   /* Don't redo if no data has been pushed yet. */
-  if (stack->current == NULL) {
-    return NULL;
+  if (stack->current == nullptr) {
+    return nullptr;
   }
 
   /* Only redo if new data has not been entered since the last undo. */
@@ -63,7 +63,7 @@ static const char *ui_textedit_redo_impl(uiUndoStack_Text *stack, int *r_cursor_
     *r_cursor_index = stack->current->cursor_index;
     return stack->current->text;
   }
-  return NULL;
+  return nullptr;
 }
 
 const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_cursor_index)
@@ -78,7 +78,7 @@ const char *ui_textedit_undo(uiUndoStack_Text *stack, int direction, int *r_curs
 void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor_index)
 {
   /* Clear all redo actions from the current state. */
-  if (stack->current != NULL) {
+  if (stack->current != nullptr) {
     while (stack->current->next) {
       uiUndoStack_Text_State *state = stack->current->next;
       BLI_remlink(&stack->states, state);
@@ -88,7 +88,8 @@ void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor
 
   /* Create the new state. */
   const int text_size = strlen(text) + 1;
-  stack->current = MEM_mallocN(sizeof(uiUndoStack_Text_State) + text_size, __func__);
+  stack->current = static_cast<uiUndoStack_Text_State *>(
+      MEM_mallocN(sizeof(uiUndoStack_Text_State) + text_size, __func__));
   stack->current->cursor_index = cursor_index;
   memcpy(stack->current->text, text, text_size);
   BLI_addtail(&stack->states, stack->current);
@@ -96,8 +97,8 @@ void ui_textedit_undo_push(uiUndoStack_Text *stack, const char *text, int cursor
 
 uiUndoStack_Text *ui_textedit_undo_stack_create(void)
 {
-  uiUndoStack_Text *stack = MEM_mallocN(sizeof(uiUndoStack_Text), __func__);
-  stack->current = NULL;
+  uiUndoStack_Text *stack = MEM_new<uiUndoStack_Text>(__func__);
+  stack->current = nullptr;
   BLI_listbase_clear(&stack->states);
 
   return stack;

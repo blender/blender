@@ -468,6 +468,7 @@ typedef enum uiButtonGroupFlag {
   /** The buttons in this group are inside a panel header. */
   UI_BUTTON_GROUP_PANEL_HEADER = (1 << 1),
 } uiButtonGroupFlag;
+ENUM_OPERATORS(uiButtonGroupFlag, UI_BUTTON_GROUP_PANEL_HEADER);
 
 struct uiBlock {
   uiBlock *next, *prev;

@@ -1223,12 +1223,12 @@ static VertSeam *find_adjacent_seam(const ProjPaintState *ps,
   /* Circulate through the (sorted) vert seam array, in the direction of the seam normal,
    * until we find the first opposing seam, matching in UV space. */
   if (seam->normal_cw) {
-    LISTBASE_CIRCULAR_BACKWARD_BEGIN (vert_seams, adjacent, seam) {
+    LISTBASE_CIRCULAR_BACKWARD_BEGIN (VertSeam *, vert_seams, adjacent, seam) {
       if ((adjacent->normal_cw != seam->normal_cw) && cmp_uv(adjacent->uv, seam->uv)) {
         break;
       }
     }
-    LISTBASE_CIRCULAR_BACKWARD_END(vert_seams, adjacent, seam);
+    LISTBASE_CIRCULAR_BACKWARD_END(VertSeam *, vert_seams, adjacent, seam);
   }
   else {
     LISTBASE_CIRCULAR_FORWARD_BEGIN (vert_seams, adjacent, seam) {

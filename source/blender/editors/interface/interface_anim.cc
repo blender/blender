@@ -4,9 +4,9 @@
  * \ingroup edinterface
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -49,8 +49,14 @@ static FCurve *ui_but_get_fcurve(
    * but works well enough in typical cases */
   const int rnaindex = (but->rnaindex == -1) ? 0 : but->rnaindex;
 
-  return BKE_fcurve_find_by_rna_context_ui(
-      but->block->evil_C, &but->rnapoin, but->rnaprop, rnaindex, adt, action, r_driven, r_special);
+  return BKE_fcurve_find_by_rna_context_ui(static_cast<bContext *>(but->block->evil_C),
+                                           &but->rnapoin,
+                                           but->rnaprop,
+                                           rnaindex,
+                                           adt,
+                                           action,
+                                           r_driven,
+                                           r_special);
 }
 
 void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
@@ -93,7 +99,7 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
       }
 
       /* XXX: this feature is totally broken and useless with NLA */
-      if (adt == NULL || adt->nla_tracks.first == NULL) {
+      if (adt == nullptr || adt->nla_tracks.first == nullptr) {
         const AnimationEvalContext remapped_context = BKE_animsys_eval_context_construct_at(
             anim_eval_context, cfra);
         if (fcurve_is_changed(but->rnapoin, but->rnaprop, fcu, &remapped_context)) {
@@ -109,13 +115,13 @@ void ui_but_anim_flag(uiBut *but, const AnimationEvalContext *anim_eval_context)
 
 static uiBut *ui_but_anim_decorate_find_attached_button(uiButDecorator *but_decorate)
 {
-  uiBut *but_iter = NULL;
+  uiBut *but_iter = nullptr;
 
   BLI_assert(UI_but_is_decorator(&but_decorate->but));
   BLI_assert(but_decorate->rnapoin.data && but_decorate->rnaprop);
 
   LISTBASE_CIRCULAR_BACKWARD_BEGIN (
-      &but_decorate->but.block->buttons, but_iter, but_decorate->but.prev) {
+      uiBut *, &but_decorate->but.block->buttons, but_iter, but_decorate->but.prev) {
     if (but_iter != (uiBut *)but_decorate &&
         ui_but_rna_equals_ex(
             but_iter, &but_decorate->rnapoin, but_decorate->rnaprop, but_decorate->rnaindex)) {
@@ -123,9 +129,9 @@ static uiBut *ui_but_anim_decorate_find_attached_button(uiButDecorator *but_deco
     }
   }
   LISTBASE_CIRCULAR_BACKWARD_END(
-      &but_decorate->but.block->buttons, but_iter, but_decorate->but.prev);
+      uiBut *, &but_decorate->but.block->buttons, but_iter, but_decorate->but.prev);
 
-  return NULL;
+  return nullptr;
 }
 
 void ui_but_anim_decorate_update_from_flag(uiButDecorator *decorator_but)
@@ -173,7 +179,7 @@ bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
   ChannelDriver *driver;
   bool driven, special;
 
-  fcu = ui_but_get_fcurve(but, NULL, NULL, &driven, &special);
+  fcu = ui_but_get_fcurve(but, nullptr, nullptr, &driven, &special);
 
   if (fcu && driven) {
     driver = fcu->driver;
@@ -195,13 +201,13 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
   ChannelDriver *driver;
   bool driven, special;
 
-  fcu = ui_but_get_fcurve(but, NULL, NULL, &driven, &special);
+  fcu = ui_but_get_fcurve(but, nullptr, nullptr, &driven, &special);
 
   if (fcu && driven) {
     driver = fcu->driver;
 
     if (driver && (driver->type == DRIVER_TYPE_PYTHON)) {
-      bContext *C = but->block->evil_C;
+      bContext *C = static_cast<bContext *>(but->block->evil_C);
 
       BLI_strncpy_utf8(driver->expression, str, sizeof(driver->expression));
 
@@ -213,7 +219,7 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
       fcu->flag &= ~FCURVE_DISABLED;
 
       /* this notifier should update the Graph Editor and trigger depsgraph refresh? */
-      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME, NULL);
+      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME, nullptr);
 
       DEG_relations_tag_update(CTX_data_main(C));
 
@@ -226,14 +232,14 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
 
 bool ui_but_anim_expression_create(uiBut *but, const char *str)
 {
-  bContext *C = but->block->evil_C;
+  bContext *C = static_cast<bContext *>(but->block->evil_C);
   ID *id;
   FCurve *fcu;
   char *path;
   bool ok = false;
 
   /* button must have RNA-pointer to a numeric-capable property */
-  if (ELEM(NULL, but->rnapoin.data, but->rnaprop)) {
+  if (ELEM(nullptr, but->rnapoin.data, but->rnaprop)) {
     if (G.debug & G_DEBUG) {
       printf("ERROR: create expression failed - button has no RNA info attached\n");
     }
@@ -253,7 +259,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
   /* FIXME: until materials can be handled by depsgraph,
    * don't allow drivers to be created for them */
   id = but->rnapoin.owner_id;
-  if ((id == NULL) || (GS(id->name) == ID_MA) || (GS(id->name) == ID_TE)) {
+  if ((id == nullptr) || (GS(id->name) == ID_MA) || (GS(id->name) == ID_TE)) {
     if (G.debug & G_DEBUG) {
       printf("ERROR: create expression failed - invalid data-block for adding drivers (%p)\n", id);
     }
@@ -262,7 +268,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 
   /* get path */
   path = RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
-  if (path == NULL) {
+  if (path == nullptr) {
     return false;
   }
 
@@ -282,7 +288,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
       /* updates */
       BKE_driver_invalidate_expression(driver, true, false);
       DEG_relations_tag_update(CTX_data_main(C));
-      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME, NULL);
+      WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME, nullptr);
       ok = true;
     }
   }
@@ -300,19 +306,19 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 void ui_but_anim_copy_driver(bContext *C)
 {
   /* this operator calls UI_context_active_but_prop_get */
-  WM_operator_name_call(C, "ANIM_OT_copy_driver_button", WM_OP_INVOKE_DEFAULT, NULL, NULL);
+  WM_operator_name_call(C, "ANIM_OT_copy_driver_button", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
 }
 
 void ui_but_anim_paste_driver(bContext *C)
 {
   /* this operator calls UI_context_active_but_prop_get */
-  WM_operator_name_call(C, "ANIM_OT_paste_driver_button", WM_OP_INVOKE_DEFAULT, NULL, NULL);
+  WM_operator_name_call(C, "ANIM_OT_paste_driver_button", WM_OP_INVOKE_DEFAULT, nullptr, nullptr);
 }
 
 void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy))
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  uiButDecorator *but_decorate = arg_but;
+  uiButDecorator *but_decorate = static_cast<uiButDecorator *>(arg_but);
   uiBut *but_anim = ui_but_anim_decorate_find_attached_button(but_decorate);
 
   if (!but_anim) {
@@ -332,7 +338,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_delete_button", false);
     WM_operator_properties_create_ptr(&props_ptr, ot);
     RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
-    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
+    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
     WM_operator_properties_free(&props_ptr);
   }
   else {
@@ -340,7 +346,7 @@ void ui_but_anim_decorate_cb(bContext *C, void *arg_but, void *UNUSED(arg_dummy)
     wmOperatorType *ot = WM_operatortype_find("ANIM_OT_keyframe_insert_button", false);
     WM_operator_properties_create_ptr(&props_ptr, ot);
     RNA_boolean_set(&props_ptr, "all", but_anim->rnaindex == -1);
-    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
+    WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
     WM_operator_properties_free(&props_ptr);
   }
 
