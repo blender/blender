@@ -439,14 +439,7 @@ static void stats_update(Depsgraph *depsgraph,
   }
   else if (ob && (ob->mode & OB_MODE_SCULPT)) {
     /* Sculpt Mode. */
-    if (stats_is_object_dynamic_topology_sculpt(ob)) {
-      /* Dynamic topology. Do not count all vertices,
-       * dynamic topology stats are initialized later as part of sculpt stats. */
-    }
-    else {
-      /* When dynamic topology is not enabled both sculpt stats and scene stats are collected. */
-      stats_object_sculpt(ob, stats);
-    }
+    stats_object_sculpt(ob, stats);
   }
   else {
     /* Objects. */
