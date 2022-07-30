@@ -1032,15 +1032,13 @@ static eContextResult screen_ctx_sel_actions_impl(const bContext *C,
           CTX_data_id_pointer_set(result, (ID *)action);
           break;
         }
-        else {
-          if (editable && ID_IS_LINKED(action)) {
-            continue;
-          }
+        if (editable && ID_IS_LINKED(action)) {
+          continue;
+        }
 
-          /* Add the action to the output list if not already added. */
-          if (BLI_gset_add(seen_set, action)) {
-            CTX_data_id_list_add(result, &action->id);
-          }
+        /* Add the action to the output list if not already added. */
+        if (BLI_gset_add(seen_set, action)) {
+          CTX_data_id_list_add(result, &action->id);
         }
       }
     }

@@ -757,9 +757,7 @@ static void sculpt_vertex_neighbor_add(SculptVertexNeighborIter *iter,
   iter->size++;
 }
 
-static void sculpt_vertex_neighbors_get_bmesh(SculptSession *ss,
-                                              PBVHVertRef vertex,
-                                              SculptVertexNeighborIter *iter)
+static void sculpt_vertex_neighbors_get_bmesh(PBVHVertRef vertex, SculptVertexNeighborIter *iter)
 {
   BMVert *v = (BMVert *)vertex.i;
   BMIter liter;
@@ -875,7 +873,7 @@ void SCULPT_vertex_neighbors_get(SculptSession *ss,
       sculpt_vertex_neighbors_get_faces(ss, vertex, iter);
       return;
     case PBVH_BMESH:
-      sculpt_vertex_neighbors_get_bmesh(ss, vertex, iter);
+      sculpt_vertex_neighbors_get_bmesh(vertex, iter);
       return;
     case PBVH_GRIDS:
       sculpt_vertex_neighbors_get_grids(ss, vertex, include_duplicates, iter);

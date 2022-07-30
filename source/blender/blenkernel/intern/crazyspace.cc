@@ -73,7 +73,7 @@ static void set_crazy_vertex_quat(float r_quat[4],
 static bool modifiers_disable_subsurf_temporary(struct Scene *scene, Object *ob)
 {
   bool disabled = false;
-  int cageIndex = BKE_modifiers_get_cage_index(scene, ob, nullptr, 1);
+  int cageIndex = BKE_modifiers_get_cage_index(scene, ob, nullptr, true);
 
   ModifierData *md = static_cast<ModifierData *>(ob->modifiers.first);
   for (int i = 0; md && i <= cageIndex; i++, md = md->next) {
@@ -241,7 +241,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(struct Depsgraph *depsgra
   Mesh *me_input = static_cast<Mesh *>(ob->data);
   Mesh *me = nullptr;
   int i, a, modifiers_left_num = 0, verts_num = 0;
-  int cageIndex = BKE_modifiers_get_cage_index(scene, ob, nullptr, 1);
+  int cageIndex = BKE_modifiers_get_cage_index(scene, ob, nullptr, true);
   float(*defmats)[3][3] = nullptr, (*deformedVerts)[3] = nullptr;
   VirtualModifierData virtualModifierData;
   ModifierEvalContext mectx = {depsgraph, ob, ModifierApplyFlag(0)};
@@ -362,7 +362,7 @@ int BKE_sculpt_get_first_deform_matrices(struct Depsgraph *depsgraph,
   VirtualModifierData virtualModifierData;
   Object object_eval;
   crazyspace_init_object_for_eval(depsgraph, object, &object_eval);
-  MultiresModifierData *mmd = get_multires_modifier(scene, &object_eval, 0);
+  MultiresModifierData *mmd = get_multires_modifier(scene, &object_eval, false);
   const bool is_sculpt_mode = (object->mode & OB_MODE_SCULPT) != 0;
   const bool has_multires = mmd != nullptr && mmd->sculptlvl > 0;
   const ModifierEvalContext mectx = {depsgraph, &object_eval, ModifierApplyFlag(0)};

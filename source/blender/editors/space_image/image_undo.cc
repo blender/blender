@@ -432,7 +432,7 @@ static void utile_decref(UndoImageTile *utile)
 /** \name Image Undo Buffer
  * \{ */
 
-typedef struct UndoImageBuf {
+struct UndoImageBuf {
   struct UndoImageBuf *next, *prev;
 
   /**
@@ -456,8 +456,7 @@ typedef struct UndoImageBuf {
     bool use_float;
     char gen_type;
   } image_state;
-
-} UndoImageBuf;
+};
 
 static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
 {
@@ -552,7 +551,7 @@ static void ubuf_free(UndoImageBuf *ubuf)
 /** \name Image Undo Handle
  * \{ */
 
-typedef struct UndoImageHandle {
+struct UndoImageHandle {
   struct UndoImageHandle *next, *prev;
 
   /** Each undo handle refers to a single image which may have multiple buffers. */
@@ -567,8 +566,7 @@ typedef struct UndoImageHandle {
    * List of #UndoImageBuf's to support multiple buffers per image.
    */
   ListBase buffers;
-
-} UndoImageHandle;
+};
 
 static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
 {
