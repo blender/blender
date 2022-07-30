@@ -309,22 +309,7 @@ static float uv_nearest_grid_tile_distance(const int udim_grid[2],
 
 /* -------------------------------------------------------------------- */
 /** \name Calculate UV Islands
- *
- * \note Currently this is a private API/type, it could be made public.
  * \{ */
-
-struct FaceIsland {
-  struct FaceIsland *next, *prev;
-  BMFace **faces;
-  int faces_len;
-  rctf bounds_rect;
-  /**
-   * \note While this is duplicate information,
-   * it allows islands from multiple meshes to be stored in the same list.
-   */
-  uint cd_loop_uv_offset;
-  float aspect_y;
-};
 
 struct SharedUVLoopData {
   uint cd_loop_uv_offset;
@@ -347,14 +332,14 @@ static bool bm_loop_uv_shared_edge_check(const BMLoop *l_a, const BMLoop *l_b, v
 /**
  * Calculate islands and add them to \a island_list returning the number of items added.
  */
-static int bm_mesh_calc_uv_islands(const Scene *scene,
-                                   BMesh *bm,
-                                   ListBase *island_list,
-                                   const bool only_selected_faces,
-                                   const bool only_selected_uvs,
-                                   const bool use_seams,
-                                   const float aspect_y,
-                                   const uint cd_loop_uv_offset)
+int bm_mesh_calc_uv_islands(const Scene *scene,
+                            BMesh *bm,
+                            ListBase *island_list,
+                            const bool only_selected_faces,
+                            const bool only_selected_uvs,
+                            const bool use_seams,
+                            const float aspect_y,
+                            const uint cd_loop_uv_offset)
 {
   int island_added = 0;
   BM_mesh_elem_table_ensure(bm, BM_FACE);
