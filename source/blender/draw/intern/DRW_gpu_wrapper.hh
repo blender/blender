@@ -183,7 +183,7 @@ class UniformCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
     GPU_uniformbuf_free(ubo_);
   }
 
-  void push_update(void)
+  void push_update()
   {
     GPU_uniformbuf_update(ubo_, this->data_);
   }
@@ -228,10 +228,15 @@ class StorageCommon : public DataBuffer<T, len, false>, NonMovable, NonCopyable 
     GPU_storagebuf_free(ssbo_);
   }
 
-  void push_update(void)
+  void push_update()
   {
     BLI_assert(device_only == false);
     GPU_storagebuf_update(ssbo_, this->data_);
+  }
+
+  void clear_to_zero()
+  {
+    GPU_storagebuf_clear_to_zero(ssbo_);
   }
 
   operator GPUStorageBuf *() const
@@ -320,6 +325,7 @@ class StorageArrayBuffer : public detail::StorageCommon<T, len, device_only> {
     MEM_freeN(this->data_);
   }
 
+  /* Resize to \a new_size elements. */
   void resize(int64_t new_size)
   {
     BLI_assert(new_size > 0);
@@ -609,6 +615,11 @@ class Texture : NonCopyable {
   int height(void) const
   {
     return GPU_texture_height(tx_);
+  }
+
+  int pixel_count() const
+  {
+    return GPU_texture_width(tx_) * GPU_texture_height(tx_);
   }
 
   bool depth(void) const
