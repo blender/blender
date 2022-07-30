@@ -46,7 +46,7 @@
 #include "UI_interface.h"
 
 #include "interface_intern.h"
-#include "interface_regions_intern.h"
+#include "interface_regions_intern.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Popup Menu with Callback or String

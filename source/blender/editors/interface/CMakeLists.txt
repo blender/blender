@@ -57,7 +57,7 @@ set(SRC
   interface_region_popover.cc
   interface_region_popup.cc
   interface_region_search.cc
-  interface_region_tooltip.c
+  interface_region_tooltip.cc
   interface_regions.cc
   interface_style.cc
   interface_template_asset_view.cc
@@ -83,7 +83,7 @@ set(SRC
 
   eyedroppers/eyedropper_intern.h
   interface_intern.h
-  interface_regions_intern.h
+  interface_regions_intern.hh
 )
 
 set(LIB
