@@ -1433,10 +1433,10 @@ static void sculptsession_free_pbvh(Object *object)
 
   MEM_SAFE_FREE(ss->persistent_base);
 
-  MEM_SAFE_FREE(ss->preview_vert_index_list);
-  ss->preview_vert_index_count = 0;
+  MEM_SAFE_FREE(ss->preview_vert_list);
+  ss->preview_vert_count = 0;
 
-  MEM_SAFE_FREE(ss->preview_vert_index_list);
+  MEM_SAFE_FREE(ss->preview_vert_list);
 
   MEM_SAFE_FREE(ss->vertex_info.connected_component);
   MEM_SAFE_FREE(ss->vertex_info.boundary);

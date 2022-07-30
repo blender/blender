@@ -263,20 +263,20 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
         if (ss->deform_modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
             sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
-            BKE_pbvh_vert_mark_update(ss->pbvh, index[i]);
+            BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
         else {
           for (int i = 0; i < unode->totvert; i++) {
             swap_v3_v3(mvert[index[i]].co, unode->orig_co[i]);
-            BKE_pbvh_vert_mark_update(ss->pbvh, index[i]);
+            BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
       }
       else {
         for (int i = 0; i < unode->totvert; i++) {
           swap_v3_v3(mvert[index[i]].co, unode->co[i]);
-          BKE_pbvh_vert_mark_update(ss->pbvh, index[i]);
+          BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_make_vref(index[i]));
         }
       }
     }
@@ -320,7 +320,7 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
       if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != ((v->flag & ME_HIDE) != 0)) {
         BLI_BITMAP_FLIP(unode->vert_hidden, i);
         v->flag ^= ME_HIDE;
-        BKE_pbvh_vert_mark_update(ss->pbvh, unode->index[i]);
+        BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_make_vref(unode->index[i]));
       }
     }
   }
@@ -360,7 +360,7 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
 
   if (modified) {
     for (int i = 0; i < unode->totvert; i++) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, unode->index[i]);
+      BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_index_to_vertex(ss->pbvh, unode->index[i]));
     }
   }
 
@@ -385,7 +385,7 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
     for (int i = 0; i < unode->totvert; i++) {
       if (vmask[index[i]] != unode->mask[i]) {
         SWAP(float, vmask[index[i]], unode->mask[i]);
-        BKE_pbvh_vert_mark_update(ss->pbvh, index[i]);
+        BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_make_vref(index[i]));
       }
     }
   }

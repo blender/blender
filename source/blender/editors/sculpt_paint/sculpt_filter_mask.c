@@ -103,7 +103,7 @@ static void mask_filter_task_cb(void *__restrict userdata,
     switch (mode) {
       case MASK_FILTER_SMOOTH:
       case MASK_FILTER_SHARPEN: {
-        float val = SCULPT_neighbor_mask_average(ss, vd.index);
+        float val = SCULPT_neighbor_mask_average(ss, vd.vertex);
 
         val -= *vd.mask;
 
@@ -123,7 +123,7 @@ static void mask_filter_task_cb(void *__restrict userdata,
       }
       case MASK_FILTER_GROW:
         max = 0.0f;
-        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
           float vmask_f = data->prev_mask[ni.index];
           if (vmask_f > max) {
             max = vmask_f;
@@ -134,7 +134,7 @@ static void mask_filter_task_cb(void *__restrict userdata,
         break;
       case MASK_FILTER_SHRINK:
         min = 1.0f;
-        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.index, ni) {
+        SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd.vertex, ni) {
           float vmask_f = data->prev_mask[ni.index];
           if (vmask_f < min) {
             min = vmask_f;
@@ -163,7 +163,7 @@ static void mask_filter_task_cb(void *__restrict userdata,
       update = true;
     }
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -217,7 +217,8 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     if (ELEM(filter_type, MASK_FILTER_GROW, MASK_FILTER_SHRINK)) {
       prev_mask = MEM_mallocN(num_verts * sizeof(float), "prevmask");
       for (int j = 0; j < num_verts; j++) {
-        prev_mask[j] = SCULPT_vertex_mask_get(ss, j);
+        PBVHVertRef vertex = BKE_pbvh_index_to_vertex(ss->pbvh, j);
+        prev_mask[j] = SCULPT_vertex_mask_get(ss, vertex);
       }
     }
 
@@ -308,9 +309,9 @@ static float neighbor_dirty_mask(SculptSession *ss, PBVHVertexIter *vd)
   zero_v3(avg);
 
   SculptVertexNeighborIter ni;
-  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->index, ni) {
+  SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vd->vertex, ni) {
     float normalized[3];
-    sub_v3_v3v3(normalized, SCULPT_vertex_co_get(ss, ni.index), vd->co);
+    sub_v3_v3v3(normalized, SCULPT_vertex_co_get(ss, ni.vertex), vd->co);
     normalize_v3(normalized);
     add_v3_v3(avg, normalized);
     total++;
@@ -388,7 +389,7 @@ static void dirty_mask_apply_task_cb(void *__restrict userdata,
     *vd.mask = CLAMPIS(mask, 0.0f, 1.0f);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
+      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
