@@ -3410,9 +3410,8 @@ void BKE_image_ensure_tile_token(char *filename)
 
   /* General 4-digit "udim" pattern. As this format is susceptible to ambiguity
    * with other digit sequences, we can leverage the supported range of roughly
-   * 1000 through 2000 to provide better detection.
-   */
-  std::regex pattern(R"((^|.*?\D)([12]\d{3})(\D.*))");
+   * 1000 through 2000 to provide better detection. */
+  std::regex pattern(R"((.*[._-])([12]\d{3})([._-].*))");
   if (std::regex_search(path, match, pattern)) {
     BLI_strncpy(filename, match.format("$1<UDIM>$3").c_str(), FILE_MAX);
     return;
