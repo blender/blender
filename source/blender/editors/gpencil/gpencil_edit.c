@@ -3989,6 +3989,7 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
       /* TODO use `BKE_gpencil_stroke_smooth` when the weights are better used. */
       bGPDstroke gps_old = *gps;
       gps_old.points = (bGPDspoint *)MEM_dupallocN(gps->points);
+      bool need_update = false;
       /* Here the iteration needs to be done outside the smooth functions,
        * as there are points that don't get smoothed. */
       for (int n = 0; n < repeat; n++) {
@@ -4000,6 +4001,7 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
           /* Perform smoothing. */
           if (smooth_position) {
             BKE_gpencil_stroke_smooth_point(&gps_old, i, factor, 1, false, false, gps);
+            need_update = true;
           }
           if (smooth_strength) {
             BKE_gpencil_stroke_smooth_strength(&gps_old, i, factor, 1, gps);
@@ -4009,6 +4011,7 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
           }
           if (smooth_uv) {
             BKE_gpencil_stroke_smooth_uv(&gps_old, i, factor, 1, gps);
+            need_update = true;
           }
         }
         if (n < repeat - 1) {
@@ -4016,6 +4019,11 @@ static void gpencil_smooth_stroke(bContext *C, wmOperator *op)
         }
       }
       MEM_freeN(gps_old.points);
+
+      if (need_update) {
+        gps->flag |= GP_STROKE_NEEDS_CURVE_UPDATE;
+        BKE_gpencil_stroke_geometry_update(gpd_, gps);
+      }
     }
   }
   GP_EDITABLE_STROKES_END(gpstroke_iter);
