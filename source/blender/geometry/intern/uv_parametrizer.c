@@ -51,7 +51,6 @@ typedef struct PVert {
   union PVertUnion {
     PHashKey key;       /* Construct. */
     int id;             /* ABF/LSCM matrix index. */
-    float distortion;   /* Area smoothing. */
     HeapNode *heaplink; /* Edge collapsing. */
   } u;
 
@@ -153,7 +152,6 @@ typedef struct PChart {
     } pack;
   } u;
 
-  ParamHandle *handle;
   bool has_pins;
 } PChart;
 
@@ -221,8 +219,10 @@ static PHash *phash_new(PHashLink **list, int sizehint)
 
 static void phash_delete(PHash *ph)
 {
-  MEM_freeN(ph->buckets);
-  MEM_freeN(ph);
+  if (ph) {
+    MEM_SAFE_FREE(ph->buckets);
+  }
+  MEM_SAFE_FREE(ph);
 }
 
 static int phash_size(PHash *ph)
@@ -666,9 +666,9 @@ static PVert *p_vert_lookup(ParamHandle *handle, PHashKey key, const float co[3]
   return p_vert_add(handle, key, co, e);
 }
 
-static PVert *p_vert_copy(PChart *chart, PVert *v)
+static PVert *p_vert_copy(ParamHandle *handle, PVert *v)
 {
-  PVert *nv = (PVert *)BLI_memarena_alloc(chart->handle->arena, sizeof(*nv));
+  PVert *nv = (PVert *)BLI_memarena_alloc(handle->arena, sizeof(*nv));
 
   copy_v3_v3(nv->co, v->co);
   nv->uv[0] = v->uv[0];
@@ -721,20 +721,6 @@ static int p_face_exists(ParamHandle *handle, const ParamKey *pvkeys, int i1, in
   }
 
   return false;
-}
-
-static PChart *p_chart_new(ParamHandle *handle)
-{
-  PChart *chart = (PChart *)MEM_callocN(sizeof(*chart), "PChart");
-  chart->handle = handle;
-
-  return chart;
-}
-
-static void p_chart_delete(PChart *chart)
-{
-  /* the actual links are free by memarena */
-  MEM_freeN(chart);
 }
 
 static bool p_edge_implicit_seam(PEdge *e, PEdge *ep)
@@ -894,7 +880,7 @@ static int p_connect_pairs(ParamHandle *handle, bool topology_from_uvs)
   return ncharts;
 }
 
-static void p_split_vert(PChart *chart, PEdge *e)
+static void p_split_vert(ParamHandle *handle, PChart *chart, PEdge *e)
 {
   PEdge *we, *lastwe = NULL;
   PVert *v = e->vert;
@@ -934,7 +920,7 @@ static void p_split_vert(PChart *chart, PEdge *e)
   if (copy) {
     /* not found, copying */
     v->flag |= PVERT_SPLIT;
-    v = p_vert_copy(chart, v);
+    v = p_vert_copy(handle, v);
     v->flag |= PVERT_SPLIT;
 
     v->nextlink = chart->verts;
@@ -953,12 +939,11 @@ static void p_split_vert(PChart *chart, PEdge *e)
 
 static PChart **p_split_charts(ParamHandle *handle, PChart *chart, int ncharts)
 {
-  PChart **charts = MEM_mallocN(sizeof(*charts) * ncharts, "PCharts"), *nchart;
+  PChart **charts = MEM_mallocN(sizeof(*charts) * ncharts, "PCharts");
   PFace *f, *nextf;
-  int i;
 
-  for (i = 0; i < ncharts; i++) {
-    charts[i] = p_chart_new(handle);
+  for (int i = 0; i < ncharts; i++) {
+    charts[i] = (PChart *)MEM_callocN(sizeof(*chart), "PChart");
   }
 
   f = chart->faces;
@@ -966,7 +951,7 @@ static PChart **p_split_charts(ParamHandle *handle, PChart *chart, int ncharts)
     PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
     nextf = f->nextlink;
 
-    nchart = charts[f->u.chart];
+    PChart *nchart = charts[f->u.chart];
 
     f->nextlink = nchart->faces;
     nchart->faces = f;
@@ -980,9 +965,9 @@ static PChart **p_split_charts(ParamHandle *handle, PChart *chart, int ncharts)
     nchart->nfaces++;
     nchart->nedges += 3;
 
-    p_split_vert(nchart, e1);
-    p_split_vert(nchart, e2);
-    p_split_vert(nchart, e3);
+    p_split_vert(handle, nchart, e1);
+    p_split_vert(handle, nchart, e2);
+    p_split_vert(handle, nchart, e3);
 
     f = nextf;
   }
@@ -1082,9 +1067,9 @@ static PFace *p_face_add_construct(ParamHandle *handle,
   return f;
 }
 
-static PFace *p_face_add_fill(PChart *chart, PVert *v1, PVert *v2, PVert *v3)
+static PFace *p_face_add_fill(ParamHandle *handle, PChart *chart, PVert *v1, PVert *v2, PVert *v3)
 {
-  PFace *f = p_face_add(chart->handle);
+  PFace *f = p_face_add(handle);
   PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
 
   e1->vert = v1;
@@ -1198,7 +1183,7 @@ static float p_edge_boundary_angle(PEdge *e)
   return angle;
 }
 
-static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
+static void p_chart_fill_boundary(ParamHandle *handle, PChart *chart, PEdge *be, int nedges)
 {
   PEdge *e, *e1, *e2;
 
@@ -1239,7 +1224,7 @@ static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
       e->flag |= PEDGE_FILLED;
       e1->flag |= PEDGE_FILLED;
 
-      f = p_face_add_fill(chart, e->vert, e1->vert, e2->vert);
+      f = p_face_add_fill(handle, chart, e->vert, e1->vert, e2->vert);
       f->flag |= PFACE_FILLED;
 
       ne = f->edge->next->next;
@@ -1275,7 +1260,7 @@ static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
   BLI_heap_free(heap, NULL);
 }
 
-static void p_chart_fill_boundaries(PChart *chart, PEdge *outer)
+static void p_chart_fill_boundaries(ParamHandle *handle, PChart *chart, PEdge *outer)
 {
   PEdge *e, *be; /* *enext - as yet unused */
   int nedges;
@@ -1296,7 +1281,7 @@ static void p_chart_fill_boundaries(PChart *chart, PEdge *outer)
     } while (be != e);
 
     if (e != outer) {
-      p_chart_fill_boundary(chart, e, nedges);
+      p_chart_fill_boundary(handle, chart, e, nedges);
     }
   }
 }
@@ -3705,8 +3690,8 @@ static void p_chart_rotate_fit_aabb(PChart *chart)
 
 ParamHandle *GEO_uv_parametrizer_construct_begin(void)
 {
-  ParamHandle *handle = MEM_callocN(sizeof(*handle), "ParamHandle");
-  handle->construction_chart = p_chart_new(handle);
+  ParamHandle *handle = (ParamHandle *)MEM_callocN(sizeof(*handle), "ParamHandle");
+  handle->construction_chart = (PChart *)MEM_callocN(sizeof(PChart), "PChart");
   handle->state = PHANDLE_STATE_ALLOCATED;
   handle->arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "param construct arena");
   handle->polyfill_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "param polyfill arena");
@@ -3729,12 +3714,10 @@ void GEO_uv_parametrizer_aspect_ratio(ParamHandle *phandle, float aspx, float as
 
 void GEO_uv_parametrizer_delete(ParamHandle *phandle)
 {
-  int i;
-
   param_assert(ELEM(phandle->state, PHANDLE_STATE_ALLOCATED, PHANDLE_STATE_CONSTRUCTED));
 
-  for (i = 0; i < phandle->ncharts; i++) {
-    p_chart_delete(phandle->charts[i]);
+  for (int i = 0; i < phandle->ncharts; i++) {
+    MEM_SAFE_FREE(phandle->charts[i]);
   }
 
   MEM_SAFE_FREE(phandle->charts);
@@ -3744,13 +3727,11 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
     phandle->pin_hash = NULL;
   }
 
-  if (phandle->construction_chart) {
-    p_chart_delete(phandle->construction_chart);
+  MEM_SAFE_FREE(phandle->construction_chart);
 
-    phash_delete(phandle->hash_verts);
-    phash_delete(phandle->hash_edges);
-    phash_delete(phandle->hash_faces);
-  }
+  phash_delete(phandle->hash_verts);
+  phash_delete(phandle->hash_edges);
+  phash_delete(phandle->hash_faces);
 
   BLI_memarena_free(phandle->arena);
   BLI_memarena_free(phandle->polyfill_arena);
@@ -3953,8 +3934,7 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
   phandle->ncharts = p_connect_pairs(phandle, topology_from_uvs);
   phandle->charts = p_split_charts(phandle, chart, phandle->ncharts);
 
-  p_chart_delete(phandle->construction_chart);
-  phandle->construction_chart = NULL;
+  MEM_SAFE_FREE(phandle->construction_chart);
 
   phash_delete(phandle->hash_verts);
   phash_delete(phandle->hash_edges);
@@ -3968,7 +3948,7 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
     p_chart_boundaries(chart, &outer);
 
     if (!topology_from_uvs && chart->nboundaries == 0) {
-      p_chart_delete(chart);
+      MEM_SAFE_FREE(chart);
       if (count_fail != NULL) {
         *count_fail += 1;
       }
@@ -3979,7 +3959,7 @@ void GEO_uv_parametrizer_construct_end(ParamHandle *phandle,
     j++;
 
     if (fill && (chart->nboundaries > 1)) {
-      p_chart_fill_boundaries(chart, outer);
+      p_chart_fill_boundaries(phandle, chart, outer);
     }
 
     for (v = chart->verts; v; v = v->nextlink) {
