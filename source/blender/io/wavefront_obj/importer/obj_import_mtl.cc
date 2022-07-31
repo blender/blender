@@ -65,7 +65,7 @@ static bool load_texture_image_at_path(Main *bmain,
                                        bNode *r_node,
                                        const std::string &path)
 {
-  Image *tex_image = BKE_image_load(bmain, path.c_str());
+  Image *tex_image = BKE_image_load_exists(bmain, path.c_str());
   if (!tex_image) {
     fprintf(stderr, "Cannot load image file: '%s'\n", path.c_str());
     return false;

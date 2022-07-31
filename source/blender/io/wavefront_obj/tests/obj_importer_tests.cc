@@ -47,7 +47,8 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
   void import_and_check(const char *path,
                         const Expectation *expect,
                         size_t expect_count,
-                        int expect_mat_count)
+                        int expect_mat_count,
+                        int expect_image_count = 0)
   {
     if (!blendfile_load("io_tests/blend_geometry/all_quads.blend")) {
       ADD_FAILURE();
@@ -132,12 +133,12 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
     DEG_OBJECT_ITER_END;
     EXPECT_EQ(object_index, expect_count);
 
-    /* Count number of materials. */
-    int mat_count = 0;
-    LISTBASE_FOREACH (ID *, id, &bfile->main->materials) {
-      ++mat_count;
-    }
+    /* Check number of materials & textures. */
+    const int mat_count = BLI_listbase_count(&bfile->main->materials);
     EXPECT_EQ(mat_count, expect_mat_count);
+
+    const int ima_count = BLI_listbase_count(&bfile->main->images);
+    EXPECT_EQ(ima_count, expect_image_count);
   }
 };
 
@@ -306,7 +307,45 @@ TEST_F(obj_importer_test, import_materials)
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
       {"OBmaterials", OB_MESH, 8, 12, 6, 24, float3(-1, -1, 1), float3(1, -1, -1)},
   };
-  import_and_check("materials.obj", expect, std::size(expect), 4);
+  import_and_check("materials.obj", expect, std::size(expect), 4, 1);
+}
+
+TEST_F(obj_importer_test, import_cubes_with_textures_rel)
+{
+  Expectation expect[] = {
+      {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
+      {"OBCube4Tex",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(1, 1, -1),
+       float3(-1, -1, 1),
+       float3(0, 1, 0),
+       float2(0.9935f, 0.0020f)},
+      {"OBCubeTiledTex",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(4, 1, -1),
+       float3(2, -1, 1),
+       float3(0, 1, 0),
+       float2(0.9935f, 0.0020f)},
+      {"OBCubeTiledTexFromAnotherFolder",
+       OB_MESH,
+       8,
+       12,
+       6,
+       24,
+       float3(7, 1, -1),
+       float3(5, -1, 1),
+       float3(0, 1, 0),
+       float2(0.9935f, 0.0020f)},
+  };
+  import_and_check("cubes_with_textures_rel.obj", expect, std::size(expect), 3, 4);
 }
 
 TEST_F(obj_importer_test, import_faces_invalid_or_with_holes)
