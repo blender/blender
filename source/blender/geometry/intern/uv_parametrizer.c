@@ -153,13 +153,9 @@ typedef struct PChart {
     } pack;
   } u;
 
-  uchar flag;
   ParamHandle *handle;
+  bool has_pins;
 } PChart;
-
-enum PChartFlag {
-  PCHART_HAS_PINS = 1,
-};
 
 enum PHandleState {
   PHANDLE_STATE_ALLOCATED,
@@ -905,7 +901,7 @@ static void p_split_vert(PChart *chart, PEdge *e)
   bool copy = true;
 
   if (e->flag & PEDGE_PIN) {
-    chart->flag |= PCHART_HAS_PINS;
+    chart->has_pins = true;
   }
 
   if (e->flag & PEDGE_VERTEX_SPLIT) {
@@ -4025,7 +4021,7 @@ void GEO_uv_parametrizer_lscm_solve(ParamHandle *phandle, int *count_changed, in
     if (chart->u.lscm.context) {
       const bool result = p_chart_lscm_solve(phandle, chart);
 
-      if (result && !(chart->flag & PCHART_HAS_PINS)) {
+      if (result && !chart->has_pins) {
         p_chart_rotate_minimum_area(chart);
       }
       else if (result && chart->u.lscm.single_pin) {
@@ -4033,7 +4029,7 @@ void GEO_uv_parametrizer_lscm_solve(ParamHandle *phandle, int *count_changed, in
         p_chart_lscm_transform_single_pin(chart);
       }
 
-      if (!result || !(chart->flag & PCHART_HAS_PINS)) {
+      if (!result || !chart->has_pins) {
         p_chart_lscm_end(chart);
       }
 
@@ -4133,7 +4129,7 @@ static void GEO_uv_parametrizer_pack_rotate(ParamHandle *phandle, bool ignore_pi
   for (i = 0; i < phandle->ncharts; i++) {
     chart = phandle->charts[i];
 
-    if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
+    if (ignore_pinned && chart->has_pins) {
       continue;
     }
 
@@ -4174,7 +4170,7 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
   for (i = 0; i < handle->ncharts; i++) {
     chart = handle->charts[i];
 
-    if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
+    if (ignore_pinned && chart->has_pins) {
       unpacked++;
       continue;
     }
@@ -4190,7 +4186,7 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
 
     box->w = chart->u.pack.size[0] + trans[0];
     box->h = chart->u.pack.size[1] + trans[1];
-    box->index = i; /* warning this index skips PCHART_HAS_PINS boxes */
+    box->index = i; /* Warning this index skips chart->has_pins boxes. */
 
     if (margin > 0.0f) {
       area += (double)sqrtf(box->w * box->h);
@@ -4207,7 +4203,7 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
     for (i = 0; i < handle->ncharts; i++) {
       chart = handle->charts[i];
 
-      if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
+      if (ignore_pinned && chart->has_pins) {
         unpacked++;
         continue;
       }
@@ -4264,7 +4260,7 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
   for (i = 0; i < phandle->ncharts; i++) {
     chart = phandle->charts[i];
 
-    if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
+    if (ignore_pinned && chart->has_pins) {
       continue;
     }
 
@@ -4367,7 +4363,7 @@ void GEO_uv_parametrizer_average(ParamHandle *phandle,
   for (i = 0; i < phandle->ncharts; i++) {
     chart = phandle->charts[i];
 
-    if (ignore_pinned && (chart->flag & PCHART_HAS_PINS)) {
+    if (ignore_pinned && chart->has_pins) {
       continue;
     }
 
