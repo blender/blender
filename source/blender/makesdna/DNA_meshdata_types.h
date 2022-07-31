@@ -55,7 +55,6 @@ enum {
   /*  ME_HIDE = (1 << 4), */
   ME_EDGERENDER = (1 << 5),
   ME_LOOSEEDGE = (1 << 7),
-  ME_EDGE_TMP_TAG = (1 << 8),
   ME_SHARP = (1 << 9), /* only reason this flag remains a 'short' */
 };
 
