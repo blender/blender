@@ -104,7 +104,7 @@ static PBVHVertRef sculpt_boundary_get_closest_boundary_vertex(SculptSession *ss
 
   BoundaryInitialVertexFloodFillData fdata = {
       .initial_vertex = initial_vertex,
-      .boundary_initial_vertex = BOUNDARY_VERTEX_NONE,
+      .boundary_initial_vertex = {BOUNDARY_VERTEX_NONE},
       .boundary_initial_vertex_steps = INT_MAX,
       .radius_sq = radius * radius,
   };
