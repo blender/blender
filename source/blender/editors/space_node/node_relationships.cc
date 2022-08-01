@@ -639,8 +639,8 @@ static int link_socket_to_viewer(const bContext &C,
   if (viewer_bnode == nullptr) {
     /* Create a new viewer node if none exists. */
     const int viewer_type = get_default_viewer_type(&C);
-    viewer_bnode = node_add_node(
-        C, nullptr, viewer_type, bsocket_to_view.locx + 100, bsocket_to_view.locy);
+    const float2 location{bsocket_to_view.locx + 100, bsocket_to_view.locy};
+    viewer_bnode = add_static_node(C, viewer_type, location);
     if (viewer_bnode == nullptr) {
       return OPERATOR_CANCELLED;
     }
@@ -1654,7 +1654,7 @@ static int node_join_exec(bContext *C, wmOperator *UNUSED(op))
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
 
-  /* XXX save selection: node_add_node call below sets the new frame as single
+  /* XXX save selection: add_static_node call below sets the new frame as single
    * active+selected node */
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
     if (node->flag & NODE_SELECT) {
@@ -1665,7 +1665,7 @@ static int node_join_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  bNode *frame = node_add_node(*C, nullptr, NODE_FRAME, 0.0f, 0.0f);
+  bNode *frame = add_static_node(*C, NODE_FRAME, float2(0));
 
   /* reset tags */
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
