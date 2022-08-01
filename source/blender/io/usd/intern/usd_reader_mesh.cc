@@ -64,7 +64,22 @@ static void build_mat_map(const Main *bmain, std::map<std::string, Material *> *
 
 static pxr::UsdShadeMaterial compute_bound_material(const pxr::UsdPrim &prim)
 {
-  return pxr::UsdShadeMaterialBindingAPI(prim).ComputeBoundMaterial();
+  pxr::UsdShadeMaterialBindingAPI api = pxr::UsdShadeMaterialBindingAPI(prim);
+
+  /* Compute generically bound ('allPurpose') materials. */
+  pxr::UsdShadeMaterial mtl = api.ComputeBoundMaterial();
+
+  /* If no generic material could be resolved, also check for 'preview' and
+   * 'full' purpose materials as fallbacks. */
+  if (!mtl) {
+    mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->preview);
+  }
+
+  if (!mtl) {
+    mtl = api.ComputeBoundMaterial(pxr::UsdShadeTokens->full);
+  }
+
+  return mtl;
 }
 
 /* Returns an existing Blender material that corresponds to the USD
