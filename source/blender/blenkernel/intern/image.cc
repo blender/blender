@@ -863,36 +863,88 @@ void BKE_image_get_tile_uv(const Image *ima, const int tile_number, float r_uv[2
   }
 }
 
+/* Linear distance between #x and the unit interval. */
+static float distance_to_unit_interval(float x)
+{
+  /* The unit interval is between 0 and 1.
+  Within the interval, return 0.
+  Outside the interval, return the distance to the nearest boundary.
+  Intuitively, the function looks like:
+   \ |   | /
+  __\|___|/__
+     0   1
+  */
+
+  if (x <= 0.0f) {
+    return -x; /* Distance to left border. */
+  }
+  if (x <= 1.0f) {
+    return 0.0f; /* Inside unit interval. */
+  }
+  return x - 1.0f; /* Distance to right border. */
+}
+
+/* Distance squared between #co and the unit square with lower-left starting at #udim. */
+static float distance_squared_to_udim(const float co[2], const float udim[2])
+{
+  float delta[2];
+  sub_v2_v2v2(delta, co, udim);
+  delta[0] = distance_to_unit_interval(delta[0]);
+  delta[1] = distance_to_unit_interval(delta[1]);
+  return len_squared_v2(delta);
+}
+
+static bool nearest_udim_tile_tie_break(const float best_dist_sq,
+                                        const float best_uv[2],
+                                        const float dist_sq,
+                                        const float uv[2])
+{
+  if (best_dist_sq == dist_sq) {   /* Exact same distance? Tie-break. */
+    if (best_uv[0] == uv[0]) {     /* Exact same U? Tie-break. */
+      return (uv[1] > best_uv[1]); /* Higher than previous candidate? */
+    }
+    return (uv[0] > best_uv[0]); /* Further right than previous candidate? */
+  }
+  return (dist_sq < best_dist_sq); /* Closer than previous candidate? */
+}
+
+/* Finds the nearest tile and offset to #co.
+ * If the co-ordinates are integers, take special care to break ties. */
 int BKE_image_find_nearest_tile_with_offset(const Image *image,
                                             const float co[2],
                                             float r_uv_offset[2])
 {
-  /* Distance squared to the closest UDIM tile. */
-  float dist_best_sq = FLT_MAX;
-  float uv_offset_best[2] = {0, 0};
+  zero_v2(r_uv_offset);
   int tile_number_best = -1;
 
-  const float co_offset[2] = {co[0] - 0.5f, co[1] - 0.5f};
+  if (!image || image->source != IMA_SRC_TILED) {
+    return tile_number_best;
+  }
+
+  /* Distance squared to the closest UDIM tile. */
+  float dist_best_sq = FLT_MAX;
 
   LISTBASE_FOREACH (const ImageTile *, tile, &image->tiles) {
     float uv_offset[2];
     BKE_image_get_tile_uv(image, tile->tile_number, uv_offset);
 
-    /* Distance squared between co[2] and center of UDIM tile. */
-    const float dist_sq = len_squared_v2v2(uv_offset, co_offset);
+    /* Distance squared between #co and closest point on UDIM tile. */
+    const float dist_sq = distance_squared_to_udim(co, uv_offset);
 
-    if (dist_sq < dist_best_sq) {
-      dist_best_sq = dist_sq;
-      tile_number_best = tile->tile_number;
-      copy_v2_v2(uv_offset_best, uv_offset);
-
-      if (dist_best_sq < 0.5f * 0.5f) {
-        break; /* No other tile can be closer. */
+    if (dist_sq == 0) { /* Either inside in the UDIM, or on its boundary. */
+      if (floorf(co[0]) == uv_offset[0] && floorf(co[1]) == uv_offset[1]) {
+        /* Within the half-open interval of the UDIM. */
+        copy_v2_v2(r_uv_offset, uv_offset);
+        return tile_number_best;
       }
     }
-  }
-  if (tile_number_best != -1) {
-    copy_v2_v2(r_uv_offset, uv_offset_best);
+
+    if (nearest_udim_tile_tie_break(dist_best_sq, r_uv_offset, dist_sq, uv_offset)) {
+      /* Tile is better than previous best, update. */
+      dist_best_sq = dist_sq;
+      copy_v2_v2(r_uv_offset, uv_offset);
+      tile_number_best = tile->tile_number;
+    }
   }
   return tile_number_best;
 }
