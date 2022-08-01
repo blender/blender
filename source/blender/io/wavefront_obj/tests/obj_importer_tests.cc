@@ -61,6 +61,7 @@ class obj_importer_test : public BlendfileLoadingBaseTest {
     params.up_axis = IO_AXIS_Y;
     params.validate_meshes = true;
     params.import_vertex_groups = false;
+    params.relative_paths = true;
 
     std::string obj_path = blender::tests::flags_test_asset_dir() + "/io_tests/obj/" + path;
     strncpy(params.filepath, obj_path.c_str(), FILE_MAX - 1);
