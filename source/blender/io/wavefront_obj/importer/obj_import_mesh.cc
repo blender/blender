@@ -57,7 +57,7 @@ Object *MeshFromGeometry::create_mesh(Main *bmain,
   create_uv_verts(mesh);
   create_normals(mesh);
   create_colors(mesh);
-  create_materials(bmain, materials, created_materials, obj);
+  create_materials(bmain, materials, created_materials, obj, import_params.relative_paths);
 
   if (import_params.validate_meshes || mesh_geometry_.has_invalid_polys_) {
     bool verbose_validate = false;
@@ -277,7 +277,8 @@ void MeshFromGeometry::create_uv_verts(Mesh *mesh)
 static Material *get_or_create_material(Main *bmain,
                                         const std::string &name,
                                         Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
-                                        Map<std::string, Material *> &created_materials)
+                                        Map<std::string, Material *> &created_materials,
+                                        bool relative_paths)
 {
   /* Have we created this material already? */
   Material **found_mat = created_materials.lookup_ptr(name);
@@ -291,7 +292,7 @@ static Material *get_or_create_material(Main *bmain,
   const MTLMaterial &mtl = *materials.lookup_or_add(name, std::make_unique<MTLMaterial>());
 
   Material *mat = BKE_material_add(bmain, name.c_str());
-  ShaderNodetreeWrap mat_wrap{bmain, mtl, mat};
+  ShaderNodetreeWrap mat_wrap{bmain, mtl, mat, relative_paths};
   mat->use_nodes = true;
   mat->nodetree = mat_wrap.get_nodetree();
   BKE_ntree_update_main_tree(bmain, mat->nodetree, nullptr);
@@ -303,10 +304,12 @@ static Material *get_or_create_material(Main *bmain,
 void MeshFromGeometry::create_materials(Main *bmain,
                                         Map<std::string, std::unique_ptr<MTLMaterial>> &materials,
                                         Map<std::string, Material *> &created_materials,
-                                        Object *obj)
+                                        Object *obj,
+                                        bool relative_paths)
 {
   for (const std::string &name : mesh_geometry_.material_order_) {
-    Material *mat = get_or_create_material(bmain, name, materials, created_materials);
+    Material *mat = get_or_create_material(
+        bmain, name, materials, created_materials, relative_paths);
     if (mat == nullptr) {
       continue;
     }

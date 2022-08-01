@@ -394,6 +394,7 @@ static int wm_obj_import_exec(bContext *C, wmOperator *op)
   import_params.up_axis = RNA_enum_get(op->ptr, "up_axis");
   import_params.import_vertex_groups = RNA_boolean_get(op->ptr, "import_vertex_groups");
   import_params.validate_meshes = RNA_boolean_get(op->ptr, "validate_meshes");
+  import_params.relative_paths = ((U.flag & USER_RELPATHS) != 0);
 
   OBJ_import(C, &import_params);
 
