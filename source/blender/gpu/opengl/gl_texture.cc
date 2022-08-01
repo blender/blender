@@ -40,6 +40,7 @@ GLTexture::~GLTexture()
   if (ctx != nullptr && is_bound_) {
     /* This avoid errors when the texture is still inside the bound texture array. */
     ctx->state_manager->texture_unbind(this);
+    ctx->state_manager->image_unbind(this);
   }
   GLContext::tex_free(tex_id_);
 }
