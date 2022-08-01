@@ -228,6 +228,7 @@ void Shader::print_log(Span<const char *> sources,
     log_line = line_end + 1;
     previous_location = log_item.cursor;
   }
+  // printf("%s", sources_combined);
   MEM_freeN(sources_combined);
 
   CLG_Severity severity = error ? CLG_SEVERITY_ERROR : CLG_SEVERITY_WARN;
