@@ -307,7 +307,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Shrinkwrap = {
-    /* name */ "Shrinkwrap",
+    /* name */ N_("Shrinkwrap"),
     /* structName */ "ShrinkwrapGpencilModifierData",
     /* structSize */ sizeof(ShrinkwrapGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

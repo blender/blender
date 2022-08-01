@@ -159,7 +159,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ShaderFxTypeInfo shaderfx_Type_Shadow = {
-    /* name */ "Shadow",
+    /* name */ N_("Shadow"),
     /* structName */ "ShadowShaderFxData",
     /* structSize */ sizeof(ShadowShaderFxData),
     /* type */ eShaderFxType_GpencilType,

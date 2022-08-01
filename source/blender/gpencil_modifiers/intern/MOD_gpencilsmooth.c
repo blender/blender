@@ -203,7 +203,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Smooth = {
-    /* name */ "Smooth",
+    /* name */ N_("Smooth"),
     /* structName */ "SmoothGpencilModifierData",
     /* structSize */ sizeof(SmoothGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

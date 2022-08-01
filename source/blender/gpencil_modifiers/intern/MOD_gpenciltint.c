@@ -12,6 +12,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
+#include "BLT_translation.h"
+
 #include "DNA_defaults.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_gpencil_types.h"
@@ -365,7 +367,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Tint = {
-    /* name */ "Tint",
+    /* name */ N_("Tint"),
     /* structName */ "TintGpencilModifierData",
     /* structSize */ sizeof(TintGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

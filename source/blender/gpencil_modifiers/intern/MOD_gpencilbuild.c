@@ -877,7 +877,7 @@ static void updateDepsgraph(GpencilModifierData *md,
 /* ******************************************** */
 
 GpencilModifierTypeInfo modifierType_Gpencil_Build = {
-    /* name */ "Build",
+    /* name */ N_("Build"),
     /* structName */ "BuildGpencilModifierData",
     /* structSize */ sizeof(BuildGpencilModifierData),
     /* type */ eGpencilModifierTypeType_Gpencil,

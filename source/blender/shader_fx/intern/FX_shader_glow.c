@@ -15,6 +15,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
@@ -80,7 +82,7 @@ static void panelRegister(ARegionType *region_type)
 }
 
 ShaderFxTypeInfo shaderfx_Type_Glow = {
-    /* name */ "Glow",
+    /* name */ N_("Glow"),
     /* structName */ "GlowShaderFxData",
     /* structSize */ sizeof(GlowShaderFxData),
     /* type */ eShaderFxType_GpencilType,
