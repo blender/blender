@@ -734,7 +734,7 @@ class Texture : NonCopyable {
       int3 size = this->size();
       if (size != int3(w, h, d) || GPU_texture_format(tx_) != format ||
           GPU_texture_cube(tx_) != cubemap || GPU_texture_array(tx_) != layered) {
-        GPU_TEXTURE_FREE_SAFE(tx_);
+        free();
       }
     }
     if (tx_ == nullptr) {
