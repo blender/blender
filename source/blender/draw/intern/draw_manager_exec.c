@@ -318,6 +318,7 @@ void DRW_state_reset(void)
   DRW_state_reset_ex(DRW_STATE_DEFAULT);
 
   GPU_texture_unbind_all();
+  GPU_texture_image_unbind_all();
   GPU_uniformbuf_unbind_all();
   GPU_storagebuf_unbind_all();
 
@@ -989,6 +990,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
       /* Unbinding can be costly. Skip in normal condition. */
       if (G.debug & G_DEBUG_GPU) {
         GPU_texture_unbind_all();
+        GPU_texture_image_unbind_all();
         GPU_uniformbuf_unbind_all();
         GPU_storagebuf_unbind_all();
       }
