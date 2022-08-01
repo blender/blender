@@ -162,6 +162,7 @@ DRWShadingGroup *ForwardPipeline::prepass_opaque_add(::Material *blender_mat,
 DRWShadingGroup *ForwardPipeline::material_transparent_add(::Material *blender_mat,
                                                            GPUMaterial *gpumat)
 {
+  RenderBuffers &rbufs = inst_.render_buffers;
   // LightModule &lights = inst_.lights;
   // LightProbeModule &lightprobes = inst_.lightprobes;
   // RaytracingModule &raytracing = inst_.raytracing;
@@ -191,6 +192,22 @@ DRWShadingGroup *ForwardPipeline::material_transparent_add(::Material *blender_m
   // DRW_shgroup_uniform_block(grp, "hiz_buf", inst_.hiz.ubo_get());
   // DRW_shgroup_uniform_texture_ref(grp, "hiz_tx", inst_.hiz_front.texture_ref_get());
   // }
+  {
+    /* TODO(fclem): This is not needed. This is only to please the OpenGL debug Layer.
+     * If we are to introduce transparency render-passes support, it would be through a separate
+     * pass. */
+    /* AOVs. */
+    DRW_shgroup_uniform_image_ref(grp, "aov_color_img", &rbufs.aov_color_tx);
+    DRW_shgroup_uniform_image_ref(grp, "aov_value_img", &rbufs.aov_value_tx);
+    DRW_shgroup_storage_block_ref(grp, "aov_buf", &inst_.film.aovs_info);
+    /* RenderPasses. */
+    DRW_shgroup_uniform_image_ref(grp, "rp_normal_img", &rbufs.normal_tx);
+    DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_light_img", &rbufs.diffuse_light_tx);
+    DRW_shgroup_uniform_image_ref(grp, "rp_diffuse_color_img", &rbufs.diffuse_color_tx);
+    DRW_shgroup_uniform_image_ref(grp, "rp_specular_light_img", &rbufs.specular_light_tx);
+    DRW_shgroup_uniform_image_ref(grp, "rp_specular_color_img", &rbufs.specular_color_tx);
+    DRW_shgroup_uniform_image_ref(grp, "rp_emission_img", &rbufs.emission_tx);
+  }
 
   DRWState state_disable = DRW_STATE_WRITE_DEPTH;
   DRWState state_enable = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM;
