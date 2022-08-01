@@ -308,7 +308,7 @@ TEST_F(obj_importer_test, import_materials)
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
       {"OBmaterials", OB_MESH, 8, 12, 6, 24, float3(-1, -1, 1), float3(1, -1, -1)},
   };
-  import_and_check("materials.obj", expect, std::size(expect), 4, 1);
+  import_and_check("materials.obj", expect, std::size(expect), 4, 8);
 }
 
 TEST_F(obj_importer_test, import_cubes_with_textures_rel)
