@@ -57,8 +57,7 @@ typedef struct PVert {
   struct PEdge *edge;
   float co[3];
   float uv[2];
-  uchar flag;
-
+  uint flag;
 } PVert;
 
 typedef struct PEdge {
@@ -76,8 +75,7 @@ typedef struct PEdge {
   struct PEdge *next;
   struct PFace *face;
   float *orig_uv, old_uv[2];
-  ushort flag;
-
+  uint flag;
 } PEdge;
 
 typedef struct PFace {
@@ -832,8 +830,8 @@ static bool p_edge_connect_pair(ParamHandle *handle,
 
 static int p_connect_pairs(ParamHandle *handle, bool topology_from_uvs)
 {
-  PEdge **stackbase = MEM_mallocN(sizeof(*stackbase) * phash_size(handle->hash_faces),
-                                  "Pstackbase");
+  PEdge **stackbase = (PEdge **)MEM_mallocN(sizeof(*stackbase) * phash_size(handle->hash_faces),
+                                            "Pstackbase");
   PEdge **stack = stackbase;
   PFace *f, *first;
   PEdge *e, *e1, *e2;
@@ -875,7 +873,7 @@ static int p_connect_pairs(ParamHandle *handle, bool topology_from_uvs)
     ncharts++;
   }
 
-  MEM_freeN(stackbase);
+  MEM_SAFE_FREE(stackbase);
 
   return ncharts;
 }
@@ -2789,7 +2787,7 @@ static bool p_chart_abf_solve(PChart *chart)
     }
   }
 
-  chart->u.lscm.abf_alpha = MEM_dupallocN(sys.alpha);
+  chart->u.lscm.abf_alpha = (float *)MEM_dupallocN(sys.alpha);
   p_abf_free_system(&sys);
 
   return true;
@@ -3247,13 +3245,11 @@ static void p_chart_lscm_transform_single_pin(PChart *chart)
 
 static void p_chart_lscm_end(PChart *chart)
 {
-  if (chart->u.lscm.context) {
-    EIG_linear_solver_delete(chart->u.lscm.context);
-  }
+  EIG_linear_solver_delete(chart->u.lscm.context);
+  chart->u.lscm.context = NULL;
 
   MEM_SAFE_FREE(chart->u.lscm.abf_alpha);
 
-  chart->u.lscm.context = NULL;
   chart->u.lscm.pin1 = NULL;
   chart->u.lscm.pin2 = NULL;
   chart->u.lscm.single_pin = NULL;
@@ -3500,8 +3496,8 @@ static bool p_chart_convex_hull(PChart *chart, PVert ***r_verts, int *r_nverts, 
   *r_nverts = npoints;
   *r_right = ulen - 1;
 
-  MEM_freeN(U);
-  MEM_freeN(L);
+  MEM_SAFE_FREE(U);
+  MEM_SAFE_FREE(L);
 
   return true;
 }
@@ -3547,7 +3543,7 @@ static float p_chart_minimum_area_angle(PChart *chart)
   }
 
   /* find left/top/right/bottom points, and compute angle for each point */
-  angles = MEM_mallocN(sizeof(float) * npoints, "PMinAreaAngles");
+  angles = (float *)MEM_mallocN(sizeof(float) * npoints, "PMinAreaAngles");
 
   i_min = i_max = 0;
   miny = 1e10;
@@ -3649,8 +3645,8 @@ static float p_chart_minimum_area_angle(PChart *chart)
     minangle -= (float)M_PI_2;
   }
 
-  MEM_freeN(angles);
-  MEM_freeN(points);
+  MEM_SAFE_FREE(angles);
+  MEM_SAFE_FREE(points);
 
   return minangle;
 }
@@ -3736,6 +3732,10 @@ void GEO_uv_parametrizer_delete(ParamHandle *phandle)
   BLI_memarena_free(phandle->arena);
   BLI_memarena_free(phandle->polyfill_arena);
   BLI_heap_free(phandle->polyfill_heap, NULL);
+
+  BLI_rng_free(phandle->rng);
+  phandle->rng = NULL;
+
   MEM_freeN(phandle);
 }
 
@@ -4029,11 +4029,9 @@ void GEO_uv_parametrizer_lscm_solve(ParamHandle *phandle, int *count_changed, in
 
 void GEO_uv_parametrizer_lscm_end(ParamHandle *phandle)
 {
-  int i;
+  BLI_assert(phandle->state == PHANDLE_STATE_LSCM);
 
-  param_assert(phandle->state == PHANDLE_STATE_LSCM);
-
-  for (i = 0; i < phandle->ncharts; i++) {
+  for (int i = 0; i < phandle->ncharts; i++) {
     p_chart_lscm_end(phandle->charts[i]);
 #if 0
     p_chart_complexify(phandle->charts[i]);
@@ -4095,9 +4093,6 @@ void GEO_uv_parametrizer_stretch_end(ParamHandle *phandle)
 {
   param_assert(phandle->state == PHANDLE_STATE_STRETCH);
   phandle->state = PHANDLE_STATE_CONSTRUCTED;
-
-  BLI_rng_free(phandle->rng);
-  phandle->rng = NULL;
 }
 
 /* don't pack, just rotate (used for better packing) */
@@ -4145,7 +4140,7 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
   }
 
   /* we may not use all these boxes */
-  boxarray = MEM_mallocN(handle->ncharts * sizeof(BoxPack), "BoxPack box");
+  boxarray = (BoxPack *)MEM_mallocN(handle->ncharts * sizeof(BoxPack), "BoxPack box");
 
   for (i = 0; i < handle->ncharts; i++) {
     chart = handle->charts[i];
@@ -4215,7 +4210,7 @@ void GEO_uv_parametrizer_pack(ParamHandle *handle,
     p_chart_uv_translate(chart, trans);
     p_chart_uv_scale(chart, scale);
   }
-  MEM_freeN(boxarray);
+  MEM_SAFE_FREE(boxarray);
 
   if (handle->aspx != handle->aspy) {
     GEO_uv_parametrizer_scale(handle, handle->aspx, handle->aspy);
