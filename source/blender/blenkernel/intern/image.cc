@@ -4937,10 +4937,12 @@ static void image_editors_update_frame(Image *ima,
                                        ImageUser *iuser,
                                        void *customdata)
 {
-  int cfra = *(int *)customdata;
+  if (ima && BKE_image_is_animated(ima)) {
+    if ((iuser->flag & IMA_ANIM_ALWAYS) || (iuser->flag & IMA_NEED_FRAME_RECALC)) {
+      int cfra = *(int *)customdata;
 
-  if ((iuser->flag & IMA_ANIM_ALWAYS) || (iuser->flag & IMA_NEED_FRAME_RECALC)) {
-    BKE_image_user_frame_calc(ima, iuser, cfra);
+      BKE_image_user_frame_calc(ima, iuser, cfra);
+    }
   }
 }
 
