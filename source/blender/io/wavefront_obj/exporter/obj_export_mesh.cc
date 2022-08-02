@@ -219,13 +219,13 @@ void OBJMesh::calc_poly_order()
 const Material *OBJMesh::get_object_material(const int16_t mat_nr) const
 {
   /**
-   * The const_cast is safe here because BKE_object_material_get won't change the object
+   * The const_cast is safe here because #BKE_object_material_get_eval won't change the object
    * but it is a big can of worms to fix the declaration of that function right now.
    *
    * The call uses "+ 1" as material getter needs one-based indices.
    */
   Object *obj = const_cast<Object *>(&export_object_eval_);
-  const Material *r_mat = BKE_object_material_get(obj, mat_nr + 1);
+  const Material *r_mat = BKE_object_material_get_eval(obj, mat_nr + 1);
   return r_mat;
 }
 
