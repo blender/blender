@@ -261,7 +261,8 @@ static void wm_link_do(WMLinkAppendData *lapp_data,
     mainl = BLO_library_link_begin(&bh, libname, &liblink_params);
     lib = mainl->curlib;
     BLI_assert(lib);
-    UNUSED_VARS_NDEBUG(lib);
+    /* In case lib was already existing but not found originally, see T99820. */
+    lib->id.tag &= ~LIB_TAG_MISSING;
 
     if (mainl->versionfile < 250) {
       BKE_reportf(reports,
