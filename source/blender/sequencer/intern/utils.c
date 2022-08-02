@@ -338,13 +338,14 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
 const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
 {
   Editing *ed = scene->ed;
-  ListBase *channels = SEQ_channels_displayed_get(ed);
-  const Sequence *seq, *best_seq = NULL;
-  int best_machine = -1;
 
   if (!ed) {
     return NULL;
   }
+
+  ListBase *channels = SEQ_channels_displayed_get(ed);
+  const Sequence *seq, *best_seq = NULL;
+  int best_machine = -1;
 
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if (SEQ_render_is_muted(channels, seq) ||
