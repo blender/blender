@@ -763,7 +763,7 @@ enum {
 };
 
 /* Tag given ID for an update in all the dependency graphs. */
-typedef enum IDRecalcFlag : unsigned int {
+typedef enum IDRecalcFlag {
   /***************************************************************************
    * Individual update tags, this is what ID gets tagged for update with. */
 
