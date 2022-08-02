@@ -179,7 +179,7 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
     add_v3_v3v3(vd.co, start_co, disp);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -253,7 +253,7 @@ static void sculpt_elastic_transform_task_cb(void *__restrict userdata,
     copy_v3_v3(proxy[vd.i], final_disp);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;

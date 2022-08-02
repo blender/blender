@@ -144,6 +144,9 @@ struct PartialUpdateData {
   PBVH *pbvh;
   bool rebuild;
   char *modified_grids;
+  bool *modified_hidden_vertices;
+  bool *modified_mask_vertices;
+  bool *modified_color_vertices;
 };
 
 /**
@@ -167,8 +170,39 @@ static void update_cb_partial(PBVHNode *node, void *userdata)
     }
   }
   else {
-    if (BKE_pbvh_node_vert_update_check_any(data->pbvh, node)) {
-      update_cb(node, &(data->rebuild));
+    if (BKE_pbvh_node_has_vert_with_normal_update_tag(data->pbvh, node)) {
+      BKE_pbvh_node_mark_normals_update(node);
+    }
+    int verts_num;
+    const int *vert_indices;
+    BKE_pbvh_node_num_verts(data->pbvh, node, NULL, &verts_num);
+    BKE_pbvh_node_get_verts(data->pbvh, node, &vert_indices, NULL);
+    if (data->modified_mask_vertices != NULL) {
+      for (int i = 0; i < verts_num; i++) {
+        if (data->modified_mask_vertices[vert_indices[i]]) {
+          BKE_pbvh_node_mark_update_mask(node);
+          break;
+        }
+      }
+    }
+    if (data->modified_color_vertices != NULL) {
+      for (int i = 0; i < verts_num; i++) {
+        if (data->modified_color_vertices[vert_indices[i]]) {
+          BKE_pbvh_node_mark_update_color(node);
+          break;
+        }
+      }
+    }
+    if (data->modified_hidden_vertices != NULL) {
+      for (int i = 0; i < verts_num; i++) {
+        if (data->modified_hidden_vertices[vert_indices[i]]) {
+          if (data->rebuild) {
+            BKE_pbvh_node_mark_update_visibility(node);
+          }
+          BKE_pbvh_node_fully_hidden_set(node, 0);
+          break;
+        }
+      }
     }
   }
 }
@@ -263,20 +297,20 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
         if (ss->deform_modifiers_active) {
           for (int i = 0; i < unode->totvert; i++) {
             sculpt_undo_restore_deformed(ss, unode, i, index[i], mvert[index[i]].co);
-            BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_make_vref(index[i]));
+            BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
         else {
           for (int i = 0; i < unode->totvert; i++) {
             swap_v3_v3(mvert[index[i]].co, unode->orig_co[i]);
-            BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_make_vref(index[i]));
+            BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
           }
         }
       }
       else {
         for (int i = 0; i < unode->totvert; i++) {
           swap_v3_v3(mvert[index[i]].co, unode->co[i]);
-          BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_make_vref(index[i]));
+          BKE_pbvh_vert_tag_update_normal(ss->pbvh, BKE_pbvh_make_vref(index[i]));
         }
       }
     }
@@ -305,7 +339,7 @@ static bool sculpt_undo_restore_coords(bContext *C, Depsgraph *depsgraph, Sculpt
   return true;
 }
 
-static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
+static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode, bool *modified_vertices)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
@@ -320,7 +354,7 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
       if ((BLI_BITMAP_TEST(unode->vert_hidden, i) != 0) != ((v->flag & ME_HIDE) != 0)) {
         BLI_BITMAP_FLIP(unode->vert_hidden, i);
         v->flag ^= ME_HIDE;
-        BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_make_vref(unode->index[i]));
+        modified_vertices[unode->index[i]] = true;
       }
     }
   }
@@ -335,7 +369,7 @@ static bool sculpt_undo_restore_hidden(bContext *C, SculptUndoNode *unode)
   return true;
 }
 
-static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
+static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode, bool *modified_vertices)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
@@ -360,14 +394,14 @@ static bool sculpt_undo_restore_color(bContext *C, SculptUndoNode *unode)
 
   if (modified) {
     for (int i = 0; i < unode->totvert; i++) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_index_to_vertex(ss->pbvh, unode->index[i]));
+      modified_vertices[unode->index[i]] = true;
     }
   }
 
   return modified;
 }
 
-static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
+static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode, bool *modified_vertices)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Object *ob = OBACT(view_layer);
@@ -385,7 +419,7 @@ static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
     for (int i = 0; i < unode->totvert; i++) {
       if (vmask[index[i]] != unode->mask[i]) {
         SWAP(float, vmask[index[i]], unode->mask[i]);
-        BKE_pbvh_vert_mark_update(ss->pbvh, BKE_pbvh_make_vref(index[i]));
+        modified_vertices[index[i]] = true;
       }
     }
   }
@@ -731,6 +765,12 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
   }
 
+  /* The PBVH already keeps track of which vertices need updated normals, but it doesn't keep track
+   * of other updated. In order to tell the corresponding PBVH nodes to update, keep track of which
+   * elements were updated for specific layers. */
+  bool *modified_hidden_vertices = NULL;
+  bool *modified_mask_vertices = NULL;
+  bool *modified_color_vertices = NULL;
   char *undo_modified_grids = NULL;
   bool use_multires_undo = false;
 
@@ -763,13 +803,19 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         }
         break;
       case SCULPT_UNDO_HIDDEN:
-        if (sculpt_undo_restore_hidden(C, unode)) {
+        if (modified_hidden_vertices == NULL) {
+          modified_hidden_vertices = MEM_calloc_arrayN(ss->totvert, sizeof(bool), __func__);
+        }
+        if (sculpt_undo_restore_hidden(C, unode, modified_hidden_vertices)) {
           rebuild = true;
           update_visibility = true;
         }
         break;
       case SCULPT_UNDO_MASK:
-        if (sculpt_undo_restore_mask(C, unode)) {
+        if (modified_mask_vertices == NULL) {
+          modified_mask_vertices = MEM_calloc_arrayN(ss->totvert, sizeof(bool), __func__);
+        }
+        if (sculpt_undo_restore_mask(C, unode, modified_mask_vertices)) {
           update = true;
           update_mask = true;
         }
@@ -777,7 +823,10 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
       case SCULPT_UNDO_FACE_SETS:
         break;
       case SCULPT_UNDO_COLOR:
-        if (sculpt_undo_restore_color(C, unode)) {
+        if (modified_color_vertices == NULL) {
+          modified_color_vertices = MEM_calloc_arrayN(ss->totvert, sizeof(bool), __func__);
+        }
+        if (sculpt_undo_restore_color(C, unode, modified_color_vertices)) {
           update = true;
         }
 
@@ -828,6 +877,10 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
         .rebuild = rebuild,
         .pbvh = ss->pbvh,
         .modified_grids = undo_modified_grids,
+        .modified_hidden_vertices = modified_hidden_vertices,
+        .modified_mask_vertices = modified_mask_vertices,
+        .modified_color_vertices = modified_color_vertices,
+
     };
     BKE_pbvh_search_callback(ss->pbvh, NULL, NULL, update_cb_partial, &data);
     BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB | PBVH_UpdateOriginalBB | PBVH_UpdateRedraw);
@@ -873,6 +926,9 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
     }
   }
 
+  MEM_SAFE_FREE(modified_hidden_vertices);
+  MEM_SAFE_FREE(modified_mask_vertices);
+  MEM_SAFE_FREE(modified_color_vertices);
   MEM_SAFE_FREE(undo_modified_grids);
 }
 

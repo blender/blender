@@ -1953,10 +1953,10 @@ bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node)
   return (node->flag & PBVH_Leaf) && (node->flag & PBVH_FullyUnmasked);
 }
 
-void BKE_pbvh_vert_mark_update(PBVH *pbvh, PBVHVertRef index)
+void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex)
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
-  pbvh->vert_bitmap[index.i] = true;
+  pbvh->vert_bitmap[vertex.i] = true;
 }
 
 void BKE_pbvh_node_get_loops(PBVH *pbvh,
@@ -2112,7 +2112,7 @@ void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
   *r_orco_coords = node->bm_orco;
 }
 
-bool BKE_pbvh_node_vert_update_check_any(PBVH *pbvh, PBVHNode *node)
+bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node)
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
   const int *verts = node->vert_indices;
@@ -2980,7 +2980,7 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int
       /* no need for float comparison here (memory is exactly equal or not) */
       if (memcmp(mvert->co, vertCos[a], sizeof(float[3])) != 0) {
         copy_v3_v3(mvert->co, vertCos[a]);
-        BKE_pbvh_vert_mark_update(pbvh, BKE_pbvh_make_vref(a));
+        BKE_pbvh_vert_tag_update_normal(pbvh, BKE_pbvh_make_vref(a));
       }
     }
 

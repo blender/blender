@@ -225,10 +225,6 @@ static void color_filter_task_cb(void *__restrict userdata,
     }
 
     SCULPT_vertex_color_set(ss, vd.vertex, final_color);
-
-    if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
   BKE_pbvh_node_mark_update_color(data->nodes[n]);

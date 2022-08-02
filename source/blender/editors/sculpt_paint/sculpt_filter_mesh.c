@@ -457,7 +457,7 @@ static void mesh_filter_task_cb(void *__restrict userdata,
     }
     copy_v3_v3(vd.co, final_pos);
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;

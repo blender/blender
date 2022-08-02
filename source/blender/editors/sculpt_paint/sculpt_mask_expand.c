@@ -139,9 +139,6 @@ static void sculpt_expand_task_cb(void *__restrict userdata,
       }
 
       if (*vd.mask != final_mask) {
-        if (vd.mvert) {
-          BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
-        }
         *vd.mask = final_mask;
         BKE_pbvh_node_mark_update_mask(node);
       }

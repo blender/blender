@@ -90,10 +90,6 @@ static void do_color_smooth_task_cb_exec(void *__restrict userdata,
     SCULPT_vertex_color_get(ss, vd.vertex, col);
     blend_color_interpolate_float(col, col, smooth_color, fade);
     SCULPT_vertex_color_set(ss, vd.vertex, col);
-
-    if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -186,10 +182,6 @@ static void do_paint_brush_task_cb_ex(void *__restrict userdata,
     IMB_blend_color_float(col, orig_data.col, buffer_color, brush->blend);
     CLAMP4(col, 0.0f, 1.0f);
     SCULPT_vertex_color_set(ss, vd.vertex, col);
-
-    if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -505,10 +497,6 @@ static void do_smear_brush_task_cb_exec(void *__restrict userdata,
     SCULPT_vertex_color_get(ss, vd.vertex, col);
     blend_color_interpolate_float(col, ss->cache->prev_colors[vd.index], interp_color, fade);
     SCULPT_vertex_color_set(ss, vd.vertex, col);
-
-    if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 }

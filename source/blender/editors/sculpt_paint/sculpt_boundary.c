@@ -706,7 +706,7 @@ static void do_boundary_brush_bend_task_cb_ex(void *__restrict userdata,
     add_v3_v3(target_co, boundary->bend.pivot_positions[vd.index]);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -752,7 +752,7 @@ static void do_boundary_brush_slide_task_cb_ex(void *__restrict userdata,
                        strength);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -798,7 +798,7 @@ static void do_boundary_brush_inflate_task_cb_ex(void *__restrict userdata,
                        strength);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -841,7 +841,7 @@ static void do_boundary_brush_grab_task_cb_ex(void *__restrict userdata,
                    boundary->edit_info[vd.index].strength_factor * mask * automask * strength);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -895,7 +895,7 @@ static void do_boundary_brush_twist_task_cb_ex(void *__restrict userdata,
     add_v3_v3(target_co, boundary->twist.pivot_position);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -954,7 +954,7 @@ static void do_boundary_brush_smooth_task_cb_ex(void *__restrict userdata,
         target_co, vd.co, disp, boundary->edit_info[vd.index].strength_factor * mask * strength);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;

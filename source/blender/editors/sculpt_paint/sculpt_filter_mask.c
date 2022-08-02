@@ -162,9 +162,6 @@ static void mask_filter_task_cb(void *__restrict userdata,
     if (*vd.mask != prev_val) {
       update = true;
     }
-    if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
 
@@ -387,10 +384,6 @@ static void dirty_mask_apply_task_cb(void *__restrict userdata,
       mask = fminf(mask, 0.5f) * 2.0f;
     }
     *vd.mask = CLAMPIS(mask, 0.0f, 1.0f);
-
-    if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
-    }
   }
   BKE_pbvh_vertex_iter_end;
   BKE_pbvh_node_mark_update_mask(node);

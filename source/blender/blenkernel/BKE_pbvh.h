@@ -427,7 +427,7 @@ void BKE_pbvh_node_fully_unmasked_set(PBVHNode *node, int fully_masked);
 bool BKE_pbvh_node_fully_unmasked_get(PBVHNode *node);
 
 void BKE_pbvh_mark_rebuild_pixels(PBVH *pbvh);
-void BKE_pbvh_vert_mark_update(PBVH *pbvh, PBVHVertRef vertex);
+void BKE_pbvh_vert_tag_update_normal(PBVH *pbvh, PBVHVertRef vertex);
 
 void BKE_pbvh_node_get_grids(PBVH *pbvh,
                              PBVHNode *node,
@@ -648,7 +648,7 @@ void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
  * however this is important to avoid having to recalculate bound-box & sync the buffers to the
  * GPU (which is far more expensive!) See: T47232.
  */
-bool BKE_pbvh_node_vert_update_check_any(PBVH *pbvh, PBVHNode *node);
+bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node);
 
 // void BKE_pbvh_node_BB_reset(PBVHNode *node);
 // void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);

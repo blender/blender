@@ -215,7 +215,7 @@ static void do_relax_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
     SCULPT_relax_vertex(ss, &vd, fade * bstrength, relax_face_sets, vd.co);
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.vertex);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
   }
   BKE_pbvh_vertex_iter_end;
