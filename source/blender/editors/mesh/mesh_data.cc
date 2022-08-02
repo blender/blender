@@ -444,44 +444,6 @@ bool ED_mesh_color_ensure(Mesh *me, const char *name)
   return (layer != nullptr);
 }
 
-bool ED_mesh_color_remove_index(Mesh *me, const int n)
-{
-  CustomData *ldata = GET_CD_DATA(me, ldata);
-  CustomDataLayer *cdl;
-  int index;
-
-  index = CustomData_get_layer_index_n(ldata, CD_PROP_BYTE_COLOR, n);
-  cdl = (index == -1) ? nullptr : &ldata->layers[index];
-
-  if (!cdl) {
-    return false;
-  }
-
-  delete_customdata_layer(me, cdl);
-  DEG_id_tag_update(&me->id, 0);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, me);
-
-  return true;
-}
-bool ED_mesh_color_remove_active(Mesh *me)
-{
-  CustomData *ldata = GET_CD_DATA(me, ldata);
-  const int n = CustomData_get_active_layer(ldata, CD_PROP_BYTE_COLOR);
-  if (n != -1) {
-    return ED_mesh_color_remove_index(me, n);
-  }
-  return false;
-}
-bool ED_mesh_color_remove_named(Mesh *me, const char *name)
-{
-  CustomData *ldata = GET_CD_DATA(me, ldata);
-  const int n = CustomData_get_named_layer(ldata, CD_PROP_BYTE_COLOR, name);
-  if (n != -1) {
-    return ED_mesh_color_remove_index(me, n);
-  }
-  return false;
-}
-
 /*********************** General poll ************************/
 
 static bool layers_poll(bContext *C)
@@ -494,8 +456,7 @@ static bool layers_poll(bContext *C)
 
 /*********************** Sculpt Vertex colors operators ************************/
 
-int ED_mesh_sculpt_color_add(
-    Mesh *me, const char *name, const bool active_set, const bool do_init, ReportList *reports)
+int ED_mesh_sculpt_color_add(Mesh *me, const char *name, const bool do_init, ReportList *reports)
 {
   /* NOTE: keep in sync with #ED_mesh_uv_add. */
 
@@ -519,7 +480,7 @@ int ED_mesh_sculpt_color_add(
       const int layernum_dst = CustomData_get_active_layer(&em->bm->vdata, CD_PROP_COLOR);
       BM_data_layer_copy(em->bm, &em->bm->vdata, CD_PROP_COLOR, layernum_dst, layernum);
     }
-    if (active_set || layernum == 0) {
+    if (layernum == 0) {
       CustomData_set_layer_active(&em->bm->vdata, CD_PROP_COLOR, layernum);
     }
   }
@@ -542,7 +503,7 @@ int ED_mesh_sculpt_color_add(
           &me->vdata, CD_PROP_COLOR, CD_DEFAULT, nullptr, me->totvert, name);
     }
 
-    if (active_set || layernum == 0) {
+    if (layernum == 0) {
       CustomData_set_layer_active(&me->vdata, CD_PROP_COLOR, layernum);
     }
 
@@ -553,35 +514,6 @@ int ED_mesh_sculpt_color_add(
   WM_main_add_notifier(NC_GEOM | ND_DATA, me);
 
   return layernum;
-}
-
-bool ED_mesh_sculpt_color_remove_index(Mesh *me, const int n)
-{
-  CustomData *vdata = GET_CD_DATA(me, vdata);
-  CustomDataLayer *cdl;
-  int index;
-
-  index = CustomData_get_layer_index_n(vdata, CD_PROP_COLOR, n);
-  cdl = (index == -1) ? nullptr : &vdata->layers[index];
-
-  if (!cdl) {
-    return false;
-  }
-
-  delete_customdata_layer(me, cdl);
-  DEG_id_tag_update(&me->id, 0);
-  WM_main_add_notifier(NC_GEOM | ND_DATA, me);
-
-  return true;
-}
-bool ED_mesh_sculpt_color_remove_named(Mesh *me, const char *name)
-{
-  CustomData *vdata = GET_CD_DATA(me, vdata);
-  const int n = CustomData_get_named_layer(vdata, CD_PROP_COLOR, name);
-  if (n != -1) {
-    return ED_mesh_sculpt_color_remove_index(me, n);
-  }
-  return false;
 }
 
 /*********************** UV texture operators ************************/

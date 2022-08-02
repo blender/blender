@@ -1608,9 +1608,7 @@ static void rna_Mesh_vertex_color_remove(struct Mesh *me,
                                          ReportList *reports,
                                          CustomDataLayer *layer)
 {
-  if (ED_mesh_color_remove_named(me, layer->name) == false) {
-    BKE_reportf(reports, RPT_ERROR, "Vertex color '%s' not found", layer->name);
-  }
+  BKE_id_attribute_remove(&me->id, layer->name, reports);
 }
 
 static PointerRNA rna_Mesh_sculpt_vertex_color_new(struct Mesh *me,
@@ -1621,7 +1619,7 @@ static PointerRNA rna_Mesh_sculpt_vertex_color_new(struct Mesh *me,
   PointerRNA ptr;
   CustomData *vdata;
   CustomDataLayer *cdl = NULL;
-  int index = ED_mesh_sculpt_color_add(me, name, false, do_init, reports);
+  int index = ED_mesh_sculpt_color_add(me, name, do_init, reports);
 
   if (index != -1) {
     vdata = rna_mesh_vdata_helper(me);
@@ -1636,9 +1634,7 @@ static void rna_Mesh_sculpt_vertex_color_remove(struct Mesh *me,
                                                 ReportList *reports,
                                                 CustomDataLayer *layer)
 {
-  if (ED_mesh_sculpt_color_remove_named(me, layer->name) == false) {
-    BKE_reportf(reports, RPT_ERROR, "Sculpt vertex color '%s' not found", layer->name);
-  }
+  BKE_id_attribute_remove(&me->id, layer->name, reports);
 }
 
 #  define DEFINE_CUSTOMDATA_PROPERTY_API( \
