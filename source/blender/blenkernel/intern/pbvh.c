@@ -1303,17 +1303,6 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
   PBVH *pbvh = data->pbvh;
   PBVHNode *node = data->nodes[n];
 
-  CustomData *vdata, *ldata;
-
-  if (!pbvh->header.bm) {
-    vdata = pbvh->vdata;
-    ldata = pbvh->ldata;
-  }
-  else {
-    vdata = &pbvh->header.bm->vdata;
-    ldata = &pbvh->header.bm->ldata;
-  }
-
   if (node->flag & PBVH_RebuildDrawBuffers) {
     switch (pbvh->header.type) {
       case PBVH_GRIDS: {
@@ -1326,14 +1315,12 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
       }
       case PBVH_FACES:
         node->draw_buffers = GPU_pbvh_mesh_buffers_build(
-            pbvh->mpoly,
-            pbvh->mloop,
-            pbvh->looptri,
+            pbvh->mesh,
             pbvh->verts,
-            node->prim_indices,
+            pbvh->looptri,
             CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
-            node->totprim,
-            pbvh->mesh);
+            node->prim_indices,
+            node->totprim);
         break;
       case PBVH_BMESH:
         node->draw_buffers = GPU_pbvh_bmesh_buffers_build(pbvh->flags &
@@ -1360,11 +1347,12 @@ static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
                                      update_flags);
         break;
       case PBVH_FACES: {
+        /* Pass vertices separately because they may be not be the same as the mesh's vertices,
+         * and pass normals separately because they are managed by the PBVH. */
         GPU_pbvh_mesh_buffers_update(pbvh->vbo_id,
                                      node->draw_buffers,
+                                     pbvh->mesh,
                                      pbvh->verts,
-                                     vdata,
-                                     ldata,
                                      CustomData_get_layer(pbvh->vdata, CD_PAINT_MASK),
                                      CustomData_get_layer(pbvh->pdata, CD_SCULPT_FACE_SETS),
                                      pbvh->face_sets_color_seed,
