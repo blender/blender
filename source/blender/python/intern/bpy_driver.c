@@ -359,6 +359,7 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
   {
     for (int i = 0; i < PyTuple_GET_SIZE(py_code->co_names); i++) {
       PyObject *name = PyTuple_GET_ITEM(py_code->co_names, i);
+      const char *name_str = PyUnicode_AsUTF8(name);
 
       bool contains_name = false;
       for (int j = 0; dict_arr[j]; j++) {
@@ -368,11 +369,11 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
         }
       }
 
-      if (contains_name == false) {
+      if ((contains_name == false) || (name_str[0] == '_')) {
         fprintf(stderr,
                 "\tBPY_driver_eval() - restricted access disallows name '%s', "
                 "enable auto-execution to support\n",
-                PyUnicode_AsUTF8(name));
+                name_str);
         return false;
       }
     }
