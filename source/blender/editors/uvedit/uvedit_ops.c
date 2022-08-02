@@ -189,15 +189,6 @@ void uvedit_live_unwrap_update(SpaceImage *sima, Scene *scene, Object *obedit)
 /** \name Geometric Utilities
  * \{ */
 
-void uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len)
-{
-  int i;
-  for (i = 0; i < len; i++) {
-    uv[i][0] = uv_orig[i][0] * aspx;
-    uv[i][1] = uv_orig[i][1] * aspy;
-  }
-}
-
 bool ED_uvedit_minmax_multi(
     const Scene *scene, Object **objects_edit, uint objects_len, float r_min[2], float r_max[2])
 {
