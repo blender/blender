@@ -659,6 +659,27 @@ static void template_id_liboverride_hierarchy_create(bContext *C,
   ID *id = idptr->data;
   ID *owner_id = template_ui->ptr.owner_id;
 
+  /* If this is called on an already local override, 'toggle' between user-editable state, and
+   * system override with reset. */
+  if (!ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY(id)) {
+    if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      BKE_lib_override_library_get(bmain, id, &id);
+    }
+    if (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED) {
+      id->override_library->flag &= ~IDOVERRIDE_LIBRARY_FLAG_SYSTEM_DEFINED;
+      *r_undo_push_label = "Make Library Override Hierarchy Editable";
+    }
+    else {
+      BKE_lib_override_library_id_reset(bmain, id, true);
+      *r_undo_push_label = "Clear Library Override Hierarchy";
+    }
+
+    WM_event_add_notifier(C, NC_WM | ND_DATACHANGED, NULL);
+    WM_event_add_notifier(C, NC_WM | ND_LIB_OVERRIDE_CHANGED, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+    return;
+  }
+
   /* Attempt to perform a hierarchy override, based on contextual data available.
    * NOTE: do not attempt to perform such hierarchy override at all cost, if there is not enough
    * context, better to abort than create random overrides all over the place. */
@@ -918,12 +939,19 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
       break;
     case UI_ID_OVERRIDE:
       if (id && ID_IS_OVERRIDE_LIBRARY(id)) {
-        BKE_lib_override_library_make_local(id);
-        /* Reassign to get proper updates/notifiers. */
-        idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
-        RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
-        RNA_property_update(C, &template_ui->ptr, template_ui->prop);
-        undo_push_label = "Make Local";
+        Main *bmain = CTX_data_main(C);
+        if (CTX_wm_window(C)->eventstate->modifier & KM_SHIFT) {
+          template_id_liboverride_hierarchy_create(
+              C, bmain, template_ui, &idptr, &undo_push_label);
+        }
+        else {
+          BKE_lib_override_library_make_local(id);
+          /* Reassign to get proper updates/notifiers. */
+          idptr = RNA_property_pointer_get(&template_ui->ptr, template_ui->prop);
+          RNA_property_pointer_set(&template_ui->ptr, template_ui->prop, idptr, NULL);
+          RNA_property_update(C, &template_ui->ptr, template_ui->prop);
+          undo_push_label = "Make Local";
+        }
       }
       break;
     case UI_ID_ALONE:
