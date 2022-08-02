@@ -1893,6 +1893,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
                            ob->obmat,
                            true,
                            false,
+                           do_cage,
                            ts,
                            use_hide);
   }
