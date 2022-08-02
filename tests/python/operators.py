@@ -563,24 +563,6 @@ def main():
             )],
         ),
 
-        # Vertex Colors
-        SpecMeshTest(
-            "VertexColorAdd", "testCubeColorAdd", "expectedCubeColorAdd",
-            [OperatorSpecEditMode("vertex_color_add", {}, "VERT", {})],
-        ),
-        SpecMeshTest(
-            "VertexColorRemove", "testCubeColorRemove", "expectedCubeColorRemove",
-            [OperatorSpecEditMode("vertex_color_remove", {}, "VERT", {})],
-        ),
-        SpecMeshTest(
-            "VertexColorSculptAdd", "testCubeSculptAdd", "expectedCubeSculptAdd",
-            [OperatorSpecEditMode("sculpt_vertex_color_add", {}, "VERT", {})],
-        ),
-        SpecMeshTest(
-            "VertexColorSculptRemove", "testCubeSculptRemove", "expectedCubeSculptRemove",
-            [OperatorSpecEditMode("sculpt_vertex_color_remove", {}, "VERT", {})],
-        ),
-
         # Laplacian Smooth
         SpecMeshTest(
             "LaplacianSmoothDefault", "testSphereLaplacianSmoothDefault", "expectedSphereLaplacianSmoothDefault",
