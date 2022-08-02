@@ -37,7 +37,7 @@ typedef struct DrawData {
   /* Only nested data, NOT the engine data itself. */
   DrawDataFreeCb free;
   /* Accumulated recalc flags, which corresponds to ID->recalc flags. */
-  int recalc;
+  unsigned int recalc;
 } DrawData;
 
 typedef struct DrawDataList {
@@ -387,7 +387,7 @@ typedef struct ID {
   int tag;
   int us;
   int icon_id;
-  int recalc;
+  unsigned int recalc;
   /**
    * Used by undo code. recalc_after_undo_push contains the changes between the
    * last undo push and the current state. This is accumulated as IDs are tagged
@@ -397,8 +397,8 @@ typedef struct ID {
    * recalc_after_undo_push at the time of the undo push. This means it can be
    * used to find the changes between undo states.
    */
-  int recalc_up_to_undo_push;
-  int recalc_after_undo_push;
+  unsigned int recalc_up_to_undo_push;
+  unsigned int recalc_after_undo_push;
 
   /**
    * A session-wide unique identifier for a given ID, that remain the same across potential
@@ -763,7 +763,7 @@ enum {
 };
 
 /* Tag given ID for an update in all the dependency graphs. */
-typedef enum IDRecalcFlag {
+typedef enum IDRecalcFlag : unsigned int {
   /***************************************************************************
    * Individual update tags, this is what ID gets tagged for update with. */
 
@@ -888,7 +888,8 @@ typedef enum IDRecalcFlag {
    * Do NOT use those for tagging. */
 
   /* Identifies that SOMETHING has been changed in this ID. */
-  ID_RECALC_ALL = ~(0),
+  ID_RECALC_ALL = (0xffffffff),
+
   /* Identifies that something in particle system did change. */
   ID_RECALC_PSYS_ALL = (ID_RECALC_PSYS_REDO | ID_RECALC_PSYS_RESET | ID_RECALC_PSYS_CHILD |
                         ID_RECALC_PSYS_PHYS),

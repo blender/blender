@@ -125,13 +125,13 @@ void DEG_tag_on_visible_update(struct Main *bmain, bool do_time);
 const char *DEG_update_tag_as_string(IDRecalcFlag flag);
 
 /** Tag given ID for an update in all the dependency graphs. */
-void DEG_id_tag_update(struct ID *id, int flag);
-void DEG_id_tag_update_ex(struct Main *bmain, struct ID *id, int flag);
+void DEG_id_tag_update(struct ID *id, unsigned int flags);
+void DEG_id_tag_update_ex(struct Main *bmain, struct ID *id, unsigned int flags);
 
 void DEG_graph_id_tag_update(struct Main *bmain,
                              struct Depsgraph *depsgraph,
                              struct ID *id,
-                             int flag);
+                             unsigned int flags);
 
 /** Tag all dependency graphs when time has changed. */
 void DEG_time_tag_update(struct Main *bmain);
