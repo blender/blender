@@ -90,6 +90,7 @@ static struct DRWShapeCache {
   GPUBatch *drw_procedural_verts;
   GPUBatch *drw_procedural_lines;
   GPUBatch *drw_procedural_tris;
+  GPUBatch *drw_procedural_tri_strips;
   GPUBatch *drw_cursor;
   GPUBatch *drw_cursor_only_circle;
   GPUBatch *drw_fullscreen_quad;
@@ -206,6 +207,21 @@ GPUBatch *drw_cache_procedural_triangles_get(void)
     SHC.drw_procedural_tris = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
   }
   return SHC.drw_procedural_tris;
+}
+
+GPUBatch *drw_cache_procedural_triangle_strips_get()
+{
+  if (!SHC.drw_procedural_tri_strips) {
+    /* TODO(fclem): get rid of this dummy VBO. */
+    GPUVertFormat format = {0};
+    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+    GPU_vertbuf_data_alloc(vbo, 1);
+
+    SHC.drw_procedural_tri_strips = GPU_batch_create_ex(
+        GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
+  }
+  return SHC.drw_procedural_tri_strips;
 }
 
 /** \} */

@@ -1056,11 +1056,31 @@ void DRW_shgroup_call_procedural_triangles(DRWShadingGroup *shgroup, Object *ob,
   drw_shgroup_call_procedural_add_ex(shgroup, geom, ob, tri_count * 3);
 }
 
-void DRW_shgroup_call_procedural_triangles_indirect(DRWShadingGroup *shgroup,
-                                                    Object *ob,
-                                                    GPUStorageBuf *indirect_buf)
+void DRW_shgroup_call_procedural_indirect(DRWShadingGroup *shgroup,
+                                          GPUPrimType primitive_type,
+                                          Object *ob,
+                                          GPUStorageBuf *indirect_buf)
 {
-  struct GPUBatch *geom = drw_cache_procedural_triangles_get();
+  struct GPUBatch *geom = NULL;
+  switch (primitive_type) {
+    case GPU_PRIM_POINTS:
+      geom = drw_cache_procedural_points_get();
+      break;
+    case GPU_PRIM_LINES:
+      geom = drw_cache_procedural_lines_get();
+      break;
+    case GPU_PRIM_TRIS:
+      geom = drw_cache_procedural_triangles_get();
+      break;
+    case GPU_PRIM_TRI_STRIP:
+      geom = drw_cache_procedural_triangle_strips_get();
+      break;
+    default:
+      BLI_assert_msg(0,
+                     "Unsupported primitive type in DRW_shgroup_call_procedural_indirect. Add new "
+                     "one as needed.");
+      break;
+  }
   if (G.f & G_FLAG_PICKSEL) {
     drw_command_set_select_id(shgroup, NULL, DST.select_id);
   }

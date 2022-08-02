@@ -693,6 +693,7 @@ void drw_resource_buffer_finish(DRWData *vmempool);
 GPUBatch *drw_cache_procedural_points_get(void);
 GPUBatch *drw_cache_procedural_lines_get(void);
 GPUBatch *drw_cache_procedural_triangles_get(void);
+GPUBatch *drw_cache_procedural_triangle_strips_get(void);
 
 void drw_uniform_attrs_pool_update(struct GHash *table,
                                    struct GPUUniformAttrList *key,
