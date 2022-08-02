@@ -882,9 +882,6 @@ static void do_mask_by_color_contiguous_update_nodes_cb(
       continue;
     }
     update_node = true;
-    if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
-    }
   }
   BKE_pbvh_vertex_iter_end;
   if (update_node) {
@@ -1001,13 +998,10 @@ static void do_mask_by_color_task_cb(void *__restrict userdata,
       continue;
     }
     update_node = true;
-    if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
-    }
   }
   BKE_pbvh_vertex_iter_end;
   if (update_node) {
-    BKE_pbvh_node_mark_redraw(data->nodes[n]);
+    BKE_pbvh_node_mark_update_mask(data->nodes[n]);
   }
 }
 

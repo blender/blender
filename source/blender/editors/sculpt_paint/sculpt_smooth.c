@@ -235,7 +235,7 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
     SCULPT_clip(sd, ss, vd.co, disp);
 
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -323,9 +323,9 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       sub_v3_v3v3(val, avg, vd.co);
       madd_v3_v3v3fl(val, vd.co, val, fade);
       SCULPT_clip(sd, ss, vd.co, val);
-    }
-    if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
+      if (vd.mvert) {
+        BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.index);
+      }
     }
   }
   BKE_pbvh_vertex_iter_end;
@@ -482,7 +482,7 @@ static void SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex(
         ss, disp, vd.co, ss->cache->surface_smooth_laplacian_disp, vd.index, orig_data.co, alpha);
     madd_v3_v3fl(vd.co, disp, clamp_f(fade, 0.0f, 1.0f));
     if (vd.mvert) {
-      BKE_pbvh_vert_mark_update(ss->pbvh, vd.index);
+      BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.index);
     }
   }
   BKE_pbvh_vertex_iter_end;
