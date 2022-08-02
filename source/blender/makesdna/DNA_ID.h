@@ -870,6 +870,17 @@ typedef enum IDRecalcFlag : unsigned int {
   /* The node tree has changed in a way that affects its output nodes. */
   ID_RECALC_NTREE_OUTPUT = (1 << 25),
 
+  /* Provisioned flags.
+   *
+   * Not for actual use. The idea of them is to have all bits of the `IDRecalcFlag` defined to a
+   * known value, silencing sanitizer warnings when checkign bits of the ID_RECALC_ALL. */
+  ID_RECALC_PROVISION_26 = (1 << 26),
+  ID_RECALC_PROVISION_27 = (1 << 27),
+  ID_RECALC_PROVISION_28 = (1 << 28),
+  ID_RECALC_PROVISION_29 = (1 << 29),
+  ID_RECALC_PROVISION_30 = (1 << 30),
+  ID_RECALC_PROVISION_31 = (1u << 31),
+
   /***************************************************************************
    * Pseudonyms, to have more semantic meaning in the actual code without
    * using too much low-level and implementation specific tags. */

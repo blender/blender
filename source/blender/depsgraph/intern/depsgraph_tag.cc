@@ -220,6 +220,15 @@ void depsgraph_tag_to_component_opcode(const ID *id,
       *component_type = NodeType::NTREE_OUTPUT;
       *operation_code = OperationCode::NTREE_OUTPUT;
       break;
+
+    case ID_RECALC_PROVISION_26:
+    case ID_RECALC_PROVISION_27:
+    case ID_RECALC_PROVISION_28:
+    case ID_RECALC_PROVISION_29:
+    case ID_RECALC_PROVISION_30:
+    case ID_RECALC_PROVISION_31:
+      BLI_assert_msg(0, "Should not happen");
+      break;
   }
 }
 
@@ -741,6 +750,15 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
       return "TAG_FOR_UNDO";
     case ID_RECALC_NTREE_OUTPUT:
       return "ID_RECALC_NTREE_OUTPUT";
+
+    case ID_RECALC_PROVISION_26:
+    case ID_RECALC_PROVISION_27:
+    case ID_RECALC_PROVISION_28:
+    case ID_RECALC_PROVISION_29:
+    case ID_RECALC_PROVISION_30:
+    case ID_RECALC_PROVISION_31:
+      BLI_assert_msg(0, "Should not happen");
+      return nullptr;
   }
   return nullptr;
 }
