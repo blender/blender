@@ -115,6 +115,18 @@ def main():
             [OperatorSpecEditMode("dissolve_faces", {}, "VERT", {5, 34, 47, 49, 83, 91, 95})],
         ),
 
+        # dissolve limited
+        SpecMeshTest(
+            "SphereDissolveLimited", "testSphereDissolveLimited", "expectedSphereDissolveLimited",
+            [OperatorSpecEditMode("dissolve_limited", {"angle_limit": 0.610865}, "FACE", {20, 23, 26, 29, 32})],
+        ),
+
+        # dissolve mode
+        SpecMeshTest(
+            "PlaneDissolveMode", "testPlaneDissolveMode", "expectedPlaneDissolveMode",
+            [OperatorSpecEditMode("dissolve_mode", {"use_verts": True}, "FACE", {0, 1, 2, 10, 12, 13})],
+        ),
+
         # dissolve verts
         SpecMeshTest(
             "CubeDissolveVerts", "testCubeDissolveVerts", "expectedCubeDissolveVerts",
@@ -330,6 +342,12 @@ def main():
         SpecMeshTest(
             "CubeMarkSeam", "testCubeMarkSeam", "expectedCubeMarkSeam",
             [OperatorSpecEditMode("mark_seam", {}, "EDGE", {1})],
+        ),
+
+        # merge normals
+        SpecMeshTest(
+            "CubeMergeNormals", "testCubeMergeNormals", "expectedCubeMergeNormals",
+            [OperatorSpecEditMode("merge_normals", {}, "FACE", {3, 5})],
         ),
 
         # select all
