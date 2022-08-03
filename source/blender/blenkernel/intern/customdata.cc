@@ -222,34 +222,6 @@ static void layerFree_mdeformvert(void *data, const int count, const int size)
   }
 }
 
-/* copy just zeros in this case */
-static void layerCopy_bmesh_elem_py_ptr(const void *UNUSED(source), void *dest, const int count)
-{
-  const int size = sizeof(void *);
-
-  for (int i = 0; i < count; i++) {
-    void **ptr = (void **)POINTER_OFFSET(dest, i * size);
-    *ptr = nullptr;
-  }
-}
-
-#ifndef WITH_PYTHON
-void bpy_bm_generic_invalidate(struct BPy_BMGeneric *UNUSED(self))
-{
-  /* dummy */
-}
-#endif
-
-static void layerFree_bmesh_elem_py_ptr(void *data, const int count, const int size)
-{
-  for (int i = 0; i < count; i++) {
-    void **ptr = (void **)POINTER_OFFSET(data, i * size);
-    if (*ptr) {
-      bpy_bm_generic_invalidate(static_cast<BPy_BMGeneric *>(*ptr));
-    }
-  }
-}
-
 static void layerInterp_mdeformvert(const void **sources,
                                     const float *weights,
                                     const float *UNUSED(sub_weights),
@@ -739,6 +711,40 @@ static size_t layerFilesize_mdisps(CDataFile *UNUSED(cdf), const void *data, con
   }
 
   return size;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Callbacks for (#CD_BM_ELEM_PYPTR)
+ * \{ */
+
+/* copy just zeros in this case */
+static void layerCopy_bmesh_elem_py_ptr(const void *UNUSED(source), void *dest, const int count)
+{
+  const int size = sizeof(void *);
+
+  for (int i = 0; i < count; i++) {
+    void **ptr = (void **)POINTER_OFFSET(dest, i * size);
+    *ptr = nullptr;
+  }
+}
+
+#ifndef WITH_PYTHON
+void bpy_bm_generic_invalidate(struct BPy_BMGeneric *UNUSED(self))
+{
+  /* dummy */
+}
+#endif
+
+static void layerFree_bmesh_elem_py_ptr(void *data, const int count, const int size)
+{
+  for (int i = 0; i < count; i++) {
+    void **ptr = (void **)POINTER_OFFSET(data, i * size);
+    if (*ptr) {
+      bpy_bm_generic_invalidate(static_cast<BPy_BMGeneric *>(*ptr));
+    }
+  }
 }
 
 /** \} */
