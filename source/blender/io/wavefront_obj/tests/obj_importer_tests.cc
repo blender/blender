@@ -290,7 +290,7 @@ TEST_F(obj_importer_test, import_nurbs_mesh)
 {
   Expectation expect[] = {
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBTorus Knot",
+      {"OBTorus_Knot",
        OB_MESH,
        108,
        108,
