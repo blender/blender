@@ -99,6 +99,7 @@ if inside_blender:
         print(e)
         sys.exit(1)
 
+
 def get_gpu_device_type(blender):
     command = [
         blender,
@@ -117,7 +118,6 @@ def get_gpu_device_type(blender):
     except BaseException as e:
         return None
     return None
-
 
 
 def get_arguments(filepath, output_filepath):

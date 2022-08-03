@@ -7,7 +7,7 @@ import bpy
 import gpu
 import sys
 
-# Render with workbench to initialize the GPU backend otherwise it would fail when running in 
+# Render with workbench to initialize the GPU backend otherwise it would fail when running in
 # background mode as the GPU backend won't be initialized.
 scene = bpy.context.scene
 scene.render.resolution_x = 1

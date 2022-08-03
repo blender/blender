@@ -354,7 +354,8 @@ class Report:
         name = test_get_name(filepath)
         name = name.replace('_', ' ')
 
-        old_img, ref_img, new_img, diff_img = test_get_images(self.output_dir, filepath, self.reference_dir, self.reference_override_dir)
+        old_img, ref_img, new_img, diff_img = test_get_images(
+            self.output_dir, filepath, self.reference_dir, self.reference_override_dir)
 
         status = error if error else ""
         tr_style = """ class="table-danger" """ if error else ""
@@ -401,7 +402,8 @@ class Report:
             self.compare_tests += test_html
 
     def _diff_output(self, filepath, tmp_filepath):
-        old_img, ref_img, new_img, diff_img = test_get_images(self.output_dir, filepath, self.reference_dir, self.reference_override_dir)
+        old_img, ref_img, new_img, diff_img = test_get_images(
+            self.output_dir, filepath, self.reference_dir, self.reference_override_dir)
 
         # Create reference render directory.
         old_dirpath = os.path.dirname(old_img)
