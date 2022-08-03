@@ -489,6 +489,7 @@ typedef struct StrokeCache {
   float true_last_location[3];
   float location[3];
   float last_location[3];
+  float stroke_distance;
 
   /* Used for alternating between deformation in brushes that need to apply different ones to
    * achieve certain effects. */
