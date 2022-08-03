@@ -5,6 +5,7 @@ set(INC
   .
   ../clog
   ../glew-mx
+  ../../source/blender/blenlib
   ../../source/blender/imbuf
   ../../source/blender/makesdna
 )

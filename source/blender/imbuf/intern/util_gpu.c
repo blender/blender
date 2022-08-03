@@ -290,3 +290,13 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
 
   return tex;
 }
+
+eGPUTextureFormat IMB_gpu_get_texture_format(const ImBuf *ibuf, bool high_bitdepth)
+{
+  eGPUTextureFormat gpu_texture_format;
+  eGPUDataFormat gpu_data_format;
+
+  imb_gpu_get_format(ibuf, high_bitdepth, &gpu_data_format, &gpu_texture_format);
+
+  return gpu_texture_format;
+}

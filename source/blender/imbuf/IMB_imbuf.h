@@ -41,6 +41,7 @@
 
 /* for bool */
 #include "../blenlib/BLI_sys_types.h"
+#include "../gpu/GPU_texture.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,12 +72,6 @@ struct GSet;
  */
 struct ImageFormatData;
 struct Stereo3dFormat;
-
-/**
- *
- * \attention defined in GPU_texture.h
- */
-struct GPUTexture;
 
 /**
  *
@@ -933,22 +928,25 @@ const char *IMB_ffmpeg_last_error(void);
  *
  * \attention defined in util_gpu.c
  */
-struct GPUTexture *IMB_create_gpu_texture(const char *name,
-                                          struct ImBuf *ibuf,
-                                          bool use_high_bitdepth,
-                                          bool use_premult);
+GPUTexture *IMB_create_gpu_texture(const char *name,
+                                   struct ImBuf *ibuf,
+                                   bool use_high_bitdepth,
+                                   bool use_premult);
+
+eGPUTextureFormat IMB_gpu_get_texture_format(const struct ImBuf *ibuf, bool high_bitdepth);
+
 /**
  * The `ibuf` is only here to detect the storage type. The produced texture will have undefined
  * content. It will need to be populated by using #IMB_update_gpu_texture_sub().
  */
-struct GPUTexture *IMB_touch_gpu_texture(
+GPUTexture *IMB_touch_gpu_texture(
     const char *name, struct ImBuf *ibuf, int w, int h, int layers, bool use_high_bitdepth);
 /**
  * Will update a #GPUTexture using the content of the #ImBuf. Only one layer will be updated.
  * Will resize the ibuf if needed.
  * Z is the layer to update. Unused if the texture is 2D.
  */
-void IMB_update_gpu_texture_sub(struct GPUTexture *tex,
+void IMB_update_gpu_texture_sub(GPUTexture *tex,
                                 struct ImBuf *ibuf,
                                 int x,
                                 int y,
