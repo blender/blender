@@ -795,7 +795,7 @@ bool DRW_culling_box_test(const DRWView *view, const BoundBox *bbox);
 bool DRW_culling_plane_test(const DRWView *view, const float plane[4]);
 /**
  * Return True if the given box intersect the current view frustum.
- * This function will have to be replaced when world space bb per objects is implemented.
+ * This function will have to be replaced when world space bounding-box per objects is implemented.
  */
 bool DRW_culling_min_max_test(const DRWView *view, float obmat[4][4], float min[3], float max[3]);
 

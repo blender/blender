@@ -380,9 +380,7 @@ static bool rna_path_parse(const PointerRNA *ptr,
     }
 
     const bool use_id_prop = (*path == '[');
-    /* custom property lookup ?
-     * C.object["someprop"]
-     */
+    /* Custom property lookup: e.g. `C.object["someprop"]`. */
 
     if (!curptr.data) {
       return false;

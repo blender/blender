@@ -366,8 +366,9 @@ typedef struct LineartData {
 
     /* Keep an copy of these data so when line art is running it's self-contained. */
     bool cam_is_persp;
-    bool cam_is_persp_secondary; /* "Secondary" ones are from viewing camera (as opposed to shadow
-                                    camera), during shadow calculation. */
+    /* "Secondary" ones are from viewing camera
+     * (as opposed to shadow camera), during shadow calculation. */
+    bool cam_is_persp_secondary;
     float cam_obmat[4][4];
     float cam_obmat_secondary[4][4];
     double camera_pos[3];

@@ -228,7 +228,7 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_PROVISION_30:
     case ID_RECALC_PROVISION_31:
       /* Silently ignore.
-       * The bits might be passed here from ID_RECALC_ALL. This is not a codmistake, but just the
+       * The bits might be passed here from ID_RECALC_ALL. This is not a code-mistake, but just the
        * way how the recalc flags are handled. */
       break;
   }

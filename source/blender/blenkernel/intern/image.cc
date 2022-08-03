@@ -863,17 +863,17 @@ void BKE_image_get_tile_uv(const Image *ima, const int tile_number, float r_uv[2
   }
 }
 
-/* Linear distance between #x and the unit interval. */
+/** Linear distance between #x and the unit interval. */
 static float distance_to_unit_interval(float x)
 {
   /* The unit interval is between 0 and 1.
-  Within the interval, return 0.
-  Outside the interval, return the distance to the nearest boundary.
-  Intuitively, the function looks like:
-   \ |   | /
-  __\|___|/__
-     0   1
-  */
+   * Within the interval, return 0.
+   * Outside the interval, return the distance to the nearest boundary.
+   * Intuitively, the function looks like:
+   *  \ |   | /
+   * __\|___|/__
+   *    0   1
+   */
 
   if (x <= 0.0f) {
     return -x; /* Distance to left border. */
@@ -884,7 +884,7 @@ static float distance_to_unit_interval(float x)
   return x - 1.0f; /* Distance to right border. */
 }
 
-/* Distance squared between #co and the unit square with lower-left starting at #udim. */
+/** Distance squared between #co and the unit square with lower-left starting at #udim. */
 static float distance_squared_to_udim(const float co[2], const float udim[2])
 {
   float delta[2];
@@ -908,12 +908,12 @@ static bool nearest_udim_tile_tie_break(const float best_dist_sq,
   return (dist_sq < best_dist_sq); /* Closer than previous candidate? */
 }
 
-/* Finds the nearest tile and offset to #co.
- * If the co-ordinates are integers, take special care to break ties. */
 int BKE_image_find_nearest_tile_with_offset(const Image *image,
                                             const float co[2],
                                             float r_uv_offset[2])
 {
+  /* NOTE: If the co-ordinates are integers, take special care to break ties. */
+
   zero_v2(r_uv_offset);
   int tile_number_best = -1;
 
@@ -962,7 +962,7 @@ static void image_init_color_management(Image *ima)
 
   BKE_image_user_file_path(nullptr, ima, name);
 
-  /* will set input color space to image format default's */
+  /* Will set input color space to image format default's. */
   ibuf = IMB_loadiffname(name, IB_test | IB_alphamode_detect, ima->colorspace_settings.name);
 
   if (ibuf) {

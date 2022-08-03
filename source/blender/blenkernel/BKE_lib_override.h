@@ -60,7 +60,7 @@ void BKE_lib_override_library_clear(struct IDOverrideLibrary *override, bool do_
 void BKE_lib_override_library_free(struct IDOverrideLibrary **override, bool do_id_user);
 
 /**
- * Return the actual #IDOverrideLibrary data 'controlling' the given `id`, and the acutal ID owning
+ * Return the actual #IDOverrideLibrary data 'controlling' the given `id`, and the actual ID owning
  * it.
  *
  * \note This is especially useful when `id` is a non-real override (e.g. embedded ID like a master

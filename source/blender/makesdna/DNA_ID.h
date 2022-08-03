@@ -873,7 +873,7 @@ typedef enum IDRecalcFlag {
   /* Provisioned flags.
    *
    * Not for actual use. The idea of them is to have all bits of the `IDRecalcFlag` defined to a
-   * known value, silencing sanitizer warnings when checkign bits of the ID_RECALC_ALL. */
+   * known value, silencing sanitizer warnings when checking bits of the ID_RECALC_ALL. */
   ID_RECALC_PROVISION_26 = (1 << 26),
   ID_RECALC_PROVISION_27 = (1 << 27),
   ID_RECALC_PROVISION_28 = (1 << 28),

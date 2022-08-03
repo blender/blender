@@ -1243,9 +1243,7 @@ static int gpu_pbvh_make_attr_offs(eAttrDomainMask domain_mask,
     }
   }
 
-  /* ensure render layer is last
-    draw cache code seems to need this
-   */
+  /* Ensure render layer is last, draw cache code seems to need this. */
 
   for (int i = 0; i < count; i++) {
     GPUAttrRef *ref = r_cd_attrs + i;

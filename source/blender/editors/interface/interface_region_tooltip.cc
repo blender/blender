@@ -90,8 +90,10 @@ struct uiTooltipField {
   char *text;
   char *text_suffix;
   struct {
-    uint x_pos; /* x cursor position at the end of the last line */
-    uint lines; /* number of lines, 1 or more with word-wrap */
+    /** X cursor position at the end of the last line. */
+    uint x_pos;
+    /** Number of lines, 1 or more with word-wrap. */
+    uint lines;
   } geom;
   uiTooltipFormat format;
 };
@@ -165,7 +167,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
   float tip_colors[UI_TIP_LC_MAX][3];
   uchar drawcol[4] = {0, 0, 0, 255}; /* to store color in while drawing (alpha is always 255) */
 
-  /* the color from the theme */
+  /* The color from the theme. */
   float *main_color = tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Main)];
   float *value_color = tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Value)];
   float *active_color = tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Active)];
@@ -177,13 +179,13 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
 
   wmOrtho2_region_pixelspace(region);
 
-  /* draw background */
+  /* Draw background. */
   ui_draw_tooltip_background(UI_style_get(), nullptr, &bbox);
 
   /* set background_color */
   rgb_uchar_to_float(background_color, theme->inner);
 
-  /* calculate normal_color */
+  /* Calculate `normal_color`. */
   rgb_uchar_to_float(main_color, theme->text);
   copy_v3_v3(active_color, main_color);
   copy_v3_v3(normal_color, main_color);
@@ -191,19 +193,19 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
   copy_v3_v3(alert_color, main_color);
   copy_v3_v3(value_color, main_color);
 
-  /* find the brightness difference between background and text colors */
+  /* Find the brightness difference between background and text colors. */
 
   const float tone_bg = rgb_to_grayscale(background_color);
-  /* tone_fg = rgb_to_grayscale(main_color); */
+  // tone_fg = rgb_to_grayscale(main_color);
 
-  /* mix the colors */
+  /* Mix the colors. */
   rgb_tint(value_color, 0.0f, 0.0f, tone_bg, 0.2f);  /* Light gray. */
   rgb_tint(active_color, 0.6f, 0.2f, tone_bg, 0.2f); /* Light blue. */
   rgb_tint(normal_color, 0.0f, 0.0f, tone_bg, 0.4f); /* Gray. */
   rgb_tint(python_color, 0.0f, 0.0f, tone_bg, 0.5f); /* Dark gray. */
   rgb_tint(alert_color, 0.0f, 0.8f, tone_bg, 0.1f);  /* Red. */
 
-  /* draw text */
+  /* Draw text. */
   BLF_wordwrap(data->fstyle.uifont_id, data->wrap_width);
   BLF_wordwrap(blf_mono_font, data->wrap_width);
 
@@ -221,12 +223,12 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
       fs_params.align = UI_STYLE_TEXT_LEFT;
       fs_params.word_wrap = true;
 
-      /* draw header and active data (is done here to be able to change color) */
+      /* Draw header and active data (is done here to be able to change color). */
       rgb_float_to_uchar(drawcol, tip_colors[static_cast<int>(uiTooltipFormat::ColorID::Main)]);
       UI_fontstyle_set(&data->fstyle);
       UI_fontstyle_draw(&data->fstyle, &bbox, field->text, UI_TIP_STR_MAX, drawcol, &fs_params);
 
-      /* offset to the end of the last line */
+      /* Offset to the end of the last line. */
       if (field->text_suffix) {
         const float xofs = field->geom.x_pos;
         const float yofs = data->lineh * (field->geom.lines - 1);
@@ -238,7 +240,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
         UI_fontstyle_draw(
             &data->fstyle, &bbox, field->text_suffix, UI_TIP_STR_MAX, drawcol, &fs_params);
 
-        /* undo offset */
+        /* Undo offset. */
         bbox.xmin -= xofs;
         bbox.ymax += yofs;
       }
@@ -251,7 +253,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
       fstyle_mono.uifont_id = blf_mono_font;
 
       UI_fontstyle_set(&fstyle_mono);
-      /* XXX, needed because we don't have mono in 'U.uifonts' */
+      /* XXX: needed because we don't have mono in 'U.uifonts'. */
       BLF_size(fstyle_mono.uifont_id, fstyle_mono.points * U.pixelsize, U.dpi);
       rgb_float_to_uchar(drawcol, tip_colors[static_cast<int>(field->format.color_id)]);
       UI_fontstyle_draw(&fstyle_mono, &bbox, field->text, UI_TIP_STR_MAX, drawcol, &fs_params);
@@ -262,7 +264,7 @@ static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *region
       fs_params.align = UI_STYLE_TEXT_LEFT;
       fs_params.word_wrap = true;
 
-      /* draw remaining data */
+      /* Draw remaining data. */
       rgb_float_to_uchar(drawcol, tip_colors[static_cast<int>(field->format.color_id)]);
       UI_fontstyle_set(&data->fstyle);
       UI_fontstyle_draw(&data->fstyle, &bbox, field->text, UI_TIP_STR_MAX, drawcol, &fs_params);
@@ -327,13 +329,13 @@ static bool ui_tooltip_data_append_from_keymap(bContext *C, uiTooltipData *data,
   LISTBASE_FOREACH (wmKeyMapItem *, kmi, &keymap->items) {
     wmOperatorType *ot = WM_operatortype_find(kmi->idname, true);
     if (ot != nullptr) {
-      /* Tip */
+      /* Tip. */
       {
         uiTooltipField *field = text_field_add(
             data, uiTooltipFormat::Style::Normal, uiTooltipFormat::ColorID::Main, true);
         field->text = BLI_strdup(ot->description ? ot->description : ot->name);
       }
-      /* Shortcut */
+      /* Shortcut. */
       {
         uiTooltipField *field = text_field_add(
             data, uiTooltipFormat::Style::Normal, uiTooltipFormat::ColorID::Normal);
@@ -344,7 +346,7 @@ static bool ui_tooltip_data_append_from_keymap(bContext *C, uiTooltipData *data,
         field->text = BLI_sprintfN(TIP_("Shortcut: %s"), found ? buf : "None");
       }
 
-      /* Python */
+      /* Python. */
       if (U.flag & USER_TOOLTIPS_PYTHON) {
         uiTooltipField *field = text_field_add(
             data, uiTooltipFormat::Style::Normal, uiTooltipFormat::ColorID::Python);
@@ -408,9 +410,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
   uiTooltipData *data = MEM_cnew<uiTooltipData>(__func__);
 
 #ifdef WITH_PYTHON
-  /* it turns out to be most simple to do this via Python since C
-   * doesn't have access to information about non-active tools.
-   */
+  /* It turns out to be most simple to do this via Python since C
+   * doesn't have access to information about non-active tools. */
 
   /* Title (when icon-only). */
   if (but->drawstr[0] == '\0') {
@@ -781,8 +782,8 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
 
   /* Tip Label (only for buttons not already showing the label).
    * Check prefix instead of comparing because the button may include the shortcut.
-   * Buttons with dynamic tooltips also don't get their default label here since they
-   * can already provide more accurate and specific tooltip content. */
+   * Buttons with dynamic tool-tips also don't get their default label here since they
+   * can already provide more accurate and specific tool-tip content. */
   if (but_label.strinfo && !STRPREFIX(but->drawstr, but_label.strinfo) && !but->tip_func) {
     uiTooltipField *field = text_field_add(
         data, uiTooltipFormat::Style::Header, uiTooltipFormat::ColorID::Normal);
@@ -811,21 +812,21 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       field->text = BLI_strdup(TIP_("(Shift-Click/Drag to select multiple)"));
     }
   }
-  /* Enum field label & tip */
+  /* Enum field label & tip. */
   if (enum_tip.strinfo) {
     uiTooltipField *field = text_field_add(
         data, uiTooltipFormat::Style::Normal, uiTooltipFormat::ColorID::Value);
     field->text = BLI_strdup(enum_tip.strinfo);
   }
 
-  /* Op shortcut */
+  /* Operator shortcut. */
   if (op_keymap.strinfo) {
     uiTooltipField *field = text_field_add(
         data, uiTooltipFormat::Style::Normal, uiTooltipFormat::ColorID::Value, true);
     field->text = BLI_sprintfN(TIP_("Shortcut: %s"), op_keymap.strinfo);
   }
 
-  /* Property context-toggle shortcut */
+  /* Property context-toggle shortcut. */
   if (prop_keymap.strinfo) {
     uiTooltipField *field = text_field_add(
         data, uiTooltipFormat::Style::Normal, uiTooltipFormat::ColorID::Value, true);
@@ -833,9 +834,9 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
   }
 
   if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
-    /* better not show the value of a password */
+    /* Better not show the value of a password. */
     if ((rnaprop && (RNA_property_subtype(rnaprop) == PROP_PASSWORD)) == 0) {
-      /* full string */
+      /* Full string. */
       ui_but_string_get(but, buf, sizeof(buf));
       if (buf[0]) {
         uiTooltipField *field = text_field_add(
@@ -879,15 +880,15 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
   }
   else if (optype) {
     PointerRNA *opptr = extra_icon ? UI_but_extra_operator_icon_opptr_get(extra_icon) :
-                                     /* allocated when needed, the button owns it */
+                                     /* Allocated when needed, the button owns it. */
                                      UI_but_operator_ptr_get(but);
 
-    /* so the context is passed to fieldf functions (some py fieldf functions use it) */
+    /* So the context is passed to field functions (some Python field functions use it). */
     WM_operator_properties_sanitize(opptr, false);
 
     char *str = ui_tooltip_text_python_from_op(C, optype, opptr);
 
-    /* operator info */
+    /* Operator info. */
     if (U.flag & USER_TOOLTIPS_PYTHON) {
       uiTooltipField *field = text_field_add(
           data, uiTooltipFormat::Style::Mono, uiTooltipFormat::ColorID::Python, true);
@@ -897,12 +898,12 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
     MEM_freeN(str);
   }
 
-  /* button is disabled, we may be able to tell user why */
+  /* Button is disabled, we may be able to tell user why. */
   if ((but->flag & UI_BUT_DISABLED) || extra_icon) {
     const char *disabled_msg = nullptr;
     bool disabled_msg_free = false;
 
-    /* if operator poll check failed, it can give pretty precise info why */
+    /* If operator poll check failed, it can give pretty precise info why. */
     if (optype) {
       const wmOperatorCallContext opcontext = extra_icon ? extra_icon->optype_params->opcontext :
                                                            but->opcontext;
@@ -913,7 +914,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       ui_but_context_poll_operator_ex(C, but, &call_params);
       disabled_msg = CTX_wm_operator_poll_msg_get(C, &disabled_msg_free);
     }
-    /* alternatively, buttons can store some reasoning too */
+    /* Alternatively, buttons can store some reasoning too. */
     else if (!extra_icon && but->disabled_info) {
       disabled_msg = TIP_(but->disabled_info);
     }
@@ -937,7 +938,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
         field->text = BLI_sprintfN(TIP_("Python: %s.%s"), rna_struct.strinfo, rna_prop.strinfo);
       }
       else {
-        /* Only struct (e.g. menus) */
+        /* Only struct (e.g. menus). */
         field->text = BLI_sprintfN(TIP_("Python: %s"), rna_struct.strinfo);
       }
     }
@@ -946,7 +947,7 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       uiTooltipField *field = text_field_add(
           data, uiTooltipFormat::Style::Mono, uiTooltipFormat::ColorID::Python);
 
-      /* this could get its own 'BUT_GET_...' type */
+      /* This could get its own `BUT_GET_...` type. */
 
       /* never fails */
       /* Move ownership (no need for re-allocation). */
@@ -997,7 +998,7 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
 {
   uiTooltipData *data = MEM_cnew<uiTooltipData>(__func__);
 
-  /* TODO(campbell): a way for gizmos to have their own descriptions (low priority). */
+  /* TODO(@campbellbarton): a way for gizmos to have their own descriptions (low priority). */
 
   /* Operator Actions */
   {
@@ -1059,7 +1060,7 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
   if (gz->type->target_property_defs_len) {
     wmGizmoProperty *gz_prop_array = WM_gizmo_target_property_array(gz);
     for (int i = 0; i < gz->type->target_property_defs_len; i++) {
-      /* TODO(campbell): function callback descriptions. */
+      /* TODO(@campbellbarton): function callback descriptions. */
       wmGizmoProperty *gz_prop = &gz_prop_array[i];
       if (gz_prop->prop != nullptr) {
         const char *info = RNA_property_ui_description(gz_prop->prop);
@@ -1093,7 +1094,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   rcti rect_i;
   int font_flag = 0;
 
-  /* create area region */
+  /* Create area region. */
   ARegion *region = ui_region_temp_add(CTX_wm_screen(C));
 
   static ARegionType type;
@@ -1103,7 +1104,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   type.regionid = RGN_TYPE_TEMPORARY;
   region->type = &type;
 
-  /* set font, get bb */
+  /* Set font, get bounding-box. */
   data->fstyle = style->widget; /* copy struct */
   ui_fontscale(&data->fstyle.points, aspect);
 
@@ -1117,7 +1118,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
   BLF_wordwrap(data->fstyle.uifont_id, data->wrap_width);
   BLF_wordwrap(blf_mono_font, data->wrap_width);
 
-  /* these defines tweaked depending on font */
+  /* These defines tweaked depending on font. */
 #define TIP_BORDER_X (16.0f / aspect)
 #define TIP_BORDER_Y (6.0f / aspect)
 
@@ -1186,8 +1187,8 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
 
   /* Clamp to window bounds. */
   {
-    /* Ensure at least 5 px above screen bounds
-     * UI_UNIT_Y is just a guess to be above the menu item */
+    /* Ensure at least 5 px above screen bounds.
+     * #UI_UNIT_Y is just a guess to be above the menu item. */
     if (init_rect_overlap != nullptr) {
       const int pad = max_ff(1.0f, U.pixelsize) * 5;
       rcti init_rect;
@@ -1333,7 +1334,7 @@ ARegion *UI_tooltip_create_from_button_or_extra_icon(
     bContext *C, ARegion *butregion, uiBut *but, uiButExtraOpIcon *extra_icon, bool is_label)
 {
   wmWindow *win = CTX_wm_window(C);
-  /* aspect values that shrink text are likely unreadable */
+  /* Aspect values that shrink text are likely unreadable. */
   const float aspect = min_ff(1.0f, but->block->aspect);
   float init_position[2];
 
@@ -1406,10 +1407,8 @@ ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
     return nullptr;
   }
 
-  /* TODO(harley):
-   * Julian preferred that the gizmo callback return the 3D bounding box
-   * which we then project to 2D here. Would make a nice improvement.
-   */
+  /* TODO(@harley): Julian preferred that the gizmo callback return the 3D bounding box
+   * which we then project to 2D here. Would make a nice improvement. */
   if (gz->type->screen_bounds_get) {
     rcti bounds;
     if (gz->type->screen_bounds_get(C, gz, &bounds)) {

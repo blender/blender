@@ -423,7 +423,7 @@ int BKE_image_get_tile_from_pos(struct Image *ima,
 void BKE_image_get_tile_uv(const struct Image *ima, const int tile_number, float r_uv[2]);
 
 /**
- * Return the tile_number for the closest UDIM tile.
+ * Return the tile_number for the closest UDIM tile to `co`.
  */
 int BKE_image_find_nearest_tile_with_offset(const struct Image *image,
                                             const float co[2],

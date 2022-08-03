@@ -122,7 +122,7 @@ class DepthOfField {
   /** Scene settings that are immutable. */
   float user_overblur_;
   float fx_max_coc_;
-  /** Use Hiqh Quality (expensive) in-focus gather pass. */
+  /** Use High Quality (expensive) in-focus gather pass. */
   bool do_hq_slight_focus_;
   /** Use jittered depth of field where we randomize camera location. */
   bool do_jitter_;
