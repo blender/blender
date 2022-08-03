@@ -47,7 +47,7 @@ vec4 velocity_surface(vec3 P_prv, vec3 P, vec3 P_nxt)
  */
 vec4 velocity_background(vec3 vV)
 {
-  /* Only transform direction to avoid loosing precision. */
+  /* Only transform direction to avoid losing precision. */
   vec3 V = transform_direction(camera_curr.viewinv, vV);
   /* NOTE: We don't use the drw_view.winmat to avoid adding the TAA jitter to the velocity. */
   vec2 prev_uv = project_point(camera_prev.winmat, V).xy;

@@ -483,7 +483,7 @@ void Film::update_sample_table()
     data_.samples_weight_total = 1.0f;
     data_.samples_len = 1;
   }
-  /* NOTE: Threshold determined by hand until we don't hit the assert bellow. */
+  /* NOTE: Threshold determined by hand until we don't hit the assert below. */
   else if (data_.filter_radius < 2.20f) {
     /* Small filter Size. */
     int closest_index = 0;

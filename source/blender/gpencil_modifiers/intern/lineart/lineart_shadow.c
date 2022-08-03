@@ -481,7 +481,7 @@ static void lineart_shadow_create_shadow_edge_array(LineartData *ld,
  * This process is repeated on each existing segments of the shadow edge (#e), which ensures they
  * all have been tested for closest segments after cutting. And in the diagram it's clear that the
  * left/right side of cuts are likely to be discontinuous, each cut's left side designates the
- * right side of the last segment, and vise versa. */
+ * right side of the last segment, and vice-versa. */
 static void lineart_shadow_edge_cut(LineartData *ld,
                                     LineartShadowEdge *e,
                                     double start,

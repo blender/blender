@@ -40,7 +40,7 @@ class Film {
  private:
   Instance &inst_;
 
-  /** Incomming combined buffer with post fx applied (motion blur + depth of field). */
+  /** Incoming combined buffer with post fx applied (motion blur + depth of field). */
   GPUTexture *combined_final_tx_ = nullptr;
 
   /** Main accumulation textures containing every render-pass except depth and combined. */

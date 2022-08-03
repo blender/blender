@@ -68,7 +68,7 @@ static ft_pix blf_font_width_max_ft_pix(struct FontBLF *font);
 /** \name FreeType Utilities (Internal)
  * \{ */
 
-/* Convert a FreeType 26.6 value representing an unscaled design size to factional pixels. */
+/* Convert a FreeType 26.6 value representing an unscaled design size to fractional pixels. */
 static ft_pix blf_unscaled_F26Dot6_to_pixels(FontBLF *font, FT_Pos value)
 {
   /* Scale value by font size using integer-optimized multiplication. */

@@ -398,7 +398,7 @@ void TVertex::setBackEdgeB(ViewEdge *iBackEdgeB, bool incoming)
 
 void TVertex::Replace(ViewEdge *iOld, ViewEdge *iNew)
 {
-  // theoritically, we only replace edges for which this
+  // theoretically, we only replace edges for which this
   // view vertex is the B vertex
   if ((iOld == _FrontEdgeA.first) && (_FrontEdgeA.first->B() == this)) {
     _FrontEdgeA.first = iNew;

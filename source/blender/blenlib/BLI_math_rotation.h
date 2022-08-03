@@ -189,7 +189,7 @@ void mat3_to_quat_is_ok(float q[4], const float mat[3][3]);
  * \endcode
  *
  * \param numerator: An integer factor in [0..denominator] (inclusive).
- * \param denominator: The faction denominator (typically the number of segments of the circle).
+ * \param denominator: The fraction denominator (typically the number of segments of the circle).
  * \param r_sin: The resulting sine.
  * \param r_cos: The resulting cosine.
  */

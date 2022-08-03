@@ -1,7 +1,7 @@
 
 /**
  * Dilate motion vector tiles until we covered maximum velocity.
- * Outputs the largest intersecting motion vector in the neighboorhod.
+ * Outputs the largest intersecting motion vector in the neighborhood.
  *
  */
 
@@ -62,7 +62,7 @@ bool is_inside_motion_line(ivec2 tile, MotionLine motion_line)
   /* NOTE: Everything in is tile unit. */
   float dist = point_line_projection_dist(vec2(tile), motion_line.origin, motion_line.normal);
   /* In order to be conservative and for simplicity, we use the tiles bounding circles.
-   * Consider that both the tile and the line have bouding radius of M_SQRT1_2. */
+   * Consider that both the tile and the line have bounding radius of M_SQRT1_2. */
   return abs(dist) < M_SQRT2;
 }
 

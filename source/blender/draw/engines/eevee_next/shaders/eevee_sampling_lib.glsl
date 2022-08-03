@@ -9,7 +9,7 @@
 /* -------------------------------------------------------------------- */
 /** \name Sampling data.
  *
- * Return a random values from Low Discrepency Sequence in [0..1) range.
+ * Return a random values from Low Discrepancy Sequence in [0..1) range.
  * This value is uniform (constant) for the whole scene sample.
  * You might want to couple it with a noise function.
  * \{ */
