@@ -323,6 +323,10 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
   if (global_vertices_.vertex_normals.is_empty()) {
     return;
   }
+  /* Custom normals can only be stored on face corners. */
+  if (mesh_geometry_.total_loops_ == 0) {
+    return;
+  }
 
   float(*loop_normals)[3] = static_cast<float(*)[3]>(
       MEM_malloc_arrayN(mesh_geometry_.total_loops_, sizeof(float[3]), __func__));
