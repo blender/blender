@@ -37,11 +37,6 @@ void main()
           /* Actually gather the "absolute" biggest coc but keeping the sign. */
           ring_buckets[ring].fg_min_coc = min(ring_buckets[ring].fg_min_coc, adj_tile.fg_min_coc);
           ring_buckets[ring].bg_max_coc = max(ring_buckets[ring].bg_max_coc, adj_tile.bg_max_coc);
-
-          if (dilate_slight_focus) {
-            ring_buckets[ring].fg_slight_focus_max_coc = dof_coc_max_slight_focus(
-                ring_buckets[ring].fg_slight_focus_max_coc, adj_tile.fg_slight_focus_max_coc);
-          }
         }
         else { /* DILATE_MODE_MIN_ABS */
           ring_buckets[ring].fg_max_coc = max(ring_buckets[ring].fg_max_coc, adj_tile.fg_max_coc);
@@ -64,12 +59,6 @@ void main()
 
   /* Load center tile. */
   CocTile out_tile = dof_coc_tile_load(in_tiles_fg_img, in_tiles_bg_img, center_tile_pos);
-
-  /* Dilate once. */
-  if (dilate_slight_focus) {
-    out_tile.fg_slight_focus_max_coc = dof_coc_max_slight_focus(
-        out_tile.fg_slight_focus_max_coc, ring_buckets[0].fg_slight_focus_max_coc);
-  }
 
   for (int ring = 0; ring < ring_count && ring < DOF_DILATE_RING_COUNT; ring++) {
     float ring_distance = float(ring + 1);

@@ -180,24 +180,12 @@ struct CocTile {
   float fg_min_coc;
   float fg_max_coc;
   float fg_max_intersectable_coc;
-  float fg_slight_focus_max_coc;
   float bg_min_coc;
   float bg_max_coc;
   float bg_min_intersectable_coc;
 };
 
-struct CocTilePrediction {
-  bool do_foreground;
-  bool do_slight_focus;
-  bool do_focus;
-  bool do_background;
-  bool do_hole_fill;
-};
-
 /* WATCH: Might have to change depending on the texture format. */
-const float dof_tile_defocus = 0.25;
-const float dof_tile_focus = 0.0;
-const float dof_tile_mixed = 0.75;
 const float dof_tile_large_coc = 1024.0;
 
 /* Init a CoC tile for reduction algorithms. */
@@ -207,20 +195,18 @@ CocTile dof_coc_tile_init()
   tile.fg_min_coc = 0.0;
   tile.fg_max_coc = -dof_tile_large_coc;
   tile.fg_max_intersectable_coc = dof_tile_large_coc;
-  tile.fg_slight_focus_max_coc = -1.0;
   tile.bg_min_coc = dof_tile_large_coc;
   tile.bg_max_coc = 0.0;
   tile.bg_min_intersectable_coc = dof_tile_large_coc;
   return tile;
 }
 
-CocTile dof_coc_tile_unpack(vec4 fg, vec3 bg)
+CocTile dof_coc_tile_unpack(vec3 fg, vec3 bg)
 {
   CocTile tile;
   tile.fg_min_coc = -fg.x;
   tile.fg_max_coc = -fg.y;
   tile.fg_max_intersectable_coc = -fg.z;
-  tile.fg_slight_focus_max_coc = fg.w;
   tile.bg_min_coc = bg.x;
   tile.bg_max_coc = bg.y;
   tile.bg_min_intersectable_coc = bg.z;
@@ -231,15 +217,14 @@ CocTile dof_coc_tile_unpack(vec4 fg, vec3 bg)
  * parameters. Workaround by using defines. */
 #define dof_coc_tile_load(tiles_fg_img_, tiles_bg_img_, texel_) \
   dof_coc_tile_unpack( \
-      imageLoad(tiles_fg_img_, clamp(texel_, ivec2(0), imageSize(tiles_fg_img_) - 1)), \
+      imageLoad(tiles_fg_img_, clamp(texel_, ivec2(0), imageSize(tiles_fg_img_) - 1)).xyz, \
       imageLoad(tiles_bg_img_, clamp(texel_, ivec2(0), imageSize(tiles_bg_img_) - 1)).xyz)
 
-void dof_coc_tile_pack(CocTile tile, out vec4 out_fg, out vec3 out_bg)
+void dof_coc_tile_pack(CocTile tile, out vec3 out_fg, out vec3 out_bg)
 {
   out_fg.x = -tile.fg_min_coc;
   out_fg.y = -tile.fg_max_coc;
   out_fg.z = -tile.fg_max_intersectable_coc;
-  out_fg.w = tile.fg_slight_focus_max_coc;
   out_bg.x = tile.bg_min_coc;
   out_bg.y = tile.bg_max_coc;
   out_bg.z = tile.bg_min_intersectable_coc;
@@ -247,10 +232,10 @@ void dof_coc_tile_pack(CocTile tile, out vec4 out_fg, out vec3 out_bg)
 
 #define dof_coc_tile_store(tiles_fg_img_, tiles_bg_img_, texel_out_, tile_data_) \
   if (true) { \
-    vec4 out_fg; \
+    vec3 out_fg; \
     vec3 out_bg; \
     dof_coc_tile_pack(tile_data_, out_fg, out_bg); \
-    imageStore(tiles_fg_img_, texel_out_, out_fg); \
+    imageStore(tiles_fg_img_, texel_out_, out_fg.xyzz); \
     imageStore(tiles_bg_img_, texel_out_, out_bg.xyzz); \
   }
 
@@ -269,6 +254,18 @@ bool dof_do_fast_gather(float max_absolute_coc, float min_absolute_coc, const bo
   return (max_absolute_coc - min_absolute_coc) < (DOF_FAST_GATHER_COC_ERROR * max_absolute_coc);
 }
 
+struct CocTilePrediction {
+  bool do_foreground;
+  bool do_slight_focus;
+  bool do_focus;
+  bool do_background;
+  bool do_hole_fill;
+};
+
+/**
+ * Using the tile CoC infos, predict which convolutions are required and the ones that can be
+ * skipped.
+ */
 CocTilePrediction dof_coc_tile_prediction_get(CocTile tile)
 {
   /* Based on tile value, predict what pass we need to load. */
@@ -277,34 +274,18 @@ CocTilePrediction dof_coc_tile_prediction_get(CocTile tile)
   predict.do_foreground = (-tile.fg_min_coc > dof_layer_threshold - dof_layer_offset_fg);
   bool fg_fully_opaque = predict.do_foreground &&
                          dof_do_fast_gather(-tile.fg_min_coc, -tile.fg_max_coc, true);
-
-  predict.do_slight_focus = !fg_fully_opaque && (tile.fg_slight_focus_max_coc >= 0.5);
-  predict.do_focus = !fg_fully_opaque && (tile.fg_slight_focus_max_coc == dof_tile_focus);
-
-  predict.do_background = !predict.do_focus && !fg_fully_opaque &&
+  predict.do_background = !fg_fully_opaque &&
                           (tile.bg_max_coc > dof_layer_threshold - dof_layer_offset);
   bool bg_fully_opaque = predict.do_background &&
                          dof_do_fast_gather(-tile.bg_max_coc, tile.bg_min_coc, false);
-  predict.do_hole_fill = !predict.do_focus && !fg_fully_opaque && -tile.fg_min_coc > 0.0;
+  predict.do_hole_fill = !fg_fully_opaque && -tile.fg_min_coc > 0.0;
+  predict.do_focus = !fg_fully_opaque;
+  predict.do_slight_focus = !fg_fully_opaque;
 
 #if 0 /* Debug */
   predict.do_foreground = predict.do_background = predict.do_hole_fill = true;
 #endif
   return predict;
-}
-
-/* Special function to return the correct max value of 2 slight focus coc. */
-float dof_coc_max_slight_focus(float coc1, float coc2)
-{
-  /* Do not consider values below 0.5 for expansion as they are "encoded".
-   * See setup pass shader for more infos. */
-  if ((coc1 == dof_tile_defocus && coc2 == dof_tile_focus) ||
-      (coc1 == dof_tile_focus && coc2 == dof_tile_defocus)) {
-    /* Tile where completely out of focus and in focus are both present.
-     * Consider as very slightly out of focus. */
-    return dof_tile_mixed;
-  }
-  return max(coc1, coc2);
 }
 
 /** \} */

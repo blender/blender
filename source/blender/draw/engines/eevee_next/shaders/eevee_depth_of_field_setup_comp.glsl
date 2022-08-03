@@ -15,26 +15,6 @@
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
 
-float dof_abs_max_slight_of_focus_coc(vec4 cocs)
-{
-  /* Clamp to 0.5 if full in defocus to differentiate full focus tiles with coc == 0.0.
-   * This enables an optimization in the resolve pass. */
-  const vec4 threshold = vec4(dof_layer_threshold + dof_layer_offset);
-  cocs = abs(cocs);
-  bvec4 defocus = greaterThan(cocs, threshold);
-  bvec4 focus = lessThanEqual(cocs, vec4(0.5));
-  if (any(defocus) && any(focus)) {
-    /* For the same reason as in the flatten pass. This is a case we cannot optimize for. */
-    cocs = mix(cocs, vec4(dof_tile_mixed), focus);
-    cocs = mix(cocs, vec4(dof_tile_mixed), defocus);
-  }
-  else {
-    cocs = mix(cocs, vec4(dof_tile_focus), focus);
-    cocs = mix(cocs, vec4(dof_tile_defocus), defocus);
-  }
-  return max_v4(cocs);
-}
-
 void main()
 {
   vec2 fullres_texel_size = 1.0 / vec2(textureSize(color_tx, 0).xy);
@@ -61,8 +41,6 @@ void main()
   vec4 out_color = weighted_sum_array(colors, weights);
   imageStore(out_color_img, out_texel, out_color);
 
-  vec2 out_coc;
-  out_coc.x = dot(cocs, weights);
-  out_coc.y = dof_abs_max_slight_of_focus_coc(cocs);
-  imageStore(out_coc_img, out_texel, out_coc.xyxy);
+  float out_coc = dot(cocs, weights);
+  imageStore(out_coc_img, out_texel, vec4(out_coc));
 }

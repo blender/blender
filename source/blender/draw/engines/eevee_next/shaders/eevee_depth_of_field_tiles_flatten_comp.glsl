@@ -26,11 +26,6 @@ shared uint bg_min_coc;
 shared uint bg_max_coc;
 shared uint bg_min_intersectable_coc;
 
-shared uint fg_slight_focus_max_coc;
-shared uint fg_slight_focus_flag;
-
-const uint slight_focus_flag_defocus = 1u;
-const uint slight_focus_flag_focus = 2u;
 const uint dof_tile_large_coc_uint = floatBitsToUint(dof_tile_large_coc);
 
 void main()
@@ -43,9 +38,6 @@ void main()
     bg_min_coc = dof_tile_large_coc_uint;
     bg_max_coc = floatBitsToUint(0.0);
     bg_min_intersectable_coc = dof_tile_large_coc_uint;
-    /* Should be -1.0 but we want to avoid the sign bit in float representation. */
-    fg_slight_focus_max_coc = floatBitsToUint(0.0);
-    fg_slight_focus_flag = 0u;
   }
   barrier();
 
@@ -64,17 +56,6 @@ void main()
   atomicMax(bg_max_coc, bg_coc);
   atomicMin(bg_min_intersectable_coc, (sample_coc > 0.0) ? bg_coc : dof_tile_large_coc_uint);
 
-  /* Mimics logic of dof_coc_max_slight_focus(). */
-  float sample_slight_focus_coc = sample_data.y;
-  if (sample_slight_focus_coc == dof_tile_defocus) {
-    atomicOr(fg_slight_focus_flag, slight_focus_flag_defocus);
-  }
-  else if (sample_slight_focus_coc == dof_tile_focus) {
-    atomicOr(fg_slight_focus_flag, slight_focus_flag_focus);
-  }
-  /* Add 1 in order to compare signed floats in [-1..1] range. */
-  atomicMax(fg_slight_focus_max_coc, floatBitsToUint(sample_slight_focus_coc + 1.0));
-
   barrier();
 
   if (all(equal(gl_LocalInvocationID.xy, uvec2(0)))) {
@@ -90,15 +71,6 @@ void main()
     tile.bg_min_coc = uintBitsToFloat(bg_min_coc);
     tile.bg_max_coc = uintBitsToFloat(bg_max_coc);
     tile.bg_min_intersectable_coc = uintBitsToFloat(bg_min_intersectable_coc);
-
-    /* Mimics logic of dof_coc_max_slight_focus(). */
-    if (fg_slight_focus_flag == (slight_focus_flag_defocus | slight_focus_flag_focus)) {
-      tile.fg_slight_focus_max_coc = dof_tile_mixed;
-    }
-    else {
-      /* Remove the 1 bias. */
-      tile.fg_slight_focus_max_coc = uintBitsToFloat(fg_slight_focus_max_coc) - 1.0;
-    }
 
     ivec2 tile_co = ivec2(gl_WorkGroupID.xy);
     dof_coc_tile_store(out_tiles_fg_img, out_tiles_bg_img, tile_co, tile);

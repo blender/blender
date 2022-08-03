@@ -79,18 +79,17 @@ GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_flatten)
     .local_group_size(DOF_TILES_FLATTEN_GROUP_SIZE, DOF_TILES_FLATTEN_GROUP_SIZE)
     .additional_info("eevee_shared", "draw_view")
     .sampler(0, ImageType::FLOAT_2D, "coc_tx")
-    .image(2, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_tiles_fg_img")
+    .image(2, GPU_R11F_G11F_B10F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_tiles_fg_img")
     .image(3, GPU_R11F_G11F_B10F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_tiles_bg_img")
     .compute_source("eevee_depth_of_field_tiles_flatten_comp.glsl");
 
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_dilate)
     .additional_info("eevee_shared", "draw_view", "eevee_depth_of_field_tiles_common")
     .local_group_size(DOF_TILES_DILATE_GROUP_SIZE, DOF_TILES_DILATE_GROUP_SIZE)
-    .image(2, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_tiles_fg_img")
+    .image(2, GPU_R11F_G11F_B10F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_tiles_fg_img")
     .image(3, GPU_R11F_G11F_B10F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_tiles_bg_img")
     .push_constant(Type::INT, "ring_count")
     .push_constant(Type::INT, "ring_width_multiplier")
-    .push_constant(Type::BOOL, "dilate_slight_focus")
     .compute_source("eevee_depth_of_field_tiles_dilate_comp.glsl");
 
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_dilate_minabs)
@@ -104,7 +103,7 @@ GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_dilate_minmax)
     .additional_info("eevee_depth_of_field_tiles_dilate");
 
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_common)
-    .image(0, GPU_RGBA16F, Qualifier::READ, ImageType::FLOAT_2D, "in_tiles_fg_img")
+    .image(0, GPU_R11F_G11F_B10F, Qualifier::READ, ImageType::FLOAT_2D, "in_tiles_fg_img")
     .image(1, GPU_R11F_G11F_B10F, Qualifier::READ, ImageType::FLOAT_2D, "in_tiles_bg_img");
 
 /** \} */

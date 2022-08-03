@@ -354,7 +354,6 @@ void DepthOfField::tiles_dilate_pass_sync()
     DRW_shgroup_uniform_image_ref(grp, "in_tiles_bg_img", &tiles_bg_tx_.previous());
     DRW_shgroup_uniform_image_ref(grp, "out_tiles_fg_img", &tiles_fg_tx_.current());
     DRW_shgroup_uniform_image_ref(grp, "out_tiles_bg_img", &tiles_bg_tx_.current());
-    DRW_shgroup_uniform_bool(grp, "dilate_slight_focus", &tiles_dilate_slight_focus_, 1);
     DRW_shgroup_uniform_int(grp, "ring_count", &tiles_dilate_ring_count_, 1);
     DRW_shgroup_uniform_int(grp, "ring_width_multiplier", &tiles_dilate_ring_width_mul_, 1);
     DRW_shgroup_call_compute_ref(grp, dispatch_tiles_dilate_size_);
@@ -573,9 +572,9 @@ void DepthOfField::render(GPUTexture **input_tx, GPUTexture **output_tx)
       DRW_stats_group_start("Tile Prepare");
 
       /* WARNING: If format changes, make sure dof_tile_* GLSL constants are properly encoded. */
-      tiles_fg_tx_.previous().acquire(tile_res, GPU_RGBA16F);
+      tiles_fg_tx_.previous().acquire(tile_res, GPU_R11F_G11F_B10F);
       tiles_bg_tx_.previous().acquire(tile_res, GPU_R11F_G11F_B10F);
-      tiles_fg_tx_.current().acquire(tile_res, GPU_RGBA16F);
+      tiles_fg_tx_.current().acquire(tile_res, GPU_R11F_G11F_B10F);
       tiles_bg_tx_.current().acquire(tile_res, GPU_R11F_G11F_B10F);
 
       DRW_draw_pass(tiles_flatten_ps_);
@@ -592,9 +591,6 @@ void DepthOfField::render(GPUTexture **input_tx, GPUTexture **output_tx)
         /* This algorithm produce the exact dilation radius by dividing it in multiple passes. */
         int dilation_radius = 0;
         while (dilation_radius < dilation_end_radius) {
-          /* Dilate slight focus only on first iteration. */
-          tiles_dilate_slight_focus_ = (dilation_radius == 0) ? 1 : 0;
-
           int remainder = dilation_end_radius - dilation_radius;
           /* Do not step over any unvisited tile. */
           int max_multiplier = dilation_radius + 1;

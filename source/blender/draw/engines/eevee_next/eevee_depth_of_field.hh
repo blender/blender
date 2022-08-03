@@ -81,7 +81,6 @@ class DepthOfField {
   DRWPass *tiles_flatten_ps_ = nullptr;
 
   /** Dilates the min & max CoCs to cover maximum COC values. */
-  bool1 tiles_dilate_slight_focus_ = false;
   int tiles_dilate_ring_count_ = -1;
   int tiles_dilate_ring_width_mul_ = -1;
   int3 dispatch_tiles_dilate_size_ = int3(-1);
@@ -135,9 +134,6 @@ class DepthOfField {
   float focus_distance_;
   /** Extent of the input buffer. */
   int2 extent_;
-
-  /** Reduce pass info. */
-  int reduce_steps_;
 
  public:
   DepthOfField(Instance &inst) : inst_(inst){};
