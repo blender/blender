@@ -227,7 +227,9 @@ void depsgraph_tag_to_component_opcode(const ID *id,
     case ID_RECALC_PROVISION_29:
     case ID_RECALC_PROVISION_30:
     case ID_RECALC_PROVISION_31:
-      BLI_assert_msg(0, "Should not happen");
+      /* Silently ignore.
+       * The bits might be passed here from ID_RECALC_ALL. This is not a codmistake, but just the
+       * way how the recalc flags are handled. */
       break;
   }
 }
@@ -757,7 +759,10 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
     case ID_RECALC_PROVISION_29:
     case ID_RECALC_PROVISION_30:
     case ID_RECALC_PROVISION_31:
-      BLI_assert_msg(0, "Should not happen");
+      /* Silently return nullptr, indicating that there is no string representation.
+       *
+       * This is needed due to the way how logging for ID_RECALC_ALL works: it iterates over all
+       * bits and converts then to string. */
       return nullptr;
   }
   return nullptr;
