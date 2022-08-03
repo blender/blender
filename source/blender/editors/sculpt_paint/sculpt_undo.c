@@ -171,7 +171,7 @@ static void update_cb_partial(PBVHNode *node, void *userdata)
   }
   else {
     if (BKE_pbvh_node_has_vert_with_normal_update_tag(data->pbvh, node)) {
-      BKE_pbvh_node_mark_normals_update(node);
+      BKE_pbvh_node_mark_update(node);
     }
     int verts_num;
     const int *vert_indices;
