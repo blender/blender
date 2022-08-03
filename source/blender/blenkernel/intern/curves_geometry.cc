@@ -13,6 +13,7 @@
 #include "BLI_index_mask_ops.hh"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_rotation.hh"
+#include "BLI_task.hh"
 
 #include "DNA_curves_types.h"
 
@@ -1467,12 +1468,15 @@ static void adapt_curve_domain_point_to_curve_impl(const CurvesGeometry &curves,
                                                    MutableSpan<T> r_values)
 {
   attribute_math::DefaultMixer<T> mixer(r_values);
-  for (const int i_curve : IndexRange(curves.curves_num())) {
-    for (const int i_point : curves.points_for_curve(i_curve)) {
-      mixer.mix_in(i_curve, old_values[i_point]);
+
+  threading::parallel_for(curves.curves_range(), 128, [&](const IndexRange range) {
+    for (const int i_curve : range) {
+      for (const int i_point : curves.points_for_curve(i_curve)) {
+        mixer.mix_in(i_curve, old_values[i_point]);
+      }
     }
-  }
-  mixer.finalize();
+    mixer.finalize(range);
+  });
 }
 
 /**
