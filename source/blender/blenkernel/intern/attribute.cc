@@ -20,8 +20,11 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BLI_index_range.hh"
+#include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
+
+#include "BLT_translation.h"
 
 #include "BKE_attribute.h"
 #include "BKE_attribute.hh"
@@ -201,7 +204,14 @@ bool BKE_id_attribute_calc_unique_name(ID *id, const char *name, char *outname)
 {
   AttrUniqueData data{id};
 
-  BLI_strncpy_utf8(outname, name, MAX_CUSTOMDATA_LAYER_NAME);
+  /* Set default name if none specified.
+   * NOTE: We only call IFACE_() if needed to avoid locale lookup overhead. */
+  if (!name || name[0] == '\0') {
+    BLI_strncpy(outname, IFACE_("Attribute"), MAX_CUSTOMDATA_LAYER_NAME);
+  }
+  else {
+    BLI_strncpy_utf8(outname, name, MAX_CUSTOMDATA_LAYER_NAME);
+  }
 
   return BLI_uniquename_cb(
       unique_name_cb, &data, nullptr, '.', outname, MAX_CUSTOMDATA_LAYER_NAME);
