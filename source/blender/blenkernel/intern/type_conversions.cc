@@ -367,20 +367,38 @@ void DataTypeConversions::convert_to_uninitialized(const CPPType &from_type,
   functions->convert_single_to_uninitialized(from_value, to_value);
 }
 
+static void call_convert_to_uninitialized_fn(const GVArray &from,
+                                             const fn::MultiFunction &fn,
+                                             const IndexMask mask,
+                                             GMutableSpan to)
+{
+  fn::MFParamsBuilder params{fn, from.size()};
+  params.add_readonly_single_input(from);
+  params.add_uninitialized_single_output(to);
+  fn::MFContextBuilder context;
+  fn.call_auto(mask, params, context);
+}
+
+static void call_convert_to_uninitialized_fn(const GVArray &from,
+                                             const fn::MultiFunction &fn,
+                                             GMutableSpan to)
+{
+  call_convert_to_uninitialized_fn(from, fn, IndexMask(from.size()), to);
+}
+
 void DataTypeConversions::convert_to_initialized_n(GSpan from_span, GMutableSpan to_span) const
 {
   const CPPType &from_type = from_span.type();
   const CPPType &to_type = to_span.type();
+
   BLI_assert(from_span.size() == to_span.size());
   BLI_assert(this->is_convertible(from_type, to_type));
+
   const fn::MultiFunction *fn = this->get_conversion_multi_function(
       MFDataType::ForSingle(from_type), MFDataType::ForSingle(to_type));
-  fn::MFParamsBuilder params{*fn, from_span.size()};
-  params.add_readonly_single_input(from_span);
+
   to_type.destruct_n(to_span.data(), to_span.size());
-  params.add_uninitialized_single_output(to_span);
-  fn::MFContextBuilder context;
-  fn->call_auto(IndexRange(from_span.size()), params, context);
+  call_convert_to_uninitialized_fn(GVArray::ForSpan(from_span), *fn, to_span);
 }
 
 class GVArray_For_ConvertedGVArray : public GVArrayImpl {
@@ -413,6 +431,20 @@ class GVArray_For_ConvertedGVArray : public GVArrayImpl {
     varray_.get(index, buffer);
     old_to_new_conversions_.convert_single_to_uninitialized(buffer, r_value);
     from_type_.destruct(buffer);
+  }
+
+  void materialize(const IndexMask mask, void *dst) const override
+  {
+    type_->destruct_n(dst, mask.min_array_size());
+    this->materialize_to_uninitialized(mask, dst);
+  }
+
+  void materialize_to_uninitialized(const IndexMask mask, void *dst) const override
+  {
+    call_convert_to_uninitialized_fn(varray_,
+                                     *old_to_new_conversions_.multi_function,
+                                     mask,
+                                     {this->type(), dst, mask.min_array_size()});
   }
 };
 
@@ -458,6 +490,20 @@ class GVMutableArray_For_ConvertedGVMutableArray : public GVMutableArrayImpl {
     new_to_old_conversions_.convert_single_to_uninitialized(value, buffer);
     varray_.set_by_relocate(index, buffer);
   }
+
+  void materialize(const IndexMask mask, void *dst) const override
+  {
+    type_->destruct_n(dst, mask.min_array_size());
+    this->materialize_to_uninitialized(mask, dst);
+  }
+
+  void materialize_to_uninitialized(const IndexMask mask, void *dst) const override
+  {
+    call_convert_to_uninitialized_fn(varray_,
+                                     *old_to_new_conversions_.multi_function,
+                                     mask,
+                                     {this->type(), dst, mask.min_array_size()});
+  }
 };
 
 GVArray DataTypeConversions::try_convert(GVArray varray, const CPPType &to_type) const
@@ -495,9 +541,8 @@ fn::GField DataTypeConversions::try_convert(fn::GField field, const CPPType &to_
   if (!this->is_convertible(from_type, to_type)) {
     return {};
   }
-  const fn::MultiFunction &fn =
-      *bke::get_implicit_type_conversions().get_conversion_multi_function(
-          fn::MFDataType::ForSingle(from_type), fn::MFDataType::ForSingle(to_type));
+  const fn::MultiFunction &fn = *this->get_conversion_multi_function(
+      fn::MFDataType::ForSingle(from_type), fn::MFDataType::ForSingle(to_type));
   return {std::make_shared<fn::FieldOperation>(fn, Vector<fn::GField>{std::move(field)})};
 }
 
