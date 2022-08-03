@@ -24,7 +24,7 @@ def draw_circle_2d(position, color, radius, *, segments=None):
     )
 
     if segments is None:
-        max_pixel_error = 0.25 # TODO: multiply 0.5 by display dpi
+        max_pixel_error = 0.25  # TODO: multiply 0.5 by display dpi
         segments = int(ceil(pi / acos(1.0 - max_pixel_error / radius)))
         segments = max(segments, 8)
         segments = min(segments, 1000)
