@@ -650,7 +650,7 @@ static ID *rna_ID_evaluated_get(ID *id, struct Depsgraph *depsgraph)
 
 static ID *rna_ID_copy(ID *id, Main *bmain)
 {
-  ID *newid = BKE_id_copy(bmain, id);
+  ID *newid = BKE_id_copy_for_use_in_bmain(bmain, id);
 
   if (newid != NULL) {
     id_us_min(newid);
@@ -2045,7 +2045,10 @@ static void rna_def_ID(BlenderRNA *brna)
 
   func = RNA_def_function(srna, "copy", "rna_ID_copy");
   RNA_def_function_ui_description(
-      func, "Create a copy of this data-block (not supported for all data-blocks)");
+      func,
+      "Create a copy of this data-block (not supported for all data-blocks). "
+      "The result is added to the Blend-File Data (Main database), with all references to other "
+      "data-blocks ensured to be from within the same Blend-File Data");
   RNA_def_function_flag(func, FUNC_USE_MAIN);
   parm = RNA_def_pointer(func, "id", "ID", "", "New copy of the ID");
   RNA_def_function_return(func, parm);

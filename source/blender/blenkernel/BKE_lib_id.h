@@ -453,6 +453,11 @@ struct ID *BKE_id_copy_for_duplicate(struct Main *bmain,
                                      uint duplicate_flags,
                                      int copy_flags);
 
+/* Special version of BKE_id_copy which is safe from using evaluated id as source with a copy
+ * result appearing in the main database.
+ * Takes care of the referenced data-blocks consistency. */
+struct ID *BKE_id_copy_for_use_in_bmain(struct Main *bmain, const struct ID *id);
+
 /**
  * Does a mere memory swap over the whole IDs data (including type-specific memory).
  * \note Most internal ID data itself is not swapped (only IDProperties are).
