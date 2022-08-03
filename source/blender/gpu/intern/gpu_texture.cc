@@ -705,7 +705,6 @@ const char *GPU_texture_format_description(eGPUTextureFormat texture_format)
     case GPU_R16:
       return "R16";
 
-
     /* Special formats texture & render-buffer. */
     case GPU_RGB10_A2:
       return "RGB10A2";
@@ -744,8 +743,9 @@ const char *GPU_texture_format_description(eGPUTextureFormat texture_format)
     case GPU_DEPTH_COMPONENT16:
       return "DEPTH16";
   }
+  BLI_assert_unreachable();
+  return "";
 }
-
 
 bool GPU_texture_depth(const GPUTexture *tex)
 {
