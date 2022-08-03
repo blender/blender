@@ -400,12 +400,9 @@ bool id_single_user(struct bContext *C,
                     struct ID *id,
                     struct PointerRNA *ptr,
                     struct PropertyRNA *prop);
+
+/** Test whether given `id` can be copied or not. */
 bool BKE_id_copy_is_allowed(const struct ID *id);
-/**
- * Invokes the appropriate copy method for the block and returns the result in
- * #ID.newid, unless test. Returns true if the block can be copied.
- */
-struct ID *BKE_id_copy(struct Main *bmain, const struct ID *id);
 /**
  * Generic entry point for copying a data-block (new API).
  *
@@ -430,8 +427,26 @@ struct ID *BKE_id_copy(struct Main *bmain, const struct ID *id);
  */
 struct ID *BKE_id_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, int flag);
 /**
- * Invokes the appropriate copy method for the block and returns the result in
- * newid, unless test. Returns true if the block can be copied.
+ * Invoke the appropriate copy method for the block and return the new id as result.
+ *
+ * See #BKE_id_copy_ex for details.
+ */
+struct ID *BKE_id_copy(struct Main *bmain, const struct ID *id);
+
+/**
+ * Invoke the appropriate copy method for the block and return the new id as result.
+ *
+ * Unlike #BKE_id_copy, it does set the #ID.newid pointer of the given `id` to the copied one.
+ *
+ * It is designed as a basic common helper for the higher-level 'duplicate' operations (aka 'deep
+ * copy' of data-blocks and some of their dependency ones), see e.g. #BKE_object_duplicate.
+ *
+ * Currently, it only handles the given ID, and their shape keys and actions if any, according to
+ * the given `duplicate_flags`.
+ *
+ * \param duplicate_flags is of type #eDupli_ID_Flags, see #UserDef.dupflag. Currently only
+ * `USER_DUP_LINKED_ID` and `USER_DUP_ACT` have an effect here.
+ * \param copy_flags flags passed to #BKE_id_copy_ex.
  */
 struct ID *BKE_id_copy_for_duplicate(struct Main *bmain,
                                      struct ID *id,
