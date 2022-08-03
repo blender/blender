@@ -45,6 +45,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
+#include "BKE_main_namemap.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
@@ -488,6 +489,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
         if (layout->screen) {
           bScreen *screen = layout->screen;
           if (!STREQ(screen->id.name + 2, workspace->id.name + 2)) {
+            BKE_main_namemap_remove_name(bmain, &screen->id, screen->id.name + 2);
             BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
             BLI_libblock_ensure_unique_name(bmain, screen->id.name);
           }
