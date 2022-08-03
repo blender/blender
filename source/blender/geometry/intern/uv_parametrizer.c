@@ -937,17 +937,16 @@ static void p_split_vert(ParamHandle *handle, PChart *chart, PEdge *e)
 
 static PChart **p_split_charts(ParamHandle *handle, PChart *chart, int ncharts)
 {
-  PChart **charts = MEM_mallocN(sizeof(*charts) * ncharts, "PCharts");
-  PFace *f, *nextf;
+  PChart **charts = (PChart **)MEM_callocN(sizeof(*charts) * ncharts, "PCharts");
 
   for (int i = 0; i < ncharts; i++) {
     charts[i] = (PChart *)MEM_callocN(sizeof(*chart), "PChart");
   }
 
-  f = chart->faces;
+  PFace *f = chart->faces;
   while (f) {
     PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
-    nextf = f->nextlink;
+    PFace *nextf = f->nextlink;
 
     PChart *nchart = charts[f->u.chart];
 
@@ -3759,7 +3758,8 @@ ParamKey GEO_uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const
     return bmvertindex; /* No verts pinned. */
   }
 
-  GeoUVPinIndex *pinuvlist = BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex));
+  const GeoUVPinIndex *pinuvlist = (const GeoUVPinIndex *)BLI_ghash_lookup(
+      handle->pin_hash, POINTER_FROM_INT(bmvertindex));
   if (!pinuvlist) {
     return bmvertindex; /* Vert not pinned. */
   }
@@ -3781,7 +3781,7 @@ ParamKey GEO_uv_find_pin_index(ParamHandle *handle, const int bmvertindex, const
 
 static GeoUVPinIndex *new_geo_uv_pinindex(ParamHandle *handle, const float uv[2])
 {
-  GeoUVPinIndex *pinuv = BLI_memarena_alloc(handle->arena, sizeof(*pinuv));
+  GeoUVPinIndex *pinuv = (GeoUVPinIndex *)BLI_memarena_alloc(handle->arena, sizeof(*pinuv));
   pinuv->next = NULL;
   copy_v2_v2(pinuv->uv, uv);
   pinuv->reindex = PARAM_KEY_MAX - (handle->unique_pin_count++);
@@ -3794,7 +3794,8 @@ void GEO_uv_prepare_pin_index(ParamHandle *handle, const int bmvertindex, const 
     handle->pin_hash = BLI_ghash_int_new("uv pin reindex");
   }
 
-  GeoUVPinIndex *pinuvlist = BLI_ghash_lookup(handle->pin_hash, POINTER_FROM_INT(bmvertindex));
+  GeoUVPinIndex *pinuvlist = (GeoUVPinIndex *)BLI_ghash_lookup(handle->pin_hash,
+                                                               POINTER_FROM_INT(bmvertindex));
   if (!pinuvlist) {
     BLI_ghash_insert(
         handle->pin_hash, POINTER_FROM_INT(bmvertindex), new_geo_uv_pinindex(handle, uv));
