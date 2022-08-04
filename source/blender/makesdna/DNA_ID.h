@@ -256,6 +256,7 @@ typedef struct IDOverrideLibraryProperty {
 
   /**
    * List of overriding operations (IDOverrideLibraryPropertyOperation) applied to this property.
+   * Recreated as part of the diffing, so do not store any of these elsewhere.
    */
   ListBase operations;
 
