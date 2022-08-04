@@ -602,7 +602,8 @@ char *RNA_path_append(const char *path,
 
   BLI_dynstr_append(dynstr, RNA_property_identifier(prop));
 
-  if (RNA_property_type(prop) == PROP_COLLECTION) {
+  const bool has_key = (intkey > -1) || (strkey != nullptr);
+  if (has_key && (RNA_property_type(prop) == PROP_COLLECTION)) {
     /* add ["strkey"] or [intkey] */
     BLI_dynstr_append(dynstr, "[");
 

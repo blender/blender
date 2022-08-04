@@ -1804,18 +1804,17 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
     if (!outliner_is_element_in_view(te, &region->v2d)) {
       continue;
     }
-    if (tselem->type != TSE_LIBRARY_OVERRIDE) {
+    TreeElementOverridesProperty *override_elem = tree_element_cast<TreeElementOverridesProperty>(
+        te);
+    if (!override_elem) {
       continue;
     }
 
-    TreeElementOverridesProperty &override_elem = *tree_element_cast<TreeElementOverridesProperty>(
-        te);
-
-    if (!override_elem.is_rna_path_valid) {
+    if (!override_elem->is_rna_path_valid) {
       uiBut *but = uiDefBut(block,
                             UI_BTYPE_LABEL,
                             0,
-                            override_elem.rna_path.c_str(),
+                            override_elem->rna_path.c_str(),
                             x + pad_x,
                             te->ys + pad_y,
                             item_max_width,
@@ -1830,8 +1829,28 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
       continue;
     }
 
-    PointerRNA *ptr = &override_elem.override_rna_ptr;
-    PropertyRNA *prop = &override_elem.override_rna_prop;
+    if (const TreeElementOverridesPropertyOperation *override_op_elem =
+            tree_element_cast<TreeElementOverridesPropertyOperation>(te)) {
+      StringRefNull op_label = override_op_elem->getOverrideOperationLabel();
+      uiDefBut(block,
+               UI_BTYPE_LABEL,
+               0,
+               op_label.c_str(),
+               x + pad_x,
+               te->ys + pad_y,
+               item_max_width,
+               item_height,
+               nullptr,
+               0,
+               0,
+               0,
+               0,
+               "");
+      continue;
+    }
+
+    PointerRNA *ptr = &override_elem->override_rna_ptr;
+    PropertyRNA *prop = &override_elem->override_rna_prop;
     const PropertyType prop_type = RNA_property_type(prop);
 
     uiBut *auto_but = uiDefAutoButR(block,
@@ -3101,6 +3120,7 @@ static void outliner_draw_iconrow(bContext *C,
                 TSE_GP_LAYER,
                 TSE_LIBRARY_OVERRIDE_BASE,
                 TSE_LIBRARY_OVERRIDE,
+                TSE_LIBRARY_OVERRIDE_OPERATION,
                 TSE_BONE,
                 TSE_EBONE,
                 TSE_POSE_CHANNEL,

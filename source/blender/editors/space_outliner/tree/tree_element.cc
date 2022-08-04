@@ -82,6 +82,9 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
     case TSE_LIBRARY_OVERRIDE:
       return std::make_unique<TreeElementOverridesProperty>(
           legacy_te, *static_cast<TreeElementOverridesData *>(idv));
+    case TSE_LIBRARY_OVERRIDE_OPERATION:
+      return std::make_unique<TreeElementOverridesPropertyOperation>(
+          legacy_te, *static_cast<TreeElementOverridesData *>(idv));
     case TSE_RNA_STRUCT:
       return std::make_unique<TreeElementRNAStruct>(legacy_te, *static_cast<PointerRNA *>(idv));
     case TSE_RNA_PROPERTY:
