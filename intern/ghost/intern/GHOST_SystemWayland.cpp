@@ -1197,14 +1197,14 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
   input_t *input = static_cast<input_t *>(data);
   std::lock_guard lock{input->data_offer_dnd_mutex};
 
-  CLOG_INFO(LOG, 2, "drop");
-
   data_offer_t *data_offer = input->data_offer_dnd;
 
   const std::string mime_receive = *std::find_first_of(mime_preference_order.begin(),
                                                        mime_preference_order.end(),
                                                        data_offer->types.begin(),
                                                        data_offer->types.end());
+
+  CLOG_INFO(LOG, 2, "drop mime_recieve=%s", mime_receive.c_str());
 
   auto read_uris_fn = [](input_t *const input,
                          data_offer_t *data_offer,
@@ -1213,6 +1213,9 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
     const wl_fixed_t xy[2] = {UNPACK2(data_offer->dnd.xy)};
 
     const std::string data = read_pipe(data_offer, mime_receive, nullptr);
+
+    CLOG_INFO(
+        LOG, 2, "drop_read_uris mime_receive=%s, data=%s", mime_receive.c_str(), data.c_str());
 
     wl_data_offer_finish(data_offer->id);
     wl_data_offer_destroy(data_offer->id);
@@ -1240,6 +1243,7 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
           break;
         }
         uris.push_back(data.substr(start, end - start));
+        CLOG_INFO(LOG, 2, "drop_read_uris pos=%zu, text_uri=\"%s\"", start, uris.back().c_str());
       }
 
       GHOST_TStringArray *flist = static_cast<GHOST_TStringArray *>(
@@ -1251,6 +1255,7 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
         memcpy(flist->strings[i], uris[i].data(), uris[i].size() + 1);
       }
 
+      CLOG_INFO(LOG, 2, "drop_read_uris_fn file_count=%d", flist->count);
       const wl_fixed_t scale = win->scale();
       system->pushEvent(new GHOST_EventDragnDrop(system->getMilliSeconds(),
                                                  GHOST_kEventDraggingDropDone,
@@ -1263,12 +1268,13 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
     else if (ELEM(mime_receive, mime_text_plain, mime_text_utf8)) {
       /* TODO: enable use of internal functions 'txt_insert_buf' and
        * 'text_update_edited' to behave like dropped text was pasted. */
+      CLOG_INFO(LOG, 2, "drop_read_uris_fn (text_plain, text_utf8), unhandled!");
     }
     wl_display_roundtrip(system->display());
   };
 
   /* Pass in `input->focus_dnd` instead of accessing it from `input` since the leave callback
-   * (#data_device_leave) will clear the value once this function starts. */
+   * (#data_device_handle_leave) will clear the value once this function starts. */
   std::thread read_thread(read_uris_fn, input, data_offer, input->focus_dnd, mime_receive);
   read_thread.detach();
 }
