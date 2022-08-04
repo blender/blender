@@ -30,6 +30,8 @@ void register_node_type_cmp_sephsva()
 
   cmp_node_type_base(&ntype, CMP_NODE_SEPHSVA_LEGACY, "Separate HSVA", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_sephsva_declare;
+  ntype.gather_link_search_ops = nullptr;
+
   nodeRegisterType(&ntype);
 }
 
@@ -56,6 +58,7 @@ void register_node_type_cmp_combhsva()
 
   cmp_node_type_base(&ntype, CMP_NODE_COMBHSVA_LEGACY, "Combine HSVA", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_combhsva_declare;
+  ntype.gather_link_search_ops = nullptr;
 
   nodeRegisterType(&ntype);
 }
