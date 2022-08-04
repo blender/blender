@@ -3450,6 +3450,7 @@ void RNA_def_constraint(BlenderRNA *brna)
   RNA_def_struct_refine_func(srna, "rna_ConstraintType_refine");
   RNA_def_struct_path_func(srna, "rna_Constraint_path");
   RNA_def_struct_sdna(srna, "bConstraint");
+  RNA_def_struct_ui_icon(srna, ICON_CONSTRAINT);
 
   /* strings */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
