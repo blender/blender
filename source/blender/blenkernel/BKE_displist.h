@@ -61,7 +61,6 @@ typedef struct DispList {
   int totindex; /* indexed array drawing surfaces */
 } DispList;
 
-void BKE_displist_copy(struct ListBase *lbn, const struct ListBase *lb);
 DispList *BKE_displist_find(struct ListBase *lb, int type);
 void BKE_displist_normals_add(struct ListBase *lb);
 void BKE_displist_count(const struct ListBase *lb, int *totvert, int *totface, int *tottri);
