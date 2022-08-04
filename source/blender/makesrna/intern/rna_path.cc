@@ -611,7 +611,7 @@ char *RNA_path_append(const char *path,
 
     if (strkey) {
       const int strkey_esc_max_size = (strlen(strkey) * 2) + 1;
-      char *strkey_esc = BLI_array_alloca(strkey_esc, strkey_esc_max_size);
+      char *strkey_esc = static_cast<char *>(BLI_array_alloca(strkey_esc, strkey_esc_max_size));
       BLI_str_escape(strkey_esc, strkey, strkey_esc_max_size);
       BLI_dynstr_append(dynstr, "\"");
       BLI_dynstr_append(dynstr, strkey_esc);
@@ -706,7 +706,7 @@ const char *RNA_path_array_index_token_find(const char *rna_path, const Property
 
   /* Valid 'array part' of a rna path can only have '[', ']' and digit characters.
    * It may have more than one of those (e.g. `[12][1]`) in case of multi-dimensional arrays. */
-  off_t rna_path_len = (off_t)strlen(rna_path);
+  size_t rna_path_len = (size_t)strlen(rna_path);
   if (rna_path[rna_path_len] != ']') {
     return NULL;
   }
