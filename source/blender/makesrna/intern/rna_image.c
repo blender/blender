@@ -417,7 +417,9 @@ static void rna_UDIMTile_tile_number_set(PointerRNA *ptr, int value)
   }
 }
 
-static void rna_UDIMTile_generated_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_UDIMTile_generated_update(Main *UNUSED(bmain),
+                                          Scene *UNUSED(scene),
+                                          PointerRNA *ptr)
 {
   Image *ima = (Image *)ptr->owner_id;
   ImageTile *tile = (ImageTile *)ptr->data;
