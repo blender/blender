@@ -7,6 +7,7 @@
 
 #include "GHOST_DropTargetX11.h"
 #include "GHOST_Debug.h"
+#include "GHOST_PathUtils.h"
 #include "GHOST_utildefines.h"
 
 #include <cassert>
