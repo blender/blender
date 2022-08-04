@@ -3479,7 +3479,6 @@ int CustomData_get_n_offset(const CustomData *data, const int type, const int n)
 
 int CustomData_get_offset_named(const CustomData *data, int type, const char *name)
 {
-  /* get the layer index of the active layer of type */
   int layer_index = CustomData_get_named_layer_index(data, type, name);
   if (layer_index == -1) {
     return -1;
