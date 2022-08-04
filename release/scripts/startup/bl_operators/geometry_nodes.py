@@ -3,9 +3,11 @@
 import bpy
 from bpy.types import Operator
 
+from bpy.app.translations import pgettext_data as data_
+
 
 def geometry_node_group_empty_new():
-    group = bpy.data.node_groups.new("Geometry Nodes", 'GeometryNodeTree')
+    group = bpy.data.node_groups.new(data_("Geometry Nodes"), 'GeometryNodeTree')
     group.inputs.new('NodeSocketGeometry', "Geometry")
     group.outputs.new('NodeSocketGeometry', "Geometry")
     input_node = group.nodes.new('NodeGroupInput')
@@ -45,7 +47,7 @@ class NewGeometryNodesModifier(Operator):
         return geometry_modifier_poll(context)
 
     def execute(self, context):
-        modifier = context.object.modifiers.new("GeometryNodes", "NODES")
+        modifier = context.object.modifiers.new(data_("GeometryNodes"), "NODES")
 
         if not modifier:
             return {'CANCELLED'}
