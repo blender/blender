@@ -1227,7 +1227,9 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
 
     if (mime_receive == mime_text_uri) {
       static constexpr const char *file_proto = "file://";
-      static constexpr const char *crlf = "\r\n";
+      /* NOTE: some applications CRLF (`\r\n`) GTK3 for e.g. & others don't `pcmanfm-qt`.
+       * So support both, once `\n` is found, strip the preceding `\r` if found. */
+      static constexpr const char *lf = "\n";
 
       GHOST_WindowWayland *win = ghost_wl_surface_user_data(surface);
       std::vector<std::string> uris;
@@ -1236,11 +1238,15 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
       while (true) {
         pos = data.find(file_proto, pos);
         const size_t start = pos + sizeof(file_proto) - 1;
-        pos = data.find(crlf, pos);
-        const size_t end = pos;
+        pos = data.find(lf, pos);
 
         if (pos == std::string::npos) {
           break;
+        }
+        /* Account for 'CRLF' case. */
+        size_t end = pos;
+        if (data[end - 1] == '\r') {
+          end -= 1;
         }
         uris.push_back(data.substr(start, end - start));
         CLOG_INFO(LOG, 2, "drop_read_uris pos=%zu, text_uri=\"%s\"", start, uris.back().c_str());
