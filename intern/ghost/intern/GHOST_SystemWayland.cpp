@@ -11,6 +11,7 @@
 #include "GHOST_EventDragnDrop.h"
 #include "GHOST_EventKey.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_PathUtils.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_utildefines.h"
@@ -1257,8 +1258,7 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
       flist->count = int(uris.size());
       flist->strings = static_cast<uint8_t **>(malloc(uris.size() * sizeof(uint8_t *)));
       for (size_t i = 0; i < uris.size(); i++) {
-        flist->strings[i] = static_cast<uint8_t *>(malloc((uris[i].size() + 1) * sizeof(uint8_t)));
-        memcpy(flist->strings[i], uris[i].data(), uris[i].size() + 1);
+        flist->strings[i] = (uint8_t *)GHOST_URL_decode_alloc(uris[i].c_str());
       }
 
       CLOG_INFO(LOG, 2, "drop_read_uris_fn file_count=%d", flist->count);
