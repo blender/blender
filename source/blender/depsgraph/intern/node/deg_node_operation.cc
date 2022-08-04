@@ -84,6 +84,8 @@ const char *operationCodeAsString(OperationCode opcode)
     /* Geometry. */
     case OperationCode::GEOMETRY_EVAL_INIT:
       return "GEOMETRY_EVAL_INIT";
+    case OperationCode::MODIFIER:
+      return "MODIFIER";
     case OperationCode::GEOMETRY_EVAL:
       return "GEOMETRY_EVAL";
     case OperationCode::GEOMETRY_EVAL_DONE:

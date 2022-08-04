@@ -769,11 +769,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
     build_object(-1, object->parent, DEG_ID_LINKED_INDIRECTLY, is_visible);
   }
   /* Modifiers. */
-  if (object->modifiers.first != nullptr) {
-    BuilderWalkUserData data;
-    data.builder = this;
-    BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
-  }
+  build_object_modifiers(object);
   /* Grease Pencil Modifiers. */
   if (object->greasepencil_modifiers.first != nullptr) {
     BuilderWalkUserData data;
@@ -875,6 +871,22 @@ void DepsgraphNodeBuilder::build_object_instance_collection(Object *object, bool
   is_parent_collection_visible_ = is_object_visible;
   build_collection(nullptr, object->instance_collection);
   is_parent_collection_visible_ = is_current_parent_collection_visible;
+}
+
+void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
+{
+  if (BLI_listbase_is_empty(&object->modifiers)) {
+    return;
+  }
+
+  LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+    add_operation_node(
+        &object->id, NodeType::GEOMETRY, OperationCode::MODIFIER, nullptr, modifier->name);
+  }
+
+  BuilderWalkUserData data;
+  data.builder = this;
+  BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
 }
 
 void DepsgraphNodeBuilder::build_object_data(Object *object)

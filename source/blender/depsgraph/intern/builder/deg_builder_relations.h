@@ -265,6 +265,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_object(Object *object);
   virtual void build_object_from_view_layer_base(Object *object);
   virtual void build_object_layer_component_relations(Object *object);
+  virtual void build_object_modifiers(Object *object);
   virtual void build_object_data(Object *object);
   virtual void build_object_data_camera(Object *object);
   virtual void build_object_data_geometry(Object *object);

@@ -298,7 +298,8 @@ void DepsgraphRelationBuilder::add_depends_on_transform_relation(const DepsNodeH
 {
   IDNode *id_node = handle->node->owner->owner;
   ID *id = id_node->id_orig;
-  ComponentKey geometry_key(id, NodeType::GEOMETRY);
+  const OperationKey geometry_key(
+      id, NodeType::GEOMETRY, OperationCode::MODIFIER, handle->node->name.c_str());
   /* Wire up the actual relation. */
   add_depends_on_transform_relation(id, geometry_key, description);
 }
@@ -718,11 +719,7 @@ void DepsgraphRelationBuilder::build_object(Object *object)
   }
 
   /* Modifiers. */
-  if (object->modifiers.first != nullptr) {
-    BuilderWalkUserData data;
-    data.builder = this;
-    BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
-  }
+  build_object_modifiers(object);
 
   /* Grease Pencil Modifiers. */
   if (object->greasepencil_modifiers.first != nullptr) {
@@ -868,6 +865,53 @@ void DepsgraphRelationBuilder::build_object_layer_component_relations(Object *ob
   OperationKey synchronize_key(
       &object->id, NodeType::SYNCHRONIZATION, OperationCode::SYNCHRONIZE_TO_ORIGINAL);
   add_relation(object_from_layer_exit_key, synchronize_key, "Synchronize to Original");
+}
+
+void DepsgraphRelationBuilder::build_object_modifiers(Object *object)
+{
+  if (BLI_listbase_is_empty(&object->modifiers)) {
+    return;
+  }
+
+  const OperationKey eval_init_key(
+      &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_INIT);
+  const OperationKey eval_key(&object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
+
+  ModifierUpdateDepsgraphContext ctx = {};
+  ctx.scene = scene_;
+  ctx.object = object;
+
+  OperationKey previous_key = eval_init_key;
+  LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+    const OperationKey modifier_key(
+        &object->id, NodeType::GEOMETRY, OperationCode::MODIFIER, modifier->name);
+
+    /* Relation for the modifier stack chain. */
+    add_relation(previous_key, modifier_key, "Modifier");
+
+    const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)modifier->type);
+    if (mti->updateDepsgraph) {
+      const BuilderStack::ScopedEntry stack_entry = stack_.trace(*modifier);
+
+      DepsNodeHandle handle = create_node_handle(modifier_key);
+      ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);
+      mti->updateDepsgraph(modifier, &ctx);
+    }
+
+    /* Time dependency. */
+    if (BKE_modifier_depends_ontime(scene_, modifier)) {
+      const TimeSourceKey time_src_key;
+      add_relation(time_src_key, modifier_key, "Time Source -> Modifier");
+    }
+
+    previous_key = modifier_key;
+  }
+  add_relation(previous_key, eval_key, "modifier stack order");
+
+  /* Build IDs referenced by the modifiers. */
+  BuilderWalkUserData data;
+  data.builder = this;
+  BKE_modifiers_foreach_ID_link(object, modifier_walk, &data);
 }
 
 void DepsgraphRelationBuilder::build_object_data(Object *object)
@@ -2193,26 +2237,6 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
    * evaluated prior to Scene's CoW is ready. */
   OperationKey scene_key(&scene_->id, NodeType::PARAMETERS, OperationCode::SCENE_EVAL);
   add_relation(scene_key, obdata_ubereval_key, "CoW Relation", RELATION_FLAG_NO_FLUSH);
-  /* Modifiers */
-  if (object->modifiers.first != nullptr) {
-    ModifierUpdateDepsgraphContext ctx = {};
-    ctx.scene = scene_;
-    ctx.object = object;
-    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-      const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
-      if (mti->updateDepsgraph) {
-        const BuilderStack::ScopedEntry stack_entry = stack_.trace(*md);
-
-        DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
-        ctx.node = reinterpret_cast<::DepsNodeHandle *>(&handle);
-        mti->updateDepsgraph(md, &ctx);
-      }
-      if (BKE_modifier_depends_ontime(scene_, md)) {
-        TimeSourceKey time_src_key;
-        add_relation(time_src_key, obdata_ubereval_key, "Time Source -> Modifier");
-      }
-    }
-  }
   /* Grease Pencil Modifiers. */
   if (object->greasepencil_modifiers.first != nullptr) {
     ModifierUpdateDepsgraphContext ctx = {};
@@ -2256,8 +2280,13 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
   if (ELEM(object->type, OB_MESH, OB_CURVES_LEGACY, OB_LATTICE)) {
     // add geometry collider relations
   }
-  /* Make sure uber update is the last in the dependencies. */
-  add_relation(geom_init_key, obdata_ubereval_key, "Object Geometry UberEval");
+  /* Make sure uber update is the last in the dependencies.
+   * Only do it here unless there are modifiers. This avoids transitive relations. */
+  if (BLI_listbase_is_empty(&object->modifiers)) {
+    OperationKey obdata_ubereval_key(
+        &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
+    add_relation(geom_init_key, obdata_ubereval_key, "Object Geometry UberEval");
+  }
   if (object->type == OB_MBALL) {
     Object *mom = BKE_mball_basis_find(scene_, object);
     ComponentKey mom_geom_key(&mom->id, NodeType::GEOMETRY);
