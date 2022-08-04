@@ -113,7 +113,8 @@ typedef enum eTreeStoreElemType {
   TSE_GPENCIL_EFFECT_BASE = 42,
   TSE_GPENCIL_EFFECT = 43,
   TSE_LIBRARY_OVERRIDE_BASE = 44,
-  TSE_LIBRARY_OVERRIDE = 45,
+  TSE_LIBRARY_OVERRIDE = 45,           /* No ID */
+  TSE_LIBRARY_OVERRIDE_OPERATION = 46, /* No ID */
   TSE_GENERIC_LABEL = 47,              /* No ID */
 } eTreeStoreElemType;
 
