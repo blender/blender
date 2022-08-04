@@ -72,7 +72,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   const NodeDeclaration &declaration = *params.node_type().fixed_declaration;
   search_link_ops_for_declarations(params, declaration.inputs().take_front(2));
 
-  if (params.in_out() == SOCK_OUT) {
+  if (params.in_out() == SOCK_IN) {
     const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
         static_cast<eNodeSocketDatatype>(params.other_socket().type));
     if (type && *type != CD_PROP_STRING) {
