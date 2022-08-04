@@ -1001,10 +1001,6 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata,
   CustomData_MeshMasks mask = {0};
   if (check_meshmask) {
     mask = CD_MASK_MESH;
-    /* Normal data isn't in the mask since it is derived data,
-     * but it is valid and should not be removed. */
-    mask.vmask |= CD_MASK_NORMAL;
-    mask.pmask |= CD_MASK_NORMAL;
   }
 
   is_valid &= mesh_validate_customdata(
