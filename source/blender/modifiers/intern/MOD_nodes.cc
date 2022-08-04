@@ -307,7 +307,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   if (needs_own_transform_relation) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "Nodes Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "Nodes Modifier");
   }
 }
 

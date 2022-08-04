@@ -171,7 +171,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 
   if (need_transform_relation) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "Warp Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "Warp Modifier");
   }
 }
 

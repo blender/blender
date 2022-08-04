@@ -80,7 +80,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
     }
   }
   if (do_add_own_transform) {
-    DEG_add_modifier_to_transform_relation(ctx->node, "UV Project Modifier");
+    DEG_add_depends_on_transform_relation(ctx->node, "UV Project Modifier");
   }
 }
 

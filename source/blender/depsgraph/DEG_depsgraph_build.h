@@ -161,7 +161,7 @@ void DEG_add_generic_id_relation(struct DepsNodeHandle *node_handle,
  * This function will take care of checking which operation is required to
  * have transformation for the modifier, taking into account possible simulation solvers.
  */
-void DEG_add_modifier_to_transform_relation(struct DepsNodeHandle *node_handle,
+void DEG_add_depends_on_transform_relation(struct DepsNodeHandle *node_handle,
                                             const char *description);
 
 /**

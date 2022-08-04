@@ -177,7 +177,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   /* Adds relation from proper transformation operation to the modifier.
    * Takes care of checking for possible physics solvers modifying position
    * of this object. */
-  void add_modifier_to_transform_relation(const DepsNodeHandle *handle, const char *description);
+  void add_depends_on_transform_relation(const DepsNodeHandle *handle, const char *description);
 
   void add_customdata_mask(Object *object, const DEGCustomDataMeshMasks &customdata_masks);
   void add_special_eval_flag(ID *id, uint32_t flag);

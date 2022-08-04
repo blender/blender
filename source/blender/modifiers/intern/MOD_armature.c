@@ -125,7 +125,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 
     DEG_add_object_relation(ctx->node, amd->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
   }
-  DEG_add_modifier_to_transform_relation(ctx->node, "Armature Modifier");
+  DEG_add_depends_on_transform_relation(ctx->node, "Armature Modifier");
 }
 
 static void deformVerts(ModifierData *md,
