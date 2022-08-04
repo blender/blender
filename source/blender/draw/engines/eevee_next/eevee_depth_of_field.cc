@@ -430,6 +430,10 @@ void DepthOfField::scatter_pass_sync()
     DRW_shgroup_uniform_texture_ref(grp, "bokeh_lut_tx", &bokeh_scatter_lut_tx_);
     DRW_shgroup_uniform_texture_ref(grp, "occlusion_tx", &occlusion_tx_);
     DRW_shgroup_call_procedural_indirect(grp, GPU_PRIM_TRI_STRIP, nullptr, scatter_buf);
+    if (pass == 0) {
+      /* Avoid background gather pass writing to the occlusion_tx mid pass. */
+      DRW_shgroup_barrier(grp, GPU_BARRIER_SHADER_IMAGE_ACCESS);
+    }
   }
 }
 
