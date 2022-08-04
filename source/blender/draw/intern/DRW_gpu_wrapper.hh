@@ -807,12 +807,22 @@ class TextureFromPool : public Texture, NonMovable {
   }
 
   /**
-   * Swap the GPUTexture pointers of the two texture.
+   * Swap the content of the two textures.
+   * Also change ownership accordingly if needed.
    */
+  static void swap(TextureFromPool &a, Texture &b)
+  {
+    Texture::swap(a, b);
+    DRW_texture_pool_give_texture_ownership(DST.vmempool->texture_pool, a);
+    DRW_texture_pool_take_texture_ownership(DST.vmempool->texture_pool, b);
+  }
+  static void swap(Texture &a, TextureFromPool &b)
+  {
+    swap(b, a);
+  }
   static void swap(TextureFromPool &a, TextureFromPool &b)
   {
-    SWAP(GPUTexture *, a.tx_, b.tx_);
-    SWAP(const char *, a.name_, b.name_);
+    Texture::swap(a, b);
   }
 
   /** Remove methods that are forbidden with this type of textures. */
