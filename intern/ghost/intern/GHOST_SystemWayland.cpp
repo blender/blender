@@ -1221,6 +1221,9 @@ static void data_device_handle_drop(void *data, struct wl_data_device * /*wl_dat
     wl_data_offer_finish(data_offer->id);
     wl_data_offer_destroy(data_offer->id);
 
+    if (input->data_offer_dnd == data_offer) {
+      input->data_offer_dnd = nullptr;
+    }
     delete data_offer;
     data_offer = nullptr;
 
