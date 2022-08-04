@@ -19,6 +19,8 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 
+#include "BLT_translation.h"
+
 #include "DEG_depsgraph.h"
 
 #include "ED_gpencil.h"
@@ -37,7 +39,7 @@ static int gpencil_stroke_material(Main *bmain,
                                    const bool fill)
 {
   int index;
-  Material *ma = BKE_gpencil_object_material_ensure_by_name(bmain, ob, pct->name, &index);
+  Material *ma = BKE_gpencil_object_material_ensure_by_name(bmain, ob, DATA_(pct->name), &index);
 
   copy_v4_v4(ma->gp_style->stroke_rgba, pct->line);
   srgb_to_linearrgb_v4(ma->gp_style->stroke_rgba, ma->gp_style->stroke_rgba);
@@ -150,37 +152,37 @@ static const float data0[175 * GP_PRIM_DATABUF_SIZE] = {
 /* Color Data */
 
 static const ColorTemplate gp_stroke_material_black = {
-    "Black",
+    N_("Black"),
     {0.0f, 0.0f, 0.0f, 1.0f},
     {0.0f, 0.0f, 0.0f, 0.0f},
 };
 
 static const ColorTemplate gp_stroke_material_white = {
-    "White",
+    N_("White"),
     {1.0f, 1.0f, 1.0f, 1.0f},
     {0.0f, 0.0f, 0.0f, 0.0f},
 };
 
 static const ColorTemplate gp_stroke_material_red = {
-    "Red",
+    N_("Red"),
     {1.0f, 0.0f, 0.0f, 1.0f},
     {0.0f, 0.0f, 0.0f, 0.0f},
 };
 
 static const ColorTemplate gp_stroke_material_green = {
-    "Green",
+    N_("Green"),
     {0.0f, 1.0f, 0.0f, 1.0f},
     {0.0f, 0.0f, 0.0f, 0.0f},
 };
 
 static const ColorTemplate gp_stroke_material_blue = {
-    "Blue",
+    N_("Blue"),
     {0.0f, 0.0f, 1.0f, 1.0f},
     {0.0f, 0.0f, 0.0f, 0.0f},
 };
 
 static const ColorTemplate gp_stroke_material_grey = {
-    "Grey",
+    N_("Grey"),
     {0.358f, 0.358f, 0.358f, 1.0f},
     {0.5f, 0.5f, 0.5f, 1.0f},
 };

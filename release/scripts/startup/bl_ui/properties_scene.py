@@ -13,6 +13,8 @@ from bl_ui.properties_physics_common import (
     effector_weights_ui,
 )
 
+from bpy.app.translations import pgettext_iface as iface_
+
 
 class SCENE_UL_keying_set_paths(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
@@ -82,17 +84,17 @@ class SceneKeyingSetsPanel:
     @staticmethod
     def draw_keyframing_settings(context, layout, ks, ksp):
         SceneKeyingSetsPanel._draw_keyframing_setting(
-            context, layout, ks, ksp, "Needed",
+            context, layout, ks, ksp, iface_("Needed"),
             "use_insertkey_override_needed", "use_insertkey_needed",
             userpref_fallback="use_keyframe_insert_needed",
         )
         SceneKeyingSetsPanel._draw_keyframing_setting(
-            context, layout, ks, ksp, "Visual",
+            context, layout, ks, ksp, iface_("Visual"),
             "use_insertkey_override_visual", "use_insertkey_visual",
             userpref_fallback="use_visual_keying",
         )
         SceneKeyingSetsPanel._draw_keyframing_setting(
-            context, layout, ks, ksp, "XYZ to RGB",
+            context, layout, ks, ksp, iface_("XYZ to RGB"),
             "use_insertkey_override_xyz_to_rgb", "use_insertkey_xyz_to_rgb",
         )
 

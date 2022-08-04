@@ -675,7 +675,7 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd,
   }
 
   /* auto-name */
-  BLI_strncpy(gpl->info, name, sizeof(gpl->info));
+  BLI_strncpy(gpl->info, DATA_(name), sizeof(gpl->info));
   BLI_uniquename(&gpd->layers,
                  gpl,
                  (gpd->flag & GP_DATA_ANNOTATIONS) ? DATA_("Note") : DATA_("GP_Layer"),
