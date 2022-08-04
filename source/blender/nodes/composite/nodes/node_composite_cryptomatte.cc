@@ -379,6 +379,8 @@ void register_node_type_cmp_cryptomatte_legacy()
   node_type_init(&ntype, file_ns::node_init_cryptomatte_legacy);
   node_type_storage(
       &ntype, "NodeCryptomatte", file_ns::node_free_cryptomatte, file_ns::node_copy_cryptomatte);
+  ntype.gather_link_search_ops = nullptr;
+
   nodeRegisterType(&ntype);
 }
 

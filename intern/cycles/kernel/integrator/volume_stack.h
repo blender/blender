@@ -39,7 +39,7 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
         break;
       }
 
-      if (entry.object == sd->object) {
+      if (entry.object == sd->object && entry.shader == sd->shader) {
         /* Shift back next stack entries. */
         do {
           entry = stack_read(i + 1);
@@ -61,7 +61,7 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
       }
 
       /* Already in the stack? then we have nothing to do. */
-      if (entry.object == sd->object) {
+      if (entry.object == sd->object && entry.shader == sd->shader) {
         return;
       }
     }
