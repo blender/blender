@@ -1526,7 +1526,7 @@ bool blf_font_size(FontBLF *font, float size, unsigned int dpi)
   }
 
   /* FreeType uses fixed-point integers in 64ths. */
-  FT_UInt ft_size = lroundf(size * 64.0f);
+  FT_UInt ft_size = round_fl_to_uint(size * 64.0f);
   /* Adjust our new size to be on even 64ths. */
   size = (float)ft_size / 64.0f;
 
