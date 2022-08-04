@@ -602,17 +602,17 @@ class Texture : NonCopyable {
   /**
    * Returns true if the texture has been allocated or acquired from the pool.
    */
-  bool is_valid(void) const
+  bool is_valid() const
   {
     return tx_ != nullptr;
   }
 
-  int width(void) const
+  int width() const
   {
     return GPU_texture_width(tx_);
   }
 
-  int height(void) const
+  int height() const
   {
     return GPU_texture_height(tx_);
   }
@@ -622,27 +622,27 @@ class Texture : NonCopyable {
     return GPU_texture_width(tx_) * GPU_texture_height(tx_);
   }
 
-  bool depth(void) const
+  bool depth() const
   {
     return GPU_texture_depth(tx_);
   }
 
-  bool is_stencil(void) const
+  bool is_stencil() const
   {
     return GPU_texture_stencil(tx_);
   }
 
-  bool is_integer(void) const
+  bool is_integer() const
   {
     return GPU_texture_integer(tx_);
   }
 
-  bool is_cube(void) const
+  bool is_cube() const
   {
     return GPU_texture_cube(tx_);
   }
 
-  bool is_array(void) const
+  bool is_array() const
   {
     return GPU_texture_array(tx_);
   }
@@ -796,7 +796,7 @@ class TextureFromPool : public Texture, NonMovable {
         DST.vmempool->texture_pool, UNPACK2(extent), format);
   }
 
-  void release(void)
+  void release()
   {
     /* Allows multiple release. */
     if (this->tx_ == nullptr) {
