@@ -81,10 +81,10 @@ static void blf_face_finalizer(void *object)
 }
 
 /* Called in response to FTC_Manager_LookupFace. Add a face to our font. */
-FT_Error blf_cache_face_requester(FTC_FaceID faceID,
-                                  FT_Library lib,
-                                  FT_Pointer reqData,
-                                  FT_Face *face)
+static FT_Error blf_cache_face_requester(FTC_FaceID faceID,
+                                         FT_Library lib,
+                                         FT_Pointer UNUSED(reqData),
+                                         FT_Face *face)
 {
   FontBLF *font = (FontBLF *)faceID;
   int err = FT_Err_Cannot_Open_Resource;
@@ -1526,7 +1526,7 @@ bool blf_font_size(FontBLF *font, float size, unsigned int dpi)
   }
 
   /* FreeType uses fixed-point integers in 64ths. */
-  FT_F26Dot6 ft_size = lroundf(size * 64.0f);
+  FT_UInt ft_size = lroundf(size * 64.0f);
   /* Adjust our new size to be on even 64ths. */
   size = (float)ft_size / 64.0f;
 
