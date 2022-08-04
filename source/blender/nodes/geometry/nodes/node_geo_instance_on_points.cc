@@ -70,6 +70,9 @@ static void add_instances_from_component(
   evaluator.evaluate();
 
   const IndexMask selection = evaluator.get_evaluated_selection_as_mask();
+  if (selection.is_empty()) {
+    return;
+  }
 
   /* The initial size of the component might be non-zero when this function is called for multiple
    * component types. */
