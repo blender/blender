@@ -22,15 +22,6 @@ string TimeSourceKey::identifier() const
 ////////////////////////////////////////////////////////////////////////////////
 // Component.
 
-ComponentKey::ComponentKey() : id(nullptr), type(NodeType::UNDEFINED), name("")
-{
-}
-
-ComponentKey::ComponentKey(ID *id, NodeType type, const char *name)
-    : id(id), type(type), name(name)
-{
-}
-
 string ComponentKey::identifier() const
 {
   const char *idname = (id) ? id->name : "<None>";
@@ -46,86 +37,6 @@ string ComponentKey::identifier() const
 
 ////////////////////////////////////////////////////////////////////////////////
 // Operation.
-
-OperationKey::OperationKey()
-    : id(nullptr),
-      component_type(NodeType::UNDEFINED),
-      component_name(""),
-      opcode(OperationCode::OPERATION),
-      name(""),
-      name_tag(-1)
-{
-}
-
-OperationKey::OperationKey(ID *id, NodeType component_type, const char *name, int name_tag)
-    : id(id),
-      component_type(component_type),
-      component_name(""),
-      opcode(OperationCode::OPERATION),
-      name(name),
-      name_tag(name_tag)
-{
-}
-
-OperationKey::OperationKey(
-    ID *id, NodeType component_type, const char *component_name, const char *name, int name_tag)
-    : id(id),
-      component_type(component_type),
-      component_name(component_name),
-      opcode(OperationCode::OPERATION),
-      name(name),
-      name_tag(name_tag)
-{
-}
-
-OperationKey::OperationKey(ID *id, NodeType component_type, OperationCode opcode)
-    : id(id),
-      component_type(component_type),
-      component_name(""),
-      opcode(opcode),
-      name(""),
-      name_tag(-1)
-{
-}
-
-OperationKey::OperationKey(ID *id,
-                           NodeType component_type,
-                           const char *component_name,
-                           OperationCode opcode)
-    : id(id),
-      component_type(component_type),
-      component_name(component_name),
-      opcode(opcode),
-      name(""),
-      name_tag(-1)
-{
-}
-
-OperationKey::OperationKey(
-    ID *id, NodeType component_type, OperationCode opcode, const char *name, int name_tag)
-    : id(id),
-      component_type(component_type),
-      component_name(""),
-      opcode(opcode),
-      name(name),
-      name_tag(name_tag)
-{
-}
-
-OperationKey::OperationKey(ID *id,
-                           NodeType component_type,
-                           const char *component_name,
-                           OperationCode opcode,
-                           const char *name,
-                           int name_tag)
-    : id(id),
-      component_type(component_type),
-      component_name(component_name),
-      opcode(opcode),
-      name(name),
-      name_tag(name_tag)
-{
-}
 
 string OperationKey::identifier() const
 {

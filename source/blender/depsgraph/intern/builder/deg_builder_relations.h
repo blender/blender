@@ -91,42 +91,107 @@ struct TimeSourceKey {
 };
 
 struct ComponentKey {
-  ComponentKey();
-  ComponentKey(ID *id, NodeType type, const char *name = "");
+  ComponentKey() = default;
+
+  inline ComponentKey(const ID *id, NodeType type, const char *name = "")
+      : id(id), type(type), name(name)
+  {
+  }
 
   string identifier() const;
 
-  ID *id;
-  NodeType type;
-  const char *name;
+  const ID *id = nullptr;
+  NodeType type = NodeType::UNDEFINED;
+  const char *name = "";
 };
 
 struct OperationKey {
-  OperationKey();
-  OperationKey(ID *id, NodeType component_type, const char *name, int name_tag = -1);
-  OperationKey(
-      ID *id, NodeType component_type, const char *component_name, const char *name, int name_tag);
+  OperationKey() = default;
 
-  OperationKey(ID *id, NodeType component_type, OperationCode opcode);
-  OperationKey(ID *id, NodeType component_type, const char *component_name, OperationCode opcode);
+  inline OperationKey(const ID *id, NodeType component_type, const char *name, int name_tag = -1)
+      : id(id),
+        component_type(component_type),
+        component_name(""),
+        opcode(OperationCode::OPERATION),
+        name(name),
+        name_tag(name_tag)
+  {
+  }
 
-  OperationKey(
-      ID *id, NodeType component_type, OperationCode opcode, const char *name, int name_tag = -1);
-  OperationKey(ID *id,
+  OperationKey(const ID *id,
+               NodeType component_type,
+               const char *component_name,
+               const char *name,
+               int name_tag)
+      : id(id),
+        component_type(component_type),
+        component_name(component_name),
+        opcode(OperationCode::OPERATION),
+        name(name),
+        name_tag(name_tag)
+  {
+  }
+
+  OperationKey(const ID *id, NodeType component_type, OperationCode opcode)
+      : id(id),
+        component_type(component_type),
+        component_name(""),
+        opcode(opcode),
+        name(""),
+        name_tag(-1)
+  {
+  }
+
+  OperationKey(const ID *id,
+               NodeType component_type,
+               const char *component_name,
+               OperationCode opcode)
+      : id(id),
+        component_type(component_type),
+        component_name(component_name),
+        opcode(opcode),
+        name(""),
+        name_tag(-1)
+  {
+  }
+
+  OperationKey(const ID *id,
+               NodeType component_type,
+               OperationCode opcode,
+               const char *name,
+               int name_tag = -1)
+      : id(id),
+        component_type(component_type),
+        component_name(""),
+        opcode(opcode),
+        name(name),
+        name_tag(name_tag)
+  {
+  }
+
+  OperationKey(const ID *id,
                NodeType component_type,
                const char *component_name,
                OperationCode opcode,
                const char *name,
-               int name_tag = -1);
+               int name_tag = -1)
+      : id(id),
+        component_type(component_type),
+        component_name(component_name),
+        opcode(opcode),
+        name(name),
+        name_tag(name_tag)
+  {
+  }
 
   string identifier() const;
 
-  ID *id;
-  NodeType component_type;
-  const char *component_name;
-  OperationCode opcode;
-  const char *name;
-  int name_tag;
+  const ID *id = nullptr;
+  NodeType component_type = NodeType::UNDEFINED;
+  const char *component_name = "";
+  OperationCode opcode = OperationCode::OPERATION;
+  const char *name = "";
+  int name_tag = -1;
 };
 
 struct RNAPathKey {
