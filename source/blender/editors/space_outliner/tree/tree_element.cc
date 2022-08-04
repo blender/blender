@@ -17,6 +17,7 @@
 #include "tree_element_driver.hh"
 #include "tree_element_gpencil_layer.hh"
 #include "tree_element_id.hh"
+#include "tree_element_label.hh"
 #include "tree_element_nla.hh"
 #include "tree_element_overrides.hh"
 #include "tree_element_rna.hh"
@@ -52,6 +53,8 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
   switch (type) {
     case TSE_SOME_ID:
       return TreeElementID::createFromID(legacy_te, *static_cast<ID *>(idv));
+    case TSE_GENERIC_LABEL:
+      return std::make_unique<TreeElementLabel>(legacy_te, static_cast<const char *>(idv));
     case TSE_ANIM_DATA:
       return std::make_unique<TreeElementAnimData>(legacy_te,
                                                    *reinterpret_cast<IdAdtTemplate *>(idv)->adt);
@@ -103,6 +106,11 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
 StringRefNull AbstractTreeElement::getWarning() const
 {
   return "";
+}
+
+std::optional<BIFIconID> AbstractTreeElement::getIcon() const
+{
+  return {};
 }
 
 void AbstractTreeElement::uncollapse_by_default(TreeElement *legacy_te)
