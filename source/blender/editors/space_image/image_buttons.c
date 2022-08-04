@@ -869,7 +869,8 @@ void uiTemplateImage(uiLayout *layout,
     uiItemS(col);
 
     uiItemR(col, &imaptr, "generated_type", UI_ITEM_R_EXPAND, IFACE_("Type"), ICON_NONE);
-    if (ima->gen_type == IMA_GENTYPE_BLANK) {
+    ImageTile *base_tile = BKE_image_get_tile(ima, 0);
+    if (base_tile->gen_type == IMA_GENTYPE_BLANK) {
       uiItemR(col, &imaptr, "generated_color", 0, NULL, ICON_NONE);
     }
   }

@@ -454,7 +454,6 @@ struct UndoImageBuf {
   struct {
     short source;
     bool use_float;
-    char gen_type;
   } image_state;
 };
 
@@ -473,7 +472,6 @@ static UndoImageBuf *ubuf_from_image_no_tiles(Image *image, const ImBuf *ibuf)
       MEM_callocN(sizeof(*ubuf->tiles) * ubuf->tiles_len, __func__));
 
   BLI_strncpy(ubuf->ibuf_name, ibuf->name, sizeof(ubuf->ibuf_name));
-  ubuf->image_state.gen_type = image->gen_type;
   ubuf->image_state.source = image->source;
   ubuf->image_state.use_float = ibuf->rect_float != nullptr;
 
