@@ -44,6 +44,7 @@ class ShadingView {
   /** Raytracing persistent buffers. Only opaque and refraction can have surface tracing. */
   // RaytraceBuffer rt_buffer_opaque_;
   // RaytraceBuffer rt_buffer_refract_;
+  DepthOfFieldBuffer dof_buffer_;
 
   Framebuffer prepass_fb_;
   Framebuffer combined_fb_;

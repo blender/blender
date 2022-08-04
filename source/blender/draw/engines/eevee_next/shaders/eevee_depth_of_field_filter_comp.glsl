@@ -15,8 +15,9 @@ struct FilterSample {
 /** \name Pixel cache.
  * \{ */
 
-shared vec4 color_cache[10][10];
-shared float weight_cache[10][10];
+const uint cache_size = gl_WorkGroupSize.x + 2;
+shared vec4 color_cache[cache_size][cache_size];
+shared float weight_cache[cache_size][cache_size];
 
 void cache_init()
 {
@@ -40,11 +41,12 @@ void cache_init()
    */
 
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy) - 1;
-  for (int y = 0; y < 2; y++) {
-    for (int x = 0; x < 2; x++) {
-      if (all(lessThan(gl_LocalInvocationID.xy, uvec2(5)))) {
-        ivec2 cache_texel = ivec2(gl_LocalInvocationID.xy) + ivec2(x, y) * 5;
-        ivec2 load_texel = clamp(texel + ivec2(x, y) * 5, ivec2(0), textureSize(color_tx, 0) - 1);
+  if (all(lessThan(gl_LocalInvocationID.xy, uvec2(cache_size / 2u)))) {
+    for (int y = 0; y < 2; y++) {
+      for (int x = 0; x < 2; x++) {
+        ivec2 offset = ivec2(x, y) * ivec2(cache_size / 2u);
+        ivec2 cache_texel = ivec2(gl_LocalInvocationID.xy) + offset;
+        ivec2 load_texel = clamp(texel + offset, ivec2(0), textureSize(color_tx, 0) - 1);
 
         color_cache[cache_texel.y][cache_texel.x] = texelFetch(color_tx, load_texel, 0);
         weight_cache[cache_texel.y][cache_texel.x] = texelFetch(weight_tx, load_texel, 0).r;

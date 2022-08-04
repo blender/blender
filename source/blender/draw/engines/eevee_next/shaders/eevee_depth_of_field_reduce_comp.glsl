@@ -73,9 +73,10 @@ float fast_luma(vec3 color)
   return (2.0 * color.g) + color.r + color.b;
 }
 
-shared vec4 color_cache[8][8];
-shared float coc_cache[8][8];
-shared float do_scatter[8][8];
+const uint cache_size = gl_WorkGroupSize.x;
+shared vec4 color_cache[cache_size][cache_size];
+shared float coc_cache[cache_size][cache_size];
+shared float do_scatter[cache_size][cache_size];
 
 void main()
 {
@@ -200,9 +201,9 @@ void main()
   imageStore(inout_color_lod0_img, texel, color_cache[LOCAL_INDEX]);
 
   /* Recursive downsample. */
-  for (uint i = 1u; i < DOF_MIP_MAX; i++) {
+  for (uint i = 1u; i < DOF_MIP_COUNT; i++) {
     barrier();
-    if (all(lessThan(gl_LocalInvocationID.xy, uvec2(1u << (DOF_MIP_MAX - 1u - i))))) {
+    if (all(lessThan(gl_LocalInvocationID.xy, uvec2(1u << (DOF_MIP_COUNT - 1u - i))))) {
       uvec2 texel_local = gl_LocalInvocationID.xy << i;
 
       /* TODO(fclem): Could use wave shuffle intrinsics to avoid LDS as suggested by the paper. */

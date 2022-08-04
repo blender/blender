@@ -7,6 +7,7 @@
 #pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_camera_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_velocity_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 
 /* Return scene linear Z depth from the camera or radial depth for panoramic cameras. */
 float film_depth_convert_to_scene(float depth)
@@ -18,32 +19,6 @@ float film_depth_convert_to_scene(float depth)
   return abs(get_view_z_from_depth(depth));
 }
 
-vec3 film_YCoCg_from_scene_linear(vec3 rgb_color)
-{
-  const mat3 colorspace_tx = transpose(mat3(vec3(1, 2, 1),     /* Y */
-                                            vec3(2, 0, -2),    /* Co */
-                                            vec3(-1, 2, -1))); /* Cg */
-  return colorspace_tx * rgb_color;
-}
-
-vec4 film_YCoCg_from_scene_linear(vec4 rgba_color)
-{
-  return vec4(film_YCoCg_from_scene_linear(rgba_color.rgb), rgba_color.a);
-}
-
-vec3 film_scene_linear_from_YCoCg(vec3 ycocg_color)
-{
-  float Y = ycocg_color.x;
-  float Co = ycocg_color.y;
-  float Cg = ycocg_color.z;
-
-  vec3 rgb_color;
-  rgb_color.r = Y + Co - Cg;
-  rgb_color.g = Y + Cg;
-  rgb_color.b = Y - Co - Cg;
-  return rgb_color * 0.25;
-}
-
 /* Load a texture sample in a specific format. Combined pass needs to use this. */
 vec4 film_texelfetch_as_YCoCg_opacity(sampler2D tx, ivec2 texel)
 {
@@ -51,7 +26,7 @@ vec4 film_texelfetch_as_YCoCg_opacity(sampler2D tx, ivec2 texel)
   /* Convert transmittance to opacity. */
   color.a = saturate(1.0 - color.a);
   /* Transform to YCoCg for accumulation. */
-  color.rgb = film_YCoCg_from_scene_linear(color.rgb);
+  color.rgb = colorspace_YCoCg_from_scene_linear(color.rgb);
   return color;
 }
 
@@ -220,7 +195,7 @@ vec2 film_pixel_history_motion_vector(ivec2 texel_sample)
   float min_depth = texelFetch(depth_tx, texel_sample, 0).x;
   ivec2 nearest_texel = texel_sample;
   for (int i = 0; i < 4; i++) {
-    ivec2 texel = clamp(texel_sample + corners[i], ivec2(0), textureSize(depth_tx, 0).xy);
+    ivec2 texel = clamp(texel_sample + corners[i], ivec2(0), textureSize(depth_tx, 0).xy - 1);
     float depth = texelFetch(depth_tx, texel, 0).x;
     if (min_depth > depth) {
       min_depth = depth;
@@ -455,7 +430,7 @@ void film_store_combined(
     // dst.weight = film_weight_load(texel_combined);
 
     color_dst = film_sample_catmull_rom(in_combined_tx, history_texel);
-    color_dst.rgb = film_YCoCg_from_scene_linear(color_dst.rgb);
+    color_dst.rgb = colorspace_YCoCg_from_scene_linear(color_dst.rgb);
 
     /* Get local color bounding box of source neighborhood. */
     vec4 min_color, max_color;
@@ -473,7 +448,7 @@ void film_store_combined(
   else {
     /* Everything is static. Use render accumulation. */
     color_dst = texelFetch(in_combined_tx, dst.texel, 0);
-    color_dst.rgb = film_YCoCg_from_scene_linear(color_dst.rgb);
+    color_dst.rgb = colorspace_YCoCg_from_scene_linear(color_dst.rgb);
 
     /* Luma weighted blend to avoid flickering. */
     weight_dst = film_luma_weight(color_dst.x) * dst.weight;
@@ -483,7 +458,7 @@ void film_store_combined(
   color = color_dst * weight_dst + color_src * weight_src;
   color /= weight_src + weight_dst;
 
-  color.rgb = film_scene_linear_from_YCoCg(color.rgb);
+  color.rgb = colorspace_scene_linear_from_YCoCg(color.rgb);
 
   /* Fix alpha not accumulating to 1 because of float imprecision. */
   if (color.a > 0.995) {

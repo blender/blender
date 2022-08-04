@@ -372,8 +372,6 @@ struct DepthOfFieldData {
   float scatter_color_threshold;
   float scatter_neighbor_max_color;
   int scatter_sprite_per_row;
-  /** Firefly removing factor. */
-  float denoise_factor;
   /** Number of side the bokeh shape has. */
   float bokeh_blades;
   /** Rotation of the bokeh shape. */
@@ -384,6 +382,9 @@ struct DepthOfFieldData {
   float coc_abs_max;
   /** Copy of camera type. */
   eCameraType camera_type;
+  /** Weights of spatial filtering in stabilize pass. Not array to avoid alignment restriction. */
+  float4 filter_samples_weight;
+  float filter_center_weight;
   /** Max number of sprite in the scatter pass for each ground. */
   int scatter_max_rect;
 

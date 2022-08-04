@@ -223,7 +223,7 @@ class RENDER_PT_motion_blur_curve(RenderButtonsPanel, Panel):
 class RENDER_PT_eevee_depth_of_field(RenderButtonsPanel, Panel):
     bl_label = "Depth of Field"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_EEVEE_NEXT'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -240,6 +240,33 @@ class RENDER_PT_eevee_depth_of_field(RenderButtonsPanel, Panel):
         col.prop(props, "bokeh_threshold")
         col.prop(props, "bokeh_neighbor_max")
         col.prop(props, "bokeh_denoise_fac")
+        col.prop(props, "use_bokeh_high_quality_slight_defocus")
+        col.prop(props, "use_bokeh_jittered")
+
+        col = layout.column()
+        col.active = props.use_bokeh_jittered
+        col.prop(props, "bokeh_overblur")
+
+
+class RENDER_PT_eevee_next_depth_of_field(RenderButtonsPanel, Panel):
+    bl_label = "Depth of Field"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        scene = context.scene
+        props = scene.eevee
+
+        col = layout.column()
+        col.prop(props, "bokeh_max_size")
+        col.prop(props, "bokeh_threshold")
+        col.prop(props, "bokeh_neighbor_max")
         col.prop(props, "use_bokeh_high_quality_slight_defocus")
         col.prop(props, "use_bokeh_jittered")
 
@@ -801,6 +828,7 @@ classes = (
     RENDER_PT_eevee_ambient_occlusion,
     RENDER_PT_eevee_bloom,
     RENDER_PT_eevee_depth_of_field,
+    RENDER_PT_eevee_next_depth_of_field,
     RENDER_PT_eevee_subsurface_scattering,
     RENDER_PT_eevee_screen_space_reflections,
     RENDER_PT_eevee_motion_blur,

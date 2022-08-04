@@ -29,6 +29,17 @@ class Instance;
 /** \name Depth of field
  * \{ */
 
+struct DepthOfFieldBuffer {
+  /**
+   * Per view history texture for stabilize pass.
+   * Swapped with stabilize_output_tx_ in order to reuse the previous history during DoF
+   * processing.
+   * Note this should be private as its inner working only concerns the Depth Of Field
+   * implementation. The view itself should not touch it.
+   */
+  Texture stabilize_history_tx_ = {"dof_taa"};
+};
+
 class DepthOfField {
  private:
   class Instance &inst_;
@@ -58,6 +69,9 @@ class DepthOfField {
   Texture reduced_color_tx_ = {"dof_reduced_color"};
 
   /** Stabilization (flicker attenuation) of Color and CoC output of the setup pass. */
+  TextureFromPool stabilize_output_tx_ = {"dof_taa"};
+  GPUTexture *stabilize_input_ = nullptr;
+  bool1 stabilize_valid_history_ = false;
   int3 dispatch_stabilize_size_ = int3(-1);
   DRWPass *stabilize_ps_ = nullptr;
 
@@ -152,7 +166,7 @@ class DepthOfField {
    * Will swap input and output texture if rendering happens. The actual output of this function
    * is in input_tx.
    */
-  void render(GPUTexture **input_tx, GPUTexture **output_tx);
+  void render(GPUTexture **input_tx, GPUTexture **output_tx, DepthOfFieldBuffer &dof_buffer);
 
   bool postfx_enabled() const
   {
@@ -172,6 +186,8 @@ class DepthOfField {
   void scatter_pass_sync();
   void hole_fill_pass_sync();
   void resolve_pass_sync();
+
+  void update_sample_table();
 };
 
 /** \} */

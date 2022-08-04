@@ -29,14 +29,18 @@ GPU_SHADER_CREATE_INFO(eevee_depth_of_field_setup)
 
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_stabilize)
     .do_static_compilation(true)
-    .local_group_size(DOF_DEFAULT_GROUP_SIZE, DOF_DEFAULT_GROUP_SIZE)
-    .additional_info("eevee_shared", "draw_view")
-    .uniform_buf(1, "DepthOfFieldData", "dof_buf")
-    .sampler(0, ImageType::DEPTH_2D, "coc_tx")
+    .local_group_size(DOF_STABILIZE_GROUP_SIZE, DOF_STABILIZE_GROUP_SIZE)
+    .additional_info("eevee_shared", "draw_view", "eevee_velocity_camera")
+    .uniform_buf(4, "DepthOfFieldData", "dof_buf")
+    .sampler(0, ImageType::FLOAT_2D, "coc_tx")
     .sampler(1, ImageType::FLOAT_2D, "color_tx")
-    // .sampler(2, ImageType::FLOAT_2D, "velocity_tx") /* TODO: TAA with reprojection. */
+    .sampler(2, ImageType::FLOAT_2D, "velocity_tx")
+    .sampler(3, ImageType::FLOAT_2D, "in_history_tx")
+    .sampler(4, ImageType::DEPTH_2D, "depth_tx")
+    .push_constant(Type::BOOL, "use_history")
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_color_img")
     .image(1, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_coc_img")
+    .image(2, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_history_img")
     .compute_source("eevee_depth_of_field_stabilize_comp.glsl");
 
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_downsample)
