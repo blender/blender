@@ -877,6 +877,16 @@ void DepsgraphRelationBuilder::build_object_modifiers(Object *object)
       &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_INIT);
   const OperationKey eval_key(&object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
 
+  const ComponentKey object_visibility_key(&object->id, NodeType::VISIBILITY);
+  const OperationKey modifier_visibility_key(
+      &object->id, NodeType::GEOMETRY, OperationCode::VISIBILITY);
+  add_relation(modifier_visibility_key,
+               object_visibility_key,
+               "modifier -> object visibility",
+               RELATION_NO_VISIBILITY_CHANGE);
+
+  add_relation(modifier_visibility_key, eval_key, "modifier visibility -> geometry eval");
+
   ModifierUpdateDepsgraphContext ctx = {};
   ctx.scene = scene_;
   ctx.object = object;

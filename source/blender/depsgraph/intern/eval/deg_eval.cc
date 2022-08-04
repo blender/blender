@@ -437,7 +437,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
 
   evaluate_graph_threaded_stage(&state, task_pool, EvaluationStage::COPY_ON_WRITE);
 
-  if (graph->has_animated_visibility) {
+  if (graph->has_animated_visibility || graph->need_update_nodes_visibility) {
     /* Update pending parents including only the ones which are affecting operations which are
      * affecting visibility. */
     state.need_update_pending_parents = true;

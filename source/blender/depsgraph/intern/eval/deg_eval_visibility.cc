@@ -8,6 +8,7 @@
 #include "intern/eval/deg_eval_visibility.h"
 
 #include "DNA_layer_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_assert.h"
@@ -44,6 +45,38 @@ void deg_evaluate_object_node_visibility(::Depsgraph *depsgraph, IDNode *id_node
     /* Tag dependency graph for changed visibility, so that it is updated on all dependencies prior
      * to a pass of an actual evaluation. */
     graph->need_update_nodes_visibility = true;
+  }
+}
+
+void deg_evaluate_object_modifiers_mode_node_visibility(::Depsgraph *depsgraph, IDNode *id_node)
+{
+  BLI_assert(GS(id_node->id_cow->name) == ID_OB);
+
+  Depsgraph *graph = reinterpret_cast<Depsgraph *>(depsgraph);
+  const Object *object = reinterpret_cast<const Object *>(id_node->id_cow);
+
+  DEG_debug_print_eval(depsgraph, __func__, object->id.name, &object->id);
+
+  if (BLI_listbase_is_empty(&object->modifiers)) {
+    return;
+  }
+
+  const ModifierMode modifier_mode = (graph->mode == DAG_EVAL_VIEWPORT) ? eModifierMode_Realtime :
+                                                                          eModifierMode_Render;
+
+  const ComponentNode *geometry_component = id_node->find_component(NodeType::GEOMETRY);
+  LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+    OperationNode *modifier_node = geometry_component->find_operation(OperationCode::MODIFIER,
+                                                                      modifier->name);
+
+    const bool modifier_enabled = modifier->mode & modifier_mode;
+    const int mute_flag = modifier_enabled ? 0 : DEPSOP_FLAG_MUTE;
+    if ((modifier_node->flag & DEPSOP_FLAG_MUTE) != mute_flag) {
+      modifier_node->flag &= ~DEPSOP_FLAG_MUTE;
+      modifier_node->flag |= mute_flag;
+
+      graph->need_update_nodes_visibility = true;
+    }
   }
 }
 
@@ -116,10 +149,30 @@ void deg_graph_flush_visibility_flags(Depsgraph *graph)
         OperationNode *op_from = reinterpret_cast<OperationNode *>(rel->from);
         ComponentNode *comp_from = op_from->owner;
 
-        const bool target_possibly_affects_visible_id = comp_to->possibly_affects_visible_id;
-        const bool target_affects_visible_id = comp_to->affects_visible_id;
-
         op_from->flag |= (op_to->flag & OperationFlag::DEPSOP_FLAG_AFFECTS_VISIBILITY);
+
+        if (rel->flag & RELATION_NO_VISIBILITY_CHANGE) {
+          continue;
+        }
+
+        const bool target_possibly_affects_visible_id = comp_to->possibly_affects_visible_id;
+
+        bool target_affects_visible_id = comp_to->affects_visible_id;
+
+        /* This is a bit arbitrary but the idea here is following:
+         *
+         *  - When another object is used by a disabled modifier we do not want that object to
+         *    be considered needed for evaluation.
+         *
+         *  - However, we do not want to take mute flag during visibility propagation within the
+         *    same object. Otherwise drivers and transform dependencies of the geometry component
+         *    entry component might not be properly handled.
+         *
+         * This code works fine for muting modifiers, but might need tweaks when mute is used for
+         * something else. */
+        if (comp_from != comp_to && (op_to->flag & DEPSOP_FLAG_MUTE)) {
+          target_affects_visible_id = false;
+        }
 
         /* Visibility component forces all components of the current ID to be considered as
          * affecting directly visible. */
