@@ -41,6 +41,45 @@ float dof_slight_focus_coc_tile_get(vec2 frag_coord)
   return uintBitsToFloat(shared_max_slight_focus_abs_coc);
 }
 
+vec3 dof_neighborhood_clamp(vec2 frag_coord, vec3 color, float center_coc, float weight)
+{
+  /* Stabilize color by clamping with the stable half res neighboorhood. */
+  vec3 neighbor_min, neighbor_max;
+  const vec2 corners[4] = vec2[4](vec2(-1, -1), vec2(1, -1), vec2(-1, 1), vec2(1, 1));
+  for (int i = 0; i < 4; i++) {
+    /**
+     * Visit the 4 half-res texels around (and containing) the fullres texel.
+     * Here a diagram of a fullscreen texel (f) in the bottom left corner of a half res texel.
+     * We sample the stable half-resolution texture at the 4 location denoted by (h).
+     * ┌───────┬───────┐
+     * │     h │     h │
+     * │       │       │
+     * │       │ f     │
+     * ├───────┼───────┤
+     * │     h │     h │
+     * │       │       │
+     * │       │       │
+     * └───────┴───────┘
+     */
+    vec2 uv_sample = ((frag_coord + corners[i]) * 0.5) / vec2(textureSize(stable_color_tx, 0));
+    /* Reminder: The content of this buffer is YCoCg + CoC. */
+    vec3 ycocg_sample = textureLod(stable_color_tx, uv_sample, 0.0).rgb;
+    neighbor_min = (i == 0) ? ycocg_sample : min(neighbor_min, ycocg_sample);
+    neighbor_max = (i == 0) ? ycocg_sample : max(neighbor_max, ycocg_sample);
+  }
+  /* Pad the bounds in the near in focus region to get back a bit of detail. */
+  float padding = 0.125 * saturate(1.0 - sqr(center_coc) / sqr(8.0));
+  neighbor_max += abs(neighbor_min) * padding;
+  neighbor_min -= abs(neighbor_min) * padding;
+  /* Progressively apply the clamp to avoid harsh transition. Also mask by weight. */
+  float fac = saturate(sqr(center_coc) * 4.0) * weight;
+  /* Clamp in YCoCg space to avoid too much color drift. */
+  color = colorspace_YCoCg_from_scene_linear(color);
+  color = mix(color, clamp(color, neighbor_min, neighbor_max), fac);
+  color = colorspace_scene_linear_from_YCoCg(color);
+  return color;
+}
+
 void main()
 {
   vec2 frag_coord = vec2(gl_GlobalInvocationID.xy) + 0.5;
@@ -94,11 +133,20 @@ void main()
   }
 
   if (!no_slight_focus_pass && prediction.do_slight_focus) {
-    dof_slight_focus_gather(
-        depth_tx, color_tx, bokeh_lut_tx, slight_focus_max_coc, layer_color, layer_weight);
+    float center_coc;
+    dof_slight_focus_gather(depth_tx,
+                            color_tx,
+                            bokeh_lut_tx,
+                            slight_focus_max_coc,
+                            layer_color,
+                            layer_weight,
+                            center_coc);
+
     /* Composite slight defocus. */
     out_color = out_color * (1.0 - layer_weight) + layer_color;
     weight = weight * (1.0 - layer_weight) + layer_weight;
+
+    out_color.rgb = dof_neighborhood_clamp(frag_coord, out_color.rgb, center_coc, layer_weight);
   }
 
   if (!no_focus_pass && prediction.do_focus) {

@@ -127,6 +127,7 @@ class DepthOfField {
   DRWPass *scatter_bg_ps_ = nullptr;
 
   /** Recombine the results and also perform a slight out of focus gather. */
+  GPUTexture *resolve_stable_color_tx_ = nullptr;
   int3 dispatch_resolve_size_ = int3(-1);
   DRWPass *resolve_ps_ = nullptr;
 

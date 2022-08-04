@@ -110,8 +110,9 @@ float dof_bilateral_weight(float reference_coc, float sample_coc)
 {
   /* NOTE: The difference between the cocs should be inside a abs() function,
    * but we follow UE4 implementation to improve how dithered transparency looks (see slide 19).
+   * Effectively bleed background into foreground.
    * Compared to dof_bilateral_coc_weights() this saturates as 2x the reference CoC. */
-  return saturate(1.0 - (reference_coc - sample_coc) / max(1.0, abs(reference_coc)));
+  return saturate(1.0 - (sample_coc - reference_coc) / max(1.0, abs(reference_coc)));
 }
 
 DofSample dof_spatial_filtering()
@@ -218,7 +219,7 @@ DofSample dof_sample_history(vec2 input_texel)
   vec2 uv = vec2(input_texel + 0.5) / textureSize(in_history_tx, 0);
   vec4 color = textureLod(in_history_tx, uv, 0.0);
 
-#elif 0 /* Catmull Rom interpolation. 5 Bilinear Taps. */
+#else /* Catmull Rom interpolation. 5 Bilinear Taps. */
   vec2 center_texel;
   vec2 inter_texel = modf(input_texel, center_texel);
   vec2 weights[4];
@@ -254,31 +255,22 @@ DofSample dof_sample_history(vec2 input_texel)
   return DofSample(color.xyzz, color.w);
 }
 
-/* 1D equivalent of line_aabb_clipping_dist(). */
-float dof_aabb_clipping_dist_coc(float origin, float direction, float aabb_min, float aabb_max)
-{
-  if (abs(direction) < 1e-5) {
-    return 0.0;
-  }
-  float nearest_plane = (direction > 0.0) ? aabb_min : aabb_max;
-  return (nearest_plane - origin) / direction;
-}
-
 /* Modulate the history color to avoid ghosting artifact. */
 DofSample dof_amend_history(DofNeighborhoodMinMax bbox, DofSample history, DofSample src)
 {
+#if 0
   /* Clip instead of clamping to avoid color accumulating in the AABB corners. */
-  DofSample clip_dir;
-  clip_dir.color = src.color - history.color;
-  clip_dir.coc = src.coc - history.coc;
+  vec3 clip_dir = src.color.rgb - history.color.rgb;
 
   float t = line_aabb_clipping_dist(
-      history.color.rgb, clip_dir.color.rgb, bbox.min.color.rgb, bbox.max.color.rgb);
-  history.color.rgb += clip_dir.color.rgb * saturate(t);
-
-  /* Clip CoC on its own to avoid interference with other chanels. */
-  float t_a = dof_aabb_clipping_dist_coc(history.coc, clip_dir.coc, bbox.min.coc, bbox.max.coc);
-  history.coc += clip_dir.coc * saturate(t_a);
+      history.color.rgb, clip_dir, bbox.min.color.rgb, bbox.max.color.rgb);
+  history.color.rgb += clip_dir * saturate(t);
+#else
+  /* More responsive. */
+  history.color = clamp(history.color, bbox.min.color, bbox.max.color);
+#endif
+  /* Clamp CoC to reduce convergence time. Otherwise the result is laggy. */
+  history.coc = clamp(history.coc, bbox.min.coc, bbox.max.coc);
 
   return history;
 }

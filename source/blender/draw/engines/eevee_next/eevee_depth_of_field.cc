@@ -470,6 +470,7 @@ void DepthOfField::resolve_pass_sync()
   DRW_shgroup_uniform_block(grp, "dof_buf", data_);
   DRW_shgroup_uniform_texture_ref_ex(grp, "depth_tx", &render_buffers.depth_tx, no_filter);
   DRW_shgroup_uniform_texture_ref_ex(grp, "color_tx", &input_color_tx_, no_filter);
+  DRW_shgroup_uniform_texture_ref_ex(grp, "stable_color_tx", &resolve_stable_color_tx_, no_filter);
   DRW_shgroup_uniform_texture_ref_ex(grp, "color_bg_tx", &color_bg_tx_.current(), with_filter);
   DRW_shgroup_uniform_texture_ref_ex(grp, "color_fg_tx", &color_fg_tx_.current(), with_filter);
   DRW_shgroup_uniform_image_ref(grp, "in_tiles_fg_img", &tiles_fg_tx_.current());
@@ -593,7 +594,7 @@ void DepthOfField::render(GPUTexture **input_tx,
     }
     {
       setup_color_tx_.acquire(half_res, GPU_RGBA16F);
-      setup_coc_tx_.acquire(half_res, GPU_RG16F);
+      setup_coc_tx_.acquire(half_res, GPU_R16F);
 
       DRW_draw_pass(setup_ps_);
     }
@@ -740,6 +741,8 @@ void DepthOfField::render(GPUTexture **input_tx,
   }
   {
     DRW_stats_group_start("Resolve");
+
+    resolve_stable_color_tx_ = dof_buffer.stabilize_history_tx_;
 
     DRW_draw_pass(resolve_ps_);
 

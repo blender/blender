@@ -24,7 +24,7 @@ GPU_SHADER_CREATE_INFO(eevee_depth_of_field_setup)
     .sampler(0, ImageType::FLOAT_2D, "color_tx")
     .sampler(1, ImageType::DEPTH_2D, "depth_tx")
     .image(0, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_color_img")
-    .image(1, GPU_RG16F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_coc_img")
+    .image(1, GPU_R16F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_coc_img")
     .compute_source("eevee_depth_of_field_setup_comp.glsl");
 
 GPU_SHADER_CREATE_INFO(eevee_depth_of_field_stabilize)
@@ -243,6 +243,7 @@ GPU_SHADER_CREATE_INFO(eevee_depth_of_field_resolve)
     .sampler(7, ImageType::FLOAT_2D, "weight_bg_tx")
     .sampler(8, ImageType::FLOAT_2D, "weight_fg_tx")
     .sampler(9, ImageType::FLOAT_2D, "weight_hole_fill_tx")
+    .sampler(10, ImageType::FLOAT_2D, "stable_color_tx")
     .image(2, GPU_RGBA16F, Qualifier::WRITE, ImageType::FLOAT_2D, "out_color_img")
     .compute_source("eevee_depth_of_field_resolve_comp.glsl");
 

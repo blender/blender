@@ -6,6 +6,7 @@
  **/
 
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_colorspace_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_depth_of_field_lib.glsl)
 
@@ -339,10 +340,10 @@ void dof_gather_accumulate_resolve(int total_sample_count,
     out_weight = 0.0;
   }
   /* Same thing for alpha channel. */
-  if (out_col.a > 0.99) {
+  if (out_col.a > 0.993) {
     out_col.a = 1.0;
   }
-  else if (out_col.a < 0.01) {
+  else if (out_col.a < 0.003) {
     out_col.a = 0.0;
   }
 }
@@ -573,7 +574,8 @@ void dof_slight_focus_gather(sampler2D depth_tx,
                              sampler2D bkh_lut_tx, /* Renamed because of ugly macro job. */
                              float radius,
                              out vec4 out_color,
-                             out float out_weight)
+                             out float out_weight,
+                             out float out_center_coc)
 {
   vec2 frag_coord = vec2(gl_GlobalInvocationID.xy) + 0.5;
   float noise_offset = sampling_rng_1D_get(SAMPLING_LENS_U);
@@ -650,6 +652,8 @@ void dof_slight_focus_gather(sampler2D depth_tx,
   center_data.coc = clamp(center_data.coc, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);
   center_data.dist = 0.0;
 
+  out_center_coc = center_data.coc;
+
   /* Slide 38. */
   float bordering_radius = 0.5;
 
@@ -666,7 +670,7 @@ void dof_slight_focus_gather(sampler2D depth_tx,
   dof_gather_accumulate_resolve(total_sample_count, bg_accum, bg_col, bg_weight, unused_occlusion);
   dof_gather_accumulate_resolve(total_sample_count, fg_accum, fg_col, fg_weight, unused_occlusion);
 
-  /* Fix weighting issues on perfectly focus > slight focus transitionning areas. */
+  /* Fix weighting issues on perfectly focus to slight focus transitionning areas. */
   if (abs(center_data.coc) < 0.5) {
     bg_col = center_data.color;
     bg_weight = 1.0;
