@@ -75,6 +75,16 @@ class AbstractTreeElement {
   virtual std::optional<BIFIconID> getIcon() const;
 
   /**
+   * Debugging helper: Print effective path of this tree element, constructed out of the
+   * #TreeElement.name of each element. E.g.:
+   * - Lorem
+   *   - ipsum dolor sit
+   *     - amet
+   * will print: Lorem/ipsum dolor sit/amet.
+   */
+  void print_path();
+
+  /**
    * Expand this tree element if it is displayed for the first time (as identified by its
    * tree-store element).
    *

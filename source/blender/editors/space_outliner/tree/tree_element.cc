@@ -4,6 +4,9 @@
  * \ingroup spoutliner
  */
 
+#include <string>
+#include <string_view>
+
 #include "DNA_anim_types.h"
 #include "DNA_listBase.h"
 #include "DNA_space_types.h"
@@ -109,6 +112,17 @@ StringRefNull AbstractTreeElement::getWarning() const
 std::optional<BIFIconID> AbstractTreeElement::getIcon() const
 {
   return {};
+}
+
+void AbstractTreeElement::print_path()
+{
+  std::string path = legacy_te_.name;
+
+  for (TreeElement *parent = legacy_te_.parent; parent; parent = parent->parent) {
+    path = parent->name + std::string_view("/") + path;
+  }
+
+  std::cout << path << std::endl;
 }
 
 void AbstractTreeElement::uncollapse_by_default(TreeElement *legacy_te)
