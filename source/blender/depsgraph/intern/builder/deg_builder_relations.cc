@@ -241,11 +241,6 @@ DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
 
 TimeSourceNode *DepsgraphRelationBuilder::get_node(const TimeSourceKey &key) const
 {
-  if (key.id) {
-    /* XXX TODO */
-    return nullptr;
-  }
-
   return graph_->time_source;
 }
 
@@ -1977,7 +1972,6 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 {
-  TimeSourceKey time_src_key;
   OperationKey obdata_ubereval_key(&object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
   OperationKey eval_init_key(
       &object->id, NodeType::PARTICLE_SYSTEM, OperationCode::PARTICLE_SYSTEM_INIT);
@@ -3092,7 +3086,6 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
     return;
   }
 
-  TimeSourceKey time_source_key;
   OperationKey copy_on_write_key(id_orig, NodeType::COPY_ON_WRITE, OperationCode::COPY_ON_WRITE);
   /* XXX: This is a quick hack to make Alt-A to work. */
   // add_relation(time_source_key, copy_on_write_key, "Fluxgate capacitor hack");

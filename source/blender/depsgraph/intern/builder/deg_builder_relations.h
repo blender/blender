@@ -85,12 +85,9 @@ struct RootPChanMap;
 struct TimeSourceNode;
 
 struct TimeSourceKey {
-  TimeSourceKey();
-  TimeSourceKey(ID *id);
+  TimeSourceKey() = default;
 
   string identifier() const;
-
-  ID *id;
 };
 
 struct ComponentKey {

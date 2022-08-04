@@ -14,14 +14,6 @@ namespace blender::deg {
 ////////////////////////////////////////////////////////////////////////////////
 /* Time source. */
 
-TimeSourceKey::TimeSourceKey() : id(nullptr)
-{
-}
-
-TimeSourceKey::TimeSourceKey(ID *id) : id(id)
-{
-}
-
 string TimeSourceKey::identifier() const
 {
   return string("TimeSourceKey");
