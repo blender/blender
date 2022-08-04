@@ -426,4 +426,8 @@ const char *MEM_lockfree_name_ptr(void *vmemh)
 
   return "MEM_lockfree_name_ptr(NULL)";
 }
+
+void MEM_lockfree_name_ptr_set(void *UNUSED(vmemh), const char *UNUSED(str))
+{
+}
 #endif /* NDEBUG */
