@@ -817,9 +817,12 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     /* idv is the layer itself */
     id = TREESTORE(parent)->id;
   }
+  else if (ELEM(type, TSE_GENERIC_LABEL)) {
+    id = nullptr;
+  }
 
   /* exceptions */
-  if (type == TSE_ID_BASE) {
+  if (ELEM(type, TSE_ID_BASE, TSE_GENERIC_LABEL)) {
     /* pass */
   }
   else if (id == nullptr) {
@@ -869,7 +872,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
     /* pass */
   }
-  else if (type == TSE_ID_BASE) {
+  else if (ELEM(type, TSE_ID_BASE, TSE_GENERIC_LABEL)) {
     /* pass */
   }
   else if (type == TSE_SOME_ID) {
@@ -895,10 +898,13 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
     te->idcode = GS(id->name);
   }
 
-  if (expand && te->abstract_element && te->abstract_element->isExpandValid()) {
+  if (!expand) {
+    /* Pass */
+  }
+  else if (te->abstract_element && te->abstract_element->isExpandValid()) {
     tree_element_expand(*te->abstract_element, *space_outliner);
   }
-  else if (expand && (type == TSE_SOME_ID)) {
+  else if (type == TSE_SOME_ID) {
     /* ID types not (fully) ported to new design yet. */
     if (te->abstract_element->expandPoll(*space_outliner)) {
       outliner_add_id_contents(space_outliner, te, tselem, id);
@@ -916,7 +922,8 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_RNA_ARRAY_ELEM,
                 TSE_SEQUENCE,
                 TSE_SEQ_STRIP,
-                TSE_SEQUENCE_DUP)) {
+                TSE_SEQUENCE_DUP,
+                TSE_GENERIC_LABEL)) {
     BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
   }
 

@@ -2825,10 +2825,20 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
     data.icon = tree_element_get_icon_from_id(tselem->id);
   }
 
+  if (!te->abstract_element) {
+    /* Pass */
+  }
+  else if (auto icon = te->abstract_element->getIcon()) {
+    data.icon = *icon;
+  }
+
   return data;
 }
 
-static void tselem_draw_icon(uiBlock *block,
+/**
+ * \return Return true if the element has an icon that was drawn, false if it doesn't have an icon.
+ */
+static bool tselem_draw_icon(uiBlock *block,
                              int xmax,
                              float x,
                              float y,
@@ -2839,7 +2849,7 @@ static void tselem_draw_icon(uiBlock *block,
 {
   TreeElementIcon data = tree_element_get_icon(tselem, te);
   if (data.icon == 0) {
-    return;
+    return false;
   }
 
   const bool is_collection = outliner_is_collection_tree_element(te);
@@ -2863,7 +2873,7 @@ static void tselem_draw_icon(uiBlock *block,
                         0.0f,
                         btheme->collection_color[collection->color_tag].color,
                         true);
-        return;
+        return true;
       }
     }
 
@@ -2895,6 +2905,8 @@ static void tselem_draw_icon(uiBlock *block,
                  alpha,
                  (data.drag_id && ID_IS_LINKED(data.drag_id)) ? data.drag_id->lib->filepath : "");
   }
+
+  return true;
 }
 
 /**
@@ -3314,15 +3326,15 @@ static void outliner_draw_tree_element(bContext *C,
     offsx += UI_UNIT_X;
 
     /* Data-type icon. */
-    if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE))) {
-      tselem_draw_icon(block,
-                       xmax,
-                       (float)startx + offsx,
-                       (float)*starty,
-                       tselem,
-                       te,
-                       (tselem->flag & TSE_HIGHLIGHTED_ICON) ? alpha_fac + 0.5f : alpha_fac,
-                       true);
+    if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE)) &&
+        tselem_draw_icon(block,
+                         xmax,
+                         (float)startx + offsx,
+                         (float)*starty,
+                         tselem,
+                         te,
+                         (tselem->flag & TSE_HIGHLIGHTED_ICON) ? alpha_fac + 0.5f : alpha_fac,
+                         true)) {
       offsx += UI_UNIT_X + 4 * ufac;
     }
     else {
