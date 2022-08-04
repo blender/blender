@@ -364,14 +364,7 @@ bool BKE_image_remove_tile(struct Image *ima, struct ImageTile *tile);
 void BKE_image_reassign_tile(struct Image *ima, struct ImageTile *tile, int new_tile_number);
 void BKE_image_sort_tiles(struct Image *ima);
 
-bool BKE_image_fill_tile(struct Image *ima,
-                         struct ImageTile *tile,
-                         int width,
-                         int height,
-                         const float color[4],
-                         int gen_type,
-                         int planes,
-                         bool is_float);
+bool BKE_image_fill_tile(struct Image *ima, struct ImageTile *tile);
 
 typedef enum {
   UDIM_TILE_FORMAT_NONE = 0,

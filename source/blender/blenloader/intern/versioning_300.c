@@ -3318,5 +3318,19 @@ void blo_do_versions_300(FileData *fd, Library *UNUSED(lib), Main *bmain)
    */
   {
     /* Keep this block, even when empty. */
+
+    /* Image generation information transfered to tiles. */
+    if (!DNA_struct_elem_find(fd->filesdna, "ImageTile", "int", "gen_x")) {
+      for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
+        for (ImageTile *tile = ima->tiles.first; tile; tile = tile->next) {
+          tile->gen_x = ima->gen_x;
+          tile->gen_y = ima->gen_y;
+          tile->gen_type = ima->gen_type;
+          tile->gen_flag = ima->gen_flag;
+          tile->gen_depth = ima->gen_depth;
+          copy_v4_v4(tile->gen_color, ima->gen_color);
+        }
+      }
+    }
   }
 }
