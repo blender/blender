@@ -2263,12 +2263,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
     // add geometry collider relations
   }
   /* Make sure uber update is the last in the dependencies. */
-  if (object->type != OB_ARMATURE) {
-    /* Armatures does no longer require uber node. */
-    OperationKey obdata_ubereval_key(
-        &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL);
-    add_relation(geom_init_key, obdata_ubereval_key, "Object Geometry UberEval");
-  }
+  add_relation(geom_init_key, obdata_ubereval_key, "Object Geometry UberEval");
   if (object->type == OB_MBALL) {
     Object *mom = BKE_mball_basis_find(scene_, object);
     ComponentKey mom_geom_key(&mom->id, NodeType::GEOMETRY);
