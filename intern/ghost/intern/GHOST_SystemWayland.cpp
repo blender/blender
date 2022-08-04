@@ -1139,6 +1139,7 @@ static void data_device_handle_enter(void *data,
   input_t *input = static_cast<input_t *>(data);
   std::lock_guard lock{input->data_offer_dnd_mutex};
 
+  delete input->data_offer_dnd;
   input->data_offer_dnd = static_cast<data_offer_t *>(wl_data_offer_get_user_data(id));
   data_offer_t *data_offer = input->data_offer_dnd;
 
