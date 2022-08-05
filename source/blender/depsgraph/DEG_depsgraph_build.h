@@ -162,7 +162,7 @@ void DEG_add_generic_id_relation(struct DepsNodeHandle *node_handle,
  * have transformation for the modifier, taking into account possible simulation solvers.
  */
 void DEG_add_depends_on_transform_relation(struct DepsNodeHandle *node_handle,
-                                            const char *description);
+                                           const char *description);
 
 /**
  * Adds relations from the given component of a given object to the given node

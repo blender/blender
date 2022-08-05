@@ -582,7 +582,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   mat4_to_size(scale, active_object->obmat);
   invert_v3(scale);
   size_to_mat4(scale_mat, scale);
-  
+
   mul_m4_m4_pre(cd->text_mat, scale_mat);
 
   /* Write the text position into the matrix. */
