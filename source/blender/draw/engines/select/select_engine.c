@@ -201,7 +201,7 @@ static void select_cache_populate(void *vedata, Object *ob)
 
   if (!e_data.context.is_dirty && sel_data && sel_data->is_drawn) {
     /* The object indices have already been drawn. Fill depth pass.
-     * Opti: Most of the time this depth pass is not used. */
+     * Optimization: Most of the time this depth pass is not used. */
     struct Mesh *me = ob->data;
     if (e_data.context.select_mode & SCE_SELECT_FACE) {
       struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
