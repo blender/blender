@@ -239,7 +239,7 @@ DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
 {
 }
 
-TimeSourceNode *DepsgraphRelationBuilder::get_node(const TimeSourceKey &key) const
+TimeSourceNode *DepsgraphRelationBuilder::get_node(const TimeSourceKey & /*key*/) const
 {
   return graph_->time_source;
 }
