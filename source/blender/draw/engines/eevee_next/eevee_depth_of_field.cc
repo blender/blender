@@ -142,7 +142,7 @@ void DepthOfField::sync()
   }
 
   /* Disable post fx if result wouldn't be noticeable. */
-  if (fx_max_coc_ < 0.5f) {
+  if (fx_max_coc_ <= 0.5f) {
     fx_radius = 0.0f;
   }
 

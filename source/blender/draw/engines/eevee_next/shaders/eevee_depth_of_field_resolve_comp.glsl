@@ -29,6 +29,7 @@ float dof_slight_focus_coc_tile_get(vec2 frag_coord)
     vec2 sample_uv = (frag_coord + quad_offsets[i] * 2.0 * dof_max_slight_focus_radius) /
                      vec2(textureSize(color_tx, 0));
     float coc = dof_coc_from_depth(dof_buf, sample_uv, textureLod(depth_tx, sample_uv, 0.0).r);
+    coc = clamp(coc, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);
     if (abs(coc) < dof_max_slight_focus_radius) {
       local_abs_max = max(local_abs_max, abs(coc));
     }
@@ -94,7 +95,7 @@ void main()
   float slight_focus_max_coc = 0.0;
   if (prediction.do_slight_focus) {
     slight_focus_max_coc = dof_slight_focus_coc_tile_get(frag_coord);
-    prediction.do_slight_focus = slight_focus_max_coc > 0.5;
+    prediction.do_slight_focus = slight_focus_max_coc >= 0.5;
     if (prediction.do_slight_focus) {
       prediction.do_focus = false;
     }
