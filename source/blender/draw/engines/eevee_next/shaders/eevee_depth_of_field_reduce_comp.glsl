@@ -84,7 +84,7 @@ void main()
   uvec2 texel_local = gl_LocalInvocationID.xy;
   /* Increase readablility. */
 #define LOCAL_INDEX texel_local.y][texel_local.x
-#define LOCAL_OFFSET(x_, y_) texel_local.y + y_][texel_local.x + x_
+#define LOCAL_OFFSET(x_, y_) texel_local.y + (y_)][texel_local.x + (x_)
 
   /* Load level 0 into cache. */
   color_cache[LOCAL_INDEX] = imageLoad(inout_color_lod0_img, texel);
@@ -203,20 +203,21 @@ void main()
   /* Recursive downsample. */
   for (uint i = 1u; i < DOF_MIP_COUNT; i++) {
     barrier();
-    if (all(lessThan(gl_LocalInvocationID.xy, uvec2(1u << (DOF_MIP_COUNT - 1u - i))))) {
-      uvec2 texel_local = gl_LocalInvocationID.xy << i;
+    uint mask = ~(~0u << i);
+    if (all(equal(gl_LocalInvocationID.xy & mask, uvec2(0)))) {
+      uint ofs = 1u << (i - 1u);
 
       /* TODO(fclem): Could use wave shuffle intrinsics to avoid LDS as suggested by the paper. */
       vec4 coc4;
-      coc4.x = coc_cache[LOCAL_OFFSET(0, 1)];
-      coc4.y = coc_cache[LOCAL_OFFSET(1, 1)];
-      coc4.z = coc_cache[LOCAL_OFFSET(1, 0)];
+      coc4.x = coc_cache[LOCAL_OFFSET(0, ofs)];
+      coc4.y = coc_cache[LOCAL_OFFSET(ofs, ofs)];
+      coc4.z = coc_cache[LOCAL_OFFSET(ofs, 0)];
       coc4.w = coc_cache[LOCAL_OFFSET(0, 0)];
 
       vec4 colors[4];
-      colors[0] = color_cache[LOCAL_OFFSET(0, 1)];
-      colors[1] = color_cache[LOCAL_OFFSET(1, 1)];
-      colors[2] = color_cache[LOCAL_OFFSET(1, 0)];
+      colors[0] = color_cache[LOCAL_OFFSET(0, ofs)];
+      colors[1] = color_cache[LOCAL_OFFSET(ofs, ofs)];
+      colors[2] = color_cache[LOCAL_OFFSET(ofs, 0)];
       colors[3] = color_cache[LOCAL_OFFSET(0, 0)];
 
       vec4 weights = dof_bilateral_coc_weights(coc4);
@@ -227,8 +228,7 @@ void main()
       color_cache[LOCAL_INDEX] = weighted_sum_array(colors, weights);
       coc_cache[LOCAL_INDEX] = dot(coc4, weights);
 
-      ivec2 texel = ivec2(gl_WorkGroupID.xy * (gl_WorkGroupSize.xy >> i) +
-                          gl_LocalInvocationID.xy);
+      ivec2 texel = ivec2(gl_GlobalInvocationID.xy >> i);
 
       if (i == 1) {
         imageStore(out_color_lod1_img, texel, color_cache[LOCAL_INDEX]);
